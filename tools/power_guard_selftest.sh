@@ -85,6 +85,7 @@ sh "$guard" run
 assert_stock
 [ "$(wc -l < /tmp/reboots)" -eq 1 ]
 grep -q 'WAN health deadline expired' "$BASE/guard.log"
+grep -q 'uptime=300 WAN health deadline expired' "$BASE/guard.log"
 echo 'PASS: WAN failure restores all nine next-boot paths and preserves evidence/configuration'
 
 reset_boot

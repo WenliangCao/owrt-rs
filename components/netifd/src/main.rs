@@ -1421,44 +1421,10 @@ impl Netifd {
             }
         }
 
-        // `set_device_state(dev, false)` brings a device down when nothing is
-        // using it. A device named by a config section that never came up is
-        // exactly that case, and leaving it up would be a visible difference.
-        for ic in &cfgs {
-            // An interface still setting up is using its device: taking it
-            // down here left udhcpc with no link and the interface stuck in
-            // SETUP until the lease attempt timed out.
-            let in_use = self
-                .iface_index(&ic.name)
-                .map(|i| self.interfaces[i].state != State::Down)
-                .unwrap_or(false);
-            if in_use {
-                continue;
-            }
-            let Some(dev) = &ic.device else { continue };
-            // never touch a device another interface is using
-            if cfgs.iter().any(|o| {
-                o.device.as_deref() == Some(dev.as_str())
-                    && self
-                        .iface_index(&o.name)
-                        .map(|i| self.interfaces[i].state != State::Down)
-                        .unwrap_or(false)
-            }) {
-                continue;
-            }
-            // nor a bridge member, which the bridge itself claimed
-            if self.cfg.devices.iter().any(|d| d.ports.iter().any(|p| p == dev)) {
-                continue;
-            }
-            if let Ok(idx) = self.sys.if_index(dev) {
-                if idx != 0 {
-                    let _ = idx;
-                    // never claimed, so `system_if_clear_state` already left
-                    // it down; releasing an unclaimed device is a no-op
-                    self.device_release(dev);
-                }
-            }
-        }
+        // Like C's interface_start_pending, retain the claims made above.
+        // A DHCP interface remains Down while waiting for carrier; releasing
+        // its device here would disable the port and prevent a later link-up.
+        // Explicit teardown releases ownership through iface_unclaim().
         self.rescan_devices();
     }
 
@@ -3246,13 +3212,17 @@ impl Netifd {
                 continue;
             }
             logging::log!(Debug, "Remove interface '{name}'");
-            // Exactly one ifdown. `mark_interface_down` flushes the state,
-            // releases the claims and emits a single IFEV_DOWN; adding
+            // Exactly one ifdown. `mark_interface_down` flushes the state
+            // and emits a single IFEV_DOWN; adding
             // `set_down` first emitted a second one, and skipping both
             // emitted none. The C emits one.
             self.mark_interface_down(&name);
+            // interface_cleanup_state removes main_dev even when autostart
+            // kept its claim while the protocol was Down awaiting carrier.
+            self.iface_unclaim(&name, false);
             self.interfaces.retain(|i| i.name != name);
             self.cfg.interfaces.retain(|c| c.name != name);
+            self.free_unused_devices();
             if let Err(e) = self.objects.remove_interface(&mut self.conn, &name) {
                 logging::log!(Warning, "cannot unregister {name}: {e}");
             }

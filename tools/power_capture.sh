@@ -1,5 +1,5 @@
 #!/bin/sh
-# Persistent, bounded captures. Never rotate or delete earlier boot evidence.
+# Persistent, bounded captures. Completed boots are losslessly compressed.
 set -eu
 umask 077
 BASE=/root/owrt-power-test
@@ -11,6 +11,7 @@ case "${1:-}" in
     start)
         mkdir -p "$OUT"
         mkdir /tmp/owrt-power-capture-lock 2>/dev/null || exit 0
+        /bin/sh "$BASE/power_archive.sh" "$BASE" "$boot" > "$OUT/archive.log" 2>&1 || true
         du_kib=$(du -sk "$BASE/boots" | awk '{print $1}')
         free_kib=$(df -k /overlay | awk 'NR==2 {print $4}')
         # Reserve 3.5 MiB for this boot's bounded files before admission.

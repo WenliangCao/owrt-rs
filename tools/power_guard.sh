@@ -98,11 +98,11 @@ case "${1:-}" in
                     accepted=0
                     bad_since=$(uptime_seconds)
                     put unhealthy-boots 1
-                    record 'WAN health lost; 600-second recovery window started'
+                    record 'WAN health lost; 300-second recovery window started'
                 fi
             fi
             now=$(uptime_seconds)
-            if [ "$accepted" -eq 0 ] && [ $((now - bad_since)) -ge 600 ]; then
+            if [ "$accepted" -eq 0 ] && [ $((now - bad_since)) -ge 300 ]; then
                 record 'WAN health deadline expired'
                 restore
                 exit 0
