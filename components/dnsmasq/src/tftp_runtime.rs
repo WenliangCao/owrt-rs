@@ -784,7 +784,8 @@ mod tests {
     fn window_does_not_complete_on_ack_before_final_block() {
         let mut runtime = runtime(&[b'x'; 512]);
         let mut request = rrq(b"boot.bin", b"octet");
-        request.extend_from_slice(b"windowsize\04\0");
+        request.extend_from_slice(b"windowsize\0");
+        request.extend_from_slice(b"4\0");
         let oack = runtime.handle_datagram(peer(1000), &request, 1).unwrap();
         assert!(matches!(
             oack.first(),
