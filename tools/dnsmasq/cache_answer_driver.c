@@ -10,6 +10,9 @@ int main(int argc, char **argv)
 {
   rand_init();
   read_opts(argc, argv, "cache-answer-oracle");
+  /* This harness is the cache-owning process, never a TCP child. The real
+   * dnsmasq main initializes this before extracting any upstream answer. */
+  daemon->pipe_to_parent = -1;
   daemon->packet_buff_sz = 65536 + MAXDNAME + RRFIXEDSZ;
   daemon->packet = safe_malloc(daemon->packet_buff_sz);
   cache_init();

@@ -85,7 +85,7 @@ fixed address order. Normal lookup now uses the actual configuration for
 direct records and CNAME terminal RRsets. Record order remains part of the
 differential comparison, rather than being sorted away.
 
-`private/dnsmasq-rewrite/cache-answer-20260930/selection-01/summary.json` records
+`private/dnsmasq-rewrite/cache-answer-20260930/selection-final-02/summary.json` records
 **205 commands, 149 queries (80 hits / 69 misses), 0 mismatches**. The prior
 CNAME/negative/long-name corpus remains included. Three additional ordinary
 regressions cover record rotation, SOA type selection and NXDOMAIN qtypes;
@@ -98,9 +98,37 @@ Its positive/SOA path was promising, but
 CNAME→SRV NODATA with `neg-ttl` and no SOA. In the exact source,
 `rfc1035.c:1173–1191` assigns `addr.rrdata.rrtype` only when an SOA exists;
 `cache.c:834–835` then copies the complete `addr` into a generic negative
-entry. This is a source-level uninitialized-field finding, pending a dynamic
-checker. The C oracle misses the later SRV query while retaining an answerable
+entry. Valgrind confirmation is recorded below. The C oracle misses the later SRV query while retaining an answerable
 CNAME; assigning arbitrary bytes to reproduce that behavior is not a Rust
 contract. Candidate sources, patch, input and output remain in the same private
 directory. SRV insertion, PTR reverse caching and `cache-rr` configuration stay
 open and none is counted as equivalent or accepted.
+
+### Exact-C uninitialized-read confirmation
+
+`tools/dnsmasq/cache_uninit_probe.py` runs the linked, unmodified C objects
+under Valgrind 3.22.0. Three defined controls (positive SRV, NXDOMAIN without
+SOA, NODATA with SOA) each exit 0 with zero checker errors. NODATA without SOA
+exits 99 with one checker error: the condition at `answer_request`,
+`rfc1035.c:2294`, depends on an uninitialized value originating in the
+`extract_addresses` stack frame at line 771. All four sequences retain the
+CNAME response, and every output count is checked. The result confirms a
+reference undefined read; it is not a passing Rust equivalence test or a claim
+of exploitability, production exposure, leaks or performance impact.
+
+Complete evidence is
+`private/dnsmasq-rewrite/cache-answer-20260930/uninit-final-01/`, including four
+generated inputs, outputs, checker logs, oracle hashes and `summary.json`.
+The reproduction runs with `--oracle <binary> --identity <identity.json>
+--config <cache.conf> --output <new private directory>` on the Linux build
+host. The three controls calibrate that the checker is not merely reporting
+ordinary startup or generic positive-path errors.
+
+This check also exposed a harness initialization omission: the cache oracle
+had not copied `dnsmasq.c:126`'s `pipe_to_parent=-1`, so it attempted child-cache
+IPC on stdin. The driver now initializes the cache-owner role explicitly.
+The complete 205-command cache selection differential was rerun against this
+corrected oracle (`build-02`, ELF SHA256
+`fe1285f711b36c2306f25a9f01a5d7721bd2c58471c6ead1a733b77b5b9f7c8c`)
+with zero mismatches. Earlier outputs are retained as diagnostic history;
+`selection-final-02` supersedes their caller-plumbing evidence.
