@@ -675,7 +675,7 @@ fn poll_once(fds: &mut [PollFd], timeout: i32) -> io::Result<usize> {
 mod tests {
     use super::*;
     use crate::dns::forward::{Options, Server, ServerGroup};
-    use crate::dns::wire::{Header, Name, PacketWriter, Section};
+    use crate::dns::wire::{Header, Message, Name, PacketWriter, Section};
     use std::sync::mpsc;
     use std::thread;
 
@@ -785,6 +785,49 @@ mod tests {
         let reply = event.result.unwrap();
         assert_eq!(Header::parse(&reply.packet).unwrap().answers, 1);
         assert_eq!(reply.server, ServerId(1));
+        assert_eq!(transport.pending_count(), 0);
+        assert_eq!(transport.socket_count(), 0);
+        thread.join().unwrap();
+    }
+
+    #[test]
+    fn ignored_reply_stays_pending_until_a_later_upstream_reply() {
+        let server = UdpSocket::bind("127.0.0.1:0").unwrap();
+        let address = server.local_addr().unwrap();
+        let thread = thread::spawn(move || {
+            let mut input = [0; 2048];
+            let (length, peer) = server.recv_from(&mut input).unwrap();
+            server
+                .send_to(&response(&input[..length], 0x8180, true), peer)
+                .unwrap();
+            thread::sleep(Duration::from_millis(60));
+            server
+                .send_to(&response(&input[..length], 0x8180, false), peer)
+                .unwrap();
+        });
+        let mut transport = transport(
+            group(&[address], false),
+            Options::default(),
+            Duration::from_secs(1),
+        );
+        let submission = transport
+            .start_udp(&query(), client(), GroupId(1), Scope::Shared)
+            .unwrap();
+        let ignored = transport
+            .poll_with_filter(Duration::from_millis(20), |packet| {
+                Message::parse(packet)
+                    .ok()
+                    .is_some_and(|message| message.records(Section::Answer).next().is_some())
+            })
+            .unwrap();
+        assert!(ignored.is_empty());
+        assert_eq!(transport.pending_count(), 1);
+        let events = transport
+            .poll_with_filter(Duration::from_millis(200), |_| false)
+            .unwrap();
+        assert_eq!(events.len(), 1);
+        assert_eq!(events[0].id, submission.id);
+        assert!(events[0].result.is_ok());
         assert_eq!(transport.pending_count(), 0);
         assert_eq!(transport.socket_count(), 0);
         thread.join().unwrap();
