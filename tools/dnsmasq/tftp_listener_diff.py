@@ -56,6 +56,12 @@ def run_service(kind, binary, ip, out):
     fixture.chmod(0o755)
     (fixture / "boot.bin").write_bytes(CONTENT)
     (fixture / "boot.bin").chmod(0o644)
+    (fixture / "private.bin").write_bytes(b"private")
+    (fixture / "private.bin").chmod(0o600)
+    (fixture / "directory").mkdir(exist_ok=True)
+    (fixture / "directory").chmod(0o755)
+    (fixture / "mutable.bin").write_bytes(b"x" * 20)
+    (fixture / "mutable.bin").chmod(0o644)
     family = socket.AF_INET6 if ":" in ip else socket.AF_INET
     listen = (ip, 69)
     label = f"{kind}-{'v6' if family == socket.AF_INET6 else 'v4'}"
@@ -115,6 +121,29 @@ def run_service(kind, binary, ip, out):
             assert tids[0] != tids[1]
             normalized["distinct_transfer_tids"] = True
 
+            # A failed new request from an existing peer uses a temporary
+            # socket and leaves that peer's original transfer untouched.
+            active_fds = fd_count(process.pid)
+            error_requests = [("missing", b"\0\1missing\0octet\0", 1),
+                              ("permission", b"\0\1private.bin\0octet\0", 2),
+                              ("not_directory", b"\0\1boot.bin/child\0octet\0", 0),
+                              ("directory_read", b"\0\1directory\0octet\0", 0),
+                              ("malformed", b"\0\1\0octet\0", 4),
+                              ("wrq", b"\0\2boot.bin\0octet\0", 4),
+                              ("traversal", b"\0\1../escape\0octet\0", 2)]
+            for name, request, code in error_requests:
+                first.sendto(request, listen)
+                reply, source = receive(first, f"request_error_{name}")
+                assert reply[:4] == bytes([0, 5, 0, code]), name
+                assert source != tids[0], name
+                normalized[f"request_error_{name}"]["temporary_tid"] = True
+                deadline = time.monotonic() + 2
+                while fd_count(process.pid) != active_fds and time.monotonic() < deadline:
+                    time.sleep(0.01)
+                delta = fd_count(process.pid) - active_fds
+                normalized[f"request_error_{name}"]["fd_delta"] = delta
+                assert delta == 0, name
+
             for name, packet in [("short", b"\0"), ("ack", b"\0\4\0\1"),
                                  ("error", b"\0\5\0\0"), ("rrq", RRQ)]:
                 foreign.sendto(packet, tids[0])
@@ -142,6 +171,23 @@ def run_service(kind, binary, ip, out):
                 time.sleep(0.01)
             normalized["fd_delta_after_complete_and_error"] = fd_count(process.pid) - baseline
             assert normalized["fd_delta_after_complete_and_error"] == 0
+
+            # The inode remains open with its original size, then shrinks.
+            # C sends the successful prefix of the window and one ERR_NOTDEF
+            # for each later read failure, then releases file/socket state.
+            first.sendto(b"\0\1mutable.bin\0octet\0blksize\x004\0windowsize\x004\0", listen)
+            packet, tid = receive(first, "read_failure_oack")
+            assert packet == b"\0\6blksize\x004\0windowsize\x004\0"
+            (fixture / "mutable.bin").write_bytes(b"x" * 8)
+            first.sendto(b"\0\4\0\0", tid)
+            for index, expected in enumerate([b"\0\3\0\1xxxx", b"\0\3\0\2xxxx", None, None]):
+                packet, _ = receive(first, f"read_failure_window_{index}", tid)
+                assert packet == expected if expected is not None else packet[:4] == b"\0\5\0\0"
+            deadline = time.monotonic() + 2
+            while fd_count(process.pid) != baseline and time.monotonic() < deadline:
+                time.sleep(0.01)
+            normalized["fd_delta_after_read_failure"] = fd_count(process.pid) - baseline
+            assert normalized["fd_delta_after_read_failure"] == 0
             assert process.poll() is None
             normalized["checks"] = len(normalized)
     finally:

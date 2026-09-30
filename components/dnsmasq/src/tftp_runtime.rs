@@ -98,7 +98,9 @@ impl FileOpener for RealFileOpener {
         #[cfg(unix)]
         {
             let file = Arc::new(File::open(std::ffi::OsString::from_vec(path.to_vec()))?);
-            let metadata = file.metadata()?;
+            // C reports any fstat failure as ERR_NOTDEF, independently of
+            // errno. Preserve that distinction from open's ENOENT/EACCES.
+            let metadata = file.metadata().map_err(io::Error::other)?;
             let identity = FileIdentity {
                 device: metadata.dev(),
                 inode: metadata.ino(),
@@ -191,7 +193,7 @@ pub enum RuntimeEvent {
 }
 
 /// Which caller-owned UDP socket delivered a datagram.  In separate-port
-/// mode dnsmasq accepts RRQ only on the port-69 listener and ACK/ERR only on
+/// mode dnsmasq accepts RRQ/WRQ on the port-69 listener and ACK/ERR only on
 /// the transfer socket created for that RRQ.  This role gate keeps those
 /// paths distinct without binding sockets or allocating transfer ports here.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -298,7 +300,12 @@ impl<O: FileOpener> TransferRuntime<O> {
         if !self.config.single_port {
             let is_rrq = opcode(packet) == Some(1);
             match role {
-                SocketRole::Server if !is_rrq => return Ok(Vec::new()),
+                SocketRole::Server if !matches!(opcode(packet), Some(1) | Some(2)) => {
+                    return Ok(Vec::new());
+                }
+                SocketRole::Server if opcode(packet) == Some(2) => {
+                    return self.start_rrq(peer, packet, now);
+                }
                 SocketRole::Transfer if is_rrq => {
                     // A RRQ from the owning peer is ignored by C's
                     // handle_tftp(); a foreign peer receives ERR_TID on the
@@ -458,14 +465,25 @@ impl<O: FileOpener> TransferRuntime<O> {
                 }])
             }
         };
-        let opened = self.opener.open(&path).map_err(RuntimeError::Open)?;
+        let opened = match self.opener.open(&path) {
+            Ok(opened) => opened,
+            Err(error) => {
+                return Ok(vec![RuntimeEvent::Send {
+                    peer,
+                    packet: open_error_packet(&error),
+                }]);
+            }
+        };
         if !permitted(
             opened.mode,
             opened.owner_uid,
             self.config.effective_uid,
             self.config.secure,
         ) {
-            return Err(RuntimeError::Permission);
+            return Ok(vec![RuntimeEvent::Send {
+                peer,
+                packet: error_packet(2, "access violation"),
+            }]);
         }
         let file = self
             .active
@@ -621,8 +639,23 @@ impl<O: FileOpener> TransferRuntime<O> {
         _now: u64,
     ) -> Result<Vec<RuntimeEvent>, RuntimeError> {
         let mut events = Vec::new();
+        let mut failed = false;
         for _ in 0..count {
-            let packet = self.data_packet(id)?;
+            let packet = match self.data_packet(id) {
+                Ok(packet) => packet,
+                Err(_) => {
+                    let active = self.active.get_mut(&id).unwrap();
+                    events.push(RuntimeEvent::Send {
+                        peer: active.peer,
+                        packet: error_packet(0, "cannot read file"),
+                    });
+                    active.transfer.block = active.transfer.block.wrapping_add(1);
+                    // C finishes the current window before error cleanup,
+                    // retaining DATA/error order even on later read failures.
+                    failed = true;
+                    continue;
+                }
+            };
             if packet.is_empty() {
                 break;
             }
@@ -639,6 +672,10 @@ impl<O: FileOpener> TransferRuntime<O> {
                 active.final_block = Some(block);
             }
             active.transfer.block = active.transfer.block.wrapping_add(1);
+        }
+        if failed {
+            let active = self.active.remove(&id).unwrap();
+            events.push(RuntimeEvent::Failed { peer: active.peer });
         }
         Ok(events)
     }
@@ -696,6 +733,29 @@ fn opcode(packet: &[u8]) -> Option<u16> {
     (packet.len() >= 2).then(|| u16::from_be_bytes([packet[0], packet[1]]))
 }
 
+fn open_error_packet(error: &io::Error) -> Vec<u8> {
+    // tftp.c:558-570 distinguishes only ENOENT and EACCES. EPERM (which
+    // Rust also calls PermissionDenied) remains the generic ERR_NOTDEF.
+    let code = match error.raw_os_error() {
+        Some(2) => 1,
+        Some(13) => 2,
+        Some(_) => 0,
+        None => match error.kind() {
+            io::ErrorKind::NotFound => 1,
+            io::ErrorKind::PermissionDenied => 2,
+            _ => 0,
+        },
+    };
+    error_packet(
+        code,
+        match code {
+            1 => "file not found",
+            2 => "access violation",
+            _ => "cannot read file",
+        },
+    )
+}
+
 fn error_packet(code: u16, message: &str) -> Vec<u8> {
     let mut packet = Vec::with_capacity(message.len() + 5);
     packet.extend_from_slice(&[0, 5]);
@@ -743,6 +803,8 @@ mod tests {
 
     struct MemoryOpener {
         files: Mutex<BTreeMap<Vec<u8>, Arc<MemoryReader>>>,
+        mode: u32,
+        owner_uid: u32,
     }
 
     impl MemoryOpener {
@@ -760,6 +822,8 @@ mod tests {
             );
             Self {
                 files: Mutex::new(files),
+                mode: 0o644,
+                owner_uid: 0,
             }
         }
     }
@@ -777,8 +841,8 @@ mod tests {
                 path: path.to_vec(),
                 identity: reader.identity,
                 size: reader.size(),
-                mode: 0o644,
-                owner_uid: 0,
+                mode: self.mode,
+                owner_uid: self.owner_uid,
                 reader,
             })
         }
@@ -808,6 +872,115 @@ mod tests {
 
     fn peer(port: u16) -> SocketAddr {
         format!("127.0.0.1:{port}").parse().unwrap()
+    }
+
+    #[test]
+    fn open_and_permission_errors_are_protocol_replies_without_active_state() {
+        struct ErrorOpener(i32);
+        impl FileOpener for ErrorOpener {
+            fn open(&self, _path: &[u8]) -> io::Result<OpenedFile> {
+                Err(io::Error::from_raw_os_error(self.0))
+            }
+        }
+        for (errno, code) in [(2, 1), (13, 2), (1, 0), (20, 0), (24, 0)] {
+            let mut runtime = TransferRuntime::new(RuntimeConfig::default(), ErrorOpener(errno));
+            let events = runtime
+                .handle_socket_datagram(SocketRole::Server, peer(1000), &rrq(b"boot", b"octet"), 1)
+                .unwrap();
+            assert!(
+                matches!(events.as_slice(), [RuntimeEvent::Send { packet, .. }]
+                if packet.starts_with(&[0, 5, 0, code]))
+            );
+            assert_eq!(runtime.active_len(), 0);
+        }
+        for (uid, secure, mode, owner) in [(0, false, 0o600, 0), (1000, true, 0o644, 1001)] {
+            let mut opener = MemoryOpener::new(b"/boot", b"hello");
+            opener.mode = mode;
+            opener.owner_uid = owner;
+            let mut runtime = TransferRuntime::new(
+                RuntimeConfig {
+                    effective_uid: uid,
+                    secure,
+                    ..RuntimeConfig::default()
+                },
+                opener,
+            );
+            let events = runtime
+                .handle_datagram(peer(1000), &rrq(b"boot", b"octet"), 1)
+                .unwrap();
+            assert!(
+                matches!(events.as_slice(), [RuntimeEvent::Send { packet, .. }]
+                if packet.starts_with(&[0, 5, 0, 2]))
+            );
+            assert_eq!(runtime.active_len(), 0);
+        }
+    }
+
+    #[test]
+    fn read_failures_preserve_window_packets_then_error_and_release() {
+        struct FaultFile {
+            fail_at: u64,
+        }
+        impl FileReader for FaultFile {
+            fn size(&self) -> u64 {
+                20
+            }
+            fn identity(&self) -> FileIdentity {
+                FileIdentity {
+                    device: 1,
+                    inode: 1,
+                }
+            }
+            fn read_at(&self, offset: u64, output: &mut [u8]) -> io::Result<usize> {
+                if offset >= self.fail_at {
+                    return Err(io::Error::other("injected read failure"));
+                }
+                output.fill(b'x');
+                Ok(output.len())
+            }
+        }
+        impl FileOpener for FaultFile {
+            fn open(&self, path: &[u8]) -> io::Result<OpenedFile> {
+                Ok(OpenedFile {
+                    path: path.to_vec(),
+                    identity: self.identity(),
+                    size: self.size(),
+                    mode: 0o644,
+                    owner_uid: 0,
+                    reader: Arc::new(FaultFile {
+                        fail_at: self.fail_at,
+                    }),
+                })
+            }
+        }
+        let mut runtime = TransferRuntime::new(RuntimeConfig::default(), FaultFile { fail_at: 0 });
+        let events = runtime
+            .handle_datagram(peer(1000), &rrq(b"boot", b"octet"), 1)
+            .unwrap();
+        assert!(matches!(events.as_slice(),
+            [RuntimeEvent::Send { packet, .. }, RuntimeEvent::Failed { .. }]
+            if packet.starts_with(&[0, 5, 0, 0])));
+        assert_eq!(runtime.active_len(), 0);
+
+        let mut runtime = TransferRuntime::new(RuntimeConfig::default(), FaultFile { fail_at: 8 });
+        let mut request = rrq(b"boot", b"octet");
+        request.extend_from_slice(b"blksize\x004\0windowsize\x004\0");
+        runtime.handle_datagram(peer(1000), &request, 1).unwrap();
+        let events = runtime
+            .handle_datagram(peer(1000), &[0, 4, 0, 0], 2)
+            .unwrap();
+        assert_eq!(events.len(), 5);
+        for (event, header) in
+            events[..4]
+                .iter()
+                .zip([[0, 3, 0, 1], [0, 3, 0, 2], [0, 5, 0, 0], [0, 5, 0, 0]])
+        {
+            assert!(
+                matches!(event, RuntimeEvent::Send { packet, .. } if packet.starts_with(&header))
+            );
+        }
+        assert!(matches!(events[4], RuntimeEvent::Failed { .. }));
+        assert_eq!(runtime.active_len(), 0);
     }
 
     #[test]

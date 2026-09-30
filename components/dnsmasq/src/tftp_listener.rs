@@ -21,6 +21,13 @@ pub struct TftpListener<O> {
     buffer: Vec<u8>,
 }
 
+#[derive(Clone, Copy)]
+enum EventSource {
+    Server,
+    Transfer(SocketAddr),
+    Timer,
+}
+
 impl<O: FileOpener> TftpListener<O> {
     pub fn bind(address: SocketAddr, runtime: TransferRuntime<O>) -> io::Result<Self> {
         let server = DatagramSocket::bind(address)?;
@@ -56,7 +63,7 @@ impl<O: FileOpener> TftpListener<O> {
             }
         }
         let tick_events = self.runtime.tick(now).map_err(runtime_io)?;
-        self.flush_events(&tick_events, None)?;
+        self.flush_events(&tick_events, EventSource::Timer)?;
         events.extend(tick_events);
         Ok(events)
     }
@@ -70,7 +77,7 @@ impl<O: FileOpener> TftpListener<O> {
             .runtime
             .handle_socket_datagram(SocketRole::Server, datagram.peer, &bytes, now)
             .map_err(runtime_io)?;
-        self.flush_events(&received, None)?;
+        self.flush_events(&received, EventSource::Server)?;
         events.extend(received);
         Ok(())
     }
@@ -92,26 +99,32 @@ impl<O: FileOpener> TftpListener<O> {
             .runtime
             .handle_transfer_datagram(peer, datagram.peer, &bytes, now)
             .map_err(runtime_io)?;
-        self.flush_events(&received, Some(peer))?;
+        self.flush_events(&received, EventSource::Transfer(peer))?;
         events.extend(received);
         Ok(())
     }
 
-    fn flush_events(
-        &mut self,
-        events: &[RuntimeEvent],
-        socket_owner: Option<SocketAddr>,
-    ) -> io::Result<()> {
+    fn flush_events(&mut self, events: &[RuntimeEvent], source: EventSource) -> io::Result<()> {
         for event in events {
             match event {
                 RuntimeEvent::Send { peer, packet } | RuntimeEvent::TidError { peer, packet } => {
                     if self.single_port {
                         self.server.send(packet, *peer, None)?;
+                    } else if matches!(source, EventSource::Server) && packet.starts_with(&[0, 5]) {
+                        // C frees the temporary transfer (and socket) after
+                        // an RRQ/WRQ error. An existing transfer belonging to
+                        // this peer must retain its original socket.
+                        let socket = DatagramSocket::bind(SocketAddr::new(self.bind_ip, 0))?;
+                        socket.send(packet, *peer, None)?;
                     } else {
                         // ERR_TID must come from the socket which received
                         // the foreign datagram, without opening a new socket
                         // or redirecting it to the sender's own transfer.
-                        let socket = self.transfer_socket(socket_owner.unwrap_or(*peer))?;
+                        let owner = match source {
+                            EventSource::Transfer(owner) => owner,
+                            EventSource::Server | EventSource::Timer => *peer,
+                        };
+                        let socket = self.transfer_socket(owner)?;
                         socket.send(packet, *peer, None)?;
                     }
                 }
@@ -119,7 +132,12 @@ impl<O: FileOpener> TftpListener<O> {
                     self.transfers.remove(&completion.peer);
                 }
                 RuntimeEvent::Failed { peer } | RuntimeEvent::TimedOut { peer } => {
-                    self.transfers.remove(peer);
+                    // A first-read failure on the server path used only the
+                    // temporary error socket above. The same peer may still
+                    // own a different, healthy dedicated transfer socket.
+                    if !matches!(source, EventSource::Server) {
+                        self.transfers.remove(peer);
+                    }
                 }
             }
         }

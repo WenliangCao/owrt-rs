@@ -37,8 +37,39 @@ closure verified by rebinding the released addresses. It passed under the
 same namespace gate. The socket-independent runtime suite passes 13 tests.
 
 Evidence: `private/dnsmasq-rewrite/tftp-listener-tid-20260930/run-01/`.
-This is a host functional result, not a router performance result. It does
+
+The second unit closes request-error response and descriptor ownership for
+the covered branches of `tftp.c:367-375,501-529,538-624,700-724`. ENOENT emits
+ERR_FNF (1); EACCES and root/world-read or secure-owner policy emit ERR_PERM
+(2); other open/fstat/read errors emit ERR_NOTDEF (0). WRQ and malformed RRQ
+emit ERR_ILL (4). A rejected new request sends from a temporary socket and
+releases it, preserving an existing dedicated socket for the same peer.
+Runtime permission and I/O failures no longer escape as fatal listener errors.
+
+The expanded differential has 27 checks for each address family, 54 total,
+with zero mismatches in `run-03/`. It adds missing/private/non-directory/
+directory-read/malformed/WRQ/traversal requests while a healthy transfer from
+the same peer stays active. Each checks the error code, temporary source TID
+and zero FD delta. It also truncates an already-open file after OACK and
+compares C's exact `DATA 1, DATA 2, ERR 0, ERR 0` window before FD restoration.
+The failed intermediate `run-02/` is retained: an initial read-failure event
+incorrectly removed the peer's older socket. The final code distinguishes
+server-request cleanup from transfer/timer cleanup, and the unchanged
+scenario now passes. Runtime tests additionally inject EPERM and EMFILE and
+check secure-owner rejection. All 30 host TFTP tests pass; the additional
+Linux namespace listener test passes on the final source snapshot.
+
+The differential fixture can be rebuilt with native `cargo build --lib` and
+`rustc --edition 2021 tools/dnsmasq/tftp_listener_probe.rs --extern
+dnsmasq_rs=components/dnsmasq/target/debug/libdnsmasq_rs.rlib -L
+dependency=components/dnsmasq/target/debug/deps -o private/tftp_listener_probe`.
+Run the Python tool under `run_isolated.sh`, supplying `--c`, `--rust`,
+`--source` (the matching `tftp.c`), and a fresh `--out` under private/. Its
+summary records both executable hashes and the Rust source hashes.
+
+These are host functional results, not router performance results. They do
 not close interface admission/pktinfo source selection, transfer port ranges,
-repeated same-peer RRQ in separate-port mode, read/open/permission error
-handling, single-port service equivalence, PXE/helper scripts or package
-integration. Error-path cleanup remains a separate next unit.
+repeated successful same-peer RRQ in separate-port mode, full single-port
+service equivalence, PXE/helper scripts or package integration. Capacity,
+socket allocation/send failure and complete resource-pressure behavior also
+remain outside this gate.

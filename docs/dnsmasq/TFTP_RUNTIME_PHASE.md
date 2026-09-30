@@ -9,7 +9,7 @@ this module does not bind port 69, inspect pktinfo/interfaces, or run PXE/helper
 scripts.
 
 `handle_socket_datagram` adds the small transport-role gate below that state
-machine: in separate-port mode, `SocketRole::Server` admits RRQ only and
+machine: in separate-port mode, `SocketRole::Server` admits RRQ/WRQ and
 `SocketRole::Transfer` admits the non-RRQ transfer path (ACK/ERR are the
 stateful opcodes; a foreign peer receives `ERR_TID`). The caller still binds port 69 or a
 configured transfer range, validates interface metadata and supplies the peer
@@ -37,7 +37,7 @@ fixture uses isolated temporary files; no production or physical-router state
 is touched. Full UDP listener/pktinfo and PXE/helper integration remain outside
 this phase.
 
-The focused module suite passes 13/13 with `cargo test --lib tftp_runtime`.
+The focused module suite passes 15/15 with `cargo test --lib tftp_runtime`.
 `handle_transfer_datagram` now receives both the dedicated socket owner and
 the actual sender: even a sender owning another active transfer receives
 ERR_TID before any ACK/ERR state changes. Empty datagrams are ignored, matching
@@ -46,3 +46,11 @@ The Linux listener consumes idle `WouldBlock`/`Interrupted` reads and returns
 TID errors on the receiving socket. IPv4/IPv6 UDP differential and resource
 evidence for that narrow contract is in `TFTP_LISTENER_PHASE.md`; complete
 TFTP daemon and OpenWrt helper compatibility remain unverified.
+
+The error paths preserve C wire codes: missing files return 1, access/owner
+policy failures return 2, other open/fstat/read failures return 0, and WRQ or
+malformed RRQ return 4. A file shrinking mid-window retains earlier DATA and
+subsequent per-block ERR packets in C order before `Failed` releases the
+transfer. These failures return protocol events rather than aborting the
+listener. `TFTP_LISTENER_PHASE.md` records the exact-daemon differential and
+the separate temporary-error-socket cleanup contract.
