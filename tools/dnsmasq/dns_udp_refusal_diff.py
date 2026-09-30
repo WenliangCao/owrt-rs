@@ -15,10 +15,36 @@ import time
 
 ROOT = Path(__file__).resolve().parents[2]
 C_HASH = "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431"
+TARGET_FILES = {
+    "usr/sbin/dnsmasq": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+    "lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+    "lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+    "lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c",
+}
 
 
 def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def verify_reference(binary, identity_path):
+    if identity_path is None:
+        assert digest(binary) == C_HASH, "exact reference ELF changed"
+        return {"kind": "native-glibc", "elf_sha256": C_HASH}
+    identity = json.loads(identity_path.read_text())
+    root = identity_path.resolve().parent
+    assert identity["canonical_image_sha256"] == "144c1283da1fb3ead5e4ee7b8b55f66b7d9e872f785892f87cadf9fca6ed0720"
+    for name, expected in TARGET_FILES.items():
+        assert identity["files"][name]["sha256"] == expected and digest(root / name) == expected, name
+    # Verify the runner too: it must execute the audited private musl loader
+    # and libraries, rather than resolving target SONAMEs through host paths.
+    expected_runner = f'#!/bin/sh\nexec {root}/lib/libc.so --library-path {root}/lib {root}/usr/sbin/dnsmasq "$@"\n'
+    assert binary.read_text() == expected_runner, "unexpected target runner"
+    assert digest(binary) == identity["runner_sha256"], "target runner identity changed"
+    return {"kind": "image-aarch64-musl", "elf_sha256": TARGET_FILES["usr/sbin/dnsmasq"],
+            "runner_sha256": digest(binary), "dependencies": {k: v for k, v in TARGET_FILES.items() if k.startswith("lib/")},
+            "identity_sha256": digest(identity_path)}
 
 
 def name(host):
@@ -174,12 +200,13 @@ def compare(c, rust):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--c", type=Path, required=True)
+    parser.add_argument("--c-identity", type=Path, help="audited canonical target C bundle identity.json")
     parser.add_argument("--rust", type=Path)
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
     assert os.environ.get("DNSMASQ_TEST_ISOLATED") == "1"
     assert sorted(name for _, name in socket.if_nameindex()) == ["lo"]
-    assert digest(args.c) == C_HASH, "exact reference ELF changed"
+    reference_identity = verify_reference(args.c, args.c_identity)
     out = args.out.resolve()
     assert out.is_relative_to(ROOT / "private") and not out.exists()
     out.mkdir(parents=True)
@@ -196,6 +223,7 @@ def main():
                     for filename in ["daemon.rs", "tcp_service.rs", "reply.rs", "wire.rs"]]
     source_paths.append(Path(__file__))
     report = {"c_sha256": digest(args.c), "rust_sha256": digest(args.rust) if args.rust else None,
+              "reference_identity": reference_identity,
               "source_sha256": {str(path.relative_to(ROOT)): digest(path) for path in source_paths} if args.rust else {},
               "calibration": {"positive": 1, "negative": 2}, "rounds": [], "failures": []}
     rows = corpus()
