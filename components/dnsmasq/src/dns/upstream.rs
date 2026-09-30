@@ -11,7 +11,7 @@ use super::forward::{
     SendPlan, ServerId, SocketToken, Submission, ABSOLUTE_TIMEOUT,
 };
 use super::forward_service::{DispatchError, ForwardDispatcher};
-use super::wire::WireError;
+use super::wire::{Header, WireError};
 use owrt_ubus::sys::{PollFd, POLLERR, POLLHUP, POLLIN};
 use std::collections::{HashMap, VecDeque};
 use std::fs::File;
@@ -61,9 +61,24 @@ impl From<io::Error> for ResolveError {
 #[derive(Debug)]
 pub struct UncheckedReply {
     pub packet: Vec<u8>,
+    /// Whether the authenticated UDP response carried DNS header TC.
+    ///
+    /// The exact OpenWrt `nodhcpv6` build has no `HAVE_DNSSEC`, so C returns
+    /// this response downstream with TC set.  Keeping the classification at
+    /// the transport boundary lets a future DNSSEC-enabled caller request
+    /// TCP without treating a valid truncated response as an upstream error.
+    pub truncated: bool,
     pub server: ServerId,
     pub flags: Flags,
     pub recipients: Vec<Recipient>,
+}
+
+/// Classify the DNS header's truncation bit after source/ID/question
+/// authentication.  This helper deliberately does not alter forwarding
+/// state: ordinary `nodhcpv6` callers deliver a truncated UDP response, while
+/// a DNSSEC-enabled caller may use the result to start a separate TCP query.
+pub fn udp_reply_is_truncated(packet: &[u8]) -> Result<bool, WireError> {
+    Ok(Header::parse(packet)?.flags & 0x0200 != 0)
 }
 
 #[derive(Debug)]
@@ -547,6 +562,13 @@ impl<R: Random> UpstreamResolver<R> {
             if ignore(&self.receive_buffer[..length]) {
                 continue;
             }
+            let truncated = match udp_reply_is_truncated(&self.receive_buffer[..length]) {
+                Ok(truncated) => truncated,
+                Err(error) => {
+                    self.fail(id, error.into());
+                    break;
+                }
+            };
             match self.dispatcher.complete_reply(matched) {
                 Some(ReplyAction::Wait) => {}
                 Some(ReplyAction::Retry) => {
@@ -577,6 +599,7 @@ impl<R: Random> UpstreamResolver<R> {
                         id,
                         result: Ok(UncheckedReply {
                             packet,
+                            truncated,
                             server: matched.server,
                             flags: pending.flags,
                             recipients: pending.recipients,
@@ -765,6 +788,49 @@ mod tests {
         assert_eq!(transport.pending_count(), 0);
         assert_eq!(transport.socket_count(), 0);
         thread.join().unwrap();
+    }
+
+    #[test]
+    fn truncated_udp_reply_is_delivered_without_retry_or_state_leak() {
+        let server = UdpSocket::bind("127.0.0.1:0").unwrap();
+        let address = server.local_addr().unwrap();
+        let thread = thread::spawn(move || {
+            let mut input = [0; 2048];
+            let (length, peer) = server.recv_from(&mut input).unwrap();
+            server
+                .send_to(&response(&input[..length], 0x8380, false), peer)
+                .unwrap();
+            server
+                .set_read_timeout(Some(Duration::from_millis(100)))
+                .unwrap();
+            assert!(
+                server.recv_from(&mut input).is_err(),
+                "TC response was retried"
+            );
+        });
+        let mut transport = transport(
+            group(&[address], false),
+            Options::default(),
+            Duration::from_secs(1),
+        );
+        let submission = transport
+            .start_udp(&query(), client(), GroupId(1), Scope::Shared)
+            .unwrap();
+        let event = wait_for_event(&mut transport, Duration::from_millis(100));
+        let reply = event.result.unwrap();
+        assert_eq!(event.id, submission.id);
+        assert!(reply.truncated);
+        assert!(udp_reply_is_truncated(&reply.packet).unwrap());
+        assert_eq!(Header::parse(&reply.packet).unwrap().flags & 0x0200, 0x0200);
+        assert_eq!(transport.pending_count(), 0);
+        assert_eq!(transport.socket_count(), 0);
+        thread.join().unwrap();
+    }
+
+    #[test]
+    fn truncated_classifier_rejects_short_header() {
+        assert_eq!(udp_reply_is_truncated(&[0; 11]), Err(WireError::Truncated));
+        assert!(!udp_reply_is_truncated(&[0; 12]).unwrap());
     }
 
     #[test]
