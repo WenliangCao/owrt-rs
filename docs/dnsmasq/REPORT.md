@@ -48,7 +48,7 @@ BOOTP/PXE、DHCP relay/leasequery、AD 透传、可启用的 DNS 订阅也必须
 - `private/dnsmasq-rewrite/dhcp-reply-diff/result.json`：hash-pinned `rfc2131.c` reply wire oracle 1,008 cases，0 mismatch，覆盖 primary/file/sname overload、PRL、OFFER/ACK/INFORM/NAK、option 57 capacity 与 broken-string workaround。
 - 后续构建、差分、fuzz、基准逐轮追加；未运行项目不计作通过。DNS reply envelope 的 1,537 个结构有效包/19,981 条命令、address policy 的 68 个 ASan/UBSan C/Rust case、negative/cache-reply 的 10 个边界测试和 upstream transport 的 loopback 测试详见各阶段文件。
 
-当前 crate 门：`cargo test --all-targets` 为库 208 passed、4 ignored，主程序目标 6 passed；`cargo clippy --all-targets -- -D warnings`、`cargo fmt -- --check` 和 `aarch64-unknown-linux-musl cargo check --all-targets` 通过。4 个 ignored 测试要求显式精确 C reference，未把 ignored 计入通过。主程序 loopback smoke 已验证本地 UDP 回答和 UDP 上游回送均保留客户端 ID；TCP 分片、多查询、未实现 upstream 的快速关闭、idle/partial client 的 SIGTERM 回收也有独立 loopback smoke，SIGHUP reload 仍未实现。
+当前 crate 门：`cargo test --all-targets` 为库 212 passed、4 ignored，主程序目标 6 passed；`cargo clippy --all-targets -- -D warnings`、`cargo fmt -- --check` 和 `aarch64-unknown-linux-musl cargo check --all-targets` 通过。4 个 ignored 测试要求显式精确 C reference，未把 ignored 计入通过。主程序 loopback smoke 已验证本地 UDP 回答和 UDP 上游回送均保留客户端 ID；TCP 分片、多查询、未实现 upstream 的快速关闭、idle/partial client 的 SIGTERM 回收也有独立 loopback smoke，SIGHUP reload 仍未实现。
 
 ## 已冻结的局部性能证据
 
