@@ -28,7 +28,14 @@ fn main() -> io::Result<()> {
         },
         RealFileOpener::new(0, false),
     );
-    let mut listener = TftpListener::bind(address, runtime)?;
+    let port_range = args.get(5).map(|value| {
+        let (start, end) = value.split_once(',').expect("port range");
+        (
+            start.parse().expect("start port"),
+            end.parse().expect("end port"),
+        )
+    });
+    let mut listener = TftpListener::bind_with_port_range(address, runtime, port_range)?;
     let stop = Arc::new(AtomicBool::new(false));
     let reader_stop = Arc::clone(&stop);
     let reader = std::thread::spawn(move || {

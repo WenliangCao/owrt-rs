@@ -167,9 +167,6 @@ impl TftpConfig {
         if !self.interface_roots.is_empty() {
             return Err(Error("TFTP per-interface roots are not wired"));
         }
-        if self.port_range.is_some() {
-            return Err(Error("TFTP port range is not wired"));
-        }
         if self.unique_root_ip || self.unique_root_mac {
             return Err(Error("TFTP unique-root is not wired"));
         }
@@ -264,13 +261,15 @@ mod tests {
     }
 
     #[test]
-    fn unsupported_listener_state_is_not_silent() {
+    fn port_range_is_ready_but_interface_selectors_remain_explicit() {
         let mut config = TftpConfig::default();
         apply(&mut config, b"tftp-port-range=69,70").unwrap();
         assert_eq!(config.port_range, Some((69, 70)));
+        assert!(config.validate_ready().is_ok());
+        apply(&mut config, b"enable-tftp=eth0").unwrap();
         assert_eq!(
             config.validate_ready().unwrap_err(),
-            Error("TFTP port range is not wired")
+            Error("TFTP interface selectors are not wired")
         );
     }
 }

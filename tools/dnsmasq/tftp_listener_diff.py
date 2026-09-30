@@ -265,9 +265,78 @@ def check_single_timeout(process, client, receive, normalized, listen, baseline)
     assert normalized["timeout_reuse_fd_delta"] == 0
 
 
+def check_port_range(process, client, receive, normalized, listen, baseline):
+    family = socket.AF_INET6 if ":" in listen[0] else socket.AF_INET
+    blocker = socket.socket(family, socket.SOCK_DGRAM)
+    blocker.bind((listen[0], 42000))
+    first, second, third = client(), client(), client()
+    try:
+        first.sendto(RRQ, listen)
+        packet, high = receive(first, "range_skips_occupied_low_port")
+        assert high[1] == 42001 and packet == b"\0\3\0\1" + CONTENT[:512]
+        second.sendto(RRQ, listen)
+        normalized["range_exhausted_silent"] = not select.select([second], [], [], 0.05)[0]
+        assert normalized["range_exhausted_silent"]
+        normalized["range_exhausted_fd_delta"] = fd_count(process.pid) - baseline
+        assert normalized["range_exhausted_fd_delta"] == 2
+        blocker.close()
+        second.sendto(RRQ, listen)
+        packet, low = receive(second, "range_reuses_released_low_port")
+        assert low[1] == 42000 and packet == b"\0\3\0\1" + CONTENT[:512]
+        first.sendto(b"\0\4\0\1", high)
+        packet, _ = receive(first, "range_first_progress", high)
+        assert packet == b"\0\3\0\2" + CONTENT[512:]
+        first.sendto(b"\0\4\0\2", high)
+        time.sleep(0.02)
+        first.sendto(RRQ, listen)
+        packet, next_high = receive(first, "range_reuses_completed_port")
+        assert next_high[1] == 42001 and packet == b"\0\3\0\1" + CONTENT[:512]
+        third.sendto(b"\0\1missing\0octet\0", listen)
+        normalized["range_exhausted_before_file_open"] = not select.select([third], [], [], 0.05)[0]
+        assert normalized["range_exhausted_before_file_open"]
+        second.sendto(b"\0\5\0\0abort\0", low)
+        time.sleep(0.02)
+        third.sendto(b"\0\1missing\0octet\0", listen)
+        packet, error_source = receive(third, "range_error_uses_available_port")
+        assert error_source[1] == 42000 and packet[:4] == b"\0\5\0\1"
+        third.sendto(RRQ, listen)
+        packet, reused = receive(third, "range_error_socket_released")
+        assert reused[1] == 42000 and packet == b"\0\3\0\1" + CONTENT[:512]
+        first.sendto(b"\0\5\0\0abort\0", next_high)
+        third.sendto(b"\0\5\0\0abort\0", reused)
+        normalized["range_cleanup_fd_delta"] = wait_for_fds(process, baseline)
+        assert normalized["range_cleanup_fd_delta"] == 0
+    finally:
+        blocker.close()
+
+
+def check_range_zero_or_single(process, client, receive, normalized, listen, baseline, single):
+    blockers = []
+    try:
+        if single:
+            family = socket.AF_INET6 if ":" in listen[0] else socket.AF_INET
+            for port in [42000, 42001]:
+                blocker = socket.socket(family, socket.SOCK_DGRAM)
+                blocker.bind((listen[0], port))
+                blockers.append(blocker)
+        sock = client()
+        sock.sendto(RRQ, listen)
+        packet, source = receive(sock, "range_ignored_initial")
+        assert packet == b"\0\3\0\1" + CONTENT[:512]
+        normalized["range_ignored_source_port"] = source[1] == 69 if single else source[1] > 1
+        assert normalized["range_ignored_source_port"]
+        sock.sendto(b"\0\5\0\0abort\0", source)
+        normalized["range_ignored_cleanup_fd_delta"] = wait_for_fds(process, baseline)
+        assert normalized["range_ignored_cleanup_fd_delta"] == 0
+    finally:
+        for blocker in blockers:
+            blocker.close()
+
+
 def run_service(kind, binary, ip, out, case="protocol"):
     capacity_case = case == "capacity"
-    single = case in ["single", "single-stale", "single-timeout"]
+    single = case in ["single", "single-stale", "single-timeout", "single-range"]
+    port_range = "0,1" if case == "range-zero" else "42000,42001" if case in ["range", "single-range"] else None
     fixture = out / "root"
     fixture.mkdir(exist_ok=True)
     fixture.chmod(0o755)
@@ -293,6 +362,8 @@ def run_service(kind, binary, ip, out, case="protocol"):
                 "--user=root", "--group=root", "--enable-tftp",
                 f"--listen-address={ip}", f"--tftp-root={fixture}", "--pid-file=",
                 "--log-facility=-", f"--tftp-max={1 if capacity_case else 2 if single else 50}"] + (["--tftp-single-port"] if single else ["--bind-interfaces"]))
+    if port_range:
+        command += [port_range] if kind == "rust" else [f"--tftp-port-range={port_range}"]
     normalized, wire = {}, []
     process = None
     clients = []
@@ -334,7 +405,11 @@ def run_service(kind, binary, ip, out, case="protocol"):
                 assert value["source_tid_matches"], name
                 return packet, source
 
-            if case == "single-stale":
+            if case == "range":
+                check_port_range(process, client, receive, normalized, listen, baseline)
+            elif case in ["range-zero", "single-range"]:
+                check_range_zero_or_single(process, client, receive, normalized, listen, baseline, single)
+            elif case == "single-stale":
                 check_single_stale(process, client, receive, normalized, listen, baseline)
             elif case == "single-timeout":
                 check_single_timeout(process, client, receive, normalized, listen, baseline)
@@ -450,7 +525,7 @@ def main():
     parser.add_argument("--rust", type=Path, required=True)
     parser.add_argument("--source", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
-    parser.add_argument("--cases", nargs="+", choices=["protocol", "capacity", "single", "single-stale", "single-timeout"], default=["protocol", "capacity", "single", "single-stale"])
+    parser.add_argument("--cases", nargs="+", choices=["protocol", "capacity", "single", "single-stale", "single-timeout", "range", "range-zero", "single-range"], default=["protocol", "capacity", "single", "single-stale", "range", "range-zero", "single-range"])
     parser.add_argument("--families", nargs="+", choices=["ipv4", "ipv6"], default=["ipv4", "ipv6"])
     args = parser.parse_args()
     assert platform.system() == "Linux" and os.environ.get("DNSMASQ_TEST_ISOLATED") == "1"

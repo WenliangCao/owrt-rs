@@ -45,8 +45,20 @@ ELFs and logs remain in private/. Failed intermediate runs 06-08 are retained.
 
 The runtime regression checks fresh file bytes plus ownership counts after
 both successful and failing single-port replacement. The 32 host TFTP tests
-pass. A separate real-time `single-timeout` case has been added to exercise
-the C/Rust 120-second timeout and listener reuse; its result must be recorded
-before that lifecycle is accepted. Interface admission, pktinfo source
-selection beyond loopback, helper integration and production startup are
-outside these results.
+pass. The real-time IPv4 `single-timeout` case in `run-09-timeout/` passes 18
+observations with zero differences: C releases after approximately 120.90 s
+and Rust after 121.02 s, each with 11 identical DATA retransmissions, zero FD
+remainder and successful listener reuse. Times are observations rather than
+performance comparisons. The independent Rust timeout state test covers the
+exact `>120` boundary, and Linux listener timeout smoke covers both families.
+The remote timeout runner completed with both child processes exiting cleanly;
+the local idle SSH collector stalled afterward and was terminated. A fresh
+connection retrieved the complete evidence; `collection-note.json` retains
+that transport anomaly.
+
+After port-range integration, `run-12-final/` rechecks the related suite:
+192 observations, 12 reference-defect differences, zero unexpected mismatches.
+These classified differences remain explicit compatibility acceptance items;
+they are not a blanket waiver or a zero-difference equivalence claim.
+Interface admission, pktinfo source selection beyond loopback, helper
+integration and production startup are outside these results.

@@ -17,12 +17,21 @@ pub struct TftpListener<O> {
     transfers: BTreeMap<TransferId, UdpSocket>,
     runtime: TransferRuntime<O>,
     bind_ip: IpAddr,
+    port_range: Option<(u16, u16)>,
     single_port: bool,
     buffer: Vec<u8>,
 }
 
 impl<O: FileOpener> TftpListener<O> {
     pub fn bind(address: SocketAddr, runtime: TransferRuntime<O>) -> io::Result<Self> {
+        Self::bind_with_port_range(address, runtime, None)
+    }
+
+    pub fn bind_with_port_range(
+        address: SocketAddr,
+        runtime: TransferRuntime<O>,
+        port_range: Option<(u16, u16)>,
+    ) -> io::Result<Self> {
         let server = DatagramSocket::bind(address)?;
         let single_port = runtime_single_port(&runtime);
         Ok(Self {
@@ -30,6 +39,7 @@ impl<O: FileOpener> TftpListener<O> {
             transfers: BTreeMap::new(),
             runtime,
             bind_ip: address.ip(),
+            port_range: port_range.map(|(start, end)| (start.min(end), start.max(end))),
             single_port,
             buffer: vec![0; 65_535],
         })
@@ -72,7 +82,7 @@ impl<O: FileOpener> TftpListener<O> {
         // C allocates/binds the dedicated socket before opening the file.
         // This order also decides the wire result with only one FD left.
         let socket = if !self.single_port && matches!(bytes.get(..2), Some([0, 1] | [0, 2])) {
-            match bind_transfer(self.bind_ip) {
+            match bind_transfer(self.bind_ip, self.port_range) {
                 Ok(socket) => Some(socket),
                 Err(error) => {
                     events.push(RuntimeEvent::TransportError {
@@ -186,12 +196,23 @@ impl<O: FileOpener> TftpListener<O> {
     }
 }
 
-fn bind_transfer(ip: IpAddr) -> io::Result<UdpSocket> {
+fn bind_transfer(ip: IpAddr, range: Option<(u16, u16)>) -> io::Result<UdpSocket> {
     // Unlike DNS listeners these sockets must not use SO_REUSEADDR: each
     // live RRQ requires its own source TID, including identical peers.
-    let socket = UdpSocket::bind(SocketAddr::new(ip, 0))?;
-    socket.set_nonblocking(true)?;
-    Ok(socket)
+    let (start, end) = range.unwrap_or((0, 0));
+    // C treats a zero start as an ephemeral bind, irrespective of end.
+    let end = if start == 0 { 0 } else { end };
+    for port in start..=end {
+        match UdpSocket::bind(SocketAddr::new(ip, port)) {
+            Ok(socket) => {
+                socket.set_nonblocking(true)?;
+                return Ok(socket);
+            }
+            Err(error) if error.kind() == io::ErrorKind::AddrInUse && port < end => {}
+            Err(error) => return Err(error),
+        }
+    }
+    unreachable!("normalized inclusive port range is nonempty")
 }
 
 fn receive_pending(socket: &DatagramSocket, buffer: &mut [u8]) -> io::Result<Option<Datagram>> {
@@ -224,6 +245,27 @@ mod tests {
     use std::os::unix::ffi::OsStrExt;
     use std::os::unix::fs::PermissionsExt;
     use std::time::Duration;
+
+    #[test]
+    #[ignore = "requires tools/dnsmasq/run_isolated.sh network namespace"]
+    fn port_range_upper_bound_exhaustion_and_zero_start() {
+        assert_eq!(std::env::var("DNSMASQ_TEST_ISOLATED").as_deref(), Ok("1"));
+        for ip in ["127.0.0.1", "::1"] {
+            let ip: IpAddr = ip.parse().unwrap();
+            let blocker = UdpSocket::bind(SocketAddr::new(ip, u16::MAX)).unwrap();
+            assert_eq!(
+                bind_transfer(ip, Some((u16::MAX, u16::MAX)))
+                    .unwrap_err()
+                    .kind(),
+                io::ErrorKind::AddrInUse
+            );
+            drop(blocker);
+            let released = bind_transfer(ip, Some((u16::MAX, u16::MAX))).unwrap();
+            assert_eq!(released.local_addr().unwrap().port(), u16::MAX);
+            let ephemeral = bind_transfer(ip, Some((0, 1))).unwrap();
+            assert!(ephemeral.local_addr().unwrap().port() > 1);
+        }
+    }
 
     #[test]
     #[ignore = "requires tools/dnsmasq/run_isolated.sh network namespace"]
