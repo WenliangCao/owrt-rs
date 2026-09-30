@@ -8,6 +8,7 @@
 //! contracts and must not be silently omitted.
 
 pub mod allocation;
+pub mod context;
 pub mod lease;
 pub mod lease_file;
 pub mod lease_query;
