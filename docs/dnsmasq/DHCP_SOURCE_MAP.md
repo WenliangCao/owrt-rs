@@ -27,8 +27,8 @@ expiry=0 表示无限租约，其他 expiry 在 `now >= expiry` 时到期。
 
 | C 位置 | 行为 / 不变量 | Rust | 对照与阶段状态 |
 |---|---|---|---|
-| `dhcp.c:173-177`; `rfc2131.c:117-156` | 固定头至少 236 字节；BOOTREQUEST；hlen≤16；htype=0 要求 hlen=0；只有含有效 option 53 时要求 cookie；DISCOVER/option 50 清 ciaddr | `dhcp/packet.rs::Packet` + `dhcp/service.rs::dispatch` | 单测；真实 UDP/pktinfo socket 仍未接线 |
-| `dhcp.c:130-177,248-373`; `rfc2131.c:564-697,877-1055,1066-1235` | recvmsg 有界 admission；独立 DHCP/PXE listener；BOOTP、PXE 前缀、LEASEQUERY 分类；普通 giaddr relay 与全 1 giaddr 源地址扩展 | `dhcp/service.rs::dispatch` | 5 个 socket-independent dispatch 单测；真实 UDP/pktinfo、relay forwarding、wire reply 未接线，见 `DHCP_SERVICE_PHASE.md` |
+| `dhcp.c:173-177`; `rfc2131.c:117-156` | 固定头至少 236 字节；BOOTREQUEST；hlen≤16；htype=0 要求 hlen=0；只有含有效 option 53 时要求 cookie；DISCOVER/option 50 清 ciaddr | `dhcp/packet.rs::Packet` + `dhcp/service.rs::dispatch_poll` | 单测；`receive_once`/`poll_once` 已提供 Linux pktinfo admission，完整事件循环仍未接线 |
+| `dhcp.c:40-177,248-373`; `rfc2131.c:564-697,877-1055,1066-1235` | AF_INET recvmsg 有界 admission；独立 DHCP/PXE listener；BOOTP、PXE 前缀、LEASEQUERY 分类；普通 giaddr relay 与全 1 giaddr 源地址扩展；stop/nonblocking 状态不进入状态机 | `dhcp/service.rs::receive_once`, `poll_once`, `dispatch_poll` | 6 个 socket-independent dispatch 单测；隔离 Linux recvmsg/pktinfo、IPv4-only 和 stop/nonblocking 测试保持 ignored；relay forwarding、wire reply 未接线，见 `DHCP_SERVICE_PHASE.md` |
 | `rfc2131.c:1976-2024` | 第一项满足 minsize 的 TLV；PAD、END、截断；主区域→file→sname；malformed suffix 不否定此前命中；每个区域单独失败 | `packet::find_option`, `Packet::option` | 直接抽取 C 函数差分，主/overload 两类共 4,006 case |
 | `rfc2131.c:138-151` | option 57 包含 IP/UDP 头，减 28；下限 548，上限 16384；小于 28 的 C size_t 下溢最终落上限 | `Packet::response_capacity` | 边界单测；保留该可观测行为，无 unsafe |
 | `rfc2131.c:2584-2605` | PXE vendor 按配置前缀匹配 | `Packet::pxe_vendor` | 单测；PXE 回复/菜单/端口 4011 未实现 |
