@@ -11,7 +11,7 @@ fn main() -> io::Result<()> {
     assert_eq!(std::env::var("DNSMASQ_TEST_ISOLATED").as_deref(), Ok("1"));
     let args: Vec<_> = std::env::args().collect();
     let address: SocketAddr = args[1].parse().expect("listen address");
-    assert!(address.ip().is_loopback());
+    assert!(address.ip().is_loopback() || address.ip().is_unspecified());
     let runtime = TransferRuntime::new(
         RuntimeConfig {
             path: RuntimePathPolicy {
@@ -23,6 +23,7 @@ fn main() -> io::Result<()> {
                 .get(3)
                 .map(|value| value.parse().expect("capacity"))
                 .unwrap_or(50),
+            single_port: args.get(4).is_some_and(|value| value == "single"),
             ..RuntimeConfig::default()
         },
         RealFileOpener::new(0, false),

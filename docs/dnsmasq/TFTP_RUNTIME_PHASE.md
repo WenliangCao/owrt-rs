@@ -37,7 +37,7 @@ fixture uses isolated temporary files; no production or physical-router state
 is touched. Full UDP listener/pktinfo and PXE/helper integration remain outside
 this phase.
 
-The focused module suite passes 16/16 with `cargo test --lib tftp_runtime`.
+The focused module suite passes 17/17 with `cargo test --lib tftp_runtime`.
 `handle_transfer_datagram` receives the dedicated transfer ID and the actual
 sender: even a sender owning another active transfer receives
 ERR_TID before any ACK/ERR state changes. Empty datagrams are ignored, matching
@@ -62,3 +62,9 @@ socket received it. Single-port mode retains peer-based replacement. The
 dedicated listener follows C's `active <= tftp_max` admission test and stops
 receiving when false, leaving queued requests available after completion.
 This exact C boundary permits `max + 1` active transfers for one listener.
+
+The single-port replacement regression independently checks the requested
+file's bytes and reference release on successful and failed replacement.
+The exact C daemon has observable stale-data and FD-leak defects in this
+branch; `TFTP_SINGLE_PORT_PHASE.md` records them separately. Rust deliberately
+keeps the correct requested file and releases the abandoned reference.

@@ -1139,6 +1139,63 @@ mod tests {
     }
 
     #[test]
+    fn single_port_replacement_reads_new_file_and_releases_the_old_reference() {
+        let mut runtime = runtime(b"hello");
+        runtime.config.single_port = true;
+        runtime.opener.files.get_mut().unwrap().insert(
+            b"/srv/tftp/alt.bin".to_vec(),
+            Arc::new(MemoryReader {
+                data: b"alternate".to_vec(),
+                identity: FileIdentity {
+                    device: 1,
+                    inode: 3,
+                },
+            }),
+        );
+        runtime
+            .handle_datagram(peer(1000), &rrq(b"boot.bin", b"octet"), 1)
+            .unwrap();
+        let replacement = runtime
+            .handle_datagram(peer(1000), &rrq(b"alt.bin", b"octet"), 1)
+            .unwrap();
+        assert!(
+            matches!(replacement.as_slice(), [RuntimeEvent::Send { packet, .. }] if packet == b"\0\x03\0\x01alternate")
+        );
+        assert_eq!(runtime.active_len(), 1);
+        assert_eq!(
+            Arc::strong_count(
+                runtime
+                    .opener
+                    .files
+                    .lock()
+                    .unwrap()
+                    .get(&b"/srv/tftp/boot.bin"[..])
+                    .unwrap()
+            ),
+            1
+        );
+        let failed = runtime
+            .handle_datagram(peer(1000), &rrq(b"missing", b"octet"), 1)
+            .unwrap();
+        assert!(
+            matches!(failed.as_slice(), [RuntimeEvent::Send { packet, .. }] if packet.starts_with(&[0, 5, 0, 1]))
+        );
+        assert_eq!(runtime.active_len(), 0);
+        assert_eq!(
+            Arc::strong_count(
+                runtime
+                    .opener
+                    .files
+                    .lock()
+                    .unwrap()
+                    .get(&b"/srv/tftp/alt.bin"[..])
+                    .unwrap()
+            ),
+            1
+        );
+    }
+
+    #[test]
     fn empty_file_sends_zero_length_data_and_completes_on_ack() {
         let mut runtime = runtime(b"");
         let first = runtime

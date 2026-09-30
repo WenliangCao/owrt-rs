@@ -38,6 +38,23 @@ def compare(left, right):
     return [key for key in sorted(keys) if left.get(key) != right.get(key)]
 
 
+def reference_defects(case, c, rust):
+    """Only measured, source-explained C defects; never waive a Rust leak."""
+    expected = {}
+    if case == "single":
+        expected = {"single_replacement_fd_delta": (3, 2),
+                    "single_cleanup_fd_delta": (2, 0),
+                    "single_window_cleanup_fd_delta": (2, 0),
+                    "single_retry_cleanup_fd_delta": (2, 0)}
+    if case == "single-stale":
+        expected = {"single_stale_replacement":
+                    ({"packet_hex": (b"\0\3\0\1" + CONTENT[:512]).hex(), "source_tid_matches": True},
+                     {"packet_hex": b"\0\3\0\1alternate".hex(), "source_tid_matches": True}),
+                    "single_stale_cleanup_fd_delta": (1, 0)}
+    return {key: {"c": left, "rust": right} for key, (left, right) in expected.items()
+            if key in c and key in rust and c[key] == left and rust[key] == right}
+
+
 def calibrate():
     sample = {"data": [0, 3, 0, 1, 42], "error_code": 5,
               "source_tid_matches": True, "fd_delta": 0, "checks": 18}
@@ -48,7 +65,11 @@ def calibrate():
         changed = dict(sample, **{key: value})
         assert compare(sample, changed) == [key]
     assert compare(sample, {}) == sorted(sample)
-    return {"positive": 1, "negative": 6}
+    key = "single_cleanup_fd_delta"
+    assert key in reference_defects("single", {key: 2}, {key: 0})
+    assert reference_defects("single", {key: 2}, {key: 1}) == {}
+    assert reference_defects("single", {key: 3}, {key: 0}) == {}
+    return {"positive": 2, "negative": 8}
 
 
 def wait_for_fds(process, baseline):
@@ -131,12 +152,131 @@ def check_fd_pressure(process, client, receive, normalized, listen, baseline):
     assert normalized["emfile_recovery_fd_delta"] == 0
 
 
-def run_service(kind, binary, ip, out, capacity_case=False):
+def check_single(process, client, receive, normalized, listen, baseline):
+    first, second, third = client(), client(), client()
+
+    def silent(sock, name):
+        normalized[name] = not select.select([sock], [], [], 0.05)[0]
+        assert normalized[name], name
+
+    third.sendto(b"\0\2boot.bin\0octet\0", listen)
+    packet, _ = receive(third, "single_unmatched_wrq", listen)
+    assert packet[:4] == b"\0\5\0\4"
+    first.sendto(RRQ, listen)
+    packet, _ = receive(first, "single_initial", listen)
+    assert packet == b"\0\3\0\1" + CONTENT[:512]
+    first.sendto(b"\0\1alternate.bin\0octet\0tsize\x000\0", listen)
+    packet, _ = receive(first, "single_replacement_oack", listen)
+    assert packet == b"\0\6tsize\x009\0"
+    first.sendto(b"\0\4\0\0", listen)
+    packet, _ = receive(first, "single_replacement", listen)
+    assert packet == b"\0\3\0\1alternate"
+    second.sendto(RRQ, listen)
+    packet, _ = receive(second, "single_other_peer", listen)
+    assert packet == b"\0\3\0\1" + CONTENT[:512]
+    normalized["single_replacement_fd_delta"] = fd_count(process.pid) - baseline
+    third.sendto(RRQ, listen)
+    silent(third, "single_capacity_drops")
+    first.sendto(b"\0\2boot.bin\0octet\0", listen)
+    silent(first, "single_matched_wrq_ignored")
+    first.sendto(b"\0\1missing\0octet\0", listen)
+    packet, _ = receive(first, "single_failed_replacement", listen)
+    assert packet[:4] == b"\0\5\0\1"
+    first.sendto(b"\0\4\0\1", listen)
+    silent(first, "single_abandoned_ack_ignored")
+    silent(third, "single_dropped_request_not_queued")
+    second.sendto(b"\0\4\0\1", listen)
+    packet, _ = receive(second, "single_other_peer_progress", listen)
+    assert packet == b"\0\3\0\2" + CONTENT[512:]
+    second.sendto(b"\0\4\0\2", listen)
+    third.sendto(RRQ, listen)
+    packet, _ = receive(third, "single_reuse_after_capacity", listen)
+    assert packet == b"\0\3\0\1" + CONTENT[:512]
+    third.sendto(b"\0\5\0\0abort\0", listen)
+    time.sleep(0.02)
+    normalized["single_cleanup_fd_delta"] = fd_count(process.pid) - baseline
+
+    first.sendto(b"\0\1window.bin\0octet\0blksize\x004\0windowsize\x003\0", listen)
+    packet, _ = receive(first, "single_window_oack", listen)
+    assert packet == b"\0\6blksize\x004\0windowsize\x003\0"
+    first.sendto(b"\0\4\0\0", listen)
+    for block, body in [(1, b"0123"), (2, b"4567"), (3, b"89ab")]:
+        packet, _ = receive(first, f"single_window_initial_{block}", listen)
+        assert packet == b"\0\3" + block.to_bytes(2, "big") + body
+    first.sendto(b"\0\4\0\0", listen)
+    silent(first, "single_duplicate_oack_ack_ignored")
+    first.sendto(b"\0\4\0\2", listen)
+    for block, body in [(3, b"89ab"), (4, b"cdef"), (5, b"g")]:
+        packet, _ = receive(first, f"single_partial_window_{block}", listen)
+        assert packet == b"\0\3" + block.to_bytes(2, "big") + body
+    first.sendto(b"\0\4\0\2", listen)
+    silent(first, "single_duplicate_data_ack_ignored")
+    first.sendto(b"\0\4\0\5", listen)
+    time.sleep(0.02)
+    normalized["single_window_cleanup_fd_delta"] = fd_count(process.pid) - baseline
+
+    first.sendto(RRQ, listen)
+    packet, _ = receive(first, "single_retry_initial", listen)
+    first.settimeout(4)
+    retry, _ = receive(first, "single_retry_same_data", listen)
+    assert retry == packet == b"\0\3\0\1" + CONTENT[:512]
+    first.sendto(b"\0\5\0\0abort\0", listen)
+    time.sleep(0.02)
+    normalized["single_retry_cleanup_fd_delta"] = fd_count(process.pid) - baseline
+
+
+def check_single_stale(process, client, receive, normalized, listen, baseline):
+    sock = client()
+    sock.sendto(RRQ, listen)
+    packet, _ = receive(sock, "single_stale_initial", listen)
+    assert packet == b"\0\3\0\1" + CONTENT[:512]
+    sock.sendto(b"\0\1alternate.bin\0octet\0", listen)
+    receive(sock, "single_stale_replacement", listen)
+    sock.sendto(b"\0\4\0\1", listen)
+    time.sleep(0.02)
+    normalized["single_stale_cleanup_fd_delta"] = fd_count(process.pid) - baseline
+
+
+def check_single_timeout(process, client, receive, normalized, listen, baseline):
+    sock = client()
+    sock.sendto(RRQ, listen)
+    packet, _ = receive(sock, "timeout_initial", listen)
+    assert packet == b"\0\3\0\1" + CONTENT[:512]
+    started = time.monotonic()
+    assert fd_count(process.pid) == baseline + 1
+    count = 0
+    while fd_count(process.pid) != baseline:
+        assert process.poll() is None
+        assert time.monotonic() - started < 130, "TFTP timeout failed to release file"
+        if select.select([sock], [], [], 0.05)[0]:
+            retry, _ = receive(sock, f"timeout_retry_{count}", listen)
+            assert retry == packet
+            count += 1
+    elapsed = time.monotonic() - started
+    normalized["timeout_waited_120_seconds"] = elapsed >= 120
+    assert normalized["timeout_waited_120_seconds"]
+    normalized["timeout_fd_delta"] = fd_count(process.pid) - baseline
+    normalized["timeout_retransmission_count"] = count
+    sock.sendto(b"\0\1alternate.bin\0octet\0", listen)
+    packet, _ = receive(sock, "timeout_listener_survived", listen)
+    assert packet == b"\0\3\0\1alternate"
+    sock.sendto(b"\0\4\0\1", listen)
+    normalized["timeout_reuse_fd_delta"] = wait_for_fds(process, baseline)
+    assert normalized["timeout_reuse_fd_delta"] == 0
+
+
+def run_service(kind, binary, ip, out, case="protocol"):
+    capacity_case = case == "capacity"
+    single = case in ["single", "single-stale", "single-timeout"]
     fixture = out / "root"
     fixture.mkdir(exist_ok=True)
     fixture.chmod(0o755)
     (fixture / "boot.bin").write_bytes(CONTENT)
     (fixture / "boot.bin").chmod(0o644)
+    (fixture / "alternate.bin").write_bytes(b"alternate")
+    (fixture / "alternate.bin").chmod(0o644)
+    (fixture / "window.bin").write_bytes(b"0123456789abcdefg")
+    (fixture / "window.bin").chmod(0o644)
     (fixture / "private.bin").write_bytes(b"private")
     (fixture / "private.bin").chmod(0o600)
     (fixture / "directory").mkdir(exist_ok=True)
@@ -145,13 +285,14 @@ def run_service(kind, binary, ip, out, capacity_case=False):
     (fixture / "mutable.bin").chmod(0o644)
     family = socket.AF_INET6 if ":" in ip else socket.AF_INET
     listen = (ip, 69)
-    label = f"{'capacity-' if capacity_case else ''}{kind}-{'v6' if family == socket.AF_INET6 else 'v4'}"
-    command = ([str(binary), f"[{ip}]:69" if ":" in ip else f"{ip}:69", str(fixture), "1" if capacity_case else "50"]
+    label = f"{case}-{kind}-{'v6' if family == socket.AF_INET6 else 'v4'}"
+    bind_ip = ("::" if ":" in ip else "0.0.0.0") if single else ip
+    command = ([str(binary), f"[{bind_ip}]:69" if ":" in bind_ip else f"{bind_ip}:69", str(fixture), "1" if capacity_case else "2" if single else "50", "single" if single else "dedicated"]
                if kind == "rust" else
                [str(binary), "--no-daemon", "--port=0", "--no-hosts", "--no-resolv",
-                "--user=root", "--group=root", "--enable-tftp", "--bind-interfaces",
+                "--user=root", "--group=root", "--enable-tftp",
                 f"--listen-address={ip}", f"--tftp-root={fixture}", "--pid-file=",
-                "--log-facility=-", f"--tftp-max={1 if capacity_case else 50}"])
+                "--log-facility=-", f"--tftp-max={1 if capacity_case else 2 if single else 50}"] + (["--tftp-single-port"] if single else ["--bind-interfaces"]))
     normalized, wire = {}, []
     process = None
     clients = []
@@ -181,18 +322,25 @@ def run_service(kind, binary, ip, out, capacity_case=False):
 
             def receive(sock, name, expected_tid=None):
                 packet, source = sock.recvfrom(8192)
-                wire.append({"name": name, "packet_hex": packet.hex(), "source": source})
+                wire.append({"name": name, "packet_hex": packet.hex(), "source": source,
+                             "at_monotonic": time.monotonic()})
                 if packet[:2] == b"\0\5":
                     assert len(packet) >= 5 and packet[-1] == 0, name
                     value = {"opcode": 5, "code": int.from_bytes(packet[2:4], "big")}
                 else:
                     value = {"packet_hex": packet.hex()}
-                value["source_tid_matches"] = (source == expected_tid if expected_tid else source[1] != 69)
+                value["source_tid_matches"] = (source[:2] == expected_tid[:2] if expected_tid else (source[1] == 69 if single else source[1] != 69))
                 normalized[name] = value
                 assert value["source_tid_matches"], name
                 return packet, source
 
-            if capacity_case:
+            if case == "single-stale":
+                check_single_stale(process, client, receive, normalized, listen, baseline)
+            elif case == "single-timeout":
+                check_single_timeout(process, client, receive, normalized, listen, baseline)
+            elif single:
+                check_single(process, client, receive, normalized, listen, baseline)
+            elif capacity_case:
                 check_capacity(process, client, receive, normalized, listen, baseline)
             else:
                 first, second, foreign = client(), client(), client()
@@ -302,6 +450,8 @@ def main():
     parser.add_argument("--rust", type=Path, required=True)
     parser.add_argument("--source", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--cases", nargs="+", choices=["protocol", "capacity", "single", "single-stale", "single-timeout"], default=["protocol", "capacity", "single", "single-stale"])
+    parser.add_argument("--families", nargs="+", choices=["ipv4", "ipv6"], default=["ipv4", "ipv6"])
     args = parser.parse_args()
     assert platform.system() == "Linux" and os.environ.get("DNSMASQ_TEST_ISOLATED") == "1"
     assert not Path("/etc/openwrt_release").exists(), "build-host namespace only"
@@ -318,14 +468,17 @@ def main():
               "rust_source_sha256": {name: sha(REPO / name) for name in sources},
               "rounds": [], "failures": []}
     try:
-        for ip, capacity_case in [(ip, case) for ip in ["127.0.0.1", "::1"] for case in [False, True]]:
-            c = run_service("c", args.c, ip, out, capacity_case)
-            rust = run_service("rust", args.rust, ip, out, capacity_case)
+        for ip, case in [(ip, case) for ip in ["127.0.0.1" if family == "ipv4" else "::1" for family in args.families] for case in args.cases]:
+            c = run_service("c", args.c, ip, out, case)
+            rust = run_service("rust", args.rust, ip, out, case)
             mismatches = compare(c, rust)
+            defects = reference_defects(case, c, rust)
+            unexpected = [key for key in mismatches if key not in defects]
             report["rounds"].append({"family": "ipv6" if ":" in ip else "ipv4",
-                                     "case": "capacity" if capacity_case else "protocol",
-                                     "checks": c["checks"] + 1, "mismatches": mismatches})
-            assert not mismatches, mismatches
+                                     "case": case,
+                                     "checks": c["checks"] + 1, "mismatches": mismatches,
+                                     "reference_defects": defects, "unexpected_mismatches": unexpected})
+            assert not unexpected, unexpected
     except Exception as error:
         report["failures"].append(str(error))
         raise
