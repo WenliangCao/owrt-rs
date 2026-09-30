@@ -262,6 +262,28 @@ impl<O: FileOpener> TransferRuntime<O> {
         self.config.single_port
     }
 
+    /// A dedicated socket belongs to one peer, even when the actual sender
+    /// owns another active transfer. C checks this before parsing any opcode
+    /// (`tftp.c:647-660`); a nonempty foreign datagram receives ERR_TID.
+    pub fn handle_transfer_datagram(
+        &mut self,
+        owner: SocketAddr,
+        peer: SocketAddr,
+        packet: &[u8],
+        now: u64,
+    ) -> Result<Vec<RuntimeEvent>, RuntimeError> {
+        if packet.is_empty() {
+            return Ok(Vec::new());
+        }
+        if peer != owner {
+            return Ok(vec![RuntimeEvent::TidError {
+                peer,
+                packet: error_packet(5, "unknown transfer id"),
+            }]);
+        }
+        self.handle_socket_datagram(SocketRole::Transfer, peer, packet, now)
+    }
+
     /// Route a datagram received from a caller-owned TFTP socket.  The caller
     /// still owns interface/pktinfo validation, socket binding and TID/port
     /// allocation; this adapter only enforces the C listener-vs-transfer
@@ -846,6 +868,40 @@ mod tests {
             .handle_socket_datagram(SocketRole::Transfer, source_peer, &[0, 4, 0, 1], 3)
             .unwrap();
         assert!(matches!(done.first(), Some(RuntimeEvent::Completed(_))));
+        assert_eq!(runtime.active_len(), 0);
+    }
+
+    #[test]
+    fn dedicated_socket_rejects_foreign_peer_even_with_an_active_transfer() {
+        let mut runtime = runtime(b"hello");
+        let request = rrq(b"boot.bin", b"octet");
+        for port in [1000, 1001] {
+            runtime
+                .handle_socket_datagram(SocketRole::Server, peer(port), &request, 1)
+                .unwrap();
+        }
+        for foreign in [peer(1001), peer(1002)] {
+            // C checks the source before checking the payload length/opcode.
+            for packet in [&[0][..], &[0, 4, 0, 1], &[0, 5, 0, 0], &request] {
+                let events = runtime
+                    .handle_transfer_datagram(peer(1000), foreign, packet, 2)
+                    .unwrap();
+                assert!(matches!(events.as_slice(),
+                    [RuntimeEvent::TidError { peer, packet }]
+                    if *peer == foreign && packet.starts_with(&[0, 5, 0, 5])));
+                assert_eq!(runtime.active_len(), 2);
+            }
+        }
+        assert!(runtime
+            .handle_transfer_datagram(peer(1000), peer(1002), &[], 2)
+            .unwrap()
+            .is_empty());
+        for port in [1000, 1001] {
+            let events = runtime
+                .handle_transfer_datagram(peer(port), peer(port), &[0, 4, 0, 1], 2)
+                .unwrap();
+            assert!(matches!(events.as_slice(), [RuntimeEvent::Completed(_)]));
+        }
         assert_eq!(runtime.active_len(), 0);
     }
 

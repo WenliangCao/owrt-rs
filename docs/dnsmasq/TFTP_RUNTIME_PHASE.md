@@ -37,7 +37,12 @@ fixture uses isolated temporary files; no production or physical-router state
 is touched. Full UDP listener/pktinfo and PXE/helper integration remain outside
 this phase.
 
-Current validation is limited to the socket-independent runtime while the UDP
-listener and OpenWrt helper integration are still being integrated. The
-focused module suite passes 12/12 with `cargo test --lib tftp_runtime`; this is
-not a claim of complete TFTP daemon compatibility.
+The focused module suite passes 13/13 with `cargo test --lib tftp_runtime`.
+`handle_transfer_datagram` now receives both the dedicated socket owner and
+the actual sender: even a sender owning another active transfer receives
+ERR_TID before any ACK/ERR state changes. Empty datagrams are ignored, matching
+the C `recvfrom() > 0` boundary; a foreign one-byte datagram still gets ERR_TID.
+The Linux listener consumes idle `WouldBlock`/`Interrupted` reads and returns
+TID errors on the receiving socket. IPv4/IPv6 UDP differential and resource
+evidence for that narrow contract is in `TFTP_LISTENER_PHASE.md`; complete
+TFTP daemon and OpenWrt helper compatibility remain unverified.
