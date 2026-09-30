@@ -11,13 +11,16 @@ use std::net::Ipv4Addr;
 pub struct RangeConfig {
     pub start: Ipv4Addr,
     pub end: Ipv4Addr,
-    pub netmask: Ipv4Addr,
-    pub router: Ipv4Addr,
+    /// None asks the runtime to derive the netmask from the serving interface.
+    pub netmask: Option<Ipv4Addr>,
+    pub broadcast: Option<Ipv4Addr>,
     pub lease_time: u32,
+    pub lease_time_explicit: bool,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DhcpConfig {
+    /// Matches C's context-list order: the last configured range comes first.
     pub ranges: Vec<RangeConfig>,
     pub authoritative: bool,
     pub bootp_dynamic: bool,
@@ -52,21 +55,33 @@ fn integer(bytes: &[u8]) -> Result<u32, Error> {
     })
 }
 
-fn lease_time(bytes: &[u8]) -> Result<u32, Error> {
+fn lease_time(bytes: &[u8]) -> Result<(u32, bool), Error> {
     if bytes.is_empty() {
-        return Err(Error("empty DHCP lease time"));
+        return Ok((3600, false));
+    }
+    if bytes == b"infinite" {
+        return Ok((u32::MAX, true));
     }
     let (digits, multiplier) = match bytes.last().copied() {
-        Some(b's') => (&bytes[..bytes.len() - 1], 1),
-        Some(b'm') => (&bytes[..bytes.len() - 1], 60),
-        Some(b'h') => (&bytes[..bytes.len() - 1], 3600),
-        Some(b'd') => (&bytes[..bytes.len() - 1], 86_400),
-        Some(b'w') => (&bytes[..bytes.len() - 1], 604_800),
+        Some(b's' | b'S') => (&bytes[..bytes.len() - 1], 1),
+        Some(b'm' | b'M') => (&bytes[..bytes.len() - 1], 60),
+        Some(b'h' | b'H') => (&bytes[..bytes.len() - 1], 3600),
+        Some(b'd' | b'D') => (&bytes[..bytes.len() - 1], 86_400),
+        Some(b'w' | b'W') => (&bytes[..bytes.len() - 1], 604_800),
         _ => (bytes, 1),
     };
-    integer(digits)?
+    // C accepts a bare suffix: after stripping it, atoi("") is zero. Avoid
+    // inventing semantics for inputs whose C int multiplication overflows.
+    let value = if digits.is_empty() {
+        0
+    } else {
+        integer(digits)?
+    };
+    value
         .checked_mul(multiplier)
-        .ok_or(Error("DHCP lease time overflow"))
+        .filter(|value| *value <= i32::MAX as u32)
+        .map(|value| (value.max(120), true))
+        .ok_or(Error("DHCP lease time exceeds defined C int range"))
 }
 
 fn ip(bytes: &[u8]) -> Result<Ipv4Addr, Error> {
@@ -92,40 +107,47 @@ impl DhcpConfig {
             b"dhcp-range" => {
                 let argument = argument.ok_or(Error("missing parameter"))?;
                 let parts = argument.split(b',');
-                if parts.len() < 2 || parts.len() > 4 {
+                if parts.len() < 2 || parts.len() > 5 {
                     return Err(Error("bad DHCP range"));
                 }
-                let start = ip(&parts[0].decoded())?;
-                let end = ip(&parts[1].decoded())?;
+                // option.c does not unhide quoted metacharacters for ranges.
+                let mut start = ip(parts[0].encoded())?;
+                let mut end = ip(parts[1].encoded())?;
                 if start > end {
-                    return Err(Error("DHCP range start after end"));
+                    std::mem::swap(&mut start, &mut end);
                 }
-                let mut netmask = Ipv4Addr::new(255, 255, 255, 0);
-                let mut router = Ipv4Addr::UNSPECIFIED;
-                let mut duration = 43_200;
-                for part in &parts[2..] {
-                    let value = part.decoded();
-                    if let Ok(address) = std::str::from_utf8(&value)
-                        .ok()
-                        .and_then(|value| value.parse().ok())
-                        .ok_or(())
-                    {
-                        if netmask == Ipv4Addr::new(255, 255, 255, 0) {
-                            netmask = address;
-                        } else {
-                            router = address;
-                        }
-                    } else {
-                        duration = lease_time(&value)?;
+                let mut netmask = None;
+                let mut broadcast = None;
+                let mut leasepos = 2;
+                if let Some(mask) = parts.get(2).and_then(|part| ip(part.encoded()).ok()) {
+                    if (u32::from(start) & u32::from(mask)) != (u32::from(end) & u32::from(mask)) {
+                        return Err(Error("inconsistent DHCP range"));
+                    }
+                    netmask = Some(mask);
+                    leasepos = 3;
+                    if let Some(address) = parts.get(3).and_then(|part| ip(part.encoded()).ok()) {
+                        broadcast = Some(address);
+                        leasepos = 4;
                     }
                 }
-                self.ranges.push(RangeConfig {
-                    start,
-                    end,
-                    netmask,
-                    router,
-                    lease_time: duration,
-                });
+                if parts.len() > leasepos + 1 {
+                    return Err(Error("bad DHCP range"));
+                }
+                let (duration, explicit) = match parts.get(leasepos) {
+                    Some(part) => lease_time(part.encoded())?,
+                    None => (3600, false),
+                };
+                self.ranges.insert(
+                    0,
+                    RangeConfig {
+                        start,
+                        end,
+                        netmask,
+                        broadcast,
+                        lease_time: duration,
+                        lease_time_explicit: explicit,
+                    },
+                );
             }
             b"dhcp-host"
             | b"dhcp-option"
@@ -159,16 +181,8 @@ impl DhcpConfig {
     }
 
     pub fn validate_ready(&self) -> Result<(), Error> {
-        if self.ranges.is_empty() {
-            return Ok(());
-        }
-        if self
-            .ranges
-            .iter()
-            .any(|range| range.router.is_unspecified())
-        {
-            return Ok(());
-        }
+        // A parsed range can omit its mask. Serving-interface discovery and
+        // runtime capability checks belong to the listener's admission gate.
         Ok(())
     }
 }
@@ -187,5 +201,107 @@ mod tests {
         assert!(config.apply(&directive).unwrap());
         assert_eq!(config.ranges[0].lease_time, 43_200);
         assert_eq!(config.ranges[0].start, Ipv4Addr::new(192, 0, 2, 10));
+    }
+
+    fn parse(value: &str) -> Result<RangeConfig, Error> {
+        let line = format!("dhcp-range={value}");
+        let directive = lex_line(line.as_bytes())?.unwrap();
+        let mut config = DhcpConfig::default();
+        config.apply(&directive)?;
+        Ok(config.ranges.remove(0))
+    }
+
+    // Expected fields below come from exact option.c read_opts state, retained
+    // in tools/dnsmasq/dhcp_config_diff.py's independent C corpus.
+    #[test]
+    fn range_defaults_reverse_bounds_and_broadcast_match_c() {
+        let defaults = parse("192.0.2.20,192.0.2.10").unwrap();
+        assert_eq!(defaults.start, Ipv4Addr::new(192, 0, 2, 10));
+        assert_eq!(defaults.end, Ipv4Addr::new(192, 0, 2, 20));
+        assert_eq!(defaults.netmask, None);
+        assert_eq!(defaults.broadcast, None);
+        assert_eq!(defaults.lease_time, 3600);
+        assert!(!defaults.lease_time_explicit);
+
+        let explicit = parse("192.0.2.10,192.0.2.20,255.255.255.0,192.0.2.255,12h").unwrap();
+        assert_eq!(explicit.netmask, Some(Ipv4Addr::new(255, 255, 255, 0)));
+        assert_eq!(explicit.broadcast, Some(Ipv4Addr::new(192, 0, 2, 255)));
+        assert_eq!(explicit.lease_time, 43_200);
+        assert!(explicit.lease_time_explicit);
+    }
+
+    #[test]
+    fn lease_units_floor_empty_and_infinite_match_c() {
+        for (input, expected, explicit) in [
+            ("", 3600, false),
+            ("0", 120, true),
+            ("119S", 120, true),
+            ("121s", 121, true),
+            ("1m", 120, true),
+            ("2M", 120, true),
+            ("1H", 3600, true),
+            ("1D", 86_400, true),
+            ("1W", 604_800, true),
+            ("h", 120, true),
+            ("infinite", u32::MAX, true),
+        ] {
+            let range = parse(&format!("192.0.2.10,192.0.2.20,{input}")).unwrap();
+            assert_eq!(
+                (range.lease_time, range.lease_time_explicit),
+                (expected, explicit)
+            );
+        }
+        assert!(lease_time(b"2147483648").is_err());
+        assert!(lease_time(b"2147483647w").is_err());
+    }
+
+    #[test]
+    fn explicit_mask_checks_network_without_inventing_a_default() {
+        assert!(parse("192.0.2.10,198.51.100.20").is_ok());
+        assert!(parse("192.0.2.10,198.51.100.20,255.255.255.0").is_err());
+        assert!(parse("192.0.2.10,192.0.2.20,255.255.255.255").is_err());
+        assert_eq!(
+            parse("192.0.2.10,198.51.100.20,0.0.0.0").unwrap().netmask,
+            Some(Ipv4Addr::UNSPECIFIED)
+        );
+        assert!(parse("192.0.2.10,192.0.2.20,255.0.255.0").is_ok());
+    }
+
+    #[test]
+    fn rejects_extra_fields_quotes_and_unimplemented_selectors() {
+        for input in [
+            "192.0.2.10,192.0.2.20,1h,2h",
+            "192.0.2.10,192.0.2.20,,1h",
+            "\"192.0.2.10\",192.0.2.20",
+            "192.0.2.10,192.0.2.20,\"12h\"",
+            "tag:known,192.0.2.10,192.0.2.20",
+            "set:known,192.0.2.10,192.0.2.20",
+            "192.0.2.10,static",
+            "192.0.2.10,proxy",
+        ] {
+            assert!(parse(input).is_err(), "{input}");
+        }
+    }
+
+    #[test]
+    fn ranges_follow_c_context_order_and_rejection_is_atomic() {
+        let mut config = DhcpConfig::default();
+        for line in [
+            b"dhcp-range=192.0.2.10,192.0.2.20".as_slice(),
+            b"dhcp-range=198.51.100.10,198.51.100.20",
+        ] {
+            config.apply(&lex_line(line).unwrap().unwrap()).unwrap();
+        }
+        assert_eq!(config.ranges[0].start, Ipv4Addr::new(198, 51, 100, 10));
+        assert_eq!(config.ranges[1].start, Ipv4Addr::new(192, 0, 2, 10));
+        let before = config.clone();
+        assert!(config
+            .apply(
+                &lex_line(b"dhcp-range=192.0.2.10,192.0.2.20,bad")
+                    .unwrap()
+                    .unwrap()
+            )
+            .is_err());
+        assert_eq!(config, before);
     }
 }
