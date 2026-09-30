@@ -392,6 +392,7 @@ impl<R: Random> DnsDaemon<R> {
             || header.authorities != 0
             || header.additionals != 0
             || header.opcode() != 0
+            || header.flags & 0x0100 == 0
             || header.flags & (0x8000 | 0x20 | 0x10) != 0
             || edns.opt.is_some()
             || edns.signed
@@ -432,7 +433,7 @@ impl<R: Random> DnsDaemon<R> {
                 Ok(_) | Err(WireError::Full) => {}
                 Err(error) => return Err(error.into()),
             }
-            return Ok(Some(writer.finish()));
+            return Ok(Some(finish_cached_answer(writer)?));
         }
         let direct_nodata = ids.iter().find_map(|id| {
             cache.get(*id).and_then(|entry| {
@@ -450,7 +451,7 @@ impl<R: Random> DnsDaemon<R> {
                 Ok(_) | Err(WireError::Full) => {}
                 Err(error) => return Err(error.into()),
             }
-            return Ok(Some(writer.finish()));
+            return Ok(Some(finish_cached_answer(writer)?));
         }
 
         // A CNAME can terminate in a cached negative entry.  Preflight the
@@ -508,7 +509,9 @@ impl<R: Random> DnsDaemon<R> {
                         ) {
                             Ok(Some(target)) => target,
                             Ok(None) => break,
-                            Err(WireError::Full) => return Ok(Some(writer.finish())),
+                            Err(WireError::Full) => {
+                                return Ok(Some(finish_cached_answer(writer)?));
+                            }
                             Err(error) => return Err(error.into()),
                         };
                         written = true;
@@ -522,11 +525,20 @@ impl<R: Random> DnsDaemon<R> {
                         if target_entry.record.negative {
                             match append_negative_authority(&mut writer, cache, target, now) {
                                 Ok(_) => {}
-                                Err(WireError::Full) => return Ok(Some(writer.finish())),
+                                Err(WireError::Full) => {
+                                    return Ok(Some(finish_cached_answer(writer)?));
+                                }
                                 Err(error) => return Err(error.into()),
                             }
                             complete = true;
                         } else {
+                            // A CNAME is reusable across qtypes, but its
+                            // cached terminal RRset is not.  C's answer path
+                            // abandons this cache hit when an A chain is
+                            // queried as AAAA (and vice versa).
+                            if target_entry.record.kind != kind {
+                                return Ok(None);
+                            }
                             let terminal_name = target_entry.record.name.clone();
                             let terminal_kind = target_entry.record.kind;
                             let terminal_ids =
@@ -544,7 +556,7 @@ impl<R: Random> DnsDaemon<R> {
                                     }
                                     Ok(false) => {}
                                     Err(WireError::Full) => {
-                                        return Ok(Some(writer.finish()));
+                                        return Ok(Some(finish_cached_answer(writer)?));
                                     }
                                     Err(error) => return Err(error.into()),
                                 }
@@ -566,7 +578,7 @@ impl<R: Random> DnsDaemon<R> {
             }
         }
         if written {
-            return Ok(Some(writer.finish()));
+            return Ok(Some(finish_cached_answer(writer)?));
         }
         Ok(None)
     }
@@ -804,6 +816,21 @@ fn unix_seconds() -> i64 {
         .map_or(0, |duration| {
             i64::try_from(duration.as_secs()).unwrap_or(i64::MAX)
         })
+}
+
+/// `answer_request` clears all response sections when any cached RR cannot
+/// fit, while the reusable PacketWriter intentionally retains complete RRs.
+fn finish_cached_answer(writer: PacketWriter) -> Result<Vec<u8>, WireError> {
+    let mut packet = writer.finish();
+    let mut header = Header::parse(&packet)?;
+    if header.flags & 0x0200 != 0 {
+        packet.truncate(super::wire::skip_questions(&packet)?);
+        header.answers = 0;
+        header.authorities = 0;
+        header.additionals = 0;
+        header.write(&mut packet)?;
+    }
+    Ok(packet)
 }
 
 /// Select the first IN SOA in the authority section whose owner is a label

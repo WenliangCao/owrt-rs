@@ -112,6 +112,10 @@ where
         let mut environment = self.environment;
         environment.interface = dispatch.ingress.interface_index;
         environment.unicast_destination = dispatch.ingress.unicast_destination;
+        // dhcp.c prunes before dhcp_reply(), including packets whose state
+        // branch ultimately returns no response. Retain those leases in the
+        // owned outcome so the caller can queue deletion/name notifications.
+        let mut expired = self.store.prune(None, environment.now);
         let packet = dispatch.packet;
         let hostname = packet.option(12, 1);
         let name = hostname.map(|hostname| Name {
@@ -157,7 +161,10 @@ where
                 lost_names: Vec::new(),
             }),
         };
-        outcome.map_err(|error| RuntimeError::State(format!("{error:?}")))
+        let mut outcome = outcome.map_err(|error| RuntimeError::State(format!("{error:?}")))?;
+        expired.append(&mut outcome.removed);
+        outcome.removed = expired;
+        Ok(outcome)
     }
 }
 
@@ -783,6 +790,60 @@ mod tests {
             Some(&b"test"[..])
         );
         assert!(provider.store.changes().dns);
+    }
+
+    #[test]
+    fn state_provider_prunes_expired_even_for_no_reply_message() {
+        let expired = Ipv4Addr::new(192, 0, 2, 10);
+        let bytes = packet(
+            &[53, 1, 2, 255],
+            0,
+            Ipv4Addr::UNSPECIFIED,
+            Ipv4Addr::UNSPECIFIED,
+        );
+        let dispatch = dispatch_for(&bytes);
+        let mut store = LeaseStore::new(1);
+        store
+            .allocate(
+                expired,
+                crate::dhcp::lease::ClientIdentity {
+                    hardware_type: 1,
+                    hardware_address: vec![1; 6],
+                    client_id: None,
+                },
+            )
+            .unwrap();
+        store.set_expires(expired, 10, 1).unwrap();
+        let mut ranges = [];
+        let environment = Environment {
+            now: 11,
+            interface: 0,
+            authoritative: false,
+            unicast_destination: false,
+            ignored: false,
+            ignore_client_id: false,
+            fqdn_only: false,
+            rapid_commit: false,
+            bootp_dynamic: false,
+            consecutive_addresses: false,
+            override_server: None,
+            fallback_server: Ipv4Addr::UNSPECIFIED,
+            server_aliases: &[],
+        };
+        let mut provider = StateProvider::new(
+            &mut store,
+            &mut ranges,
+            &[],
+            None,
+            &[],
+            environment,
+            |_, _| ProbeResult::InUse,
+        );
+        let outcome = provider.resolve(&dispatch).unwrap();
+        assert_eq!(outcome.reply, Reply::Ignore);
+        assert_eq!(outcome.removed.len(), 1);
+        assert_eq!(outcome.removed[0].address, expired);
+        assert!(provider.store.is_empty());
     }
 
     #[test]
