@@ -422,7 +422,13 @@ impl<O: FileOpener> TransferRuntime<O> {
                 final_block: None,
             },
         );
-        self.send_initial(id, request, now)
+        let result = self.send_initial(id, request, now);
+        if result.is_err() {
+            // A read failure while constructing the first DATA packet must
+            // release the transfer just as a later-window failure does.
+            self.active.remove(&id);
+        }
+        result
     }
 
     fn send_initial(
@@ -505,6 +511,28 @@ impl<O: FileOpener> TransferRuntime<O> {
     }
 
     fn send_window(&mut self, id: u64, now: u64) -> Result<Vec<RuntimeEvent>, RuntimeError> {
+        // An option-bearing RRQ starts with block 0 (OACK).  It has no DATA
+        // offset, so route the deadline through the same OACK framing used by
+        // the initial request instead of treating block 0 as EOF.
+        let oack = {
+            let active = self.active.get_mut(&id).unwrap();
+            if active.transfer.block == 0 && active.transfer.next_ack == 0 {
+                active.transfer.begin_window(now);
+                let mut packet = Vec::new();
+                active
+                    .transfer
+                    .options
+                    .write_ack(active.file.size, &mut packet);
+                let mut framed = vec![0, 6];
+                framed.extend_from_slice(&packet[2..]);
+                Some((active.peer, framed))
+            } else {
+                None
+            }
+        };
+        if let Some((peer, packet)) = oack {
+            return Ok(vec![RuntimeEvent::Send { peer, packet }]);
+        }
         let count = {
             let active = self.active.get_mut(&id).unwrap();
             active.transfer.begin_window(now).unwrap_or(0)
@@ -892,6 +920,17 @@ mod tests {
             .handle_datagram(peer(1000), &[0, 4, 0, 0], 2)
             .unwrap();
         assert!(matches!(second[0], RuntimeEvent::Send { .. }));
+    }
+
+    #[test]
+    fn option_oack_retransmits_before_block_zero_ack() {
+        let mut runtime = runtime(b"abc");
+        let mut request = rrq(b"boot.bin", b"octet");
+        request.extend_from_slice(b"blksize\x0064\0");
+        let first = runtime.handle_datagram(peer(1000), &request, 1).unwrap();
+        let retry = runtime.tick(3).unwrap();
+        assert_eq!(retry, first);
+        assert_eq!(runtime.active_len(), 1);
     }
 
     #[test]
