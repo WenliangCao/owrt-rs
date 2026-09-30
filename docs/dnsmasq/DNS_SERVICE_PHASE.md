@@ -7,7 +7,7 @@
 | `rfc1035.c:1730-1768,1753-1807,2450-2462` | 只接受 QUERY、单 question、无 QR/authority；完成本地回答时保留 RD/CD、设置 RA；CNAME A/AAAA 追目标；local-only 未命中为 NXDOMAIN，已知子树为 NOERROR/AA=0 | `dns/local.rs::LocalAnswerer` | 本地回答测试覆盖 A/AAAA/TXT、CNAME+A、未拥有名称、QCLASS 非 IN 的 local-only 边界、族过滤、zero-address、NXDOMAIN/NOERROR、截断、标志 |
 | `cache.c:1322-1545` | hosts 地址族筛选、同名轮转、TTL 和配置 host-record 记录 | `LocalAnswerer` + `Hosts` | `hosts` 原有对照；本地 A/AAAA/TXT 测试 |
 | `option.c:2335-2373,4971-5251` | CNAME、PTR、TXT、MX、SRV、NAPTR、raw RR 的 typed 数据进入 bounded writer；CNAME 链先于别名自身记录 | `dns/local.rs` | 配置解析与 wire writer 单测；多跳链、任意 qtype、别名遮蔽、独立 TTL、hosts nonterminal/raw 边界已覆盖；MX 默认主机名仍待完整服务复现 |
-| `forward.c:1635-1796` | TCP DNS 两字节长度前缀、分片读取、多帧连接、零长度拒绝 | `dns/service.rs::TcpFramer` | 分片/多帧/空帧边界测试 |
+| `forward.c:1635-1796`、`forward.c:2425-2470` | TCP DNS 两字节长度前缀、分片读取、多帧连接、零长度拒绝；超过 `packet_buff_sz` 的长度前缀在 C 中先拒绝，不读取帧体 | `dns/service.rs::TcpFramer`；`with_max_frame` 在长度前缀阶段返回 `TooLarge` | 分片/多帧/空帧边界测试；`bounded_tcp_framer_rejects_length_before_reading_body` |
 | `forward.c:32-119,1635-1796` | UDP/TCP socket 与两字节 TCP framing 属于传输边界；未拥有的名字显式返回 `None`，交给独立的上游 dispatcher | `LocalDnsService` + `TcpFramer`；`dns/forward_service.rs::ForwardDispatcher`；`dns/upstream.rs::UpstreamResolver` | 分片、多帧、最大帧后续帧、零长度/截断与本地服务接线测试；上游 EDNS/合并/回复匹配及非阻塞 UDP socket 见 `DNS_FORWARD_SERVICE_PHASE.md`/`DNS_UPSTREAM_PHASE.md`；完整 process-reply、TCP upstream 和 daemon 接线仍未完成 |
 | `rfc2131.c:565-697` | BOOTP vend 固定 64 字节、cookie、TLV/END、空间不足跳过并继续 | `dhcp::packet::encode_bootp_vendor` | exact boundary/full/truncation/malformed 单测；无真实 DHCP listener |
 

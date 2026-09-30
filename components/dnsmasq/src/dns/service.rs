@@ -22,7 +22,7 @@ impl std::fmt::Display for FrameError {
         f.write_str(match self {
             Self::Truncated => "truncated DNS TCP frame",
             Self::Empty => "empty DNS TCP frame",
-            Self::TooLarge => "DNS TCP frame exceeds 65535 bytes",
+            Self::TooLarge => "DNS TCP frame exceeds its receive limit",
         })
     }
 }
@@ -42,16 +42,35 @@ pub fn encode_tcp_frame(packet: &[u8]) -> Result<Vec<u8>, FrameError> {
     Ok(frame)
 }
 
-/// Incremental DNS-over-TCP decoder.  It never allocates according to an
+/// Incremental DNS-over-TCP decoder. It never allocates according to an
 /// incomplete frame and rejects zero-length frames before returning payload.
-#[derive(Debug, Default)]
+/// A bounded instance also rejects a length prefix before reading its body,
+/// matching `forward.c::tcp_request`'s early `packet_buff_sz` check.
+#[derive(Debug)]
 pub struct TcpFramer {
     bytes: Vec<u8>,
+    max_frame: usize,
+}
+
+impl Default for TcpFramer {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl TcpFramer {
     pub fn new() -> Self {
-        Self::default()
+        Self::with_max_frame(u16::MAX as usize)
+    }
+
+    /// Construct a framer with a caller-owned receive limit. Values above the
+    /// two-byte DNS/TCP maximum are clamped; a zero limit deliberately rejects
+    /// every non-empty frame and is useful only for validation.
+    pub fn with_max_frame(max_frame: usize) -> Self {
+        Self {
+            bytes: Vec::new(),
+            max_frame: max_frame.min(u16::MAX as usize),
+        }
     }
 
     pub fn push(&mut self, input: &[u8]) -> Result<Vec<Vec<u8>>, FrameError> {
@@ -73,6 +92,10 @@ impl TcpFramer {
             if length == 0 {
                 self.bytes.clear();
                 return Err(FrameError::Empty);
+            }
+            if length > self.max_frame {
+                self.bytes.clear();
+                return Err(FrameError::TooLarge);
             }
             let needed = length + 2 - self.bytes.len();
             let count = needed.min(input.len() - offset);
@@ -295,5 +318,16 @@ mod tests {
         assert_eq!(framer.push(&[0, 0]), Err(FrameError::Empty));
         assert_eq!(framer.push(&[0, 3, b'a']), Ok(Vec::new()));
         assert_eq!(framer.finish(), Err(FrameError::Truncated));
+    }
+
+    #[test]
+    fn bounded_tcp_framer_rejects_length_before_reading_body() {
+        let mut framer = TcpFramer::with_max_frame(4);
+        assert_eq!(framer.push(&[0, 5, b'a']), Err(FrameError::TooLarge));
+        assert_eq!(framer.buffered_len(), 0);
+        assert_eq!(
+            framer.push(&encode_tcp_frame(b"ok").unwrap()),
+            Ok(vec![b"ok".to_vec()])
+        );
     }
 }
