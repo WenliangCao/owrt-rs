@@ -67,9 +67,37 @@ Run the Python tool under `run_isolated.sh`, supplying `--c`, `--rust`,
 `--source` (the matching `tftp.c`), and a fresh `--out` under private/. Its
 summary records both executable hashes and the Rust source hashes.
 
+The third unit follows `tftp.c:244-269,301-329,526-534,647-665` and
+`dnsmasq.c:1862-1878`: every successful dedicated RRQ owns an independent
+`TransferId` and UDP socket, including repeated requests from one peer. Send,
+ACK/ERR, completion and timeout use that ID. Dedicated sockets use the plain
+exclusive `UdpSocket` bind/recvfrom boundary, matching C; the server retains
+the shared pktinfo adapter. C's listener readiness check is `active <= max`,
+so a single dedicated listener admits `max + 1` transfers and then stops
+receiving. It resumes after cleanup, processing the already-queued request
+without requiring the client to resend. Single-port replacement stays separate.
+
+Socket allocation precedes opening the file, matching C's failure boundary:
+with no descriptor available, a new RRQ is silently dropped; with one free
+descriptor, the socket is created and file-open EMFILE produces ERR_NOTDEF.
+Neither condition kills the daemon or leaks state. Send failures emit a
+`TransportError` observation and retain the ordinary retry/timeout state,
+matching C's ignored `send_from` return value; dedicated recvfrom errors are
+also nonfatal. General send-error fault injection is not yet in the oracle.
+
+`run-05/` passes 34 protocol/resource observations and 11 capacity/concurrency
+observations for each of IPv4 and IPv6: 90 total, zero mismatches. This adds
+same-peer concurrent RRQs, independent completion/error, one shared file FD,
+the exact capacity boundary, queued admission after completion, zero/one
+available-FD tests using per-child `prlimit`, and successful reuse after limits
+are restored. `run-04/` is retained: two shared-`SO_REUSEADDR` transfer sockets
+were observed using the same source TID. Exclusive transfer binds remove that
+possibility; the Linux regression also verifies that another reuse-enabled
+socket cannot bind a live transfer address. All 31 host TFTP tests and all 32
+Linux namespace TFTP tests pass on the final source snapshot.
+
 These are host functional results, not router performance results. They do
 not close interface admission/pktinfo source selection, transfer port ranges,
-repeated successful same-peer RRQ in separate-port mode, full single-port
-service equivalence, PXE/helper scripts or package integration. Capacity,
-socket allocation/send failure and complete resource-pressure behavior also
-remain outside this gate.
+full single-port service equivalence, PXE/helper scripts or package integration.
+General send failure, allocator/memory pressure and long-duration resource
+growth remain outside this gate.

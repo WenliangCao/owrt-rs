@@ -12,6 +12,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import resource
 import select
 import socket
 import subprocess
@@ -50,7 +51,87 @@ def calibrate():
     return {"positive": 1, "negative": 6}
 
 
-def run_service(kind, binary, ip, out):
+def wait_for_fds(process, baseline):
+    deadline = time.monotonic() + 2
+    while fd_count(process.pid) != baseline and time.monotonic() < deadline:
+        time.sleep(0.01)
+    return fd_count(process.pid) - baseline
+
+
+def check_capacity(process, client, receive, normalized, listen, baseline):
+    sock = client()
+    tids = []
+    # C's dedicated listener accepts while count <= tftp_max, so max=1
+    # admits two RRQs, even when both came from the same peer address.
+    for index in range(2):
+        sock.sendto(RRQ, listen)
+        packet, tid = receive(sock, f"same_peer_initial_{index}")
+        assert packet == b"\0\3\0\1" + CONTENT[:512]
+        tids.append(tid)
+    normalized["same_peer_distinct_tids"] = tids[0] != tids[1]
+    assert normalized["same_peer_distinct_tids"]
+    normalized["same_file_shared_fd_delta"] = fd_count(process.pid) - baseline
+    assert normalized["same_file_shared_fd_delta"] == 3  # Two sockets, one file.
+    sock.sendto(RRQ, listen)
+    normalized["capacity_waits"] = not select.select([sock], [], [], 0.05)[0]
+    assert normalized["capacity_waits"]
+
+    sock.sendto(b"\0\4\0\1", tids[0])
+    packet, _ = receive(sock, "first_progress", tids[0])
+    assert packet == b"\0\3\0\2" + CONTENT[512:]
+    sock.sendto(b"\0\4\0\2", tids[0])
+    # No resend: the third request must still be waiting in the server queue.
+    packet, third = receive(sock, "queued_after_completion")
+    assert packet == b"\0\3\0\1" + CONTENT[:512]
+    assert third != tids[1]
+    sock.sendto(b"\0\4\0\1", tids[1])
+    packet, _ = receive(sock, "second_still_independent", tids[1])
+    assert packet == b"\0\3\0\2" + CONTENT[512:]
+    sock.sendto(b"\0\5\0\0abort\0", tids[1])
+    sock.sendto(b"\0\4\0\1", third)
+    packet, _ = receive(sock, "queued_transfer_progress", third)
+    assert packet == b"\0\3\0\2" + CONTENT[512:]
+    sock.sendto(b"\0\4\0\2", third)
+    normalized["capacity_cleanup_fd_delta"] = wait_for_fds(process, baseline)
+    assert normalized["capacity_cleanup_fd_delta"] == 0
+
+
+def check_fd_pressure(process, client, receive, normalized, listen, baseline):
+    sock = client()
+    original_limit = resource.prlimit(process.pid, resource.RLIMIT_NOFILE)
+    try:
+        for slots in [0, 1]:
+            used = {int(path.name) for path in Path(f"/proc/{process.pid}/fd").iterdir()}
+            free = [fd for fd in range(max(used) + 3) if fd not in used]
+            # Already-open descriptors above the new soft limit remain valid.
+            # This provides exactly zero or one available descriptor, even
+            # when the daemon's descriptor table contains holes.
+            resource.prlimit(process.pid, resource.RLIMIT_NOFILE, (free[slots], original_limit[1]))
+            sock.sendto(RRQ, listen)
+            if slots == 0:
+                normalized["socket_emfile_silent"] = not select.select([sock], [], [], 0.05)[0]
+                assert normalized["socket_emfile_silent"]
+            else:
+                packet, _ = receive(sock, "file_emfile_error")
+                assert packet[:4] == b"\0\5\0\0"
+            normalized[f"emfile_{slots}_fd_delta"] = wait_for_fds(process, baseline)
+            assert normalized[f"emfile_{slots}_fd_delta"] == 0
+            assert process.poll() is None
+            resource.prlimit(process.pid, resource.RLIMIT_NOFILE, original_limit)
+    finally:
+        resource.prlimit(process.pid, resource.RLIMIT_NOFILE, original_limit)
+    sock.sendto(RRQ, listen)
+    packet, tid = receive(sock, "emfile_recovery_initial")
+    assert packet == b"\0\3\0\1" + CONTENT[:512]
+    sock.sendto(b"\0\4\0\1", tid)
+    packet, _ = receive(sock, "emfile_recovery_progress", tid)
+    assert packet == b"\0\3\0\2" + CONTENT[512:]
+    sock.sendto(b"\0\4\0\2", tid)
+    normalized["emfile_recovery_fd_delta"] = wait_for_fds(process, baseline)
+    assert normalized["emfile_recovery_fd_delta"] == 0
+
+
+def run_service(kind, binary, ip, out, capacity_case=False):
     fixture = out / "root"
     fixture.mkdir(exist_ok=True)
     fixture.chmod(0o755)
@@ -64,13 +145,13 @@ def run_service(kind, binary, ip, out):
     (fixture / "mutable.bin").chmod(0o644)
     family = socket.AF_INET6 if ":" in ip else socket.AF_INET
     listen = (ip, 69)
-    label = f"{kind}-{'v6' if family == socket.AF_INET6 else 'v4'}"
-    command = ([str(binary), f"[{ip}]:69" if ":" in ip else f"{ip}:69", str(fixture)]
+    label = f"{'capacity-' if capacity_case else ''}{kind}-{'v6' if family == socket.AF_INET6 else 'v4'}"
+    command = ([str(binary), f"[{ip}]:69" if ":" in ip else f"{ip}:69", str(fixture), "1" if capacity_case else "50"]
                if kind == "rust" else
                [str(binary), "--no-daemon", "--port=0", "--no-hosts", "--no-resolv",
                 "--user=root", "--group=root", "--enable-tftp", "--bind-interfaces",
                 f"--listen-address={ip}", f"--tftp-root={fixture}", "--pid-file=",
-                "--log-facility=-"])
+                "--log-facility=-", f"--tftp-max={1 if capacity_case else 50}"])
     normalized, wire = {}, []
     process = None
     clients = []
@@ -111,83 +192,87 @@ def run_service(kind, binary, ip, out):
                 assert value["source_tid_matches"], name
                 return packet, source
 
-            first, second, foreign = client(), client(), client()
-            tids = []
-            for index, sock in enumerate([first, second]):
-                sock.sendto(RRQ, listen)
-                packet, tid = receive(sock, f"initial_{index}")
-                assert packet == b"\0\3\0\1" + CONTENT[:512]
-                tids.append(tid)
-            assert tids[0] != tids[1]
-            normalized["distinct_transfer_tids"] = True
+            if capacity_case:
+                check_capacity(process, client, receive, normalized, listen, baseline)
+            else:
+                first, second, foreign = client(), client(), client()
+                tids = []
+                for index, sock in enumerate([first, second]):
+                    sock.sendto(RRQ, listen)
+                    packet, tid = receive(sock, f"initial_{index}")
+                    assert packet == b"\0\3\0\1" + CONTENT[:512]
+                    tids.append(tid)
+                assert tids[0] != tids[1]
+                normalized["distinct_transfer_tids"] = True
 
-            # A failed new request from an existing peer uses a temporary
-            # socket and leaves that peer's original transfer untouched.
-            active_fds = fd_count(process.pid)
-            error_requests = [("missing", b"\0\1missing\0octet\0", 1),
-                              ("permission", b"\0\1private.bin\0octet\0", 2),
-                              ("not_directory", b"\0\1boot.bin/child\0octet\0", 0),
-                              ("directory_read", b"\0\1directory\0octet\0", 0),
-                              ("malformed", b"\0\1\0octet\0", 4),
-                              ("wrq", b"\0\2boot.bin\0octet\0", 4),
-                              ("traversal", b"\0\1../escape\0octet\0", 2)]
-            for name, request, code in error_requests:
-                first.sendto(request, listen)
-                reply, source = receive(first, f"request_error_{name}")
-                assert reply[:4] == bytes([0, 5, 0, code]), name
-                assert source != tids[0], name
-                normalized[f"request_error_{name}"]["temporary_tid"] = True
-                deadline = time.monotonic() + 2
-                while fd_count(process.pid) != active_fds and time.monotonic() < deadline:
-                    time.sleep(0.01)
-                delta = fd_count(process.pid) - active_fds
-                normalized[f"request_error_{name}"]["fd_delta"] = delta
-                assert delta == 0, name
+                # A failed new request from an existing peer uses a temporary
+                # socket and leaves that peer's original transfer untouched.
+                active_fds = fd_count(process.pid)
+                error_requests = [("missing", b"\0\1missing\0octet\0", 1),
+                                  ("permission", b"\0\1private.bin\0octet\0", 2),
+                                  ("not_directory", b"\0\1boot.bin/child\0octet\0", 0),
+                                  ("directory_read", b"\0\1directory\0octet\0", 0),
+                                  ("malformed", b"\0\1\0octet\0", 4),
+                                  ("wrq", b"\0\2boot.bin\0octet\0", 4),
+                                  ("traversal", b"\0\1../escape\0octet\0", 2)]
+                for name, request, code in error_requests:
+                    first.sendto(request, listen)
+                    reply, source = receive(first, f"request_error_{name}")
+                    assert reply[:4] == bytes([0, 5, 0, code]), name
+                    assert source != tids[0], name
+                    normalized[f"request_error_{name}"]["temporary_tid"] = True
+                    deadline = time.monotonic() + 2
+                    while fd_count(process.pid) != active_fds and time.monotonic() < deadline:
+                        time.sleep(0.01)
+                    delta = fd_count(process.pid) - active_fds
+                    normalized[f"request_error_{name}"]["fd_delta"] = delta
+                    assert delta == 0, name
 
-            for name, packet in [("short", b"\0"), ("ack", b"\0\4\0\1"),
-                                 ("error", b"\0\5\0\0"), ("rrq", RRQ)]:
-                foreign.sendto(packet, tids[0])
-                reply, _ = receive(foreign, f"foreign_{name}", tids[0])
+                for name, packet in [("short", b"\0"), ("ack", b"\0\4\0\1"),
+                                     ("error", b"\0\5\0\0"), ("rrq", RRQ)]:
+                    foreign.sendto(packet, tids[0])
+                    reply, _ = receive(foreign, f"foreign_{name}", tids[0])
+                    assert reply[:4] == b"\0\5\0\5"
+                second.sendto(b"\0\4\0\1", tids[0])
+                reply, _ = receive(second, "other_active_peer", tids[0])
                 assert reply[:4] == b"\0\5\0\5"
-            second.sendto(b"\0\4\0\1", tids[0])
-            reply, _ = receive(second, "other_active_peer", tids[0])
-            assert reply[:4] == b"\0\5\0\5"
 
-            for name, sock, packet in [("owner_rrq_ignored", first, RRQ),
-                                       ("empty_foreign_ignored", foreign, b"")]:
-                sock.sendto(packet, tids[0])
-                readable, _, _ = select.select([sock], [], [], 0.05)
-                normalized[name] = not readable
-                assert not readable, name
+                for name, sock, packet in [("owner_rrq_ignored", first, RRQ),
+                                           ("empty_foreign_ignored", foreign, b"")]:
+                    sock.sendto(packet, tids[0])
+                    readable, _, _ = select.select([sock], [], [], 0.05)
+                    normalized[name] = not readable
+                    assert not readable, name
 
-            for index, sock in enumerate([first, second]):
-                sock.sendto(b"\0\4\0\1", tids[index])
-                packet, _ = receive(sock, f"valid_ack_{index}", tids[index])
-                assert packet == b"\0\3\0\2" + CONTENT[512:]
-            first.sendto(b"\0\4\0\2", tids[0])
-            second.sendto(b"\0\5\0\0abort\0", tids[1])
-            deadline = time.monotonic() + 2
-            while fd_count(process.pid) != baseline and time.monotonic() < deadline:
-                time.sleep(0.01)
-            normalized["fd_delta_after_complete_and_error"] = fd_count(process.pid) - baseline
-            assert normalized["fd_delta_after_complete_and_error"] == 0
+                for index, sock in enumerate([first, second]):
+                    sock.sendto(b"\0\4\0\1", tids[index])
+                    packet, _ = receive(sock, f"valid_ack_{index}", tids[index])
+                    assert packet == b"\0\3\0\2" + CONTENT[512:]
+                first.sendto(b"\0\4\0\2", tids[0])
+                second.sendto(b"\0\5\0\0abort\0", tids[1])
+                deadline = time.monotonic() + 2
+                while fd_count(process.pid) != baseline and time.monotonic() < deadline:
+                    time.sleep(0.01)
+                normalized["fd_delta_after_complete_and_error"] = fd_count(process.pid) - baseline
+                assert normalized["fd_delta_after_complete_and_error"] == 0
 
-            # The inode remains open with its original size, then shrinks.
-            # C sends the successful prefix of the window and one ERR_NOTDEF
-            # for each later read failure, then releases file/socket state.
-            first.sendto(b"\0\1mutable.bin\0octet\0blksize\x004\0windowsize\x004\0", listen)
-            packet, tid = receive(first, "read_failure_oack")
-            assert packet == b"\0\6blksize\x004\0windowsize\x004\0"
-            (fixture / "mutable.bin").write_bytes(b"x" * 8)
-            first.sendto(b"\0\4\0\0", tid)
-            for index, expected in enumerate([b"\0\3\0\1xxxx", b"\0\3\0\2xxxx", None, None]):
-                packet, _ = receive(first, f"read_failure_window_{index}", tid)
-                assert packet == expected if expected is not None else packet[:4] == b"\0\5\0\0"
-            deadline = time.monotonic() + 2
-            while fd_count(process.pid) != baseline and time.monotonic() < deadline:
-                time.sleep(0.01)
-            normalized["fd_delta_after_read_failure"] = fd_count(process.pid) - baseline
-            assert normalized["fd_delta_after_read_failure"] == 0
+                # The inode remains open with its original size, then shrinks.
+                # C sends the successful prefix of the window and one ERR_NOTDEF
+                # for each later read failure, then releases file/socket state.
+                first.sendto(b"\0\1mutable.bin\0octet\0blksize\x004\0windowsize\x004\0", listen)
+                packet, tid = receive(first, "read_failure_oack")
+                assert packet == b"\0\6blksize\x004\0windowsize\x004\0"
+                (fixture / "mutable.bin").write_bytes(b"x" * 8)
+                first.sendto(b"\0\4\0\0", tid)
+                for index, expected in enumerate([b"\0\3\0\1xxxx", b"\0\3\0\2xxxx", None, None]):
+                    packet, _ = receive(first, f"read_failure_window_{index}", tid)
+                    assert packet == expected if expected is not None else packet[:4] == b"\0\5\0\0"
+                deadline = time.monotonic() + 2
+                while fd_count(process.pid) != baseline and time.monotonic() < deadline:
+                    time.sleep(0.01)
+                normalized["fd_delta_after_read_failure"] = fd_count(process.pid) - baseline
+                assert normalized["fd_delta_after_read_failure"] == 0
+                check_fd_pressure(process, client, receive, normalized, listen, baseline)
             assert process.poll() is None
             normalized["checks"] = len(normalized)
     finally:
@@ -233,11 +318,12 @@ def main():
               "rust_source_sha256": {name: sha(REPO / name) for name in sources},
               "rounds": [], "failures": []}
     try:
-        for ip in ["127.0.0.1", "::1"]:
-            c = run_service("c", args.c, ip, out)
-            rust = run_service("rust", args.rust, ip, out)
+        for ip, capacity_case in [(ip, case) for ip in ["127.0.0.1", "::1"] for case in [False, True]]:
+            c = run_service("c", args.c, ip, out, capacity_case)
+            rust = run_service("rust", args.rust, ip, out, capacity_case)
             mismatches = compare(c, rust)
             report["rounds"].append({"family": "ipv6" if ":" in ip else "ipv4",
+                                     "case": "capacity" if capacity_case else "protocol",
                                      "checks": c["checks"] + 1, "mismatches": mismatches})
             assert not mismatches, mismatches
     except Exception as error:

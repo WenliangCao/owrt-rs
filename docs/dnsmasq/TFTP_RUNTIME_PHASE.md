@@ -10,7 +10,7 @@ scripts.
 
 `handle_socket_datagram` adds the small transport-role gate below that state
 machine: in separate-port mode, `SocketRole::Server` admits RRQ/WRQ and
-`SocketRole::Transfer` admits the non-RRQ transfer path (ACK/ERR are the
+`SocketRole::Transfer(id)` admits the non-RRQ transfer path (ACK/ERR are the
 stateful opcodes; a foreign peer receives `ERR_TID`). The caller still binds port 69 or a
 configured transfer range, validates interface metadata and supplies the peer
 TID; this is not a listener implementation.
@@ -37,9 +37,9 @@ fixture uses isolated temporary files; no production or physical-router state
 is touched. Full UDP listener/pktinfo and PXE/helper integration remain outside
 this phase.
 
-The focused module suite passes 15/15 with `cargo test --lib tftp_runtime`.
-`handle_transfer_datagram` now receives both the dedicated socket owner and
-the actual sender: even a sender owning another active transfer receives
+The focused module suite passes 16/16 with `cargo test --lib tftp_runtime`.
+`handle_transfer_datagram` receives the dedicated transfer ID and the actual
+sender: even a sender owning another active transfer receives
 ERR_TID before any ACK/ERR state changes. Empty datagrams are ignored, matching
 the C `recvfrom() > 0` boundary; a foreign one-byte datagram still gets ERR_TID.
 The Linux listener consumes idle `WouldBlock`/`Interrupted` reads and returns
@@ -54,3 +54,11 @@ subsequent per-block ERR packets in C order before `Failed` releases the
 transfer. These failures return protocol events rather than aborting the
 listener. `TFTP_LISTENER_PHASE.md` records the exact-daemon differential and
 the separate temporary-error-socket cleanup contract.
+
+Dedicated RRQs now keep distinct `TransferId`s throughout Send, completion,
+error and timeout events. A repeated RRQ from the same address/port creates
+another instance, matching C; an ACK/ERR can only change the instance whose
+socket received it. Single-port mode retains peer-based replacement. The
+dedicated listener follows C's `active <= tftp_max` admission test and stops
+receiving when false, leaving queued requests available after completion.
+This exact C boundary permits `max + 1` active transfers for one listener.

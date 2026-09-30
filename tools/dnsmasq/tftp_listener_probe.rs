@@ -19,6 +19,10 @@ fn main() -> io::Result<()> {
                 lowercase: false,
             },
             ipv6: address.is_ipv6(),
+            max_transfers: args
+                .get(3)
+                .map(|value| value.parse().expect("capacity"))
+                .unwrap_or(50),
             ..RuntimeConfig::default()
         },
         RealFileOpener::new(0, false),

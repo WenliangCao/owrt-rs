@@ -178,18 +178,41 @@ impl Default for RuntimeConfig {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Completion {
+    pub id: TransferId,
     pub peer: SocketAddr,
     pub path: Vec<u8>,
     pub size: u64,
 }
 
+/// One RRQ instance. Dedicated transfers may share a peer, but never an ID.
+pub type TransferId = u64;
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum RuntimeEvent {
-    Send { peer: SocketAddr, packet: Vec<u8> },
-    TidError { peer: SocketAddr, packet: Vec<u8> },
+    Send {
+        id: Option<TransferId>,
+        peer: SocketAddr,
+        packet: Vec<u8>,
+    },
+    TidError {
+        id: TransferId,
+        peer: SocketAddr,
+        packet: Vec<u8>,
+    },
     Completed(Completion),
-    Failed { peer: SocketAddr },
-    TimedOut { peer: SocketAddr },
+    Failed {
+        id: TransferId,
+        peer: SocketAddr,
+    },
+    TimedOut {
+        id: TransferId,
+        peer: SocketAddr,
+    },
+    TransportError {
+        id: Option<TransferId>,
+        peer: SocketAddr,
+        kind: io::ErrorKind,
+    },
 }
 
 /// Which caller-owned UDP socket delivered a datagram.  In separate-port
@@ -199,7 +222,7 @@ pub enum RuntimeEvent {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum SocketRole {
     Server,
-    Transfer,
+    Transfer(TransferId),
 }
 
 #[derive(Debug)]
@@ -241,7 +264,7 @@ pub struct TransferRuntime<O> {
     config: RuntimeConfig,
     opener: O,
     next_id: u64,
-    active: BTreeMap<u64, Active>,
+    active: BTreeMap<TransferId, Active>,
 }
 
 impl<O: FileOpener> TransferRuntime<O> {
@@ -259,9 +282,16 @@ impl<O: FileOpener> TransferRuntime<O> {
     }
 
     /// Whether the caller should multiplex RRQ and transfer traffic on one
-    /// socket. Separate-port mode owns one transfer socket per peer.
+    /// socket. Separate-port mode owns one socket per RRQ instance.
     pub fn single_port(&self) -> bool {
         self.config.single_port
+    }
+
+    /// C set_tftp_listeners() uses <=, allowing max + 1 active transfers
+    /// for one dedicated listener. The caller must stop receiving while
+    /// false so pending requests remain queued until capacity returns.
+    pub fn can_receive_server(&self) -> bool {
+        self.config.single_port || self.active.len() <= self.config.max_transfers
     }
 
     /// A dedicated socket belongs to one peer, even when the actual sender
@@ -269,7 +299,7 @@ impl<O: FileOpener> TransferRuntime<O> {
     /// (`tftp.c:647-660`); a nonempty foreign datagram receives ERR_TID.
     pub fn handle_transfer_datagram(
         &mut self,
-        owner: SocketAddr,
+        id: TransferId,
         peer: SocketAddr,
         packet: &[u8],
         now: u64,
@@ -277,13 +307,7 @@ impl<O: FileOpener> TransferRuntime<O> {
         if packet.is_empty() {
             return Ok(Vec::new());
         }
-        if peer != owner {
-            return Ok(vec![RuntimeEvent::TidError {
-                peer,
-                packet: error_packet(5, "unknown transfer id"),
-            }]);
-        }
-        self.handle_socket_datagram(SocketRole::Transfer, peer, packet, now)
+        self.receive(id, peer, packet, now)
     }
 
     /// Route a datagram received from a caller-owned TFTP socket.  The caller
@@ -297,31 +321,10 @@ impl<O: FileOpener> TransferRuntime<O> {
         packet: &[u8],
         now: u64,
     ) -> Result<Vec<RuntimeEvent>, RuntimeError> {
-        if !self.config.single_port {
-            let is_rrq = opcode(packet) == Some(1);
-            match role {
-                SocketRole::Server if !matches!(opcode(packet), Some(1) | Some(2)) => {
-                    return Ok(Vec::new());
-                }
-                SocketRole::Server if opcode(packet) == Some(2) => {
-                    return self.start_rrq(peer, packet, now);
-                }
-                SocketRole::Transfer if is_rrq => {
-                    // A RRQ from the owning peer is ignored by C's
-                    // handle_tftp(); a foreign peer receives ERR_TID on the
-                    // dedicated socket instead of creating a new transfer.
-                    if self.active.values().any(|active| active.peer == peer) {
-                        return Ok(Vec::new());
-                    }
-                    return Ok(vec![RuntimeEvent::TidError {
-                        peer,
-                        packet: error_packet(5, "unknown transfer id"),
-                    }]);
-                }
-                SocketRole::Server | SocketRole::Transfer => {}
-            }
+        match role {
+            SocketRole::Server => self.handle_datagram(peer, packet, now),
+            SocketRole::Transfer(id) => self.handle_transfer_datagram(id, peer, packet, now),
         }
-        self.handle_datagram(peer, packet, now)
     }
 
     pub fn handle_datagram(
@@ -333,13 +336,12 @@ impl<O: FileOpener> TransferRuntime<O> {
         if packet.len() < 2 {
             return Ok(Vec::new());
         }
-        // In separate-port mode each transfer has its own socket, but the
-        // transport boundary still supplies datagrams to this runtime. Route
-        // ACK/ERR from the owning peer before applying new-RRQ admission.
-        if !self.config.single_port && opcode(packet) != Some(1) {
-            if let Some((id, _)) = self.active.iter().find(|(_, active)| active.peer == peer) {
-                return self.receive(*id, peer, packet, now);
-            }
+        if !self.config.single_port {
+            return if self.can_receive_server() && matches!(opcode(packet), Some(1) | Some(2)) {
+                self.start_rrq(peer, packet, now)
+            } else {
+                Ok(Vec::new())
+            };
         }
         let peers: Vec<_> = self.active.values().map(|active| active.peer).collect();
         let admission = crate::tftp_service::admission(
@@ -359,24 +361,10 @@ impl<O: FileOpener> TransferRuntime<O> {
                 self.active.remove(&id);
                 self.start_rrq(peer, packet, now)
             }
-            PeerAdmission::Ignore => {
-                if opcode(packet) == Some(1) {
-                    Ok(Vec::new())
-                } else {
-                    Ok(vec![RuntimeEvent::TidError {
-                        peer,
-                        packet: error_packet(5, "unknown transfer id"),
-                    }])
-                }
-            }
+            PeerAdmission::Ignore => Ok(Vec::new()),
             PeerAdmission::New => {
                 if matches!(opcode(packet), Some(1) | Some(2)) {
                     self.start_rrq(peer, packet, now)
-                } else if !self.active.is_empty() {
-                    Ok(vec![RuntimeEvent::TidError {
-                        peer,
-                        packet: error_packet(5, "unknown transfer id"),
-                    }])
                 } else {
                     Ok(Vec::new())
                 }
@@ -399,7 +387,10 @@ impl<O: FileOpener> TransferRuntime<O> {
             };
             if expired {
                 let active = self.active.remove(&id).unwrap();
-                events.push(RuntimeEvent::TimedOut { peer: active.peer });
+                events.push(RuntimeEvent::TimedOut {
+                    id,
+                    peer: active.peer,
+                });
                 continue;
             }
             if retransmit {
@@ -407,7 +398,7 @@ impl<O: FileOpener> TransferRuntime<O> {
                     Ok(new_events) => events.extend(new_events),
                     Err(_) => {
                         self.active.remove(&id);
-                        events.push(RuntimeEvent::Failed { peer });
+                        events.push(RuntimeEvent::Failed { id, peer });
                     }
                 }
             }
@@ -439,6 +430,7 @@ impl<O: FileOpener> TransferRuntime<O> {
             Ok(request) => request,
             Err(_) => {
                 return Ok(vec![RuntimeEvent::Send {
+                    id: None,
                     peer,
                     packet: error_packet(4, "illegal TFTP operation"),
                 }])
@@ -448,9 +440,6 @@ impl<O: FileOpener> TransferRuntime<O> {
             Some(request) => request,
             None => return Ok(Vec::new()),
         };
-        if self.active.len() >= self.config.max_transfers {
-            return Err(RuntimeError::Capacity);
-        }
         let path = resolve_path(
             self.config.path.prefix.as_deref(),
             self.config.path.lowercase,
@@ -460,6 +449,7 @@ impl<O: FileOpener> TransferRuntime<O> {
             Ok(path) => path,
             Err(_error) => {
                 return Ok(vec![RuntimeEvent::Send {
+                    id: None,
                     peer,
                     packet: error_packet(2, "access violation"),
                 }])
@@ -469,6 +459,7 @@ impl<O: FileOpener> TransferRuntime<O> {
             Ok(opened) => opened,
             Err(error) => {
                 return Ok(vec![RuntimeEvent::Send {
+                    id: None,
                     peer,
                     packet: open_error_packet(&error),
                 }]);
@@ -481,6 +472,7 @@ impl<O: FileOpener> TransferRuntime<O> {
             self.config.secure,
         ) {
             return Ok(vec![RuntimeEvent::Send {
+                id: None,
                 peer,
                 packet: error_packet(2, "access violation"),
             }]);
@@ -536,6 +528,7 @@ impl<O: FileOpener> TransferRuntime<O> {
             let mut framed = vec![0, 6];
             framed.extend_from_slice(&packet[2..]);
             Ok(vec![RuntimeEvent::Send {
+                id: Some(id),
                 peer: active.peer,
                 packet: framed,
             }])
@@ -553,12 +546,14 @@ impl<O: FileOpener> TransferRuntime<O> {
     ) -> Result<Vec<RuntimeEvent>, RuntimeError> {
         let Some(active) = self.active.get_mut(&id) else {
             return Ok(vec![RuntimeEvent::TidError {
+                id,
                 peer,
                 packet: error_packet(5, "unknown transfer id"),
             }]);
         };
         if active.peer != peer {
             return Ok(vec![RuntimeEvent::TidError {
+                id,
                 peer,
                 packet: error_packet(5, "unknown transfer id"),
             }]);
@@ -567,20 +562,21 @@ impl<O: FileOpener> TransferRuntime<O> {
             if active.transfer.failed {
                 let peer = active.peer;
                 self.active.remove(&id);
-                return Ok(vec![RuntimeEvent::Failed { peer }]);
+                return Ok(vec![RuntimeEvent::Failed { id, peer }]);
             }
             return Ok(Vec::new());
         }
         if active.transfer.failed {
             let peer = active.peer;
             self.active.remove(&id);
-            return Ok(vec![RuntimeEvent::Failed { peer }]);
+            return Ok(vec![RuntimeEvent::Failed { id, peer }]);
         }
         let acked_block = active.transfer.next_ack.wrapping_sub(1);
         let complete = active.final_block == Some(acked_block);
         if complete {
             let active = self.active.remove(&id).unwrap();
             return Ok(vec![RuntimeEvent::Completed(Completion {
+                id,
                 peer: active.peer,
                 path: active.file.path.clone(),
                 size: active.file.size,
@@ -594,7 +590,7 @@ impl<O: FileOpener> TransferRuntime<O> {
                     .remove(&id)
                     .map(|active| active.peer)
                     .unwrap_or(peer);
-                Ok(vec![RuntimeEvent::Failed { peer }])
+                Ok(vec![RuntimeEvent::Failed { id, peer }])
             }
         }
     }
@@ -620,7 +616,11 @@ impl<O: FileOpener> TransferRuntime<O> {
             }
         };
         if let Some((peer, packet)) = oack {
-            return Ok(vec![RuntimeEvent::Send { peer, packet }]);
+            return Ok(vec![RuntimeEvent::Send {
+                id: Some(id),
+                peer,
+                packet,
+            }]);
         }
         let count = {
             let active = self.active.get_mut(&id).unwrap();
@@ -646,6 +646,7 @@ impl<O: FileOpener> TransferRuntime<O> {
                 Err(_) => {
                     let active = self.active.get_mut(&id).unwrap();
                     events.push(RuntimeEvent::Send {
+                        id: Some(id),
                         peer: active.peer,
                         packet: error_packet(0, "cannot read file"),
                     });
@@ -663,7 +664,11 @@ impl<O: FileOpener> TransferRuntime<O> {
             let block = self.active.get(&id).unwrap().transfer.block;
             let block_size = self.active.get(&id).unwrap().transfer.options.block_size;
             let body_len = packet.len().saturating_sub(4);
-            events.push(RuntimeEvent::Send { peer, packet });
+            events.push(RuntimeEvent::Send {
+                id: Some(id),
+                peer,
+                packet,
+            });
             let active = self.active.get_mut(&id).unwrap();
             // A DATA body shorter than the negotiated block size is the C
             // get_block() end marker, including the required zero-length
@@ -675,7 +680,10 @@ impl<O: FileOpener> TransferRuntime<O> {
         }
         if failed {
             let active = self.active.remove(&id).unwrap();
-            events.push(RuntimeEvent::Failed { peer: active.peer });
+            events.push(RuntimeEvent::Failed {
+                id,
+                peer: active.peer,
+            });
         }
         Ok(events)
     }
@@ -967,7 +975,7 @@ mod tests {
         request.extend_from_slice(b"blksize\x004\0windowsize\x004\0");
         runtime.handle_datagram(peer(1000), &request, 1).unwrap();
         let events = runtime
-            .handle_datagram(peer(1000), &[0, 4, 0, 0], 2)
+            .handle_transfer_datagram(1, peer(1000), &[0, 4, 0, 0], 2)
             .unwrap();
         assert_eq!(events.len(), 5);
         for (event, header) in
@@ -996,11 +1004,12 @@ mod tests {
         assert_eq!(&packet[..4], &[0, 3, 0, 1]);
         assert_eq!(&packet[4..], b"hello");
         let done = runtime
-            .handle_datagram(peer(1000), &[0, 4, 0, 1], 2)
+            .handle_transfer_datagram(1, peer(1000), &[0, 4, 0, 1], 2)
             .unwrap();
         assert_eq!(
             done,
             vec![RuntimeEvent::Completed(Completion {
+                id: 1,
                 peer: peer(1000),
                 path: b"/srv/tftp/boot.bin".to_vec(),
                 size: 5,
@@ -1022,13 +1031,13 @@ mod tests {
         // A dedicated transfer socket must not create a second transfer from
         // an RRQ, and the port-69 listener must not consume ACK state.
         assert!(runtime
-            .handle_socket_datagram(SocketRole::Transfer, source_peer, &request, 2)
+            .handle_socket_datagram(SocketRole::Transfer(1), source_peer, &request, 2)
             .unwrap()
             .is_empty());
         let wrong_peer = peer(1001);
         assert!(matches!(
             runtime
-                .handle_socket_datagram(SocketRole::Transfer, wrong_peer, &request, 2)
+                .handle_socket_datagram(SocketRole::Transfer(1), wrong_peer, &request, 2)
                 .unwrap()
                 .first(),
             Some(RuntimeEvent::TidError { peer, .. }) if *peer == wrong_peer
@@ -1038,7 +1047,7 @@ mod tests {
             .unwrap()
             .is_empty());
         let done = runtime
-            .handle_socket_datagram(SocketRole::Transfer, source_peer, &[0, 4, 0, 1], 3)
+            .handle_socket_datagram(SocketRole::Transfer(1), source_peer, &[0, 4, 0, 1], 3)
             .unwrap();
         assert!(matches!(done.first(), Some(RuntimeEvent::Completed(_))));
         assert_eq!(runtime.active_len(), 0);
@@ -1057,24 +1066,75 @@ mod tests {
             // C checks the source before checking the payload length/opcode.
             for packet in [&[0][..], &[0, 4, 0, 1], &[0, 5, 0, 0], &request] {
                 let events = runtime
-                    .handle_transfer_datagram(peer(1000), foreign, packet, 2)
+                    .handle_transfer_datagram(1, foreign, packet, 2)
                     .unwrap();
                 assert!(matches!(events.as_slice(),
-                    [RuntimeEvent::TidError { peer, packet }]
+                    [RuntimeEvent::TidError { peer, packet, .. }]
                     if *peer == foreign && packet.starts_with(&[0, 5, 0, 5])));
                 assert_eq!(runtime.active_len(), 2);
             }
         }
         assert!(runtime
-            .handle_transfer_datagram(peer(1000), peer(1002), &[], 2)
+            .handle_transfer_datagram(1, peer(1002), &[], 2)
             .unwrap()
             .is_empty());
         for port in [1000, 1001] {
             let events = runtime
-                .handle_transfer_datagram(peer(port), peer(port), &[0, 4, 0, 1], 2)
+                .handle_transfer_datagram(u64::from(port - 999), peer(port), &[0, 4, 0, 1], 2)
                 .unwrap();
             assert!(matches!(events.as_slice(), [RuntimeEvent::Completed(_)]));
         }
+        assert_eq!(runtime.active_len(), 0);
+    }
+
+    #[test]
+    fn same_peer_rrqs_have_independent_ids_and_c_capacity_boundary() {
+        let mut runtime = runtime(b"hello");
+        runtime.config.max_transfers = 1;
+        let request = rrq(b"boot.bin", b"octet");
+        for id in [1, 2] {
+            assert!(runtime.can_receive_server());
+            let events = runtime.handle_datagram(peer(1000), &request, 1).unwrap();
+            assert!(
+                matches!(events.as_slice(), [RuntimeEvent::Send { id: Some(actual), .. }] if *actual == id)
+            );
+        }
+        assert!(!runtime.can_receive_server());
+        assert!(runtime
+            .handle_datagram(peer(1000), &request, 1)
+            .unwrap()
+            .is_empty());
+        assert_eq!(runtime.active_len(), 2);
+        let done = runtime
+            .handle_transfer_datagram(2, peer(1000), &[0, 4, 0, 1], 1)
+            .unwrap();
+        assert!(matches!(
+            done.as_slice(),
+            [RuntimeEvent::Completed(Completion { id: 2, .. })]
+        ));
+        assert!(runtime.can_receive_server());
+        let third = runtime.handle_datagram(peer(1000), &request, 1).unwrap();
+        assert!(matches!(
+            third.as_slice(),
+            [RuntimeEvent::Send { id: Some(3), .. }]
+        ));
+        let done = runtime
+            .handle_transfer_datagram(1, peer(1000), &[0, 4, 0, 1], 1)
+            .unwrap();
+        assert!(matches!(
+            done.as_slice(),
+            [RuntimeEvent::Completed(Completion { id: 1, .. })]
+        ));
+        let failed = runtime
+            .handle_transfer_datagram(3, peer(1000), &[0, 5, 0, 0], 1)
+            .unwrap();
+        assert_eq!(
+            failed,
+            vec![RuntimeEvent::Failed {
+                id: 3,
+                peer: peer(1000)
+            }]
+        );
         assert_eq!(runtime.active_len(), 0);
     }
 
@@ -1090,7 +1150,7 @@ mod tests {
                 if packet == &[0, 3, 0, 1]
         ));
         let done = runtime
-            .handle_datagram(peer(1000), &[0, 4, 0, 1], 2)
+            .handle_transfer_datagram(1, peer(1000), &[0, 4, 0, 1], 2)
             .unwrap();
         assert!(matches!(done.first(), Some(RuntimeEvent::Completed(_))));
         assert_eq!(runtime.active_len(), 0);
@@ -1107,7 +1167,7 @@ mod tests {
             Some(RuntimeEvent::Send { packet, .. }) if packet.len() == 516
         ));
         let second = runtime
-            .handle_datagram(peer(1000), &[0, 4, 0, 1], 2)
+            .handle_transfer_datagram(1, peer(1000), &[0, 4, 0, 1], 2)
             .unwrap();
         assert!(matches!(
             second.first(),
@@ -1115,7 +1175,7 @@ mod tests {
         ));
         assert_eq!(runtime.active_len(), 1);
         let done = runtime
-            .handle_datagram(peer(1000), &[0, 4, 0, 2], 3)
+            .handle_transfer_datagram(1, peer(1000), &[0, 4, 0, 2], 3)
             .unwrap();
         assert!(matches!(done.first(), Some(RuntimeEvent::Completed(_))));
         assert_eq!(runtime.active_len(), 0);
@@ -1133,7 +1193,7 @@ mod tests {
             Some(RuntimeEvent::Send { packet, .. }) if packet.starts_with(&[0, 6])
         ));
         let window = runtime
-            .handle_datagram(peer(1000), &[0, 4, 0, 0], 2)
+            .handle_transfer_datagram(1, peer(1000), &[0, 4, 0, 0], 2)
             .unwrap();
         assert_eq!(window.len(), 2);
         assert!(matches!(
@@ -1141,13 +1201,13 @@ mod tests {
             Some(RuntimeEvent::Send { packet, .. }) if packet == &[0, 3, 0, 2]
         ));
         let first_ack = runtime
-            .handle_datagram(peer(1000), &[0, 4, 0, 1], 3)
+            .handle_transfer_datagram(1, peer(1000), &[0, 4, 0, 1], 3)
             .unwrap();
         assert!(first_ack
             .iter()
             .all(|event| { !matches!(event, RuntimeEvent::Completed(_)) }));
         let done = runtime
-            .handle_datagram(peer(1000), &[0, 4, 0, 2], 4)
+            .handle_transfer_datagram(1, peer(1000), &[0, 4, 0, 2], 4)
             .unwrap();
         assert!(matches!(done.first(), Some(RuntimeEvent::Completed(_))));
         assert_eq!(runtime.active_len(), 0);
@@ -1186,13 +1246,19 @@ mod tests {
             .handle_datagram(peer(1000), &rrq(b"boot.bin", b"octet"), 1)
             .unwrap();
         let wrong = runtime
-            .handle_datagram(peer(1001), &[0, 4, 0, 1], 2)
+            .handle_transfer_datagram(1, peer(1001), &[0, 4, 0, 1], 2)
             .unwrap();
         assert!(matches!(wrong[0], RuntimeEvent::TidError { .. }));
         let failed = runtime
-            .handle_datagram(peer(1000), &[0, 5, 0, 1, b'x', 0], 2)
+            .handle_transfer_datagram(1, peer(1000), &[0, 5, 0, 1, b'x', 0], 2)
             .unwrap();
-        assert_eq!(failed, vec![RuntimeEvent::Failed { peer: peer(1000) }]);
+        assert_eq!(
+            failed,
+            vec![RuntimeEvent::Failed {
+                id: 1,
+                peer: peer(1000)
+            }]
+        );
         assert_eq!(runtime.active_len(), 0);
     }
 
@@ -1230,7 +1296,7 @@ mod tests {
             &[0, 6]
         );
         let second = runtime
-            .handle_datagram(peer(1000), &[0, 4, 0, 0], 2)
+            .handle_transfer_datagram(1, peer(1000), &[0, 4, 0, 0], 2)
             .unwrap();
         assert!(matches!(second[0], RuntimeEvent::Send { .. }));
     }
@@ -1257,7 +1323,13 @@ mod tests {
         };
         assert_eq!(&packet[4..], b"a\r\nb");
         let timeout = runtime.tick(122).unwrap();
-        assert_eq!(timeout, vec![RuntimeEvent::TimedOut { peer: peer(1000) }]);
+        assert_eq!(
+            timeout,
+            vec![RuntimeEvent::TimedOut {
+                id: 1,
+                peer: peer(1000)
+            }]
+        );
         assert_eq!(runtime.active_len(), 0);
     }
 
@@ -1272,7 +1344,7 @@ mod tests {
         );
         // The OACK must be acknowledged before DATA starts.
         let first = runtime
-            .handle_datagram(peer(1000), &[0, 4, 0, 0], 2)
+            .handle_transfer_datagram(1, peer(1000), &[0, 4, 0, 0], 2)
             .unwrap();
         let RuntimeEvent::Send { packet, .. } = &first[0] else {
             panic!("expected DATA")

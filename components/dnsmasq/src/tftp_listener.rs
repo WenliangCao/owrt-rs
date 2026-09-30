@@ -1,31 +1,24 @@
 //! Linux UDP listener around the socket-independent TFTP transfer runtime.
 //!
 //! The runtime owns protocol state and file descriptors; this module owns the
-//! port-69 socket, per-peer transfer sockets, pktinfo admission and event
+//! port-69 socket, per-RRQ transfer sockets, pktinfo admission and event
 //! cleanup. Interface admission and helper integration remain caller-owned.
 
 #![cfg(all(target_os = "linux", target_pointer_width = "64"))]
 
 use crate::net::{Datagram, DatagramSocket};
-use crate::tftp_runtime::{FileOpener, RuntimeEvent, SocketRole, TransferRuntime};
+use crate::tftp_runtime::{FileOpener, RuntimeEvent, SocketRole, TransferId, TransferRuntime};
 use std::collections::BTreeMap;
 use std::io;
-use std::net::{IpAddr, SocketAddr};
+use std::net::{IpAddr, SocketAddr, UdpSocket};
 
 pub struct TftpListener<O> {
     server: DatagramSocket,
-    transfers: BTreeMap<SocketAddr, DatagramSocket>,
+    transfers: BTreeMap<TransferId, UdpSocket>,
     runtime: TransferRuntime<O>,
     bind_ip: IpAddr,
     single_port: bool,
     buffer: Vec<u8>,
-}
-
-#[derive(Clone, Copy)]
-enum EventSource {
-    Server,
-    Transfer(SocketAddr),
-    Timer,
 }
 
 impl<O: FileOpener> TftpListener<O> {
@@ -51,109 +44,154 @@ impl<O: FileOpener> TftpListener<O> {
     }
 
     /// Poll one bounded datagram from the server/transfer sockets and run one
-    /// retransmission tick. All `Send` events are transmitted before return;
-    /// the event list remains available for metrics and completion consumers.
+    /// retransmission tick. `Send` events are attempted before return;
+    /// nonfatal socket/send failures are reported as `TransportError`.
     pub fn poll_once(&mut self, now: u64) -> io::Result<Vec<RuntimeEvent>> {
         let mut events = Vec::new();
         self.receive_server(now, &mut events)?;
         if !self.single_port {
-            let peers: Vec<_> = self.transfers.keys().copied().collect();
-            for peer in peers {
-                self.receive_transfer(peer, now, &mut events)?;
+            let ids: Vec<_> = self.transfers.keys().copied().collect();
+            for id in ids {
+                self.receive_transfer(id, now, &mut events)?;
             }
         }
-        let tick_events = self.runtime.tick(now).map_err(runtime_io)?;
-        self.flush_events(&tick_events, EventSource::Timer)?;
+        let mut tick_events = self.runtime.tick(now).map_err(runtime_io)?;
+        self.flush_events(&mut tick_events, None);
         events.extend(tick_events);
         Ok(events)
     }
 
     fn receive_server(&mut self, now: u64, events: &mut Vec<RuntimeEvent>) -> io::Result<()> {
+        if !self.runtime.can_receive_server() {
+            return Ok(());
+        }
         let Some(datagram) = receive_pending(&self.server, &mut self.buffer)? else {
             return Ok(());
         };
         let bytes = self.buffer[..datagram.len].to_vec();
-        let received = self
+        // C allocates/binds the dedicated socket before opening the file.
+        // This order also decides the wire result with only one FD left.
+        let socket = if !self.single_port && matches!(bytes.get(..2), Some([0, 1] | [0, 2])) {
+            match bind_transfer(self.bind_ip) {
+                Ok(socket) => Some(socket),
+                Err(error) => {
+                    events.push(RuntimeEvent::TransportError {
+                        id: None,
+                        peer: datagram.peer,
+                        kind: error.kind(),
+                    });
+                    return Ok(());
+                }
+            }
+        } else {
+            None
+        };
+        let mut received = self
             .runtime
             .handle_socket_datagram(SocketRole::Server, datagram.peer, &bytes, now)
             .map_err(runtime_io)?;
-        self.flush_events(&received, EventSource::Server)?;
+        self.flush_events(&mut received, socket);
         events.extend(received);
         Ok(())
     }
 
     fn receive_transfer(
         &mut self,
-        peer: SocketAddr,
+        id: TransferId,
         now: u64,
         events: &mut Vec<RuntimeEvent>,
     ) -> io::Result<()> {
-        let Some(socket) = self.transfers.get(&peer) else {
+        let Some(socket) = self.transfers.get(&id) else {
             return Ok(());
         };
-        let Some(datagram) = receive_pending(socket, &mut self.buffer)? else {
-            return Ok(());
+        // C's dedicated path uses recvfrom, without ancillary admission.
+        // A receive error leaves the transfer for its timer/retry path.
+        let (len, peer) = match socket.recv_from(&mut self.buffer) {
+            Ok(datagram) => datagram,
+            Err(_) => return Ok(()),
         };
-        let bytes = self.buffer[..datagram.len].to_vec();
-        let received = self
+        let bytes = self.buffer[..len].to_vec();
+        let mut received = self
             .runtime
-            .handle_transfer_datagram(peer, datagram.peer, &bytes, now)
+            .handle_socket_datagram(SocketRole::Transfer(id), peer, &bytes, now)
             .map_err(runtime_io)?;
-        self.flush_events(&received, EventSource::Transfer(peer))?;
+        self.flush_events(&mut received, None);
         events.extend(received);
         Ok(())
     }
 
-    fn flush_events(&mut self, events: &[RuntimeEvent], source: EventSource) -> io::Result<()> {
-        for event in events {
-            match event {
-                RuntimeEvent::Send { peer, packet } | RuntimeEvent::TidError { peer, packet } => {
-                    if self.single_port {
-                        self.server.send(packet, *peer, None)?;
-                    } else if matches!(source, EventSource::Server) && packet.starts_with(&[0, 5]) {
-                        // C frees the temporary transfer (and socket) after
-                        // an RRQ/WRQ error. An existing transfer belonging to
-                        // this peer must retain its original socket.
-                        let socket = DatagramSocket::bind(SocketAddr::new(self.bind_ip, 0))?;
-                        socket.send(packet, *peer, None)?;
-                    } else {
-                        // ERR_TID must come from the socket which received
-                        // the foreign datagram, without opening a new socket
-                        // or redirecting it to the sender's own transfer.
-                        let owner = match source {
-                            EventSource::Transfer(owner) => owner,
-                            EventSource::Server | EventSource::Timer => *peer,
-                        };
-                        let socket = self.transfer_socket(owner)?;
-                        socket.send(packet, *peer, None)?;
-                    }
-                }
+    fn flush_events(&mut self, events: &mut Vec<RuntimeEvent>, mut new_socket: Option<UdpSocket>) {
+        let mut errors = Vec::new();
+        for event in &*events {
+            let sending = match event {
+                RuntimeEvent::Send { id, peer, packet } => Some((*id, *peer, packet)),
+                RuntimeEvent::TidError { id, peer, packet } => Some((Some(*id), *peer, packet)),
                 RuntimeEvent::Completed(completion) => {
-                    self.transfers.remove(&completion.peer);
+                    self.transfers.remove(&completion.id);
+                    None
                 }
-                RuntimeEvent::Failed { peer } | RuntimeEvent::TimedOut { peer } => {
-                    // A first-read failure on the server path used only the
-                    // temporary error socket above. The same peer may still
-                    // own a different, healthy dedicated transfer socket.
-                    if !matches!(source, EventSource::Server) {
-                        self.transfers.remove(peer);
-                    }
+                RuntimeEvent::Failed { id, .. } | RuntimeEvent::TimedOut { id, .. } => {
+                    self.transfers.remove(id);
+                    None
+                }
+                RuntimeEvent::TransportError { .. } => None,
+            };
+            if let Some((id, peer, packet)) = sending {
+                // C ignores send_from's failure result and keeps the transfer
+                // for its normal retransmission/timeout path.
+                if let Err(error) = self.transmit(id, peer, packet, &mut new_socket) {
+                    errors.push(RuntimeEvent::TransportError {
+                        id,
+                        peer,
+                        kind: error.kind(),
+                    });
                 }
             }
         }
-        Ok(())
+        events.extend(errors);
     }
 
-    fn transfer_socket(&mut self, peer: SocketAddr) -> io::Result<&mut DatagramSocket> {
-        if !self.transfers.contains_key(&peer) {
-            let socket = DatagramSocket::bind(SocketAddr::new(self.bind_ip, 0))?;
-            self.transfers.insert(peer, socket);
+    fn transmit(
+        &mut self,
+        id: Option<TransferId>,
+        peer: SocketAddr,
+        packet: &[u8],
+        new_socket: &mut Option<UdpSocket>,
+    ) -> io::Result<()> {
+        if self.single_port {
+            return self.server.send(packet, peer, None);
         }
-        Ok(self
-            .transfers
-            .get_mut(&peer)
-            .expect("inserted transfer socket"))
+        let socket = if let Some(id) = id {
+            if let std::collections::btree_map::Entry::Vacant(entry) = self.transfers.entry(id) {
+                entry.insert(
+                    new_socket
+                        .take()
+                        .ok_or_else(|| io::Error::other("missing TFTP transfer socket"))?,
+                );
+            }
+            self.transfers.get(&id).expect("inserted transfer socket")
+        } else {
+            new_socket
+                .as_ref()
+                .ok_or_else(|| io::Error::other("missing TFTP error socket"))?
+        };
+        loop {
+            match socket.send_to(packet, peer) {
+                Ok(sent) if sent == packet.len() => return Ok(()),
+                Ok(_) => return Err(io::Error::new(io::ErrorKind::WriteZero, "short TFTP send")),
+                Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+                Err(error) => return Err(error),
+            }
+        }
     }
+}
+
+fn bind_transfer(ip: IpAddr) -> io::Result<UdpSocket> {
+    // Unlike DNS listeners these sockets must not use SO_REUSEADDR: each
+    // live RRQ requires its own source TID, including identical peers.
+    let socket = UdpSocket::bind(SocketAddr::new(ip, 0))?;
+    socket.set_nonblocking(true)?;
+    Ok(socket)
 }
 
 fn receive_pending(socket: &DatagramSocket, buffer: &mut [u8]) -> io::Result<Option<Datagram>> {
@@ -227,6 +265,9 @@ mod tests {
                 let (len, transfer) = client.recv_from(&mut buffer).unwrap();
                 assert_eq!(&buffer[..len], b"\0\x03\0\x01hello");
                 assert_ne!(transfer, server);
+                // A second SO_REUSEADDR socket must not be able to claim
+                // an active transfer's TID (the C transfer bind is exclusive).
+                assert!(DatagramSocket::bind(transfer).is_err());
                 transfer_addresses.push(transfer);
             }
             assert_ne!(transfer_addresses[0], transfer_addresses[1]);
