@@ -4,7 +4,8 @@
 //! Every socket belongs to one transaction and is dropped on completion,
 //! cancellation, expiry or I/O failure. Received packets are still **unchecked
 //! by process_reply policy**: callers must apply address/rebind/cache/EDNS and
-//! OpenWrt policies before replying to clients. TCP has no adapter here.
+//! OpenWrt policies before replying to clients. Integrated TCP fallback is not
+//! wired here; [`tcp_exchange`] is a standalone one-query helper below.
 
 use super::forward::{
     Client, Flags, GroupId, QueryId, Random, Recipient, ReleaseReason, ReplyAction, Scope,
