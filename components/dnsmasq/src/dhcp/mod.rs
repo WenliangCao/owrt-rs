@@ -1,8 +1,11 @@
 //! DHCPv4 primitives traced to the patched OpenWrt dnsmasq 2.93 source.
 //!
-//! These modules do not yet constitute a DHCP server. In particular, interface
-//! selection, tags, reply options, relay/PXE dispatch and durable integration are
-//! separate contracts; callers must not silently omit them.
+//! The Linux-only [`service::SocketListener`] now supplies an isolated,
+//! nonblocking AF_INET receive/send boundary and can feed local BOOTP/DHCPv4
+//! state through [`runtime::StateProvider`]. This remains a caller-owned
+//! service component: interface/context selection, relay/PXE policy, durable
+//! lease files, DNS publication and the production event loop are separate
+//! contracts and must not be silently omitted.
 
 pub mod allocation;
 pub mod lease;
