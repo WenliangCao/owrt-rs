@@ -56,13 +56,14 @@ UDP/TCP IPv4/IPv6 实际收发与 socket/FD 生命周期；上游认证/随机�
 
 ## 动态 forward cache 阶段
 
-`dns/cache.rs` 是可独立验证的动态 forward 原语，尚未接入 daemon；本地 hosts/DHCP/config 记录、reverse cache、SOA 提取及 TCP 子进程缓存 IPC 仍属于后续集成。`Record.data` 是调用方校验后的 canonical RDATA 或负缓存 SOA metadata；当前 cache 原语不解释其协议内容。未将这些缺口标记为完成。
+`dns/cache.rs` 是可独立验证的动态 forward 原语，尚未接入 daemon；本地 hosts/DHCP/config 记录、reverse cache、SOA 提取及 TCP 子进程缓存 IPC 仍属于后续集成。当前原语已增加 `insert_negative` 的 SOA TTL 优先、`neg-ttl` 回退和零 TTL 边界，以及包含 name-wide NXDOMAIN 的 question lookup。`Record.data` 仍是调用方校验后的 canonical RDATA 或负缓存 SOA metadata；cache 原语不解释其协议内容。未将这些缺口标记为完成。
 
 | 精确 C 位置 | 行为与不变量 | Rust 原语 | 当前对照 |
 |---|---|---|---|
 | `forward.c:782–845` → `rfc1035.c:768–815,1205–1209` | 截断/错误/非 IN/非递归/CD 等决定是否缓存；每次提取先 start，只有允许的回复才 end | cacheability 留给调用方；`start_insert/commit` 只表达事务 | 未接完整 process_reply/extract_addresses，不以原语对照替代 |
 | `cache.c:176–193,359–407,737–828` | cache-size 计算记录数量；pending 脱离 LRU；命中提升到头；压力先扫过期，再按 LRU spill 整个冲突 RRset；长名称额外额度为容量/10、内部转义名长度 ≥75 | 固定 `Vec<Slot>`、索引链表、每名字索引、pending、长名字额度 | 容量 1/2/8/10/100 的固定/随机用例；完整所有权链不变量测试 |
 | `cache.c:450–488,665–691`；`rfc1035.c:1649–1690` | max-cache-ttl 先于 min-cache-ttl；TTL=0 默认使整个事务失败；stale 有限/无限；expiry 用 now≥ttd，stale 标志用 now>ttd；reply TTL 夹至0和max-ttl | `Policy`、`Entry::reply_ttl/is_stale`；时刻加法溢出显式错误 | 默认/finite/forever、0/1/10/60 TTL、边界时刻、min>max 对照；Seconds(0)归为禁用单测 |
+| `rfc1035.c:1205–1209,1649–1690`；`option.c:2280–2294` | 负回答有 SOA 时使用 SOA TTL/最小值；无 SOA 才使用 `--neg-ttl`，零回退不缓存；name-wide NXDOMAIN 可参与 question lookup | `Cache::insert_negative`、`Cache::lookup_question` | 4 个 SOA/回退/零值/NXDOMAIN 回归测试；尚未接入 daemon 回复合成 |
 | `cache.c:518–602,643–718,844–919` | 冲突立即删除旧记录；插入失败后新记录不 commit；下次 start 清理 pending；不会恢复已删除旧记录；A/AAAA/不同 RRtype 可共存；CNAME 与其他类型冲突；NXDOMAIN 与 A/AAAA 不直接冲突 | `Kind::conflicts`、显式失败态、`start_insert/insert/commit` | abort、遗漏commit、同事务多个 RR、负记录、不同type及 6 个状态序列种子 |
 | `cache.c:157–174,450–465,564–574,811–825,855–861` → `rfc1035.c:928–956,1114–1124,1185–1196` | CNAME 持 target crec+UID；目标复用给不同名字时失效；同名目标替换保留 UID；未找到 target 的 CNAME 在commit丢弃 | `EntryId` slot+generation、`set_cname_target`；只在同名目标替换保留代数 | 替换目标、过期目标、无目标、回收后不复活；C差分与独立状态测试 |
 | `cache.c:1174–1260` → `rfc1035.c:2283–2347` | 第一次查找提升所有同名匹配记录；按 flag 组轮转；Generic F_RR 查出多种type后调用方过滤 | `lookup` 返回 handle，不复制 payload；Generic(_)按组查，再由调用方筛真实type | 保留同type准确顺序、round-robin/no-round-robin；仅跨 generic type 的组顺序归一化 |

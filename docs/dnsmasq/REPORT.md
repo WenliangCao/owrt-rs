@@ -26,9 +26,9 @@ BOOTP/PXE、DHCP relay/leasequery、AD 透传、可启用的 DNS 订阅也必须
 | 阶段 | 当前状态 | 通过条件 |
 |---|---|---|
 | 身份与 C 参考 | 进行中 | 精确源码、选项、依赖、可重建参考和测试器校准 |
-| DNS | 进行中 | wire/forward/cache、本地 hosts/RR、CNAME 链、UDP/TCP framing、EDNS dispatcher、非阻塞 UDP upstream、域名路由、rebind/bogus/ignore 地址策略和 UDP daemon 已有对照；完整缓存/负 SOA、TCP upstream、ubus doctor、reload 仍待做 |
-| DHCPv4 | 进行中 | 状态/租约原语、BOOTP 64-byte vend、datagram dispatch、DHCP reply wire 已有对照；真实 socket/接口/relay/PXE/DNS 同步仍待做 |
-| TFTP 等可用能力 | 进行中 | path/permission/admission、真实 Unix 文件读取、OACK/DATA/ACK、TID、重传、超时和清理已有对照；监听器端口/pktinfo、脚本、PXE/TFTP 接线仍待做 |
+| DNS | 进行中 | wire/forward/cache、本地 hosts/RR、CNAME 链、UDP/TCP framing、EDNS dispatcher、非阻塞 UDP upstream、域名路由、rebind/bogus/ignore 地址策略和 UDP daemon 已有对照；负缓存 SOA/`neg-ttl` 选择原语已补齐，但完整包缓存/回复合成、TCP upstream、ubus doctor、reload 仍待做 |
+| DHCPv4 | 进行中 | 状态/租约原语、BOOTP 64-byte vend、datagram dispatch、DHCP reply wire、Linux pktinfo 目的/本地地址区分和广播接口发送边界已有对照；真实 listener、ARP、relay/PXE/DNS 同步仍待做 |
+| TFTP 等可用能力 | 进行中 | path/permission/admission、真实 Unix 文件读取、OACK/DATA/ACK、TID、重传、超时和清理已有对照；空文件、整块文件和窗口传输均等待最终 DATA ACK；监听器端口/pktinfo、脚本、PXE/TFTP 接线仍待做 |
 | OpenWrt 集成 | 进行中 | 全配置、UCI/procd/ujail、ubus/ACL、reload、调用方 |
 | 优化 | 未证明收益 | 正确性通过，冻结工作负载，逐轮成本与资源证据 |
 | 目标构建/打包 | 部分完成 | 早期匹配 SDK 已构建 inert `owrt-dnsmasq-0.1.0-r1.apk`（aarch64 Cortex-A53 musl，SHA256 在 `private/dnsmasq-rewrite/package-20260930/`）；它只安装 `/usr/libexec/dnsmasq-rs`，未替换 stock dnsmasq。UDP daemon 接线后的源码尚未用匹配 SDK 重新出包，完整 ABI/镜像装配仍待完成 |
@@ -46,9 +46,9 @@ BOOTP/PXE、DHCP relay/leasequery、AD 透传、可启用的 DNS 订阅也必须
 - `private/dnsmasq-rewrite/local-c-audit-20260930/routing-review/rust-results/`：10 组路由配置、240 个 case，0 mismatch。
 - `private/dnsmasq-rewrite/tftp-service-diff/result.json`：C path/admission oracle 255,528 + 20,000 cases，0 unexpected mismatch；2,408 个显式 `..` hardening differences。
 - `private/dnsmasq-rewrite/dhcp-reply-diff/result.json`：hash-pinned `rfc2131.c` reply wire oracle 1,008 cases，0 mismatch，覆盖 primary/file/sname overload、PRL、OFFER/ACK/INFORM/NAK、option 57 capacity 与 broken-string workaround。
-- 后续构建、差分、fuzz、基准逐轮追加；未运行项目不计作通过。DNS reply envelope 的 1,537 个结构有效包/19,981 条命令和 upstream transport 的 6 个 loopback 测试详见 `DNS_REPLY_PHASE.md`、`DNS_UPSTREAM_PHASE.md`。
+- 后续构建、差分、fuzz、基准逐轮追加；未运行项目不计作通过。DNS reply envelope 的 1,537 个结构有效包/19,981 条命令、address policy 的 68 个 ASan/UBSan C/Rust case、negative cache 的 4 个边界测试和 upstream transport 的 loopback 测试详见各阶段文件。
 
-当前 crate 门：`cargo test --all-targets` 为 185 passed、4 ignored；`cargo clippy --all-targets -- -D warnings`、`cargo fmt -- --check` 和 `aarch64-unknown-linux-musl cargo check --all-targets` 通过。4 个 ignored 测试要求显式精确 C reference，未把 ignored 计入通过。主程序 loopback smoke 已验证本地 UDP 回答和 UDP 上游回送均保留客户端 ID；SIGTERM 优雅清理仍未实现。
+当前 crate 门：`cargo test --all-targets` 为库 196 passed、4 ignored，主程序目标 5 passed；`cargo clippy --all-targets -- -D warnings`、`cargo fmt -- --check` 和 `aarch64-unknown-linux-musl cargo check --all-targets` 通过。4 个 ignored 测试要求显式精确 C reference，未把 ignored 计入通过。主程序 loopback smoke 已验证本地 UDP 回答和 UDP 上游回送均保留客户端 ID；SIGTERM 优雅清理仍未实现。
 
 ## 已冻结的局部性能证据
 
