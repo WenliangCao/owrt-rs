@@ -1,0 +1,16 @@
+//! Native Rust implementation under development against dnsmasq 2.93-r1.
+//!
+//! The source and acceptance ledger lives in `docs/dnsmasq`. Individual tested
+//! modules do not yet constitute a service or a compatible package replacement.
+
+pub mod config;
+pub mod dhcp;
+pub mod dns;
+pub mod hosts;
+pub mod metrics;
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+pub mod net;
+pub mod tftp;
+#[cfg(unix)]
+pub mod tftp_runtime;
+pub mod tftp_service;
