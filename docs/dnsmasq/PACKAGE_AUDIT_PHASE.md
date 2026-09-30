@@ -50,11 +50,11 @@ this digest before SDK mutation and verifies that all inputs remain unchanged
 through completion. A caller-declared commit is labeled as such; file hashes
 remain the artifact's authoritative source identity.
 
-At this tooling stage, four local failure-boundary tests pass: restoring the
+The initial tooling stage passed four local failure-boundary tests: restoring the
 prior recipe after build/copy failure, rejecting unexpected or symlink payloads,
 and rejecting paths unsafe for the SDK Make layer. Python compilation and shell
 syntax checks pass. The existing older inert APK was inspected to validate the
-SDK extraction interface. The current parallel source has **not** been compiled
-by this wrapper yet; a frozen-source SDK run must validate the updated Make
-integration and produce a new artifact/manifest before claiming target-build
-success. Bit-for-bit reproducibility across independent builds is not established.
+SDK extraction interface. The later frozen-source SDK invocation and target
+artifact checks are recorded in `PACKAGE_574F5ED_RESULT.md`, including the
+backup-discovery correction, retained warnings and size regression.
+Bit-for-bit reproducibility across independent builds is not established.
