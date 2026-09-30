@@ -7,11 +7,16 @@
 
 use dnsmasq_rs::config::dns::DnsConfig;
 use dnsmasq_rs::config::loader::{self, Action};
+use dnsmasq_rs::config::tftp::TftpConfig;
 use dnsmasq_rs::config::{Error, ScalarConfig, StaleCache};
 use dnsmasq_rs::dns::cache::StalePolicy;
 use dnsmasq_rs::dns::daemon::{ClientRequest, DaemonOptions, DnsDaemon, QueryResult};
 use dnsmasq_rs::dns::service::{encode_tcp_frame, LocalDnsService, TcpFramer};
 use dnsmasq_rs::hosts::Hosts;
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+use dnsmasq_rs::tftp_listener::TftpListener;
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+use dnsmasq_rs::tftp_runtime::{RealFileOpener, RuntimeConfig, RuntimePathPolicy, TransferRuntime};
 use std::ffi::OsString;
 use std::io::{self, Read, Write};
 use std::net::{IpAddr, SocketAddr, TcpListener, UdpSocket};
@@ -20,6 +25,8 @@ use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+use std::time::{SystemTime, UNIX_EPOCH};
 
 static STOP_REQUESTED: AtomicBool = AtomicBool::new(false);
 const STOP_CHECK_INTERVAL: Duration = Duration::from_millis(100);
@@ -39,12 +46,14 @@ fn main() {
 struct Runtime {
     scalar: ScalarConfig,
     dns: DnsConfig,
+    tftp: TftpConfig,
 }
 
 fn load(args: &[OsString]) -> Result<(Action, Runtime), loader::LoadError> {
     let mut runtime = Runtime {
         scalar: ScalarConfig::default(),
         dns: DnsConfig::default(),
+        tftp: TftpConfig::default(),
     };
     let action = loader::load(args, Path::new("/etc/dnsmasq.conf"), |directive, _| {
         // `-k/--keep-in-foreground` is a process-mode switch consumed by the
@@ -52,6 +61,7 @@ fn load(args: &[OsString]) -> Result<(Action, Runtime), loader::LoadError> {
         if directive.name.as_slice() == b"keep-in-foreground"
             || runtime.scalar.apply(directive)?
             || runtime.dns.apply(directive)?
+            || runtime.tftp.apply(directive)?
         {
             Ok(())
         } else {
@@ -67,8 +77,8 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         Action::Version => {
             println!("dnsmasq-rs 0.1.0");
             println!("Mode: development DNS daemon");
-            println!("Implemented: local DNS over UDP/TCP; configured upstream DNS over UDP");
-            println!("Not implemented: TCP forwarding, SOA/NODATA cache synthesis, DHCP, TFTP, UBus, reload and metrics");
+            println!("Implemented: DNS UDP/TCP, cache subsets, DHCPv4 listener boundary and TFTP transfer listener");
+            println!("Not implemented: TCP forwarding fallback, full DHCP relay/PXE/leasequery, UBus, reload and metrics");
             return Ok(());
         }
         Action::Help | Action::HelpDhcp => {
@@ -96,6 +106,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         return Err(Box::new(Error("no nameserver in resolver files")));
     }
     let addresses = bind_addresses(&runtime.dns, runtime.scalar.dns_port);
+    let tftp_config = runtime.tftp.clone();
     owrt_ubus::sys::set_signal_handler(owrt_ubus::sys::SIGINT, request_stop);
     owrt_ubus::sys::set_signal_handler(owrt_ubus::sys::SIGTERM, request_stop);
     // dnsmasq.c allocates `edns_pktsz + MAXDNAME + RRFIXEDSZ` for incoming
@@ -302,6 +313,61 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                     }
                 })?,
         );
+    }
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    if tftp_config.enabled {
+        let bind_ip = daemon_config
+            .listen_addresses
+            .iter()
+            .copied()
+            .find(IpAddr::is_ipv4)
+            .unwrap_or(IpAddr::V4(std::net::Ipv4Addr::UNSPECIFIED));
+        let runtime_config = RuntimeConfig {
+            path: RuntimePathPolicy {
+                prefix: tftp_config.root.clone(),
+                lowercase: tftp_config.lowercase,
+            },
+            packet_buffer_size: 8192,
+            mtu: tftp_config.mtu,
+            ipv6: false,
+            no_block_size: tftp_config.no_block_size,
+            effective_uid: 0,
+            secure: tftp_config.secure,
+            max_transfers: tftp_config.max_transfers,
+            single_port: tftp_config.single_port,
+        };
+        let runtime = TransferRuntime::new(
+            runtime_config.clone(),
+            RealFileOpener::new(runtime_config.effective_uid, runtime_config.secure),
+        );
+        match TftpListener::bind(SocketAddr::new(bind_ip, 69), runtime) {
+            Ok(mut listener) => {
+                workers.push(thread::Builder::new().name("tftp-listener".into()).spawn(
+                    move || {
+                        while !STOP_REQUESTED.load(Ordering::Acquire) {
+                            let now = SystemTime::now()
+                                .duration_since(UNIX_EPOCH)
+                                .map_or(0, |duration| duration.as_secs());
+                            match listener.poll_once(now) {
+                                Ok(_) => thread::sleep(Duration::from_millis(1)),
+                                Err(error) if error.kind() == io::ErrorKind::WouldBlock => {
+                                    thread::sleep(Duration::from_millis(2))
+                                }
+                                Err(_) => break,
+                            }
+                        }
+                    },
+                )?);
+            }
+            Err(error) if tftp_config.no_fail => {
+                eprintln!("dnsmasq-rs: TFTP disabled: {error}");
+            }
+            Err(error) => return Err(Box::new(error)),
+        }
+    }
+    #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
+    if tftp_config.enabled && !tftp_config.no_fail {
+        return Err(Box::new(Error("TFTP listener requires 64-bit Linux")));
     }
     // `-k` is the normal OpenWrt invocation. Stop handlers let workers leave
     // their bounded receive loops and release sockets before exit.

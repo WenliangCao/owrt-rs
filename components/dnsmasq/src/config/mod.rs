@@ -10,6 +10,7 @@ pub mod loader;
 mod options;
 pub mod records;
 mod scalar;
+pub mod tftp;
 
 pub use options::OPTIONS;
 pub use scalar::{FastRetry, ScalarConfig, StaleCache};
