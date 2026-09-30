@@ -31,7 +31,7 @@ BOOTP/PXE、DHCP relay/leasequery、AD 透传、可启用的 DNS 订阅也必须
 | TFTP 等可用能力 | 进行中 | path/permission/admission、真实 Unix 文件读取、OACK/DATA/ACK、TID、重传、超时和清理已有对照；监听器端口/pktinfo、脚本、PXE/TFTP 接线仍待做 |
 | OpenWrt 集成 | 进行中 | 全配置、UCI/procd/ujail、ubus/ACL、reload、调用方 |
 | 优化 | 未证明收益 | 正确性通过，冻结工作负载，逐轮成本与资源证据 |
-| 目标构建/打包 | 部分完成 | 匹配 SDK 已构建 inert `owrt-dnsmasq-0.1.0-r1.apk`（aarch64 Cortex-A53 musl，SHA256 在 `private/dnsmasq-rewrite/package-20260930/`）；只安装 `/usr/libexec/dnsmasq-rs`，未替换 stock dnsmasq，完整 ABI/镜像装配仍待完成 |
+| 目标构建/打包 | 部分完成 | 早期匹配 SDK 已构建 inert `owrt-dnsmasq-0.1.0-r1.apk`（aarch64 Cortex-A53 musl，SHA256 在 `private/dnsmasq-rewrite/package-20260930/`）；它只安装 `/usr/libexec/dnsmasq-rs`，未替换 stock dnsmasq。UDP daemon 接线后的源码尚未用匹配 SDK 重新出包，完整 ABI/镜像装配仍待完成 |
 | 真机验收 | 未执行 | 单独授权、恢复门、目标环境测量 |
 
 具体源码映射分文件记录。所有原始报文、配置、地址、租约、ELF 和测量记录放
