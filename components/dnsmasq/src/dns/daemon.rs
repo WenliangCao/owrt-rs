@@ -713,17 +713,30 @@ impl<R: Random> DnsDaemon<R> {
                 return;
             }
             cache.start_insert();
+            let direct_negative = chain.is_empty();
+            let mut selected_soa_ttl = soa_ttl;
+            let mut authority = authority;
             // C caches an SOA RR as an independent Generic(6) entry.  For a
             // direct negative answer it is inserted before the negative; a
             // CNAME target gets the same SOA after its terminal negative so
             // the target ordering remains intact.
             let soa_id = if chain.is_empty() {
                 if authority.is_some() {
-                    let Some(id) = insert_authority(cache, authority, now) else {
-                        cache.start_insert();
-                        return;
-                    };
-                    Some(id)
+                    match insert_authority(cache, authority, now) {
+                        Some(id) => Some(id),
+                        None if negative_ttl != 0 => {
+                            // find_soa() reports no SOA when its independent
+                            // cache insertion fails, so C falls back to
+                            // --neg-ttl for a direct negative answer.
+                            authority = None;
+                            selected_soa_ttl = None;
+                            None
+                        }
+                        None => {
+                            cache.start_insert();
+                            return;
+                        }
+                    }
                 } else {
                     None
                 }
@@ -736,14 +749,25 @@ impl<R: Random> DnsDaemon<R> {
                 negative: true,
                 data: Vec::new(),
             };
-            let Ok(Some(id)) = cache.insert_negative(record, now, soa_ttl, negative_ttl) else {
+            let Ok(Some(id)) = cache.insert_negative(record, now, selected_soa_ttl, negative_ttl)
+            else {
                 cache.start_insert();
                 return;
             };
             let soa_id = soa_id.or_else(|| insert_authority(cache, authority, now));
             if authority.is_some() && soa_id.is_none() {
-                cache.start_insert();
-                return;
+                if direct_negative {
+                    if negative_ttl == 0 {
+                        cache.start_insert();
+                        return;
+                    }
+                    authority = None;
+                } else {
+                    // C's CNAME-target path already committed the negative
+                    // entry before attempting to cache the SOA; retain the
+                    // negative/CNAME chain when that SOA insert fails.
+                    authority = None;
+                }
             }
             if let Some((authority_name, _, _, _)) = authority {
                 if !cache.set_negative_authority(id, authority_name.clone()) {
