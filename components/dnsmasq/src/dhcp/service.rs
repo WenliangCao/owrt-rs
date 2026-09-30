@@ -71,6 +71,9 @@ pub struct Received<'a> {
     pub dispatch: Dispatch<'a>,
     pub peer: SocketAddr,
     pub destination: IpAddr,
+    /// Local interface address (`ipi_spec_dst`), distinct from a broadcast
+    /// or multicast IP-header destination.
+    pub local_address: IpAddr,
     pub interface: u32,
 }
 
@@ -100,6 +103,7 @@ pub fn receive_once<'a>(
             dispatch,
             peer: datagram.peer,
             destination: datagram.destination,
+            local_address: datagram.local_address,
             interface: datagram.interface,
         });
     Ok(Some(result))
