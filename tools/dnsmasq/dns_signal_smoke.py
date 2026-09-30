@@ -42,16 +42,6 @@ def dns_query(name: str, ident: int) -> bytes:
     return struct.pack("!6H", ident, 0x100, 1, 0, 0, 0) + question
 
 
-def assert_closed(stream: socket.socket, timeout: float) -> None:
-    stream.settimeout(timeout)
-    try:
-        data = stream.recv(1)
-    except socket.timeout as error:
-        raise AssertionError("TCP connection did not close within the short gate") from error
-    if data:
-        raise AssertionError("TCP connection returned a response before closing")
-
-
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -138,10 +128,15 @@ def main() -> int:
             )
             unknown_query = dns_query("unknown.test", 0x3456)
             unknown.sendall(struct.pack("!H", len(unknown_query)) + unknown_query)
-            # TCP forwarding is an explicit unsupported gate. An unowned local
-            # name must close promptly rather than leave the client waiting for
-            # the 150-second connection lifetime.
-            assert_closed(unknown, min(args.timeout, 1.0))
+            # C setup_reply(flags=0) returns REFUSED when no server matches,
+            # and tcp_request continues accepting queries on this connection.
+            unknown.settimeout(args.timeout)
+            length = struct.unpack("!H", read_exact(unknown, 2))[0]
+            reply = read_exact(unknown, length)
+            ident, flags, questions, answers, authorities, additionals = struct.unpack("!6H", reply[:12])
+            assert (ident, flags, questions, answers, authorities, additionals) == (0x3456, 0x8185, 1, 0, 0, 0)
+            unknown.sendall(frame)
+            check_answer(unknown, 0x2345)
             result["checks_passed"] += 1
             idle = stack.enter_context(
                 socket.create_connection(("127.0.0.1", port), args.timeout)
@@ -158,7 +153,7 @@ def main() -> int:
             result["exit_code"] = process.returncode
             result["shutdown_seconds"] = time.monotonic() - start
             assert process.returncode == 0, "SIGTERM did not exit normally"
-            for stream in (client, partial, idle):
+            for stream in (client, partial, idle, unknown):
                 assert stream.recv(1) == b"", "client socket remained open"
                 result["checks_passed"] += 1
             result["status"] = "passed"

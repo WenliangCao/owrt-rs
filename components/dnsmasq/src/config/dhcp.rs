@@ -26,6 +26,7 @@ pub struct DhcpConfig {
     pub bootp_dynamic: bool,
     pub sequential: bool,
     pub ignore_client_id: bool,
+    pub no_ping: bool,
     pub lease_max: usize,
 }
 
@@ -37,6 +38,7 @@ impl Default for DhcpConfig {
             bootp_dynamic: false,
             sequential: false,
             ignore_client_id: false,
+            no_ping: false,
             lease_max: 150,
         }
     }
@@ -100,6 +102,7 @@ impl DhcpConfig {
             b"bootp-dynamic" => self.bootp_dynamic = true,
             b"dhcp-sequential-ip" => self.sequential = true,
             b"dhcp-ignore-clid" => self.ignore_client_id = true,
+            b"no-ping" => self.no_ping = true,
             b"dhcp-lease-max" => {
                 self.lease_max =
                     integer(&argument.ok_or(Error("missing parameter"))?.decoded())? as usize

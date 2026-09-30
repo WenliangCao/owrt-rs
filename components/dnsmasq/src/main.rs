@@ -11,22 +11,15 @@ use dnsmasq_rs::config::loader::{self, Action};
 use dnsmasq_rs::config::tftp::TftpConfig;
 use dnsmasq_rs::config::{Error, ScalarConfig, StaleCache};
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-use dnsmasq_rs::dhcp::allocation::{AddressRange, ProbeResult, RangeKind};
-#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-use dnsmasq_rs::dhcp::lease::LeaseStore;
-#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-use dnsmasq_rs::dhcp::reply::ReplyOption;
-#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-use dnsmasq_rs::dhcp::runtime::StateProvider;
+use dnsmasq_rs::dhcp::daemon::LocalProvider as DhcpProvider;
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 use dnsmasq_rs::dhcp::service::{
     Listener as DhcpListener, ListenerStep, SocketListener as DhcpSocketListener,
 };
-#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-use dnsmasq_rs::dhcp::state::Environment;
 use dnsmasq_rs::dns::cache::StalePolicy;
 use dnsmasq_rs::dns::daemon::{ClientRequest, DaemonOptions, DnsDaemon, QueryResult};
 use dnsmasq_rs::dns::service::{encode_tcp_frame, LocalDnsService, TcpFramer};
+use dnsmasq_rs::dns::tcp_service::TcpDnsService;
 use dnsmasq_rs::hosts::Hosts;
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 use dnsmasq_rs::tftp_listener::TftpListener;
@@ -106,7 +99,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             println!("dnsmasq-rs 0.1.0");
             println!("Mode: development DNS daemon");
             println!("Implemented: DNS UDP/TCP, cache subsets, DHCPv4 listener boundary and TFTP transfer listener");
-            println!("Not implemented: TCP forwarding fallback, full DHCP relay/PXE/leasequery, UBus, full reload and metrics");
+            println!("Not implemented: full DNS cache/fallback policy, DHCP relay/PXE/leasequery, UBus, full reload and metrics");
             return Ok(());
         }
         Action::Help | Action::HelpDhcp => {
@@ -242,6 +235,8 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                 })?,
         );
         let tcp_service = Arc::clone(&service);
+        let tcp_resolvers = resolvers.clone();
+        let tcp_edns_max = daemon_options.edns_packet_max;
         let tcp_active_for_listener = Arc::clone(&tcp_active);
         workers.push(
             thread::Builder::new()
@@ -277,8 +272,25 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                         if !try_acquire_tcp(&tcp_active_for_listener, tcp_limit) {
                             continue;
                         }
-                        let service = Arc::clone(&tcp_service);
                         let permit = TcpPermit(Arc::clone(&tcp_active_for_listener));
+                        // C forks one cache/hosts snapshot per accepted TCP
+                        // session. Keep that lifetime here without holding a
+                        // shared lock during client or upstream socket I/O.
+                        let mut service = match tcp_service.lock() {
+                            Ok(local) => LocalDnsService::new(
+                                local.config.clone(),
+                                local.hosts.clone(),
+                                local.local_ttl,
+                                local.max_udp,
+                            ),
+                            Err(_) => continue,
+                        };
+                        let mut forward =
+                            match TcpDnsService::new(&service.config, &tcp_resolvers, tcp_edns_max)
+                            {
+                                Ok(service) => service,
+                                Err(_) => continue,
+                            };
                         let client =
                             thread::Builder::new()
                                 .name("dns-tcp-client".into())
@@ -310,10 +322,20 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                             Ok(0) | Err(_) => break,
                                             Ok(count) => count,
                                         };
-                                        let Ok(frames) = framer.push(&input[..count]) else {
-                                            break;
-                                        };
-                                        for query in frames {
+                                        let mut offset = 0;
+                                        while offset < count {
+                                            let (consumed, query) =
+                                                match framer.push_frame(&input[offset..count]) {
+                                                    Ok(result) => result,
+                                                    Err(_) => break 'connection,
+                                                };
+                                            offset += consumed;
+                                            let Some(query) = query else { continue };
+                                            // C ignores short headers and QR
+                                            // packets before its query counter.
+                                            if query.len() < 12 || query[2] & 0x80 != 0 {
+                                                continue;
+                                            }
                                             queries += 1;
                                             if queries > 100 {
                                                 break 'connection;
@@ -321,19 +343,19 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                             if query.len() > packet_limit {
                                                 break 'connection;
                                             }
-                                            let answer = match service.lock() {
-                                                Ok(mut guard) => {
-                                                    match guard.handle_tcp_payload(&query) {
-                                                        Ok(Some(answer)) => answer,
-                                                        // TCP forwarding is not wired yet.  Keeping an
-                                                        // unowned query open until the 150s connection
-                                                        // deadline would turn an unsupported request into
-                                                        // a resource leak; close it like the C path does
-                                                        // when no forwarding result is available.
-                                                        Ok(None) | Err(_) => break 'connection,
+                                            let answer = match service.handle_tcp_payload(&query) {
+                                                Ok(Some(answer)) => answer,
+                                                Ok(None) | Err(_) => {
+                                                    match forward.handle_with_local(
+                                                        &query,
+                                                        &service,
+                                                        deadline,
+                                                        &|| STOP_REQUESTED.load(Ordering::Acquire),
+                                                    ) {
+                                                        Ok(answer) => answer,
+                                                        Err(_) => break 'connection,
                                                     }
                                                 }
-                                                Err(_) => break 'connection,
                                             };
                                             let Ok(frame) = encode_tcp_frame(&answer) else {
                                                 break 'connection;
@@ -347,6 +369,9 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                                 || write_frame_until(&mut stream, &frame, deadline)
                                                     .is_err()
                                             {
+                                                break 'connection;
+                                            }
+                                            if queries == 100 {
                                                 break 'connection;
                                             }
                                         }
@@ -364,138 +389,49 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     }
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     if !dhcp_config.ranges.is_empty() {
-        let bind_ip = daemon_config
-            .listen_addresses
-            .iter()
-            .copied()
-            .find_map(|address| match address {
-                IpAddr::V4(address) => Some(address),
-                IpAddr::V6(_) => None,
-            })
-            .unwrap_or(std::net::Ipv4Addr::UNSPECIFIED);
-        let mut listener =
-            DhcpSocketListener::bind(SocketAddr::from((bind_ip, 67)), DhcpListener::Dhcp, &[])?;
-        let mut ranges: Vec<AddressRange> = dhcp_config
-            .ranges
-            .iter()
-            .map(|range| AddressRange {
-                start: range.start,
-                end: range.end,
-                netmask: range.netmask,
-                router: range.router,
-                local: if range.router.is_unspecified() {
-                    bind_ip
-                } else {
-                    range.router
-                },
-                lease_time: range.lease_time,
-                kind: RangeKind::Dynamic,
-                filter: Vec::new(),
-                epoch: 0,
-            })
-            .collect();
+        // dhcp_init binds INADDR_ANY even with listen-address: initial
+        // clients send broadcasts, and interface admission happens later.
+        let mut listener = DhcpSocketListener::bind(
+            SocketAddr::from((std::net::Ipv4Addr::UNSPECIFIED, 67)),
+            DhcpListener::Dhcp,
+            &[],
+        )?;
+        let mut provider = DhcpProvider::new(
+            dhcp_config,
+            daemon_config.listen_addresses.clone(),
+            runtime.scalar.dns_port,
+            || STOP_REQUESTED.load(Ordering::Acquire),
+        )?;
         workers.push(
             thread::Builder::new()
                 .name("dhcp-listener".into())
                 .spawn(move || {
-                    let mut leases = LeaseStore::new(dhcp_config.lease_max.max(1));
-                    let tags: &[&[u8]] = &[];
-                    let reserved: &[std::net::Ipv4Addr] = &[];
-                    let environment = Environment {
-                        now: 0,
-                        interface: 0,
-                        authoritative: dhcp_config.authoritative,
-                        unicast_destination: false,
-                        ignored: false,
-                        ignore_client_id: dhcp_config.ignore_client_id,
-                        fqdn_only: false,
-                        rapid_commit: false,
-                        bootp_dynamic: dhcp_config.bootp_dynamic,
-                        consecutive_addresses: dhcp_config.sequential,
-                        override_server: None,
-                        fallback_server: bind_ip,
-                        server_aliases: &[],
-                    };
-                    let subnet = ranges
-                        .first()
-                        .map(|range| range.netmask.octets())
-                        .unwrap_or([255, 255, 255, 0]);
-                    let router = bind_ip.octets();
-                    let lease_time = ranges.first().map_or(43_200, |range| range.lease_time);
-                    let renewal = (lease_time / 2).to_be_bytes();
-                    let rebinding = (lease_time.saturating_mul(7) / 8).to_be_bytes();
-                    let network = u32::from(
-                        ranges
-                            .first()
-                            .map_or(std::net::Ipv4Addr::UNSPECIFIED, |range| range.start),
-                    ) & u32::from(
-                        ranges
-                            .first()
-                            .map_or(std::net::Ipv4Addr::new(255, 255, 255, 0), |range| {
-                                range.netmask
-                            }),
-                    );
-                    let broadcast = (network
-                        | !u32::from(
-                            ranges
-                                .first()
-                                .map_or(std::net::Ipv4Addr::new(255, 255, 255, 0), |range| {
-                                    range.netmask
-                                }),
-                        ))
-                    .to_be_bytes();
-                    let mut reply_options = vec![
-                        ReplyOption {
-                            code: 58,
-                            value: &renewal,
-                        },
-                        ReplyOption {
-                            code: 59,
-                            value: &rebinding,
-                        },
-                        ReplyOption {
-                            code: 1,
-                            value: &subnet,
-                        },
-                        ReplyOption {
-                            code: 28,
-                            value: &broadcast,
-                        },
-                    ];
-                    if !bind_ip.is_unspecified() {
-                        reply_options.push(ReplyOption {
-                            code: 3,
-                            value: &router,
-                        });
-                    }
-                    let mut provider = StateProvider::new(
-                        &mut leases,
-                        &mut ranges,
-                        tags,
-                        None,
-                        reserved,
-                        environment,
-                        |_, hash| ProbeResult::Available { offer_hash: hash },
-                    );
                     let mut output = vec![0; 16_384];
                     while !STOP_REQUESTED.load(Ordering::Acquire) {
-                        provider.environment.now = SystemTime::now()
-                            .duration_since(UNIX_EPOCH)
-                            .map_or(0, |duration| duration.as_secs() as i64);
-                        match listener.process_once_local(
-                            &mut provider,
-                            &reply_options,
-                            &mut output,
-                            || STOP_REQUESTED.load(Ordering::Acquire),
-                        ) {
+                        match listener.process_once_local(&mut provider, &[], &mut output, || {
+                            STOP_REQUESTED.load(Ordering::Acquire)
+                        }) {
                             Ok(ListenerStep::WouldBlock) | Ok(ListenerStep::Ignored) => {
                                 thread::sleep(Duration::from_millis(2));
                             }
                             Ok(ListenerStep::Stopped) => break,
                             Ok(ListenerStep::Malformed(_)) => {}
-                            Ok(ListenerStep::Processed(_)) => {}
+                            Ok(ListenerStep::Processed(result)) => {
+                                let events = match &result {
+                                    Ok(report) => &report.events,
+                                    Err(failure) => &failure.events,
+                                };
+                                for event in events {
+                                    if let dnsmasq_rs::dhcp::runtime::RuntimeEvent::ArpInjectionFailed { kind, raw_os_error } = event {
+                                        eprintln!("dnsmasq-rs: DHCP ARP injection: {kind:?} ({raw_os_error:?})");
+                                    }
+                                }
+                            }
                             Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
                             Err(_) => break,
+                        }
+                        if let Some(error) = provider.take_probe_error() {
+                            eprintln!("dnsmasq-rs: DHCP conflict probe: {error}");
                         }
                     }
                 })?,
@@ -531,7 +467,11 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             runtime_config.clone(),
             RealFileOpener::new(runtime_config.effective_uid, runtime_config.secure),
         );
-        match TftpListener::bind(SocketAddr::new(bind_ip, 69), runtime) {
+        match TftpListener::bind_with_port_range(
+            SocketAddr::new(bind_ip, 69),
+            runtime,
+            tftp_config.port_range,
+        ) {
             Ok(mut listener) => {
                 workers.push(thread::Builder::new().name("tftp-listener".into()).spawn(
                     move || {
