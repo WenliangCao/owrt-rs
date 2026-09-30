@@ -429,6 +429,19 @@ impl<R: Random> DnsDaemon<R> {
             writer.question(&question.name, question.rrtype, question.class)?;
             return Ok(Some(writer.finish()));
         }
+        if ids.iter().any(|id| {
+            cache
+                .get(*id)
+                .is_some_and(|entry| entry.record.negative && entry.record.kind == kind)
+        }) {
+            let mut writer = PacketWriter::new(
+                header.id,
+                (header.flags & 0x0100) | 0x8080,
+                self.max_udp.min(512),
+            )?;
+            writer.question(&question.name, question.rrtype, question.class)?;
+            return Ok(Some(writer.finish()));
+        }
         let mut writer = PacketWriter::new(
             header.id,
             (header.flags & 0x0100) | 0x8080,
@@ -701,6 +714,32 @@ impl<R: Random> DnsDaemon<R> {
         }
         if inserted {
             let _ = cache.commit();
+        } else if self.negative_cache
+            && self.negative_ttl != 0
+            && !message.records(Section::Answer).any(|rr| rr.rrtype == 5)
+            && !message
+                .records(Section::Authority)
+                .any(|rr| rr.class == 1 && rr.rrtype == 6)
+        {
+            cache.start_insert();
+            let record = Record {
+                name: question.name,
+                kind: if question.qtype == 1 {
+                    Kind::Ipv4
+                } else {
+                    Kind::Ipv6
+                },
+                negative: true,
+                data: Vec::new(),
+            };
+            if cache
+                .insert_negative(record, now, None, self.negative_ttl)
+                .is_ok()
+            {
+                let _ = cache.commit();
+            } else {
+                cache.start_insert();
+            }
         }
     }
 }
@@ -969,6 +1008,61 @@ mod tests {
         let header = Header::parse(&packet).unwrap();
         assert_eq!(header.id, 0x2222);
         assert_eq!(header.rcode(), 3);
+        assert_eq!(header.answers, 0);
+        assert_eq!(worker.join().unwrap(), 0);
+    }
+
+    #[test]
+    fn nodata_cache_hit_returns_noerror_without_second_upstream_send() {
+        let server = UdpSocket::bind("127.0.0.1:0").unwrap();
+        let address = server.local_addr().unwrap();
+        let worker = thread::spawn(move || {
+            let mut input = [0; 2048];
+            let (length, peer) = server.recv_from(&mut input).unwrap();
+            let header = Header::parse(&input[..length]).unwrap();
+            let name = Name::from_ascii("empty.test").unwrap();
+            let mut writer = PacketWriter::new(header.id, 0x8180, 1232).unwrap();
+            writer.question(&name, 1, 1).unwrap();
+            server.send_to(&writer.finish(), peer).unwrap();
+            server
+                .set_read_timeout(Some(Duration::from_millis(150)))
+                .unwrap();
+            let mut extra = [0; 2048];
+            usize::from(server.recv_from(&mut extra).is_ok())
+        });
+
+        let mut daemon = DnsDaemon::with_random(
+            DnsConfig::default(),
+            Hosts::new(),
+            &[address],
+            options(),
+            Counter(0),
+        )
+        .unwrap();
+        daemon.enable_cache(8, 0, 60, StalePolicy::Disabled);
+        daemon.enable_negative_cache(30, true);
+        let client = |port| ClientRequest {
+            source: format!("127.0.0.1:{port}").parse().unwrap(),
+            destination: "127.0.0.1".parse().unwrap(),
+            interface: 0,
+        };
+        assert!(matches!(
+            daemon.handle_udp(&query("empty.test", 0x1111), client(53301)),
+            Ok(QueryResult::Forwarded(_))
+        ));
+        let first = daemon.poll(Duration::from_secs(1)).unwrap();
+        assert_eq!(first.len(), 1);
+        assert_eq!(Header::parse(&first[0].packet).unwrap().rcode(), 0);
+        assert_eq!(Header::parse(&first[0].packet).unwrap().answers, 0);
+        let cached = daemon
+            .handle_udp(&query("empty.test", 0x2222), client(53302))
+            .unwrap();
+        let QueryResult::Cached(packet) = cached else {
+            panic!("second NODATA query did not use the negative cache");
+        };
+        let header = Header::parse(&packet).unwrap();
+        assert_eq!(header.id, 0x2222);
+        assert_eq!(header.rcode(), 0);
         assert_eq!(header.answers, 0);
         assert_eq!(worker.join().unwrap(), 0);
     }
