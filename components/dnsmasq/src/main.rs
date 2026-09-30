@@ -550,6 +550,27 @@ mod tests {
     }
 
     #[test]
+    fn resolver_file_reads_nameserver_addresses_only() {
+        let path = std::env::temp_dir().join(format!("dnsmasq-rs-resolv-{}", std::process::id()));
+        std::fs::write(
+            &path,
+            b"# comment\nnameserver 192.0.2.53\nnameserver 2001:db8::53 # v6\nsearch test\n",
+        )
+        .unwrap();
+        let mut config = DnsConfig::default();
+        config.resolv_files = vec![path.clone()];
+        let resolvers = read_resolvers(&config).unwrap();
+        assert_eq!(
+            resolvers,
+            [
+                "192.0.2.53:53".parse().unwrap(),
+                "[2001:db8::53]:53".parse().unwrap(),
+            ]
+        );
+        let _ = std::fs::remove_file(path);
+    }
+
+    #[test]
     fn probe_requires_explicit_loopback_and_no_resolv() {
         let scalar = ScalarConfig {
             dns_port: 5300,
