@@ -10,7 +10,7 @@
 | 编译边界 | `HAVE_UBUS HAVE_POLL_H NO_DHCP6 NO_AUTH NO_IPSET NO_ID`；目标包含 DHCPv4、TFTP、BOOTP/PXE、relay/leasequery、inotify、dumpfile；不包含 DHCPv6、DNSSEC 验证、DBus、Lua、conntrack、ipset/nftset、权威 DNS、IDN、i18n | 不能以当前配置未启用删减上述可用能力 |
 | 入口清单 | `docs/dnsmasq/options.json`：195 个长选项，169 个 `variant=available`，26 个未编译能力；`python3 tools/dnsmasq/contract_inventory.py --check` 输出 `195 options indexed; 169 target capability entries` | 169 是本账本的总入口，不是已实现数 |
 | 参考源码 | `private/dnsmasq-rewrite/reference/identity.json`、`docs/dnsmasq/DNS_SOURCE_MAP.md`、`docs/dnsmasq/OPENWRT_CONTRACT.md` | C 参考只用于差分，不进入产品依赖 |
-| 版本状态 | HEAD `c3278d2`（TFTP 配置/监听接线、DNS SOA cache、DHCP listener/runtime 已提交）；工作树只剩用户已有 prompt 修改 | 未提交内容不是交付物，提交前必须重新格式化、测试和身份核验 |
+| 版本状态 | HEAD `327d63b`（TFTP 配置/监听接线、DNS SOA cache、DHCP listener/runtime 已提交）；工作树只剩用户已有 prompt 修改 | 未提交内容不是交付物，提交前必须重新格式化、测试和身份核验 |
 | 现时本地门 | 当前运行：`cargo test --all-targets` 为 226 passed、4 ignored；主程序 6 passed；aarch64 musl `cargo check --all-targets` 与 clippy `-D warnings` 通过；fmt/diff-check 通过 | 这是源码门，不是 Linux 服务或包验收 |
 | 目标包 | `private/dnsmasq-rewrite/package-20260930/manifest.json` 的 `owrt-dnsmasq-0.1.0-r1.apk` SHA256 `334a6e98fd55b125ba691fef2381f74e2e55cc8211010eb97c261c25e6984962`，只安装 `/usr/libexec/dnsmasq-rs`，`activation=inert` | 不是 stock dnsmasq 替换包；不能部署或宣称可回滚替换 |
 | 设备 | 没有物理路由器部署、刷写或真机性能窗口 | 真机验收未执行 |
@@ -57,7 +57,7 @@
 | `DHCP_SOURCE_MAP.md`, `DHCP_REPLY_PHASE.md`, `DHCP_RUNTIME_PHASE.md`, `DHCP_SERVICE_PHASE.md` | DHCP 状态/wire/runtime/service adapter 边界 | 完整 listener、relay/PXE/leasefile/script/DNS |
 | `TFTP_SOURCE_MAP.md`, `TFTP_RUNTIME_PHASE.md`, `TFTP_SERVICE_PHASE.md` | TFTP path/admission/transfer/netascii | 完整 UDP/PXE/helper/长运行服务 |
 | `private/dnsmasq-rewrite/local-c-audit-20260930/` | 局部 C/Rust local DNS | 上游/cache/真实 daemon |
-| `private/dnsmasq-rewrite/dns-reply/run-1200b`, `dns-process`, `dns_cache_diff.py` 输出 | DNS wire/process/cache 原语或窄状态 | 完整 `DnsDaemon` 与 OpenWrt callers |
+| `private/dnsmasq-rs/cache/differential-soa-redesign/summary.json`、`private/dnsmasq-rewrite/dns-reply/run-1200b`、`dns-process`、`dns_cache_diff.py` 输出 | Cache primitives 21 scenarios/22,571 commands 0 mismatch；DNS wire/process/cache 原语或窄状态 | 完整 `extract_addresses→answer_request` service differential 与 OpenWrt callers |
 | `private/dnsmasq-rewrite/dhcp-differential/run-04`, `dhcp-state/state-run-04`, `dhcp-reply-diff` | DHCP 原语/state/reply | Rust DHCP listener 与 full config |
 | `private/dnsmasq-rewrite/dhcp-listener-linux-20260930/final.log`、`final-local-identity.txt`、`final-remote-identity.txt` | 一个隔离 Linux loopback listener/runtime smoke | 真实 67/4011、C/Rust service differential、生产权限/接口 |
 | `private/dnsmasq-rewrite/tftp-oracle-07`, `tftp-service-diff`, `tftp-bench-03` | TFTP helper primitive/path/netascii/local benchmark | 完整 listener/PXE/helper/target performance |
