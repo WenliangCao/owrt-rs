@@ -195,6 +195,8 @@ mod tests {
         assert!(!config.enabled, "tftp-root does not enable the server in C");
         assert!(apply(&mut config, b"tftp-root=/new-root").unwrap());
         assert_eq!(config.root, Some(b"/new-root".to_vec()));
+        assert!(apply(&mut config, b"tftp-root=\"/quoted,root\"").unwrap());
+        assert_eq!(config.root, Some(b"/quoted,root".to_vec()));
         assert!(apply(&mut config, b"enable-tftp=eth0,eth1").unwrap());
         assert_eq!(
             config.interfaces,
