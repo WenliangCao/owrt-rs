@@ -9,7 +9,7 @@
 //! A/AAAA cache insertion and lookup are wired below.
 
 use super::cache::{Cache, Kind, Policy as CachePolicy, Record, StalePolicy};
-use super::cache_reply::append_positive_record;
+use super::cache_reply::{append_cname_record, append_positive_record};
 use super::forward::{Client, Options as ForwardOptions, QueryId, Random, Scope};
 use super::forward_service::ForwardDispatcher;
 use super::process::{ignore_reply, process_reply, AddressPolicy, ProcessAction, ProcessError};
@@ -407,9 +407,27 @@ impl<R: Random> DnsDaemon<R> {
             Kind::Ipv6
         };
         let now = unix_seconds();
-        let ids = cache.lookup_question(&question.name, kind, now, false);
+        let ids = cache.lookup(
+            &question.name,
+            &[Kind::Cname, kind, Kind::NxDomain],
+            now,
+            false,
+        );
         if ids.is_empty() {
             return Ok(None);
+        }
+        if ids.iter().any(|id| {
+            cache
+                .get(*id)
+                .is_some_and(|entry| entry.record.negative && entry.record.kind == Kind::NxDomain)
+        }) {
+            let mut writer = PacketWriter::new(
+                header.id,
+                (header.flags & 0x0100) | 0x8083,
+                self.max_udp.min(512),
+            )?;
+            writer.question(&question.name, question.rrtype, question.class)?;
+            return Ok(Some(writer.finish()));
         }
         let mut writer = PacketWriter::new(
             header.id,
@@ -418,11 +436,49 @@ impl<R: Random> DnsDaemon<R> {
         )?;
         writer.question(&question.name, question.rrtype, question.class)?;
         let mut written = false;
-        let mut negative = false;
         for id in ids {
             if let Some(entry) = cache.get(id) {
-                if entry.record.negative && entry.record.kind == Kind::NxDomain {
-                    negative = true;
+                if entry.record.kind == Kind::Cname {
+                    let mut current = id;
+                    let mut complete = false;
+                    for _ in 0..10 {
+                        let target = match append_cname_record(
+                            &mut writer,
+                            cache,
+                            current,
+                            Section::Answer,
+                            now,
+                        ) {
+                            Ok(Some(target)) => target,
+                            Ok(None) => break,
+                            Err(WireError::Full) => return Ok(Some(writer.finish())),
+                            Err(error) => return Err(error.into()),
+                        };
+                        written = true;
+                        let Some(target_entry) = cache.get(target) else {
+                            break;
+                        };
+                        if matches!(target_entry.record.kind, Kind::Cname) {
+                            current = target;
+                            continue;
+                        }
+                        match append_positive_record(
+                            &mut writer,
+                            cache,
+                            target,
+                            Section::Answer,
+                            now,
+                        ) {
+                            Ok(true) => complete = true,
+                            Ok(false) => {}
+                            Err(WireError::Full) => return Ok(Some(writer.finish())),
+                            Err(error) => return Err(error.into()),
+                        }
+                        break;
+                    }
+                    if !complete {
+                        return Ok(None);
+                    }
                     continue;
                 }
             }
@@ -434,15 +490,6 @@ impl<R: Random> DnsDaemon<R> {
             }
         }
         if written {
-            return Ok(Some(writer.finish()));
-        }
-        if negative {
-            let mut writer = PacketWriter::new(
-                header.id,
-                (header.flags & 0x0100) | 0x8083,
-                self.max_udp.min(512),
-            )?;
-            writer.question(&question.name, question.rrtype, question.class)?;
             return Ok(Some(writer.finish()));
         }
         Ok(None)
@@ -505,6 +552,121 @@ impl<R: Random> DnsDaemon<R> {
             } else {
                 cache.start_insert();
             }
+            return;
+        }
+
+        // For A/AAAA queries, preserve a complete CNAME chain only when the
+        // response also contains its terminal address. Missing targets and
+        // loops are left on the upstream path, matching C's commit-time
+        // cleanup rather than serving a partial alias answer.
+        let mut chain = Vec::new();
+        let mut current = question.name.clone();
+        for _ in 0..10 {
+            let mut found = None;
+            for rr in message.records(Section::Answer) {
+                if rr.class != 1 || rr.rrtype != 5 {
+                    continue;
+                }
+                let Ok(owner) = rr.name() else {
+                    return;
+                };
+                if !owner.eq_ignore_ascii_case(&current) {
+                    continue;
+                }
+                let Ok((target, consumed)) = rr.rdata_name(0) else {
+                    return;
+                };
+                if consumed != rr.rdata.len() {
+                    return;
+                }
+                found = Some((target, rr.ttl));
+                break;
+            }
+            let Some((target, ttl)) = found else {
+                break;
+            };
+            chain.push((current, target.clone(), ttl));
+            current = target;
+        }
+        if chain.len() == 10
+            && message.records(Section::Answer).any(|rr| {
+                rr.class == 1
+                    && rr.rrtype == 5
+                    && rr
+                        .name()
+                        .is_ok_and(|owner| owner.eq_ignore_ascii_case(&current))
+            })
+        {
+            return;
+        }
+        if !chain.is_empty() {
+            let Some(terminal) = message.records(Section::Answer).find(|rr| {
+                rr.class == 1
+                    && rr.rrtype == question.qtype
+                    && rr.rdata.len() == if question.qtype == 1 { 4 } else { 16 }
+                    && rr
+                        .name()
+                        .is_ok_and(|owner| owner.eq_ignore_ascii_case(&current))
+            }) else {
+                return;
+            };
+            let Ok(terminal_name) = terminal.name() else {
+                return;
+            };
+            cache.start_insert();
+            let terminal_id = match cache.insert(
+                Record {
+                    name: terminal_name.clone(),
+                    kind: if question.qtype == 1 {
+                        Kind::Ipv4
+                    } else {
+                        Kind::Ipv6
+                    },
+                    negative: false,
+                    data: terminal.rdata.to_vec(),
+                },
+                now,
+                terminal.ttl,
+            ) {
+                Ok(id) => id,
+                Err(_) => {
+                    cache.start_insert();
+                    return;
+                }
+            };
+            let mut targets = vec![(terminal_name.canonical_wire(), terminal_id)];
+            for (owner, target, ttl) in chain.into_iter().rev() {
+                let target_id = targets
+                    .iter()
+                    .find(|(name, _)| *name == target.canonical_wire())
+                    .map(|(_, id)| *id);
+                let Some(target_id) = target_id else {
+                    cache.start_insert();
+                    return;
+                };
+                let cname_id = match cache.insert(
+                    Record {
+                        name: owner.clone(),
+                        kind: Kind::Cname,
+                        negative: false,
+                        data: target.canonical_wire(),
+                    },
+                    now,
+                    ttl,
+                ) {
+                    Ok(id) => id,
+                    Err(_) => {
+                        cache.start_insert();
+                        return;
+                    }
+                };
+                if !cache.set_cname_target(cname_id, target_id) {
+                    cache.start_insert();
+                    return;
+                }
+                targets.push((owner.canonical_wire(), cname_id));
+            }
+            let _ = cache.commit();
             return;
         }
         cache.start_insert();
@@ -808,6 +970,68 @@ mod tests {
         assert_eq!(header.id, 0x2222);
         assert_eq!(header.rcode(), 3);
         assert_eq!(header.answers, 0);
+        assert_eq!(worker.join().unwrap(), 0);
+    }
+
+    #[test]
+    fn cname_cache_hit_replays_alias_and_terminal_address() {
+        let server = UdpSocket::bind("127.0.0.1:0").unwrap();
+        let address = server.local_addr().unwrap();
+        let worker = thread::spawn(move || {
+            let mut input = [0; 2048];
+            let (length, peer) = server.recv_from(&mut input).unwrap();
+            let header = Header::parse(&input[..length]).unwrap();
+            let alias = Name::from_ascii("alias.test").unwrap();
+            let target = Name::from_ascii("target.test").unwrap();
+            let mut writer = PacketWriter::new(header.id, 0x8180, 1232).unwrap();
+            writer.question(&alias, 1, 1).unwrap();
+            writer
+                .record(Section::Answer, &alias, 5, 1, 20, target.as_wire())
+                .unwrap();
+            writer
+                .record(Section::Answer, &target, 1, 1, 30, &[192, 0, 2, 9])
+                .unwrap();
+            server.send_to(&writer.finish(), peer).unwrap();
+            server
+                .set_read_timeout(Some(Duration::from_millis(150)))
+                .unwrap();
+            let mut extra = [0; 2048];
+            usize::from(server.recv_from(&mut extra).is_ok())
+        });
+
+        let mut daemon = DnsDaemon::with_random(
+            DnsConfig::default(),
+            Hosts::new(),
+            &[address],
+            options(),
+            Counter(0),
+        )
+        .unwrap();
+        daemon.enable_cache(8, 0, 60, StalePolicy::Disabled);
+        let client = |port| ClientRequest {
+            source: format!("127.0.0.1:{port}").parse().unwrap(),
+            destination: "127.0.0.1".parse().unwrap(),
+            interface: 0,
+        };
+        assert!(matches!(
+            daemon.handle_udp(&query("alias.test", 0x1111), client(53201)),
+            Ok(QueryResult::Forwarded(_))
+        ));
+        let first = daemon.poll(Duration::from_secs(1)).unwrap();
+        assert_eq!(first.len(), 1);
+        assert_eq!(Message::parse(&first[0].packet).unwrap().header.answers, 2);
+        let cached = daemon
+            .handle_udp(&query("alias.test", 0x2222), client(53202))
+            .unwrap();
+        let QueryResult::Cached(packet) = cached else {
+            panic!("second CNAME query did not use the cache");
+        };
+        let message = Message::parse(&packet).unwrap();
+        assert_eq!(message.header.id, 0x2222);
+        assert_eq!(message.header.answers, 2);
+        let mut records = message.records(Section::Answer);
+        assert_eq!(records.next().unwrap().rrtype, 5);
+        assert_eq!(records.next().unwrap().rrtype, 1);
         assert_eq!(worker.join().unwrap(), 0);
     }
 

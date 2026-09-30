@@ -51,6 +51,40 @@ pub fn append_positive_record(
     Ok(true)
 }
 
+/// Append one cached CNAME and return its still-live target handle. The
+/// caller follows that handle to emit the terminal CNAME/A/AAAA chain.
+pub fn append_cname_record(
+    writer: &mut PacketWriter,
+    cache: &Cache,
+    id: EntryId,
+    section: Section,
+    now: i64,
+) -> Result<Option<EntryId>, WireError> {
+    if !cache.is_valid(id, now) {
+        return Ok(None);
+    }
+    let entry = cache.get(id).expect("valid handle refers to an entry");
+    if entry.record.kind != Kind::Cname || entry.record.negative {
+        return Ok(None);
+    }
+    let (_, end) = super::wire::decode_name(&entry.record.data, 0, 0)?;
+    if end != entry.record.data.len() {
+        return Err(WireError::InvalidName);
+    }
+    let Some(target) = entry.cname_target() else {
+        return Ok(None);
+    };
+    writer.record(
+        section,
+        &entry.record.name,
+        5,
+        1,
+        entry.reply_ttl(now, cache.policy()),
+        &entry.record.data,
+    )?;
+    Ok(Some(target))
+}
+
 #[cfg(test)]
 #[path = "cache_reply_tests.rs"]
 mod tests;

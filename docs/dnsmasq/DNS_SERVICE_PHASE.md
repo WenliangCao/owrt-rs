@@ -13,11 +13,11 @@
 
 ## 当前边界
 
-`LocalDnsService` 只回答本地拥有的名字；`None` 不是 NXDOMAIN，而是上游 dispatcher 的明确交接点。`dns::daemon::DnsDaemon` 现把这条边界接到 `RoutingTable`、`ForwardDispatcher` 和有界非阻塞 `UpstreamResolver`：调用方提交一个客户端 UDP 数据报，再从 `poll` 取得已恢复客户端 ID/大小的回复。`ignore-address` 在上游匹配后、forward 状态完成前执行；回复仍只经过现有地址策略和 EDNS envelope。daemon 现接入窄范围缓存：仅 IN、单问、无 EDNS/DNSSEC、NOERROR 的直接 A/AAAA RR，以及无 SOA 的 NXDOMAIN fallback 会按 TTL 写入；命中用 bounded writer 恢复新客户端 ID。缓存目前由每个 UDP listener worker 各自持有，多监听地址之间不共享。CNAME、ANY、NODATA/SOA、缓存响应 EDNS 与完整 cacheability 仍未接线。ubus/TCP fallback 仍明确未完成。二进制 listener/reload 生命周期尚未改为使用该边界。
+`LocalDnsService` 只回答本地拥有的名字；`None` 不是 NXDOMAIN，而是上游 dispatcher 的明确交接点。`dns::daemon::DnsDaemon` 现把这条边界接到 `RoutingTable`、`ForwardDispatcher` 和有界非阻塞 `UpstreamResolver`：调用方提交一个客户端 UDP 数据报，再从 `poll` 取得已恢复客户端 ID/大小的回复。`ignore-address` 在上游匹配后、forward 状态完成前执行；回复仍只经过现有地址策略和 EDNS envelope。daemon 现接入窄范围缓存：仅 IN、单问、无 EDNS/DNSSEC、NOERROR 的直接 A/AAAA RR 或完整 CNAME→终端 A/AAAA 链，以及无 SOA 的 NXDOMAIN fallback 会按 TTL 写入；命中用 bounded writer 恢复新客户端 ID。缓存目前由每个 UDP listener worker 各自持有，多监听地址之间不共享。CNAME 类型查询、断链/循环 CNAME、ANY、NODATA/SOA、缓存响应 EDNS 与完整 cacheability 仍未接线。ubus/TCP fallback 仍明确未完成。二进制 listener/reload 生命周期尚未改为使用该边界。
 
 本地回答边界由精确 C driver 在 2026-09-30 重新核验：A-only `host-record` 对 AAAA 返回上游边界，对 ANY/IN 只返回 A；CNAME 的 A/AAAA/ANY 查询先返回 CNAME 再返回本地目标地址；未知 `local=/domain/` 是 NXDOMAIN 且 AA 清除，已知子记录存在时父域是 NOERROR/AA 清除；`address=/domain/#/` 对 A/AAAA 分别返回全零；QCLASS 非 IN 在 local-only 域仍由本地边界返回 NXDOMAIN/NOERROR；本地记录数据只接受 IN。证据在 ignored `private/dnsmasq-rewrite/local-c-audit-20260930/`，不包含物理路由器访问。
 
-当前二进制只允许显式 `no-resolv`、loopback `listen-address`、非特权端口和本地记录；它会拒绝 upstream/resolv/interface 等未接线配置，缓存只在正式 daemon 路径启用窄范围正向与 NXDOMAIN fallback。尚未完成的交付门包括：完整上游 server 选择/EDNS mutation/查询合并、完整 cacheability/CNAME/NODATA/SOA/缓存 EDNS metadata、生产级连接/FD 生命周期，DHCP/relay/PXE/TFTP socket 与脚本，UCI/procd/ujail/ubus/reload，匹配镜像的替换包和冻结性能窗口。因此本阶段不能称为功能等价、包替换或生产验收。
+当前二进制只允许显式 `no-resolv`、loopback `listen-address`、非特权端口和本地记录；它会拒绝 upstream/resolv/interface 等未接线配置，缓存只在正式 daemon 路径启用窄范围正向、CNAME 链与 NXDOMAIN fallback。尚未完成的交付门包括：完整上游 server 选择/EDNS mutation/查询合并、完整 cacheability/CNAME 负链/NODATA/SOA/缓存 EDNS metadata、生产级连接/FD 生命周期，DHCP/relay/PXE/TFTP socket 与脚本，UCI/procd/ujail/ubus/reload，匹配镜像的替换包和冻结性能窗口。因此本阶段不能称为功能等价、包替换或生产验收。
 
 ## 验证命令
 
@@ -31,6 +31,6 @@ PATH="$HOME/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin:$PATH" \
     --target aarch64-unknown-linux-musl --all-targets
 ```
 
-本轮结果：库测试 **214 个通过、4 个需要精确 C 路径的测试保持 ignored**，主程序目标 6 个通过；Clippy `-D warnings` 通过。daemon 新增 loopback 正向缓存与无 SOA NXDOMAIN 命中回归（第二次查询不再发送上游，恢复新 ID）；`tools/dnsmasq/dns_local_service_probe.py` 提供隔离 loopback UDP/TCP、本地 CNAME/AAAA/NXDOMAIN 和未拥有查询丢弃的可重复 smoke；`tools/dnsmasq/dns_forward_service_diff.py` 对精确 `add_pseudoheader(optno=0)` 完成 1,007 cases、0 mismatch。上述证据仍不等同于完整 daemon 服务验收。
+本轮结果：库测试 **215 个通过、4 个需要精确 C 路径的测试保持 ignored**，主程序目标 6 个通过；Clippy `-D warnings` 通过。daemon 新增 loopback 直接 A、CNAME→终端 A 与无 SOA NXDOMAIN 命中回归（第二次查询不再发送上游，恢复新 ID）；`tools/dnsmasq/dns_local_service_probe.py` 提供隔离 loopback UDP/TCP、本地 CNAME/AAAA/NXDOMAIN 和未拥有查询丢弃的可重复 smoke；`tools/dnsmasq/dns_forward_service_diff.py` 对精确 `add_pseudoheader(optno=0)` 完成 1,007 cases、0 mismatch。上述证据仍不等同于完整 daemon 服务验收。
 目标 musl `cargo check` 通过；在 macOS 主机直接链接 release ELF 仍被宿主 clang 拒绝 OpenWrt 的 `--fix-cortex-a53-843419` linker flag，不能把主机 check 标为目标产物构建通过。
 主机 loopback smoke（显式 UDP socket、TCP length framing、本地 host-record）已得到 UDP/TCP 各 1 个正确 ID/answer；`tools/dnsmasq/dns_signal_smoke.py` 的 SIGINT/SIGTERM smoke 已确认进程退出码为 0 并回收 listener/client workers。SIGHUP reload、resolver 轮询和配置重载仍尚未实现。
