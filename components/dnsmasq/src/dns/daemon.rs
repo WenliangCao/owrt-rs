@@ -8,8 +8,8 @@
 //! `forward.c::process_reply` cache policy are separate work; direct positive
 //! A/AAAA cache insertion and lookup are wired below.
 
-use super::cache::{Cache, Kind, Policy as CachePolicy, Record, StalePolicy};
-use super::cache_reply::{append_cname_record, append_positive_record};
+use super::cache::{Cache, Kind, NegativeAuthority, Policy as CachePolicy, Record, StalePolicy};
+use super::cache_reply::{append_cname_record, append_negative_authority, append_positive_record};
 use super::forward::{Client, Options as ForwardOptions, QueryId, Random, Scope};
 use super::forward_service::ForwardDispatcher;
 use super::process::{ignore_reply, process_reply, AddressPolicy, ProcessAction, ProcessError};
@@ -416,35 +416,73 @@ impl<R: Random> DnsDaemon<R> {
         if ids.is_empty() {
             return Ok(None);
         }
-        if ids.iter().any(|id| {
-            cache
-                .get(*id)
-                .is_some_and(|entry| entry.record.negative && entry.record.kind == Kind::NxDomain)
-        }) {
+        let direct_negative = ids.iter().find_map(|id| {
+            cache.get(*id).and_then(|entry| {
+                (entry.record.negative && entry.record.kind == Kind::NxDomain).then_some(*id)
+            })
+        });
+        if let Some(id) = direct_negative {
             let mut writer = PacketWriter::new(
                 header.id,
                 (header.flags & 0x0100) | 0x8083,
                 self.max_udp.min(512),
             )?;
             writer.question(&question.name, question.rrtype, question.class)?;
+            append_negative_authority(&mut writer, cache, id, now)?;
             return Ok(Some(writer.finish()));
         }
-        if ids.iter().any(|id| {
-            cache
-                .get(*id)
-                .is_some_and(|entry| entry.record.negative && entry.record.kind == kind)
-        }) {
+        let direct_nodata = ids.iter().find_map(|id| {
+            cache.get(*id).and_then(|entry| {
+                (entry.record.negative && entry.record.kind == kind).then_some(*id)
+            })
+        });
+        if let Some(id) = direct_nodata {
             let mut writer = PacketWriter::new(
                 header.id,
                 (header.flags & 0x0100) | 0x8080,
                 self.max_udp.min(512),
             )?;
             writer.question(&question.name, question.rrtype, question.class)?;
+            append_negative_authority(&mut writer, cache, id, now)?;
             return Ok(Some(writer.finish()));
+        }
+
+        // A CNAME can terminate in a cached negative entry.  Preflight the
+        // linked target before creating the writer so its RCODE matches the
+        // terminal result while still emitting every CNAME in the answer.
+        let mut cname_negative = None;
+        for id in &ids {
+            let Some(entry) = cache.get(*id) else {
+                continue;
+            };
+            if entry.record.kind != Kind::Cname {
+                continue;
+            }
+            let mut current = *id;
+            for _ in 0..10 {
+                let Some(current_entry) = cache.get(current) else {
+                    break;
+                };
+                if current_entry.record.kind != Kind::Cname {
+                    if current_entry.record.negative {
+                        cname_negative = Some((current, current_entry.record.kind));
+                    }
+                    break;
+                }
+                let Some(target) = current_entry.cname_target() else {
+                    break;
+                };
+                current = target;
+            }
         }
         let mut writer = PacketWriter::new(
             header.id,
-            (header.flags & 0x0100) | 0x8080,
+            (header.flags & 0x0100)
+                | if cname_negative.is_some_and(|(_, kind)| kind == Kind::NxDomain) {
+                    0x8083
+                } else {
+                    0x8080
+                },
             self.max_udp.min(512),
         )?;
         writer.question(&question.name, question.rrtype, question.class)?;
@@ -475,17 +513,32 @@ impl<R: Random> DnsDaemon<R> {
                             current = target;
                             continue;
                         }
-                        match append_positive_record(
-                            &mut writer,
-                            cache,
-                            target,
-                            Section::Answer,
-                            now,
-                        ) {
-                            Ok(true) => complete = true,
-                            Ok(false) => {}
-                            Err(WireError::Full) => return Ok(Some(writer.finish())),
-                            Err(error) => return Err(error.into()),
+                        if target_entry.record.negative {
+                            append_negative_authority(&mut writer, cache, target, now)?;
+                            complete = true;
+                        } else {
+                            let terminal_name = target_entry.record.name.clone();
+                            let terminal_kind = target_entry.record.kind;
+                            let terminal_ids =
+                                cache.lookup(&terminal_name, &[terminal_kind], now, false);
+                            for terminal_id in terminal_ids {
+                                match append_positive_record(
+                                    &mut writer,
+                                    cache,
+                                    terminal_id,
+                                    Section::Answer,
+                                    now,
+                                ) {
+                                    Ok(true) => {
+                                        complete = true;
+                                    }
+                                    Ok(false) => {}
+                                    Err(WireError::Full) => {
+                                        return Ok(Some(writer.finish()));
+                                    }
+                                    Err(error) => return Err(error.into()),
+                                }
+                            }
                         }
                         break;
                     }
@@ -509,6 +562,8 @@ impl<R: Random> DnsDaemon<R> {
     }
 
     fn cache_reply(&mut self, packet: &[u8]) {
+        let negative_cache = self.negative_cache;
+        let negative_ttl = self.negative_ttl;
         let Some(cache) = self.cache.as_mut() else {
             return;
         };
@@ -539,39 +594,11 @@ impl<R: Random> DnsDaemon<R> {
         {
             return;
         }
-        if message.header.rcode() == 3 {
-            let has_soa = message
-                .records(Section::Authority)
-                .any(|rr| rr.class == 1 && rr.rrtype == 6);
-            if !self.negative_cache
-                || self.negative_ttl == 0
-                || message.header.answers != 0
-                || has_soa
-            {
-                return;
-            }
-            cache.start_insert();
-            let record = Record {
-                name: question.name,
-                kind: Kind::NxDomain,
-                negative: true,
-                data: Vec::new(),
-            };
-            if cache
-                .insert_negative(record, now, None, self.negative_ttl)
-                .is_ok()
-            {
-                let _ = cache.commit();
-            } else {
-                cache.start_insert();
-            }
-            return;
-        }
 
-        // For A/AAAA queries, preserve a complete CNAME chain only when the
-        // response also contains its terminal address. Missing targets and
-        // loops are left on the upstream path, matching C's commit-time
-        // cleanup rather than serving a partial alias answer.
+        // Follow the answer CNAME chain exactly as extract_addresses does.
+        // The terminal name is where a positive RRset or a negative record is
+        // cached, so aliases can be replayed even when the terminal is NXDOMAIN
+        // or NODATA.
         let mut chain = Vec::new();
         let mut current = question.name.clone();
         for _ in 0..10 {
@@ -612,52 +639,80 @@ impl<R: Random> DnsDaemon<R> {
         {
             return;
         }
-        if !chain.is_empty() {
-            let Some(terminal) = message.records(Section::Answer).find(|rr| {
-                rr.class == 1
-                    && rr.rrtype == question.qtype
-                    && rr.rdata.len() == if question.qtype == 1 { 4 } else { 16 }
-                    && rr
-                        .name()
-                        .is_ok_and(|owner| owner.eq_ignore_ascii_case(&current))
-            }) else {
+
+        let terminal_name = current.clone();
+        let terminal_kind = if question.qtype == 1 {
+            Kind::Ipv4
+        } else {
+            Kind::Ipv6
+        };
+        let address_len = if question.qtype == 1 { 4 } else { 16 };
+        let mut addresses = Vec::new();
+        for rr in message.records(Section::Answer) {
+            if rr.class != 1 || rr.rrtype != question.qtype || rr.rdata.len() != address_len {
+                continue;
+            }
+            let Ok(name) = rr.name() else {
                 return;
             };
-            let Ok(terminal_name) = terminal.name() else {
+            if name.eq_ignore_ascii_case(&terminal_name) {
+                addresses.push((name, rr.rdata.to_vec(), rr.ttl));
+            }
+        }
+
+        let soa = authority_soa(&message, &terminal_name, now, cache.policy());
+        let soa_ttl = soa
+            .as_ref()
+            .map(|(_, rr_ttl, minimum)| (*rr_ttl).min(*minimum));
+        let negative_kind = if message.header.rcode() == 3 {
+            Some(Kind::NxDomain)
+        } else if addresses.is_empty() {
+            Some(terminal_kind)
+        } else {
+            None
+        };
+
+        if let Some(kind) = negative_kind {
+            // A successful positive RRset wins over an impossible NXDOMAIN
+            // packet. C's extract_addresses only creates a negative entry when
+            // no matching answer was found.
+            if !addresses.is_empty() {
                 return;
-            };
+            }
+            if !negative_cache {
+                return;
+            }
+            if soa_ttl.is_none() && negative_ttl == 0 {
+                return;
+            }
             cache.start_insert();
-            let terminal_id = match cache.insert(
-                Record {
-                    name: terminal_name.clone(),
-                    kind: if question.qtype == 1 {
-                        Kind::Ipv4
-                    } else {
-                        Kind::Ipv6
-                    },
-                    negative: false,
-                    data: terminal.rdata.to_vec(),
-                },
-                now,
-                terminal.ttl,
-            ) {
-                Ok(id) => id,
-                Err(_) => {
+            let record = Record {
+                name: terminal_name.clone(),
+                kind,
+                negative: true,
+                data: Vec::new(),
+            };
+            let Ok(Some(id)) = cache.insert_negative(record, now, soa_ttl, negative_ttl) else {
+                cache.start_insert();
+                return;
+            };
+            if let Some((authority, _, _)) = soa {
+                if !cache.set_negative_authority(id, authority) {
                     cache.start_insert();
                     return;
                 }
-            };
-            let mut targets = vec![(terminal_name.canonical_wire(), terminal_id)];
+            }
+            let mut targets = vec![(terminal_name.canonical_wire(), id)];
             for (owner, target, ttl) in chain.into_iter().rev() {
-                let target_id = targets
+                let Some(target_id) = targets
                     .iter()
                     .find(|(name, _)| *name == target.canonical_wire())
-                    .map(|(_, id)| *id);
-                let Some(target_id) = target_id else {
+                    .map(|(_, id)| *id)
+                else {
                     cache.start_insert();
                     return;
                 };
-                let cname_id = match cache.insert(
+                let Ok(cname_id) = cache.insert(
                     Record {
                         name: owner.clone(),
                         kind: Kind::Cname,
@@ -666,12 +721,9 @@ impl<R: Random> DnsDaemon<R> {
                     },
                     now,
                     ttl,
-                ) {
-                    Ok(id) => id,
-                    Err(_) => {
-                        cache.start_insert();
-                        return;
-                    }
+                ) else {
+                    cache.start_insert();
+                    return;
                 };
                 if !cache.set_cname_target(cname_id, target_id) {
                     cache.start_insert();
@@ -682,65 +734,57 @@ impl<R: Random> DnsDaemon<R> {
             let _ = cache.commit();
             return;
         }
+
         cache.start_insert();
-        let mut inserted = false;
-        for rr in message.records(Section::Answer) {
-            if rr.rrtype != question.qtype {
-                continue;
-            }
-            let kind = match rr.rrtype {
-                1 if rr.class == 1 && rr.rdata.len() == 4 => Kind::Ipv4,
-                28 if rr.class == 1 && rr.rdata.len() == 16 => Kind::Ipv6,
-                _ => continue,
-            };
-            let Ok(name) = rr.name() else {
-                cache.start_insert();
-                return;
-            };
-            if !name.eq_ignore_ascii_case(&question.name) {
-                continue;
-            }
-            let record = Record {
-                name,
-                kind,
-                negative: false,
-                data: rr.rdata.to_vec(),
-            };
-            if cache.insert(record, now, rr.ttl).is_err() {
-                cache.start_insert();
-                return;
-            }
-            inserted = true;
+        if addresses.is_empty() {
+            return;
         }
-        if inserted {
-            let _ = cache.commit();
-        } else if self.negative_cache
-            && self.negative_ttl != 0
-            && !message.records(Section::Answer).any(|rr| rr.rrtype == 5)
-            && !message
-                .records(Section::Authority)
-                .any(|rr| rr.class == 1 && rr.rrtype == 6)
-        {
-            cache.start_insert();
-            let record = Record {
-                name: question.name,
-                kind: if question.qtype == 1 {
-                    Kind::Ipv4
-                } else {
-                    Kind::Ipv6
+        let mut targets = Vec::with_capacity(addresses.len());
+        for (name, data, ttl) in addresses {
+            let Ok(id) = cache.insert(
+                Record {
+                    name: name.clone(),
+                    kind: terminal_kind,
+                    negative: false,
+                    data,
                 },
-                negative: true,
-                data: Vec::new(),
-            };
-            if cache
-                .insert_negative(record, now, None, self.negative_ttl)
-                .is_ok()
-            {
-                let _ = cache.commit();
-            } else {
+                now,
+                ttl,
+            ) else {
                 cache.start_insert();
-            }
+                return;
+            };
+            targets.push((name.canonical_wire(), id));
         }
+        for (owner, target, ttl) in chain.into_iter().rev() {
+            let Some(target_id) = targets
+                .iter()
+                .find(|(name, _)| *name == target.canonical_wire())
+                .map(|(_, id)| *id)
+            else {
+                cache.start_insert();
+                return;
+            };
+            let Ok(cname_id) = cache.insert(
+                Record {
+                    name: owner.clone(),
+                    kind: Kind::Cname,
+                    negative: false,
+                    data: target.canonical_wire(),
+                },
+                now,
+                ttl,
+            ) else {
+                cache.start_insert();
+                return;
+            };
+            if !cache.set_cname_target(cname_id, target_id) {
+                cache.start_insert();
+                return;
+            }
+            targets.push((owner.canonical_wire(), cname_id));
+        }
+        let _ = cache.commit();
     }
 }
 
@@ -750,6 +794,62 @@ fn unix_seconds() -> i64 {
         .map_or(0, |duration| {
             i64::try_from(duration.as_secs()).unwrap_or(i64::MAX)
         })
+}
+
+/// Select the first IN SOA in the authority section whose owner is a label
+/// suffix of the terminal answer name, as `rfc1035.c::find_soa` does.  The
+/// returned negative TTL uses the wire SOA TTL and MINIMUM; the retained
+/// authority uses the cache policy's normal TTL clamp for replay.
+fn authority_soa(
+    message: &Message<'_>,
+    name: &Name,
+    now: i64,
+    policy: CachePolicy,
+) -> Option<(NegativeAuthority, u32, u32)> {
+    for rr in message.records(Section::Authority) {
+        if rr.class != 1 || rr.rrtype != 6 {
+            continue;
+        }
+        let owner = rr.name().ok()?;
+        if !is_name_suffix(name, &owner) {
+            continue;
+        }
+        let data = rr.canonical_rdata().ok()?;
+        if data.len() < 24 {
+            continue;
+        }
+        let minimum = u32::from_be_bytes(data[data.len() - 4..].try_into().ok()?);
+        let ttl = policy.cache_ttl(rr.ttl);
+        let expires = now.checked_add(i64::from(ttl))?;
+        return Some((
+            NegativeAuthority {
+                name: owner,
+                ttl,
+                expires,
+                data,
+            },
+            rr.ttl,
+            minimum,
+        ));
+    }
+    None
+}
+
+fn is_name_suffix(name: &Name, suffix: &Name) -> bool {
+    let name = name.canonical_wire();
+    let suffix = suffix.canonical_wire();
+    let mut offset = 0;
+    while offset < name.len() {
+        if name[offset..].starts_with(&suffix) {
+            return true;
+        }
+        let length = usize::from(name[offset]);
+        if length == 0 {
+            break;
+        }
+        offset = offset.checked_add(length + 1).unwrap_or(name.len());
+    }
+    false
 }
 
 fn address_policy(config: &DnsConfig) -> Result<AddressPolicy, DaemonError> {
@@ -825,6 +925,20 @@ mod tests {
         let mut writer = PacketWriter::new(id, 0x100, 1232).unwrap();
         writer.question(&name, 1, 1).unwrap();
         writer.finish()
+    }
+
+    fn soa_data() -> Vec<u8> {
+        let mname = Name::from_ascii("ns.example.test").unwrap();
+        let rname = Name::from_ascii("hostmaster.example.test").unwrap();
+        let mut data = Vec::new();
+        data.extend_from_slice(mname.as_wire());
+        data.extend_from_slice(rname.as_wire());
+        data.extend_from_slice(&1u32.to_be_bytes()); // serial
+        data.extend_from_slice(&2u32.to_be_bytes()); // refresh
+        data.extend_from_slice(&3u32.to_be_bytes()); // retry
+        data.extend_from_slice(&4u32.to_be_bytes()); // expire
+        data.extend_from_slice(&10u32.to_be_bytes()); // MINIMUM
+        data
     }
 
     fn options() -> DaemonOptions {
@@ -1085,6 +1199,9 @@ mod tests {
             writer
                 .record(Section::Answer, &target, 1, 1, 30, &[192, 0, 2, 9])
                 .unwrap();
+            writer
+                .record(Section::Answer, &target, 1, 1, 30, &[192, 0, 2, 10])
+                .unwrap();
             server.send_to(&writer.finish(), peer).unwrap();
             server
                 .set_read_timeout(Some(Duration::from_millis(150)))
@@ -1113,7 +1230,7 @@ mod tests {
         ));
         let first = daemon.poll(Duration::from_secs(1)).unwrap();
         assert_eq!(first.len(), 1);
-        assert_eq!(Message::parse(&first[0].packet).unwrap().header.answers, 2);
+        assert_eq!(Message::parse(&first[0].packet).unwrap().header.answers, 3);
         let cached = daemon
             .handle_udp(&query("alias.test", 0x2222), client(53202))
             .unwrap();
@@ -1122,10 +1239,143 @@ mod tests {
         };
         let message = Message::parse(&packet).unwrap();
         assert_eq!(message.header.id, 0x2222);
-        assert_eq!(message.header.answers, 2);
+        assert_eq!(message.header.answers, 3);
         let mut records = message.records(Section::Answer);
         assert_eq!(records.next().unwrap().rrtype, 5);
         assert_eq!(records.next().unwrap().rrtype, 1);
+        assert_eq!(records.next().unwrap().rrtype, 1);
+        assert_eq!(worker.join().unwrap(), 0);
+    }
+
+    #[test]
+    fn soa_nodata_cache_hit_replays_authority_and_minimum_ttl() {
+        let server = UdpSocket::bind("127.0.0.1:0").unwrap();
+        let address = server.local_addr().unwrap();
+        let worker = thread::spawn(move || {
+            let mut input = [0; 2048];
+            let (length, peer) = server.recv_from(&mut input).unwrap();
+            let header = Header::parse(&input[..length]).unwrap();
+            let name = Name::from_ascii("empty.example.test").unwrap();
+            let zone = Name::from_ascii("example.test").unwrap();
+            let mut writer = PacketWriter::new(header.id, 0x8180, 1232).unwrap();
+            writer.question(&name, 1, 1).unwrap();
+            writer
+                .record(Section::Authority, &zone, 6, 1, 40, &soa_data())
+                .unwrap();
+            server.send_to(&writer.finish(), peer).unwrap();
+            server
+                .set_read_timeout(Some(Duration::from_millis(150)))
+                .unwrap();
+            let mut extra = [0; 2048];
+            usize::from(server.recv_from(&mut extra).is_ok())
+        });
+
+        let mut daemon = DnsDaemon::with_random(
+            DnsConfig::default(),
+            Hosts::new(),
+            &[address],
+            options(),
+            Counter(0),
+        )
+        .unwrap();
+        daemon.enable_cache(8, 0, 60, StalePolicy::Disabled);
+        daemon.enable_negative_cache(30, true);
+        let client = |port| ClientRequest {
+            source: format!("127.0.0.1:{port}").parse().unwrap(),
+            destination: "127.0.0.1".parse().unwrap(),
+            interface: 0,
+        };
+        assert!(matches!(
+            daemon.handle_udp(&query("empty.example.test", 0x1111), client(53401)),
+            Ok(QueryResult::Forwarded(_))
+        ));
+        let first = daemon.poll(Duration::from_secs(1)).unwrap();
+        assert_eq!(first.len(), 1);
+        assert_eq!(
+            Message::parse(&first[0].packet).unwrap().header.authorities,
+            1
+        );
+        let cached = daemon
+            .handle_udp(&query("empty.example.test", 0x2222), client(53402))
+            .unwrap();
+        let QueryResult::Cached(packet) = cached else {
+            panic!("SOA NODATA did not use the negative cache");
+        };
+        let message = Message::parse(&packet).unwrap();
+        assert_eq!(message.header.id, 0x2222);
+        assert_eq!(message.header.rcode(), 0);
+        assert_eq!(message.header.answers, 0);
+        assert_eq!(message.header.authorities, 1);
+        let authority = message.records(Section::Authority).next().unwrap();
+        assert_eq!(authority.rrtype, 6);
+        assert!(authority.ttl <= 40);
+        assert!(authority.ttl >= 1);
+        assert_eq!(worker.join().unwrap(), 0);
+    }
+
+    #[test]
+    fn cname_nxdomain_cache_hit_replays_chain_and_soa_authority() {
+        let server = UdpSocket::bind("127.0.0.1:0").unwrap();
+        let address = server.local_addr().unwrap();
+        let worker = thread::spawn(move || {
+            let mut input = [0; 2048];
+            let (length, peer) = server.recv_from(&mut input).unwrap();
+            let header = Header::parse(&input[..length]).unwrap();
+            let alias = Name::from_ascii("alias.example.test").unwrap();
+            let target = Name::from_ascii("missing.example.test").unwrap();
+            let zone = Name::from_ascii("example.test").unwrap();
+            let mut writer = PacketWriter::new(header.id, 0x8183, 1232).unwrap();
+            writer.question(&alias, 1, 1).unwrap();
+            writer
+                .record(Section::Answer, &alias, 5, 1, 20, target.as_wire())
+                .unwrap();
+            writer
+                .record(Section::Authority, &zone, 6, 1, 40, &soa_data())
+                .unwrap();
+            server.send_to(&writer.finish(), peer).unwrap();
+            server
+                .set_read_timeout(Some(Duration::from_millis(150)))
+                .unwrap();
+            let mut extra = [0; 2048];
+            usize::from(server.recv_from(&mut extra).is_ok())
+        });
+
+        let mut daemon = DnsDaemon::with_random(
+            DnsConfig::default(),
+            Hosts::new(),
+            &[address],
+            options(),
+            Counter(0),
+        )
+        .unwrap();
+        daemon.enable_cache(8, 0, 60, StalePolicy::Disabled);
+        daemon.enable_negative_cache(30, true);
+        let client = |port| ClientRequest {
+            source: format!("127.0.0.1:{port}").parse().unwrap(),
+            destination: "127.0.0.1".parse().unwrap(),
+            interface: 0,
+        };
+        assert!(matches!(
+            daemon.handle_udp(&query("alias.example.test", 0x1111), client(53501)),
+            Ok(QueryResult::Forwarded(_))
+        ));
+        assert_eq!(daemon.poll(Duration::from_secs(1)).unwrap().len(), 1);
+        let cached = daemon
+            .handle_udp(&query("alias.example.test", 0x2222), client(53502))
+            .unwrap();
+        let QueryResult::Cached(packet) = cached else {
+            panic!("CNAME NXDOMAIN did not use the negative cache");
+        };
+        let message = Message::parse(&packet).unwrap();
+        assert_eq!(message.header.id, 0x2222);
+        assert_eq!(message.header.rcode(), 3);
+        assert_eq!(message.header.answers, 1);
+        assert_eq!(message.header.authorities, 1);
+        assert_eq!(message.records(Section::Answer).next().unwrap().rrtype, 5);
+        assert_eq!(
+            message.records(Section::Authority).next().unwrap().rrtype,
+            6
+        );
         assert_eq!(worker.join().unwrap(), 0);
     }
 

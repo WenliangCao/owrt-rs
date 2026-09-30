@@ -56,7 +56,7 @@ UDP/TCP IPv4/IPv6 实际收发与 socket/FD 生命周期；上游认证/随机�
 
 ## 动态 forward cache 阶段
 
-`dns/cache.rs` 与 `dns/cache_reply.rs` 现在由 daemon 接入一个窄范围的缓存路径：仅 IN、单问、无 EDNS/DNSSEC、NOERROR 的直接 A/AAAA answer、完整 CNAME→终端 A/AAAA 链，以及无 SOA 的直接 NODATA/NXDOMAIN fallback，按 TTL 写入并用 bounded writer 命中回答；本地 hosts/DHCP/config 记录、reverse cache、SOA 提取及 TCP 子进程缓存 IPC 仍属于后续集成。原语已增加 `insert_negative` 的 SOA TTL 优先、`neg-ttl` 回退和零 TTL 边界、包含 name-wide NXDOMAIN 的 question lookup，以及调用方已选定正 RR 的 bounded wire append。`append_positive_record`/`append_cname_record` 不执行完整 cache lookup/synthesis，明确把 CNAME 类型查询、负链、NODATA/SOA authority、RCODE 与 EDNS 留给调用方；daemon 目前只使用上述四个子集。`Record.data` 仍是调用方校验后的 canonical RDATA 或负缓存 SOA metadata；cache 原语不解释其协议内容。未将剩余缺口标记为完成。
+`dns/cache.rs` 与 `dns/cache_reply.rs` 现在由 daemon 接入一个窄范围的缓存路径：仅 IN、单问、无 EDNS/DNSSEC、NOERROR 的直接 A/AAAA RRset、完整 CNAME→终端 A/AAAA RRset，以及 SOA-backed 或无 SOA 的 NODATA/NXDOMAIN fallback，按 TTL 写入并用 bounded writer 命中回答；本地 hosts/DHCP/config 记录、reverse cache、TCP 子进程缓存 IPC 仍属于后续集成。原语已增加 `insert_negative` 的 SOA TTL/MINIMUM 选择、`neg-ttl` 回退和零 TTL 边界、包含 name-wide NXDOMAIN 的 question lookup、负记录 authority 保留，以及调用方已选定正 RR 的 bounded wire append。`append_positive_record`/`append_cname_record` 不执行完整 cache lookup/synthesis，daemon 负责 CNAME 负链、NODATA/NXDOMAIN RCODE 与 SOA authority；EDNS 仍留给调用方。`Record.data` 仍是调用方校验后的 canonical RDATA；负缓存 SOA metadata 保存在 `NegativeAuthority`。未将剩余缺口标记为完成。
 
 | 精确 C 位置 | 行为与不变量 | Rust 原语 | 当前对照 |
 |---|---|---|---|

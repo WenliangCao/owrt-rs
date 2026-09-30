@@ -85,6 +85,45 @@ pub fn append_cname_record(
     Ok(Some(target))
 }
 
+/// Append the SOA authority retained with a cached negative entry.
+///
+/// `rfc1035.c::answer_request` emits this RR only for a negative record that
+/// was created from an upstream SOA.  A no-SOA `--neg-ttl` fallback therefore
+/// has no authority section.  The SOA's own remaining TTL is independent of
+/// the negative cache expiry (which is `min(SOA TTL, SOA MINIMUM)`).
+pub fn append_negative_authority(
+    writer: &mut PacketWriter,
+    cache: &Cache,
+    id: EntryId,
+    now: i64,
+) -> Result<bool, WireError> {
+    if !cache.is_valid(id, now) {
+        return Ok(false);
+    }
+    let entry = cache.get(id).expect("valid handle refers to an entry");
+    if !entry.record.negative {
+        return Ok(false);
+    }
+    let Some(authority) = entry.negative_authority() else {
+        return Ok(false);
+    };
+    let ttl = (i128::from(authority.expires) - i128::from(now)).clamp(0, u32::MAX as i128) as u32;
+    let ttl = if cache.policy().max_reply_ttl == 0 {
+        ttl
+    } else {
+        ttl.min(cache.policy().max_reply_ttl)
+    };
+    writer.record(
+        Section::Authority,
+        &authority.name,
+        6,
+        1,
+        ttl,
+        &authority.data,
+    )?;
+    Ok(true)
+}
+
 #[cfg(test)]
 #[path = "cache_reply_tests.rs"]
 mod tests;

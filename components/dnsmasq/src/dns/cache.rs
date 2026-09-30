@@ -91,11 +91,26 @@ pub struct Record {
     pub data: Vec<u8>,
 }
 
+/// SOA material retained with a forward negative entry.
+///
+/// `rfc1035.c::find_soa` caches the SOA RR separately and stores enough
+/// information on the negative record to find it again while answering.  The
+/// cache currently has no generic RR replay path for that lookup, so keep the
+/// canonical owner/RDATA and the SOA RR TTL directly on the negative entry.
+#[derive(Debug, Clone)]
+pub struct NegativeAuthority {
+    pub name: Name,
+    pub ttl: u32,
+    pub expires: i64,
+    pub data: Vec<u8>,
+}
+
 #[derive(Debug)]
 pub struct Entry {
     pub record: Record,
     pub expires: i64,
     target: Option<EntryId>,
+    authority: Option<NegativeAuthority>,
     referenced: bool,
     committed: bool,
 }
@@ -117,6 +132,10 @@ impl Entry {
 
     pub fn cname_target(&self) -> Option<EntryId> {
         self.target
+    }
+
+    pub fn negative_authority(&self) -> Option<&NegativeAuthority> {
+        self.authority.as_ref()
     }
 }
 
@@ -295,6 +314,7 @@ impl Cache {
             record,
             expires,
             target: None,
+            authority: None,
             referenced: preserved.is_some(),
             committed: false,
         });
@@ -327,6 +347,30 @@ impl Cache {
             return Ok(None);
         };
         self.insert(record, now, ttl).map(Some)
+    }
+
+    /// Attach the SOA used for a negative answer.  This is deliberately a
+    /// separate operation so callers can first insert the terminal negative
+    /// record and then wire CNAME links to it, matching cache.c's transaction
+    /// order.  The authority is only valid on a negative entry.
+    pub fn set_negative_authority(
+        &mut self,
+        negative: EntryId,
+        authority: NegativeAuthority,
+    ) -> bool {
+        let Some(entry) = self
+            .slots
+            .get_mut(negative.slot)
+            .filter(|slot| slot.generation == negative.generation)
+            .and_then(|slot| slot.entry.as_mut())
+        else {
+            return false;
+        };
+        if !entry.record.negative {
+            return false;
+        }
+        entry.authority = Some(authority);
+        true
     }
 
     /// Called while assembling the CNAME chain, including pending targets.
