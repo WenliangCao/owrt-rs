@@ -46,24 +46,27 @@ static struct {FILE *lease_stream;char *lease_file;char addrbuff[64];unsigned in
 static struct dhcp_lease *leases;
 static int file_dirty,dns_dirty,fqdn_only,failure,wrote,pipewrite;
 static char trace[4096],rendered[4096];static size_t trace_len,rendered_len;
-static time_t requested_alarm,current_alarm,clock_now;static int queued_alarm,logs;
+static time_t requested_alarm,current_alarm,clock_now;static int queued_alarm,logs,reported_error;
 static void event(const char *format,...) {va_list args;va_start(args,format);
  int n=vsnprintf(trace+trace_len,sizeof(trace)-trace_len,format,args);va_end(args);
  if(n<0||(size_t)n>=sizeof(trace)-trace_len)abort();trace_len+=n;}
 static int option_bool(int option){(void)option;return fqdn_only;}
-static void file_rewind(FILE *stream){(void)stream;event("rewind;");if(failure==1)errno=ESPIPE;}
+static void file_rewind(FILE *stream){(void)stream;event("rewind;");if(failure&1)errno=ESPIPE;}
 static int file_fileno(FILE *stream){(void)stream;return 42;}
 static int file_truncate(int fd,off_t size){(void)fd;(void)size;event("truncate;");
- if(failure==2){errno=EACCES;return -1;}rendered_len=0;return 0;}
+ if(failure&2){errno=EACCES;return -1;}rendered_len=0;return 0;}
 static int file_print(FILE *stream,const char *format,va_list args){(void)stream;
  if(!wrote){event("write;");wrote=1;}char text[1024];int n=vsnprintf(text,sizeof(text),format,args);
  if(n<0||(size_t)n>=sizeof(text)||rendered_len+(size_t)n>=sizeof(rendered))abort();
- if(failure==3&&rendered_len+(size_t)n>16){size_t count=rendered_len<16?16-rendered_len:0;
+ if((failure&4)&&rendered_len+(size_t)n>16){size_t count=rendered_len<16?16-rendered_len:0;
  memcpy(rendered+rendered_len,text,count);rendered_len+=count;errno=ENOSPC;return -1;}
  memcpy(rendered+rendered_len,text,n);rendered_len+=n;return n;}
-static int file_flush(FILE *stream){(void)stream;event("flush;");if(failure==4){errno=ENOSPC;return -1;}return 0;}
-static int file_sync(int fd){(void)fd;event("sync;");if(failure==5){errno=EIO;return -1;}return 0;}
-static void my_syslog(int priority,const char *format,...){(void)priority;(void)format;logs++;event("log;");}
+static int file_flush(FILE *stream){(void)stream;event("flush;");if(failure&8){errno=ENOSPC;return -1;}return 0;}
+static int file_sync(int fd){(void)fd;event("sync;");if(failure&16){errno=EIO;return -1;}return 0;}
+static void my_syslog(int priority,const char *format,...){(void)priority;logs++;event("log;");
+ va_list args;va_start(args,format);(void)va_arg(args,const char *);char message[256];
+ snprintf(message,sizeof(message),"%s",va_arg(args,const char *));va_end(args);
+ int codes[]={ESPIPE,EACCES,ENOSPC,EIO};for(size_t i=0;i<4;i++)if(!strcmp(message,strerror(codes[i])))reported_error=codes[i];}
 static unsigned int fake_alarm(unsigned int seconds){current_alarm=clock_now+seconds;event("arm:%u;",seconds);return 0;}
 static void send_event(int fd,int type,int value,const char *message){(void)fd;(void)type;(void)value;(void)message;queued_alarm++;event("immediate;");}
 static void reference_send_alarm(time_t event,time_t now);
@@ -93,10 +96,10 @@ int main(void){
   unsigned char clid[]={1,2},agent[]={3,4},vendor[]={5};first.clid=clid;first.clid_len=2;
   first.agent_id=agent;first.agent_id_len=2;second.vendorclass=vendor;second.vendorclass_len=1;
   leases=&first;state.lease_stream=stream?(FILE *)(uintptr_t)1:NULL;state.lease_file="fixture.leases";state.soa_sn=7;
-  trace_len=0;trace[0]=0;memcpy(rendered,"old",3);rendered_len=3;wrote=queued_alarm=logs=0;
+  trace_len=0;trace[0]=0;memcpy(rendered,"old",3);rendered_len=3;wrote=queued_alarm=logs=reported_error=0;
   requested_alarm=-1;current_alarm=777;clock_now=now;errno=0;
   event("state;");lease_update_file(now);lease_update_dns(force);if(reply)event("send;");
-  printf("%d %d %u %lld %lld %d %d ",file_dirty,dns_dirty,state.soa_sn,(long long)requested_alarm,(long long)current_alarm,queued_alarm,logs);
+  printf("%d %d %u %lld %lld %d %d %d ",file_dirty,dns_dirty,state.soa_sn,(long long)requested_alarm,(long long)current_alarm,queued_alarm,logs,reported_error);
   for(size_t i=0;i<rendered_len;i++)printf("%02x",(unsigned char)rendered[i]);printf(" %s\n",trace);
  }
  return 0;
@@ -113,18 +116,19 @@ def oracle(sources):
 
 def cases():
     rows=[]
-    for failure in range(6):rows.append(f"100 {failure} 200 1 1 1 53 0 0 1")
+    for failure in [0,1,2,4,8,16]:rows.append(f"100 {failure} 200 1 1 1 53 0 0 1")
     rows += ["100 0 200 0 1 1 53 0 0 0", "100 0 200 1 1 0 53 0 0 1",
              "100 0 200 1 1 1 0 0 0 1", "100 0 200 0 0 1 53 1 1 0",
-             "100 5 120 1 1 1 53 0 0 1", "100 0 0 1 1 1 53 0 0 1",
+             "100 16 120 1 1 1 53 0 0 1", "100 0 0 1 1 1 53 0 0 1",
              "100 0 100 1 1 1 53 0 0 0", "0 0 0 0 0 0 0 0 0 0"]
+    rows += [f"100 {failure} 200 1 1 1 53 0 0 1" for failure in [20,9,18]]
     rng=random.Random(0x2931f1)
     for _ in range(300):
         now=rng.choice([0,100,200])
         # dhcp_packet/EVENT_ALARM prune before update_file. Do not invent an
         # expired active lease in its retry-error branch outside that contract.
         expiry=rng.choice([0,now+1,now+20,now+60,now+100])
-        rows.append(f"{now} {rng.randrange(6)} {expiry} {rng.randrange(2)} {rng.randrange(2)} {rng.randrange(2)} {rng.choice([0,53])} {rng.randrange(2)} {rng.randrange(2)} {rng.randrange(2)}")
+        rows.append(f"{now} {rng.randrange(32)} {expiry} {rng.randrange(2)} {rng.randrange(2)} {rng.randrange(2)} {rng.choice([0,53])} {rng.randrange(2)} {rng.randrange(2)} {rng.randrange(2)}")
     return rows
 
 
@@ -138,6 +142,7 @@ def calibrate_c(lines):
     assert fields[7][0]=="1" and "rewind;" not in fields[7][-1]
     assert fields[8][1]=="1" and "unhash;" not in fields[8][-1]
     assert fields[11][4]=="777" # event=0 leaves an existing alarm alone.
+    assert [fields[index][7] for index in [14,15,16]]==["5","28","5"]
 
 
 def main():

@@ -2,6 +2,7 @@
 //! Tokens use the same scanf field widths, including splitting oversized tokens
 //! across fields. Files are parsed without opening paths or executing init hooks.
 
+use std::io::{self, BufRead};
 use std::net::Ipv4Addr;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -24,60 +25,80 @@ pub struct LeaseFile {
     pub clean_end: bool,
 }
 
-struct Tokens<'a> {
-    bytes: &'a [u8],
-    position: usize,
+struct Tokens<R> {
+    reader: R,
 }
 
-impl<'a> Tokens<'a> {
-    fn take(&mut self, limit: usize) -> Option<&'a [u8]> {
-        while self
-            .bytes
-            .get(self.position)
-            .is_some_and(u8::is_ascii_whitespace)
-        {
-            self.position += 1;
+fn scanf_space(byte: u8) -> bool {
+    matches!(byte, b' ' | b'\t' | b'\n' | b'\r' | 0x0b | 0x0c)
+}
+
+impl<R: BufRead> Tokens<R> {
+    fn take(&mut self, limit: usize) -> io::Result<Option<Vec<u8>>> {
+        loop {
+            let buffer = self.reader.fill_buf()?;
+            if buffer.is_empty() {
+                return Ok(None);
+            }
+            let length = buffer.len();
+            let spaces = buffer.iter().take_while(|byte| scanf_space(**byte)).count();
+            self.reader.consume(spaces);
+            if spaces != length {
+                break;
+            }
         }
-        let start = self.position;
-        while self.position - start < limit
-            && self
-                .bytes
-                .get(self.position)
-                .is_some_and(|byte| !byte.is_ascii_whitespace())
-        {
-            self.position += 1;
-        }
-        (self.position != start).then(|| {
-            let token = &self.bytes[start..self.position];
-            &token[..token
+        let mut token = Vec::new();
+        loop {
+            let buffer = self.reader.fill_buf()?;
+            let count = buffer
                 .iter()
-                .position(|&byte| byte == 0)
-                .unwrap_or(token.len())]
-        })
+                .take_while(|byte| !scanf_space(**byte))
+                .count()
+                .min(limit - token.len());
+            let done = count < buffer.len() || count == 0 || token.len() + count == limit;
+            token.extend_from_slice(&buffer[..count]);
+            self.reader.consume(count);
+            if done {
+                break;
+            }
+        }
+        token.truncate(
+            token
+                .iter()
+                .position(|byte| *byte == 0)
+                .unwrap_or(token.len()),
+        );
+        Ok(Some(token))
     }
 }
 
 pub fn parse(bytes: &[u8]) -> LeaseFile {
-    let mut tokens = Tokens { bytes, position: 0 };
+    parse_reader(bytes, usize::MAX).expect("reading a byte slice cannot fail")
+}
+
+/// Stream a startup database without allocating its complete contents. Field
+/// widths stay identical to scanf and capacity exhaustion is startup-fatal.
+pub fn parse_reader(reader: impl BufRead, maximum_records: usize) -> io::Result<LeaseFile> {
+    let mut tokens = Tokens { reader };
     let mut result = LeaseFile::default();
     loop {
-        let Some(first) = tokens.take(255) else {
+        let Some(first) = tokens.take(255)? else {
             result.clean_end = true;
             break;
         };
-        let Some(second) = tokens.take(255) else {
+        let Some(second) = tokens.take(255)? else {
             break;
         };
         if first == b"vendorclass" || first == b"agent-info" {
-            if let Some(data) = tokens.take(764) {
-                if let Some(address) = parse_address(second) {
+            if let Some(data) = tokens.take(764)? {
+                if let Some(address) = parse_address(&second) {
                     if let Some(record) = result
                         .records
                         .iter_mut()
                         .rev()
                         .find(|record| record.address == address)
                     {
-                        let (parsed, _) = parse_hex(data, 255, false);
+                        let (parsed, _) = parse_hex(&data, 255, false);
                         if let Some(parsed) = parsed {
                             if first == b"vendorclass" {
                                 record.vendor_class = Some(parsed);
@@ -90,19 +111,25 @@ pub fn parse(bytes: &[u8]) -> LeaseFile {
             }
             continue;
         }
-        let address = tokens.take(64);
-        let hostname = tokens.take(255);
-        let client_id = tokens.take(764);
+        let address = tokens.take(64)?;
+        let hostname = tokens.take(255)?;
+        let client_id = tokens.take(764)?;
         let (Some(address), Some(hostname), Some(client_id)) = (address, hostname, client_id)
         else {
             result.invalid_records += 1;
             continue;
         };
-        let Some(address) = parse_address(address) else {
+        let Some(address) = parse_address(&address) else {
             result.invalid_records += 1;
             continue;
         };
-        let (hardware, mut hardware_type) = parse_hex(second, 16, true);
+        if result.records.len() >= maximum_records {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "too many stored leases",
+            ));
+        }
+        let (hardware, mut hardware_type) = parse_hex(&second, 16, true);
         let hardware = hardware.unwrap_or_default();
         if hardware_type == 0 && !hardware.is_empty() {
             hardware_type = 1;
@@ -110,13 +137,13 @@ pub fn parse(bytes: &[u8]) -> LeaseFile {
         let client_id = if client_id == b"*" {
             None
         } else {
-            parse_hex(client_id, 255, false)
+            parse_hex(&client_id, 255, false)
                 .0
                 .filter(|bytes| !bytes.is_empty())
         };
         result.records.push(LeaseRecord {
             address,
-            expires: decimal_prefix(first),
+            expires: decimal_prefix(&first),
             hardware_type,
             hardware_address: hardware,
             client_id,
@@ -125,7 +152,7 @@ pub fn parse(bytes: &[u8]) -> LeaseFile {
             vendor_class: None,
         });
     }
-    result
+    Ok(result)
 }
 
 fn parse_address(bytes: &[u8]) -> Option<Ipv4Addr> {
@@ -256,5 +283,21 @@ mod tests {
         assert_eq!(result.records.len(), 1);
         assert!(!result.clean_end);
         assert_eq!(decimal_prefix(b"-9223372036854775809"), i64::MIN);
+    }
+
+    #[test]
+    fn streaming_keeps_scanf_whitespace_width_and_capacity_rules() {
+        let bytes = b"200\x0b02:00:00:00:00:01\x0c192.0.2.10\thost *\n";
+        for size in [1, 2, 7, 64] {
+            let file =
+                parse_reader(std::io::BufReader::with_capacity(size, &bytes[..]), 1).unwrap();
+            assert!(file.clean_end);
+            assert_eq!(file.records.len(), 1);
+            assert_eq!(file.records[0].hostname.as_deref(), Some(&b"host"[..]));
+        }
+        assert_eq!(
+            parse_reader(&bytes[..], 0).unwrap_err().kind(),
+            io::ErrorKind::InvalidData
+        );
     }
 }

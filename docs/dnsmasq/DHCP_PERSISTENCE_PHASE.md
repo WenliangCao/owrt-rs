@@ -80,3 +80,27 @@ This instrumented stream records accepted text and operation order; it does
 not emulate all libc buffering details or prove bytes durable on real media.
 Rust differential, real file failures and full DORA/renew/release/restart
 service comparisons remain pending at this checkpoint.
+
+## Reusable adapter checkpoint
+
+`dhcp::persistence` now implements the held-inode `LeasePersistence`, the
+`LeaseIo` failure boundary, `PersistReport`/`AlarmAction` and the synchronous
+`DnsPublisher::replace` handoff. Its writer uses a bounded 1 KiB buffer.
+The C comparison now covers **317/317** inputs, including combined faults
+and the exact error code selected when flush/fsync replaces an earlier error;
+evidence is `diff-02/`. The real-file unit check confirms that replacing a
+pathname does not redirect the held descriptor's writes. Read-only/no-script
+ignores even an unopenable path. Missing or failed DNS sinks retain dirty
+state and never claim successful publication.
+
+Startup parsing now consumes a buffered reader with a record-capacity limit,
+so it does not allocate the complete database file before checking capacity.
+Its whitespace matcher includes vertical tab as C scanf does; the previous
+Rust ASCII-whitespace predicate omitted it. A tiny-buffer regression and a
+C-derived vertical-tab fixture accompany this correction. The broader
+primitive oracle passed **2,016/2,016** after being updated to link the actual
+crate (its previous standalone module import broke after context integration).
+The failed adapter build is retained in `parser-stream-01/`; the passing run
+is `parser-stream-02/`. Real-file unit checks and library clippy passed.
+Daemon/config/tick wiring and a live dedicated DNS source are still pending
+at this adapter checkpoint.

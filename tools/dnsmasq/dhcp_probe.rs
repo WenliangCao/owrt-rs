@@ -1,7 +1,5 @@
 //! Offline differential adapter; not linked into the product.
-#![allow(dead_code)]
-#[path = "../../components/dnsmasq/src/dhcp/mod.rs"]
-mod dhcp;
+use dnsmasq_rs::dhcp;
 
 use dhcp::lease::{ClientIdentity, LeaseStore};
 use std::io::{self, BufRead};

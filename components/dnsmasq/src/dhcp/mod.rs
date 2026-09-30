@@ -15,6 +15,7 @@ pub mod lease;
 pub mod lease_file;
 pub mod lease_query;
 pub mod packet;
+pub mod persistence;
 pub mod probe;
 pub mod pxe;
 pub mod reply;

@@ -317,6 +317,7 @@ def cases(seed, count):
         "I 1 010203 09 2 1 010203 09 1 010203 08",
         "I 1 010203 - 2 1 010203 09 1 010203 08",
         "P 220 0 3 120 121 4294967295",
+        "F " + b"200\x0b02:00:00:00:00:01\x0c192.0.2.10\thost *\n".hex(),
     ]
     for _ in range(count):
         region = bytearray()
@@ -417,10 +418,13 @@ def main():
     source.write_text(PREFIX + (args.source / "dhcp-protocol.h").read_text() + "\n".join(extracted) + SUFFIX)
     cc = shutil.which("cc")
     rustc = shutil.which("rustc")
-    if not cc or not rustc: raise SystemExit("cc and rustc must be on PATH")
+    cargo = shutil.which("cargo")
+    if not cc or not rustc or not cargo: raise SystemExit("cc, cargo and rustc must be on PATH")
+    target = ROOT / "components/dnsmasq/target/debug"
     commands = [
         [cc, "-std=c11", "-D_POSIX_C_SOURCE=200809L", "-O2", "-fsanitize=address,undefined", str(source), "-o", str(output / "c-oracle")],
-        [rustc, "--edition=2021", "-O", str(ROOT / "tools/dnsmasq/dhcp_probe.rs"), "-o", str(output / "rust-probe")],
+        [cargo, "build", "--quiet", "--manifest-path", str(ROOT / "components/dnsmasq/Cargo.toml"), "--lib"],
+        [rustc, "--edition=2021", "-O", str(ROOT / "tools/dnsmasq/dhcp_probe.rs"), "--extern", f"dnsmasq_rs={target / 'libdnsmasq_rs.rlib'}", "-L", f"dependency={target / 'deps'}", "-o", str(output / "rust-probe")],
     ]
     for index, command in enumerate(commands): run(command, output / f"build-{index}.json")
     inputs = cases(args.seed, args.rounds)
