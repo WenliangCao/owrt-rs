@@ -219,23 +219,11 @@ impl<R: Random> DnsDaemon<R> {
             case_randomization: config.do_0x20_encode && !config.no_0x20_encode,
             ..ForwardOptions::default()
         });
-        let dispatcher = ForwardDispatcher::new(
-            forward_options,
-            groups,
-            options.edns_packet_max,
-        );
-        let upstream = UpstreamResolver::with_random(
-            dispatcher,
-            random,
-            options.upstream_timeout,
-        )?;
+        let dispatcher = ForwardDispatcher::new(forward_options, groups, options.edns_packet_max);
+        let upstream = UpstreamResolver::with_random(dispatcher, random, options.upstream_timeout)?;
         let policy = address_policy(&config)?;
-        let local = LocalDnsService::new(
-            config,
-            hosts,
-            options.local_ttl,
-            options.max_udp.max(512),
-        );
+        let local =
+            LocalDnsService::new(config, hosts, options.local_ttl, options.max_udp.max(512));
         Ok(Self {
             local,
             routing,
@@ -288,10 +276,7 @@ impl<R: Random> DnsDaemon<R> {
     /// reply envelope is applied, but this intentionally does not claim the
     /// full C `process_reply` contract (cache/SOA/ubus/TCP fallback remain
     /// outside this adapter).
-    pub fn poll(
-        &mut self,
-        wait: Duration,
-    ) -> Result<Vec<ClientResponse>, DaemonError> {
+    pub fn poll(&mut self, wait: Duration) -> Result<Vec<ClientResponse>, DaemonError> {
         let events = self.upstream.poll(wait)?;
         let mut responses = Vec::new();
         for event in events {
@@ -415,14 +400,8 @@ mod tests {
         let mut config = DnsConfig::default();
         apply(&mut config, b"no-resolv");
         apply(&mut config, b"host-record=router.test,192.0.2.1");
-        let mut daemon = DnsDaemon::with_random(
-            config,
-            Hosts::new(),
-            &[],
-            options(),
-            Counter(0),
-        )
-        .unwrap();
+        let mut daemon =
+            DnsDaemon::with_random(config, Hosts::new(), &[], options(), Counter(0)).unwrap();
         assert!(matches!(
             daemon
                 .handle_udp(
@@ -470,14 +449,9 @@ mod tests {
         });
         let mut config = DnsConfig::default();
         config.no_resolv = false;
-        let mut daemon = DnsDaemon::with_random(
-            config,
-            Hosts::new(),
-            &[address],
-            options(),
-            Counter(0),
-        )
-        .unwrap();
+        let mut daemon =
+            DnsDaemon::with_random(config, Hosts::new(), &[address], options(), Counter(0))
+                .unwrap();
         let result = daemon
             .handle_udp(
                 &query("upstream.test", 0x4321),
@@ -491,10 +465,7 @@ mod tests {
         assert!(matches!(result, QueryResult::Forwarded(_)));
         let responses = daemon.poll(Duration::from_secs(1)).unwrap();
         assert_eq!(responses.len(), 1);
-        assert_eq!(
-            Header::parse(&responses[0].packet).unwrap().id,
-            0x4321
-        );
+        assert_eq!(Header::parse(&responses[0].packet).unwrap().id, 0x4321);
         worker.join().unwrap();
     }
 
@@ -503,13 +474,7 @@ mod tests {
         let mut config = DnsConfig::default();
         apply(&mut config, b"no-resolv");
         apply(&mut config, b"server=resolver.example");
-        let result = DnsDaemon::with_random(
-            config,
-            Hosts::new(),
-            &[],
-            options(),
-            Counter(0),
-        );
+        let result = DnsDaemon::with_random(config, Hosts::new(), &[], options(), Counter(0));
         assert!(matches!(result, Err(DaemonError::Config(_))));
     }
 
@@ -518,13 +483,7 @@ mod tests {
         let mut config = DnsConfig::default();
         config.no_resolv = true;
         apply(&mut config, b"server=127.0.0.1#5300");
-        let daemon = DnsDaemon::with_random(
-            config,
-            Hosts::new(),
-            &[],
-            options(),
-            Counter(0),
-        );
+        let daemon = DnsDaemon::with_random(config, Hosts::new(), &[], options(), Counter(0));
         assert!(daemon.is_ok());
     }
 }

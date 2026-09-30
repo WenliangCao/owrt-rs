@@ -56,7 +56,7 @@ pub struct ReadStats {
 
 /// One reload generation. Address and name indexes remain live after bulk
 /// load; C discards its bulk reverse index and scans every bucket for PTR.
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct Hosts {
     entries: Vec<Host>,
     forward: HashMap<Vec<u8>, Vec<usize>>,

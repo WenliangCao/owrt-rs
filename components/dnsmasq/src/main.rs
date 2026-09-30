@@ -8,11 +8,12 @@
 use dnsmasq_rs::config::dns::DnsConfig;
 use dnsmasq_rs::config::loader::{self, Action};
 use dnsmasq_rs::config::{Error, ScalarConfig};
+use dnsmasq_rs::dns::daemon::{ClientRequest, DaemonOptions, DnsDaemon, QueryResult};
 use dnsmasq_rs::dns::service::{encode_tcp_frame, LocalDnsService, TcpFramer};
 use dnsmasq_rs::hosts::Hosts;
 use std::ffi::OsString;
 use std::io::{self, Read, Write};
-use std::net::{SocketAddr, TcpListener, UdpSocket};
+use std::net::{IpAddr, SocketAddr, TcpListener, UdpSocket};
 use std::path::Path;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
@@ -76,18 +77,32 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         Action::Run => {}
     }
     runtime.scalar.finalize_runtime()?;
-    // Check parsed state before DnsConfig::finalize applies C's derived
-    // defaults. This prevents an explicit unsupported local-service option
-    // from being hidden when C clears it due to listen-address access control.
-    validate_probe_ready(&runtime.scalar, &runtime.dns)?;
     runtime.dns.finalize()?;
-    validate_probe_ready(&runtime.scalar, &runtime.dns)?;
+    validate_runtime_ready(&runtime.scalar, &runtime.dns)?;
+    if runtime.scalar.dns_port == 0 {
+        return Err(Box::new(Error("port=0 is not supported by the listener")));
+    }
     let hosts = read_hosts(&runtime.dns, runtime.scalar.local_ttl)?;
+    let resolvers = read_resolvers(&runtime.dns)?;
+    if !runtime.dns.no_resolv && resolvers.is_empty() {
+        return Err(Box::new(Error("no nameserver in resolver files")));
+    }
     let addresses = bind_addresses(&runtime.dns, runtime.scalar.dns_port);
     // dnsmasq.c allocates `edns_pktsz + MAXDNAME + RRFIXEDSZ` for incoming
     // packets and rejects larger UDP/TCP requests before parsing them.
     let packet_limit = usize::from(runtime.scalar.edns_packet_max) + 255 + 10;
     let tcp_limit = usize::try_from(runtime.scalar.max_tcp_connections).unwrap_or(usize::MAX);
+    let daemon_config = runtime.dns.clone();
+    let daemon_hosts = hosts.clone();
+    let daemon_options = DaemonOptions {
+        forward_max: runtime.scalar.forward_max as usize,
+        fast_retry: runtime.scalar.fast_retry,
+        edns_packet_max: runtime.scalar.edns_packet_max,
+        proxy_dnssec: runtime.dns.proxy_dnssec,
+        local_ttl: runtime.scalar.local_ttl,
+        max_udp: packet_limit,
+        upstream_timeout: Duration::from_secs(10),
+    };
     let service = Arc::new(Mutex::new(LocalDnsService::new(
         runtime.dns,
         hosts,
@@ -98,25 +113,45 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     let mut workers = Vec::new();
     for address in addresses {
         let udp = UdpSocket::bind(address)?;
+        udp.set_read_timeout(Some(Duration::from_millis(50)))?;
         let tcp = TcpListener::bind(address)?;
-        let udp_service = Arc::clone(&service);
+        let udp_config = daemon_config.clone();
+        let udp_hosts = daemon_hosts.clone();
+        let udp_resolvers = resolvers.clone();
+        let udp_options = daemon_options;
+        let daemon = DnsDaemon::new(udp_config, udp_hosts, &udp_resolvers, udp_options)?;
         workers.push(
             thread::Builder::new()
                 .name(format!("dns-udp-{address}"))
                 .spawn(move || {
+                    let mut daemon = daemon;
                     let mut query = vec![0; 65_535];
                     loop {
-                        let Ok((length, peer)) = udp.recv_from(&mut query) else {
-                            continue;
-                        };
-                        if length > packet_limit {
-                            continue;
+                        match udp.recv_from(&mut query) {
+                            Ok((length, peer)) if length <= packet_limit => {
+                                let request = ClientRequest {
+                                    source: peer,
+                                    destination: address.ip(),
+                                    interface: 0,
+                                };
+                                if let Ok(QueryResult::Local(answer)) =
+                                    daemon.handle_udp(&query[..length], request)
+                                {
+                                    let _ = udp.send_to(&answer, peer);
+                                }
+                            }
+                            Ok(_) => {}
+                            Err(error)
+                                if matches!(
+                                    error.kind(),
+                                    io::ErrorKind::WouldBlock | io::ErrorKind::TimedOut
+                                ) => {}
+                            Err(_) => break,
                         }
-                        let answer = udp_service.lock().ok().and_then(|mut guard| {
-                            guard.handle_udp(&query[..length]).unwrap_or_default()
-                        });
-                        if let Some(answer) = answer {
-                            let _ = udp.send_to(&answer, peer);
+                        if let Ok(responses) = daemon.poll(Duration::ZERO) {
+                            for response in responses {
+                                let _ = udp.send_to(&response.packet, response.destination);
+                            }
                         }
                     }
                 })?,
@@ -258,6 +293,7 @@ fn write_frame_until(
     Ok(())
 }
 
+#[cfg(test)]
 fn validate_probe_ready(scalar: &ScalarConfig, dns: &DnsConfig) -> Result<(), Error> {
     if !dns.no_resolv {
         return Err(Error("local probe requires explicit no-resolv"));
@@ -356,6 +392,54 @@ fn validate_probe_ready(scalar: &ScalarConfig, dns: &DnsConfig) -> Result<(), Er
     Ok(())
 }
 
+/// Validate the subset consumed by `DnsDaemon` before listener threads start.
+/// Every rejected field is one whose C behaviour is not represented by the
+/// current Rust daemon; accepting it would silently lose configured policy.
+fn validate_runtime_ready(scalar: &ScalarConfig, dns: &DnsConfig) -> Result<(), Error> {
+    if dns.servers_file.is_some() {
+        return Err(Error("servers-file loading is not implemented"));
+    }
+    if !dns.interfaces.is_empty()
+        || !dns.excluded_interfaces.is_empty()
+        || dns.bind_interfaces
+        || dns.bind_dynamic
+        || dns.local_service_net
+        || dns.local_service_host
+    {
+        return Err(Error("interface binding is not implemented"));
+    }
+    if dns.domain_needed
+        || dns.bogus_priv
+        || dns.no_poll
+        || dns.no_negative_cache
+        || dns.localise_queries
+    {
+        return Err(Error("configured DNS policy is not implemented"));
+    }
+    if dns.records.needs_hostname() {
+        return Err(Error(
+            "hostname-dependent local records are not implemented",
+        ));
+    }
+    let defaults = ScalarConfig::default();
+    if scalar.cache_size != defaults.cache_size
+        || scalar.query_port != defaults.query_port
+        || scalar.query_port_os_assigned != defaults.query_port_os_assigned
+        || scalar.min_port != defaults.min_port
+        || scalar.max_port != defaults.max_port
+        || scalar.port_limit != defaults.port_limit
+        || scalar.negative_ttl != defaults.negative_ttl
+        || scalar.max_ttl != defaults.max_ttl
+        || scalar.min_cache_ttl != defaults.min_cache_ttl
+        || scalar.max_cache_ttl != defaults.max_cache_ttl
+        || scalar.dhcp_ttl.is_some()
+        || scalar.stale_cache != defaults.stale_cache
+    {
+        return Err(Error("scalar option is not implemented"));
+    }
+    Ok(())
+}
+
 fn read_hosts(config: &DnsConfig, local_ttl: u32) -> Result<Hosts, io::Error> {
     let mut hosts = Hosts::new();
     hosts.set_round_robin(!config.no_round_robin);
@@ -389,12 +473,46 @@ fn read_hosts(config: &DnsConfig, local_ttl: u32) -> Result<Hosts, io::Error> {
 }
 
 fn bind_addresses(config: &DnsConfig, port: u16) -> Vec<SocketAddr> {
-    config
-        .listen_addresses
-        .iter()
-        .copied()
-        .map(|address| SocketAddr::new(address, port))
-        .collect()
+    if config.listen_addresses.is_empty() {
+        // OpenWrt's Linux IPv6 wildcard is dual-stack unless the administrator
+        // explicitly requests v6-only. One listener therefore covers both
+        // families and avoids the EADDRINUSE race from binding two wildcards.
+        vec![SocketAddr::new("::".parse().unwrap(), port)]
+    } else {
+        config
+            .listen_addresses
+            .iter()
+            .copied()
+            .map(|address| SocketAddr::new(address, port))
+            .collect()
+    }
+}
+
+fn read_resolvers(config: &DnsConfig) -> Result<Vec<SocketAddr>, io::Error> {
+    if config.no_resolv {
+        return Ok(Vec::new());
+    }
+    let mut result = Vec::new();
+    for path in &config.resolv_files {
+        let bytes = std::fs::read(path)?;
+        for line in bytes.split(|byte| *byte == b'\n' || *byte == b'\r') {
+            let line = line.split(|byte| *byte == b'#').next().unwrap_or_default();
+            let fields: Vec<_> = line
+                .split(|byte| byte.is_ascii_whitespace())
+                .filter(|v| !v.is_empty())
+                .collect();
+            if fields.len() < 2 || fields.first().is_none_or(|field| *field != b"nameserver") {
+                continue;
+            }
+            if let Ok(address) = std::str::from_utf8(fields[1])
+                .unwrap_or_default()
+                .parse::<IpAddr>()
+            {
+                result.push(SocketAddr::new(address, 53));
+            }
+        }
+    }
+    Ok(result)
 }
 
 #[cfg(test)]
