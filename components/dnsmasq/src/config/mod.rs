@@ -4,6 +4,7 @@
 //! each option. Callers must reject `ScalarConfig::apply`'s unhandled options
 //! until their owning subsystem implements them.
 
+pub mod dhcp;
 pub mod dns;
 #[cfg(unix)]
 pub mod loader;

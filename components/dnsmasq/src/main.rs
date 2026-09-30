@@ -5,10 +5,23 @@
 //! a DHCP or TFTP option would make a package appear deployable while
 //! dropping configured behavior.
 
+use dnsmasq_rs::config::dhcp::DhcpConfig;
 use dnsmasq_rs::config::dns::DnsConfig;
 use dnsmasq_rs::config::loader::{self, Action};
 use dnsmasq_rs::config::tftp::TftpConfig;
 use dnsmasq_rs::config::{Error, ScalarConfig, StaleCache};
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+use dnsmasq_rs::dhcp::allocation::{AddressRange, ProbeResult, RangeKind};
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+use dnsmasq_rs::dhcp::lease::LeaseStore;
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+use dnsmasq_rs::dhcp::runtime::StateProvider;
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+use dnsmasq_rs::dhcp::service::{
+    Listener as DhcpListener, ListenerStep, SocketListener as DhcpSocketListener,
+};
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+use dnsmasq_rs::dhcp::state::Environment;
 use dnsmasq_rs::dns::cache::StalePolicy;
 use dnsmasq_rs::dns::daemon::{ClientRequest, DaemonOptions, DnsDaemon, QueryResult};
 use dnsmasq_rs::dns::service::{encode_tcp_frame, LocalDnsService, TcpFramer};
@@ -47,6 +60,7 @@ struct Runtime {
     scalar: ScalarConfig,
     dns: DnsConfig,
     tftp: TftpConfig,
+    dhcp: DhcpConfig,
 }
 
 fn load(args: &[OsString]) -> Result<(Action, Runtime), loader::LoadError> {
@@ -54,6 +68,7 @@ fn load(args: &[OsString]) -> Result<(Action, Runtime), loader::LoadError> {
         scalar: ScalarConfig::default(),
         dns: DnsConfig::default(),
         tftp: TftpConfig::default(),
+        dhcp: DhcpConfig::default(),
     };
     let action = loader::load(args, Path::new("/etc/dnsmasq.conf"), |directive, _| {
         // `-k/--keep-in-foreground` is a process-mode switch consumed by the
@@ -62,6 +77,7 @@ fn load(args: &[OsString]) -> Result<(Action, Runtime), loader::LoadError> {
             || runtime.scalar.apply(directive)?
             || runtime.dns.apply(directive)?
             || runtime.tftp.apply(directive)?
+            || runtime.dhcp.apply(directive)?
         {
             Ok(())
         } else {
@@ -97,6 +113,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     runtime.scalar.finalize_runtime()?;
     runtime.dns.finalize()?;
     runtime.tftp.validate_ready()?;
+    runtime.dhcp.validate_ready()?;
     validate_runtime_ready(&runtime.scalar, &runtime.dns)?;
     if runtime.scalar.dns_port == 0 {
         return Err(Box::new(Error("port=0 is not supported by the listener")));
@@ -108,6 +125,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     }
     let addresses = bind_addresses(&runtime.dns, runtime.scalar.dns_port);
     let tftp_config = runtime.tftp.clone();
+    let dhcp_config = runtime.dhcp.clone();
     owrt_ubus::sys::set_signal_handler(owrt_ubus::sys::SIGINT, request_stop);
     owrt_ubus::sys::set_signal_handler(owrt_ubus::sys::SIGTERM, request_stop);
     // dnsmasq.c allocates `edns_pktsz + MAXDNAME + RRFIXEDSZ` for incoming
@@ -314,6 +332,93 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                     }
                 })?,
         );
+    }
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    if !dhcp_config.ranges.is_empty() {
+        let bind_ip = dhcp_config
+            .ranges
+            .first()
+            .map(|range| range.router)
+            .filter(|address| !address.is_unspecified())
+            .unwrap_or(std::net::Ipv4Addr::UNSPECIFIED);
+        let mut listener = DhcpSocketListener::bind(
+            SocketAddr::from((std::net::Ipv4Addr::UNSPECIFIED, 67)),
+            DhcpListener::Dhcp,
+            &[],
+        )?;
+        let mut ranges: Vec<AddressRange> = dhcp_config
+            .ranges
+            .iter()
+            .map(|range| AddressRange {
+                start: range.start,
+                end: range.end,
+                netmask: range.netmask,
+                router: range.router,
+                local: if range.router.is_unspecified() {
+                    bind_ip
+                } else {
+                    range.router
+                },
+                lease_time: range.lease_time,
+                kind: RangeKind::Dynamic,
+                filter: Vec::new(),
+                epoch: 0,
+            })
+            .collect();
+        workers.push(
+            thread::Builder::new()
+                .name("dhcp-listener".into())
+                .spawn(move || {
+                    let mut leases = LeaseStore::new(dhcp_config.lease_max.max(1));
+                    let tags: &[&[u8]] = &[];
+                    let reserved: &[std::net::Ipv4Addr] = &[];
+                    let environment = Environment {
+                        now: 0,
+                        interface: 0,
+                        authoritative: dhcp_config.authoritative,
+                        unicast_destination: false,
+                        ignored: false,
+                        ignore_client_id: dhcp_config.ignore_client_id,
+                        fqdn_only: false,
+                        rapid_commit: false,
+                        bootp_dynamic: dhcp_config.bootp_dynamic,
+                        consecutive_addresses: dhcp_config.sequential,
+                        override_server: None,
+                        fallback_server: bind_ip,
+                        server_aliases: &[],
+                    };
+                    let mut provider = StateProvider::new(
+                        &mut leases,
+                        &mut ranges,
+                        tags,
+                        None,
+                        reserved,
+                        environment,
+                        |_, hash| ProbeResult::Available { offer_hash: hash },
+                    );
+                    let mut output = vec![0; 16_384];
+                    while !STOP_REQUESTED.load(Ordering::Acquire) {
+                        provider.environment.now = SystemTime::now()
+                            .duration_since(UNIX_EPOCH)
+                            .map_or(0, |duration| duration.as_secs() as i64);
+                        match listener.process_once_local(&mut provider, &[], &mut output, || {
+                            STOP_REQUESTED.load(Ordering::Acquire)
+                        }) {
+                            Ok(ListenerStep::WouldBlock) | Ok(ListenerStep::Ignored) => {
+                                thread::sleep(Duration::from_millis(2));
+                            }
+                            Ok(ListenerStep::Stopped) => break,
+                            Ok(ListenerStep::Malformed(_)) => {}
+                            Ok(ListenerStep::Processed(_)) => {}
+                            Err(_) => break,
+                        }
+                    }
+                })?,
+        );
+    }
+    #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
+    if !dhcp_config.ranges.is_empty() {
+        return Err(Box::new(Error("DHCP listener requires 64-bit Linux")));
     }
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     if tftp_config.enabled {

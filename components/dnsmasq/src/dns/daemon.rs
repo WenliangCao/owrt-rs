@@ -394,6 +394,7 @@ impl<R: Random> DnsDaemon<R> {
             || header.opcode() != 0
             || header.flags & 0x0100 == 0
             || header.flags & 0x8000 != 0
+            || header.flags & 0x0020 != 0
             || edns.opt.is_some()
             || edns.signed
         {
@@ -716,11 +717,12 @@ impl<R: Random> DnsDaemon<R> {
             let direct_negative = chain.is_empty();
             let mut selected_soa_ttl = soa_ttl;
             let mut authority = authority;
+            let mut cname_ids = Vec::with_capacity(chain.len());
             // C caches an SOA RR as an independent Generic(6) entry.  For a
             // direct negative answer it is inserted before the negative; a
             // CNAME target gets the same SOA after its terminal negative so
             // the target ordering remains intact.
-            let soa_id = if chain.is_empty() {
+            let mut soa_id = if chain.is_empty() {
                 if authority.is_some() {
                     match insert_authority(cache, authority, now) {
                         Some(id) => Some(id),
@@ -741,6 +743,25 @@ impl<R: Random> DnsDaemon<R> {
                     None
                 }
             } else {
+                // extract_addresses() inserts each CNAME while walking the
+                // answer, before its terminal negative.  Keep that pending
+                // order and wire the targets once the terminal exists.
+                for (owner, target, ttl) in &chain {
+                    let Ok(cname_id) = cache.insert(
+                        Record {
+                            name: owner.clone(),
+                            kind: Kind::Cname,
+                            negative: false,
+                            data: target.canonical_wire(),
+                        },
+                        now,
+                        *ttl,
+                    ) else {
+                        cache.start_insert();
+                        return;
+                    };
+                    cname_ids.push((owner.canonical_wire(), target.canonical_wire(), cname_id));
+                }
                 None
             };
             let record = Record {
@@ -754,7 +775,7 @@ impl<R: Random> DnsDaemon<R> {
                 cache.start_insert();
                 return;
             };
-            let soa_id = soa_id.or_else(|| insert_authority(cache, authority, now));
+            soa_id = soa_id.or_else(|| insert_authority(cache, authority, now));
             if authority.is_some() && soa_id.is_none() {
                 if direct_negative {
                     if negative_ttl == 0 {
@@ -776,25 +797,12 @@ impl<R: Random> DnsDaemon<R> {
                 }
             }
             let mut targets = vec![(terminal_name.canonical_wire(), id)];
-            for (owner, target, ttl) in chain.into_iter().rev() {
+            for (owner, target, cname_id) in cname_ids.into_iter().rev() {
                 let Some(target_id) = targets
                     .iter()
-                    .find(|(name, _)| *name == target.canonical_wire())
+                    .find(|(name, _)| *name == target)
                     .map(|(_, id)| *id)
                 else {
-                    cache.start_insert();
-                    return;
-                };
-                let Ok(cname_id) = cache.insert(
-                    Record {
-                        name: owner.clone(),
-                        kind: Kind::Cname,
-                        negative: false,
-                        data: target.canonical_wire(),
-                    },
-                    now,
-                    ttl,
-                ) else {
                     cache.start_insert();
                     return;
                 };
@@ -802,7 +810,7 @@ impl<R: Random> DnsDaemon<R> {
                     cache.start_insert();
                     return;
                 }
-                targets.push((owner.canonical_wire(), cname_id));
+                targets.push((owner, cname_id));
             }
             let _ = cache.commit();
             return;
@@ -811,6 +819,23 @@ impl<R: Random> DnsDaemon<R> {
         cache.start_insert();
         if addresses.is_empty() {
             return;
+        }
+        let mut cname_ids = Vec::with_capacity(chain.len());
+        for (owner, target, ttl) in &chain {
+            let Ok(cname_id) = cache.insert(
+                Record {
+                    name: owner.clone(),
+                    kind: Kind::Cname,
+                    negative: false,
+                    data: target.canonical_wire(),
+                },
+                now,
+                *ttl,
+            ) else {
+                cache.start_insert();
+                return;
+            };
+            cname_ids.push((owner.canonical_wire(), target.canonical_wire(), cname_id));
         }
         let mut targets = Vec::with_capacity(addresses.len());
         for (name, data, ttl) in addresses {
@@ -829,25 +854,12 @@ impl<R: Random> DnsDaemon<R> {
             };
             targets.push((name.canonical_wire(), id));
         }
-        for (owner, target, ttl) in chain.into_iter().rev() {
+        for (owner, target, cname_id) in cname_ids.into_iter().rev() {
             let Some(target_id) = targets
                 .iter()
-                .find(|(name, _)| *name == target.canonical_wire())
+                .find(|(name, _)| *name == target)
                 .map(|(_, id)| *id)
             else {
-                cache.start_insert();
-                return;
-            };
-            let Ok(cname_id) = cache.insert(
-                Record {
-                    name: owner.clone(),
-                    kind: Kind::Cname,
-                    negative: false,
-                    data: target.canonical_wire(),
-                },
-                now,
-                ttl,
-            ) else {
                 cache.start_insert();
                 return;
             };
@@ -855,7 +867,7 @@ impl<R: Random> DnsDaemon<R> {
                 cache.start_insert();
                 return;
             }
-            targets.push((owner.canonical_wire(), cname_id));
+            targets.push((owner, cname_id));
         }
         let _ = cache.commit();
     }
