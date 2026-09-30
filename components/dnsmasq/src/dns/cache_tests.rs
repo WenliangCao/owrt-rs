@@ -57,6 +57,52 @@ fn check_ownership(cache: &Cache) {
 }
 
 #[test]
+fn reload_clears_committed_and_failed_pending_records_without_reusing_handles() {
+    for capacity in [0, 1, 10] {
+        let policy = Policy {
+            min_ttl: 7,
+            ..Policy::default()
+        };
+        let mut cache = Cache::new(capacity, policy);
+        let mut handles = Vec::new();
+        if capacity > 0 {
+            cache.start_insert();
+            handles.push(cache.insert(record("old", Kind::Ipv4, 1), 100, 10).unwrap());
+            assert!(cache.commit());
+            cache.start_insert();
+            handles.push(
+                cache
+                    .insert(record("pending", Kind::Ipv4, 2), 100, 10)
+                    .unwrap(),
+            );
+            assert!(cache
+                .insert(record("overflow", Kind::Ipv4, 3), i64::MAX, 10)
+                .is_err());
+            assert!(!cache.commit());
+        }
+        cache.clear();
+        cache.clear();
+        assert_eq!(cache.policy().min_ttl, policy.min_ttl);
+        assert_eq!(cache.policy().max_ttl, policy.max_ttl);
+        assert_eq!(cache.policy().max_reply_ttl, policy.max_reply_ttl);
+        assert_eq!(cache.policy().stale, policy.stale);
+        check_ownership(&cache);
+        assert!(lookup(&mut cache, "old", Kind::Ipv4, 100).is_empty());
+        assert!(lookup(&mut cache, "pending", Kind::Ipv4, 100).is_empty());
+        for index in 0..capacity {
+            cache
+                .insert(record(&format!("new-{index}"), Kind::Ipv4, 4), 100, 1)
+                .unwrap();
+        }
+        assert!(cache.commit());
+        for handle in handles {
+            assert!(cache.get(handle).is_none());
+        }
+        check_ownership(&cache);
+    }
+}
+
+#[test]
 fn failed_transaction_does_not_restore_removed_old_records() {
     let mut cache = Cache::new(2, Policy::default());
     cache.start_insert();

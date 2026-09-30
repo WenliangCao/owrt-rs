@@ -186,6 +186,25 @@ impl Cache {
         self.policy
     }
 
+    /// Drop all forwarded records, including an unfinished insertion, on
+    /// SIGHUP (`cache.c::cache_reload`). Local hosts and DHCP names are owned
+    /// separately. Keep the allocation and generations so old handles cannot
+    /// become valid again when the empty slots are reused.
+    pub fn clear(&mut self) {
+        let capacity = self.slots.len();
+        for (index, slot) in self.slots.iter_mut().enumerate() {
+            slot.entry = None;
+            slot.prev = index.checked_sub(1);
+            slot.next = (index + 1 < capacity).then_some(index + 1);
+        }
+        self.names.clear();
+        self.pending.clear();
+        self.failed = false;
+        self.long_names = 0;
+        self.head = (capacity > 0).then_some(0);
+        self.tail = capacity.checked_sub(1);
+    }
+
     pub fn get(&self, id: EntryId) -> Option<&Entry> {
         self.slots
             .get(id.slot)
