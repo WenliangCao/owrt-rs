@@ -35,7 +35,7 @@ Linux `poll_once` 保留 `Received` 中的 peer/pktinfo，并在调用 `receive_
 provider、reply builder、DNS 更新或脚本。
 
 当前未完成的服务合同：Linux 接口变化与桥接别名；生产 UDP 67/4011 端口/权限和事件循环生命周期
-（`SocketListener` 只提供调用方拥有的临时或显式地址）；relay 上游转发与回复识别；广播、单播、ARP 注入；完整
+（`SocketListener` 只提供调用方拥有的临时或显式地址）；relay 上游转发与回复识别；完整广播/单播服务对照（ARP 注入依赖已有 `DHCP_ARP_PHASE.md` 的 C/隔离 Linux 证据）；完整
 `dhcp_reply` 的 context/tag/config/FQDN/options/overload；leasefile、脚本和
 DNS 同步；PXE proxy/menu、TFTP；procd/ujail/ubus/reload/metrics。现有
 `tools/dnsmasq/dhcp_differential.py` 与 `dhcp_state_differential.py` 的 C

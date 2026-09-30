@@ -10,7 +10,7 @@ into local DHCP replies.
 | `dhcp.c:130-177,248-373` | `recvmsg` admission has already bounded the datagram and captured interface/pktinfo; the IP-header destination is distinct from the local interface address | `dhcp::service::Received` retains peer, destination, `local_address` (`ipi_spec_dst`) and interface; `dhcp::runtime::process` emits `Admitted` | pktinfo parser test and runtime tests inspect local, relay and all-ones relay-source metadata |
 | `rfc2131.c:75-1830` | Context/tag/lease selection is caller-owned; state side effects commit before transmission | `OutcomeProvider` → `Outcome`, followed by `StateCommitted` | Provider callback tests verify no callback for unsupported routes and commit survives send failure |
 | `rfc2131.c:138-151,2050-2129` | Reply buffer follows option-57 capacity and bounded header/option construction | `build_outcome` into caller-owned buffer; `Built` event | Small-buffer test returns `ReplyError::BufferTooSmall` without sending |
-| `dhcp.c:397-500` | Local replies select client port 68, broadcast for broadcast flag/invalid hardware, otherwise peer/`ciaddr`/`yiaddr`; unconfigured `yiaddr` needs ARP and an interface route; relay send needs a distinct server port | `destination` models local routes with interface/ARP metadata; Linux `DatagramSocket` can send broadcast replies with `IP_PKTINFO` interface selection and ordinary client/peer replies; ARP and relay/PXE/LEASEQUERY remain explicit `Unsupported` | Broadcast OFFER and renewal peer/client tests; pktinfo parser/target check; relay and relay-source tests reject before state |
+| `dhcp.c:397-500` | Local replies select client port 68, broadcast for broadcast flag/invalid hardware, otherwise peer/`ciaddr`/`yiaddr`; unconfigured `yiaddr` needs ARP and an interface route; relay send needs a distinct server port | `destination` models local routes; Linux `DatagramSocket` supports interface-selected broadcast/client sends and `SIOCSARP` preparation; relay/PXE/LEASEQUERY remain explicit `Unsupported` | Destination C differential, Linux ARP/client delivery and failure tests in `DHCP_ARP_PHASE.md`; relay routes still reject before state |
 | `dhcp.c:530-550` | Lease/name/DNS cleanup is independent of UDP send success | `StateCommitted` and `Cleanup` events; `RuntimeFailure::committed` | Mock send failure preserves committed ownership and records no rollback |
 
 The public destination boundary also checks that the caller-supplied completed
@@ -37,9 +37,9 @@ through this runtime path.
 
 On Linux 64-bit, `net::DatagramSocket` implements ordinary client/peer sends
 and broadcast sends with `SO_BROADCAST` plus IPv4 `IP_PKTINFO` interface
-selection. Unconfigured `yiaddr` routes still return an explicit unsupported
-error until ARP-cache injection is available; relay/PXE/LEASEQUERY remain
-unsupported. Library tests use a recorder/failure sender and never bind a
+selection. Unconfigured `yiaddr` routes now prepare a dynamic ARP entry and
+still attempt the UDP send if injection fails, recording the warning in
+runtime events; relay/PXE/LEASEQUERY remain unsupported. Library tests use a recorder/failure sender and never bind a
 socket. The caller owns buffer sizing and supplies the selected options; the
 runtime sends exactly the `ReplyEncoding::len` prefix to a complete
 `Destination` route.
@@ -143,3 +143,10 @@ and explicit option precedence. The affected suite passed 76 tests (including
 concurrent DHCP configuration regressions); Linux aarch64-musl library check
 and host library clippy passed. The wire/timer C evidence is recorded in
 `DHCP_REPLY_PHASE.md`. No performance improvement is claimed.
+
+The later ARP integration captures the original ingress name before the
+provider runs. `prepare_destination` follows completed wire/destination
+selection, and its error event precedes the still-attempted send. DHCP now
+owns C's bounded send retry policy. The exact field/retry oracle and live
+namespace/client evidence are in `DHCP_ARP_PHASE.md`; earlier socket-free
+destination evidence remains valid within its original narrower scope.

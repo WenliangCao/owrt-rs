@@ -23,29 +23,67 @@ const BROADCAST_FLAG: u16 = 0x8000;
 /// A socket-independent sender. Linux's audited `DatagramSocket` implements
 /// this trait below; unit tests use a recorder/failure stub instead.
 pub trait DatagramSender {
+    fn interface_name(&mut self, _interface: u32) -> io::Result<Option<[u8; 16]>> {
+        Ok(None)
+    }
+    fn prepare_destination(&mut self, _destination: &Destination) -> io::Result<()> {
+        Ok(())
+    }
     fn send(&mut self, bytes: &[u8], destination: &Destination) -> io::Result<()>;
 }
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 impl DatagramSender for crate::net::DatagramSocket {
-    fn send(&mut self, bytes: &[u8], destination: &Destination) -> io::Result<()> {
-        if destination.arp.is_some() {
-            return Err(io::Error::new(
-                io::ErrorKind::Unsupported,
-                "DHCP unconfigured-client route needs ARP injection",
-            ));
+    fn interface_name(&mut self, interface: u32) -> io::Result<Option<[u8; 16]>> {
+        crate::net::interface_name(self, interface).map(Some)
+    }
+    fn prepare_destination(&mut self, destination: &Destination) -> io::Result<()> {
+        if let Some(arp) = &destination.arp {
+            let SocketAddr::V4(address) = destination.address else {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    "DHCP ARP needs IPv4",
+                ));
+            };
+            if *address.ip() != arp.address {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    "DHCP ARP destination mismatch",
+                ));
+            }
+            return if let Some(name) = &arp.interface_name {
+                crate::net::inject_arp_with_name(
+                    self,
+                    address,
+                    arp.hardware_type,
+                    &arp.hardware_address,
+                    name,
+                )
+            } else {
+                crate::net::inject_arp(
+                    self,
+                    destination.interface,
+                    address,
+                    arp.hardware_type,
+                    &arp.hardware_address,
+                )
+            };
         }
+        Ok(())
+    }
+
+    fn send(&mut self, bytes: &[u8], destination: &Destination) -> io::Result<()> {
         match destination.kind {
             DestinationKind::Broadcast => {
                 self.set_broadcast(true)?;
-                self.send_on_interface(bytes, destination.address, destination.interface)
+                self.send_on_interface_once(bytes, destination.address, destination.interface)
             }
             DestinationKind::Client | DestinationKind::Peer => {
                 // C's `send_from` keeps the receiving interface for renewals
                 // and peer unicasts as well as broadcasts.  Supplying
                 // `ipi_ifindex` here prevents a multi-interface route lookup
                 // from selecting a different source address.
-                self.send_on_interface(bytes, destination.address, destination.interface)
+                self.send_on_interface_once(bytes, destination.address, destination.interface)
             }
         }
     }
@@ -209,6 +247,8 @@ pub struct ArpRequest {
     pub address: Ipv4Addr,
     pub hardware_type: u8,
     pub hardware_address: Vec<u8>,
+    /// Snapshot from before state/prune/ICMP work, retaining C rename behavior.
+    pub interface_name: Option<[u8; 16]>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -229,6 +269,11 @@ pub enum RuntimeEvent {
         overload: u8,
     },
     DestinationSelected(Destination),
+    ArpInjected,
+    ArpInjectionFailed {
+        kind: io::ErrorKind,
+        raw_os_error: Option<i32>,
+    },
     Sent {
         length: usize,
     },
@@ -241,6 +286,7 @@ pub enum RuntimeEvent {
 pub enum RuntimeError {
     Unsupported { kind: DispatchKind, route: Route },
     State(String),
+    Interface(io::Error),
     Reply(ReplyError),
     Random(io::Error),
     Send(io::Error),
@@ -321,6 +367,10 @@ where
         ));
     }
 
+    let interface_name = match sender.interface_name(dispatch.ingress.interface_index) {
+        Ok(name) => name,
+        Err(error) => return Err(failure(RuntimeError::Interface(error), events, None, false)),
+    };
     let outcome = match provider.resolve(&dispatch) {
         Ok(outcome) => outcome,
         Err(error) => return Err(failure(error, events, None, false)),
@@ -418,7 +468,7 @@ where
         omitted: encoding.omitted,
         overload: encoding.overload,
     });
-    let destination = match destination(&dispatch, peer, &outcome.reply, buffer, encoding.len) {
+    let mut destination = match destination(&dispatch, peer, &outcome.reply, buffer, encoding.len) {
         Ok(destination) => destination,
         Err(error) => {
             events.push(RuntimeEvent::Cleanup {
@@ -427,8 +477,20 @@ where
             return Err(failure(error, events, Some(outcome), true));
         }
     };
+    if let Some(arp) = &mut destination.arp {
+        arp.interface_name = interface_name;
+    }
     events.push(RuntimeEvent::DestinationSelected(destination.clone()));
-    if let Err(error) = sender.send(&buffer[..encoding.len], &destination) {
+    if destination.arp.is_some() {
+        match sender.prepare_destination(&destination) {
+            Ok(()) => events.push(RuntimeEvent::ArpInjected),
+            Err(error) => events.push(RuntimeEvent::ArpInjectionFailed {
+                kind: error.kind(),
+                raw_os_error: error.raw_os_error(),
+            }),
+        }
+    }
+    if let Err(error) = send_with_retry(|| sender.send(&buffer[..encoding.len], &destination)) {
         events.push(RuntimeEvent::Cleanup {
             outcome_dropped: true,
         });
@@ -449,6 +511,26 @@ where
         events,
         outcome: Some(outcome),
     })
+}
+
+/// util.c:718-749: retries are per completed send loop; EINTR resets the
+/// EAGAIN count, and each of at most 1001 EAGAIN failures waits 10 microseconds.
+fn send_with_retry(mut send: impl FnMut() -> io::Result<()>) -> io::Result<()> {
+    let mut retries = 0;
+    loop {
+        match send() {
+            Ok(()) => return Ok(()),
+            Err(error) if error.kind() == io::ErrorKind::WouldBlock => {
+                std::thread::sleep(std::time::Duration::from_micros(10));
+                if retries >= 1000 {
+                    return Err(error);
+                }
+                retries += 1;
+            }
+            Err(error) if error.kind() == io::ErrorKind::Interrupted => retries = 0,
+            Err(error) => return Err(error),
+        }
+    }
 }
 
 fn failure(
@@ -552,6 +634,7 @@ pub fn destination(
             address: yiaddr,
             hardware_type: htype,
             hardware_address: packet[28..28 + usize::from(hlen)].to_vec(),
+            interface_name: None,
         }),
     })
 }
@@ -636,6 +719,118 @@ mod tests {
             rest = tail;
         }
         None
+    }
+
+    #[test]
+    fn failed_arp_still_sends_once_after_transient_retries() {
+        struct RetrySender<'a> {
+            preparations: usize,
+            attempts: usize,
+            captured: &'a Cell<bool>,
+        }
+        impl DatagramSender for RetrySender<'_> {
+            fn interface_name(&mut self, _: u32) -> io::Result<Option<[u8; 16]>> {
+                self.captured.set(true);
+                let mut name = [0; 16];
+                name[..6].copy_from_slice(b"before");
+                Ok(Some(name))
+            }
+            fn prepare_destination(&mut self, destination: &Destination) -> io::Result<()> {
+                self.preparations += 1;
+                assert_eq!(
+                    &destination.arp.as_ref().unwrap().interface_name.unwrap()[..6],
+                    b"before"
+                );
+                Err(io::Error::from_raw_os_error(1))
+            }
+            fn send(&mut self, _: &[u8], _: &Destination) -> io::Result<()> {
+                self.attempts += 1;
+                match self.attempts {
+                    1 => Err(io::Error::from(io::ErrorKind::WouldBlock)),
+                    2 => Err(io::Error::from(io::ErrorKind::Interrupted)),
+                    _ => Ok(()),
+                }
+            }
+        }
+        let bytes = packet(
+            &[53, 1, 1, 255],
+            0,
+            Ipv4Addr::UNSPECIFIED,
+            Ipv4Addr::UNSPECIFIED,
+        );
+        let captured = Cell::new(false);
+        let mut sender = RetrySender {
+            preparations: 0,
+            attempts: 0,
+            captured: &captured,
+        };
+        let mut provider = |_: &Dispatch<'_>| {
+            assert!(captured.get());
+            Ok(offer())
+        };
+        let report = process(
+            dispatch_for(&bytes),
+            SocketAddr::from(([0, 0, 0, 0], 68)),
+            &mut provider,
+            &mut sender,
+            &[],
+            &mut [0; 548],
+        )
+        .unwrap();
+        assert_eq!((sender.preparations, sender.attempts), (1, 3));
+        let failed = report
+            .events
+            .iter()
+            .position(|event| {
+                matches!(
+                    event,
+                    RuntimeEvent::ArpInjectionFailed {
+                        raw_os_error: Some(1),
+                        ..
+                    }
+                )
+            })
+            .unwrap();
+        let sent = report
+            .events
+            .iter()
+            .position(|event| matches!(event, RuntimeEvent::Sent { .. }))
+            .unwrap();
+        assert!(failed < sent);
+        assert!(report.outcome.is_some());
+    }
+
+    #[test]
+    fn missing_interface_stops_before_state_and_prune() {
+        struct MissingInterface;
+        impl DatagramSender for MissingInterface {
+            fn interface_name(&mut self, _: u32) -> io::Result<Option<[u8; 16]>> {
+                Err(io::Error::from_raw_os_error(6))
+            }
+            fn send(&mut self, _: &[u8], _: &Destination) -> io::Result<()> {
+                panic!("no send")
+            }
+        }
+        let bytes = packet(
+            &[53, 1, 1, 255],
+            0,
+            Ipv4Addr::UNSPECIFIED,
+            Ipv4Addr::UNSPECIFIED,
+        );
+        let mut provider =
+            |_: &Dispatch<'_>| -> Result<Outcome, RuntimeError> { panic!("no state/prune") };
+        let error = process(
+            dispatch_for(&bytes),
+            SocketAddr::from(([0, 0, 0, 0], 68)),
+            &mut provider,
+            &mut MissingInterface,
+            &[],
+            &mut [0; 548],
+        )
+        .unwrap_err();
+        assert!(!error.committed);
+        assert!(error.outcome.is_none());
+        assert!(matches!(error.error, RuntimeError::Interface(_)));
     }
 
     #[test]

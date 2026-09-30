@@ -4,7 +4,7 @@
 
 use owrt_ubus::sys::{IoVec, MsgHdr};
 use std::io;
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV6, UdpSocket};
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6, UdpSocket};
 use std::os::fd::{AsRawFd, FromRawFd, OwnedFd, RawFd};
 
 const AF_INET: i32 = 2;
@@ -44,6 +44,7 @@ extern "C" {
         address_len: *mut u32,
     ) -> isize;
     fn poll(fds: *mut owrt_ubus::sys::PollFd, count: usize, timeout: i32) -> i32;
+    fn ioctl(fd: i32, request: usize, argument: *mut u8) -> i32;
 }
 
 fn invalid(message: &'static str) -> io::Error {
@@ -235,6 +236,115 @@ impl IcmpSocket {
     }
 }
 
+/// Linux `struct arpreq`: two sockaddrs, flags, netmask sockaddr and device
+/// name (68 bytes, four-byte alignment). Unused bytes are zero-initialized;
+/// C only initializes the fields required for an ATF_COM neighbour entry.
+pub struct ArpEntry([u32; 17]);
+
+impl ArpEntry {
+    pub fn new(
+        address: SocketAddrV4,
+        hardware_type: u8,
+        hardware: &[u8],
+        interface: &[u8],
+    ) -> io::Result<Self> {
+        if hardware_type == 0
+            || hardware.is_empty()
+            || hardware.len() > 14
+            || interface.is_empty()
+            || interface.len() > 15
+            || interface.contains(&0)
+        {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "invalid DHCP ARP entry",
+            ));
+        }
+        let mut entry = Self([0; 17]);
+        let bytes = entry.bytes_mut();
+        bytes[..2].copy_from_slice(&(AF_INET as u16).to_ne_bytes());
+        bytes[2..4].copy_from_slice(&address.port().to_be_bytes());
+        bytes[4..8].copy_from_slice(&address.ip().octets());
+        bytes[16..18].copy_from_slice(&u16::from(hardware_type).to_ne_bytes());
+        bytes[18..18 + hardware.len()].copy_from_slice(hardware);
+        bytes[32..36].copy_from_slice(&2i32.to_ne_bytes()); // ATF_COM, not ATF_PERM.
+        bytes[52..52 + interface.len()].copy_from_slice(interface);
+        Ok(entry)
+    }
+
+    pub fn bytes(&self) -> &[u8; 68] {
+        // SAFETY: initialized u32 storage occupies exactly 68 bytes and the
+        // shared byte view cannot mutate it or outlive this object.
+        unsafe { &*self.0.as_ptr().cast::<[u8; 68]>() }
+    }
+
+    fn bytes_mut(&mut self) -> &mut [u8; 68] {
+        // SAFETY: exclusive borrow of initialized, four-byte-aligned storage.
+        unsafe { &mut *self.0.as_mut_ptr().cast::<[u8; 68]>() }
+    }
+}
+
+/// Install the DHCP client's dynamic neighbour entry on the original ingress
+/// interface. Failure is returned to the runtime, which records it and still
+/// attempts the UDP send, as dhcp.c does after a failed SIOCSARP.
+pub fn inject_arp(
+    socket: &DatagramSocket,
+    interface: u32,
+    address: SocketAddrV4,
+    hardware_type: u8,
+    hardware: &[u8],
+) -> io::Result<()> {
+    let name = interface_name(socket, interface)?;
+    inject_arp_with_name(socket, address, hardware_type, hardware, &name)
+}
+
+/// Capture the ingress name before DHCP state processing, as dhcp.c does
+/// before bridge aliasing and ICMP delays. Interface indexes survive rename.
+pub fn interface_name(socket: &DatagramSocket, interface: u32) -> io::Result<[u8; 16]> {
+    if interface == 0 || interface > i32::MAX as u32 {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "ARP requires an ingress interface",
+        ));
+    }
+    let mut request = [0u64; 5];
+    // SAFETY: Linux ifreq is 40 bytes aligned to eight, with its union at
+    // byte 16. The initialized byte view is exclusively borrowed here.
+    let bytes = unsafe { std::slice::from_raw_parts_mut(request.as_mut_ptr().cast::<u8>(), 40) };
+    bytes[16..20].copy_from_slice(&interface.to_ne_bytes());
+    // SAFETY: SIOCGIFNAME reads the index and writes at most 16 name bytes.
+    // Reusing the listener fd matches network.c::indextoname and avoids a
+    // transient control socket inside libc if_indextoname.
+    if unsafe { ioctl(socket.as_raw_fd(), 0x8910, bytes.as_mut_ptr()) } < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    Ok(bytes[..16].try_into().unwrap())
+}
+
+pub(crate) fn inject_arp_with_name(
+    socket: &DatagramSocket,
+    address: SocketAddrV4,
+    hardware_type: u8,
+    hardware: &[u8],
+    name: &[u8; 16],
+) -> io::Result<()> {
+    if socket.ipv6 {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "ARP requires an IPv4 socket",
+        ));
+    }
+    let length = name.iter().position(|byte| *byte == 0).unwrap_or(16);
+    let mut entry = ArpEntry::new(address, hardware_type, hardware, &name[..length])?;
+    // SAFETY: SIOCSARP reads the complete initialized Linux arpreq. The live
+    // socket owns fd and the request is aligned and valid throughout ioctl.
+    if unsafe { ioctl(socket.as_raw_fd(), 0x8955, entry.bytes_mut().as_mut_ptr()) } < 0 {
+        Err(io::Error::last_os_error())
+    } else {
+        Ok(())
+    }
+}
+
 impl DatagramSocket {
     pub fn bind(address: SocketAddr) -> io::Result<Self> {
         let ipv6 = address.is_ipv6();
@@ -335,7 +445,7 @@ impl DatagramSocket {
         peer: SocketAddr,
         source: Option<(IpAddr, u32)>,
     ) -> io::Result<()> {
-        self.send_with_interface(bytes, peer, source, None)
+        self.send_with_interface(bytes, peer, source, None, true)
     }
 
     /// DHCP's unconfigured-client branch supplies `ipi_ifindex` and lets the
@@ -355,6 +465,27 @@ impl DatagramSocket {
             peer,
             Some((IpAddr::V4(Ipv4Addr::UNSPECIFIED), interface)),
             Some(interface),
+            true,
+        )
+    }
+
+    /// One DHCP transmission attempt, leaving EINTR/EAGAIN policy to its
+    /// runtime. Other protocols retain the existing interrupted-send retry.
+    pub fn send_on_interface_once(
+        &self,
+        bytes: &[u8],
+        peer: SocketAddr,
+        interface: u32,
+    ) -> io::Result<()> {
+        if self.ipv6 || interface == 0 || interface > i32::MAX as u32 {
+            return Err(invalid("DHCP send needs a valid IPv4 interface"));
+        }
+        self.send_with_interface(
+            bytes,
+            peer,
+            Some((IpAddr::V4(Ipv4Addr::UNSPECIFIED), interface)),
+            Some(interface),
+            false,
         )
     }
 
@@ -364,6 +495,7 @@ impl DatagramSocket {
         peer: SocketAddr,
         source: Option<(IpAddr, u32)>,
         ipv4_interface: Option<u32>,
+        retry_interrupted: bool,
     ) -> io::Result<()> {
         if peer.is_ipv6() != self.ipv6 {
             return Err(invalid("destination family mismatch"));
@@ -426,7 +558,7 @@ impl DatagramSocket {
                 };
             }
             let error = io::Error::last_os_error();
-            if error.kind() != io::ErrorKind::Interrupted {
+            if !retry_interrupted || error.kind() != io::ErrorKind::Interrupted {
                 return Err(error);
             }
         }

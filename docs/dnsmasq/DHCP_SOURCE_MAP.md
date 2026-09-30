@@ -43,6 +43,7 @@ expiry=0 表示无限租约，其他 expiry 在 `now >= expiry` 时到期。
 | `dhcp-common.c:224-251` | tag conjunction；`!`/旧 `#` 否定；空 filter 受 pass 控制 | `allocation::match_tags` | 单测 |
 | `dhcp.c:687-752` | 排除所有上下文 router；dynamic 地址范围；static/subnet fallback；proxy 不参与普通分配 | `allocation::available/narrow` | 单测；接收接口形成的 context 链由上层负责 |
 | `dhcp.c:825-923` | SDBM u32 wrap；tag 优先双 pass；consecutive 地址；保留静态地址；class-C .0/.255 跳过；ping 冲突扰动 epoch | `allocation::allocate_address` | 单测；系统 ICMP/cache/load-limit 现由 `IcmpProbe` 提供，错误通过 `ProbeResult::Failed` 立即终止扫描，见 `DHCP_PROBE_PHASE.md` |
+| `dhcp.c:244-267,446-466,520-528`; `network.c:21-35`; `util.c:718-749` | 在状态处理前保留原接口名；ARP使用client port/yiaddr/hardware与ATF_COM；ioctl失败后仍发送，EAGAIN有限重试 | `net::ArpEntry/inject_arp`、runtime interface snapshot/preparation/retry | C定义字段/重试1,045项、隔离veth/client namespace 88项通过；C未初始化hardware尾部不宣称等价，见 `DHCP_ARP_PHASE.md` |
 | `rfc2131.c:1392-1488` | SELECTING/INIT-REBOOT/续租重绑定 early decision；错误 server 在 authoritative 下 NAK；未知 broadcast 续租忽略、unicast NAK | `request::classify_request` | 单测；返回 `CheckAddress`，**不是已经 ACK** |
 | `rfc2131.c:1832-1873` | client-id 扩展硬件身份；client 请求租期至少 120，再与配置上限取 min | `request::extended_hardware_id/lease_duration` | duration 直接抽取 C 2,003 case；extended ID 目前依赖代码核读 |
 | `rfc2131.c:1392-1753` | SELECTING/恢复/续租、static 迁移、保留地址、多 MAC 交接、容量、唯一身份；原 lease pruning 早于 NAK；更新名字/期限/interface/server override | `state::request` | 精确 C 真实隔离 UDP 服务与 Rust 离线状态核对；前置 context/tag/host/name 必须由调用方提供 |
