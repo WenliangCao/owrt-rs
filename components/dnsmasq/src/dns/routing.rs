@@ -7,7 +7,9 @@
 
 use super::forward::{GroupId, Server, ServerGroup, ServerId};
 use super::wire::Name;
-use crate::config::dns::{DnsConfig, DomainPattern, RuleTarget, ServerEndpoint, ServerHost};
+use crate::config::dns::{
+    DnsConfig, DomainPattern, RuleTarget, ServerEndpoint, ServerHost, ServerRule,
+};
 use std::collections::HashMap;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
@@ -129,6 +131,37 @@ pub struct RoutingTable {
 }
 
 impl RoutingTable {
+    /// Build the daemon's runtime routes, including the implicit resolver-file
+    /// default shared by UDP and TCP callers. Inputs are already finalized and
+    /// resolver-file I/O remains the caller's responsibility.
+    pub fn from_runtime_config(
+        config: &DnsConfig,
+        default_resolvers: &[SocketAddr],
+    ) -> Result<Self, RoutingError> {
+        if !config.no_resolv && default_resolvers.is_empty() {
+            return Err(RoutingError::MissingDefaultResolvers);
+        }
+        let mut config = config.clone();
+        if !config.no_resolv
+            && !config.rules.iter().any(|rule| {
+                matches!(rule.target, RuleTarget::DefaultResolvers)
+                    && rule.domain.suffix.is_empty()
+                    && !rule.domain.dotless
+            })
+        {
+            config.rules.push(ServerRule {
+                domain: DomainPattern {
+                    suffix: Vec::new(),
+                    wildcard: false,
+                    wildcard_dot: false,
+                    dotless: false,
+                },
+                target: RuleTarget::DefaultResolvers,
+            });
+        }
+        Self::from_config(&config, default_resolvers)
+    }
+
     /// `default_resolvers` contains the active, already-resolved resolv.conf
     /// endpoints. File loading/no-resolv policy belongs to the caller. They
     /// are expanded only for an explicit `server=/.../#` rule; an empty list

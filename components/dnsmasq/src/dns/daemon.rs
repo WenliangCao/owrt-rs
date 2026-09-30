@@ -21,7 +21,7 @@ use super::wire::{
     find_pseudoheader, Header, Message, Name, PacketWriter, Question as WireQuestion, Section,
     WireError,
 };
-use crate::config::dns::{DnsConfig, DomainPattern, RuleTarget, ServerRule};
+use crate::config::dns::DnsConfig;
 use crate::config::{Error as ConfigError, FastRetry};
 use crate::hosts::Hosts;
 use std::io;
@@ -195,29 +195,7 @@ impl<R: Random> DnsDaemon<R> {
             return Err(DaemonError::MissingDefaultResolvers);
         }
 
-        // dnsmasq implicitly uses the active resolver file for an ordinary
-        // query.  Represent that default as a normal routing rule so every
-        // query goes through the same RoutingTable/ForwardDispatcher path.
-        let mut routing_config = config.clone();
-        if !config.no_resolv
-            && !default_resolvers.is_empty()
-            && !routing_config.rules.iter().any(|rule| {
-                matches!(rule.target, RuleTarget::DefaultResolvers)
-                    && rule.domain.suffix.is_empty()
-                    && !rule.domain.dotless
-            })
-        {
-            routing_config.rules.push(ServerRule {
-                domain: DomainPattern {
-                    suffix: Vec::new(),
-                    wildcard: false,
-                    wildcard_dot: false,
-                    dotless: false,
-                },
-                target: RuleTarget::DefaultResolvers,
-            });
-        }
-        let routing = RoutingTable::from_config(&routing_config, default_resolvers)?;
+        let routing = RoutingTable::from_runtime_config(&config, default_resolvers)?;
         let groups = routing.dispatcher_groups();
         let fast_retry = options.fast_retry.map(|retry| ForwardOptions {
             forward_max: options.forward_max,
@@ -1045,7 +1023,7 @@ fn is_name_suffix(name: &Name, suffix: &Name) -> bool {
     false
 }
 
-fn address_policy(config: &DnsConfig) -> Result<AddressPolicy, DaemonError> {
+pub(super) fn address_policy(config: &DnsConfig) -> Result<AddressPolicy, DaemonError> {
     let mut rebind_domains = Vec::with_capacity(config.rebind_domains.len());
     for domain in &config.rebind_domains {
         let text = std::str::from_utf8(domain).map_err(|_| ConfigError("bad rebind domain"))?;
@@ -1059,7 +1037,7 @@ fn address_policy(config: &DnsConfig) -> Result<AddressPolicy, DaemonError> {
     })
 }
 
-fn validate_runtime_config(config: &DnsConfig) -> Result<(), DaemonError> {
+pub(super) fn validate_runtime_config(config: &DnsConfig) -> Result<(), DaemonError> {
     if config.servers_file.is_some() {
         return Err(DaemonError::Config(ConfigError(
             "servers-file loading is not implemented by the DNS daemon",

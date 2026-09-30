@@ -9,5 +9,6 @@ pub mod process;
 pub mod reply;
 pub mod routing;
 pub mod service;
+pub mod tcp_upstream;
 pub mod upstream;
 pub mod wire;
