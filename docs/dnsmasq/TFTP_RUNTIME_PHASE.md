@@ -19,7 +19,7 @@ failed cleanup event and release the active file reference.
 |---|---|---|---|
 | `tftp.c:543-624` | Open then `fstat`; enforce root world-readable and secure owner policy | `RealFileOpener`, `OpenedFile` | real opener and permission predicate tests |
 | `tftp.c:242-271` | Existing peer/TID admission, repeated RRQ replacement and transfer cap | `TransferRuntime::handle_datagram` | TID, replacement and capacity paths |
-| `tftp.c:724-850,916-1028` | OACK, DATA/ACK progression, block wrap, netascii carry and final empty block | `TransferRuntime` using `tftp::Transfer` | 10 focused runtime tests; netascii oracle is recorded separately |
+| `tftp.c:724-850,916-1028` | OACK, DATA/ACK progression, block wrap, netascii carry and final empty block | `TransferRuntime` using `tftp::Transfer` | 11 focused runtime tests; netascii oracle is recorded separately |
 | `tftp.c:671-735,852` | Retransmit on deadline and release on error/timeout/completion | `tick`, `RuntimeEvent::{TimedOut,Failed,Completed}` | retransmit, timeout and cleanup tests |
 | `tftp.c:625-668` | Same `(path, st_dev, st_ino)` file may be shared by active transfers | `SharedFile` with `Arc<dyn FileReader>` | active-transfer lookup and descriptor test |
 
@@ -32,5 +32,5 @@ this phase.
 
 Current validation is limited to the socket-independent runtime while the UDP
 listener and OpenWrt helper integration are still being integrated. The
-focused module suite passes 10/10 with `cargo test --lib tftp_runtime`; this is
+focused module suite passes 11/11 with `cargo test --lib tftp_runtime`; this is
 not a claim of complete TFTP daemon compatibility.
