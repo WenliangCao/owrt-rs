@@ -174,3 +174,48 @@ fn cname_hit_emits_alias_and_terminal_address() {
     assert_eq!(records[1].rrtype, 1);
     assert_eq!(records[1].rdata, &[192, 0, 2, 9]);
 }
+
+#[test]
+fn cache_hit_truncates_at_packet_limit_after_complete_rr() {
+    let mut cache = Cache::new(4, Policy::default());
+    cache.start_insert();
+    cache
+        .insert(
+            record("large.test", Kind::Ipv4, false, vec![192, 0, 2, 1]),
+            100,
+            30,
+        )
+        .unwrap();
+    cache
+        .insert(
+            record("large.test", Kind::Ipv4, false, vec![192, 0, 2, 2]),
+            100,
+            30,
+        )
+        .unwrap();
+    assert!(cache.commit());
+
+    // Header + question + one complete A RR fits (54 bytes); the second RR
+    // must set TC without writing a partial record.
+    let packet = answer_from_cache(
+        &mut cache,
+        CacheQuery {
+            name: &Name::from_ascii("large.test").unwrap(),
+            qtype: 1,
+            qclass: 1,
+            id: 3,
+            base_flags: 0x0080,
+            now: 100,
+            limit: 54,
+            round_robin: false,
+        },
+    )
+    .unwrap()
+    .unwrap();
+    let header = Header::parse(&packet).unwrap();
+    assert_eq!(header.answers, 1);
+    assert_ne!(header.flags & 0x0200, 0);
+    assert_eq!(packet.len(), 54);
+    let message = Message::parse(&packet).unwrap();
+    assert_eq!(message.records(Section::Answer).count(), 1);
+}
