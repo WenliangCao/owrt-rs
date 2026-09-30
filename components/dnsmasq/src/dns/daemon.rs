@@ -428,7 +428,10 @@ impl<R: Random> DnsDaemon<R> {
                 self.max_udp.min(512),
             )?;
             writer.question(&question.name, question.rrtype, question.class)?;
-            append_negative_authority(&mut writer, cache, id, now)?;
+            match append_negative_authority(&mut writer, cache, id, now) {
+                Ok(_) | Err(WireError::Full) => {}
+                Err(error) => return Err(error.into()),
+            }
             return Ok(Some(writer.finish()));
         }
         let direct_nodata = ids.iter().find_map(|id| {
@@ -443,7 +446,10 @@ impl<R: Random> DnsDaemon<R> {
                 self.max_udp.min(512),
             )?;
             writer.question(&question.name, question.rrtype, question.class)?;
-            append_negative_authority(&mut writer, cache, id, now)?;
+            match append_negative_authority(&mut writer, cache, id, now) {
+                Ok(_) | Err(WireError::Full) => {}
+                Err(error) => return Err(error.into()),
+            }
             return Ok(Some(writer.finish()));
         }
 
@@ -514,7 +520,11 @@ impl<R: Random> DnsDaemon<R> {
                             continue;
                         }
                         if target_entry.record.negative {
-                            append_negative_authority(&mut writer, cache, target, now)?;
+                            match append_negative_authority(&mut writer, cache, target, now) {
+                                Ok(_) => {}
+                                Err(WireError::Full) => return Ok(Some(writer.finish())),
+                                Err(error) => return Err(error.into()),
+                            }
                             complete = true;
                         } else {
                             let terminal_name = target_entry.record.name.clone();
