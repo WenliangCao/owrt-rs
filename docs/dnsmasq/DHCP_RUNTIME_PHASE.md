@@ -13,6 +13,11 @@ into local DHCP replies.
 | `dhcp.c:397-500` | Local replies select client port 68, broadcast for broadcast flag/invalid hardware, otherwise peer/`ciaddr`/`yiaddr`; unconfigured `yiaddr` needs ARP and an interface route; relay send needs a distinct server port | `destination` models local routes with interface/ARP metadata; Linux `DatagramSocket` can send broadcast replies with `IP_PKTINFO` interface selection and ordinary client/peer replies; ARP and relay/PXE/LEASEQUERY remain explicit `Unsupported` | Broadcast OFFER and renewal peer/client tests; pktinfo parser/target check; relay and relay-source tests reject before state |
 | `dhcp.c:530-550` | Lease/name/DNS cleanup is independent of UDP send success | `StateCommitted` and `Cleanup` events; `RuntimeFailure::committed` | Mock send failure preserves committed ownership and records no rollback |
 
+The public destination boundary also checks that the caller-supplied completed
+wire buffer contains the full `chaddr` slice before preparing ARP metadata. A
+short synthetic buffer now returns `BufferTooSmall` instead of indexing past
+the packet; the real C path always supplies the fixed BOOTP header first.
+
 The runtime entry point is:
 
 ```rust
