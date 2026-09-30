@@ -1,7 +1,7 @@
 //! Bounded DHCPv4/BOOTP reply construction.
 //!
 //! This module is deliberately socket independent.  The caller has already
-//! selected a [`state::Reply`] and supplies any context-dependent options.  We
+//! selected a `state::Reply` and supplies any context-dependent options.  We
 //! only apply the wire mutations performed by `rfc2131.c` and `dhcp-protocol.h`:
 //! `clear_packet`, the mandatory reply options, bounded `free_space` placement,
 //! and `dhcp_packet_size`.  Configuration option selection, destination
