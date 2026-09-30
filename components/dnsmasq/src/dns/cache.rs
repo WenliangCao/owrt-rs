@@ -127,6 +127,7 @@ pub enum InsertError {
     Full,
     LongNameLimit,
     TimeOverflow,
+    NotNegative,
 }
 
 struct Slot {
@@ -287,6 +288,33 @@ impl Cache {
         Ok(self.id(slot))
     }
 
+    /// Insert a negative forward answer using dnsmasq's SOA/`--neg-ttl`
+    /// selection rule.  An SOA-derived TTL always wins; the configured
+    /// fallback is used only when no SOA was present.  A zero fallback means
+    /// that a reply without an SOA is not cacheable.  The ordinary insertion
+    /// path still applies min/max cache TTL and stale-cache policy.
+    ///
+    /// This mirrors `rfc1035.c::extract_addresses`: callers pass the SOA
+    /// minimum/TTL when one was found, otherwise `configured_ttl` (the
+    /// daemon's `neg_ttl`) is considered.  `no-negcache` is represented by
+    /// simply not calling this method.
+    pub fn insert_negative(
+        &mut self,
+        record: Record,
+        now: i64,
+        soa_ttl: Option<u32>,
+        configured_ttl: u32,
+    ) -> Result<Option<EntryId>, InsertError> {
+        if !record.negative {
+            return Err(InsertError::NotNegative);
+        }
+        let ttl = soa_ttl.or((configured_ttl != 0).then_some(configured_ttl));
+        let Some(ttl) = ttl else {
+            return Ok(None);
+        };
+        self.insert(record, now, ttl).map(Some)
+    }
+
     /// Called while assembling the CNAME chain, including pending targets.
     pub fn set_cname_target(&mut self, cname: EntryId, target: EntryId) -> bool {
         if self
@@ -360,6 +388,27 @@ impl Cache {
             entries.splice(at..at, found[1..].iter().copied());
         }
         found.into_iter().rev().map(|slot| self.id(slot)).collect()
+    }
+
+    /// Lookup records for a DNS question, including an NXDOMAIN marker.
+    ///
+    /// `cache_find_by_name(..., F_RR | F_NXDOMAIN)` in C returns both the
+    /// requested RRset and the name-wide NXDOMAIN marker; `answer_request`
+    /// then decides whether the marker answers this question.  Keeping that
+    /// union explicit avoids making the lower-level `lookup` unexpectedly
+    /// match NXDOMAIN for callers that are iterating one exact flag group.
+    pub fn lookup_question(
+        &mut self,
+        name: &Name,
+        requested: Kind,
+        now: i64,
+        round_robin: bool,
+    ) -> Vec<EntryId> {
+        if requested == Kind::NxDomain {
+            self.lookup(name, &[requested], now, round_robin)
+        } else {
+            self.lookup(name, &[requested, Kind::NxDomain], now, round_robin)
+        }
     }
 
     fn id(&self, slot: usize) -> EntryId {

@@ -159,6 +159,134 @@ fn zero_stale_allowance_disables_zero_ttl_insertion() {
 }
 
 #[test]
+fn negative_insert_prefers_soa_ttl_and_applies_cache_policy() {
+    let mut cache = Cache::new(
+        2,
+        Policy {
+            min_ttl: 20,
+            max_ttl: 60,
+            ..Policy::default()
+        },
+    );
+    cache.start_insert();
+    let id = cache
+        .insert_negative(
+            Record {
+                name: Name::from_ascii("missing.test").unwrap(),
+                kind: Kind::NxDomain,
+                negative: true,
+                data: vec![0xaa],
+            },
+            100,
+            Some(10),
+            50,
+        )
+        .unwrap()
+        .unwrap();
+    assert!(cache.commit());
+    // SOA TTL wins, then min-cache-ttl raises it to the configured floor.
+    assert_eq!(cache.get(id).unwrap().expires, 120);
+}
+
+#[test]
+fn negative_insert_uses_fallback_only_without_soa_and_zero_disables_it() {
+    let mut cache = Cache::new(2, Policy::default());
+    cache.start_insert();
+    let no_soa = cache
+        .insert_negative(
+            Record {
+                name: Name::from_ascii("missing.test").unwrap(),
+                kind: Kind::NxDomain,
+                negative: true,
+                data: Vec::new(),
+            },
+            100,
+            None,
+            30,
+        )
+        .unwrap()
+        .unwrap();
+    assert!(cache.commit());
+    assert_eq!(cache.get(no_soa).unwrap().expires, 130);
+
+    cache.start_insert();
+    assert_eq!(
+        cache
+            .insert_negative(
+                Record {
+                    name: Name::from_ascii("other.test").unwrap(),
+                    kind: Kind::NxDomain,
+                    negative: true,
+                    data: Vec::new(),
+                },
+                100,
+                None,
+                0,
+            )
+            .unwrap(),
+        None
+    );
+    assert!(cache.commit());
+}
+
+#[test]
+fn negative_insert_does_not_replace_soa_zero_with_fallback() {
+    let mut cache = Cache::new(1, Policy::default());
+    cache.start_insert();
+    assert_eq!(
+        cache.insert_negative(
+            Record {
+                name: Name::from_ascii("missing.test").unwrap(),
+                kind: Kind::NxDomain,
+                negative: true,
+                data: Vec::new(),
+            },
+            100,
+            Some(0),
+            30,
+        ),
+        Err(InsertError::ZeroTtl)
+    );
+    assert!(!cache.commit());
+}
+
+#[test]
+fn question_lookup_includes_name_wide_nxdomain() {
+    let mut cache = Cache::new(2, Policy::default());
+    cache.start_insert();
+    let id = cache
+        .insert(
+            Record {
+                name: Name::from_ascii("missing.test").unwrap(),
+                kind: Kind::NxDomain,
+                negative: true,
+                data: Vec::new(),
+            },
+            100,
+            30,
+        )
+        .unwrap();
+    assert!(cache.commit());
+    assert_eq!(
+        cache.lookup_question(
+            &Name::from_ascii("missing.test").unwrap(),
+            Kind::Ipv4,
+            100,
+            false,
+        ),
+        vec![id]
+    );
+    assert!(cache
+        .lookup(
+            &Name::from_ascii("missing.test").unwrap(),
+            &[Kind::Ipv4],
+            100,
+            false
+        )
+        .is_empty());
+}
+
+#[test]
 fn nx_domain_coexists_with_addresses_and_generic_types_replace_separately() {
     let mut cache = Cache::new(4, Policy::default());
     for (kind, value) in [
