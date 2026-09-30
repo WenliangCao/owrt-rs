@@ -24,10 +24,11 @@ resolver-file/default route to UDP and TCP callers.
 
 Read/write operations are nonblocking and poll in at most 50 ms intervals so
 cancellation and the outer absolute deadline remain observable. Idle timeouts
-reset after progress, matching the C socket timeout boundary. Connect currently
-uses `TcpStream::connect_timeout`, bounded by 5 seconds and the outer deadline;
-it cannot observe the stop callback during the connect call. This is an open
-shutdown-latency boundary, not a completed cancellation guarantee.
+reset after progress, matching the C socket timeout boundary. On the Linux
+aarch64 target and Linux x86_64, connect now uses the same poll interval and
+deadline/cancellation checks through the small `tcp_connect.rs` ABI boundary.
+Other development hosts retain std's bounded connect fallback, which cannot
+observe cancellation mid-call. The target-specific confirmation appears below.
 
 ## Reproducible isolated evidence
 
@@ -45,7 +46,7 @@ private run directory>` through `tools/dnsmasq/run_isolated.sh`. The runner
 requires `DNSMASQ_TEST_ISOLATED=1` and a namespace containing only loopback;
 all fake upstreams are TCP, and no DHCP listener is started.
 
-`private/dnsmasq-rewrite/tcp-upstream-20260930/run-02/summary.json` records
+`private/dnsmasq-rewrite/tcp-upstream-20260930/run-03/summary.json` records
 **20 cases, 25 queries per implementation**. **18 cases / 23 queries match**;
 **2 cases / 2 queries differ** for the reference defect below. There is no
 packet, ID, ordering or socket-count normalization. Per-server connection and
@@ -56,8 +57,8 @@ Timing is retained only as diagnostic data and is not a speed claim.
 The harness calibrates a successful three-query persistent connection and
 fresh failures at both servers, requires the exact output count plus
 `CLOSED 0`, and waits for the peers' real EOF before ending their worker loops.
-The three Rust loopback regressions cover reuse/RCODE behavior, reconnect and
-failover, and cancelled-read cleanup. The related DNS tests and all-targets
+The four Rust loopback regressions cover reuse/RCODE behavior, reconnect and
+failover, refused-connect cleanup and cancelled-read cleanup. The related DNS tests and all-targets
 clippy pass; main integration and target building are separate gates.
 
 ## Reference framing defect: open compatibility decision
@@ -82,3 +83,36 @@ behavior is silently imported.
 Persistent connection reuse avoids repeated connect/close operations by
 mechanism, but no throughput, CPU, allocation, memory, target-router or overall
 resource improvement has been measured for this phase.
+
+## Linux pending-connect cancellation
+
+`tcp_connect.rs` creates a CLOEXEC/NONBLOCK stream socket atomically, owns it
+through `OwnedFd`, polls writable/error readiness and reads `SO_ERROR` before
+returning a `TcpStream`. The two `repr(C)` address layouts are size-asserted;
+their initialized buffers remain alive for the exact-length connect syscall.
+All failure, timeout and cancellation exits drop the sole descriptor owner.
+This is the only added unsafe boundary; no dependency was introduced.
+
+`tcp_connect_probe.py` requires the dedicated loopback-only namespace and adds
+one temporary OUTPUT DROP rule restricted to its ephemeral TCP listener. It
+verifies the packet counter and removes the rule in `finally`; the namespace
+itself also contains the rule's lifetime. With seven SYNs confirmed dropped,
+five pending connects cancel after the 100 ms test trigger, one hits the 150 ms
+connect timeout and one hits the 150 ms outer deadline. All seven finish within
+the frozen one-second functional bound, zero connections are accepted and
+`/proc/self/fd` enumeration counts stay 4 → 4 (including the enumeration FD).
+The measurements validate cancellation behavior, not throughput improvement.
+
+Evidence: `private/dnsmasq-rewrite/tcp-upstream-20260930/connect-02/summary.json`.
+The same newly built transport reruns the existing 20-case C socket corpus in
+`run-03`: no additional differences beyond the two retained reference framing
+defects. `refused-01` adds one exact-C connection-refusal/failover case with zero
+mismatches and checks the SO_ERROR failure path. The tool supports `--case`
+for future affected-case runs rather than repeating unaffected long timeouts.
+
+Native-host and `aarch64-unknown-linux-musl` all-targets clippy both pass with
+`-D warnings`. An additional native-Linux clippy invocation was blocked by that
+host's installed clippy-driver reporting compiler 1.98.0 against the crate's
+1.98.1 minimum; it was not bypassed or counted as passing. Linux execution
+evidence uses the native rustc 1.98.1 build. This transport check does not stand
+in for shutdown/reload/resource verification of the full daemon caller.

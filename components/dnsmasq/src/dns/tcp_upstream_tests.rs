@@ -159,3 +159,32 @@ fn cancelled_read_releases_every_owned_socket() {
     assert_eq!(transport.socket_count(), 0);
     worker.join().unwrap();
 }
+
+#[test]
+fn refused_connect_advances_without_retaining_a_failed_socket() {
+    let refused = TcpListener::bind("127.0.0.1:0").unwrap();
+    let next = TcpListener::bind("127.0.0.1:0").unwrap();
+    let mut transport = transport(&[refused.local_addr().unwrap(), next.local_addr().unwrap()]);
+    drop(refused);
+    let worker = thread::spawn(move || {
+        let (mut stream, _) = next.accept().unwrap();
+        let query = read_query(&mut stream);
+        stream
+            .write_all(&encode_tcp_frame(&response(&query, 0)).unwrap())
+            .unwrap();
+        let mut byte = [0];
+        assert_eq!(stream.read(&mut byte).unwrap(), 0);
+    });
+    transport
+        .exchange(
+            GroupId(1),
+            &query(1),
+            Instant::now() + Duration::from_secs(2),
+            &|| false,
+        )
+        .unwrap();
+    assert_eq!(transport.socket_count(), 1);
+    transport.clear();
+    assert_eq!(transport.socket_count(), 0);
+    worker.join().unwrap();
+}

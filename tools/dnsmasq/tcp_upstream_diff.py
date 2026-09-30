@@ -54,7 +54,7 @@ def build(reference, out, cargo, rustc):
                     '-L', 'dependency=' + str(target / 'deps'), '-o', str(out / 'driver')], check=True)
     manifest = {'source_sha256': actual, 'copts': REFERENCE_COPTS,
                 'driver_sha256': {name: digest(HERE / name) for name in ['tcp_upstream_oracle.c', 'tcp_upstream_probe.rs']},
-                'rust_source_sha256': {name: digest(ROOT / 'components/dnsmasq/src/dns' / name) for name in ['tcp_upstream.rs', 'routing.rs', 'forward.rs', 'wire.rs']},
+                'rust_source_sha256': {name: digest(ROOT / 'components/dnsmasq/src/dns' / name) for name in ['tcp_upstream.rs', 'tcp_connect.rs', 'routing.rs', 'forward.rs', 'wire.rs']},
                 'binary_sha256': {name: digest(out / name) for name in ['oracle', 'driver']}}
     (out / 'identity.json').write_text(json.dumps(manifest, indent=2) + '\n')
     print(json.dumps(manifest, indent=2))
@@ -72,19 +72,22 @@ def receive(stream, count, keep_partial=False):
 
 class Upstream:
     def __init__(self, actions, ipv6=False):
+        refused = actions == ['refuse-connect']
         self.socket = socket.socket(socket.AF_INET6 if ipv6 else socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind(('::1' if ipv6 else '127.0.0.1', 0))
-        self.socket.listen()
+        if not refused:
+            self.socket.listen()
         self.socket.settimeout(.05)
         self.port = self.socket.getsockname()[1]
         self.ipv6 = ipv6
-        self.actions = list(actions)
+        self.actions = [] if refused else list(actions)
         self.connected = []
         self.queries = []
         self.errors = []
         self.stopped = threading.Event()
-        self.thread = threading.Thread(target=self.run)
-        self.thread.start()
+        self.thread = None if refused else threading.Thread(target=self.run)
+        if self.thread:
+            self.thread.start()
 
     def run(self):
         try:
@@ -170,9 +173,10 @@ class Upstream:
         while any(not connection['closed'] for connection in self.connected) and time.monotonic() < until:
             time.sleep(.005)
         self.stopped.set()
-        self.thread.join(timeout=16)
+        if self.thread:
+            self.thread.join(timeout=16)
         self.socket.close()
-        assert not self.thread.is_alive(), 'upstream worker leaked'
+        assert not self.thread or not self.thread.is_alive(), 'upstream worker leaked'
         assert not self.errors, self.errors
         return {'connections': self.connected, 'queries': self.queries, 'unconsumed_actions': self.actions}
 
@@ -181,6 +185,7 @@ def scenarios():
     yield 'persistent', [['normal'] * 3], ['tcp.test'] * 3, False
     yield 'rcode-does-not-failover', [['servfail', 'refused'], []], ['tcp.test'] * 2, False
     yield 'fresh-eof-failover', [['close'], ['normal']], ['tcp.test'], False
+    yield 'connect-refused', [['refuse-connect'], ['normal']], ['tcp.test'], False
     yield 'old-eof-reconnect-once', [['normal', 'close', 'close'], ['normal']], ['tcp.test'] * 2, False
     for action in ['wrong-question', 'wrong-length-question', 'wrong-type', 'wrong-class', 'not-response', 'zero', 'short-prefix', 'short-body']:
         yield action, [[action], ['normal']], ['tcp.test'], False
@@ -199,6 +204,7 @@ def main():
     parser.add_argument('--binaries', type=Path)
     parser.add_argument('--cargo', default='cargo')
     parser.add_argument('--rustc', default='rustc')
+    parser.add_argument('--case', action='append', help='run only named affected cases')
     args = parser.parse_args()
     out = args.output.resolve()
     if out.exists() or not out.is_relative_to((ROOT / 'private').resolve()):
@@ -216,6 +222,8 @@ def main():
     assert identity['binary_sha256'] == {name: digest(args.binaries / name) for name in ['oracle', 'driver']}
     results, errors = [], []
     for case, plans, names, ipv6 in scenarios():
+        if args.case and case not in args.case:
+            continue
         sides = {}
         queries = [packet(host, 1).hex() for host in names]
         for side in ['oracle', 'driver']:
@@ -248,6 +256,7 @@ def main():
         results.append({'case': case, 'queries': len(queries), 'matched': same, 'sides': sides})
         if not same:
             errors.append(case)
+    assert results and (not args.case or set(args.case) == {case['case'] for case in results}), 'unknown or empty case selection'
     summary = {'cases': len(results), 'queries_per_side': sum(case['queries'] for case in results),
                'mismatches': errors, 'oracle': identity, 'results': results,
                'normalization': 'none: raw query/reply bytes, per-server connection/query order and closed/socket counts compare exactly; elapsed time is diagnostic only',

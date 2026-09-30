@@ -16,6 +16,13 @@ use std::time::{Duration, Instant};
 
 const CANCEL_INTERVAL: Duration = Duration::from_millis(50);
 
+#[cfg(all(
+    target_os = "linux",
+    any(target_arch = "aarch64", target_arch = "x86_64")
+))]
+#[path = "tcp_connect.rs"]
+mod tcp_connect;
+
 #[derive(Clone, Copy, Debug)]
 pub struct TcpOptions {
     pub connect_timeout: Duration,
@@ -137,9 +144,9 @@ impl TcpUpstream {
 
     /// Exchange one query using C's persistent-connection and failover rules.
     /// `deadline` is the containing downstream connection's absolute bound.
-    /// Read/write waits observe cancellation at least every 50 ms. The std
-    /// connect operation is bounded by `connect_timeout` and `deadline` but
-    /// cannot observe cancellation until it returns.
+    /// Read/write waits observe cancellation at least every 50 ms. Linux
+    /// aarch64/x86_64 connects use the same cancellation interval; other hosts
+    /// use std's bounded connect, which cannot observe cancellation mid-call.
     ///
     /// As in tcp_talk, reply acceptance checks QR and the complete question;
     /// it does not introduce a transaction-ID check absent from the C path.
@@ -190,12 +197,13 @@ impl TcpUpstream {
                     if timeout.is_zero() {
                         return Err(TcpError::Deadline);
                     }
-                    let stream = match TcpStream::connect_timeout(&server.address, timeout) {
+                    let stream = match connect_until(server.address, timeout, deadline, stopped) {
                         Ok(stream) => stream,
-                        Err(_) => {
+                        Err(TcpError::NoReply) => {
                             check_bound(deadline, stopped)?;
                             break;
                         }
+                        Err(error) => return Err(error),
                     };
                     check_bound(deadline, stopped)?;
                     if stream.set_nonblocking(true).is_err() {
@@ -239,6 +247,30 @@ impl TcpUpstream {
             }
         }
         Err(TcpError::NoReply)
+    }
+}
+
+fn connect_until(
+    address: SocketAddr,
+    timeout: Duration,
+    deadline: Instant,
+    stopped: &dyn Fn() -> bool,
+) -> Result<TcpStream, TcpError> {
+    #[cfg(all(
+        target_os = "linux",
+        any(target_arch = "aarch64", target_arch = "x86_64")
+    ))]
+    {
+        tcp_connect::connect_until(address, Instant::now() + timeout, deadline, stopped)
+    }
+    #[cfg(not(all(
+        target_os = "linux",
+        any(target_arch = "aarch64", target_arch = "x86_64")
+    )))]
+    {
+        let result = TcpStream::connect_timeout(&address, timeout).map_err(|_| TcpError::NoReply);
+        check_bound(deadline, stopped)?;
+        result
     }
 }
 
