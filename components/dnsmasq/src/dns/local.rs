@@ -622,6 +622,20 @@ fn pattern_score(pattern: &DomainPattern) -> (usize, bool) {
     (pattern.suffix.len(), !pattern.wildcard)
 }
 
+pub(super) fn known_forwarded_domain(config: &DnsConfig, hosts: &Hosts, query: &Name) -> bool {
+    // check_for_local_domain's explicit RR-name lists regard every name as a
+    // descendant of root. cache make_non_terminals does not insert root for
+    // hosts or CNAME records, so those alone cannot establish root ownership.
+    if query.as_wire() == [0] {
+        return !config.records.txt.is_empty()
+            || !config.records.ptr.is_empty()
+            || !config.records.mx.is_empty()
+            || !config.records.srv.is_empty()
+            || !config.records.naptr.is_empty();
+    }
+    has_descendant_local(config, hosts, query)
+}
+
 fn has_descendant_local(config: &DnsConfig, hosts: &Hosts, query: &Name) -> bool {
     let parent = query.canonical_wire();
     let is_descendant = |child: &[u8]| {

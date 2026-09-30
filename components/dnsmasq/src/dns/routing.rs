@@ -332,6 +332,30 @@ impl RoutingTable {
         self.groups.get(&id)
     }
 
+    /// lookup_domain(F_CONFIG): look past upstream/local-only tiers for a
+    /// configured address RR, while retaining the late dotless override.
+    pub(super) fn has_configured_address(&self, name: &Name) -> bool {
+        let query = dotted_name(name);
+        let selected = self.rules.iter().find(|bucket| {
+            !bucket.representative().dotless
+                && (!bucket.literals.is_empty() || bucket.zeros != 0)
+                && bucket.matched_pattern(&query).is_some()
+        });
+        if !query.is_empty()
+            && !query.contains(&b'.')
+            && selected.is_none_or(|bucket| bucket.representative().suffix.is_empty())
+        {
+            if let Some(dotless) = self
+                .rules
+                .iter()
+                .find(|bucket| bucket.representative().dotless)
+            {
+                return !dotless.literals.is_empty() || dotless.zeros != 0;
+            }
+        }
+        selected.is_some()
+    }
+
     pub fn groups(&self) -> impl Iterator<Item = &ServerGroup> {
         self.groups.values()
     }
