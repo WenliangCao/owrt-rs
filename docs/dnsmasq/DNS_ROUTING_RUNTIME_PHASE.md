@@ -50,10 +50,12 @@ They are separate from the UDP transport evidence in
 
 ## Remaining integration boundary
 
-The route table is not yet called by `main.rs`, `DnsService` or the OpenWrt UCI
-reload lifecycle. TCP upstream, `process_reply`/rebind/cache insertion,
-resolver-file polling, source/interface-bound sockets, ubus metrics and
-client-visible reply fanout therefore remain outside this phase. No claim of
-production replacement, target-router performance or full DNS equivalence is
-made until those callers and lifecycle paths are wired and independently
-tested against the exact C implementation.
+`dns::daemon::DnsDaemon` now calls the route table for every unowned client
+query and passes the selected group to `ForwardDispatcher`/`UpstreamResolver`.
+It restores coalesced client IDs and applies the existing address-policy and
+EDNS envelope before returning client responses. The containing listener still
+owns UDP sockets and resolver-file loading; TCP upstream, cache/SOA insertion,
+ubus metrics, source/interface-bound sockets and UCI reload lifecycle remain
+outside this phase. No claim of production replacement, target-router
+performance or full DNS equivalence is made until those boundaries are wired
+and independently tested against the exact C implementation.

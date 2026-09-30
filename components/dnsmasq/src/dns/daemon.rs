@@ -23,7 +23,7 @@ use std::net::{IpAddr, SocketAddr};
 use std::time::Duration;
 
 /// Transport-independent identity of a DNS client datagram.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ClientRequest {
     pub source: SocketAddr,
     pub destination: IpAddr,
@@ -38,10 +38,10 @@ pub struct ClientResponse {
 }
 
 /// Result of admitting one client query.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum QueryResult {
     /// A local answer is ready to send immediately.
-    Local,
+    Local(Vec<u8>),
     /// The query was admitted to the upstream transaction table.
     Forwarded(QueryId),
     /// The query was syntactically valid but has no local answer or upstream
@@ -85,7 +85,6 @@ pub enum DaemonError {
     Wire(WireError),
     Local(ServiceError),
     Process(ProcessError),
-    Reply(WireError),
     Upstream(ResolveError),
     Io(io::Error),
 }
@@ -96,7 +95,7 @@ impl std::fmt::Display for DaemonError {
             Self::Config(error) => write!(f, "DNS configuration: {error}"),
             Self::MissingDefaultResolvers => f.write_str("no default resolvers available"),
             Self::Routing(error) => write!(f, "DNS routing: {error:?}"),
-            Self::Wire(error) | Self::Reply(error) => write!(f, "DNS wire: {error}"),
+            Self::Wire(error) => write!(f, "DNS wire: {error}"),
             Self::Local(error) => write!(f, "local DNS service: {error:?}"),
             Self::Process(error) => write!(f, "upstream reply policy: {error:?}"),
             Self::Upstream(error) => write!(f, "upstream DNS: {error:?}"),
@@ -175,6 +174,12 @@ impl<R: Random> DnsDaemon<R> {
     ) -> Result<Self, DaemonError> {
         config.finalize()?;
         config.validate_ready().map_err(DaemonError::Config)?;
+        validate_runtime_config(&config)?;
+        if options.forward_max == 0 {
+            return Err(DaemonError::Config(ConfigError(
+                "dns-forward-max must be positive",
+            )));
+        }
         if !config.no_resolv && default_resolvers.is_empty() {
             return Err(DaemonError::MissingDefaultResolvers);
         }
@@ -184,6 +189,7 @@ impl<R: Random> DnsDaemon<R> {
         // query goes through the same RoutingTable/ForwardDispatcher path.
         let mut routing_config = config.clone();
         if !config.no_resolv
+            && !default_resolvers.is_empty()
             && !routing_config.rules.iter().any(|rule| {
                 matches!(rule.target, RuleTarget::DefaultResolvers)
                     && rule.domain.suffix.is_empty()
@@ -244,21 +250,18 @@ impl<R: Random> DnsDaemon<R> {
         self.upstream.pending_count()
     }
 
-    /// Admit a single client UDP payload.  Local answers are returned through
-    /// `local_answer`; forwarded queries are completed by [`Self::poll`].
+    /// Admit a single client UDP payload. Local answers are returned directly;
+    /// forwarded queries are completed by [`Self::poll`].
     pub fn handle_udp(
         &mut self,
         query: &[u8],
         client: ClientRequest,
-        local_answer: &mut Option<Vec<u8>>,
     ) -> Result<QueryResult, DaemonError> {
-        *local_answer = None;
         if query.len() > self.max_udp {
             return Ok(QueryResult::Dropped);
         }
         if let Some(answer) = self.local.handle_udp(query)? {
-            *local_answer = Some(answer);
-            return Ok(QueryResult::Local);
+            return Ok(QueryResult::Local(answer));
         }
         let question = super::forward::Question::parse(query).map_err(DaemonError::Wire)?;
         let route = self
@@ -334,6 +337,41 @@ fn address_policy(config: &DnsConfig) -> Result<AddressPolicy, DaemonError> {
     })
 }
 
+fn validate_runtime_config(config: &DnsConfig) -> Result<(), DaemonError> {
+    if config.servers_file.is_some() {
+        return Err(DaemonError::Config(ConfigError(
+            "servers-file loading is not implemented by the DNS daemon",
+        )));
+    }
+    if !config.interfaces.is_empty()
+        || !config.excluded_interfaces.is_empty()
+        || config.bind_interfaces
+        || config.bind_dynamic
+        || config.local_service_net
+        || config.local_service_host
+    {
+        return Err(DaemonError::Config(ConfigError(
+            "interface binding is owned by the containing listener",
+        )));
+    }
+    if config.domain_needed
+        || config.bogus_priv
+        || config.no_poll
+        || config.no_negative_cache
+        || config.localise_queries
+    {
+        return Err(DaemonError::Config(ConfigError(
+            "configured DNS policy is not implemented by the daemon",
+        )));
+    }
+    if config.records.needs_hostname() {
+        return Err(DaemonError::Config(ConfigError(
+            "hostname-dependent local records need explicit hostname finalization",
+        )));
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -385,8 +423,7 @@ mod tests {
             Counter(0),
         )
         .unwrap();
-        let mut answer = None;
-        assert_eq!(
+        assert!(matches!(
             daemon
                 .handle_udp(
                     &query("router.test", 7),
@@ -395,12 +432,10 @@ mod tests {
                         destination: "127.0.0.1".parse().unwrap(),
                         interface: 0,
                     },
-                    &mut answer,
                 )
                 .unwrap(),
-            QueryResult::Local
-        );
-        assert!(answer.is_some());
+            QueryResult::Local(_)
+        ));
         assert_eq!(
             daemon
                 .handle_udp(
@@ -410,7 +445,6 @@ mod tests {
                         destination: "127.0.0.1".parse().unwrap(),
                         interface: 0,
                     },
-                    &mut answer,
                 )
                 .unwrap(),
             QueryResult::Dropped
@@ -444,7 +478,6 @@ mod tests {
             Counter(0),
         )
         .unwrap();
-        let mut answer = None;
         let result = daemon
             .handle_udp(
                 &query("upstream.test", 0x4321),
@@ -453,7 +486,6 @@ mod tests {
                     destination: "127.0.0.1".parse().unwrap(),
                     interface: 0,
                 },
-                &mut answer,
             )
             .unwrap();
         assert!(matches!(result, QueryResult::Forwarded(_)));
@@ -479,5 +511,20 @@ mod tests {
             Counter(0),
         );
         assert!(matches!(result, Err(DaemonError::Config(_))));
+    }
+
+    #[test]
+    fn explicit_default_server_works_with_no_resolv() {
+        let mut config = DnsConfig::default();
+        config.no_resolv = true;
+        apply(&mut config, b"server=127.0.0.1#5300");
+        let daemon = DnsDaemon::with_random(
+            config,
+            Hosts::new(),
+            &[],
+            options(),
+            Counter(0),
+        );
+        assert!(daemon.is_ok());
     }
 }
