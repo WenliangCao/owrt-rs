@@ -96,6 +96,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     }
     runtime.scalar.finalize_runtime()?;
     runtime.dns.finalize()?;
+    runtime.tftp.validate_ready()?;
     validate_runtime_ready(&runtime.scalar, &runtime.dns)?;
     if runtime.scalar.dns_port == 0 {
         return Err(Box::new(Error("port=0 is not supported by the listener")));
