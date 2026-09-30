@@ -10,7 +10,7 @@ selection, EDNS option decoration, reply filtering, and cache insertion.
 | C reference | Invariant | Rust boundary | Evidence |
 | --- | --- | --- | --- |
 | `forward.c:receive_query()`; `edns0.c:find_pseudoheader()` | The last OPT supplies the client UDP limit; it is clamped to the configured packet maximum and never below 512. DO and AD/CD become forwarding flags. | `forward_service::prepare_query` and `QueryMetadata` | `prepare_adds_opt_and_clamps_existing_opt` |
-| `edns0.c:add_pseudoheader()` | Unsigned queries advertise the configured upstream UDP size. If no OPT exists, an empty OPT is appended only when the output envelope fits; C's tight `p+11`/`p+4` boundary can leave an uncounted trailing OPT and is retained. Signed TKEY/TSIG traffic is left byte-for-byte unchanged. | `prepare_query` | `signed_tkey_is_not_decorated`; `prepare_preserves_c_tight_envelope_opt_boundary`; malformed/truncated input is rejected before table state |
+| `edns0.c:add_pseudoheader()` | Unsigned queries advertise the configured upstream UDP size. Empty OPT insertion needs 11 bytes plus four reserved bytes. If only 11–14 bytes fit, C returns the original length/arcount, while retaining any writes over an existing opaque tail. Signed TKEY/TSIG traffic is unchanged. | `prepare_query` | Exact 1,217-case extraction oracle and `prepare_preserves_c_tight_envelope_opt_boundary` |
 | `forward.c:forward_query()` lookup path | New queries create one `ForwardTable` entry; retries and duplicate clients use the existing upstream ID/case packet. A duplicate arriving within two seconds is coalesced without another send. | `ForwardDispatcher::submit` | `dispatcher_coalesces_and_matches_reply`; existing `forward_tests` cover duplicate identity/case |
 | `forward.c:forward_query()` server loop | Server order/all-server policy is planned by `ServerGroup`; the caller records successful sends and socket ownership. | `submit`, `note_sent`, `SendPlan` | `dispatcher_coalesces_and_matches_reply`; `forward_tests` server plan cases |
 | `forward.c:reply_query()` | A response must match upstream ID, question, source endpoint, selected group and expected socket before processing. | `accept_reply` → `MatchedReply` | `dispatcher_coalesces_and_matches_reply`; `forward_tests` spoof/name/class checks |
@@ -43,6 +43,23 @@ extracts the exact source functions after checking their SHA-256 identities,
 then compares C `add_pseudoheader(..., optno=0)` with Rust
 `prepare_query`. The 2026-09-30 run used seed 293 and **1,007 cases with zero
 mismatches**, including no-OPT insertion, existing/multiple sections, signed
-TKEY, trailing bytes, and the tight output envelope. Generated C/Rust binaries,
+TKEY and trailing bytes. That corpus did not position records at the tight
+11-to-14-byte output boundary; its passing result did not cover that branch.
+Generated C/Rust binaries,
 inputs and outputs are ignored under
 `private/dnsmasq-rs/forward-service/differential/`.
+
+The 2026-10-01 extension adds 210 cases across five output sizes, 10–16 bytes
+of available space, and opaque tails of 0/1/4/10/11/17 bytes. The pinned C
+function exposed 100 mismatches before the fix. Rust had transmitted newly
+appended OPT bytes even though C returned its original `plen`. The corrected
+code preserves both C's returned length and any overwrite of bytes already
+inside that original length; it does not simply delete every trailing byte.
+The prior unit expectation was also incorrect and has been replaced with
+independent returned-length/arcount/tail checks. The C driver now uses aligned
+header storage and rejects missing output rows before comparing results.
+
+`private/dnsmasq-rewrite/forward-opt-boundary-20261001/before-fix/` retains the
+100 failures; `fixed/` has **1,217 cases and zero mismatches**. All six focused
+forward-service tests pass. This closes the `optno=0` boundary only, not every
+EDNS decoration or malformed-query policy.

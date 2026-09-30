@@ -356,21 +356,27 @@ pub fn prepare_query(
             .is_some_and(|len| len <= configured_max as usize);
         if can_write_opt {
             let mut updated = message.header;
-            prepared.truncate(message.end);
-            prepared.extend_from_slice(&[0, 0, 41]);
-            prepared.extend_from_slice(&configured_max.to_be_bytes());
-            prepared.extend_from_slice(&[0, 0, 0, 0, 0, 0]);
+            let original_len = prepared.len();
+            let opt_end = message.end + OPT_RECORD_LEN;
+            prepared.resize(original_len.max(opt_end), 0);
+            prepared[message.end..message.end + 3].copy_from_slice(&[0, 0, 41]);
+            prepared[message.end + 3..message.end + 5]
+                .copy_from_slice(&configured_max.to_be_bytes());
+            prepared[message.end + 5..opt_end].fill(0);
             // C writes the empty OPT first, then only increments arcount when
-            // four bytes remain for a possible option TLV.  With a very tight
-            // output envelope this leaves an uncounted trailing OPT; preserve
-            // that quirk instead of silently normalising malformed input.
+            // four bytes remain for a possible option TLV. On failure it
+            // returns the original plen, not opt_end. Any original trailing
+            // bytes overwritten by that write remain changed in the result.
             if message
                 .end
                 .checked_add(OPT_RECORD_LEN + 4)
                 .is_some_and(|len| len <= configured_max as usize)
             {
+                prepared.truncate(opt_end);
                 updated.additionals = updated.additionals.checked_add(1).ok_or(WireError::Full)?;
                 updated.write(&mut prepared)?;
+            } else {
+                prepared.truncate(original_len);
             }
         }
     }
@@ -465,7 +471,8 @@ mod tests {
     fn prepare_preserves_c_tight_envelope_opt_boundary() {
         // Build a valid query whose declared additional section ends at 501
         // bytes. C writes an empty OPT when byte 512 fits, but has fewer than
-        // four bytes left for a TLV and therefore leaves arcount unchanged.
+        // four bytes left for a TLV, leaving arcount and returned length
+        // unchanged. Its in-buffer write still overwrites existing tails.
         let mut packet = query("example.test", 9);
         packet.extend_from_slice(&[0, 0, 16, 0, 1, 0, 0, 0, 0, 1, 204]);
         packet.extend(std::iter::repeat_n(0xaa, 460));
@@ -473,10 +480,18 @@ mod tests {
         header.additionals = 1;
         header.write(&mut packet).unwrap();
         assert_eq!(Message::parse(&packet).unwrap().end, 501);
-        let (prepared, _) = prepare_query(&packet, 512).unwrap();
-        assert_eq!(prepared.len(), 512);
-        assert_eq!(Header::parse(&prepared).unwrap().additionals, 1);
-        assert_eq!(&prepared[501..512], &[0, 0, 41, 2, 0, 0, 0, 0, 0, 0, 0]);
+        for tail in [0, 1, 4, 10, 11, 17] {
+            let mut input = packet.clone();
+            input.extend(std::iter::repeat_n(0xbb, tail));
+            let (prepared, _) = prepare_query(&input, 512).unwrap();
+            assert_eq!(prepared.len(), input.len());
+            assert_eq!(&prepared[..501], &packet);
+            assert_eq!(Header::parse(&prepared).unwrap().additionals, 1);
+            let mut expected = vec![0xbb; tail];
+            let opt = [0, 0, 41, 2, 0, 0, 0, 0, 0, 0, 0];
+            expected[..tail.min(11)].copy_from_slice(&opt[..tail.min(11)]);
+            assert_eq!(&prepared[501..], expected);
+        }
     }
 
     #[test]

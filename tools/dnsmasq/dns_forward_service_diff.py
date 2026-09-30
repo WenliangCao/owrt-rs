@@ -37,9 +37,10 @@ int main(void) {
   while (getline(&line, &cap, stdin) > 0) {
     unsigned max; char hex[131074];
     if (sscanf(line, "%u %131073s", &max, hex) != 2 || max > 65535) return 3;
-    unsigned char packet[65536] = {0};
+    union { struct dns_header aligned; unsigned char bytes[65536]; } storage = {0};
+    unsigned char *packet = storage.bytes;
     size_t n = strcmp(hex, "-") == 0 ? 0 : strlen(hex) / 2;
-    if (n > sizeof(packet)) return 4;
+    if (n > sizeof(storage.bytes)) return 4;
     for (size_t i = 0; i < n; i++) {
       unsigned byte; if (sscanf(hex + 2*i, "%2x", &byte) != 1) return 5;
       packet[i] = (unsigned char)byte;
@@ -146,6 +147,18 @@ def corpus(seed: int, count: int) -> list[tuple[int, bytes]]:
         if rng.randrange(3) == 0:
             packet.extend(rng.randbytes(rng.randrange(0, 8)))
         cases.append((rng.choice([512, 768, 1232, 1400, 4096]), bytes(packet)))
+    # A counted opaque RR positions end-of-message exactly at each output
+    # boundary. Trailing bytes reveal C's buffer mutations when it returns
+    # the original plen after writing an OPT but cannot increment arcount.
+    for maximum in [512, 768, 1232, 1400, 4096]:
+        for remaining in range(10, 17):
+            base = bytearray(query("boundary.test"))
+            base[10:12] = (1).to_bytes(2, "big")
+            length = maximum - remaining - len(base) - 11
+            base.extend(bytes([0]) + (65000).to_bytes(2, "big") + (1).to_bytes(2, "big"))
+            base.extend(bytes(4) + length.to_bytes(2, "big") + b"x" * length)
+            for tail in [0, 1, 4, 10, 11, 17]:
+                cases.append((maximum, bytes(base) + b"z" * tail))
     return cases
 
 
@@ -155,7 +168,10 @@ def main() -> int:
     parser.add_argument("--cc", default="cc")
     parser.add_argument("--output", type=Path, default=ROOT / "private/dnsmasq-rs/forward-service/differential")
     parser.add_argument("--count", type=int, default=1000)
-    args = parser.parse_args(); output = args.output.resolve(); output.mkdir(parents=True, exist_ok=True)
+    args = parser.parse_args(); output = args.output.resolve()
+    if not output.is_relative_to(ROOT / "private") or output.exists():
+        parser.error("choose a fresh directory under ignored private/")
+    output.mkdir(parents=True)
     build(output, args.rustc, args.cc)
     cases = corpus(293, args.count)
     input_text = "".join(f"{limit} {packet.hex()}\n" for limit, packet in cases)
@@ -164,11 +180,13 @@ def main() -> int:
     for name in ["oracle", "driver"]:
         run = subprocess.run([str(output / name)], input=input_text, text=True, capture_output=True, check=True)
         outputs[name] = run.stdout.splitlines(); (output / f"{name}.stdout").write_text(run.stdout)
+        assert len(outputs[name]) == len(cases), f"{name}: output-count calibration failed"
     mismatches = [
         {"index": i, "limit": cases[i][0], "packet": cases[i][1].hex(), "c": c, "rust": r}
         for i, (c, r) in enumerate(zip(outputs["oracle"], outputs["driver"])) if c != r
     ]
     summary = {"cases": len(cases), "mismatches": len(mismatches), "seed": 293,
+               "new_boundary_cases": 210,
                "source_sha256": HASHES, "scope": "edns0 add_pseudoheader optno=0"}
     (output / "mismatches.json").write_text(json.dumps(mismatches, indent=2) + "\n")
     (output / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
