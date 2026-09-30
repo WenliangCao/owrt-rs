@@ -9,7 +9,7 @@
 
 use super::forward::{Client, Options as ForwardOptions, QueryId, Random, Scope};
 use super::forward_service::ForwardDispatcher;
-use super::process::{process_reply, AddressPolicy, ProcessAction, ProcessError};
+use super::process::{ignore_reply, process_reply, AddressPolicy, ProcessAction, ProcessError};
 use super::reply::{limit_udp_reply, prepare_reply, ReplyPolicy};
 use super::routing::{RoutingError, RoutingTable};
 use super::service::{LocalDnsService, ServiceError};
@@ -277,7 +277,10 @@ impl<R: Random> DnsDaemon<R> {
     /// full C `process_reply` contract (cache/SOA/ubus/TCP fallback remain
     /// outside this adapter).
     pub fn poll(&mut self, wait: Duration) -> Result<Vec<ClientResponse>, DaemonError> {
-        let events = self.upstream.poll(wait)?;
+        let policy = self.policy.clone();
+        let events = self.upstream.poll_with_filter(wait, move |packet| {
+            ignore_reply(packet, &policy).unwrap_or(false)
+        })?;
         let mut responses = Vec::new();
         for event in events {
             let reply = event.result?;

@@ -219,6 +219,21 @@ impl<R: Random> UpstreamResolver<R> {
     /// then return all terminal events. EINTR, invalid packets and REFUSED
     /// wait states never restart a query's deadline.
     pub fn poll(&mut self, max_wait: Duration) -> io::Result<Vec<UpstreamEvent>> {
+        self.poll_with_filter(max_wait, |_| false)
+    }
+
+    /// Poll upstream sockets while allowing the caller to reject a matched
+    /// reply before it changes forwarding state.  dnsmasq's `ignore-address`
+    /// path deliberately leaves the query pending so a later upstream or
+    /// retry can still produce the client-visible result.
+    pub fn poll_with_filter<F>(
+        &mut self,
+        max_wait: Duration,
+        ignore: F,
+    ) -> io::Result<Vec<UpstreamEvent>>
+    where
+        F: Fn(&[u8]) -> bool,
+    {
         let call_deadline = Instant::now()
             .checked_add(max_wait)
             .unwrap_or_else(Instant::now);
@@ -256,7 +271,7 @@ impl<R: Random> UpstreamResolver<R> {
             }
             for (token, fd) in tokens.into_iter().zip(fds) {
                 if fd.revents & (POLLIN | POLLERR | POLLHUP | POLLNVAL) != 0 {
-                    self.receive_ready(token, fd.revents);
+                    self.receive_ready(token, fd.revents, &ignore);
                 }
             }
             self.run_timers();
@@ -474,7 +489,10 @@ impl<R: Random> UpstreamResolver<R> {
         }
     }
 
-    fn receive_ready(&mut self, token: SocketToken, revents: i16) {
+    fn receive_ready<F>(&mut self, token: SocketToken, revents: i16, ignore: &F)
+    where
+        F: Fn(&[u8]) -> bool,
+    {
         let Some(owned) = self.sockets.get(&token) else {
             return;
         };
@@ -521,6 +539,12 @@ impl<R: Random> UpstreamResolver<R> {
                 continue;
             };
             if matched.id != id {
+                continue;
+            }
+            // Keep the transaction and its server/retry counters untouched.
+            // This must happen after source/ID admission but before
+            // `complete_reply`, matching forward.c::reply_query.
+            if ignore(&self.receive_buffer[..length]) {
                 continue;
             }
             match self.dispatcher.complete_reply(matched) {
