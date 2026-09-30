@@ -310,6 +310,26 @@ impl RoutingTable {
         groups.sort_by_key(|group| group.id.0);
         groups
     }
+
+    /// Copy the immutable server configuration into a dispatcher while
+    /// retaining this table for subsequent query selection.  Forwarding
+    /// health counters intentionally start fresh in the dispatcher.
+    pub fn dispatcher_groups(&self) -> Vec<ServerGroup> {
+        let mut groups: Vec<_> = self
+            .groups
+            .values()
+            .map(|group| {
+                ServerGroup::new(
+                    group.id,
+                    group.servers.clone(),
+                    group.strict_order,
+                    group.all_servers,
+                )
+            })
+            .collect();
+        groups.sort_by_key(|group| group.id.0);
+        groups
+    }
 }
 
 fn validate_endpoint(endpoint: &ServerEndpoint) -> Result<SocketAddr, RoutingError> {
