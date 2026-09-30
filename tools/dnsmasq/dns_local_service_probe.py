@@ -114,6 +114,7 @@ def main() -> int:
                 ("ipv6-aaaa", "target.test", 28, False, True, 1, 0),
                 ("cname-target", "alias.test", 1, False, False, 2, 0),
                 ("local-nxdomain", "local.test", 1, False, False, 0, 3),
+                ("unowned-refused", "outside.test", 1, False, False, 0, 5),
             ]
             for name, host, rrtype, tcp, ipv6, expected_answers, expected_rcode in checks:
                 try:
@@ -135,11 +136,6 @@ def main() -> int:
                 except Exception as error:
                     errors.append(f"{name}: {error!r}")
 
-            try:
-                exchange(port, query("outside.test", 1, 0x2FFF), False, False)
-                errors.append("unowned query unexpectedly received a response")
-            except socket.timeout:
-                cases.append({"name": "unowned-dropped"})
         finally:
             try:
                 os.killpg(process.pid, signal.SIGTERM)

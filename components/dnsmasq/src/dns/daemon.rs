@@ -14,7 +14,7 @@ use super::forward::{Client, Options as ForwardOptions, QueryId, Random, Scope};
 use super::forward_service::ForwardDispatcher;
 use super::process::{ignore_reply, process_reply, AddressPolicy, ProcessAction, ProcessError};
 use super::reply::{limit_udp_reply, prepare_reply, ReplyPolicy};
-use super::routing::{RoutingError, RoutingTable};
+use super::routing::{RouteReason, RoutingError, RoutingTable};
 use super::service::{LocalDnsService, ServiceError};
 use super::upstream::{OsRandom, ResolveError, UpstreamResolver};
 use super::wire::{
@@ -52,8 +52,8 @@ pub enum QueryResult {
     Cached(Vec<u8>),
     /// The query was admitted to the upstream transaction table.
     Forwarded(QueryId),
-    /// The query was syntactically valid but has no local answer or upstream
-    /// route.  This is an explicit drop, never an implicit NXDOMAIN.
+    /// The query exceeds the admitted size or reaches an unimplemented local
+    /// routing boundary. A missing upstream route is answered with REFUSED.
     Dropped,
 }
 
@@ -159,6 +159,7 @@ pub struct DnsDaemon<R = OsRandom> {
     policy: AddressPolicy,
     proxy_dnssec: bool,
     max_udp: usize,
+    edns_packet_max: u16,
 }
 
 impl DnsDaemon<OsRandom> {
@@ -223,6 +224,7 @@ impl<R: Random> DnsDaemon<R> {
             policy,
             proxy_dnssec: options.proxy_dnssec,
             max_udp: options.max_udp.max(512),
+            edns_packet_max: options.edns_packet_max,
         })
     }
 
@@ -288,6 +290,20 @@ impl<R: Random> DnsDaemon<R> {
             .routing
             .select(&question.name, question.rrtype, question.class, false);
         let Some(group) = route.upstream_group() else {
+            if route.reason == RouteReason::NoMatchingRule {
+                let limit = find_pseudoheader(query, true)?
+                    .opt
+                    .map_or(512, |opt| usize::from(opt.udp_size(self.edns_packet_max)));
+                // forward.c::forward_query: EDE_NOT_READY for no server.
+                // UDP's add_pseudoheader clears DO, unlike the TCP caller.
+                return Ok(QueryResult::Local(super::tcp_service::refusal(
+                    query,
+                    self.edns_packet_max,
+                    14,
+                    limit,
+                    false,
+                )?));
+            }
             return Ok(QueryResult::Dropped);
         };
         let client = Client {
@@ -1151,19 +1167,74 @@ mod tests {
                 .unwrap(),
             QueryResult::Local(_)
         ));
+        let QueryResult::Local(reply) = daemon
+            .handle_udp(
+                &query("unknown.test", 8),
+                ClientRequest {
+                    source: "127.0.0.1:53000".parse().unwrap(),
+                    destination: "127.0.0.1".parse().unwrap(),
+                    interface: 0,
+                },
+            )
+            .unwrap()
+        else {
+            panic!("missing upstream must receive REFUSED")
+        };
+        let header = Header::parse(&reply).unwrap();
+        assert_eq!(header.id, 8);
+        assert_eq!(header.flags, 0x8185);
         assert_eq!(
-            daemon
-                .handle_udp(
-                    &query("unknown.test", 8),
-                    ClientRequest {
-                        source: "127.0.0.1:53000".parse().unwrap(),
-                        destination: "127.0.0.1".parse().unwrap(),
-                        interface: 0,
-                    },
-                )
-                .unwrap(),
-            QueryResult::Dropped
+            (
+                header.questions,
+                header.answers,
+                header.authorities,
+                header.additionals
+            ),
+            (1, 0, 0, 0)
         );
+        assert_eq!(daemon.pending_count(), 0);
+    }
+
+    #[test]
+    fn unowned_udp_query_preserves_cd_but_clears_ad_and_do() {
+        let mut config = DnsConfig::default();
+        apply(&mut config, b"no-resolv");
+        let mut daemon = DnsDaemon::with_random(
+            config,
+            Hosts::new(),
+            &[],
+            DaemonOptions {
+                edns_packet_max: 512,
+                ..options()
+            },
+            Counter(0),
+        )
+        .unwrap();
+        let mut request = query("missing.test", 0x406b);
+        request[2..4].copy_from_slice(&0x0130u16.to_be_bytes());
+        request[10..12].copy_from_slice(&1u16.to_be_bytes());
+        request.extend_from_slice(&[0, 0, 41, 0x10, 0, 0, 0, 0x80, 0, 0, 0]);
+        let QueryResult::Local(reply) = daemon
+            .handle_udp(
+                &request,
+                ClientRequest {
+                    source: "127.0.0.1:53000".parse().unwrap(),
+                    destination: "127.0.0.1".parse().unwrap(),
+                    interface: 0,
+                },
+            )
+            .unwrap()
+        else {
+            panic!("missing upstream must receive REFUSED")
+        };
+        // Exact C receive_query/forward_query baseline: advertise configured
+        // 512, retain CD/RD, clear AD/DO, append EDE NOT_READY (14).
+        assert_eq!(Header::parse(&reply).unwrap().flags, 0x8195);
+        let opt = find_pseudoheader(&reply, true).unwrap().opt.unwrap();
+        assert_eq!(opt.record.class, 512);
+        assert_eq!(opt.record.ttl, 0);
+        assert_eq!(opt.record.rdata, &[0, 15, 0, 2, 0, 14]);
+        assert_eq!(daemon.pending_count(), 0);
     }
 
     #[test]
