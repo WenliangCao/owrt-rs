@@ -54,7 +54,8 @@ below ignored `private/`. The ordinary daemon test suite contains six new
 fixed-contract tests; its separate ignored oracle-driver test is run explicitly
 by the differential tool and is not silently counted as passing.
 
-Final evidence: `private/dnsmasq-rewrite/cache-answer-20260930/run-06/summary.json`:
+Initial evidence (superseded by the corrected-variant 205-command run below):
+`private/dnsmasq-rewrite/cache-answer-20260930/run-06/summary.json`:
 **158 commands, 122 client queries, 0 semantic mismatches**. Calibration checks
 reset, miss, insertion, exact NXDOMAIN flags, expiry and a deliberately changed
 RCODE. Output row counts must match the input count. DNS compression encoding
@@ -85,7 +86,7 @@ fixed address order. Normal lookup now uses the actual configuration for
 direct records and CNAME terminal RRsets. Record order remains part of the
 differential comparison, rather than being sorted away.
 
-`private/dnsmasq-rewrite/cache-answer-20260930/selection-final-02/summary.json` records
+`private/dnsmasq-rewrite/cache-answer-20260930/selection-common-04/summary.json` records
 **205 commands, 149 queries (80 hits / 69 misses), 0 mismatches**. The prior
 CNAME/negative/long-name corpus remains included. Three additional ordinary
 regressions cover record rotation, SOA type selection and NXDOMAIN qtypes;
@@ -117,7 +118,7 @@ reference undefined read; it is not a passing Rust equivalence test or a claim
 of exploitability, production exposure, leaks or performance impact.
 
 Complete evidence is
-`private/dnsmasq-rewrite/cache-answer-20260930/uninit-final-01/`, including four
+`private/dnsmasq-rewrite/cache-answer-20260930/uninit-common-03/`, including four
 generated inputs, outputs, checker logs, oracle hashes and `summary.json`.
 The reproduction runs with `--oracle <binary> --identity <identity.json>
 --config <cache.conf> --output <new private directory>` on the Linux build
@@ -128,7 +129,17 @@ This check also exposed a harness initialization omission: the cache oracle
 had not copied `dnsmasq.c:126`'s `pipe_to_parent=-1`, so it attempted child-cache
 IPC on stdin. The driver now initializes the cache-owner role explicitly.
 The complete 205-command cache selection differential was rerun against this
-corrected oracle (`build-02`, ELF SHA256
-`fe1285f711b36c2306f25a9f01a5d7721bd2c58471c6ead1a733b77b5b9f7c8c`)
+corrected oracle (`build-04`, ELF SHA256
+`9e3e6ed52104e114663f6937ce45551ae7c440f641a053aa196aeae4bf4a1ba0`)
 with zero mismatches. Earlier outputs are retained as diagnostic history;
-`selection-final-02` supersedes their caller-plumbing evidence.
+`selection-common-04` supersedes their caller-plumbing and variant evidence.
+
+The shared `local_answer_diff.build_oracle` builder now passes all six recipe
+COPTS explicitly and verifies the original `config.h` SHA256 plus Linux ELF
+object format. Its old native-host comment had incorrectly omitted these
+defines, risking feature-dependent header/object layout disagreement.
+Unverified Mach-O objects and modified headers are now rejected.
+`selection-common-04` and `uninit-common-03` were rebuilt through this corrected
+shared builder; prior builds are diagnostic history, not current final
+equivalence evidence. The rejection control is retained in
+`private/dnsmasq-rewrite/cache-answer-20260930/variant-rejection.json`.

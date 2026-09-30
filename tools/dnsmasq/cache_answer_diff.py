@@ -155,7 +155,7 @@ def main():
         local_answer_diff.DRIVER = DRIVER
         binary = local_answer_diff.build_oracle(args.build_reference, out)
         (out / 'cache.conf').write_text(CONFIG)
-        identity = {'source_sha256': actual, 'driver_sha256': digest(DRIVER),
+        identity = {'source_sha256': actual, 'copts': local_answer_diff.REFERENCE_COPTS, 'driver_sha256': digest(DRIVER),
                     'binary_sha256': digest(binary), 'config_sha256': digest(out / 'cache.conf'),
                     'binary': str(binary), 'reference_build': str(args.build_reference)}
         (out / 'identity.json').write_text(json.dumps(identity, indent=2) + '\n')

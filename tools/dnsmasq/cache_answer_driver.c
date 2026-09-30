@@ -3,6 +3,13 @@
  * Q invokes answer_request; RESET performs the real cache_reload lifecycle.
  * Input: OP NOW LIMIT HEX. Configuration is supplied through normal -C FILE.
  */
+/* Match the object build before dnsmasq.h declares feature-dependent state. */
+#define HAVE_UBUS 1
+#define HAVE_POLL_H 1
+#define NO_DHCP6 1
+#define NO_AUTH 1
+#define NO_IPSET 1
+#define NO_ID 1
 #include "dnsmasq.h"
 #include <assert.h>
 

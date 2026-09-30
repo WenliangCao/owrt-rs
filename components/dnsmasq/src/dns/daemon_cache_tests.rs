@@ -235,14 +235,11 @@ fn soa_cache_only_answers_matching_rrtype() {
         )
         .unwrap();
     daemon.cache_reply_at(&reply.finish(), 100);
-    for qtype in [6] {
-        let answer = cached(&mut daemon, "same.test", qtype, 100).unwrap();
+    {
+        let answer = cached(&mut daemon, "same.test", 6, 100).unwrap();
         let message = Message::parse(&answer).unwrap();
         assert_eq!(message.header.answers, 1);
-        assert_eq!(
-            message.records(Section::Answer).next().unwrap().rrtype,
-            qtype
-        );
+        assert_eq!(message.records(Section::Answer).next().unwrap().rrtype, 6);
     }
     for qtype in [15, 33, 255, 65401] {
         assert!(cached(&mut daemon, "same.test", qtype, 100).is_none());
