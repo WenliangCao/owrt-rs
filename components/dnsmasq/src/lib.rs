@@ -7,6 +7,7 @@ pub mod config;
 pub mod dhcp;
 pub mod dns;
 pub mod hosts;
+pub mod interfaces;
 pub mod metrics;
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 pub mod net;
