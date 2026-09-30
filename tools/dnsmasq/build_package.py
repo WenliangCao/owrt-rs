@@ -76,7 +76,9 @@ def snapshot(root, destination, expected):
 @contextmanager
 def package_recipe(sdk, source, out, report):
     active = sdk / "package" / PACKAGE
-    backup = sdk / "package" / f".dnsmasq-backup-{out.name}"
+    # SDK discovery scans even hidden directories below package/. Keep the
+    # recovery copy outside that tree so it cannot become a second recipe.
+    backup = sdk / f".dnsmasq-backup-{out.name}"
     require(not backup.exists(), f"package recovery backup already exists: {backup}")
     existed = active.exists() or active.is_symlink()
     if existed:

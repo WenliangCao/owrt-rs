@@ -12,7 +12,8 @@ The package recipe no longer deletes or reuses the shared
 with `--frozen`, a fixed Rust channel and remapped source paths. The SDK recipe
 is temporarily replaced under an advisory per-package lock and restored on
 success or a handled failure. A killed build can leave the clearly named
-`.dnsmasq-backup-OUTPUT_NAME` recovery directory; the tool refuses to overwrite
+`.dnsmasq-backup-OUTPUT_NAME` recovery directory at the SDK root, outside its
+package discovery tree; the tool refuses to overwrite
 an existing recovery backup. This lock coordinates this wrapper, not arbitrary
 external SDK commands.
 

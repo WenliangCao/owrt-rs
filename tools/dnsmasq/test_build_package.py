@@ -23,6 +23,8 @@ class PackageBuildTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "deliberate build failure"):
                 with package.package_recipe(sdk, source, root / "output", report):
                     self.assertEqual((active / "Makefile").read_text(), "current")
+                    self.assertEqual((sdk / ".dnsmasq-backup-output/old").read_text(), "preserve")
+                    self.assertEqual([p.name for p in (sdk / "package").iterdir()], ["owrt-dnsmasq"])
                     raise ValueError("deliberate build failure")
             self.assertEqual([p.name for p in active.iterdir()], ["old"])
             self.assertEqual((active / "old").read_text(), "preserve")
