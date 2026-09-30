@@ -171,6 +171,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             thread::Builder::new()
                 .name(format!("dns-tcp-{address}"))
                 .spawn(move || {
+                    let mut clients = Vec::new();
                     while !STOP_REQUESTED.load(Ordering::Acquire) {
                         let (stream, _) = match tcp.accept() {
                             Ok(connection) => connection,
@@ -186,7 +187,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                         }
                         let service = Arc::clone(&tcp_service);
                         let permit = TcpPermit(Arc::clone(&tcp_active_for_listener));
-                        let _ =
+                        let client =
                             thread::Builder::new()
                                 .name("dns-tcp-client".into())
                                 .spawn(move || {
@@ -204,7 +205,12 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                         {
                                             break;
                                         }
-                                        if stream.set_read_timeout(Some(remaining)).is_err() {
+                                        if stream
+                                            .set_read_timeout(Some(
+                                                remaining.min(Duration::from_millis(100)),
+                                            ))
+                                            .is_err()
+                                        {
                                             break;
                                         }
                                         let count = match stream.read(&mut input) {
@@ -249,6 +255,12 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                         }
                                     }
                                 });
+                        if let Ok(client) = client {
+                            clients.push(client);
+                        }
+                    }
+                    for client in clients {
+                        let _ = client.join();
                     }
                 })?,
         );

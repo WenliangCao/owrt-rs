@@ -56,7 +56,7 @@ UDP/TCP IPv4/IPv6 实际收发与 socket/FD 生命周期；上游认证/随机�
 
 ## 动态 forward cache 阶段
 
-`dns/cache.rs` 是可独立验证的动态 forward 原语，尚未接入 daemon；本地 hosts/DHCP/config 记录、reverse cache、SOA 提取及 TCP 子进程缓存 IPC 仍属于后续集成。当前原语已增加 `insert_negative` 的 SOA TTL 优先、`neg-ttl` 回退和零 TTL 边界，以及包含 name-wide NXDOMAIN 的 question lookup。`Record.data` 仍是调用方校验后的 canonical RDATA 或负缓存 SOA metadata；cache 原语不解释其协议内容。未将这些缺口标记为完成。
+`dns/cache.rs` 与 `dns/cache_reply.rs` 是可独立验证的动态 forward 原语，尚未接入 daemon；本地 hosts/DHCP/config 记录、reverse cache、SOA 提取及 TCP 子进程缓存 IPC 仍属于后续集成。当前原语已增加 `insert_negative` 的 SOA TTL 优先、`neg-ttl` 回退和零 TTL 边界、包含 name-wide NXDOMAIN 的 question lookup，以及正 RR/CNAME/负命中到 bounded wire 的合成。`Record.data` 仍是调用方校验后的 canonical RDATA 或负缓存 SOA metadata；cache 原语不解释其协议内容。未将这些缺口标记为完成。
 
 | 精确 C 位置 | 行为与不变量 | Rust 原语 | 当前对照 |
 |---|---|---|---|
