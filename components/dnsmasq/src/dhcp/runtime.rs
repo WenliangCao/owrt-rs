@@ -3,9 +3,9 @@
 //! The C path owns four distinct steps (`dhcp.c:130-530`): bounded admission,
 //! dispatch/context selection, reply construction and destination/send cleanup.
 //! This module models those steps without hiding unsupported relay/PXE/
-//! leasequery routes behind a local send. State selection remains a caller
-//! callback so tests and future OpenWrt integration can provide the exact
-//! context/tag/lease policy without opening a socket here.
+//! leasequery routes behind a local send. State selection is caller-configured:
+//! tests may provide a callback, while [`StateProvider`] supplies the local
+//! DHCP/BOOTP state adapter without opening a socket here.
 
 use super::reply::{build_outcome, ReplyError, ReplyOption};
 use super::service::{Dispatch, DispatchKind, Route};
