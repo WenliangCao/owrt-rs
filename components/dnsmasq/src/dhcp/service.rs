@@ -8,9 +8,9 @@
 //! and actual UDP sockets remain caller responsibilities.
 
 use super::packet::{Packet, ParseError, FIXED_LEN, MAX_PACKET_LEN};
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 use std::io;
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 /// C's DHCP and PXE listeners use separate UDP sockets (dhcp.c:130-133).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -91,7 +91,9 @@ pub fn receive_once<'a>(
     let ingress = Ingress {
         listener,
         interface_index: datagram.interface,
-        unicast_destination: !datagram.destination.is_unspecified(),
+        // dhcp.c:196 compares the IP-header destination with INADDR_BROADCAST,
+        // not the local interface address supplied alongside it by pktinfo.
+        unicast_destination: datagram.destination != IpAddr::V4(Ipv4Addr::BROADCAST),
     };
     let result =
         dispatch(&buffer[..datagram.len], ingress, pxe_prefixes).map(|dispatch| Received {

@@ -97,7 +97,10 @@ impl Address {
 pub struct Datagram {
     pub len: usize,
     pub peer: SocketAddr,
+    /// Address in the IP header (`ipi_addr`); may be broadcast or multicast.
     pub destination: IpAddr,
+    /// Local interface address (`ipi_spec_dst`), suitable as a reply source.
+    pub local_address: IpAddr,
     pub interface: u32,
 }
 
@@ -160,6 +163,10 @@ impl DatagramSocket {
         self.socket.local_addr()
     }
 
+    pub fn set_broadcast(&self, enabled: bool) -> io::Result<()> {
+        self.socket.set_broadcast(enabled)
+    }
+
     /// Truncated datagrams/ancillary data and zero source ports are discarded.
     /// Only initialized `buffer[..len]` is returned for protocol processing.
     pub fn receive(&self, buffer: &mut [u8]) -> io::Result<Option<Datagram>> {
@@ -198,13 +205,14 @@ impl DatagramSocket {
         let bytes = unsafe {
             std::slice::from_raw_parts(control.as_ptr().cast::<u8>(), msg.controllen.min(40))
         };
-        let Some((destination, interface)) = packet_info(bytes, self.ipv6) else {
+        let Some((destination, local_address, interface)) = packet_info(bytes, self.ipv6) else {
             return Ok(None);
         };
         Ok(Some(Datagram {
             len: len as usize,
             peer,
             destination,
+            local_address,
             interface,
         }))
     }
@@ -216,6 +224,36 @@ impl DatagramSocket {
         bytes: &[u8],
         peer: SocketAddr,
         source: Option<(IpAddr, u32)>,
+    ) -> io::Result<()> {
+        self.send_with_interface(bytes, peer, source, None)
+    }
+
+    /// DHCP's unconfigured-client branch supplies `ipi_ifindex` and lets the
+    /// kernel choose `ipi_spec_dst`. DNS `send` above intentionally keeps its
+    /// IPv4 interface at zero, following forward.c::send_from.
+    pub fn send_on_interface(
+        &self,
+        bytes: &[u8],
+        peer: SocketAddr,
+        interface: u32,
+    ) -> io::Result<()> {
+        if self.ipv6 || interface == 0 || interface > i32::MAX as u32 {
+            return Err(invalid("DHCP send needs a valid IPv4 interface"));
+        }
+        self.send_with_interface(
+            bytes,
+            peer,
+            Some((IpAddr::V4(Ipv4Addr::UNSPECIFIED), interface)),
+            Some(interface),
+        )
+    }
+
+    fn send_with_interface(
+        &self,
+        bytes: &[u8],
+        peer: SocketAddr,
+        source: Option<(IpAddr, u32)>,
+        ipv4_interface: Option<u32>,
     ) -> io::Result<()> {
         if peer.is_ipv6() != self.ipv6 {
             return Err(invalid("destination family mismatch"));
@@ -251,7 +289,10 @@ impl DatagramSocket {
             b[8..12].copy_from_slice(&level.to_ne_bytes());
             b[12..16].copy_from_slice(&kind.to_ne_bytes());
             match source {
-                IpAddr::V4(v) => b[20..24].copy_from_slice(&v.octets()),
+                IpAddr::V4(v) => {
+                    b[16..20].copy_from_slice(&ipv4_interface.unwrap_or(0).to_ne_bytes());
+                    b[20..24].copy_from_slice(&v.octets());
+                }
                 IpAddr::V6(v) => {
                     b[16..32].copy_from_slice(&v.octets());
                     b[32..36].copy_from_slice(&interface.to_ne_bytes());
@@ -282,7 +323,7 @@ impl DatagramSocket {
     }
 }
 
-fn packet_info(mut bytes: &[u8], ipv6: bool) -> Option<(IpAddr, u32)> {
+fn packet_info(mut bytes: &[u8], ipv6: bool) -> Option<(IpAddr, IpAddr, u32)> {
     while bytes.len() >= 16 {
         let len = usize::from_ne_bytes(bytes[..8].try_into().ok()?);
         if len < 16 || len > bytes.len() {
@@ -292,12 +333,14 @@ fn packet_info(mut bytes: &[u8], ipv6: bool) -> Option<(IpAddr, u32)> {
         let kind = i32::from_ne_bytes(bytes[12..16].try_into().ok()?);
         if !ipv6 && level == IPPROTO_IP && kind == IP_PKTINFO && len >= 28 {
             return Some((
+                IpAddr::V4(Ipv4Addr::new(bytes[24], bytes[25], bytes[26], bytes[27])),
                 IpAddr::V4(Ipv4Addr::new(bytes[20], bytes[21], bytes[22], bytes[23])),
                 u32::from_ne_bytes(bytes[16..20].try_into().ok()?),
             ));
         }
         if ipv6 && level == IPPROTO_IPV6 && kind == IPV6_PKTINFO && len >= 36 {
             return Some((
+                IpAddr::V6(Ipv6Addr::from(<[u8; 16]>::try_from(&bytes[16..32]).ok()?)),
                 IpAddr::V6(Ipv6Addr::from(<[u8; 16]>::try_from(&bytes[16..32]).ok()?)),
                 u32::from_ne_bytes(bytes[32..36].try_into().ok()?),
             ));
@@ -323,6 +366,28 @@ mod tests {
             let mut raw = Address::new(addr);
             let len = raw.len;
             assert_eq!(raw.decode(len).unwrap(), addr);
+        }
+    }
+
+    #[test]
+    fn ipv4_pktinfo_keeps_broadcast_distinct_from_local_source() {
+        let mut bytes = [0; 32];
+        bytes[..8].copy_from_slice(&28usize.to_ne_bytes());
+        bytes[8..12].copy_from_slice(&IPPROTO_IP.to_ne_bytes());
+        bytes[12..16].copy_from_slice(&IP_PKTINFO.to_ne_bytes());
+        bytes[16..20].copy_from_slice(&3u32.to_ne_bytes());
+        bytes[20..24].copy_from_slice(&[192, 0, 2, 1]);
+        bytes[24..28].copy_from_slice(&[255, 255, 255, 255]);
+        assert_eq!(
+            packet_info(&bytes, false),
+            Some((
+                IpAddr::V4(Ipv4Addr::BROADCAST),
+                IpAddr::V4(Ipv4Addr::new(192, 0, 2, 1)),
+                3,
+            ))
+        );
+        for length in 0..28 {
+            assert_eq!(packet_info(&bytes[..length], false), None);
         }
     }
 

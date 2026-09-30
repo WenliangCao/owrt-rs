@@ -24,11 +24,22 @@ pub trait DatagramSender {
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 impl DatagramSender for crate::net::DatagramSocket {
-    fn send(&mut self, _bytes: &[u8], _destination: &Destination) -> io::Result<()> {
-        Err(io::Error::new(
-            io::ErrorKind::Unsupported,
-            "DHCP route needs pktinfo/broadcast/ARP adapter",
-        ))
+    fn send(&mut self, bytes: &[u8], destination: &Destination) -> io::Result<()> {
+        if destination.arp.is_some() {
+            return Err(io::Error::new(
+                io::ErrorKind::Unsupported,
+                "DHCP unconfigured-client route needs ARP injection",
+            ));
+        }
+        match destination.kind {
+            DestinationKind::Broadcast => {
+                self.set_broadcast(true)?;
+                self.send_on_interface(bytes, destination.address, destination.interface)
+            }
+            DestinationKind::Client | DestinationKind::Peer => {
+                crate::net::DatagramSocket::send(self, bytes, destination.address, None)
+            }
+        }
     }
 }
 
