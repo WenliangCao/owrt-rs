@@ -639,8 +639,10 @@ mod tests {
 
     #[test]
     fn runtime_gate_rejects_unwired_cache_policy() {
-        let mut scalar = ScalarConfig::default();
-        scalar.cache_size += 1;
+        let scalar = ScalarConfig {
+            cache_size: ScalarConfig::default().cache_size + 1,
+            ..ScalarConfig::default()
+        };
         assert_eq!(
             validate_runtime_ready(&scalar, &DnsConfig::default()).unwrap_err(),
             Error("scalar option is not implemented")
