@@ -64,10 +64,11 @@ def main():
         parser.error('output must be under private/')
     output.mkdir(parents=True, exist_ok=False)
     config = output / 'dnsmasq.conf'
-    config.write_text('''no-resolv
+    config.write_text(f'''no-resolv
 no-hosts
 listen-address=127.0.0.1
 port=5300
+dhcp-leasefile={output / 'dhcp.leases'}
 dhcp-authoritative
 dhcp-range=127.0.0.10,127.0.0.20,255.255.0.0,127.0.255.254,10m
 dhcp-range=127.0.1.10,127.0.1.20,255.255.0.0,127.0.255.253,20m
