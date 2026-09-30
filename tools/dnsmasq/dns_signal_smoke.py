@@ -10,6 +10,7 @@ import math
 import socket
 import struct
 import subprocess
+import signal
 import time
 from pathlib import Path
 
@@ -60,6 +61,12 @@ def main() -> int:
     )
     parser.add_argument("--timeout", type=float, default=5.0)
     parser.add_argument("--output", required=True, type=Path)
+    parser.add_argument(
+        "--signal",
+        choices=("SIGTERM", "SIGINT"),
+        default="SIGTERM",
+        help="shutdown signal to exercise",
+    )
     args = parser.parse_args()
     if not math.isfinite(args.timeout) or args.timeout <= 0:
         parser.error("timeout must be finite and positive")
@@ -88,7 +95,7 @@ def main() -> int:
 
     config_file = output / "dnsmasq.conf"
     config_file.write_text(config)
-    result = {"status": "failed", "checks_passed": 0, "signal": "SIGTERM"}
+    result = {"status": "failed", "checks_passed": 0, "signal": args.signal}
     with contextlib.ExitStack() as stack:
         stderr = stack.enter_context((output / "stderr.txt").open("w"))
         process = subprocess.Popen(
@@ -146,7 +153,7 @@ def main() -> int:
             # Keep an idle client and an incomplete frame live at shutdown.
             time.sleep(0.1)
             start = time.monotonic()
-            process.terminate()
+            process.send_signal(getattr(signal, args.signal))
             process.wait(timeout=args.timeout)
             result["exit_code"] = process.returncode
             result["shutdown_seconds"] = time.monotonic() - start
