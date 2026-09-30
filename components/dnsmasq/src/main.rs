@@ -21,6 +21,7 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 static STOP_REQUESTED: AtomicBool = AtomicBool::new(false);
+const STOP_CHECK_INTERVAL: Duration = Duration::from_millis(100);
 
 extern "C" fn request_stop(_signal: i32) {
     STOP_REQUESTED.store(true, Ordering::Release);
@@ -65,8 +66,8 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         Action::Version => {
             println!("dnsmasq-rs 0.1.0");
             println!("Mode: development DNS daemon");
-            println!("Implemented: local and configured upstream DNS over UDP and TCP");
-            println!("Not implemented: DHCP, TFTP, UBus, reload and metrics");
+            println!("Implemented: local DNS over UDP/TCP; configured upstream DNS over UDP");
+            println!("Not implemented: TCP forwarding, cache integration, DHCP, TFTP, UBus, reload and metrics");
             return Ok(());
         }
         Action::Help | Action::HelpDhcp => {
@@ -171,8 +172,19 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             thread::Builder::new()
                 .name(format!("dns-tcp-{address}"))
                 .spawn(move || {
-                    let mut clients = Vec::new();
+                    let mut clients: Vec<thread::JoinHandle<()>> = Vec::new();
                     while !STOP_REQUESTED.load(Ordering::Acquire) {
+                        // Reap completed connections during normal operation.
+                        // Keeping every historical handle until SIGTERM would
+                        // grow memory even with bounded active connections.
+                        let mut index = 0;
+                        while index < clients.len() {
+                            if clients[index].is_finished() {
+                                let _ = clients.swap_remove(index).join();
+                            } else {
+                                index += 1;
+                            }
+                        }
                         let (stream, _) = match tcp.accept() {
                             Ok(connection) => connection,
                             Err(error) if error.kind() == io::ErrorKind::WouldBlock => {
@@ -182,6 +194,11 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                             Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
                             Err(_) => break,
                         };
+                        // dnsmasq.c clears inherited O_NONBLOCK after accept.
+                        // Darwin inherits it; Linux does not.
+                        if stream.set_nonblocking(false).is_err() {
+                            continue;
+                        }
                         if !try_acquire_tcp(&tcp_active_for_listener, tcp_limit) {
                             continue;
                         }
@@ -194,7 +211,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                     let _permit = permit;
                                     let mut stream = stream;
                                     let deadline = Instant::now() + Duration::from_secs(150);
-                                    let mut framer = TcpFramer::new();
+                                    let mut framer = TcpFramer::with_max_frame(packet_limit);
                                     let mut input = [0u8; 4096];
                                     let mut queries = 0usize;
                                     'connection: while let Some(remaining) =
@@ -207,13 +224,14 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                         }
                                         if stream
                                             .set_read_timeout(Some(
-                                                remaining.min(Duration::from_millis(100)),
+                                                remaining.min(STOP_CHECK_INTERVAL),
                                             ))
                                             .is_err()
                                         {
                                             break;
                                         }
                                         let count = match stream.read(&mut input) {
+                                            Err(error) if retry_tcp_io(&error) => continue,
                                             Ok(0) | Err(_) => break,
                                             Ok(count) => count,
                                         };
@@ -228,29 +246,33 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                             if query.len() > packet_limit {
                                                 break 'connection;
                                             }
-                                            let answer =
-                                                service.lock().ok().and_then(|mut guard| {
-                                                    guard.handle_tcp_payload(&query).ok().flatten()
-                                                });
-                                            if let Some(answer) = answer {
-                                                let Ok(frame) = encode_tcp_frame(&answer) else {
-                                                    break 'connection;
-                                                };
-                                                let Some(remaining) =
-                                                    deadline.checked_duration_since(Instant::now())
-                                                else {
-                                                    break 'connection;
-                                                };
-                                                if remaining.is_zero()
-                                                    || write_frame_until(
-                                                        &mut stream,
-                                                        &frame,
-                                                        deadline,
-                                                    )
-                                                    .is_err()
-                                                {
-                                                    break 'connection;
+                                            let answer = match service.lock() {
+                                                Ok(mut guard) => {
+                                                    match guard.handle_tcp_payload(&query) {
+                                                        Ok(Some(answer)) => answer,
+                                                        // TCP forwarding is not wired yet.  Keeping an
+                                                        // unowned query open until the 150s connection
+                                                        // deadline would turn an unsupported request into
+                                                        // a resource leak; close it like the C path does
+                                                        // when no forwarding result is available.
+                                                        Ok(None) | Err(_) => break 'connection,
+                                                    }
                                                 }
+                                                Err(_) => break 'connection,
+                                            };
+                                            let Ok(frame) = encode_tcp_frame(&answer) else {
+                                                break 'connection;
+                                            };
+                                            let Some(remaining) =
+                                                deadline.checked_duration_since(Instant::now())
+                                            else {
+                                                break 'connection;
+                                            };
+                                            if remaining.is_zero()
+                                                || write_frame_until(&mut stream, &frame, deadline)
+                                                    .is_err()
+                                            {
+                                                break 'connection;
                                             }
                                         }
                                     }
@@ -309,14 +331,20 @@ fn write_frame_until(
 ) -> io::Result<()> {
     let mut offset = 0;
     while offset < frame.len() {
+        if STOP_REQUESTED.load(Ordering::Acquire) {
+            return Err(io::Error::new(io::ErrorKind::Interrupted, "DNS shutdown"));
+        }
         let Some(remaining) = deadline.checked_duration_since(Instant::now()) else {
             return Err(io::Error::new(io::ErrorKind::TimedOut, "DNS TCP deadline"));
         };
         if remaining.is_zero() {
             return Err(io::Error::new(io::ErrorKind::TimedOut, "DNS TCP deadline"));
         }
-        stream.set_write_timeout(Some(remaining))?;
-        let written = stream.write(&frame[offset..])?;
+        stream.set_write_timeout(Some(remaining.min(STOP_CHECK_INTERVAL)))?;
+        let written = match stream.write(&frame[offset..]) {
+            Err(error) if retry_tcp_io(&error) => continue,
+            result => result?,
+        };
         if written == 0 {
             return Err(io::Error::new(
                 io::ErrorKind::WriteZero,
@@ -326,6 +354,13 @@ fn write_frame_until(
         offset += written;
     }
     Ok(())
+}
+
+fn retry_tcp_io(error: &io::Error) -> bool {
+    matches!(
+        error.kind(),
+        io::ErrorKind::Interrupted | io::ErrorKind::WouldBlock | io::ErrorKind::TimedOut
+    )
 }
 
 #[cfg(test)]
