@@ -77,6 +77,51 @@ pub struct Received<'a> {
     pub interface: u32,
 }
 
+/// Input states understood by the socket-independent poll adapter.  A socket
+/// wrapper maps `recvmsg`'s `EAGAIN` to `WouldBlock` and ancillary/policy
+/// drops to `Ignored` without handing either to the DHCP state machine.
+#[derive(Clone, Copy, Debug)]
+pub enum PollInput<'a> {
+    Datagram(&'a [u8]),
+    Ignored,
+    WouldBlock,
+}
+
+/// One non-blocking poll step. `Admitted` is the only variant that may be
+/// handed to a state-machine caller; all other variants have no lease or DNS
+/// side effects. The generic payload lets the pure adapter return `Dispatch`
+/// while the Linux socket wrapper retains peer/pktinfo in `Received`.
+#[derive(Clone, Copy, Debug)]
+pub enum PollOutcome<T> {
+    Admitted(T),
+    Malformed(DispatchError),
+    Ignored,
+    WouldBlock,
+    Stopped,
+}
+
+/// Classify one bounded datagram without touching a socket or lease provider.
+/// This is the deterministic handoff used by platform receive loops and is
+/// directly testable on every host target.
+pub fn dispatch_poll<'a>(
+    input: PollInput<'a>,
+    ingress: Ingress,
+    pxe_prefixes: &[&[u8]],
+    stop: bool,
+) -> PollOutcome<Dispatch<'a>> {
+    if stop {
+        return PollOutcome::Stopped;
+    }
+    match input {
+        PollInput::Datagram(bytes) => match dispatch(bytes, ingress, pxe_prefixes) {
+            Ok(dispatch) => PollOutcome::Admitted(dispatch),
+            Err(error) => PollOutcome::Malformed(error),
+        },
+        PollInput::Ignored => PollOutcome::Ignored,
+        PollInput::WouldBlock => PollOutcome::WouldBlock,
+    }
+}
+
 /// Receive one bounded DHCP/PXE datagram through the audited pktinfo socket.
 /// `Ok(None)` means the kernel discarded a truncated datagram or reported no
 /// usable ancillary destination metadata. A malformed but bounded packet is
@@ -122,6 +167,29 @@ pub fn receive_once<'a>(
             interface: datagram.interface,
         });
     Ok(Some(result))
+}
+
+/// Stop-aware wrapper for one non-blocking Linux receive step. `DatagramSocket`
+/// is created with `SOCK_NONBLOCK`, so checking `stop` before the receive
+/// cannot strand a shutdown waiter in a blocking syscall.
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+pub fn poll_once<'a>(
+    socket: &crate::net::DatagramSocket,
+    buffer: &'a mut [u8],
+    listener: Listener,
+    pxe_prefixes: &[&[u8]],
+    mut stop: impl FnMut() -> bool,
+) -> io::Result<PollOutcome<Received<'a>>> {
+    if stop() {
+        return Ok(PollOutcome::Stopped);
+    }
+    match receive_once(socket, buffer, listener, pxe_prefixes) {
+        Ok(Some(Ok(received))) => Ok(PollOutcome::Admitted(received)),
+        Ok(Some(Err(error))) => Ok(PollOutcome::Malformed(error)),
+        Ok(None) => Ok(PollOutcome::Ignored),
+        Err(error) if error.kind() == io::ErrorKind::WouldBlock => Ok(PollOutcome::WouldBlock),
+        Err(error) => Err(error),
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -204,6 +272,36 @@ mod tests {
             interface_index: 3,
             unicast_destination: false,
         }
+    }
+
+    #[test]
+    fn dispatch_poll_separates_stop_idle_drop_and_malformed_states() {
+        let valid = packet(&[]);
+        assert!(matches!(
+            dispatch_poll(PollInput::Datagram(&valid), ingress(), &[], true),
+            PollOutcome::Stopped
+        ));
+        assert!(matches!(
+            dispatch_poll(PollInput::Ignored, ingress(), &[], false),
+            PollOutcome::Ignored
+        ));
+        assert!(matches!(
+            dispatch_poll(PollInput::WouldBlock, ingress(), &[], false),
+            PollOutcome::WouldBlock
+        ));
+        assert!(matches!(
+            dispatch_poll(
+                PollInput::Datagram(&[0; FIXED_LEN - 1]),
+                ingress(),
+                &[],
+                false
+            ),
+            PollOutcome::Malformed(DispatchError::Packet(ParseError::TruncatedHeader))
+        ));
+        assert!(matches!(
+            dispatch_poll(PollInput::Datagram(&valid), ingress(), &[], false),
+            PollOutcome::Admitted(_)
+        ));
     }
 
     #[test]
@@ -359,5 +457,22 @@ mod tests {
                 Err(error) => panic!("receive_once failed: {error}"),
             }
         }
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    #[ignore = "requires Linux isolated loopback; run with run_isolated.sh"]
+    fn poll_once_is_nonblocking_and_stop_aware() {
+        assert_eq!(std::env::var("DNSMASQ_TEST_ISOLATED").as_deref(), Ok("1"));
+        let listener = crate::net::DatagramSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap();
+        let mut buffer = vec![0; MAX_PACKET_LEN];
+        assert!(matches!(
+            poll_once(&listener, &mut buffer, Listener::Dhcp, &[], || true).unwrap(),
+            PollOutcome::Stopped
+        ));
+        assert!(matches!(
+            poll_once(&listener, &mut buffer, Listener::Dhcp, &[], || false).unwrap(),
+            PollOutcome::WouldBlock
+        ));
     }
 }

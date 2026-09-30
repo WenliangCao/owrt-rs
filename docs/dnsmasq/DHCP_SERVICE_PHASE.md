@@ -26,6 +26,14 @@
 而不是把合法长度的任意 IPv6 payload 交给 BOOTP/DHCPv4 状态机。该丢弃发生在
 解析和租约状态之前，保持 DHCPv6/RA 由 odhcpd 负责。
 
+`dispatch_poll` 是不依赖 socket 的单步分类器：`Admitted` 才进入状态机，
+`Malformed` 记录有界报文解析错误，`Ignored` 表示 ancillary/policy 丢弃，
+`WouldBlock` 表示非阻塞 socket 当前没有报文，`Stopped` 表示关闭已请求。
+Linux `poll_once` 保留 `Received` 中的 peer/pktinfo，并在调用 `receive_once`
+前检查 stop；底层 socket 由 `DatagramSocket::bind` 创建为 `SOCK_NONBLOCK`，
+所以停止检查不会把关闭线程阻塞在接收系统调用中。该 adapter 仍不拥有 lease
+provider、reply builder、DNS 更新或脚本。
+
 当前未完成的服务合同：Linux 接口变化与桥接别名；真实 UDP 67/4011 listener、端口/权限和
 事件循环；relay 上游转发与回复识别；广播、单播、ARP 注入；完整
 `dhcp_reply` 的 context/tag/config/FQDN/options/overload；leasefile、脚本和
@@ -40,7 +48,8 @@ PATH="$HOME/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin:$PATH" \
   cargo test --manifest-path components/dnsmasq/Cargo.toml --lib dhcp::service
 ```
 
-本阶段新增 5 个 dispatch 单测；本次补充了一个真实 Linux `recvmsg`/`IP_PKTINFO`
+本阶段新增 dispatch 单测覆盖五种 poll 状态；本次补充了一个真实 Linux `recvmsg`/`IP_PKTINFO`
 loopback smoke（仅 `lo`、非特权临时端口），要求通过
-`tools/dnsmasq/run_isolated.sh` 执行，当前 macOS 主机未运行该 Linux-only 用例。
+`tools/dnsmasq/run_isolated.sh` 执行；Linux-only `poll_once` stop/nonblocking、
+IPv4-only admission 用例在普通主机保持 ignored。
 目标 musl check 与 clippy 已通过；完整 crate 回归由主代理在整合后运行。
