@@ -68,7 +68,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             println!("dnsmasq-rs 0.1.0");
             println!("Mode: development DNS daemon");
             println!("Implemented: local DNS over UDP/TCP; configured upstream DNS over UDP");
-            println!("Not implemented: TCP forwarding, negative/SOA cache, DHCP, TFTP, UBus, reload and metrics");
+            println!("Not implemented: TCP forwarding, SOA/NODATA cache synthesis, DHCP, TFTP, UBus, reload and metrics");
             return Ok(());
         }
         Action::Help | Action::HelpDhcp => {
@@ -140,6 +140,10 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                 StaleCache::Until(seconds) => StalePolicy::Seconds(seconds),
                 StaleCache::Forever => StalePolicy::Forever,
             },
+        );
+        daemon.enable_negative_cache(
+            runtime.scalar.negative_ttl,
+            !daemon_config.no_negative_cache,
         );
         workers.push(
             thread::Builder::new()
@@ -461,7 +465,6 @@ fn validate_probe_ready(scalar: &ScalarConfig, dns: &DnsConfig) -> Result<(), Er
         || scalar.min_port != defaults.min_port
         || scalar.max_port != defaults.max_port
         || scalar.port_limit != defaults.port_limit
-        || scalar.negative_ttl != defaults.negative_ttl
         || scalar.max_ttl != defaults.max_ttl
         || scalar.min_cache_ttl != defaults.min_cache_ttl
         || scalar.max_cache_ttl != defaults.max_cache_ttl
@@ -490,12 +493,7 @@ fn validate_runtime_ready(scalar: &ScalarConfig, dns: &DnsConfig) -> Result<(), 
     {
         return Err(Error("interface binding is not implemented"));
     }
-    if dns.domain_needed
-        || dns.bogus_priv
-        || dns.no_poll
-        || dns.no_negative_cache
-        || dns.localise_queries
-    {
+    if dns.domain_needed || dns.bogus_priv || dns.no_poll || dns.localise_queries {
         return Err(Error("configured DNS policy is not implemented"));
     }
     if dns.records.needs_hostname() {
@@ -509,7 +507,6 @@ fn validate_runtime_ready(scalar: &ScalarConfig, dns: &DnsConfig) -> Result<(), 
         || scalar.min_port != defaults.min_port
         || scalar.max_port != defaults.max_port
         || scalar.port_limit != defaults.port_limit
-        || scalar.negative_ttl != defaults.negative_ttl
         || scalar.max_ttl != defaults.max_ttl
         || scalar.dhcp_ttl.is_some()
     {
@@ -681,7 +678,7 @@ mod tests {
     }
 
     #[test]
-    fn runtime_gate_accepts_positive_cache_policy_but_rejects_negative_cache() {
+    fn runtime_gate_accepts_positive_and_nxdomain_cache_policy() {
         let scalar = ScalarConfig {
             cache_size: ScalarConfig::default().cache_size + 1,
             ..ScalarConfig::default()
@@ -692,16 +689,6 @@ mod tests {
             negative_ttl: 30,
             ..ScalarConfig::default()
         };
-        assert_eq!(
-            validate_runtime_ready(&scalar, &DnsConfig::default()).unwrap_err(),
-            Error("scalar option is not implemented")
-        );
-
-        let mut dns = DnsConfig::default();
-        dns.no_negative_cache = true;
-        assert_eq!(
-            validate_runtime_ready(&ScalarConfig::default(), &dns).unwrap_err(),
-            Error("configured DNS policy is not implemented")
-        );
+        assert!(validate_runtime_ready(&scalar, &DnsConfig::default()).is_ok());
     }
 }

@@ -154,6 +154,8 @@ pub struct DnsDaemon<R = OsRandom> {
     routing: RoutingTable,
     upstream: UpstreamResolver<R>,
     cache: Option<Cache>,
+    negative_ttl: u32,
+    negative_cache: bool,
     policy: AddressPolicy,
     proxy_dnssec: bool,
     max_udp: usize,
@@ -238,6 +240,8 @@ impl<R: Random> DnsDaemon<R> {
             routing,
             upstream,
             cache: None,
+            negative_ttl: 0,
+            negative_cache: false,
             policy,
             proxy_dnssec: options.proxy_dnssec,
             max_udp: options.max_udp.max(512),
@@ -267,6 +271,13 @@ impl<R: Random> DnsDaemon<R> {
                 stale,
             },
         ));
+    }
+
+    /// Enable the no-SOA NXDOMAIN cache fallback. SOA/NODATA synthesis is
+    /// intentionally separate; a zero TTL keeps this path disabled.
+    pub fn enable_negative_cache(&mut self, negative_ttl: u32, enabled: bool) {
+        self.negative_ttl = negative_ttl;
+        self.negative_cache = enabled;
     }
 
     /// Admit a single client UDP payload. Local answers are returned directly;
@@ -334,7 +345,7 @@ impl<R: Random> DnsDaemon<R> {
                     && !report.malformed_address
                     && !report.bogus_nxdomain
                 {
-                    self.cache_positive_reply(&candidate);
+                    self.cache_reply(&candidate);
                 }
             }
             for recipient in reply.recipients {
@@ -376,7 +387,11 @@ impl<R: Random> DnsDaemon<R> {
         // queries on the normal upstream path until their response envelope
         // and cache metadata have a dedicated contract.
         let edns = find_pseudoheader(query, true)?;
-        if header.opcode() != 0
+        if header.questions != 1
+            || header.answers != 0
+            || header.authorities != 0
+            || header.additionals != 0
+            || header.opcode() != 0
             || header.flags & (0x8000 | 0x20 | 0x10) != 0
             || edns.opt.is_some()
             || edns.signed
@@ -403,7 +418,14 @@ impl<R: Random> DnsDaemon<R> {
         )?;
         writer.question(&question.name, question.rrtype, question.class)?;
         let mut written = false;
+        let mut negative = false;
         for id in ids {
+            if let Some(entry) = cache.get(id) {
+                if entry.record.negative && entry.record.kind == Kind::NxDomain {
+                    negative = true;
+                    continue;
+                }
+            }
             match append_positive_record(&mut writer, cache, id, Section::Answer, now) {
                 Ok(true) => written = true,
                 Ok(false) => {}
@@ -411,17 +433,29 @@ impl<R: Random> DnsDaemon<R> {
                 Err(error) => return Err(error.into()),
             }
         }
-        Ok(written.then(|| writer.finish()))
+        if written {
+            return Ok(Some(writer.finish()));
+        }
+        if negative {
+            let mut writer = PacketWriter::new(
+                header.id,
+                (header.flags & 0x0100) | 0x8083,
+                self.max_udp.min(512),
+            )?;
+            writer.question(&question.name, question.rrtype, question.class)?;
+            return Ok(Some(writer.finish()));
+        }
+        Ok(None)
     }
 
-    fn cache_positive_reply(&mut self, packet: &[u8]) {
+    fn cache_reply(&mut self, packet: &[u8]) {
         let Some(cache) = self.cache.as_mut() else {
             return;
         };
         let Ok(message) = Message::parse(packet) else {
             return;
         };
-        if message.header.rcode() != 0
+        if !matches!(message.header.rcode(), 0 | 3)
             || message.header.flags & 0x0200 != 0
             || message.header.flags & 0x0080 == 0
             || message.header.questions != 1
@@ -435,6 +469,44 @@ impl<R: Random> DnsDaemon<R> {
             return;
         }
         let now = unix_seconds();
+        let Ok(edns) = find_pseudoheader(packet, false) else {
+            return;
+        };
+        if edns
+            .opt
+            .as_ref()
+            .is_some_and(|opt| opt.extended_rcode() != 0)
+        {
+            return;
+        }
+        if message.header.rcode() == 3 {
+            let has_soa = message
+                .records(Section::Authority)
+                .any(|rr| rr.class == 1 && rr.rrtype == 6);
+            if !self.negative_cache
+                || self.negative_ttl == 0
+                || message.header.answers != 0
+                || has_soa
+            {
+                return;
+            }
+            cache.start_insert();
+            let record = Record {
+                name: question.name,
+                kind: Kind::NxDomain,
+                negative: true,
+                data: Vec::new(),
+            };
+            if cache
+                .insert_negative(record, now, None, self.negative_ttl)
+                .is_ok()
+            {
+                let _ = cache.commit();
+            } else {
+                cache.start_insert();
+            }
+            return;
+        }
         cache.start_insert();
         let mut inserted = false;
         for rr in message.records(Section::Answer) {
@@ -510,12 +582,7 @@ fn validate_runtime_config(config: &DnsConfig) -> Result<(), DaemonError> {
             "interface binding is owned by the containing listener",
         )));
     }
-    if config.domain_needed
-        || config.bogus_priv
-        || config.no_poll
-        || config.no_negative_cache
-        || config.localise_queries
-    {
+    if config.domain_needed || config.bogus_priv || config.no_poll || config.localise_queries {
         return Err(DaemonError::Config(ConfigError(
             "configured DNS policy is not implemented by the daemon",
         )));
@@ -687,6 +754,60 @@ mod tests {
         let header = Header::parse(&packet).unwrap();
         assert_eq!(header.id, 0x2222);
         assert_eq!(header.answers, 1);
+        assert_eq!(worker.join().unwrap(), 0);
+    }
+
+    #[test]
+    fn negative_cache_hit_returns_nxdomain_without_second_upstream_send() {
+        let server = UdpSocket::bind("127.0.0.1:0").unwrap();
+        let address = server.local_addr().unwrap();
+        let worker = thread::spawn(move || {
+            let mut input = [0; 2048];
+            let (length, peer) = server.recv_from(&mut input).unwrap();
+            let header = Header::parse(&input[..length]).unwrap();
+            let name = Name::from_ascii("missing.test").unwrap();
+            let mut writer = PacketWriter::new(header.id, 0x8183, 1232).unwrap();
+            writer.question(&name, 1, 1).unwrap();
+            server.send_to(&writer.finish(), peer).unwrap();
+            server
+                .set_read_timeout(Some(Duration::from_millis(150)))
+                .unwrap();
+            let mut extra = [0; 2048];
+            usize::from(server.recv_from(&mut extra).is_ok())
+        });
+
+        let mut daemon = DnsDaemon::with_random(
+            DnsConfig::default(),
+            Hosts::new(),
+            &[address],
+            options(),
+            Counter(0),
+        )
+        .unwrap();
+        daemon.enable_cache(8, 0, 60, StalePolicy::Disabled);
+        daemon.enable_negative_cache(30, true);
+        let client = |port| ClientRequest {
+            source: format!("127.0.0.1:{port}").parse().unwrap(),
+            destination: "127.0.0.1".parse().unwrap(),
+            interface: 0,
+        };
+        assert!(matches!(
+            daemon.handle_udp(&query("missing.test", 0x1111), client(53101)),
+            Ok(QueryResult::Forwarded(_))
+        ));
+        let first = daemon.poll(Duration::from_secs(1)).unwrap();
+        assert_eq!(first.len(), 1);
+        assert_eq!(Header::parse(&first[0].packet).unwrap().rcode(), 3);
+        let cached = daemon
+            .handle_udp(&query("missing.test", 0x2222), client(53102))
+            .unwrap();
+        let QueryResult::Cached(packet) = cached else {
+            panic!("second NXDOMAIN query did not use the negative cache");
+        };
+        let header = Header::parse(&packet).unwrap();
+        assert_eq!(header.id, 0x2222);
+        assert_eq!(header.rcode(), 3);
+        assert_eq!(header.answers, 0);
         assert_eq!(worker.join().unwrap(), 0);
     }
 
