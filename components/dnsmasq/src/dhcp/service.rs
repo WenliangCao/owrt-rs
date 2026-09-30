@@ -91,6 +91,15 @@ pub fn receive_once<'a>(
     let Some(datagram) = socket.receive(buffer)? else {
         return Ok(None);
     };
+    // dhcp_init() binds the DHCPv4 and PXE descriptors with AF_INET
+    // (dhcp.c:40-109).  Do not let a caller accidentally pass an IPv6
+    // DatagramSocket here and reinterpret an arbitrary 236-byte payload as
+    // BOOTP; DHCPv6 belongs to odhcpd and is not compiled in this variant.
+    if !matches!(datagram.destination, IpAddr::V4(_))
+        || !matches!(datagram.local_address, IpAddr::V4(_))
+    {
+        return Ok(None);
+    }
     // dhcp.c resolves the pktinfo index with indextoname() before any
     // interface/context matching.  An index of zero is therefore an
     // admission failure, even if the payload itself is a valid BOOTP packet.
@@ -320,5 +329,35 @@ mod tests {
         assert_eq!(received.dispatch.kind, DispatchKind::Bootp);
         assert_eq!(received.peer.ip(), IpAddr::V4(Ipv4Addr::LOCALHOST));
         assert_eq!(received.dispatch.packet.bytes(), bytes.as_slice());
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    #[ignore = "requires Linux isolated loopback; run with run_isolated.sh"]
+    fn receive_once_rejects_ipv6_for_dhcpv4() {
+        assert_eq!(std::env::var("DNSMASQ_TEST_ISOLATED").as_deref(), Ok("1"));
+        let listener = match crate::net::DatagramSocket::bind("[::1]:0".parse().unwrap()) {
+            Ok(listener) => listener,
+            Err(error) if matches!(error.kind(), std::io::ErrorKind::AddrNotAvailable) => return,
+            Err(error) => panic!("IPv6 loopback bind failed: {error}"),
+        };
+        let target = listener.local_addr().unwrap();
+        let client = std::net::UdpSocket::bind("[::1]:0").unwrap();
+        let bytes = packet(&[]);
+        client.send_to(&bytes, target).unwrap();
+        let mut buffer = vec![0; MAX_PACKET_LEN];
+        loop {
+            match receive_once(&listener, &mut buffer, Listener::Dhcp, &[]) {
+                Ok(None) => break,
+                Ok(Some(Ok(received))) => {
+                    panic!("IPv6 DHCPv4 datagram admitted: {received:?}")
+                }
+                Ok(Some(Err(error))) => panic!("unexpected DHCP parse error: {error:?}"),
+                Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
+                    std::thread::sleep(std::time::Duration::from_millis(1));
+                }
+                Err(error) => panic!("receive_once failed: {error}"),
+            }
+        }
     }
 }

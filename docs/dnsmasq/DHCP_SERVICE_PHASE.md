@@ -6,7 +6,7 @@
 
 | C 源码位置 | 行为与不变量 | Rust 实现 | 验证 |
 |---|---|---|---|
-| `dhcp.c:130-177,248-250` | DHCP/ PXE 使用独立接收 fd；短于固定 BOOTP 头的 `recvmsg` 结果丢弃；接收数据在有界缓冲中处理；`IP_PKTINFO.ipi_addr` 决定广播判定，`ipi_spec_dst` 保留本地源地址，接口索引必须能解析 | `dhcp::service::dispatch`，明确拒绝 `<236` 或 `>16384` 字节；Linux `receive_once` 保留 pktinfo、peer、IP-header 目的地址和本地地址，并拒绝 interface index 0 | `short_and_oversized_datagrams_are_rejected_before_state`；Linux target check；隔离 loopback `receive_once_admits_loopback_pktinfo_and_preserves_addresses` |
+| `dhcp.c:40-109,130-177,248-250` | DHCP/PXE fd 明确绑定 AF_INET；短于固定 BOOTP 头的 `recvmsg` 结果丢弃；接收数据在有界缓冲中处理；`IP_PKTINFO.ipi_addr` 决定广播判定，`ipi_spec_dst` 保留本地源地址，接口索引必须能解析 | `dhcp::service::dispatch`，明确拒绝 `<236` 或 `>16384` 字节；Linux `receive_once` 保留 pktinfo、peer、IP-header 目的地址和本地地址，拒绝 interface index 0 和 IPv6 地址，避免把 DHCPv6 payload 当 DHCPv4 | `short_and_oversized_datagrams_are_rejected_before_state`；Linux target check；隔离 loopback `receive_once_admits_loopback_pktinfo_and_preserves_addresses` 与 IPv6 `receive_once_rejects_ipv6_for_dhcpv4` |
 | `rfc2131.c:117-156`; `dhcp.c:248-250` | 只接受 `BOOTREQUEST`、`hlen<=16`、`htype=0` 时 `hlen=0`；DHCP 选项 53 才要求 RFC1048 cookie | `Packet::parse`，由 `dispatch` 统一转为 `DispatchError` | `packet` 单测与 `dhcp::service::tests::malformed_request_is_rejected_without_panicking` |
 | `dhcp.c:251-264` | `giaddr=255.255.255.255` 是本地测试扩展：匹配上下文前清零，发送时恢复；普通非零 `giaddr` 经 relay | `Route::RelaySource` / `Route::Relay` / `Route::Local`，保留原值供发送方处理 | `preserves_relay_source_extension_and_normal_giaddr` |
 | `rfc2131.c:564-697` | 无消息类型为 BOOTP；BOOTP 要求 MAC，并按静态/动态策略交给 BOOTP 分支；未知 option 53 走 C 的无回复默认分支 | `DispatchKind::Bootp` / `Unsupported`；后续调用 `state::bootp` 与 `encode_bootp_vendor` | `dispatches_bootp_leasequery_and_regular_dhcp`；完整 reply 未接线 |
@@ -19,6 +19,12 @@
 策略，再调用 `state::request`、`state::inform`、`state::decline` 或
 `state::release`。这保持了 C 中“先 prune，再 `dhcp_reply`，写租约与 DNS，
 最后发送”的所有权边界，避免把未经上下文选择的 datagram 误当成 ACK。
+
+本轮增量收紧了 `receive_once` 的地址族边界。C 的 `make_fd()` 在
+`dhcp_init()` 中对 DHCPv4 与 PXE 都使用 `AF_INET`；因此即使底层共享
+`DatagramSocket` 支持 IPv6，DHCPv4 adapter 也会丢弃 IPv6 pktinfo datagram，
+而不是把合法长度的任意 IPv6 payload 交给 BOOTP/DHCPv4 状态机。该丢弃发生在
+解析和租约状态之前，保持 DHCPv6/RA 由 odhcpd 负责。
 
 当前未完成的服务合同：Linux 接口变化与桥接别名；真实 UDP 67/4011 listener、端口/权限和
 事件循环；relay 上游转发与回复识别；广播、单播、ARP 注入；完整
