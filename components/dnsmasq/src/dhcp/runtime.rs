@@ -162,8 +162,12 @@ where
             }),
         };
         let mut outcome = outcome.map_err(|error| RuntimeError::State(format!("{error:?}")))?;
+        let mut lost_names = LeaseStore::names_lost(&expired);
+        lost_names.extend(LeaseStore::names_lost(&outcome.removed));
+        lost_names.append(&mut outcome.lost_names);
         expired.append(&mut outcome.removed);
         outcome.removed = expired;
+        outcome.lost_names = lost_names;
         Ok(outcome)
     }
 }
@@ -813,6 +817,9 @@ mod tests {
                 },
             )
             .unwrap();
+        store
+            .set_hostname(expired, Some(b"old"), false, None, false)
+            .unwrap();
         store.set_expires(expired, 10, 1).unwrap();
         let mut ranges = [];
         let environment = Environment {
@@ -843,6 +850,7 @@ mod tests {
         assert_eq!(outcome.reply, Reply::Ignore);
         assert_eq!(outcome.removed.len(), 1);
         assert_eq!(outcome.removed[0].address, expired);
+        assert_eq!(outcome.lost_names[0].name, b"old");
         assert!(provider.store.is_empty());
     }
 

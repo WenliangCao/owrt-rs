@@ -49,6 +49,15 @@ pub struct Lease {
     script: ScriptFlags,
 }
 
+impl Lease {
+    /// Name currently published for this lease, in the same FQDN-first order
+    /// used by script events and DNS removal.  A pruned lease remains owned by
+    /// the caller long enough to derive a name-loss notification.
+    pub fn published_name(&self) -> Option<&[u8]> {
+        self.fqdn.as_deref().or(self.hostname.as_deref())
+    }
+}
+
 #[derive(Clone, Copy, Debug, Default)]
 struct ScriptFlags {
     new: bool,
@@ -224,6 +233,20 @@ impl LeaseStore {
 
     pub fn changes(&self) -> Changes {
         self.changes
+    }
+
+    /// Convert removed leases into DNS/name deletion notifications while the
+    /// lease records still retain their old FQDN/hostname bytes.
+    pub fn names_lost(leases: &[Lease]) -> Vec<NameLost> {
+        leases
+            .iter()
+            .filter_map(|lease| {
+                lease.published_name().map(|name| NameLost {
+                    address: lease.address,
+                    name: name.to_vec(),
+                })
+            })
+            .collect()
     }
 
     /// A failed file write must not call this; callers retain the dirty flag
