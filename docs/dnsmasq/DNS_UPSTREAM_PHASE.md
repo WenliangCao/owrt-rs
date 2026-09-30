@@ -32,12 +32,12 @@ the TC packet and prove that no UDP resend or transaction leak is introduced.
 
 ## Isolated evidence
 
-`dns::upstream::tests` covers eight loopback cases: source spoof rejection,
+`dns::upstream::tests` covers nine loopback cases: source spoof rejection,
 failed-first-server fallback, all-server REFUSED waiting without a resend,
 bounded timeout cleanup, duplicate coalescing/cancellation, explicit fast
 retry/cancellation, and matched TC delivery/classification (including short
 header rejection). The tests use only loopback UDP sockets and deterministic
-random IDs. They passed 8/8 in the current crate run. The C state differential
+random IDs. They passed 9/9 in the current crate run. The C state differential
 and EDNS envelope evidence remain separate in `DNS_FORWARD_SERVICE_PHASE.md`;
 this transport evidence does not claim complete daemon equivalence or
 production acceptance.
