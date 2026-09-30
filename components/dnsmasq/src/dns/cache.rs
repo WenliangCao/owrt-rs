@@ -188,6 +188,20 @@ impl Cache {
             .as_ref()
     }
 
+    /// Check that a handle still refers to a live cache entry at `now`.
+    ///
+    /// Handles are intentionally read-only; callers that need the normal
+    /// lookup side effect of removing an expired slot should still use
+    /// [`Cache::lookup`].  This predicate is for CNAME target traversal,
+    /// where the target is reached through an `EntryId` rather than a name
+    /// lookup.
+    pub fn is_valid(&self, id: EntryId, now: i64) -> bool {
+        let Some(slot) = self.slots.get(id.slot) else {
+            return false;
+        };
+        slot.generation == id.generation && slot.entry.is_some() && !self.invalid(id.slot, now)
+    }
+
     pub fn start_insert(&mut self) {
         while let Some(slot) = self.pending.pop() {
             self.free(slot);

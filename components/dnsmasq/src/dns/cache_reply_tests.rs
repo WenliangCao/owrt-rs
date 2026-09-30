@@ -1,49 +1,39 @@
 use super::*;
-use crate::dns::cache::{Policy, Record};
-use crate::dns::wire::{Header, Message, Section};
+use crate::dns::cache::{Policy, Record, StalePolicy};
+use crate::dns::wire::{Header, Message, Name};
 
-fn record(name: &str, kind: Kind, negative: bool, data: Vec<u8>) -> Record {
+fn record(kind: Kind, negative: bool, data: Vec<u8>) -> Record {
     Record {
-        name: Name::from_ascii(name).unwrap(),
+        name: Name::from_ascii("cache.test").unwrap(),
         kind,
         negative,
         data,
     }
 }
 
+fn writer(qtype: u16, limit: usize) -> PacketWriter {
+    let mut writer = PacketWriter::new(0x1234, 0x8190, limit).unwrap();
+    writer
+        .question(&Name::from_ascii("cache.test").unwrap(), qtype, 1)
+        .unwrap();
+    writer
+}
+
 #[test]
-fn positive_hit_projects_remaining_ttl_into_wire() {
-    let mut cache = Cache::new(4, Policy::default());
+fn positive_record_has_remaining_ttl_and_does_not_rewrite_header() {
+    let mut cache = Cache::new(2, Policy::default());
     cache.start_insert();
-    cache
-        .insert(
-            record("router.test", Kind::Ipv4, false, vec![192, 0, 2, 1]),
-            100,
-            30,
-        )
+    let id = cache
+        .insert(record(Kind::Ipv4, false, vec![192, 0, 2, 1]), 100, 30)
         .unwrap();
     assert!(cache.commit());
-
-    let packet = answer_from_cache(
-        &mut cache,
-        CacheQuery {
-            name: &Name::from_ascii("router.test").unwrap(),
-            qtype: 1,
-            qclass: 1,
-            id: 0x1234,
-            base_flags: 0x0080,
-            now: 110,
-            limit: 512,
-            round_robin: false,
-        },
-    )
-    .unwrap()
-    .unwrap();
-    let header = Header::parse(&packet).unwrap();
-    assert_eq!(header.id, 0x1234);
-    assert_eq!(header.flags & 0x8000, 0x8000);
-    assert_eq!(header.answers, 1);
+    let mut output = writer(1, 512);
+    assert!(append_positive_record(&mut output, &cache, id, Section::Answer, 110).unwrap());
+    let packet = output.finish();
     let message = Message::parse(&packet).unwrap();
+    assert_eq!(message.header.id, 0x1234);
+    assert_eq!(message.header.flags, 0x8190);
+    assert_eq!(message.header.answers, 1);
     let answer = message.records(Section::Answer).next().unwrap();
     assert_eq!(answer.rrtype, 1);
     assert_eq!(answer.ttl, 20);
@@ -51,171 +41,133 @@ fn positive_hit_projects_remaining_ttl_into_wire() {
 }
 
 #[test]
-fn nxdomain_hit_sets_rcode_without_answer_rrs() {
-    let mut cache = Cache::new(2, Policy::default());
+fn expired_entry_is_omitted_and_stale_policy_keeps_zero_ttl() {
+    for (stale, written) in [(StalePolicy::Disabled, false), (StalePolicy::Forever, true)] {
+        let mut cache = Cache::new(
+            1,
+            Policy {
+                stale,
+                ..Policy::default()
+            },
+        );
+        cache.start_insert();
+        let id = cache
+            .insert(record(Kind::Ipv6, false, vec![0; 16]), 100, 10)
+            .unwrap();
+        assert!(cache.commit());
+        let mut output = writer(28, 512);
+        assert_eq!(
+            append_positive_record(&mut output, &cache, id, Section::Answer, 110).unwrap(),
+            written
+        );
+        let packet = output.finish();
+        let message = Message::parse(&packet).unwrap();
+        assert_eq!(message.header.answers, u16::from(written));
+        if written {
+            assert_eq!(message.records(Section::Answer).next().unwrap().ttl, 0);
+        }
+    }
+}
+
+#[test]
+fn generic_record_uses_own_type_and_caller_selected_section() {
+    let mut cache = Cache::new(
+        1,
+        Policy {
+            max_reply_ttl: 7,
+            ..Policy::default()
+        },
+    );
     cache.start_insert();
-    cache
+    let id = cache
         .insert(
-            record("missing.test", Kind::NxDomain, true, Vec::new()),
+            record(Kind::Generic(65280), false, vec![0xc0, 0x0c, 0xff]),
             100,
             30,
         )
         .unwrap();
     assert!(cache.commit());
-
-    let packet = answer_from_cache(
-        &mut cache,
-        CacheQuery {
-            name: &Name::from_ascii("missing.test").unwrap(),
-            qtype: 28,
-            qclass: 1,
-            id: 9,
-            base_flags: 0x0080,
-            now: 100,
-            limit: 512,
-            round_robin: false,
-        },
-    )
-    .unwrap()
-    .unwrap();
-    let header = Header::parse(&packet).unwrap();
-    assert_eq!(header.rcode(), 3);
-    assert_eq!(header.questions, 1);
-    assert_eq!(header.answers, 0);
-}
-
-#[test]
-fn negative_nodata_hit_is_distinct_from_forward_miss() {
-    let mut cache = Cache::new(2, Policy::default());
-    cache.start_insert();
-    cache
-        .insert(record("nodata.test", Kind::Ipv4, true, Vec::new()), 100, 30)
-        .unwrap();
-    assert!(cache.commit());
-
-    let packet = answer_from_cache(
-        &mut cache,
-        CacheQuery {
-            name: &Name::from_ascii("nodata.test").unwrap(),
-            qtype: 1,
-            qclass: 1,
-            id: 1,
-            base_flags: 0x0080,
-            now: 100,
-            limit: 512,
-            round_robin: false,
-        },
-    )
-    .unwrap()
-    .unwrap();
-    assert_eq!(Header::parse(&packet).unwrap().answers, 0);
-    assert!(answer_from_cache(
-        &mut cache,
-        CacheQuery {
-            name: &Name::from_ascii("other.test").unwrap(),
-            qtype: 1,
-            qclass: 1,
-            id: 1,
-            base_flags: 0x0080,
-            now: 100,
-            limit: 512,
-            round_robin: false,
-        },
-    )
-    .unwrap()
-    .is_none());
-}
-
-#[test]
-fn cname_hit_emits_alias_and_terminal_address() {
-    let mut cache = Cache::new(4, Policy::default());
-    cache.start_insert();
-    let cname = cache
-        .insert(
-            record(
-                "alias.test",
-                Kind::Cname,
-                false,
-                Name::from_ascii("target.test").unwrap().as_wire().to_vec(),
-            ),
-            100,
-            30,
-        )
-        .unwrap();
-    let target = cache
-        .insert(
-            record("target.test", Kind::Ipv4, false, vec![192, 0, 2, 9]),
-            100,
-            20,
-        )
-        .unwrap();
-    assert!(cache.set_cname_target(cname, target));
-    assert!(cache.commit());
-
-    let packet = answer_from_cache(
-        &mut cache,
-        CacheQuery {
-            name: &Name::from_ascii("alias.test").unwrap(),
-            qtype: 1,
-            qclass: 1,
-            id: 2,
-            base_flags: 0x0080,
-            now: 100,
-            limit: 512,
-            round_robin: false,
-        },
-    )
-    .unwrap()
-    .unwrap();
+    let mut output = writer(1, 512);
+    assert!(append_positive_record(&mut output, &cache, id, Section::Authority, 101).unwrap());
+    let packet = output.finish();
     let message = Message::parse(&packet).unwrap();
-    let records: Vec<_> = message.records(Section::Answer).collect();
-    assert_eq!(records.len(), 2);
-    assert_eq!(records[0].rrtype, 5);
-    assert_eq!(records[1].rrtype, 1);
-    assert_eq!(records[1].rdata, &[192, 0, 2, 9]);
+    assert_eq!(message.header.answers, 0);
+    let rr = message.records(Section::Authority).next().unwrap();
+    assert_eq!(rr.rrtype, 65280);
+    assert_eq!(rr.ttl, 7);
+    assert_eq!(rr.rdata, &[0xc0, 0x0c, 0xff]);
 }
 
 #[test]
-fn cache_hit_truncates_at_packet_limit_after_complete_rr() {
-    let mut cache = Cache::new(4, Policy::default());
+fn negative_and_cname_entries_are_left_to_the_caller() {
+    for kind in [Kind::Ipv4, Kind::Generic(16), Kind::NxDomain, Kind::Cname] {
+        let mut cache = Cache::new(2, Policy::default());
+        cache.start_insert();
+        let id = cache
+            .insert(record(kind, kind != Kind::Cname, vec![0; 4]), 100, 30)
+            .unwrap();
+        if kind == Kind::Cname {
+            let target = cache
+                .insert(
+                    Record {
+                        name: Name::from_ascii("target.test").unwrap(),
+                        kind: Kind::Ipv4,
+                        negative: false,
+                        data: vec![192, 0, 2, 2],
+                    },
+                    100,
+                    30,
+                )
+                .unwrap();
+            assert!(cache.set_cname_target(id, target));
+        }
+        assert!(cache.commit());
+        let mut output = writer(1, 512);
+        assert!(!append_positive_record(&mut output, &cache, id, Section::Answer, 100).unwrap());
+        assert_eq!(Header::parse(&output.finish()).unwrap().answers, 0);
+    }
+}
+
+#[test]
+fn full_writer_keeps_complete_records_and_marks_tc() {
+    let mut cache = Cache::new(2, Policy::default());
     cache.start_insert();
-    cache
-        .insert(
-            record("large.test", Kind::Ipv4, false, vec![192, 0, 2, 1]),
-            100,
-            30,
-        )
+    let first = cache
+        .insert(record(Kind::Ipv4, false, vec![192, 0, 2, 1]), 100, 30)
         .unwrap();
-    cache
-        .insert(
-            record("large.test", Kind::Ipv4, false, vec![192, 0, 2, 2]),
-            100,
-            30,
-        )
+    let second = cache
+        .insert(record(Kind::Ipv4, false, vec![192, 0, 2, 2]), 100, 30)
         .unwrap();
     assert!(cache.commit());
-
-    // Header + question + one complete A RR fits (54 bytes); the second RR
-    // must set TC without writing a partial record.
-    let packet = answer_from_cache(
-        &mut cache,
-        CacheQuery {
-            name: &Name::from_ascii("large.test").unwrap(),
-            qtype: 1,
-            qclass: 1,
-            id: 3,
-            base_flags: 0x0080,
-            now: 100,
-            limit: 54,
-            round_robin: false,
-        },
-    )
-    .unwrap()
-    .unwrap();
-    let header = Header::parse(&packet).unwrap();
-    assert_eq!(header.answers, 1);
-    assert_ne!(header.flags & 0x0200, 0);
+    let mut output = writer(1, 54);
+    assert!(append_positive_record(&mut output, &cache, first, Section::Answer, 100).unwrap());
+    assert_eq!(
+        append_positive_record(&mut output, &cache, second, Section::Answer, 100),
+        Err(WireError::Full)
+    );
+    let packet = output.finish();
+    let message = Message::parse(&packet).unwrap();
     assert_eq!(packet.len(), 54);
-    let message = Message::parse(&packet).unwrap();
-    assert_eq!(message.records(Section::Answer).count(), 1);
+    assert_eq!(message.header.answers, 1);
+    assert_ne!(message.header.flags & 0x0200, 0);
+    assert_eq!(
+        message.records(Section::Answer).next().unwrap().rdata,
+        &[192, 0, 2, 1]
+    );
+}
+
+#[test]
+fn malformed_address_is_rejected_before_mutating_writer() {
+    let mut cache = Cache::new(1, Policy::default());
+    cache.start_insert();
+    let id = cache
+        .insert(record(Kind::Ipv4, false, vec![192, 0, 2]), 100, 30)
+        .unwrap();
+    assert!(cache.commit());
+    let mut output = writer(1, 512);
+    assert_eq!(
+        append_positive_record(&mut output, &cache, id, Section::Answer, 100),
+        Err(WireError::InvalidName)
+    );
+    assert_eq!(Header::parse(&output.finish()).unwrap().answers, 0);
 }
