@@ -4,9 +4,12 @@
 //! process owns the listening UDP socket: [`DnsDaemon::handle_udp`] accepts one
 //! client datagram and either returns a local answer or starts an upstream
 //! transaction, while [`DnsDaemon::poll`] turns completed upstream events into
-//! client responses.  TCP listeners, resolver-file polling, cache insertion,
-//! and the remaining `forward.c::process_reply` policy are separate work.
+//! client responses. TCP listeners, resolver-file polling, and the remaining
+//! `forward.c::process_reply` cache policy are separate work; direct positive
+//! A/AAAA cache insertion and lookup are wired below.
 
+use super::cache::{Cache, Kind, Policy as CachePolicy, Record, StalePolicy};
+use super::cache_reply::append_positive_record;
 use super::forward::{Client, Options as ForwardOptions, QueryId, Random, Scope};
 use super::forward_service::ForwardDispatcher;
 use super::process::{ignore_reply, process_reply, AddressPolicy, ProcessAction, ProcessError};
@@ -14,13 +17,16 @@ use super::reply::{limit_udp_reply, prepare_reply, ReplyPolicy};
 use super::routing::{RoutingError, RoutingTable};
 use super::service::{LocalDnsService, ServiceError};
 use super::upstream::{OsRandom, ResolveError, UpstreamResolver};
-use super::wire::{Name, WireError};
+use super::wire::{
+    find_pseudoheader, Header, Message, Name, PacketWriter, Question as WireQuestion, Section,
+    WireError,
+};
 use crate::config::dns::{DnsConfig, DomainPattern, RuleTarget, ServerRule};
 use crate::config::{Error as ConfigError, FastRetry};
 use crate::hosts::Hosts;
 use std::io;
 use std::net::{IpAddr, SocketAddr};
-use std::time::Duration;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 /// Transport-independent identity of a DNS client datagram.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -42,6 +48,8 @@ pub struct ClientResponse {
 pub enum QueryResult {
     /// A local answer is ready to send immediately.
     Local(Vec<u8>),
+    /// A positive answer synthesized from the daemon's forward cache.
+    Cached(Vec<u8>),
     /// The query was admitted to the upstream transaction table.
     Forwarded(QueryId),
     /// The query was syntactically valid but has no local answer or upstream
@@ -145,6 +153,7 @@ pub struct DnsDaemon<R = OsRandom> {
     local: LocalDnsService,
     routing: RoutingTable,
     upstream: UpstreamResolver<R>,
+    cache: Option<Cache>,
     policy: AddressPolicy,
     proxy_dnssec: bool,
     max_udp: usize,
@@ -228,6 +237,7 @@ impl<R: Random> DnsDaemon<R> {
             local,
             routing,
             upstream,
+            cache: None,
             policy,
             proxy_dnssec: options.proxy_dnssec,
             max_udp: options.max_udp.max(512),
@@ -236,6 +246,27 @@ impl<R: Random> DnsDaemon<R> {
 
     pub fn pending_count(&self) -> usize {
         self.upstream.pending_count()
+    }
+
+    /// Enable the positive forward cache after daemon construction.  Keeping
+    /// this explicit lets the caller pass scalar options (cache-size and TTL
+    /// bounds) without duplicating them in `DnsConfig`.
+    pub fn enable_cache(
+        &mut self,
+        capacity: usize,
+        min_ttl: u32,
+        max_ttl: u32,
+        stale: StalePolicy,
+    ) {
+        self.cache = Some(Cache::new(
+            capacity,
+            CachePolicy {
+                min_ttl,
+                max_ttl,
+                max_reply_ttl: 0,
+                stale,
+            },
+        ));
     }
 
     /// Admit a single client UDP payload. Local answers are returned directly;
@@ -252,6 +283,9 @@ impl<R: Random> DnsDaemon<R> {
             return Ok(QueryResult::Local(answer));
         }
         let question = super::forward::Question::parse(query).map_err(DaemonError::Wire)?;
+        if let Some(answer) = self.cached_answer(query, &question)? {
+            return Ok(QueryResult::Cached(answer));
+        }
         let route = self
             .routing
             .select(&question.name, question.rrtype, question.class, false);
@@ -284,6 +318,25 @@ impl<R: Random> DnsDaemon<R> {
         let mut responses = Vec::new();
         for event in events {
             let reply = event.result?;
+            // Cache only a clean, successful positive reply.  Address policy
+            // runs on a clone first so a blocked/bogus/malformed response is
+            // never admitted to the cache or later exposed to a recipient.
+            if self.cache.is_some()
+                && !reply.flags.no_cache
+                && !reply.flags.had_opt
+                && !reply.flags.ad_requested
+                && !reply.flags.checking_disabled
+            {
+                let mut candidate = reply.packet.clone();
+                let report = process_reply(&mut candidate, &self.policy)?;
+                if report.action == ProcessAction::Deliver
+                    && !report.blocked_rebind
+                    && !report.malformed_address
+                    && !report.bogus_nxdomain
+                {
+                    self.cache_positive_reply(&candidate);
+                }
+            }
             for recipient in reply.recipients {
                 let mut packet = reply.packet.clone();
                 recipient.restore_question(&mut packet)?;
@@ -309,6 +362,121 @@ impl<R: Random> DnsDaemon<R> {
         }
         Ok(responses)
     }
+
+    fn cached_answer(
+        &mut self,
+        query: &[u8],
+        question: &super::forward::Question,
+    ) -> Result<Option<Vec<u8>>, DaemonError> {
+        let Some(cache) = self.cache.as_mut() else {
+            return Ok(None);
+        };
+        let header = Header::parse(query)?;
+        // This first cache slice deliberately leaves EDNS/DNSSEC-sensitive
+        // queries on the normal upstream path until their response envelope
+        // and cache metadata have a dedicated contract.
+        let edns = find_pseudoheader(query, true)?;
+        if header.opcode() != 0
+            || header.flags & (0x8000 | 0x20 | 0x10) != 0
+            || edns.opt.is_some()
+            || edns.signed
+        {
+            return Ok(None);
+        }
+        if question.class != 1 || !matches!(question.rrtype, 1 | 28) {
+            return Ok(None);
+        }
+        let kind = if question.rrtype == 1 {
+            Kind::Ipv4
+        } else {
+            Kind::Ipv6
+        };
+        let now = unix_seconds();
+        let ids = cache.lookup_question(&question.name, kind, now, false);
+        if ids.is_empty() {
+            return Ok(None);
+        }
+        let mut writer = PacketWriter::new(
+            header.id,
+            (header.flags & 0x0100) | 0x8080,
+            self.max_udp.min(512),
+        )?;
+        writer.question(&question.name, question.rrtype, question.class)?;
+        let mut written = false;
+        for id in ids {
+            match append_positive_record(&mut writer, cache, id, Section::Answer, now) {
+                Ok(true) => written = true,
+                Ok(false) => {}
+                Err(WireError::Full) => break,
+                Err(error) => return Err(error.into()),
+            }
+        }
+        Ok(written.then(|| writer.finish()))
+    }
+
+    fn cache_positive_reply(&mut self, packet: &[u8]) {
+        let Some(cache) = self.cache.as_mut() else {
+            return;
+        };
+        let Ok(message) = Message::parse(packet) else {
+            return;
+        };
+        if message.header.rcode() != 0
+            || message.header.flags & 0x0200 != 0
+            || message.header.flags & 0x0080 == 0
+            || message.header.questions != 1
+        {
+            return;
+        }
+        let Ok(question) = WireQuestion::parse(packet, message.questions.start) else {
+            return;
+        };
+        if question.class != 1 || !matches!(question.qtype, 1 | 28) {
+            return;
+        }
+        let now = unix_seconds();
+        cache.start_insert();
+        let mut inserted = false;
+        for rr in message.records(Section::Answer) {
+            if rr.rrtype != question.qtype {
+                continue;
+            }
+            let kind = match rr.rrtype {
+                1 if rr.class == 1 && rr.rdata.len() == 4 => Kind::Ipv4,
+                28 if rr.class == 1 && rr.rdata.len() == 16 => Kind::Ipv6,
+                _ => continue,
+            };
+            let Ok(name) = rr.name() else {
+                cache.start_insert();
+                return;
+            };
+            if !name.eq_ignore_ascii_case(&question.name) {
+                continue;
+            }
+            let record = Record {
+                name,
+                kind,
+                negative: false,
+                data: rr.rdata.to_vec(),
+            };
+            if cache.insert(record, now, rr.ttl).is_err() {
+                cache.start_insert();
+                return;
+            }
+            inserted = true;
+        }
+        if inserted {
+            let _ = cache.commit();
+        }
+    }
+}
+
+fn unix_seconds() -> i64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_or(0, |duration| {
+            i64::try_from(duration.as_secs()).unwrap_or(i64::MAX)
+        })
 }
 
 fn address_policy(config: &DnsConfig) -> Result<AddressPolicy, DaemonError> {
@@ -470,6 +638,56 @@ mod tests {
         assert_eq!(responses.len(), 1);
         assert_eq!(Header::parse(&responses[0].packet).unwrap().id, 0x4321);
         worker.join().unwrap();
+    }
+
+    #[test]
+    fn positive_cache_hit_restores_new_client_id_without_second_upstream_send() {
+        let server = UdpSocket::bind("127.0.0.1:0").unwrap();
+        let address = server.local_addr().unwrap();
+        let worker = thread::spawn(move || {
+            let mut input = [0; 2048];
+            let (length, peer) = server.recv_from(&mut input).unwrap();
+            let request = &input[..length];
+            let header = Header::parse(request).unwrap();
+            let name = Name::from_ascii("upstream.test").unwrap();
+            let mut writer = PacketWriter::new(header.id, 0x8180, 1232).unwrap();
+            writer.question(&name, 1, 1).unwrap();
+            writer
+                .record(Section::Answer, &name, 1, 1, 30, &[192, 0, 2, 7])
+                .unwrap();
+            server.send_to(&writer.finish(), peer).unwrap();
+            server
+                .set_read_timeout(Some(Duration::from_millis(150)))
+                .unwrap();
+            let mut extra = [0; 2048];
+            usize::from(server.recv_from(&mut extra).is_ok())
+        });
+
+        let config = DnsConfig::default();
+        let mut daemon =
+            DnsDaemon::with_random(config, Hosts::new(), &[address], options(), Counter(0))
+                .unwrap();
+        daemon.enable_cache(8, 0, 60, StalePolicy::Disabled);
+        let client = |id| ClientRequest {
+            source: format!("127.0.0.1:{}", 53000 + id).parse().unwrap(),
+            destination: "127.0.0.1".parse().unwrap(),
+            interface: 0,
+        };
+        assert!(matches!(
+            daemon.handle_udp(&query("upstream.test", 0x1111), client(1)),
+            Ok(QueryResult::Forwarded(_))
+        ));
+        assert_eq!(daemon.poll(Duration::from_secs(1)).unwrap().len(), 1);
+        let cached = daemon
+            .handle_udp(&query("upstream.test", 0x2222), client(2))
+            .unwrap();
+        let QueryResult::Cached(packet) = cached else {
+            panic!("second query did not use the positive cache");
+        };
+        let header = Header::parse(&packet).unwrap();
+        assert_eq!(header.id, 0x2222);
+        assert_eq!(header.answers, 1);
+        assert_eq!(worker.join().unwrap(), 0);
     }
 
     #[test]

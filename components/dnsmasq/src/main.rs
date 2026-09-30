@@ -7,7 +7,8 @@
 
 use dnsmasq_rs::config::dns::DnsConfig;
 use dnsmasq_rs::config::loader::{self, Action};
-use dnsmasq_rs::config::{Error, ScalarConfig};
+use dnsmasq_rs::config::{Error, ScalarConfig, StaleCache};
+use dnsmasq_rs::dns::cache::StalePolicy;
 use dnsmasq_rs::dns::daemon::{ClientRequest, DaemonOptions, DnsDaemon, QueryResult};
 use dnsmasq_rs::dns::service::{encode_tcp_frame, LocalDnsService, TcpFramer};
 use dnsmasq_rs::hosts::Hosts;
@@ -67,7 +68,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             println!("dnsmasq-rs 0.1.0");
             println!("Mode: development DNS daemon");
             println!("Implemented: local DNS over UDP/TCP; configured upstream DNS over UDP");
-            println!("Not implemented: TCP forwarding, cache integration, DHCP, TFTP, UBus, reload and metrics");
+            println!("Not implemented: TCP forwarding, negative/SOA cache, DHCP, TFTP, UBus, reload and metrics");
             return Ok(());
         }
         Action::Help | Action::HelpDhcp => {
@@ -129,7 +130,17 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         let udp_hosts = daemon_hosts.clone();
         let udp_resolvers = resolvers.clone();
         let udp_options = daemon_options;
-        let daemon = DnsDaemon::new(udp_config, udp_hosts, &udp_resolvers, udp_options)?;
+        let mut daemon = DnsDaemon::new(udp_config, udp_hosts, &udp_resolvers, udp_options)?;
+        daemon.enable_cache(
+            usize::try_from(runtime.scalar.cache_size).unwrap_or(usize::MAX),
+            runtime.scalar.min_cache_ttl,
+            runtime.scalar.max_cache_ttl,
+            match runtime.scalar.stale_cache {
+                StaleCache::Disabled => StalePolicy::Disabled,
+                StaleCache::Until(seconds) => StalePolicy::Seconds(seconds),
+                StaleCache::Forever => StalePolicy::Forever,
+            },
+        );
         workers.push(
             thread::Builder::new()
                 .name(format!("dns-udp-{address}"))
@@ -144,8 +155,9 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                     destination: address.ip(),
                                     interface: 0,
                                 };
-                                if let Ok(QueryResult::Local(answer)) =
-                                    daemon.handle_udp(&query[..length], request)
+                                if let Ok(
+                                    QueryResult::Local(answer) | QueryResult::Cached(answer),
+                                ) = daemon.handle_udp(&query[..length], request)
                                 {
                                     let _ = udp.send_to(&answer, peer);
                                 }
@@ -492,18 +504,14 @@ fn validate_runtime_ready(scalar: &ScalarConfig, dns: &DnsConfig) -> Result<(), 
         ));
     }
     let defaults = ScalarConfig::default();
-    if scalar.cache_size != defaults.cache_size
-        || scalar.query_port != defaults.query_port
+    if scalar.query_port != defaults.query_port
         || scalar.query_port_os_assigned != defaults.query_port_os_assigned
         || scalar.min_port != defaults.min_port
         || scalar.max_port != defaults.max_port
         || scalar.port_limit != defaults.port_limit
         || scalar.negative_ttl != defaults.negative_ttl
         || scalar.max_ttl != defaults.max_ttl
-        || scalar.min_cache_ttl != defaults.min_cache_ttl
-        || scalar.max_cache_ttl != defaults.max_cache_ttl
         || scalar.dhcp_ttl.is_some()
-        || scalar.stale_cache != defaults.stale_cache
     {
         return Err(Error("scalar option is not implemented"));
     }
@@ -673,15 +681,12 @@ mod tests {
     }
 
     #[test]
-    fn runtime_gate_rejects_unwired_cache_policy() {
+    fn runtime_gate_accepts_positive_cache_policy_but_rejects_negative_cache() {
         let scalar = ScalarConfig {
             cache_size: ScalarConfig::default().cache_size + 1,
             ..ScalarConfig::default()
         };
-        assert_eq!(
-            validate_runtime_ready(&scalar, &DnsConfig::default()).unwrap_err(),
-            Error("scalar option is not implemented")
-        );
+        assert!(validate_runtime_ready(&scalar, &DnsConfig::default()).is_ok());
 
         let scalar = ScalarConfig {
             negative_ttl: 30,
