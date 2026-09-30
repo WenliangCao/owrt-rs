@@ -37,6 +37,7 @@ use std::io::{self, Read, Write};
 use std::net::{IpAddr, SocketAddr, TcpListener, UdpSocket};
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+use std::sync::mpsc;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
@@ -44,10 +45,17 @@ use std::time::{Duration, Instant};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 static STOP_REQUESTED: AtomicBool = AtomicBool::new(false);
+static RELOAD_REQUESTED: AtomicBool = AtomicBool::new(false);
+// SIGHUP is 1 on the supported Linux and Darwin hosts.
+const SIGHUP: i32 = 1;
 const STOP_CHECK_INTERVAL: Duration = Duration::from_millis(100);
 
 extern "C" fn request_stop(_signal: i32) {
     STOP_REQUESTED.store(true, Ordering::Release);
+}
+
+extern "C" fn request_reload(_signal: i32) {
+    RELOAD_REQUESTED.store(true, Ordering::Release);
 }
 
 fn main() {
@@ -75,8 +83,10 @@ fn load(args: &[OsString]) -> Result<(Action, Runtime), loader::LoadError> {
     let action = loader::load(args, Path::new("/etc/dnsmasq.conf"), |directive, _| {
         // `-k/--keep-in-foreground` is a process-mode switch consumed by the
         // runner, not a DNS or DHCP configuration directive.
-        if directive.name.as_slice() == b"keep-in-foreground"
-            || runtime.scalar.apply(directive)?
+        if matches!(
+            directive.name.as_slice(),
+            b"keep-in-foreground" | b"no-daemon"
+        ) || runtime.scalar.apply(directive)?
             || runtime.dns.apply(directive)?
             || runtime.tftp.apply(directive)?
             || runtime.dhcp.apply(directive)?
@@ -96,7 +106,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             println!("dnsmasq-rs 0.1.0");
             println!("Mode: development DNS daemon");
             println!("Implemented: DNS UDP/TCP, cache subsets, DHCPv4 listener boundary and TFTP transfer listener");
-            println!("Not implemented: TCP forwarding fallback, full DHCP relay/PXE/leasequery, UBus, reload and metrics");
+            println!("Not implemented: TCP forwarding fallback, full DHCP relay/PXE/leasequery, UBus, full reload and metrics");
             return Ok(());
         }
         Action::Help | Action::HelpDhcp => {
@@ -120,7 +130,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     if runtime.scalar.dns_port == 0 {
         return Err(Box::new(Error("port=0 is not supported by the listener")));
     }
-    let hosts = read_hosts(&runtime.dns, runtime.scalar.local_ttl)?;
+    let hosts = read_hosts(&runtime.dns, runtime.scalar.local_ttl);
     let resolvers = read_resolvers(&runtime.dns)?;
     if !runtime.dns.no_resolv && resolvers.is_empty() {
         return Err(Box::new(Error("no nameserver in resolver files")));
@@ -130,6 +140,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     let dhcp_config = runtime.dhcp.clone();
     owrt_ubus::sys::set_signal_handler(owrt_ubus::sys::SIGINT, request_stop);
     owrt_ubus::sys::set_signal_handler(owrt_ubus::sys::SIGTERM, request_stop);
+    owrt_ubus::sys::set_signal_handler(SIGHUP, request_reload);
     // dnsmasq.c allocates `edns_pktsz + MAXDNAME + RRFIXEDSZ` for incoming
     // packets and rejects larger UDP/TCP requests before parsing them.
     let packet_limit = usize::from(runtime.scalar.edns_packet_max) + 255 + 10;
@@ -153,6 +164,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     )));
     let tcp_active = Arc::new(AtomicUsize::new(0));
     let mut workers = Vec::new();
+    let mut reload_senders = Vec::new();
     for address in addresses {
         let udp = UdpSocket::bind(address)?;
         udp.set_read_timeout(Some(Duration::from_millis(50)))?;
@@ -177,6 +189,11 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             runtime.scalar.negative_ttl,
             !daemon_config.no_negative_cache,
         );
+        // Coalesce repeated signals while a worker is busy: the token refers
+        // to the latest hosts snapshot, so reload cannot grow a work queue.
+        let (reload_sender, reload_receiver) = mpsc::sync_channel(1);
+        let reload_service = Arc::clone(&service);
+        reload_senders.push(reload_sender);
         workers.push(
             thread::Builder::new()
                 .name(format!("dns-udp-{address}"))
@@ -184,6 +201,14 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                     let mut daemon = daemon;
                     let mut query = vec![0; 65_535];
                     while !STOP_REQUESTED.load(Ordering::Acquire) {
+                        // Only this worker mutates its cache and local hosts.
+                        // Keep upstream transactions alive across SIGHUP as C
+                        // clear_cache_and_reload does.
+                        if reload_receiver.try_recv().is_ok() {
+                            if let Ok(local) = reload_service.lock() {
+                                daemon.reload_hosts(local.hosts.clone());
+                            }
+                        }
                         match udp.recv_from(&mut query) {
                             Ok((length, peer)) if length <= packet_limit => {
                                 let request = ClientRequest {
@@ -202,7 +227,9 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                             Err(error)
                                 if matches!(
                                     error.kind(),
-                                    io::ErrorKind::WouldBlock | io::ErrorKind::TimedOut
+                                    io::ErrorKind::WouldBlock
+                                        | io::ErrorKind::TimedOut
+                                        | io::ErrorKind::Interrupted
                                 ) => {}
                             Err(_) => break,
                         }
@@ -467,6 +494,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                             Ok(ListenerStep::Stopped) => break,
                             Ok(ListenerStep::Malformed(_)) => {}
                             Ok(ListenerStep::Processed(_)) => {}
+                            Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
                             Err(_) => break,
                         }
                     }
@@ -513,7 +541,12 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                 .map_or(0, |duration| duration.as_secs());
                             match listener.poll_once(now) {
                                 Ok(_) => thread::sleep(Duration::from_millis(1)),
-                                Err(error) if error.kind() == io::ErrorKind::WouldBlock => {
+                                Err(error)
+                                    if matches!(
+                                        error.kind(),
+                                        io::ErrorKind::WouldBlock | io::ErrorKind::Interrupted
+                                    ) =>
+                                {
                                     thread::sleep(Duration::from_millis(2))
                                 }
                                 Err(_) => break,
@@ -535,6 +568,20 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     // `-k` is the normal OpenWrt invocation. Stop handlers let workers leave
     // their bounded receive loops and release sockets before exit.
     while !STOP_REQUESTED.load(Ordering::Acquire) {
+        if RELOAD_REQUESTED.swap(false, Ordering::AcqRel) {
+            // C SIGHUP rereads data files, not the main configuration. A
+            // missing hosts source is logged and its old names disappear.
+            let hosts = read_hosts(&daemon_config, runtime.scalar.local_ttl);
+            if let Ok(mut local) = service.lock() {
+                local.hosts = hosts;
+            }
+            reload_senders.retain(|sender| {
+                !matches!(
+                    sender.try_send(()),
+                    Err(mpsc::TrySendError::Disconnected(()))
+                )
+            });
+        }
         thread::park_timeout(Duration::from_millis(100));
     }
     for worker in workers {
@@ -744,14 +791,19 @@ fn validate_runtime_ready(scalar: &ScalarConfig, dns: &DnsConfig) -> Result<(), 
     Ok(())
 }
 
-fn read_hosts(config: &DnsConfig, local_ttl: u32) -> Result<Hosts, io::Error> {
+fn read_hosts(config: &DnsConfig, local_ttl: u32) -> Hosts {
     let mut hosts = Hosts::new();
     hosts.set_round_robin(!config.no_round_robin);
-    let mut read = |path: &Path, source: u32, required: bool| -> Result<(), io::Error> {
+    let mut read = |path: &Path, source: u32| {
         let bytes = match std::fs::read(path) {
             Ok(bytes) => bytes,
-            Err(error) if !required && error.kind() == io::ErrorKind::NotFound => return Ok(()),
-            Err(error) => return Err(error),
+            Err(error) => {
+                eprintln!(
+                    "dnsmasq-rs: failed to load names from {}: {error}",
+                    path.display()
+                );
+                return;
+            }
         };
         let _ = hosts.read(&bytes, source, local_ttl, config.expand_hosts, |address| {
             config
@@ -760,20 +812,17 @@ fn read_hosts(config: &DnsConfig, local_ttl: u32) -> Result<Hosts, io::Error> {
                 .flatten()
                 .map(ToOwned::to_owned)
         });
-        Ok(())
     };
     // `no-hosts` suppresses only the built-in /etc/hosts source. Explicit
     // addn-hosts files remain active in dnsmasq.
     if !config.no_hosts {
-        read(Path::new("/etc/hosts"), 0, false)?;
+        read(Path::new("/etc/hosts"), 0);
     }
-    // `no-hosts` disables the default /etc/hosts source; explicit addn-hosts
-    // files remain active in dnsmasq and must still be loaded.
     for (index, path) in config.addn_hosts.iter().enumerate() {
         let Some(path) = path else { continue };
-        read(path, (index + 1) as u32, true)?;
+        read(path, (index + 1) as u32);
     }
-    Ok(hosts)
+    hosts
 }
 
 fn bind_addresses(config: &DnsConfig, port: u16) -> Vec<SocketAddr> {
@@ -837,7 +886,7 @@ mod tests {
         validate_directive(&no_hosts).unwrap();
         config.apply(&no_hosts).unwrap();
         config.addn_hosts.push(Some(path.clone()));
-        let mut hosts = read_hosts(&config, 0).unwrap();
+        let mut hosts = read_hosts(&config, 0);
         assert_eq!(hosts.lookup(b"addn.test", Some(false), true).len(), 1);
         let _ = std::fs::remove_file(path);
     }
@@ -848,7 +897,7 @@ mod tests {
         std::fs::write(&path, b"192.0.2.44 ttl.test\n").unwrap();
         let mut config = DnsConfig::default();
         config.addn_hosts.push(Some(path.clone()));
-        let hosts = read_hosts(&config, 37).unwrap();
+        let hosts = read_hosts(&config, 37);
         assert_eq!(hosts.entries()[0].ttl, 37);
         let _ = std::fs::remove_file(path);
     }
