@@ -539,14 +539,7 @@ mod tests {
             .record(Section::Answer, &alias, 5, 1, 30, target.as_wire())
             .unwrap();
         writer
-            .record(
-                Section::Answer,
-                &target,
-                1,
-                1,
-                30,
-                &[10, 0, 0, 1],
-            )
+            .record(Section::Answer, &target, 1, 1, 30, &[10, 0, 0, 1])
             .unwrap();
         let mut cname = writer.finish();
         let report = process_reply(
