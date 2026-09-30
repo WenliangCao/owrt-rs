@@ -93,7 +93,7 @@ pub fn append_cname_record(
 /// the negative cache expiry (which is `min(SOA TTL, SOA MINIMUM)`).
 pub fn append_negative_authority(
     writer: &mut PacketWriter,
-    cache: &Cache,
+    cache: &mut Cache,
     id: EntryId,
     now: i64,
 ) -> Result<bool, WireError> {
@@ -104,24 +104,21 @@ pub fn append_negative_authority(
     if !entry.record.negative {
         return Ok(false);
     }
-    let Some(authority) = entry.negative_authority() else {
+    let Some(authority_name) = entry.negative_authority_name().cloned() else {
         return Ok(false);
     };
-    let ttl = (i128::from(authority.expires) - i128::from(now)).clamp(0, u32::MAX as i128) as u32;
-    let ttl = if cache.policy().max_reply_ttl == 0 {
-        ttl
-    } else {
-        ttl.min(cache.policy().max_reply_ttl)
-    };
-    writer.record(
-        Section::Authority,
-        &authority.name,
-        6,
-        1,
-        ttl,
-        &authority.data,
-    )?;
-    Ok(true)
+    // Generic lookup intentionally returns all F_RR types, as cache.c does;
+    // filter the exact SOA RR before appending it.
+    let soa_ids = cache.lookup(&authority_name, &[Kind::Generic(6)], now, false);
+    for soa_id in soa_ids {
+        if cache
+            .get(soa_id)
+            .is_some_and(|entry| entry.record.kind == Kind::Generic(6))
+        {
+            return append_positive_record(writer, cache, soa_id, Section::Authority, now);
+        }
+    }
+    Ok(false)
 }
 
 #[cfg(test)]

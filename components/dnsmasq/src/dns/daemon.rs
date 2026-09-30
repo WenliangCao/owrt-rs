@@ -8,7 +8,7 @@
 //! `forward.c::process_reply` cache policy are separate work; direct positive
 //! A/AAAA cache insertion and lookup are wired below.
 
-use super::cache::{Cache, Kind, NegativeAuthority, Policy as CachePolicy, Record, StalePolicy};
+use super::cache::{Cache, Kind, Policy as CachePolicy, Record, StalePolicy};
 use super::cache_reply::{append_cname_record, append_negative_authority, append_positive_record};
 use super::forward::{Client, Options as ForwardOptions, QueryId, Random, Scope};
 use super::forward_service::ForwardDispatcher;
@@ -393,7 +393,7 @@ impl<R: Random> DnsDaemon<R> {
             || header.additionals != 0
             || header.opcode() != 0
             || header.flags & 0x0100 == 0
-            || header.flags & (0x8000 | 0x20 | 0x10) != 0
+            || header.flags & 0x8000 != 0
             || edns.opt.is_some()
             || edns.signed
         {
@@ -425,7 +425,7 @@ impl<R: Random> DnsDaemon<R> {
         if let Some(id) = direct_negative {
             let mut writer = PacketWriter::new(
                 header.id,
-                (header.flags & 0x0100) | 0x8083,
+                (header.flags & 0x0110) | 0x8083,
                 self.max_udp.min(512),
             )?;
             writer.question(&question.name, question.rrtype, question.class)?;
@@ -443,7 +443,7 @@ impl<R: Random> DnsDaemon<R> {
         if let Some(id) = direct_nodata {
             let mut writer = PacketWriter::new(
                 header.id,
-                (header.flags & 0x0100) | 0x8080,
+                (header.flags & 0x0110) | 0x8080,
                 self.max_udp.min(512),
             )?;
             writer.question(&question.name, question.rrtype, question.class)?;
@@ -484,7 +484,7 @@ impl<R: Random> DnsDaemon<R> {
         }
         let mut writer = PacketWriter::new(
             header.id,
-            (header.flags & 0x0100)
+            (header.flags & 0x0110)
                 | if cname_negative.is_some_and(|(_, kind)| kind == Kind::NxDomain) {
                     0x8083
                 } else {
@@ -682,10 +682,15 @@ impl<R: Random> DnsDaemon<R> {
             }
         }
 
-        let soa = authority_soa(&message, &terminal_name, now, cache.policy());
-        let soa_ttl = soa
-            .as_ref()
-            .map(|(_, rr_ttl, minimum)| (*rr_ttl).min(*minimum));
+        let soa = authority_soa(&message, &terminal_name);
+        let soa_ttl = soa.as_ref().and_then(|(_, rr_ttl, minimum, _)| {
+            // A zero-TTL SOA is not cacheable unless stale caching keeps zero
+            // TTL entries alive.  C then falls back to --neg-ttl as if no SOA
+            // had been found.
+            (*rr_ttl != 0 || cache.policy().stale != StalePolicy::Disabled)
+                .then_some((*rr_ttl).min(*minimum))
+        });
+        let authority = soa_ttl.and(soa.as_ref());
         let negative_kind = if message.header.rcode() == 3 {
             Some(Kind::NxDomain)
         } else if addresses.is_empty() {
@@ -708,6 +713,23 @@ impl<R: Random> DnsDaemon<R> {
                 return;
             }
             cache.start_insert();
+            // C caches an SOA RR as an independent Generic(6) entry.  For a
+            // direct negative answer it is inserted before the negative; a
+            // CNAME target gets the same SOA after its terminal negative so
+            // the target ordering remains intact.
+            let soa_id = if chain.is_empty() {
+                if authority.is_some() {
+                    let Some(id) = insert_authority(cache, authority, now) else {
+                        cache.start_insert();
+                        return;
+                    };
+                    Some(id)
+                } else {
+                    None
+                }
+            } else {
+                None
+            };
             let record = Record {
                 name: terminal_name.clone(),
                 kind,
@@ -718,8 +740,13 @@ impl<R: Random> DnsDaemon<R> {
                 cache.start_insert();
                 return;
             };
-            if let Some((authority, _, _)) = soa {
-                if !cache.set_negative_authority(id, authority) {
+            let soa_id = soa_id.or_else(|| insert_authority(cache, authority, now));
+            if authority.is_some() && soa_id.is_none() {
+                cache.start_insert();
+                return;
+            }
+            if let Some((authority_name, _, _, _)) = authority {
+                if !cache.set_negative_authority(id, authority_name.clone()) {
                     cache.start_insert();
                     return;
                 }
@@ -835,14 +862,10 @@ fn finish_cached_answer(writer: PacketWriter) -> Result<Vec<u8>, WireError> {
 
 /// Select the first IN SOA in the authority section whose owner is a label
 /// suffix of the terminal answer name, as `rfc1035.c::find_soa` does.  The
-/// returned negative TTL uses the wire SOA TTL and MINIMUM; the retained
-/// authority uses the cache policy's normal TTL clamp for replay.
-fn authority_soa(
-    message: &Message<'_>,
-    name: &Name,
-    now: i64,
-    policy: CachePolicy,
-) -> Option<(NegativeAuthority, u32, u32)> {
+/// returned negative TTL uses the wire SOA TTL and MINIMUM; the SOA itself is
+/// inserted as a normal Generic(6) cache entry so its own policy/expiry and
+/// capacity accounting remain independent.
+fn authority_soa(message: &Message<'_>, name: &Name) -> Option<(Name, u32, u32, Vec<u8>)> {
     for rr in message.records(Section::Authority) {
         if rr.class != 1 || rr.rrtype != 6 {
             continue;
@@ -856,20 +879,29 @@ fn authority_soa(
             continue;
         }
         let minimum = u32::from_be_bytes(data[data.len() - 4..].try_into().ok()?);
-        let ttl = policy.cache_ttl(rr.ttl);
-        let expires = now.checked_add(i64::from(ttl))?;
-        return Some((
-            NegativeAuthority {
-                name: owner,
-                ttl: rr.ttl,
-                expires,
-                data,
-            },
-            rr.ttl,
-            minimum,
-        ));
+        return Some((owner, rr.ttl, minimum, data));
     }
     None
+}
+
+fn insert_authority(
+    cache: &mut Cache,
+    soa: Option<&(Name, u32, u32, Vec<u8>)>,
+    now: i64,
+) -> Option<super::cache::EntryId> {
+    let (name, ttl, _, data) = soa?;
+    cache
+        .insert(
+            Record {
+                name: name.clone(),
+                kind: Kind::Generic(6),
+                negative: false,
+                data: data.clone(),
+            },
+            now,
+            *ttl,
+        )
+        .ok()
 }
 
 fn is_name_suffix(name: &Name, suffix: &Name) -> bool {
@@ -958,9 +990,17 @@ mod tests {
     }
 
     fn query(name: &str, id: u16) -> Vec<u8> {
+        query_type(name, 1, id)
+    }
+
+    fn query_type(name: &str, qtype: u16, id: u16) -> Vec<u8> {
+        query_type_flags(name, qtype, id, 0x100)
+    }
+
+    fn query_type_flags(name: &str, qtype: u16, id: u16, flags: u16) -> Vec<u8> {
         let name = Name::from_ascii(name).unwrap();
-        let mut writer = PacketWriter::new(id, 0x100, 1232).unwrap();
-        writer.question(&name, 1, 1).unwrap();
+        let mut writer = PacketWriter::new(id, flags, 1232).unwrap();
+        writer.question(&name, qtype, 1).unwrap();
         writer.finish()
     }
 
@@ -1282,6 +1322,53 @@ mod tests {
         assert_eq!(records.next().unwrap().rrtype, 1);
         assert_eq!(records.next().unwrap().rrtype, 1);
         assert_eq!(worker.join().unwrap(), 0);
+    }
+
+    #[test]
+    fn cname_cache_does_not_answer_other_address_family() {
+        let mut config = DnsConfig::default();
+        config.no_resolv = true;
+        let mut daemon =
+            DnsDaemon::with_random(config, Hosts::new(), &[], options(), Counter(0)).unwrap();
+        let mut cache = Cache::new(4, CachePolicy::default());
+        let alias = Name::from_ascii("alias.test").unwrap();
+        let target = Name::from_ascii("target.test").unwrap();
+        let now = unix_seconds();
+        cache.start_insert();
+        let cname = cache
+            .insert(
+                Record {
+                    name: alias.clone(),
+                    kind: Kind::Cname,
+                    negative: false,
+                    data: target.canonical_wire(),
+                },
+                now,
+                60,
+            )
+            .unwrap();
+        let address = cache
+            .insert(
+                Record {
+                    name: target,
+                    kind: Kind::Ipv4,
+                    negative: false,
+                    data: vec![192, 0, 2, 1],
+                },
+                now,
+                60,
+            )
+            .unwrap();
+        assert!(cache.set_cname_target(cname, address));
+        assert!(cache.commit());
+        daemon.cache = Some(cache);
+        let packet = query_type("alias.test", 28, 0x1234);
+        let question = super::super::forward::Question::parse(&packet).unwrap();
+        assert!(daemon.cached_answer(&packet, &question).unwrap().is_none());
+        let packet = query_type_flags("alias.test", 1, 0x5678, 0x110);
+        let question = super::super::forward::Question::parse(&packet).unwrap();
+        let answer = daemon.cached_answer(&packet, &question).unwrap().unwrap();
+        assert_ne!(Header::parse(&answer).unwrap().flags & 0x10, 0);
     }
 
     #[test]
