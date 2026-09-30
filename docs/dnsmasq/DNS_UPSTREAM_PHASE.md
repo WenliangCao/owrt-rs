@@ -54,3 +54,21 @@ PATH="$HOME/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin:$PATH" \
 
 It stores stdout, stderr and a JSON summary below ignored `private/` and
 refuses an output path outside that directory.
+
+## TC-to-TCP integration gate
+
+`tcp_exchange` is intentionally a building block, not a claim that UDP TC
+fallback is complete. Calling it synchronously from `receive_ready` would
+block the single UDP poll loop for connect/read timeouts and starve unrelated
+queries. Completing the UDP transaction first would lose the pending
+recipients and socket ownership needed to deliver the TCP result.
+
+The nonblocking integration required by C's `forward.c:915-950` and
+`tcp_from_udp()` therefore needs a per-query TCP phase (connect, write,
+two-byte length, bounded read, deadline and cleanup) in the same poll set,
+with UDP sockets released only after the TC response is authenticated. A
+successful TCP packet must re-enter the existing reply policy and recipient
+fanout; connection or authentication failure must preserve C's server retry
+and terminal cleanup rules. The exact `nodhcpv6` image has no `HAVE_DNSSEC`, so
+ordinary TC responses stay on the existing downstream path and this state
+machine is not enabled for the target variant.
