@@ -6,7 +6,7 @@
 
 | C 源码位置 | 行为与不变量 | Rust 实现 | 验证 |
 |---|---|---|---|
-| `dhcp.c:40-109,130-177,248-250` | DHCP/PXE fd 明确绑定 AF_INET；短于固定 BOOTP 头的 `recvmsg` 结果丢弃；接收数据在有界缓冲中处理；`IP_PKTINFO.ipi_addr` 决定广播判定，`ipi_spec_dst` 保留本地源地址，接口索引必须能解析 | `dhcp::service::dispatch`，明确拒绝 `<236` 或 `>16384` 字节；Linux `receive_once` 保留 pktinfo、peer、IP-header 目的地址和本地地址，拒绝 interface index 0 和 IPv6 地址，避免把 DHCPv6 payload 当 DHCPv4 | `short_and_oversized_datagrams_are_rejected_before_state`；Linux target check；隔离 loopback `receive_once_admits_loopback_pktinfo_and_preserves_addresses` 与 IPv6 `receive_once_rejects_ipv6_for_dhcpv4` |
+| `dhcp.c:40-109,130-177,248-250` | DHCP/PXE fd 明确绑定 AF_INET；短于固定 BOOTP 头的 `recvmsg` 结果丢弃；接收数据在有界缓冲中处理；`IP_PKTINFO.ipi_addr` 决定广播判定，`ipi_spec_dst` 保留本地源地址，接口索引必须能解析 | `dhcp::service::dispatch`，明确拒绝 `<236` 或 `>16384` 字节；Linux `receive_once` 保留 pktinfo、peer、IP-header 目的地址和本地地址，拒绝 interface index 0 和 IPv6 地址，避免把 DHCPv6 payload 当 DHCPv4；`SocketListener::bind` 拥有 AF_INET 非阻塞 socket、固定接收缓冲和 PXE 前缀，`process_once_local` 将 admitted 报文接到 runtime 回复路径 | `short_and_oversized_datagrams_are_rejected_before_state`；Linux target check；隔离 loopback `receive_once_admits_loopback_pktinfo_and_preserves_addresses`、`receive_once_rejects_ipv6_for_dhcpv4` 与 `socket_listener_processes_local_ack_and_replies_to_peer` |
 | `rfc2131.c:117-156`; `dhcp.c:248-250` | 只接受 `BOOTREQUEST`、`hlen<=16`、`htype=0` 时 `hlen=0`；DHCP 选项 53 才要求 RFC1048 cookie | `Packet::parse`，由 `dispatch` 统一转为 `DispatchError` | `packet` 单测与 `dhcp::service::tests::malformed_request_is_rejected_without_panicking` |
 | `dhcp.c:251-264` | `giaddr=255.255.255.255` 是本地测试扩展：匹配上下文前清零，发送时恢复；普通非零 `giaddr` 经 relay | `Route::RelaySource` / `Route::Relay` / `Route::Local`，保留原值供发送方处理 | `preserves_relay_source_extension_and_normal_giaddr` |
 | `rfc2131.c:564-697` | 无消息类型为 BOOTP；BOOTP 要求 MAC，并按静态/动态策略交给 BOOTP 分支；未知 option 53 走 C 的无回复默认分支 | `DispatchKind::Bootp` / `Unsupported`；后续调用 `state::bootp` 与 `encode_bootp_vendor` | `dispatches_bootp_leasequery_and_regular_dhcp`；完整 reply 未接线 |
@@ -34,8 +34,8 @@ Linux `poll_once` 保留 `Received` 中的 peer/pktinfo，并在调用 `receive_
 所以停止检查不会把关闭线程阻塞在接收系统调用中。该 adapter 仍不拥有 lease
 provider、reply builder、DNS 更新或脚本。
 
-当前未完成的服务合同：Linux 接口变化与桥接别名；真实 UDP 67/4011 listener、端口/权限和
-事件循环；relay 上游转发与回复识别；广播、单播、ARP 注入；完整
+当前未完成的服务合同：Linux 接口变化与桥接别名；生产 UDP 67/4011 端口/权限和事件循环生命周期
+（`SocketListener` 只提供调用方拥有的临时或显式地址）；relay 上游转发与回复识别；广播、单播、ARP 注入；完整
 `dhcp_reply` 的 context/tag/config/FQDN/options/overload；leasefile、脚本和
 DNS 同步；PXE proxy/menu、TFTP；procd/ujail/ubus/reload/metrics。现有
 `tools/dnsmasq/dhcp_differential.py` 与 `dhcp_state_differential.py` 的 C
@@ -49,7 +49,7 @@ PATH="$HOME/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin:$PATH" \
 ```
 
 本阶段新增 dispatch 单测覆盖五种 poll 状态；本次补充了一个真实 Linux `recvmsg`/`IP_PKTINFO`
-loopback smoke（仅 `lo`、非特权临时端口），要求通过
+loopback smoke（仅 `lo`、非特权临时端口），以及一个从 listener 经 runtime 发送 ACK 的隔离回归，要求通过
 `tools/dnsmasq/run_isolated.sh` 执行；Linux-only `poll_once` stop/nonblocking、
 IPv4-only admission 用例在普通主机保持 ignored。
 目标 musl check 与 clippy 已通过；完整 crate 回归由主代理在整合后运行。

@@ -24,6 +24,17 @@ The runtime entry point is:
 process(dispatch, peer, outcome_provider, datagram_sender, options, buffer)
 ```
 
+`runtime::StateProvider` is the local state adapter used when the caller has a
+configured `LeaseStore` and address ranges. It maps BOOTP, DISCOVER, REQUEST,
+DECLINE, RELEASE and INFORM to the existing state functions, applies pktinfo
+interface/unicast metadata to `Environment`, and derives option 12 hostnames
+so `LeaseStore::set_hostname` marks DNS/name changes before reply transmission.
+The provider deliberately leaves FQDN/domain policy, leasefile persistence and
+DNS publication to the caller; `Outcome::lost_names` and `LeaseStore::changes`
+are the handoff evidence. `service::SocketListener::process_once_local` then
+owns the isolated nonblocking AF_INET socket and feeds an admitted datagram
+through this runtime path.
+
 On Linux 64-bit, `net::DatagramSocket` implements ordinary client/peer sends
 and broadcast sends with `SO_BROADCAST` plus IPv4 `IP_PKTINFO` interface
 selection. Unconfigured `yiaddr` routes still return an explicit unsupported

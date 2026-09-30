@@ -9,7 +9,11 @@
 
 use super::reply::{build_outcome, ReplyError, ReplyOption};
 use super::service::{Dispatch, DispatchKind, Route};
-use super::state::{Outcome, Reply};
+use super::state::{self, Environment, HostPolicy, Name, Outcome, Reply, Request};
+use super::{
+    allocation::{AddressRange, ProbeResult},
+    lease::LeaseStore,
+};
 use std::io;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
@@ -56,6 +60,100 @@ where
 {
     fn resolve(&mut self, dispatch: &Dispatch<'_>) -> Result<Outcome, RuntimeError> {
         self(dispatch)
+    }
+}
+
+/// A small state adapter for the local DHCP/BOOTP path.  It owns no socket or
+/// event loop; callers configure contexts/tags and pass it to
+/// [`process`](process) or [`crate::dhcp::service::SocketListener`].  This
+/// keeps the C ordering explicit: lease allocation, expiry and hostname/DNS
+/// dirtying happen before runtime builds or sends the reply.
+pub struct StateProvider<'a, F> {
+    pub store: &'a mut LeaseStore,
+    pub ranges: &'a mut [AddressRange],
+    pub tags: &'a [&'a [u8]],
+    pub host: Option<&'a mut HostPolicy>,
+    pub reserved: &'a [Ipv4Addr],
+    pub environment: Environment<'a>,
+    pub probe: F,
+}
+
+impl<'a, F> StateProvider<'a, F> {
+    pub fn new(
+        store: &'a mut LeaseStore,
+        ranges: &'a mut [AddressRange],
+        tags: &'a [&'a [u8]],
+        host: Option<&'a mut HostPolicy>,
+        reserved: &'a [Ipv4Addr],
+        environment: Environment<'a>,
+        probe: F,
+    ) -> Self {
+        Self {
+            store,
+            ranges,
+            tags,
+            host,
+            reserved,
+            environment,
+            probe,
+        }
+    }
+}
+
+impl<'a, F> OutcomeProvider for StateProvider<'a, F>
+where
+    F: FnMut(Ipv4Addr, u32) -> ProbeResult,
+{
+    fn resolve(&mut self, dispatch: &Dispatch<'_>) -> Result<Outcome, RuntimeError> {
+        let mut environment = self.environment;
+        environment.interface = dispatch.ingress.interface_index;
+        environment.unicast_destination = dispatch.ingress.unicast_destination;
+        let packet = dispatch.packet;
+        let hostname = packet.option(12, 1);
+        let name = hostname.map(|hostname| Name {
+            hostname: hostname.strip_suffix(&[0]).unwrap_or(hostname),
+            domain: None,
+            authoritative: environment.authoritative,
+        });
+        let request = || Request {
+            packet,
+            tags: self.tags,
+            host: self.host.as_deref(),
+            reserved: self.reserved,
+            name,
+            environment,
+        };
+        let outcome = match packet.message_type() {
+            0 => state::bootp(self.store, self.ranges, request(), &mut self.probe),
+            1 => state::discover(self.store, self.ranges, request(), &mut self.probe),
+            3 => state::request(self.store, self.ranges, request()),
+            4 => Ok(Outcome {
+                reply: Reply::Ignore,
+                removed: state::decline(
+                    self.store,
+                    self.ranges,
+                    packet,
+                    self.host.as_deref_mut(),
+                    environment,
+                ),
+                lost_names: Vec::new(),
+            }),
+            7 => Ok(Outcome {
+                reply: Reply::Ignore,
+                removed: state::release(self.store, self.ranges, packet, self.tags, environment),
+                lost_names: Vec::new(),
+            }),
+            8 => state::inform(self.store, self.ranges, request()),
+            // The runtime filters PXE, relay, leasequery and unknown routes
+            // before this callback. A known but client-only message type is a
+            // no-reply state transition in rfc2131.c.
+            _ => Ok(Outcome {
+                reply: Reply::Ignore,
+                removed: Vec::new(),
+                lost_names: Vec::new(),
+            }),
+        };
+        outcome.map_err(|error| RuntimeError::State(format!("{error:?}")))
     }
 }
 
@@ -343,6 +441,7 @@ pub fn destination(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::dhcp::allocation::RangeKind;
     use crate::dhcp::packet::COOKIE;
     use crate::dhcp::service::{dispatch, Ingress, Listener};
     use std::cell::Cell;
@@ -611,6 +710,75 @@ mod tests {
                 ..
             }
         ));
+    }
+
+    #[test]
+    fn state_provider_commits_request_lease_and_hostname_before_send() {
+        let requested = Ipv4Addr::new(192, 0, 2, 10);
+        let server = Ipv4Addr::new(192, 0, 2, 1);
+        let bytes = packet(
+            &[
+                53, 1, 3, 50, 4, 192, 0, 2, 10, 54, 4, 192, 0, 2, 1, 12, 4, b't', b'e', b's', b't',
+                255,
+            ],
+            0,
+            Ipv4Addr::UNSPECIFIED,
+            Ipv4Addr::UNSPECIFIED,
+        );
+        let dispatch = dispatch_for(&bytes);
+        let mut store = LeaseStore::new(4);
+        let mut ranges = vec![AddressRange {
+            start: requested,
+            end: Ipv4Addr::new(192, 0, 2, 20),
+            netmask: Ipv4Addr::new(255, 255, 255, 0),
+            router: Ipv4Addr::new(192, 0, 2, 254),
+            local: server,
+            lease_time: 600,
+            kind: RangeKind::Dynamic,
+            filter: Vec::new(),
+            epoch: 0,
+        }];
+        let environment = Environment {
+            now: 100,
+            interface: 0,
+            authoritative: true,
+            unicast_destination: true,
+            ignored: false,
+            ignore_client_id: false,
+            fqdn_only: false,
+            rapid_commit: false,
+            bootp_dynamic: true,
+            consecutive_addresses: false,
+            override_server: None,
+            fallback_server: server,
+            server_aliases: &[],
+        };
+        let tags: &[&[u8]] = &[];
+        let reserved: &[Ipv4Addr] = &[];
+        let mut provider = StateProvider::new(
+            &mut store,
+            &mut ranges,
+            tags,
+            None,
+            reserved,
+            environment,
+            |_, _| ProbeResult::Available { offer_hash: 1 },
+        );
+        let outcome = provider.resolve(&dispatch).unwrap();
+        assert!(matches!(
+            outcome.reply,
+            Reply::Ack {
+                address,
+                lease_time: 600,
+                server: reply_server,
+                ..
+            } if address == requested && reply_server == server
+        ));
+        assert_eq!(
+            provider.store.get(requested).unwrap().hostname.as_deref(),
+            Some(&b"test"[..])
+        );
+        assert!(provider.store.changes().dns);
     }
 
     #[test]

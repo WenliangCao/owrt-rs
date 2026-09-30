@@ -100,6 +100,122 @@ pub enum PollOutcome<T> {
     Stopped,
 }
 
+/// Result of one owned listener step.  `Processed` is returned only after a
+/// datagram passed pktinfo admission and the runtime had a chance to build and
+/// send its reply.  A malformed or ancillary-data drop is kept distinct from
+/// `WouldBlock`, so callers can account for wire errors without mutating lease
+/// state.  The listener itself remains non-blocking; event-loop ownership and
+/// retry policy stay with the caller.
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+#[derive(Debug)]
+pub enum ListenerStep {
+    Stopped,
+    Ignored,
+    WouldBlock,
+    Malformed(DispatchError),
+    Processed(Result<super::runtime::RuntimeReport, Box<super::runtime::RuntimeFailure>>),
+}
+
+/// An isolated AF_INET DHCP/PXE socket with the bounded receive buffer and
+/// configured vendor prefixes owned by one value.  This is the service
+/// boundary used by an event loop: it does not bind privileged ports unless
+/// the caller explicitly supplies one, and it never discovers or changes
+/// physical interfaces.
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+pub struct SocketListener {
+    socket: crate::net::DatagramSocket,
+    listener: Listener,
+    pxe_prefixes: Vec<Vec<u8>>,
+    buffer: Vec<u8>,
+}
+
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+impl SocketListener {
+    /// Bind a non-blocking IPv4 socket.  `DatagramSocket::bind` enables
+    /// `IP_PKTINFO`, matching dnsmasq's `dhcp_init` receive contract.
+    pub fn bind(
+        address: SocketAddr,
+        listener: Listener,
+        pxe_prefixes: &[&[u8]],
+    ) -> io::Result<Self> {
+        if !address.is_ipv4() {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "DHCPv4 listener requires an IPv4 bind address",
+            ));
+        }
+        let socket = crate::net::DatagramSocket::bind(address)?;
+        Ok(Self {
+            socket,
+            listener,
+            pxe_prefixes: pxe_prefixes.iter().map(|prefix| prefix.to_vec()).collect(),
+            buffer: vec![0; MAX_PACKET_LEN],
+        })
+    }
+
+    pub fn local_addr(&self) -> io::Result<SocketAddr> {
+        self.socket.local_addr()
+    }
+
+    /// Poll one datagram while retaining ownership of the packet buffer.  The
+    /// returned `Received` borrows this listener and must be consumed before
+    /// the next call, which prevents an unbounded queue of attacker-controlled
+    /// packets.
+    pub fn poll<'a>(
+        &'a mut self,
+        stop: impl FnMut() -> bool,
+    ) -> io::Result<PollOutcome<Received<'a>>> {
+        let prefixes: Vec<&[u8]> = self.pxe_prefixes.iter().map(Vec::as_slice).collect();
+        poll_once(
+            &self.socket,
+            &mut self.buffer,
+            self.listener,
+            &prefixes,
+            stop,
+        )
+    }
+
+    /// Poll and run one local DHCP/BOOTP request using the listener socket for
+    /// the reply.  Unsupported relay/PXE/LEASEQUERY routes are reported by
+    /// `runtime::process` before the provider is called.  State and name/DNS
+    /// side effects remain the provider's responsibility and therefore commit
+    /// before a later send failure, exactly as the C path does.
+    pub fn process_once_local<P>(
+        &mut self,
+        provider: &mut P,
+        options: &[super::reply::ReplyOption<'_>],
+        output: &mut [u8],
+        stop: impl FnMut() -> bool,
+    ) -> io::Result<ListenerStep>
+    where
+        P: super::runtime::OutcomeProvider,
+    {
+        let prefixes: Vec<&[u8]> = self.pxe_prefixes.iter().map(Vec::as_slice).collect();
+        match poll_once(
+            &self.socket,
+            &mut self.buffer,
+            self.listener,
+            &prefixes,
+            stop,
+        )? {
+            PollOutcome::Stopped => Ok(ListenerStep::Stopped),
+            PollOutcome::Ignored => Ok(ListenerStep::Ignored),
+            PollOutcome::WouldBlock => Ok(ListenerStep::WouldBlock),
+            PollOutcome::Malformed(error) => Ok(ListenerStep::Malformed(error)),
+            PollOutcome::Admitted(received) => {
+                Ok(ListenerStep::Processed(super::runtime::process(
+                    received.dispatch,
+                    received.peer,
+                    provider,
+                    &mut self.socket,
+                    options,
+                    output,
+                )))
+            }
+        }
+    }
+}
+
 /// Classify one bounded datagram without touching a socket or lease provider.
 /// This is the deterministic handoff used by platform receive loops and is
 /// directly testable on every host target.
@@ -382,6 +498,59 @@ mod tests {
             dispatch(&ordinary, pxe, &[]).unwrap().kind,
             DispatchKind::Pxe
         );
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    #[ignore = "requires Linux isolated loopback; run with run_isolated.sh"]
+    fn socket_listener_processes_local_ack_and_replies_to_peer() {
+        assert_eq!(std::env::var("DNSMASQ_TEST_ISOLATED").as_deref(), Ok("1"));
+        let mut listener =
+            SocketListener::bind("127.0.0.1:0".parse().unwrap(), Listener::Dhcp, &[]).unwrap();
+        let target = listener.local_addr().unwrap();
+        let client = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
+        client
+            .set_read_timeout(Some(std::time::Duration::from_secs(1)))
+            .unwrap();
+        let client_addr = client.local_addr().unwrap();
+        let mut bytes = packet(&[53, 1, 3, 255]);
+        bytes[12..16].copy_from_slice(&Ipv4Addr::LOCALHOST.octets());
+        client.send_to(&bytes, target).unwrap();
+
+        let mut provider = |_dispatch: &Dispatch<'_>| {
+            Ok(crate::dhcp::state::Outcome {
+                reply: crate::dhcp::state::Reply::Ack {
+                    address: Ipv4Addr::LOCALHOST,
+                    lease_time: 60,
+                    context: 0,
+                    server: Ipv4Addr::new(127, 0, 0, 1),
+                    rapid_commit: false,
+                },
+                removed: Vec::new(),
+                lost_names: Vec::new(),
+            })
+        };
+        let mut output = vec![0; 548];
+        let report = loop {
+            match listener
+                .process_once_local(&mut provider, &[], &mut output, || false)
+                .unwrap()
+            {
+                ListenerStep::Processed(Ok(report)) => break report,
+                ListenerStep::WouldBlock => std::thread::sleep(std::time::Duration::from_millis(1)),
+                other => panic!("unexpected listener result: {other:?}"),
+            }
+        };
+        assert!(report.events.iter().any(|event| matches!(
+            event,
+            crate::dhcp::runtime::RuntimeEvent::Sent { length } if *length >= 300
+        )));
+        let mut response = [0; 548];
+        let (length, peer) = client.recv_from(&mut response).unwrap();
+        assert_eq!(peer, client_addr);
+        assert!(length >= 300);
+        assert_eq!(&response[..4], &[2, 1, 6, 0]);
+        assert_eq!(response[16..20], Ipv4Addr::LOCALHOST.octets());
     }
 
     #[test]
