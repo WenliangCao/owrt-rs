@@ -68,3 +68,39 @@ Relevant source gate: `cargo test --lib dns::` **122 passed, 2 ignored**
 driver); `cargo clippy --lib -- -D warnings` passed. This does not cover
 EDNS/DNSSEC cache metadata, generic/ANY cache policy, TCP forwarding, cache
 pressure/service integration, full daemon equivalence or performance acceptance.
+
+## Cache selection increment, 2026-09-30
+
+`answer_request` can reuse a name-wide NXDOMAIN for any IN qtype and can answer
+an SOA query from an SOA retained during negative insertion. The daemon now
+selects those existing entries and filters each `Generic` entry by its exact
+RRtype; a generic lookup still deliberately returns all generic types at the
+cache primitive boundary. It does not turn an unknown-type or ANY query into
+an answer containing unrelated records. The unusual QTYPE=CNAME/NXDOMAIN
+branch also remains answerable without RD, as in `rfc1035.c:1769–1779`.
+
+The daemon had always requested `F_NO_RR`-equivalent iteration even when
+`no-round-robin` was disabled. Exact C repeated A queries exposed the resulting
+fixed address order. Normal lookup now uses the actual configuration for
+direct records and CNAME terminal RRsets. Record order remains part of the
+differential comparison, rather than being sorted away.
+
+`private/dnsmasq-rewrite/cache-answer-20260930/selection-01/summary.json` records
+**205 commands, 149 queries (80 hits / 69 misses), 0 mismatches**. The prior
+CNAME/negative/long-name corpus remains included. Three additional ordinary
+regressions cover record rotation, SOA type selection and NXDOMAIN qtypes;
+the focused daemon suite has **20 passed / 1 ignored**, with the external
+oracle driver executed separately by the differential tool.
+
+An attempted default SRV-cache increment is **reverted and not delivered**.
+Its positive/SOA path was promising, but
+`private/dnsmasq-rewrite/cache-answer-20260930/srv-03/` retained a mismatch for
+CNAME→SRV NODATA with `neg-ttl` and no SOA. In the exact source,
+`rfc1035.c:1173–1191` assigns `addr.rrdata.rrtype` only when an SOA exists;
+`cache.c:834–835` then copies the complete `addr` into a generic negative
+entry. This is a source-level uninitialized-field finding, pending a dynamic
+checker. The C oracle misses the later SRV query while retaining an answerable
+CNAME; assigning arbitrary bytes to reproduce that behavior is not a Rust
+contract. Candidate sources, patch, input and output remain in the same private
+directory. SRV insertion, PTR reverse caching and `cache-rr` configuration stay
+open and none is counted as equivalent or accepted.

@@ -176,6 +176,96 @@ fn long_cached_chain_reuses_names_to_preserve_c_truncation_boundary() {
     }
 }
 
+#[test]
+fn address_cache_preserves_configured_rotation() {
+    for no_round_robin in [false, true] {
+        let mut daemon = daemon();
+        daemon.local.config.no_round_robin = no_round_robin;
+        let mut reply = packet("Service.Test", 1, 0x8180);
+        for last in [1, 2] {
+            reply
+                .record(
+                    Section::Answer,
+                    &Name::from_ascii("Service.Test").unwrap(),
+                    1,
+                    1,
+                    60,
+                    &[192, 0, 2, last],
+                )
+                .unwrap();
+        }
+        daemon.cache_reply_at(&reply.finish(), 100);
+        for attempt in 0..4 {
+            let answer = cached(&mut daemon, "Service.Test", 1, 105).unwrap();
+            let message = Message::parse(&answer).unwrap();
+            assert_eq!(message.header.flags, 0x8180);
+            let addresses: Vec<_> = message
+                .records(Section::Answer)
+                .map(|rr| rr.rdata[3])
+                .collect();
+            assert_eq!(
+                addresses,
+                if !no_round_robin && attempt % 2 == 1 {
+                    [2, 1]
+                } else {
+                    [1, 2]
+                }
+            );
+        }
+    }
+}
+
+#[test]
+fn soa_cache_only_answers_matching_rrtype() {
+    let mut daemon = daemon();
+    let mut soa = Name::from_ascii("ns.same.test").unwrap().as_wire().to_vec();
+    soa.extend_from_slice(Name::from_ascii("hostmaster.same.test").unwrap().as_wire());
+    for value in [1u32, 2, 3, 4, 10] {
+        soa.extend_from_slice(&value.to_be_bytes());
+    }
+    let mut reply = packet("missing.same.test", 1, 0x8183);
+    reply
+        .record(
+            Section::Authority,
+            &Name::from_ascii("same.test").unwrap(),
+            6,
+            1,
+            60,
+            &soa,
+        )
+        .unwrap();
+    daemon.cache_reply_at(&reply.finish(), 100);
+    for qtype in [6] {
+        let answer = cached(&mut daemon, "same.test", qtype, 100).unwrap();
+        let message = Message::parse(&answer).unwrap();
+        assert_eq!(message.header.answers, 1);
+        assert_eq!(
+            message.records(Section::Answer).next().unwrap().rrtype,
+            qtype
+        );
+    }
+    for qtype in [15, 33, 255, 65401] {
+        assert!(cached(&mut daemon, "same.test", qtype, 100).is_none());
+    }
+}
+
+#[test]
+fn name_wide_negative_supports_unknown_qtypes_and_cname_without_rd() {
+    let mut daemon = daemon();
+    daemon.cache_reply_at(&packet("missing.test", 1, 0x8183).finish(), 100);
+    for qtype in [6, 15, 33, 255, 65401] {
+        let answer = cached(&mut daemon, "missing.test", qtype, 100).unwrap();
+        assert_eq!(Header::parse(&answer).unwrap().flags, 0x8183);
+    }
+    let query = packet("missing.test", 5, 0).finish();
+    let question = super::super::forward::Question::parse(&query).unwrap();
+    let answer = daemon
+        .cached_answer_at(&query, &question, 100)
+        .unwrap()
+        .unwrap();
+    assert_eq!(Header::parse(&answer).unwrap().flags, 0x8083);
+}
+
 // The differential tool sets an explicit corpus path and runs this test by
 // name. It is ignored in the ordinary suite because an exact-C build is an
 // external prerequisite; its dedicated execution is recorded separately.

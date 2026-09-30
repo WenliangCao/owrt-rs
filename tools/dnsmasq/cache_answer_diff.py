@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Frozen-clock extract_addresses/answer_request differential for CNAME caching.
+"""Frozen-clock extract_addresses/answer_request differential for DNS cache answers.
 
 Build on Linux with --build-reference DIR. Run on the Rust host with
 --oracle-command 'ssh BUILD_HOST /private/cache-answer-oracle -C /private/cache.conf'
@@ -101,6 +101,22 @@ def corpus():
         emit(prefix + '-insert', 'P', packet('missing.test', source_type, 0x8183, authority=[('test', 6, 40, soa)]))
         ask(prefix + '-hit', host='missing.test', now=105)
         ask(prefix + '-expired', host='missing.test', now=110)
+    for qtype in [1, 5, 6, 15, 28, 33, 255, 65401]:
+        emit(f'negative-any-{qtype}-reset', 'RESET')
+        emit(f'negative-any-{qtype}-insert', 'P', packet('missing.test', 1, 0x8183))
+        ask(f'negative-any-{qtype}-hit', host='missing.test', qtype=qtype)
+        ask(f'negative-any-{qtype}-no-rd', host='missing.test', qtype=qtype, flags=0)
+    emit('rrset-1-reset', 'RESET')
+    emit('rrset-1-insert', 'P', packet('Service.Test', 1, 0x8180,
+        [('Service.Test', 1, 60, bytes([192, 0, 2, last])) for last in [1, 2]]))
+    for attempt in range(4):
+        ask(f'rrset-1-hit-{attempt}', host='Service.Test', qtype=1)
+    ask('rrset-1-unknown-type', host='Service.Test', qtype=65401)
+    ask('rrset-1-expired', host='Service.Test', qtype=1, now=160)
+    emit('generic-type-filter-reset', 'RESET')
+    emit('generic-type-filter-soa-insert', 'P', packet('missing.test', 1, 0x8183, authority=[('test', 6, 40, soa)]))
+    for qtype in [6, 33, 15, 255, 65401]:
+        ask(f'generic-type-filter-{qtype}', host='test', qtype=qtype)
     return rows
 
 
@@ -188,7 +204,7 @@ def main():
                'tool_sha256': digest(Path(__file__)),
                'rust_source_sha256': {name: digest(ROOT / 'components/dnsmasq/src/dns' / name) for name in ['daemon.rs', 'daemon_cache_tests.rs', 'cache.rs', 'cache_reply.rs', 'wire.rs']},
                'normalization': 'DNS compression and ASCII name case only; exact IDs, flags, TTLs, RDATA, section/record order, hit/miss and event order',
-               'scope': 'socket-free extract_addresses/answer_request CNAME cache subset; not daemon transport or performance acceptance'}
+               'scope': 'socket-free extract_addresses/answer_request CNAME/SOA/negative cache subset; not daemon transport or performance acceptance'}
     (out / 'summary.json').write_text(json.dumps(summary, indent=2) + '\n')
     print(json.dumps(summary, indent=2))
     return int(bool(errors))

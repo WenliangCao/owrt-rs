@@ -397,6 +397,7 @@ impl<R: Random> DnsDaemon<R> {
         question: &super::forward::Question,
         now: i64,
     ) -> Result<Option<Vec<u8>>, DaemonError> {
+        let round_robin = !self.local.config.no_round_robin;
         let Some(cache) = self.cache.as_mut() else {
             return Ok(None);
         };
@@ -410,7 +411,7 @@ impl<R: Random> DnsDaemon<R> {
             || header.authorities != 0
             || header.additionals != 0
             || header.opcode() != 0
-            || header.flags & 0x0100 == 0
+            || (header.flags & 0x0100 == 0 && question.rrtype != 5)
             || header.flags & 0x8000 != 0
             || header.flags & 0x0020 != 0
             || edns.opt.is_some()
@@ -418,19 +419,20 @@ impl<R: Random> DnsDaemon<R> {
         {
             return Ok(None);
         }
-        if question.class != 1 || !matches!(question.rrtype, 1 | 5 | 28) {
+        if question.class != 1 {
             return Ok(None);
         }
         let kind = match question.rrtype {
             1 => Kind::Ipv4,
             5 => Kind::Cname,
-            _ => Kind::Ipv6,
+            28 => Kind::Ipv6,
+            rrtype => Kind::Generic(rrtype),
         };
         let ids = cache.lookup(
             &question.name,
             &[Kind::Cname, kind, Kind::NxDomain],
             now,
-            false,
+            round_robin,
         );
         if ids.is_empty() {
             return Ok(None);
@@ -454,6 +456,9 @@ impl<R: Random> DnsDaemon<R> {
             return Ok(Some(finish_cached_answer(writer)?));
         }
         if question.rrtype == 5 {
+            if header.flags & 0x0100 == 0 {
+                return Ok(None);
+            }
             // answer_request stops after the first CNAME for this qtype,
             // even when its target is another alias or a negative entry.
             // That exact C branch retains AA; only terminal address/negative
@@ -573,9 +578,14 @@ impl<R: Random> DnsDaemon<R> {
                             // A cached NODATA is specific to its original
                             // qtype. The CNAME link does not make it a
                             // name-wide negative, nor extend its expiry.
+                            if target_entry.record.kind != kind
+                                && target_entry.record.kind != Kind::NxDomain
+                            {
+                                return Ok(None);
+                            }
                             let terminal_name = target_entry.record.name.clone();
                             if !cache
-                                .lookup_question(&terminal_name, kind, now, false)
+                                .lookup_question(&terminal_name, kind, now, round_robin)
                                 .contains(&target)
                             {
                                 return Ok(None);
@@ -599,8 +609,14 @@ impl<R: Random> DnsDaemon<R> {
                             let terminal_name = target_entry.record.name.clone();
                             let terminal_kind = target_entry.record.kind;
                             let terminal_ids =
-                                cache.lookup(&terminal_name, &[terminal_kind], now, false);
+                                cache.lookup(&terminal_name, &[terminal_kind], now, round_robin);
                             for terminal_id in terminal_ids {
+                                if cache
+                                    .get(terminal_id)
+                                    .is_none_or(|entry| entry.record.kind != terminal_kind)
+                                {
+                                    continue;
+                                }
                                 match append_positive_record(
                                     &mut writer,
                                     cache,
@@ -625,6 +641,9 @@ impl<R: Random> DnsDaemon<R> {
                     if !complete {
                         return Ok(None);
                     }
+                    continue;
+                }
+                if entry.record.kind != kind {
                     continue;
                 }
             }
