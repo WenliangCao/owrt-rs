@@ -834,7 +834,7 @@ fn authority_soa(
         return Some((
             NegativeAuthority {
                 name: owner,
-                ttl,
+                ttl: rr.ttl,
                 expires,
                 data,
             },
