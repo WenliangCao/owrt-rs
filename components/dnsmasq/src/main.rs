@@ -636,4 +636,30 @@ mod tests {
         }
         assert_eq!(dns.finalize().unwrap_err(), Error("CNAME loop"));
     }
+
+    #[test]
+    fn runtime_gate_rejects_unwired_cache_policy() {
+        let mut scalar = ScalarConfig::default();
+        scalar.cache_size += 1;
+        assert_eq!(
+            validate_runtime_ready(&scalar, &DnsConfig::default()).unwrap_err(),
+            Error("scalar option is not implemented")
+        );
+
+        let scalar = ScalarConfig {
+            negative_ttl: 30,
+            ..ScalarConfig::default()
+        };
+        assert_eq!(
+            validate_runtime_ready(&scalar, &DnsConfig::default()).unwrap_err(),
+            Error("scalar option is not implemented")
+        );
+
+        let mut dns = DnsConfig::default();
+        dns.no_negative_cache = true;
+        assert_eq!(
+            validate_runtime_ready(&ScalarConfig::default(), &dns).unwrap_err(),
+            Error("configured DNS policy is not implemented")
+        );
+    }
 }
