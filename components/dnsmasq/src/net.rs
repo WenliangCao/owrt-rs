@@ -347,6 +347,16 @@ pub(crate) fn inject_arp_with_name(
 
 impl DatagramSocket {
     pub fn bind(address: SocketAddr) -> io::Result<Self> {
+        Self::bind_options(address, true)
+    }
+
+    /// Default DHCP listeners are exclusive; C enables reuse only for the
+    /// separately gated bind-interfaces/bind-dynamic modes.
+    pub fn bind_exclusive(address: SocketAddr) -> io::Result<Self> {
+        Self::bind_options(address, false)
+    }
+
+    fn bind_options(address: SocketAddr, reuse_address: bool) -> io::Result<Self> {
         let ipv6 = address.is_ipv6();
         // SAFETY: socket has no pointers and returns a new descriptor on success.
         let fd = unsafe {
@@ -361,7 +371,9 @@ impl DatagramSocket {
         }
         // SAFETY: fd is a fresh UDP socket; UdpSocket now owns every close path.
         let socket = unsafe { UdpSocket::from_raw_fd(fd) };
-        set_flag(fd, 1, 2)?; // SOL_SOCKET, SO_REUSEADDR (no SO_REUSEPORT).
+        if reuse_address {
+            set_flag(fd, 1, 2)?; // SOL_SOCKET, SO_REUSEADDR (no SO_REUSEPORT).
+        }
         if ipv6 {
             set_flag(fd, IPPROTO_IPV6, IPV6_V6ONLY)?;
         }
@@ -385,6 +397,21 @@ impl DatagramSocket {
 
     pub fn set_broadcast(&self, enabled: bool) -> io::Result<()> {
         self.socket.set_broadcast(enabled)
+    }
+
+    /// dhcp_init permits fragmentation, uses the network-control TOS, and
+    /// enables broadcast before admitting clients (dhcp.c:40–98).
+    pub fn configure_dhcp(&self) -> io::Result<()> {
+        if self.ipv6 {
+            return Err(invalid("DHCPv4 socket must use AF_INET"));
+        }
+        for (option, value) in [(10, 0), (1, 0xc0)] {
+            // SAFETY: IP_MTU_DISCOVER and IP_TOS both take a native int.
+            if unsafe { setsockopt(self.as_raw_fd(), IPPROTO_IP, option, &value, 4) } < 0 {
+                return Err(io::Error::last_os_error());
+            }
+        }
+        self.set_broadcast(true)
     }
 
     /// Truncated datagrams/ancillary data and zero source ports are discarded.

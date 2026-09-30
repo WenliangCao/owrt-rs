@@ -145,7 +145,8 @@ impl SocketListener {
                 "DHCPv4 listener requires an IPv4 bind address",
             ));
         }
-        let socket = crate::net::DatagramSocket::bind(address)?;
+        let socket = crate::net::DatagramSocket::bind_exclusive(address)?;
+        socket.configure_dhcp()?;
         Ok(Self {
             socket,
             random: std::fs::File::open("/dev/urandom")?,

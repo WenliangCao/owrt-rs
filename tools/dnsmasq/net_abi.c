@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netinet/ip.h>
 #include <ifaddrs.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
@@ -27,6 +28,7 @@ _Static_assert(offsetof(struct ifaddrs, ifa_data) == 48, "ifaddrs data");
 _Static_assert(IFF_UP == 1 && IFF_BROADCAST == 2 && IFF_LOOPBACK == 8, "interface flags");
 _Static_assert(IFNAMSIZ == 16 && sizeof(struct ifreq) == 40, "ifreq size");
 _Static_assert(offsetof(struct ifreq, ifr_addr) == 16 && SIOCGIFADDR == 0x8915, "ifreq address");
+_Static_assert(IP_MTU_DISCOVER == 10 && IP_PMTUDISC_DONT == 0 && IP_TOS == 1 && IPTOS_CLASS_CS6 == 0xc0, "DHCP IPv4 socket options");
 int main(void) {
     puts("{\"linux_64_bit_socket_abi\":\"pass\"}");
     return 0;
