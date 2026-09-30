@@ -395,8 +395,11 @@ pub fn destination(
     let htype = packet[1];
     let hlen = packet[2];
     if !ciaddr.is_unspecified() {
-        let trust_peer = matches!(reply, Reply::Inform { .. })
-            || (peer.ip() == IpAddr::V4(ciaddr) && peer.port() != 0);
+        // dhcp.c trusts an INFORM source even when it differs from ciaddr,
+        // but a zero IPv4 source or source port still falls back to ciaddr.
+        let trust_peer = matches!(peer.ip(), IpAddr::V4(address) if !address.is_unspecified())
+            && peer.port() != 0
+            && (matches!(reply, Reply::Inform { .. }) || peer.ip() == IpAddr::V4(ciaddr));
         return Ok(Destination {
             address: if trust_peer {
                 peer
@@ -424,10 +427,8 @@ pub fn destination(
         || htype == 0;
     let (address, kind) = if broadcast {
         (Ipv4Addr::BROADCAST, DestinationKind::Broadcast)
-    } else if !yiaddr.is_unspecified() {
-        (yiaddr, DestinationKind::Client)
     } else {
-        (Ipv4Addr::BROADCAST, DestinationKind::Broadcast)
+        (yiaddr, DestinationKind::Client)
     };
     if kind == DestinationKind::Client {
         // The C packet is always a complete BOOTP header, but this public
@@ -668,6 +669,62 @@ mod tests {
                 available: 20,
             })
         ));
+    }
+
+    #[test]
+    fn inform_trusts_only_nonzero_ipv4_peer_and_port() {
+        let ciaddr = Ipv4Addr::new(192, 0, 2, 9);
+        let bytes = packet(&[53, 1, 8, 255], 0, ciaddr, Ipv4Addr::UNSPECIFIED);
+        let dispatch = dispatch_for(&bytes);
+        let reply = Reply::Inform {
+            lease_time: None,
+            context: None,
+            server: Ipv4Addr::new(192, 0, 2, 1),
+        };
+        // dhcp.c:415-428: INFORM overrides the address comparison, never
+        // the checks for an unspecified source address or zero source port.
+        for peer in [
+            SocketAddr::from(([192, 0, 2, 10], 0)),
+            SocketAddr::from(([0, 0, 0, 0], 1068)),
+            SocketAddr::from(([0, 0, 0, 0], 0)),
+            "[::1]:1068".parse().unwrap(),
+        ] {
+            let selected = destination(&dispatch, peer, &reply, &bytes, bytes.len()).unwrap();
+            assert_eq!(selected.address, SocketAddr::from((ciaddr, 68)));
+            assert_eq!(selected.kind, DestinationKind::Client);
+            assert!(selected.arp.is_none());
+        }
+        let peer = SocketAddr::from(([192, 0, 2, 10], 1068));
+        let selected = destination(&dispatch, peer, &reply, &bytes, bytes.len()).unwrap();
+        assert_eq!(selected.address, peer);
+        assert_eq!(selected.kind, DestinationKind::Peer);
+    }
+
+    #[test]
+    fn zero_yiaddr_does_not_change_linux_arp_route_to_broadcast() {
+        let bytes = packet(
+            &[53, 1, 3, 255],
+            0,
+            Ipv4Addr::UNSPECIFIED,
+            Ipv4Addr::UNSPECIFIED,
+        );
+        let dispatch = dispatch_for(&bytes);
+        let selected = destination(
+            &dispatch,
+            SocketAddr::from(([192, 0, 2, 10], 68)),
+            &offer().reply,
+            &bytes,
+            bytes.len(),
+        )
+        .unwrap();
+        // dhcp.c's Linux branch chooses broadcast from flags/hardware only.
+        // The state layer, rather than this route selector, owns yiaddr.
+        assert_eq!(
+            selected.address,
+            SocketAddr::from((Ipv4Addr::UNSPECIFIED, 68))
+        );
+        assert_eq!(selected.kind, DestinationKind::Client);
+        assert_eq!(selected.arp.unwrap().address, Ipv4Addr::UNSPECIFIED);
     }
 
     #[test]

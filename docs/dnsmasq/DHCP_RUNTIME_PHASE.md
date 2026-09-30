@@ -53,3 +53,38 @@ notifications can reach cleanup sinks even when build or send fails. A
 provider-returned outcome is considered committed before wire build;
 buffer/build/send failures therefore report `committed = true` and must not
 attempt a lease rollback.
+
+## Local destination differential (2026-09-30)
+
+`tools/dnsmasq/dhcp_destination_diff.py` extracts the local `ciaddr` branch and
+the Linux flags/hardware/ARP branch from the matching `dhcp.c:415-476` (SHA256
+`600dc068b0516d7edebcde9b02ae2091a278fc154551106823ddc388170d7001`). The
+generated C oracle runs with address/undefined-behaviour sanitizers. Its ioctl
+stub records ARP metadata without opening sockets or changing the host network.
+Both implementations receive the same completed BOOTP header and peer. The
+comparison retains destination address/port, ARP hardware type and address;
+there are no randomized or reordered fields to normalize at this boundary.
+
+The harness first calibrates success/failure counts, missing/extra output
+detection, and seven manually checked C branch results. Its 3,648 cases vary
+INFORM/ACK, `ciaddr`, `yiaddr`, source address/port, broadcast flag, hardware
+type and lengths 0/1/6/14/15/16 within the admission contract. Before the fix,
+672 comparisons failed; after the fix, **3,648 passed, zero failed**. Raw
+inputs, generated C, executables and all outputs remain ignored under
+`private/dnsmasq-rewrite/dhcp-destination-20260930/{before,after}/`.
+
+Two runtime differences were fixed and retained as focused regressions:
+
+- INFORM may trust a peer address different from `ciaddr`, but zero source
+  addresses or source ports still fall back to `ciaddr:68` in C. Rust now
+  preserves that condition. IPv6 synthetic peers also fall back; real IPv6
+  ingress is already rejected by the DHCPv4 service boundary.
+- With no `ciaddr` and valid hardware, the Linux C branch chooses `yiaddr`
+  and ARP metadata even when the supplied `yiaddr` is zero. The route selector
+  no longer invents a broadcast fallback for that header; state selection
+  remains responsible for choosing the offered address.
+
+The affected DHCP library regression passed 66 tests. This is a socket-free
+destination/ARP-metadata comparison; it does not validate interface ancillary
+data, actual ARP injection, sends, alternate ports, relay/PXE, or the complete
+listener/lease lifecycle, and carries no performance claim.
