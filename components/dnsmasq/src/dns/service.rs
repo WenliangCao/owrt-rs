@@ -73,40 +73,48 @@ impl TcpFramer {
         }
     }
 
+    /// Consume at most one frame, returning the number of input bytes used.
+    /// A listener must handle a completed frame before parsing the next one:
+    /// a later invalid length must not discard earlier requests in the read.
+    pub fn push_frame(&mut self, input: &[u8]) -> Result<(usize, Option<Vec<u8>>), FrameError> {
+        let mut offset = 0;
+        if self.bytes.len() < 2 {
+            let count = (2 - self.bytes.len()).min(input.len());
+            self.bytes.extend_from_slice(&input[..count]);
+            offset += count;
+            if self.bytes.len() < 2 {
+                return Ok((offset, None));
+            }
+        }
+        let length = u16::from_be_bytes([self.bytes[0], self.bytes[1]]) as usize;
+        if length == 0 {
+            self.bytes.clear();
+            return Err(FrameError::Empty);
+        }
+        if length > self.max_frame {
+            self.bytes.clear();
+            return Err(FrameError::TooLarge);
+        }
+        let count = (length + 2 - self.bytes.len()).min(input.len() - offset);
+        self.bytes.extend_from_slice(&input[offset..offset + count]);
+        offset += count;
+        if self.bytes.len() < length + 2 {
+            return Ok((offset, None));
+        }
+        let frame = self.bytes[2..length + 2].to_vec();
+        self.bytes.clear();
+        Ok((offset, Some(frame)))
+    }
+
     pub fn push(&mut self, input: &[u8]) -> Result<Vec<Vec<u8>>, FrameError> {
         let mut frames = Vec::new();
         let mut offset = 0;
         while offset < input.len() {
-            // Append only the bytes needed for the current frame. This keeps
-            // the decoder bounded while accepting one read with many frames.
-            if self.bytes.len() < 2 {
-                let needed = 2 - self.bytes.len();
-                let count = needed.min(input.len() - offset);
-                self.bytes.extend_from_slice(&input[offset..offset + count]);
-                offset += count;
-                if self.bytes.len() < 2 {
-                    break;
-                }
+            let (consumed, frame) = self.push_frame(&input[offset..])?;
+            offset += consumed;
+            if let Some(frame) = frame {
+                frames.push(frame);
             }
-            let length = u16::from_be_bytes([self.bytes[0], self.bytes[1]]) as usize;
-            if length == 0 {
-                self.bytes.clear();
-                return Err(FrameError::Empty);
-            }
-            if length > self.max_frame {
-                self.bytes.clear();
-                return Err(FrameError::TooLarge);
-            }
-            let needed = length + 2 - self.bytes.len();
-            let count = needed.min(input.len() - offset);
-            self.bytes.extend_from_slice(&input[offset..offset + count]);
-            offset += count;
-            if self.bytes.len() < length + 2 {
-                break;
-            }
-            let frame = self.bytes[2..length + 2].to_vec();
-            self.bytes.clear();
-            frames.push(frame);
         }
         Ok(frames)
     }
@@ -258,6 +266,17 @@ mod tests {
         packet.extend_from_slice(&1u16.to_be_bytes());
         packet.extend_from_slice(&1u16.to_be_bytes());
         packet
+    }
+
+    #[test]
+    fn one_frame_is_delivered_before_later_invalid_length() {
+        // C tcp_request reads/answers the first frame before the next length.
+        for suffix in [[0, 0], [0x10, 0]] {
+            let input = [0, 3, 1, 2, 3, suffix[0], suffix[1]];
+            let mut framer = TcpFramer::with_max_frame(512);
+            assert_eq!(framer.push_frame(&input).unwrap(), (5, Some(vec![1, 2, 3])));
+            assert!(framer.push_frame(&input[5..]).is_err());
+        }
     }
 
     #[test]
