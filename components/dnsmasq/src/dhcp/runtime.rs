@@ -69,7 +69,7 @@ where
 
 /// A small state adapter for the local DHCP/BOOTP path.  It owns no socket or
 /// event loop; callers configure contexts/tags and pass it to
-/// [`process`](process) or [`crate::dhcp::service::SocketListener`].  This
+/// [`process`] or `crate::dhcp::service::SocketListener`.  This
 /// keeps the C ordering explicit: lease allocation, expiry and hostname/DNS
 /// dirtying happen before runtime builds or sends the reply.
 pub struct StateProvider<'a, F> {
