@@ -44,8 +44,22 @@ pub struct LocalAnswerer<'a> {
     pub max_packet: usize,
 }
 
+pub(crate) struct LocalAnswer {
+    pub packet: Vec<u8>,
+    /// Address/local rules use forward_query's OPT policy, while configured
+    /// records and hosts use answer_request's policy.
+    pub forward_rule: bool,
+}
+
 impl<'a> LocalAnswerer<'a> {
     pub fn answer(&mut self, query: &[u8]) -> Result<Option<Vec<u8>>, AnswerError> {
+        Ok(self.answer_with_source(query)?.map(|answer| answer.packet))
+    }
+
+    pub(crate) fn answer_with_source(
+        &mut self,
+        query: &[u8],
+    ) -> Result<Option<LocalAnswer>, AnswerError> {
         let header = Header::parse(query).map_err(|_| AnswerError::Malformed)?;
         if header.opcode() != 0
             || header.flags & 0x8000 != 0
@@ -146,23 +160,69 @@ impl<'a> LocalAnswerer<'a> {
                 0x0400
             }
             | if nxdomain { 3 } else { 0 }
-            | (header.flags & (0x0100 | 0x0010));
+            | (header.flags & (0x0100 | 0x0040 | 0x0010));
         let mut writer = PacketWriter::new(header.id, flags, limit)?;
         writer.question(&question.name, question.qtype, question.class)?;
+        let question_end = writer.position();
+        let mut truncated = false;
+        let mut extra_owner = question.name.as_wire().to_vec();
+        let mut owner_offset = 12;
         for (rrtype, ttl, data) in rows {
-            let _ = writer.record(
-                Section::Answer,
-                &question.name,
-                rrtype,
-                CLASS_IN,
-                ttl,
-                &data,
-            );
+            let start = writer.position();
+            if writer
+                .record_at(Section::Answer, 12, rrtype, CLASS_IN, ttl, &data)
+                .is_err()
+            {
+                truncated = true;
+                break;
+            }
+            if rrtype == TYPE_CNAME {
+                extra_owner = data;
+                owner_offset = start + 12; // compressed owner and fixed RR header
+            }
         }
-        for (owner, rrtype, ttl, data) in extra_rows {
-            let _ = writer.record_wire(Section::Answer, &owner, rrtype, CLASS_IN, ttl, &data);
+        if !truncated {
+            for (owner, rrtype, ttl, data) in extra_rows {
+                let start = writer.position();
+                let compressed = owner == extra_owner && owner_offset < 0x4000;
+                let result = if compressed {
+                    writer.record_at(
+                        Section::Answer,
+                        owner_offset as u16,
+                        rrtype,
+                        CLASS_IN,
+                        ttl,
+                        &data,
+                    )
+                } else {
+                    writer.record_wire(Section::Answer, &owner, rrtype, CLASS_IN, ttl, &data)
+                };
+                if result.is_err() {
+                    truncated = true;
+                    break;
+                }
+                if rrtype == TYPE_CNAME {
+                    owner_offset = start + if compressed { 12 } else { owner.len() + 10 };
+                    extra_owner = data;
+                }
+            }
         }
-        Ok(Some(writer.finish()))
+        let mut packet = writer.finish();
+        if truncated {
+            // answer_request/make_local_answer discard the entire RRset on
+            // overflow. A fitting prefix must not look like a complete set.
+            packet.truncate(question_end);
+            let mut header = Header::parse(&packet)?;
+            header.flags |= 0x0200;
+            header.answers = 0;
+            header.authorities = 0;
+            header.additionals = 0;
+            header.write(&mut packet)?;
+        }
+        Ok(Some(LocalAnswer {
+            packet,
+            forward_rule: rule_owned || local_only,
+        }))
     }
 }
 

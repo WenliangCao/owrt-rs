@@ -212,8 +212,13 @@ impl<R: Random> DnsDaemon<R> {
         let dispatcher = ForwardDispatcher::new(forward_options, groups, options.edns_packet_max);
         let upstream = UpstreamResolver::with_random(dispatcher, random, options.upstream_timeout)?;
         let policy = address_policy(&config)?;
-        let local =
-            LocalDnsService::new(config, hosts, options.local_ttl, options.max_udp.max(512));
+        let local = LocalDnsService::new_with_limits(
+            config,
+            hosts,
+            options.local_ttl,
+            options.max_udp.max(512),
+            options.edns_packet_max,
+        );
         Ok(Self {
             local,
             routing,

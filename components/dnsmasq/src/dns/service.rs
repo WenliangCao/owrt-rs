@@ -5,6 +5,7 @@
 //! upstream dispatcher can take over without changing the wire boundary.
 
 use super::local::{AnswerError, LocalAnswerer};
+use super::wire::{find_pseudoheader, Header};
 use crate::config::dns::DnsConfig;
 use crate::hosts::Hosts;
 use std::io::{self, Read, Write};
@@ -162,36 +163,96 @@ pub struct LocalDnsService {
     pub hosts: Hosts,
     pub local_ttl: u32,
     pub max_udp: usize,
+    pub edns_packet_max: u16,
 }
 
 impl LocalDnsService {
     pub fn new(config: DnsConfig, hosts: Hosts, local_ttl: u32, max_udp: usize) -> Self {
+        Self::new_with_limits(
+            config,
+            hosts,
+            local_ttl,
+            max_udp,
+            u16::try_from(max_udp.max(512)).unwrap_or(u16::MAX),
+        )
+    }
+
+    pub fn new_with_limits(
+        config: DnsConfig,
+        hosts: Hosts,
+        local_ttl: u32,
+        receive_limit: usize,
+        edns_packet_max: u16,
+    ) -> Self {
         Self {
             config,
             hosts,
             local_ttl,
-            max_udp: max_udp.max(512),
+            max_udp: receive_limit.max(512),
+            edns_packet_max,
         }
     }
 
     pub fn handle_udp(&mut self, query: &[u8]) -> Result<Option<Vec<u8>>, ServiceError> {
+        // C treats an invalid additional section as no pseudoheader; a
+        // valid question may still receive a local answer.
+        let opt = find_pseudoheader(query, true)
+            .ok()
+            .and_then(|scan| scan.opt);
+        let limit = opt
+            .as_ref()
+            .map_or(512, |opt| usize::from(opt.udp_size(self.edns_packet_max)));
+        let do_bit = opt.as_ref().is_some_and(|opt| opt.dnssec_ok());
         let mut answerer = LocalAnswerer {
             config: &self.config,
             hosts: &mut self.hosts,
             local_ttl: self.local_ttl,
-            max_packet: self.max_udp,
+            max_packet: limit,
         };
-        answerer.answer(query).map_err(ServiceError::from)
+        let Some(mut answer) = answerer.answer_with_source(query)? else {
+            return Ok(None);
+        };
+        if opt.is_some() {
+            // forward_query and receive_query have different OPT output
+            // limits/DO policies. Keep their source-contract distinction.
+            let opt_limit = if answer.forward_rule {
+                limit
+            } else {
+                usize::from(self.edns_packet_max)
+            };
+            append_empty_opt(
+                &mut answer.packet,
+                self.edns_packet_max,
+                do_bit && !answer.forward_rule,
+                opt_limit,
+            )?;
+        }
+        Ok(Some(answer.packet))
     }
 
     pub fn handle_tcp_payload(&mut self, query: &[u8]) -> Result<Option<Vec<u8>>, ServiceError> {
+        let opt = find_pseudoheader(query, true)
+            .ok()
+            .and_then(|scan| scan.opt);
+        let do_bit = opt.as_ref().is_some_and(|opt| opt.dnssec_ok());
         let mut answerer = LocalAnswerer {
             config: &self.config,
             hosts: &mut self.hosts,
             local_ttl: self.local_ttl,
             max_packet: u16::MAX as usize,
         };
-        answerer.answer(query).map_err(ServiceError::from)
+        let Some(mut packet) = answerer.answer(query)? else {
+            return Ok(None);
+        };
+        if opt.is_some() {
+            append_empty_opt(
+                &mut packet,
+                self.edns_packet_max,
+                do_bit,
+                usize::from(u16::MAX),
+            )?;
+        }
+        Ok(Some(packet))
     }
 
     pub fn handle_tcp_frame(&mut self, frame: &[u8]) -> Result<Option<Vec<u8>>, ServiceError> {
@@ -242,6 +303,28 @@ impl LocalDnsService {
             }
         }
     }
+}
+
+/// Local answers contain no client OPT. edns0.c checks room for the empty
+/// 11-byte RR plus a four-byte option header even when optno/optlen are zero;
+/// on failure it returns the original packet length and arcount.
+fn append_empty_opt(
+    packet: &mut Vec<u8>,
+    advertised: u16,
+    do_bit: bool,
+    limit: usize,
+) -> Result<(), AnswerError> {
+    if packet.len().checked_add(15).is_none_or(|len| len > limit) {
+        return Ok(());
+    }
+    let mut header = Header::parse(packet)?;
+    packet.extend_from_slice(&[0, 0, 41]);
+    packet.extend_from_slice(&advertised.to_be_bytes());
+    packet.extend_from_slice(&(if do_bit { 0x8000u32 } else { 0 }).to_be_bytes());
+    packet.extend_from_slice(&[0, 0]);
+    header.additionals += 1;
+    header.write(packet)?;
+    Ok(())
 }
 
 #[cfg(test)]
@@ -315,6 +398,118 @@ mod tests {
             u16::from_be_bytes([response[0], response[1]]) as usize,
             response.len() - 2
         );
+    }
+
+    fn configured(lines: &[Vec<u8>], maximum: u16) -> LocalDnsService {
+        let mut config = DnsConfig::default();
+        for line in lines {
+            config.apply(&lex_line(line).unwrap().unwrap()).unwrap();
+        }
+        LocalDnsService::new_with_limits(config, Hosts::new(), 37, 1497, maximum)
+    }
+
+    fn opt_query(kind: u16, size: u16) -> Vec<u8> {
+        let mut packet = query();
+        let end = packet.len();
+        packet[end - 4..end - 2].copy_from_slice(&kind.to_be_bytes());
+        packet[10..12].copy_from_slice(&1u16.to_be_bytes());
+        packet.extend_from_slice(&[0, 0, 41]);
+        packet.extend_from_slice(&size.to_be_bytes());
+        packet.extend_from_slice(&[0, 0, 0x80, 0, 0, 0]);
+        packet
+    }
+
+    #[test]
+    fn udp_limit_discards_fitting_prefix_and_tcp_keeps_full_local_answer() {
+        let lines: Vec<_> = [b'a', b'b', b'c']
+            .into_iter()
+            .map(|byte| {
+                let mut line = b"txt-record=router.test,".to_vec();
+                line.extend(std::iter::repeat_n(byte, 200));
+                line
+            })
+            .collect();
+        let mut service = configured(&lines, 1232);
+        let mut no_opt = query();
+        let end = no_opt.len();
+        no_opt[end - 4..end - 2].copy_from_slice(&16u16.to_be_bytes());
+        let reply = service.handle_udp(&no_opt).unwrap().unwrap();
+        let header = Header::parse(&reply).unwrap();
+        assert_eq!(header.flags, 0x8780);
+        assert_eq!(
+            (header.answers, header.additionals, reply.len()),
+            (0, 0, no_opt.len())
+        );
+        let small = opt_query(16, 512);
+        let reply = service.handle_udp(&small).unwrap().unwrap();
+        let header = Header::parse(&reply).unwrap();
+        assert_eq!(
+            (header.answers, header.additionals, reply.len()),
+            (0, 1, 40)
+        );
+        let opt = find_pseudoheader(&reply, true).unwrap().opt.unwrap();
+        assert_eq!((opt.record.class, opt.record.ttl), (1232, 0x8000));
+        for reply in [
+            service.handle_udp(&opt_query(16, 4096)).unwrap().unwrap(),
+            service.handle_tcp_payload(&small).unwrap().unwrap(),
+        ] {
+            let header = Header::parse(&reply).unwrap();
+            assert_eq!(
+                (header.answers, header.additionals, reply.len()),
+                (3, 1, 679)
+            );
+            assert_eq!(header.flags & 0x0200, 0);
+        }
+    }
+
+    #[test]
+    fn empty_opt_reserves_four_bytes_and_does_not_leave_trailing_data() {
+        for (tail, expected_length, expected_opt) in [(199, 508, 1), (200, 498, 0)] {
+            let mut line = b"txt-record=router.test,".to_vec();
+            line.extend([b'x'; 255]);
+            line.push(b',');
+            line.extend(std::iter::repeat_n(b'y', tail));
+            let mut service = configured(&[line], 512);
+            let reply = service.handle_udp(&opt_query(16, 512)).unwrap().unwrap();
+            assert_eq!(reply.len(), expected_length);
+            assert_eq!(Header::parse(&reply).unwrap().additionals, expected_opt);
+            assert_eq!(
+                super::super::wire::Message::parse(&reply).unwrap().end,
+                reply.len()
+            );
+        }
+    }
+
+    #[test]
+    fn local_opt_do_policy_and_truncated_opt_follow_the_c_caller() {
+        for (line, do_bit) in [
+            (b"host-record=router.test,192.0.2.1".as_slice(), true),
+            (b"address=/router.test/192.0.2.1", false),
+            (b"local=/router.test/", false),
+        ] {
+            let mut service = configured(&[line.to_vec()], 1232);
+            let packet = opt_query(1, 512);
+            let udp = service.handle_udp(&packet).unwrap().unwrap();
+            let tcp = service.handle_tcp_payload(&packet).unwrap().unwrap();
+            assert_eq!(
+                find_pseudoheader(&udp, true)
+                    .unwrap()
+                    .opt
+                    .unwrap()
+                    .dnssec_ok(),
+                do_bit
+            );
+            assert!(find_pseudoheader(&tcp, true)
+                .unwrap()
+                .opt
+                .unwrap()
+                .dnssec_ok());
+            for length in [0, 1, 4, 9, 10] {
+                let broken = &packet[..packet.len() - 11 + length];
+                let reply = service.handle_udp(broken).unwrap().unwrap();
+                assert_eq!(Header::parse(&reply).unwrap().additionals, 0);
+            }
+        }
     }
 
     #[test]
