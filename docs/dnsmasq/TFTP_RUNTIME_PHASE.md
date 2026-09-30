@@ -11,7 +11,7 @@ scripts.
 `handle_socket_datagram` adds the small transport-role gate below that state
 machine: in separate-port mode, `SocketRole::Server` admits RRQ only and
 `SocketRole::Transfer` admits the non-RRQ transfer path (ACK/ERR are the
-stateful opcodes). The caller still binds port 69 or a
+stateful opcodes; a foreign peer receives `ERR_TID`). The caller still binds port 69 or a
 configured transfer range, validates interface metadata and supplies the peer
 TID; this is not a listener implementation.
 

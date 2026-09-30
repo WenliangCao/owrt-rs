@@ -269,8 +269,21 @@ impl<O: FileOpener> TransferRuntime<O> {
     ) -> Result<Vec<RuntimeEvent>, RuntimeError> {
         if !self.config.single_port {
             let is_rrq = opcode(packet) == Some(1);
-            if (role == SocketRole::Server) != is_rrq {
-                return Ok(Vec::new());
+            match role {
+                SocketRole::Server if !is_rrq => return Ok(Vec::new()),
+                SocketRole::Transfer if is_rrq => {
+                    // A RRQ from the owning peer is ignored by C's
+                    // handle_tftp(); a foreign peer receives ERR_TID on the
+                    // dedicated socket instead of creating a new transfer.
+                    if self.active.values().any(|active| active.peer == peer) {
+                        return Ok(Vec::new());
+                    }
+                    return Ok(vec![RuntimeEvent::TidError {
+                        peer,
+                        packet: error_packet(5, "unknown transfer id"),
+                    }]);
+                }
+                SocketRole::Server | SocketRole::Transfer => {}
             }
         }
         self.handle_datagram(peer, packet, now)
@@ -798,25 +811,33 @@ mod tests {
     #[test]
     fn socket_roles_keep_server_rrq_and_transfer_ack_paths_distinct() {
         let mut runtime = runtime(b"hello");
-        let peer = peer(1000);
+        let source_peer = peer(1000);
         let request = rrq(b"boot.bin", b"octet");
         let first = runtime
-            .handle_socket_datagram(SocketRole::Server, peer, &request, 1)
+            .handle_socket_datagram(SocketRole::Server, source_peer, &request, 1)
             .unwrap();
         assert!(matches!(first.first(), Some(RuntimeEvent::Send { .. })));
 
         // A dedicated transfer socket must not create a second transfer from
         // an RRQ, and the port-69 listener must not consume ACK state.
         assert!(runtime
-            .handle_socket_datagram(SocketRole::Transfer, peer, &request, 2)
+            .handle_socket_datagram(SocketRole::Transfer, source_peer, &request, 2)
             .unwrap()
             .is_empty());
+        let wrong_peer = peer(1001);
+        assert!(matches!(
+            runtime
+                .handle_socket_datagram(SocketRole::Transfer, wrong_peer, &request, 2)
+                .unwrap()
+                .first(),
+            Some(RuntimeEvent::TidError { peer, .. }) if *peer == wrong_peer
+        ));
         assert!(runtime
-            .handle_socket_datagram(SocketRole::Server, peer, &[0, 4, 0, 1], 2)
+            .handle_socket_datagram(SocketRole::Server, source_peer, &[0, 4, 0, 1], 2)
             .unwrap()
             .is_empty());
         let done = runtime
-            .handle_socket_datagram(SocketRole::Transfer, peer, &[0, 4, 0, 1], 3)
+            .handle_socket_datagram(SocketRole::Transfer, source_peer, &[0, 4, 0, 1], 3)
             .unwrap();
         assert!(matches!(done.first(), Some(RuntimeEvent::Completed(_))));
         assert_eq!(runtime.active_len(), 0);
