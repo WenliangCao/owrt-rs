@@ -412,12 +412,20 @@ pub fn discover(
         available(ranges, *address, request.tags).is_some() && !request.reserved.contains(address)
     });
     let wanted = if static_address.is_none() && retained.is_none() {
-        request.packet.requested_address().filter(|address| {
+        let eligible = request.packet.requested_address().filter(|address| {
             available(ranges, *address, request.tags).is_some()
                 && store.get(*address).is_none()
                 && !request.reserved.contains(address)
-                && matches!(probe(*address, 0), ProbeResult::Available { .. })
-        })
+        });
+        if let Some(address) = eligible {
+            match probe(address, 0) {
+                ProbeResult::Available { .. } => Some(address),
+                ProbeResult::InUse => None,
+                ProbeResult::Failed => return Ok(Outcome::ignored()),
+            }
+        } else {
+            None
+        }
     } else {
         None
     };

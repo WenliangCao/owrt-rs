@@ -100,7 +100,12 @@ pub fn seed(range: &AddressRange, hash: u32) -> Option<Ipv4Addr> {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ProbeResult {
     InUse,
-    Available { offer_hash: u32 },
+    Available {
+        offer_hash: u32,
+    },
+    /// The caller retains the I/O error. Abort allocation immediately; an
+    /// unchecked address is neither occupied nor available.
+    Failed,
 }
 
 /// Performs the reference's two passes: tag-matched pools, then untagged pools.
@@ -145,6 +150,7 @@ pub fn allocate_address(
                         ranges[index].epoch -= 1;
                     } else {
                         match probe(address, hash) {
+                            ProbeResult::Failed => return None,
                             ProbeResult::Available { offer_hash }
                                 if !consecutive || offer_hash == hash =>
                             {
@@ -260,6 +266,27 @@ mod tests {
             narrow(&[static_range], Ipv4Addr::new(192, 0, 2, 99), &[]),
             Some(0)
         );
+    }
+
+    #[test]
+    fn probe_failure_stops_pool_scan_without_conflict_epoch() {
+        let mut ranges = [range(), range()];
+        let mut calls = 0;
+        assert!(allocate_address(
+            &mut ranges,
+            &LeaseStore::new(10),
+            &[1],
+            &[],
+            false,
+            |_| false,
+            |_, _| {
+                calls += 1;
+                ProbeResult::Failed
+            }
+        )
+        .is_none());
+        assert_eq!(calls, 1);
+        assert!(ranges.iter().all(|range| range.epoch == 0));
     }
 
     #[test]

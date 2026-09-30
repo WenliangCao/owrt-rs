@@ -42,7 +42,7 @@ expiry=0 表示无限租约，其他 expiry 在 `now >= expiry` 时到期。
 | `lease.c:1010-1030,1211-1317` | 旧名通知早于新位置；删除队列先于活动变化；Add/Old/Delete；leasefile-ro/renew 开关；HUP rerun | `ScriptQueue`, `ScriptFlags`, `LeaseStore::rerun_scripts` | 直接抽取 C 2,000 个 15 步序列；单测核对队列所有权释放 |
 | `dhcp-common.c:224-251` | tag conjunction；`!`/旧 `#` 否定；空 filter 受 pass 控制 | `allocation::match_tags` | 单测 |
 | `dhcp.c:687-752` | 排除所有上下文 router；dynamic 地址范围；static/subnet fallback；proxy 不参与普通分配 | `allocation::available/narrow` | 单测；接收接口形成的 context 链由上层负责 |
-| `dhcp.c:825-923` | SDBM u32 wrap；tag 优先双 pass；consecutive 地址；保留静态地址；class-C .0/.255 跳过；ping 冲突扰动 epoch | `allocation::allocate_address` | 单测；ICMP 实测/cache/load-limit 依赖通过 callback 明示，未实现系统 ICMP |
+| `dhcp.c:825-923` | SDBM u32 wrap；tag 优先双 pass；consecutive 地址；保留静态地址；class-C .0/.255 跳过；ping 冲突扰动 epoch | `allocation::allocate_address` | 单测；系统 ICMP/cache/load-limit 现由 `IcmpProbe` 提供，错误通过 `ProbeResult::Failed` 立即终止扫描，见 `DHCP_PROBE_PHASE.md` |
 | `rfc2131.c:1392-1488` | SELECTING/INIT-REBOOT/续租重绑定 early decision；错误 server 在 authoritative 下 NAK；未知 broadcast 续租忽略、unicast NAK | `request::classify_request` | 单测；返回 `CheckAddress`，**不是已经 ACK** |
 | `rfc2131.c:1832-1873` | client-id 扩展硬件身份；client 请求租期至少 120，再与配置上限取 min | `request::extended_hardware_id/lease_duration` | duration 直接抽取 C 2,003 case；extended ID 目前依赖代码核读 |
 | `rfc2131.c:1392-1753` | SELECTING/恢复/续租、static 迁移、保留地址、多 MAC 交接、容量、唯一身份；原 lease pruning 早于 NAK；更新名字/期限/interface/server override | `state::request` | 精确 C 真实隔离 UDP 服务与 Rust 离线状态核对；前置 context/tag/host/name 必须由调用方提供 |
@@ -119,8 +119,9 @@ CLID 查找仍扫描活动租约，输出租约文件按序号排序也有额外
   求值；状态 kernel 必须与这些调用方语义连接，LEASEQUERY 仍待实现；
   完整 wire reply options/tag/overload caller、leasequery agent-id/vendorclass 更新。
   有限 OFFER/ACK 的 T1/T2/fuzz 已接 wire/runtime；详见 `DHCP_REPLY_PHASE.md`。
-- 真实 DHCP socket、pktinfo、接口动态变化、relay、ARP 注入、广播/单播、
-  ICMP 检测/cache 与失败策略；必须隔离网络对照。
+- 真实 DHCP socket、pktinfo、接口动态变化、relay、ARP 注入、广播/单播
+  的完整服务对照；ICMP 依赖已有 67,647 项精确 C 原语与 Linux namespace
+  验证，权限/发送失败采用显式错误而非 C 的放行行为，不能计为完全等价。
 - `lease.c:174-254` 启动读真实文件/leasefile-ro init 脚本；`286-454` fsync
   失败重试/next alarm；ScriptQueue 仍须接 helper/hotplug 与通知重连。
   内存恢复/序列化及事件通过不等于真实持久化生命周期已通过。

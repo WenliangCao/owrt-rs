@@ -5,7 +5,7 @@
 use owrt_ubus::sys::{IoVec, MsgHdr};
 use std::io;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV6, UdpSocket};
-use std::os::fd::{AsRawFd, FromRawFd, RawFd};
+use std::os::fd::{AsRawFd, FromRawFd, OwnedFd, RawFd};
 
 const AF_INET: i32 = 2;
 const AF_INET6: i32 = 10;
@@ -27,6 +27,23 @@ extern "C" {
     fn setsockopt(fd: i32, level: i32, option: i32, value: *const i32, len: u32) -> i32;
     fn recvmsg(fd: i32, message: *mut MsgHdr, flags: i32) -> isize;
     fn sendmsg(fd: i32, message: *const MsgHdr, flags: i32) -> isize;
+    fn sendto(
+        fd: i32,
+        bytes: *const u8,
+        len: usize,
+        flags: i32,
+        address: *const u8,
+        address_len: u32,
+    ) -> isize;
+    fn recvfrom(
+        fd: i32,
+        bytes: *mut u8,
+        len: usize,
+        flags: i32,
+        address: *mut u8,
+        address_len: *mut u32,
+    ) -> isize;
+    fn poll(fds: *mut owrt_ubus::sys::PollFd, count: usize, timeout: i32) -> i32;
 }
 
 fn invalid(message: &'static str) -> io::Error {
@@ -122,6 +139,99 @@ fn set_flag(fd: RawFd, level: i32, flag: i32) -> io::Result<()> {
         Err(io::Error::last_os_error())
     } else {
         Ok(())
+    }
+}
+
+/// Linux raw ICMP socket used only by the DHCP conflict probe. Every success,
+/// error and cancellation path closes its descriptor through OwnedFd.
+pub struct IcmpSocket(OwnedFd);
+
+impl IcmpSocket {
+    pub fn open() -> io::Result<Self> {
+        // SAFETY: no pointers; successful socket returns unique ownership.
+        let fd = unsafe { socket(AF_INET, 3 | SOCK_CLOEXEC | SOCK_NONBLOCK, 1) };
+        if fd < 0 {
+            return Err(io::Error::last_os_error());
+        }
+        // SAFETY: fd is fresh and has exactly one owner.
+        let socket = Self(unsafe { OwnedFd::from_raw_fd(fd) });
+        let zero = 0;
+        // SAFETY: SO_DONTROUTE accepts a live native int of the supplied size.
+        if unsafe { setsockopt(fd, 1, 5, &zero, 4) } < 0 {
+            return Err(io::Error::last_os_error());
+        }
+        Ok(socket)
+    }
+
+    pub fn send(&self, bytes: &[u8], target: Ipv4Addr) -> io::Result<()> {
+        let mut address = Address::new(SocketAddr::from((target, 0)));
+        // SAFETY: both initialized byte buffers outlive this call and the
+        // lengths match their allocations; sendto retains neither pointer.
+        let sent = unsafe {
+            sendto(
+                self.0.as_raw_fd(),
+                bytes.as_ptr(),
+                bytes.len(),
+                0,
+                address.bytes_mut().as_ptr(),
+                16,
+            )
+        };
+        if sent < 0 {
+            Err(io::Error::last_os_error())
+        } else if sent as usize != bytes.len() {
+            Err(io::Error::new(io::ErrorKind::WriteZero, "short ICMP send"))
+        } else {
+            Ok(())
+        }
+    }
+
+    pub fn receive(&self, bytes: &mut [u8]) -> io::Result<(usize, Ipv4Addr)> {
+        let mut address = Address {
+            storage: [0; 4],
+            len: 32,
+        };
+        let mut len = 32;
+        // SAFETY: output buffers and address length live through recvfrom;
+        // their capacities bound kernel writes. No MSG_TRUNC is requested,
+        // matching C's fixed-size ICMP receive (longer datagrams truncate).
+        let got = unsafe {
+            recvfrom(
+                self.0.as_raw_fd(),
+                bytes.as_mut_ptr(),
+                bytes.len(),
+                0,
+                address.bytes_mut().as_mut_ptr(),
+                &mut len,
+            )
+        };
+        if got < 0 {
+            return Err(io::Error::last_os_error());
+        }
+        let IpAddr::V4(peer) = address.decode(len)?.ip() else {
+            return Err(invalid("unexpected ICMP peer family"));
+        };
+        Ok((got as usize, peer))
+    }
+
+    /// One bounded wait. EINTR is returned to the probe so it can check its
+    /// stop flag rather than hiding cancellation inside an unbounded retry.
+    pub fn wait(&self, timeout: std::time::Duration) -> io::Result<bool> {
+        let mut fd = owrt_ubus::sys::PollFd {
+            fd: self.0.as_raw_fd(),
+            events: 1,
+            revents: 0,
+        };
+        let millis = timeout.as_millis().min(i32::MAX as u128) as i32;
+        // SAFETY: one initialized pollfd remains live throughout the call.
+        let ready = unsafe { poll(&mut fd, 1, millis) };
+        if ready < 0 {
+            return Err(io::Error::last_os_error());
+        }
+        if fd.revents & (8 | 16 | 32) != 0 {
+            return Err(io::Error::other("ICMP socket readiness failure"));
+        }
+        Ok(ready != 0)
     }
 }
 
