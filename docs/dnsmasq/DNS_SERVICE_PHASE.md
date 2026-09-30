@@ -13,7 +13,7 @@
 
 ## 当前边界
 
-`LocalDnsService` 只回答本地拥有的名字；`None` 不是 NXDOMAIN，而是上游 dispatcher 的明确交接点。`dns::daemon::DnsDaemon` 现把这条边界接到 `RoutingTable`、`ForwardDispatcher` 和有界非阻塞 `UpstreamResolver`：调用方提交一个客户端 UDP 数据报，再从 `poll` 取得已恢复客户端 ID/大小的回复。`ignore-address` 在上游匹配后、forward 状态完成前执行；回复仍只经过现有地址策略和 EDNS envelope。daemon 现接入窄范围缓存：仅 IN、单问、无 EDNS/DNSSEC、NOERROR 的直接 A/AAAA RR，以及无 SOA 的 NXDOMAIN fallback 会按 TTL 写入；命中用 bounded writer 恢复新客户端 ID。CNAME、ANY、NODATA/SOA、缓存响应 EDNS 与完整 cacheability 仍未接线。ubus/TCP fallback 仍明确未完成。二进制 listener/reload 生命周期尚未改为使用该边界。
+`LocalDnsService` 只回答本地拥有的名字；`None` 不是 NXDOMAIN，而是上游 dispatcher 的明确交接点。`dns::daemon::DnsDaemon` 现把这条边界接到 `RoutingTable`、`ForwardDispatcher` 和有界非阻塞 `UpstreamResolver`：调用方提交一个客户端 UDP 数据报，再从 `poll` 取得已恢复客户端 ID/大小的回复。`ignore-address` 在上游匹配后、forward 状态完成前执行；回复仍只经过现有地址策略和 EDNS envelope。daemon 现接入窄范围缓存：仅 IN、单问、无 EDNS/DNSSEC、NOERROR 的直接 A/AAAA RR，以及无 SOA 的 NXDOMAIN fallback 会按 TTL 写入；命中用 bounded writer 恢复新客户端 ID。缓存目前由每个 UDP listener worker 各自持有，多监听地址之间不共享。CNAME、ANY、NODATA/SOA、缓存响应 EDNS 与完整 cacheability 仍未接线。ubus/TCP fallback 仍明确未完成。二进制 listener/reload 生命周期尚未改为使用该边界。
 
 本地回答边界由精确 C driver 在 2026-09-30 重新核验：A-only `host-record` 对 AAAA 返回上游边界，对 ANY/IN 只返回 A；CNAME 的 A/AAAA/ANY 查询先返回 CNAME 再返回本地目标地址；未知 `local=/domain/` 是 NXDOMAIN 且 AA 清除，已知子记录存在时父域是 NOERROR/AA 清除；`address=/domain/#/` 对 A/AAAA 分别返回全零；QCLASS 非 IN 在 local-only 域仍由本地边界返回 NXDOMAIN/NOERROR；本地记录数据只接受 IN。证据在 ignored `private/dnsmasq-rewrite/local-c-audit-20260930/`，不包含物理路由器访问。
 
