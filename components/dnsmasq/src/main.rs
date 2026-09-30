@@ -1,8 +1,8 @@
-//! Small foreground runner for the currently implemented local DNS service.
+//! Small foreground runner for the implemented DNS UDP/TCP and upstream path.
 //!
 //! The library remains the compatibility boundary.  This binary intentionally
 //! rejects directives whose owning engine is not present yet; silently ignoring
-//! a DHCP, TFTP, or upstream option would make a package appear deployable while
+//! a DHCP or TFTP option would make a package appear deployable while
 //! dropping configured behavior.
 
 use dnsmasq_rs::config::dns::DnsConfig;
@@ -58,13 +58,13 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     match action {
         Action::Version => {
             println!("dnsmasq-rs 0.1.0");
-            println!("Mode: development local-DNS probe only");
-            println!("Implemented: local hosts/host-record DNS over UDP and TCP");
-            println!("Not implemented: upstream forwarding, DHCP, TFTP, UBus, reload and metrics");
+            println!("Mode: development DNS daemon");
+            println!("Implemented: local and configured upstream DNS over UDP and TCP");
+            println!("Not implemented: DHCP, TFTP, UBus, reload and metrics");
             return Ok(());
         }
         Action::Help | Action::HelpDhcp => {
-            println!("dnsmasq-rs: use -C FILE and -k to run the implemented local DNS service");
+            println!("dnsmasq-rs: use -C FILE and -k to run the implemented DNS service");
             return Ok(());
         }
         Action::Test => {
