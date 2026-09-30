@@ -1,0 +1,4039 @@
+{
+  "schema": 1,
+  "baseline": {
+    "package": "dnsmasq 2.93-r1",
+    "variant": "nodhcpv6",
+    "openwrt_revision": "f0a60eee2fe051741c643ea6118718aae1ef17fb",
+    "archive_sha256": "0c00d4e5c97c8306e5fb932b348b34269c9c29a0e7df0e8e82958b407092bc19",
+    "option_c_sha256": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
+    "copts": [
+      "HAVE_UBUS",
+      "HAVE_POLL_H",
+      "NO_DHCP6",
+      "NO_AUTH",
+      "NO_IPSET",
+      "NO_ID"
+    ],
+    "note": "IPv6 target Linux; no LOCALEDIR or external optional feature libraries"
+  },
+  "short_options": "951yZDNLERKzowefnbvhdkqr:m:p:c:l:s:i:t:u:g:a:x:S:C:A:T:H:Q:I:B:F:G:O:M:X:V:U:j:P:J:W:Y:2:4:6:7:8:0:3:",
+  "options": [
+    {
+      "name": "version",
+      "id": "'v'",
+      "argument": "none",
+      "short": "v",
+      "repeat": "boolean",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:211",
+        "usage": "src/option.c:490",
+        "cases": []
+      },
+      "research": "traced",
+      "rust": "startup input control implemented; runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "no-hosts",
+      "id": "'h'",
+      "argument": "none",
+      "short": "h",
+      "repeat": "boolean",
+      "boolean": "OPT_NO_HOSTS",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:212",
+        "usage": "src/option.c:444",
+        "cases": [
+          "src/option.c:1679",
+          "src/option.c:3972",
+          "src/option.c:4175"
+        ]
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "no-poll",
+      "id": "'n'",
+      "argument": "none",
+      "short": "n",
+      "repeat": "boolean",
+      "boolean": "OPT_NO_POLL",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:213",
+        "usage": "src/option.c:462",
+        "cases": []
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "help",
+      "id": "'w'",
+      "argument": "none",
+      "short": "w",
+      "repeat": "boolean",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:214",
+        "usage": "src/option.c:493",
+        "cases": [
+          "src/option.c:1671",
+          "src/option.c:3964",
+          "src/option.c:4167"
+        ]
+      },
+      "research": "traced",
+      "rust": "startup input control implemented; runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "no-daemon",
+      "id": "'d'",
+      "argument": "none",
+      "short": "d",
+      "repeat": "boolean",
+      "boolean": "OPT_DEBUG",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:215",
+        "usage": "src/option.c:428",
+        "cases": [
+          "src/option.c:1675",
+          "src/option.c:3968",
+          "src/option.c:4171"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "log-queries",
+      "id": "'q'",
+      "argument": "optional",
+      "short": "q",
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:216",
+        "usage": "src/option.c:471",
+        "cases": [
+          "src/option.c:3459"
+        ]
+      },
+      "research": "traced",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "user",
+      "id": "'u'",
+      "argument": "optional",
+      "short": "u",
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:217",
+        "usage": "src/option.c:488",
+        "cases": [
+          "src/option.c:2867"
+        ]
+      },
+      "research": "traced",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "group",
+      "id": "'g'",
+      "argument": "optional",
+      "short": "g",
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:218",
+        "usage": "src/option.c:437",
+        "cases": [
+          "src/option.c:2871"
+        ]
+      },
+      "research": "traced",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "resolv-file",
+      "id": "'r'",
+      "argument": "optional",
+      "short": "r",
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:219",
+        "usage": "src/option.c:475",
+        "cases": [
+          "src/option.c:2304"
+        ]
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "servers-file",
+      "id": "LOPT_SERVERS_FILE",
+      "argument": "required",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:220",
+        "usage": "src/option.c:476",
+        "cases": [
+          "src/option.c:2334"
+        ]
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "pending"
+    },
+    {
+      "name": "mx-host",
+      "id": "'m'",
+      "argument": "required",
+      "short": "m",
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:221",
+        "usage": "src/option.c:460",
+        "cases": [
+          "src/option.c:1683",
+          "src/option.c:2338",
+          "src/option.c:3976",
+          "src/option.c:4179"
+        ]
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "mx-target",
+      "id": "'t'",
+      "argument": "required",
+      "short": "t",
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:222",
+        "usage": "src/option.c:481",
+        "cases": [
+          "src/option.c:2369"
+        ]
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "cache-size",
+      "id": "'c'",
+      "argument": "optional",
+      "short": "c",
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:223",
+        "usage": "src/option.c:426",
+        "cases": [
+          "src/option.c:3413"
+        ]
+      },
+      "research": "traced",
+      "rust": "scalar parser implemented; engine integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "port",
+      "id": "'p'",
+      "argument": "required",
+      "short": "p",
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:224",
+        "usage": "src/option.c:469",
+        "cases": [
+          "src/option.c:3439"
+        ]
+      },
+      "research": "traced",
+      "rust": "scalar parser implemented; engine integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "dhcp-leasefile",
+      "id": "'l'",
+      "argument": "optional",
+      "short": "l",
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:225",
+        "usage": "src/option.c:458",
+        "cases": [
+          "src/option.c:2383"
+        ]
+      },
+      "research": "traced",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-lease",
+      "id": "'l'",
+      "argument": "required",
+      "short": "l",
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:226",
+        "usage": "src/option.c:458",
+        "cases": [
+          "src/option.c:2383"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-host",
+      "id": "'G'",
+      "argument": "required",
+      "short": "G",
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:227",
+        "usage": "src/option.c:438",
+        "cases": [
+          "src/option.c:4006"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-range",
+      "id": "'F'",
+      "argument": "required",
+      "short": "F",
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:228",
+        "usage": "src/option.c:436",
+        "cases": [
+          "src/option.c:3747"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-option",
+      "id": "'O'",
+      "argument": "required",
+      "short": "O",
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:229",
+        "usage": "src/option.c:466",
+        "cases": [
+          "src/option.c:4310"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-boot",
+      "id": "'M'",
+      "argument": "required",
+      "short": "M",
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:230",
+        "usage": "src/option.c:461",
+        "cases": [
+          "src/option.c:1684",
+          "src/option.c:3977",
+          "src/option.c:4180",
+          "src/option.c:4347"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "domain",
+      "id": "'s'",
+      "argument": "required",
+      "short": "s",
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:231",
+        "usage": "src/option.c:480",
+        "cases": [
+          "src/option.c:1687",
+          "src/option.c:2621",
+          "src/option.c:3980",
+          "src/option.c:4183"
+        ]
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "domain-suffix",
+      "id": "'s'",
+      "argument": "required",
+      "short": "s",
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:232",
+        "usage": "src/option.c:480",
+        "cases": [
+          "src/option.c:1687",
+          "src/option.c:2621",
+          "src/option.c:3980",
+          "src/option.c:4183"
+        ]
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "pending"
+    },
+    {
+      "name": "interface",
+      "id": "'i'",
+      "argument": "required",
+      "short": "i",
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:233",
+        "usage": "src/option.c:447",
+        "cases": [
+          "src/option.c:2882"
+        ]
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "listen-address",
+      "id": "'a'",
+      "argument": "required",
+      "short": "a",
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:234",
+        "usage": "src/option.c:422",
+        "cases": [
+          "src/option.c:2995"
+        ]
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "local-service",
+      "id": "LOPT_LOCAL_SERVICE",
+      "argument": "optional",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:235",
+        "usage": "src/option.c:597",
+        "cases": [
+          "src/option.c:3485"
+        ]
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "bogus-priv",
+      "id": "'b'",
+      "argument": "none",
+      "short": "b",
+      "repeat": "boolean",
+      "boolean": "OPT_BOGUSPRIV",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:236",
+        "usage": "src/option.c:424",
+        "cases": []
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "pending"
+    },
+    {
+      "name": "bogus-nxdomain",
+      "id": "'B'",
+      "argument": "required",
+      "short": "B",
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:237",
+        "usage": "src/option.c:425",
+        "cases": [
+          "src/option.c:2941"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "ignore-address",
+      "id": "LOPT_IGNORE_ADDR",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:238",
+        "usage": "src/option.c:599",
+        "cases": [
+          "src/option.c:2942"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "selfmx",
+      "id": "'e'",
+      "argument": "none",
+      "short": "e",
+      "repeat": "boolean",
+      "boolean": "OPT_SELFMX",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:239",
+        "usage": "src/option.c:430",
+        "cases": []
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "filterwin2k",
+      "id": "'f'",
+      "argument": "none",
+      "short": "f",
+      "repeat": "boolean",
+      "boolean": "OPT_FILTER",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:240",
+        "usage": "src/option.c:432",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "filter-A",
+      "id": "LOPT_FILTER_A",
+      "argument": "none",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:241",
+        "usage": "src/option.c:433",
+        "cases": [
+          "src/option.c:3577"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "filter-AAAA",
+      "id": "LOPT_FILTER_AAAA",
+      "argument": "none",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:242",
+        "usage": "src/option.c:434",
+        "cases": [
+          "src/option.c:3578"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "filter-rr",
+      "id": "LOPT_FILTER_RR",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:243",
+        "usage": "src/option.c:435",
+        "cases": [
+          "src/option.c:3576"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "pid-file",
+      "id": "'x'",
+      "argument": "optional",
+      "short": "x",
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:244",
+        "usage": "src/option.c:494",
+        "cases": [
+          "src/option.c:2300"
+        ]
+      },
+      "research": "traced",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "strict-order",
+      "id": "'o'",
+      "argument": "none",
+      "short": "o",
+      "repeat": "boolean",
+      "boolean": "OPT_ORDER",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:245",
+        "usage": "src/option.c:465",
+        "cases": []
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "pending"
+    },
+    {
+      "name": "server",
+      "id": "'S'",
+      "argument": "required",
+      "short": "S",
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:246",
+        "usage": "src/option.c:477",
+        "cases": [
+          "src/option.c:1688",
+          "src/option.c:3058",
+          "src/option.c:3981",
+          "src/option.c:4184"
+        ]
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "rev-server",
+      "id": "LOPT_REV_SERV",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:247",
+        "usage": "src/option.c:478",
+        "cases": [
+          "src/option.c:3161"
+        ]
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "local",
+      "id": "LOPT_LOCAL",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:248",
+        "usage": "src/option.c:479",
+        "cases": [
+          "src/option.c:3059"
+        ]
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "address",
+      "id": "'A'",
+      "argument": "required",
+      "short": "A",
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:249",
+        "usage": "src/option.c:423",
+        "cases": [
+          "src/option.c:3060"
+        ]
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "conf-file",
+      "id": "'C'",
+      "argument": "optional",
+      "short": "C",
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:250",
+        "usage": "src/option.c:427",
+        "cases": [
+          "src/option.c:2057"
+        ]
+      },
+      "research": "traced",
+      "rust": "startup input control implemented; runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "conf-script",
+      "id": "LOPT_CONF_SCRIPT",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:251",
+        "usage": "src/option.c:518",
+        "cases": [
+          "src/option.c:2068"
+        ]
+      },
+      "research": "traced",
+      "rust": "startup input control implemented; runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "no-resolv",
+      "id": "'R'",
+      "argument": "none",
+      "short": "R",
+      "repeat": "boolean",
+      "boolean": "OPT_NO_RESOLV",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:252",
+        "usage": "src/option.c:474",
+        "cases": []
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "expand-hosts",
+      "id": "'E'",
+      "argument": "none",
+      "short": "E",
+      "repeat": "boolean",
+      "boolean": "OPT_EXPAND",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:253",
+        "usage": "src/option.c:431",
+        "cases": []
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "localmx",
+      "id": "'L'",
+      "argument": "none",
+      "short": "L",
+      "repeat": "boolean",
+      "boolean": "OPT_LOCALMX",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:254",
+        "usage": "src/option.c:459",
+        "cases": []
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "local-ttl",
+      "id": "'T'",
+      "argument": "required",
+      "short": "T",
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:255",
+        "usage": "src/option.c:482",
+        "cases": [
+          "src/option.c:3517"
+        ]
+      },
+      "research": "traced",
+      "rust": "scalar parser implemented; engine integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "no-negcache",
+      "id": "'N'",
+      "argument": "none",
+      "short": "N",
+      "repeat": "boolean",
+      "boolean": "OPT_NO_NEG",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:256",
+        "usage": "src/option.c:463",
+        "cases": []
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "pending"
+    },
+    {
+      "name": "no-round-robin",
+      "id": "LOPT_NORR",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_NORR",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:257",
+        "usage": "src/option.c:608",
+        "cases": []
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "pending"
+    },
+    {
+      "name": "no-0x20-encode",
+      "id": "LOPT_NO_ENCODE",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_NO_0x20",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:258",
+        "usage": "src/option.c:609",
+        "cases": []
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "pending"
+    },
+    {
+      "name": "do-0x20-encode",
+      "id": "LOPT_DO_ENCODE",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_DO_0x20",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:259",
+        "usage": "src/option.c:610",
+        "cases": []
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "pending"
+    },
+    {
+      "name": "cache-rr",
+      "id": "LOPT_CACHE_RR",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:260",
+        "usage": "src/option.c:612",
+        "cases": [
+          "src/option.c:3575"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "addn-hosts",
+      "id": "'H'",
+      "argument": "required",
+      "short": "H",
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:261",
+        "usage": "src/option.c:445",
+        "cases": [
+          "src/option.c:1680",
+          "src/option.c:2407",
+          "src/option.c:3973",
+          "src/option.c:4176"
+        ]
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "pending"
+    },
+    {
+      "name": "hostsdir",
+      "id": "LOPT_HOST_INOTIFY",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:262",
+        "usage": "src/option.c:446",
+        "cases": [
+          "src/option.c:2434"
+        ]
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "pending"
+    },
+    {
+      "name": "query-port",
+      "id": "'Q'",
+      "argument": "required",
+      "short": "Q",
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:263",
+        "usage": "src/option.c:472",
+        "cases": [
+          "src/option.c:3503"
+        ]
+      },
+      "research": "traced",
+      "rust": "scalar parser implemented; engine integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "except-interface",
+      "id": "'I'",
+      "argument": "required",
+      "short": "I",
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:264",
+        "usage": "src/option.c:448",
+        "cases": [
+          "src/option.c:2896"
+        ]
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "no-dhcp-interface",
+      "id": "'2'",
+      "argument": "required",
+      "short": "2",
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:265",
+        "usage": "src/option.c:504",
+        "cases": [
+          "src/option.c:2897"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "no-dhcpv4-interface",
+      "id": "LOPT_NO_DHCP4",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:266",
+        "usage": "src/option.c:506",
+        "cases": [
+          "src/option.c:2899"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "no-dhcpv6-interface",
+      "id": "LOPT_NO_DHCP6",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "excluded-capability",
+      "feature": "DHCPv6/RA",
+      "c_gate": "accepted interface list; no DHCPv6 engine compiled",
+      "source": {
+        "option": "src/option.c:267",
+        "usage": "src/option.c:505",
+        "cases": [
+          "src/option.c:2898"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "domain-needed",
+      "id": "'D'",
+      "argument": "none",
+      "short": "D",
+      "repeat": "boolean",
+      "boolean": "OPT_NODOTS_LOCAL",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:268",
+        "usage": "src/option.c:429",
+        "cases": [
+          "src/option.c:1676",
+          "src/option.c:3969",
+          "src/option.c:4172"
+        ]
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-lease-max",
+      "id": "'X'",
+      "argument": "required",
+      "short": "X",
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:269",
+        "usage": "src/option.c:495",
+        "cases": [
+          "src/option.c:3617"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "bind-interfaces",
+      "id": "'z'",
+      "argument": "none",
+      "short": "z",
+      "repeat": "boolean",
+      "boolean": "OPT_NOWILD",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:270",
+        "usage": "src/option.c:500",
+        "cases": []
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "pending"
+    },
+    {
+      "name": "read-ethers",
+      "id": "'Z'",
+      "argument": "none",
+      "short": "Z",
+      "repeat": "boolean",
+      "boolean": "OPT_ETHERS",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:271",
+        "usage": "src/option.c:501",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "alias",
+      "id": "'V'",
+      "argument": "required",
+      "short": "V",
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:272",
+        "usage": "src/option.c:491",
+        "cases": [
+          "src/option.c:4871"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-vendorclass",
+      "id": "'U'",
+      "argument": "required",
+      "short": "U",
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:273",
+        "usage": "src/option.c:489",
+        "cases": [
+          "src/option.c:4565",
+          "src/option.c:4625"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-userclass",
+      "id": "'j'",
+      "argument": "required",
+      "short": "j",
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:274",
+        "usage": "src/option.c:449",
+        "cases": [
+          "src/option.c:4566",
+          "src/option.c:4622"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-ignore",
+      "id": "'J'",
+      "argument": "required",
+      "short": "J",
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:275",
+        "usage": "src/option.c:454",
+        "cases": [
+          "src/option.c:4661"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "edns-packet-max",
+      "id": "'P'",
+      "argument": "required",
+      "short": "P",
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:276",
+        "usage": "src/option.c:470",
+        "cases": [
+          "src/option.c:3494"
+        ]
+      },
+      "research": "traced",
+      "rust": "scalar parser implemented; engine integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "keep-in-foreground",
+      "id": "'k'",
+      "argument": "none",
+      "short": "k",
+      "repeat": "boolean",
+      "boolean": "OPT_NO_FORK",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:277",
+        "usage": "src/option.c:456",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-authoritative",
+      "id": "'K'",
+      "argument": "none",
+      "short": "K",
+      "repeat": "boolean",
+      "boolean": "OPT_AUTHORITATIVE",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:278",
+        "usage": "src/option.c:457",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "srv-host",
+      "id": "'W'",
+      "argument": "required",
+      "short": "W",
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:279",
+        "usage": "src/option.c:492",
+        "cases": [
+          "src/option.c:1672",
+          "src/option.c:3965",
+          "src/option.c:4168",
+          "src/option.c:5202"
+        ]
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "localise-queries",
+      "id": "'y'",
+      "argument": "none",
+      "short": "y",
+      "repeat": "boolean",
+      "boolean": "OPT_LOCALISE",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:280",
+        "usage": "src/option.c:496",
+        "cases": []
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "pending"
+    },
+    {
+      "name": "txt-record",
+      "id": "'Y'",
+      "argument": "required",
+      "short": "Y",
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:281",
+        "usage": "src/option.c:497",
+        "cases": [
+          "src/option.c:5155"
+        ]
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "caa-record",
+      "id": "LOPT_CAA",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:282",
+        "usage": "src/option.c:571",
+        "cases": [
+          "src/option.c:5124"
+        ]
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "dns-rr",
+      "id": "LOPT_RR",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:283",
+        "usage": "src/option.c:572",
+        "cases": [
+          "src/option.c:5088"
+        ]
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "enable-dbus",
+      "id": "'1'",
+      "argument": "optional",
+      "short": "1",
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "excluded-capability",
+      "feature": "DBus",
+      "c_gate": "startup rejection after --test",
+      "source": {
+        "option": "src/option.c:284",
+        "usage": "src/option.c:502",
+        "cases": [
+          "src/option.c:2263"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "enable-ubus",
+      "id": "LOPT_UBUS",
+      "argument": "optional",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:285",
+        "usage": "src/option.c:503",
+        "cases": [
+          "src/option.c:2271"
+        ]
+      },
+      "research": "traced",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "bootp-dynamic",
+      "id": "'3'",
+      "argument": "optional",
+      "short": "3",
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:286",
+        "usage": "src/option.c:507",
+        "cases": [
+          "src/option.c:4664"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-mac",
+      "id": "'4'",
+      "argument": "required",
+      "short": "4",
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:287",
+        "usage": "src/option.c:508",
+        "cases": [
+          "src/option.c:4541"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "no-ping",
+      "id": "'5'",
+      "argument": "none",
+      "short": "5",
+      "repeat": "boolean",
+      "boolean": "OPT_NO_PING",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:288",
+        "usage": "src/option.c:512",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-script",
+      "id": "'6'",
+      "argument": "required",
+      "short": "6",
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:289",
+        "usage": "src/option.c:513",
+        "cases": [
+          "src/option.c:2388"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "conf-dir",
+      "id": "'7'",
+      "argument": "required",
+      "short": "7",
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:290",
+        "usage": "src/option.c:517",
+        "cases": [
+          "src/option.c:2079"
+        ]
+      },
+      "research": "traced",
+      "rust": "startup input control implemented; runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "log-facility",
+      "id": "'8'",
+      "argument": "required",
+      "short": "8",
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:291",
+        "usage": "src/option.c:519",
+        "cases": [
+          "src/option.c:2279"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "leasefile-ro",
+      "id": "'9'",
+      "argument": "none",
+      "short": "9",
+      "repeat": "boolean",
+      "boolean": "OPT_LEASE_RO",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:292",
+        "usage": "src/option.c:520",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "script-on-renewal",
+      "id": "LOPT_SCRIPT_TIME",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_LEASE_RENEW",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:293",
+        "usage": "src/option.c:605",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dns-forward-max",
+      "id": "'0'",
+      "argument": "required",
+      "short": "0",
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:294",
+        "usage": "src/option.c:521",
+        "cases": [
+          "src/option.c:3454"
+        ]
+      },
+      "research": "traced",
+      "rust": "scalar parser implemented; engine integration pending",
+      "differential": "pending"
+    },
+    {
+      "name": "clear-on-reload",
+      "id": "LOPT_RELOAD",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_RELOAD",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:295",
+        "usage": "src/option.c:522",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-ignore-names",
+      "id": "LOPT_NO_NAMES",
+      "argument": "optional",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:296",
+        "usage": "src/option.c:523",
+        "cases": [
+          "src/option.c:4662"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "enable-tftp",
+      "id": "LOPT_TFTP",
+      "argument": "optional",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:297",
+        "usage": "src/option.c:525",
+        "cases": [
+          "src/option.c:2890"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "tftp-secure",
+      "id": "LOPT_SECURE",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_TFTP_SECURE",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:298",
+        "usage": "src/option.c:528",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "tftp-no-fail",
+      "id": "LOPT_TFTP_NO_FAIL",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_TFTP_NO_FAIL",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:299",
+        "usage": "src/option.c:529",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "tftp-unique-root",
+      "id": "LOPT_APREF",
+      "argument": "optional",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:300",
+        "usage": "src/option.c:527",
+        "cases": [
+          "src/option.c:3663"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "tftp-root",
+      "id": "LOPT_PREFIX",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:301",
+        "usage": "src/option.c:526",
+        "cases": [
+          "src/option.c:3634"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "tftp-max",
+      "id": "LOPT_TFTP_MAX",
+      "argument": "required",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:302",
+        "usage": "src/option.c:530",
+        "cases": [
+          "src/option.c:3624"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "tftp-mtu",
+      "id": "LOPT_TFTP_MTU",
+      "argument": "required",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:303",
+        "usage": "src/option.c:531",
+        "cases": [
+          "src/option.c:3629"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "tftp-lowercase",
+      "id": "LOPT_TFTP_LC",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_TFTP_LC",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:304",
+        "usage": "src/option.c:533",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "tftp-single-port",
+      "id": "LOPT_SINGLE_PORT",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_SINGLE_PORT",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:305",
+        "usage": "src/option.c:535",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "ptr-record",
+      "id": "LOPT_PTR",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:306",
+        "usage": "src/option.c:498",
+        "cases": [
+          "src/option.c:5023"
+        ]
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "naptr-record",
+      "id": "LOPT_NAPTR",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:307",
+        "usage": "src/option.c:545",
+        "cases": [
+          "src/option.c:5048"
+        ]
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "bridge-interface",
+      "id": "LOPT_BRIDGE",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:308",
+        "usage": "src/option.c:509",
+        "cases": [
+          "src/option.c:3673"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "shared-network",
+      "id": "LOPT_SHARED_NET",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:309",
+        "usage": "src/option.c:510",
+        "cases": [
+          "src/option.c:3709"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-option-force",
+      "id": "LOPT_FORCE",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:310",
+        "usage": "src/option.c:467",
+        "cases": [
+          "src/option.c:4311"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-option-pxe",
+      "id": "LOPT_PXE_OPT",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:311",
+        "usage": "src/option.c:468",
+        "cases": [
+          "src/option.c:4312"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "tftp-no-blocksize",
+      "id": "LOPT_NOBLOCK",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_TFTP_NOBLOCK",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:312",
+        "usage": "src/option.c:532",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "log-dhcp",
+      "id": "LOPT_LOG_OPTS",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_LOG_OPTS",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:313",
+        "usage": "src/option.c:536",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "log-async",
+      "id": "LOPT_MAX_LOGS",
+      "argument": "optional",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:314",
+        "usage": "src/option.c:537",
+        "cases": [
+          "src/option.c:3477"
+        ]
+      },
+      "research": "traced",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-circuitid",
+      "id": "LOPT_CIRCUIT",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:315",
+        "usage": "src/option.c:450",
+        "cases": [
+          "src/option.c:4567",
+          "src/option.c:4628"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-remoteid",
+      "id": "LOPT_REMOTE",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:316",
+        "usage": "src/option.c:451",
+        "cases": [
+          "src/option.c:4568",
+          "src/option.c:4631"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-subscrid",
+      "id": "LOPT_SUBSCR",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:317",
+        "usage": "src/option.c:452",
+        "cases": [
+          "src/option.c:4569",
+          "src/option.c:4634"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-pxe-vendor",
+      "id": "LOPT_PXE_VENDOR",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:318",
+        "usage": "src/option.c:453",
+        "cases": [
+          "src/option.c:4718"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "interface-name",
+      "id": "LOPT_INTNAME",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:319",
+        "usage": "src/option.c:499",
+        "cases": [
+          "src/option.c:4906"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-hostsfile",
+      "id": "LOPT_DHCP_HOST",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:320",
+        "usage": "src/option.c:439",
+        "cases": [
+          "src/option.c:2405"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-optsfile",
+      "id": "LOPT_DHCP_OPTS",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:321",
+        "usage": "src/option.c:440",
+        "cases": [
+          "src/option.c:2406"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-hostsdir",
+      "id": "LOPT_DHCP_INOTIFY",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:322",
+        "usage": "src/option.c:441",
+        "cases": [
+          "src/option.c:2432"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-optsdir",
+      "id": "LOPT_DHOPT_INOTIFY",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:323",
+        "usage": "src/option.c:442",
+        "cases": [
+          "src/option.c:2433"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-no-override",
+      "id": "LOPT_OVERRIDE",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_NO_OVERRIDE",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:324",
+        "usage": "src/option.c:524",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "tftp-port-range",
+      "id": "LOPT_TFTPPORTS",
+      "argument": "required",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:325",
+        "usage": "src/option.c:534",
+        "cases": [
+          "src/option.c:3648"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "stop-dns-rebind",
+      "id": "LOPT_REBIND",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_NO_REBIND",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:326",
+        "usage": "src/option.c:538",
+        "cases": []
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "pending"
+    },
+    {
+      "name": "rebind-domain-ok",
+      "id": "LOPT_NO_REBIND",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:327",
+        "usage": "src/option.c:540",
+        "cases": [
+          "src/option.c:3037"
+        ]
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "all-servers",
+      "id": "LOPT_NOLAST",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_ALL_SERVERS",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:328",
+        "usage": "src/option.c:541",
+        "cases": []
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-match",
+      "id": "LOPT_MATCH",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:329",
+        "usage": "src/option.c:542",
+        "cases": [
+          "src/option.c:4314"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-name-match",
+      "id": "LOPT_NAME_MATCH",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:330",
+        "usage": "src/option.c:543",
+        "cases": [
+          "src/option.c:4321"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-broadcast",
+      "id": "LOPT_BROADCAST",
+      "argument": "optional",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:331",
+        "usage": "src/option.c:455",
+        "cases": [
+          "src/option.c:4663"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "neg-ttl",
+      "id": "LOPT_NEGTTL",
+      "argument": "required",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:332",
+        "usage": "src/option.c:483",
+        "cases": [
+          "src/option.c:3518"
+        ]
+      },
+      "research": "traced",
+      "rust": "scalar parser implemented; engine integration pending",
+      "differential": "pending"
+    },
+    {
+      "name": "max-ttl",
+      "id": "LOPT_MAXTTL",
+      "argument": "required",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:333",
+        "usage": "src/option.c:484",
+        "cases": [
+          "src/option.c:3519"
+        ]
+      },
+      "research": "traced",
+      "rust": "scalar parser implemented; engine integration pending",
+      "differential": "pending"
+    },
+    {
+      "name": "min-cache-ttl",
+      "id": "LOPT_MINCTTL",
+      "argument": "required",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:334",
+        "usage": "src/option.c:486",
+        "cases": [
+          "src/option.c:3520"
+        ]
+      },
+      "research": "traced",
+      "rust": "scalar parser implemented; engine integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "max-cache-ttl",
+      "id": "LOPT_MAXCTTL",
+      "argument": "required",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:335",
+        "usage": "src/option.c:485",
+        "cases": [
+          "src/option.c:3521"
+        ]
+      },
+      "research": "traced",
+      "rust": "scalar parser implemented; engine integration pending",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-alternate-port",
+      "id": "LOPT_ALTPORT",
+      "argument": "optional",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:336",
+        "usage": "src/option.c:544",
+        "cases": [
+          "src/option.c:4644"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-scriptuser",
+      "id": "LOPT_SCRIPTUSR",
+      "argument": "required",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:337",
+        "usage": "src/option.c:515",
+        "cases": [
+          "src/option.c:2877"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "min-port",
+      "id": "LOPT_MINPORT",
+      "argument": "required",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:338",
+        "usage": "src/option.c:546",
+        "cases": [
+          "src/option.c:3444"
+        ]
+      },
+      "research": "traced",
+      "rust": "scalar parser implemented; engine integration pending",
+      "differential": "pending"
+    },
+    {
+      "name": "max-port",
+      "id": "LOPT_MAXPORT",
+      "argument": "required",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:339",
+        "usage": "src/option.c:547",
+        "cases": [
+          "src/option.c:3449"
+        ]
+      },
+      "research": "traced",
+      "rust": "scalar parser implemented; engine integration pending",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-fqdn",
+      "id": "LOPT_DHCP_FQDN",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_DHCP_FQDN",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:340",
+        "usage": "src/option.c:548",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "cname",
+      "id": "LOPT_CNAME",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:341",
+        "usage": "src/option.c:553",
+        "cases": [
+          "src/option.c:4971"
+        ]
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "pxe-prompt",
+      "id": "LOPT_PXE_PROMT",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:342",
+        "usage": "src/option.c:554",
+        "cases": [
+          "src/option.c:4423"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "pxe-service",
+      "id": "LOPT_PXE_SERV",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:343",
+        "usage": "src/option.c:555",
+        "cases": [
+          "src/option.c:4461"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "test",
+      "id": "LOPT_TEST",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:344",
+        "usage": "src/option.c:556",
+        "cases": []
+      },
+      "research": "traced",
+      "rust": "startup input control implemented; runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "tag-if",
+      "id": "LOPT_TAG_IF",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:345",
+        "usage": "src/option.c:443",
+        "cases": [
+          "src/option.c:4242"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-proxy",
+      "id": "LOPT_PROXY",
+      "argument": "optional",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:346",
+        "usage": "src/option.c:550",
+        "cases": [
+          "src/option.c:4705"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-generate-names",
+      "id": "LOPT_GEN_NAMES",
+      "argument": "optional",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:347",
+        "usage": "src/option.c:549",
+        "cases": [
+          "src/option.c:4665"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "rebind-localhost-ok",
+      "id": "LOPT_LOC_REBND",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_LOCAL_REBIND",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:348",
+        "usage": "src/option.c:539",
+        "cases": []
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "pending"
+    },
+    {
+      "name": "add-mac",
+      "id": "LOPT_ADD_MAC",
+      "argument": "optional",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:349",
+        "usage": "src/option.c:557",
+        "cases": [
+          "src/option.c:2852"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "strip-mac",
+      "id": "LOPT_STRIP_MAC",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_STRIP_MAC",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:350",
+        "usage": "src/option.c:558",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "add-subnet",
+      "id": "LOPT_ADD_SBNET",
+      "argument": "optional",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:351",
+        "usage": "src/option.c:559",
+        "cases": [
+          "src/option.c:2216"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "strip-subnet",
+      "id": "LOPT_STRIP_SBNET",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_STRIP_ECS",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:352",
+        "usage": "src/option.c:560",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "add-cpe-id",
+      "id": "LOPT_CPE_ID",
+      "argument": "required",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:353",
+        "usage": "src/option.c:561",
+        "cases": [
+          "src/option.c:2803"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "proxy-dnssec",
+      "id": "LOPT_DNSSEC",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_DNSSEC_PROXY",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:354",
+        "usage": "src/option.c:562",
+        "cases": []
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "dhcp-sequential-ip",
+      "id": "LOPT_INCR_ADDR",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_CONSEC_ADDR",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:355",
+        "usage": "src/option.c:563",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "conntrack",
+      "id": "LOPT_CONNTRACK",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_CONNTRACK",
+      "variant": "excluded-capability",
+      "feature": "conntrack",
+      "c_gate": "startup rejection after --test",
+      "source": {
+        "option": "src/option.c:356",
+        "usage": "src/option.c:565",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-client-update",
+      "id": "LOPT_FQDN",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_FQDN_UPDATE",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:357",
+        "usage": "src/option.c:566",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-luascript",
+      "id": "LOPT_LUASCRIPT",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "excluded-capability",
+      "feature": "Lua",
+      "c_gate": "parse-time rejection",
+      "source": {
+        "option": "src/option.c:358",
+        "usage": "src/option.c:514",
+        "cases": [
+          "src/option.c:2389"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "enable-ra",
+      "id": "LOPT_RA",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_RA",
+      "variant": "excluded-capability",
+      "feature": "DHCPv6/RA",
+      "c_gate": "accepted flag; no RA engine compiled",
+      "source": {
+        "option": "src/option.c:359",
+        "usage": "src/option.c:567",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-duid",
+      "id": "LOPT_DUID",
+      "argument": "required",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "excluded-capability",
+      "feature": "DHCPv6/RA",
+      "c_gate": "parse-time rejection",
+      "source": {
+        "option": "src/option.c:360",
+        "usage": "src/option.c:568",
+        "cases": [
+          "src/option.c:4859"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "host-record",
+      "id": "LOPT_HOST_REC",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:361",
+        "usage": "src/option.c:569",
+        "cases": [
+          "src/option.c:5260"
+        ]
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "bind-dynamic",
+      "id": "LOPT_CLVERBIND",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_CLEVERBIND",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:362",
+        "usage": "src/option.c:573",
+        "cases": []
+      },
+      "research": "traced",
+      "rust": "typed DNS configuration implemented; platform resolution and runtime integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "auth-zone",
+      "id": "LOPT_AUTHZONE",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "excluded-capability",
+      "feature": "authoritative DNS",
+      "c_gate": "startup rejection after --test",
+      "source": {
+        "option": "src/option.c:363",
+        "usage": "src/option.c:575",
+        "cases": [
+          "src/option.c:2505"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "auth-server",
+      "id": "LOPT_AUTHSERV",
+      "argument": "required",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "excluded-capability",
+      "feature": "authoritative DNS",
+      "c_gate": "accepted configuration; no authoritative engine compiled",
+      "source": {
+        "option": "src/option.c:364",
+        "usage": "src/option.c:574",
+        "cases": [
+          "src/option.c:2451"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "auth-ttl",
+      "id": "LOPT_AUTHTTL",
+      "argument": "required",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "excluded-capability",
+      "feature": "authoritative DNS",
+      "c_gate": "accepted configuration; no authoritative engine compiled",
+      "source": {
+        "option": "src/option.c:365",
+        "usage": "src/option.c:576",
+        "cases": [
+          "src/option.c:3522"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "auth-soa",
+      "id": "LOPT_AUTHSOA",
+      "argument": "required",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "excluded-capability",
+      "feature": "authoritative DNS",
+      "c_gate": "accepted configuration; no authoritative engine compiled",
+      "source": {
+        "option": "src/option.c:366",
+        "usage": "src/option.c:577",
+        "cases": [
+          "src/option.c:2590"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "auth-sec-servers",
+      "id": "LOPT_AUTHSFS",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "excluded-capability",
+      "feature": "authoritative DNS",
+      "c_gate": "accepted configuration; no authoritative engine compiled",
+      "source": {
+        "option": "src/option.c:367",
+        "usage": "src/option.c:578",
+        "cases": [
+          "src/option.c:2490"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "auth-peer",
+      "id": "LOPT_AUTHPEER",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "excluded-capability",
+      "feature": "authoritative DNS",
+      "c_gate": "accepted configuration; no authoritative engine compiled",
+      "source": {
+        "option": "src/option.c:368",
+        "usage": "src/option.c:579",
+        "cases": [
+          "src/option.c:2996"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "ipset",
+      "id": "LOPT_IPSET",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "excluded-capability",
+      "feature": "ipset",
+      "c_gate": "parse-time rejection",
+      "source": {
+        "option": "src/option.c:369",
+        "usage": "src/option.c:580",
+        "cases": [
+          "src/option.c:3199"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "nftset",
+      "id": "LOPT_NFTSET",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "excluded-capability",
+      "feature": "nftset",
+      "c_gate": "parse-time rejection",
+      "source": {
+        "option": "src/option.c:370",
+        "usage": "src/option.c:581",
+        "cases": [
+          "src/option.c:3200"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "connmark-allowlist-enable",
+      "id": "LOPT_CMARK_ALST_EN",
+      "argument": "optional",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "excluded-capability",
+      "feature": "conntrack",
+      "c_gate": "parse-time rejection",
+      "source": {
+        "option": "src/option.c:371",
+        "usage": "src/option.c:582",
+        "cases": [
+          "src/option.c:3284"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "connmark-allowlist",
+      "id": "LOPT_CMARK_ALST",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "excluded-capability",
+      "feature": "conntrack",
+      "c_gate": "parse-time rejection",
+      "source": {
+        "option": "src/option.c:372",
+        "usage": "src/option.c:583",
+        "cases": [
+          "src/option.c:3302"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "synth-domain",
+      "id": "LOPT_SYNTH",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:373",
+        "usage": "src/option.c:584",
+        "cases": [
+          "src/option.c:2622"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dnssec",
+      "id": "LOPT_SEC_VALID",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_DNSSEC_VALID",
+      "variant": "excluded-capability",
+      "feature": "DNSSEC validation",
+      "c_gate": "startup rejection after --test",
+      "source": {
+        "option": "src/option.c:374",
+        "usage": "src/option.c:585",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "trust-anchor",
+      "id": "LOPT_TRUST_ANCHOR",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "excluded-capability",
+      "feature": "DNSSEC validation",
+      "c_gate": "parse-time rejection",
+      "source": {
+        "option": "src/option.c:375",
+        "usage": "src/option.c:586",
+        "cases": [
+          "src/option.c:5386"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dnssec-debug",
+      "id": "LOPT_DNSSEC_DEBUG",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_DNSSEC_DEBUG",
+      "variant": "excluded-capability",
+      "feature": "DNSSEC validation",
+      "c_gate": "accepted flag; no validator compiled",
+      "source": {
+        "option": "src/option.c:376",
+        "usage": "src/option.c:587",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dnssec-check-unsigned",
+      "id": "LOPT_DNSSEC_CHECK",
+      "argument": "optional",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "excluded-capability",
+      "feature": "DNSSEC validation",
+      "c_gate": "parse-time rejection",
+      "source": {
+        "option": "src/option.c:377",
+        "usage": "src/option.c:588",
+        "cases": [
+          "src/option.c:5376"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dnssec-no-timecheck",
+      "id": "LOPT_DNSSEC_TIME",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_DNSSEC_TIME",
+      "variant": "excluded-capability",
+      "feature": "DNSSEC validation",
+      "c_gate": "accepted flag; no validator compiled",
+      "source": {
+        "option": "src/option.c:378",
+        "usage": "src/option.c:589",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dnssec-timestamp",
+      "id": "LOPT_DNSSEC_STAMP",
+      "argument": "required",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "excluded-capability",
+      "feature": "DNSSEC validation",
+      "c_gate": "parse-time rejection",
+      "source": {
+        "option": "src/option.c:379",
+        "usage": "src/option.c:590",
+        "cases": [
+          "src/option.c:5372"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dnssec-limits",
+      "id": "LOPT_DNSSEC_LIMITS",
+      "argument": "required",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "excluded-capability",
+      "feature": "DNSSEC validation",
+      "c_gate": "parse-time rejection",
+      "source": {
+        "option": "src/option.c:380",
+        "usage": "src/option.c:591",
+        "cases": [
+          "src/option.c:5354"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-relay",
+      "id": "LOPT_RELAY",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:381",
+        "usage": "src/option.c:551",
+        "cases": [
+          "src/option.c:4731"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-split-relay",
+      "id": "LOPT_SPLIT_RELAY",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:382",
+        "usage": "src/option.c:552",
+        "cases": [
+          "src/option.c:4732"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "ra-param",
+      "id": "LOPT_RA_PARAM",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "excluded-capability",
+      "feature": "DHCPv6/RA",
+      "c_gate": "parse-time rejection",
+      "source": {
+        "option": "src/option.c:383",
+        "usage": "src/option.c:592",
+        "cases": [
+          "src/option.c:4816"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "quiet-dhcp",
+      "id": "LOPT_QUIET_DHCP",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_QUIET_DHCP",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:384",
+        "usage": "src/option.c:593",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "quiet-dhcp6",
+      "id": "LOPT_QUIET_DHCP6",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_QUIET_DHCP6",
+      "variant": "excluded-capability",
+      "feature": "DHCPv6/RA",
+      "c_gate": "accepted flag; no DHCPv6 engine compiled",
+      "source": {
+        "option": "src/option.c:385",
+        "usage": "src/option.c:594",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "quiet-ra",
+      "id": "LOPT_QUIET_RA",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_QUIET_RA",
+      "variant": "excluded-capability",
+      "feature": "DHCPv6/RA",
+      "c_gate": "accepted flag; no RA engine compiled",
+      "source": {
+        "option": "src/option.c:386",
+        "usage": "src/option.c:595",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dns-loop-detect",
+      "id": "LOPT_LOOP_DETECT",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_LOOP_DETECT",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:387",
+        "usage": "src/option.c:598",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "script-arp",
+      "id": "LOPT_SCRIPT_ARP",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_SCRIPT_ARP",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:388",
+        "usage": "src/option.c:516",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-ttl",
+      "id": "LOPT_DHCPTTL",
+      "argument": "required",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:389",
+        "usage": "src/option.c:600",
+        "cases": [
+          "src/option.c:3523"
+        ]
+      },
+      "research": "traced",
+      "rust": "scalar parser implemented; engine integration pending",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-reply-delay",
+      "id": "LOPT_REPLY_DELAY",
+      "argument": "required",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:390",
+        "usage": "src/option.c:601",
+        "cases": [
+          "src/option.c:4398"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-rapid-commit",
+      "id": "LOPT_RAPID_COMMIT",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_RAPID_COMMIT",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:391",
+        "usage": "src/option.c:602",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dumpfile",
+      "id": "LOPT_DUMPFILE",
+      "argument": "required",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:392",
+        "usage": "src/option.c:603",
+        "cases": [
+          "src/option.c:2374"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dumpmask",
+      "id": "LOPT_DUMPMASK",
+      "argument": "required",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:393",
+        "usage": "src/option.c:604",
+        "cases": [
+          "src/option.c:2378"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dhcp-ignore-clid",
+      "id": "LOPT_IGNORE_CLID",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_IGNORE_CLID",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:394",
+        "usage": "src/option.c:564",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "dynamic-host",
+      "id": "LOPT_DYNHOST",
+      "argument": "required",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:395",
+        "usage": "src/option.c:570",
+        "cases": [
+          "src/option.c:4907"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "log-debug",
+      "id": "LOPT_LOG_DEBUG",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_LOG_DEBUG",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:396",
+        "usage": "src/option.c:596",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "umbrella",
+      "id": "LOPT_UMBRELLA",
+      "argument": "optional",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:397",
+        "usage": "src/option.c:606",
+        "cases": [
+          "src/option.c:2808"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "quiet-tftp",
+      "id": "LOPT_QUIET_TFTP",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_QUIET_TFTP",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:398",
+        "usage": "src/option.c:607",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "port-limit",
+      "id": "LOPT_RANDPORT_LIM",
+      "argument": "required",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:399",
+        "usage": "src/option.c:473",
+        "cases": [
+          "src/option.c:3512"
+        ]
+      },
+      "research": "traced",
+      "rust": "scalar parser implemented; engine integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "fast-dns-retry",
+      "id": "LOPT_FAST_RETRY",
+      "argument": "optional",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:400",
+        "usage": "src/option.c:487",
+        "cases": [
+          "src/option.c:3552"
+        ]
+      },
+      "research": "traced",
+      "rust": "scalar parser implemented; engine integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "use-stale-cache",
+      "id": "LOPT_STALE_CACHE",
+      "argument": "optional",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:401",
+        "usage": "src/option.c:464",
+        "cases": [
+          "src/option.c:5335"
+        ]
+      },
+      "research": "traced",
+      "rust": "scalar parser implemented; engine integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "no-ident",
+      "id": "LOPT_NO_IDENT",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_NO_IDENT",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:402",
+        "usage": "src/option.c:611",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "max-tcp-connections",
+      "id": "LOPT_MAX_PROCS",
+      "argument": "required",
+      "short": null,
+      "repeat": "once-per-origin",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:403",
+        "usage": "src/option.c:613",
+        "cases": [
+          "src/option.c:5453"
+        ]
+      },
+      "research": "traced",
+      "rust": "scalar parser implemented; engine integration pending",
+      "differential": "listed input acceptance corpus passed against exact patched C; full semantic coverage pending"
+    },
+    {
+      "name": "leasequery",
+      "id": "LOPT_LEASEQUERY",
+      "argument": "optional",
+      "short": null,
+      "repeat": "repeatable",
+      "boolean": null,
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:404",
+        "usage": "src/option.c:511",
+        "cases": [
+          "src/option.c:2933"
+        ]
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    },
+    {
+      "name": "log-malloc",
+      "id": "LOPT_LOG_MALLOC",
+      "argument": "none",
+      "short": null,
+      "repeat": "boolean",
+      "boolean": "OPT_LOG_MALLOC",
+      "variant": "available",
+      "feature": "target-variant",
+      "c_gate": "configuration-specific validation applies",
+      "source": {
+        "option": "src/option.c:405",
+        "usage": "src/option.c:614",
+        "cases": []
+      },
+      "research": "indexed; case and dependent engine review pending",
+      "rust": "metadata only; semantics not implemented",
+      "differential": "pending"
+    }
+  ]
+}
