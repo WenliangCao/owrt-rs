@@ -676,7 +676,7 @@ impl<R: Random> DnsDaemon<R> {
             // A successful positive RRset wins over an impossible NXDOMAIN
             // packet. C's extract_addresses only creates a negative entry when
             // no matching answer was found.
-            if !addresses.is_empty() {
+            if kind != Kind::NxDomain && !addresses.is_empty() {
                 return;
             }
             if !negative_cache {

@@ -11,6 +11,8 @@ pub mod metrics;
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 pub mod net;
 pub mod tftp;
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+pub mod tftp_listener;
 #[cfg(unix)]
 pub mod tftp_runtime;
 pub mod tftp_service;

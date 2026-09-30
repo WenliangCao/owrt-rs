@@ -256,6 +256,12 @@ impl<O: FileOpener> TransferRuntime<O> {
         self.active.len()
     }
 
+    /// Whether the caller should multiplex RRQ and transfer traffic on one
+    /// socket. Separate-port mode owns one transfer socket per peer.
+    pub fn single_port(&self) -> bool {
+        self.config.single_port
+    }
+
     /// Route a datagram received from a caller-owned TFTP socket.  The caller
     /// still owns interface/pktinfo validation, socket binding and TID/port
     /// allocation; this adapter only enforces the C listener-vs-transfer
