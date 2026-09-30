@@ -15,8 +15,10 @@ whether a stale result may be served.
 The module does not perform cache lookup, build a complete response, parse
 upstream packets or insert records. It does not add an SOA authority section,
 EDNS OPT, stale marker, DNSSEC AD bit, RCODE, cache flags or client-specific
-policy. Those remain explicit integration gates before this boundary can be
-used by `DnsDaemon`.
+policy. `DnsDaemon` now has a deliberately narrower caller path around this
+primitive: direct A/AAAA answers and no-SOA NXDOMAIN fallback only. The
+remaining CNAME, NODATA/SOA, EDNS and full cacheability gates stay outside this
+module.
 
 The focused `cache_reply` suite has six tests and runs in the normal crate
 test gate. It is evidence for wire synthesis only, not full cache or daemon
