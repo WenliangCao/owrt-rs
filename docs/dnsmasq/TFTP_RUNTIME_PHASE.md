@@ -1,26 +1,36 @@
 # TFTP transfer runtime phase
 
-This phase joins the reviewed TFTP path and transfer state machine with real
-Unix files. It still does not claim the daemon listener or OpenWrt helper
-integration.
+`src/tftp_runtime.rs` is the file and transfer state boundary below the
+event-loop listener. It opens real files with `open` followed by `fstat`, checks
+the C root/secure permission rules, shares an already-open descriptor by
+`(st_dev, st_ino, path)`, and reads blocks with position-independent `read_at`.
+The caller supplies a packet callback and a transfer ID for dedicated sockets;
+this module does not bind port 69, inspect pktinfo/interfaces, or run PXE/helper
+scripts.
+
+The runtime preserves the existing `tftp::Transfer` state machine: OACK is
+retransmitted while block 0 is outstanding, windows begin only after ACK, a
+partial window cannot complete until its final ACK, exact multiples and empty
+files send a zero-length DATA block, and `>120s` cleanup is explicit. Foreign
+peers receive TID errors without changing ACK/wrap state. Read failures emit a
+failed cleanup event and release the active file reference.
 
 | C source | Behaviour / invariant | Rust | Evidence |
 |---|---|---|---|
-| `tftp.c:543-624` | Open then `fstat`; enforce root world-readable and secure owner policy | `RealFileOpener`, `OpenedFile` | real opener path and permission predicate; memory opener tests |
-| `tftp.c:242-271` | Existing peer/TID admission, repeated RRQ replacement and transfer cap | `TransferRuntime::handle_datagram` | wrong-peer/TID and replacement paths |
-| `tftp.c:724-850,916-1028` | OACK, DATA, ACK progression, block wrap, netascii carry and final empty block | `TransferRuntime` using `tftp::Transfer` | six runtime tests, including negotiated block bound |
-| `tftp.c:671-735,852` | Retransmit on deadline and release on error/timeout/completion | `tick`, `RuntimeEvent::{TimedOut,Failed,Completed}` | retransmit and cleanup tests |
-| `tftp.c:625-668` | Same `(path, st_dev, st_ino)` file may be shared by active transfers | `SharedFile` with `Arc<dyn FileReader>` | active transfer lookup; opening still occurs before identity sharing |
+| `tftp.c:543-624` | Open then `fstat`; enforce root world-readable and secure owner policy | `RealFileOpener`, `OpenedFile` | real opener and permission predicate tests |
+| `tftp.c:242-271` | Existing peer/TID admission, repeated RRQ replacement and transfer cap | `TransferRuntime::handle_datagram` | TID, replacement and capacity paths |
+| `tftp.c:724-850,916-1028` | OACK, DATA/ACK progression, block wrap, netascii carry and final empty block | `TransferRuntime` using `tftp::Transfer` | 10 focused runtime tests; netascii oracle is recorded separately |
+| `tftp.c:671-735,852` | Retransmit on deadline and release on error/timeout/completion | `tick`, `RuntimeEvent::{TimedOut,Failed,Completed}` | retransmit, timeout and cleanup tests |
+| `tftp.c:625-668` | Same `(path, st_dev, st_ino)` file may be shared by active transfers | `SharedFile` with `Arc<dyn FileReader>` | active-transfer lookup and descriptor test |
 
-`TransferRuntime` emits packets through `RuntimeEvent::Send`; the caller owns
-the UDP socket, source TID and interface pktinfo. It uses `pread`-equivalent
-`FileExt::read_at`, so concurrent transfers do not share a mutable file cursor.
-Malformed requests are converted to TFTP error packets, and a packet from a
-different peer receives `unknown transfer id` without changing transfer state.
+Focused tests cover real `File`/`fstat`/`read_at`, octet DATA, netascii carry,
+OACK retry, partial windows, timeout/retransmit, TID validation, WRQ rejection,
+exact-multiple/empty-file completion, and descriptor sharing. The runtime test
+fixture uses isolated temporary files; no production or physical-router state
+is touched. Full UDP listener/pktinfo and PXE/helper integration remain outside
+this phase.
 
-The current module does not yet bind UDP port 69, allocate the configured
-separate transfer port range, validate Linux pktinfo/interface changes, invoke
-PXE/helper scripts, or expose lease/DHCP integration. Those are explicit
-OpenWrt delivery gates. The netascii path is bounded to the negotiated DATA
-block size; a larger temporary expansion buffer would violate the C packet
-boundary and is intentionally avoided.
+Current validation is limited to the socket-independent runtime while the UDP
+listener and OpenWrt helper integration are still being integrated. The
+focused module suite passes 10/10 with `cargo test --lib tftp_runtime`; this is
+not a claim of complete TFTP daemon compatibility.

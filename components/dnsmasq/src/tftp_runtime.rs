@@ -219,6 +219,10 @@ struct Active {
     file: Arc<SharedFile>,
     transfer: Transfer,
     mode: Mode,
+    /// Full block number of the last short DATA block emitted.  A transfer
+    /// is complete only after that block is acknowledged; a window may have
+    /// advanced `transfer.block` beyond the final block already.
+    final_block: Option<u32>,
 }
 
 pub struct TransferRuntime<O> {
@@ -306,16 +310,28 @@ impl<O: FileOpener> TransferRuntime<O> {
         let ids: Vec<_> = self.active.keys().copied().collect();
         let mut events = Vec::new();
         for id in ids {
-            let Some(active) = self.active.get(&id) else {
+            let Some((peer, expired, retransmit)) = self.active.get(&id).map(|active| {
+                (
+                    active.peer,
+                    active.transfer.expired(now),
+                    active.transfer.retransmit_at <= now,
+                )
+            }) else {
                 continue;
             };
-            if active.transfer.expired(now) {
+            if expired {
                 let active = self.active.remove(&id).unwrap();
                 events.push(RuntimeEvent::TimedOut { peer: active.peer });
                 continue;
             }
-            if active.transfer.retransmit_at <= now {
-                events.extend(self.send_window(id, now)?);
+            if retransmit {
+                match self.send_window(id, now) {
+                    Ok(new_events) => events.extend(new_events),
+                    Err(_) => {
+                        self.active.remove(&id);
+                        events.push(RuntimeEvent::Failed { peer });
+                    }
+                }
             }
         }
         Ok(events)
@@ -403,6 +419,7 @@ impl<O: FileOpener> TransferRuntime<O> {
                 file,
                 transfer,
                 mode: request.mode,
+                final_block: None,
             },
         );
         self.send_initial(id, request, now)
@@ -464,8 +481,8 @@ impl<O: FileOpener> TransferRuntime<O> {
             self.active.remove(&id);
             return Ok(vec![RuntimeEvent::Failed { peer }]);
         }
-        let complete =
-            active.transfer.block != 0 && active.transfer.file_offset(active.file.size).is_none();
+        let acked_block = active.transfer.next_ack.wrapping_sub(1);
+        let complete = active.final_block == Some(acked_block);
         if complete {
             let active = self.active.remove(&id).unwrap();
             return Ok(vec![RuntimeEvent::Completed(Completion {
@@ -474,7 +491,17 @@ impl<O: FileOpener> TransferRuntime<O> {
                 size: active.file.size,
             })]);
         }
-        self.send_window(id, now)
+        match self.send_window(id, now) {
+            Ok(events) => Ok(events),
+            Err(_error) => {
+                let peer = self
+                    .active
+                    .remove(&id)
+                    .map(|active| active.peer)
+                    .unwrap_or(peer);
+                Ok(vec![RuntimeEvent::Failed { peer }])
+            }
+        }
     }
 
     fn send_window(&mut self, id: u64, now: u64) -> Result<Vec<RuntimeEvent>, RuntimeError> {
@@ -501,8 +528,17 @@ impl<O: FileOpener> TransferRuntime<O> {
                 break;
             }
             let peer = self.active.get(&id).unwrap().peer;
+            let block = self.active.get(&id).unwrap().transfer.block;
+            let block_size = self.active.get(&id).unwrap().transfer.options.block_size;
+            let body_len = packet.len().saturating_sub(4);
             events.push(RuntimeEvent::Send { peer, packet });
             let active = self.active.get_mut(&id).unwrap();
+            // A DATA body shorter than the negotiated block size is the C
+            // get_block() end marker, including the required zero-length
+            // DATA packet for empty files and exact-size multiples.
+            if body_len < block_size {
+                active.final_block = Some(block);
+            }
             active.transfer.block = active.transfer.block.wrapping_add(1);
         }
         Ok(events)
@@ -578,6 +614,7 @@ fn error_packet(code: u16, message: &str) -> Vec<u8> {
 mod tests {
     use super::*;
     use std::collections::BTreeMap;
+    use std::os::unix::ffi::OsStrExt;
     use std::sync::Mutex;
 
     struct MemoryReader {
@@ -698,6 +735,106 @@ mod tests {
             })]
         );
         assert_eq!(runtime.active_len(), 0);
+    }
+
+    #[test]
+    fn empty_file_sends_zero_length_data_and_completes_on_ack() {
+        let mut runtime = runtime(b"");
+        let first = runtime
+            .handle_datagram(peer(1000), &rrq(b"boot.bin", b"octet"), 1)
+            .unwrap();
+        assert!(matches!(
+            first.first(),
+            Some(RuntimeEvent::Send { packet, .. })
+                if packet == &[0, 3, 0, 1]
+        ));
+        let done = runtime
+            .handle_datagram(peer(1000), &[0, 4, 0, 1], 2)
+            .unwrap();
+        assert!(matches!(done.first(), Some(RuntimeEvent::Completed(_))));
+        assert_eq!(runtime.active_len(), 0);
+    }
+
+    #[test]
+    fn exact_multiple_waits_for_zero_length_final_block_ack() {
+        let mut runtime = runtime(&[b'x'; 512]);
+        let first = runtime
+            .handle_datagram(peer(1000), &rrq(b"boot.bin", b"octet"), 1)
+            .unwrap();
+        assert!(matches!(
+            first.first(),
+            Some(RuntimeEvent::Send { packet, .. }) if packet.len() == 516
+        ));
+        let second = runtime
+            .handle_datagram(peer(1000), &[0, 4, 0, 1], 2)
+            .unwrap();
+        assert!(matches!(
+            second.first(),
+            Some(RuntimeEvent::Send { packet, .. }) if packet == &[0, 3, 0, 2]
+        ));
+        assert_eq!(runtime.active_len(), 1);
+        let done = runtime
+            .handle_datagram(peer(1000), &[0, 4, 0, 2], 3)
+            .unwrap();
+        assert!(matches!(done.first(), Some(RuntimeEvent::Completed(_))));
+        assert_eq!(runtime.active_len(), 0);
+    }
+
+    #[test]
+    fn window_does_not_complete_on_ack_before_final_block() {
+        let mut runtime = runtime(&[b'x'; 512]);
+        let mut request = rrq(b"boot.bin", b"octet");
+        request.extend_from_slice(b"windowsize\04\0");
+        let oack = runtime.handle_datagram(peer(1000), &request, 1).unwrap();
+        assert!(matches!(
+            oack.first(),
+            Some(RuntimeEvent::Send { packet, .. }) if packet.starts_with(&[0, 6])
+        ));
+        let window = runtime
+            .handle_datagram(peer(1000), &[0, 4, 0, 0], 2)
+            .unwrap();
+        assert_eq!(window.len(), 2);
+        assert!(matches!(
+            window.last(),
+            Some(RuntimeEvent::Send { packet, .. }) if packet == &[0, 3, 0, 2]
+        ));
+        let first_ack = runtime
+            .handle_datagram(peer(1000), &[0, 4, 0, 1], 3)
+            .unwrap();
+        assert!(first_ack
+            .iter()
+            .all(|event| { !matches!(event, RuntimeEvent::Completed(_)) }));
+        let done = runtime
+            .handle_datagram(peer(1000), &[0, 4, 0, 2], 4)
+            .unwrap();
+        assert!(matches!(done.first(), Some(RuntimeEvent::Completed(_))));
+        assert_eq!(runtime.active_len(), 0);
+    }
+
+    #[test]
+    fn real_file_opener_fstats_and_reads_descriptor() {
+        let root = std::env::temp_dir().join(format!("dnsmasq-rs-tftp-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        std::fs::create_dir_all(&root).unwrap();
+        std::fs::write(root.join("boot"), b"real-file").unwrap();
+        let mut runtime = TransferRuntime::new(
+            RuntimeConfig {
+                path: RuntimePathPolicy {
+                    prefix: Some(root.as_os_str().as_bytes().to_vec()),
+                    lowercase: false,
+                },
+                ..RuntimeConfig::default()
+            },
+            RealFileOpener::new(0, false),
+        );
+        let events = runtime
+            .handle_datagram(peer(1000), &rrq(b"boot", b"octet"), 1)
+            .unwrap();
+        assert!(
+            matches!(&events[0], RuntimeEvent::Send { packet, .. } if &packet[4..] == b"real-file")
+        );
+        assert!(runtime.active_len() == 1);
+        std::fs::remove_dir_all(root).unwrap();
     }
 
     #[test]
