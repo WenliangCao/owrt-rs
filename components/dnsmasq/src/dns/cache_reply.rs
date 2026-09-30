@@ -19,12 +19,15 @@ use super::wire::{PacketWriter, Section, WireError};
 /// The cached owner and canonical RDATA are used verbatim. The caller must
 /// select every RR in the requested RRset and validate generic RDATA before
 /// insertion; this helper never treats a single record as a complete answer.
+/// `owner_offset` may reference the same owner already written by the caller
+/// as the question or a preceding CNAME target.
 pub fn append_positive_record(
     writer: &mut PacketWriter,
     cache: &Cache,
     id: EntryId,
     section: Section,
     now: i64,
+    owner_offset: Option<u16>,
 ) -> Result<bool, WireError> {
     if !cache.is_valid(id, now) {
         return Ok(false);
@@ -40,25 +43,32 @@ pub fn append_positive_record(
         Kind::Generic(rrtype) => rrtype,
         Kind::Cname | Kind::NxDomain => return Ok(false),
     };
-    writer.record(
-        section,
-        &entry.record.name,
-        rrtype,
-        1,
-        entry.reply_ttl(now, cache.policy()),
-        &entry.record.data,
-    )?;
+    let ttl = entry.reply_ttl(now, cache.policy());
+    if let Some(offset) = owner_offset {
+        writer.record_at(section, offset, rrtype, 1, ttl, &entry.record.data)?;
+    } else {
+        writer.record(
+            section,
+            &entry.record.name,
+            rrtype,
+            1,
+            ttl,
+            &entry.record.data,
+        )?;
+    }
     Ok(true)
 }
 
 /// Append one cached CNAME and return its still-live target handle. The
 /// caller follows that handle to emit the terminal CNAME/A/AAAA chain.
+/// `owner_offset` has the same caller-owned contract as for positive records.
 pub fn append_cname_record(
     writer: &mut PacketWriter,
     cache: &Cache,
     id: EntryId,
     section: Section,
     now: i64,
+    owner_offset: Option<u16>,
 ) -> Result<Option<EntryId>, WireError> {
     if !cache.is_valid(id, now) {
         return Ok(None);
@@ -74,14 +84,12 @@ pub fn append_cname_record(
     let Some(target) = entry.cname_target() else {
         return Ok(None);
     };
-    writer.record(
-        section,
-        &entry.record.name,
-        5,
-        1,
-        entry.reply_ttl(now, cache.policy()),
-        &entry.record.data,
-    )?;
+    let ttl = entry.reply_ttl(now, cache.policy());
+    if let Some(offset) = owner_offset {
+        writer.record_at(section, offset, 5, 1, ttl, &entry.record.data)?;
+    } else {
+        writer.record(section, &entry.record.name, 5, 1, ttl, &entry.record.data)?;
+    }
     Ok(Some(target))
 }
 
@@ -115,7 +123,7 @@ pub fn append_negative_authority(
             .get(soa_id)
             .is_some_and(|entry| entry.record.kind == Kind::Generic(6))
         {
-            return append_positive_record(writer, cache, soa_id, Section::Authority, now);
+            return append_positive_record(writer, cache, soa_id, Section::Authority, now, None);
         }
     }
     Ok(false)

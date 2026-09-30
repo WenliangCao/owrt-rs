@@ -28,7 +28,7 @@ fn positive_record_has_remaining_ttl_and_does_not_rewrite_header() {
         .unwrap();
     assert!(cache.commit());
     let mut output = writer(1, 512);
-    assert!(append_positive_record(&mut output, &cache, id, Section::Answer, 110).unwrap());
+    assert!(append_positive_record(&mut output, &cache, id, Section::Answer, 110, None).unwrap());
     let packet = output.finish();
     let message = Message::parse(&packet).unwrap();
     assert_eq!(message.header.id, 0x1234);
@@ -57,7 +57,7 @@ fn expired_entry_is_omitted_and_stale_policy_keeps_zero_ttl() {
         assert!(cache.commit());
         let mut output = writer(28, 512);
         assert_eq!(
-            append_positive_record(&mut output, &cache, id, Section::Answer, 110).unwrap(),
+            append_positive_record(&mut output, &cache, id, Section::Answer, 110, None).unwrap(),
             written
         );
         let packet = output.finish();
@@ -88,7 +88,9 @@ fn generic_record_uses_own_type_and_caller_selected_section() {
         .unwrap();
     assert!(cache.commit());
     let mut output = writer(1, 512);
-    assert!(append_positive_record(&mut output, &cache, id, Section::Authority, 101).unwrap());
+    assert!(
+        append_positive_record(&mut output, &cache, id, Section::Authority, 101, None).unwrap()
+    );
     let packet = output.finish();
     let message = Message::parse(&packet).unwrap();
     assert_eq!(message.header.answers, 0);
@@ -123,7 +125,9 @@ fn negative_and_cname_entries_are_left_to_the_caller() {
         }
         assert!(cache.commit());
         let mut output = writer(1, 512);
-        assert!(!append_positive_record(&mut output, &cache, id, Section::Answer, 100).unwrap());
+        assert!(
+            !append_positive_record(&mut output, &cache, id, Section::Answer, 100, None).unwrap()
+        );
         assert_eq!(Header::parse(&output.finish()).unwrap().answers, 0);
     }
 }
@@ -140,9 +144,11 @@ fn full_writer_keeps_complete_records_and_marks_tc() {
         .unwrap();
     assert!(cache.commit());
     let mut output = writer(1, 54);
-    assert!(append_positive_record(&mut output, &cache, first, Section::Answer, 100).unwrap());
+    assert!(
+        append_positive_record(&mut output, &cache, first, Section::Answer, 100, None).unwrap()
+    );
     assert_eq!(
-        append_positive_record(&mut output, &cache, second, Section::Answer, 100),
+        append_positive_record(&mut output, &cache, second, Section::Answer, 100, None),
         Err(WireError::Full)
     );
     let packet = output.finish();
@@ -166,7 +172,7 @@ fn malformed_address_is_rejected_before_mutating_writer() {
     assert!(cache.commit());
     let mut output = writer(1, 512);
     assert_eq!(
-        append_positive_record(&mut output, &cache, id, Section::Answer, 100),
+        append_positive_record(&mut output, &cache, id, Section::Answer, 100, None),
         Err(WireError::InvalidName)
     );
     assert_eq!(Header::parse(&output.finish()).unwrap().answers, 0);

@@ -660,6 +660,12 @@ impl PacketWriter {
         )
     }
 
+    /// Offset at which the next successfully appended question or RR starts.
+    /// Callers can retain known name locations without rescanning the packet.
+    pub fn position(&self) -> usize {
+        self.packet.len()
+    }
+
     fn ensure(&self, added: usize) -> Result<(), WireError> {
         if added > self.limit - self.packet.len() {
             Err(WireError::Full)

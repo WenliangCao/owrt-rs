@@ -252,6 +252,15 @@ impl<R: Random> DnsDaemon<R> {
         self.upstream.pending_count()
     }
 
+    /// Replace the reloaded hosts snapshot and discard dynamic DNS answers.
+    /// Resolver routing and in-flight upstream requests retain their owners.
+    pub fn reload_hosts(&mut self, hosts: Hosts) {
+        self.local.hosts = hosts;
+        if let Some(cache) = &mut self.cache {
+            cache.clear();
+        }
+    }
+
     /// Enable the positive forward cache after daemon construction.  Keeping
     /// this explicit lets the caller pass scalar options (cache-size and TTL
     /// bounds) without duplicating them in `DnsConfig`.
@@ -379,6 +388,15 @@ impl<R: Random> DnsDaemon<R> {
         query: &[u8],
         question: &super::forward::Question,
     ) -> Result<Option<Vec<u8>>, DaemonError> {
+        self.cached_answer_at(query, question, unix_seconds())
+    }
+
+    fn cached_answer_at(
+        &mut self,
+        query: &[u8],
+        question: &super::forward::Question,
+        now: i64,
+    ) -> Result<Option<Vec<u8>>, DaemonError> {
         let Some(cache) = self.cache.as_mut() else {
             return Ok(None);
         };
@@ -400,15 +418,14 @@ impl<R: Random> DnsDaemon<R> {
         {
             return Ok(None);
         }
-        if question.class != 1 || !matches!(question.rrtype, 1 | 28) {
+        if question.class != 1 || !matches!(question.rrtype, 1 | 5 | 28) {
             return Ok(None);
         }
-        let kind = if question.rrtype == 1 {
-            Kind::Ipv4
-        } else {
-            Kind::Ipv6
+        let kind = match question.rrtype {
+            1 => Kind::Ipv4,
+            5 => Kind::Cname,
+            _ => Kind::Ipv6,
         };
-        let now = unix_seconds();
         let ids = cache.lookup(
             &question.name,
             &[Kind::Cname, kind, Kind::NxDomain],
@@ -435,6 +452,28 @@ impl<R: Random> DnsDaemon<R> {
                 Err(error) => return Err(error.into()),
             }
             return Ok(Some(finish_cached_answer(writer)?));
+        }
+        if question.rrtype == 5 {
+            // answer_request stops after the first CNAME for this qtype,
+            // even when its target is another alias or a negative entry.
+            // That exact C branch retains AA; only terminal address/negative
+            // processing clears it for other qtypes.
+            let mut writer = PacketWriter::new(
+                header.id,
+                (header.flags & 0x0110) | 0x8480,
+                self.max_udp.min(512),
+            )?;
+            writer.question(&question.name, question.rrtype, question.class)?;
+            for id in ids {
+                match append_cname_record(&mut writer, cache, id, Section::Answer, now, Some(12)) {
+                    Ok(None) => continue,
+                    Ok(Some(_)) | Err(WireError::Full) => {
+                        return Ok(Some(finish_cached_answer(writer)?));
+                    }
+                    Err(error) => return Err(error.into()),
+                }
+            }
+            return Ok(None);
         }
         let direct_nodata = ids.iter().find_map(|id| {
             cache.get(*id).and_then(|entry| {
@@ -499,14 +538,20 @@ impl<R: Random> DnsDaemon<R> {
             if let Some(entry) = cache.get(id) {
                 if entry.record.kind == Kind::Cname {
                     let mut current = id;
+                    let mut owner_offset = 12;
                     let mut complete = false;
                     for _ in 0..10 {
+                        // A compressed owner is two bytes, followed by the
+                        // ten-byte RR header. The uncompressed target starts
+                        // there and becomes the owner of the next record.
+                        let target_offset = (writer.position() + 12) as u16;
                         let target = match append_cname_record(
                             &mut writer,
                             cache,
                             current,
                             Section::Answer,
                             now,
+                            Some(owner_offset),
                         ) {
                             Ok(Some(target)) => target,
                             Ok(None) => break,
@@ -515,6 +560,7 @@ impl<R: Random> DnsDaemon<R> {
                             }
                             Err(error) => return Err(error.into()),
                         };
+                        owner_offset = target_offset;
                         written = true;
                         let Some(target_entry) = cache.get(target) else {
                             break;
@@ -524,6 +570,16 @@ impl<R: Random> DnsDaemon<R> {
                             continue;
                         }
                         if target_entry.record.negative {
+                            // A cached NODATA is specific to its original
+                            // qtype. The CNAME link does not make it a
+                            // name-wide negative, nor extend its expiry.
+                            let terminal_name = target_entry.record.name.clone();
+                            if !cache
+                                .lookup_question(&terminal_name, kind, now, false)
+                                .contains(&target)
+                            {
+                                return Ok(None);
+                            }
                             match append_negative_authority(&mut writer, cache, target, now) {
                                 Ok(_) => {}
                                 Err(WireError::Full) => {
@@ -551,6 +607,7 @@ impl<R: Random> DnsDaemon<R> {
                                     terminal_id,
                                     Section::Answer,
                                     now,
+                                    Some(owner_offset),
                                 ) {
                                     Ok(true) => {
                                         complete = true;
@@ -571,7 +628,7 @@ impl<R: Random> DnsDaemon<R> {
                     continue;
                 }
             }
-            match append_positive_record(&mut writer, cache, id, Section::Answer, now) {
+            match append_positive_record(&mut writer, cache, id, Section::Answer, now, Some(12)) {
                 Ok(true) => written = true,
                 Ok(false) => {}
                 Err(WireError::Full) => break,
@@ -585,6 +642,10 @@ impl<R: Random> DnsDaemon<R> {
     }
 
     fn cache_reply(&mut self, packet: &[u8]) {
+        self.cache_reply_at(packet, unix_seconds());
+    }
+
+    fn cache_reply_at(&mut self, packet: &[u8], now: i64) {
         let negative_cache = self.negative_cache;
         let negative_ttl = self.negative_ttl;
         let Some(cache) = self.cache.as_mut() else {
@@ -603,10 +664,12 @@ impl<R: Random> DnsDaemon<R> {
         let Ok(question) = WireQuestion::parse(packet, message.questions.start) else {
             return;
         };
-        if question.class != 1 || !matches!(question.qtype, 1 | 28) {
+        if question.class != 1
+            || !matches!(question.qtype, 1 | 5 | 28)
+            || (question.qtype == 5 && message.header.rcode() != 3)
+        {
             return;
         }
-        let now = unix_seconds();
         let Ok(edns) = find_pseudoheader(packet, false) else {
             return;
         };
@@ -648,6 +711,12 @@ impl<R: Random> DnsDaemon<R> {
             let Some((target, ttl)) = found else {
                 break;
             };
+            // extract_addresses never caches a positive CNAME query. Even
+            // an NXDOMAIN envelope cannot make its matching CNAME answer a
+            // negative cache entry: C records that answer as found.
+            if question.qtype == 5 {
+                return;
+            }
             chain.push((current, target.clone(), ttl));
             current = target;
         }
@@ -1000,6 +1069,10 @@ fn validate_runtime_config(config: &DnsConfig) -> Result<(), DaemonError> {
     }
     Ok(())
 }
+
+#[cfg(test)]
+#[path = "daemon_cache_tests.rs"]
+mod cache_tests;
 
 #[cfg(test)]
 mod tests {
