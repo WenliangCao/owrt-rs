@@ -91,6 +91,12 @@ pub fn receive_once<'a>(
     let Some(datagram) = socket.receive(buffer)? else {
         return Ok(None);
     };
+    // dhcp.c resolves the pktinfo index with indextoname() before any
+    // interface/context matching.  An index of zero is therefore an
+    // admission failure, even if the payload itself is a valid BOOTP packet.
+    if datagram.interface == 0 {
+        return Ok(None);
+    }
     let ingress = Ingress {
         listener,
         interface_index: datagram.interface,
@@ -279,5 +285,40 @@ mod tests {
             dispatch(&bytes, ingress(), &[]),
             Err(DispatchError::Packet(ParseError::NotRequest))
         ));
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    #[ignore = "requires Linux isolated loopback; run with run_isolated.sh"]
+    fn receive_once_admits_loopback_pktinfo_and_preserves_addresses() {
+        assert_eq!(std::env::var("DNSMASQ_TEST_ISOLATED").as_deref(), Ok("1"));
+        let listener = crate::net::DatagramSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap();
+        let target = listener.local_addr().unwrap();
+        let client = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
+        let bytes = packet(&[]);
+        client.send_to(&bytes, target).unwrap();
+        let mut buffer = vec![0; MAX_PACKET_LEN];
+        let received = loop {
+            match receive_once(&listener, &mut buffer, Listener::Dhcp, &[]) {
+                Ok(Some(Ok(received))) => break received,
+                Ok(Some(Err(error))) => panic!("unexpected DHCP parse error: {error:?}"),
+                Ok(None) => panic!("pktinfo datagram was not admitted"),
+                Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
+                    std::thread::sleep(std::time::Duration::from_millis(1));
+                }
+                Err(error) => panic!("receive_once failed: {error}"),
+            }
+        };
+        assert_eq!(received.destination, IpAddr::V4(Ipv4Addr::LOCALHOST));
+        assert_eq!(received.local_address, IpAddr::V4(Ipv4Addr::LOCALHOST));
+        assert_eq!(
+            received.interface,
+            received.dispatch.ingress.interface_index
+        );
+        assert_ne!(received.interface, 0);
+        assert!(received.dispatch.ingress.unicast_destination);
+        assert_eq!(received.dispatch.kind, DispatchKind::Bootp);
+        assert_eq!(received.peer.ip(), IpAddr::V4(Ipv4Addr::LOCALHOST));
+        assert_eq!(received.dispatch.packet.bytes(), bytes.as_slice());
     }
 }

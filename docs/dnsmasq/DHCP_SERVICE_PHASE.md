@@ -6,7 +6,7 @@
 
 | C 源码位置 | 行为与不变量 | Rust 实现 | 验证 |
 |---|---|---|---|
-| `dhcp.c:130-177` | DHCP/ PXE 使用独立接收 fd；短于固定 BOOTP 头的 `recvmsg` 结果丢弃；接收数据在有界缓冲中处理 | `dhcp::service::dispatch`，明确拒绝 `<236` 或 `>16384` 字节；Linux `receive_once` 保留 pktinfo、peer 和目的地址 | `dhcp::service::tests::short_and_oversized_datagrams_are_rejected_before_state`；Linux target check |
+| `dhcp.c:130-177,248-250` | DHCP/ PXE 使用独立接收 fd；短于固定 BOOTP 头的 `recvmsg` 结果丢弃；接收数据在有界缓冲中处理；`IP_PKTINFO.ipi_addr` 决定广播判定，`ipi_spec_dst` 保留本地源地址，接口索引必须能解析 | `dhcp::service::dispatch`，明确拒绝 `<236` 或 `>16384` 字节；Linux `receive_once` 保留 pktinfo、peer、IP-header 目的地址和本地地址，并拒绝 interface index 0 | `short_and_oversized_datagrams_are_rejected_before_state`；Linux target check；隔离 loopback `receive_once_admits_loopback_pktinfo_and_preserves_addresses` |
 | `rfc2131.c:117-156`; `dhcp.c:248-250` | 只接受 `BOOTREQUEST`、`hlen<=16`、`htype=0` 时 `hlen=0`；DHCP 选项 53 才要求 RFC1048 cookie | `Packet::parse`，由 `dispatch` 统一转为 `DispatchError` | `packet` 单测与 `dhcp::service::tests::malformed_request_is_rejected_without_panicking` |
 | `dhcp.c:251-264` | `giaddr=255.255.255.255` 是本地测试扩展：匹配上下文前清零，发送时恢复；普通非零 `giaddr` 经 relay | `Route::RelaySource` / `Route::Relay` / `Route::Local`，保留原值供发送方处理 | `preserves_relay_source_extension_and_normal_giaddr` |
 | `rfc2131.c:564-697` | 无消息类型为 BOOTP；BOOTP 要求 MAC，并按静态/动态策略交给 BOOTP 分支；未知 option 53 走 C 的无回复默认分支 | `DispatchKind::Bootp` / `Unsupported`；后续调用 `state::bootp` 与 `encode_bootp_vendor` | `dispatches_bootp_leasequery_and_regular_dhcp`；完整 reply 未接线 |
@@ -34,5 +34,7 @@ PATH="$HOME/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin:$PATH" \
   cargo test --manifest-path components/dnsmasq/Cargo.toml --lib dhcp::service
 ```
 
-本阶段新增 5 个 dispatch 单测；完整 crate 回归、目标 musl check、clippy 和
-真实隔离网络测试仍由主代理在整合后运行。
+本阶段新增 5 个 dispatch 单测；本次补充了一个真实 Linux `recvmsg`/`IP_PKTINFO`
+loopback smoke（仅 `lo`、非特权临时端口），要求通过
+`tools/dnsmasq/run_isolated.sh` 执行，当前 macOS 主机未运行该 Linux-only 用例。
+目标 musl check 与 clippy 已通过；完整 crate 回归由主代理在整合后运行。
