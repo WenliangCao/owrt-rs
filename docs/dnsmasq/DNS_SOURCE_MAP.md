@@ -56,7 +56,7 @@ UDP/TCP IPv4/IPv6 实际收发与 socket/FD 生命周期；上游认证/随机�
 
 ## 动态 forward cache 阶段
 
-`dns/cache.rs` 与 `dns/cache_reply.rs` 是可独立验证的动态 forward 原语，尚未接入 daemon；本地 hosts/DHCP/config 记录、reverse cache、SOA 提取及 TCP 子进程缓存 IPC 仍属于后续集成。当前原语已增加 `insert_negative` 的 SOA TTL 优先、`neg-ttl` 回退和零 TTL 边界、包含 name-wide NXDOMAIN 的 question lookup，以及正 RR/CNAME/负命中到 bounded wire 的合成。`Record.data` 仍是调用方校验后的 canonical RDATA 或负缓存 SOA metadata；cache 原语不解释其协议内容。未将这些缺口标记为完成。
+`dns/cache.rs` 与 `dns/cache_reply.rs` 是可独立验证的动态 forward 原语，尚未接入 daemon；本地 hosts/DHCP/config 记录、reverse cache、SOA 提取及 TCP 子进程缓存 IPC 仍属于后续集成。当前原语已增加 `insert_negative` 的 SOA TTL 优先、`neg-ttl` 回退和零 TTL 边界、包含 name-wide NXDOMAIN 的 question lookup，以及调用方已选定正 RR 的 bounded wire append。`append_positive_record` 不执行完整 cache lookup/synthesis，明确把 CNAME、negative、NXDOMAIN、ANY、SOA、RCODE 与 EDNS 留给调用方。`Record.data` 仍是调用方校验后的 canonical RDATA 或负缓存 SOA metadata；cache 原语不解释其协议内容。未将这些缺口标记为完成。
 
 | 精确 C 位置 | 行为与不变量 | Rust 原语 | 当前对照 |
 |---|---|---|---|
@@ -67,6 +67,7 @@ UDP/TCP IPv4/IPv6 实际收发与 socket/FD 生命周期；上游认证/随机�
 | `cache.c:518–602,643–718,844–919` | 冲突立即删除旧记录；插入失败后新记录不 commit；下次 start 清理 pending；不会恢复已删除旧记录；A/AAAA/不同 RRtype 可共存；CNAME 与其他类型冲突；NXDOMAIN 与 A/AAAA 不直接冲突 | `Kind::conflicts`、显式失败态、`start_insert/insert/commit` | abort、遗漏commit、同事务多个 RR、负记录、不同type及 6 个状态序列种子 |
 | `cache.c:157–174,450–465,564–574,811–825,855–861` → `rfc1035.c:928–956,1114–1124,1185–1196` | CNAME 持 target crec+UID；目标复用给不同名字时失效；同名目标替换保留 UID；未找到 target 的 CNAME 在commit丢弃 | `EntryId` slot+generation、`set_cname_target`；只在同名目标替换保留代数 | 替换目标、过期目标、无目标、回收后不复活；C差分与独立状态测试 |
 | `cache.c:1174–1260` → `rfc1035.c:2283–2347` | 第一次查找提升所有同名匹配记录；按 flag 组轮转；Generic F_RR 查出多种type后调用方过滤 | `lookup` 返回 handle，不复制 payload；Generic(_)按组查，再由调用方筛真实type | 保留同type准确顺序、round-robin/no-round-robin；仅跨 generic type 的组顺序归一化 |
+| `rfc1035.c:1649–1690,2100–2170,2283–2347` | 完整 answer_request 选定正 RR 后按剩余 TTL 写入目标 section；CNAME/negative/NXDOMAIN/ANY 与 RCODE 仍由上层状态机决定 | `append_positive_record` 仅写 live A/AAAA/generic EntryId，拒绝 CNAME/negative/NXDOMAIN | 6 个正 RR wire/TTL/过期/限长/拒绝边界测试；未接入 daemon |
 
 C cache 源文件 SHA256：`51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c`；`dnsmasq.h` 为 `318942419598f037a97611efbdea5aebba1e384b9a1ba5f7eded091c86e0e228`。工具先校验 hash，然后从精确文件提取 19 个完整函数（含真实 hash/scan/insert/find），不手写 C 替代算法。仅配置、内存分配及未启用 IPC 的依赖是最小桩；触发不应执行的 IPC/log 路径会 abort。C ASan/UBSan 启用；分配失败不是本轮范围。
 

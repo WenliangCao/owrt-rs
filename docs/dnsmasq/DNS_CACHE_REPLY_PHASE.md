@@ -1,21 +1,23 @@
 # DNS cache reply synthesis phase
 
-This phase adds the wire boundary after the dynamic cache primitives. It is
-still caller-owned: the daemon must decide cacheability, SOA metadata,
-DNSSEC/EDNS flags and whether a stale result may be served.
+This phase adds one bounded wire-writing primitive after the dynamic cache
+primitives. It is still caller-owned: the daemon must select the RRset and
+decide cacheability, CNAME/negative/SOA handling, RCODE, DNSSEC/EDNS flags and
+whether a stale result may be served.
 
 | C source | Behaviour / invariant | Rust boundary | Evidence |
 |---|---|---|---|
-| `rfc1035.c:2283-2350` | A cache hit keeps the client ID/question, projects remaining TTL and emits only the requested RR type; a name-wide NXDOMAIN marker answers any qtype | `cache_reply::answer_from_cache` with `CacheQuery` | positive TTL and NXDOMAIN tests |
-| `rfc1035.c:1738-1775,2283-2347` | CNAME answers include the alias and follow at most ten targets; loops or missing targets do not escape the bound | `append_entry` with `EntryId` visited set and depth bound | alias plus terminal A test |
-| `rfc1035.c:1170-1190,2283-2347` | Negative/NODATA cache entries are answerable without manufacturing an answer RR; SOA authority construction remains a separate caller step | negative hit returns an empty-answer response; NXDOMAIN sets RCODE 3 | NODATA and NXDOMAIN tests |
-| `rfc1035.c:2050-2140` | The packet writer is bounded; a cache hit that cannot fit is truncated through the existing writer boundary, while a miss remains distinguishable | `PacketWriter` plus `AppendOutcome::Full` | bounded writer regression coverage in wire/cache phases |
+| `rfc1035.c:1649-1690,2100-2170,2283-2347` | A caller-selected positive RR uses the remaining TTL and its canonical owner/RDATA; output remains bounded and section placement is caller-owned | `cache_reply::append_positive_record` | positive A/AAAA/generic TTL and section tests |
+| `rfc1035.c:1738-1810,2283-2350` | CNAME traversal, qtype filtering and name-wide NXDOMAIN precedence are part of `answer_request`, not a single-record writer | caller-owned state machine; the helper returns `false` for CNAME/NXDOMAIN | explicit CNAME/NXDOMAIN rejection test |
+| `rfc1035.c:1170-1209,2384-2410` | Negative insertion and SOA authority synthesis require `extract_addresses`/`find_soa` state | `Cache::insert_negative`; no cache-reply wire synthesis | negative TTL tests remain in `cache_tests` |
+| `rfc1035.c:2050-2140` | The packet writer is bounded; a record that cannot fit sets TC without writing a partial RR | `PacketWriter` plus `WireError::Full` | bounded writer regression test |
 
-The module does not parse upstream packets or insert records. It does not add
-an SOA authority section, EDNS OPT, stale marker, DNSSEC AD bit, cache flags or
-client-specific policy. Those remain explicit integration gates before this
-boundary can be used by `DnsDaemon`.
+The module does not perform cache lookup, build a complete response, parse
+upstream packets or insert records. It does not add an SOA authority section,
+EDNS OPT, stale marker, DNSSEC AD bit, RCODE, cache flags or client-specific
+policy. Those remain explicit integration gates before this boundary can be
+used by `DnsDaemon`.
 
-The focused `cache_reply` suite has five tests and runs in the normal crate
+The focused `cache_reply` suite has six tests and runs in the normal crate
 test gate. It is evidence for wire synthesis only, not full cache or daemon
 equivalence.
