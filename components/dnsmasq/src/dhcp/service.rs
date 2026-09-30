@@ -8,7 +8,9 @@
 //! and actual UDP sockets remain caller responsibilities.
 
 use super::packet::{Packet, ParseError, FIXED_LEN, MAX_PACKET_LEN};
-use std::net::Ipv4Addr;
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+use std::io;
 
 /// C's DHCP and PXE listeners use separate UDP sockets (dhcp.c:130-133).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -59,6 +61,46 @@ pub struct Dispatch<'a> {
     pub ingress: Ingress,
     pub kind: DispatchKind,
     pub route: Route,
+}
+
+/// A datagram after Linux `recvmsg`/pktinfo admission. The containing runtime
+/// owns the socket and may pass `dispatch` to the state machine without
+/// losing the source/destination metadata needed by the send path.
+#[derive(Clone, Copy, Debug)]
+pub struct Received<'a> {
+    pub dispatch: Dispatch<'a>,
+    pub peer: SocketAddr,
+    pub destination: IpAddr,
+    pub interface: u32,
+}
+
+/// Receive one bounded DHCP/PXE datagram through the audited pktinfo socket.
+/// `Ok(None)` means the kernel discarded a truncated datagram or reported no
+/// usable ancillary destination metadata. A malformed but bounded packet is
+/// returned as `Some(Err(...))` so callers can account for the drop.
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+pub fn receive_once<'a>(
+    socket: &crate::net::DatagramSocket,
+    buffer: &'a mut [u8],
+    listener: Listener,
+    pxe_prefixes: &[&[u8]],
+) -> io::Result<Option<Result<Received<'a>, DispatchError>>> {
+    let Some(datagram) = socket.receive(buffer)? else {
+        return Ok(None);
+    };
+    let ingress = Ingress {
+        listener,
+        interface_index: datagram.interface,
+        unicast_destination: !datagram.destination.is_unspecified(),
+    };
+    let result =
+        dispatch(&buffer[..datagram.len], ingress, pxe_prefixes).map(|dispatch| Received {
+            dispatch,
+            peer: datagram.peer,
+            destination: datagram.destination,
+            interface: datagram.interface,
+        });
+    Ok(Some(result))
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

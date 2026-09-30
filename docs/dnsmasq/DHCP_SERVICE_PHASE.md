@@ -6,7 +6,7 @@
 
 | C 源码位置 | 行为与不变量 | Rust 实现 | 验证 |
 |---|---|---|---|
-| `dhcp.c:130-177` | DHCP/ PXE 使用独立接收 fd；短于固定 BOOTP 头的 `recvmsg` 结果丢弃；接收数据在有界缓冲中处理 | `dhcp::service::dispatch`，明确拒绝 `<236` 或 `>16384` 字节 | `dhcp::service::tests::short_and_oversized_datagrams_are_rejected_before_state` |
+| `dhcp.c:130-177` | DHCP/ PXE 使用独立接收 fd；短于固定 BOOTP 头的 `recvmsg` 结果丢弃；接收数据在有界缓冲中处理 | `dhcp::service::dispatch`，明确拒绝 `<236` 或 `>16384` 字节；Linux `receive_once` 保留 pktinfo、peer 和目的地址 | `dhcp::service::tests::short_and_oversized_datagrams_are_rejected_before_state`；Linux target check |
 | `rfc2131.c:117-156`; `dhcp.c:248-250` | 只接受 `BOOTREQUEST`、`hlen<=16`、`htype=0` 时 `hlen=0`；DHCP 选项 53 才要求 RFC1048 cookie | `Packet::parse`，由 `dispatch` 统一转为 `DispatchError` | `packet` 单测与 `dhcp::service::tests::malformed_request_is_rejected_without_panicking` |
 | `dhcp.c:251-264` | `giaddr=255.255.255.255` 是本地测试扩展：匹配上下文前清零，发送时恢复；普通非零 `giaddr` 经 relay | `Route::RelaySource` / `Route::Relay` / `Route::Local`，保留原值供发送方处理 | `preserves_relay_source_extension_and_normal_giaddr` |
 | `rfc2131.c:564-697` | 无消息类型为 BOOTP；BOOTP 要求 MAC，并按静态/动态策略交给 BOOTP 分支；未知 option 53 走 C 的无回复默认分支 | `DispatchKind::Bootp` / `Unsupported`；后续调用 `state::bootp` 与 `encode_bootp_vendor` | `dispatches_bootp_leasequery_and_regular_dhcp`；完整 reply 未接线 |
@@ -20,8 +20,8 @@
 `state::release`。这保持了 C 中“先 prune，再 `dhcp_reply`，写租约与 DNS，
 最后发送”的所有权边界，避免把未经上下文选择的 datagram 误当成 ACK。
 
-当前未完成的服务合同：Linux `IP_PKTINFO`/接口变化与桥接别名；真实 UDP 67/4011
-socket 和端口/权限；relay 上游转发与回复识别；广播、单播、ARP 注入；完整
+当前未完成的服务合同：Linux 接口变化与桥接别名；真实 UDP 67/4011 listener、端口/权限和
+事件循环；relay 上游转发与回复识别；广播、单播、ARP 注入；完整
 `dhcp_reply` 的 context/tag/config/FQDN/options/overload；leasefile、脚本和
 DNS 同步；PXE proxy/menu、TFTP；procd/ujail/ubus/reload/metrics。现有
 `tools/dnsmasq/dhcp_differential.py` 与 `dhcp_state_differential.py` 的 C
