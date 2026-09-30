@@ -1,6 +1,6 @@
 //! Offline probe used by `tools/dnsmasq/dhcp_reply_diff.py`.
 use dnsmasq_rs::dhcp::packet::{Packet, VendorOption, COOKIE};
-use dnsmasq_rs::dhcp::reply::{build_reply, ReplyOption};
+use dnsmasq_rs::dhcp::reply::{build_reply_with_fuzz, ReplyOption};
 use dnsmasq_rs::dhcp::state::{Refusal, Reply};
 use std::io::{self, BufRead};
 use std::net::Ipv4Addr;
@@ -22,8 +22,8 @@ fn main() {
     for line in io::stdin().lock().lines() {
         let line = line.unwrap();
         let fields: Vec<_> = line.split_whitespace().collect();
-        if fields.len() != 5 {
-            eprintln!("expected kind request-options lease rapid options");
+        if fields.len() != 5 && fields.len() != 6 {
+            eprintln!("expected kind request-options lease rapid options [fuzz]");
             std::process::exit(2);
         }
         let kind = fields[0];
@@ -57,8 +57,8 @@ fn main() {
                 broadcast: false,
                 server: Ipv4Addr::new(192, 0, 2, 1),
             },
-            "I" => Reply::Inform {
-                lease_time: None,
+            "I" | "J" => Reply::Inform {
+                lease_time: (kind == "J").then_some(lease),
                 context: None,
                 server: Ipv4Addr::new(192, 0, 2, 1),
             },
@@ -77,7 +77,14 @@ fn main() {
             .map(|(code, value)| VendorOption { code: *code, value })
             .collect();
         let mut output = vec![0; 16_384];
-        match build_reply(request, reply, &borrowed, &mut output) {
+        match build_reply_with_fuzz(
+            request,
+            reply,
+            &borrowed,
+            request.option(55, 0).is_some(),
+            fields.get(5).map_or(0, |word| word.parse().unwrap()),
+            &mut output,
+        ) {
             Ok(result) => {
                 print!("{} {} {} ", result.len, result.omitted, result.overload);
                 for byte in &output[..result.len] {

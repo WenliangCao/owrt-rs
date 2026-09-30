@@ -117,7 +117,8 @@ CLID 查找仍扫描活动租约，输出租约文件按序号排序也有额外
 
 - 完整 `dhcp_reply()` 的 tag/config/context/name 前置解析与 context tag 二次
   求值；状态 kernel 必须与这些调用方语义连接，LEASEQUERY 仍待实现；
-  wire reply options/overload/T1/T2/fuzz、leasequery agent-id/vendorclass 更新。
+  完整 wire reply options/tag/overload caller、leasequery agent-id/vendorclass 更新。
+  有限 OFFER/ACK 的 T1/T2/fuzz 已接 wire/runtime；详见 `DHCP_REPLY_PHASE.md`。
 - 真实 DHCP socket、pktinfo、接口动态变化、relay、ARP 注入、广播/单播、
   ICMP 检测/cache 与失败策略；必须隔离网络对照。
 - `lease.c:174-254` 启动读真实文件/leasefile-ro init 脚本；`286-454` fsync
@@ -164,5 +165,11 @@ Rust `dhcp_reply_probe` 上比较相同固定头、PRL/overload、mandatory opti
 对照期间发现并修复两项 wire 差异：NAK 分支不能调用 `do_options` 或发送已选
 普通 options；`borken_opt` 需按 C 优先级检查 option 81，再回退 option 12，未
 编码且尾随 NUL 时给 NAK message 保留 NUL。两项均保留 Rust 回归测试。该工具
-只覆盖已选 options 的 reply wire 边界，配置/tag/context 解析、T1/T2、PXE、
+只覆盖已选 options 的 reply wire 边界，配置/tag/context 解析、PXE、
 agent-id 和真实 socket 仍不在通过范围内。
+
+2026-09-30 定时器增量：精确 `do_options` 的 T1/T2 代码块与同一输入 fuzz
+已加入上述工具，1,284/1,284 whole-wire cases 通过。使用实际 `Outcome`
+租期、配置覆盖约束、无限租期/INFORM 排除、renew/rebind 才抖动及 C u32
+运算；运行时 listener 保留独立 entropy FD，并在失败时保留已提交 outcome。
+完整阶段边界与证据身份见 `DHCP_REPLY_PHASE.md` 和 `DHCP_RUNTIME_PHASE.md`。

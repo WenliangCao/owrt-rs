@@ -7,14 +7,14 @@
 //! tests may provide a callback, while [`StateProvider`] supplies the local
 //! DHCP/BOOTP state adapter without opening a socket here.
 
-use super::reply::{build_outcome, ReplyError, ReplyOption};
+use super::reply::{build_reply_with_fuzz, needs_renewal_fuzz, ReplyError, ReplyOption};
 use super::service::{Dispatch, DispatchKind, Route};
 use super::state::{self, Environment, HostPolicy, Name, Outcome, Reply, Request};
 use super::{
     allocation::{AddressRange, ProbeResult},
     lease::LeaseStore,
 };
-use std::io;
+use std::io::{self, Read};
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 const DHCP_CLIENT_PORT: u16 = 68;
@@ -56,6 +56,21 @@ impl DatagramSender for crate::net::DatagramSocket {
 /// failure never rolls those effects back.
 pub trait OutcomeProvider {
     fn resolve(&mut self, dispatch: &Dispatch<'_>) -> Result<Outcome, RuntimeError>;
+
+    /// Network defaults from the context actually selected by this outcome.
+    /// Explicit selected options take precedence over these defaults.
+    fn network_options(&self, _outcome: &Outcome) -> Option<NetworkOptions> {
+        None
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct NetworkOptions {
+    pub netmask: Ipv4Addr,
+    pub broadcast: Option<Ipv4Addr>,
+    pub router: Option<Ipv4Addr>,
+    /// The caller only supplies this when DNS is enabled on standard port 53.
+    pub dns_server: Option<Ipv4Addr>,
 }
 
 impl<F> OutcomeProvider for F
@@ -227,6 +242,7 @@ pub enum RuntimeError {
     Unsupported { kind: DispatchKind, route: Route },
     State(String),
     Reply(ReplyError),
+    Random(io::Error),
     Send(io::Error),
 }
 
@@ -256,6 +272,31 @@ pub fn process<P, S>(
     sender: &mut S,
     options: &[ReplyOption<'_>],
     buffer: &mut [u8],
+) -> Result<RuntimeReport, Box<RuntimeFailure>>
+where
+    P: OutcomeProvider,
+    S: DatagramSender,
+{
+    // Convenience entry point. SocketListener keeps the entropy descriptor
+    // open and uses process_with_random to avoid opening it on each renewal.
+    process_with_random(dispatch, peer, provider, sender, options, buffer, || {
+        let mut bytes = [0; 2];
+        std::fs::File::open("/dev/urandom")?.read_exact(&mut bytes)?;
+        Ok(u16::from_ne_bytes(bytes))
+    })
+}
+
+/// Process with a caller-owned entropy source. A successful renewing or
+/// rebinding REQUEST gets the same `rand16` input as rfc2131.c:1486. Injecting
+/// a fixed value makes differential tests independent of OS randomness.
+pub fn process_with_random<P, S>(
+    dispatch: Dispatch<'_>,
+    peer: SocketAddr,
+    provider: &mut P,
+    sender: &mut S,
+    options: &[ReplyOption<'_>],
+    buffer: &mut [u8],
+    mut random: impl FnMut() -> io::Result<u16>,
 ) -> Result<RuntimeReport, Box<RuntimeFailure>>
 where
     P: OutcomeProvider,
@@ -299,7 +340,66 @@ where
         });
     }
 
-    let encoding = match build_outcome(dispatch.packet, &outcome, options, buffer) {
+    let fuzz = if needs_renewal_fuzz(dispatch.packet, outcome.reply) {
+        match random() {
+            Ok(value) => value,
+            Err(error) => {
+                events.push(RuntimeEvent::Cleanup {
+                    outcome_dropped: true,
+                });
+                return Err(failure(
+                    RuntimeError::Random(error),
+                    events,
+                    Some(outcome),
+                    true,
+                ));
+            }
+        }
+    } else {
+        0
+    };
+    let network = (!matches!(outcome.reply, Reply::Nak { .. }))
+        .then(|| provider.network_options(&outcome))
+        .flatten();
+    let values = network.map(|network| {
+        [
+            Some(network.netmask.octets()),
+            network
+                .broadcast
+                .filter(|ip| !ip.is_unspecified())
+                .map(|ip| ip.octets()),
+            network
+                .router
+                .filter(|ip| !ip.is_unspecified())
+                .map(|ip| ip.octets()),
+            network.dns_server.map(|ip| ip.octets()),
+        ]
+    });
+    let mut combined = Vec::new();
+    let options = if let Some(values) = &values {
+        combined.reserve(options.len() + 4);
+        for (code, value) in [1, 28, 3, 6].into_iter().zip(values) {
+            if let Some(value) = value {
+                if !options.iter().any(|option| option.code == code)
+                    && (matches!(code, 1 | 28) || dispatch.packet.requests(code))
+                {
+                    combined.push(ReplyOption { code, value });
+                }
+            }
+        }
+        combined.extend_from_slice(options);
+        combined.as_slice()
+    } else {
+        options
+    };
+    let encoding = match build_reply_with_fuzz(
+        dispatch.packet,
+        outcome.reply,
+        options,
+        dispatch.packet.option(55, 0).is_some(),
+        fuzz,
+        buffer,
+    ) {
         Ok(encoding) => encoding,
         Err(error) => {
             events.push(RuntimeEvent::Cleanup {
@@ -515,6 +615,152 @@ mod tests {
             },
             removed: Vec::new(),
             lost_names: Vec::new(),
+        }
+    }
+
+    fn wire_option(bytes: &[u8], wanted: u8) -> Option<&[u8]> {
+        let mut rest = &bytes[240..];
+        while let Some((&code, tail)) = rest.split_first() {
+            if code == 255 {
+                return None;
+            }
+            if code == 0 {
+                rest = tail;
+                continue;
+            }
+            let (&length, tail) = tail.split_first()?;
+            let (value, tail) = tail.split_at_checked(usize::from(length))?;
+            if code == wanted {
+                return Some(value);
+            }
+            rest = tail;
+        }
+        None
+    }
+
+    #[test]
+    fn only_renewal_ack_draws_random_and_entropy_failure_keeps_commit() {
+        let ciaddr = Ipv4Addr::new(192, 0, 2, 9);
+        for options in [
+            &[53, 1, 3, 255][..],
+            &[53, 1, 3, 50, 4, 192, 0, 2, 9, 255][..],
+            &[53, 1, 1, 80, 0, 255][..],
+        ] {
+            let bytes = packet(options, BROADCAST_FLAG, ciaddr, Ipv4Addr::UNSPECIFIED);
+            let dispatch = dispatch_for(&bytes);
+            let mut provider = |_: &Dispatch<'_>| {
+                Ok(Outcome {
+                    reply: Reply::Ack {
+                        address: ciaddr,
+                        lease_time: 600,
+                        context: 0,
+                        server: Ipv4Addr::new(192, 0, 2, 1),
+                        rapid_commit: false,
+                    },
+                    removed: Vec::new(),
+                    lost_names: Vec::new(),
+                })
+            };
+            let mut sender = Sender {
+                sent: Vec::new(),
+                fail: false,
+            };
+            let mut output = vec![0; 548];
+            let draws = Cell::new(0);
+            process_with_random(
+                dispatch,
+                SocketAddr::from((ciaddr, 1068)),
+                &mut provider,
+                &mut sender,
+                &[],
+                &mut output,
+                || {
+                    draws.set(draws.get() + 1);
+                    Ok(65535)
+                },
+            )
+            .unwrap();
+            let renewal = options == [53, 1, 3, 255];
+            assert_eq!(draws.get(), u8::from(renewal));
+            assert_eq!(
+                wire_option(&output, 58),
+                Some(
+                    (if renewal { 269u32 } else { 300 })
+                        .to_be_bytes()
+                        .as_slice()
+                )
+            );
+            let result = process_with_random(
+                dispatch,
+                SocketAddr::from((ciaddr, 1068)),
+                &mut provider,
+                &mut sender,
+                &[],
+                &mut output,
+                || Err(io::Error::other("entropy unavailable")),
+            );
+            if renewal {
+                let failure = result.unwrap_err();
+                assert!(failure.committed);
+                assert!(failure.outcome.is_some());
+                assert!(matches!(failure.error, RuntimeError::Random(_)));
+                assert_eq!(sender.sent.len(), 1);
+            } else {
+                assert!(result.is_ok());
+            }
+        }
+    }
+
+    #[test]
+    fn network_defaults_follow_selected_context_prl_and_explicit_options() {
+        struct Provider;
+        impl OutcomeProvider for Provider {
+            fn resolve(&mut self, _: &Dispatch<'_>) -> Result<Outcome, RuntimeError> {
+                Ok(offer())
+            }
+            fn network_options(&self, _: &Outcome) -> Option<NetworkOptions> {
+                Some(NetworkOptions {
+                    netmask: Ipv4Addr::new(255, 255, 255, 0),
+                    broadcast: Some(Ipv4Addr::new(192, 0, 2, 255)),
+                    router: Some(Ipv4Addr::new(192, 0, 2, 1)),
+                    dns_server: Some(Ipv4Addr::new(192, 0, 2, 2)),
+                })
+            }
+        }
+        for (request_options, dns_requested) in [
+            (&[53, 1, 1, 255][..], true),
+            (&[53, 1, 1, 55, 0, 255][..], false),
+            (&[53, 1, 1, 55, 1, 6, 255][..], true),
+        ] {
+            let bytes = packet(
+                request_options,
+                BROADCAST_FLAG,
+                Ipv4Addr::UNSPECIFIED,
+                Ipv4Addr::UNSPECIFIED,
+            );
+            let mut sender = Sender {
+                sent: Vec::new(),
+                fail: false,
+            };
+            let mut output = vec![0; 548];
+            let explicit = [ReplyOption {
+                code: 3,
+                value: &[192, 0, 2, 10],
+            }];
+            process_with_random(
+                dispatch_for(&bytes),
+                SocketAddr::from(([192, 0, 2, 9], 68)),
+                &mut Provider,
+                &mut sender,
+                &explicit,
+                &mut output,
+                || panic!("OFFER must not draw random"),
+            )
+            .unwrap();
+            assert_eq!(wire_option(&output, 1), Some([255, 255, 255, 0].as_slice()));
+            assert_eq!(wire_option(&output, 28), Some([192, 0, 2, 255].as_slice()));
+            assert_eq!(wire_option(&output, 3), Some([192, 0, 2, 10].as_slice()));
+            assert_eq!(wire_option(&output, 6).is_some(), dns_requested);
         }
     }
 

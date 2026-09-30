@@ -124,6 +124,7 @@ pub enum ListenerStep {
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 pub struct SocketListener {
     socket: crate::net::DatagramSocket,
+    random: std::fs::File,
     listener: Listener,
     pxe_prefixes: Vec<Vec<u8>>,
     buffer: Vec<u8>,
@@ -147,6 +148,7 @@ impl SocketListener {
         let socket = crate::net::DatagramSocket::bind(address)?;
         Ok(Self {
             socket,
+            random: std::fs::File::open("/dev/urandom")?,
             listener,
             pxe_prefixes: pxe_prefixes.iter().map(|prefix| prefix.to_vec()).collect(),
             buffer: vec![0; MAX_PACKET_LEN],
@@ -202,16 +204,22 @@ impl SocketListener {
             PollOutcome::Ignored => Ok(ListenerStep::Ignored),
             PollOutcome::WouldBlock => Ok(ListenerStep::WouldBlock),
             PollOutcome::Malformed(error) => Ok(ListenerStep::Malformed(error)),
-            PollOutcome::Admitted(received) => {
-                Ok(ListenerStep::Processed(super::runtime::process(
+            PollOutcome::Admitted(received) => Ok(ListenerStep::Processed(
+                super::runtime::process_with_random(
                     received.dispatch,
                     received.peer,
                     provider,
                     &mut self.socket,
                     options,
                     output,
-                )))
-            }
+                    || {
+                        use std::io::Read;
+                        let mut bytes = [0; 2];
+                        self.random.read_exact(&mut bytes)?;
+                        Ok(u16::from_ne_bytes(bytes))
+                    },
+                ),
+            )),
         }
     }
 }

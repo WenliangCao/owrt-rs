@@ -19,6 +19,8 @@ const OPTION_LEASE_TIME: u8 = 51;
 const OPTION_MESSAGE: u8 = 56;
 const OPTION_OVERLOAD: u8 = 52;
 const OPTION_RAPID_COMMIT: u8 = 80;
+const OPTION_T1: u8 = 58;
+const OPTION_T2: u8 = 59;
 const OPTION_END: u8 = 255;
 const OPTION_PAD: u8 = 0;
 const MIN_PACKET_SIZE: usize = 300;
@@ -81,6 +83,8 @@ pub fn build_outcome(
 /// `p + len + 3 < end` fit test.  When the primary area fills, an overload TLV
 /// is reserved and options are attempted in `file` and then `sname`; options
 /// that still do not fit are counted and skipped, matching `free_space`.
+/// This deterministic wrapper uses zero renewal fuzz; live callers use
+/// `build_reply_with_fuzz` through the runtime's entropy boundary.
 pub fn build_reply(
     request: Packet<'_>,
     reply: Reply,
@@ -105,6 +109,21 @@ pub fn build_reply_with_overload(
     reply: Reply,
     options: &[ReplyOption<'_>],
     allow_overload: bool,
+    output: &mut [u8],
+) -> Result<ReplyEncoding, ReplyError> {
+    build_reply_with_fuzz(request, reply, options, allow_overload, 0, output)
+}
+
+/// Build a reply with an injected C `rand16()` value. Only an ACK to a
+/// renewing/rebinding REQUEST consumes the value; OFFER, SELECTING,
+/// INIT-REBOOT and rapid commit use zero fuzz. Options 58/59 are selected
+/// configuration overrides, not additional raw wire options.
+pub fn build_reply_with_fuzz(
+    request: Packet<'_>,
+    reply: Reply,
+    options: &[ReplyOption<'_>],
+    allow_overload: bool,
+    fuzz: u16,
     output: &mut [u8],
 ) -> Result<ReplyEncoding, ReplyError> {
     if reply == Reply::Ignore {
@@ -183,8 +202,26 @@ pub fn build_reply_with_overload(
     // NAK does not call do_options at all.
     writer.allow_overload(allow_overload && !matches!(reply, Reply::Nak { .. }));
     if !matches!(reply, Reply::Nak { .. }) {
+        if let Reply::Offer { lease_time, .. } | Reply::Ack { lease_time, .. } = reply {
+            if lease_time != u32::MAX {
+                append_lease_timers(
+                    &mut writer,
+                    lease_time,
+                    options,
+                    if needs_renewal_fuzz(request, reply) {
+                        fuzz
+                    } else {
+                        0
+                    },
+                )?;
+            }
+        }
         for option in options {
-            writer.append(*option)?;
+            // do_options handles T1/T2 internally and excludes them from
+            // the ordinary configured-options loop, even for INFORM.
+            if !matches!(option.code, OPTION_T1 | OPTION_T2) {
+                writer.append(*option)?;
+            }
         }
     }
     let (end, omitted, overload) = writer.finish();
@@ -192,6 +229,48 @@ pub fn build_reply_with_overload(
         len: end.max(MIN_PACKET_SIZE),
         omitted,
         overload,
+    })
+}
+
+pub(crate) fn needs_renewal_fuzz(request: Packet<'_>, reply: Reply) -> bool {
+    matches!(reply, Reply::Ack { .. })
+        && request.message_type() == 3
+        && request.requested_address().is_none()
+}
+
+fn append_lease_timers(
+    writer: &mut OptionWriter<'_>,
+    lease_time: u32,
+    options: &[ReplyOption<'_>],
+    fuzz: u16,
+) -> Result<(), ReplyError> {
+    let configured = |code, default| {
+        options
+            .iter()
+            .find(|option| option.code == code)
+            .map(|option| u32::from_be_bytes(option.value.try_into().expect("validated timer")))
+            .filter(|value| *value > 2 && *value < lease_time)
+            .unwrap_or(default)
+    };
+    let mut t1 = configured(OPTION_T1, lease_time / 2);
+    // Keep C unsigned-int arithmetic, including the large-lease wraparound.
+    let mut t2 = configured(OPTION_T2, lease_time.wrapping_mul(7) / 8);
+    if t2 <= t1 {
+        t1 = t2.wrapping_sub(1);
+    }
+    let mut fuzz = u32::from(fuzz);
+    while fuzz > t1 / 8 {
+        fuzz /= 2;
+    }
+    t1 = t1.wrapping_sub(fuzz);
+    t2 = t2.wrapping_sub(fuzz);
+    writer.append(ReplyOption {
+        code: OPTION_T1,
+        value: &t1.to_be_bytes(),
+    })?;
+    writer.append(ReplyOption {
+        code: OPTION_T2,
+        value: &t2.to_be_bytes(),
     })
 }
 
@@ -320,6 +399,9 @@ fn validate_dhcp_option(option: ReplyOption<'_>, reply: Reply) -> Result<(), Rep
             code: option.code,
             length: option.value.len(),
         });
+    }
+    if matches!(option.code, OPTION_T1 | OPTION_T2) && option.value.len() != 4 {
+        return Err(ReplyError::InvalidOption { code: option.code });
     }
     if is_mandatory_code(reply, option.code) {
         return Err(ReplyError::InvalidOption { code: option.code });
@@ -529,6 +611,114 @@ mod tests {
         assert_eq!(&output[240..243], &[53, 1, 2]);
         assert_eq!(&output[243..249], &[54, 4, 192, 0, 2, 1]);
         assert_eq!(&output[249..255], &[51, 4, 0, 0, 2, 88]);
+        assert_eq!(
+            option_value(&output, OPTION_T1),
+            Some(300u32.to_be_bytes().as_slice())
+        );
+        assert_eq!(
+            option_value(&output, OPTION_T2),
+            Some(525u32.to_be_bytes().as_slice())
+        );
+    }
+
+    #[test]
+    fn timers_apply_c_overrides_and_bounded_shared_renewal_fuzz() {
+        let bytes = request(&[53, 1, 3, 255]);
+        let packet = Packet::parse(&bytes).unwrap();
+        let ack = Reply::Ack {
+            address: Ipv4Addr::new(192, 0, 2, 42),
+            lease_time: 600,
+            context: 0,
+            server: Ipv4Addr::new(192, 0, 2, 1),
+            rapid_commit: false,
+        };
+        let mut output = vec![0; 548];
+        // C halves 65535 to 31 (<=300/8), then subtracts it from both timers.
+        build_reply_with_fuzz(packet, ack, &[], false, 65535, &mut output).unwrap();
+        assert_eq!(
+            option_value(&output, OPTION_T1),
+            Some(269u32.to_be_bytes().as_slice())
+        );
+        assert_eq!(
+            option_value(&output, OPTION_T2),
+            Some(494u32.to_be_bytes().as_slice())
+        );
+        let options = [
+            ReplyOption {
+                code: OPTION_T1,
+                value: &599u32.to_be_bytes(),
+            },
+            ReplyOption {
+                code: OPTION_T2,
+                value: &3u32.to_be_bytes(),
+            },
+        ];
+        build_reply_with_fuzz(packet, ack, &options, false, 65535, &mut output).unwrap();
+        // Configured T2=3 lowers T1 to 2; the fuzz loop reaches zero.
+        assert_eq!(
+            option_value(&output, OPTION_T1),
+            Some(2u32.to_be_bytes().as_slice())
+        );
+        assert_eq!(
+            option_value(&output, OPTION_T2),
+            Some(3u32.to_be_bytes().as_slice())
+        );
+        assert_eq!(output[267], OPTION_END);
+    }
+
+    #[test]
+    fn timers_exclude_inform_and_infinite_leases() {
+        let bytes = request(&[53, 1, 8, 55, 1, 51, 255]);
+        let packet = Packet::parse(&bytes).unwrap();
+        let mut output = vec![0; 548];
+        let options = [ReplyOption {
+            code: OPTION_T1,
+            value: &30u32.to_be_bytes(),
+        }];
+        for reply in [
+            Reply::Inform {
+                lease_time: Some(60),
+                context: Some(0),
+                server: Ipv4Addr::LOCALHOST,
+            },
+            Reply::Offer {
+                address: Ipv4Addr::LOCALHOST,
+                lease_time: u32::MAX,
+                context: 0,
+                server: Ipv4Addr::LOCALHOST,
+            },
+        ] {
+            build_reply(packet, reply, &options, &mut output).unwrap();
+            assert!(option_value(&output, OPTION_LEASE_TIME).is_some());
+            assert!(option_value(&output, OPTION_T1).is_none());
+            assert!(option_value(&output, OPTION_T2).is_none());
+        }
+    }
+
+    #[test]
+    fn malformed_configured_timer_is_rejected_before_output_mutation() {
+        let bytes = request(&[53, 1, 1, 255]);
+        let packet = Packet::parse(&bytes).unwrap();
+        let mut output = vec![0xaa; 548];
+        let reply = Reply::Offer {
+            address: Ipv4Addr::LOCALHOST,
+            lease_time: 60,
+            context: 0,
+            server: Ipv4Addr::LOCALHOST,
+        };
+        assert_eq!(
+            build_reply(
+                packet,
+                reply,
+                &[ReplyOption {
+                    code: OPTION_T1,
+                    value: &[1, 2, 3]
+                }],
+                &mut output
+            ),
+            Err(ReplyError::InvalidOption { code: OPTION_T1 })
+        );
+        assert!(output.iter().all(|byte| *byte == 0xaa));
     }
 
     #[test]

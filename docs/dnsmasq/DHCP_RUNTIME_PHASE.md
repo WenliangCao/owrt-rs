@@ -114,3 +114,32 @@ This does not close client-name validation, option-81/FQDN decoding, domain
 stripping, configured-name selection or DNS publication. The runtime
 regression is source-derived; the C differential covers the underlying lease
 name/event primitives, not the complete `StateProvider` service adapter.
+
+## Renewal randomness and selected network defaults
+
+`process_with_random` accepts an injected `FnMut() -> io::Result<u16>` entropy
+source. Successful renewing/rebinding REQUESTs draw once and pass that value
+to the C-tested reply timer builder. Other reply paths do not draw. An entropy
+failure returns `RuntimeError::Random` with the committed `Outcome`, emits
+cleanup, and does not send; it never rolls back a completed lease change.
+`SocketListener` opens `/dev/urandom` once at bind and releases the file with
+the listener, avoiding an open/close pair per renewal. The `process`
+convenience wrapper opens entropy only when needed; production listeners use
+the persistent descriptor path.
+
+`OutcomeProvider::network_options(&Outcome)` defaults to `None`. A configured
+provider can supply `NetworkOptions` from the range selected by the actual
+OFFER/ACK/INFORM outcome. Per `rfc2131.c:2787-2812`, the runtime emits netmask
+and nonzero broadcast without PRL filtering, while router and DNS use
+`Packet::requests`: absent PRL requests defaults, empty PRL requests neither.
+An explicit selected option with the same code suppresses the default. The
+provider only supplies a DNS default when the DNS service listens on port 53.
+NAK/Ignore do not query or emit these defaults. This hook does not perform
+context discovery or configured-option tag/force filtering.
+
+New runtime tests cover injected renewal fuzz, absence of entropy reads for
+SELECTING/rapid commit, entropy failure after commit, PRL absent/empty/present,
+and explicit option precedence. The affected suite passed 76 tests (including
+concurrent DHCP configuration regressions); Linux aarch64-musl library check
+and host library clippy passed. The wire/timer C evidence is recorded in
+`DHCP_REPLY_PHASE.md`. No performance improvement is claimed.
