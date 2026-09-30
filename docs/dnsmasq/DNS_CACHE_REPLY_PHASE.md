@@ -16,6 +16,6 @@ an SOA authority section, EDNS OPT, stale marker, DNSSEC AD bit, cache flags or
 client-specific policy. Those remain explicit integration gates before this
 boundary can be used by `DnsDaemon`.
 
-The focused `cache_reply` suite has four tests and runs in the normal crate
+The focused `cache_reply` suite has five tests and runs in the normal crate
 test gate. It is evidence for wire synthesis only, not full cache or daemon
 equivalence.
