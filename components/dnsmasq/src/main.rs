@@ -15,6 +15,8 @@ use dnsmasq_rs::dhcp::allocation::{AddressRange, ProbeResult, RangeKind};
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 use dnsmasq_rs::dhcp::lease::LeaseStore;
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+use dnsmasq_rs::dhcp::reply::ReplyOption;
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 use dnsmasq_rs::dhcp::runtime::StateProvider;
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 use dnsmasq_rs::dhcp::service::{
@@ -335,17 +337,17 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     }
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     if !dhcp_config.ranges.is_empty() {
-        let bind_ip = dhcp_config
-            .ranges
-            .first()
-            .map(|range| range.router)
-            .filter(|address| !address.is_unspecified())
+        let bind_ip = daemon_config
+            .listen_addresses
+            .iter()
+            .copied()
+            .find_map(|address| match address {
+                IpAddr::V4(address) => Some(address),
+                IpAddr::V6(_) => None,
+            })
             .unwrap_or(std::net::Ipv4Addr::UNSPECIFIED);
-        let mut listener = DhcpSocketListener::bind(
-            SocketAddr::from((std::net::Ipv4Addr::UNSPECIFIED, 67)),
-            DhcpListener::Dhcp,
-            &[],
-        )?;
+        let mut listener =
+            DhcpSocketListener::bind(SocketAddr::from((bind_ip, 67)), DhcpListener::Dhcp, &[])?;
         let mut ranges: Vec<AddressRange> = dhcp_config
             .ranges
             .iter()
@@ -387,6 +389,58 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                         fallback_server: bind_ip,
                         server_aliases: &[],
                     };
+                    let subnet = ranges
+                        .first()
+                        .map(|range| range.netmask.octets())
+                        .unwrap_or([255, 255, 255, 0]);
+                    let router = bind_ip.octets();
+                    let lease_time = ranges.first().map_or(43_200, |range| range.lease_time);
+                    let renewal = (lease_time / 2).to_be_bytes();
+                    let rebinding = (lease_time.saturating_mul(7) / 8).to_be_bytes();
+                    let network = u32::from(
+                        ranges
+                            .first()
+                            .map_or(std::net::Ipv4Addr::UNSPECIFIED, |range| range.start),
+                    ) & u32::from(
+                        ranges
+                            .first()
+                            .map_or(std::net::Ipv4Addr::new(255, 255, 255, 0), |range| {
+                                range.netmask
+                            }),
+                    );
+                    let broadcast = (network
+                        | !u32::from(
+                            ranges
+                                .first()
+                                .map_or(std::net::Ipv4Addr::new(255, 255, 255, 0), |range| {
+                                    range.netmask
+                                }),
+                        ))
+                    .to_be_bytes();
+                    let mut reply_options = vec![
+                        ReplyOption {
+                            code: 58,
+                            value: &renewal,
+                        },
+                        ReplyOption {
+                            code: 59,
+                            value: &rebinding,
+                        },
+                        ReplyOption {
+                            code: 1,
+                            value: &subnet,
+                        },
+                        ReplyOption {
+                            code: 28,
+                            value: &broadcast,
+                        },
+                    ];
+                    if !bind_ip.is_unspecified() {
+                        reply_options.push(ReplyOption {
+                            code: 3,
+                            value: &router,
+                        });
+                    }
                     let mut provider = StateProvider::new(
                         &mut leases,
                         &mut ranges,
@@ -401,9 +455,12 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                         provider.environment.now = SystemTime::now()
                             .duration_since(UNIX_EPOCH)
                             .map_or(0, |duration| duration.as_secs() as i64);
-                        match listener.process_once_local(&mut provider, &[], &mut output, || {
-                            STOP_REQUESTED.load(Ordering::Acquire)
-                        }) {
+                        match listener.process_once_local(
+                            &mut provider,
+                            &reply_options,
+                            &mut output,
+                            || STOP_REQUESTED.load(Ordering::Acquire),
+                        ) {
                             Ok(ListenerStep::WouldBlock) | Ok(ListenerStep::Ignored) => {
                                 thread::sleep(Duration::from_millis(2));
                             }
