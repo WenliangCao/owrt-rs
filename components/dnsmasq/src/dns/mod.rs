@@ -1,5 +1,6 @@
 //! DNS protocol primitives. Transport and policy are separate from wire parsing.
 pub mod cache;
+pub mod cache_reply;
 pub mod daemon;
 pub mod forward;
 pub mod forward_service;
