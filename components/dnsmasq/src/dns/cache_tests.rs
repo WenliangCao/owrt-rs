@@ -1,0 +1,204 @@
+use super::*;
+use std::collections::HashSet;
+
+fn record(name: &str, kind: Kind, value: u8) -> Record {
+    Record {
+        name: Name::from_ascii(name).unwrap(),
+        kind,
+        negative: false,
+        data: vec![value],
+    }
+}
+
+fn lookup(cache: &mut Cache, name: &str, kind: Kind, now: i64) -> Vec<u8> {
+    cache
+        .lookup(&Name::from_ascii(name).unwrap(), &[kind], now, false)
+        .into_iter()
+        .map(|id| cache.get(id).unwrap().record.data[0])
+        .collect()
+}
+
+fn check_ownership(cache: &Cache) {
+    let mut linked = HashSet::new();
+    let mut previous = None;
+    let mut at = cache.head;
+    while let Some(index) = at {
+        assert!(linked.insert(index), "cycle or duplicated slot");
+        let slot = &cache.slots[index];
+        assert_eq!(slot.prev, previous);
+        assert!(slot.entry.as_ref().is_none_or(|entry| entry.committed));
+        previous = at;
+        at = slot.next;
+    }
+    assert_eq!(previous, cache.tail);
+    for &slot in &cache.pending {
+        assert!(linked.insert(slot));
+        assert!(!cache.slots[slot].entry.as_ref().unwrap().committed);
+    }
+    assert_eq!(linked.len(), cache.slots.len());
+    let mut indexed = HashSet::new();
+    for (name, indices) in &cache.names {
+        assert!(!indices.is_empty());
+        for &slot in indices {
+            assert!(indexed.insert(slot));
+            let entry = cache.slots[slot].entry.as_ref().unwrap();
+            assert!(entry.committed);
+            assert_eq!(&entry.record.name.canonical_wire(), name);
+        }
+    }
+    assert_eq!(
+        indexed.len(),
+        cache
+            .slots
+            .iter()
+            .filter(|slot| slot.entry.as_ref().is_some_and(|entry| entry.committed))
+            .count()
+    );
+}
+
+#[test]
+fn failed_transaction_does_not_restore_removed_old_records() {
+    let mut cache = Cache::new(2, Policy::default());
+    cache.start_insert();
+    cache.insert(record("a", Kind::Ipv4, 1), 100, 10).unwrap();
+    assert!(cache.commit());
+    cache.start_insert();
+    let pending = cache.insert(record("a", Kind::Ipv4, 2), 100, 10).unwrap();
+    assert_eq!(
+        cache.insert(record("b", Kind::Ipv4, 3), 100, 0),
+        Err(InsertError::ZeroTtl)
+    );
+    assert!(!cache.commit());
+    assert!(lookup(&mut cache, "a", Kind::Ipv4, 100).is_empty());
+    cache.start_insert();
+    assert!(cache.get(pending).is_none());
+    check_ownership(&cache);
+}
+
+#[test]
+fn cname_preserves_same_name_replacement_but_not_evicted_target() {
+    let mut cache = Cache::new(3, Policy::default());
+    cache.start_insert();
+    let alias = cache
+        .insert(record("alias", Kind::Cname, 0), 100, 100)
+        .unwrap();
+    let target = cache
+        .insert(record("target", Kind::Ipv4, 1), 100, 20)
+        .unwrap();
+    assert!(cache.set_cname_target(alias, target));
+    assert!(cache.commit());
+    cache.start_insert();
+    let replacement = cache
+        .insert(record("TARGET", Kind::Ipv4, 2), 110, 20)
+        .unwrap();
+    assert_eq!(replacement, target);
+    assert!(cache.commit());
+    assert_eq!(lookup(&mut cache, "alias", Kind::Cname, 110), [0]);
+    assert!(lookup(&mut cache, "target", Kind::Ipv4, 130).is_empty());
+    cache.start_insert();
+    let unrelated = cache
+        .insert(record("other", Kind::Ipv4, 3), 130, 20)
+        .unwrap();
+    assert_ne!(unrelated, target);
+    assert!(cache.commit());
+    assert!(lookup(&mut cache, "alias", Kind::Cname, 130).is_empty());
+    check_ownership(&cache);
+}
+
+#[test]
+fn eviction_spills_whole_rrset() {
+    let mut cache = Cache::new(2, Policy::default());
+    cache.start_insert();
+    cache.insert(record("a", Kind::Ipv4, 1), 100, 100).unwrap();
+    cache.insert(record("a", Kind::Ipv4, 2), 100, 100).unwrap();
+    cache.commit();
+    cache.start_insert();
+    cache.insert(record("b", Kind::Ipv4, 3), 100, 100).unwrap();
+    cache.commit();
+    assert!(lookup(&mut cache, "a", Kind::Ipv4, 100).is_empty());
+    assert_eq!(lookup(&mut cache, "b", Kind::Ipv4, 100), [3]);
+    check_ownership(&cache);
+}
+
+#[test]
+fn stale_and_ttl_boundaries_are_distinct() {
+    let policy = Policy {
+        min_ttl: 30,
+        max_ttl: 20,
+        max_reply_ttl: 5,
+        stale: StalePolicy::Seconds(5),
+    };
+    let mut cache = Cache::new(1, policy);
+    cache.start_insert();
+    let id = cache.insert(record("a", Kind::Ipv4, 1), 100, 0).unwrap();
+    cache.commit();
+    assert_eq!(cache.get(id).unwrap().expires, 130);
+    assert_eq!(cache.get(id).unwrap().reply_ttl(100, policy), 5);
+    assert_eq!(lookup(&mut cache, "a", Kind::Ipv4, 130), [1]);
+    assert!(!cache.get(id).unwrap().is_stale(130));
+    assert!(cache.get(id).unwrap().is_stale(131));
+    assert_eq!(lookup(&mut cache, "a", Kind::Ipv4, 134), [1]);
+    assert!(lookup(&mut cache, "a", Kind::Ipv4, 135).is_empty());
+}
+
+#[test]
+fn zero_stale_allowance_disables_zero_ttl_insertion() {
+    let mut cache = Cache::new(
+        1,
+        Policy {
+            stale: StalePolicy::Seconds(0),
+            ..Policy::default()
+        },
+    );
+    cache.start_insert();
+    assert_eq!(
+        cache.insert(record("a", Kind::Ipv4, 1), 100, 0),
+        Err(InsertError::ZeroTtl)
+    );
+    check_ownership(&cache);
+}
+
+#[test]
+fn nx_domain_coexists_with_addresses_and_generic_types_replace_separately() {
+    let mut cache = Cache::new(4, Policy::default());
+    for (kind, value) in [
+        (Kind::Ipv4, 1),
+        (Kind::NxDomain, 2),
+        (Kind::Generic(16), 3),
+        (Kind::Generic(33), 4),
+    ] {
+        cache.start_insert();
+        cache.insert(record("a", kind, value), 100, 100).unwrap();
+        cache.commit();
+    }
+    assert_eq!(lookup(&mut cache, "a", Kind::Ipv4, 100), [1]);
+    assert_eq!(lookup(&mut cache, "a", Kind::NxDomain, 100), [2]);
+    let mut rr = lookup(&mut cache, "a", Kind::Generic(16), 100);
+    rr.sort();
+    assert_eq!(rr, [3, 4]);
+    check_ownership(&cache);
+}
+
+#[test]
+fn bounded_state_survives_repeated_abort_expiry_and_reuse() {
+    let mut cache = Cache::new(10, Policy::default());
+    for round in 0..2000 {
+        cache.start_insert();
+        for i in 0..(round % 13) {
+            let _ = cache.insert(
+                record(&format!("n{}", (round + i) % 12), Kind::Ipv4, i as u8),
+                round,
+                3,
+            );
+            check_ownership(&cache);
+        }
+        if round % 5 != 0 {
+            cache.commit();
+        }
+        check_ownership(&cache);
+        for i in 0..12 {
+            lookup(&mut cache, &format!("n{i}"), Kind::Ipv4, round);
+            check_ownership(&cache);
+        }
+    }
+}

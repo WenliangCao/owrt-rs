@@ -1,0 +1,22 @@
+[package]
+name = "dnsmasq-rs"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.98.1"
+license = "GPL-2.0-only OR GPL-3.0-only"
+description = "Rust implementation of the OpenWrt dnsmasq 2.93 nodhcpv6 contract"
+publish = false
+
+[dependencies]
+owrt-ubus = { path = "../ubus" }
+
+[lib]
+name = "dnsmasq_rs"
+path = "src/lib.rs"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
