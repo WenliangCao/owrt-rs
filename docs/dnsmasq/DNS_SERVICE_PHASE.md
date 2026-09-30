@@ -33,4 +33,4 @@ PATH="$HOME/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin:$PATH" \
 
 本轮结果：库测试 **148 个通过、4 个需要精确 C 路径的测试保持 ignored**，二进制目标无失败；Clippy `-D warnings` 通过。`tools/dnsmasq/dns_local_service_probe.py` 提供隔离 loopback UDP/TCP、本地 CNAME/AAAA/NXDOMAIN 和未拥有查询丢弃的可重复 smoke；`tools/dnsmasq/dns_forward_service_diff.py` 对精确 `add_pseudoheader(optno=0)` 完成 1,007 cases、0 mismatch。上述证据仍不等同于完整 daemon 服务验收。
 目标 musl `cargo check` 通过；在 macOS 主机直接链接 release ELF 仍被宿主 clang 拒绝 OpenWrt 的 `--fix-cortex-a53-843419` linker flag，不能把主机 check 标为目标产物构建通过。
-主机 loopback smoke（显式 UDP socket、TCP length framing、本地 host-record）已得到 UDP/TCP 各 1 个正确 ID/answer；SIGTERM 目前由宿主直接终止（退出码 -15），优雅 reload/清理尚未实现。
+主机 loopback smoke（显式 UDP socket、TCP length framing、本地 host-record）已得到 UDP/TCP 各 1 个正确 ID/answer；SIGINT/SIGTERM smoke 已确认进程退出码为 0 并回收 listener worker。SIGHUP reload、resolver 轮询和配置重载仍尚未实现。

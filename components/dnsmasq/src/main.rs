@@ -15,10 +15,16 @@ use std::ffi::OsString;
 use std::io::{self, Read, Write};
 use std::net::{IpAddr, SocketAddr, TcpListener, UdpSocket};
 use std::path::Path;
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
+
+static STOP_REQUESTED: AtomicBool = AtomicBool::new(false);
+
+extern "C" fn request_stop(_signal: i32) {
+    STOP_REQUESTED.store(true, Ordering::Release);
+}
 
 fn main() {
     let args: Vec<OsString> = std::env::args_os().skip(1).collect();
@@ -88,6 +94,8 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         return Err(Box::new(Error("no nameserver in resolver files")));
     }
     let addresses = bind_addresses(&runtime.dns, runtime.scalar.dns_port);
+    owrt_ubus::sys::set_signal_handler(owrt_ubus::sys::SIGINT, request_stop);
+    owrt_ubus::sys::set_signal_handler(owrt_ubus::sys::SIGTERM, request_stop);
     // dnsmasq.c allocates `edns_pktsz + MAXDNAME + RRFIXEDSZ` for incoming
     // packets and rejects larger UDP/TCP requests before parsing them.
     let packet_limit = usize::from(runtime.scalar.edns_packet_max) + 255 + 10;
@@ -115,6 +123,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         let udp = UdpSocket::bind(address)?;
         udp.set_read_timeout(Some(Duration::from_millis(50)))?;
         let tcp = TcpListener::bind(address)?;
+        tcp.set_nonblocking(true)?;
         let udp_config = daemon_config.clone();
         let udp_hosts = daemon_hosts.clone();
         let udp_resolvers = resolvers.clone();
@@ -126,7 +135,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                 .spawn(move || {
                     let mut daemon = daemon;
                     let mut query = vec![0; 65_535];
-                    loop {
+                    while !STOP_REQUESTED.load(Ordering::Acquire) {
                         match udp.recv_from(&mut query) {
                             Ok((length, peer)) if length <= packet_limit => {
                                 let request = ClientRequest {
@@ -162,7 +171,16 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             thread::Builder::new()
                 .name(format!("dns-tcp-{address}"))
                 .spawn(move || {
-                    for stream in tcp.incoming().flatten() {
+                    while !STOP_REQUESTED.load(Ordering::Acquire) {
+                        let (stream, _) = match tcp.accept() {
+                            Ok(connection) => connection,
+                            Err(error) if error.kind() == io::ErrorKind::WouldBlock => {
+                                thread::sleep(Duration::from_millis(20));
+                                continue;
+                            }
+                            Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+                            Err(_) => break,
+                        };
                         if !try_acquire_tcp(&tcp_active_for_listener, tcp_limit) {
                             continue;
                         }
@@ -181,7 +199,9 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                     'connection: while let Some(remaining) =
                                         deadline.checked_duration_since(Instant::now())
                                     {
-                                        if remaining.is_zero() {
+                                        if remaining.is_zero()
+                                            || STOP_REQUESTED.load(Ordering::Acquire)
+                                        {
                                             break;
                                         }
                                         if stream.set_read_timeout(Some(remaining)).is_err() {
@@ -233,12 +253,15 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                 })?,
         );
     }
-    // `-k` is the normal OpenWrt invocation.  The runner has no signal module
-    // yet; procd owns termination and closes the process on SIGTERM.
-    let _ = workers;
-    loop {
-        thread::park();
+    // `-k` is the normal OpenWrt invocation. Stop handlers let workers leave
+    // their bounded receive loops and release sockets before exit.
+    while !STOP_REQUESTED.load(Ordering::Acquire) {
+        thread::park_timeout(Duration::from_millis(100));
     }
+    for worker in workers {
+        let _ = worker.join();
+    }
+    Ok(())
 }
 
 struct TcpPermit(Arc<AtomicUsize>);
