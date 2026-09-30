@@ -88,3 +88,29 @@ The affected DHCP library regression passed 66 tests. This is a socket-free
 destination/ARP-metadata comparison; it does not validate interface ancillary
 data, actual ARP injection, sends, alternate ports, relay/PXE, or the complete
 listener/lease lifecycle, and carries no performance claim.
+
+## Client hostname authority correction
+
+The runtime adapter previously copied `Environment::authoritative` into the
+client option-12 `Name::authoritative`. These are different C policies:
+`rfc2131.c:90` initializes `hostname_auth = 0`; only configured names
+(`799-807`) and names from the hosts lookup (`1675-1680`) set it to one.
+`dhcp-authoritative` governs address/lease decisions and cannot grant a client
+permission to replace a configured hostname. The adapter now keeps client
+names non-authoritative.
+
+The runtime regression enables authoritative DHCP, checks that the committed
+client name remains non-authoritative, assigns that name to a configured
+lease, and verifies the next client REQUEST preserves the configured name and
+emits no lost-name event. Its expected behavior comes from those caller
+branches and `lease.c:1062-1154`, including the early return for an existing
+`LEASE_AUTH_NAME`. The new assertion failed before the correction; the affected
+DHCP suite then passed **66/66**. The existing hash-pinned, ASan/UBSan C
+primitive differential also passed **1,015/1,015**, including 100 script/name
+collision sequences. Logs and primitive results are under ignored
+`private/dnsmasq-rewrite/dhcp-destination-20260930/hostname-*`.
+
+This does not close client-name validation, option-81/FQDN decoding, domain
+stripping, configured-name selection or DNS publication. The runtime
+regression is source-derived; the C differential covers the underlying lease
+name/event primitives, not the complete `StateProvider` service adapter.

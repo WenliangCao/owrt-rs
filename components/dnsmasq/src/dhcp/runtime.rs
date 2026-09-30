@@ -121,7 +121,9 @@ where
         let name = hostname.map(|hostname| Name {
             hostname: hostname.strip_suffix(&[0]).unwrap_or(hostname),
             domain: None,
-            authoritative: environment.authoritative,
+            // rfc2131.c sets hostname_auth only for configured/hosts names,
+            // independently of the server's dhcp-authoritative lease policy.
+            authoritative: false,
         });
         let request = || Request {
             packet,
@@ -850,7 +852,38 @@ mod tests {
             provider.store.get(requested).unwrap().hostname.as_deref(),
             Some(&b"test"[..])
         );
+        // rfc2131.c:90,799-816 keeps hostname_auth=0 for client option 12;
+        // OPT_AUTHORITATIVE only affects address/lease decisions.
+        assert!(!provider.store.get(requested).unwrap().authoritative_name);
         assert!(provider.store.changes().dns);
+
+        // A configured name may displace a client name, but a subsequent
+        // client REQUEST must not steal it back (lease.c:1127-1133).
+        let configured = Ipv4Addr::new(192, 0, 2, 20);
+        provider
+            .store
+            .allocate(
+                configured,
+                crate::dhcp::lease::ClientIdentity {
+                    hardware_type: 1,
+                    hardware_address: vec![2; 6],
+                    client_id: None,
+                },
+            )
+            .unwrap();
+        provider
+            .store
+            .set_hostname(configured, Some(b"test"), true, None, false)
+            .unwrap();
+        provider.store.set_expires(configured, 600, 100).unwrap();
+        let outcome = provider.resolve(&dispatch).unwrap();
+        assert!(matches!(outcome.reply, Reply::Ack { .. }));
+        assert!(outcome.lost_names.is_empty());
+        assert!(provider.store.get(requested).unwrap().hostname.is_none());
+        assert_eq!(
+            provider.store.get(configured).unwrap().hostname.as_deref(),
+            Some(&b"test"[..])
+        );
     }
 
     #[test]
