@@ -41,7 +41,11 @@ impl DatagramSender for crate::net::DatagramSocket {
                 self.send_on_interface(bytes, destination.address, destination.interface)
             }
             DestinationKind::Client | DestinationKind::Peer => {
-                crate::net::DatagramSocket::send(self, bytes, destination.address, None)
+                // C's `send_from` keeps the receiving interface for renewals
+                // and peer unicasts as well as broadcasts.  Supplying
+                // `ipi_ifindex` here prevents a multi-interface route lookup
+                // from selecting a different source address.
+                self.send_on_interface(bytes, destination.address, destination.interface)
             }
         }
     }
