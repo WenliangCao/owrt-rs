@@ -316,6 +316,18 @@ pub fn destination(
     } else {
         (Ipv4Addr::BROADCAST, DestinationKind::Broadcast)
     };
+    if kind == DestinationKind::Client {
+        // The C packet is always a complete BOOTP header, but this public
+        // boundary also accepts caller-provided wire slices.  Do not index
+        // chaddr past a short buffer while preparing ARP metadata.
+        let required = 28 + usize::from(hlen);
+        if length < required {
+            return Err(RuntimeError::Reply(ReplyError::BufferTooSmall {
+                required,
+                available: packet.len(),
+            }));
+        }
+    }
     Ok(Destination {
         address: SocketAddr::from((address, DHCP_CLIENT_PORT)),
         interface: dispatch.ingress.interface_index,
@@ -507,6 +519,41 @@ mod tests {
         assert_eq!(selected.kind, DestinationKind::Client);
         assert_eq!(selected.interface, 7);
         assert_eq!(selected.arp.unwrap().hardware_address, vec![0; 6]);
+    }
+
+    #[test]
+    fn short_unicast_wire_is_rejected_before_arp_slice() {
+        let bytes = packet(
+            &[53, 1, 1, 255],
+            0,
+            Ipv4Addr::UNSPECIFIED,
+            Ipv4Addr::UNSPECIFIED,
+        );
+        let dispatch = dispatch_for(&bytes);
+        let mut wire = vec![0; 20];
+        wire[1] = 1;
+        wire[2] = 6;
+        wire[16..20].copy_from_slice(&[192, 0, 2, 42]);
+        let error = destination(
+            &dispatch,
+            SocketAddr::from(([192, 0, 2, 10], 68)),
+            &Reply::Offer {
+                address: Ipv4Addr::new(192, 0, 2, 42),
+                lease_time: 60,
+                context: 0,
+                server: Ipv4Addr::new(192, 0, 2, 1),
+            },
+            &wire,
+            wire.len(),
+        )
+        .unwrap_err();
+        assert!(matches!(
+            error,
+            RuntimeError::Reply(ReplyError::BufferTooSmall {
+                required: 34,
+                available: 20,
+            })
+        ));
     }
 
     #[test]
