@@ -15,7 +15,7 @@ use super::wire::{Header, WireError};
 use owrt_ubus::sys::{PollFd, POLLERR, POLLHUP, POLLIN};
 use std::collections::{HashMap, VecDeque};
 use std::fs::File;
-use std::io::{self, Read};
+use std::io::{self, Read, Write};
 use std::net::{SocketAddr, UdpSocket};
 use std::os::fd::AsRawFd;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
@@ -52,6 +52,105 @@ impl From<io::Error> for ResolveError {
     fn from(value: io::Error) -> Self {
         Self::Io(value)
     }
+}
+
+/// Errors from the standalone upstream DNS-over-TCP exchange helper.
+///
+/// This helper deliberately owns one short-lived connection and one query;
+/// it is not yet connected to the UDP transaction state machine or TCP
+/// fallback policy.
+#[derive(Debug)]
+pub enum TcpExchangeError {
+    Io(io::Error),
+    Wire(WireError),
+    InvalidQuery,
+    PeerMismatch {
+        expected: SocketAddr,
+        actual: SocketAddr,
+    },
+    EmptyResponse,
+    ResponseTooLarge {
+        length: usize,
+        maximum: usize,
+    },
+    ResponseMismatch,
+}
+
+impl From<io::Error> for TcpExchangeError {
+    fn from(value: io::Error) -> Self {
+        Self::Io(value)
+    }
+}
+impl From<WireError> for TcpExchangeError {
+    fn from(value: WireError) -> Self {
+        Self::Wire(value)
+    }
+}
+
+/// Execute one DNS-over-TCP query against `server`.
+///
+/// The wire length prefix and payload are written completely, the response is
+/// bounded before its body is read, and the response ID, QR bit and question
+/// are authenticated against the submitted query. `timeout` applies to
+/// connect, read and write operations. A caller that needs C's persistent
+/// `server->tcpfd`/retry behaviour must add that state machine around this
+/// helper; this function intentionally opens and closes one connection.
+pub fn tcp_exchange(
+    server: SocketAddr,
+    query: &[u8],
+    timeout: Duration,
+    max_response: usize,
+) -> Result<Vec<u8>, TcpExchangeError> {
+    if query.len() > u16::MAX as usize {
+        return Err(TcpExchangeError::InvalidQuery);
+    }
+    let query_header = Header::parse(query)?;
+    if query_header.flags & 0x8000 != 0
+        || query_header.opcode() != 0
+        || query_header.answers != 0
+        || query_header.authorities != 0
+        || query_header.additionals != 0
+    {
+        return Err(TcpExchangeError::InvalidQuery);
+    }
+    let question = super::forward::Question::parse(query)?;
+    let mut stream = std::net::TcpStream::connect_timeout(&server, timeout)?;
+    let actual = stream.peer_addr()?;
+    if actual != server {
+        return Err(TcpExchangeError::PeerMismatch {
+            expected: server,
+            actual,
+        });
+    }
+    stream.set_read_timeout(Some(timeout))?;
+    stream.set_write_timeout(Some(timeout))?;
+    let length = (query.len() as u16).to_be_bytes();
+    stream.write_all(&length)?;
+    stream.write_all(query)?;
+
+    let mut response_length = [0; 2];
+    stream.read_exact(&mut response_length)?;
+    let length = usize::from(u16::from_be_bytes(response_length));
+    if length == 0 {
+        return Err(TcpExchangeError::EmptyResponse);
+    }
+    let maximum = max_response.min(u16::MAX as usize);
+    if length > maximum {
+        return Err(TcpExchangeError::ResponseTooLarge { length, maximum });
+    }
+    let mut response = vec![0; length];
+    stream.read_exact(&mut response)?;
+    let response_header = Header::parse(&response)?;
+    let response_question = super::forward::Question::parse(&response)?;
+    if response_header.id != query_header.id
+        || response_header.flags & 0x8000 == 0
+        || !response_question.name.eq_ignore_ascii_case(&question.name)
+        || response_question.rrtype != question.rrtype
+        || response_question.class != question.class
+    {
+        return Err(TcpExchangeError::ResponseMismatch);
+    }
+    Ok(response)
 }
 
 /// The ID, question, socket and upstream endpoint matched a pending query.
@@ -676,6 +775,7 @@ mod tests {
     use super::*;
     use crate::dns::forward::{Options, Server, ServerGroup};
     use crate::dns::wire::{Header, Message, Name, PacketWriter, Section};
+    use std::net::TcpListener;
     use std::sync::mpsc;
     use std::thread;
 
@@ -716,6 +816,62 @@ mod tests {
                 .unwrap();
         }
         writer.finish()
+    }
+
+    fn tcp_frame(packet: &[u8]) -> Vec<u8> {
+        let mut frame = Vec::with_capacity(packet.len() + 2);
+        frame.extend_from_slice(&(packet.len() as u16).to_be_bytes());
+        frame.extend_from_slice(packet);
+        frame
+    }
+
+    #[test]
+    fn tcp_exchange_authenticates_loopback_response() {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap();
+        let worker = thread::spawn(move || {
+            let (mut stream, peer) = listener.accept().unwrap();
+            assert_eq!(
+                peer.ip(),
+                std::net::IpAddr::V4(std::net::Ipv4Addr::LOCALHOST)
+            );
+            let mut prefix = [0; 2];
+            stream.read_exact(&mut prefix).unwrap();
+            let length = usize::from(u16::from_be_bytes(prefix));
+            let mut request = vec![0; length];
+            stream.read_exact(&mut request).unwrap();
+            let mut reply = response(&request, 0x8180, true);
+            reply[13] = b'U';
+            let frame = tcp_frame(&reply);
+            stream.write_all(&frame[..1]).unwrap();
+            stream.write_all(&frame[1..]).unwrap();
+        });
+        let reply = tcp_exchange(address, &query(), Duration::from_secs(1), 4096).unwrap();
+        assert_eq!(Header::parse(&reply).unwrap().id, 0x1234);
+        assert_eq!(Header::parse(&reply).unwrap().answers, 1);
+        worker.join().unwrap();
+    }
+
+    #[test]
+    fn tcp_exchange_rejects_wrong_id_without_returning_payload() {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap();
+        let worker = thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            let mut prefix = [0; 2];
+            stream.read_exact(&mut prefix).unwrap();
+            let length = usize::from(u16::from_be_bytes(prefix));
+            let mut request = vec![0; length];
+            stream.read_exact(&mut request).unwrap();
+            let mut reply = response(&request, 0x8180, true);
+            reply[0] ^= 1;
+            stream.write_all(&tcp_frame(&reply)).unwrap();
+        });
+        assert!(matches!(
+            tcp_exchange(address, &query(), Duration::from_secs(1), 4096),
+            Err(TcpExchangeError::ResponseMismatch)
+        ));
+        worker.join().unwrap();
     }
 
     fn group(addresses: &[SocketAddr], all_servers: bool) -> ServerGroup {

@@ -2,7 +2,7 @@
 
 This phase supplies an isolated UDP transport around `ForwardDispatcher`. It
 is a development/integration boundary, not a replacement for the complete
-dnsmasq event loop. It does not open TCP, select UCI server rules, run
+dnsmasq event loop. The UDP transport does not open TCP, select UCI server rules, run
 `process_reply`, perform DNS rebind/address filtering, insert cache records or
 send a client-visible response.
 
@@ -11,6 +11,7 @@ send a client-visible response.
 | `forward.c:forward_query()` sends to candidates and records random sockets | `UpstreamResolver::start_udp` | One nonblocking UDP socket is owned by one query/server pair. A failed candidate is skipped and later candidates are attempted; failed sends never become table socket references. |
 | `forward.c:reply_query()` validates ID/question/socket/source before processing | `poll` → `ForwardDispatcher::accept_reply` | Spoofed source, wrong ID/question and malformed packets are discarded. A valid response is returned as `UncheckedReply`, retaining upstream ID/case and original recipients. |
 | `forward.c:915-925` logs an ordinary UDP TC reply; `forward.c:2203-2264` adds TCP only inside the `HAVE_DNSSEC` validation path | `udp_reply_is_truncated` and `UncheckedReply::truncated` | The exact `nodhcpv6` recipe does not define `HAVE_DNSSEC`, so a matched TC reply completes once and is delivered with TC set. The classifier runs after authentication and does not mutate forwarding state; a DNSSEC-enabled caller still needs a separate TCP transport. |
+| `forward.c:2036-2201` writes a two-byte length, reads one bounded response, and authenticates QR/question before accepting it | `tcp_exchange` | Standalone one-query TCP helper: connect/read/write deadlines, peer check, length-prefix limit before body allocation, response ID/QR/question checks. It opens one connection per call and is intentionally not wired into UDP fallback or persistent `server->tcpfd` state. |
 | `forward.c:process_reply()` REFUSED/SERVFAIL branches | `complete_reply` through `receive_ready` | `Wait` keeps all-server sockets open and continues polling without resending. `Retry` uses `plan_after_error`; a receive timeout is an expiry event, never a synthetic SERVFAIL. |
 | `forward.c:fast_retry()` | `tick` | Fast retry is driven only by the configured fast-retry interval and `ForwardTable`; each attempt must send before its delay is doubled. |
 | `free_rfds`/`free_frec` cleanup | `cancel`, `clear`, terminal event handling | Every transaction deadline, cancellation, send failure, poll error and successful delivery releases owned sockets and consumes dispatcher release records. |
@@ -32,15 +33,15 @@ the TC packet and prove that no UDP resend or transaction leak is introduced.
 
 ## Isolated evidence
 
-`dns::upstream::tests` covers nine loopback cases: source spoof rejection,
+`dns::upstream::tests` covers the UDP loopback cases (source spoof rejection,
 failed-first-server fallback, all-server REFUSED waiting without a resend,
 bounded timeout cleanup, duplicate coalescing/cancellation, explicit fast
-retry/cancellation, and matched TC delivery/classification (including short
-header rejection). The tests use only loopback UDP sockets and deterministic
-random IDs. They passed 9/9 in the current crate run. The C state differential
-and EDNS envelope evidence remain separate in `DNS_FORWARD_SERVICE_PHASE.md`;
-this transport evidence does not claim complete daemon equivalence or
-production acceptance.
+retry/cancellation, and matched TC delivery/classification including short
+header rejection) plus two loopback TCP exchange/authentication cases. The
+tests use only loopback sockets and deterministic inputs. The C state
+differential and EDNS envelope evidence remain separate in
+`DNS_FORWARD_SERVICE_PHASE.md`; this transport evidence does not claim complete
+daemon equivalence or production acceptance.
 
 The repeatable evidence wrapper is
 `tools/dnsmasq/dns_upstream_probe.py`. For example:
