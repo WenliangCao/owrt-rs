@@ -267,6 +267,12 @@ impl LocalProvider {
         report
     }
 
+    /// Includes startup restoration and all later prune/allocation operations.
+    /// Hosts reload and persistence retries preserve this cumulative window.
+    pub fn lease_counters(&self) -> super::lease::LeaseCounters {
+        self.leases.counters()
+    }
+
     fn update_configured_names(&mut self) {
         // lease.c lease_update_from_configs runs without a context chain:
         // a configured name is restored only for its own fixed address. Removing

@@ -31,6 +31,16 @@ pub struct Changes {
     pub dns: bool,
 }
 
+/// Public u32 counter windows from lease.c, cumulative for the store lifetime.
+/// These count successful operations, including startup restoration, rather
+/// than active leases. Even NO_DHCP6 counts pruning 0.0.0.0 in the IPv6 slot.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct LeaseCounters {
+    pub allocated4: u32,
+    pub pruned4: u32,
+    pub pruned6: u32,
+}
+
 #[derive(Clone, Debug)]
 pub struct Lease {
     pub address: Ipv4Addr,
@@ -196,6 +206,7 @@ pub struct LeaseStore {
     capacity: usize,
     sequence: u64,
     changes: Changes,
+    counters: LeaseCounters,
 }
 
 impl LeaseStore {
@@ -206,6 +217,7 @@ impl LeaseStore {
             capacity,
             sequence: 0,
             changes: Changes::default(),
+            counters: LeaseCounters::default(),
         }
     }
 
@@ -233,6 +245,10 @@ impl LeaseStore {
 
     pub fn changes(&self) -> Changes {
         self.changes
+    }
+
+    pub fn counters(&self) -> LeaseCounters {
+        self.counters
     }
 
     /// Convert removed leases into DNS/name deletion notifications while the
@@ -329,6 +345,7 @@ impl LeaseStore {
         );
         self.expiry.insert((1, address));
         self.changes.file = true;
+        self.counters.allocated4 = self.counters.allocated4.wrapping_add(1);
         Ok(())
     }
 
@@ -528,6 +545,12 @@ impl LeaseStore {
 
     fn remove(&mut self, address: Ipv4Addr) -> Option<Lease> {
         let lease = self.leases.remove(&address)?;
+        let counter = if address.is_unspecified() {
+            &mut self.counters.pruned6
+        } else {
+            &mut self.counters.pruned4
+        };
+        *counter = counter.wrapping_add(1);
         if let Some(expiry) = lease.expires {
             self.expiry.remove(&(expiry, address));
         }
@@ -969,6 +992,43 @@ mod tests {
         assert_eq!(deleted.action, ScriptAction::Delete);
         assert_eq!(deleted.name.as_deref(), Some(&b"new"[..]));
         assert_eq!(queue.pending_deletions(), 0);
+    }
+
+    #[test]
+    fn operation_counters_wrap_and_failed_allocations_do_not_count() {
+        let mut store = LeaseStore::new(1);
+        store.counters = LeaseCounters {
+            allocated4: u32::MAX,
+            pruned4: u32::MAX,
+            pruned6: u32::MAX,
+        };
+        store.allocate(address(1), client(1, None)).unwrap();
+        store.set_expires(address(1), 120, 100).unwrap();
+        assert_eq!(store.counters.allocated4, 0);
+        assert_eq!(
+            store.allocate(address(2), client(2, None)),
+            Err(LeaseError::Full)
+        );
+        assert_eq!(
+            store.allocate(address(1), client(1, None)),
+            Err(LeaseError::AddressInUse)
+        );
+        assert_eq!(store.counters.allocated4, 0);
+        store.prune(None, 220);
+        store.prune(Some(address(1)), 220);
+        assert_eq!(store.counters.pruned4, 0);
+        store
+            .allocate(Ipv4Addr::UNSPECIFIED, client(2, None))
+            .unwrap();
+        store.prune(Some(Ipv4Addr::UNSPECIFIED), 0);
+        assert_eq!(
+            store.counters,
+            LeaseCounters {
+                allocated4: 1,
+                pruned4: 0,
+                pruned6: 0,
+            }
+        );
     }
 
     #[test]
