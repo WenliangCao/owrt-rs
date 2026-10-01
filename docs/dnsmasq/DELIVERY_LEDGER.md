@@ -82,6 +82,25 @@ replace stock dnsmasq”, and “router accepted”.
 
 ## Ordered next work
 
+Current continuation overrides stale work assignments in older phase notes:
+see [CONTINUATION_20261001.md](CONTINUATION_20261001.md). The source inventory
+above remains a coverage ledger, not a pass denominator.
+
+| New bounded gate | Result | Still open |
+|---|---|---|
+| UDP malformed/admission/capacity | 40 inputs, 43 observations match; public/main hooks committed | Duplicate-client refusal has an explicit C wrong-ID defect; complete interface/send pressure remains open |
+| Delayed UDP and failure isolation | 11-second reply, 41-second late drop, 42-second new query match; failed sibling no longer hides successful replies | C lazy wall-clock lifetime versus initial Rust proactive timeout is being aligned; no resource-equivalence claim |
+| Lease operation counters | Actual C 47 scenarios/3,764 snapshots, negative 3,763/1 | Main publication and DHCP message counters remain separate |
+| Cache counters and daemon caller | Primitive 215 snapshots plus caller 764 observations/382 metric snapshots; negative controls fail as intended | Other counters, TCP cache propagation and live ubus publication remain open |
+| Frozen product 2415216 regression | Host library 328 passed/6 ignored; main 6; Linux library 331 passed/14 ignored; shared state 8/8; DHCP/DNS 34/34; fmt/musl Clippy | Later changes need affected checks; this is not a new target APK |
+| Stale cache runtime | New C service gate confirms 13 differences across 44 comparisons | **Known functional gap:** old cache replies do not start C's background refresh; must be fixed before closing this feature |
+
+The stale gate's initial summary counted 40 event rows while its mismatch list
+also included four upstream-trace comparisons. An explicit audit corrects the
+total to 44 and preserves the original output. No unexecuted check became a
+pass. All raw evidence paths and source identities are linked by the phase
+reports and master report.
+
 1. **Freeze the source snapshot.** Finish or revert uncommitted daemon/service drafts, run `cargo fmt --check`, full crate tests, clippy, musl check, and record the exact HEAD and artifacts.
 2. **Close daemon contracts.** Complete DNS full cacheability/EDNS/TCP/reload/UBus, then add complete daemon C/Rust service differential; do not widen the claimed subset while SOA/negative/CNAME corner cases remain.
 3. **Complete remaining DHCP contracts.** Preserve current dynamic/static/file/DNS/hostfile gates; add tags/all options, helper/hotplug, relay/PXE/leasequery and full interface/admission behavior with isolated C/Rust cases.
