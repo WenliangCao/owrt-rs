@@ -1,0 +1,1057 @@
+{
+  "scope": "C-only native exact-cache partial anonymous-pipe EOF",
+  "identity": {
+    "scope": "unchanged exact cache.c plus full native audited object build including util.o",
+    "native_reference_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+    "source_identity_sha256": "62cec0e9dda0265cb9c4f6af27f7d23067aed967afab3c74e37370149a8326e9",
+    "cache_source_sha256": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c",
+    "sources": {
+      "arp.c": "c98d70fab696459ed4868e3325d4ab7b78848c3af84de961f6dbfc8f38b81109",
+      "auth.c": "7b88d5b019c16ce882cd21c44be94e15a42b1e7ca010718b9cccd9930088b4d1",
+      "blockdata.c": "7ebec83aa80a7899b865b755427ec7131366d5c4a7f2f88af82cd618ccf17c43",
+      "bpf.c": "89463205e3308eebe5fab31627335ee92eb690dea516ea939ab2a499c39c394b",
+      "conntrack.c": "b94e2fcb101b1ae8c814796fe91686f905e6ae2a87a8e3dd1f8cf0ced6283fa0",
+      "crypto.c": "f436770fc19e438917c8339291183a4923daf4cc76dca73dfb92a317fc3829d1",
+      "dbus.c": "0ae7232accec5a23220d1de9933129f49235e6a5b000f745e694d63600753893",
+      "dhcp-common.c": "9139906c5d3a438853fe84e90387cfc299c3c28e7b16a23c7d0d6922847ccc79",
+      "dhcp.c": "600dc068b0516d7edebcde9b02ae2091a278fc154551106823ddc388170d7001",
+      "dhcp6.c": "e493b4b35cfb1e67b9775fefae97ca158ea3e12f90331cf689872899b5931293",
+      "dnssec.c": "2859d9d97d6045099291909af3cf683a8135ead91f12d8b046432dafe51605f3",
+      "domain-match.c": "66356136ffe0920fca4fa7dcad579727c7d8d1ec6e799597bfda2e1a63fe9606",
+      "domain.c": "14f9e6729e5ab59744feeeb61d74d5897da121ed0ae9edc7059581541c1ecd0a",
+      "dump.c": "71223f910aa62ffe89292701433f3424813d5c76b597b9c41b6186c8860401e8",
+      "edns0.c": "420a55386ee3d41cef391b6443f735b18f7f205bf5c6d24cea6d28d5f2b55ed2",
+      "forward.c": "ac05784d4233ed10bd166da5fe91e464afecf2883d3c2a0063305d3e81692f95",
+      "helper.c": "70feae3213bc32bd047c20b79b3f021a6135ea66fbff21e2ba272f8d965af719",
+      "inotify.c": "6a5b0239b9c9fbb1ca0bf638e18efd32914c88d4899602c030b23cf8221b96a7",
+      "ipset.c": "4176539bcf5729560b1a1e5e926d26fbb613b88ff89bd3b99fc60ac3433b3f8f",
+      "lease.c": "4260039af27b40084cbe6dbbae2bb9417fa3a91806ea53f3f6bdd20234cad763",
+      "log.c": "a205b9cbf9556b01f483b43e732df1ae411c82d622a0e5449f79d43b0267c47c",
+      "loop.c": "6068fc081ef4f46fad23bdbe3337697bdc873e5d0a7ee8b7fd2ba1862af7a7a1",
+      "metrics.c": "d104bac85b92a083383d76e599b0122d87c5edf26aaa34017a0c325b2d61d25a",
+      "netlink.c": "b84884ca8a9c30e1985cf4787f64f56131dff8b3a4c35c09b6ac299ada77cbd1",
+      "network.c": "8229872d30a2fb2d86ec9a9e550e51fbb8d8d97926e7a02b0137f2a7b40c40c9",
+      "nftset.c": "6842a62209cff594b9e501f70b581b45884f2528eb25327c967af41678c6e1c5",
+      "option.c": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
+      "outpacket.c": "ed9499c2b6073ce01dc42710e35c63ca0c4539cc01c65c373969f0684946a149",
+      "pattern.c": "fb517239b9f3b696794e505dcf23d7384669440cbbcd26657d8514891ac3a910",
+      "poll.c": "914d465a79a5ab5c4a42c33ed5d8ac56da0b2fee1f3d0912e3c01777f2f6739d",
+      "radv.c": "28585d9db848ce8f26601cc1fa0acf599aad5bcf650b81270ca754b974a4e601",
+      "rfc1035.c": "231f0b4989039ff4963f3916df22871dd13025dde65769465b2b3052ad807222",
+      "rfc2131.c": "14f2e10792ef6108aeb7b69e551f089ba287c8c84d39ea178a5f33acd2038c2c",
+      "rfc3315.c": "7ab47a0bfb8725b54c70a56001c0bf1b5b52134b826f58eb18162f26b3bf6a49",
+      "rrfilter.c": "38f4c92a5529cf45c8011d35876214fc0a5a09b9d840c435f617f42a9e7d364d",
+      "slaac.c": "dc028d2d0168ef6e5ae6ec830a7061a0de3023bccb57d72b0791c88cf7e18fad",
+      "tables.c": "fedbc3be3aa765e394698caf2acf5c38bfd987b444e2d5aea87b41e4676ad04d",
+      "tftp.c": "a6971bf4ce77c0ca4c7ebf0194a2ee9c2ad702b1b8a882d46de87c6c6f5e63f3",
+      "ubus.c": "b3b50a4c9146de991f1eed49ee07ee3b76f5296b0118c66ca232f9437babd479",
+      "util.c": "33920165ef3e92f65d1cab75fe8da7772ad7389b37da79ba881957080f12f973",
+      "dnsmasq.c": "d4bb7cde522376200a0293427b0812625ebc457f10dc9d3e2bef243ccba8ccd1",
+      "cache.c": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c",
+      "dnsmasq.h": "318942419598f037a97611efbdea5aebba1e384b9a1ba5f7eded091c86e0e228",
+      "config.h": "dacbe1f8d0e03d93e53a81901956b07ab7a5059d1e5db3225150a9688a1122da"
+    },
+    "objects": {
+      "arp.o": "523f8c7cbf04f187804f557a579895cb869d992e91923ae6794542db8670198b",
+      "auth.o": "9fcb136bdcb367111068501ffef2e5829124fb98704d947b895fd82255bf4751",
+      "blockdata.o": "cd5c832dfd49fec38ae0a1a9644c44c699297c23e85891060de72db77409320f",
+      "bpf.o": "8164293ffbdcec33777d26529dce595303a915e4b1a57dc90136817813001328",
+      "conntrack.o": "0d5a9eddad7c79743f10545f1b8d1438cec18e11ea73d7c0cedb351b84116473",
+      "crypto.o": "4a4c6d40918a9cfa6be35c1cf1b1ff9de99359807add4771189408525ff7f94b",
+      "dbus.o": "278881c2574d89a673bb4b1b880e6c00d21e19685249260f5a70fa77eb864dca",
+      "dhcp-common.o": "2a9871dcf66e0c592cba7e8d62e0606c35c6eb076b9ee630c9ddbb6761e78ec8",
+      "dhcp.o": "9f51725238a448452a2c87d387c488533d3f8ed74c6fbe09757f49cddc7d359e",
+      "dhcp6.o": "57941c3d2182ee1c1c67d501bd3bfa8e917193c6ccf9b140a320d4dcb32e3bd2",
+      "dnssec.o": "5ded3bf9881a6b23fea47be209d27d504d79e99e628804e73426420ea0c4c143",
+      "domain-match.o": "4e0375f1aa5a4735a591cb04a0573bb32d8c57089200ccd4a9aab8fb926b386d",
+      "domain.o": "a118a48c5c7107a9564819a73c3f9fe50650743d03db4c6e6f89e18033800b15",
+      "dump.o": "73afb02e6b7b5aa0a59cc40ba10f43e7d1981cf50bbfd5633c36e97bcad4658d",
+      "edns0.o": "67affab16fa01e91c14f75e891f68cfad0dc08c84a0b76f4845e5487216cd01e",
+      "forward.o": "91729a29cbbeac905c06ad94c89162e42a791331515e6ea79412f5d2537bed85",
+      "helper.o": "aebfb2c5843da1ce0e433592d3177fd0991ea68cba8edc1c10146d62afda4367",
+      "inotify.o": "4d1c7cc743a43e00d46386fbff5ca19f0e600407b6d390a96cfe0c0476ac4366",
+      "ipset.o": "1015275a88d4ad44d182c6bc10cbcaf9ed992cf8e995a2a14cccdb7d4719e1b4",
+      "lease.o": "e6be15abd9e4a86c7d94e57252dd07cce9b4af70a7830dbe91adf05f147799aa",
+      "log.o": "242bfe51f3ae0bfc8ae190a8af8cdedd9351c8d07c768a677765c55c6e9a8aab",
+      "loop.o": "1afa5d745422c9c899aa5d2ed779d3590054e38c1e2edbc48d869512136a6219",
+      "metrics.o": "77774f7be799ce29e76670685e1b1289f16cf6d20fc7918af17d9588ad1196e7",
+      "netlink.o": "88a437d1210dac1cfab15e04e6307c324597b9af364855a0e2de7f1a06db7140",
+      "network.o": "877249064cc73db46dbfdcfa2349c15460a4fa7534858d6ba61ae4be4033303f",
+      "nftset.o": "93fbb701b7ad4dd02d27d9f22027b51b7d0ecd1f0ea7a0b33315e827022078b6",
+      "option.o": "09c3be8f561598be6754e370d670200a25bb6e0896b08623dc6f1b1b7e15a24d",
+      "outpacket.o": "f36dddfb32bd51286a129efb4d7ccc5042bfbc390e56ca427aa6baaba6364913",
+      "pattern.o": "1f2f7193df231a05ddac33a5ad5262746e8d2e506f8d45a3c914d46bc2006f91",
+      "poll.o": "c82386c62581da80cab31999b9080c18533939406ad6e56d6afc25373c0489c8",
+      "radv.o": "c022a780621a7dbe5d68793dfb59337ec6f2e1767cc5d68e55ee90a38cc9a1b9",
+      "rfc1035.o": "640369ab2d442ded942a128604693fd09189b6c57ceab8a4cca7b07e126ef8d2",
+      "rfc2131.o": "c14a000fa7e89d238a6f658f3edd2f4b5d4f938020803913bcb498346af6b668",
+      "rfc3315.o": "26f5590c6c55d95a16f47a0c4b9835304ebd8124f1a4363b3408086014ff0fb3",
+      "rrfilter.o": "73236348bdc66674eb42595b4e03f0812d626ad601f54ea44b5299fa3e065122",
+      "slaac.o": "25ea2e1251aa1b191a9604e0c962c4444aff623a6fe5b15be1e20c00420b836c",
+      "tables.o": "3a9cf246f6f841bf4d296c1036a5079db8ac2f8ac1c89b712ff53e347b0f2784",
+      "tftp.o": "fa54d52dc77f873d7435e12813ca2278de129af314d472d52ac3088aa12a2954",
+      "ubus.o": "48b4eaac633a4299188c3fb6927cd26c70e57b07c974a43a0a89ac034cd46aed",
+      "util.o": "426a44a2fc1c55482b020e574a6b27078c10989de1900235ed08d21ad4fb3d71",
+      "dnsmasq-renamed.o": "6402e8dc94e3aa49d1168bd032de3e30dceb71ed82e18a12405b43ce9d5ff19a"
+    },
+    "driver_sha256": "94588a0e49a987430f934ffcf3643bcbcc4399623a77517dee6aba6bf1f83cc7",
+    "tool_sha256": "d7a8b8aceab54d822dec50c33a1e73f919c0babd3303973b21919b7ffcca094f",
+    "oracle_sha256": "9d8fa7bee5eac0a77273fa0d124af962640545b6963f9023bbba794b89fe4ded",
+    "libraries": {
+      "libubus.so": "9e8f940a55e285ae379a01fec9977ec0e21c9e3837b99cb717770c1987ee9293",
+      "libubox.so": "792322b91310f50ffcea8b177e7a077529cf92dd5048ecb05d50ef5778b63243"
+    }
+  },
+  "passed": 171,
+  "failed": 0,
+  "cases": [
+    {
+      "case": "no-op-eof",
+      "metadata": {
+        "case": "no-op-eof",
+        "abi": {
+          "ssize_t": 8,
+          "time_t": 8,
+          "unsigned_int": 4,
+          "union_all_addr": 16,
+          "little_endian": 1,
+          "insert_op": 1,
+          "address_flags": 136
+        },
+        "cut": 0,
+        "total": 55,
+        "marker": 47,
+        "first": {
+          "length": 1,
+          "name": 9,
+          "ttd": 19,
+          "flags": 27,
+          "address": 31,
+          "end": 47
+        }
+      },
+      "observations": 3,
+      "trace_sha256": "1685c52c4e8047f02674d56417e14eea4b3ac4cf2ffc870d69f6a5a216b8848d",
+      "raw_sha256": "11e1e5dbd21bc4f42949bad9570f6a5d118feaf29777cceab5950f427495b05f"
+    },
+    {
+      "case": "op-only-eof",
+      "metadata": {
+        "case": "op-only-eof",
+        "abi": {
+          "ssize_t": 8,
+          "time_t": 8,
+          "unsigned_int": 4,
+          "union_all_addr": 16,
+          "little_endian": 1,
+          "insert_op": 1,
+          "address_flags": 136
+        },
+        "cut": 1,
+        "total": 55,
+        "marker": 47,
+        "first": {
+          "length": 1,
+          "name": 9,
+          "ttd": 19,
+          "flags": 27,
+          "address": 31,
+          "end": 47
+        }
+      },
+      "observations": 3,
+      "trace_sha256": "344fd7ddd57c987c71f409f541743f6bf3af0fb8120413d29b2be7ef6c833c62",
+      "raw_sha256": "11e1e5dbd21bc4f42949bad9570f6a5d118feaf29777cceab5950f427495b05f"
+    },
+    {
+      "case": "partial-length",
+      "metadata": {
+        "case": "partial-length",
+        "abi": {
+          "ssize_t": 8,
+          "time_t": 8,
+          "unsigned_int": 4,
+          "union_all_addr": 16,
+          "little_endian": 1,
+          "insert_op": 1,
+          "address_flags": 136
+        },
+        "cut": 8,
+        "total": 55,
+        "marker": 47,
+        "first": {
+          "length": 1,
+          "name": 9,
+          "ttd": 19,
+          "flags": 27,
+          "address": 31,
+          "end": 47
+        }
+      },
+      "observations": 3,
+      "trace_sha256": "cef9be1010854ec1389dc8abee3afa76d38b3a0a2bc0a5ad6ffd9758a373c415",
+      "raw_sha256": "11e1e5dbd21bc4f42949bad9570f6a5d118feaf29777cceab5950f427495b05f"
+    },
+    {
+      "case": "partial-name",
+      "metadata": {
+        "case": "partial-name",
+        "abi": {
+          "ssize_t": 8,
+          "time_t": 8,
+          "unsigned_int": 4,
+          "union_all_addr": 16,
+          "little_endian": 1,
+          "insert_op": 1,
+          "address_flags": 136
+        },
+        "cut": 12,
+        "total": 55,
+        "marker": 47,
+        "first": {
+          "length": 1,
+          "name": 9,
+          "ttd": 19,
+          "flags": 27,
+          "address": 31,
+          "end": 47
+        }
+      },
+      "observations": 3,
+      "trace_sha256": "9a813fa9af2abefec992c622589fa599cbf2c38c2a84fcefeb855bd26a3c51a2",
+      "raw_sha256": "11e1e5dbd21bc4f42949bad9570f6a5d118feaf29777cceab5950f427495b05f"
+    },
+    {
+      "case": "partial-address",
+      "metadata": {
+        "case": "partial-address",
+        "abi": {
+          "ssize_t": 8,
+          "time_t": 8,
+          "unsigned_int": 4,
+          "union_all_addr": 16,
+          "little_endian": 1,
+          "insert_op": 1,
+          "address_flags": 136
+        },
+        "cut": 46,
+        "total": 55,
+        "marker": 47,
+        "first": {
+          "length": 1,
+          "name": 9,
+          "ttd": 19,
+          "flags": 27,
+          "address": 31,
+          "end": 47
+        }
+      },
+      "observations": 3,
+      "trace_sha256": "69179f194ce3b69a07747d509618ceb07259466fd5838354621c45947fa15dfb",
+      "raw_sha256": "11e1e5dbd21bc4f42949bad9570f6a5d118feaf29777cceab5950f427495b05f"
+    },
+    {
+      "case": "complete-record-eof",
+      "metadata": {
+        "case": "complete-record-eof",
+        "abi": {
+          "ssize_t": 8,
+          "time_t": 8,
+          "unsigned_int": 4,
+          "union_all_addr": 16,
+          "little_endian": 1,
+          "insert_op": 1,
+          "address_flags": 136
+        },
+        "cut": 47,
+        "total": 102,
+        "marker": 94,
+        "first": {
+          "length": 1,
+          "name": 9,
+          "ttd": 19,
+          "flags": 27,
+          "address": 31,
+          "end": 47
+        },
+        "second": {
+          "length": 47,
+          "name": 55,
+          "ttd": 66,
+          "flags": 74,
+          "address": 78,
+          "end": 94
+        }
+      },
+      "observations": 3,
+      "trace_sha256": "8443e8084474a74c180f140e7c01a2df4cd846f1b03d8e72632f2f5a8c52edbb",
+      "raw_sha256": "5164c8cd87e8c9fcb899298345478f03e2524f4dcf93cc0b176b6a943d05d9c1"
+    },
+    {
+      "case": "pressure-partial-second",
+      "metadata": {
+        "case": "pressure-partial-second",
+        "abi": {
+          "ssize_t": 8,
+          "time_t": 8,
+          "unsigned_int": 4,
+          "union_all_addr": 16,
+          "little_endian": 1,
+          "insert_op": 1,
+          "address_flags": 136
+        },
+        "cut": 93,
+        "total": 102,
+        "marker": 94,
+        "first": {
+          "length": 1,
+          "name": 9,
+          "ttd": 19,
+          "flags": 27,
+          "address": 31,
+          "end": 47
+        },
+        "second": {
+          "length": 47,
+          "name": 55,
+          "ttd": 66,
+          "flags": 74,
+          "address": 78,
+          "end": 94
+        }
+      },
+      "observations": 3,
+      "trace_sha256": "8602f533c758c460441fdfae3283fa414cb759202df98083a1407738bbc3cf96",
+      "raw_sha256": "1c35681fd97732b09aa06e546be937951379a3d04fed07c7e81600afda72eabc"
+    },
+    {
+      "case": "partial-marker",
+      "metadata": {
+        "case": "partial-marker",
+        "abi": {
+          "ssize_t": 8,
+          "time_t": 8,
+          "unsigned_int": 4,
+          "union_all_addr": 16,
+          "little_endian": 1,
+          "insert_op": 1,
+          "address_flags": 136
+        },
+        "cut": 54,
+        "total": 55,
+        "marker": 47,
+        "first": {
+          "length": 1,
+          "name": 9,
+          "ttd": 19,
+          "flags": 27,
+          "address": 31,
+          "end": 47
+        }
+      },
+      "observations": 3,
+      "trace_sha256": "ceb5160e6bfa204a7af8f7e698bcaf8dc5d40efe39d423a5dacf35035e4bc125",
+      "raw_sha256": "11e1e5dbd21bc4f42949bad9570f6a5d118feaf29777cceab5950f427495b05f"
+    },
+    {
+      "case": "complete-control",
+      "metadata": {
+        "case": "complete-control",
+        "abi": {
+          "ssize_t": 8,
+          "time_t": 8,
+          "unsigned_int": 4,
+          "union_all_addr": 16,
+          "little_endian": 1,
+          "insert_op": 1,
+          "address_flags": 136
+        },
+        "cut": 55,
+        "total": 55,
+        "marker": 47,
+        "first": {
+          "length": 1,
+          "name": 9,
+          "ttd": 19,
+          "flags": 27,
+          "address": 31,
+          "end": 47
+        }
+      },
+      "observations": 3,
+      "trace_sha256": "e2f5f3c656a2eb52f3d243f2ed585583feb0792325dda8a767a2152f5d10ada6",
+      "raw_sha256": "11e1e5dbd21bc4f42949bad9570f6a5d118feaf29777cceab5950f427495b05f"
+    }
+  ],
+  "tool_commit": "c793bd0",
+  "observations": 27,
+  "negative_calibration": {
+    "passed": 170,
+    "failed": 1,
+    "failures": [],
+    "failed_checks": [
+      {
+        "case": "complete-record-eof/after-inserted",
+        "actual": 2,
+        "expected": 3,
+        "pass": false
+      }
+    ]
+  },
+  "artifact_sha256": {
+    "baseline-01/result.json": "a4d8fe14d89be46769fb09216bf19c02683b45a400067daca8351c9699e8b329",
+    "baseline-02/result.json": "aaf68255bd667494e694e55e5d36a5d27a917a40103716933580d6c56806c727",
+    "calibration-negative/result.json": "df8eb12ff095200f3b6cf9e5fa83ec94abd281b3fd431cd9d834f84d5e9a7d76",
+    "plan.json": "9bbf0d1f2d373f8a780f77fbbbd60c74dc5f39ad6ec809c16865ff8a279f68d5"
+  },
+  "evidence_archive_sha256": "53278dbbe7eb8aea16019753a05fc4ab895539b4b5d853eea4714c46b9de230e",
+  "observed_states": {
+    "no-op-eof": [
+      {
+        "stage": "before",
+        "received": -1,
+        "pending_before_lookup": 1,
+        "lookups": {
+          "owner.test": [],
+          "alias.test": [
+            {
+              "expiry": 220,
+              "value": "owner.test"
+            }
+          ],
+          "filler.test": [],
+          "extra.test": [],
+          "second.test": []
+        },
+        "pending_after_lookup": 1,
+        "insert_error": 0,
+        "inserted": 2,
+        "live_freed": 0
+      },
+      {
+        "stage": "after-receive",
+        "received": 0,
+        "pending_before_lookup": 1,
+        "lookups": {
+          "owner.test": [],
+          "alias.test": [
+            {
+              "expiry": 220,
+              "value": "owner.test"
+            }
+          ],
+          "filler.test": [],
+          "extra.test": [],
+          "second.test": []
+        },
+        "pending_after_lookup": 1,
+        "insert_error": 0,
+        "inserted": 2,
+        "live_freed": 0
+      },
+      {
+        "stage": "after-next-start",
+        "received": -1,
+        "pending_before_lookup": 0,
+        "lookups": {
+          "owner.test": [],
+          "alias.test": [],
+          "filler.test": [],
+          "extra.test": [],
+          "second.test": []
+        },
+        "pending_after_lookup": 0,
+        "insert_error": 0,
+        "inserted": 2,
+        "live_freed": 0
+      }
+    ],
+    "op-only-eof": [
+      {
+        "stage": "before",
+        "received": -1,
+        "pending_before_lookup": 1,
+        "lookups": {
+          "owner.test": [],
+          "alias.test": [
+            {
+              "expiry": 220,
+              "value": "owner.test"
+            }
+          ],
+          "filler.test": [],
+          "extra.test": [],
+          "second.test": []
+        },
+        "pending_after_lookup": 1,
+        "insert_error": 0,
+        "inserted": 2,
+        "live_freed": 0
+      },
+      {
+        "stage": "after-receive",
+        "received": 0,
+        "pending_before_lookup": 0,
+        "lookups": {
+          "owner.test": [],
+          "alias.test": [],
+          "filler.test": [],
+          "extra.test": [],
+          "second.test": []
+        },
+        "pending_after_lookup": 0,
+        "insert_error": 0,
+        "inserted": 2,
+        "live_freed": 0
+      },
+      {
+        "stage": "after-next-start",
+        "received": -1,
+        "pending_before_lookup": 0,
+        "lookups": {
+          "owner.test": [],
+          "alias.test": [],
+          "filler.test": [],
+          "extra.test": [],
+          "second.test": []
+        },
+        "pending_after_lookup": 0,
+        "insert_error": 0,
+        "inserted": 2,
+        "live_freed": 0
+      }
+    ],
+    "partial-length": [
+      {
+        "stage": "before",
+        "received": -1,
+        "pending_before_lookup": 0,
+        "lookups": {
+          "owner.test": [
+            {
+              "expiry": 220,
+              "value": "192.0.2.11"
+            }
+          ],
+          "alias.test": [
+            {
+              "expiry": 220,
+              "value": "owner.test"
+            }
+          ],
+          "filler.test": [],
+          "extra.test": [],
+          "second.test": []
+        },
+        "pending_after_lookup": 0,
+        "insert_error": 0,
+        "inserted": 2,
+        "live_freed": 0
+      },
+      {
+        "stage": "after-receive",
+        "received": 0,
+        "pending_before_lookup": 0,
+        "lookups": {
+          "owner.test": [
+            {
+              "expiry": 220,
+              "value": "192.0.2.11"
+            }
+          ],
+          "alias.test": [
+            {
+              "expiry": 220,
+              "value": "owner.test"
+            }
+          ],
+          "filler.test": [],
+          "extra.test": [],
+          "second.test": []
+        },
+        "pending_after_lookup": 0,
+        "insert_error": 0,
+        "inserted": 2,
+        "live_freed": 0
+      },
+      {
+        "stage": "after-next-start",
+        "received": -1,
+        "pending_before_lookup": 0,
+        "lookups": {
+          "owner.test": [
+            {
+              "expiry": 220,
+              "value": "192.0.2.11"
+            }
+          ],
+          "alias.test": [
+            {
+              "expiry": 220,
+              "value": "owner.test"
+            }
+          ],
+          "filler.test": [],
+          "extra.test": [],
+          "second.test": []
+        },
+        "pending_after_lookup": 0,
+        "insert_error": 0,
+        "inserted": 2,
+        "live_freed": 0
+      }
+    ],
+    "partial-name": [
+      {
+        "stage": "before",
+        "received": -1,
+        "pending_before_lookup": 0,
+        "lookups": {
+          "owner.test": [
+            {
+              "expiry": 220,
+              "value": "192.0.2.11"
+            }
+          ],
+          "alias.test": [
+            {
+              "expiry": 220,
+              "value": "owner.test"
+            }
+          ],
+          "filler.test": [],
+          "extra.test": [],
+          "second.test": []
+        },
+        "pending_after_lookup": 0,
+        "insert_error": 0,
+        "inserted": 2,
+        "live_freed": 0
+      },
+      {
+        "stage": "after-receive",
+        "received": 0,
+        "pending_before_lookup": 0,
+        "lookups": {
+          "owner.test": [
+            {
+              "expiry": 220,
+              "value": "192.0.2.11"
+            }
+          ],
+          "alias.test": [
+            {
+              "expiry": 220,
+              "value": "owner.test"
+            }
+          ],
+          "filler.test": [],
+          "extra.test": [],
+          "second.test": []
+        },
+        "pending_after_lookup": 0,
+        "insert_error": 0,
+        "inserted": 2,
+        "live_freed": 0
+      },
+      {
+        "stage": "after-next-start",
+        "received": -1,
+        "pending_before_lookup": 0,
+        "lookups": {
+          "owner.test": [
+            {
+              "expiry": 220,
+              "value": "192.0.2.11"
+            }
+          ],
+          "alias.test": [
+            {
+              "expiry": 220,
+              "value": "owner.test"
+            }
+          ],
+          "filler.test": [],
+          "extra.test": [],
+          "second.test": []
+        },
+        "pending_after_lookup": 0,
+        "insert_error": 0,
+        "inserted": 2,
+        "live_freed": 0
+      }
+    ],
+    "partial-address": [
+      {
+        "stage": "before",
+        "received": -1,
+        "pending_before_lookup": 0,
+        "lookups": {
+          "owner.test": [
+            {
+              "expiry": 220,
+              "value": "192.0.2.11"
+            }
+          ],
+          "alias.test": [
+            {
+              "expiry": 220,
+              "value": "owner.test"
+            }
+          ],
+          "filler.test": [],
+          "extra.test": [],
+          "second.test": []
+        },
+        "pending_after_lookup": 0,
+        "insert_error": 0,
+        "inserted": 2,
+        "live_freed": 0
+      },
+      {
+        "stage": "after-receive",
+        "received": 0,
+        "pending_before_lookup": 0,
+        "lookups": {
+          "owner.test": [
+            {
+              "expiry": 220,
+              "value": "192.0.2.11"
+            }
+          ],
+          "alias.test": [
+            {
+              "expiry": 220,
+              "value": "owner.test"
+            }
+          ],
+          "filler.test": [],
+          "extra.test": [],
+          "second.test": []
+        },
+        "pending_after_lookup": 0,
+        "insert_error": 0,
+        "inserted": 2,
+        "live_freed": 0
+      },
+      {
+        "stage": "after-next-start",
+        "received": -1,
+        "pending_before_lookup": 0,
+        "lookups": {
+          "owner.test": [
+            {
+              "expiry": 220,
+              "value": "192.0.2.11"
+            }
+          ],
+          "alias.test": [
+            {
+              "expiry": 220,
+              "value": "owner.test"
+            }
+          ],
+          "filler.test": [],
+          "extra.test": [],
+          "second.test": []
+        },
+        "pending_after_lookup": 0,
+        "insert_error": 0,
+        "inserted": 2,
+        "live_freed": 0
+      }
+    ],
+    "complete-record-eof": [
+      {
+        "stage": "before",
+        "received": -1,
+        "pending_before_lookup": 0,
+        "lookups": {
+          "owner.test": [
+            {
+              "expiry": 220,
+              "value": "192.0.2.11"
+            }
+          ],
+          "alias.test": [
+            {
+              "expiry": 220,
+              "value": "owner.test"
+            }
+          ],
+          "filler.test": [],
+          "extra.test": [],
+          "second.test": []
+        },
+        "pending_after_lookup": 0,
+        "insert_error": 0,
+        "inserted": 2,
+        "live_freed": 0
+      },
+      {
+        "stage": "after-receive",
+        "received": 0,
+        "pending_before_lookup": 1,
+        "lookups": {
+          "owner.test": [],
+          "alias.test": [
+            {
+              "expiry": 220,
+              "value": "owner.test"
+            }
+          ],
+          "filler.test": [],
+          "extra.test": [],
+          "second.test": []
+        },
+        "pending_after_lookup": 1,
+        "insert_error": 0,
+        "inserted": 2,
+        "live_freed": 0
+      },
+      {
+        "stage": "after-next-start",
+        "received": -1,
+        "pending_before_lookup": 0,
+        "lookups": {
+          "owner.test": [],
+          "alias.test": [],
+          "filler.test": [],
+          "extra.test": [],
+          "second.test": []
+        },
+        "pending_after_lookup": 0,
+        "insert_error": 0,
+        "inserted": 2,
+        "live_freed": 0
+      }
+    ],
+    "pressure-partial-second": [
+      {
+        "stage": "before",
+        "received": -1,
+        "pending_before_lookup": 0,
+        "lookups": {
+          "owner.test": [
+            {
+              "expiry": 220,
+              "value": "192.0.2.11"
+            }
+          ],
+          "alias.test": [
+            {
+              "expiry": 220,
+              "value": "owner.test"
+            }
+          ],
+          "filler.test": [
+            {
+              "expiry": 220,
+              "value": "192.0.2.55"
+            }
+          ],
+          "extra.test": [],
+          "second.test": []
+        },
+        "pending_after_lookup": 0,
+        "insert_error": 0,
+        "inserted": 3,
+        "live_freed": 0
+      },
+      {
+        "stage": "after-receive",
+        "received": 0,
+        "pending_before_lookup": 1,
+        "lookups": {
+          "owner.test": [],
+          "alias.test": [],
+          "filler.test": [
+            {
+              "expiry": 220,
+              "value": "192.0.2.55"
+            }
+          ],
+          "extra.test": [],
+          "second.test": []
+        },
+        "pending_after_lookup": 1,
+        "insert_error": 0,
+        "inserted": 3,
+        "live_freed": 1
+      },
+      {
+        "stage": "after-next-start",
+        "received": -1,
+        "pending_before_lookup": 0,
+        "lookups": {
+          "owner.test": [],
+          "alias.test": [],
+          "filler.test": [
+            {
+              "expiry": 220,
+              "value": "192.0.2.55"
+            }
+          ],
+          "extra.test": [],
+          "second.test": []
+        },
+        "pending_after_lookup": 0,
+        "insert_error": 0,
+        "inserted": 3,
+        "live_freed": 1
+      }
+    ],
+    "partial-marker": [
+      {
+        "stage": "before",
+        "received": -1,
+        "pending_before_lookup": 0,
+        "lookups": {
+          "owner.test": [
+            {
+              "expiry": 220,
+              "value": "192.0.2.11"
+            }
+          ],
+          "alias.test": [
+            {
+              "expiry": 220,
+              "value": "owner.test"
+            }
+          ],
+          "filler.test": [],
+          "extra.test": [],
+          "second.test": []
+        },
+        "pending_after_lookup": 0,
+        "insert_error": 0,
+        "inserted": 2,
+        "live_freed": 0
+      },
+      {
+        "stage": "after-receive",
+        "received": 0,
+        "pending_before_lookup": 1,
+        "lookups": {
+          "owner.test": [],
+          "alias.test": [
+            {
+              "expiry": 220,
+              "value": "owner.test"
+            }
+          ],
+          "filler.test": [],
+          "extra.test": [],
+          "second.test": []
+        },
+        "pending_after_lookup": 1,
+        "insert_error": 0,
+        "inserted": 2,
+        "live_freed": 0
+      },
+      {
+        "stage": "after-next-start",
+        "received": -1,
+        "pending_before_lookup": 0,
+        "lookups": {
+          "owner.test": [],
+          "alias.test": [],
+          "filler.test": [],
+          "extra.test": [],
+          "second.test": []
+        },
+        "pending_after_lookup": 0,
+        "insert_error": 0,
+        "inserted": 2,
+        "live_freed": 0
+      }
+    ],
+    "complete-control": [
+      {
+        "stage": "before",
+        "received": -1,
+        "pending_before_lookup": 0,
+        "lookups": {
+          "owner.test": [
+            {
+              "expiry": 220,
+              "value": "192.0.2.11"
+            }
+          ],
+          "alias.test": [
+            {
+              "expiry": 220,
+              "value": "owner.test"
+            }
+          ],
+          "filler.test": [],
+          "extra.test": [],
+          "second.test": []
+        },
+        "pending_after_lookup": 0,
+        "insert_error": 0,
+        "inserted": 2,
+        "live_freed": 0
+      },
+      {
+        "stage": "after-receive",
+        "received": 1,
+        "pending_before_lookup": 0,
+        "lookups": {
+          "owner.test": [
+            {
+              "expiry": 220,
+              "value": "192.0.2.21"
+            }
+          ],
+          "alias.test": [
+            {
+              "expiry": 220,
+              "value": "owner.test"
+            }
+          ],
+          "filler.test": [],
+          "extra.test": [],
+          "second.test": []
+        },
+        "pending_after_lookup": 0,
+        "insert_error": 0,
+        "inserted": 3,
+        "live_freed": 0
+      },
+      {
+        "stage": "after-next-start",
+        "received": -1,
+        "pending_before_lookup": 0,
+        "lookups": {
+          "owner.test": [
+            {
+              "expiry": 220,
+              "value": "192.0.2.21"
+            }
+          ],
+          "alias.test": [
+            {
+              "expiry": 220,
+              "value": "owner.test"
+            }
+          ],
+          "filler.test": [],
+          "extra.test": [],
+          "second.test": []
+        },
+        "pending_after_lookup": 0,
+        "insert_error": 0,
+        "inserted": 3,
+        "live_freed": 0
+      }
+    ]
+  },
+  "limitations": [
+    "Native exact-source primitive oracle, not stock C ELF execution or target-musl acceptance.",
+    "Only bounded valid A records and warmed CNAME targets; no malformed lengths/flags/pointers, SOA blocks, OOM or performance.",
+    "Native OP plus ssize_t sentinel framing differs from the private typed framing.",
+    "Partial end sentinel has no typed equivalent and must remain explicitly C-only.",
+    "Logical counterparts use semantic cutpoints of valid complete transactions, not identical byte offsets."
+  ]
+}
