@@ -2,7 +2,7 @@
 //! not an accepted product representation. No transport or resolver is owned.
 
 use super::cache::{Cache, CacheCounters, CacheTransaction};
-use super::cache_engine::CacheContext;
+use super::cache_engine::{CacheContext, OrdinaryCacheMode};
 use super::daemon::DaemonError;
 use super::process::AddressPolicy;
 use super::service::{append_empty_opt, LocalDnsService};
@@ -81,6 +81,7 @@ impl TcpCache {
         local: &LocalDnsService,
         policy: &AddressPolicy,
         rcode: u16,
+        ordinary: OrdinaryCacheMode,
     ) -> Option<CacheTransaction> {
         let cache = self.cache.as_mut()?;
         CacheContext {
@@ -89,6 +90,13 @@ impl TcpCache {
             negative_cache: self.negative_cache,
             negative_ttl: self.negative_ttl,
         }
-        .capture_reply_with_policy(packet, self.accepted_at, local, policy, rcode)
+        .capture_reply_with_policy(
+            packet,
+            self.accepted_at,
+            local,
+            policy,
+            rcode,
+            ordinary,
+        )
     }
 }

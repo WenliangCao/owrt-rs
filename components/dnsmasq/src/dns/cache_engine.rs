@@ -44,6 +44,15 @@ pub(super) struct CacheContext<'a> {
     pub negative_ttl: u32,
 }
 
+/// Ordinary extraction can remove old records and evict entries even when
+/// its final commit is suppressed. Bogus-wildcard caching is independent.
+#[derive(Clone, Copy, Eq, PartialEq)]
+pub(super) enum OrdinaryCacheMode {
+    Unsupported,
+    ExtractOnly,
+    Commit,
+}
+
 impl CacheContext<'_> {
     pub fn answer_udp(
         &mut self,
@@ -469,9 +478,9 @@ impl CacheContext<'_> {
         local: &LocalDnsService,
         policy: &super::process::AddressPolicy,
         original_rcode: u16,
-        extraction_eligible: bool,
+        ordinary: OrdinaryCacheMode,
     ) {
-        self.insert_reply_inner(packet, now, local, policy, original_rcode, false);
+        self.insert_reply_inner(packet, now, local, policy, original_rcode, ordinary, false);
     }
 
     pub fn capture_reply_with_policy(
@@ -481,8 +490,9 @@ impl CacheContext<'_> {
         local: &LocalDnsService,
         policy: &super::process::AddressPolicy,
         original_rcode: u16,
+        ordinary: OrdinaryCacheMode,
     ) -> Option<CacheTransaction> {
-        self.insert_reply_inner(packet, now, local, policy, original_rcode, true)
+        self.insert_reply_inner(packet, now, local, policy, original_rcode, ordinary, true)
     }
 
     pub fn import_transaction(
@@ -497,6 +507,8 @@ impl CacheContext<'_> {
             })
     }
 
+    // The private capture flag is orthogonal to the shared ordinary policy.
+    #[allow(clippy::too_many_arguments)]
     fn insert_reply_inner(
         &mut self,
         packet: &[u8],
@@ -504,6 +516,7 @@ impl CacheContext<'_> {
         local: &LocalDnsService,
         policy: &super::process::AddressPolicy,
         original_rcode: u16,
+        ordinary: OrdinaryCacheMode,
         capture: bool,
     ) -> Option<CacheTransaction> {
         let Ok(header) = Header::parse(packet) else {
@@ -537,11 +550,10 @@ impl CacheContext<'_> {
                 return commit_reply(cache, counters, capture);
             }
         }
-        // check_for_bogus_wildcard owns a separate cache transaction before
-        // extract_addresses; ordinary request/reply CD restrictions do not
-        // suppress that policy result.
-        if !extraction_eligible {
-            return;
+        // Unsupported query metadata stays outside ordinary extraction.
+        // CD/no_cache instead run its ordered effects and gate only commit.
+        if ordinary == OrdinaryCacheMode::Unsupported {
+            return None;
         }
         cache.start_insert();
         if header.questions != 1 {
@@ -729,7 +741,7 @@ impl CacheContext<'_> {
                 }
             }
         }
-        if header.flags & 0x0090 == 0x0080 {
+        if ordinary == OrdinaryCacheMode::Commit && header.flags & 0x0090 == 0x0080 {
             return commit_reply(cache, counters, capture);
         }
         None

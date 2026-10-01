@@ -8,6 +8,7 @@
 //! run once on each eligible upstream reply.
 
 use super::cache::CacheTransaction;
+use super::cache_engine::OrdinaryCacheMode;
 use super::daemon::{address_policy, validate_runtime_config, DaemonError};
 use super::process::{apply_static_aliases, process_admitted_reply, AddressPolicy, ProcessError};
 use super::reply::{apply_known_local_nxdomain, prepare_reply, strip_opt, ReplyPolicy};
@@ -250,16 +251,18 @@ fn finish_reply_with_cache(
             .map_err(TcpServiceError::Process)?;
         // TCP restores request CD before extraction; raw upstream CD must not
         // inherit UDP's distinct cacheability rule. Capture precedes filtering.
-        if !scan.signed
-            && query_header.flags & 0x10 == 0
-            && super::forward_service::ordinary_cache_query(query)
-        {
-            if let (Some((cache, send)), Some(local)) = (cache.as_mut(), local) {
-                if let Some(transaction) =
-                    cache.capture_reply(&packet, local, policy, envelope.rcode)
-                {
-                    send(transaction);
-                }
+        let ordinary = if !super::forward_service::ordinary_cache_query(query) {
+            OrdinaryCacheMode::Unsupported
+        } else if query_header.flags & 0x10 != 0 {
+            OrdinaryCacheMode::ExtractOnly
+        } else {
+            OrdinaryCacheMode::Commit
+        };
+        if let (Some((cache, send)), Some(local)) = (cache.as_mut(), local) {
+            if let Some(transaction) =
+                cache.capture_reply(&packet, local, policy, envelope.rcode, ordinary)
+            {
+                send(transaction);
             }
         }
         let report = process_admitted_reply(&mut packet, policy, envelope.rcode)
