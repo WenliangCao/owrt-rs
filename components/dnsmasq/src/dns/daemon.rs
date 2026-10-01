@@ -656,24 +656,29 @@ impl<R: Random> DnsDaemon<R> {
         } else {
             apply_static_aliases(&mut reply.packet, &self.policy.static_aliases, rcode)?;
         }
-        // Cache only a clean, successful positive reply.  Address policy
-        // runs on a clone first so a blocked/bogus/malformed response is
-        // never admitted to the cache or later exposed to a recipient.
-        if self.cache.is_some()
-            && matches!(rcode, 0 | 3)
+        // Cache extraction has ordered side effects: a later malformed RR or
+        // rebind rejection prevents commit but retains earlier old-RR removal.
+        // Run it after doctor, before recipient-specific packet rewriting.
+        if matches!(rcode, 0 | 3)
             && !reply.flags.no_cache
             && !reply.flags.had_opt
             && !reply.flags.ad_requested
             && !reply.flags.checking_disabled
         {
-            let mut candidate = reply.packet.clone();
-            let report = process_admitted_reply(&mut candidate, &self.policy, rcode)?;
-            if report.action == ProcessAction::Deliver
-                && !report.blocked_rebind
-                && !report.malformed_address
-                && !report.bogus_nxdomain
-            {
-                self.cache_reply_at_with_local(&candidate, now, external_local);
+            if let Some(cache) = self.cache.as_mut() {
+                CacheContext {
+                    cache,
+                    counters: &mut self.cache_counters,
+                    negative_cache: self.negative_cache,
+                    negative_ttl: self.negative_ttl,
+                }
+                .insert_reply_with_policy(
+                    &reply.packet,
+                    now,
+                    external_local.unwrap_or(&self.local),
+                    &self.policy,
+                    rcode,
+                );
             }
         }
         Ok(rcode)

@@ -73,6 +73,61 @@ fn cached_details(
 }
 
 #[test]
+fn malformed_replacement_keeps_prefix_removal_but_zero_ttl_stops_before_removal() {
+    for ttl in [0, 53] {
+        let mut daemon = daemon();
+        let mut old = packet("replace.test", 1, 0x8180);
+        old.record_at(Section::Answer, 12, 1, 1, 53, &[8, 8, 8, 7])
+            .unwrap();
+        daemon.cache_reply_at(&old.finish(), 100);
+        let mut unrelated = packet("other.test", 1, 0x8180);
+        unrelated
+            .record_at(Section::Answer, 12, 1, 1, 53, &[9, 9, 9, 9])
+            .unwrap();
+        daemon.cache_reply_at(&unrelated.finish(), 100);
+        assert!(cached(&mut daemon, "replace.test", 1, 100).is_some());
+
+        let mut incoming = packet("replace.test", 1, 0x8180);
+        incoming
+            .record_at(Section::Answer, 12, 1, 1, ttl, &[8, 8, 8, 8])
+            .unwrap();
+        let mut incoming = incoming.finish();
+        incoming[7] = 2;
+        incoming.push(0); // Second Answer has an owner but no fixed RR fields.
+        daemon.cache_reply_at(&incoming, 100);
+        assert_eq!(
+            cached(&mut daemon, "replace.test", 1, 100).is_some(),
+            ttl == 0
+        );
+        assert!(cached(&mut daemon, "other.test", 1, 100).is_some());
+        assert_eq!(
+            daemon.cache_counters,
+            CacheCounters {
+                inserted: 2,
+                live_freed: 0
+            }
+        );
+
+        let mut recovery = packet("replace.test", 1, 0x8180);
+        recovery
+            .record_at(Section::Answer, 12, 1, 1, 53, &[8, 8, 4, 4])
+            .unwrap();
+        daemon.cache_reply_at(&recovery.finish(), 100);
+        let answer = cached(&mut daemon, "replace.test", 1, 100).unwrap();
+        assert_eq!(
+            Message::parse(&answer)
+                .unwrap()
+                .records(Section::Answer)
+                .next()
+                .unwrap()
+                .rdata,
+            [8, 8, 4, 4]
+        );
+        assert_eq!(daemon.cache_counters.inserted, 3);
+    }
+}
+
+#[test]
 fn zero_ttl_at_expiry_is_not_yet_stale_and_new_address_precedes_old_nxdomain() {
     let mut daemon = daemon();
     daemon.enable_cache(32, 0, 0, StalePolicy::Seconds(30));

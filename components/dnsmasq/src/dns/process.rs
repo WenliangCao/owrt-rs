@@ -53,6 +53,17 @@ impl AddressPrefix {
     }
 }
 
+impl AddressPolicy {
+    pub(super) fn rejects_rebind(&self, question: &super::wire::Name, address: IpAddr) -> bool {
+        self.stop_rebind
+            && !self
+                .rebind_domains
+                .iter()
+                .any(|domain| suffix_match(&question.canonical_wire(), domain))
+            && !is_allowed_address(address, self.rebind_localhost_ok)
+    }
+}
+
 #[derive(Debug, Clone, Default)]
 pub struct AddressPolicy {
     /// Static doctor rules in configuration evaluation order. The upstream
@@ -106,7 +117,7 @@ impl From<WireError> for ProcessError {
 pub fn ignore_reply(packet: &[u8], policy: &AddressPolicy) -> Result<bool, ProcessError> {
     let header = Header::parse(packet)?;
     Ok(header.rcode() == 0
-        && scan_bad_addresses(packet, header.answers, &policy.ignore_addresses, false))
+        && scan_bad_addresses(packet, header.answers, &policy.ignore_addresses, false).is_some())
 }
 
 /// Static subset of C's do_doctor stage. The owner calls this exactly once on
@@ -198,8 +209,8 @@ pub fn process_admitted_reply(
 
     // C's bogus wildcard branch runs before extract_addresses, so its first
     // match suppresses both rebind and malformed-address processing.
-    report.bogus_nxdomain =
-        rcode != 3 && scan_bad_addresses(packet, header.answers, &policy.bogus_addresses, true);
+    report.bogus_nxdomain = rcode != 3
+        && scan_bad_addresses(packet, header.answers, &policy.bogus_addresses, true).is_some();
     if !report.bogus_nxdomain {
         match extract_address_policy(packet, header, policy) {
             1 => report.blocked_rebind = true,
@@ -238,12 +249,12 @@ fn scan_bad_addresses(
     answers: u16,
     prefixes: &[AddressPrefix],
     decode_owner: bool,
-) -> bool {
+) -> Option<(usize, u32)> {
     if prefixes.is_empty() {
-        return false;
+        return None;
     }
     let Ok(mut position) = skip_questions(packet) else {
-        return false;
+        return None;
     };
     for _ in 0..answers {
         let fixed = if decode_owner {
@@ -252,7 +263,7 @@ fn scan_bad_addresses(
             skip_name(packet, position, 10)
         };
         let Ok(fixed) = fixed else {
-            return false;
+            return None;
         };
         let rrtype = u16::from_be_bytes([packet[fixed], packet[fixed + 1]]);
         let class = u16::from_be_bytes([packet[fixed + 2], packet[fixed + 3]]);
@@ -261,18 +272,30 @@ fn scan_bad_addresses(
         // earlier match wins even when this RR's declared tail is incomplete.
         if class == 1 && matches!(rrtype, 1 | 28) {
             let Some(address) = packet_address(packet, fixed + 10, rrtype) else {
-                return false;
+                return None;
             };
             if prefixes.iter().any(|prefix| prefix.contains(address)) {
-                return true;
+                let ttl = u32::from_be_bytes(packet[fixed + 4..fixed + 8].try_into().ok()?);
+                return Some((position, ttl));
             }
         }
         position = fixed + 10 + usize::from(rdlen);
         if position > packet.len() {
-            return false;
+            return None;
         }
     }
-    false
+    None
+}
+
+/// check_for_bogus_wildcard caches the first matching RR's owner and TTL,
+/// before ordinary address extraction, even if a later record is malformed.
+pub(super) fn bogus_cache_entry(
+    packet: &[u8],
+    answers: u16,
+    policy: &AddressPolicy,
+) -> Option<(super::wire::Name, u32)> {
+    let (position, ttl) = scan_bad_addresses(packet, answers, &policy.bogus_addresses, true)?;
+    Some((decode_name(packet, position, 10).ok()?.0, ttl))
 }
 
 /// Return C extract_addresses' 0/1/2 decision for the address/CNAME subset.
@@ -286,12 +309,7 @@ fn extract_address_policy(packet: &[u8], header: Header, policy: &AddressPolicy)
     if question.class != 1 {
         return 0;
     }
-    let check_rebind = policy.stop_rebind
-        && !policy
-            .rebind_domains
-            .iter()
-            .any(|domain| suffix_match(&question.name.canonical_wire(), domain));
-    let mut current = question.name;
+    let mut current = question.name.clone();
     let mut cnames_left = 10;
     'cname: loop {
         let mut position = question.end;
@@ -328,7 +346,7 @@ fn extract_address_policy(packet: &[u8], header: Header, policy: &AddressPolicy)
                 let Some(address) = packet_address(packet, rr.fixed + 10, question.qtype) else {
                     return 2;
                 };
-                if check_rebind && !is_allowed_address(address, policy.rebind_localhost_ok) {
+                if policy.rejects_rebind(&question.name, address) {
                     return 1;
                 }
             }

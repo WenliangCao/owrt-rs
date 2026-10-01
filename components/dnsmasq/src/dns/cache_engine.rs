@@ -223,11 +223,21 @@ impl CacheContext<'_> {
                 stale,
             });
         }
-        let direct_nodata = ids.iter().find_map(|id| {
-            cache.get(*id).and_then(|entry| {
-                (entry.record.negative && entry.record.kind == kind).then_some(*id)
-            })
+        let direct_cname = ids.iter().copied().find(|id| {
+            cache
+                .get(*id)
+                .is_some_and(|entry| entry.record.kind == Kind::Cname)
         });
+        let direct_nodata = direct_cname
+            .is_none()
+            .then(|| {
+                ids.iter().find_map(|id| {
+                    cache.get(*id).and_then(|entry| {
+                        (entry.record.negative && entry.record.kind == kind).then_some(*id)
+                    })
+                })
+            })
+            .flatten();
         if let Some(id) = direct_nodata {
             stale |= cache.get(id).is_some_and(|entry| entry.is_stale(now));
             let mut writer = PacketWriter::new(header.id, (header.flags & 0x0110) | 0x8080, limit)?;
@@ -283,6 +293,11 @@ impl CacheContext<'_> {
         writer.question(&question.name, question.rrtype, question.class)?;
         let mut written = false;
         for id in ids {
+            // answer_request follows the first CNAME before looking for the
+            // requested type, even if the same batch also cached an owner A.
+            if direct_cname.is_some_and(|cname| cname != id) {
+                continue;
+            }
             if let Some(entry) = cache.get(id) {
                 if entry.record.kind == Kind::Cname {
                     let mut current = id;
@@ -310,7 +325,6 @@ impl CacheContext<'_> {
                             Err(error) => return Err(error.into()),
                         };
                         owner_offset = target_offset;
-                        written = true;
                         let target = match target {
                             CnameTarget::Dynamic(target) => target,
                             CnameTarget::Local(target) => {
@@ -422,7 +436,7 @@ impl CacheContext<'_> {
                             stale,
                         });
                     }
-                    continue;
+                    return Ok(finish_cached_answer(writer, stale)?);
                 }
                 if entry.record.kind != kind {
                     continue;
@@ -446,37 +460,68 @@ impl CacheContext<'_> {
     }
 
     pub fn insert_reply(&mut self, packet: &[u8], now: i64, local: &LocalDnsService) {
-        let negative_cache = self.negative_cache;
-        let negative_ttl = self.negative_ttl;
-        let cache = &mut *self.cache;
-        let counters = &mut *self.counters;
         let Ok(header) = Header::parse(packet) else {
             return;
         };
-        if header.opcode() != 0
-            || !matches!(header.rcode(), 0 | 3)
-            || header.flags & 0x0200 != 0
-            || header.flags & 0x0080 == 0
-            || header.questions != 1
-        {
+        self.insert_reply_with_policy(
+            packet,
+            now,
+            local,
+            &Default::default(),
+            header.rcode().into(),
+        );
+    }
+
+    pub fn insert_reply_with_policy(
+        &mut self,
+        packet: &[u8],
+        now: i64,
+        local: &LocalDnsService,
+        policy: &super::process::AddressPolicy,
+        original_rcode: u16,
+    ) {
+        let Ok(header) = Header::parse(packet) else {
+            return;
+        };
+        if header.opcode() != 0 || !matches!(original_rcode, 0 | 3) || header.flags & 0x0200 != 0 {
+            return;
+        }
+        let cache = &mut *self.cache;
+        let counters = &mut *self.counters;
+        if original_rcode != 3 {
+            if let Some((name, ttl)) =
+                super::process::bogus_cache_entry(packet, header.answers, policy)
+            {
+                // This independent branch uses the matching RR's owner/TTL;
+                // --no-negcache, RA and CD do not suppress its commit in C.
+                cache.start_insert();
+                insert_cache_record(
+                    cache,
+                    counters,
+                    local,
+                    Record {
+                        name,
+                        kind: Kind::NxDomain,
+                        negative: true,
+                        data: Vec::new(),
+                    },
+                    now,
+                    ttl,
+                );
+                let _ = cache.commit_counted(counters);
+                return;
+            }
+        }
+        cache.start_insert();
+        if header.questions != 1 {
             return;
         }
         let Ok(question) = WireQuestion::parse(packet, super::wire::HEADER_LEN) else {
             return;
         };
-        if question.class != 1
-            || !matches!(question.qtype, 1 | 5 | 28)
-            || (question.qtype == 5 && header.rcode() != 3)
-        {
+        if question.class != 1 || !matches!(question.qtype, 1 | 5 | 28) {
             return;
         }
-        // extract_addresses consumes the complete Answer section. Later
-        // Authority/Additional clipping does not invalidate a positive RRset.
-        let Ok((answers, answer_end)) =
-            super::wire::Records::parse_section(packet, question.end, header.answers)
-        else {
-            return;
-        };
         let Ok(edns) = find_pseudoheader(packet, false) else {
             return;
         };
@@ -488,301 +533,176 @@ impl CacheContext<'_> {
             return;
         }
 
-        // extract_addresses clamps answer TTLs before passing them to cache
-        // insertion. The independent authority SOA follows find_soa instead.
-        let max_reply_ttl = cache.policy().max_reply_ttl;
-        let answer_ttl = |ttl: u32| {
-            if max_reply_ttl == 0 {
-                ttl
-            } else {
-                ttl.min(max_reply_ttl)
-            }
-        };
-        // Follow the answer CNAME chain exactly as extract_addresses does.
-        // The terminal name is where a positive RRset or a negative record is
-        // cached, so aliases can be replayed even when the terminal is NXDOMAIN
-        // or NODATA.
-        let mut chain = Vec::new();
-        let mut current = question.name.clone();
-        for _ in 0..10 {
-            let mut found = None;
-            for rr in answers.clone() {
-                if rr.class != 1 || rr.rrtype != 5 {
-                    continue;
-                }
-                let Ok(owner) = rr.name() else {
-                    return;
-                };
-                if !owner.eq_ignore_ascii_case(&current) {
-                    continue;
-                }
-                let Ok((target, consumed)) = rr.rdata_name(0) else {
-                    return;
-                };
-                if consumed != rr.rdata.len() {
-                    return;
-                }
-                found = Some((target, answer_ttl(rr.ttl)));
-                break;
-            }
-            let Some((target, ttl)) = found else {
-                break;
-            };
-            // extract_addresses never caches a positive CNAME query. Even
-            // an NXDOMAIN envelope cannot make its matching CNAME answer a
-            // negative cache entry: C records that answer as found.
-            if question.qtype == 5 {
-                return;
-            }
-            chain.push((current, target.clone(), ttl));
-            current = target;
-        }
-        if chain.len() == 10
-            && answers.clone().any(|rr| {
-                rr.class == 1
-                    && rr.rrtype == 5
-                    && rr
-                        .name()
-                        .is_ok_and(|owner| owner.eq_ignore_ascii_case(&current))
-            })
-        {
-            return;
-        }
-
-        let terminal_name = current.clone();
-        let terminal_kind = if question.qtype == 1 {
+        let kind = if question.qtype == 1 {
             Kind::Ipv4
         } else {
             Kind::Ipv6
         };
-        let address_len = if question.qtype == 1 { 4 } else { 16 };
-        let mut addresses = Vec::new();
-        for rr in answers.clone() {
-            if rr.class != 1 || rr.rrtype != question.qtype || rr.rdata.len() < address_len {
-                continue;
-            }
-            let Ok(name) = rr.name() else {
-                return;
-            };
-            if name.eq_ignore_ascii_case(&terminal_name) {
-                // C extracts the address-width prefix of an overlong RDATA.
-                // Retain that safe behavior without reading past a short RR.
-                addresses.push((name, rr.rdata[..address_len].to_vec(), answer_ttl(rr.ttl)));
-            }
-        }
-
-        let soa = authority_soa(packet, answer_end, header.authorities, &terminal_name);
-        let soa_ttl = soa.as_ref().and_then(|(_, rr_ttl, minimum, _)| {
-            // A zero-TTL SOA is not cacheable unless stale caching keeps zero
-            // TTL entries alive.  C then falls back to --neg-ttl as if no SOA
-            // had been found.
-            (*rr_ttl != 0 || cache.policy().stale != StalePolicy::Disabled)
-                .then_some((*rr_ttl).min(*minimum))
-        });
-        let authority = soa_ttl.and(soa.as_ref());
-        let negative_kind = if header.rcode() == 3 {
-            Some(Kind::NxDomain)
-        } else if addresses.is_empty() {
-            Some(terminal_kind)
-        } else {
-            None
-        };
-
-        if let Some(kind) = negative_kind {
-            // A successful positive RRset wins over an impossible NXDOMAIN
-            // packet. C's extract_addresses only creates a negative entry when
-            // no matching answer was found.
-            if kind != Kind::NxDomain && !addresses.is_empty() {
-                return;
-            }
-            if !negative_cache {
-                return;
-            }
-            if soa_ttl.is_none() && negative_ttl == 0 {
-                return;
-            }
-            cache.start_insert();
-            let direct_negative = chain.is_empty();
-            let mut selected_soa_ttl = soa_ttl;
-            let mut authority = authority;
-            let mut cname_ids = Vec::with_capacity(chain.len());
-            // C caches an SOA RR as an independent Generic(6) entry.  For a
-            // direct negative answer it is inserted before the negative; a
-            // CNAME target gets the same SOA after its terminal negative so
-            // the target ordering remains intact.
-            let mut soa_id = if chain.is_empty() {
-                if authority.is_some() {
-                    match insert_authority(cache, counters, local, authority, now) {
-                        Some(id) => Some(id),
-                        None if negative_ttl != 0 => {
-                            // find_soa() reports no SOA when its independent
-                            // cache insertion fails, so C falls back to
-                            // --neg-ttl for a direct negative answer.
-                            authority = None;
-                            selected_soa_ttl = None;
-                            None
-                        }
-                        None => {
-                            cache.start_insert();
-                            return;
-                        }
-                    }
-                } else {
-                    None
+        let max_reply_ttl = cache.policy().max_reply_ttl;
+        let mut current = question.name.clone();
+        let mut cname_left = 10;
+        let mut cname_target = None;
+        let mut found = false;
+        let answer_end;
+        // C restarts the Answer scan after each CNAME and inserts as it goes.
+        // A later malformed RR/rebind abort leaves pending records uncommitted,
+        // while old RRset removal and live-eviction counters remain observable.
+        'cname: loop {
+            let mut position = question.end;
+            for _ in 0..header.answers {
+                let Ok(rr) = super::wire::RecordRef::parse(packet, position) else {
+                    return;
+                };
+                position = rr.end;
+                let Ok(owner) = rr.name() else { return };
+                if rr.class != 1 || !owner.eq_ignore_ascii_case(&current) {
+                    continue;
                 }
-            } else {
-                // extract_addresses() inserts each CNAME while walking the
-                // answer, before its terminal negative.  Keep that pending
-                // order and wire the targets once the terminal exists.
-                for (owner, target, ttl) in &chain {
-                    let Some(CacheInsert::Dynamic(cname_id)) = insert_cache_record(
+                let ttl = if max_reply_ttl == 0 {
+                    rr.ttl
+                } else {
+                    rr.ttl.min(max_reply_ttl)
+                };
+                if rr.rrtype == 5 {
+                    if cname_left == 0 {
+                        return;
+                    }
+                    cname_left -= 1;
+                    // Act on failure only after insertion: C removes the old
+                    // owner before validating this target.
+                    let target = super::wire::decode_name(packet, rr.fixed + 10, 0);
+                    let next = if question.qtype != 5 {
+                        match insert_cache_record(
+                            cache,
+                            counters,
+                            local,
+                            Record {
+                                name: current.clone(),
+                                kind: Kind::Cname,
+                                negative: false,
+                                data: target
+                                    .as_ref()
+                                    .map_or_else(|_| Vec::new(), |(name, _)| name.canonical_wire()),
+                            },
+                            now,
+                            ttl,
+                        ) {
+                            Some(CacheInsert::Dynamic(id)) => Some(id),
+                            _ => None,
+                        }
+                    } else {
+                        None
+                    };
+                    if let (Some(previous), Some(next)) = (cname_target, next) {
+                        cache.set_cname_target(previous, next);
+                    }
+                    cname_target = next;
+                    // extract_name checks packet bounds, not the declared
+                    // RDLEN. Keep that bounded behavior for ordinary CNAMEs.
+                    let Ok((target, _)) = target else {
+                        return;
+                    };
+                    current = target;
+                    if question.qtype != 5 {
+                        continue 'cname;
+                    }
+                    found = true;
+                } else if rr.rrtype == question.qtype && header.rcode() != 3 {
+                    found = true;
+                    let width = if question.qtype == 1 { 4 } else { 16 };
+                    let Some(data) = packet.get(rr.fixed + 10..rr.fixed + 10 + width) else {
+                        return;
+                    };
+                    let address = if question.qtype == 1 {
+                        IpAddr::V4(std::net::Ipv4Addr::from(<[u8; 4]>::try_from(data).unwrap()))
+                    } else {
+                        IpAddr::V6(std::net::Ipv6Addr::from(
+                            <[u8; 16]>::try_from(data).unwrap(),
+                        ))
+                    };
+                    if policy.rejects_rebind(&question.name, address) {
+                        return;
+                    }
+                    let inserted = insert_cache_record(
                         cache,
                         counters,
                         local,
                         Record {
-                            name: owner.clone(),
-                            kind: Kind::Cname,
+                            name: current.clone(),
+                            kind,
                             negative: false,
-                            data: target.canonical_wire(),
+                            data: data.to_vec(),
                         },
                         now,
-                        *ttl,
-                    ) else {
-                        cache.start_insert();
-                        return;
-                    };
-                    cname_ids.push((owner.canonical_wire(), target.canonical_wire(), cname_id));
-                }
-                None
-            };
-            let record = Record {
-                name: terminal_name.clone(),
-                kind,
-                negative: true,
-                data: Vec::new(),
-            };
-            let Some(ttl) = selected_soa_ttl.or((negative_ttl != 0).then_some(negative_ttl)) else {
-                cache.start_insert();
-                return;
-            };
-            let Some(CacheInsert::Dynamic(id)) =
-                insert_cache_record(cache, counters, local, record, now, ttl)
-            else {
-                cache.start_insert();
-                return;
-            };
-            soa_id = soa_id.or_else(|| insert_authority(cache, counters, local, authority, now));
-            if authority.is_some() && soa_id.is_none() {
-                if direct_negative {
-                    if negative_ttl == 0 {
-                        cache.start_insert();
-                        return;
+                        ttl,
+                    );
+                    if let Some(previous) = cname_target.take() {
+                        match inserted {
+                            Some(CacheInsert::Dynamic(id)) => {
+                                cache.set_cname_target(previous, id);
+                            }
+                            Some(CacheInsert::Local(name, lease)) => {
+                                let target = cache.local_target(name, lease);
+                                cache.set_local_cname_target(previous, target);
+                            }
+                            None => {}
+                        }
                     }
-                    authority = None;
-                } else {
-                    // C's CNAME-target path already committed the negative
-                    // entry before attempting to cache the SOA; retain the
-                    // negative/CNAME chain when that SOA insert fails.
-                    authority = None;
                 }
             }
-            if let Some((authority_name, _, _, _)) = authority {
-                if !cache.set_negative_authority(id, authority_name.clone()) {
-                    cache.start_insert();
-                    return;
+            answer_end = position;
+            break;
+        }
+        if !found && self.negative_cache && (question.qtype != 5 || header.rcode() == 3) {
+            let soa = authority_soa(packet, answer_end, header.authorities, &current);
+            let mut soa_ttl = soa.as_ref().and_then(|(_, ttl, minimum, _)| {
+                (*ttl != 0 || cache.policy().stale != StalePolicy::Disabled)
+                    .then_some((*ttl).min(*minimum))
+            });
+            let mut authority = soa_ttl.and(soa.as_ref());
+            // A direct negative inserts its SOA first; a CNAME target must
+            // immediately follow its alias, so its SOA is inserted afterwards.
+            if cname_target.is_none()
+                && authority.is_some()
+                && insert_authority(cache, counters, local, authority, now).is_none()
+            {
+                authority = None;
+                soa_ttl = None;
+            }
+            if let Some(ttl) = soa_ttl.or((self.negative_ttl != 0).then_some(self.negative_ttl)) {
+                let inserted = insert_cache_record(
+                    cache,
+                    counters,
+                    local,
+                    Record {
+                        name: current,
+                        kind: if header.rcode() == 3 {
+                            Kind::NxDomain
+                        } else {
+                            kind
+                        },
+                        negative: true,
+                        data: Vec::new(),
+                    },
+                    now,
+                    ttl,
+                );
+                if let Some(CacheInsert::Dynamic(id)) = inserted {
+                    if let Some(previous) = cname_target {
+                        cache.set_cname_target(previous, id);
+                        if insert_authority(cache, counters, local, authority, now).is_none() {
+                            authority = None;
+                        }
+                    }
+                    if let Some((name, _, _, _)) = authority {
+                        cache.set_negative_authority(id, name.clone());
+                    }
                 }
             }
-            let mut targets = vec![(terminal_name.canonical_wire(), id)];
-            for (owner, target, cname_id) in cname_ids.into_iter().rev() {
-                let Some(target_id) = targets
-                    .iter()
-                    .find(|(name, _)| *name == target)
-                    .map(|(_, id)| *id)
-                else {
-                    cache.start_insert();
-                    return;
-                };
-                if !cache.set_cname_target(cname_id, target_id) {
-                    cache.start_insert();
-                    return;
-                }
-                targets.push((owner, cname_id));
-            }
+        }
+        if header.flags & 0x0090 == 0x0080 {
             let _ = cache.commit_counted(counters);
-            return;
         }
-
-        cache.start_insert();
-        if addresses.is_empty() {
-            return;
-        }
-        let mut cname_ids = Vec::with_capacity(chain.len());
-        for (owner, target, ttl) in &chain {
-            let Some(CacheInsert::Dynamic(cname_id)) = insert_cache_record(
-                cache,
-                counters,
-                local,
-                Record {
-                    name: owner.clone(),
-                    kind: Kind::Cname,
-                    negative: false,
-                    data: target.canonical_wire(),
-                },
-                now,
-                *ttl,
-            ) else {
-                cache.start_insert();
-                return;
-            };
-            cname_ids.push((owner.canonical_wire(), target.canonical_wire(), cname_id));
-        }
-        let mut targets = Vec::with_capacity(addresses.len());
-        for (name, data, ttl) in addresses {
-            let Some(inserted) = insert_cache_record(
-                cache,
-                counters,
-                local,
-                Record {
-                    name: name.clone(),
-                    kind: terminal_kind,
-                    negative: false,
-                    data,
-                },
-                now,
-                ttl,
-            ) else {
-                cache.start_insert();
-                return;
-            };
-            let target = match inserted {
-                CacheInsert::Dynamic(id) => CnameTarget::Dynamic(id),
-                CacheInsert::Local(name, from_lease) if !chain.is_empty() => {
-                    CnameTarget::Local(cache.local_target(name, from_lease))
-                }
-                CacheInsert::Local(_, _) => continue,
-            };
-            targets.push((name.canonical_wire(), target));
-        }
-        for (owner, target, cname_id) in cname_ids.into_iter().rev() {
-            let Some(target_id) = targets
-                .iter()
-                .find(|(name, _)| *name == target)
-                .map(|(_, target)| target.clone())
-            else {
-                cache.start_insert();
-                return;
-            };
-            let linked = match target_id {
-                CnameTarget::Dynamic(id) => cache.set_cname_target(cname_id, id),
-                CnameTarget::Local(target) => cache.set_local_cname_target(cname_id, target),
-            };
-            if !linked {
-                cache.start_insert();
-                return;
-            }
-            targets.push((owner, CnameTarget::Dynamic(cname_id)));
-        }
-        let _ = cache.commit_counted(counters);
     }
 }
 
