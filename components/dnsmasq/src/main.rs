@@ -17,7 +17,7 @@ use dnsmasq_rs::dhcp::daemon::LocalProvider as DhcpProvider;
 use dnsmasq_rs::dhcp::service::{
     Listener as DhcpListener, ListenerStep, SocketListener as DhcpSocketListener,
 };
-use dnsmasq_rs::dns::cache::StalePolicy;
+use dnsmasq_rs::dns::cache::{CacheImportCursor, StalePolicy};
 use dnsmasq_rs::dns::daemon::{ClientRequest, DaemonOptions, DnsDaemon, QueryResult};
 use dnsmasq_rs::dns::forward::SocketToken;
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -183,18 +183,48 @@ impl ParentEvents {
             let (_, now) = *self
                 .tcp_pending
                 .get_or_insert_with(|| (index, unix_seconds()));
-            match receiver.receive() {
-                Ok(Received::Transaction(transaction)) => {
-                    let ParentDns { local, daemon } = parent;
-                    if let Some(daemon) = daemon {
-                        daemon.import_tcp_cache(transaction, now, local);
+            loop {
+                match receiver.receive() {
+                    Ok(Received::Begin) => {
+                        slot.import = Some(
+                            parent
+                                .daemon
+                                .as_mut()
+                                .expect("DNS listener owns forwarder")
+                                .start_tcp_cache_import(),
+                        );
                     }
-                    self.tcp_pending = None;
-                }
-                Ok(Received::Pending) => {}
-                Ok(Received::Eof) | Err(_) => {
-                    slot.receiver = None;
-                    self.tcp_pending = None;
+                    Ok(Received::Record(record)) => {
+                        let ParentDns { local, daemon } = parent;
+                        daemon
+                            .as_mut()
+                            .expect("DNS listener owns forwarder")
+                            .import_tcp_cache_record(
+                                record,
+                                now,
+                                local,
+                                slot.import.as_mut().expect("record follows Begin"),
+                            );
+                    }
+                    Ok(Received::End) => {
+                        parent
+                            .daemon
+                            .as_mut()
+                            .expect("DNS listener owns forwarder")
+                            .finish_tcp_cache_import();
+                        slot.import = None;
+                        self.tcp_pending = None;
+                        break;
+                    }
+                    Ok(Received::Pending) => break,
+                    Ok(Received::Eof) | Err(_) => {
+                        // C leaves complete prefix effects and pending records
+                        // until the next Begin. Dropping the cursor is not abort.
+                        slot.import = None;
+                        slot.receiver = None;
+                        self.tcp_pending = None;
+                        break;
+                    }
                 }
             }
             if slot.receiver.is_none() && slot.finished.load(Ordering::Acquire) {
@@ -982,6 +1012,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                     let finished = Arc::new(AtomicBool::new(false));
                                     event.tcp_slots[slot] = Some(TcpSlot {
                                         receiver: Some(receiver),
+                                        import: None,
                                         finished: Arc::clone(&finished),
                                     });
                                     event.tcp_active += 1;
@@ -1316,6 +1347,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
 
 struct TcpSlot {
     receiver: Option<Receiver>,
+    import: Option<CacheImportCursor>,
     finished: Arc<AtomicBool>,
 }
 

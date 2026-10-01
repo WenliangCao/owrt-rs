@@ -320,6 +320,37 @@ impl<R: Random> DnsDaemon<R> {
         .import_transaction(transaction, now, local)
     }
 
+    /// PRIVATE streaming importer. The event owner keeps this cursor until
+    /// End or EOF, and pins the entry clock while the byte transaction waits.
+    pub fn start_tcp_cache_import(&mut self) -> super::cache::CacheImportCursor {
+        self.cache
+            .as_mut()
+            .map_or_else(Default::default, Cache::start_import)
+    }
+
+    pub fn import_tcp_cache_record(
+        &mut self,
+        record: super::cache::TransferredRecord,
+        now: i64,
+        local: &LocalDnsService,
+        cursor: &mut super::cache::CacheImportCursor,
+    ) {
+        let Some(cache) = &mut self.cache else { return };
+        CacheContext {
+            cache,
+            counters: &mut self.cache_counters,
+            negative_cache: self.negative_cache,
+            negative_ttl: self.negative_ttl,
+        }
+        .import_record(record, now, local, cursor);
+    }
+
+    pub fn finish_tcp_cache_import(&mut self) -> bool {
+        self.cache
+            .as_mut()
+            .is_some_and(|cache| cache.commit_counted(&mut self.cache_counters))
+    }
+
     pub fn forward_counters(&self) -> super::forward::ForwardCounters {
         self.upstream.counters()
     }
