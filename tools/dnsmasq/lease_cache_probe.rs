@@ -95,6 +95,9 @@ fn main() {
                         Kind::Cname => 5,
                         Kind::NxDomain => 65536,
                         Kind::Generic(t) => t as u32,
+                        Kind::ReverseIpv4 | Kind::ReverseIpv6 => {
+                            panic!("forward fixture returned a reverse record")
+                        }
                     };
                     let value = if t == 5 { 0 } else { e.record.data[0] };
                     print!(" {t}:{value}:{}:{}", u8::from(e.record.negative), e.expires);

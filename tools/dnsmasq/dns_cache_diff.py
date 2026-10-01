@@ -155,7 +155,7 @@ fn main() {
  "C"=>println!("C {}",u8::from(cache.commit())),
  "I"=>{let id=cache.insert(Record{name:wire::Name::from_ascii(w[1]).unwrap(),kind:kind(n(2)),negative:n(5)!=0,data:vec![n(4) as u8]},w[6].parse().unwrap(),n(3));println!("I {}",u8::from(id.is_ok()));ids.push(id.ok());},
  "L"=>{let ok=match (ids[n(1) as usize],ids[n(2) as usize]){(Some(a),Some(b))=>cache.set_cname_target(a,b),_=>false};println!("L {}",u8::from(ok));},
- "Q"=>{let now=w[3].parse().unwrap();let found=cache.lookup(&wire::Name::from_ascii(w[1]).unwrap(),&[kind(n(2))],now,n(4)!=0);print!("Q");for id in found {let e=cache.get(id).unwrap();let t=match e.record.kind{Kind::Ipv4=>1,Kind::Ipv6=>28,Kind::Cname=>5,Kind::NxDomain=>65536,Kind::Generic(t)=>t as u32};let v=if t==5 {0}else{e.record.data[0]};print!(" {t}:{v}:{}:{}:{}:{}",u8::from(e.record.negative),e.expires,e.reply_ttl(now,policy),u8::from(e.is_stale(now)));}println!();},_=>panic!()}
+ "Q"=>{let now=w[3].parse().unwrap();let found=cache.lookup(&wire::Name::from_ascii(w[1]).unwrap(),&[kind(n(2))],now,n(4)!=0);print!("Q");for id in found {let e=cache.get(id).unwrap();let t=match e.record.kind{Kind::Ipv4=>1,Kind::Ipv6=>28,Kind::Cname=>5,Kind::NxDomain=>65536,Kind::Generic(t)=>t as u32,Kind::ReverseIpv4|Kind::ReverseIpv6=>panic!("forward fixture returned a reverse record")};let v=if t==5 {0}else{e.record.data[0]};print!(" {t}:{v}:{}:{}:{}:{}",u8::from(e.record.negative),e.expires,e.reply_ttl(now,policy),u8::from(e.is_stale(now)));}println!();},_=>panic!()}
  }
 }
 '''

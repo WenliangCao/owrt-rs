@@ -1,4 +1,4 @@
-//! Dynamic forward-cache primitives traced to dnsmasq 2.93 cache.c.
+//! Dynamic cache primitives traced to dnsmasq 2.93 cache.c.
 //!
 //! This module does not decide whether an upstream packet is cacheable, extract
 //! SOA metadata, or store local hosts/leases. Callers must perform those checks.
@@ -8,18 +8,25 @@
 use super::lease_names::{BlockerKind, ForwardPublication, PublicationCache};
 use super::wire::Name;
 use std::collections::HashMap;
+use std::net::IpAddr;
 use std::sync::Arc;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Kind {
     Ipv4,
     Ipv6,
+    ReverseIpv4,
+    ReverseIpv6,
     Generic(u16),
     Cname,
     NxDomain,
 }
 
 impl Kind {
+    pub fn is_reverse(self) -> bool {
+        matches!(self, Self::ReverseIpv4 | Self::ReverseIpv6)
+    }
+
     fn conflicts(self, other: Self) -> bool {
         self == other || self == Self::Cname || other == Self::Cname
     }
@@ -104,8 +111,9 @@ pub struct Record {
     pub name: Name,
     pub kind: Kind,
     pub negative: bool,
-    /// Canonical uncompressed RDATA. Negative entries carry no RDATA; an
-    /// upstream SOA is a separate `Generic(6)` cache record.
+    /// Canonical uncompressed RDATA for forward records. Reverse records
+    /// hold the 4/16 address bytes and keep the original-case PTR target in
+    /// `name`. Negative entries carry no RDATA; an upstream SOA is separate.
     pub data: Vec<u8>,
 }
 
@@ -152,6 +160,7 @@ pub enum InsertError {
     TimeOverflow,
     NotNegative,
     LocalConflict,
+    InvalidReverseRecord,
 }
 
 /// Caller-owned C metrics for one cache. Keep this beside the cache so the
@@ -193,8 +202,10 @@ struct Slot {
     next: Option<usize>,
 }
 
-/// Fixed number of records, with an index per name and an intrusive LRU of slot
-/// indices. Pending inserts are outside the LRU and invisible to lookups.
+/// Fixed number of records, with a forward-name index and an intrusive LRU of
+/// slot indices. Reverse operations scan the same slots: C requires expiry
+/// scans even for an unrelated address. Pending inserts are outside the LRU
+/// and invisible to lookups.
 /// Capacity is measured in records, including CNAME and negative records.
 pub struct Cache {
     policy: Policy,
@@ -388,9 +399,34 @@ impl Cache {
         if expires == now && self.policy.stale == StalePolicy::Disabled {
             return self.fail(InsertError::ZeroTtl);
         }
+        if record.kind.is_reverse()
+            && (record.negative
+                || record.data.len()
+                    != if record.kind == Kind::ReverseIpv4 {
+                        4
+                    } else {
+                        16
+                    })
+        {
+            return self.fail(InsertError::InvalidReverseRecord);
+        }
         let key = record.name.canonical_wire();
         let mut preserved = None;
-        if let Some(indices) = self.names.get(&key).cloned() {
+        if record.kind.is_reverse() {
+            // cache_scan_free's reverse branch expires all committed entries,
+            // even with spare capacity. It does not purge outdated CNAMEs or
+            // see pending records, and never preserves a forward target UID.
+            for slot in 0..self.slots.len() {
+                if self.slots[slot].entry.as_ref().is_some_and(|entry| {
+                    entry.committed
+                        && (self.policy.expired(entry.expires, now)
+                            || (entry.record.kind == record.kind
+                                && entry.record.data == record.data))
+                }) {
+                    self.remove(slot);
+                }
+            }
+        } else if let Some(indices) = self.names.get(&key).cloned() {
             for slot in indices {
                 let entry = self.slots[slot].entry.as_ref().unwrap();
                 if record.kind.conflicts(entry.record.kind) {
@@ -406,9 +442,10 @@ impl Cache {
         let slot = if let Some(id) = preserved {
             id.slot
         } else {
-            if self
-                .tail
-                .is_some_and(|slot| self.slots[slot].entry.is_some())
+            if !record.kind.is_reverse()
+                && self
+                    .tail
+                    .is_some_and(|slot| self.slots[slot].entry.is_some())
             {
                 // Same pressure trigger as C: reclaim expired entries globally
                 // before spilling any live entry. The scan is a baseline cost.
@@ -430,11 +467,26 @@ impl Cache {
                 let victim_key = entry.record.name.canonical_wire();
                 let victim_kind = entry.record.kind;
                 // C spills the conflicting RRset, not only its oldest member.
-                for victim in self.names.get(&victim_key).cloned().unwrap_or_default() {
-                    if victim_kind.conflicts(self.slots[victim].entry.as_ref().unwrap().record.kind)
-                        || self.invalid(victim, now)
-                    {
-                        self.remove(victim);
+                if victim_kind.is_reverse() {
+                    let address = entry.record.data.clone();
+                    for victim in 0..self.slots.len() {
+                        if self.slots[victim].entry.as_ref().is_some_and(|entry| {
+                            entry.committed
+                                && (self.policy.expired(entry.expires, now)
+                                    || (entry.record.kind == victim_kind
+                                        && entry.record.data == address))
+                        }) {
+                            self.remove(victim);
+                        }
+                    }
+                } else {
+                    for victim in self.names.get(&victim_key).cloned().unwrap_or_default() {
+                        if victim_kind
+                            .conflicts(self.slots[victim].entry.as_ref().unwrap().record.kind)
+                            || self.invalid(victim, now)
+                        {
+                            self.remove(victim);
+                        }
                     }
                 }
                 slot = self.tail.expect("spilling a committed entry frees a slot");
@@ -538,7 +590,9 @@ impl Cache {
         if self
             .get(cname)
             .is_none_or(|entry| entry.record.kind != Kind::Cname)
-            || self.get(target).is_none()
+            || self
+                .get(target)
+                .is_none_or(|entry| entry.record.kind.is_reverse())
         {
             return false;
         }
@@ -607,10 +661,12 @@ impl Cache {
             }
             let entry = self.slots[slot].entry.as_mut().unwrap();
             entry.committed = true;
-            self.names
-                .entry(entry.record.name.canonical_wire())
-                .or_default()
-                .push(slot);
+            if !entry.record.kind.is_reverse() {
+                self.names
+                    .entry(entry.record.name.canonical_wire())
+                    .or_default()
+                    .push(slot);
+            }
             self.link_head(slot);
             counters.inserted = counters.inserted.wrapping_add(1);
             if let Some(records) = &mut capture {
@@ -747,6 +803,41 @@ impl Cache {
         found.into_iter().rev().map(|slot| self.id(slot)).collect()
     }
 
+    /// Expire committed reverse records for every address, then promote the
+    /// requested address's records in the shared LRU. Forward records and
+    /// pending transactions are untouched. Multiple target traversal remains
+    /// a private qualification boundary: C's order depends on target-name hash
+    /// buckets and process layout; slot order is not claimed equivalent.
+    pub fn lookup_reverse(&mut self, address: IpAddr, now: i64) -> Vec<EntryId> {
+        let mut found = Vec::new();
+        for slot in 0..self.slots.len() {
+            let Some(entry) = self.slots[slot].entry.as_ref() else {
+                continue;
+            };
+            if !entry.committed || !entry.record.kind.is_reverse() {
+                continue;
+            }
+            if self.policy.expired(entry.expires, now) {
+                self.remove(slot);
+                continue;
+            }
+            let matches = match address {
+                IpAddr::V4(address) => {
+                    entry.record.kind == Kind::ReverseIpv4 && entry.record.data == address.octets()
+                }
+                IpAddr::V6(address) => {
+                    entry.record.kind == Kind::ReverseIpv6 && entry.record.data == address.octets()
+                }
+            };
+            if matches {
+                self.unlink(slot);
+                self.link_head(slot);
+                found.push(slot);
+            }
+        }
+        found.into_iter().rev().map(|slot| self.id(slot)).collect()
+    }
+
     /// Lookup records for a DNS question, including an NXDOMAIN marker.
     ///
     /// `cache_find_by_name(..., F_RR | F_NXDOMAIN)` in C returns both the
@@ -794,17 +885,14 @@ impl Cache {
     }
 
     fn remove(&mut self, slot: usize) {
-        let key = self.slots[slot]
-            .entry
-            .as_ref()
-            .unwrap()
-            .record
-            .name
-            .canonical_wire();
-        let indices = self.names.get_mut(&key).unwrap();
-        indices.retain(|index| *index != slot);
-        if indices.is_empty() {
-            self.names.remove(&key);
+        let entry = self.slots[slot].entry.as_ref().unwrap();
+        if !entry.record.kind.is_reverse() {
+            let key = entry.record.name.canonical_wire();
+            let indices = self.names.get_mut(&key).unwrap();
+            indices.retain(|index| *index != slot);
+            if indices.is_empty() {
+                self.names.remove(&key);
+            }
         }
         self.unlink(slot);
         self.free(slot);
@@ -940,8 +1028,8 @@ impl PublicationCache for Cache {
     }
 
     fn reverse_owned(&mut self, _: std::net::Ipv4Addr) -> bool {
-        // This forward-only cache does not admit upstream PTR/reverse entries.
-        // Reverse-cache ownership must be implemented with that capability.
+        // Private reverse candidate: publication ownership and local/dynamic
+        // coexistence still need their independent real-caller qualification.
         false
     }
 }
@@ -953,3 +1041,7 @@ mod tests;
 #[cfg(test)]
 #[path = "cache_transfer_tests.rs"]
 mod transfer_tests;
+
+#[cfg(test)]
+#[path = "cache_reverse_tests.rs"]
+mod reverse_tests;
