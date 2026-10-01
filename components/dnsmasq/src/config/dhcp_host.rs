@@ -4,6 +4,14 @@ use super::{ip, Error};
 use crate::config::EncodedArg;
 use std::net::Ipv4Addr;
 
+const WILDCARD: Error = Error("DHCP host wildcard selectors are not implemented");
+const TAGS: Error = Error("DHCP host tag selectors are not implemented");
+const NAME_ONLY: Error = Error("DHCP host name-only selectors are not implemented");
+
+pub(super) fn unsupported(error: &Error) -> bool {
+    [WILDCARD, TAGS, NAME_ONLY].contains(error)
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct HardwareAddress {
     /// Zero matches every hardware type, as in config_has_mac.
@@ -39,7 +47,7 @@ fn hex(input: &[u8], maximum: usize, mut typed: bool) -> Result<HardwareAddress,
             .unwrap_or(rest.len());
         let group = &rest[..end];
         if group.contains(&b'*') {
-            return Err(Error("DHCP host wildcard selectors are not implemented"));
+            return Err(WILDCARD);
         }
         if !group.iter().all(u8::is_ascii_hexdigit) {
             return Err(Error("bad DHCP host hex constant"));
@@ -127,7 +135,7 @@ impl HostConfig {
                     .iter()
                     .any(|prefix| bytes.starts_with(prefix))
                 {
-                    return Err(Error("DHCP host tag selectors are not implemented"));
+                    return Err(TAGS);
                 } else {
                     host.hardware.insert(0, hex(bytes, 16, true)?);
                 }
@@ -166,7 +174,7 @@ impl HostConfig {
             }
         }
         if host.client_id.is_none() && host.hardware.is_empty() {
-            return Err(Error("DHCP host name-only selectors are not implemented"));
+            return Err(NAME_ONLY);
         }
         Ok(host)
     }

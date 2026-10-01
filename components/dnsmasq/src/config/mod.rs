@@ -143,6 +143,36 @@ fn white(c: u8) -> bool {
 /// following an embedded NUL in the line; the reference behavior is retained.
 /// The scanner is linear; C repeatedly memmoves the remaining line per quote.
 pub fn lex_line(line: &[u8]) -> Result<Option<Directive>, Error> {
+    let Some(argument) = lex_argument_line(line)? else {
+        return Ok(None);
+    };
+    let value = argument.encoded();
+    let directive = if let Some(equal) = value.iter().position(|&c| c == b'=') {
+        let name_end = value[..equal]
+            .iter()
+            .rposition(|&c| c != b' ' && c != b'=')
+            .map(|n| n + 1)
+            .unwrap_or(0);
+        let mut arg_start = equal + 1;
+        while value.get(arg_start) == Some(&b' ') {
+            arg_start += 1;
+        }
+        Directive {
+            name: value[..name_end].to_vec(),
+            argument: Some(EncodedArg(value[arg_start..].to_vec())),
+        }
+    } else {
+        Directive {
+            name: value.to_vec(),
+            argument: None,
+        }
+    };
+    Ok(Some(directive))
+}
+
+/// The same scanner with option.c's hard-option boundary: a nonempty line is
+/// one argument, including ordinary '=' bytes. DHCP data files use this path.
+pub fn lex_argument_line(line: &[u8]) -> Result<Option<EncodedArg>, Error> {
     let line = &line[..line
         .iter()
         .position(|&c| c == 0 || c == b'\n')
@@ -209,31 +239,12 @@ pub fn lex_line(line: &[u8]) -> Result<Option<Directive>, Error> {
         .rposition(|&c| c != b' ')
         .map(|n| n + 1)
         .unwrap_or(start);
-    let value = &out[start..end];
-    if value.is_empty() {
+    if start == end {
         return Ok(None);
     }
-    let directive = if let Some(equal) = value.iter().position(|&c| c == b'=') {
-        let name_end = value[..equal]
-            .iter()
-            .rposition(|&c| c != b' ' && c != b'=')
-            .map(|n| n + 1)
-            .unwrap_or(0);
-        let mut arg_start = equal + 1;
-        while value.get(arg_start) == Some(&b' ') {
-            arg_start += 1;
-        }
-        Directive {
-            name: value[..name_end].to_vec(),
-            argument: Some(EncodedArg(value[arg_start..].to_vec())),
-        }
-    } else {
-        Directive {
-            name: value.to_vec(),
-            argument: None,
-        }
-    };
-    Ok(Some(directive))
+    out.truncate(end);
+    out.drain(..start);
+    Ok(Some(EncodedArg(out)))
 }
 
 pub fn lookup(name: &[u8]) -> Option<&'static OptionSpec> {

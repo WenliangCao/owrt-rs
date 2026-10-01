@@ -12,7 +12,7 @@ use super::probe::IcmpProbe;
 use super::runtime::{NetworkOptions, OutcomeProvider, ReplyNames, RuntimeError, StateProvider};
 use super::service::Dispatch;
 use super::state::{Environment, HostPolicy, Outcome, Reply};
-use crate::config::dhcp::{DhcpConfig, NameDomains};
+use crate::config::dhcp::{DhcpConfig, HostConfig, HostFileError, HostFiles, NameDomains};
 use crate::interfaces::{ipv4_interfaces, primary_ipv4};
 use std::ffi::OsStr;
 use std::io;
@@ -34,6 +34,7 @@ pub struct MaintenanceReport {
     pub removed: Vec<Lease>,
     pub lost_names: Vec<NameLost>,
     pub restore: Option<RestoreStats>,
+    pub host_files: Vec<HostFileError>,
 }
 
 pub struct LocalProvider {
@@ -41,6 +42,9 @@ pub struct LocalProvider {
     leases: LeaseStore,
     states: Vec<ContextState>,
     hosts: Vec<HostPolicy>,
+    inline_hosts: Vec<HostConfig>,
+    host_files: HostFiles,
+    host_files_ready: bool,
     reserved: Vec<Ipv4Addr>,
     domains: NameDomains,
     reply_hostname: Option<Vec<u8>>,
@@ -93,25 +97,10 @@ impl LocalProvider {
         Ok(Self {
             leases,
             states: config.ranges.iter().map(ContextState::new).collect(),
-            hosts: config
-                .hosts
-                .iter()
-                .map(|host| HostPolicy {
-                    address: host.address,
-                    lease_time: host.lease_time,
-                    declined_at: None,
-                    hardware_addresses: host
-                        .hardware
-                        .iter()
-                        .map(|hardware| ClientIdentity {
-                            hardware_type: hardware.kind,
-                            hardware_address: hardware.address.clone(),
-                            client_id: None,
-                        })
-                        .collect(),
-                    ignore_client_id: host.ignore_client_id,
-                })
-                .collect(),
+            hosts: config.hosts.iter().map(host_policy).collect(),
+            inline_hosts: config.hosts.clone(),
+            host_files: HostFiles::new(&config.host_files),
+            host_files_ready: true,
             reserved: config
                 .hosts
                 .iter()
@@ -206,50 +195,20 @@ impl LocalProvider {
             removed,
             lost_names,
             restore: None,
+            host_files: Vec::new(),
         }
     }
 
     /// Complete startup after socket setup and publisher attachment. Calling
     /// it again is harmless and does not replay removed-lease ownership.
     pub fn initialize(&mut self, now: i64) -> MaintenanceReport {
+        let mut host_files = Vec::new();
         if !self.initialized {
             self.leases
                 .initialize_fqdns(|address| self.domains.for_address(address));
-            // lease.c lease_update_from_configs runs without a context chain:
-            // a configured name is restored only for its own fixed address.
-            let names: Vec<_> = self
-                .leases
-                .active_newest_first()
-                .iter()
-                .filter_map(|lease| {
-                    let index = self.config.find_host(
-                        lease.identity.client_id.as_deref(),
-                        lease.identity.hardware_type,
-                        Some(&lease.identity.hardware_address),
-                        |_| true,
-                    )?;
-                    let host = &self.config.hosts[index];
-                    (host.address.is_none_or(|address| address == lease.address))
-                        .then(|| {
-                            host.hostname
-                                .as_ref()
-                                .map(|name| (lease.address, name.clone()))
-                        })
-                        .flatten()
-                })
-                .collect();
-            for (address, name) in names {
-                // Addresses were taken from this store and no removal occurs
-                // during the loop, so set_hostname cannot fail NotFound.
-                self.leases
-                    .set_hostname(
-                        address,
-                        Some(&name),
-                        true,
-                        self.domains.for_address(address),
-                        false,
-                    )
-                    .expect("restored lease remains present during configured-name update");
+            host_files = self.reread_host_files();
+            if self.host_files_ready {
+                self.update_configured_names();
             }
         }
         self.initialized = true;
@@ -257,6 +216,88 @@ impl LocalProvider {
         removed.extend(self.leases.prune(None, now));
         let mut report = self.maintain(now, removed, true);
         report.restore = self.restore_stats.take();
+        report.host_files = host_files;
+        report
+    }
+
+    fn update_configured_names(&mut self) {
+        // lease.c lease_update_from_configs runs without a context chain:
+        // a configured name is restored only for its own fixed address. Removing
+        // a rule does not delete its lease or the lease's previous name.
+        let names: Vec<_> = self
+            .leases
+            .active_newest_first()
+            .iter()
+            .filter_map(|lease| {
+                let index = self.config.find_host(
+                    lease.identity.client_id.as_deref(),
+                    lease.identity.hardware_type,
+                    Some(&lease.identity.hardware_address),
+                    |_| true,
+                )?;
+                let host = &self.config.hosts[index];
+                (host.address.is_none_or(|address| address == lease.address))
+                    .then(|| {
+                        host.hostname
+                            .as_ref()
+                            .map(|name| (lease.address, name.clone()))
+                    })
+                    .flatten()
+            })
+            .collect();
+        for (address, name) in names {
+            // Addresses were taken from this store and no removal occurs
+            // during the loop, so set_hostname cannot fail NotFound.
+            self.leases
+                .set_hostname(
+                    address,
+                    Some(&name),
+                    true,
+                    self.domains.for_address(address),
+                    false,
+                )
+                .expect("restored lease remains present during configured-name update");
+        }
+    }
+
+    fn reread_host_files(&mut self) -> Vec<HostFileError> {
+        let report = self.host_files.reload(&self.inline_hosts);
+        self.host_files_ready = report.ready();
+        if self.host_files_ready {
+            // C frees CONFIG_BANK records and their DECLINE state; unchanged
+            // command-line/main records retain theirs across SIGHUP.
+            let inline = self
+                .hosts
+                .split_off(self.hosts.len() - self.inline_hosts.len());
+            self.hosts = report.hosts[..report.hosts.len() - self.inline_hosts.len()]
+                .iter()
+                .map(host_policy)
+                .collect();
+            self.hosts.extend(inline);
+            self.reserved = report
+                .hosts
+                .iter()
+                .filter_map(|host| host.address)
+                .collect();
+            self.config.hosts = report.hosts;
+        }
+        report.errors
+    }
+
+    /// SIGHUP data-file stage, after the caller reloads DNS hosts and before
+    /// acknowledging its reload generation. The main configuration is retained.
+    /// Unsupported valid-C selectors pause DHCP admission until a later valid
+    /// reload; never serve a partially widened rule set.
+    pub fn reload_host_files(&mut self, now: i64) -> MaintenanceReport {
+        if !self.initialized {
+            return self.initialize(now);
+        }
+        let host_files = self.reread_host_files();
+        if self.host_files_ready {
+            self.update_configured_names();
+        }
+        let mut report = self.maintain(now, Vec::new(), true);
+        report.host_files = host_files;
         report
     }
 
@@ -276,6 +317,24 @@ impl LocalProvider {
     }
 }
 
+fn host_policy(host: &HostConfig) -> HostPolicy {
+    HostPolicy {
+        address: host.address,
+        lease_time: host.lease_time,
+        declined_at: None,
+        hardware_addresses: host
+            .hardware
+            .iter()
+            .map(|hardware| ClientIdentity {
+                hardware_type: hardware.kind,
+                hardware_address: hardware.address.clone(),
+                client_id: None,
+            })
+            .collect(),
+        ignore_client_id: host.ignore_client_id,
+    }
+}
+
 fn epoch_seconds() -> i64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -284,6 +343,13 @@ fn epoch_seconds() -> i64 {
 
 impl OutcomeProvider for LocalProvider {
     fn resolve(&mut self, dispatch: &Dispatch<'_>) -> Result<Outcome, RuntimeError> {
+        if !self.host_files_ready {
+            return Ok(Outcome {
+                reply: Reply::Ignore,
+                removed: Vec::new(),
+                lost_names: Vec::new(),
+            });
+        }
         let interface = dispatch.ingress.interface_index;
         let mut addresses =
             ipv4_interfaces().map_err(|error| RuntimeError::State(error.to_string()))?;

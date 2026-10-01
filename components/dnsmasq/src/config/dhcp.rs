@@ -10,6 +10,9 @@ use std::net::Ipv4Addr;
 #[path = "dhcp_host.rs"]
 mod host;
 pub use host::{HardwareAddress, HostConfig};
+#[path = "dhcp_host_files.rs"]
+mod host_files;
+pub use host_files::{HostFileError, HostFileErrorKind, HostFiles, HostReload};
 
 /// A validated copy of only the DNS address-to-domain fields. Keeping these
 /// fields in DnsConfig reuses its audited selector ordering and matching.
@@ -51,6 +54,8 @@ pub struct DhcpConfig {
     pub ranges: Vec<RangeConfig>,
     /// Last directive first, matching daemon->dhcp_conf.
     pub hosts: Vec<HostConfig>,
+    /// Last configured path first, as in daemon->dhcp_hosts_file.
+    pub host_files: Vec<Vec<u8>>,
     pub authoritative: bool,
     pub bootp_dynamic: bool,
     pub sequential: bool,
@@ -66,6 +71,7 @@ impl Default for DhcpConfig {
         Self {
             ranges: Vec::new(),
             hosts: Vec::new(),
+            host_files: Vec::new(),
             authoritative: false,
             bootp_dynamic: false,
             sequential: false,
@@ -204,6 +210,13 @@ impl DhcpConfig {
                     HostConfig::parse(argument.ok_or(Error("missing parameter"))?, &self.hosts)?;
                 self.hosts.insert(0, host);
             }
+            b"dhcp-hostsfile" => {
+                let value = argument.ok_or(Error("missing parameter"))?.decoded();
+                if value.is_empty() || value == b"-" {
+                    return Err(Error("DHCP hosts file requires a nonempty file path"));
+                }
+                self.host_files.insert(0, value);
+            }
             b"dhcp-option"
             | b"dhcp-option-force"
             | b"dhcp-boot"
@@ -212,7 +225,6 @@ impl DhcpConfig {
             | b"dhcp-match"
             | b"dhcp-name-match"
             | b"dhcp-ignore"
-            | b"dhcp-hostsfile"
             | b"dhcp-hostsdir"
             | b"dhcp-optsfile"
             | b"dhcp-optsdir"
@@ -232,6 +244,11 @@ impl DhcpConfig {
     }
 
     pub fn validate_ready(&self) -> Result<(), Error> {
+        if !self.host_files.is_empty() {
+            return Err(Error(
+                "DHCP hosts file reload is not connected to the main loop",
+            ));
+        }
         // A parsed range can omit its mask. Serving-interface discovery and
         // runtime capability checks belong to the listener's admission gate.
         Ok(())
