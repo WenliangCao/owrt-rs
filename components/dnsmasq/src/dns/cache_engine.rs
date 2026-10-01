@@ -700,7 +700,14 @@ impl CacheContext<'_> {
                         }
                         data.to_vec()
                     } else {
-                        rr.canonical_rdata()?
+                        match rr.canonical_rdata() {
+                            Ok(data) => data,
+                            // Compression expansion can exceed the cache's
+                            // representable RDATA length without making the
+                            // original wire reply invalid. Keep forwarding it.
+                            Err(WireError::RecordTooLong) => return Ok(()),
+                            Err(error) => return Err(error),
+                        }
                     };
                     let inserted = insert_cache_record(
                         cache,
