@@ -68,6 +68,39 @@ sudo -n sh tools/dnsmasq/run_isolated.sh \
 This stage does not close the previously missing ACK/INFORM `host_from_dns`
 reverse-static-host lookup. That needs its own C baseline and shared DNS hook;
 it must not use dynamic DHCP names or a system resolver as a substitute.
-A stronger file/DNS-maintenance order observer is also pending; external ubusd
-arrival order is not used as proof of source order. No whole-daemon, resource,
+The instrumented maintenance-order observer below closes the earlier pending
+file/DNS order check; external ubusd arrival order is never used as that proof. No whole-daemon, resource,
 performance or physical-router acceptance claim follows from these passes.
+
+
+## File/DNS/send ordering observer
+
+`dhcp_event_order_probe` uses the actual `LocalProvider`, real lease file and
+runtime, with an instrumented DNS publisher and a sender that deliberately
+fails. At the ACK callback it asserts the old file is still empty; at DNS
+publication it asserts the committed lease is already in the file. The sender
+asserts both callback and DNS publication have finished. RELEASE then asserts
+that the old file still contains the lease at its source callback, and that
+the file is empty before the DNS removal publication. The final trace is
+`ack → dns → failing send → release → dns`; the file assertions distinguish
+the intervening persistence points. These expectations are fixed from
+`dhcp.c:373–377` and the already C-verified source callsites, not inferred from
+Rust output or broker scheduling.
+
+- `events-order-02`: observer assertions and **3/3** external checks pass.
+- `events-order-calibration-01`: swapping the independently expected source/DNS
+  order gives **2 passes / 1 failure**, exit 1.
+- `events-order-missing-probe-01`: a missing executable is **0 passes / 1
+  failure / 2 unexecuted**, exit 1; it cannot become a false zero-case success.
+- `events-order-freeze-02`: successful observer build; ELF SHA-256
+  `e0e6b71df2671d1ac9f7a3c89881819a045526295987fb05752efb044b95e4dd`;
+  source-manifest SHA-256
+  `f941bd790ff1dd6edbea095858261305bc823c572148af433aec11f332d71766`.
+- The first probe build failed because an inner doc comment was used inside
+  `include!`. Its build log and the attempted missing-binary run are retained
+  in `events-order-freeze-01` / `events-order-01`; neither is a pass.
+
+Reproduce with `run_isolated.sh python3 tools/dnsmasq/dhcp_event_order_check.py
+--probe "$ORDER_PROBE" --output private/dhcp-event-order`. The runner adds only
+a synthetic address to the fresh namespace's loopback. This is an instrumented
+source-order check, not a C/Rust network-arrival timing claim.
