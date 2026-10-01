@@ -1,0 +1,353 @@
+{
+  "planned": 12,
+  "c_observations": 12,
+  "matched": 12,
+  "failures": [],
+  "reference": {
+    "kind": "native-glibc",
+    "elf_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431"
+  },
+  "tool_sha256": "755cc342b4e53fe6477e3f54d87ad20c84e547ffa8aeb99a26726d2e1dff6fef",
+  "subscriber_sha256": "a48d507c5f216adc300ebc6852768b043d564d98a7f0aab7b6ccd9602af3bc2f",
+  "c_resources": {
+    "closed_metrics": {
+      "dns_cache_inserted": 8,
+      "dns_cache_live_freed": 0,
+      "dns_queries_forwarded": 2,
+      "dns_auth_answered": 0,
+      "dns_local_answered": 2,
+      "dns_stale_answered": 0,
+      "dns_unanswered": 0,
+      "dnssec_max_crypto_use": 0,
+      "dnssec_max_sig_fail": 0,
+      "dnssec_max_work": 0,
+      "bootp": 0,
+      "pxe": 0,
+      "dhcp_ack": 0,
+      "dhcp_decline": 0,
+      "dhcp_discover": 0,
+      "dhcp_inform": 0,
+      "dhcp_nak": 0,
+      "dhcp_offer": 0,
+      "dhcp_release": 0,
+      "dhcp_request": 0,
+      "noanswer": 0,
+      "leases_allocated_4": 0,
+      "leases_pruned_4": 0,
+      "leases_allocated_6": 0,
+      "leases_pruned_6": 0,
+      "tcp_connections": 0,
+      "dhcp_leasequery": 0,
+      "dhcp_lease_unassigned": 0,
+      "dhcp_lease_actve": 0,
+      "dhcp_lease_unknown": 0
+    },
+    "children_after_close": [],
+    "parent_fds": 15
+  },
+  "negative_calibration": [
+    "two-buffered-held",
+    "slot-order-parent-winner"
+  ],
+  "rust_resources": {
+    "closed_metrics": {
+      "dns_cache_inserted": 8,
+      "dns_cache_live_freed": 0,
+      "dns_queries_forwarded": 2,
+      "dns_auth_answered": 0,
+      "dns_local_answered": 2,
+      "dns_stale_answered": 0,
+      "dns_unanswered": 0,
+      "dnssec_max_crypto_use": 0,
+      "dnssec_max_sig_fail": 0,
+      "dnssec_max_work": 0,
+      "bootp": 0,
+      "pxe": 0,
+      "dhcp_ack": 0,
+      "dhcp_decline": 0,
+      "dhcp_discover": 0,
+      "dhcp_inform": 0,
+      "dhcp_nak": 0,
+      "dhcp_offer": 0,
+      "dhcp_release": 0,
+      "dhcp_request": 0,
+      "noanswer": 0,
+      "leases_allocated_4": 0,
+      "leases_pruned_4": 0,
+      "leases_allocated_6": 0,
+      "leases_pruned_6": 0,
+      "tcp_connections": 0,
+      "dhcp_leasequery": 0,
+      "dhcp_lease_unassigned": 0,
+      "dhcp_lease_actve": 0,
+      "dhcp_lease_unknown": 0
+    },
+    "children_after_close": [],
+    "parent_fds": 7
+  },
+  "rust_sha256": "21d2a14a0690332958bbf381f0047bc6cc81d4cc1660d6effa017b2ea8462a6d",
+  "candidate_commit": "86b81ab",
+  "baseline_commit": "cfbdd19",
+  "raw_directory": "private/tcp-writeback-gates/paired-final-86b81ab-01",
+  "raw_sha256": {
+    "c/trace.json": "14d09b884eccc41af1376a70d3ba4ca4e900cb95805544dad793afb3ec72f87c",
+    "c/writeback-subscriber.log": "fb2bb4d437695b849b48157f76cc09bc6f53e644bbdcc35ddf615c463b685e91",
+    "rust/trace.json": "dc192bd543c9196546e09a931f4904e33d1a9f7d604fd862fe6440bc9dda0aca",
+    "rust/writeback-subscriber.log": "e5c9709dd303d0012a297be39c1b0503821aa4a1f1d778ac15774c8c454eefaf",
+    "result.json": "f9911bcffd999085711e5f572269368996e24643150d309bf03daa3a40f1a3db"
+  },
+  "observations": {
+    "c": [
+      {
+        "label": "prewarm-first",
+        "answers": [
+          "192.0.2.1"
+        ],
+        "upstream_requests": 1
+      },
+      {
+        "label": "two-buffered-child-11",
+        "answers": [
+          "192.0.2.11"
+        ],
+        "upstream_requests": 1
+      },
+      {
+        "label": "two-buffered-child-12",
+        "answers": [
+          "192.0.2.12"
+        ],
+        "upstream_requests": 1
+      },
+      {
+        "label": "two-buffered-held",
+        "answers": [
+          "192.0.2.250"
+        ],
+        "upstream_requests": 3,
+        "held_ns": 322843,
+        "subscriber_held_ns": 379843,
+        "before": {
+          "dns_cache_inserted": 1,
+          "dns_queries_forwarded": 0,
+          "dns_local_answered": 0,
+          "tcp_connections": 1
+        },
+        "during": {
+          "dns_cache_inserted": 1,
+          "dns_queries_forwarded": 1,
+          "dns_local_answered": 0,
+          "tcp_connections": 1
+        },
+        "after": {
+          "dns_cache_inserted": 4,
+          "dns_queries_forwarded": 1,
+          "dns_local_answered": 0,
+          "tcp_connections": 1
+        }
+      },
+      {
+        "label": "buffer-one-parent-hit",
+        "answers": [
+          "192.0.2.11"
+        ],
+        "upstream_requests": 0
+      },
+      {
+        "label": "buffer-two-parent-hit",
+        "answers": [
+          "192.0.2.12"
+        ],
+        "upstream_requests": 0
+      },
+      {
+        "label": "prewarm-second",
+        "answers": [
+          "192.0.2.1"
+        ],
+        "upstream_requests": 1
+      },
+      {
+        "label": "slot-order-child-21",
+        "answers": [
+          "192.0.2.21"
+        ],
+        "upstream_requests": 1
+      },
+      {
+        "label": "slot-order-child-22",
+        "answers": [
+          "192.0.2.22"
+        ],
+        "upstream_requests": 1
+      },
+      {
+        "label": "slot-order-held",
+        "answers": [
+          "192.0.2.250"
+        ],
+        "upstream_requests": 3,
+        "held_ns": 406163,
+        "subscriber_held_ns": 467803,
+        "before": {
+          "dns_cache_inserted": 5,
+          "dns_queries_forwarded": 1,
+          "dns_local_answered": 2,
+          "tcp_connections": 2
+        },
+        "during": {
+          "dns_cache_inserted": 5,
+          "dns_queries_forwarded": 2,
+          "dns_local_answered": 2,
+          "tcp_connections": 2
+        },
+        "after": {
+          "dns_cache_inserted": 8,
+          "dns_queries_forwarded": 2,
+          "dns_local_answered": 2,
+          "tcp_connections": 0
+        }
+      },
+      {
+        "label": "slot-order-parent-winner",
+        "answers": [
+          "192.0.2.21"
+        ],
+        "upstream_requests": 0
+      },
+      {
+        "label": "replacement-inherits-winner",
+        "answers": [
+          "192.0.2.21"
+        ],
+        "upstream_requests": 0
+      }
+    ],
+    "rust": [
+      {
+        "label": "prewarm-first",
+        "answers": [
+          "192.0.2.1"
+        ],
+        "upstream_requests": 1
+      },
+      {
+        "label": "two-buffered-child-11",
+        "answers": [
+          "192.0.2.11"
+        ],
+        "upstream_requests": 1
+      },
+      {
+        "label": "two-buffered-child-12",
+        "answers": [
+          "192.0.2.12"
+        ],
+        "upstream_requests": 1
+      },
+      {
+        "label": "two-buffered-held",
+        "answers": [
+          "192.0.2.250"
+        ],
+        "upstream_requests": 3,
+        "held_ns": 578045,
+        "subscriber_held_ns": 677765,
+        "before": {
+          "dns_cache_inserted": 1,
+          "dns_queries_forwarded": 0,
+          "dns_local_answered": 0,
+          "tcp_connections": 1
+        },
+        "during": {
+          "dns_cache_inserted": 1,
+          "dns_queries_forwarded": 1,
+          "dns_local_answered": 0,
+          "tcp_connections": 1
+        },
+        "after": {
+          "dns_cache_inserted": 4,
+          "dns_queries_forwarded": 1,
+          "dns_local_answered": 0,
+          "tcp_connections": 1
+        }
+      },
+      {
+        "label": "buffer-one-parent-hit",
+        "answers": [
+          "192.0.2.11"
+        ],
+        "upstream_requests": 0
+      },
+      {
+        "label": "buffer-two-parent-hit",
+        "answers": [
+          "192.0.2.12"
+        ],
+        "upstream_requests": 0
+      },
+      {
+        "label": "prewarm-second",
+        "answers": [
+          "192.0.2.1"
+        ],
+        "upstream_requests": 1
+      },
+      {
+        "label": "slot-order-child-21",
+        "answers": [
+          "192.0.2.21"
+        ],
+        "upstream_requests": 1
+      },
+      {
+        "label": "slot-order-child-22",
+        "answers": [
+          "192.0.2.22"
+        ],
+        "upstream_requests": 1
+      },
+      {
+        "label": "slot-order-held",
+        "answers": [
+          "192.0.2.250"
+        ],
+        "upstream_requests": 3,
+        "held_ns": 574405,
+        "subscriber_held_ns": 671125,
+        "before": {
+          "dns_cache_inserted": 5,
+          "dns_queries_forwarded": 1,
+          "dns_local_answered": 2,
+          "tcp_connections": 2
+        },
+        "during": {
+          "dns_cache_inserted": 5,
+          "dns_queries_forwarded": 2,
+          "dns_local_answered": 2,
+          "tcp_connections": 2
+        },
+        "after": {
+          "dns_cache_inserted": 8,
+          "dns_queries_forwarded": 2,
+          "dns_local_answered": 2,
+          "tcp_connections": 2
+        }
+      },
+      {
+        "label": "slot-order-parent-winner",
+        "answers": [
+          "192.0.2.21"
+        ],
+        "upstream_requests": 0
+      },
+      {
+        "label": "replacement-inherits-winner",
+        "answers": [
+          "192.0.2.21"
+        ],
+        "upstream_requests": 0
+      }
+    ]
+  }
+}
