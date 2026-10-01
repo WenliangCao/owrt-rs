@@ -100,14 +100,10 @@ def run(binary, scenario, config, leasefile, hostsfile, output, upstream):
     try:
         daemon.start()
         if scenario == 'idle-expiry':
-            # Initialization is asynchronous in the Rust development runner;
-            # readiness is the known lease answer before any maintenance test.
-            until=time.monotonic()+3
-            while time.monotonic()<until:
-                _, reply=ask('restored9.leases.test',1,0x4001)
-                if any(item['data']=='127.0.0.19' for item in reply['records']): break
-                time.sleep(.01)
-            else: raise AssertionError('restored DNS name was not published')
+            # The first request after socket readiness must already observe
+            # restored names. Do not wait for a late publication to catch up.
+            _, reply=ask('restored9.leases.test',1,0x4001)
+            assert any(item['data']=='127.0.0.19' for item in reply['records']), 'restored DNS name was not published before serving'
             dns('restored-short','restored9'); dns('restored-fqdn','restored9.leases.test',tcp=True)
             dns('restored-ptr','19.0.0.127.in-addr.arpa',12)
             daemon.wait_rows(lambda value:not value,12)

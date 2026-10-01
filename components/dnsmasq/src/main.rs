@@ -57,8 +57,31 @@ fn main() {
     let args: Vec<OsString> = std::env::args_os().skip(1).collect();
     if let Err(error) = run(&args) {
         eprintln!("dnsmasq-rs: {error}");
-        std::process::exit(1);
+        std::process::exit(startup_status(error.as_ref()));
     }
+}
+
+#[derive(Debug)]
+struct NetworkStartupError(io::Error);
+
+impl std::fmt::Display for NetworkStartupError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(formatter)
+    }
+}
+impl std::error::Error for NetworkStartupError {}
+
+fn startup_status(error: &(dyn std::error::Error + 'static)) -> i32 {
+    // dnsmasq.h: EC_BADCONF=1, EC_BADNET=2. Other initialization boundaries
+    // supply their own code rather than guessing from an errno alone.
+    if error.is::<NetworkStartupError>() {
+        return 2;
+    }
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    if let Some(error) = error.downcast_ref::<dnsmasq_rs::dhcp::daemon::StartupError>() {
+        return error.exit_code();
+    }
+    1
 }
 
 struct Runtime {
@@ -72,7 +95,7 @@ struct Runtime {
 // connection takes its own snapshot; a later reload does not change it.
 struct ParentDns {
     local: LocalDnsService,
-    daemon: DnsDaemon,
+    daemon: Option<DnsDaemon>,
 }
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -92,6 +115,9 @@ impl dnsmasq_rs::dhcp::persistence::DnsPublisher for LeasePublisher {
             .lock()
             .map_err(|_| io::Error::other("DNS state lock poisoned"))?;
         let ParentDns { local, daemon } = &mut *parent;
+        let daemon = daemon
+            .as_mut()
+            .ok_or_else(|| io::Error::other("DNS publication is disabled"))?;
         let names = daemon.publish_lease_names(
             records,
             &mut local.hosts,
@@ -159,7 +185,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             println!("dnsmasq-rs 0.1.0");
             println!("Mode: development DNS daemon");
             println!("Implemented: DNS UDP/TCP, cache subsets, DHCPv4 listener boundary and TFTP transfer listener");
-            println!("Not implemented: full DNS cache/fallback policy, DHCP relay/PXE/leasequery, UBus, full reload and metrics");
+            println!("Not implemented: full DNS cache/reload policy, DHCP relay/PXE/leasequery, UBus and metrics");
             return Ok(());
         }
         Action::Help | Action::HelpDhcp => {
@@ -180,12 +206,18 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     runtime.tftp.validate_ready()?;
     runtime.dhcp.validate_ready()?;
     validate_runtime_ready(&runtime.scalar, &runtime.dns)?;
-    if runtime.scalar.dns_port == 0 {
-        return Err(Box::new(Error("port=0 is not supported by the listener")));
-    }
-    let hosts = read_hosts(&runtime.dns, runtime.scalar.local_ttl);
-    let resolvers = read_resolvers(&runtime.dns)?;
-    if !runtime.dns.no_resolv && resolvers.is_empty() {
+    let dns_enabled = runtime.scalar.dns_port != 0;
+    let hosts = if dns_enabled {
+        read_hosts(&runtime.dns, runtime.scalar.local_ttl)
+    } else {
+        Hosts::new()
+    };
+    let resolvers = if dns_enabled {
+        read_resolvers(&runtime.dns)?
+    } else {
+        Vec::new()
+    };
+    if dns_enabled && !runtime.dns.no_resolv && resolvers.is_empty() {
         return Err(Box::new(Error("no nameserver in resolver files")));
     }
     let addresses = bind_addresses(&runtime.dns, runtime.scalar.dns_port);
@@ -211,26 +243,31 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     };
     // C has one parent forward table and cache across all listener sockets.
     // Capacity and duplicate-query admission must not grow with listen-address.
-    let mut daemon = DnsDaemon::new(
-        daemon_config.clone(),
-        daemon_hosts,
-        &resolvers,
-        daemon_options,
-    )?;
-    daemon.enable_cache(
-        usize::try_from(runtime.scalar.cache_size).unwrap_or(usize::MAX),
-        runtime.scalar.min_cache_ttl,
-        runtime.scalar.max_cache_ttl,
-        match runtime.scalar.stale_cache {
-            StaleCache::Disabled => StalePolicy::Disabled,
-            StaleCache::Until(seconds) => StalePolicy::Seconds(seconds),
-            StaleCache::Forever => StalePolicy::Forever,
-        },
-    );
-    daemon.enable_negative_cache(
-        runtime.scalar.negative_ttl,
-        !daemon_config.no_negative_cache,
-    );
+    let daemon = if dns_enabled {
+        let mut daemon = DnsDaemon::new(
+            daemon_config.clone(),
+            daemon_hosts,
+            &resolvers,
+            daemon_options,
+        )?;
+        daemon.enable_cache(
+            usize::try_from(runtime.scalar.cache_size).unwrap_or(usize::MAX),
+            runtime.scalar.min_cache_ttl,
+            runtime.scalar.max_cache_ttl,
+            match runtime.scalar.stale_cache {
+                StaleCache::Disabled => StalePolicy::Disabled,
+                StaleCache::Until(seconds) => StalePolicy::Seconds(seconds),
+                StaleCache::Forever => StalePolicy::Forever,
+            },
+        );
+        daemon.enable_negative_cache(
+            runtime.scalar.negative_ttl,
+            !daemon_config.no_negative_cache,
+        );
+        Some(daemon)
+    } else {
+        None
+    };
     let service = Arc::new(Mutex::new(ParentDns {
         local: LocalDnsService::new_with_limits(
             runtime.dns,
@@ -248,15 +285,114 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     let mut dhcp_provider = None;
     let mut workers = Vec::new();
+    #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
+    if !dhcp_config.ranges.is_empty() {
+        return Err(Box::new(Error("DHCP listener requires 64-bit Linux")));
+    }
+    #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
+    if tftp_config.enabled && !tftp_config.no_fail {
+        return Err(Box::new(Error("TFTP listener requires 64-bit Linux")));
+    }
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    let dhcp_runtime = if !dhcp_config.ranges.is_empty() {
+        let mut provider = DhcpProvider::new(
+            dhcp_config,
+            daemon_config.listen_addresses.clone(),
+            runtime.scalar.dns_port,
+            || STOP_REQUESTED.load(Ordering::Acquire),
+        )?;
+        provider.set_dns_config(&daemon_config)?;
+        if dns_enabled {
+            provider.set_dns_publisher(Box::new(LeasePublisher {
+                parent: Arc::clone(&service),
+                policy: LeasePolicy {
+                    local_ttl: runtime.scalar.local_ttl,
+                    dhcp_ttl: runtime.scalar.dhcp_ttl,
+                    no_round_robin: daemon_config.no_round_robin,
+                    stale: match runtime.scalar.stale_cache {
+                        StaleCache::Disabled => StalePolicy::Disabled,
+                        StaleCache::Until(seconds) => StalePolicy::Seconds(seconds),
+                        StaleCache::Forever => StalePolicy::Forever,
+                    },
+                },
+            }));
+        }
+        let shared_provider = Arc::new(Mutex::new(provider));
+        dhcp_provider = Some(Arc::clone(&shared_provider));
+        // dhcp_init binds INADDR_ANY even with listen-address: initial
+        // clients send broadcasts, and interface admission happens later.
+        let listener = DhcpSocketListener::bind(
+            SocketAddr::from((std::net::Ipv4Addr::UNSPECIFIED, 67)),
+            DhcpListener::Dhcp,
+            &[],
+        )
+        .map_err(NetworkStartupError)?;
+        Some((shared_provider, listener))
+    } else {
+        None
+    };
+    // C opens/restores the lease file and binds DHCP before its DNS sockets.
     // Open all UDP/TCP listeners before starting workers. A setup error drops
     // every socket without leaving an already-running partial service.
     let mut listeners = Vec::new();
     for address in addresses {
-        let udp = UdpSocket::bind(address)?;
-        udp.set_read_timeout(Some(Duration::from_millis(50)))?;
-        let tcp = TcpListener::bind(address)?;
-        tcp.set_nonblocking(true)?;
+        let udp = UdpSocket::bind(address).map_err(NetworkStartupError)?;
+        udp.set_read_timeout(Some(Duration::from_millis(50)))
+            .map_err(NetworkStartupError)?;
+        let tcp = TcpListener::bind(address).map_err(NetworkStartupError)?;
+        tcp.set_nonblocking(true).map_err(NetworkStartupError)?;
         listeners.push((address, Arc::new(udp), tcp));
+    }
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    let tftp_listener = if tftp_config.enabled {
+        let bind_ip = daemon_config
+            .listen_addresses
+            .iter()
+            .copied()
+            .find(IpAddr::is_ipv4)
+            .unwrap_or(IpAddr::V4(std::net::Ipv4Addr::UNSPECIFIED));
+        let runtime_config = RuntimeConfig {
+            path: RuntimePathPolicy {
+                prefix: tftp_config.root.clone(),
+                lowercase: tftp_config.lowercase,
+            },
+            packet_buffer_size: 8192,
+            mtu: tftp_config.mtu,
+            ipv6: false,
+            no_block_size: tftp_config.no_block_size,
+            effective_uid: 0,
+            secure: tftp_config.secure,
+            max_transfers: tftp_config.max_transfers,
+            single_port: tftp_config.single_port,
+        };
+        let runtime = TransferRuntime::new(
+            runtime_config.clone(),
+            RealFileOpener::new(runtime_config.effective_uid, runtime_config.secure),
+        );
+        match TftpListener::bind_with_port_range(
+            SocketAddr::new(bind_ip, 69),
+            runtime,
+            tftp_config.port_range,
+        ) {
+            Ok(listener) => Some(listener),
+            Err(error) if tftp_config.no_fail => {
+                eprintln!("dnsmasq-rs: TFTP disabled: {error}");
+                None
+            }
+            Err(error) => return Err(Box::new(NetworkStartupError(error))),
+        }
+    } else {
+        None
+    };
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    if let Some((provider, _)) = &dhcp_runtime {
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map_or(0, |time| time.as_secs() as i64);
+        let mut provider = provider
+            .lock()
+            .map_err(|_| io::Error::other("DHCP state lock poisoned"))?;
+        report_dhcp_maintenance(&provider.initialize(now));
     }
     let udp_sockets: Arc<Vec<_>> = Arc::new(
         listeners
@@ -297,11 +433,12 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                 break;
                             };
                             let ParentDns { local, daemon } = &mut *parent;
+                            let daemon = daemon.as_mut().expect("DNS listener owns the forwarder");
                             let answer = incoming.and_then(|(length, peer)| {
                                 let packet = &query[..length];
                                 let answer = match local.handle_udp(packet) {
                                     Ok(Some(answer)) => Some(answer),
-                                    Ok(None) => match daemon.forward_udp_on_listener(
+                                    Ok(None) => match daemon.forward_udp_on_listener_with_local(
                                         packet,
                                         ClientRequest {
                                             source: peer,
@@ -309,6 +446,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                             interface: 0,
                                         },
                                         Some(listener),
+                                        local,
                                     ) {
                                         Ok(
                                             QueryResult::Local(answer)
@@ -507,37 +645,8 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         );
     }
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    if !dhcp_config.ranges.is_empty() {
-        let mut provider = DhcpProvider::new(
-            dhcp_config,
-            daemon_config.listen_addresses.clone(),
-            runtime.scalar.dns_port,
-            || STOP_REQUESTED.load(Ordering::Acquire),
-        )?;
-        provider.set_dns_config(&daemon_config)?;
-        provider.set_dns_publisher(Box::new(LeasePublisher {
-            parent: Arc::clone(&service),
-            policy: LeasePolicy {
-                local_ttl: runtime.scalar.local_ttl,
-                dhcp_ttl: runtime.scalar.dhcp_ttl,
-                no_round_robin: daemon_config.no_round_robin,
-                stale: match runtime.scalar.stale_cache {
-                    StaleCache::Disabled => StalePolicy::Disabled,
-                    StaleCache::Until(seconds) => StalePolicy::Seconds(seconds),
-                    StaleCache::Forever => StalePolicy::Forever,
-                },
-            },
-        }));
-        let shared_provider = Arc::new(Mutex::new(provider));
-        dhcp_provider = Some(Arc::clone(&shared_provider));
+    if let Some((shared_provider, mut listener)) = dhcp_runtime {
         let dhcp_events = Arc::clone(&parent_events);
-        // dhcp_init binds INADDR_ANY even with listen-address: initial
-        // clients send broadcasts, and interface admission happens later.
-        let mut listener = DhcpSocketListener::bind(
-            SocketAddr::from((std::net::Ipv4Addr::UNSPECIFIED, 67)),
-            DhcpListener::Dhcp,
-            &[],
-        )?;
         workers.push(
             thread::Builder::new()
                 .name("dhcp-listener".into())
@@ -587,73 +696,31 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                 })?,
         );
     }
-    #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
-    if !dhcp_config.ranges.is_empty() {
-        return Err(Box::new(Error("DHCP listener requires 64-bit Linux")));
-    }
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    if tftp_config.enabled {
-        let bind_ip = daemon_config
-            .listen_addresses
-            .iter()
-            .copied()
-            .find(IpAddr::is_ipv4)
-            .unwrap_or(IpAddr::V4(std::net::Ipv4Addr::UNSPECIFIED));
-        let runtime_config = RuntimeConfig {
-            path: RuntimePathPolicy {
-                prefix: tftp_config.root.clone(),
-                lowercase: tftp_config.lowercase,
-            },
-            packet_buffer_size: 8192,
-            mtu: tftp_config.mtu,
-            ipv6: false,
-            no_block_size: tftp_config.no_block_size,
-            effective_uid: 0,
-            secure: tftp_config.secure,
-            max_transfers: tftp_config.max_transfers,
-            single_port: tftp_config.single_port,
-        };
-        let runtime = TransferRuntime::new(
-            runtime_config.clone(),
-            RealFileOpener::new(runtime_config.effective_uid, runtime_config.secure),
-        );
-        match TftpListener::bind_with_port_range(
-            SocketAddr::new(bind_ip, 69),
-            runtime,
-            tftp_config.port_range,
-        ) {
-            Ok(mut listener) => {
-                workers.push(thread::Builder::new().name("tftp-listener".into()).spawn(
-                    move || {
-                        while !STOP_REQUESTED.load(Ordering::Acquire) {
-                            let now = SystemTime::now()
-                                .duration_since(UNIX_EPOCH)
-                                .map_or(0, |duration| duration.as_secs());
-                            match listener.poll_once(now) {
-                                Ok(_) => thread::sleep(Duration::from_millis(1)),
-                                Err(error)
-                                    if matches!(
-                                        error.kind(),
-                                        io::ErrorKind::WouldBlock | io::ErrorKind::Interrupted
-                                    ) =>
-                                {
-                                    thread::sleep(Duration::from_millis(2))
-                                }
-                                Err(_) => break,
+    if let Some(mut listener) = tftp_listener {
+        workers.push(
+            thread::Builder::new()
+                .name("tftp-listener".into())
+                .spawn(move || {
+                    while !STOP_REQUESTED.load(Ordering::Acquire) {
+                        let now = SystemTime::now()
+                            .duration_since(UNIX_EPOCH)
+                            .map_or(0, |duration| duration.as_secs());
+                        match listener.poll_once(now) {
+                            Ok(_) => thread::sleep(Duration::from_millis(1)),
+                            Err(error)
+                                if matches!(
+                                    error.kind(),
+                                    io::ErrorKind::WouldBlock | io::ErrorKind::Interrupted
+                                ) =>
+                            {
+                                thread::sleep(Duration::from_millis(2))
                             }
+                            Err(_) => break,
                         }
-                    },
-                )?);
-            }
-            Err(error) if tftp_config.no_fail => {
-                eprintln!("dnsmasq-rs: TFTP disabled: {error}");
-            }
-            Err(error) => return Err(Box::new(error)),
-        }
-    }
-    #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
-    if tftp_config.enabled && !tftp_config.no_fail {
-        return Err(Box::new(Error("TFTP listener requires 64-bit Linux")));
+                    }
+                })?,
+        );
     }
     // `-k` is the normal OpenWrt invocation. Stop handlers let workers leave
     // their bounded receive loops and release sockets before exit.
@@ -664,16 +731,23 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                 .map_err(|_| io::Error::other("parent event lock poisoned"))?;
             // C SIGHUP rereads data files, not the main configuration. A
             // missing hosts source is logged and its old names disappear.
-            let hosts = read_hosts(&daemon_config, runtime.scalar.local_ttl);
-            if let Ok(mut parent) = service.lock() {
-                parent.daemon.reload_hosts(hosts.clone());
-                parent.local.hosts = hosts;
-                let ParentDns { local, daemon } = &mut *parent;
-                local.leases = Arc::new(daemon.rebuild_lease_names(
-                    &local.leases,
-                    &mut local.hosts,
-                    &local.config.records.cnames,
-                ));
+            if dns_enabled {
+                let hosts = read_hosts(&daemon_config, runtime.scalar.local_ttl);
+                if let Ok(mut parent) = service.lock() {
+                    parent
+                        .daemon
+                        .as_mut()
+                        .expect("DNS enabled")
+                        .reload_hosts(hosts.clone());
+                    parent.local.hosts = hosts;
+                    let ParentDns { local, daemon } = &mut *parent;
+                    local.leases =
+                        Arc::new(daemon.as_mut().expect("DNS enabled").rebuild_lease_names(
+                            &local.leases,
+                            &mut local.hosts,
+                            &local.config.records.cnames,
+                        ));
+                }
             }
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             if let Some(provider) = &dhcp_provider {
@@ -949,6 +1023,9 @@ fn read_hosts(config: &DnsConfig, local_ttl: u32) -> Hosts {
 }
 
 fn bind_addresses(config: &DnsConfig, port: u16) -> Vec<SocketAddr> {
+    if port == 0 {
+        return Vec::new();
+    }
     if config.listen_addresses.is_empty() {
         // OpenWrt's Linux IPv6 wildcard is dual-stack unless the administrator
         // explicitly requests v6-only. One listener therefore covers both
