@@ -58,5 +58,40 @@ terminal/partial sends and socket cleanup. A real nanosleep call checks the
 native timespec boundary. An initial test compile omitted the second unwrap
 of `Result<Option<Vec<u8>>>`; it ran no tests and was corrected before these
 results. The earlier host helper run remains separate from the final formatted
-source run. Linux replay and affected actual-daemon gates follow on a frozen
-commit; no target, performance or whole-component acceptance is claimed.
+source run. Target `aarch64-unknown-linux-musl` checking, the changed-file
+formatter check, Python compilation and the whitespace check also pass.
+
+## Frozen Linux replay
+
+Source commit `45a934a961266b2ef6771b43b873446a9448f40a` was built with native
+Linux aarch64 Rust 1.98.1. Release ELF SHA-256 is
+`0d7bad659dd8ae14fa664410da7f9117f3b59eeaa3049e4f8aca083e4c3a4009`.
+The product upstream.rs SHA-256 at this build is
+`9193160a246a244e4714254d2713762202765baf177a0426c4cd3a88c666a2b5`;
+the later safety-comment clarification changes no executable code.
+
+- `helper-paired-01`: 53/53 source-derived cases match, with the same 33,068
+  sends and 32,018 waits. `helper-negative-01` exits 1 with exactly one altered
+  wait trace and 52 matches. Both source and binary identities are recorded.
+- `dns-tests.log`: DNS tests inside a new loopback-only namespace pass
+  209/0/4 ignored, including all four new transport/wait regressions.
+- `daemon-paired-01`: the unchanged actual-daemon initial-failure gate passes
+  all seven profiles and 61/61 ordered observations. Real no-route and UDP
+  socket-EMFILE coverage remains satisfied, no poll EINVAL occurs, all 30
+  counter fields match, mixed-server success and unrelated pending recipients
+  survive, stale failure sends no second reply, and processes exit normally.
+  Its counter-mutation and missing-observation calibrations remain active.
+
+The native C ELF is unchanged:
+`bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431`.
+Private evidence is retained remotely at
+`/home/ubuntu/dns-resume-send-20261001/private/` and locally under the isolated
+`private/dnsmasq-rewrite/resume-send-retry-20261001/private/linux-45a934a/`.
+The host helper rounds are in that worktree's `private/send-retry-host-*`.
+
+The syscall wrapper is validated for the project's 64-bit Linux/Darwin hosts
+and aarch64 target contract. It is not a portability claim for 32-bit musl's
+time64 ABI. Transient send outcomes are controlled helper/transport evidence;
+the actual daemon replay covers hard failures, not naturally occurring EAGAIN
+or signals interrupting a real exhausted send sequence. No target execution,
+performance or whole-component acceptance is claimed.

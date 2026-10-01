@@ -946,7 +946,7 @@ fn wait_udp_retry() -> io::Result<()> {
         seconds: 0,
         nanoseconds: 10_000,
     };
-    // SAFETY: supported Linux/Darwin Unix ABIs use native longs in timespec.
+    // SAFETY: the validated 64-bit Linux/Darwin ABIs use longs in timespec.
     // request is valid for this call; null remaining discards unslept time,
     // matching C retry_send rather than hiding EINTR through thread::sleep.
     if unsafe { nanosleep(&request, std::ptr::null_mut()) } == 0 {
