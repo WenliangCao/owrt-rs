@@ -123,6 +123,12 @@ pub trait OutcomeProvider {
         &[]
     }
 
+    /// Request tags selected by the daemon's do_options policy. This changes
+    /// the reply flag before the existing destination/ARP decision.
+    fn force_broadcast(&self, _outcome: &Outcome) -> bool {
+        false
+    }
+
     /// Some(0) is a failed hosts-name lookup and deliberately replaces the
     /// context default. None means no explicit override.
     fn boot_next_server(&mut self) -> io::Result<Option<Ipv4Addr>> {
@@ -191,6 +197,9 @@ pub struct StateProvider<'a, F> {
     pub host: Option<&'a mut HostPolicy>,
     pub reserved: &'a [Ipv4Addr],
     pub configured_name: Option<&'a [u8]>,
+    /// Suppress an unauthenticated client name on ACK without clearing a
+    /// name already owned by the lease. Configured/static names still win.
+    pub ignore_client_name: bool,
     pub domains: Option<&'a crate::config::dhcp::NameDomains>,
     pub environment: Environment<'a>,
     pub quiet_dhcp: bool,
@@ -217,6 +226,7 @@ impl<'a, F> StateProvider<'a, F> {
             host,
             reserved,
             configured_name: None,
+            ignore_client_name: false,
             domains: None,
             environment,
             quiet_dhcp: false,
@@ -255,7 +265,9 @@ where
                 removed: expired,
             });
         }
-        let hostname = packet.client_hostname();
+        let hostname = (packet.message_type() != 3 || !self.ignore_client_name)
+            .then(|| packet.client_hostname())
+            .flatten();
         let name = self
             .configured_name
             .or(hostname.as_deref())
@@ -657,6 +669,11 @@ where
         boot_next_server.or_else(|| network.map(|network| network.next_server))
     {
         buffer[20..24].copy_from_slice(&next_server.octets());
+    }
+    // NAK does not call C's do_options. OFFER/ACK/INFORM/BOOTP use its raw
+    // netid force-broadcast decision; destination still prioritizes ciaddr.
+    if !matches!(outcome.reply, Reply::Nak { .. }) && provider.force_broadcast(&outcome) {
+        buffer[10] |= 0x80;
     }
     let mut destination = match destination(&dispatch, peer, &outcome.reply, buffer, encoding.len) {
         Ok(destination) => destination,
@@ -1467,6 +1484,50 @@ mod tests {
             assert_eq!(wire_option(&output, 6).is_some(), dns_requested);
             assert_eq!(&output[20..24], &[192, 0, 2, 1]);
         }
+    }
+
+    #[test]
+    fn configured_broadcast_changes_wire_flag_and_skips_arp_unicast() {
+        struct Provider;
+        impl OutcomeProvider for Provider {
+            fn resolve(&mut self, _: &Dispatch<'_>) -> Result<Outcome, RuntimeError> {
+                Ok(offer())
+            }
+
+            fn force_broadcast(&self, _: &Outcome) -> bool {
+                true
+            }
+        }
+        let bytes = packet(
+            &[53, 1, 1, 255],
+            0,
+            Ipv4Addr::UNSPECIFIED,
+            Ipv4Addr::UNSPECIFIED,
+        );
+        let mut sender = Sender {
+            sent: Vec::new(),
+            fail: false,
+        };
+        let mut output = vec![0; 548];
+        let report = process_with_random(
+            dispatch_for(&bytes),
+            SocketAddr::from(([0, 0, 0, 0], 68)),
+            &mut Provider,
+            &mut sender,
+            &[],
+            &mut output,
+            || panic!("OFFER must not draw random"),
+        )
+        .unwrap();
+        assert_eq!(u16::from_be_bytes([output[10], output[11]]), BROADCAST_FLAG);
+        let destination = report.events.iter().find_map(|event| match event {
+            RuntimeEvent::DestinationSelected(destination) => Some(destination),
+            _ => None,
+        });
+        let destination = destination.unwrap();
+        assert_eq!(destination.kind, DestinationKind::Broadcast);
+        assert_eq!(destination.address.ip(), IpAddr::V4(Ipv4Addr::BROADCAST));
+        assert!(destination.arp.is_none());
     }
 
     #[test]

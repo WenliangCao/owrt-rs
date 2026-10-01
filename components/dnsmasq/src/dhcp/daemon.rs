@@ -1,5 +1,5 @@
 //! Linux local DHCP adapter: interface admission, contexts, state and options.
-//! Relay, tag selectors and scripts remain separate contracts. Interface
+//! Relay, additional tag selectors and scripts remain separate contracts. Interface
 //! snapshots are refreshed for each admitted packet.
 
 use super::allocation::ProbeResult;
@@ -110,6 +110,7 @@ pub struct LocalProvider {
     reserved: Vec<Ipv4Addr>,
     domains: NameDomains,
     reply_hostname: Option<Vec<u8>>,
+    force_broadcast: bool,
     selected: Vec<SelectedContext>,
     listen_addresses: Vec<IpAddr>,
     dns_port: u16,
@@ -182,6 +183,7 @@ impl LocalProvider {
                 .collect(),
             domains: NameDomains::default(),
             reply_hostname: None,
+            force_broadcast: false,
             probe,
             probe_error: None,
             should_stop,
@@ -569,7 +571,16 @@ impl LocalProvider {
         interface_name: Option<&[u8]>,
         mut events: Option<&mut DhcpEventSink<'_>>,
     ) -> Result<Outcome, RuntimeError> {
-        if !self.host_files_ready {
+        self.force_broadcast = false;
+        if !self.host_files_ready
+            || interface_name.is_some_and(|name| {
+                self.config
+                    .no_dhcp_interfaces
+                    .iter()
+                    .flatten()
+                    .any(|pattern| interface_matches(pattern, name))
+            })
+        {
             return Ok(Outcome {
                 reply: Reply::Ignore,
                 removed: Vec::new(),
@@ -655,6 +666,49 @@ impl LocalProvider {
         let configured = host_index.map(|index| &self.config.hosts[index]);
         let configured_name = configured.and_then(|host| host.hostname.as_deref());
         let client_name = packet.client_hostname();
+        // C matches the full client-provided name before choosing an
+        // authoritative name and before adding the selected range tag.
+        let full_client_name = packet.client_hostname_full();
+        let mut tags: Vec<&[u8]> = interface_name.into_iter().collect();
+        if configured.is_some() {
+            tags.push(b"known");
+        }
+        for rule in &self.config.name_matches {
+            if full_client_name
+                .as_deref()
+                .is_some_and(|name| rule.matches(name))
+            {
+                tags.push(&rule.set_tag);
+            }
+        }
+        self.force_broadcast = self.config.force_broadcast_for(&tags);
+        let ignore_client_name = if packet.message_type() == 3 {
+            let mut name_tags = tags.clone();
+            // The state machine uses the server-ID suffix of the context
+            // chain for SELECTING, then narrows it by the requested address.
+            let first = if packet.requested_address().is_some() {
+                packet
+                    .server_identifier()
+                    .and_then(|server| ranges.iter().position(|range| range.local == server))
+                    .unwrap_or(0)
+            } else {
+                0
+            };
+            let address = packet
+                .requested_address()
+                .unwrap_or(packet.effective_ciaddr());
+            if let Some(index) = super::allocation::narrow(&ranges[first..], address, &tags) {
+                if let Some(tag) = self.config.ranges[self.selected[first + index].source_index]
+                    .set_tag
+                    .as_deref()
+                {
+                    name_tags.push(tag);
+                }
+            }
+            self.config.ignore_client_name(&name_tags)
+        } else {
+            false
+        };
         self.reply_hostname = configured_name.map(<[u8]>::to_vec).or(client_name);
         if packet.message_type() == 1 && packet.option(81, 3).is_none() {
             // An ordinary client name alone is not echoed in an OFFER. A
@@ -703,6 +757,8 @@ impl LocalProvider {
         };
         if let Some(name) = &dns_name {
             self.reply_hostname = Some(name.clone());
+        } else if ignore_client_name && configured_name.is_none() {
+            self.reply_hostname = None;
         }
         let environment = Environment {
             now,
@@ -760,7 +816,7 @@ impl LocalProvider {
         let mut provider = StateProvider::new(
             &mut self.leases,
             &mut ranges,
-            &[],
+            &tags,
             host_index.map(|index| &mut self.hosts[index]),
             &self.reserved,
             environment,
@@ -779,6 +835,7 @@ impl LocalProvider {
             },
         );
         provider.configured_name = dns_name.as_deref().or(configured_name);
+        provider.ignore_client_name = ignore_client_name;
         provider.domains = Some(&self.domains);
         provider.quiet_dhcp = self.config.quiet_dhcp;
         provider.message_counters = Some(&mut self.message_counters);
@@ -799,6 +856,18 @@ impl LocalProvider {
 impl OutcomeProvider for LocalProvider {
     fn resolve(&mut self, dispatch: &Dispatch<'_>) -> Result<Outcome, RuntimeError> {
         self.resolve_events(dispatch, None, None)
+    }
+
+    fn resolve_on_interface(
+        &mut self,
+        dispatch: &Dispatch<'_>,
+        interface: Option<&[u8]>,
+    ) -> Result<Outcome, RuntimeError> {
+        self.resolve_events(dispatch, interface, None)
+    }
+
+    fn force_broadcast(&self, _: &Outcome) -> bool {
+        self.force_broadcast
     }
 
     fn boot_config(&self) -> Option<&crate::config::dhcp::BootConfig> {
@@ -900,6 +969,10 @@ impl OutcomeProvider for EventProvider<'_> {
         self.provider.network_options(outcome)
     }
 
+    fn force_broadcast(&self, outcome: &Outcome) -> bool {
+        self.provider.force_broadcast(outcome)
+    }
+
     fn configured_options(&self) -> &[crate::config::dhcp::DhcpOption] {
         self.provider.configured_options()
     }
@@ -923,6 +996,19 @@ impl OutcomeProvider for EventProvider<'_> {
     ) -> Option<ReplyNames<'_>> {
         self.provider.reply_names(packet, outcome)
     }
+}
+
+/// util.c wildcard_match accepts any nonempty suffix at the first '*'.
+fn interface_matches(pattern: &[u8], name: &[u8]) -> bool {
+    for (pattern, actual) in pattern.iter().zip(name) {
+        if *pattern == b'*' {
+            return true;
+        }
+        if pattern != actual {
+            return false;
+        }
+    }
+    pattern.len() == name.len()
 }
 
 /// dhcp.c:1092 host_from_dns: suffix must match get_domain, then validate the
@@ -1202,6 +1288,16 @@ mod startup_tests {
         ] {
             assert_eq!(reverse_hostname(name.to_vec(), domain).as_deref(), expected);
         }
+    }
+
+    #[test]
+    fn excluded_interface_patterns_follow_c_nonempty_wildcard() {
+        assert!(interface_matches(b"wan", b"wan"));
+        assert!(!interface_matches(b"wan", b"wan6"));
+        assert!(interface_matches(b"wan*", b"wan6"));
+        assert!(!interface_matches(b"wan*", b"wan"));
+        assert!(!interface_matches(b"WAN", b"wan"));
+        assert!(interface_matches(b"*", b"br-lan"));
     }
 
     #[test]
