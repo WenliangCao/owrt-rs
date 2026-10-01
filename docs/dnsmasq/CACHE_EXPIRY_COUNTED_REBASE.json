@@ -1,0 +1,84 @@
+{
+  "baseline_git": "32774048cea392dc8494f71185be580ee9299a5e",
+  "source_sha256": {
+    "b0": {
+      "cache.rs": "8c73672d4ebe3959d8172cecf5b951afef61f23ec568c52b27f6b00ae081e9a5",
+      "wire.rs": "43bdcbfdb760623504ac696902800343e1be060e05bcd0350d9d91a78ad4f283",
+      "lease_names.rs": "cb05a82f1d5f8e90e37dfee942b0464366eedac92b6dfcc35ecb50c86fe2b0b3"
+    },
+    "eps1": {
+      "cache.rs": "4f7fea0dbdbc10eac74910de95595921ca5004fc9546cfa2ea10a77a796a3ee9",
+      "wire.rs": "43bdcbfdb760623504ac696902800343e1be060e05bcd0350d9d91a78ad4f283",
+      "lease_names.rs": "cb05a82f1d5f8e90e37dfee942b0464366eedac92b6dfcc35ecb50c86fe2b0b3"
+    }
+  },
+  "candidate_patch_sha256": "b9d7df1e6b540e6a06d211e1c30b3e5a7fd907978727e3ee6ac4cc83e3d53007",
+  "source_archive_sha256": "19537c4545726b51a7e6e488da7d77820118e07486a52cbf209e47eebf7c3772",
+  "scope": "counted API private rebase; no transferred timing result; no product change",
+  "timing_status": "not authorized or run for this source",
+  "status": "private counted API correctness rebase retained; no timings",
+  "default_product_changed": false,
+  "prior_gain_transferred": false,
+  "pressure": {
+    "scenarios": 37,
+    "commands_per_implementation": 26992,
+    "c_repeats": 3,
+    "mismatches": 0
+  },
+  "legacy": {
+    "scenarios": 21,
+    "commands": 22571,
+    "mismatches": 0,
+    "permitted_existing_cross_generic_order_variations": 138,
+    "b0_eps1_raw_equal": true
+  },
+  "metrics": {
+    "snapshots_each": 215,
+    "passed_each": 215,
+    "failed_each": 0,
+    "b0_eps1_raw_equal": true,
+    "cache_layout_b0": 168,
+    "cache_layout_eps1": 176,
+    "caller_counters_bytes_each": 8,
+    "negative_control": {
+      "passed": 214,
+      "failed": 1,
+      "exit": 1
+    },
+    "oracle_sha256": {
+      "b0": "e3144791833df5f89e6bc717848a458a296989303e16baa1e6f686d70d816028",
+      "eps1": "e6367ef6a7519e2f7ac8dc56a3bbd8677fd30585d66ba527bcc355e685fc04b1"
+    },
+    "probe_sha256": {
+      "b0": "735c95a5e7ae99eb81f75200e899e0e82a57f81227734bfdc72bd26d858826c6",
+      "eps1": "0e04eddf885a6dcfe7616529739167d5933bfae4b86a51bf4c3f5373b45c6586"
+    }
+  },
+  "publication": {
+    "traces": 70,
+    "commands_each": 1876,
+    "mismatches": 0
+  },
+  "local_cname": {
+    "ordinary_cases": 32,
+    "ordinary_mismatches_each": 0,
+    "known_layout_cases": 4,
+    "layout_mismatches_each": 2,
+    "exit_each": 1,
+    "b0_eps1_observations_equal": true
+  },
+  "artifact_sha256": {
+    "snapshot.json": "5dbeccbd61c9ae6bbdba19b4912214954bb04a5de2895c373855f56c3981660d",
+    "eps1.patch": "b9d7df1e6b540e6a06d211e1c30b3e5a7fd907978727e3ee6ac4cc83e3d53007",
+    "pressure-01/manifest.json": "066c15f533a3bb921f7bc1da6589557e90b504aecd6c64d707eee296f04d0434",
+    "legacy-b0-01/summary.json": "c137b35be19ffd3396d3825122250c9243e5fdbb5623ce1b6c58b259ae1480cc",
+    "legacy-eps1-01/summary.json": "c137b35be19ffd3396d3825122250c9243e5fdbb5623ce1b6c58b259ae1480cc",
+    "native/b0/metrics-01/result.json": "cf948cb03c4b931e7bd509783543e3edc0d76b8c674c797d392ec3c54f62b57d",
+    "native/b0/publication-01/result.json": "95036d143be6d1bec06a7485c32b5ae28b0087ee7e26da9feaf8b2a5b46be4a1",
+    "native/b0/local-cname-01/result.json": "ac81d9abf05d8d85f815a84ff87a98bdd0e62bc5c81ca5092d62dccbc25f3316",
+    "native/eps1/metrics-01/result.json": "eaf6402a53c6e69ffafdd725ef1b3ffcd4a72e116bcc2f6c13200e4b961a14f0",
+    "native/eps1/publication-01/result.json": "5c25736486d8987aca91291671018084086e7f218ade3bb2f5d9aa9dd11191c3",
+    "native/eps1/local-cname-01/result.json": "043c8e9c05ca16795221be1cd3aeec48f2cb390fec7066e69aad3af9a163dd21",
+    "native/eps1/metrics-calibration-01/result.json": "a168ed5a55f21f6a72950b3d42676153e7e2355abb6227ac4eecd4c4f10e8920"
+  }
+}
