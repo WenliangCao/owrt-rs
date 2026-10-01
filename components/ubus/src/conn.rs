@@ -96,6 +96,8 @@ pub struct Connection {
     /// Opt-in cooperative cancellation for short-lived clients. Daemons keep
     /// their existing signal and maintenance policy by leaving this unset.
     cancelled: Option<fn() -> bool>,
+    #[cfg(test)]
+    notification_pending_peak: (usize, usize, usize),
 }
 
 const INCOMING_BUFFER_SIZE: usize = 4096;
@@ -207,6 +209,8 @@ impl Connection {
             spare_request: None,
             server_io_timeout: None,
             cancelled,
+            #[cfg(test)]
+            notification_pending_peak: (0, 0, 0),
         };
         let hello = conn.recv_until(Some(deadline))?;
         if hello.header.ty != ty::HELLO {
@@ -865,6 +869,133 @@ impl Connection {
         )
     }
 
+    /// Notify and stream DATA from the subscribers named by ubusd's STATUS.
+    /// The callback receives packed blobmsg fields and must be nonblocking.
+    /// True means every listed subscriber completed; false is a clean deadline
+    /// expiry. Subscriber status codes do not change completion, as in libubus.
+    /// Unrelated invokes/subscription changes remain pending for the owner.
+    /// A supplied cancellation callback applies only to this call and takes
+    /// precedence over the connection callback. Cancel/partial-frame failure
+    /// shuts down this transport; the caller must then drop the Connection.
+    pub fn notify_with_data_until(
+        &mut self,
+        objid: u32,
+        kind: &str,
+        fields: &[u8],
+        deadline: Instant,
+        cancelled: Option<fn() -> bool>,
+        mut on_data: impl FnMut(&[u8]),
+    ) -> io::Result<bool> {
+        let previous_cancelled = self.cancelled;
+        self.cancelled = cancelled.or(previous_cancelled);
+        let result = self.notify_data_until(objid, kind, fields, deadline, &mut on_data);
+        self.cancelled = previous_cancelled;
+        match result {
+            Err(error) if error.kind() == io::ErrorKind::TimedOut && !sys::is_partial_timeout(&error) => Ok(false),
+            Err(error) => {
+                let _ = self.shutdown();
+                self.rx_reset();
+                self.pending.clear();
+                Err(error)
+            }
+            result => result,
+        }
+    }
+
+    fn notify_data_until(
+        &mut self,
+        objid: u32,
+        kind: &str,
+        fields: &[u8],
+        deadline: Instant,
+        on_data: &mut impl FnMut(&[u8]),
+    ) -> io::Result<bool> {
+        let mut b = BlobBuf::new();
+        b.put_u32(attr::OBJID, objid).put_string(attr::METHOD, kind);
+        b.put(attr::DATA, fields);
+        if b.as_bytes().len() > MAX_MSGLEN {
+            return Err(ubus_error(status::INVALID_ARGUMENT));
+        }
+        let seq = self.next_seq();
+        sys::send_parts_until_cancelled(
+            self.as_raw_fd(),
+            [&Header { ty: ty::NOTIFY, seq, peer: objid }.encode(), b.as_bytes()],
+            None,
+            Some(deadline).into(),
+            self.cancelled,
+        )?;
+        // Exact libubus UBUS_MAX_NOTIFY_PEERS, plus the broker/object slot.
+        let mut peers = [0u32; 17];
+        peers[0] = objid;
+        let mut pending = 1u32;
+        let mut pending_bytes: usize = self.pending.iter().map(|message| message.blob.len()).sum();
+        while pending != 0 {
+            sys::check_cancelled(self.cancelled)?;
+            sys::check_deadline(Some(deadline))?;
+            let (header, fd, body) = self.take_frame(false, Some(deadline))?
+                .expect("a waiting frame read yields a frame");
+            if matches!(header.ty, ty::DATA | ty::STATUS) {
+                // libubus drops replies not belonging to an active request.
+                // This also consumes late DATA/status after a previous timeout.
+                if header.seq != seq {
+                    continue;
+                }
+                let Some(index) = peers.iter().enumerate().position(|(index, peer)|
+                    pending & (1 << index) != 0 && *peer == header.peer) else {
+                    continue;
+                };
+                let bytes = match &body {
+                    Body::Buffered(range) => &self.rx[range.clone()],
+                    Body::Owned(bytes) => bytes,
+                };
+                let attrs = Message::attrs_from(bytes);
+                if header.ty == ty::DATA {
+                    if let Some(data) = attrs[attr::DATA as usize] {
+                        on_data(data.payload);
+                    }
+                } else {
+                    pending &= !(1 << index);
+                    if index == 0 {
+                        if let Some(subscribers) = attrs[attr::SUBSCRIBERS as usize] {
+                            let mut index = 1;
+                            for subscriber in blob::iter(subscribers.payload) {
+                                // blob_check_type(BLOB_ATTR_INT32) requires 4 bytes.
+                                if subscriber.payload.len() != 4 {
+                                    continue;
+                                }
+                                peers[index] = u32::from_be_bytes(subscriber.payload.try_into().unwrap());
+                                pending |= 1 << index;
+                                index += 1;
+                                if index == peers.len() {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                // Notification DATA/STATUS never transfer descriptor ownership
+                // to the callback. Any attached fd closes here or on continue.
+                drop(fd);
+            } else {
+                let blob = self.blob_of(body);
+                // An idle owner cannot drain this queue until notification
+                // completion. Bound that temporary backlog and its retained FDs.
+                if self.pending.len() >= 128 || pending_bytes + blob.len() > MAX_MSGLEN {
+                    return Err(io::Error::new(io::ErrorKind::OutOfMemory, "ubus notification pending queue limit"));
+                }
+                pending_bytes += blob.len();
+                self.pending.push_back(Message { header, blob, fd });
+                #[cfg(test)]
+                {
+                    self.notification_pending_peak.0 = self.notification_pending_peak.0.max(self.pending.len());
+                    self.notification_pending_peak.1 = self.notification_pending_peak.1.max(pending_bytes);
+                    self.notification_pending_peak.2 = self.notification_pending_peak.2.max(self.pending.iter().filter(|message| message.fd.is_some()).count());
+                }
+            }
+        }
+        Ok(true)
+    }
+
     /// Next incoming message for our objects. `timeout_ms` < 0 waits forever;
     /// returns Ok(None) on timeout.
     pub fn next_incoming(&mut self, timeout_ms: i32) -> io::Result<Option<Incoming>> {
@@ -1069,8 +1200,187 @@ mod tests {
             spare_request: None,
             server_io_timeout: None,
             cancelled: None,
+            notification_pending_peak: (0, 0, 0),
         };
         (conn(a), conn(b))
+    }
+
+    #[cfg(target_os = "linux")]
+    fn notify_broker(server: &mut Connection, request: &Message, peers: &[u32]) {
+        let mut b = BlobBuf::new();
+        b.put_u32(attr::STATUS, status::OK as u32);
+        let nested = b.nest_start(attr::SUBSCRIBERS);
+        for peer in peers {
+            b.put_u32(0, *peer);
+        }
+        b.nest_end(nested);
+        server.send(Header { ty: ty::STATUS, seq: request.header.seq, peer: request.header.peer }, &mut b, None).unwrap();
+    }
+
+    #[cfg(target_os = "linux")]
+    fn notify_reply(server: &mut Connection, seq: u16, peer: u32, value: Option<&str>) {
+        let mut b = BlobBuf::new();
+        let ty = if let Some(value) = value {
+            let mut fields = BlobBuf::new();
+            fields.msg_string("address", value);
+            b.put(attr::DATA, fields.payload());
+            ty::DATA
+        } else {
+            b.put_u32(attr::STATUS, status::INVALID_ARGUMENT as u32);
+            ty::STATUS
+        };
+        server.send(Header { ty, seq, peer }, &mut b, None).unwrap();
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn notification_correlates_live_peers_sequences_and_streams_multiple_data() {
+        let (mut client, mut server) = pair();
+        let worker = std::thread::spawn(move || {
+            let request = server.recv().unwrap();
+            assert_eq!(request.header.ty, ty::NOTIFY);
+            notify_broker(&mut server, &request, &[10, 20]);
+            let seq = request.header.seq;
+            notify_reply(&mut server, seq.wrapping_add(1), 10, Some("wrong-seq"));
+            notify_reply(&mut server, seq, 99, Some("wrong-peer"));
+            notify_reply(&mut server, seq, 10, Some("first"));
+            notify_reply(&mut server, seq, 10, Some("second"));
+            notify_reply(&mut server, seq, 10, None);
+            notify_reply(&mut server, seq, 10, Some("finished-peer"));
+            let mut pending = BlobBuf::new();
+            pending.put_u32(attr::OBJID, 42).put_string(attr::METHOD, "metrics");
+            server.send(Header { ty: ty::INVOKE, seq: 600, peer: 77 }, &mut pending, None).unwrap();
+            pending.reset();
+            pending.put_u32(attr::OBJID, 42).put_u32(attr::ACTIVE, 1);
+            server.send(Header { ty: ty::NOTIFY, seq: 601, peer: 42 }, &mut pending, None).unwrap();
+            notify_reply(&mut server, seq, 20, Some("third"));
+            notify_reply(&mut server, seq, 20, None);
+        });
+        let mut values = Vec::new();
+        assert!(client.notify_with_data_until(42, "dns_result", &[], Instant::now() + Duration::from_secs(1), None,
+            |data| values.push(blob::fields(data).next().unwrap().as_str().unwrap().to_owned())).unwrap());
+        assert_eq!(values, ["first", "second", "third"]);
+        let Incoming::Invoke(request) = client.read_incoming().unwrap() else { panic!("invoke was not queued") };
+        assert_eq!(request.method, "metrics");
+        assert!(matches!(client.read_incoming().unwrap(), Incoming::SubscribeState { objid: 42, active: true }));
+        assert!(client.pending.is_empty());
+        worker.join().unwrap();
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn notification_timeout_keeps_transport_and_discards_late_replies() {
+        let (mut client, mut server) = pair();
+        let worker = std::thread::spawn(move || {
+            let first = server.recv().unwrap();
+            notify_broker(&mut server, &first, &[10]);
+            notify_reply(&mut server, first.header.seq, 10, Some("before-timeout"));
+            let second = server.recv().unwrap();
+            notify_reply(&mut server, first.header.seq, 10, Some("late"));
+            notify_reply(&mut server, first.header.seq, 10, None);
+            notify_broker(&mut server, &second, &[10]);
+            notify_reply(&mut server, second.header.seq, 10, Some("fresh"));
+            notify_reply(&mut server, second.header.seq, 10, None);
+        });
+        let mut values = Vec::new();
+        assert!(!client.notify_with_data_until(42, "event", &[], Instant::now() + Duration::from_millis(30), None,
+            |data| values.push(blob::fields(data).next().unwrap().as_str().unwrap().to_owned())).unwrap());
+        assert!(client.notify_with_data_until(42, "event", &[], Instant::now() + Duration::from_secs(1), None,
+            |data| values.push(blob::fields(data).next().unwrap().as_str().unwrap().to_owned())).unwrap());
+        assert_eq!(values, ["before-timeout", "fresh"]);
+        assert!(client.pending.is_empty());
+        worker.join().unwrap();
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn notification_partial_timeout_and_cancel_close_descriptors() {
+        use std::sync::atomic::{AtomicBool, Ordering};
+        static CANCEL: AtomicBool = AtomicBool::new(false);
+        fn cancelled() -> bool { CANCEL.load(Ordering::Relaxed) }
+        for cancel in [false, true] {
+            CANCEL.store(false, Ordering::Relaxed);
+            let (mut client, mut server) = pair();
+            let (passed, mut observer) = UnixStream::pair().unwrap();
+            let worker = std::thread::spawn(move || {
+                let request = server.recv().unwrap();
+                notify_broker(&mut server, &request, &[10]);
+                let mut b = BlobBuf::new();
+                b.put(attr::DATA, &vec![0; 8192]);
+                let mut wire = Header { ty: ty::DATA, seq: request.header.seq, peer: 10 }.encode().to_vec();
+                wire.extend_from_slice(b.as_bytes());
+                sys::send_with_fd(server.as_raw_fd(), &wire[..5000], &[], Some(passed.as_raw_fd())).unwrap();
+                drop(passed);
+                if cancel {
+                    std::thread::sleep(Duration::from_millis(10));
+                    CANCEL.store(true, Ordering::Relaxed);
+                }
+                server.stream.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
+                assert_eq!(server.stream.read(&mut [0]).unwrap(), 0);
+            });
+            let error = client.notify_with_data_until(42, "event", &[], Instant::now() + Duration::from_millis(50),
+                Some(cancelled), |_| panic!("partial data reached callback")).unwrap_err();
+            assert_eq!(error.kind(), if cancel { io::ErrorKind::Interrupted } else { io::ErrorKind::TimedOut });
+            worker.join().unwrap();
+            observer.set_nonblocking(true).unwrap();
+            assert_eq!(observer.read(&mut [0]).unwrap(), 0, "partial notify retained passed FD");
+            assert!(client.rx_fds.is_empty() && client.pending.is_empty());
+        }
+        CANCEL.store(false, Ordering::Relaxed);
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn notification_pending_queue_limit_closes_transport() {
+      for payload_length in [0, 600_000] {
+        let (mut client, mut server) = pair();
+        let (passed, mut observer) = UnixStream::pair().unwrap();
+        let worker = std::thread::spawn(move || {
+            let request = server.recv().unwrap();
+            notify_broker(&mut server, &request, &[10]);
+            for seq in 0..129 {
+                let mut b = BlobBuf::new();
+                b.put_u32(attr::OBJID, 42).put_string(attr::METHOD, "metrics");
+                if payload_length != 0 { b.put(attr::DATA, &vec![0; payload_length]); }
+                if server.send(Header { ty: ty::INVOKE, seq, peer: 77 }, &mut b, Some(passed.as_raw_fd())).is_err() { break; }
+            }
+            drop(passed);
+            server.stream.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
+            assert_eq!(server.stream.read(&mut [0]).unwrap(), 0);
+        });
+        let error = client.notify_with_data_until(42, "event", &[], Instant::now() + Duration::from_secs(1), None, |_| {}).unwrap_err();
+        assert_eq!(error.kind(), io::ErrorKind::OutOfMemory);
+        assert!(client.pending.is_empty());
+        let (messages, bytes, fds) = client.notification_pending_peak;
+        assert_eq!(messages, if payload_length == 0 { 128 } else { 1 });
+        assert!(bytes <= MAX_MSGLEN);
+        assert_eq!(fds, messages);
+        eprintln!("notification pending peak: messages={messages} bytes={bytes} descriptors={fds}; retained after error=0");
+        worker.join().unwrap();
+        observer.set_nonblocking(true).unwrap();
+        assert_eq!(observer.read(&mut [0]).unwrap(), 0, "pending notify backlog retained passed descriptors");
+      }
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn notification_disconnect_releases_queued_descriptor_and_transport() {
+        let (mut client, mut server) = pair();
+        let (passed, mut observer) = UnixStream::pair().unwrap();
+        let worker = std::thread::spawn(move || {
+            let request = server.recv().unwrap();
+            notify_broker(&mut server, &request, &[10]);
+            let mut b = BlobBuf::new();
+            b.put_u32(attr::OBJID, 42).put_string(attr::METHOD, "metrics");
+            server.send(Header { ty: ty::INVOKE, seq: 600, peer: 77 }, &mut b, Some(passed.as_raw_fd())).unwrap();
+        });
+        let error = client.notify_with_data_until(42, "event", &[], Instant::now() + Duration::from_secs(1), None,
+            |_| panic!("no DATA was sent")).unwrap_err();
+        assert_eq!(error.kind(), io::ErrorKind::UnexpectedEof);
+        worker.join().unwrap();
+        observer.set_nonblocking(true).unwrap();
+        assert_eq!(observer.read(&mut [0]).unwrap(), 0);
+        assert!(client.pending.is_empty() && client.rx_fds.is_empty());
     }
 
     #[cfg(target_os = "linux")]
