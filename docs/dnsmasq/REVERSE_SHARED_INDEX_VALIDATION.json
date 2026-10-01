@@ -1,0 +1,123 @@
+{
+  "source_commit": "0eaaef813893ac71954f56c379f8fc6b5eb24064",
+  "verification_sha256": "9dcaa94abc4526f96065c35362b3c53b66ca76640d0d13146bbe57836d981aef",
+  "source_reverified": true,
+  "runtimes": {
+    "native": {
+      "build_exit": 0,
+      "tests": [
+        {
+          "kind": "main",
+          "exit": 0,
+          "summary": [
+            "test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+          ]
+        },
+        {
+          "kind": "lib",
+          "exit": 0,
+          "summary": [
+            "test result: ok. 397 passed; 0 failed; 16 ignored; 0 measured; 0 filtered out; finished in 2.27s"
+          ]
+        }
+      ],
+      "clippy_exit": 0,
+      "artifacts": [
+        {
+          "kind": "main",
+          "sha256": "dc10de1886b19b408c1f9399be42c7db14abc9e366d2db8748a133aac5185e82"
+        },
+        {
+          "kind": "lib",
+          "sha256": "2547ed8ea9e10bfe22c263d6edc0faabdc0d97ad77c9de705a6e97e12b99fd75"
+        }
+      ],
+      "fmt_exit": 0,
+      "release_exit": 0,
+      "daemon_sha256": "217bace9b1a231d0a008842365239085ad21353fb75750d70103325699d3888a"
+    },
+    "musl": {
+      "build_exit": 0,
+      "tests": [
+        {
+          "kind": "main",
+          "exit": 0,
+          "summary": [
+            "test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+          ]
+        },
+        {
+          "kind": "lib",
+          "exit": 0,
+          "summary": [
+            "test result: ok. 397 passed; 0 failed; 16 ignored; 0 measured; 0 filtered out; finished in 2.33s"
+          ]
+        }
+      ],
+      "clippy_exit": 0,
+      "artifacts": [
+        {
+          "kind": "main",
+          "sha256": "c0e5135b9c40fe4f43739772e48ca6895f07a3e71d1aec82d9cababbe1f0a8a1"
+        },
+        {
+          "kind": "lib",
+          "sha256": "34e6279241c32a5e1bfeb640226b25c1fb55fac65821aa97b83ebff2dcf74e5d"
+        }
+      ]
+    }
+  },
+  "archive": {
+    "sha256": "188738bbc8d51d2677e78778088ee7bef4eef87368e3ddbbe7cc01e22e84d973",
+    "manifest_sha256": "0fe19250a663d2c401c294968006b6287b62ee5f1fa2183cd102e68c130e5f7c",
+    "verified_files": 1349,
+    "private_directory": "private/dnsmasq-rewrite/reverse-final-validation-20261001/mirror-01"
+  },
+  "forward_transfer": {
+    "native": {
+      "compared": 307,
+      "passed": 307,
+      "failed": 0,
+      "probe_sha256": "2547ed8ea9e10bfe22c263d6edc0faabdc0d97ad77c9de705a6e97e12b99fd75",
+      "baseline_identity_sha256": "96fc7eed20067ebc134853620a799aa4a779afdcdf0fdb306815740c339dc941",
+      "calibration": {
+        "equal": 1,
+        "counter_mutation_detected": 1,
+        "short_count_rejected": 1
+      },
+      "result_sha256": "1b01707fc1581c77c5aed522944ed9247207254b238510e70b8f1a6fe2c633c0"
+    },
+    "musl": {
+      "compared": 307,
+      "passed": 307,
+      "failed": 0,
+      "probe_sha256": "34e6279241c32a5e1bfeb640226b25c1fb55fac65821aa97b83ebff2dcf74e5d",
+      "baseline_identity_sha256": "96fc7eed20067ebc134853620a799aa4a779afdcdf0fdb306815740c339dc941",
+      "calibration": {
+        "equal": 1,
+        "counter_mutation_detected": 1,
+        "short_count_rejected": 1
+      },
+      "result_sha256": "5aa9d1b7fc2f2746deda4fe92a30d032cce2602a037ccff36b89688a869befd0"
+    }
+  },
+  "forward_corpus": {
+    "source_commit": "adf39776537e9733f99874767947293862fa0e4e",
+    "commands": 22571,
+    "mismatches": 0,
+    "cross_type_order_variations": 138,
+    "driver_sha256": "0ed8e74aef58c26e6a9554ea5c61b57073fd085eb4511c45fed55740b13bc4c4",
+    "calibration": {
+      "changed_ttl_detected": 1,
+      "missing_row_rejected": true
+    },
+    "c_execution": "none; saved outputs reused",
+    "result_sha256": "55426a09f4a0bf21714adc30a0bebdf7438e5590586ec70e1199a96ec99bc116",
+    "final_source_difference": "Only comment wrapping and immutable Copy Kind binding reuse in prepare_name; exact final source not rerun for these 22571 inputs."
+  },
+  "retained_attempts": [
+    "adf3977 completed native/musl397+7 tests, Clippy/fmt and native release; strict source-directory audit then exited1 because concurrent Python replay created __pycache__/dns_cache_diff.cpython-312.pyc; every archived original file remained byte-identical.",
+    "Owner amended readability only from adf3977 to 0eaaef8 before writer freeze; separate identities and both validation attempts preserved."
+  ],
+  "scope": "Private reverse candidate; no product adoption, reverse ordering or resource/performance acceptance."
+}

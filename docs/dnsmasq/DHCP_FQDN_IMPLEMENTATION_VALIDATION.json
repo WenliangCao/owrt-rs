@@ -1,0 +1,113 @@
+{
+  "source_commit": "78f1e814f9a54c06b6946f7af41e1b10a759672b",
+  "verification_sha256": "91c720be565022a5b6ac19e29e1d8fbdc8af38a3e67ad22aeb2462949eeb7456",
+  "source_reverified": true,
+  "runtimes": {
+    "native": {
+      "build_exit": 0,
+      "tests": [
+        {
+          "kind": "main",
+          "exit": 0,
+          "summary": [
+            "test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+          ]
+        },
+        {
+          "kind": "lib",
+          "exit": 0,
+          "summary": [
+            "test result: ok. 391 passed; 0 failed; 16 ignored; 0 measured; 0 filtered out; finished in 2.90s"
+          ]
+        }
+      ],
+      "clippy_exit": 0,
+      "artifacts": [
+        {
+          "kind": "main",
+          "sha256": "64f6703e8114082f0d8264f87b24840f80f85008eb8a36209297e62024f56881"
+        },
+        {
+          "kind": "lib",
+          "sha256": "6b043e1a30808d708a588fdbb62c98232a3a11ee59bed37fb6cbeb2f08b8fdb3"
+        }
+      ],
+      "fmt_exit": 0,
+      "release_exit": 0,
+      "daemon_sha256": "f126a762fbb0f1bcdac0e4e2eb61290bd92361f56fcf712213278ed9ba33e391"
+    },
+    "musl": {
+      "build_exit": 0,
+      "tests": [
+        {
+          "kind": "main",
+          "exit": 0,
+          "summary": [
+            "test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+          ]
+        },
+        {
+          "kind": "lib",
+          "exit": 0,
+          "summary": [
+            "test result: ok. 391 passed; 0 failed; 16 ignored; 0 measured; 0 filtered out; finished in 2.40s"
+          ]
+        }
+      ],
+      "clippy_exit": 0,
+      "artifacts": [
+        {
+          "kind": "main",
+          "sha256": "cb798816c79a822ae7e3efe48ba2dec368f99f1e3050b086c3a1d3b0cd063c06"
+        },
+        {
+          "kind": "lib",
+          "sha256": "c7ff06b3f738d861db75c4904b9cb6f4ab12d85c0b5488e713f8e69403c17e7d"
+        }
+      ]
+    }
+  },
+  "archive": {
+    "sha256": "188738bbc8d51d2677e78778088ee7bef4eef87368e3ddbbe7cc01e22e84d973",
+    "manifest_sha256": "0fe19250a663d2c401c294968006b6287b62ee5f1fa2183cd102e68c130e5f7c",
+    "verified_files": 1349,
+    "private_directory": "private/dnsmasq-rewrite/reverse-final-validation-20261001/mirror-01"
+  },
+  "service": {
+    "native": {
+      "compared": 8,
+      "differences": []
+    },
+    "image": {
+      "compared": 8,
+      "differences": []
+    }
+  },
+  "configuration": {
+    "native": {
+      "compared": 5,
+      "differences": []
+    },
+    "image": {
+      "compared": 5,
+      "differences": []
+    }
+  },
+  "failures": [],
+  "service_result_sha256": "03e69bc78662e9a776e4db6ab51d3c769c188993254441f596e468c4c21d6c1e",
+  "wrapper_sha256": "fb7796dca80d3cc91908e7d2ad37d3a0955c3395c58089cce8d76204b0fd6754",
+  "service_tool_sha256": "76e97c4dedc1026411e80ef985764050d8f0808c20f10588a5582530251146ee",
+  "domain_tool_sha256": "7e8fad998f501e2af4e494f1e552a30f5ec4ca96227273da0d5448cd5eae6738",
+  "baselines": {
+    "native": {
+      "service_sha256": "148811144a7afd4e9f74366fc82e9a249f006f074da550347feaf2f07a36c057",
+      "config_sha256": "42403925660e85e34f5cd666da28f79110512a62eeb12b0fece9637dc40fca94"
+    },
+    "image": {
+      "service_sha256": "2bc7895ac575953f25b39c9437c1c7f47e30152079858089adc6eb8536991127",
+      "config_sha256": "89907c89313ce39b15c46443405e187c294e4defdef8ba8c18ef14a4fb76714a"
+    }
+  },
+  "scope": "One Rust replay of eight unchanged fqdn-only events and five original configuration cases, each compared with saved native/image C. No C rerun; not all62 service events.",
+  "open": "Recovered domain/name-collision service combinations are independently planned; no full DHCP/FQDN or production acceptance."
+}
