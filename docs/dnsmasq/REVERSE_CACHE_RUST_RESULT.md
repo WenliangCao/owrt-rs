@@ -1,4 +1,4 @@
-# Reverse-cache frozen Rust before result
+# Reverse-cache frozen Rust before/after result
 
 The original product source `ac8a3b6` completes all **125/125 command rows** in
 the frozen main [C baseline](REVERSE_CACHE_PRIMITIVE_RESULT.md): **66 match and
@@ -6,9 +6,13 @@ the frozen main [C baseline](REVERSE_CACHE_PRIMITIVE_RESULT.md): **66 match and
 startup failures or comparator failures. One of the 59 differing rows explicitly
 reports the absent reverse-address lookup API.
 
-This is a measured before baseline, not reverse support or an after pass. The
-four-process, 44-row C multi-target cohort is neither rerun nor compared with
-Rust. Its variable order remains C-only evidence.
+Private candidate `19620e34` subsequently matches **125/125** of those same
+command rows with zero differences, unsupported rows or fixture failures. All
+14 candidate probe processes exit zero on their first execution. The same
+adapter and frozen C files are used, with only the explicit projection changing
+from before to reverse. The four-process, 44-row C multi-target cohort is
+neither rerun nor compared with Rust. Its variable order remains C-only
+evidence; this scoped pass is not product adoption or full reverse support.
 
 | Profile | Completed rows | Differences |
 | --- | --- | --- |
@@ -78,5 +82,28 @@ append-only manifests and probe ELF are retained under
 `/home/ubuntu/dns-reverse-cache-20261001/work01/private/`.
 `rust-before-evidence-sha256.json` covers 187 retained files for this unit.
 No product source was edited, no C cohort was rerun and no router or timing
-experiment was performed. An after comparison awaits a separately frozen
-implementation with real reverse direction and lookup support.
+experiment was performed.
+
+## Private candidate after identity
+
+- Candidate source: `19620e34e322309c162d9b9b92546051c7728c5e`.
+- Source archive SHA-256:
+  `63ba6faa60aaa44547f43a504c57bb5a439b1227beacb734613f4abff9ac0090`.
+- Instrumented candidate probe ELF SHA-256:
+  `7c1ccfc0786d4a4e58f1833101ac48626a99183371179d169572b7b1ba6fee94`.
+
+`rust-after-build-01` builds outside sudo with a fresh Rust 1.98.1 release
+target. `rust-after-01` executes the original 125-row main corpus through the
+isolated wrapper and returns exit 0. The after projection reads actual
+ReverseIpv4/ReverseIpv6 entries and invokes the real lookup_reverse API; it
+does not inject records or reorder state. All 14 per-profile saved-row TTL and
+missing-row controls pass. Original-case target/question fields, flags, TTLs,
+ordered records, active LRU, direction/address/expiry, counters and existence
+are compared exactly apart from the previously specified compression and C
+bucket diagnostics.
+
+The after source, probe, complete observations and append-only manifests are
+retained beside the before evidence with `rust-after-evidence-sha256.json`.
+The native-source primitive pass does not establish actual-image UDP service,
+DO/AD metadata admission, malformed direct PTR, local/lease coexistence, typed
+transfer, multi-target ordering, resource or deployment acceptance.
