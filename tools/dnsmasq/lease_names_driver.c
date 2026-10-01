@@ -37,6 +37,8 @@ int main(int argc, char **argv) {
 #endif
     if (line[0] == 'R') {
       cache_unhash_dhcp(); puts("R");
+    } else if (line[0] == 'S') {
+      cache_reload(); puts("S");
     } else if (line[0] == 'D') {
       long long expiry;
       char address[64], name[1024];
@@ -75,6 +77,14 @@ int main(int argc, char **argv) {
       } else if (op == 'K') {
         assert(extract_request(header, length, daemon->namebuff, NULL, NULL));
         printf("K %d\n", check_for_local_domain(daemon->namebuff, (time_t)now));
+      } else if (op == 'N') {
+        unsigned short type; unsigned count = 0;
+        assert(extract_request(header, length, daemon->namebuff, &type, NULL));
+        unsigned flags = type == T_A ? F_IPV4 : type == T_AAAA ? F_IPV6 : type == T_CNAME ? F_CNAME : F_RR;
+        struct crec *entry = NULL;
+        while ((entry = cache_find_by_name(entry, daemon->namebuff, (time_t)now, flags | F_NO_RR)))
+          if (!(entry->flags & (F_HOSTS | F_DHCP | F_CONFIG))) count++;
+        printf("N %u\n", count);
       } else {
         assert(op == 'Q');
         int stale = 0, filtered = 0;

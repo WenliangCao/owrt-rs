@@ -237,6 +237,17 @@ impl LeaseNames {
             })
     }
 
+    /// cache_scan_free checks matching local blockers before its expiry
+    /// removal. A still-hashed expired lease therefore blocks insertion until
+    /// an actual lookup (or publication) has removed it.
+    pub(crate) fn active_lookup(&self, name: &[u8]) -> impl Iterator<Item = &LeaseName> {
+        self.forward
+            .get(&name.to_ascii_lowercase())
+            .into_iter()
+            .flatten()
+            .filter_map(|&id| self.active[id].then_some(&self.entries[id]))
+    }
+
     pub fn reverse(&self, address: Ipv4Addr, now: i64) -> Option<&LeaseName> {
         let &id = self.reverse.get(&address)?;
         let entry = &self.entries[id];
