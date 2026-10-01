@@ -1,5 +1,5 @@
 //! dnsmasq 2.93 metrics.h/metrics.c and ubus.c:236–252.
-//! All counters are u32, including unavailable features that remain zero.
+//! All fields are u32, including counters retained for uncompiled features.
 
 use owrt_ubus::BlobBuf;
 
@@ -84,6 +84,12 @@ impl Metrics {
     pub fn add(&mut self, metric: Metric, value: u32) {
         let counter = &mut self.values[metric as usize];
         *counter = counter.wrapping_add(value);
+    }
+
+    /// Publish an engine-owned cumulative counter or gauge without consuming
+    /// it. The owner must preserve that engine's own reset/lifecycle boundary.
+    pub fn set(&mut self, metric: Metric, value: u32) {
+        self.values[metric as usize] = value;
     }
 
     /// cache_reload resets only these two. A metrics snapshot cannot assume

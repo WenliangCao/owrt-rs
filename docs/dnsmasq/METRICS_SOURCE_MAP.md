@@ -44,7 +44,7 @@ or one count per successful socket send.
 | `leases_allocated_4` | `LEASES_ALLOCATED_4` | `lease.c:874` | Every successful `lease4_allocate`, including startup lease-file restoration (`lease.c:100`) and BOOTP allocations. Renewing an existing lease does not allocate. Counter; never the current lease count. |
 | `leases_pruned_4` | `LEASES_PRUNED_4` | conditional `lease.c:634` | `lease_prune` unlinks either an expired lease or its explicit target, when the stored IPv4 address is nonzero. RELEASE, DECLINE and replacement can all prune. Startup calls prune after reading restored leases (`lease.c:252`). Counter. |
 | `leases_allocated_6` | `LEASES_ALLOCATED_6` | `lease.c:891` | Successful `lease6_allocate`, behind `HAVE_DHCP6`, excluded in this image. |
-| `leases_pruned_6` | `LEASES_PRUNED_6` | conditional `lease.c:634` | Same prune statement selects this slot when `lease->addr.s_addr == 0`; that statement itself is not DHCPv6-gated. Ordinary IPv4 leases choose slot 4. Do not hardcode slot 6 to zero solely from NO_DHCP6: a restored `0.0.0.0` IPv4 entry can reach the zero-address branch according to the source; that special runtime case remains unverified. |
+| `leases_pruned_6` | `LEASES_PRUNED_6` | conditional `lease.c:634` | Same prune statement selects this slot when `lease->addr.s_addr == 0`; that statement itself is not DHCPv6-gated. Ordinary IPv4 leases choose slot 4. A restored `0.0.0.0` IPv4 entry reaches the zero-address branch; the later [lease-counter phase](METRICS_LEASE_PHASE.md) verifies this against actual C. Do not hardcode slot 6 to zero solely from NO_DHCP6. |
 | `tcp_connections` | `TCP_CONNECTIONS` | increments `dnsmasq.c:2158,:2283`; decrements `:1651,:1954` | **Active child-slot gauge**, not a cumulative connection counter. Ordinary TCP fork increments at `:2158`; DNSSEC asynchronous child fork at `:2283` is excluded here. A slot decrements only when both waitpid completion and pipe EOF have occurred, in either order. Debug/nonforked mode is different. `max_procs_used` is a separate high-water value and is not this wire field. |
 | `dhcp_leasequery` | `DHCPLEASEQUERY` | `rfc2131.c:1093` | LEASEQUERY enabled, nonzero source, and source allowlist accepted. Rejected queries before this point do not count. Counter. |
 | `dhcp_lease_unassigned` | `DHCPLEASEUNASSIGNED` | `rfc2131.c:1107` | Query names a nonzero address with no lease that is available in configured DHCP contexts. Counts response classification. |
@@ -52,6 +52,11 @@ or one count per successful socket send.
 | `dhcp_lease_unknown` | `DHCPLEASEUNKNOWN` | `rfc2131.c:1182` | Query retains unknown classification when constructing response, after other eligibility processing. Counts response classification. |
 
 ## Current Rust boundary
+
+The later [cache-counter phase](METRICS_CACHE_PHASE.md) and
+[lease-counter phase](METRICS_LEASE_PHASE.md) add real owner-held counter updates
+and exact C snapshot tests. Product aggregation/publication is a separate gate;
+the paragraph below records the earlier source-map snapshot before those hooks.
 
 At this source-map snapshot, `metrics.rs` provides storage, wrapping additions,
 two-field cache-reload reset, and wire serialization. A repository scan finds

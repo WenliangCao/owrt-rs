@@ -57,6 +57,72 @@ fn check_ownership(cache: &Cache) {
 }
 
 #[test]
+fn counted_pressure_remains_visible_after_failure_and_reload_resets_only_window() {
+    let mut cache = Cache::new(1, Policy::default());
+    let mut counters = CacheCounters::default();
+    cache.start_insert();
+    cache
+        .insert_counted(record("old.test", Kind::Ipv4, 7), 100, 60, &mut counters)
+        .unwrap();
+    assert_eq!(counters, CacheCounters::default());
+    assert!(cache.commit_counted(&mut counters));
+    assert_eq!(
+        counters,
+        CacheCounters {
+            inserted: 1,
+            live_freed: 0
+        }
+    );
+    cache.start_insert();
+    let long = format!("{}.{}", "a".repeat(60), "b".repeat(16));
+    assert_eq!(
+        cache.insert_counted(record(&long, Kind::Ipv4, 8), 101, 60, &mut counters),
+        Err(InsertError::LongNameLimit)
+    );
+    assert!(!cache.commit_counted(&mut counters));
+    assert_eq!(
+        counters,
+        CacheCounters {
+            inserted: 1,
+            live_freed: 1
+        }
+    );
+    assert!(lookup(&mut cache, "old.test", Kind::Ipv4, 101).is_empty());
+    cache.clear_counted(&mut counters);
+    assert_eq!(counters, CacheCounters::default());
+    check_ownership(&cache);
+}
+
+#[test]
+fn counted_negative_path_obeys_zero_soa_and_u32_commit_width() {
+    let mut cache = Cache::new(1, Policy::default());
+    let mut counters = CacheCounters {
+        inserted: u32::MAX,
+        live_freed: 0,
+    };
+    let negative = || {
+        let mut value = record("negative.test", Kind::Ipv4, 0);
+        value.negative = true;
+        value
+    };
+    cache.start_insert();
+    assert_eq!(
+        cache.insert_negative_counted(negative(), 100, Some(0), 60, &mut counters),
+        Err(InsertError::ZeroTtl)
+    );
+    assert!(!cache.commit_counted(&mut counters));
+    assert_eq!(counters.inserted, u32::MAX);
+    cache.start_insert();
+    assert!(cache
+        .insert_negative_counted(negative(), 100, None, 60, &mut counters)
+        .unwrap()
+        .is_some());
+    assert!(cache.commit_counted(&mut counters));
+    assert_eq!(counters, CacheCounters::default());
+    assert_eq!(lookup(&mut cache, "negative.test", Kind::Ipv4, 100), [0]);
+}
+
+#[test]
 fn lease_publication_selectively_removes_ipv4_and_nodata() {
     let mut cache = Cache::new(8, Policy::default());
     cache.start_insert();

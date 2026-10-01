@@ -154,6 +154,15 @@ pub enum InsertError {
     LocalConflict,
 }
 
+/// Caller-owned C metrics for one cache. Keep this beside the cache so the
+/// primitive's layout and allocation budget do not change. Count independently
+/// of whether ubus is enabled; publish snapshots without consuming/resetting.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub struct CacheCounters {
+    pub inserted: u32,
+    pub live_freed: u32,
+}
+
 struct Slot {
     entry: Option<Entry>,
     generation: u64,
@@ -225,6 +234,13 @@ impl Cache {
         self.tail = capacity.checked_sub(1);
     }
 
+    /// The production owner must clear the cache and its two metric windows
+    /// together. Other DNS/DHCP counters are unaffected by cache_reload.
+    pub fn clear_counted(&mut self, counters: &mut CacheCounters) {
+        self.clear();
+        *counters = CacheCounters::default();
+    }
+
     pub fn get(&self, id: EntryId) -> Option<&Entry> {
         self.slots
             .get(id.slot)
@@ -287,6 +303,19 @@ impl Cache {
     }
 
     pub fn insert(&mut self, record: Record, now: i64, ttl: u32) -> Result<EntryId, InsertError> {
+        self.insert_counted(record, now, ttl, &mut CacheCounters::default())
+    }
+
+    /// Preserve immediate pressure-removal effects even when this insertion or
+    /// a later insertion fails. C increments live_freed once for a live LRU
+    /// victim selection, not once per record removed from that victim's RRset.
+    pub fn insert_counted(
+        &mut self,
+        record: Record,
+        now: i64,
+        ttl: u32,
+        counters: &mut CacheCounters,
+    ) -> Result<EntryId, InsertError> {
         if self.failed {
             return Err(InsertError::PreviousFailure);
         }
@@ -333,6 +362,9 @@ impl Cache {
                 return self.fail(InsertError::Full);
             };
             if let Some(entry) = &self.slots[slot].entry {
+                if now < entry.expires {
+                    counters.live_freed = counters.live_freed.wrapping_add(1);
+                }
                 let victim_key = entry.record.name.canonical_wire();
                 let victim_kind = entry.record.kind;
                 // C spills the conflicting RRset, not only its oldest member.
@@ -392,6 +424,19 @@ impl Cache {
         soa_ttl: Option<u32>,
         configured_ttl: u32,
     ) -> Result<Option<EntryId>, InsertError> {
+        self.insert_negative_counted(
+            record, now, soa_ttl, configured_ttl, &mut CacheCounters::default(),
+        )
+    }
+
+    pub fn insert_negative_counted(
+        &mut self,
+        record: Record,
+        now: i64,
+        soa_ttl: Option<u32>,
+        configured_ttl: u32,
+        counters: &mut CacheCounters,
+    ) -> Result<Option<EntryId>, InsertError> {
         if !record.negative {
             return Err(InsertError::NotNegative);
         }
@@ -399,7 +444,7 @@ impl Cache {
         let Some(ttl) = ttl else {
             return Ok(None);
         };
-        self.insert(record, now, ttl).map(Some)
+        self.insert_counted(record, now, ttl, counters).map(Some)
     }
 
     /// Attach the owner of the independent SOA used for a negative answer.
@@ -459,6 +504,12 @@ impl Cache {
     }
 
     pub fn commit(&mut self) -> bool {
+        self.commit_counted(&mut CacheCounters::default())
+    }
+
+    /// Count each newly committed record after discarding invalid CNAMEs.
+    /// Pending entries, aborts and failed commits do not increment inserted.
+    pub fn commit_counted(&mut self, counters: &mut CacheCounters) -> bool {
         if self.failed {
             return false;
         }
@@ -474,6 +525,7 @@ impl Cache {
                 .or_default()
                 .push(slot);
             self.link_head(slot);
+            counters.inserted = counters.inserted.wrapping_add(1);
         }
         true
     }
