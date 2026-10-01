@@ -469,6 +469,7 @@ impl CacheContext<'_> {
         local: &LocalDnsService,
         policy: &super::process::AddressPolicy,
         original_rcode: u16,
+        extraction_eligible: bool,
     ) {
         self.insert_reply_inner(packet, now, local, policy, original_rcode, false);
     }
@@ -535,6 +536,12 @@ impl CacheContext<'_> {
                 );
                 return commit_reply(cache, counters, capture);
             }
+        }
+        // check_for_bogus_wildcard owns a separate cache transaction before
+        // extract_addresses; ordinary request/reply CD restrictions do not
+        // suppress that policy result.
+        if !extraction_eligible {
+            return;
         }
         cache.start_insert();
         if header.questions != 1 {
