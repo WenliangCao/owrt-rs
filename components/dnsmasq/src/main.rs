@@ -37,7 +37,7 @@ use dnsmasq_rs::ubus_service::{DhcpEventFields, DhcpEventKind, DhcpLogging};
 use std::ffi::OsString;
 use std::io::{self, Read, Write};
 use std::net::{IpAddr, SocketAddr, TcpListener, UdpSocket};
-use std::os::fd::{AsRawFd, BorrowedFd, OwnedFd};
+
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
@@ -206,15 +206,22 @@ impl ParentEvents {
         false
     }
 
-    // Duplicate under the owner lock so descriptors stay live across the
-    // unlocked poll. This private reference has not passed a resource gate.
-    fn wait_fds(&self) -> io::Result<Vec<OwnedFd>> {
+    // Readiness is only a wake hint. Another owner can close/reuse these raw
+    // descriptor numbers after unlock; POLLNVAL or stale readiness is harmless.
+    // Every actual read rechecks the current owner under the event lock.
+    // Duplicating descriptors here would change EMFILE admission behavior.
+    fn wait_fds(&self) -> Vec<owrt_ubus::sys::PollFd> {
         let mut fds = Vec::new();
+        let mut add = |fd| {
+            fds.push(owrt_ubus::sys::PollFd {
+                fd,
+                events: owrt_ubus::sys::POLLIN,
+                revents: 0,
+            })
+        };
         if self.tcp_pending.is_none() {
             if let Some(ubus) = &self.ubus {
-                // SAFETY: the event lock owns this live UBus connection until
-                // duplication finishes; the returned OwnedFd is independent.
-                fds.push(unsafe { BorrowedFd::borrow_raw(ubus.as_raw_fd()) }.try_clone_to_owned()?);
+                add(ubus.as_raw_fd());
             }
         }
         for (index, slot) in self.tcp_slots.iter().enumerate() {
@@ -225,10 +232,10 @@ impl ParentEvents {
                 continue;
             }
             if let Some(receiver) = slot.as_ref().and_then(|slot| slot.receiver.as_ref()) {
-                fds.push(receiver.duplicate_reader()?);
+                add(receiver.as_raw_fd());
             }
         }
-        Ok(fds)
+        fds
     }
 
     fn write_metrics(&self, metrics: &mut Metrics) {
@@ -1281,18 +1288,10 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             }
             event.drain_tcp(&mut parent);
         }
-        let watched = parent_events
+        let mut fds = parent_events
             .lock()
             .map_err(|_| io::Error::other("parent event lock poisoned"))?
-            .wait_fds()?;
-        let mut fds: Vec<_> = watched
-            .iter()
-            .map(|fd| owrt_ubus::sys::PollFd {
-                fd: fd.as_raw_fd(),
-                events: owrt_ubus::sys::POLLIN,
-                revents: 0,
-            })
-            .collect();
+            .wait_fds();
         let _ = owrt_ubus::sys::poll_fds(&mut fds, 100);
     }
     for worker in workers {

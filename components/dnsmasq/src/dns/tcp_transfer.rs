@@ -7,7 +7,7 @@ use super::cache::{CacheTransaction, Kind, Record, TransferredRecord};
 use super::wire::{decode_name, Name};
 use std::fs::File;
 use std::io::{self, Read, Write};
-use std::os::fd::{AsRawFd, OwnedFd};
+use std::os::fd::{AsRawFd, RawFd};
 use std::time::Instant;
 
 pub struct Sender(File);
@@ -73,8 +73,8 @@ impl Sender {
 }
 
 impl Receiver {
-    pub fn duplicate_reader(&self) -> io::Result<OwnedFd> {
-        Ok(self.pipe.try_clone()?.into())
+    pub fn as_raw_fd(&self) -> RawFd {
+        self.pipe.as_raw_fd()
     }
     pub fn ready(&self) -> io::Result<bool> {
         owrt_ubus::sys::wait_readable(self.pipe.as_raw_fd(), 0)
@@ -178,7 +178,7 @@ fn get_name(bytes: &mut &[u8]) -> io::Result<Option<Name>> {
     }
     let wire = take(bytes, length)?;
     let (name, end) = decode_name(wire, 0, 0).map_err(|_| invalid())?;
-    if end != wire.len() {
+    if end != wire.len() || name.as_wire() != wire {
         return Err(invalid());
     }
     Ok(Some(name))
@@ -186,6 +186,11 @@ fn get_name(bytes: &mut &[u8]) -> io::Result<Option<Name>> {
 
 fn decode(mut bytes: &[u8]) -> io::Result<CacheTransaction> {
     let count = u32::from_be_bytes(take(&mut bytes, 4)?.try_into().unwrap());
+    // Minimum record: tag/type/negative/expiry (12), root name (3),
+    // empty data length (4), absent authority name (2). No count-led reserve.
+    if count as usize > bytes.len() / 21 {
+        return Err(invalid());
+    }
     let mut records = Vec::new();
     for _ in 0..count {
         let tag = take(&mut bytes, 1)?[0];
@@ -289,6 +294,20 @@ mod tests {
             receiver.receive().err().unwrap().kind(),
             io::ErrorKind::UnexpectedEof
         );
+    }
+
+    #[test]
+    fn impossible_count_and_compressed_ipc_name_fail_closed() {
+        assert!(decode(&u32::MAX.to_be_bytes()).is_err());
+        // A compressed name with a legal in-buffer root target still violates
+        // this codec's explicitly uncompressed name representation.
+        let mut name = &[0, 4, 1, 0, 0xc0, 1][..];
+        assert!(get_name(&mut name).is_err());
+        let valid = encode(transaction()).unwrap();
+        for end in 4..valid.len() {
+            assert!(decode(&valid[4..end]).is_err());
+        }
+        assert!(decode(&valid[4..]).is_ok());
     }
 
     #[test]
