@@ -16,6 +16,7 @@ from dns_start_failure_diff import tracee
 from dns_udp_admission_diff import receive
 from dns_udp_refusal_diff import verify_reference
 from ubus_contract_diff import BUS, OBJECT, Fixture, digest
+from ubus_order_diff import nested
 
 ROOT = Path(__file__).resolve().parents[2]
 ISOLATED_ADDRESS = "198.18.0.53"
@@ -116,6 +117,9 @@ def run(args, binary, profile, out):
         pid = tracee(fixture.daemon.pid)
         send(clients[2], query("ready.test", ident=0x6000))
         assert receive(clients[2], 1) is not None
+        watcher = watcher_log = None
+        if args.doctor_metrics:
+            watcher, watcher_log = fixture.watch("metrics")
         opt = profile != "original-plain"
         original = request("Mixed.retry.test", 0x6101, opt, do=profile != "stale-opt")
         duplicate = request("mixed.RETRY.test", 0x6102, opt, do=profile != "stale-opt")
@@ -164,6 +168,9 @@ def run(args, binary, profile, out):
         assert receive(healthy, .01) is None, "healthy query retried before its preserved reply"
         healthy.sendto(answer(held_healthy), healthy_peer)
         assert recv("healthy-survived", clients[2], 1) is not None
+        if watcher is not None:
+            record("inside-doctor", metrics=nested(fixture, watcher_log))
+            fixture.stop(watcher)
         record("healthy-metrics", metrics=fixture.metrics())
         record("completed-sockets", failed=owns_udp_port(pid, held_peer[1]), healthy=owns_udp_port(pid, healthy_peer[1]))
 
@@ -222,8 +229,8 @@ def compare(expected, actual):
     return [{"label": c["label"], "c": c, "rust": rust} for c, rust in zip(expected, actual) if c != rust]
 
 
-def calibrate_reference(profile, rows):
-    assert len(rows) == (20 if profile == "stale-opt" else 17)
+def calibrate_reference(profile, rows, doctor):
+    assert len(rows) == (20 if profile == "stale-opt" else 17) + int(doctor)
     by_label = {row["label"]: row for row in rows}
     before = by_label["before-failure"]["metrics"]
     after = by_label["after-failure"]["metrics"]
@@ -247,6 +254,9 @@ def calibrate_reference(profile, rows):
         assert refused["records"] == ([] if profile == "original-plain" else [
             {"section": "additional", "name": "", "type": 41, "class": 1232, "ttl": 0, "data": "000f00020017"}])
     assert by_label["healthy-survived"]["response"]["id"] == 0x6201
+    if doctor:
+        assert by_label["inside-doctor"]["metrics"]["dns_local_answered"] == 2
+        assert by_label["inside-doctor"]["metrics"]["dns_cache_inserted"] == 0
     assert by_label["late-original"]["response"] is None and by_label["late-coalesced"]["response"] is None
     assert by_label["late-metrics"]["metrics"] == by_label["healthy-metrics"]["metrics"]
     assert by_label["recovery-response"]["response"]["id"] == 0x6301
@@ -261,6 +271,7 @@ def main():
     parser.add_argument("--rust", type=Path)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--inject-error", action="store_true")
+    parser.add_argument("--doctor-metrics", action="store_true", help="fast-only schedule with nested metrics before cache commit")
     args = parser.parse_args()
     if args.inject_error and args.rust is None:
         parser.error("negative control requires Rust")
@@ -276,18 +287,19 @@ def main():
     report = {"reference": verify_reference(reference, None), "namespace": identity,
               "tool_sha256": digest(__file__), "rust_sha256": None if args.rust is None else digest(args.rust),
               "profiles": [], "failures": [], "c_only": args.rust is None, "injected_error": args.inject_error,
+              "doctor_metrics": args.doctor_metrics,
               "reference_defects": [{"profile": "coalesced-opt", "label": "failure-coalesced",
                                      "description": "C returns first recipient ID/question to a different retrying recipient"}]}
     subprocess.run(["mount", "--make-rprivate", "/"], check=True)
     subprocess.run(["mount", "-t", "tmpfs", "-o", "mode=0755", "dns-retry-failure", "/run"], check=True)
     Path(BUS).parent.mkdir()
-    for profile in PROFILES:
+    for profile in (["fast-opt"] if args.doctor_metrics else PROFILES):
         work = out / profile
         work.mkdir()
         stage = "C"
         try:
             expected = run(args, reference, profile, work / "c")
-            calibrate_reference(profile, expected)
+            calibrate_reference(profile, expected, args.doctor_metrics)
             assert not compare(expected, copy.deepcopy(expected))
             changed = copy.deepcopy(expected)
             next(row for row in changed if row["label"] == "after-failure")["metrics"]["dns_local_answered"] += 1
@@ -302,7 +314,7 @@ def main():
             if args.rust is not None:
                 stage = "Rust"
                 actual = run(args, args.rust, profile, work / "rust")
-                if args.inject_error and profile == "original-plain":
+                if args.inject_error and (profile == "original-plain" or args.doctor_metrics):
                     next(row for row in actual if row["label"] == "after-failure")["metrics"]["dns_local_answered"] += 1
             report["profiles"].append({"profile": profile, "observations": len(expected),
                                        "differences": [] if args.rust is None else compare(expected, actual)})
