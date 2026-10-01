@@ -39,7 +39,8 @@ unit tests pass with three existing ignored drivers, and all-targets clippy
 passes. Poll-wide OS failure recovery, every malformed upstream variant and
 complete metrics integration remain separate work.
 
-The review also identified a separate timeout setting mismatch: the runtime
-uses a ten-second transport deadline, while C's idle reply lookup permits up
-to `4 * TIMEOUT` (40 seconds); ten seconds is its conditional slot-reuse age.
-This unit establishes failure isolation, not equivalence of that deadline.
+The review also identified a separate timeout setting mismatch: the preceding
+runtime used ten seconds, while C's idle reply lookup permits up to
+`4 * TIMEOUT` (40 seconds); ten seconds is its conditional slot-reuse age.
+The subsequent correction and real 11/41/42-second window are recorded in
+`DNS_UDP_DEADLINE_PHASE.md`; this unit alone establishes failure isolation.

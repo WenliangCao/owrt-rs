@@ -21,8 +21,31 @@ Evidence: `private/dnsmasq-rewrite/udp-policy-20261001/deadline-forward-diff/`.
 an 11-second upstream response must arrive, a 41-second response must not, and
 a fresh request at 42 seconds must complete. Both use the same configuration,
 listen/upstream ports and response packets, with raw FD/thread/child samples
-and process shutdown retained. The runtime gate is still pending at this
-checkpoint and is not counted as passed.
+and process shutdown retained. `deadline-02/` completes that sole full window
+for each daemon: both receive the delayed reply after 11 seconds, suppress the
+41-second late reply, and complete the fresh probe at 42 seconds. Each side
+issues three measured queries, receives exactly two replies and exits cleanly.
+Client bytes and upstream semantics/order/counts match. The first attempt,
+`deadline-01/`, is retained as a readiness-adapter failure: connected UDP saw
+ECONNREFUSED before either listener bound; no measured-window query ran.
+
+The frozen Rust ELF is
+`3f77c3a4d1279c7fb342fc2281fb2dcf33d3f43d3695c3d943d83d24190dee9b`,
+also used by the successful 43-event admission gate. All raw plans, packets,
+timing samples and process results are in
+`private/dnsmasq-rewrite/udp-policy-20261001/linux/deadline-02/`.
+
+| Observation | C FDs | Rust FDs |
+| --- | ---: | ---: |
+| Ready | 11 | 6 |
+| Two pending queries | 13 | 8 |
+| After 11-second success | 12 | 7 |
+| At 40.5 seconds, before new admission | 12 | 6 |
+| After fresh probe | 11 | 6 |
+
+C has one thread and Rust three in this fixture; neither has child processes.
+Both processes are reaped after SIGTERM. These are individual functional-window
+observations, not throughput, tail-latency or exclusive-memory measurements.
 
 The transport actively closes timed-out work at its deadline, while C may
 retain an expired frec until a later admission performs reclamation. Equal
