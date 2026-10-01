@@ -7,7 +7,7 @@ use super::cache::{CacheTransaction, Kind, Record, TransferredRecord};
 use super::wire::{decode_name, Name};
 use std::fs::File;
 use std::io::{self, Read, Write};
-use std::os::fd::AsRawFd;
+use std::os::fd::{AsRawFd, OwnedFd};
 use std::time::Instant;
 
 pub struct Sender(File);
@@ -73,6 +73,9 @@ impl Sender {
 }
 
 impl Receiver {
+    pub fn duplicate_reader(&self) -> io::Result<OwnedFd> {
+        Ok(self.pipe.try_clone()?.into())
+    }
     pub fn ready(&self) -> io::Result<bool> {
         owrt_ubus::sys::wait_readable(self.pipe.as_raw_fd(), 0)
     }
