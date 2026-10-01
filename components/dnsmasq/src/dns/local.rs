@@ -392,7 +392,7 @@ fn ip_bytes(address: IpAddr) -> Vec<u8> {
 
 /// rfc1035.c::in_arpa_name_2_addr, including omitted low-order components,
 /// defined decimal-to-byte narrowing, ip6.int and its textual bitstring form.
-fn arpa_address(name: &[u8]) -> Option<IpAddr> {
+pub(super) fn arpa_address(name: &[u8]) -> Option<IpAddr> {
     if name.len() > 75 {
         return None;
     }

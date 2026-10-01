@@ -131,6 +131,9 @@ pub struct DnsConfig {
     pub aliases: Vec<AliasConfig>,
     pub bogus_addresses: Vec<PrefixConfig>,
     pub ignore_addresses: Vec<PrefixConfig>,
+    /// Additional cacheable RR types; 255 selects all types in extraction.
+    /// CNAME and ANY queries retain their special insertion rules.
+    pub cache_rr: Vec<u16>,
     pub domain_suffix: Option<Vec<u8>>,
     pub domain_from_resolv: bool,
     /// Newest declaration first, matching C's cond_domain linked list.
@@ -175,6 +178,7 @@ impl Default for DnsConfig {
             aliases: Vec::new(),
             bogus_addresses: Vec::new(),
             ignore_addresses: Vec::new(),
+            cache_rr: Vec::new(),
             domain_suffix: None,
             domain_from_resolv: false,
             conditional_domains: Vec::new(),
@@ -573,6 +577,12 @@ impl DnsConfig {
             b"ignore-address" => self
                 .ignore_addresses
                 .insert(0, address_prefix(arg.unwrap())?),
+            b"cache-rr" => {
+                for field in arg.unwrap().split(b',') {
+                    self.cache_rr
+                        .insert(0, super::rrtypes::parse(&field.decoded())?);
+                }
+            }
             b"domain" | b"domain-suffix" => self.domain(arg.unwrap())?,
             b"local-service" => match arg.map(EncodedArg::encoded) {
                 None | Some(b"net") => self.local_service_net = true,

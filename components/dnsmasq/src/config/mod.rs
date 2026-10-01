@@ -10,6 +10,7 @@ pub mod dns;
 pub mod loader;
 mod options;
 pub mod records;
+mod rrtypes;
 mod scalar;
 pub mod tftp;
 pub mod ubus;

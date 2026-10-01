@@ -571,7 +571,16 @@ impl CacheContext<'_> {
         let Ok(question) = WireQuestion::parse(packet, super::wire::HEADER_LEN) else {
             return;
         };
-        if question.class != 1 || !matches!(question.qtype, 1 | 5 | 28) {
+        if question.class != 1 {
+            return;
+        }
+        // Address-form PTR replies need C's separate reverse-cache index.
+        // Keep that unimplemented boundary explicit instead of storing a
+        // forward Generic(12) entry with different lookup/conflict semantics.
+        if question.qtype == 12
+            && header.rcode() != 3
+            && super::local::arpa_address(&question.name.dnsmasq_bytes()).is_some()
+        {
             return;
         }
         let Ok(edns) = find_pseudoheader(packet, false) else {
@@ -585,11 +594,15 @@ impl CacheContext<'_> {
             return;
         }
 
-        let kind = if question.qtype == 1 {
-            Kind::Ipv4
-        } else {
-            Kind::Ipv6
+        let kind = match question.qtype {
+            1 => Kind::Ipv4,
+            28 => Kind::Ipv6,
+            rrtype => Kind::Generic(rrtype),
         };
+        let insert = question.qtype != 5
+            && (matches!(question.qtype, 1 | 12 | 28 | 33)
+                || (question.qtype != 0 && local.config.cache_rr.contains(&question.qtype))
+                || local.config.cache_rr.contains(&255));
         let max_reply_ttl = cache.policy().max_reply_ttl;
         let mut current = question.name.clone();
         let mut cname_left = 10;
@@ -623,7 +636,7 @@ impl CacheContext<'_> {
                     // Act on failure only after insertion: C removes the old
                     // owner before validating this target.
                     let target = super::wire::decode_name(packet, rr.fixed + 10, 0);
-                    let next = if question.qtype != 5 {
+                    let next = if insert {
                         match insert_cache_record(
                             cache,
                             counters,
@@ -659,22 +672,36 @@ impl CacheContext<'_> {
                         continue 'cname;
                     }
                     found = true;
-                } else if rr.rrtype == question.qtype && header.rcode() != 3 {
+                } else if question.qtype != 255
+                    && rr.rrtype == question.qtype
+                    && header.rcode() != 3
+                {
                     found = true;
-                    let width = if question.qtype == 1 { 4 } else { 16 };
-                    let Some(data) = packet.get(rr.fixed + 10..rr.fixed + 10 + width) else {
-                        return;
-                    };
-                    let address = if question.qtype == 1 {
-                        IpAddr::V4(std::net::Ipv4Addr::from(<[u8; 4]>::try_from(data).unwrap()))
-                    } else {
-                        IpAddr::V6(std::net::Ipv6Addr::from(
-                            <[u8; 16]>::try_from(data).unwrap(),
-                        ))
-                    };
-                    if policy.rejects_rebind(&question.name, address) {
-                        return;
+                    if !insert {
+                        continue;
                     }
+                    let data = if matches!(kind, Kind::Ipv4 | Kind::Ipv6) {
+                        let width = if question.qtype == 1 { 4 } else { 16 };
+                        let Some(data) = packet.get(rr.fixed + 10..rr.fixed + 10 + width) else {
+                            return;
+                        };
+                        let address = if question.qtype == 1 {
+                            IpAddr::V4(std::net::Ipv4Addr::from(<[u8; 4]>::try_from(data).unwrap()))
+                        } else {
+                            IpAddr::V6(std::net::Ipv6Addr::from(
+                                <[u8; 16]>::try_from(data).unwrap(),
+                            ))
+                        };
+                        if policy.rejects_rebind(&question.name, address) {
+                            return;
+                        }
+                        data.to_vec()
+                    } else {
+                        let Ok(data) = rr.canonical_rdata() else {
+                            return;
+                        };
+                        data
+                    };
                     let inserted = insert_cache_record(
                         cache,
                         counters,
@@ -683,7 +710,7 @@ impl CacheContext<'_> {
                             name: current.clone(),
                             kind,
                             negative: false,
-                            data: data.to_vec(),
+                            data,
                         },
                         now,
                         ttl,
@@ -705,7 +732,10 @@ impl CacheContext<'_> {
             answer_end = position;
             break;
         }
-        if !found && self.negative_cache && (question.qtype != 5 || header.rcode() == 3) {
+        if !found
+            && self.negative_cache
+            && ((insert && question.qtype != 255) || header.rcode() == 3)
+        {
             let soa = authority_soa(packet, answer_end, header.authorities, &current);
             let mut soa_ttl = soa.as_ref().and_then(|(_, ttl, minimum, _)| {
                 (*ttl != 0 || cache.policy().stale != StalePolicy::Disabled)
