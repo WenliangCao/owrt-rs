@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Exact native read_opts/doctor oracle for static IPv4 alias configuration.
 
-State and --test acceptance are separate from Rust's unconnected runtime gate.
+State and --test acceptance are separate from Rust's runtime readiness gate.
 Queries are complete single-A packets through the existing doctor primitive;
 no listener or ubus connection is opened.
 """
@@ -140,6 +140,8 @@ def main():
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--c-only", action="store_true")
     parser.add_argument("--inject-error", action="store_true")
+    parser.add_argument("--expect-runtime-alias-rejection", action="store_true",
+                        help="reproduce the historical parser-only consumer gate")
     args = parser.parse_args()
     if args.c_only and args.inject_error: parser.error("--inject-error requires a paired run")
     out=args.out.resolve(); assert out.is_relative_to(ROOT / "private"); out.mkdir(parents=True,exist_ok=False)
@@ -189,7 +191,8 @@ def main():
                 rust.stdout=rust.stdout.replace(b"to=198.51.100.20",b"to=198.51.100.21",1)
             row.update(rust_exit=rust.returncode,rust_test_exit=rtest.returncode,
                        match=base.matches(c,rust) and test.returncode==rtest.returncode,
-                       runtime_gate=(gate.returncode==int(row["aliases"]!=0)) if gate else None)
+                       runtime_exit=gate.returncode if gate else None,
+                       runtime_gate=(gate.returncode==int(args.expect_runtime_alias_rejection and row["aliases"]!=0)) if gate else None)
         rows.append(row)
     assert (len(rows),sum(row["c_exit"]==0 for row in rows),sum(row["queries"] for row in rows))==(72,34,748), "frozen C corpus counts"
     failed=[] if args.c_only else [row for row in rows if not row["match"] or row["runtime_gate"] is False]
@@ -197,9 +200,11 @@ def main():
             "matches":None if args.c_only else len(rows)-len(failed),"failures":failed,"rows":rows,
             "queries_per_accepted_case":len(data.splitlines()),"c_sha256":base.sha(out / "c-state"),
             "doctor_mapping_observations":sum(row["queries"] for row in rows),
-            "runtime_alias_rejections":None if args.c_only else sum(row.get("runtime_gate") is True and row["aliases"]>0 for row in rows),
+            "runtime_alias_rejections":None if args.c_only else sum(row.get("runtime_exit")==1 and row["aliases"]>0 for row in rows),
+            "runtime_alias_accepted":None if args.c_only else sum(row.get("runtime_exit")==0 and row["aliases"]>0 for row in rows),
+            "expect_runtime_alias_rejection":args.expect_runtime_alias_rejection,
             "tool_sha256":base.sha(Path(__file__)),
-            "source_sha256":HASHES,"scope":"read_opts alias state/--test and actual single-A doctor semantics; runtime consumer remains gated"}
+            "source_sha256":HASHES,"scope":"read_opts alias state/--test, runtime readiness and actual single-A doctor semantics; service equivalence requires the separate daemon gate"}
     (out / "result.json").write_text(json.dumps(report,indent=2)+"\n")
     print(json.dumps({key:value for key,value in report.items() if key!="rows"},indent=2))
     return int(bool(failed))

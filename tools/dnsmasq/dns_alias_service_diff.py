@@ -178,15 +178,39 @@ def check_equal(expected, actual):
         for row in (a, b):
             row.pop("raw", None)
             row.pop("elapsed", None)
-        if left["label"].endswith("cache-hit"):
+            row.pop("cache_age_window", None)
+        if "cache_age_window" in left and "cache_age_window" in right:
             for x, y in zip(a["responses"], b["responses"]):
+                if x is None or y is None:
+                    continue
                 for c, r in zip(x["records"], y["records"]):
-                    tolerance = math.ceil(max(left["elapsed"], right["elapsed"]))
-                    if abs(c["ttl"] - r["ttl"]) <= tolerance:
+                    tolerance = math.ceil(max(left["cache_age_window"], right["cache_age_window"]))
+                    # OPT's TTL-shaped field contains protocol flags/RCODE,
+                    # not cache time, and must always compare exactly.
+                    if c["type"] != 41 and r["type"] != 41 and abs(c["ttl"] - r["ttl"]) <= tolerance:
                         r["ttl"] = c["ttl"]
         if a != b:
             failures.append({"label": left["label"], "c": a, "rust": b})
     return failures
+
+
+def count_observations(counts, rows):
+    for row in rows:
+        counts["observations"] += 1
+        counts["upstream_queries"] += len(row["upstream"])
+        for response in row["responses"]:
+            counts["client_requests"] += 1
+            if response is None:
+                counts["client_timeouts"] += 1
+                continue
+            counts["client_replies"] += 1
+            rcode = response["flags"] & 15
+            for record in response["records"]:
+                if record["section"] == "additional" and record["type"] == 41:
+                    rcode |= (record["ttl"] >> 24) << 4
+                    break
+            key = str(rcode)
+            counts["rcode_counts"][key] = counts["rcode_counts"].get(key, 0) + 1
 
 
 def observe(port, transport, label, packets, upstream):
@@ -234,12 +258,23 @@ def run(binary, config, port, work, upstream, cases, transport, cache=False):
                     if time.monotonic() >= deadline:
                         raise AssertionError("readiness timeout")
                     time.sleep(.02)
+            primed_at = {}
             for index, (host, kind, edns) in enumerate(cases):
                 label = f"{transport}-{host}-type{kind}-edns{int(edns)}"
+                start = time.monotonic()
                 rows.append(observe(port, transport, label, [query(host + ".test", 0x4000 + index, kind, edns)], upstream))
+                # This fixed subset is established by the exact C baseline:
+                # plain first query fills an ordinary positive cache entry.
+                if cache and host in ("normal", "sections", "cname", "aaaa"):
+                    if edns:
+                        rows[-1]["cache_age_window"] = time.monotonic() - primed_at[host]
+                    else:
+                        primed_at[host] = start
             if cache:
+                start = time.monotonic()
                 rows.append(observe(port, "udp", "udp-cache-miss", [query("cached.test", 0x5000)], upstream))
                 rows.append(observe(port, "udp", "udp-cache-hit", [query("cached.test", 0x5001)], upstream))
+                rows[-1]["cache_age_window"] = time.monotonic() - start
                 rows.append(observe(port, "udp", "udp-merged", [query("merged.test", 0x5100), query("merged.test", 0x5101)], upstream))
         finally:
             if process.poll() is None:
@@ -301,11 +336,32 @@ def main():
         pass
     else:
         raise AssertionError("count calibration failed")
+    counters = {"observations": 0, "upstream_queries": 0, "client_requests": 0,
+                "client_replies": 0, "client_timeouts": 0, "rcode_counts": {}}
+    count_observations(counters, [{"upstream": ["query"], "responses": [
+        {"flags": 0, "records": []}, {"flags": 3, "records": []}, None]}])
+    assert counters == {"observations": 1, "upstream_queries": 1, "client_requests": 3,
+                        "client_replies": 2, "client_timeouts": 1, "rcode_counts": {"0": 1, "3": 1}}
+    ttl_sample = [{"label": "ttl-calibration", "cache_age_window": .01,
+                   "responses": [{"records": [{"type": 1, "ttl": 120}]}]}]
+    changed = copy.deepcopy(ttl_sample); changed[0]["responses"][0]["records"][0]["ttl"] = 119
+    assert not check_equal(ttl_sample, changed)
+    changed[0]["responses"][0]["records"][0]["ttl"] = 118
+    assert len(check_equal(ttl_sample, changed)) == 1
+    ttl_sample[0]["responses"][0]["records"][0]["type"] = 41
+    changed = copy.deepcopy(ttl_sample); changed[0]["responses"][0]["records"][0]["ttl"] = 119
+    assert len(check_equal(ttl_sample, changed)) == 1
     planned = sum(len(cases) * 2 for _, _, cases in schedule()) + 3
     report = {"planned": planned, "c_observations": 0, "compared": 0, "matched": 0,
-              "failures": [], "reference": identity, "calibration": {"equal": 1, "mismatch": 1, "count": 1},
+              "failures": [], "reference": identity, "calibration": {"equal": 1, "mismatch": 1, "count": 1, "response_counters": 1, "ttl_boundaries": 3},
+              "tool_sha256": {file.name: hashlib.sha256(file.read_bytes()).hexdigest() for file in
+                              [Path(__file__), Path(__file__).with_name("dns_service_probe.py"), Path(__file__).with_name("dns_udp_refusal_diff.py")]},
+              "schedule_sha256": hashlib.sha256(json.dumps(schedule(), sort_keys=True).encode()).hexdigest(),
               "rust_sha256": hashlib.sha256(args.rust.read_bytes()).hexdigest() if args.rust else None,
               "scope": "static alias upstream UDP/TCP processing, original ignore admission, UDP cache/coalescing; no ubus subscriber"}
+    for side in ("c", "rust"):
+        report[side + "_counts"] = {"observations": 0, "upstream_queries": 0, "client_requests": 0,
+                                    "client_replies": 0, "client_timeouts": 0, "rcode_counts": {}}
     upstream = Upstream()
     injected = False
     try:
@@ -320,8 +376,10 @@ def main():
                 expected = run(args.c, config, port, folder / "c", upstream, cases, transport, cache)
                 calibrate_reference(group, transport, expected)
                 report["c_observations"] += len(expected)
+                count_observations(report["c_counts"], expected)
                 if args.rust:
                     actual = run(args.rust, config, port, folder / "rust", upstream, cases, transport, cache)
+                    count_observations(report["rust_counts"], actual)
                     if args.inject_error and not injected:
                         actual[0]["responses"][0]["flags"] ^= 0x400
                         injected = True
@@ -334,6 +392,7 @@ def main():
         report["failures"].append({"infrastructure_or_protocol": repr(error)})
     finally:
         upstream.close()
+        (output / "upstream.json").write_text(json.dumps({"events": upstream.events, "failures": upstream.failures}, indent=2) + "\n")
     report["unexecuted"] = planned - (report["compared"] if args.rust else report["c_observations"])
     (output / "result.json").write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps({key: value for key, value in report.items() if key != "failures"}, sort_keys=True))

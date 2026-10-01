@@ -5,11 +5,12 @@
 fields (`from`, `end`, `to`, `mask`) copy directly into `dns::doctor::Alias`.
 The consumer must not reverse, deduplicate or normalize the rules again.
 
-The DNS-enabled runtime remains explicitly gated by `validate_ready`: parsed
-aliases are not yet connected to the response doctor. `finalize`/CLI `--test`
-can validate their syntax without claiming runtime execution. As in C, a
-disabled DNS port gives this DNS-only option no execution semantics; no extra
-`port=0` rejection was added. This phase does not establish daemon-level alias
+At the parser milestone, DNS-enabled runtime was explicitly gated by
+`validate_ready`, while `finalize`/CLI `--test` could validate syntax. That guard
+was removed after the [static alias service gate](DNS_ALIAS_SERVICE_PHASE.md)
+connected and compared the real upstream consumer. As in C, a disabled DNS port
+gives this DNS-only option no execution semantics; no extra `port=0` rejection
+was added. This configuration phase alone does not establish service
 integration or performance improvement.
 
 | Exact C reference | Preserved behavior |
@@ -57,12 +58,16 @@ and raw observations remain in ignored
 The corpus includes CLI long/short forms, repeated CLI options, main-file versus
 CLI ordering, point/network/range boundaries, duplicate/overlapping rules,
 arbitrary masks, empty/extra fields, whitespace/comments and quoted-field cases.
-Configuration-DNS unit tests and library clippy passed; the dedicated unit also
-asserts syntax success without runtime readiness.
+Configuration-DNS unit tests and library clippy passed. The parser milestone's
+unit checked the unconnected guard; the current unit retains evaluation-order
+checks and expects readiness after the service consumer was connected.
 
 The C source hashes cover `option.c`, `rfc1035.c`, `dnsmasq.h`, `util.c` and the
 validated target feature header. No listener or ubus connection was started,
 and no physical router was accessed. Full Answer/Additional traversal and ubus
 interaction remain in the existing doctor contract; this unit supplies its
-validated rule sequence, not a new packet algorithm. The main/daemon/processor
-owner must connect the eligible upstream reply path before removing the guard.
+validated rule sequence, not a new packet algorithm. The later service phase
+preserves these parser/primitive observations and separately establishes its
+consumer evidence. The tool defaults to expecting connected runtime readiness;
+`--expect-runtime-alias-rejection` reproduces the old guard assertion against
+the historical parser-only source.

@@ -822,11 +822,6 @@ impl DnsConfig {
                 "conditional domain requires platform resolution or C range review",
             ));
         }
-        if !self.aliases.is_empty() {
-            return Err(Error(
-                "static DNS aliases are not connected to the response doctor",
-            ));
-        }
         Ok(())
     }
 }
@@ -841,7 +836,7 @@ mod tests {
     }
 
     #[test]
-    fn alias_syntax_does_not_claim_an_unconnected_runtime_consumer() {
+    fn alias_rules_retain_runtime_evaluation_order() {
         let mut config = DnsConfig::default();
         apply(&mut config, b"alias=192.0.2.10,198.51.100.20").unwrap();
         apply(&mut config, b"alias=192.0.2.0,203.0.113.99,255.255.255.0").unwrap();
@@ -851,10 +846,7 @@ mod tests {
         );
         assert_eq!(config.aliases[1].mask, Ipv4Addr::BROADCAST);
         assert!(config.finalize().is_ok());
-        assert_eq!(
-            config.validate_ready().unwrap_err(),
-            Error("static DNS aliases are not connected to the response doctor")
-        );
+        assert!(config.validate_ready().is_ok());
     }
 
     #[test]
