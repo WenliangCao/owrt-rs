@@ -1,9 +1,10 @@
 # Static-host address fallback for DHCP rules
 
-The exact C daemon derives an IPv4 reservation for an ordinary `dhcp-host`
-rule with a configured name and no explicit address. The initial Rust daemon
-does not: the independently frozen service corpus completes 27 startup/HUP
-snapshots, with **10/27 matched and 17 differences** before implementation.
+Rust now derives an IPv4 reservation for an ordinary `dhcp-host` rule with a
+configured name and no explicit address from the static hosts generation.
+The unchanged independent C service corpus passes **27/27 startup/HUP
+snapshots**, improved from **10/27 matched and 17 differences** before the
+implementation. Its complete observation file is byte-identical to C's.
 
 ## Existing contract
 
@@ -50,7 +51,10 @@ rows, all 30 actual UBus counters before/after DHCP, and DNS semantics including
 TTL, flags and record order. Offers cause no fabricated lease allocations;
 the one ACK allocates through the normal lease path. Infinite leases avoid
 clock normalization. Two port-zero snapshots contain no DNS observation.
-Missing snapshots and an injected address mutation fail the comparison.
+Missing snapshots and an injected address mutation fail the comparison. There
+are 32 actual DHCP requests, 25 DNS queries and 54 complete metric snapshots;
+all 263 helper UBus/lifecycle checks pass in the C, before, after and negative
+runs.
 
 The C baseline has zero failures and observation SHA-256
 `9c12175fea530133d405ad465000e7fe9970f25ae9c671ecc60b3d748cad892f`.
@@ -66,6 +70,59 @@ and `/home/ubuntu/dnsmasq-dhcp-address-20261001` on the authorized oracle.
 The initial source archive SHA-256 is
 `4b20f0fb4b6d525cc82414cd4d322d4a30fd944c38d7106d8ebcac53976d17bd`.
 
+## Implementation and validation
+
+`LocalProvider::set_config_host_lookup` is a separate callback from the boot
+next-server lookup because the multiple-address selection rules differ. Main
+uses the existing static hosts lookup and reverse ownership. The provider
+enriches the ordered configurations before configured lease-name updates, then
+updates its packet policies and reserved-address list together. It never
+creates a lease for a reservation.
+
+The immutable inline configuration retains the original explicit addresses.
+During reload, the current inline tail participates in DHCP-file parsing,
+preserving C's old-inferred-address conflict behavior. Inferred addresses are
+then reset from the immutable original and derived from the new hosts
+generation. Existing inline DECLINE state remains attached to its policy;
+fresh file rules get fresh state.
+
+An internal lookup error is returned as `MaintenanceReport.address_error` and
+reported by main. DHCP admission pauses until a successful reload so that an
+unresolved reservation does not silently become a dynamic allocation. A Linux
+unit test exercises partial lookup failure, successful retry, removal of the
+derived addresses, retained DECLINE state and unchanged real lease counters.
+
+| Frozen check | Result |
+| --- | --- |
+| `after-01` against independent C observations | **27/27**, zero failures; observation SHA unchanged |
+| `negative-01`, corrupt one C expectation | **26/27**, exactly one mismatch, exit 1; actual observations unchanged |
+| Ordinary static lifecycle | **208/208** |
+| DHCP host-file reload lifecycle | **41/41** |
+| Unsupported-selector pause/recovery | **11/11** |
+| Reverse-host startup/HUP | **87/87**, fresh independent C baseline **72/72** |
+| Linux library filter `dhcp:: --include-ignored` | **116 passed**, zero failed/ignored; includes `config::dhcp::` |
+| Native and aarch64-musl all-target clippy, warnings denied | Both passed |
+
+The earlier reverse-name phase used a different test filter; its 117 count
+must not be compared directly with this 116 count. A supplemental
+`config::dhcp_` invocation selected zero tests and is retained without claiming
+coverage. The intended host-file parser test was already in the 116 run; its
+explicit rerun also passes. An initial whole-crate format check exposed
+pre-existing formatting in `dns/daemon_poll_tests.rs`; only the two edited
+Rust source files were formatted, and the unrelated file remains untouched.
+
+The tested Rust ELF SHA-256 is
+`3a62e87e45d8038314b3182e52d4b70bcc1f78e248b955a8b6ed0f7b0f29e260`.
+The 92-file component source manifest SHA-256 is
+`555f36e3ebc241d475d93961f13b08e514b75b8c73acb91ec08c1855abe1d9a8`;
+every file was checked against the isolated worktree after the runs.
+The frozen source archive is
+`8b9630a6760f8d55f19d1ce2cbb233e6934bc2ef9c14ef18e8463078d2028721`.
+`after-source-01.tar.gz`, `after-evidence-01.tar.gz` and their extracted logs
+remain beside the initial evidence. These identities describe the isolated
+candidate; later integration has its own affected checks.
+
 This bounded corpus does not qualify tags, PXE, name-only selectors, IPv6 DHCP,
-retained DHCP DNS versus newly loaded hosts-alias ordering, target execution,
-resource improvement or production acceptance. No physical router is involved.
+retained DHCP DNS versus newly loaded hosts-alias ordering, C's duplicate and
+multiple-address syslog warning parity, target execution, resource improvement
+or production acceptance. No physical router is involved.

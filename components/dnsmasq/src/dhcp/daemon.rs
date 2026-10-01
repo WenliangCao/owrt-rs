@@ -82,6 +82,7 @@ pub struct MaintenanceReport {
     pub lost_names: Vec<NameLost>,
     pub restore: Option<RestoreStats>,
     pub host_files: Vec<HostFileError>,
+    pub address_error: Option<io::Error>,
     pub name_error: Option<io::Error>,
 }
 
@@ -119,6 +120,7 @@ pub struct LocalProvider {
     persistence: LeasePersistence,
     dns_publisher: Option<Box<dyn DnsPublisher>>,
     boot_host_lookup: Option<BootHostLookup>,
+    config_host_lookup: Option<BootHostLookup>,
     reverse_host_lookup: Option<ReverseHostLookup>,
     startup_removed: Vec<Lease>,
     restore_stats: Option<RestoreStats>,
@@ -191,6 +193,7 @@ impl LocalProvider {
             persistence,
             dns_publisher: None,
             boot_host_lookup: None,
+            config_host_lookup: None,
             reverse_host_lookup: None,
             startup_removed,
             restore_stats,
@@ -222,6 +225,16 @@ impl LocalProvider {
         F: FnMut(&[u8]) -> io::Result<Option<Ipv4Addr>> + Send + 'static,
     {
         self.boot_host_lookup = Some(Box::new(lookup));
+    }
+
+    /// Resolve a configured short hostname from the current static F_HOSTS
+    /// generation. For multiple IPv4 matches, the caller selects the first
+    /// reverse-owning record; a sole nonreverse alias is also eligible.
+    pub fn set_config_host_lookup<F>(&mut self, lookup: F)
+    where
+        F: FnMut(&[u8]) -> io::Result<Option<Ipv4Addr>> + Send + 'static,
+    {
+        self.config_host_lookup = Some(Box::new(lookup));
     }
 
     /// Return only the current static IPv4 reverse-host name. Domain and
@@ -290,6 +303,7 @@ impl LocalProvider {
             lost_names,
             restore: None,
             host_files: Vec::new(),
+            address_error: None,
             name_error: None,
         }
     }
@@ -298,11 +312,15 @@ impl LocalProvider {
     /// it again is harmless and does not replay removed-lease ownership.
     pub fn initialize(&mut self, now: i64) -> MaintenanceReport {
         let mut host_files = Vec::new();
+        let mut address_error = None;
         let mut name_error = None;
         if !self.initialized {
             self.leases
                 .initialize_fqdns(|address| self.domains.for_address(address));
             host_files = self.reread_host_files();
+            if self.host_files_ready {
+                address_error = self.update_configured_addresses();
+            }
             if self.host_files_ready {
                 name_error = self.update_configured_names();
             }
@@ -313,6 +331,7 @@ impl LocalProvider {
         let mut report = self.maintain(now, removed, true);
         report.restore = self.restore_stats.take();
         report.host_files = host_files;
+        report.address_error = address_error;
         report.name_error = name_error;
         report
     }
@@ -401,10 +420,66 @@ impl LocalProvider {
         name_error
     }
 
+    fn update_configured_addresses(&mut self) -> Option<io::Error> {
+        // dhcp_update_configs walks the newest-first list. Explicit addresses
+        // anywhere in it win; the first inferred claim blocks later claims.
+        if self.dns_port != 0 {
+            if let Some(lookup) = self.config_host_lookup.as_mut() {
+                for index in 0..self.config.hosts.len() {
+                    let host = &self.config.hosts[index];
+                    if host.address.is_some() {
+                        continue;
+                    }
+                    let Some(name) = host.hostname.as_deref() else {
+                        continue;
+                    };
+                    let address = match lookup(name) {
+                        Ok(address) => address,
+                        Err(error) => {
+                            // An internal lookup failure must not turn an
+                            // unresolved reservation into dynamic allocation.
+                            self.host_files_ready = false;
+                            return Some(error);
+                        }
+                    };
+                    if let Some(address) = address {
+                        if !self
+                            .config
+                            .hosts
+                            .iter()
+                            .any(|host| host.address == Some(address))
+                        {
+                            self.config.hosts[index].address = Some(address);
+                        }
+                    }
+                }
+            }
+        }
+        self.reserved.clear();
+        for (host, policy) in self.config.hosts.iter().zip(&mut self.hosts) {
+            // Preserve DECLINE state on surviving inline policies.
+            policy.address = host.address;
+            self.reserved.extend(host.address);
+        }
+        None
+    }
+
     fn reread_host_files(&mut self) -> Vec<HostFileError> {
-        let report = self.host_files.reload(&self.inline_hosts);
+        // C parses new file rules before clearing old inferred inline
+        // addresses. Those old addresses still reject duplicate file rows.
+        let inline_start = self.config.hosts.len() - self.inline_hosts.len();
+        let mut report = self.host_files.reload(&self.config.hosts[inline_start..]);
         self.host_files_ready = report.ready();
         if self.host_files_ready {
+            let file_count = report.hosts.len() - self.inline_hosts.len();
+            for (host, original) in report.hosts[file_count..]
+                .iter_mut()
+                .zip(&self.inline_hosts)
+            {
+                // Rebuild inferred addresses from this DNS generation. The
+                // immutable main rules distinguish explicit from inferred.
+                host.address = original.address;
+            }
             // C frees CONFIG_BANK records and their DECLINE state; unchanged
             // command-line/main records retain theirs across SIGHUP.
             let inline = self
@@ -415,11 +490,6 @@ impl LocalProvider {
                 .map(host_policy)
                 .collect();
             self.hosts.extend(inline);
-            self.reserved = report
-                .hosts
-                .iter()
-                .filter_map(|host| host.address)
-                .collect();
             self.config.hosts = report.hosts;
         }
         report.errors
@@ -434,12 +504,17 @@ impl LocalProvider {
             return self.initialize(now);
         }
         let host_files = self.reread_host_files();
+        let address_error = self
+            .host_files_ready
+            .then(|| self.update_configured_addresses())
+            .flatten();
         let name_error = self
             .host_files_ready
             .then(|| self.update_configured_names())
             .flatten();
         let mut report = self.maintain(now, Vec::new(), true);
         report.host_files = host_files;
+        report.address_error = address_error;
         report.name_error = name_error;
         report
     }
@@ -911,6 +986,68 @@ fn event_mac(packet: super::packet::Packet<'_>, client_id: Option<&[u8]>) -> Vec
 #[cfg(test)]
 mod startup_tests {
     use super::*;
+
+    #[test]
+    fn address_lookup_error_pauses_admission_until_successful_reload() {
+        let mut config = DhcpConfig {
+            no_ping: true,
+            lease_read_only: true,
+            ..DhcpConfig::default()
+        };
+        for line in [
+            b"dhcp-host=02:00:00:00:00:01,older".as_slice(),
+            b"dhcp-host=02:00:00:00:00:02,newer",
+        ] {
+            config
+                .apply(&crate::config::lex_line(line).unwrap().unwrap())
+                .unwrap();
+        }
+        let mut provider = LocalProvider::new(config, Vec::new(), 53, || false).unwrap();
+        provider.hosts[0].declined_at = Some(50);
+        provider.set_config_host_lookup(|name| {
+            if name == b"older" {
+                Err(io::ErrorKind::PermissionDenied.into())
+            } else {
+                Ok(Some(Ipv4Addr::new(192, 0, 2, 40)))
+            }
+        });
+        let report = provider.initialize(100);
+        assert_eq!(
+            report.address_error.unwrap().kind(),
+            io::ErrorKind::PermissionDenied
+        );
+        assert!(!provider.host_files_ready);
+        assert_eq!(
+            provider.lease_counters(),
+            super::super::lease::LeaseCounters::default()
+        );
+
+        let address = Ipv4Addr::new(192, 0, 2, 41);
+        provider.set_config_host_lookup(move |_| Ok(Some(address)));
+        assert!(provider.reload_host_files(100).address_error.is_none());
+        assert!(provider.host_files_ready);
+        assert_eq!(provider.config.hosts[0].address, Some(address));
+        assert_eq!(provider.config.hosts[1].address, None);
+        assert_eq!(provider.hosts[0].address, Some(address));
+        assert_eq!(provider.hosts[0].declined_at, Some(50));
+        assert_eq!(provider.reserved, [address]);
+
+        provider.set_config_host_lookup(|_| Ok(None));
+        assert!(provider.reload_host_files(100).address_error.is_none());
+        assert!(provider.host_files_ready);
+        assert!(provider
+            .config
+            .hosts
+            .iter()
+            .all(|host| host.address.is_none()));
+        assert!(provider.hosts.iter().all(|host| host.address.is_none()));
+        assert!(provider.reserved.is_empty());
+        assert_eq!(provider.hosts[0].declined_at, Some(50));
+        assert_eq!(
+            provider.lease_counters(),
+            super::super::lease::LeaseCounters::default()
+        );
+    }
 
     #[test]
     fn empty_reverse_short_names_keep_a_recoverable_lease_file() {
