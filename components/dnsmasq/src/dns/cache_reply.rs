@@ -5,7 +5,7 @@
 //! decide whether a query can be answered from cache. The caller owns RRset
 //! selection, CNAME traversal, negative answers/SOA, query flags, and EDNS.
 
-use super::cache::{Cache, EntryId, Kind};
+use super::cache::{Cache, CnameTarget, EntryId, Kind};
 use super::wire::{PacketWriter, Section, WireError};
 
 /// Append one selected, live, positive A/AAAA or generic cache record.
@@ -59,8 +59,9 @@ pub fn append_positive_record(
     Ok(true)
 }
 
-/// Append one cached CNAME and return its still-live target handle. The
-/// caller follows that handle to emit the terminal CNAME/A/AAAA chain.
+/// Append one cached CNAME and return its target descriptor. A local target
+/// owns its name after release; the caller must check current local membership
+/// separately before emitting a terminal address or configured CNAME chain.
 /// `owner_offset` has the same caller-owned contract as for positive records.
 pub fn append_cname_record(
     writer: &mut PacketWriter,
@@ -69,7 +70,7 @@ pub fn append_cname_record(
     section: Section,
     now: i64,
     owner_offset: Option<u16>,
-) -> Result<Option<EntryId>, WireError> {
+) -> Result<Option<CnameTarget>, WireError> {
     if !cache.is_valid(id, now) {
         return Ok(None);
     }

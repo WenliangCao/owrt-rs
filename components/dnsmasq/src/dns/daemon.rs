@@ -8,7 +8,7 @@
 //! `forward.c::process_reply` cache policy are separate work; direct positive
 //! A/AAAA cache insertion and lookup are wired below.
 
-use super::cache::{Cache, Kind, Policy as CachePolicy, Record, StalePolicy};
+use super::cache::{Cache, CnameTarget, Kind, Policy as CachePolicy, Record, StalePolicy};
 use super::cache_reply::{append_cname_record, append_negative_authority, append_positive_record};
 use super::forward::{Client, Options as ForwardOptions, QueryId, Random, Scope};
 use super::forward_service::ForwardDispatcher;
@@ -339,11 +339,35 @@ impl<R: Random> DnsDaemon<R> {
         client: ClientRequest,
         listener: Option<super::forward::SocketToken>,
     ) -> Result<QueryResult, DaemonError> {
+        self.forward_udp_inner(query, client, listener, None)
+    }
+
+    /// Cached aliases can terminate at a current local name. Keep that
+    /// lookup/expiry/rotation in the same parent generation as direct answers.
+    pub fn forward_udp_on_listener_with_local(
+        &mut self,
+        query: &[u8],
+        client: ClientRequest,
+        listener: Option<super::forward::SocketToken>,
+        local: &mut LocalDnsService,
+    ) -> Result<QueryResult, DaemonError> {
+        self.forward_udp_inner(query, client, listener, Some(local))
+    }
+
+    fn forward_udp_inner(
+        &mut self,
+        query: &[u8],
+        client: ClientRequest,
+        listener: Option<super::forward::SocketToken>,
+        local: Option<&mut LocalDnsService>,
+    ) -> Result<QueryResult, DaemonError> {
         if query.len() > self.max_udp {
             return Ok(QueryResult::Dropped);
         }
         let question = super::forward::Question::parse(query).map_err(DaemonError::Wire)?;
-        if let Some(answer) = self.cached_answer(query, &question)? {
+        if let Some(answer) =
+            self.cached_answer_at_with_local(query, &question, unix_seconds(), local)?
+        {
             return Ok(QueryResult::Cached(answer));
         }
         let route = self
@@ -514,6 +538,7 @@ impl<R: Random> DnsDaemon<R> {
         Ok(responses)
     }
 
+    #[cfg(test)]
     fn cached_answer(
         &mut self,
         query: &[u8],
@@ -522,13 +547,25 @@ impl<R: Random> DnsDaemon<R> {
         self.cached_answer_at(query, question, unix_seconds())
     }
 
+    #[cfg(test)]
     fn cached_answer_at(
         &mut self,
         query: &[u8],
         question: &super::forward::Question,
         now: i64,
     ) -> Result<Option<Vec<u8>>, DaemonError> {
-        let round_robin = !self.local.config.no_round_robin;
+        self.cached_answer_at_with_local(query, question, now, None)
+    }
+
+    fn cached_answer_at_with_local(
+        &mut self,
+        query: &[u8],
+        question: &super::forward::Question,
+        now: i64,
+        external_local: Option<&mut LocalDnsService>,
+    ) -> Result<Option<Vec<u8>>, DaemonError> {
+        let local = external_local.unwrap_or(&mut self.local);
+        let round_robin = !local.config.no_round_robin;
         let Some(cache) = self.cache.as_mut() else {
             return Ok(None);
         };
@@ -655,7 +692,10 @@ impl<R: Random> DnsDaemon<R> {
                 let Some(target) = current_entry.cname_target() else {
                     break;
                 };
-                current = target;
+                match target {
+                    CnameTarget::Dynamic(target) => current = target,
+                    CnameTarget::Local(_) => break,
+                }
             }
         }
         let mut writer = PacketWriter::new(
@@ -698,6 +738,24 @@ impl<R: Random> DnsDaemon<R> {
                         };
                         owner_offset = target_offset;
                         written = true;
+                        let target = match target {
+                            CnameTarget::Dynamic(target) => target,
+                            CnameTarget::Local(target) => {
+                                let Some(flags) = append_local_terminal(
+                                    &mut writer,
+                                    local,
+                                    &target.name,
+                                    question,
+                                    header,
+                                    now,
+                                    owner_offset,
+                                )?
+                                else {
+                                    return Ok(None);
+                                };
+                                return Ok(Some(finish_cached_answer_flags(writer, Some(flags))?));
+                            }
+                        };
                         let Some(target_entry) = cache.get(target) else {
                             break;
                         };
@@ -1089,32 +1147,33 @@ impl<R: Random> DnsDaemon<R> {
                 cache.start_insert();
                 return;
             };
-            match inserted {
-                CacheInsert::Dynamic(id) => targets.push((name.canonical_wire(), id)),
-                CacheInsert::Local if chain.is_empty() => {}
-                CacheInsert::Local => {
-                    // Local CNAME target handles are a separate source-lifetime
-                    // boundary. Until represented, do not create a dynamic
-                    // target that would outlive a lease or a hosts generation.
-                    cache.start_insert();
-                    return;
+            let target = match inserted {
+                CacheInsert::Dynamic(id) => CnameTarget::Dynamic(id),
+                CacheInsert::Local(name, from_lease) if !chain.is_empty() => {
+                    CnameTarget::Local(cache.local_target(name, from_lease))
                 }
-            }
+                CacheInsert::Local(_, _) => continue,
+            };
+            targets.push((name.canonical_wire(), target));
         }
         for (owner, target, cname_id) in cname_ids.into_iter().rev() {
             let Some(target_id) = targets
                 .iter()
                 .find(|(name, _)| *name == target)
-                .map(|(_, id)| *id)
+                .map(|(_, target)| target.clone())
             else {
                 cache.start_insert();
                 return;
             };
-            if !cache.set_cname_target(cname_id, target_id) {
+            let linked = match target_id {
+                CnameTarget::Dynamic(id) => cache.set_cname_target(cname_id, id),
+                CnameTarget::Local(target) => cache.set_local_cname_target(cname_id, target),
+            };
+            if !linked {
                 cache.start_insert();
                 return;
             }
-            targets.push((owner, cname_id));
+            targets.push((owner, CnameTarget::Dynamic(cname_id)));
         }
         let _ = cache.commit();
     }
@@ -1131,8 +1190,19 @@ fn unix_seconds() -> i64 {
 /// `answer_request` clears all response sections when any cached RR cannot
 /// fit, while the reusable PacketWriter intentionally retains complete RRs.
 fn finish_cached_answer(writer: PacketWriter) -> Result<Vec<u8>, WireError> {
+    finish_cached_answer_flags(writer, None)
+}
+
+fn finish_cached_answer_flags(
+    writer: PacketWriter,
+    local_flags: Option<u16>,
+) -> Result<Vec<u8>, WireError> {
     let mut packet = writer.finish();
     let mut header = Header::parse(&packet)?;
+    if let Some(flags) = local_flags {
+        header.flags = (header.flags & !0x040f) | (flags & 0x060f);
+        header.write(&mut packet)?;
+    }
     if header.flags & 0x0200 != 0 {
         packet.truncate(super::wire::skip_questions(&packet)?);
         header.answers = 0;
@@ -1141,6 +1211,79 @@ fn finish_cached_answer(writer: PacketWriter) -> Result<Vec<u8>, WireError> {
         header.write(&mut packet)?;
     }
     Ok(packet)
+}
+
+/// Reuse the local answer engine for a cached alias's terminal name, including
+/// configured CNAME precedence, lease expiry and address rotation. Forwarding
+/// rules are not an answer_request terminal and must not synthesize this hit.
+fn append_local_terminal(
+    writer: &mut PacketWriter,
+    local: &mut LocalDnsService,
+    target: &Name,
+    question: &super::forward::Question,
+    header: Header,
+    now: i64,
+    owner_offset: u16,
+) -> Result<Option<u16>, DaemonError> {
+    let mut query = PacketWriter::new(header.id, header.flags, u16::MAX as usize)?;
+    query.question(target, question.rrtype, question.class)?;
+    let mut answerer = super::local::LocalAnswerer {
+        config: &local.config,
+        hosts: &mut local.hosts,
+        local_ttl: local.local_ttl,
+        max_packet: u16::MAX as usize,
+    };
+    let Some(answer) = answerer
+        .answer_with_lease_source(&query.finish(), &mut local.leases, now)
+        .map_err(ServiceError::from)?
+    else {
+        return Ok(None);
+    };
+    if answer.forward_rule {
+        return Ok(None);
+    }
+    let message = Message::parse(&answer.packet)?;
+    let mut previous_name = target.clone();
+    let mut previous_offset = owner_offset;
+    for section in [Section::Answer, Section::Authority, Section::Additional] {
+        for record in message.records(section) {
+            let owner = record.name()?;
+            let data = record.canonical_rdata()?;
+            let compressed = owner.eq_ignore_ascii_case(&previous_name);
+            let target_offset =
+                writer.position() + if compressed { 2 } else { owner.as_wire().len() } + 10;
+            let result = if compressed {
+                writer.record_at(
+                    section,
+                    previous_offset,
+                    record.rrtype,
+                    record.class,
+                    record.ttl,
+                    &data,
+                )
+            } else {
+                writer.record(
+                    section,
+                    &owner,
+                    record.rrtype,
+                    record.class,
+                    record.ttl,
+                    &data,
+                )
+            };
+            match result {
+                Ok(()) => {}
+                Err(WireError::Full) => return Ok(Some(message.header.flags | 0x0200)),
+                Err(error) => return Err(error.into()),
+            }
+            if record.rrtype == 5 {
+                previous_name = super::wire::decode_name(&data, 0, 0)?.0;
+                previous_offset =
+                    u16::try_from(target_offset).map_err(|_| WireError::RecordTooLong)?;
+            }
+        }
+    }
+    Ok(Some(message.header.flags))
 }
 
 /// Select the first IN SOA in the authority section whose owner is a label
@@ -1193,7 +1336,7 @@ fn insert_authority(
 
 enum CacheInsert {
     Dynamic(super::cache::EntryId),
-    Local,
+    Local(Name, bool),
 }
 
 fn insert_cache_record(
@@ -1212,38 +1355,39 @@ fn insert_cache_record(
                 _ => false,
             }
     };
-    let mut existing = local
-        .hosts
-        .addresses(&name)
-        .find(|host| match record.kind {
-            Kind::Ipv4 => host.address.is_ipv4(),
-            Kind::Ipv6 => host.address.is_ipv6(),
-            Kind::Cname => true,
-            _ => false,
+    let host = local.hosts.addresses(&name).find(|host| match record.kind {
+        Kind::Ipv4 => host.address.is_ipv4(),
+        Kind::Ipv6 => host.address.is_ipv6(),
+        Kind::Cname => true,
+        _ => false,
+    });
+    // scan_free checks a local match before expiry. Do not silently revive a
+    // previously unhashed entry, or ignore one not yet touched by lookup.
+    let lease = matches!(record.kind, Kind::Ipv4 | Kind::Cname)
+        .then(|| local.leases.active_lookup(&name).next())
+        .flatten();
+    let cname = local
+        .config
+        .records
+        .cnames
+        .iter()
+        .any(|cname| cname.alias.eq_ignore_ascii_case(&name));
+    // C loads configured CNAMEs before non-reverse immortal hosts. Reverse
+    // owners precede both; mortal non-reverse leases precede immortal records.
+    let existing = host
+        .filter(|host| host.reverse)
+        .map(|host| (matches_address(host.address), false))
+        .or_else(|| {
+            lease
+                .filter(|lease| lease.reverse || lease.expires.is_some())
+                .map(|lease| (matches_address(IpAddr::V4(lease.address)), true))
         })
-        .map(|host| matches_address(host.address));
-    if existing.is_none() && matches!(record.kind, Kind::Ipv4 | Kind::Cname) {
-        // scan_free tests a matching local record before its expiry. Entries
-        // remain blockers until a lookup actually unhashes them.
-        existing = local
-            .leases
-            .active_lookup(&name)
-            .next()
-            .map(|lease| matches_address(IpAddr::V4(lease.address)));
-    }
-    if existing.is_none()
-        && local
-            .config
-            .records
-            .cnames
-            .iter()
-            .any(|cname| cname.alias.eq_ignore_ascii_case(&name))
-    {
-        existing = Some(false);
-    }
-    if let Some(same_address) = existing {
+        .or_else(|| cname.then_some((false, false)))
+        .or_else(|| host.map(|host| (matches_address(host.address), false)))
+        .or_else(|| lease.map(|lease| (matches_address(IpAddr::V4(lease.address)), true)));
+    if let Some((same_address, from_lease)) = existing {
         cache.insert_against_local(ttl, same_address).ok()?;
-        Some(CacheInsert::Local)
+        Some(CacheInsert::Local(record.name, from_lease))
     } else {
         cache
             .insert(record, now, ttl)

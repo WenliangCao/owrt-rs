@@ -120,6 +120,55 @@ fn local_insert_failure_aborts_pending_batch_without_restoring_removed_records()
 }
 
 #[test]
+fn local_cname_metadata_is_bounded_and_static_targets_ignore_lease_publication() {
+    let mut cache = Cache::new(4, Policy::default());
+    cache.first_lease_entry();
+    cache.start_insert();
+    let static_alias = cache
+        .insert(record("static-alias.test", Kind::Cname, 0), 100, 90)
+        .unwrap();
+    let lease_alias = cache
+        .insert(record("lease-alias.test", Kind::Cname, 0), 100, 90)
+        .unwrap();
+    let static_target = cache.local_target(Name::from_ascii("static.test").unwrap(), false);
+    let lease_target = cache.local_target(Name::from_ascii("lease.test").unwrap(), true);
+    let static_weak = Arc::downgrade(&static_target);
+    let lease_weak = Arc::downgrade(&lease_target);
+    assert!(cache.set_local_cname_target(static_alias, static_target));
+    assert!(cache.set_local_cname_target(lease_alias, lease_target));
+    assert!(cache.commit());
+    cache.first_lease_entry();
+    assert!(cache.is_valid(static_alias, 100));
+    assert!(!cache.is_valid(lease_alias, 100));
+    assert!(lookup(&mut cache, "lease-alias.test", Kind::Cname, 100).is_empty());
+    assert!(lease_weak.upgrade().is_none());
+    assert!(static_weak.upgrade().is_some());
+    let mut handles = Vec::new();
+    for i in 0..100 {
+        cache.start_insert();
+        let alias = cache
+            .insert(record(&format!("alias{i}.test"), Kind::Cname, 0), 100, 90)
+            .unwrap();
+        let target = cache.local_target(Name::from_ascii("lease.test").unwrap(), true);
+        handles.push(Arc::downgrade(&target));
+        assert!(cache.set_local_cname_target(alias, target));
+        assert!(cache.commit());
+        assert!(
+            handles
+                .iter()
+                .filter(|target| target.upgrade().is_some())
+                .count()
+                <= 4
+        );
+        check_ownership(&cache);
+    }
+    cache.clear();
+    assert!(handles.iter().all(|target| target.upgrade().is_none()));
+    assert!(static_weak.upgrade().is_none());
+    check_ownership(&cache);
+}
+
+#[test]
 fn lease_publication_mortal_blocker_can_stop_after_partial_deletion() {
     use super::super::lease_names::PublicationBlocker;
     for (reverse, immortal, no_round_robin, expected) in [

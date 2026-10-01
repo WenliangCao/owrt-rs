@@ -31,8 +31,26 @@ cache slot. A real UDP regression starts a query with an empty private snapshot,
 publishes a different current hosts address before the reply, and verifies that
 the delivered upstream answer cannot later leak from cache when that local
 source is removed. The 158 relevant DNS tests, four UDP policy tests and library
-clippy pass for this unit. It intentionally leaves local CNAME target handles
-for the following unit, so the failing integration gate below remains open.
+clippy passed for this first unit, before local target handles were implemented.
+
+Cached CNAMEs now use a small dynamic/local target enum. A local descriptor owns
+its original target name; it consumes no extra dynamic cache slot and never
+borrows released lease-name storage. Terminal answers reuse the current local
+answer engine, including configured CNAME precedence, family/ANY/unknown types,
+AA, TTL, expiry and address rotation. The caller passes its mutable parent
+generation through `forward_udp_on_listener_with_local`; a private old snapshot
+cannot decide the terminal result. Forwarding rules are excluded from this
+`answer_request` terminal lookup.
+
+Only DHCP target identities advance at the first actually inserted lease entry
+of a new generation. Empty release and fully suppressed publications retain
+the old CNAME-only result. Static target identities survive ordinary DHCP
+publication and are cleared with the dynamic cache on hosts reload. Local
+metadata is allocated only for a retained CNAME chain; a direct same-address
+reply allocates none. A 100-insertion ownership regression keeps live metadata
+within cache capacity and verifies complete release on clear. This does not
+claim equality with C's defective configuration-object pool reuse described
+below, or a performance gain from temporary terminal reply rendering.
 
 The initial Rust comparison had **21 mismatches** in the
 upstream-CNAME-to-local-target path. Same/different direct A insertion, hidden
@@ -113,12 +131,19 @@ existing ASCII API retains its validation. DNS input generation counts label
 bytes rather than Unicode characters. The byte-name control and 21 wire tests
 pass; `byte-name-before/` retains the independent C/Rust failure.
 
-Final evidence is `insert-baseline-05/` and `insert-diff-03/` under the same
+Final evidence is `insert-baseline-05/` and `insert-diff-04/` under the same
 private root. The C oracle is
 `af320dc233c06425fb83f18cce24928a8a787cae9f3ec6f1e45acbfac4146c56`; the frozen
 Rust driver is
-`59c6d8095d56a7b21f8b3c5f7a2834ca7e168967cb2b395a9b0a20b1afeda09b`.
+`8e37dea844bcc03ce135a27140283bc7f8e04f4d9580af881dde4554d86978af`.
 C reports 59 hits / 36 misses; Rust reports 58 hits / 37 misses. The one
 reply/count difference is the documented wrong-target reference case, not a
 discarded observation. Remaining daemon transport, target build, resource and
 other DNS cache capabilities retain their separate acceptance gates.
+
+Related regressions pass: 160 DNS unit tests (three existing ignored drivers),
+18 cache tests including bounded local metadata, and all-targets clippy. The
+unchanged exact C cache-answer gate passes 205 operations / 149 queries, while
+the primitive transition gate passes 22,571 operations with ASan/UBSan; its
+existing 138 cross-generic-type ordering variations remain recorded. Their raw
+results are in `private/dnsmasq-rewrite/udp-policy-20261001/local-target-*`.

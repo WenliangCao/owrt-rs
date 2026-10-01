@@ -8,6 +8,7 @@
 use super::lease_names::{BlockerKind, ForwardPublication, PublicationCache};
 use super::wire::Name;
 use std::collections::HashMap;
+use std::sync::Arc;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Kind {
@@ -83,6 +84,21 @@ pub struct EntryId {
     generation: u64,
 }
 
+/// A local CNAME terminal owns its name rather than borrowing a lease's
+/// storage. DHCP identity changes on an actual new publication; static hosts
+/// remain valid until the containing cache is cleared on reload.
+#[derive(Clone, Debug)]
+pub struct LocalTarget {
+    pub name: Name,
+    lease_generation: Option<u64>,
+}
+
+#[derive(Clone, Debug)]
+pub enum CnameTarget {
+    Dynamic(EntryId),
+    Local(Arc<LocalTarget>),
+}
+
 #[derive(Debug)]
 pub struct Record {
     pub name: Name,
@@ -97,7 +113,7 @@ pub struct Record {
 pub struct Entry {
     pub record: Record,
     pub expires: i64,
-    target: Option<EntryId>,
+    target: Option<CnameTarget>,
     authority_name: Option<Name>,
     referenced: bool,
     committed: bool,
@@ -118,8 +134,8 @@ impl Entry {
         }
     }
 
-    pub fn cname_target(&self) -> Option<EntryId> {
-        self.target
+    pub fn cname_target(&self) -> Option<CnameTarget> {
+        self.target.clone()
     }
 
     pub fn negative_authority_name(&self) -> Option<&Name> {
@@ -157,6 +173,7 @@ pub struct Cache {
     pending: Vec<usize>,
     failed: bool,
     long_names: usize,
+    lease_generation: u64,
 }
 
 impl Cache {
@@ -181,6 +198,7 @@ impl Cache {
             pending: Vec::new(),
             failed: false,
             long_names: 0,
+            lease_generation: 0,
         }
     }
 
@@ -414,7 +432,29 @@ impl Cache {
             return false;
         }
         self.slots[target.slot].entry.as_mut().unwrap().referenced = true;
-        self.slots[cname.slot].entry.as_mut().unwrap().target = Some(target);
+        self.slots[cname.slot].entry.as_mut().unwrap().target = Some(CnameTarget::Dynamic(target));
+        true
+    }
+
+    pub(super) fn local_target(&self, name: Name, from_lease: bool) -> Arc<LocalTarget> {
+        Arc::new(LocalTarget {
+            name,
+            lease_generation: from_lease.then_some(self.lease_generation),
+        })
+    }
+
+    pub(super) fn set_local_cname_target(
+        &mut self,
+        cname: EntryId,
+        target: Arc<LocalTarget>,
+    ) -> bool {
+        if self
+            .get(cname)
+            .is_none_or(|entry| entry.record.kind != Kind::Cname)
+        {
+            return false;
+        }
+        self.slots[cname.slot].entry.as_mut().unwrap().target = Some(CnameTarget::Local(target));
         true
     }
 
@@ -509,7 +549,14 @@ impl Cache {
 
     fn outdated_cname(&self, slot: usize) -> bool {
         let entry = self.slots[slot].entry.as_ref().unwrap();
-        entry.record.kind == Kind::Cname && entry.target.is_none_or(|id| self.get(id).is_none())
+        entry.record.kind == Kind::Cname
+            && match &entry.target {
+                None => true,
+                Some(CnameTarget::Dynamic(id)) => self.get(*id).is_none(),
+                Some(CnameTarget::Local(target)) => target
+                    .lease_generation
+                    .is_some_and(|generation| generation != self.lease_generation),
+            }
     }
 
     fn invalid(&self, slot: usize, now: i64) -> bool {
@@ -578,11 +625,15 @@ impl Cache {
 }
 
 impl PublicationCache for Cache {
+    fn first_lease_entry(&mut self) {
+        self.lease_generation = self
+            .lease_generation
+            .checked_add(1)
+            .expect("lease cache identity exhausted");
+    }
+
     fn prepare_name(&mut self, publication: ForwardPublication<'_>) {
-        let Ok(name) = std::str::from_utf8(publication.name)
-            .map_err(|_| ())
-            .and_then(|name| Name::from_ascii(name).map_err(|_| ()))
-        else {
+        let Ok(name) = Name::from_dotted_bytes(publication.name) else {
             return;
         };
         // cache_find_by_name promotes all matching dynamic entries before
