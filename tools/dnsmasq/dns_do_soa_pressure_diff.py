@@ -46,6 +46,8 @@ def schedule(profile):
         rows.append(("probe-b", "b.pressure.test", kind, False, "failure", True))
     rows += [("probe-c", "c.pressure.test", kind, False, "failure", True),
              ("probe-d", "d.pressure.test", kind, False, "failure", True)]
+    if soa:
+        rows.insert(1, ("prime-child-any", child, 255, False, "failure", False))
     return rows
 
 

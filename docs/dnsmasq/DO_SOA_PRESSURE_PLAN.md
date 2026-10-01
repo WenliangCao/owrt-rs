@@ -40,3 +40,21 @@ private raw artifacts and existing identity checks. No router access.
 Non-DO SOA mismatch, if observed, is an independent existing caller issue and
 will not be called a regression of the DO-only fix. The previous 120-observation
 gate remains unchanged. This is not broad generic-RR, expiry or stale coverage.
+
+## C-only schedule correction before Rust
+
+`soa-native-baseline-01` calibrates 94 rows but fails both SOA untouched
+profiles: insertion order is not LRU order. `cache_end_insert` walks the
+reverse pending chain and links each item at the head, making the first
+inserted SOA newer than the negative child. Thus all original SOA profiles
+actually evict child, and the untouched control does not discriminate.
+
+Preserve that failed attempt. Add one fixed control after the SOA seed and
+before B/C: query the negative child with QTYPE=ANY, plain empty OPT, and answer
+its forwarded query with SERVFAIL. C looks up the dynamic negative address
+entry, promotes it, then its explicit ANY branch refuses to answer before
+selecting SOA authority. This leaves SOA older than child without consuming
+its authority or inserting anything. Both forwards of that failed query are
+required. The other operations and all victim expectations remain unchanged.
+The SOA profiles now have 11 observations; total is 120 (54 NX + 66 SOA).
+Native and image C must recalibrate the revised schedule before any Rust run.
