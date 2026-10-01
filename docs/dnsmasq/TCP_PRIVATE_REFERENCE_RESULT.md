@@ -1,6 +1,6 @@
 # Private TCP cache correctness reference
 
-The `research/dnsmasq-tcp-reference-20261001` local reference branch
+The `evidence/20261001/dnsmasq-tcp-reference` local reference tag
 (private worktree `private/dnsmasq-rewrite/tcp-private-reference-20261001`)
 implements ordinary TCP accept-time cache
 inheritance, a fixed connection clock, and typed parent writeback. It uses a

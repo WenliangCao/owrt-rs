@@ -7,6 +7,13 @@ failed evidence. Physical-router experiments/deployment need a separate
 explicit request and verified recovery gate. Local and build-host isolated
 work is already authorized.
 
+The user added automatic cleanup of obsolete branches. `AGENTS.md` now records
+the rule. Twelve completed branches were retired after tagging their original
+tips and detaching clean worktrees; all evidence directories remain. See
+[the branch archive index](BRANCH_ARCHIVE_20261001.md) for replacements of
+historical branch names. Active reverse implementation/gate and the latest
+private TCP reference keep their branches.
+
 This checkpoint replaces the earlier contradictory in-flight notes. Phase
 reports and frozen artifact manifests remain the evidence for each result.
 Git history retains the older checkpoint.
