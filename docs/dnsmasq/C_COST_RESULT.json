@@ -1,0 +1,2217 @@
+{
+  "scope": "C-only diagnostic; not paired acceptance, a capacity ceiling or router performance",
+  "reference_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+  "tool_sha256": "78bc4fe9a77a6f4c1ddc9cc00c0e57f46710a958376200ac51fa74ad2be7a86d",
+  "plan_sha256": "4dd4c9653880b573f48d9161e1251882723b4952da17990d117d68dd0df69c9f",
+  "audit_tool_sha256": "963252de1d0793d0d6d5e3b6f1aceeca4e6da2b6342df0f94e7a645284e9b2d9",
+  "dependency_identities": {
+    "libubox.so": {
+      "sha256": "792322b91310f50ffcea8b177e7a077529cf92dd5048ecb05d50ef5778b63243",
+      "bytes": 532224
+    },
+    "libubus.so": {
+      "sha256": "9e8f940a55e285ae379a01fec9977ec0e21c9e3837b99cb717770c1987ee9293",
+      "bytes": 310336
+    },
+    "libc.so.6": {
+      "sha256": "0f1905dc27dbc6715875c70527bc8da846a10084c9c483e9d8ff76dce8d69d0e",
+      "bytes": 1722920
+    },
+    "ld-linux-aarch64.so.1": {
+      "sha256": "390027e5f45f236bd1838bc54bf464c5ff01d260ab9f8b415ea8276641bce505",
+      "bytes": 203968
+    }
+  },
+  "kernel": "6.17.0-1020-oracle",
+  "architecture": "aarch64",
+  "affinity": {
+    "c": 0,
+    "upstream": 1,
+    "client": 2,
+    "observer": 3
+  },
+  "formal_rounds": [
+    {
+      "scenario": "hot",
+      "corpus": {
+        "prepared": 100000,
+        "corpus_sha256": "3892e23121d6767704ed2e6e0cfc749c23f43e65ef82bb001151b28c9ecc9a27"
+      },
+      "config_sha256": "ca1014204c0fcb96663f1214a29820032f3f8412373a74e8c454f2a290931ae9",
+      "sampled_peaks": {
+        "rss": 2396160,
+        "pss": 764928,
+        "uss": 720896,
+        "fds": 11,
+        "threads": 1,
+        "processes": 1,
+        "samples": 211,
+        "vanished_during_samples": 0
+      },
+      "drain_ns": 100549234,
+      "observer_cpu_ns": 143792920,
+      "upstream_cpu_ns": 251520,
+      "throughput_completed_per_second": 9999.754803012303,
+      "daemon_shutdown": "exited 0; process group empty",
+      "directory": "measure-01/round-1-hot",
+      "profile_only": false,
+      "client": {
+        "planned": 100000,
+        "sent": 100000,
+        "success": 100000,
+        "errors": 0,
+        "timeouts": 0,
+        "not_sent": 0,
+        "start_ns": 538199907252201,
+        "end_ns": 538209907497404,
+        "cpu_ns": 9555262240,
+        "errors_detail": [],
+        "actual_rtt_ns": {
+          "p50": 105761,
+          "p95": 247722,
+          "p99": 471004
+        },
+        "planned_rtt_ns": {
+          "p50": 167529,
+          "p95": 536839,
+          "p99": 1279181
+        },
+        "send_lateness_ns": {
+          "p50": 64175,
+          "p95": 297332,
+          "p99": 807741
+        },
+        "validation_ns": {
+          "p50": 19161,
+          "p95": 30680,
+          "p99": 37640
+        },
+        "connect_count": 0,
+        "connect_ns": {},
+        "close_count": 0,
+        "close_ns": {}
+      },
+      "proc_cpu_ticks": {
+        "user_ticks": 26,
+        "system_ticks": 351,
+        "child_user_ticks": 0,
+        "child_system_ticks": 0
+      },
+      "upstream_queries": 0,
+      "negative_retrievals": 0,
+      "upstream_delay_ns": {},
+      "perf_window_ns": 10670198461,
+      "sampled_children_peak": 0,
+      "c_tcp_children_high_water": 0,
+      "parent_sampled_peaks": {
+        "rss": 2396160,
+        "pss": 764928,
+        "uss": 720896,
+        "fds": 11,
+        "threads": 1
+      },
+      "children_sampled_peaks": {
+        "rss": 0,
+        "pss": 0,
+        "uss": 0,
+        "fds": 0,
+        "threads": 0
+      },
+      "last_sample": {
+        "rss": 2396160,
+        "pss": 764928,
+        "uss": 720896,
+        "fds": 11,
+        "threads": 1,
+        "processes": 1
+      },
+      "first_sample": {
+        "rss": 2396160,
+        "pss": 764928,
+        "uss": 720896,
+        "fds": 11,
+        "threads": 1,
+        "processes": 1
+      },
+      "perf": {
+        "task-clock": {
+          "value": 3910276280.0,
+          "unit": "",
+          "event_runtime_ns": 3910276280,
+          "running_percent": 100.0
+        },
+        "cycles": {
+          "value": 4078618168.0,
+          "unit": "",
+          "event_runtime_ns": 3910276280,
+          "running_percent": 100.0
+        },
+        "instructions": {
+          "value": 3961088545.0,
+          "unit": "",
+          "event_runtime_ns": 3910276280,
+          "running_percent": 100.0
+        },
+        "context-switches": {
+          "value": 91359.0,
+          "unit": "",
+          "event_runtime_ns": 3910276280,
+          "running_percent": 100.0
+        },
+        "cpu-migrations": {
+          "value": 0.0,
+          "unit": "",
+          "event_runtime_ns": 3910276280,
+          "running_percent": 100.0
+        },
+        "page-faults": {
+          "value": 0.0,
+          "unit": "",
+          "event_runtime_ns": 3910276280,
+          "running_percent": 100.0
+        }
+      },
+      "c_cpu_ns": 3910276280.0,
+      "c_cpu_ns_per_completed": 39102.7628,
+      "artifacts": {
+        "client-latencies.csv": "46139a4ccc57095937768df67cea71fa210705d1b6f3b53d4bfc7bf6bbfc9955",
+        "client.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "connection-latencies.json": "71f4327eaacdc09f568eb78a4fd6df3bcd9c087fdce927a3b41536429cb08f7d",
+        "corpus.bin": "3892e23121d6767704ed2e6e0cfc749c23f43e65ef82bb001151b28c9ecc9a27",
+        "daemon.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "dnsmasq.conf": "ca1014204c0fcb96663f1214a29820032f3f8412373a74e8c454f2a290931ae9",
+        "dnsmasq.log": "9408fc9318cb8819345f3488d638d47f9f71752ef2206c77fa77be84e54839f5",
+        "perf-control.json": "d0884064c855a390cf5a9b174df3ef072ef0ffbb5c8d0e7d924d3b2eacd207c5",
+        "perf-stat.txt": "3c9a4ab42ac56576ab75cdf6506e03edfe0565a856323eb2fad369bf56c59602",
+        "perf.stderr": "3c6628a9db779f66867bc09c3c99f04c824872bbe05026774af5cc1d48378d98",
+        "resources.json": "1818726a147cf636c4e644c5491cb9279d4a40f2ee5a32e4297b5eb19d479d0e",
+        "result.json": "45936b9c415a9f536c9008404de7763eba9f81e9a7d871309bc9dce0c9d49a5d",
+        "upstream-final.json": "7beec384e5de2980e70f8e59d760cfb399d11928251621f6a911ba99294bf96a",
+        "upstream.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "scenario": "mixed",
+      "corpus": {
+        "prepared": 100000,
+        "corpus_sha256": "dfc4a21c2a1cf6e03d079c4659cc852ed53a334a3510046f15cab9244f759c66"
+      },
+      "config_sha256": "e1a6ab841a55a232f83a9b693fba8e11b0d3f4e3c8ec4f9cadee10056f44fb4d",
+      "sampled_peaks": {
+        "rss": 2400256,
+        "pss": 769024,
+        "uss": 724992,
+        "fds": 17,
+        "threads": 1,
+        "processes": 1,
+        "samples": 212,
+        "vanished_during_samples": 0
+      },
+      "drain_ns": 100566501,
+      "observer_cpu_ns": 148574120,
+      "upstream_cpu_ns": 1162878920,
+      "throughput_completed_per_second": 9998.101502497717,
+      "daemon_shutdown": "exited 0; process group empty",
+      "directory": "measure-02/round-1-mixed",
+      "profile_only": false,
+      "client": {
+        "planned": 100000,
+        "sent": 100000,
+        "success": 100000,
+        "errors": 0,
+        "timeouts": 0,
+        "not_sent": 0,
+        "start_ns": 539757162280586,
+        "end_ns": 539767164179444,
+        "cpu_ns": 8258248920,
+        "errors_detail": [],
+        "actual_rtt_ns": {
+          "p50": 175882,
+          "p95": 2064457,
+          "p99": 2475620
+        },
+        "planned_rtt_ns": {
+          "p50": 336793,
+          "p95": 2350668,
+          "p99": 2621144
+        },
+        "send_lateness_ns": {
+          "p50": 125488,
+          "p95": 659367,
+          "p99": 1055211
+        },
+        "validation_ns": {
+          "p50": 17121,
+          "p95": 29120,
+          "p99": 46721
+        },
+        "connect_count": 0,
+        "connect_ns": {},
+        "close_count": 0,
+        "close_ns": {}
+      },
+      "proc_cpu_ticks": {
+        "user_ticks": 72,
+        "system_ticks": 385,
+        "child_user_ticks": 0,
+        "child_system_ticks": 0
+      },
+      "upstream_queries": 20016,
+      "negative_retrievals": 16,
+      "upstream_delay_ns": {
+        "p50": 1126689,
+        "p95": 2021857,
+        "p99": 2085857
+      },
+      "perf_window_ns": 10690159163,
+      "sampled_children_peak": 0,
+      "c_tcp_children_high_water": 0,
+      "parent_sampled_peaks": {
+        "rss": 2400256,
+        "pss": 769024,
+        "uss": 724992,
+        "fds": 17,
+        "threads": 1
+      },
+      "children_sampled_peaks": {
+        "rss": 0,
+        "pss": 0,
+        "uss": 0,
+        "fds": 0,
+        "threads": 0
+      },
+      "last_sample": {
+        "rss": 2400256,
+        "pss": 769024,
+        "uss": 724992,
+        "fds": 11,
+        "threads": 1,
+        "processes": 1
+      },
+      "first_sample": {
+        "rss": 2400256,
+        "pss": 769024,
+        "uss": 724992,
+        "fds": 11,
+        "threads": 1,
+        "processes": 1
+      },
+      "perf": {
+        "task-clock": {
+          "value": 4769203720.0,
+          "unit": "",
+          "event_runtime_ns": 4769203720,
+          "running_percent": 100.0
+        },
+        "cycles": {
+          "value": 7498161615.0,
+          "unit": "",
+          "event_runtime_ns": 4769203720,
+          "running_percent": 100.0
+        },
+        "instructions": {
+          "value": 9993011561.0,
+          "unit": "",
+          "event_runtime_ns": 4769203720,
+          "running_percent": 100.0
+        },
+        "context-switches": {
+          "value": 68533.0,
+          "unit": "",
+          "event_runtime_ns": 4769203720,
+          "running_percent": 100.0
+        },
+        "cpu-migrations": {
+          "value": 0.0,
+          "unit": "",
+          "event_runtime_ns": 4769203720,
+          "running_percent": 100.0
+        },
+        "page-faults": {
+          "value": 0.0,
+          "unit": "",
+          "event_runtime_ns": 4769203720,
+          "running_percent": 100.0
+        }
+      },
+      "c_cpu_ns": 4769203720.0,
+      "c_cpu_ns_per_completed": 47692.0372,
+      "artifacts": {
+        "client-latencies.csv": "8fc03791c3413305dedeb347a56f815d5e1de8bcb7a39a5b43d309a678544976",
+        "client.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "connection-latencies.json": "71f4327eaacdc09f568eb78a4fd6df3bcd9c087fdce927a3b41536429cb08f7d",
+        "corpus.bin": "dfc4a21c2a1cf6e03d079c4659cc852ed53a334a3510046f15cab9244f759c66",
+        "daemon.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "dnsmasq.conf": "e1a6ab841a55a232f83a9b693fba8e11b0d3f4e3c8ec4f9cadee10056f44fb4d",
+        "dnsmasq.log": "eda85285cba537382497d1791622767c68caf8e2e5ab5bdeb759e95134aa265d",
+        "perf-control.json": "eb315288cd9a0d9331b54ec6a472fffaa13f15878580358bc41f59aef9d97317",
+        "perf-stat.txt": "956c853328beb3e59ccf355ded8b54430e4aa7188c3b3068e3994d2911e4ba45",
+        "perf.stderr": "3c6628a9db779f66867bc09c3c99f04c824872bbe05026774af5cc1d48378d98",
+        "resources.json": "e18e46021c28bd7b8595c8fa01037c39311ec26ea26d07b56523903dcd5c49ab",
+        "result.json": "4f939be1c09ca1836d128113fd3e32848a6c624f6f3dc400bcf9d30e0ccd0cf8",
+        "upstream-final.json": "4a41ebb0d2c584843dab7575791fa4acbf328774c6c2a11e740ba92df4d9bb1a",
+        "upstream.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "scenario": "tcp",
+      "corpus": {
+        "prepared": 20000,
+        "corpus_sha256": "1ac5dd657bbb3a0856da56b36721dd53d2e3877b58772fca9963027933af5d00"
+      },
+      "config_sha256": "0090b0e2313530485923ef4a5039d865966ba27aa1c52210599f0ce63c214728",
+      "sampled_peaks": {
+        "rss": 12025856,
+        "pss": 2655232,
+        "uss": 2076672,
+        "fds": 160,
+        "threads": 9,
+        "processes": 9,
+        "samples": 200,
+        "vanished_during_samples": 5
+      },
+      "drain_ns": 100602902,
+      "observer_cpu_ns": 406722120,
+      "upstream_cpu_ns": 1539610520,
+      "throughput_completed_per_second": 1999.3842768158952,
+      "daemon_shutdown": "exited 0; process group empty",
+      "directory": "measure-02/round-1-tcp",
+      "profile_only": false,
+      "client": {
+        "planned": 20000,
+        "sent": 20000,
+        "success": 20000,
+        "errors": 0,
+        "timeouts": 0,
+        "not_sent": 0,
+        "start_ns": 539773933286980,
+        "end_ns": 539783936366544,
+        "cpu_ns": 2459866640,
+        "errors_detail": [],
+        "actual_rtt_ns": {
+          "p50": 2291739,
+          "p95": 2663781,
+          "p99": 3499868
+        },
+        "planned_rtt_ns": {
+          "p50": 2648825,
+          "p95": 3445904,
+          "p99": 4166524
+        },
+        "send_lateness_ns": {
+          "p50": 303961,
+          "p95": 1045567,
+          "p99": 1096259
+        },
+        "validation_ns": {
+          "p50": 19840,
+          "p95": 34520,
+          "p99": 49681
+        },
+        "connect_count": 200,
+        "connect_ns": {
+          "p50": 299043,
+          "p95": 530244
+        },
+        "close_count": 200,
+        "close_ns": {
+          "p50": 110401,
+          "p95": 274363
+        }
+      },
+      "proc_cpu_ticks": {
+        "user_ticks": 80,
+        "system_ticks": 23,
+        "child_user_ticks": 111,
+        "child_system_ticks": 245
+      },
+      "upstream_queries": 20000,
+      "negative_retrievals": 0,
+      "upstream_delay_ns": {
+        "p50": 1664013,
+        "p95": 1930496,
+        "p99": 2014376
+      },
+      "perf_window_ns": 10373482835,
+      "sampled_children_peak": 8,
+      "c_tcp_children_high_water": 8,
+      "parent_sampled_peaks": {
+        "rss": 2392064,
+        "pss": 760832,
+        "uss": 716800,
+        "fds": 19,
+        "threads": 1
+      },
+      "children_sampled_peaks": {
+        "rss": 9633792,
+        "pss": 2268160,
+        "uss": 1777664,
+        "fds": 141,
+        "threads": 8
+      },
+      "last_sample": {
+        "rss": 2392064,
+        "pss": 760832,
+        "uss": 716800,
+        "fds": 11,
+        "threads": 1,
+        "processes": 1
+      },
+      "first_sample": {
+        "rss": 2392064,
+        "pss": 760832,
+        "uss": 716800,
+        "fds": 11,
+        "threads": 1,
+        "processes": 1
+      },
+      "perf": {
+        "task-clock": {
+          "value": 4577052880.0,
+          "unit": "",
+          "event_runtime_ns": 4577052880,
+          "running_percent": 100.0
+        },
+        "cycles": {
+          "value": 9695301864.0,
+          "unit": "",
+          "event_runtime_ns": 4577052880,
+          "running_percent": 100.0
+        },
+        "instructions": {
+          "value": 13010698359.0,
+          "unit": "",
+          "event_runtime_ns": 4577052880,
+          "running_percent": 100.0
+        },
+        "context-switches": {
+          "value": 52110.0,
+          "unit": "",
+          "event_runtime_ns": 4577052880,
+          "running_percent": 100.0
+        },
+        "cpu-migrations": {
+          "value": 0.0,
+          "unit": "",
+          "event_runtime_ns": 4577052880,
+          "running_percent": 100.0
+        },
+        "page-faults": {
+          "value": 15146.0,
+          "unit": "",
+          "event_runtime_ns": 4577052880,
+          "running_percent": 100.0
+        }
+      },
+      "c_cpu_ns": 4577052880.0,
+      "c_cpu_ns_per_completed": 228852.644,
+      "artifacts": {
+        "client-latencies.csv": "9b1802833349e46958e72fa8ecf6723e71c3a710085c62cc47dd9a0b726b1bcb",
+        "client.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "connection-latencies.json": "3961e95cac14891cab2035815d6f48186503bd85cab0f77a69e0feee8c13e8b3",
+        "corpus.bin": "1ac5dd657bbb3a0856da56b36721dd53d2e3877b58772fca9963027933af5d00",
+        "daemon.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "dnsmasq.conf": "0090b0e2313530485923ef4a5039d865966ba27aa1c52210599f0ce63c214728",
+        "dnsmasq.log": "a7cde7dd9d1da9ec40961bcb9c51ee83703a266c74351e488ca3535072711e6e",
+        "perf-control.json": "8150c02a0fdf79426fea62d12fd05d36e9feff90b22cac3c2c3d23af519e7b2b",
+        "perf-stat.txt": "46cc72f050a1f6ac38a32fd41a0f5efe2bb26db3af6253fcbd26157ab158d9cc",
+        "perf.stderr": "3c6628a9db779f66867bc09c3c99f04c824872bbe05026774af5cc1d48378d98",
+        "resources.json": "53f85fe42da4592ab9bcf4aa9557965237c7c074f11df43ce15d90999cb202bc",
+        "result.json": "6cc15d0d983a24527e04979406c9c8e289bf3de9678fdd6cb65fecac222b7ac9",
+        "upstream-final.json": "d4a9d67fee8a7694b61aaf01714820def7681ee15c38535a32574aa9f19b4ddb",
+        "upstream.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "scenario": "mixed",
+      "corpus": {
+        "prepared": 100000,
+        "corpus_sha256": "dfc4a21c2a1cf6e03d079c4659cc852ed53a334a3510046f15cab9244f759c66"
+      },
+      "config_sha256": "1b2bedb6147cf3939539f984231947ce51a69f744ff00863f55fd8828ce5c7d4",
+      "sampled_peaks": {
+        "rss": 2383872,
+        "pss": 768000,
+        "uss": 724992,
+        "fds": 17,
+        "threads": 1,
+        "processes": 1,
+        "samples": 211,
+        "vanished_during_samples": 0
+      },
+      "drain_ns": 100599061,
+      "observer_cpu_ns": 150049160,
+      "upstream_cpu_ns": 1158258760,
+      "throughput_completed_per_second": 9998.58139527249,
+      "daemon_shutdown": "exited 0; process group empty",
+      "directory": "measure-02/round-2-mixed",
+      "profile_only": false,
+      "client": {
+        "planned": 100000,
+        "sent": 100000,
+        "success": 100000,
+        "errors": 0,
+        "timeouts": 0,
+        "not_sent": 0,
+        "start_ns": 539791050257745,
+        "end_ns": 539801051676551,
+        "cpu_ns": 8292171800,
+        "errors_detail": [],
+        "actual_rtt_ns": {
+          "p50": 181201,
+          "p95": 2088977,
+          "p99": 2475700
+        },
+        "planned_rtt_ns": {
+          "p50": 338051,
+          "p95": 2366362,
+          "p99": 2629973
+        },
+        "send_lateness_ns": {
+          "p50": 122760,
+          "p95": 667777,
+          "p99": 1053569
+        },
+        "validation_ns": {
+          "p50": 17200,
+          "p95": 30480,
+          "p99": 50320
+        },
+        "connect_count": 0,
+        "connect_ns": {},
+        "close_count": 0,
+        "close_ns": {}
+      },
+      "proc_cpu_ticks": {
+        "user_ticks": 113,
+        "system_ticks": 347,
+        "child_user_ticks": 0,
+        "child_system_ticks": 0
+      },
+      "upstream_queries": 20016,
+      "negative_retrievals": 16,
+      "upstream_delay_ns": {
+        "p50": 1139969,
+        "p95": 2017897,
+        "p99": 2083817
+      },
+      "perf_window_ns": 10691348646,
+      "sampled_children_peak": 0,
+      "c_tcp_children_high_water": 0,
+      "parent_sampled_peaks": {
+        "rss": 2383872,
+        "pss": 768000,
+        "uss": 724992,
+        "fds": 17,
+        "threads": 1
+      },
+      "children_sampled_peaks": {
+        "rss": 0,
+        "pss": 0,
+        "uss": 0,
+        "fds": 0,
+        "threads": 0
+      },
+      "last_sample": {
+        "rss": 2383872,
+        "pss": 768000,
+        "uss": 724992,
+        "fds": 11,
+        "threads": 1,
+        "processes": 1
+      },
+      "first_sample": {
+        "rss": 2383872,
+        "pss": 768000,
+        "uss": 724992,
+        "fds": 11,
+        "threads": 1,
+        "processes": 1
+      },
+      "perf": {
+        "task-clock": {
+          "value": 4803127800.0,
+          "unit": "",
+          "event_runtime_ns": 4803127800,
+          "running_percent": 100.0
+        },
+        "cycles": {
+          "value": 7624833310.0,
+          "unit": "",
+          "event_runtime_ns": 4803127800,
+          "running_percent": 100.0
+        },
+        "instructions": {
+          "value": 10162571458.0,
+          "unit": "",
+          "event_runtime_ns": 4803127800,
+          "running_percent": 100.0
+        },
+        "context-switches": {
+          "value": 67659.0,
+          "unit": "",
+          "event_runtime_ns": 4803127800,
+          "running_percent": 100.0
+        },
+        "cpu-migrations": {
+          "value": 0.0,
+          "unit": "",
+          "event_runtime_ns": 4803127800,
+          "running_percent": 100.0
+        },
+        "page-faults": {
+          "value": 0.0,
+          "unit": "",
+          "event_runtime_ns": 4803127800,
+          "running_percent": 100.0
+        }
+      },
+      "c_cpu_ns": 4803127800.0,
+      "c_cpu_ns_per_completed": 48031.278,
+      "artifacts": {
+        "client-latencies.csv": "376f3f0045dc209bcf317bae77f6e023d29b85888e084d8a49b6cefcd0efb714",
+        "client.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "connection-latencies.json": "71f4327eaacdc09f568eb78a4fd6df3bcd9c087fdce927a3b41536429cb08f7d",
+        "corpus.bin": "dfc4a21c2a1cf6e03d079c4659cc852ed53a334a3510046f15cab9244f759c66",
+        "daemon.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "dnsmasq.conf": "1b2bedb6147cf3939539f984231947ce51a69f744ff00863f55fd8828ce5c7d4",
+        "dnsmasq.log": "42a79bbcb2558b234b5abe85e3dbe22f45f1db974297435f7b22e9f09a32111d",
+        "perf-control.json": "8e1cb213610594c764ad587ca436aedae46efb29b50a9e1a002783c552c7e198",
+        "perf-stat.txt": "dd8fd4af4e6c19286cbb9f42f4c58f29aa02e8aa5647f91728fd3591f2d9644d",
+        "perf.stderr": "3c6628a9db779f66867bc09c3c99f04c824872bbe05026774af5cc1d48378d98",
+        "resources.json": "4193fbd5461c977694ee80c9154425550ce285e8be9629bd5c5490e0b989e683",
+        "result.json": "273e6787dcb059c4f9003f182ee4d6843a5bd7ed730523102449189f37801a91",
+        "upstream-final.json": "ed9d3e02966fb9416301680e98a93adef1c193f9c53500a8519766a306bc8da8",
+        "upstream.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "scenario": "tcp",
+      "corpus": {
+        "prepared": 20000,
+        "corpus_sha256": "1ac5dd657bbb3a0856da56b36721dd53d2e3877b58772fca9963027933af5d00"
+      },
+      "config_sha256": "d8af739497289b7076a6131986a269366dce96211996f22a614daa57006b0d4a",
+      "sampled_peaks": {
+        "rss": 12017664,
+        "pss": 2669568,
+        "uss": 2088960,
+        "fds": 161,
+        "threads": 9,
+        "processes": 9,
+        "samples": 201,
+        "vanished_during_samples": 7
+      },
+      "drain_ns": 100996064,
+      "observer_cpu_ns": 405693240,
+      "upstream_cpu_ns": 1564862320,
+      "throughput_completed_per_second": 1999.3482132822094,
+      "daemon_shutdown": "exited 0; process group empty",
+      "directory": "measure-02/round-2-tcp",
+      "profile_only": false,
+      "client": {
+        "planned": 20000,
+        "sent": 20000,
+        "success": 20000,
+        "errors": 0,
+        "timeouts": 0,
+        "not_sent": 0,
+        "start_ns": 539807868275854,
+        "end_ns": 539817871535850,
+        "cpu_ns": 2435884840,
+        "errors_detail": [],
+        "actual_rtt_ns": {
+          "p50": 2286859,
+          "p95": 2694142,
+          "p99": 3522629
+        },
+        "planned_rtt_ns": {
+          "p50": 2651151,
+          "p95": 3472667,
+          "p99": 4191876
+        },
+        "send_lateness_ns": {
+          "p50": 313315,
+          "p95": 1043149,
+          "p99": 1097725
+        },
+        "validation_ns": {
+          "p50": 19920,
+          "p95": 34920,
+          "p99": 50240
+        },
+        "connect_count": 200,
+        "connect_ns": {
+          "p50": 335282,
+          "p95": 552445
+        },
+        "close_count": 200,
+        "close_ns": {
+          "p50": 110841,
+          "p95": 303842
+        }
+      },
+      "proc_cpu_ticks": {
+        "user_ticks": 80,
+        "system_ticks": 23,
+        "child_user_ticks": 119,
+        "child_system_ticks": 236
+      },
+      "upstream_queries": 20000,
+      "negative_retrievals": 0,
+      "upstream_delay_ns": {
+        "p50": 1660573,
+        "p95": 1933776,
+        "p99": 2018656
+      },
+      "perf_window_ns": 10375272400,
+      "sampled_children_peak": 8,
+      "c_tcp_children_high_water": 8,
+      "parent_sampled_peaks": {
+        "rss": 2383872,
+        "pss": 759808,
+        "uss": 716800,
+        "fds": 21,
+        "threads": 1
+      },
+      "children_sampled_peaks": {
+        "rss": 9633792,
+        "pss": 2289664,
+        "uss": 1798144,
+        "fds": 142,
+        "threads": 8
+      },
+      "last_sample": {
+        "rss": 2383872,
+        "pss": 759808,
+        "uss": 716800,
+        "fds": 11,
+        "threads": 1,
+        "processes": 1
+      },
+      "first_sample": {
+        "rss": 2383872,
+        "pss": 759808,
+        "uss": 716800,
+        "fds": 11,
+        "threads": 1,
+        "processes": 1
+      },
+      "perf": {
+        "task-clock": {
+          "value": 4570665440.0,
+          "unit": "",
+          "event_runtime_ns": 4570665440,
+          "running_percent": 100.0
+        },
+        "cycles": {
+          "value": 9688963121.0,
+          "unit": "",
+          "event_runtime_ns": 4570665440,
+          "running_percent": 100.0
+        },
+        "instructions": {
+          "value": 13087859798.0,
+          "unit": "",
+          "event_runtime_ns": 4570665440,
+          "running_percent": 100.0
+        },
+        "context-switches": {
+          "value": 52401.0,
+          "unit": "",
+          "event_runtime_ns": 4570665440,
+          "running_percent": 100.0
+        },
+        "cpu-migrations": {
+          "value": 0.0,
+          "unit": "",
+          "event_runtime_ns": 4570665440,
+          "running_percent": 100.0
+        },
+        "page-faults": {
+          "value": 14546.0,
+          "unit": "",
+          "event_runtime_ns": 4570665440,
+          "running_percent": 100.0
+        }
+      },
+      "c_cpu_ns": 4570665440.0,
+      "c_cpu_ns_per_completed": 228533.272,
+      "artifacts": {
+        "client-latencies.csv": "6666256bcfdfc827f014773ec7222e3338fd63c41ed7635e30e621c1f7d268a7",
+        "client.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "connection-latencies.json": "76bcd43f601c027eaa734cc239de1c620b26e65b49188a1515db3bdf4d4ca734",
+        "corpus.bin": "1ac5dd657bbb3a0856da56b36721dd53d2e3877b58772fca9963027933af5d00",
+        "daemon.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "dnsmasq.conf": "d8af739497289b7076a6131986a269366dce96211996f22a614daa57006b0d4a",
+        "dnsmasq.log": "2aa34594da880ec704224b304d22dd7a5999bd986e47478098e2d6aeda4ca8e9",
+        "perf-control.json": "f6049d3fad5b6ba2857f0d5c77e5b5cc694e50bb05a83de2145bef218577264e",
+        "perf-stat.txt": "7a6a3f707234ad5f8dbb6109d4032ee5818e9437d1979772eefdb71d4a295d5a",
+        "perf.stderr": "3c6628a9db779f66867bc09c3c99f04c824872bbe05026774af5cc1d48378d98",
+        "resources.json": "8b32215a5be71e83c7ba8b0b243b070ddf7d67b4141339db0b66bdb778cd00f2",
+        "result.json": "3274067e2141d5aa11ddfb4ae5fa6b9c94c926e2e95f7edcda421eb8d45ed230",
+        "upstream-final.json": "ae00575a6de0ad2523de32d6ba0d6b8db4d07c6e3a731841e5078e051ef4c562",
+        "upstream.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "scenario": "hot",
+      "corpus": {
+        "prepared": 100000,
+        "corpus_sha256": "3892e23121d6767704ed2e6e0cfc749c23f43e65ef82bb001151b28c9ecc9a27"
+      },
+      "config_sha256": "dbd01e4b12d77814df8d51ee652b48fe0b9077da4e1612b141a61fd9d2edc01a",
+      "sampled_peaks": {
+        "rss": 2396160,
+        "pss": 764928,
+        "uss": 720896,
+        "fds": 11,
+        "threads": 1,
+        "processes": 1,
+        "samples": 212,
+        "vanished_during_samples": 0
+      },
+      "drain_ns": 100516141,
+      "observer_cpu_ns": 143784960,
+      "upstream_cpu_ns": 474560,
+      "throughput_completed_per_second": 9999.775779027617,
+      "daemon_shutdown": "exited 0; process group empty",
+      "directory": "measure-02/round-2-hot",
+      "profile_only": false,
+      "client": {
+        "planned": 100000,
+        "sent": 100000,
+        "success": 100000,
+        "errors": 0,
+        "timeouts": 0,
+        "not_sent": 0,
+        "start_ns": 539824990375991,
+        "end_ns": 539834990600217,
+        "cpu_ns": 9939518320,
+        "errors_detail": [],
+        "actual_rtt_ns": {
+          "p50": 136802,
+          "p95": 227242,
+          "p99": 363523
+        },
+        "planned_rtt_ns": {
+          "p50": 238455,
+          "p95": 431363,
+          "p99": 582739
+        },
+        "send_lateness_ns": {
+          "p50": 95400,
+          "p95": 217775,
+          "p99": 308186
+        },
+        "validation_ns": {
+          "p50": 19840,
+          "p95": 31480,
+          "p99": 41000
+        },
+        "connect_count": 0,
+        "connect_ns": {},
+        "close_count": 0,
+        "close_ns": {}
+      },
+      "proc_cpu_ticks": {
+        "user_ticks": 62,
+        "system_ticks": 327,
+        "child_user_ticks": 0,
+        "child_system_ticks": 0
+      },
+      "upstream_queries": 0,
+      "negative_retrievals": 0,
+      "upstream_delay_ns": {},
+      "perf_window_ns": 10684773703,
+      "sampled_children_peak": 0,
+      "c_tcp_children_high_water": 0,
+      "parent_sampled_peaks": {
+        "rss": 2396160,
+        "pss": 764928,
+        "uss": 720896,
+        "fds": 11,
+        "threads": 1
+      },
+      "children_sampled_peaks": {
+        "rss": 0,
+        "pss": 0,
+        "uss": 0,
+        "fds": 0,
+        "threads": 0
+      },
+      "last_sample": {
+        "rss": 2396160,
+        "pss": 764928,
+        "uss": 720896,
+        "fds": 11,
+        "threads": 1,
+        "processes": 1
+      },
+      "first_sample": {
+        "rss": 2396160,
+        "pss": 764928,
+        "uss": 720896,
+        "fds": 11,
+        "threads": 1,
+        "processes": 1
+      },
+      "perf": {
+        "task-clock": {
+          "value": 4065462440.0,
+          "unit": "",
+          "event_runtime_ns": 4065462440,
+          "running_percent": 100.0
+        },
+        "cycles": {
+          "value": 4151950915.0,
+          "unit": "",
+          "event_runtime_ns": 4065462440,
+          "running_percent": 100.0
+        },
+        "instructions": {
+          "value": 3828251216.0,
+          "unit": "",
+          "event_runtime_ns": 4065462440,
+          "running_percent": 100.0
+        },
+        "context-switches": {
+          "value": 94555.0,
+          "unit": "",
+          "event_runtime_ns": 4065462440,
+          "running_percent": 100.0
+        },
+        "cpu-migrations": {
+          "value": 0.0,
+          "unit": "",
+          "event_runtime_ns": 4065462440,
+          "running_percent": 100.0
+        },
+        "page-faults": {
+          "value": 0.0,
+          "unit": "",
+          "event_runtime_ns": 4065462440,
+          "running_percent": 100.0
+        }
+      },
+      "c_cpu_ns": 4065462440.0,
+      "c_cpu_ns_per_completed": 40654.6244,
+      "artifacts": {
+        "client-latencies.csv": "d777a198f0e5c3e91e4e9d146ad573a98a894d92bfa1104a7f5c4a4c01e09e46",
+        "client.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "connection-latencies.json": "71f4327eaacdc09f568eb78a4fd6df3bcd9c087fdce927a3b41536429cb08f7d",
+        "corpus.bin": "3892e23121d6767704ed2e6e0cfc749c23f43e65ef82bb001151b28c9ecc9a27",
+        "daemon.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "dnsmasq.conf": "dbd01e4b12d77814df8d51ee652b48fe0b9077da4e1612b141a61fd9d2edc01a",
+        "dnsmasq.log": "5f28462e3108ecae27653b97b6fafe85d4815c853ff70bbc8959b5bdb7379a31",
+        "perf-control.json": "ba9cc1a7651a1921d0da6fb566122ae50a2ee85185df8db986b68cd92ebcbb57",
+        "perf-stat.txt": "70200fc8bb2ecd1825313ea1bcc318e12699c292a99227b43d14a77fbfa46d98",
+        "perf.stderr": "3c6628a9db779f66867bc09c3c99f04c824872bbe05026774af5cc1d48378d98",
+        "resources.json": "1dbd5ae0f43805f38135a5fa776ac6231582bad7ded255d05325dd22ad11c64b",
+        "result.json": "19e5a6ae1e3c6a1ac96e3b211743cc6900a6f9eb7fe9f84a8c7b8411dc3d99d0",
+        "upstream-final.json": "59a4989fb288e5219fa0efb59a01e4f914c78abfd44fb12445c7f916cbb9b8d3",
+        "upstream.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "scenario": "tcp",
+      "corpus": {
+        "prepared": 20000,
+        "corpus_sha256": "1ac5dd657bbb3a0856da56b36721dd53d2e3877b58772fca9963027933af5d00"
+      },
+      "config_sha256": "a63bd57f7793ccc193e1e39fe615b82d2a04552a135dcd3a8f9e23f20d8fd9f3",
+      "sampled_peaks": {
+        "rss": 12013568,
+        "pss": 2593792,
+        "uss": 1978368,
+        "fds": 160,
+        "threads": 9,
+        "processes": 9,
+        "samples": 201,
+        "vanished_during_samples": 2
+      },
+      "drain_ns": 100551742,
+      "observer_cpu_ns": 402624360,
+      "upstream_cpu_ns": 1567520360,
+      "throughput_completed_per_second": 1999.3466487037047,
+      "daemon_shutdown": "exited 0; process group empty",
+      "directory": "measure-02/round-3-tcp",
+      "profile_only": false,
+      "client": {
+        "planned": 20000,
+        "sent": 20000,
+        "success": 20000,
+        "errors": 0,
+        "timeouts": 0,
+        "not_sent": 0,
+        "start_ns": 539841642279472,
+        "end_ns": 539851645547296,
+        "cpu_ns": 2423619080,
+        "errors_detail": [],
+        "actual_rtt_ns": {
+          "p50": 2298859,
+          "p95": 2704742,
+          "p99": 3520028
+        },
+        "planned_rtt_ns": {
+          "p50": 2656545,
+          "p95": 3466437,
+          "p99": 4143220
+        },
+        "send_lateness_ns": {
+          "p50": 303682,
+          "p95": 1042872,
+          "p99": 1095934
+        },
+        "validation_ns": {
+          "p50": 19960,
+          "p95": 34681,
+          "p99": 48360
+        },
+        "connect_count": 200,
+        "connect_ns": {
+          "p50": 315843,
+          "p95": 523245
+        },
+        "close_count": 200,
+        "close_ns": {
+          "p50": 113321,
+          "p95": 282682
+        }
+      },
+      "proc_cpu_ticks": {
+        "user_ticks": 80,
+        "system_ticks": 23,
+        "child_user_ticks": 118,
+        "child_system_ticks": 242
+      },
+      "upstream_queries": 20000,
+      "negative_retrievals": 0,
+      "upstream_delay_ns": {
+        "p50": 1667613,
+        "p95": 1946256,
+        "p99": 2029497
+      },
+      "perf_window_ns": 10376050236,
+      "sampled_children_peak": 8,
+      "c_tcp_children_high_water": 8,
+      "parent_sampled_peaks": {
+        "rss": 2379776,
+        "pss": 759808,
+        "uss": 716800,
+        "fds": 19,
+        "threads": 1
+      },
+      "children_sampled_peaks": {
+        "rss": 9633792,
+        "pss": 2206720,
+        "uss": 1679360,
+        "fds": 141,
+        "threads": 8
+      },
+      "last_sample": {
+        "rss": 2379776,
+        "pss": 759808,
+        "uss": 716800,
+        "fds": 11,
+        "threads": 1,
+        "processes": 1
+      },
+      "first_sample": {
+        "rss": 2379776,
+        "pss": 759808,
+        "uss": 716800,
+        "fds": 11,
+        "threads": 1,
+        "processes": 1
+      },
+      "perf": {
+        "task-clock": {
+          "value": 4613123960.0,
+          "unit": "",
+          "event_runtime_ns": 4613123960,
+          "running_percent": 100.0
+        },
+        "cycles": {
+          "value": 9825406241.0,
+          "unit": "",
+          "event_runtime_ns": 4613123960,
+          "running_percent": 100.0
+        },
+        "instructions": {
+          "value": 12982489842.0,
+          "unit": "",
+          "event_runtime_ns": 4613123960,
+          "running_percent": 100.0
+        },
+        "context-switches": {
+          "value": 52529.0,
+          "unit": "",
+          "event_runtime_ns": 4613123960,
+          "running_percent": 100.0
+        },
+        "cpu-migrations": {
+          "value": 0.0,
+          "unit": "",
+          "event_runtime_ns": 4613123960,
+          "running_percent": 100.0
+        },
+        "page-faults": {
+          "value": 14914.0,
+          "unit": "",
+          "event_runtime_ns": 4613123960,
+          "running_percent": 100.0
+        }
+      },
+      "c_cpu_ns": 4613123960.0,
+      "c_cpu_ns_per_completed": 230656.198,
+      "artifacts": {
+        "client-latencies.csv": "723737f7b6ed1fe6e232fad322745b9df626f55afb268b5e722d67bb52287485",
+        "client.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "connection-latencies.json": "4e374386caad086ca39b2bcf82d6cc6214bc572a9893d3f3585c6d966c64167a",
+        "corpus.bin": "1ac5dd657bbb3a0856da56b36721dd53d2e3877b58772fca9963027933af5d00",
+        "daemon.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "dnsmasq.conf": "a63bd57f7793ccc193e1e39fe615b82d2a04552a135dcd3a8f9e23f20d8fd9f3",
+        "dnsmasq.log": "5c150c67f3b238f5ef451daf9dc021c6ebddd2c794412fd5b73fd25bdbfb6e2e",
+        "perf-control.json": "7ebe24378df02d804221c247b17177563bc23b484e84dd79b283cae209282f9c",
+        "perf-stat.txt": "bd6fab94abb0511e6924867605a6ab96f9d7fbf7f8fbe93c9a4152994213fb21",
+        "perf.stderr": "3c6628a9db779f66867bc09c3c99f04c824872bbe05026774af5cc1d48378d98",
+        "resources.json": "e28fbd51fe562e5ac50874b87d41d9d95f4a782a9e7d525a3b2537eeb218034f",
+        "result.json": "b313af00b78ccd6ed08ef013ac2a39e9c27efddef0ca7ed4caedb6ab431f8417",
+        "upstream-final.json": "0f11fe9ea4f5256fe8e8f7e40ae1b95034aac95ea91bbdc24529a1fd0af47fbe",
+        "upstream.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "scenario": "hot",
+      "corpus": {
+        "prepared": 100000,
+        "corpus_sha256": "3892e23121d6767704ed2e6e0cfc749c23f43e65ef82bb001151b28c9ecc9a27"
+      },
+      "config_sha256": "1ef25221b3e1791128b8e839ea895239a4ee0229ea5f93aad9984d3229d806e8",
+      "sampled_peaks": {
+        "rss": 2400256,
+        "pss": 769024,
+        "uss": 724992,
+        "fds": 11,
+        "threads": 1,
+        "processes": 1,
+        "samples": 212,
+        "vanished_during_samples": 0
+      },
+      "drain_ns": 100462580,
+      "observer_cpu_ns": 146043960,
+      "upstream_cpu_ns": 440760,
+      "throughput_completed_per_second": 9999.802830887642,
+      "daemon_shutdown": "exited 0; process group empty",
+      "directory": "measure-02/round-3-hot",
+      "profile_only": false,
+      "client": {
+        "planned": 100000,
+        "sent": 100000,
+        "success": 100000,
+        "errors": 0,
+        "timeouts": 0,
+        "not_sent": 0,
+        "start_ns": 539858747260437,
+        "end_ns": 539868747457610,
+        "cpu_ns": 9894520760,
+        "errors_detail": [],
+        "actual_rtt_ns": {
+          "p50": 128281,
+          "p95": 216561,
+          "p99": 386883
+        },
+        "planned_rtt_ns": {
+          "p50": 225416,
+          "p95": 408810,
+          "p99": 673236
+        },
+        "send_lateness_ns": {
+          "p50": 86815,
+          "p95": 200653,
+          "p99": 374370
+        },
+        "validation_ns": {
+          "p50": 19601,
+          "p95": 31280,
+          "p99": 39121
+        },
+        "connect_count": 0,
+        "connect_ns": {},
+        "close_count": 0,
+        "close_ns": {}
+      },
+      "proc_cpu_ticks": {
+        "user_ticks": 61,
+        "system_ticks": 327,
+        "child_user_ticks": 0,
+        "child_system_ticks": 0
+      },
+      "upstream_queries": 0,
+      "negative_retrievals": 0,
+      "upstream_delay_ns": {},
+      "perf_window_ns": 10686872829,
+      "sampled_children_peak": 0,
+      "c_tcp_children_high_water": 0,
+      "parent_sampled_peaks": {
+        "rss": 2400256,
+        "pss": 769024,
+        "uss": 724992,
+        "fds": 11,
+        "threads": 1
+      },
+      "children_sampled_peaks": {
+        "rss": 0,
+        "pss": 0,
+        "uss": 0,
+        "fds": 0,
+        "threads": 0
+      },
+      "last_sample": {
+        "rss": 2400256,
+        "pss": 769024,
+        "uss": 724992,
+        "fds": 11,
+        "threads": 1,
+        "processes": 1
+      },
+      "first_sample": {
+        "rss": 2400256,
+        "pss": 769024,
+        "uss": 724992,
+        "fds": 11,
+        "threads": 1,
+        "processes": 1
+      },
+      "perf": {
+        "task-clock": {
+          "value": 4063425840.0,
+          "unit": "",
+          "event_runtime_ns": 4063425840,
+          "running_percent": 100.0
+        },
+        "cycles": {
+          "value": 4165201564.0,
+          "unit": "",
+          "event_runtime_ns": 4063425840,
+          "running_percent": 100.0
+        },
+        "instructions": {
+          "value": 3905547882.0,
+          "unit": "",
+          "event_runtime_ns": 4063425840,
+          "running_percent": 100.0
+        },
+        "context-switches": {
+          "value": 94395.0,
+          "unit": "",
+          "event_runtime_ns": 4063425840,
+          "running_percent": 100.0
+        },
+        "cpu-migrations": {
+          "value": 0.0,
+          "unit": "",
+          "event_runtime_ns": 4063425840,
+          "running_percent": 100.0
+        },
+        "page-faults": {
+          "value": 0.0,
+          "unit": "",
+          "event_runtime_ns": 4063425840,
+          "running_percent": 100.0
+        }
+      },
+      "c_cpu_ns": 4063425840.0,
+      "c_cpu_ns_per_completed": 40634.2584,
+      "artifacts": {
+        "client-latencies.csv": "0402744921bb232c2109df2fa94e6428e5ca6815541b14759f32f1d814ea4e94",
+        "client.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "connection-latencies.json": "71f4327eaacdc09f568eb78a4fd6df3bcd9c087fdce927a3b41536429cb08f7d",
+        "corpus.bin": "3892e23121d6767704ed2e6e0cfc749c23f43e65ef82bb001151b28c9ecc9a27",
+        "daemon.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "dnsmasq.conf": "1ef25221b3e1791128b8e839ea895239a4ee0229ea5f93aad9984d3229d806e8",
+        "dnsmasq.log": "31f38c74f15ad4aab665321c20b7325f11d6ca50547a6def70cbfb975db1b25c",
+        "perf-control.json": "07dfcad50822a126b7494442982e34f1fc1108bbdb8861ab3078257ed2b25ed0",
+        "perf-stat.txt": "519c5efce3341d4b2ab8ad3afd1d0c272408c031a61bbd1b09a963de03f817cf",
+        "perf.stderr": "3c6628a9db779f66867bc09c3c99f04c824872bbe05026774af5cc1d48378d98",
+        "resources.json": "530d1b2422f8d378e36c098d130a51e1302e83db1bcd6a8c2f68ba63e902f7e6",
+        "result.json": "58b728c5d851731f7bf7e68f7242a88c94facdecd299fe573ec4b45691037ec7",
+        "upstream-final.json": "f81ec76d5b5c4c6ac3ac484abc9b7563b908a17634fa343dfd71f789cbaead56",
+        "upstream.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "scenario": "mixed",
+      "corpus": {
+        "prepared": 100000,
+        "corpus_sha256": "dfc4a21c2a1cf6e03d079c4659cc852ed53a334a3510046f15cab9244f759c66"
+      },
+      "config_sha256": "df082f74dd58909d423f107747253a6cd4ef30caa0b4a7ed59711670c9d58085",
+      "sampled_peaks": {
+        "rss": 2396160,
+        "pss": 764928,
+        "uss": 720896,
+        "fds": 17,
+        "threads": 1,
+        "processes": 1,
+        "samples": 212,
+        "vanished_during_samples": 0
+      },
+      "drain_ns": 100539182,
+      "observer_cpu_ns": 152875240,
+      "upstream_cpu_ns": 1152907120,
+      "throughput_completed_per_second": 9998.258304403198,
+      "daemon_shutdown": "exited 0; process group empty",
+      "directory": "measure-02/round-3-mixed",
+      "profile_only": false,
+      "client": {
+        "planned": 100000,
+        "sent": 100000,
+        "success": 100000,
+        "errors": 0,
+        "timeouts": 0,
+        "not_sent": 0,
+        "start_ns": 539876193299371,
+        "end_ns": 539886195041370,
+        "cpu_ns": 8845650280,
+        "errors_detail": [],
+        "actual_rtt_ns": {
+          "p50": 196402,
+          "p95": 2119777,
+          "p99": 2453340
+        },
+        "planned_rtt_ns": {
+          "p50": 351368,
+          "p95": 2354455,
+          "p99": 2633714
+        },
+        "send_lateness_ns": {
+          "p50": 129149,
+          "p95": 583643,
+          "p99": 1035295
+        },
+        "validation_ns": {
+          "p50": 18121,
+          "p95": 30760,
+          "p99": 49280
+        },
+        "connect_count": 0,
+        "connect_ns": {},
+        "close_count": 0,
+        "close_ns": {}
+      },
+      "proc_cpu_ticks": {
+        "user_ticks": 61,
+        "system_ticks": 402,
+        "child_user_ticks": 0,
+        "child_system_ticks": 0
+      },
+      "upstream_queries": 20017,
+      "negative_retrievals": 17,
+      "upstream_delay_ns": {
+        "p50": 1125890,
+        "p95": 1999097,
+        "p99": 2077976
+      },
+      "perf_window_ns": 10700215072,
+      "sampled_children_peak": 0,
+      "c_tcp_children_high_water": 0,
+      "parent_sampled_peaks": {
+        "rss": 2396160,
+        "pss": 764928,
+        "uss": 720896,
+        "fds": 17,
+        "threads": 1
+      },
+      "children_sampled_peaks": {
+        "rss": 0,
+        "pss": 0,
+        "uss": 0,
+        "fds": 0,
+        "threads": 0
+      },
+      "last_sample": {
+        "rss": 2396160,
+        "pss": 764928,
+        "uss": 720896,
+        "fds": 11,
+        "threads": 1,
+        "processes": 1
+      },
+      "first_sample": {
+        "rss": 2396160,
+        "pss": 764928,
+        "uss": 720896,
+        "fds": 11,
+        "threads": 1,
+        "processes": 1
+      },
+      "perf": {
+        "task-clock": {
+          "value": 4835772560.0,
+          "unit": "",
+          "event_runtime_ns": 4835772560,
+          "running_percent": 100.0
+        },
+        "cycles": {
+          "value": 7688616062.0,
+          "unit": "",
+          "event_runtime_ns": 4835772560,
+          "running_percent": 100.0
+        },
+        "instructions": {
+          "value": 10068022291.0,
+          "unit": "",
+          "event_runtime_ns": 4835772560,
+          "running_percent": 100.0
+        },
+        "context-switches": {
+          "value": 68595.0,
+          "unit": "",
+          "event_runtime_ns": 4835772560,
+          "running_percent": 100.0
+        },
+        "cpu-migrations": {
+          "value": 0.0,
+          "unit": "",
+          "event_runtime_ns": 4835772560,
+          "running_percent": 100.0
+        },
+        "page-faults": {
+          "value": 0.0,
+          "unit": "",
+          "event_runtime_ns": 4835772560,
+          "running_percent": 100.0
+        }
+      },
+      "c_cpu_ns": 4835772560.0,
+      "c_cpu_ns_per_completed": 48357.7256,
+      "artifacts": {
+        "client-latencies.csv": "0cc4f09171e60de0d4c9839ca5c9bb0b1e173e6932c848b36ff2aeb2eee4f588",
+        "client.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "connection-latencies.json": "71f4327eaacdc09f568eb78a4fd6df3bcd9c087fdce927a3b41536429cb08f7d",
+        "corpus.bin": "dfc4a21c2a1cf6e03d079c4659cc852ed53a334a3510046f15cab9244f759c66",
+        "daemon.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "dnsmasq.conf": "df082f74dd58909d423f107747253a6cd4ef30caa0b4a7ed59711670c9d58085",
+        "dnsmasq.log": "0043cde8d72704192da57aa4992049d370c1ceba98d1b2b735237392d00044fd",
+        "perf-control.json": "bb7f5cce2a43e544ac23e02680e8ab03892ed650f6a0b8c358b61b3048d5c30d",
+        "perf-stat.txt": "371fd63b13761236319e0be64a079ae8fb655e01f70f29e384a715125d2cdbbd",
+        "perf.stderr": "3c6628a9db779f66867bc09c3c99f04c824872bbe05026774af5cc1d48378d98",
+        "resources.json": "63bcd99561e0dedaba00d2b4929595318eb91d57c4bdc4b884d8ef6829903c14",
+        "result.json": "1937a97c329e85d59a2e9c3efd10f5c460d90b2836bb3bc4e492312518aee150",
+        "upstream-final.json": "752d66629da5b4ebd3e10c2d7cb3e85546beae35931af1d0a509040c30a235ee",
+        "upstream.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "profiles": [
+    {
+      "scenario": "hot",
+      "corpus": {
+        "prepared": 100000,
+        "corpus_sha256": "3892e23121d6767704ed2e6e0cfc749c23f43e65ef82bb001151b28c9ecc9a27"
+      },
+      "config_sha256": "f02825d1047023e3fd012c1a4afe3249f7cb5accfc95bf2b2fc48fd0855a6979",
+      "sampled_peaks": {
+        "rss": 2396160,
+        "pss": 764928,
+        "uss": 720896,
+        "fds": 11,
+        "threads": 1,
+        "processes": 1,
+        "samples": 228,
+        "vanished_during_samples": 0
+      },
+      "drain_ns": 100551382,
+      "observer_cpu_ns": 159444920,
+      "upstream_cpu_ns": 446800,
+      "throughput_completed_per_second": 9999.869547701803,
+      "daemon_shutdown": "exited 0; process group empty",
+      "directory": "profile-01/round-1-hot",
+      "profile_only": true,
+      "client": {
+        "planned": 100000,
+        "sent": 100000,
+        "success": 100000,
+        "errors": 0,
+        "timeouts": 0,
+        "not_sent": 0,
+        "start_ns": 539975285705767,
+        "end_ns": 539985285836221,
+        "cpu_ns": 9977194520,
+        "errors_detail": [],
+        "actual_rtt_ns": {
+          "p50": 110961,
+          "p95": 195001,
+          "p99": 263802
+        },
+        "planned_rtt_ns": {
+          "p50": 204364,
+          "p95": 378543,
+          "p99": 501928
+        },
+        "send_lateness_ns": {
+          "p50": 97518,
+          "p95": 198022,
+          "p99": 275269
+        },
+        "validation_ns": {
+          "p50": 19960,
+          "p95": 31720,
+          "p99": 40040
+        },
+        "connect_count": 0,
+        "connect_ns": {},
+        "close_count": 0,
+        "close_ns": {}
+      },
+      "proc_cpu_ticks": {
+        "user_ticks": 53,
+        "system_ticks": 291,
+        "child_user_ticks": 0,
+        "child_system_ticks": 0
+      },
+      "upstream_queries": 0,
+      "negative_retrievals": 0,
+      "upstream_delay_ns": {},
+      "perf_window_ns": 10674574054,
+      "sampled_children_peak": 0,
+      "c_tcp_children_high_water": 0,
+      "parent_sampled_peaks": {
+        "rss": 2396160,
+        "pss": 764928,
+        "uss": 720896,
+        "fds": 11,
+        "threads": 1
+      },
+      "children_sampled_peaks": {
+        "rss": 0,
+        "pss": 0,
+        "uss": 0,
+        "fds": 0,
+        "threads": 0
+      },
+      "last_sample": {
+        "rss": 2396160,
+        "pss": 764928,
+        "uss": 720896,
+        "fds": 11,
+        "threads": 1,
+        "processes": 1
+      },
+      "first_sample": {
+        "rss": 2396160,
+        "pss": 764928,
+        "uss": 720896,
+        "fds": 11,
+        "threads": 1,
+        "processes": 1
+      },
+      "artifacts": {
+        "client-latencies.csv": "5d436c74a1329023639b3fca51c751ad17fb981f36f6f681a1794ac7d90d2ad8",
+        "client.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "connection-latencies.json": "71f4327eaacdc09f568eb78a4fd6df3bcd9c087fdce927a3b41536429cb08f7d",
+        "corpus.bin": "3892e23121d6767704ed2e6e0cfc749c23f43e65ef82bb001151b28c9ecc9a27",
+        "daemon.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "dnsmasq.conf": "f02825d1047023e3fd012c1a4afe3249f7cb5accfc95bf2b2fc48fd0855a6979",
+        "dnsmasq.log": "d9df6baf619384a8061e522170a2d607de98e585e55018c0ed63c4b006e63b15",
+        "perf-control.json": "7b7915f123f0f15e2aba96c97520df7e355dfde0933c4e9ee85249e90b17a183",
+        "perf.data": "1c615f97ef0bba009a1b7b0b75d0aedb71bc0b4cd538579b947377e348afde5a",
+        "perf.stderr": "9bfd3411749ecd133b9e37e5f17e5b498b2c38c9c9bfb2cc1c4626017a69080f",
+        "profile-self.txt": "52e9ab3673082b14ed8bbb748d58b91ab71b2718be4a8ad1fedf06c4c8840168",
+        "resources.json": "0d0efe54fc533c0052d12240c3e68dbd35ab5edad24f3f2ebef9096399f0918b",
+        "result.json": "0053703173c48978c307debcf05578f3541aa8412ee6e8e3bf35be20cc4694fa",
+        "upstream-final.json": "d86f8c679cb9da64080a1831acf127c211ed600b7fac030397a4e55f4617a760",
+        "upstream.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "sample_count": 3240,
+      "dso_sample_counts": {
+        "dnsmasq": 971,
+        "[kernel.kallsyms]": 1961,
+        "libc.so.6": 285,
+        "[vdso]": 23
+      },
+      "top_self_symbols": [
+        {
+          "period_percent_rounded": 5.42,
+          "samples": 179,
+          "dso": "dnsmasq",
+          "symbol": "cache_find_by_name"
+        },
+        {
+          "period_percent_rounded": 2.9,
+          "samples": 93,
+          "dso": "[kernel.kallsyms]",
+          "symbol": "el0_svc"
+        },
+        {
+          "period_percent_rounded": 2.07,
+          "samples": 68,
+          "dso": "[kernel.kallsyms]",
+          "symbol": "__wake_up_sync_key"
+        },
+        {
+          "period_percent_rounded": 2.01,
+          "samples": 69,
+          "dso": "libc.so.6",
+          "symbol": "__subtf3"
+        },
+        {
+          "period_percent_rounded": 1.85,
+          "samples": 61,
+          "dso": "dnsmasq",
+          "symbol": "answer_request"
+        },
+        {
+          "period_percent_rounded": 1.79,
+          "samples": 60,
+          "dso": "dnsmasq",
+          "symbol": "check_dns_listeners"
+        },
+        {
+          "period_percent_rounded": 1.72,
+          "samples": 56,
+          "dso": "dnsmasq",
+          "symbol": "set_dns_listeners"
+        },
+        {
+          "period_percent_rounded": 1.57,
+          "samples": 51,
+          "dso": "dnsmasq",
+          "symbol": "main"
+        },
+        {
+          "period_percent_rounded": 1.55,
+          "samples": 46,
+          "dso": "[kernel.kallsyms]",
+          "symbol": "fput"
+        },
+        {
+          "period_percent_rounded": 1.39,
+          "samples": 46,
+          "dso": "[kernel.kallsyms]",
+          "symbol": "__pi_memset_generic"
+        },
+        {
+          "period_percent_rounded": 1.32,
+          "samples": 43,
+          "dso": "[kernel.kallsyms]",
+          "symbol": "sock_poll"
+        },
+        {
+          "period_percent_rounded": 1.32,
+          "samples": 39,
+          "dso": "dnsmasq",
+          "symbol": "hostname_isequal"
+        },
+        {
+          "period_percent_rounded": 1.31,
+          "samples": 44,
+          "dso": "[kernel.kallsyms]",
+          "symbol": "__slab_free"
+        },
+        {
+          "period_percent_rounded": 1.25,
+          "samples": 41,
+          "dso": "libc.so.6",
+          "symbol": "__strlen_asimd"
+        },
+        {
+          "period_percent_rounded": 1.24,
+          "samples": 38,
+          "dso": "[kernel.kallsyms]",
+          "symbol": "fdget"
+        }
+      ],
+      "full_table_sha256": "a4b9a4e1282c712ea54f7d5cc0e24a204cba83acbe554ba601e7983a1b0ab83e",
+      "lost_samples": 0
+    },
+    {
+      "scenario": "mixed",
+      "corpus": {
+        "prepared": 100000,
+        "corpus_sha256": "dfc4a21c2a1cf6e03d079c4659cc852ed53a334a3510046f15cab9244f759c66"
+      },
+      "config_sha256": "ce81c732ce3ee9336957e6f308743de14057084c78fadf54bde5f59bff09813d",
+      "sampled_peaks": {
+        "rss": 2400256,
+        "pss": 769024,
+        "uss": 724992,
+        "fds": 17,
+        "threads": 1,
+        "processes": 1,
+        "samples": 213,
+        "vanished_during_samples": 0
+      },
+      "drain_ns": 100621103,
+      "observer_cpu_ns": 190307800,
+      "upstream_cpu_ns": 1236537840,
+      "throughput_completed_per_second": 9998.39797768867,
+      "daemon_shutdown": "exited 0; process group empty",
+      "directory": "profile-01/round-1-mixed",
+      "profile_only": true,
+      "client": {
+        "planned": 100000,
+        "sent": 100000,
+        "success": 100000,
+        "errors": 0,
+        "timeouts": 0,
+        "not_sent": 0,
+        "start_ns": 539995205612113,
+        "end_ns": 540005207214392,
+        "cpu_ns": 7917192000,
+        "errors_detail": [],
+        "actual_rtt_ns": {
+          "p50": 167841,
+          "p95": 2041536,
+          "p99": 2449540
+        },
+        "planned_rtt_ns": {
+          "p50": 331234,
+          "p95": 2365787,
+          "p99": 2647567
+        },
+        "send_lateness_ns": {
+          "p50": 129344,
+          "p95": 750679,
+          "p99": 1075995
+        },
+        "validation_ns": {
+          "p50": 16880,
+          "p95": 28640,
+          "p99": 40680
+        },
+        "connect_count": 0,
+        "connect_ns": {},
+        "close_count": 0,
+        "close_ns": {}
+      },
+      "proc_cpu_ticks": {
+        "user_ticks": 109,
+        "system_ticks": 336,
+        "child_user_ticks": 0,
+        "child_system_ticks": 0
+      },
+      "upstream_queries": 20016,
+      "negative_retrievals": 16,
+      "upstream_delay_ns": {
+        "p50": 1230610,
+        "p95": 1986977,
+        "p99": 2093097
+      },
+      "perf_window_ns": 10688860864,
+      "sampled_children_peak": 0,
+      "c_tcp_children_high_water": 0,
+      "parent_sampled_peaks": {
+        "rss": 2400256,
+        "pss": 769024,
+        "uss": 724992,
+        "fds": 17,
+        "threads": 1
+      },
+      "children_sampled_peaks": {
+        "rss": 0,
+        "pss": 0,
+        "uss": 0,
+        "fds": 0,
+        "threads": 0
+      },
+      "last_sample": {
+        "rss": 2400256,
+        "pss": 769024,
+        "uss": 724992,
+        "fds": 11,
+        "threads": 1,
+        "processes": 1
+      },
+      "first_sample": {
+        "rss": 2400256,
+        "pss": 769024,
+        "uss": 724992,
+        "fds": 11,
+        "threads": 1,
+        "processes": 1
+      },
+      "artifacts": {
+        "client-latencies.csv": "81a11663c36c39b5b43e2e9314e444e57c8855d974ef0b5e2711ea2534dfbe92",
+        "client.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "connection-latencies.json": "71f4327eaacdc09f568eb78a4fd6df3bcd9c087fdce927a3b41536429cb08f7d",
+        "corpus.bin": "dfc4a21c2a1cf6e03d079c4659cc852ed53a334a3510046f15cab9244f759c66",
+        "daemon.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "dnsmasq.conf": "ce81c732ce3ee9336957e6f308743de14057084c78fadf54bde5f59bff09813d",
+        "dnsmasq.log": "dd9d7acfcc738f4120795f6a038a153cbac83d414b06e78c10cd293eead9c6f7",
+        "perf-control.json": "52e95281b359b9bb7c31222b8af6e40b37698a73e94c8d663b8fba2c67be3bfc",
+        "perf.data": "10f812955533fbd1029a067fc942aac4101c4c597c27b4877aedaae700b52fc1",
+        "perf.stderr": "88137b114ba862831a4f9459c57920bdcf9147d230cbd2222f494a254ad5c4e9",
+        "profile-self.txt": "7f085e237733df04de90cfda7c1a97a66eb759757ddf8f05a878fd63d1f71f82",
+        "resources.json": "06d0daedba5cc8600017655a9ff46ab624ddff8f61efc44a7fd937d112966776",
+        "result.json": "d3adcc0a34d6915a8b2fe72fdfd88987e47a1e3dd2a76c41069f812c0171217f",
+        "upstream-final.json": "e052cfab5e8d4bb894e9dd32fe88e524c8ae79fd50860892b54849546ff20ae9",
+        "upstream.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "sample_count": 4482,
+      "dso_sample_counts": {
+        "dnsmasq": 1316,
+        "libc.so.6": 1013,
+        "[kernel.kallsyms]": 2139,
+        "[vdso]": 14
+      },
+      "top_self_symbols": [
+        {
+          "period_percent_rounded": 11.07,
+          "samples": 498,
+          "dso": "dnsmasq",
+          "symbol": "cache_scan_free.isra.0"
+        },
+        {
+          "period_percent_rounded": 8.33,
+          "samples": 370,
+          "dso": "libc.so.6",
+          "symbol": "__subtf3"
+        },
+        {
+          "period_percent_rounded": 8.28,
+          "samples": 366,
+          "dso": "libc.so.6",
+          "symbol": "__trunctfdf2"
+        },
+        {
+          "period_percent_rounded": 2.36,
+          "samples": 103,
+          "dso": "[kernel.kallsyms]",
+          "symbol": "__wake_up_sync_key"
+        },
+        {
+          "period_percent_rounded": 2.35,
+          "samples": 110,
+          "dso": "libc.so.6",
+          "symbol": "__floatditf"
+        },
+        {
+          "period_percent_rounded": 1.76,
+          "samples": 80,
+          "dso": "[kernel.kallsyms]",
+          "symbol": "el0_svc"
+        },
+        {
+          "period_percent_rounded": 1.48,
+          "samples": 66,
+          "dso": "dnsmasq",
+          "symbol": "extract_name"
+        },
+        {
+          "period_percent_rounded": 1.44,
+          "samples": 64,
+          "dso": "dnsmasq",
+          "symbol": "hostname_isequal"
+        },
+        {
+          "period_percent_rounded": 1.4,
+          "samples": 61,
+          "dso": "dnsmasq",
+          "symbol": "is_expired.isra.0"
+        },
+        {
+          "period_percent_rounded": 1.36,
+          "samples": 60,
+          "dso": "libc.so.6",
+          "symbol": "difftime"
+        },
+        {
+          "period_percent_rounded": 1.27,
+          "samples": 58,
+          "dso": "dnsmasq",
+          "symbol": "cache_find_by_name"
+        },
+        {
+          "period_percent_rounded": 1.07,
+          "samples": 47,
+          "dso": "[kernel.kallsyms]",
+          "symbol": "__netif_receive_skb_core.constprop.0"
+        },
+        {
+          "period_percent_rounded": 1.04,
+          "samples": 47,
+          "dso": "dnsmasq",
+          "symbol": "set_dns_listeners"
+        },
+        {
+          "period_percent_rounded": 0.9,
+          "samples": 41,
+          "dso": "dnsmasq",
+          "symbol": "answer_request"
+        },
+        {
+          "period_percent_rounded": 0.88,
+          "samples": 40,
+          "dso": "[kernel.kallsyms]",
+          "symbol": "__ip_append_data"
+        }
+      ],
+      "full_table_sha256": "eae6e98ae938f9c597d2f8ddf09abeed5f8da9298d82773c25da2ca402e57b27",
+      "lost_samples": 0
+    },
+    {
+      "scenario": "tcp",
+      "corpus": {
+        "prepared": 20000,
+        "corpus_sha256": "1ac5dd657bbb3a0856da56b36721dd53d2e3877b58772fca9963027933af5d00"
+      },
+      "config_sha256": "bf21ed0ab4d30330eeaf7abe6c531c2d14545a176a0ec5f4ad74f5b8039fe97a",
+      "sampled_peaks": {
+        "rss": 12025856,
+        "pss": 2705408,
+        "uss": 2129920,
+        "fds": 162,
+        "threads": 9,
+        "processes": 9,
+        "samples": 201,
+        "vanished_during_samples": 9
+      },
+      "drain_ns": 100843985,
+      "observer_cpu_ns": 459750720,
+      "upstream_cpu_ns": 1550786960,
+      "throughput_completed_per_second": 1999.3534682692243,
+      "daemon_shutdown": "exited 0; process group empty",
+      "directory": "profile-01/round-1-tcp",
+      "profile_only": true,
+      "client": {
+        "planned": 20000,
+        "sent": 20000,
+        "success": 20000,
+        "errors": 0,
+        "timeouts": 0,
+        "not_sent": 0,
+        "start_ns": 540015069682426,
+        "end_ns": 540025072916130,
+        "cpu_ns": 2374917560,
+        "errors_detail": [],
+        "actual_rtt_ns": {
+          "p50": 2250459,
+          "p95": 2806143,
+          "p99": 3887272
+        },
+        "planned_rtt_ns": {
+          "p50": 2630456,
+          "p95": 3518606,
+          "p99": 4593095
+        },
+        "send_lateness_ns": {
+          "p50": 281564,
+          "p95": 1030376,
+          "p99": 1118547
+        },
+        "validation_ns": {
+          "p50": 20881,
+          "p95": 35000,
+          "p99": 51000
+        },
+        "connect_count": 200,
+        "connect_ns": {
+          "p50": 314762,
+          "p95": 528284
+        },
+        "close_count": 200,
+        "close_ns": {
+          "p50": 103561,
+          "p95": 270802
+        }
+      },
+      "proc_cpu_ticks": {
+        "user_ticks": 84,
+        "system_ticks": 32,
+        "child_user_ticks": 141,
+        "child_system_ticks": 210
+      },
+      "upstream_queries": 20000,
+      "negative_retrievals": 0,
+      "upstream_delay_ns": {
+        "p50": 1640493,
+        "p95": 1961176,
+        "p99": 2052056
+      },
+      "perf_window_ns": 10374533265,
+      "sampled_children_peak": 8,
+      "c_tcp_children_high_water": 8,
+      "parent_sampled_peaks": {
+        "rss": 2392064,
+        "pss": 760832,
+        "uss": 716800,
+        "fds": 20,
+        "threads": 1
+      },
+      "children_sampled_peaks": {
+        "rss": 9633792,
+        "pss": 2318336,
+        "uss": 1830912,
+        "fds": 143,
+        "threads": 8
+      },
+      "last_sample": {
+        "rss": 2392064,
+        "pss": 760832,
+        "uss": 716800,
+        "fds": 11,
+        "threads": 1,
+        "processes": 1
+      },
+      "first_sample": {
+        "rss": 2392064,
+        "pss": 760832,
+        "uss": 716800,
+        "fds": 11,
+        "threads": 1,
+        "processes": 1
+      },
+      "artifacts": {
+        "client-latencies.csv": "382ad7128ebb26c519573aa2adb9b7dbf06832a067b3fe4e1cc6abb16100eac6",
+        "client.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "connection-latencies.json": "ec4a4a5b21e2bc060d2fec00c0a6f09275cd429df8d5e86405e0836cba1a7183",
+        "corpus.bin": "1ac5dd657bbb3a0856da56b36721dd53d2e3877b58772fca9963027933af5d00",
+        "daemon.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "dnsmasq.conf": "bf21ed0ab4d30330eeaf7abe6c531c2d14545a176a0ec5f4ad74f5b8039fe97a",
+        "dnsmasq.log": "86e3f0d1fb443f218afaf42dd38d622fc30455f37e5aa6c9828992a85fd5b3a3",
+        "perf-control.json": "c916c6d40301071b5d1bfadf7f09271328b67e4cb135d9b2e1ac0716db4968ae",
+        "perf.data": "5cc79918d11cc92860f809f91f09f9150a6d6035658b474a8585f1a1c7f4ecb4",
+        "perf.stderr": "2080f6afa2ba85b2ba461fd3c8474f2fd875c540de7533f44fe3fa6bb0f3718c",
+        "profile-self.txt": "fd1cb6dffda4d9e7dd80d74b602fecf2fc027643c07018dc9fbf5b8598596b01",
+        "resources.json": "ac6eaa5f54d0705fd6e9ae0e730d4b79632227a0fd1580b975d4e843c4eced3e",
+        "result.json": "e9ad00d22acf4782aa38cb82e8e248133641f8fbd0ecd5fae53526c2889d8d02",
+        "upstream-final.json": "8bb3531ef17fbb0eb0489fc8580d4e85c82979d4cfc514490c968ac94cad1272",
+        "upstream.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "sample_count": 4530,
+      "dso_sample_counts": {
+        "dnsmasq": 1349,
+        "libc.so.6": 1338,
+        "[kernel.kallsyms]": 1838,
+        "[vdso]": 5
+      },
+      "top_self_symbols": [
+        {
+          "period_percent_rounded": 21.54,
+          "samples": 972,
+          "dso": "dnsmasq",
+          "symbol": "cache_scan_free.isra.0"
+        },
+        {
+          "period_percent_rounded": 11.68,
+          "samples": 524,
+          "dso": "libc.so.6",
+          "symbol": "__subtf3"
+        },
+        {
+          "period_percent_rounded": 11.41,
+          "samples": 517,
+          "dso": "libc.so.6",
+          "symbol": "__trunctfdf2"
+        },
+        {
+          "period_percent_rounded": 6.97,
+          "samples": 320,
+          "dso": "[kernel.kallsyms]",
+          "symbol": "finish_task_switch.isra.0"
+        },
+        {
+          "period_percent_rounded": 3.08,
+          "samples": 140,
+          "dso": "libc.so.6",
+          "symbol": "__floatditf"
+        },
+        {
+          "period_percent_rounded": 2.35,
+          "samples": 106,
+          "dso": "[kernel.kallsyms]",
+          "symbol": "__wake_up_sync_key"
+        },
+        {
+          "period_percent_rounded": 1.89,
+          "samples": 85,
+          "dso": "dnsmasq",
+          "symbol": "is_expired.isra.0"
+        },
+        {
+          "period_percent_rounded": 1.16,
+          "samples": 52,
+          "dso": "libc.so.6",
+          "symbol": "difftime"
+        },
+        {
+          "period_percent_rounded": 1.14,
+          "samples": 50,
+          "dso": "[kernel.kallsyms]",
+          "symbol": "do_notify_resume"
+        },
+        {
+          "period_percent_rounded": 0.96,
+          "samples": 43,
+          "dso": "[kernel.kallsyms]",
+          "symbol": "el0_svc"
+        },
+        {
+          "period_percent_rounded": 0.89,
+          "samples": 40,
+          "dso": "libc.so.6",
+          "symbol": "__memset_zva64"
+        },
+        {
+          "period_percent_rounded": 0.77,
+          "samples": 37,
+          "dso": "dnsmasq",
+          "symbol": "hostname_isequal"
+        },
+        {
+          "period_percent_rounded": 0.53,
+          "samples": 25,
+          "dso": "dnsmasq",
+          "symbol": "hash_bucket"
+        },
+        {
+          "period_percent_rounded": 0.52,
+          "samples": 25,
+          "dso": "dnsmasq",
+          "symbol": "tcp_request"
+        },
+        {
+          "period_percent_rounded": 0.51,
+          "samples": 23,
+          "dso": "[kernel.kallsyms]",
+          "symbol": "tcp_sendmsg_locked"
+        }
+      ],
+      "full_table_sha256": "47dd0824f226fb2a5c8ebdd06ff8682f0b64071e6c85f7f513cfe2090099c82a",
+      "lost_samples": 0
+    }
+  ],
+  "summary_artifacts": {
+    "calibration-01/summary.json": {
+      "sha256": "bc34205ef1915752819e823b1e4cd400a8d895d801f2365499a119dbaeb6841e",
+      "status": "failed"
+    },
+    "calibration-02/summary.json": {
+      "sha256": "f7ef0e3572f2958296b658bec1b1a47b2379498a01fb815a9d259a97213bee79",
+      "status": "failed"
+    },
+    "calibration-03/summary.json": {
+      "sha256": "d33261654169f8b14e473f4b7d4a758d23e4f0e15984dac965106e93d4db2ee5",
+      "status": "passed"
+    },
+    "calibration-04/summary.json": {
+      "sha256": "a486ee1ff46fcbc873bbe08bff035b9b563f88c080bbf9a47fdff76e10ff5f87",
+      "status": "passed"
+    },
+    "measure-01/summary.json": {
+      "sha256": "eb92b6e62261b7acbee69e70cc0394b1f9f045bbc1ca0c3ac6700c79eabef5ef",
+      "status": "failed"
+    },
+    "measure-02/summary.json": {
+      "sha256": "d3c10b851f62891ac6bcf2c29e7419730306b2baa082c37ea202e27578d3139f",
+      "status": "passed"
+    },
+    "profile-01/summary.json": {
+      "sha256": "9ca5824bf549149eec75d4c86e9b52cad31838782cf9d94eae1075f8b807d103",
+      "status": "passed"
+    }
+  }
+}
