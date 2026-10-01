@@ -4,6 +4,7 @@ pub mod cache_reply;
 pub mod daemon;
 pub mod forward;
 pub mod forward_service;
+pub mod lease_names;
 pub mod local;
 pub mod process;
 pub mod reply;
