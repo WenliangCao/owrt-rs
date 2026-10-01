@@ -48,10 +48,21 @@ remaining tasks have been assigned to isolated continuation worktrees so any
 later original-tree edits cannot overwrite these candidates:
 
 - `workspace_audit`: `private/dnsmasq-rewrite/resume-send-retry-20261001`, base
-  `10b9d19`, with original upstream draft copied in; finish exact C transient
-  send retry oracle/implementation/regressions.
+  `10b9d19`, with original upstream draft preserved. The retry unit is now integrated
+  as `1188018`/`750e8de` (53 helper cases, 209 DNS tests, 61 daemon observations).
+  New worktree `resume-retry-failure-20261001` owns later same-frec/background
+  failure policy. Its first 83-observation gate retains 14 differences, including
+  the C coalesced wrong-ID defect and existing DO cache-admission gaps.
 - `tcp_slot_contract`: `private/dnsmasq-rewrite/resume-dhcp-hosts-20261001`, same
-  base; establish ordinary hosts-derived DHCP address C baseline before a fix.
+  base; ordinary hosts-derived DHCP reservations integrated as `07a7eb5` /
+  `8c34170`: C27/27 (before10/27), negative26/27, static208, hostfiles41,
+  unsupported-selector11, reverse lifecycle87; Linux `dhcp::` filter116.
+- `evidence_recovery`: isolated `resume-tcp-transfer-20261001`, base `1bb7266`;
+  full-source native/target C pipe-transfer oracle before typed export/import.
+  No snapshot representation or main TCP cache wiring is selected.
+- The completed chunk32 private screen is in `TCP_SNAPSHOT_CHUNK_RESULT.md`:24
+  fixed runs,12,000/12,000,0 errors, rejected for population CPU and150-full p95.
+  No additional candidate campaign is active.
 
 No quiet performance window is active. The coordinated CPU-2 snapshot screen
 completed its unchanged 48 runs (24,000/24,000, zero errors); all three candidates
@@ -75,6 +86,14 @@ or relax thresholds after seeing this result.
 The empty reverse short-name persistence boundary remains a documented safe
 Rust difference; it is not an executed C pass. All counts above belong to
 their own frozen sources, not automatically to the latest working tree.
+
+## Coherent integration validation
+
+`RESUMED_INTEGRATION_20261001.md` qualifies committed source `8c34170`:
+Linux library381 passed/15 ignored, main6 passed, DHCP→DNS34/34; native/musl
+all-target Clippy passes. Native ELF
+`ee92c7e2bc43e774a3a63ecfa360e90c1f3fc46a0e9c8144f27ae1d1100d8a0f`.
+This is not a new SDK artifact or a whole-C equivalence result.
 
 ## Target artifacts and cost status
 

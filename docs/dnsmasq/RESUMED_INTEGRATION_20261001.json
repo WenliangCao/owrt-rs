@@ -1,0 +1,35 @@
+{
+  "source_commit": "8c34170",
+  "source_archive_sha256": "ab6af55419e4b1a4e8c8a1b4b03bd219661b108836484e68b32e3691703adfab",
+  "rust_toolchain": "1.98.1",
+  "native_elf_sha256": "ee92c7e2bc43e774a3a63ecfa360e90c1f3fc46a0e9c8144f27ae1d1100d8a0f",
+  "c_elf_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+  "linux_library": {
+    "passed": 381,
+    "failed": 0,
+    "ignored": 15
+  },
+  "linux_main": {
+    "passed": 6,
+    "failed": 0,
+    "ignored": 0
+  },
+  "dhcp_dns": {
+    "matched": 34,
+    "mismatches": 0
+  },
+  "native_all_targets_clippy": "pass",
+  "aarch64_musl_all_targets_clippy": "pass",
+  "evidence_sha256": {
+    "build.log": "21ef58db098c72f21a8e0afd54bdf24dab33f21e189363b76084e4287f5e0d5a",
+    "test-build.log": "668325352b16f9fda3db95714dac3fb8d6f92ebe88eea78b17a8d9d79fa4e0f0",
+    "test-build.jsonl": "b43c3b12d44d64c0f2fb008cab22f6f896deef991520d1438837b98f91cc2f74",
+    "tests-lib.log": "274a083e807fba73edc4c67137e357192fdde102e935e583ca7759152072959f",
+    "tests-bin.log": "6f69f912fcdd2edb327552bf81a516f36550319037c3af3a451f3e72d0b4c277",
+    "clippy.log": "30db0f493c35bcbdad7aa803853558265b08f1cf17d3a54ad3d430c1a9b6802e",
+    "musl-clippy.log": "51177e8db6dca42e1106bbc1c8367132afc0d9caabeb6f653ceca0bfa5c9abdb",
+    "artifact-enumeration-failure.json": "688f2caedf01211e3513566079ccff2071b6bc9fa52fcffeb5bb97c6024a4d35",
+    "private/dhcp-dns-01/summary.json": "7b2e0f0e21b110c92d5f23a4347995436b444b94be0408317e54a13df062bdc7"
+  },
+  "scope": "Coherent native Linux source integration; not target SDK package, complete C equivalence, performance or production acceptance."
+}
