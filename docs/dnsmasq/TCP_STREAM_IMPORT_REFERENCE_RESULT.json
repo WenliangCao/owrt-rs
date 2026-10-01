@@ -1,0 +1,271 @@
+{
+  "scope": "Private incremental TCP cache import functional regression; no product adoption or resource acceptance",
+  "source_commit": "dff7a39",
+  "runtime_commit": "ab98013",
+  "candidate_sha256": "79479efd1a6efb3c35b4abed87caaa91f98190eae56d9e6ddeadc0f209680786",
+  "source_archive_sha256": "aa5a64510b695f7f6166593fae302e7c590f1f606052795e26ec7378127d731c",
+  "gates": {
+    "ordinary-tcp-32-01": {
+      "result_sha256": "f820a31e2c14554111322450550ce4494e8778f62ac0620343a74314aab53bbf",
+      "planned": 32,
+      "c_observations": 32,
+      "matched": 32,
+      "tool_sha256": "00331e3ac704ad604a057e00dccda3f4f2806b88acaad5cea7e3303a8e6e65a3"
+    },
+    "stale-tcp-41-01": {
+      "result_sha256": "4b5ad901525b2c6e63d40c382a5e563a1855bc9bfad42ee0a0f092adf8b006db",
+      "matched": 41,
+      "passed": 164,
+      "failed": 0,
+      "tool_sha256": "034c2b9fd79be61c14e17f02307d273debf9a0b99dd1d8bf1aa5fa8a9f9d6b8b",
+      "inject_error": false,
+      "checks": {
+        "passed": 164,
+        "failed": 0
+      },
+      "rust_checks": {
+        "passed": 154,
+        "failed": 0
+      }
+    },
+    "cd-tcp-65-01": {
+      "result_sha256": "dd22623b2a2697ee06037e886f8a4bface48db3c40b01b70760b48e8a6747a76",
+      "matched": 65,
+      "passed": 152,
+      "failed": 0,
+      "tool_sha256": "2b5f8b1d3b462585e131eec1755890429f2f935b6e797784c5b24d32a8f16c65",
+      "checks": {
+        "passed": 152,
+        "failed": 0
+      },
+      "rust_checks": {
+        "passed": 152,
+        "failed": 0
+      }
+    },
+    "ubus-69-01": {
+      "result_sha256": "5c1da094c490a6ed20f3c02e8b05b1819edf858c2daa13241de6b311b87fe8ac",
+      "passed": 581,
+      "failed": 0,
+      "paired_observations": 69,
+      "paired_matches": 69,
+      "checks": {
+        "passed": 581,
+        "failed": 0
+      },
+      "retained_reference_defects": [
+        "C DNS object's type survives bus restart and cannot be resolved"
+      ]
+    },
+    "emfile-17-01": {
+      "result_sha256": "6e408c94d5aca7c0b771db79ffb93e42aa2aba1992262be5c614ca1b98f6fe7e",
+      "compared": 17,
+      "tool_sha256": "a08cfe8c247d7dcc978f0cf579a6a9631457c86dc311ff3834159ceeb6e96e54",
+      "calibration": {
+        "changed_listener": true,
+        "missing_observation": true,
+        "real_accept_emfile": true,
+        "normal_mode_gauge": true
+      }
+    },
+    "capacity-31-01": {
+      "result_sha256": "d11cf9552c7470b971fdae409cabb7642ebfda5b899ac62d128cdc81de30fa76",
+      "planned": 31,
+      "c_observations": 31,
+      "matched": 31,
+      "tool_sha256": "13293710fc4d30dd729a5f5a2e6e98bf6a743b8e199ea2549b1136ace9b2094d"
+    },
+    "writeback-12-02": {
+      "result_sha256": "2ef180f6ab073c098e35a210af8e0bb2669db19d4705d531eb753ccf42ead066",
+      "planned": 12,
+      "c_observations": 12,
+      "matched": 12,
+      "tool_sha256": "755cc342b4e53fe6477e3f54d87ad20c84e547ffa8aeb99a26726d2e1dff6fef",
+      "subscriber_sha256": "a48d507c5f216adc300ebc6852768b043d564d98a7f0aab7b6ccd9602af3bc2f",
+      "negative_calibration": [
+        "two-buffered-held",
+        "slot-order-parent-winner"
+      ]
+    },
+    "transfer-307-01": {
+      "result_sha256": "d66d0041c758cf4d8639e601e3f6f372808f5bd413d3ef11136a399209149d95",
+      "compared": 307,
+      "passed": 307,
+      "failed": 0,
+      "tool_sha256": "6f47991eb86f18efe6c24f4c2091ed9e18fdd7168571f0b99b201883e0214d0c",
+      "probe_sha256": "f23b1bed65285b1db7ec79b0be17ee43c7c1621cd14393ea7d2188f3256b190a",
+      "target": null,
+      "inject_error": false,
+      "calibration": {
+        "equal": 1,
+        "counter_mutation_detected": 1,
+        "short_count_rejected": 1
+      }
+    },
+    "transfer-musl-307-01": {
+      "result_sha256": "74baf19765bece9a2c3cbcee57c8732a9bd15bd5b9ca0b88f08982d74a3cfd0b",
+      "compared": 307,
+      "passed": 307,
+      "failed": 0,
+      "tool_sha256": "6f47991eb86f18efe6c24f4c2091ed9e18fdd7168571f0b99b201883e0214d0c",
+      "probe_sha256": "cc30ac401c3ace7647842356e21994eb0d1dba45e7b8ee7254ce83b917b59555",
+      "target": "aarch64-unknown-linux-musl",
+      "inject_error": false,
+      "calibration": {
+        "equal": 1,
+        "counter_mutation_detected": 1,
+        "short_count_rejected": 1
+      }
+    }
+  },
+  "source_files": {
+    "components/dnsmasq/Cargo.toml": "6f834268fd738927961d5b2c8f551d7baee3df315dea4017532f62bc83e31ffd",
+    "components/dnsmasq/Cargo.lock": "f414678b0ec026bcd72b2dbd8ac3aaeff887451d66de4e042cbe0b73785e7f52",
+    "components/dnsmasq/src/tftp_runtime.rs": "fdbdcbf6612e98e289cfeb66a4196aa8a385e9e305e128ec021f1df78518464d",
+    "components/dnsmasq/src/hosts.rs": "54b55f8a233c9bb695a4b7f79727e81592eeac458d06da2a92ae37fab0e0e01c",
+    "components/dnsmasq/src/main.rs": "dd41d8754335fcf84cd74f2aff54e5de26f238cca6c041332fb648fa96b2f2ec",
+    "components/dnsmasq/src/tftp_service.rs": "9aeae8d8cd643fe001ef7c3bb4f0ebacbd4e5921356fbeade235bcfda9453da6",
+    "components/dnsmasq/src/tftp.rs": "bf9d4a057e107b50abc586ec8f23ceaccb3b4db92d6908e4c9f9a9953d8bb274",
+    "components/dnsmasq/src/interfaces.rs": "8968857396d82ff7f045607f1311d4a625c3fef1f8f2b566379f0525e82c91e7",
+    "components/dnsmasq/src/tftp_listener.rs": "39ee3fa249a65bcc7d7dc738d7a022c3e92d861e19566fe5b91c7d127b58e278",
+    "components/dnsmasq/src/net.rs": "1a5dc90c69980703507c5876e009095ee62c790ececa5ac4703c7bf39d99c1b0",
+    "components/dnsmasq/src/metrics.rs": "ac5295a2d53157ce13ff43e29426b71a11c2c959496218ab9dd1fbbcafb4b2f9",
+    "components/dnsmasq/src/ubus_service.rs": "ec11adb1fc0003594146430c50810ba0395a12defb206600a98c3267759168bb",
+    "components/dnsmasq/src/lib.rs": "87e9eb38a396e29d83b4194ec6471399f0ecb6114e5ab8b7eba7bc27f27a5de7",
+    "components/dnsmasq/src/bin/udp_query_probe.rs": "1cd1bbe1a215baa09c9219c601cfc07c9dcfd2dd86c52a60d4a97b224b00697b",
+    "components/dnsmasq/src/bin/local_answer_probe.rs": "d19c50dfa413727847313673ec2531479060b654ee884af58a3d38e736b947b4",
+    "components/dnsmasq/src/bin/dhcp_reply_probe.rs": "98dcc9408815f2ab627574dd7c9f273ab6e035b6c46288705f18fadff0133f2c",
+    "components/dnsmasq/src/bin/dhcp_event_order_probe.rs": "4d26c4837353910a0cf9b4b49ec9cfa4c17a16e7e7f78bb21ecffd0bc3320e4a",
+    "components/dnsmasq/src/bin/lease_names_probe.rs": "f9390b3fe82b2084e895db9e1ba5593b1e405f57a42666242d483a34324e0283",
+    "components/dnsmasq/src/bin/dhcp_events_probe.rs": "9fb950f0cda0c885c9bb28334e17bb0ab350d93dccef14d24e9067f41b83374a",
+    "components/dnsmasq/src/bin/dhcp_message_metrics_probe.rs": "1f343f2362da7f11d72d88ed1ac966c9c83f399ce7550b3eab0f1ccf4bc1f969",
+    "components/dnsmasq/src/dhcp/lease.rs": "28e8be3798abbfa5bc26e10454fed6d065dab38919b32529f76874d1dec8e9a0",
+    "components/dnsmasq/src/dhcp/service.rs": "5169a6f1749d795e052a19df008018b04cdacf1bcee550f6335b1f91943acbb1",
+    "components/dnsmasq/src/dhcp/daemon.rs": "22486ed1fd05cd11986a72301bbe4e2de467cd5725cbf4c7e758de6a9b18281c",
+    "components/dnsmasq/src/dhcp/persistence.rs": "89a48f8f585d31996c21c85700ffe91f309be0fe04c5e9542fcbe540a37549cb",
+    "components/dnsmasq/src/dhcp/reply.rs": "edc5faf922418bcefee9d2426d53b610073a5001ce2934d8fa5a44cf059bacaf",
+    "components/dnsmasq/src/dhcp/mod.rs": "f34933404405b398e999690b8e7a6c89f9855743c2109f7c33f9eb51d52a2b07",
+    "components/dnsmasq/src/dhcp/packet.rs": "562fc37788b782f3c3071f53d841da17847302b25905469654d65e660797f394",
+    "components/dnsmasq/src/dhcp/message_counters.rs": "1b92e66cb2a4c565495a8308c2e75a804da120419b21933c31a072850837d833",
+    "components/dnsmasq/src/dhcp/probe.rs": "341e7e3805f7d7859237e8812106efc8834af5caeadd4b651d3fe65786aeb6b9",
+    "components/dnsmasq/src/dhcp/runtime.rs": "2cbf3133817eb74f639cf70c41cf51900fa002f8832962a57d1c2da43627df1c",
+    "components/dnsmasq/src/dhcp/context.rs": "285dfb00e103e1f5a6210feed6503f621dc5a43f60d35b0a4192033615ec1457",
+    "components/dnsmasq/src/dhcp/lease_file.rs": "b043ce414911a83eae066bac43f705fc624f634fdefe757260cba1895bcdcfa2",
+    "components/dnsmasq/src/dhcp/state.rs": "f7798796682b26558615884d08b1430eeb096592f36615163388174b722ae4ca",
+    "components/dnsmasq/src/dhcp/request.rs": "c414cc72cdc60955de2ced43ee54fae515d9e5afbdf8303fecaf5256bc37651f",
+    "components/dnsmasq/src/dhcp/allocation.rs": "705360c84b87531c52859608d45220689cd5fb9d7463c7a5ee8042d9baa6225a",
+    "components/dnsmasq/src/dhcp/pxe.rs": "6070fb161b5318909d7135f38514cc6791febc7ec77f77c612c22c23cca13dc4",
+    "components/dnsmasq/src/dhcp/lease_query.rs": "d2041342b47120c699b82117094f41dc4bd9cc53eabdaaa7f4f2532136a28b71",
+    "components/dnsmasq/src/dns/daemon_stale_tests.rs": "c3c772459ea70b40ad2b7357b1dfa8cc0278d018128f5be16ffcdb34aff851d8",
+    "components/dnsmasq/src/dns/lease_names.rs": "cb05a82f1d5f8e90e37dfee942b0464366eedac92b6dfcc35ecb50c86fe2b0b3",
+    "components/dnsmasq/src/dns/cache_reply.rs": "73d323bc3b2058ce391ed951d0574b431b5ca2dfd933294637a43f2f5cd89d69",
+    "components/dnsmasq/src/dns/wire_tests.rs": "2b1afb11d2e519d4b975bbda7c2218c0892c9a2ee6f083cea393fcb20bcea8a8",
+    "components/dnsmasq/src/dns/tcp_partial_eof_tests.rs": "1a2f0855ae066c18cafa9afc4fdddfe25bd080d8751be540143e7fd5fe061275",
+    "components/dnsmasq/src/dns/forward_tests.rs": "254e0d75f0d3d6997f8ecaa8b5734f2c0c9721283363100e32b3da05cf9cfcef",
+    "components/dnsmasq/src/dns/daemon_lease_cache_tests.rs": "2beb9c8555d168a4ee64ba0c40c31499b7f9638140c8ebc51fbac217c47d9b26",
+    "components/dnsmasq/src/dns/forward.rs": "6a18ec0960d154a5c7a10d4123f25e7bf0fa36b44a895961d42714cd67fc31c5",
+    "components/dnsmasq/src/dns/cache_reply_tests.rs": "37f27bf522c6c05024b02d75f0816d9e3342d8795f4644ac6789c443b934d311",
+    "components/dnsmasq/src/dns/local.rs": "585758ed193c6ea43172f0e1fe2e2099e9de03e48720deaeb9ccaa82ce1df481",
+    "components/dnsmasq/src/dns/wire.rs": "23e8d6c70d6c9177beb7d799ecb0fc39f5ef2378c7a2ca43b7f2e599c7d1510f",
+    "components/dnsmasq/src/dns/tcp_connect.rs": "a949082bc43978132d0d2be897570d5f5d4da8f784de0b39a2ccc0bce9444a59",
+    "components/dnsmasq/src/dns/service.rs": "256992cf0c9696e2972d5f07d46e9119da5ef9e9d94e0f4c8c8159654dfab779",
+    "components/dnsmasq/src/dns/daemon.rs": "9327adf8c2f05b79f7659de65260d8e80b506691290fd78d71bc3fd1ecb671fe",
+    "components/dnsmasq/src/dns/reply.rs": "b17d0d02a59848d4f6b6148c9ddafd2acd7ce11c80b6c69e58ab0879c9964f37",
+    "components/dnsmasq/src/dns/cache_tests.rs": "1e42ba80472599deb70b02cf29726c0442832da9298aeebd0ef1072448f50bf4",
+    "components/dnsmasq/src/dns/mod.rs": "485ac89f8bcd2688d2506afd21742d74e193881a0b0d9665afa4cf17d60157a4",
+    "components/dnsmasq/src/dns/daemon_poll_tests.rs": "056c16e9a8d1de98433a1584d1a3bcc109e19e675586431c348a08ec552d4025",
+    "components/dnsmasq/src/dns/daemon_cache_tests.rs": "daa0b0794536c463684378aacd13697674ed5c3becdf4d9a30de88ba11b6e9d6",
+    "components/dnsmasq/src/dns/tcp_upstream.rs": "683ce704c70c80c28b710cd0a8f3c60737ce7f0da784f5ce42878f1346567b13",
+    "components/dnsmasq/src/dns/process.rs": "6c3580a06484267d29590efff5d7ed2236e6dfdb79b44aac240a1d36921d3b1c",
+    "components/dnsmasq/src/dns/doctor.rs": "19a85b10556766b0881b853a51c08fefc12057c7e2c77648713288da8350b8b4",
+    "components/dnsmasq/src/dns/forward_service.rs": "5eb9b112183e8e9eb0de8a74fbfee331a0e9d035aa23944ccab91d4d729277a2",
+    "components/dnsmasq/src/dns/routing.rs": "cff9e20d7f08f34cc9ee38d294de04d86eb5bc675d4128927d603d3d160e8f2b",
+    "components/dnsmasq/src/dns/cache.rs": "2ceb308975b217c7bbbcd60581e204f898b7c713746a2167d4be6a2a13c415a5",
+    "components/dnsmasq/src/dns/upstream.rs": "f2bd2ffe94220af20ddd95db386de352983fa54f04f8582d105347c9aef9ad7f",
+    "components/dnsmasq/src/dns/tcp_upstream_tests.rs": "22312f51183f4a17e1064dfd7b8e8c1dbdbfdd3f49eca947ee28c39d45009235",
+    "components/dnsmasq/src/dns/udp_query.rs": "a87dfb66240f7e04b96554b7ab27df60adff031288b692015e34613175c6f188",
+    "components/dnsmasq/src/dns/tcp_transfer.rs": "3e09c70a0cd6c6e9d0a43916da1bfcadfa99e7da47b352d39f15d06f1c761395",
+    "components/dnsmasq/src/dns/daemon_policy_tests.rs": "34cefc167756feb485cc9109459f6a76b8a0f365c548969c5ad237fbdca541ff",
+    "components/dnsmasq/src/dns/tcp_cache.rs": "93fe2616f256b1b5a001a6bd6dd898ad5efcadaa08b7813b791d43874f5505eb",
+    "components/dnsmasq/src/dns/cache_engine.rs": "2a5bab48804cc1553181f88d5bc0247a2284b22e8dfe5bdc4e7b1982a775c590",
+    "components/dnsmasq/src/dns/cache_transfer_tests.rs": "71a8db9a5c9f86d8a3d8994629267d9616313e587d67a374224243a4d592080a",
+    "components/dnsmasq/src/dns/tcp_service.rs": "b8dfc59a72ba9c6887a0bf9b78029563b3cc4336f39d875a9dbd7c72dfd5e4ef",
+    "components/dnsmasq/src/config/scalar.rs": "59968920832c206d84b5dae7f746e565edbeb4bad51a2a95f1fa6fd6dc9a4278",
+    "components/dnsmasq/src/config/dns.rs": "a2f567478432428426c55075272ec658744840410e4a9be1ed3cf0922ecfcc4f",
+    "components/dnsmasq/src/config/dhcp.rs": "f8cc58af4e4d52a5c6a41d9003c45c87cb726701b742b83885a2371f90f9d365",
+    "components/dnsmasq/src/config/mod.rs": "2b704f7dfd1613723b60ac9ae8337f09f014516cad00a030423ff24d1def7fac",
+    "components/dnsmasq/src/config/tftp.rs": "f9b511f22c015e20f17aa41d71e8559531ee10c6d7a8c87f3eb9e475ceec9854",
+    "components/dnsmasq/src/config/dhcp_host_files.rs": "f5f572ad95215b178df35ebc5489b61749dc7fc77d400ef5f74a17c877209558",
+    "components/dnsmasq/src/config/ubus.rs": "36f3878accd923989f9f1b0c76bc8edf7f43e21c2b9ad2fc1a95fb9319d6f038",
+    "components/dnsmasq/src/config/dhcp_host.rs": "ddf66de9c5ff04789454473c62289a4252779d48823cea95134235c747643d5f",
+    "components/dnsmasq/src/config/options.rs": "40cb983503eede7840b8125414798a56cae81614a930c4e041a575ecd668cdfb",
+    "components/dnsmasq/src/config/state_probe.rs": "5baa73a99e5ad10879ac71f83c1b0f693f030f9e75f8ab63b0f49f96270149d7",
+    "components/dnsmasq/src/config/records.rs": "6786a8b2178ecaad97937e0fa1a762331a97b7987705e3ad03a15ce1afccc3c9",
+    "components/dnsmasq/src/config/loader.rs": "c5edca4ccb706a0ad0af501953ba2e624ad8053712427236b7adc4faa1b1b04d",
+    "components/dnsmasq/src/config/dhcp_options.rs": "b7bab1c64708748742b1040f3a434e63660ff3630d90fb7323eac0ff1f350994",
+    "components/ubus/Cargo.toml": "104190ac358c75cb88227979ec3729efa476a0e6487fb7f13fcab84e9608ebff",
+    "components/ubus/Cargo.lock": "47030840ec94a66a3c0c05d7ccd1b61cd49becb3d23eb76c1357099108929893",
+    "components/ubus/src/sys.rs": "23203d875c3adf20e70eed077f3911da65aa7baf6084fa2557698fbf59bd1a15",
+    "components/ubus/src/connect.rs": "7c568f49fdad2bc6ea4b0aa57c2a957d6f71896a3efeec0e45192acf86848999",
+    "components/ubus/src/digest.rs": "1d1e213d0ec2efc51f9dbc153de9696d22d4900e4faa2bf4adf5d06561f2ccff",
+    "components/ubus/src/conn.rs": "9e94f15bebbbc11eb260e212f4e1b2e90e663b703f855b24b122073e42706553",
+    "components/ubus/src/msg.rs": "d84a4fc05818ecf06611cbd69362b5b26031b12e51b65739712d1318635d0b64",
+    "components/ubus/src/json.rs": "a5fcb9cd3e0e63eff4ad2457b83a8aacd0e064099f3921505afd8d962a111d98",
+    "components/ubus/src/readiness.rs": "ae672d38dd336addda0fe6b64630ae9d95c236996b0eeb119fecdd94f1b49721",
+    "components/ubus/src/convert.rs": "3cf3ca60d1e673d368d18ef2b80336929865dd4fd7f01e7b8aba1d30faf0f83a",
+    "components/ubus/src/blob.rs": "c57472349f5f9acd04ea556956c4411fa5daf0aa041375602df625a7b83a36cc",
+    "components/ubus/src/lib.rs": "e4428a12658e12901790f266e62306ed3f5690849ae4438a51b696d3806402bf"
+  },
+  "reference_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+  "tests": {
+    "dnsmasq-rs": {
+      "passed": 7,
+      "failed": 0,
+      "ignored": 0,
+      "log_sha256": "fad80a11527dd27d6f3e9d20b2f28ec0cccaa2b401361830db2f26bfceaf3121"
+    },
+    "dnsmasq_rs": {
+      "passed": 398,
+      "failed": 0,
+      "ignored": 17,
+      "log_sha256": "0b3b4762df4694373fa4a32ca55be20f968f541308989adb564c1c3d5da86b3c"
+    }
+  },
+  "checks": {
+    "clippy-native-01.log": {
+      "exit": 0,
+      "log_sha256": "617030fd348c8b73c1904363f5164a3459e45c2baef5878a42da78829980eeff"
+    },
+    "clippy-musl-01.log": {
+      "exit": 0,
+      "log_sha256": "8155b7e1a9b673ac820c378c5e1dda5e9e73d209b4afdb99a80849ca4054f352"
+    },
+    "fmt.log": {
+      "exit": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "retained_attempts": [
+    {
+      "label": "writeback-12-01",
+      "exit": 1,
+      "phase": "Tool identity validation, before daemon launch",
+      "reason": "tcp_writeback_subscriber.c dependency omitted from source sync",
+      "log_sha256": "6f56e04937951c757315ec73eb981986fc848463a77519bbe9fa7f2659d6ccc3",
+      "resolution": "Copy the existing frozen dependency and run in fresh writeback-12-02 directory; no candidate or fixture changes"
+    }
+  ],
+  "command_manifests": {
+    "regression-commands.json": "b9de2d424d4b758f57678ca803e21d62af99b2c21a779c814e6111acbac2d604",
+    "test-commands.json": "d828bd82451c5ec6c5f84705b82204b409c250ab2a6cd78bfe9de3351b8a5747"
+  },
+  "boundaries": [
+    "All service gates are C first inside Linux isolation; tests execute already-built binaries inside isolation.",
+    "The 27-state partial-EOF primitive gate is separately documented and retains the old failing comparison.",
+    "The ten C process-shape checks excluded from Rust stale checks are not candidate passes.",
+    "The sender still captures and encodes a whole transaction; the receiver buffers one complete record. No memory improvement is measured.",
+    "Deep-clone admission cost, allocation failure, arbitrary malformed frames and native wire pipe saturation remain unqualified.",
+    "No actual image-musl service, router, production, throughput, CPU or RSS acceptance."
+  ],
+  "evidence_archive_sha256": "24556080ce8ea551093a0595b3e2660e1108256c240145f791c10e6ace93428a"
+}
