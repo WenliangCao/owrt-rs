@@ -43,7 +43,21 @@ clippy pass, including 100 slot reuses with ownership checks.
 The current blocker merge models a contiguous same-name dynamic group. C's
 `cache_hash` can place a later local blocker differently if an unrelated name
 has split that group in its hash bucket; the supplied blocker flags do not
-encode that position. Directed collider validation remains open. The current
+encode that position. Directed collider validation confirms a difference in
+`linux/lease-cache-collisions-01/`: both distinct-bucket controls pass, but both
+same-bucket cases differ after publication. With round-robin C removes both
+dynamic IPv4 entries while Rust retains one; with no-round-robin C retains both
+while Rust removes both. The live C process chooses a colliding name with the
+read-only `X` helper and confirms it with `V`; both implementations then receive
+the same concrete insertion/publication/query operations. No result is sorted.
+
+That fixture inserts the prior DHCP blocker directly through `cache_hash`.
+Normal complete publication first unhashes DHCP entries, and cache insertion
+can reject a conflict with an already published DHCP name. A reachable daemon
+sequence reproducing this synthetic initial state has not yet been established;
+neither unreachability nor full compatibility is claimed. The flags-only
+publication interface cannot express the demonstrated initial ordering, so this
+remains an explicit incomplete contract, not a waived passing case. The current
 gate therefore does not establish arbitrary hash-bucket publication equivalence,
 full `answer_request`/daemon equivalence, reverse caching, allocation failure,
 or performance acceptance. This boundary must remain open in the master report.

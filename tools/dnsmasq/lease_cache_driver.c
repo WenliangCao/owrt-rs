@@ -54,6 +54,17 @@ int main(int argc, char **argv) {
       union all_addr address = {0}; assert(inet_pton(AF_INET, "192.0.2.7", &address.addr4) == 1);
       char *owned = strdup(name); assert(owned);
       cache_add_dhcp_entry(owned, AF_INET, &address, 2000); puts("D");
+    } else if (line[0] == 'V') {
+      char other[504]; assert(sscanf(line, "V %503s %503s", name, other) == 2);
+      printf("V %d\n", hash_bucket(name) == hash_bucket(other));
+    } else if (line[0] == 'X') {
+      unsigned same; assert(sscanf(line, "X %503s %u", name, &same) == 2);
+      char other[504]; unsigned i;
+      for (i = 0; i < 100000; i++) {
+        snprintf(other, sizeof(other), "collision%u.test", i);
+        if ((hash_bucket(name) == hash_bucket(other)) == !!same) break;
+      }
+      assert(i < 100000); printf("X %s\n", other);
     } else if (line[0] == 'Q') {
       assert(sscanf(line, "Q %503s %u %lld", name, &type, &now) == 3);
       struct crec *c = NULL; printf("Q");
