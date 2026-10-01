@@ -226,11 +226,16 @@ fn write_dns_metrics(
     metrics: &mut Metrics,
     cache: dnsmasq_rs::dns::cache::CacheCounters,
     forward: dnsmasq_rs::dns::forward::ForwardCounters,
+    local_answered: u32,
 ) {
     metrics.set(Metric::CacheInserted, cache.inserted);
     metrics.set(Metric::CacheLiveFreed, cache.live_freed);
     metrics.set(Metric::QueriesForwarded, forward.queries_forwarded);
     metrics.set(Metric::Unanswered, forward.unanswered);
+    metrics.set(
+        Metric::LocalAnswered,
+        local_answered.wrapping_add(forward.background_local_answered),
+    );
 }
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -654,6 +659,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                 &mut metrics,
                                 daemon.cache_counters(),
                                 daemon.forward_counters(),
+                                event.local_answered,
                             );
                             event.process_ubus(&metrics);
                             let answer = incoming.and_then(|(length, peer)| {
@@ -699,7 +705,12 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                 .is_some_and(UbusService::dns_has_subscribers)
                             {
                                 let mut doctor = |name: &[u8], ttl, address, cache, forward| {
-                                    write_dns_metrics(&mut metrics, cache, forward);
+                                    write_dns_metrics(
+                                        &mut metrics,
+                                        cache,
+                                        forward,
+                                        event.local_answered,
+                                    );
                                     event.doctor(&DnsResult { name, ttl, address }, &metrics)
                                 };
                                 daemon.poll_with_local_doctor(Duration::ZERO, local, &mut doctor)
@@ -948,7 +959,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                         {
                             let Ok(parent) = dhcp_dns.lock() else { break };
                             if let Some(daemon) = &parent.daemon {
-                                write_dns_metrics(&mut metrics, daemon.cache_counters(), daemon.forward_counters());
+                                write_dns_metrics(&mut metrics, daemon.cache_counters(), daemon.forward_counters(), event.local_answered);
                             }
                         }
                         event.process_ubus(&metrics);
@@ -1083,6 +1094,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                     &mut metrics,
                     daemon.cache_counters(),
                     daemon.forward_counters(),
+                    event.local_answered,
                 );
             }
             event.process_ubus(&metrics);
@@ -1389,6 +1401,25 @@ fn read_resolvers(config: &DnsConfig) -> Result<Vec<SocketAddr>, io::Error> {
 mod tests {
     use super::*;
     use dnsmasq_rs::config::{lex_line, validate_directive};
+
+    #[test]
+    fn dns_snapshots_add_background_local_answers_once_and_wrap() {
+        let mut metrics = Metrics::default();
+        let cache = dnsmasq_rs::dns::cache::CacheCounters::default();
+        let mut forward = dnsmasq_rs::dns::forward::ForwardCounters {
+            background_local_answered: 2,
+            ..Default::default()
+        };
+        write_dns_metrics(&mut metrics, cache, forward, u32::MAX);
+        assert_eq!(metrics.get(Metric::LocalAnswered), 1);
+        // A repeated snapshot, including the doctor callback, replaces the
+        // aggregate from its sources instead of adding the producer twice.
+        write_dns_metrics(&mut metrics, cache, forward, u32::MAX);
+        assert_eq!(metrics.get(Metric::LocalAnswered), 1);
+        forward.background_local_answered += 1;
+        write_dns_metrics(&mut metrics, cache, forward, u32::MAX);
+        assert_eq!(metrics.get(Metric::LocalAnswered), 2);
+    }
 
     #[test]
     fn no_hosts_keeps_explicit_addn_hosts() {

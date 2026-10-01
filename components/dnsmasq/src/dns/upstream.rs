@@ -570,7 +570,15 @@ impl<R: Random> UpstreamResolver<R> {
         for plan in plans {
             match self.send_plan(plan.id, &plan.packet, &plan.send_plan) {
                 Ok(()) => self.dispatcher.retry_finished(plan.id),
-                Err(error) => self.fail(plan.id, error),
+                Err(error) => {
+                    if matches!(&error, ResolveError::Io(_)) {
+                        // forward_query(fd=-1) counts its terminal NETERR
+                        // fallback without replying to any original client.
+                        // Receive errors, expiry and failed planning do not.
+                        self.dispatcher.note_background_local_answer();
+                    }
+                    self.fail(plan.id, error);
+                }
             }
         }
         self.consume_releases();
@@ -1253,6 +1261,52 @@ mod tests {
         assert_eq!(transport.counters().queries_forwarded, 2);
         assert_eq!(transport.counters().unanswered, 0);
         assert_eq!(transport.socket_count(), 0);
+    }
+
+    #[test]
+    fn failed_fast_retry_counts_one_local_answer_without_a_bus_or_client_reply() {
+        let server = UdpSocket::bind("127.0.0.1:0").unwrap();
+        let address = server.local_addr().unwrap();
+        let mut transport = transport(
+            group(&[address], false),
+            Options {
+                fast_retry_ms: 50,
+                ..Options::default()
+            },
+            Duration::from_secs(10),
+        );
+        for expected in 1..=2 {
+            transport.dispatcher.group_mut(GroupId(1)).unwrap().servers[0].address = address;
+            let submitted = transport
+                .start_udp(&query(), client(), GroupId(1), Scope::Shared)
+                .unwrap();
+            let created = transport
+                .dispatcher
+                .table()
+                .get(submitted.id)
+                .unwrap()
+                .created;
+            // A zero destination port causes an actual synchronous send error;
+            // do not confuse a closed peer port with a failed UDP send.
+            transport.dispatcher.group_mut(GroupId(1)).unwrap().servers[0].address =
+                "127.0.0.1:0".parse().unwrap();
+            transport.run_timers_at(Instant::now(), created, 2000);
+            assert_eq!(transport.counters().background_local_answered, expected);
+            assert_eq!(transport.counters().queries_forwarded, expected);
+            assert_eq!(transport.counters().unanswered, 0);
+            assert_eq!(transport.pending_count(), 0);
+            assert_eq!(transport.socket_count(), 0);
+            let event = transport.events.pop_front().unwrap();
+            assert!(matches!(event.result, Err(ResolveError::Io(_))));
+            // Further ticks, explicit cleanup and failed initial sends cannot
+            // count the same fallback again. No UBus service is involved.
+            transport.run_timers_at(Instant::now(), created, 4000);
+            transport.clear();
+            assert!(transport
+                .start_udp(&query(), client(), GroupId(1), Scope::Shared)
+                .is_err());
+            assert_eq!(transport.counters().background_local_answered, expected);
+        }
     }
 
     #[test]

@@ -211,6 +211,9 @@ pub struct Released {
 pub struct ForwardCounters {
     pub queries_forwarded: u32,
     pub unanswered: u32,
+    /// Actual failed fast-retry sends take C's local fallback with udpfd=-1.
+    /// This cumulative producer counts that answer even without wire delivery.
+    pub background_local_answered: u32,
 }
 
 /// Queries are indexed by normalized question and by unique upstream ID, rather
@@ -263,6 +266,11 @@ impl ForwardTable {
     /// Call only after at least one actual datagram send completed.
     pub fn note_forwarded_action(&mut self) {
         self.counters.queries_forwarded = self.counters.queries_forwarded.wrapping_add(1);
+    }
+
+    pub(crate) fn note_background_local_answer(&mut self) {
+        self.counters.background_local_answered =
+            self.counters.background_local_answered.wrapping_add(1);
     }
 
     #[allow(clippy::too_many_arguments)]

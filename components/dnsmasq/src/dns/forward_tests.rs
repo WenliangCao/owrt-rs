@@ -142,6 +142,9 @@ fn unanswered_counts_reclamation_but_not_duplicate_expiry_or_cancellation() {
     table.counters.queries_forwarded = u32::MAX;
     table.note_forwarded_action();
     assert_eq!(table.counters().queries_forwarded, 0);
+    table.counters.background_local_answered = u32::MAX;
+    table.note_background_local_answer();
+    assert_eq!(table.counters().background_local_answered, 0);
 }
 
 #[test]
