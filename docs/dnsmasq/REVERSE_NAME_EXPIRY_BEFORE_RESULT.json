@@ -1,0 +1,131 @@
+{
+  "scope": "Same-name reverse expiry addon; exact native C primitive versus private candidate only",
+  "plan_commit": "a40faee",
+  "tool_commit": "6f409df",
+  "tool_sha256": "c52d0d212a138bb411ff6154855bd8465ddb619e153538c6532f4b108f27a260",
+  "source_commit": "54346fd7eb1463ef88b2653d22f5edb3f1e98914",
+  "source_archive_sha256": "f127b48277c81453b62418226749aba94d950f7c2bbcc34cd03cb9c5542d6cb5",
+  "rust_probe_sha256": "19bdf0a33be2b56c9bc3ecb6e3973e8b7d2270523fc73a80022a3ddb35aad976",
+  "c_oracle_sha256": "6212a54631bc51dfc0cd6b7f10425d8761c61094c8dde01cf74627a0ee814a14",
+  "c_source_identity": {
+    "rfc1035.c": "231f0b4989039ff4963f3916df22871dd13025dde65769465b2b3052ad807222",
+    "cache.c": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c",
+    "dnsmasq.h": "318942419598f037a97611efbdea5aebba1e384b9a1ba5f7eded091c86e0e228"
+  },
+  "c_driver_sha256": "18a004b826b119cb160bbec182cbffee9c545f5f6b9fff9d6a46fe8c1f88b298",
+  "c_result_sha256": "225cd87342a0719a37f026b8f792a51810b4e904ee9f0161206802e17fd5349a",
+  "c_matrix_sha256": "b37332f9f449b60bd0c352f3091381790bb299dbcb0de5312a4d3b65a49dda7e",
+  "c_observed": 27,
+  "c_failures": [],
+  "rust_observed": 27,
+  "mismatches": 6,
+  "rust_failures": [],
+  "profiles": [
+    {
+      "label": "lookup-rd1",
+      "expected_rows": 5,
+      "observed_rows": 5,
+      "mismatches": 2,
+      "failures": []
+    },
+    {
+      "label": "lookup-rd0",
+      "expected_rows": 5,
+      "observed_rows": 5,
+      "mismatches": 2,
+      "failures": []
+    },
+    {
+      "label": "forward-insert",
+      "expected_rows": 6,
+      "observed_rows": 6,
+      "mismatches": 2,
+      "failures": []
+    },
+    {
+      "label": "contains-control",
+      "expected_rows": 5,
+      "observed_rows": 5,
+      "mismatches": 0,
+      "failures": []
+    },
+    {
+      "label": "live-coexist-control",
+      "expected_rows": 6,
+      "observed_rows": 6,
+      "mismatches": 0,
+      "failures": []
+    }
+  ],
+  "archive": {
+    "files": 168,
+    "manifest_sha256": "4e5e3a9d69c8771946ddbcd4d1dee8035feb7106f6979e1a2b4e895c0bec98a8",
+    "archive_sha256": "622ed2b691f130a0564e893a21256632028f132c57fceea948695ee7dbbf0785",
+    "archive_bytes": 1800150
+  },
+  "append_only": {
+    "components/dnsmasq/src/dns/cache.rs": {
+      "original_sha256": "1f4714ada0684ac34d94322a09e8f0434cee8b37d088ace324b55d9e798a70e7",
+      "original_bytes": 37728,
+      "instrumented_sha256": "390691043d61ac6071f79d125f5130f35d7bf99e904164c22e417e765c0a1b5f"
+    },
+    "components/dnsmasq/src/dns/daemon.rs": {
+      "original_sha256": "96e2354dc17c9ff90f66a7d6d7de7e870a3f227bda47c57079127f31eac334ac",
+      "original_bytes": 59642,
+      "instrumented_sha256": "3f5845594e5d497b9618ccf61c75e6397b5e0cecc9f40e2dd7e28936259f5581"
+    }
+  },
+  "differences": [
+    {
+      "profile": "lookup-rd1",
+      "label": "expired-reverse-removed",
+      "op": "S",
+      "expected_entries": 0,
+      "actual_entries": 1
+    },
+    {
+      "profile": "lookup-rd1",
+      "label": "rollback-ptr-miss",
+      "op": "Q",
+      "expected_hit": false,
+      "actual_hit": true
+    },
+    {
+      "profile": "lookup-rd0",
+      "label": "expired-reverse-removed",
+      "op": "S",
+      "expected_entries": 0,
+      "actual_entries": 1
+    },
+    {
+      "profile": "lookup-rd0",
+      "label": "rollback-ptr-miss",
+      "op": "Q",
+      "expected_hit": false,
+      "actual_hit": true
+    },
+    {
+      "profile": "forward-insert",
+      "label": "only-forward-survives",
+      "op": "S",
+      "expected_entries": 1,
+      "actual_entries": 2
+    },
+    {
+      "profile": "forward-insert",
+      "label": "rollback-ptr-miss",
+      "op": "Q",
+      "expected_hit": false,
+      "actual_hit": true
+    }
+  ],
+  "boundaries": [
+    "No changes to existing125-row primitive fixture or44-row C order cohort",
+    "No record sorting; ordered state and decoded packets plus original question/PTR case compared",
+    "Only compression bytes and C bucket representation omitted from cross-language equivalence",
+    "Five C-derived fixed-clock cases; same target name establishes same hash bucket",
+    "Native exact-source primitive, not stock-image or UDP/TCP service acceptance",
+    "No product/candidate edits, arbitrary hash-collision proof, IPv6/stale policy, resource/performance or router access",
+    "Counter mutation detected exactly once and missing rows rejected; no post-fix run claimed"
+  ]
+}
