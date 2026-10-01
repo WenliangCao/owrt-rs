@@ -1,5 +1,12 @@
 # Upstream insertion with local lease and hosts records
 
+The latest comparison has 36 scenarios, 269 command observations, 95 DNS
+queries and 43 typed dynamic-cache counts. All 32 ordinary contract scenarios
+match. Two differences remain in the four reference-layout scenarios: C
+rewrites a cached alias to an unrelated parent, while Rust invalidates that
+alias. Both differences remain in the result and its nonzero exit status.
+This is not a claim of complete C equivalence or performance acceptance.
+
 `lease_insert_diff.py` exercises actual C `extract_addresses`, `cache_insert`,
 `cache_find_by_name` and `answer_request` against the Rust daemon's corresponding
 production helpers. It opens no listener. All configurations, commands,
@@ -27,12 +34,12 @@ source is removed. The 158 relevant DNS tests, four UDP policy tests and library
 clippy pass for this unit. It intentionally leaves local CNAME target handles
 for the following unit, so the failing integration gate below remains open.
 
-The initial Rust comparison has **21 mismatches**. All are the still-open
+The initial Rust comparison had **21 mismatches** in the
 upstream-CNAME-to-local-target path. Same/different direct A insertion, hidden
 hosts cache residency, mixed terminal addresses, other-family coexistence,
 non-terminal names, expiry-before/after-lookup, and old/new NXDOMAIN coexistence
-match in this corpus. This is a failing integration gate, not an equivalence or
-delivery claim.
+matched in that corpus. The later local-target implementation closes those
+ordinary failures; the original failed runs are retained.
 
 Exact C observations constrain the implementation:
 
@@ -96,3 +103,22 @@ do not turn a failure into a pass. A final report must distinguish a remaining
 Rust defect from a deliberate difference from this independently demonstrated
 C defect. No object-pool emulation or unsafe pointer behavior is added solely
 to reproduce the reference's corrupted target.
+
+A final source review found a separate deterministic Rust defect: publication
+converted recovered lease names through `Name::from_ascii`, silently skipping
+forward-cache invalidation for non-ASCII names. The frozen before-fix test
+retained an old address after lease release, whereas actual C returned a miss.
+`Name::from_dotted_bytes` now preserves opaque restored labels while the
+existing ASCII API retains its validation. DNS input generation counts label
+bytes rather than Unicode characters. The byte-name control and 21 wire tests
+pass; `byte-name-before/` retains the independent C/Rust failure.
+
+Final evidence is `insert-baseline-05/` and `insert-diff-03/` under the same
+private root. The C oracle is
+`af320dc233c06425fb83f18cce24928a8a787cae9f3ec6f1e45acbfac4146c56`; the frozen
+Rust driver is
+`59c6d8095d56a7b21f8b3c5f7a2834ca7e168967cb2b395a9b0a20b1afeda09b`.
+C reports 59 hits / 36 misses; Rust reports 58 hits / 37 misses. The one
+reply/count difference is the documented wrong-target reference case, not a
+discarded observation. Remaining daemon transport, target build, resource and
+other DNS cache capabilities retain their separate acceptance gates.

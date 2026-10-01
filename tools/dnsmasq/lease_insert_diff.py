@@ -102,6 +102,11 @@ def corpus():
         put(alias="alias"),request("alias",28),request("alias",255),request("alias",65280)]
     yield "alias-local-configured-cname-other-types", "cname=lease,static\nhost-record=static,192.0.2.9\nhost-record=lease,192.0.2.7\n", [
         put(alias="alias"),request("alias",28),request("alias",255),request("alias",65280)]
+    # Lease-file recovery retains name bytes, so publication is not restricted
+    # to Name::from_ascii's input domain. Wire lengths count encoded bytes.
+    opaque = "lÿase"
+    yield "restored-byte-name-invalidates-prior-address", "", [
+        put(owner=opaque,address=99),"R",f"D 130 192.0.2.7 {opaque}",request(opaque),"R",request(opaque,now=102)]
 
 
 def digest(path):

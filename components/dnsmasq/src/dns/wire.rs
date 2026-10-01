@@ -106,12 +106,18 @@ impl Name {
         if !name.is_ascii() {
             return Err(WireError::InvalidName);
         }
-        let name = name.strip_suffix('.').unwrap_or(name);
+        Self::from_dotted_bytes(name.as_bytes())
+    }
+
+    /// A plain dotted byte name, e.g. a hostname restored from a lease file.
+    /// Labels need not be UTF-8. Escape syntax is not interpreted here.
+    pub fn from_dotted_bytes(name: &[u8]) -> Result<Self, WireError> {
+        let name = name.strip_suffix(b".").unwrap_or(name);
         if name.is_empty() {
             return Ok(Self::root());
         }
         let mut wire = Vec::with_capacity(name.len() + 2);
-        for label in name.as_bytes().split(|c| *c == b'.') {
+        for label in name.split(|c| *c == b'.') {
             if label.is_empty() || label.len() > 63 {
                 return Err(WireError::InvalidName);
             }

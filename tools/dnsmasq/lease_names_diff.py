@@ -20,7 +20,8 @@ HASHES = {"cache.c":"51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e783
 
 
 def name(text):
-    return b"".join(bytes([len(label)]) + label.encode() for label in text.split(".")) + b"\0"
+    labels = [label.encode() for label in text.split(".")]
+    return b"".join(bytes([len(label)]) + label for label in labels) + b"\0"
 
 
 def query(host, kind=1, flags=0x100):
