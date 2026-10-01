@@ -1,0 +1,43 @@
+{
+  "scope": "Matching-source native and SDK-musl primitive C oracles using real fork/pipe; no stock-image daemon execution or Rust pass",
+  "cases": 36,
+  "observations_per_runtime_per_repeat": 307,
+  "repeats_per_runtime": 3,
+  "runtimes": 2,
+  "total_observations": 1842,
+  "cross_runtime_differences": [],
+  "calibration": {
+    "equal": 6,
+    "changed_counter_detected": 1,
+    "all_schedules_count_checked": true
+  },
+  "hashes": {
+    "identity.json": "96fc7eed20067ebc134853620a799aa4a779afdcdf0fdb306815740c339dc941",
+    "plan.json": "7502e674a279a3c784062a69fa30ce101644553ebdbf015bfbec704565632fff",
+    "result.json": "128a131ac25c4d2b22863044a20388677a9763acc3e1ba9ded45cde338fdd940",
+    "native-oracle": "1a6c1ac167b3dd61376edf680fa0bd28b9522ca615cc2ab2e1ee773379a4b79e",
+    "target-oracle": "297530a0fc765f63cbafc428275d1fa76e7fa91638c5f695944ddb981972dfe0"
+  },
+  "source_identity_sha256": "62cec0e9dda0265cb9c4f6af27f7d23067aed967afab3c74e37370149a8326e9",
+  "source_cache_sha256": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c",
+  "compiled_source_count": 42,
+  "target_object_count": 41,
+  "native_reference_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+  "tool_sha256": "2ce5501cc302fbabfb31f3dc03a68ac31dc86ee3a0aeadcb0883072258bb260a",
+  "driver_sha256": "578e5db1b31e262de14f02af1ebb26c79e0f9bb70099858f0868924698e20d2d",
+  "actual_target_runtime_libraries": {
+    "lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+    "lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+  },
+  "retained_warning_loader_lines": 262,
+  "retained_attempts": [
+    "baseline-01: target compile missing VERSION; no observations",
+    "baseline-02: target link rejected sectionless image DSOs; GC without function sections also failed; no observations",
+    "baseline-03: completed source-oracle schedule"
+  ],
+  "limitations": [
+    "Past-expiry float-to-unsigned conversion observations are compiler/platform dependent; not stock-image ELF evidence.",
+    "Opaque SOA block bytes and negative authority association are primitive transfer tests, not SOA wire parsing.",
+    "No production Rust transfer, snapshot representation, sender/backpressure, TCP service or memory-pressure acceptance."
+  ]
+}
