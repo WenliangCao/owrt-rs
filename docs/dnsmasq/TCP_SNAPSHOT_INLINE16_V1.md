@@ -96,6 +96,9 @@ record data, within-type order, TTL, expiry, negative and stale state stay
 exact. Add bounded storage-invariant checks for lengths 0, 1, 4, 15, 16, 17
 and a longer opaque payload, including retained-clone independence and drops.
 These are byte-storage checks, not a replacement protocol oracle.
+They exercise actual cache-entry detachment and both drop orders. Both timing
+drivers compare payload byte slices during lookup validation, avoiding extra
+enum-padding comparisons in the candidate's measured correctness check.
 
 Measure allocation separately with the same four profiles, 75% A / 25% AAAA,
 10% long names, clock 100, TTL 3,600, disabled TTL clamps/stale cache, and one
@@ -122,7 +125,8 @@ first-lookup CPU and snapshot-live-heap reduction at capacities 1,000 and
 10,000, with gains exceeding paired-ratio spread; no more than 5% worst-pair
 population CPU or steady requested-heap regression in any profile; and no
 more than 5% worst-pair combined p95 regression at capacity 150. Report every
-absolute cost and allocation count, combined wall samples, separate drop CPU,
+absolute cost and allocation count, combined wall samples, separate
+snapshot-group drop CPU,
 errors and completion counts. No p99, C fork/COW speedup, full TCP service,
 resource acceptance, production representation or router claim is allowed.
 
