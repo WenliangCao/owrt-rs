@@ -1,10 +1,11 @@
 # TCP connection capacity and queued admission
 
 2026-10-01. Exact C normal foreground (`-k`) mode leaves excess TCP
-connections queued while `max-tcp-connections` slots are occupied. The frozen
-Rust baseline instead accepts and closes them. The actual-service comparison
-is **23/31 matched, eight differences, exit 1**. This milestone records the
-failure before an implementation change.
+connections queued while `max-tcp-connections` slots are occupied. Rust now
+checks the shared slot count before accepting: the unchanged actual-service
+gate passes **31/31**, and its injected negative fails exactly one row.
+The frozen pre-fix Rust baseline remains **23/31 matched, eight differences,
+exit 1** in the preserved evidence.
 
 ## Existing interface and failure boundary
 
@@ -55,7 +56,10 @@ rows match. Initial and final gauge values, exact address/TTL/flags, the one
 parent UDP local-answer increment, zero unrelated counters and all successful
 C replies are independently calibrated. Three deliberate admission, gauge
 and RCODE mutations plus a missing-row mutation are detected per profile.
-Every helper lifecycle/UBus check passes for C and Rust.
+Every helper lifecycle/UBus check passes for C and Rust. An additional pair
+using the exact C executable on both sides passes 31/31; the command-line
+negative control reports 30/31 and exits 1. Those runs independently exercise
+the full comparison and negative-control paths before the fix.
 
 Evidence is retained under
 `private/dnsmasq-rewrite/tcp-capacity-20261001/`: `freeze-01/` records the
@@ -76,6 +80,36 @@ Reproduce on the authorized oracle through `tools/dnsmasq/run_isolated.sh`
 with `--reference-build <exact native C build> --rust <frozen Rust ELF>
 --out <new private directory>`. `--inject-failure` changes one compared
 admission observation and must keep the gate nonzero.
+
+## Corrected shared admission
+
+Isolated candidate commit `88c46f5990e268a0ad4c5e1d13b60bb752f6845b`
+moves the existing parent-event lock and capacity check before the nonblocking
+`accept()`. Keeping the lock through successful accept and snapshot creation
+serializes all listener admissions. A full listener leaves its connection
+queued; the lock is released before retry sleeps. The slot count increments
+only after acceptance and snapshot creation. Existing connection-owned permits
+release their slots on worker completion and setup/spawn failure.
+
+`after-01` passes all 31 comparison rows, including both queued connections
+answering after a slot release and continuing to answer on the same socket.
+All 14 full metric snapshots agree with C, all fixture checks pass, both
+daemons exit 0, and neither retains a child after the closing gauge reaches
+zero. `after-negative-01` reports **30/31, exactly one injected admission
+mismatch, exit 1**. The test tool is byte-identical to the before-fix tool:
+`13293710fc4d30dd729a5f5a2e6e98bf6a743b8e199ea2549b1136ace9b2094d`.
+Only the private evidence path changes in the generated configurations;
+limits, hosts, addresses, requests and observation order are unchanged.
+
+The tested candidate Rust ELF SHA-256 is
+`4a8df539688df4562d4d326fa72b69dd72baed20baf4b67ffb018aa0578375c2`.
+Its frozen source archive SHA-256 is
+`9d335cdd2d4c68cd4e9e611677d0b3b64805ebcd88a813b0e48ac0fd6dcb308a`.
+The same local evidence root retains `after-01-evidence.tar.gz`, extracted
+`private/after-01/` and `private/after-negative-01/`, and
+`freeze-01/candidate-identity.json`. Earlier C/C calibration runs remain in
+`calibration-01-evidence.tar.gz`. These identities qualify the isolated
+candidate; a later integration snapshot requires its own affected checks.
 
 This establishes the native service admission boundary. It does not qualify
 TCP backlog overflow, admission fairness, arbitrary packet fragmentation,
