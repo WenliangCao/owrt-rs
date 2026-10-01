@@ -74,6 +74,7 @@ def compiler(rustc):
     path = Path(shutil.which(rustc)).resolve()
     version = subprocess.run([str(path), "--version", "--verbose"], capture_output=True, text=True, check=True).stdout
     assert version.startswith("rustc 1.98.1 "), "compiler is pinned before any result"
+    assert "host: aarch64-unknown-linux-gnu\n" in version, "native aarch64 compiler required"
     return {"path": str(path), "sha256": sha(path), "version": version}
 
 
@@ -262,7 +263,11 @@ def measure(args, allocation):
     assert not (out / (phase + ".json")).exists(), "retain every run; no overwrite"
     window = None
     if not allocation:
+        validate_allocations(json.loads((out / "allocation.json").read_text()))
         allocation_result = json.loads((out / "allocation-result.json").read_text())
+        assert allocation_result["allocation_sha256"] == sha(out / "allocation.json")
+        assert allocation_result["gate_sha256"] == sha(out / "gate.json")
+        assert [row["variant"] for row in allocation_result["results"]] == list(LABELS)
         assert all(all(row["allocation_gates"].values()) for row in allocation_result["results"] if row["variant"] != "deep"), "deterministic allocation gates precede timing"
         assert args.quiet_window, "parent must coordinate this host window before timing"
         assert args.cpu in os.sched_getaffinity(0)
@@ -290,10 +295,20 @@ def measure(args, allocation):
     print(json.dumps({"phase": phase, "runs": len(rows), "completed": sum(row["completed"] for row in rows), "errors": sum(row["errors"] for row in rows)}))
 
 
+def validate_allocations(rows):
+    expected = {(label, capacity, filled) for label in LABELS for capacity, filled in PROFILES}
+    actual = {(row["variant"], row["capacity"], row["filled"]) for row in rows}
+    assert len(rows) == len(expected) and actual == expected, "complete allocation matrix required"
+    for row in rows:
+        assert row["round"] == 1 and row["correct"] and row["exit"] == 0 and row["errors"] == 0
+        assert row["completed"] == 20 and row["hits"] == (20 if row["filled"] else 0)
+        assert row["layout"] == LAYOUTS[row["variant"]]
+
+
 def summarize(args):
     out, _ = load(args)
     allocations = json.loads((out / "allocation.json").read_text())
-    assert len(allocations) == 8
+    validate_allocations(allocations)
     timing_path = out / "timing.json"
     timings = json.loads(timing_path.read_text()) if timing_path.exists() else []
     assert not timings or len(timings) == 24
@@ -339,6 +354,7 @@ def summarize(args):
         results.append({"variant": label, "profiles": profiles, "allocation_gates": {"balanced": balanced, "steady_heap": steady, "snapshot_live_heap": live, "no_extra_population_allocations": counts},
             "status": "reference" if label == "deep" else ("candidate-pass" if passed else "candidate-fail" if timings else "timing-pending")})
     report = {"status": "measured" if timings else "allocation-only-timing-pending", "results": results,
+        "allocation_sha256": sha(out / "allocation.json"), "gate_sha256": sha(out / "gate.json"),
         "scope": "private host primitive screen; no C-versus-Rust, component or router performance claim", "extra_rounds": 0}
     write_json(out / ("result.json" if timings else "allocation-result.json"), report)
     print(json.dumps(report, indent=2))
@@ -363,7 +379,7 @@ def main():
         assert not variations
         report = {"operations": len(commands), "matches": len(commands)-len(failures), "failures": failures}
         print(json.dumps(report)); return int(bool(report["failures"]))
-    assert os.uname().sysname == "Linux", "native Linux mechanism screen only"
+    assert os.uname().sysname == "Linux" and os.uname().machine == "aarch64", "native aarch64 Linux mechanism screen only"
     if args.phase == "prepare": return prepare(args)
     if args.phase == "gate": return gate(args)
     if args.phase in ("allocation", "timing"): return measure(args, args.phase == "allocation")
