@@ -1,4 +1,4 @@
-# Reverse cache and real lease-service before result
+# Reverse cache and real lease-service result
 
 The corrected frozen [six-profile service gate](REVERSE_LEASE_SERVICE_PLAN.md)
 calibrates **62/62 ordered observations against native C** and **62/62 against
@@ -9,9 +9,12 @@ and 266 fixture/UBus/cleanup checks; these are separate from the 62 observations
 The unchanged Rust source `62894d6` completes five profiles: **54 compared,
 40 match and 14 differ**. The sixth profile is rejected at startup because
 `dhcp-fqdn` is parsed but explicitly unwired; its eight events never execute.
-There is no 62-row Rust pass or after implementation in this report.
+Private source `a4a38bc` subsequently matches **62/62** against each C variant
+on the same native Rust daemon ELF. Its formerly rejected FQDN-only profile
+executes all eight events. A standalone negative detects exactly one changed
+first DNS result; there are no fixture failures in those after runs.
 
-| Profile | Native C | Image C | Rust observed / differences |
+| Profile | Native C | Image C | Rust before observed / differences |
 | --- | --- | --- | --- |
 | Dynamic PTR before lease publication | 13/13 | 13/13 | 13 / 8 |
 | Expired PTR before publication, time-zero ownership | 8/8 | 8/8 | 8 / 4 |
@@ -28,7 +31,28 @@ Two fixed functional TTL waits are excluded from that count and are not
 performance measurements. Real private lease files, DHCP replies, DNS packets,
 upstream events and all UBus metrics are retained.
 
-## Measured caller behavior and current gaps
+## Private candidate after
+
+| Run | Source | C calibrated | Rust compared | Differences / failures |
+| --- | --- | --- | --- | --- |
+| `lease-native-after-01` | `a4a38bc` | 62/62 | 62 | 0 |
+| `lease-image-after-01` | `a4a38bc` | 62/62 | 62 | 0 |
+| `lease-native-negative-01` | `a4a38bc` | 62/62 | 62 | exactly 1 deliberately injected AD-bit difference; no fixture failure |
+
+The candidate connects time-zero reverse ownership, joint local/dynamic PTR
+answer selection and the FQDN-only runtime paths. This eliminates the 14 before
+differences and the rejected profile without changing the 62-event fixture or
+its corrected observer. Both after runs include actual OFFER/ACK/RELEASE,
+persistence, held upstream delivery and HUP. They compare the same native Rust
+ELF to native and image C; no separate Rust-musl runtime claim is implied.
+
+The independent [five-case configuration anchor](DHCP_FQDN_DOMAIN_RESULT.md)
+also passes native/image comparisons for this same source, including the
+required default-domain boundary. Later shared-name and metadata addons keep
+separate source identities; these results are not relabelled as newer source
+or whole-component acceptance.
+
+## Measured caller behavior and before gaps
 
 When a dynamic positive PTR already owns an address, actual DHCP ACK publication
 creates the lease's forward names but does not take reverse ownership. After
@@ -118,7 +142,8 @@ this correction, and no expected answer was derived from Rust.
    option rejection would not implement these separate caller requirements.
 
 These are recommendations from measured before results plus exact source;
-this tool/report unit does not change candidate code. Multi-target dynamic PTR
+this tool/report unit does not change candidate code. The subsequent private
+source implements these measured boundaries and passes the stated after gate. Multi-target dynamic PTR
 ordering, synthetic negative reverse records, IPv6 DHCP, incremental hostsdir,
 lease-file failures, scripts, transfer and resource/production acceptance remain
 outside this stage.
@@ -143,8 +168,9 @@ outside this stage.
   its runner, musl loader and library identities are checked before each run.
 
 All six C profiles detect one altered DNS result and reject missing rows in
-saved-row comparator calibration. A standalone paired negative awaits a fully
-passing Rust candidate. Comparison retains flags, order, original-case PTR
+saved-row comparator calibration. The standalone paired negative uses the passing `a4a38bc` daemon and detects
+exactly the injected first response flag; it exits 1 with 62 compared rows and
+no fixture failure. Comparison retains flags, order, original-case PTR
 names, address/lease identity, counters, local/DHCP TTLs and actual durable-file
 state. Only dynamic cached PTR TTL may differ by one second; absolute lease
 expiry is checked against its ACK before representing the shared 600s relation.
@@ -157,3 +183,11 @@ Rust startup rejection, are retained under ignored
 is `lease-native-image-comparison.json`. The earlier Stage 1/2 gates keep their
 own identities and are not relabelled by this stage. All executions are isolated;
 no router or performance window is involved.
+
+Private after identity: source `a4a38bcf70187c098635944dbfa0fc4dde1ed757`, native
+daemon ELF `7ccce278a5ccb251bf4fbb59203c9b51cfcc3f3797dc88452e0e536bb77c3b9e`,
+source archive `014e72aab9a9feb2657dcdb911d5e2a6e19c004f422b3d3afa09571f9713593b`.
+A fresh Rust 1.98.1 release target is built outside sudo with no instrumentation.
+`stage3-daemon-a4a38bc/` preserves its archive, original build identity/log and
+ELF. `lease-after-evidence-sha256.json` covers the three added after/negative
+runs and build artifacts beside the retained before evidence.
