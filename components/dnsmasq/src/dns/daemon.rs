@@ -11,7 +11,7 @@
 use super::cache::{Cache, CacheCounters, Policy as CachePolicy, StalePolicy};
 #[cfg(test)]
 use super::cache::{Kind, Record};
-use super::cache_engine::{CacheContext, CacheError, CachedAnswer};
+use super::cache_engine::{CacheContext, CacheError, CachedAnswer, OrdinaryCacheMode};
 use super::forward::{Client, Options as ForwardOptions, QueryId, Random, Scope};
 use super::forward_service::ForwardDispatcher;
 use super::process::{
@@ -636,7 +636,7 @@ impl<R: Random> DnsDaemon<R> {
         external_local: Option<&LocalDnsService>,
         doctor: &mut Option<&mut ReplyDoctor<'_>>,
     ) -> Result<u16, DaemonError> {
-        // C suppresses insertion for either original request CD or raw reply
+        // C suppresses ordinary commit for original request CD or raw reply
         // CD, before return_reply restores the outgoing bit to the request.
         let upstream_checking_disabled = Header::parse(&reply.packet)?.flags & 0x10 != 0;
         let envelope = prepare_udp_reply(
@@ -680,13 +680,19 @@ impl<R: Random> DnsDaemon<R> {
         } else {
             apply_static_aliases(&mut reply.packet, &self.policy.static_aliases, rcode)?;
         }
-        // Bogus-wildcard policy owns an independent transaction even when CD
-        // suppresses ordinary cache extraction. Run policy after doctor and
-        // before recipient-specific packet rewriting.
-        let extraction_eligible = !reply.flags.no_cache
-            && reply.cache_eligible
-            && !reply.flags.checking_disabled
-            && !upstream_checking_disabled;
+        // CD/no_cache suppress ordinary commit, while ordered extraction still
+        // removes old records and may evict entries. Unsupported metadata is
+        // separate; bogus policy owns its own transaction before these gates.
+        let ordinary = if !reply.cache_eligible {
+            OrdinaryCacheMode::Unsupported
+        } else if reply.flags.no_cache
+            || reply.flags.checking_disabled
+            || upstream_checking_disabled
+        {
+            OrdinaryCacheMode::ExtractOnly
+        } else {
+            OrdinaryCacheMode::Commit
+        };
         if matches!(rcode, 0 | 3) {
             if let Some(cache) = self.cache.as_mut() {
                 CacheContext {
@@ -701,7 +707,7 @@ impl<R: Random> DnsDaemon<R> {
                     external_local.unwrap_or(&self.local),
                     &self.policy,
                     rcode,
-                    extraction_eligible,
+                    ordinary,
                 );
             }
         }
@@ -824,7 +830,7 @@ impl<R: Random> DnsDaemon<R> {
             &self.local,
             &Default::default(),
             header.rcode().into(),
-            true,
+            OrdinaryCacheMode::Commit,
         );
     }
 }
