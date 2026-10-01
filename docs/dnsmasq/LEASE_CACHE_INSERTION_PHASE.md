@@ -63,3 +63,36 @@ Evidence: ignored
 `insert-diff-01/` and `insert-diff-02/`. The latter uses the frozen Rust driver
 and includes typed-lookup expiry side effects. C oracle SHA-256:
 `5b806ae0f38d356138393f597d4747934cdef38b3cea064dbeea1418c1e20a83`.
+
+The expanded C baseline (`insert-baseline-04/`) has 35 cases: 31 ordinary
+insertion/lifetime/type contracts and four FQDN/short-name object-reuse cases.
+Additional ordinary controls distinguish reverse/non-reverse hosts priority
+against a configured CNAME, follow configured CNAMEs after an upstream alias,
+check AAAA/ANY/unknown types, and preserve an old CNAME-only result when every
+record in the new publication was suppressed by static hosts. A publication
+callback therefore occurs at the first actual lease-address insertion, not
+merely because the input array was nonempty.
+
+The four object-reuse cases expose a C reference defect. After an upstream
+reply established `alias -> lease.example`, a subsequent ordinary FQDN/short
+publication can make C return `alias -> example` (or a different parent) even
+though no upstream update supplied that CNAME. `make_non_terminals` can reuse a
+previous target's configuration-cache object without resetting its UID.
+
+`--repeat-reference ... --rounds 8` froze eight rounds for each of these four
+cases before running any process. All 32 C executions used the same ELF,
+source, configuration and concrete input. Every case produced two distinct
+outputs across processes; 16 returned a changed target. Even the unchanged
+FQDN/short renewal case varied between invalidating the alias and changing its
+target. `insert-c-layout-01/` retains the plan, file identities, every stdout,
+stderr and variant. The C ELF SHA-256 for this diagnostic is
+`0419bd75ab6aa57973fd7d8600dbc7cc64a751cd60271719bb3db82d6d05c3ad`.
+
+The Rust implementation must preserve the original upstream CNAME target;
+replicating this wrong answer is not a correctness objective. The comparator
+continues to count every nonzero C/Rust difference, including these cases, and
+reports ordinary-insertion and layout-reuse cohorts separately. Cohort labels
+do not turn a failure into a pass. A final report must distinguish a remaining
+Rust defect from a deliberate difference from this independently demonstrated
+C defect. No object-pool emulation or unsafe pointer behavior is added solely
+to reproduce the reference's corrupted target.

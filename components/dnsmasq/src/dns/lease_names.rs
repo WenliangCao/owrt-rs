@@ -83,6 +83,11 @@ pub struct ForwardPublication<'a> {
 /// forwarded cache. Implementations must preserve unrelated names/types and
 /// NXDOMAIN records (which have neither F_IPV4 nor F_CNAME).
 pub trait PublicationCache {
+    /// Called once immediately before the first actual address insertion in
+    /// a publication. Empty replacement or statically suppressed records do
+    /// not reuse a C configuration-cache entry and do not reach this hook.
+    fn first_lease_entry(&mut self) {}
+
     /// Called even when static addresses will later suppress this lease name.
     /// Select the same IPv4/CNAME trigger as cache_find_by_name at time zero,
     /// then apply cache_scan_free until the first conflicting local blocker.
@@ -382,6 +387,9 @@ impl LeaseNames {
         let reverse = hosts.reverse(IpAddr::V4(record.address)).is_none()
             && !self.reverse.contains_key(&record.address)
             && !cache.reverse_owned(record.address);
+        if self.entries.is_empty() {
+            cache.first_lease_entry();
+        }
         let id = self.entries.len();
         let expires = record.expires.filter(|&expires| expires != 0);
         let immortal = expires.is_none();

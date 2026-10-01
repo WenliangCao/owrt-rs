@@ -81,10 +81,82 @@ def corpus():
     nx = f"P 100 {names.negative('lease').hex()}"
     yield "prior-nxdomain-survives-publication", "", [nx]+before+[request("lease"),request("lease",28),"R",request("lease",now=102)]
     yield "late-nxdomain-coexists-with-lease", "", before+[nx,request("lease"),request("lease",28),"R",request("lease",now=102)]
+    fqdn = ["R","D 130 192.0.2.7 lease.example","D 130 192.0.2.7 lease",put(owner="lease.example",alias="alias"),request("alias")]
+    for label, replacement in [
+        ("same", ["D 160 192.0.2.7 lease.example","D 160 192.0.2.7 lease"]),
+        ("new-leaf", ["D 160 192.0.2.7 renamed.example","D 160 192.0.2.7 renamed"]),
+        ("new-domain", ["D 160 192.0.2.7 lease.other","D 160 192.0.2.7 lease"]),
+        ("newest-other-lease", ["D 170 192.0.2.8 other.example","D 170 192.0.2.8 other",
+            "D 160 192.0.2.7 lease.example","D 160 192.0.2.7 lease"]),
+    ]:
+        yield f"fqdn-short-republication-{label}", "", fqdn+["R"]+replacement+[request("alias",now=102),request("alias",5,now=102),request("alias",5,now=102,operation="N")]
+    for reverse in (True, False):
+        config = "cname=lease,static\nhost-record=static,192.0.2.9\n"
+        if not reverse: config += "host-record=owner,192.0.2.7\n"
+        config += "host-record=lease,192.0.2.7\n"
+        yield f"alias-local-cname-with-{'reverse' if reverse else 'nonreverse'}-host", config, [
+            put(alias="alias"),request("alias",5,operation="N"),request("alias"),request("alias",5),request("lease")]
+    yield "replacement-suppressed-by-static-does-not-reuse-target", "host-record=static,192.0.2.9\n", before+[
+        put(alias="alias"),request("alias"),"R","D 160 192.0.2.9 static",request("alias",5,now=102),request("alias",now=102),request("alias",5,now=102,operation="N")]
+    yield "alias-local-other-family-any-and-unknown", "", before+[
+        put(alias="alias"),request("alias",28),request("alias",255),request("alias",65280)]
+    yield "alias-local-configured-cname-other-types", "cname=lease,static\nhost-record=static,192.0.2.9\nhost-record=lease,192.0.2.7\n", [
+        put(alias="alias"),request("alias",28),request("alias",255),request("alias",65280)]
 
 
 def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def repeat_reference(args, out):
+    baseline=args.repeat_reference.resolve()
+    identity=json.loads((baseline / "result.json").read_text())
+    binary=baseline / "local-answer-oracle"
+    assert digest(binary)==identity["c_oracle_sha256"] and not identity["failures"]
+    cases=[row for row in identity["rows"] if row["label"].startswith("fqdn-short-republication-")]
+    assert cases and args.rounds>0
+    plan={"rounds":args.rounds,"cases":[row["case"] for row in cases],"c_oracle_sha256":digest(binary),
+        "source_sha256":identity["source_sha256"],"selection":"all predeclared FQDN/short-name reuse cases, every round retained",
+        "inputs":{str(row["case"]):{"commands":digest(baseline / f'{row["case"]:02}.input'),
+            "config":digest(baseline / f'{row["case"]:02}.conf')} for row in cases}}
+    (out / "plan.json").write_text(json.dumps(plan,indent=2)+"\n")
+    summaries=[];failures=[]
+    for case in cases:
+        index=case["case"];config=baseline / f"{index:02}.conf";source=baseline / f"{index:02}.input"
+        shutil.copy2(config,out / config.name);shutil.copy2(source,out / source.name)
+        commands=source.read_text().splitlines();wire="\n".join(commands)+"\n"
+        original_targets={}
+        for command in commands:
+            if command.startswith("P "):
+                packet=local_answer_diff.dns_semantics(command.split()[2])
+                for rr in packet["sections"][0][1]:
+                    if rr[1]==5: original_targets[rr[0]]=rr[4][0]
+        variants={};changed_targets=[]
+        for round_number in range(args.rounds):
+            run=subprocess.run([str(binary),"-C",str(config)],input=wire,text=True,capture_output=True)
+            prefix=out / f"{index:02}-round-{round_number:02}"
+            prefix.with_suffix(".stdout").write_text(run.stdout);prefix.with_suffix(".stderr").write_text(run.stderr)
+            if run.returncode:
+                failures.append({"case":index,"round":round_number,"exit":run.returncode});continue
+            observed=names.observations(commands,run.stdout)
+            key=json.dumps(observed,sort_keys=True)
+            variants.setdefault(key,[]).append(round_number)
+            for step,result in enumerate(observed):
+                if isinstance(result,dict):
+                    for rr in result["sections"][0][1]:
+                        if rr[1]==5 and rr[0] in original_targets and rr[4][0]!=original_targets[rr[0]]:
+                            changed_targets.append({"round":round_number,"step":step,"owner":rr[0],
+                                "target_from_upstream_input":original_targets[rr[0]],"observed_target":rr[4][0]})
+        summaries.append({"case":index,"label":case["label"],"distinct_outputs":len(variants),
+            "variants":[{"rounds":rounds,"observations":json.loads(key)} for key,rounds in variants.items()],
+            "changed_targets":changed_targets})
+    report={"scope":"C/C across processes with identical concrete input, config, source and ELF; no Rust expected outputs",
+        **plan,"results":summaries,"failures":failures,
+        "runs":args.rounds*len(cases),"cases_with_drift":sum(row["distinct_outputs"]>1 for row in summaries),
+        "changed_target_answers":sum(len(row["changed_targets"]) for row in summaries)}
+    (out / "result.json").write_text(json.dumps(report,indent=2)+"\n")
+    print(json.dumps({k:v for k,v in report.items() if k not in ("results","inputs","source_sha256")}))
+    return int(bool(failures))
 
 
 def compare(args, out):
@@ -142,6 +214,8 @@ def compare(args, out):
     else: raise AssertionError("truncated output must fail count calibration")
     report={"scope":"actual C cache insertion/local blocking and subsequent local/cache answers; no listeners or performance claim",
         "cases":len(rows),**counts,"mismatches":mismatches,"rows":rows,
+        "cohorts":{"ordinary_insertion_mismatches":sum(not row["label"].startswith("fqdn-short-republication-") for row in mismatches),
+            "layout_reuse_mismatches":sum(row["label"].startswith("fqdn-short-republication-") for row in mismatches)},
         "rust_driver_sha256":digest(frozen),"rust_source_sha256":source_identity,
         "c_oracle_sha256":identity["c_oracle_sha256"],"calibration":{"ttl_mutation_detected":1,"short_count_rejected":1,"c_miss_hit_expiry":1,"invalid_c_config_rejected":1}}
     (out / "result.json").write_text(json.dumps(report,indent=2)+"\n")
@@ -153,10 +227,13 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--reference-build",type=Path)
     parser.add_argument("--compare-baseline",type=Path)
+    parser.add_argument("--repeat-reference",type=Path)
+    parser.add_argument("--rounds",type=int,default=8)
     parser.add_argument("--cargo",default=shutil.which("cargo"))
     parser.add_argument("--output",type=Path,required=True)
     args=parser.parse_args();out=args.output.resolve()
     assert out.is_relative_to(ROOT / "private") and not out.exists();out.mkdir(parents=True)
+    if args.repeat_reference: return repeat_reference(args,out)
     if args.compare_baseline: return compare(args,out)
     if not args.reference_build: parser.error("baseline requires --reference-build")
     reference=args.reference_build.resolve();obj=reference / "dnsmasq"
