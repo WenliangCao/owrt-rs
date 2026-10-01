@@ -770,7 +770,13 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                 continue;
                             }
                             Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
-                            Err(_) => break,
+                            Err(_) => {
+                                // C retains the listener after accept errors,
+                                // including temporary FD or memory exhaustion.
+                                // Keep shutdown responsive without a busy loop.
+                                thread::sleep(Duration::from_millis(20));
+                                continue;
+                            }
                         };
                         // dnsmasq.c clears inherited O_NONBLOCK after accept.
                         // Darwin inherits it; Linux does not.
