@@ -113,6 +113,7 @@ pub struct DhcpConfig {
     pub no_ping: bool,
     /// Also controls the C early return for an ignored DISCOVER.
     pub quiet_dhcp: bool,
+    pub log_dhcp: bool,
     pub lease_max: usize,
     pub lease_file: Option<Vec<u8>>,
     pub lease_read_only: bool,
@@ -133,6 +134,7 @@ impl Default for DhcpConfig {
             ignore_client_id: false,
             no_ping: false,
             quiet_dhcp: false,
+            log_dhcp: false,
             lease_max: 1000,
             lease_file: None,
             lease_read_only: false,
@@ -221,6 +223,7 @@ impl DhcpConfig {
             b"dhcp-ignore-clid" => self.ignore_client_id = true,
             b"no-ping" => self.no_ping = true,
             b"quiet-dhcp" => self.quiet_dhcp = true,
+            b"log-dhcp" => self.log_dhcp = true,
             b"leasefile-ro" => self.lease_read_only = true,
             b"dhcp-leasefile" | b"dhcp-lease" => {
                 let value = argument.ok_or(Error("missing parameter"))?.decoded();

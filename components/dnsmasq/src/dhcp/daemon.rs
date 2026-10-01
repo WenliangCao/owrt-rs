@@ -14,6 +14,7 @@ use super::service::Dispatch;
 use super::state::{Environment, HostPolicy, Outcome, Reply};
 use crate::config::dhcp::{DhcpConfig, HostConfig, HostFileError, HostFiles, NameDomains};
 use crate::interfaces::{ipv4_interfaces, primary_ipv4};
+use crate::ubus_service::{DhcpEventFields, DhcpEventKind, DhcpLogging};
 use std::ffi::OsStr;
 use std::io;
 use std::net::{IpAddr, Ipv4Addr, UdpSocket};
@@ -85,6 +86,16 @@ pub struct MaintenanceReport {
 
 type BootHostLookup = Box<dyn FnMut(&[u8]) -> io::Result<Option<Ipv4Addr>> + Send>;
 
+pub type DhcpEventSink<'a> =
+    dyn for<'event> FnMut(DhcpEventKind, DhcpEventFields<'event>, DhcpLogging) + 'a;
+
+/// Borrowed event owner for one listener operation. The sink does not acquire
+/// the provider again, and notification failure cannot undo DHCP state.
+pub struct EventProvider<'a> {
+    provider: &'a mut LocalProvider,
+    sink: &'a mut DhcpEventSink<'a>,
+}
+
 pub struct LocalProvider {
     config: DhcpConfig,
     leases: LeaseStore,
@@ -116,6 +127,13 @@ pub struct LocalProvider {
 }
 
 impl LocalProvider {
+    pub fn with_event_sink<'a>(&'a mut self, sink: &'a mut DhcpEventSink<'a>) -> EventProvider<'a> {
+        EventProvider {
+            provider: self,
+            sink,
+        }
+    }
+
     pub fn new(
         config: DhcpConfig,
         listen_addresses: Vec<IpAddr>,
@@ -416,8 +434,13 @@ fn epoch_seconds() -> i64 {
         .map_or(0, |value| value.as_secs() as i64)
 }
 
-impl OutcomeProvider for LocalProvider {
-    fn resolve(&mut self, dispatch: &Dispatch<'_>) -> Result<Outcome, RuntimeError> {
+impl LocalProvider {
+    fn resolve_events(
+        &mut self,
+        dispatch: &Dispatch<'_>,
+        interface_name: Option<&[u8]>,
+        mut events: Option<&mut DhcpEventSink<'_>>,
+    ) -> Result<Outcome, RuntimeError> {
         if !self.host_files_ready {
             return Ok(Outcome {
                 reply: Reply::Ignore,
@@ -489,6 +512,7 @@ impl OutcomeProvider for LocalProvider {
                     .or_else(|| existing.and_then(|lease| lease.identity.client_id.as_deref()))
             })
             .flatten();
+        let event_mac = events.as_ref().map(|_| event_mac(packet, clid));
         let host_index = self.config.find_host(
             clid,
             identity.hardware_type,
@@ -542,6 +566,42 @@ impl OutcomeProvider for LocalProvider {
         };
         let now = environment.now;
         let mut probe_error = None;
+        let logging = DhcpLogging {
+            quiet_dhcp: self.config.quiet_dhcp,
+            log_options: self.config.log_dhcp,
+            has_error: false,
+        };
+        let mut on_event = |event: super::state::LogEvent<'_>| {
+            let (kind, address, name, has_error) = match event {
+                super::state::LogEvent::Ack { address, name } => {
+                    (DhcpEventKind::Ack, address, name, false)
+                }
+                super::state::LogEvent::Release {
+                    address,
+                    unknown_lease,
+                } => (DhcpEventKind::Release, address, None, unknown_lease),
+            };
+            let logging = DhcpLogging {
+                has_error,
+                ..logging
+            };
+            if logging.suppresses_event() {
+                return;
+            }
+            if let Some(sink) = events.as_deref_mut() {
+                let address = address.to_string();
+                sink(
+                    kind,
+                    DhcpEventFields {
+                        mac: event_mac.as_deref(),
+                        ip: Some(address.as_bytes()),
+                        name,
+                        interface: interface_name,
+                    },
+                    logging,
+                );
+            }
+        };
         let mut provider = StateProvider::new(
             &mut self.leases,
             &mut ranges,
@@ -567,6 +627,7 @@ impl OutcomeProvider for LocalProvider {
         provider.domains = Some(&self.domains);
         provider.quiet_dhcp = self.config.quiet_dhcp;
         provider.message_counters = Some(&mut self.message_counters);
+        provider.event_sink = Some(&mut on_event);
         let result = provider.resolve(dispatch);
         self.probe_error = probe_error;
         for (selected, range) in self.selected.iter().zip(&ranges) {
@@ -577,6 +638,12 @@ impl OutcomeProvider for LocalProvider {
         // or prevent lease publication / an otherwise valid response.
         self.maintenance_report = Some(self.maintain(now, Vec::new(), false));
         result
+    }
+}
+
+impl OutcomeProvider for LocalProvider {
+    fn resolve(&mut self, dispatch: &Dispatch<'_>) -> Result<Outcome, RuntimeError> {
+        self.resolve_events(dispatch, None, None)
     }
 
     fn boot_config(&self) -> Option<&crate::config::dhcp::BootConfig> {
@@ -657,6 +724,84 @@ impl OutcomeProvider for LocalProvider {
             domain: self.domains.for_address(address),
         })
     }
+}
+
+impl OutcomeProvider for EventProvider<'_> {
+    fn resolve(&mut self, dispatch: &Dispatch<'_>) -> Result<Outcome, RuntimeError> {
+        self.provider
+            .resolve_events(dispatch, None, Some(self.sink))
+    }
+
+    fn resolve_on_interface(
+        &mut self,
+        dispatch: &Dispatch<'_>,
+        interface: Option<&[u8]>,
+    ) -> Result<Outcome, RuntimeError> {
+        self.provider
+            .resolve_events(dispatch, interface, Some(self.sink))
+    }
+
+    fn network_options(&self, outcome: &Outcome) -> Option<NetworkOptions> {
+        self.provider.network_options(outcome)
+    }
+
+    fn configured_options(&self) -> &[crate::config::dhcp::DhcpOption] {
+        self.provider.configured_options()
+    }
+
+    fn boot_config(&self) -> Option<&crate::config::dhcp::BootConfig> {
+        self.provider.boot_config()
+    }
+
+    fn boot_next_server(&mut self) -> io::Result<Option<Ipv4Addr>> {
+        self.provider.boot_next_server()
+    }
+
+    fn allow_override(&self) -> bool {
+        self.provider.allow_override()
+    }
+
+    fn reply_names(
+        &self,
+        packet: super::packet::Packet<'_>,
+        outcome: &Outcome,
+    ) -> Option<ReplyNames<'_>> {
+        self.provider.reply_names(packet, outcome)
+    }
+}
+
+/// rfc2131.c extended_hwaddr followed by util.c print_mac. A zero-length
+/// hardware value still has a non-NULL pointer in this path, hence "<null>".
+fn event_mac(packet: super::packet::Packet<'_>, client_id: Option<&[u8]>) -> Vec<u8> {
+    let hardware = packet.hardware_address();
+    let mac = if hardware.is_empty() {
+        client_id
+            .filter(|clid| clid.len() > 3)
+            .map(|clid| {
+                if clid[0] == packet.hardware_type()
+                    || (clid[0] == 27 && packet.hardware_type() == 24)
+                {
+                    &clid[1..]
+                } else {
+                    clid
+                }
+            })
+            .unwrap_or(hardware)
+    } else {
+        hardware
+    };
+    if mac.is_empty() {
+        return b"<null>".to_vec();
+    }
+    const HEX: &[u8; 16] = b"0123456789abcdef";
+    let mut text = Vec::with_capacity(mac.len() * 3 - 1);
+    for (index, byte) in mac.iter().copied().enumerate() {
+        if index != 0 {
+            text.push(b':');
+        }
+        text.extend_from_slice(&[HEX[usize::from(byte >> 4)], HEX[usize::from(byte & 15)]]);
+    }
+    text
 }
 
 #[cfg(test)]

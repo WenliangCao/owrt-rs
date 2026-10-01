@@ -99,6 +99,16 @@ impl DatagramSender for crate::net::DatagramSocket {
 pub trait OutcomeProvider {
     fn resolve(&mut self, dispatch: &Dispatch<'_>) -> Result<Outcome, RuntimeError>;
 
+    /// Interface name captured before state/probing, matching dhcp.c's event
+    /// and routing snapshot. Ordinary pure providers need no interface string.
+    fn resolve_on_interface(
+        &mut self,
+        dispatch: &Dispatch<'_>,
+        _interface: Option<&[u8]>,
+    ) -> Result<Outcome, RuntimeError> {
+        self.resolve(dispatch)
+    }
+
     /// Network defaults from the context actually selected by this outcome.
     /// Explicit selected options take precedence over these defaults.
     fn network_options(&self, _outcome: &Outcome) -> Option<NetworkOptions> {
@@ -186,6 +196,7 @@ pub struct StateProvider<'a, F> {
     pub quiet_dhcp: bool,
     /// Optional owner supplied by the daemon; pure state callers can omit it.
     pub message_counters: Option<&'a mut MessageCounters>,
+    pub(crate) event_sink: Option<&'a mut state::LogSink<'a>>,
     pub probe: F,
 }
 
@@ -210,6 +221,7 @@ impl<'a, F> StateProvider<'a, F> {
             environment,
             quiet_dhcp: false,
             message_counters: None,
+            event_sink: None,
             probe,
         }
     }
@@ -267,6 +279,7 @@ where
             .message_counters
             .as_deref_mut()
             .unwrap_or(&mut discarded_counters);
+        let events = self.event_sink.as_deref_mut();
         let outcome = match packet.message_type() {
             0 => state::bootp_counted(
                 self.store,
@@ -282,8 +295,9 @@ where
                 &mut self.probe,
                 self.quiet_dhcp,
                 counters,
+                events,
             ),
-            3 => state::request_counted(self.store, self.ranges, request(), counters),
+            3 => state::request_counted(self.store, self.ranges, request(), counters, events),
             4 => Ok(Outcome {
                 reply: Reply::Ignore,
                 removed: state::decline_counted(
@@ -305,10 +319,11 @@ where
                     self.tags,
                     environment,
                     counters,
+                    events,
                 ),
                 lost_names: Vec::new(),
             }),
-            8 => state::inform_counted(self.store, self.ranges, request(), counters),
+            8 => state::inform_counted(self.store, self.ranges, request(), counters, events),
             // The runtime filters PXE, relay, leasequery and unknown routes
             // before this callback. A known but client-only message type is a
             // no-reply state transition in rfc2131.c.
@@ -474,7 +489,13 @@ where
         Ok(name) => name,
         Err(error) => return Err(failure(RuntimeError::Interface(error), events, None, false)),
     };
-    let outcome = match provider.resolve(&dispatch) {
+    let interface_bytes = interface_name.as_ref().map(|name| {
+        &name[..name
+            .iter()
+            .position(|byte| *byte == 0)
+            .unwrap_or(name.len())]
+    });
+    let outcome = match provider.resolve_on_interface(&dispatch, interface_bytes) {
         Ok(outcome) => outcome,
         Err(error) => return Err(failure(error, events, None, false)),
     };
@@ -1760,6 +1781,17 @@ mod tests {
         let tags: &[&[u8]] = &[];
         let reserved: &[Ipv4Addr] = &[];
         let mut counters = MessageCounters::default();
+        let notifications = Cell::new(0);
+        let mut on_event = |event: state::LogEvent<'_>| {
+            assert_eq!(
+                event,
+                state::LogEvent::Ack {
+                    address: requested,
+                    name: Some(b"test")
+                }
+            );
+            notifications.set(notifications.get() + 1);
+        };
         let mut provider = StateProvider::new(
             &mut store,
             &mut ranges,
@@ -1770,6 +1802,7 @@ mod tests {
             |_, _| ProbeResult::Available { offer_hash: 1 },
         );
         provider.message_counters = Some(&mut counters);
+        provider.event_sink = Some(&mut on_event);
         let outcome = provider.resolve(&dispatch).unwrap();
         assert!(matches!(
             outcome.reply,
@@ -1821,9 +1854,24 @@ mod tests {
         // C updates both counters while constructing its ACK, before the
         // containing DHCP caller attempts socket delivery. A send error must
         // neither undo those events nor count another packet-level event.
-        let mut sender = Sender {
-            sent: Vec::new(),
-            fail: true,
+        struct SourceOrderSender<'a> {
+            notifications: &'a Cell<usize>,
+            sent: bool,
+        }
+        impl DatagramSender for SourceOrderSender<'_> {
+            fn send(&mut self, _: &[u8], _: &Destination) -> io::Result<()> {
+                assert_eq!(
+                    self.notifications.get(),
+                    3,
+                    "source callback must precede send"
+                );
+                self.sent = true;
+                Err(io::Error::from(io::ErrorKind::BrokenPipe))
+            }
+        }
+        let mut sender = SourceOrderSender {
+            notifications: &notifications,
+            sent: false,
         };
         let failure = process_with_random(
             dispatch_for(&bytes),
@@ -1839,7 +1887,12 @@ mod tests {
         assert!(failure.committed);
         assert_eq!(provider.message_counters.as_deref().unwrap().request, 3);
         assert_eq!(provider.message_counters.as_deref().unwrap().ack, 3);
-        assert!(sender.sent.is_empty());
+        assert!(sender.sent);
+        assert_eq!(
+            notifications.get(),
+            3,
+            "send failure must not repeat or undo notification"
+        );
     }
 
     #[test]

@@ -143,6 +143,22 @@ pub struct Outcome {
     pub lost_names: Vec<NameLost>,
 }
 
+/// Values at rfc2131.c's ACK/RELEASE log_packet write sites. This is emitted
+/// during the state transaction, before the caller persists/publishes/sends.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum LogEvent<'a> {
+    Ack {
+        address: Ipv4Addr,
+        name: Option<&'a [u8]>,
+    },
+    Release {
+        address: Ipv4Addr,
+        unknown_lease: bool,
+    },
+}
+
+pub(crate) type LogSink<'a> = dyn for<'event> FnMut(LogEvent<'event>) + 'a;
+
 impl Outcome {
     fn ignored() -> Self {
         Self {
@@ -185,7 +201,13 @@ pub fn request(
     ranges: &[AddressRange],
     request: Request<'_>,
 ) -> Result<Outcome, LeaseError> {
-    request_counted(store, ranges, request, &mut MessageCounters::default())
+    request_counted(
+        store,
+        ranges,
+        request,
+        &mut MessageCounters::default(),
+        None,
+    )
 }
 
 pub(crate) fn request_counted(
@@ -193,8 +215,9 @@ pub(crate) fn request_counted(
     ranges: &[AddressRange],
     request: Request<'_>,
     counters: &mut MessageCounters,
+    events: Option<&mut LogSink<'_>>,
 ) -> Result<Outcome, LeaseError> {
-    transaction(store, ranges, request, None, counters)
+    transaction(store, ranges, request, None, counters, events)
 }
 
 fn transaction(
@@ -203,6 +226,7 @@ fn transaction(
     request: Request<'_>,
     offered: Option<Ipv4Addr>,
     counters: &mut MessageCounters,
+    events: Option<&mut LogSink<'_>>,
 ) -> Result<Outcome, LeaseError> {
     let mut output = Outcome::ignored();
     let env = request.environment;
@@ -389,6 +413,12 @@ fn transaction(
     store.set_interface(address, env.interface)?;
     let override_id = store.server_override(address, env.override_server)?;
     counters.ack = counters.ack.wrapping_add(1); // :1738, before wire/send
+    if let Some(events) = events {
+        events(LogEvent::Ack {
+            address,
+            name: request.name.map(|name| name.hostname),
+        });
+    }
     output.reply = Reply::Ack {
         address,
         lease_time: duration,
@@ -415,6 +445,7 @@ pub fn discover(
         probe,
         false,
         &mut MessageCounters::default(),
+        None,
     )
 }
 
@@ -425,6 +456,7 @@ pub(crate) fn discover_counted(
     mut probe: impl FnMut(Ipv4Addr, u32) -> ProbeResult,
     quiet: bool,
     counters: &mut MessageCounters,
+    events: Option<&mut LogSink<'_>>,
 ) -> Result<Outcome, LeaseError> {
     let env = request.environment;
     if request.packet.message_type() != 1 {
@@ -503,7 +535,7 @@ pub(crate) fn discover_counted(
         return Ok(Outcome::ignored());
     };
     if env.rapid_commit && request.packet.option(80, 0).is_some() {
-        return transaction(store, ranges, request, Some(address), counters);
+        return transaction(store, ranges, request, Some(address), counters, events);
     }
     counters.offer = counters.offer.wrapping_add(1); // :1377
     let lease_time = lease_duration(
@@ -721,6 +753,7 @@ pub fn release(
         tags,
         environment,
         &mut MessageCounters::default(),
+        None,
     )
 }
 
@@ -731,6 +764,7 @@ pub(crate) fn release_counted(
     tags: &[&[u8]],
     environment: Environment<'_>,
     counters: &mut MessageCounters,
+    events: Option<&mut LogSink<'_>>,
 ) -> Vec<Lease> {
     if packet.message_type() != 7 {
         return Vec::new();
@@ -756,6 +790,12 @@ pub(crate) fn release_counted(
         Vec::new()
     };
     counters.release = counters.release.wrapping_add(1); // :1282, including unknown lease
+    if let Some(events) = events {
+        events(LogEvent::Release {
+            address: packet.effective_ciaddr(),
+            unknown_lease: existing != Some(packet.effective_ciaddr()),
+        });
+    }
     removed
 }
 
@@ -767,7 +807,13 @@ pub fn inform(
     ranges: &[AddressRange],
     request: Request<'_>,
 ) -> Result<Outcome, LeaseError> {
-    inform_counted(store, ranges, request, &mut MessageCounters::default())
+    inform_counted(
+        store,
+        ranges,
+        request,
+        &mut MessageCounters::default(),
+        None,
+    )
 }
 
 pub(crate) fn inform_counted(
@@ -775,6 +821,7 @@ pub(crate) fn inform_counted(
     ranges: &[AddressRange],
     request: Request<'_>,
     counters: &mut MessageCounters,
+    events: Option<&mut LogSink<'_>>,
 ) -> Result<Outcome, LeaseError> {
     let mut output = Outcome::ignored();
     let env = request.environment;
@@ -787,13 +834,21 @@ pub(crate) fn inform_counted(
         return Ok(output);
     }
     let context = narrow(ranges, address, request.tags);
-    let existing = store
+    let client_existing = store
         .find_client(&identity(request.packet, env.ignore_client_id))
-        .map(|lease| lease.address)
-        .or_else(|| store.get(address).map(|lease| lease.address));
+        .map(|lease| lease.address);
+    let existing = client_existing.or_else(|| store.get(address).map(|lease| lease.address));
     let mut override_id = env.override_server;
     let mut lease_time = None;
     counters.ack = counters.ack.wrapping_add(1); // :1784, before lease interface update
+    if let Some(events) = events {
+        let name = client_existing
+            .is_none()
+            .then(|| existing.and_then(|existing| store.get(existing)?.hostname.as_deref()))
+            .flatten()
+            .or_else(|| request.name.map(|name| name.hostname));
+        events(LogEvent::Ack { address, name });
+    }
     if let Some(existing) = existing {
         store.set_interface(existing, env.interface)?;
         override_id = store.server_override(existing, override_id)?;
