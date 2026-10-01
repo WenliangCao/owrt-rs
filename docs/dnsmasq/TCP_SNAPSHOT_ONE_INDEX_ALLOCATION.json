@@ -1,0 +1,384 @@
+{
+  "status": "correctness-and-allocation-passed-timing-pending",
+  "baseline_revision": "e77d966d0bf92e5296f73ee3e54fdaf960ed7781",
+  "baseline_source_sha256": {
+    "cache.rs": "8c73672d4ebe3959d8172cecf5b951afef61f23ec568c52b27f6b00ae081e9a5",
+    "wire.rs": "23e8d6c70d6c9177beb7d799ecb0fc39f5ef2378c7a2ca43b7f2e599c7d1510f",
+    "lease_names.rs": "cb05a82f1d5f8e90e37dfee942b0464366eedac92b6dfcc35ecb50c86fe2b0b3"
+  },
+  "compiler": {
+    "path": "/home/ubuntu/.rustup/toolchains/1.98.1-aarch64-unknown-linux-gnu/bin/rustc",
+    "sha256": "d4217a981a778bfe445c0a29c408f5a25a92e9bb5222701579ad5a35bd913e8f",
+    "version": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8\n"
+  },
+  "flags": [
+    "--edition=2021",
+    "-A",
+    "dead_code",
+    "-A",
+    "unused_imports",
+    "-Copt-level=3",
+    "-Clto",
+    "-Ccodegen-units=1",
+    "-Cpanic=abort"
+  ],
+  "frozen_plan_sha256": "c4035bfb29dd437769951cb0d44ba55a2d8b33ec249af289ccf2a4e03322a91b",
+  "tool_sha256": "3a947480e7fd61e3006547c2718b5ae5a2c2055ecdb6c6ef3de6a5a23611644d",
+  "index_value_sha256": "0782108ea2cd3a6885522dfa707b7f9941100068a94b27ae2f64346d9210a93d",
+  "gate": {
+    "status": "passed",
+    "results": [
+      {
+        "variant": "deep",
+        "scenarios": 21,
+        "operations": 22571,
+        "failures": 0,
+        "cross_type_order_variations": 138,
+        "layout": [
+          168,
+          160,
+          120,
+          56,
+          24
+        ],
+        "index_checks": {
+          "drop_orders": 2,
+          "adapter_checks": true,
+          "retained_independence": true,
+          "balanced": true
+        }
+      },
+      {
+        "variant": "shared_one_index",
+        "scenarios": 21,
+        "operations": 22571,
+        "failures": 0,
+        "cross_type_order_variations": 138,
+        "layout": [
+          168,
+          32,
+          120,
+          56,
+          24
+        ],
+        "index_checks": {
+          "drop_orders": 2,
+          "adapter_checks": true,
+          "retained_independence": true,
+          "balanced": true
+        }
+      }
+    ],
+    "binaries": {
+      "deep-gate": "cbe31684633159508de6273a8d9453aac5a04c2c38c4d919512c70947475b72c",
+      "deep-payload": "5c66ffeb0959753a900959b393281e83551e3b5c0dc0b95f63ee313c02ad6ed3",
+      "deep": "1485673c4e4717c92b3a5dbd9b42cc1425fbad3f9b2a26d6d4b096a2660c7b56",
+      "deep-alloc": "fff931d11b35d149d4674f5d3ba3e39f6a19ff86ee31eb0eb7439a604fc576fa",
+      "shared_one_index-gate": "46155c487e1938c17055df31d14a95939334ed7ebad525719d9de4309d6f0a15",
+      "shared_one_index-payload": "17ed6f4b50b96732e0431ff0a449063e19042ba9448a71b8d46698b71ce40b70",
+      "shared_one_index": "5c54c2557a321668c978064ea69612ec94f29036d9ef13fa89b30009934f6c2d",
+      "shared_one_index-alloc": "1dbf0b78f504a0443eb37107f94141d588288cffbc7fc8c6bf5c852e0958f2cb"
+    },
+    "negative_control": {
+      "matches": 12,
+      "failures": 1,
+      "exit": 1,
+      "missing_observation_rejected": true
+    },
+    "oracle": "reused exact C; no Rust-generated expectation",
+    "normalization": "Only cross-type Generic RR grouping; within-type order, data, TTL, expiry, negative and stale flags exact.",
+    "retained_state_checks_per_variant": 22571
+  },
+  "allocation": {
+    "status": "allocation-only-timing-pending",
+    "results": [
+      {
+        "variant": "deep",
+        "profiles": [
+          {
+            "capacity": 150,
+            "filled": 0,
+            "steady_requested_heap": 24000,
+            "steady_heap_ratio": 1.0,
+            "snapshot_live_requested_heap": 480000,
+            "snapshot_live_heap_gain": 0.0,
+            "peak_extra_requested": 480020,
+            "population_allocations": [
+              1,
+              0
+            ],
+            "no_extra_population_allocations": true,
+            "snapshot_allocations": [
+              20,
+              0
+            ],
+            "lookup_allocations": [
+              20,
+              0
+            ],
+            "layout": [
+              168,
+              160,
+              120,
+              56,
+              24
+            ],
+            "image_layout": 168,
+            "balanced": true
+          },
+          {
+            "capacity": 150,
+            "filled": 150,
+            "steady_requested_heap": 51338,
+            "steady_heap_ratio": 1.0,
+            "snapshot_live_requested_heap": 954120,
+            "snapshot_live_heap_gain": 0.0,
+            "peak_extra_requested": 954249,
+            "population_allocations": [
+              909,
+              330
+            ],
+            "no_extra_population_allocations": true,
+            "snapshot_allocations": [
+              12040,
+              0
+            ],
+            "lookup_allocations": [
+              80,
+              0
+            ],
+            "layout": [
+              168,
+              160,
+              120,
+              56,
+              24
+            ],
+            "image_layout": 168,
+            "balanced": true
+          },
+          {
+            "capacity": 1000,
+            "filled": 1000,
+            "steady_requested_heap": 358792,
+            "steady_heap_ratio": 1.0,
+            "snapshot_live_requested_heap": 6695200,
+            "snapshot_live_heap_gain": 0.0,
+            "peak_extra_requested": 6695329,
+            "population_allocations": [
+              6012,
+              2200
+            ],
+            "no_extra_population_allocations": true,
+            "snapshot_allocations": [
+              80040,
+              0
+            ],
+            "lookup_allocations": [
+              80,
+              0
+            ],
+            "layout": [
+              168,
+              160,
+              120,
+              56,
+              24
+            ],
+            "image_layout": 168,
+            "balanced": true
+          },
+          {
+            "capacity": 10000,
+            "filled": 10000,
+            "steady_requested_heap": 3386856,
+            "steady_heap_ratio": 1.0,
+            "snapshot_live_requested_heap": 62936480,
+            "snapshot_live_heap_gain": 0.0,
+            "peak_extra_requested": 62936609,
+            "population_allocations": [
+              60015,
+              22000
+            ],
+            "no_extra_population_allocations": true,
+            "snapshot_allocations": [
+              800040,
+              0
+            ],
+            "lookup_allocations": [
+              80,
+              0
+            ],
+            "layout": [
+              168,
+              160,
+              120,
+              56,
+              24
+            ],
+            "image_layout": 168,
+            "balanced": true
+          }
+        ],
+        "allocation_gates": {
+          "balanced": true,
+          "steady_heap": true,
+          "snapshot_live_heap": false,
+          "no_extra_population_allocations": true
+        },
+        "status": "reference"
+      },
+      {
+        "variant": "shared_one_index",
+        "profiles": [
+          {
+            "capacity": 150,
+            "filled": 0,
+            "steady_requested_heap": 4800,
+            "steady_heap_ratio": 0.2,
+            "snapshot_live_requested_heap": 96000,
+            "snapshot_live_heap_gain": 0.8,
+            "peak_extra_requested": 96020,
+            "population_allocations": [
+              1,
+              0
+            ],
+            "no_extra_population_allocations": true,
+            "snapshot_allocations": [
+              20,
+              0
+            ],
+            "lookup_allocations": [
+              20,
+              0
+            ],
+            "layout": [
+              168,
+              32,
+              120,
+              56,
+              24
+            ],
+            "image_layout": 168,
+            "balanced": true
+          },
+          {
+            "capacity": 150,
+            "filled": 150,
+            "steady_requested_heap": 47738,
+            "steady_heap_ratio": 0.9298765047333359,
+            "snapshot_live_requested_heap": 436140,
+            "snapshot_live_heap_gain": 0.5428876870833858,
+            "peak_extra_requested": 436269,
+            "population_allocations": [
+              909,
+              330
+            ],
+            "no_extra_population_allocations": true,
+            "snapshot_allocations": [
+              3040,
+              0
+            ],
+            "lookup_allocations": [
+              80,
+              0
+            ],
+            "layout": [
+              168,
+              32,
+              120,
+              56,
+              24
+            ],
+            "image_layout": 168,
+            "balanced": true
+          },
+          {
+            "capacity": 1000,
+            "filled": 1000,
+            "steady_requested_heap": 334792,
+            "steady_heap_ratio": 0.9331088764520948,
+            "snapshot_live_requested_heap": 3241200,
+            "snapshot_live_heap_gain": 0.5158919823156889,
+            "peak_extra_requested": 3241329,
+            "population_allocations": [
+              6012,
+              2200
+            ],
+            "no_extra_population_allocations": true,
+            "snapshot_allocations": [
+              20040,
+              0
+            ],
+            "lookup_allocations": [
+              80,
+              0
+            ],
+            "layout": [
+              168,
+              32,
+              120,
+              56,
+              24
+            ],
+            "image_layout": 168,
+            "balanced": true
+          },
+          {
+            "capacity": 10000,
+            "filled": 10000,
+            "steady_requested_heap": 3146856,
+            "steady_heap_ratio": 0.9291378198541657,
+            "snapshot_live_requested_heap": 28396480,
+            "snapshot_live_heap_gain": 0.548807305397442,
+            "peak_extra_requested": 28396609,
+            "population_allocations": [
+              60015,
+              22000
+            ],
+            "no_extra_population_allocations": true,
+            "snapshot_allocations": [
+              200040,
+              0
+            ],
+            "lookup_allocations": [
+              80,
+              0
+            ],
+            "layout": [
+              168,
+              32,
+              120,
+              56,
+              24
+            ],
+            "image_layout": 168,
+            "balanced": true
+          }
+        ],
+        "allocation_gates": {
+          "balanced": true,
+          "steady_heap": true,
+          "snapshot_live_heap": true,
+          "no_extra_population_allocations": true
+        },
+        "status": "timing-pending"
+      }
+    ],
+    "allocation_sha256": "b514911ead7ce3d732b49fd2f14c8cf83c9f54e79aba33dac49c0487893968b2",
+    "gate_sha256": "0b96b961af0b342391e1b41e4017a08af89985b6a8e69dcab3f617590b05dbf8",
+    "scope": "private host primitive screen; no C-versus-Rust, component or router performance claim",
+    "extra_rounds": 0
+  },
+  "artifact_sha256": {
+    "manifest.json": "8bc69a08271221e770bb9e6edb2b02e67fa9a4325789a5c880be9b97309d93eb",
+    "gate.json": "0b96b961af0b342391e1b41e4017a08af89985b6a8e69dcab3f617590b05dbf8",
+    "allocation.json": "b514911ead7ce3d732b49fd2f14c8cf83c9f54e79aba33dac49c0487893968b2",
+    "allocation-result.json": "65fc099ff55c364dc9d2019a590e537155a35559c1153382a8def5d319ea228d"
+  },
+  "source_archives": {
+    "source-e77d966.tar": "35aef6bc78621bf129a949c72e54925cdd79ba1160aef8993477d41cfa9092d0",
+    "tools-01.tar": "2b369a1d496b5c86621963a0a2b2039f756813a560eae9249d01f85a19af1527"
+  },
+  "scope": "private e77 native aarch64 primitive mechanism; no timing, representation adoption, mixed-RR population, C/Rust service or router acceptance"
+}
