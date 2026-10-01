@@ -1,13 +1,14 @@
 # Reverse typed-transfer exact-C baseline
 
-The separately frozen Stage 4 matrix completes **21 cases in 126 C processes**:
+The separately frozen Stage 4 matrix completes **21 cases in 126 C oracle invocations**:
 20 deterministic cases have **184 observations** whose six native/SDK-musl
 traces agree exactly. One further case retains **12 ordering observations**;
 its native and SDK executions produce two distinct exact traces. Those 12
 observations are not included in the deterministic pass count. The original
 307-observation transfer fixture is unchanged.
 
-All C processes use unchanged `cache.c`, actual child `cache_end_insert`, a
+Each oracle invocation forks one child; the 126 count is invocations, not a
+count of every operating-system process. All C runs use unchanged `cache.c`, actual child `cache_end_insert`, a
 real kernel pipe and actual parent `cache_recv_insert`. The new driver reuses
 the pinned non-cache objects from the previous source baseline after verifying
 their hashes, every patched source/header, SDK inputs and image loader/libraries.
