@@ -481,4 +481,65 @@ mod tests {
             (15, [0, 23].as_slice())
         );
     }
+
+    #[test]
+    fn private_tcp_cache_uses_request_cd_before_extraction_and_fixed_clock() {
+        use crate::dns::cache::{Cache, CacheCounters, Policy};
+        use crate::hosts::Hosts;
+        let config = DnsConfig::default();
+        let service = TcpDnsService::new(&config, &[], 1232).unwrap();
+        let mut local = LocalDnsService::new(config, Hosts::new(), 0, 1232);
+        for request_cd in [false, true] {
+            let mut request = query(false);
+            request[3] = if request_cd { 0x10 } else { 0 };
+            let owner = Name::from_ascii("caller.test").unwrap();
+            let mut response = PacketWriter::new(0x2930, 0x8190, 1232).unwrap();
+            response.question(&owner, 1, 1).unwrap();
+            response
+                .record(Section::Answer, &owner, 1, 1, 30, &[192, 0, 2, 9])
+                .unwrap();
+            let mut cache = TcpCache {
+                cache: Some(Cache::new(10, Policy::default())),
+                counters: CacheCounters::default(),
+                negative_cache: true,
+                negative_ttl: 30,
+                accepted_at: 100,
+            };
+            let mut transfers = 0;
+            finish_reply_with_cache(
+                &request,
+                &response.finish(),
+                &service,
+                Some(&local),
+                Some((&mut cache, &mut |_| transfers += 1)),
+            )
+            .unwrap();
+            assert_eq!(transfers, usize::from(!request_cd));
+            let answer = cache.answer(&request, &mut local).unwrap();
+            assert_eq!(answer.is_some(), !request_cd);
+            if let Some(answer) = answer {
+                let parsed = Message::parse(&answer).unwrap();
+                assert_eq!(parsed.records(Section::Answer).next().unwrap().ttl, 30);
+            }
+        }
+    }
+
+    #[test]
+    fn private_tcp_snapshot_rejects_enabled_stale_without_changing_parent_policy() {
+        use crate::dns::cache::StalePolicy;
+        use crate::dns::daemon::{DaemonOptions, DnsDaemon};
+        use crate::hosts::Hosts;
+        let mut daemon = DnsDaemon::new(
+            DnsConfig::default(),
+            Hosts::new(),
+            &[],
+            DaemonOptions::default(),
+        )
+        .unwrap();
+        daemon.enable_cache(10, 0, 0, StalePolicy::Forever);
+        assert!(daemon.snapshot_tcp_cache(100).is_err());
+        assert!(daemon.snapshot_tcp_cache(200).is_err());
+        daemon.enable_cache(10, 0, 0, StalePolicy::Disabled);
+        assert_eq!(daemon.snapshot_tcp_cache(100).unwrap().accepted_at(), 100);
+    }
 }
