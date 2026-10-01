@@ -65,6 +65,14 @@ def cases():
             packet = query("t0497.test", 16, 1, 0x130, 0x2000 + len(rows), (512, True))
             packet = packet[:-11] + packet[-11:][:length]
             rows.append((f"truncated-opt/{length}/tcp-{tcp}", tcp, packet))
+    # A complete OPT must not survive a later malformed additional record.
+    # This tests the scanner's all-or-nothing result through both real callers.
+    for length in [0, 1, 4, 9, 10, 11, 12]:
+        for tcp in [False, True]:
+            packet = bytearray(query("t0497.test", 16, 1, 0x130, 0x2000 + len(rows), (512, True)))
+            packet[10:12] = struct.pack("!H", 2)
+            packet += (b"\0" + struct.pack("!HHIH", 41, 512, 0x8000, 2) + b"xx")[:length]
+            rows.append((f"truncated-next-opt/{length}/tcp-{tcp}", tcp, bytes(packet)))
     return rows
 
 

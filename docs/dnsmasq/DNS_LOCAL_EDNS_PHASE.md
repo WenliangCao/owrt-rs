@@ -70,3 +70,13 @@ has 90 mismatches in 13,213 cases. `after-suite/` passes all 76,213 exact-C
 primitive cases with ASan/UBSan and 10,000 fixed-seed mutations; the 20 wire
 unit tests also pass, including every truncation of a later OPT. This primitive
 gate does not establish complete daemon handling of malformed replies.
+
+The follow-up real-daemon gate adds a complete first OPT followed by a second
+additional OPT truncated in its name, fixed fields or payload. Both UDP and TCP
+callers are exercised over IPv4/IPv6 at configured EDNS maxima 512 and 1232.
+`private/dnsmasq-rewrite/udp-policy-20261001/linux/local-partial-opt-01/`
+passes all 584 client replies per implementation byte-for-byte. The independently
+bounded reply-envelope oracle also passes 19,981 operations with ASan/UBSan in
+`partial-opt-review-20261001/reply-after/`; its excluded malformed packets remain
+listed and do not count as passes. Upstream malformed-reply handling remains
+outside these local-query and primitive checks.
