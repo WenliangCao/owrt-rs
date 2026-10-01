@@ -39,7 +39,14 @@ fn main() {
         println!();
         return;
     }
-    assert_eq!(args[1], "serve");
+    assert!(args[1] == "serve" || args[1] == "serve-hex");
+    let object_name = if args[1] == "serve-hex" {
+        args[3].as_bytes().chunks_exact(2)
+            .map(|pair| u8::from_str_radix(std::str::from_utf8(pair).unwrap(), 16).unwrap())
+            .collect()
+    } else {
+        args[3].as_bytes().to_vec()
+    };
     assert_eq!(std::env::var("DNSMASQ_TEST_ISOLATED").as_deref(), Ok("1"));
     assert!(args[2].starts_with("/run/"));
     let mut service = None;
@@ -48,7 +55,7 @@ fn main() {
     let mut input = stdin.lock();
     loop {
         if service.is_none() {
-            if let Ok(connected) = UbusService::connect(Some(&args[2]), &args[3]) {
+            if let Ok(connected) = UbusService::connect_bytes(Some(&args[2]), &object_name) {
                 service = Some(connected);
                 println!("connected");
                 io::stdout().flush().unwrap();
@@ -79,7 +86,7 @@ fn main() {
                 .expect("command requires a connected service");
             if command == "subscribers" {
                 println!("dns-subscribers={}", connected.dns_has_subscribers());
-            } else if command.starts_with("doctor ") || command.starts_with("doctor-cancel ") {
+            } else if command.starts_with("doctor ") || command.starts_with("doctor-cancel ") || command.starts_with("doctor-stage ") {
                 let parts: Vec<_> = command.split_whitespace().collect();
                 let name: Vec<_> = parts[1]
                     .as_bytes()
@@ -99,7 +106,12 @@ fn main() {
                     })
                 });
                 let start = Instant::now();
-                let result = connected.doctor_dns(&value, Some(cancelled));
+                let result = connected.doctor_dns(&value, Some(cancelled), &metrics);
+                // Explicit fixture value: a caller commits its cache only
+                // after the hook returns. Never linked into the daemon.
+                if parts[0] == "doctor-stage" {
+                    metrics.add(Metric::CacheInserted, 1);
+                }
                 let elapsed = start.elapsed().as_micros();
                 if let Some(timer) = timer {
                     timer.join().unwrap();

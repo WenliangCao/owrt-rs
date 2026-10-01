@@ -53,13 +53,21 @@ impl UbusService {
     /// A failed second registration drops the whole connection and first object.
     /// No object/type ID or subscriber state is retained across reconnection.
     pub fn connect(socket: Option<&str>, name: &str) -> Result<Self, ConnectError> {
+        Self::connect_bytes(socket, name.as_bytes())
+    }
+
+    /// The configuration parser preserves arbitrary non-NUL name bytes.
+    pub fn connect_bytes(socket: Option<&str>, name: &[u8]) -> Result<Self, ConnectError> {
+        let name = c_string(name);
+        let mut dns_name = name.to_vec();
+        dns_name.extend_from_slice(b".dns");
         let mut connection = Connection::connect(socket).map_err(ConnectError::Transport)?;
         connection.set_server_io_timeout(Duration::from_millis(100));
         let main_id = connection
-            .add_object(name, &[("metrics", &[])], 1000)
+            .add_object_bytes(name, &[("metrics", &[])], 1000)
             .map_err(ConnectError::Registration)?;
         let dns_id = connection
-            .add_object(&format!("{name}.dns"), &[], 1000)
+            .add_object_bytes(&dns_name, &[], 1000)
             .map_err(ConnectError::Registration)?;
         Ok(Self {
             connection,
@@ -136,9 +144,13 @@ impl UbusService {
         Ok(true)
     }
 
-    /// Synchronous OpenWrt UDP DNS doctor hook. The owner must drain pending
-    /// ubus messages before calling, and again after return. Never call this in
-    /// the TCP path: the C child drops its ubus connection before DNS processing.
+    /// Synchronous OpenWrt UDP DNS doctor hook. The owner must drain messages
+    /// before calling so subscription state is current. Queued invokes are
+    /// answered from `metrics` before returning, as libubus does before the C
+    /// caller applies a replacement or commits cache inserts. The owner must
+    /// obtain this snapshot before locking its DNS parent; no callback here
+    /// reacquires another engine lock. Never call this on the TCP path: the C
+    /// child drops its ubus connection before DNS processing.
     /// Some(address) means replace the address and clear AA, even if unchanged.
     /// A clean 100 ms timeout still uses DATA received before the deadline.
     /// Transport/cancellation errors require dropping this service; the DNS
@@ -147,6 +159,7 @@ impl UbusService {
         &mut self,
         result: &DnsResult<'_>,
         cancelled: Option<fn() -> bool>,
+        metrics: &Metrics,
     ) -> io::Result<Option<IpAddr>> {
         if !self.dns_subscribed {
             return Ok(None);
@@ -171,6 +184,9 @@ impl UbusService {
                 }
             },
         )?;
+        while self.connection.has_pending() {
+            self.process_one(metrics)?;
+        }
         Ok(selected)
     }
 }

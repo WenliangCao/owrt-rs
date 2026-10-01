@@ -719,6 +719,17 @@ impl Connection {
         methods: &[(&str, &[(&str, MsgType)])],
         timeout_ms: i32,
     ) -> io::Result<u32> {
+        self.add_object_bytes(path.as_bytes(), methods, timeout_ms)
+    }
+
+    /// Register an opaque C-string object path without a UTF-8 conversion.
+    /// Bytes after the first NUL are not part of the path, matching libubus.
+    pub fn add_object_bytes(
+        &mut self,
+        path: &[u8],
+        methods: &[(&str, &[(&str, MsgType)])],
+        timeout_ms: i32,
+    ) -> io::Result<u32> {
         self.add_object_maybe_anonymous(Some(path), methods, None, timeout_ms).map(|(id, _)| id)
     }
 
@@ -736,7 +747,7 @@ impl Connection {
         if type_id == Some(0) {
             return Err(ubus_error(status::INVALID_ARGUMENT));
         }
-        let (id, assigned_type) = self.add_object_maybe_anonymous(Some(path), methods, type_id, timeout_ms)?;
+        let (id, assigned_type) = self.add_object_maybe_anonymous(Some(path.as_bytes()), methods, type_id, timeout_ms)?;
         // ubusd returns OBJTYPE only when the request supplied SIGNATURE.
         // A reused type remains the connection-scoped id supplied by us.
         let assigned_type = assigned_type.or(type_id).filter(|id| *id != 0).ok_or_else(|| ubus_error(status::NO_DATA))?;
@@ -752,14 +763,15 @@ impl Connection {
 
     fn add_object_maybe_anonymous(
         &mut self,
-        path: Option<&str>,
+        path: Option<&[u8]>,
         methods: &[(&str, &[(&str, MsgType)])],
         type_id: Option<u32>,
         timeout_ms: i32,
     ) -> io::Result<(u32, Option<u32>)> {
         let mut b = BlobBuf::new();
         if let Some(path) = path {
-            b.put_string(attr::OBJPATH, path);
+            let end = path.iter().position(|byte| *byte == 0).unwrap_or(path.len());
+            b.put_string_bytes(attr::OBJPATH, &path[..end]);
         }
         if let Some(id) = type_id {
             b.put_u32(attr::OBJTYPE, id);
@@ -1645,6 +1657,26 @@ mod tests {
             assert!(client.pending.is_empty());
             peer.join().unwrap();
         }
+    }
+
+    #[test]
+    #[cfg(target_os = "linux")]
+    fn object_registration_preserves_opaque_c_string_bytes() {
+        let (mut client, mut server) = pair();
+        let peer = std::thread::spawn(move || {
+            let request = server.recv().unwrap();
+            assert_eq!(request.header.ty, ty::ADD_OBJECT);
+            let attrs = request.attrs();
+            assert_eq!(attrs[attr::OBJPATH as usize].unwrap().payload, b"opaque.\xff\0");
+            let mut data = BlobBuf::new();
+            data.put_u32(attr::OBJID, 31);
+            server.send(Header { ty: ty::DATA, seq: request.header.seq, peer: 0 }, &mut data, None).unwrap();
+            let mut status = BlobBuf::new();
+            status.put_u32(attr::STATUS, 0);
+            server.send(Header { ty: ty::STATUS, seq: request.header.seq, peer: 0 }, &mut status, None).unwrap();
+        });
+        assert_eq!(client.add_object_bytes(b"opaque.\xff\0ignored", &[], 1000).unwrap(), 31);
+        peer.join().unwrap();
     }
 
     #[test]

@@ -13,6 +13,7 @@
 static const char *response;
 static unsigned delay_ms;
 static struct ubus_request_data deferred;
+static uint32_t metrics_id;
 
 static void reply_raw(struct ubus_context *ctx, struct ubus_request_data *req,
                       const char *hex_data, size_t chars)
@@ -61,6 +62,18 @@ static void data(struct ubus_request *req, int type, struct blob_attr *msg)
     puts("\"}");
 }
 
+static void lookup_hex(struct ubus_context *ctx, struct ubus_object_data *obj, void *priv)
+{
+    (void)ctx;
+    (void)priv;
+    printf("{\"event\":\"lookup\",\"path_hex\":\"");
+    hex(obj->path, strlen(obj->path));
+    printf("\",\"type\":%u,\"wire\":\"", obj->type_id);
+    if (obj->signature)
+        hex(blob_data(obj->signature), blob_len(obj->signature));
+    puts("\"}");
+}
+
 static int notify(struct ubus_context *ctx, struct ubus_object *obj,
                   struct ubus_request_data *req, const char *method, struct blob_attr *msg)
 {
@@ -69,6 +82,15 @@ static int notify(struct ubus_context *ctx, struct ubus_object *obj,
     hex(blob_data(msg), blob_len(msg));
     puts("\"}");
     fflush(stdout);
+    if (!strcmp(response, "metrics")) {
+        struct blob_buf b = {0};
+        blob_buf_init(&b, 0);
+        int ret = ubus_invoke(ctx, metrics_id, "metrics", b.head, data, NULL, 1000);
+        blob_buf_free(&b);
+        printf("{\"event\":\"nested-metrics-status\",\"status\":%d}\n", ret);
+        fflush(stdout);
+        return 0;
+    }
     if (!strcmp(response, "silent")) {
         ubus_defer_request(ctx, req, &deferred);
         return 0;
@@ -119,6 +141,8 @@ int main(int argc, char **argv)
     int ret;
     if (!strcmp(argv[2], "lookup")) {
         ret = ubus_lookup(ctx, argv[3], lookup, NULL);
+    } else if (!strcmp(argv[2], "lookup-hex")) {
+        ret = ubus_lookup(ctx, argv[3], lookup_hex, NULL);
     } else {
         uint32_t id = 0;
         ret = ubus_lookup_id(ctx, argv[3], &id);
@@ -135,6 +159,18 @@ int main(int argc, char **argv)
             struct ubus_subscriber sub = {.cb = notify};
             response = argv[4];
             delay_ms = (unsigned)strtoul(argv[5], NULL, 10);
+            if (!strcmp(response, "metrics")) {
+                size_t length = strlen(argv[3]);
+                if (length < 4 || strcmp(argv[3] + length - 4, ".dns"))
+                    return 2;
+                char *main_path = strndup(argv[3], length - 4);
+                if (!main_path)
+                    return 3;
+                ret = ubus_lookup_id(ctx, main_path, &metrics_id);
+                free(main_path);
+                if (ret || !metrics_id)
+                    goto done;
+            }
             uloop_init();
             ubus_add_uloop(ctx);
             signal(SIGTERM, stop);

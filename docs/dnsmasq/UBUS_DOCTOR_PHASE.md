@@ -27,7 +27,7 @@ restored. Cancellation, EOF, malformed framing, partial-frame deadline and
 queue-limit errors shut down the transport and release queued/read-ahead FDs;
 the owner must drop that connection.
 
-`UbusService::doctor_dns(&DnsResult, Option<fn() -> bool>)` uses exactly a 100 ms
+`UbusService::doctor_dns(&DnsResult, Option<fn() -> bool>, &Metrics)` uses a 100 ms
 deadline. If the DNS object has no subscribers it returns `None` immediately.
 Otherwise it returns a same-family `Some(address)` only after processing an
 applicable string address. `Some` includes an unchanged address: the DNS caller
@@ -35,10 +35,17 @@ must still clear AA, as the C code does. Clean timeout keeps any applicable
 response received before the deadline. The method neither changes DNS bytes nor
 inserts cache entries.
 
+The [later queued-call phase](UBUS_LIFECYCLE_PHASE.md) establishes that the C
+library drains deferred invokes before returning the notification result.
+The controller now does the same with a caller-supplied pre-hook metrics
+snapshot; draining only after returning to the DNS owner is too late.
+
 The future ParentDns owner must:
 
-- Drain `process_one` before the hook so subscription state is current, and
-  after it to answer queued metrics calls and apply subscription changes.
+- Drain `process_one` before the hook so subscription state is current. The
+  hook drains queued invokes and subscription changes before returning.
+  Obtain real metrics before acquiring the DNS parent lock; never acquire
+  the provider lock from inside the hook while holding the parent lock.
 - Call the hook at the exact UDP `process_reply`/`do_doctor` stage after the
   existing upstream response validation. Apply address/flag/cache effects at
   that source-defined stage. Never call it on the TCP path: the C child drops
