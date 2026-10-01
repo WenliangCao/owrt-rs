@@ -31,6 +31,7 @@ Do not overwrite those files or private experiment worktrees.
 | DO lookup before forwarding | `aeba67e`: pressure/victim gate native/image120/120, before112/120; negative119/1. Same ELF preserves native/imageDO750 and nativeCD134; isolated389 library+7 main/16ignored, native/musl Clippy. See `DO_LOOKUP_FIX_VALIDATION.md`. |
 | Generic lookup after ordinary miss | `5c15e16`: independent NX/SOA pressure native/image120/120, before108/120 then116/120 after the DO-only repair; direct/CNAME120/120 per reference preserved. Both negative controls detect1. Final isolated389+7/16ignored and native/musl Clippy pass. |
 | Generic forward insertion | `4bf072d`: native/image22 configuration+78 forward observations, separateQTYPE0 native/image9. Same ELF preserves DO750 per reference, nativeCD134, both pressure120 per reference and isolated389+7/16ignored/native+muslClippy. First image run had75 matches+1 readiness timeout; complete sequential replay78 passes, failure retained. Malformed generic error propagation is a known source-audit gap under separate C-first qualification. |
+| Generic malformed reply propagation | `0fae34f`/`ac8a3b6`: native/image35/35, before14 differences per reference; negative34/1. Prefix removals/evictions remain. Final native normal22+78, policy210, bogus256, isolated389+7/16ignored and native/muslClippy pass. RecordTooLong keeps prior cache-abort/forward behavior; no oversized-data equivalence claim. |
 
 Current agents/ownership:
 
@@ -41,13 +42,15 @@ Current agents/ownership:
   Like inline16, this candidate is rejected. No new timing is active or pending.
 - `tcp_writeback_gates` completed independent doctor/pipe/slot12 and ordinary
   UDP CD134 gates in `../owrt-tcp-writeback-gates`; their tools/reports are merged.
-- `cache_rr_resume` completed the normal generic and QTYPE0 gates in
-  `cache-rr-gate-20261001` at `c15fce3`; tools/reports are merged. Its original
-  unsupported-option attempts and one readiness timeout remain archived.
-- `tcp_stream_review` completed independent code reviews and now owns
-  `generic-malformed-gate-20261001`: C-first malformed generic RDATA reply and
-  prefix-effects gate. Root owns product error propagation; preserve ordered
-  cache effects and do not prevalidate the whole reply before extraction.
+- `cache_rr_resume` completed the normal generic and QTYPE0 gates plus final
+  `ac8a3b6` native22+78 regression; tools/reports are merged. It now owns
+  C-first reverse-cache primitive qualification following
+  `REVERSE_CACHE_SOURCE_AUDIT.md`. No reverse product implementation yet.
+  Original unsupported-option attempts and the readiness timeout stay archived.
+- `tcp_stream_review` completed the C-first malformed generic gate in
+  `generic-malformed-gate-20261001` at `c6a1121`: final native/image35 and
+  negative34/1. All tools/reports are merged; raw prefix effects and old14
+  differences remain. Root implementation validation is separately linked.
 - `tcp_reference_resume` completed a private correctness reference, preserved on
   `research/dnsmasq-tcp-reference-20261001` at `df75fb4`; worktree is
   `private/dnsmasq-rewrite/tcp-private-reference-20261001`. Frozen executable
@@ -99,9 +102,14 @@ population CPU ratios1.504043/1.053962/1.050995 fail the frozen5% guard at all
 full profiles. See `TCP_SNAPSHOT_ONE_INDEX_RESULT.md`. Every window is retained;
 no extra run, threshold waiver or product representation adoption occurred.
 
-At this checkpoint the product is frozen at `4bf072d`; later commits add tools
+At this checkpoint the product is frozen at `ac8a3b6`; later commits add tools
 and derived reports. Its native ELF is
-`8406757bb3c597bdce1673ec7036a6d1d69728fe17b0d5a55d8b506b21192070`.
+`3d8462fac7a81707e3b24f84b1a25fc8b6903d808b66b14cc4f3ede9e230b692`.
+`GENERIC_MALFORMED_IMPLEMENTATION_VALIDATION.md` records the complete final
+checks. Snapshot composition has only a source/cost audit in
+`TCP_SNAPSHOT_COMPOSITION_REVIEW.md`; no candidate, measurement or adoption
+follows from that audit. Next reverse work starts with direction/expiry/LRU
+contracts and preserves existing forward behavior and shared capacity.
 The original CD136 image-C calibration failure remains archived; the final
 CD134 fixture removes only an unrelated redundant control replacement. The
 source-supported hash/layout explanation is not a demonstrated repair.

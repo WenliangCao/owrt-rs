@@ -1,0 +1,84 @@
+{
+  "source": "ac8a3b6",
+  "initial_error_propagation_commit": "0fae34f",
+  "source_archive_sha256": "b844e2bb7067150569d80a3c08079e38c7e1075118c00e5e6900149ddb0b4f8c",
+  "rust_elf_sha256": "3d8462fac7a81707e3b24f84b1a25fc8b6903d808b66b14cc4f3ede9e230b692",
+  "evidence_archive_sha256": "42df0efcb982d132278ee2ee709168ca37fa08cf172fca22b287b7bfd55e237b",
+  "namespace_isolated": true,
+  "unit_tests": {
+    "dnsmasq_rs": {
+      "passed": 389,
+      "failed": 0,
+      "ignored": 16
+    },
+    "dnsmasq-rs": {
+      "passed": 7,
+      "failed": 0,
+      "ignored": 0
+    }
+  },
+  "service_regressions": {
+    "policy": {
+      "observations": 210,
+      "mismatches": 0,
+      "fixture_failures": 0,
+      "result_sha256": "902ff1fb31674939bbb069390fac88d1004fa45f21347af9d89d8222268911ba",
+      "tool_sha256": "dfa8de929f3ef89109989924d1830eb45c79ec06ca89bfb3a21f91698fd6fdbb"
+    },
+    "bogus-native": {
+      "observations": 256,
+      "mismatches": 0,
+      "fixture_failures": 0,
+      "result_sha256": "7a3cd39a3394a7ec9d035e550531199ac93e961b566a667cd2572c2b230f679c",
+      "tool_sha256": "9f885db8003b5560d7a8fda506a7ad73c55d3d0b014abd2598bd64b9f345f1d6"
+    }
+  },
+  "clippy": {
+    "native_all_targets": "pass",
+    "aarch64_musl_all_targets": "pass"
+  },
+  "format": "pass",
+  "checks": {
+    "dnsmasq-rs": {
+      "exit": 0,
+      "log_sha256": "fad80a11527dd27d6f3e9d20b2f28ec0cccaa2b401361830db2f26bfceaf3121",
+      "command_sha256": "128e1b84e75d69add8fef4bb6d241ded24ee35447964535b6b332c78a58a7c1d"
+    },
+    "dnsmasq_rs": {
+      "exit": 0,
+      "log_sha256": "2cda4d5ff702076f799612a3d488a4062752cc92c7be7deb78f84c7e00023ab4",
+      "command_sha256": "1aa07921c893a73f2c418d3f3003c9525e935d35d16efb66c6e6220ffc98cca9"
+    },
+    "native-clippy": {
+      "exit": 0,
+      "log_sha256": "895e16bcb7cca6586129c1b137e11d60c1aaa160f0707417526a6112863208eb",
+      "command_sha256": "bc65aa5fd59ce1fb6390d103e8786fbf94dae1f0f03f55959a8cd91212b04691"
+    },
+    "musl-clippy": {
+      "exit": 0,
+      "log_sha256": "9a4d6b70d59409c8dca95b0bfa78fd915e58b549680a53e1dfaf020548e752e7",
+      "command_sha256": "9196c7848e570d5c0350ad7bf19ad9cd0e5cbc07a249ec42a4cccad2bd77eb23"
+    },
+    "policy": {
+      "exit": 0,
+      "log_sha256": "0a96ad947c44a8e45bf3072f51be351a1e4820a95270918b79f7a0d81f1fbb65",
+      "command_sha256": "ef14a0d1b398d7a0cd931f09139e8d680db702e932ea861cc8d91dc2ad636be2"
+    },
+    "bogus-native": {
+      "exit": 0,
+      "log_sha256": "496d60bbecfeffd5f4c6e3915bcd52a27561e9a3c501931e45ac4c5ffebe4b24",
+      "command_sha256": "db96ae1f8ea42fee90183ae0599dff8f66cac2b5031c5333419d8206263f81c7"
+    }
+  },
+  "independent_gates": {
+    "malformed_generic": "native/image35/35; negative34/35; GENERIC_MALFORMED_AFTER_RESULT.md",
+    "normal_generic": "native22config+78paired; CACHE_RR_GATE_RESULT.md"
+  },
+  "development_failures": [
+    "One local check before freezing 0fae34f failed because the caller edit preceded the result-signature edit; completed before the frozen build."
+  ],
+  "local_development_note_sha256": "448d106712cabc039847a983705585edf05914aa5b1fd0da727571b534a50ef5",
+  "scope": "Bounded generic embedded-name errors with ordered prefix effects; RecordTooLong retains prior cache-abort/forward behavior, not a new C equivalence claim",
+  "raw_evidence": "private/dnsmasq-rewrite/generic-malformed-fix-20261001/ac8a3b6/",
+  "remote_root": "/home/ubuntu/dns-generic-malformed-fix-20261001/ac8a3b6-01/"
+}

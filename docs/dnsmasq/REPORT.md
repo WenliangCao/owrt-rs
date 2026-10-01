@@ -18,7 +18,9 @@
 | 普通 CD 缓存事务 | `3e3e203`/`0c8f362`：native/image134/134；只抑制最终commit，保留有序移除/淘汰/pending清理 | 原136行image C校准失败保留；完整no_cache触发配置另验 |
 | DO 查询缓存副作用 | `aeba67e`：native/image压力门由112/120到120/120，负控119/1；同ELF保留native/imageDO750、nativeCD134，隔离389库+7主程序，native/musl Clippy | generic/NX顺序、RR旋转与hash桶清理另验；见[修复回归](DO_LOOKUP_FIX_VALIDATION.md) |
 | 普通 miss 的通用记录查找 | `5c15e16`：独立NX/SOA门从原108/120、DO修复后116/120到native/image各120/120；保留原direct/CNAME门各120/120；最终隔离389+7/16ignored及native/musl Clippy | `cache-rr`配置/通用记录插入仍待实现；全部no-answer路径、旋转与桶清理另验 |
-| TCP 缓存 | typed transfer原语307/307已合入；私有参考TCP32、native UBus69/69、独立并发12、stale41、CD65 | 深拷贝参考代码未合入；快照表示/资源/异常IPC及全部策略组合仍未验收 |
+| 通用记录配置与缓存 | `4bf072d`：native/image各22配置+78正向配对，独立QTYPE0各9；最终`ac8a3b6`保留native22+78 | reverse9仍仅C；首次image启动readiness失败保留；泛型DO/AD及完整类型合同未关闭 |
+| 畸形通用记录错误回复 | `ac8a3b6`：native/image各35/35，修复前各14差异；保留有序prefix副作用，负控34/1；policy210、bogus256、隔离389+7/16ignored、native/muslClippy通过 | 超大RDATA表示限制与任意畸形输入另验；见[实现回归](GENERIC_MALFORMED_IMPLEMENTATION_VALIDATION.md) |
+| TCP 缓存 | typed transfer原语307/307已合入；私有stream参考TCP32、native UBus69/69、并发12、stale41、CD65、partialEOF27；native/musl transfer各307 | 私有代码未合入；快照表示、OOM/大记录/native管道饱和及全部策略组合仍未验收 |
 | 最新目标阶段 | 冻结 `405b7c1`，ELF 1,178,407 B，APK 622,772 B；匹配 SDK/镜像依赖 | 完整目标 UBus 67/69，保留两项失败；不是替换包或生产验收 |
 
 目标 UBus 的两个差异分别是 TCP 父缓存写回缺口，以及目标 musl C doctor
@@ -213,6 +215,12 @@ ELF从989991B降为870915B（少119076B，12.03%），保护/依赖及冻结功�
 24个窗口、12,000次无错完成。大容量CPU减少47.39%/27.85%、快照堆减少
 49.20%/52.34%，填充CPU和稳态堆均通过冻结门；但150满缓存第一配对的p95
 增加8.63%，超过5%上限，候选被拒绝。没有追加轮次、挑选窗口或产品布局变更。
+
+[单记录索引候选](TCP_SNAPSHOT_ONE_INDEX_RESULT.md) 的另24窗口/12,000次完成也
+全部正确，但三个满载档的最差填充CPU分别增加50.40%/5.40%/5.10%，均超过5%
+门槛，候选同样拒绝。大容量快照CPU减少66.60%/54.60%、快照堆减少51.59%/54.88%
+不能抵消该失败。两机制的组合目前只有[源码成本审计](TCP_SNAPSHOT_COMPOSITION_REVIEW.md)，
+尚未实现或测量，不得把两个失败候选各自较好的结果拼接成一次通过。
 
 ## 历史 574f5ed 目标产物与资源退步
 
