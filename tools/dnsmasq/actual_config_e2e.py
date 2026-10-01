@@ -153,7 +153,7 @@ def run(args):
         for label, command in [
             ('upstream', ['nsenter', '-t', upstream_pid, '-n', sys.executable, executable, '--mode', 'upstream',
                           '--out', str(args.out / 'upstream'), '--resolv', str(args.resolv)]),
-            ('daemon', [str(args.binary.resolve()), '-k', '--conf-file=' + str(args.config)])]:
+            ('daemon', [str(args.binary.resolve()), '-C', str(args.config), '-k', '-x', str(args.pidfile)])]:
             if label == 'daemon':
                 deadline = time.monotonic() + 5
                 while not (args.out / 'upstream/ready.json').exists():
@@ -171,7 +171,11 @@ def run(args):
                     break
             except OSError:
                 time.sleep(.02)
-        (args.out / 'daemon.status').write_text(Path(f'/proc/{daemon.pid}/status').read_text())
+        status = Path(f'/proc/{daemon.pid}/status').read_text()
+        (args.out / 'daemon.status').write_text(status)
+        credentials = {line.split(':', 1)[0]: line.split()[1:] for line in status.splitlines() if line.startswith(('Uid:', 'Gid:'))}
+        assert credentials == {'Uid': ['453'] * 4, 'Gid': ['453'] * 4}, credentials
+        result['credentials'] = credentials
         command = ['nsenter', '-t', client_pid, '-n', sys.executable, executable, '--mode', 'client',
                    '--out', str(args.out / 'client'), '--server', router, '--hostname', args.hostname]
         response = subprocess.run(command, capture_output=True, text=True, timeout=30)
@@ -211,7 +215,7 @@ def run(args):
             log.close()
     if args.reference and not errors:
         reference = json.loads(args.reference.read_text())
-        for key in ['lease', 'lease_expiry_valid', 'exit_codes']:
+        for key in ['lease', 'lease_expiry_valid', 'exit_codes', 'credentials']:
             if result[key] != reference[key]:
                 errors.append({'field': key, 'reference': reference[key], 'actual': result[key]})
         for key in ['dhcp', 'dns', 'lease_seconds']:
@@ -229,6 +233,7 @@ def main():
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--binary', type=Path)
     parser.add_argument('--config', type=Path, default=Path('/var/etc/dnsmasq.conf.cfg01411c'))
+    parser.add_argument('--pidfile', type=Path, default=Path('/var/run/dnsmasq/dnsmasq.cfg01411c.pid'))
     parser.add_argument('--leasefile', type=Path, default=Path('/tmp/dhcp.leases'))
     parser.add_argument('--resolv', type=Path, default=Path('/tmp/resolv.conf.d/resolv.conf.auto'))
     parser.add_argument('--hostname', default='northstar-client')
