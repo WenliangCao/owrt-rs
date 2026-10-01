@@ -1,0 +1,129 @@
+{
+  "scope": "PRIVATE deep-clone TCP correctness reference only; not a production snapshot representation or performance acceptance",
+  "source_commit": "86b81ab",
+  "implementation_commit": "cdb909e",
+  "base_commit": "aa474e5",
+  "included_do_fixes": [
+    "a0fa1b8",
+    "a4b3087"
+  ],
+  "rust_elf_sha256": "21d2a14a0690332958bbf381f0047bc6cc81d4cc1660d6effa017b2ea8462a6d",
+  "c_elf_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+  "oracle_evidence": "/home/ubuntu/dnsmasq-tcp-private-20261001/final-02",
+  "unit_tests": {
+    "library_passed": 395,
+    "library_ignored": 16,
+    "main_passed": 7,
+    "namespace_isolated": true
+  },
+  "clippy": {
+    "native_all_targets": "pass",
+    "aarch64_musl_all_targets": "pass"
+  },
+  "gates": {
+    "tcp_cache": {
+      "planned": 32,
+      "c_observations": 32,
+      "matched": 32,
+      "failures": [],
+      "tool_sha256": "00331e3ac704ad604a057e00dccda3f4f2806b88acaad5cea7e3303a8e6e65a3",
+      "result_sha256": "d84e8e2c75f8d36bcb4b3413233d70e3ea679e35588076acc049e2ef50473012"
+    },
+    "ubus": {
+      "paired_observations": 69,
+      "paired_matches": 69,
+      "passed": 581,
+      "failed": 0,
+      "error": null,
+      "result_sha256": "67fec5b83226dcc51eeb17b7af307ed4874d732edad1a7ef589927bffcc86651"
+    },
+    "emfile": {
+      "compared": 17,
+      "differences": [],
+      "failures": [],
+      "tool_sha256": "a08cfe8c247d7dcc978f0cf579a6a9631457c86dc311ff3834159ceeb6e96e54",
+      "result_sha256": "429f5ccd78bdf186a2280b14e2f9517489eb639e37212d4d26361c837bc820ee"
+    },
+    "capacity": {
+      "planned": 31,
+      "c_observations": 31,
+      "matched": 31,
+      "failures": [],
+      "tool_sha256": "13293710fc4d30dd729a5f5a2e6e98bf6a743b8e199ea2549b1136ace9b2094d",
+      "result_sha256": "74e8ff77e1f7650144123356076c55b67b22680d80d4e5802d9d7931f67c1eb6"
+    },
+    "independent_writeback": {
+      "c_observations": 12,
+      "matched": 12,
+      "failures": [],
+      "result_sha256": "f9911bcffd999085711e5f572269368996e24643150d309bf03daa3a40f1a3db",
+      "oracle_evidence": "/home/ubuntu/dnsmasq-rewrite-20260929/tcp-writeback-gates/private/paired-final-86b81ab-01",
+      "attempts": 1
+    }
+  },
+  "unqualified": [
+    "production snapshot representation and CPU/RSS cost",
+    "capture/encode/decode Vec allocation failure",
+    "whole-transaction decode versus C incremental failure effects",
+    "abnormal partial EOF compatibility",
+    "stale-enabled TCP close/refresh",
+    "actual image target-runtime TCP service equivalence",
+    "known CD/no-cache plus bogus-wildcard independent cache transaction composition",
+    "pipe saturation at all transaction sizes with a codec different from the C native ABI"
+  ],
+  "earlier_failures": [
+    {
+      "source": "bcf9e88",
+      "gate": "TCP32",
+      "result": "clock-child-fill expected parent insert12 but observed11 after fixed accept-time TTL1 aged out during existing 50/100ms polling delays"
+    },
+    {
+      "source": "fa0e4be/cdb909e",
+      "gate": "new unit fixture startup",
+      "result": "two MissingDefaultResolvers fixture failures; fixed explicit no-resolv in86b81ab"
+    },
+    {
+      "source": "86b81ab",
+      "gate": "native clippy first attempt",
+      "result": "root-owned target/debug from isolated cargo test; ownership repaired and same source rerunpassed"
+    }
+  ],
+  "excluded_outside_namespace_attempt": {
+    "source": "bcf9e88",
+    "command": "cargo +1.98.1 test --manifest-path components/dnsmasq/Cargo.toml --lib --bins",
+    "filters": {
+      "test_name": null,
+      "ignored": false
+    },
+    "library_passed": 392,
+    "main_passed": 7,
+    "ignored": [
+      "config::dns::tests::dns_config_acceptance_matches_c",
+      "config::loader::tests::cli_include_acceptance_matches_c",
+      "config::records::tests::local_record_acceptance_matches_c",
+      "config::tests::scalar_config_acceptance_matches_c",
+      "dhcp::service::tests::poll_once_is_nonblocking_and_stop_aware",
+      "dhcp::service::tests::receive_once_admits_loopback_pktinfo_and_preserves_addresses",
+      "dhcp::service::tests::receive_once_rejects_ipv6_for_dhcpv4",
+      "dhcp::service::tests::socket_listener_processes_local_ack_and_replies_to_peer",
+      "dns::cache::transfer_tests::exact_c_transfer_probe",
+      "dns::daemon::cache_tests::exact_c_oracle_driver",
+      "dns::daemon::lease_cache_tests::exact_c_lease_cache_driver",
+      "dns::daemon::stale_tests::exact_c_stale_driver",
+      "interfaces::linux::tests::isolated_loopback_snapshot_matches_kernel_configuration",
+      "net::tests::udp_source_and_truncation",
+      "tftp_listener::tests::dedicated_tid_idle_tick_and_cleanup_on_ipv4_and_ipv6",
+      "tftp_listener::tests::port_range_upper_bound_exhaustion_and_zero_start"
+    ],
+    "source_audit": {
+      "dns_fixture_listeners": "127.0.0.1:0",
+      "upstream_udp_client_bind": "0.0.0.0:0 or [::]:0 according to endpoint family",
+      "dhcp_localprovider_control_bind": "0.0.0.0:0",
+      "dhcp_provider_fixtures": "no_ping=true, lookup callbacks replace external lookup paths; no listener receive/send exercised",
+      "tcp_transfer": "anonymous pipe",
+      "privileged_listener_tests": "DHCP, net pktinfo, interface snapshot and TFTP integration tests remained ignored"
+    },
+    "wire_observation": "no packet capture; source endpoint inspection does not establish observed absence of off-host traffic",
+    "acceptance": false
+  }
+}
