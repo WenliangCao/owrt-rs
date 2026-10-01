@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""C-only cost diagnostic; workload and gates are frozen in C_COST_DIAGNOSTIC_V2.md.
+"""C-only cost diagnostic; workload and gates are frozen in C_COST_DIAGNOSTIC_V3.md.
 
 All listeners/perf sessions run in the dedicated private namespace. Normal
 latency samples and profile-only runs are separate. No Rust comparison is made.
@@ -84,6 +84,8 @@ class Fixture:
         self.sent = 0
         self.negative = 0
         self.by_type = collections.Counter()
+        self.by_class = collections.Counter()
+        self.by_item = collections.Counter()
         self.delays = []
         self.failures = []
         self.connections = 0
@@ -94,6 +96,11 @@ class Fixture:
         response, host, kind = response_packet(packet)
         self.negative += host.startswith('neg-')
         self.by_type[kind] += 1
+        label = ('negative' if host.startswith('neg-') else 'hot' if host.startswith('hot-')
+                 else 'measure-unique' if host.startswith('measure-unique-')
+                 else 'measure-tcp' if host.startswith('measure-tcp-') else 'other')
+        self.by_class[label] += 1
+        self.by_item[f'{host} {kind}'] += 1
         if response is None:
             return None
         await asyncio.sleep(.001)
@@ -121,7 +128,7 @@ class Fixture:
 
     def snapshot(self):
         return {'received': self.received, 'sent': self.sent, 'negative': self.negative,
-                'by_type': dict(self.by_type), 'connections': self.connections,
+                'by_type': dict(self.by_type), 'by_class': dict(self.by_class), 'by_item': dict(self.by_item), 'connections': self.connections,
                 'delay_count': len(self.delays), 'failures': self.failures,
                 'cpu_ns': time.process_time_ns()}
 
@@ -180,6 +187,10 @@ def specification(scenario, phase, count):
     if phase == 'calibration':
         return [('ok.cal.test', 1, False), ('ipv6.cal.test', 28, False),
                 ('neg-cal.test', 1, True), ('bad-data.cal.test', 1, False), ('drop.cal.test', 1, False)]
+    if phase == 'lru-negative':
+        return [('neg-lru.cal.test', 1, True)]
+    if phase == 'lru-fill':
+        return [(f'evict-{i:04}.cal.test', 1, False) for i in range(1000)]
     if phase == 'prefill':
         if scenario == 'hot':
             return [(f'hot-{i:04}.test', 1 if i % 10 < 7 else 28, False) for i in range(800)]
@@ -562,10 +573,13 @@ def cache_metrics(process, log):
         cache = re.search(r'cache size (\d+), (\d+)/(\d+) cache insertions', text)
         queries = re.search(r'queries forwarded (\d+), queries answered locally (\d+)', text)
         children = re.search(r'child processes for TCP requests: in use (\d+), highest since last SIGUSR1 (\d+), max allowed (\d+)', text)
-        if cache and queries and children:
+        server = re.search(r'server .*: queries sent (\d+), retried (\d+), failed (\d+), nxdomain replies (\d+)', text)
+        if cache and queries and children and server:
             return {'cache_size': int(cache[1]), 'live_freed': int(cache[2]), 'inserted': int(cache[3]),
                     'forwarded_parent': int(queries[1]), 'local_parent': int(queries[2]),
-                    'tcp_active': int(children[1]), 'tcp_high_water_since_dump': int(children[2]), 'tcp_max': int(children[3])}
+                    'tcp_active': int(children[1]), 'tcp_high_water_since_dump': int(children[2]), 'tcp_max': int(children[3]),
+                    'server_sent_parent': int(server[1]), 'server_retries_parent': int(server[2]),
+                    'server_failures_parent': int(server[3]), 'server_nxdomain_parent': int(server[4])}
         if process.poll() is not None:
             raise RuntimeError('C exited before metrics')
         time.sleep(.01)
@@ -626,6 +640,18 @@ def run_round(reference, directory, runtime_directory, scenario, cpus, profile=F
         result['daemon_pid'] = daemon.pid
         result['dependency_pids'] = {'upstream': upstream.process.pid, 'client': client.process.pid, 'observer': os.getpid()}
         if calibration:
+            lru_start = now()
+            lru_trace = []
+            for phase, expected_negative_count in [('lru-negative', 1), ('lru-negative', 1),
+                                                    ('lru-fill', 1), ('lru-negative', 2), ('lru-negative', 2)]:
+                prepare_client(client, 'hot', phase, 1000 if phase == 'lru-fill' else 1, 10000, port, started)
+                observed = run_client(client)
+                assert all_success(observed), 'LRU control response failed'
+                snapshot = upstream.call({'op': 'snapshot'})
+                assert snapshot['by_item'].get('neg-lru.cal.test 1', 0) == expected_negative_count, 'negative LRU retrieval count differs'
+                lru_trace.append({'phase': phase, 'client': observed, 'negative_upstream_count': expected_negative_count})
+            assert now() - lru_start < 25_000_000_000, 'LRU control approached 30s TTL; expiry could confound it'
+            result['negative_lru_calibration'] = lru_trace
             result['corpus'] = prepare_client(client, 'hot', 'calibration', 5, 10, port, started, directory)
             result['client'] = run_client(client, directory)
             expected = result['client']
@@ -672,9 +698,36 @@ def run_round(reference, directory, runtime_directory, scenario, cpus, profile=F
                       upstream_cpu_ns=upstream_after['cpu_ns']-upstream_before['cpu_ns'])
         result['upstream_queries'] = upstream_after['received'] - upstream_before['received']
         expected_upstream = 0 if scenario == 'hot' else 20000
+        result['upstream_classes'] = {key: upstream_after['by_class'].get(key, 0) - upstream_before['by_class'].get(key, 0)
+                                      for key in set(upstream_after['by_class']) | set(upstream_before['by_class'])}
         assert all_success(result['client']), 'formal success count failed'
         assert result['client']['send_lateness_ns']['p95'] < 5_000_000, 'generator schedule-lateness gate'
+        if scenario == 'mixed':
+            classes = result['upstream_classes']
+            assert classes.get('measure-unique', 0) == 20000 and classes.get('hot', 0) == 0, 'positive hit/miss class violated'
+            assert 0 <= classes.get('negative', 0) <= 10000, 'negative retrieval count exceeds client class'
+            expected_upstream += classes.get('negative', 0)
         assert result['upstream_queries'] == expected_upstream, 'upstream count differs from frozen cache/miss classes'
+        assert upstream_after['sent'] - upstream_before['sent'] == result['upstream_queries'], 'upstream request/reply count differs'
+        assert metrics_after['server_retries_parent'] == metrics_before['server_retries_parent'], 'C reported an upstream retry'
+        assert metrics_after['server_failures_parent'] == metrics_before['server_failures_parent'], 'C reported an upstream failure'
+        planned_items = collections.Counter(f'{host} {qtype}' for host, qtype, _ in specification(scenario, 'measure', count))
+        observed_items = {key: upstream_after['by_item'].get(key, 0) - upstream_before['by_item'].get(key, 0)
+                          for key in set(upstream_after['by_item']) | set(upstream_before['by_item'])}
+        observed_items = {key: value for key, value in observed_items.items() if value}
+        for item, value in observed_items.items():
+            assert item in planned_items, 'unplanned upstream request'
+            if item.startswith('hot-'):
+                raise AssertionError('positive hot record reached upstream')
+            if item.startswith('neg-'):
+                assert 1 <= value <= planned_items[item], 'extra negative retry/request'
+            else:
+                assert value == 1, 'unique request was retried or duplicated'
+        if scenario != 'hot':
+            for item in planned_items:
+                if item.startswith(('measure-unique-', 'measure-tcp-')):
+                    assert observed_items.get(item) == 1, 'unique request did not reach upstream exactly once'
+        result['upstream_item_check'] = {'unique_items': len(observed_items), 'all_correspond_to_planned_items': True}
         if scenario == 'tcp':
             assert result['client']['connect_count'] == result['client']['close_count'] == 200, 'TCP connection count differs'
             assert upstream_after['connections'] - upstream_before['connections'] == 200, 'upstream TCP connection reuse differs'
@@ -819,6 +872,7 @@ def main():
     parser.add_argument('--reference', type=Path)
     parser.add_argument('--output', type=Path)
     parser.add_argument('--calibration', type=Path, help='passed same-tool/same-plan calibration summary required before formal work')
+    parser.add_argument('--reuse-first-hot', type=Path, help='v3 only: reuse the first unchanged passed hot window from the rejected v2 series')
     parser.add_argument('--mode', choices=['calibrate', 'measure', 'profile'], default='calibrate')
     parser.add_argument('--quiet-confirmed', action='store_true', help='operator has coordinated no build/test/agent load on the host')
     args = parser.parse_args()
@@ -845,7 +899,7 @@ def main():
         calibration = json.loads(args.calibration.read_text())
         if (calibration['status'] != 'passed'
                 or calibration['tool_sha256'] != digest(Path(__file__))
-                or calibration['plan_sha256'] != digest(ROOT / 'docs/dnsmasq/C_COST_DIAGNOSTIC_V2.md')
+                or calibration['plan_sha256'] != digest(ROOT / 'docs/dnsmasq/C_COST_DIAGNOSTIC_V3.md')
                 or calibration['reference_sha256'] != REFERENCE_SHA256):
             parser.error('calibration is failed or belongs to a different tool/plan/reference')
     out = args.output.resolve()
@@ -857,7 +911,7 @@ def main():
     os.sched_setaffinity(0, {cpus[3]})
     summary = {'mode': args.mode, 'status': 'failed', 'rounds': [], 'scope': 'C-only diagnostic; not paired acceptance, a capacity ceiling or router performance',
                'reference_sha256': digest(reference), 'tool_sha256': digest(Path(__file__)),
-               'plan_sha256': digest(ROOT / 'docs/dnsmasq/C_COST_DIAGNOSTIC_V2.md'),
+               'plan_sha256': digest(ROOT / 'docs/dnsmasq/C_COST_DIAGNOSTIC_V3.md'),
                'affinity': {'c': cpus[0], 'upstream': cpus[1], 'client': cpus[2], 'observer': cpus[3]},
                'kernel': os.uname().release, 'architecture': os.uname().machine,
                'clock_ticks_per_second': os.sysconf('SC_CLK_TCK'),
@@ -879,6 +933,20 @@ def main():
                 order = [order[0]]
             for round_number, scenarios in enumerate(order, 1):
                 for scenario in scenarios:
+                    if args.reuse_first_hot and args.mode == 'measure' and round_number == 1 and scenario == 'hot':
+                        previous = json.loads(args.reuse_first_hot.read_text())
+                        assert previous['status'] == 'failed' and len(previous['rounds']) == 2
+                        assert previous['plan_sha256'] == '140a84f649d6284f6ab75cb47579e97b378cc7c7159e12f0607ae81712f6e53e'
+                        assert previous['rounds'][1]['scenario'] == 'mixed' and previous['rounds'][1]['status'] == 'failed'
+                        assert previous['reference_identity'] == summary['reference_identity']
+                        assert previous['affinity'] == summary['affinity'] and previous['kernel'] == summary['kernel']
+                        reused = previous['rounds'][0]
+                        assert reused['status'] == 'passed' and reused['scenario'] == 'hot'
+                        assert reused['corpus']['corpus_sha256'] == '3892e23121d6767704ed2e6e0cfc749c23f43e65ef82bb001151b28c9ecc9a27'
+                        assert all_success(reused['client']) and reused['upstream_queries'] == 0
+                        summary['rounds'].append({**reused, 'reused_from': str(args.reuse_first_hot.resolve()),
+                                                  'original_summary_sha256': digest(args.reuse_first_hot)})
+                        continue
                     result = run_round(reference, out / f'round-{round_number}-{scenario}',
                                        (out, fixture), scenario, cpus, args.mode == 'profile')
                     summary['rounds'].append(result)

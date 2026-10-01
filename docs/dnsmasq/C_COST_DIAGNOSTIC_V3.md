@@ -26,6 +26,17 @@ unique forwards plus observed negative forwards; inserts must catch up with
 that actual total. The negative client class is still exactly 10,000 correct
 NXDOMAIN answers. No failed v2 window is retroactively relabeled as passing.
 
+The tester first calibrates that C can retrieve a negative, answer it from
+cache, evict it with 1000 other records, retrieve it again well before its
+30-second TTL, then hit it again. Upstream counters are retained per synthetic
+name/qtype (no per-query log during measurement): every unique item is exactly
+one, every negative item belongs to the fixed input vector and never exceeds
+its planned occurrences, and no positive hot item is forwarded. C's reported
+retry/failure counters must not increase. Sent responses must equal upstream
+requests. The fixture has one A/AAAA RR or one no-SOA negative marker per
+answer, so exactly one C cache insertion per upstream response is expected;
+this equality must not be generalized to an SOA or multi-RR fixture.
+
 Only the original, already-passed first hot window may be reused, since its
 request vector, code path and all quality gates are unchanged. The tool must
 record its original identity and path, retain the rejected mixed window, then
