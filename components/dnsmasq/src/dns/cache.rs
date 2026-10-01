@@ -212,6 +212,11 @@ pub struct Cache {
 }
 
 impl Cache {
+    #[cfg(test)]
+    pub(super) fn insertion_test_state(&self) -> (usize, bool) {
+        (self.pending.len(), self.failed)
+    }
+
     pub fn new(capacity: usize, mut policy: Policy) -> Self {
         // C represents a zero stale allowance as the option being disabled.
         if policy.stale == StalePolicy::Seconds(0) {

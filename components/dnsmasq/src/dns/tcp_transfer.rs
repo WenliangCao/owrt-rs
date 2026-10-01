@@ -3,6 +3,10 @@
 //! This typed codec is not C's native ABI. Whole-transaction decoding and
 //! allocation failure/partial EOF behavior remain explicitly unqualified.
 
+#[cfg(all(test, target_os = "linux"))]
+#[path = "tcp_partial_eof_tests.rs"]
+mod partial_eof_tests;
+
 use super::cache::{CacheTransaction, Kind, Record, TransferredRecord};
 use super::wire::{decode_name, Name};
 use std::fs::File;
