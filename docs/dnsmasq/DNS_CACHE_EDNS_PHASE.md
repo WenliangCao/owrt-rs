@@ -56,5 +56,12 @@ Evidence remains under ignored
 `service-source-04.tar.gz` and its per-file identity manifest retain the exact
 source used by the final frozen-time probe. Related real-service evidence is
 in [the alias phase](DNS_ALIAS_SERVICE_PHASE.md): 97 observations, matching
-upstream counts, cache reuse and coalesced replies. There is no performance
-gain, target-package or physical-router acceptance claim in this phase.
+upstream counts, cache reuse and coalesced replies. The source04 native release
+build also passes with Rust 1.98.1; its ELF SHA-256 is
+`7ee4d53bf4bc6f43ac10a07fd3df2a74a0ab034f72d0c057ec63a12dc4493f64`.
+`source04/private/build-04.log` retains an initial output-directory permission
+failure after the root-owned isolated test; `build-04b.log` records the passing
+build in a separate private target directory. No permission or source semantics
+were changed to obtain the build. The ELF and compiler identity stay private.
+There is no performance gain, target-package or physical-router acceptance
+claim in this phase.
