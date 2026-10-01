@@ -70,8 +70,10 @@ sudo -n sh tools/dnsmasq/run_isolated.sh \
   --output private/dhcp-boot-rerun
 ```
 
-Next-server hosts-name resolution, tags, PXE selection and relay routing remain
-explicitly unsupported and are **not** counted as C matches. Strings longer
+At this stage, next-server hosts-name resolution, tags, PXE selection and relay
+routing were explicitly unsupported and were **not** counted as C matches.
+The subsequent [hosts lookup stage](DHCP_BOOT_HOSTS_PHASE.md) closes only the
+next-server hosts-name gap. Strings longer
 than 255 bytes are explicitly rejected rather than narrowing a DHCP TLV length;
 that is also outside this supported subset. A subsequent stage must connect the
 hosts-name form to the same F_HOSTS generation and round-robin lookup as DNS,

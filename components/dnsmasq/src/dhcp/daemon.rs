@@ -83,6 +83,8 @@ pub struct MaintenanceReport {
     pub host_files: Vec<HostFileError>,
 }
 
+type BootHostLookup = Box<dyn FnMut(&[u8]) -> io::Result<Option<Ipv4Addr>> + Send>;
+
 pub struct LocalProvider {
     config: DhcpConfig,
     leases: LeaseStore,
@@ -103,6 +105,7 @@ pub struct LocalProvider {
     should_stop: fn() -> bool,
     persistence: LeasePersistence,
     dns_publisher: Option<Box<dyn DnsPublisher>>,
+    boot_host_lookup: Option<BootHostLookup>,
     startup_removed: Vec<Lease>,
     restore_stats: Option<RestoreStats>,
     initialized: bool,
@@ -166,6 +169,7 @@ impl LocalProvider {
             control: UdpSocket::bind((Ipv4Addr::UNSPECIFIED, 0)).map_err(StartupError::Socket)?,
             persistence,
             dns_publisher: None,
+            boot_host_lookup: None,
             startup_removed,
             restore_stats,
             initialized: false,
@@ -186,6 +190,16 @@ impl LocalProvider {
     /// Startup initialize or the next maintenance publishes the pending state.
     pub fn set_dns_publisher(&mut self, publisher: Box<dyn DnsPublisher>) {
         self.dns_publisher = Some(publisher);
+    }
+
+    /// Lookup only the parent's current static F_HOSTS generation. This hook
+    /// must preserve its round-robin mutation; it must not use system DNS,
+    /// forwarded cache records or DHCP-derived names.
+    pub fn set_boot_host_lookup<F>(&mut self, lookup: F)
+    where
+        F: FnMut(&[u8]) -> io::Result<Option<Ipv4Addr>> + Send + 'static,
+    {
+        self.boot_host_lookup = Some(Box::new(lookup));
     }
 
     /// Install the validated address-to-domain fields before initialize.
@@ -567,6 +581,34 @@ impl OutcomeProvider for LocalProvider {
 
     fn boot_config(&self) -> Option<&crate::config::dhcp::BootConfig> {
         self.config.boot.as_ref()
+    }
+
+    fn boot_next_server(&mut self) -> io::Result<Option<Ipv4Addr>> {
+        let Some(boot) = &self.config.boot else {
+            return Ok(None);
+        };
+        if !boot.next_server.is_unspecified() {
+            return Ok(Some(boot.next_server));
+        }
+        let Some(name) = &boot.next_server_name else {
+            return Ok(None);
+        };
+        let address = if self.dns_port == 0 {
+            None
+        } else {
+            let lookup = self
+                .boot_host_lookup
+                .as_mut()
+                .ok_or_else(|| io::Error::other("DHCP boot hosts lookup is not attached"))?;
+            lookup(name)?
+        };
+        if address.is_none() {
+            eprintln!(
+                "dnsmasq-rs: No IPv4 address found for {}",
+                String::from_utf8_lossy(name)
+            );
+        }
+        Ok(Some(address.unwrap_or(Ipv4Addr::UNSPECIFIED)))
     }
 
     fn allow_override(&self) -> bool {

@@ -107,6 +107,21 @@ pub trait OutcomeProvider {
         None
     }
 
+    /// Some(0) is a failed hosts-name lookup and deliberately replaces the
+    /// context default. None means no explicit override.
+    fn boot_next_server(&mut self) -> io::Result<Option<Ipv4Addr>> {
+        if self
+            .boot_config()
+            .is_some_and(|boot| boot.next_server_name.is_some())
+        {
+            return Err(io::Error::other("DHCP boot hosts lookup is not attached"));
+        }
+        Ok(self
+            .boot_config()
+            .map(|boot| boot.next_server)
+            .filter(|address| !address.is_unspecified()))
+    }
+
     fn allow_override(&self) -> bool {
         true
     }
@@ -370,6 +385,7 @@ pub enum RuntimeError {
     Interface(io::Error),
     Reply(ReplyError),
     Random(io::Error),
+    BootLookup(io::Error),
     Send(io::Error),
 }
 
@@ -489,6 +505,24 @@ where
     } else {
         0
     };
+    let boot_next_server = if matches!(outcome.reply, Reply::Nak { .. }) {
+        None
+    } else {
+        match provider.boot_next_server() {
+            Ok(address) => address,
+            Err(error) => {
+                events.push(RuntimeEvent::Cleanup {
+                    outcome_dropped: true,
+                });
+                return Err(failure(
+                    RuntimeError::BootLookup(error),
+                    events,
+                    Some(outcome),
+                    true,
+                ));
+            }
+        }
+    };
     let network = (!matches!(outcome.reply, Reply::Nak { .. }))
         .then(|| provider.network_options(&outcome))
         .flatten();
@@ -561,11 +595,9 @@ where
         omitted: encoding.omitted,
         overload: encoding.overload,
     });
-    if let Some(network) = network {
-        let next_server = boot
-            .map(|boot| boot.next_server)
-            .filter(|address| !address.is_unspecified())
-            .unwrap_or(network.next_server);
+    if let Some(next_server) =
+        boot_next_server.or_else(|| network.map(|network| network.next_server))
+    {
         buffer[20..24].copy_from_slice(&next_server.octets());
     }
     let mut destination = match destination(&dispatch, peer, &outcome.reply, buffer, encoding.len) {
@@ -866,6 +898,49 @@ mod tests {
             removed: Vec::new(),
             lost_names: Vec::new(),
         }
+    }
+
+    #[test]
+    fn boot_lookup_failure_retains_committed_outcome_without_sending() {
+        struct Provider;
+        impl OutcomeProvider for Provider {
+            fn resolve(&mut self, _: &Dispatch<'_>) -> Result<Outcome, RuntimeError> {
+                Ok(offer())
+            }
+            fn boot_next_server(&mut self) -> io::Result<Option<Ipv4Addr>> {
+                Err(io::Error::other("DNS state lock poisoned"))
+            }
+        }
+        let bytes = packet(
+            &[53, 1, 1, 255],
+            BROADCAST_FLAG,
+            Ipv4Addr::UNSPECIFIED,
+            Ipv4Addr::UNSPECIFIED,
+        );
+        let mut sender = Sender {
+            sent: Vec::new(),
+            fail: false,
+        };
+        let mut output = [0; 548];
+        let error = process(
+            dispatch_for(&bytes),
+            "0.0.0.0:68".parse().unwrap(),
+            &mut Provider,
+            &mut sender,
+            &[],
+            &mut output,
+        )
+        .unwrap_err();
+        assert!(matches!(error.error, RuntimeError::BootLookup(_)));
+        assert!(error.committed);
+        assert_eq!(error.outcome.unwrap().reply, offer().reply);
+        assert!(sender.sent.is_empty());
+        assert!(matches!(
+            error.events.last(),
+            Some(RuntimeEvent::Cleanup {
+                outcome_dropped: true
+            })
+        ));
     }
 
     #[test]

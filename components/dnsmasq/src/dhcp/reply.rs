@@ -680,6 +680,7 @@ mod tests {
             filename: Some(vec![b'f'; 128]),
             server_name: Some(vec![b's'; 64]),
             next_server: Ipv4Addr::new(127, 0, 0, 9),
+            next_server_name: None,
         };
         let bytes = request(&[53, 1, 1, 55, 2, 66, 67, 255]);
         let packet = Packet::parse(&bytes).unwrap();
@@ -715,6 +716,7 @@ mod tests {
             filename: Some(vec![b'f'; 254]),
             server_name: Some(vec![b's'; 40]),
             next_server: Ipv4Addr::UNSPECIFIED,
+            next_server_name: None,
         };
         let mut output = vec![0; 548];
         let encoded = build_reply_with_boot(

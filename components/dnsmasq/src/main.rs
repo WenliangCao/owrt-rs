@@ -303,6 +303,21 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         )?;
         provider.set_dns_config(&daemon_config)?;
         if dns_enabled {
+            let boot_dns = Arc::clone(&service);
+            provider.set_boot_host_lookup(move |name| {
+                let mut parent = boot_dns
+                    .lock()
+                    .map_err(|_| io::Error::other("DNS state lock poisoned"))?;
+                Ok(parent
+                    .local
+                    .hosts
+                    .lookup(name, Some(false), false)
+                    .first()
+                    .and_then(|host| match host.address {
+                        IpAddr::V4(address) => Some(address),
+                        IpAddr::V6(_) => None,
+                    }))
+            });
             provider.set_dns_publisher(Box::new(LeasePublisher {
                 parent: Arc::clone(&service),
                 policy: LeasePolicy {

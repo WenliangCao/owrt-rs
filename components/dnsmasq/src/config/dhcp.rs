@@ -48,13 +48,14 @@ pub struct RangeConfig {
     pub lease_time_explicit: bool,
 }
 
-/// Ordinary untagged boot metadata. Zero next-server retains the context's
-/// local address. Tagged selection and hosts-name resolution remain separate.
+/// Ordinary untagged boot metadata. Zero numeric next-server retains the
+/// context's local address; a hosts name is resolved for each response.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct BootConfig {
     pub filename: Option<Vec<u8>>,
     pub server_name: Option<Vec<u8>>,
     pub next_server: Ipv4Addr,
+    pub next_server_name: Option<Vec<u8>>,
 }
 
 impl BootConfig {
@@ -73,15 +74,18 @@ impl BootConfig {
             }
             Ok((!value.is_empty()).then_some(value))
         };
-        let next_server = match next.map(|value| value.decoded()) {
-            Some(value) if !value.is_empty() => ip(&value)
-                .map_err(|_| Error("DHCP boot next-server hosts names are not implemented"))?,
-            _ => Ipv4Addr::UNSPECIFIED,
+        let (next_server, next_server_name) = match next.map(|value| value.decoded()) {
+            Some(value) if !value.is_empty() => match ip(&value) {
+                Ok(address) => (address, None),
+                Err(_) => (Ipv4Addr::UNSPECIFIED, Some(value)),
+            },
+            _ => (Ipv4Addr::UNSPECIFIED, None),
         };
         Ok(Self {
             filename: string(file.decoded())?,
             server_name: string(server.map(|value| value.decoded()).unwrap_or_default())?,
             next_server,
+            next_server_name,
         })
     }
 }
@@ -433,15 +437,22 @@ mod tests {
                 filename: Some(b"synthetic,one.img".to_vec()),
                 server_name: Some(b"boot,name".to_vec()),
                 next_server: Ipv4Addr::new(192, 0, 2, 2),
+                next_server_name: None,
             })
         );
         assert!(config.no_override);
-        for line in [
-            "dhcp-boot=tag:known,file",
-            "dhcp-boot=net:known,file",
-            "dhcp-boot=file,,boot.test",
-            "dhcp-boot=file,,192.0.2.2,extra",
-        ] {
+        for name in ["boot.test", "BOOT.test.", "192.0.2.2,extra"] {
+            let line = format!("dhcp-boot=file,,{name}");
+            config
+                .apply(&lex_line(line.as_bytes()).unwrap().unwrap())
+                .unwrap();
+            // option.c preserves this field rather than canonicalising it.
+            assert_eq!(
+                config.boot.as_ref().unwrap().next_server_name.as_deref(),
+                Some(name.as_bytes())
+            );
+        }
+        for line in ["dhcp-boot=tag:known,file", "dhcp-boot=net:known,file"] {
             let before = config.clone();
             assert!(config
                 .apply(&lex_line(line.as_bytes()).unwrap().unwrap())
@@ -457,6 +468,7 @@ mod tests {
                 filename: None,
                 server_name: None,
                 next_server: Ipv4Addr::UNSPECIFIED,
+                next_server_name: None,
             })
         );
     }
