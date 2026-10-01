@@ -68,6 +68,16 @@ pub struct HostRecord {
     pub ttl: Option<u32>,
 }
 
+/// option.c's static IPv4 doctor rule, already in its evaluation order when
+/// stored in DnsConfig::aliases. Preserve host bits and C's zero-end sentinel.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct AliasConfig {
+    pub from: Ipv4Addr,
+    pub end: Ipv4Addr,
+    pub to: Ipv4Addr,
+    pub mask: Ipv4Addr,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum DomainSelector {
     Range4 {
@@ -108,6 +118,8 @@ pub struct DnsConfig {
     pub addn_hosts: Vec<Option<PathBuf>>,
     pub hosts_dirs: Vec<Option<PathBuf>>,
     pub host_records: Vec<HostRecord>,
+    /// Newest declaration first. A doctor consumer must not reverse this again.
+    pub aliases: Vec<AliasConfig>,
     pub domain_suffix: Option<Vec<u8>>,
     pub domain_from_resolv: bool,
     /// Newest declaration first, matching C's cond_domain linked list.
@@ -149,6 +161,7 @@ impl Default for DnsConfig {
             addn_hosts: Vec::new(),
             hosts_dirs: Vec::new(),
             host_records: Vec::new(),
+            aliases: Vec::new(),
             domain_suffix: None,
             domain_from_resolv: false,
             conditional_domains: Vec::new(),
@@ -210,6 +223,45 @@ fn fields(bytes: &[u8], delimiter: u8) -> Vec<Vec<u8>> {
 }
 fn optional_bytes(bytes: Vec<u8>) -> Option<Vec<u8>> {
     (!bytes.is_empty()).then_some(bytes)
+}
+
+fn alias(argument: &EncodedArg) -> Result<AliasConfig, Error> {
+    let missing = Error("missing address in alias");
+    let range_error = Error("invalid alias range");
+    let v4 = |bytes: &[u8]| match ip(bytes) {
+        Some(IpAddr::V4(address)) => Some(address),
+        _ => None,
+    };
+    let (source, tail) = argument.split_once(b',');
+    let tail = tail.ok_or_else(|| missing.clone())?;
+    // C leaves the first field encoded, but unhides the complete tail before
+    // finding the mask comma. A quoted comma in the tail is therefore real.
+    let (target, mask) = EncodedArg::command_line(&tail.decoded()).split_once(b',');
+    let (source, end) = source.split_once(b'-');
+    let from = v4(source.encoded()).ok_or_else(|| missing.clone())?;
+    let to = v4(target.encoded()).ok_or_else(|| missing.clone())?;
+    let mask = match mask {
+        Some(mask) => v4(&mask.decoded()).ok_or(missing)?,
+        None => Ipv4Addr::BROADCAST,
+    };
+    let end = match end {
+        Some(end) => {
+            let end = v4(end.encoded()).ok_or_else(|| range_error.clone())?;
+            if from > end
+                || (u32::from(from) & u32::from(mask)) != (u32::from(end) & u32::from(mask))
+            {
+                return Err(range_error);
+            }
+            end
+        }
+        None => Ipv4Addr::UNSPECIFIED,
+    };
+    Ok(AliasConfig {
+        from,
+        end,
+        to,
+        mask,
+    })
 }
 fn path(argument: Option<&EncodedArg>) -> Option<PathBuf> {
     let bytes = argument?.decoded();
@@ -481,6 +533,7 @@ impl DnsConfig {
             b"addn-hosts" => self.addn_hosts.insert(0, path(arg)),
             b"hostsdir" => self.hosts_dirs.insert(0, path(arg)),
             b"host-record" => self.host_records.push(host_record(arg.unwrap())?),
+            b"alias" => self.aliases.insert(0, alias(arg.unwrap())?),
             b"domain" | b"domain-suffix" => self.domain(arg.unwrap())?,
             b"local-service" => match arg.map(EncodedArg::encoded) {
                 None | Some(b"net") => self.local_service_net = true,
@@ -703,9 +756,9 @@ impl DnsConfig {
         Ok(self.domain_suffix.as_deref())
     }
 
-    /// Explicit guard for platform-dependent resolver inputs. Callers which
-    /// implement these resolvers can replace this guard with equivalent
-    /// resolution/validation; they must not silently skip them.
+    /// Guard platform-dependent inputs and features without a live consumer.
+    /// Callers may replace the corresponding guard only when equivalent
+    /// resolution/consumption is connected; they must not silently skip it.
     pub fn validate_ready(&self) -> Result<(), Error> {
         for rule in &self.rules {
             if let RuleTarget::Upstream(server) = &rule.target {
@@ -730,6 +783,11 @@ impl DnsConfig {
                 "conditional domain requires platform resolution or C range review",
             ));
         }
+        if !self.aliases.is_empty() {
+            return Err(Error(
+                "static DNS aliases are not connected to the response doctor",
+            ));
+        }
         Ok(())
     }
 }
@@ -741,6 +799,23 @@ mod tests {
 
     fn apply(config: &mut DnsConfig, input: &[u8]) -> Result<bool, Error> {
         config.apply(&lex_line(input)?.ok_or(Error("empty test directive"))?)
+    }
+
+    #[test]
+    fn alias_syntax_does_not_claim_an_unconnected_runtime_consumer() {
+        let mut config = DnsConfig::default();
+        apply(&mut config, b"alias=192.0.2.10,198.51.100.20").unwrap();
+        apply(&mut config, b"alias=192.0.2.0,203.0.113.99,255.255.255.0").unwrap();
+        assert_eq!(
+            config.aliases[0].to,
+            "203.0.113.99".parse::<Ipv4Addr>().unwrap()
+        );
+        assert_eq!(config.aliases[1].mask, Ipv4Addr::BROADCAST);
+        assert!(config.finalize().is_ok());
+        assert_eq!(
+            config.validate_ready().unwrap_err(),
+            Error("static DNS aliases are not connected to the response doctor")
+        );
     }
 
     #[test]
