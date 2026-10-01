@@ -36,7 +36,7 @@ use dnsmasq_rs::ubus_service::{ConnectError, DnsResult, UbusService};
 use dnsmasq_rs::ubus_service::{DhcpEventFields, DhcpEventKind, DhcpLogging};
 use std::ffi::OsString;
 use std::io::{self, Read, Write};
-use std::net::{IpAddr, SocketAddr, TcpListener, UdpSocket};
+use std::net::{IpAddr, Shutdown, SocketAddr, TcpListener, UdpSocket};
 
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -970,18 +970,11 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                     );
                                     snapshot.leases = Arc::clone(&parent.local.leases);
                                     let accepted_at = unix_seconds();
-                                    let cache = match parent
+                                    let cache = parent
                                         .daemon
                                         .as_ref()
                                         .expect("DNS listener owns forwarder")
-                                        .snapshot_tcp_cache(accepted_at)
-                                    {
-                                        Ok(cache) => cache,
-                                        Err(error) => {
-                                            eprintln!("dnsmasq-rs: private TCP cache: {error}");
-                                            continue;
-                                        }
-                                    };
+                                        .snapshot_tcp_cache(accepted_at);
                                     let (receiver, sender) = match tcp_transfer::pipe() {
                                         Ok(pipe) => pipe,
                                         Err(_) => continue,
@@ -1066,8 +1059,10 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                             } else {
                                                 None
                                             };
-                                            let answer = if let Some(answer) = local.or(cached) {
-                                                answer
+                                            let (answer, stale) = if let Some(answer) = local {
+                                                (answer, false)
+                                            } else if let Some(answer) = cached {
+                                                (answer.packet, answer.stale)
                                             } else {
                                                 let mut pipe_failed = false;
                                                 let mut send = |transaction| {
@@ -1086,7 +1081,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                                     break 'connection;
                                                 }
                                                 match answer {
-                                                    Ok(answer) => answer,
+                                                    Ok(answer) => (answer, false),
                                                     Err(_) => break 'connection,
                                                 }
                                             };
@@ -1102,6 +1097,25 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                                 || write_frame_until(&mut stream, &frame, deadline)
                                                     .is_err()
                                             {
+                                                break 'connection;
+                                            }
+                                            if stale {
+                                                // forward.c::tcp_request closes the downstream
+                                                // before its one refresh. The same worker, cache,
+                                                // clock and writeback pipe stay alive until then.
+                                                let _ = stream.shutdown(Shutdown::Both);
+                                                drop(stream);
+                                                let mut send = |transaction| {
+                                                    let _ = sender.send(
+                                                        transaction,
+                                                        deadline,
+                                                        stopping,
+                                                    );
+                                                };
+                                                let _ = forward.handle_with_cache(
+                                                    &query, &service, &mut cache, &mut send,
+                                                    deadline, &stopping,
+                                                );
                                                 break 'connection;
                                             }
                                             if queries == 100 {

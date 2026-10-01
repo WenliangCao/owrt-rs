@@ -524,14 +524,14 @@ mod tests {
             let answer = cache.answer(&request, &mut local).unwrap();
             assert_eq!(answer.is_some(), !request_cd);
             if let Some(answer) = answer {
-                let parsed = Message::parse(&answer).unwrap();
+                let parsed = Message::parse(&answer.packet).unwrap();
                 assert_eq!(parsed.records(Section::Answer).next().unwrap().ttl, 30);
             }
         }
     }
 
     #[test]
-    fn private_tcp_snapshot_rejects_enabled_stale_without_changing_parent_policy() {
+    fn private_tcp_snapshot_keeps_its_stale_policy_and_clock() {
         use crate::dns::cache::StalePolicy;
         use crate::dns::daemon::{DaemonOptions, DnsDaemon};
         use crate::hosts::Hosts;
@@ -542,9 +542,18 @@ mod tests {
         let mut daemon =
             DnsDaemon::new(config, Hosts::new(), &[], DaemonOptions::default()).unwrap();
         daemon.enable_cache(10, 0, 0, StalePolicy::Forever);
-        assert!(daemon.snapshot_tcp_cache(100).is_err());
-        assert!(daemon.snapshot_tcp_cache(200).is_err());
+        let old = daemon.snapshot_tcp_cache(100);
         daemon.enable_cache(10, 0, 0, StalePolicy::Disabled);
-        assert_eq!(daemon.snapshot_tcp_cache(100).unwrap().accepted_at(), 100);
+        let new = daemon.snapshot_tcp_cache(200);
+        assert_eq!(old.accepted_at(), 100);
+        assert_eq!(
+            old.cache.as_ref().unwrap().policy().stale,
+            StalePolicy::Forever
+        );
+        assert_eq!(new.accepted_at(), 200);
+        assert_eq!(
+            new.cache.as_ref().unwrap().policy().stale,
+            StalePolicy::Disabled
+        );
     }
 }

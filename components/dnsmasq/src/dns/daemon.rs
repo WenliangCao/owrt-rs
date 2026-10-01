@@ -291,27 +291,15 @@ impl<R: Random> DnsDaemon<R> {
     }
 
     /// PRIVATE correctness snapshot only. Full cloning has not passed the
-    /// product resource gate, and stale TCP close/refresh is not implemented.
-    pub fn snapshot_tcp_cache(
-        &self,
-        accepted_at: i64,
-    ) -> Result<super::tcp_cache::TcpCache, DaemonError> {
-        if self
-            .cache
-            .as_ref()
-            .is_some_and(|cache| cache.policy().stale != StalePolicy::Disabled)
-        {
-            return Err(
-                ConfigError("private TCP cache prototype excludes stale cache policy").into(),
-            );
-        }
-        Ok(super::tcp_cache::TcpCache {
+    /// product resource gate. The connection retains this acceptance clock.
+    pub fn snapshot_tcp_cache(&self, accepted_at: i64) -> super::tcp_cache::TcpCache {
+        super::tcp_cache::TcpCache {
             cache: self.cache.clone(),
             counters: self.cache_counters,
             negative_cache: self.negative_cache,
             negative_ttl: self.negative_ttl,
             accepted_at,
-        })
+        }
     }
 
     pub fn import_tcp_cache(
