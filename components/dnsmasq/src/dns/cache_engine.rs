@@ -68,6 +68,7 @@ impl CacheContext<'_> {
         // Other qtypes' AD, EDNS options and nonzero metadata stay outside
         // this measured subset; accepting DO on insertion is independent.
         let edns = find_pseudoheader(query, true)?;
+        let dnssec_requested = edns.opt.as_ref().is_some_and(|opt| opt.dnssec_ok());
         if header.questions != 1
             || header.answers != 0
             || header.authorities != 0
@@ -75,15 +76,51 @@ impl CacheContext<'_> {
             || header.opcode() != 0
             || header.flags & 0x8000 != 0
             || (header.flags & 0x0020 != 0 && !matches!(question.rrtype, 1 | 28))
+            || (dnssec_requested && !matches!(question.rrtype, 1 | 28))
             || edns
                 .opt
                 .as_ref()
-                .is_some_and(|opt| opt.record.ttl != 0 || !opt.record.rdata.is_empty())
+                .is_some_and(|opt| opt.record.ttl & !0x8000 != 0 || !opt.record.rdata.is_empty())
             || edns.signed
         {
             return Ok(CachedAnswer {
                 packet: None,
                 stale: false,
+            });
+        }
+        if dnssec_requested {
+            // answer_request looks up each group before rejecting unsigned
+            // DO answers. Preserve LRU/rotation/expiry effects in that order,
+            // stopping at a CNAME instead of following its target.
+            let mut stale = false;
+            if question.class == 1 {
+                let round_robin = !local.config.no_round_robin;
+                let first = self.cache.lookup(
+                    &question.name,
+                    &[Kind::Cname, Kind::NxDomain],
+                    now,
+                    round_robin,
+                );
+                let entry = first.first().and_then(|id| self.cache.get(*id));
+                stale = entry.is_some_and(|entry| entry.is_stale(now));
+                if !entry.is_some_and(|entry| entry.record.kind == Kind::Cname) {
+                    let kind = if question.rrtype == 1 {
+                        Kind::Ipv4
+                    } else {
+                        Kind::Ipv6
+                    };
+                    self.cache.lookup(&question.name, &[kind], now, round_robin);
+                    self.cache.lookup(
+                        &question.name,
+                        &[Kind::Generic(question.rrtype), Kind::NxDomain],
+                        now,
+                        round_robin,
+                    );
+                }
+            }
+            return Ok(CachedAnswer {
+                packet: None,
+                stale,
             });
         }
         let limit = edns
