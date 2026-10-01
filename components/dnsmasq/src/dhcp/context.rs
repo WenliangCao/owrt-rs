@@ -130,6 +130,7 @@ mod tests {
 
     fn config() -> RangeConfig {
         RangeConfig {
+            set_tag: None,
             start: address("192.0.2.10"),
             end: address("192.0.2.20"),
             netmask: None,
