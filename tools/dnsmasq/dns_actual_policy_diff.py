@@ -154,7 +154,9 @@ cname=alias.test,multi.test
     differences = []
     if args.reference:
         reference = json.loads(args.reference.read_text())
-        for index, (expected, actual) in enumerate(zip(reference['rows'], rows)):
+        actual_by_key = {(row['name'], row['type'], row['tcp']): row for row in rows}
+        for index, expected in enumerate(reference['rows']):
+            actual = actual_by_key.get((expected['name'], expected['type'], expected['tcp']))
             if expected != actual:
                 differences.append({'index': index, 'expected': expected, 'actual': actual})
         if len(reference['rows']) != len(rows):

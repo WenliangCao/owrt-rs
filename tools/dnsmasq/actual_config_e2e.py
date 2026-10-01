@@ -149,7 +149,14 @@ def run(args):
     executable = str(Path(__file__).resolve())
     children, logs, errors = [], [], []
     result = {'errors': errors}
+    bus = None
     try:
+        from types import SimpleNamespace
+        from ubus_contract_diff import Fixture
+        bus_out = args.out / 'ubus'
+        bus_out.mkdir()
+        bus = Fixture(SimpleNamespace(reference_build=args.reference_build), bus_out)
+        bus.start_bus()
         for label, command in [
             ('upstream', ['nsenter', '-t', upstream_pid, '-n', sys.executable, executable, '--mode', 'upstream',
                           '--out', str(args.out / 'upstream'), '--resolv', str(args.resolv)]),
@@ -213,6 +220,10 @@ def run(args):
         result['exit_codes'] = [process.returncode for process in children]
         for log in logs:
             log.close()
+        if bus is not None:
+            bus.close()
+            save_json(args.out / 'ubus/checks.json', bus.checks)
+            errors.extend(check for check in bus.checks if not check['pass'])
     if args.reference and not errors:
         reference = json.loads(args.reference.read_text())
         for key in ['lease', 'lease_expiry_valid', 'exit_codes', 'credentials']:
@@ -232,6 +243,7 @@ def main():
     parser.add_argument('--mode', choices=['run', 'client', 'upstream'], default='run')
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--binary', type=Path)
+    parser.add_argument('--reference-build', type=Path)
     parser.add_argument('--config', type=Path, default=Path('/var/etc/dnsmasq.conf.cfg01411c'))
     parser.add_argument('--pidfile', type=Path, default=Path('/var/run/dnsmasq/dnsmasq.cfg01411c.pid'))
     parser.add_argument('--leasefile', type=Path, default=Path('/tmp/dhcp.leases'))
