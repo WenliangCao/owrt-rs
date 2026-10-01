@@ -109,6 +109,7 @@ pub struct LocalProvider {
     alarm_deadline: Option<Instant>,
     pending_alarms: u32,
     maintenance_report: Option<MaintenanceReport>,
+    message_counters: super::message_counters::MessageCounters,
 }
 
 impl LocalProvider {
@@ -171,6 +172,7 @@ impl LocalProvider {
             alarm_deadline: None,
             pending_alarms: 0,
             maintenance_report: None,
+            message_counters: super::message_counters::MessageCounters::default(),
         })
     }
 
@@ -271,6 +273,12 @@ impl LocalProvider {
     /// Hosts reload and persistence retries preserve this cumulative window.
     pub fn lease_counters(&self) -> super::lease::LeaseCounters {
         self.leases.counters()
+    }
+
+    /// Cumulative message events, including valid no-reply branches and
+    /// construction before send errors. Reload and maintenance preserve it.
+    pub fn message_counters(&self) -> super::message_counters::MessageCounters {
+        self.message_counters
     }
 
     fn update_configured_names(&mut self) {
@@ -543,6 +551,8 @@ impl OutcomeProvider for LocalProvider {
         );
         provider.configured_name = configured_name;
         provider.domains = Some(&self.domains);
+        provider.quiet_dhcp = self.config.quiet_dhcp;
+        provider.message_counters = Some(&mut self.message_counters);
         let result = provider.resolve(dispatch);
         self.probe_error = probe_error;
         for (selected, range) in self.selected.iter().zip(&ranges) {

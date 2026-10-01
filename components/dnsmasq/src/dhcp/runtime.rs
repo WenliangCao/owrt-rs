@@ -7,6 +7,7 @@
 //! tests may provide a callback, while [`StateProvider`] supplies the local
 //! DHCP/BOOTP state adapter without opening a socket here.
 
+use super::message_counters::MessageCounters;
 use super::reply::{build_reply_with_fuzz, needs_renewal_fuzz, ReplyError, ReplyOption};
 use super::service::{Dispatch, DispatchKind, Route};
 use super::state::{self, Environment, HostPolicy, Name, Outcome, Reply, Request};
@@ -152,6 +153,9 @@ pub struct StateProvider<'a, F> {
     pub configured_name: Option<&'a [u8]>,
     pub domains: Option<&'a crate::config::dhcp::NameDomains>,
     pub environment: Environment<'a>,
+    pub quiet_dhcp: bool,
+    /// Optional owner supplied by the daemon; pure state callers can omit it.
+    pub message_counters: Option<&'a mut MessageCounters>,
     pub probe: F,
 }
 
@@ -174,6 +178,8 @@ impl<'a, F> StateProvider<'a, F> {
             configured_name: None,
             domains: None,
             environment,
+            quiet_dhcp: false,
+            message_counters: None,
             probe,
         }
     }
@@ -192,6 +198,21 @@ where
         // owned outcome so the caller can queue deletion/name notifications.
         let mut expired = self.store.prune(None, environment.now);
         let packet = dispatch.packet;
+        // rfc2131.c:390-410,1052-1055: no initial context, or a proxy-only
+        // head context, returns before ordinary message-counter write sites.
+        // An INFORM may lose its narrowed context later, but still requires
+        // this initial serving context. Packet-triggered pruning is retained.
+        if self
+            .ranges
+            .first()
+            .is_none_or(|range| range.kind == super::allocation::RangeKind::Proxy)
+        {
+            return Ok(Outcome {
+                reply: Reply::Ignore,
+                lost_names: LeaseStore::names_lost(&expired),
+                removed: expired,
+            });
+        }
         let hostname = packet.client_hostname();
         let name = self
             .configured_name
@@ -211,27 +232,53 @@ where
             name,
             environment,
         };
+        let mut discarded_counters = MessageCounters::default();
+        let counters = self
+            .message_counters
+            .as_deref_mut()
+            .unwrap_or(&mut discarded_counters);
         let outcome = match packet.message_type() {
-            0 => state::bootp(self.store, self.ranges, request(), &mut self.probe),
-            1 => state::discover(self.store, self.ranges, request(), &mut self.probe),
-            3 => state::request(self.store, self.ranges, request()),
+            0 => state::bootp_counted(
+                self.store,
+                self.ranges,
+                request(),
+                &mut self.probe,
+                counters,
+            ),
+            1 => state::discover_counted(
+                self.store,
+                self.ranges,
+                request(),
+                &mut self.probe,
+                self.quiet_dhcp,
+                counters,
+            ),
+            3 => state::request_counted(self.store, self.ranges, request(), counters),
             4 => Ok(Outcome {
                 reply: Reply::Ignore,
-                removed: state::decline(
+                removed: state::decline_counted(
                     self.store,
                     self.ranges,
                     packet,
                     self.host.as_deref_mut(),
                     environment,
+                    counters,
                 ),
                 lost_names: Vec::new(),
             }),
             7 => Ok(Outcome {
                 reply: Reply::Ignore,
-                removed: state::release(self.store, self.ranges, packet, self.tags, environment),
+                removed: state::release_counted(
+                    self.store,
+                    self.ranges,
+                    packet,
+                    self.tags,
+                    environment,
+                    counters,
+                ),
                 lost_names: Vec::new(),
             }),
-            8 => state::inform(self.store, self.ranges, request()),
+            8 => state::inform_counted(self.store, self.ranges, request(), counters),
             // The runtime filters PXE, relay, leasequery and unknown routes
             // before this callback. A known but client-only message type is a
             // no-reply state transition in rfc2131.c.
@@ -1375,6 +1422,7 @@ mod tests {
         };
         let tags: &[&[u8]] = &[];
         let reserved: &[Ipv4Addr] = &[];
+        let mut counters = MessageCounters::default();
         let mut provider = StateProvider::new(
             &mut store,
             &mut ranges,
@@ -1384,6 +1432,7 @@ mod tests {
             environment,
             |_, _| ProbeResult::Available { offer_hash: 1 },
         );
+        provider.message_counters = Some(&mut counters);
         let outcome = provider.resolve(&dispatch).unwrap();
         assert!(matches!(
             outcome.reply,
@@ -1402,6 +1451,8 @@ mod tests {
         // OPT_AUTHORITATIVE only affects address/lease decisions.
         assert!(!provider.store.get(requested).unwrap().authoritative_name);
         assert!(provider.store.changes().dns);
+        assert_eq!(provider.message_counters.as_deref().unwrap().request, 1);
+        assert_eq!(provider.message_counters.as_deref().unwrap().ack, 1);
 
         // A configured name may displace a client name, but a subsequent
         // client REQUEST must not steal it back (lease.c:1127-1133).
@@ -1430,6 +1481,28 @@ mod tests {
             provider.store.get(configured).unwrap().hostname.as_deref(),
             Some(&b"test"[..])
         );
+        // C updates both counters while constructing its ACK, before the
+        // containing DHCP caller attempts socket delivery. A send error must
+        // neither undo those events nor count another packet-level event.
+        let mut sender = Sender {
+            sent: Vec::new(),
+            fail: true,
+        };
+        let failure = process_with_random(
+            dispatch_for(&bytes),
+            SocketAddr::from(([192, 0, 2, 10], 68)),
+            &mut provider,
+            &mut sender,
+            &[],
+            &mut [0; 548],
+            || Ok(0),
+        )
+        .unwrap_err();
+        assert!(matches!(failure.error, RuntimeError::Send(_)));
+        assert!(failure.committed);
+        assert_eq!(provider.message_counters.as_deref().unwrap().request, 3);
+        assert_eq!(provider.message_counters.as_deref().unwrap().ack, 3);
+        assert!(sender.sent.is_empty());
     }
 
     #[test]

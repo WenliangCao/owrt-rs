@@ -7,6 +7,7 @@ use super::allocation::{
     allocate_address, available, narrow, AddressRange, ProbeResult, RangeKind,
 };
 use super::lease::{ClientIdentity, Lease, LeaseError, LeaseStore, NameLost};
+use super::message_counters::MessageCounters;
 use super::packet::Packet;
 use super::request::{
     classify_request, extended_hardware_id, lease_duration, NakReason, RequestDecision, RequestMode,
@@ -184,7 +185,16 @@ pub fn request(
     ranges: &[AddressRange],
     request: Request<'_>,
 ) -> Result<Outcome, LeaseError> {
-    transaction(store, ranges, request, None)
+    request_counted(store, ranges, request, &mut MessageCounters::default())
+}
+
+pub(crate) fn request_counted(
+    store: &mut LeaseStore,
+    ranges: &[AddressRange],
+    request: Request<'_>,
+    counters: &mut MessageCounters,
+) -> Result<Outcome, LeaseError> {
+    transaction(store, ranges, request, None, counters)
 }
 
 fn transaction(
@@ -192,6 +202,7 @@ fn transaction(
     ranges: &[AddressRange],
     request: Request<'_>,
     offered: Option<Ipv4Addr>,
+    counters: &mut MessageCounters,
 ) -> Result<Outcome, LeaseError> {
     let mut output = Outcome::ignored();
     let env = request.environment;
@@ -238,6 +249,11 @@ fn transaction(
     if prune_old_lease {
         output.removed = store.prune(existing, env.now);
         existing = None;
+    }
+    // rfc2131.c:1490, after REQUEST-mode early returns. Rapid commit jumps
+    // over this statement after DISCOVER and never counts REQUEST or OFFER.
+    if offered.is_none() {
+        counters.request = counters.request.wrapping_add(1);
     }
     // C's server-ID search consumes the front of the context chain.
     let first = if mode == RequestMode::Selecting && env.override_server.is_none() {
@@ -327,8 +343,10 @@ fn transaction(
     if let Some(reason) = error {
         // Failed rapid commit sends no NAK (rfc2131.c:1567-1576).
         if offered.is_some() {
+            counters.no_answer = counters.no_answer.wrapping_add(1); // :1565
             return Ok(output);
         }
+        counters.nak = counters.nak.wrapping_add(1); // :1565
         let chosen = context
             .map(|index| &ranges[index])
             .or_else(|| selected_ranges.first());
@@ -370,6 +388,7 @@ fn transaction(
     store.set_expires(address, duration, env.now)?;
     store.set_interface(address, env.interface)?;
     let override_id = store.server_override(address, env.override_server)?;
+    counters.ack = counters.ack.wrapping_add(1); // :1738, before wire/send
     output.reply = Reply::Ack {
         address,
         lease_time: duration,
@@ -387,10 +406,35 @@ pub fn discover(
     store: &mut LeaseStore,
     ranges: &mut [AddressRange],
     request: Request<'_>,
+    probe: impl FnMut(Ipv4Addr, u32) -> ProbeResult,
+) -> Result<Outcome, LeaseError> {
+    discover_counted(
+        store,
+        ranges,
+        request,
+        probe,
+        false,
+        &mut MessageCounters::default(),
+    )
+}
+
+pub(crate) fn discover_counted(
+    store: &mut LeaseStore,
+    ranges: &mut [AddressRange],
+    request: Request<'_>,
     mut probe: impl FnMut(Ipv4Addr, u32) -> ProbeResult,
+    quiet: bool,
+    counters: &mut MessageCounters,
 ) -> Result<Outcome, LeaseError> {
     let env = request.environment;
-    if env.ignored || request.packet.message_type() != 1 {
+    if request.packet.message_type() != 1 {
+        return Ok(Outcome::ignored());
+    }
+    if env.ignored {
+        // :1289-1293: quiet-dhcp suppresses this one counter as well as log.
+        if !quiet {
+            counters.discover = counters.discover.wrapping_add(1);
+        }
         return Ok(Outcome::ignored());
     }
     let mut client = identity(request.packet, env.ignore_client_id);
@@ -422,7 +466,7 @@ pub fn discover(
             match probe(address, 0) {
                 ProbeResult::Available { .. } => Some(address),
                 ProbeResult::InUse => None,
-                ProbeResult::Failed => return Ok(Outcome::ignored()),
+                ProbeResult::Failed => return Ok(discover_failed(counters)),
             }
         } else {
             None
@@ -439,7 +483,7 @@ pub fn discover(
             client.client_id.as_deref(),
         );
         if hardware.is_empty() {
-            return Ok(Outcome::ignored());
+            return Ok(discover_failed(counters));
         }
         let Some((_, address)) = allocate_address(
             ranges,
@@ -450,16 +494,18 @@ pub fn discover(
             |address| request.reserved.contains(&address),
             &mut probe,
         ) else {
-            return Ok(Outcome::ignored());
+            return Ok(discover_failed(counters));
         };
         address
     };
+    counters.discover = counters.discover.wrapping_add(1); // :1349
     let Some(context) = narrow(ranges, address, request.tags) else {
         return Ok(Outcome::ignored());
     };
     if env.rapid_commit && request.packet.option(80, 0).is_some() {
-        return transaction(store, ranges, request, Some(address));
+        return transaction(store, ranges, request, Some(address), counters);
     }
+    counters.offer = counters.offer.wrapping_add(1); // :1377
     let lease_time = lease_duration(
         ranges[context].lease_time,
         request.host.and_then(|host| host.lease_time),
@@ -477,6 +523,12 @@ pub fn discover(
     })
 }
 
+fn discover_failed(counters: &mut MessageCounters) -> Outcome {
+    // Address selection/identity errors still reach C's DISCOVER write site.
+    counters.discover = counters.discover.wrapping_add(1);
+    Outcome::ignored()
+}
+
 /// BOOTP's address/lease transaction (rfc2131.c:565-697). Its wire reply has
 /// only a 64-byte vendor area and no DHCP message type; the serializer must
 /// preserve that distinct format. BOOTP defaults to an infinite lease.
@@ -486,11 +538,26 @@ pub fn bootp(
     request: Request<'_>,
     probe: impl FnMut(Ipv4Addr, u32) -> ProbeResult,
 ) -> Result<Outcome, LeaseError> {
+    bootp_counted(
+        store,
+        ranges,
+        request,
+        probe,
+        &mut MessageCounters::default(),
+    )
+}
+
+pub(crate) fn bootp_counted(
+    store: &mut LeaseStore,
+    ranges: &mut [AddressRange],
+    request: Request<'_>,
+    probe: impl FnMut(Ipv4Addr, u32) -> ProbeResult,
+    counters: &mut MessageCounters,
+) -> Result<Outcome, LeaseError> {
     let mut output = Outcome::ignored();
     let env = request.environment;
     let packet = request.packet;
-    if env.ignored
-        || packet.message_type() != 0
+    if packet.message_type() != 0
         || packet.hardware_type() == 0
         || packet.hardware_address().is_empty()
         || ranges
@@ -498,6 +565,9 @@ pub fn bootp(
             .is_none_or(|range| range.kind == RangeKind::Proxy)
     {
         return Ok(output);
+    }
+    if env.ignored {
+        return Ok(bootp_finished(output, counters));
     }
     let client = identity(packet, true);
     let mut existing = store.find_client(&client).map(|lease| lease.address);
@@ -508,7 +578,7 @@ pub fn bootp(
             lease.identity.hardware_type != client.hardware_type
                 || lease.identity.hardware_address != client.hardware_address
         }) {
-            return Ok(output);
+            return Ok(bootp_finished(output, counters));
         }
         address
     } else {
@@ -528,21 +598,21 @@ pub fn bootp(
                 |address| request.reserved.contains(&address),
                 probe,
             ) else {
-                return Ok(output);
+                return Ok(bootp_finished(output, counters));
             };
             address
         }
     };
     let Some(context) = narrow(ranges, address, request.tags) else {
-        return Ok(output);
+        return Ok(bootp_finished(output, counters));
     };
     if static_address.is_none() && !env.bootp_dynamic {
-        return Ok(output);
+        return Ok(bootp_finished(output, counters));
     }
     if existing.is_none() {
         match store.allocate(address, client.clone()) {
             Ok(()) => {}
-            Err(LeaseError::Full) => return Ok(output),
+            Err(LeaseError::Full) => return Ok(bootp_finished(output, counters)),
             Err(error) => return Err(error),
         }
     }
@@ -567,7 +637,13 @@ pub fn bootp(
     )?;
     store.set_interface(address, env.interface)?;
     output.reply = Reply::Bootp { address, context };
-    Ok(output)
+    Ok(bootp_finished(output, counters))
+}
+
+fn bootp_finished(outcome: Outcome, counters: &mut MessageCounters) -> Outcome {
+    // :694: counted for both success and the post-admission failure paths.
+    counters.bootp = counters.bootp.wrapping_add(1);
+    outcome
 }
 
 /// DECLINE never replies. A matching static address is suppressed for 600 s;
@@ -576,8 +652,26 @@ pub fn decline(
     store: &mut LeaseStore,
     ranges: &mut [AddressRange],
     packet: Packet<'_>,
+    host: Option<&mut HostPolicy>,
+    environment: Environment<'_>,
+) -> Vec<Lease> {
+    decline_counted(
+        store,
+        ranges,
+        packet,
+        host,
+        environment,
+        &mut MessageCounters::default(),
+    )
+}
+
+pub(crate) fn decline_counted(
+    store: &mut LeaseStore,
+    ranges: &mut [AddressRange],
+    packet: Packet<'_>,
     mut host: Option<&mut HostPolicy>,
     environment: Environment<'_>,
+    counters: &mut MessageCounters,
 ) -> Vec<Lease> {
     if packet.message_type() != 4
         || packet.server_identifier()
@@ -592,6 +686,7 @@ pub fn decline(
     let Some(address) = packet.requested_address() else {
         return Vec::new();
     };
+    counters.decline = counters.decline.wrapping_add(1); // :1248
     let existing = store
         .find_client(&identity(packet, environment.ignore_client_id))
         .map(|lease| lease.address);
@@ -619,6 +714,24 @@ pub fn release(
     tags: &[&[u8]],
     environment: Environment<'_>,
 ) -> Vec<Lease> {
+    release_counted(
+        store,
+        ranges,
+        packet,
+        tags,
+        environment,
+        &mut MessageCounters::default(),
+    )
+}
+
+pub(crate) fn release_counted(
+    store: &mut LeaseStore,
+    ranges: &[AddressRange],
+    packet: Packet<'_>,
+    tags: &[&[u8]],
+    environment: Environment<'_>,
+    counters: &mut MessageCounters,
+) -> Vec<Lease> {
     if packet.message_type() != 7 {
         return Vec::new();
     }
@@ -637,11 +750,13 @@ pub fn release(
     let existing = store
         .find_client(&identity(packet, environment.ignore_client_id))
         .map(|lease| lease.address);
-    if existing == Some(packet.effective_ciaddr()) {
+    let removed = if existing == Some(packet.effective_ciaddr()) {
         store.prune(existing, environment.now)
     } else {
         Vec::new()
-    }
+    };
+    counters.release = counters.release.wrapping_add(1); // :1282, including unknown lease
+    removed
 }
 
 /// INFORM returns settings without allocating or extending a lease. It may
@@ -652,10 +767,23 @@ pub fn inform(
     ranges: &[AddressRange],
     request: Request<'_>,
 ) -> Result<Outcome, LeaseError> {
+    inform_counted(store, ranges, request, &mut MessageCounters::default())
+}
+
+pub(crate) fn inform_counted(
+    store: &mut LeaseStore,
+    ranges: &[AddressRange],
+    request: Request<'_>,
+    counters: &mut MessageCounters,
+) -> Result<Outcome, LeaseError> {
     let mut output = Outcome::ignored();
     let env = request.environment;
     let address = request.packet.effective_ciaddr();
-    if env.ignored || request.packet.message_type() != 8 || address.is_unspecified() {
+    if request.packet.message_type() != 8 {
+        return Ok(output);
+    }
+    counters.inform = counters.inform.wrapping_add(1); // :1757, before ignore/zero-ciaddr
+    if env.ignored || address.is_unspecified() {
         return Ok(output);
     }
     let context = narrow(ranges, address, request.tags);
@@ -665,6 +793,7 @@ pub fn inform(
         .or_else(|| store.get(address).map(|lease| lease.address));
     let mut override_id = env.override_server;
     let mut lease_time = None;
+    counters.ack = counters.ack.wrapping_add(1); // :1784, before lease interface update
     if let Some(existing) = existing {
         store.set_interface(existing, env.interface)?;
         override_id = store.server_override(existing, override_id)?;
