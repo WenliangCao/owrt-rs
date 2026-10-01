@@ -1,0 +1,269 @@
+{
+  "scope": "Frozen same-name reverse expiry addon after shared-name index correction",
+  "plan_commit": "a40faee",
+  "tool_commit": "6f409df",
+  "tool_sha256": "c52d0d212a138bb411ff6154855bd8465ddb619e153538c6532f4b108f27a260",
+  "source_commit": "0eaaef813893ac71954f56c379f8fc6b5eb24064",
+  "source_archive_sha256": "80f8729926e16b0a630dfbaba19941bd4527fe534484a0617115d168e555c315",
+  "cache_source_sha256": "5d62b11382abcb2c59cef411a060365f1675ebeca839101c1cb194d26e9160d2",
+  "rust_probe_sha256": "434171de6d85a0d78347a72b76defb12cf387eaee31a1d49b1e68989eec8bfff",
+  "c_oracle_sha256": "6212a54631bc51dfc0cd6b7f10425d8761c61094c8dde01cf74627a0ee814a14",
+  "c_driver_sha256": "18a004b826b119cb160bbec182cbffee9c545f5f6b9fff9d6a46fe8c1f88b298",
+  "c_result_sha256": "225cd87342a0719a37f026b8f792a51810b4e904ee9f0161206802e17fd5349a",
+  "c_matrix_sha256": "b37332f9f449b60bd0c352f3091381790bb299dbcb0de5312a4d3b65a49dda7e",
+  "c_baseline_reexecuted": false,
+  "rust_observed": 27,
+  "mismatches": 0,
+  "failures": [],
+  "profiles": [
+    {
+      "label": "lookup-rd1",
+      "expected_rows": 5,
+      "observed_rows": 5,
+      "mismatches": 0,
+      "failures": []
+    },
+    {
+      "label": "lookup-rd0",
+      "expected_rows": 5,
+      "observed_rows": 5,
+      "mismatches": 0,
+      "failures": []
+    },
+    {
+      "label": "forward-insert",
+      "expected_rows": 6,
+      "observed_rows": 6,
+      "mismatches": 0,
+      "failures": []
+    },
+    {
+      "label": "contains-control",
+      "expected_rows": 5,
+      "observed_rows": 5,
+      "mismatches": 0,
+      "failures": []
+    },
+    {
+      "label": "live-coexist-control",
+      "expected_rows": 6,
+      "observed_rows": 6,
+      "mismatches": 0,
+      "failures": []
+    }
+  ],
+  "archive": {
+    "files": 168,
+    "manifest_sha256": "2e4d5bfcdb1f9a767375edea8cb32fcc84f85513e6b5d1e436292898304de0ee",
+    "archive_sha256": "bc9426e5182a1904dc7a1115a1b658df9dabb7dc0e48af8d40788f2ffccb9436",
+    "archive_bytes": 1804280
+  },
+  "append_only": {
+    "components/dnsmasq/src/dns/cache.rs": {
+      "original_sha256": "5d62b11382abcb2c59cef411a060365f1675ebeca839101c1cb194d26e9160d2",
+      "original_bytes": 38722,
+      "instrumented_sha256": "cb8719964b645421d6a388c187412b2af7117bd53dd8eb4656f0b261d432f8f0"
+    },
+    "components/dnsmasq/src/dns/daemon.rs": {
+      "original_sha256": "c5454119a3d7435fc5f629239cb38e6ecb1e68d328b42b1b3943e0c971cd18b5",
+      "original_bytes": 60637,
+      "instrumented_sha256": "dc651964a5d3a9732447b5e15722f420ee782580e6d370b05851eeb442b1bd8a"
+    }
+  },
+  "source_audit": [
+    "Committed records of both directions enter and leave the shared name index; pending records remain unindexed",
+    "Lookup expires either direction before Kind::matches restricts selected/promoted records to forward",
+    "Kind::conflicts rejects reverse entries for forward insertion, forward victim eviction and publication deletion",
+    "contains_forward_name explicitly excludes reverse records and stays read-only",
+    "DHCP prepare_name records dynamic reverse direction in Row.flags and preserves the forward selection boundary",
+    "CNAME target rejection for reverse IDs and reverse import bypass of forward local matching remain intact"
+  ],
+  "boundaries": [
+    "Final source 0eaaef8 only; intermediate adf3977 identities are not substituted",
+    "No rerun/change of either C baseline or 44-row C order cohort",
+    "Original 125-row primitive replayed unchanged after index mutation, using the same observation ELF; no rebuild",
+    "No sorting, set normalization or discarded failure rows",
+    "Original 54346fd 21/27 before and all six differences retained",
+    "Only exact-name/case-equivalent bucket cleanup; different-name C hash collisions unqualified",
+    "Native source primitive; no stock-image, service, allocation/resource, performance or router acceptance",
+    "No product promotion; private multi-PTR order gaps remain open"
+  ],
+  "original125_regression": {
+    "c_result_sha256": "63e97d2c01e391036f9b71de7ea3bff47030816043b2aaecdcf308c406ae396f",
+    "c_matrix_sha256": "dd8c3201822afde8b480e39fe7631ddf6d109bc72948c4a21e16e63040d9a6b5",
+    "cohort": "C-only; not replayed or normalized",
+    "tool_sha256": "1aa96c03de23770157fa0a88230f8c700fcfa10862efdb59146a2fe81971175a",
+    "observed": 125,
+    "mismatches": 0,
+    "unsupported_rows": 0,
+    "failures": [],
+    "profiles": [
+      {
+        "label": "direction-v4",
+        "expected_rows": 10,
+        "observed_rows": 10,
+        "mismatches": 0,
+        "unsupported_rows": 0,
+        "probe_exit": 0,
+        "failures": [],
+        "c_observations_sha256": "81691481a80530451e6c6d5739cbeb0e3f0bfcb38691385460684b08fb3a93c6"
+      },
+      {
+        "label": "direction-v6",
+        "expected_rows": 11,
+        "observed_rows": 11,
+        "mismatches": 0,
+        "unsupported_rows": 0,
+        "probe_exit": 0,
+        "failures": [],
+        "c_observations_sha256": "b1cffd93c93171e16bd58aac84269d95ee9421464dcdc4cfa5b77be5a56d5f0e"
+      },
+      {
+        "label": "replace-v4",
+        "expected_rows": 7,
+        "observed_rows": 7,
+        "mismatches": 0,
+        "unsupported_rows": 0,
+        "probe_exit": 0,
+        "failures": [],
+        "c_observations_sha256": "1db7032b3c2e9ff59810c996800b77ce740dc928bfd5d129e8523f36373d04c5"
+      },
+      {
+        "label": "replace-v6",
+        "expected_rows": 7,
+        "observed_rows": 7,
+        "mismatches": 0,
+        "unsupported_rows": 0,
+        "probe_exit": 0,
+        "failures": [],
+        "c_observations_sha256": "3a41575c031cdbf9354c4fe08405c72f0616168c3033e6e2afaf378ec0657cd7"
+      },
+      {
+        "label": "same-target-two-addresses",
+        "expected_rows": 9,
+        "observed_rows": 9,
+        "mismatches": 0,
+        "unsupported_rows": 0,
+        "probe_exit": 0,
+        "failures": [],
+        "c_observations_sha256": "50de0515eebd8b6f02f97cddab7a3413847982dbfe12028a915596c920477008"
+      },
+      {
+        "label": "nodata-owner-scope",
+        "expected_rows": 9,
+        "observed_rows": 9,
+        "mismatches": 0,
+        "unsupported_rows": 0,
+        "probe_exit": 0,
+        "failures": [],
+        "c_observations_sha256": "339069ab56b4166d806ee1f3e77d50ef5ad99116c9cc09acd8ee62ad4140fe09"
+      },
+      {
+        "label": "nxdomain-owner-scope",
+        "expected_rows": 9,
+        "observed_rows": 9,
+        "mismatches": 0,
+        "unsupported_rows": 0,
+        "probe_exit": 0,
+        "failures": [],
+        "c_observations_sha256": "afb4c08ace82d4464f39e5af129dfc7202f0f6135750409cb1c196d8373516c7"
+      },
+      {
+        "label": "no-negcache",
+        "expected_rows": 5,
+        "observed_rows": 5,
+        "mismatches": 0,
+        "unsupported_rows": 0,
+        "probe_exit": 0,
+        "failures": [],
+        "c_observations_sha256": "df704ca1c95f664faf969fdbc51aba3888bd8259565869b718810ce3d2847837"
+      },
+      {
+        "label": "pressure-forward-insert",
+        "expected_rows": 11,
+        "observed_rows": 11,
+        "mismatches": 0,
+        "unsupported_rows": 0,
+        "probe_exit": 0,
+        "failures": [],
+        "c_observations_sha256": "49fc0f2fdfe70a5c2f5d265d39b7091e3fffb33ff788100dbebc1d1a769f6412"
+      },
+      {
+        "label": "pressure-reverse-insert",
+        "expected_rows": 11,
+        "observed_rows": 11,
+        "mismatches": 0,
+        "unsupported_rows": 0,
+        "probe_exit": 0,
+        "failures": [],
+        "c_observations_sha256": "84e86d8dd557e38f17df17e19138be556ab10062ce419659d9506fea5702fd9d"
+      },
+      {
+        "label": "reverse-lookup-expiry",
+        "expected_rows": 10,
+        "observed_rows": 10,
+        "mismatches": 0,
+        "unsupported_rows": 0,
+        "probe_exit": 0,
+        "failures": [],
+        "c_observations_sha256": "033aa4378761b3525a0bfcf984d549474334cc05df9373ee78049a6b38167ff3"
+      },
+      {
+        "label": "reverse-insert-expiry",
+        "expected_rows": 8,
+        "observed_rows": 8,
+        "mismatches": 0,
+        "unsupported_rows": 0,
+        "probe_exit": 0,
+        "failures": [],
+        "c_observations_sha256": "ff6091d1d38b60f05562ddb1b287eb756c0e1050a951ed9d1cefda018283940c"
+      },
+      {
+        "label": "rd0-pressure",
+        "expected_rows": 11,
+        "observed_rows": 11,
+        "mismatches": 0,
+        "unsupported_rows": 0,
+        "probe_exit": 0,
+        "failures": [],
+        "c_observations_sha256": "f15da3592f2f4682cb07dd951efda22a219777e64369fe4c7f440dca52738d13"
+      },
+      {
+        "label": "mixed-case-target",
+        "expected_rows": 7,
+        "observed_rows": 7,
+        "mismatches": 0,
+        "unsupported_rows": 0,
+        "probe_exit": 0,
+        "failures": [],
+        "c_observations_sha256": "274f5b4f1a7097c50a230e7352ed80afaa9e6d59ea06f468cfc5d6767bbadfad"
+      }
+    ],
+    "same_probe_reused": true,
+    "c_baseline_reexecuted": false,
+    "archive": {
+      "files": 88,
+      "manifest_sha256": "9165f58851c668fe8210080cd885b7be237939330b29245374e8ca67a4ed01b7",
+      "archive_sha256": "46d5b45938bfa03cad793abe2b04f12bc2da78054be17facb5df89f46bc9d906",
+      "archive_bytes": 18252
+    },
+    "command": {
+      "cwd": "/home/ubuntu/dns-reverse-name-expiry-20261001/work01",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "tools/dnsmasq/reverse_cache_rust_gate.py",
+        "run",
+        "--build",
+        "private/build-0eaaef8-01",
+        "--c-baseline",
+        "/home/ubuntu/dns-reverse-cache-20261001/work01/private/native-baseline-01",
+        "--out",
+        "private/primitive125-after-01"
+      ]
+    }
+  }
+}
