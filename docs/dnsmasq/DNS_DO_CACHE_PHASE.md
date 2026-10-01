@@ -76,13 +76,13 @@ Their tool SHA-256 is
 `a45cf8e2895c25193a7959f52205ed0ac1aae865e12e5bc4ef82265d27a167c4`.
 The original retry gate's 83/14 historical result remains unchanged.
 
-Host Rust 1.98.1 DNS tests pass 213/0/4 ignored. New regressions preserve DO/AD/CD
+Host Rust 1.98.1 DNS tests pass 214/0/4 ignored. New regressions preserve DO/AD/CD
 forwarding metadata and block raw reply-CD cache admission after client-CD
 restoration, with proxy both off and on. Unsupported EDNS bits, versions,
 options and unmeasured qtypes remain rejected by the metadata helper. Target
 musl checking, all-targets Clippy and changed-file formatting pass.
 
-Frozen implementation replay follows separately. No DNSSEC validation,
+The frozen implementation replay is recorded below. No DNSSEC validation,
 signature cache, arbitrary EDNS-option, other-qtype AD, target-Rust execution
 or complete DNS equivalence is claimed.
 
@@ -119,3 +119,53 @@ lookup actually purges the target; that distinction is preserved. Rust's
 additional unit test checks index, links, generations and expired-record
 retention directly. The first harness attempt failed while hashing a string
 path and ran no comparisons; `name-c-baseline-01` remains beside baseline 02.
+
+## Final frozen replay
+
+The complete source at `a4b3087` was archived and built in a new target
+directory. The native Rust ELF SHA-256 is
+`7a836a8faa1020f03426ceb4b2816e6c593e489db847d5c60a12b1237980d857`;
+the source archive SHA-256 is
+`e24b0113f4627f93d75360a2a0450c3a59fa155fd81763457a6bafbd15fda21a`.
+Compiler identity, source-file hashes, binaries, raw traces and results remain
+private. This freeze predates the separately owned typed cache-transfer work.
+
+| Gate | Final result |
+| --- | --- |
+| `native-after-02` | Native C: 750/750 match, zero fixture failures |
+| `image-after-02` | Verified actual image C: 750/750 match, zero fixture failures |
+| `native-negative-01` | Deliberately altered AD: exactly one mismatch among 750 observations; exit 1 |
+| `name-after-01` | 108/108 commands, including 53 name-presence probes; three identical C runs per scenario |
+| `name-negative-01` | Altered name-presence result: exactly one mismatch; exit 1 |
+| `edns-regression-01` | 155/155 frozen-time cache operations; 68 stale observations and seven misses |
+| `policy-regression-01` | 471/471 ordered cache/policy/counter operations |
+| `coalescing-regression-01` | Eight IPv4/IPv6 cases; 16 client replies and 16 upstream sends match |
+| `policy-service-regression-01` | 42 IPv4/IPv6 cases, 210 client replies; zero differences or fixture failures |
+| `forward-regression-01` | 1,285/1,285 forwarding state/counter operations; existing calibrations pass |
+| `forward-service-regression-02` | 1,217/1,217 EDNS forwarding-envelope cases |
+| `dns-isolated-tests-02.log` | Linux isolated DNS tests: 214 passed, zero failed, four ignored |
+
+The DO/AD/CD gate is unchanged from the independently calibrated expanded
+C baselines: tool SHA-256
+`a45cf8e2895c25193a7959f52205ed0ac1aae865e12e5bc4ef82265d27a167c4`.
+Both C variants and Rust use the same schedules and comparator. The negative
+control changes only the compared AD observation; original raw packets remain
+retained. The name-presence gate's SHA-256 is
+`c63a56f8d68c945ea0a2205ddedd9685cded21e989ad4298e81b5b9a9ee1a251`.
+All-targets Clippy with warnings denied, the aarch64-musl compile check and
+changed-file formatting also pass.
+
+Artifacts are under ignored
+`private/dnsmasq-rewrite/resume-do-cache-20261001/private/`: `baseline-linux/`
+retains the original 650-row and expanded 750-row baselines; `prior-linux/`
+retains both eight-mismatch service runs and the name baseline attempts;
+`final-linux/` holds the final Linux gates and ELF; the two forwarding gates
+and their logs are siblings. On the build host, the final freeze is
+`/home/ubuntu/dns-do-cache-20261001/freeze-a4b3087/`.
+
+Two final validation setup failures remain archived: the first isolated unit
+invocation used a stale test-binary filename, and the first forwarding-envelope
+invocation lacked its expected private source path. Neither ran comparisons.
+Fresh invocations use the emitted test-binary filename and the hash-verified
+matching source. No measured mismatch was removed or waived. Service gates
+and the Linux DNS suite ran through `run_isolated.sh`; no router was modified.
