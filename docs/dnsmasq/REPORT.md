@@ -83,6 +83,55 @@ TCP失败重试前缀被上次回复长度覆盖。Rust没有为模拟这些错�
 一个ioctl control socket且每请求重新枚举接口；TFTP端口范围目前每次占用
 候选会重建socket而C复用一个。以上没有测量为收益，不能声称优化任务完成。
 
+## 持续接线：共享状态、租约与文件重载
+
+后续源码已经超过上述SDK快照；旧APK不包含这些新单元。
+
+- `DNS_SHARED_STATE_PHASE.md`：单一parent forward cache/table，多UDP监听共用
+  配置容量，合并回复保留原listener；真实C门从1匹配/7差异到8/8匹配。
+- `DNS_LOCAL_EDNS_PHASE.md`、`DNS_HOSTS_GENERATION_PHASE.md`：按C的UDP限额、
+  OPT追加/DO、完整截断语义、配置前缀/hosts/PTR所有权和共享轮转修复。后续
+  本地584包、hosts204步及wire76213项通过；初始ASLR相关RR排列只作为固定seed，
+  此后使用实际C轮转规则，不逐回复排序。
+- `DHCP_PERSISTENCE_PHASE.md`：持有inode、flush/fsync成功才清dirty，失败仍ACK；
+  实际生命周期114项、磁盘满后60秒idle重试38项通过。
+- `DHCP_STATIC_PHASE.md`：普通CLID/MAC静态规则与名字/options12/15/81，真实
+  服务208项、恢复FQDN20项通过；配置86项匹配，8项未支持边界不计等价。
+- `DHCP_DNS_INTEGRATION_PHASE.md`：ACK前同步专用DHCP来源发布；初轮30事件及
+  扩展34事件全部匹配。包括预缓存替换、保留已有name-wide NXDOMAIN、A/FQDN/
+  PTR/CNAME、TCP、父域、renew/restart/release和无流量到期。注错校准29匹配/
+  1差异正确失败；没有用等待发布的轮询掩盖ACK时序。
+- `DHCP_HOST_FILES_PHASE.md`：普通hostsfile的20次源码合同重读及真实HUP/
+  文件/DHCP/DNS组合41项通过；故意错flag为40/1，Unsupported动态选择器暂停/
+  恢复另为Rust边界11/0，不冒充与C等价。hostsdir/inotify/tag等仍关闭。
+- `LEASE_NAMES_PHASE.md`、`DNS_LEASE_CACHE_PHASE.md`：专用expiry/TTL/PTR、
+  hosts优先、selfmx和每个TCP reader的过期删除已接。时钟回拨时C同hash桶的
+  无关记录附带删除仍有明确红例；publication失效不等于插入时local阻挡。
+  晚到上游回复在租约发布后能否缓存，以及CNAME→本地记录目标，是当前正在关闭
+  的实际功能门，不计入已通过范围。
+
+UBus真实C合同门和独立Rustcontroller进行中，未连接真实主程序counter或DNS doctor。
+UCI/procd/ujail/ACL/metrics完整事件与权限仍不能由这里的协议门推导为通过。
+
+## C 成本基线与优化候选
+
+[C_COST_RESULT.md](C_COST_RESULT.md) 固定保留9个C窗口、660000个正确完成请求、
+零错误/超时和3个独立profile。主机CPU/完成请求：hot39.10–40.65µs，mixed
+47.69–48.36µs，TCP228.53–230.66µs（计入子进程）。逐轮p50/p95/p99、USS/PSS/
+RSS/FD/线程/子进程采样、工具和上游分账、遗漏边界及原始hash索引全部在该报告。
+这不是Rust配对收益、饱和吞吐或路由器性能证据。
+
+原C满缓存插入的全表过期扫描在mixed/TCP profile的self cycles分别为11.07%/
+21.54%；当前Rust也有该扫描。[CACHE_EXPIRY_SCREEN_V1.md](CACHE_EXPIRY_SCREEN_V1.md)
+冻结仅增一个保守最早expiry下界的EPS1候选，跳过确定无过期记录的扫描，必要时
+仍按原顺序回收。37场景26992命令的压力C/C和C/Rust基线匹配，尚无候选实现或
+计时收益，不能把算法计划当成优化完成。
+
+[DYN1_RESULT.md](DYN1_RESULT.md) 的固定旧产品候选仅改变动态musl/PIE链接，
+ELF从989991B降为870915B（少119076B，12.03%），保护/依赖及冻结功能门通过。
+默认配方未采用；仍比目标C大601610B，且没有CPU/吞吐/内存收益结论。这一候选
+不覆盖后续源码，也不豁免整体体积退步。
+
 ## 目标产物与资源退步
 
 `PACKAGE_574F5ED_RESULT.md` 记录完整身份。最终阶段APK为 **520,797 B**，
