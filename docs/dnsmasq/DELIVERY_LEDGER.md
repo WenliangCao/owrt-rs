@@ -88,9 +88,10 @@ above remains a coverage ledger, not a pass denominator.
 
 | New bounded gate | Result | Still open |
 |---|---|---|
-| DO/AD/CD + known forwarded names | Native/image750/750; presence108; negative controls detect errors | Other qtypes/metadata/signatures; ordinary CD prefix effects |
-| Independent bogus transaction | Native/image256/256 even underCD/no-negcache | Ordinary extraction versus commit eligibility |
-| Typed transfer / private TCP reference | Primitive307/307 in product; privateTCP32 andUBus69/69 plusindependent12 | Private clone/storage, OOM/partialEOF/stale/resource boundaries; main product sender remains open |
+| DO/AD/CD + known forwarded names | Native/image750/750; presence108; negative controls detect errors | Other qtypes/metadata/signatures; DO lookup/LRU side effects under independent audit |
+| Independent bogus transaction | Native/image256/256 even underCD/no-negcache | Complete policy composition |
+| Ordinary CD extraction/commit | Native/image134/134; ordered removal, eviction and pending cleanup preserved while commit is suppressed | Broader no_cache configuration triggers; original136 image-C calibration failure retained |
+| Typed transfer / private TCP reference | Primitive307/307 in product; privateTCP32 andUBus69/69 plusindependent12; stale41 andCD65 on private2a773f8 | Private clone/storage, OOM/partialEOF/resource boundaries and untested policy combinations; main product sender remains open |
 | Live UBus | Native 68/69; image C 67/69 paired observations | TCP writeback; target C failed-parse address mutation remains explicit |
 | Cache transaction / empty OPT | 471 operations, UDP 42/210; cold empty-OPT 32 cases and coalescing/retry eight cases match | Complete cache/EDNS/TCP |
 | DHCP reverse-host startup/HUP | 87/87; 14 snapshots equal independently frozen C | Address derivation and remaining DHCP modes |
@@ -99,6 +100,7 @@ above remains a coverage ledger, not a pass denominator.
 | Resumed integration8c34170 | Linux381/main6,15ignored; DHCP→DNS34/34; native/musl Clippy | Not an SDK package or complete C-equivalence gate |
 | Transient UDP send retry | Helper53/53, DNS209, actual daemon61/61 | Same-frec/background caller policy and full DO caching |
 | TCP snapshot screen | Four variants pass 22,571 correctness operations; frozen48 timing runs complete24,000/24,000 with0errors | All3 candidates fail frozen gates; shared population CPU worst+13.71%, no adoption |
+| TCP inline16 snapshot screen | Both variants22571/22571; frozen24 windows/12000 completions,0errors; population and steady heap guards pass | 150-full first-pair p95+8.63% fails frozen5% guard; no adoption or extra rounds |
 | UDP malformed/admission/capacity | 40 inputs, 43 observations match; public/main hooks committed | Duplicate-client refusal has an explicit C wrong-ID defect; complete interface/send pressure remains open |
 | Delayed UDP and failure isolation | 11-second reply, 41-second late drop, 42-second new query match; failed sibling no longer hides successful replies | `ad7e2a7` now aligns lazy wall-clock lifetime; exact forward state/counters 1,285 operations pass; no resource-equivalence claim |
 | Lease operation counters | Actual C 47 scenarios/3,764 snapshots, negative 3,763/1 | Real lease and DHCP message owners now publish through UBus; complete feature coverage remains separate |

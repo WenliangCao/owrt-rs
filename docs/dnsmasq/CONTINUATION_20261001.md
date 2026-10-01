@@ -25,25 +25,35 @@ Do not overwrite those files or private experiment worktrees.
 | Fast retry counters | `1787a08`/`1972dd6`: actual producer and all metrics snapshots. Scoped87/88 retains C wrong-ID/question-case defect; nested doctor18/18, HUP5, initial failure61, state1285. |
 | DHCP hosts-derived addresses | `07a7eb5`/`8c34170`:27/27 C snapshots, before10/27; static208, hostfile41, reverse lifecycle87. |
 | Typed cache transfer primitive | `1f6a429`/`aa474e5`:36 cases/307 observations native and musl Rust; ordinary allocation vectors unchanged across5 cases. Root ordinary-cache22571 and cache/counter764 regressions pass. No main TCP sender or storage representation adopted. |
-| DO/AD/CD and known names | `664079d`/`e0dc08d`/`cdc6383`:750/750 native C and actual image C, AD negative749/1; name predicate108 with negative. Preserves raw-CD suppression and DO lookup bypass; CNAME/negative A/AAAA AD paths anchored. |
-| Independent bogus cache transaction | `5094420`/`220577d`/`5a1505c`:256/256 native and image C; preserved DO750/750; negative detects1. Ordinary CD extraction-side-effect gap remains explicitly open. |
+| DO/AD/CD and known names | `664079d`/`e0dc08d`/`cdc6383`:750/750 native C and actual image C, AD negative749/1; name predicate108 with negative. Unsigned DO answers forward; CNAME/negative A/AAAA AD paths anchored. DO lookup/LRU side effects are a separate open audit. |
+| Independent bogus cache transaction | `5094420`/`220577d`/`5a1505c`:256/256 native and image C; preserved DO750/750; negative detects1. |
+| Ordinary CD extraction before commit | `3e3e203`/`0c8f362`: explicit `Unsupported`/`ExtractOnly`/`Commit` modes; native and image134/134. Intermediate removals, pressure eviction and pending cleanup survive suppressed commit. Same ELF preserves DO750, bogus256, policy471, EDNS155 and service210. See `DNS_CD_COMMIT_PHASE.md`. |
 
 Current agents/ownership:
 
-- `do_cache_resume` owns isolated `resume-do-cache-20261001`; completed both
-  metadata and bogus units. It now waits for the independently frozen ordinary
-  CD prefix-effects baseline before modifying the extraction/commit boundary.
-- `tcp_writeback_gates` owns `../owrt-tcp-writeback-gates` on
-  `research/tcp-writeback-gates`. Completed independent doctor/pipe/slot gate12/12.
-  It now builds a narrow C-first ordinary-CD gate: held reply, CNAME-warmed old
-  data, uncommitted replacement/eviction effects, pending cleanup and recovery.
-  Only tools/reports; coordinate product API with the DO owner.
+- `do_cache_resume` completed metadata, bogus and ordinary-CD units. It owns
+  `resume-inline-rdata-20261001`: inline16 timing is complete and rejected,
+  with no product representation change. Next is a source/allocation audit of
+  snapshot index cloning, not another run of the rejected candidate.
+- `tcp_writeback_gates` completed independent doctor/pipe/slot12 and ordinary
+  UDP CD134 gates in `../owrt-tcp-writeback-gates`; their tools/reports are merged.
+- `do_lookup_pressure` independently freezes and calibrates a C-first DO
+  pressure/victim gate. C performs lookup before rejecting unsigned DO answers;
+  the current Rust early return skips lookup. A service difference must be
+  established before changing the product.
 - `tcp_reference_resume` completed a private correctness reference, preserved on
   `research/dnsmasq-tcp-reference-20261001` at `df75fb4`; worktree is
   `private/dnsmasq-rewrite/tcp-private-reference-20261001`. Frozen executable
   source `86b81ab` passes TCP32, native UBus69/69+581 checks, independent12,
   EMFILE17, capacity31, namespace395 library+7 main/16ignored, native/musl
-  Clippy. The shared product does not contain this implementation or `Clone`.
+  Clippy. The later stale branch is `2b149fa`, executed source `2a773f8`:
+  stale41/41, C164/Rust154 auxiliary checks, normalTCP32, UBus69/69,
+  isolated398+7/16ignored and native/musl Clippy. Ten C process-shape checks
+  are inapplicable to Rust and are not Rust passes. The same ELF also passes
+  CD65/65 and C152/Rust152 checks; CD branch is `e5ee749`. See
+  `TCP_STALE_REFERENCE_RESULT.md` and `TCP_CD_POLICY_REFERENCE_RESULT.md`.
+  Next is C-first abnormal partial-EOF qualification. The shared product does
+  not contain this implementation or `Clone`.
 - Root owns integration, reports and source/artifact identity checks. Merged
   DO plus typed-transfer host DNS tests217 passed/5ignored, full Clippy/fmt pass.
 
@@ -53,17 +63,29 @@ barrier and clock, joined-worker+EOF release, STOP under admission lock and
 actual kernel pipes. It avoids the incorrect one-message queue/doctor dependency
 cycle. Raw FD numbers are wake hints only; actual I/O rechecks current owners.
 Read `TCP_PRIVATE_REFERENCE_RESULT.md` before resuming or changing this branch.
-Deep clone, whole-vector allocation/OOM, abnormal partial-EOF, exact pipe-byte
-saturation, stale TCP and later CD/policy composition remain unqualified.
+Deep clone, whole-vector allocation/OOM, abnormal partial-EOF and exact pipe-byte
+saturation remain unqualified. The named stale and CD profiles above are
+qualified only on their private native source, not all policy combinations.
 A documented early host-namespace unit attempt is not acceptance; final tests
 ran through isolation. Do not silently promote this reference to product code.
 
 There is no active quiet performance window. The frozen representation screen
-completed48 runs/24000 operations, and chunk32 completed24/12000, all without
-functional errors. Compact, shared-entry, top-level COW and chunk32 all failed
+completed48 runs/24000 operations, chunk32 completed24/12000, and inline16
+completed24/12000, all without functional errors. Compact, shared-entry,
+top-level COW, chunk32 and inline16 all failed
 at least one unchanged resource/timing guard. No representation is accepted;
 no extra rounds or relaxed thresholds were used. Results are in
-`TCP_SNAPSHOT_SCREEN_RESULT.md` and `TCP_SNAPSHOT_CHUNK_RESULT.md`.
+`TCP_SNAPSHOT_SCREEN_RESULT.md`, `TCP_SNAPSHOT_CHUNK_RESULT.md` and
+`TCP_SNAPSHOT_INLINE16_RESULT.md`. Inline16's population guard passes, but
+150-full pair1 p95 increases 8.63%, exceeding the frozen 5% guard. Large-cache
+CPU gains47.39%/27.85% and heap gains49.20%/52.34% cannot waive that failure.
+Both owners were released from the completed quiet window; do not restart it.
+
+At this checkpoint `components/dnsmasq` and `components/ubus` are byte-identical
+to frozen product `ddac95d`. The newer commits add tools and derived reports.
+The original CD136 image-C calibration failure remains archived; the final
+CD134 fixture removes only an unrelated redundant control replacement. The
+source-supported hash/layout explanation is not a demonstrated repair.
 
 ## Latest committed functional progress
 
