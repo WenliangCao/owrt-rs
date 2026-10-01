@@ -28,6 +28,8 @@ pub struct DhcpConfig {
     pub ignore_client_id: bool,
     pub no_ping: bool,
     pub lease_max: usize,
+    pub lease_file: Option<Vec<u8>>,
+    pub lease_read_only: bool,
 }
 
 impl Default for DhcpConfig {
@@ -39,13 +41,15 @@ impl Default for DhcpConfig {
             sequential: false,
             ignore_client_id: false,
             no_ping: false,
-            lease_max: 150,
+            lease_max: 1000,
+            lease_file: None,
+            lease_read_only: false,
         }
     }
 }
 
 fn integer(bytes: &[u8]) -> Result<u32, Error> {
-    if bytes.is_empty() || !bytes.iter().all(u8::is_ascii_digit) {
+    if !bytes.iter().all(u8::is_ascii_digit) {
         return Err(Error("bad DHCP integer"));
     }
     bytes.iter().try_fold(0u32, |value, byte| {
@@ -99,10 +103,23 @@ impl DhcpConfig {
         let argument = directive.argument.as_ref();
         match directive.name.as_slice() {
             b"dhcp-authoritative" => self.authoritative = true,
-            b"bootp-dynamic" => self.bootp_dynamic = true,
+            b"bootp-dynamic" => {
+                // option.c:4664-4701 stores optional tag predicates. Until
+                // they reach the BOOTP caller, only the no-argument global
+                // form is supported; never widen scoped permission.
+                if argument.is_some() {
+                    return Err(Error("BOOTP dynamic tag selectors are not implemented"));
+                }
+                self.bootp_dynamic = true;
+            }
             b"dhcp-sequential-ip" => self.sequential = true,
             b"dhcp-ignore-clid" => self.ignore_client_id = true,
             b"no-ping" => self.no_ping = true,
+            b"leasefile-ro" => self.lease_read_only = true,
+            b"dhcp-leasefile" | b"dhcp-lease" => {
+                let value = argument.ok_or(Error("missing parameter"))?.decoded();
+                self.lease_file = (!value.is_empty()).then_some(value);
+            }
             b"dhcp-lease-max" => {
                 self.lease_max =
                     integer(&argument.ok_or(Error("missing parameter"))?.decoded())? as usize
@@ -170,10 +187,7 @@ impl DhcpConfig {
             | b"dhcp-fqdn"
             | b"dhcp-client-update"
             | b"dhcp-rapid-commit"
-            | b"dhcp-reply-delay"
-            | b"leasefile-ro"
-            | b"dhcp-leasefile"
-            | b"dhcp-lease" => {
+            | b"dhcp-reply-delay" => {
                 return Err(Error(
                     "DHCP option is parsed but runtime wiring is not complete",
                 ));
@@ -188,12 +202,71 @@ impl DhcpConfig {
         // runtime capability checks belong to the listener's admission gate.
         Ok(())
     }
+
+    /// Target Linux CLI default from config.h. OpenWrt init passes its own
+    /// explicit /tmp/dhcp.leases path; experiments must pass a private path.
+    pub fn lease_path(&self) -> &[u8] {
+        self.lease_file
+            .as_deref()
+            .unwrap_or(b"/var/lib/misc/dnsmasq.leases")
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::config::lex_line;
+
+    #[test]
+    fn scoped_bootp_permission_is_never_widened_to_global() {
+        for line in [
+            b"bootp-dynamic=tag:known".as_slice(),
+            b"bootp-dynamic=known",
+            b"bootp-dynamic=",
+        ] {
+            let mut config = DhcpConfig::default();
+            assert!(config.apply(&lex_line(line).unwrap().unwrap()).is_err());
+            assert!(!config.bootp_dynamic);
+        }
+        let mut config = DhcpConfig::default();
+        assert!(config
+            .apply(&lex_line(b"bootp-dynamic").unwrap().unwrap())
+            .unwrap());
+        assert!(config.bootp_dynamic);
+        for option in [
+            "dhcp-authoritative",
+            "dhcp-ignore-clid",
+            "dhcp-sequential-ip",
+            "no-ping",
+            "leasefile-ro",
+        ] {
+            let line = format!("{option}=tag:known");
+            assert!(config
+                .apply(&lex_line(line.as_bytes()).unwrap().unwrap())
+                .is_err());
+        }
+    }
+
+    #[test]
+    fn leasefile_alias_readonly_and_c_defaults() {
+        let mut config = DhcpConfig::default();
+        assert_eq!(config.lease_max, 1000); // config.h MAXLEASES, option.c:5978.
+        assert_eq!(config.lease_path(), b"/var/lib/misc/dnsmasq.leases");
+        for value in [
+            b"dhcp-lease=/private/example.leases".as_slice(),
+            b"leasefile-ro",
+            b"dhcp-lease-max=",
+        ] {
+            assert!(config.apply(&lex_line(value).unwrap().unwrap()).unwrap());
+        }
+        assert_eq!(config.lease_path(), b"/private/example.leases");
+        assert!(config.lease_read_only);
+        assert_eq!(config.lease_max, 0);
+        config
+            .apply(&lex_line(b"dhcp-leasefile=").unwrap().unwrap())
+            .unwrap();
+        assert_eq!(config.lease_path(), b"/var/lib/misc/dnsmasq.leases");
+    }
 
     #[test]
     fn parses_basic_ipv4_range_and_duration() {

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare DHCPv4 range parser state with exact option.c; never open listeners.
+"""Compare DHCPv4 range/leasefile/boolean state with exact option.c; never open listeners.
 
 Selector/static/proxy/deprecated gaps are reported separately, not counted as
 functional equivalence. Integer-overflow inputs are outside the defined C
@@ -19,6 +19,13 @@ C_DRIVER = r'''
 int main(int argc, char **argv) {
   rand_init();
   read_opts(argc, argv, "dhcp-config-state");
+  int bootp_global=0;
+  for(struct dhcp_netid_list *node=daemon->bootp_dynamic;node;node=node->next)if(!node->list)bootp_global=1;
+  printf("max=%d ro=%d bootp=%d auth=%d clid=%d sequential=%d noping=%d file=", daemon->dhcp_max, !!option_bool(OPT_LEASE_RO),bootp_global,
+         !!option_bool(OPT_AUTHORITATIVE),!!option_bool(OPT_IGNORE_CLID),!!option_bool(OPT_CONSEC_ADDR),!!option_bool(OPT_NO_PING));
+  if (!daemon->lease_file) printf("-");
+  else for (unsigned char *p=(unsigned char *)daemon->lease_file; *p; p++) printf("%02x",*p);
+  puts("");
   for (struct dhcp_context *c = daemon->dhcp; c; c = c->next) {
     char start[INET_ADDRSTRLEN], end[INET_ADDRSTRLEN];
     char mask[INET_ADDRSTRLEN], broadcast[INET_ADDRSTRLEN];
@@ -47,6 +54,10 @@ fn main() {
     }) {
         eprintln!("{error}"); std::process::exit(error.exit_code);
     }
+    print!("max={} ro={} bootp={} auth={} clid={} sequential={} noping={} file=",dhcp.lease_max,u8::from(dhcp.lease_read_only),
+           u8::from(dhcp.bootp_dynamic),u8::from(dhcp.authoritative),u8::from(dhcp.ignore_client_id),u8::from(dhcp.sequential),u8::from(dhcp.no_ping));
+    if let Some(path)=&dhcp.lease_file {for byte in path {print!("{byte:02x}");}}else{print!("-");}
+    println!();
     for c in dhcp.ranges {
         println!("{} {} {} {} {} {}", c.start, c.end,
             c.netmask.map_or_else(|| "-".into(), |v| v.to_string()),
@@ -87,6 +98,15 @@ def corpus():
              ("tag:known," + base, "set:known," + base, "known," + base,
               "192.0.2.10,static", "192.0.2.10,proxy", base + ",deprecated")]
     rows.append(("contract", "dhcp-range=2001:db8::10,2001:db8::20"))
+    rows += [("contract", value) for value in [
+        "", "leasefile-ro", "dhcp-leasefile=/private/fixture.leases", "dhcp-lease=/private/fixture.leases",
+        "dhcp-leasefile=", 'dhcp-leasefile="/private/comma,name"',
+        "dhcp-leasefile=/private/fixture.leases\nleasefile-ro",
+        "dhcp-lease-max=", "dhcp-lease-max=0", "dhcp-lease-max=1000", "dhcp-lease-max=2147483647",
+        "dhcp-lease-max=-1"]]
+    rows.append(("contract","bootp-dynamic"))
+    rows += [("unsupported","bootp-dynamic="+value) for value in ["tag:known","known","tag:!blocked"]]
+    rows += [("contract",option+suffix) for option in ["dhcp-authoritative","dhcp-ignore-clid","dhcp-sequential-ip","no-ping"] for suffix in ["","=tag:known"]]
     return rows
 
 
@@ -117,7 +137,7 @@ def build(args, out):
 
 
 def matches(c, rust):
-    return (c.returncode == 0) == (rust.returncode == 0) and (c.returncode != 0 or c.stdout == rust.stdout)
+    return c.returncode == rust.returncode and (c.returncode != 0 or c.stdout == rust.stdout)
 
 
 def main():
@@ -154,15 +174,17 @@ def main():
     accepted = sum(row["c_exit"] == 0 for row in rows)
     rejected = len(rows) - accepted
     # Frozen after the C-only baseline, independently of the Rust parser.
-    assert (len(rows), accepted, rejected) == (90, 70, 20)
+    if not args.c_only:
+        assert (len(rows), accepted, rejected) == (114, 89, 25)
     # Independent deliberate failures calibrate acceptance and state comparison.
     ok = subprocess.CompletedProcess([], 0, b"3600\n")
     assert matches(ok, ok)
     assert not matches(ok, subprocess.CompletedProcess([], 1, b""))
     assert not matches(ok, subprocess.CompletedProcess([], 0, b"43200\n"))
+    assert not matches(subprocess.CompletedProcess([],1,b""),subprocess.CompletedProcess([],2,b""))
     failures = [] if args.c_only else [r for r in rows
         if not (r["boundary_checked"] if r["scope"] == "unsupported" else r["match"])]
-    report = {"scope": "DHCPv4 range option acceptance/state only; no runtime/interface inference",
+    report = {"scope": "DHCPv4 range/leasefile/readonly/capacity/boolean option acceptance/state only; no runtime/interface inference",
               "cases": len(rows), "c_accepted": accepted, "c_rejected": rejected,
               "contract_matches": None if args.c_only else sum(r["scope"] == "contract" and r["match"] for r in rows),
               "unsupported_boundary_checks": None if args.c_only else sum(r["boundary_checked"] for r in rows),

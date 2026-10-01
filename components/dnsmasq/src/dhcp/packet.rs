@@ -360,6 +360,38 @@ impl<'a> Packet<'a> {
             .map(|v| u32::from_be_bytes(v[..4].try_into().unwrap()))
     }
 
+    /// rfc2131.c:700-765,799-816: option 81 takes precedence over option 12,
+    /// even when it has no usable name. Client domains are not configuration
+    /// domains; this adapter returns only the validated short hostname.
+    pub fn client_hostname(self) -> Option<Vec<u8>> {
+        if self.message_type() == 0 {
+            return None;
+        } // BOOTP returns before this parsing.
+        let candidate = if let Some(fqdn) = self.option(81, 3) {
+            if fqdn[0] & 4 == 0 {
+                fqdn[3..].to_vec()
+            } else {
+                let mut rest = &fqdn[3..];
+                let mut name = Vec::new();
+                while let Some(&length) = rest.first() {
+                    if length == 0 || usize::from(length) >= rest.len() {
+                        break;
+                    }
+                    name.extend_from_slice(&rest[1..=usize::from(length)]);
+                    name.push(b'.');
+                    rest = &rest[usize::from(length) + 1..];
+                }
+                if name.last() == Some(&b'.') {
+                    name.pop();
+                }
+                name
+            }
+        } else {
+            self.option(12, 1)?.to_vec()
+        };
+        client_hostname_value(&candidate)
+    }
+
     /// rfc2131.c:2247-2260. An absent PRL means "send everything";
     /// an explicitly empty PRL means no requested options. END inside the
     /// client's list terminates it, just like the copied C list.
@@ -394,6 +426,23 @@ impl<'a> Packet<'a> {
             .copied()
             .find(|prefix| vendor.starts_with(prefix))
     }
+}
+
+/// util.c::legal_hostname plus dhcp-common.c::strip_hostname for the target
+/// no-IDN variant. check_name is shared with hosts parsing, not its storage.
+pub fn client_hostname_value(value: &[u8]) -> Option<Vec<u8>> {
+    let mut name = crate::hosts::canonicalise(value)?;
+    if let Some(dot) = name.iter().position(|byte| *byte == b'.') {
+        name.truncate(dot);
+    }
+    if !name.first().is_some_and(u8::is_ascii_alphanumeric)
+        || !name
+            .iter()
+            .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_'))
+    {
+        return None;
+    }
+    Some(name)
 }
 
 fn ipv4(bytes: &[u8]) -> Ipv4Addr {
@@ -437,6 +486,41 @@ mod tests {
         assert_eq!(Packet::parse(&bytes).unwrap().message_type(), 3);
         bytes[108..112].copy_from_slice(&[53, 128, 3, 255]);
         assert_eq!(Packet::parse(&bytes).unwrap().message_type(), 8);
+    }
+
+    #[test]
+    fn client_names_follow_fqdn_precedence_and_short_name_policy() {
+        let mut options = vec![53, 1, 3, 12, 13];
+        options.extend_from_slice(b"node.example.");
+        options.push(255);
+        assert_eq!(
+            Packet::parse(&request(&options)).unwrap().client_hostname(),
+            Some(b"node".to_vec())
+        );
+        let mut options = vec![53, 1, 3, 12, 8];
+        options.extend_from_slice(b"fallback");
+        options.extend_from_slice(&[81, 3, 0, 0, 0, 255]);
+        assert_eq!(
+            Packet::parse(&request(&options)).unwrap().client_hostname(),
+            None
+        );
+        options.truncate(13);
+        options.extend_from_slice(&[81, 17, 4, 0, 0, 4]);
+        options.extend_from_slice(b"node");
+        options.push(7);
+        options.extend_from_slice(b"example");
+        options.extend_from_slice(&[0, 255]);
+        assert_eq!(
+            Packet::parse(&request(&options)).unwrap().client_hostname(),
+            Some(b"node".to_vec())
+        );
+        assert_eq!(client_hostname_value(b"bad name"), None);
+        assert_eq!(
+            Packet::parse(&request(&[12, 4, b'n', b'o', b'd', b'e', 255]))
+                .unwrap()
+                .client_hostname(),
+            None
+        );
     }
 
     #[test]

@@ -36,9 +36,10 @@ expiry=0 表示无限租约，其他 expiry 在 `now >= expiry` 时到期。
 | `lease.c:948-1008` | 更新 hardware，缺失 CLID 不擦除已有 CLID | `LeaseStore::set_identity` | 单测；脚本 flags 未接入 |
 | `lease.c:846-936` | 容量限制；初始 expiry=1；无限/零时长；更新到期时间同时 dirty file/DNS | `LeaseStore::allocate/set_expires`, `expiry_time` | 直接抽取 C 2,003 case；64 位有符号溢出改为 checked_add，无复制 C UB |
 | `lease.c:621-648` | 到期等号；显式 target 也删除；本次删除以最旧记录先进入脚本队列 | `LeaseStore::prune` | 直接抽取 C 2,001 case；10,000 次续租索引规模不增长单测 |
-| `lease.c:1062-1170` | hostname ASCII 不区分大小写；配置名不可被客户端名抢占；FQDN 模式分域冲突；先通知旧名丢失 | `LeaseStore::set_hostname` | 单测及主代理独立核读；输入 hostname 校验及完整 script flags 尚未连接 |
+| `lease.c:1062-1170` | hostname ASCII 不区分大小写；配置名不可被客户端名抢占；FQDN 模式分域冲突；先通知旧名丢失 | `LeaseStore::set_hostname` | 客户端hostname校验已接；配置name/domain和完整helper通知仍需接线 |
+| `rfc2131.c:700-816`; `util.c:135-241`; `dhcp-common.c:251-263` | option81优先于12；no-IDN check_name/首label字符约束；仅把合法short name交给lease；客户端domain不冒充配置domain | `Packet::client_hostname/client_hostname_value`、`StateProvider` | 500项C legal_hostname/strip_hostname案例与源导出81优先级/编码回归；完整FQDN response flags及配置domain仍未闭环 |
 | `lease.c:23-173`; `util.c:612-681` | scanf 字段宽度/跨行；typed/compact/奇数位 hex；非法 identity 清空；extension 按已存在地址关联 | `lease_file::parse/parse_hex` | 直接抽取 C 各 2,000 case；read_leases oracle 的 setter 是记录器，名称冲突另由 script 差分覆盖 |
-| `lease.c:174-254,286-420` | 恢复后清 file dirty，再 prune 到期，DNS 必须刷新；基础五字段和 agent-info/vendorclass 后置；typed MAC 保留 C int 位宽 | `LeaseStore::restore/write_leases` | 恢复/非 UTF8 名字/宽硬件类型/磁盘失败单测；尚未接真实 fsync/重试 timer |
+| `lease.c:174-254,286-453` | 恢复后清 file dirty，再 prune 到期；持有a+ inode，flush/fsync成功才清dirty；失败按最早expiry或60秒重试；RO无脚本不读文件 | `LeasePersistence`、`LeaseStore::restore/write_leases`、`LocalProvider::tick` | 317项C故障/顺序差分；真实C/Rust DORA/恢复/释放/idle expiry与ENOSPC idle retry，见 `DHCP_PERSISTENCE_PHASE.md`；实际DNS发布另有门 |
 | `lease.c:1010-1030,1211-1317` | 旧名通知早于新位置；删除队列先于活动变化；Add/Old/Delete；leasefile-ro/renew 开关；HUP rerun | `ScriptQueue`, `ScriptFlags`, `LeaseStore::rerun_scripts` | 直接抽取 C 2,000 个 15 步序列；单测核对队列所有权释放 |
 | `dhcp-common.c:224-251` | tag conjunction；`!`/旧 `#` 否定；空 filter 受 pass 控制 | `allocation::match_tags` | 单测 |
 | `dhcp.c:687-752` | 排除所有上下文 router；dynamic 地址范围；static/subnet fallback；proxy 不参与普通分配 | `allocation::available/narrow` | 单测；接收接口形成的 context 链由上层负责 |
@@ -123,9 +124,8 @@ CLID 查找仍扫描活动租约，输出租约文件按序号排序也有额外
 - 真实 DHCP socket、pktinfo、接口动态变化、relay、ARP 注入、广播/单播
   的完整服务对照；ICMP 依赖已有 67,647 项精确 C 原语与 Linux namespace
   验证，权限/发送失败采用显式错误而非 C 的放行行为，不能计为完全等价。
-- `lease.c:174-254` 启动读真实文件/leasefile-ro init 脚本；`286-454` fsync
-  失败重试/next alarm；ScriptQueue 仍须接 helper/hotplug 与通知重连。
-  内存恢复/序列化及事件通过不等于真实持久化生命周期已通过。
+- `leasefile-ro` init 脚本、helper/hotplug 与通知重连仍未接线；真实文件恢复、
+  fsync/失败重试与alarm已有窄服务证据，但不等于脚本、完整配置或DNS同步通过。
 - BOOTP 可用 vend 区仅 64 字节、无 DHCP message type；`packet.rs` 已提供
   bounded COOKIE/TLV/END serializer，但配置/tag 上下文和完整 reply 仍待整合。
 - PXE `877-1055,2360-2557`：boot-item、拒绝 BIS 高位、按 architecture/tag

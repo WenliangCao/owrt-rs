@@ -27,10 +27,11 @@ process(dispatch, peer, outcome_provider, datagram_sender, options, buffer)
 `runtime::StateProvider` is the local state adapter used when the caller has a
 configured `LeaseStore` and address ranges. It maps BOOTP, DISCOVER, REQUEST,
 DECLINE, RELEASE and INFORM to the existing state functions, applies pktinfo
-interface/unicast metadata to `Environment`, and derives option 12 hostnames
+interface/unicast metadata to `Environment`, and derives validated client hostnames
 so `LeaseStore::set_hostname` marks DNS/name changes before reply transmission.
-The provider deliberately leaves FQDN/domain policy, leasefile persistence and
-DNS publication to the caller; `Outcome::lost_names` and `LeaseStore::changes`
+Client names follow option-81 precedence and short-name extraction. The
+provider leaves configured domain policy, full FQDN reply options, leasefile
+persistence and DNS publication to the caller; `Outcome::lost_names` and `LeaseStore::changes`
 are the handoff evidence. `service::SocketListener::process_once_local` then
 owns the isolated nonblocking AF_INET socket and feeds an admitted datagram
 through this runtime path.
@@ -110,8 +111,9 @@ primitive differential also passed **1,015/1,015**, including 100 script/name
 collision sequences. Logs and primitive results are under ignored
 `private/dnsmasq-rewrite/dhcp-destination-20260930/hostname-*`.
 
-This does not close client-name validation, option-81/FQDN decoding, domain
-stripping, configured-name selection or DNS publication. The runtime
+The later persistence integration adds client-name validation, option-81/FQDN
+input precedence and short-name extraction; configured-name/domain selection,
+full FQDN response options and live DNS publication remain separate. The runtime
 regression is source-derived; the C differential covers the underlying lease
 name/event primitives, not the complete `StateProvider` service adapter.
 
@@ -150,3 +152,8 @@ selection, and its error event precedes the still-attempted send. DHCP now
 owns C's bounded send retry policy. The exact field/retry oracle and live
 namespace/client evidence are in `DHCP_ARP_PHASE.md`; earlier socket-free
 destination evidence remains valid within its original narrower scope.
+
+The selected `NetworkOptions` now also supplies BOOTP `siaddr` from the
+context's local address, matching `do_options:2668`. The real C/Rust leasefile
+lifecycle comparison retains this address along with `ciaddr`, `yiaddr`,
+`giaddr`, flags and hardware fields; details are in `DHCP_PERSISTENCE_PHASE.md`.

@@ -22,8 +22,8 @@ LEASEFILE macro. These are separate CLI and OpenWrt-init contracts.
 
 The same reference also fixes `MAXLEASES=1000` (`config.h:41`,
 `option.c:5978`); the init script only passes a user `dhcpleasemax` value and
-does not replace that default. Rust's pre-existing default of 150 is a known
-configuration defect to correct with this integration. Tests that intend a
+does not replace that default. Rust's pre-existing default of 150 has been
+corrected to 1000 by this integration. Tests that intend a
 150-lease budget must configure it explicitly on both implementations.
 
 Every daemon experiment must set an absolute lease path under its private
@@ -104,3 +104,69 @@ The failed adapter build is retained in `parser-stream-01/`; the passing run
 is `parser-stream-02/`. Real-file unit checks and library clippy passed.
 Daemon/config/tick wiring and a live dedicated DNS source are still pending
 at this adapter checkpoint.
+
+## Local daemon and filesystem checkpoint
+
+`DhcpConfig` now accepts `dhcp-leasefile`/`dhcp-lease` and `leasefile-ro`,
+including the C empty-path fallback and empty lease-max value of zero.
+`LocalProvider::new` opens/restores before listener startup; `initialize` and
+`tick` perform file maintenance and offer pending data to `DnsPublisher`.
+Packet resolution performs state → file → DNS sink before returning the
+committed outcome. I/O errors stay in `MaintenanceReport`; an otherwise valid
+ACK is sent. Periodic maintenance returns owned removals and lost names.
+
+The provider uses a monotonic deadline for C's relative alarm delay, computed
+from `event - caller_now`. This matters when caller time predates an ICMP wait
+or file operation. A prior alarm that expired during work remains pending
+when a new alarm is installed, and `Keep` does not cancel an earlier timer.
+The main-loop owner calls `tick(fresh_epoch_seconds)` before polling packets
+and consumes packet/periodic reports. No new DHCP traffic is needed for expiry
+or the 60-second failed-write retry.
+
+Before real serialization, the client-name boundary was corrected:
+`Packet::client_hostname` follows option-81 precedence, target no-IDN
+`check_name`/`legal_hostname`, and short-name extraction. Client-provided
+domain text is not promoted to a configured DNS domain. BOOTP does not use
+this DHCP name parser. The C primitive run now passed **5,516/5,516**,
+including 500 direct legal/invalid hostname cases; FQDN precedence/encoding
+has focused source-derived regressions. Full FQDN reply flags/options and
+configured domain policy remain separate work.
+
+A normal full-daemon header discrepancy was also closed: `do_options` sets
+`siaddr` to the selected context's local address. `NetworkOptions::next_server`
+now supplies that header value, while NAK and missing-context paths retain
+zero. The lifecycle comparison checks that address rather than dropping it
+during normalization.
+
+`tools/dnsmasq/dhcp_lease_lifecycle.py` runs the exact C and Rust daemons with
+the same explicit private configuration, a 150-lease limit and loopback-only
+DHCP traffic. Evidence under the phase directory records:
+
+- `lifecycle-01/`: **114 passed, zero failed** checks across DORA, unicast
+  renewal, broadcast rebinding, release, restart, no-traffic expiry and
+  read-only/no-script. The file is inspected after ACK, and restart must retain
+  the exact prior rows before another request.
+- `enospc-01/`: **38 passed, zero failed** checks. A private 4 KiB tmpfs is
+  filled, both daemons still ACK, the filler is removed, and each daemon waits
+  its real 60-second retry without receiving more DHCP packets. The resulting
+  lease expiry remains tied to the original ACK; retry does not extend it.
+- `calibration-01/`: deliberately corrupting one decoded lease TTL produced
+  **71 passed, one failed**, exit 1; original response bytes remain untouched.
+- `source-identity.json`: source and ELF identities for these runs. The
+  generated configs, lease files, packets, logs and binaries remain ignored.
+
+Renewal T1/T2 randomness is checked against C's common-subtraction and bounded
+fuzz rules, with all observed timer values retained. Every finite leasefile
+expiry is checked against its corresponding request time, allowing only the
+whole-second observation boundary; expiry is not silently erased from the
+acceptance gate. DNS publication remains explicitly **unchecked** in these
+daemon runs until the dedicated DNS source is connected. These counts are
+checks within the stated scenarios, not a claim of complete DHCP equivalence.
+
+The expanded exact-C configuration gate has **105 matching contract cases**
+and **9 explicit unsupported-boundary cases**, with no failure. It preserves
+exit codes as well as state. In particular `bootp-dynamic` with tag parameters
+is rejected instead of widening scoped permission to all clients; bare
+`bootp-dynamic` remains available. The authoritative, ignore-client-id,
+sequential and no-ping switches are verified no-argument options. This does
+not establish BOOTP/PXE service equivalence.

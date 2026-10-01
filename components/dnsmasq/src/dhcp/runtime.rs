@@ -104,6 +104,8 @@ pub trait OutcomeProvider {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct NetworkOptions {
+    /// BOOTP siaddr default from the selected context (do_options:2668).
+    pub next_server: Ipv4Addr,
     pub netmask: Ipv4Addr,
     pub broadcast: Option<Ipv4Addr>,
     pub router: Option<Ipv4Addr>,
@@ -170,9 +172,9 @@ where
         // owned outcome so the caller can queue deletion/name notifications.
         let mut expired = self.store.prune(None, environment.now);
         let packet = dispatch.packet;
-        let hostname = packet.option(12, 1);
-        let name = hostname.map(|hostname| Name {
-            hostname: hostname.strip_suffix(&[0]).unwrap_or(hostname),
+        let hostname = packet.client_hostname();
+        let name = hostname.as_deref().map(|hostname| Name {
+            hostname,
             domain: None,
             // rfc2131.c sets hostname_auth only for configured/hosts names,
             // independently of the server's dhcp-authoritative lease policy.
@@ -468,6 +470,9 @@ where
         omitted: encoding.omitted,
         overload: encoding.overload,
     });
+    if let Some(network) = network {
+        buffer[20..24].copy_from_slice(&network.next_server.octets());
+    }
     let mut destination = match destination(&dispatch, peer, &outcome.reply, buffer, encoding.len) {
         Ok(destination) => destination,
         Err(error) => {
@@ -915,6 +920,7 @@ mod tests {
             }
             fn network_options(&self, _: &Outcome) -> Option<NetworkOptions> {
                 Some(NetworkOptions {
+                    next_server: Ipv4Addr::new(192,0,2,1),
                     netmask: Ipv4Addr::new(255, 255, 255, 0),
                     broadcast: Some(Ipv4Addr::new(192, 0, 2, 255)),
                     router: Some(Ipv4Addr::new(192, 0, 2, 1)),
@@ -956,6 +962,7 @@ mod tests {
             assert_eq!(wire_option(&output, 28), Some([192, 0, 2, 255].as_slice()));
             assert_eq!(wire_option(&output, 3), Some([192, 0, 2, 10].as_slice()));
             assert_eq!(wire_option(&output, 6).is_some(), dns_requested);
+            assert_eq!(&output[20..24],&[192,0,2,1]);
         }
     }
 

@@ -74,6 +74,7 @@ typedef uint32_t u32;
 #define MAXDNAMESTR 1024
 #define PACKETSZ 512
 #define MAXDNAME 255
+#define MAXLABEL 63
 #define RRFIXEDSZ 10
 #define ARPHRD_ETHER 1
 #define MS_DHCP 0
@@ -233,6 +234,11 @@ int main(void) {
         while (lease) { struct dhcp_lease *next = lease->next; free(lease->hostname); free(lease->fqdn); free(lease->old_hostname); free(lease->clid); free(lease); lease = next; }
       }
       leases = old_leases = NULL;
+    } else if (!strcmp(op, "H")) {
+      unsigned char bytes[256]={0};decode(word(),bytes);
+      if(!legal_hostname((char *)bytes)){puts("-");continue;}
+      strip_hostname((char *)bytes);
+      if(!bytes[0])puts("-");else{for(size_t i=0;bytes[i];i++)printf("%02x",bytes[i]);puts("");}
     } else if (!strcmp(op, "X")) {
       unsigned char bytes[65536] = {0}; decode(word(), bytes);
       int maximum = atoi(word()), typed = atoi(word()), hardware_type = 0;
@@ -320,6 +326,8 @@ def cases(seed, count):
         "F " + b"200\x0b02:00:00:00:00:01\x0c192.0.2.10\thost *\n".hex(),
     ]
     for _ in range(count):
+        name=rng.choice([b"client",b"client.example",b"-bad",b"_bad",b"a b",b"name.",b".",b"a"*64,rng.randbytes(rng.randrange(256))])
+        samples.append("H "+(name.hex() or "-"))
         region = bytearray()
         for _ in range(rng.randrange(0, 15)):
             tag = rng.randrange(256)
@@ -407,6 +415,8 @@ def main():
         sources[name] = content.decode()
     extracted = [function(sources["rfc2131.c"], name) for name in ["option_find1", "option_find", "option_uint", "calc_time"]]
     extracted += [function(sources["util.c"], "parse_hex")]
+    extracted += [function(sources["util.c"], name) for name in ["check_name", "legal_hostname"]]
+    extracted += [function(sources["dhcp-common.c"], "strip_hostname")]
     extracted += [function(sources["lease.c"], name) for name in ["lease_set_expires", "lease_find_by_client", "lease_find_by_addr", "lease_prune", "read_leases"]]
     extracted += [function(sources["lease.c"], "kill_name"), function(sources["lease.c"], "lease_allocate")]
     for name, renamed in [("lease4_allocate", "reference_lease4_allocate"), ("lease_set_hwaddr", "reference_set_hwaddr"), ("lease_set_hostname", "reference_set_hostname")]:
@@ -445,7 +455,7 @@ def main():
     assert expected[:6] == ["0:03", "3:03", "0:03", "-", "0:", "-"]
     assert expected[12:15] == ["1", "2", "1"]
     differences = [{"index": i, "case": inputs[i], "c": left, "rust": right} for i, (left, right) in enumerate(zip(expected, actual)) if left != right]
-    by_operation = {op: sum(line.startswith(op + " ") for line in inputs) for op in "OWDEIPXFSV"}
+    by_operation = {op: sum(line.startswith(op + " ") for line in inputs) for op in "OWDEIPXFSVH"}
     report = {"seed": args.seed, "rounds": args.rounds, "cases": len(inputs), "successful": len(inputs) - len(differences), "mismatches": len(differences), "by_operation": by_operation, "source_sha256": EXPECTED, "calibration": "passed", "c_sanitizers": "address,undefined", "differences": differences, "scope": "DHCP primitive differential; no service/transport/BOOTP/PXE integration claim"}
     (output / "result.json").write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps({key: value for key, value in report.items() if key not in ("differences", "source_sha256")}, indent=2))

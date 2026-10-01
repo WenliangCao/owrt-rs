@@ -48,6 +48,15 @@ fn main() {
         let line = line.unwrap();
         let mut words = line.split_whitespace();
         match words.next().unwrap() {
+            "H" => match dhcp::packet::client_hostname_value(&hex(words.next().unwrap())) {
+                Some(name) => {
+                    for byte in name {
+                        print!("{byte:02x}");
+                    }
+                    println!();
+                }
+                None => println!("-"),
+            },
             "V" => {
                 use dhcp::pxe::{self, Service};
                 let architecture = words.next().unwrap().parse().unwrap();
