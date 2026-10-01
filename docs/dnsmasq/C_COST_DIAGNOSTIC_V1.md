@@ -50,6 +50,8 @@ and selected upstream transport are IPv4; record types remain 70% A / 30% AAAA.
 
 The mixed A/AAAA schedule is independent of its hit/miss/negative class. Full
 request vectors and hashes are generated from the frozen seed before each run.
+Its warmup uses the same class mix with disjoint unique names, so the full-cache
+insertion path is exercised before formal collection as well as the hit path.
 All three formal schedules cover 10 s. Three fresh-daemon rounds are run per
 scenario in the fixed order `(hot,mixed,tcp)`, `(mixed,tcp,hot)`, `(tcp,hot,mixed)`.
 This reduced C-only diagnostic is not the protocol's five interleaved C/Rust
