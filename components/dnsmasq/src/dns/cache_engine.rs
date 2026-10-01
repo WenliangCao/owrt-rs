@@ -55,10 +55,11 @@ impl CacheContext<'_> {
         edns_packet_max: u16,
     ) -> Result<CachedAnswer, CacheError> {
         let header = Header::parse(query)?;
-        // Empty ordinary OPTs can use the same cached records as plain DNS.
-        // DO/AD, EDNS options, nonzero version/extended RCODE and other
-        // metadata still use the upstream path until their cache contracts
-        // are implemented. Do not accidentally claim DNSSEC cache support.
+        // Ordinary A/AAAA AD requests can consume unsigned cached records,
+        // including CNAME/negative paths, without asserting validation. DO
+        // still requires upstream DNSSEC data in the target no-DNSSEC build.
+        // Other qtypes' AD, EDNS options and nonzero metadata stay outside
+        // this measured subset; accepting DO on insertion is independent.
         let edns = find_pseudoheader(query, true)?;
         if header.questions != 1
             || header.answers != 0
@@ -66,7 +67,7 @@ impl CacheContext<'_> {
             || header.additionals != u16::from(edns.opt.is_some())
             || header.opcode() != 0
             || header.flags & 0x8000 != 0
-            || header.flags & 0x0020 != 0
+            || (header.flags & 0x0020 != 0 && !matches!(question.rrtype, 1 | 28))
             || edns
                 .opt
                 .as_ref()

@@ -26,9 +26,9 @@ use super::service::{LocalDnsService, ServiceError};
 use super::upstream::{
     Lifetime, OsRandom, ResolveError, UncheckedReply, UpstreamEvent, UpstreamResolver,
 };
-use super::wire::{find_pseudoheader, Name, WireError};
+use super::wire::{find_pseudoheader, Header, Name, WireError};
 #[cfg(test)]
-use super::wire::{Header, Message, PacketWriter, Question as WireQuestion, Section};
+use super::wire::{Message, PacketWriter, Question as WireQuestion, Section};
 use crate::config::dns::DnsConfig;
 use crate::config::{Error as ConfigError, FastRetry};
 use crate::hosts::Hosts;
@@ -679,6 +679,9 @@ impl<R: Random> DnsDaemon<R> {
         external_local: Option<&LocalDnsService>,
         doctor: &mut Option<&mut ReplyDoctor<'_>>,
     ) -> Result<u16, DaemonError> {
+        // C suppresses insertion for either original request CD or raw reply
+        // CD, before return_reply restores the outgoing bit to the request.
+        let upstream_checking_disabled = Header::parse(&reply.packet)?.flags & 0x10 != 0;
         let envelope = prepare_udp_reply(
             &reply.packet,
             ReplyPolicy {
@@ -722,8 +725,8 @@ impl<R: Random> DnsDaemon<R> {
         if matches!(rcode, 0 | 3)
             && !reply.flags.no_cache
             && reply.cache_eligible
-            && !reply.flags.ad_requested
             && !reply.flags.checking_disabled
+            && !upstream_checking_disabled
         {
             if let Some(cache) = self.cache.as_mut() {
                 CacheContext {
