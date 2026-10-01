@@ -24,6 +24,9 @@ fn name_matches(pattern: &Option<Vec<u8>>, name: &[u8], loopback: bool) -> bool 
     }
 }
 pub fn selected(config: &DnsConfig, interface: &DnsInterface) -> bool {
+    if config.listen_addresses.contains(&interface.address) {
+        return true;
+    }
     if config
         .excluded_interfaces
         .iter()
@@ -150,12 +153,55 @@ pub fn admit(
     {
         return false;
     }
-    if config.bind_dynamic || explicit_access(config) || config.local_service_host {
-        interfaces.iter().any(|interface| {
-            interface.address == destination
-                && (ingress == 0 || ingress == interface.index)
-                && selected(config, interface)
-        })
+    #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
+    if interfaces.is_empty()
+        && !config.bind_dynamic
+        && !config.bind_interfaces
+        && !config.local_service_net
+        && !config.local_service_host
+    {
+        return config.listen_addresses.is_empty()
+            || config.listen_addresses.contains(&destination);
+    }
+    if config.local_service_host && !config.local_service_net && !explicit_access(config) {
+        return interfaces
+            .iter()
+            .any(|interface| interface.address == destination && interface.loopback);
+    }
+    if ingress == 0 || config.bind_interfaces && !config.bind_dynamic && destination.is_ipv4() {
+        return !explicit_access(config)
+            || interfaces
+                .iter()
+                .any(|interface| interface.address == destination && selected(config, interface));
+    }
+    if config.listen_addresses.contains(&destination) {
+        return true;
+    }
+    if config.bind_dynamic || explicit_access(config) {
+        interfaces
+            .iter()
+            .filter(|interface| interface.index == ingress)
+            .any(|interface| {
+                let excluded = config
+                    .excluded_interfaces
+                    .iter()
+                    .any(|name| name_matches(name, &interface.name, interface.loopback));
+                let allowed = (config.interfaces.is_empty() && config.listen_addresses.is_empty()
+                    || config
+                        .interfaces
+                        .iter()
+                        .any(|name| name_matches(name, &interface.name, interface.loopback)))
+                    && !excluded;
+                // C's loopback and label exceptions retain locally originated DNS
+                // queries to a configured address even when ingress is loopback.
+                allowed
+                    || (interface.loopback || destination.is_ipv4())
+                        && interfaces.iter().any(|candidate| {
+                            candidate.address == destination
+                                && selected(config, candidate)
+                                && (interface.loopback || candidate.index == ingress)
+                        })
+            })
     } else {
         true
     }
@@ -332,7 +378,7 @@ mod tests {
         ));
     }
     #[test]
-    fn dynamic_listeners_keep_ipv6_scope_and_enforce_ingress() {
+    fn dynamic_listeners_keep_ipv6_scope_and_require_known_ingress() {
         let interfaces = vec![
             interface("192.0.2.1", "255.255.255.0", 3),
             interface("fe80::1", "ffff:ffff:ffff:ffff::", 3),
