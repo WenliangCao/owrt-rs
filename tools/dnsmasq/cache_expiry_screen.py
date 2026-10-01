@@ -13,6 +13,8 @@ import random
 import shutil
 import statistics
 import subprocess
+import time
+from datetime import datetime, timezone
 
 import dns_cache_diff as reference
 
@@ -146,9 +148,12 @@ def load(args):
 
 def run(command, stem, stdin=None):
     assert not stem.with_suffix(".stdout").exists(), "every run needs a fresh evidence path"
+    started = time.time_ns()
     value = subprocess.run(command, input=stdin, capture_output=True)
+    finished = time.time_ns()
     stem.with_suffix(".stdout").write_bytes(value.stdout); stem.with_suffix(".stderr").write_bytes(value.stderr)
-    write_json(stem.with_suffix(".command.json"), {"command": list(map(str, command)), "exit": value.returncode})
+    write_json(stem.with_suffix(".command.json"), {"command": list(map(str, command)), "exit": value.returncode,
+        "started_unix_ns": started, "finished_unix_ns": finished, "runner_sha256": sha(Path(__file__))})
     value.check_returncode()
     return value
 
@@ -217,6 +222,12 @@ def measure(args, allocations):
     assert correctness["status"] == "passed", "no cost data before the C correctness gate"
     expected = {row["vector"]: row["expected_from_c"] for row in correctness["results"]}
     rows = []
+    window = None
+    if not allocations:
+        window = {"started_utc": datetime.now(timezone.utc).isoformat(), "cpu": args.cpu,
+            "load_before": Path('/proc/loadavg').read_text().strip(), "runner_sha256": sha(Path(__file__)),
+            "declared_runs": 24, "affinity": sorted(os.sched_getaffinity(0))}
+        write_json(out / 'quiet-window.json', window)
     orders = [["b0", "eps1"]] if allocations else ORDER
     for pair, order in enumerate(orders):
         for name in VECTORS:
@@ -235,6 +246,10 @@ def measure(args, allocations):
                     write_json(out / ("allocation.json" if allocations else "timing.json"), rows)
                     raise RuntimeError('measured run changed C-expected results; remaining cost windows stopped')
     write_json(out / ("allocation.json" if allocations else "timing.json"), rows)
+    if window is not None:
+        window.update(finished_utc=datetime.now(timezone.utc).isoformat(), completed_runs=len(rows),
+                      load_after=Path('/proc/loadavg').read_text().strip())
+        write_json(out / 'quiet-window.json', window)
     if allocations:
         stress = {}
         for label in ("b0", "eps1"):
