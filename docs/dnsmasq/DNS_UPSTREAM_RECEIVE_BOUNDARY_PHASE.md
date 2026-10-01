@@ -95,13 +95,13 @@ regression checks SERVFAIL plus an unaffected sibling reply. Final
 DNS tests; the ignored tests are not counted as passed. `clippy-03.log` records
 library clippy passing with warnings denied.
 
-Remaining boundaries are explicit: the strict TCP envelope still rejects
-incomplete RRs; the cache insertion entry still demands a complete whole
-message, so a complete Answer followed by clipped Additional needs a separate
-cache-side-effect test and repair. The zero-cache packet gate does not cover
-that behavior. Receive errno retention and persistent error readiness also
-belong to a separately labeled I/O-boundary gate; prior closed-port experiments
-did not produce application receive errors on the actual unconnected sockets.
+The strict TCP envelope still rejects incomplete RRs. The zero-cache packet
+gate above does not cover cache side effects or receive errno handling. Those
+two later units are separately documented: the
+[clipped-section cache repair](DNS_CLIPPED_CACHE_PHASE.md) closes the complete
+Answer/later-section gap, while exposing the distinct malformed-replacement
+transaction gap; the [receive-error repair](DNS_UDP_RECEIVE_ERROR_PHASE.md)
+has controlled I/O coverage and retains the real errno coverage limitation.
 
 ```sh
 sudo -n sh tools/dnsmasq/run_isolated.sh \

@@ -39,6 +39,26 @@ fn header_and_compressed_response() {
 }
 
 #[test]
+fn record_section_replays_complete_answers_without_requiring_later_records() {
+    let mut packet = A_RESPONSE.to_vec();
+    packet[11] = 1;
+    packet.push(0); // Additional owner without fixed fields.
+    assert!(Message::parse(&packet).is_err());
+    let (answers, end) = Records::parse_section(&packet, 29, 1).unwrap();
+    assert_eq!(end, 45);
+    for mut replay in [answers.clone(), answers] {
+        let answer = replay.next().unwrap();
+        assert_eq!(
+            (answer.rrtype, answer.ttl, answer.rdata),
+            (1, 60, &[192, 0, 2, 7][..])
+        );
+        assert!(replay.next().is_none());
+    }
+    assert!(Records::parse_section(&packet, 29, 2).is_err());
+    assert!(Records::parse_section(&packet, packet.len() + 1, 0).is_err());
+}
+
+#[test]
 fn all_packet_prefixes_are_rejected() {
     for length in 0..A_RESPONSE.len() {
         assert!(

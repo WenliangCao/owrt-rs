@@ -1175,26 +1175,33 @@ impl<R: Random> DnsDaemon<R> {
             return;
         };
         let counters = &mut self.cache_counters;
-        let Ok(message) = Message::parse(packet) else {
+        let Ok(header) = Header::parse(packet) else {
             return;
         };
-        if message.header.opcode() != 0
-            || !matches!(message.header.rcode(), 0 | 3)
-            || message.header.flags & 0x0200 != 0
-            || message.header.flags & 0x0080 == 0
-            || message.header.questions != 1
+        if header.opcode() != 0
+            || !matches!(header.rcode(), 0 | 3)
+            || header.flags & 0x0200 != 0
+            || header.flags & 0x0080 == 0
+            || header.questions != 1
         {
             return;
         }
-        let Ok(question) = WireQuestion::parse(packet, message.questions.start) else {
+        let Ok(question) = WireQuestion::parse(packet, super::wire::HEADER_LEN) else {
             return;
         };
         if question.class != 1
             || !matches!(question.qtype, 1 | 5 | 28)
-            || (question.qtype == 5 && message.header.rcode() != 3)
+            || (question.qtype == 5 && header.rcode() != 3)
         {
             return;
         }
+        // extract_addresses consumes the complete Answer section. Later
+        // Authority/Additional clipping does not invalidate a positive RRset.
+        let Ok((answers, answer_end)) =
+            super::wire::Records::parse_section(packet, question.end, header.answers)
+        else {
+            return;
+        };
         let Ok(edns) = find_pseudoheader(packet, false) else {
             return;
         };
@@ -1224,7 +1231,7 @@ impl<R: Random> DnsDaemon<R> {
         let mut current = question.name.clone();
         for _ in 0..10 {
             let mut found = None;
-            for rr in message.records(Section::Answer) {
+            for rr in answers.clone() {
                 if rr.class != 1 || rr.rrtype != 5 {
                     continue;
                 }
@@ -1256,7 +1263,7 @@ impl<R: Random> DnsDaemon<R> {
             current = target;
         }
         if chain.len() == 10
-            && message.records(Section::Answer).any(|rr| {
+            && answers.clone().any(|rr| {
                 rr.class == 1
                     && rr.rrtype == 5
                     && rr
@@ -1275,7 +1282,7 @@ impl<R: Random> DnsDaemon<R> {
         };
         let address_len = if question.qtype == 1 { 4 } else { 16 };
         let mut addresses = Vec::new();
-        for rr in message.records(Section::Answer) {
+        for rr in answers.clone() {
             if rr.class != 1 || rr.rrtype != question.qtype || rr.rdata.len() < address_len {
                 continue;
             }
@@ -1289,7 +1296,7 @@ impl<R: Random> DnsDaemon<R> {
             }
         }
 
-        let soa = authority_soa(&message, &terminal_name);
+        let soa = authority_soa(packet, answer_end, header.authorities, &terminal_name);
         let soa_ttl = soa.as_ref().and_then(|(_, rr_ttl, minimum, _)| {
             // A zero-TTL SOA is not cacheable unless stale caching keeps zero
             // TTL entries alive.  C then falls back to --neg-ttl as if no SOA
@@ -1298,7 +1305,7 @@ impl<R: Random> DnsDaemon<R> {
                 .then_some((*rr_ttl).min(*minimum))
         });
         let authority = soa_ttl.and(soa.as_ref());
-        let negative_kind = if message.header.rcode() == 3 {
+        let negative_kind = if header.rcode() == 3 {
             Some(Kind::NxDomain)
         } else if addresses.is_empty() {
             Some(terminal_kind)
@@ -1620,12 +1627,21 @@ fn append_local_terminal(
 /// returned negative TTL uses the wire SOA TTL and MINIMUM; the SOA itself is
 /// inserted as a normal Generic(6) cache entry so its own policy/expiry and
 /// capacity accounting remain independent.
-fn authority_soa(message: &Message<'_>, name: &Name) -> Option<(Name, u32, u32, Vec<u8>)> {
-    for rr in message.records(Section::Authority) {
+fn authority_soa(
+    packet: &[u8],
+    mut position: usize,
+    count: u16,
+    name: &Name,
+) -> Option<(Name, u32, u32, Vec<u8>)> {
+    // find_soa stops at the first malformed authority, but an earlier matching
+    // SOA remains usable even if a later authority/additional is incomplete.
+    for _ in 0..count {
+        let rr = super::wire::RecordRef::parse(packet, position).ok()?;
+        position = rr.end;
+        let owner = rr.name().ok()?;
         if rr.class != 1 || rr.rrtype != 6 {
             continue;
         }
-        let owner = rr.name().ok()?;
         if !is_name_suffix(name, &owner) {
             continue;
         }

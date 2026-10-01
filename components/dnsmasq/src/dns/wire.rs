@@ -421,10 +421,34 @@ pub enum Section {
     Additional,
 }
 
+#[derive(Clone)]
 pub struct Records<'a> {
     packet: &'a [u8],
     pos: usize,
     remaining: u16,
+}
+
+impl<'a> Records<'a> {
+    /// Validate one complete section independently of later sections. Return
+    /// its borrowed iterator and the first byte following it. A cloned
+    /// iterator can replay this validated immutable section without copying
+    /// records or requiring an unrelated Additional section to be complete.
+    pub fn parse_section(
+        packet: &'a [u8],
+        start: usize,
+        count: u16,
+    ) -> Result<(Self, usize), WireError> {
+        end(packet, start, 0)?;
+        let end = skip_records(packet, start, u32::from(count))?;
+        Ok((
+            Self {
+                packet,
+                pos: start,
+                remaining: count,
+            },
+            end,
+        ))
+    }
 }
 
 impl<'a> Iterator for Records<'a> {
