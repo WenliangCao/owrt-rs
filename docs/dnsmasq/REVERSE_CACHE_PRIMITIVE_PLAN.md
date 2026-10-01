@@ -22,7 +22,7 @@ RD requests, RA positive replies, no OPT, unless explicitly specified below.
 All driver execution still uses `run_isolated.sh` on the isolated build host.
 Freeze the tool and complete matrix before compiling or running the oracle.
 
-## Main fixed corpus: 13 independent processes
+## Main fixed corpus: 14 independent processes
 
 Each listed profile has one process/configuration and starts with an empty
 cache. Every packet result, existence result, state inspection and metrics
@@ -69,6 +69,13 @@ command is retained; the tool records the resulting command-row denominator.
     PTR for address 1 (no answer but lookup promotion); insert another A and
     probe all four. The old A is the victim. Preserve output flags and counters.
 
+14. `mixed-case-target`: seed an uppercase reverse owner with mixed-case PTR
+    target; query lowercase full and uppercase partial equivalent owners; test
+    both target case forms for forward nonexistence; inspect stored target
+    spelling and original-case PTR RDATA separately from the existing semantic
+    decoder. This addition was frozen before any oracle build or execution.
+
+The executable matrix has **125 main command rows** and **44 cohort rows**.
 These are source-derived calibration predicates, not Rust-produced expected
 rows. Every complete actual C row is saved as the prospective paired contract.
 If a predicate fails, preserve the entire process and continue independent
