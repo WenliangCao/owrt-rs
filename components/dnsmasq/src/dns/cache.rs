@@ -135,6 +135,7 @@ pub enum InsertError {
     LongNameLimit,
     TimeOverflow,
     NotNegative,
+    LocalConflict,
 }
 
 struct Slot {
@@ -238,6 +239,33 @@ impl Cache {
     fn fail(&mut self, error: InsertError) -> Result<EntryId, InsertError> {
         self.failed = true;
         Err(error)
+    }
+
+    /// The caller found a local record in C's scan_free position. A matching
+    /// address returns that local target without allocating a dynamic slot;
+    /// any other local conflict fails the entire insertion transaction.
+    pub(super) fn insert_against_local(
+        &mut self,
+        ttl: u32,
+        same_address: bool,
+    ) -> Result<(), InsertError> {
+        if self.failed {
+            return Err(InsertError::PreviousFailure);
+        }
+        let error = if self.policy.cache_ttl(ttl) == 0 && self.policy.stale == StalePolicy::Disabled
+        {
+            Some(InsertError::ZeroTtl)
+        } else if !same_address {
+            Some(InsertError::LocalConflict)
+        } else {
+            None
+        };
+        if let Some(error) = error {
+            self.failed = true;
+            Err(error)
+        } else {
+            Ok(())
+        }
     }
 
     pub fn insert(&mut self, record: Record, now: i64, ttl: u32) -> Result<EntryId, InsertError> {

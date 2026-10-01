@@ -15,6 +15,18 @@ executable, recording its SHA-256 and source identities. DNS compression/name
 case is normalized; flags, TTL, addresses, record order and event order remain
 significant.
 
+The first implementation unit routes UDP cache admission through the caller's
+current local generation at the same poll timestamp. It checks active DHCP
+entries separately from expiry-filtered lookup, applies local conflicts to each
+record in insertion order, and marks the entire pending insertion failed on a
+different-address conflict. Same-address direct replies consume no dynamic
+cache slot. A real UDP regression starts a query with an empty private snapshot,
+publishes a different current hosts address before the reply, and verifies that
+the delivered upstream answer cannot later leak from cache when that local
+source is removed. The 158 relevant DNS tests, four UDP policy tests and library
+clippy pass for this unit. It intentionally leaves local CNAME target handles
+for the following unit, so the failing integration gate below remains open.
+
 The initial Rust comparison has **21 mismatches**. All are the still-open
 upstream-CNAME-to-local-target path. Same/different direct A insertion, hidden
 hosts cache residency, mixed terminal addresses, other-family coexistence,

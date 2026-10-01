@@ -90,6 +90,36 @@ fn lease_publication_selectively_removes_ipv4_and_nodata() {
 }
 
 #[test]
+fn local_insert_failure_aborts_pending_batch_without_restoring_removed_records() {
+    let mut cache = Cache::new(4, Policy::default());
+    cache.start_insert();
+    cache
+        .insert(record("changed.test", Kind::Ipv4, 1), 100, 90)
+        .unwrap();
+    assert!(cache.commit());
+    cache.start_insert();
+    let pending = cache
+        .insert(record("changed.test", Kind::Ipv4, 2), 100, 90)
+        .unwrap();
+    assert_eq!(
+        cache.insert_against_local(90, false),
+        Err(InsertError::LocalConflict)
+    );
+    assert!(!cache.commit());
+    assert_eq!(
+        cache.insert_against_local(90, true),
+        Err(InsertError::PreviousFailure)
+    );
+    assert!(lookup(&mut cache, "changed.test", Kind::Ipv4, 100).is_empty());
+    cache.start_insert();
+    assert!(cache.get(pending).is_none());
+    assert!(cache.insert_against_local(90, true).is_ok());
+    assert!(cache.commit());
+    assert!(cache.names.is_empty());
+    check_ownership(&cache);
+}
+
+#[test]
 fn lease_publication_mortal_blocker_can_stop_after_partial_deletion() {
     use super::super::lease_names::PublicationBlocker;
     for (reverse, immortal, no_round_robin, expected) in [

@@ -453,7 +453,7 @@ impl<R: Random> DnsDaemon<R> {
                     && !report.malformed_address
                     && !report.bogus_nxdomain
                 {
-                    self.cache_reply_at(&candidate, now);
+                    self.cache_reply_at_with_local(&candidate, now, external_local);
                 }
             }
             for recipient in reply.recipients {
@@ -791,9 +791,20 @@ impl<R: Random> DnsDaemon<R> {
         Ok(None)
     }
 
+    #[cfg(test)]
     fn cache_reply_at(&mut self, packet: &[u8], now: i64) {
+        self.cache_reply_at_with_local(packet, now, None);
+    }
+
+    fn cache_reply_at_with_local(
+        &mut self,
+        packet: &[u8],
+        now: i64,
+        external_local: Option<&LocalDnsService>,
+    ) {
         let negative_cache = self.negative_cache;
         let negative_ttl = self.negative_ttl;
+        let local = external_local.unwrap_or(&self.local);
         let Some(cache) = self.cache.as_mut() else {
             return;
         };
@@ -939,7 +950,7 @@ impl<R: Random> DnsDaemon<R> {
             // the target ordering remains intact.
             let mut soa_id = if chain.is_empty() {
                 if authority.is_some() {
-                    match insert_authority(cache, authority, now) {
+                    match insert_authority(cache, local, authority, now) {
                         Some(id) => Some(id),
                         None if negative_ttl != 0 => {
                             // find_soa() reports no SOA when its independent
@@ -962,7 +973,9 @@ impl<R: Random> DnsDaemon<R> {
                 // answer, before its terminal negative.  Keep that pending
                 // order and wire the targets once the terminal exists.
                 for (owner, target, ttl) in &chain {
-                    let Ok(cname_id) = cache.insert(
+                    let Some(CacheInsert::Dynamic(cname_id)) = insert_cache_record(
+                        cache,
+                        local,
                         Record {
                             name: owner.clone(),
                             kind: Kind::Cname,
@@ -985,12 +998,17 @@ impl<R: Random> DnsDaemon<R> {
                 negative: true,
                 data: Vec::new(),
             };
-            let Ok(Some(id)) = cache.insert_negative(record, now, selected_soa_ttl, negative_ttl)
+            let Some(ttl) = selected_soa_ttl.or((negative_ttl != 0).then_some(negative_ttl)) else {
+                cache.start_insert();
+                return;
+            };
+            let Some(CacheInsert::Dynamic(id)) =
+                insert_cache_record(cache, local, record, now, ttl)
             else {
                 cache.start_insert();
                 return;
             };
-            soa_id = soa_id.or_else(|| insert_authority(cache, authority, now));
+            soa_id = soa_id.or_else(|| insert_authority(cache, local, authority, now));
             if authority.is_some() && soa_id.is_none() {
                 if direct_negative {
                     if negative_ttl == 0 {
@@ -1037,7 +1055,9 @@ impl<R: Random> DnsDaemon<R> {
         }
         let mut cname_ids = Vec::with_capacity(chain.len());
         for (owner, target, ttl) in &chain {
-            let Ok(cname_id) = cache.insert(
+            let Some(CacheInsert::Dynamic(cname_id)) = insert_cache_record(
+                cache,
+                local,
                 Record {
                     name: owner.clone(),
                     kind: Kind::Cname,
@@ -1054,7 +1074,9 @@ impl<R: Random> DnsDaemon<R> {
         }
         let mut targets = Vec::with_capacity(addresses.len());
         for (name, data, ttl) in addresses {
-            let Ok(id) = cache.insert(
+            let Some(inserted) = insert_cache_record(
+                cache,
+                local,
                 Record {
                     name: name.clone(),
                     kind: terminal_kind,
@@ -1067,7 +1089,17 @@ impl<R: Random> DnsDaemon<R> {
                 cache.start_insert();
                 return;
             };
-            targets.push((name.canonical_wire(), id));
+            match inserted {
+                CacheInsert::Dynamic(id) => targets.push((name.canonical_wire(), id)),
+                CacheInsert::Local if chain.is_empty() => {}
+                CacheInsert::Local => {
+                    // Local CNAME target handles are a separate source-lifetime
+                    // boundary. Until represented, do not create a dynamic
+                    // target that would outlive a lease or a hosts generation.
+                    cache.start_insert();
+                    return;
+                }
+            }
         }
         for (owner, target, cname_id) in cname_ids.into_iter().rev() {
             let Some(target_id) = targets
@@ -1137,22 +1169,87 @@ fn authority_soa(message: &Message<'_>, name: &Name) -> Option<(Name, u32, u32, 
 
 fn insert_authority(
     cache: &mut Cache,
+    local: &LocalDnsService,
     soa: Option<&(Name, u32, u32, Vec<u8>)>,
     now: i64,
 ) -> Option<super::cache::EntryId> {
     let (name, ttl, _, data) = soa?;
-    cache
-        .insert(
-            Record {
-                name: name.clone(),
-                kind: Kind::Generic(6),
-                negative: false,
-                data: data.clone(),
-            },
-            now,
-            *ttl,
-        )
-        .ok()
+    match insert_cache_record(
+        cache,
+        local,
+        Record {
+            name: name.clone(),
+            kind: Kind::Generic(6),
+            negative: false,
+            data: data.clone(),
+        },
+        now,
+        *ttl,
+    ) {
+        Some(CacheInsert::Dynamic(id)) => Some(id),
+        _ => None,
+    }
+}
+
+enum CacheInsert {
+    Dynamic(super::cache::EntryId),
+    Local,
+}
+
+fn insert_cache_record(
+    cache: &mut Cache,
+    local: &LocalDnsService,
+    record: Record,
+    now: i64,
+    ttl: u32,
+) -> Option<CacheInsert> {
+    let name = record.name.dnsmasq_bytes();
+    let matches_address = |address: IpAddr| {
+        !record.negative
+            && match (record.kind, address) {
+                (Kind::Ipv4, IpAddr::V4(address)) => record.data == address.octets(),
+                (Kind::Ipv6, IpAddr::V6(address)) => record.data == address.octets(),
+                _ => false,
+            }
+    };
+    let mut existing = local
+        .hosts
+        .addresses(&name)
+        .find(|host| match record.kind {
+            Kind::Ipv4 => host.address.is_ipv4(),
+            Kind::Ipv6 => host.address.is_ipv6(),
+            Kind::Cname => true,
+            _ => false,
+        })
+        .map(|host| matches_address(host.address));
+    if existing.is_none() && matches!(record.kind, Kind::Ipv4 | Kind::Cname) {
+        // scan_free tests a matching local record before its expiry. Entries
+        // remain blockers until a lookup actually unhashes them.
+        existing = local
+            .leases
+            .active_lookup(&name)
+            .next()
+            .map(|lease| matches_address(IpAddr::V4(lease.address)));
+    }
+    if existing.is_none()
+        && local
+            .config
+            .records
+            .cnames
+            .iter()
+            .any(|cname| cname.alias.eq_ignore_ascii_case(&name))
+    {
+        existing = Some(false);
+    }
+    if let Some(same_address) = existing {
+        cache.insert_against_local(ttl, same_address).ok()?;
+        Some(CacheInsert::Local)
+    } else {
+        cache
+            .insert(record, now, ttl)
+            .ok()
+            .map(CacheInsert::Dynamic)
+    }
 }
 
 fn is_name_suffix(name: &Name, suffix: &Name) -> bool {
@@ -1223,6 +1320,10 @@ mod cache_tests;
 #[cfg(test)]
 #[path = "daemon_policy_tests.rs"]
 mod policy_tests;
+
+#[cfg(test)]
+#[path = "daemon_lease_cache_tests.rs"]
+mod lease_cache_tests;
 
 #[cfg(test)]
 mod tests {
