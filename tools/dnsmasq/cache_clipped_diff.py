@@ -103,8 +103,8 @@ def main():
     assert driver.C_DRIVER.count(old) == 1
     driver.C_DRIVER = driver.C_DRIVER.replace(old, new)
     driver.RUST_DRIVER = driver.RUST_DRIVER.replace("StalePolicy::Seconds(60)", "StalePolicy::Disabled")
-    old = 'daemon.cache_reply_at_with_local(&packet,now,None);println!("P");'
-    new = ('daemon.cache_reply_at_with_local(&packet,now,None);'
+    old = 'cache_edns_probe_insert(&mut daemon,&packet,now);println!("P");'
+    new = ('cache_edns_probe_insert(&mut daemon,&packet,now);'
            'println!("P {} {}",daemon.cache_counters.inserted,daemon.cache_counters.live_freed);')
     assert driver.RUST_DRIVER.count(old) == 1
     driver.RUST_DRIVER = driver.RUST_DRIVER.replace(old, new)

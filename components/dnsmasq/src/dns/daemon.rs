@@ -661,7 +661,7 @@ impl<R: Random> DnsDaemon<R> {
         // Run it after doctor, before recipient-specific packet rewriting.
         if matches!(rcode, 0 | 3)
             && !reply.flags.no_cache
-            && !reply.flags.had_opt
+            && reply.cache_eligible
             && !reply.flags.ad_requested
             && !reply.flags.checking_disabled
         {
@@ -782,15 +782,9 @@ impl<R: Random> DnsDaemon<R> {
 
     #[cfg(test)]
     fn cache_reply_at(&mut self, packet: &[u8], now: i64) {
-        self.cache_reply_at_with_local(packet, now, None);
-    }
-
-    fn cache_reply_at_with_local(
-        &mut self,
-        packet: &[u8],
-        now: i64,
-        external_local: Option<&LocalDnsService>,
-    ) {
+        let Ok(header) = Header::parse(packet) else {
+            return;
+        };
         let Some(cache) = self.cache.as_mut() else {
             return;
         };
@@ -800,7 +794,13 @@ impl<R: Random> DnsDaemon<R> {
             negative_cache: self.negative_cache,
             negative_ttl: self.negative_ttl,
         }
-        .insert_reply(packet, now, external_local.unwrap_or(&self.local));
+        .insert_reply_with_policy(
+            packet,
+            now,
+            &self.local,
+            &Default::default(),
+            header.rcode().into(),
+        );
     }
 }
 

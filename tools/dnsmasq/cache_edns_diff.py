@@ -51,6 +51,12 @@ int main(int argc,char **argv) {
 }
 '''
 RUST_DRIVER = r'''
+fn cache_edns_probe_insert<R: Random>(daemon: &mut DnsDaemon<R>, packet: &[u8], now: i64) {
+ let Ok(header)=super::wire::Header::parse(packet) else{return};
+ let Some(cache)=daemon.cache.as_mut() else{return};
+ CacheContext{cache,counters:&mut daemon.cache_counters,negative_cache:daemon.negative_cache,negative_ttl:daemon.negative_ttl}
+  .insert_reply_with_policy(packet,now,&daemon.local,&Default::default(),header.rcode().into());
+}
 pub fn cache_edns_probe_main() {
  use std::io::BufRead;
  struct Fixed;impl Random for Fixed{fn next_u32(&mut self)->io::Result<u32>{Ok(7)}}
@@ -62,7 +68,7 @@ pub fn cache_edns_probe_main() {
   let words:Vec<_>=line.split_whitespace().collect();let now:i64=words[1].parse().unwrap();
   daemon.edns_packet_max=words[2].parse().unwrap();let hex=words[3];
   let packet:Vec<_>=(0..hex.len()).step_by(2).map(|i|u8::from_str_radix(&hex[i..i+2],16).unwrap()).collect();
-  if words[0]=="P"{daemon.cache_reply_at_with_local(&packet,now,None);println!("P");continue;}
+  if words[0]=="P"{cache_edns_probe_insert(&mut daemon,&packet,now);println!("P");continue;}
   let question=super::forward::Question::parse(&packet).unwrap();
   let answer=daemon.cached_answer_at_with_local(&packet,&question,now,None).unwrap();
   print!("T {} ",u8::from(answer.stale));

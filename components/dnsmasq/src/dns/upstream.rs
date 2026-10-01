@@ -194,6 +194,9 @@ pub struct UncheckedReply {
     pub truncated: bool,
     pub server: ServerId,
     pub flags: Flags,
+    /// Cache metadata support for the first query in this forwarding group.
+    /// This is deliberately separate from C's duplicate-matching flags.
+    pub cache_eligible: bool,
     pub recipients: Vec<Recipient>,
 }
 
@@ -834,6 +837,9 @@ impl<R: Random> UpstreamResolver<R> {
                             truncated,
                             server: matched.server,
                             flags: pending.flags,
+                            cache_eligible: super::forward_service::ordinary_cache_query(
+                                &pending.packet,
+                            ),
                             recipients: pending.recipients,
                         }),
                     });

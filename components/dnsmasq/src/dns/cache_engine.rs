@@ -459,19 +459,6 @@ impl CacheContext<'_> {
         })
     }
 
-    pub fn insert_reply(&mut self, packet: &[u8], now: i64, local: &LocalDnsService) {
-        let Ok(header) = Header::parse(packet) else {
-            return;
-        };
-        self.insert_reply_with_policy(
-            packet,
-            now,
-            local,
-            &Default::default(),
-            header.rcode().into(),
-        );
-    }
-
     pub fn insert_reply_with_policy(
         &mut self,
         packet: &[u8],

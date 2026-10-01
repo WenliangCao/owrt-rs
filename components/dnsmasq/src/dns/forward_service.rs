@@ -393,6 +393,25 @@ pub fn prepare_query(
     Ok((prepared, metadata))
 }
 
+/// Rust's current cache metadata subset, independent of C's forwarding flags.
+/// FREC_NO_CACHE changes duplicate matching and is reserved for source-bound
+/// EDNS configuration. Ordinary empty OPT may populate the cache; unsupported
+/// option/version/signature metadata must not alter that forwarding contract.
+pub(super) fn ordinary_cache_query(packet: &[u8]) -> bool {
+    let Ok(header) = Header::parse(packet) else {
+        return false;
+    };
+    let Ok(scan) = find_pseudoheader(packet, true) else {
+        return false;
+    };
+    scan.opt.as_ref().is_none_or(|opt| {
+        !scan.signed
+            && header.additionals == 1
+            && opt.record.ttl == 0
+            && opt.record.rdata.is_empty()
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -474,8 +493,29 @@ mod tests {
         header.write(&mut with_opt).unwrap();
         let (prepared, metadata) = prepare_query(&with_opt, 1400).unwrap();
         assert!(metadata.had_opt);
+        assert!(!metadata.flags.no_cache);
         let opt = find_pseudoheader(&prepared, false).unwrap().opt.unwrap();
         assert_eq!(opt.udp_size(4096), 1400);
+    }
+
+    #[test]
+    fn opt_cache_eligibility_does_not_admit_unrepresented_metadata() {
+        for (ttl, data) in [
+            (0x8000u32, &[][..]),
+            (0x10000, &[][..]),
+            (0x1000000, &[][..]),
+            (0, &[0, 12, 0, 0][..]),
+        ] {
+            let mut packet = query("example.test", 9);
+            packet[11] = 1;
+            packet.extend_from_slice(&[0, 0, 41, 4, 210]);
+            packet.extend_from_slice(&ttl.to_be_bytes());
+            packet.extend_from_slice(&(data.len() as u16).to_be_bytes());
+            packet.extend_from_slice(data);
+            let (_, metadata) = prepare_query(&packet, 1232).unwrap();
+            assert!(metadata.had_opt && !metadata.flags.no_cache);
+            assert!(!ordinary_cache_query(&packet));
+        }
     }
 
     #[test]

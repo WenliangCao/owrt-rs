@@ -271,9 +271,7 @@ fn scan_bad_addresses(
         // check_bad_address tests the bounded address before ADD_RDLEN. An
         // earlier match wins even when this RR's declared tail is incomplete.
         if class == 1 && matches!(rrtype, 1 | 28) {
-            let Some(address) = packet_address(packet, fixed + 10, rrtype) else {
-                return None;
-            };
+            let address = packet_address(packet, fixed + 10, rrtype)?;
             if prefixes.iter().any(|prefix| prefix.contains(address)) {
                 let ttl = u32::from_be_bytes(packet[fixed + 4..fixed + 8].try_into().ok()?);
                 return Some((position, ttl));

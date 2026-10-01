@@ -73,7 +73,7 @@ pub fn cache_edns_probe_main() {
    let question=WireQuestion::parse(&packet,12).unwrap();let header=Header::parse(&packet).unwrap();
    let recipient=super::forward::Recipient{original_id:header.id,question_name:question.name,
     client:Client{source:"127.0.0.1:53000".parse().unwrap(),destination:"127.0.0.1".parse().unwrap(),interface:0,listener:None,reply_requested:true,udp_limit:1232,log_id:1}};
-   let mut reply=UncheckedReply{packet,truncated:false,server:super::forward::ServerId(1),flags:super::forward::Flags::default(),recipients:vec![]};
+   let mut reply=UncheckedReply{packet,truncated:false,server:super::forward::ServerId(1),flags:super::forward::Flags::default(),cache_eligible:true,recipients:vec![]};
    let rcode=daemon.process_completed_reply(&mut reply,now,None,&mut None).unwrap();
    daemon.recipient_packet(&reply,&recipient,rcode).unwrap()
   }else{

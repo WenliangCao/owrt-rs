@@ -71,6 +71,6 @@ observation and requires one failing case.
 
 This closes the measured prefix-side-effect boundary. It does not establish
 all cache behavior, TCP publication, DNSSEC metadata, arbitrary cached RR types,
-full service equivalence, or performance acceptance. Ordinary empty-OPT cold
-query insertion still has the existing `had_opt` admission exclusion and needs
-its separate service gate.
+full service equivalence, or performance acceptance. The later ordinary
+empty-OPT cold-insertion fix and separate service gate are recorded in
+[the EDNS cache phase](DNS_CACHE_EDNS_PHASE.md#cold-empty-opt-insertion--2026-10-01-continuation).

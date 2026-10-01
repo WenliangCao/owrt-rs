@@ -37,8 +37,9 @@ def cases():
     return rows
 
 
-def query(host, kind, ident):
-    return struct.pack("!6H", ident, 0x100, 1, 0, 0, 0) + name(host) + struct.pack("!HH", kind, 1)
+def query(host, kind, ident, empty_opt=False):
+    packet = struct.pack("!6H", ident, 0x100, 1, 0, 0, int(empty_opt)) + name(host) + struct.pack("!HH", kind, 1)
+    return packet + (b"\0" + struct.pack("!HHIH", 41, 1232, 0, 0) if empty_opt else b"")
 
 
 class Upstream:
@@ -73,7 +74,7 @@ def observation(packet):
     except (ValueError, IndexError, struct.error): return {"raw": packet.hex()}
 
 
-def run(binary, config, port, address, rows, upstream, out):
+def run(binary, config, port, address, rows, upstream, out, empty_opt=False):
     out.mkdir(); observed = []
     with (out / "stderr.log").open("wb") as log:
         daemon = subprocess.Popen([str(binary.resolve()), "-d", "-C", str(config)], stdout=log, stderr=log)
@@ -90,7 +91,7 @@ def run(binary, config, port, address, rows, upstream, out):
                     if fraction > .6: time.sleep(1.05 - fraction)
                     begin = int(time.time()); events = len(upstream.events); replies = []
                     for attempt in range(2):
-                        client.sendto(query(host, kind, 0x5100 + index * 2 + attempt), (address, port))
+                        client.sendto(query(host, kind, 0x5100 + index * 2 + attempt, empty_opt), (address, port))
                         reply = receive(client, .3)
                         assert reply is not None, f"missing client reply: {label}/{attempt}"
                         replies.append(observation(reply))
@@ -117,6 +118,8 @@ def main():
     parser.add_argument("--c", type=Path, required=True)
     parser.add_argument("--rust", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--empty-opt", action="store_true", help="send ordinary empty-OPT cold and repeated queries")
+    parser.add_argument("--inject-error", action="store_true", help="inject one extra upstream observation")
     args = parser.parse_args()
     assert os.environ.get("DNSMASQ_TEST_ISOLATED") == "1"
     assert sorted(name for _, name in socket.if_nameindex()) == ["lo"]
@@ -124,7 +127,7 @@ def main():
     out = args.out.resolve(); assert out.is_relative_to(ROOT / "private") and not out.exists(); out.mkdir(parents=True)
     rows = cases(); assert len(rows) == 16
     plan = {"cases": [row[0] for row in rows], "families": ["127.0.0.1", "::1"], "queries_per_case": 2,
-            "cache_capacity": 100, "neg_ttl": 30, "normalization": "upstream random ID and complete-packet DNS compression only; exact TTL/order/flags/errors; incomplete packets compare raw"}
+            "cache_capacity": 100, "neg_ttl": 30, "empty_opt": args.empty_opt, "normalization": "upstream random ID and complete-packet DNS compression only; exact TTL/order/flags/errors; incomplete packets compare raw"}
     (out / "plan.json").write_text(json.dumps(plan, indent=2) + "\n")
     sample = [{"case": "calibration", "upstream": [1]}]
     assert not compare(sample, copy.deepcopy(sample)) and compare(sample, [{"case": "calibration", "upstream": [1, 2]}])
@@ -132,6 +135,8 @@ def main():
     except ValueError: pass
     else: raise AssertionError("missing observation calibration")
     report = {"reference": reference, "rust_sha256": hashlib.sha256(args.rust.read_bytes()).hexdigest(),
+              "tool_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+              "empty_opt": args.empty_opt, "injected_error": args.inject_error,
               "calibration": {"equal": 1, "extra_upstream_send": 1, "missing_observation": 1}, "rounds": [], "failures": []}
     for address in plan["families"]:
         family = "v6" if ":" in address else "v4"; work = out / family; work.mkdir()
@@ -140,11 +145,13 @@ def main():
         config = work / "dnsmasq.conf"
         config.write_text(f"no-hosts\nno-resolv\nno-round-robin\ncache-size=100\nneg-ttl=30\nlisten-address=127.0.0.1,::1\nport={port}\nhost-record=ready.test,192.0.2.254\nserver={address}#{upstream.port}\n")
         try:
-            expected = run(args.c, config, port, address, rows, upstream, work / "c")
+            expected = run(args.c, config, port, address, rows, upstream, work / "c", args.empty_opt)
             invalid = {"clipped-answer", "complete-answer-before-clipped-answer", "cname-before-clipped-answer"}
             assert all(len(row["upstream"]) == (2 if row["case"] in invalid else 1) for row in expected), "C cache-hit/miss calibration"
-            actual = run(args.rust, config, port, address, rows, upstream, work / "rust")
+            actual = run(args.rust, config, port, address, rows, upstream, work / "rust", args.empty_opt)
             assert not upstream.errors, upstream.errors
+            if args.inject_error and family == "v4":
+                actual[0]["upstream"].append({"injected": "extra-upstream-send"})
             report["rounds"].append({"family": family, "cases": len(rows), "client_replies": len(rows) * 2,
                                      "c_upstream_queries": sum(len(row["upstream"]) for row in expected),
                                      "rust_upstream_queries": sum(len(row["upstream"]) for row in actual),
