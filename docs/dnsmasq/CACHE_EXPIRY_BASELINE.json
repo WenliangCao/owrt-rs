@@ -1,0 +1,478 @@
+{
+  "scope": "exact-source C primitive pressure gate; no candidate, timings or full-daemon claim",
+  "baseline_git": "bb0a923",
+  "status": "passed",
+  "cases": 37,
+  "commands_per_implementation": 26992,
+  "c_executions_per_case": 3,
+  "mismatches": 0,
+  "normalization": "none",
+  "baseline_layout_bytes": {
+    "Cache": 160,
+    "Entry": 120,
+    "proposed_bound_payload": 8
+  },
+  "rust_source_sha256": {
+    "components/dnsmasq/src/dns/cache.rs": "ce40fbf1bb34e01f5d760e46fa7ad377af5e6daf5368c3b49dded5fe850faf75",
+    "components/dnsmasq/src/dns/wire.rs": "61898c67d61195a2b0599b358102776be1a306691de8804c3a96e4f69d26d693"
+  },
+  "c_source_sha256": {
+    "cache.c": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c",
+    "dnsmasq.h": "318942419598f037a97611efbdea5aebba1e384b9a1ba5f7eded091c86e0e228"
+  },
+  "tool_sha256": "a85f37e368608a42e27a3bf1284c844478a382b418fff5975a5da6dc01986277",
+  "plan_sha256": "be64eb4ceeaa6c8f7369fac205a7305323b9414ae74747966a3698c73c7b6c43",
+  "compiler": "rustc 1.98.1 (48a229cea 2026-09-01)",
+  "baseline_manifest_sha256": "682dc6fc81f0a41ba058269838f7e1d3cbb7a921d857b74c0f9198874595c575",
+  "baseline_builder_sha256": "844c7d9498f8efff019fd1e511d066262c1c4fab17e7a2bf60b63b64384af1e6",
+  "binary_sha256": {
+    "oracle": "62ea62f58c25930da81d493ede6eacbc74bbc3b0f13d4b4e05484865cb033edb",
+    "driver": "b499b7d496541dafbcb8da0e78583a76b8e496c44b457a9fef715363c2483b49"
+  },
+  "traces": [
+    {
+      "name": "calibration",
+      "commands": 13,
+      "config": [
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "input_sha256": "c3c7aff8e3780d84aa105cc47150466b8d61a840ad404107f9a4573cc07acc52"
+    },
+    {
+      "name": "unexpired-8",
+      "commands": 50,
+      "config": [
+        8,
+        0,
+        0,
+        0,
+        0
+      ],
+      "input_sha256": "1e0241a8574835a36911c836a01776e83b90e0244abbd81b7bb8bf0aa3014a75"
+    },
+    {
+      "name": "simultaneous-8",
+      "commands": 50,
+      "config": [
+        8,
+        0,
+        0,
+        0,
+        0
+      ],
+      "input_sha256": "21cc86ef6b11b067fb2811054c817c46dc3e1232f030d1c04db5f60dd6c30232"
+    },
+    {
+      "name": "mixed-expiry-8",
+      "commands": 50,
+      "config": [
+        8,
+        0,
+        0,
+        0,
+        0
+      ],
+      "input_sha256": "3158ce6d3d2724b27ab0fb6847cf2061949e4bc4a4544d061ddc0f5648f1a07a"
+    },
+    {
+      "name": "deleted-minimum-8",
+      "commands": 53,
+      "config": [
+        8,
+        0,
+        0,
+        0,
+        0
+      ],
+      "input_sha256": "9a7c99a108febc76b88f368653886537c3a9cba2ecceee9001ca15ee81dd70aa"
+    },
+    {
+      "name": "shorter-replacement-8",
+      "commands": 53,
+      "config": [
+        8,
+        0,
+        0,
+        0,
+        0
+      ],
+      "input_sha256": "cee1ab500878e261420330b1c5683fd535673555795f8fa87f0f622ec36234a5"
+    },
+    {
+      "name": "abort-8",
+      "commands": 58,
+      "config": [
+        8,
+        0,
+        0,
+        0,
+        0
+      ],
+      "input_sha256": "79a3f51ba0dcd91dee61c6fed8d57e8d49cfddf624f69e8b1350b1fcf64d80ea"
+    },
+    {
+      "name": "cname-8",
+      "commands": 55,
+      "config": [
+        8,
+        0,
+        0,
+        0,
+        0
+      ],
+      "input_sha256": "45b87f28f0a3ada3388b6b8d28f96ef99292f41f69d98ecce6aa00dc9cb26666"
+    },
+    {
+      "name": "backward-time-8",
+      "commands": 50,
+      "config": [
+        8,
+        0,
+        0,
+        0,
+        0
+      ],
+      "input_sha256": "e08532a4d2127f5ef1cc3fa84712d34c2b599c325adc775b9d601fd27114d344"
+    },
+    {
+      "name": "negative-8",
+      "commands": 50,
+      "config": [
+        8,
+        0,
+        0,
+        0,
+        0
+      ],
+      "input_sha256": "42ee0fcb60721986b91ce6e23d5396faa17665147d3f6d5db72fa49d649401a6"
+    },
+    {
+      "name": "rrset-8",
+      "commands": 40,
+      "config": [
+        8,
+        0,
+        0,
+        0,
+        0
+      ],
+      "input_sha256": "fab6412440164ddb1ec1149a3027db689011e66740a9ade17ef5cc11d966ba39"
+    },
+    {
+      "name": "stale-5-8",
+      "commands": 50,
+      "config": [
+        8,
+        0,
+        0,
+        5,
+        0
+      ],
+      "input_sha256": "23e25f6ba23c4a444ffa7a567fdcbba6c25cf266a6732073b5284160534655a4"
+    },
+    {
+      "name": "stale-forever-8",
+      "commands": 50,
+      "config": [
+        8,
+        0,
+        0,
+        -1,
+        0
+      ],
+      "input_sha256": "21cc86ef6b11b067fb2811054c817c46dc3e1232f030d1c04db5f60dd6c30232"
+    },
+    {
+      "name": "unexpired-64",
+      "commands": 162,
+      "config": [
+        64,
+        0,
+        0,
+        0,
+        0
+      ],
+      "input_sha256": "50fd781d644b69ba4f617ec962df242cab84d35d1d6070592b0e3d4cdc8bac87"
+    },
+    {
+      "name": "simultaneous-64",
+      "commands": 162,
+      "config": [
+        64,
+        0,
+        0,
+        0,
+        0
+      ],
+      "input_sha256": "588f400578d2aebe398d41159a469af224c3e1e8e5aee8640b48973f3fa20990"
+    },
+    {
+      "name": "mixed-expiry-64",
+      "commands": 162,
+      "config": [
+        64,
+        0,
+        0,
+        0,
+        0
+      ],
+      "input_sha256": "7474f7ec865e170eb99748a6e21b824491693c77be431ef11baf66897ba5da26"
+    },
+    {
+      "name": "deleted-minimum-64",
+      "commands": 165,
+      "config": [
+        64,
+        0,
+        0,
+        0,
+        0
+      ],
+      "input_sha256": "5ad0f552ef33883e65f2cbb4c59567939fbbba8f6bb7b59d79b1d7a28c4b60d2"
+    },
+    {
+      "name": "shorter-replacement-64",
+      "commands": 165,
+      "config": [
+        64,
+        0,
+        0,
+        0,
+        0
+      ],
+      "input_sha256": "0ed462d9f5f088898dd2ca2a332763499c727f002c47000f1f67254e280cce32"
+    },
+    {
+      "name": "abort-64",
+      "commands": 170,
+      "config": [
+        64,
+        0,
+        0,
+        0,
+        0
+      ],
+      "input_sha256": "c6cde82999ae3073a3db3dfe1d96b80bb1ddcb96b8bd457b1e490f5c3b83f2b4"
+    },
+    {
+      "name": "cname-64",
+      "commands": 167,
+      "config": [
+        64,
+        0,
+        0,
+        0,
+        0
+      ],
+      "input_sha256": "ee847c7976195bf8579fa32077356ec2b2e56090735f0e86ffbfcc45bf02ced5"
+    },
+    {
+      "name": "backward-time-64",
+      "commands": 162,
+      "config": [
+        64,
+        0,
+        0,
+        0,
+        0
+      ],
+      "input_sha256": "ee0175b8ce826b6a3da308133a62e6be6b365fc0fe8e6113d817b0c26da16ef8"
+    },
+    {
+      "name": "negative-64",
+      "commands": 162,
+      "config": [
+        64,
+        0,
+        0,
+        0,
+        0
+      ],
+      "input_sha256": "5ff4039340465e7bbe8da3ab86cadad2ede670a5d6236297688290a92b0ab3c1"
+    },
+    {
+      "name": "rrset-64",
+      "commands": 152,
+      "config": [
+        64,
+        0,
+        0,
+        0,
+        0
+      ],
+      "input_sha256": "02e07c1005a6b39bd13b60ebce29defecbb1e5d7c030d0000fb29e6db28967b8"
+    },
+    {
+      "name": "stale-5-64",
+      "commands": 162,
+      "config": [
+        64,
+        0,
+        0,
+        5,
+        0
+      ],
+      "input_sha256": "da1a5d5eca3c05e4746fccdcbb5addc6082bb76e5eff1bdc75dd87aeb94a5642"
+    },
+    {
+      "name": "stale-forever-64",
+      "commands": 162,
+      "config": [
+        64,
+        0,
+        0,
+        -1,
+        0
+      ],
+      "input_sha256": "588f400578d2aebe398d41159a469af224c3e1e8e5aee8640b48973f3fa20990"
+    },
+    {
+      "name": "unexpired-1000",
+      "commands": 2034,
+      "config": [
+        1000,
+        0,
+        0,
+        0,
+        0
+      ],
+      "input_sha256": "b9d4340e84f78c2d9e7e68205cb27063b9072d7d1469fcb5e7feb3139a39c00b"
+    },
+    {
+      "name": "simultaneous-1000",
+      "commands": 2034,
+      "config": [
+        1000,
+        0,
+        0,
+        0,
+        0
+      ],
+      "input_sha256": "b6945763835cd13b84f3d66d67813f8882f50fafe5850d7547121909f9a2aafb"
+    },
+    {
+      "name": "mixed-expiry-1000",
+      "commands": 2034,
+      "config": [
+        1000,
+        0,
+        0,
+        0,
+        0
+      ],
+      "input_sha256": "7d42f00e92b8bfa362424b5ba318316c7281e29a81c2f8183ad259226ac68ab6"
+    },
+    {
+      "name": "deleted-minimum-1000",
+      "commands": 2037,
+      "config": [
+        1000,
+        0,
+        0,
+        0,
+        0
+      ],
+      "input_sha256": "7a15e43a56e4781115788590a3054f49f298c4bc0dc816d2705e0d41370c7959"
+    },
+    {
+      "name": "shorter-replacement-1000",
+      "commands": 2037,
+      "config": [
+        1000,
+        0,
+        0,
+        0,
+        0
+      ],
+      "input_sha256": "e51079baa0c442d74dfe343123484651677bce5a1c9764278234ec49c398c055"
+    },
+    {
+      "name": "abort-1000",
+      "commands": 2042,
+      "config": [
+        1000,
+        0,
+        0,
+        0,
+        0
+      ],
+      "input_sha256": "d1ae53f539149d2c2db4e655727cb487a0b31501d9de0d51bc63d594e1997d98"
+    },
+    {
+      "name": "cname-1000",
+      "commands": 2039,
+      "config": [
+        1000,
+        0,
+        0,
+        0,
+        0
+      ],
+      "input_sha256": "3b8886cc3cc3c26b68d06a161bb67849daa50601b1bb1d32aaef297e06bf9eff"
+    },
+    {
+      "name": "backward-time-1000",
+      "commands": 2034,
+      "config": [
+        1000,
+        0,
+        0,
+        0,
+        0
+      ],
+      "input_sha256": "8ed3446ce24445b9c924c4d417902103ec2015eafa24ad00e08849d634cf5245"
+    },
+    {
+      "name": "negative-1000",
+      "commands": 2034,
+      "config": [
+        1000,
+        0,
+        0,
+        0,
+        0
+      ],
+      "input_sha256": "2f95554ae27126272556ebc2c9c4cc666d4d9cd6ee3447371c319faf32695252"
+    },
+    {
+      "name": "rrset-1000",
+      "commands": 2024,
+      "config": [
+        1000,
+        0,
+        0,
+        0,
+        0
+      ],
+      "input_sha256": "348a521064e11f29bc85952db4eab4a4814b475a2d8243f5597e57b3bcc6d58b"
+    },
+    {
+      "name": "stale-5-1000",
+      "commands": 2034,
+      "config": [
+        1000,
+        0,
+        0,
+        5,
+        0
+      ],
+      "input_sha256": "5a5026898e5b6e5653a57e582dfa11893eed2fa2c30ff88457da87f20a584b7b"
+    },
+    {
+      "name": "stale-forever-1000",
+      "commands": 2034,
+      "config": [
+        1000,
+        0,
+        0,
+        -1,
+        0
+      ],
+      "input_sha256": "b6945763835cd13b84f3d66d67813f8882f50fafe5850d7547121909f9a2aafb"
+    }
+  ]
+}
