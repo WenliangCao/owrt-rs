@@ -80,3 +80,21 @@ service reload lifecycle, and target build/regression gates. The caller must
 replace the shared source before acknowledging DHCP and clone its `Arc` when
 creating a TCP child snapshot. A module/local-answer pass does not establish
 complete DHCP-to-DNS service equivalence.
+
+An additional source-contract review found that accepted `selfmx` was ignored
+by the local answer path. Exact C produced 12 mismatches across two new cases:
+MX/ANY for a lease or its parent and a configured CNAME terminating at a lease.
+The fix emits preference-one self MX records only for hosts/DHCP presence,
+preserves explicit MX precedence, uses local TTL, and avoids address rotation
+during the presence check. The expanded gate now compares **21 scenarios,
+1,238 commands, 564 DNS replies and 42 inventories, with zero mismatches**.
+Evidence is in `baseline-04/`, `selfmx-before/` and `selfmx-after/` beneath the
+same private root. The six forwarded-cache cases remain outside this gate.
+
+A separate fixed-clock observation is still a known gap: after an expired
+lookup at time 1000, moving time back to 999 can resurrect an immutable Rust
+lease view, whereas C has removed the record from its cache. The exact C/Rust
+reproduction is retained in `clock-rollback-01/`. Normal monotonic-time tests
+and periodic DHCP pruning do not establish equivalence for this case, including
+existing TCP child snapshots. This must be resolved before a zero-known-defect
+delivery claim.

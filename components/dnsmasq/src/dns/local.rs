@@ -554,6 +554,23 @@ fn add_local_records_for_name(
         }
     }
     add_mx(&config.records.mx, &key, qtype, ttl, &mut rows, &mut owned);
+    // rfc1035.c:2201-2214: selfmx applies to hosts/DHCP names, including
+    // their non-terminals, unless an explicit MX record already matched.
+    // F_NO_RR means this existence check must not rotate address records.
+    if (qtype == TYPE_MX || qtype == 255)
+        && config.records.self_mx
+        && !config
+            .records
+            .mx
+            .iter()
+            .any(|record| dotted_key(&record.name) == key)
+        && (hosts.name_exists(name) || leases.names.name_exists(name, leases.now))
+    {
+        let mut data = 1u16.to_be_bytes().to_vec();
+        data.extend(wire_name(name).unwrap_or_else(|| vec![0]));
+        rows.push((TYPE_MX, ttl, data));
+        owned = true;
+    }
     add_srv(&config.records.srv, &key, qtype, ttl, &mut rows, &mut owned);
     add_naptr(
         &config.records.naptr,

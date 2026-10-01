@@ -70,6 +70,8 @@ def corpus():
         ("static-same-among-different", "local-ttl=37\nhost-record=lease.example,192.0.2.9\nhost-record=lease.example,192.0.2.7",commands([record],questions)),
         ("static-publication-round-robin", "local-ttl=37\nhost-record=first.example,192.0.2.9\nhost-record=second.example,192.0.2.8\nhost-record=lease.example,192.0.2.9\nhost-record=lease.example,192.0.2.8",commands([record],questions)),
         ("ptr-no-promotion", "local-ttl=37", commands([record,("other.example","192.0.2.7",1010)],questions+[("other.example",1)],times=(999,1000,1009,1010))),
+        ("self-mx-lease-and-parent", "local-ttl=37\nselfmx",commands([record],questions+[("lease.example",15),("example",15)])),
+        ("self-mx-cname-terminal", "local-ttl=37\nselfmx\ncname=alias.example,lease.example",commands([record],questions+[("alias.example",15),("alias.example",255)])),
     ]
     for label,packet in [
         ("prior-forward-nxdomain",negative("lease.example")),
