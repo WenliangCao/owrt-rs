@@ -1,0 +1,355 @@
+{
+  "status": "correctness-and-allocation-passed-timing-pending",
+  "baseline_revision": "e77d966d0bf92e5296f73ee3e54fdaf960ed7781",
+  "baseline_sha256": {
+    "cache.rs": "8c73672d4ebe3959d8172cecf5b951afef61f23ec568c52b27f6b00ae081e9a5",
+    "wire.rs": "23e8d6c70d6c9177beb7d799ecb0fc39f5ef2378c7a2ca43b7f2e599c7d1510f",
+    "lease_names.rs": "cb05a82f1d5f8e90e37dfee942b0464366eedac92b6dfcc35ecb50c86fe2b0b3"
+  },
+  "compiler": {
+    "path": "/home/ubuntu/.rustup/toolchains/1.98.1-aarch64-unknown-linux-gnu/bin/rustc",
+    "sha256": "d4217a981a778bfe445c0a29c408f5a25a92e9bb5222701579ad5a35bd913e8f",
+    "version": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8\n"
+  },
+  "flags": [
+    "--edition=2021",
+    "-A",
+    "dead_code",
+    "-A",
+    "unused_imports",
+    "-Copt-level=3",
+    "-Clto",
+    "-Ccodegen-units=1",
+    "-Cpanic=abort"
+  ],
+  "gates": {
+    "primary_combined_cpu_gain": 0.2,
+    "primary_snapshot_live_heap_gain": 0.2,
+    "capacity150_p95_max_regression": 0.05,
+    "population_cpu_max_regression": 0.05,
+    "steady_heap_max_regression": 0.05
+  },
+  "correctness": {
+    "status": "passed",
+    "results": [
+      {
+        "variant": "deep",
+        "scenarios": 21,
+        "operations": 22571,
+        "failures": 0,
+        "cross_type_order_variations": 138
+      },
+      {
+        "variant": "chunk32",
+        "scenarios": 21,
+        "operations": 22571,
+        "failures": 0,
+        "cross_type_order_variations": 138
+      }
+    ],
+    "binaries": {
+      "deep-gate": "79198df9609a4222f693edf885e8321378f9f16fc86bb3a1cac71531eb06db7a",
+      "deep": "eb98602e3e0aa3d919af38b85bd6f0c651f38c46f1aabfc54a2aadbf4eeba55c",
+      "deep-alloc": "737bc2f0ee5a2c7bd084bd98e3fdaa46a596e88101816e9b9183b8d1a8bd1de5",
+      "chunk32-gate": "f55a7b26443a47275bd3a4709b14a9ab04182ac9e3bd1664aca4b8e0edc9186c",
+      "chunk32": "eb9c6844a513709ebcf007bdcdffa6cb2db2e3c49328ad7300a20ae446d196b3",
+      "chunk32-alloc": "7cff727be3443f849848013e64a0e29752aa4f91c3d8b1891ab7b2f4096e1ee3"
+    },
+    "negative_control": {
+      "matches": 12,
+      "failures": 1,
+      "exit": 1
+    },
+    "oracle": "reused exact C; no Rust-generated expectation",
+    "normalization": "Only cross-type Generic RR grouping; within-type order, data, TTL, expiry, negative and stale flags exact.",
+    "retained_state_checks_per_variant": 22571
+  },
+  "results": [
+    {
+      "variant": "deep",
+      "profiles": [
+        {
+          "capacity": 150,
+          "filled": 0,
+          "steady_requested_heap": 24000,
+          "steady_heap_ratio": 1.0,
+          "snapshot_live_requested_heap": 480000,
+          "snapshot_live_heap_gain": 0.0,
+          "peak_extra_requested": 480020,
+          "population_allocations": [
+            1,
+            0
+          ],
+          "snapshot_allocations": [
+            20,
+            0
+          ],
+          "lookup_allocations": [
+            20,
+            0
+          ],
+          "layout": [
+            168,
+            160,
+            120,
+            56
+          ],
+          "image_layout": 168,
+          "balanced": true
+        },
+        {
+          "capacity": 150,
+          "filled": 150,
+          "steady_requested_heap": 51338,
+          "steady_heap_ratio": 1.0,
+          "snapshot_live_requested_heap": 954120,
+          "snapshot_live_heap_gain": 0.0,
+          "peak_extra_requested": 954249,
+          "population_allocations": [
+            909,
+            330
+          ],
+          "snapshot_allocations": [
+            12040,
+            0
+          ],
+          "lookup_allocations": [
+            80,
+            0
+          ],
+          "layout": [
+            168,
+            160,
+            120,
+            56
+          ],
+          "image_layout": 168,
+          "balanced": true
+        },
+        {
+          "capacity": 1000,
+          "filled": 1000,
+          "steady_requested_heap": 358792,
+          "steady_heap_ratio": 1.0,
+          "snapshot_live_requested_heap": 6695200,
+          "snapshot_live_heap_gain": 0.0,
+          "peak_extra_requested": 6695329,
+          "population_allocations": [
+            6012,
+            2200
+          ],
+          "snapshot_allocations": [
+            80040,
+            0
+          ],
+          "lookup_allocations": [
+            80,
+            0
+          ],
+          "layout": [
+            168,
+            160,
+            120,
+            56
+          ],
+          "image_layout": 168,
+          "balanced": true
+        },
+        {
+          "capacity": 10000,
+          "filled": 10000,
+          "steady_requested_heap": 3386856,
+          "steady_heap_ratio": 1.0,
+          "snapshot_live_requested_heap": 62936480,
+          "snapshot_live_heap_gain": 0.0,
+          "peak_extra_requested": 62936609,
+          "population_allocations": [
+            60015,
+            22000
+          ],
+          "snapshot_allocations": [
+            800040,
+            0
+          ],
+          "lookup_allocations": [
+            80,
+            0
+          ],
+          "layout": [
+            168,
+            160,
+            120,
+            56
+          ],
+          "image_layout": 168,
+          "balanced": true
+        }
+      ],
+      "allocation_gates": {
+        "balanced": true,
+        "steady_heap": true,
+        "snapshot_live_heap": false
+      },
+      "status": "reference"
+    },
+    {
+      "variant": "chunk32",
+      "profiles": [
+        {
+          "capacity": 150,
+          "filled": 0,
+          "steady_requested_heap": 24160,
+          "steady_heap_ratio": 1.0066666666666666,
+          "snapshot_live_requested_heap": 1600,
+          "snapshot_live_heap_gain": 0.9966666666666667,
+          "peak_extra_requested": 1620,
+          "population_allocations": [
+            11,
+            0
+          ],
+          "snapshot_allocations": [
+            20,
+            0
+          ],
+          "lookup_allocations": [
+            20,
+            0
+          ],
+          "layout": [
+            176,
+            160,
+            120,
+            56
+          ],
+          "image_layout": 176,
+          "balanced": true
+        },
+        {
+          "capacity": 150,
+          "filled": 150,
+          "steady_requested_heap": 51498,
+          "steady_heap_ratio": 1.0031165997896294,
+          "snapshot_live_requested_heap": 597438,
+          "snapshot_live_heap_gain": 0.3738334800654006,
+          "peak_extra_requested": 597510,
+          "population_allocations": [
+            919,
+            330
+          ],
+          "snapshot_allocations": [
+            6040,
+            0
+          ],
+          "lookup_allocations": [
+            2470,
+            0
+          ],
+          "layout": [
+            176,
+            160,
+            120,
+            56
+          ],
+          "image_layout": 176,
+          "balanced": true
+        },
+        {
+          "capacity": 1000,
+          "filled": 1000,
+          "steady_requested_heap": 359816,
+          "steady_heap_ratio": 1.0028540212713772,
+          "snapshot_live_requested_heap": 3025286,
+          "snapshot_live_heap_gain": 0.5481410562791253,
+          "peak_extra_requested": 3025415,
+          "population_allocations": [
+            6076,
+            2200
+          ],
+          "snapshot_allocations": [
+            40040,
+            0
+          ],
+          "lookup_allocations": [
+            2697,
+            0
+          ],
+          "layout": [
+            176,
+            160,
+            120,
+            56
+          ],
+          "image_layout": 176,
+          "balanced": true
+        },
+        {
+          "capacity": 10000,
+          "filled": 10000,
+          "steady_requested_heap": 3396872,
+          "steady_heap_ratio": 1.0029573149847528,
+          "snapshot_live_requested_heap": 23958313,
+          "snapshot_live_heap_gain": 0.6193255008859726,
+          "peak_extra_requested": 23958442,
+          "population_allocations": [
+            60641,
+            22000
+          ],
+          "snapshot_allocations": [
+            400040,
+            0
+          ],
+          "lookup_allocations": [
+            2778,
+            0
+          ],
+          "layout": [
+            176,
+            160,
+            120,
+            56
+          ],
+          "image_layout": 176,
+          "balanced": true
+        }
+      ],
+      "allocation_gates": {
+        "balanced": true,
+        "steady_heap": true,
+        "snapshot_live_heap": true
+      },
+      "status": "timing-pending"
+    }
+  ],
+  "completed_runs": 8,
+  "completed_operations": 160,
+  "errors": 0,
+  "variants": {
+    "deep": {
+      "root": "/home/ubuntu/dnsmasq-tcp-chunk-20261001/work01/private/chunk-01/sources/deep",
+      "source_sha256": {
+        "cache.rs": "73f7659075b4054ed09a5005a38fa8c55934803bb79d2925d194e12438f0ae40",
+        "wire.rs": "23e8d6c70d6c9177beb7d799ecb0fc39f5ef2378c7a2ca43b7f2e599c7d1510f",
+        "lease_names.rs": "cb05a82f1d5f8e90e37dfee942b0464366eedac92b6dfcc35ecb50c86fe2b0b3"
+      },
+      "driver_sha256": "b87e450edcc51e16a9343ef680f990ed2f381cc8705be73a147a1749a99a925f",
+      "gate_sha256": "4e6d6e1748cb760b569d431088df70faacebef0372c20039cc431afd8378c7ff"
+    },
+    "chunk32": {
+      "root": "/home/ubuntu/dnsmasq-tcp-chunk-20261001/work01/private/chunk-01/sources/chunk32",
+      "source_sha256": {
+        "cache.rs": "4acbcc073ee303b64d5a911ccba3fd18fab2a04d34f8000b07cdbfe409d07dd2",
+        "wire.rs": "23e8d6c70d6c9177beb7d799ecb0fc39f5ef2378c7a2ca43b7f2e599c7d1510f",
+        "lease_names.rs": "cb05a82f1d5f8e90e37dfee942b0464366eedac92b6dfcc35ecb50c86fe2b0b3"
+      },
+      "driver_sha256": "921632b94a618fa060ddb0b5fec177648cce82fa57bf9f85b07dbe3b3e6817dd",
+      "gate_sha256": "68e0389d4d5bc1673649c146a398e01d5a3b6333cad7098183828426fa6b23e4"
+    }
+  },
+  "evidence_sha256": {
+    "manifest.json": "1789d9a2fda079211306f40aac290f22f836760e7ea65048f05752745f580c00",
+    "gate.json": "b6edb621b1e31c2c43d37329559ee4e3266d0eac1d4aa2cbd1b6d2f02e2a0e41",
+    "allocation.json": "d297a785d5ec71b1270cd2ab7209951e8c393518ca13aac3f252afd4a208a817",
+    "allocation-result.json": "7bdea05d25d1bd26147ce6de28b37a9acc3a1ba1c0f1b124208dfece6cdef799"
+  },
+  "scope": "private host primitive screen; no C-versus-Rust, component or router performance claim"
+}
