@@ -53,9 +53,10 @@ later original-tree edits cannot overwrite these candidates:
 - `tcp_slot_contract`: `private/dnsmasq-rewrite/resume-dhcp-hosts-20261001`, same
   base; establish ordinary hosts-derived DHCP address C baseline before a fix.
 
-No quiet performance window is active. Keep formal snapshot timing paused
-until the build host is explicitly coordinated; correctness builds/tests may
-continue. This is scheduling, not a requirement for new user permission.
+No quiet performance window is active. The coordinated CPU-2 snapshot screen
+completed its unchanged 48 runs (24,000/24,000, zero errors); all three candidates
+failed a frozen gate. Other builds/tests have resumed. Do not add timing rounds
+or relax thresholds after seeing this result.
 
 ## Latest committed functional progress
 
@@ -98,9 +99,11 @@ default product cache has not adopted it.
 `TCP_SNAPSHOT_SCREEN_ALLOCATION.md`: all four private representations pass
 21 scenarios/22,571 operations. Shared-entry snapshots reduce requested heap
 49.20%/52.34% at capacities 1,000/10,000, while parent heap rises 2.23%/2.36%
-and population adds one allocation per entry. Formal CPU/tail timing has not
-run; no candidate is accepted. Preserve `TCP_SNAPSHOT_SCREEN_V1.md`'s frozen
-48-run schedule and thresholds. Requested heap is not RSS/exclusive memory.
+and population adds one allocation per entry. The later `TCP_SNAPSHOT_SCREEN_RESULT.md` completes the frozen 48 runs. Shared
+CPU/completion improves 48.67%/29.84%, but its worst population CPU pairs at
+150/1,000 full regress 10.63%/13.71%, failing the unchanged 5% guard. Compact
+and top also fail. No candidate is accepted and no extra rounds are authorized
+by this result. Requested heap is not RSS/exclusive memory.
 
 ## Reference and execution environment
 

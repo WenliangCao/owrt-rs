@@ -1,5 +1,10 @@
 # TCP snapshot representation: correctness and allocation screen
 
+This is the allocation-phase record. The subsequent unchanged 48-run timing
+screen is in [TCP_SNAPSHOT_SCREEN_RESULT.md](TCP_SNAPSHOT_SCREEN_RESULT.md);
+all three candidates failed at least one frozen gate and remain unadopted.
+Statements below about pending timing describe this earlier phase.
+
 Four private representations pass the existing exact-C cache primitive corpus
 while a snapshot stays alive across every operation. Allocation accounting is
 complete; formal timing has **not run**. No representation is accepted for the

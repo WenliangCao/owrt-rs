@@ -92,7 +92,7 @@ above remains a coverage ledger, not a pass denominator.
 | Cache transaction / empty OPT | 471 operations, UDP 42/210; cold empty-OPT 32 cases and coalescing/retry eight cases match | Complete cache/EDNS/TCP |
 | DHCP reverse-host startup/HUP | 87/87; 14 snapshots equal independently frozen C | Address derivation and remaining DHCP modes |
 | Upstream failure/TCP admission | REFUSED/EDE23/local count and listener survival: 61/61; TCP recovery 17/17; shared capacity 31/31 | Transient retry and TCP cache/pipe lifecycle |
-| TCP snapshot screen | Four private variants pass 22,571 operations; shared allocation gate passes | Formal timing and product representation not accepted |
+| TCP snapshot screen | Four variants pass 22,571 correctness operations; frozen48 timing runs complete24,000/24,000 with0errors | All3 candidates fail frozen gates; shared population CPU worst+13.71%, no adoption |
 | UDP malformed/admission/capacity | 40 inputs, 43 observations match; public/main hooks committed | Duplicate-client refusal has an explicit C wrong-ID defect; complete interface/send pressure remains open |
 | Delayed UDP and failure isolation | 11-second reply, 41-second late drop, 42-second new query match; failed sibling no longer hides successful replies | `ad7e2a7` now aligns lazy wall-clock lifetime; exact forward state/counters 1,285 operations pass; no resource-equivalence claim |
 | Lease operation counters | Actual C 47 scenarios/3,764 snapshots, negative 3,763/1 | Real lease and DHCP message owners now publish through UBus; complete feature coverage remains separate |
