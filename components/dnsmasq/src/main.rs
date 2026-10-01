@@ -765,12 +765,15 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                         }
                         let (stream, _) = match tcp.accept() {
                             Ok(connection) => connection,
-                            Err(error) if error.kind() == io::ErrorKind::WouldBlock => {
+                            Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+                            Err(_) => {
+                                // C returns to its event loop after accept
+                                // errors without closing the listener. Keep
+                                // resource pressure recoverable, and bound
+                                // retries in this nonblocking polling loop.
                                 thread::sleep(Duration::from_millis(20));
                                 continue;
                             }
-                            Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
-                            Err(_) => break,
                         };
                         // dnsmasq.c clears inherited O_NONBLOCK after accept.
                         // Darwin inherits it; Linux does not.
