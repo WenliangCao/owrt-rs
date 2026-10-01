@@ -1,10 +1,13 @@
-# Reverse-cache UDP C baseline
+# Reverse-cache UDP result
 
 The independently frozen [19-profile gate](REVERSE_CACHE_UDP_PLAN.md)
 calibrates **124/124 UDP observations against native C** and **124/124 against
 the actual image**, with no fixture failures or revised expectations. Comparing
 the saved native/image rows also gives 124 matches without another daemon run.
-No Rust UDP comparison has been performed in this baseline.
+The private Rust candidate at `62894d6` subsequently matches **124/124**
+against each C variant. The earlier `deab8a0` candidate completes all 124 rows
+but differs in 33. All before/after executions preserve the frozen tool and
+expectations; the Rust result is a bounded private-candidate qualification.
 
 | Group | Profiles | Native calibrated | Image calibrated |
 | --- | --- | --- | --- |
@@ -24,6 +27,33 @@ No Rust UDP comparison has been performed in this baseline.
 The prior nine C-only service anchors are not rerun or recounted here. The
 fixed four-process multi-target primitive cohort remains C-only; this gate
 uses one PTR target per accepted RRset and makes no multi-target order claim.
+
+## Rust before/after observations
+
+| Run | C calibrated | Rust compared | Differences / failures |
+| --- | --- | --- | --- |
+| `udp-native-before-01`, `deab8a0` | 124/124 | 124 | 33 differences, no fixture failure |
+| `udp-native-after-01`, `62894d6` | 124/124 | 124 | 0 |
+| `udp-image-after-01`, `62894d6` | 124/124 | 124 | 0 |
+| `udp-native-negative-01`, `62894d6` | 124/124 | 124 | exactly 1 deliberately injected difference, no fixture failure |
+
+Before metadata admission is extended to PTR, the candidate matches 91 rows
+and differs in seven DO-related profiles: malformed replacement prefix (5),
+endrr bounds (4), DO/AD (6), normal replacement (5), request CD (4), raw CD (4)
+and raw RA0 (5). The earlier metadata guard skips ordinary PTR extraction:
+seeds do not insert, replacement retains old entries, and CD extraction does
+not remove them. A malformed prefix can retain NOERROR; the endrr response is
+already SERVFAIL but its earlier cache removal is missing. Metrics/before-state
+differences carry those errors into subsequent probes. All other 12 profiles,
+including plain malformed-prefix pressure and cross-RDLEN PTR, match.
+
+The `62894d6` source admits the measured empty-OPT PTR DO/AD envelope and applies
+DO reverse-lookup side effects. Both complete C comparisons then pass on the
+same native Rust ELF, including cache state, ordered errors and all metrics.
+The standalone native negative toggles the first result's AD flag; exactly that
+one observation differs and the tool exits 1. No expectation, normalization or
+fixture revision is needed. No separate Rust musl/runtime pass is implied by
+comparing this native ELF against the actual-image C runner.
 
 ## Measured service contracts
 
@@ -85,6 +115,22 @@ expectations copied from the generic malformed-RDATA path.
 
 ## Identities and evidence
 
+- Before source: `deab8a015c26f7b7e7fd8860ddaaf371dc745cbc`.
+- Before native daemon ELF SHA-256:
+  `9bd2d2a6fbea7d9202bc1586d4e9ba1e8e946854cb2a6bb8a99147c19a0209fa`.
+- Before source archive SHA-256:
+  `b16212f23fb2daf3fd02690de29b71685a059134ce279fc6be7c262218a9affb`.
+- After source: `62894d657341827f3ea1e903375a6263dbe4de82`.
+- After native daemon ELF SHA-256:
+  `601550b04418152ba5a865343ee3e44d93c64b610f29440577c1e294a547726e`.
+- After source archive SHA-256:
+  `d20889ad0c6ccfbecc5737bfb533e3b5691730e571f4c379ccb102c0a0a38134`.
+
+Both daemon ELFs are independently identified fresh Rust 1.98.1 release builds,
+with source manifests and build logs preserved. They are uninstrumented daemon
+binaries, separate from the primitive gate's instrumented probes.
+
+
 - Plan commit: `f84413e`.
 - Frozen tool commit: `e48efa2`.
 - Tool SHA-256:
@@ -97,8 +143,9 @@ expectations copied from the generic malformed-RDATA path.
 The image invocation verifies the runner, matching musl loader and libraries.
 Each complete C schedule records packets, upstream order/count and all 30 UBus
 metrics, then verifies cleanup. Every profile's comparator detects exactly one
-changed result and rejects a missing row. The first native and image attempts
-both pass; no failed window or alternative expectation was discarded.
+changed result and rejects a missing row. The initial native and image C-only
+baseline attempts both pass; no failed window or alternative expectation was
+discarded.
 
 The new fixture waits for the isolated UDP port to be bound before sending one
 ready packet. This avoids equating UBus registration with socket readiness;
@@ -112,7 +159,14 @@ comparison are retained under ignored
 `udp-baseline-evidence-sha256.json`. All executions use `run_isolated.sh`.
 No router, performance round or deployment is involved.
 
-Rust metadata/extraction equivalence remains to be measured against these C
-rows. Local/DHCP coexistence, typed transfer, stale refresh, multiple-target
-order, arbitrary EDNS/signatures, resource pressure beyond the stated shared
-capacity and production acceptance remain separate work.
+The four Rust comparison runs and logs are retained in the same private
+worktree. `udp-daemon-identities/` preserves each source archive, original build
+identity/log and ELF; `udp-pair-evidence-sha256.json` covers this unit's evidence.
+The ordinary 125-row primitive passes remain attributed to their earlier
+candidate identities in `REVERSE_CACHE_RUST_RESULT.md`; they are not silently
+reattributed to this newer metadata source.
+
+Local/DHCP coexistence, typed transfer, stale refresh, multiple-target order,
+arbitrary EDNS/signatures, resource pressure beyond the stated shared capacity
+and production acceptance remain separate work. This service gate does not establish
+whole-component production or deployment acceptance.
