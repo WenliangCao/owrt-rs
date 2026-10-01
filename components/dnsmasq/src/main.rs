@@ -464,6 +464,22 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         )?;
         provider.set_dns_config(&daemon_config)?;
         if dns_enabled {
+            let config_dns = Arc::clone(&service);
+            provider.set_config_host_lookup(move |name| {
+                let mut parent = config_dns
+                    .lock()
+                    .map_err(|_| io::Error::other("DNS state lock poisoned"))?;
+                let matches = parent.local.hosts.lookup(name, Some(false), false);
+                let selected = if matches.len() == 1 {
+                    matches.first().copied()
+                } else {
+                    matches.into_iter().find(|host| host.reverse)
+                };
+                Ok(selected.and_then(|host| match host.address {
+                    IpAddr::V4(address) => Some(address),
+                    IpAddr::V6(_) => None,
+                }))
+            });
             let boot_dns = Arc::clone(&service);
             provider.set_boot_host_lookup(move |name| {
                 let mut parent = boot_dns
@@ -1083,6 +1099,9 @@ struct TcpPermit(Arc<Mutex<ParentEvents>>);
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 fn report_dhcp_maintenance(report: &dnsmasq_rs::dhcp::daemon::MaintenanceReport) {
+    if let Some(error) = &report.address_error {
+        eprintln!("dnsmasq-rs: failed to update DHCP host addresses: {error}");
+    }
     for error in &report.host_files {
         eprintln!("dnsmasq-rs: DHCP hosts file: {error:?}");
     }
