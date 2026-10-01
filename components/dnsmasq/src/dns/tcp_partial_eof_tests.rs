@@ -1,4 +1,4 @@
-//! Opt-in before-fix observation of the existing typed Receiver and importer.
+//! Opt-in observation of the actual streaming typed Receiver and importer.
 //! Seeds/cut stages/lookup order are generated from the independently frozen C
 //! plan. No EOF handling, cache import or production codec is substituted.
 
@@ -81,18 +81,27 @@ fn observe(
 
 #[derive(Clone, Copy)]
 struct Spans {
-    name_length: usize,
+    length: usize,
     name: usize,
     data: usize,
     data_length: usize,
     end: usize,
 }
 
-fn spans(bytes: &[u8]) -> Vec<Spans> {
-    let count = u32::from_be_bytes(bytes[4..8].try_into().unwrap());
-    let mut offset = 8;
+fn spans(bytes: &[u8]) -> (Vec<Spans>, usize) {
+    assert_eq!(bytes[0], 1);
+    let mut offset = 1;
     let mut result = Vec::new();
-    for _ in 0..count {
+    loop {
+        let record_length = offset;
+        let payload_length = u32::from_be_bytes(bytes[offset..offset + 4].try_into().unwrap());
+        offset += 4;
+        if payload_length == u32::MAX {
+            assert_eq!(offset, bytes.len());
+            return (result, record_length);
+        }
+        assert!(payload_length >= 21);
+        let expected_end = offset + payload_length as usize;
         // Inspect the output of the real encoder; never construct a second
         // encoding. This only locates boundaries of valid A records.
         assert_eq!(&bytes[offset..offset + 4], &[0, 0, 0, 0]);
@@ -111,16 +120,27 @@ fn spans(bytes: &[u8]) -> Vec<Spans> {
         let authority_length = data + data_length;
         assert_eq!(&bytes[authority_length..authority_length + 2], &[0, 0]);
         offset = authority_length + 2;
+        assert_eq!(offset, expected_end);
         result.push(Spans {
-            name_length,
+            length: record_length,
             name,
             data,
             data_length,
             end: offset,
         });
     }
-    assert_eq!(offset, bytes.len());
-    result
+}
+
+fn validate_complete(bytes: &[u8], expected_records: usize) {
+    let (mut receiver, mut sender) = pipe().unwrap();
+    sender.0.write_all(bytes).unwrap();
+    drop(sender);
+    assert!(matches!(receiver.receive().unwrap(), Received::Begin));
+    for _ in 0..expected_records {
+        assert!(matches!(receiver.receive().unwrap(), Received::Record(_)));
+    }
+    assert!(matches!(receiver.receive().unwrap(), Received::End));
+    assert!(matches!(receiver.receive().unwrap(), Received::Eof));
 }
 
 #[test]
@@ -170,15 +190,14 @@ fn exact_c_partial_eof_probe() {
         })
         .collect();
     let bytes = encode(CacheTransaction { records }).unwrap();
-    // The complete wire must be valid under the actual current decoder. A
-    // shorter byte prefix never invents a wrong count or declared length.
-    let complete = decode(&bytes[4..]).unwrap();
-    let offsets = spans(&bytes);
-    assert_eq!(complete.records.len(), offsets.len());
+    // Validate the entire wire through the real Receiver before cutting it.
+    // No invalid record length or manufactured payload is used in this gate.
+    let (offsets, marker) = spans(&bytes);
+    validate_complete(&bytes, offsets.len());
     let cut = match scalar("cut") {
         "before-operation" => 0,
-        "after-operation-before-record-length" => 4,
-        "partial-first-record-length" => offsets[0].name_length + 1,
+        "after-operation-before-record-length" => 1,
+        "partial-first-record-length" => offsets[0].length + 3,
         "partial-first-record-name" => offsets[0].name + 3,
         "partial-first-record-address" => offsets[0].data + offsets[0].data_length - 1,
         "after-first-record-before-second-record" => {
@@ -186,8 +205,9 @@ fn exact_c_partial_eof_probe() {
             offsets[0].end
         }
         "partial-second-record-address" => offsets[1].data + offsets[1].data_length - 1,
+        "partial-end-sentinel" => marker + 3,
         "complete-transaction" => bytes.len(),
-        _ => panic!("no valid typed equivalent for native sentinel"),
+        _ => panic!("unknown semantic cutpoint"),
     };
     let queries: Vec<_> = commands
         .iter()
@@ -207,15 +227,41 @@ fn exact_c_partial_eof_probe() {
     let (mut receiver, mut sender) = pipe().unwrap();
     sender.0.write_all(&bytes[..cut]).unwrap();
     drop(sender);
-    let (received, outcome) = match receiver.receive() {
-        Ok(Received::Transaction(transaction)) => {
-            assert!(cache.import_counted(transaction, receive_now, &mut counters, |_| None));
-            (1, "Transaction")
+    let mut cursor = None;
+    let mut events = Vec::new();
+    let (received, outcome) = loop {
+        match receiver.receive() {
+            Ok(Received::Begin) => {
+                assert!(cursor.is_none());
+                events.push("Begin");
+                cursor = Some(cache.start_import());
+            }
+            Ok(Received::Record(record)) => {
+                events.push("Record");
+                let _ = cache.import_record_counted(
+                    record,
+                    receive_now,
+                    &mut counters,
+                    cursor.as_mut().expect("record after Begin"),
+                    |_| None,
+                );
+            }
+            Ok(Received::End) => {
+                events.push("End");
+                assert!(cursor.is_some());
+                assert!(cache.commit_counted(&mut counters));
+                break (1, "End");
+            }
+            Ok(Received::Eof) => break (0, "Eof"),
+            Err(error) if error.kind() == io::ErrorKind::UnexpectedEof => {
+                break (0, "UnexpectedEof");
+            }
+            _ => panic!("unexpected receiver outcome"),
         }
-        Ok(Received::Eof) => (0, "Eof"),
-        Err(error) if error.kind() == io::ErrorKind::UnexpectedEof => (0, "UnexpectedEof"),
-        _ => panic!("unexpected receiver outcome"),
     };
+    // The cursor owns only linkage state. EOF never rolls back or cleans up
+    // already staged prefix effects; the later explicit start does that.
+    drop(cursor);
     observe(
         &mut output,
         &mut cache,
@@ -237,7 +283,7 @@ fn exact_c_partial_eof_probe() {
     );
     std::fs::write(folder.join("rust-states.jsonl"), &output).unwrap();
     std::fs::write(folder.join("typed-complete-wire.bin"), &bytes).unwrap();
-    let metadata = format!("{{\"case\":\"{label}\",\"cut\":{cut},\"total\":{},\"records\":{},\"receiver_outcome\":\"{outcome}\",\"first_record_end\":{}}}",
+    let metadata = format!("{{\"case\":\"{label}\",\"format\":\"stream-v1\",\"cut\":{cut},\"total\":{},\"records\":{},\"receiver_outcome\":\"{outcome}\",\"receiver_events\":{events:?},\"complete_wire_verified\":true,\"first_record_end\":{},\"end_marker\":{marker}}}",
         bytes.len(), offsets.len(), offsets[0].end);
     std::fs::write(folder.join("typed-metadata.json"), &metadata).unwrap();
     println!("\nPARTIAL_META {metadata}");

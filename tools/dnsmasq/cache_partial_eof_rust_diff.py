@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Observe the unchanged private whole-frame Receiver against frozen C EOF.
+"""Compare the actual private Receiver against frozen C partial-pipe EOF.
 
-Eight semantic cutpoints use prefixes of valid actual typed encodings. Native
-partial sentinel has no typed equivalent and is explicitly reported C-only.
-An observed behavior mismatch makes this runner exit nonzero; no repair occurs.
+Original whole-frame mode maps eight semantic cutpoints and reports native
+partial sentinel C-only. --stream-format maps all nine using explicit Begin,
+length-prefixed records and an End marker. Mismatches always exit nonzero.
 """
 import argparse
 import json
@@ -69,6 +69,7 @@ def main():
     parser.add_argument("--baseline", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--cargo", default="cargo")
+    parser.add_argument("--stream-format", action="store_true")
     args = parser.parse_args()
     assert os.environ.get("DNSMASQ_TEST_ISOLATED") == "1" and [name for _, name in socket.if_nameindex()] == ["lo"]
     baseline, out = args.baseline.resolve(), args.out.resolve()
@@ -83,6 +84,7 @@ def main():
     out.mkdir(parents=True)
     sources = source_hashes()
     report = {"scope": __doc__, "baseline_result_sha256": RESULT_SHA, "plan_sha256": PLAN_SHA,
+              "typed_format": "stream-v1" if args.stream_format else "whole-frame-v1",
               "source_files": sources, "tool_sha256": sha(Path(__file__)), "cases": [], "differences": [],
               "failures": [], "c_only_not_representable": [], "compared": 0, "matched": 0}
     try:
@@ -97,7 +99,7 @@ def main():
         for case in schedule:
             label = case["case"]
             c_trace = json.loads((baseline / label / "trace.json").read_text())
-            if case["typed_correspondence"].startswith("not-representable"):
+            if case["typed_correspondence"].startswith("not-representable") and not args.stream_format:
                 report["c_only_not_representable"].append({"case": label, "observations": len(c_trace) - 1,
                     "reason": "native partial ssize_t end sentinel has no typed length/count counterpart"})
                 continue
@@ -107,13 +109,15 @@ def main():
             env = dict(os.environ, DNSMASQ_PARTIAL_EOF_CASE=str(folder))
             command(folder, "probe", [probe, TEST, "--ignored", "--exact", "--nocapture", "--test-threads=1"], env=env)
             actual = [json.loads(line) for line in (folder / "rust-states.jsonl").read_text().splitlines()]
+            typed_metadata = json.loads((folder / "typed-metadata.json").read_text())
+            assert typed_metadata.get("format", "whole-frame-v1") == report["typed_format"], "runner/adapter format mismatch"
             expected = c_trace[1:]
             differences = compare(expected, actual)
             report["differences"] += [{"case": label, **row} for row in differences]
             report["compared"] += len(actual)
             report["matched"] += len(actual) - len(differences)
             report["cases"].append({"case": label, "observations": len(actual), "differences": len(differences),
-                "native_metadata": c_trace[0], "typed_metadata": json.loads((folder / "typed-metadata.json").read_text()),
+                "native_metadata": c_trace[0], "typed_metadata": typed_metadata,
                 "typed_states_sha256": sha(folder / "rust-states.jsonl"), "typed_wire_sha256": sha(folder / "typed-complete-wire.bin")})
             assert not compare(expected, expected)
             changed = json.loads(json.dumps(expected))
@@ -129,7 +133,8 @@ def main():
             else:
                 raise AssertionError("missing observation accepted")
         assert sources == source_hashes(), "source changed during qualification"
-        assert report["compared"] == 24 and len(report["c_only_not_representable"]) == 1
+        assert report["compared"] == (27 if args.stream_format else 24)
+        assert len(report["c_only_not_representable"]) == (0 if args.stream_format else 1)
         report["comparison_calibrations"] = ["equal trace accepted", "pending mismatch rejected", "counter mismatch rejected", "missing state rejected"]
     except Exception as error:
         report["failures"].append(repr(error))
