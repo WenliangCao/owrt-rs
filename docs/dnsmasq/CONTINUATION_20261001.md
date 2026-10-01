@@ -6,6 +6,92 @@ complete**. Continue after each milestone; no inherited two-hour limit.
 Preserve user-owned `docs/prompts/` changes. Never access or change the physical
 router without a separate explicit request and verified recovery gate.
 
+## Most recent durable handoff
+
+This section supersedes the older in-flight notes below.
+
+- Stale worktree changes **were merged in `9f32047`**. Source-bound metadata
+  gate 1,100/1,100, negative 1,099/1; final stale service 48/48 includes kernel
+  send-before-refresh ordering. Shared 8, DHCP/DNS 34, reload 23 and cache 764
+  passed. The 32 ordinary local-CNAME cases remain equal; its two known C
+  layout differences and nonzero full-gate exit remain. The private worktree
+  is retained as evidence, not the current development checkout.
+- `866942d` + `7d8264b` wire common UDP processing/aliases, plain EDNS cached
+  answers and EDE, and enable the validated alias runtime. Static service
+  97/97; cache EDNS 155/155; negatives detect one error each. TCP caller 235,
+  UDP policy 84 and source04 isolated library 361/0/15 ignored are recorded.
+  It also fixes non-QUERY cache admission and accepts/retains only the first
+  4/16 bytes of safely bounded overlong A/AAAA RDATA, matching C.
+  Source04 native ELF is
+  `7ee4d53bf4bc6f43ac10a07fd3df2a74a0ab034f72d0c057ec63a12dc4493f64`;
+  this is a native stage, not the SDK package. See `DNS_ALIAS_SERVICE_PHASE.md`
+  and `DNS_CACHE_EDNS_PHASE.md`.
+- `1992d19` + daemon hooks: actual upstream sizes 68/68 and policy 64/64,
+  before 32/68 differences. Resolver receives configured EDNS maximum +265
+  bytes. Bounded UDP processing preserves C's clipped-section/TC/error order;
+  strict TCP behavior is still separate. `e6d4922` preserves transactions on
+  recoverable receive errors; repeated unconsumable POLLERR alone can back off
+  10 ms. OwnedSocket is +16 bytes; no throughput claim. The 52 actual closed-
+  port checks match but **did not trigger application receive errors** and
+  correctly return exit 2 for that coverage goal.
+- Real counters: cache `3a4b15b`/`97b637e`; lease `fc13ba3`; DHCP messages
+  `994e6e0`; forwarding/unanswered `07f0e79` (1,285 exact C state/counter rows).
+  A wrongly purposed old independent-expiry case is retained/corrected; its
+  new hard calibration proves the younger request survives.
+- DHCP continuation: `9949217` ordinary BOOTP 25/25 (two PRL failures fixed),
+  `2502ad8` boot metadata 54/54, `164e876` shared F_HOSTS next-server lookup
+  53/53, `1525374` ordinary options/default suppression 111/111, `08f996a`
+  options66/67 precedence 97/97. Each has a negative control; applicable boot,
+  hosts and options regressions pass. Unsupported tags/encapsulation/options
+  are still explicit. Main already has the shared hosts callback, preserving
+  Some(0) versus missing and port=0 avoiding DNS files.
+- UBus `5629618`/`72cb9bc`: typed enable config, opaque names 105/105,
+  controller 83/83, shared 65/65, sync queued metrics order 40/40. C libubus
+  drains queued object calls after notify completes but **before** returning
+  the replacement to the doctor. Read pre-doctor counters without taking
+  Provider after Parent. `53d1290` adds real daemon doctor hook and forward
+  counter getter. Main/ParentEvents integration is currently uncommitted WIP.
+  First actual full-chain test has 476 passes/one failure, the existing TCP
+  cache publication difference (C inserted8, Rust7). Keep that red; no fake
+  increment. Ordinary DNS/DHCP/metrics/reconnect observations already match.
+- EPS1 remains private: `3277404` original primitive screen and `293b7ac`
+  counted-API rebase report. The latter has fresh correctness gates and no
+  timing claim. Default cache has not adopted the candidate. There is no
+  active quiet window; new host performance requires explicit coordination.
+
+Current ownership:
+
+1. **Root:** integration coordination, master report/checkpoint and next inert
+   SDK stage preparation. SDK path is
+   `/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64`.
+   Use `build_package.py` protected snapshot/recipe restoration; freeze a
+   complete committed source before building. No deployment/image assembly.
+2. **ubus_lifecycle** (replacement for disconnected `ubus_contract`): owns
+   main.rs/ParentEvents and daemon common doctor callback. Main APIs are now
+   present; transient missing-method/DHCP-sink compile failures are preserved,
+   not passes. Finish actual full-chain/stale/pressure/delayed-bus/negative
+   gates and coordinate the TCP red gate with its owner.
+3. **dns_policy:** owns upstream/reply/process raw-receive work and now only
+   daemon `cache_reply_at_with_local` for complete Answer + clipped later
+   section caching. Frozen baseline: 30 differences in 96 operations/64
+   queries; after-fix gate is running. Do not touch UBus common hook. Strict
+   TCP envelope remains a later independent boundary.
+4. **dhcp_static:** moves from finished aliases to TCP cache fork/pipe contract.
+   Use **-k**, not -d, for child/parent evidence. Determine accept-time cache,
+   hosts/lease snapshots, fixed connection clock, typed absolute-expiry commit
+   batches and parent insertion metrics. No shared mutable parent cache or
+   extra UDP/entropy resolver in the child cache adapter. Coordinate main
+   snapshot/batch/drain/slot hooks with ubus owner and cache functions with
+   dns_policy. Quantify Clone/COW costs; do not default to costly full cloning.
+5. **lease_dns:** owns DHCP source event callbacks for real ACK/RELEASE before
+   send, coordinating with ubus owner. It is verifying C reverse-host fallback
+   for nonauthoritative ACK/unnamed INFORM; do not claim those events equal
+   before their actual C gate. Further ordinary option/encoding/tag/PXE/relay
+   work remains after this producer boundary.
+
+The user-owned prompt edits remain untouched. Full feature, zero-known-defect,
+paired C/Rust performance/resource and production gates remain open.
+
 ## Reference and environment
 
 - Target: AX3000T, OpenWrt 25.12.5, dnsmasq 2.93-r1 `nodhcpv6`.
