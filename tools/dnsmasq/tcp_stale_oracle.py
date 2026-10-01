@@ -7,6 +7,7 @@ UBus calls are retained privately. This is a functionality gate, not a timer
 or performance measurement. No Rust implementation generates expectations.
 """
 import argparse
+import copy
 import json
 import os
 from pathlib import Path
@@ -111,20 +112,22 @@ class Upstream:
 
 
 class Product(Fixture):
-    def __init__(self, args, out, profile):
+    def __init__(self, args, out, profile, binary):
         super().__init__(args, out)
         self.upstream.close()
         self.upstream = Upstream(profile)
         self.profile = profile
+        self.binary = binary
 
     def start_product(self):
         config = self.out / "dnsmasq.conf"
         config.write_text("no-hosts\nno-resolv\nlisten-address=127.0.0.1\nport=15353\n"
                           "server=127.0.0.1#15354\ncache-size=32\n"
                           f"use-stale-cache={self.profile['stale_seconds']}\nenable-ubus={OBJECT}\n")
-        binary = self.args.reference_build / "dnsmasq/dnsmasq"
-        self.daemon, _ = self.spawn([str(binary), "-k", "-C", str(config), "--user=root", "--group=root",
-                                     "--log-facility=-", "--pid-file=" + str(self.out / "pid")], "daemon")
+        command = [str(self.binary), "-k", "-C", str(config)]
+        if self.binary == self.args.reference_build / "dnsmasq/dnsmasq":
+            command += ["--user=root", "--group=root", "--log-facility=-", "--pid-file=" + str(self.out / "pid")]
+        self.daemon, _ = self.spawn(command, "daemon")
         self.wait_registered()
 
     def wait_metric(self, key, expected):
@@ -158,9 +161,9 @@ class Product(Fixture):
                     fd["target"] for fd in pipe_fds[pid] if fd["mode"] == os.O_WRONLY)) for pid in children}}
 
 
-def run_profile(args, out, profile):
+def run_profile(args, out, profile, binary):
     out.mkdir()
-    fixture = Product(args, out, profile)
+    fixture = Product(args, out, profile, binary)
     rows, clients = [], []
     trace = {"profile": profile, "rows": rows}
     try:
@@ -267,7 +270,7 @@ def run_profile(args, out, profile):
         (out / "trace.json").write_text(json.dumps(trace, indent=2) + "\n")
 
 
-def calibrate(trace, inject_error=False):
+def calibrate(trace, inject_error=False, reference=True):
     profile = trace["profile"]
     rows = {row["label"]: row for row in trace["rows"]}
     checks = []
@@ -310,8 +313,9 @@ def calibrate(trace, inject_error=False):
     held = rows["refresh-held"]
     check("gate-held", held["release_set"], False)
     check("slot-held-after-downstream-eof", held["metrics"]["tcp_connections"], 2)
-    check("both-workers-present", len(held["resources"]["children"]), 2)
-    check("both-parent-writeback-pipes-present", [len(p) for p in held["resources"]["writeback_pipes"].values()], [1, 1])
+    if reference:
+        check("both-workers-present", len(held["resources"]["children"]), 2)
+        check("both-parent-writeback-pipes-present", [len(p) for p in held["resources"]["writeback_pipes"].values()], [1, 1])
     check("parent-no-writeback-before-release", held["metrics"]["dns_cache_inserted"], 1)
     finished = rows["refresh-finished"]["metrics"]
     check("slot-after-refresh", finished["tcp_connections"], 1 if profile["stale"] else 2)
@@ -333,9 +337,71 @@ def calibrate(trace, inject_error=False):
     return checks
 
 
+def comparable(trace):
+    rows = []
+    for source in trace["rows"]:
+        row = copy.deepcopy(source)
+        for key in ("wire", "request", "resources"):
+            row.pop(key, None)
+        if "wire" in source:
+            row["counts"] = list(struct.unpack_from("!4H", bytes.fromhex(source["wire"]), 4))
+        rows.append(row)
+    events = []
+    for source in trace["upstream"]:
+        event = copy.deepcopy(source)
+        if "wire" in event and event["event"] != "downstream-eof":
+            wire = bytes.fromhex(event.pop("wire"))
+            event["packet"] = semantics(wire)
+            event["packet"]["id"] = 0
+            event["counts"] = list(struct.unpack_from("!4H", wire, 4))
+        events.append(event)
+    return {"profile": trace["profile"], "baseline_metrics": trace["baseline_metrics"], "rows": rows, "upstream": events}
+
+
+def compare(expected, actual):
+    left, right = comparable(expected), comparable(actual)
+    if len(left["rows"]) != len(right["rows"]):
+        return [{"case": "observation-count", "c": len(left["rows"]), "rust": len(right["rows"])}]
+    cache_labels = {"old-tcp-fresh", "old-tcp-after-wall-expiry", "parent-udp-writeback", "new-tcp-cache-hit"}
+    for a, b in zip(left["rows"], right["rows"]):
+        if a["label"] == b["label"] and a["label"] in cache_labels:
+            for c, r in zip(a["response"]["records"], b["response"]["records"]):
+                if c["type"] != 41 and r["type"] != 41 and abs(c["ttl"] - r["ttl"]) <= 1:
+                    r["ttl"] = c["ttl"]
+    failures = []
+    for key in ("profile", "baseline_metrics", "upstream"):
+        if left[key] != right[key]:
+            failures.append({"case": key, "c": left[key], "rust": right[key]})
+    for c, r in zip(left["rows"], right["rows"]):
+        if c != r:
+            failures.append({"case": c["label"], "c": c, "rust": r})
+    return failures
+
+
+def comparison_calibrations(trace):
+    assert not compare(trace, copy.deepcopy(trace)), "self comparison failed"
+    shortened = copy.deepcopy(trace)
+    shortened["rows"].pop()
+    assert compare(trace, shortened), "missing observation was ignored"
+    wrong_flags = copy.deepcopy(trace)
+    wrong_flags["rows"][0]["response"]["flags"] ^= 1
+    assert compare(trace, wrong_flags), "RCODE difference was ignored"
+    if trace["profile"]["stale"]:
+        wrong_ttl = copy.deepcopy(trace)
+        next(row for row in wrong_ttl["rows"] if row["label"] == "new-tcp-stale")["response"]["records"][0]["ttl"] = 1
+        assert compare(trace, wrong_ttl), "stale TTL difference was ignored"
+        wrong_order = copy.deepcopy(trace)
+        events = wrong_order["upstream"]
+        a = next(i for i, event in enumerate(events) if event["event"] == "downstream-eof")
+        b = next(i for i, event in enumerate(events) if event["event"] == "upstream-release")
+        events[a], events[b] = events[b], events[a]
+        assert compare(trace, wrong_order), "EOF/release order difference was ignored"
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--reference-build", type=Path, required=True)
+    parser.add_argument("--rust", type=Path)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--inject-error", action="store_true")
     args = parser.parse_args()
@@ -343,26 +409,46 @@ def main():
     out = args.out.resolve()
     assert os.environ.get("DNSMASQ_TEST_ISOLATED") == "1" and [n for _, n in socket.if_nameindex()] == ["lo"]
     assert out.is_relative_to(ROOT / "private") and not out.exists()
-    identity = verify_reference(args.reference_build / "dnsmasq/dnsmasq", None)
+    reference = args.reference_build / "dnsmasq/dnsmasq"
+    identity = verify_reference(reference, None)
     out.mkdir(parents=True)
     report = {"scope": "exact native C -k stale TCP functional baseline; no Rust/performance acceptance",
               "reference": identity, "tool_sha256": digest(Path(__file__)), "checks": [], "failures": [],
               "inject_error": args.inject_error, "profiles": []}
+    if args.rust:
+        args.rust = args.rust.resolve()
+        report.update(rust_sha256=digest(args.rust), rust_checks=[], comparison_failures=[], matched=0,
+                      scope="C-first real -k stale TCP functionality differential; no performance acceptance")
     subprocess.run(["mount", "--make-rprivate", "/"], check=True)
     subprocess.run(["mount", "-t", "tmpfs", "-o", "nosuid,nodev,noexec,mode=0755", "tmpfs", "/run"], check=True)
     Path(BUS).parent.mkdir(parents=True)
     try:
         for profile in PROFILES:
-            trace = run_profile(args, out / profile["name"], profile)
+            trace = run_profile(args, out / profile["name"], profile, reference)
             report["checks"] += calibrate(trace, args.inject_error and profile["name"] == "finite-success")
+            comparison_calibrations(trace)
             report["profiles"].append({**profile, "observations": len(trace["rows"]),
                                        "trace_sha256": digest(out / profile["name"] / "trace.json")})
+        # Finish all exact-C profiles before launching any candidate process.
+        if args.rust:
+            assert all(row["pass"] for row in report["checks"]), "C calibration must pass before candidate"
+            rust_out = out / "rust"
+            rust_out.mkdir()
+            for profile in PROFILES:
+                expected = json.loads((out / profile["name"] / "trace.json").read_text())
+                actual = run_profile(args, rust_out / profile["name"], profile, args.rust)
+                report["rust_checks"] += calibrate(actual, reference=False)
+                failures = compare(expected, actual)
+                report["comparison_failures"] += [{"profile": profile["name"], **failure} for failure in failures]
+                if not failures:
+                    report["matched"] += len(expected["rows"])
     except Exception as error:
         report["failures"].append(repr(error))
     finally:
         subprocess.run(["umount", "/run"], check=True)
     report["passed"] = sum(row["pass"] for row in report["checks"])
-    report["failed"] = sum(not row["pass"] for row in report["checks"]) + len(report["failures"])
+    report["failed"] = (sum(not row["pass"] for row in report["checks"] + report.get("rust_checks", []))
+                        + len(report["failures"]) + len(report.get("comparison_failures", [])))
     (out / "result.json").write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps(report))
     return int(bool(report["failed"]))
