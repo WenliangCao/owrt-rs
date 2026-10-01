@@ -163,6 +163,29 @@ pub struct CacheCounters {
     pub live_freed: u32,
 }
 
+/// Owned committed records in C's child-to-parent pipe order. Child slot IDs,
+/// local targets and counters deliberately never cross this boundary.
+/// No production sender or cache snapshot representation is implied.
+#[derive(Debug)]
+pub struct CacheTransaction {
+    records: Vec<TransferredRecord>,
+}
+
+#[derive(Debug)]
+struct TransferredRecord {
+    record: Record,
+    expires: i64,
+    authority_name: Option<Name>,
+}
+
+/// Current parent local-name match at cache_scan_free's existing boundary.
+/// The caller supplies its usual hosts/lease/configured-CNAME precedence.
+#[derive(Clone, Copy, Debug)]
+pub struct LocalCacheMatch {
+    pub same_address: bool,
+    pub from_lease: bool,
+}
+
 struct Slot {
     entry: Option<Entry>,
     generation: u64,
@@ -283,11 +306,18 @@ impl Cache {
         ttl: u32,
         same_address: bool,
     ) -> Result<(), InsertError> {
+        self.check_local_insert(self.policy.cache_ttl(ttl) == 0, same_address)
+    }
+
+    fn check_local_insert(
+        &mut self,
+        zero_ttl: bool,
+        same_address: bool,
+    ) -> Result<(), InsertError> {
         if self.failed {
             return Err(InsertError::PreviousFailure);
         }
-        let error = if self.policy.cache_ttl(ttl) == 0 && self.policy.stale == StalePolicy::Disabled
-        {
+        let error = if zero_ttl && self.policy.stale == StalePolicy::Disabled {
             Some(InsertError::ZeroTtl)
         } else if !same_address {
             Some(InsertError::LocalConflict)
@@ -326,6 +356,23 @@ impl Cache {
         let Some(expires) = now.checked_add(i64::from(ttl)) else {
             return self.fail(InsertError::TimeOverflow);
         };
+        self.insert_at_counted(record, now, expires, counters)
+    }
+
+    /// Already selected absolute expiry; never run the ordinary TTL clamps.
+    fn insert_at_counted(
+        &mut self,
+        record: Record,
+        now: i64,
+        expires: i64,
+        counters: &mut CacheCounters,
+    ) -> Result<EntryId, InsertError> {
+        if self.failed {
+            return Err(InsertError::PreviousFailure);
+        }
+        if expires == now && self.policy.stale == StalePolicy::Disabled {
+            return self.fail(InsertError::ZeroTtl);
+        }
         let key = record.name.canonical_wire();
         let mut preserved = None;
         if let Some(indices) = self.names.get(&key).cloned() {
@@ -514,6 +561,27 @@ impl Cache {
     /// Count each newly committed record after discarding invalid CNAMEs.
     /// Pending entries, aborts and failed commits do not increment inserted.
     pub fn commit_counted(&mut self, counters: &mut CacheCounters) -> bool {
+        self.commit_inner(counters, None)
+    }
+
+    /// Capture only a successful commit. Some(empty) is significant: C sends
+    /// an empty transaction, which clears prior parent pending insertions.
+    /// Owned names/data allocate only on this opt-in path; allocation failure
+    /// follows Rust's allocator policy. This is not a fallible pipe sender.
+    pub fn capture_commit_counted(
+        &mut self,
+        counters: &mut CacheCounters,
+    ) -> Option<CacheTransaction> {
+        let mut records = Vec::new();
+        self.commit_inner(counters, Some(&mut records))
+            .then_some(CacheTransaction { records })
+    }
+
+    fn commit_inner(
+        &mut self,
+        counters: &mut CacheCounters,
+        mut capture: Option<&mut Vec<TransferredRecord>>,
+    ) -> bool {
         if self.failed {
             return false;
         }
@@ -530,8 +598,97 @@ impl Cache {
                 .push(slot);
             self.link_head(slot);
             counters.inserted = counters.inserted.wrapping_add(1);
+            if let Some(records) = &mut capture {
+                let entry = self.slots[slot].entry.as_ref().unwrap();
+                records.push(TransferredRecord {
+                    record: Record {
+                        name: entry.record.name.clone(),
+                        kind: entry.record.kind,
+                        negative: entry.record.negative,
+                        // C sends no CNAME target name. Parent import derives
+                        // it from the preceding received insertion result.
+                        data: if entry.record.kind == Kind::Cname {
+                            Vec::new()
+                        } else {
+                            entry.record.data.clone()
+                        },
+                    },
+                    expires: entry.expires,
+                    authority_name: entry.authority_name.clone(),
+                });
+            }
         }
         true
+    }
+
+    /// Apply a whole received transaction against the parent's current state.
+    /// `local_match` is a read-only lookup using the caller's existing local
+    /// precedence; it must not use the child's old local-name generation.
+    /// Ordered removals/evictions survive a later failure, as in C. Counters
+    /// come only from these actual parent operations, never the child totals.
+    pub fn import_counted(
+        &mut self,
+        transaction: CacheTransaction,
+        now: i64,
+        counters: &mut CacheCounters,
+        mut local_match: impl FnMut(&Record) -> Option<LocalCacheMatch>,
+    ) -> bool {
+        self.start_insert();
+        let mut previous: Option<CnameTarget> = None;
+        for transferred in transaction.records {
+            if self.failed {
+                break;
+            }
+            let mut record = transferred.record;
+            let cname = record.kind == Kind::Cname;
+            if cname {
+                record.data = match &previous {
+                    Some(CnameTarget::Dynamic(id)) => self
+                        .get(*id)
+                        .map_or_else(Vec::new, |entry| entry.record.name.canonical_wire()),
+                    Some(CnameTarget::Local(target)) => target.name.canonical_wire(),
+                    None => Vec::new(),
+                };
+            }
+            // The two pinned source oracles saturate a negative remaining
+            // TTL to zero. Encode that observed conversion explicitly rather
+            // than reproduce C's out-of-range floating-to-unsigned cast.
+            // Positive remaining lifetimes retain the original deadline.
+            let expires = transferred.expires.max(now);
+            if expires == now && self.policy.stale == StalePolicy::Disabled {
+                self.failed = true;
+                break;
+            }
+            let inserted = if let Some(local) = local_match(&record) {
+                self.check_local_insert(expires == now, local.same_address)
+                    .ok()
+                    .map(|()| CnameTarget::Local(self.local_target(record.name, local.from_lease)))
+            } else {
+                self.insert_at_counted(record, now, expires, counters)
+                    .ok()
+                    .map(CnameTarget::Dynamic)
+            };
+            if let Some(CnameTarget::Dynamic(id)) = &inserted {
+                if let Some(authority) = transferred.authority_name {
+                    self.set_negative_authority(*id, authority);
+                }
+                if cname {
+                    match &previous {
+                        Some(CnameTarget::Dynamic(target)) => {
+                            self.set_cname_target(*id, *target);
+                        }
+                        Some(CnameTarget::Local(target)) => {
+                            self.set_local_cname_target(*id, Arc::clone(target));
+                        }
+                        None => {}
+                    }
+                }
+            }
+            if !cname || inserted.is_some() {
+                previous = inserted;
+            }
+        }
+        self.commit_counted(counters)
     }
 
     /// `Generic(_)` selects all generic RR types, as C's F_RR lookup does.
@@ -777,3 +934,7 @@ impl PublicationCache for Cache {
 #[cfg(test)]
 #[path = "cache_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "cache_transfer_tests.rs"]
+mod transfer_tests;
