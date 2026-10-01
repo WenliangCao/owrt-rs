@@ -226,8 +226,8 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     owrt_ubus::sys::set_signal_handler(owrt_ubus::sys::SIGINT, request_stop);
     owrt_ubus::sys::set_signal_handler(owrt_ubus::sys::SIGTERM, request_stop);
     owrt_ubus::sys::set_signal_handler(SIGHUP, request_reload);
-    // dnsmasq.c allocates `edns_pktsz + MAXDNAME + RRFIXEDSZ` for incoming
-    // packets and rejects larger UDP/TCP requests before parsing them.
+    // dnsmasq.c allocates `edns_pktsz + MAXDNAME + RRFIXEDSZ` as scratch space.
+    // TCP uses this frame limit; UDP admission enforces edns_pktsz itself.
     let packet_limit = usize::from(runtime.scalar.edns_packet_max) + 255 + 10;
     let tcp_limit = usize::try_from(runtime.scalar.max_tcp_connections).unwrap_or(usize::MAX);
     let daemon_config = runtime.dns.clone();
@@ -239,7 +239,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         proxy_dnssec: runtime.dns.proxy_dnssec,
         local_ttl: runtime.scalar.local_ttl,
         max_udp: packet_limit,
-        upstream_timeout: Duration::from_secs(10),
+        upstream_timeout: Duration::from_secs(dnsmasq_rs::dns::forward::ABSOLUTE_TIMEOUT as u64),
     };
     // C has one parent forward table and cache across all listener sockets.
     // Capacity and duplicate-query admission must not grow with listen-address.
@@ -436,6 +436,16 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                             let daemon = daemon.as_mut().expect("DNS listener owns the forwarder");
                             let answer = incoming.and_then(|(length, peer)| {
                                 let packet = &query[..length];
+                                match dnsmasq_rs::dns::udp_query::inspect(
+                                    packet,
+                                    local.edns_packet_max,
+                                ) {
+                                    dnsmasq_rs::dns::udp_query::Admission::Drop => return None,
+                                    dnsmasq_rs::dns::udp_query::Admission::Reply(answer) => {
+                                        return Some((peer, answer))
+                                    }
+                                    dnsmasq_rs::dns::udp_query::Admission::Continue => {}
+                                }
                                 let answer = match local.handle_udp(packet) {
                                     Ok(Some(answer)) => Some(answer),
                                     Ok(None) => match daemon.forward_udp_on_listener_with_local(
