@@ -1,133 +1,57 @@
-# dnsmasq-rs 持续交付账本
+# dnsmasq-rs 交付账本
 
-更新时间：2026-10-01。这个账本只覆盖 dnsmasq-rs，不替代各阶段源码报告。它把“入口已索引”“解析器已实现”“运行时已接线”“Linux 行为已验证”“C 差分已完成”“目标包可替换”和“真机已验收”分开记录；任何一层通过都不能推导出下一层通过。
+日更：2026-10-01 23:33 CEST。本次按用户纠偏重排任务。此文件是唯一维护的进度入口；旧 REPORT、CONTINUATION 和各阶段报告保留作历史证据，不再决定当前工作范围。
 
-## 固定身份与当前快照
+## 当前目标
 
-| 项目 | 固定事实与证据 | 结论 |
-|---|---|---|
-| 镜像/包 | AX3000T、OpenWrt 25.12.5、dnsmasq 2.93-r1、`nodhcpv6`；OpenWrt revision `f0a60eee2fe051741c643ea6118718aae1ef17fb`；归档 SHA256 `0c00d4e5c97c8306e5fb932b348b34269c9c29a0e7df0e8e82958b407092bc19` | 这是部署规格和 C 参考身份 |
-| 编译边界 | `HAVE_UBUS HAVE_POLL_H NO_DHCP6 NO_AUTH NO_IPSET NO_ID`；目标包含 DHCPv4、TFTP、BOOTP/PXE、relay/leasequery、inotify、dumpfile；不包含 DHCPv6、DNSSEC 验证、DBus、Lua、conntrack、ipset/nftset、权威 DNS、IDN、i18n | 不能以当前配置未启用删减上述可用能力 |
-| 入口清单 | `docs/dnsmasq/options.json`：195 个长选项，169 个 `variant=available`，26 个未编译能力；`python3 tools/dnsmasq/contract_inventory.py --check` 输出 `195 options indexed; 169 target capability entries` | 169 是本账本的总入口，不是已实现数 |
-| 参考源码 | `private/dnsmasq-rewrite/reference/identity.json`、`docs/dnsmasq/DNS_SOURCE_MAP.md`、`docs/dnsmasq/OPENWRT_CONTRACT.md` | C 参考只用于差分，不进入产品依赖 |
-| 版本状态 | SDK最新产品冻结405b7c1；后续有序cache/空OPT/lease reverse-host/发送错误修复尚未进入该APK | 未提交内容不是交付物，提交前必须重新格式化、测试和身份核验 |
-| 现时本地门 | freeze574f5ed：host库276 passed/5 ignored、main6；host/musl all-targets clippy、fmt通过。Linux278 passed/13ignored，另显式12ignored通过；专用oracle按独立corpus算 | 这是源码门，不是 Linux 服务或包验收 |
-| 目标包 | `PACKAGE_405B7C1_RESULT.md`：APK622772B；Rust ELF1178407B，比精确target C大909102B/+337.6%；目标UBus完整门67/69；仍只安装`/usr/libexec/dnsmasq-rs`、activation=inert | 不是 stock dnsmasq 替换包；不能部署或宣称可回滚替换 |
-| 设备 | 没有物理路由器部署、刷写或真机性能窗口 | 真机验收未执行 |
+用 AX3000T 实际 UCI 生成的 dnsmasq 配置，让 dnsmasq-rs 完整启动，在隔离环境完成真实 DHCP 租约和 DNS 查询的一次 C/Rust 端到端对照。清单以外的工作暂停。性能工作停止，达到这个目标后再按冻结协议测一次。
 
-## 169 个可用入口总表
+已找到原配置，不需要接触设备。来源为 `private/network-research-20260929/runtime/dns-runtime-files.out` 中的 `/var/etc/dnsmasq.conf.cfg01411c`，capture SHA-256 为 `44d61e552774f9085aee1ab67c6351a9c546af23ede5738bcb29e949a1ead317`。私有提取文件在 `private/dnsmasq-rewrite/actual-runtime-20261001/source/rootfs/var/etc/dnsmasq.conf.cfg01411c`，737 字节，SHA-256 为 `273642923b52722c6b423c22d1586972e7475d78142c2f14185a940230ad9afe`。依赖文件和来源身份记在该目录的 `source/identity.json`；配置、地址、租约不进 Git。
 
-下表逐项列出 169 个入口。各组的状态描述适用于组内每个名字；“索引”只表示选项、参数和变体边界已记录，不表示对应引擎可运行。
+参考仍为 AX3000T / OpenWrt 25.12.5 / dnsmasq 2.93-r1 nodhcpv6，匹配 OpenWrt revision `f0a60eee2fe051741c643ea6118718aae1ef17fb`。已有实际配置、镜像和匹配源码供离线使用。物理路由器访问、部署和配置修改仍需另行授权。
 
-| 能力组 | 数量 | 169 入口 | 当前层级、证据和关闭项 | 下一 owner |
-|---|---:|---|---|---|
-| 启动、配置文件与日志 | 23 | `version`, `no-hosts`, `no-poll`, `help`, `no-daemon`, `log-queries`, `user`, `group`, `pid-file`, `conf-file`, `conf-script`, `conf-dir`, `keep-in-foreground`, `test`, `log-facility`, `log-debug`, `log-malloc`, `quiet-dhcp`, `quiet-tftp`, `dumpfile`, `dumpmask`, `log-dhcp`, `log-async` | `options.json` 和 loader 已建立元数据/词法边界；部分 scalar/loader 单测和 C 接受/拒绝差分通过。日志、权限、dump、脚本和 `--test` 后启动副作用未完成全链路；主程序只显式接收少量运行开关。 | 配置/启动 owner：补跨选项 finalization、权限、日志、dump、FD/错误清理和 OpenWrt 启动回归 |
-| DNS 上游、传输与缓存 | 29 | `resolv-file`, `servers-file`, `cache-size`, `port`, `domain`, `domain-suffix`, `strict-order`, `server`, `rev-server`, `no-resolv`, `query-port`, `dns-forward-max`, `all-servers`, `edns-packet-max`, `fast-dns-retry`, `max-tcp-connections`, `port-limit`, `use-stale-cache`, `max-ttl`, `min-cache-ttl`, `max-cache-ttl`, `neg-ttl`, `min-port`, `max-port`, `no-negcache`, `no-round-robin`, `no-0x20-encode`, `do-0x20-encode`, `cache-rr` | UDP upstream dispatcher、域路由、reply envelope、基础 cache、CNAME/负缓存窄路径已有单测和局部 loopback；`DNS_FORWARD_SERVICE_PHASE.md`、`DNS_UPSTREAM_PHASE.md`、`DNS_CACHE_REPLY_PHASE.md` 为证据。跨UDP监听共享cache/table/合并已接并过C门；servers-file/动态resolv、完整cacheability/generic、TCP cache继承写回、缓存EDNS/DNSSEC metadata、stale全合同、端口/接口选择仍未闭。 | DNS runtime owner：按 `forward.c/process_reply/extract_addresses/answer_request` 接完配置、TCP、EDNS、缓存和失败边界 |
-| DNS 本地记录、hosts 与 RR | 22 | `mx-host`, `mx-target`, `local-service`, `local`, `localmx`, `address`, `expand-hosts`, `local-ttl`, `addn-hosts`, `hostsdir`, `read-ethers`, `alias`, `srv-host`, `txt-record`, `caa-record`, `dns-rr`, `ptr-record`, `naptr-record`, `cname`, `host-record`, `synth-domain`, `interface-name` | `dns/local.rs`, `hosts.rs`, `config/records.rs` 已覆盖本地 A/AAAA/TXT/部分 RR/CNAME 线；`local-c-audit-20260930` 有 108 个本地回答、9 个非 IN class、10 组路由案例的 C/Rust 记录。配置前缀/hosts/PTR归属与共享RR轮转、DHCP专用名字/TTL已接；完整MX默认主机名、hostsdir/inotify、synth/interface派生仍未完成。 | DNS local owner：完成文件监测、所有 RR 类型、名字同步、接口域和 caller 选择 |
-| DNS 策略、安全与身份 | 14 | `bogus-priv`, `bogus-nxdomain`, `ignore-address`, `selfmx`, `filterwin2k`, `filter-A`, `filter-AAAA`, `filter-rr`, `domain-needed`, `stop-dns-rebind`, `rebind-domain-ok`, `rebind-localhost-ok`, `proxy-dnssec`, `no-ident` | `process.rs` 已有 ignore/bogus/rebind address policy，C/Rust address 差分 68 cases；基础 flags/EDNS envelope 有差分。rrfilter、doctor/UBus rewrite、proxy DNSSEC 全路径、CHAOS/NO_ID 语义、配置与 upstream 组合仍未交付。 | DNS policy owner：接 process_reply 完整调用链，补 filter/doctor/identity 和配置联动 |
-| DHCPv4 租约、选项与状态 | 43 | `dhcp-leasefile`, `dhcp-lease`, `dhcp-host`, `dhcp-range`, `dhcp-option`, `dhcp-boot`, `dhcp-lease-max`, `dhcp-vendorclass`, `dhcp-userclass`, `dhcp-ignore`, `dhcp-authoritative`, `bootp-dynamic`, `dhcp-mac`, `no-ping`, `dhcp-script`, `leasefile-ro`, `script-on-renewal`, `dhcp-ignore-names`, `dhcp-option-force`, `dhcp-circuitid`, `dhcp-remoteid`, `dhcp-subscrid`, `dhcp-no-override`, `dhcp-match`, `dhcp-name-match`, `dhcp-broadcast`, `dhcp-alternate-port`, `dhcp-scriptuser`, `dhcp-fqdn`, `dhcp-sequential-ip`, `dhcp-client-update`, `dhcp-generate-names`, `dhcp-ttl`, `dhcp-reply-delay`, `dhcp-rapid-commit`, `dhcp-ignore-clid`, `dynamic-host`, `dhcp-hostsfile`, `dhcp-optsfile`, `dhcp-hostsdir`, `dhcp-optsdir`, `tag-if`, `leasequery` | `dhcp/packet`, `allocation`, `request`, `state`, `lease`, `lease_file`, `reply` 已有原语；C differential 覆盖 18,015 项、state 51 项、reply wire 1,008 项，BOOTP vend 429 定义 cases。`dhcp/runtime` 已有 StateProvider、prune/commit-before-send 适配器。普通动态/静态CLID/MAC、leasefile持久恢复/fsync/重试、FQDN/name options、ICMP/ARP及同步DNS和hostsfile HUP已有分项C服务门。tags/全部options、脚本/hotplug、leasequery wire/ACL、PXE/relay不在通过范围。 | DHCP owner：接 config→context→state→reply→send→lease/script/DNS，先完成真实 listener 生命周期 |
-| DHCP 网络、PXE 与 relay | 16 | `interface`, `listen-address`, `except-interface`, `no-dhcp-interface`, `no-dhcpv4-interface`, `bind-interfaces`, `bind-dynamic`, `bridge-interface`, `shared-network`, `dhcp-option-pxe`, `dhcp-pxe-vendor`, `pxe-prompt`, `pxe-service`, `dhcp-proxy`, `dhcp-relay`, `dhcp-split-relay` | `dhcp/service` 有 AF_INET/pktinfo admission、Dispatch 分类、局部 Linux loopback listener 证据；`DHCP_SERVICE_PHASE.md` 明确 relay/PXE/ARP/动态接口/生产端口未接线。近期 listener/runtime 提交是隔离 adapter 草稿，不是 C/Rust 真实服务差分。 | DHCP/Linux owner：接口发现、67/4011 socket、pktinfo/bridge、ARP、relay/PXE 和关闭/重载 |
-| TFTP | 11 | `enable-tftp`, `tftp-secure`, `tftp-no-fail`, `tftp-unique-root`, `tftp-root`, `tftp-max`, `tftp-mtu`, `tftp-lowercase`, `tftp-single-port`, `tftp-no-blocksize`, `tftp-port-range` | `tftp_service`, `tftp_runtime`, `tftp_listener`、TFTP 配置和主程序 Linux listener 已接线；path/admission oracle 255,528+20,000、netascii oracle 97,384、局部 benchmark 有证据。listener/config 仍缺完整 C/Rust UDP/PXE/helper 对照；script queue、open/share race、retry/timeout/cleanup、port/interface/pktinfo、single-port 全服务和 package startup 未验收。 | TFTP owner：完成全 socket/文件/helper/PXE 对照及真实 Linux isolated service gate |
-| OpenWrt 集成与高级能力 | 11 | `enable-ubus`, `localise-queries`, `add-mac`, `strip-mac`, `add-subnet`, `strip-subnet`, `add-cpe-id`, `clear-on-reload`, `dns-loop-detect`, `script-arp`, `umbrella` | OpenWrt init/procd/ujail/ubus/odhcpd/dhcp-script 调用方已读并记录于 `OPENWRT_CONTRACT.md`；实际 ubus metrics/doctor/DHCP events 已接线；native C门68/69、目标C门67/69，差异保留。完整reload、helper/hotplug、subnet/cpe/ARP/dump 生命周期仍未闭。 | Integration owner：按调用方合同完成 procd/ujail/ubus/reload/odhcpd/helper/metrics |
+## 按阻塞顺序推进的清单
 
-169 项逐项已落入上述八组，组计数为 23+29+22+14+43+16+11+11=169。未编译的 26 项仍需保持 C 的拒绝/启动行为，但不计入本表能力分母。
+当前剩余 **8 项：7 项实现阻塞和 1 项最终验收**。以下阻塞已经对照实际配置和源码确认；完整原配置启动尚未执行，不能把源码判断写成已跑的启动失败。
 
-## 按交付层级的状态
+1. **原配置和依赖加载。** 补 `read-ethers` 开关及启动时文件接线，按原路径提供 include、用户数据库等依赖。配置与生命周期负责人负责；DHCP 静态配置输入与网络负责人衔接。
+2. **真实配置使用的 DHCP 标签。** 接通 range 的 `set:lan`、条件广播与忽略名字规则，以及 include 中的 `dhcp-name-match`。tag/option 负责人负责。当前配置没有自定义 `dhcp-option`，其余 option 和封装格式暂缓。
+3. **DHCP 接口与发送选择。** 接通 `no-dhcp-interface=wan`，把标签匹配结果传入广播回复与发送路径。DHCP 网络负责人负责。实际配置和 include 没有 relay/PXE 项，二者暂不进入本轮实现。
+4. **目录 hosts。** `/tmp/hosts` 是目录，当前 `read_hosts` 把它当文件读取；需加载其中实际生成的 hosts 文件。DNS 负责人负责。
+5. **实际 DNS 策略。** 实现并接通 `domain-needed`、`bogus-priv`、`localise-queries`，随后解除相应启动拒绝。DNS 负责人负责，不以删除校验代替实现。
+6. **真实接口监听与来源限制。** 接通 `bind-dynamic`、`local-service`，保留原配置的接口、地址和端口语义。配置与生命周期负责人主责，网络负责人提供接口上下文。
+7. **进程启动退出。** 接通用户/组降权、PID 文件及清理，采用原服务所需的运行身份。配置与生命周期负责人负责；检查真实身份和资源，不能忽略配置后以 root 运行当作完成。
+8. **一次完整 C/Rust 对照。** 在私有网络和挂载命名空间重建原配置环境，完成 DORA、租约文件、租约 A/PTR 和一次受控上游 DNS 查询。DNS 负责人组织，网络负责人提供客户端和上游环境，主代理整合验收。现成 resolv 文件先复用已有读取路径；只有实际运行证明必要，动态 resolver 更新才加入阻塞清单。
 
-| 层级 | 已有事实 | 未关闭缺口 | owner/出口条件 |
-|---|---|---|---|
-| Metadata | 195 入口、169 可用/26 excluded 已由精确 `option.c` 清单生成；变体 COPTS、参数、重复策略和源码位置均在 `options.json` | 元数据不是 runtime；每项的完整副作用/调用方合同尚未闭环 | 配置 owner：逐项把 `options.json` 连接到实际 consumer 并保留 unavailable 行为 |
-| Parser/config | `EncodedArg`、scalar/dns/records/tftp loader，CLI/include/重复/inode/引号边界有单测和 59/59 接受拒绝、19/19 state probes、157/157 累计记录 | 大量 169 选项仍 metadata-only；跨选项 finalization、platform resolver/interface/gethostname、DHCP/TFTP 文件和 config-dir 动态输入未闭环 | 配置 owner：完整 parser→typed state→finalize 差分，不把 `apply` 成功当引擎完成 |
-| DNS parser/primitive | wire/name/RR canonicalization、hosts、local records、routing、reply envelope、address policy、cache primitive 有单元/C oracle | parser primitive 未覆盖完整 daemon 语义；unknown RR、EDNS/DNSSEC/cache metadata、TCP fallback、UBus doctor、reload 未闭环 | DNS owner：完整 `receive_query→answer_request→process_reply→cache` 状态机 |
-| DNS daemon/runtime | 主程序可在受限 loopback/非特权配置启动 UDP DNS、local TCP framing、非阻塞 upstream UDP；缓存窄路径已含正/负/CNAME/SOA 子集 | 主程序拒绝大多数真实 OpenWrt 配置；TCP transport/caller已进入组合门；hosts/cache SIGHUP已通过窄服务差分；resolv polling、multi-interface/source-port、完整cacheability/reload、UBus ACL/完整lifecycle与TCP父缓存仍未完成；实际metrics/doctor/events已接线并有分项门 | DNS runtime owner：提交前清理草稿并做真实 Linux isolated lifecycle |
-| DHCP state/wire | packet/state/lease/reply/runtime adapter 有 C 原语差分，运行时保留 commit-before-send/prune/lost names | 动态/普通静态租约、文件恢复/fsync/到期/磁盘重试、名字选项与同步DNS、hostfile HUP已接并有实际C服务门；tag/PXE/relay/leasequery/helper及全部配置仍未接完 | DHCP owner：完整服务接线后再做 C/Rust service diff |
-| TFTP parser/runtime | path/admission/real file opener/transfer/netascii/listener API 存在；局部 oracle/benchmark 通过 | Linux dedicated/single-port/端口范围/重试/超时/FD门已对照；明确C旧DATA/FD泄漏差异保留；helper/PXE/全部interface-source/长运行和生产package gate仍未完成 | TFTP owner：isolated UDP/PXE/helper service differential |
-| Linux execution | 存在 DHCP loopback listener test、signal smoke、TFTP listener 代码；测试均为本地隔离或库边界 | 无 67/69/4011 生产权限/接口/桥接/ARP/relay/文件 race/长运行证据；已有分项 C/Rust 服务差分，但无完整同负载性能门；未验证 OpenWrt jail/procd | Linux execution owner：已有UDP refusal/TCP/TFTP与DHCP原语隔离门；继续完整租约/PXE/helper/权限及lifecycle/recovery |
-| C differential | DNS wire/reply/process/cache/local、DHCP packet/state/reply、TFTP path/netascii、配置输入均有不同粒度 oracle | 缺完整 daemon service oracle、DHCP/TFTP listener/PXE/helper、完整 169 semantics；ignored tests 仍未算通过 | Differential owner：先校准成功/失败计数，再覆盖 caller side effects |
-| Performance/resources | C-only成本9窗口/660000完成+3profile已核验；DYN1链接候选ELF少12.03%但仍较C大601610B；TFTP仅局部netascii；EPS1方案/压力基线冻结 | 尚无当前完整Rust的paired end-to-end吞吐/CPU/尾延迟/资源/长期收益；C-only、旧链接候选和局部netascii不能推广为组件验收 | Performance owner：功能 gate 后按 `PERFORMANCE_PROTOCOL.md` 交错 C/Rust |
-| Package/release | 早期 SDK 构建出 inert APK，目标工具链/manifest/hash 可追溯 | 尚未用当前完整源码构建可替换 dnsmasq 包；未做 package install/upgrade/rollback/ABI/ownership/size gate | Release owner：匹配 SDK clean build、manifest/APK、ownership、rollback |
-| Physical router | 未访问或修改设备 | 无部署、Wi-Fi 管理回归、自动 rollback/client health/recovery gate | 仅获单独授权并满足 AGENTS 恢复门后执行 |
+这 8 项按实际依赖推进，可以并行的实现分开负责。新发现只有确实阻塞当前目标时才加入清单；已实现项要有相应运行证据才关闭。
 
-## 证据索引与“不能据此宣称”的规则
+## 四个大块负责人
 
-| 证据 | 覆盖 | 不覆盖 |
-|---|---|---|
-| `docs/dnsmasq/OPENWRT_CONTRACT.md`, `options.json`, `contract_inventory.py` | 精确 169 入口、参数和调用方线索 | 运行时等价 |
-| `DNS_SOURCE_MAP.md`, `DNS_CACHE_REPLY_PHASE.md`, `DNS_SERVICE_PHASE.md` | DNS 原语、窄 daemon 边界和明确缺口 | 完整 DNS、完整配置、生产服务 |
-| `DHCP_SOURCE_MAP.md`, `DHCP_REPLY_PHASE.md`, `DHCP_RUNTIME_PHASE.md`, `DHCP_SERVICE_PHASE.md` | DHCP 状态/wire/runtime/service adapter 边界 | 完整 listener、relay/PXE/leasefile/script/DNS |
-| `TFTP_SOURCE_MAP.md`, `TFTP_RUNTIME_PHASE.md`, `TFTP_SERVICE_PHASE.md` | TFTP path/admission/transfer/netascii | 完整 UDP/PXE/helper/长运行服务 |
-| `private/dnsmasq-rewrite/local-c-audit-20260930/` | 局部 C/Rust local DNS | 上游/cache/真实 daemon |
-| `private/dnsmasq-rs/cache/differential-soa-redesign/summary.json`、`private/dnsmasq-rewrite/dns-reply/run-1200b`、`dns-process`、`dns_cache_diff.py` 输出 | Cache primitives 21 scenarios/22,571 commands 0 mismatch；DNS wire/process/cache 原语或窄状态 | 完整 `extract_addresses→answer_request` service differential 与 OpenWrt callers |
-| `private/dnsmasq-rewrite/dhcp-differential/run-04`, `dhcp-state/state-run-04`, `dhcp-reply-diff` | DHCP 原语/state/reply | Rust DHCP listener 与 full config |
-| `private/dnsmasq-rewrite/dhcp-listener-linux-20260930/final.log`、`final-local-identity.txt`、`final-remote-identity.txt` | 一个隔离 Linux loopback listener/runtime smoke | 真实 67/4011、C/Rust service differential、生产权限/接口 |
-| `private/dnsmasq-rewrite/tftp-oracle-07`, `tftp-service-diff`, `tftp-bench-03` | TFTP helper primitive/path/netascii/local benchmark | 完整 listener/PXE/helper/target performance |
-| `private/dnsmasq-rewrite/package-20260930/manifest.json` | SDK artifact identity and inert install path | Replaceable package/upgrade/rollback |
-| `private/dnsmasq-rewrite/signal-*`、`dns-signal-smoke-review` | Signal exit smoke | Reload, procd, all worker/resource paths |
+- `tcp_stream_resume`：DHCP 网络/PXE/relay。本轮负责清单 3 和端到端网络环境；拥有 DHCP daemon/runtime/service 网络接线。
+- `reverse_cache_impl`：DHCP tag 与 option。本轮负责清单 2；拥有 DHCP tag/option 配置与编码。需要 daemon 接口时交网络负责人接线。
+- `tcp_stream_review`：配置启动与 OpenWrt 生命周期。负责清单 1、6、7，维护真实配置环境，拥有 main 的相应启动流程。
+- `cache_rr_resume`：DNS 剩余缺口。本轮负责清单 4、5、8；拥有 DNS 模块、main 的 read_hosts 和 DNS 策略校验。现有租约发布与 A/PTR 路径复用。
 
-The following claims are intentionally disallowed until their corresponding
-rows close: “169 options implemented”, “dnsmasq-compatible”, “C/Rust service
-equivalent”, “DHCP/TFTP production-ready”, “performance improved”, “package can
-replace stock dnsmasq”, and “router accepted”.
+主代理负责阻塞顺序、文件归属、整合、提交和最终对照，不再把多个代理投入同一个 DNS 角落。main.rs 已按函数划分修改区域；用户的 `docs/prompts/` 修改保留。
 
-## 本轮新增证据与差异
+## 验证规则
 
-主索引见 [REPORT.md](REPORT.md) 的 2026-10-01 续作表。旧local C wrapper的
-编译宏身份已退役；现在固定目标六个COPTS、校验原config.h及Linux对象。新local
-语料357/357完整保存输入；旧全NONE组没有归档原名字，不伪称逐字复跑。
+普通修复采用单元测试加一次 C 差分，不再逐项冻结参考、双 C、负向对照或独立复核。解析器、租约状态机、缓存一致性仍做完整验证，复用已有有效用例。一次通过只证明已执行的范围；失败、启动未执行和 ignored 检查照实保留。大块完成后才写一篇阶段报告，不再产生细小复验报告。
 
-当前有明确、不能归零的参考缺陷差异：SRV未初始化读、TFTP旧DATA/FD泄漏、TCP
-失败前缀和跨query OPT状态。Rust保留修正行为并单列兼容验收。ICMP权限/发送错误
-停止分配是另一个显式行为差异，不是与C等价。FD/control socket/端口扫描新增成本和最新ELF本体+337.6%退步
-在主报告明确记录；没有以局部正确性门宣布整体优化成功。
+## 私有分支已清结
 
-## Ordered next work
+2026-10-01 已选择归档反向缓存 `0eaaef8` 和 TCP 流式导入 `dff7a39`，未合入产品；没有等待 48 小时到期。原工作树和所有证据保留，三条旧任务分支已删除。
 
-Current continuation overrides stale work assignments in older phase notes:
-see [CONTINUATION_20261001.md](CONTINUATION_20261001.md). The source inventory
-above remains a coverage ledger, not a pass denominator.
+| 内容 | 持久引用 |
+| --- | --- |
+| 反向缓存及中断的 CNAME 草稿 | `evidence/20261001/dnsmasq-reverse-cache-retired`，tip `51ed499`；已验证的 `0eaaef8` 另有原证据 tag |
+| TCP 流式导入参考 | `evidence/20261001/dnsmasq-tcp-stream-import-retired`，tip `32f8db3`，包含 `dff7a39` |
+| 反向缓存工具及原 28 项 before | `evidence/20261001/dnsmasq-reverse-cache-gate-retired`，tip `69d8e73` |
 
-| New bounded gate | Result | Still open |
-|---|---|---|
-| DO/AD/CD + known forwarded names | Native/image750/750; presence108; negative controls detect errors; aeba67e adds native/imageDO pressure120/120 | Other qtypes/metadata/signatures; generic/NX lookup order, rotation and hash-bucket cleanup |
-| Ordinary miss / generic lookup | 5c15e16: separateNX/SOA120/120 native/image; prior direct/CNAME120/120 preserved; final389+7/16ignored and native/musl Clippy | Other no-answer branches, rotation and hash-bucket cleanup |
-| Generic forward insertion and malformed errors | 4bf072d native/image22config+78forward, separateQTYPE0 each9; ac8a3b6 native/image malformed35/35 and native normal22+78, policy210/bogus256 | Reverse9 remain C-only; readiness failure preserved; DO/AD expansion, oversize storage and full generic contract remain open |
-| Independent bogus transaction | Native/image256/256 even underCD/no-negcache | Complete policy composition |
-| Ordinary CD extraction/commit | Native/image134/134; ordered removal, eviction and pending cleanup preserved while commit is suppressed | Broader no_cache configuration triggers; original136 image-C calibration failure retained |
-| Typed transfer / private TCP reference | Primitive307/307 in product; privateTCP32 andUBus69/69 plusindependent12; stale41 andCD65 on private2a773f8 | Private clone/storage, OOM/partialEOF/resource boundaries and untested policy combinations; main product sender remains open |
-| Live UBus | Native 68/69; image C 67/69 paired observations | TCP writeback; target C failed-parse address mutation remains explicit |
-| Cache transaction / empty OPT | 471 operations, UDP 42/210; cold empty-OPT 32 cases and coalescing/retry eight cases match | Complete cache/EDNS/TCP |
-| DHCP reverse-host startup/HUP | 87/87; 14 snapshots equal independently frozen C | Address derivation and remaining DHCP modes |
-| Upstream failure/TCP admission | REFUSED/EDE23/local count and listener survival: 61/61; TCP recovery 17/17; shared capacity 31/31 | Transient retry and TCP cache/pipe lifecycle |
-| Hosts-derived DHCP addresses | 27/27 vs independentC, before10/27; static208/hostfiles41/reverse87 | Mixed DHCP-DNS/alias ordering and warning parity remain open |
-| Resumed integration8c34170 | Linux381/main6,15ignored; DHCP→DNS34/34; native/musl Clippy | Not an SDK package or complete C-equivalence gate |
-| Transient UDP send retry | Helper53/53, DNS209, actual daemon61/61 | Same-frec/background caller policy and full DO caching |
-| TCP snapshot screen | Four variants pass 22,571 correctness operations; frozen48 timing runs complete24,000/24,000 with0errors | All3 candidates fail frozen gates; shared population CPU worst+13.71%, no adoption |
-| TCP inline16 snapshot screen | Both variants22571/22571; frozen24 windows/12000 completions,0errors; population and steady heap guards pass | 150-full first-pair p95+8.63% fails frozen5% guard; no adoption or extra rounds |
-| TCP singleton-index screen | Both22571/22571; frozen24 windows/12000 completions,0errors; snapshot CPU/heap and150p95 guards pass | Population worst+50.40/+5.40/+5.10% fails all full profiles; no adoption or rerun |
-| Private streaming TCP import | Private dff7a39: partialEOF27/27, normal32/stale41/CD65/UBus69/EMFILE17/capacity31/writeback12, native/musl transfer307, isolated398+7/17ignored | No product merge; sender whole-vector/OOM/arbitrary lengths/native pipe saturation/performance remain open |
-| Private reverse-cache candidate | Primitive125/125 on deab;62894native/imageUDP124/124 after33 before differences; negative123/1; actual target case and shared capacity retained | No product merge; multi-target order and resource gates remain open |
-| Reverse typed transfer | 54346fd184/184 deterministic observations; original forward307 preserved | Separate12 ordering observations retain native4/SDK2 differences; complete comparator exits1 |
-| Real DHCP/reverse coexistence | Privatea4a38bc native/image62/62; negative detects1; old14diff+8startup-unexecuted retained | Separate dynamicCNAME/RD0/DO/ANY/stale addon in progress |
-| Same-name reverse expiry cleanup | Final private0eaa27/27 and original125/125; native/musl397+7/16ignored/Clippy, forward307 each, ordinary5allocation/layout unchanged | Reverse multiPTR order12 retains4/2diff/full exit1; new reverse index heap/resource unqualified |
-| Product DHCP FQDN wiring | 78f1e81: originalselected8 service/config5 match saved native/imageC; native/musl391+7/16ignored andClippy/fmt | Recovered-name/domain/live-collision service addon; complete DHCP and new SDK artifact remain open |
-| UDP malformed/admission/capacity | 40 inputs, 43 observations match; public/main hooks committed | Duplicate-client refusal has an explicit C wrong-ID defect; complete interface/send pressure remains open |
-| Delayed UDP and failure isolation | 11-second reply, 41-second late drop, 42-second new query match; failed sibling no longer hides successful replies | `ad7e2a7` now aligns lazy wall-clock lifetime; exact forward state/counters 1,285 operations pass; no resource-equivalence claim |
-| Lease operation counters | Actual C 47 scenarios/3,764 snapshots, negative 3,763/1 | Real lease and DHCP message owners now publish through UBus; complete feature coverage remains separate |
-| Cache counters and daemon caller | Primitive 215 snapshots plus caller 764 observations/382 metric snapshots; negative controls fail as intended | Live owner counters/UBus are wired; TCP cache propagation remains open |
-| Frozen product 2415216 regression | Host library 328 passed/6 ignored; main 6; Linux library 331 passed/14 ignored; shared state 8/8; DHCP/DNS 34/34; fmt/musl Clippy | Later changes need affected checks; this is not a new target APK |
-| Stale cache runtime | `9f32047` closes measured refresh/order gap: final 48/48 service, 1,100/1,100 metadata; original 44/13 failure retained | Complete EDNS/cache metadata remains open |
+CNAME 草稿的新增单元测试编译停在 E0451，未修复、未通过 after 差分，不能当作已交付功能。原 28 项 before 的 4 处差异、多 PTR 顺序差异及成本退步继续保留。NX、interface-name、反向索引和顺序实验停止；后来已经完成的成本证据另存 `evidence/20261001/dnsmasq-reverse-index-cost-retired`。清结操作记录在 ignored `private/dnsmasq-rewrite/north-star-reprioritization-20261001/retirement.json`。
 
-The stale gate's initial summary counted 40 event rows while its mismatch list
-also included four upstream-trace comparisons. An explicit audit corrects the
-total to 44 and preserves the original output. No unexecuted check became a
-pass. All raw evidence paths and source identities are linked by the phase
-reports and master report.
+## 产品起点与当前验收状态
 
-1. **Freeze the source snapshot.** Finish or revert uncommitted daemon/service drafts, run `cargo fmt --check`, full crate tests, clippy, musl check, and record the exact HEAD and artifacts.
-2. **Close daemon contracts.** Complete DNS full cacheability/EDNS/TCP/reload/UBus, then add complete daemon C/Rust service differential; do not widen the claimed subset while SOA/negative/CNAME corner cases remain.
-3. **Complete remaining DHCP contracts.** Preserve current dynamic/static/file/DNS/hostfile gates; add tags/all options, helper/hotplug, relay/PXE/leasequery and full interface/admission behavior with isolated C/Rust cases.
-4. **Finish TFTP integration.** Preserve verified transfer/TID/port-range/timeout semantics; add full interface/pktinfo, helper/PXE and long-run cleanup, retaining explicit reference-defect differences.
-5. **Complete OpenWrt lifecycle.** Replay UCI/init/procd/ujail/ubus/odhcpd/hotplug contracts, then build an actually replaceable package with ownership and rollback checks.
-6. **Measure only after correctness.** Freeze current source/ELF identities, run the DNS/DHCP/TFTP fixed workloads, report p50/p95/resource peaks and failures separately; no physical-device claim before explicit deployment authorization and recovery gates.
+纠偏时最新产品功能提交是 `78f1e81`，只合入独立 DHCP FQDN 接线。该原始产品 ELF 为 `f126a762fbb0f1bcdac0e4e2eb61290bd92361f56fcf712213278ed9ba33e391`，已有原 FQDN 服务 8 项、配置 5 项、恢复与名字冲突 22 项，以及 native/musl 库 391、主程序 7 项验证；16 项 ignored 未计通过。这些证据可复用，但不能代替本轮实际配置端到端验收。
 
-This file is a planning and evidence ledger, not a completion declaration.
+旧 SDK 阶段产物仍是 `405b7c1`，仅安装 `/usr/libexec/dnsmasq-rs`，不是替换包。本轮真实配置完整启动、端到端目标、完整 dnsmasq 等价、性能改善和生产验收均尚未完成。
