@@ -19,6 +19,7 @@ run retains a separate Rust startup-readiness failure, described below.
 | `image-after-01` | 22/22 match | 75/75 paired; reverse 9 C-only | 1 Rust readiness timeout; no rows for that profile |
 | `image-after-02` | 22/22 match | 78/78 paired; reverse 9 C-only | 0 |
 | `native-negative-01` | 22/22 match | 78 compared; reverse 9 C-only | exactly 1 deliberately injected difference |
+| `native-malformed-regression-01` (`ac8a3b6`) | 22/22 match | 78/78 paired; reverse 9 C-only | 0 |
 
 The 16 configuration differences are C-accepted `cache-rr` arguments rejected
 by the old Rust implementation. All six invalid arguments are rejected by
@@ -39,6 +40,14 @@ that cause. This failed attempt is not a 78-row pass and is never discarded.
 The same frozen tool and ELF then pass the complete gate in a fresh output
 directory, run sequentially after this owner's other active service gates had
 finished. This successful repeat does not establish startup reliability.
+
+The subsequent malformed-reply propagation source `ac8a3b6` passes a fresh
+normal native-C replay: 22 configuration cases and 78 paired forward rows,
+with zero differences or fixture failures. Its ELF is
+`3d8462fac7a81707e3b24f84b1a25fc8b6903d808b66b14cc4f3ede9e230b692`.
+The fixture is unchanged. Image, negative-control and QTYPE-zero results above
+and in the linked anchor remain attributed to `4bf072d`; they were not rerun
+on `ac8a3b6`. This bounded regression does not enlarge reverse coverage.
 
 ## Measured C interfaces
 
