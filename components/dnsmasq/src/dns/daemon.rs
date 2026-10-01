@@ -195,6 +195,7 @@ pub struct DnsDaemon<R = OsRandom> {
     negative_ttl: u32,
     negative_cache: bool,
     policy: AddressPolicy,
+    query_policy: super::query_policy::QueryPolicy,
     proxy_dnssec: bool,
     max_udp: usize,
     edns_packet_max: u16,
@@ -253,6 +254,7 @@ impl<R: Random> DnsDaemon<R> {
         let upstream =
             UpstreamResolver::with_lifetime(dispatcher, random, options.upstream_lifetime)?;
         let policy = address_policy(&config)?;
+        let query_policy = super::query_policy::QueryPolicy::from_config(&config);
         let local = LocalDnsService::new_with_limits(
             config,
             hosts,
@@ -269,6 +271,7 @@ impl<R: Random> DnsDaemon<R> {
             negative_ttl: 0,
             negative_cache: false,
             policy,
+            query_policy,
             proxy_dnssec: options.proxy_dnssec,
             max_udp: options.max_udp.max(512),
             edns_packet_max: options.edns_packet_max,
@@ -420,19 +423,33 @@ impl<R: Random> DnsDaemon<R> {
         query: &[u8],
         client: ClientRequest,
         listener: Option<super::forward::SocketToken>,
-        local: Option<&mut LocalDnsService>,
+        mut local: Option<&mut LocalDnsService>,
     ) -> Result<QueryResult, DaemonError> {
         if query.len() > self.max_udp {
             return Ok(QueryResult::Dropped);
         }
         let question = super::forward::Question::parse(query).map_err(DaemonError::Wire)?;
-        let answer = self.cached_answer_at_with_local(query, &question, unix_seconds(), local)?;
+        let answer = self.cached_answer_at_with_local(
+            query,
+            &question,
+            unix_seconds(),
+            local.as_deref_mut(),
+        )?;
         if let Some(packet) = answer.packet {
             return Ok(if answer.stale {
                 QueryResult::Stale(packet)
             } else {
                 QueryResult::Cached(packet)
             });
+        }
+        if let Some(packet) = self.query_policy.reply(
+            query,
+            &self.routing,
+            Some(local.as_deref().unwrap_or(&self.local)),
+            self.edns_packet_max,
+            false,
+        )? {
+            return Ok(QueryResult::Local(packet));
         }
         self.submit_upstream(query, &question, client, listener, true)
     }
@@ -914,7 +931,7 @@ pub(super) fn validate_runtime_config(config: &DnsConfig) -> Result<(), DaemonEr
             "interface binding is owned by the containing listener",
         )));
     }
-    if config.domain_needed || config.bogus_priv || config.no_poll || config.localise_queries {
+    if config.no_poll {
         return Err(DaemonError::Config(ConfigError(
             "configured DNS policy is not implemented by the daemon",
         )));

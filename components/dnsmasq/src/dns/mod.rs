@@ -9,6 +9,7 @@ pub mod forward_service;
 pub mod lease_names;
 pub mod local;
 pub mod process;
+mod query_policy;
 pub mod reply;
 pub mod routing;
 pub mod service;
