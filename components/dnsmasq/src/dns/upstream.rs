@@ -619,6 +619,17 @@ impl<R: Random> UpstreamResolver<R> {
         packet: &[u8],
         plan: &SendPlan,
     ) -> Result<(), ResolveError> {
+        self.send_plan_with_io(id, packet, plan, UdpSocket::send_to, wait_udp_retry)
+    }
+
+    fn send_plan_with_io(
+        &mut self,
+        id: QueryId,
+        packet: &[u8],
+        plan: &SendPlan,
+        mut send: impl FnMut(&UdpSocket, &[u8], SocketAddr) -> io::Result<usize>,
+        mut wait: impl FnMut() -> io::Result<()>,
+    ) -> Result<(), ResolveError> {
         if plan.exhausted || plan.candidates.is_empty() {
             return Err(ResolveError::NoServer);
         }
@@ -651,7 +662,10 @@ impl<R: Random> UpstreamResolver<R> {
                     continue;
                 }
             };
-            let result = self.sockets[&token].socket.send_to(packet, address);
+            let result = send_udp_with_retry(
+                || send(&self.sockets[&token].socket, packet, address),
+                &mut wait,
+            );
             match result {
                 Ok(length) if length == packet.len() => {
                     self.dispatcher
@@ -887,6 +901,58 @@ impl<R: Random> UpstreamResolver<R> {
                 });
             }
         }
+    }
+}
+
+fn send_udp_with_retry(
+    mut send: impl FnMut() -> io::Result<usize>,
+    mut wait: impl FnMut() -> io::Result<()>,
+) -> io::Result<usize> {
+    let mut retries = 0;
+    loop {
+        match send() {
+            Err(error) if error.kind() == io::ErrorKind::Interrupted => retries = 0,
+            Err(error) if error.kind() == io::ErrorKind::WouldBlock => {
+                // retry_send waits even on the final failed attempt: 1,001
+                // sends/sleeps total, with 1,000 additional send attempts.
+                let waited = wait();
+                if retries == 1000 {
+                    retries = 0;
+                    // C checks errno after nanosleep. An interrupted final
+                    // wait resets the budget and retries the same server.
+                    match waited {
+                        Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+                        Err(error) => return Err(error),
+                        Ok(()) => return Err(error),
+                    }
+                }
+                retries += 1;
+            }
+            result => return result,
+        }
+    }
+}
+
+fn wait_udp_retry() -> io::Result<()> {
+    #[repr(C)]
+    struct Timespec {
+        seconds: std::os::raw::c_long,
+        nanoseconds: std::os::raw::c_long,
+    }
+    extern "C" {
+        fn nanosleep(request: *const Timespec, remaining: *mut Timespec) -> i32;
+    }
+    let request = Timespec {
+        seconds: 0,
+        nanoseconds: 10_000,
+    };
+    // SAFETY: supported Linux/Darwin Unix ABIs use native longs in timespec.
+    // request is valid for this call; null remaining discards unslept time,
+    // matching C retry_send rather than hiding EINTR through thread::sleep.
+    if unsafe { nanosleep(&request, std::ptr::null_mut()) } == 0 {
+        Ok(())
+    } else {
+        Err(io::Error::last_os_error())
     }
 }
 
@@ -1186,6 +1252,204 @@ mod tests {
         transport.clear();
         assert_eq!(transport.counters().queries_forwarded, 2);
         assert_eq!(transport.counters().unanswered, 0);
+        assert_eq!(transport.socket_count(), 0);
+    }
+
+    #[test]
+    fn udp_retry_wait_accepts_the_reference_timespec() {
+        wait_udp_retry().unwrap();
+    }
+
+    #[test]
+    fn transient_send_errors_retry_the_same_socket_packet_and_server() {
+        let server = UdpSocket::bind("127.0.0.1:0").unwrap();
+        server
+            .set_read_timeout(Some(Duration::from_secs(1)))
+            .unwrap();
+        let address = server.local_addr().unwrap();
+        let mut transport = transport(
+            group(&[address], false),
+            Options::default(),
+            Duration::from_secs(2),
+        );
+        let submitted = transport
+            .start_udp(&query(), client(), GroupId(1), Scope::Shared)
+            .unwrap();
+        let mut input = [0; 2048];
+        let (length, original_peer) = server.recv_from(&mut input).unwrap();
+        let original = input[..length].to_vec();
+        let packet = transport
+            .dispatcher
+            .upstream_packet(submitted.id)
+            .unwrap()
+            .unwrap();
+        let plan = SendPlan {
+            candidates: vec![ServerId(1)],
+            send_all: false,
+            exhausted: false,
+        };
+        let mut calls = Vec::new();
+        let mut waits = 0;
+        transport
+            .send_plan_with_io(
+                submitted.id,
+                &packet,
+                &plan,
+                |socket, packet, destination| {
+                    calls.push((socket.as_raw_fd(), packet.to_vec(), destination));
+                    match calls.len() {
+                        1 | 3 => Err(io::ErrorKind::WouldBlock.into()),
+                        2 => Err(io::ErrorKind::Interrupted.into()),
+                        _ => socket.send_to(packet, destination),
+                    }
+                },
+                || {
+                    waits += 1;
+                    Ok(())
+                },
+            )
+            .unwrap();
+        assert_eq!(calls.len(), 4);
+        assert!(calls.iter().all(|call| call == &calls[0]));
+        assert_eq!(calls[0].1, original);
+        assert_eq!(waits, 2);
+        assert_eq!(transport.counters().queries_forwarded, 2);
+        assert_eq!(transport.counters().unanswered, 0);
+        assert_eq!(transport.pending_count(), 1);
+        assert_eq!(transport.socket_count(), 1);
+        let (length, peer) = server.recv_from(&mut input).unwrap();
+        assert_eq!(peer, original_peer);
+        assert_eq!(&input[..length], original);
+        server
+            .send_to(&response(&input[..length], 0x8180, true), peer)
+            .unwrap();
+        assert!(wait_for_event(&mut transport, Duration::from_millis(100))
+            .result
+            .is_ok());
+        assert_eq!(transport.pending_count(), 0);
+        assert_eq!(transport.socket_count(), 0);
+    }
+
+    #[test]
+    fn exhausted_transient_candidate_does_not_hide_a_successful_server() {
+        for blocked_first in [true, false] {
+            let first = UdpSocket::bind("127.0.0.1:0").unwrap();
+            let second = UdpSocket::bind("127.0.0.1:0").unwrap();
+            for server in [&first, &second] {
+                server
+                    .set_read_timeout(Some(Duration::from_secs(1)))
+                    .unwrap();
+            }
+            let addresses = [first.local_addr().unwrap(), second.local_addr().unwrap()];
+            let mut transport = transport(
+                group(&addresses, false),
+                Options::default(),
+                Duration::from_secs(2),
+            );
+            let submitted = transport
+                .start_udp(&query(), client(), GroupId(1), Scope::Shared)
+                .unwrap();
+            let mut input = [0; 2048];
+            first.recv_from(&mut input).unwrap();
+            let packet = transport
+                .dispatcher
+                .upstream_packet(submitted.id)
+                .unwrap()
+                .unwrap();
+            let plan = SendPlan {
+                candidates: vec![ServerId(1), ServerId(2)],
+                send_all: true,
+                exhausted: false,
+            };
+            let blocked = addresses[usize::from(!blocked_first)];
+            let mut attempts = [0; 2];
+            let mut waits = 0;
+            transport
+                .send_plan_with_io(
+                    submitted.id,
+                    &packet,
+                    &plan,
+                    |socket, packet, destination| {
+                        attempts[usize::from(destination == addresses[1])] += 1;
+                        if destination == blocked {
+                            Err(io::ErrorKind::WouldBlock.into())
+                        } else {
+                            socket.send_to(packet, destination)
+                        }
+                    },
+                    || {
+                        waits += 1;
+                        Ok(())
+                    },
+                )
+                .unwrap();
+            assert_eq!(attempts, if blocked_first { [1001, 1] } else { [1, 1001] });
+            assert_eq!(waits, 1001);
+            assert_eq!(transport.counters().queries_forwarded, 2);
+            assert_eq!(transport.counters().unanswered, 0);
+            let successful = if blocked_first { &second } else { &first };
+            let (length, peer) = successful.recv_from(&mut input).unwrap();
+            successful
+                .send_to(&response(&input[..length], 0x8180, true), peer)
+                .unwrap();
+            assert!(wait_for_event(&mut transport, Duration::from_millis(100))
+                .result
+                .is_ok());
+            assert_eq!(transport.pending_count(), 0);
+            assert_eq!(transport.socket_count(), 0);
+        }
+    }
+
+    #[test]
+    fn terminal_and_partial_sends_do_not_increment_forwarding_counters() {
+        let server = UdpSocket::bind("127.0.0.1:0").unwrap();
+        let mut transport = transport(
+            group(&[server.local_addr().unwrap()], false),
+            Options::default(),
+            Duration::from_secs(2),
+        );
+        let submitted = transport
+            .start_udp(&query(), client(), GroupId(1), Scope::Shared)
+            .unwrap();
+        let packet = transport
+            .dispatcher
+            .upstream_packet(submitted.id)
+            .unwrap()
+            .unwrap();
+        let plan = SendPlan {
+            candidates: vec![ServerId(1)],
+            send_all: false,
+            exhausted: false,
+        };
+        let before = transport.counters();
+        for partial in [false, true] {
+            let mut calls = 0;
+            let error = transport
+                .send_plan_with_io(
+                    submitted.id,
+                    &packet,
+                    &plan,
+                    |_, packet, _| {
+                        calls += 1;
+                        if partial {
+                            Ok(packet.len() - 1)
+                        } else {
+                            Err(io::ErrorKind::PermissionDenied.into())
+                        }
+                    },
+                    || panic!("terminal send must not wait"),
+                )
+                .unwrap_err();
+            assert_eq!(calls, 1);
+            assert!(matches!(error, ResolveError::Io(_)));
+            assert_eq!(transport.counters(), before);
+            // The caller owns cancellation; the syscall boundary must not
+            // discard a reply already in flight from the earlier send.
+            assert_eq!(transport.pending_count(), 1);
+            assert_eq!(transport.socket_count(), 1);
+        }
+        transport.cancel(submitted.id);
+        assert_eq!(transport.pending_count(), 0);
         assert_eq!(transport.socket_count(), 0);
     }
 
