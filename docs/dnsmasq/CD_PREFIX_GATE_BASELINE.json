@@ -1,0 +1,773 @@
+{
+  "reference": {
+    "kind": "native-glibc",
+    "elf_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431"
+  },
+  "native_client_build": {
+    "kind": "native-glibc",
+    "elf_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431"
+  },
+  "tool_sha256": "305f09469faf5da96b19f113b9cb39724856e362c091c8e54937565932f42822",
+  "rust_sha256": null,
+  "rounds": [
+    {
+      "case": {
+        "label": "k1-request0-reply0",
+        "kind": 1,
+        "address": "127.0.0.1",
+        "request_cd": false,
+        "reply_cd": false,
+        "capacity": 8,
+        "pressure": false
+      },
+      "c_observations": 13,
+      "matched": null,
+      "differences": [],
+      "observed": {
+        "inserted_before": 2,
+        "inserted_after_held": 3,
+        "live_freed_after_held": 0,
+        "alias-cname-before-next-start": {
+          "upstream_sends": 0,
+          "answers": [
+            "owner.test"
+          ],
+          "inserted": 3,
+          "live_freed": 0
+        },
+        "direct-owner-probe": {
+          "upstream_sends": 0,
+          "answers": [
+            "192.0.2.21"
+          ],
+          "inserted": 3,
+          "live_freed": 0
+        },
+        "empty-cd-reset": {
+          "upstream_sends": 1,
+          "answers": [],
+          "inserted": 3,
+          "live_freed": 0
+        },
+        "alias-cname-after-empty-reset": {
+          "upstream_sends": 0,
+          "answers": [
+            "owner.test"
+          ],
+          "inserted": 3,
+          "live_freed": 0
+        },
+        "alias-after-empty-reset": {
+          "upstream_sends": 0,
+          "answers": [
+            "owner.test",
+            "192.0.2.21"
+          ],
+          "inserted": 3,
+          "live_freed": 0
+        },
+        "final-owner": {
+          "upstream_sends": 0,
+          "answers": [
+            "192.0.2.44"
+          ],
+          "inserted": 5,
+          "live_freed": 0
+        },
+        "final-alias": {
+          "upstream_sends": 0,
+          "answers": [
+            "owner.test",
+            "192.0.2.44"
+          ],
+          "inserted": 5,
+          "live_freed": 0
+        }
+      }
+    },
+    {
+      "case": {
+        "label": "k1-request1-reply0",
+        "kind": 1,
+        "address": "127.0.0.1",
+        "request_cd": true,
+        "reply_cd": false,
+        "capacity": 8,
+        "pressure": false
+      },
+      "c_observations": 13,
+      "matched": null,
+      "differences": [],
+      "observed": {
+        "inserted_before": 2,
+        "inserted_after_held": 2,
+        "live_freed_after_held": 0,
+        "alias-cname-before-next-start": {
+          "upstream_sends": 0,
+          "answers": [
+            "owner.test"
+          ],
+          "inserted": 2,
+          "live_freed": 0
+        },
+        "direct-owner-probe": {
+          "upstream_sends": 1,
+          "answers": [],
+          "inserted": 2,
+          "live_freed": 0
+        },
+        "empty-cd-reset": {
+          "upstream_sends": 1,
+          "answers": [],
+          "inserted": 2,
+          "live_freed": 0
+        },
+        "alias-cname-after-empty-reset": {
+          "upstream_sends": 1,
+          "answers": [],
+          "inserted": 2,
+          "live_freed": 0
+        },
+        "alias-after-empty-reset": {
+          "upstream_sends": 1,
+          "answers": [
+            "owner.test",
+            "192.0.2.33"
+          ],
+          "inserted": 4,
+          "live_freed": 0
+        },
+        "final-owner": {
+          "upstream_sends": 0,
+          "answers": [
+            "192.0.2.44"
+          ],
+          "inserted": 5,
+          "live_freed": 0
+        },
+        "final-alias": {
+          "upstream_sends": 0,
+          "answers": [
+            "owner.test",
+            "192.0.2.44"
+          ],
+          "inserted": 5,
+          "live_freed": 0
+        }
+      }
+    },
+    {
+      "case": {
+        "label": "k1-request0-reply1",
+        "kind": 1,
+        "address": "127.0.0.1",
+        "request_cd": false,
+        "reply_cd": true,
+        "capacity": 8,
+        "pressure": false
+      },
+      "c_observations": 13,
+      "matched": null,
+      "differences": [],
+      "observed": {
+        "inserted_before": 2,
+        "inserted_after_held": 2,
+        "live_freed_after_held": 0,
+        "alias-cname-before-next-start": {
+          "upstream_sends": 0,
+          "answers": [
+            "owner.test"
+          ],
+          "inserted": 2,
+          "live_freed": 0
+        },
+        "direct-owner-probe": {
+          "upstream_sends": 1,
+          "answers": [],
+          "inserted": 2,
+          "live_freed": 0
+        },
+        "empty-cd-reset": {
+          "upstream_sends": 1,
+          "answers": [],
+          "inserted": 2,
+          "live_freed": 0
+        },
+        "alias-cname-after-empty-reset": {
+          "upstream_sends": 1,
+          "answers": [],
+          "inserted": 2,
+          "live_freed": 0
+        },
+        "alias-after-empty-reset": {
+          "upstream_sends": 1,
+          "answers": [
+            "owner.test",
+            "192.0.2.33"
+          ],
+          "inserted": 4,
+          "live_freed": 0
+        },
+        "final-owner": {
+          "upstream_sends": 0,
+          "answers": [
+            "192.0.2.44"
+          ],
+          "inserted": 5,
+          "live_freed": 0
+        },
+        "final-alias": {
+          "upstream_sends": 0,
+          "answers": [
+            "owner.test",
+            "192.0.2.44"
+          ],
+          "inserted": 5,
+          "live_freed": 0
+        }
+      }
+    },
+    {
+      "case": {
+        "label": "k1-request1-reply1",
+        "kind": 1,
+        "address": "127.0.0.1",
+        "request_cd": true,
+        "reply_cd": true,
+        "capacity": 8,
+        "pressure": false
+      },
+      "c_observations": 13,
+      "matched": null,
+      "differences": [],
+      "observed": {
+        "inserted_before": 2,
+        "inserted_after_held": 2,
+        "live_freed_after_held": 0,
+        "alias-cname-before-next-start": {
+          "upstream_sends": 0,
+          "answers": [
+            "owner.test"
+          ],
+          "inserted": 2,
+          "live_freed": 0
+        },
+        "direct-owner-probe": {
+          "upstream_sends": 1,
+          "answers": [],
+          "inserted": 2,
+          "live_freed": 0
+        },
+        "empty-cd-reset": {
+          "upstream_sends": 1,
+          "answers": [],
+          "inserted": 2,
+          "live_freed": 0
+        },
+        "alias-cname-after-empty-reset": {
+          "upstream_sends": 1,
+          "answers": [],
+          "inserted": 2,
+          "live_freed": 0
+        },
+        "alias-after-empty-reset": {
+          "upstream_sends": 1,
+          "answers": [
+            "owner.test",
+            "192.0.2.33"
+          ],
+          "inserted": 4,
+          "live_freed": 0
+        },
+        "final-owner": {
+          "upstream_sends": 0,
+          "answers": [
+            "192.0.2.44"
+          ],
+          "inserted": 5,
+          "live_freed": 0
+        },
+        "final-alias": {
+          "upstream_sends": 0,
+          "answers": [
+            "owner.test",
+            "192.0.2.44"
+          ],
+          "inserted": 5,
+          "live_freed": 0
+        }
+      }
+    },
+    {
+      "case": {
+        "label": "k1-pressure-request1-reply0",
+        "kind": 1,
+        "address": "127.0.0.1",
+        "request_cd": true,
+        "reply_cd": false,
+        "capacity": 3,
+        "pressure": true
+      },
+      "c_observations": 16,
+      "matched": null,
+      "differences": [],
+      "observed": {
+        "inserted_before": 3,
+        "inserted_after_held": 3,
+        "live_freed_after_held": 1,
+        "alias-cname-before-next-start": {
+          "upstream_sends": 0,
+          "answers": [
+            "owner.test"
+          ],
+          "inserted": 3,
+          "live_freed": 1
+        },
+        "direct-owner-probe": {
+          "upstream_sends": 1,
+          "answers": [],
+          "inserted": 3,
+          "live_freed": 1
+        },
+        "empty-cd-reset": {
+          "upstream_sends": 1,
+          "answers": [],
+          "inserted": 3,
+          "live_freed": 1
+        },
+        "alias-cname-after-empty-reset": {
+          "upstream_sends": 1,
+          "answers": [],
+          "inserted": 3,
+          "live_freed": 1
+        },
+        "alias-after-empty-reset": {
+          "upstream_sends": 1,
+          "answers": [
+            "owner.test",
+            "192.0.2.33"
+          ],
+          "inserted": 5,
+          "live_freed": 1
+        },
+        "filler-after-prefix": {
+          "upstream_sends": 1,
+          "answers": [],
+          "inserted": 3,
+          "live_freed": 1
+        },
+        "final-owner": {
+          "upstream_sends": 0,
+          "answers": [
+            "192.0.2.44"
+          ],
+          "inserted": 7,
+          "live_freed": 1
+        },
+        "final-alias": {
+          "upstream_sends": 0,
+          "answers": [
+            "owner.test",
+            "192.0.2.44"
+          ],
+          "inserted": 7,
+          "live_freed": 1
+        }
+      }
+    },
+    {
+      "case": {
+        "label": "k28-request0-reply0",
+        "kind": 28,
+        "address": "::1",
+        "request_cd": false,
+        "reply_cd": false,
+        "capacity": 8,
+        "pressure": false
+      },
+      "c_observations": 13,
+      "matched": null,
+      "differences": [],
+      "observed": {
+        "inserted_before": 2,
+        "inserted_after_held": 3,
+        "live_freed_after_held": 0,
+        "alias-cname-before-next-start": {
+          "upstream_sends": 0,
+          "answers": [
+            "owner.test"
+          ],
+          "inserted": 3,
+          "live_freed": 0
+        },
+        "direct-owner-probe": {
+          "upstream_sends": 0,
+          "answers": [
+            "2001:db8::15"
+          ],
+          "inserted": 3,
+          "live_freed": 0
+        },
+        "empty-cd-reset": {
+          "upstream_sends": 1,
+          "answers": [],
+          "inserted": 3,
+          "live_freed": 0
+        },
+        "alias-cname-after-empty-reset": {
+          "upstream_sends": 0,
+          "answers": [
+            "owner.test"
+          ],
+          "inserted": 3,
+          "live_freed": 0
+        },
+        "alias-after-empty-reset": {
+          "upstream_sends": 0,
+          "answers": [
+            "owner.test",
+            "2001:db8::15"
+          ],
+          "inserted": 3,
+          "live_freed": 0
+        },
+        "final-owner": {
+          "upstream_sends": 0,
+          "answers": [
+            "2001:db8::2c"
+          ],
+          "inserted": 5,
+          "live_freed": 0
+        },
+        "final-alias": {
+          "upstream_sends": 0,
+          "answers": [
+            "owner.test",
+            "2001:db8::2c"
+          ],
+          "inserted": 5,
+          "live_freed": 0
+        }
+      }
+    },
+    {
+      "case": {
+        "label": "k28-request1-reply0",
+        "kind": 28,
+        "address": "::1",
+        "request_cd": true,
+        "reply_cd": false,
+        "capacity": 8,
+        "pressure": false
+      },
+      "c_observations": 13,
+      "matched": null,
+      "differences": [],
+      "observed": {
+        "inserted_before": 2,
+        "inserted_after_held": 2,
+        "live_freed_after_held": 0,
+        "alias-cname-before-next-start": {
+          "upstream_sends": 0,
+          "answers": [
+            "owner.test"
+          ],
+          "inserted": 2,
+          "live_freed": 0
+        },
+        "direct-owner-probe": {
+          "upstream_sends": 1,
+          "answers": [],
+          "inserted": 2,
+          "live_freed": 0
+        },
+        "empty-cd-reset": {
+          "upstream_sends": 1,
+          "answers": [],
+          "inserted": 2,
+          "live_freed": 0
+        },
+        "alias-cname-after-empty-reset": {
+          "upstream_sends": 1,
+          "answers": [],
+          "inserted": 2,
+          "live_freed": 0
+        },
+        "alias-after-empty-reset": {
+          "upstream_sends": 1,
+          "answers": [
+            "owner.test",
+            "2001:db8::21"
+          ],
+          "inserted": 4,
+          "live_freed": 0
+        },
+        "final-owner": {
+          "upstream_sends": 0,
+          "answers": [
+            "2001:db8::2c"
+          ],
+          "inserted": 5,
+          "live_freed": 0
+        },
+        "final-alias": {
+          "upstream_sends": 0,
+          "answers": [
+            "owner.test",
+            "2001:db8::2c"
+          ],
+          "inserted": 5,
+          "live_freed": 0
+        }
+      }
+    },
+    {
+      "case": {
+        "label": "k28-request0-reply1",
+        "kind": 28,
+        "address": "::1",
+        "request_cd": false,
+        "reply_cd": true,
+        "capacity": 8,
+        "pressure": false
+      },
+      "c_observations": 13,
+      "matched": null,
+      "differences": [],
+      "observed": {
+        "inserted_before": 2,
+        "inserted_after_held": 2,
+        "live_freed_after_held": 0,
+        "alias-cname-before-next-start": {
+          "upstream_sends": 0,
+          "answers": [
+            "owner.test"
+          ],
+          "inserted": 2,
+          "live_freed": 0
+        },
+        "direct-owner-probe": {
+          "upstream_sends": 1,
+          "answers": [],
+          "inserted": 2,
+          "live_freed": 0
+        },
+        "empty-cd-reset": {
+          "upstream_sends": 1,
+          "answers": [],
+          "inserted": 2,
+          "live_freed": 0
+        },
+        "alias-cname-after-empty-reset": {
+          "upstream_sends": 1,
+          "answers": [],
+          "inserted": 2,
+          "live_freed": 0
+        },
+        "alias-after-empty-reset": {
+          "upstream_sends": 1,
+          "answers": [
+            "owner.test",
+            "2001:db8::21"
+          ],
+          "inserted": 4,
+          "live_freed": 0
+        },
+        "final-owner": {
+          "upstream_sends": 0,
+          "answers": [
+            "2001:db8::2c"
+          ],
+          "inserted": 5,
+          "live_freed": 0
+        },
+        "final-alias": {
+          "upstream_sends": 0,
+          "answers": [
+            "owner.test",
+            "2001:db8::2c"
+          ],
+          "inserted": 5,
+          "live_freed": 0
+        }
+      }
+    },
+    {
+      "case": {
+        "label": "k28-request1-reply1",
+        "kind": 28,
+        "address": "::1",
+        "request_cd": true,
+        "reply_cd": true,
+        "capacity": 8,
+        "pressure": false
+      },
+      "c_observations": 13,
+      "matched": null,
+      "differences": [],
+      "observed": {
+        "inserted_before": 2,
+        "inserted_after_held": 2,
+        "live_freed_after_held": 0,
+        "alias-cname-before-next-start": {
+          "upstream_sends": 0,
+          "answers": [
+            "owner.test"
+          ],
+          "inserted": 2,
+          "live_freed": 0
+        },
+        "direct-owner-probe": {
+          "upstream_sends": 1,
+          "answers": [],
+          "inserted": 2,
+          "live_freed": 0
+        },
+        "empty-cd-reset": {
+          "upstream_sends": 1,
+          "answers": [],
+          "inserted": 2,
+          "live_freed": 0
+        },
+        "alias-cname-after-empty-reset": {
+          "upstream_sends": 1,
+          "answers": [],
+          "inserted": 2,
+          "live_freed": 0
+        },
+        "alias-after-empty-reset": {
+          "upstream_sends": 1,
+          "answers": [
+            "owner.test",
+            "2001:db8::21"
+          ],
+          "inserted": 4,
+          "live_freed": 0
+        },
+        "final-owner": {
+          "upstream_sends": 0,
+          "answers": [
+            "2001:db8::2c"
+          ],
+          "inserted": 5,
+          "live_freed": 0
+        },
+        "final-alias": {
+          "upstream_sends": 0,
+          "answers": [
+            "owner.test",
+            "2001:db8::2c"
+          ],
+          "inserted": 5,
+          "live_freed": 0
+        }
+      }
+    },
+    {
+      "case": {
+        "label": "k28-pressure-request1-reply0",
+        "kind": 28,
+        "address": "::1",
+        "request_cd": true,
+        "reply_cd": false,
+        "capacity": 3,
+        "pressure": true
+      },
+      "c_observations": 16,
+      "matched": null,
+      "differences": [],
+      "observed": {
+        "inserted_before": 3,
+        "inserted_after_held": 3,
+        "live_freed_after_held": 1,
+        "alias-cname-before-next-start": {
+          "upstream_sends": 0,
+          "answers": [
+            "owner.test"
+          ],
+          "inserted": 3,
+          "live_freed": 1
+        },
+        "direct-owner-probe": {
+          "upstream_sends": 1,
+          "answers": [],
+          "inserted": 3,
+          "live_freed": 1
+        },
+        "empty-cd-reset": {
+          "upstream_sends": 1,
+          "answers": [],
+          "inserted": 3,
+          "live_freed": 1
+        },
+        "alias-cname-after-empty-reset": {
+          "upstream_sends": 1,
+          "answers": [],
+          "inserted": 3,
+          "live_freed": 1
+        },
+        "alias-after-empty-reset": {
+          "upstream_sends": 1,
+          "answers": [
+            "owner.test",
+            "2001:db8::21"
+          ],
+          "inserted": 5,
+          "live_freed": 1
+        },
+        "filler-after-prefix": {
+          "upstream_sends": 1,
+          "answers": [],
+          "inserted": 3,
+          "live_freed": 1
+        },
+        "final-owner": {
+          "upstream_sends": 0,
+          "answers": [
+            "2001:db8::2c"
+          ],
+          "inserted": 7,
+          "live_freed": 1
+        },
+        "final-alias": {
+          "upstream_sends": 0,
+          "answers": [
+            "owner.test",
+            "2001:db8::2c"
+          ],
+          "inserted": 7,
+          "live_freed": 1
+        }
+      }
+    }
+  ],
+  "failures": [],
+  "normalization": "DNS compression, random upstream ID; cache-hit TTL at most one second",
+  "mismatches": 0,
+  "status": "C_ONLY_FROZEN",
+  "raw_directory": "private/tcp-writeback-gates/cd-prefix-c-baseline-03",
+  "raw_sha256": {
+    "result.json": "c8dfaeedb165891731680a2d4d70004fc45120eba2c5c782d1c286275d008dce",
+    "k1-request0-reply0/c/trace.json": "265b50c251e7a43ab30b86182d5844416c2f8bfb13967b26bf6561dabb13cac4",
+    "k1-request1-reply0/c/trace.json": "ba288660015ef9a358c60928e416825ecb87e054fce5a7ec638d20efac462754",
+    "k1-request0-reply1/c/trace.json": "98423dce2ec947c2ff628406ef2b49990148f986a3633fd99275585a51d74328",
+    "k1-request1-reply1/c/trace.json": "6f0c3bfa4ab85262ade7106b980512fe9a54be7c9fb2972e4c46fb8b5efda6af",
+    "k1-pressure-request1-reply0/c/trace.json": "b63ce9398afdac31056e3adc3fee8e86ce3faa2d33ed0cfe1ae0ddf819800519",
+    "k28-request0-reply0/c/trace.json": "82006fa36939f2d2b38007185f0d10bf03365b6a8aab008409925a4d12bcfba2",
+    "k28-request1-reply0/c/trace.json": "1be8a9b473241eaff068fe2657bf8c88709336f902eb1bdecbbb85434d4b8955",
+    "k28-request0-reply1/c/trace.json": "ca084018e3e0245fb46b82c6113a31d1d91231cfb75a1fe1d9623ca1163a07bb",
+    "k28-request1-reply1/c/trace.json": "86c629df7f327fdbc941ecaabfff41100cf495944d93d2faa4f47537a24fe510",
+    "k28-pressure-request1-reply0/c/trace.json": "997fafd81b44dd079cbc2616ddee9fcd55de5fd0f4b6ac1a1a0839cf212f9bd7"
+  },
+  "observations": 136,
+  "prior_exploration": [
+    {
+      "directory": "cd-prefix-c-baseline-01",
+      "result": "Passed 126 observations; alias A replay was answered before direct probe, obscuring pending cleanup. Retained; final fixture queries CNAME first."
+    },
+    {
+      "directory": "cd-prefix-c-baseline-02",
+      "result": "Passed 126 observations; added CNAME-only probe after empty reset to directly establish pending-chain cleanup."
+    }
+  ]
+}
