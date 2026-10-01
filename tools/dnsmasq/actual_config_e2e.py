@@ -49,7 +49,7 @@ def upstream(args):
                 assert host == 'northstar-upstream.example' and kind == 1 and cls == 1, (host, kind, cls)
                 response = packet[:2] + struct.pack('!5H', 0x8180, 1, 1, 0, 0)
                 response += packet[12:end + 4] + rr(1, socket.inet_aton('8.8.4.4'), 120)
-                rows.append({'name': host, 'type': kind, 'peer': list(peer)})
+                rows.append({'name': host, 'type': kind, 'peer': list(peer), 'server': endpoint.getsockname()[0]})
                 (args.out / f'{len(rows):02}.request').write_bytes(packet)
                 (args.out / f'{len(rows):02}.reply').write_bytes(response)
                 save_json(args.out / 'queries.json', rows)
@@ -208,15 +208,22 @@ def run(args):
                     break
             except OSError:
                 time.sleep(.02)
-        status = Path(f'/proc/{daemon.pid}/status').read_text()
         deadline = time.monotonic() + 5
         while not any(row.get('event') == 'lookup' for row in bus.client_call('lookup', path='dnsmasq')):
             assert daemon.poll() is None and time.monotonic() < deadline, 'ubus registration'
             time.sleep(.02)
         result['ubus_registered'] = True
+        deadline = time.monotonic() + 5
+        result['credential_observations'] = []
+        while True:
+            status = Path(f'/proc/{daemon.pid}/status').read_text()
+            credentials = {line.split(':', 1)[0]: line.split()[1:] for line in status.splitlines() if line.startswith(('Uid:', 'Gid:'))}
+            result['credential_observations'].append(credentials)
+            if credentials == {'Uid': ['453'] * 4, 'Gid': ['453'] * 4}:
+                break
+            assert daemon.poll() is None and time.monotonic() < deadline, credentials
+            time.sleep(.02)
         (args.out / 'daemon.status').write_text(status)
-        credentials = {line.split(':', 1)[0]: line.split()[1:] for line in status.splitlines() if line.startswith(('Uid:', 'Gid:'))}
-        assert credentials == {'Uid': ['453'] * 4, 'Gid': ['453'] * 4}, credentials
         result['credentials'] = credentials
         command = ['nsenter', '-t', client_pid, '-n', sys.executable, executable, '--mode', 'client',
                    '--out', str(args.out / 'client'), '--server', router, '--hostname', args.hostname]
@@ -239,8 +246,20 @@ def run(args):
         assert int(sent) + duration - 1 <= expiry <= int(received) + duration + 1, 'leasefile expiry'
         result['lease'] = [field.decode() for field in row[1:]]
         result['lease_expiry_valid'] = True
-        result['upstream'] = json.loads((args.out / 'upstream/queries.json').read_text())
-        assert len(result['upstream']) == 1, 'unexpected upstream forwarding'
+        # forward_query probes all configured resolvers on the first query
+        # before a preferred server exists. Keep per-server counts and every
+        # raw datagram; arrival order among independent sockets is not stable.
+        expected_servers = [line.split()[1] for line in args.resolv.read_text().splitlines()
+                            if line.split()[:1] == ['nameserver']]
+        deadline = time.monotonic() + 1
+        while True:
+            result['upstream'] = json.loads((args.out / 'upstream/queries.json').read_text())
+            if len(result['upstream']) >= len(expected_servers) or time.monotonic() >= deadline:
+                break
+            time.sleep(.01)
+        from collections import Counter
+        result['upstream_counts'] = dict(Counter(row['server'] for row in result['upstream']))
+        assert result['upstream_counts'] == dict(Counter(expected_servers)), 'unexpected upstream forwarding'
     except Exception as error:
         errors.append(repr(error))
     finally:
@@ -262,7 +281,7 @@ def run(args):
             errors.extend(check for check in bus.checks if not check['pass'])
     if args.reference and not errors:
         reference = json.loads(args.reference.read_text())
-        for key in ['lease', 'lease_expiry_valid', 'exit_codes', 'credentials', 'ubus_registered']:
+        for key in ['lease', 'lease_expiry_valid', 'exit_codes', 'credentials', 'ubus_registered', 'upstream_counts']:
             if result[key] != reference[key]:
                 errors.append({'field': key, 'reference': reference[key], 'actual': result[key]})
         for key in ['dhcp', 'dns', 'lease_seconds']:
