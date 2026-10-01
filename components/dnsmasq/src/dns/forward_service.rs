@@ -401,7 +401,7 @@ pub fn prepare_query(
 /// FREC_NO_CACHE changes duplicate matching and is reserved for source-bound
 /// EDNS configuration. Empty OPT, with or without DO, may populate the cache;
 /// a DO address query still cannot consume these unsigned records. New DO/AD
-/// admission is bounded to IN A/AAAA and their represented CNAME/negative paths.
+/// admission is bounded to IN A/AAAA/PTR and their represented CNAME/negative paths.
 /// Unsupported option/version/signature metadata must not alter the forwarding
 /// contract.
 pub(super) fn ordinary_cache_query(packet: &[u8]) -> bool {
@@ -416,7 +416,7 @@ pub(super) fn ordinary_cache_query(packet: &[u8]) -> bool {
     }
     if (header.flags & 0x20 != 0 || scan.opt.as_ref().is_some_and(|opt| opt.dnssec_ok()))
         && !super::forward::Question::parse(packet)
-            .is_ok_and(|question| question.class == 1 && matches!(question.rrtype, 1 | 28))
+            .is_ok_and(|question| question.class == 1 && matches!(question.rrtype, 1 | 12 | 28))
     {
         return false;
     }
@@ -540,7 +540,10 @@ mod tests {
         packet[11] = 1;
         packet.extend_from_slice(&[0, 0, 41, 4, 210, 0, 0, 0x80, 0, 0, 0]);
         let (prepared, metadata) = prepare_query(&packet, 1232).unwrap();
-        assert!(ordinary_cache_query(&packet));
+        for rrtype in [1u16, 12, 28] {
+            packet[question_type..question_type + 2].copy_from_slice(&rrtype.to_be_bytes());
+            assert!(ordinary_cache_query(&packet));
+        }
         assert!(metadata.flags.dnssec_ok && metadata.flags.ad_requested);
         assert!(metadata.flags.checking_disabled && !metadata.flags.no_cache);
         assert_eq!(Header::parse(&prepared).unwrap().flags & 0x30, 0x30);

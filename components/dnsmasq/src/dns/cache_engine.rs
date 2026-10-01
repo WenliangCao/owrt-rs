@@ -62,7 +62,7 @@ impl CacheContext<'_> {
         edns_packet_max: u16,
     ) -> Result<CachedAnswer, CacheError> {
         let header = Header::parse(query)?;
-        // Ordinary A/AAAA AD requests can consume unsigned cached records,
+        // Ordinary A/AAAA/PTR AD requests can consume unsigned cached records,
         // including CNAME/negative paths, without asserting validation. DO
         // still requires upstream DNSSEC data in the target no-DNSSEC build.
         // Other qtypes' AD, EDNS options and nonzero metadata stay outside
@@ -75,8 +75,8 @@ impl CacheContext<'_> {
             || header.additionals != u16::from(edns.opt.is_some())
             || header.opcode() != 0
             || header.flags & 0x8000 != 0
-            || (header.flags & 0x0020 != 0 && !matches!(question.rrtype, 1 | 28))
-            || (dnssec_requested && !matches!(question.rrtype, 1 | 28))
+            || (header.flags & 0x0020 != 0 && !matches!(question.rrtype, 1 | 12 | 28))
+            || (dnssec_requested && !matches!(question.rrtype, 1 | 12 | 28))
             || edns
                 .opt
                 .as_ref()
@@ -104,12 +104,20 @@ impl CacheContext<'_> {
                 let entry = first.first().and_then(|id| self.cache.get(*id));
                 stale = entry.is_some_and(|entry| entry.is_stale(now));
                 if !entry.is_some_and(|entry| entry.record.kind == Kind::Cname) {
-                    let kind = if question.rrtype == 1 {
-                        Kind::Ipv4
+                    if question.rrtype == 12 {
+                        if let Some(address) =
+                            super::local::arpa_address(&question.name.dnsmasq_bytes())
+                        {
+                            self.cache.lookup_reverse(address, now);
+                        }
                     } else {
-                        Kind::Ipv6
-                    };
-                    self.cache.lookup(&question.name, &[kind], now, round_robin);
+                        let kind = if question.rrtype == 1 {
+                            Kind::Ipv4
+                        } else {
+                            Kind::Ipv6
+                        };
+                        self.cache.lookup(&question.name, &[kind], now, round_robin);
+                    }
                     self.cache.lookup(
                         &question.name,
                         &[Kind::Generic(question.rrtype), Kind::NxDomain],
