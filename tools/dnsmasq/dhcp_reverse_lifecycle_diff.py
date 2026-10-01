@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""C-only lease_update_from_configs reverse-host startup/HUP baseline.
+"""lease_update_from_configs reverse-host startup/HUP baseline and comparison.
 
 Uses the complete exact C daemon in a private namespace. No DHCP packets,
 replacement handlers or Rust-generated expectations are used. File and first
@@ -7,11 +7,13 @@ post-reload DNS observations are retained; external timing does not prove the
 internal ordering of two statements in one C event handler.
 """
 import argparse
+import ctypes
 import hashlib
 import json
 import os
 from pathlib import Path
 import signal
+import select
 import socket
 import subprocess
 import time
@@ -59,6 +61,28 @@ def wait_until(process, predicate, label, seconds=3):
         time.sleep(.005)
 
 
+def watch_reads(path):
+    # Linux IN_CLOSE_NOWRITE: a shared observable marker for C and Rust.
+    # It is opened before either daemon starts/reloads; no expected name or
+    # Rust-only logging is used to decide that the handler has begun.
+    libc = ctypes.CDLL(None, use_errno=True)
+    libc.inotify_init1.argtypes = [ctypes.c_int]
+    libc.inotify_add_watch.argtypes = [ctypes.c_int, ctypes.c_char_p, ctypes.c_uint32]
+    fd = libc.inotify_init1(os.O_NONBLOCK | os.O_CLOEXEC)
+    if fd < 0:
+        raise OSError(ctypes.get_errno(), "inotify_init1")
+    if libc.inotify_add_watch(fd, os.fsencode(path), 0x10) < 0:
+        os.close(fd)
+        raise OSError(ctypes.get_errno(), "inotify_add_watch")
+    return fd
+
+
+def read_closed(fd):
+    if not select.select([fd], [], [], 0)[0]:
+        return False
+    return bool(os.read(fd, 4096))
+
+
 def dns(process, folder, stage, host, kind):
     packet = query(host, kind)
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as client:
@@ -76,14 +100,30 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--reference-build", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--rust-binary", type=Path)
+    parser.add_argument("--compare-baseline", type=Path)
     parser.add_argument("--inject-error", action="store_true")
     args = parser.parse_args()
     assert os.environ.get("DNSMASQ_TEST_ISOLATED") == "1" and os.geteuid() == 0
     assert not Path("/etc/openwrt_release").exists()
     assert sorted(name for _, name in socket.if_nameindex()) == ["lo"]
     reference = args.reference_build.resolve()
-    binary = reference / "dnsmasq/dnsmasq"
-    assert digest(binary) == REFERENCE_SHA, "exact reference ELF mismatch"
+    c_binary = reference / "dnsmasq/dnsmasq"
+    assert digest(c_binary) == REFERENCE_SHA, "exact reference ELF mismatch"
+    binary = c_binary if args.rust_binary is None else args.rust_binary.resolve()
+    expected_observations = None
+    if args.rust_binary is not None:
+        assert args.compare_baseline is not None, "independent frozen C observations required"
+        baseline = args.compare_baseline.resolve()
+        summary = json.loads((baseline / "result.json").read_text())
+        assert summary["failed"] == summary["unexecuted"] == 0 and not summary["rust_compared"]
+        assert summary["reference_sha256"] == REFERENCE_SHA
+        assert digest(baseline / "c-observations.json") == summary["observations_sha256"]
+        assert digest(reference / "deps/sbin/ubusd") == summary["ubusd_sha256"]
+        assert digest(reference / "deps/bin/ubus") == summary["ubus_cli_sha256"]
+        expected_observations = json.loads((baseline / "c-observations.json").read_text())
+        if args.inject_error:
+            expected_observations[0]["lease_rows"][0]["name"] = "deliberately-wrong"
     out = args.out.resolve()
     assert "private" in out.parts
     out.mkdir(parents=True, exist_ok=False)
@@ -109,6 +149,7 @@ def main():
         hosts, leases, config, log = [folder / name for name in ("hosts", "leases", "dnsmasq.conf", "daemon.log")]
         marker = folder / "dhcp-hosts"
         marker.write_text("# Empty source: a reload marker, never a hostname override.\n")
+        marker_fd = watch_reads(marker)
         leases.write_bytes(INITIAL)
         (folder / "initial.leases").write_bytes(INITIAL)
         config.write_text("no-resolv\nno-hosts\nno-ping\nlisten-address=127.0.0.1\n"
@@ -119,17 +160,18 @@ def main():
         process = None
         try:
             for index, (stage, static_name, lease_name) in enumerate(steps):
-                before = log.read_text().count("read " + str(marker)) if log.exists() else 0
                 hosts.write_text("" if static_name is None else f"{ADDRESS} {static_name}\n")
                 (folder / f"{stage}.hosts").write_bytes(hosts.read_bytes())
                 if index == 0:
                     with log.open("wb") as stream:
-                        process = subprocess.Popen([str(binary), "--keep-in-foreground", "--user=root", "--group=root",
-                            "--log-facility=-", "--pid-file=" + str(folder / "pid"), "--conf-file=" + str(config)],
+                        command = [str(binary), "--keep-in-foreground", "--conf-file=" + str(config)]
+                        if args.rust_binary is None:
+                            command += ["--user=root", "--group=root", "--log-facility=-", "--pid-file=" + str(folder / "pid")]
+                        process = subprocess.Popen(command,
                             stdout=stream, stderr=subprocess.STDOUT, env=env)
                 else:
                     process.send_signal(signal.SIGHUP)
-                wait_until(process, lambda: log.read_text().count("read " + str(marker)) > before,
+                wait_until(process, lambda: read_closed(marker_fd),
                            label + "-DHCP-source-read")
                 barrier = subprocess.run([str(reference / "deps/bin/ubus"), "-s", "/run/ubus/ubus.sock",
                                           "call", "reverse.lifecycle", "metrics"],
@@ -154,7 +196,7 @@ def main():
                     first_file = lease_rows(leases)
                 file = lease_rows(leases)
                 (folder / f"{stage}.leases").write_bytes(leases.read_bytes())
-                expected_name = "deliberately-wrong" if args.inject_error and label == "startup-short" else lease_name
+                expected_name = "deliberately-wrong" if args.inject_error and args.rust_binary is None and label == "startup-short" else lease_name
                 check(label + "-" + stage + "-lease-name", [row["name"] for row in file], [expected_name])
                 if port:
                     check(label + "-" + stage + "-first-DNS-file", first_file, file)
@@ -167,6 +209,7 @@ def main():
             failures.append({"scenario": label, "error": repr(error)})
             check(label + "-exception", repr(error), None)
         finally:
+            os.close(marker_fd)
             if process is not None:
                 if process.poll() is None:
                     process.terminate()
@@ -182,15 +225,23 @@ def main():
     bus.wait(3)
     if len(observations) == 14 and not failures:
         assert len(checks) == 72, "frozen source-check count changed"
-    frozen = out / "c-observations.json"
+    compared = 0
+    if expected_observations is not None:
+        check("paired-snapshot-count", len(observations), len(expected_observations))
+        for actual, expected in zip(observations, expected_observations):
+            check("paired-" + expected["scenario"] + "-" + expected["stage"], actual, expected)
+            compared += 1
+    frozen = out / ("c-observations.json" if args.rust_binary is None else "rust-observations.json")
     frozen.write_text(json.dumps(observations, indent=2) + "\n")
     report = {"scope": __doc__, "reference_sha256": REFERENCE_SHA, "tool_sha256": digest(__file__),
               "observations_sha256": digest(frozen),
               "planned_steps": 14, "completed_steps": len(observations), "unexecuted": 14 - len(observations),
               "passed": sum(row["pass"] for row in checks), "failed": sum(not row["pass"] for row in checks),
               "checks": checks, "observations": observations, "failures": failures,
-              "rust_compared": False, "DHCP_packets_sent": 0,
-              "barrier": "empty DHCP hosts-file reread log, then synchronous ubus metrics",
+              "rust_compared": args.rust_binary is not None, "compared_snapshots": compared,
+              "rust_sha256": None if args.rust_binary is None else digest(binary), "DHCP_packets_sent": 0,
+              "injected_error": args.inject_error,
+              "barrier": "empty DHCP hosts-file read close, then synchronous ubus metrics",
               "ubusd_sha256": digest(reference / "deps/sbin/ubusd"),
               "ubus_cli_sha256": digest(reference / "deps/bin/ubus")}
     (out / "result.json").write_text(json.dumps(report, indent=2) + "\n")

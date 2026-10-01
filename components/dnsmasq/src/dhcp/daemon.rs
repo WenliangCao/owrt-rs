@@ -82,6 +82,7 @@ pub struct MaintenanceReport {
     pub lost_names: Vec<NameLost>,
     pub restore: Option<RestoreStats>,
     pub host_files: Vec<HostFileError>,
+    pub name_error: Option<io::Error>,
 }
 
 type BootHostLookup = Box<dyn FnMut(&[u8]) -> io::Result<Option<Ipv4Addr>> + Send>;
@@ -289,6 +290,7 @@ impl LocalProvider {
             lost_names,
             restore: None,
             host_files: Vec::new(),
+            name_error: None,
         }
     }
 
@@ -296,12 +298,13 @@ impl LocalProvider {
     /// it again is harmless and does not replay removed-lease ownership.
     pub fn initialize(&mut self, now: i64) -> MaintenanceReport {
         let mut host_files = Vec::new();
+        let mut name_error = None;
         if !self.initialized {
             self.leases
                 .initialize_fqdns(|address| self.domains.for_address(address));
             host_files = self.reread_host_files();
             if self.host_files_ready {
-                self.update_configured_names();
+                name_error = self.update_configured_names();
             }
         }
         self.initialized = true;
@@ -310,6 +313,7 @@ impl LocalProvider {
         let mut report = self.maintain(now, removed, true);
         report.restore = self.restore_stats.take();
         report.host_files = host_files;
+        report.name_error = name_error;
         report
     }
 
@@ -325,44 +329,76 @@ impl LocalProvider {
         self.message_counters
     }
 
-    fn update_configured_names(&mut self) {
+    fn update_configured_names(&mut self) -> Option<io::Error> {
         // lease.c lease_update_from_configs runs without a context chain:
         // a configured name is restored only for its own fixed address. Removing
         // a rule does not delete its lease or the lease's previous name.
-        let names: Vec<_> = self
+        // Otherwise try the current static reverse name; no match also keeps
+        // the old name. A failed shared lookup is reported separately and
+        // does not prevent independent configured-name updates.
+        // Keep the C lease traversal order while mutating names. Snapshot
+        // addresses only, rather than retaining a cloned name per lease.
+        let addresses: Vec<_> = self
             .leases
             .active_newest_first()
             .iter()
-            .filter_map(|lease| {
-                let index = self.config.find_host(
+            .map(|lease| lease.address)
+            .collect();
+        let mut name_error = None;
+        for address in addresses {
+            let lease = self
+                .leases
+                .get(address)
+                .expect("lease remains present during name update");
+            let configured = self
+                .config
+                .find_host(
                     lease.identity.client_id.as_deref(),
                     lease.identity.hardware_type,
                     Some(&lease.identity.hardware_address),
                     |_| true,
-                )?;
-                let host = &self.config.hosts[index];
-                (host.address.is_none_or(|address| address == lease.address))
-                    .then(|| {
-                        host.hostname
-                            .as_ref()
-                            .map(|name| (lease.address, name.clone()))
-                    })
-                    .flatten()
-            })
-            .collect();
-        for (address, name) in names {
-            // Addresses were taken from this store and no removal occurs
-            // during the loop, so set_hostname cannot fail NotFound.
-            self.leases
-                .set_hostname(
-                    address,
-                    Some(&name),
-                    true,
-                    self.domains.for_address(address),
-                    false,
                 )
-                .expect("restored lease remains present during configured-name update");
+                .and_then(|index| {
+                    let host = &self.config.hosts[index];
+                    host.address
+                        .is_none_or(|address| address == lease.address)
+                        .then(|| host.hostname.clone())
+                        .flatten()
+                });
+            let name = if configured.is_some() {
+                configured
+            } else if self.dns_port != 0 && name_error.is_none() {
+                match self
+                    .reverse_host_lookup
+                    .as_mut()
+                    .map(|lookup| lookup(lease.address))
+                {
+                    Some(Ok(Some(name))) => {
+                        reverse_hostname(name, self.domains.for_address(lease.address))
+                    }
+                    Some(Err(error)) => {
+                        name_error = Some(error);
+                        None
+                    }
+                    _ => None,
+                }
+            } else {
+                None
+            };
+            if let Some(name) = name {
+                // No address is removed during this loop.
+                self.leases
+                    .set_hostname(
+                        address,
+                        Some(&name),
+                        true,
+                        self.domains.for_address(address),
+                        false,
+                    )
+                    .expect("restored lease remains present during configured-name update");
+            }
         }
+        name_error
     }
 
     fn reread_host_files(&mut self) -> Vec<HostFileError> {
@@ -398,11 +434,13 @@ impl LocalProvider {
             return self.initialize(now);
         }
         let host_files = self.reread_host_files();
-        if self.host_files_ready {
-            self.update_configured_names();
-        }
+        let name_error = self
+            .host_files_ready
+            .then(|| self.update_configured_names())
+            .flatten();
         let mut report = self.maintain(now, Vec::new(), true);
         report.host_files = host_files;
+        report.name_error = name_error;
         report
     }
 
@@ -821,6 +859,12 @@ fn reverse_hostname(mut name: Vec<u8>, domain: Option<&[u8]>) -> Option<Vec<u8>>
         }
     }
     let end = dot.unwrap_or(name.len());
+    // C can strip a leading-dot record down to a non-NULL empty hostname,
+    // which its lease writer serializes as a missing token. Preserve a valid
+    // existing/client name instead; empty short names are never DHCP names.
+    if end == 0 {
+        return None;
+    }
     if !name[..end].iter().enumerate().all(|(index, byte)| {
         byte.is_ascii_alphanumeric() || (index != 0 && matches!(byte, b'-' | b'_'))
     }) {
@@ -869,6 +913,139 @@ mod startup_tests {
     use super::*;
 
     #[test]
+    fn empty_reverse_short_names_keep_a_recoverable_lease_file() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../private/dnsmasq-rewrite/empty-reverse-name-tests");
+        std::fs::create_dir_all(&root).unwrap();
+        for (index, name) in [b"".as_slice(), b".", b".pool.test"]
+            .into_iter()
+            .enumerate()
+        {
+            let folder = root.join(format!("{}-{index}", std::process::id()));
+            std::fs::create_dir(&folder).unwrap();
+            let path = folder.join("leases");
+            let config = DhcpConfig {
+                no_ping: true,
+                lease_file: Some(path.as_os_str().as_bytes().to_vec()),
+                ..DhcpConfig::default()
+            };
+            let mut provider =
+                LocalProvider::new(config.clone(), Vec::new(), 53, || false).unwrap();
+            let mut dns = crate::config::dns::DnsConfig::default();
+            dns.apply(
+                &crate::config::lex_line(b"domain=pool.test")
+                    .unwrap()
+                    .unwrap(),
+            )
+            .unwrap();
+            provider.set_dns_config(&dns).unwrap();
+            let address = Ipv4Addr::new(192, 0, 2, 10);
+            provider
+                .leases
+                .allocate(
+                    address,
+                    ClientIdentity {
+                        hardware_type: 1,
+                        hardware_address: vec![2, 0, 0, 0, 0, 1],
+                        client_id: None,
+                    },
+                )
+                .unwrap();
+            provider.leases.set_expires(address, u32::MAX, 100).unwrap();
+            provider
+                .leases
+                .set_hostname(address, Some(b"oldname"), false, None, false)
+                .unwrap();
+            let name = name.to_vec();
+            provider.set_reverse_host_lookup(move |_| Ok(Some(name.clone())));
+            assert!(provider.initialize(100).name_error.is_none());
+            assert_eq!(
+                std::fs::read(&path).unwrap(),
+                b"0 02:00:00:00:00:01 192.0.2.10 oldname *\n"
+            );
+            drop(provider);
+            let restored = LocalProvider::new(config, Vec::new(), 53, || false).unwrap();
+            let lease = restored.leases.get(address).unwrap();
+            assert_eq!(lease.hostname.as_deref(), Some(b"oldname".as_slice()));
+            assert!(lease.expires.is_none());
+            assert_eq!(lease.identity.hardware_address, [2, 0, 0, 0, 0, 1]);
+            drop(restored);
+            std::fs::remove_dir_all(folder).unwrap();
+        }
+    }
+
+    #[test]
+    fn reverse_reload_error_keeps_old_name_and_reports_independent_config_update() {
+        let mut config = DhcpConfig {
+            no_ping: true,
+            lease_read_only: true,
+            ..DhcpConfig::default()
+        };
+        config
+            .apply(
+                &crate::config::lex_line(b"dhcp-host=02:00:00:00:00:02,192.0.2.11,configured")
+                    .unwrap()
+                    .unwrap(),
+            )
+            .unwrap();
+        let mut provider = LocalProvider::new(config, Vec::new(), 53, || false).unwrap();
+        for (last, client, name) in [(10, 1, b"oldname".as_slice()), (11, 2, b"other")] {
+            let address = Ipv4Addr::new(192, 0, 2, last);
+            provider
+                .leases
+                .allocate(
+                    address,
+                    ClientIdentity {
+                        hardware_type: 1,
+                        hardware_address: vec![2, 0, 0, 0, 0, client],
+                        client_id: None,
+                    },
+                )
+                .unwrap();
+            provider.leases.set_expires(address, u32::MAX, 100).unwrap();
+            provider
+                .leases
+                .set_hostname(address, Some(name), false, None, false)
+                .unwrap();
+        }
+        provider.set_reverse_host_lookup(|_| Err(io::Error::from(io::ErrorKind::PermissionDenied)));
+        let report = provider.initialize(100);
+        assert_eq!(
+            report.name_error.unwrap().kind(),
+            io::ErrorKind::PermissionDenied
+        );
+        assert_eq!(
+            provider
+                .leases
+                .get(Ipv4Addr::new(192, 0, 2, 10))
+                .unwrap()
+                .hostname
+                .as_deref(),
+            Some(b"oldname".as_slice())
+        );
+        assert_eq!(
+            provider
+                .leases
+                .get(Ipv4Addr::new(192, 0, 2, 11))
+                .unwrap()
+                .hostname
+                .as_deref(),
+            Some(b"configured".as_slice())
+        );
+        provider.set_reverse_host_lookup(|_| Ok(Some(b"recovered".to_vec())));
+        assert!(provider.reload_host_files(100).name_error.is_none());
+        assert_eq!(
+            provider
+                .leases
+                .get(Ipv4Addr::new(192, 0, 2, 10))
+                .unwrap()
+                .hostname
+                .as_deref(),
+            Some(b"recovered".as_slice())
+        );
+    }
+
+    #[test]
     fn reverse_host_name_uses_c_domain_and_legal_short_name_rules() {
         for (name, domain, expected) in [
             (b"FromHosts".as_slice(), None, Some(b"FromHosts".as_slice())),
@@ -881,11 +1058,7 @@ mod startup_tests {
             (b"fromhosts.pool.test", None, None),
             (b"_invalid", None, None),
             (b"valid_name", None, Some(b"valid_name".as_slice())),
-            (
-                b".pool.test",
-                Some(b"pool.test".as_slice()),
-                Some(b"".as_slice()),
-            ),
+            (b".pool.test", Some(b"pool.test".as_slice()), None),
         ] {
             assert_eq!(reverse_hostname(name.to_vec(), domain).as_deref(), expected);
         }

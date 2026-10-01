@@ -69,8 +69,8 @@ sudo -n sh tools/dnsmasq/run_isolated.sh \
   --output private/dhcp-reverse-name-rerun
 ```
 
-The related `lease_update_from_configs` fallback during startup restoration
-and HUP remains an explicit follow-up: the previous updater only handles
-configured `dhcp-host` names. A separate C lifecycle baseline is being built;
-it is not counted as passed here. No performance, complete-component or
+The subsequent [lifecycle stage](DHCP_REVERSE_LIFECYCLE_PHASE.md) closes the
+related startup/HUP `lease_update_from_configs` fallback. It also documents
+Rust’s empty-short-name correctness boundary; that C source edge is excluded
+from equality claims. No performance, complete-component or
 physical-router acceptance is claimed.

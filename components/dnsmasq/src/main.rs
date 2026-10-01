@@ -1077,6 +1077,9 @@ fn report_dhcp_maintenance(report: &dnsmasq_rs::dhcp::daemon::MaintenanceReport)
     for error in &report.host_files {
         eprintln!("dnsmasq-rs: DHCP hosts file: {error:?}");
     }
+    if let Some(error) = &report.name_error {
+        eprintln!("dnsmasq-rs: failed to update lease names from static hosts: {error}");
+    }
     if let Some(error) = &report.file.error {
         eprintln!("dnsmasq-rs: failed to update lease file: {error}");
     }

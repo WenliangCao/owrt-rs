@@ -64,3 +64,7 @@ sudo -n sh tools/dnsmasq/run_isolated.sh \
 ```
 
 Use a fresh directory and `--inject-error` for the negative calibration.
+
+The subsequent [paired implementation stage](DHCP_REVERSE_LIFECYCLE_PHASE.md)
+adds a common read-close/UBus completion marker and verifies the original
+observation hash remains unchanged before comparing Rust.
