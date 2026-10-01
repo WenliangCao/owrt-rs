@@ -1,11 +1,13 @@
-# cache-rr and generic forward-cache baseline
+# cache-rr and generic forward-cache result
 
 The independently frozen [gate](CACHE_RR_GATE_PLAN.md) fully calibrates against
 native C and the actual image: 22 configuration cases and 87 packet
 observations each. Of those packets, 78 belong to the forward-generic paired
 scope; nine reverse-PTR observations are deliberately C-only. The old product
 at `5c15e16` lacks `cache-rr` startup support and default generic insertion.
-No corrected product replay is claimed in this baseline.
+The corrected source `4bf072d` passes the original 22 configuration cases and
+78 forward observations against native C and actual-image C. One earlier image
+run retains a separate Rust startup-readiness failure, described below.
 
 | Run | Configuration | Service scope | Failures / differences |
 | --- | --- | --- | --- |
@@ -13,6 +15,10 @@ No corrected product replay is claimed in this baseline.
 | `image-baseline-01` | C 22/22 | C 87/87, including reverse 9 | 0 |
 | `native-before-01` | 16/22 acceptance differences | 18 compared, 12 differ; reverse 9 C-only | 17 Rust profile startup failures |
 | `image-before-01` | 16/22 acceptance differences | 18 compared, 12 differ; reverse 9 C-only | 17 Rust profile startup failures |
+| `native-after-01` | 22/22 match | 78/78 paired; reverse 9 C-only | 0 |
+| `image-after-01` | 22/22 match | 75/75 paired; reverse 9 C-only | 1 Rust readiness timeout; no rows for that profile |
+| `image-after-02` | 22/22 match | 78/78 paired; reverse 9 C-only | 0 |
+| `native-negative-01` | 22/22 match | 78 compared; reverse 9 C-only | exactly 1 deliberately injected difference |
 
 The 16 configuration differences are C-accepted `cache-rr` arguments rejected
 by the old Rust implementation. All six invalid arguments are rejected by
@@ -23,6 +29,16 @@ unknown RR types match all six observations. Default SRV, non-address PTR,
 SRV NODATA with SOA and unenabled TXT NXDOMAIN each differ in all three rows,
 including the seed's insertion metrics and subsequent cache/forward behavior.
 These are service comparison differences, not fixture calibration failures.
+
+The image attempt retains a `disabled-mx` startup failure: its UBus lookup
+succeeded, but the single initial `ready.test` packet received no answer within
+two seconds. Its trace has no scheduled rows or wires, and daemon logs are
+empty. Rust registers UBus before binding DNS sockets (`main.rs`), which gives
+a source-supported startup-race hypothesis; the saved evidence does not prove
+that cause. This failed attempt is not a 78-row pass and is never discarded.
+The same frozen tool and ELF then pass the complete gate in a fresh output
+directory, run sequentially after this owner's other active service gates had
+finished. This successful repeat does not establish startup reliability.
 
 ## Measured C interfaces
 
@@ -62,6 +78,10 @@ does not fabricate a passing case for that defect.
 - Old Rust source: `5c15e16da102a209c1040ba5a5d44d8abb1ca58d`.
 - Old Rust ELF:
   `87f68b790d6a19f1cf25bdfcc33093f603016b3df8d1f8df5b959c74f6990b90`.
+- Corrected Rust source: `4bf072d`; ELF:
+  `8406757bb3c597bdce1673ec7036a6d1d69728fe17b0d5a55d8b506b21192070`.
+- Corrected source archive SHA-256:
+  `1765e80ca5f3e6bc6da038e6665db087dbe0d8a6c82c69360f366bee44780eca`.
 - Native C ELF:
   `bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431`.
 - Actual image ELF:
@@ -71,8 +91,10 @@ does not fabricate a passing case for that defect.
 All baseline attempts passed C calibration without a fixture revision. Every
 C schedule finishes before any Rust schedule in its run. The comparator
 rejects a missing row and detects exactly one changed observation during
-self-calibration. A standalone paired negative awaits a fully passing Rust
-ELF. Comparing the saved native/image C baselines also yields 87/87 identical
+self-calibration. The standalone native paired negative uses the corrected
+frozen ELF and returns exit 1 with exactly the deliberately changed first
+cache-hit field; all other 77 observations and all configuration outcomes
+match. Comparing the saved native/image C baselines also yields 87/87 identical
 decoded observations; that check performs no new daemon experiment.
 
 Raw configurations, stdout/stderr, packets, counters, identities and their
@@ -82,3 +104,5 @@ SHA-256 manifest are in
 isolated build-host wrapper. No router or performance experiment was involved.
 Reverse cache integration, malformed generic data, DNSSEC/EDNS expansion,
 integer overflow and complete RRtype configuration coverage remain open.
+The separate [QTYPE-zero anchor](CACHE_RR_ZERO_RESULT.md) qualifies zero and
+empty list-entry behavior without changing this gate's 78-row denominator.
