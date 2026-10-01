@@ -1,0 +1,362 @@
+{
+  "source_commit": "62894d657341827f3ea1e903375a6263dbe4de82",
+  "source_archive_sha256": "d20889ad0c6ccfbecc5737bfb533e3b5691730e571f4c379ccb102c0a0a38134",
+  "source_cache_sha256": "959592939af416989e4d7821a01f7ce54fcb368c8fdc9b85d3501f0cbd8d7f44",
+  "source_reverified_after_checks": true,
+  "scope": "Backward forward-only corpus, existing typed forward transfer and isolated unit/Clippy checks; no reverse transfer, performance or deployment acceptance",
+  "forward": {
+    "commands": 22571,
+    "mismatches": 0,
+    "cross_type_order_variations": 138,
+    "driver_sha256": "6b94b148af5b0b1ba14e1abd7e1fa3e5e37d491ff3a82549902c4d1d57ed31f6",
+    "baseline_source_sha256": {
+      "cache.c": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c",
+      "dnsmasq.h": "318942419598f037a97611efbdea5aebba1e384b9a1ba5f7eded091c86e0e228"
+    },
+    "normalization": "Only relative order across generic RR types is grouped; ordering within each type, data, expiry, negative status, reply TTL and stale flag compare exactly. C answer_request filters by actual rrtype.",
+    "calibration": {
+      "changed_ttl_detected": 1,
+      "missing_row_rejected": true
+    },
+    "c_execution": "none; saved outputs reused",
+    "result_sha256": "546aae54ff18e83e1926a4c0559b8852def0effcff93d2f6c6d4953f79388d87",
+    "inputs_identity_sha256": "fa7e98c4f7a64b2c186fe79aed4bd367f2929c80e8534c745cc17534406b3c32"
+  },
+  "tools": {
+    "verify_frozen.py": "906514702618040c812404c853cdbb2e911d14347fb600582d671223d5280a33",
+    "forward_replay.py": "5b2c82a004c1c85a90876a4788ac422b7463815186a00fa0d8781993bd1b5778",
+    "cargo_replay.py": "6b23e361e3e2cd7d0a0b0ebe09159e6ad0e80d2b9eb0248ebef7ba6f13f96eeb",
+    "tools/dnsmasq/dns_cache_diff.py": "ed6d9bbd1e4b768c4875242a97f66c9474d28add8bbb6704c63734c6ff372610",
+    "tools/dnsmasq/cache_transfer_rust_diff.py": "6f47991eb86f18efe6c24f4c2091ed9e18fdd7168571f0b99b201883e0214d0c",
+    "tools/dnsmasq/run_isolated.sh": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311",
+    "62894d6-tools.tar": "94fe933113fc1fb398ca4d921697f7c6d01b899ebfcf7257795f144e04fa4a7f"
+  },
+  "attempts": [
+    {
+      "name": "all-target Clippy initial native and musl",
+      "exit": 101,
+      "reason": "Source archive intentionally contained only components; bin include! required the unchanged same-commit tools files. Initial stderr retained."
+    },
+    {
+      "name": "all-target Clippy retry native and musl",
+      "exit": 0,
+      "change": "Extracted exact tools archive from same source commit; no component source change."
+    }
+  ],
+  "runtimes": {
+    "native": {
+      "library_passed": 393,
+      "library_ignored": 16,
+      "main_passed": 7,
+      "isolated": true,
+      "artifacts": [
+        {
+          "kind": "main",
+          "sha256": "d73593b328233048707df870fe7a7a0e77c07539a2eb16222fc4b67cacd78d7e",
+          "elf_has_interpreter": true,
+          "elf_aarch64": true
+        },
+        {
+          "kind": "lib",
+          "sha256": "6873ae57bf1dfbab403265f3c2bfea7052c25010d4ebe287d149abfb672d1bca",
+          "elf_has_interpreter": true,
+          "elf_aarch64": true
+        }
+      ],
+      "initial_clippy_exit": 101,
+      "final_clippy_exit": 0,
+      "transfer": {
+        "compared": 307,
+        "passed": 307,
+        "failed": 0,
+        "probe_sha256": "6873ae57bf1dfbab403265f3c2bfea7052c25010d4ebe287d149abfb672d1bca",
+        "baseline_identity_sha256": "96fc7eed20067ebc134853620a799aa4a779afdcdf0fdb306815740c339dc941",
+        "plan_sha256": "7502e674a279a3c784062a69fa30ce101644553ebdbf015bfbec704565632fff",
+        "baseline_stdout_digest": "6624663c148bea679075197a0a3d0847673513893620a217094c7fb66e5eb43b",
+        "tool_sha256": "6f47991eb86f18efe6c24f4c2091ed9e18fdd7168571f0b99b201883e0214d0c",
+        "calibration": {
+          "equal": 1,
+          "counter_mutation_detected": 1,
+          "short_count_rejected": 1
+        }
+      },
+      "transfer_result_sha256": "f1a0ca76f38be61ccb2da9a6d1d0258d26596092d78359165c7646e63c9d5433"
+    },
+    "musl": {
+      "library_passed": 393,
+      "library_ignored": 16,
+      "main_passed": 7,
+      "isolated": true,
+      "artifacts": [
+        {
+          "kind": "main",
+          "sha256": "4f4489cff38fe74827da6252286e71d6289e5cb198783af080feef2469ebbb64",
+          "elf_has_interpreter": false,
+          "elf_aarch64": true
+        },
+        {
+          "kind": "lib",
+          "sha256": "08d176cf8c9ada30aeb9737e12e636c6254e699962bca5d75c0fa06ae1c9e3de",
+          "elf_has_interpreter": false,
+          "elf_aarch64": true
+        }
+      ],
+      "initial_clippy_exit": 101,
+      "final_clippy_exit": 0,
+      "transfer": {
+        "compared": 307,
+        "passed": 307,
+        "failed": 0,
+        "probe_sha256": "08d176cf8c9ada30aeb9737e12e636c6254e699962bca5d75c0fa06ae1c9e3de",
+        "baseline_identity_sha256": "96fc7eed20067ebc134853620a799aa4a779afdcdf0fdb306815740c339dc941",
+        "plan_sha256": "7502e674a279a3c784062a69fa30ce101644553ebdbf015bfbec704565632fff",
+        "baseline_stdout_digest": "6624663c148bea679075197a0a3d0847673513893620a217094c7fb66e5eb43b",
+        "tool_sha256": "6f47991eb86f18efe6c24f4c2091ed9e18fdd7168571f0b99b201883e0214d0c",
+        "calibration": {
+          "equal": 1,
+          "counter_mutation_detected": 1,
+          "short_count_rejected": 1
+        }
+      },
+      "transfer_result_sha256": "ae3e9e7a700b27c18c503a7e90ae53be776b158f3c3d09089a83144c59cdb546"
+    }
+  },
+  "ordinary_allocations": {
+    "scope": "Untimed native AArch64 ordinary five-case allocator/layout audit only; old case preparation and expected vectors unchanged.",
+    "candidate_commit": "62894d657341827f3ea1e903375a6263dbe4de82",
+    "forward_commit": "7a9caddebcb5504ecbd33064bc26c0cee6816ad7",
+    "result_sha256": "88f9ab5354368f0ee12c3976b4b6207c7377b44ad8edfeb40cb6c21387aa640b",
+    "original_result_sha256": "43137eb6988fa406c1eff2385212c56e1612a69f6ac5ccff91edb59ec8c10c5e",
+    "wrapper_sha256": "8e414d8324eca0f32604dd8a469dff61a217fdbb2a144ca0e6d29cca0a7f9d48",
+    "original_tool_sha256": "73799baf193aadf7cfe184f15aa8e1c0712c94eb054f0824fc15ecaafb10b3fc",
+    "layout_size_align": {
+      "Cache": [
+        168,
+        8
+      ],
+      "Slot": [
+        160,
+        8
+      ],
+      "Entry": [
+        120,
+        8
+      ],
+      "Record": [
+        56,
+        8
+      ]
+    },
+    "checks": {
+      "original_gate_matches_legacy_all_five": true,
+      "extended_gate_matches_legacy_all_five": true,
+      "forward_candidate_commit_vectors_equal": true,
+      "forward_candidate_whole_vectors_equal": true,
+      "forward_candidate_layout_equal": true,
+      "all_cache_drops_balance": true
+    },
+    "ordinary_rows": [
+      {
+        "case": "empty",
+        "committed": true,
+        "inserted": 0,
+        "freed": 0,
+        "commit_allocation": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "commit_dealloc": [
+          0,
+          0
+        ],
+        "whole_allocation": [
+          1,
+          0,
+          20480,
+          0
+        ],
+        "whole_dealloc": [
+          1,
+          20480
+        ],
+        "balance": 0
+      },
+      {
+        "case": "one",
+        "committed": true,
+        "inserted": 1,
+        "freed": 0,
+        "commit_allocation": [
+          3,
+          0,
+          245,
+          245
+        ],
+        "commit_dealloc": [
+          0,
+          0
+        ],
+        "whole_allocation": [
+          10,
+          0,
+          20799,
+          0
+        ],
+        "whole_dealloc": [
+          10,
+          20799
+        ],
+        "balance": 0
+      },
+      {
+        "case": "many",
+        "committed": true,
+        "inserted": 128,
+        "freed": 0,
+        "commit_allocation": [
+          263,
+          0,
+          30342,
+          17946
+        ],
+        "commit_dealloc": [
+          6,
+          12396
+        ],
+        "whole_allocation": [
+          905,
+          33,
+          58954,
+          0
+        ],
+        "whole_dealloc": [
+          905,
+          57738
+        ],
+        "balance": 0
+      },
+      {
+        "case": "dangling",
+        "committed": true,
+        "inserted": 0,
+        "freed": 0,
+        "commit_allocation": [
+          1,
+          0,
+          8,
+          -9
+        ],
+        "commit_dealloc": [
+          2,
+          17
+        ],
+        "whole_allocation": [
+          7,
+          0,
+          20558,
+          0
+        ],
+        "whole_dealloc": [
+          7,
+          20558
+        ],
+        "balance": 0
+      },
+      {
+        "case": "failed",
+        "committed": false,
+        "inserted": 0,
+        "freed": 0,
+        "commit_allocation": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "commit_dealloc": [
+          0,
+          0
+        ],
+        "whole_allocation": [
+          10,
+          0,
+          20579,
+          0
+        ],
+        "whole_dealloc": [
+          10,
+          20579
+        ],
+        "balance": 0
+      }
+    ],
+    "vector_keys": {
+      "commit_allocation": [
+        "alloc_calls",
+        "realloc_calls",
+        "requested_bytes",
+        "live_byte_change"
+      ],
+      "commit_dealloc": [
+        "dealloc_calls",
+        "deallocated_bytes"
+      ],
+      "whole_allocation": [
+        "alloc_calls",
+        "realloc_calls",
+        "requested_bytes",
+        "live_byte_change"
+      ],
+      "whole_dealloc": [
+        "dealloc_calls",
+        "deallocated_bytes"
+      ]
+    },
+    "limitations": [
+      "Native AArch64 Linux with rustc 1.98.1; this audit does not establish SDK-musl or router layouts.",
+      "All workloads are the original forward-record five cases; direct reverse records, mixed reverse/forward pressure, PTR target parsing and reverse lookup allocations are not measured.",
+      "Original capture subcases execute ordinary forward records only; no reverse transfer qualification is implied.",
+      "Requested allocator bytes are not RSS, allocator overhead, peak service memory, OOM behavior, CPU performance or throughput.",
+      "Request-byte totals include each realloc replacement size, whereas dealloc bytes count explicit dealloc calls; equality of those two byte totals is not a leak criterion. Every cache lifetime ends with live-byte delta zero.",
+      "No product source, expected fixture, tracked file, user prompt, physical router or benchmark timing window modified."
+    ],
+    "source_binaries": {
+      "forward": {
+        "sha256": "e63ce5020e58942c24917d426e47e883179a1982312652371cde93a238b81f4b",
+        "driver_sha256": "bd8dcbc9573c41ade9f35c2aa823695116a2763c5094c1d084076222742fb0fe",
+        "instrumented_cache_sha256": "6a3eac4542e8266c62df6b46cf8c1475efa89219084e78794f4c9183bce61d06",
+        "source_files": {
+          "cache.rs": "624cae8bdf60481081683fc719f40d4492c6ef606332337942738512f7ab14aa",
+          "wire.rs": "23e8d6c70d6c9177beb7d799ecb0fc39f5ef2378c7a2ca43b7f2e599c7d1510f",
+          "lease_names.rs": "cb05a82f1d5f8e90e37dfee942b0464366eedac92b6dfcc35ecb50c86fe2b0b3"
+        }
+      },
+      "candidate": {
+        "sha256": "7b335e4c698276b1af6a9fd15b48291cb33cb8bfb708e99016e20bf1ef0961f2",
+        "driver_sha256": "8e7c4f691c3b942c11e08d459bd056ebc6b20d4fe35e9309dc34e7b675d45c59",
+        "instrumented_cache_sha256": "ce4172a5026b3a4f77140112db32c4de6ad5a269a8a5c3899a83250b289f2709",
+        "source_files": {
+          "cache.rs": "959592939af416989e4d7821a01f7ce54fcb368c8fdc9b85d3501f0cbd8d7f44",
+          "wire.rs": "23e8d6c70d6c9177beb7d799ecb0fc39f5ef2378c7a2ca43b7f2e599c7d1510f",
+          "lease_names.rs": "cb05a82f1d5f8e90e37dfee942b0464366eedac92b6dfcc35ecb50c86fe2b0b3"
+        }
+      }
+    }
+  },
+  "evidence": {
+    "backward_audit_summary_sha256": "c865df3aa0c82385e96c5b0ce692e95c9b5b593bf58a75be0357d97ac34828c6",
+    "backward_manifest_sha256": "d1dba2a8fce067196cc3957155e37cd35fb69e12266d5fdcd108b32f7a202f15",
+    "backward_archive_sha256": "28fb47cc36b89adf77bb4d428bfdca541828ba7affc2764db71223f1ca078dd3",
+    "backward_files_verified": 350,
+    "resource_audit_summary_sha256": "082d70073a1cdfdf2ed909d5452d999a228f3c2f8e25074f56fd828b3f949f1c",
+    "resource_files_verified": 108
+  },
+  "limitations": [
+    "Existing forward-only cases; no new C run or reverse multi-target order acceptance.",
+    "Reverse transfer and local/DHCP coexistence require their separate C gates.",
+    "Native-only ordinary allocation/layout audit; no mixed reverse workload, musl allocator, RSS, OOM or CPU performance qualification.",
+    "Private source remains unmerged."
+  ]
+}
