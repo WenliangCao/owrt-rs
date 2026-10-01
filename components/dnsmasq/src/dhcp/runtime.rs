@@ -8,13 +8,14 @@
 //! DHCP/BOOTP state adapter without opening a socket here.
 
 use super::message_counters::MessageCounters;
-use super::reply::{build_reply_with_fuzz, needs_renewal_fuzz, ReplyError, ReplyOption};
+use super::reply::{build_reply_with_boot, needs_renewal_fuzz, ReplyError, ReplyOption};
 use super::service::{Dispatch, DispatchKind, Route};
 use super::state::{self, Environment, HostPolicy, Name, Outcome, Reply, Request};
 use super::{
     allocation::{AddressRange, ProbeResult},
     lease::LeaseStore,
 };
+use crate::config::dhcp::BootConfig;
 use std::io::{self, Read};
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
@@ -100,6 +101,14 @@ pub trait OutcomeProvider {
     /// Explicit selected options take precedence over these defaults.
     fn network_options(&self, _outcome: &Outcome) -> Option<NetworkOptions> {
         None
+    }
+
+    fn boot_config(&self) -> Option<&BootConfig> {
+        None
+    }
+
+    fn allow_override(&self) -> bool {
+        true
     }
 
     /// Selected hostname/domain after the same state transaction which will
@@ -524,12 +533,14 @@ where
     }
     combined.extend_from_slice(options);
     let options = combined.as_slice();
-    let encoding = match build_reply_with_fuzz(
+    let boot = provider.boot_config();
+    let encoding = match build_reply_with_boot(
         dispatch.packet,
         outcome.reply,
         options,
-        dispatch.packet.option(55, 0).is_some(),
+        dispatch.packet.option(55, 0).is_some() && provider.allow_override(),
         fuzz,
+        boot,
         buffer,
     ) {
         Ok(encoding) => encoding,
@@ -551,7 +562,11 @@ where
         overload: encoding.overload,
     });
     if let Some(network) = network {
-        buffer[20..24].copy_from_slice(&network.next_server.octets());
+        let next_server = boot
+            .map(|boot| boot.next_server)
+            .filter(|address| !address.is_unspecified())
+            .unwrap_or(network.next_server);
+        buffer[20..24].copy_from_slice(&next_server.octets());
     }
     let mut destination = match destination(&dispatch, peer, &outcome.reply, buffer, encoding.len) {
         Ok(destination) => destination,

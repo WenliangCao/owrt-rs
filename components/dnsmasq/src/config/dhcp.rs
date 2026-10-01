@@ -48,6 +48,44 @@ pub struct RangeConfig {
     pub lease_time_explicit: bool,
 }
 
+/// Ordinary untagged boot metadata. Zero next-server retains the context's
+/// local address. Tagged selection and hosts-name resolution remain separate.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BootConfig {
+    pub filename: Option<Vec<u8>>,
+    pub server_name: Option<Vec<u8>>,
+    pub next_server: Ipv4Addr,
+}
+
+impl BootConfig {
+    fn parse(argument: &super::EncodedArg) -> Result<Self, Error> {
+        let (file, tail) = argument.split_once(b',');
+        if file.encoded().starts_with(b"tag:") || file.encoded().starts_with(b"net:") {
+            return Err(Error("DHCP boot tag selectors are not implemented"));
+        }
+        let (server, next) = tail
+            .map(|tail| tail.split_once(b','))
+            .map(|(server, next)| (Some(server), next))
+            .unwrap_or_default();
+        let string = |value: Vec<u8>| -> Result<Option<Vec<u8>>, Error> {
+            if value.len() > 255 {
+                return Err(Error("DHCP boot string exceeds one-byte option length"));
+            }
+            Ok((!value.is_empty()).then_some(value))
+        };
+        let next_server = match next.map(|value| value.decoded()) {
+            Some(value) if !value.is_empty() => ip(&value)
+                .map_err(|_| Error("DHCP boot next-server hosts names are not implemented"))?,
+            _ => Ipv4Addr::UNSPECIFIED,
+        };
+        Ok(Self {
+            filename: string(file.decoded())?,
+            server_name: string(server.map(|value| value.decoded()).unwrap_or_default())?,
+            next_server,
+        })
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DhcpConfig {
     /// Matches C's context-list order: the last configured range comes first.
@@ -58,6 +96,9 @@ pub struct DhcpConfig {
     pub host_files: Vec<Vec<u8>>,
     pub authoritative: bool,
     pub bootp_dynamic: bool,
+    /// Last untagged directive wins, matching find_boot's reverse list.
+    pub boot: Option<BootConfig>,
+    pub no_override: bool,
     pub sequential: bool,
     pub ignore_client_id: bool,
     pub no_ping: bool,
@@ -76,6 +117,8 @@ impl Default for DhcpConfig {
             host_files: Vec::new(),
             authoritative: false,
             bootp_dynamic: false,
+            boot: None,
+            no_override: false,
             sequential: false,
             ignore_client_id: false,
             no_ping: false,
@@ -142,6 +185,12 @@ impl DhcpConfig {
         let argument = directive.argument.as_ref();
         match directive.name.as_slice() {
             b"dhcp-authoritative" => self.authoritative = true,
+            b"dhcp-no-override" => self.no_override = true,
+            b"dhcp-boot" => {
+                self.boot = Some(BootConfig::parse(
+                    argument.ok_or(Error("missing parameter"))?,
+                )?);
+            }
             b"bootp-dynamic" => {
                 // option.c:4664-4701 stores optional tag predicates. Until
                 // they reach the BOOTP caller, only the no-argument global
@@ -223,7 +272,6 @@ impl DhcpConfig {
             }
             b"dhcp-option"
             | b"dhcp-option-force"
-            | b"dhcp-boot"
             | b"dhcp-vendorclass"
             | b"dhcp-userclass"
             | b"dhcp-match"
@@ -369,6 +417,50 @@ mod tests {
 
     // Expected fields below come from exact option.c read_opts state, retained
     // in tools/dnsmasq/dhcp_config_diff.py's independent C corpus.
+    #[test]
+    fn ordinary_boot_fields_and_last_directive_match_c() {
+        let mut config = DhcpConfig::default();
+        for line in [
+            b"dhcp-boot=old.img,old.test,192.0.2.1".as_slice(),
+            b"dhcp-boot=\"synthetic,one.img\",\"boot,name\",192.0.2.2",
+            b"dhcp-no-override",
+        ] {
+            config.apply(&lex_line(line).unwrap().unwrap()).unwrap();
+        }
+        assert_eq!(
+            config.boot,
+            Some(BootConfig {
+                filename: Some(b"synthetic,one.img".to_vec()),
+                server_name: Some(b"boot,name".to_vec()),
+                next_server: Ipv4Addr::new(192, 0, 2, 2),
+            })
+        );
+        assert!(config.no_override);
+        for line in [
+            "dhcp-boot=tag:known,file",
+            "dhcp-boot=net:known,file",
+            "dhcp-boot=file,,boot.test",
+            "dhcp-boot=file,,192.0.2.2,extra",
+        ] {
+            let before = config.clone();
+            assert!(config
+                .apply(&lex_line(line.as_bytes()).unwrap().unwrap())
+                .is_err());
+            assert_eq!(config, before);
+        }
+        config
+            .apply(&lex_line(b"dhcp-boot=,,0.0.0.0").unwrap().unwrap())
+            .unwrap();
+        assert_eq!(
+            config.boot,
+            Some(BootConfig {
+                filename: None,
+                server_name: None,
+                next_server: Ipv4Addr::UNSPECIFIED,
+            })
+        );
+    }
+
     #[test]
     fn range_defaults_reverse_bounds_and_broadcast_match_c() {
         let defaults = parse("192.0.2.20,192.0.2.10").unwrap();

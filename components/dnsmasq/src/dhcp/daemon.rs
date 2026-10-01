@@ -565,6 +565,14 @@ impl OutcomeProvider for LocalProvider {
         result
     }
 
+    fn boot_config(&self) -> Option<&crate::config::dhcp::BootConfig> {
+        self.config.boot.as_ref()
+    }
+
+    fn allow_override(&self) -> bool {
+        !self.config.no_override
+    }
+
     fn network_options(&self, outcome: &Outcome) -> Option<NetworkOptions> {
         let index = match outcome.reply {
             Reply::Offer { context, .. }

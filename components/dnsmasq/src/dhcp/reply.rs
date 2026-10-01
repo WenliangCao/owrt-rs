@@ -10,6 +10,7 @@
 pub use super::packet::VendorOption as ReplyOption;
 use super::packet::{encode_bootp_vendor, Packet, VendorError};
 use super::state::{Outcome, Reply};
+use crate::config::dhcp::BootConfig;
 use std::net::Ipv4Addr;
 
 const OP_REPLY: u8 = 2;
@@ -126,11 +127,38 @@ pub fn build_reply_with_fuzz(
     fuzz: u16,
     output: &mut [u8],
 ) -> Result<ReplyEncoding, ReplyError> {
+    build_reply_with_boot(request, reply, options, allow_overload, fuzz, None, output)
+}
+
+/// The ordinary dhcp-boot path runs before lease timers and default options.
+/// Its fixed fields also determine which regions remain usable for overload.
+pub fn build_reply_with_boot(
+    request: Packet<'_>,
+    reply: Reply,
+    options: &[ReplyOption<'_>],
+    allow_overload: bool,
+    fuzz: u16,
+    boot: Option<&BootConfig>,
+    output: &mut [u8],
+) -> Result<ReplyEncoding, ReplyError> {
     if reply == Reply::Ignore {
         return Err(ReplyError::NoReply);
     }
 
     let bootp = matches!(reply, Reply::Bootp { .. });
+    let boot = boot.filter(|_| !matches!(reply, Reply::Nak { .. }));
+    if let Some(boot) = boot {
+        for (code, value) in [(66, &boot.server_name), (67, &boot.filename)] {
+            if let Some(value) = value {
+                if value.len() > 255 {
+                    return Err(ReplyError::OptionTooLong {
+                        code,
+                        length: value.len(),
+                    });
+                }
+            }
+        }
+    }
     let required = if bootp {
         MIN_PACKET_SIZE
     } else {
@@ -187,6 +215,9 @@ pub fn build_reply_with_fuzz(
     }
 
     if let Some(encoding) = vendor_encoding {
+        if let Some(boot) = boot {
+            write_boot_fields(output, boot);
+        }
         // Preserve cookie bytes from the request, as clear_packet does.
         output[240..300].copy_from_slice(&vendor[4..]);
         return Ok(ReplyEncoding {
@@ -198,6 +229,32 @@ pub fn build_reply_with_fuzz(
 
     let mut writer = OptionWriter::new(&mut output[..required]);
     append_mandatory(&mut writer, reply, broken_string_option(request))?;
+    if let Some(boot) = boot {
+        // free_space may already use empty fields while adding 66/67, before
+        // do_options reserves the ordinary overload TLV allowance.
+        writer.allow_overload = allow_overload;
+        for (code, value, offset, length) in [
+            (66, &boot.server_name, SNAME_OFFSET, SNAME_LEN),
+            (67, &boot.filename, FILE_OFFSET, FILE_LEN),
+        ] {
+            if let Some(value) = value {
+                if allow_overload && request.requests(code) {
+                    let mut terminated = [0; 255];
+                    terminated[..value.len()].copy_from_slice(value);
+                    let length = (value.len() + 1).min(255);
+                    writer.append(ReplyOption {
+                        code,
+                        value: &terminated[..length],
+                    })?;
+                } else {
+                    write_boot_string(&mut writer.packet[offset..offset + length], value);
+                }
+            }
+        }
+        if !boot.next_server.is_unspecified() {
+            put_ipv4(&mut writer.packet[20..24], boot.next_server);
+        }
+    }
     // do_options temporarily blocks file/sname when no PRL is present.
     // NAK does not call do_options at all.
     writer.allow_overload(allow_overload && !matches!(reply, Reply::Nak { .. }));
@@ -230,6 +287,24 @@ pub fn build_reply_with_fuzz(
         omitted,
         overload,
     })
+}
+
+fn write_boot_string(field: &mut [u8], value: &[u8]) {
+    let length = value.len().min(field.len() - 1);
+    field[..length].copy_from_slice(&value[..length]);
+    field[length] = 0;
+}
+
+fn write_boot_fields(output: &mut [u8], boot: &BootConfig) {
+    if let Some(value) = &boot.server_name {
+        write_boot_string(&mut output[SNAME_OFFSET..SNAME_OFFSET + SNAME_LEN], value);
+    }
+    if let Some(value) = &boot.filename {
+        write_boot_string(&mut output[FILE_OFFSET..FILE_OFFSET + FILE_LEN], value);
+    }
+    if !boot.next_server.is_unspecified() {
+        put_ipv4(&mut output[20..24], boot.next_server);
+    }
 }
 
 pub(crate) fn needs_renewal_fuzz(request: Packet<'_>, reply: Reply) -> bool {
@@ -466,7 +541,7 @@ impl<'a> OptionWriter<'a> {
 
     fn allow_overload(&mut self, enabled: bool) {
         self.allow_overload = enabled;
-        if enabled {
+        if enabled && (self.packet[FILE_OFFSET] == 0 || self.packet[SNAME_OFFSET] == 0) {
             // do_options reserves the TLV before appending caller options.
             self.primary_end -= 3;
         }
@@ -486,7 +561,11 @@ impl<'a> OptionWriter<'a> {
             return Ok(());
         }
 
-        if !self.allow_overload {
+        if !self.allow_overload
+            || (self.overload_offset.is_none()
+                && self.packet[FILE_OFFSET] != 0
+                && self.packet[SNAME_OFFSET] != 0)
+        {
             self.omitted += 1;
             return Ok(());
         }
@@ -495,7 +574,7 @@ impl<'a> OptionWriter<'a> {
             self.omitted += 1;
             return Ok(());
         }
-        if self.overload & 1 == 0 {
+        if self.overload & 1 == 0 && self.packet[FILE_OFFSET] == 0 {
             self.overload |= 1;
             if self.fits(self.file, FILE_OFFSET + FILE_LEN, needed) {
                 self.write_at(self.file, option);
@@ -503,14 +582,16 @@ impl<'a> OptionWriter<'a> {
                 self.set_overload();
                 return Ok(());
             }
-        } else if self.fits(self.file, FILE_OFFSET + FILE_LEN, needed) {
+        } else if self.overload & 1 != 0 && self.fits(self.file, FILE_OFFSET + FILE_LEN, needed) {
             self.write_at(self.file, option);
             self.file += needed;
             return Ok(());
         }
 
-        self.overload |= 2;
-        if self.fits(self.sname, SNAME_OFFSET + SNAME_LEN, needed) {
+        if self.packet[SNAME_OFFSET] == 0 {
+            self.overload |= 2;
+        }
+        if self.overload & 2 != 0 && self.fits(self.sname, SNAME_OFFSET + SNAME_LEN, needed) {
             self.write_at(self.sname, option);
             self.sname += needed;
             self.set_overload();
@@ -585,6 +666,77 @@ mod tests {
         bytes[236..240].copy_from_slice(&COOKIE);
         bytes.extend_from_slice(options);
         bytes
+    }
+
+    #[test]
+    fn boot_strings_use_fields_or_requested_options_before_timers() {
+        let reply = Reply::Offer {
+            address: Ipv4Addr::new(127, 0, 0, 40),
+            lease_time: 600,
+            server: Ipv4Addr::LOCALHOST,
+            context: 0,
+        };
+        let boot = BootConfig {
+            filename: Some(vec![b'f'; 128]),
+            server_name: Some(vec![b's'; 64]),
+            next_server: Ipv4Addr::new(127, 0, 0, 9),
+        };
+        let bytes = request(&[53, 1, 1, 55, 2, 66, 67, 255]);
+        let packet = Packet::parse(&bytes).unwrap();
+        let mut output = vec![0; 548];
+        let encoding =
+            build_reply_with_boot(packet, reply, &[], true, 0, Some(&boot), &mut output).unwrap();
+        let response = &output[..encoding.len];
+        assert_eq!(
+            option_value(response, 66).unwrap(),
+            [vec![b's'; 64], vec![0]].concat()
+        );
+        assert_eq!(
+            option_value(response, 67).unwrap(),
+            [vec![b'f'; 128], vec![0]].concat()
+        );
+        // Exact C service baseline: boot TLVs follow the three mandatory
+        // options and precede T1/T2, whose relative order stays meaningful.
+        assert_eq!(&output[255..257], &[66, 65]);
+        assert_eq!(&output[453..455], &[58, 4]);
+        build_reply_with_boot(packet, reply, &[], false, 0, Some(&boot), &mut output).unwrap();
+        assert_eq!(&output[108..235], vec![b'f'; 127]);
+        assert_eq!(output[235], 0);
+        assert_eq!(&output[44..107], vec![b's'; 63]);
+        assert_eq!(output[107], 0);
+        assert_eq!(&output[20..24], &[127, 0, 0, 9]);
+    }
+
+    #[test]
+    fn long_boot_option_omission_retains_c_overload_bits() {
+        let bytes = request(&[53, 1, 1, 55, 2, 66, 67, 255]);
+        let packet = Packet::parse(&bytes).unwrap();
+        let boot = BootConfig {
+            filename: Some(vec![b'f'; 254]),
+            server_name: Some(vec![b's'; 40]),
+            next_server: Ipv4Addr::UNSPECIFIED,
+        };
+        let mut output = vec![0; 548];
+        let encoded = build_reply_with_boot(
+            packet,
+            Reply::Offer {
+                address: Ipv4Addr::new(127, 0, 0, 40),
+                lease_time: 600,
+                server: Ipv4Addr::LOCALHOST,
+                context: 0,
+            },
+            &[],
+            true,
+            0,
+            Some(&boot),
+            &mut output,
+        )
+        .unwrap();
+        let response = &output[..encoded.len];
+        assert_eq!((encoded.omitted, encoded.overload), (1, 3));
+        assert!(option_value(response, 67).is_none());
+        assert_eq!(option_value(response, 52), Some(&[3][..]));
+        assert_eq!((output[108], output[44]), (255, 255));
     }
 
     #[test]
