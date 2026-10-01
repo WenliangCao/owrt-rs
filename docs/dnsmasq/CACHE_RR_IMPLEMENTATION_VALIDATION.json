@@ -1,0 +1,135 @@
+{
+  "source": "4bf072d",
+  "source_archive_sha256": "1765e80ca5f3e6bc6da038e6665db087dbe0d8a6c82c69360f366bee44780eca",
+  "rust_elf_sha256": "8406757bb3c597bdce1673ec7036a6d1d69728fe17b0d5a55d8b506b21192070",
+  "evidence_archive_sha256": "1efa3287a9c44ca659d886f414f7a12429e5b666339494f731a743bade9a5445",
+  "namespace_isolated": true,
+  "unit_tests": {
+    "dnsmasq_rs": {
+      "passed": 389,
+      "failed": 0,
+      "ignored": 16
+    },
+    "dnsmasq-rs": {
+      "passed": 7,
+      "failed": 0,
+      "ignored": 0
+    }
+  },
+  "service_regressions": {
+    "do-native": {
+      "observations": 750,
+      "mismatches": 0,
+      "fixture_failures": 0,
+      "result_sha256": "9be92a1717acbb7bbac7370c89a1c88db1b9d03f00675e07b4246ccef43d0e73",
+      "tool_sha256": "a45cf8e2895c25193a7959f52205ed0ac1aae865e12e5bc4ef82265d27a167c4"
+    },
+    "do-image": {
+      "observations": 750,
+      "mismatches": 0,
+      "fixture_failures": 0,
+      "result_sha256": "2581ec552ef50e697ed9a494416564162915da4605803c49e41cc0d384dfcecc",
+      "tool_sha256": "a45cf8e2895c25193a7959f52205ed0ac1aae865e12e5bc4ef82265d27a167c4"
+    },
+    "cd-native": {
+      "observations": 134,
+      "mismatches": 0,
+      "fixture_failures": 0,
+      "result_sha256": "a2f542aa4b032cdeed2ebc7f39552931bf7798bf25ea510489431f953c6907e6",
+      "tool_sha256": "7179d7661adfe9c55dc4de8b5b09d4f131ede673a7b7468857bb8243c9ca9bb9"
+    },
+    "direct-native": {
+      "observations": 120,
+      "mismatches": 0,
+      "fixture_failures": 0,
+      "result_sha256": "30a5a38adda0d4b78788c27032cd01996c903d0a31f00b4ccb4ac7b2d497d1a4",
+      "tool_sha256": "3d2fd04aca8c52147ac40dc6903720d7cad01ea1523abb622ccb85e3ac34753d"
+    },
+    "direct-image": {
+      "observations": 120,
+      "mismatches": 0,
+      "fixture_failures": 0,
+      "result_sha256": "7598f479d4d3c48a26d9aae94f14c93e9e333db99c49d80a4f77c5434448ea8b",
+      "tool_sha256": "3d2fd04aca8c52147ac40dc6903720d7cad01ea1523abb622ccb85e3ac34753d"
+    },
+    "soa-native": {
+      "observations": 120,
+      "mismatches": 0,
+      "fixture_failures": 0,
+      "result_sha256": "b30c2336043f983e4afc25e3568d2649957abf006b08b426f3a8090f822a7a45",
+      "tool_sha256": "cd0e07de387f983f8f8d0bf1d73a9440b7ee105369d5a095838bf1ac7465335d"
+    },
+    "soa-image": {
+      "observations": 120,
+      "mismatches": 0,
+      "fixture_failures": 0,
+      "result_sha256": "f342e8b9d481614a4f6c1f69ae8d5fde623a3a1b68ad7287a3667a223c4ec93f",
+      "tool_sha256": "cd0e07de387f983f8f8d0bf1d73a9440b7ee105369d5a095838bf1ac7465335d"
+    }
+  },
+  "clippy": {
+    "native_all_targets": "pass",
+    "aarch64_musl_all_targets": "pass"
+  },
+  "format": "pass",
+  "checks": {
+    "dnsmasq-rs": {
+      "exit": 0,
+      "log_sha256": "fad80a11527dd27d6f3e9d20b2f28ec0cccaa2b401361830db2f26bfceaf3121",
+      "command_sha256": "e469f691e76232da5fb3d52724eaba6a8298061e18409cfc0534204c983e7e25"
+    },
+    "dnsmasq_rs": {
+      "exit": 0,
+      "log_sha256": "0b52c6cf701ea11594f548c699d2df8708a7b116fa6fa6d141770b8a5fe655af",
+      "command_sha256": "7e31fe59d866f2fc810a658ffc5589095ad911fb3404e0ca6d02bec176dbb0a2"
+    },
+    "native-clippy": {
+      "exit": 0,
+      "log_sha256": "2f12a96607dd7975481fab42790cdb065c49a2ca10e649c20ef329b901f337e0",
+      "command_sha256": "f0af00b6c1477aece1488bfd81b083a2433d706a4c3add65b3305758d358e5c7"
+    },
+    "musl-clippy": {
+      "exit": 0,
+      "log_sha256": "4abd19258c96823b416a0bb3437c2777171634e719b73c6ae92f12babe241da9",
+      "command_sha256": "8f19bfed29ce9a452330ae4491c15044d16f22ad2ab59e4a5edad56aebe74bd2"
+    },
+    "do-native": {
+      "exit": 0,
+      "log_sha256": "c185c162afad179e58f99f29ad5b0d9bbf67b2a49f86e01071fbe353ef25b970",
+      "command_sha256": "da92e69ccedcf093315e8eeae2f3f36dffbe639c1bc61c790fa1e0a9c0376d92"
+    },
+    "do-image": {
+      "exit": 0,
+      "log_sha256": "92a2b465dbdbb7b07ea9c3e3735e020c64a25272a78dd4a969a802e41eed85d2",
+      "command_sha256": "14f9e122edd0850fcffd8e8bd6d9d1dc119cd6c9a805b46bd504d2ead2d60e6e"
+    },
+    "cd-native": {
+      "exit": 0,
+      "log_sha256": "8888c07bbf19434845093bf2ef7e6f3d947a028652a8096ef799db212f457813",
+      "command_sha256": "93a43d1741397d08cb024561f812a0bf4adbb7d41d79b7bb670e8d4eb87ffa8c"
+    },
+    "direct-native": {
+      "exit": 0,
+      "log_sha256": "5344a5318eaf849dcc95956f874fb6a378ce0ae9269f4261f0b116ad987b7204",
+      "command_sha256": "a1220db70d34309f2b48e536f7e43a1a2fbcfd72154d99c4e82fe399b9aa9c94"
+    },
+    "direct-image": {
+      "exit": 0,
+      "log_sha256": "2c8f8bbeb4efd4dd2a96897a0cabf2175213613983873d334c69774037a0f130",
+      "command_sha256": "5340681cfd2df545292477e3f6c999d5a5cb535e3533a68cb0f49498b7a95d5b"
+    },
+    "soa-native": {
+      "exit": 0,
+      "log_sha256": "759a3f43d22677fb203fd42bb6b692677728548f7316a0320a89d33b6b6aa075",
+      "command_sha256": "e51508a5d81d76a61586924c9c181ed32fb9df86bea61334814d1ccbfc3b5b2e"
+    },
+    "soa-image": {
+      "exit": 0,
+      "log_sha256": "1045adc2a6aa2cf8e695770f543840386f55c2e43392056c171e0402f1da12e6",
+      "command_sha256": "b04c2ea3f172369fd3fc591b9e0fa69bba0b35c00899536e91dbdc9af3646215"
+    }
+  },
+  "scope": "Regular forward generic records and existing UDP regressions only; malformed generic error propagation remains a known source-audit gap; reverse PTR remains unimplemented",
+  "raw_evidence": "private/dnsmasq-rewrite/cache-rr-fix-20261001/",
+  "remote_root": "/home/ubuntu/dns-cache-rr-fix-20261001/4bf072d-01/"
+}

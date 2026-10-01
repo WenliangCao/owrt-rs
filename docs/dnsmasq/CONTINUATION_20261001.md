@@ -30,22 +30,24 @@ Do not overwrite those files or private experiment worktrees.
 | Ordinary CD extraction before commit | `3e3e203`/`0c8f362`: explicit `Unsupported`/`ExtractOnly`/`Commit` modes; native and image134/134. Intermediate removals, pressure eviction and pending cleanup survive suppressed commit. Same ELF preserves DO750, bogus256, policy471, EDNS155 and service210. See `DNS_CD_COMMIT_PHASE.md`. |
 | DO lookup before forwarding | `aeba67e`: pressure/victim gate native/image120/120, before112/120; negative119/1. Same ELF preserves native/imageDO750 and nativeCD134; isolated389 library+7 main/16ignored, native/musl Clippy. See `DO_LOOKUP_FIX_VALIDATION.md`. |
 | Generic lookup after ordinary miss | `5c15e16`: independent NX/SOA pressure native/image120/120, before108/120 then116/120 after the DO-only repair; direct/CNAME120/120 per reference preserved. Both negative controls detect1. Final isolated389+7/16ignored and native/musl Clippy pass. |
+| Generic forward insertion | `4bf072d`: native/image22 configuration+78 forward observations, separateQTYPE0 native/image9. Same ELF preserves DO750 per reference, nativeCD134, both pressure120 per reference and isolated389+7/16ignored/native+muslClippy. First image run had75 matches+1 readiness timeout; complete sequential replay78 passes, failure retained. Malformed generic error propagation is a known source-audit gap under separate C-first qualification. |
 
 Current agents/ownership:
 
-- `do_cache_resume` completed metadata, bogus and ordinary-CD units. It owns
-  `resume-inline-rdata-20261001`: inline16 timing is complete and rejected,
-  with no product representation change. Next is a source/allocation audit of
-  snapshot index cloning, not another run of the rejected candidate. The
-  selected next private direction stores singleton name-index lists inline;
-  a fresh freeze and correctness/allocation gates must precede any timing.
+- After another credit interruption, the old agent manager tree disappeared.
+  New workers resumed the existing worktrees rather than restarting experiments.
+- `one_index_audit_resume` completed the singleton-index audit in
+  `resume-single-index-20261001`; its final report is `089db24` (main `0f64bf0`).
+  Like inline16, this candidate is rejected. No new timing is active or pending.
 - `tcp_writeback_gates` completed independent doctor/pipe/slot12 and ordinary
   UDP CD134 gates in `../owrt-tcp-writeback-gates`; their tools/reports are merged.
-- `do_lookup_pressure` completed both independent C-first pressure gates and
-  their final-product replays. It now audits `cache-rr` configuration and
-  generic-RR insertion with a separate C-first contract. A TXT prerequisite
-  found unsupported `cache-rr`; that startup failure remains distinct from
-  an LRU mismatch or pass.
+- `cache_rr_resume` completed the normal generic and QTYPE0 gates in
+  `cache-rr-gate-20261001` at `c15fce3`; tools/reports are merged. Its original
+  unsupported-option attempts and one readiness timeout remain archived.
+- `tcp_stream_review` completed independent code reviews and now owns
+  `generic-malformed-gate-20261001`: C-first malformed generic RDATA reply and
+  prefix-effects gate. Root owns product error propagation; preserve ordered
+  cache effects and do not prevalidate the whole reply before extraction.
 - `tcp_reference_resume` completed a private correctness reference, preserved on
   `research/dnsmasq-tcp-reference-20261001` at `df75fb4`; worktree is
   `private/dnsmasq-rewrite/tcp-private-reference-20261001`. Frozen executable
@@ -57,8 +59,13 @@ Current agents/ownership:
   are inapplicable to Rust and are not Rust passes. The same ELF also passes
   CD65/65 and C152/Rust152 checks; CD branch is `e5ee749`. See
   `TCP_STALE_REFERENCE_RESULT.md` and `TCP_CD_POLICY_REFERENCE_RESULT.md`.
-  Next is C-first abnormal partial-EOF qualification. The shared product does
-  not contain this implementation or `Clone`.
+  `tcp_stream_resume` then qualified explicit Begin/record/End private source
+  `dff7a39`, preserved at branch `research/dnsmasq-tcp-stream-import-20261001`
+  / `32f8db3`. PartialEOF improves from19/24 to27/27 (the new format includes
+  the previously C-only partial-end case); normal32/stale41/CD65/UBus69,
+  EMFILE17/capacity31/writeback12, native/musl transfer307 and isolated398+7
+  /17ignored pass. See `TCP_STREAM_IMPORT_REFERENCE_RESULT.md`.
+  The shared product does not contain this implementation or `Clone`.
 - Root owns integration, reports and source/artifact identity checks. Merged
   DO plus typed-transfer host DNS tests217 passed/5ignored, full Clippy/fmt pass.
 
@@ -68,8 +75,9 @@ barrier and clock, joined-worker+EOF release, STOP under admission lock and
 actual kernel pipes. It avoids the incorrect one-message queue/doctor dependency
 cycle. Raw FD numbers are wake hints only; actual I/O rechecks current owners.
 Read `TCP_PRIVATE_REFERENCE_RESULT.md` before resuming or changing this branch.
-Deep clone, whole-vector allocation/OOM, abnormal partial-EOF and exact pipe-byte
-saturation remain unqualified. The named stale and CD profiles above are
+Deep clone, whole-vector sender allocation/OOM, arbitrary malformed record
+lengths, ENOMEM/ENOBUFS and exact native pipe-byte saturation remain unqualified.
+The named partial-EOF, stale and CD profiles above are
 qualified only on their private native source, not all policy combinations.
 A documented early host-namespace unit attempt is not acceptance; final tests
 ran through isolation. Do not silently promote this reference to product code.
@@ -77,7 +85,7 @@ ran through isolation. Do not silently promote this reference to product code.
 There is no active quiet performance window. The frozen representation screen
 completed48 runs/24000 operations, chunk32 completed24/12000, and inline16
 completed24/12000, all without functional errors. Compact, shared-entry,
-top-level COW, chunk32 and inline16 all failed
+top-level COW, chunk32, inline16 and singleton-index all failed
 at least one unchanged resource/timing guard. No representation is accepted;
 no extra rounds or relaxed thresholds were used. Results are in
 `TCP_SNAPSHOT_SCREEN_RESULT.md`, `TCP_SNAPSHOT_CHUNK_RESULT.md` and
@@ -85,10 +93,15 @@ no extra rounds or relaxed thresholds were used. Results are in
 150-full pair1 p95 increases 8.63%, exceeding the frozen 5% guard. Large-cache
 CPU gains47.39%/27.85% and heap gains49.20%/52.34% cannot waive that failure.
 Both owners were released from the completed quiet window; do not restart it.
+The singleton-index screen separately completes24 runs/12000 with0errors:
+large-cache CPU gains66.60%/54.60% and heap gains51.59%/54.88%, but worst-pair
+population CPU ratios1.504043/1.053962/1.050995 fail the frozen5% guard at all
+full profiles. See `TCP_SNAPSHOT_ONE_INDEX_RESULT.md`. Every window is retained;
+no extra run, threshold waiver or product representation adoption occurred.
 
-At this checkpoint the product is frozen at `5c15e16`; later commits add tools
+At this checkpoint the product is frozen at `4bf072d`; later commits add tools
 and derived reports. Its native ELF is
-`87f68b790d6a19f1cf25bdfcc33093f603016b3df8d1f8df5b959c74f6990b90`.
+`8406757bb3c597bdce1673ec7036a6d1d69728fe17b0d5a55d8b506b21192070`.
 The original CD136 image-C calibration failure remains archived; the final
 CD134 fixture removes only an unrelated redundant control replacement. The
 source-supported hash/layout explanation is not a demonstrated repair.
