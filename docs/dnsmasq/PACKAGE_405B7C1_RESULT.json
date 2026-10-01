@@ -1,0 +1,173 @@
+{
+  "schema_version": 1,
+  "checkpoint": "405b7c1",
+  "scope": "Recovered offline target-artifact evidence; no service rerun or router access in this audit",
+  "overall_acceptance": false,
+  "source": {
+    "commit": "405b7c1bbbf5b932f3b627ba401896b814015163",
+    "commit_provenance_in_build": "caller; frozen source digest checked",
+    "epoch": "1790857241",
+    "input_digest": "adaf0574e740ea485f75752c67205e4e62202c53d62ea076205822ebd779acb3",
+    "input_files_matched_against_git_freeze_and_package_copy": 95,
+    "prepared_manifest_entries_matched_to_input_map": 89,
+    "remote_prepared_tree_reaudited": false
+  },
+  "build": {
+    "manifest_sha256": "4deb08c3fc397f7f71c2f276f40fb2e60c20bfc97f19e5f9232139ae50767973",
+    "status": "built-and-audited",
+    "sdk_archive_sha256": "ff4a38a397caa2cfe1c39e18f84ddede14878221b3593c3f2c4cfe24e3ec4c25",
+    "rust_channel": "1.98.1",
+    "warning_or_loader_lines_recounted": 181,
+    "recipe_restoration_recorded": true,
+    "activation": "inert",
+    "reproducible_build_established": false
+  },
+  "artifacts": {
+    "apk": {
+      "name": "owrt-dnsmasq-0.1.0-r1.apk",
+      "sha256": "3947e785e256fa930cf301869bb2de9b7ed3b04df3c604e2ea059e6645d7ba40",
+      "size": 622772
+    },
+    "rust_elf": {
+      "sha256": "f93fc151e7faabb15ae03264650d271145ef88cbe02851317e546e6e6a501590",
+      "size": 1178407,
+      "install_path": "/usr/libexec/dnsmasq-rs",
+      "format_verified": "ELF64 little-endian AArch64 EXEC; no INTERP or DYNAMIC program header"
+    },
+    "payload_files": {
+      "lib/apk/packages/owrt-dnsmasq.list": "31ab917561d1208f0622d516ba3a191d33d80f6aa0591b4fd0cce639af131a0c",
+      "usr/libexec/dnsmasq-rs": "f93fc151e7faabb15ae03264650d271145ef88cbe02851317e546e6e6a501590"
+    },
+    "growth_over_c_elf_bytes": 909102,
+    "growth_over_c_elf_percent_rounded": 337.6
+  },
+  "reference": {
+    "kind": "image-aarch64-musl",
+    "canonical_image_sha256": "144c1283da1fb3ead5e4ee7b8b55f66b7d9e872f785892f87cadf9fca6ed0720",
+    "identity_sha256": "fb873b9abae841a6723db1660752e1a4254a626b81bac099b19d9274a0d719aa",
+    "runner_sha256": "de018ed3599e0d5f4a8f6c7646c8dd76759382b79b029ab40e3e3deac273e0db",
+    "files": {
+      "usr/sbin/dnsmasq": {
+        "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "size": 269305
+      },
+      "lib/libc.so": {
+        "sha256": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+        "size": 590852
+      },
+      "lib/libubus.so.20251202": {
+        "sha256": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+        "size": 28834
+      },
+      "lib/libubox.so.20260213": {
+        "sha256": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+        "size": 65633
+      },
+      "lib/libgcc_s.so.1": {
+        "sha256": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c",
+        "size": 131088
+      }
+    },
+    "source_archive_sha256": "0c00d4e5c97c8306e5fb932b348b34269c9c29a0e7df0e8e82958b407092bc19",
+    "recipe_revision": "f0a60eee2fe051741c643ea6118718aae1ef17fb",
+    "source_identity_sha256": "62cec0e9dda0265cb9c4f6af27f7d23067aed967afab3c74e37370149a8326e9",
+    "shared_libraries_charged_as_exclusive_c_savings": false
+  },
+  "ubus_harness": {
+    "tool_commit": "31d6056e1c1c2f1ff1be66dcbe8ca4ee42787b82",
+    "identities": {
+      "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "native_client_build_c": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+      "rust": "f93fc151e7faabb15ae03264650d271145ef88cbe02851317e546e6e6a501590",
+      "ubusd": "b9328e5e3646b0f3cd996139369e0887f294a55e363ecb200f6d5137fca8f027",
+      "client": "896352f0254bc90467b007f239d4db919e52fde722d30affd5c1f02e741800c3",
+      "tool": "3a335cdd0f4f0fea2c47219a35680bd6e458fc89223e0056dfcbf69f282fa5ae"
+    },
+    "native_host_bus_and_client": true,
+    "separate_reference_defects": [
+      "C DNS object's type survives bus restart and cannot be resolved"
+    ]
+  },
+  "gates": [
+    {
+      "evidence": "target-gates/admission-01/result.json",
+      "sha256": "34256eeab79ed11e6ee26684f401386da43fd34508f349e4b3a765289f15d2cf",
+      "compared": 43,
+      "matched": 43,
+      "failures": 0
+    },
+    {
+      "evidence": "target-gates/policy-01/result.json",
+      "sha256": "f3eaa21148021a353425bbb5ab2eceb15064855b1d97af6b0c0ed6fea0bdeeb9",
+      "compared": 64,
+      "mismatches": 0,
+      "rounds": 4,
+      "failures": 0
+    },
+    {
+      "evidence": "target-gates/sizes-01/result.json",
+      "sha256": "a7a2a091d035c22d977394cfeb2de265ca19776ec5cdd60d4e31d0aba34d5ebd",
+      "compared": 68,
+      "mismatches": 0,
+      "rounds": 4,
+      "failures": 0
+    },
+    {
+      "evidence": "target-gates/alias-01/result.json",
+      "sha256": "04e4cfd1190019bcb0a35f319236cac9e151ba1400d537d6a20b847bf3b3a59e",
+      "compared": 97,
+      "matched": 97,
+      "failures": 0
+    },
+    {
+      "evidence": "target-gates/boot-options-01/result.json",
+      "sha256": "5ab4e4ac68038a3e602ba07978f3f76411286f64bc18d6c6bf6ab22598c67d4c",
+      "compared": 97,
+      "matched": 97,
+      "failures": 0,
+      "scenarios": 20,
+      "daemon_runs": 40,
+      "all_runs_exit_zero_and_reaped": true
+    },
+    {
+      "evidence": "target-gates/dhcp-dns-01/summary.json",
+      "sha256": "8a8d164d0c52185b2ee6ceabff4a1f15f7374ac4602d9c2f52b2423abf5ef351",
+      "matched": 34,
+      "status": "passed"
+    },
+    {
+      "evidence": "target-gates/port-zero-tftp-01/summary.json",
+      "sha256": "fc76419ca5928085f747b6139959aaccc0175e5ea1825d71d95dcbbfec9acdbb",
+      "matched": 7,
+      "status": "passed"
+    },
+    {
+      "evidence": "target-gates/tcp-01/summary.json",
+      "sha256": "8825b5e01e190780325d445507559e648d7f37ebb46d012cbd2925617932e7fc",
+      "scenarios": 15,
+      "replies": 116,
+      "failed": 0,
+      "parent_cache_writeback_accepted": false
+    },
+    {
+      "evidence": "target-gates/ubus-01/result.json",
+      "sha256": "43d8db6dbf86df73f0b5bc0087ae4422269db82386851c7bd8157a4383f26661",
+      "paired_observations": 69,
+      "paired_matches": 67,
+      "checks_passed": 583,
+      "checks_failed": 2,
+      "failed_cases": [
+        "paired-wrong-family-answer",
+        "paired-tcp-closed"
+      ],
+      "nonzero_gate": true,
+      "exit_one_by_verified_tool_return_rule": true
+    }
+  ],
+  "limitations": [
+    "Target-musl wrong-family address side effect remains an explicit mismatch.",
+    "TCP child-to-parent cache writeback remains an explicit mismatch.",
+    "Standalone doctor lifetime gate is separate and unresolved.",
+    "No target-router kernel, production lifecycle, throughput, CPU or memory acceptance."
+  ]
+}
