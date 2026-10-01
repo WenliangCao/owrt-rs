@@ -1,0 +1,407 @@
+{
+  "scope": "Frozen real-daemon generic malformed RDATA and cache-prefix baseline; before correction",
+  "tool_commit": "45df082",
+  "plan_commit": "5c2fb8c",
+  "old_product_source": "4bf072d",
+  "runs": [
+    {
+      "reference": {
+        "kind": "native-glibc",
+        "elf_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431"
+      },
+      "native_client_build": {
+        "kind": "native-glibc",
+        "elf_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431"
+      },
+      "tool_sha256": "ac1dc882c46d822e3172fa786b04e668dc69198fd92d8baa539622ac04d9279c",
+      "rust_sha256": null,
+      "c_only": true,
+      "c_calibrated": 35,
+      "compared": 0,
+      "mismatches": 0,
+      "injected_error": false,
+      "failures": [],
+      "label": "native-baseline-01",
+      "profiles": [
+        {
+          "label": "srv-missing-target",
+          "observations": 3,
+          "mismatches": 0,
+          "different_fields": []
+        },
+        {
+          "label": "mx-missing-exchange",
+          "observations": 3,
+          "mismatches": 0,
+          "different_fields": []
+        },
+        {
+          "label": "soa-missing-second",
+          "observations": 3,
+          "mismatches": 0,
+          "different_fields": []
+        },
+        {
+          "label": "mx-name-crosses-rdlen",
+          "observations": 3,
+          "mismatches": 0,
+          "different_fields": []
+        },
+        {
+          "label": "disabled-mx",
+          "observations": 3,
+          "mismatches": 0,
+          "different_fields": []
+        },
+        {
+          "label": "unknown-opaque",
+          "observations": 3,
+          "mismatches": 0,
+          "different_fields": []
+        },
+        {
+          "label": "replacement-prefix",
+          "observations": 8,
+          "mismatches": 0,
+          "different_fields": []
+        },
+        {
+          "label": "pressure-prefix",
+          "observations": 9,
+          "mismatches": 0,
+          "different_fields": []
+        }
+      ],
+      "auxiliary_checks": {
+        "c": {
+          "total": 196,
+          "passed": 196
+        }
+      }
+    },
+    {
+      "reference": {
+        "kind": "image-aarch64-musl",
+        "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "runner_sha256": "de018ed3599e0d5f4a8f6c7646c8dd76759382b79b029ab40e3e3deac273e0db",
+        "dependencies": {
+          "lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+          "lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+          "lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+          "lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+        },
+        "identity_sha256": "fb873b9abae841a6723db1660752e1a4254a626b81bac099b19d9274a0d719aa"
+      },
+      "native_client_build": {
+        "kind": "native-glibc",
+        "elf_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431"
+      },
+      "tool_sha256": "ac1dc882c46d822e3172fa786b04e668dc69198fd92d8baa539622ac04d9279c",
+      "rust_sha256": null,
+      "c_only": true,
+      "c_calibrated": 35,
+      "compared": 0,
+      "mismatches": 0,
+      "injected_error": false,
+      "failures": [],
+      "label": "image-baseline-01",
+      "profiles": [
+        {
+          "label": "srv-missing-target",
+          "observations": 3,
+          "mismatches": 0,
+          "different_fields": []
+        },
+        {
+          "label": "mx-missing-exchange",
+          "observations": 3,
+          "mismatches": 0,
+          "different_fields": []
+        },
+        {
+          "label": "soa-missing-second",
+          "observations": 3,
+          "mismatches": 0,
+          "different_fields": []
+        },
+        {
+          "label": "mx-name-crosses-rdlen",
+          "observations": 3,
+          "mismatches": 0,
+          "different_fields": []
+        },
+        {
+          "label": "disabled-mx",
+          "observations": 3,
+          "mismatches": 0,
+          "different_fields": []
+        },
+        {
+          "label": "unknown-opaque",
+          "observations": 3,
+          "mismatches": 0,
+          "different_fields": []
+        },
+        {
+          "label": "replacement-prefix",
+          "observations": 8,
+          "mismatches": 0,
+          "different_fields": []
+        },
+        {
+          "label": "pressure-prefix",
+          "observations": 9,
+          "mismatches": 0,
+          "different_fields": []
+        }
+      ],
+      "auxiliary_checks": {
+        "c": {
+          "total": 196,
+          "passed": 196
+        }
+      }
+    },
+    {
+      "reference": {
+        "kind": "native-glibc",
+        "elf_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431"
+      },
+      "native_client_build": {
+        "kind": "native-glibc",
+        "elf_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431"
+      },
+      "tool_sha256": "ac1dc882c46d822e3172fa786b04e668dc69198fd92d8baa539622ac04d9279c",
+      "rust_sha256": "8406757bb3c597bdce1673ec7036a6d1d69728fe17b0d5a55d8b506b21192070",
+      "c_only": false,
+      "c_calibrated": 35,
+      "compared": 35,
+      "mismatches": 14,
+      "injected_error": false,
+      "failures": [],
+      "label": "native-before-01",
+      "profiles": [
+        {
+          "label": "srv-missing-target",
+          "observations": 3,
+          "mismatches": 3,
+          "different_fields": [
+            "response"
+          ]
+        },
+        {
+          "label": "mx-missing-exchange",
+          "observations": 3,
+          "mismatches": 3,
+          "different_fields": [
+            "response"
+          ]
+        },
+        {
+          "label": "soa-missing-second",
+          "observations": 3,
+          "mismatches": 3,
+          "different_fields": [
+            "response"
+          ]
+        },
+        {
+          "label": "mx-name-crosses-rdlen",
+          "observations": 3,
+          "mismatches": 3,
+          "different_fields": [
+            "response"
+          ]
+        },
+        {
+          "label": "disabled-mx",
+          "observations": 3,
+          "mismatches": 0,
+          "different_fields": []
+        },
+        {
+          "label": "unknown-opaque",
+          "observations": 3,
+          "mismatches": 0,
+          "different_fields": []
+        },
+        {
+          "label": "replacement-prefix",
+          "observations": 8,
+          "mismatches": 1,
+          "different_fields": [
+            "response"
+          ]
+        },
+        {
+          "label": "pressure-prefix",
+          "observations": 9,
+          "mismatches": 1,
+          "different_fields": [
+            "response"
+          ]
+        }
+      ],
+      "auxiliary_checks": {
+        "c": {
+          "total": 196,
+          "passed": 196
+        },
+        "rust": {
+          "total": 196,
+          "passed": 196
+        }
+      }
+    },
+    {
+      "reference": {
+        "kind": "image-aarch64-musl",
+        "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "runner_sha256": "de018ed3599e0d5f4a8f6c7646c8dd76759382b79b029ab40e3e3deac273e0db",
+        "dependencies": {
+          "lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+          "lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+          "lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+          "lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+        },
+        "identity_sha256": "fb873b9abae841a6723db1660752e1a4254a626b81bac099b19d9274a0d719aa"
+      },
+      "native_client_build": {
+        "kind": "native-glibc",
+        "elf_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431"
+      },
+      "tool_sha256": "ac1dc882c46d822e3172fa786b04e668dc69198fd92d8baa539622ac04d9279c",
+      "rust_sha256": "8406757bb3c597bdce1673ec7036a6d1d69728fe17b0d5a55d8b506b21192070",
+      "c_only": false,
+      "c_calibrated": 35,
+      "compared": 35,
+      "mismatches": 14,
+      "injected_error": false,
+      "failures": [],
+      "label": "image-before-01",
+      "profiles": [
+        {
+          "label": "srv-missing-target",
+          "observations": 3,
+          "mismatches": 3,
+          "different_fields": [
+            "response"
+          ]
+        },
+        {
+          "label": "mx-missing-exchange",
+          "observations": 3,
+          "mismatches": 3,
+          "different_fields": [
+            "response"
+          ]
+        },
+        {
+          "label": "soa-missing-second",
+          "observations": 3,
+          "mismatches": 3,
+          "different_fields": [
+            "response"
+          ]
+        },
+        {
+          "label": "mx-name-crosses-rdlen",
+          "observations": 3,
+          "mismatches": 3,
+          "different_fields": [
+            "response"
+          ]
+        },
+        {
+          "label": "disabled-mx",
+          "observations": 3,
+          "mismatches": 0,
+          "different_fields": []
+        },
+        {
+          "label": "unknown-opaque",
+          "observations": 3,
+          "mismatches": 0,
+          "different_fields": []
+        },
+        {
+          "label": "replacement-prefix",
+          "observations": 8,
+          "mismatches": 1,
+          "different_fields": [
+            "response"
+          ]
+        },
+        {
+          "label": "pressure-prefix",
+          "observations": 9,
+          "mismatches": 1,
+          "different_fields": [
+            "response"
+          ]
+        }
+      ],
+      "auxiliary_checks": {
+        "c": {
+          "total": 196,
+          "passed": 196
+        },
+        "rust": {
+          "total": 196,
+          "passed": 196
+        }
+      }
+    }
+  ],
+  "pending_count": "Not a public daemon metric; pending membership is source-supported. Invisibility, removals, counters, and next-transaction recovery are observed.",
+  "saved_native_image_comparison": [
+    {
+      "profile": "disabled-mx",
+      "observations": 3,
+      "mismatches": 0
+    },
+    {
+      "profile": "mx-missing-exchange",
+      "observations": 3,
+      "mismatches": 0
+    },
+    {
+      "profile": "mx-name-crosses-rdlen",
+      "observations": 3,
+      "mismatches": 0
+    },
+    {
+      "profile": "pressure-prefix",
+      "observations": 9,
+      "mismatches": 0
+    },
+    {
+      "profile": "replacement-prefix",
+      "observations": 8,
+      "mismatches": 0
+    },
+    {
+      "profile": "soa-missing-second",
+      "observations": 3,
+      "mismatches": 0
+    },
+    {
+      "profile": "srv-missing-target",
+      "observations": 3,
+      "mismatches": 0
+    },
+    {
+      "profile": "unknown-opaque",
+      "observations": 3,
+      "mismatches": 0
+    }
+  ],
+  "boundaries": [
+    "35 UDP packet observations; all 30 UBus fields and ordered upstream requests",
+    "No DO/AD metadata expansion, reverse PTR integration, arbitrary malformed data, allocation/resource qualification or performance",
+    "No physical router access; all experiments ran through run_isolated.sh",
+    "Original 78-observation cache-rr fixture unchanged; separate gate",
+    "Old Rust retains the correct cache prefix effects but misses SERVFAIL/EDE_OTHER on 14 replies",
+    "No corrected ELF replay or standalone paired negative control yet"
+  ]
+}
