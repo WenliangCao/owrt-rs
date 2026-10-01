@@ -1,0 +1,88 @@
+{
+  "source": "aeba67e",
+  "source_archive_sha256": "7217dc5345a1bc8ba5f33a3c3625477fd5a00a748a711b05b42dadc6d08bb9e0",
+  "rust_elf_sha256": "d2643e676b226ab3527d2ba8a76ae887d2e56743eab5df7a9b78f70f6fef203d",
+  "evidence_archive_sha256": "84f243be298e1627c6c9dfe655c681fc69c2122c70b79dc08dafe89c7d6a7c3a",
+  "cache_engine_sha256": "92ed4fb2fa5ae893511df603c50ae10ea08521353ce95f27069a7496154a6a35",
+  "namespace_isolated": true,
+  "unit_tests": {
+    "dnsmasq_rs": {
+      "passed": 389,
+      "failed": 0,
+      "ignored": 16
+    },
+    "dnsmasq-rs": {
+      "passed": 7,
+      "failed": 0,
+      "ignored": 0
+    }
+  },
+  "service_regressions": {
+    "do-native": {
+      "observations": 750,
+      "mismatches": 0,
+      "fixture_failures": 0,
+      "tool_sha256": "a45cf8e2895c25193a7959f52205ed0ac1aae865e12e5bc4ef82265d27a167c4",
+      "result_sha256": "a6362887f46198628367d7f49bc7545ef8f02b1f87380a534035c85d118627d2"
+    },
+    "do-image": {
+      "observations": 750,
+      "mismatches": 0,
+      "fixture_failures": 0,
+      "tool_sha256": "a45cf8e2895c25193a7959f52205ed0ac1aae865e12e5bc4ef82265d27a167c4",
+      "result_sha256": "f61514c7748eacb4cacf764e24a17c25ff94653ea88c1981bd95e3f75b83b5ff"
+    },
+    "cd-native": {
+      "observations": 134,
+      "mismatches": 0,
+      "fixture_failures": 0,
+      "tool_sha256": "7179d7661adfe9c55dc4de8b5b09d4f131ede673a7b7468857bb8243c9ca9bb9",
+      "result_sha256": "9608bcba5bc5b32cd1a566fc25dff2f7b5b5643384049897f9549b1336f2ffa3"
+    }
+  },
+  "clippy": {
+    "native_all_targets": "pass",
+    "aarch64_musl_all_targets": "pass"
+  },
+  "format": "pass",
+  "checks": {
+    "dnsmasq-rs": {
+      "exit": 0,
+      "log_sha256": "fad80a11527dd27d6f3e9d20b2f28ec0cccaa2b401361830db2f26bfceaf3121",
+      "command_sha256": "c4e0acb0dcaae3b2700fee4c7914a95026c0c228a537170bba22bc2503b1e178"
+    },
+    "dnsmasq_rs": {
+      "exit": 0,
+      "log_sha256": "0b52c6cf701ea11594f548c699d2df8708a7b116fa6fa6d141770b8a5fe655af",
+      "command_sha256": "206e4a22fdb32f5b60285d5223dd53533f990821cabac041caa3a6dae3333839"
+    },
+    "do-native": {
+      "exit": 0,
+      "log_sha256": "b41a5dd67eb19f6fa81258385a5ba515fddafb75b74fb1d7791ae45633ae1a86",
+      "command_sha256": "78514d9d3f0d3bc6af31a24d5f33b130b5fcd3183e1c9594d93449833db97142"
+    },
+    "do-image": {
+      "exit": 0,
+      "log_sha256": "d2bb072f445290a3252c7e42903018485a8eb3cc9e55711b15aaef1f669c27f1",
+      "command_sha256": "83b9f81df20437f964950e5fbadb836bc3da58016aa8d18dc05b8df671965c8a"
+    },
+    "cd-native": {
+      "exit": 0,
+      "log_sha256": "724a17046f2a9066c5c72e5869910ad13f949f27b8d7508140e542ca9c61af7f",
+      "command_sha256": "cde80f925a6e2a46458126114a4de6b23001a98b0ab11414eecc54451ea8db9f"
+    },
+    "native-clippy": {
+      "exit": 0,
+      "log_sha256": "311dd0a97031d7f8efa9a77014920066bf753cc09b448a123047a350d0239bbf",
+      "command_sha256": "6e0ad7e2fa52d7289fad9553283e89a7f1bcb32c0dd3150eacbacddce69ef3cb"
+    },
+    "musl-clippy": {
+      "exit": 0,
+      "log_sha256": "a7c19a23d9c01ea536440387cd60b369e0170cdc7e7a494a96f82cb1b69d82e6",
+      "command_sha256": "947ed2c1ef86a27d2980bae5c677d3885703221ec70a4fe2651391060d442d54"
+    }
+  },
+  "scope": "DO lookup side effects in empty-OPT IN A/AAAA; bounded host validation, no target Rust package or TCP representation adoption",
+  "raw_evidence": "private/dnsmasq-rewrite/do-lookup-fix-20261001/",
+  "remote_root": "/home/ubuntu/dns-do-lookup-fix-20261001/aeba67e-01/"
+}

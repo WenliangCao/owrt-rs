@@ -16,6 +16,7 @@
 | 上游初次 socket/send 失败与 TCP 接纳 | `630addb`、`bb1a664`、`cef8001`：资源失败 61/61、监听恢复 17/17、共享连接上限 31/31；负控均检出 | 瞬态重试、缓存回写/pipe 生命周期另验 |
 | 后续功能与组合回归 | UDP 瞬态重试 helper53/53、服务61/61；DHCP hosts 地址27/27；组合快照8c34170库381/main6、DHCP→DNS34/34 | 15个ignored未计通过；普通DO/AD/CD的native/image750/750；完整元数据及DO查询的LRU副作用另验 |
 | 普通 CD 缓存事务 | `3e3e203`/`0c8f362`：native/image134/134；只抑制最终commit，保留有序移除/淘汰/pending清理 | 原136行image C校准失败保留；完整no_cache触发配置另验 |
+| DO 查询缓存副作用 | `aeba67e`：native/image压力门由112/120到120/120，负控119/1；同ELF保留native/imageDO750、nativeCD134，隔离389库+7主程序，native/musl Clippy | generic/NX顺序、RR旋转与hash桶清理另验；见[修复回归](DO_LOOKUP_FIX_VALIDATION.md) |
 | TCP 缓存 | typed transfer原语307/307已合入；私有参考TCP32、native UBus69/69、独立并发12、stale41、CD65 | 深拷贝参考代码未合入；快照表示/资源/异常IPC及全部策略组合仍未验收 |
 | 最新目标阶段 | 冻结 `405b7c1`，ELF 1,178,407 B，APK 622,772 B；匹配 SDK/镜像依赖 | 完整目标 UBus 67/69，保留两项失败；不是替换包或生产验收 |
 

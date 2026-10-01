@@ -28,19 +28,22 @@ Do not overwrite those files or private experiment worktrees.
 | DO/AD/CD and known names | `664079d`/`e0dc08d`/`cdc6383`:750/750 native C and actual image C, AD negative749/1; name predicate108 with negative. Unsigned DO answers forward; CNAME/negative A/AAAA AD paths anchored. DO lookup/LRU side effects are a separate open audit. |
 | Independent bogus cache transaction | `5094420`/`220577d`/`5a1505c`:256/256 native and image C; preserved DO750/750; negative detects1. |
 | Ordinary CD extraction before commit | `3e3e203`/`0c8f362`: explicit `Unsupported`/`ExtractOnly`/`Commit` modes; native and image134/134. Intermediate removals, pressure eviction and pending cleanup survive suppressed commit. Same ELF preserves DO750, bogus256, policy471, EDNS155 and service210. See `DNS_CD_COMMIT_PHASE.md`. |
+| DO lookup before forwarding | `aeba67e`: pressure/victim gate native/image120/120, before112/120; negative119/1. Same ELF preserves native/imageDO750 and nativeCD134; isolated389 library+7 main/16ignored, native/musl Clippy. See `DO_LOOKUP_FIX_VALIDATION.md`. |
 
 Current agents/ownership:
 
 - `do_cache_resume` completed metadata, bogus and ordinary-CD units. It owns
   `resume-inline-rdata-20261001`: inline16 timing is complete and rejected,
   with no product representation change. Next is a source/allocation audit of
-  snapshot index cloning, not another run of the rejected candidate.
+  snapshot index cloning, not another run of the rejected candidate. The
+  selected next private direction stores singleton name-index lists inline;
+  a fresh freeze and correctness/allocation gates must precede any timing.
 - `tcp_writeback_gates` completed independent doctor/pipe/slot12 and ordinary
   UDP CD134 gates in `../owrt-tcp-writeback-gates`; their tools/reports are merged.
-- `do_lookup_pressure` independently freezes and calibrates a C-first DO
-  pressure/victim gate. C performs lookup before rejecting unsigned DO answers;
-  the current Rust early return skips lookup. A service difference must be
-  established before changing the product.
+- `do_lookup_pressure` completed the C-first DO pressure/victim gate and
+  corrected-product replay. It now separately qualifies NXDOMAIN and generic
+  RR lookup pressure. A TXT fixture found the existing unsupported `cache-rr`
+  configuration; keep that startup failure distinct from an LRU mismatch.
 - `tcp_reference_resume` completed a private correctness reference, preserved on
   `research/dnsmasq-tcp-reference-20261001` at `df75fb4`; worktree is
   `private/dnsmasq-rewrite/tcp-private-reference-20261001`. Frozen executable
@@ -81,8 +84,9 @@ no extra rounds or relaxed thresholds were used. Results are in
 CPU gains47.39%/27.85% and heap gains49.20%/52.34% cannot waive that failure.
 Both owners were released from the completed quiet window; do not restart it.
 
-At this checkpoint `components/dnsmasq` and `components/ubus` are byte-identical
-to frozen product `ddac95d`. The newer commits add tools and derived reports.
+At this checkpoint the product is frozen at `aeba67e`; later commits add tools
+and derived reports. Its native ELF is
+`d2643e676b226ab3527d2ba8a76ae887d2e56743eab5df7a9b78f70f6fef203d`.
 The original CD136 image-C calibration failure remains archived; the final
 CD134 fixture removes only an unrelated redundant control replacement. The
 source-supported hash/layout explanation is not a demonstrated repair.
