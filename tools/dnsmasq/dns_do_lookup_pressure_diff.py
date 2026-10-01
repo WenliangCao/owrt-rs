@@ -104,15 +104,14 @@ def run(args, binary, side, profile, out):
                 if client in ready:
                     reply = client.recv(65535)
                     break
+            wires.append({"label": label, "request": packet.hex(), "response": reply.hex(),
+                          "upstream": raw_upstream})
             assert reply[:2] == packet[:2], "recipient ID changed"
-            assert len(observed) <= 1, (label, "unexpected extra upstream send")
             assert not select.select([client, upstream], [], [], .02)[0], "extra datagram"
             rows.append({"label": label, "cached": not observed, "response": semantics(reply),
                          "question": reply[12:read_name(reply, 12)[1] + 4].hex(),
                          "upstream": observed, "metrics": fixture.metrics(), "before": before})
             before = rows[-1]["metrics"]
-            wires.append({"label": label, "request": packet.hex(), "response": reply.hex(),
-                          "upstream": raw_upstream})
         fixture.daemon.send_signal(signal.SIGTERM)
         fixture.daemon.wait(3)
         assert fixture.daemon.returncode == 0
@@ -133,6 +132,7 @@ def calibrate(rows, profile):
         assert row["label"] == label and row["cached"] == cached, (profile, label, row["cached"], cached)
         delta = row["metrics"]["dns_cache_inserted"] - row["before"]["dns_cache_inserted"]
         assert delta == (2 if shape == "cname" else int(shape != "failure")), (profile, label, delta)
+        assert len(row["upstream"]) == (0 if cached else 2 if shape == "failure" else 1), (profile, label)
         if not cached and shape == "failure":
             assert row["response"]["flags"] & 15 == 2, "SERVFAIL was not preserved"
     assert rows[-1]["metrics"]["dns_cache_live_freed"] == 1, profile
