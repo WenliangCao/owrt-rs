@@ -35,6 +35,7 @@ Evidence is private at
 | Cache replies and actual counters, `cache-answer-metrics-final-01` | 764 operations / 382 counter snapshots / zero differences |
 | Cache primitive counters, `metrics-01` | 215 observations / zero differences |
 | Actual clipped-section daemon replay, `clipped-service-02` | IPv4/IPv6, 32 cases / 64 replies, zero differences |
+| Actual pending-reply cache effects, `policy-service-01` | IPv4/IPv6, 42 cases / 210 replies, zero differences |
 | Host DNS library | 204 passed / four ignored |
 
 The 29-case gate includes unrelated owners/types, RRsets, CNAME pressure and
@@ -57,6 +58,16 @@ started a daemon; `clipped-service-02` uses the verified exact native ELF
 `bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431`.
 Its Rust ELF is
 `2c21bba92f8cd3903c0411af0aff52c610c059fd37cdd9ba108e6cb13fcda616`.
+
+`cache_policy_service_diff.py` exercises the complete UDP chain without
+artificially injecting cache entries: it holds a cold query's upstream reply,
+warms that owner through an independent CNAME query, verifies a preexisting
+cache hit, then releases the held reply. Later A/AAAA replies and actual
+upstream sends expose the deletion, retention, rebind and bogus-cache effects.
+The 21 scenarios run with both IPv4 and IPv6; all five replies in each case
+remain in one observed clock second so TTL fields are compared exactly.
+The actual-service negative control deliberately adds one upstream-send
+observation and requires one failing case.
 
 This closes the measured prefix-side-effect boundary. It does not establish
 all cache behavior, TCP publication, DNSSEC metadata, arbitrary cached RR types,
