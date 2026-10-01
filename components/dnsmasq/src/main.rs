@@ -18,6 +18,7 @@ use dnsmasq_rs::dhcp::service::{
 };
 use dnsmasq_rs::dns::cache::StalePolicy;
 use dnsmasq_rs::dns::daemon::{ClientRequest, DaemonOptions, DnsDaemon, QueryResult};
+use dnsmasq_rs::dns::forward::SocketToken;
 use dnsmasq_rs::dns::service::{encode_tcp_frame, LocalDnsService, TcpFramer};
 use dnsmasq_rs::dns::tcp_service::TcpDnsService;
 use dnsmasq_rs::hosts::Hosts;
@@ -30,7 +31,6 @@ use std::io::{self, Read, Write};
 use std::net::{IpAddr, SocketAddr, TcpListener, UdpSocket};
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
-use std::sync::mpsc;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
@@ -64,6 +64,13 @@ struct Runtime {
     dns: DnsConfig,
     tftp: TftpConfig,
     dhcp: DhcpConfig,
+}
+
+// C's UDP listeners mutate one parent hosts generation. Each accepted TCP
+// connection takes its own snapshot; a later reload does not change it.
+struct ParentDns {
+    local: LocalDnsService,
+    daemon: DnsDaemon,
 }
 
 fn load(args: &[OsString]) -> Result<(Action, Runtime), loader::LoadError> {
@@ -149,86 +156,129 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         max_udp: packet_limit,
         upstream_timeout: Duration::from_secs(10),
     };
-    let service = Arc::new(Mutex::new(LocalDnsService::new(
-        runtime.dns,
-        hosts,
-        runtime.scalar.local_ttl,
-        usize::from(runtime.scalar.edns_packet_max),
-    )));
+    // C has one parent forward table and cache across all listener sockets.
+    // Capacity and duplicate-query admission must not grow with listen-address.
+    let mut daemon = DnsDaemon::new(
+        daemon_config.clone(),
+        daemon_hosts,
+        &resolvers,
+        daemon_options,
+    )?;
+    daemon.enable_cache(
+        usize::try_from(runtime.scalar.cache_size).unwrap_or(usize::MAX),
+        runtime.scalar.min_cache_ttl,
+        runtime.scalar.max_cache_ttl,
+        match runtime.scalar.stale_cache {
+            StaleCache::Disabled => StalePolicy::Disabled,
+            StaleCache::Until(seconds) => StalePolicy::Seconds(seconds),
+            StaleCache::Forever => StalePolicy::Forever,
+        },
+    );
+    daemon.enable_negative_cache(
+        runtime.scalar.negative_ttl,
+        !daemon_config.no_negative_cache,
+    );
+    let service = Arc::new(Mutex::new(ParentDns {
+        local: LocalDnsService::new_with_limits(
+            runtime.dns,
+            hosts,
+            runtime.scalar.local_ttl,
+            packet_limit,
+            runtime.scalar.edns_packet_max,
+        ),
+        daemon,
+    }));
     let tcp_active = Arc::new(AtomicUsize::new(0));
     let mut workers = Vec::new();
-    let mut reload_senders = Vec::new();
+    // Open all UDP/TCP listeners before starting workers. A setup error drops
+    // every socket without leaving an already-running partial service.
+    let mut listeners = Vec::new();
     for address in addresses {
         let udp = UdpSocket::bind(address)?;
         udp.set_read_timeout(Some(Duration::from_millis(50)))?;
         let tcp = TcpListener::bind(address)?;
         tcp.set_nonblocking(true)?;
-        let udp_config = daemon_config.clone();
-        let udp_hosts = daemon_hosts.clone();
-        let udp_resolvers = resolvers.clone();
-        let udp_options = daemon_options;
-        let mut daemon = DnsDaemon::new(udp_config, udp_hosts, &udp_resolvers, udp_options)?;
-        daemon.enable_cache(
-            usize::try_from(runtime.scalar.cache_size).unwrap_or(usize::MAX),
-            runtime.scalar.min_cache_ttl,
-            runtime.scalar.max_cache_ttl,
-            match runtime.scalar.stale_cache {
-                StaleCache::Disabled => StalePolicy::Disabled,
-                StaleCache::Until(seconds) => StalePolicy::Seconds(seconds),
-                StaleCache::Forever => StalePolicy::Forever,
-            },
-        );
-        daemon.enable_negative_cache(
-            runtime.scalar.negative_ttl,
-            !daemon_config.no_negative_cache,
-        );
-        // Coalesce repeated signals while a worker is busy: the token refers
-        // to the latest hosts snapshot, so reload cannot grow a work queue.
-        let (reload_sender, reload_receiver) = mpsc::sync_channel(1);
-        let reload_service = Arc::clone(&service);
-        reload_senders.push(reload_sender);
+        listeners.push((address, Arc::new(udp), tcp));
+    }
+    let udp_sockets: Arc<Vec<_>> = Arc::new(
+        listeners
+            .iter()
+            .map(|(_, socket, _)| Arc::clone(socket))
+            .collect(),
+    );
+    for (listener_index, (address, udp, tcp)) in listeners.into_iter().enumerate() {
+        let response_sockets = Arc::clone(&udp_sockets);
+        let listener = SocketToken(listener_index as u64);
+        let parent_service = Arc::clone(&service);
         workers.push(
             thread::Builder::new()
                 .name(format!("dns-udp-{address}"))
                 .spawn(move || {
-                    let mut daemon = daemon;
                     let mut query = vec![0; 65_535];
                     while !STOP_REQUESTED.load(Ordering::Acquire) {
-                        // Only this worker mutates its cache and local hosts.
-                        // Keep upstream transactions alive across SIGHUP as C
-                        // clear_cache_and_reload does.
-                        if reload_receiver.try_recv().is_ok() {
-                            if let Ok(local) = reload_service.lock() {
-                                daemon.reload_hosts(local.hosts.clone());
-                            }
-                        }
-                        match udp.recv_from(&mut query) {
-                            Ok((length, peer)) if length <= packet_limit => {
-                                let request = ClientRequest {
-                                    source: peer,
-                                    destination: address.ip(),
-                                    interface: 0,
-                                };
-                                if let Ok(
-                                    QueryResult::Local(answer) | QueryResult::Cached(answer),
-                                ) = daemon.handle_udp(&query[..length], request)
-                                {
-                                    let _ = udp.send_to(&answer, peer);
-                                }
-                            }
-                            Ok(_) => {}
+                        // No shared lock while waiting for client input.
+                        let incoming = match udp.recv_from(&mut query) {
+                            Ok((length, peer)) if length <= packet_limit => Some((length, peer)),
+                            Ok(_) => None,
                             Err(error)
                                 if matches!(
                                     error.kind(),
                                     io::ErrorKind::WouldBlock
                                         | io::ErrorKind::TimedOut
                                         | io::ErrorKind::Interrupted
-                                ) => {}
+                                ) =>
+                            {
+                                None
+                            }
                             Err(_) => break,
+                        };
+                        let (answer, responses) = {
+                            let Ok(mut parent) = parent_service.lock() else {
+                                break;
+                            };
+                            let ParentDns { local, daemon } = &mut *parent;
+                            let answer = incoming.and_then(|(length, peer)| {
+                                let packet = &query[..length];
+                                let answer = match local.handle_udp(packet) {
+                                    Ok(Some(answer)) => Some(answer),
+                                    Ok(None) => match daemon.forward_udp_on_listener(
+                                        packet,
+                                        ClientRequest {
+                                            source: peer,
+                                            destination: address.ip(),
+                                            interface: 0,
+                                        },
+                                        Some(listener),
+                                    ) {
+                                        Ok(
+                                            QueryResult::Local(answer)
+                                            | QueryResult::Cached(answer),
+                                        ) => Some(answer),
+                                        _ => None,
+                                    },
+                                    Err(_) => None,
+                                };
+                                answer.map(|answer| (peer, answer))
+                            });
+                            // This poll is nonblocking. Keep local-name policy
+                            // and cache updates in the same generation as lookup.
+                            let responses = daemon
+                                .poll_with_local(Duration::ZERO, local)
+                                .unwrap_or_default();
+                            (answer, responses)
+                        };
+                        if let Some((peer, answer)) = answer {
+                            let _ = udp.send_to(&answer, peer);
                         }
-                        if let Ok(responses) = daemon.poll(Duration::ZERO) {
-                            for response in responses {
-                                let _ = udp.send_to(&response.packet, response.destination);
+                        for response in responses {
+                            let Some(SocketToken(index)) = response.listener else {
+                                continue;
+                            };
+                            if let Some(socket) = usize::try_from(index)
+                                .ok()
+                                .and_then(|index| response_sockets.get(index))
+                            {
+                                let _ = socket.send_to(&response.packet, response.destination);
                             }
                         }
                     }
@@ -277,11 +327,12 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                         // session. Keep that lifetime here without holding a
                         // shared lock during client or upstream socket I/O.
                         let mut service = match tcp_service.lock() {
-                            Ok(local) => LocalDnsService::new(
-                                local.config.clone(),
-                                local.hosts.clone(),
-                                local.local_ttl,
-                                local.max_udp,
+                            Ok(parent) => LocalDnsService::new_with_limits(
+                                parent.local.config.clone(),
+                                parent.local.hosts.clone(),
+                                parent.local.local_ttl,
+                                parent.local.max_udp,
+                                parent.local.edns_packet_max,
                             ),
                             Err(_) => continue,
                         };
@@ -389,6 +440,13 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     }
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     if !dhcp_config.ranges.is_empty() {
+        let mut provider = DhcpProvider::new(
+            dhcp_config,
+            daemon_config.listen_addresses.clone(),
+            runtime.scalar.dns_port,
+            || STOP_REQUESTED.load(Ordering::Acquire),
+        )?;
+        provider.set_dns_config(&daemon_config)?;
         // dhcp_init binds INADDR_ANY even with listen-address: initial
         // clients send broadcasts, and interface admission happens later.
         let mut listener = DhcpSocketListener::bind(
@@ -396,18 +454,17 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             DhcpListener::Dhcp,
             &[],
         )?;
-        let mut provider = DhcpProvider::new(
-            dhcp_config,
-            daemon_config.listen_addresses.clone(),
-            runtime.scalar.dns_port,
-            || STOP_REQUESTED.load(Ordering::Acquire),
-        )?;
         workers.push(
             thread::Builder::new()
                 .name("dhcp-listener".into())
                 .spawn(move || {
                     let mut output = vec![0; 16_384];
                     while !STOP_REQUESTED.load(Ordering::Acquire) {
+                        let now = SystemTime::now().duration_since(UNIX_EPOCH)
+                            .map_or(0, |time| time.as_secs() as i64);
+                        if let Some(report) = provider.tick(now) {
+                            report_dhcp_maintenance(&report);
+                        }
                         match listener.process_once_local(&mut provider, &[], &mut output, || {
                             STOP_REQUESTED.load(Ordering::Acquire)
                         }) {
@@ -432,6 +489,9 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                         }
                         if let Some(error) = provider.take_probe_error() {
                             eprintln!("dnsmasq-rs: DHCP conflict probe: {error}");
+                        }
+                        if let Some(report) = provider.take_maintenance_report() {
+                            report_dhcp_maintenance(&report);
                         }
                     }
                 })?,
@@ -512,15 +572,10 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             // C SIGHUP rereads data files, not the main configuration. A
             // missing hosts source is logged and its old names disappear.
             let hosts = read_hosts(&daemon_config, runtime.scalar.local_ttl);
-            if let Ok(mut local) = service.lock() {
-                local.hosts = hosts;
+            if let Ok(mut parent) = service.lock() {
+                parent.daemon.reload_hosts(hosts.clone());
+                parent.local.hosts = hosts;
             }
-            reload_senders.retain(|sender| {
-                !matches!(
-                    sender.try_send(()),
-                    Err(mpsc::TrySendError::Disconnected(()))
-                )
-            });
         }
         thread::park_timeout(Duration::from_millis(100));
     }
@@ -531,6 +586,24 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
 }
 
 struct TcpPermit(Arc<AtomicUsize>);
+
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+fn report_dhcp_maintenance(report: &dnsmasq_rs::dhcp::daemon::MaintenanceReport) {
+    if let Some(error) = &report.file.error {
+        eprintln!("dnsmasq-rs: failed to update lease file: {error}");
+    }
+    if let Some(error) = &report.dns.error {
+        eprintln!("dnsmasq-rs: failed to publish lease names: {error}");
+    }
+    if let Some(restore) = &report.restore {
+        if restore.invalid_records != 0 || !restore.clean_end {
+            eprintln!(
+                "dnsmasq-rs: lease file restore: {} invalid records, clean end: {}",
+                restore.invalid_records, restore.clean_end
+            );
+        }
+    }
+}
 
 impl Drop for TcpPermit {
     fn drop(&mut self) {
@@ -732,8 +805,7 @@ fn validate_runtime_ready(scalar: &ScalarConfig, dns: &DnsConfig) -> Result<(), 
 }
 
 fn read_hosts(config: &DnsConfig, local_ttl: u32) -> Hosts {
-    let mut hosts = Hosts::new();
-    hosts.set_round_robin(!config.no_round_robin);
+    let mut hosts = dnsmasq_rs::dns::local::configured_hosts(config, local_ttl);
     let mut read = |path: &Path, source: u32| {
         let bytes = match std::fs::read(path) {
             Ok(bytes) => bytes,
