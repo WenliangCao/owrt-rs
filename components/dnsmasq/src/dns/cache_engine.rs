@@ -42,6 +42,15 @@ pub(super) struct CacheContext<'a> {
     pub negative_ttl: u32,
 }
 
+/// Ordinary extraction can remove old records and evict entries even when
+/// its final commit is suppressed. Bogus-wildcard caching is independent.
+#[derive(Clone, Copy, Eq, PartialEq)]
+pub(super) enum OrdinaryCacheMode {
+    Unsupported,
+    ExtractOnly,
+    Commit,
+}
+
 impl CacheContext<'_> {
     pub fn answer_udp(
         &mut self,
@@ -467,7 +476,7 @@ impl CacheContext<'_> {
         local: &LocalDnsService,
         policy: &super::process::AddressPolicy,
         original_rcode: u16,
-        extraction_eligible: bool,
+        ordinary: OrdinaryCacheMode,
     ) {
         let Ok(header) = Header::parse(packet) else {
             return;
@@ -501,10 +510,9 @@ impl CacheContext<'_> {
                 return;
             }
         }
-        // check_for_bogus_wildcard owns a separate cache transaction before
-        // extract_addresses; ordinary request/reply CD restrictions do not
-        // suppress that policy result.
-        if !extraction_eligible {
+        // Unsupported query metadata stays outside ordinary extraction.
+        // CD/no_cache instead run its ordered effects and gate only commit.
+        if ordinary == OrdinaryCacheMode::Unsupported {
             return;
         }
         cache.start_insert();
@@ -695,7 +703,7 @@ impl CacheContext<'_> {
                 }
             }
         }
-        if header.flags & 0x0090 == 0x0080 {
+        if ordinary == OrdinaryCacheMode::Commit && header.flags & 0x0090 == 0x0080 {
             let _ = cache.commit_counted(counters);
         }
     }
