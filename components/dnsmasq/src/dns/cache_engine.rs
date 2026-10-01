@@ -507,6 +507,19 @@ impl CacheContext<'_> {
             })
     }
 
+    pub fn import_record(
+        &mut self,
+        record: super::cache::TransferredRecord,
+        now: i64,
+        local: &LocalDnsService,
+        cursor: &mut super::cache::CacheImportCursor,
+    ) {
+        self.cache
+            .import_record_counted(record, now, self.counters, cursor, |record| {
+                local_cache_match(local, record)
+            });
+    }
+
     // The private capture flag is orthogonal to the shared ordinary policy.
     #[allow(clippy::too_many_arguments)]
     fn insert_reply_inner(

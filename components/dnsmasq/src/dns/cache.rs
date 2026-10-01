@@ -172,10 +172,17 @@ pub struct CacheTransaction {
 }
 
 #[derive(Debug)]
-pub(super) struct TransferredRecord {
+pub struct TransferredRecord {
     pub(super) record: Record,
     pub(super) expires: i64,
     pub(super) authority_name: Option<Name>,
+}
+
+/// Opaque state for one incremental parent import. Dropping this cursor does
+/// not roll back cache mutations or discard the current pending prefix.
+#[derive(Default)]
+pub struct CacheImportCursor {
+    previous: Option<CnameTarget>,
 }
 
 /// Current parent local-name match at cache_scan_free's existing boundary.
@@ -212,7 +219,7 @@ pub struct Cache {
 }
 
 impl Cache {
-    #[cfg(test)]
+    #[cfg(all(test, target_os = "linux"))]
     pub(super) fn insertion_test_state(&self) -> (usize, bool) {
         (self.pending.len(), self.failed)
     }
@@ -656,62 +663,82 @@ impl Cache {
         counters: &mut CacheCounters,
         mut local_match: impl FnMut(&Record) -> Option<LocalCacheMatch>,
     ) -> bool {
-        self.start_insert();
-        let mut previous: Option<CnameTarget> = None;
+        let mut cursor = self.start_import();
         for transferred in transaction.records {
+            self.import_record_counted(transferred, now, counters, &mut cursor, &mut local_match);
             if self.failed {
                 break;
             }
-            let mut record = transferred.record;
-            let cname = record.kind == Kind::Cname;
-            if cname {
-                record.data = match &previous {
-                    Some(CnameTarget::Dynamic(id)) => self
-                        .get(*id)
-                        .map_or_else(Vec::new, |entry| entry.record.name.canonical_wire()),
-                    Some(CnameTarget::Local(target)) => target.name.canonical_wire(),
-                    None => Vec::new(),
-                };
-            }
-            // The two pinned source oracles saturate a negative remaining
-            // TTL to zero. Encode that observed conversion explicitly rather
-            // than reproduce C's out-of-range floating-to-unsigned cast.
-            // Positive remaining lifetimes retain the original deadline.
-            let expires = transferred.expires.max(now);
-            if expires == now && self.policy.stale == StalePolicy::Disabled {
-                self.failed = true;
-                break;
-            }
-            let inserted = if let Some(local) = local_match(&record) {
-                self.check_local_insert(expires == now, local.same_address)
-                    .ok()
-                    .map(|()| CnameTarget::Local(self.local_target(record.name, local.from_lease)))
-            } else {
-                self.insert_at_counted(record, now, expires, counters)
-                    .ok()
-                    .map(CnameTarget::Dynamic)
-            };
-            if let Some(CnameTarget::Dynamic(id)) = &inserted {
-                if let Some(authority) = transferred.authority_name {
-                    self.set_negative_authority(*id, authority);
-                }
-                if cname {
-                    match &previous {
-                        Some(CnameTarget::Dynamic(target)) => {
-                            self.set_cname_target(*id, *target);
-                        }
-                        Some(CnameTarget::Local(target)) => {
-                            self.set_local_cname_target(*id, Arc::clone(target));
-                        }
-                        None => {}
-                    }
-                }
-            }
-            if !cname || inserted.is_some() {
-                previous = inserted;
-            }
         }
         self.commit_counted(counters)
+    }
+
+    pub(super) fn start_import(&mut self) -> CacheImportCursor {
+        self.start_insert();
+        CacheImportCursor::default()
+    }
+
+    /// Apply one complete transferred record. This is shared by whole import
+    /// and the private streaming receiver; only the caller's end event commits.
+    pub(super) fn import_record_counted(
+        &mut self,
+        transferred: TransferredRecord,
+        now: i64,
+        counters: &mut CacheCounters,
+        cursor: &mut CacheImportCursor,
+        mut local_match: impl FnMut(&Record) -> Option<LocalCacheMatch>,
+    ) {
+        if self.failed {
+            return;
+        }
+        let mut record = transferred.record;
+        let cname = record.kind == Kind::Cname;
+        if cname {
+            record.data = match &cursor.previous {
+                Some(CnameTarget::Dynamic(id)) => self
+                    .get(*id)
+                    .map_or_else(Vec::new, |entry| entry.record.name.canonical_wire()),
+                Some(CnameTarget::Local(target)) => target.name.canonical_wire(),
+                None => Vec::new(),
+            };
+        }
+        // The two pinned source oracles saturate a negative remaining
+        // TTL to zero. Encode that observed conversion explicitly rather
+        // than reproduce C's out-of-range floating-to-unsigned cast.
+        // Positive remaining lifetimes retain the original deadline.
+        let expires = transferred.expires.max(now);
+        if expires == now && self.policy.stale == StalePolicy::Disabled {
+            self.failed = true;
+            return;
+        }
+        let inserted = if let Some(local) = local_match(&record) {
+            self.check_local_insert(expires == now, local.same_address)
+                .ok()
+                .map(|()| CnameTarget::Local(self.local_target(record.name, local.from_lease)))
+        } else {
+            self.insert_at_counted(record, now, expires, counters)
+                .ok()
+                .map(CnameTarget::Dynamic)
+        };
+        if let Some(CnameTarget::Dynamic(id)) = &inserted {
+            if let Some(authority) = transferred.authority_name {
+                self.set_negative_authority(*id, authority);
+            }
+            if cname {
+                match &cursor.previous {
+                    Some(CnameTarget::Dynamic(target)) => {
+                        self.set_cname_target(*id, *target);
+                    }
+                    Some(CnameTarget::Local(target)) => {
+                        self.set_local_cname_target(*id, Arc::clone(target));
+                    }
+                    None => {}
+                }
+            }
+        }
+        if !cname || inserted.is_some() {
+            cursor.previous = inserted;
+        }
     }
 
     /// `Generic(_)` selects all generic RR types, as C's F_RR lookup does.
