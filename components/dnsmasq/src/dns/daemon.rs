@@ -16,7 +16,7 @@ use super::process::{ignore_reply, process_reply, AddressPolicy, ProcessAction, 
 use super::reply::{apply_known_local_nxdomain, limit_udp_reply, prepare_reply, ReplyPolicy};
 use super::routing::{RouteReason, RoutingError, RoutingTable};
 use super::service::{LocalDnsService, ServiceError};
-use super::upstream::{OsRandom, ResolveError, UpstreamResolver};
+use super::upstream::{OsRandom, ResolveError, UncheckedReply, UpstreamEvent, UpstreamResolver};
 use super::wire::{
     find_pseudoheader, Header, Message, Name, PacketWriter, Question as WireQuestion, Section,
     WireError,
@@ -42,6 +42,17 @@ pub struct ClientResponse {
     pub destination: SocketAddr,
     pub listener: Option<super::forward::SocketToken>,
     pub packet: Vec<u8>,
+}
+
+/// Cumulative failure counts for this daemon instance. Cache/hosts reloads do
+/// not reset them. Counts are bounded state, not an undrained failure queue.
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub struct PollFailures {
+    pub timeouts: u64,
+    pub upstream_errors: u64,
+    pub invalid_replies: u64,
+    pub recipient_errors: u64,
+    pub poll_errors: u64,
 }
 
 /// Result of admitting one client query.
@@ -161,6 +172,7 @@ pub struct DnsDaemon<R = OsRandom> {
     proxy_dnssec: bool,
     max_udp: usize,
     edns_packet_max: u16,
+    poll_failures: PollFailures,
 }
 
 impl DnsDaemon<OsRandom> {
@@ -232,11 +244,16 @@ impl<R: Random> DnsDaemon<R> {
             proxy_dnssec: options.proxy_dnssec,
             max_udp: options.max_udp.max(512),
             edns_packet_max: options.edns_packet_max,
+            poll_failures: PollFailures::default(),
         })
     }
 
     pub fn pending_count(&self) -> usize {
         self.upstream.pending_count()
+    }
+
+    pub fn poll_failures(&self) -> PollFailures {
+        self.poll_failures
     }
 
     /// Replace the reloaded hosts snapshot and discard dynamic DNS answers.
@@ -431,111 +448,175 @@ impl<R: Random> DnsDaemon<R> {
         let policy = self.policy.clone();
         let events = self.upstream.poll_with_filter(wait, move |packet| {
             ignore_reply(packet, &policy).unwrap_or(false)
-        })?;
-        let now = unix_seconds();
+        });
+        let events = match events {
+            Ok(events) => events,
+            Err(error) => {
+                self.poll_failures.poll_errors = self.poll_failures.poll_errors.saturating_add(1);
+                return Err(error.into());
+            }
+        };
+        Ok(self.finish_upstream_events(events, unix_seconds(), external_local))
+    }
+
+    fn finish_upstream_events(
+        &mut self,
+        events: Vec<UpstreamEvent>,
+        now: i64,
+        external_local: Option<&LocalDnsService>,
+    ) -> Vec<ClientResponse> {
         let mut responses = Vec::new();
         for event in events {
-            let reply = event.result?;
-            let rcode = u16::from(Header::parse(&reply.packet)?.rcode())
-                | find_pseudoheader(&reply.packet, false)?
-                    .opt
-                    .as_ref()
-                    .map_or(0, |opt| u16::from(opt.extended_rcode()) << 4);
-            // Cache only a clean, successful positive reply.  Address policy
-            // runs on a clone first so a blocked/bogus/malformed response is
-            // never admitted to the cache or later exposed to a recipient.
-            if self.cache.is_some()
-                && matches!(rcode, 0 | 3)
-                && !reply.flags.no_cache
-                && !reply.flags.had_opt
-                && !reply.flags.ad_requested
-                && !reply.flags.checking_disabled
-            {
-                let mut candidate = prepare_reply(
-                    &reply.packet,
-                    ReplyPolicy {
-                        client_had_opt: reply.flags.had_opt,
-                        checking_disabled: reply.flags.checking_disabled,
-                        proxy_dnssec: self.proxy_dnssec,
-                        edns_packet_max: self.edns_packet_max,
-                    },
-                )?
-                .packet;
-                apply_known_local_nxdomain(&mut candidate, rcode, |name| {
-                    let local = external_local.unwrap_or(&self.local);
-                    super::local::known_forwarded_domain_with_leases(
-                        &local.config,
-                        &local.hosts,
-                        name,
-                        &local.leases,
-                        now,
-                    ) || self.routing.has_configured_address(name)
-                })?;
-                let report = process_reply(&mut candidate, &self.policy)?;
-                if report.action == ProcessAction::Deliver
-                    && !report.blocked_rebind
-                    && !report.malformed_address
-                    && !report.bogus_nxdomain
-                {
-                    self.cache_reply_at_with_local(&candidate, now, external_local);
+            let reply = match event.result {
+                Ok(reply) => reply,
+                Err(
+                    ResolveError::Timeout
+                    | ResolveError::Released(super::forward::ReleaseReason::Expired),
+                ) => {
+                    self.poll_failures.timeouts = self.poll_failures.timeouts.saturating_add(1);
+                    continue;
                 }
-            }
-            for recipient in reply.recipients {
-                let mut packet = reply.packet.clone();
-                recipient.restore_question(&mut packet)?;
-                let envelope = prepare_reply(
-                    &packet,
-                    ReplyPolicy {
-                        client_had_opt: reply.flags.had_opt,
-                        checking_disabled: reply.flags.checking_disabled,
-                        proxy_dnssec: self.proxy_dnssec,
-                        edns_packet_max: self.edns_packet_max,
-                    },
-                )?;
-                let mut packet = envelope.packet;
-                apply_known_local_nxdomain(&mut packet, rcode, |name| {
-                    let local = external_local.unwrap_or(&self.local);
-                    super::local::known_forwarded_domain_with_leases(
-                        &local.config,
-                        &local.hosts,
-                        name,
-                        &local.leases,
-                        now,
-                    ) || self.routing.has_configured_address(name)
-                })?;
-                if matches!(rcode, 0 | 3) {
-                    let report = process_reply(&mut packet, &self.policy)?;
-                    if report.action == ProcessAction::Ignore {
-                        continue;
-                    }
-                    let ede = if report.blocked_rebind || report.bogus_nxdomain {
-                        Some(15)
-                    } else if report.malformed_address {
-                        Some(0)
-                    } else {
-                        None
-                    };
-                    if let Some(ede) = ede {
-                        if find_pseudoheader(&packet, false)?.opt.is_some() {
-                            super::tcp_service::add_ede(
-                                &mut packet,
-                                self.edns_packet_max,
-                                reply.flags.dnssec_ok,
-                                ede,
-                                usize::from(self.edns_packet_max),
-                            )?;
-                        }
+                Err(_) => {
+                    self.poll_failures.upstream_errors =
+                        self.poll_failures.upstream_errors.saturating_add(1);
+                    continue;
+                }
+            };
+            let rcode = match self.cache_completed_reply(&reply, now, external_local) {
+                Ok(rcode) => rcode,
+                Err(_) => {
+                    self.poll_failures.invalid_replies =
+                        self.poll_failures.invalid_replies.saturating_add(1);
+                    continue;
+                }
+            };
+            for recipient in &reply.recipients {
+                match self.recipient_packet(&reply, recipient, rcode, now, external_local) {
+                    Ok(Some(packet)) => responses.push(ClientResponse {
+                        destination: recipient.client.source,
+                        listener: recipient.client.listener,
+                        packet,
+                    }),
+                    Ok(None) => {}
+                    Err(_) => {
+                        self.poll_failures.recipient_errors =
+                            self.poll_failures.recipient_errors.saturating_add(1)
                     }
                 }
-                let packet = limit_udp_reply(&packet, recipient.client.udp_limit)?;
-                responses.push(ClientResponse {
-                    destination: recipient.client.source,
-                    listener: recipient.client.listener,
-                    packet,
-                });
             }
         }
-        Ok(responses)
+        responses
+    }
+
+    fn cache_completed_reply(
+        &mut self,
+        reply: &UncheckedReply,
+        now: i64,
+        external_local: Option<&LocalDnsService>,
+    ) -> Result<u16, DaemonError> {
+        let message = Message::parse(&reply.packet)?;
+        let rcode = u16::from(message.header.rcode())
+            | find_pseudoheader(&reply.packet, false)?
+                .opt
+                .as_ref()
+                .map_or(0, |opt| u16::from(opt.extended_rcode()) << 4);
+        // Cache only a clean, successful positive reply.  Address policy
+        // runs on a clone first so a blocked/bogus/malformed response is
+        // never admitted to the cache or later exposed to a recipient.
+        if self.cache.is_some()
+            && matches!(rcode, 0 | 3)
+            && !reply.flags.no_cache
+            && !reply.flags.had_opt
+            && !reply.flags.ad_requested
+            && !reply.flags.checking_disabled
+        {
+            let mut candidate = prepare_reply(
+                &reply.packet,
+                ReplyPolicy {
+                    client_had_opt: reply.flags.had_opt,
+                    checking_disabled: reply.flags.checking_disabled,
+                    proxy_dnssec: self.proxy_dnssec,
+                    edns_packet_max: self.edns_packet_max,
+                },
+            )?
+            .packet;
+            apply_known_local_nxdomain(&mut candidate, rcode, |name| {
+                let local = external_local.unwrap_or(&self.local);
+                super::local::known_forwarded_domain_with_leases(
+                    &local.config,
+                    &local.hosts,
+                    name,
+                    &local.leases,
+                    now,
+                ) || self.routing.has_configured_address(name)
+            })?;
+            let report = process_reply(&mut candidate, &self.policy)?;
+            if report.action == ProcessAction::Deliver
+                && !report.blocked_rebind
+                && !report.malformed_address
+                && !report.bogus_nxdomain
+            {
+                self.cache_reply_at_with_local(&candidate, now, external_local);
+            }
+        }
+        Ok(rcode)
+    }
+
+    fn recipient_packet(
+        &self,
+        reply: &UncheckedReply,
+        recipient: &super::forward::Recipient,
+        rcode: u16,
+        now: i64,
+        external_local: Option<&LocalDnsService>,
+    ) -> Result<Option<Vec<u8>>, DaemonError> {
+        let mut packet = reply.packet.clone();
+        recipient.restore_question(&mut packet)?;
+        let envelope = prepare_reply(
+            &packet,
+            ReplyPolicy {
+                client_had_opt: reply.flags.had_opt,
+                checking_disabled: reply.flags.checking_disabled,
+                proxy_dnssec: self.proxy_dnssec,
+                edns_packet_max: self.edns_packet_max,
+            },
+        )?;
+        let mut packet = envelope.packet;
+        apply_known_local_nxdomain(&mut packet, rcode, |name| {
+            let local = external_local.unwrap_or(&self.local);
+            super::local::known_forwarded_domain_with_leases(
+                &local.config,
+                &local.hosts,
+                name,
+                &local.leases,
+                now,
+            ) || self.routing.has_configured_address(name)
+        })?;
+        if matches!(rcode, 0 | 3) {
+            let report = process_reply(&mut packet, &self.policy)?;
+            if report.action == ProcessAction::Ignore {
+                return Ok(None);
+            }
+            let ede = if report.blocked_rebind || report.bogus_nxdomain {
+                Some(15)
+            } else if report.malformed_address {
+                Some(0)
+            } else {
+                None
+            };
+            if let Some(ede) = ede {
+                if find_pseudoheader(&packet, false)?.opt.is_some() {
+                    super::tcp_service::add_ede(
+                        &mut packet,
+                        self.edns_packet_max,
+                        reply.flags.dnssec_ok,
+                        ede,
+                        usize::from(self.edns_packet_max),
+                    )?;
+                }
+            }
+        }
+        Ok(Some(limit_udp_reply(&packet, recipient.client.udp_limit)?))
     }
 
     #[cfg(test)]
@@ -1464,6 +1545,10 @@ mod cache_tests;
 #[cfg(test)]
 #[path = "daemon_policy_tests.rs"]
 mod policy_tests;
+
+#[cfg(test)]
+#[path = "daemon_poll_tests.rs"]
+mod poll_tests;
 
 #[cfg(test)]
 #[path = "daemon_lease_cache_tests.rs"]

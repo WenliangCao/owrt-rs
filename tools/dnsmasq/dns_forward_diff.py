@@ -189,6 +189,11 @@ def scenarios():
     yield 'strict-errors',[3,1,0,10,0],[q(), 'R 100 100010 1 5 0','R 100 100020 1 2 1','R 100 100030 1 5 2',q(now=101),'R 101 101010 1 0 2']
     yield 'all-errors',[3,2,0,10,0],[q(),'R 100 100010 1 5 0','R 100 100020 1 5 1','R 100 100030 1 5 2',q('b.test',2),'R 100 100010 2 2 0']
     yield 'capacity',[1,0,0,10,0],[q(),q('b.test',2),q('b.test',2,group=1),'C 2',q('c.test',3,now=110),q('d.test',4,now=110),q('e.test',5,now=150)]
+    # Expiring one old frec must preserve another transaction and its later
+    # successful reply. The exact C free_frec path emits no local error reply.
+    yield 'independent-expiry',[3,0,0,10,0],[q('slow.test'),q('good.test',2,1001,130),
+        q('trigger.test',3,1002,140),'M 140 1 1 1 slow.test','M 140 2 1 1 good.test',
+        'R 140 140001 2 0 0','C 3']
     yield 'flags',[20,0,0,10,0],[q(flags=f,id=i,port=i) for i,f in enumerate([0,2,32,64,128,4,4,34,98,130,132])]
     yield 'send-failures',[3,1,0,10,0],['F 1',q(),'F 7',q('b.test',2),'F 0',q('b.test',3)]
     yield 'case-match',[10,8,0,10,0],[q('abc.test'),'M 100 1 1 1 aBc.test','M 100 1 1 1 abc.test','M 100 1 28 1 aBc.test','M 140 1 1 1 aBc.test',q('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN.test',4,1004,140)]
