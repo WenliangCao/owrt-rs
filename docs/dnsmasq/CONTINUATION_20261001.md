@@ -25,6 +25,13 @@ subagents. No account/billing mode was changed. Product HEAD has the units
 below; the product worktree contains only user-owned `docs/prompts/` edits.
 Do not overwrite those files or private experiment worktrees.
 
+Latest product implementation is `78f1e81`: independent DHCP FQDN wiring from
+`eeed470`. Native ELF `f126a762fbb0f1bcdac0e4e2eb61290bd92361f56fcf712213278ed9ba33e391`
+passes the original selected FQDN8/config5 against saved native/image C, plus
+native/musl391 library+7 main/16ignored and Clippy/fmt. See
+`DHCP_FQDN_IMPLEMENTATION_VALIDATION.md`. Reverse caching and TCP snapshots
+remain private; later main commits are tools/reports.
+
 | Current unit | Durable state |
 | --- | --- |
 | TCP admission/resource recovery | `bb1a664`, `cef8001`: retained listener, shared capacity. Resource61, TCP recovery17, capacity31 passed with negative controls. |
@@ -39,7 +46,8 @@ Do not overwrite those files or private experiment worktrees.
 | Generic lookup after ordinary miss | `5c15e16`: independent NX/SOA pressure native/image120/120, before108/120 then116/120 after the DO-only repair; direct/CNAME120/120 per reference preserved. Both negative controls detect1. Final isolated389+7/16ignored and native/musl Clippy pass. |
 | Generic forward insertion | `4bf072d`: native/image22 configuration+78 forward observations, separateQTYPE0 native/image9. Same ELF preserves DO750 per reference, nativeCD134, both pressure120 per reference and isolated389+7/16ignored/native+muslClippy. First image run had75 matches+1 readiness timeout; complete sequential replay78 passes, failure retained. Malformed generic error propagation is a known source-audit gap under separate C-first qualification. |
 | Generic malformed reply propagation | `0fae34f`/`ac8a3b6`: native/image35/35, before14 differences per reference; negative34/1. Prefix removals/evictions remain. Final native normal22+78, policy210, bogus256, isolated389+7/16ignored and native/muslClippy pass. RecordTooLong keeps prior cache-abort/forward behavior; no oversized-data equivalence claim. |
-| Private reverse-cache candidate | `702af88`/`19620e3`/`deab8a0`/`62894d6` on `research/dnsmasq-reverse-cache-candidate-20261001`. Shares slots/LRU/counters without new fields/index. Primitive125/125 on19620/deab; real UDP beforedeab91/124, after62894native/image124/124, negative123/1. Target case retained. Local/lease ownership, reverse transfer, multi-target order and resource qualification remain open; no product merge. |
+| Private reverse-cache candidate | Final `0eaaef8` on `research/dnsmasq-reverse-cache-candidate-20261001`. Existing name index now includes both directions for same-name expiry, with explicit forward matching; no new fields. Final27/27+125/125, native/muslforward307, reverse184 deterministic, ordinary5 allocation/layout unchanged, native/musl397+7/16ignored/Clippy. Stage2UDP124 per reference belongs to62894; Stage3realDHCP62 per reference belongs toa4a38bc. Multi-target12 still has4/2 order differences/full comparator exit1; no product merge. |
+| Product DHCP FQDN wiring | `78f1e81`: selected original8 service events and5 config cases match saved native/image C; both runtime suites and Clippy/fmt pass. Restored-name/domain/live-collision service addon in progress. |
 
 Current agents/ownership:
 
@@ -57,16 +65,13 @@ Current agents/ownership:
   complete. The separate four-process C-only multi-target cohort retains
   two real output/LRU orders; no sorting or Rust pass is inferred.
   Original unsupported-option attempts and the readiness timeout stay archived.
-- `reverse_cache_impl` owns the private candidate worktree, with reverse-import
-  correction `54346fd` and time-zero lease ownership `ff3f184` committed.
-  The earlier fully checked `62894d6` native ELF is
-  `601550b04418152ba5a865343ee3e44d93c64b610f29440577c1e294a547726e`.
-  Its backward checks are complete. Stage3's independent real-DHCP before gate
-  now calibrates native/image C62/62: Rust62894 completes54 with14 differences,
-  while dhcp-fqdn rejects startup and leaves8 unexecuted. The owner is wiring
-  local/dynamic PTR composition and dhcp-fqdn runtime/restore/default-domain
-  policy. No after pass is claimed until a frozen new source is replayed.
-  See `REVERSE_LEASE_SERVICE_RESULT.md`.
+- `reverse_cache_impl` froze the clean private candidate at `0eaaef8`.
+  Native ELF `217bace9b1a231d0a008842365239085ad21353fb75750d70103325699d3888a`
+  and root integration are in `REVERSE_SHARED_INDEX_VALIDATION.md`. Stage3
+  source `a4a38bc` passes native/image62/62 and config5/5; original14 differences
+  and8 startup-unexecuted events remain. The implementation owner now audits
+  a bounded multi-PTR ordering model in a separate detached worktree; the
+  independent next gate belongs to `tcp_stream_resume`. Do not amend0eaa.
 - `tcp_stream_resume` completed the reverse-transfer gate: 20 deterministic
   cases/184 observations agree across native and SDK-musl C (three runs each).
   Before62894 has3 configured-CNAME import differences; private fix54346fd
@@ -75,16 +80,19 @@ Current agents/ownership:
   Tools/reports are merged; the completed gate branch is archived under tag
   `evidence/20261001/dnsmasq-reverse-transfer-gate`. Its earlier TCP stream
   reference stays private and frozen independently of the reverse candidate.
+  It additionally completed final0eaa ordinary allocation/layout and reverse
+  transfer regressions, preserving the same184 passes and4/2 order differences.
+  It now owns a separate C-first multi-PTR collision/TTL/pressure gate; old
+  traces and acceptance rules remain unchanged.
 - `tcp_stream_review` completed the C-first malformed generic gate in
   `generic-malformed-gate-20261001` at `c6a1121`: final native/image35 and
   negative34/1. All tools/reports are merged; raw prefix effects and old14
   differences remain. Root implementation validation is separately linked.
-  Its independent same-name expiry addon now proves6 differences on54346fd:
-  C27/27, Rust21/27, no fixture failures. Forward lookup (RD0/RD1) and insertion
-  leave expired reverse records alive; read-only existence and live coexistence
-  controls pass. See `REVERSE_NAME_EXPIRY_BEFORE_RESULT.md`. The owner reviews
-  all shared-name index consumers before the implementation correction, then
-  will run only the frozen27-row after gate. Original125/cohort44 are unchanged.
+  Its independent same-name expiry addon closes the6 differences on54346fd:
+  final0eaa27/27 plus original125/125, with no C or cohort44 rerun. All shared
+  name-index consumers were independently reviewed. See
+  `REVERSE_NAME_EXPIRY_AFTER_RESULT.md`. It now owns a separate C-first real
+  lease-file FQDN restore/domain/collision gate against main78f1e81.
 - `tcp_reference_resume` completed a private correctness reference, preserved on
   tag `evidence/20261001/dnsmasq-tcp-reference` at `df75fb4`; worktree is
   `private/dnsmasq-rewrite/tcp-private-reference-20261001`. Frozen executable
