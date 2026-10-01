@@ -66,6 +66,24 @@ The paired native Rust ELF is
 `3f77c3a4d1279c7fb342fc2281fb2dcf33d3f43d3695c3d943d83d24190dee9b`.
 C FD observations remain 11 → 12 → 11; Rust observes 6 → 8 → 6, and both
 processes exit zero. These are functional/resource observations, not a measured
-throughput improvement. Duplicate-recipient exhaustion and immediate upstream
-send failure require their own exact C error-envelope observations before
-being mapped to the ordinary table-full reply.
+throughput improvement. `pair-01/` holds this service trace; `freeze-01/` retains
+the 87-file working-source archive, manifest, build log and recovered ELF.
+The source-manifest SHA-256 is
+`1952defcc5a618d85254cfeeddb8adb3b877d85d0d572c1f1c75a43470c49b5e`.
+The build uses native Rust 1.98.1. Immediate upstream send failure retains its
+separate error-envelope gate.
+
+Duplicate-recipient exhaustion is independently observed by
+`dns_udp_duplicate_limit_reference.py`. With `dns-forward-max=1`, one held query
+and one extra coalesced recipient exhaust the duplicate pool. C sends REFUSED
+to the third recipient, but its response ID is the upstream stash ID rather
+than that client's ID; question bytes also come from the stash. The OPT is
+empty, advertises 1232 and has DO clear. Both already accepted recipients later
+complete with their own correct IDs, using only one upstream query. The process
+exits zero and is reaped. `duplicate-limit-c-01/` retains every packet and field.
+
+The wrong reply ID is a reference defect, not ordinary random-ID variance to
+normalize away. Rust's selected behavior is REFUSED with the rejected client's
+original ID/question while preserving pending work; its former silent drop is
+not equivalent either. The DuplicateFull product hook and paired behavior gate
+remain distinct from the completed GroupFull gate above.
