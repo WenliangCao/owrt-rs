@@ -624,6 +624,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     identity.drop_privileges(
         &runtime.process,
         !runtime.dhcp.ranges.is_empty(),
+        runtime.dhcp.no_ping,
         daemon_config.bind_dynamic && runtime.scalar.dns_port <= 1024 && dns_enabled,
         runtime.ubus.object_name()?.is_some(),
     )?;

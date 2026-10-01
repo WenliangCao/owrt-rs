@@ -177,9 +177,14 @@ mod linux {
             })
         }
         pub fn write_pid(&self, config: &ProcessConfig) -> Result<PidFile, StartupError> {
-            let Some(path) = config.pid_file.as_ref().filter(|_| !config.debug) else {
+            let Some(path) = config.pid_file.as_ref() else {
                 return Ok(PidFile(None));
             };
+            if config.debug {
+                // Debug mode skips creation, but C still removes the configured
+                // PID path when handling SIGTERM.
+                return Ok(PidFile(Some(path.clone())));
+            }
             // Match unlink then exclusive creation: never follow a stale symlink.
             let _ = std::fs::remove_file(path);
             let file = std::fs::OpenOptions::new()
@@ -218,12 +223,17 @@ mod linux {
             &self,
             config: &ProcessConfig,
             dhcp: bool,
+            no_ping: bool,
             dynamic_ports: bool,
             ubus: bool,
         ) -> Result<(), StartupError> {
-            let keep = (if dhcp { (1 << 12) | (1 << 13) } else { 0 })
+            let keep = (if dhcp { 1 << 12 } else { 0 })
                 | (if dynamic_ports || ubus { 1 << 10 } else { 0 })
-                | (if ubus { 1 << 13 } else { 0 });
+                | (if (dhcp && !no_ping) || ubus {
+                    1 << 13
+                } else {
+                    0
+                });
             let mut header = CapHeader {
                 version: 0x20080522,
                 pid: 0,
