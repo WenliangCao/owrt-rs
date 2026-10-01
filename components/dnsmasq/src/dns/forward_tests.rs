@@ -28,6 +28,7 @@ fn client(port: u16) -> Client {
         destination: IpAddr::V4(Ipv4Addr::new(192, 0, 2, 53)),
         interface: 2,
         listener: Some(SocketToken(1)),
+        reply_requested: true,
         udp_limit: 512,
         log_id: 1,
     }
@@ -65,6 +66,40 @@ fn submit(
             rng,
         )
         .unwrap()
+}
+
+#[test]
+fn refresh_and_ordinary_recipients_keep_independent_delivery_flags() {
+    let mut table = ForwardTable::new(Options::default());
+    let mut rng = Counter(0);
+    let mut refresh = client(1000);
+    refresh.listener = None;
+    refresh.reply_requested = false;
+    let first = table
+        .submit(
+            &query("mixed.test", 12),
+            refresh,
+            GroupId(1),
+            Flags::default(),
+            Scope::Shared,
+            100,
+            &mut rng,
+        )
+        .unwrap();
+    table.note_sent(first.id, ServerId(0), SocketToken(30), 100_000);
+    assert_eq!(
+        submit(&mut table, "mixed.test", 13, 1001, 100, &mut rng).kind,
+        SubmissionKind::Coalesced
+    );
+    assert_eq!(
+        submit(&mut table, "mixed.test", 12, 1000, 101, &mut rng).kind,
+        SubmissionKind::ClientRetry
+    );
+    let recipients = &table.get(first.id).unwrap().recipients;
+    assert_eq!(recipients.len(), 2);
+    assert!(!recipients[0].client.reply_requested);
+    assert_eq!(recipients[0].client.listener, None);
+    assert!(recipients[1].client.reply_requested);
 }
 
 #[test]

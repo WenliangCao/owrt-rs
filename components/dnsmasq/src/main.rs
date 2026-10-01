@@ -239,7 +239,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         proxy_dnssec: runtime.dns.proxy_dnssec,
         local_ttl: runtime.scalar.local_ttl,
         max_udp: packet_limit,
-        upstream_timeout: Duration::from_secs(dnsmasq_rs::dns::forward::ABSOLUTE_TIMEOUT as u64),
+        upstream_lifetime: dnsmasq_rs::dns::upstream::Lifetime::ForwardTable,
     };
     // C has one parent forward table and cache across all listener sockets.
     // Capacity and duplicate-query admission must not grow with listen-address.

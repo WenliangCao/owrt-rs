@@ -183,3 +183,29 @@ fn one_bad_recipient_preserves_its_sibling_and_other_queries() {
         );
     }
 }
+
+#[test]
+fn background_delivery_is_suppressed_without_suppressing_cache_admission() {
+    let (mut daemon, mut events, _) = completed_pair();
+    daemon.enable_cache(4, 0, 0, StalePolicy::Disabled);
+    let refresh_name = events[0].result.as_ref().unwrap().recipients[0]
+        .question_name
+        .clone();
+    let expected_id = events[1].result.as_ref().unwrap().recipients[0].original_id;
+    events[0].result.as_mut().unwrap().recipients[0]
+        .client
+        .reply_requested = false;
+    let responses = daemon.finish_upstream_events(events, 100, None);
+    assert_eq!(responses.len(), 1);
+    assert_eq!(Header::parse(&responses[0].packet).unwrap().id, expected_id);
+    assert_eq!(
+        daemon
+            .cache
+            .as_mut()
+            .unwrap()
+            .lookup(&refresh_name, &[Kind::Ipv4], 100, false)
+            .len(),
+        1
+    );
+    assert_eq!(daemon.poll_failures(), PollFailures::default());
+}

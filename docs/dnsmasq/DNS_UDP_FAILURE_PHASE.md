@@ -13,6 +13,14 @@ invalid common replies, recipient failures and poll I/O errors. Hosts/cache
 reload does not reset these counters, and no undrained error queue is retained.
 These diagnostics are not a claim that every OpenWrt ubus metric is wired.
 
+Background work now carries an explicit `Client.reply_requested` flag, separate
+from optional socket identity. Ordinary library calls without a listener token
+still receive responses; background recipients are skipped only after common
+reply/cache processing. Coalesced clients keep their own delivery flags, and a
+retry does not overwrite the original recipient. Regressions check ordinary
+delivery plus background cache admission. This boundary enables the separate
+stale-refresh implementation; it does not by itself implement that feature.
+
 The exact reference `forward.c:reply_query` rejects or completes its matched
 frec independently. `get_new_frec` increments unanswered-query accounting and
 calls `free_frec` for expired/reused entries; it does not send a timeout reply.

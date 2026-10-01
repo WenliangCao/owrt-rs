@@ -80,8 +80,12 @@ pub struct Client {
     pub source: SocketAddr,
     pub destination: IpAddr,
     pub interface: u32,
-    /// None means a stale-cache refresh with no client reply to send.
+    /// Optional containing-process socket identity. A library caller may
+    /// still request a response without supplying a socket token.
     pub listener: Option<SocketToken>,
+    /// False for an explicit background refresh. Coalesced ordinary clients
+    /// retain their own delivery decision independently.
+    pub reply_requested: bool,
     pub udp_limit: u16,
     pub log_id: u64,
 }

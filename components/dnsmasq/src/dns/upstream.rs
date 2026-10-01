@@ -1,8 +1,9 @@
 //! Nonblocking UDP transport for the forwarding dispatcher.
 //!
-//! `start_udp`, `poll` and `tick` keep a fixed monotonic deadline per query.
-//! Every socket belongs to one transaction and is dropped on completion,
-//! cancellation, expiry or I/O failure. Received packets are still **unchecked
+//! Standalone calls can use fixed monotonic deadlines. The daemon uses C's
+//! forwarding-table lifetime: wall-clock reply validity and lazy reclamation
+//! on new admission. Every socket belongs to one transaction and is dropped
+//! on completion, cancellation, reclamation or I/O failure. Packets are **unchecked
 //! by process_reply policy**: callers must apply address/rebind/cache/EDNS and
 //! OpenWrt policies before replying to clients. Integrated TCP fallback is not
 //! wired here; [`tcp_exchange`] is a standalone one-query helper below.
@@ -23,6 +24,27 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 const RECEIVE_BUDGET: usize = 16;
 const POLLNVAL: i16 = 0x20;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Lifetime {
+    /// Bounded standalone/test transport; independent of wall-clock changes.
+    Fixed(Duration),
+    /// C lookup_frec/get_new_frec own reply validity and slot reclamation.
+    ForwardTable,
+}
+
+impl Lifetime {
+    fn wait_budget(self) -> Duration {
+        match self {
+            Self::Fixed(timeout) => timeout,
+            Self::ForwardTable => Duration::from_secs(ABSOLUTE_TIMEOUT as u64),
+        }
+    }
+
+    fn fixed(self) -> bool {
+        matches!(self, Self::Fixed(_))
+    }
+}
 
 #[derive(Debug)]
 pub enum ResolveError {
@@ -223,7 +245,7 @@ pub struct UpstreamResolver<R = OsRandom> {
     transactions: HashMap<QueryId, Transaction>,
     sockets: HashMap<SocketToken, OwnedSocket>,
     events: VecDeque<UpstreamEvent>,
-    timeout: Duration,
+    lifetime: Lifetime,
     clock_origin: Instant,
     next_socket: u64,
     receive_buffer: Vec<u8>,
@@ -237,11 +259,19 @@ impl UpstreamResolver<OsRandom> {
 
 impl<R: Random> UpstreamResolver<R> {
     pub fn with_random(
-        mut dispatcher: ForwardDispatcher,
+        dispatcher: ForwardDispatcher,
         random: R,
         timeout: Duration,
     ) -> io::Result<Self> {
-        if timeout.is_zero() || !dispatcher.table().is_empty() {
+        Self::with_lifetime(dispatcher, random, Lifetime::Fixed(timeout))
+    }
+
+    pub fn with_lifetime(
+        mut dispatcher: ForwardDispatcher,
+        random: R,
+        lifetime: Lifetime,
+    ) -> io::Result<Self> {
+        if lifetime.wait_budget().is_zero() || !dispatcher.table().is_empty() {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidInput,
                 "transport requires a nonzero timeout and an empty dispatcher",
@@ -263,7 +293,12 @@ impl<R: Random> UpstreamResolver<R> {
             transactions: HashMap::new(),
             sockets: HashMap::new(),
             events: VecDeque::new(),
-            timeout: timeout.min(Duration::from_secs(ABSOLUTE_TIMEOUT as u64)),
+            lifetime: match lifetime {
+                Lifetime::Fixed(timeout) => {
+                    Lifetime::Fixed(timeout.min(Duration::from_secs(ABSOLUTE_TIMEOUT as u64)))
+                }
+                Lifetime::ForwardTable => Lifetime::ForwardTable,
+            },
             clock_origin: Instant::now(),
             next_socket: 0,
             receive_buffer: vec![0; u16::MAX as usize],
@@ -315,7 +350,7 @@ impl<R: Random> UpstreamResolver<R> {
         let submitted = submitted?;
         let id = submitted.id;
         self.transactions.entry(id).or_insert_with(|| Transaction {
-            deadline: Instant::now() + self.timeout,
+            deadline: Instant::now() + self.lifetime.wait_budget(),
             sockets: HashMap::new(),
         });
         if let (Some(packet), Some(plan)) = (submitted.packet, submitted.send_plan) {
@@ -437,10 +472,21 @@ impl<R: Random> UpstreamResolver<R> {
             return Err(ResolveError::Busy);
         }
         let submission = self.start_udp(packet, client, group, scope)?;
+        // The synchronous convenience API always has a bounded wait, even
+        // when explicitly built with the daemon's asynchronous C lifetime.
+        let deadline = Instant::now() + self.lifetime.wait_budget();
         loop {
-            if let Some(event) = self.poll(self.timeout)?.into_iter().next() {
+            if let Some(event) = self
+                .poll(deadline.saturating_duration_since(Instant::now()))?
+                .into_iter()
+                .next()
+            {
                 debug_assert_eq!(event.id, submission.id);
                 return event.result;
+            }
+            if Instant::now() >= deadline {
+                self.cancel(submission.id);
+                return Err(ResolveError::Timeout);
             }
         }
     }
@@ -450,8 +496,10 @@ impl<R: Random> UpstreamResolver<R> {
     }
 
     fn next_wakeup(&self, mut deadline: Instant) -> Instant {
-        for transaction in self.transactions.values() {
-            deadline = deadline.min(transaction.deadline);
+        if self.lifetime.fixed() {
+            for transaction in self.transactions.values() {
+                deadline = deadline.min(transaction.deadline);
+            }
         }
         let retry = self
             .dispatcher
@@ -467,21 +515,25 @@ impl<R: Random> UpstreamResolver<R> {
     }
 
     fn run_timers(&mut self) {
-        let now = Instant::now();
-        let expired: Vec<_> = self
-            .transactions
-            .iter()
-            .filter(|(_, transaction)| now >= transaction.deadline)
-            .map(|(&id, _)| id)
-            .collect();
-        for id in expired {
-            self.fail(id, ResolveError::Timeout);
+        self.run_timers_at(Instant::now(), unix_seconds(), self.milliseconds());
+    }
+
+    fn run_timers_at(&mut self, now: Instant, wall_time: i64, now_ms: u32) {
+        if self.lifetime.fixed() {
+            let expired: Vec<_> = self
+                .transactions
+                .iter()
+                .filter(|(_, transaction)| now >= transaction.deadline)
+                .map(|(&id, _)| id)
+                .collect();
+            for id in expired {
+                self.fail(id, ResolveError::Timeout);
+            }
         }
-        let now_ms = self.milliseconds();
         // Plan the due set once. One bad packet cannot prevent another pending
         // query's retry; each send either advances its delay or fails its own
         // transaction and releases its own sockets.
-        let plans = match self.dispatcher.plan_retries(unix_seconds(), now_ms) {
+        let plans = match self.dispatcher.plan_retries(wall_time, now_ms) {
             Ok(plans) => plans,
             Err(error) => {
                 let ids: Vec<_> = self.transactions.keys().copied().collect();
@@ -624,7 +676,7 @@ impl<R: Random> UpstreamResolver<R> {
             let Some(transaction) = self.transactions.get(&id) else {
                 break;
             };
-            if Instant::now() >= transaction.deadline {
+            if self.lifetime.fixed() && Instant::now() >= transaction.deadline {
                 self.fail(id, ResolveError::Timeout);
                 break;
             }
@@ -801,6 +853,7 @@ mod tests {
             destination: "127.0.0.1".parse().unwrap(),
             interface: 0,
             listener: None,
+            reply_requested: true,
             udp_limit: 512,
             log_id: 1,
         }
@@ -912,6 +965,73 @@ mod tests {
             }
         }
         panic!("no upstream event");
+    }
+
+    #[test]
+    fn forwarding_lifetime_keeps_wall_clock_replies_until_actual_reclamation() {
+        let server = UdpSocket::bind("127.0.0.1:0").unwrap();
+        server
+            .set_read_timeout(Some(Duration::from_secs(1)))
+            .unwrap();
+        let address = server.local_addr().unwrap();
+        let dispatcher =
+            ForwardDispatcher::new(Options::default(), [group(&[address], false)], 1232);
+        let mut transport =
+            UpstreamResolver::with_lifetime(dispatcher, Counter(0), Lifetime::ForwardTable)
+                .unwrap();
+        let old = transport
+            .start_udp(&query(), client(), GroupId(1), Scope::Shared)
+            .unwrap()
+            .id;
+        let mut input = [0; 2048];
+        let (length, _) = server.recv_from(&mut input).unwrap();
+        let reply = response(&input[..length], 0x8180, true);
+        let created = transport.dispatcher.table().get(old).unwrap().created;
+        let transaction = &transport.transactions[&old];
+        let token = *transaction.sockets.values().next().unwrap();
+        let elapsed = transaction.deadline + Duration::from_secs(1);
+
+        transport.run_timers_at(elapsed, created + 40, 41000);
+        assert!(transport.events.is_empty());
+        assert_eq!(transport.pending_count(), 1);
+        assert_eq!(transport.socket_count(), 1);
+        assert!(transport
+            .dispatcher
+            .accept_reply(&reply, address, token, GroupId(1), created + 40)
+            .is_none());
+        assert!(transport
+            .dispatcher
+            .accept_reply(&reply, address, token, GroupId(1), created + 10)
+            .is_some());
+
+        // Run the actual new-admission boundary at a controlled wall clock.
+        // Its newly allocated record has not started transport I/O yet.
+        let next = transport
+            .dispatcher
+            .submit(
+                &query(),
+                client(),
+                GroupId(1),
+                Scope::Shared,
+                created + 40,
+                &mut transport.random,
+            )
+            .unwrap();
+        transport.consume_releases();
+        assert_eq!(transport.pending_count(), 0);
+        assert_eq!(transport.socket_count(), 0);
+        assert!(transport
+            .dispatcher
+            .accept_reply(&reply, address, token, GroupId(1), created + 10)
+            .is_none());
+        assert_eq!(transport.events.len(), 1);
+        assert!(matches!(
+            transport.events.pop_front().unwrap().result,
+            Err(ResolveError::Released(ReleaseReason::Expired))
+        ));
+        transport.dispatcher.cancel(next.id);
+        transport.consume_releases();
+        assert!(transport.dispatcher.table().is_empty());
     }
 
     #[test]

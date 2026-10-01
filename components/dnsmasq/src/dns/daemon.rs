@@ -18,7 +18,9 @@ use super::process::{ignore_reply, process_reply, AddressPolicy, ProcessAction, 
 use super::reply::{apply_known_local_nxdomain, limit_udp_reply, prepare_reply, ReplyPolicy};
 use super::routing::{RouteReason, RoutingError, RoutingTable};
 use super::service::{LocalDnsService, ServiceError};
-use super::upstream::{OsRandom, ResolveError, UncheckedReply, UpstreamEvent, UpstreamResolver};
+use super::upstream::{
+    Lifetime, OsRandom, ResolveError, UncheckedReply, UpstreamEvent, UpstreamResolver,
+};
 use super::wire::{
     find_pseudoheader, Header, Message, Name, PacketWriter, Question as WireQuestion, Section,
     WireError,
@@ -82,7 +84,7 @@ pub struct DaemonOptions {
     pub proxy_dnssec: bool,
     pub local_ttl: u32,
     pub max_udp: usize,
-    pub upstream_timeout: Duration,
+    pub upstream_lifetime: Lifetime,
 }
 
 impl Default for DaemonOptions {
@@ -94,7 +96,7 @@ impl Default for DaemonOptions {
             proxy_dnssec: false,
             local_ttl: 0,
             max_udp: 1232 + 255 + 10,
-            upstream_timeout: Duration::from_secs(super::forward::ABSOLUTE_TIMEOUT as u64),
+            upstream_lifetime: Lifetime::ForwardTable,
         }
     }
 }
@@ -227,7 +229,8 @@ impl<R: Random> DnsDaemon<R> {
             ..ForwardOptions::default()
         });
         let dispatcher = ForwardDispatcher::new(forward_options, groups, options.edns_packet_max);
-        let upstream = UpstreamResolver::with_random(dispatcher, random, options.upstream_timeout)?;
+        let upstream =
+            UpstreamResolver::with_lifetime(dispatcher, random, options.upstream_lifetime)?;
         let policy = address_policy(&config)?;
         let local = LocalDnsService::new_with_limits(
             config,
@@ -428,13 +431,14 @@ impl<R: Random> DnsDaemon<R> {
             destination: client.destination,
             interface: client.interface,
             listener,
+            reply_requested: true,
             udp_limit: 512,
             log_id: u64::from(question.rrtype),
         };
         let submission = match self.upstream.start_udp(query, client, group, Scope::Shared) {
             Ok(submission) => submission,
             Err(ResolveError::Dispatch(super::forward_service::DispatchError::Submit(
-                super::forward::SubmitError::GroupFull,
+                super::forward::SubmitError::GroupFull | super::forward::SubmitError::DuplicateFull,
             ))) => {
                 return Ok(super::udp_query::table_full(query, self.edns_packet_max)
                     .map_or(QueryResult::Dropped, QueryResult::Local))
@@ -514,6 +518,9 @@ impl<R: Random> DnsDaemon<R> {
                 }
             };
             for recipient in &reply.recipients {
+                if !recipient.client.reply_requested {
+                    continue;
+                }
                 match self.recipient_packet(&reply, recipient, rcode, now, external_local) {
                     Ok(Some(packet)) => responses.push(ClientResponse {
                         destination: recipient.client.source,
@@ -1639,7 +1646,7 @@ mod tests {
 
     fn options() -> DaemonOptions {
         DaemonOptions {
-            upstream_timeout: Duration::from_secs(1),
+            upstream_lifetime: Lifetime::Fixed(Duration::from_secs(1)),
             ..DaemonOptions::default()
         }
     }

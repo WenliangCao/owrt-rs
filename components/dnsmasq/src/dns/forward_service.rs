@@ -441,6 +441,7 @@ mod tests {
             destination: IpAddr::V4(Ipv4Addr::new(192, 0, 2, 1)),
             interface: 1,
             listener: Some(SocketToken(4)),
+            reply_requested: true,
             udp_limit: 512,
             log_id: 1,
         }

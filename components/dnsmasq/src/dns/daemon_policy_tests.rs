@@ -185,3 +185,91 @@ fn coalesced_replies_retain_each_receiving_listener() {
         }));
     }
 }
+
+#[test]
+fn duplicate_pool_refusal_keeps_current_client_id_and_accepted_recipients() {
+    let upstream = UdpSocket::bind("127.0.0.1:0").unwrap();
+    upstream
+        .set_read_timeout(Some(Duration::from_secs(2)))
+        .unwrap();
+    let mut daemon = DnsDaemon::new(
+        configuration(&upstream),
+        Hosts::new(),
+        &[],
+        DaemonOptions {
+            forward_max: 1,
+            ..DaemonOptions::default()
+        },
+    )
+    .unwrap();
+    let make_query = |host: &str, id: u16, maximum: u16| {
+        let mut packet = request(host, 1);
+        let mut header = Header::parse(&packet).unwrap();
+        header.id = id;
+        header.flags = 0x130;
+        header.additionals = 1;
+        header.write(&mut packet).unwrap();
+        packet.extend_from_slice(&[0, 0, 41]);
+        packet.extend_from_slice(&maximum.to_be_bytes());
+        packet.extend_from_slice(&[0, 0, 0x80, 0, 0, 0]);
+        packet
+    };
+    let client = |port| ClientRequest {
+        source: SocketAddr::from(([127, 0, 0, 1], port)),
+        destination: "127.0.0.1".parse().unwrap(),
+        interface: 1,
+    };
+    let first = make_query("hold.test", 0x7101, 512);
+    assert!(matches!(
+        daemon.handle_udp(&first, client(39001)).unwrap(),
+        QueryResult::Forwarded(_)
+    ));
+    let mut input = [0; 4096];
+    let (length, peer) = upstream.recv_from(&mut input).unwrap();
+    let upstream_id = Header::parse(&input[..length]).unwrap().id;
+    let second = make_query("hold.test", 0x7102, 512);
+    assert!(matches!(
+        daemon.handle_udp(&second, client(39002)).unwrap(),
+        QueryResult::Forwarded(_)
+    ));
+    let rejected_id = if upstream_id == 0x7103 {
+        0x7104
+    } else {
+        0x7103
+    };
+    let rejected = make_query("HOLD.test", rejected_id, 1232);
+    let QueryResult::Local(reply) = daemon.handle_udp(&rejected, client(39003)).unwrap() else {
+        panic!("duplicate pool exhaustion must refuse this client");
+    };
+    let header = Header::parse(&reply).unwrap();
+    assert_eq!(header.id, rejected_id);
+    assert_ne!(header.id, upstream_id);
+    assert_eq!(header.flags, 0x8195);
+    let end = super::super::wire::skip_questions(&rejected).unwrap();
+    assert_eq!(&reply[12..end], &rejected[12..end]);
+    let opt = find_pseudoheader(&reply, false).unwrap().opt.unwrap();
+    assert_eq!(opt.record.class, 1232);
+    assert_eq!(opt.record.ttl, 0);
+    assert!(opt.record.rdata.is_empty());
+    assert_eq!(daemon.pending_count(), 1);
+
+    let end = super::super::wire::skip_questions(&input[..length]).unwrap();
+    let mut response = input[..end].to_vec();
+    let mut header = Header::parse(&response).unwrap();
+    header.flags = 0x8180;
+    header.answers = 1;
+    header.additionals = 0;
+    header.write(&mut response).unwrap();
+    response.extend_from_slice(&[0xc0, 0x0c, 0, 1, 0, 1, 0, 0, 0, 60, 0, 4, 192, 0, 2, 7]);
+    upstream.send_to(&response, peer).unwrap();
+    let responses = daemon.poll(Duration::from_millis(250)).unwrap();
+    assert_eq!(
+        responses
+            .iter()
+            .map(|response| Header::parse(&response.packet).unwrap().id)
+            .collect::<Vec<_>>(),
+        [0x7101, 0x7102]
+    );
+    assert_eq!(daemon.pending_count(), 0);
+    assert_eq!(daemon.upstream.socket_count(), 0);
+}

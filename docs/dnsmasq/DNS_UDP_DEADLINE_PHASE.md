@@ -1,10 +1,17 @@
 # UDP reply deadline and conditional slot reuse
 
-`DaemonOptions::default` now uses `forward::ABSOLUTE_TIMEOUT` (40 seconds).
-The previous ten-second transport deadline could discard an otherwise valid
-late reply even when no new request needed its forwarding slot. The containing
-runtime uses the same constant; explicit short deadlines in isolated primitive
-tests remain available.
+The daemon now selects `Lifetime::ForwardTable`: the existing forwarding table
+decides reply validity using the wall-clock creation time and reclaims old
+slots during new admission. It does not impose an independent monotonic timer
+on those records. Standalone `UpstreamResolver::with_random(..., Duration)`
+retains explicit `Lifetime::Fixed` behavior; the synchronous convenience API
+always retains a bounded wait. `DaemonOptions::upstream_lifetime` makes the
+choice explicit, and the containing runtime selects the forwarding-table mode.
+
+This replaces the earlier fixed monotonic deadline, first ten seconds and then
+an intermediate 40-second correction. Even a fixed 40-second cancellation can
+discard a reply that C accepts after wall-clock rollback, and it frees an idle
+frec earlier than C. Explicit short primitive-test deadlines remain unchanged.
 
 The exact `forward.c::lookup_frec` rejects an idle reply at `4 * TIMEOUT`.
 `get_new_frec` may reuse an old slot at `TIMEOUT` when no free slot is available;
@@ -12,10 +19,16 @@ the per-group fresh-query count also uses ten seconds. Those existing
 conditional pressure/reuse rules are unchanged. The configured fast-retry
 timeout is a different retry budget and is not changed by this correction.
 
-`dns_forward_diff.py` adds lookups at ages 11, 39 and 40 before reclaiming the
-old query. The complete extracted-C forwarding gate passes 1,277 operations
-with ASan/UBSan, retaining exact event order and the ten-second reuse cases.
-Evidence: `private/dnsmasq-rewrite/udp-policy-20261001/deadline-forward-diff/`.
+`dns_forward_diff.py` adds lookups at ages 11, 39 and 40, and wall-clock
+110 → 140 → 110 for a query created at 100. An expired lookup alone does not
+unhash the frec, so rollback can make that query valid again; reclamation by a
+new admission prevents revival. The complete extracted-C forwarding gate now
+passes 1,285 operations with ASan/UBSan, retaining exact event order and the
+ten-second reuse cases. A controlled transport test advances monotonic time
+beyond 40 seconds, verifies wall-clock rejection/rollback acceptance, and then
+checks actual admission releases the old transaction/socket. Evidence includes
+`clock-lifetime-forward-diff/`, `lifetime-forward-final/` and
+`lifetime-clock-tests.log` under `private/dnsmasq-rewrite/udp-policy-20261001/`.
 
 `dns_udp_deadline_diff.py` freezes one real-daemon window per implementation:
 an 11-second upstream response must arrive, a 41-second response must not, and
@@ -34,6 +47,9 @@ The frozen Rust ELF is
 also used by the successful 43-event admission gate. All raw plans, packets,
 timing samples and process results are in
 `private/dnsmasq-rewrite/udp-policy-20261001/linux/deadline-02/`.
+Those runtime measurements belong to the intermediate fixed-40-second version;
+they are retained as evidence of the timer/lazy-reclamation difference, not as
+final resource validation for `Lifetime::ForwardTable`.
 
 | Observation | C FDs | Rust FDs |
 | --- | ---: | ---: |
@@ -47,8 +63,8 @@ C has one thread and Rust three in this fixture; neither has child processes.
 Both processes are reaped after SIGTERM. These are individual functional-window
 observations, not throughput, tail-latency or exclusive-memory measurements.
 
-The transport actively closes timed-out work at its deadline, while C may
-retain an expired frec until a later admission performs reclamation. Equal
-reply acceptance does not establish equal idle FD-retention timing, and no
-resource improvement is inferred from this change. Actual counters and
-resource windows require separate accounting at their source events.
+The new forwarding-table lifetime removes that proactive cancellation instead
+of adding deferred metric bookkeeping to it. A final real-daemon replay of the
+new lifetime remains pending at this checkpoint. Actual counters require
+accounting at their source events; neither the old FD difference nor the
+corrected behavior is claimed as a performance improvement.

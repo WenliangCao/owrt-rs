@@ -85,5 +85,7 @@ exits zero and is reaped. `duplicate-limit-c-01/` retains every packet and field
 The wrong reply ID is a reference defect, not ordinary random-ID variance to
 normalize away. Rust's selected behavior is REFUSED with the rejected client's
 original ID/question while preserving pending work; its former silent drop is
-not equivalent either. The DuplicateFull product hook and paired behavior gate
-remain distinct from the completed GroupFull gate above.
+not equivalent either. The DuplicateFull product hook now uses `table_full` on
+that original client query. A socket-backed regression checks the corrected
+client ID, question, empty OPT and both accepted completions; the paired
+real-daemon comparison remains separate from the completed GroupFull gate.
