@@ -99,7 +99,8 @@ impl Fixture {
                 "T" => {
                     row.push('T'); let mut slot = self.cache.head;
                     while let Some(index) = slot {
-                        let node = &self.cache.slots[index]; let entry = node.entry.as_ref().unwrap();
+                        let node = &self.cache.slots[index];
+                        let Some(entry) = node.entry.as_ref() else { slot = node.next; continue };
                         assert!(entry.committed);
                         let kind = match entry.record.kind { Kind::Ipv4 => "F4", Kind::Ipv6 => "F6", Kind::ReverseIpv4 => "R4", Kind::ReverseIpv6 => "R6", _ => panic!("LRU kind") };
                         write!(row, " {kind}:{}:{}:", name(&entry.record.name), entry.expires).unwrap(); hex(&mut row, &entry.record.data); slot = node.next;
