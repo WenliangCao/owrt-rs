@@ -10,7 +10,7 @@ use super::wire::{find_pseudoheader, Header};
 use crate::config::dns::DnsConfig;
 use crate::hosts::Hosts;
 use std::io::{self, Read, Write};
-use std::net::{TcpStream, UdpSocket};
+use std::net::{Ipv4Addr, TcpStream, UdpSocket};
 use std::sync::Arc;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -170,6 +170,9 @@ pub struct LocalDnsService {
     pub local_ttl: u32,
     pub max_udp: usize,
     pub edns_packet_max: u16,
+    /// IPv4 destination interface address and mask for localise-queries.
+    /// The listener supplies this for each UDP request or TCP connection.
+    pub local_network: Option<(Ipv4Addr, Ipv4Addr)>,
 }
 
 impl LocalDnsService {
@@ -197,6 +200,7 @@ impl LocalDnsService {
             local_ttl,
             max_udp: receive_limit.max(512),
             edns_packet_max,
+            local_network: None,
         }
     }
 
@@ -224,7 +228,8 @@ impl LocalDnsService {
             local_ttl: self.local_ttl,
             max_packet: limit,
         };
-        let Some(mut answer) = answerer.answer_with_lease_source(query, &mut self.leases, now)?
+        let Some(mut answer) =
+            answerer.answer_on_network(query, &mut self.leases, now, self.local_network)?
         else {
             return Ok(None);
         };
@@ -265,9 +270,12 @@ impl LocalDnsService {
             local_ttl: self.local_ttl,
             max_packet: u16::MAX as usize,
         };
-        let Some(mut packet) = answerer.answer_with_leases(query, &mut self.leases, now)? else {
+        let Some(answer) =
+            answerer.answer_on_network(query, &mut self.leases, now, self.local_network)?
+        else {
             return Ok(None);
         };
+        let mut packet = answer.packet;
         if opt.is_some() {
             append_empty_opt(
                 &mut packet,
@@ -329,7 +337,7 @@ impl LocalDnsService {
     }
 }
 
-fn unix_now() -> i64 {
+pub(super) fn unix_now() -> i64 {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map_or(0, |duration| duration.as_secs().min(i64::MAX as u64) as i64)
@@ -432,6 +440,69 @@ mod tests {
         assert_eq!(
             u16::from_be_bytes([response[0], response[1]]) as usize,
             response.len() - 2
+        );
+    }
+
+    #[test]
+    fn localise_filters_only_ipv4_hosts_when_one_matches_destination_network() {
+        let mut service = configured(
+            &[
+                b"localise-queries".to_vec(),
+                b"no-round-robin".to_vec(),
+                b"host-record=multi.test,192.0.2.3,2001:db8::3".to_vec(),
+                b"host-record=multi.test,198.51.100.3".to_vec(),
+                b"cname=alias.test,multi.test".to_vec(),
+            ],
+            1232,
+        );
+        service.local_network = Some((
+            "192.0.2.1".parse().unwrap(),
+            "255.255.255.0".parse().unwrap(),
+        ));
+        for name in ["multi.test", "alias.test"] {
+            let mut writer = crate::dns::wire::PacketWriter::new(1, 0x100, 512).unwrap();
+            writer
+                .question(&crate::dns::wire::Name::from_ascii(name).unwrap(), 255, 1)
+                .unwrap();
+            let query = writer.finish();
+            let packet = service.handle_udp(&query).unwrap().unwrap();
+            let parsed = crate::dns::wire::Message::parse(&packet).unwrap();
+            let a = parsed
+                .records(crate::dns::wire::Section::Answer)
+                .filter(|rr| rr.rrtype == 1)
+                .collect::<Vec<_>>();
+            assert_eq!(a.len(), 1);
+            assert_eq!(a[0].rdata, [192, 0, 2, 3]);
+            assert_eq!(
+                parsed
+                    .records(crate::dns::wire::Section::Answer)
+                    .filter(|rr| rr.rrtype == 28)
+                    .count(),
+                1
+            );
+        }
+        service.local_network = Some((
+            "203.0.113.1".parse().unwrap(),
+            "255.255.255.0".parse().unwrap(),
+        ));
+        let mut writer = crate::dns::wire::PacketWriter::new(1, 0x100, 512).unwrap();
+        writer
+            .question(
+                &crate::dns::wire::Name::from_ascii("multi.test").unwrap(),
+                1,
+                1,
+            )
+            .unwrap();
+        let packet = service
+            .handle_tcp_payload(&writer.finish())
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            crate::dns::wire::Message::parse(&packet)
+                .unwrap()
+                .header
+                .answers,
+            2
         );
     }
 

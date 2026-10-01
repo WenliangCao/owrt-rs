@@ -80,6 +80,7 @@ struct LeaseView<'a> {
     names: &'a LeaseNames,
     now: i64,
     local_ttl: u32,
+    local_network: Option<(Ipv4Addr, Ipv4Addr)>,
 }
 
 impl<'a> LocalAnswerer<'a> {
@@ -111,6 +112,16 @@ impl<'a> LocalAnswerer<'a> {
         leases: &mut Arc<LeaseNames>,
         now: i64,
     ) -> Result<Option<LocalAnswer>, AnswerError> {
+        self.answer_on_network(query, leases, now, None)
+    }
+
+    pub(crate) fn answer_on_network(
+        &mut self,
+        query: &[u8],
+        leases: &mut Arc<LeaseNames>,
+        now: i64,
+        local_network: Option<(Ipv4Addr, Ipv4Addr)>,
+    ) -> Result<Option<LocalAnswer>, AnswerError> {
         let header = Header::parse(query).map_err(|_| AnswerError::Malformed)?;
         if header.opcode() != 0
             || header.flags & 0x8000 != 0
@@ -134,6 +145,7 @@ impl<'a> LocalAnswerer<'a> {
             names: leases,
             now,
             local_ttl: self.local_ttl,
+            local_network,
         };
 
         let key = question.name.canonical_wire();
@@ -340,7 +352,7 @@ fn dotted_key(name: &[u8]) -> Vec<u8> {
         .unwrap_or_default()
 }
 
-fn wire_to_dotted(name: &Name) -> Option<Vec<u8>> {
+pub(super) fn wire_to_dotted(name: &Name) -> Option<Vec<u8>> {
     let wire = name.as_wire();
     let mut out = Vec::new();
     let mut pos = 0;
@@ -594,9 +606,23 @@ fn add_local_records_for_name(
                     owned = true;
                 }
             }
-            for host in hosts.lookup(name, Some(ipv6), config.no_round_robin) {
-                rows.push((rrtype, host.ttl, ip_bytes(host.address)));
-                owned = true;
+            let host_rows = hosts.lookup(name, Some(ipv6), config.no_round_robin);
+            let local_network = leases.local_network.filter(|(address, _)| {
+                config.localise_queries && !ipv6 && !address.is_unspecified()
+            });
+            let same_network = |candidate: IpAddr| match (local_network, candidate) {
+                (Some((address, netmask)), IpAddr::V4(candidate)) => {
+                    u32::from(candidate) & u32::from(netmask)
+                        == u32::from(address) & u32::from(netmask)
+                }
+                _ => false,
+            };
+            let localise = host_rows.iter().any(|host| same_network(host.address));
+            for host in host_rows {
+                if !localise || same_network(host.address) {
+                    rows.push((rrtype, host.ttl, ip_bytes(host.address)));
+                    owned = true;
+                }
             }
         }
     }

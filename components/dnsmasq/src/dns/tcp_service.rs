@@ -45,6 +45,7 @@ pub struct TcpDnsService {
     routing: RoutingTable,
     upstream: TcpUpstream,
     policy: AddressPolicy,
+    query_policy: super::query_policy::QueryPolicy,
     proxy_dnssec: bool,
     edns_packet_max: u16,
 }
@@ -71,6 +72,7 @@ impl TcpDnsService {
             routing,
             upstream,
             policy,
+            query_policy: super::query_policy::QueryPolicy::from_config(config),
             proxy_dnssec: config.proxy_dnssec,
             edns_packet_max,
         })
@@ -110,6 +112,12 @@ impl TcpDnsService {
         }
         if let Some(reply) = query_error(query)? {
             return Ok(reply);
+        }
+        if let Some(packet) =
+            self.query_policy
+                .reply(query, &self.routing, local, self.edns_packet_max, true)?
+        {
+            return Ok(packet);
         }
         let question = Question::parse(query, 12)?;
         let route = self
