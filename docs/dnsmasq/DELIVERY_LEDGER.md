@@ -1,57 +1,58 @@
 # dnsmasq-rs 交付账本
 
-日更：2026-10-01 23:33 CEST。本次按用户纠偏重排任务。此文件是唯一维护的进度入口；旧 REPORT、CONTINUATION 和各阶段报告保留作历史证据，不再决定当前工作范围。
+日更：2026-10-02。此文件是唯一维护的进度入口；旧 REPORT、CONTINUATION 和细分报告保留作历史证据，不决定当前工作范围。
 
-## 当前目标
+## 北极星目标已达成
 
-用 AX3000T 实际 UCI 生成的 dnsmasq 配置，让 dnsmasq-rs 完整启动，在隔离环境完成真实 DHCP 租约和 DNS 查询的一次 C/Rust 端到端对照。清单以外的工作暂停。性能工作停止，达到这个目标后再按冻结协议测一次。
+产品源码 `3cfd22e` 使用 AX3000T 实际 UCI 生成的 dnsmasq 配置完整启动，并在隔离环境完成真实 DHCP 租约和 DNS 查询的一轮 C/Rust 端到端对照。8 项主线缺口全部关闭，**当前清单剩余 0 项**。完整 dnsmasq 替换、性能收益和生产验收仍未完成。
 
-已找到原配置，不需要接触设备。来源为 `private/network-research-20260929/runtime/dns-runtime-files.out` 中的 `/var/etc/dnsmasq.conf.cfg01411c`，capture SHA-256 为 `44d61e552774f9085aee1ab67c6351a9c546af23ede5738bcb29e949a1ead317`。私有提取文件在 `private/dnsmasq-rewrite/actual-runtime-20261001/source/rootfs/var/etc/dnsmasq.conf.cfg01411c`，737 字节，SHA-256 为 `273642923b52722c6b423c22d1586972e7475d78142c2f14185a940230ad9afe`。依赖文件和来源身份记在该目录的 `source/identity.json`；配置、地址、租约不进 Git。
+原配置没有删除指令或改写语义，737 字节，SHA-256 为 `273642923b52722c6b423c22d1586972e7475d78142c2f14185a940230ad9afe`。它来自已有 AX3000T 运行捕获，连同离线依赖保存在 ignored `private/dnsmasq-rewrite/actual-runtime-20261001/source/`。没有访问物理路由器。
 
-参考仍为 AX3000T / OpenWrt 25.12.5 / dnsmasq 2.93-r1 nodhcpv6，匹配 OpenWrt revision `f0a60eee2fe051741c643ea6118718aae1ef17fb`。已有实际配置、镜像和匹配源码供离线使用。物理路由器访问、部署和配置修改仍需另行授权。
+最终流程实际完成：原命令启动、UID/GID 453、UBus注册、DISCOVER/OFFER、REQUEST/ACK、12小时租约文件、FQDN A、短名 A、PTR、一次受控上游 A、原四个 resolver 的首次探测及正常退出。C/Rust 数据和副作用零差异。C参考为匹配 OpenWrt 补丁源码构建的原生程序，实验在构建机命名空间运行，不冒充镜像 ELF、OpenWrt 内核或真机验收。
 
-## 按阻塞顺序推进的清单
+## 已关闭的八项
 
-当前剩余 **8 项：7 项实现阻塞和 1 项最终验收**。以下阻塞已经对照实际配置和源码确认；完整原配置启动尚未执行，不能把源码判断写成已跑的启动失败。
+1. **原配置与依赖加载。** `read-ethers` 进入启动/HUP，include、账户、hosts等原路径依赖齐备，原配置检查和完整启动均通过。ethers解析与重载29 cases/36 generations一致。
+2. **真实 DHCP 标签。** range的`set:lan`、条件广播和忽略名字、实际`dhcp-name-match`规则均已接线。配置C差分114项合同匹配；8项已知未支持边界单列。
+3. **DHCP 接口与发送选择。** `no-dhcp-interface`、标签广播和名字策略实包13/13一致。最终E2E发现option28差异，已改为读取实际内核广播属性，保留显式非标准广播地址；修后原闭环通过。
+4. **目录 hosts。** 加载`/tmp/hosts`中的实际生成文件，保留文件顺序与排除规则，原配置下租约/本地回答正常。
+5. **实际 DNS 策略。** `domain-needed`、`bogus-priv`、`localise-queries`已实现，和目录hosts一起完成UDP/TCP 38/38对照。
+6. **接口监听与来源限制。** `bind-dynamic`、`local-service`、IPv6 scope、地址增删和退出清理26/26一致。
+7. **进程身份与 PID。** 按原用户/组降权、保留所需能力、PID文件和清理6/6一致。修复了no-ping时多留能力、debug退出不删除PID两处差异。
+8. **原配置端到端对照。** 最终`rust-e2e-02`对`c-e2e-06`通过：2个DHCP回复、4次DNS、租约、身份、UBus、各上游端点次数和退出码均一致。
 
-1. **原配置和依赖加载。** 补 `read-ethers` 开关及启动时文件接线，按原路径提供 include、用户数据库等依赖。配置与生命周期负责人负责；DHCP 静态配置输入与网络负责人衔接。
-2. **真实配置使用的 DHCP 标签。** 接通 range 的 `set:lan`、条件广播与忽略名字规则，以及 include 中的 `dhcp-name-match`。tag/option 负责人负责。当前配置没有自定义 `dhcp-option`，其余 option 和封装格式暂缓。
-3. **DHCP 接口与发送选择。** 接通 `no-dhcp-interface=wan`，把标签匹配结果传入广播回复与发送路径。DHCP 网络负责人负责。实际配置和 include 没有 relay/PXE 项，二者暂不进入本轮实现。
-4. **目录 hosts。** `/tmp/hosts` 是目录，当前 `read_hosts` 把它当文件读取；需加载其中实际生成的 hosts 文件。DNS 负责人负责。
-5. **实际 DNS 策略。** 实现并接通 `domain-needed`、`bogus-priv`、`localise-queries`，随后解除相应启动拒绝。DNS 负责人负责，不以删除校验代替实现。
-6. **真实接口监听与来源限制。** 接通 `bind-dynamic`、`local-service`，保留原配置的接口、地址和端口语义。配置与生命周期负责人主责，网络负责人提供接口上下文。
-7. **进程启动退出。** 接通用户/组降权、PID 文件及清理，采用原服务所需的运行身份。配置与生命周期负责人负责；检查真实身份和资源，不能忽略配置后以 root 运行当作完成。
-8. **一次完整 C/Rust 对照。** 在私有网络和挂载命名空间重建原配置环境，完成 DORA、租约文件、租约 A/PTR 和一次受控上游 DNS 查询。DNS 负责人组织，网络负责人提供客户端和上游环境，主代理整合验收。现成 resolv 文件先复用已有读取路径；只有实际运行证明必要，动态 resolver 更新才加入阻塞清单。
+这是一篇大块完成报告，具体范围、身份和失败记录见 [实际配置阶段报告](ACTUAL_CONFIG_STAGE.md)。不再追加逐个复验报告。
 
-这 8 项按实际依赖推进，可以并行的实现分开负责。新发现只有确实阻塞当前目标时才加入清单；已实现项要有相应运行证据才关闭。
+## 实现与验证状态
 
-## 四个大块负责人
+四个大块分别由DHCP网络、DHCP tag/option、配置启动生命周期和DNS负责人交付，主代理已整合进main。相对纠偏起点，产品改动集中在实际配置加载、DHCP规则、网络接口、DNS策略和进程生命周期。没有合入原私有反向缓存或TCP快照实现。
 
-- `tcp_stream_resume`：DHCP 网络/PXE/relay。本轮负责清单 3 和端到端网络环境；拥有 DHCP daemon/runtime/service 网络接线。
-- `reverse_cache_impl`：DHCP tag 与 option。本轮负责清单 2；拥有 DHCP tag/option 配置与编码。需要 daemon 接口时交网络负责人接线。
-- `tcp_stream_review`：配置启动与 OpenWrt 生命周期。负责清单 1、6、7，维护真实配置环境，拥有 main 的相应启动流程。
-- `cache_rr_resume`：DNS 剩余缺口。本轮负责清单 4、5、8；拥有 DNS 模块、main 的 read_hosts 和 DNS 策略校验。现有租约发布与 A/PTR 路径复用。
+联合源码`f099ffb`已通过native和SDK-musl的库405项、main8项及Clippy/fmt；16项ignored不计通过。之后仅解除已由监听层实现的重复guard及修复广播属性读取；最终`3cfd22e`的相关native/musl解析单元、显式隔离内核检查、Clippy/fmt及musl链接通过。复用已有完整回归，没有为最后两处改动重跑无关全套。
 
-主代理负责阻塞顺序、文件归属、整合、提交和最终对照，不再把多个代理投入同一个 DNS 角落。main.rs 已按函数划分修改区域；用户的 `docs/prompts/` 修改保留。
+最终功能验证使用的原生调试ELF SHA-256为 `1b0d474ef8c147c1d925a6c7461bed07da6d1375c2dde46e6034293017ea0e3c`。原始结果与所有失败在 ignored `private/dnsmasq-rewrite/northstar-dns-20261002/`；其他模块检查路径在阶段报告中。调试产物只供功能验证，不能用于性能收益结论。
 
-## 验证规则
+## 失败照实保留
 
-普通修复采用单元测试加一次 C 差分，不再逐项冻结参考、双 C、负向对照或独立复核。解析器、租约状态机、缓存一致性仍做完整验证，复用已有有效用例。一次通过只证明已执行的范围；失败、启动未执行和 ignored 检查照实保留。大块完成后才写一篇阶段报告，不再产生细小复验报告。
+原配置最初因PID选项不支持而不能加载。后续保留的产品失败包括PID能力/退出差异、UDP空闲持锁导致TCP超时、残留接口校验、DHCP option28错误；修复后只重跑受影响部分。fixture的编译器路径、无地址客户端UDP接收、启动身份观察race和四resolver计数假设错误也保留，未当成产品成功或删除。报文和租约等原始数据不进Git。
 
-## 私有分支已清结
+## 分支已经清理
 
-2026-10-01 已选择归档反向缓存 `0eaaef8` 和 TCP 流式导入 `dff7a39`，未合入产品；没有等待 48 小时到期。原工作树和所有证据保留，三条旧任务分支已删除。
+2026-10-01已归档反向缓存`0eaaef8`和TCP流式导入`dff7a39`，旧分支清除，未合入产品。2026-10-02本轮已完成tag和DHCP网络分支也已清除；当前只保留main，工作树和证据未删除。
 
-| 内容 | 持久引用 |
+| 成果 | 持久引用 |
 | --- | --- |
-| 反向缓存及中断的 CNAME 草稿 | `evidence/20261001/dnsmasq-reverse-cache-retired`，tip `51ed499`；已验证的 `0eaaef8` 另有原证据 tag |
-| TCP 流式导入参考 | `evidence/20261001/dnsmasq-tcp-stream-import-retired`，tip `32f8db3`，包含 `dff7a39` |
-| 反向缓存工具及原 28 项 before | `evidence/20261001/dnsmasq-reverse-cache-gate-retired`，tip `69d8e73` |
+| 反向缓存及中断的未资格化CNAME草稿 | `evidence/20261001/dnsmasq-reverse-cache-retired` |
+| TCP流式导入参考 | `evidence/20261001/dnsmasq-tcp-stream-import-retired` |
+| 反向缓存工具 | `evidence/20261001/dnsmasq-reverse-cache-gate-retired` |
+| 本轮tag/option | `evidence/20261002/dnsmasq-dhcp-tags-options` |
+| 本轮DHCP网络/广播修复 | `evidence/20261002/dnsmasq-dhcp-network-actual-config` |
+| 本轮DNS与E2E工具 | `evidence/20261002/dnsmasq-actual-config-dns` |
+| 本轮启动/监听 | `evidence/20261002/dnsmasq-actual-config-startup` |
 
-CNAME 草稿的新增单元测试编译停在 E0451，未修复、未通过 after 差分，不能当作已交付功能。原 28 项 before 的 4 处差异、多 PTR 顺序差异及成本退步继续保留。NX、interface-name、反向索引和顺序实验停止；后来已经完成的成本证据另存 `evidence/20261001/dnsmasq-reverse-index-cost-retired`。清结操作记录在 ignored `private/dnsmasq-rewrite/north-star-reprioritization-20261001/retirement.json`。
+用户的`docs/prompts/`修改保持原样。新工作遵循普通修复单元+一次C差分、解析器/租约状态机/缓存一致性完整验证的风险分级；一天只更新本账本一次。
 
-## 产品起点与当前验收状态
+## 尚未交付的范围
 
-纠偏时最新产品功能提交是 `78f1e81`，只合入独立 DHCP FQDN 接线。该原始产品 ELF 为 `f126a762fbb0f1bcdac0e4e2eb61290bd92361f56fcf712213278ed9ba33e391`，已有原 FQDN 服务 8 项、配置 5 项、恢复与名字冲突 22 项，以及 native/musl 库 391、主程序 7 项验证；16 项 ignored 未计通过。这些证据可复用，但不能代替本轮实际配置端到端验收。
+实际配置未启用relay/PXE或自定义DHCP option，因此这些能力没有被本次闭环资格化，也没有被从完整重写目标中删除。完整TCP缓存、其他DNS/DHCP/TFTP能力、resolver动态更新、长期运行和OpenWrt全生命周期仍是后续范围。
 
-旧 SDK 阶段产物仍是 `405b7c1`，仅安装 `/usr/libexec/dnsmasq-rs`，不是替换包。本轮真实配置完整启动、端到端目标、完整 dnsmasq 等价、性能改善和生产验收均尚未完成。
+性能筛选未重启。下一次性能工作须沿冻结协议执行一次，在所测场景功能前置条件成立后开始；不重开旧快照筛选、不挑快窗口或豁免退步。旧SDK阶段包仍是405b7c1，不是本次源码的可替换包。物理设备部署、修改和真机测量仍需另行授权及恢复门。
