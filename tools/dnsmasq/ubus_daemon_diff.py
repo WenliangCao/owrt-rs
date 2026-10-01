@@ -18,6 +18,7 @@ import time
 from dns_service_probe import query, semantics, exact_read
 from dhcp_lease_lifecycle import packet as dhcp_packet
 from ubus_contract_diff import BUS, OBJECT, Fixture, digest, fields, read_json_lines
+from dns_udp_refusal_diff import verify_reference
 
 
 class Product(Fixture):
@@ -42,7 +43,7 @@ class Product(Fixture):
                           "dhcp-range=127.0.0.10,127.0.0.20,255.0.0.0,127.255.255.255,600s\n"
                           f"dhcp-leasefile={lease}\naddn-hosts={self.hosts}\n"
                           + (f"enable-ubus={OBJECT}\n" if bus else "") + extra)
-        binary = self.args.reference_build / "dnsmasq/dnsmasq" if side == "C" else self.args.rust_binary
+        binary = (self.args.c_binary or self.args.reference_build / "dnsmasq/dnsmasq") if side == "C" else self.args.rust_binary
         command = [str(binary), "--keep-in-foreground", "--conf-file=" + str(config)]
         if side == "C":
             command += ["--user=root", "--group=root", "--log-facility=-", "--pid-file=" + str(self.out / "pid")]
@@ -236,6 +237,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--reference-build", type=Path, required=True)
     parser.add_argument("--c-sha256", required=True)
+    parser.add_argument("--c-binary", type=Path, help="optional exact image runner; native build still supplies ubusd/client")
+    parser.add_argument("--c-identity", type=Path, help="strict image ELF/library/runner identity for --c-binary")
     parser.add_argument("--rust-binary", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--inject-error", action="store_true")
@@ -245,6 +248,12 @@ def main():
     assert {row["ifname"] for row in json.loads(subprocess.check_output(["ip", "-j", "link"]))} == {"lo"}
     args.reference_build, args.rust_binary = args.reference_build.resolve(), args.rust_binary.resolve()
     assert digest(args.reference_build / "dnsmasq/dnsmasq") == args.c_sha256
+    reference = {"kind": "native-glibc", "elf_sha256": args.c_sha256}
+    if args.c_binary is not None:
+        args.c_binary = args.c_binary.resolve()
+        reference = verify_reference(args.c_binary, args.c_identity)
+    else:
+        assert args.c_identity is None, "--c-identity requires --c-binary"
     out = args.out.resolve()
     assert "private" in out.parts
     out.mkdir(parents=True, exist_ok=False)
@@ -278,7 +287,8 @@ def main():
               "paired_observations": len(expected),
               "paired_matches": sum(row["pass"] for row in f.checks if row["case"].startswith("paired-") and row["case"] != "paired-observation-keys"),
               "reference_defects": ["C DNS object's type survives bus restart and cannot be resolved"],
-              "identities": {"c": args.c_sha256, "rust": digest(args.rust_binary),
+              "reference": reference,
+              "identities": {"c": reference["elf_sha256"], "native_client_build_c": args.c_sha256, "rust": digest(args.rust_binary),
                              "ubusd": digest(args.reference_build / "deps/sbin/ubusd"),
                              "client": digest(f.client), "tool": digest(__file__)}}
     (out / "result.json").write_text(json.dumps(report, indent=2, default=lambda value: value.hex()) + "\n")

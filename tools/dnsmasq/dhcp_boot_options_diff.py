@@ -54,10 +54,11 @@ def fixtures():
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--c",type=Path,required=True);parser.add_argument("--rust",type=Path)
+    parser.add_argument("--c-identity",type=Path)
     parser.add_argument("--output",type=Path,required=True);parser.add_argument("--inject-failure",action="store_true")
     args=parser.parse_args();assert os.environ.get("DNSMASQ_TEST_ISOLATED")=="1"
     assert sorted(name for _,name in socket.if_nameindex())==["lo"]
-    identity=verify_reference(args.c,None);out=args.output.resolve();assert "private" in out.parts
+    identity=verify_reference(args.c,args.c_identity);out=args.output.resolve();assert "private" in out.parts
     out.mkdir(parents=True,exist_ok=False);cases=list(fixtures())
     (out/"plan.json").write_text(json.dumps(cases,indent=2)+"\n")
     report={"reference":identity,"planned_scenarios":len(cases),"planned_events":sum(len(row[-1]) for row in cases),
