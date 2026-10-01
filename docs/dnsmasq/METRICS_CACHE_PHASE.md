@@ -102,3 +102,37 @@ python3 tools/dnsmasq/cache_metrics_diff.py \
 Use `--inject-error` with a fresh output directory for the negative control.
 Live product UDP/TCP/cache-reload snapshots, other DNS counters and complete
 ubus publication acceptance remain open.
+
+## Daemon cache caller integration
+
+The daemon now owns one `CacheCounters` alongside its cache. Positive, negative,
+CNAME and independent SOA insertions pass it through the existing local-blocker
+helper; both commit sites and reload use counted methods. Local hosts/DHCP
+targets, cache hits and aborted transactions do not invent committed records.
+`cache_counters()` returns a non-consuming snapshot. Cache reinitialization and
+hosts reload reset only these two cache-window values.
+
+The expanded `cache_answer_diff.py --with-metrics` invokes actual C
+`extract_addresses`/`answer_request`/`cache_reload`, and the production Rust
+daemon cache methods. It preserves the earlier 205-command semantic corpus and
+adds pressure at capacity 150, 160 unexpired inserts, subsequent hits and reset.
+After every operation, it reads and compares the actual C/Rust counters.
+
+- **764 ordered observations**, including **164 DNS queries and 382 metric
+  snapshots**, all match. Each side records 95 cache hits, 69 misses, 188 reply
+  insertion events and 30 reloads. An insertion event may commit multiple records.
+- The deliberate counter mutation produces **763 matches / one mismatch**,
+  exits 1 and leaves the original output files intact.
+- The C calibration independently requires initial/reset 0/0, first commit
+  1/0 and the completed pressure trace 160 inserted / 10 live freed.
+- Main/host stage regression: 328 library tests passed, six ignored;
+  six main tests passed; fmt and musl all-targets Clippy passed. Ignored tests
+  are separate from this explicitly executed C oracle.
+
+Raw evidence is in
+`private/dnsmasq-rewrite/cache-daemon-metrics-20261001/`: `reference-01`,
+`gate-02`, `calibration-01`. `gate-01` retains a build setup failure: the remote
+default Rust was 1.98.0, so Rust did not execute; `gate-02` pins 1.98.1. Final
+format-only changes and the local unit regression do not replace the recorded
+oracle source hashes. This establishes counted caller behavior, not real ubus
+publication or full DNS/TCP cache equivalence.

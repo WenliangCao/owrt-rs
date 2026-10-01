@@ -59,6 +59,34 @@ fn cached(daemon: &mut DnsDaemon, name: &str, qtype: u16, now: i64) -> Option<Ve
 }
 
 #[test]
+fn response_counters_count_committed_records_and_follow_real_reload() {
+    let mut daemon = daemon();
+    let response = chain_reply(1, false);
+    assert_eq!(daemon.cache_counters(), CacheCounters::default());
+    daemon.cache_reply_at(&response, 100);
+    assert_eq!(
+        daemon.cache_counters(),
+        CacheCounters {
+            inserted: 3,
+            live_freed: 0
+        }
+    );
+    assert!(cached(&mut daemon, "alias.test", 1, 101).is_some());
+    assert_eq!(daemon.cache_counters().inserted, 3);
+    daemon.cache_reply_at(&response, 101);
+    assert_eq!(
+        daemon.cache_counters(),
+        CacheCounters {
+            inserted: 6,
+            live_freed: 0
+        }
+    );
+    daemon.reload_hosts(Hosts::new());
+    assert_eq!(daemon.cache_counters(), CacheCounters::default());
+    assert!(cached(&mut daemon, "alias.test", 1, 102).is_none());
+}
+
+#[test]
 fn cname_query_stops_at_first_alias_and_keeps_exact_c_flags() {
     for negative in [false, true] {
         let mut daemon = daemon();
@@ -275,8 +303,16 @@ fn exact_c_oracle_driver() {
     for line in corpus.lines() {
         let words: Vec<_> = line.split_whitespace().collect();
         if words[0] == "RESET" {
-            daemon.cache.as_mut().unwrap().clear();
+            daemon.reload_hosts(Hosts::new());
             println!("CACHE_ORACLE RESET");
+            continue;
+        }
+        if words[0] == "M" {
+            let counters = daemon.cache_counters();
+            println!(
+                "CACHE_ORACLE M {} {}",
+                counters.inserted, counters.live_freed
+            );
             continue;
         }
         let now: i64 = words[1].parse().unwrap();

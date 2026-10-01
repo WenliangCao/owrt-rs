@@ -8,7 +8,9 @@
 //! `forward.c::process_reply` cache policy are separate work; direct positive
 //! A/AAAA cache insertion and lookup are wired below.
 
-use super::cache::{Cache, CnameTarget, Kind, Policy as CachePolicy, Record, StalePolicy};
+use super::cache::{
+    Cache, CacheCounters, CnameTarget, Kind, Policy as CachePolicy, Record, StalePolicy,
+};
 use super::cache_reply::{append_cname_record, append_negative_authority, append_positive_record};
 use super::forward::{Client, Options as ForwardOptions, QueryId, Random, Scope};
 use super::forward_service::ForwardDispatcher;
@@ -166,6 +168,7 @@ pub struct DnsDaemon<R = OsRandom> {
     routing: RoutingTable,
     upstream: UpstreamResolver<R>,
     cache: Option<Cache>,
+    cache_counters: CacheCounters,
     negative_ttl: u32,
     negative_cache: bool,
     policy: AddressPolicy,
@@ -238,6 +241,7 @@ impl<R: Random> DnsDaemon<R> {
             routing,
             upstream,
             cache: None,
+            cache_counters: CacheCounters::default(),
             negative_ttl: 0,
             negative_cache: false,
             policy,
@@ -256,12 +260,18 @@ impl<R: Random> DnsDaemon<R> {
         self.poll_failures
     }
 
+    /// Cumulative real cache events since initialization or the last reload.
+    /// Reading is non-destructive and independent of ubus enablement.
+    pub fn cache_counters(&self) -> CacheCounters {
+        self.cache_counters
+    }
+
     /// Replace the reloaded hosts snapshot and discard dynamic DNS answers.
     /// Resolver routing and in-flight upstream requests retain their owners.
     pub fn reload_hosts(&mut self, hosts: Hosts) {
         self.local.hosts = hosts;
         if let Some(cache) = &mut self.cache {
-            cache.clear();
+            cache.clear_counted(&mut self.cache_counters);
         }
     }
 
@@ -313,6 +323,7 @@ impl<R: Random> DnsDaemon<R> {
                 stale,
             },
         ));
+        self.cache_counters = CacheCounters::default();
     }
 
     /// Enable the no-SOA NXDOMAIN cache fallback. SOA/NODATA synthesis is
@@ -959,6 +970,7 @@ impl<R: Random> DnsDaemon<R> {
         let Some(cache) = self.cache.as_mut() else {
             return;
         };
+        let counters = &mut self.cache_counters;
         let Ok(message) = Message::parse(packet) else {
             return;
         };
@@ -1101,7 +1113,7 @@ impl<R: Random> DnsDaemon<R> {
             // the target ordering remains intact.
             let mut soa_id = if chain.is_empty() {
                 if authority.is_some() {
-                    match insert_authority(cache, local, authority, now) {
+                    match insert_authority(cache, counters, local, authority, now) {
                         Some(id) => Some(id),
                         None if negative_ttl != 0 => {
                             // find_soa() reports no SOA when its independent
@@ -1126,6 +1138,7 @@ impl<R: Random> DnsDaemon<R> {
                 for (owner, target, ttl) in &chain {
                     let Some(CacheInsert::Dynamic(cname_id)) = insert_cache_record(
                         cache,
+                        counters,
                         local,
                         Record {
                             name: owner.clone(),
@@ -1154,12 +1167,12 @@ impl<R: Random> DnsDaemon<R> {
                 return;
             };
             let Some(CacheInsert::Dynamic(id)) =
-                insert_cache_record(cache, local, record, now, ttl)
+                insert_cache_record(cache, counters, local, record, now, ttl)
             else {
                 cache.start_insert();
                 return;
             };
-            soa_id = soa_id.or_else(|| insert_authority(cache, local, authority, now));
+            soa_id = soa_id.or_else(|| insert_authority(cache, counters, local, authority, now));
             if authority.is_some() && soa_id.is_none() {
                 if direct_negative {
                     if negative_ttl == 0 {
@@ -1196,7 +1209,7 @@ impl<R: Random> DnsDaemon<R> {
                 }
                 targets.push((owner, cname_id));
             }
-            let _ = cache.commit();
+            let _ = cache.commit_counted(counters);
             return;
         }
 
@@ -1208,6 +1221,7 @@ impl<R: Random> DnsDaemon<R> {
         for (owner, target, ttl) in &chain {
             let Some(CacheInsert::Dynamic(cname_id)) = insert_cache_record(
                 cache,
+                counters,
                 local,
                 Record {
                     name: owner.clone(),
@@ -1227,6 +1241,7 @@ impl<R: Random> DnsDaemon<R> {
         for (name, data, ttl) in addresses {
             let Some(inserted) = insert_cache_record(
                 cache,
+                counters,
                 local,
                 Record {
                     name: name.clone(),
@@ -1268,7 +1283,7 @@ impl<R: Random> DnsDaemon<R> {
             }
             targets.push((owner, CnameTarget::Dynamic(cname_id)));
         }
-        let _ = cache.commit();
+        let _ = cache.commit_counted(counters);
     }
 }
 
@@ -1405,6 +1420,7 @@ fn authority_soa(message: &Message<'_>, name: &Name) -> Option<(Name, u32, u32, 
 
 fn insert_authority(
     cache: &mut Cache,
+    counters: &mut CacheCounters,
     local: &LocalDnsService,
     soa: Option<&(Name, u32, u32, Vec<u8>)>,
     now: i64,
@@ -1412,6 +1428,7 @@ fn insert_authority(
     let (name, ttl, _, data) = soa?;
     match insert_cache_record(
         cache,
+        counters,
         local,
         Record {
             name: name.clone(),
@@ -1434,6 +1451,7 @@ enum CacheInsert {
 
 fn insert_cache_record(
     cache: &mut Cache,
+    counters: &mut CacheCounters,
     local: &LocalDnsService,
     record: Record,
     now: i64,
@@ -1483,7 +1501,7 @@ fn insert_cache_record(
         Some(CacheInsert::Local(record.name, from_lease))
     } else {
         cache
-            .insert(record, now, ttl)
+            .insert_counted(record, now, ttl, counters)
             .ok()
             .map(CacheInsert::Dynamic)
     }

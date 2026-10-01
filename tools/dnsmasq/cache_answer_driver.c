@@ -12,6 +12,7 @@
 #define NO_ID 1
 #include "dnsmasq.h"
 #include <assert.h>
+#include <inttypes.h>
 
 int main(int argc, char **argv)
 {
@@ -29,6 +30,13 @@ int main(int argc, char **argv)
   size_t capacity = 0;
   while (getline(&line, &capacity, stdin) >= 0)
     {
+      if (!strcmp(line, "M\n"))
+        {
+          printf("M %" PRIu32 " %" PRIu32 "\n",
+                 (uint32_t)daemon->metrics[METRIC_DNS_CACHE_INSERTED],
+                 (uint32_t)daemon->metrics[METRIC_DNS_CACHE_LIVE_FREED]);
+          continue;
+        }
       if (!strcmp(line, "RESET\n"))
         {
           cache_reload();

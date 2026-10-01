@@ -121,6 +121,7 @@ def corpus():
 
 
 def calibration(rows):
+    rows = [row for row in rows if not row.startswith('M ')]
     assert rows[0:3] == ['RESET', 'NONE', 'P'], 'reset/miss/insert calibration failed'
     result = dns_semantics(rows[3])
     assert result == {'id': 0x1234, 'flags': 0x8183,
@@ -140,6 +141,8 @@ def main():
     parser.add_argument('--oracle-command')
     parser.add_argument('--oracle-identity', type=Path)
     parser.add_argument('--cargo', default='cargo')
+    parser.add_argument('--with-metrics', action='store_true')
+    parser.add_argument('--inject-counter-mismatch', action='store_true')
     args = parser.parse_args()
     out = args.output.resolve()
     if not out.is_relative_to((ROOT / 'private').resolve()):
@@ -168,6 +171,18 @@ def main():
     assert identity['driver_sha256'] == digest(DRIVER)
     assert identity['config_sha256'] == hashlib.sha256(CONFIG.encode()).hexdigest()
     rows = corpus()
+    if args.with_metrics:
+        rows.append(('pressure-reset', 'RESET'))
+        for index in range(160):
+            host = f'pressure{index}.test'
+            wire = packet(host, 1, 0x8180, [(host, 1, 120, bytes([192, 0, 2, 1]))])
+            rows.append((f'pressure-insert-{index}', f'P 100 512 {wire.hex()}'))
+        for index in range(145, 160):
+            rows.append((f'pressure-hit-{index}', f'Q 100 512 {packet(f"pressure{index}.test", 1).hex()}'))
+        rows.append(('pressure-reload', 'RESET'))
+        rows = [entry for label, command in rows for entry in ((label, command), (label + '-metrics', 'M'))]
+    elif args.inject_counter_mismatch:
+        parser.error('--inject-counter-mismatch requires --with-metrics')
     text = ''.join(row + '\n' for _, row in rows)
     source = out / 'commands.txt'
     source.write_text(text)
@@ -188,17 +203,30 @@ def main():
         observed[label] = run.stdout.splitlines() if label == 'c' else [line.removeprefix('CACHE_ORACLE ') for line in run.stdout.splitlines() if line.startswith('CACHE_ORACLE ')]
         assert len(observed[label]) == len(rows), f'{label} output count differs'
         calibration(observed[label])
+    if args.with_metrics:
+        assert observed['c'][1] == 'M 0 0', 'initial counter reset failed'
+        assert observed['c'][5] == 'M 1 0', 'committed record counter calibration failed'
+        assert observed['c'][-3] == 'M 160 10', 'capacity eviction counter calibration failed'
+        assert observed['c'][-1] == 'M 0 0', 'reload counter calibration failed'
+        mutated = observed['c'][5].split(); mutated[1] = str(int(mutated[1]) + 1)
+        assert ' '.join(mutated) != observed['c'][5]
+        if args.inject_counter_mismatch:
+            observed['rust'][5] = ' '.join(mutated)
+            (out / 'injected-rust.stdout').write_text('\n'.join(observed['rust']) + '\n')
     errors = []
     for (case, command), c, rust in zip(rows, observed['c'], observed['rust']):
-        equal = c == rust if command.startswith(('P ', 'RESET')) else dns_semantics(c) == dns_semantics(rust)
+        metadata = command.startswith(('P ', 'RESET', 'M'))
+        equal = c == rust if metadata else dns_semantics(c) == dns_semantics(rust)
         if not equal:
             errors.append({'case': case, 'command': command, 'c': c, 'rust': rust,
-                           'c_semantics': dns_semantics(c), 'rust_semantics': dns_semantics(rust)})
+                           'c_semantics': c if metadata else dns_semantics(c),
+                           'rust_semantics': rust if metadata else dns_semantics(rust)})
     (out / 'mismatches.json').write_text(json.dumps(errors, indent=2) + '\n')
     summary = {'commands': len(rows), 'queries': sum(row.startswith('Q ') for _, row in rows),
+               'metric_snapshots': sum(row == 'M' for _, row in rows),
                'mismatches': len(errors), 'calibration': 'reset/miss/insert/NXDOMAIN/expiry and RCODE mutation passed',
                'oracle': identity, 'corpus_sha256': digest(source),
-               'results': {side: {'hits': sum(row not in ('NONE', 'P', 'RESET') for row in values),
+               'results': {side: {'hits': sum(row not in ('NONE', 'P', 'RESET') and not row.startswith('M ') for row in values),
                                   'misses': values.count('NONE'), 'insert_events': values.count('P'),
                                   'reset_events': values.count('RESET')} for side, values in observed.items()},
                'tool_sha256': digest(Path(__file__)),

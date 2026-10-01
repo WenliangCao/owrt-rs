@@ -425,7 +425,11 @@ impl Cache {
         configured_ttl: u32,
     ) -> Result<Option<EntryId>, InsertError> {
         self.insert_negative_counted(
-            record, now, soa_ttl, configured_ttl, &mut CacheCounters::default(),
+            record,
+            now,
+            soa_ttl,
+            configured_ttl,
+            &mut CacheCounters::default(),
         )
     }
 
