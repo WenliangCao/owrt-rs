@@ -13,6 +13,9 @@ pub use host::{HardwareAddress, HostConfig};
 #[path = "dhcp_host_files.rs"]
 mod host_files;
 pub use host_files::{HostFileError, HostFileErrorKind, HostFiles, HostReload};
+#[path = "dhcp_options.rs"]
+mod ordinary_options;
+pub use ordinary_options::{DhcpOption, OptionValue};
 
 /// A validated copy of only the DNS address-to-domain fields. Keeping these
 /// fields in DnsConfig reuses its audited selector ordering and matching.
@@ -98,6 +101,8 @@ pub struct DhcpConfig {
     pub hosts: Vec<HostConfig>,
     /// Last configured path first, as in daemon->dhcp_hosts_file.
     pub host_files: Vec<Vec<u8>>,
+    /// Last configured first, including duplicates for C warning behavior.
+    pub options: Vec<DhcpOption>,
     pub authoritative: bool,
     pub bootp_dynamic: bool,
     /// Last untagged directive wins, matching find_boot's reverse list.
@@ -119,6 +124,7 @@ impl Default for DhcpConfig {
             ranges: Vec::new(),
             hosts: Vec::new(),
             host_files: Vec::new(),
+            options: Vec::new(),
             authoritative: false,
             bootp_dynamic: false,
             boot: None,
@@ -189,6 +195,13 @@ impl DhcpConfig {
         let argument = directive.argument.as_ref();
         match directive.name.as_slice() {
             b"dhcp-authoritative" => self.authoritative = true,
+            b"dhcp-option" | b"dhcp-option-force" => {
+                let option = DhcpOption::parse(
+                    argument.ok_or(Error("missing parameter"))?,
+                    directive.name == b"dhcp-option-force",
+                )?;
+                self.options.insert(0, option);
+            }
             b"dhcp-no-override" => self.no_override = true,
             b"dhcp-boot" => {
                 self.boot = Some(BootConfig::parse(
@@ -274,9 +287,7 @@ impl DhcpConfig {
                 }
                 self.host_files.insert(0, value);
             }
-            b"dhcp-option"
-            | b"dhcp-option-force"
-            | b"dhcp-vendorclass"
+            b"dhcp-vendorclass"
             | b"dhcp-userclass"
             | b"dhcp-match"
             | b"dhcp-name-match"

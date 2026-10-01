@@ -583,6 +583,10 @@ impl OutcomeProvider for LocalProvider {
         self.config.boot.as_ref()
     }
 
+    fn configured_options(&self) -> &[crate::config::dhcp::DhcpOption] {
+        &self.config.options
+    }
+
     fn boot_next_server(&mut self) -> io::Result<Option<Ipv4Addr>> {
         let Some(boot) = &self.config.boot else {
             return Ok(None);

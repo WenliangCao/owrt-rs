@@ -8,14 +8,16 @@
 //! DHCP/BOOTP state adapter without opening a socket here.
 
 use super::message_counters::MessageCounters;
-use super::reply::{build_reply_with_boot, needs_renewal_fuzz, ReplyError, ReplyOption};
+use super::reply::{
+    broken_string_option, build_reply_with_boot, needs_renewal_fuzz, ReplyError, ReplyOption,
+};
 use super::service::{Dispatch, DispatchKind, Route};
 use super::state::{self, Environment, HostPolicy, Name, Outcome, Reply, Request};
 use super::{
     allocation::{AddressRange, ProbeResult},
     lease::LeaseStore,
 };
-use crate::config::dhcp::BootConfig;
+use crate::config::dhcp::{BootConfig, DhcpOption, OptionValue};
 use std::io::{self, Read};
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
@@ -105,6 +107,10 @@ pub trait OutcomeProvider {
 
     fn boot_config(&self) -> Option<&BootConfig> {
         None
+    }
+
+    fn configured_options(&self) -> &[DhcpOption] {
+        &[]
     }
 
     /// Some(0) is a failed hosts-name lookup and deliberately replaces the
@@ -505,24 +511,6 @@ where
     } else {
         0
     };
-    let boot_next_server = if matches!(outcome.reply, Reply::Nak { .. }) {
-        None
-    } else {
-        match provider.boot_next_server() {
-            Ok(address) => address,
-            Err(error) => {
-                events.push(RuntimeEvent::Cleanup {
-                    outcome_dropped: true,
-                });
-                return Err(failure(
-                    RuntimeError::BootLookup(error),
-                    events,
-                    Some(outcome),
-                    true,
-                ));
-            }
-        }
-    };
     let network = (!matches!(outcome.reply, Reply::Nak { .. }))
         .then(|| provider.network_options(&outcome))
         .flatten();
@@ -542,11 +530,38 @@ where
     });
     let names = provider.reply_names(dispatch.packet, &outcome);
     let name_values = names.map(|names| encode_name_options(dispatch.packet, names));
-    let mut combined = Vec::with_capacity(options.len() + 7);
+    let mut configured_codes = [false; 256];
+    let configured = encode_configured_options(
+        dispatch.packet,
+        outcome.reply,
+        network.map(|network| network.next_server),
+        provider.configured_options(),
+        &mut configured_codes,
+    );
+    let boot_next_server = if matches!(outcome.reply, Reply::Nak { .. }) {
+        None
+    } else {
+        match provider.boot_next_server() {
+            Ok(address) => address,
+            Err(error) => {
+                events.push(RuntimeEvent::Cleanup {
+                    outcome_dropped: true,
+                });
+                return Err(failure(
+                    RuntimeError::BootLookup(error),
+                    events,
+                    Some(outcome),
+                    true,
+                ));
+            }
+        }
+    };
+    let mut combined = Vec::with_capacity(options.len() + configured.len() + 7);
     if let Some(values) = &values {
         for (code, value) in [1, 28, 3, 6].into_iter().zip(values) {
             if let Some(value) = value {
                 if !options.iter().any(|option| option.code == code)
+                    && !configured_codes[usize::from(code)]
                     && (matches!(code, 1 | 28)
                         || matches!(outcome.reply, Reply::Bootp { .. })
                         || dispatch.packet.requests(code))
@@ -559,10 +574,17 @@ where
     if let Some(names) = &name_values {
         for (code, value) in [15, 12, 81].into_iter().zip(names) {
             if let Some(value) = value {
-                if !options.iter().any(|option| option.code == code) {
+                if !options.iter().any(|option| option.code == code)
+                    && !configured_codes[usize::from(code)]
+                {
                     combined.push(ReplyOption { code, value });
                 }
             }
+        }
+    }
+    for (code, value) in &configured {
+        if !options.iter().any(|option| option.code == *code) {
+            combined.push(ReplyOption { code: *code, value });
         }
     }
     combined.extend_from_slice(options);
@@ -648,6 +670,65 @@ where
 /// rfc2131.c:700-765,2814-2874. FQDN is sent when the client supplies option
 /// 81, independently of its PRL. Without a configured domain, C's encoded
 /// form ends after the hostname label (no final root byte).
+/// Select ordinary untagged options in C's reverse configuration order.
+/// `present` intentionally records options before PRL and empty-value tests:
+/// those options still suppress network/name defaults when omitted from wire.
+fn encode_configured_options(
+    packet: super::packet::Packet<'_>,
+    reply: Reply,
+    local: Option<Ipv4Addr>,
+    configured: &[DhcpOption],
+    present: &mut [bool; 256],
+) -> Vec<(u8, Vec<u8>)> {
+    let mut values = Vec::with_capacity(configured.len().min(8));
+    if matches!(reply, Reply::Nak { .. } | Reply::Ignore) {
+        return values;
+    }
+    let bootp = matches!(reply, Reply::Bootp { .. });
+    let null_term = !bootp && broken_string_option(packet);
+    for option in configured {
+        let slot = &mut present[usize::from(option.code)];
+        if *slot {
+            eprintln!("dnsmasq-rs: Ignoring duplicate dhcp-option {}", option.code);
+            continue;
+        }
+        *slot = true;
+        if matches!(option.code, 58 | 59) {
+            // do_options consumes these internally, independently of PRL.
+            // BOOTP and INFORM never send them through the ordinary loop.
+            if !matches!(reply, Reply::Offer { .. } | Reply::Ack { .. }) {
+                continue;
+            }
+        } else if !option.force && !bootp && !packet.requests(option.code) {
+            continue;
+        }
+        let value = match &option.value {
+            OptionValue::Empty => continue,
+            OptionValue::Addresses(addresses) => addresses
+                .iter()
+                .flat_map(|address| {
+                    if address.is_unspecified() {
+                        local.unwrap_or(*address)
+                    } else {
+                        *address
+                    }
+                    .octets()
+                })
+                .collect(),
+            OptionValue::String(value) => {
+                let mut value = value.clone();
+                if null_term && value.len() != 255 {
+                    value.push(0);
+                }
+                value
+            }
+            OptionValue::Time(value) => value.to_be_bytes().to_vec(),
+        };
+        values.push((option.code, value));
+    }
+    values
+}
+
 fn encode_name_options(
     packet: super::packet::Packet<'_>,
     names: ReplyNames<'_>,
@@ -898,6 +979,82 @@ mod tests {
             removed: Vec::new(),
             lost_names: Vec::new(),
         }
+    }
+
+    #[test]
+    fn configured_presence_precedes_prl_and_bootp_uses_all_options() {
+        let configured = [
+            DhcpOption {
+                code: 3,
+                force: false,
+                value: OptionValue::Empty,
+            },
+            DhcpOption {
+                code: 3,
+                force: true,
+                value: OptionValue::Addresses(vec![Ipv4Addr::LOCALHOST]),
+            },
+            DhcpOption {
+                code: 6,
+                force: false,
+                value: OptionValue::Addresses(vec![Ipv4Addr::UNSPECIFIED]),
+            },
+            DhcpOption {
+                code: 15,
+                force: true,
+                value: OptionValue::String(b"wire.test".to_vec()),
+            },
+            DhcpOption {
+                code: 58,
+                force: false,
+                value: OptionValue::Time(180),
+            },
+        ];
+        let request = packet(
+            &[53, 1, 1, 55, 0, 255],
+            BROADCAST_FLAG,
+            Ipv4Addr::UNSPECIFIED,
+            Ipv4Addr::UNSPECIFIED,
+        );
+        let request = super::super::packet::Packet::parse(&request).unwrap();
+        let mut present = [false; 256];
+        let values = encode_configured_options(
+            request,
+            offer().reply,
+            Some(Ipv4Addr::LOCALHOST),
+            &configured,
+            &mut present,
+        );
+        assert!(present[3] && present[6] && present[15] && present[58]);
+        assert_eq!(
+            values,
+            vec![
+                (15, b"wire.test".to_vec()),
+                (58, 180u32.to_be_bytes().to_vec())
+            ]
+        );
+        let bootp = packet(
+            &[55, 0, 255],
+            BROADCAST_FLAG,
+            Ipv4Addr::UNSPECIFIED,
+            Ipv4Addr::UNSPECIFIED,
+        );
+        let bootp = super::super::packet::Packet::parse(&bootp).unwrap();
+        present.fill(false);
+        let values = encode_configured_options(
+            bootp,
+            Reply::Bootp {
+                address: Ipv4Addr::LOCALHOST,
+                context: 0,
+            },
+            Some(Ipv4Addr::LOCALHOST),
+            &configured,
+            &mut present,
+        );
+        assert_eq!(
+            values,
+            vec![(6, vec![127, 0, 0, 1]), (15, b"wire.test".to_vec())]
+        );
     }
 
     #[test]

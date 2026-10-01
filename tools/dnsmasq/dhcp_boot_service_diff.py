@@ -93,7 +93,7 @@ def options(packet):
     return result
 
 
-def run(binary,config,folder,events):
+def run(binary,config,folder,events,*,dns_port=5300,request_builder=packet):
     folder.mkdir();trace={"status":"failed","rows":[]};process=None
     with (folder/"daemon.log").open("w") as log, socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as client:
         client.bind(("0.0.0.0",68));client.setsockopt(socket.SOL_SOCKET,socket.SO_BROADCAST,1)
@@ -104,10 +104,10 @@ def run(binary,config,folder,events):
             while True:
                 assert process.poll() is None,"daemon exited before readiness"
                 try:
-                    with socket.create_connection(("127.0.0.1",5300),.03):break
+                    with socket.create_connection(("127.0.0.1",dns_port),.03):break
                 except OSError:assert time.monotonic()<deadline,"readiness timeout";time.sleep(.01)
             for index,item in enumerate(events):
-                request=packet(item,0xa100+index);(folder/f"{index:02}.request").write_bytes(request)
+                request=request_builder(item,0xa100+index);(folder/f"{index:02}.request").write_bytes(request)
                 client.sendto(request,("255.255.255.255",67));response,peer=client.recvfrom(65535)
                 (folder/f"{index:02}.response").write_bytes(response)
                 assert len(response)>=300 and response[0]==2 and response[4:8]==request[4:8]

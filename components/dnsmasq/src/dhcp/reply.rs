@@ -354,7 +354,7 @@ fn append_lease_timers(
 /// option 12 when option 81 is absent) require that NUL in the response text.
 /// Option 81 has precedence over option 12, even when its decoded hostname is
 /// empty or invalid.
-fn broken_string_option(request: Packet<'_>) -> bool {
+pub(crate) fn broken_string_option(request: Packet<'_>) -> bool {
     if let Some(value) = request.option(81, 3) {
         return value.first().is_some_and(|flags| flags & 0x04 == 0)
             && value[3..].last() == Some(&0);
