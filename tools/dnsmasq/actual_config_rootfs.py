@@ -29,6 +29,8 @@ def prepare(source_root):
     os.chown(runtime, 453, 453)
     runtime.chmod(0o755)
     Path('/run/ubus').mkdir(parents=True, exist_ok=True)
+    Path('/var/run/ubus').mkdir(parents=True, exist_ok=True)
+    subprocess.run(['mount', '--bind', '/run/ubus', '/var/run/ubus'], check=True)
     assert hashlib.sha256(Path('/var/etc/dnsmasq.conf.cfg01411c').read_bytes()).hexdigest() == expected
 
 

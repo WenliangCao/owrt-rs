@@ -77,13 +77,40 @@ def dhcp_request(kind, xid, hardware, hostname, offered=None, server=None):
     return bytes(packet)
 
 
+def receive_dhcp(raw, xid):
+    deadline = time.monotonic() + 8
+    while True:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise TimeoutError('DHCP reply missing on client0')
+        raw.settimeout(remaining)
+        frame = raw.recv(65535)
+        if len(frame) < 42 or frame[12:14] != b'\x08\x00' or frame[23] != 17:
+            continue
+        header = (frame[14] & 15) * 4
+        udp = 14 + header
+        if header < 20 or len(frame) < udp + 8:
+            continue
+        source, destination, length = struct.unpack_from('!HHH', frame, udp)
+        if (source, destination) != (67, 68) or length < 248 or len(frame) < udp + length:
+            continue
+        packet = frame[udp + 8:udp + length]
+        if packet[4:8] == struct.pack('!I', xid):
+            return packet, (socket.inet_ntoa(frame[26:30]), source), frame
+
+
 def client(args):
     args.out.mkdir(parents=True)
     hardware = bytes.fromhex('020000003301')
     subprocess.run(['ip', 'link', 'set', 'client0', 'address', '02:00:00:00:33:01'], check=True)
     result = {'dhcp': [], 'dns': [], 'errors': []}
     try:
-        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as endpoint:
+        # An unconfigured IPv4 interface cannot deliver the OFFER to an
+        # ordinary UDP socket. Like udhcpc, receive DHCP from Ethernet until
+        # ACK has established the address; DNS then uses ordinary UDP.
+        with socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(0x0800)) as raw, \
+                socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as endpoint:
+            raw.bind(('client0', 0))
             endpoint.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
             endpoint.setsockopt(socket.SOL_SOCKET, 25, b'client0\0')
             endpoint.bind(('0.0.0.0', 68))
@@ -95,8 +122,9 @@ def client(args):
                 (args.out / f'{label}.request').write_bytes(packet)
                 sent = time.time()
                 endpoint.sendto(packet, ('255.255.255.255', 67))
-                reply, peer = endpoint.recvfrom(65535)
+                reply, peer, frame = receive_dhcp(raw, xid)
                 received = time.time()
+                (args.out / f'{label}.ethernet').write_bytes(frame)
                 (args.out / f'{label}.reply').write_bytes(reply)
                 decoded = options(reply)
                 lookup = {code: bytes.fromhex(value) for code, value in decoded}
@@ -181,6 +209,11 @@ def run(args):
             except OSError:
                 time.sleep(.02)
         status = Path(f'/proc/{daemon.pid}/status').read_text()
+        deadline = time.monotonic() + 5
+        while not any(row.get('event') == 'lookup' for row in bus.client_call('lookup', path='dnsmasq')):
+            assert daemon.poll() is None and time.monotonic() < deadline, 'ubus registration'
+            time.sleep(.02)
+        result['ubus_registered'] = True
         (args.out / 'daemon.status').write_text(status)
         credentials = {line.split(':', 1)[0]: line.split()[1:] for line in status.splitlines() if line.startswith(('Uid:', 'Gid:'))}
         assert credentials == {'Uid': ['453'] * 4, 'Gid': ['453'] * 4}, credentials
@@ -229,7 +262,7 @@ def run(args):
             errors.extend(check for check in bus.checks if not check['pass'])
     if args.reference and not errors:
         reference = json.loads(args.reference.read_text())
-        for key in ['lease', 'lease_expiry_valid', 'exit_codes', 'credentials']:
+        for key in ['lease', 'lease_expiry_valid', 'exit_codes', 'credentials', 'ubus_registered']:
             if result[key] != reference[key]:
                 errors.append({'field': key, 'reference': reference[key], 'actual': result[key]})
         for key in ['dhcp', 'dns', 'lease_seconds']:
