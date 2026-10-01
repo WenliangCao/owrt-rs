@@ -74,8 +74,9 @@ retry a DNS query after ACK to hide delayed publication.
 Initial readiness uses observed UDP bindings, then one local ready request;
 UBus registration alone is not readiness. Each observation includes actual UBus
 metrics and ordered upstream packets. DNS uses plain IN requests without OPT;
-unknown upstream probes receive deterministic SERVFAIL and retain the existing
-two-send retry. Valid PTR replies use a single original-case target. The held
+unknown upstream probes receive deterministic SERVFAIL. The fqdn-only short
+name is that process's first forwarded request and sends once; later failures
+after a server has been selected retain the two-send retry. Valid PTR replies use a single original-case target. The held
 request has its own client socket; do not synthesize its insertion through a
 primitive call or conflate it with subsequent local probes.
 
@@ -210,3 +211,16 @@ This gate does not claim IPv6 DHCP (the target is nodhcpv6), arbitrary hostsdir
 incremental updates, leasefile failure handling, scripts, TCP transfer/snapshots,
 multi-target dynamic PTR order, stale serving, resource/performance acceptance
 or full component/deployment completion.
+
+## Source-backed observer correction after the first C runs
+
+The initial native/image `lease-*-baseline-01` both execute all 62 observations
+without a process or DHCP-check failure, but calibrate only 54: fqdn-only's
+first short-name failure forwards once rather than the generic two-send
+prediction. Both then forward the later released-name probes twice.
+`forward.c:429` selects forwardall when last_server is -1; `forward.c:1255`
+retries SERVFAIL only outside forwardall. The correction changes only this
+explicit per-row send-count predicate to one. Every packet, configuration,
+action order and 62-row denominator is unchanged. The first failed calibrations
+and their original tool are retained; new output directories qualify the
+corrected observer before any Rust run. This is not a Rust behavior change.
