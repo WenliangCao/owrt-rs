@@ -15,7 +15,7 @@ use super::cache_reply::{append_cname_record, append_negative_authority, append_
 use super::forward::{Client, Options as ForwardOptions, QueryId, Random, Scope};
 use super::forward_service::ForwardDispatcher;
 use super::process::{
-    apply_static_aliases, ignore_reply, process_admitted_reply, AddressPolicy, AddressPrefix,
+    apply_doctor, apply_static_aliases, ignore_reply, process_admitted_reply, AddressPolicy, AddressPrefix,
     ProcessAction, ProcessError,
 };
 use super::reply::{
@@ -52,6 +52,18 @@ pub struct ClientResponse {
     pub listener: Option<super::forward::SocketToken>,
     pub packet: Vec<u8>,
 }
+
+/// A synchronous record callback with this daemon's current counters, before
+/// replacing RDATA or committing the current reply's cache transaction. The
+/// caller captures other engines' metrics before acquiring the DNS owner lock.
+pub type ReplyDoctor<'a> = dyn FnMut(
+        &[u8],
+        u32,
+        IpAddr,
+        CacheCounters,
+        super::forward::ForwardCounters,
+    ) -> Option<IpAddr>
+    + 'a;
 
 /// Cumulative failure counts for this daemon instance. Cache/hosts reloads do
 /// not reset them. Counts are bounded state, not an undrained failure queue.
@@ -282,6 +294,10 @@ impl<R: Random> DnsDaemon<R> {
         self.cache_counters
     }
 
+    pub fn forward_counters(&self) -> super::forward::ForwardCounters {
+        self.upstream.counters()
+    }
+
     /// Replace the reloaded hosts snapshot and discard dynamic DNS answers.
     /// Resolver routing and in-flight upstream requests retain their owners.
     pub fn reload_hosts(&mut self, hosts: Hosts) {
@@ -493,7 +509,7 @@ impl<R: Random> DnsDaemon<R> {
     /// full C `process_reply` contract (cache/SOA/ubus/TCP fallback remain
     /// outside this adapter).
     pub fn poll(&mut self, wait: Duration) -> Result<Vec<ClientResponse>, DaemonError> {
-        self.poll_inner(wait, None)
+        self.poll_inner(wait, None, None)
     }
 
     /// Complete replies using the parent's current local-name generation.
@@ -504,13 +520,23 @@ impl<R: Random> DnsDaemon<R> {
         wait: Duration,
         local: &LocalDnsService,
     ) -> Result<Vec<ClientResponse>, DaemonError> {
-        self.poll_inner(wait, Some(local))
+        self.poll_inner(wait, Some(local), None)
+    }
+
+    pub fn poll_with_local_doctor(
+        &mut self,
+        wait: Duration,
+        local: &LocalDnsService,
+        doctor: &mut ReplyDoctor<'_>,
+    ) -> Result<Vec<ClientResponse>, DaemonError> {
+        self.poll_inner(wait, Some(local), Some(doctor))
     }
 
     fn poll_inner(
         &mut self,
         wait: Duration,
         external_local: Option<&LocalDnsService>,
+        doctor: Option<&mut ReplyDoctor<'_>>,
     ) -> Result<Vec<ClientResponse>, DaemonError> {
         let policy = self.policy.clone();
         let events = self.upstream.poll_with_filter(wait, move |packet| {
@@ -523,14 +549,25 @@ impl<R: Random> DnsDaemon<R> {
                 return Err(error.into());
             }
         };
-        Ok(self.finish_upstream_events(events, unix_seconds(), external_local))
+        Ok(self.finish_upstream_events_with_doctor(events, unix_seconds(), external_local, doctor))
     }
 
+    #[cfg(test)]
     fn finish_upstream_events(
         &mut self,
         events: Vec<UpstreamEvent>,
         now: i64,
         external_local: Option<&LocalDnsService>,
+    ) -> Vec<ClientResponse> {
+        self.finish_upstream_events_with_doctor(events, now, external_local, None)
+    }
+
+    fn finish_upstream_events_with_doctor(
+        &mut self,
+        events: Vec<UpstreamEvent>,
+        now: i64,
+        external_local: Option<&LocalDnsService>,
+        mut doctor: Option<&mut ReplyDoctor<'_>>,
     ) -> Vec<ClientResponse> {
         let mut responses = Vec::new();
         for event in events {
@@ -549,7 +586,7 @@ impl<R: Random> DnsDaemon<R> {
                     continue;
                 }
             };
-            let rcode = match self.process_completed_reply(&mut reply, now, external_local) {
+            let rcode = match self.process_completed_reply(&mut reply, now, external_local, &mut doctor) {
                 Ok(rcode) => rcode,
                 Err(_) => {
                     self.poll_failures.invalid_replies =
@@ -583,6 +620,7 @@ impl<R: Random> DnsDaemon<R> {
         reply: &mut UncheckedReply,
         now: i64,
         external_local: Option<&LocalDnsService>,
+        doctor: &mut Option<&mut ReplyDoctor<'_>>,
     ) -> Result<u16, DaemonError> {
         let envelope = prepare_udp_reply(
             &reply.packet,
@@ -608,7 +646,14 @@ impl<R: Random> DnsDaemon<R> {
                 now,
             ) || self.routing.has_configured_address(name)
         })?;
-        apply_static_aliases(&mut reply.packet, &self.policy.static_aliases, rcode)?;
+        if let Some(doctor) = doctor.as_mut() {
+            let cache = self.cache_counters;
+            let forward = self.upstream.counters();
+            let mut notify = |name: &[u8], ttl, address| doctor(name, ttl, address, cache, forward);
+            apply_doctor(&mut reply.packet, &self.policy.static_aliases, rcode, Some(&mut notify))?;
+        } else {
+            apply_static_aliases(&mut reply.packet, &self.policy.static_aliases, rcode)?;
+        }
         // Cache only a clean, successful positive reply.  Address policy
         // runs on a clone first so a blocked/bogus/malformed response is
         // never admitted to the cache or later exposed to a recipient.

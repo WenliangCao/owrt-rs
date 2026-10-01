@@ -118,15 +118,26 @@ pub fn apply_static_aliases(
     aliases: &[Alias],
     rcode: u16,
 ) -> Result<DoctorOutcome, ProcessError> {
+    apply_doctor(packet, aliases, rcode, None)
+}
+
+/// Shared UDP doctor stage: one scan applies ubus before the matching static
+/// rule on each record. TCP supplies no callback through apply_static_aliases.
+pub fn apply_doctor(
+    packet: &mut [u8],
+    aliases: &[Alias],
+    rcode: u16,
+    notify: Option<&mut doctor::Notify<'_>>,
+) -> Result<DoctorOutcome, ProcessError> {
     let header = Header::parse(packet)?;
-    if aliases.is_empty()
+    if (aliases.is_empty() && notify.is_none())
         || header.opcode() != 0
         || !matches!(rcode, 0 | 3)
         || header.flags & 0x0200 != 0
     {
         return Ok(DoctorOutcome::default());
     }
-    Ok(doctor::apply(packet, aliases, None))
+    Ok(doctor::apply(packet, aliases, notify))
 }
 
 /// Address-policy subset of `process_reply`; the caller owns reply envelope,

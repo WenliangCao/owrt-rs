@@ -232,3 +232,39 @@ fn background_delivery_is_suppressed_without_suppressing_cache_admission() {
     );
     assert_eq!(daemon.poll_failures(), PollFailures::default());
 }
+
+#[test]
+fn doctor_observes_each_reply_before_cache_commit_and_precedes_static_alias() {
+    let (mut daemon, events, _) = completed_pair();
+    daemon.enable_cache(4, 0, 0, StalePolicy::Disabled);
+    daemon.policy.static_aliases.push(super::super::doctor::Alias {
+        from: "192.0.2.9".parse().unwrap(),
+        end: "0.0.0.0".parse().unwrap(),
+        to: "198.51.100.9".parse().unwrap(),
+        mask: "255.255.255.255".parse().unwrap(),
+    });
+    let mut observations = Vec::new();
+    let mut notify = |name: &[u8], ttl, address, cache: CacheCounters, forward| {
+        observations.push((name.to_vec(), ttl, address, cache, forward));
+        Some("192.0.2.9".parse().unwrap())
+    };
+    let responses = daemon.finish_upstream_events_with_doctor(events, 100, None, Some(&mut notify));
+    assert_eq!(responses.len(), 2);
+    assert_eq!(observations.len(), 2);
+    for (index, (_, ttl, address, cache, forward)) in observations.into_iter().enumerate() {
+        assert_eq!(ttl, 60);
+        assert!(address == "192.0.2.1".parse::<IpAddr>().unwrap()
+            || address == "192.0.2.2".parse::<IpAddr>().unwrap());
+        assert_eq!(cache.inserted, index as u32);
+        assert_eq!(forward.queries_forwarded, 3);
+        assert_eq!(forward.unanswered, 0);
+    }
+    for response in responses {
+        assert_eq!(&response.packet[response.packet.len() - 4..], &[198, 51, 100, 9]);
+        assert_eq!(Header::parse(&response.packet).unwrap().flags & 0x0400, 0);
+    }
+    assert_eq!(daemon.cache_counters().inserted, 2);
+    daemon.reload_hosts(Hosts::new());
+    assert_eq!(daemon.cache_counters().inserted, 0);
+    assert_eq!(daemon.forward_counters().queries_forwarded, 3);
+}
