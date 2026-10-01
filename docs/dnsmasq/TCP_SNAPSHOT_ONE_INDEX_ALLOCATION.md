@@ -1,5 +1,9 @@
 # Singleton name-index: correctness and allocation pass
 
+The later unchanged [24-run timing screen](TCP_SNAPSHOT_ONE_INDEX_RESULT.md)
+rejects this candidate on the population CPU guard. Pending-timing statements
+below describe this earlier allocation phase.
+
 The single private `shared_one_index` candidate passes correctness, actual
 layout and all deterministic allocation gates. Its name-index value removes
 the separate singleton index allocation while RDATA remains `Vec<u8>`.
