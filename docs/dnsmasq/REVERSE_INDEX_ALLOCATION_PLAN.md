@@ -92,9 +92,16 @@ For the other complete lifetimes, extra allocated/deallocated call counts and
 bytes are, respectively: empty 0/0; each single-target case 3/245;
 shared-forward-name 1/9; three-targets 7/327; four-targets 10/768;
 repeated-target 4/254. Reallocation deltas are zero in all eight cases.
-The forward seed, record preparation, ordinary insertion and live lookup phases
-are predicted to have zero differential allocation vectors. Fixed and old
-absolute vectors are still retained to expose a mistaken cancellation.
+The forward seed, record preparation, ordinary insertion and live **reverse**
+lookup phases are predicted to have zero differential allocation vectors.
+The shared-forward-name case also performs a forward lookup: `lookup` clones
+the indexed slot vector, whose length grows from one to two. That phase is
+predicted to request and free **8 additional bytes**, with no change in call
+counts or final live bytes. Including that forward probe, the shared-name
+whole-lifetime difference is **1 extra allocation/free call and 17 additional
+requested/freed bytes**, not the 9-byte commit-only cost. This refinement is
+from source inspection before any tool build or measurement. Fixed and old
+absolute vectors are retained to expose a mistaken cancellation.
 
 Requested bytes are allocator requests, not allocator usable-size overhead or
 RSS. Live snapshots are not a claim about whole-service peak memory. This gate
