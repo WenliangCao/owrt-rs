@@ -44,7 +44,7 @@ impl TcpCache {
             || header.authorities != 0
             || header.additionals != u16::from(scan.opt.is_some())
             || header.opcode() != 0
-            || header.flags & 0x8020 != 0
+            || header.flags & 0x8000 != 0
         {
             return Ok(None);
         }

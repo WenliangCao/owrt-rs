@@ -24,6 +24,7 @@ use dnsmasq_rs::dns::forward::SocketToken;
 use dnsmasq_rs::dns::lease_names::{LeasePolicy, PublicationWarning};
 use dnsmasq_rs::dns::service::{encode_tcp_frame, LocalDnsService, TcpFramer};
 use dnsmasq_rs::dns::tcp_service::TcpDnsService;
+use dnsmasq_rs::dns::tcp_transfer::{self, Received, Receiver};
 use dnsmasq_rs::hosts::Hosts;
 use dnsmasq_rs::metrics::{Metric, Metrics};
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -41,7 +42,6 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
-#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 use std::time::{SystemTime, UNIX_EPOCH};
 
 static STOP_REQUESTED: AtomicBool = AtomicBool::new(false);
@@ -117,10 +117,11 @@ struct ParentEvents {
     local_answered: u32,
     stale_answered: u32,
     tcp_active: usize,
+    tcp_slots: Vec<Option<TcpSlot>>,
 }
 
 impl ParentEvents {
-    fn new(config: &UbusConfig) -> Result<Self, Box<dyn std::error::Error>> {
+    fn new(config: &UbusConfig, tcp_limit: usize) -> Result<Self, Box<dyn std::error::Error>> {
         let name = config.object_name()?.map(<[u8]>::to_vec);
         let ubus = match name.as_deref() {
             None => None,
@@ -137,7 +138,48 @@ impl ParentEvents {
             local_answered: 0,
             stale_answered: 0,
             tcp_active: 0,
+            tcp_slots: (0..tcp_limit).map(|_| None).collect(),
         })
+    }
+
+    // Called only at a top-level parent event, AFTER servicing UBus. Doctor's
+    // nested metrics callback must never drain or reacquire the parent locks.
+    fn drain_tcp(&mut self, parent: &mut ParentDns) {
+        for index in 0..self.tcp_slots.len() {
+            let Some(slot) = &mut self.tcp_slots[index] else {
+                continue;
+            };
+            if slot.receiver.is_none() && slot.finished.load(Ordering::Acquire) {
+                self.tcp_slots[index] = None;
+                self.tcp_active -= 1;
+                continue;
+            }
+            let Some(receiver) = &mut slot.receiver else {
+                continue;
+            };
+            if !receiver.ready().unwrap_or(true) {
+                continue;
+            }
+            match receiver.receive() {
+                Ok(Received::Transaction(transaction)) => {
+                    let ParentDns { local, daemon } = parent;
+                    if let Some(daemon) = daemon {
+                        daemon.import_tcp_cache(transaction, unix_seconds(), local);
+                    }
+                }
+                Ok(Received::Pending) => {}
+                Ok(Received::Eof) | Err(_) => {
+                    slot.receiver = None;
+                }
+            }
+            if slot.receiver.is_none() && slot.finished.load(Ordering::Acquire) {
+                self.tcp_slots[index] = None;
+                self.tcp_active -= 1;
+            }
+            // C scans lowest index first and completes one pipe transaction
+            // per event, even when another pipe is already readable.
+            break;
+        }
     }
 
     fn write_metrics(&self, metrics: &mut Metrics) {
@@ -447,7 +489,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     // C mutates all parent engines in one event loop. Fetch DHCP metrics
     // before locking DNS; synchronous doctor callbacks must never invert it.
     // Socket waits remain outside this gate.
-    let parent_events = Arc::new(Mutex::new(ParentEvents::new(&runtime.ubus)?));
+    let parent_events = Arc::new(Mutex::new(ParentEvents::new(&runtime.ubus, tcp_limit)?));
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     let mut dhcp_provider = None;
     let mut workers = Vec::new();
@@ -653,8 +695,10 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                             let Ok(mut parent) = parent_service.lock() else {
                                 break;
                             };
-                            let ParentDns { local, daemon } = &mut *parent;
-                            let daemon = daemon.as_mut().expect("DNS listener owns the forwarder");
+                            let daemon = parent
+                                .daemon
+                                .as_ref()
+                                .expect("DNS listener owns the forwarder");
                             write_dns_metrics(
                                 &mut metrics,
                                 daemon.cache_counters(),
@@ -662,6 +706,9 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                 event.local_answered,
                             );
                             event.process_ubus(&metrics);
+                            event.drain_tcp(&mut parent);
+                            let ParentDns { local, daemon } = &mut *parent;
+                            let daemon = daemon.as_mut().expect("DNS listener owns the forwarder");
                             let answer = incoming.and_then(|(length, peer)| {
                                 let packet = &query[..length];
                                 match dnsmasq_rs::dns::udp_query::inspect(
@@ -790,18 +837,22 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                 index += 1;
                             }
                         }
-                        let (stream, mut service, permit) = {
+                        let (stream, mut service, mut cache, mut sender, completion) = {
                             let Ok(mut event) = tcp_events.lock() else {
                                 break;
                             };
                             // C leaves clients queued while all TCP slots are
                             // occupied. Serialize admission across listeners
                             // through the existing parent-event owner.
-                            if event.tcp_active >= tcp_limit {
+                            if stopping() {
+                                break;
+                            }
+                            let Some(slot) = event.tcp_slots.iter().rposition(Option::is_none)
+                            else {
                                 drop(event);
                                 thread::sleep(Duration::from_millis(20));
                                 continue;
-                            }
+                            };
                             let (stream, _) = match tcp.accept() {
                                 Ok(connection) => connection,
                                 Err(error) if error.kind() == io::ErrorKind::Interrupted => {
@@ -833,8 +884,30 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                         parent.local.edns_packet_max,
                                     );
                                     snapshot.leases = Arc::clone(&parent.local.leases);
+                                    let accepted_at = unix_seconds();
+                                    let cache = match parent
+                                        .daemon
+                                        .as_ref()
+                                        .expect("DNS listener owns forwarder")
+                                        .snapshot_tcp_cache(accepted_at)
+                                    {
+                                        Ok(cache) => cache,
+                                        Err(error) => {
+                                            eprintln!("dnsmasq-rs: private TCP cache: {error}");
+                                            continue;
+                                        }
+                                    };
+                                    let (receiver, sender) = match tcp_transfer::pipe() {
+                                        Ok(pipe) => pipe,
+                                        Err(_) => continue,
+                                    };
+                                    let finished = Arc::new(AtomicBool::new(false));
+                                    event.tcp_slots[slot] = Some(TcpSlot {
+                                        receiver: Some(receiver),
+                                        finished: Arc::clone(&finished),
+                                    });
                                     event.tcp_active += 1;
-                                    (stream, snapshot, TcpPermit(Arc::clone(&tcp_events)))
+                                    (stream, snapshot, cache, sender, TcpCompletion(finished))
                                 }
                                 Err(_) => continue,
                             }
@@ -849,7 +922,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                             thread::Builder::new()
                                 .name("dns-tcp-client".into())
                                 .spawn(move || {
-                                    let _permit = permit;
+                                    let _completion = completion;
                                     let mut stream = stream;
                                     let deadline = Instant::now() + Duration::from_secs(150);
                                     let mut framer = TcpFramer::with_max_frame(packet_limit);
@@ -897,18 +970,37 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                             if query.len() > packet_limit {
                                                 break 'connection;
                                             }
-                                            let answer = match service.handle_tcp_payload(&query) {
-                                                Ok(Some(answer)) => answer,
-                                                Ok(None) | Err(_) => {
-                                                    match forward.handle_with_local(
-                                                        &query,
-                                                        &service,
-                                                        deadline,
-                                                        &|| STOP_REQUESTED.load(Ordering::Acquire),
-                                                    ) {
-                                                        Ok(answer) => answer,
-                                                        Err(_) => break 'connection,
+                                            let local = service
+                                                .handle_tcp_payload_at(&query, cache.accepted_at())
+                                                .ok()
+                                                .flatten();
+                                            let cached = if local.is_none() {
+                                                cache.answer(&query, &mut service).ok().flatten()
+                                            } else {
+                                                None
+                                            };
+                                            let answer = if let Some(answer) = local.or(cached) {
+                                                answer
+                                            } else {
+                                                let mut pipe_failed = false;
+                                                let mut send = |transaction| {
+                                                    if sender
+                                                        .send(transaction, deadline, stopping)
+                                                        .is_err()
+                                                    {
+                                                        pipe_failed = true;
                                                     }
+                                                };
+                                                let answer = forward.handle_with_cache(
+                                                    &query, &service, &mut cache, &mut send,
+                                                    deadline, &stopping,
+                                                );
+                                                if pipe_failed {
+                                                    break 'connection;
+                                                }
+                                                match answer {
+                                                    Ok(answer) => answer,
+                                                    Err(_) => break 'connection,
                                                 }
                                             };
                                             let Ok(frame) = encode_tcp_frame(&answer) else {
@@ -963,6 +1055,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                             }
                         }
                         event.process_ubus(&metrics);
+                        { let Ok(mut parent) = dhcp_dns.lock() else { break }; event.drain_tcp(&mut parent); }
                         let now = SystemTime::now().duration_since(UNIX_EPOCH)
                             .map_or(0, |time| time.as_secs() as i64);
                         if let Some(report) = provider.tick(now) {
@@ -1086,7 +1179,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                     .map_err(|_| io::Error::other("DHCP state lock poisoned"))?;
                 write_dhcp_metrics(&mut metrics, &provider);
             }
-            let parent = service
+            let mut parent = service
                 .lock()
                 .map_err(|_| io::Error::other("DNS state lock poisoned"))?;
             if let Some(daemon) = &parent.daemon {
@@ -1098,6 +1191,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                 );
             }
             event.process_ubus(&metrics);
+            event.drain_tcp(&mut parent);
         }
         thread::park_timeout(Duration::from_millis(100));
     }
@@ -1107,7 +1201,20 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-struct TcpPermit(Arc<Mutex<ParentEvents>>);
+struct TcpSlot {
+    receiver: Option<Receiver>,
+    finished: Arc<AtomicBool>,
+}
+
+// A child never acquires the parent event lock, including on drop. The parent
+// releases its slot only after both this flag and transfer EOF are observed.
+struct TcpCompletion(Arc<AtomicBool>);
+
+fn unix_seconds() -> i64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_or(0, |time| time.as_secs() as i64)
+}
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 fn report_dhcp_maintenance(report: &dnsmasq_rs::dhcp::daemon::MaintenanceReport) {
@@ -1136,11 +1243,9 @@ fn report_dhcp_maintenance(report: &dnsmasq_rs::dhcp::daemon::MaintenanceReport)
     }
 }
 
-impl Drop for TcpPermit {
+impl Drop for TcpCompletion {
     fn drop(&mut self) {
-        if let Ok(mut event) = self.0.lock() {
-            event.tcp_active -= 1;
-        }
+        self.0.store(true, Ordering::Release);
     }
 }
 

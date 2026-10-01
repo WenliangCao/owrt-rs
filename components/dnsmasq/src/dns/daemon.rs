@@ -301,10 +301,9 @@ impl<R: Random> DnsDaemon<R> {
             .as_ref()
             .is_some_and(|cache| cache.policy().stale != StalePolicy::Disabled)
         {
-            return Err(ConfigError(
-                "private TCP cache prototype excludes stale cache policy".into(),
-            )
-            .into());
+            return Err(
+                ConfigError("private TCP cache prototype excludes stale cache policy").into(),
+            );
         }
         Ok(super::tcp_cache::TcpCache {
             cache: self.cache.clone(),

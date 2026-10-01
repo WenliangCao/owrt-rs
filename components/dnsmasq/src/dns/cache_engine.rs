@@ -634,9 +634,7 @@ impl CacheContext<'_> {
                 } else if rr.rrtype == question.qtype && header.rcode() != 3 {
                     found = true;
                     let width = if question.qtype == 1 { 4 } else { 16 };
-                    let Some(data) = packet.get(rr.fixed + 10..rr.fixed + 10 + width) else {
-                        return None;
-                    };
+                    let data = packet.get(rr.fixed + 10..rr.fixed + 10 + width)?;
                     let address = if question.qtype == 1 {
                         IpAddr::V4(std::net::Ipv4Addr::from(<[u8; 4]>::try_from(data).unwrap()))
                     } else {

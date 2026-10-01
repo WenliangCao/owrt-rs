@@ -231,9 +231,21 @@ mod tests {
     fn transaction() -> CacheTransaction {
         let mut cache = Cache::new(10, Policy::default());
         cache.start_insert();
-        cache.insert(Record { name: Name::from_ascii("pipe.test").unwrap(), kind: Kind::Ipv4,
-            negative: false, data: vec![192, 0, 2, 7] }, 100, 120).unwrap();
-        cache.capture_commit_counted(&mut CacheCounters::default()).unwrap()
+        cache
+            .insert(
+                Record {
+                    name: Name::from_ascii("pipe.test").unwrap(),
+                    kind: Kind::Ipv4,
+                    negative: false,
+                    data: vec![192, 0, 2, 7],
+                },
+                100,
+                120,
+            )
+            .unwrap();
+        cache
+            .capture_commit_counted(&mut CacheCounters::default())
+            .unwrap()
     }
 
     #[test]
@@ -247,12 +259,19 @@ mod tests {
         let mut counters = CacheCounters::default();
         for expected in 1..=2 {
             assert!(receiver.ready().unwrap());
-            let Received::Transaction(transaction) = receiver.receive().unwrap() else { panic!("transaction") };
+            let Received::Transaction(transaction) = receiver.receive().unwrap() else {
+                panic!("transaction")
+            };
             assert!(parent.import_counted(transaction, 110, &mut counters, |_| None));
             assert_eq!(counters.inserted, expected);
         }
         assert!(matches!(receiver.receive().unwrap(), Received::Eof));
-        let ids = parent.lookup(&Name::from_ascii("pipe.test").unwrap(), &[Kind::Ipv4], 110, false);
+        let ids = parent.lookup(
+            &Name::from_ascii("pipe.test").unwrap(),
+            &[Kind::Ipv4],
+            110,
+            false,
+        );
         assert_eq!(parent.get(ids[0]).unwrap().expires, 220);
     }
 
@@ -263,7 +282,10 @@ mod tests {
         sender.0.write_all(&bytes[..bytes.len() - 1]).unwrap();
         assert!(matches!(receiver.receive().unwrap(), Received::Pending));
         drop(sender);
-        assert_eq!(receiver.receive().err().unwrap().kind(), io::ErrorKind::UnexpectedEof);
+        assert_eq!(
+            receiver.receive().err().unwrap().kind(),
+            io::ErrorKind::UnexpectedEof
+        );
     }
 
     #[test]
@@ -271,7 +293,16 @@ mod tests {
         let (_receiver, mut sender) = pipe().unwrap();
         let fill = [0; 4096];
         while sender.0.write(&fill).is_ok() {}
-        assert_eq!(sender.send(transaction(), Instant::now() + Duration::from_secs(2), || true)
-            .unwrap_err().kind(), io::ErrorKind::Interrupted);
+        assert_eq!(
+            sender
+                .send(
+                    transaction(),
+                    Instant::now() + Duration::from_secs(2),
+                    || true
+                )
+                .unwrap_err()
+                .kind(),
+            io::ErrorKind::Interrupted
+        );
     }
 }

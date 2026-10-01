@@ -3,8 +3,9 @@
 //! One service belongs to one downstream connection. The caller first attempts
 //! its local answer path. Supported configuration adds no client-dependent EDNS
 //! options, so the forwarded query remains byte-for-byte unchanged. Dynamic
-//! cache insertion, ubus doctor notifications and additional RR filtering are
-//! separate work. Static aliases run once on each eligible upstream reply.
+//! cache insertion uses the opt-in PRIVATE connection cache owner. Child UBus
+//! doctor notifications remain outside this ordinary reference. Static aliases
+//! run once on each eligible upstream reply.
 
 use super::cache::CacheTransaction;
 use super::daemon::{address_policy, validate_runtime_config, DaemonError};
@@ -141,16 +142,7 @@ impl TcpDnsService {
             };
         };
         match self.upstream.exchange(group, query, deadline, stopped) {
-            Ok(reply) => finish_reply_with_cache(
-                query,
-                &reply,
-                &self.policy,
-                self.proxy_dnssec,
-                self.edns_packet_max,
-                local,
-                Some(&self.routing),
-                cache,
-            ),
+            Ok(reply) => finish_reply_with_cache(query, &reply, self, local, cache),
             Err(TcpError::NoReply) => {
                 Ok(refusal(query, self.edns_packet_max, 23, TCP_LIMIT, true)?)
             }
@@ -210,13 +202,14 @@ fn query_error(query: &[u8]) -> Result<Option<Vec<u8>>, WireError> {
 fn finish_reply_with_cache(
     query: &[u8],
     reply: &[u8],
-    policy: &AddressPolicy,
-    proxy_dnssec: bool,
-    edns_packet_max: u16,
+    service: &TcpDnsService,
     local: Option<&LocalDnsService>,
-    routing: Option<&RoutingTable>,
     mut cache: Option<(&mut TcpCache, &mut dyn FnMut(CacheTransaction))>,
 ) -> Result<Vec<u8>, TcpServiceError> {
+    let policy = &service.policy;
+    let proxy_dnssec = service.proxy_dnssec;
+    let edns_packet_max = service.edns_packet_max;
+    let routing = &service.routing;
     let query_header = Header::parse(query)?;
     let scan = find_pseudoheader(query, true)?;
     let do_bit = scan.opt.as_ref().is_some_and(|opt| opt.dnssec_ok());
@@ -245,7 +238,13 @@ fn finish_reply_with_cache(
                     &local.leases,
                     now,
                 )
-            }) || routing.is_some_and(|routing| routing.has_configured_address(name))
+            }) || routing.has_configured_address(name)
+                || cache.as_ref().is_some_and(|(cache, _)| {
+                    cache
+                        .cache
+                        .as_ref()
+                        .is_some_and(|cache| cache.contains_forward_name(name, now))
+                })
         })?;
         apply_static_aliases(&mut packet, &policy.static_aliases, envelope.rcode)
             .map_err(TcpServiceError::Process)?;
