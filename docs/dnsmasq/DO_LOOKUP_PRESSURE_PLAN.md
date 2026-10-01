@@ -59,3 +59,16 @@ all failed attempts remain archived; no expectation is derived from Rust.
 This gate qualifies pressure/victim side effects only. Hash-bucket-wide expiry
 purge, round-robin ordering, stale flags, unsupported EDNS metadata and other
 qtypes remain unqualified by these schedules.
+
+## Pre-Rust C calibration correction
+
+The first native C attempt (`native-baseline-01`) rejected all 12 profiles at
+an overly strict single-send fixture assertion on their first SERVFAIL. No
+Rust ran. `forward.c:1255` retries SERVFAIL/REFUSED once by forwarding to all
+available servers; with this single-server configuration the failure operation
+has two upstream sends. The gate now requires exactly two for each failed
+forwarded touch/probe, one for each cold seed, zero for cache hits. Workloads,
+cache-hit expectations and thresholds are unchanged. Completed rows and daemon
+logs from attempt 01 remain; its premature assertion prevented the failing
+operation's raw packet append. The append now precedes validation so future
+assertion failures retain that operation too.
