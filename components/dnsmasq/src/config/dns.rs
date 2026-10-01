@@ -78,6 +78,15 @@ pub struct AliasConfig {
     pub mask: Ipv4Addr,
 }
 
+/// option.c's bogus/ignore address selector. Preserve host bits; matching masks
+/// at runtime. Separate from the packet policy so configuration probes stay
+/// independent of DNS transport and wire modules.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct PrefixConfig {
+    pub address: IpAddr,
+    pub prefix: u8,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum DomainSelector {
     Range4 {
@@ -120,6 +129,8 @@ pub struct DnsConfig {
     pub host_records: Vec<HostRecord>,
     /// Newest declaration first. A doctor consumer must not reverse this again.
     pub aliases: Vec<AliasConfig>,
+    pub bogus_addresses: Vec<PrefixConfig>,
+    pub ignore_addresses: Vec<PrefixConfig>,
     pub domain_suffix: Option<Vec<u8>>,
     pub domain_from_resolv: bool,
     /// Newest declaration first, matching C's cond_domain linked list.
@@ -162,6 +173,8 @@ impl Default for DnsConfig {
             hosts_dirs: Vec::new(),
             host_records: Vec::new(),
             aliases: Vec::new(),
+            bogus_addresses: Vec::new(),
+            ignore_addresses: Vec::new(),
             domain_suffix: None,
             domain_from_resolv: false,
             conditional_domains: Vec::new(),
@@ -223,6 +236,26 @@ fn fields(bytes: &[u8], delimiter: u8) -> Vec<Vec<u8>> {
 }
 fn optional_bytes(bytes: Vec<u8>) -> Option<Vec<u8>> {
     (!bytes.is_empty()).then_some(bytes)
+}
+
+fn address_prefix(argument: &EncodedArg) -> Result<PrefixConfig, Error> {
+    // Unlike aliases, C unhides the whole argument before splitting the slash.
+    let argument = EncodedArg::command_line(&argument.decoded());
+    let (address, prefix) = argument.split_once(b'/');
+    let address = ip(address.encoded()).ok_or(Error("bad address prefix"))?;
+    let width = if address.is_ipv4() { 32 } else { 128 };
+    let prefix = match prefix {
+        // C numeric_check accepts an empty string and atoi gives zero.
+        Some(prefix) => numeric(prefix.encoded())?,
+        None => width,
+    };
+    if prefix > width {
+        return Err(Error("bad address prefix"));
+    }
+    Ok(PrefixConfig {
+        address,
+        prefix: prefix as u8,
+    })
 }
 
 fn alias(argument: &EncodedArg) -> Result<AliasConfig, Error> {
@@ -534,6 +567,12 @@ impl DnsConfig {
             b"hostsdir" => self.hosts_dirs.insert(0, path(arg)),
             b"host-record" => self.host_records.push(host_record(arg.unwrap())?),
             b"alias" => self.aliases.insert(0, alias(arg.unwrap())?),
+            b"bogus-nxdomain" => self
+                .bogus_addresses
+                .insert(0, address_prefix(arg.unwrap())?),
+            b"ignore-address" => self
+                .ignore_addresses
+                .insert(0, address_prefix(arg.unwrap())?),
             b"domain" | b"domain-suffix" => self.domain(arg.unwrap())?,
             b"local-service" => match arg.map(EncodedArg::encoded) {
                 None | Some(b"net") => self.local_service_net = true,
