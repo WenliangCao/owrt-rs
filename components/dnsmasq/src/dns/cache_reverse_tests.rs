@@ -21,7 +21,7 @@ fn forward(name: &str) -> Record {
 }
 
 #[test]
-fn reverse_stays_outside_forward_index_and_pending_lookup() {
+fn reverse_stays_outside_forward_answers_and_pending_lookup() {
     let mut cache = Cache::new(4, Policy::default());
     let name = Name::from_ascii("TaRgEt.test").unwrap();
     let address = IpAddr::from([192, 0, 2, 1]);
@@ -35,7 +35,7 @@ fn reverse_stays_outside_forward_index_and_pending_lookup() {
         cache.get(pending).unwrap().record.name.as_wire(),
         name.as_wire()
     );
-    assert!(cache.names.is_empty());
+    assert!(cache.lookup(&name, &[Kind::Ipv4], 100, false).is_empty());
     assert!(!cache.contains_forward_name(&name, 100));
     cache.start_insert();
     let forward = cache.insert(forward("target.test"), 100, 120).unwrap();
@@ -47,6 +47,37 @@ fn reverse_stays_outside_forward_index_and_pending_lookup() {
     assert!(cache.commit());
     assert!(cache.get(pending).is_none());
     assert_eq!(cache.lookup(&name, &[Kind::Ipv4], 101, false), [forward]);
+}
+
+#[test]
+fn forward_cname_replacement_does_not_remove_live_reverse_target() {
+    let mut cache = Cache::new(3, Policy::default());
+    cache.start_insert();
+    let reverse = cache.insert(reverse("same.test", 1), 100, 120).unwrap();
+    assert!(cache.commit());
+    cache.start_insert();
+    let name = Name::from_ascii("same.test").unwrap();
+    let alias = cache
+        .insert(
+            Record {
+                name: name.clone(),
+                kind: Kind::Cname,
+                negative: false,
+                data: Name::from_ascii("terminal.test").unwrap().canonical_wire(),
+            },
+            100,
+            120,
+        )
+        .unwrap();
+    let target = cache.insert(forward("terminal.test"), 100, 120).unwrap();
+    assert!(cache.set_cname_target(alias, target));
+    assert!(cache.commit());
+    assert!(cache.get(reverse).is_some());
+    assert_eq!(cache.lookup(&name, &[Kind::Cname], 100, false), [alias]);
+    assert_eq!(
+        cache.lookup_reverse(IpAddr::from([192, 0, 2, 1]), 100),
+        [reverse]
+    );
 }
 
 #[test]

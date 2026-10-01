@@ -28,11 +28,15 @@ impl Kind {
     }
 
     fn conflicts(self, other: Self) -> bool {
-        self == other || self == Self::Cname || other == Self::Cname
+        !self.is_reverse()
+            && !other.is_reverse()
+            && (self == other || self == Self::Cname || other == Self::Cname)
     }
 
     fn matches(self, requested: Self) -> bool {
-        self == requested || matches!((self, requested), (Self::Generic(_), Self::Generic(_)))
+        !self.is_reverse()
+            && (self == requested
+                || matches!((self, requested), (Self::Generic(_), Self::Generic(_))))
     }
 }
 
@@ -202,10 +206,11 @@ struct Slot {
     next: Option<usize>,
 }
 
-/// Fixed number of records, with a forward-name index and an intrusive LRU of
-/// slot indices. Reverse operations scan the same slots: C requires expiry
-/// scans even for an unrelated address. Pending inserts are outside the LRU
-/// and invisible to lookups.
+/// Fixed number of records, with a shared name index and an intrusive LRU of
+/// slot indices. Forward lookups expire both directions at the indexed name
+/// but only select forward entries. Reverse operations scan the same slots:
+/// C requires expiry scans even for an unrelated address. Pending inserts are
+/// outside the LRU and invisible to lookups.
 /// Capacity is measured in records, including CNAME and negative records.
 pub struct Cache {
     policy: Policy,
@@ -289,11 +294,9 @@ impl Cache {
     pub fn contains_forward_name(&self, name: &Name, now: i64) -> bool {
         self.names.get(&name.canonical_wire()).is_some_and(|slots| {
             slots.iter().any(|&slot| {
-                self.slots[slot]
-                    .entry
-                    .as_ref()
-                    .is_some_and(|entry| entry.record.kind != Kind::NxDomain)
-                    && !self.invalid(slot, now)
+                self.slots[slot].entry.as_ref().is_some_and(|entry| {
+                    !entry.record.kind.is_reverse() && entry.record.kind != Kind::NxDomain
+                }) && !self.invalid(slot, now)
             })
         })
     }
@@ -660,11 +663,24 @@ impl Cache {
             }
             let entry = self.slots[slot].entry.as_mut().unwrap();
             entry.committed = true;
-            if !entry.record.kind.is_reverse() {
-                self.names
-                    .entry(entry.record.name.canonical_wire())
-                    .or_default()
-                    .push(slot);
+            let reverse = entry.record.kind.is_reverse();
+            let indices = self
+                .names
+                .entry(entry.record.name.canonical_wire())
+                .or_default();
+            if reverse {
+                // cache_hash puts reverse entries first while preserving
+                // insertion order within the same name/direction group.
+                let at = indices
+                    .iter()
+                    .position(|&index| {
+                        let record = &self.slots[index].entry.as_ref().unwrap().record;
+                        !record.kind.is_reverse()
+                    })
+                    .unwrap_or(indices.len());
+                indices.insert(at, slot);
+            } else {
+                indices.push(slot);
             }
             self.link_head(slot);
             counters.inserted = counters.inserted.wrapping_add(1);
@@ -891,13 +907,11 @@ impl Cache {
 
     fn remove(&mut self, slot: usize) {
         let entry = self.slots[slot].entry.as_ref().unwrap();
-        if !entry.record.kind.is_reverse() {
-            let key = entry.record.name.canonical_wire();
-            let indices = self.names.get_mut(&key).unwrap();
-            indices.retain(|index| *index != slot);
-            if indices.is_empty() {
-                self.names.remove(&key);
-            }
+        let key = entry.record.name.canonical_wire();
+        let indices = self.names.get_mut(&key).unwrap();
+        indices.retain(|index| *index != slot);
+        if indices.is_empty() {
+            self.names.remove(&key);
         }
         self.unlink(slot);
         self.free(slot);
@@ -982,19 +996,23 @@ impl PublicationCache for Cache {
             },
             flags: u8::from(entry.reverse) | (u8::from(entry.immortal) << 1),
         };
-        // Existing dynamic entries are mortal/non-reverse. Publication adds
-        // prior DHCP names afterward in that same group; static immortal
-        // non-reverse entries follow it, and all reverse owners precede it.
+        // Reverse owners precede ordinary records. Dynamic reverse entries
+        // share the index but cannot match this forward publication trigger.
+        // Prior DHCP names follow dynamic forward entries; immortal local
+        // non-reverse records follow both.
         let mut rows: Vec<_> = publication
             .blockers
             .iter()
             .filter(|b| b.reverse)
             .map(blocker)
             .collect();
-        rows.extend(self.names[&key].iter().map(|&slot| Row {
-            slot: Some(slot),
-            kind: self.slots[slot].entry.as_ref().unwrap().record.kind,
-            flags: 0,
+        rows.extend(self.names[&key].iter().map(|&slot| {
+            let kind = self.slots[slot].entry.as_ref().unwrap().record.kind;
+            Row {
+                slot: Some(slot),
+                kind,
+                flags: u8::from(kind.is_reverse()),
+            }
         }));
         for immortal in [false, true] {
             rows.extend(
