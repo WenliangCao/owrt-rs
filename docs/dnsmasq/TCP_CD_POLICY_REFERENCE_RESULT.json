@@ -1,0 +1,152 @@
+{
+  "scope": "C-first real -k TCP ordinary CD prefix and independent bogus transaction differential",
+  "reference": {
+    "kind": "native-glibc",
+    "elf_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431"
+  },
+  "tool_sha256": "2b5f8b1d3b462585e131eec1755890429f2f935b6e797784c5b24d32a8f16c65",
+  "rust_sha256": "012448b55401f3ca5e0550751b1cd695dc4b137f948c624a366afa6886233e4a",
+  "passed": 152,
+  "failed": 0,
+  "matched": 65,
+  "profiles": [
+    {
+      "name": "a-request-cd",
+      "kind": 1,
+      "request_cd": true,
+      "raw_cd": false,
+      "capacity": 8,
+      "observations": 15,
+      "trace_sha256": "05cac65e17bc150d38bb220fcdb846a213fee5cdd02d64fdfeb8ca3bdb494c64"
+    },
+    {
+      "name": "aaaa-request-and-raw-cd",
+      "kind": 28,
+      "request_cd": true,
+      "raw_cd": true,
+      "capacity": 8,
+      "observations": 15,
+      "trace_sha256": "b1a47fe035e6cc1ff877870518ef0c53336ac0d569b486480530d72339c51420"
+    },
+    {
+      "name": "plain-request-raw-cd",
+      "kind": 1,
+      "request_cd": false,
+      "raw_cd": true,
+      "capacity": 8,
+      "cold": true,
+      "observations": 5,
+      "trace_sha256": "82ebc1986fad487a6248d8adb69565a26661afe732a284268f1951c484693531"
+    },
+    {
+      "name": "a-cd-pressure",
+      "kind": 1,
+      "request_cd": true,
+      "raw_cd": false,
+      "capacity": 3,
+      "pressure": true,
+      "observations": 18,
+      "trace_sha256": "5a65f824a8cf74825b62a91fc5662032df2c9dd35c3bb9a6f1a9c5641bb0abc8"
+    },
+    {
+      "name": "a-bogus-cd-no-negcache",
+      "kind": 1,
+      "request_cd": true,
+      "raw_cd": false,
+      "capacity": 8,
+      "bogus": true,
+      "observations": 12,
+      "trace_sha256": "1b1409f854cb19005fbea1bf82b2e2e91f37df4adfe4254cbc24fc47a057e384"
+    }
+  ],
+  "failures": [],
+  "comparison_failures": [],
+  "tool_commit": "0c419db",
+  "candidate_commit": "2a773f8",
+  "implementation_changed": false,
+  "c_checks": {
+    "passed": 152,
+    "total": 152
+  },
+  "rust_checks": {
+    "passed": 152,
+    "total": 152
+  },
+  "artifact_sha256": {
+    "result.json": "7861a2084bcefbcb51fc72255d0b79d14a901f960fcbe76b4349547e9509106c",
+    "c/a-request-cd/trace.json": "05cac65e17bc150d38bb220fcdb846a213fee5cdd02d64fdfeb8ca3bdb494c64",
+    "rust/a-request-cd/trace.json": "12f82cf095bc2e9c340b02072c00b3619caea1c8d13abf5879cafa34863c2cc9",
+    "c/aaaa-request-and-raw-cd/trace.json": "b1a47fe035e6cc1ff877870518ef0c53336ac0d569b486480530d72339c51420",
+    "rust/aaaa-request-and-raw-cd/trace.json": "dd6b70151dc1a947525ae229c7e5a19f65c7f62d7693c3b6bc3e04a52f8a6a07",
+    "c/plain-request-raw-cd/trace.json": "82ebc1986fad487a6248d8adb69565a26661afe732a284268f1951c484693531",
+    "rust/plain-request-raw-cd/trace.json": "4ab48da570061b776ca90439df16151f9ff7c27a97656ff21827acfcc71e7aa1",
+    "c/a-cd-pressure/trace.json": "5a65f824a8cf74825b62a91fc5662032df2c9dd35c3bb9a6f1a9c5641bb0abc8",
+    "rust/a-cd-pressure/trace.json": "7c1cf0f60838539cc316330dbd7190edd351b978a04e17b1aaf1f331595d1bca",
+    "c/a-bogus-cd-no-negcache/trace.json": "1b1409f854cb19005fbea1bf82b2e2e91f37df4adfe4254cbc24fc47a057e384",
+    "rust/a-bogus-cd-no-negcache/trace.json": "a8521b5900aae68d6829b26b17c5a6e53207da6891a62972360eb01a5501616c"
+  },
+  "evidence_archive_sha256": "f13135fdd0efc9f486895b18f3f724e7c23a2fdb17e45d6786842fd32c515e30",
+  "fixture_checks": {
+    "c/a-request-cd": {
+      "passed": 66,
+      "total": 66
+    },
+    "rust/a-request-cd": {
+      "passed": 94,
+      "total": 94
+    },
+    "c/aaaa-request-and-raw-cd": {
+      "passed": 66,
+      "total": 66
+    },
+    "rust/aaaa-request-and-raw-cd": {
+      "passed": 94,
+      "total": 94
+    },
+    "c/plain-request-raw-cd": {
+      "passed": 26,
+      "total": 26
+    },
+    "rust/plain-request-raw-cd": {
+      "passed": 50,
+      "total": 50
+    },
+    "c/a-cd-pressure": {
+      "passed": 78,
+      "total": 78
+    },
+    "rust/a-cd-pressure": {
+      "passed": 102,
+      "total": 102
+    },
+    "c/a-bogus-cd-no-negcache": {
+      "passed": 54,
+      "total": 54
+    },
+    "rust/a-bogus-cd-no-negcache": {
+      "passed": 74,
+      "total": 74
+    }
+  },
+  "normalization": [
+    "All five C profiles finish before any candidate starts.",
+    "All 30 parent UBus metrics are compared exactly.",
+    "Request/reply flags, section counts, ordered records, raw upstream CD and upstream event order are compared.",
+    "DNS compression and upstream transaction IDs are normalized.",
+    "TTL tolerance is at most one second for actual cached hits only.",
+    "Child miss, parent hit, pending cleanup, pressure victim and independent bogus commit are not normalized."
+  ],
+  "comparison_calibrations": [
+    "identical trace accepted",
+    "missing observation rejected",
+    "parent insertion count mismatch rejected",
+    "CD flag mismatch rejected",
+    "extra upstream request rejected"
+  ],
+  "limitations": [
+    "Private native correctness qualification; no product promotion or image-musl acceptance.",
+    "DO only forces forwarding past unsigned IN A/AAAA cached data; actual forwarding no_cache options are not exercised.",
+    "Five named profiles do not cover every CD/DO/policy combination or DO lookup/LRU order.",
+    "No DNSSEC validation, malformed partial frames, OOM or performance acceptance."
+  ]
+}
