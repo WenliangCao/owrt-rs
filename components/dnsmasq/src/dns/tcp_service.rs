@@ -486,7 +486,10 @@ mod tests {
     fn private_tcp_cache_uses_request_cd_before_extraction_and_fixed_clock() {
         use crate::dns::cache::{Cache, CacheCounters, Policy};
         use crate::hosts::Hosts;
-        let config = DnsConfig::default();
+        let mut config = DnsConfig::default();
+        config
+            .apply(&lex_line(b"no-resolv").unwrap().unwrap())
+            .unwrap();
         let service = TcpDnsService::new(&config, &[], 1232).unwrap();
         let mut local = LocalDnsService::new(config, Hosts::new(), 0, 1232);
         for request_cd in [false, true] {
@@ -529,13 +532,12 @@ mod tests {
         use crate::dns::cache::StalePolicy;
         use crate::dns::daemon::{DaemonOptions, DnsDaemon};
         use crate::hosts::Hosts;
-        let mut daemon = DnsDaemon::new(
-            DnsConfig::default(),
-            Hosts::new(),
-            &[],
-            DaemonOptions::default(),
-        )
-        .unwrap();
+        let mut config = DnsConfig::default();
+        config
+            .apply(&lex_line(b"no-resolv").unwrap().unwrap())
+            .unwrap();
+        let mut daemon =
+            DnsDaemon::new(config, Hosts::new(), &[], DaemonOptions::default()).unwrap();
         daemon.enable_cache(10, 0, 0, StalePolicy::Forever);
         assert!(daemon.snapshot_tcp_cache(100).is_err());
         assert!(daemon.snapshot_tcp_cache(200).is_err());
