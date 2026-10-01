@@ -1,0 +1,193 @@
+{
+  "scope": "Read-only verification of six saved distinct-bucket C traces; no oracle execution or candidate edits",
+  "archive_sha256": "c799b6ddbbbc5582c6da244d1e029e28ca7499b57f8a0b371ed7cb73c7a463a2",
+  "cache_c_sha256": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c",
+  "rows": [
+    {
+      "runtime": "native",
+      "repeat": 0,
+      "stdout_sha256": "e5f8842c7a005c5fc7ac9b976453985c9645634f945e3f2620b6a6f4deba88b1",
+      "stderr_sha256": "e7f5f13b7f8b5d67f61278ecd1cb92d1cc5dda2dfb1621c45465a947d80826bc",
+      "buckets_by_input_position": {
+        "1": 33,
+        "2": 58,
+        "3": 12
+      },
+      "child_prelookup_lru": [
+        1,
+        2,
+        3
+      ],
+      "parent_prelookup_lru": [
+        3,
+        2,
+        1
+      ],
+      "child_lookup_order": [
+        2,
+        1,
+        3
+      ],
+      "parent_lookup_order": [
+        2,
+        1,
+        3
+      ]
+    },
+    {
+      "runtime": "native",
+      "repeat": 1,
+      "stdout_sha256": "e5f8842c7a005c5fc7ac9b976453985c9645634f945e3f2620b6a6f4deba88b1",
+      "stderr_sha256": "1059b9145e6fef71a895811fa249f8d974fbc69db39d2ba4c6a8f54f51172c13",
+      "buckets_by_input_position": {
+        "1": 10,
+        "2": 58,
+        "3": 9
+      },
+      "child_prelookup_lru": [
+        1,
+        2,
+        3
+      ],
+      "parent_prelookup_lru": [
+        3,
+        2,
+        1
+      ],
+      "child_lookup_order": [
+        2,
+        1,
+        3
+      ],
+      "parent_lookup_order": [
+        2,
+        1,
+        3
+      ]
+    },
+    {
+      "runtime": "native",
+      "repeat": 2,
+      "stdout_sha256": "e5f8842c7a005c5fc7ac9b976453985c9645634f945e3f2620b6a6f4deba88b1",
+      "stderr_sha256": "8c81bf36855f7cef6260fa8389999239c6cbc776a06da77b59891c8231321ed4",
+      "buckets_by_input_position": {
+        "1": 55,
+        "2": 58,
+        "3": 34
+      },
+      "child_prelookup_lru": [
+        1,
+        2,
+        3
+      ],
+      "parent_prelookup_lru": [
+        3,
+        2,
+        1
+      ],
+      "child_lookup_order": [
+        2,
+        1,
+        3
+      ],
+      "parent_lookup_order": [
+        2,
+        1,
+        3
+      ]
+    },
+    {
+      "runtime": "target",
+      "repeat": 0,
+      "stdout_sha256": "f5db4153c9fa8241c37d5f9c4c0cc309f16183505cff8ede568252181de7c979",
+      "stderr_sha256": "7bc1228f0efba961324e5a36bea3bba535ab9991bf749d6b05bc5642571e3e88",
+      "buckets_by_input_position": {
+        "1": 50,
+        "2": 21,
+        "3": 7
+      },
+      "child_prelookup_lru": [
+        1,
+        2,
+        3
+      ],
+      "parent_prelookup_lru": [
+        3,
+        2,
+        1
+      ],
+      "child_lookup_order": [
+        1,
+        2,
+        3
+      ],
+      "parent_lookup_order": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "runtime": "target",
+      "repeat": 1,
+      "stdout_sha256": "f5db4153c9fa8241c37d5f9c4c0cc309f16183505cff8ede568252181de7c979",
+      "stderr_sha256": "7bc1228f0efba961324e5a36bea3bba535ab9991bf749d6b05bc5642571e3e88",
+      "buckets_by_input_position": {
+        "1": 50,
+        "2": 21,
+        "3": 7
+      },
+      "child_prelookup_lru": [
+        1,
+        2,
+        3
+      ],
+      "parent_prelookup_lru": [
+        3,
+        2,
+        1
+      ],
+      "child_lookup_order": [
+        1,
+        2,
+        3
+      ],
+      "parent_lookup_order": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "runtime": "target",
+      "repeat": 2,
+      "stdout_sha256": "f5db4153c9fa8241c37d5f9c4c0cc309f16183505cff8ede568252181de7c979",
+      "stderr_sha256": "7bc1228f0efba961324e5a36bea3bba535ab9991bf749d6b05bc5642571e3e88",
+      "buckets_by_input_position": {
+        "1": 50,
+        "2": 21,
+        "3": 7
+      },
+      "child_prelookup_lru": [
+        1,
+        2,
+        3
+      ],
+      "parent_prelookup_lru": [
+        3,
+        2,
+        1
+      ],
+      "child_lookup_order": [
+        1,
+        2,
+        3
+      ],
+      "parent_lookup_order": [
+        1,
+        2,
+        3
+      ]
+    }
+  ]
+}
