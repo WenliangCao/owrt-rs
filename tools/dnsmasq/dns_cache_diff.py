@@ -20,7 +20,19 @@ def function(source, signature):
     return source[start:source.index('\n}', start) + 2] + '\n'
 
 
-def build(output, rustc):
+def rust_modules(root):
+    lease_path = root / 'components/dnsmasq/src/dns/lease_names.rs'
+    lease_api = ''
+    if lease_path.exists():
+        lease_source = lease_path.read_text()
+        start = lease_source.rfind('#[derive', 0, lease_source.index('pub enum BlockerKind'))
+        lease_api = lease_source[start:lease_source.index('/// Appropriate only')]
+    return ('mod lease_names { use std::net::Ipv4Addr; ' + lease_api + ' }\n'
+            + '#[path=' + json.dumps(str(root / 'components/dnsmasq/src/dns/wire.rs')) + '] mod wire;\n'
+            + '#[path=' + json.dumps(str(root / 'components/dnsmasq/src/dns/cache.rs')) + '] mod cache;\n')
+
+
+def build(output, rustc, source_root=None):
     hashes = {file: hashlib.sha256((SOURCE/file).read_bytes()).hexdigest() for file in EXPECTED_SOURCE}
     if hashes != EXPECTED_SOURCE:
         raise RuntimeError('reference source identity differs from the verified patched 2.93 tree')
@@ -130,10 +142,7 @@ int main(int argc,char **argv) {
 }
 '''
     (output/'oracle.c').write_text(preamble)
-    rust = r'''
-mod lease_names { use std::net::Ipv4Addr; LEASE_API }
-#[path="WIRE"] mod wire;
-#[path="CACHE"] mod cache;
+    rust = rust_modules(source_root or ROOT) + r'''
 use std::io::{self,BufRead}; use cache::*;
 fn kind(t:u32)->Kind {match t {1=>Kind::Ipv4,28=>Kind::Ipv6,5=>Kind::Cname,65536=>Kind::NxDomain,_=>Kind::Generic(t as u16)}}
 fn main() {
@@ -149,13 +158,10 @@ fn main() {
  "Q"=>{let now=w[3].parse().unwrap();let found=cache.lookup(&wire::Name::from_ascii(w[1]).unwrap(),&[kind(n(2))],now,n(4)!=0);print!("Q");for id in found {let e=cache.get(id).unwrap();let t=match e.record.kind{Kind::Ipv4=>1,Kind::Ipv6=>28,Kind::Cname=>5,Kind::NxDomain=>65536,Kind::Generic(t)=>t as u32};let v=if t==5 {0}else{e.record.data[0]};print!(" {t}:{v}:{}:{}:{}:{}",u8::from(e.record.negative),e.expires,e.reply_ttl(now,policy),u8::from(e.is_stale(now)));}println!();},_=>panic!()}
  }
 }
-'''.replace('WIRE',str(ROOT/'components/dnsmasq/src/dns/wire.rs')).replace('CACHE',str(ROOT/'components/dnsmasq/src/dns/cache.rs'))
+'''
     # The standalone primitive probe does not run lease publication, but the
     # cache now implements its production trait. Copy only those declarations;
     # no snapshot behavior or expected outputs are substituted by this adapter.
-    lease_source = (ROOT / 'components/dnsmasq/src/dns/lease_names.rs').read_text()
-    start = lease_source.rfind('#[derive', 0, lease_source.index('pub enum BlockerKind'))
-    rust = rust.replace('LEASE_API', lease_source[start:lease_source.index('/// Appropriate only')])
     (output/'driver.rs').write_text(rust)
     subprocess.run(['cc','-O1','-g','-fsanitize=address,undefined','-fno-sanitize-recover=all',str(output/'oracle.c'),'-o',str(output/'oracle')],check=True)
     subprocess.run([rustc,'--edition=2021','-A','dead_code',str(output/'driver.rs'),'-o',str(output/'driver')],check=True)
@@ -189,9 +195,11 @@ def scenarios():
 
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--rustc',required=True);p.add_argument('--output',type=Path,default=ROOT/'private/dnsmasq-rs/cache/differential');args=p.parse_args()
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--rustc',required=True);p.add_argument('--output',type=Path,default=ROOT/'private/dnsmasq-rs/cache/differential')
+    p.add_argument('--rust-source-root',type=Path,help='explicit frozen Rust source root; C reference remains hash-pinned')
+    args=p.parse_args()
     out=args.output.resolve();assert out.is_relative_to((ROOT/'private').resolve());out.mkdir(parents=True,exist_ok=True)
-    hashes=build(out,args.rustc);results=[];errors=[];order_variations=[]
+    hashes=build(out,args.rustc,args.rust_source_root.resolve() if args.rust_source_root else None);results=[];errors=[];order_variations=[]
     for name,config,commands in scenarios():
         inputs='\n'.join(commands)+'\n';(out/f'{name}.input').write_text(inputs);observed={}
         for binary in ['oracle','driver']:
