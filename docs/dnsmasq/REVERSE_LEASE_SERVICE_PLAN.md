@@ -2,11 +2,15 @@
 
 Stage 3 uses complete native and actual-image C daemons, real UDP DNS and DHCP
 DISCOVER/REQUEST/RELEASE, and real private lease files. It has **six profiles,
-61 ordered observations**: 35 ordinary DNS exchanges, one held DNS request and
+62 ordered observations**: 36 ordinary DNS exchanges, one held DNS request and
 its later delivered reply, 21 DHCP observations (8 OFFER, 8 ACK, 5 RELEASE),
-and three completed HUP observations. Thus there are 36 DNS replies, not 61
+and three completed HUP observations. Thus there are 37 DNS replies, not 62
 DNS packets. Two functional expiry waits are retained outside the observation
 denominator; they are not performance windows.
+
+The earlier 61-event plan was never executed. The final pre-execution tool
+freeze adds one observation and moves active-lease HUP before release in the
+explicit-PTR profile, qualifying ownership reselection after cache clear.
 
 Freeze this plan and the executable matrix before C execution. Finish native
 and verified image C calibration before running source `62894d6` as the Rust
@@ -153,7 +157,7 @@ dhcp-host config fixes that client's authoritative name to client1.
 9. HUP: change the hosts owner to changed.leases.test and complete the handler.
 10. DNS: PTR returns the changed static owner.
 
-### explicit-ptr-priority: 11 observations
+### explicit-ptr-priority: 12 observations
 
 Configure ptr-record at the ordinary full reverse owner. Seed dynamic cache
 through the different decimal spelling 266.0.0.127.in-addr.arpa, whose defined
@@ -166,10 +170,12 @@ byte narrowing maps to the same 127.0.0.10 address. Do not inject a local record
 5. DNS: full owner still returns explicit PTR.
 6. DNS: alternate owner still returns dynamic PTR.
 7. DNS: client1.leases.test A is published.
-8. DHCP: client-1 RELEASE.
-9. DNS: configured full-owner PTR remains.
-10. HUP: clear dynamic cache and complete handler.
-11. DNS: alternate spelling misses; the explicit PTR is not an address mapping.
+8. HUP: while the lease is still active, clear dynamic cache and complete the
+   handler, including forced lease republishing.
+9. DNS: alternate spelling now returns the lease FQDN.
+10. DHCP: client-1 RELEASE.
+11. DNS: configured full-owner PTR remains.
+12. DNS: alternate spelling misses; the explicit PTR is not an address mapping.
 
 ### fqdn-only: 8 observations
 
