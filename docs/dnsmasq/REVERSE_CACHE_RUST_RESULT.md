@@ -107,3 +107,18 @@ retained beside the before evidence with `rust-after-evidence-sha256.json`.
 The native-source primitive pass does not establish actual-image UDP service,
 DO/AD metadata admission, malformed direct PTR, local/lease coexistence, typed
 transfer, multi-target ordering, resource or deployment acceptance.
+
+The subsequent source-review correction `deab8a015c26f7b7e7fd8860ddaaf371dc745cbc`
+also passes all 125 original command rows, with no differences, unsupported
+rows or fixture failures in `rust-after-02`. It restricts the reverse prepass
+to address-form PTR/ANY and reuses the first CNAME lookup result. The adapter,
+C evidence and matrix are unchanged; `19620e34` evidence remains preserved.
+
+- Second candidate source archive SHA-256:
+  `b16212f23fb2daf3fd02690de29b71685a059134ce279fc6be7c262218a9affb`.
+- Second instrumented native probe ELF SHA-256:
+  `0ed2018629ad25cb92e90a9dac8ad9416fb01c4d91ecb7e56985ecaf260a6fa4`.
+
+`rust-after-build-02` uses a fresh release target outside sudo; the finished
+probe runs in isolation. Its raw and append-only source evidence is listed in
+`rust-after-02-evidence-sha256.json`. No C process or cohort is rerun.
