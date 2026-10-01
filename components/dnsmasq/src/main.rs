@@ -79,6 +79,9 @@ impl std::error::Error for NetworkStartupError {}
 fn startup_status(error: &(dyn std::error::Error + 'static)) -> i32 {
     // dnsmasq.h: EC_BADCONF=1, EC_BADNET=2. Other initialization boundaries
     // supply their own code rather than guessing from an errno alone.
+    if let Some(error) = error.downcast_ref::<dnsmasq_rs::startup::StartupError>() {
+        return error.code;
+    }
     if error.is::<NetworkStartupError>() {
         return 2;
     }
@@ -94,6 +97,7 @@ fn startup_status(error: &(dyn std::error::Error + 'static)) -> i32 {
 
 struct Runtime {
     scalar: ScalarConfig,
+    process: dnsmasq_rs::startup::ProcessConfig,
     dns: DnsConfig,
     tftp: TftpConfig,
     dhcp: DhcpConfig,
@@ -319,18 +323,15 @@ fn report_lease_name_warnings(names: &dnsmasq_rs::dns::lease_names::LeaseNames) 
 fn load(args: &[OsString]) -> Result<(Action, Runtime), loader::LoadError> {
     let mut runtime = Runtime {
         scalar: ScalarConfig::default(),
+        process: dnsmasq_rs::startup::ProcessConfig::default(),
         dns: DnsConfig::default(),
         tftp: TftpConfig::default(),
         dhcp: DhcpConfig::default(),
         ubus: UbusConfig::default(),
     };
     let action = loader::load(args, Path::new("/etc/dnsmasq.conf"), |directive, _| {
-        // `-k/--keep-in-foreground` is a process-mode switch consumed by the
-        // runner, not a DNS or DHCP configuration directive.
-        if matches!(
-            directive.name.as_slice(),
-            b"keep-in-foreground" | b"no-daemon"
-        ) || runtime.scalar.apply(directive)?
+        if runtime.process.apply(directive)?
+            || runtime.scalar.apply(directive)?
             || runtime.dns.apply(directive)?
             || runtime.tftp.apply(directive)?
             || runtime.dhcp.apply(directive)?
@@ -368,6 +369,8 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         }
         Action::Run => {}
     }
+    #[cfg(target_os = "linux")]
+    let identity = dnsmasq_rs::startup::Identity::resolve(&runtime.process)?;
     runtime.scalar.finalize_runtime()?;
     runtime.dns.finalize()?;
     runtime.dhcp.validate_dns_config(&runtime.dns)?;
@@ -604,6 +607,15 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             .map_err(|_| io::Error::other("DHCP state lock poisoned"))?;
         report_dhcp_maintenance(&provider.initialize(now));
     }
+    #[cfg(target_os = "linux")]
+    let _pid_file = identity.write_pid(&runtime.process)?;
+    #[cfg(target_os = "linux")]
+    identity.drop_privileges(
+        &runtime.process,
+        !runtime.dhcp.ranges.is_empty(),
+        daemon_config.bind_dynamic && runtime.scalar.dns_port <= 1024 && dns_enabled,
+        runtime.ubus.object_name()?.is_some(),
+    )?;
     let udp_sockets: Arc<Vec<_>> = Arc::new(
         listeners
             .iter()
