@@ -58,6 +58,115 @@ fn cached(daemon: &mut DnsDaemon, name: &str, qtype: u16, now: i64) -> Option<Ve
     daemon.cached_answer_at(&query, &question, now).unwrap()
 }
 
+fn cached_details(
+    daemon: &mut DnsDaemon,
+    name: &str,
+    qtype: u16,
+    now: i64,
+) -> Option<CachedAnswer> {
+    let query = packet(name, qtype, 0x100).finish();
+    let question = super::super::forward::Question::parse(&query).unwrap();
+    let answer = daemon
+        .cached_answer_at_with_local(&query, &question, now, None)
+        .unwrap();
+    answer.packet.is_some().then_some(answer)
+}
+
+#[test]
+fn zero_ttl_at_expiry_is_not_yet_stale_and_new_address_precedes_old_nxdomain() {
+    let mut daemon = daemon();
+    daemon.enable_cache(32, 0, 0, StalePolicy::Seconds(30));
+    daemon.enable_negative_cache(1, true);
+    daemon.cache_reply_at(&packet("stale.test", 1, 0x8183).finish(), 100);
+    assert!(
+        !cached_details(&mut daemon, "stale.test", 1, 101)
+            .unwrap()
+            .stale
+    );
+    assert!(
+        cached_details(&mut daemon, "stale.test", 1, 102)
+            .unwrap()
+            .stale
+    );
+    let mut positive = packet("stale.test", 1, 0x8180);
+    positive
+        .record_at(Section::Answer, 12, 1, 1, 120, &[192, 0, 2, 8])
+        .unwrap();
+    daemon.cache_reply_at(&positive.finish(), 104);
+    let answer = cached_details(&mut daemon, "stale.test", 1, 104).unwrap();
+    // The exact C service returned the new address and still refreshed: its
+    // earlier CNAME/NXDOMAIN scan had already marked the old entry stale.
+    assert!(answer.stale);
+    let message = Message::parse(answer.packet.as_deref().unwrap()).unwrap();
+    assert_eq!(message.header.rcode(), 0);
+    let rr = message.records(Section::Answer).next().unwrap();
+    assert_eq!(rr.ttl, 120);
+    assert_eq!(rr.rdata, &[192, 0, 2, 8]);
+    let cname = cached_details(&mut daemon, "stale.test", 5, 104).unwrap();
+    assert!(cname.stale);
+    assert_eq!(
+        Header::parse(cname.packet.as_deref().unwrap())
+            .unwrap()
+            .rcode(),
+        3
+    );
+}
+
+#[test]
+fn stale_metadata_follows_the_returned_cname_chain_and_finite_allowance() {
+    let mut daemon = daemon();
+    daemon.enable_cache(32, 0, 0, StalePolicy::Seconds(30));
+    let mut reply = packet("alias.test", 1, 0x8180);
+    reply
+        .record_at(
+            Section::Answer,
+            12,
+            5,
+            1,
+            60,
+            Name::from_ascii("target.test").unwrap().as_wire(),
+        )
+        .unwrap();
+    reply
+        .record(
+            Section::Answer,
+            &Name::from_ascii("target.test").unwrap(),
+            1,
+            1,
+            1,
+            &[192, 0, 2, 7],
+        )
+        .unwrap();
+    daemon.cache_reply_at(&reply.finish(), 100);
+    let at_expiry = cached_details(&mut daemon, "alias.test", 1, 101).unwrap();
+    assert!(!at_expiry.stale);
+    assert_eq!(
+        Message::parse(at_expiry.packet.as_deref().unwrap())
+            .unwrap()
+            .records(Section::Answer)
+            .nth(1)
+            .unwrap()
+            .ttl,
+        0
+    );
+    assert!(
+        cached_details(&mut daemon, "alias.test", 1, 102)
+            .unwrap()
+            .stale
+    );
+    assert!(
+        !cached_details(&mut daemon, "alias.test", 5, 102)
+            .unwrap()
+            .stale
+    );
+    assert!(
+        cached_details(&mut daemon, "target.test", 1, 130)
+            .unwrap()
+            .stale
+    );
+    assert!(cached_details(&mut daemon, "target.test", 1, 131).is_none());
+}
+
 #[test]
 fn response_counters_count_committed_records_and_follow_real_reload() {
     let mut daemon = daemon();

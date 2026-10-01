@@ -427,8 +427,10 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                             }
                             Err(_) => break,
                         };
+                        // HUP cannot split one admitted query's answer from
+                        // its send/refresh. The receive wait stays outside.
+                        let Ok(_event) = udp_events.read() else { break };
                         let (answer, responses) = {
-                            let Ok(_event) = udp_events.read() else { break };
                             let Ok(mut parent) = parent_service.lock() else {
                                 break;
                             };
@@ -442,12 +444,12 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                 ) {
                                     dnsmasq_rs::dns::udp_query::Admission::Drop => return None,
                                     dnsmasq_rs::dns::udp_query::Admission::Reply(answer) => {
-                                        return Some((peer, answer))
+                                        return Some((peer, answer, false))
                                     }
                                     dnsmasq_rs::dns::udp_query::Admission::Continue => {}
                                 }
                                 let answer = match local.handle_udp(packet) {
-                                    Ok(Some(answer)) => Some(answer),
+                                    Ok(Some(answer)) => Some((answer, false)),
                                     Ok(None) => match daemon.forward_udp_on_listener_with_local(
                                         packet,
                                         ClientRequest {
@@ -461,12 +463,13 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                         Ok(
                                             QueryResult::Local(answer)
                                             | QueryResult::Cached(answer),
-                                        ) => Some(answer),
+                                        ) => Some((answer, false)),
+                                        Ok(QueryResult::Stale(answer)) => Some((answer, true)),
                                         _ => None,
                                     },
                                     Err(_) => None,
                                 };
-                                answer.map(|answer| (peer, answer))
+                                answer.map(|(answer, stale)| (peer, answer, stale))
                             });
                             // This poll is nonblocking. Keep local-name policy
                             // and cache updates in the same generation as lookup.
@@ -475,8 +478,29 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                 .unwrap_or_default();
                             (answer, responses)
                         };
-                        if let Some((peer, answer)) = answer {
+                        if let Some((peer, answer, stale)) = answer {
                             let _ = udp.send_to(&answer, peer);
+                            if stale {
+                                // Preserve C's send-before-refresh order even
+                                // when the downstream send itself fails.
+                                let Ok(mut parent) = parent_service.lock() else {
+                                    break;
+                                };
+                                let length = incoming.expect("stale reply has a query").0;
+                                let _ = parent
+                                    .daemon
+                                    .as_mut()
+                                    .expect("DNS listener owns the forwarder")
+                                    .refresh_udp_on_listener(
+                                        &query[..length],
+                                        ClientRequest {
+                                            source: peer,
+                                            destination: address.ip(),
+                                            interface: 0,
+                                        },
+                                        Some(listener),
+                                    );
+                            }
                         }
                         for response in responses {
                             let Some(SocketToken(index)) = response.listener else {

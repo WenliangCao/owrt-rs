@@ -66,11 +66,19 @@ pub enum QueryResult {
     Local(Vec<u8>),
     /// A positive answer synthesized from the daemon's forward cache.
     Cached(Vec<u8>),
+    /// An expired-but-retained answer. The caller must attempt this reply
+    /// before calling `refresh_udp_on_listener` with the original request.
+    Stale(Vec<u8>),
     /// The query was admitted to the upstream transaction table.
     Forwarded(QueryId),
     /// The query exceeds the admitted size or reaches an unimplemented local
     /// routing boundary. A missing upstream route is answered with REFUSED.
     Dropped,
+}
+
+struct CachedAnswer {
+    packet: Option<Vec<u8>>,
+    stale: bool,
 }
 
 /// Runtime knobs needed by the DNS integration.  Unsupported options must be
@@ -401,11 +409,38 @@ impl<R: Random> DnsDaemon<R> {
             return Ok(QueryResult::Dropped);
         }
         let question = super::forward::Question::parse(query).map_err(DaemonError::Wire)?;
-        if let Some(answer) =
-            self.cached_answer_at_with_local(query, &question, unix_seconds(), local)?
-        {
-            return Ok(QueryResult::Cached(answer));
+        let answer = self.cached_answer_at_with_local(query, &question, unix_seconds(), local)?;
+        if let Some(packet) = answer.packet {
+            return Ok(if answer.stale {
+                QueryResult::Stale(packet)
+            } else {
+                QueryResult::Cached(packet)
+            });
         }
+        self.submit_upstream(query, &question, client, listener, true)
+    }
+
+    /// Submit the original query after attempting a stale client reply, as
+    /// receive_query does before forward_query(fd=-1). Normal coalescing and
+    /// cache insertion still apply; this recipient receives no second reply.
+    pub fn refresh_udp_on_listener(
+        &mut self,
+        query: &[u8],
+        client: ClientRequest,
+        listener: Option<super::forward::SocketToken>,
+    ) -> Result<QueryResult, DaemonError> {
+        let question = super::forward::Question::parse(query)?;
+        self.submit_upstream(query, &question, client, listener, false)
+    }
+
+    fn submit_upstream(
+        &mut self,
+        query: &[u8],
+        question: &super::forward::Question,
+        client: ClientRequest,
+        listener: Option<super::forward::SocketToken>,
+        reply_requested: bool,
+    ) -> Result<QueryResult, DaemonError> {
         let route = self
             .routing
             .select(&question.name, question.rrtype, question.class, false);
@@ -431,7 +466,7 @@ impl<R: Random> DnsDaemon<R> {
             destination: client.destination,
             interface: client.interface,
             listener,
-            reply_requested: true,
+            reply_requested,
             udp_limit: 512,
             log_id: u64::from(question.rrtype),
         };
@@ -666,6 +701,7 @@ impl<R: Random> DnsDaemon<R> {
         now: i64,
     ) -> Result<Option<Vec<u8>>, DaemonError> {
         self.cached_answer_at_with_local(query, question, now, None)
+            .map(|answer| answer.packet)
     }
 
     fn cached_answer_at_with_local(
@@ -674,11 +710,15 @@ impl<R: Random> DnsDaemon<R> {
         question: &super::forward::Question,
         now: i64,
         external_local: Option<&mut LocalDnsService>,
-    ) -> Result<Option<Vec<u8>>, DaemonError> {
+    ) -> Result<CachedAnswer, DaemonError> {
+        let mut stale = false;
         let local = external_local.unwrap_or(&mut self.local);
         let round_robin = !local.config.no_round_robin;
         let Some(cache) = self.cache.as_mut() else {
-            return Ok(None);
+            return Ok(CachedAnswer {
+                packet: None,
+                stale,
+            });
         };
         let header = Header::parse(query)?;
         // This first cache slice deliberately leaves EDNS/DNSSEC-sensitive
@@ -690,16 +730,21 @@ impl<R: Random> DnsDaemon<R> {
             || header.authorities != 0
             || header.additionals != 0
             || header.opcode() != 0
-            || (header.flags & 0x0100 == 0 && question.rrtype != 5)
             || header.flags & 0x8000 != 0
             || header.flags & 0x0020 != 0
             || edns.opt.is_some()
             || edns.signed
         {
-            return Ok(None);
+            return Ok(CachedAnswer {
+                packet: None,
+                stale,
+            });
         }
         if question.class != 1 {
-            return Ok(None);
+            return Ok(CachedAnswer {
+                packet: None,
+                stale,
+            });
         }
         let kind = match question.rrtype {
             1 => Kind::Ipv4,
@@ -707,21 +752,57 @@ impl<R: Random> DnsDaemon<R> {
             28 => Kind::Ipv6,
             rrtype => Kind::Generic(rrtype),
         };
-        let ids = cache.lookup(
-            &question.name,
-            &[Kind::Cname, kind, Kind::NxDomain],
-            now,
-            round_robin,
-        );
+        let ordinary_kinds = [Kind::Cname, kind, Kind::NxDomain];
+        let any_kinds = [Kind::Cname, Kind::Ipv4, Kind::Ipv6, kind, Kind::NxDomain];
+        let kinds: &[Kind] = if question.rrtype == 255 {
+            &any_kinds
+        } else {
+            &ordinary_kinds
+        };
+        let ids = cache.lookup(&question.name, kinds, now, round_robin);
         if ids.is_empty() {
-            return Ok(None);
+            return Ok(CachedAnswer {
+                packet: None,
+                stale,
+            });
         }
-        let direct_negative = ids.iter().find_map(|id| {
-            cache.get(*id).and_then(|entry| {
-                (entry.record.negative && entry.record.kind == Kind::NxDomain).then_some(*id)
-            })
-        });
-        if let Some(id) = direct_negative {
+        // C inspects CNAME/NXDOMAIN before the requested type and before RD.
+        // An old NXDOMAIN can mark a newer typed answer stale, or the caller
+        // can observe staleness even though no answer can ultimately be sent.
+        let mut direct_negative = None;
+        for id in &ids {
+            if let Some(entry) = cache.get(*id) {
+                if entry.record.kind == Kind::NxDomain && entry.record.negative {
+                    direct_negative.get_or_insert(*id);
+                    stale |= entry.is_stale(now);
+                } else if entry.record.kind == Kind::Cname {
+                    stale |= entry.is_stale(now);
+                }
+            }
+        }
+        if header.flags & 0x0100 == 0 && !(question.rrtype == 5 && direct_negative.is_some()) {
+            return Ok(CachedAnswer {
+                packet: None,
+                stale,
+            });
+        }
+        if question.rrtype == 255 {
+            // Dynamic A/AAAA cannot answer ANY, but C has inspected their
+            // stale bits by the time it rejects this source for ANY output.
+            stale |= ids
+                .iter()
+                .filter_map(|id| cache.get(*id))
+                .filter(|entry| matches!(entry.record.kind, Kind::Ipv4 | Kind::Ipv6))
+                .any(|entry| entry.is_stale(now));
+        }
+        if let Some(id) = direct_negative.filter(|_| {
+            question.rrtype == 5
+                || !ids.iter().any(|id| {
+                    cache
+                        .get(*id)
+                        .is_some_and(|entry| entry.record.kind == kind)
+                })
+        }) {
             let mut writer = PacketWriter::new(
                 header.id,
                 (header.flags & 0x0110) | 0x8083,
@@ -732,11 +813,14 @@ impl<R: Random> DnsDaemon<R> {
                 Ok(_) | Err(WireError::Full) => {}
                 Err(error) => return Err(error.into()),
             }
-            return Ok(Some(finish_cached_answer(writer)?));
+            return Ok(finish_cached_answer(writer, stale)?);
         }
         if question.rrtype == 5 {
             if header.flags & 0x0100 == 0 {
-                return Ok(None);
+                return Ok(CachedAnswer {
+                    packet: None,
+                    stale,
+                });
             }
             // answer_request stops after the first CNAME for this qtype,
             // even when its target is another alias or a negative entry.
@@ -749,15 +833,24 @@ impl<R: Random> DnsDaemon<R> {
             )?;
             writer.question(&question.name, question.rrtype, question.class)?;
             for id in ids {
+                if let Some(entry) = cache
+                    .get(id)
+                    .filter(|entry| entry.record.kind == Kind::Cname)
+                {
+                    stale |= entry.is_stale(now);
+                }
                 match append_cname_record(&mut writer, cache, id, Section::Answer, now, Some(12)) {
                     Ok(None) => continue,
                     Ok(Some(_)) | Err(WireError::Full) => {
-                        return Ok(Some(finish_cached_answer(writer)?));
+                        return Ok(finish_cached_answer(writer, stale)?);
                     }
                     Err(error) => return Err(error.into()),
                 }
             }
-            return Ok(None);
+            return Ok(CachedAnswer {
+                packet: None,
+                stale,
+            });
         }
         let direct_nodata = ids.iter().find_map(|id| {
             cache.get(*id).and_then(|entry| {
@@ -765,6 +858,7 @@ impl<R: Random> DnsDaemon<R> {
             })
         });
         if let Some(id) = direct_nodata {
+            stale |= cache.get(id).is_some_and(|entry| entry.is_stale(now));
             let mut writer = PacketWriter::new(
                 header.id,
                 (header.flags & 0x0110) | 0x8080,
@@ -775,7 +869,7 @@ impl<R: Random> DnsDaemon<R> {
                 Ok(_) | Err(WireError::Full) => {}
                 Err(error) => return Err(error.into()),
             }
-            return Ok(Some(finish_cached_answer(writer)?));
+            return Ok(finish_cached_answer(writer, stale)?);
         }
 
         // A CNAME can terminate in a cached negative entry.  Preflight the
@@ -828,6 +922,7 @@ impl<R: Random> DnsDaemon<R> {
                     let mut owner_offset = 12;
                     let mut complete = false;
                     for _ in 0..10 {
+                        stale |= cache.get(current).is_some_and(|entry| entry.is_stale(now));
                         // A compressed owner is two bytes, followed by the
                         // ten-byte RR header. The uncompressed target starts
                         // there and becomes the owner of the next record.
@@ -843,7 +938,7 @@ impl<R: Random> DnsDaemon<R> {
                             Ok(Some(target)) => target,
                             Ok(None) => break,
                             Err(WireError::Full) => {
-                                return Ok(Some(finish_cached_answer(writer)?));
+                                return Ok(finish_cached_answer(writer, stale)?);
                             }
                             Err(error) => return Err(error.into()),
                         };
@@ -862,9 +957,12 @@ impl<R: Random> DnsDaemon<R> {
                                     owner_offset,
                                 )?
                                 else {
-                                    return Ok(None);
+                                    return Ok(CachedAnswer {
+                                        packet: None,
+                                        stale,
+                                    });
                                 };
-                                return Ok(Some(finish_cached_answer_flags(writer, Some(flags))?));
+                                return Ok(finish_cached_answer_flags(writer, Some(flags), stale)?);
                             }
                         };
                         let Some(target_entry) = cache.get(target) else {
@@ -881,19 +979,26 @@ impl<R: Random> DnsDaemon<R> {
                             if target_entry.record.kind != kind
                                 && target_entry.record.kind != Kind::NxDomain
                             {
-                                return Ok(None);
+                                return Ok(CachedAnswer {
+                                    packet: None,
+                                    stale,
+                                });
                             }
                             let terminal_name = target_entry.record.name.clone();
                             if !cache
                                 .lookup_question(&terminal_name, kind, now, round_robin)
                                 .contains(&target)
                             {
-                                return Ok(None);
+                                return Ok(CachedAnswer {
+                                    packet: None,
+                                    stale,
+                                });
                             }
+                            stale |= cache.get(target).is_some_and(|entry| entry.is_stale(now));
                             match append_negative_authority(&mut writer, cache, target, now) {
                                 Ok(_) => {}
                                 Err(WireError::Full) => {
-                                    return Ok(Some(finish_cached_answer(writer)?));
+                                    return Ok(finish_cached_answer(writer, stale)?);
                                 }
                                 Err(error) => return Err(error.into()),
                             }
@@ -904,7 +1009,10 @@ impl<R: Random> DnsDaemon<R> {
                             // abandons this cache hit when an A chain is
                             // queried as AAAA (and vice versa).
                             if target_entry.record.kind != kind {
-                                return Ok(None);
+                                return Ok(CachedAnswer {
+                                    packet: None,
+                                    stale,
+                                });
                             }
                             let terminal_name = target_entry.record.name.clone();
                             let terminal_kind = target_entry.record.kind;
@@ -917,6 +1025,9 @@ impl<R: Random> DnsDaemon<R> {
                                 {
                                     continue;
                                 }
+                                stale |= cache
+                                    .get(terminal_id)
+                                    .is_some_and(|entry| entry.is_stale(now));
                                 match append_positive_record(
                                     &mut writer,
                                     cache,
@@ -930,7 +1041,7 @@ impl<R: Random> DnsDaemon<R> {
                                     }
                                     Ok(false) => {}
                                     Err(WireError::Full) => {
-                                        return Ok(Some(finish_cached_answer(writer)?));
+                                        return Ok(finish_cached_answer(writer, stale)?);
                                     }
                                     Err(error) => return Err(error.into()),
                                 }
@@ -939,13 +1050,17 @@ impl<R: Random> DnsDaemon<R> {
                         break;
                     }
                     if !complete {
-                        return Ok(None);
+                        return Ok(CachedAnswer {
+                            packet: None,
+                            stale,
+                        });
                     }
                     continue;
                 }
                 if entry.record.kind != kind {
                     continue;
                 }
+                stale |= entry.is_stale(now);
             }
             match append_positive_record(&mut writer, cache, id, Section::Answer, now, Some(12)) {
                 Ok(true) => written = true,
@@ -955,9 +1070,12 @@ impl<R: Random> DnsDaemon<R> {
             }
         }
         if written {
-            return Ok(Some(finish_cached_answer(writer)?));
+            return Ok(finish_cached_answer(writer, stale)?);
         }
-        Ok(None)
+        Ok(CachedAnswer {
+            packet: None,
+            stale,
+        })
     }
 
     #[cfg(test)]
@@ -1008,6 +1126,16 @@ impl<R: Random> DnsDaemon<R> {
             return;
         }
 
+        // extract_addresses clamps answer TTLs before passing them to cache
+        // insertion. The independent authority SOA follows find_soa instead.
+        let max_reply_ttl = cache.policy().max_reply_ttl;
+        let answer_ttl = |ttl: u32| {
+            if max_reply_ttl == 0 {
+                ttl
+            } else {
+                ttl.min(max_reply_ttl)
+            }
+        };
         // Follow the answer CNAME chain exactly as extract_addresses does.
         // The terminal name is where a positive RRset or a negative record is
         // cached, so aliases can be replayed even when the terminal is NXDOMAIN
@@ -1032,7 +1160,7 @@ impl<R: Random> DnsDaemon<R> {
                 if consumed != rr.rdata.len() {
                     return;
                 }
-                found = Some((target, rr.ttl));
+                found = Some((target, answer_ttl(rr.ttl)));
                 break;
             }
             let Some((target, ttl)) = found else {
@@ -1075,7 +1203,7 @@ impl<R: Random> DnsDaemon<R> {
                 return;
             };
             if name.eq_ignore_ascii_case(&terminal_name) {
-                addresses.push((name, rr.rdata.to_vec(), rr.ttl));
+                addresses.push((name, rr.rdata.to_vec(), answer_ttl(rr.ttl)));
             }
         }
 
@@ -1304,14 +1432,15 @@ fn unix_seconds() -> i64 {
 
 /// `answer_request` clears all response sections when any cached RR cannot
 /// fit, while the reusable PacketWriter intentionally retains complete RRs.
-fn finish_cached_answer(writer: PacketWriter) -> Result<Vec<u8>, WireError> {
-    finish_cached_answer_flags(writer, None)
+fn finish_cached_answer(writer: PacketWriter, stale: bool) -> Result<CachedAnswer, WireError> {
+    finish_cached_answer_flags(writer, None, stale)
 }
 
 fn finish_cached_answer_flags(
     writer: PacketWriter,
     local_flags: Option<u16>,
-) -> Result<Vec<u8>, WireError> {
+    stale: bool,
+) -> Result<CachedAnswer, WireError> {
     let mut packet = writer.finish();
     let mut header = Header::parse(&packet)?;
     if let Some(flags) = local_flags {
@@ -1325,7 +1454,10 @@ fn finish_cached_answer_flags(
         header.additionals = 0;
         header.write(&mut packet)?;
     }
-    Ok(packet)
+    Ok(CachedAnswer {
+        packet: Some(packet),
+        stale,
+    })
 }
 
 /// Reuse the local answer engine for a cached alias's terminal name, including
@@ -1578,6 +1710,10 @@ pub(super) fn validate_runtime_config(config: &DnsConfig) -> Result<(), DaemonEr
 #[cfg(test)]
 #[path = "daemon_cache_tests.rs"]
 mod cache_tests;
+
+#[cfg(test)]
+#[path = "daemon_stale_tests.rs"]
+mod stale_tests;
 
 #[cfg(test)]
 #[path = "daemon_policy_tests.rs"]

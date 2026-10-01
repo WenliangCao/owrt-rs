@@ -27,6 +27,9 @@ from dns_udp_refusal_diff import verify_reference
 
 LISTEN = ("127.0.0.1", 19353)
 UPSTREAM = ("127.0.0.1", 19354)
+# Linux 64-bit SO_TIMESTAMPNS. Kernel arrival timestamps verify cross-socket
+# order independently of which socket the harness happens to read first.
+SO_TIMESTAMPNS = 35
 
 
 def response(request, scenario, generation):
@@ -52,14 +55,22 @@ def response(request, scenario, generation):
 def receive(sock, timeout):
     sock.settimeout(timeout)
     try:
-        return sock.recvfrom(65535)
+        packet, ancillary, flags, peer = sock.recvmsg(65535, socket.CMSG_SPACE(16))
+        assert not flags & socket.MSG_CTRUNC
+        stamps = [value for level, kind, value in ancillary
+                  if level == socket.SOL_SOCKET and kind == SO_TIMESTAMPNS]
+        assert len(stamps) == 1 and len(stamps[0]) == 16, "kernel timestamp missing"
+        seconds, nanos = struct.unpack("=qq", stamps[0])
+        assert 0 <= nanos < 1_000_000_000
+        return packet, peer, seconds * 1_000_000_000 + nanos
     except socket.timeout:
         return None
 
 
 def run(binary, scenario, config, folder):
     folder.mkdir()
-    trace = {"status": "failed", "events": [], "upstream": [], "packets": []}
+    trace = {"status": "failed", "events": [], "upstream": [], "packets": [],
+             "kernel_timestamps_ns": {}, "reply_before_refresh": None}
     def save_packet(direction, packet):
         trace["packets"].append({"direction": direction, "packet": packet.hex()})
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as upstream, \
@@ -68,6 +79,8 @@ def run(binary, scenario, config, folder):
          (folder / "daemon.log").open("wb") as log:
         upstream.bind(UPSTREAM)
         first.bind(("127.0.0.1", 0)); second.bind(("127.0.0.1", 0))
+        for sock in (upstream, first, second):
+            sock.setsockopt(socket.SOL_SOCKET, SO_TIMESTAMPNS, 1)
         process = subprocess.Popen([str(binary), "-d", "-C", str(config)], stdout=log, stderr=log)
         try:
             deadline = time.monotonic() + 5
@@ -90,15 +103,16 @@ def run(binary, scenario, config, folder):
                 received = receive(upstream, timeout)
                 trace["events"].append({"case": label, "forwarded": received is not None})
                 if received:
-                    packet, peer = received
+                    packet, peer, timestamp = received
+                    trace["kernel_timestamps_ns"][label] = timestamp
                     save_packet("upstream-query", packet)
                     parsed = semantics(packet); parsed["id"] = 0
                     trace["upstream"].append(parsed)
-                    return packet, peer
+                    return packet, peer, timestamp
                 return None
             def send_upstream(received, generation):
                 if received:
-                    packet, peer = received
+                    packet, peer, _ = received
                     reply = response(packet, scenario, generation)
                     save_packet("upstream-response", reply)
                     upstream.sendto(reply, peer)
@@ -106,7 +120,8 @@ def run(binary, scenario, config, folder):
                 received = receive(client, timeout)
                 row = {"case": label, "reply": None}
                 if received:
-                    packet, peer = received
+                    packet, peer, timestamp = received
+                    trace["kernel_timestamps_ns"][label] = timestamp
                     assert peer == LISTEN, "wrong listener address"
                     save_packet("client-response", packet)
                     row["reply"] = semantics(packet)
@@ -128,6 +143,9 @@ def run(binary, scenario, config, folder):
             send(first, 0x7101)
             downstream(first, "stale-first")
             pending = incoming("refresh-forward")
+            if pending is not None:
+                trace["reply_before_refresh"] = (
+                    trace["kernel_timestamps_ns"]["stale-first"] < pending[2])
             send(second, 0x7102)
             downstream(second, "stale-second")
             extra = incoming("refresh-coalesced", .15)
@@ -156,6 +174,7 @@ def run(binary, scenario, config, folder):
 def normalized(trace):
     result = copy.deepcopy(trace)
     result.pop("packets")
+    result.pop("kernel_timestamps_ns", None)
     for row in result["events"]:
         if "fresh_elapsed" in row:
             del row["fresh_elapsed"]
@@ -193,6 +212,7 @@ def main():
             assert (baseline / scenario / "dnsmasq.conf").read_bytes() == config.read_bytes()
             shutil.copytree(baseline / scenario / "c", work / "c")
             c = json.loads((work / "c/trace.json").read_text())
+            assert "reply_before_refresh" in c, "baseline lacks the new delivery-order observation"
         else:
             c = run(args.c.resolve(), scenario, config, work / "c")
         report["cases"] += 1
@@ -200,6 +220,7 @@ def main():
             report["failures"].append({"case": scenario, "side": "c", "error": c.get("error")})
         else:
             assert len(c["events"]) == 10
+            assert c["reply_before_refresh"] is True, "C send-before-refresh calibration failed"
             assert c["events"][3] == {"case": "refresh-forward", "forwarded": True}
             assert c["events"][6]["reply"] is None and c["events"][7]["reply"] is None
             for row in c["events"][2:5:2]:
@@ -220,14 +241,18 @@ def main():
             if left["upstream"] != right["upstream"]:
                 report["mismatches"].append({"case": scenario, "step": "upstream-trace", "c": left["upstream"], "rust": right["upstream"]})
             report["compared"] += 1
+            if left["reply_before_refresh"] != right["reply_before_refresh"]:
+                report["mismatches"].append({"case": scenario, "step": "reply-before-refresh",
+                                             "c": left["reply_before_refresh"], "rust": right["reply_before_refresh"]})
+            report["compared"] += 1
     # Calibrate a real semantic difference, preserving the untouched C trace.
     changed = normalized(c); changed["events"][3]["forwarded"] = False
     assert changed != normalized(c)
     report["calibration"] = {"missing_refresh_detected": 1, "known_stale_and_no_second_reply": 1}
     if args.rust and not report["failures"]:
-        assert report["compared"] == 11 * report["cases"], "counter calibration failed"
+        assert report["compared"] == 12 * report["cases"], "counter calibration failed"
     report["matched"] = report["compared"] - len(report["mismatches"])
-    report["comparison_boundary"] = "ten ordered events and one complete upstream trace per scenario"
+    report["comparison_boundary"] = "ten ordered events, one upstream trace and one kernel-timestamp delivery order per scenario"
     report["c_baseline"] = str(baseline) if baseline else None
     report["tool_sha256"] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
     report["status"] = "passed" if not report["mismatches"] and not report["failures"] else "failed"
