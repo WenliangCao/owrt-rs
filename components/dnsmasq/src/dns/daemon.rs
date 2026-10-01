@@ -662,6 +662,10 @@ impl<R: Random> DnsDaemon<R> {
                 &local.leases,
                 now,
             ) || self.routing.has_configured_address(name)
+                || self
+                    .cache
+                    .as_ref()
+                    .is_some_and(|cache| cache.contains_forward_name(name, now))
         })?;
         if let Some(doctor) = doctor.as_mut() {
             let cache = self.cache_counters;
