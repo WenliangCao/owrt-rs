@@ -5,7 +5,8 @@
 //! deliberately outside this module; this boundary only applies the address
 //! safety decisions that must happen before a packet can reach a client.
 
-use super::wire::{decode_name, find_pseudoheader, Message, Question, Section, WireError};
+use super::doctor::{self, Alias, DoctorOutcome};
+use super::wire::{decode_name, find_pseudoheader, Header, Message, Question, Section, WireError};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -51,6 +52,9 @@ impl AddressPrefix {
 
 #[derive(Debug, Clone, Default)]
 pub struct AddressPolicy {
+    /// Static doctor rules in configuration evaluation order. The upstream
+    /// owner applies these once, before cache and recipient copies diverge.
+    pub static_aliases: Vec<Alias>,
     /// Implements `--stop-dns-rebind` and its localhost exception.  The
     /// caller supplies domain exceptions in wire-name form, including the root
     /// terminator; matching is case insensitive and label bounded.
@@ -102,6 +106,26 @@ pub fn ignore_reply(packet: &[u8], policy: &AddressPolicy) -> Result<bool, Proce
         && scan_bad_addresses(packet, &message, &policy.ignore_addresses, false))
 }
 
+/// Static subset of C's do_doctor stage. The owner calls this exactly once on
+/// an admitted upstream reply, after envelope/known-local NXDOMAIN handling
+/// and before bogus/rebind/cache processing. Never call on local/cache answers.
+/// `rcode` is the original full RCODE, captured before OPT removal.
+pub fn apply_static_aliases(
+    packet: &mut [u8],
+    aliases: &[Alias],
+    rcode: u16,
+) -> Result<DoctorOutcome, ProcessError> {
+    let header = Header::parse(packet)?;
+    if aliases.is_empty()
+        || header.opcode() != 0
+        || !matches!(rcode, 0 | 3)
+        || header.flags & 0x0200 != 0
+    {
+        return Ok(DoctorOutcome::default());
+    }
+    Ok(doctor::apply(packet, aliases, None))
+}
+
 /// Address-policy subset of `process_reply`; the caller owns reply envelope,
 /// cache, SOA, local NXDOMAIN conversion, doctor/UBus, RR filters and EDE.
 ///
@@ -114,19 +138,16 @@ pub fn process_reply(
     policy: &AddressPolicy,
 ) -> Result<ProcessReport, ProcessError> {
     let message = Message::parse(packet)?;
-    let mut report = ProcessReport {
-        action: ProcessAction::Deliver,
-        blocked_rebind: false,
-        malformed_address: false,
-        bogus_nxdomain: false,
-        ignored_address: false,
-    };
     if message.header.rcode() == 0
         && scan_bad_addresses(packet, &message, &policy.ignore_addresses, false)
     {
-        report.action = ProcessAction::Ignore;
-        report.ignored_address = true;
-        return Ok(report);
+        return Ok(ProcessReport {
+            action: ProcessAction::Ignore,
+            blocked_rebind: false,
+            malformed_address: false,
+            bogus_nxdomain: false,
+            ignored_address: true,
+        });
     }
     let scan = find_pseudoheader(packet, false)?;
     let rcode = u16::from(message.header.rcode())
@@ -134,6 +155,28 @@ pub fn process_reply(
             .opt
             .as_ref()
             .map_or(0, |opt| u16::from(packet[opt.record.fixed + 4]) << 4);
+    process_admitted_reply(packet, policy, rcode)
+}
+
+/// Post-admission address checks for real UDP/TCP callers. UDP already checked
+/// ignore-address against the original upstream packet before completion;
+/// checking it again here could incorrectly ignore a doctor's replacement.
+/// TCP has no ignore-address predicate. Preserve the original full RCODE even
+/// after stripping OPT or converting a known-local NXDOMAIN to NODATA.
+pub fn process_admitted_reply(
+    packet: &mut Vec<u8>,
+    policy: &AddressPolicy,
+    rcode: u16,
+) -> Result<ProcessReport, ProcessError> {
+    let message = Message::parse(packet)?;
+    let scan = find_pseudoheader(packet, false)?;
+    let mut report = ProcessReport {
+        action: ProcessAction::Deliver,
+        blocked_rebind: false,
+        malformed_address: false,
+        bogus_nxdomain: false,
+        ignored_address: false,
+    };
     if message.header.opcode() != 0 || !matches!(rcode, 0 | 3) || message.header.flags & 0x0200 != 0
     {
         return Ok(report);
@@ -404,6 +447,96 @@ mod tests {
         let message = Message::parse(&packet).unwrap();
         assert_eq!(message.header.answers, 0);
         assert_eq!(message.questions.end, packet.len());
+    }
+
+    #[test]
+    fn static_alias_is_gated_by_original_rcode_opcode_and_truncation() {
+        let aliases = [Alias {
+            from: Ipv4Addr::new(192, 0, 2, 10),
+            end: Ipv4Addr::UNSPECIFIED,
+            to: Ipv4Addr::new(198, 51, 100, 20),
+            mask: Ipv4Addr::BROADCAST,
+        }];
+        for (flags, rcode, changed) in [
+            (0x8580, 0, true),
+            (0x8583, 3, true),
+            (0x8580, 16, false),
+            (0x8582, 2, false),
+            (0x8780, 0, false),
+            (0x8d80, 0, false),
+        ] {
+            let mut packet = named_packet(
+                "upstream.test",
+                1,
+                "upstream.test",
+                aliases[0].from.into(),
+                flags,
+                false,
+            );
+            let original = packet.clone();
+            let report = apply_static_aliases(&mut packet, &aliases, rcode).unwrap();
+            assert_eq!(report.static_rewrites, usize::from(changed));
+            if changed {
+                assert_eq!(Header::parse(&packet).unwrap().flags & 0x400, 0);
+            } else {
+                assert_eq!(packet, original);
+            }
+        }
+    }
+
+    #[test]
+    fn admitted_reply_does_not_ignore_the_alias_destination() {
+        let mut packet = named_packet(
+            "upstream.test",
+            1,
+            "upstream.test",
+            "192.0.2.10".parse().unwrap(),
+            0x8580,
+            false,
+        );
+        let policy = AddressPolicy {
+            static_aliases: vec![Alias {
+                from: "192.0.2.10".parse().unwrap(),
+                end: Ipv4Addr::UNSPECIFIED,
+                to: "198.51.100.20".parse().unwrap(),
+                mask: Ipv4Addr::BROADCAST,
+            }],
+            ignore_addresses: vec![
+                AddressPrefix::new("198.51.100.20".parse().unwrap(), 32).unwrap()
+            ],
+            ..Default::default()
+        };
+        assert!(!ignore_reply(&packet, &policy).unwrap());
+        apply_static_aliases(&mut packet, &policy.static_aliases, 0).unwrap();
+        assert!(ignore_reply(&packet, &policy).unwrap());
+        assert_eq!(
+            process_admitted_reply(&mut packet, &policy, 0)
+                .unwrap()
+                .action,
+            ProcessAction::Deliver
+        );
+        assert_eq!(Message::parse(&packet).unwrap().header.answers, 1);
+    }
+
+    #[test]
+    fn admitted_known_local_nxdomain_keeps_original_bogus_gate() {
+        // The upstream NXDOMAIN was converted to local NODATA before doctor.
+        // C still uses the captured original RCODE to skip bogus wildcard.
+        let mut packet = named_packet(
+            "known.test",
+            1,
+            "known.test",
+            "192.0.2.10".parse().unwrap(),
+            0x8580,
+            false,
+        );
+        let policy = AddressPolicy {
+            bogus_addresses: vec![AddressPrefix::new("192.0.2.10".parse().unwrap(), 32).unwrap()],
+            ..Default::default()
+        };
+        let report = process_admitted_reply(&mut packet, &policy, 3).unwrap();
+        assert!(!report.bogus_nxdomain);
+        assert_eq!(Message::parse(&packet).unwrap().header.rcode(), 0);
     }
 
     #[test]

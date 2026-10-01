@@ -66,6 +66,7 @@ int main(void) {
 RUST_DRIVER = r"""
 mod dns {
   #[path = "WIRE"] pub mod wire;
+  #[path = "DOCTOR"] pub mod doctor;
   #[path = "PROCESS"] pub mod process;
 }
 use std::io::{self, BufRead};
@@ -106,6 +107,7 @@ def build(output: Path, cc: str, rustc: str) -> None:
     c = C_PREFIX + extract_function(text, "int private_net(") + extract_function(text, "int private_net6(") + C_DRIVER
     (output / "oracle.c").write_text(c)
     rust = RUST_DRIVER.replace("WIRE", str(ROOT / "components/dnsmasq/src/dns/wire.rs"))
+    rust = rust.replace("DOCTOR", str(ROOT / "components/dnsmasq/src/dns/doctor.rs"))
     rust = rust.replace("PROCESS", str(ROOT / "components/dnsmasq/src/dns/process.rs"))
     (output / "driver.rs").write_text(rust)
     commands = [

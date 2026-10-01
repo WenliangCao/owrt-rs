@@ -3,10 +3,11 @@
 //! One service belongs to one downstream connection. The caller first attempts
 //! its local answer path. Supported configuration adds no client-dependent EDNS
 //! options, so the forwarded query remains byte-for-byte unchanged. Dynamic
-//! cache insertion, doctor/ubus and additional RR filtering are separate work.
+//! cache insertion, ubus doctor notifications and additional RR filtering are
+//! separate work. Static aliases run once on each eligible upstream reply.
 
 use super::daemon::{address_policy, validate_runtime_config, DaemonError};
-use super::process::{process_reply, AddressPolicy, ProcessError};
+use super::process::{apply_static_aliases, process_admitted_reply, AddressPolicy, ProcessError};
 use super::reply::{apply_known_local_nxdomain, prepare_reply, strip_opt, ReplyPolicy};
 use super::routing::{RouteReason, RoutingTable};
 use super::service::LocalDnsService;
@@ -226,7 +227,10 @@ fn finish_reply(
                 )
             }) || routing.is_some_and(|routing| routing.has_configured_address(name))
         })?;
-        let report = process_reply(&mut packet, policy).map_err(TcpServiceError::Process)?;
+        apply_static_aliases(&mut packet, &policy.static_aliases, envelope.rcode)
+            .map_err(TcpServiceError::Process)?;
+        let report = process_admitted_reply(&mut packet, policy, envelope.rcode)
+            .map_err(TcpServiceError::Process)?;
         let ede = if report.blocked_rebind || report.bogus_nxdomain {
             Some(15)
         } else if report.malformed_address {
