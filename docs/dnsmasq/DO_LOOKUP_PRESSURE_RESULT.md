@@ -1,10 +1,12 @@
 # DO lookup pressure: confirmed service difference
 
 The exact no-DNSSEC C daemon promotes cached A/AAAA and CNAME records before
-refusing to answer a DO query from those records. Current Rust's early DO
-return skips that lookup. Under bounded cache pressure, Rust evicts a different
+refusing to answer a DO query from those records. The original Rust early DO
+return skipped that lookup. Under bounded cache pressure, Rust evicts a different
 owner and consequently makes different upstream requests. Both native C and
-the actual OpenWrt image reproduce the difference.
+the actual OpenWrt image reproduce the difference. The corrected product at
+`5c15e16` passes this complete frozen gate against both C variants; the earlier
+failing evidence and correction stages are retained below.
 
 ## Frozen evidence
 
@@ -121,3 +123,21 @@ supported but was not exercised by these 120 schedules; a separately frozen
 cross-type/SOA unit owns that additional evidence. All original before runs
 and the initial fixture failure remain. This closes the measured direct and
 CNAME DO eviction gap, with all earlier scope exclusions still in force.
+
+## Regression after the separate ordinary-miss correction
+
+The subsequent product source `5c15e16da102a209c1040ba5a5d44d8abb1ca58d`
+corrects a separately measured non-DO generic-lookup miss boundary described
+in [the NX/SOA report](DO_SOA_PRESSURE_RESULT.md). This original direct/CNAME
+120-observation fixture remains unchanged and was replayed on that final ELF:
+
+- `native-final-5c15e16`: 120/120 paired observations; zero differences/failures.
+- `image-final-5c15e16`: 120/120 paired observations; zero differences/failures.
+- `native-final-negative-5c15e16`: exactly one altered cache-hit observation
+  differs; exit 1, zero fixture failures.
+
+Final Rust ELF SHA-256 is
+`87f68b790d6a19f1cf25bdfcc33093f603016b3df8d1f8df5b959c74f6990b90`.
+The final source archive, build directory and same-ELF NX/SOA evidence are
+recorded in the linked report. Earlier `aeba67e` results are retained under
+their original identity, not relabeled as final-source runs.
