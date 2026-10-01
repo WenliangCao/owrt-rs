@@ -9,8 +9,14 @@ mod ubus_service;
 
 use metrics::{Metric, Metrics};
 use std::io::{self, BufRead, Write};
-use std::time::Duration;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::time::{Duration, Instant};
 use ubus_service::{DhcpEventFields, DhcpEventKind, DhcpLogging, DnsResult, UbusService};
+
+static CANCEL: AtomicBool = AtomicBool::new(false);
+fn cancelled() -> bool {
+    CANCEL.load(Ordering::Relaxed)
+}
 
 fn main() {
     let args: Vec<_> = std::env::args().collect();
@@ -73,6 +79,42 @@ fn main() {
                 .expect("command requires a connected service");
             if command == "subscribers" {
                 println!("dns-subscribers={}", connected.dns_has_subscribers());
+            } else if command.starts_with("doctor ") || command.starts_with("doctor-cancel ") {
+                let parts: Vec<_> = command.split_whitespace().collect();
+                let name: Vec<_> = parts[1]
+                    .as_bytes()
+                    .chunks_exact(2)
+                    .map(|pair| u8::from_str_radix(std::str::from_utf8(pair).unwrap(), 16).unwrap())
+                    .collect();
+                let value = DnsResult {
+                    name: &name,
+                    ttl: parts[2].parse().unwrap(),
+                    address: parts[3].parse().unwrap(),
+                };
+                CANCEL.store(false, Ordering::Relaxed);
+                let timer = (parts[0] == "doctor-cancel").then(|| {
+                    std::thread::spawn(|| {
+                        std::thread::sleep(Duration::from_millis(10));
+                        CANCEL.store(true, Ordering::Relaxed);
+                    })
+                });
+                let start = Instant::now();
+                let result = connected.doctor_dns(&value, Some(cancelled));
+                let elapsed = start.elapsed().as_micros();
+                if let Some(timer) = timer {
+                    timer.join().unwrap();
+                }
+                CANCEL.store(false, Ordering::Relaxed);
+                match result {
+                    Ok(value) => println!(
+                        "doctor-result {} {elapsed}",
+                        value.map_or("-".to_owned(), |address| address.to_string())
+                    ),
+                    Err(error) => {
+                        println!("doctor-error {:?} {elapsed}", error.kind());
+                        service = None;
+                    }
+                }
             } else {
                 let logging = DhcpLogging {
                     quiet_dhcp: command != "events",

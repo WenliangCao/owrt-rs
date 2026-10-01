@@ -14,6 +14,26 @@ static const char *response;
 static unsigned delay_ms;
 static struct ubus_request_data deferred;
 
+static void reply_raw(struct ubus_context *ctx, struct ubus_request_data *req,
+                      const char *hex_data, size_t chars)
+{
+    if (chars % 2 || chars > 8192)
+        exit(4);
+    unsigned char bytes[4096];
+    for (size_t i = 0; i < chars / 2; i++) {
+        char pair[] = {hex_data[2 * i], hex_data[2 * i + 1], 0};
+        char *end;
+        bytes[i] = (unsigned char)strtoul(pair, &end, 16);
+        if (*end)
+            exit(4);
+    }
+    struct blob_buf b = {0};
+    blob_buf_init(&b, 0);
+    blob_put_raw(&b, bytes, chars / 2);
+    ubus_send_reply(ctx, req, b.head);
+    blob_buf_free(&b);
+}
+
 static void hex(const void *data, size_t length)
 {
     const unsigned char *bytes = data;
@@ -57,6 +77,19 @@ static int notify(struct ubus_context *ctx, struct ubus_object *obj,
         _exit(0);
     if (delay_ms)
         usleep(delay_ms * 1000);
+    if (!strncmp(response, "raw:", 4) || !strncmp(response, "rawsilent:", 10)) {
+        const char *value = strchr(response, ':') + 1;
+        do {
+            const char *end = strchr(value, ',');
+            reply_raw(ctx, req, value, end ? (size_t)(end - value) : strlen(value));
+            value = end ? end + 1 : NULL;
+        } while (value);
+        if (!strncmp(response, "rawsilent:", 10))
+            ubus_defer_request(ctx, req, &deferred);
+        return 0;
+    }
+    if (!strcmp(response, "error"))
+        return UBUS_STATUS_INVALID_ARGUMENT;
     if (strcmp(response, "none")) {
         struct blob_buf b = {0};
         blob_buf_init(&b, 0);

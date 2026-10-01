@@ -2,15 +2,14 @@
 //!
 //! The caller supplies its live metrics and owns connection/retry scheduling.
 //! On any transport error it must drop this service before reconnecting; object
-//! and type IDs are connection-local. DNS notification request/reply transport
-//! and product-daemon integration are not implemented by this module yet.
+//! and type IDs are connection-local. Product-daemon integration is separate.
 
 use crate::metrics::Metrics;
-use owrt_ubus::{status, BlobBuf, Connection, Incoming};
+use owrt_ubus::{blob, status, BlobBuf, Connection, Incoming};
 use std::io;
 use std::net::{IpAddr, Ipv4Addr};
 use std::os::fd::RawFd;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 /// Exact OpenWrt patch 200's per-record synchronous notification budget.
 pub const DNS_NOTIFY_TIMEOUT: Duration = Duration::from_millis(100);
@@ -136,6 +135,83 @@ impl UbusService {
             .notify(self.main_id, kind.method(), self.buffer.payload())?;
         Ok(true)
     }
+
+    /// Synchronous OpenWrt UDP DNS doctor hook. The owner must drain pending
+    /// ubus messages before calling, and again after return. Never call this in
+    /// the TCP path: the C child drops its ubus connection before DNS processing.
+    /// Some(address) means replace the address and clear AA, even if unchanged.
+    /// A clean 100 ms timeout still uses DATA received before the deadline.
+    /// Transport/cancellation errors require dropping this service; the DNS
+    /// owner retains its original answer. This method never changes DNS/cache.
+    pub fn doctor_dns(
+        &mut self,
+        result: &DnsResult<'_>,
+        cancelled: Option<fn() -> bool>,
+    ) -> io::Result<Option<IpAddr>> {
+        if !self.dns_subscribed {
+            return Ok(None);
+        }
+        let deadline = Instant::now() + DNS_NOTIFY_TIMEOUT;
+        result.write(&mut self.buffer);
+        let mut selected = None;
+        self.connection.notify_with_data_until(
+            self.dns_id,
+            "dns_result",
+            self.buffer.payload(),
+            deadline,
+            cancelled,
+            |fields| {
+                if let Some(bytes) = first_address(fields) {
+                    // Last applicable DATA wins, including an invalid string
+                    // which cancels an earlier valid replacement.
+                    selected = std::str::from_utf8(bytes)
+                        .ok()
+                        .and_then(|text| text.parse::<IpAddr>().ok())
+                        .filter(|address| address.is_ipv4() == result.address.is_ipv4());
+                }
+            },
+        )?;
+        Ok(selected)
+    }
+}
+
+/// libubox blobmsg_parse selects the first matching typed field. Invalid fields
+/// terminate parsing, including unrelated fields before the selected address.
+/// Fields after the first match cannot clear it even if validation then fails:
+/// the C dnsmasq callback ignores the parser status and reads its retained slot.
+fn first_address(fields: &[u8]) -> Option<&[u8]> {
+    for attribute in blob::iter(fields) {
+        let (name, data) = if attribute.extended {
+            let length = u16::from_be_bytes(attribute.payload.get(..2)?.try_into().ok()?) as usize;
+            let header = blob::pad4(2 + length + 1);
+            if attribute.payload.get(2 + length) != Some(&0) {
+                return None;
+            }
+            (
+                Some(attribute.payload.get(2..2 + length)?),
+                attribute.payload.get(header..)?,
+            )
+        } else {
+            (None, attribute.payload)
+        };
+        let valid = match attribute.id {
+            0..=2 => true,
+            3 => data.last() == Some(&0),
+            4 => data.len() == 8,
+            5 => data.len() == 4,
+            6 => data.len() == 2,
+            7 => data.len() == 1,
+            8 => data.len() >= 8,
+            _ => false,
+        };
+        if !valid {
+            return None;
+        }
+        if attribute.id == 3 && name == Some(b"address".as_slice()) {
+            return Some(c_string(data));
+        }
+    }
+    None
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -192,8 +268,7 @@ impl DhcpLogging {
     }
 }
 
-/// Outgoing payload only. The synchronous multi-subscriber transport remains a
-/// separate missing feature; using fire-and-forget notify would be incorrect.
+/// The outgoing record payload for a synchronous DNS notification.
 pub struct DnsResult<'a> {
     /// C's extracted, possibly escaped name bytes, without UTF-8 conversion.
     pub name: &'a [u8],
@@ -239,6 +314,41 @@ fn notification_address(address: IpAddr) -> String {
 mod tests {
     use super::*;
     use owrt_ubus::blob;
+
+    #[test]
+    fn doctor_policy_keeps_first_match_and_stops_at_invalid_preceding_fields() {
+        let mut buffer = BlobBuf::new();
+        buffer.msg_string("address", "192.0.2.9");
+        buffer.msg_string("address", "invalid");
+        assert_eq!(
+            first_address(buffer.payload()),
+            Some(b"192.0.2.9".as_slice())
+        );
+        buffer.reset();
+        buffer.msg_field(5, "other", &[1, 2, 3]);
+        buffer.msg_string("address", "192.0.2.9");
+        assert_eq!(first_address(buffer.payload()), None);
+        buffer.reset();
+        buffer.msg_string("address", "192.0.2.9");
+        buffer.msg_field(5, "other", &[1, 2, 3]);
+        assert_eq!(
+            first_address(buffer.payload()),
+            Some(b"192.0.2.9".as_slice())
+        );
+        buffer.reset();
+        buffer.msg_string("address", "192.0.2.9");
+        let bytes = buffer.payload();
+        for length in 0..bytes.len() {
+            assert_eq!(first_address(&bytes[..length]), None);
+        }
+        let mut bad_name = bytes.to_vec();
+        bad_name[4 + 2 + "address".len()] = b'X';
+        assert_eq!(first_address(&bad_name), None);
+        let mut bad_value = bytes.to_vec();
+        let raw_length = (u32::from_be_bytes(bytes[..4].try_into().unwrap()) & 0xffffff) as usize;
+        bad_value[raw_length - 1] = b'X';
+        assert_eq!(first_address(&bad_value), None);
+    }
 
     #[test]
     fn dhcp_omission_order_and_quiet_logging_follow_callsite() {

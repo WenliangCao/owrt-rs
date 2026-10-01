@@ -7,6 +7,11 @@ a fresh network/mount/PID namespace containing only loopback. The runner mounts
 a private `/run` before either daemon starts; every ubus client uses its private
 UNIX socket explicitly.
 
+The subsequent synchronous hook is documented in
+[UBUS_DOCTOR_PHASE.md](UBUS_DOCTOR_PHASE.md). It retains an explicit 473/474
+compatibility gate because the real C reference has a response-storage lifetime
+defect. The outgoing-only boundary below describes this earlier phase.
+
 ## Reference and observed contract
 
 The reference ELF remains
