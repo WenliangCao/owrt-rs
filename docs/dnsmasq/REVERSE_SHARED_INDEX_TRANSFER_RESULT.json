@@ -1,0 +1,270 @@
+{
+  "source_commit": "0eaaef813893ac71954f56c379f8fc6b5eb24064",
+  "original_source_files": {
+    "components/dnsmasq/Cargo.toml": "6f834268fd738927961d5b2c8f551d7baee3df315dea4017532f62bc83e31ffd",
+    "components/dnsmasq/Cargo.lock": "f414678b0ec026bcd72b2dbd8ac3aaeff887451d66de4e042cbe0b73785e7f52",
+    "components/dnsmasq/src/tftp_runtime.rs": "fdbdcbf6612e98e289cfeb66a4196aa8a385e9e305e128ec021f1df78518464d",
+    "components/dnsmasq/src/hosts.rs": "54b55f8a233c9bb695a4b7f79727e81592eeac458d06da2a92ae37fab0e0e01c",
+    "components/dnsmasq/src/main.rs": "8c4fe290efa78c92d0debcd59b5cd46f8357d98d4508bea5c6a8ff052453b5b6",
+    "components/dnsmasq/src/tftp_service.rs": "9aeae8d8cd643fe001ef7c3bb4f0ebacbd4e5921356fbeade235bcfda9453da6",
+    "components/dnsmasq/src/tftp.rs": "bf9d4a057e107b50abc586ec8f23ceaccb3b4db92d6908e4c9f9a9953d8bb274",
+    "components/dnsmasq/src/interfaces.rs": "8968857396d82ff7f045607f1311d4a625c3fef1f8f2b566379f0525e82c91e7",
+    "components/dnsmasq/src/tftp_listener.rs": "39ee3fa249a65bcc7d7dc738d7a022c3e92d861e19566fe5b91c7d127b58e278",
+    "components/dnsmasq/src/net.rs": "1a5dc90c69980703507c5876e009095ee62c790ececa5ac4703c7bf39d99c1b0",
+    "components/dnsmasq/src/metrics.rs": "ac5295a2d53157ce13ff43e29426b71a11c2c959496218ab9dd1fbbcafb4b2f9",
+    "components/dnsmasq/src/ubus_service.rs": "ec11adb1fc0003594146430c50810ba0395a12defb206600a98c3267759168bb",
+    "components/dnsmasq/src/lib.rs": "87e9eb38a396e29d83b4194ec6471399f0ecb6114e5ab8b7eba7bc27f27a5de7",
+    "components/dnsmasq/src/bin/udp_query_probe.rs": "1cd1bbe1a215baa09c9219c601cfc07c9dcfd2dd86c52a60d4a97b224b00697b",
+    "components/dnsmasq/src/bin/local_answer_probe.rs": "d19c50dfa413727847313673ec2531479060b654ee884af58a3d38e736b947b4",
+    "components/dnsmasq/src/bin/dhcp_reply_probe.rs": "98dcc9408815f2ab627574dd7c9f273ab6e035b6c46288705f18fadff0133f2c",
+    "components/dnsmasq/src/bin/dhcp_event_order_probe.rs": "4d26c4837353910a0cf9b4b49ec9cfa4c17a16e7e7f78bb21ecffd0bc3320e4a",
+    "components/dnsmasq/src/bin/lease_names_probe.rs": "f9390b3fe82b2084e895db9e1ba5593b1e405f57a42666242d483a34324e0283",
+    "components/dnsmasq/src/bin/dhcp_events_probe.rs": "9fb950f0cda0c885c9bb28334e17bb0ab350d93dccef14d24e9067f41b83374a",
+    "components/dnsmasq/src/bin/dhcp_message_metrics_probe.rs": "1f343f2362da7f11d72d88ed1ac966c9c83f399ce7550b3eab0f1ccf4bc1f969",
+    "components/dnsmasq/src/dhcp/lease.rs": "2800a0680a50128d2c219bb62f807e45625719d1303e2951fc765d7a04f39f6b",
+    "components/dnsmasq/src/dhcp/service.rs": "5169a6f1749d795e052a19df008018b04cdacf1bcee550f6335b1f91943acbb1",
+    "components/dnsmasq/src/dhcp/daemon.rs": "3ddbaf506e3ecdd2213fd1c83aced02a2aa16562b9e988a44592f242b87c64a6",
+    "components/dnsmasq/src/dhcp/persistence.rs": "89a48f8f585d31996c21c85700ffe91f309be0fe04c5e9542fcbe540a37549cb",
+    "components/dnsmasq/src/dhcp/reply.rs": "edc5faf922418bcefee9d2426d53b610073a5001ce2934d8fa5a44cf059bacaf",
+    "components/dnsmasq/src/dhcp/mod.rs": "f34933404405b398e999690b8e7a6c89f9855743c2109f7c33f9eb51d52a2b07",
+    "components/dnsmasq/src/dhcp/packet.rs": "562fc37788b782f3c3071f53d841da17847302b25905469654d65e660797f394",
+    "components/dnsmasq/src/dhcp/message_counters.rs": "1b92e66cb2a4c565495a8308c2e75a804da120419b21933c31a072850837d833",
+    "components/dnsmasq/src/dhcp/probe.rs": "341e7e3805f7d7859237e8812106efc8834af5caeadd4b651d3fe65786aeb6b9",
+    "components/dnsmasq/src/dhcp/runtime.rs": "2cbf3133817eb74f639cf70c41cf51900fa002f8832962a57d1c2da43627df1c",
+    "components/dnsmasq/src/dhcp/context.rs": "285dfb00e103e1f5a6210feed6503f621dc5a43f60d35b0a4192033615ec1457",
+    "components/dnsmasq/src/dhcp/lease_file.rs": "b043ce414911a83eae066bac43f705fc624f634fdefe757260cba1895bcdcfa2",
+    "components/dnsmasq/src/dhcp/state.rs": "f7798796682b26558615884d08b1430eeb096592f36615163388174b722ae4ca",
+    "components/dnsmasq/src/dhcp/request.rs": "c414cc72cdc60955de2ced43ee54fae515d9e5afbdf8303fecaf5256bc37651f",
+    "components/dnsmasq/src/dhcp/allocation.rs": "705360c84b87531c52859608d45220689cd5fb9d7463c7a5ee8042d9baa6225a",
+    "components/dnsmasq/src/dhcp/pxe.rs": "6070fb161b5318909d7135f38514cc6791febc7ec77f77c612c22c23cca13dc4",
+    "components/dnsmasq/src/dhcp/lease_query.rs": "d2041342b47120c699b82117094f41dc4bd9cc53eabdaaa7f4f2532136a28b71",
+    "components/dnsmasq/src/dns/daemon_stale_tests.rs": "c3c772459ea70b40ad2b7357b1dfa8cc0278d018128f5be16ffcdb34aff851d8",
+    "components/dnsmasq/src/dns/lease_names.rs": "cb05a82f1d5f8e90e37dfee942b0464366eedac92b6dfcc35ecb50c86fe2b0b3",
+    "components/dnsmasq/src/dns/cache_reply.rs": "1f09b55dc2f4e3e4b7eebe6aa80ae3a4f32b0e19334fbb91df367b9730f6beae",
+    "components/dnsmasq/src/dns/wire_tests.rs": "2b1afb11d2e519d4b975bbda7c2218c0892c9a2ee6f083cea393fcb20bcea8a8",
+    "components/dnsmasq/src/dns/forward_tests.rs": "254e0d75f0d3d6997f8ecaa8b5734f2c0c9721283363100e32b3da05cf9cfcef",
+    "components/dnsmasq/src/dns/daemon_lease_cache_tests.rs": "2beb9c8555d168a4ee64ba0c40c31499b7f9638140c8ebc51fbac217c47d9b26",
+    "components/dnsmasq/src/dns/forward.rs": "6a18ec0960d154a5c7a10d4123f25e7bf0fa36b44a895961d42714cd67fc31c5",
+    "components/dnsmasq/src/dns/cache_reply_tests.rs": "37f27bf522c6c05024b02d75f0816d9e3342d8795f4644ac6789c443b934d311",
+    "components/dnsmasq/src/dns/local.rs": "395abdf2e51e47380328b649a41ada6837f40363653df0464af3aac56962049f",
+    "components/dnsmasq/src/dns/wire.rs": "23e8d6c70d6c9177beb7d799ecb0fc39f5ef2378c7a2ca43b7f2e599c7d1510f",
+    "components/dnsmasq/src/dns/tcp_connect.rs": "a949082bc43978132d0d2be897570d5f5d4da8f784de0b39a2ccc0bce9444a59",
+    "components/dnsmasq/src/dns/service.rs": "ad6ac9e3aaf43645eebe9f241abd8402cee3812488cd1f1e6db2c0055a77005d",
+    "components/dnsmasq/src/dns/daemon.rs": "c5454119a3d7435fc5f629239cb38e6ecb1e68d328b42b1b3943e0c971cd18b5",
+    "components/dnsmasq/src/dns/reply.rs": "b17d0d02a59848d4f6b6148c9ddafd2acd7ce11c80b6c69e58ab0879c9964f37",
+    "components/dnsmasq/src/dns/cache_tests.rs": "1e42ba80472599deb70b02cf29726c0442832da9298aeebd0ef1072448f50bf4",
+    "components/dnsmasq/src/dns/mod.rs": "9bf0fd8ed756701c8859bcae1a2204ad8815b5325fd9ef8482ef982bb8b62d69",
+    "components/dnsmasq/src/dns/daemon_poll_tests.rs": "056c16e9a8d1de98433a1584d1a3bcc109e19e675586431c348a08ec552d4025",
+    "components/dnsmasq/src/dns/daemon_cache_tests.rs": "daa0b0794536c463684378aacd13697674ed5c3becdf4d9a30de88ba11b6e9d6",
+    "components/dnsmasq/src/dns/tcp_upstream.rs": "683ce704c70c80c28b710cd0a8f3c60737ce7f0da784f5ce42878f1346567b13",
+    "components/dnsmasq/src/dns/process.rs": "6d51198eea84778b4e2cd96d45ad71f7404b986bfeb624d4722750660a12c2de",
+    "components/dnsmasq/src/dns/cache_reverse_tests.rs": "c1614bf3f31e73b49d9b2f2e558531f1e5cd6e4b12d3a557b458766f8c40bfab",
+    "components/dnsmasq/src/dns/doctor.rs": "19a85b10556766b0881b853a51c08fefc12057c7e2c77648713288da8350b8b4",
+    "components/dnsmasq/src/dns/forward_service.rs": "e7f7fca1e75145726f9d21b93a94531e7ba6a4ccbf3a57138a88dfb10e2cac19",
+    "components/dnsmasq/src/dns/routing.rs": "cff9e20d7f08f34cc9ee38d294de04d86eb5bc675d4128927d603d3d160e8f2b",
+    "components/dnsmasq/src/dns/cache.rs": "5d62b11382abcb2c59cef411a060365f1675ebeca839101c1cb194d26e9160d2",
+    "components/dnsmasq/src/dns/upstream.rs": "f2bd2ffe94220af20ddd95db386de352983fa54f04f8582d105347c9aef9ad7f",
+    "components/dnsmasq/src/dns/tcp_upstream_tests.rs": "22312f51183f4a17e1064dfd7b8e8c1dbdbfdd3f49eca947ee28c39d45009235",
+    "components/dnsmasq/src/dns/udp_query.rs": "a87dfb66240f7e04b96554b7ab27df60adff031288b692015e34613175c6f188",
+    "components/dnsmasq/src/dns/daemon_policy_tests.rs": "34cefc167756feb485cc9109459f6a76b8a0f365c548969c5ad237fbdca541ff",
+    "components/dnsmasq/src/dns/cache_engine.rs": "5e673e5c8247391e1386676703c64664de1f93077d5fccebfda44aee9bc22ba2",
+    "components/dnsmasq/src/dns/cache_transfer_tests.rs": "71a8db9a5c9f86d8a3d8994629267d9616313e587d67a374224243a4d592080a",
+    "components/dnsmasq/src/dns/tcp_service.rs": "fd99c60916c62a07a8e6605c86ca36211a80fb9bb51cc54a4bbf3c319ac8fd3a",
+    "components/dnsmasq/src/config/scalar.rs": "59968920832c206d84b5dae7f746e565edbeb4bad51a2a95f1fa6fd6dc9a4278",
+    "components/dnsmasq/src/config/dns.rs": "7e94f2544a57ff10659e35331b74bb641aa56e6355e7bb2a8e79c9cc6840ae6c",
+    "components/dnsmasq/src/config/dhcp.rs": "faf044c6cfa39ee065e044525905ed23b59a907bf36867d63f3657cadd76974e",
+    "components/dnsmasq/src/config/mod.rs": "7de55a851c231e2eb1b0bbdb1bbcb8bade7a20f9288284871481d631edaf5094",
+    "components/dnsmasq/src/config/tftp.rs": "f9b511f22c015e20f17aa41d71e8559531ee10c6d7a8c87f3eb9e475ceec9854",
+    "components/dnsmasq/src/config/dhcp_host_files.rs": "f5f572ad95215b178df35ebc5489b61749dc7fc77d400ef5f74a17c877209558",
+    "components/dnsmasq/src/config/ubus.rs": "36f3878accd923989f9f1b0c76bc8edf7f43e21c2b9ad2fc1a95fb9319d6f038",
+    "components/dnsmasq/src/config/dhcp_host.rs": "ddf66de9c5ff04789454473c62289a4252779d48823cea95134235c747643d5f",
+    "components/dnsmasq/src/config/options.rs": "40cb983503eede7840b8125414798a56cae81614a930c4e041a575ecd668cdfb",
+    "components/dnsmasq/src/config/state_probe.rs": "5baa73a99e5ad10879ac71f83c1b0f693f030f9e75f8ab63b0f49f96270149d7",
+    "components/dnsmasq/src/config/records.rs": "6786a8b2178ecaad97937e0fa1a762331a97b7987705e3ad03a15ce1afccc3c9",
+    "components/dnsmasq/src/config/loader.rs": "c5edca4ccb706a0ad0af501953ba2e624ad8053712427236b7adc4faa1b1b04d",
+    "components/dnsmasq/src/config/rrtypes.rs": "f2ae508cd17304d94871d384b33a9adf3c063b34a551de8a4a86e3653d79551a",
+    "components/dnsmasq/src/config/dhcp_options.rs": "b7bab1c64708748742b1040f3a434e63660ff3630d90fb7323eac0ff1f350994",
+    "components/ubus/Cargo.toml": "104190ac358c75cb88227979ec3729efa476a0e6487fb7f13fcab84e9608ebff",
+    "components/ubus/Cargo.lock": "47030840ec94a66a3c0c05d7ccd1b61cd49becb3d23eb76c1357099108929893",
+    "components/ubus/src/sys.rs": "23203d875c3adf20e70eed077f3911da65aa7baf6084fa2557698fbf59bd1a15",
+    "components/ubus/src/connect.rs": "7c568f49fdad2bc6ea4b0aa57c2a957d6f71896a3efeec0e45192acf86848999",
+    "components/ubus/src/digest.rs": "1d1e213d0ec2efc51f9dbc153de9696d22d4900e4faa2bf4adf5d06561f2ccff",
+    "components/ubus/src/conn.rs": "9e94f15bebbbc11eb260e212f4e1b2e90e663b703f855b24b122073e42706553",
+    "components/ubus/src/msg.rs": "d84a4fc05818ecf06611cbd69362b5b26031b12e51b65739712d1318635d0b64",
+    "components/ubus/src/json.rs": "a5fcb9cd3e0e63eff4ad2457b83a8aacd0e064099f3921505afd8d962a111d98",
+    "components/ubus/src/readiness.rs": "ae672d38dd336addda0fe6b64630ae9d95c236996b0eeb119fecdd94f1b49721",
+    "components/ubus/src/convert.rs": "3cf3ca60d1e673d368d18ef2b80336929865dd4fd7f01e7b8aba1d30faf0f83a",
+    "components/ubus/src/blob.rs": "c57472349f5f9acd04ea556956c4411fa5daf0aa041375602df625a7b83a36cc",
+    "components/ubus/src/lib.rs": "e4428a12658e12901790f266e62306ed3f5690849ae4438a51b696d3806402bf"
+  },
+  "adapter_sha256": "c05abe91dc84f3fe51dced680da4e2a5648337a150e40a170d76137045a15e86",
+  "instrumented_cache_sha256": "5b13487472976ca0a1a733deb0b72afdf8ee18b473e5ade854e57701ecca9450",
+  "tool_sha256": "adf2d50b0059aac8939043bb44f1d376de3b336df8c849957a68c702496252ff",
+  "c_identity_sha256": "258e62717009ad9e2567aeda2b82dab81dbd68e2c5a04cd0b7fc4e69a435c516",
+  "c_plan_sha256": "2d546b0e47749a2dce5e3863be6136f336155db2dd05c680452f26f7717e468d",
+  "c_result_sha256": "d581b6c4690f4ec9ba844cc09303c9a282eb4852243a172efc9deec5f5d7f705",
+  "failures": [],
+  "inject_error": false,
+  "probe_sha256": "486dc4795cb6b2dfef74ea4457f139396bd502b99ac8e63db5db261210f96c76",
+  "compared": 184,
+  "differing_states": 0,
+  "matched": 184,
+  "ordering_observations": 12,
+  "ordering_differences_vs_native0": 4,
+  "scope": "Final shared-name-index native Rust transfer regression against unchanged exact native/SDK C baseline; deterministic184 passes, ordering12 remains unresolved",
+  "full_comparator_exit": 1,
+  "result_sha256": "79ca3d865381318e5f26a906e2b71eb9d1e67a903a4fc94c00d1c92f5bc47204",
+  "source_archive_sha256": "191e841a8989884d8509652c1aa406b92008aae8097dab76cb3c0526ad1de601",
+  "evidence_archive_sha256": "0843cc07ef13b6dc2843f73f3c664121f1f28d14fa747382498010d8997f40ec",
+  "evidence_manifest_sha256": "a064a998f4c41ccd8927339c4308836543a2d281e9d021b0274c07e222f50259",
+  "verified_archive_files": 339,
+  "new_c_executions": 0,
+  "cases": [
+    {
+      "case": "replace-v4-preserves-forward",
+      "observations": 19,
+      "differences": 0
+    },
+    {
+      "case": "replace-v6",
+      "observations": 11,
+      "differences": 0
+    },
+    {
+      "case": "same-target-different-address",
+      "observations": 10,
+      "differences": 0
+    },
+    {
+      "case": "parent-local-reverse-coexist",
+      "observations": 9,
+      "differences": 0
+    },
+    {
+      "case": "parent-same-target-local-forward",
+      "observations": 8,
+      "differences": 0
+    },
+    {
+      "case": "parent-configured-cname-target",
+      "observations": 6,
+      "differences": 0
+    },
+    {
+      "case": "parent-mixed-shared-pressure",
+      "observations": 18,
+      "differences": 0
+    },
+    {
+      "case": "reverse-victim-removes-rrset",
+      "observations": 14,
+      "differences": 0
+    },
+    {
+      "case": "empty-clears-parent-pending",
+      "observations": 10,
+      "differences": 0
+    },
+    {
+      "case": "uncommitted-child-removal",
+      "observations": 8,
+      "differences": 0
+    },
+    {
+      "case": "failed-child-no-transfer",
+      "observations": 9,
+      "differences": 0
+    },
+    {
+      "case": "parent-abort-retains-removal",
+      "observations": 14,
+      "differences": 0
+    },
+    {
+      "case": "expiry-None-103",
+      "observations": 6,
+      "differences": 0
+    },
+    {
+      "case": "expiry-None-110",
+      "observations": 6,
+      "differences": 0
+    },
+    {
+      "case": "expiry-None-111",
+      "observations": 6,
+      "differences": 0
+    },
+    {
+      "case": "expiry-5-110",
+      "observations": 6,
+      "differences": 0
+    },
+    {
+      "case": "expiry-5-111",
+      "observations": 6,
+      "differences": 0
+    },
+    {
+      "case": "expiry-0-116",
+      "observations": 6,
+      "differences": 0
+    },
+    {
+      "case": "min-ttl-not-reclamped",
+      "observations": 6,
+      "differences": 0
+    },
+    {
+      "case": "max-ttl-not-reclamped",
+      "observations": 6,
+      "differences": 0
+    }
+  ],
+  "ordering_cases": [
+    {
+      "case": "multiple-ptr-export-order",
+      "observations": 12,
+      "comparisons_to_all_frozen_runs": {
+        "native-0": [
+          7,
+          8,
+          10,
+          11
+        ],
+        "native-1": [
+          7,
+          8,
+          10,
+          11
+        ],
+        "native-2": [
+          7,
+          8,
+          10,
+          11
+        ],
+        "target-0": [
+          10,
+          11
+        ],
+        "target-1": [
+          10,
+          11
+        ],
+        "target-2": [
+          10,
+          11
+        ]
+      },
+      "differences_vs_native0": 4
+    }
+  ],
+  "boundaries": [
+    "Source was a fresh private 0eaaef8 copy; adapter and C expected outputs unchanged.",
+    "Index changes can affect same-name forward/reverse conflicts and shared eviction, motivating this one source-specific regression.",
+    "All 184 deterministic rows match; native ordering differs in four rows and SDK in two, exactly as prior source54346fd.",
+    "No sorting, selected best runtime or counting ordering12 as a complete pass.",
+    "Native Rust primitive only; not stock image runtime, private TCP transport adoption, resource/performance or production acceptance."
+  ]
+}
