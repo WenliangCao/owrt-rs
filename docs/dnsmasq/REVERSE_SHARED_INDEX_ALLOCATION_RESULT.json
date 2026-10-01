@@ -1,0 +1,464 @@
+{
+  "wrapper_sha256": "8e414d8324eca0f32604dd8a469dff61a217fdbb2a144ca0e6d29cca0a7f9d48",
+  "old_tool_sha256": "73799baf193aadf7cfe184f15aa8e1c0712c94eb054f0824fc15ecaafb10b3fc",
+  "modules_tool_sha256": "ed6d9bbd1e4b768c4875242a97f66c9474d28add8bbb6704c63734c6ff372610",
+  "allocator_source_sha256": "35b8b979e4e11b679d3dc93f1565cadb4403eff2d7e275be0a2923a73f134e8d",
+  "extended_allocator_sha256": "3574a62a589d2de9bcedeb6afb1d159a2e7cd2a78ce83f851588db8416cfe877",
+  "old_driver_sha256": "c83bd68e5e1fadeaca826c5ed39ba1140f881b4e7f68d7e50bf4d28d50f649aa",
+  "legacy_result_sha256": "9718c47bbf7de120e30e18b7ca238b087662db046aa9ed034d06270762107853",
+  "original_result_sha256": "43137eb6988fa406c1eff2385212c56e1612a69f6ac5ccff91edb59ec8c10c5e",
+  "binaries": {
+    "forward": {
+      "sha256": "9b33f38b71b1196ab11bf4db6494f42ec7e8d2129579711f1fe46fc878480d64",
+      "driver_sha256": "8c257ef2ad6a54fa0d51483cc56c4de32053339fcc09ccabdc67be9d18940833",
+      "instrumented_cache_sha256": "6a3eac4542e8266c62df6b46cf8c1475efa89219084e78794f4c9183bce61d06",
+      "source_files": {
+        "cache.rs": "624cae8bdf60481081683fc719f40d4492c6ef606332337942738512f7ab14aa",
+        "wire.rs": "23e8d6c70d6c9177beb7d799ecb0fc39f5ef2378c7a2ca43b7f2e599c7d1510f",
+        "lease_names.rs": "cb05a82f1d5f8e90e37dfee942b0464366eedac92b6dfcc35ecb50c86fe2b0b3"
+      }
+    },
+    "candidate": {
+      "sha256": "c42216faa6afcbda462697ea4c8e9b9f022497c5a4618fc5f6e736bc24c42181",
+      "driver_sha256": "f2a608e405eca204b72dfaf27680b25f416f7c27f85e5d19309d39ba3d820ef7",
+      "instrumented_cache_sha256": "d04f8910c39628d2cb6b5bd60178fdaca743765ff9676d78b950b45e493859df",
+      "source_files": {
+        "cache.rs": "5d62b11382abcb2c59cef411a060365f1675ebeca839101c1cb194d26e9160d2",
+        "wire.rs": "23e8d6c70d6c9177beb7d799ecb0fc39f5ef2378c7a2ca43b7f2e599c7d1510f",
+        "lease_names.rs": "cb05a82f1d5f8e90e37dfee942b0464366eedac92b6dfcc35ecb50c86fe2b0b3"
+      }
+    }
+  },
+  "checks": {
+    "original_gate_matches_legacy_all_five": true,
+    "extended_gate_matches_legacy_all_five": true,
+    "forward_candidate_commit_vectors_equal": true,
+    "forward_candidate_whole_vectors_equal": true,
+    "forward_candidate_layout_equal": true,
+    "all_cache_drops_balance": true
+  },
+  "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8\n",
+  "status": "passed-untimed-ordinary-layout-allocation-audit",
+  "scope": "Untimed ordinary five-case allocation/layout regression for final shared-name-index source; unchanged legacy inputs and vectors",
+  "candidate_commit": "0eaaef813893ac71954f56c379f8fc6b5eb24064",
+  "forward_commit": "7a9caddebcb5504ecbd33064bc26c0cee6816ad7",
+  "candidate_archive_sha256": "191e841a8989884d8509652c1aa406b92008aae8097dab76cb3c0526ad1de601",
+  "input_manifest_sha256": "8ce9f15904d8021f90dadd9ee58bcd9be7bf20ed290f4f655f10dba4061641fe",
+  "result_sha256": "eb4c7dbafab8edd560292cf2a387141c170492746ac78d4d24a96f7f7d45f853",
+  "evidence_archive_sha256": "d2cc2efc72182ccbbf6dfe30134c1ee911d793e01caab72a77c737ef2b2a22c6",
+  "evidence_manifest_sha256": "9009deef82ed0d38ee8639005b9a36acfbce632988258c5e6fd35a529e1ac99f",
+  "verified_archive_files": 340,
+  "runs": [
+    {
+      "implementation": "forward",
+      "case": "empty",
+      "committed": true,
+      "inserted": 0,
+      "freed": 0,
+      "commit_allocation": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "commit_dealloc": [
+        0,
+        0
+      ],
+      "whole_allocation": [
+        1,
+        0,
+        20480,
+        0
+      ],
+      "whole_dealloc": [
+        1,
+        20480
+      ],
+      "layout": [
+        168,
+        8,
+        160,
+        8,
+        120,
+        8,
+        56,
+        8
+      ],
+      "balance": 0
+    },
+    {
+      "implementation": "forward",
+      "case": "one",
+      "committed": true,
+      "inserted": 1,
+      "freed": 0,
+      "commit_allocation": [
+        3,
+        0,
+        245,
+        245
+      ],
+      "commit_dealloc": [
+        0,
+        0
+      ],
+      "whole_allocation": [
+        10,
+        0,
+        20799,
+        0
+      ],
+      "whole_dealloc": [
+        10,
+        20799
+      ],
+      "layout": [
+        168,
+        8,
+        160,
+        8,
+        120,
+        8,
+        56,
+        8
+      ],
+      "balance": 0
+    },
+    {
+      "implementation": "forward",
+      "case": "many",
+      "committed": true,
+      "inserted": 128,
+      "freed": 0,
+      "commit_allocation": [
+        263,
+        0,
+        30342,
+        17946
+      ],
+      "commit_dealloc": [
+        6,
+        12396
+      ],
+      "whole_allocation": [
+        905,
+        33,
+        58954,
+        0
+      ],
+      "whole_dealloc": [
+        905,
+        57738
+      ],
+      "layout": [
+        168,
+        8,
+        160,
+        8,
+        120,
+        8,
+        56,
+        8
+      ],
+      "balance": 0
+    },
+    {
+      "implementation": "forward",
+      "case": "dangling",
+      "committed": true,
+      "inserted": 0,
+      "freed": 0,
+      "commit_allocation": [
+        1,
+        0,
+        8,
+        -9
+      ],
+      "commit_dealloc": [
+        2,
+        17
+      ],
+      "whole_allocation": [
+        7,
+        0,
+        20558,
+        0
+      ],
+      "whole_dealloc": [
+        7,
+        20558
+      ],
+      "layout": [
+        168,
+        8,
+        160,
+        8,
+        120,
+        8,
+        56,
+        8
+      ],
+      "balance": 0
+    },
+    {
+      "implementation": "forward",
+      "case": "failed",
+      "committed": false,
+      "inserted": 0,
+      "freed": 0,
+      "commit_allocation": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "commit_dealloc": [
+        0,
+        0
+      ],
+      "whole_allocation": [
+        10,
+        0,
+        20579,
+        0
+      ],
+      "whole_dealloc": [
+        10,
+        20579
+      ],
+      "layout": [
+        168,
+        8,
+        160,
+        8,
+        120,
+        8,
+        56,
+        8
+      ],
+      "balance": 0
+    },
+    {
+      "implementation": "candidate",
+      "case": "empty",
+      "committed": true,
+      "inserted": 0,
+      "freed": 0,
+      "commit_allocation": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "commit_dealloc": [
+        0,
+        0
+      ],
+      "whole_allocation": [
+        1,
+        0,
+        20480,
+        0
+      ],
+      "whole_dealloc": [
+        1,
+        20480
+      ],
+      "layout": [
+        168,
+        8,
+        160,
+        8,
+        120,
+        8,
+        56,
+        8
+      ],
+      "balance": 0
+    },
+    {
+      "implementation": "candidate",
+      "case": "one",
+      "committed": true,
+      "inserted": 1,
+      "freed": 0,
+      "commit_allocation": [
+        3,
+        0,
+        245,
+        245
+      ],
+      "commit_dealloc": [
+        0,
+        0
+      ],
+      "whole_allocation": [
+        10,
+        0,
+        20799,
+        0
+      ],
+      "whole_dealloc": [
+        10,
+        20799
+      ],
+      "layout": [
+        168,
+        8,
+        160,
+        8,
+        120,
+        8,
+        56,
+        8
+      ],
+      "balance": 0
+    },
+    {
+      "implementation": "candidate",
+      "case": "many",
+      "committed": true,
+      "inserted": 128,
+      "freed": 0,
+      "commit_allocation": [
+        263,
+        0,
+        30342,
+        17946
+      ],
+      "commit_dealloc": [
+        6,
+        12396
+      ],
+      "whole_allocation": [
+        905,
+        33,
+        58954,
+        0
+      ],
+      "whole_dealloc": [
+        905,
+        57738
+      ],
+      "layout": [
+        168,
+        8,
+        160,
+        8,
+        120,
+        8,
+        56,
+        8
+      ],
+      "balance": 0
+    },
+    {
+      "implementation": "candidate",
+      "case": "dangling",
+      "committed": true,
+      "inserted": 0,
+      "freed": 0,
+      "commit_allocation": [
+        1,
+        0,
+        8,
+        -9
+      ],
+      "commit_dealloc": [
+        2,
+        17
+      ],
+      "whole_allocation": [
+        7,
+        0,
+        20558,
+        0
+      ],
+      "whole_dealloc": [
+        7,
+        20558
+      ],
+      "layout": [
+        168,
+        8,
+        160,
+        8,
+        120,
+        8,
+        56,
+        8
+      ],
+      "balance": 0
+    },
+    {
+      "implementation": "candidate",
+      "case": "failed",
+      "committed": false,
+      "inserted": 0,
+      "freed": 0,
+      "commit_allocation": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "commit_dealloc": [
+        0,
+        0
+      ],
+      "whole_allocation": [
+        10,
+        0,
+        20579,
+        0
+      ],
+      "whole_dealloc": [
+        10,
+        20579
+      ],
+      "layout": [
+        168,
+        8,
+        160,
+        8,
+        120,
+        8,
+        56,
+        8
+      ],
+      "balance": 0
+    }
+  ],
+  "retained_attempts": [
+    {
+      "candidate": "adf3977",
+      "phase": "shell before wrapper",
+      "exit": 2,
+      "reason": "Old tool-source had no run_isolated.sh; zero builds or fixture executions",
+      "log_sha256": "623519c444816345d99632ee4c8606475a235d094893a4b9ee5b2efd3921693f"
+    },
+    {
+      "candidate": "0eaaef8",
+      "phase": "forward probe compile",
+      "exit": 1,
+      "reason": "Relative --out produced a doubled Rust #[path]; zero fixture executions",
+      "log_sha256": "6a8a448df52997cfe8c09e0f6d0d6e6964c61147f5b82e93bca96b5384cd983d"
+    },
+    {
+      "candidate": "0eaaef8",
+      "phase": "same wrapper with absolute --out in new directory",
+      "exit": 0,
+      "runs": 10,
+      "log_sha256": "bed573d612c56024bf5f804247d7b4c522b82b17f735dd22216f4860463a9b21"
+    }
+  ],
+  "boundaries": [
+    "No wrapper, driver, allocator, inputs or expected vectors changed.",
+    "Module size accessor exists only in generated private copies; original source verified unchanged afterward.",
+    "Reverse records now add name-index keys/vectors; this forward-only corpus does not measure that additional heap.",
+    "No timing, CPU/RSS, mixed populations, reverse/service allocation, OOM or production acceptance.",
+    "adf3977 to 0eaaef8 source review found only comment wrapping and Copy Kind local reuse; only 0eaaef8 executed fixtures.",
+    "The five-case driver executes insertion/commit/drop, not lookup allocation or capture mode."
+  ]
+}
