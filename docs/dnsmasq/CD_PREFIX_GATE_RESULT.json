@@ -1,0 +1,780 @@
+{
+  "baseline_commits": [
+    "d39bde7",
+    "82d90aa",
+    "139b21c"
+  ],
+  "before": {
+    "commit": "7f60791",
+    "elf_sha256": "f67e3bfb66c4af568d92dff73652640b1614b8511f2c4f47845b55ac6444150f"
+  },
+  "after": {
+    "commit": "ddac95da230239f10e318ca8a52e16621653e605",
+    "elf_sha256": "334819a9cbb1096c71066d27af8b6dc0eefb453e117ff2a4d0b25d0edee2b65d"
+  },
+  "profiles": [
+    {
+      "reference": {
+        "kind": "native-glibc",
+        "elf_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431"
+      },
+      "tool_sha256": "305f09469faf5da96b19f113b9cb39724856e362c091c8e54937565932f42822",
+      "rust_sha256": "f67e3bfb66c4af568d92dff73652640b1614b8511f2c4f47845b55ac6444150f",
+      "failures": [],
+      "mismatches": 8,
+      "raw_directory": "private/tcp-writeback-gates/cd-prefix-native-before-01",
+      "cases_completed": 10,
+      "c_observations": 136,
+      "cases_matched": 2,
+      "observations_matched": null,
+      "rounds": [
+        {
+          "case": "k1-request0-reply0",
+          "c_observations": 13,
+          "case_matched": true
+        },
+        {
+          "case": "k1-request1-reply0",
+          "c_observations": 13,
+          "case_matched": false,
+          "difference_class": "observation stages differ; no per-observation match count is claimed"
+        },
+        {
+          "case": "k1-request0-reply1",
+          "c_observations": 13,
+          "case_matched": false,
+          "difference_class": "observation stages differ; no per-observation match count is claimed"
+        },
+        {
+          "case": "k1-request1-reply1",
+          "c_observations": 13,
+          "case_matched": false,
+          "difference_class": "observation stages differ; no per-observation match count is claimed"
+        },
+        {
+          "case": "k1-pressure-request1-reply0",
+          "c_observations": 16,
+          "case_matched": false,
+          "difference_class": "observation stages differ; no per-observation match count is claimed"
+        },
+        {
+          "case": "k28-request0-reply0",
+          "c_observations": 13,
+          "case_matched": true
+        },
+        {
+          "case": "k28-request1-reply0",
+          "c_observations": 13,
+          "case_matched": false,
+          "difference_class": "observation stages differ; no per-observation match count is claimed"
+        },
+        {
+          "case": "k28-request0-reply1",
+          "c_observations": 13,
+          "case_matched": false,
+          "difference_class": "observation stages differ; no per-observation match count is claimed"
+        },
+        {
+          "case": "k28-request1-reply1",
+          "c_observations": 13,
+          "case_matched": false,
+          "difference_class": "observation stages differ; no per-observation match count is claimed"
+        },
+        {
+          "case": "k28-pressure-request1-reply0",
+          "c_observations": 16,
+          "case_matched": false,
+          "difference_class": "observation stages differ; no per-observation match count is claimed"
+        }
+      ],
+      "raw_sha256": {
+        "result.json": "f4221dd9abc05d8bd6e03405944f66306a8c467b9b5e8a39ac8e3aa92095ded0",
+        "k1-request1-reply0/rust/trace.json": "9233a3ac80fd84d5fdeab00ff8b0b0956944ecb43d2e40d69fa0c4f89c3becbd",
+        "k1-request1-reply0/c/trace.json": "ce952aa58e32d83307766fb81907b75baac2c443e50f83cfefd87331ba780c4e",
+        "k28-request1-reply1/rust/trace.json": "7d8a1c9f05d640c4a5be7bab00adf58e855853ec216cc17441d9250fe7cb5aad",
+        "k28-request1-reply1/c/trace.json": "996a414f22a5257c7f2a631ef7053f4bcec67610c494fc6cb33e50e6e500cae7",
+        "k28-request1-reply0/rust/trace.json": "dd7d16b7a38057d490f255a013131ccde21e2f38d5f4573f6ff71a745487d2c2",
+        "k28-request1-reply0/c/trace.json": "e06d116bcb85c888fea5ae78f6c6f775cb877421058bc9be15acb3a9217b1cf9",
+        "k1-request1-reply1/rust/trace.json": "82169cdd31c5c5b846bf7a18ace2b0361539a12dba8b40460084e34a54308635",
+        "k1-request1-reply1/c/trace.json": "b05ebce2073bbe8f73cbc7e6a1907354f7ec62ca7e8a27cc0acfa6844ef504e5",
+        "k28-pressure-request1-reply0/rust/trace.json": "29cd4cda967749f079e9a4d3068e953f226f485571c7100b1728a767e29a42ab",
+        "k28-pressure-request1-reply0/c/trace.json": "c034f94475cc28e85200f8ab32bfca4e473476037819be2c520730cb73ef4814",
+        "k28-request0-reply0/rust/trace.json": "22dcf9eb999e7236aeaa5c94619a4d551d7a926e5f3c31b7a7299f665061384b",
+        "k28-request0-reply0/c/trace.json": "f4dbde063268b460aab4f73f0e9230ed962ee2718d67f94754514f3c45266683",
+        "k1-request0-reply1/rust/trace.json": "9a3352032f18a8138055cde7d840a4388e8e042722e30208e780b1adb8e1df5f",
+        "k1-request0-reply1/c/trace.json": "733fb9dd7d2136e82f55ecb62f2dbeddc07591bc5f2ca5a4c8bd645c1478ca49",
+        "k1-request0-reply0/rust/trace.json": "32f927a57e96868016e5b7e930703a77ab81824078061b1754009ba117e39701",
+        "k1-request0-reply0/c/trace.json": "225d4ff1d5791d5e77cce21b646b26c7c37825b5cc1a14e6e88efee5bda570f0",
+        "k28-request0-reply1/rust/trace.json": "e990061057f907b01c850563e46e703a252de3ba132725e78cdbeb2cfe79ec5b",
+        "k28-request0-reply1/c/trace.json": "3c518238372739d103f8aed3a0b72b7de16c10e7d86ed147647412526b6637d0",
+        "k1-pressure-request1-reply0/rust/trace.json": "a3e48bd56cc17440158697c2878bf9a052b6afa35c20307f54e1689e2b521726",
+        "k1-pressure-request1-reply0/c/trace.json": "6245348e3cb8464908486c56563b35556d2c0907e22821069eafe1a0d1a986ac"
+      },
+      "concrete_before_differences": [
+        {
+          "case": "k1-request1-reply0",
+          "c": {
+            "direct_owner_upstream": 1,
+            "alias_cname_after_reset_upstream": 1,
+            "held_inserted": 2,
+            "held_live_freed": 0
+          },
+          "rust": {
+            "direct_owner_upstream": 0,
+            "alias_cname_after_reset_upstream": 0,
+            "held_inserted": 2,
+            "held_live_freed": 0
+          }
+        },
+        {
+          "case": "k1-request0-reply1",
+          "c": {
+            "direct_owner_upstream": 1,
+            "alias_cname_after_reset_upstream": 1,
+            "held_inserted": 2,
+            "held_live_freed": 0
+          },
+          "rust": {
+            "direct_owner_upstream": 0,
+            "alias_cname_after_reset_upstream": 0,
+            "held_inserted": 2,
+            "held_live_freed": 0
+          }
+        },
+        {
+          "case": "k1-pressure-request1-reply0",
+          "c": {
+            "direct_owner_upstream": 1,
+            "alias_cname_after_reset_upstream": 1,
+            "held_inserted": 3,
+            "held_live_freed": 1
+          },
+          "rust": {
+            "direct_owner_upstream": 0,
+            "alias_cname_after_reset_upstream": 0,
+            "held_inserted": 3,
+            "held_live_freed": 0
+          }
+        },
+        {
+          "case": "k28-request1-reply0",
+          "c": {
+            "direct_owner_upstream": 1,
+            "alias_cname_after_reset_upstream": 1,
+            "held_inserted": 2,
+            "held_live_freed": 0
+          },
+          "rust": {
+            "direct_owner_upstream": 0,
+            "alias_cname_after_reset_upstream": 0,
+            "held_inserted": 2,
+            "held_live_freed": 0
+          }
+        },
+        {
+          "case": "k28-request0-reply1",
+          "c": {
+            "direct_owner_upstream": 1,
+            "alias_cname_after_reset_upstream": 1,
+            "held_inserted": 2,
+            "held_live_freed": 0
+          },
+          "rust": {
+            "direct_owner_upstream": 0,
+            "alias_cname_after_reset_upstream": 0,
+            "held_inserted": 2,
+            "held_live_freed": 0
+          }
+        },
+        {
+          "case": "k28-pressure-request1-reply0",
+          "c": {
+            "direct_owner_upstream": 1,
+            "alias_cname_after_reset_upstream": 1,
+            "held_inserted": 3,
+            "held_live_freed": 1
+          },
+          "rust": {
+            "direct_owner_upstream": 0,
+            "alias_cname_after_reset_upstream": 0,
+            "held_inserted": 3,
+            "held_live_freed": 0
+          }
+        }
+      ]
+    },
+    {
+      "reference": {
+        "kind": "image-aarch64-musl",
+        "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "runner_sha256": "de018ed3599e0d5f4a8f6c7646c8dd76759382b79b029ab40e3e3deac273e0db",
+        "dependencies": {
+          "lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+          "lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+          "lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+          "lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+        },
+        "identity_sha256": "fb873b9abae841a6723db1660752e1a4254a626b81bac099b19d9274a0d719aa"
+      },
+      "tool_sha256": "305f09469faf5da96b19f113b9cb39724856e362c091c8e54937565932f42822",
+      "rust_sha256": "f67e3bfb66c4af568d92dff73652640b1614b8511f2c4f47845b55ac6444150f",
+      "failures": [],
+      "mismatches": 8,
+      "raw_directory": "private/tcp-writeback-gates/cd-prefix-image-before-01",
+      "cases_completed": 10,
+      "c_observations": 136,
+      "cases_matched": 2,
+      "observations_matched": null,
+      "rounds": [
+        {
+          "case": "k1-request0-reply0",
+          "c_observations": 13,
+          "case_matched": true
+        },
+        {
+          "case": "k1-request1-reply0",
+          "c_observations": 13,
+          "case_matched": false,
+          "difference_class": "observation stages differ; no per-observation match count is claimed"
+        },
+        {
+          "case": "k1-request0-reply1",
+          "c_observations": 13,
+          "case_matched": false,
+          "difference_class": "observation stages differ; no per-observation match count is claimed"
+        },
+        {
+          "case": "k1-request1-reply1",
+          "c_observations": 13,
+          "case_matched": false,
+          "difference_class": "observation stages differ; no per-observation match count is claimed"
+        },
+        {
+          "case": "k1-pressure-request1-reply0",
+          "c_observations": 16,
+          "case_matched": false,
+          "difference_class": "observation stages differ; no per-observation match count is claimed"
+        },
+        {
+          "case": "k28-request0-reply0",
+          "c_observations": 13,
+          "case_matched": true
+        },
+        {
+          "case": "k28-request1-reply0",
+          "c_observations": 13,
+          "case_matched": false,
+          "difference_class": "observation stages differ; no per-observation match count is claimed"
+        },
+        {
+          "case": "k28-request0-reply1",
+          "c_observations": 13,
+          "case_matched": false,
+          "difference_class": "observation stages differ; no per-observation match count is claimed"
+        },
+        {
+          "case": "k28-request1-reply1",
+          "c_observations": 13,
+          "case_matched": false,
+          "difference_class": "observation stages differ; no per-observation match count is claimed"
+        },
+        {
+          "case": "k28-pressure-request1-reply0",
+          "c_observations": 16,
+          "case_matched": false,
+          "difference_class": "observation stages differ; no per-observation match count is claimed"
+        }
+      ],
+      "raw_sha256": {
+        "result.json": "3b764b6a59588f77fe404d08a6b49c82adc687d58828704b39c601a38d21dc96",
+        "k1-request1-reply0/rust/trace.json": "539de32744124f8d05d17f0597f58030a22ba54ac4ed113301c7d18e9e03c6da",
+        "k1-request1-reply0/c/trace.json": "cd7752316f1a316b92b5a158ac370cc2ca90b42b7b4d239c3632c2b7f0845675",
+        "k28-request1-reply1/rust/trace.json": "c7b8ebf5fbe3cb3bc27aee1f70847bfd47788ddb8a6fac3a34acbb715db46d99",
+        "k28-request1-reply1/c/trace.json": "adc9e332f467eb2b2c99b0a74614ae373a71acda8c8cb69653b9a6daa64afb6f",
+        "k28-request1-reply0/rust/trace.json": "a95597baee734519569d8cd1983562dc57114263464730a8a66b59dd3c25c5a8",
+        "k28-request1-reply0/c/trace.json": "bdfd409871848e454c3846d99002c59e2b993f2b5ebe9fb20e06f2181603e9cd",
+        "k1-request1-reply1/rust/trace.json": "27ce235c6078190cb49d89f8f56983625d84298843226b453205a8e5406cf11c",
+        "k1-request1-reply1/c/trace.json": "4263dd17fc5939505b27aff3e47bbdc3874f40fdafd203f580b6b62d48875e67",
+        "k28-pressure-request1-reply0/rust/trace.json": "9831267e37c2af612d6539345ae8b6650f0dc31e21569a0ee1bfeb3d1e663831",
+        "k28-pressure-request1-reply0/c/trace.json": "782a3047a2ef8c6cb592c3f72bdf2d5ba4f5de9dbbfec8bf8b5cf9e944458561",
+        "k28-request0-reply0/rust/trace.json": "a6a6bd372f3ba79122d0555e349e5cb26529cf0396dcc6192471e1eaacd76a55",
+        "k28-request0-reply0/c/trace.json": "390dad9682a67af7d302826f2cf9f4ab47e2d797785691ff29d3443b55e720f4",
+        "k1-request0-reply1/rust/trace.json": "f3ca2973290f853fde3616ef5da127146e4a1f37549f3345de74c72271a02050",
+        "k1-request0-reply1/c/trace.json": "04b5d70eb9b2a858c38bf77fb57c2fceedc93fc3b499f164b12ac0c947593551",
+        "k1-request0-reply0/rust/trace.json": "1dc72d30f7c061bc310dc94e8180b46fe9c624cd246a0821ced0a2f6e05d6a18",
+        "k1-request0-reply0/c/trace.json": "779d5396a63613f6aa94750dc5b11bba60501d876dc057380bc3a302a23194ba",
+        "k28-request0-reply1/rust/trace.json": "1084a5b35fa2c6a476becdb176cceb945d4cf6119fb65de30d2f5f9f90f7362d",
+        "k28-request0-reply1/c/trace.json": "8c792a33321cd6c48f58828cd3c0cdc313e37fe6a49cf0adcbe91635896e2710",
+        "k1-pressure-request1-reply0/rust/trace.json": "15b6837dffa391c3920b59bac4a65b36d93a4ea795a0c76803e820bb3b027533",
+        "k1-pressure-request1-reply0/c/trace.json": "1b7ef8966cb312319fb55e4b9e0722b630a6f0a8ea45a5078b128cde14718946"
+      },
+      "concrete_before_differences": [
+        {
+          "case": "k1-request1-reply0",
+          "c": {
+            "direct_owner_upstream": 1,
+            "alias_cname_after_reset_upstream": 1,
+            "held_inserted": 2,
+            "held_live_freed": 0
+          },
+          "rust": {
+            "direct_owner_upstream": 0,
+            "alias_cname_after_reset_upstream": 0,
+            "held_inserted": 2,
+            "held_live_freed": 0
+          }
+        },
+        {
+          "case": "k1-request0-reply1",
+          "c": {
+            "direct_owner_upstream": 1,
+            "alias_cname_after_reset_upstream": 1,
+            "held_inserted": 2,
+            "held_live_freed": 0
+          },
+          "rust": {
+            "direct_owner_upstream": 0,
+            "alias_cname_after_reset_upstream": 0,
+            "held_inserted": 2,
+            "held_live_freed": 0
+          }
+        },
+        {
+          "case": "k1-pressure-request1-reply0",
+          "c": {
+            "direct_owner_upstream": 1,
+            "alias_cname_after_reset_upstream": 1,
+            "held_inserted": 3,
+            "held_live_freed": 1
+          },
+          "rust": {
+            "direct_owner_upstream": 0,
+            "alias_cname_after_reset_upstream": 0,
+            "held_inserted": 3,
+            "held_live_freed": 0
+          }
+        },
+        {
+          "case": "k28-request1-reply0",
+          "c": {
+            "direct_owner_upstream": 1,
+            "alias_cname_after_reset_upstream": 1,
+            "held_inserted": 2,
+            "held_live_freed": 0
+          },
+          "rust": {
+            "direct_owner_upstream": 0,
+            "alias_cname_after_reset_upstream": 0,
+            "held_inserted": 2,
+            "held_live_freed": 0
+          }
+        },
+        {
+          "case": "k28-request0-reply1",
+          "c": {
+            "direct_owner_upstream": 1,
+            "alias_cname_after_reset_upstream": 1,
+            "held_inserted": 2,
+            "held_live_freed": 0
+          },
+          "rust": {
+            "direct_owner_upstream": 0,
+            "alias_cname_after_reset_upstream": 0,
+            "held_inserted": 2,
+            "held_live_freed": 0
+          }
+        },
+        {
+          "case": "k28-pressure-request1-reply0",
+          "c": {
+            "direct_owner_upstream": 1,
+            "alias_cname_after_reset_upstream": 1,
+            "held_inserted": 3,
+            "held_live_freed": 1
+          },
+          "rust": {
+            "direct_owner_upstream": 0,
+            "alias_cname_after_reset_upstream": 0,
+            "held_inserted": 3,
+            "held_live_freed": 0
+          }
+        }
+      ]
+    },
+    {
+      "reference": {
+        "kind": "native-glibc",
+        "elf_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431"
+      },
+      "tool_sha256": "e6f9a906d013bb73c9023723f3bef29c9d3651d72aff2870c945725f306dcb08",
+      "rust_sha256": "334819a9cbb1096c71066d27af8b6dc0eefb453e117ff2a4d0b25d0edee2b65d",
+      "failures": [],
+      "mismatches": 0,
+      "raw_directory": "private/tcp-writeback-gates/cd-prefix-native-after-01",
+      "cases_completed": 10,
+      "c_observations": 136,
+      "cases_matched": 10,
+      "observations_matched": 136,
+      "rounds": [
+        {
+          "case": "k1-request0-reply0",
+          "c_observations": 13,
+          "case_matched": true
+        },
+        {
+          "case": "k1-request1-reply0",
+          "c_observations": 13,
+          "case_matched": true
+        },
+        {
+          "case": "k1-request0-reply1",
+          "c_observations": 13,
+          "case_matched": true
+        },
+        {
+          "case": "k1-request1-reply1",
+          "c_observations": 13,
+          "case_matched": true
+        },
+        {
+          "case": "k1-pressure-request1-reply0",
+          "c_observations": 16,
+          "case_matched": true
+        },
+        {
+          "case": "k28-request0-reply0",
+          "c_observations": 13,
+          "case_matched": true
+        },
+        {
+          "case": "k28-request1-reply0",
+          "c_observations": 13,
+          "case_matched": true
+        },
+        {
+          "case": "k28-request0-reply1",
+          "c_observations": 13,
+          "case_matched": true
+        },
+        {
+          "case": "k28-request1-reply1",
+          "c_observations": 13,
+          "case_matched": true
+        },
+        {
+          "case": "k28-pressure-request1-reply0",
+          "c_observations": 16,
+          "case_matched": true
+        }
+      ],
+      "raw_sha256": {
+        "result.json": "2a2049f5256d020bc7e86f8b970705b32c5176cfff183fc9fba871d218b73da8",
+        "k1-request1-reply0/rust/trace.json": "e65d7cc742879d9f6d3f1452c39a1fa53d942de29eabdc290d5e0bda20e4278a",
+        "k1-request1-reply0/c/trace.json": "9317b43e93960a60f577bbc8e0614194b9a8854d80f5ab62edcfc201ff622726",
+        "k28-request1-reply1/rust/trace.json": "69e8d509fc5f40d6518c85fd9ab580dfbfbf367d9b73e031deee46e73686755f",
+        "k28-request1-reply1/c/trace.json": "b2ddef9b5ae1dd405355587b1101c16e1550470e0b60d93b839d778e7b328c6e",
+        "k28-request1-reply0/rust/trace.json": "b19509c43b37203df3df07d7f5fe884d044f1adc31ee9847748534c3311a6a6d",
+        "k28-request1-reply0/c/trace.json": "1edb07875b0daf3ea97d80230b8ab525efd2e3d123584e7b58685f7cb27015cd",
+        "k1-request1-reply1/rust/trace.json": "c4f45d9e3b47098a56cf27736120e02e0d8011f34898fc275289804c7b1f0626",
+        "k1-request1-reply1/c/trace.json": "f83e50a7070f419acc6f35e1e4768ceea62b2502039c9b13cf9df16a28d93839",
+        "k28-pressure-request1-reply0/rust/trace.json": "b86641f6c0c203a4b6d7d0988b8c0cfda2a0a13111d242a6cb9b6a7445b10892",
+        "k28-pressure-request1-reply0/c/trace.json": "666029e7dd4a9a2224bb4cbf6a5967fb9670bd66f7b276988e0e85323c83b673",
+        "k28-request0-reply0/rust/trace.json": "28ccd9903498769c88076423c6aa4532af815da169321182248faff7ca5cc61f",
+        "k28-request0-reply0/c/trace.json": "d350a29762e6877b6d717c4ca6c0b51a4edcd954b8b14db97fa70a980e4b5b26",
+        "k1-request0-reply1/rust/trace.json": "9547243d1b89e915b5ed89394a35c55c755db94abb8e7be0884e39215e133668",
+        "k1-request0-reply1/c/trace.json": "9b4c13c70768e0108d74955313d805aa685598ea3e38e8ea70c6b8ec95243878",
+        "k1-request0-reply0/rust/trace.json": "3faea83e9afc29b54020ae5afdaea1d0e77e4a5d8fb3ba381b1df170bb242346",
+        "k1-request0-reply0/c/trace.json": "b9905b294ebb3f4022b798910d6b667ab23d178a05d54cac6cedd5fa258a8e48",
+        "k28-request0-reply1/rust/trace.json": "5fee218fe5769dc068ce75582e1e55b2217556eb6947f84962297c51b942128f",
+        "k28-request0-reply1/c/trace.json": "d8de1e9616d2a66994c3eb5324e5bfc4bb58bcbcbdb3d9904ab878777433133d",
+        "k1-pressure-request1-reply0/rust/trace.json": "9623a2c2cd36c862dbc823ffb88cef9889ba333d4df55cd036f10fab2409ed62",
+        "k1-pressure-request1-reply0/c/trace.json": "a796d595eef715c415b5bb19cf375ed3755f74f059722054bb71a4b6f32e9458"
+      }
+    },
+    {
+      "reference": {
+        "kind": "image-aarch64-musl",
+        "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "runner_sha256": "de018ed3599e0d5f4a8f6c7646c8dd76759382b79b029ab40e3e3deac273e0db",
+        "dependencies": {
+          "lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+          "lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+          "lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+          "lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+        },
+        "identity_sha256": "fb873b9abae841a6723db1660752e1a4254a626b81bac099b19d9274a0d719aa"
+      },
+      "tool_sha256": "e6f9a906d013bb73c9023723f3bef29c9d3651d72aff2870c945725f306dcb08",
+      "rust_sha256": "334819a9cbb1096c71066d27af8b6dc0eefb453e117ff2a4d0b25d0edee2b65d",
+      "failures": [
+        {
+          "case": "k28-request0-reply0",
+          "error": "AssertionError()"
+        }
+      ],
+      "mismatches": 0,
+      "raw_directory": "private/tcp-writeback-gates/cd-prefix-image-after-01",
+      "cases_completed": 9,
+      "c_observations": 123,
+      "cases_matched": 9,
+      "observations_matched": null,
+      "rounds": [
+        {
+          "case": "k1-request0-reply0",
+          "c_observations": 13,
+          "case_matched": true
+        },
+        {
+          "case": "k1-request1-reply0",
+          "c_observations": 13,
+          "case_matched": true
+        },
+        {
+          "case": "k1-request0-reply1",
+          "c_observations": 13,
+          "case_matched": true
+        },
+        {
+          "case": "k1-request1-reply1",
+          "c_observations": 13,
+          "case_matched": true
+        },
+        {
+          "case": "k1-pressure-request1-reply0",
+          "c_observations": 16,
+          "case_matched": true
+        },
+        {
+          "case": "k28-request1-reply0",
+          "c_observations": 13,
+          "case_matched": true
+        },
+        {
+          "case": "k28-request0-reply1",
+          "c_observations": 13,
+          "case_matched": true
+        },
+        {
+          "case": "k28-request1-reply1",
+          "c_observations": 13,
+          "case_matched": true
+        },
+        {
+          "case": "k28-pressure-request1-reply0",
+          "c_observations": 16,
+          "case_matched": true
+        }
+      ],
+      "raw_sha256": {
+        "result.json": "81ba71fd710da5ffda3f5959dc9ea584b9f2568341ba6fb8654e949778dc1e9f",
+        "k1-request1-reply0/rust/trace.json": "4dc31262225d4fdb0616fffb22da46d58e7f9bce5ad03ae126abe0f0158cfbcf",
+        "k1-request1-reply0/c/trace.json": "a7bb6de43fc60761f16b128f4c7dcb1497d155039239498dfff86080f2a9244c",
+        "k28-request1-reply1/rust/trace.json": "593c317f06313990752732995c18415917399cf3974d8e6ee0dcd14e9eb59091",
+        "k28-request1-reply1/c/trace.json": "c67c6665ddfbe9eb0317956f243e04e37996f283621da8c9594ffba7e5003460",
+        "k28-request1-reply0/rust/trace.json": "e3aa688162d6b25bf71c7f8fd9f1c9720c203273ffc92c47bdb1306e4425b019",
+        "k28-request1-reply0/c/trace.json": "e947a962c6a64c2f5744b0d2cc9bac90556e6be06ad39622abcff1f0059b24ab",
+        "k1-request1-reply1/rust/trace.json": "afa84cc6b20b92e91b871cf653672e541c8122b178b3d31088b2a9126a6495b2",
+        "k1-request1-reply1/c/trace.json": "bdb908ea8bb9cf04e50249b181f2814722ac7bcf04a3a9005178b8d04d076726",
+        "k28-pressure-request1-reply0/rust/trace.json": "75a50696b72b5f130c315c0d6cab932cb4f517b225fc1236e04d8749d21dfd66",
+        "k28-pressure-request1-reply0/c/trace.json": "7cd50c52868b4a8ca881942397696f1535267665ae554e53dd42c537dcfa5c5f",
+        "k28-request0-reply0/c/trace.json": "7aa352c7764fc38807cee37f3695ae4b373633ebe1740394510e716d1fddb424",
+        "k1-request0-reply1/rust/trace.json": "10efadb3f4ac199221eee5d6f4c8d763304ce5e7333f779d6e8e6ecbbd23806f",
+        "k1-request0-reply1/c/trace.json": "8aae927ad982764b4b8f5d3c3ceac280e622acb5739abd562bf4576a70139074",
+        "k1-request0-reply0/rust/trace.json": "6e5022ded9c8bbd449d7375e32a2eb6ed7becf5dac7e145404d452e8fe41757c",
+        "k1-request0-reply0/c/trace.json": "1d522cbcbe964d3c07a673ae318e5c24194e10ab8056c74f7b877eab438422c8",
+        "k28-request0-reply1/rust/trace.json": "ce1f22c375ecb9c0ffe9f8c308e1d37504ddb359ee5ec7246eeecd0233ebdf7b",
+        "k28-request0-reply1/c/trace.json": "2e26c1b6ce6cc017593b7ba40d3b1660b836b04ef21a3275e359800bc621c832",
+        "k1-pressure-request1-reply0/rust/trace.json": "f57530da395af3da7b6ee72bdece859f7fd4f5ed49511c38401ca2f923f90d90",
+        "k1-pressure-request1-reply0/c/trace.json": "55ce810a0a843691c7c647709110f432893b1eafd532b132affed70be7fabbae"
+      }
+    },
+    {
+      "reference": {
+        "kind": "native-glibc",
+        "elf_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431"
+      },
+      "tool_sha256": "7179d7661adfe9c55dc4de8b5b09d4f131ede673a7b7468857bb8243c9ca9bb9",
+      "rust_sha256": "334819a9cbb1096c71066d27af8b6dc0eefb453e117ff2a4d0b25d0edee2b65d",
+      "failures": [],
+      "mismatches": 0,
+      "raw_directory": "private/tcp-writeback-gates/cd-prefix-native-final-after-01",
+      "cases_completed": 10,
+      "c_observations": 134,
+      "cases_matched": 10,
+      "observations_matched": 134,
+      "rounds": [
+        {
+          "case": "k1-request0-reply0",
+          "c_observations": 12,
+          "case_matched": true
+        },
+        {
+          "case": "k1-request1-reply0",
+          "c_observations": 13,
+          "case_matched": true
+        },
+        {
+          "case": "k1-request0-reply1",
+          "c_observations": 13,
+          "case_matched": true
+        },
+        {
+          "case": "k1-request1-reply1",
+          "c_observations": 13,
+          "case_matched": true
+        },
+        {
+          "case": "k1-pressure-request1-reply0",
+          "c_observations": 16,
+          "case_matched": true
+        },
+        {
+          "case": "k28-request0-reply0",
+          "c_observations": 12,
+          "case_matched": true
+        },
+        {
+          "case": "k28-request1-reply0",
+          "c_observations": 13,
+          "case_matched": true
+        },
+        {
+          "case": "k28-request0-reply1",
+          "c_observations": 13,
+          "case_matched": true
+        },
+        {
+          "case": "k28-request1-reply1",
+          "c_observations": 13,
+          "case_matched": true
+        },
+        {
+          "case": "k28-pressure-request1-reply0",
+          "c_observations": 16,
+          "case_matched": true
+        }
+      ],
+      "raw_sha256": {
+        "result.json": "552f25e1f9ec5bd2e9fcff0cf1aa933c4fbca72374bcb24545e1e9684f28b469",
+        "k1-request1-reply0/rust/trace.json": "8376db343fe1e08905afd5e6d8fd7fd33d495ba974b0cdb936c1c15caa9f3e65",
+        "k1-request1-reply0/c/trace.json": "544d0af01dafc12e96aef985576953c49856b5c2a374543d96551680a22c3c84",
+        "k28-request1-reply1/rust/trace.json": "b9eee7eca4d36848bec6cf0f36939124dd971e9d770d494465823a6bfc59c540",
+        "k28-request1-reply1/c/trace.json": "8df056fe6bf118d47ec0140fd3c92ab91c11ebcbd48a3a210adda0a4ef2af790",
+        "k28-request1-reply0/rust/trace.json": "c6568be07ab732d6a7370b6652bf6611654139f1bbf4876ebebaab02eb6e85fb",
+        "k28-request1-reply0/c/trace.json": "a4f66c3799cefde8a250dddf765105d48e34910d7459d1f6b65660b66072d4f8",
+        "k1-request1-reply1/rust/trace.json": "4f0f82c112569434d011e6351be9e0389df5d8ab6e8c39a1eff5982429340fab",
+        "k1-request1-reply1/c/trace.json": "1a4ecc3ecf832de50db39f18042b095fab4eed889348487582dc5220802a664a",
+        "k28-pressure-request1-reply0/rust/trace.json": "fe9b36645c495357521ef483e0826543ad051e7378755de39d4ec73ba3b25b33",
+        "k28-pressure-request1-reply0/c/trace.json": "79b7daefb0de0ee8d1a272b9805f5f6f0d530d09e5d35ba4de5e50fd23d8a46a",
+        "k28-request0-reply0/rust/trace.json": "8782e74297782b32edbc9cf663c285c598f7f09e76cbeb03eccb52ef3be5c501",
+        "k28-request0-reply0/c/trace.json": "03949567bea6001d00ce95ff86bc6af5db5523948da30e26e67b261cc7cfe628",
+        "k1-request0-reply1/rust/trace.json": "7a7b14958d4d92506a4ad1f112a653843ec5c10a82cf5c3671f3fb8bdea6c516",
+        "k1-request0-reply1/c/trace.json": "d835c9457c01de7524c75f8a8c960814353f88e2255204a69b593fcaf76bb2b2",
+        "k1-request0-reply0/rust/trace.json": "e86829f2d2ea6bccbe905d9524c1b7462942bb9bb9c4bcb6f175de2e5e6ae0a5",
+        "k1-request0-reply0/c/trace.json": "1cea8db2db68c99024bb463766f8c0d7b9ce004543a5c639bbcacc0125c3f494",
+        "k28-request0-reply1/rust/trace.json": "05045ee1f8416bf72e1aa4e21a01853919f6801670990ec452fa01af31f17c3d",
+        "k28-request0-reply1/c/trace.json": "b76d065fef3e75f774769b0788cdf4819403c06d29f1947557e91a0a5b5408b6",
+        "k1-pressure-request1-reply0/rust/trace.json": "ce71442df2d9b35261e4a47c1daa045c004870caa5c3e9f93c61170fe6a76208",
+        "k1-pressure-request1-reply0/c/trace.json": "462f67f701c91de83a5786dbf2fb8edeac7c91f275606fe2186713feb6ca5166"
+      }
+    },
+    {
+      "reference": {
+        "kind": "image-aarch64-musl",
+        "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "runner_sha256": "de018ed3599e0d5f4a8f6c7646c8dd76759382b79b029ab40e3e3deac273e0db",
+        "dependencies": {
+          "lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+          "lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+          "lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+          "lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+        },
+        "identity_sha256": "fb873b9abae841a6723db1660752e1a4254a626b81bac099b19d9274a0d719aa"
+      },
+      "tool_sha256": "7179d7661adfe9c55dc4de8b5b09d4f131ede673a7b7468857bb8243c9ca9bb9",
+      "rust_sha256": "334819a9cbb1096c71066d27af8b6dc0eefb453e117ff2a4d0b25d0edee2b65d",
+      "failures": [],
+      "mismatches": 0,
+      "raw_directory": "private/tcp-writeback-gates/cd-prefix-image-final-after-01",
+      "cases_completed": 10,
+      "c_observations": 134,
+      "cases_matched": 10,
+      "observations_matched": 134,
+      "rounds": [
+        {
+          "case": "k1-request0-reply0",
+          "c_observations": 12,
+          "case_matched": true
+        },
+        {
+          "case": "k1-request1-reply0",
+          "c_observations": 13,
+          "case_matched": true
+        },
+        {
+          "case": "k1-request0-reply1",
+          "c_observations": 13,
+          "case_matched": true
+        },
+        {
+          "case": "k1-request1-reply1",
+          "c_observations": 13,
+          "case_matched": true
+        },
+        {
+          "case": "k1-pressure-request1-reply0",
+          "c_observations": 16,
+          "case_matched": true
+        },
+        {
+          "case": "k28-request0-reply0",
+          "c_observations": 12,
+          "case_matched": true
+        },
+        {
+          "case": "k28-request1-reply0",
+          "c_observations": 13,
+          "case_matched": true
+        },
+        {
+          "case": "k28-request0-reply1",
+          "c_observations": 13,
+          "case_matched": true
+        },
+        {
+          "case": "k28-request1-reply1",
+          "c_observations": 13,
+          "case_matched": true
+        },
+        {
+          "case": "k28-pressure-request1-reply0",
+          "c_observations": 16,
+          "case_matched": true
+        }
+      ],
+      "raw_sha256": {
+        "result.json": "a2a06e9dd72903967cc538c9ae609ac7a125777a05241678dbe99b41d30e2c82",
+        "k1-request1-reply0/rust/trace.json": "b500bfcd250ca411bcf768f59f1bbc827fef044a463eaee0c80551029a3a7880",
+        "k1-request1-reply0/c/trace.json": "2d0388ac11ca72bc34dd1258ccc58c30e6daf2bf6b61138aecdef77d7aff06b1",
+        "k28-request1-reply1/rust/trace.json": "1bb36b2d34ce646f5b052b313ac98fda3ad8623e8470fa5327f4968690158a7a",
+        "k28-request1-reply1/c/trace.json": "885805b947211084d64c732703bf9621bba7eb9cb4589dc85bb1db5a0197b6ca",
+        "k28-request1-reply0/rust/trace.json": "1f3ce875acb895113c4a38381536e795e71aa7d027546cc819f484069fd7ca43",
+        "k28-request1-reply0/c/trace.json": "385870ff6acefbe7348a72eeadc13c48e9890ff83e65ff0fe0c9cff721c0b4bb",
+        "k1-request1-reply1/rust/trace.json": "4149b7e3c4bdb0820514a0d40c81f4641e35e1307f948b278c51e30fe2fbc0bc",
+        "k1-request1-reply1/c/trace.json": "3e44812e4df8e722db14f9358b725498df3e886d57f8f459fda3526abb5dcc7c",
+        "k28-pressure-request1-reply0/rust/trace.json": "65ccd8542f48cdf4bfbbcc5d9056b47743a45dffecab178b0bb31a4ee661af35",
+        "k28-pressure-request1-reply0/c/trace.json": "70c63453e2886885d0ce5ca5fe2143c13b59a71686963fab64f7c0567d22b296",
+        "k28-request0-reply0/rust/trace.json": "a3456b6c42a28d8af3b6380a50a12ff5b32f7d9c39d811cd44fe29eb6dd921e9",
+        "k28-request0-reply0/c/trace.json": "1263dae70019d1642666dfd44b93beaa43095f4858f957a707ed774d68f166ac",
+        "k1-request0-reply1/rust/trace.json": "9f10fd63f4d0cb298fbbeb61e93af4c51bf4b171906aa961652b0fcbb7ebcf25",
+        "k1-request0-reply1/c/trace.json": "12ae7bd3449e927373fc5b77574ef16349fc79fa19cd6f06c6b490cee91024a4",
+        "k1-request0-reply0/rust/trace.json": "cde84815bef3bce4f89993b1ca64a860f7559eef2aac2644e31ef2ef7fcf3f06",
+        "k1-request0-reply0/c/trace.json": "206d43dd480db6582f0c72b5c588160cc09bf376a22953956d8f03c621f1f85c",
+        "k28-request0-reply1/rust/trace.json": "751e703176e1f7dba97c06391927c84a44f89dc8a612be8b390463eadd9d41a4",
+        "k28-request0-reply1/c/trace.json": "22eea555c7bac5e87602c0f14b45f54045ef3935e4242f4c9df34153de060691",
+        "k1-pressure-request1-reply0/rust/trace.json": "1a7b429d7bdab64f8e249944813a094887975a729340f1ec5258b88a9287cb39",
+        "k1-pressure-request1-reply0/c/trace.json": "5f0c5daf1664aa5abb4cd1d5d3440fa55eb22cd4617dd9c3a6975425aca64a45"
+      }
+    }
+  ]
+}
