@@ -12,6 +12,7 @@ mod options;
 pub mod records;
 mod scalar;
 pub mod tftp;
+pub mod ubus;
 
 pub use options::OPTIONS;
 pub use scalar::{FastRetry, ScalarConfig, StaleCache};
