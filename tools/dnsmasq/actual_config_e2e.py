@@ -5,6 +5,7 @@ Run inside the private rootfs/ubus fixture and actual_config_network.py. The
 original config, interfaces, DNS/DHCP ports and resolver file stay intact.
 """
 import argparse
+import hashlib
 import ipaddress
 import json
 import os
@@ -122,7 +123,10 @@ def client(args):
                 endpoint.settimeout(3)
                 endpoint.sendto(packet, (args.server, 53))
                 reply, peer = endpoint.recvfrom(65535)
+            (args.out / f'dns-{len(result["dns"])+1}.request').write_bytes(packet)
+            (args.out / f'dns-{len(result["dns"])+1}.reply').write_bytes(reply)
             decoded = semantics(reply)
+            result['dns'].append(decoded)
             assert decoded['flags'] & 15 == 0 and peer == (args.server, 53)
             answers = [row for row in decoded['records'] if row['section'] == 'answer']
             if kind == 12:
@@ -130,9 +134,6 @@ def client(args):
             else:
                 expected = '8.8.4.4' if host == 'northstar-upstream.example' else offered
                 assert any(row['type'] == 1 and row['data'] == expected for row in answers)
-            result['dns'].append(decoded)
-            (args.out / f'dns-{len(result["dns"])}.request').write_bytes(packet)
-            (args.out / f'dns-{len(result["dns"])}.reply').write_bytes(reply)
     except Exception as error:
         result['errors'].append(repr(error))
     save_json(args.out / 'result.json', result)
@@ -148,7 +149,8 @@ def run(args):
     router = os.environ['DNSMASQ_ROUTER_ADDRESS']
     executable = str(Path(__file__).resolve())
     children, logs, errors = [], [], []
-    result = {'errors': errors}
+    result = {'errors': errors, 'binary_sha256': hashlib.sha256(args.binary.read_bytes()).hexdigest(),
+              'config_sha256': hashlib.sha256(args.config.read_bytes()).hexdigest()}
     bus = None
     try:
         from types import SimpleNamespace
@@ -187,9 +189,10 @@ def run(args):
                    '--out', str(args.out / 'client'), '--server', router, '--hostname', args.hostname]
         response = subprocess.run(command, capture_output=True, text=True, timeout=30)
         save_json(args.out / 'client-process.json', {'exit': response.returncode, 'stdout': response.stdout, 'stderr': response.stderr})
-        response.check_returncode()
-        client_result = json.loads((args.out / 'client/result.json').read_text())
+        client_path = args.out / 'client/result.json'
+        client_result = json.loads(client_path.read_text()) if client_path.exists() else {}
         result['client'] = client_result
+        response.check_returncode()
         leases = args.leasefile.read_bytes()
         (args.out / 'dhcp.leases').write_bytes(leases)
         rows = [line.split() for line in leases.splitlines()]
