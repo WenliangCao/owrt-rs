@@ -2,6 +2,7 @@
 pub mod cache;
 pub mod cache_reply;
 pub mod daemon;
+pub mod doctor;
 pub mod forward;
 pub mod forward_service;
 pub mod lease_names;
