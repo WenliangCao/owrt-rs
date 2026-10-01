@@ -131,6 +131,7 @@ int main(int argc,char **argv) {
 '''
     (output/'oracle.c').write_text(preamble)
     rust = r'''
+mod lease_names { use std::net::Ipv4Addr; LEASE_API }
 #[path="WIRE"] mod wire;
 #[path="CACHE"] mod cache;
 use std::io::{self,BufRead}; use cache::*;
@@ -149,6 +150,12 @@ fn main() {
  }
 }
 '''.replace('WIRE',str(ROOT/'components/dnsmasq/src/dns/wire.rs')).replace('CACHE',str(ROOT/'components/dnsmasq/src/dns/cache.rs'))
+    # The standalone primitive probe does not run lease publication, but the
+    # cache now implements its production trait. Copy only those declarations;
+    # no snapshot behavior or expected outputs are substituted by this adapter.
+    lease_source = (ROOT / 'components/dnsmasq/src/dns/lease_names.rs').read_text()
+    start = lease_source.rfind('#[derive', 0, lease_source.index('pub enum BlockerKind'))
+    rust = rust.replace('LEASE_API', lease_source[start:lease_source.index('/// Appropriate only')])
     (output/'driver.rs').write_text(rust)
     subprocess.run(['cc','-O1','-g','-fsanitize=address,undefined','-fno-sanitize-recover=all',str(output/'oracle.c'),'-o',str(output/'oracle')],check=True)
     subprocess.run([rustc,'--edition=2021','-A','dead_code',str(output/'driver.rs'),'-o',str(output/'driver')],check=True)

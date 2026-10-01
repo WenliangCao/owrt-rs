@@ -5,6 +5,7 @@
 //! The insertion transaction intentionally preserves C's failure behavior:
 //! removals take effect immediately, but new entries become visible at commit.
 
+use super::lease_names::{BlockerKind, ForwardPublication, PublicationCache};
 use super::wire::Name;
 use std::collections::HashMap;
 
@@ -545,6 +546,96 @@ impl Cache {
             self.tail = Some(slot);
         }
         self.head = Some(slot);
+    }
+}
+
+impl PublicationCache for Cache {
+    fn prepare_name(&mut self, publication: ForwardPublication<'_>) {
+        let Ok(name) = std::str::from_utf8(publication.name)
+            .map_err(|_| ())
+            .and_then(|name| Name::from_ascii(name).map_err(|_| ()))
+        else {
+            return;
+        };
+        // cache_find_by_name promotes all matching dynamic entries before
+        // cache_add_dhcp_entry selects the first one (the last hash match).
+        // Time zero is intentional: lease publication is not an expiry tick.
+        let hits = self.lookup(&name, &[Kind::Ipv4, Kind::Cname], 0, false);
+        let Some(trigger) = hits.first().and_then(|id| self.get(*id)) else {
+            return;
+        };
+        let trigger = trigger.record.kind;
+        let key = name.canonical_wire();
+
+        #[derive(Clone, Copy)]
+        struct Row {
+            slot: Option<usize>,
+            kind: Kind,
+            flags: u8,
+        }
+        let blocker = |entry: &super::lease_names::PublicationBlocker| Row {
+            slot: None,
+            kind: match entry.kind {
+                BlockerKind::Ipv4 => Kind::Ipv4,
+                BlockerKind::Ipv6 => Kind::Ipv6,
+                BlockerKind::Cname => Kind::Cname,
+            },
+            flags: u8::from(entry.reverse) | (u8::from(entry.immortal) << 1),
+        };
+        // Existing dynamic entries are mortal/non-reverse. Publication adds
+        // prior DHCP names afterward in that same group; static immortal
+        // non-reverse entries follow it, and all reverse owners precede it.
+        let mut rows: Vec<_> = publication
+            .blockers
+            .iter()
+            .filter(|b| b.reverse)
+            .map(blocker)
+            .collect();
+        rows.extend(self.names[&key].iter().map(|&slot| Row {
+            slot: Some(slot),
+            kind: self.slots[slot].entry.as_ref().unwrap().record.kind,
+            flags: 0,
+        }));
+        for immortal in [false, true] {
+            rows.extend(
+                publication
+                    .blockers
+                    .iter()
+                    .filter(|b| !b.reverse && b.immortal == immortal)
+                    .map(blocker),
+            );
+        }
+        let matches = |row: &Row| matches!(row.kind, Kind::Ipv4 | Kind::Cname);
+        if !publication.no_round_robin {
+            if let Some(first) = rows.iter().position(matches) {
+                let moves = |row: &Row| matches(row) && row.flags == rows[first].flags;
+                let mut rotated = Vec::with_capacity(rows.len());
+                rotated.extend_from_slice(&rows[..first]);
+                rotated.extend(rows[first + 1..].iter().filter(|row| moves(row)));
+                rotated.push(rows[first]);
+                rotated.extend(rows[first + 1..].iter().filter(|row| !moves(row)));
+                rows = rotated;
+            }
+        }
+        // A protected RRset still observes the lookup's rotation. A mortal
+        // DHCP blocker can itself move before the first dynamic match and
+        // stop deletion partway through this order.
+        *self.names.get_mut(&key).unwrap() = rows.iter().filter_map(|row| row.slot).collect();
+        for row in rows {
+            if trigger.conflicts(row.kind) {
+                if let Some(slot) = row.slot {
+                    self.remove(slot);
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+
+    fn reverse_owned(&mut self, _: std::net::Ipv4Addr) -> bool {
+        // This forward-only cache does not admit upstream PTR/reverse entries.
+        // Reverse-cache ownership must be implemented with that capability.
+        false
     }
 }
 

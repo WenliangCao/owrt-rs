@@ -57,6 +57,158 @@ fn check_ownership(cache: &Cache) {
 }
 
 #[test]
+fn lease_publication_selectively_removes_ipv4_and_nodata() {
+    let mut cache = Cache::new(8, Policy::default());
+    cache.start_insert();
+    for (kind, value, negative) in [
+        (Kind::Ipv4, 1, false),
+        (Kind::Ipv4, 2, true),
+        (Kind::Ipv6, 3, false),
+        (Kind::Generic(16), 4, false),
+        (Kind::NxDomain, 5, true),
+    ] {
+        let mut entry = record("lease.test", kind, value);
+        entry.negative = negative;
+        cache.insert(entry, 100, 90).unwrap();
+    }
+    cache
+        .insert(record("other.test", Kind::Ipv4, 6), 100, 90)
+        .unwrap();
+    assert!(cache.commit());
+    cache.prepare_name(ForwardPublication {
+        name: b"LEASE.test",
+        blockers: &[],
+        no_round_robin: false,
+    });
+    assert!(lookup(&mut cache, "lease.test", Kind::Ipv4, 100).is_empty());
+    for (kind, value) in [(Kind::Ipv6, 3), (Kind::Generic(16), 4), (Kind::NxDomain, 5)] {
+        assert_eq!(lookup(&mut cache, "lease.test", kind, 100), [value]);
+    }
+    assert_eq!(lookup(&mut cache, "other.test", Kind::Ipv4, 100), [6]);
+    assert!(!cache.reverse_owned("192.0.2.7".parse().unwrap()));
+    check_ownership(&cache);
+}
+
+#[test]
+fn lease_publication_mortal_blocker_can_stop_after_partial_deletion() {
+    use super::super::lease_names::PublicationBlocker;
+    for (reverse, immortal, no_round_robin, expected) in [
+        (true, true, false, vec![1, 2]),
+        (false, true, false, vec![]),
+        (false, false, true, vec![]),
+        (false, false, false, vec![2]),
+    ] {
+        let mut cache = Cache::new(4, Policy::default());
+        cache.start_insert();
+        cache
+            .insert(record("lease.test", Kind::Ipv4, 1), 100, 90)
+            .unwrap();
+        cache
+            .insert(record("lease.test", Kind::Ipv4, 2), 100, 90)
+            .unwrap();
+        assert!(cache.commit());
+        cache.prepare_name(ForwardPublication {
+            name: b"lease.test",
+            no_round_robin,
+            blockers: &[PublicationBlocker {
+                kind: BlockerKind::Ipv4,
+                reverse,
+                immortal,
+            }],
+        });
+        assert_eq!(lookup(&mut cache, "lease.test", Kind::Ipv4, 100), expected);
+        check_ownership(&cache);
+    }
+}
+
+#[test]
+fn lease_publication_invalidates_external_cname_without_rebinding_reused_slot() {
+    let mut cache = Cache::new(3, Policy::default());
+    cache.start_insert();
+    let alias = cache
+        .insert(record("alias.test", Kind::Cname, 0), 100, 90)
+        .unwrap();
+    let target = cache
+        .insert(record("lease.test", Kind::Ipv4, 1), 100, 90)
+        .unwrap();
+    assert!(cache.set_cname_target(alias, target));
+    assert!(cache.commit());
+    cache.prepare_name(ForwardPublication {
+        name: b"lease.test",
+        blockers: &[],
+        no_round_robin: false,
+    });
+    assert!(cache.get(target).is_none());
+    assert!(!cache.is_valid(alias, 100));
+    for i in 0..100 {
+        cache.start_insert();
+        cache
+            .insert(
+                record(&format!("replacement{i}.test"), Kind::Ipv4, 2),
+                100,
+                90,
+            )
+            .unwrap();
+        assert!(cache.commit());
+        assert!(!cache.is_valid(alias, 100));
+        assert!(!cache.is_valid(target, 100));
+        assert!(lookup(&mut cache, "alias.test", Kind::Cname, 100).is_empty());
+        check_ownership(&cache);
+    }
+}
+
+#[test]
+fn lease_publication_cname_trigger_conflicts_with_other_families() {
+    use super::super::lease_names::PublicationBlocker;
+    for protected in [false, true] {
+        let mut cache = Cache::new(8, Policy::default());
+        cache.start_insert();
+        let alias = cache
+            .insert(record("lease.test", Kind::Cname, 0), 100, 90)
+            .unwrap();
+        for (kind, value) in [
+            (Kind::Ipv4, 1),
+            (Kind::Ipv6, 2),
+            (Kind::Generic(16), 3),
+            (Kind::NxDomain, 4),
+        ] {
+            cache
+                .insert(record("lease.test", kind, value), 100, 90)
+                .unwrap();
+        }
+        let target = cache
+            .insert(record("target.test", Kind::Ipv4, 5), 100, 90)
+            .unwrap();
+        assert!(cache.set_cname_target(alias, target));
+        assert!(cache.commit());
+        let blockers = [PublicationBlocker {
+            kind: BlockerKind::Ipv6,
+            reverse: true,
+            immortal: true,
+        }];
+        cache.prepare_name(ForwardPublication {
+            name: b"lease.test",
+            no_round_robin: false,
+            blockers: if protected { &blockers } else { &[] },
+        });
+        for kind in [
+            Kind::Ipv4,
+            Kind::Ipv6,
+            Kind::Generic(16),
+            Kind::NxDomain,
+            Kind::Cname,
+        ] {
+            assert_eq!(
+                !lookup(&mut cache, "lease.test", kind, 100).is_empty(),
+                protected
+            );
+        }
+        assert_eq!(lookup(&mut cache, "target.test", Kind::Ipv4, 100), [5]);
+        check_ownership(&cache);
+    }
+}
+
+#[test]
 fn reload_clears_committed_and_failed_pending_records_without_reusing_handles() {
     for capacity in [0, 1, 10] {
         let policy = Policy {
