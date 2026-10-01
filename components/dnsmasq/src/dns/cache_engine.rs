@@ -3,7 +3,7 @@
 //! Insertion and answer selection retain the exact C contracts of the daemon
 //! wrappers; ownership and synchronization remain with the containing caller.
 
-use super::cache::{Cache, CacheCounters, CnameTarget, Kind, Record, StalePolicy};
+use super::cache::{Cache, CacheCounters, CnameTarget, EntryId, Kind, Record, StalePolicy};
 use super::cache_reply::{append_cname_record, append_negative_authority, append_positive_record};
 use super::local::AnswerError;
 use super::service::LocalDnsService;
@@ -58,9 +58,10 @@ impl CacheContext<'_> {
         question: &super::forward::Question,
         now: i64,
         local: &mut LocalDnsService,
-        max_udp: usize,
-        edns_packet_max: u16,
+        limits: (usize, u16),
+        mut first_cname: Option<Vec<EntryId>>,
     ) -> Result<CachedAnswer, CacheError> {
+        let (max_udp, edns_packet_max) = limits;
         let header = Header::parse(query)?;
         // Ordinary A/AAAA/PTR AD requests can consume unsigned cached records,
         // including CNAME/negative paths, without asserting validation. DO
@@ -95,12 +96,14 @@ impl CacheContext<'_> {
             let mut stale = false;
             if question.class == 1 {
                 let round_robin = !local.config.no_round_robin;
-                let first = self.cache.lookup(
-                    &question.name,
-                    &[Kind::Cname, Kind::NxDomain],
-                    now,
-                    round_robin,
-                );
+                let first = first_cname.take().unwrap_or_else(|| {
+                    self.cache.lookup(
+                        &question.name,
+                        &[Kind::Cname, Kind::NxDomain],
+                        now,
+                        round_robin,
+                    )
+                });
                 let entry = first.first().and_then(|id| self.cache.get(*id));
                 stale = entry.is_some_and(|entry| entry.is_stale(now));
                 if !entry.is_some_and(|entry| entry.record.kind == Kind::Cname) {
@@ -135,7 +138,18 @@ impl CacheContext<'_> {
             .opt
             .as_ref()
             .map_or(512, |opt| usize::from(opt.udp_size(edns_packet_max)));
-        let mut answer = self.answer_records(question, header, now, local, max_udp.min(limit))?;
+        let mut answer = if first_cname.is_some() {
+            self.answer_records_after_lookup(
+                question,
+                header,
+                now,
+                local,
+                max_udp.min(limit),
+                first_cname,
+            )?
+        } else {
+            self.answer_records(question, header, now, local, max_udp.min(limit))?
+        };
         if edns.opt.is_some() {
             if let Some(packet) = &mut answer.packet {
                 // receive_query appends against the configured daemon limit,
@@ -171,6 +185,18 @@ impl CacheContext<'_> {
         local: &mut LocalDnsService,
         limit: usize,
     ) -> Result<CachedAnswer, CacheError> {
+        self.answer_records_after_lookup(question, header, now, local, limit, None)
+    }
+
+    fn answer_records_after_lookup(
+        &mut self,
+        question: &super::forward::Question,
+        header: Header,
+        now: i64,
+        local: &mut LocalDnsService,
+        limit: usize,
+        mut cname_ids: Option<Vec<EntryId>>,
+    ) -> Result<CachedAnswer, CacheError> {
         let mut stale = false;
         let round_robin = !local.config.no_round_robin;
         let cache = &mut *self.cache;
@@ -183,17 +209,18 @@ impl CacheContext<'_> {
         let reverse_address = matches!(question.rrtype, 12 | 255)
             .then(|| super::local::arpa_address(&question.name.dnsmasq_bytes()))
             .flatten();
-        let mut cname_ids = None;
         if let Some(address) = reverse_address {
             // C first visits CNAME/NXDOMAIN, then the address cache, and only
             // afterwards the forward generic group. A positive address hit
             // can therefore answer despite an older forward PTR negative.
-            let first = cache.lookup(
-                &question.name,
-                &[Kind::Cname, Kind::NxDomain],
-                now,
-                round_robin,
-            );
+            let first = cname_ids.take().unwrap_or_else(|| {
+                cache.lookup(
+                    &question.name,
+                    &[Kind::Cname, Kind::NxDomain],
+                    now,
+                    round_robin,
+                )
+            });
             let entry = first.first().and_then(|id| cache.get(*id));
             stale |= entry.is_some_and(|entry| entry.is_stale(now));
             if entry.is_some_and(|entry| entry.record.kind == Kind::Cname) {

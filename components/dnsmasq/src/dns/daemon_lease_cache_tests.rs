@@ -24,6 +24,72 @@ fn publish(daemon: &mut DnsDaemon, inputs: &[LeaseInput], policy: LeasePolicy) {
 }
 
 #[test]
+fn cached_reverse_cname_precedes_a_later_lease_for_plain_rd0_and_do() {
+    let config = DnsConfig {
+        no_resolv: true,
+        ..DnsConfig::default()
+    };
+    let mut daemon = DnsDaemon::new(config, Hosts::new(), &[], DaemonOptions::default()).unwrap();
+    daemon.enable_cache(8, 0, 0, StalePolicy::Disabled);
+    let owner = Name::from_ascii("1.2.0.192.in-addr.arpa").unwrap();
+    let terminal = Name::from_ascii("terminal.test").unwrap();
+    let target = Name::from_ascii("result.test").unwrap();
+    let mut reply = PacketWriter::new(1, 0x8180, 512).unwrap();
+    reply.question(&owner, 12, 1).unwrap();
+    reply
+        .record(Section::Answer, &owner, 5, 1, 90, terminal.as_wire())
+        .unwrap();
+    reply
+        .record(Section::Answer, &terminal, 12, 1, 120, target.as_wire())
+        .unwrap();
+    daemon.cache_reply_at(&reply.finish(), 100);
+    publish(
+        &mut daemon,
+        &[LeaseInput {
+            name: b"lease.test".to_vec(),
+            address: "192.0.2.1".parse().unwrap(),
+            expires: Some(1000),
+        }],
+        LeasePolicy::default(),
+    );
+    assert!(daemon
+        .local
+        .leases
+        .reverse("192.0.2.1".parse().unwrap(), 101)
+        .is_some());
+    for (rd, dnssec) in [(true, false), (false, false), (true, true)] {
+        let mut writer = PacketWriter::new(2, if rd { 0x0100 } else { 0 }, 512).unwrap();
+        writer.question(&owner, 12, 1).unwrap();
+        let mut query = writer.finish();
+        if dnssec {
+            super::super::service::append_empty_opt(&mut query, 1232, true, 1232).unwrap();
+        }
+        let lookup =
+            local_after_reverse_cname(&query, 101, &mut daemon.local, daemon.cache.as_mut())
+                .unwrap();
+        assert!(lookup.answer.is_none());
+        let question = super::super::forward::Question::parse(&query).unwrap();
+        let answer = daemon
+            .cached_answer_after_lookup(&query, &question, 101, None, lookup.cname)
+            .unwrap();
+        if rd && !dnssec {
+            let packet = answer.packet.unwrap();
+            let message = Message::parse(&packet).unwrap();
+            assert_eq!(message.header.flags & 0x0400, 0);
+            assert_eq!(
+                message
+                    .records(Section::Answer)
+                    .map(|row| row.rrtype)
+                    .collect::<Vec<_>>(),
+                [5, 12]
+            );
+        } else {
+            assert!(answer.packet.is_none(), "rejected alias must go upstream");
+        }
+    }
+}
+
+#[test]
 #[ignore = "requires DNSMASQ_LEASE_CACHE_CONFIG and DNSMASQ_LEASE_CACHE_INPUT from lease_insert_diff.py"]
 fn exact_c_lease_cache_driver() {
     let path = std::env::var_os("DNSMASQ_LEASE_CACHE_CONFIG").unwrap();

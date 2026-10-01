@@ -8,9 +8,9 @@
 //! `forward.c::process_reply` cache policy are separate work; direct positive
 //! A/AAAA cache insertion and lookup are wired below.
 
-use super::cache::{Cache, CacheCounters, Policy as CachePolicy, StalePolicy};
 #[cfg(test)]
-use super::cache::{Kind, Record};
+use super::cache::Record;
+use super::cache::{Cache, CacheCounters, EntryId, Kind, Policy as CachePolicy, StalePolicy};
 use super::cache_engine::{CacheContext, CacheError, CachedAnswer, OrdinaryCacheMode};
 use super::forward::{Client, Options as ForwardOptions, QueryId, Random, Scope};
 use super::forward_service::ForwardDispatcher;
@@ -376,17 +376,16 @@ impl<R: Random> DnsDaemon<R> {
             super::udp_query::Admission::Reply(reply) => return Ok(QueryResult::Local(reply)),
             super::udp_query::Admission::Continue => {}
         }
-        if let Some((answer, stale)) =
-            self.local
-                .handle_udp_with_cache(query, unix_seconds(), self.cache.as_mut())?
-        {
+        let now = unix_seconds();
+        let lookup = local_after_reverse_cname(query, now, &mut self.local, self.cache.as_mut())?;
+        if let Some((answer, stale)) = lookup.answer {
             return Ok(if stale {
                 QueryResult::Stale(answer)
             } else {
                 QueryResult::Local(answer)
             });
         }
-        self.forward_udp(query, client)
+        self.forward_udp_inner(query, client, None, None, lookup.cname, now)
     }
 
     /// Continue an admitted UDP query using the current local generation and
@@ -398,16 +397,16 @@ impl<R: Random> DnsDaemon<R> {
         listener: Option<super::forward::SocketToken>,
         local: &mut LocalDnsService,
     ) -> Result<QueryResult, DaemonError> {
-        if let Some((answer, stale)) =
-            local.handle_udp_with_cache(query, unix_seconds(), self.cache.as_mut())?
-        {
+        let now = unix_seconds();
+        let lookup = local_after_reverse_cname(query, now, local, self.cache.as_mut())?;
+        if let Some((answer, stale)) = lookup.answer {
             return Ok(if stale {
                 QueryResult::Stale(answer)
             } else {
                 QueryResult::Local(answer)
             });
         }
-        self.forward_udp_on_listener_with_local(query, client, listener, local)
+        self.forward_udp_inner(query, client, listener, Some(local), lookup.cname, now)
     }
 
     /// Continue only after the caller's shared local generation returned
@@ -428,7 +427,7 @@ impl<R: Random> DnsDaemon<R> {
         client: ClientRequest,
         listener: Option<super::forward::SocketToken>,
     ) -> Result<QueryResult, DaemonError> {
-        self.forward_udp_inner(query, client, listener, None)
+        self.forward_udp_inner(query, client, listener, None, None, unix_seconds())
     }
 
     /// Cached aliases can terminate at a current local name. Keep that
@@ -440,7 +439,7 @@ impl<R: Random> DnsDaemon<R> {
         listener: Option<super::forward::SocketToken>,
         local: &mut LocalDnsService,
     ) -> Result<QueryResult, DaemonError> {
-        self.forward_udp_inner(query, client, listener, Some(local))
+        self.forward_udp_inner(query, client, listener, Some(local), None, unix_seconds())
     }
 
     fn forward_udp_inner(
@@ -449,12 +448,18 @@ impl<R: Random> DnsDaemon<R> {
         client: ClientRequest,
         listener: Option<super::forward::SocketToken>,
         local: Option<&mut LocalDnsService>,
+        first_cname: Option<Vec<EntryId>>,
+        now: i64,
     ) -> Result<QueryResult, DaemonError> {
         if query.len() > self.max_udp {
             return Ok(QueryResult::Dropped);
         }
         let question = super::forward::Question::parse(query).map_err(DaemonError::Wire)?;
-        let answer = self.cached_answer_at_with_local(query, &question, unix_seconds(), local)?;
+        let answer = if first_cname.is_some() {
+            self.cached_answer_after_lookup(query, &question, now, local, first_cname)?
+        } else {
+            self.cached_answer_at_with_local(query, &question, now, local)?
+        };
         if let Some(packet) = answer.packet {
             return Ok(if answer.stale {
                 QueryResult::Stale(packet)
@@ -830,6 +835,17 @@ impl<R: Random> DnsDaemon<R> {
         now: i64,
         external_local: Option<&mut LocalDnsService>,
     ) -> Result<CachedAnswer, DaemonError> {
+        self.cached_answer_after_lookup(query, question, now, external_local, None)
+    }
+
+    fn cached_answer_after_lookup(
+        &mut self,
+        query: &[u8],
+        question: &super::forward::Question,
+        now: i64,
+        external_local: Option<&mut LocalDnsService>,
+        first_cname: Option<Vec<EntryId>>,
+    ) -> Result<CachedAnswer, DaemonError> {
         let Some(cache) = self.cache.as_mut() else {
             return Ok(CachedAnswer {
                 packet: None,
@@ -847,8 +863,8 @@ impl<R: Random> DnsDaemon<R> {
             question,
             now,
             external_local.unwrap_or(&mut self.local),
-            self.max_udp,
-            self.edns_packet_max,
+            (self.max_udp, self.edns_packet_max),
+            first_cname,
         )
         .map_err(Into::into)
     }
@@ -876,6 +892,55 @@ impl<R: Random> DnsDaemon<R> {
             OrdinaryCacheMode::Commit,
         );
     }
+}
+
+struct LocalLookup {
+    answer: Option<(Vec<u8>, bool)>,
+    cname: Option<Vec<EntryId>>,
+}
+
+/// An address-form PTR can acquire a DHCP reverse owner after its forwarded
+/// CNAME was cached. C visits that alias before choosing any local PTR. Keep
+/// the lookup result for the cache engine, including empty/NXDOMAIN results,
+/// so continuing the query does not repeat promotion or rotation.
+fn local_after_reverse_cname(
+    query: &[u8],
+    now: i64,
+    local: &mut LocalDnsService,
+    mut cache: Option<&mut Cache>,
+) -> Result<LocalLookup, DaemonError> {
+    let mut cname = None;
+    if let Some(cache) = cache.as_deref_mut() {
+        let question = super::forward::Question::parse(query)?;
+        if question.class == 1
+            && matches!(question.rrtype, 12 | 255)
+            && super::local::arpa_address(&question.name.dnsmasq_bytes()).is_some()
+        {
+            let ids = cache.lookup(
+                &question.name,
+                &[Kind::Cname, Kind::NxDomain],
+                now,
+                !local.config.no_round_robin,
+            );
+            let alias = ids
+                .first()
+                .and_then(|id| cache.get(*id))
+                .is_some_and(|entry| entry.record.kind == Kind::Cname);
+            cname = Some(ids);
+            if alias {
+                // An RD0/DO rejection must continue upstream, without falling
+                // back to the lease's PTR for the original question name.
+                return Ok(LocalLookup {
+                    answer: None,
+                    cname,
+                });
+            }
+        }
+    }
+    Ok(LocalLookup {
+        answer: local.handle_udp_with_cache(query, now, cache)?,
+        cname,
+    })
 }
 
 fn unix_seconds() -> i64 {
