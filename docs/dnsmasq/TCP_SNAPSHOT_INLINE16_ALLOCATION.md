@@ -1,5 +1,9 @@
 # Shared-entry inline RDATA: correctness and allocation pass
 
+The later unchanged [24-run timing screen](TCP_SNAPSHOT_INLINE16_RESULT.md)
+rejects this candidate on the capacity-150 p95 guard. Pending-timing statements
+below describe this earlier allocation phase.
+
 The single new `shared_inline16` candidate passes its correctness and
 allocation prerequisites. It removes the extra population allocation per
 entry for the fixed A/AAAA workload, while retaining the earlier shared-entry
