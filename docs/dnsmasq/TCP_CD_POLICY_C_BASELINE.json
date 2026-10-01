@@ -1,0 +1,89 @@
+{
+  "scope": "C-only real -k ordinary CD prefix and independent bogus transaction",
+  "reference": {
+    "kind": "native-glibc",
+    "elf_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431"
+  },
+  "tool_sha256": "a7eea5f512273e80988425fb2eebea462025c6f07abcd3a4225a8f05a356f106",
+  "passed": 152,
+  "failed": 0,
+  "profiles": [
+    {
+      "name": "a-request-cd",
+      "kind": 1,
+      "request_cd": true,
+      "raw_cd": false,
+      "capacity": 8,
+      "observations": 15,
+      "trace_sha256": "4b976787fde0c5082511b9365d5be60e654948975a90360e226a407df5af460b"
+    },
+    {
+      "name": "aaaa-request-and-raw-cd",
+      "kind": 28,
+      "request_cd": true,
+      "raw_cd": true,
+      "capacity": 8,
+      "observations": 15,
+      "trace_sha256": "40ed0fa2d489a1727e7a00b87c9e6b4fa71a424468b8bdce0370f93233453275"
+    },
+    {
+      "name": "plain-request-raw-cd",
+      "kind": 1,
+      "request_cd": false,
+      "raw_cd": true,
+      "capacity": 8,
+      "cold": true,
+      "observations": 5,
+      "trace_sha256": "1a531342cfdda68f5a2555cbbe811182d5d82c4a8458223543caa286a4d895c1"
+    },
+    {
+      "name": "a-cd-pressure",
+      "kind": 1,
+      "request_cd": true,
+      "raw_cd": false,
+      "capacity": 3,
+      "pressure": true,
+      "observations": 18,
+      "trace_sha256": "d4b49bdc974cd984d3407ad0c38f7eba114a2a374e5edd784b732b6db4bda9c4"
+    },
+    {
+      "name": "a-bogus-cd-no-negcache",
+      "kind": 1,
+      "request_cd": true,
+      "raw_cd": false,
+      "capacity": 8,
+      "bogus": true,
+      "observations": 12,
+      "trace_sha256": "5493c67dd0a42541dbb69110e2d488df72de1e18ff7db974a9efdf89a83cbb95"
+    }
+  ],
+  "tool_commit": "ec2c9d3",
+  "observations": 65,
+  "negative_calibration": {
+    "passed": 151,
+    "failed": 1,
+    "failures": [],
+    "failed_checks": [
+      {
+        "case": "a-request-cd/prefix-parent-insertions",
+        "actual": 2,
+        "expected": 3,
+        "pass": false
+      }
+    ]
+  },
+  "artifact_sha256": {
+    "baseline-01": "fe65c409b6433798b92a79844ed13d3601a2464451b0fa3ee908c4a1bde5023a",
+    "baseline-02": "79a52c4c9efd247ab1698aa6e87249adda266019978d77a39bbe917f97413c87",
+    "calibration-negative": "e2136cedccdb24957f6c6ed56acfc6e6c9965cfa131d23eeee2023b08579ef8d"
+  },
+  "evidence_archive_sha256": "5549e3bc43ed208d7a9c8ac42ddc791037679ea796dad57fbeec52de2fcf3905",
+  "scope_notes": [
+    "Five real native C -k profiles; all listeners and private UBus run under run_isolated.sh.",
+    "DO forces past an unsigned IN A/AAAA cache hit; it is not a no_cache packet bit.",
+    "SERVFAIL misses leave pending extraction intact; empty CD NOERROR starts extraction and clears it.",
+    "Child staged eviction and target removal do not publish a parent transaction.",
+    "Parent counters are real UBus metrics; child-only eviction cannot be inferred from parent dns_cache_live_freed.",
+    "Bogus NXDOMAIN coexists with the old positive A; AAAA reveals the independent committed negative transaction."
+  ]
+}
