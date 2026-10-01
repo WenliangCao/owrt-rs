@@ -1,0 +1,54 @@
+{
+  "source": "5c15e16",
+  "source_archive_sha256": "c68add496d9acb2067b066a0abb3a23eee288b0611744ec05b4162737cb66e2a",
+  "rust_elf_sha256": "87f68b790d6a19f1cf25bdfcc33093f603016b3df8d1f8df5b959c74f6990b90",
+  "evidence_archive_sha256": "7036ba49fdea49785176fa25265619575e8037ea83ffe5e9e2bcac156bbe61c2",
+  "cache_engine_sha256": "35b7f731545f61b8f0481846a413013a4651c5c2ec84924f66cd69facdb1585b",
+  "namespace_isolated": true,
+  "unit_tests": {
+    "dnsmasq_rs": {
+      "passed": 389,
+      "failed": 0,
+      "ignored": 16
+    },
+    "dnsmasq-rs": {
+      "passed": 7,
+      "failed": 0,
+      "ignored": 0
+    }
+  },
+  "clippy": {
+    "native_all_targets": "pass",
+    "aarch64_musl_all_targets": "pass"
+  },
+  "format": "pass",
+  "checks": {
+    "dnsmasq-rs": {
+      "exit": 0,
+      "log_sha256": "fad80a11527dd27d6f3e9d20b2f28ec0cccaa2b401361830db2f26bfceaf3121",
+      "command_sha256": "f6891887c3aba0022a0d532d57b5dad34d66b125604607c0592324c0086d88fb"
+    },
+    "dnsmasq_rs": {
+      "exit": 0,
+      "log_sha256": "2cda4d5ff702076f799612a3d488a4062752cc92c7be7deb78f84c7e00023ab4",
+      "command_sha256": "521154703d2ea34773b1f43d0c978faf673680e8d9220d3f7eca265b7f9aac5c"
+    },
+    "native-clippy": {
+      "exit": 0,
+      "log_sha256": "0cb25113198801bca0353efa4bce58b9544a8bc89d1d768c4a68118252fd654a",
+      "command_sha256": "88c5cea42f80ff79c8b57b35581bd5a178602b8129795e5d3cad08d54efce878"
+    },
+    "musl-clippy": {
+      "exit": 0,
+      "log_sha256": "8ed858661df95224096710128b6904ee126f34fddec661c0b9891284a2f858f0",
+      "command_sha256": "a923ccc885706bab9ee58a5bdce51ce0d3b03b9ec2f094604f795fc596541eae"
+    }
+  },
+  "independent_service_gates": {
+    "direct_cname_pressure": "120/120 native and 120/120 image C; DO_LOOKUP_PRESSURE_RESULT.md",
+    "nx_soa_pressure": "120/120 native and 120/120 image C; DO_SOA_PRESSURE_RESULT.md"
+  },
+  "scope": "Generic lookup side effects after an address/CNAME miss; no general cache-rr insertion, complete no-answer branch, production TCP or resource qualification",
+  "raw_evidence": "private/dnsmasq-rewrite/do-lookup-fix-20261001/5c15e16/",
+  "remote_root": "/home/ubuntu/dns-do-lookup-fix-20261001/5c15e16-01/"
+}

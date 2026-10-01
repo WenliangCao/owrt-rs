@@ -29,6 +29,7 @@ Do not overwrite those files or private experiment worktrees.
 | Independent bogus cache transaction | `5094420`/`220577d`/`5a1505c`:256/256 native and image C; preserved DO750/750; negative detects1. |
 | Ordinary CD extraction before commit | `3e3e203`/`0c8f362`: explicit `Unsupported`/`ExtractOnly`/`Commit` modes; native and image134/134. Intermediate removals, pressure eviction and pending cleanup survive suppressed commit. Same ELF preserves DO750, bogus256, policy471, EDNS155 and service210. See `DNS_CD_COMMIT_PHASE.md`. |
 | DO lookup before forwarding | `aeba67e`: pressure/victim gate native/image120/120, before112/120; negative119/1. Same ELF preserves native/imageDO750 and nativeCD134; isolated389 library+7 main/16ignored, native/musl Clippy. See `DO_LOOKUP_FIX_VALIDATION.md`. |
+| Generic lookup after ordinary miss | `5c15e16`: independent NX/SOA pressure native/image120/120, before108/120 then116/120 after the DO-only repair; direct/CNAME120/120 per reference preserved. Both negative controls detect1. Final isolated389+7/16ignored and native/musl Clippy pass. |
 
 Current agents/ownership:
 
@@ -40,10 +41,11 @@ Current agents/ownership:
   a fresh freeze and correctness/allocation gates must precede any timing.
 - `tcp_writeback_gates` completed independent doctor/pipe/slot12 and ordinary
   UDP CD134 gates in `../owrt-tcp-writeback-gates`; their tools/reports are merged.
-- `do_lookup_pressure` completed the C-first DO pressure/victim gate and
-  corrected-product replay. It now separately qualifies NXDOMAIN and generic
-  RR lookup pressure. A TXT fixture found the existing unsupported `cache-rr`
-  configuration; keep that startup failure distinct from an LRU mismatch.
+- `do_lookup_pressure` completed both independent C-first pressure gates and
+  their final-product replays. It now audits `cache-rr` configuration and
+  generic-RR insertion with a separate C-first contract. A TXT prerequisite
+  found unsupported `cache-rr`; that startup failure remains distinct from
+  an LRU mismatch or pass.
 - `tcp_reference_resume` completed a private correctness reference, preserved on
   `research/dnsmasq-tcp-reference-20261001` at `df75fb4`; worktree is
   `private/dnsmasq-rewrite/tcp-private-reference-20261001`. Frozen executable
@@ -84,9 +86,9 @@ no extra rounds or relaxed thresholds were used. Results are in
 CPU gains47.39%/27.85% and heap gains49.20%/52.34% cannot waive that failure.
 Both owners were released from the completed quiet window; do not restart it.
 
-At this checkpoint the product is frozen at `aeba67e`; later commits add tools
+At this checkpoint the product is frozen at `5c15e16`; later commits add tools
 and derived reports. Its native ELF is
-`d2643e676b226ab3527d2ba8a76ae887d2e56743eab5df7a9b78f70f6fef203d`.
+`87f68b790d6a19f1cf25bdfcc33093f603016b3df8d1f8df5b959c74f6990b90`.
 The original CD136 image-C calibration failure remains archived; the final
 CD134 fixture removes only an unrelated redundant control replacement. The
 source-supported hash/layout explanation is not a demonstrated repair.

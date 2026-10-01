@@ -89,6 +89,7 @@ above remains a coverage ledger, not a pass denominator.
 | New bounded gate | Result | Still open |
 |---|---|---|
 | DO/AD/CD + known forwarded names | Native/image750/750; presence108; negative controls detect errors; aeba67e adds native/imageDO pressure120/120 | Other qtypes/metadata/signatures; generic/NX lookup order, rotation and hash-bucket cleanup |
+| Ordinary miss / generic lookup | 5c15e16: separateNX/SOA120/120 native/image; prior direct/CNAME120/120 preserved; final389+7/16ignored and native/musl Clippy | cache-rr insertion/configuration, other no-answer branches, rotation and hash-bucket cleanup |
 | Independent bogus transaction | Native/image256/256 even underCD/no-negcache | Complete policy composition |
 | Ordinary CD extraction/commit | Native/image134/134; ordered removal, eviction and pending cleanup preserved while commit is suppressed | Broader no_cache configuration triggers; original136 image-C calibration failure retained |
 | Typed transfer / private TCP reference | Primitive307/307 in product; privateTCP32 andUBus69/69 plusindependent12; stale41 andCD65 on private2a773f8 | Private clone/storage, OOM/partialEOF/resource boundaries and untested policy combinations; main product sender remains open |

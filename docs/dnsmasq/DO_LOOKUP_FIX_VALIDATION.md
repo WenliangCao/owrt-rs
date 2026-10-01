@@ -46,3 +46,33 @@ The product still has no adopted TCP snapshot/writeback implementation. This
 unit does not qualify hash-bucket expiry effects, multi-record rotation,
 negative/generic lookup pressure, all EDNS metadata, a new SDK Rust package,
 performance or router behavior. Those remain separate gates.
+
+## Subsequent ordinary-miss correction
+
+`5c15e16` additionally preserves C's final generic lookup after an ordinary
+A/AAAA/CNAME miss. An unrelated generic record is promoted without becoming
+an answer. Queries that already looked up the generic group do not rotate it
+again. This 12-line change follows the independently frozen
+[NX/SOA pressure gate](DO_SOA_PRESSURE_RESULT.md): the original implementation
+had 12 differences, the DO repair left four existing non-DO differences, and
+the final source has none.
+
+The final ELF passes **120/120 NX/SOA observations against each of native and
+image C**, and independently preserves **120/120 direct/CNAME observations
+against each reference**. Each gate has its own 120-row denominator and
+one-difference negative control. Full isolated library389/main7 tests pass,
+with 16 ignored; native/musl all-target Clippy and formatting pass. No failing
+build or unit attempt occurred. The earlier 750/134 regressions above belong
+to `aeba67e`, not a relabelled run of this later source.
+
+Final ELF SHA-256:
+`87f68b790d6a19f1cf25bdfcc33093f603016b3df8d1f8df5b959c74f6990b90`.
+The [final validation JSON](GENERIC_LOOKUP_FIX_VALIDATION.json) pins command,
+source and archive identities. Raw build/test evidence is under the earlier
+private root's `5c15e16/` directory, with build-host freeze
+`/home/ubuntu/dns-do-lookup-fix-20261001/5c15e16-01/`.
+
+The NX/TXT prerequisite uncovered unsupported `cache-rr` configuration and
+remains a retained startup failure, not an LRU pass. Generic insertion,
+existing-address/RD-disabled no-answer paths, rotation, bucket-wide expiry,
+stale combinations and resource costs remain separate qualification work.
