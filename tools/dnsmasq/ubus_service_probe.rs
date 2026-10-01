@@ -1,0 +1,126 @@
+//! Standalone library fixture, not a DNS/DHCP daemon or product executable.
+//! The synthetic counter inputs test serialization, not engine increments.
+#[allow(dead_code)]
+#[path = "../../components/dnsmasq/src/metrics.rs"]
+mod metrics;
+#[allow(dead_code)]
+#[path = "../../components/dnsmasq/src/ubus_service.rs"]
+mod ubus_service;
+
+use metrics::{Metric, Metrics};
+use std::io::{self, BufRead, Write};
+use std::time::Duration;
+use ubus_service::{DhcpEventFields, DhcpEventKind, DhcpLogging, DnsResult, UbusService};
+
+fn main() {
+    let args: Vec<_> = std::env::args().collect();
+    if args[1] == "dns" {
+        let mut buffer = owrt_ubus::BlobBuf::new();
+        let name: Vec<u8> = args[2]
+            .as_bytes()
+            .chunks_exact(2)
+            .map(|pair| u8::from_str_radix(std::str::from_utf8(pair).unwrap(), 16).unwrap())
+            .collect();
+        DnsResult {
+            name: &name,
+            ttl: args[3].parse().unwrap(),
+            address: args[4].parse().unwrap(),
+        }
+        .write(&mut buffer);
+        for byte in buffer.payload() {
+            print!("{byte:02x}");
+        }
+        println!();
+        return;
+    }
+    assert_eq!(args[1], "serve");
+    assert_eq!(std::env::var("DNSMASQ_TEST_ISOLATED").as_deref(), Ok("1"));
+    assert!(args[2].starts_with("/run/"));
+    let mut service = None;
+    let mut metrics = Metrics::default();
+    let stdin = io::stdin();
+    let mut input = stdin.lock();
+    loop {
+        if service.is_none() {
+            if let Ok(connected) = UbusService::connect(Some(&args[2]), &args[3]) {
+                service = Some(connected);
+                println!("connected");
+                io::stdout().flush().unwrap();
+            }
+        }
+        if let Some(connected) = service.as_mut() {
+            match connected.process_one(&metrics) {
+                Ok(true) => continue,
+                Ok(false) => {}
+                Err(_) => {
+                    service = None;
+                    println!("disconnected");
+                    io::stdout().flush().unwrap();
+                }
+            }
+        }
+        if owrt_ubus::sys::wait_readable(0, 1).unwrap() {
+            let mut line = String::new();
+            if input.read_line(&mut line).unwrap() == 0 {
+                break;
+            }
+            let command = line.trim();
+            if command == "quit" {
+                break;
+            }
+            let connected = service
+                .as_mut()
+                .expect("command requires a connected service");
+            if command == "subscribers" {
+                println!("dns-subscribers={}", connected.dns_has_subscribers());
+            } else {
+                let logging = DhcpLogging {
+                    quiet_dhcp: command != "events",
+                    log_options: command == "quiet-options",
+                    has_error: false,
+                };
+                if command == "events" {
+                    for metric in [
+                        Metric::DhcpDiscover,
+                        Metric::DhcpOffer,
+                        Metric::DhcpRequest,
+                        Metric::DhcpAck,
+                        Metric::DhcpRelease,
+                        Metric::LeasesAllocated4,
+                        Metric::LeasesPruned4,
+                    ] {
+                        metrics.add(metric, 1);
+                    }
+                }
+                let ack = connected
+                    .notify_dhcp(
+                        DhcpEventKind::Ack,
+                        DhcpEventFields {
+                            mac: Some(b"02:00:00:00:00:01"),
+                            ip: Some(b"127.0.0.10"),
+                            name: Some(b"client1"),
+                            interface: Some(b"lo"),
+                        },
+                        logging,
+                    )
+                    .unwrap();
+                let release = connected
+                    .notify_dhcp(
+                        DhcpEventKind::Release,
+                        DhcpEventFields {
+                            mac: Some(b"02:00:00:00:00:01"),
+                            ip: Some(b"127.0.0.10"),
+                            name: None,
+                            interface: Some(b"lo"),
+                        },
+                        logging,
+                    )
+                    .unwrap();
+                println!("sent={ack},{release}");
+            }
+            io::stdout().flush().unwrap();
+        } else if service.is_none() {
+            std::thread::sleep(Duration::from_millis(10));
+        }
+    }
+}

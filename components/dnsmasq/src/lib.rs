@@ -17,3 +17,4 @@ pub mod tftp_listener;
 #[cfg(unix)]
 pub mod tftp_runtime;
 pub mod tftp_service;
+pub mod ubus_service;

@@ -88,8 +88,8 @@ calibration. The native build's library path stays private to the test process.
 
 The production Rust daemon does not yet publish these objects or notify these
 subscribers. A standalone `metrics` object with fabricated zero values would
-not satisfy this gate. The new controller boundary is being verified separately;
-it requires its caller's real `Metrics` and does not manufacture counters.
+not satisfy this gate. The controller boundary described below requires its
+caller's real `Metrics` and does not manufacture counters.
 
 Still pending: synchronous multi-subscriber DNS transport and main-loop
 integration; complete C/Rust paired metrics increment/reload windows; DHCP
@@ -98,3 +98,79 @@ dnsmasq identity; subscriber pressure, FD/memory exhaustion, partial frames and
 long-run growth; reconnect during a notification; helper/hotplug/ujail/procd
 and rpcd/LuCI integration. Process termination and disappearance are checked,
 but no peak-memory, FD-peak or performance claim is made by this corpus.
+
+## Rust controller and byte-preserving payload boundary
+
+`components/dnsmasq/src/ubus_service.rs` uses the existing `owrt-ubus`
+`Connection` and `BlobBuf`. It registers both object signatures, dispatches
+metrics from a caller-supplied borrow, tracks each object's subscription state,
+and emits the two DHCP notification methods. A second-object registration
+failure drops the connection and the first object. Transport and registration
+errors remain distinct so the caller can preserve C's retry/fatal boundary.
+Reconnection constructs a fresh service; no stale object/type IDs survive.
+The caller must drop the service after any transport error. The library bounds
+started-frame reads and server writes at 100 ms; pressure behavior still needs
+the dedicated integration gate.
+
+DHCP fields and DNS extracted names use byte slices, preserving non-UTF-8
+strings and C's first-NUL termination. The live C name corpus contains a literal
+dot, backslash, embedded NUL, 0xff, 0x80 and control bytes inside DNS labels.
+The runner compares the actual C-extracted notification bytes with Rust's
+outgoing blob fields, without Unicode replacement or JSON string conversion.
+The DNS result type only serializes outgoing payloads. It exposes no pretend
+fire-and-forget substitute for the missing synchronous response transport.
+
+An initial formatter screen caught Rust `Ipv6Addr::Display` producing a hex
+tail for IPv4-compatible addresses where C's `inet_ntop` emits a dotted tail.
+A small explicit formatter handles the six-leading-zero-word case, leaving
+`::`, `::1` and seven-word runs unchanged. Nine IPv4/IPv6 formatting cases now
+compare against the build host's actual C `inet_ntop`, including compatible and
+mapped addresses, zero-run ties, and u32 maximum TTL serialization.
+
+`ubus_library_diff.py` compares this **standalone library fixture**, not a Rust
+DNS/DHCP daemon, with saved real C payloads. Its fixture deliberately supplies
+counter values through `Metrics`; matching their wire representation says
+nothing about product engine increments. In the real private ubusd it checks
+signatures, unknown-method status, subscribed DHCP payloads/order, quiet mode,
+state changes after unsubscribe, and three restarts. Each restart retains the
+supplied metrics, permits a fresh DNS subscription, keeps the controller's FD
+count unchanged, and retains one fixture thread. Normal drop removes both
+objects and process termination releases the process resources. This fixes the
+reference restart defect at the controller boundary, without claiming the
+product daemon is already integrated.
+
+Final evidence under the same ignored `ubus-20261001` directory:
+
+- `library-03`: **83/83** pass, including a frozen check-count guard.
+- `library-negative`: **82 pass / 1 fail**, exit 1, after deliberately changing
+  one C-observed address field in the expected notification payload.
+- Three controller unit tests pass on macOS; the same three plus the existing
+  metrics test pass in the isolated Linux build tree.
+- `library-02` retains the 82-pass precursor before the count guard. The first
+  build used the host's default Rust 1.98.0, which the package correctly rejected;
+  `library-01` then lacked its probe. These are failed setup attempts, not passes.
+  The final probe and unit ELF use the already installed Rust 1.98.1.
+
+Build the fixture outside the root namespace wrapper, using the pinned toolchain
+and the same source snapshot, then enter isolation:
+
+```sh
+cargo +1.98.1 build --manifest-path components/ubus/Cargo.toml
+rustc +1.98.1 --edition=2021 tools/dnsmasq/ubus_service_probe.rs \
+  --extern owrt_ubus=components/ubus/target/debug/libowrt_ubus.rlib \
+  -L dependency=components/ubus/target/debug/deps \
+  -o private/ubus-service-probe
+sudo -n sh tools/dnsmasq/run_isolated.sh \
+  python3 tools/dnsmasq/ubus_library_diff.py \
+  --reference-build "$EXACT_C_BUILD" \
+  --baseline private/ubus-baseline/result.json \
+  --probe private/ubus-service-probe \
+  --out private/ubus-library
+```
+
+Use `--inject-error` with a fresh output path for the library negative control.
+For the later response decoder, remember two separate source rules: libubox
+`blobmsg_parse` selects the **first** matching string address within one DATA
+message; the dnsmasq callback retains the **last** DATA message that supplied an
+address. Its malformed-field validation must precede address selection. These
+are not implemented by the outgoing payload type.
