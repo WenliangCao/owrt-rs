@@ -172,7 +172,11 @@ impl CacheContext<'_> {
                 stale,
             });
         }
-        if matches!(question.rrtype, 12 | 255) {
+        let reverse_address = matches!(question.rrtype, 12 | 255)
+            .then(|| super::local::arpa_address(&question.name.dnsmasq_bytes()))
+            .flatten();
+        let mut cname_ids = None;
+        if let Some(address) = reverse_address {
             // C first visits CNAME/NXDOMAIN, then the address cache, and only
             // afterwards the forward generic group. A positive address hit
             // can therefore answer despite an older forward PTR negative.
@@ -184,41 +188,40 @@ impl CacheContext<'_> {
             );
             let entry = first.first().and_then(|id| cache.get(*id));
             stale |= entry.is_some_and(|entry| entry.is_stale(now));
-            if !entry.is_some_and(|entry| entry.record.kind == Kind::Cname) {
-                if let Some(address) = super::local::arpa_address(&question.name.dnsmasq_bytes()) {
-                    let reverse = cache.lookup_reverse(address, now);
-                    // Address lookup happens even when RD or ANY later
-                    // prevents a dynamic record from answering.
-                    if !reverse.is_empty() && header.flags & 0x0100 != 0 {
-                        stale |= reverse
-                            .iter()
-                            .filter_map(|id| cache.get(*id))
-                            .any(|entry| entry.is_stale(now));
-                        if question.rrtype == 12 {
-                            let mut writer = PacketWriter::new(
-                                header.id,
-                                (header.flags & 0x0110) | 0x8080,
-                                limit,
-                            )?;
-                            writer.question(&question.name, question.rrtype, question.class)?;
-                            for id in reverse {
-                                let entry =
-                                    cache.get(id).expect("reverse lookup returned a live entry");
-                                match writer.record_at(
-                                    Section::Answer,
-                                    12,
-                                    12,
-                                    1,
-                                    entry.reply_ttl(now, cache.policy()),
-                                    entry.record.name.as_wire(),
-                                ) {
-                                    Ok(()) => {}
-                                    Err(WireError::Full) => break,
-                                    Err(error) => return Err(error.into()),
-                                }
+            if entry.is_some_and(|entry| entry.record.kind == Kind::Cname) {
+                // The normal builder must consume this lookup without a
+                // second promotion or round-robin rotation of the CNAMEs.
+                cname_ids = Some(first);
+            } else {
+                let reverse = cache.lookup_reverse(address, now);
+                // Address lookup happens even when RD or ANY later
+                // prevents a dynamic record from answering.
+                if !reverse.is_empty() && header.flags & 0x0100 != 0 {
+                    stale |= reverse
+                        .iter()
+                        .filter_map(|id| cache.get(*id))
+                        .any(|entry| entry.is_stale(now));
+                    if question.rrtype == 12 {
+                        let mut writer =
+                            PacketWriter::new(header.id, (header.flags & 0x0110) | 0x8080, limit)?;
+                        writer.question(&question.name, question.rrtype, question.class)?;
+                        for id in reverse {
+                            let entry =
+                                cache.get(id).expect("reverse lookup returned a live entry");
+                            match writer.record_at(
+                                Section::Answer,
+                                12,
+                                12,
+                                1,
+                                entry.reply_ttl(now, cache.policy()),
+                                entry.record.name.as_wire(),
+                            ) {
+                                Ok(()) => {}
+                                Err(WireError::Full) => break,
+                                Err(error) => return Err(error.into()),
                             }
-                            return Ok(finish_cached_answer(writer, stale)?);
                         }
+                        return Ok(finish_cached_answer(writer, stale)?);
                     }
                 }
             }
@@ -236,7 +239,8 @@ impl CacheContext<'_> {
         } else {
             &ordinary_kinds
         };
-        let ids = cache.lookup(&question.name, kinds, now, round_robin);
+        let ids =
+            cname_ids.unwrap_or_else(|| cache.lookup(&question.name, kinds, now, round_robin));
         if ids.is_empty() {
             // An address/CNAME miss still reaches C's final F_RR lookup.
             // An unrelated generic record cannot answer this question, but

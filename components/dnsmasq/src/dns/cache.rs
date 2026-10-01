@@ -410,7 +410,6 @@ impl Cache {
         {
             return self.fail(InsertError::InvalidReverseRecord);
         }
-        let key = record.name.canonical_wire();
         let mut preserved = None;
         if record.kind.is_reverse() {
             // cache_scan_free's reverse branch expires all committed entries,
@@ -426,7 +425,7 @@ impl Cache {
                     self.remove(slot);
                 }
             }
-        } else if let Some(indices) = self.names.get(&key).cloned() {
+        } else if let Some(indices) = self.names.get(&record.name.canonical_wire()).cloned() {
             for slot in indices {
                 let entry = self.slots[slot].entry.as_ref().unwrap();
                 if record.kind.conflicts(entry.record.kind) {
@@ -464,7 +463,6 @@ impl Cache {
                 if now < entry.expires {
                     counters.live_freed = counters.live_freed.wrapping_add(1);
                 }
-                let victim_key = entry.record.name.canonical_wire();
                 let victim_kind = entry.record.kind;
                 // C spills the conflicting RRset, not only its oldest member.
                 if victim_kind.is_reverse() {
@@ -480,6 +478,7 @@ impl Cache {
                         }
                     }
                 } else {
+                    let victim_key = entry.record.name.canonical_wire();
                     for victim in self.names.get(&victim_key).cloned().unwrap_or_default() {
                         if victim_kind
                             .conflicts(self.slots[victim].entry.as_ref().unwrap().record.kind)
