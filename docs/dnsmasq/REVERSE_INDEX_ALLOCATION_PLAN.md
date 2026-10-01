@@ -90,7 +90,7 @@ freed by the end; this does not imply retained memory after cache destruction.
 
 For the other complete lifetimes, extra allocated/deallocated call counts and
 bytes are, respectively: empty 0/0; each single-target case 3/245;
-shared-forward-name 1/9; three-targets 7/327; four-targets 10/768;
+shared-forward-name 1/17; three-targets 7/327; four-targets 10/768;
 repeated-target 4/254. Reallocation deltas are zero in all eight cases.
 The forward seed, record preparation, ordinary insertion and live **reverse**
 lookup phases are predicted to have zero differential allocation vectors.
