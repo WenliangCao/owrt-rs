@@ -1,8 +1,8 @@
 # Retired dnsmasq task branches — 2026-10-01
 
 The user's branch-cleanup rule is recorded in the project `AGENTS.md`.
-Twelve completed task branches were retired after a fresh tip/clean-worktree
-check. Every original tip was tagged before any branch deletion. Eleven
+Thirteen completed task branches were retired after a fresh tip/clean-worktree
+check. Every original tip was tagged before any branch deletion. Twelve
 attached worktrees were detached at the same commit; the ordinary TCP reference
 worktree was already detached. No worktree or ignored evidence directory was
 removed. Original unmerged experiment code remains research, not product code.
@@ -28,6 +28,7 @@ branch. Active work retains its branches until it is complete or retired.
 | `research/dnsmasq-tcp-stale-reference-20261001` | `2b149faea56e` | `evidence/20261001/dnsmasq-tcp-stale-reference` |
 | `research/dnsmasq-tcp-stream-import-gate-20261001` | `b9e3cea3243a` | `evidence/20261001/dnsmasq-tcp-stream-import-gate` |
 | `research/tcp-writeback-gates` | `d9b2ba2793d7` | `evidence/20261001/tcp-writeback-gates` |
+| `research/dnsmasq-reverse-transfer-gate-20261001` | `d11065c82bc6` | `evidence/20261001/dnsmasq-reverse-transfer-gate` |
 
 The retained dnsmasq task branches are:
 

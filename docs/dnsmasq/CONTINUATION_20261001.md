@@ -8,7 +8,7 @@ explicit request and verified recovery gate. Local and build-host isolated
 work is already authorized.
 
 The user added automatic cleanup of obsolete branches. `AGENTS.md` now records
-the rule. Twelve completed branches were retired after tagging their original
+the rule. Thirteen completed branches were retired after tagging their original
 tips and detaching clean worktrees; all evidence directories remain. See
 [the branch archive index](BRANCH_ARCHIVE_20261001.md) for replacements of
 historical branch names. Active reverse implementation/gate and the latest
@@ -62,10 +62,14 @@ Current agents/ownership:
   `601550b04418152ba5a865343ee3e44d93c64b610f29440577c1e294a547726e`.
   It is running backward forward-cache/transfer and allocation/layout checks;
   no publication/import/local-composition changes before their C gates.
-- `tcp_stream_resume` owns a new active reverse-transfer gate branch, with
-  C-first reverse-direction/parent-local/expiry/counter cases. The existing
-  typed307 fixture remains unchanged. Its earlier TCP stream reference stays
-  private and frozen independently of the newer reverse candidate.
+- `tcp_stream_resume` completed the reverse-transfer gate: 20 deterministic
+  cases/184 observations agree across native and SDK-musl C (three runs each).
+  Before62894 has3 configured-CNAME import differences; private fix54346fd
+  passes184/184 and original forward307. The separate12 order observations
+  retain native4/SDK2 differences, so the complete comparator still exits1.
+  Tools/reports are merged; the completed gate branch is archived under tag
+  `evidence/20261001/dnsmasq-reverse-transfer-gate`. Its earlier TCP stream
+  reference stays private and frozen independently of the reverse candidate.
 - `tcp_stream_review` completed the C-first malformed generic gate in
   `generic-malformed-gate-20261001` at `c6a1121`: final native/image35 and
   negative34/1. All tools/reports are merged; raw prefix effects and old14
