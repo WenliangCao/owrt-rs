@@ -1,0 +1,307 @@
+{
+  "scope": "Opt-in typed cache transaction primitive; no production TCP sender, snapshot representation or main wiring",
+  "source_cache_sha256": "57917cb8b33d8e1d2490408bbbe192b2e32dca2ebc5c95533e325c650562325d",
+  "source_transfer_tests_sha256": "71a8db9a5c9f86d8a3d8994629267d9616313e587d67a374224243a4d592080a",
+  "frozen_archive_sha256": "f5b35a1fa869e072bc5e12218c0b7ce26e050777185b6faeed686fb424b9414b",
+  "baseline_identity_sha256": "96fc7eed20067ebc134853620a799aa4a779afdcdf0fdb306815740c339dc941",
+  "baseline_stdout_digest": "6624663c148bea679075197a0a3d0847673513893620a217094c7fb66e5eb43b",
+  "gates": {
+    "native-01": {
+      "compared": 307,
+      "passed": 307,
+      "failed": 0,
+      "probe_sha256": "bec14b3fc3053c4cc284d6e9c9be6b77bda8c45fe3a5ac71e444dbb1a98e914e",
+      "result_sha256": "192be77643193c992655c1a37a15ad9819ae1cda58fcffce1bbf090e2a567a43",
+      "elf_type": 3,
+      "has_interpreter": true,
+      "target": null,
+      "source_file_count": 93,
+      "tool_sha256": "6f47991eb86f18efe6c24f4c2091ed9e18fdd7168571f0b99b201883e0214d0c"
+    },
+    "musl-01": {
+      "compared": 307,
+      "passed": 307,
+      "failed": 0,
+      "probe_sha256": "c07240322f682e877d365777d10c1c591a03bc3e0e565493124bf5660223aea0",
+      "result_sha256": "2f1f36b26bc53c13621365e590d47f91ee2f4d40a975c92bb369221b03753456",
+      "elf_type": 2,
+      "has_interpreter": false,
+      "target": "aarch64-unknown-linux-musl",
+      "source_file_count": 93,
+      "tool_sha256": "6f47991eb86f18efe6c24f4c2091ed9e18fdd7168571f0b99b201883e0214d0c"
+    },
+    "native-negative-01": {
+      "compared": 307,
+      "passed": 306,
+      "failed": 1,
+      "probe_sha256": "bec14b3fc3053c4cc284d6e9c9be6b77bda8c45fe3a5ac71e444dbb1a98e914e",
+      "result_sha256": "485885d117ebf498e7a8eda782a3534c44bcb246998b6876fc89f4e1259b055c",
+      "elf_type": 3,
+      "has_interpreter": true,
+      "target": null,
+      "source_file_count": 93,
+      "tool_sha256": "6f47991eb86f18efe6c24f4c2091ed9e18fdd7168571f0b99b201883e0214d0c"
+    }
+  },
+  "allocation": {
+    "result_sha256": "b0a10e1d84e13bab85fe540dfb622a14baed7887bd4b7f0d18b07c231e62ac6e",
+    "scope": "Untimed requested allocations around commit only; allocations before commit excluded; not RSS or service memory",
+    "baseline_cache_sha256": "8c73672d4ebe3959d8172cecf5b951afef61f23ec568c52b27f6b00ae081e9a5",
+    "ordinary_allocation_matches_baseline": true,
+    "runs": [
+      {
+        "implementation": "baseline",
+        "case": "empty",
+        "exit": 0,
+        "committed": true,
+        "inserted": 0,
+        "freed": 0,
+        "commit_allocation": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "balance": 0,
+        "cache_bytes": 168
+      },
+      {
+        "implementation": "baseline",
+        "case": "one",
+        "exit": 0,
+        "committed": true,
+        "inserted": 1,
+        "freed": 0,
+        "commit_allocation": [
+          3,
+          0,
+          245,
+          245
+        ],
+        "balance": 0,
+        "cache_bytes": 168
+      },
+      {
+        "implementation": "baseline",
+        "case": "many",
+        "exit": 0,
+        "committed": true,
+        "inserted": 128,
+        "freed": 0,
+        "commit_allocation": [
+          263,
+          0,
+          30342,
+          17946
+        ],
+        "balance": 0,
+        "cache_bytes": 168
+      },
+      {
+        "implementation": "baseline",
+        "case": "dangling",
+        "exit": 0,
+        "committed": true,
+        "inserted": 0,
+        "freed": 0,
+        "commit_allocation": [
+          1,
+          0,
+          8,
+          -9
+        ],
+        "balance": 0,
+        "cache_bytes": 168
+      },
+      {
+        "implementation": "baseline",
+        "case": "failed",
+        "exit": 0,
+        "committed": false,
+        "inserted": 0,
+        "freed": 0,
+        "commit_allocation": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "balance": 0,
+        "cache_bytes": 168
+      },
+      {
+        "implementation": "ordinary",
+        "case": "empty",
+        "exit": 0,
+        "committed": true,
+        "inserted": 0,
+        "freed": 0,
+        "commit_allocation": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "balance": 0,
+        "cache_bytes": 168
+      },
+      {
+        "implementation": "ordinary",
+        "case": "one",
+        "exit": 0,
+        "committed": true,
+        "inserted": 1,
+        "freed": 0,
+        "commit_allocation": [
+          3,
+          0,
+          245,
+          245
+        ],
+        "balance": 0,
+        "cache_bytes": 168
+      },
+      {
+        "implementation": "ordinary",
+        "case": "many",
+        "exit": 0,
+        "committed": true,
+        "inserted": 128,
+        "freed": 0,
+        "commit_allocation": [
+          263,
+          0,
+          30342,
+          17946
+        ],
+        "balance": 0,
+        "cache_bytes": 168
+      },
+      {
+        "implementation": "ordinary",
+        "case": "dangling",
+        "exit": 0,
+        "committed": true,
+        "inserted": 0,
+        "freed": 0,
+        "commit_allocation": [
+          1,
+          0,
+          8,
+          -9
+        ],
+        "balance": 0,
+        "cache_bytes": 168
+      },
+      {
+        "implementation": "ordinary",
+        "case": "failed",
+        "exit": 0,
+        "committed": false,
+        "inserted": 0,
+        "freed": 0,
+        "commit_allocation": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "balance": 0,
+        "cache_bytes": 168
+      },
+      {
+        "implementation": "capture",
+        "case": "empty",
+        "exit": 0,
+        "committed": true,
+        "inserted": 0,
+        "freed": 0,
+        "commit_allocation": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "balance": 0,
+        "cache_bytes": 168
+      },
+      {
+        "implementation": "capture",
+        "case": "one",
+        "exit": 0,
+        "committed": true,
+        "inserted": 1,
+        "freed": 0,
+        "commit_allocation": [
+          6,
+          0,
+          610,
+          610
+        ],
+        "balance": 0,
+        "cache_bytes": 168
+      },
+      {
+        "implementation": "capture",
+        "case": "many",
+        "exit": 0,
+        "committed": true,
+        "inserted": 128,
+        "freed": 0,
+        "commit_allocation": [
+          520,
+          5,
+          54328,
+          31020
+        ],
+        "balance": 0,
+        "cache_bytes": 168
+      },
+      {
+        "implementation": "capture",
+        "case": "dangling",
+        "exit": 0,
+        "committed": true,
+        "inserted": 0,
+        "freed": 0,
+        "commit_allocation": [
+          1,
+          0,
+          8,
+          -9
+        ],
+        "balance": 0,
+        "cache_bytes": 168
+      },
+      {
+        "implementation": "capture",
+        "case": "failed",
+        "exit": 0,
+        "committed": false,
+        "inserted": 0,
+        "freed": 0,
+        "commit_allocation": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "balance": 0,
+        "cache_bytes": 168
+      }
+    ]
+  },
+  "local_checks": {
+    "prior_cache_and_reply_units_passed": 26,
+    "new_capture_units_passed": 3,
+    "external_oracle_driver_ignored_in_ordinary_test": 1,
+    "clippy_lib_and_tests_warnings_denied": true
+  },
+  "limitations": [
+    "No Cache Clone or representation change.",
+    "Past-expiry saturation matches tested source/compiler/runtime; stock-image ELF behavior not established.",
+    "Local match callback must use parent current local precedence; full parent integration is pending.",
+    "Capture Vec/name/data allocation failure follows allocator policy; no graceful-memory-failure or pipe-backpressure equivalence.",
+    "Separate 32-observation real TCP and UBus TCP insertion gates remain open."
+  ]
+}
