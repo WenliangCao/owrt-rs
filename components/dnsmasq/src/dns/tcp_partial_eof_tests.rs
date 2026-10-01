@@ -238,7 +238,7 @@ fn exact_c_partial_eof_probe() {
             }
             Ok(Received::Record(record)) => {
                 events.push("Record");
-                let _ = cache.import_record_counted(
+                cache.import_record_counted(
                     record,
                     receive_now,
                     &mut counters,
