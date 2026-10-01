@@ -89,29 +89,69 @@ Cache/lease snapshots cannot substitute for all actual DNS/DHCP/TCP events.
 
 ## Active ownership and immediate work
 
-1. **Root:** main, reports and stale runtime fix. The cache-counter/full
-   integration gates above are complete. Next propagate stale metadata and
-   background refresh; wait for dns_policy to release daemon forwarding/cache
-   functions before editing them. The reusable service tester is committed.
+Latest in-flight checkpoint (after the entries above):
+
+- `ad7e2a7` commits C forwarding lifetime and `Client.reply_requested`.
+  Default daemon/main use `Lifetime::ForwardTable`; explicit primitive waits
+  retain `Fixed(Duration)`. Default clients request replies, background clients
+  can suppress delivery while retaining common cache insertion. Source C state
+  1,285 operations and 178 DNS tests passed; new service replay is being archived.
+- `994e6e0` commits actual DHCP message counters: 16 scenarios/88 observations
+  match on host and Linux, negative 87/1, 99 DHCP tests. Provider exposes
+  `message_counters()`. Quiet-DHCP early returns follow C. Main publication is open.
+- `8b98b16` commits doctor packet traversal: 36/38 C matches, two explicit safe
+  length-handling differences (full gate remains nonzero), negative 35/38.
+- `c371925` freezes C stale metadata: five profiles, 1,100 commands/685 queries,
+  1,131 calibrations. Eight `stale=1` observations have no answer; those must
+  not trigger a client-delivered stale refresh. Raw baseline is under
+  `private/dnsmasq-rewrite/stale-metadata-20261001/baseline-01`.
+- Root stale implementation is in an isolated worktree:
+  `private/dnsmasq-rewrite/stale-work`, now based on `ad7e2a7`. It is **not yet
+  merged**. Pre-rebase checkpoint object is recorded in
+  `private/dnsmasq-rewrite/stale-work-checkpoint.txt`.
+  `CachedAnswer { packet: Option<Vec<u8>>, stale: bool }` preserves no-answer
+  metadata; main sends stale first, then calls `refresh_udp_on_listener` with
+  original bytes and `reply_requested=false`. Old NX/typed priority is fixed
+  in the candidate. HUP exclusion now spans reply/send/refresh.
+- Stale service candidate remote: `/home/ubuntu/dns-stale-refresh-20261001`.
+  `gate-01` matched the original 44 protocol/trace checks but a new kernel
+  timestamp check caught its early upstream-send order: `send-order-negative-01`
+  is 44 matches/4 ordering failures. Corrected send-before-refresh `gate-02`
+  is **48/48**, ELF `0c133de5b76c3df1490c52507193ea61ad0705a7ac9cbabebcac837ed6b05566`.
+  Subsequent metadata/no-answer/HUP guard edits still need the new 1,100-command
+  C gate and final affected regressions; do not silently attach the old ELF to them.
+- The oracle quiet window is **over**. EPS1 frozen 24 timed runs completed
+  with no extra rounds. Relative to Rust B0 primitive CPU/operation: unexpired
+  median -81.8628%, mixed -71.1418%; hot worst pair +0.6858%, no claimed tiny hot
+  gain. Same heap requests/bytes/end-live, drop delta zero, Cache +8 B, Entry
+  unchanged. Only retain for later service gate; default cache unchanged and
+  current counted-API rebase still required. No C/service/router speed claim.
+
+1. **Root:** finish isolated stale candidate, integrate the metadata driver,
+   run precise C gate and affected main/cache/HUP checks, then merge the worktree
+   changes without overwriting other owners. Main/daemon are now released.
 2. **dns_policy:** deadline windows passed and failed readiness round retained.
    Working on explicit transport `Lifetime::ForwardTable` versus `Fixed`:
    daemon should keep C wall-clock/lazy frec behavior, primitive explicit
    timeouts remain fixed. This avoids fake deferred unanswered bookkeeping and
    permits clock rollback to retain C reply validity. Owns forward/upstream and
-   daemon API/default migration, plus the one required main field initializer.
-   Then real forwarded/unanswered counters and DuplicateFull correct original
-   ID refusal with an explicit C difference. Coordinate stale background-client
-   semantics with root; `listener=None` is currently also used by direct APIs.
+   API/default migration is committed; daemon/main released. Finish service
+   replay and real forwarded/unanswered counters. DuplicateFull original-ID
+   refusal is in source but its explicit C difference needs the service record.
+   Upstream poll/receive error currently cancels where C retains; independent
+   ICMP/retry failure gate remains necessary.
 3. **lease_dns:** 43/43 admission evidence is local under
    `private/dnsmasq-rewrite/udp-admission-20261001/{freeze-01,pair-01}`.
    DuplicateFull C-only gate found a wrong stash ID/question in the refusal;
    retain as a reference defect, never normalize that ID. Now owns DHCP
-   state/runtime/daemon message counters and small quiet-dhcp config support;
-   LeaseStore counters already exist. Preserve C ignored/early-return events.
-4. **ubus_contract:** now owns new `dns/doctor.rs`, its module registration and
-   exact-C tools. Packet callback order, static alias then cache policy and
-   explicit safe length-handling differences; no main/daemon edits. Full
-   metrics/live controller publication still waits for real event counters.
+   message counters are committed. Now auditing ordinary BOOTP service: source
+   shows the ordinary chain is already connected despite stale documentation.
+   Actual C gates will cover dynamic/static/file/DNS; potential client hostname
+   and PRL differences need fixing, not a new redundant adapter.
+4. **ubus_contract:** doctor and C metadata committed. Now writes the new
+   `daemon_stale_tests.rs` inside root's private worktree and main-tree
+   `tools/dnsmasq/stale_metadata_diff.py`; root registers the module. New type/API
+   above is agreed. Full live metrics/doctor controller wiring remains open.
 5. **dhcp_static:** EPS1 private-only candidate at B0 `816b955`; product cache
    unchanged. Pressure 37 scenarios/26,992 commands (C×3), legacy 22,571 and
    publication 1,876 match for B0/EPS1. Known local-CNAME differences persist
