@@ -92,7 +92,7 @@ impl Default for DaemonOptions {
             proxy_dnssec: false,
             local_ttl: 0,
             max_udp: 1232 + 255 + 10,
-            upstream_timeout: Duration::from_secs(10),
+            upstream_timeout: Duration::from_secs(super::forward::ABSOLUTE_TIMEOUT as u64),
         }
     }
 }
@@ -332,6 +332,11 @@ impl<R: Random> DnsDaemon<R> {
         if query.len() > self.max_udp {
             return Ok(QueryResult::Dropped);
         }
+        match super::udp_query::inspect(query, self.edns_packet_max) {
+            super::udp_query::Admission::Drop => return Ok(QueryResult::Dropped),
+            super::udp_query::Admission::Reply(reply) => return Ok(QueryResult::Local(reply)),
+            super::udp_query::Admission::Continue => {}
+        }
         if let Some(answer) = self.local.handle_udp(query)? {
             return Ok(QueryResult::Local(answer));
         }
@@ -415,9 +420,16 @@ impl<R: Random> DnsDaemon<R> {
             udp_limit: 512,
             log_id: u64::from(question.rrtype),
         };
-        let submission = self
-            .upstream
-            .start_udp(query, client, group, Scope::Shared)?;
+        let submission = match self.upstream.start_udp(query, client, group, Scope::Shared) {
+            Ok(submission) => submission,
+            Err(ResolveError::Dispatch(super::forward_service::DispatchError::Submit(
+                super::forward::SubmitError::GroupFull,
+            ))) => {
+                return Ok(super::udp_query::table_full(query, self.edns_packet_max)
+                    .map_or(QueryResult::Dropped, QueryResult::Local))
+            }
+            Err(error) => return Err(error.into()),
+        };
         Ok(QueryResult::Forwarded(submission.id))
     }
 

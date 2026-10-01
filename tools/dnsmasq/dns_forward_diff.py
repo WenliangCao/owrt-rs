@@ -194,6 +194,9 @@ def scenarios():
     yield 'independent-expiry',[3,0,0,10,0],[q('slow.test'),q('good.test',2,1001,130),
         q('trigger.test',3,1002,140),'M 140 1 1 1 slow.test','M 140 2 1 1 good.test',
         'R 140 140001 2 0 0','C 3']
+    yield 'idle-reply-deadline',[3,0,0,10,0],[q('slow.test'),
+        'M 111 1 1 1 slow.test','M 139 1 1 1 slow.test','M 140 1 1 1 slow.test',
+        q('fresh.test',2,1001,140),'R 140 140001 2 0 0']
     yield 'flags',[20,0,0,10,0],[q(flags=f,id=i,port=i) for i,f in enumerate([0,2,32,64,128,4,4,34,98,130,132])]
     yield 'send-failures',[3,1,0,10,0],['F 1',q(),'F 7',q('b.test',2),'F 0',q('b.test',3)]
     yield 'case-match',[10,8,0,10,0],[q('abc.test'),'M 100 1 1 1 aBc.test','M 100 1 1 1 abc.test','M 100 1 28 1 aBc.test','M 140 1 1 1 aBc.test',q('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN.test',4,1004,140)]

@@ -11,8 +11,10 @@ and capacity-recovery calibrations passed.
 The new `dns::udp_query` helper matches all 35 applicable C wire observations
 byte for byte, including malformed questions that cannot be decoded as ordinary
 DNS. Four focused Rust regressions and all-target clippy with warnings denied
-pass. Main/daemon entrypoint integration and the paired real-daemon 43-event
-gate remain separate checks; the pure helper does not model pending requests.
+pass. The daemon's public UDP entry now applies this check before local lookup,
+and a `GroupFull` submission returns the exact capacity reply without cancelling
+existing transactions. The paired real-daemon gate passes all 43 events with the
+same input/configuration as C; the pure helper alone does not establish this.
 
 The source contract is `forward.c::receive_query`, `forward_query`,
 `rfc1035.c::extract_request/setup_reply`, `domain-match.c::make_local_answer`
@@ -59,3 +61,11 @@ Raw plans, configuration, packets, logs and results are in ignored
 `bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431`.
 This host functional evidence does not establish target ABI, router performance
 or production acceptance.
+
+The paired native Rust ELF is
+`3f77c3a4d1279c7fb342fc2281fb2dcf33d3f43d3695c3d943d83d24190dee9b`.
+C FD observations remain 11 → 12 → 11; Rust observes 6 → 8 → 6, and both
+processes exit zero. These are functional/resource observations, not a measured
+throughput improvement. Duplicate-recipient exhaustion and immediate upstream
+send failure require their own exact C error-envelope observations before
+being mapped to the ordinary table-full reply.
