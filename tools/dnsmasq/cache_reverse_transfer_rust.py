@@ -65,7 +65,10 @@ def main():
         command = [str(executables[0]),TEST,'--ignored','--exact','--nocapture','--test-threads=1']
         run = subprocess.run(command, env=env, text=True, capture_output=True)
         (out/(case['label']+'.stdout')).write_text(run.stdout); (out/(case['label']+'.stderr')).write_text(run.stderr)
-        assert run.returncode == 0, (case['label'],run.returncode)
+        if run.returncode:
+            report['failures'].append({'case':case['label'],'exit':run.returncode})
+            save(out/'result.json',report)
+            return 1
         actual = [line for line in run.stdout.splitlines() if line.startswith(('P0 ','P1 ','R ','CH ','P2 '))]
         expected = (base/case['label']/'native-0.stdout').read_text().splitlines()
         if args.inject_error and index == 0: expected[-1] += ' altered'
