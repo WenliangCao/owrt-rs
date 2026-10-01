@@ -1,0 +1,608 @@
+{
+  "status": "allocation-only-timing-pending",
+  "results": [
+    {
+      "variant": "deep",
+      "profiles": [
+        {
+          "capacity": 150,
+          "filled": 0,
+          "steady_requested_heap": 24000,
+          "steady_heap_ratio": 1.0,
+          "snapshot_live_requested_heap": 480000,
+          "snapshot_live_heap_gain": 0.0,
+          "peak_extra_requested": 480020,
+          "population_allocations": [
+            1,
+            0
+          ],
+          "snapshot_allocations": [
+            20,
+            0
+          ],
+          "lookup_allocations": [
+            20,
+            0
+          ],
+          "layout": [
+            168,
+            160,
+            120,
+            56
+          ],
+          "image_layout": 168,
+          "balanced": true
+        },
+        {
+          "capacity": 150,
+          "filled": 150,
+          "steady_requested_heap": 51338,
+          "steady_heap_ratio": 1.0,
+          "snapshot_live_requested_heap": 954120,
+          "snapshot_live_heap_gain": 0.0,
+          "peak_extra_requested": 954249,
+          "population_allocations": [
+            909,
+            330
+          ],
+          "snapshot_allocations": [
+            12040,
+            0
+          ],
+          "lookup_allocations": [
+            80,
+            0
+          ],
+          "layout": [
+            168,
+            160,
+            120,
+            56
+          ],
+          "image_layout": 168,
+          "balanced": true
+        },
+        {
+          "capacity": 1000,
+          "filled": 1000,
+          "steady_requested_heap": 358792,
+          "steady_heap_ratio": 1.0,
+          "snapshot_live_requested_heap": 6695200,
+          "snapshot_live_heap_gain": 0.0,
+          "peak_extra_requested": 6695329,
+          "population_allocations": [
+            6012,
+            2200
+          ],
+          "snapshot_allocations": [
+            80040,
+            0
+          ],
+          "lookup_allocations": [
+            80,
+            0
+          ],
+          "layout": [
+            168,
+            160,
+            120,
+            56
+          ],
+          "image_layout": 168,
+          "balanced": true
+        },
+        {
+          "capacity": 10000,
+          "filled": 10000,
+          "steady_requested_heap": 3386856,
+          "steady_heap_ratio": 1.0,
+          "snapshot_live_requested_heap": 62936480,
+          "snapshot_live_heap_gain": 0.0,
+          "peak_extra_requested": 62936609,
+          "population_allocations": [
+            60015,
+            22000
+          ],
+          "snapshot_allocations": [
+            800040,
+            0
+          ],
+          "lookup_allocations": [
+            80,
+            0
+          ],
+          "layout": [
+            168,
+            160,
+            120,
+            56
+          ],
+          "image_layout": 168,
+          "balanced": true
+        }
+      ],
+      "allocation_gates": {
+        "balanced": true,
+        "steady_heap": true,
+        "snapshot_live_heap": false
+      },
+      "status": "reference"
+    },
+    {
+      "variant": "compact",
+      "profiles": [
+        {
+          "capacity": 150,
+          "filled": 0,
+          "steady_requested_heap": 21600,
+          "steady_heap_ratio": 0.9,
+          "snapshot_live_requested_heap": 432000,
+          "snapshot_live_heap_gain": 0.09999999999999998,
+          "peak_extra_requested": 432020,
+          "population_allocations": [
+            1,
+            0
+          ],
+          "snapshot_allocations": [
+            20,
+            0
+          ],
+          "lookup_allocations": [
+            20,
+            0
+          ],
+          "layout": [
+            168,
+            144,
+            120,
+            56
+          ],
+          "image_layout": 168,
+          "balanced": true
+        },
+        {
+          "capacity": 150,
+          "filled": 150,
+          "steady_requested_heap": 48938,
+          "steady_heap_ratio": 0.9532510031555573,
+          "snapshot_live_requested_heap": 906120,
+          "snapshot_live_heap_gain": 0.050308137341214976,
+          "peak_extra_requested": 906249,
+          "population_allocations": [
+            909,
+            330
+          ],
+          "snapshot_allocations": [
+            12040,
+            0
+          ],
+          "lookup_allocations": [
+            80,
+            0
+          ],
+          "layout": [
+            168,
+            144,
+            120,
+            56
+          ],
+          "image_layout": 168,
+          "balanced": true
+        },
+        {
+          "capacity": 1000,
+          "filled": 1000,
+          "steady_requested_heap": 342792,
+          "steady_heap_ratio": 0.9554059176347298,
+          "snapshot_live_requested_heap": 6375200,
+          "snapshot_live_heap_gain": 0.04779543553590637,
+          "peak_extra_requested": 6375329,
+          "population_allocations": [
+            6012,
+            2200
+          ],
+          "snapshot_allocations": [
+            80040,
+            0
+          ],
+          "lookup_allocations": [
+            80,
+            0
+          ],
+          "layout": [
+            168,
+            144,
+            120,
+            56
+          ],
+          "image_layout": 168,
+          "balanced": true
+        },
+        {
+          "capacity": 10000,
+          "filled": 10000,
+          "steady_requested_heap": 3226856,
+          "steady_heap_ratio": 0.9527585465694438,
+          "snapshot_live_requested_heap": 59736480,
+          "snapshot_live_heap_gain": 0.05084491538134961,
+          "peak_extra_requested": 59736609,
+          "population_allocations": [
+            60015,
+            22000
+          ],
+          "snapshot_allocations": [
+            800040,
+            0
+          ],
+          "lookup_allocations": [
+            80,
+            0
+          ],
+          "layout": [
+            168,
+            144,
+            120,
+            56
+          ],
+          "image_layout": 168,
+          "balanced": true
+        }
+      ],
+      "allocation_gates": {
+        "balanced": true,
+        "steady_heap": true,
+        "snapshot_live_heap": false
+      },
+      "status": "timing-pending"
+    },
+    {
+      "variant": "shared",
+      "profiles": [
+        {
+          "capacity": 150,
+          "filled": 0,
+          "steady_requested_heap": 4800,
+          "steady_heap_ratio": 0.2,
+          "snapshot_live_requested_heap": 96000,
+          "snapshot_live_heap_gain": 0.8,
+          "peak_extra_requested": 96020,
+          "population_allocations": [
+            1,
+            0
+          ],
+          "snapshot_allocations": [
+            20,
+            0
+          ],
+          "lookup_allocations": [
+            20,
+            0
+          ],
+          "layout": [
+            168,
+            32,
+            120,
+            56
+          ],
+          "image_layout": 168,
+          "balanced": true
+        },
+        {
+          "capacity": 150,
+          "filled": 150,
+          "steady_requested_heap": 52538,
+          "steady_heap_ratio": 1.0233744984222213,
+          "snapshot_live_requested_heap": 460140,
+          "snapshot_live_heap_gain": 0.5177336184127783,
+          "peak_extra_requested": 460269,
+          "population_allocations": [
+            1059,
+            330
+          ],
+          "snapshot_allocations": [
+            6040,
+            0
+          ],
+          "lookup_allocations": [
+            80,
+            0
+          ],
+          "layout": [
+            168,
+            32,
+            120,
+            56
+          ],
+          "image_layout": 168,
+          "balanced": true
+        },
+        {
+          "capacity": 1000,
+          "filled": 1000,
+          "steady_requested_heap": 366792,
+          "steady_heap_ratio": 1.022297041182635,
+          "snapshot_live_requested_heap": 3401200,
+          "snapshot_live_heap_gain": 0.49199426454773565,
+          "peak_extra_requested": 3401329,
+          "population_allocations": [
+            7012,
+            2200
+          ],
+          "snapshot_allocations": [
+            40040,
+            0
+          ],
+          "lookup_allocations": [
+            80,
+            0
+          ],
+          "layout": [
+            168,
+            32,
+            120,
+            56
+          ],
+          "image_layout": 168,
+          "balanced": true
+        },
+        {
+          "capacity": 10000,
+          "filled": 10000,
+          "steady_requested_heap": 3466856,
+          "steady_heap_ratio": 1.0236207267152782,
+          "snapshot_live_requested_heap": 29996480,
+          "snapshot_live_heap_gain": 0.5233848477067672,
+          "peak_extra_requested": 29996609,
+          "population_allocations": [
+            70015,
+            22000
+          ],
+          "snapshot_allocations": [
+            400040,
+            0
+          ],
+          "lookup_allocations": [
+            80,
+            0
+          ],
+          "layout": [
+            168,
+            32,
+            120,
+            56
+          ],
+          "image_layout": 168,
+          "balanced": true
+        }
+      ],
+      "allocation_gates": {
+        "balanced": true,
+        "steady_heap": true,
+        "snapshot_live_heap": true
+      },
+      "status": "timing-pending"
+    },
+    {
+      "variant": "top",
+      "profiles": [
+        {
+          "capacity": 150,
+          "filled": 0,
+          "steady_requested_heap": 24184,
+          "steady_heap_ratio": 1.0076666666666667,
+          "snapshot_live_requested_heap": 483680,
+          "snapshot_live_heap_gain": -0.0076666666666667105,
+          "peak_extra_requested": 483700,
+          "population_allocations": [
+            2,
+            0
+          ],
+          "snapshot_allocations": [
+            0,
+            0
+          ],
+          "lookup_allocations": [
+            60,
+            0
+          ],
+          "layout": [
+            168,
+            160,
+            120,
+            56
+          ],
+          "image_layout": 8,
+          "balanced": true
+        },
+        {
+          "capacity": 150,
+          "filled": 150,
+          "steady_requested_heap": 51522,
+          "steady_heap_ratio": 1.003584089758074,
+          "snapshot_live_requested_heap": 957800,
+          "snapshot_live_heap_gain": -0.0038569571961597493,
+          "peak_extra_requested": 957872,
+          "population_allocations": [
+            910,
+            330
+          ],
+          "snapshot_allocations": [
+            0,
+            0
+          ],
+          "lookup_allocations": [
+            12140,
+            0
+          ],
+          "layout": [
+            168,
+            160,
+            120,
+            56
+          ],
+          "image_layout": 8,
+          "balanced": true
+        },
+        {
+          "capacity": 1000,
+          "filled": 1000,
+          "steady_requested_heap": 358976,
+          "steady_heap_ratio": 1.0005128319472005,
+          "snapshot_live_requested_heap": 6698880,
+          "snapshot_live_heap_gain": -0.0005496475086628205,
+          "peak_extra_requested": 6699009,
+          "population_allocations": [
+            6013,
+            2200
+          ],
+          "snapshot_allocations": [
+            0,
+            0
+          ],
+          "lookup_allocations": [
+            80140,
+            0
+          ],
+          "layout": [
+            168,
+            160,
+            120,
+            56
+          ],
+          "image_layout": 8,
+          "balanced": true
+        },
+        {
+          "capacity": 10000,
+          "filled": 10000,
+          "steady_requested_heap": 3387040,
+          "steady_heap_ratio": 1.000054327671445,
+          "snapshot_live_requested_heap": 62940160,
+          "snapshot_live_heap_gain": -5.847165268857424e-05,
+          "peak_extra_requested": 62940289,
+          "population_allocations": [
+            60016,
+            22000
+          ],
+          "snapshot_allocations": [
+            0,
+            0
+          ],
+          "lookup_allocations": [
+            800140,
+            0
+          ],
+          "layout": [
+            168,
+            160,
+            120,
+            56
+          ],
+          "image_layout": 8,
+          "balanced": true
+        }
+      ],
+      "allocation_gates": {
+        "balanced": true,
+        "steady_heap": true,
+        "snapshot_live_heap": false
+      },
+      "status": "timing-pending"
+    }
+  ],
+  "scope": "private host primitive screen; no C-versus-Rust, component or router performance claim",
+  "extra_rounds": 0,
+  "baseline_revision": "e77d966d0bf92e5296f73ee3e54fdaf960ed7781",
+  "baseline_sha256": {
+    "cache.rs": "8c73672d4ebe3959d8172cecf5b951afef61f23ec568c52b27f6b00ae081e9a5",
+    "wire.rs": "23e8d6c70d6c9177beb7d799ecb0fc39f5ef2378c7a2ca43b7f2e599c7d1510f",
+    "lease_names.rs": "cb05a82f1d5f8e90e37dfee942b0464366eedac92b6dfcc35ecb50c86fe2b0b3"
+  },
+  "compiler": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8\n",
+  "function_gate": [
+    {
+      "variant": "deep",
+      "scenarios": 21,
+      "operations": 22571,
+      "failures": 0,
+      "cross_type_order_variations": 138
+    },
+    {
+      "variant": "compact",
+      "scenarios": 21,
+      "operations": 22571,
+      "failures": 0,
+      "cross_type_order_variations": 138
+    },
+    {
+      "variant": "shared",
+      "scenarios": 21,
+      "operations": 22571,
+      "failures": 0,
+      "cross_type_order_variations": 138
+    },
+    {
+      "variant": "top",
+      "scenarios": 21,
+      "operations": 22571,
+      "failures": 0,
+      "cross_type_order_variations": 138
+    }
+  ],
+  "negative_control": {
+    "matches": 12,
+    "failures": 1,
+    "exit": 1
+  },
+  "source_variants": {
+    "deep": {
+      "cache.rs": "015c4d8cac355a7ffdfdcd397f17b7532009f45553fd544afc7a4cfe71a5f4a4",
+      "wire.rs": "23e8d6c70d6c9177beb7d799ecb0fc39f5ef2378c7a2ca43b7f2e599c7d1510f",
+      "lease_names.rs": "cb05a82f1d5f8e90e37dfee942b0464366eedac92b6dfcc35ecb50c86fe2b0b3"
+    },
+    "compact": {
+      "cache.rs": "a1334afd3d3011a3f3f1f202388262af16d652e533f03188b083c7b4093e7c2f",
+      "wire.rs": "23e8d6c70d6c9177beb7d799ecb0fc39f5ef2378c7a2ca43b7f2e599c7d1510f",
+      "lease_names.rs": "cb05a82f1d5f8e90e37dfee942b0464366eedac92b6dfcc35ecb50c86fe2b0b3"
+    },
+    "shared": {
+      "cache.rs": "761e5b7ae8ef238acbb797975a8f39ecb9b0798c794d66e0e9f207ed329d23c4",
+      "wire.rs": "23e8d6c70d6c9177beb7d799ecb0fc39f5ef2378c7a2ca43b7f2e599c7d1510f",
+      "lease_names.rs": "cb05a82f1d5f8e90e37dfee942b0464366eedac92b6dfcc35ecb50c86fe2b0b3"
+    },
+    "top": {
+      "cache.rs": "015c4d8cac355a7ffdfdcd397f17b7532009f45553fd544afc7a4cfe71a5f4a4",
+      "wire.rs": "23e8d6c70d6c9177beb7d799ecb0fc39f5ef2378c7a2ca43b7f2e599c7d1510f",
+      "lease_names.rs": "cb05a82f1d5f8e90e37dfee942b0464366eedac92b6dfcc35ecb50c86fe2b0b3"
+    }
+  },
+  "binaries": {
+    "deep-gate": "6a749bb18a959068758047c8f4f2840e10a555e0d175c3c33f58b377a8cd9287",
+    "deep": "4410511907cc466ef56c9874cdc6afc9d83e46956987f9b9fecab4c0340f89e7",
+    "deep-alloc": "2ebba2e69d9693d42ecd51a21fc33f4a2f92b0666c774768725f762b98c876ba",
+    "compact-gate": "993cac4e169c3ecdf2116731c1882e6b1200691000bbf17601f4d01de50eb629",
+    "compact": "b8529126b7e26008721daca440b9ad1223357ce0ef91a5fb447031b2511e5c16",
+    "compact-alloc": "24c9abb0f46775a7568ee28692c85d32a3f4dc8628cfe95dbe650525668e9a49",
+    "shared-gate": "a49fd4ad3fcf9707e93ccd657355bd3d518a5cca1a01692537a4eb59695b8746",
+    "shared": "9b3cc4a78e1628c468c1c05c398a0bae6255218c33e84d0da6d033ca8102a2fe",
+    "shared-alloc": "15062037806d91366762a3d361b946128a80548290381e49c72342e4be0cdd47",
+    "top-gate": "abecae30f4d9afe6f17f4051a995818aaa85a2a2adb12586774bf3222fd6b011",
+    "top": "e2df73a4e8e92df64afc241b0fa9263ad0295bd67bdd2c6d1cd13d42de7b38b5",
+    "top-alloc": "588e0433227312992d2e6e577023a0f494709302c189bbbba2b3c3bf3748a728"
+  },
+  "evidence_root": "private/dnsmasq-rewrite/tcp-cache-20261001/snapshot-screen/native/private/screen-01",
+  "evidence_sha256": {
+    "manifest.json": "94f90840d613c28fe7783de5a67f1f646bc099dd89b573c6b4191d860c698b9c",
+    "gate.json": "b4f27418146a0bbf531bcc747580483a433f95d6e7c2ce94cf36919ef8070eef",
+    "allocation.json": "47a1079f41f5a6b29ec447db272e84bd6df810ab5dd060ffb2f8ccb861daae9b",
+    "allocation-result.json": "1f6292001ee7d96103d3d18f4e5a09b37d8fd10a6661b454a4fdd40619ca7790"
+  },
+  "frozen_plan_sha256": "1bdb9a49f4e65311bae2ae1faeec808cd2ef92a93bb3f646fd702dba5c78a121",
+  "timing_invocations": 0,
+  "population_peak_note": "Raw population_allocation[4] is an incremental historical peak counter and is not used as a population-window peak. Reported steady bytes use [3]; snapshot peak_extra_requested resets at each group.",
+  "limitations": [
+    "Primitive source frozen before TCP writeback journal changes.",
+    "No population CPU, snapshot CPU, p50/p95 or throughput evidence from instrumentation builds.",
+    "No C-versus-Rust, service, target or router performance acceptance."
+  ]
+}
