@@ -7,6 +7,33 @@
 use super::{validate_directive, Directive, Error};
 use std::net::Ipv4Addr;
 
+#[path = "dhcp_host.rs"]
+mod host;
+pub use host::{HardwareAddress, HostConfig};
+
+/// A validated copy of only the DNS address-to-domain fields. Keeping these
+/// fields in DnsConfig reuses its audited selector ordering and matching.
+#[derive(Clone, Debug, Default)]
+pub struct NameDomains(super::dns::DnsConfig);
+
+impl NameDomains {
+    pub fn new(config: &super::dns::DnsConfig) -> Result<Self, Error> {
+        let mut domains = super::dns::DnsConfig::default();
+        domains.domain_suffix.clone_from(&config.domain_suffix);
+        domains
+            .conditional_domains
+            .clone_from(&config.conditional_domains);
+        domains.validate_ready()?;
+        Ok(Self(domains))
+    }
+
+    pub fn for_address(&self, address: Ipv4Addr) -> Option<&[u8]> {
+        self.0
+            .domain_for_address(address.into())
+            .expect("NameDomains validates selectors at construction")
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RangeConfig {
     pub start: Ipv4Addr,
@@ -22,6 +49,8 @@ pub struct RangeConfig {
 pub struct DhcpConfig {
     /// Matches C's context-list order: the last configured range comes first.
     pub ranges: Vec<RangeConfig>,
+    /// Last directive first, matching daemon->dhcp_conf.
+    pub hosts: Vec<HostConfig>,
     pub authoritative: bool,
     pub bootp_dynamic: bool,
     pub sequential: bool,
@@ -36,6 +65,7 @@ impl Default for DhcpConfig {
     fn default() -> Self {
         Self {
             ranges: Vec::new(),
+            hosts: Vec::new(),
             authoritative: false,
             bootp_dynamic: false,
             sequential: false,
@@ -169,8 +199,12 @@ impl DhcpConfig {
                     },
                 );
             }
-            b"dhcp-host"
-            | b"dhcp-option"
+            b"dhcp-host" => {
+                let host =
+                    HostConfig::parse(argument.ok_or(Error("missing parameter"))?, &self.hosts)?;
+                self.hosts.insert(0, host);
+            }
+            b"dhcp-option"
             | b"dhcp-option-force"
             | b"dhcp-boot"
             | b"dhcp-vendorclass"
@@ -201,6 +235,35 @@ impl DhcpConfig {
         // A parsed range can omit its mask. Serving-interface discovery and
         // runtime capability checks belong to the listener's admission gate.
         Ok(())
+    }
+
+    /// dhcp-common.c find_config's ordinary selector passes: all client IDs
+    /// before any exact MAC. The caller supplies the selected context chain;
+    /// restoration uses a predicate which accepts every configured address.
+    pub fn find_host(
+        &self,
+        client_id: Option<&[u8]>,
+        hardware_type: u32,
+        hardware_address: Option<&[u8]>,
+        in_context: impl Fn(Ipv4Addr) -> bool,
+    ) -> Option<usize> {
+        let eligible = |host: &HostConfig| host.address.is_none_or(&in_context);
+        client_id
+            .and_then(|id| {
+                self.hosts.iter().position(|host| {
+                    eligible(host)
+                        && host.client_id.as_deref().is_some_and(|configured| {
+                            configured == id || (id.first() == Some(&0) && configured == &id[1..])
+                        })
+                })
+            })
+            .or_else(|| {
+                hardware_address.and_then(|address| {
+                    self.hosts.iter().position(|host| {
+                        eligible(host) && host.matches_hardware(hardware_type, address)
+                    })
+                })
+            })
     }
 
     /// Target Linux CLI default from config.h. OpenWrt init passes its own
