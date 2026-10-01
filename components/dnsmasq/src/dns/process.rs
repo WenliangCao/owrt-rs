@@ -194,8 +194,8 @@ pub fn process_admitted_reply(
     rcode: u16,
 ) -> Result<ProcessReport, ProcessError> {
     let mut header = Header::parse(packet)?;
-    let question_end = skip_questions(packet)?;
-    let scan = find_pseudoheader(packet, false)?;
+    skip_questions(packet)?;
+    find_pseudoheader(packet, false)?;
     let mut report = ProcessReport {
         action: ProcessAction::Deliver,
         blocked_rebind: false,
@@ -219,27 +219,41 @@ pub fn process_admitted_reply(
         }
     }
     if report.blocked_rebind || report.malformed_address || report.bogus_nxdomain {
-        header.answers = 0;
-        header.authorities = 0;
-        header.additionals = 0;
         if report.bogus_nxdomain {
             header.flags = (header.flags & !0x040f) | 3;
         } else if report.malformed_address {
             header.flags = (header.flags & !0x000f) | 2;
         }
-        // resize_packet restores the last OPT after clearing the sections.
-        // Preserve it byte-for-byte; EDE insertion belongs to the caller.
-        let opt = scan
-            .opt
-            .map(|opt| packet[opt.record.start..opt.record.end].to_vec());
-        packet.truncate(question_end);
-        if let Some(opt) = opt {
-            packet.extend_from_slice(&opt);
-            header.additionals = 1;
-        }
-        header.write(packet)?;
+        discard_reply_records(packet, header)?;
     }
     Ok(report)
+}
+
+/// Propagate an ordered cache-extraction failure to the client. The caller
+/// retains cache prefix effects and supplies EDE after restoring the OPT.
+pub(super) fn reject_malformed_reply(packet: &mut Vec<u8>) -> Result<(), WireError> {
+    let mut header = Header::parse(packet)?;
+    header.flags = (header.flags & !0x000f) | 2;
+    discard_reply_records(packet, header)
+}
+
+fn discard_reply_records(packet: &mut Vec<u8>, mut header: Header) -> Result<(), WireError> {
+    let question_end = skip_questions(packet)?;
+    let scan = find_pseudoheader(packet, false)?;
+    // resize_packet restores the last OPT after clearing the sections.
+    // Preserve it byte-for-byte; EDE insertion belongs to the caller.
+    let opt = scan
+        .opt
+        .map(|opt| packet[opt.record.start..opt.record.end].to_vec());
+    header.answers = 0;
+    header.authorities = 0;
+    header.additionals = 0;
+    packet.truncate(question_end);
+    if let Some(opt) = opt {
+        packet.extend_from_slice(&opt);
+        header.additionals = 1;
+    }
+    header.write(packet)
 }
 
 /// check_bad_address stops at the first malformed address, but an earlier

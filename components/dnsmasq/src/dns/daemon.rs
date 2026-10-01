@@ -695,7 +695,7 @@ impl<R: Random> DnsDaemon<R> {
         };
         if matches!(rcode, 0 | 3) {
             if let Some(cache) = self.cache.as_mut() {
-                CacheContext {
+                let extracted = CacheContext {
                     cache,
                     counters: &mut self.cache_counters,
                     negative_cache: self.negative_cache,
@@ -709,6 +709,21 @@ impl<R: Random> DnsDaemon<R> {
                     rcode,
                     ordinary,
                 );
+                if extracted.is_err() {
+                    // The extractor has already applied any complete prefix.
+                    // Reject the wire reply without rolling that state back.
+                    super::process::reject_malformed_reply(&mut reply.packet)?;
+                    if find_pseudoheader(&reply.packet, false)?.opt.is_some() {
+                        super::tcp_service::add_ede(
+                            &mut reply.packet,
+                            self.edns_packet_max,
+                            reply.flags.dnssec_ok,
+                            0,
+                            usize::from(self.edns_packet_max),
+                        )?;
+                    }
+                    return Ok(2);
+                }
             }
         }
         Ok(rcode)
@@ -818,7 +833,7 @@ impl<R: Random> DnsDaemon<R> {
         let Some(cache) = self.cache.as_mut() else {
             return;
         };
-        CacheContext {
+        let _ = CacheContext {
             cache,
             counters: &mut self.cache_counters,
             negative_cache: self.negative_cache,

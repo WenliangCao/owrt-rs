@@ -54,7 +54,7 @@ RUST_DRIVER = r'''
 fn cache_edns_probe_insert<R: Random>(daemon: &mut DnsDaemon<R>, packet: &[u8], now: i64) {
  let Ok(header)=super::wire::Header::parse(packet) else{return};
  let Some(cache)=daemon.cache.as_mut() else{return};
- CacheContext{cache,counters:&mut daemon.cache_counters,negative_cache:daemon.negative_cache,negative_ttl:daemon.negative_ttl}
+ let _ = CacheContext{cache,counters:&mut daemon.cache_counters,negative_cache:daemon.negative_cache,negative_ttl:daemon.negative_ttl}
   .insert_reply_with_policy(packet,now,&daemon.local,&Default::default(),header.rcode().into(),OrdinaryCacheMode::Commit);
 }
 pub fn cache_edns_probe_main() {

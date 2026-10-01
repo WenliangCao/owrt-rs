@@ -518,6 +518,9 @@ impl CacheContext<'_> {
         })
     }
 
+    /// Preserve ordered cache effects, including a prefix before bad generic
+    /// RDATA. Return that validation error so the caller rejects the reply;
+    /// an insertion failure such as capacity exhaustion is not a wire error.
     pub fn insert_reply_with_policy(
         &mut self,
         packet: &[u8],
@@ -526,12 +529,12 @@ impl CacheContext<'_> {
         policy: &super::process::AddressPolicy,
         original_rcode: u16,
         ordinary: OrdinaryCacheMode,
-    ) {
+    ) -> Result<(), WireError> {
         let Ok(header) = Header::parse(packet) else {
-            return;
+            return Ok(());
         };
         if header.opcode() != 0 || !matches!(original_rcode, 0 | 3) || header.flags & 0x0200 != 0 {
-            return;
+            return Ok(());
         }
         let cache = &mut *self.cache;
         let counters = &mut *self.counters;
@@ -556,23 +559,23 @@ impl CacheContext<'_> {
                     ttl,
                 );
                 let _ = cache.commit_counted(counters);
-                return;
+                return Ok(());
             }
         }
         // Unsupported query metadata stays outside ordinary extraction.
         // CD/no_cache instead run its ordered effects and gate only commit.
         if ordinary == OrdinaryCacheMode::Unsupported {
-            return;
+            return Ok(());
         }
         cache.start_insert();
         if header.questions != 1 {
-            return;
+            return Ok(());
         }
         let Ok(question) = WireQuestion::parse(packet, super::wire::HEADER_LEN) else {
-            return;
+            return Ok(());
         };
         if question.class != 1 {
-            return;
+            return Ok(());
         }
         // Address-form PTR replies need C's separate reverse-cache index.
         // Keep that unimplemented boundary explicit instead of storing a
@@ -581,17 +584,17 @@ impl CacheContext<'_> {
             && header.rcode() != 3
             && super::local::arpa_address(&question.name.dnsmasq_bytes()).is_some()
         {
-            return;
+            return Ok(());
         }
         let Ok(edns) = find_pseudoheader(packet, false) else {
-            return;
+            return Ok(());
         };
         if edns
             .opt
             .as_ref()
             .is_some_and(|opt| opt.extended_rcode() != 0)
         {
-            return;
+            return Ok(());
         }
 
         let kind = match question.qtype {
@@ -616,10 +619,10 @@ impl CacheContext<'_> {
             let mut position = question.end;
             for _ in 0..header.answers {
                 let Ok(rr) = super::wire::RecordRef::parse(packet, position) else {
-                    return;
+                    return Ok(());
                 };
                 position = rr.end;
-                let Ok(owner) = rr.name() else { return };
+                let Ok(owner) = rr.name() else { return Ok(()) };
                 if rr.class != 1 || !owner.eq_ignore_ascii_case(&current) {
                     continue;
                 }
@@ -630,7 +633,7 @@ impl CacheContext<'_> {
                 };
                 if rr.rrtype == 5 {
                     if cname_left == 0 {
-                        return;
+                        return Ok(());
                     }
                     cname_left -= 1;
                     // Act on failure only after insertion: C removes the old
@@ -665,7 +668,7 @@ impl CacheContext<'_> {
                     // extract_name checks packet bounds, not the declared
                     // RDLEN. Keep that bounded behavior for ordinary CNAMEs.
                     let Ok((target, _)) = target else {
-                        return;
+                        return Ok(());
                     };
                     current = target;
                     if question.qtype != 5 {
@@ -683,7 +686,7 @@ impl CacheContext<'_> {
                     let data = if matches!(kind, Kind::Ipv4 | Kind::Ipv6) {
                         let width = if question.qtype == 1 { 4 } else { 16 };
                         let Some(data) = packet.get(rr.fixed + 10..rr.fixed + 10 + width) else {
-                            return;
+                            return Ok(());
                         };
                         let address = if question.qtype == 1 {
                             IpAddr::V4(std::net::Ipv4Addr::from(<[u8; 4]>::try_from(data).unwrap()))
@@ -693,14 +696,11 @@ impl CacheContext<'_> {
                             ))
                         };
                         if policy.rejects_rebind(&question.name, address) {
-                            return;
+                            return Ok(());
                         }
                         data.to_vec()
                     } else {
-                        let Ok(data) = rr.canonical_rdata() else {
-                            return;
-                        };
-                        data
+                        rr.canonical_rdata()?
                     };
                     let inserted = insert_cache_record(
                         cache,
@@ -785,6 +785,7 @@ impl CacheContext<'_> {
         if ordinary == OrdinaryCacheMode::Commit && header.flags & 0x0090 == 0x0080 {
             let _ = cache.commit_counted(counters);
         }
+        Ok(())
     }
 }
 
