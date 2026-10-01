@@ -2,6 +2,26 @@
 
 当前状态：进行中。DNS UDP/TCP、hosts/cache SIGHUP、DHCP 动态 context/租期/ICMP/ARP 和 TFTP 独立 TID/单端口/端口范围正在完成服务接线与分项 C 差分；完整功能、性能资源和生产验收均未关闭。阶段成果不等于完成替换。
 
+## 最新状态（恢复会话后核对）
+
+下表是当前进度；后文注明旧冻结源码的构建和检查仅是历史证据。
+当前分工、源身份和未完成合同见 [续作检查点](CONTINUATION_20261001.md)。
+
+| 工作 | 已验证结果 | 尚未关闭 |
+|---|---|---|
+| 主程序 UBus/metrics/doctor/DHCP 通知 | `9910009` 已接线；native C 68/69 配对观察一致 | TCP 父缓存少一次真实插入；不能修饰计数让测试通过 |
+| 有序缓存事务 | `69f24bb`、`7b55df8`：471 操作、真实 UDP 42 场景/210 回复一致 | 完整缓存资格、PTR、TCP、EDNS/DNSSEC metadata |
+| 普通空 OPT 冷缓存 | `377c8a1`：32 场景/64 回复一致；8 组合/重试场景一致 | option-bearing、versioned、signed、DO/AD/CD 等完整合同 |
+| DHCP reverse-host 启动/HUP | `5831e97`：87/87 检查，14 快照等于冻结 C；ACK/INFORM 28/28 | 缺省地址推导、tags/全部 options、PXE/relay/helper |
+| 上游初次 socket/send 失败与 TCP 接纳 | `630addb`、`bb1a664`、`cef8001`：资源失败 61/61、监听恢复 17/17、共享连接上限 31/31；负控均检出 | 瞬态重试、缓存回写/pipe 生命周期另验 |
+| TCP 缓存 | `0e12c4d`：C 普通模式 32 观察基线；借用缓存引擎已提取 | Rust accept 快照、固定时钟、父事务回写和 slot 生命周期 |
+| 最新目标阶段 | 冻结 `405b7c1`，ELF 1,178,407 B，APK 622,772 B；匹配 SDK/镜像依赖 | 完整目标 UBus 67/69，保留两项失败；不是替换包或生产验收 |
+
+目标 UBus 的两个差异分别是 TCP 父缓存写回缺口，以及目标 musl C doctor
+失败解析时原地改坏地址。后者按参考差异保留，不在 Rust 中制造错误地址，
+也不从完整门的分母删掉。证据见 [目标阶段报告](PACKAGE_405B7C1_RESULT.md)。
+Rust ELF 比精确目标 C 的 269,305 B 增加 **909,102 B（337.6%）**，资源门未过。
+
 ## 固定身份
 
 目标为 AX3000T、OpenWrt 25.12.5、九组件 Rust 原生镜像，dnsmasq 仍为 C 2.93-r1
@@ -26,12 +46,12 @@ BOOTP/PXE、DHCP relay/leasequery、AD 透传、可启用的 DNS 订阅也必须
 | 阶段 | 当前状态 | 通过条件 |
 |---|---|---|
 | 身份与 C 参考 | 进行中 | 精确源码、选项、依赖、可重建参考和测试器校准 |
-| DNS | 进行中 | 本地/路由/UDP上游、CNAME与负缓存子集、SOA authority、SIGHUP hosts/cache、TCP传输与拒绝路径已有分项C门；完整cacheability/EDNS metadata、TCP cache继承写回、动态resolver、doctor/ubus与完整配置仍待完成 |
+| DNS | 进行中 | 本地/路由/UDP上游、CNAME与负缓存子集、SOA authority、SIGHUP hosts/cache、TCP传输与拒绝路径已有分项C门；完整cacheability/EDNS metadata、TCP cache继承写回、动态resolver与完整配置仍待完成；doctor/ubus实际接线已完成但差异门未全过 |
 | DHCPv4 | 进行中 | 配置/context/状态/reply/ICMP/ARP、普通static/FQDN、leasefile/到期和同步DNS已有分项真实C门；tags/全部options、relay/PXE/leasequery/helper/hotplug仍待完成 |
 | TFTP 等可用能力 | 进行中 | 文件/权限、错误码、TID、窗口、重试/超时/清理、single-port、端口范围已有C服务门；helper/PXE、全部interface/source pktinfo、广义压力与长期增长门待完成，C缺陷差异未抹去 |
 | OpenWrt 集成 | 进行中 | 全配置、UCI/procd/ujail、ubus/ACL、reload、调用方和默认权限生命周期仍未关闭 |
 | 优化 | 未证明收益 | 正确性通过，冻结工作负载，逐轮成本与资源证据 |
-| 目标构建/打包 | 阶段快照已过 | 冻结产品 `574f5ed` + 工具修复已用匹配SDK构建并核验 inert APK；target C/Rust 关键服务门通过，见 `PACKAGE_574F5ED_RESULT.md`。仍非替换包，当前后续EDNS/leasefile改动不在该冻结产物内 |
+| 目标构建/打包 | 阶段快照已过 | 最新冻结产品 `405b7c1` 已用匹配SDK构建并核验 inert APK，见 `PACKAGE_405B7C1_RESULT.md`；UBus完整门保留两项差异。后续缓存/租约/失败修复未进入该产物 |
 | 真机验收 | 未执行 | 单独授权、恢复门、目标环境测量 |
 
 具体源码映射分文件记录。所有原始报文、配置、地址、租约、ELF 和测量记录放
@@ -113,15 +133,15 @@ TCP失败重试前缀被上次回复长度覆盖。Rust没有为模拟这些错�
 
 UBus真实C合同256/256、独立Rust controller83/83及doctor473/474已有归档；
 doctor剩余1项为C接收缓存指针生命周期缺陷，负对照472/474正确失败。
-尚未连接真实主程序counter、doctor和通知。
+此历史 standalone 阶段之后，`9910009` 已连接真实主程序 counter、doctor 和通知；其服务门仍保留 TCP 父缓存写回差异。
 UCI/procd/ujail/ACL/metrics完整事件与权限仍不能由这里的协议门推导为通过。
 
 `DNS_UDP_FAILURE_PHASE.md`：单个completion/recipient失败不再吞掉同批成功回答，
 保留有界累计诊断；精确C状态1271步、真实UDP84/84及故意恢复整批丢失的负对照
 已通过。`DNS_UDP_ADMISSION_PHASE.md`：接纳/错误helper35项，实际服务40个输入/
 43个观察均匹配，包括丢弃、错误码/OPT/DO、满表后恢复；11秒回复/41秒迟到丢弃/
-42秒新查询的实际窗口也通过。C延迟到新查询才回收FD而Rust主动40秒释放的差异
-保留，下一步将生命周期对齐到C的wallclock/按事件回收，不把提前释放称为收益。
+42秒新查询的实际窗口也通过。此前 C 延迟回收与 Rust 主动释放的差异已由 `ad7e2a7` 的 wallclock/按事件
+生命周期接线修复；精确 forward 状态与计数 1,285 项通过，不据此声称资源收益。
 重复client容量达到上限时，C会以stash ID/question错误拒绝第三client，另有明确
 参考缺陷记录，不能把这个ID差异归一化或把Rust当前drop叫作等价。
 
@@ -130,7 +150,7 @@ UCI/procd/ujail/ACL/metrics完整事件与权限仍不能由这里的协议门�
 47场景/3764观察匹配，负对照3763/1；`METRICS_CACHE_PHASE.md`：缓存提交/
 压力回收/失败/reload的25场景215快照匹配，C每轮重复3次，负对照214/1。
 缓存Daemon接线进一步通过764观察（164查询、382计数快照），负对照763/1。
-主程序全部消息/forward/TCP事件与ubus发布门仍未关闭。
+主程序消息/forward/lease/cache 的实际 owner 已接入 UBus；TCP 父缓存写回仍未关闭。
 
 冻结产品`2415216`的本轮检查：host库328通过/6 ignored、main6通过，Linux库
 331通过/14 ignored，真实共享状态8/8、DHCP/DNS34/34；fmt和musl all-targets
@@ -139,10 +159,10 @@ Clippy通过。该快照的native ELF SHA256为
 原始日志在`private/dnsmasq-rewrite/integration-20261001/`。没有重复跑仍有效的
 port=0旧门，也没有把ignored计为通过或把此host产物叫作目标APK。
 
-新`DNS_STALE_REFRESH_PHASE.md`确认一个已知功能缺口：当前返回stale缓存后不做
-C的后台刷新。四场景、40事件加4上游轨迹共44比较保留13差异；初轮报告的
-compared字段只数40事件，单独audit已纠正分母而未覆盖旧数据。功能门保持红色，
-正在修复，不能因为普通cache路径通过而宣称stale已实现。
+`DNS_STALE_REFRESH_PHASE.md` 保留原 stale 后台刷新缺口的 44 比较/13 差异。
+`9f32047` 已修复，最终 48/48 服务门包括先发旧回复、再启动刷新次序，
+source-bound metadata 1,100/1,100；原先错误的分母和提前发送失败轮次仍保留。
+这是已测 stale 边界，不能扩大为全部 EDNS/cache metadata 已实现。
 
 ## C 成本基线与优化候选
 
@@ -156,15 +176,15 @@ RSS/FD/线程/子进程采样、工具和上游分账、遗漏边界及原始has
 21.54%；当前Rust也有该扫描。[CACHE_EXPIRY_SCREEN_V1.md](CACHE_EXPIRY_SCREEN_V1.md)
 冻结仅增一个保守最早expiry下界的EPS1候选，跳过确定无过期记录的扫描，必要时
 仍按原顺序回收。private候选与B0的37场景26992命令、旧22571原语与1876发布
-操作均匹配C；已知CNAME参考差异在两者保留。默认缓存实现未替换，尚无计时收益，
-不能把候选正确性当成优化完成。
+操作均匹配C；已知CNAME参考差异在两者保留。默认缓存实现未替换。`CACHE_EXPIRY_SCREEN_RESULT.md` 已有冻结的私有原语
+24 窗口结果，counted API rebase 仅有正确性；不能推广为当前服务或相对 C 收益。
 
 [DYN1_RESULT.md](DYN1_RESULT.md) 的固定旧产品候选仅改变动态musl/PIE链接，
 ELF从989991B降为870915B（少119076B，12.03%），保护/依赖及冻结功能门通过。
 默认配方未采用；仍比目标C大601610B，且没有CPU/吞吐/内存收益结论。这一候选
 不覆盖后续源码，也不豁免整体体积退步。
 
-## 目标产物与资源退步
+## 历史 574f5ed 目标产物与资源退步
 
 `PACKAGE_574F5ED_RESULT.md` 记录完整身份。最终阶段APK为 **520,797 B**，
 SHA256 `2c1ae3a6cb04bf9ed190422c7ec5d57b42eefe7c99377143c8a07702073f75a5`；
@@ -202,5 +222,5 @@ CPU 比值 Rust/C 的五轮中位数为：普通输入 0.995–1.014、每 80 �
 
 ## 下一步
 
-继续关闭完整cache/TCP/resolver/接口与配置、DHCP tags/全部options/relay/PXE/helper、其余TFTP和OpenWrt服务合同。计数必须连接实际事件后再发布ubus；EPS1按冻结正确性与成本门推进，最终再出真正替换包。
+继续关闭完整 cache/TCP/resolver/接口与配置、DHCP tags/全部 options/relay/PXE/helper、其余 TFTP 和 OpenWrt 服务合同。保持实际事件计数，先修复 TCP 写回及资源失败边界；EPS1 和快照候选按冻结门推进，最终再出真正替换包。
 保持功能等价和优化目标两条验收线；当前有可运行的受限DNS/DHCP/TFTP开发路径和已验证身份的inert SDK阶段包，仍无可替换生产dnsmasq的完整兼容package。

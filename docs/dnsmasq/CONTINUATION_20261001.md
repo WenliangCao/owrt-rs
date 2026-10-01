@@ -1,273 +1,152 @@
 # Continuation checkpoint — 2026-10-01
 
-The same task remains active. Full functionality, zero-known-defect delivery,
-paired performance/resource improvement and production acceptance are **not
-complete**. Continue after each milestone; no inherited two-hour limit.
-Preserve user-owned `docs/prompts/` changes. Never access or change the physical
-router without a separate explicit request and verified recovery gate.
+The dnsmasq rewrite/optimization remains one ongoing task. Correctness and
+performance acceptance are separate; neither full equivalence nor production
+acceptance is complete. Preserve user-owned `docs/prompts/` changes and all
+failed evidence. Physical-router experiments/deployment need a separate
+explicit request and verified recovery gate. Local and build-host isolated
+work is already authorized.
 
-## Most recent durable handoff
+This checkpoint replaces the earlier contradictory in-flight notes. Phase
+reports and frozen artifact manifests remain the evidence for each result.
+Git history retains the older checkpoint.
 
-This section supersedes the older in-flight notes below.
+## Session recovery and ownership
 
-- Stale worktree changes **were merged in `9f32047`**. Source-bound metadata
-  gate 1,100/1,100, negative 1,099/1; final stale service 48/48 includes kernel
-  send-before-refresh ordering. Shared 8, DHCP/DNS 34, reload 23 and cache 764
-  passed. The 32 ordinary local-CNAME cases remain equal; its two known C
-  layout differences and nonzero full-gate exit remain. The private worktree
-  is retained as evidence, not the current development checkout.
-- `866942d` + `7d8264b` wire common UDP processing/aliases, plain EDNS cached
-  answers and EDE, and enable the validated alias runtime. Static service
-  97/97; cache EDNS 155/155; negatives detect one error each. TCP caller 235,
-  UDP policy 84 and source04 isolated library 361/0/15 ignored are recorded.
-  It also fixes non-QUERY cache admission and accepts/retains only the first
-  4/16 bytes of safely bounded overlong A/AAAA RDATA, matching C.
-  Source04 native ELF is
-  `7ee4d53bf4bc6f43ac10a07fd3df2a74a0ab034f72d0c057ec63a12dc4493f64`;
-  this is a native stage, not the SDK package. See `DNS_ALIAS_SERVICE_PHASE.md`
-  and `DNS_CACHE_EDNS_PHASE.md`.
-- `1992d19` + daemon hooks: actual upstream sizes 68/68 and policy 64/64,
-  before 32/68 differences. Resolver receives configured EDNS maximum +265
-  bytes. Bounded UDP processing preserves C's clipped-section/TC/error order;
-  strict TCP behavior is still separate. `e6d4922` preserves transactions on
-  recoverable receive errors; repeated unconsumable POLLERR alone can back off
-  10 ms. OwnedSocket is +16 bytes; no throughput claim. The 52 actual closed-
-  port checks match but **did not trigger application receive errors** and
-  correctly return exit 2 for that coverage goal.
-- Real counters: cache `3a4b15b`/`97b637e`; lease `fc13ba3`; DHCP messages
-  `994e6e0`; forwarding/unanswered `07f0e79` (1,285 exact C state/counter rows).
-  A wrongly purposed old independent-expiry case is retained/corrected; its
-  new hard calibration proves the younger request survives.
-- DHCP continuation: `9949217` ordinary BOOTP 25/25 (two PRL failures fixed),
-  `2502ad8` boot metadata 54/54, `164e876` shared F_HOSTS next-server lookup
-  53/53, `1525374` ordinary options/default suppression 111/111, `08f996a`
-  options66/67 precedence 97/97. Each has a negative control; applicable boot,
-  hosts and options regressions pass. Unsupported tags/encapsulation/options
-  are still explicit. Main already has the shared hosts callback, preserving
-  Some(0) versus missing and port=0 avoiding DNS files.
-- UBus `5629618`/`72cb9bc`: typed enable config, opaque names 105/105,
-  controller 83/83, shared 65/65, sync queued metrics order 40/40. C libubus
-  drains queued object calls after notify completes but **before** returning
-  the replacement to the doctor. Read pre-doctor counters without taking
-  Provider after Parent. `53d1290` adds real daemon doctor hook and forward
-  counter getter. Main/ParentEvents integration is currently uncommitted WIP.
-  First actual full-chain test has 476 passes/one failure, the existing TCP
-  cache publication difference (C inserted8, Rust7). Keep that red; no fake
-  increment. Ordinary DNS/DHCP/metrics/reconnect observations already match.
-- EPS1 remains private: `3277404` original primitive screen and `293b7ac`
-  counted-API rebase report. The latter has fresh correctness gates and no
-  timing claim. Default cache has not adopted the candidate. There is no
-  active quiet window; new host performance requires explicit coordination.
+The user requested continuation of session
+`01a0f416-2ee3-7bf0-9920-10283e5c1cde`, including its subagents. The resumed
+coordinator recovered its original requirements and local transcript. Some
+original subagents continued running in a separate agent tree and modifying
+the shared checkout; they are not automatically attached to this tree's
+collaboration tools. Do not start competing edits in their files.
 
-Current ownership:
+Observed original ownership at recovery:
 
-1. **Root:** integration coordination, master report/checkpoint and next inert
-   SDK stage preparation. SDK path is
-   `/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64`.
-   Use `build_package.py` protected snapshot/recipe restoration; freeze a
-   complete committed source before building. No deployment/image assembly.
-2. **ubus_lifecycle** (replacement for disconnected `ubus_contract`): owns
-   main.rs/ParentEvents and daemon common doctor callback. Main APIs are now
-   present; transient missing-method/DHCP-sink compile failures are preserved,
-   not passes. Finish actual full-chain/stale/pressure/delayed-bus/negative
-   gates and coordinate the TCP red gate with its owner.
-3. **dns_policy:** owns upstream/reply/process raw-receive work and now only
-   daemon `cache_reply_at_with_local` for complete Answer + clipped later
-   section caching. Frozen baseline: 30 differences in 96 operations/64
-   queries; after-fix gate is running. Do not touch UBus common hook. Strict
-   TCP envelope remains a later independent boundary.
-4. **dhcp_static:** moves from finished aliases to TCP cache fork/pipe contract.
-   Use **-k**, not -d, for child/parent evidence. Determine accept-time cache,
-   hosts/lease snapshots, fixed connection clock, typed absolute-expiry commit
-   batches and parent insertion metrics. No shared mutable parent cache or
-   extra UDP/entropy resolver in the child cache adapter. Coordinate main
-   snapshot/batch/drain/slot hooks with ubus owner and cache functions with
-   dns_policy. Quantify Clone/COW costs; do not default to costly full cloning.
-5. **lease_dns:** owns DHCP source event callbacks for real ACK/RELEASE before
-   send, coordinating with ubus owner. It is verifying C reverse-host fallback
-   for nonauthoritative ACK/unnamed INFORM; do not claim those events equal
-   before their actual C gate. Further ordinary option/encoding/tag/PXE/relay
-   work remains after this producer boundary.
+- `dns_cache_effects`: upstream send EINTR/EAGAIN retry work in `upstream.rs`
+  after the committed initial socket/send-error fallback. Its draft is not a
+  completed gate. `daemon_poll_tests.rs` has a formatting-only draft.
+- `dhcp_static`: TCP cache snapshots, fixed connection clock and actual parent
+  transaction writeback. No product snapshot representation is accepted yet.
+- `lease_dns`: completed reverse-host lease lifecycle, then auditing address
+  derivation for `dhcp-host` without an explicit address.
 
-The user-owned prompt edits remain untouched. Full feature, zero-known-defect,
-paired C/Rust performance/resource and production gates remain open.
+Current coordination work (initial recovery and subsequent handoff):
 
-## Reference and environment
+- Root owns integration/report reconciliation and the target-reference tool
+  changes, committed as `31d6056`. Those tool bytes match the archived target
+  SDK gate identities; CLI import/help/syntax checks passed.
+- `workspace_audit` owns a minimal listener-survival fix in the detached worktree
+  `private/dnsmasq-rewrite/resume-fd-listener-20261001`, based on `630addb`.
+  The equivalent original-agent fix `bb1a664` was retained; `cef8001` integrates shared admission. Final actual gates pass 61/61 resource failure, 17/17 TCP recovery, and 31/31 capacity.
+- `evidence_recovery` independently audits the existing `405b7c1` target SDK
+  stage and writes `PACKAGE_405B7C1_RESULT.md`; it does not rebuild artifacts.
+- `tcp_slot_contract` owns a separate real-service C baseline for admission at
+  `max-tcp-connections`. The pre-fix 23/31 gate is now 31/31; negative 30/31 exits 1. No cache implementation is delegated to this agent.
+
+Original subagent logs ceased activity together at 16:05 local time. Their
+remaining tasks have been assigned to isolated continuation worktrees so any
+later original-tree edits cannot overwrite these candidates:
+
+- `workspace_audit`: `private/dnsmasq-rewrite/resume-send-retry-20261001`, base
+  `10b9d19`, with original upstream draft copied in; finish exact C transient
+  send retry oracle/implementation/regressions.
+- `tcp_slot_contract`: `private/dnsmasq-rewrite/resume-dhcp-hosts-20261001`, same
+  base; establish ordinary hosts-derived DHCP address C baseline before a fix.
+
+No quiet performance window is active. Keep formal snapshot timing paused
+until the build host is explicitly coordinated; correctness builds/tests may
+continue. This is scheduling, not a requirement for new user permission.
+
+## Latest committed functional progress
+
+| Unit | Evidence and bounded result |
+| --- | --- |
+| `9910009`, `53d1290` live UBus integration | Main metrics read actual cache/forward/lease/message owners; UDP doctor and DHCP source events are wired. Native C schedule 68/69 paired matches; TCP parent insertion remains red. See `UBUS_DAEMON_PHASE.md`. |
+| `405b7c1` clipped later sections | Complete Answer records may cache despite clipped later sections. `DNS_CLIPPED_CACHE_PHASE.md` preserves the original failures and 96-operation final gate. |
+| `bf3a73c`, `58b2231` DHCP source events/reverse names | Source notification precedes file/DNS/socket effects; static reverse-host fallback for ordinary ACK/INFORM passes 28/28. |
+| `e77d966` borrowed cache engine | Common record builder/insertion adapter extracted without adding a UDP resolver or owned local-name generation. See `DNS_CACHE_ENGINE_EXTRACTION.md`. |
+| `0e12c4d` TCP ownership baseline | Exact C normal foreground (`-k`, not `-d`) establishes 32 cache/snapshot/clock/writeback observations. Rust implementation remains open. |
+| `69f24bb`, `7b55df8` ordered cache side effects | 471 policy operations and actual UDP 42 cases/210 replies match; aborted transactions retain C's preceding removals/evictions. Negative controls detect injected errors. |
+| `377c8a1` cold empty OPT caching | 32 IPv4/IPv6 cases/64 replies match after 26 original differing cases; first-query cache eligibility does not alter coalescing/retry flags. Eight coalescing/retry cases match. Full EDNS/DNSSEC metadata remains open. |
+| `5831e97` reverse-host startup/HUP | 87/87 checks; 14 snapshots equal independently frozen C bytes, prior 70/87 failure retained. ACK/INFORM 28/28 and Linux DHCP 117/117 pass. See `DHCP_REVERSE_LIFECYCLE_PHASE.md`. |
+| `630addb`, `bb1a664`, `cef8001` upstream failure/TCP admission | Initial error replies and retained listeners now pass all 61 observations, focused TCP recovery 17/17, shared slot admission 31/31. Original 51-observation partial gate and capacity 23/31 failure remain archived. See `DNS_TCP_ACCEPT_FAILURE_PHASE.md` / `DNS_TCP_CAPACITY_PHASE.md`. |
+
+The empty reverse short-name persistence boundary remains a documented safe
+Rust difference; it is not an executed C pass. All counts above belong to
+their own frozen sources, not automatically to the latest working tree.
+
+## Target artifacts and cost status
+
+Latest existing inert SDK source is `405b7c1`, with later cache/lease/error
+fixes outside that artifact. Rust ELF is 1,178,407 bytes, SHA-256
+`f93fc151e7faabb15ae03264650d271145ef88cbe02851317e546e6e6a501590`.
+Exact image C ELF is 269,305 bytes: Rust adds 909,102 bytes (337.6%).
+The target UBus gate has 67/69 paired matches and two failures: missing TCP
+parent cache insertion and the target musl C doctor's in-place failed-parse
+address mutation. Keep the complete gate nonzero; do not emulate that bad
+address mutation or silently exclude the case.
+
+Historical `574f5ed` and DYN1 results remain in their separate reports; neither
+represents current source. All packages are inert `/usr/libexec/dnsmasq-rs`
+stages, not stock replacement, image assembly or production deployment.
+
+`C_COST_RESULT.md`: nine C-only windows, 660,000 correct completions; no paired
+Rust or router conclusion. EPS1's private primitive screen and counted rebase
+are in `CACHE_EXPIRY_SCREEN_RESULT.md` / `CACHE_EXPIRY_COUNTED_REBASE.md`;
+default product cache has not adopted it.
+
+`TCP_SNAPSHOT_SCREEN_ALLOCATION.md`: all four private representations pass
+21 scenarios/22,571 operations. Shared-entry snapshots reduce requested heap
+49.20%/52.34% at capacities 1,000/10,000, while parent heap rises 2.23%/2.36%
+and population adds one allocation per entry. Formal CPU/tail timing has not
+run; no candidate is accepted. Preserve `TCP_SNAPSHOT_SCREEN_V1.md`'s frozen
+48-run schedule and thresholds. Requested heap is not RSS/exclusive memory.
+
+## Reference and execution environment
 
 - Target: AX3000T, OpenWrt 25.12.5, dnsmasq 2.93-r1 `nodhcpv6`.
-  Exact revision/archive/features: `OPENWRT_CONTRACT.md`, `REFERENCE_AUDIT.md`.
-- Reference source: `private/dnsmasq-rewrite/reference/dnsmasq-2.93`.
-- Authorized build host: `ssh oracle`; native exact C build:
-  `/home/ubuntu/dnsmasq-rewrite-20260929/c-native-01`.
-- Native C ELF SHA256:
+  OpenWrt revision `f0a60eee2fe051741c643ea6118718aae1ef17fb`.
+  Source/features: `OPENWRT_CONTRACT.md`, `REFERENCE_AUDIT.md`.
+- Local matching C source: `private/dnsmasq-rewrite/reference/dnsmasq-2.93`.
+- Authorized build host: `ssh oracle`. Exact native C build:
+  `/home/ubuntu/dnsmasq-rewrite-20260929/c-native-01`; executable
+  `dnsmasq/dnsmasq`, SHA-256
   `bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431`.
-- Rust 1.98.1, remote Cargo `/home/ubuntu/.cargo/bin/cargo`. Set
-  `RUSTUP_TOOLCHAIN=1.98.1` when a snapshot omits the root toolchain file.
-- Network tests: `sudo -n sh tools/dnsmasq/run_isolated.sh ...`; execute
-  already-built tests under sudo, not root rustup. Private configuration,
-  lease files, ubus and loopback only. Never start DHCP on the host network.
-- Sync without `target`/`__pycache__`; each gate gets a source identity and a
-  new private output path. Preserve failures, unexecuted cases and old evidence.
+- Exact image C ELF SHA-256:
+  `097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87`.
+  Use the verified private musl runner/identity and all matching libraries.
+- Rust 1.98.1; remote Cargo `/home/ubuntu/.cargo/bin/cargo +1.98.1`.
+  Build frozen source in a fresh target directory to avoid stale extraction
+  mtimes or mixed main/library outputs.
+- Run network experiments only through
+  `sudo -n sh tools/dnsmasq/run_isolated.sh ...`. Each gets private network,
+  mount and PID namespaces; only loopback is enabled. Never bind experimental
+  DHCP to the ordinary host network. Raw inputs/ELFs/configs/leases stay private.
+- SDK:
+  `/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64`.
+  Use `build_package.py` protected snapshot and recipe restoration.
 
-## Completed integration
+## Invariants and remaining delivery boundaries
 
-- `f6d3cf8`: one parent UDP cache/forward table across listeners, original
-  listener retained per recipient. C shared-state gate: before 1/7, after 8/0.
-- `3d01558`: synchronous lease DNS before ACK and atomic parent HUP. Actual
-  C/Rust 34/34 ordered events; first restored-name query, immediate ACK lookup,
-  prior forward/negative cache, A/FQDN/PTR/CNAME, TCP, release and idle expiry.
-- `a5de38f`, `816b955`: DNS-disabled startup skips hosts/resolver FIFOs,
-  DNS cache/forwarder/entropy and listeners. Prepare every engine before workers.
-  TFTP 7/7; DHCP 72/72 with negative 71/1. Startup status classes are explicit.
-- Ordinary static CLID/MAC/name/options12/15/81: config 86 matched/8 unsupported,
-  service 208/0, dynamic 114/0, restored FQDN 20/20. Ordinary DHCP host files/HUP:
-  20 parser reloads and 41/0 actual combined observations, negative 40/1.
-  Unsupported-selector pause/recovery is a separate Rust boundary (11/0).
-- Dedicated lease DNS/COW expiry/selfmx: 21 scenarios/1,238 observations/564
-  replies and 10 clock cases. See `LEASE_NAMES_PHASE.md`/`DNS_LEASE_CACHE_PHASE.md`.
-- `40f3943`, `846bd3f`, `75828d0`: selective publication invalidation,
-  late-response local blockers and safe cached local CNAME targets. Publication
-  1,876 operations; local-target gate 36 cases/269 observations/95 queries.
-  Its 32 ordinary cases match; four reference-layout cases retain two differences
-  and nonzero full-gate exit. Never report the complete result as zero.
-- `39705d0`: a failed completion/recipient no longer discards successful
-  siblings. Bounded diagnostics; no timeout SERVFAIL. C state 1,271 operations,
-  UDP caller 84/84 and deliberate whole-batch-loss mutation caught.
-- `0529905`, `579167d`: UDP admission/public daemon/GroupFull hooks and
-  default 40-second validity. Helper 35 cases; actual service 40 datagrams/43
-  observations with zero differences. Main hooks committed in `2415216`; the
-  real 11-second reply/41-second late drop/42-second recovery window passed.
-  C lazy FD reclamation still differs from the initial Rust proactive timeout.
-- `e068336`, `9bc1f2b`, `d57a877`: ubus transport/controller/doctor
-  standalone gates: C 256/256, controller 83/83, doctor 473/474 (one C lifetime
-  defect retained). Not yet wired into the real main service.
-- `fc13ba3`: real LeaseStore allocation/prune counters and provider snapshot:
-  exact full-object C 47 cases/3,764 observations; negative 3,763/1. Restored
-  zero-address leases really use prune6 even under NO_DHCP6.
-- `3a4b15b`: caller-owned cache counters: 25 cases/215 snapshots, C repeated
-  three times, negative 214/1. Cache layout unchanged; external counters 8 B.
-  Daemon counted insertion/commit/reset integration committed in `97b637e`:
-  764 observations/164 queries/382 counter snapshots all match; negative 763/1.
-- Frozen `2415216` integration: host library 328 passed/6 ignored and main 6;
-  Linux library 331 passed/14 ignored; actual shared state 8/8 and DHCP/DNS
-  34/34. Native release ELF SHA256
-  `1334f0dfbd9af3a38279a0fb69199be8193f7b5a3e710787a48fb33b37d786be`.
-  Evidence is `private/dnsmasq-rewrite/integration-20261001/`. Later code does
-  not inherit this whole-snapshot qualification without affected checks.
-- `6162f6e`: actual stale-cache refresh gate is red: four cases, 40 ordered
-  event rows plus four upstream traces, 13 differences. C works; Rust serves
-  old data without refreshing. `DNS_STALE_REFRESH_PHASE.md` and private before
-  trace retain the result and the initial comparison-denominator correction.
+Parent events serialize `event -> DHCP provider -> parent DNS`; socket waits
+stay outside the shared lock. Release parent DNS before provider reload,
+because its publisher reacquires DNS. Initial lease publication finishes before
+workers; DHCP publication precedes ACK. UBus callbacks must not reacquire the
+provider after DNS. The one parent cache/table serves every UDP listener and
+replies retain their original listener. TCP must acquire an accept-time private
+snapshot; sharing the mutable parent cache would break the observed C contract.
 
-## State invariants
+Continue actual TCP cache inheritance/writeback/fixed-time/slot cleanup, then
+remaining cacheability/PTR/EDNS, dynamic resolver/interface/source-port behavior;
+DHCP tags/all options/hosts address fallback/relay/PXE/leasequery/helpers;
+TFTP main IPv6/multiple listener/source-interface behavior; permissions, logs,
+UCI/procd/ujail/ACL/hotplug/odhcpd/rpcd/LuCI and pressure/long-run recovery.
+The 169 indexed capability entries are not 169 implemented capabilities.
 
-`ParentDns { local, daemon: Option<DnsDaemon> }` owns the shared UDP generation.
-TCP takes a static hosts/cursor snapshot and share-then-COW lease snapshot at
-accept. `LeasePublisher` installs names before ACK. HUP rebuilds hosts and
-clears the forward cache, then reloads DHCP host files and forces publication.
-Lock order: **event RwLock → DHCP provider → DNS parent**. Release the DNS mutex
-before provider reload because publication reacquires it. Initial publication
-finishes before workers. Socket waits stay outside the shared DNS lock.
-
-Use `local::configured_hosts` before files and UDP `*_with_local` methods.
-`LocalProvider::lease_counters()` includes restoration; do not reset it on HUP.
-Cache/lease snapshots cannot substitute for all actual DNS/DHCP/TCP events.
-
-## Active ownership and immediate work
-
-Latest in-flight checkpoint (after the entries above):
-
-- `ad7e2a7` commits C forwarding lifetime and `Client.reply_requested`.
-  Default daemon/main use `Lifetime::ForwardTable`; explicit primitive waits
-  retain `Fixed(Duration)`. Default clients request replies, background clients
-  can suppress delivery while retaining common cache insertion. Source C state
-  1,285 operations and 178 DNS tests passed; new service replay is being archived.
-- `994e6e0` commits actual DHCP message counters: 16 scenarios/88 observations
-  match on host and Linux, negative 87/1, 99 DHCP tests. Provider exposes
-  `message_counters()`. Quiet-DHCP early returns follow C. Main publication is open.
-- `8b98b16` commits doctor packet traversal: 36/38 C matches, two explicit safe
-  length-handling differences (full gate remains nonzero), negative 35/38.
-- `c371925` freezes C stale metadata: five profiles, 1,100 commands/685 queries,
-  1,131 calibrations. Eight `stale=1` observations have no answer; those must
-  not trigger a client-delivered stale refresh. Raw baseline is under
-  `private/dnsmasq-rewrite/stale-metadata-20261001/baseline-01`.
-- Root stale implementation is in an isolated worktree:
-  `private/dnsmasq-rewrite/stale-work`, now based on `ad7e2a7`. It is **not yet
-  merged**. Pre-rebase checkpoint object is recorded in
-  `private/dnsmasq-rewrite/stale-work-checkpoint.txt`.
-  `CachedAnswer { packet: Option<Vec<u8>>, stale: bool }` preserves no-answer
-  metadata; main sends stale first, then calls `refresh_udp_on_listener` with
-  original bytes and `reply_requested=false`. Old NX/typed priority is fixed
-  in the candidate. HUP exclusion now spans reply/send/refresh.
-- Stale service candidate remote: `/home/ubuntu/dns-stale-refresh-20261001`.
-  `gate-01` matched the original 44 protocol/trace checks but a new kernel
-  timestamp check caught its early upstream-send order: `send-order-negative-01`
-  is 44 matches/4 ordering failures. Corrected send-before-refresh `gate-02`
-  is **48/48**, ELF `0c133de5b76c3df1490c52507193ea61ad0705a7ac9cbabebcac837ed6b05566`.
-  Subsequent metadata/no-answer/HUP guard edits still need the new 1,100-command
-  C gate and final affected regressions; do not silently attach the old ELF to them.
-- The oracle quiet window is **over**. EPS1 frozen 24 timed runs completed
-  with no extra rounds. Relative to Rust B0 primitive CPU/operation: unexpired
-  median -81.8628%, mixed -71.1418%; hot worst pair +0.6858%, no claimed tiny hot
-  gain. Same heap requests/bytes/end-live, drop delta zero, Cache +8 B, Entry
-  unchanged. Only retain for later service gate; default cache unchanged and
-  current counted-API rebase still required. No C/service/router speed claim.
-
-1. **Root:** finish isolated stale candidate, integrate the metadata driver,
-   run precise C gate and affected main/cache/HUP checks, then merge the worktree
-   changes without overwriting other owners. Main/daemon are now released.
-2. **dns_policy:** deadline windows passed and failed readiness round retained.
-   Working on explicit transport `Lifetime::ForwardTable` versus `Fixed`:
-   daemon should keep C wall-clock/lazy frec behavior, primitive explicit
-   timeouts remain fixed. This avoids fake deferred unanswered bookkeeping and
-   permits clock rollback to retain C reply validity. Owns forward/upstream and
-   API/default migration is committed; daemon/main released. Finish service
-   replay and real forwarded/unanswered counters. DuplicateFull original-ID
-   refusal is in source but its explicit C difference needs the service record.
-   Upstream poll/receive error currently cancels where C retains; independent
-   ICMP/retry failure gate remains necessary.
-3. **lease_dns:** 43/43 admission evidence is local under
-   `private/dnsmasq-rewrite/udp-admission-20261001/{freeze-01,pair-01}`.
-   DuplicateFull C-only gate found a wrong stash ID/question in the refusal;
-   retain as a reference defect, never normalize that ID. Now owns DHCP
-   message counters are committed. Now auditing ordinary BOOTP service: source
-   shows the ordinary chain is already connected despite stale documentation.
-   Actual C gates will cover dynamic/static/file/DNS; potential client hostname
-   and PRL differences need fixing, not a new redundant adapter.
-4. **ubus_contract:** doctor and C metadata committed. Now writes the new
-   `daemon_stale_tests.rs` inside root's private worktree and main-tree
-   `tools/dnsmasq/stale_metadata_diff.py`; root registers the module. New type/API
-   above is agreed. Full live metrics/doctor controller wiring remains open.
-5. **dhcp_static:** EPS1 private-only candidate at B0 `816b955`; product cache
-   unchanged. Pressure 37 scenarios/26,992 commands (C×3), legacy 22,571 and
-   publication 1,876 match for B0/EPS1. Known local-CNAME differences persist
-   identically. Preparing timed/allocation vectors and C calibration, no timing
-   yet. Coordinate a quiet build-host interval before measurement.
-
-## Costs, artifacts and open contracts
-
-`C_COST_RESULT.md`: nine C-only windows, 660,000/660,000 correct completions.
-CPU/completion hot 39.10–40.65 µs, mixed 47.69–48.36 µs, TCP 228.53–230.66 µs
-including children. Full scans consume 11.07%/21.54% self cycles in mixed/TCP.
-No paired Rust or router conclusion. EPS1 is frozen in
-`CACHE_EXPIRY_SCREEN_V1.md`: one conservative bound, no extra heap/per-record
-allocation, same cleanup order. Its eventual port must change the counted
-insert/commit bodies; do not alter frozen workloads or acceptance thresholds.
-
-The old product `574f5ed` inert SDK stage remains APK 520,797 B, Rust ELF
-989,991 B versus target C 269,305 B: **+720,686 B / +267.6%**, still open.
-DYN1 is 870,915 B (12.03% below old Rust, still +601,610 B versus C), default
-recipe unchanged. Neither artifact includes later code or establishes acceptance.
-
-Open contracts: upstream PTR, full cacheability/EDNS/stale, TCP cache
-inheritance/writeback, dynamic resolver/interfaces/pktinfo/source ports;
-DHCP tags/all options/hosts fallback/relay/PXE/leasequery/helper; TFTP main
-IPv6/multiple listeners; actual metrics/doctor/events and UCI/procd/ujail/ACL/
-hotplug/odhcpd/rpcd/LuCI lifecycle, permissions and resource pressure.
-
-Known C differences remain explicit: SRV uninitialized type, TFTP stale DATA/
-FD leak, TCP retry length/inherited OPT, cache CNAME reuse, stale ubus type IDs,
-doctor receive-buffer lifetime and duplicate-capacity wrong ID. Duplicate
-restored DHCP addresses are rejected by Rust. Same-bucket incidental lease
-expiration under clock rollback retains a red case. Preserve correct/safe
-behavior and incomplete acceptance; no answer to the prior clarification exists.
+Known C reference differences remain explicit: SRV uninitialized type, TFTP
+stale DATA/FD leak, TCP retry length/inherited OPT, local CNAME object reuse,
+stale UBus type IDs, doctor receive-buffer lifetime and musl failed-parse
+mutation, duplicate-capacity wrong request ID. The same-bucket incidental
+lease expiry under clock rollback also retains a red case. Safe behavior does
+not itself resolve compatibility acceptance. Never turn unexecuted tests,
+ignored tests, stage artifacts or local screens into full acceptance claims.
