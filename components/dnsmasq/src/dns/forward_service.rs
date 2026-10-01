@@ -119,6 +119,12 @@ impl ForwardDispatcher {
         &self.table
     }
 
+    /// dnsmasq.c's packet_buff_sz: advertised EDNS maximum plus room for one
+    /// maximum wire name and the fixed resource-record fields.
+    pub fn udp_receive_capacity(&self) -> usize {
+        usize::from(self.edns_packet_max) + super::wire::MAX_NAME_LEN + 10
+    }
+
     pub fn table_mut(&mut self) -> &mut ForwardTable {
         &mut self.table
     }

@@ -6,7 +6,10 @@
 //! safety decisions that must happen before a packet can reach a client.
 
 use super::doctor::{self, Alias, DoctorOutcome};
-use super::wire::{decode_name, find_pseudoheader, Header, Message, Question, Section, WireError};
+use super::wire::{
+    decode_name, find_pseudoheader, skip_name, skip_questions, Header, Question, RecordRef,
+    WireError, HEADER_LEN,
+};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -101,9 +104,9 @@ impl From<WireError> for ProcessError {
 /// this after authentication and before its retry/completion state changes.
 /// Only the header's low RCODE gates this check, even with TC or an OPT RCODE.
 pub fn ignore_reply(packet: &[u8], policy: &AddressPolicy) -> Result<bool, ProcessError> {
-    let message = Message::parse(packet)?;
-    Ok(message.header.rcode() == 0
-        && scan_bad_addresses(packet, &message, &policy.ignore_addresses, false))
+    let header = Header::parse(packet)?;
+    Ok(header.rcode() == 0
+        && scan_bad_addresses(packet, header.answers, &policy.ignore_addresses, false))
 }
 
 /// Static subset of C's do_doctor stage. The owner calls this exactly once on
@@ -129,18 +132,18 @@ pub fn apply_static_aliases(
 /// Address-policy subset of `process_reply`; the caller owns reply envelope,
 /// cache, SOA, local NXDOMAIN conversion, doctor/UBus, RR filters and EDE.
 ///
-/// Input must be structurally bounded. A/AAAA address reads intentionally use
+/// The question must be bounded; incomplete RRs are processed in source order.
+/// A/AAAA address reads intentionally use
 /// packet bounds, as C does, rather than requiring an exact RDLEN; no read can
-/// escape the supplied packet. Structural failures return an error atomically.
+/// escape the supplied packet. A malformed Answer becomes SERVFAIL unless an
+/// earlier bogus/rebind decision wins. TC/errors bypass address extraction.
 /// Ignore must also be checked before transport completion via `ignore_reply`.
 pub fn process_reply(
     packet: &mut Vec<u8>,
     policy: &AddressPolicy,
 ) -> Result<ProcessReport, ProcessError> {
-    let message = Message::parse(packet)?;
-    if message.header.rcode() == 0
-        && scan_bad_addresses(packet, &message, &policy.ignore_addresses, false)
-    {
+    let header = Header::parse(packet)?;
+    if ignore_reply(packet, policy)? {
         return Ok(ProcessReport {
             action: ProcessAction::Ignore,
             blocked_rebind: false,
@@ -150,7 +153,7 @@ pub fn process_reply(
         });
     }
     let scan = find_pseudoheader(packet, false)?;
-    let rcode = u16::from(message.header.rcode())
+    let rcode = u16::from(header.rcode())
         | scan
             .opt
             .as_ref()
@@ -168,7 +171,8 @@ pub fn process_admitted_reply(
     policy: &AddressPolicy,
     rcode: u16,
 ) -> Result<ProcessReport, ProcessError> {
-    let message = Message::parse(packet)?;
+    let mut header = Header::parse(packet)?;
+    let question_end = skip_questions(packet)?;
     let scan = find_pseudoheader(packet, false)?;
     let mut report = ProcessReport {
         action: ProcessAction::Deliver,
@@ -177,24 +181,22 @@ pub fn process_admitted_reply(
         bogus_nxdomain: false,
         ignored_address: false,
     };
-    if message.header.opcode() != 0 || !matches!(rcode, 0 | 3) || message.header.flags & 0x0200 != 0
-    {
+    if header.opcode() != 0 || !matches!(rcode, 0 | 3) || header.flags & 0x0200 != 0 {
         return Ok(report);
     }
 
     // C's bogus wildcard branch runs before extract_addresses, so its first
     // match suppresses both rebind and malformed-address processing.
     report.bogus_nxdomain =
-        rcode != 3 && scan_bad_addresses(packet, &message, &policy.bogus_addresses, true);
+        rcode != 3 && scan_bad_addresses(packet, header.answers, &policy.bogus_addresses, true);
     if !report.bogus_nxdomain {
-        match extract_address_policy(packet, &message, policy) {
+        match extract_address_policy(packet, header, policy) {
             1 => report.blocked_rebind = true,
             2 => report.malformed_address = true,
             _ => {}
         }
     }
     if report.blocked_rebind || report.malformed_address || report.bogus_nxdomain {
-        let mut header = message.header;
         header.answers = 0;
         header.authorities = 0;
         header.additionals = 0;
@@ -208,7 +210,6 @@ pub fn process_admitted_reply(
         let opt = scan
             .opt
             .map(|opt| packet[opt.record.start..opt.record.end].to_vec());
-        let question_end = message.questions.end;
         packet.truncate(question_end);
         if let Some(opt) = opt {
             packet.extend_from_slice(&opt);
@@ -223,36 +224,52 @@ pub fn process_admitted_reply(
 /// matching address wins. Ignore skips owner-name decoding; bogus extracts it.
 fn scan_bad_addresses(
     packet: &[u8],
-    message: &Message<'_>,
+    answers: u16,
     prefixes: &[AddressPrefix],
     decode_owner: bool,
 ) -> bool {
     if prefixes.is_empty() {
         return false;
     }
-    for rr in message.records(Section::Answer) {
-        if decode_owner && decode_name(packet, rr.start, 10).is_err() {
-            return false;
-        }
-        if rr.class != 1 || !matches!(rr.rrtype, 1 | 28) {
-            continue;
-        }
-        let Some(address) = packet_address(packet, rr.fixed + 10, rr.rrtype) else {
+    let Ok(mut position) = skip_questions(packet) else {
+        return false;
+    };
+    for _ in 0..answers {
+        let fixed = if decode_owner {
+            decode_name(packet, position, 10).map(|(_, fixed)| fixed)
+        } else {
+            skip_name(packet, position, 10)
+        };
+        let Ok(fixed) = fixed else {
             return false;
         };
-        if prefixes.iter().any(|prefix| prefix.contains(address)) {
-            return true;
+        let rrtype = u16::from_be_bytes([packet[fixed], packet[fixed + 1]]);
+        let class = u16::from_be_bytes([packet[fixed + 2], packet[fixed + 3]]);
+        let rdlen = u16::from_be_bytes([packet[fixed + 8], packet[fixed + 9]]);
+        // check_bad_address tests the bounded address before ADD_RDLEN. An
+        // earlier match wins even when this RR's declared tail is incomplete.
+        if class == 1 && matches!(rrtype, 1 | 28) {
+            let Some(address) = packet_address(packet, fixed + 10, rrtype) else {
+                return false;
+            };
+            if prefixes.iter().any(|prefix| prefix.contains(address)) {
+                return true;
+            }
+        }
+        position = fixed + 10 + usize::from(rdlen);
+        if position > packet.len() {
+            return false;
         }
     }
     false
 }
 
 /// Return C extract_addresses' 0/1/2 decision for the address/CNAME subset.
-fn extract_address_policy(packet: &[u8], message: &Message<'_>, policy: &AddressPolicy) -> u8 {
-    if message.header.questions != 1 {
+fn extract_address_policy(packet: &[u8], header: Header, policy: &AddressPolicy) -> u8 {
+    if header.questions != 1 {
         return 2;
     }
-    let Ok(question) = Question::parse(packet, message.questions.start) else {
+    let Ok(question) = Question::parse(packet, HEADER_LEN) else {
         return 2;
     };
     if question.class != 1 {
@@ -266,7 +283,14 @@ fn extract_address_policy(packet: &[u8], message: &Message<'_>, policy: &Address
     let mut current = question.name;
     let mut cnames_left = 10;
     'cname: loop {
-        for rr in message.records(Section::Answer) {
+        let mut position = question.end;
+        for _ in 0..header.answers {
+            // The ordinary extract_addresses path checks endrr before any
+            // CNAME/address policy, but only after earlier RRs have run.
+            let Ok(rr) = RecordRef::parse(packet, position) else {
+                return 2;
+            };
+            position = rr.end;
             // C decodes every owner even when its class/type/name is unrelated.
             let Ok((owner, _)) = decode_name(packet, rr.start, 10) else {
                 return 2;
@@ -288,7 +312,7 @@ fn extract_address_policy(packet: &[u8], message: &Message<'_>, policy: &Address
                 }
             } else if rr.rrtype == question.qtype
                 && matches!(question.qtype, 1 | 28)
-                && message.header.rcode() != 3
+                && header.rcode() != 3
             {
                 let Some(address) = packet_address(packet, rr.fixed + 10, question.qtype) else {
                     return 2;
@@ -768,5 +792,83 @@ mod tests {
             .unwrap();
             assert_eq!(ignored, flags == 0x8180 || flags == 0x8200);
         }
+    }
+
+    #[test]
+    fn clipped_answer_becomes_servfail_but_tc_keeps_received_bytes() {
+        let mut clipped = packet("8.8.8.8".parse().unwrap());
+        clipped.pop();
+        for tc in [false, true] {
+            let mut input = clipped.clone();
+            if tc {
+                input[2] |= 2;
+            }
+            let original = input.clone();
+            let report = process_reply(&mut input, &AddressPolicy::default()).unwrap();
+            assert_eq!(report.malformed_address, !tc);
+            if tc {
+                assert_eq!(input, original);
+            } else {
+                let message = Message::parse(&input).unwrap();
+                assert_eq!((message.header.rcode(), message.header.answers), (2, 0));
+                assert_eq!(input.len(), message.questions.end);
+            }
+        }
+    }
+
+    #[test]
+    fn clipped_additional_does_not_malformed_a_complete_answer() {
+        let mut input = packet("8.8.8.8".parse().unwrap());
+        input[11] = 1;
+        input.push(0); // Additional owner exists, fixed fields do not.
+        let original = input.clone();
+        let report = process_reply(&mut input, &AddressPolicy::default()).unwrap();
+        assert!(!report.malformed_address);
+        assert_eq!(input, original);
+    }
+
+    #[test]
+    fn prefix_policy_decisions_precede_later_clipped_answers() {
+        let mut input = packet("10.0.0.1".parse().unwrap());
+        input[7] = 2;
+        input.push(0);
+        let prefix = AddressPrefix::new("10.0.0.0".parse().unwrap(), 8).unwrap();
+        let policy = AddressPolicy {
+            stop_rebind: true,
+            ignore_addresses: vec![prefix],
+            ..Default::default()
+        };
+        assert!(ignore_reply(&input, &policy).unwrap());
+        let report = process_admitted_reply(&mut input.clone(), &policy, 0).unwrap();
+        assert!(report.blocked_rebind && !report.malformed_address);
+        let policy = AddressPolicy {
+            bogus_addresses: vec![prefix],
+            ..policy
+        };
+        let report = process_admitted_reply(&mut input, &policy, 0).unwrap();
+        assert!(report.bogus_nxdomain && !report.blocked_rebind && !report.malformed_address);
+        assert_eq!(Header::parse(&input).unwrap().rcode(), 3);
+    }
+
+    #[test]
+    fn bogus_reads_address_before_declared_end_but_extract_checks_end_first() {
+        let mut input = packet("10.0.0.1".parse().unwrap());
+        let len = input.len();
+        input[len - 5] = 5; // Four address bytes present, RDLEN declares five.
+        let prefix = AddressPrefix::new("10.0.0.0".parse().unwrap(), 8).unwrap();
+        let policy = AddressPolicy {
+            stop_rebind: true,
+            ignore_addresses: vec![prefix],
+            ..Default::default()
+        };
+        assert!(ignore_reply(&input, &policy).unwrap());
+        let report = process_admitted_reply(&mut input.clone(), &policy, 0).unwrap();
+        assert!(!report.blocked_rebind && report.malformed_address);
+        let policy = AddressPolicy {
+            bogus_addresses: vec![prefix],
+            ..policy
+        };
+        let report = process_admitted_reply(&mut input, &policy, 0).unwrap();
+        assert!(report.bogus_nxdomain && !report.malformed_address);
     }
 }

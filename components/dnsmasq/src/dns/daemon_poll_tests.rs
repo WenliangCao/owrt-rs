@@ -142,14 +142,37 @@ fn malformed_reply_does_not_discard_another_completed_query() {
         let (mut daemon, mut events, _) = completed_pair();
         let expected = ids(&events)[1 - bad_at];
         let bad = events[bad_at].result.as_mut().unwrap();
-        // Keep its authenticated header/question and declared A answer, but
-        // remove the record. Transport authentication does not parse RDATA.
+        // Corrupt the retained question after transport admission. A clipped
+        // Answer is a valid SERVFAIL policy path, not a failed completion.
         bad.packet
-            .truncate(super::super::wire::skip_questions(&bad.packet).unwrap());
+            .truncate(super::super::wire::skip_questions(&bad.packet).unwrap() - 1);
         let responses = daemon.finish_upstream_events(events, 100, None);
         assert_eq!(responses.len(), 1);
         assert_eq!(Header::parse(&responses[0].packet).unwrap().id, expected);
         assert_eq!(daemon.poll_failures().invalid_replies, 1);
+    }
+}
+
+#[test]
+fn clipped_answer_delivers_servfail_without_discarding_another_query() {
+    for bad_at in 0..=1 {
+        let (mut daemon, mut events, _) = completed_pair();
+        let expected = ids(&events);
+        let bad = events[bad_at].result.as_mut().unwrap();
+        bad.packet
+            .truncate(super::super::wire::skip_questions(&bad.packet).unwrap());
+        let responses = daemon.finish_upstream_events(events, 100, None);
+        assert_eq!(responses.len(), 2);
+        for (index, response) in responses.iter().enumerate() {
+            let message = Message::parse(&response.packet).unwrap();
+            assert_eq!(message.header.id, expected[index]);
+            assert_eq!(
+                message.header.flags,
+                if index == bad_at { 0x8182 } else { 0x8180 }
+            );
+            assert_eq!(message.header.answers, u16::from(index != bad_at));
+        }
+        assert_eq!(daemon.poll_failures(), PollFailures::default());
     }
 }
 

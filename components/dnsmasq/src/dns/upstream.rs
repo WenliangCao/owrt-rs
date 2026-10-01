@@ -287,6 +287,7 @@ impl<R: Random> UpstreamResolver<R> {
                 "transport cannot adopt caller-owned sockets",
             ));
         }
+        let receive_capacity = dispatcher.udp_receive_capacity();
         Ok(Self {
             dispatcher,
             random,
@@ -301,7 +302,7 @@ impl<R: Random> UpstreamResolver<R> {
             },
             clock_origin: Instant::now(),
             next_socket: 0,
-            receive_buffer: vec![0; u16::MAX as usize],
+            receive_buffer: vec![0; receive_capacity],
         })
     }
 

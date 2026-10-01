@@ -6,8 +6,8 @@
 //! the caller. All offsets below refer to a fully bounded wire packet.
 
 use super::wire::{
-    find_pseudoheader, name_descriptor, skip_name, Header, Message, Name, Question, Section,
-    WireError, HEADER_LEN, TYPE_OPT,
+    find_pseudoheader, name_descriptor, skip_name, skip_questions, Header, Message, Name, Question,
+    Section, WireError, HEADER_LEN, TYPE_OPT,
 };
 use std::ops::Range;
 
@@ -178,9 +178,22 @@ pub(super) fn apply_known_local_nxdomain(
 /// before delivering or caching. Signed OPT and AD are kept as in C; CD and
 /// RA follow return_reply/process_reply even in that case.
 pub fn prepare_reply(packet: &[u8], policy: ReplyPolicy) -> Result<ReplyEnvelope, WireError> {
-    let message = Message::parse(packet)?;
+    Message::parse(packet)?;
+    let mut envelope = prepare_udp_reply(packet, policy)?;
+    resize_reply(&mut envelope.packet);
+    Ok(envelope)
+}
+
+/// UDP recvfrom may clip the packet in the middle of an RR. C still applies
+/// envelope and address policy to the received bytes; a strict whole-message
+/// parse here would discard SERVFAIL/TC replies and earlier policy effects.
+/// Delay resize until after policy, whose packet-bound reads may use trailing
+/// bytes outside the declared sections.
+pub fn prepare_udp_reply(packet: &[u8], policy: ReplyPolicy) -> Result<ReplyEnvelope, WireError> {
+    let header = Header::parse(packet)?;
+    skip_questions(packet)?;
     let scan = find_pseudoheader(packet, true)?;
-    let rcode = u16::from(message.header.rcode())
+    let rcode = u16::from(header.rcode())
         | scan
             .opt
             .as_ref()
@@ -203,13 +216,19 @@ pub fn prepare_reply(packet: &[u8], policy: ReplyPolicy) -> Result<ReplyEnvelope
     }
     header.flags |= 0x80;
     header.write(&mut output)?;
-    let end = Message::parse(&output)?.end;
-    output.truncate(end);
     Ok(ReplyEnvelope {
         packet: output,
         rcode,
         signed: scan.signed,
     })
+}
+
+/// C resize_packet preserves the received length when any section is clipped.
+/// Section clearing/OPT restoration is done by the policy branch before this.
+pub fn resize_reply(packet: &mut Vec<u8>) {
+    if let Ok(message) = Message::parse(packet) {
+        packet.truncate(message.end);
+    }
 }
 
 /// return_reply's UDP fanout truncation: discard every RR except the last
@@ -219,10 +238,10 @@ pub fn limit_udp_reply(packet: &[u8], limit: u16) -> Result<Vec<u8>, WireError> 
     if packet.len() <= usize::from(limit) {
         return Ok(packet.to_vec());
     }
-    let message = Message::parse(packet)?;
+    let mut header = Header::parse(packet)?;
+    let question_end = skip_questions(packet)?;
     let scan = find_pseudoheader(packet, false)?;
-    let mut output = packet[..message.questions.end].to_vec();
-    let mut header = message.header;
+    let mut output = packet[..question_end].to_vec();
     header.answers = 0;
     header.authorities = 0;
     header.additionals = 0;
@@ -287,5 +306,45 @@ mod tests {
             &input[12..message.questions.end]
         );
         assert_eq!(limit_udp_reply(&input, 1232).unwrap(), input);
+    }
+
+    #[test]
+    fn udp_envelope_keeps_clipped_rr_for_later_policy_and_tc_limiting() {
+        let mut input = packet();
+        input.pop(); // Incomplete OPT: it must not be retained by find_pseudoheader.
+        let policy = ReplyPolicy {
+            client_had_opt: true,
+            checking_disabled: false,
+            proxy_dnssec: false,
+            edns_packet_max: 512,
+        };
+        assert!(prepare_reply(&input, policy).is_err());
+        let mut output = prepare_udp_reply(&input, policy).unwrap().packet;
+        assert_eq!(output.len(), input.len());
+        assert_eq!(Header::parse(&output).unwrap().flags, 0x8180);
+        resize_reply(&mut output);
+        assert_eq!(output.len(), input.len());
+        let limited = limit_udp_reply(&output, 40).unwrap();
+        let message = Message::parse(&limited).unwrap();
+        assert_eq!(message.header.flags, 0x8380);
+        assert_eq!((message.header.answers, message.header.additionals), (0, 0));
+        assert_eq!(limited.len(), message.questions.end);
+    }
+
+    #[test]
+    fn udp_trailing_bytes_remain_until_after_policy() {
+        let mut input = packet();
+        let end = input.len();
+        input.extend_from_slice(&[7; 16]);
+        let policy = ReplyPolicy {
+            client_had_opt: true,
+            checking_disabled: false,
+            proxy_dnssec: false,
+            edns_packet_max: 1232,
+        };
+        let mut output = prepare_udp_reply(&input, policy).unwrap().packet;
+        assert_eq!(output.len(), end + 16);
+        resize_reply(&mut output);
+        assert_eq!(output.len(), end);
     }
 }
