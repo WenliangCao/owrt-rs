@@ -1,0 +1,181 @@
+{
+  "reference": {
+    "kind": "image-aarch64-musl",
+    "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "runner_sha256": "de018ed3599e0d5f4a8f6c7646c8dd76759382b79b029ab40e3e3deac273e0db",
+    "dependencies": {
+      "lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+      "lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+      "lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+      "lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+    },
+    "identity_sha256": "fb873b9abae841a6723db1660752e1a4254a626b81bac099b19d9274a0d719aa"
+  },
+  "native_client_build": {
+    "kind": "native-glibc",
+    "elf_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431"
+  },
+  "tool_sha256": "305f09469faf5da96b19f113b9cb39724856e362c091c8e54937565932f42822",
+  "rust_sha256": null,
+  "rounds": [
+    {
+      "case": {
+        "label": "k1-request0-reply0",
+        "kind": 1,
+        "address": "127.0.0.1",
+        "request_cd": false,
+        "reply_cd": false,
+        "capacity": 8,
+        "pressure": false
+      },
+      "c_observations": 13,
+      "matched": null,
+      "differences": []
+    },
+    {
+      "case": {
+        "label": "k1-request1-reply0",
+        "kind": 1,
+        "address": "127.0.0.1",
+        "request_cd": true,
+        "reply_cd": false,
+        "capacity": 8,
+        "pressure": false
+      },
+      "c_observations": 13,
+      "matched": null,
+      "differences": []
+    },
+    {
+      "case": {
+        "label": "k1-request0-reply1",
+        "kind": 1,
+        "address": "127.0.0.1",
+        "request_cd": false,
+        "reply_cd": true,
+        "capacity": 8,
+        "pressure": false
+      },
+      "c_observations": 13,
+      "matched": null,
+      "differences": []
+    },
+    {
+      "case": {
+        "label": "k1-request1-reply1",
+        "kind": 1,
+        "address": "127.0.0.1",
+        "request_cd": true,
+        "reply_cd": true,
+        "capacity": 8,
+        "pressure": false
+      },
+      "c_observations": 13,
+      "matched": null,
+      "differences": []
+    },
+    {
+      "case": {
+        "label": "k1-pressure-request1-reply0",
+        "kind": 1,
+        "address": "127.0.0.1",
+        "request_cd": true,
+        "reply_cd": false,
+        "capacity": 3,
+        "pressure": true
+      },
+      "c_observations": 16,
+      "matched": null,
+      "differences": []
+    },
+    {
+      "case": {
+        "label": "k28-request0-reply0",
+        "kind": 28,
+        "address": "::1",
+        "request_cd": false,
+        "reply_cd": false,
+        "capacity": 8,
+        "pressure": false
+      },
+      "c_observations": 13,
+      "matched": null,
+      "differences": []
+    },
+    {
+      "case": {
+        "label": "k28-request1-reply0",
+        "kind": 28,
+        "address": "::1",
+        "request_cd": true,
+        "reply_cd": false,
+        "capacity": 8,
+        "pressure": false
+      },
+      "c_observations": 13,
+      "matched": null,
+      "differences": []
+    },
+    {
+      "case": {
+        "label": "k28-request0-reply1",
+        "kind": 28,
+        "address": "::1",
+        "request_cd": false,
+        "reply_cd": true,
+        "capacity": 8,
+        "pressure": false
+      },
+      "c_observations": 13,
+      "matched": null,
+      "differences": []
+    },
+    {
+      "case": {
+        "label": "k28-request1-reply1",
+        "kind": 28,
+        "address": "::1",
+        "request_cd": true,
+        "reply_cd": true,
+        "capacity": 8,
+        "pressure": false
+      },
+      "c_observations": 13,
+      "matched": null,
+      "differences": []
+    },
+    {
+      "case": {
+        "label": "k28-pressure-request1-reply0",
+        "kind": 28,
+        "address": "::1",
+        "request_cd": true,
+        "reply_cd": false,
+        "capacity": 3,
+        "pressure": true
+      },
+      "c_observations": 16,
+      "matched": null,
+      "differences": []
+    }
+  ],
+  "failures": [],
+  "normalization": "DNS compression, random upstream ID; cache-hit TTL at most one second",
+  "mismatches": 0,
+  "raw_directory": "private/tcp-writeback-gates/cd-prefix-image-baseline-01",
+  "raw_sha256": {
+    "k1-request0-reply0/c/trace.json": "e9cb7f24e80fe39e264710a699c205b0830f214f786ebd0df4aeca2b1f87b577",
+    "k1-request1-reply0/c/trace.json": "5082169b910328b10a1327adbbf05bffdd0abf708f971e7be5164fecd02c88de",
+    "k1-request0-reply1/c/trace.json": "e164137b37f78018322dec9223ea029f31434cb8131f5df6600d6d2d457c347f",
+    "k1-request1-reply1/c/trace.json": "a8b557f439a2a72bd75946942e00f2f4bf0e0bbe6de4911dff885694e17a9f19",
+    "k1-pressure-request1-reply0/c/trace.json": "df7ea7e417c7427c5b649d2ddbc4fabf32c63bff5bce313c8acf33a950faef5c",
+    "k28-request0-reply0/c/trace.json": "b33598adc25b5a59da1980de464e7831e9af24b465070b282ffd6cb9b7b1a1df",
+    "k28-request1-reply0/c/trace.json": "8689aa74707e1535b24e0b7d8a797678acf1d1ba6bfe75cf8c001d2a845649a7",
+    "k28-request0-reply1/c/trace.json": "75a0e3090ad3993d5500a3c2d3b2d0bdf60a03caa026d316459d00cec3bb5cbd",
+    "k28-request1-reply1/c/trace.json": "560bf57dd5c613dc6b4b3271ab07f8366ea98f9d2f1083312efce86540e41f87",
+    "k28-pressure-request1-reply0/c/trace.json": "1e139dcd19345dd2b4de5c49eebd4dc4eda7e6ca737429b62a874b052144cf2a",
+    "result.json": "657957804e958b3efd50eacdf37520e89f6142f416d00f835c5619809c40b862"
+  },
+  "cross_reference_differences": [],
+  "observations": 136
+}
