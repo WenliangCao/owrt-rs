@@ -99,7 +99,7 @@ pub enum CnameTarget {
     Local(Arc<LocalTarget>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Record {
     pub name: Name,
     pub kind: Kind,
@@ -109,7 +109,7 @@ pub struct Record {
     pub data: Vec<u8>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Entry {
     pub record: Record,
     pub expires: i64,
@@ -168,14 +168,14 @@ pub struct CacheCounters {
 /// No production sender or cache snapshot representation is implied.
 #[derive(Debug)]
 pub struct CacheTransaction {
-    records: Vec<TransferredRecord>,
+    pub(super) records: Vec<TransferredRecord>,
 }
 
 #[derive(Debug)]
-struct TransferredRecord {
-    record: Record,
-    expires: i64,
-    authority_name: Option<Name>,
+pub(super) struct TransferredRecord {
+    pub(super) record: Record,
+    pub(super) expires: i64,
+    pub(super) authority_name: Option<Name>,
 }
 
 /// Current parent local-name match at cache_scan_free's existing boundary.
@@ -186,6 +186,7 @@ pub struct LocalCacheMatch {
     pub from_lease: bool,
 }
 
+#[derive(Clone)]
 struct Slot {
     entry: Option<Entry>,
     generation: u64,
@@ -196,6 +197,8 @@ struct Slot {
 /// Fixed number of records, with an index per name and an intrusive LRU of slot
 /// indices. Pending inserts are outside the LRU and invisible to lookups.
 /// Capacity is measured in records, including CNAME and negative records.
+// PRIVATE TCP correctness reference only; not a product representation.
+#[derive(Clone)]
 pub struct Cache {
     policy: Policy,
     slots: Vec<Slot>,

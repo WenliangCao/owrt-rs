@@ -6,11 +6,13 @@
 //! cache insertion, ubus doctor notifications and additional RR filtering are
 //! separate work. Static aliases run once on each eligible upstream reply.
 
+use super::cache::CacheTransaction;
 use super::daemon::{address_policy, validate_runtime_config, DaemonError};
 use super::process::{apply_static_aliases, process_admitted_reply, AddressPolicy, ProcessError};
 use super::reply::{apply_known_local_nxdomain, prepare_reply, strip_opt, ReplyPolicy};
 use super::routing::{RouteReason, RoutingTable};
 use super::service::LocalDnsService;
+use super::tcp_cache::TcpCache;
 use super::tcp_upstream::{TcpError, TcpOptions, TcpUpstream};
 use super::wire::{find_pseudoheader, skip_questions, Header, Message, Question, WireError};
 use crate::config::dns::DnsConfig;
@@ -82,7 +84,7 @@ impl TcpDnsService {
         deadline: Instant,
         stopped: &dyn Fn() -> bool,
     ) -> Result<Vec<u8>, TcpServiceError> {
-        self.handle_inner(query, None, deadline, stopped)
+        self.handle_inner(query, None, None, deadline, stopped)
     }
 
     /// Use the downstream connection's local-name snapshot for the C
@@ -94,13 +96,28 @@ impl TcpDnsService {
         deadline: Instant,
         stopped: &dyn Fn() -> bool,
     ) -> Result<Vec<u8>, TcpServiceError> {
-        self.handle_inner(query, Some(local), deadline, stopped)
+        self.handle_inner(query, Some(local), None, deadline, stopped)
+    }
+
+    /// PRIVATE correctness reference. The child sends a committed transaction
+    /// before its response without acquiring any parent event/cache lock.
+    pub fn handle_with_cache(
+        &mut self,
+        query: &[u8],
+        local: &LocalDnsService,
+        cache: &mut TcpCache,
+        send: &mut dyn FnMut(CacheTransaction),
+        deadline: Instant,
+        stopped: &dyn Fn() -> bool,
+    ) -> Result<Vec<u8>, TcpServiceError> {
+        self.handle_inner(query, Some(local), Some((cache, send)), deadline, stopped)
     }
 
     fn handle_inner(
         &mut self,
         query: &[u8],
         local: Option<&LocalDnsService>,
+        cache: Option<(&mut TcpCache, &mut dyn FnMut(CacheTransaction))>,
         deadline: Instant,
         stopped: &dyn Fn() -> bool,
     ) -> Result<Vec<u8>, TcpServiceError> {
@@ -124,7 +141,7 @@ impl TcpDnsService {
             };
         };
         match self.upstream.exchange(group, query, deadline, stopped) {
-            Ok(reply) => finish_reply(
+            Ok(reply) => finish_reply_with_cache(
                 query,
                 &reply,
                 &self.policy,
@@ -132,6 +149,7 @@ impl TcpDnsService {
                 self.edns_packet_max,
                 local,
                 Some(&self.routing),
+                cache,
             ),
             Err(TcpError::NoReply) => {
                 Ok(refusal(query, self.edns_packet_max, 23, TCP_LIMIT, true)?)
@@ -189,7 +207,7 @@ fn query_error(query: &[u8]) -> Result<Option<Vec<u8>>, WireError> {
     Ok(None)
 }
 
-fn finish_reply(
+fn finish_reply_with_cache(
     query: &[u8],
     reply: &[u8],
     policy: &AddressPolicy,
@@ -197,6 +215,7 @@ fn finish_reply(
     edns_packet_max: u16,
     local: Option<&LocalDnsService>,
     routing: Option<&RoutingTable>,
+    mut cache: Option<(&mut TcpCache, &mut dyn FnMut(CacheTransaction))>,
 ) -> Result<Vec<u8>, TcpServiceError> {
     let query_header = Header::parse(query)?;
     let scan = find_pseudoheader(query, true)?;
@@ -211,6 +230,9 @@ fn finish_reply(
         },
     )?;
     let mut packet = envelope.packet;
+    let now = cache
+        .as_ref()
+        .map_or_else(unix_seconds, |(cache, _)| cache.accepted_at());
     // process_reply captures the full RCODE before possibly stripping OPT.
     // Do not reinterpret an extended error as NOERROR after that strip.
     if matches!(envelope.rcode, 0 | 3) {
@@ -221,14 +243,26 @@ fn finish_reply(
                     &local.hosts,
                     name,
                     &local.leases,
-                    std::time::SystemTime::now()
-                        .duration_since(std::time::UNIX_EPOCH)
-                        .map_or(0, |time| time.as_secs() as i64),
+                    now,
                 )
             }) || routing.is_some_and(|routing| routing.has_configured_address(name))
         })?;
         apply_static_aliases(&mut packet, &policy.static_aliases, envelope.rcode)
             .map_err(TcpServiceError::Process)?;
+        // TCP restores request CD before extraction; raw upstream CD must not
+        // inherit UDP's distinct cacheability rule. Capture precedes filtering.
+        if !scan.signed
+            && query_header.flags & 0x10 == 0
+            && super::forward_service::ordinary_cache_query(query)
+        {
+            if let (Some((cache, send)), Some(local)) = (cache.as_mut(), local) {
+                if let Some(transaction) =
+                    cache.capture_reply(&packet, local, policy, envelope.rcode)
+                {
+                    send(transaction);
+                }
+            }
+        }
         let report = process_admitted_reply(&mut packet, policy, envelope.rcode)
             .map_err(TcpServiceError::Process)?;
         let ede = if report.blocked_rebind || report.bogus_nxdomain {
@@ -245,6 +279,12 @@ fn finish_reply(
         }
     }
     Ok(packet)
+}
+
+fn unix_seconds() -> i64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_or(0, |time| time.as_secs() as i64)
 }
 
 /// EDE insertion/replacement follows edns0.c::add_pseudoheader, including its

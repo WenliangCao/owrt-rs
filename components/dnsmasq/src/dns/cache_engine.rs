@@ -3,7 +3,9 @@
 //! Insertion and answer selection retain the exact C contracts of the daemon
 //! wrappers; ownership and synchronization remain with the containing caller.
 
-use super::cache::{Cache, CacheCounters, CnameTarget, Kind, Record, StalePolicy};
+use super::cache::{
+    Cache, CacheCounters, CacheTransaction, CnameTarget, Kind, LocalCacheMatch, Record, StalePolicy,
+};
 use super::cache_reply::{append_cname_record, append_negative_authority, append_positive_record};
 use super::local::AnswerError;
 use super::service::LocalDnsService;
@@ -467,11 +469,46 @@ impl CacheContext<'_> {
         policy: &super::process::AddressPolicy,
         original_rcode: u16,
     ) {
+        self.insert_reply_inner(packet, now, local, policy, original_rcode, false);
+    }
+
+    pub fn capture_reply_with_policy(
+        &mut self,
+        packet: &[u8],
+        now: i64,
+        local: &LocalDnsService,
+        policy: &super::process::AddressPolicy,
+        original_rcode: u16,
+    ) -> Option<CacheTransaction> {
+        self.insert_reply_inner(packet, now, local, policy, original_rcode, true)
+    }
+
+    pub fn import_transaction(
+        &mut self,
+        transaction: CacheTransaction,
+        now: i64,
+        local: &LocalDnsService,
+    ) -> bool {
+        self.cache
+            .import_counted(transaction, now, self.counters, |record| {
+                local_cache_match(local, record)
+            })
+    }
+
+    fn insert_reply_inner(
+        &mut self,
+        packet: &[u8],
+        now: i64,
+        local: &LocalDnsService,
+        policy: &super::process::AddressPolicy,
+        original_rcode: u16,
+        capture: bool,
+    ) -> Option<CacheTransaction> {
         let Ok(header) = Header::parse(packet) else {
-            return;
+            return None;
         };
         if header.opcode() != 0 || !matches!(original_rcode, 0 | 3) || header.flags & 0x0200 != 0 {
-            return;
+            return None;
         }
         let cache = &mut *self.cache;
         let counters = &mut *self.counters;
@@ -495,29 +532,28 @@ impl CacheContext<'_> {
                     now,
                     ttl,
                 );
-                let _ = cache.commit_counted(counters);
-                return;
+                return commit_reply(cache, counters, capture);
             }
         }
         cache.start_insert();
         if header.questions != 1 {
-            return;
+            return None;
         }
         let Ok(question) = WireQuestion::parse(packet, super::wire::HEADER_LEN) else {
-            return;
+            return None;
         };
         if question.class != 1 || !matches!(question.qtype, 1 | 5 | 28) {
-            return;
+            return None;
         }
         let Ok(edns) = find_pseudoheader(packet, false) else {
-            return;
+            return None;
         };
         if edns
             .opt
             .as_ref()
             .is_some_and(|opt| opt.extended_rcode() != 0)
         {
-            return;
+            return None;
         }
 
         let kind = if question.qtype == 1 {
@@ -538,10 +574,10 @@ impl CacheContext<'_> {
             let mut position = question.end;
             for _ in 0..header.answers {
                 let Ok(rr) = super::wire::RecordRef::parse(packet, position) else {
-                    return;
+                    return None;
                 };
                 position = rr.end;
-                let Ok(owner) = rr.name() else { return };
+                let Ok(owner) = rr.name() else { return None };
                 if rr.class != 1 || !owner.eq_ignore_ascii_case(&current) {
                     continue;
                 }
@@ -552,7 +588,7 @@ impl CacheContext<'_> {
                 };
                 if rr.rrtype == 5 {
                     if cname_left == 0 {
-                        return;
+                        return None;
                     }
                     cname_left -= 1;
                     // Act on failure only after insertion: C removes the old
@@ -587,7 +623,7 @@ impl CacheContext<'_> {
                     // extract_name checks packet bounds, not the declared
                     // RDLEN. Keep that bounded behavior for ordinary CNAMEs.
                     let Ok((target, _)) = target else {
-                        return;
+                        return None;
                     };
                     current = target;
                     if question.qtype != 5 {
@@ -598,7 +634,7 @@ impl CacheContext<'_> {
                     found = true;
                     let width = if question.qtype == 1 { 4 } else { 16 };
                     let Some(data) = packet.get(rr.fixed + 10..rr.fixed + 10 + width) else {
-                        return;
+                        return None;
                     };
                     let address = if question.qtype == 1 {
                         IpAddr::V4(std::net::Ipv4Addr::from(<[u8; 4]>::try_from(data).unwrap()))
@@ -608,7 +644,7 @@ impl CacheContext<'_> {
                         ))
                     };
                     if policy.rejects_rebind(&question.name, address) {
-                        return;
+                        return None;
                     }
                     let inserted = insert_cache_record(
                         cache,
@@ -688,8 +724,22 @@ impl CacheContext<'_> {
             }
         }
         if header.flags & 0x0090 == 0x0080 {
-            let _ = cache.commit_counted(counters);
+            return commit_reply(cache, counters, capture);
         }
+        None
+    }
+}
+
+fn commit_reply(
+    cache: &mut Cache,
+    counters: &mut CacheCounters,
+    capture: bool,
+) -> Option<CacheTransaction> {
+    if capture {
+        cache.capture_commit_counted(counters)
+    } else {
+        cache.commit_counted(counters);
+        None
     }
 }
 
@@ -867,6 +917,20 @@ fn insert_cache_record(
     now: i64,
     ttl: u32,
 ) -> Option<CacheInsert> {
+    if let Some(local_match) = local_cache_match(local, &record) {
+        cache
+            .insert_against_local(ttl, local_match.same_address)
+            .ok()?;
+        Some(CacheInsert::Local(record.name, local_match.from_lease))
+    } else {
+        cache
+            .insert_counted(record, now, ttl, counters)
+            .ok()
+            .map(CacheInsert::Dynamic)
+    }
+}
+
+fn local_cache_match(local: &LocalDnsService, record: &Record) -> Option<LocalCacheMatch> {
     let name = record.name.dnsmasq_bytes();
     let matches_address = |address: IpAddr| {
         !record.negative
@@ -895,8 +959,7 @@ fn insert_cache_record(
         .any(|cname| cname.alias.eq_ignore_ascii_case(&name));
     // C loads configured CNAMEs before non-reverse immortal hosts. Reverse
     // owners precede both; mortal non-reverse leases precede immortal records.
-    let existing = host
-        .filter(|host| host.reverse)
+    host.filter(|host| host.reverse)
         .map(|host| (matches_address(host.address), false))
         .or_else(|| {
             lease
@@ -905,16 +968,11 @@ fn insert_cache_record(
         })
         .or_else(|| cname.then_some((false, false)))
         .or_else(|| host.map(|host| (matches_address(host.address), false)))
-        .or_else(|| lease.map(|lease| (matches_address(IpAddr::V4(lease.address)), true)));
-    if let Some((same_address, from_lease)) = existing {
-        cache.insert_against_local(ttl, same_address).ok()?;
-        Some(CacheInsert::Local(record.name, from_lease))
-    } else {
-        cache
-            .insert_counted(record, now, ttl, counters)
-            .ok()
-            .map(CacheInsert::Dynamic)
-    }
+        .or_else(|| lease.map(|lease| (matches_address(IpAddr::V4(lease.address)), true)))
+        .map(|(same_address, from_lease)| LocalCacheMatch {
+            same_address,
+            from_lease,
+        })
 }
 
 fn is_name_suffix(name: &Name, suffix: &Name) -> bool {
