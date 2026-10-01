@@ -85,9 +85,11 @@ and every prior failure remain unchanged.
 
 This change qualifies the independent bogus transaction and ordinary cold
 admission controls. Exact C still runs normal `extract_addresses` side effects
-when CD suppresses its final commit. Rust's existing ordinary early exclusion
+when CD suppresses its final commit. At this freeze, Rust's ordinary early exclusion
 does not establish equivalence for held replies replacing an existing record,
 pending targets observed through aliases, or eviction counters. That concrete
 source boundary requires its own C-first replacement/alias gate and following
-repair; it is not waived by the 256 or 750 passing observations above. TCP
-capture and publication remain separately owned and are not exercised here.
+repair; it is not waived by the 256 or 750 passing observations above. The
+following [ordinary CD commit phase](DNS_CD_COMMIT_PHASE.md) supplies that
+repair and independent native/image C evidence. TCP capture and publication
+remain separately owned and are not exercised here.
