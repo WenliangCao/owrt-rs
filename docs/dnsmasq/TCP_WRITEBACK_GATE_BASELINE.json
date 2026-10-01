@@ -1,0 +1,615 @@
+{
+  "planned": 12,
+  "c_observations": 12,
+  "matched": null,
+  "failures": [],
+  "reference": {
+    "kind": "native-glibc",
+    "elf_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431"
+  },
+  "tool_sha256": "755cc342b4e53fe6477e3f54d87ad20c84e547ffa8aeb99a26726d2e1dff6fef",
+  "subscriber_sha256": "a48d507c5f216adc300ebc6852768b043d564d98a7f0aab7b6ccd9602af3bc2f",
+  "source_contract": {
+    "dnsmasq.c": {
+      "sha256": "d4bb7cde522376200a0293427b0812625ebc457f10dc9d3e2bef243ccba8ccd1",
+      "anchors": [
+        {
+          "first": 1304,
+          "last": 1309
+        },
+        {
+          "first": 1936,
+          "last": 1957
+        },
+        {
+          "first": 1994,
+          "last": 2003
+        }
+      ]
+    },
+    "cache.c": {
+      "sha256": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c",
+      "anchors": [
+        {
+          "first": 844,
+          "last": 855
+        },
+        {
+          "first": 917,
+          "last": 923
+        },
+        {
+          "first": 950,
+          "last": 985
+        }
+      ]
+    },
+    "forward.c": {
+      "sha256": "ac05784d4233ed10bd166da5fe91e464afecf2883d3c2a0063305d3e81692f95",
+      "anchors": [
+        {
+          "first": 2770,
+          "last": 2780
+        }
+      ]
+    },
+    "ubus.c": {
+      "sha256": "b3b50a4c9146de991f1eed49ee07ee3b76f5296b0118c66ca232f9437babd479",
+      "anchors": [
+        {
+          "first": 398,
+          "last": 406
+        }
+      ]
+    }
+  },
+  "c_resources": {
+    "closed_metrics": {
+      "dns_cache_inserted": 8,
+      "dns_cache_live_freed": 0,
+      "dns_queries_forwarded": 2,
+      "dns_auth_answered": 0,
+      "dns_local_answered": 2,
+      "dns_stale_answered": 0,
+      "dns_unanswered": 0,
+      "dnssec_max_crypto_use": 0,
+      "dnssec_max_sig_fail": 0,
+      "dnssec_max_work": 0,
+      "bootp": 0,
+      "pxe": 0,
+      "dhcp_ack": 0,
+      "dhcp_decline": 0,
+      "dhcp_discover": 0,
+      "dhcp_inform": 0,
+      "dhcp_nak": 0,
+      "dhcp_offer": 0,
+      "dhcp_release": 0,
+      "dhcp_request": 0,
+      "noanswer": 0,
+      "leases_allocated_4": 0,
+      "leases_pruned_4": 0,
+      "leases_allocated_6": 0,
+      "leases_pruned_6": 0,
+      "tcp_connections": 0,
+      "dhcp_leasequery": 0,
+      "dhcp_lease_unassigned": 0,
+      "dhcp_lease_actve": 0,
+      "dhcp_lease_unknown": 0
+    },
+    "children_after_close": [],
+    "parent_fds": 15
+  },
+  "negative_calibration": [
+    "two-buffered-held",
+    "slot-order-parent-winner"
+  ],
+  "status": "C_ONLY_FROZEN",
+  "raw_directory": "private/tcp-writeback-gates/c-baseline-02",
+  "raw_sha256": {
+    "result.json": "96b4a49074939b70ba5205f4ca2a8e6d992f5d4ecf42374207cf6ee75efba1df",
+    "c/trace.json": "110756ec80f7928abf4a8ef8a9736524073e138ec5a6e578adfcd63f95465e12",
+    "c/writeback-subscriber.log": "e47049186ea23d30be2a6ee8d6b76dba369728250d319f4c5e1269954118b914"
+  },
+  "observations": [
+    {
+      "label": "prewarm-first",
+      "response": {
+        "id": 24833,
+        "flags": 33152,
+        "questions": [
+          [
+            "warm-first.test",
+            1,
+            1
+          ]
+        ],
+        "records": [
+          {
+            "section": "answer",
+            "name": "warm-first.test",
+            "type": 1,
+            "class": 1,
+            "ttl": 120,
+            "data": "192.0.2.1"
+          }
+        ]
+      },
+      "elapsed_ns": 690126
+    },
+    {
+      "label": "two-buffered-child-11",
+      "response": {
+        "id": 24834,
+        "flags": 33152,
+        "questions": [
+          [
+            "buffer-one.test",
+            1,
+            1
+          ]
+        ],
+        "records": [
+          {
+            "section": "answer",
+            "name": "buffer-one.test",
+            "type": 1,
+            "class": 1,
+            "ttl": 120,
+            "data": "192.0.2.11"
+          }
+        ]
+      },
+      "elapsed_ns": 221721
+    },
+    {
+      "label": "two-buffered-child-12",
+      "response": {
+        "id": 24835,
+        "flags": 33152,
+        "questions": [
+          [
+            "buffer-two.test",
+            1,
+            1
+          ]
+        ],
+        "records": [
+          {
+            "section": "answer",
+            "name": "buffer-two.test",
+            "type": 1,
+            "class": 1,
+            "ttl": 120,
+            "data": "192.0.2.12"
+          }
+        ]
+      },
+      "elapsed_ns": 142241
+    },
+    {
+      "label": "two-buffered-held",
+      "before": {
+        "dns_cache_inserted": 1,
+        "dns_cache_live_freed": 0,
+        "dns_queries_forwarded": 0,
+        "dns_auth_answered": 0,
+        "dns_local_answered": 0,
+        "dns_stale_answered": 0,
+        "dns_unanswered": 0,
+        "dnssec_max_crypto_use": 0,
+        "dnssec_max_sig_fail": 0,
+        "dnssec_max_work": 0,
+        "bootp": 0,
+        "pxe": 0,
+        "dhcp_ack": 0,
+        "dhcp_decline": 0,
+        "dhcp_discover": 0,
+        "dhcp_inform": 0,
+        "dhcp_nak": 0,
+        "dhcp_offer": 0,
+        "dhcp_release": 0,
+        "dhcp_request": 0,
+        "noanswer": 0,
+        "leases_allocated_4": 0,
+        "leases_pruned_4": 0,
+        "leases_allocated_6": 0,
+        "leases_pruned_6": 0,
+        "tcp_connections": 1,
+        "dhcp_leasequery": 0,
+        "dhcp_lease_unassigned": 0,
+        "dhcp_lease_actve": 0,
+        "dhcp_lease_unknown": 0
+      },
+      "during": {
+        "dns_cache_inserted": 1,
+        "dns_cache_live_freed": 0,
+        "dns_queries_forwarded": 1,
+        "dns_auth_answered": 0,
+        "dns_local_answered": 0,
+        "dns_stale_answered": 0,
+        "dns_unanswered": 0,
+        "dnssec_max_crypto_use": 0,
+        "dnssec_max_sig_fail": 0,
+        "dnssec_max_work": 0,
+        "bootp": 0,
+        "pxe": 0,
+        "dhcp_ack": 0,
+        "dhcp_decline": 0,
+        "dhcp_discover": 0,
+        "dhcp_inform": 0,
+        "dhcp_nak": 0,
+        "dhcp_offer": 0,
+        "dhcp_release": 0,
+        "dhcp_request": 0,
+        "noanswer": 0,
+        "leases_allocated_4": 0,
+        "leases_pruned_4": 0,
+        "leases_allocated_6": 0,
+        "leases_pruned_6": 0,
+        "tcp_connections": 1,
+        "dhcp_leasequery": 0,
+        "dhcp_lease_unassigned": 0,
+        "dhcp_lease_actve": 0,
+        "dhcp_lease_unknown": 0
+      },
+      "after": {
+        "dns_cache_inserted": 4,
+        "dns_cache_live_freed": 0,
+        "dns_queries_forwarded": 1,
+        "dns_auth_answered": 0,
+        "dns_local_answered": 0,
+        "dns_stale_answered": 0,
+        "dns_unanswered": 0,
+        "dnssec_max_crypto_use": 0,
+        "dnssec_max_sig_fail": 0,
+        "dnssec_max_work": 0,
+        "bootp": 0,
+        "pxe": 0,
+        "dhcp_ack": 0,
+        "dhcp_decline": 0,
+        "dhcp_discover": 0,
+        "dhcp_inform": 0,
+        "dhcp_nak": 0,
+        "dhcp_offer": 0,
+        "dhcp_release": 0,
+        "dhcp_request": 0,
+        "noanswer": 0,
+        "leases_allocated_4": 0,
+        "leases_pruned_4": 0,
+        "leases_allocated_6": 0,
+        "leases_pruned_6": 0,
+        "tcp_connections": 1,
+        "dhcp_leasequery": 0,
+        "dhcp_lease_unassigned": 0,
+        "dhcp_lease_actve": 0,
+        "dhcp_lease_unknown": 0
+      },
+      "response": {
+        "id": 28673,
+        "flags": 33152,
+        "questions": [
+          [
+            "two-buffered-doctor.test",
+            1,
+            1
+          ]
+        ],
+        "records": [
+          {
+            "section": "answer",
+            "name": "two-buffered-doctor.test",
+            "type": 1,
+            "class": 1,
+            "ttl": 120,
+            "data": "192.0.2.250"
+          }
+        ]
+      },
+      "held_ns": 388683,
+      "subscriber_held_ns": 463524
+    },
+    {
+      "label": "buffer-one-parent-hit",
+      "response": {
+        "id": 24836,
+        "flags": 33152,
+        "questions": [
+          [
+            "buffer-one.test",
+            1,
+            1
+          ]
+        ],
+        "records": [
+          {
+            "section": "answer",
+            "name": "buffer-one.test",
+            "type": 1,
+            "class": 1,
+            "ttl": 120,
+            "data": "192.0.2.11"
+          }
+        ]
+      },
+      "elapsed_ns": 134201
+    },
+    {
+      "label": "buffer-two-parent-hit",
+      "response": {
+        "id": 24837,
+        "flags": 33152,
+        "questions": [
+          [
+            "buffer-two.test",
+            1,
+            1
+          ]
+        ],
+        "records": [
+          {
+            "section": "answer",
+            "name": "buffer-two.test",
+            "type": 1,
+            "class": 1,
+            "ttl": 120,
+            "data": "192.0.2.12"
+          }
+        ]
+      },
+      "elapsed_ns": 104161
+    },
+    {
+      "label": "prewarm-second",
+      "response": {
+        "id": 24838,
+        "flags": 33152,
+        "questions": [
+          [
+            "warm-second.test",
+            1,
+            1
+          ]
+        ],
+        "records": [
+          {
+            "section": "answer",
+            "name": "warm-second.test",
+            "type": 1,
+            "class": 1,
+            "ttl": 120,
+            "data": "192.0.2.1"
+          }
+        ]
+      },
+      "elapsed_ns": 522684
+    },
+    {
+      "label": "slot-order-child-21",
+      "response": {
+        "id": 24839,
+        "flags": 33152,
+        "questions": [
+          [
+            "shared.test",
+            1,
+            1
+          ]
+        ],
+        "records": [
+          {
+            "section": "answer",
+            "name": "shared.test",
+            "type": 1,
+            "class": 1,
+            "ttl": 120,
+            "data": "192.0.2.21"
+          }
+        ]
+      },
+      "elapsed_ns": 164002
+    },
+    {
+      "label": "slot-order-child-22",
+      "response": {
+        "id": 24840,
+        "flags": 33152,
+        "questions": [
+          [
+            "shared.test",
+            1,
+            1
+          ]
+        ],
+        "records": [
+          {
+            "section": "answer",
+            "name": "shared.test",
+            "type": 1,
+            "class": 1,
+            "ttl": 120,
+            "data": "192.0.2.22"
+          }
+        ]
+      },
+      "elapsed_ns": 152681
+    },
+    {
+      "label": "slot-order-held",
+      "before": {
+        "dns_cache_inserted": 5,
+        "dns_cache_live_freed": 0,
+        "dns_queries_forwarded": 1,
+        "dns_auth_answered": 0,
+        "dns_local_answered": 2,
+        "dns_stale_answered": 0,
+        "dns_unanswered": 0,
+        "dnssec_max_crypto_use": 0,
+        "dnssec_max_sig_fail": 0,
+        "dnssec_max_work": 0,
+        "bootp": 0,
+        "pxe": 0,
+        "dhcp_ack": 0,
+        "dhcp_decline": 0,
+        "dhcp_discover": 0,
+        "dhcp_inform": 0,
+        "dhcp_nak": 0,
+        "dhcp_offer": 0,
+        "dhcp_release": 0,
+        "dhcp_request": 0,
+        "noanswer": 0,
+        "leases_allocated_4": 0,
+        "leases_pruned_4": 0,
+        "leases_allocated_6": 0,
+        "leases_pruned_6": 0,
+        "tcp_connections": 2,
+        "dhcp_leasequery": 0,
+        "dhcp_lease_unassigned": 0,
+        "dhcp_lease_actve": 0,
+        "dhcp_lease_unknown": 0
+      },
+      "during": {
+        "dns_cache_inserted": 5,
+        "dns_cache_live_freed": 0,
+        "dns_queries_forwarded": 2,
+        "dns_auth_answered": 0,
+        "dns_local_answered": 2,
+        "dns_stale_answered": 0,
+        "dns_unanswered": 0,
+        "dnssec_max_crypto_use": 0,
+        "dnssec_max_sig_fail": 0,
+        "dnssec_max_work": 0,
+        "bootp": 0,
+        "pxe": 0,
+        "dhcp_ack": 0,
+        "dhcp_decline": 0,
+        "dhcp_discover": 0,
+        "dhcp_inform": 0,
+        "dhcp_nak": 0,
+        "dhcp_offer": 0,
+        "dhcp_release": 0,
+        "dhcp_request": 0,
+        "noanswer": 0,
+        "leases_allocated_4": 0,
+        "leases_pruned_4": 0,
+        "leases_allocated_6": 0,
+        "leases_pruned_6": 0,
+        "tcp_connections": 2,
+        "dhcp_leasequery": 0,
+        "dhcp_lease_unassigned": 0,
+        "dhcp_lease_actve": 0,
+        "dhcp_lease_unknown": 0
+      },
+      "after": {
+        "dns_cache_inserted": 8,
+        "dns_cache_live_freed": 0,
+        "dns_queries_forwarded": 2,
+        "dns_auth_answered": 0,
+        "dns_local_answered": 2,
+        "dns_stale_answered": 0,
+        "dns_unanswered": 0,
+        "dnssec_max_crypto_use": 0,
+        "dnssec_max_sig_fail": 0,
+        "dnssec_max_work": 0,
+        "bootp": 0,
+        "pxe": 0,
+        "dhcp_ack": 0,
+        "dhcp_decline": 0,
+        "dhcp_discover": 0,
+        "dhcp_inform": 0,
+        "dhcp_nak": 0,
+        "dhcp_offer": 0,
+        "dhcp_release": 0,
+        "dhcp_request": 0,
+        "noanswer": 0,
+        "leases_allocated_4": 0,
+        "leases_pruned_4": 0,
+        "leases_allocated_6": 0,
+        "leases_pruned_6": 0,
+        "tcp_connections": 0,
+        "dhcp_leasequery": 0,
+        "dhcp_lease_unassigned": 0,
+        "dhcp_lease_actve": 0,
+        "dhcp_lease_unknown": 0
+      },
+      "response": {
+        "id": 28679,
+        "flags": 33152,
+        "questions": [
+          [
+            "slot-order-doctor.test",
+            1,
+            1
+          ]
+        ],
+        "records": [
+          {
+            "section": "answer",
+            "name": "slot-order-doctor.test",
+            "type": 1,
+            "class": 1,
+            "ttl": 120,
+            "data": "192.0.2.250"
+          }
+        ]
+      },
+      "held_ns": 370003,
+      "subscriber_held_ns": 434563
+    },
+    {
+      "label": "slot-order-parent-winner",
+      "response": {
+        "id": 24841,
+        "flags": 33152,
+        "questions": [
+          [
+            "shared.test",
+            1,
+            1
+          ]
+        ],
+        "records": [
+          {
+            "section": "answer",
+            "name": "shared.test",
+            "type": 1,
+            "class": 1,
+            "ttl": 120,
+            "data": "192.0.2.21"
+          }
+        ]
+      },
+      "elapsed_ns": 135041
+    },
+    {
+      "label": "replacement-inherits-winner",
+      "response": {
+        "id": 24842,
+        "flags": 33152,
+        "questions": [
+          [
+            "shared.test",
+            1,
+            1
+          ]
+        ],
+        "records": [
+          {
+            "section": "answer",
+            "name": "shared.test",
+            "type": 1,
+            "class": 1,
+            "ttl": 120,
+            "data": "192.0.2.21"
+          }
+        ]
+      },
+      "elapsed_ns": 180041
+    }
+  ],
+  "prior_attempts": [
+    {
+      "directory": "c-baseline-01",
+      "result": "Harness Python event parameter collision before any DNS query; retained, fixed, no timing failure."
+    }
+  ]
+}
