@@ -1311,7 +1311,7 @@ fn validate_runtime_ready(scalar: &ScalarConfig, dns: &DnsConfig) -> Result<(), 
     {
         return Err(Error("interface binding is not implemented"));
     }
-    if dns.domain_needed || dns.bogus_priv || dns.no_poll || dns.localise_queries {
+    if dns.no_poll {
         return Err(Error("configured DNS policy is not implemented"));
     }
     if dns.records.needs_hostname() {
@@ -1358,9 +1358,45 @@ fn read_hosts(config: &DnsConfig, local_ttl: u32) -> Hosts {
     if !config.no_hosts {
         read(Path::new("/etc/hosts"), 0);
     }
+    // expand_filelist appends directory members after explicit files. Its
+    // alphasort order matters when multiple names compete for PTR ownership.
+    let mut directory_files = Vec::new();
     for (index, path) in config.addn_hosts.iter().enumerate() {
         let Some(path) = path else { continue };
-        read(path, (index + 1) as u32);
+        if !path.is_dir() {
+            read(path, (index + 1) as u32);
+            continue;
+        }
+        let entries = match std::fs::read_dir(path) {
+            Ok(entries) => entries,
+            Err(error) => {
+                eprintln!(
+                    "dnsmasq-rs: cannot access directory {}: {error}",
+                    path.display()
+                );
+                continue;
+            }
+        };
+        let mut files = entries
+            .filter_map(Result::ok)
+            .filter_map(|entry| {
+                let name = entry.file_name();
+                let name = name.as_encoded_bytes();
+                if name.starts_with(b".")
+                    || name.ends_with(b"~")
+                    || (name.starts_with(b"#") && name.ends_with(b"#"))
+                {
+                    return None;
+                }
+                let path = entry.path();
+                path.is_file().then_some(path)
+            })
+            .collect::<Vec<_>>();
+        files.sort();
+        directory_files.extend(files);
+    }
+    for (index, path) in directory_files.iter().enumerate() {
+        read(path, (config.addn_hosts.len() + index + 1) as u32);
     }
     hosts
 }
@@ -1451,6 +1487,31 @@ mod tests {
         let mut hosts = read_hosts(&config, 0);
         assert_eq!(hosts.lookup(b"addn.test", Some(false), true).len(), 1);
         let _ = std::fs::remove_file(path);
+    }
+
+    #[test]
+    fn addn_hosts_directory_uses_sorted_files_and_ignores_backups() {
+        let root = std::env::temp_dir().join(format!("dnsmasq-rs-hostdir-{}", std::process::id()));
+        std::fs::create_dir_all(root.join("nested")).unwrap();
+        for (file, bytes) in [
+            ("b", "192.0.2.44 second.test\n"),
+            ("a", "192.0.2.44 first.test\n"),
+            (".hidden", "192.0.2.45 hidden.test\n"),
+            ("backup~", "192.0.2.45 backup.test\n"),
+            ("#autosave#", "192.0.2.45 autosave.test\n"),
+            ("nested/file", "192.0.2.45 nested.test\n"),
+        ] {
+            std::fs::write(root.join(file), bytes).unwrap();
+        }
+        let mut config = DnsConfig::default();
+        config.no_hosts = true;
+        config.addn_hosts.push(Some(root.clone()));
+        let hosts = read_hosts(&config, 37);
+        assert_eq!(hosts.len(), 2);
+        let host = hosts.reverse("192.0.2.44".parse().unwrap()).unwrap();
+        assert_eq!(host.name, b"first.test");
+        assert_eq!(host.ttl, 37);
+        std::fs::remove_dir_all(root).unwrap();
     }
 
     #[test]

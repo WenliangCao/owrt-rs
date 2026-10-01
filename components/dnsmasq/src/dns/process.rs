@@ -405,7 +405,7 @@ fn suffix_match(name: &[u8], suffix: &[u8]) -> bool {
             .all(|(left, right)| left.eq_ignore_ascii_case(right))
 }
 
-fn is_allowed_address(address: IpAddr, allow_localhost: bool) -> bool {
+pub(super) fn is_allowed_address(address: IpAddr, allow_localhost: bool) -> bool {
     match address {
         IpAddr::V4(value) => {
             let ip = u32::from(value);

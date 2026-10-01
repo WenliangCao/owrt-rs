@@ -328,6 +328,17 @@ impl RoutingTable {
         RouteSelection::local(RouteReason::NoMatchingRule)
     }
 
+    /// lookup_domain(F_DOMAINSRV) skips literal/local-only answers and
+    /// excludes an ordinary default server from the private-PTR exception.
+    pub(super) fn has_domain_server(&self, name: &Name) -> bool {
+        let query = dotted_name(name);
+        self.rules.iter().any(|bucket| {
+            bucket.group.is_some()
+                && (!bucket.representative().suffix.is_empty() || bucket.representative().dotless)
+                && bucket.matched_pattern(&query).is_some()
+        })
+    }
+
     pub fn group(&self, id: GroupId) -> Option<&ServerGroup> {
         self.groups.get(&id)
     }
