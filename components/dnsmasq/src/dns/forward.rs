@@ -204,6 +204,15 @@ pub struct Released {
     pub reason: ReleaseReason,
 }
 
+/// Actual forwarding actions and get_new_frec reclamation, matching C's u32
+/// counters. Cancellation, server removal and duplicate-pool rejection do not
+/// increment unanswered merely because they release a record.
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub struct ForwardCounters {
+    pub queries_forwarded: u32,
+    pub unanswered: u32,
+}
+
 /// Queries are indexed by normalized question and by unique upstream ID, rather
 /// than repeatedly decoding every saved packet on each duplicate/reply lookup.
 pub struct ForwardTable {
@@ -215,6 +224,7 @@ pub struct ForwardTable {
     extra_clients: usize,
     released: Vec<Released>,
     slots: Vec<Option<QueryId>>,
+    counters: ForwardCounters,
 }
 
 impl ForwardTable {
@@ -228,6 +238,7 @@ impl ForwardTable {
             extra_clients: 0,
             released: Vec::new(),
             slots: Vec::new(),
+            counters: ForwardCounters::default(),
         }
     }
 
@@ -242,6 +253,16 @@ impl ForwardTable {
     }
     pub fn take_released(&mut self) -> Vec<Released> {
         std::mem::take(&mut self.released)
+    }
+
+    pub fn counters(&self) -> ForwardCounters {
+        self.counters
+    }
+
+    /// One forward_query send action succeeded, possibly to several servers.
+    /// Call only after at least one actual datagram send completed.
+    pub fn note_forwarded_action(&mut self) {
+        self.counters.queries_forwarded = self.counters.queries_forwarded.wrapping_add(1);
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -318,7 +339,7 @@ impl ForwardTable {
             .map(|p| p.id)
             .collect();
         for id in expired {
-            self.remove(id, ReleaseReason::Expired);
+            self.reclaim_unanswered(id);
         }
         if self
             .pending
@@ -395,7 +416,7 @@ impl ForwardTable {
             if age(now, oldest.created) >= QUERY_TIMEOUT {
                 let slot = oldest.slot;
                 let id = oldest.id;
-                self.remove(id, ReleaseReason::Expired);
+                self.reclaim_unanswered(id);
                 return slot;
             }
         }
@@ -577,6 +598,15 @@ impl ForwardTable {
                 .retry_delay_ms
                 .saturating_mul(2)
                 .min(i32::MAX as u32);
+        }
+    }
+
+    fn reclaim_unanswered(&mut self, id: QueryId) {
+        if self
+            .remove(id, ReleaseReason::Expired)
+            .is_some_and(|pending| pending.sent_to.is_some())
+        {
+            self.counters.unanswered = self.counters.unanswered.wrapping_add(1);
         }
     }
 

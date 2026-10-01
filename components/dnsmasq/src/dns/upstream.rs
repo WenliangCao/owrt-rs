@@ -315,6 +315,10 @@ impl<R: Random> UpstreamResolver<R> {
         self.sockets.len()
     }
 
+    pub fn counters(&self) -> super::forward::ForwardCounters {
+        self.dispatcher.table().counters()
+    }
+
     /// Start/merge a UDP query. A duplicate keeps the first query's deadline.
     /// An immediate send failure leaves no transaction or socket behind.
     pub fn start_udp(
@@ -650,6 +654,7 @@ impl<R: Random> UpstreamResolver<R> {
             }
         }
         if sent {
+            self.dispatcher.note_forwarded_action();
             Ok(())
         } else {
             Err(last_error)
@@ -992,6 +997,7 @@ mod tests {
         let elapsed = transaction.deadline + Duration::from_secs(1);
 
         transport.run_timers_at(elapsed, created + 40, 41000);
+        assert_eq!(transport.counters().unanswered, 0);
         assert!(transport.events.is_empty());
         assert_eq!(transport.pending_count(), 1);
         assert_eq!(transport.socket_count(), 1);
@@ -1018,6 +1024,7 @@ mod tests {
             )
             .unwrap();
         transport.consume_releases();
+        assert_eq!(transport.counters().unanswered, 1);
         assert_eq!(transport.pending_count(), 0);
         assert_eq!(transport.socket_count(), 0);
         assert!(transport
@@ -1032,6 +1039,64 @@ mod tests {
         transport.dispatcher.cancel(next.id);
         transport.consume_releases();
         assert!(transport.dispatcher.table().is_empty());
+    }
+
+    #[test]
+    fn forwarded_counter_counts_actions_not_servers_or_coalesced_clients() {
+        let first = UdpSocket::bind("127.0.0.1:0").unwrap();
+        let second = UdpSocket::bind("127.0.0.1:0").unwrap();
+        for server in [&first, &second] {
+            server
+                .set_read_timeout(Some(Duration::from_secs(1)))
+                .unwrap();
+        }
+        let mut transport = transport(
+            group(
+                &[first.local_addr().unwrap(), second.local_addr().unwrap()],
+                true,
+            ),
+            Options::default(),
+            Duration::from_secs(2),
+        );
+        let submitted = transport
+            .start_udp(&query(), client(), GroupId(1), Scope::Shared)
+            .unwrap();
+        let mut buffer = [0; 2048];
+        for server in [&first, &second] {
+            server.recv_from(&mut buffer).unwrap();
+        }
+        assert_eq!(transport.counters().queries_forwarded, 1);
+        transport
+            .start_udp(&query(), client(), GroupId(1), Scope::Shared)
+            .unwrap();
+        for server in [&first, &second] {
+            server.recv_from(&mut buffer).unwrap();
+        }
+        assert_eq!(transport.counters().queries_forwarded, 2);
+        let mut extra = client();
+        extra.source.set_port(53001);
+        let coalesced = transport
+            .start_udp(&query(), extra, GroupId(1), Scope::Shared)
+            .unwrap();
+        assert_eq!(coalesced.id, submitted.id);
+        assert_eq!(transport.counters().queries_forwarded, 2);
+        let plan = SendPlan {
+            candidates: vec![ServerId(1), ServerId(2)],
+            send_all: true,
+            exhausted: false,
+        };
+        assert!(transport
+            .send_plan(submitted.id, &vec![0; 65536], &plan)
+            .is_err());
+        assert_eq!(
+            transport.counters().queries_forwarded,
+            2,
+            "failed sends are not forwarded actions"
+        );
+        transport.clear();
+        assert_eq!(transport.counters().queries_forwarded, 2);
+        assert_eq!(transport.counters().unanswered, 0);
+        assert_eq!(transport.socket_count(), 0);
     }
 
     #[test]

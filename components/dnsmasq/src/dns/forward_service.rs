@@ -197,6 +197,10 @@ impl ForwardDispatcher {
         self.table.note_sent(id, server, socket, now_ms)
     }
 
+    pub fn note_forwarded_action(&mut self) {
+        self.table.note_forwarded_action();
+    }
+
     /// Plan the next server set after a syntactically valid upstream error
     /// (SERVFAIL/REFUSED).  `complete_reply` must be called first so the
     /// table's `forward_all` counter follows the C reply path.

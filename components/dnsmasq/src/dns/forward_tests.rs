@@ -103,6 +103,48 @@ fn refresh_and_ordinary_recipients_keep_independent_delivery_flags() {
 }
 
 #[test]
+fn unanswered_counts_reclamation_but_not_duplicate_expiry_or_cancellation() {
+    let mut table = ForwardTable::new(Options {
+        forward_max: 1,
+        ..Options::default()
+    });
+    let mut rng = Counter(0);
+    let first = submit(&mut table, "a.test", 1, 1000, 100, &mut rng);
+    table.note_sent(first.id, ServerId(0), SocketToken(1), 100_000);
+    submit(&mut table, "a.test", 2, 1001, 100, &mut rng);
+    assert!(matches!(
+        table.submit(
+            &query("a.test", 3),
+            client(1002),
+            GroupId(1),
+            Flags::default(),
+            Scope::Shared,
+            110,
+            &mut rng
+        ),
+        Err(SubmitError::DuplicateFull)
+    ));
+    assert_eq!(table.counters().unanswered, 0);
+
+    let second = submit(&mut table, "b.test", 4, 1000, 110, &mut rng);
+    table.note_sent(second.id, ServerId(0), SocketToken(2), 110_000);
+    let third = submit(&mut table, "c.test", 5, 1000, 120, &mut rng);
+    assert_eq!(table.counters().unanswered, 1); // conditional ten-second slot reuse
+    table.note_sent(third.id, ServerId(0), SocketToken(3), 120_000);
+    table.server_gone(ServerId(0));
+    assert_eq!(table.counters().unanswered, 1);
+    let fourth = submit(&mut table, "d.test", 6, 1000, 130, &mut rng);
+    table.note_sent(fourth.id, ServerId(0), SocketToken(4), 130_000);
+    table.counters.unanswered = u32::MAX;
+    let fifth = submit(&mut table, "e.test", 7, 1000, 170, &mut rng);
+    assert_eq!(table.counters().unanswered, 0); // C unsigned-width absolute reclamation
+    table.cancel(fifth.id);
+    table.counters.queries_forwarded = u32::MAX;
+    table.note_forwarded_action();
+    assert_eq!(table.counters().queries_forwarded, 0);
+}
+
+#[test]
 fn duplicate_and_retry_preserve_client_identity_case_and_limits() {
     let mut table = ForwardTable::new(Options {
         forward_max: 2,

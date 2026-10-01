@@ -24,10 +24,13 @@ stale-refresh implementation; it does not by itself implement that feature.
 The exact reference `forward.c:reply_query` rejects or completes its matched
 frec independently. `get_new_frec` increments unanswered-query accounting and
 calls `free_frec` for expired/reused entries; it does not send a timeout reply.
-The extracted-C `dns_forward_diff.py` adds an explicit sequence with an old
-query, a younger unrelated query, expiration/reuse of the old slot, and a
-successful reply for the younger query. The 1,271-operation state gate passes
-with ASan/UBSan and no differences.
+The original 1,271-operation extracted-C state gate passed, but later counter
+inspection found its `independent-expiry` sequence reused the younger query too.
+That trace did not prove the intended independent completion. The corrected
+sequence starts the younger query before ten-second reuse is possible and
+requires its successful match/completion after the older query is reclaimed.
+The calibrated 1,285-operation state/counter gate passes with ASan/UBSan; see
+`DNS_FORWARD_METRICS_PHASE.md` for the retained original trace and correction.
 
 Three daemon regressions cover 16 controlled arrangements. Two successful
 queries first complete through actual loopback UDP transport; a terminal

@@ -125,7 +125,7 @@ static void snapshot(void) {
  struct frec *list[65536];size_t count=0;for(struct frec *p=daemon->frec_list;p;p=p->next)if(p->sentto)list[count++]=p;qsort(list,count,sizeof(list[0]),compare_frec);
  printf(" |A");for(size_t i=0;i<count;i++) {struct frec *p=list[i];printf(" %u:%lld:%d:%d:%d:%u",p->new_id,(long long)p->time,p->sentto->arrayposn,p->forwardall,p->forward_delay,p->forward_timestamp);
  for(struct frec_src *s=&p->frec_src;s;s=s->next) {unsigned char packet[65536];char name[MAXDNAMESTR+1];blockdata_retrieve(p->stash,p->stash_len,packet);extract_name((void *)packet,p->stash_len,NULL,(char *)(s->encode_bigmap?s->encode_bigmap:&s->encode_bitmap),EXTR_NAME_FLIP,s->encode_bigmap?s->encode_bitmap:1);assert(extract_name((void *)packet,p->stash_len,NULL,name,EXTR_NAME_EXTRACT,0));printf("/%u,%u,%s",s->orig_id,ntohs(s->source.in.sin_port),name);}
- }puts("");
+ }printf(" |METRICS %u:%u\n",daemon->metrics[METRIC_DNS_QUERIES_FORWARDED],daemon->metrics[METRIC_DNS_UNANSWERED_QUERY]);
 }
 int main(int argc,char **argv) {
  assert(argc==6);daemon->ftabsize=atoi(argv[1]);options=atoi(argv[2]);daemon->fast_retry_time=atoi(argv[3]);daemon->fast_retry_timeout=atoi(argv[4]);random_counter=atoi(argv[5]);daemon->edns_pktsz=1232;
@@ -159,7 +159,7 @@ fn flags(n:u32)->Flags{Flags{checking_disabled:n&2!=0,no_cache:n&4!=0,ad_request
 fn send(table:&mut ForwardTable,id:QueryId,group:&mut ServerGroup,reason:SendReason,now:i64,ms:u32,fail:u32){
  let Some(plan)=table.plan(id,group,reason,now)else{return};if plan.exhausted{return}
  let mut sent=false;for server in plan.candidates{if fail&(1<<server.0)!=0{continue}print!(" S{}:{}",table.get(id).unwrap().upstream_id,server.0);table.note_sent(id,server,SocketToken(100+server.0),ms);sent=true;if !plan.send_all{break}}
- if !sent {table.cancel(id);if reason!=SendReason::UpstreamError && reason!=SendReason::FastRetry{print!(" R");}}
+ if sent {table.note_forwarded_action();}else{table.cancel(id);if reason!=SendReason::UpstreamError && reason!=SendReason::FastRetry{print!(" R");}}
 }
 fn main(){let a:Vec<u32>=std::env::args().skip(1).map(|s|s.parse().unwrap()).collect();let mut rng=Counter(a[4]);let mut table=ForwardTable::new(Options{forward_max:a[0]as usize,case_randomization:a[1]&8!=0,fast_retry_ms:a[2],fast_retry_timeout_s:a[3]as i64});
  let mut groups:Vec<_>=(0..2).map(|g|ServerGroup::new(GroupId(g),(g*3..g*3+3).map(|i|Server{id:ServerId(i),address:SocketAddr::from(([192,0,2,10+i as u8],53)),bound_socket:None}).collect(),a[1]&1!=0,a[1]&2!=0)).collect();
@@ -172,7 +172,7 @@ fn main(){let a:Vec<u32>=std::env::args().skip(1).map(|s|s.parse().unwrap()).col
  "M"=>{let mut found=-1;for id in &live{if let Some(p)=table.get(*id){if p.upstream_id!=n(2)as u16{continue}let mut packet=vec![0;12];wire::Header{id:p.upstream_id,flags:0x8180,questions:1,..wire::Header::default()}.write(&mut packet).unwrap();packet.extend_from_slice(wire::Name::from_ascii(w[5]).unwrap().as_wire());packet.extend_from_slice(&(n(3)as u16).to_be_bytes());packet.extend_from_slice(&(n(4)as u16).to_be_bytes());let group=&groups[p.group.0 as usize];if table.accept_reply(&packet,group.servers[0].address,SocketToken(100+p.sent_to.unwrap().0),group,now(1)).is_some(){found=p.upstream_id as i32;}}}print!(" M{found}");}
  "T"=>{let schedule=table.fast_retries(now(1),n(2));let mut next=schedule.next_ms;for id in schedule.due{let group=table.get(id).unwrap().group.0 as usize;send(&mut table,id,&mut groups[group],SendReason::FastRetry,now(1),n(2),fail);table.retry_finished(id);if let Some(p)=table.get(id){next=Some(next.unwrap_or(u32::MAX).min(p.retry_delay_ms));}}print!(" T{}",next.map_or(-1,|v|v as i64));}
  "F"=>fail=n(1),_=>panic!()}
- live.retain(|id|table.get(*id).is_some());let mut sorted=live.clone();sorted.sort_by_key(|id|table.get(*id).unwrap().upstream_id);print!(" |A");for id in sorted{let p=table.get(id).unwrap();print!(" {}:{}:{}:{}:{}:{}",p.upstream_id,p.created,p.sent_to.unwrap().0,p.forward_all,p.retry_delay_ms,p.last_sent_ms);for r in &p.recipients{let name=String::from_utf8(r.question_name.dnsmasq_bytes()).unwrap();print!("/{},{},{}",r.original_id,r.client.source.port(),name);}}println!();table.take_released();
+ live.retain(|id|table.get(*id).is_some());let mut sorted=live.clone();sorted.sort_by_key(|id|table.get(*id).unwrap().upstream_id);print!(" |A");for id in sorted{let p=table.get(id).unwrap();print!(" {}:{}:{}:{}:{}:{}",p.upstream_id,p.created,p.sent_to.unwrap().0,p.forward_all,p.retry_delay_ms,p.last_sent_ms);for r in &p.recipients{let name=String::from_utf8(r.question_name.dnsmasq_bytes()).unwrap();print!("/{},{},{}",r.original_id,r.client.source.port(),name);}}let counters=table.counters();println!(" |METRICS {}:{}",counters.queries_forwarded,counters.unanswered);table.take_released();
  }
 }
 '''
@@ -191,7 +191,7 @@ def scenarios():
     yield 'capacity',[1,0,0,10,0],[q(),q('b.test',2),q('b.test',2,group=1),'C 2',q('c.test',3,now=110),q('d.test',4,now=110),q('e.test',5,now=150)]
     # Expiring one old frec must preserve another transaction and its later
     # successful reply. The exact C free_frec path emits no local error reply.
-    yield 'independent-expiry',[3,0,0,10,0],[q('slow.test'),q('good.test',2,1001,130),
+    yield 'independent-expiry',[3,0,0,10,0],[q('slow.test'),q('good.test',2,1001,101),
         q('trigger.test',3,1002,140),'M 140 1 1 1 slow.test','M 140 2 1 1 good.test',
         'R 140 140001 2 0 0','C 3']
     yield 'idle-reply-deadline',[3,0,0,10,0],[q('slow.test'),
@@ -215,6 +215,13 @@ def scenarios():
         yield f'random-{seed}',[5,seed%2,0,10,0],commands
 
 
+def compare(commands, expected, actual):
+    if len(commands) != len(expected) or len(expected) != len(actual):
+        raise ValueError('forward state/counter observation count differs')
+    return [{'line':i,'command':command,'c':c,'rust':r}
+            for i,(command,c,r) in enumerate(zip(commands,expected,actual)) if c!=r]
+
+
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--rustc',required=True);p.add_argument('--output',type=Path,default=ROOT/'private/dnsmasq-rs/forward/differential');a=p.parse_args();out=a.output.resolve();assert out.is_relative_to((ROOT/'private').resolve());out.mkdir(parents=True,exist_ok=True)
     build(out,a.rustc);summaries=[];mismatches=[]
@@ -228,11 +235,25 @@ def main():
             if name=='calibration':
                 base=' |A 1:100:2:4:0:100000/1,1000,a.test'
                 duplicate=base+'/2,1001,A.TEST'
-                expected=[' S1:0 S1:1 S1:2'+base,duplicate,' R'+duplicate,' M1'+duplicate,' M-1'+duplicate,' D1 |A']
+                expected=[row+' |METRICS 1:0' for row in [' S1:0 S1:1 S1:2'+base,duplicate,' R'+duplicate,' M1'+duplicate,' M-1'+duplicate,' D1 |A']]
                 assert outputs[binary]==expected,f'{binary}: fixed success/failure calibration failed'
-        bad=[{'scenario':name,'line':i,'command':command,'c':c,'rust':r} for i,(command,c,r) in enumerate(zip(commands,outputs['oracle'],outputs['driver'])) if c!=r]
+            if name=='independent-expiry':
+                assert outputs[binary][4].startswith(' M2 '), f'{binary}: independent query was reclaimed'
+                assert outputs[binary][5].startswith(' D2 '), f'{binary}: independent reply did not complete'
+                assert outputs[binary][-1].endswith(' |METRICS 3:1'), f'{binary}: expiry counter boundary changed'
+        if name=='calibration':
+            mutated=outputs['oracle'].copy()
+            state,metrics=mutated[0].rsplit(' |METRICS ',1)
+            forwarded,unanswered=map(int,metrics.split(':'))
+            mutated[0]=f'{state} |METRICS {forwarded+1}:{unanswered}'
+            assert not compare(commands,outputs['oracle'],outputs['oracle'])
+            assert len(compare(commands,outputs['oracle'],mutated))==1,'counter mutation was not detected'
+            try:compare(commands,outputs['oracle'],outputs['oracle'][:-1])
+            except ValueError:pass
+            else:raise AssertionError('missing observation was not rejected')
+        bad=[{'scenario':name,**row} for row in compare(commands,outputs['oracle'],outputs['driver'])]
         mismatches+=bad;summaries.append({'name':name,'config':config,'commands':len(commands),'mismatches':len(bad),'input_sha256':hashlib.sha256(inputs.encode()).hexdigest()})
-    summary={'source_sha256':HASHES,'scenarios':summaries,'commands':sum(s['commands'] for s in summaries),'mismatches':len(mismatches),'sanitizers':True,'scope':'forwarding/coalescing/case/get_new_frec/retry state with in-memory socket/domain dependencies; no daemon sockets, EDNS mutation or process_reply'}
+    summary={'source_sha256':HASHES,'scenarios':summaries,'commands':sum(s['commands'] for s in summaries),'mismatches':len(mismatches),'sanitizers':True,'calibration':{'fixed_state_and_send_count':1,'changed_counter_detected':1,'missing_observation_rejected':1,'independent_success_after_reclamation':1},'scope':'forwarding/coalescing/case/get_new_frec/retry state plus ordered forwarded/unanswered u32 counters with in-memory socket/domain dependencies; no daemon sockets, EDNS mutation or process_reply'}
     (out/'mismatches.json').write_text(json.dumps(mismatches,indent=2)+'\n');(out/'summary.json').write_text(json.dumps(summary,indent=2)+'\n');print(json.dumps(summary,indent=2));return bool(mismatches)
 
 if __name__=='__main__':raise SystemExit(main())
