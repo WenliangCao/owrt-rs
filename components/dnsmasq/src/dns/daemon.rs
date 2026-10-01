@@ -495,6 +495,23 @@ impl<R: Random> DnsDaemon<R> {
                 return Ok(super::udp_query::table_full(query, self.edns_packet_max)
                     .map_or(QueryResult::Dropped, QueryResult::Local))
             }
+            Err(ResolveError::Io(_)) => {
+                // forward_query cancels this transaction when every socket /
+                // send attempt fails, then makes a local REFUSED with NETERR.
+                // start_udp has already released it. Background refreshes
+                // return Local too: the parent counts this fallback without
+                // sending a second response to the stale-answer recipient.
+                let limit = find_pseudoheader(query, true)?
+                    .opt
+                    .map_or(512, |opt| usize::from(opt.udp_size(self.edns_packet_max)));
+                return Ok(QueryResult::Local(super::tcp_service::refusal(
+                    query,
+                    self.edns_packet_max,
+                    23,
+                    limit,
+                    false,
+                )?));
+            }
             Err(error) => return Err(error.into()),
         };
         Ok(QueryResult::Forwarded(submission.id))
