@@ -338,7 +338,7 @@ fn unix_now() -> i64 {
 /// Local answers contain no client OPT. edns0.c checks room for the empty
 /// 11-byte RR plus a four-byte option header even when optno/optlen are zero;
 /// on failure it returns the original packet length and arcount.
-fn append_empty_opt(
+pub(super) fn append_empty_opt(
     packet: &mut Vec<u8>,
     advertised: u16,
     do_bit: bool,

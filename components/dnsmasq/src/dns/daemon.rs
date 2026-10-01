@@ -14,8 +14,13 @@ use super::cache::{
 use super::cache_reply::{append_cname_record, append_negative_authority, append_positive_record};
 use super::forward::{Client, Options as ForwardOptions, QueryId, Random, Scope};
 use super::forward_service::ForwardDispatcher;
-use super::process::{ignore_reply, process_reply, AddressPolicy, ProcessAction, ProcessError};
-use super::reply::{apply_known_local_nxdomain, limit_udp_reply, prepare_reply, ReplyPolicy};
+use super::process::{
+    apply_static_aliases, ignore_reply, process_admitted_reply, AddressPolicy, AddressPrefix,
+    ProcessAction, ProcessError,
+};
+use super::reply::{
+    apply_known_local_nxdomain, limit_udp_reply, prepare_udp_reply, resize_reply, ReplyPolicy,
+};
 use super::routing::{RouteReason, RoutingError, RoutingTable};
 use super::service::{LocalDnsService, ServiceError};
 use super::upstream::{
@@ -529,7 +534,7 @@ impl<R: Random> DnsDaemon<R> {
     ) -> Vec<ClientResponse> {
         let mut responses = Vec::new();
         for event in events {
-            let reply = match event.result {
+            let mut reply = match event.result {
                 Ok(reply) => reply,
                 Err(
                     ResolveError::Timeout
@@ -544,7 +549,7 @@ impl<R: Random> DnsDaemon<R> {
                     continue;
                 }
             };
-            let rcode = match self.cache_completed_reply(&reply, now, external_local) {
+            let rcode = match self.process_completed_reply(&mut reply, now, external_local) {
                 Ok(rcode) => rcode,
                 Err(_) => {
                     self.poll_failures.invalid_replies =
@@ -556,7 +561,7 @@ impl<R: Random> DnsDaemon<R> {
                 if !recipient.client.reply_requested {
                     continue;
                 }
-                match self.recipient_packet(&reply, recipient, rcode, now, external_local) {
+                match self.recipient_packet(&reply, recipient, rcode) {
                     Ok(Some(packet)) => responses.push(ClientResponse {
                         destination: recipient.client.source,
                         listener: recipient.client.listener,
@@ -573,18 +578,37 @@ impl<R: Random> DnsDaemon<R> {
         responses
     }
 
-    fn cache_completed_reply(
+    fn process_completed_reply(
         &mut self,
-        reply: &UncheckedReply,
+        reply: &mut UncheckedReply,
         now: i64,
         external_local: Option<&LocalDnsService>,
     ) -> Result<u16, DaemonError> {
-        let message = Message::parse(&reply.packet)?;
-        let rcode = u16::from(message.header.rcode())
-            | find_pseudoheader(&reply.packet, false)?
-                .opt
-                .as_ref()
-                .map_or(0, |opt| u16::from(opt.extended_rcode()) << 4);
+        let envelope = prepare_udp_reply(
+            &reply.packet,
+            ReplyPolicy {
+                client_had_opt: reply.flags.had_opt,
+                checking_disabled: reply.flags.checking_disabled,
+                proxy_dnssec: self.proxy_dnssec,
+                edns_packet_max: self.edns_packet_max,
+            },
+        )?;
+        let rcode = envelope.rcode;
+        reply.packet = envelope.packet;
+        // These common stages happen once, before both cache insertion and
+        // recipient copies. Repeating known-local after the doctor would
+        // restore AA and repeating alias rules could rewrite an address twice.
+        apply_known_local_nxdomain(&mut reply.packet, rcode, |name| {
+            let local = external_local.unwrap_or(&self.local);
+            super::local::known_forwarded_domain_with_leases(
+                &local.config,
+                &local.hosts,
+                name,
+                &local.leases,
+                now,
+            ) || self.routing.has_configured_address(name)
+        })?;
+        apply_static_aliases(&mut reply.packet, &self.policy.static_aliases, rcode)?;
         // Cache only a clean, successful positive reply.  Address policy
         // runs on a clone first so a blocked/bogus/malformed response is
         // never admitted to the cache or later exposed to a recipient.
@@ -595,27 +619,8 @@ impl<R: Random> DnsDaemon<R> {
             && !reply.flags.ad_requested
             && !reply.flags.checking_disabled
         {
-            let mut candidate = prepare_reply(
-                &reply.packet,
-                ReplyPolicy {
-                    client_had_opt: reply.flags.had_opt,
-                    checking_disabled: reply.flags.checking_disabled,
-                    proxy_dnssec: self.proxy_dnssec,
-                    edns_packet_max: self.edns_packet_max,
-                },
-            )?
-            .packet;
-            apply_known_local_nxdomain(&mut candidate, rcode, |name| {
-                let local = external_local.unwrap_or(&self.local);
-                super::local::known_forwarded_domain_with_leases(
-                    &local.config,
-                    &local.hosts,
-                    name,
-                    &local.leases,
-                    now,
-                ) || self.routing.has_configured_address(name)
-            })?;
-            let report = process_reply(&mut candidate, &self.policy)?;
+            let mut candidate = reply.packet.clone();
+            let report = process_admitted_reply(&mut candidate, &self.policy, rcode)?;
             if report.action == ProcessAction::Deliver
                 && !report.blocked_rebind
                 && !report.malformed_address
@@ -632,12 +637,10 @@ impl<R: Random> DnsDaemon<R> {
         reply: &UncheckedReply,
         recipient: &super::forward::Recipient,
         rcode: u16,
-        now: i64,
-        external_local: Option<&LocalDnsService>,
     ) -> Result<Option<Vec<u8>>, DaemonError> {
         let mut packet = reply.packet.clone();
         recipient.restore_question(&mut packet)?;
-        let envelope = prepare_reply(
+        let envelope = prepare_udp_reply(
             &packet,
             ReplyPolicy {
                 client_had_opt: reply.flags.had_opt,
@@ -647,18 +650,8 @@ impl<R: Random> DnsDaemon<R> {
             },
         )?;
         let mut packet = envelope.packet;
-        apply_known_local_nxdomain(&mut packet, rcode, |name| {
-            let local = external_local.unwrap_or(&self.local);
-            super::local::known_forwarded_domain_with_leases(
-                &local.config,
-                &local.hosts,
-                name,
-                &local.leases,
-                now,
-            ) || self.routing.has_configured_address(name)
-        })?;
         if matches!(rcode, 0 | 3) {
-            let report = process_reply(&mut packet, &self.policy)?;
+            let report = process_admitted_reply(&mut packet, &self.policy, rcode)?;
             if report.action == ProcessAction::Ignore {
                 return Ok(None);
             }
@@ -681,6 +674,7 @@ impl<R: Random> DnsDaemon<R> {
                 }
             }
         }
+        resize_reply(&mut packet);
         Ok(Some(limit_udp_reply(&packet, recipient.client.udp_limit)?))
     }
 
@@ -711,35 +705,87 @@ impl<R: Random> DnsDaemon<R> {
         now: i64,
         external_local: Option<&mut LocalDnsService>,
     ) -> Result<CachedAnswer, DaemonError> {
-        let mut stale = false;
-        let local = external_local.unwrap_or(&mut self.local);
-        let round_robin = !local.config.no_round_robin;
-        let Some(cache) = self.cache.as_mut() else {
+        if self.cache.is_none() {
             return Ok(CachedAnswer {
                 packet: None,
-                stale,
+                stale: false,
             });
-        };
+        }
         let header = Header::parse(query)?;
-        // This first cache slice deliberately leaves EDNS/DNSSEC-sensitive
-        // queries on the normal upstream path until their response envelope
-        // and cache metadata have a dedicated contract.
+        // Empty ordinary OPTs can use the same cached records as plain DNS.
+        // DO/AD, EDNS options, nonzero version/extended RCODE and other
+        // metadata still use the upstream path until their cache contracts
+        // are implemented. Do not accidentally claim DNSSEC cache support.
         let edns = find_pseudoheader(query, true)?;
         if header.questions != 1
             || header.answers != 0
             || header.authorities != 0
-            || header.additionals != 0
+            || header.additionals != u16::from(edns.opt.is_some())
             || header.opcode() != 0
             || header.flags & 0x8000 != 0
             || header.flags & 0x0020 != 0
-            || edns.opt.is_some()
+            || edns
+                .opt
+                .as_ref()
+                .is_some_and(|opt| opt.record.ttl != 0 || !opt.record.rdata.is_empty())
             || edns.signed
         {
             return Ok(CachedAnswer {
                 packet: None,
-                stale,
+                stale: false,
             });
         }
+        let limit = edns
+            .opt
+            .as_ref()
+            .map_or(512, |opt| usize::from(opt.udp_size(self.edns_packet_max)));
+        let mut answer = self.cached_records_at_with_local(
+            question,
+            header,
+            now,
+            external_local,
+            self.max_udp.min(limit),
+        )?;
+        if edns.opt.is_some() {
+            if let Some(packet) = &mut answer.packet {
+                // receive_query appends against the configured daemon limit,
+                // after answer_request used the client's advertised limit.
+                if answer.stale {
+                    // Add the 17-byte OPT/EDE directly. Adding an empty OPT
+                    // first would retain the wrong output at the fit boundary.
+                    super::tcp_service::add_ede(
+                        packet,
+                        self.edns_packet_max,
+                        false,
+                        3,
+                        usize::from(self.edns_packet_max),
+                    )?;
+                } else {
+                    super::service::append_empty_opt(
+                        packet,
+                        self.edns_packet_max,
+                        false,
+                        usize::from(self.edns_packet_max),
+                    )
+                    .map_err(ServiceError::from)?;
+                }
+            }
+        }
+        Ok(answer)
+    }
+
+    fn cached_records_at_with_local(
+        &mut self,
+        question: &super::forward::Question,
+        header: Header,
+        now: i64,
+        external_local: Option<&mut LocalDnsService>,
+        limit: usize,
+    ) -> Result<CachedAnswer, DaemonError> {
+        let mut stale = false;
+        let local = external_local.unwrap_or(&mut self.local);
+        let round_robin = !local.config.no_round_robin;
+        let cache = self.cache.as_mut().expect("cache checked by caller");
         if question.class != 1 {
             return Ok(CachedAnswer {
                 packet: None,
@@ -803,11 +849,7 @@ impl<R: Random> DnsDaemon<R> {
                         .is_some_and(|entry| entry.record.kind == kind)
                 })
         }) {
-            let mut writer = PacketWriter::new(
-                header.id,
-                (header.flags & 0x0110) | 0x8083,
-                self.max_udp.min(512),
-            )?;
+            let mut writer = PacketWriter::new(header.id, (header.flags & 0x0110) | 0x8083, limit)?;
             writer.question(&question.name, question.rrtype, question.class)?;
             match append_negative_authority(&mut writer, cache, id, now) {
                 Ok(_) | Err(WireError::Full) => {}
@@ -826,11 +868,7 @@ impl<R: Random> DnsDaemon<R> {
             // even when its target is another alias or a negative entry.
             // That exact C branch retains AA; only terminal address/negative
             // processing clears it for other qtypes.
-            let mut writer = PacketWriter::new(
-                header.id,
-                (header.flags & 0x0110) | 0x8480,
-                self.max_udp.min(512),
-            )?;
+            let mut writer = PacketWriter::new(header.id, (header.flags & 0x0110) | 0x8480, limit)?;
             writer.question(&question.name, question.rrtype, question.class)?;
             for id in ids {
                 if let Some(entry) = cache
@@ -859,11 +897,7 @@ impl<R: Random> DnsDaemon<R> {
         });
         if let Some(id) = direct_nodata {
             stale |= cache.get(id).is_some_and(|entry| entry.is_stale(now));
-            let mut writer = PacketWriter::new(
-                header.id,
-                (header.flags & 0x0110) | 0x8080,
-                self.max_udp.min(512),
-            )?;
+            let mut writer = PacketWriter::new(header.id, (header.flags & 0x0110) | 0x8080, limit)?;
             writer.question(&question.name, question.rrtype, question.class)?;
             match append_negative_authority(&mut writer, cache, id, now) {
                 Ok(_) | Err(WireError::Full) => {}
@@ -911,7 +945,7 @@ impl<R: Random> DnsDaemon<R> {
                 } else {
                     0x8080
                 },
-            self.max_udp.min(512),
+            limit,
         )?;
         writer.question(&question.name, question.rrtype, question.class)?;
         let mut written = false;
@@ -1099,7 +1133,8 @@ impl<R: Random> DnsDaemon<R> {
         let Ok(message) = Message::parse(packet) else {
             return;
         };
-        if !matches!(message.header.rcode(), 0 | 3)
+        if message.header.opcode() != 0
+            || !matches!(message.header.rcode(), 0 | 3)
             || message.header.flags & 0x0200 != 0
             || message.header.flags & 0x0080 == 0
             || message.header.questions != 1
@@ -1196,14 +1231,16 @@ impl<R: Random> DnsDaemon<R> {
         let address_len = if question.qtype == 1 { 4 } else { 16 };
         let mut addresses = Vec::new();
         for rr in message.records(Section::Answer) {
-            if rr.class != 1 || rr.rrtype != question.qtype || rr.rdata.len() != address_len {
+            if rr.class != 1 || rr.rrtype != question.qtype || rr.rdata.len() < address_len {
                 continue;
             }
             let Ok(name) = rr.name() else {
                 return;
             };
             if name.eq_ignore_ascii_case(&terminal_name) {
-                addresses.push((name, rr.rdata.to_vec(), answer_ttl(rr.ttl)));
+                // C extracts the address-width prefix of an overlong RDATA.
+                // Retain that safe behavior without reading past a short RR.
+                addresses.push((name, rr.rdata[..address_len].to_vec(), answer_ttl(rr.ttl)));
             }
         }
 
@@ -1673,7 +1710,32 @@ pub(super) fn address_policy(config: &DnsConfig) -> Result<AddressPolicy, Daemon
         stop_rebind: config.stop_rebind,
         rebind_localhost_ok: config.rebind_localhost_ok,
         rebind_domains,
-        ..AddressPolicy::default()
+        static_aliases: config
+            .aliases
+            .iter()
+            .map(|rule| super::doctor::Alias {
+                from: rule.from,
+                end: rule.end,
+                to: rule.to,
+                mask: rule.mask,
+            })
+            .collect(),
+        bogus_addresses: config
+            .bogus_addresses
+            .iter()
+            .map(|rule| AddressPrefix {
+                address: rule.address,
+                prefix: rule.prefix,
+            })
+            .collect(),
+        ignore_addresses: config
+            .ignore_addresses
+            .iter()
+            .map(|rule| AddressPrefix {
+                address: rule.address,
+                prefix: rule.prefix,
+            })
+            .collect(),
     })
 }
 
