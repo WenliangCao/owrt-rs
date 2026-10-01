@@ -174,8 +174,8 @@ def run(args, binary, case, side, out):
             event('direct-owner-recovery', upstream_reply=response.hex())
             upstream.sendto(response, peer)
             finish('direct-owner-recovery', clients[1], packet, [decoded])
-        else:
-            lookup('control-recovery-through-alias', 'recovery.test', (44,), 'owner.test')
+        # The no-CD control is already committed. Avoid a second unrelated
+        # target replacement, whose CNAME cleanup depends on C hash collisions.
         if filler_pending:
             packet, sent, peer, decoded = filler_pending
             response = answer(sent, kind, (55,))
@@ -273,7 +273,8 @@ def main():
                 if args.rust:
                     actual = run(args, args.rust.resolve(), case, 'Rust', work / 'rust')
                     row['differences'] = compare(expected, actual)
-                    row['matched'] = len(expected) - len(row['differences'])
+                    row['matched'] = (None if any('stages' in difference for difference in row['differences'])
+                                      else len(expected) - len(row['differences']))
                 report['rounds'].append(row)
             except Exception as error:
                 report['failures'].append({'case': case['label'], 'error': repr(error)})
