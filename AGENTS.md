@@ -2,6 +2,10 @@
 
 Act as a senior systems engineer. Prefer small, explicit, maintainable changes.
 
+Clean up obsolete task branches after their work is merged or retired. Before
+deletion, preserve required unmerged changes and evidence commits under durable
+refs. Keep active task branches and uncommitted work intact.
+
 This project is evidence-first:
 
 - Treat the exact OpenWrt image as the deployment specification.
