@@ -30,6 +30,8 @@ impl DhcpOption {
             b"option:domain-name" => 15,
             b"option:T1" => 58,
             b"option:T2" => 59,
+            b"option:tftp-server" => 66,
+            b"option:bootfile-name" => 67,
             // C permits the numeric forms, but named OT_INTERNAL entries
             // such as hostname and broadcast are configuration errors.
             b"option:hostname" | b"option:broadcast" => {
@@ -45,7 +47,7 @@ impl DhcpOption {
                 ))
             }
         };
-        if !matches!(code, 1 | 3 | 6 | 12 | 15 | 28 | 58 | 59) {
+        if !matches!(code, 1 | 3 | 6 | 12 | 15 | 28 | 58 | 59 | 66 | 67) {
             return Err(Error("DHCP option code is not implemented"));
         }
         let value = match (code, value) {
@@ -63,12 +65,14 @@ impl DhcpOption {
                 }
                 OptionValue::Addresses(addresses)
             }
-            (12 | 15, Some(value)) => {
+            (12 | 15 | 66 | 67, Some(value)) => {
                 let value = value.decoded();
                 if value.len() > 255 {
                     return Err(Error("DHCP option exceeds one-byte length"));
                 }
-                if value.is_empty() {
+                // With 66/67 C distinguishes no argument (no string flag)
+                // from an explicit empty string, which becomes a NUL TLV.
+                if value.is_empty() && !matches!(code, 66 | 67) {
                     OptionValue::Empty
                 } else {
                     OptionValue::String(value)
@@ -106,6 +110,27 @@ mod tests {
     fn parse(line: &[u8]) -> Result<DhcpOption, Error> {
         let directive = lex_line(line)?.unwrap();
         DhcpOption::parse(directive.argument.as_ref().unwrap(), false)
+    }
+
+    #[test]
+    fn boot_options_preserve_empty_argument_string_flag() {
+        assert_eq!(parse(b"dhcp-option=66").unwrap().value, OptionValue::Empty);
+        assert_eq!(
+            parse(b"dhcp-option=66,").unwrap().value,
+            OptionValue::String(Vec::new())
+        );
+        assert_eq!(
+            parse(b"dhcp-option=option:tftp-server,boot.test")
+                .unwrap()
+                .code,
+            66
+        );
+        assert_eq!(
+            parse(b"dhcp-option=option:bootfile-name,boot.img")
+                .unwrap()
+                .code,
+            67
+        );
     }
 
     #[test]

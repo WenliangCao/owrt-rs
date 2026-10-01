@@ -78,6 +78,7 @@ sudo -n sh tools/dnsmasq/run_isolated.sh \
   --output private/dhcp-options-rerun
 ```
 
+The later [boot-options stage](DHCP_BOOT_OPTIONS_PHASE.md) adds ordinary 66/67.
 Tags, vendor/encapsulation, other option codes, address/subnet descriptor
 encodings and nonnumeric timer representations remain explicit configuration
 errors and are not counted as C matches. Timers require a nonempty numeric

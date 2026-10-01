@@ -531,12 +531,15 @@ where
     let names = provider.reply_names(dispatch.packet, &outcome);
     let name_values = names.map(|names| encode_name_options(dispatch.packet, names));
     let mut configured_codes = [false; 256];
+    let mut fixed_boot_fields = [None, None];
     let configured = encode_configured_options(
         dispatch.packet,
         outcome.reply,
         network.map(|network| network.next_server),
         provider.configured_options(),
         &mut configured_codes,
+        provider.boot_config().is_some(),
+        &mut fixed_boot_fields,
     );
     let boot_next_server = if matches!(outcome.reply, Reply::Nak { .. }) {
         None
@@ -589,7 +592,19 @@ where
     }
     combined.extend_from_slice(options);
     let options = combined.as_slice();
-    let boot = provider.boot_config();
+    // Only unrequested, unforced 66/67 with no dhcp-boot reach fixed fields.
+    // Reuse the bounded field serializer; these values cannot be selected as
+    // early boot TLVs because the same request did not ask for their codes.
+    let fallback_boot = BootConfig {
+        server_name: fixed_boot_fields[0].take(),
+        filename: fixed_boot_fields[1].take(),
+        next_server: Ipv4Addr::UNSPECIFIED,
+        next_server_name: None,
+    };
+    let boot = provider.boot_config().or_else(|| {
+        (fallback_boot.server_name.is_some() || fallback_boot.filename.is_some())
+            .then_some(&fallback_boot)
+    });
     let encoding = match build_reply_with_boot(
         dispatch.packet,
         outcome.reply,
@@ -679,8 +694,10 @@ fn encode_configured_options(
     local: Option<Ipv4Addr>,
     configured: &[DhcpOption],
     present: &mut [bool; 256],
+    has_boot: bool,
+    fixed_boot_fields: &mut [Option<Vec<u8>>; 2],
 ) -> Vec<(u8, Vec<u8>)> {
-    let mut values = Vec::with_capacity(configured.len().min(8));
+    let mut values = Vec::with_capacity(configured.len().min(10));
     if matches!(reply, Reply::Nak { .. } | Reply::Ignore) {
         return values;
     }
@@ -693,6 +710,19 @@ fn encode_configured_options(
             continue;
         }
         *slot = true;
+        if matches!(option.code, 66 | 67)
+            && !has_boot
+            && !option.force
+            && (bootp || packet.option(55, 0).is_none() || !packet.requests(option.code))
+        {
+            let value = match &option.value {
+                OptionValue::String(value) => value.clone(),
+                OptionValue::Empty => Vec::new(),
+                _ => continue, // The typed parser admits only boot strings.
+            };
+            fixed_boot_fields[usize::from(option.code - 66)] = Some(value);
+            continue;
+        }
         if matches!(option.code, 58 | 59) {
             // do_options consumes these internally, independently of PRL.
             // BOOTP and INFORM never send them through the ordinary loop.
@@ -703,6 +733,7 @@ fn encode_configured_options(
             continue;
         }
         let value = match &option.value {
+            OptionValue::Empty if matches!(option.code, 66 | 67) => Vec::new(),
             OptionValue::Empty => continue,
             OptionValue::Addresses(addresses) => addresses
                 .iter()
@@ -717,7 +748,7 @@ fn encode_configured_options(
                 .collect(),
             OptionValue::String(value) => {
                 let mut value = value.clone();
-                if null_term && value.len() != 255 {
+                if (null_term || matches!(option.code, 66 | 67)) && value.len() != 255 {
                     value.push(0);
                 }
                 value
@@ -1024,6 +1055,8 @@ mod tests {
             Some(Ipv4Addr::LOCALHOST),
             &configured,
             &mut present,
+            false,
+            &mut [None, None],
         );
         assert!(present[3] && present[6] && present[15] && present[58]);
         assert_eq!(
@@ -1050,6 +1083,8 @@ mod tests {
             Some(Ipv4Addr::LOCALHOST),
             &configured,
             &mut present,
+            false,
+            &mut [None, None],
         );
         assert_eq!(
             values,
