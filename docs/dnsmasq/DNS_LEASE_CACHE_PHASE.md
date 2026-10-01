@@ -61,3 +61,25 @@ remains an explicit incomplete contract, not a waived passing case. The current
 gate therefore does not establish arbitrary hash-bucket publication equivalence,
 full `answer_request`/daemon equivalence, reverse caching, allocation failure,
 or performance acceptance. This boundary must remain open in the master report.
+
+The subsequent `linux/lease-cache-reachability-01/` uses only real caller paths:
+`extract_addresses`, `cache_add_dhcp_entry`, `cache_unhash_dhcp`, `cache_reload`
+and `answer_request`. It does not use the synthetic local `H` injection. All
+300 traces / 4,000 operations complete without a live same-name DHCP IPv4 entry
+coexisting with a dynamic IPv4/CNAME. Cases vary five initial configurations,
+five replies (including an A before CNAME), response-before-lease versus
+lease-before-response, repeated publication and reload, both round-robin modes,
+and independently confirmed same/different C buckets. This is C-only evidence,
+not an additional Rust differential pass or a universal unreachability proof.
+
+The supporting current-caller invariant is that static names load before
+forwarding, `cache_insert` rejects conflicting local entries, SIGHUP clears
+dynamic entries before reloading static names, and a full DHCP publication
+unhashes old DHCP entries before inserting the new generation. Incremental
+hostsdir updates and arbitrary synthetic cache states are outside that argument.
+Preserving this invariant in Rust also requires insertion-time checks against
+the current hosts/lease generation: a late upstream reply must not insert a
+conflicting dynamic answer after publication and expose it after lease release.
+The publication trait alone does not implement that caller requirement. C's
+same-address exception can also return the local record as a CNAME target;
+blanket packet rejection is not complete equivalence for that case.

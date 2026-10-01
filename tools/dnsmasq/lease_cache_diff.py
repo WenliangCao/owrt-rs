@@ -22,7 +22,7 @@ def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def build(args, out):
+def build_c(args, out):
     obj = args.reference_build / "dnsmasq"
     local_answer_diff.validate_reference_variant(obj)
     assert digest(obj / "cache.c") == CACHE_SHA
@@ -34,6 +34,11 @@ def build(args, out):
                     f"-I{obj}", f"-I{args.reference_build / 'deps/include'}",
                     str(Path(__file__).with_name("lease_cache_driver.c")), *map(str, objects), str(renamed),
                     f"-L{deps}", f"-Wl,-rpath,{deps}", "-lubus", "-lubox", "-o", str(c)], check=True)
+    return c
+
+
+def build(args, out):
+    c = build_c(args, out)
     with (out / "rust-build.log").open("w") as log:
         subprocess.run([args.cargo, "build", "--manifest-path", str(ROOT / "components/dnsmasq/Cargo.toml"),
                         "--lib", "--release", "--target-dir", str(out / "target")], stdout=log, stderr=log, check=True)

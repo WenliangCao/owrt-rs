@@ -17,7 +17,9 @@ static unsigned kind_type(struct crec *c) {
 int main(int argc, char **argv) {
   rand_init(); read_opts(argc, argv, "lease-cache-oracle");
   daemon->pipe_to_parent = -1;
-  cache_init(); blockdata_init();
+  daemon->packet_buff_sz = 65536 + MAXDNAME + RRFIXEDSZ;
+  daemon->packet = safe_malloc(daemon->packet_buff_sz);
+  cache_init(); blockdata_init(); build_server_array(); cache_reload();
   struct crec *ids[2048] = {0}; unsigned count = 0;
   char *line = NULL; size_t capacity = 0;
   while (getline(&line, &capacity, stdin) >= 0) {
@@ -25,6 +27,8 @@ int main(int argc, char **argv) {
     long long now;
     if (line[0] == 'B') { cache_start_insert(); puts("B"); }
     else if (line[0] == 'C') { cache_end_insert(); printf("C %d\n", !insert_error); }
+    else if (line[0] == 'R') { cache_unhash_dhcp(); puts("R"); }
+    else if (line[0] == 'S') { cache_reload(); puts("S"); }
     else if (line[0] == 'I') {
       assert(sscanf(line, "I %503s %u %u %u %u %lld", name, &type, &ttl, &value, &negative, &now) == 6);
       union all_addr address = {0};
@@ -65,6 +69,37 @@ int main(int argc, char **argv) {
         if ((hash_bucket(name) == hash_bucket(other)) == !!same) break;
       }
       assert(i < 100000); printf("X %s\n", other);
+    } else if (line[0] == 'P' || line[0] == 'W') {
+      int offset = 0; assert(sscanf(line + 1, " %lld %n", &now, &offset) == 1);
+      char *hex = line + 1 + offset;
+      size_t length = strcspn(hex, "\r\n") / 2;
+      assert(length >= 12 && length <= 65535);
+      memset(daemon->packet, 0, daemon->packet_buff_sz);
+      for (size_t i = 0; i < length; i++) {
+        unsigned byte; assert(sscanf(hex + 2*i, "%2x", &byte) == 1);
+        ((unsigned char *)daemon->packet)[i] = byte;
+      }
+      struct dns_header *header = (struct dns_header *)daemon->packet;
+      if (line[0] == 'P') {
+        int result = extract_addresses(header, length, daemon->namebuff, now, NULL, NULL, 0, 0, 0);
+        printf("P %d\n", result);
+      } else {
+        int stale = 0, filtered = 0;
+        length = answer_request(header, daemon->packet + 65535, length, (struct in_addr){0},
+                                (struct in_addr){0}, now, 0, 0, 0, &stale, &filtered);
+        printf("W ");
+        if (!length) printf("NONE");
+        else for (size_t i = 0; i < length; i++) printf("%02x", ((unsigned char *)header)[i]);
+        putchar('\n');
+      }
+    } else if (line[0] == 'E') {
+      assert(sscanf(line, "E %503s", name) == 1);
+      cache_enumerate(1); struct crec *c; printf("E");
+      while ((c = cache_enumerate(0))) {
+        if (!(c->flags & F_FORWARD) || !hostname_isequal(cache_get_name(c), name)) continue;
+        printf(" %u:%u:%d:%d", kind_type(c), c->flags, is_outdated_cname_pointer(c), is_expired(0, c));
+      }
+      puts("");
     } else if (line[0] == 'Q') {
       assert(sscanf(line, "Q %503s %u %lld", name, &type, &now) == 3);
       struct crec *c = NULL; printf("Q");
