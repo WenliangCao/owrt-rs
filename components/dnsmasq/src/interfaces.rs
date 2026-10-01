@@ -2,6 +2,10 @@
 
 use std::net::Ipv4Addr;
 
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+#[path = "interfaces_broadcast.rs"]
+mod ipv4_broadcast;
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Ipv4Interface {
     pub index: u32,
@@ -81,6 +85,7 @@ mod linux {
             return Err(io::Error::last_os_error());
         }
         let _addresses = Addresses(head);
+        let broadcasts = super::ipv4_broadcast::snapshot()?;
         let mut current = head;
         let mut result = Vec::new();
         while !current.is_null() {
@@ -102,8 +107,14 @@ mod linux {
                 continue;
             }
             let broadcast = if entry.flags & 2 != 0 {
-                // SAFETY: IFF_BROADCAST selects the broadcast arm of ifa_ifu.
-                unsafe { interface_ipv4(entry.broadcast) }.unwrap_or(Ipv4Addr::UNSPECIFIED)
+                // getifaddrs may return IFA_ADDRESS in ifa_ifu when no
+                // IFA_BROADCAST exists. Match C's netlink attribute instead.
+                broadcasts
+                    .iter()
+                    .find_map(|&(id, local, broadcast)| {
+                        (id == index && local == address).then_some(broadcast)
+                    })
+                    .unwrap_or(Ipv4Addr::UNSPECIFIED)
             } else {
                 Ipv4Addr::UNSPECIFIED
             };
