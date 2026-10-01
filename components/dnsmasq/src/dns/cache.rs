@@ -1032,10 +1032,12 @@ impl PublicationCache for Cache {
         }
     }
 
-    fn reverse_owned(&mut self, _: std::net::Ipv4Addr) -> bool {
-        // Private reverse candidate: publication ownership and local/dynamic
-        // coexistence still need their independent real-caller qualification.
-        false
+    fn reverse_owned(&mut self, address: std::net::Ipv4Addr) -> bool {
+        // Publication is not an expiry tick. C looks up at time zero, retaining
+        // both the lookup's LRU effects and a prior positive PTR's ownership.
+        self.lookup_reverse(IpAddr::V4(address), 0)
+            .into_iter()
+            .any(|id| self.get(id).is_some_and(|entry| !entry.record.negative))
     }
 }
 
