@@ -1,9 +1,11 @@
-# NXDOMAIN/SOA pressure and the remaining ordinary-miss lookup gap
+# NXDOMAIN/SOA pressure and the corrected ordinary-miss lookup gap
 
 The independent supported NXDOMAIN/SOA pressure gate confirms the DO fix also
 preserves LRU effects for NXDOMAIN and cached generic SOA records. It exposes
 one existing non-DO gap: a plain A/AAAA miss against a same-name cached SOA
-skips C's final generic-record lookup in Rust, changing the next eviction.
+skipped C's final generic-record lookup in Rust, changing the next eviction.
+The product at `5c15e16` corrects that miss path and passes the complete frozen
+gate against native C and the actual image; before/failure stages remain below.
 
 This is a separate 120-observation gate from the earlier
 [direct/CNAME 120](DO_LOOKUP_PRESSURE_RESULT.md). Their counts must not be
@@ -85,3 +87,37 @@ host copy at `/home/ubuntu/dns-do-pressure-20261001/work01/private/`.
 All service experiments used `run_isolated.sh`; no physical router was
 accessed. This report contains no product change. The ordinary miss correction
 and its frozen replay remain outstanding.
+
+## Final corrected product replay
+
+The root-owned product fix `5c15e16da102a209c1040ba5a5d44d8abb1ca58d`
+adds the final generic/NXDOMAIN lookup before returning an A/AAAA/CNAME initial
+cache miss. It does not emit an unrelated generic record. Generic qtypes
+already visit that group and do not perform a second lookup/rotation.
+Independent source review found this narrow boundary consistent with the
+matching C sequence; the unqualified early-return branches listed above remain
+outside this change.
+
+The unchanged NX/SOA tool gives:
+
+| Run | Result |
+| --- | --- |
+| `soa-native-final-5c15e16` | 120/120 paired observations, zero differences/failures |
+| `soa-image-final-5c15e16` | 120/120 paired observations, zero differences/failures |
+| `soa-native-final-negative-5c15e16` | Exactly one deliberately altered cache-hit observation differs; exit 1, zero fixture failures |
+
+The same ELF also passes the separate unchanged direct/CNAME pressure gate
+against both C variants, with its own exactly-one-mismatch negative. Each gate
+still has 120 observations; these are two distinct workloads. Direct comparison
+of the saved native/image C-only baselines yields 120/120 identical decoded
+observations per gate without any new daemon run.
+
+Executed Rust ELF SHA-256:
+`87f68b790d6a19f1cf25bdfcc33093f603016b3df8d1f8df5b959c74f6990b90`.
+Source archive SHA-256:
+`c68add496d9acb2067b066a0abb3a23eee288b0611744ec05b4162737cb66e2a`.
+Build directory: `/home/ubuntu/dns-do-lookup-fix-20261001/5c15e16-01/`.
+The ELF and every final trace are also retained in the local private evidence
+directory and file-hash manifest. Both measured lookup/eviction gaps are now
+closed; this does not change the TXT unsupported boundary or claim complete
+cache equivalence.
