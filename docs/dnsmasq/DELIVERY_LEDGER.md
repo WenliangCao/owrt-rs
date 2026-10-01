@@ -89,7 +89,7 @@ above remains a coverage ledger, not a pass denominator.
 | New bounded gate | Result | Still open |
 |---|---|---|
 | DO/AD/CD + known forwarded names | Native/image750/750; presence108; negative controls detect errors; aeba67e adds native/imageDO pressure120/120 | Other qtypes/metadata/signatures; generic/NX lookup order, rotation and hash-bucket cleanup |
-| Ordinary miss / generic lookup | 5c15e16: separateNX/SOA120/120 native/image; prior direct/CNAME120/120 preserved; final389+7/16ignored and native/musl Clippy | cache-rr insertion/configuration, other no-answer branches, rotation and hash-bucket cleanup |
+| Ordinary miss / generic lookup | 5c15e16: separateNX/SOA120/120 native/image; prior direct/CNAME120/120 preserved; final389+7/16ignored and native/musl Clippy | Other no-answer branches, rotation and hash-bucket cleanup |
 | Generic forward insertion and malformed errors | 4bf072d native/image22config+78forward, separateQTYPE0 each9; ac8a3b6 native/image malformed35/35 and native normal22+78, policy210/bogus256 | Reverse9 remain C-only; readiness failure preserved; DO/AD expansion, oversize storage and full generic contract remain open |
 | Independent bogus transaction | Native/image256/256 even underCD/no-negcache | Complete policy composition |
 | Ordinary CD extraction/commit | Native/image134/134; ordered removal, eviction and pending cleanup preserved while commit is suppressed | Broader no_cache configuration triggers; original136 image-C calibration failure retained |
@@ -105,6 +105,7 @@ above remains a coverage ledger, not a pass denominator.
 | TCP inline16 snapshot screen | Both variants22571/22571; frozen24 windows/12000 completions,0errors; population and steady heap guards pass | 150-full first-pair p95+8.63% fails frozen5% guard; no adoption or extra rounds |
 | TCP singleton-index screen | Both22571/22571; frozen24 windows/12000 completions,0errors; snapshot CPU/heap and150p95 guards pass | Population worst+50.40/+5.40/+5.10% fails all full profiles; no adoption or rerun |
 | Private streaming TCP import | Private dff7a39: partialEOF27/27, normal32/stale41/CD65/UBus69/EMFILE17/capacity31/writeback12, native/musl transfer307, isolated398+7/17ignored | No product merge; sender whole-vector/OOM/arbitrary lengths/native pipe saturation/performance remain open |
+| Private reverse-cache candidate | Primitive125/125 on deab;62894native/imageUDP124/124 after33 before differences; negative123/1; actual target case and shared capacity retained | No product merge; local/lease, reverse transfer, multi-target order and resource gates remain open |
 | UDP malformed/admission/capacity | 40 inputs, 43 observations match; public/main hooks committed | Duplicate-client refusal has an explicit C wrong-ID defect; complete interface/send pressure remains open |
 | Delayed UDP and failure isolation | 11-second reply, 41-second late drop, 42-second new query match; failed sibling no longer hides successful replies | `ad7e2a7` now aligns lazy wall-clock lifetime; exact forward state/counters 1,285 operations pass; no resource-equivalence claim |
 | Lease operation counters | Actual C 47 scenarios/3,764 snapshots, negative 3,763/1 | Real lease and DHCP message owners now publish through UBus; complete feature coverage remains separate |

@@ -39,6 +39,7 @@ Do not overwrite those files or private experiment worktrees.
 | Generic lookup after ordinary miss | `5c15e16`: independent NX/SOA pressure native/image120/120, before108/120 then116/120 after the DO-only repair; direct/CNAME120/120 per reference preserved. Both negative controls detect1. Final isolated389+7/16ignored and native/musl Clippy pass. |
 | Generic forward insertion | `4bf072d`: native/image22 configuration+78 forward observations, separateQTYPE0 native/image9. Same ELF preserves DO750 per reference, nativeCD134, both pressure120 per reference and isolated389+7/16ignored/native+muslClippy. First image run had75 matches+1 readiness timeout; complete sequential replay78 passes, failure retained. Malformed generic error propagation is a known source-audit gap under separate C-first qualification. |
 | Generic malformed reply propagation | `0fae34f`/`ac8a3b6`: native/image35/35, before14 differences per reference; negative34/1. Prefix removals/evictions remain. Final native normal22+78, policy210, bogus256, isolated389+7/16ignored and native/muslClippy pass. RecordTooLong keeps prior cache-abort/forward behavior; no oversized-data equivalence claim. |
+| Private reverse-cache candidate | `702af88`/`19620e3`/`deab8a0`/`62894d6` on `research/dnsmasq-reverse-cache-candidate-20261001`. Shares slots/LRU/counters without new fields/index. Primitive125/125 on19620/deab; real UDP beforedeab91/124, after62894native/image124/124, negative123/1. Target case retained. Local/lease ownership, reverse transfer, multi-target order and resource qualification remain open; no product merge. |
 
 Current agents/ownership:
 
@@ -51,15 +52,26 @@ Current agents/ownership:
   UDP CD134 gates in `../owrt-tcp-writeback-gates`; their tools/reports are merged.
 - `cache_rr_resume` completed the normal generic and QTYPE0 gates plus final
   `ac8a3b6` native22+78 regression; tools/reports are merged. It now owns
-  C-first reverse-cache primitive qualification following
-  `REVERSE_CACHE_SOURCE_AUDIT.md`. No reverse product implementation yet.
+  reverse Stage3 real UDP/DHCP lifecycle C-first qualification, reusing the
+  active reverse gate branch. Stage1 primitive125 and Stage2 UDP124 are
+  complete. The separate four-process C-only multi-target cohort retains
+  two real output/LRU orders; no sorting or Rust pass is inferred.
   Original unsupported-option attempts and the readiness timeout stay archived.
+- `reverse_cache_impl` owns the private candidate worktree at `62894d6`.
+  Final native ELF is
+  `601550b04418152ba5a865343ee3e44d93c64b610f29440577c1e294a547726e`.
+  It is running backward forward-cache/transfer and allocation/layout checks;
+  no publication/import/local-composition changes before their C gates.
+- `tcp_stream_resume` owns a new active reverse-transfer gate branch, with
+  C-first reverse-direction/parent-local/expiry/counter cases. The existing
+  typed307 fixture remains unchanged. Its earlier TCP stream reference stays
+  private and frozen independently of the newer reverse candidate.
 - `tcp_stream_review` completed the C-first malformed generic gate in
   `generic-malformed-gate-20261001` at `c6a1121`: final native/image35 and
   negative34/1. All tools/reports are merged; raw prefix effects and old14
   differences remain. Root implementation validation is separately linked.
 - `tcp_reference_resume` completed a private correctness reference, preserved on
-  `research/dnsmasq-tcp-reference-20261001` at `df75fb4`; worktree is
+  tag `evidence/20261001/dnsmasq-tcp-reference` at `df75fb4`; worktree is
   `private/dnsmasq-rewrite/tcp-private-reference-20261001`. Frozen executable
   source `86b81ab` passes TCP32, native UBus69/69+581 checks, independent12,
   EMFILE17, capacity31, namespace395 library+7 main/16ignored, native/musl
@@ -115,8 +127,12 @@ and derived reports. Its native ELF is
 `GENERIC_MALFORMED_IMPLEMENTATION_VALIDATION.md` records the complete final
 checks. Snapshot composition has only a source/cost audit in
 `TCP_SNAPSHOT_COMPOSITION_REVIEW.md`; no candidate, measurement or adoption
-follows from that audit. Next reverse work starts with direction/expiry/LRU
-contracts and preserves existing forward behavior and shared capacity.
+follows from that audit. `TCP_PAIRED_HOST_COST_FEASIBILITY.md` proposes a
+diagnostic full-service comparison but identifies configuration, CPU/thread
+accounting, drain, resource-budget and symbol prerequisites; no new formal
+cost window is authorized by that note. Reverse work now proceeds through
+local/lease coexistence and typed transfer after the qualified direction/
+expiry/LRU and UDP gates, preserving forward behavior and shared capacity.
 The original CD136 image-C calibration failure remains archived; the final
 CD134 fixture removes only an unrelated redundant control replacement. The
 source-supported hash/layout explanation is not a demonstrated repair.

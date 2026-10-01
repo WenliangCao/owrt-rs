@@ -17,9 +17,10 @@
 | 后续功能与组合回归 | UDP 瞬态重试 helper53/53、服务61/61；DHCP hosts 地址27/27；组合快照8c34170库381/main6、DHCP→DNS34/34 | 15个ignored未计通过；普通DO/AD/CD的native/image750/750；完整元数据及DO查询的LRU副作用另验 |
 | 普通 CD 缓存事务 | `3e3e203`/`0c8f362`：native/image134/134；只抑制最终commit，保留有序移除/淘汰/pending清理 | 原136行image C校准失败保留；完整no_cache触发配置另验 |
 | DO 查询缓存副作用 | `aeba67e`：native/image压力门由112/120到120/120，负控119/1；同ELF保留native/imageDO750、nativeCD134，隔离389库+7主程序，native/musl Clippy | generic/NX顺序、RR旋转与hash桶清理另验；见[修复回归](DO_LOOKUP_FIX_VALIDATION.md) |
-| 普通 miss 的通用记录查找 | `5c15e16`：独立NX/SOA门从原108/120、DO修复后116/120到native/image各120/120；保留原direct/CNAME门各120/120；最终隔离389+7/16ignored及native/musl Clippy | `cache-rr`配置/通用记录插入仍待实现；全部no-answer路径、旋转与桶清理另验 |
+| 普通 miss 的通用记录查找 | `5c15e16`：独立NX/SOA门从原108/120、DO修复后116/120到native/image各120/120；保留原direct/CNAME门各120/120；最终隔离389+7/16ignored及native/musl Clippy | 全部no-answer路径、旋转与桶清理另验 |
 | 通用记录配置与缓存 | `4bf072d`：native/image各22配置+78正向配对，独立QTYPE0各9；最终`ac8a3b6`保留native22+78 | reverse9仍仅C；首次image启动readiness失败保留；泛型DO/AD及完整类型合同未关闭 |
 | 畸形通用记录错误回复 | `ac8a3b6`：native/image各35/35，修复前各14差异；保留有序prefix副作用，负控34/1；policy210、bogus256、隔离389+7/16ignored、native/muslClippy通过 | 超大RDATA表示限制与任意畸形输入另验；见[实现回归](GENERIC_MALFORMED_IMPLEMENTATION_VALIDATION.md) |
+| 私有反向 PTR 缓存 | `deab8a0` primitive125/125；`62894d6`真实UDP native/image各124/124，before33差异，负控123/1；共享容量/LRU并保留target大小写 | 未合产品；local/lease共存、reverse transfer、多target顺序和资源门另验；C-only cohort顺序变化保留 |
 | TCP 缓存 | typed transfer原语307/307已合入；私有stream参考TCP32、native UBus69/69、并发12、stale41、CD65、partialEOF27；native/musl transfer各307 | 私有代码未合入；快照表示、OOM/大记录/native管道饱和及全部策略组合仍未验收 |
 | 最新目标阶段 | 冻结 `405b7c1`，ELF 1,178,407 B，APK 622,772 B；匹配 SDK/镜像依赖 | 完整目标 UBus 67/69，保留两项失败；不是替换包或生产验收 |
 
