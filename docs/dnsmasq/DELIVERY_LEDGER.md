@@ -88,6 +88,9 @@ above remains a coverage ledger, not a pass denominator.
 
 | New bounded gate | Result | Still open |
 |---|---|---|
+| DO/AD/CD + known forwarded names | Native/image750/750; presence108; negative controls detect errors | Other qtypes/metadata/signatures; ordinary CD prefix effects |
+| Independent bogus transaction | Native/image256/256 even underCD/no-negcache | Ordinary extraction versus commit eligibility |
+| Typed transfer / private TCP reference | Primitive307/307 in product; privateTCP32 andUBus69/69 plusindependent12 | Private clone/storage, OOM/partialEOF/stale/resource boundaries; main product sender remains open |
 | Live UBus | Native 68/69; image C 67/69 paired observations | TCP writeback; target C failed-parse address mutation remains explicit |
 | Cache transaction / empty OPT | 471 operations, UDP 42/210; cold empty-OPT 32 cases and coalescing/retry eight cases match | Complete cache/EDNS/TCP |
 | DHCP reverse-host startup/HUP | 87/87; 14 snapshots equal independently frozen C | Address derivation and remaining DHCP modes |

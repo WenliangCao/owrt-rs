@@ -1,11 +1,13 @@
 # Private TCP cache correctness reference
 
-This **private worktree only** implements ordinary TCP accept-time cache
+The `research/dnsmasq-tcp-reference-20261001` local reference branch
+(private worktree `private/dnsmasq-rewrite/tcp-private-reference-20261001`)
+implements ordinary TCP accept-time cache
 inheritance, a fixed connection clock, and typed parent writeback. It uses a
 complete cache clone as a correctness reference. It is **not an accepted
 snapshot representation**, a production merge, or a resource/performance pass.
-All four previously screened representations still fail their existing cost
-guards. The shared product cache must not acquire this experiment's `Clone`.
+The compact, shared-entry, top-level COW and chunk32 candidates all fail
+their existing cost guards. The shared product cache must not acquire this experiment's `Clone`.
 
 Frozen source `86b81ab` includes the private implementation through `cdb909e`
 and the separately gated DO/name-presence fixes `a0fa1b8` and `a4b3087`.
@@ -99,8 +101,8 @@ separately gating the borrowed-engine eligibility split.
 No CPU/RSS, long-run pressure, target-runtime TCP or production-delivery claim
 follows from these functional checks.
 
-Full raw evidence is ignored under this worktree's
-`private/tcp-reference-evidence/`, with the final oracle copy at
+Full raw evidence is ignored under
+`private/dnsmasq-rewrite/tcp-private-reference-20261001/private/tcp-reference-evidence/`, with the final oracle copy at
 `/home/ubuntu/dnsmasq-tcp-private-20261001/final-02/`.
 The companion [sanitized JSON](TCP_PRIVATE_REFERENCE_RESULT.json) pins gate
 counts and raw result identities without committing packets, configs or ELFs.

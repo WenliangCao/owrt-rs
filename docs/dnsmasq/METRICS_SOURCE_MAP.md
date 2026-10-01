@@ -24,7 +24,7 @@ or one count per successful socket send.
 | `dns_cache_live_freed` | `DNS_CACHE_LIVE_FREED` | `cache.c:774`; reset `:1567` | Capacity-pressure spill after an expiry scan, only when the chosen record's expiry is still in the future. Expired/stale victims do not count as live freed. Cache-reload window. |
 | `dns_queries_forwarded` | `DNS_QUERIES_FORWARDED` | `forward.c:579` | Once per UDP `forward_query` action with at least one successful upstream send; the source condition also permits DNSSEC subqueries, unavailable here. A retry can increment; sending one action to several upstreams still increments once. The TCP request path has no corresponding write. Counter. |
 | `dns_auth_answered` | `DNS_AUTH_ANSWERED` | chosen `forward.c:1936`, increment `:2002` | Auth answering branch requires `HAVE_AUTH`, excluded in this variant. Counter slot remains in wire output. |
-| `dns_local_answered` | `DNS_LOCAL_ANSWERED` | `forward.c:621`; chosen `:1929,:1957`, increment `:2002` | UDP local/cache answer at `receive_query`, excluding stale answers; also locally generated fallback/refusal/error results at `forward_query`'s reply exit. Connmark-disallowed assignment `:1929` is not compiled here. Increment follows the send call, not proof that the client received it. TCP ordinary local answers do not increment it. Counter. |
+| `dns_local_answered` | `DNS_LOCAL_ANSWERED` | `forward.c:621`; chosen `:1929,:1957`, increment `:2002` | UDP local/cache answer at `receive_query`, excluding stale answers; also locally generated fallback/refusal/error results at `forward_query`'s reply exit. Connmark-disallowed assignment `:1929` is not compiled here. Wire delivery paths increment after the send attempt, not proof of receipt; `udpfd == -1` background fallbacks also count without a send call. TCP ordinary local answers do not increment it. Counter. |
 | `dns_stale_answered` | `DNS_STALE_ANSWERED` | chosen `forward.c:1957`, increment `:2002` | UDP stale-cache answer. The same incoming query may then be forwarded to refresh the cache and increment forwarded too. Counter. |
 | `dns_unanswered` | `DNS_UNANSWERED_QUERY` | `forward.c:3165,:3189` | `get_new_frec` reclaims an old outstanding record at `4*TIMEOUT`, or reuses the oldest at `TIMEOUT` when no free record exists. Counts forward records, not each merged client. It is not incremented automatically at every timeout tick or on every SERVFAIL. Counter. |
 | `dnssec_max_crypto_use` | `CRYPTO_HWM` | max update `forward.c:1421-1422,:2692-2693`; child/parent max merge `cache.c:1053-1054` | DNSSEC validation work high-water mark, gated by `HAVE_DNSSEC`, unavailable here. Pipe write of the child's value `cache.c:927-928` is transport, not another increment. |
@@ -52,6 +52,14 @@ or one count per successful socket send.
 | `dhcp_lease_unknown` | `DHCPLEASEUNKNOWN` | `rfc2131.c:1182` | Query retains unknown classification when constructing response, after other eligibility processing. Counts response classification. |
 
 ## Current Rust boundary
+
+`1787a08` adds the actual failed fast-retry producer to `ForwardCounters`.
+The runner forms local answered from its local-response count plus that
+cumulative producer, including the inside-doctor snapshot. Reads and HUP do
+not reset it; repeated snapshots never add an aggregate twice. Actual service
+and nested-doctor evidence is in `DNS_RETRY_FAILURE_PHASE.md`. Receive errors,
+timeouts and planning failures do not create this count.
+
 
 The subsequent [real-daemon UBus phase](UBUS_DAEMON_PHASE.md) aggregates these
 actual engine counters and adds the runner's local/stale send counters and TCP

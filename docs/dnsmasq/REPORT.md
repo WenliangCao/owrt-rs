@@ -14,14 +14,20 @@
 | 普通空 OPT 冷缓存 | `377c8a1`：32 场景/64 回复一致；8 组合/重试场景一致 | option-bearing、versioned、signed、DO/AD/CD 等完整合同 |
 | DHCP reverse-host 启动/HUP | `5831e97`：87/87 检查，14 快照等于冻结 C；ACK/INFORM 28/28 | 缺省地址推导、tags/全部 options、PXE/relay/helper |
 | 上游初次 socket/send 失败与 TCP 接纳 | `630addb`、`bb1a664`、`cef8001`：资源失败 61/61、监听恢复 17/17、共享连接上限 31/31；负控均检出 | 瞬态重试、缓存回写/pipe 生命周期另验 |
-| 后续功能与组合回归 | UDP 瞬态重试 helper53/53、服务61/61；DHCP hosts 地址27/27；组合快照8c34170库381/main6、DHCP→DNS34/34 | 15个ignored未计通过；后台重试计数及DO缓存仍有差异 |
-| TCP 缓存 | `0e12c4d`：C 普通模式 32 观察基线；借用缓存引擎已提取 | Rust accept 快照、固定时钟、父事务回写和 slot 生命周期 |
+| 后续功能与组合回归 | UDP 瞬态重试 helper53/53、服务61/61；DHCP hosts 地址27/27；组合快照8c34170库381/main6、DHCP→DNS34/34 | 15个ignored未计通过；后台计数已修；普通DO/AD/CD的native/image750/750；完整元数据及普通CD副作用仍开放 |
+| TCP 缓存 | typed transfer原语307/307已合入；私有参考实现TCP32/32、native UBus69/69、独立并发12/12 | 深拷贝参考代码未合入；快照表示/资源/stale TCP/异常IPC仍未验收 |
 | 最新目标阶段 | 冻结 `405b7c1`，ELF 1,178,407 B，APK 622,772 B；匹配 SDK/镜像依赖 | 完整目标 UBus 67/69，保留两项失败；不是替换包或生产验收 |
 
 目标 UBus 的两个差异分别是 TCP 父缓存写回缺口，以及目标 musl C doctor
 失败解析时原地改坏地址。后者按参考差异保留，不在 Rust 中制造错误地址，
 也不从完整门的分母删掉。证据见 [目标阶段报告](PACKAGE_405B7C1_RESULT.md)。
 Rust ELF 比精确目标 C 的 269,305 B 增加 **909,102 B（337.6%）**，资源门未过。
+
+最新组合边界：`DNS_BOGUS_CACHE_PHASE.md` 的独立 bogus 事务在 CD 下保持
+native/image **256/256**，正常 DO 门仍 **750/750**。普通 CD/no-cache 只阻止
+最终 commit、仍保留中间替换/淘汰副作用的 C 合同正在独立补验。
+`TCP_PRIVATE_REFERENCE_RESULT.md` 记录完整私有参考分支及限制，不能把其
+通过的服务门当成共享产品已提供 TCP 缓存或资源门已通过。
 
 ## 固定身份
 

@@ -11,63 +11,59 @@ This checkpoint replaces the earlier contradictory in-flight notes. Phase
 reports and frozen artifact manifests remain the evidence for each result.
 Git history retains the older checkpoint.
 
-## Session recovery and ownership
+## Current handoff after credit interruption
 
-The user requested continuation of session
-`01a0f416-2ee3-7bf0-9920-10283e5c1cde`, including its subagents. The resumed
-coordinator recovered its original requirements and local transcript. Some
-original subagents continued running in a separate agent tree and modifying
-the shared checkout; they are not automatically attached to this tree's
-collaboration tools. Do not start competing edits in their files.
+The user replenished platform credit and requested continuation, including
+subagents. No account/billing mode was changed. Product HEAD has the units
+below; the product worktree contains only user-owned `docs/prompts/` edits.
+Do not overwrite those files or private experiment worktrees.
 
-Observed original ownership at recovery:
+| Current unit | Durable state |
+| --- | --- |
+| TCP admission/resource recovery | `bb1a664`, `cef8001`: retained listener, shared capacity. Resource61, TCP recovery17, capacity31 passed with negative controls. |
+| UDP send retries | `1188018`/`750e8de`: exact helper53, DNS209, service61; source errno/nanosleep edge preserved. |
+| Fast retry counters | `1787a08`/`1972dd6`: actual producer and all metrics snapshots. Scoped87/88 retains C wrong-ID/question-case defect; nested doctor18/18, HUP5, initial failure61, state1285. |
+| DHCP hosts-derived addresses | `07a7eb5`/`8c34170`:27/27 C snapshots, before10/27; static208, hostfile41, reverse lifecycle87. |
+| Typed cache transfer primitive | `1f6a429`/`aa474e5`:36 cases/307 observations native and musl Rust; ordinary allocation vectors unchanged across5 cases. Root ordinary-cache22571 and cache/counter764 regressions pass. No main TCP sender or storage representation adopted. |
+| DO/AD/CD and known names | `664079d`/`e0dc08d`/`cdc6383`:750/750 native C and actual image C, AD negative749/1; name predicate108 with negative. Preserves raw-CD suppression and DO lookup bypass; CNAME/negative A/AAAA AD paths anchored. |
+| Independent bogus cache transaction | `5094420`/`220577d`/`5a1505c`:256/256 native and image C; preserved DO750/750; negative detects1. Ordinary CD extraction-side-effect gap remains explicitly open. |
 
-- `dns_cache_effects`: upstream send EINTR/EAGAIN retry work in `upstream.rs`
-  after the committed initial socket/send-error fallback. Its draft is not a
-  completed gate. `daemon_poll_tests.rs` has a formatting-only draft.
-- `dhcp_static`: TCP cache snapshots, fixed connection clock and actual parent
-  transaction writeback. No product snapshot representation is accepted yet.
-- `lease_dns`: completed reverse-host lease lifecycle, then auditing address
-  derivation for `dhcp-host` without an explicit address.
+Current agents/ownership:
 
-Current coordination work (initial recovery and subsequent handoff):
+- `do_cache_resume` owns isolated `resume-do-cache-20261001`; completed both
+  metadata and bogus units. It now waits for the independently frozen ordinary
+  CD prefix-effects baseline before modifying the extraction/commit boundary.
+- `tcp_writeback_gates` owns `../owrt-tcp-writeback-gates` on
+  `research/tcp-writeback-gates`. Completed independent doctor/pipe/slot gate12/12.
+  It now builds a narrow C-first ordinary-CD gate: held reply, CNAME-warmed old
+  data, uncommitted replacement/eviction effects, pending cleanup and recovery.
+  Only tools/reports; coordinate product API with the DO owner.
+- `tcp_reference_resume` completed a private correctness reference, preserved on
+  `research/dnsmasq-tcp-reference-20261001` at `df75fb4`; worktree is
+  `private/dnsmasq-rewrite/tcp-private-reference-20261001`. Frozen executable
+  source `86b81ab` passes TCP32, native UBus69/69+581 checks, independent12,
+  EMFILE17, capacity31, namespace395 library+7 main/16ignored, native/musl
+  Clippy. The shared product does not contain this implementation or `Clone`.
+- Root owns integration, reports and source/artifact identity checks. Merged
+  DO plus typed-transfer host DNS tests217 passed/5ignored, full Clippy/fmt pass.
 
-- Root owns integration/report reconciliation and the target-reference tool
-  changes, committed as `31d6056`. Those tool bytes match the archived target
-  SDK gate identities; CLI import/help/syntax checks passed.
-- `workspace_audit` owns a minimal listener-survival fix in the detached worktree
-  `private/dnsmasq-rewrite/resume-fd-listener-20261001`, based on `630addb`.
-  The equivalent original-agent fix `bb1a664` was retained; `cef8001` integrates shared admission. Final actual gates pass 61/61 resource failure, 17/17 TCP recovery, and 31/31 capacity.
-- `evidence_recovery` independently audits the existing `405b7c1` target SDK
-  stage and writes `PACKAGE_405B7C1_RESULT.md`; it does not rebuild artifacts.
-- `tcp_slot_contract` owns a separate real-service C baseline for admission at
-  `max-tcp-connections`. The pre-fix 23/31 gate is now 31/31; negative 30/31 exits 1. No cache implementation is delegated to this agent.
+Private reference implementation uses highest-free indexed slots, lowest-ready
+single-transaction drain, UBus-before-new-drain, a pinned partial-transaction
+barrier and clock, joined-worker+EOF release, STOP under admission lock and
+actual kernel pipes. It avoids the incorrect one-message queue/doctor dependency
+cycle. Raw FD numbers are wake hints only; actual I/O rechecks current owners.
+Read `TCP_PRIVATE_REFERENCE_RESULT.md` before resuming or changing this branch.
+Deep clone, whole-vector allocation/OOM, abnormal partial-EOF, exact pipe-byte
+saturation, stale TCP and later CD/policy composition remain unqualified.
+A documented early host-namespace unit attempt is not acceptance; final tests
+ran through isolation. Do not silently promote this reference to product code.
 
-Original subagent logs ceased activity together at 16:05 local time. Their
-remaining tasks have been assigned to isolated continuation worktrees so any
-later original-tree edits cannot overwrite these candidates:
-
-- `workspace_audit`: `private/dnsmasq-rewrite/resume-send-retry-20261001`, base
-  `10b9d19`, with original upstream draft preserved. The retry unit is now integrated
-  as `1188018`/`750e8de` (53 helper cases, 209 DNS tests, 61 daemon observations).
-  New worktree `resume-retry-failure-20261001` owns later same-frec/background
-  failure policy. Its first 83-observation gate retains 14 differences, including
-  the C coalesced wrong-ID defect and existing DO cache-admission gaps.
-- `tcp_slot_contract`: `private/dnsmasq-rewrite/resume-dhcp-hosts-20261001`, same
-  base; ordinary hosts-derived DHCP reservations integrated as `07a7eb5` /
-  `8c34170`: C27/27 (before10/27), negative26/27, static208, hostfiles41,
-  unsupported-selector11, reverse lifecycle87; Linux `dhcp::` filter116.
-- `evidence_recovery`: isolated `resume-tcp-transfer-20261001`, base `1bb7266`;
-  full-source native/target C pipe-transfer oracle before typed export/import.
-  No snapshot representation or main TCP cache wiring is selected.
-- The completed chunk32 private screen is in `TCP_SNAPSHOT_CHUNK_RESULT.md`:24
-  fixed runs,12,000/12,000,0 errors, rejected for population CPU and150-full p95.
-  No additional candidate campaign is active.
-
-No quiet performance window is active. The coordinated CPU-2 snapshot screen
-completed its unchanged 48 runs (24,000/24,000, zero errors); all three candidates
-failed a frozen gate. Other builds/tests have resumed. Do not add timing rounds
-or relax thresholds after seeing this result.
+There is no active quiet performance window. The frozen representation screen
+completed48 runs/24000 operations, and chunk32 completed24/12000, all without
+functional errors. Compact, shared-entry, top-level COW and chunk32 all failed
+at least one unchanged resource/timing guard. No representation is accepted;
+no extra rounds or relaxed thresholds were used. Results are in
+`TCP_SNAPSHOT_SCREEN_RESULT.md` and `TCP_SNAPSHOT_CHUNK_RESULT.md`.
 
 ## Latest committed functional progress
 
@@ -160,7 +156,7 @@ snapshot; sharing the mutable parent cache would break the observed C contract.
 
 Continue actual TCP cache inheritance/writeback/fixed-time/slot cleanup, then
 remaining cacheability/PTR/EDNS, dynamic resolver/interface/source-port behavior;
-DHCP tags/all options/hosts address fallback/relay/PXE/leasequery/helpers;
+DHCP tags/all options/mixed hosts-lease precedence/relay/PXE/leasequery/helpers;
 TFTP main IPv6/multiple listener/source-interface behavior; permissions, logs,
 UCI/procd/ujail/ACL/hotplug/odhcpd/rpcd/LuCI and pressure/long-run recovery.
 The 169 indexed capability entries are not 169 implemented capabilities.
@@ -168,7 +164,7 @@ The 169 indexed capability entries are not 169 implemented capabilities.
 Known C reference differences remain explicit: SRV uninitialized type, TFTP
 stale DATA/FD leak, TCP retry length/inherited OPT, local CNAME object reuse,
 stale UBus type IDs, doctor receive-buffer lifetime and musl failed-parse
-mutation, duplicate-capacity wrong request ID. The same-bucket incidental
+mutation, duplicate-capacity and failed-coalesced-retry wrong request IDs. The same-bucket incidental
 lease expiry under clock rollback also retains a red case. Safe behavior does
 not itself resolve compatibility acceptance. Never turn unexecuted tests,
 ignored tests, stage artifacts or local screens into full acceptance claims.
