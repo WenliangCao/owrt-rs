@@ -1,0 +1,214 @@
+{
+  "scope": "Real lease-file restoration and one live FQDN collision; main runtime only",
+  "product_commit": "78f1e814f9a54c06b6946f7af41e1b10a759672b",
+  "plan_commit": "72738df",
+  "tool_commit": "9eb8db4",
+  "archive": {
+    "files": 101,
+    "manifest_sha256": "bfd9954143fccce39b63c0a04b4dd32ead8c1e98b7f4253575b62c9c7890a419",
+    "archive_sha256": "b96a8be7e14c7cf4ebcf6061ee2b47402d08c3d75ff2ecf9229d86c5bb4f8e3e",
+    "archive_bytes": 679369
+  },
+  "runs": [
+    {
+      "phase": "c",
+      "reference": {
+        "kind": "native-glibc",
+        "elf_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431"
+      },
+      "native_client_build": {
+        "kind": "native-glibc",
+        "elf_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431"
+      },
+      "rust_sha256": null,
+      "tool_sha256": "6f6ca1a093e8209a1d040cd18a857ac01f4b7c555c4925e627d174d20507707a",
+      "baselines": [],
+      "observed": 22,
+      "mismatches": 0,
+      "failures": [],
+      "label": "native-baseline-01",
+      "profiles": [
+        {
+          "label": "restore-default",
+          "observed": 6,
+          "comparisons": []
+        },
+        {
+          "label": "restore-fqdn",
+          "observed": 6,
+          "comparisons": []
+        },
+        {
+          "label": "restore-fqdn-live-collision",
+          "observed": 10,
+          "comparisons": []
+        }
+      ],
+      "auxiliary_checks": {
+        "total": 97,
+        "passed": 97
+      }
+    },
+    {
+      "phase": "c",
+      "reference": {
+        "kind": "image-aarch64-musl",
+        "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "runner_sha256": "de018ed3599e0d5f4a8f6c7646c8dd76759382b79b029ab40e3e3deac273e0db",
+        "dependencies": {
+          "lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+          "lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+          "lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+          "lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+        },
+        "identity_sha256": "fb873b9abae841a6723db1660752e1a4254a626b81bac099b19d9274a0d719aa"
+      },
+      "native_client_build": {
+        "kind": "native-glibc",
+        "elf_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431"
+      },
+      "rust_sha256": null,
+      "tool_sha256": "6f6ca1a093e8209a1d040cd18a857ac01f4b7c555c4925e627d174d20507707a",
+      "baselines": [],
+      "observed": 22,
+      "mismatches": 0,
+      "failures": [],
+      "label": "image-baseline-01",
+      "profiles": [
+        {
+          "label": "restore-default",
+          "observed": 6,
+          "comparisons": []
+        },
+        {
+          "label": "restore-fqdn",
+          "observed": 6,
+          "comparisons": []
+        },
+        {
+          "label": "restore-fqdn-live-collision",
+          "observed": 10,
+          "comparisons": []
+        }
+      ],
+      "auxiliary_checks": {
+        "total": 97,
+        "passed": 97
+      }
+    },
+    {
+      "phase": "rust",
+      "reference": null,
+      "native_client_build": {
+        "kind": "native-glibc",
+        "elf_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431"
+      },
+      "rust_sha256": "f126a762fbb0f1bcdac0e4e2eb61290bd92361f56fcf712213278ed9ba33e391",
+      "tool_sha256": "6f6ca1a093e8209a1d040cd18a857ac01f4b7c555c4925e627d174d20507707a",
+      "baselines": [
+        {
+          "reference": {
+            "kind": "native-glibc",
+            "elf_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431"
+          },
+          "result_sha256": "efd77be49cada55d56e30a9fffede151a102fd00a2dd35e1ed8b7a17ff4f6dca",
+          "matrix_sha256": "4b9b2d5cfc9fd6606b510d41d3e324748511a045f9cf0618ec562c337bfc208b"
+        },
+        {
+          "reference": {
+            "kind": "image-aarch64-musl",
+            "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "runner_sha256": "de018ed3599e0d5f4a8f6c7646c8dd76759382b79b029ab40e3e3deac273e0db",
+            "dependencies": {
+              "lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+              "lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+              "lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+              "lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+            },
+            "identity_sha256": "fb873b9abae841a6723db1660752e1a4254a626b81bac099b19d9274a0d719aa"
+          },
+          "result_sha256": "533ef80da884c27ec1cbe6885a4254b146cb2b9fddd72ab49868b68275d8e3f0",
+          "matrix_sha256": "4b9b2d5cfc9fd6606b510d41d3e324748511a045f9cf0618ec562c337bfc208b"
+        }
+      ],
+      "observed": 22,
+      "mismatches": 0,
+      "failures": [],
+      "label": "main-after-01",
+      "profiles": [
+        {
+          "label": "restore-default",
+          "observed": 6,
+          "comparisons": [
+            {
+              "reference": "native-glibc",
+              "mismatches": 0
+            },
+            {
+              "reference": "image-aarch64-musl",
+              "mismatches": 0
+            }
+          ]
+        },
+        {
+          "label": "restore-fqdn",
+          "observed": 6,
+          "comparisons": [
+            {
+              "reference": "native-glibc",
+              "mismatches": 0
+            },
+            {
+              "reference": "image-aarch64-musl",
+              "mismatches": 0
+            }
+          ]
+        },
+        {
+          "label": "restore-fqdn-live-collision",
+          "observed": 10,
+          "comparisons": [
+            {
+              "reference": "native-glibc",
+              "mismatches": 0
+            },
+            {
+              "reference": "image-aarch64-musl",
+              "mismatches": 0
+            }
+          ]
+        }
+      ],
+      "auxiliary_checks": {
+        "total": 97,
+        "passed": 97
+      }
+    }
+  ],
+  "saved_native_image_comparison": [
+    {
+      "profile": "restore-fqdn-live-collision",
+      "observed": 10,
+      "mismatches": 0
+    },
+    {
+      "profile": "restore-default",
+      "observed": 6,
+      "mismatches": 0
+    },
+    {
+      "profile": "restore-fqdn",
+      "observed": 6,
+      "mismatches": 0
+    }
+  ],
+  "boundaries": [
+    "Three profiles,22 observations:17 DNS,2 DHCP exchanges,3 startup-file observations",
+    "Native/image C calibrated fully before one22-row Rust execution compared against both saved baselines",
+    "Real private lease files, actual daemon recovery, parsed DORA fields/options, ordered lease rows and all30 UBus metrics",
+    "Only upstream IDs and the live ACK-bound expiry are normalized; restored zero expiry stays exact",
+    "No record/file sorting; no failed attempt or fixture revision; missing rows and one altered DNS flag calibrated",
+    "Original62/27/125 schedules untouched and not rerun",
+    "No IPv6, arbitrary lease syntax, authoritative configured-name collision, DHCP scripts, dynamic reverse-cache adoption, resource/performance or router acceptance"
+  ]
+}
