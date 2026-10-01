@@ -172,6 +172,57 @@ impl CacheContext<'_> {
                 stale,
             });
         }
+        if matches!(question.rrtype, 12 | 255) {
+            // C first visits CNAME/NXDOMAIN, then the address cache, and only
+            // afterwards the forward generic group. A positive address hit
+            // can therefore answer despite an older forward PTR negative.
+            let first = cache.lookup(
+                &question.name,
+                &[Kind::Cname, Kind::NxDomain],
+                now,
+                round_robin,
+            );
+            let entry = first.first().and_then(|id| cache.get(*id));
+            stale |= entry.is_some_and(|entry| entry.is_stale(now));
+            if !entry.is_some_and(|entry| entry.record.kind == Kind::Cname) {
+                if let Some(address) = super::local::arpa_address(&question.name.dnsmasq_bytes()) {
+                    let reverse = cache.lookup_reverse(address, now);
+                    // Address lookup happens even when RD or ANY later
+                    // prevents a dynamic record from answering.
+                    if !reverse.is_empty() && header.flags & 0x0100 != 0 {
+                        stale |= reverse
+                            .iter()
+                            .filter_map(|id| cache.get(*id))
+                            .any(|entry| entry.is_stale(now));
+                        if question.rrtype == 12 {
+                            let mut writer = PacketWriter::new(
+                                header.id,
+                                (header.flags & 0x0110) | 0x8080,
+                                limit,
+                            )?;
+                            writer.question(&question.name, question.rrtype, question.class)?;
+                            for id in reverse {
+                                let entry =
+                                    cache.get(id).expect("reverse lookup returned a live entry");
+                                match writer.record_at(
+                                    Section::Answer,
+                                    12,
+                                    12,
+                                    1,
+                                    entry.reply_ttl(now, cache.policy()),
+                                    entry.record.name.as_wire(),
+                                ) {
+                                    Ok(()) => {}
+                                    Err(WireError::Full) => break,
+                                    Err(error) => return Err(error.into()),
+                                }
+                            }
+                            return Ok(finish_cached_answer(writer, stale)?);
+                        }
+                    }
+                }
+            }
+        }
         let kind = match question.rrtype {
             1 => Kind::Ipv4,
             5 => Kind::Cname,
@@ -577,15 +628,6 @@ impl CacheContext<'_> {
         if question.class != 1 {
             return Ok(());
         }
-        // Address-form PTR replies need C's separate reverse-cache index.
-        // Keep that unimplemented boundary explicit instead of storing a
-        // forward Generic(12) entry with different lookup/conflict semantics.
-        if question.qtype == 12
-            && header.rcode() != 3
-            && super::local::arpa_address(&question.name.dnsmasq_bytes()).is_some()
-        {
-            return Ok(());
-        }
         let Ok(edns) = find_pseudoheader(packet, false) else {
             return Ok(());
         };
@@ -595,6 +637,64 @@ impl CacheContext<'_> {
             .is_some_and(|opt| opt.extended_rcode() != 0)
         {
             return Ok(());
+        }
+
+        if question.qtype == 12 && header.rcode() != 3 {
+            if let Some(address) = super::local::arpa_address(&question.name.dnsmasq_bytes()) {
+                let mut found = false;
+                let mut position = question.end;
+                for _ in 0..header.answers {
+                    // Direct PTR extraction validates target names against
+                    // packet bounds, inserts, then checks declared RDLEN.
+                    // RecordRef::parse would reject an oversized RDLEN before
+                    // those ordered removal/pressure effects take place.
+                    let (owner, fixed) = super::wire::decode_name(packet, position, 10)?;
+                    let rrtype = u16::from_be_bytes(packet[fixed..fixed + 2].try_into().unwrap());
+                    let class =
+                        u16::from_be_bytes(packet[fixed + 2..fixed + 4].try_into().unwrap());
+                    let ttl = u32::from_be_bytes(packet[fixed + 4..fixed + 8].try_into().unwrap());
+                    let length =
+                        u16::from_be_bytes(packet[fixed + 8..fixed + 10].try_into().unwrap());
+                    position = fixed + 10 + usize::from(length);
+                    if class == 1 && rrtype == 12 && owner.eq_ignore_ascii_case(&question.name) {
+                        found = true;
+                        let (target, _) = super::wire::decode_name(packet, fixed + 10, 0)?;
+                        let ttl = if cache.policy().max_reply_ttl == 0 {
+                            ttl
+                        } else {
+                            ttl.min(cache.policy().max_reply_ttl)
+                        };
+                        let (kind, data) = match address {
+                            IpAddr::V4(address) => (Kind::ReverseIpv4, address.octets().to_vec()),
+                            IpAddr::V6(address) => (Kind::ReverseIpv6, address.octets().to_vec()),
+                        };
+                        // Reverse replacement is by address. Forward local
+                        // names, including a same-name CNAME, cannot block it.
+                        let _ = cache.insert_counted(
+                            Record {
+                                name: target,
+                                kind,
+                                negative: false,
+                                data,
+                            },
+                            now,
+                            ttl,
+                            counters,
+                        );
+                    }
+                    if position > packet.len() {
+                        return Err(WireError::Truncated);
+                    }
+                }
+                if found {
+                    if ordinary == OrdinaryCacheMode::Commit && header.flags & 0x0090 == 0x0080 {
+                        let _ = cache.commit_counted(counters);
+                    }
+                    return Ok(());
+                }
+                // No direct owner PTR: retain the generic CNAME/PTR and
+                // forward negative extraction paths below.
+            }
         }
 
         let kind = match question.qtype {
