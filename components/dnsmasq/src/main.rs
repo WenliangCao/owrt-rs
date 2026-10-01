@@ -25,6 +25,8 @@ use dnsmasq_rs::dns::lease_names::{LeasePolicy, PublicationWarning};
 use dnsmasq_rs::dns::service::{encode_tcp_frame, LocalDnsService, TcpFramer};
 use dnsmasq_rs::dns::tcp_service::TcpDnsService;
 use dnsmasq_rs::hosts::Hosts;
+use dnsmasq_rs::interfaces::DnsInterface;
+use dnsmasq_rs::listeners::{self, DnsSocket};
 use dnsmasq_rs::metrics::{Metric, Metrics};
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 use dnsmasq_rs::tftp_listener::TftpListener;
@@ -33,9 +35,10 @@ use dnsmasq_rs::tftp_runtime::{RealFileOpener, RuntimeConfig, RuntimePathPolicy,
 use dnsmasq_rs::ubus_service::{ConnectError, DnsResult, UbusService};
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 use dnsmasq_rs::ubus_service::{DhcpEventFields, DhcpEventKind, DhcpLogging};
+use std::collections::HashMap;
 use std::ffi::OsString;
 use std::io::{self, Read, Write};
-use std::net::{IpAddr, SocketAddr, TcpListener, UdpSocket};
+use std::net::{IpAddr, SocketAddr, TcpListener};
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
@@ -391,7 +394,14 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     if dns_enabled && !runtime.dns.no_resolv && resolvers.is_empty() {
         return Err(Box::new(Error("no nameserver in resolver files")));
     }
-    let addresses = bind_addresses(&runtime.dns, runtime.scalar.dns_port);
+    let interface_snapshot = Arc::new(Mutex::new(
+        listeners::snapshot().map_err(NetworkStartupError)?,
+    ));
+    let addresses = listeners::bound_addresses(
+        &runtime.dns,
+        runtime.scalar.dns_port,
+        &interface_snapshot.lock().unwrap(),
+    );
     let tftp_config = runtime.tftp.clone();
     let dhcp_config = runtime.dhcp.clone();
     owrt_ubus::sys::set_signal_handler(owrt_ubus::sys::SIGINT, request_stop);
@@ -549,12 +559,13 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     // every socket without leaving an already-running partial service.
     let mut listeners = Vec::new();
     for address in addresses {
-        let udp = UdpSocket::bind(address).map_err(NetworkStartupError)?;
-        udp.set_read_timeout(Some(Duration::from_millis(50)))
-            .map_err(NetworkStartupError)?;
-        let tcp = TcpListener::bind(address).map_err(NetworkStartupError)?;
-        tcp.set_nonblocking(true).map_err(NetworkStartupError)?;
-        listeners.push((address, Arc::new(udp), tcp));
+        match open_dns_listener(address) {
+            Ok((udp, tcp)) => listeners.push((address, udp, tcp)),
+            Err(error) if daemon_config.bind_dynamic => {
+                eprintln!("dnsmasq-rs: cannot bind {address}: {error}")
+            }
+            Err(error) => return Err(Box::new(NetworkStartupError(error))),
+        }
     }
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     let tftp_listener = if tftp_config.enabled {
@@ -616,28 +627,322 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         daemon_config.bind_dynamic && runtime.scalar.dns_port <= 1024 && dns_enabled,
         runtime.ubus.object_name()?.is_some(),
     )?;
-    let udp_sockets: Arc<Vec<_>> = Arc::new(
-        listeners
-            .iter()
-            .map(|(_, socket, _)| Arc::clone(socket))
-            .collect(),
-    );
-    for (listener_index, (address, udp, tcp)) in listeners.into_iter().enumerate() {
-        let response_sockets = Arc::clone(&udp_sockets);
-        let listener = SocketToken(listener_index as u64);
-        let parent_service = Arc::clone(&service);
-        let udp_events = Arc::clone(&parent_events);
+    let dns_context = DnsWorkers {
+        service: Arc::clone(&service),
+        parent_events: Arc::clone(&parent_events),
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-        let udp_dhcp = dhcp_provider.clone();
+        dhcp_provider: dhcp_provider.clone(),
+        interfaces: Arc::clone(&interface_snapshot),
+        config: daemon_config.clone(),
+        resolvers: resolvers.clone(),
+        packet_limit,
+        tcp_limit,
+        edns_max: daemon_options.edns_packet_max,
+        response_sockets: Arc::new(Mutex::new(HashMap::new())),
+    };
+    let mut bound_listeners = Vec::new();
+    let mut next_listener = 0u64;
+    for (address, udp, tcp) in listeners {
+        let token = SocketToken(next_listener);
+        next_listener += 1;
+        let active = Arc::new(AtomicBool::new(true));
+        dns_context
+            .response_sockets
+            .lock()
+            .unwrap()
+            .insert(token, Arc::clone(&udp));
+        workers.extend(dns_context.spawn(address, udp, tcp, token, Arc::clone(&active))?);
+        bound_listeners.push((address, token, active));
+    }
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    if let Some((shared_provider, mut listener)) = dhcp_runtime {
+        let dhcp_events = Arc::clone(&parent_events);
+        let dhcp_dns = Arc::clone(&service);
+        workers.push(
+            thread::Builder::new()
+                .name("dhcp-listener".into())
+                .spawn(move || {
+                    let mut output = vec![0; 16_384];
+                    while !STOP_REQUESTED.load(Ordering::Acquire) {
+                        let Ok(mut event) = dhcp_events.lock() else { break };
+                        let Ok(mut provider) = shared_provider.lock() else { break };
+                        let mut metrics = Metrics::default();
+                        event.write_metrics(&mut metrics);
+                        write_dhcp_metrics(&mut metrics, &provider);
+                        {
+                            let Ok(parent) = dhcp_dns.lock() else { break };
+                            if let Some(daemon) = &parent.daemon {
+                                write_dns_metrics(&mut metrics, daemon.cache_counters(), daemon.forward_counters(), event.local_answered);
+                            }
+                        }
+                        event.process_ubus(&metrics);
+                        let now = SystemTime::now().duration_since(UNIX_EPOCH)
+                            .map_or(0, |time| time.as_secs() as i64);
+                        if let Some(report) = provider.tick(now) {
+                            report_dhcp_maintenance(&report);
+                        }
+                        let mut idle = false;
+                        let result = {
+                            let mut sink = |kind, fields: DhcpEventFields<'_>, logging| event.notify_dhcp(kind, fields, logging);
+                            let mut provider = provider.with_event_sink(&mut sink);
+                            listener.process_once_local(&mut provider, &[], &mut output, stopping)
+                        };
+                        match result {
+                            Ok(ListenerStep::WouldBlock) | Ok(ListenerStep::Ignored) => {
+                                idle = true;
+                            }
+                            Ok(ListenerStep::Stopped) => break,
+                            Ok(ListenerStep::Malformed(_)) => {}
+                            Ok(ListenerStep::Processed(result)) => {
+                                let events = match &result {
+                                    Ok(report) => &report.events,
+                                    Err(failure) => &failure.events,
+                                };
+                                for event in events {
+                                    if let dnsmasq_rs::dhcp::runtime::RuntimeEvent::ArpInjectionFailed { kind, raw_os_error } = event {
+                                        eprintln!("dnsmasq-rs: DHCP ARP injection: {kind:?} ({raw_os_error:?})");
+                                    }
+                                }
+                            }
+                            Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+                            Err(_) => break,
+                        }
+                        if let Some(error) = provider.take_probe_error() {
+                            eprintln!("dnsmasq-rs: DHCP conflict probe: {error}");
+                        }
+                        if let Some(report) = provider.take_maintenance_report() {
+                            report_dhcp_maintenance(&report);
+                        }
+                        drop(provider);
+                        drop(event);
+                        if idle { thread::sleep(Duration::from_millis(2)); }
+                    }
+                })?,
+        );
+    }
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    if let Some(mut listener) = tftp_listener {
+        workers.push(
+            thread::Builder::new()
+                .name("tftp-listener".into())
+                .spawn(move || {
+                    while !STOP_REQUESTED.load(Ordering::Acquire) {
+                        let now = SystemTime::now()
+                            .duration_since(UNIX_EPOCH)
+                            .map_or(0, |duration| duration.as_secs());
+                        match listener.poll_once(now) {
+                            Ok(_) => thread::sleep(Duration::from_millis(1)),
+                            Err(error)
+                                if matches!(
+                                    error.kind(),
+                                    io::ErrorKind::WouldBlock | io::ErrorKind::Interrupted
+                                ) =>
+                            {
+                                thread::sleep(Duration::from_millis(2))
+                            }
+                            Err(_) => break,
+                        }
+                    }
+                })?,
+        );
+    }
+    // `-k` is the normal OpenWrt invocation. Stop handlers let workers leave
+    // their bounded receive loops and release sockets before exit.
+    let mut last_interfaces = Instant::now();
+    while !STOP_REQUESTED.load(Ordering::Acquire) {
+        if last_interfaces.elapsed() >= Duration::from_millis(100) {
+            last_interfaces = Instant::now();
+            if let Ok(interfaces) = listeners::snapshot() {
+                *interface_snapshot.lock().unwrap() = interfaces.clone();
+                if daemon_config.bind_dynamic {
+                    let addresses = listeners::bound_addresses(
+                        &daemon_config,
+                        runtime.scalar.dns_port,
+                        &interfaces,
+                    );
+                    bound_listeners.retain(|(address, token, active)| {
+                        if addresses.contains(address) {
+                            return true;
+                        }
+                        active.store(false, Ordering::Release);
+                        dns_context.response_sockets.lock().unwrap().remove(token);
+                        false
+                    });
+                    for address in addresses {
+                        if bound_listeners
+                            .iter()
+                            .any(|(bound, _, _)| *bound == address)
+                        {
+                            continue;
+                        }
+                        // An address may still be tentative or not present. Dynamic
+                        // mode keeps the remaining service alive and retries later.
+                        if let Ok((udp, tcp)) = open_dns_listener(address) {
+                            let token = SocketToken(next_listener);
+                            next_listener += 1;
+                            let active = Arc::new(AtomicBool::new(true));
+                            dns_context
+                                .response_sockets
+                                .lock()
+                                .unwrap()
+                                .insert(token, Arc::clone(&udp));
+                            workers.extend(dns_context.spawn(
+                                address,
+                                udp,
+                                tcp,
+                                token,
+                                Arc::clone(&active),
+                            )?);
+                            bound_listeners.push((address, token, active));
+                        }
+                    }
+                }
+            }
+            let mut index = 0;
+            while index < workers.len() {
+                if workers[index].is_finished() {
+                    let _ = workers.swap_remove(index).join();
+                } else {
+                    index += 1;
+                }
+            }
+        }
+        if RELOAD_REQUESTED.swap(false, Ordering::AcqRel) {
+            let _event = parent_events
+                .lock()
+                .map_err(|_| io::Error::other("parent event lock poisoned"))?;
+            // C SIGHUP rereads data files, not the main configuration. A
+            // missing hosts source is logged and its old names disappear.
+            if dns_enabled {
+                let hosts = read_hosts(&daemon_config, runtime.scalar.local_ttl);
+                if let Ok(mut parent) = service.lock() {
+                    parent
+                        .daemon
+                        .as_mut()
+                        .expect("DNS enabled")
+                        .reload_hosts(hosts.clone());
+                    parent.local.hosts = hosts;
+                    let ParentDns { local, daemon } = &mut *parent;
+                    local.leases =
+                        Arc::new(daemon.as_mut().expect("DNS enabled").rebuild_lease_names(
+                            &local.leases,
+                            &mut local.hosts,
+                            &local.config.records.cnames,
+                        ));
+                }
+            }
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            if let Some(provider) = &dhcp_provider {
+                let now = SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .map_or(0, |time| time.as_secs() as i64);
+                let mut provider = provider
+                    .lock()
+                    .map_err(|_| io::Error::other("DHCP state lock poisoned"))?;
+                report_dhcp_maintenance(&provider.reload_host_files(now));
+            }
+        }
+        {
+            // Metrics still work with port=0 and no incoming DHCP packets.
+            // No provider lock is acquired after the DNS parent lock.
+            let mut event = parent_events
+                .lock()
+                .map_err(|_| io::Error::other("parent event lock poisoned"))?;
+            let mut metrics = Metrics::default();
+            event.write_metrics(&mut metrics);
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            if let Some(provider) = &dhcp_provider {
+                let provider = provider
+                    .lock()
+                    .map_err(|_| io::Error::other("DHCP state lock poisoned"))?;
+                write_dhcp_metrics(&mut metrics, &provider);
+            }
+            let parent = service
+                .lock()
+                .map_err(|_| io::Error::other("DNS state lock poisoned"))?;
+            if let Some(daemon) = &parent.daemon {
+                write_dns_metrics(
+                    &mut metrics,
+                    daemon.cache_counters(),
+                    daemon.forward_counters(),
+                    event.local_answered,
+                );
+            }
+            event.process_ubus(&metrics);
+        }
+        thread::park_timeout(Duration::from_millis(100));
+    }
+    for worker in workers {
+        let _ = worker.join();
+    }
+    Ok(())
+}
+
+fn open_dns_listener(address: SocketAddr) -> io::Result<(Arc<DnsSocket>, TcpListener)> {
+    let udp = Arc::new(DnsSocket::bind(address)?);
+    let tcp = listeners::tcp_bind(address)?;
+    Ok((udp, tcp))
+}
+
+struct DnsWorkers {
+    service: Arc<Mutex<ParentDns>>,
+    parent_events: Arc<Mutex<ParentEvents>>,
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    dhcp_provider: Option<Arc<Mutex<DhcpProvider>>>,
+    interfaces: Arc<Mutex<Vec<DnsInterface>>>,
+    config: DnsConfig,
+    resolvers: Vec<SocketAddr>,
+    packet_limit: usize,
+    tcp_limit: usize,
+    edns_max: u16,
+    response_sockets: Arc<Mutex<HashMap<SocketToken, Arc<DnsSocket>>>>,
+}
+impl DnsWorkers {
+    fn spawn(
+        &self,
+        address: SocketAddr,
+        udp: Arc<DnsSocket>,
+        tcp: TcpListener,
+        listener: SocketToken,
+        active: Arc<AtomicBool>,
+    ) -> io::Result<Vec<thread::JoinHandle<()>>> {
+        let mut workers = Vec::new();
+        let packet_limit = self.packet_limit;
+        let tcp_limit = self.tcp_limit;
+        let response_sockets = Arc::clone(&self.response_sockets);
+        let udp_active = Arc::clone(&active);
+        let tcp_active = active;
+        let udp_interfaces = Arc::clone(&self.interfaces);
+        let tcp_interfaces = Arc::clone(&self.interfaces);
+        let udp_config = self.config.clone();
+        let tcp_config = self.config.clone();
+        let parent_service = Arc::clone(&self.service);
+        let udp_events = Arc::clone(&self.parent_events);
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        let udp_dhcp = self.dhcp_provider.clone();
         workers.push(
             thread::Builder::new()
                 .name(format!("dns-udp-{address}"))
                 .spawn(move || {
                     let mut query = vec![0; 65_535];
-                    while !STOP_REQUESTED.load(Ordering::Acquire) {
+                    while !STOP_REQUESTED.load(Ordering::Acquire)
+                        && udp_active.load(Ordering::Acquire)
+                    {
                         // No shared lock while waiting for client input.
-                        let incoming = match udp.recv_from(&mut query) {
-                            Ok((length, peer)) if length <= packet_limit => Some((length, peer)),
+                        let incoming = match udp.receive(&mut query) {
+                            Ok(Some(incoming)) if incoming.len <= packet_limit => {
+                                let Ok(interfaces) = udp_interfaces.lock() else {
+                                    break;
+                                };
+                                listeners::admit(
+                                    &udp_config,
+                                    &interfaces,
+                                    incoming.peer.ip(),
+                                    incoming.destination,
+                                    incoming.interface,
+                                )
+                                .then_some(incoming)
+                            }
                             Ok(_) => None,
                             Err(error)
                                 if matches!(
@@ -676,8 +981,13 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                 event.local_answered,
                             );
                             event.process_ubus(&metrics);
-                            let answer = incoming.and_then(|(length, peer)| {
-                                let packet = &query[..length];
+                            let answer = incoming.and_then(|incoming| {
+                                let peer = incoming.peer;
+                                let packet = &query[..incoming.len];
+                                local.local_network =
+                                    udp_interfaces.lock().ok().and_then(|interfaces| {
+                                        listeners::local_network(&interfaces, incoming.destination)
+                                    });
                                 match dnsmasq_rs::dns::udp_query::inspect(
                                     packet,
                                     local.edns_packet_max,
@@ -694,8 +1004,8 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                         packet,
                                         ClientRequest {
                                             source: peer,
-                                            destination: address.ip(),
-                                            interface: 0,
+                                            destination: incoming.destination,
+                                            interface: incoming.interface,
                                         },
                                         Some(listener),
                                         local,
@@ -734,7 +1044,11 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                             (answer, responses.unwrap_or_default())
                         };
                         if let Some((peer, answer, stale)) = answer {
-                            let _ = udp.send_to(&answer, peer);
+                            let _ = udp.send(
+                                &answer,
+                                peer,
+                                incoming.map(|request| (request.destination, request.interface)),
+                            );
                             // C increments after its send attempt, including
                             // a failed send; ordinary TCP answers do not count.
                             if stale {
@@ -748,7 +1062,8 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                 let Ok(mut parent) = parent_service.lock() else {
                                     break;
                                 };
-                                let length = incoming.expect("stale reply has a query").0;
+                                let request = incoming.expect("stale reply has a query");
+                                let length = request.len;
                                 let refresh = parent
                                     .daemon
                                     .as_mut()
@@ -757,8 +1072,8 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                         &query[..length],
                                         ClientRequest {
                                             source: peer,
-                                            destination: address.ip(),
-                                            interface: 0,
+                                            destination: request.destination,
+                                            interface: request.interface,
                                         },
                                         Some(listener),
                                     );
@@ -770,29 +1085,35 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                             }
                         }
                         for response in responses {
-                            let Some(SocketToken(index)) = response.listener else {
+                            let Some(listener) = response.listener else {
                                 continue;
                             };
-                            if let Some(socket) = usize::try_from(index)
+                            let socket = response_sockets
+                                .lock()
                                 .ok()
-                                .and_then(|index| response_sockets.get(index))
-                            {
-                                let _ = socket.send_to(&response.packet, response.destination);
+                                .and_then(|sockets| sockets.get(&listener).cloned());
+                            if let Some(socket) = socket {
+                                let _ = socket.send(&response.packet, response.destination, None);
                             }
+                        }
+                        if incoming.is_none() {
+                            thread::park_timeout(Duration::from_millis(20));
                         }
                     }
                 })?,
         );
-        let tcp_service = Arc::clone(&service);
-        let tcp_events = Arc::clone(&parent_events);
-        let tcp_resolvers = resolvers.clone();
-        let tcp_edns_max = daemon_options.edns_packet_max;
+        let tcp_service = Arc::clone(&self.service);
+        let tcp_events = Arc::clone(&self.parent_events);
+        let tcp_resolvers = self.resolvers.clone();
+        let tcp_edns_max = self.edns_max;
         workers.push(
             thread::Builder::new()
                 .name(format!("dns-tcp-{address}"))
                 .spawn(move || {
                     let mut clients: Vec<thread::JoinHandle<()>> = Vec::new();
-                    while !STOP_REQUESTED.load(Ordering::Acquire) {
+                    while !STOP_REQUESTED.load(Ordering::Acquire)
+                        && tcp_active.load(Ordering::Acquire)
+                    {
                         // Reap completed connections during normal operation.
                         // Keeping every historical handle until SIGTERM would
                         // grow memory even with bounded active connections.
@@ -816,7 +1137,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                 thread::sleep(Duration::from_millis(20));
                                 continue;
                             }
-                            let (stream, _) = match tcp.accept() {
+                            let (stream, peer) = match tcp.accept() {
                                 Ok(connection) => connection,
                                 Err(error) if error.kind() == io::ErrorKind::Interrupted => {
                                     continue
@@ -830,6 +1151,24 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                     continue;
                                 }
                             };
+                            let Ok(destination) = stream.local_addr() else {
+                                continue;
+                            };
+                            let Ok(interfaces) = tcp_interfaces.lock() else {
+                                break;
+                            };
+                            if !listeners::admit(
+                                &tcp_config,
+                                &interfaces,
+                                peer.ip(),
+                                destination.ip(),
+                                0,
+                            ) {
+                                continue;
+                            }
+                            let local_network =
+                                listeners::local_network(&interfaces, destination.ip());
+                            drop(interfaces);
                             // dnsmasq.c clears inherited O_NONBLOCK after accept.
                             // Darwin inherits it; Linux does not.
                             if stream.set_nonblocking(false).is_err() {
@@ -847,6 +1186,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                         parent.local.edns_packet_max,
                                     );
                                     snapshot.leases = Arc::clone(&parent.local.leases);
+                                    snapshot.local_network = local_network;
                                     event.tcp_active += 1;
                                     (stream, snapshot, TcpPermit(Arc::clone(&tcp_events)))
                                 }
@@ -949,176 +1289,14 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                             clients.push(client);
                         }
                     }
+                    drop(tcp);
                     for client in clients {
                         let _ = client.join();
                     }
                 })?,
         );
+        Ok(workers)
     }
-    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    if let Some((shared_provider, mut listener)) = dhcp_runtime {
-        let dhcp_events = Arc::clone(&parent_events);
-        let dhcp_dns = Arc::clone(&service);
-        workers.push(
-            thread::Builder::new()
-                .name("dhcp-listener".into())
-                .spawn(move || {
-                    let mut output = vec![0; 16_384];
-                    while !STOP_REQUESTED.load(Ordering::Acquire) {
-                        let Ok(mut event) = dhcp_events.lock() else { break };
-                        let Ok(mut provider) = shared_provider.lock() else { break };
-                        let mut metrics = Metrics::default();
-                        event.write_metrics(&mut metrics);
-                        write_dhcp_metrics(&mut metrics, &provider);
-                        {
-                            let Ok(parent) = dhcp_dns.lock() else { break };
-                            if let Some(daemon) = &parent.daemon {
-                                write_dns_metrics(&mut metrics, daemon.cache_counters(), daemon.forward_counters(), event.local_answered);
-                            }
-                        }
-                        event.process_ubus(&metrics);
-                        let now = SystemTime::now().duration_since(UNIX_EPOCH)
-                            .map_or(0, |time| time.as_secs() as i64);
-                        if let Some(report) = provider.tick(now) {
-                            report_dhcp_maintenance(&report);
-                        }
-                        let mut idle = false;
-                        let result = {
-                            let mut sink = |kind, fields: DhcpEventFields<'_>, logging| event.notify_dhcp(kind, fields, logging);
-                            let mut provider = provider.with_event_sink(&mut sink);
-                            listener.process_once_local(&mut provider, &[], &mut output, stopping)
-                        };
-                        match result {
-                            Ok(ListenerStep::WouldBlock) | Ok(ListenerStep::Ignored) => {
-                                idle = true;
-                            }
-                            Ok(ListenerStep::Stopped) => break,
-                            Ok(ListenerStep::Malformed(_)) => {}
-                            Ok(ListenerStep::Processed(result)) => {
-                                let events = match &result {
-                                    Ok(report) => &report.events,
-                                    Err(failure) => &failure.events,
-                                };
-                                for event in events {
-                                    if let dnsmasq_rs::dhcp::runtime::RuntimeEvent::ArpInjectionFailed { kind, raw_os_error } = event {
-                                        eprintln!("dnsmasq-rs: DHCP ARP injection: {kind:?} ({raw_os_error:?})");
-                                    }
-                                }
-                            }
-                            Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
-                            Err(_) => break,
-                        }
-                        if let Some(error) = provider.take_probe_error() {
-                            eprintln!("dnsmasq-rs: DHCP conflict probe: {error}");
-                        }
-                        if let Some(report) = provider.take_maintenance_report() {
-                            report_dhcp_maintenance(&report);
-                        }
-                        drop(provider);
-                        drop(event);
-                        if idle { thread::sleep(Duration::from_millis(2)); }
-                    }
-                })?,
-        );
-    }
-    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    if let Some(mut listener) = tftp_listener {
-        workers.push(
-            thread::Builder::new()
-                .name("tftp-listener".into())
-                .spawn(move || {
-                    while !STOP_REQUESTED.load(Ordering::Acquire) {
-                        let now = SystemTime::now()
-                            .duration_since(UNIX_EPOCH)
-                            .map_or(0, |duration| duration.as_secs());
-                        match listener.poll_once(now) {
-                            Ok(_) => thread::sleep(Duration::from_millis(1)),
-                            Err(error)
-                                if matches!(
-                                    error.kind(),
-                                    io::ErrorKind::WouldBlock | io::ErrorKind::Interrupted
-                                ) =>
-                            {
-                                thread::sleep(Duration::from_millis(2))
-                            }
-                            Err(_) => break,
-                        }
-                    }
-                })?,
-        );
-    }
-    // `-k` is the normal OpenWrt invocation. Stop handlers let workers leave
-    // their bounded receive loops and release sockets before exit.
-    while !STOP_REQUESTED.load(Ordering::Acquire) {
-        if RELOAD_REQUESTED.swap(false, Ordering::AcqRel) {
-            let _event = parent_events
-                .lock()
-                .map_err(|_| io::Error::other("parent event lock poisoned"))?;
-            // C SIGHUP rereads data files, not the main configuration. A
-            // missing hosts source is logged and its old names disappear.
-            if dns_enabled {
-                let hosts = read_hosts(&daemon_config, runtime.scalar.local_ttl);
-                if let Ok(mut parent) = service.lock() {
-                    parent
-                        .daemon
-                        .as_mut()
-                        .expect("DNS enabled")
-                        .reload_hosts(hosts.clone());
-                    parent.local.hosts = hosts;
-                    let ParentDns { local, daemon } = &mut *parent;
-                    local.leases =
-                        Arc::new(daemon.as_mut().expect("DNS enabled").rebuild_lease_names(
-                            &local.leases,
-                            &mut local.hosts,
-                            &local.config.records.cnames,
-                        ));
-                }
-            }
-            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-            if let Some(provider) = &dhcp_provider {
-                let now = SystemTime::now()
-                    .duration_since(UNIX_EPOCH)
-                    .map_or(0, |time| time.as_secs() as i64);
-                let mut provider = provider
-                    .lock()
-                    .map_err(|_| io::Error::other("DHCP state lock poisoned"))?;
-                report_dhcp_maintenance(&provider.reload_host_files(now));
-            }
-        }
-        {
-            // Metrics still work with port=0 and no incoming DHCP packets.
-            // No provider lock is acquired after the DNS parent lock.
-            let mut event = parent_events
-                .lock()
-                .map_err(|_| io::Error::other("parent event lock poisoned"))?;
-            let mut metrics = Metrics::default();
-            event.write_metrics(&mut metrics);
-            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-            if let Some(provider) = &dhcp_provider {
-                let provider = provider
-                    .lock()
-                    .map_err(|_| io::Error::other("DHCP state lock poisoned"))?;
-                write_dhcp_metrics(&mut metrics, &provider);
-            }
-            let parent = service
-                .lock()
-                .map_err(|_| io::Error::other("DNS state lock poisoned"))?;
-            if let Some(daemon) = &parent.daemon {
-                write_dns_metrics(
-                    &mut metrics,
-                    daemon.cache_counters(),
-                    daemon.forward_counters(),
-                    event.local_answered,
-                );
-            }
-            event.process_ubus(&metrics);
-        }
-        thread::park_timeout(Duration::from_millis(100));
-    }
-    for worker in workers {
-        let _ = worker.join();
-    }
-    Ok(())
 }
 
 struct TcpPermit(Arc<Mutex<ParentEvents>>);
@@ -1302,14 +1480,18 @@ fn validate_runtime_ready(scalar: &ScalarConfig, dns: &DnsConfig) -> Result<(), 
     if dns.servers_file.is_some() {
         return Err(Error("servers-file loading is not implemented"));
     }
-    if !dns.interfaces.is_empty()
-        || !dns.excluded_interfaces.is_empty()
-        || dns.bind_interfaces
+    if dns.bind_interfaces && dns.bind_dynamic {
+        return Err(Error("cannot set --bind-interfaces and --bind-dynamic"));
+    }
+    #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
+    if dns.bind_interfaces
         || dns.bind_dynamic
         || dns.local_service_net
         || dns.local_service_host
+        || !dns.interfaces.is_empty()
+        || !dns.excluded_interfaces.is_empty()
     {
-        return Err(Error("interface binding is not implemented"));
+        return Err(Error("interface binding requires 64-bit Linux"));
     }
     if dns.no_poll {
         return Err(Error("configured DNS policy is not implemented"));
@@ -1399,25 +1581,6 @@ fn read_hosts(config: &DnsConfig, local_ttl: u32) -> Hosts {
         read(path, (config.addn_hosts.len() + index + 1) as u32);
     }
     hosts
-}
-
-fn bind_addresses(config: &DnsConfig, port: u16) -> Vec<SocketAddr> {
-    if port == 0 {
-        return Vec::new();
-    }
-    if config.listen_addresses.is_empty() {
-        // OpenWrt's Linux IPv6 wildcard is dual-stack unless the administrator
-        // explicitly requests v6-only. One listener therefore covers both
-        // families and avoids the EADDRINUSE race from binding two wildcards.
-        vec![SocketAddr::new("::".parse().unwrap(), port)]
-    } else {
-        config
-            .listen_addresses
-            .iter()
-            .copied()
-            .map(|address| SocketAddr::new(address, port))
-            .collect()
-    }
 }
 
 fn read_resolvers(config: &DnsConfig) -> Result<Vec<SocketAddr>, io::Error> {
