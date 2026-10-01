@@ -161,9 +161,15 @@ pub struct IcmpProbe {
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 impl IcmpProbe {
     pub fn new(no_ping: bool) -> io::Result<Self> {
+        use std::io::Read;
+        let mut random = std::fs::File::open("/dev/urandom")?;
+        // util.c rand_init reads 32 seed words and 12 input words before
+        // accepting startup. Opening alone would miss a failed/short source.
+        let mut startup_entropy = [0; (32 + 12) * 4];
+        random.read_exact(&mut startup_entropy)?;
         Ok(Self {
             cache: PingCache::default(),
-            random: std::fs::File::open("/dev/urandom")?,
+            random,
             no_ping,
         })
     }

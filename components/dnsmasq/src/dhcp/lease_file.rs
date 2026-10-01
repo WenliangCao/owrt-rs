@@ -76,6 +76,19 @@ pub fn parse(bytes: &[u8]) -> LeaseFile {
     parse_reader(bytes, usize::MAX).expect("reading a byte slice cannot fail")
 }
 
+/// lease.c read_leases uses EC_MISC for capacity exhaustion, distinct from
+/// EC_FILE for an open/read failure. Preserve that distinction through io::Error.
+#[derive(Debug)]
+pub struct CapacityExceeded;
+
+impl std::fmt::Display for CapacityExceeded {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("too many stored leases")
+    }
+}
+
+impl std::error::Error for CapacityExceeded {}
+
 /// Stream a startup database without allocating its complete contents. Field
 /// widths stay identical to scanf and capacity exhaustion is startup-fatal.
 pub fn parse_reader(reader: impl BufRead, maximum_records: usize) -> io::Result<LeaseFile> {
@@ -124,10 +137,7 @@ pub fn parse_reader(reader: impl BufRead, maximum_records: usize) -> io::Result<
             continue;
         };
         if result.records.len() >= maximum_records {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                "too many stored leases",
-            ));
+            return Err(io::Error::new(io::ErrorKind::InvalidData, CapacityExceeded));
         }
         let (hardware, mut hardware_type) = parse_hex(&second, 16, true);
         let hardware = hardware.unwrap_or_default();

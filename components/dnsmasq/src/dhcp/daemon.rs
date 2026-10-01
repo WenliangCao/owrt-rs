@@ -4,7 +4,7 @@
 
 use super::allocation::ProbeResult;
 use super::context::{select_contexts, ContextState, SelectedContext};
-use super::lease::{ClientIdentity, Lease, LeaseStore, NameLost};
+use super::lease::{ClientIdentity, Lease, LeaseError, LeaseStore, NameLost, RestoreError};
 use super::persistence::{
     self, AlarmAction, DnsPublisher, DnsReport, LeasePersistence, PersistReport,
 };
@@ -20,6 +20,52 @@ use std::net::{IpAddr, Ipv4Addr, UdpSocket};
 use std::os::unix::ffi::OsStrExt;
 use std::path::Path;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+
+/// Startup operation determines the C exit class; errno alone does not.
+#[derive(Debug)]
+pub enum StartupError {
+    LeaseFile(io::Error),
+    Restore(RestoreError),
+    Socket(io::Error),
+    Entropy(io::Error),
+}
+
+impl StartupError {
+    pub fn exit_code(&self) -> i32 {
+        match self {
+            Self::LeaseFile(error)
+                if error
+                    .get_ref()
+                    .is_some_and(|cause| cause.is::<super::lease_file::CapacityExceeded>()) =>
+            {
+                5
+            }
+            Self::Restore(RestoreError::Lease(LeaseError::Full)) | Self::Entropy(_) => 5,
+            Self::LeaseFile(_) | Self::Restore(_) => 3,
+            Self::Socket(_) => 2,
+        }
+    }
+}
+
+impl std::fmt::Display for StartupError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::LeaseFile(error) => write!(formatter, "cannot open or read lease file: {error}"),
+            Self::Restore(error) => write!(formatter, "cannot restore lease database: {error:?}"),
+            Self::Socket(error) => write!(formatter, "cannot create DHCP control socket: {error}"),
+            Self::Entropy(error) => write!(formatter, "cannot initialize DHCP entropy: {error}"),
+        }
+    }
+}
+
+impl std::error::Error for StartupError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::LeaseFile(error) | Self::Socket(error) | Self::Entropy(error) => Some(error),
+            Self::Restore(_) => None,
+        }
+    }
+}
 
 #[derive(Debug)]
 pub struct RestoreStats {
@@ -71,25 +117,26 @@ impl LocalProvider {
         listen_addresses: Vec<IpAddr>,
         dns_port: u16,
         should_stop: fn() -> bool,
-    ) -> io::Result<Self> {
+    ) -> Result<Self, StartupError> {
+        // The C global entropy check precedes lease-file creation. Keep this
+        // provider's dependency failures on the same side of that mutation.
+        let probe = IcmpProbe::new(config.no_ping).map_err(StartupError::Entropy)?;
         let now = epoch_seconds();
         let (persistence, restored) = LeasePersistence::open(
             Path::new(OsStr::from_bytes(config.lease_path())),
             config.lease_read_only,
             config.lease_max,
-        )?;
+        )
+        .map_err(StartupError::LeaseFile)?;
         let mut leases = LeaseStore::new(config.lease_max);
         let (startup_removed, restore_stats) = if let Some(restored) = restored {
             let stats = RestoreStats {
                 invalid_records: restored.invalid_records,
                 clean_end: restored.clean_end,
             };
-            let removed = leases.restore(restored.records, now).map_err(|error| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    format!("cannot restore lease database: {error:?}"),
-                )
-            })?;
+            let removed = leases
+                .restore(restored.records, now)
+                .map_err(StartupError::Restore)?;
             (removed, Some(stats))
         } else {
             (Vec::new(), None)
@@ -108,14 +155,14 @@ impl LocalProvider {
                 .collect(),
             domains: NameDomains::default(),
             reply_hostname: None,
-            probe: IcmpProbe::new(config.no_ping)?,
+            probe,
             probe_error: None,
             should_stop,
             config,
             selected: Vec::new(),
             listen_addresses,
             dns_port,
-            control: UdpSocket::bind((Ipv4Addr::UNSPECIFIED, 0))?,
+            control: UdpSocket::bind((Ipv4Addr::UNSPECIFIED, 0)).map_err(StartupError::Socket)?,
             persistence,
             dns_publisher: None,
             startup_removed,
@@ -539,5 +586,33 @@ impl OutcomeProvider for LocalProvider {
             hostname: self.reply_hostname.as_deref(),
             domain: self.domains.for_address(address),
         })
+    }
+}
+
+#[cfg(test)]
+mod startup_tests {
+    use super::*;
+
+    #[test]
+    fn startup_class_uses_operation_and_typed_capacity_not_errno_text() {
+        let denied = || io::Error::from(io::ErrorKind::PermissionDenied);
+        assert_eq!(StartupError::LeaseFile(denied()).exit_code(), 3);
+        assert_eq!(StartupError::Socket(denied()).exit_code(), 2);
+        assert_eq!(StartupError::Entropy(denied()).exit_code(), 5);
+        let file = b"0 02:00:00:00:00:01 192.0.2.10 named *\n";
+        let capacity = super::super::lease_file::parse_reader(&file[..], 0).unwrap_err();
+        assert_eq!(StartupError::LeaseFile(capacity).exit_code(), 5);
+        assert_eq!(
+            StartupError::LeaseFile(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "too many stored leases"
+            ))
+            .exit_code(),
+            3
+        );
+        assert_eq!(
+            StartupError::Restore(RestoreError::Lease(LeaseError::Full)).exit_code(),
+            5
+        );
     }
 }
