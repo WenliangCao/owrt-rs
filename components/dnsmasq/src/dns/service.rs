@@ -224,7 +224,8 @@ impl LocalDnsService {
             local_ttl: self.local_ttl,
             max_packet: limit,
         };
-        let Some(mut answer) = answerer.answer_with_lease_source(query, &self.leases, now)? else {
+        let Some(mut answer) = answerer.answer_with_lease_source(query, &mut self.leases, now)?
+        else {
             return Ok(None);
         };
         if opt.is_some() {
@@ -264,7 +265,7 @@ impl LocalDnsService {
             local_ttl: self.local_ttl,
             max_packet: u16::MAX as usize,
         };
-        let Some(mut packet) = answerer.answer_with_leases(query, &self.leases, now)? else {
+        let Some(mut packet) = answerer.answer_with_leases(query, &mut self.leases, now)? else {
             return Ok(None);
         };
         if opt.is_some() {

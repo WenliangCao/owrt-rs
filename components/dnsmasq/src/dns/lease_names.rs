@@ -1,4 +1,4 @@
-//! Immutable DHCP DNS generation, from lease.c:564-620 and cache.c:1742-1911.
+//! DHCP DNS publication generation, from lease.c:564-620 and cache.c:1742-1911.
 //!
 //! DHCP publication replaces this source, not hosts or the forwarded cache.
 //! The caller publishes the completed generation before transmitting its ACK.
@@ -141,6 +141,9 @@ pub enum PublicationWarning {
 pub struct LeaseNames {
     inputs: Vec<LeaseInput>,
     entries: Vec<LeaseName>,
+    /// Per-reader cache visibility. Arc copy-on-write preserves the state a
+    /// TCP child inherited while expiry removals remain local to that reader.
+    active: Vec<bool>,
     forward: HashMap<Vec<u8>, Vec<usize>>,
     reverse: HashMap<Ipv4Addr, usize>,
     non_terminals: HashMap<Vec<u8>, Option<i64>>,
@@ -197,8 +200,16 @@ impl LeaseNames {
     pub fn inputs(&self) -> &[LeaseInput] {
         &self.inputs
     }
+    /// Original publication records; `active_entries` excludes cache entries
+    /// removed by a later lookup in this reader.
     pub fn entries(&self) -> &[LeaseName] {
         &self.entries
+    }
+    pub fn active_entries(&self) -> impl Iterator<Item = &LeaseName> {
+        self.entries
+            .iter()
+            .enumerate()
+            .filter_map(|(id, entry)| self.active[id].then_some(entry))
     }
     pub fn warnings(&self) -> &[PublicationWarning] {
         &self.warnings
@@ -220,13 +231,16 @@ impl LeaseNames {
             .get(&name.to_ascii_lowercase())
             .into_iter()
             .flatten()
-            .map(|&id| &self.entries[id])
-            .filter(move |entry| self.policy.live(entry.expires, now))
+            .filter_map(move |&id| {
+                let entry = &self.entries[id];
+                (self.active[id] && self.policy.live(entry.expires, now)).then_some(entry)
+            })
     }
 
     pub fn reverse(&self, address: Ipv4Addr, now: i64) -> Option<&LeaseName> {
-        let entry = self.reverse.get(&address).map(|&id| &self.entries[id])?;
-        self.policy.live(entry.expires, now).then_some(entry)
+        let &id = self.reverse.get(&address)?;
+        let entry = &self.entries[id];
+        (self.active[id] && self.policy.live(entry.expires, now)).then_some(entry)
     }
 
     /// check_for_local_domain / upstream NXDOMAIN conversion only. A live
@@ -237,6 +251,54 @@ impl LeaseNames {
                 .non_terminals
                 .get(&name.to_ascii_lowercase())
                 .is_some_and(|&expiry| self.policy.live(expiry, now))
+    }
+
+    /// Test before Arc::make_mut so an ordinary live lookup does not clone a
+    /// generation shared with a TCP child. Presence checks intentionally do
+    /// not call this: cache_find_non_terminal does not remove expired data.
+    pub(crate) fn has_expired_name(&self, name: &[u8], now: i64) -> bool {
+        let key = name.to_ascii_lowercase();
+        self.forward.get(&key).is_some_and(|ids| {
+            ids.iter()
+                .any(|&id| self.active[id] && !self.policy.live(self.entries[id].expires, now))
+        }) || self
+            .non_terminals
+            .get(&key)
+            .is_some_and(|&expiry| !self.policy.live(expiry, now))
+    }
+
+    pub(crate) fn expire_name(&mut self, name: &[u8], now: i64) {
+        let key = name.to_ascii_lowercase();
+        if let Some(ids) = self.forward.get(&key) {
+            for &id in ids {
+                if !self.policy.live(self.entries[id].expires, now) {
+                    self.active[id] = false;
+                }
+            }
+        }
+        if self
+            .non_terminals
+            .get(&key)
+            .is_some_and(|&expiry| !self.policy.live(expiry, now))
+        {
+            self.non_terminals.remove(&key);
+        }
+    }
+
+    pub(crate) fn has_expired_reverse(&self, now: i64) -> bool {
+        self.reverse
+            .values()
+            .any(|&id| self.active[id] && !self.policy.live(self.entries[id].expires, now))
+    }
+
+    /// cache_find_by_addr scans all reverse owners, not just the requested
+    /// address. Non-reverse aliases and non-terminals are not pruned here.
+    pub(crate) fn expire_reverse(&mut self, now: i64) {
+        for &id in self.reverse.values() {
+            if !self.policy.live(self.entries[id].expires, now) {
+                self.active[id] = false;
+            }
+        }
     }
 
     fn add(
@@ -339,6 +401,7 @@ impl LeaseNames {
             expires,
             reverse,
         });
+        self.active.push(true);
         if reverse {
             self.reverse.insert(record.address, id);
         }
@@ -565,5 +628,39 @@ mod tests {
             u32::MAX
         );
         assert!(names.lookup(b"lease.example", 1002).next().is_none());
+    }
+
+    #[test]
+    fn expiry_detaches_only_the_reader_that_touched_the_name() {
+        use crate::config::dns::DnsConfig;
+        use crate::dns::service::LocalDnsService;
+        use crate::dns::wire::{Name, PacketWriter};
+        use std::sync::Arc;
+
+        let mut parent = LocalDnsService::new(DnsConfig::default(), Hosts::new(), 37, 512);
+        parent.leases = Arc::new(LeaseNames::build(
+            &[input(b"lease", 7, Some(1000))],
+            &mut parent.hosts,
+            &[],
+            LeasePolicy::default(),
+            &mut (),
+        ));
+        let mut child = LocalDnsService::new(DnsConfig::default(), Hosts::new(), 37, 512);
+        child.leases = Arc::clone(&parent.leases);
+        let mut query = PacketWriter::new(0x2930, 0x100, 512).unwrap();
+        query
+            .question(&Name::from_ascii("lease").unwrap(), 1, 1)
+            .unwrap();
+        let query = query.finish();
+        assert!(parent.handle_udp_at(&query, 999).unwrap().is_some());
+        assert!(Arc::ptr_eq(&parent.leases, &child.leases));
+        assert!(parent.handle_udp_at(&query, 1000).unwrap().is_none());
+        assert!(!Arc::ptr_eq(&parent.leases, &child.leases));
+        // The exact C trace removes a looked-up expired name permanently,
+        // while a child holding the earlier generation can still use it.
+        assert!(parent.handle_udp_at(&query, 999).unwrap().is_none());
+        assert!(child.handle_tcp_payload_at(&query, 999).unwrap().is_some());
+        assert!(child.leases.name_exists(b"lease", 999));
+        assert_eq!(parent.leases.inputs().len(), 1); // reload source retained
     }
 }

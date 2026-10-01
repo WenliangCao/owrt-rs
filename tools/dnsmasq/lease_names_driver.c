@@ -1,7 +1,9 @@
 /* Exact C lease-name publication/cache-answer oracle; no listeners or leases
  * from a device. The ordered D commands are lease_update_dns's publication
  * sequence. R unhashes DHCP entries only; P uses real extract_addresses. */
+#ifndef LEASE_NAMES_CACHE_INTERNAL
 #include "dnsmasq.h"
+#endif
 #include <assert.h>
 
 static size_t decode(const char *text, unsigned char *packet) {
@@ -23,6 +25,16 @@ int main(int argc, char **argv) {
   cache_init(); blockdata_init(); build_server_array(); cache_reload();
   char *line = NULL; size_t capacity = 0;
   while (getline(&line, &capacity, stdin) >= 0) {
+#ifdef LEASE_NAMES_CACHE_INTERNAL
+    /* Clock-transition fixtures freeze same/different-bucket conditions
+     * before observing answers; the normal driver has no internal access. */
+    if (line[0] == 'V') {
+      char first[504], second[504];
+      assert(sscanf(line, "V %503s %503s", first, second) == 2);
+      printf("V %d\n", hash_bucket(first) == hash_bucket(second));
+      fflush(stdout); continue;
+    }
+#endif
     if (line[0] == 'R') {
       cache_unhash_dhcp(); puts("R");
     } else if (line[0] == 'D') {

@@ -11,6 +11,7 @@ use crate::config::dns::{DnsConfig, DomainPattern, RuleTarget};
 use crate::config::records::{MxRecord, NaptrRecord, RawRecord, SrvRecord};
 use crate::hosts::Hosts;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+use std::sync::Arc;
 
 const CLASS_IN: u16 = 1;
 const TYPE_A: u16 = 1;
@@ -90,13 +91,13 @@ impl<'a> LocalAnswerer<'a> {
         &mut self,
         query: &[u8],
     ) -> Result<Option<LocalAnswer>, AnswerError> {
-        self.answer_with_lease_source(query, &LeaseNames::default(), 0)
+        self.answer_with_lease_source(query, &mut Arc::new(LeaseNames::default()), 0)
     }
 
     pub fn answer_with_leases(
         &mut self,
         query: &[u8],
-        leases: &LeaseNames,
+        leases: &mut Arc<LeaseNames>,
         now: i64,
     ) -> Result<Option<Vec<u8>>, AnswerError> {
         Ok(self
@@ -107,14 +108,9 @@ impl<'a> LocalAnswerer<'a> {
     pub(crate) fn answer_with_lease_source(
         &mut self,
         query: &[u8],
-        leases: &LeaseNames,
+        leases: &mut Arc<LeaseNames>,
         now: i64,
     ) -> Result<Option<LocalAnswer>, AnswerError> {
-        let leases = LeaseView {
-            names: leases,
-            now,
-            local_ttl: self.local_ttl,
-        };
         let header = Header::parse(query).map_err(|_| AnswerError::Malformed)?;
         if header.opcode() != 0
             || header.flags & 0x8000 != 0
@@ -131,6 +127,14 @@ impl<'a> LocalAnswerer<'a> {
         // itself remains class-IN only; a non-IN query can therefore receive
         // the local-only NXDOMAIN/NOERROR boundary but never an A/TXT/etc RR.
         let class_in = question.class == CLASS_IN;
+        if class_in {
+            expire_lease_lookups(self.config, leases, &question.name, question.qtype, now);
+        }
+        let leases = LeaseView {
+            names: leases,
+            now,
+            local_ttl: self.local_ttl,
+        };
 
         let key = question.name.canonical_wire();
         let mut rows: Vec<(u16, u32, Vec<u8>)> = Vec::new();
@@ -284,6 +288,49 @@ impl<'a> LocalAnswerer<'a> {
             packet,
             forward_rule: rule_owned || local_only,
         }))
+    }
+}
+
+/// These are the name/reverse lookup boundaries in answer_request, including
+/// lookups that ultimately produce no local answer. Keep removals sticky when
+/// wall time moves backwards without expiring untouched names globally.
+fn expire_lease_lookups(
+    config: &DnsConfig,
+    leases: &mut Arc<LeaseNames>,
+    query: &Name,
+    qtype: u16,
+    now: i64,
+) {
+    let Some(mut name) = wire_to_dotted(query) else {
+        return;
+    };
+    for _ in 0..100 {
+        if leases.has_expired_name(&name, now) {
+            Arc::make_mut(leases).expire_name(&name, now);
+        }
+        if qtype == TYPE_CNAME {
+            return;
+        }
+        let Some(cname) = config
+            .records
+            .cnames
+            .iter()
+            .find(|cname| cname.alias.eq_ignore_ascii_case(&name))
+        else {
+            break;
+        };
+        name = cname.target.clone();
+    }
+    if (qtype == TYPE_PTR || qtype == 255)
+        && arpa_address(&name).is_some()
+        && !config
+            .records
+            .ptr
+            .iter()
+            .any(|record| record.name.eq_ignore_ascii_case(&name))
+        && leases.has_expired_reverse(now)
+    {
+        Arc::make_mut(leases).expire_reverse(now);
     }
 }
 

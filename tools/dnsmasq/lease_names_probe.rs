@@ -10,6 +10,7 @@ use dnsmasq_rs::dns::local::{configured_hosts, known_forwarded_domain_with_lease
 use dnsmasq_rs::dns::wire::Question;
 use std::io::{self, BufRead};
 use std::path::Path;
+use std::sync::Arc;
 
 fn decode(text: &str) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     if !text.len().is_multiple_of(2) {
@@ -65,7 +66,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         },
     };
     let mut inputs: Vec<LeaseInput> = Vec::new();
-    let mut leases = LeaseNames::default();
+    let mut leases = Arc::new(LeaseNames::default());
     let mut publication_hosts = hosts.clone();
     for line in io::stdin().lock().lines() {
         let line = line?;
@@ -73,7 +74,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         match fields[0] {
             "R" => {
                 inputs.clear();
-                leases = LeaseNames::default();
+                leases = Arc::new(LeaseNames::default());
                 publication_hosts = hosts.clone();
                 println!("R");
             }
@@ -95,17 +96,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 // D commands form one publication batch. Replaying that
                 // batch must apply hosts lookup side effects exactly once.
                 hosts = publication_hosts.clone();
-                leases = LeaseNames::build(
+                leases = Arc::new(LeaseNames::build(
                     &records,
                     &mut hosts,
                     &config.records.cnames,
                     policy,
                     &mut (),
-                );
+                ));
                 println!("D");
             }
             "E" => {
-                for entry in leases.entries() {
+                for entry in leases.active_entries() {
                     println!(
                         "E {} {} 1 0 0 1 0 0 0 0 {} {}",
                         String::from_utf8_lossy(&entry.name),
@@ -145,7 +146,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         local_ttl: scalar.local_ttl,
                         max_packet: 65535,
                     }
-                    .answer_with_leases(&query, &leases, now)
+                    .answer_with_leases(&query, &mut leases, now)
                     .map_err(|error| format!("{error:?}"))?;
                     if let Some(answer) = answer {
                         println!(
