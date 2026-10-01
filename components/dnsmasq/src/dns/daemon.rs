@@ -920,17 +920,8 @@ pub(super) fn validate_runtime_config(config: &DnsConfig) -> Result<(), DaemonEr
             "servers-file loading is not implemented by the DNS daemon",
         )));
     }
-    if !config.interfaces.is_empty()
-        || !config.excluded_interfaces.is_empty()
-        || config.bind_interfaces
-        || config.bind_dynamic
-        || config.local_service_net
-        || config.local_service_host
-    {
-        return Err(DaemonError::Config(ConfigError(
-            "interface binding is owned by the containing listener",
-        )));
-    }
+    // Interface selection and local-source admission are consumed by the
+    // containing UDP/TCP listeners before this transport-independent engine.
     if config.no_poll {
         return Err(DaemonError::Config(ConfigError(
             "configured DNS policy is not implemented by the daemon",
