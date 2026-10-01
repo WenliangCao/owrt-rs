@@ -155,7 +155,7 @@ def run(args):
         from ubus_contract_diff import Fixture
         bus_out = args.out / 'ubus'
         bus_out.mkdir()
-        bus = Fixture(SimpleNamespace(reference_build=args.reference_build), bus_out)
+        bus = Fixture(SimpleNamespace(reference_build=args.reference_build, compiler='/usr/bin/gcc'), bus_out)
         bus.start_bus()
         for label, command in [
             ('upstream', ['nsenter', '-t', upstream_pid, '-n', sys.executable, executable, '--mode', 'upstream',

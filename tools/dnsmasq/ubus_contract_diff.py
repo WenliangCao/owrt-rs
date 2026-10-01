@@ -142,7 +142,7 @@ class Fixture:
         self.env = dict(os.environ, LD_LIBRARY_PATH=str(args.reference_build / "deps/lib"))
         self.client = out / "ubus-contract-client"
         deps = args.reference_build / "deps"
-        command = ["cc", "-Wall", "-Wextra", "-Werror", "-O2",
+        command = [getattr(args, "compiler", "cc"), "-Wall", "-Wextra", "-Werror", "-O2",
                    "-I" + str(deps / "include"), str(ROOT / "tools/dnsmasq/ubus_contract_client.c"),
                    "-L" + str(deps / "lib"), "-Wl,-rpath," + str(deps / "lib"),
                    "-lubus", "-lubox", "-o", str(self.client)]
