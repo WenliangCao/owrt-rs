@@ -69,3 +69,18 @@ inventory driver begins enumeration with the following `cache_enumerate(0)`.
 This gate does not cover shared dynamic cache/query merging across listeners,
 DHCP publication, arbitrary interface changes, hostsdir/inotify, all reverse
 name encodings, privilege/logging/procd parity, long-run growth or performance.
+
+The follow-up literal-label-dot audit closes another name ambiguity. A dot
+inside a wire label must not alias a dotted hosts/config key or a reverse
+address component. Local key conversion now rejects that ambiguous form;
+domain-rule matching instead retains C's escaped bytes so real later labels
+still match address/local suffixes. Rejecting the entire name for suffix
+matching caused an observed lost reply and was corrected before commit.
+
+`private/dnsmasq-rewrite/udp-policy-20261001/linux/hosts-generation-01/`
+passes 192 queries per side, including literal-dot forward and PTR cases.
+`hosts-suffix-before-01/` retains the subsequent suffix-rule timeout.
+`hosts-generation-02/` passes the expanded 204 queries per side, covering both
+suffix rules across IPv4/IPv6 with fixed and rotating modes and reloads.
+The same C inventory, initial-seed restrictions and per-step C transition model
+remain in force. All 17 local-answer unit tests and library clippy pass.

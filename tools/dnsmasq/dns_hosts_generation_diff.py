@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 import signal
 import socket
+import struct
 import subprocess
 import time
 
@@ -42,6 +43,8 @@ def config(port, hosts_file, no_round):
             "host-record=v6prefix.test,2001:db8::,51\n"
             "host-record=dup.test,192.0.2.9,54\nhost-record=dup.test,192.0.2.9,999\n"
             "host-record=no-address.test,unused.test,81\n"
+            "host-record=one.two.test,192.0.2.12,44\n"
+            "address=/route.test/192.0.2.13\nlocal=/local.test/\n"
             "ptr-record=2.2.0.192.in-addr.arpa,override.test\n")
 
 
@@ -63,6 +66,10 @@ def schedule():
     for host in ["cfg.test", "alias.test", "dup.test", "fileonly.test", "no-address.test"]:
         rows.append((f"forward-{host}", host, 1, "127.0.0.1", False))
     rows.append(("disturb-before-reload", "mixed.test", 1, "127.0.0.1", False))
+    rows += [("literal-dot-forward", b"\x07one.two\x04test\0", 1, "127.0.0.1", False),
+             ("literal-dot-reverse", b"\x031.2\x010\x03192\x07in-addr\x04arpa\0", 12, "::1", False),
+             ("literal-dot-address-suffix", b"\x07one.two\x05route\x04test\0", 1, "::1", False),
+             ("literal-dot-local-suffix", b"\x07one.two\x05local\x04test\0", 1, "127.0.0.1", False)]
     return rows
 
 
@@ -100,7 +107,8 @@ def run(binary, side, out, no_round, port):
                 else:
                     raise AssertionError("startup/reload marker failed")
                 for case, host, kind, ip, tcp in schedule():
-                    packet = query(host, kind, 1, 0x100, 0x3000 + len(rows))
+                    packet = (struct.pack("!6H", 0x3000 + len(rows), 0x100, 1, 0, 0, 0) + host + struct.pack("!HH", kind, 1)
+                              if isinstance(host, bytes) else query(host, kind, 1, 0x100, 0x3000 + len(rows)))
                     reply = exchange(ip, port, packet, tcp)
                     rows.append({"stage": stage, "generation": generation, "case": case,
                                  "tcp": tcp, "request": packet.hex(), "reply": reply.hex()})

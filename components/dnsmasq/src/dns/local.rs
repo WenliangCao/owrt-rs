@@ -127,15 +127,17 @@ impl<'a> LocalAnswerer<'a> {
                 &mut extra_rows,
             );
         } else if class_in {
-            let (local_rows, local_owned) = add_local_records_for_name(
-                self.config,
-                self.hosts,
-                &wire_to_dotted(&question.name).unwrap_or_default(),
-                question.qtype,
-                self.local_ttl,
-            );
-            rows.extend(local_rows);
-            owned = local_owned;
+            if let Some(name) = wire_to_dotted(&question.name) {
+                let (local_rows, local_owned) = add_local_records_for_name(
+                    self.config,
+                    self.hosts,
+                    &name,
+                    question.qtype,
+                    self.local_ttl,
+                );
+                rows.extend(local_rows);
+                owned = local_owned;
+            }
         }
 
         // A configured/local record owns the query before address rules. A
@@ -265,6 +267,11 @@ fn wire_to_dotted(name: &Name) -> Option<Vec<u8>> {
             return Some(out);
         }
         if len > 63 || pos.checked_add(len)? > wire.len() {
+            return None;
+        }
+        // C extract_name escapes a literal dot inside one label. Dotted
+        // config/hosts keys cannot represent it as an ordinary separator.
+        if wire[pos..pos + len].contains(&b'.') {
             return None;
         }
         if !out.is_empty() {
@@ -718,7 +725,9 @@ fn select_local_rules(
 }
 
 fn matches_domain(name: &Name, pattern: &DomainPattern) -> bool {
-    let query = wire_to_dotted(name).unwrap_or_default();
+    // Keep C's label escapes: an embedded dot cannot become a separator,
+    // but later real labels must still match local/address suffix rules.
+    let query = name.dnsmasq_bytes().to_ascii_lowercase();
     let suffix = pattern.suffix.to_ascii_lowercase();
     if pattern.dotless && (query.is_empty() || query.contains(&b'.')) {
         return false;
@@ -984,6 +993,70 @@ mod tests {
             (rr.ttl, rr.rdata),
             (37, b"\x08explicit\x04test\0".as_slice())
         );
+    }
+
+    #[test]
+    fn literal_label_dot_does_not_alias_a_dotted_host_or_ptr_name() {
+        let mut config = DnsConfig::default();
+        apply(&mut config, b"host-record=one.two.test,192.0.2.1");
+        let mut hosts = configured_hosts(&config, 37);
+        let mut answerer = LocalAnswerer {
+            config: &config,
+            hosts: &mut hosts,
+            local_ttl: 37,
+            max_packet: 512,
+        };
+        for (labels, kind) in [
+            (vec![b"one.two".as_slice(), b"test"], TYPE_A),
+            (
+                vec![b"1.2".as_slice(), b"0", b"192", b"in-addr", b"arpa"],
+                TYPE_PTR,
+            ),
+        ] {
+            let mut packet = query("unused", kind);
+            packet.truncate(12);
+            for label in labels {
+                packet.push(label.len() as u8);
+                packet.extend_from_slice(label);
+            }
+            packet.push(0);
+            packet.extend_from_slice(&kind.to_be_bytes());
+            packet.extend_from_slice(&1u16.to_be_bytes());
+            assert!(answerer.answer(&packet).unwrap().is_none());
+        }
+        assert!(answerer
+            .answer(&query("one.two.test", TYPE_A))
+            .unwrap()
+            .is_some());
+        assert!(answerer
+            .answer(&query("1.2.0.192.in-addr.arpa", TYPE_PTR))
+            .unwrap()
+            .is_some());
+    }
+
+    #[test]
+    fn literal_label_dot_preserves_real_domain_suffixes() {
+        let mut config = DnsConfig::default();
+        apply(&mut config, b"address=/route.test/192.0.2.13");
+        apply(&mut config, b"local=/local.test/");
+        let mut hosts = configured_hosts(&config, 37);
+        let mut answerer = LocalAnswerer {
+            config: &config,
+            hosts: &mut hosts,
+            local_ttl: 37,
+            max_packet: 512,
+        };
+        for (suffix, rcode, answers) in [(b"route", 0, 1), (b"local", 3, 0)] {
+            let mut packet = query("unused", TYPE_A);
+            packet.truncate(12);
+            packet.extend_from_slice(b"\x07one.two\x05");
+            packet.extend_from_slice(suffix);
+            packet.extend_from_slice(b"\x04test\0\0\x01\0\x01");
+            let reply = answerer.answer(&packet).unwrap().unwrap();
+            let header = Header::parse(&reply).unwrap();
+            assert_eq!(header.rcode(), rcode);
+            assert_eq!(header.answers, answers);
+        }
     }
 
     #[test]
