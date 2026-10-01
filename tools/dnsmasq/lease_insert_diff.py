@@ -169,7 +169,7 @@ def compare(args, out):
     identity = json.loads((baseline / "result.json").read_text())
     assert not identity["failures"] and digest(baseline / "local-answer-oracle") == identity["c_oracle_sha256"]
     inputs = [ROOT / "components/dnsmasq/src/dns" / name for name in
-        ("daemon.rs","daemon_lease_cache_tests.rs","cache.rs","cache_reply.rs","local.rs","lease_names.rs","service.rs","wire.rs")]
+        ("daemon.rs","daemon_lease_cache_tests.rs","cache_engine.rs","cache.rs","cache_reply.rs","local.rs","lease_names.rs","service.rs","wire.rs")]
     source_identity = {str(path.relative_to(ROOT)):digest(path) for path in inputs}
     build = subprocess.run([args.cargo,"test","--manifest-path",str(ROOT / "components/dnsmasq/Cargo.toml"),
         "--lib","--no-run","--message-format=json"],text=True,capture_output=True)

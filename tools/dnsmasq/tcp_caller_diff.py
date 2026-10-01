@@ -273,7 +273,7 @@ def main():
               "rust_probe_sha256": None if rust is None else sha(rust),
               "tool_sha256":sha(Path(__file__)),
               "rust_sources": {name: sha(ROOT / "components/dnsmasq/src" / name) for name in
-                  ("dns/tcp_service.rs", "dns/routing.rs", "dns/local.rs", "dns/reply.rs", "dns/process.rs", "dns/wire.rs", "dns/daemon.rs", "config/dns.rs", "hosts.rs")},
+                  ("dns/tcp_service.rs", "dns/routing.rs", "dns/local.rs", "dns/reply.rs", "dns/process.rs", "dns/wire.rs", "dns/daemon.rs", "dns/cache_engine.rs", "config/dns.rs", "hosts.rs")},
               "scope":"TCP caller reply/refusal/local-name byte comparison; no transport or dynamic-cache/ubus side-effect equivalence", "rows":rows}
     (out / "result.json").write_text(json.dumps(report,indent=2)+"\n")
     print(json.dumps({k:v for k,v in report.items() if k!='rows'},indent=2))

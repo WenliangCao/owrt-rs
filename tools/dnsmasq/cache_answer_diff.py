@@ -230,7 +230,7 @@ def main():
                                   'misses': values.count('NONE'), 'insert_events': values.count('P'),
                                   'reset_events': values.count('RESET')} for side, values in observed.items()},
                'tool_sha256': digest(Path(__file__)),
-               'rust_source_sha256': {name: digest(ROOT / 'components/dnsmasq/src/dns' / name) for name in ['daemon.rs', 'daemon_cache_tests.rs', 'cache.rs', 'cache_reply.rs', 'wire.rs']},
+               'rust_source_sha256': {name: digest(ROOT / 'components/dnsmasq/src/dns' / name) for name in ['daemon.rs', 'daemon_cache_tests.rs', 'cache_engine.rs', 'cache.rs', 'cache_reply.rs', 'wire.rs']},
                'normalization': 'DNS compression and ASCII name case only; exact IDs, flags, TTLs, RDATA, section/record order, hit/miss and event order',
                'scope': 'socket-free extract_addresses/answer_request CNAME/SOA/negative cache subset; not daemon transport or performance acceptance'}
     (out / 'summary.json').write_text(json.dumps(summary, indent=2) + '\n')
