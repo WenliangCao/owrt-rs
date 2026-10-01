@@ -1,6 +1,6 @@
 //! IPv4 interface snapshots for DHCP context selection. No network mutation.
 
-use std::net::Ipv4Addr;
+use std::net::{IpAddr, Ipv4Addr};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Ipv4Interface {
@@ -11,16 +11,27 @@ pub struct Ipv4Interface {
     pub loopback: bool,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct DnsInterface {
+    pub index: u32,
+    pub name: Vec<u8>,
+    pub address: IpAddr,
+    pub netmask: IpAddr,
+    pub loopback: bool,
+}
+
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-pub use linux::{ipv4_interfaces, primary_ipv4};
+pub use linux::{dns_interfaces, ipv4_interfaces, primary_ipv4};
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 mod linux {
-    use super::Ipv4Interface;
+    use super::{DnsInterface, Ipv4Interface};
+    use std::ffi::CStr;
     use std::ffi::{c_char, c_void};
     use std::io;
     use std::net::Ipv4Addr;
     use std::net::UdpSocket;
+    use std::net::{IpAddr, Ipv6Addr};
     use std::os::fd::AsRawFd;
     const AF_INET: i32 = 2;
     extern "C" {
@@ -116,6 +127,58 @@ mod linux {
             });
         }
         Ok(result)
+    }
+
+    pub fn dns_interfaces() -> io::Result<Vec<DnsInterface>> {
+        let mut head = std::ptr::null_mut();
+        // SAFETY: initialized output pointer; free exactly once after copying.
+        if unsafe { getifaddrs(&mut head) } < 0 {
+            return Err(io::Error::last_os_error());
+        }
+        let mut current = head;
+        let mut result = Vec::new();
+        while !current.is_null() {
+            // SAFETY: this node belongs to the live getifaddrs list.
+            let entry = unsafe { &*current };
+            current = entry.next;
+            if entry.flags & 1 == 0 || entry.name.is_null() {
+                continue;
+            }
+            let address = unsafe { interface_ip(entry.address) };
+            let netmask = unsafe { interface_ip(entry.netmask) };
+            if let (Some(address), Some(netmask)) = (address, netmask) {
+                // SAFETY: ifa_name is NUL-terminated storage owned by the list.
+                let index = unsafe { if_nametoindex(entry.name) };
+                if index != 0 {
+                    result.push(DnsInterface {
+                        index,
+                        name: unsafe { CStr::from_ptr(entry.name) }.to_bytes().to_vec(),
+                        address,
+                        netmask,
+                        loopback: entry.flags & 8 != 0,
+                    });
+                }
+            }
+        }
+        // SAFETY: all data has been copied and no pointer escapes.
+        unsafe { freeifaddrs(head) };
+        Ok(result)
+    }
+
+    unsafe fn interface_ip(pointer: *const u8) -> Option<IpAddr> {
+        if pointer.is_null() {
+            return None;
+        }
+        // SAFETY: family is present in every sockaddr, and selects its layout.
+        unsafe {
+            match std::ptr::read_unaligned(pointer.cast::<u16>()) {
+                2 => interface_ipv4(pointer).map(IpAddr::V4),
+                10 => Some(IpAddr::V6(Ipv6Addr::from(std::ptr::read_unaligned(
+                    pointer.add(8).cast::<[u8; 16]>(),
+                )))),
+                _ => None,
+            }
+        }
     }
 
     /// `pointer` is null or points into the caller's live getifaddrs list.
