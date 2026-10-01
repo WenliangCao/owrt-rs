@@ -169,3 +169,7 @@ invocation lacked its expected private source path. Neither ran comparisons.
 Fresh invocations use the emitted test-binary filename and the hash-verified
 matching source. No measured mismatch was removed or waived. Service gates
 and the Linux DNS suite ran through `run_isolated.sh`; no router was modified.
+
+The later [bogus-cache phase](DNS_BOGUS_CACHE_PHASE.md) corrects a separate
+caller composition boundary: bogus-wildcard caching is independent of the
+ordinary CD restriction. It retains and reruns this 750-observation gate.
