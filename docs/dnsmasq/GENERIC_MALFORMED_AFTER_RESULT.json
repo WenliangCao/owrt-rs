@@ -1,0 +1,246 @@
+{
+  "scope": "Frozen malformed generic RDATA service gate after correction; no workload or comparator changes",
+  "source_commit": "ac8a3b6851adb93d62a8f7b334c2b727deffedd0",
+  "tool_commit": "45df082",
+  "plan_commit": "5c2fb8c",
+  "runs": [
+    {
+      "reference": {
+        "kind": "native-glibc",
+        "elf_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431"
+      },
+      "native_client_build": {
+        "kind": "native-glibc",
+        "elf_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431"
+      },
+      "tool_sha256": "ac1dc882c46d822e3172fa786b04e668dc69198fd92d8baa539622ac04d9279c",
+      "rust_sha256": "3d8462fac7a81707e3b24f84b1a25fc8b6903d808b66b14cc4f3ede9e230b692",
+      "c_calibrated": 35,
+      "compared": 35,
+      "mismatches": 0,
+      "injected_error": false,
+      "failures": [],
+      "label": "native-after-01",
+      "expected_exit": 0,
+      "profiles": [
+        {
+          "label": "srv-missing-target",
+          "observations": 3,
+          "differences": 0
+        },
+        {
+          "label": "mx-missing-exchange",
+          "observations": 3,
+          "differences": 0
+        },
+        {
+          "label": "soa-missing-second",
+          "observations": 3,
+          "differences": 0
+        },
+        {
+          "label": "mx-name-crosses-rdlen",
+          "observations": 3,
+          "differences": 0
+        },
+        {
+          "label": "disabled-mx",
+          "observations": 3,
+          "differences": 0
+        },
+        {
+          "label": "unknown-opaque",
+          "observations": 3,
+          "differences": 0
+        },
+        {
+          "label": "replacement-prefix",
+          "observations": 8,
+          "differences": 0
+        },
+        {
+          "label": "pressure-prefix",
+          "observations": 9,
+          "differences": 0
+        }
+      ],
+      "auxiliary_checks": {
+        "c": {
+          "total": 196,
+          "passed": 196
+        },
+        "rust": {
+          "total": 196,
+          "passed": 196
+        }
+      }
+    },
+    {
+      "reference": {
+        "kind": "image-aarch64-musl",
+        "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "runner_sha256": "de018ed3599e0d5f4a8f6c7646c8dd76759382b79b029ab40e3e3deac273e0db",
+        "dependencies": {
+          "lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+          "lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+          "lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+          "lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+        },
+        "identity_sha256": "fb873b9abae841a6723db1660752e1a4254a626b81bac099b19d9274a0d719aa"
+      },
+      "native_client_build": {
+        "kind": "native-glibc",
+        "elf_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431"
+      },
+      "tool_sha256": "ac1dc882c46d822e3172fa786b04e668dc69198fd92d8baa539622ac04d9279c",
+      "rust_sha256": "3d8462fac7a81707e3b24f84b1a25fc8b6903d808b66b14cc4f3ede9e230b692",
+      "c_calibrated": 35,
+      "compared": 35,
+      "mismatches": 0,
+      "injected_error": false,
+      "failures": [],
+      "label": "image-after-01",
+      "expected_exit": 0,
+      "profiles": [
+        {
+          "label": "srv-missing-target",
+          "observations": 3,
+          "differences": 0
+        },
+        {
+          "label": "mx-missing-exchange",
+          "observations": 3,
+          "differences": 0
+        },
+        {
+          "label": "soa-missing-second",
+          "observations": 3,
+          "differences": 0
+        },
+        {
+          "label": "mx-name-crosses-rdlen",
+          "observations": 3,
+          "differences": 0
+        },
+        {
+          "label": "disabled-mx",
+          "observations": 3,
+          "differences": 0
+        },
+        {
+          "label": "unknown-opaque",
+          "observations": 3,
+          "differences": 0
+        },
+        {
+          "label": "replacement-prefix",
+          "observations": 8,
+          "differences": 0
+        },
+        {
+          "label": "pressure-prefix",
+          "observations": 9,
+          "differences": 0
+        }
+      ],
+      "auxiliary_checks": {
+        "c": {
+          "total": 196,
+          "passed": 196
+        },
+        "rust": {
+          "total": 196,
+          "passed": 196
+        }
+      }
+    },
+    {
+      "reference": {
+        "kind": "native-glibc",
+        "elf_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431"
+      },
+      "native_client_build": {
+        "kind": "native-glibc",
+        "elf_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431"
+      },
+      "tool_sha256": "ac1dc882c46d822e3172fa786b04e668dc69198fd92d8baa539622ac04d9279c",
+      "rust_sha256": "3d8462fac7a81707e3b24f84b1a25fc8b6903d808b66b14cc4f3ede9e230b692",
+      "c_calibrated": 35,
+      "compared": 35,
+      "mismatches": 1,
+      "injected_error": true,
+      "failures": [],
+      "label": "native-negative-01",
+      "expected_exit": 1,
+      "profiles": [
+        {
+          "label": "srv-missing-target",
+          "observations": 3,
+          "differences": 1
+        },
+        {
+          "label": "mx-missing-exchange",
+          "observations": 3,
+          "differences": 0
+        },
+        {
+          "label": "soa-missing-second",
+          "observations": 3,
+          "differences": 0
+        },
+        {
+          "label": "mx-name-crosses-rdlen",
+          "observations": 3,
+          "differences": 0
+        },
+        {
+          "label": "disabled-mx",
+          "observations": 3,
+          "differences": 0
+        },
+        {
+          "label": "unknown-opaque",
+          "observations": 3,
+          "differences": 0
+        },
+        {
+          "label": "replacement-prefix",
+          "observations": 8,
+          "differences": 0
+        },
+        {
+          "label": "pressure-prefix",
+          "observations": 9,
+          "differences": 0
+        }
+      ],
+      "auxiliary_checks": {
+        "c": {
+          "total": 196,
+          "passed": 196
+        },
+        "rust": {
+          "total": 196,
+          "passed": 196
+        }
+      }
+    }
+  ],
+  "evidence": {
+    "verified_raw_files": 300,
+    "manifest_sha256": "5dc117766d3724a78c3aec9aec9c8375ef6e0fdd1c0eabe03f18890ba296f07d",
+    "archive_path": "private/evidence/generic-malformed-after-01.tar.gz",
+    "archive_sha256": "7151f067abc2c11a28054ad86508b446bda728363497943a42883cc82c2eba46",
+    "archive_bytes": 463468,
+    "before_archive_sha256": "d3f27bbfcee9c2360fdd0aec3857a2d1d77d7538b6168f5e3884bb28408923ea"
+  },
+  "boundaries": [
+    "35 frozen UDP observations against native and actual-image C; unchanged workload and comparator",
+    "Cache removals, live_freed, inserted, visibility and next-start recovery match; pending count is not directly exposed",
+    "Disabled MX and opaque unknown-type controls retained",
+    "RecordTooLong for expanded cache representation retains old abort-cache/forward behavior and is not qualified by these small packets",
+    "No malformed TCP, DO/AD expansion, reverse PTR, arbitrary invalid data, OOM, performance or router acceptance",
+    "All experiments used run_isolated.sh; no physical router access",
+    "Original 78-observation cache-rr fixture remains unchanged; original two 14-difference before runs retained"
+  ]
+}
