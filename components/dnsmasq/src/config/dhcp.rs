@@ -16,6 +16,9 @@ pub use host_files::{HostFileError, HostFileErrorKind, HostFiles, HostReload};
 #[path = "dhcp_options.rs"]
 mod ordinary_options;
 pub use ordinary_options::{DhcpOption, OptionValue};
+#[path = "dhcp_tags.rs"]
+mod tags;
+pub use tags::{DhcpNameMatch, TagPredicate};
 
 /// A validated copy of only the DNS address-to-domain fields. Keeping these
 /// fields in DnsConfig reuses its audited selector ordering and matching.
@@ -42,6 +45,8 @@ impl NameDomains {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RangeConfig {
+    /// Tag set only after this address context has been selected.
+    pub set_tag: Option<Vec<u8>>,
     pub start: Ipv4Addr,
     pub end: Ipv4Addr,
     /// None asks the runtime to derive the netmask from the serving interface.
@@ -111,6 +116,10 @@ pub struct DhcpConfig {
     pub sequential: bool,
     pub ignore_client_id: bool,
     pub fqdn_only: bool,
+    pub name_matches: Vec<DhcpNameMatch>,
+    pub ignore_names: Vec<TagPredicate>,
+    pub force_broadcast: Vec<TagPredicate>,
+    pub no_dhcp_interfaces: Vec<Option<Vec<u8>>>,
     pub no_ping: bool,
     /// Also controls the C early return for an ignored DISCOVER.
     pub quiet_dhcp: bool,
@@ -134,6 +143,10 @@ impl Default for DhcpConfig {
             sequential: false,
             ignore_client_id: false,
             fqdn_only: false,
+            name_matches: Vec::new(),
+            ignore_names: Vec::new(),
+            force_broadcast: Vec::new(),
+            no_dhcp_interfaces: Vec::new(),
             no_ping: false,
             quiet_dhcp: false,
             log_dhcp: false,
@@ -224,6 +237,24 @@ impl DhcpConfig {
             b"dhcp-sequential-ip" => self.sequential = true,
             b"dhcp-ignore-clid" => self.ignore_client_id = true,
             b"dhcp-fqdn" => self.fqdn_only = true,
+            b"dhcp-name-match" => {
+                let rule = DhcpNameMatch::parse(argument.ok_or(Error("missing parameter"))?)?;
+                self.name_matches.insert(0, rule);
+            }
+            b"dhcp-ignore-names" => {
+                self.ignore_names.insert(0, TagPredicate::parse(argument)?);
+            }
+            b"dhcp-broadcast" => {
+                self.force_broadcast
+                    .insert(0, TagPredicate::parse(argument)?);
+            }
+            b"no-dhcp-interface" => {
+                for value in argument.ok_or(Error("missing parameter"))?.split(b',') {
+                    let value = value.decoded();
+                    self.no_dhcp_interfaces
+                        .insert(0, (!value.is_empty()).then_some(value));
+                }
+            }
             b"no-ping" => self.no_ping = true,
             b"quiet-dhcp" => self.quiet_dhcp = true,
             b"log-dhcp" => self.log_dhcp = true,
@@ -239,6 +270,15 @@ impl DhcpConfig {
             b"dhcp-range" => {
                 let argument = argument.ok_or(Error("missing parameter"))?;
                 let parts = argument.split(b',');
+                let (set_tag, parts) = if parts
+                    .first()
+                    .is_some_and(|part| part.encoded().starts_with(b"set:"))
+                {
+                    let tag = parts[0].decoded()[4..].to_vec();
+                    ((!tag.is_empty()).then_some(tag), &parts[1..])
+                } else {
+                    (None, parts.as_slice())
+                };
                 if parts.len() < 2 || parts.len() > 5 {
                     return Err(Error("bad DHCP range"));
                 }
@@ -272,6 +312,7 @@ impl DhcpConfig {
                 self.ranges.insert(
                     0,
                     RangeConfig {
+                        set_tag,
                         start,
                         end,
                         netmask,
@@ -296,7 +337,6 @@ impl DhcpConfig {
             b"dhcp-vendorclass"
             | b"dhcp-userclass"
             | b"dhcp-match"
-            | b"dhcp-name-match"
             | b"dhcp-ignore"
             | b"dhcp-hostsdir"
             | b"dhcp-optsfile"
@@ -319,6 +359,18 @@ impl DhcpConfig {
         // A parsed range can omit its mask. Serving-interface discovery and
         // runtime capability checks belong to the listener's admission gate.
         Ok(())
+    }
+
+    /// The caller supplies the expanded tags at C's ACK hostname-policy point.
+    /// Configured/static names remain authoritative and bypass this policy.
+    pub fn ignore_client_name(&self, tags: &[&[u8]]) -> bool {
+        self.ignore_names.iter().any(|rule| rule.matches(tags))
+    }
+
+    /// `do_options` evaluates broadcast against the original request tags,
+    /// before adding the chosen range's context tag for option selection.
+    pub fn force_broadcast_for(&self, tags: &[&[u8]]) -> bool {
+        self.force_broadcast.iter().any(|rule| rule.matches(tags))
     }
 
     pub fn validate_dns_config(&self, config: &super::dns::DnsConfig) -> Result<(), Error> {
@@ -553,6 +605,46 @@ mod tests {
     }
 
     #[test]
+    fn generated_lan_tags_keep_context_and_hostname_policies_separate() {
+        let mut config = DhcpConfig::default();
+        for line in [
+            b"dhcp-range=set:lan,192.0.2.100,192.0.2.149,255.255.255.0,12h".as_slice(),
+            b"dhcp-broadcast=tag:needs-broadcast",
+            b"dhcp-ignore-names=tag:dhcp_bogus_hostname",
+            b"dhcp-name-match=set:dhcp_bogus_hostname,localhost",
+            b"dhcp-name-match=set:dhcp_bogus_hostname,wpad",
+            b"no-dhcp-interface=wan,guest",
+        ] {
+            assert!(config.apply(&lex_line(line).unwrap().unwrap()).unwrap());
+        }
+        assert_eq!(config.ranges[0].set_tag.as_deref(), Some(b"lan".as_slice()));
+        assert_eq!(config.ranges[0].lease_time, 43_200);
+        let tags: Vec<_> = config
+            .name_matches
+            .iter()
+            .filter(|rule| rule.matches(b"WPAD"))
+            .map(|rule| rule.set_tag.as_slice())
+            .collect();
+        assert!(config.ignore_client_name(&tags));
+        assert!(!config.ignore_client_name(&[b"lan"]));
+        assert!(config.force_broadcast_for(&[b"needs-broadcast"]));
+        assert!(!config.force_broadcast_for(&tags));
+        assert_eq!(
+            config.no_dhcp_interfaces,
+            [Some(b"guest".to_vec()), Some(b"wan".to_vec())]
+        );
+        let before = config.clone();
+        for line in [
+            b"dhcp-range=set:a,set:b,192.0.2.1,192.0.2.2".as_slice(),
+            b"dhcp-name-match=set:tag,",
+            b"dhcp-ignore-names=tag:",
+        ] {
+            assert!(config.apply(&lex_line(line).unwrap().unwrap()).is_err());
+            assert_eq!(config, before);
+        }
+    }
+
+    #[test]
     fn rejects_extra_fields_quotes_and_unimplemented_selectors() {
         for input in [
             "192.0.2.10,192.0.2.20,1h,2h",
@@ -560,7 +652,6 @@ mod tests {
             "\"192.0.2.10\",192.0.2.20",
             "192.0.2.10,192.0.2.20,\"12h\"",
             "tag:known,192.0.2.10,192.0.2.20",
-            "set:known,192.0.2.10,192.0.2.20",
             "192.0.2.10,static",
             "192.0.2.10,proxy",
         ] {
