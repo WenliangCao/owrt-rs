@@ -680,15 +680,14 @@ impl<R: Random> DnsDaemon<R> {
         } else {
             apply_static_aliases(&mut reply.packet, &self.policy.static_aliases, rcode)?;
         }
-        // Cache extraction has ordered side effects: a later malformed RR or
-        // rebind rejection prevents commit but retains earlier old-RR removal.
-        // Run it after doctor, before recipient-specific packet rewriting.
-        if matches!(rcode, 0 | 3)
-            && !reply.flags.no_cache
+        // Bogus-wildcard policy owns an independent transaction even when CD
+        // suppresses ordinary cache extraction. Run policy after doctor and
+        // before recipient-specific packet rewriting.
+        let extraction_eligible = !reply.flags.no_cache
             && reply.cache_eligible
             && !reply.flags.checking_disabled
-            && !upstream_checking_disabled
-        {
+            && !upstream_checking_disabled;
+        if matches!(rcode, 0 | 3) {
             if let Some(cache) = self.cache.as_mut() {
                 CacheContext {
                     cache,
@@ -702,6 +701,7 @@ impl<R: Random> DnsDaemon<R> {
                     external_local.unwrap_or(&self.local),
                     &self.policy,
                     rcode,
+                    extraction_eligible,
                 );
             }
         }
@@ -824,6 +824,7 @@ impl<R: Random> DnsDaemon<R> {
             &self.local,
             &Default::default(),
             header.rcode().into(),
+            true,
         );
     }
 }

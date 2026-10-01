@@ -467,6 +467,7 @@ impl CacheContext<'_> {
         local: &LocalDnsService,
         policy: &super::process::AddressPolicy,
         original_rcode: u16,
+        extraction_eligible: bool,
     ) {
         let Ok(header) = Header::parse(packet) else {
             return;
@@ -499,6 +500,12 @@ impl CacheContext<'_> {
                 let _ = cache.commit_counted(counters);
                 return;
             }
+        }
+        // check_for_bogus_wildcard owns a separate cache transaction before
+        // extract_addresses; ordinary request/reply CD restrictions do not
+        // suppress that policy result.
+        if !extraction_eligible {
+            return;
         }
         cache.start_insert();
         if header.questions != 1 {
