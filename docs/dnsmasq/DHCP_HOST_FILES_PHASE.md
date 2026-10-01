@@ -1,9 +1,9 @@
 # DHCP host-file reload contract
 
-This checkpoint implements the ordinary-selector file loader and exposes its
-daemon reload adapter. The main-loop SIGHUP connection and paired live DNS gate
-are pending; `DhcpConfig::validate_ready` therefore still rejects configured
-host files. This is not a completed host-file service-equivalence claim.
+Ordinary-selector `dhcp-hostsfile` paths now connect to daemon startup and the
+main-loop SIGHUP transaction. Their live C/Rust leasefile/DNS gate passes the
+stated fixture. This is not complete host-file or DHCP service equivalence:
+hosts-derived addresses, name fallback and other selectors remain open.
 
 | Exact C reference | Contract |
 |---|---|
@@ -69,6 +69,33 @@ be delayed until an incorrect intermediate state disappears.
 The nine focused typed-DHCP configuration tests, the affected DHCP tests and
 library clippy passed. The explicit unsupported-selector regression checks that
 a C-valid scoped `ignore` rule cannot be silently discarded as an ordinary bad
-row. Full main integration, live C/Rust reload/DNS comparison, host-derived
-addresses (`dhcp_update_configs`), hosts-name fallback, inotify directories,
+row. Host-derived addresses (`dhcp_update_configs`), hosts-name fallback, inotify directories,
 tags, file reload under resource pressure and performance remain open.
+
+## Integrated ordinary-file gate
+
+The main owner added one parent-event read/write gate. UDP processing/polling,
+TCP acceptance snapshots and DHCP transactions take its read side; SIGHUP takes
+its write side until DNS hosts/cache work and DHCP rule/file/DNS publication
+finish. Lock order is event gate → DHCP provider → DNS parent. This keeps the
+fresh reload marker from being visible before DHCP names have been republished,
+and avoids holding the parent lock across a publisher callback.
+
+After that connection, the temporary `validate_ready` host-file gate was removed.
+The independently archived native Linux build and all new raw evidence are in
+`private/dnsmasq-rewrite/dhcp-hostfile-integration-20261001/`:
+
+- `lifecycle-diff-01/`: **41 passed, zero failed**. All 13 C/Rust event snapshots
+  match, including 168 DNS answers, five DHCP replies, ordered lease rows,
+  original expiry and actual lease-file write/no-write behavior. The snapshots
+  immediately follow the new marker response; no later convergence is accepted.
+- `lifecycle-calibration-01/`: corrupting one decoded DNS flag yields **40
+  passed, one failed**, exit 1, with the raw packet unchanged.
+- `unsupported-boundary-01/`: **11 Rust-only checks pass**. A C-valid scoped
+  rule that Rust cannot implement pauses existing-client renewal and other
+  clients, preserves the lease bytes, emits a diagnostic, and resumes after a
+  supported reload. These checks are explicitly excluded from C parity counts.
+- `source-01.tar.gz`, `source-01-head.txt`, `source-01-diff.patch`,
+  `source-identity-01.json` and `dnsmasq-rs-01` retain the dirty-source snapshot
+  and native ELF used by these runs. This is host evidence, not a target-router
+  deployment or performance measurement.

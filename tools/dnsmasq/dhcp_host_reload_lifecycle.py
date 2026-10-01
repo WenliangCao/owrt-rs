@@ -134,7 +134,9 @@ def main():
               "scope": "hostfile SIGHUP rename/removal/address change, existing leases, DNS and restart; ordinary selectors only",
               "full_equivalence": False}
     (out / "result.json").write_text(json.dumps(result, indent=2) + "\n")
-    print(json.dumps({key: value for key, value in result.items() if key not in ("checks", "observed")}, indent=2))
+    summary = {key: value for key, value in result.items() if key not in ("checks", "observed", "failures")}
+    summary["failure_cases"] = [failure["case"] for failure in failures]
+    print(json.dumps(summary, indent=2))
     return int(bool(failures) or error is not None)
 
 

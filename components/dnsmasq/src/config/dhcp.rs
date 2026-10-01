@@ -244,11 +244,6 @@ impl DhcpConfig {
     }
 
     pub fn validate_ready(&self) -> Result<(), Error> {
-        if !self.host_files.is_empty() {
-            return Err(Error(
-                "DHCP hosts file reload is not connected to the main loop",
-            ));
-        }
         // A parsed range can omit its mask. Serving-interface discovery and
         // runtime capability checks belong to the listener's admission gate.
         Ok(())
