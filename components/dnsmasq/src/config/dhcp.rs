@@ -110,6 +110,7 @@ pub struct DhcpConfig {
     pub no_override: bool,
     pub sequential: bool,
     pub ignore_client_id: bool,
+    pub fqdn_only: bool,
     pub no_ping: bool,
     /// Also controls the C early return for an ignored DISCOVER.
     pub quiet_dhcp: bool,
@@ -132,6 +133,7 @@ impl Default for DhcpConfig {
             no_override: false,
             sequential: false,
             ignore_client_id: false,
+            fqdn_only: false,
             no_ping: false,
             quiet_dhcp: false,
             log_dhcp: false,
@@ -221,6 +223,7 @@ impl DhcpConfig {
             }
             b"dhcp-sequential-ip" => self.sequential = true,
             b"dhcp-ignore-clid" => self.ignore_client_id = true,
+            b"dhcp-fqdn" => self.fqdn_only = true,
             b"no-ping" => self.no_ping = true,
             b"quiet-dhcp" => self.quiet_dhcp = true,
             b"log-dhcp" => self.log_dhcp = true,
@@ -300,7 +303,6 @@ impl DhcpConfig {
             | b"dhcp-optsdir"
             | b"dhcp-script"
             | b"dhcp-scriptuser"
-            | b"dhcp-fqdn"
             | b"dhcp-client-update"
             | b"dhcp-rapid-commit"
             | b"dhcp-reply-delay" => {
@@ -316,6 +318,15 @@ impl DhcpConfig {
     pub fn validate_ready(&self) -> Result<(), Error> {
         // A parsed range can omit its mask. Serving-interface discovery and
         // runtime capability checks belong to the listener's admission gate.
+        Ok(())
+    }
+
+    pub fn validate_dns_config(&self, config: &super::dns::DnsConfig) -> Result<(), Error> {
+        if self.fqdn_only && config.domain_suffix.is_none() {
+            return Err(Error(
+                "there must be a default domain when --dhcp-fqdn is set",
+            ));
+        }
         Ok(())
     }
 
@@ -555,6 +566,24 @@ mod tests {
         ] {
             assert!(parse(input).is_err(), "{input}");
         }
+    }
+
+    #[test]
+    fn fqdn_only_requires_a_default_domain() {
+        let mut config = DhcpConfig::default();
+        config
+            .apply(&lex_line(b"dhcp-fqdn").unwrap().unwrap())
+            .unwrap();
+        assert!(config.fqdn_only);
+        let mut dns = super::super::dns::DnsConfig::default();
+        assert_eq!(
+            config.validate_dns_config(&dns),
+            Err(Error(
+                "there must be a default domain when --dhcp-fqdn is set"
+            ))
+        );
+        dns.domain_suffix = Some(b"example.test".to_vec());
+        assert!(config.validate_dns_config(&dns).is_ok());
     }
 
     #[test]

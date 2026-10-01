@@ -363,12 +363,14 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             // validation before its syntax-check success message.  It does
             // not run the daemon-only EDNS/source-port finalization below.
             runtime.dns.finalize()?;
+            runtime.dhcp.validate_dns_config(&runtime.dns)?;
             return Ok(());
         }
         Action::Run => {}
     }
     runtime.scalar.finalize_runtime()?;
     runtime.dns.finalize()?;
+    runtime.dhcp.validate_dns_config(&runtime.dns)?;
     runtime.tftp.validate_ready()?;
     runtime.dhcp.validate_ready()?;
     validate_runtime_ready(&runtime.scalar, &runtime.dns)?;

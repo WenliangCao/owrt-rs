@@ -412,6 +412,17 @@ impl LeaseStore {
         records: Vec<super::lease_file::LeaseRecord>,
         now: i64,
     ) -> Result<Vec<Lease>, RestoreError> {
+        self.restore_with_name_policy(records, now, false)
+    }
+
+    /// Restore with C's configured collision scope. FQDNs are calculated
+    /// later, so fqdn-only restoration does not discard equal short names.
+    pub fn restore_with_name_policy(
+        &mut self,
+        records: Vec<super::lease_file::LeaseRecord>,
+        now: i64,
+        fqdn_only: bool,
+    ) -> Result<Vec<Lease>, RestoreError> {
         if !self.is_empty() {
             return Err(RestoreError::NonemptyStore);
         }
@@ -429,7 +440,7 @@ impl LeaseStore {
             )
             .map_err(RestoreError::Lease)?;
             if let Some(hostname) = record.hostname {
-                self.set_hostname(record.address, Some(&hostname), false, None, false)
+                self.set_hostname(record.address, Some(&hostname), false, None, fqdn_only)
                     .map_err(RestoreError::Lease)?;
             }
             let lease = self.leases.get_mut(&record.address).unwrap();
@@ -924,6 +935,35 @@ mod tests {
             RestoreError::Lease(LeaseError::AddressInUse)
         );
         assert_eq!(store.len(), 1);
+    }
+
+    #[test]
+    fn fqdn_only_restore_preserves_short_names_until_domains_are_calculated() {
+        let input = b"200 01 192.0.2.1 host *\n200 02 192.0.2.2 host *\n";
+        for fqdn_only in [false, true] {
+            let mut store = LeaseStore::new(2);
+            store
+                .restore_with_name_policy(
+                    super::super::lease_file::parse(input).records,
+                    100,
+                    fqdn_only,
+                )
+                .unwrap();
+            assert_eq!(store.get(address(1)).unwrap().hostname.is_some(), fqdn_only);
+            assert!(store.get(address(2)).unwrap().hostname.is_some());
+            store.initialize_fqdns(|ip| {
+                Some(if ip == address(1) {
+                    b"one.test"
+                } else {
+                    b"two.test"
+                })
+            });
+            assert_eq!(store.get(address(1)).unwrap().fqdn.is_some(), fqdn_only);
+            assert_eq!(
+                store.get(address(2)).unwrap().fqdn.as_deref(),
+                Some(b"host.two.test".as_slice())
+            );
+        }
     }
 
     #[test]

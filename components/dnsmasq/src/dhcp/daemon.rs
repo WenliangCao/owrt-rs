@@ -162,7 +162,7 @@ impl LocalProvider {
                 clean_end: restored.clean_end,
             };
             let removed = leases
-                .restore(restored.records, now)
+                .restore_with_name_policy(restored.records, now, config.fqdn_only)
                 .map_err(StartupError::Restore)?;
             (removed, Some(stats))
         } else {
@@ -248,6 +248,9 @@ impl LocalProvider {
 
     /// Install the validated address-to-domain fields before initialize.
     pub fn set_dns_config(&mut self, config: &crate::config::dns::DnsConfig) -> io::Result<()> {
+        self.config
+            .validate_dns_config(config)
+            .map_err(|error| io::Error::new(io::ErrorKind::InvalidInput, error))?;
         self.domains = NameDomains::new(config)
             .map_err(|error| io::Error::new(io::ErrorKind::InvalidInput, error))?;
         Ok(())
@@ -292,7 +295,7 @@ impl LocalProvider {
             &mut self.leases,
             self.dns_port != 0,
             force_dns,
-            false,
+            self.config.fqdn_only,
             self.dns_publisher.as_deref_mut(),
         );
         let lost_names = LeaseStore::names_lost(&removed);
@@ -412,7 +415,7 @@ impl LocalProvider {
                         Some(&name),
                         true,
                         self.domains.for_address(address),
-                        false,
+                        self.config.fqdn_only,
                     )
                     .expect("restored lease remains present during configured-name update");
             }
@@ -708,7 +711,7 @@ impl LocalProvider {
             unicast_destination: dispatch.ingress.unicast_destination,
             ignored: configured.is_some_and(|host| host.ignore),
             ignore_client_id: self.config.ignore_client_id,
-            fqdn_only: false,
+            fqdn_only: self.config.fqdn_only,
             rapid_commit: false,
             bootp_dynamic: self.config.bootp_dynamic,
             consecutive_addresses: self.config.sequential,
