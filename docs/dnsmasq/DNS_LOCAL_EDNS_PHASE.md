@@ -60,3 +60,13 @@ Related DNS tests pass 137 with two existing oracle-dependent tests ignored;
 musl library clippy passes. The separately identified upstream empty-OPT
 11-to-14-byte space bug in `forward_service::prepare_query` is subsequently
 closed by the 1,217-case gate recorded in `DNS_FORWARD_SERVICE_PHASE.md`.
+
+A later review found a regression in this absent-OPT fallback: after a complete
+first OPT, a truncated subsequent additional RR incorrectly left that OPT
+selected. C returns NULL for the entire scan. `find_pseudoheader` now clears
+the selected OPT on that failure while retaining already discovered TKEY state.
+The retained `private/dnsmasq-rewrite/partial-opt-review-20261001/before-suite/`
+has 90 mismatches in 13,213 cases. `after-suite/` passes all 76,213 exact-C
+primitive cases with ASan/UBSan and 10,000 fixed-seed mutations; the 20 wire
+unit tests also pass, including every truncation of a later OPT. This primitive
+gate does not establish complete daemon handling of malformed replies.

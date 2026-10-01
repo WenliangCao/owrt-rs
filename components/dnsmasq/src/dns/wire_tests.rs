@@ -194,6 +194,24 @@ fn edns_last_opt_and_options() {
 }
 
 #[test]
+fn truncated_later_additional_discards_opt_but_retains_tkey_state() {
+    let question = [0, 0, 249, 0, 1];
+    let opt = [0, 0, 41, 4, 208, 0, 0, 0, 0, 0, 0];
+    let second = [0, 0, 41, 4, 208, 0, 0, 0, 0, 0, 2, 1, 2];
+    for length in 0..second.len() {
+        let mut packet = vec![0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 2];
+        packet.extend_from_slice(&question);
+        packet.extend_from_slice(&opt);
+        packet.extend_from_slice(&second[..length]);
+        for detect_signed in [false, true] {
+            let scan = find_pseudoheader(&packet, detect_signed).unwrap();
+            assert!(scan.opt.is_none(), "truncation at {length}");
+            assert_eq!(scan.signed, detect_signed);
+        }
+    }
+}
+
+#[test]
 fn truncated_option_is_explicit_error_without_rejecting_opt_envelope() {
     let packet = [
         0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 41, 0, 1, 0, 0, 0, 0, 0, 4, 0, 12, 0, 1,

@@ -544,7 +544,13 @@ pub fn find_pseudoheader(packet: &[u8], detect_signed: bool) -> Result<EdnsScan<
     for index in 0..header.additionals {
         let record = match RecordRef::parse(packet, pos) {
             Ok(record) => record,
-            Err(_) => return Ok(scan),
+            Err(_) => {
+                // C returns NULL if any later additional RR is truncated,
+                // even when an earlier OPT was complete. Signed-query state
+                // already discovered in the questions remains observable.
+                scan.opt = None;
+                return Ok(scan);
+            }
         };
         pos = record.end;
         let is_last = index == header.additionals - 1;
