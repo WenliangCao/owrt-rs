@@ -376,10 +376,38 @@ impl<R: Random> DnsDaemon<R> {
             super::udp_query::Admission::Reply(reply) => return Ok(QueryResult::Local(reply)),
             super::udp_query::Admission::Continue => {}
         }
-        if let Some(answer) = self.local.handle_udp(query)? {
-            return Ok(QueryResult::Local(answer));
+        if let Some((answer, stale)) =
+            self.local
+                .handle_udp_with_cache(query, unix_seconds(), self.cache.as_mut())?
+        {
+            return Ok(if stale {
+                QueryResult::Stale(answer)
+            } else {
+                QueryResult::Local(answer)
+            });
         }
         self.forward_udp(query, client)
+    }
+
+    /// Continue an admitted UDP query using the current local generation and
+    /// its shared reverse cache, then ordinary cache/forwarding processing.
+    pub fn handle_udp_on_listener_with_local(
+        &mut self,
+        query: &[u8],
+        client: ClientRequest,
+        listener: Option<super::forward::SocketToken>,
+        local: &mut LocalDnsService,
+    ) -> Result<QueryResult, DaemonError> {
+        if let Some((answer, stale)) =
+            local.handle_udp_with_cache(query, unix_seconds(), self.cache.as_mut())?
+        {
+            return Ok(if stale {
+                QueryResult::Stale(answer)
+            } else {
+                QueryResult::Local(answer)
+            });
+        }
+        self.forward_udp_on_listener_with_local(query, client, listener, local)
     }
 
     /// Continue only after the caller's shared local generation returned

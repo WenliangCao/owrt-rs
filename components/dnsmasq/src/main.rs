@@ -676,26 +676,21 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                     }
                                     dnsmasq_rs::dns::udp_query::Admission::Continue => {}
                                 }
-                                let answer = match local.handle_udp(packet) {
-                                    Ok(Some(answer)) => Some((answer, false)),
-                                    Ok(None) => match daemon.forward_udp_on_listener_with_local(
-                                        packet,
-                                        ClientRequest {
-                                            source: peer,
-                                            destination: address.ip(),
-                                            interface: 0,
-                                        },
-                                        Some(listener),
-                                        local,
-                                    ) {
-                                        Ok(
-                                            QueryResult::Local(answer)
-                                            | QueryResult::Cached(answer),
-                                        ) => Some((answer, false)),
-                                        Ok(QueryResult::Stale(answer)) => Some((answer, true)),
-                                        _ => None,
+                                let answer = match daemon.handle_udp_on_listener_with_local(
+                                    packet,
+                                    ClientRequest {
+                                        source: peer,
+                                        destination: address.ip(),
+                                        interface: 0,
                                     },
-                                    Err(_) => None,
+                                    Some(listener),
+                                    local,
+                                ) {
+                                    Ok(
+                                        QueryResult::Local(answer) | QueryResult::Cached(answer),
+                                    ) => Some((answer, false)),
+                                    Ok(QueryResult::Stale(answer)) => Some((answer, true)),
+                                    _ => None,
                                 };
                                 answer.map(|(answer, stale)| (peer, answer, stale))
                             });

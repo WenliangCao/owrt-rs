@@ -5,6 +5,7 @@
 //! upstream forwarder.  Keeping that boundary explicit prevents an incomplete
 //! forwarder from turning an upstream miss into a fake empty answer.
 
+use super::cache::Cache;
 use super::lease_names::LeaseNames;
 use super::wire::{Header, Name, PacketWriter, Section, WireError};
 use crate::config::dns::{DnsConfig, DomainPattern, RuleTarget};
@@ -73,13 +74,16 @@ pub(crate) struct LocalAnswer {
     /// Address/local rules use forward_query's OPT policy, while configured
     /// records and hosts use answer_request's policy.
     pub forward_rule: bool,
+    pub stale: bool,
 }
 
-#[derive(Clone, Copy)]
-struct LeaseView<'a> {
+struct LocalCacheView<'a> {
     names: &'a LeaseNames,
     now: i64,
     local_ttl: u32,
+    cache: Option<&'a mut Cache>,
+    dynamic_reverse: bool,
+    stale: bool,
 }
 
 impl<'a> LocalAnswerer<'a> {
@@ -111,6 +115,16 @@ impl<'a> LocalAnswerer<'a> {
         leases: &mut Arc<LeaseNames>,
         now: i64,
     ) -> Result<Option<LocalAnswer>, AnswerError> {
+        self.answer_with_lease_cache_source(query, leases, now, None)
+    }
+
+    pub(crate) fn answer_with_lease_cache_source(
+        &mut self,
+        query: &[u8],
+        leases: &mut Arc<LeaseNames>,
+        now: i64,
+        cache: Option<&mut Cache>,
+    ) -> Result<Option<LocalAnswer>, AnswerError> {
         let header = Header::parse(query).map_err(|_| AnswerError::Malformed)?;
         if header.opcode() != 0
             || header.flags & 0x8000 != 0
@@ -130,10 +144,13 @@ impl<'a> LocalAnswerer<'a> {
         if class_in {
             expire_lease_lookups(self.config, leases, &question.name, question.qtype, now);
         }
-        let leases = LeaseView {
+        let mut view = LocalCacheView {
             names: leases,
             now,
             local_ttl: self.local_ttl,
+            cache,
+            dynamic_reverse: false,
+            stale: false,
         };
 
         let key = question.name.canonical_wire();
@@ -159,7 +176,7 @@ impl<'a> LocalAnswerer<'a> {
                 self.hosts,
                 &question.name,
                 question.qtype,
-                leases,
+                &mut view,
                 &mut rows,
                 &mut extra_rows,
             );
@@ -171,7 +188,7 @@ impl<'a> LocalAnswerer<'a> {
                     &name,
                     question.qtype,
                     self.local_ttl,
-                    leases,
+                    &mut view,
                 );
                 rows.extend(local_rows);
                 owned = local_owned;
@@ -201,7 +218,7 @@ impl<'a> LocalAnswerer<'a> {
             && local_only
             && !has_descendant_local(self.config, self.hosts, &question.name)
             && !wire_to_dotted(&question.name)
-                .is_some_and(|name| leases.names.name_exists(&name, leases.now));
+                .is_some_and(|name| view.names.name_exists(&name, view.now));
         if local_only {
             // domain-match.c returns F_NXDOMAIN for an unmatched local-only
             // suffix.  It is a completed response with AA clear, not an empty
@@ -219,7 +236,7 @@ impl<'a> LocalAnswerer<'a> {
         // an upstream server.
         let flags = 0x8000
             | 0x0080
-            | if rows.is_empty() && extra_rows.is_empty() {
+            | if (rows.is_empty() && extra_rows.is_empty()) || view.dynamic_reverse {
                 0
             } else {
                 0x0400
@@ -287,6 +304,7 @@ impl<'a> LocalAnswerer<'a> {
         Ok(Some(LocalAnswer {
             packet,
             forward_rule: rule_owned || local_only,
+            stale: view.stale,
         }))
     }
 }
@@ -458,11 +476,11 @@ fn add_cname_chain(
     hosts: &mut Hosts,
     alias: &Name,
     qtype: u16,
-    leases: LeaseView<'_>,
+    view: &mut LocalCacheView<'_>,
     rows: &mut Vec<(u16, u32, Vec<u8>)>,
     extra_rows: &mut Vec<(Vec<u8>, u16, u32, Vec<u8>)>,
 ) -> bool {
-    let ttl = leases.local_ttl;
+    let ttl = view.local_ttl;
     let Some(mut current) = wire_to_dotted(alias) else {
         return false;
     };
@@ -502,7 +520,7 @@ fn add_cname_chain(
     }
 
     let (terminal_rows, _terminal_owned) =
-        add_local_records_for_name(config, hosts, &current, qtype, ttl, leases);
+        add_local_records_for_name(config, hosts, &current, qtype, ttl, view);
     let owner = wire_name(&current).unwrap_or_else(|| vec![0]);
     for (rrtype, record_ttl, data) in terminal_rows {
         extra_rows.push((owner.clone(), rrtype, record_ttl, data));
@@ -521,7 +539,7 @@ fn add_local_records_for_name(
     name: &[u8],
     qtype: u16,
     ttl: u32,
-    leases: LeaseView<'_>,
+    view: &mut LocalCacheView<'_>,
 ) -> (Vec<(u16, u32, Vec<u8>)>, bool) {
     let key = dotted_key(name);
     let mut rows = Vec::new();
@@ -556,23 +574,45 @@ fn add_local_records_for_name(
         }
         if !explicit_ptr {
             let address = arpa_address(name);
+            let mut local_reverse = false;
             if let Some(host) = address.and_then(|address| hosts.reverse(address)) {
                 owned = true;
+                local_reverse = true;
                 rows.push((
                     TYPE_PTR,
                     host.ttl,
                     wire_name(&host.name).unwrap_or_else(|| vec![0]),
                 ));
             } else if let Some(lease) = address.and_then(|address| match address {
-                IpAddr::V4(address) => leases.names.reverse(address, leases.now),
+                IpAddr::V4(address) => view.names.reverse(address, view.now),
                 IpAddr::V6(_) => None,
             }) {
                 owned = true;
+                local_reverse = true;
                 rows.push((
                     TYPE_PTR,
-                    lease.ttl(leases.now, leases.names.policy()),
+                    lease.ttl(view.now, view.names.policy()),
                     wire_name(&lease.name).unwrap_or_else(|| vec![0]),
                 ));
+            }
+            if local_reverse {
+                if let (Some(address), Some(cache)) = (address, view.cache.as_deref_mut()) {
+                    // C admits the whole address chain using its first local
+                    // entry. Subsequent dynamic PTRs remain eligible even for
+                    // RD0/DO. ANY visits stale state before omitting dynamics.
+                    for id in cache.lookup_reverse(address, view.now) {
+                        let entry = cache.get(id).expect("reverse lookup returned a live entry");
+                        view.stale |= entry.is_stale(view.now);
+                        if qtype != 255 {
+                            view.dynamic_reverse = true;
+                            rows.push((
+                                TYPE_PTR,
+                                entry.reply_ttl(view.now, cache.policy()),
+                                entry.record.name.as_wire().to_vec(),
+                            ));
+                        }
+                    }
+                }
             }
         }
     }
@@ -585,10 +625,10 @@ fn add_local_records_for_name(
         let rrtype = if ipv6 { TYPE_AAAA } else { TYPE_A };
         if qtype == 255 || qtype == rrtype {
             if !ipv6 {
-                for lease in leases.names.lookup(name, leases.now) {
+                for lease in view.names.lookup(name, view.now) {
                     rows.push((
                         TYPE_A,
-                        lease.ttl(leases.now, leases.names.policy()),
+                        lease.ttl(view.now, view.names.policy()),
                         lease.address.octets().to_vec(),
                     ));
                     owned = true;
@@ -611,7 +651,7 @@ fn add_local_records_for_name(
             .mx
             .iter()
             .any(|record| dotted_key(&record.name) == key)
-        && (hosts.name_exists(name) || leases.names.name_exists(name, leases.now))
+        && (hosts.name_exists(name) || view.names.name_exists(name, view.now))
     {
         let mut data = 1u16.to_be_bytes().to_vec();
         data.extend(wire_name(name).unwrap_or_else(|| vec![0]));

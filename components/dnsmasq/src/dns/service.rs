@@ -209,6 +209,19 @@ impl LocalDnsService {
         query: &[u8],
         now: i64,
     ) -> Result<Option<Vec<u8>>, ServiceError> {
+        Ok(self
+            .handle_udp_with_cache(query, now, None)?
+            .map(|(packet, _)| packet))
+    }
+
+    /// Join dynamic reverse entries only at the local reverse-cache branch.
+    /// The boolean reports real stale traversal to the caller's refresh path.
+    pub(crate) fn handle_udp_with_cache(
+        &mut self,
+        query: &[u8],
+        now: i64,
+        cache: Option<&mut super::cache::Cache>,
+    ) -> Result<Option<(Vec<u8>, bool)>, ServiceError> {
         // C treats an invalid additional section as no pseudoheader; a
         // valid question may still receive a local answer.
         let opt = find_pseudoheader(query, true)
@@ -224,7 +237,8 @@ impl LocalDnsService {
             local_ttl: self.local_ttl,
             max_packet: limit,
         };
-        let Some(mut answer) = answerer.answer_with_lease_source(query, &mut self.leases, now)?
+        let Some(mut answer) =
+            answerer.answer_with_lease_cache_source(query, &mut self.leases, now, cache)?
         else {
             return Ok(None);
         };
@@ -236,14 +250,25 @@ impl LocalDnsService {
             } else {
                 usize::from(self.edns_packet_max)
             };
-            append_empty_opt(
-                &mut answer.packet,
-                self.edns_packet_max,
-                do_bit && !answer.forward_rule,
-                opt_limit,
-            )?;
+            if answer.stale {
+                super::tcp_service::add_ede(
+                    &mut answer.packet,
+                    self.edns_packet_max,
+                    do_bit && !answer.forward_rule,
+                    3,
+                    opt_limit,
+                )
+                .map_err(AnswerError::from)?;
+            } else {
+                append_empty_opt(
+                    &mut answer.packet,
+                    self.edns_packet_max,
+                    do_bit && !answer.forward_rule,
+                    opt_limit,
+                )?;
+            }
         }
-        Ok(Some(answer.packet))
+        Ok(Some((answer.packet, answer.stale)))
     }
 
     pub fn handle_tcp_payload(&mut self, query: &[u8]) -> Result<Option<Vec<u8>>, ServiceError> {
@@ -447,6 +472,63 @@ mod tests {
             1497,
             maximum,
         )
+    }
+
+    #[test]
+    fn local_reverse_admits_dynamic_tail_before_any_filtering() {
+        use crate::dns::cache::{Cache, Kind, Policy, Record, StalePolicy};
+        use crate::dns::wire::{Message, PacketWriter, Section};
+
+        let target = Name::from_ascii("Dynamic.Target.test").unwrap();
+        for (qtype, flags) in [(12, 0), (12, 0x0100), (255, 0x0100)] {
+            let mut service = configured(&[b"host-record=local.test,192.0.2.1".to_vec()], 1232);
+            let mut cache = Cache::new(
+                2,
+                Policy {
+                    stale: StalePolicy::Forever,
+                    ..Policy::default()
+                },
+            );
+            cache.start_insert();
+            cache
+                .insert(
+                    Record {
+                        name: target.clone(),
+                        kind: Kind::ReverseIpv4,
+                        negative: false,
+                        data: vec![192, 0, 2, 1],
+                    },
+                    100,
+                    10,
+                )
+                .unwrap();
+            assert!(cache.commit());
+            let mut writer = PacketWriter::new(7, flags, 1232).unwrap();
+            writer
+                .question(
+                    &Name::from_ascii("1.2.0.192.in-addr.arpa").unwrap(),
+                    qtype,
+                    1,
+                )
+                .unwrap();
+            writer
+                .record(Section::Additional, &Name::root(), 41, 1232, 0x8000, &[])
+                .unwrap();
+            let (packet, stale) = service
+                .handle_udp_with_cache(&writer.finish(), 111, Some(&mut cache))
+                .unwrap()
+                .unwrap();
+            assert!(stale);
+            let message = Message::parse(&packet).unwrap();
+            let records: Vec<_> = message.records(Section::Answer).collect();
+            assert_eq!(records.len(), if qtype == 12 { 2 } else { 1 });
+            assert_eq!(message.header.flags & 0x0400 != 0, qtype == 255);
+            assert_eq!(records[0].ttl, 37);
+            if qtype == 12 {
+                assert_eq!(records[1].ttl, 0);
+                assert_eq!(records[1].rdata, target.as_wire());
+            }
+        }
     }
 
     fn opt_query(kind: u16, size: u16) -> Vec<u8> {
