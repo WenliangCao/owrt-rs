@@ -504,7 +504,9 @@ where
         for (code, value) in [1, 28, 3, 6].into_iter().zip(values) {
             if let Some(value) = value {
                 if !options.iter().any(|option| option.code == code)
-                    && (matches!(code, 1 | 28) || dispatch.packet.requests(code))
+                    && (matches!(code, 1 | 28)
+                        || matches!(outcome.reply, Reply::Bootp { .. })
+                        || dispatch.packet.requests(code))
                 {
                     combined.push(ReplyOption { code, value });
                 }
@@ -849,6 +851,59 @@ mod tests {
             removed: Vec::new(),
             lost_names: Vec::new(),
         }
+    }
+
+    #[test]
+    fn bootp_network_defaults_ignore_client_parameter_request_list() {
+        struct Provider;
+        impl OutcomeProvider for Provider {
+            fn resolve(&mut self, _: &Dispatch<'_>) -> Result<Outcome, RuntimeError> {
+                Ok(Outcome {
+                    reply: Reply::Bootp {
+                        address: Ipv4Addr::new(127, 0, 0, 10),
+                        context: 0,
+                    },
+                    removed: Vec::new(),
+                    lost_names: Vec::new(),
+                })
+            }
+            fn network_options(&self, _: &Outcome) -> Option<NetworkOptions> {
+                Some(NetworkOptions {
+                    next_server: Ipv4Addr::LOCALHOST,
+                    netmask: Ipv4Addr::new(255, 0, 0, 0),
+                    broadcast: Some(Ipv4Addr::new(127, 255, 255, 255)),
+                    router: Some(Ipv4Addr::LOCALHOST),
+                    dns_server: Some(Ipv4Addr::LOCALHOST),
+                })
+            }
+        }
+        let request = packet(
+            &[55, 0, 255],
+            BROADCAST_FLAG,
+            Ipv4Addr::UNSPECIFIED,
+            Ipv4Addr::UNSPECIFIED,
+        );
+        let mut sender = Sender {
+            sent: Vec::new(),
+            fail: false,
+        };
+        process_with_random(
+            dispatch_for(&request),
+            SocketAddr::from(([127, 0, 0, 1], 68)),
+            &mut Provider,
+            &mut sender,
+            &[],
+            &mut [0; 548],
+            || Ok(0),
+        )
+        .unwrap();
+        let reply = &sender.sent[0].0;
+        assert_eq!(reply.len(), 300);
+        // Actual C BOOTP calls do_options with req_options=NULL even when
+        // the request's vendor area contains an empty DHCP option 55.
+        assert_eq!(wire_option(reply, 3), Some(&[127, 0, 0, 1][..]));
+        assert_eq!(wire_option(reply, 6), Some(&[127, 0, 0, 1][..]));
+        assert!(wire_option(reply, 53).is_none());
     }
 
     fn wire_option(bytes: &[u8], wanted: u8) -> Option<&[u8]> {

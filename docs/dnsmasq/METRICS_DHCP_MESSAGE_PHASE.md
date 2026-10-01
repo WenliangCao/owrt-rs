@@ -61,8 +61,10 @@ ignored clients with/without quiet mode, INFORM without ciaddr, allocation
 capacity, BOOTP refusal and conflicting static ownership, rapid ACK/NOANSWER,
 malformed/pre-message inputs, counter wrap and reload preservation. PXE,
 leasequery, main/ubus publication and modes still rejected by the daemon require
-separate gates. BOOTP/rapid-commit primitive results do not enable those runtime
-capabilities or claim service equivalence.
+separate gates. These primitive results alone do not establish service
+equivalence. The later ordinary BOOTP service slice is independently verified
+in [BOOTP_SERVICE_PHASE.md](BOOTP_SERVICE_PHASE.md); rapid-commit runtime wiring
+retains its explicit unsupported boundary.
 
 Evidence is under ignored
 `private/dnsmasq-rewrite/dhcp-message-metrics-20261001/`:
