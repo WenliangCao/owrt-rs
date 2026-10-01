@@ -45,16 +45,18 @@ and client OPT size 512, a complete 512-byte TXT answer body receives an
 implementation preserves these caller boundaries. This is evidence of C
 compatibility, not proof of a strict client-advertised datagram-size bound.
 
-The remaining address-selection defect is kept explicit: a `host-record`
+The discovered address-selection defect was kept explicit: a `host-record`
 whose address already has PTR ownership is placed after reverse-owned peers
 by C's `cache_hash`, while the current config-record path emits declaration
 order. The initial fixture exposed this by sharing addresses across names.
-The `--shared-addresses` option retains that counterexample and must continue
-to fail until the config/hosts generation work closes it. Default sizing
-fixtures use disjoint addresses to test framing independently. This phase
-does not declare all local DNS behavior equivalent or free of known defects.
+The `--shared-addresses` option retains that counterexample. The subsequent
+generation unit closes the reverse-owner/duplicate/rotation bypass and this
+fixture now passes 528 exact-byte cases for its observed seed; the stricter
+cross-listener state gate is documented in `DNS_HOSTS_GENERATION_PHASE.md`.
+Default sizing fixtures use disjoint addresses to test framing independently.
+This phase does not declare all local DNS behavior equivalent.
 
 Related DNS tests pass 137 with two existing oracle-dependent tests ignored;
 musl library clippy passes. The separately identified upstream empty-OPT
-11-to-14-byte space bug in `forward_service::prepare_query` is the next
-targeted unit, followed by config/hosts ownership and ordering.
+11-to-14-byte space bug in `forward_service::prepare_query` is subsequently
+closed by the 1,217-case gate recorded in `DNS_FORWARD_SERVICE_PHASE.md`.

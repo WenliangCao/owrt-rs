@@ -79,6 +79,15 @@ impl Hosts {
         &self.entries
     }
 
+    /// Current static address order without the lookup/round-robin mutation.
+    pub fn addresses(&self, name: &[u8]) -> impl Iterator<Item = &Host> {
+        self.forward
+            .get(&name.to_ascii_lowercase())
+            .into_iter()
+            .flatten()
+            .map(|&id| &self.entries[id])
+    }
+
     pub fn set_round_robin(&mut self, enabled: bool) {
         self.no_round_robin = !enabled;
     }
@@ -308,5 +317,28 @@ mod tests {
         );
         assert_eq!(first(hosts.lookup(b"host", Some(false), true)), "192.0.2.3");
         assert_eq!(first(hosts.lookup(b"host", Some(false), true)), "192.0.2.3");
+    }
+
+    #[test]
+    fn readonly_addresses_do_not_change_round_robin_state() {
+        let mut hosts = Hosts::new();
+        hosts.read(
+            b"192.0.2.1 host\n192.0.2.2 host\n192.0.2.3 host\n",
+            1,
+            20,
+            false,
+            |_| None,
+        );
+        let before: Vec<_> = hosts.addresses(b"HOST").map(|host| host.address).collect();
+        let again: Vec<_> = hosts.addresses(b"host").map(|host| host.address).collect();
+        assert_eq!(before, again);
+        assert_eq!(
+            before,
+            hosts
+                .lookup(b"host", Some(false), false)
+                .iter()
+                .map(|host| host.address)
+                .collect::<Vec<_>>()
+        );
     }
 }

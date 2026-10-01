@@ -177,6 +177,7 @@ impl<R: Random> DnsDaemon<R> {
     /// Build the daemon only after validating all platform-dependent routing
     /// inputs. `default_resolvers` is the already parsed resolver-file state;
     /// this constructor intentionally does not read files or resolve names.
+    /// `hosts` includes the configured prefix and subsequently read files.
     pub fn with_random(
         mut config: DnsConfig,
         hosts: Hosts,
@@ -286,6 +287,19 @@ impl<R: Random> DnsDaemon<R> {
         }
         if let Some(answer) = self.local.handle_udp(query)? {
             return Ok(QueryResult::Local(answer));
+        }
+        self.forward_udp(query, client)
+    }
+
+    /// Continue only after the caller's shared local generation returned
+    /// no answer. This avoids a second lookup/rotation in a private snapshot.
+    pub fn forward_udp(
+        &mut self,
+        query: &[u8],
+        client: ClientRequest,
+    ) -> Result<QueryResult, DaemonError> {
+        if query.len() > self.max_udp {
+            return Ok(QueryResult::Dropped);
         }
         let question = super::forward::Question::parse(query).map_err(DaemonError::Wire)?;
         if let Some(answer) = self.cached_answer(query, &question)? {
@@ -1157,8 +1171,14 @@ mod tests {
         let mut config = DnsConfig::default();
         apply(&mut config, b"no-resolv");
         apply(&mut config, b"host-record=router.test,192.0.2.1");
-        let mut daemon =
-            DnsDaemon::with_random(config, Hosts::new(), &[], options(), Counter(0)).unwrap();
+        let mut daemon = DnsDaemon::with_random(
+            config.clone(),
+            super::super::local::configured_hosts(&config, options().local_ttl),
+            &[],
+            options(),
+            Counter(0),
+        )
+        .unwrap();
         assert!(matches!(
             daemon
                 .handle_udp(
@@ -1510,8 +1530,14 @@ mod tests {
     fn cname_cache_does_not_answer_other_address_family() {
         let mut config = DnsConfig::default();
         config.no_resolv = true;
-        let mut daemon =
-            DnsDaemon::with_random(config, Hosts::new(), &[], options(), Counter(0)).unwrap();
+        let mut daemon = DnsDaemon::with_random(
+            config.clone(),
+            super::super::local::configured_hosts(&config, options().local_ttl),
+            &[],
+            options(),
+            Counter(0),
+        )
+        .unwrap();
         let mut cache = Cache::new(4, CachePolicy::default());
         let alias = Name::from_ascii("alias.test").unwrap();
         let target = Name::from_ascii("target.test").unwrap();

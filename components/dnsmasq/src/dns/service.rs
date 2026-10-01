@@ -158,6 +158,8 @@ impl From<io::Error> for ServiceError {
 
 /// A socket-independent service that can be embedded by a daemon or exercised
 /// in an isolated namespace.  It currently answers only locally owned names.
+/// `hosts` is a complete generation seeded with `local::configured_hosts`
+/// before the caller reads hosts files; constructors never replay that load.
 pub struct LocalDnsService {
     pub config: DnsConfig,
     pub hosts: Hosts,
@@ -388,7 +390,12 @@ mod tests {
             .unwrap();
         validate_directive(&directive).unwrap();
         config.apply(&directive).unwrap();
-        let service = LocalDnsService::new(config, Hosts::new(), 60, 512);
+        let service = LocalDnsService::new(
+            config.clone(),
+            super::super::local::configured_hosts(&config, 60),
+            60,
+            512,
+        );
         let mut service = service;
         let response = service
             .handle_tcp_frame(&encode_tcp_frame(&query()).unwrap())
@@ -405,7 +412,13 @@ mod tests {
         for line in lines {
             config.apply(&lex_line(line).unwrap().unwrap()).unwrap();
         }
-        LocalDnsService::new_with_limits(config, Hosts::new(), 37, 1497, maximum)
+        LocalDnsService::new_with_limits(
+            config.clone(),
+            super::super::local::configured_hosts(&config, 37),
+            37,
+            1497,
+            maximum,
+        )
     }
 
     fn opt_query(kind: u16, size: u16) -> Vec<u8> {
@@ -421,7 +434,7 @@ mod tests {
 
     #[test]
     fn udp_limit_discards_fitting_prefix_and_tcp_keeps_full_local_answer() {
-        let lines: Vec<_> = [b'a', b'b', b'c']
+        let lines: Vec<_> = (*b"abc")
             .into_iter()
             .map(|byte| {
                 let mut line = b"txt-record=router.test,".to_vec();

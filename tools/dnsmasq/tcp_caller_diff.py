@@ -44,7 +44,7 @@ pub fn caller_oracle_main() {
     config.finalize().unwrap();
     let policy = address_policy(&config).unwrap();
     let routing = RoutingTable::from_runtime_config(&config, &[]).unwrap();
-    let mut hosts = crate::hosts::Hosts::new();
+    let mut hosts = crate::dns::local::configured_hosts(&config, 0);
     for path in config.addn_hosts.iter().flatten() {
         hosts.read(&std::fs::read(path).unwrap(), 1, 0, false, |_| None);
     }

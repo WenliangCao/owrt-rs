@@ -6,10 +6,10 @@
 //! forwarder from turning an upstream miss into a fake empty answer.
 
 use super::wire::{Header, Name, PacketWriter, Section, WireError};
-use crate::config::dns::{DnsConfig, DomainPattern, HostRecord, RuleTarget};
+use crate::config::dns::{DnsConfig, DomainPattern, RuleTarget};
 use crate::config::records::{MxRecord, NaptrRecord, RawRecord, SrvRecord};
 use crate::hosts::Hosts;
-use std::net::IpAddr;
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 const CLASS_IN: u16 = 1;
 const TYPE_A: u16 = 1;
@@ -34,9 +34,31 @@ impl From<WireError> for AnswerError {
     }
 }
 
+/// Begin a static hosts generation exactly as cache_reload does: configured
+/// host records first, then the caller reads hosts files into this same table.
+/// Replaying only unique file entries later would lose duplicate lookup's
+/// round-robin side effects during bulk loading.
+pub fn configured_hosts(config: &DnsConfig, local_ttl: u32) -> Hosts {
+    let mut hosts = Hosts::new();
+    hosts.set_round_robin(!config.no_round_robin);
+    for record in &config.host_records {
+        for name in &record.names {
+            let ttl = record.ttl.unwrap_or(local_ttl);
+            if let Some(address) = record.address4 {
+                hosts.insert(name.clone(), IpAddr::V4(address), ttl, 1); // SRC_CONFIG
+            }
+            if let Some(address) = record.address6 {
+                hosts.insert(name.clone(), IpAddr::V6(address), ttl, 1);
+            }
+        }
+    }
+    hosts
+}
+
 /// A local answer engine owns no sockets and performs no upstream I/O.  The
 /// hosts table is mutable because dnsmasq rotates same-name addresses unless
 /// `no-round-robin` is set.
+/// Callers seed the table with [`configured_hosts`] before loading files.
 pub struct LocalAnswerer<'a> {
     pub config: &'a DnsConfig,
     pub hosts: &'a mut Hosts,
@@ -270,19 +292,70 @@ fn wire_name(name: &[u8]) -> Option<Vec<u8>> {
     (out.len() <= 255).then_some(out)
 }
 
-fn ip_type(address: IpAddr) -> u16 {
-    if address.is_ipv4() {
-        TYPE_A
-    } else {
-        TYPE_AAAA
-    }
-}
-
 fn ip_bytes(address: IpAddr) -> Vec<u8> {
     match address {
         IpAddr::V4(value) => value.octets().to_vec(),
         IpAddr::V6(value) => value.octets().to_vec(),
     }
+}
+
+/// rfc1035.c::in_arpa_name_2_addr, including omitted low-order components,
+/// defined decimal-to-byte narrowing, ip6.int and its textual bitstring form.
+fn arpa_address(name: &[u8]) -> Option<IpAddr> {
+    if name.len() > 75 {
+        return None;
+    }
+    let labels: Vec<_> = name.split(|&byte| byte == b'.').collect();
+    let [prefix @ .., zone, suffix] = labels.as_slice() else {
+        return None;
+    };
+    if prefix.is_empty() {
+        return None;
+    }
+    if zone.eq_ignore_ascii_case(b"in-addr") && suffix.eq_ignore_ascii_case(b"arpa") {
+        let mut address = [0; 4];
+        for label in prefix {
+            let value = label.iter().try_fold(0i32, |value, byte| {
+                if !byte.is_ascii_digit() {
+                    return None;
+                }
+                value.checked_mul(10)?.checked_add(i32::from(byte - b'0'))
+            })?;
+            address.copy_within(0..3, 1);
+            address[0] = value as u8;
+        }
+        return Some(IpAddr::V4(Ipv4Addr::from(address)));
+    }
+    if !zone.eq_ignore_ascii_case(b"ip6")
+        || !(suffix.eq_ignore_ascii_case(b"arpa") || suffix.eq_ignore_ascii_case(b"int"))
+    {
+        return None;
+    }
+    let hex = |byte: u8| match byte {
+        b'0'..=b'9' => Some(byte - b'0'),
+        b'a'..=b'f' => Some(byte - b'a' + 10),
+        b'A'..=b'F' => Some(byte - b'A' + 10),
+        _ => None,
+    };
+    if prefix[0].starts_with(b"\\[x") || prefix[0].starts_with(b"\\[X") {
+        let value = prefix[0];
+        if value.len() < 36 || value[35] != b'/' {
+            return None;
+        }
+        let mut address = [0; 16];
+        for (index, byte) in address.iter_mut().enumerate() {
+            *byte = (hex(value[3 + index * 2])? << 4) | hex(value[4 + index * 2])?;
+        }
+        return Some(IpAddr::V6(Ipv6Addr::from(address)));
+    }
+    let mut address = 0u128;
+    for label in prefix {
+        if label.len() != 1 {
+            return None;
+        }
+        address = (address >> 4) | (u128::from(hex(label[0])?) << 124);
+    }
+    Some(IpAddr::V6(Ipv6Addr::from(address)))
 }
 
 /// Resolve a configured CNAME chain and answer the requested RR type at its
@@ -361,32 +434,7 @@ fn add_local_records_for_name(
     let mut rows = Vec::new();
     let mut owned = false;
 
-    // The Hosts table passed to this function is already filtered by the
-    // loader (`no-hosts` skips /etc/hosts but does not skip addn-hosts).
-    let values = hosts.lookup(
-        name,
-        match qtype {
-            TYPE_A => Some(false),
-            TYPE_AAAA => Some(true),
-            _ => None,
-        },
-        config.no_round_robin,
-    );
-    for host in values {
-        let rrtype = ip_type(host.address);
-        if qtype == 255 || qtype == rrtype {
-            rows.push((rrtype, host.ttl, ip_bytes(host.address)));
-            owned = true;
-        }
-    }
-
-    for record in &config.host_records {
-        if record.names.iter().any(|entry| dotted_key(entry) == key) {
-            let before = rows.len();
-            add_host_record(record, qtype, ttl, &mut rows);
-            owned |= rows.len() != before;
-        }
-    }
+    // answer_request emits configured TXT/raw/PTR before address records.
     add_typed_records(
         &config.records.txt,
         TYPE_TXT,
@@ -396,17 +444,46 @@ fn add_local_records_for_name(
         &mut rows,
         &mut owned,
     );
-    for record in &config.records.ptr {
-        if dotted_key(&record.name) == key && (qtype == TYPE_PTR || qtype == 255) {
-            owned = true;
-            rows.push((
-                TYPE_PTR,
-                ttl,
-                record.target.as_deref().map_or_else(
-                    || vec![0],
-                    |value| wire_name(value).unwrap_or_else(|| vec![0]),
-                ),
-            ));
+    add_raw(&config.records.raw, &key, qtype, ttl, &mut rows, &mut owned);
+    if qtype == TYPE_PTR || qtype == 255 {
+        let mut explicit_ptr = false;
+        for record in &config.records.ptr {
+            if dotted_key(&record.name) == key {
+                explicit_ptr = true;
+                owned = true;
+                rows.push((
+                    TYPE_PTR,
+                    ttl,
+                    record.target.as_deref().map_or_else(
+                        || vec![0],
+                        |value| wire_name(value).unwrap_or_else(|| vec![0]),
+                    ),
+                ));
+            }
+        }
+        if !explicit_ptr {
+            if let Some(host) = arpa_address(name).and_then(|address| hosts.reverse(address)) {
+                owned = true;
+                rows.push((
+                    TYPE_PTR,
+                    host.ttl,
+                    wire_name(&host.name).unwrap_or_else(|| vec![0]),
+                ));
+            }
+        }
+    }
+
+    // The Hosts table passed to this function is already filtered by the
+    // loader (`no-hosts` skips /etc/hosts but does not skip addn-hosts).
+    // C performs separate IPv4 then IPv6 lookups for ANY. Non-address
+    // questions do not rotate either address family as a side effect.
+    for ipv6 in [false, true] {
+        let rrtype = if ipv6 { TYPE_AAAA } else { TYPE_A };
+        if qtype == 255 || qtype == rrtype {
+            for host in hosts.lookup(name, Some(ipv6), config.no_round_robin) {
+                rows.push((rrtype, host.ttl, ip_bytes(host.address)));
+                owned = true;
+            }
         }
     }
     add_mx(&config.records.mx, &key, qtype, ttl, &mut rows, &mut owned);
@@ -419,22 +496,7 @@ fn add_local_records_for_name(
         &mut rows,
         &mut owned,
     );
-    add_raw(&config.records.raw, &key, qtype, ttl, &mut rows, &mut owned);
     (rows, owned)
-}
-
-fn add_host_record(record: &HostRecord, qtype: u16, ttl: u32, rows: &mut Vec<(u16, u32, Vec<u8>)>) {
-    let ttl = record.ttl.unwrap_or(ttl);
-    if qtype == 255 || qtype == TYPE_A {
-        if let Some(address) = record.address4 {
-            rows.push((TYPE_A, ttl, address.octets().to_vec()));
-        }
-    }
-    if qtype == 255 || qtype == TYPE_AAAA {
-        if let Some(address) = record.address6 {
-            rows.push((TYPE_AAAA, ttl, address.octets().to_vec()));
-        }
-    }
 }
 
 fn add_typed_records(
@@ -706,15 +768,10 @@ fn has_descendant_local(config: &DnsConfig, hosts: &Hosts, query: &Name) -> bool
             && child_labels[child_labels.len() - parent_labels.len()..] == parent_labels[..]
     };
     config
-        .host_records
+        .records
+        .txt
         .iter()
-        .flat_map(|record| record.names.iter())
-        .any(|name| is_descendant(name))
-        || config
-            .records
-            .txt
-            .iter()
-            .any(|record| is_descendant(&record.name))
+        .any(|record| is_descendant(&record.name))
         || config
             .records
             .cnames
@@ -803,7 +860,7 @@ mod tests {
             b"host-record=router.test,192.0.2.1,2001:db8::1,30",
         );
         apply(&mut config, b"txt-record=router.test,hello");
-        let mut hosts = Hosts::new();
+        let mut hosts = configured_hosts(&config, 60);
         let mut answerer = LocalAnswerer {
             config: &config,
             hosts: &mut hosts,
@@ -831,9 +888,121 @@ mod tests {
     }
 
     #[test]
+    fn configured_generation_keeps_first_ptr_owner_and_duplicate_ttl() {
+        let mut config = DnsConfig::default();
+        apply(&mut config, b"no-round-robin");
+        apply(
+            &mut config,
+            b"host-record=owner.test,alias.test,192.0.2.1,2001:db8::1,90",
+        );
+        apply(&mut config, b"host-record=mixed.test,192.0.2.1,11");
+        apply(&mut config, b"host-record=mixed.test,192.0.2.2,22");
+        apply(&mut config, b"host-record=mixed.test,192.0.2.2,999");
+        let mut hosts = configured_hosts(&config, 37);
+        hosts.read(
+            b"192.0.2.3 mixed.test\n192.0.2.1 file.test\n192.0.2.2 mixed.test\n",
+            4,
+            37,
+            false,
+            |_| None,
+        );
+        let mixed: Vec<_> = hosts
+            .addresses(b"mixed.test")
+            .map(|host| (host.address.to_string(), host.ttl, host.reverse))
+            .collect();
+        assert_eq!(
+            mixed,
+            vec![
+                ("192.0.2.2".into(), 22, true),
+                ("192.0.2.3".into(), 37, true),
+                ("192.0.2.1".into(), 11, false)
+            ]
+        );
+        for address in ["192.0.2.1", "2001:db8::1"] {
+            let host = hosts.reverse(address.parse().unwrap()).unwrap();
+            assert_eq!(host.name, b"owner.test");
+            assert_eq!(host.ttl, 90);
+        }
+        let mut answerer = LocalAnswerer {
+            config: &config,
+            hosts: &mut hosts,
+            local_ttl: 37,
+            max_packet: 512,
+        };
+        let ptr = answerer
+            .answer(&query("1.2.0.192.in-addr.arpa", TYPE_PTR))
+            .unwrap()
+            .unwrap();
+        let rr = super::super::wire::Message::parse(&ptr)
+            .unwrap()
+            .records(Section::Answer)
+            .next()
+            .unwrap();
+        assert_eq!(
+            (rr.rrtype, rr.ttl, rr.rdata),
+            (TYPE_PTR, 90, b"\x05owner\x04test\0".as_slice())
+        );
+    }
+
+    #[test]
+    fn ptr_forms_follow_c_prefix_and_explicit_record_rules() {
+        for (name, address) in [
+            (b"2.0.192.in-addr.arpa".as_slice(), "192.0.2.0"),
+            (b"257.2.0.192.in-addr.arpa", "192.0.2.1"),
+            (b"8.b.d.0.1.0.0.2.ip6.arpa", "2001:db8::"),
+            (
+                b"\\[x20010db8000000000000000000000001/128].ip6.int",
+                "2001:db8::1",
+            ),
+        ] {
+            assert_eq!(arpa_address(name), Some(address.parse().unwrap()));
+        }
+        assert_eq!(arpa_address(b"1.0/24.2.0.192.in-addr.arpa"), None);
+        let mut config = DnsConfig::default();
+        apply(&mut config, b"host-record=implicit.test,192.0.2.1,90");
+        apply(
+            &mut config,
+            b"ptr-record=1.2.0.192.in-addr.arpa,explicit.test",
+        );
+        let mut hosts = configured_hosts(&config, 37);
+        let mut answerer = LocalAnswerer {
+            config: &config,
+            hosts: &mut hosts,
+            local_ttl: 37,
+            max_packet: 512,
+        };
+        let ptr = answerer
+            .answer(&query("1.2.0.192.in-addr.arpa", TYPE_PTR))
+            .unwrap()
+            .unwrap();
+        let rr = super::super::wire::Message::parse(&ptr)
+            .unwrap()
+            .records(Section::Answer)
+            .next()
+            .unwrap();
+        assert_eq!(
+            (rr.ttl, rr.rdata),
+            (37, b"\x08explicit\x04test\0".as_slice())
+        );
+    }
+
+    #[test]
+    fn addressless_host_record_does_not_create_a_known_domain() {
+        let mut config = DnsConfig::default();
+        apply(&mut config, b"host-record=empty.test,alias.test,90");
+        let hosts = configured_hosts(&config, 37);
+        assert!(hosts.is_empty());
+        assert!(!known_forwarded_domain(
+            &config,
+            &hosts,
+            &Name::from_ascii("empty.test").unwrap()
+        ));
+    }
+
+    #[test]
     fn unowned_names_are_left_for_forwarder() {
         let config = DnsConfig::default();
-        let mut hosts = Hosts::new();
+        let mut hosts = configured_hosts(&config, 60);
         let mut answerer = LocalAnswerer {
             config: &config,
             hosts: &mut hosts,
@@ -850,7 +1019,7 @@ mod tests {
     fn host_record_without_requested_family_is_not_authoritative() {
         let mut config = DnsConfig::default();
         apply(&mut config, b"host-record=router.test,192.0.2.1");
-        let mut hosts = Hosts::new();
+        let mut hosts = configured_hosts(&config, 60);
         let mut answerer = LocalAnswerer {
             config: &config,
             hosts: &mut hosts,
@@ -867,7 +1036,7 @@ mod tests {
     fn address_rule_owns_name_and_can_truncate() {
         let mut config = DnsConfig::default();
         apply(&mut config, b"address=/example.test/192.0.2.7");
-        let mut hosts = Hosts::new();
+        let mut hosts = configured_hosts(&config, 60);
         let mut answerer = LocalAnswerer {
             config: &config,
             hosts: &mut hosts,
@@ -888,7 +1057,7 @@ mod tests {
 
         let mut zero_config = DnsConfig::default();
         apply(&mut zero_config, b"address=/zero.test/#");
-        let mut zero_hosts = Hosts::new();
+        let mut zero_hosts = configured_hosts(&zero_config, 60);
         let mut zero_answerer = LocalAnswerer {
             config: &zero_config,
             hosts: &mut zero_hosts,
@@ -920,7 +1089,7 @@ mod tests {
 
         let mut local_config = DnsConfig::default();
         apply(&mut local_config, b"local=/local.test/");
-        let mut local_hosts = Hosts::new();
+        let mut local_hosts = configured_hosts(&local_config, 60);
         let mut local_answerer = LocalAnswerer {
             config: &local_config,
             hosts: &mut local_hosts,
@@ -956,7 +1125,7 @@ mod tests {
         apply(&mut config, b"address=/test/2001:db8::7");
         apply(&mut config, b"address=/families.test/192.0.2.10");
         apply(&mut config, b"address=/families.test/2001:db8::10");
-        let mut hosts = Hosts::new();
+        let mut hosts = configured_hosts(&config, 60);
         let mut answerer = LocalAnswerer {
             config: &config,
             hosts: &mut hosts,
@@ -1006,7 +1175,7 @@ mod tests {
 
         let mut dotted = DnsConfig::default();
         apply(&mut dotted, b"address=/*.example.test/192.0.2.11");
-        let mut dotted_hosts = Hosts::new();
+        let mut dotted_hosts = configured_hosts(&dotted, 60);
         let mut dotted_answerer = LocalAnswerer {
             config: &dotted,
             hosts: &mut dotted_hosts,
@@ -1036,7 +1205,7 @@ mod tests {
         apply(&mut config, b"cname=alias.test,target.test");
         apply(&mut config, b"host-record=target.test,192.0.2.9");
         apply(&mut config, b"address=/alias.test/192.0.2.10");
-        let mut hosts = Hosts::new();
+        let mut hosts = configured_hosts(&config, 60);
         let mut answerer = LocalAnswerer {
             config: &config,
             hosts: &mut hosts,
@@ -1084,7 +1253,7 @@ mod tests {
         let mut config = DnsConfig::default();
         apply(&mut config, b"cname=alias.test,target.test");
         apply(&mut config, b"host-record=target.test,192.0.2.9");
-        let mut hosts = Hosts::new();
+        let mut hosts = configured_hosts(&config, 60);
         let mut answerer = LocalAnswerer {
             config: &config,
             hosts: &mut hosts,
@@ -1114,7 +1283,7 @@ mod tests {
         apply(&mut chain_config, b"cname=one.test,two.test");
         apply(&mut chain_config, b"cname=two.test,three.test");
         apply(&mut chain_config, b"host-record=three.test,192.0.2.10");
-        let mut chain_hosts = Hosts::new();
+        let mut chain_hosts = configured_hosts(&chain_config, 60);
         let mut chain_answerer = LocalAnswerer {
             config: &chain_config,
             hosts: &mut chain_hosts,
@@ -1139,7 +1308,7 @@ mod tests {
         let mut config = DnsConfig::default();
         apply(&mut config, b"local=/local.test/");
         apply(&mut config, b"txt-record=child.local.test,hello");
-        let mut hosts = Hosts::new();
+        let mut hosts = configured_hosts(&config, 60);
         let mut answerer = LocalAnswerer {
             config: &config,
             hosts: &mut hosts,
@@ -1184,7 +1353,7 @@ mod tests {
         apply(&mut config, b"cname=two.test,final.test,22");
         apply(&mut config, b"host-record=one.test,192.0.2.1");
         apply(&mut config, b"host-record=final.test,192.0.2.8");
-        let mut hosts = Hosts::new();
+        let mut hosts = configured_hosts(&config, 60);
         let mut answerer = LocalAnswerer {
             config: &config,
             hosts: &mut hosts,
@@ -1229,7 +1398,7 @@ mod tests {
         apply(&mut config, b"txt-record=alias.test,wrong");
         apply(&mut config, b"txt-record=target.test,hello");
         apply(&mut config, b"mx-host=target.test,mail.test,10");
-        let mut hosts = Hosts::new();
+        let mut hosts = configured_hosts(&config, 60);
         let mut answerer = LocalAnswerer {
             config: &config,
             hosts: &mut hosts,
@@ -1268,7 +1437,7 @@ mod tests {
     fn orphan_cname_still_answers_with_cname_only() {
         let mut config = DnsConfig::default();
         apply(&mut config, b"cname=orphan.test,missing.test");
-        let mut hosts = Hosts::new();
+        let mut hosts = configured_hosts(&config, 60);
         let mut answerer = LocalAnswerer {
             config: &config,
             hosts: &mut hosts,
@@ -1296,7 +1465,7 @@ mod tests {
         apply(&mut config, b"no-hosts");
         apply(&mut config, b"host-record=Exact.LOCAL.test,192.0.2.1");
         apply(&mut config, b"dns-rr=raw.LOCAL.test,16,0161");
-        let mut hosts = Hosts::new();
+        let mut hosts = configured_hosts(&config, 60);
         hosts.insert(
             b"fromfile.LOCAL.test".to_vec(),
             "192.0.2.2".parse().unwrap(),
@@ -1331,7 +1500,7 @@ mod tests {
         let mut raw_config = DnsConfig::default();
         apply(&mut raw_config, b"local=/local.test/");
         apply(&mut raw_config, b"dns-rr=child.local.test,16,0161");
-        let mut no_hosts = Hosts::new();
+        let mut no_hosts = configured_hosts(&raw_config, 60);
         let mut raw_answerer = LocalAnswerer {
             config: &raw_config,
             hosts: &mut no_hosts,

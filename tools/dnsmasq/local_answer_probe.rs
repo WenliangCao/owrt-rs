@@ -4,8 +4,7 @@
 use dnsmasq_rs::config::dns::DnsConfig;
 use dnsmasq_rs::config::loader::{self, Action};
 use dnsmasq_rs::config::{Error, ScalarConfig};
-use dnsmasq_rs::dns::local::LocalAnswerer;
-use dnsmasq_rs::hosts::Hosts;
+use dnsmasq_rs::dns::service::LocalDnsService;
 use std::io::{self, BufRead};
 use std::path::Path;
 
@@ -46,15 +45,32 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     scalar.finalize_runtime()?;
     config.finalize()?;
     config.validate_ready()?;
-    let mut hosts = Hosts::new();
+    let mut hosts = dnsmasq_rs::dns::local::configured_hosts(&config, scalar.local_ttl);
     hosts.set_round_robin(!config.no_round_robin);
     for path in &config.addn_hosts {
         let Some(path) = path else { continue };
         let bytes = std::fs::read(path)?;
-        hosts.read(&bytes, 1, 0, config.expand_hosts, |address| {
-            config.domain_for_address(address).ok().flatten().map(ToOwned::to_owned)
-        });
+        hosts.read(
+            &bytes,
+            1,
+            scalar.local_ttl,
+            config.expand_hosts,
+            |address| {
+                config
+                    .domain_for_address(address)
+                    .ok()
+                    .flatten()
+                    .map(ToOwned::to_owned)
+            },
+        );
     }
+    let mut service = LocalDnsService::new_with_limits(
+        config,
+        hosts,
+        scalar.local_ttl,
+        usize::from(scalar.edns_packet_max) + 265,
+        scalar.edns_packet_max,
+    );
     let stdin = io::stdin();
     for line in stdin.lock().lines() {
         let line = line?;
@@ -69,15 +85,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("NONE");
             continue;
         };
-        let max_packet = if first == "tcp" { u16::MAX as usize } else { usize::from(scalar.edns_packet_max) };
-        let mut answerer = LocalAnswerer {
-            config: &config,
-            hosts: &mut hosts,
-            local_ttl: scalar.local_ttl,
-            max_packet,
+        let answer = if first == "tcp" {
+            service.handle_tcp_payload(&query)
+        } else {
+            service.handle_udp(&query)
         };
-        match answerer.answer(&query) {
-            Ok(Some(packet)) => println!("{}", packet.iter().map(|b| format!("{b:02x}")).collect::<String>()),
+        match answer {
+            Ok(Some(packet)) => println!(
+                "{}",
+                packet
+                    .iter()
+                    .map(|b| format!("{b:02x}"))
+                    .collect::<String>()
+            ),
             Ok(None) | Err(_) => println!("NONE"),
         }
     }
