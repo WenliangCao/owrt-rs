@@ -187,6 +187,18 @@ impl CacheContext<'_> {
         };
         let ids = cache.lookup(&question.name, kinds, now, round_robin);
         if ids.is_empty() {
+            // An address/CNAME miss still reaches C's final F_RR lookup.
+            // An unrelated generic record cannot answer this question, but
+            // its lookup promotes it before the caller forwards the query.
+            // Generic questions already visited that group above.
+            if !matches!(kind, Kind::Generic(_)) {
+                cache.lookup(
+                    &question.name,
+                    &[Kind::Generic(question.rrtype), Kind::NxDomain],
+                    now,
+                    round_robin,
+                );
+            }
             return Ok(CachedAnswer {
                 packet: None,
                 stale,
