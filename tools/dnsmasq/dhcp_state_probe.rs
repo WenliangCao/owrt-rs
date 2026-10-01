@@ -1,7 +1,6 @@
 //! Narrow offline adapter for state decisions, driven by the isolated C probe.
 #![allow(dead_code)]
-#[path = "../../components/dnsmasq/src/dhcp/mod.rs"]
-mod dhcp;
+use dnsmasq_rs::dhcp;
 
 use dhcp::allocation::{AddressRange, ProbeResult, RangeKind};
 use dhcp::lease::{ClientIdentity, LeaseStore};

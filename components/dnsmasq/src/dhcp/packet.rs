@@ -364,6 +364,15 @@ impl<'a> Packet<'a> {
     /// even when it has no usable name. Client domains are not configuration
     /// domains; this adapter returns only the validated short hostname.
     pub fn client_hostname(self) -> Option<Vec<u8>> {
+        let mut name = self.client_hostname_full()?;
+        if let Some(dot) = name.iter().position(|byte| *byte == b'.') {
+            name.truncate(dot);
+        }
+        (!name.is_empty()).then_some(name)
+    }
+
+    /// The unstripped name is needed for the configured OFFER-name comparison.
+    pub fn client_hostname_full(self) -> Option<Vec<u8>> {
         if self.message_type() == 0 {
             return None;
         } // BOOTP returns before this parsing.
@@ -389,7 +398,10 @@ impl<'a> Packet<'a> {
         } else {
             self.option(12, 1)?.to_vec()
         };
-        client_hostname_value(&candidate)
+        let name = crate::hosts::canonicalise(&candidate)?;
+        // Share the exact first-label legality check with the state name path.
+        client_hostname_value(&candidate)?;
+        Some(name)
     }
 
     /// rfc2131.c:2247-2260. An absent PRL means "send everything";

@@ -432,6 +432,25 @@ impl LeaseStore {
         Ok(expired)
     }
 
+    /// lease.c lease_calc_fqdns: after restoring and resolving interface/domain
+    /// configuration, build names before the first DNS publication. This does
+    /// not change lease ownership, file dirtiness or helper event flags.
+    pub fn initialize_fqdns<'a>(&mut self, mut domain: impl FnMut(Ipv4Addr) -> Option<&'a [u8]>) {
+        for lease in self.leases.values_mut() {
+            if let Some((hostname, suffix)) = lease
+                .hostname
+                .as_deref()
+                .and_then(|hostname| domain(lease.address).map(|suffix| (hostname, suffix)))
+            {
+                let mut fqdn = Vec::with_capacity(hostname.len() + suffix.len() + 1);
+                fqdn.extend_from_slice(hostname);
+                fqdn.push(b'.');
+                fqdn.extend_from_slice(suffix);
+                lease.fqdn = Some(fqdn);
+            }
+        }
+    }
+
     pub fn set_interface(&mut self, address: Ipv4Addr, interface: u32) -> Result<bool, LeaseError> {
         let lease = self.leases.get_mut(&address).ok_or(LeaseError::NotFound)?;
         let changed = lease.interface != interface;
@@ -791,6 +810,33 @@ mod tests {
             .unwrap();
         assert!(store.get(address(1)).unwrap().hostname.is_some());
         assert!(store.get(address(2)).unwrap().hostname.is_some());
+    }
+
+    #[test]
+    fn restored_fqdn_survives_same_configured_name_without_file_change() {
+        let records = super::super::lease_file::parse(
+            b"0 02:00:00:00:00:01 192.0.2.7 Fixed *\n0 02:00:00:00:00:02 192.0.2.8 * *\n",
+        );
+        let mut store = LeaseStore::new(2);
+        store.restore(records.records, 100).unwrap();
+        let before = store.changes();
+        let mut looked_up = Vec::new();
+        store.initialize_fqdns(|address| {
+            looked_up.push(address);
+            Some(b"pool.test".as_slice())
+        });
+        assert_eq!(looked_up, [address(7)]);
+        assert_eq!(store.changes(), before);
+        assert!(store
+            .set_hostname(address(7), Some(b"fixed"), true, Some(b"pool.test"), false)
+            .unwrap()
+            .is_empty());
+        let lease = store.get(address(7)).unwrap();
+        assert_eq!(lease.fqdn.as_deref(), Some(b"Fixed.pool.test".as_slice()));
+        assert!(lease.authoritative_name);
+        assert!(!lease.script.changed && !lease.script.new && !lease.script.expiry);
+        assert_eq!(store.changes(), before);
+        assert!(store.get(address(8)).unwrap().fqdn.is_none());
     }
 
     #[test]

@@ -1,18 +1,18 @@
 //! Linux local DHCP adapter: interface admission, contexts, state and options.
-//! Relay, configured hosts/tags, durable leases and scripts remain separate
-//! contracts. Interface snapshots are refreshed for each admitted packet.
+//! Relay, tag selectors and scripts remain separate contracts. Interface
+//! snapshots are refreshed for each admitted packet.
 
 use super::allocation::ProbeResult;
 use super::context::{select_contexts, ContextState, SelectedContext};
-use super::lease::{Lease, LeaseStore, NameLost};
+use super::lease::{ClientIdentity, Lease, LeaseStore, NameLost};
 use super::persistence::{
     self, AlarmAction, DnsPublisher, DnsReport, LeasePersistence, PersistReport,
 };
 use super::probe::IcmpProbe;
-use super::runtime::{NetworkOptions, OutcomeProvider, RuntimeError, StateProvider};
+use super::runtime::{NetworkOptions, OutcomeProvider, ReplyNames, RuntimeError, StateProvider};
 use super::service::Dispatch;
-use super::state::{Environment, Outcome, Reply};
-use crate::config::dhcp::DhcpConfig;
+use super::state::{Environment, HostPolicy, Outcome, Reply};
+use crate::config::dhcp::{DhcpConfig, NameDomains};
 use crate::interfaces::{ipv4_interfaces, primary_ipv4};
 use std::ffi::OsStr;
 use std::io;
@@ -40,6 +40,10 @@ pub struct LocalProvider {
     config: DhcpConfig,
     leases: LeaseStore,
     states: Vec<ContextState>,
+    hosts: Vec<HostPolicy>,
+    reserved: Vec<Ipv4Addr>,
+    domains: NameDomains,
+    reply_hostname: Option<Vec<u8>>,
     selected: Vec<SelectedContext>,
     listen_addresses: Vec<IpAddr>,
     dns_port: u16,
@@ -89,6 +93,32 @@ impl LocalProvider {
         Ok(Self {
             leases,
             states: config.ranges.iter().map(ContextState::new).collect(),
+            hosts: config
+                .hosts
+                .iter()
+                .map(|host| HostPolicy {
+                    address: host.address,
+                    lease_time: host.lease_time,
+                    declined_at: None,
+                    hardware_addresses: host
+                        .hardware
+                        .iter()
+                        .map(|hardware| ClientIdentity {
+                            hardware_type: hardware.kind,
+                            hardware_address: hardware.address.clone(),
+                            client_id: None,
+                        })
+                        .collect(),
+                    ignore_client_id: host.ignore_client_id,
+                })
+                .collect(),
+            reserved: config
+                .hosts
+                .iter()
+                .filter_map(|host| host.address)
+                .collect(),
+            domains: NameDomains::default(),
+            reply_hostname: None,
             probe: IcmpProbe::new(config.no_ping)?,
             probe_error: None,
             should_stop,
@@ -118,6 +148,13 @@ impl LocalProvider {
     /// Startup initialize or the next maintenance publishes the pending state.
     pub fn set_dns_publisher(&mut self, publisher: Box<dyn DnsPublisher>) {
         self.dns_publisher = Some(publisher);
+    }
+
+    /// Install the validated address-to-domain fields before initialize.
+    pub fn set_dns_config(&mut self, config: &crate::config::dns::DnsConfig) -> io::Result<()> {
+        self.domains = NameDomains::new(config)
+            .map_err(|error| io::Error::new(io::ErrorKind::InvalidInput, error))?;
+        Ok(())
     }
 
     pub fn take_maintenance_report(&mut self) -> Option<MaintenanceReport> {
@@ -175,6 +212,46 @@ impl LocalProvider {
     /// Complete startup after socket setup and publisher attachment. Calling
     /// it again is harmless and does not replay removed-lease ownership.
     pub fn initialize(&mut self, now: i64) -> MaintenanceReport {
+        if !self.initialized {
+            self.leases
+                .initialize_fqdns(|address| self.domains.for_address(address));
+            // lease.c lease_update_from_configs runs without a context chain:
+            // a configured name is restored only for its own fixed address.
+            let names: Vec<_> = self
+                .leases
+                .active_newest_first()
+                .iter()
+                .filter_map(|lease| {
+                    let index = self.config.find_host(
+                        lease.identity.client_id.as_deref(),
+                        lease.identity.hardware_type,
+                        Some(&lease.identity.hardware_address),
+                        |_| true,
+                    )?;
+                    let host = &self.config.hosts[index];
+                    (host.address.is_none_or(|address| address == lease.address))
+                        .then(|| {
+                            host.hostname
+                                .as_ref()
+                                .map(|name| (lease.address, name.clone()))
+                        })
+                        .flatten()
+                })
+                .collect();
+            for (address, name) in names {
+                // Addresses were taken from this store and no removal occurs
+                // during the loop, so set_hostname cannot fail NotFound.
+                self.leases
+                    .set_hostname(
+                        address,
+                        Some(&name),
+                        true,
+                        self.domains.for_address(address),
+                        false,
+                    )
+                    .expect("restored lease remains present during configured-name update");
+            }
+        }
         self.initialized = true;
         let mut removed = std::mem::take(&mut self.startup_removed);
         removed.extend(self.leases.prune(None, now));
@@ -250,12 +327,69 @@ impl OutcomeProvider for LocalProvider {
             .filter(|address| address.index == interface)
             .map(|address| address.address)
             .collect();
+        let now = epoch_seconds();
+        let packet = dispatch.packet;
+        let identity = ClientIdentity {
+            hardware_type: u32::from(packet.hardware_type()),
+            hardware_address: packet.hardware_address().to_vec(),
+            client_id: (!self.config.ignore_client_id && packet.message_type() != 0)
+                .then(|| packet.client_id().map(<[u8]>::to_vec))
+                .flatten(),
+        };
+        let existing = self
+            .leases
+            .find_client(&identity)
+            .filter(|lease| lease.expires.is_none_or(|expiry| now < expiry));
+        let clid = (packet.message_type() != 0)
+            .then(|| {
+                identity
+                    .client_id
+                    .as_deref()
+                    .or_else(|| existing.and_then(|lease| lease.identity.client_id.as_deref()))
+            })
+            .flatten();
+        let host_index = self.config.find_host(
+            clid,
+            identity.hardware_type,
+            Some(&identity.hardware_address),
+            |address| {
+                ranges.iter().any(|range| {
+                    u32::from(address) & u32::from(range.netmask)
+                        == u32::from(range.start) & u32::from(range.netmask)
+                })
+            },
+        );
+        let configured = host_index.map(|index| &self.config.hosts[index]);
+        let configured_name = configured.and_then(|host| host.hostname.as_deref());
+        let client_name = packet.client_hostname();
+        self.reply_hostname = configured_name.map(<[u8]>::to_vec).or(client_name);
+        if packet.message_type() == 1 && packet.option(81, 3).is_none() {
+            // An ordinary client name alone is not echoed in an OFFER. A
+            // configured name must match the full provided name, before strip.
+            let provided = packet.client_hostname_full();
+            if configured_name.is_none()
+                || provided
+                    .as_deref()
+                    .is_some_and(|name| !configured_name.unwrap().eq_ignore_ascii_case(name))
+            {
+                self.reply_hostname = None;
+            }
+        }
+        if packet.message_type() == 8 && existing.is_none() {
+            if let Some(name) = self
+                .leases
+                .get(packet.effective_ciaddr())
+                .and_then(|lease| lease.hostname.as_ref())
+            {
+                self.reply_hostname = Some(name.clone());
+            }
+        }
         let environment = Environment {
-            now: epoch_seconds(),
+            now,
             interface,
             authoritative: self.config.authoritative,
             unicast_destination: dispatch.ingress.unicast_destination,
-            ignored: false,
+            ignored: configured.is_some_and(|host| host.ignore),
             ignore_client_id: self.config.ignore_client_id,
             fqdn_only: false,
             rapid_commit: false,
@@ -271,8 +405,8 @@ impl OutcomeProvider for LocalProvider {
             &mut self.leases,
             &mut ranges,
             &[],
-            None,
-            &[],
+            host_index.map(|index| &mut self.hosts[index]),
+            &self.reserved,
             environment,
             |address, hash| match self.probe.check_with_stop(
                 now,
@@ -288,6 +422,8 @@ impl OutcomeProvider for LocalProvider {
                 }
             },
         );
+        provider.configured_name = configured_name;
+        provider.domains = Some(&self.domains);
         let result = provider.resolve(dispatch);
         self.probe_error = probe_error;
         for (selected, range) in self.selected.iter().zip(&ranges) {
@@ -318,6 +454,24 @@ impl OutcomeProvider for LocalProvider {
             broadcast: (!context.broadcast.is_unspecified()).then_some(context.broadcast),
             router: (!context.range.router.is_unspecified()).then_some(context.range.router),
             dns_server: (self.dns_port == 53).then_some(context.range.local),
+        })
+    }
+
+    fn reply_names(
+        &self,
+        packet: super::packet::Packet<'_>,
+        outcome: &Outcome,
+    ) -> Option<ReplyNames<'_>> {
+        let address = match outcome.reply {
+            Reply::Offer { address, .. }
+            | Reply::Ack { address, .. }
+            | Reply::Bootp { address, .. } => address,
+            Reply::Inform { .. } => packet.effective_ciaddr(),
+            _ => return None,
+        };
+        Some(ReplyNames {
+            hostname: self.reply_hostname.as_deref(),
+            domain: self.domains.for_address(address),
         })
     }
 }

@@ -100,6 +100,22 @@ pub trait OutcomeProvider {
     fn network_options(&self, _outcome: &Outcome) -> Option<NetworkOptions> {
         None
     }
+
+    /// Selected hostname/domain after the same state transaction which will
+    /// be sent. OFFER suppression and lease-name ownership belong to callers.
+    fn reply_names(
+        &self,
+        _packet: super::packet::Packet<'_>,
+        _outcome: &Outcome,
+    ) -> Option<ReplyNames<'_>> {
+        None
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct ReplyNames<'a> {
+    pub hostname: Option<&'a [u8]>,
+    pub domain: Option<&'a [u8]>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -133,6 +149,8 @@ pub struct StateProvider<'a, F> {
     pub tags: &'a [&'a [u8]],
     pub host: Option<&'a mut HostPolicy>,
     pub reserved: &'a [Ipv4Addr],
+    pub configured_name: Option<&'a [u8]>,
+    pub domains: Option<&'a crate::config::dhcp::NameDomains>,
     pub environment: Environment<'a>,
     pub probe: F,
 }
@@ -153,6 +171,8 @@ impl<'a, F> StateProvider<'a, F> {
             tags,
             host,
             reserved,
+            configured_name: None,
+            domains: None,
             environment,
             probe,
         }
@@ -173,13 +193,16 @@ where
         let mut expired = self.store.prune(None, environment.now);
         let packet = dispatch.packet;
         let hostname = packet.client_hostname();
-        let name = hostname.as_deref().map(|hostname| Name {
-            hostname,
-            domain: None,
-            // rfc2131.c sets hostname_auth only for configured/hosts names,
-            // independently of the server's dhcp-authoritative lease policy.
-            authoritative: false,
-        });
+        let name = self
+            .configured_name
+            .or(hostname.as_deref())
+            .map(|hostname| Name {
+                hostname,
+                domains: self.domains,
+                // rfc2131.c sets hostname_auth only for configured/hosts names,
+                // independently of the server's dhcp-authoritative lease policy.
+                authoritative: self.configured_name.is_some(),
+            });
         let request = || Request {
             packet,
             tags: self.tags,
@@ -427,9 +450,10 @@ where
             network.dns_server.map(|ip| ip.octets()),
         ]
     });
-    let mut combined = Vec::new();
-    let options = if let Some(values) = &values {
-        combined.reserve(options.len() + 4);
+    let names = provider.reply_names(dispatch.packet, &outcome);
+    let name_values = names.map(|names| encode_name_options(dispatch.packet, names));
+    let mut combined = Vec::with_capacity(options.len() + 7);
+    if let Some(values) = &values {
         for (code, value) in [1, 28, 3, 6].into_iter().zip(values) {
             if let Some(value) = value {
                 if !options.iter().any(|option| option.code == code)
@@ -439,11 +463,18 @@ where
                 }
             }
         }
-        combined.extend_from_slice(options);
-        combined.as_slice()
-    } else {
-        options
-    };
+    }
+    if let Some(names) = &name_values {
+        for (code, value) in [15, 12, 81].into_iter().zip(names) {
+            if let Some(value) = value {
+                if !options.iter().any(|option| option.code == code) {
+                    combined.push(ReplyOption { code, value });
+                }
+            }
+        }
+    }
+    combined.extend_from_slice(options);
+    let options = combined.as_slice();
     let encoding = match build_reply_with_fuzz(
         dispatch.packet,
         outcome.reply,
@@ -516,6 +547,73 @@ where
         events,
         outcome: Some(outcome),
     })
+}
+
+/// rfc2131.c:700-765,2814-2874. FQDN is sent when the client supplies option
+/// 81, independently of its PRL. Without a configured domain, C's encoded
+/// form ends after the hostname label (no final root byte).
+fn encode_name_options(
+    packet: super::packet::Packet<'_>,
+    names: ReplyNames<'_>,
+) -> [Option<Vec<u8>>; 3] {
+    let fqdn = (packet.message_type() != 0)
+        .then(|| packet.option(81, 3))
+        .flatten();
+    let null_term = if let Some(fqdn) = fqdn {
+        fqdn[0] & 4 == 0 && fqdn.len() > 3 && fqdn.last() == Some(&0)
+    } else {
+        packet.message_type() != 0
+            && packet
+                .option(12, 1)
+                .is_some_and(|name| name.last() == Some(&0))
+    };
+    let string = |value: &[u8]| {
+        let mut bytes = value.to_vec();
+        if null_term && bytes.len() != 255 {
+            bytes.push(0);
+        }
+        bytes
+    };
+    let domain = names
+        .domain
+        .filter(|_| packet.message_type() == 0 || packet.requests(15))
+        .map(string);
+    let hostname = names
+        .hostname
+        .filter(|_| packet.message_type() == 0 || packet.requests(12))
+        .map(string);
+    let fqdn = fqdn.zip(names.hostname).map(|(input, name)| {
+        let mut flags = input[0];
+        if flags & 1 == 0 {
+            flags |= 3;
+        }
+        flags &= !8;
+        let mut output = vec![flags & 15, 255, 255];
+        if flags & 4 != 0 {
+            for label in name.split(|byte| *byte == b'.') {
+                output.push(label.len() as u8);
+                output.extend_from_slice(label);
+            }
+            if let Some(domain) = names.domain {
+                for label in domain.split(|byte| *byte == b'.') {
+                    output.push(label.len() as u8);
+                    output.extend_from_slice(label);
+                }
+                output.push(0);
+            }
+        } else {
+            output.extend_from_slice(name);
+            if let Some(domain) = names.domain {
+                output.push(b'.');
+                output.extend_from_slice(domain);
+            }
+            if null_term {
+                output.push(0);
+            }
+        }
+        output
+    });
+    [domain, hostname, fqdn]
 }
 
 /// util.c:718-749: retries are per completed send loop; EINTR resets the
@@ -920,7 +1018,7 @@ mod tests {
             }
             fn network_options(&self, _: &Outcome) -> Option<NetworkOptions> {
                 Some(NetworkOptions {
-                    next_server: Ipv4Addr::new(192,0,2,1),
+                    next_server: Ipv4Addr::new(192, 0, 2, 1),
                     netmask: Ipv4Addr::new(255, 255, 255, 0),
                     broadcast: Some(Ipv4Addr::new(192, 0, 2, 255)),
                     router: Some(Ipv4Addr::new(192, 0, 2, 1)),
@@ -962,7 +1060,7 @@ mod tests {
             assert_eq!(wire_option(&output, 28), Some([192, 0, 2, 255].as_slice()));
             assert_eq!(wire_option(&output, 3), Some([192, 0, 2, 10].as_slice()));
             assert_eq!(wire_option(&output, 6).is_some(), dns_requested);
-            assert_eq!(&output[20..24],&[192,0,2,1]);
+            assert_eq!(&output[20..24], &[192, 0, 2, 1]);
         }
     }
 

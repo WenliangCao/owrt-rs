@@ -38,7 +38,7 @@ impl HostPolicy {
 #[derive(Clone, Copy, Debug)]
 pub struct Name<'a> {
     pub hostname: &'a [u8],
-    pub domain: Option<&'a [u8]>,
+    pub domains: Option<&'a crate::config::dhcp::NameDomains>,
     pub authoritative: bool,
 }
 
@@ -362,7 +362,8 @@ fn transaction(
             address,
             Some(name.hostname),
             name.authoritative,
-            name.domain,
+            name.domains
+                .and_then(|domains| domains.for_address(address)),
             env.fqdn_only,
         )?;
     }
@@ -551,7 +552,8 @@ pub fn bootp(
             address,
             Some(name.hostname),
             true,
-            name.domain,
+            name.domains
+                .and_then(|domains| domains.for_address(address)),
             env.fqdn_only,
         )?;
     }
