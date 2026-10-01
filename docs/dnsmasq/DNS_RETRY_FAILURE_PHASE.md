@@ -84,6 +84,43 @@ state, while the new producer is exercised by the actual daemon schedule.
 The first local oracle attempt used a nonexistent rustc path and executed no
 Rust cases; `forward-regression-01.log` is retained beside passing round 02.
 
-Linux replay of the frozen implementation follows separately. These are bounded
-failure-contract checks, not complete DNS/EDNS, resource-cost, target or physical
-router acceptance.
+## Frozen Linux verification
+
+Implementation commit `232edb2545c2860dd950c6034ec1f145a460d189` builds with
+native Linux aarch64 Rust 1.98.1. Release ELF SHA-256:
+`79dfe812f8b869fdf877c861355f26165b54401edab86c8fa425ca52b9f5f75c`.
+
+- `retry-after-01`: **87 matching observations / one retained C wrong-ID and
+  question-case difference**, 88 compared, zero fixture/coverage failures,
+  complete gate exit 1. Original plain/OPT and fast profiles each match 17/17;
+  stale matches 20/20; coalesced matches 16/17. All five HUP snapshots retain
+  the cumulative local-answer count while clearing the cache insertion window.
+- `retry-negative-01`: one injected local-counter difference plus that same
+  C defect, 86 matches / two differences, exit 1 and no fixture failures.
+  These two runs use tool SHA-256
+  `de2c50a37268b36d8fbcd1d2ee9dd541c8c1ef791bb6d129bebbe66d6dad97c0`.
+- `retry-doctor-01`: the separate `--doctor-metrics` fast-only schedule passes
+  **18/18**, using the same frozen ELF. A real subscriber requests all metrics
+  synchronously inside the DNS doctor for the preserved healthy reply. C and
+  Rust both expose local answered 2 before cache inserted changes from 0 to 1.
+  Thus the current background producer reaches the inside-doctor snapshot.
+  `retry-doctor-negative-01` detects one injected counter difference, 17 matches
+  / one difference, exit 1, no fixture failures. Doctor tool SHA-256:
+  `7321b08fd72c08aba87c4933589e16346dd49c6d53229dc3931d641c2ffdc799`.
+- `initial-failure-regression-01`: the unchanged actual initial-send failure
+  gate remains **61/61**, with real no-route/EMFILE coverage and no fixture
+  failures. Native DNS tests pass 210/0/4 ignored; native main tests pass 7/0.
+  The native exact-C state regression also remains 1,285/1,285 with sanitizers.
+  Host target-musl checking, changed-file formatting and whitespace checks pass.
+
+Raw baselines and the original 83/14 replay remain at
+`/home/ubuntu/dns-resume-send-20261001/private/retry-*`. Frozen implementation
+checks are under `/home/ubuntu/dns-retry-failure-20261001/private/`.
+Both are archived locally beneath the isolated
+`private/dnsmasq-rewrite/resume-retry-failure-20261001/private/`, in
+`baseline-linux/` and `linux-232edb2/`. Configurations, namespace identities,
+route changes, raw wires, syscall traces, metric payloads and each harness
+version are retained where recorded; none is committed to Git.
+
+These gates do not close DO-query cache admission, other upstream-error retry
+origins, complete DNS/EDNS, resource-cost, target or physical-router acceptance.
