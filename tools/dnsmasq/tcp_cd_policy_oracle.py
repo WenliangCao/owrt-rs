@@ -317,9 +317,72 @@ def calibrate(trace, inject_error=False):
     return checks
 
 
+def decode(wire, normalize_id=False):
+    packet = bytes.fromhex(wire)
+    decoded = semantics(packet)
+    decoded["counts"] = list(struct.unpack_from("!4H", packet, 4))
+    if normalize_id:
+        decoded["id"] = 0
+    return decoded
+
+
+def normalize_event(event):
+    return {**event, "query": decode(event["query"], True), "reply": decode(event["reply"], True)}
+
+
+def comparable(trace):
+    rows = copy.deepcopy(trace["rows"])
+    for row in rows:
+        if "wire" in row:
+            row["response"] = decode(row.pop("wire"))
+            row["request"] = decode(row["request"])
+            row["upstream"] = [normalize_event(event) for event in row["upstream"]]
+    return {"profile": trace["profile"], "rows": rows,
+            "upstream": [normalize_event(event) for event in trace["upstream"]]}
+
+
+def compare(expected, actual):
+    c, rust = comparable(expected), comparable(actual)
+    if [row["stage"] for row in c["rows"]] != [row["stage"] for row in rust["rows"]]:
+        return [{"case": "stages", "c": [row["stage"] for row in c["rows"]],
+                 "rust": [row["stage"] for row in rust["rows"]]}]
+    differences = []
+    for key in ("profile", "upstream"):
+        if c[key] != rust[key]:
+            differences.append({"case": key, "c": c[key], "rust": rust[key]})
+    for left, right in zip(c["rows"], rust["rows"]):
+        if left.get("response") and right.get("response") and not left["upstream"] and not right["upstream"]:
+            for a, b in zip(left["response"]["records"], right["response"]["records"]):
+                if a["type"] != 41 and b["type"] != 41 and abs(a["ttl"] - b["ttl"]) <= 1:
+                    b["ttl"] = a["ttl"]
+        if left != right:
+            differences.append({"case": left["stage"], "c": left, "rust": right})
+    return differences
+
+
+def comparison_calibrations(trace):
+    assert not compare(trace, copy.deepcopy(trace)), "identical trace comparison failed"
+    changed = copy.deepcopy(trace)
+    changed["rows"].pop()
+    assert compare(trace, changed), "missing observation ignored"
+    changed = copy.deepcopy(trace)
+    changed["rows"][0]["metrics"]["dns_cache_inserted"] += 1
+    assert compare(trace, changed), "parent insertion mismatch ignored"
+    changed = copy.deepcopy(trace)
+    row = next(row for row in changed["rows"] if "wire" in row)
+    wire = bytearray.fromhex(row["wire"])
+    wire[3] ^= 0x10
+    row["wire"] = wire.hex()
+    assert compare(trace, changed), "CD flag mismatch ignored"
+    changed = copy.deepcopy(trace)
+    changed["upstream"].append(copy.deepcopy(changed["upstream"][0]))
+    assert compare(trace, changed), "extra upstream query ignored"
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--reference-build", type=Path, required=True)
+    parser.add_argument("--rust", type=Path)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--inject-error", action="store_true")
     args = parser.parse_args()
@@ -332,6 +395,10 @@ def main():
     out.mkdir(parents=True)
     report = {"scope": "C-only real -k ordinary CD prefix and independent bogus transaction",
               "reference": identity, "tool_sha256": digest(Path(__file__)), "checks": [], "failures": [], "profiles": []}
+    if args.rust:
+        args.rust = args.rust.resolve()
+        report.update(scope="C-first real -k TCP ordinary CD prefix and independent bogus transaction differential",
+                      rust_sha256=digest(args.rust), rust_checks=[], comparison_failures=[], matched=0)
     subprocess.run(["mount", "--make-rprivate", "/"], check=True)
     subprocess.run(["mount", "-t", "tmpfs", "-o", "nosuid,nodev,noexec,mode=0755", "tmpfs", "/run"], check=True)
     Path(BUS).parent.mkdir(parents=True)
@@ -340,14 +407,33 @@ def main():
             try:
                 trace = run_profile(args, out / profile["name"], profile, binary)
                 report["checks"] += calibrate(trace, args.inject_error and profile["name"] == "a-request-cd")
+                comparison_calibrations(trace)
                 report["profiles"].append({**profile, "observations": len(trace["rows"]),
                                            "trace_sha256": digest(out / profile["name"] / "trace.json")})
             except Exception as error:
                 report["failures"].append({"profile": profile["name"], "error": repr(error)})
+        if args.rust:
+            assert not report["failures"] and all(row["pass"] for row in report["checks"]), "C calibration must pass before candidate"
+            rust_out = out / "rust"
+            rust_out.mkdir()
+            for profile in PROFILES:
+                try:
+                    expected = json.loads((out / profile["name"] / "trace.json").read_text())
+                    actual = run_profile(args, rust_out / profile["name"], profile, args.rust)
+                    report["rust_checks"] += calibrate(actual)
+                    differences = compare(expected, actual)
+                    report["comparison_failures"] += [{"profile": profile["name"], **row} for row in differences]
+                    if not differences:
+                        report["matched"] += len(actual["rows"])
+                except Exception as error:
+                    report["failures"].append({"profile": profile["name"], "side": "rust", "error": repr(error)})
+    except Exception as error:
+        report["failures"].append({"error": repr(error)})
     finally:
         subprocess.run(["umount", "/run"], check=True)
     report["passed"] = sum(row["pass"] for row in report["checks"])
-    report["failed"] = sum(not row["pass"] for row in report["checks"]) + len(report["failures"])
+    report["failed"] = (sum(not row["pass"] for row in report["checks"] + report.get("rust_checks", []))
+                        + len(report["failures"]) + len(report.get("comparison_failures", [])))
     (out / "result.json").write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps(report))
     return int(bool(report["failed"]))
