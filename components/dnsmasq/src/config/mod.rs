@@ -6,6 +6,7 @@
 
 pub mod dhcp;
 pub mod dns;
+pub mod ethers;
 #[cfg(unix)]
 pub mod loader;
 mod options;
