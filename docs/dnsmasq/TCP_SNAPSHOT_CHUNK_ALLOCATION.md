@@ -1,9 +1,11 @@
 # Chunk32 snapshot screen: correctness and allocation pass
 
 The independent `chunk32` candidate passes the frozen deterministic gates in
-[`TCP_SNAPSHOT_CHUNK_V1.md`](TCP_SNAPSHOT_CHUNK_V1.md). Timing has not run and
-no candidate is adopted. This does not revise the earlier representation
-screen or its rejections.
+[`TCP_SNAPSHOT_CHUNK_V1.md`](TCP_SNAPSHOT_CHUNK_V1.md). The subsequent timing
+screen rejects it under population CPU and tail guards; see
+[`TCP_SNAPSHOT_CHUNK_RESULT.md`](TCP_SNAPSHOT_CHUNK_RESULT.md). No candidate is
+adopted. Pending-timing statements below describe this earlier allocation
+phase. This does not revise the earlier representation screen or its rejections.
 
 Both `deep` and `chunk32` match all 22,571 operations in the existing exact-C
 21-scenario corpus. Each retains a snapshot across every operation and checks
