@@ -30,9 +30,12 @@ DYNAMIC = "Dynamic.reverse.test"
 FQDN = "client1.leases.test"
 
 
-def dns(label, host=OWNER, kind=12, targets=None, cached=False, shape="failure", ttl=120):
-    return {"op": "dns", "label": label, "host": host, "kind": kind,
+def dns(label, host=OWNER, kind=12, targets=None, cached=False, shape="failure", ttl=120, sends=None):
+    result = {"op": "dns", "label": label, "host": host, "kind": kind,
             "targets": targets or [], "cached": cached, "shape": shape, "ttl": ttl}
+    if sends is not None:
+        result["sends"] = sends
+    return result
 
 
 def dhcp(label, kind, client=1):
@@ -99,7 +102,7 @@ def profiles():
         {"label": "fqdn-only", "extra": "dhcp-fqdn\n", "static": None, "actions": [
             dhcp("offer-one", 1), dhcp("ack-one", 3),
             dns("fqdn-published", FQDN, 1, [ADDRESS], True),
-            dns("short-not-published", "client1", 1),
+            dns("short-not-published", "client1", 1, sends=1),
             dns("fqdn-owns-ptr", targets=[FQDN], cached=True),
             dhcp("release-one", 7), dns("released-fqdn", FQDN, 1), dns("released-ptr"),
         ]},
@@ -332,7 +335,8 @@ def calibrate(rows, profile):
     for row, item in zip(rows, actions):
         if item["op"] == "dns":
             assert row["cached"] == item["cached"], (row["label"], "cache", row["cached"], item["cached"])
-            assert len(row["upstream"]) == (0 if item["cached"] else 1 if item["shape"] == "positive" else 2), (row["label"], "upstream count")
+            sends = item.get("sends", 0 if item["cached"] else 1 if item["shape"] == "positive" else 2)
+            assert len(row["upstream"]) == sends, (row["label"], "upstream count", len(row["upstream"]), sends)
             response = row["response"]
             assert response["flags"] & 15 == (0 if item["targets"] else 2), (row["label"], "rcode")
             records = [record for record in response["records"] if record["section"] == "answer"]
