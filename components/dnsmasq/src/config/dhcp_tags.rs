@@ -28,8 +28,15 @@ impl TagPredicate {
     }
 
     pub fn matches(&self, tags: &[&[u8]]) -> bool {
-        // Reuse the existing C-qualified exact/negated tag predicate.
-        crate::dhcp::allocation::match_tags(&self.tags, tags, true)
+        // dhcp-common.c: match_netid; keep configuration independent of the
+        // DHCP runtime so standalone configuration consumers can use it.
+        self.tags.iter().all(|tag| {
+            if let Some(negative) = tag.strip_prefix(b"!").or_else(|| tag.strip_prefix(b"#")) {
+                !tags.contains(&negative)
+            } else {
+                tags.contains(&tag.as_slice())
+            }
+        })
     }
 }
 
