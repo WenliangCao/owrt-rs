@@ -479,6 +479,17 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                         IpAddr::V6(_) => None,
                     }))
             });
+            let reverse_dns = Arc::clone(&service);
+            provider.set_reverse_host_lookup(move |address| {
+                let parent = reverse_dns
+                    .lock()
+                    .map_err(|_| io::Error::other("DNS state lock poisoned"))?;
+                Ok(parent
+                    .local
+                    .hosts
+                    .reverse(IpAddr::V4(address))
+                    .map(|host| host.name.clone()))
+            });
             provider.set_dns_publisher(Box::new(LeasePublisher {
                 parent: Arc::clone(&service),
                 policy: LeasePolicy {

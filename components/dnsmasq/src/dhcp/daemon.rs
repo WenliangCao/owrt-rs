@@ -85,6 +85,7 @@ pub struct MaintenanceReport {
 }
 
 type BootHostLookup = Box<dyn FnMut(&[u8]) -> io::Result<Option<Ipv4Addr>> + Send>;
+type ReverseHostLookup = Box<dyn FnMut(Ipv4Addr) -> io::Result<Option<Vec<u8>>> + Send>;
 
 pub type DhcpEventSink<'a> =
     dyn for<'event> FnMut(DhcpEventKind, DhcpEventFields<'event>, DhcpLogging) + 'a;
@@ -117,6 +118,7 @@ pub struct LocalProvider {
     persistence: LeasePersistence,
     dns_publisher: Option<Box<dyn DnsPublisher>>,
     boot_host_lookup: Option<BootHostLookup>,
+    reverse_host_lookup: Option<ReverseHostLookup>,
     startup_removed: Vec<Lease>,
     restore_stats: Option<RestoreStats>,
     initialized: bool,
@@ -188,6 +190,7 @@ impl LocalProvider {
             persistence,
             dns_publisher: None,
             boot_host_lookup: None,
+            reverse_host_lookup: None,
             startup_removed,
             restore_stats,
             initialized: false,
@@ -218,6 +221,15 @@ impl LocalProvider {
         F: FnMut(&[u8]) -> io::Result<Option<Ipv4Addr>> + Send + 'static,
     {
         self.boot_host_lookup = Some(Box::new(lookup));
+    }
+
+    /// Return only the current static IPv4 reverse-host name. Domain and
+    /// legal-hostname policy is applied here, not by the DNS callback.
+    pub fn set_reverse_host_lookup<F>(&mut self, lookup: F)
+    where
+        F: FnMut(Ipv4Addr) -> io::Result<Option<Vec<u8>>> + Send + 'static,
+    {
+        self.reverse_host_lookup = Some(Box::new(lookup));
     }
 
     /// Install the validated address-to-domain fields before initialize.
@@ -549,6 +561,33 @@ impl LocalProvider {
                 self.reply_hostname = Some(name.clone());
             }
         }
+        // dhcp.c host_from_dns supplies an authoritative name for ordinary
+        // ACK, but only a fallback for INFORM. No lookup is done with DNS
+        // disabled. A provider without a static-host source has no match.
+        let reverse_address = match packet.message_type() {
+            3 if configured_name.is_none() => packet
+                .requested_address()
+                .or(Some(packet.effective_ciaddr())),
+            8 if self.reply_hostname.is_none() => Some(packet.effective_ciaddr()),
+            _ => None,
+        }
+        .filter(|address| !address.is_unspecified());
+        let dns_name = if self.dns_port != 0 {
+            if let (Some(address), Some(lookup)) =
+                (reverse_address, self.reverse_host_lookup.as_mut())
+            {
+                lookup(address)
+                    .map_err(|error| RuntimeError::State(error.to_string()))?
+                    .and_then(|name| reverse_hostname(name, self.domains.for_address(address)))
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+        if let Some(name) = &dns_name {
+            self.reply_hostname = Some(name.clone());
+        }
         let environment = Environment {
             now,
             interface,
@@ -623,7 +662,7 @@ impl LocalProvider {
                 }
             },
         );
-        provider.configured_name = configured_name;
+        provider.configured_name = dns_name.as_deref().or(configured_name);
         provider.domains = Some(&self.domains);
         provider.quiet_dhcp = self.config.quiet_dhcp;
         provider.message_counters = Some(&mut self.message_counters);
@@ -770,6 +809,27 @@ impl OutcomeProvider for EventProvider<'_> {
     }
 }
 
+/// dhcp.c:1092 host_from_dns: suffix must match get_domain, then validate the
+/// short hostname with legal_hostname and preserve its original letter case.
+fn reverse_hostname(mut name: Vec<u8>, domain: Option<&[u8]>) -> Option<Vec<u8>> {
+    crate::hosts::canonicalise(&name)?; // check_name's full length/character gate
+    let dot = name.iter().position(|byte| *byte == b'.');
+    if let Some(dot) = dot {
+        let suffix = &name[dot + 1..];
+        if !suffix.is_empty() && !domain.is_some_and(|domain| suffix.eq_ignore_ascii_case(domain)) {
+            return None;
+        }
+    }
+    let end = dot.unwrap_or(name.len());
+    if !name[..end].iter().enumerate().all(|(index, byte)| {
+        byte.is_ascii_alphanumeric() || (index != 0 && matches!(byte, b'-' | b'_'))
+    }) {
+        return None;
+    }
+    name.truncate(end);
+    Some(name)
+}
+
 /// rfc2131.c extended_hwaddr followed by util.c print_mac. A zero-length
 /// hardware value still has a non-NULL pointer in this path, hence "<null>".
 fn event_mac(packet: super::packet::Packet<'_>, client_id: Option<&[u8]>) -> Vec<u8> {
@@ -807,6 +867,29 @@ fn event_mac(packet: super::packet::Packet<'_>, client_id: Option<&[u8]>) -> Vec
 #[cfg(test)]
 mod startup_tests {
     use super::*;
+
+    #[test]
+    fn reverse_host_name_uses_c_domain_and_legal_short_name_rules() {
+        for (name, domain, expected) in [
+            (b"FromHosts".as_slice(), None, Some(b"FromHosts".as_slice())),
+            (
+                b"FromHosts.POOL.TEST",
+                Some(b"pool.test".as_slice()),
+                Some(b"FromHosts".as_slice()),
+            ),
+            (b"fromhosts.other.test", Some(b"pool.test".as_slice()), None),
+            (b"fromhosts.pool.test", None, None),
+            (b"_invalid", None, None),
+            (b"valid_name", None, Some(b"valid_name".as_slice())),
+            (
+                b".pool.test",
+                Some(b"pool.test".as_slice()),
+                Some(b"".as_slice()),
+            ),
+        ] {
+            assert_eq!(reverse_hostname(name.to_vec(), domain).as_deref(), expected);
+        }
+    }
 
     #[test]
     fn startup_class_uses_operation_and_typed_capacity_not_errno_text() {

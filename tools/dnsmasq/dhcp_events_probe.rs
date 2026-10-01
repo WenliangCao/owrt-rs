@@ -49,8 +49,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let columns: Vec<_> = line.split_whitespace().collect();
         assert_eq!(columns[0], "P");
         let source = columns[3].as_bytes();
+        assert!(source.len() % 2 == 0 && source.len() <= 8192);
         let packet: Vec<u8> = source
-            .chunks_exact(2)
+            .as_chunks::<2>()
+            .0
+            .iter()
             .map(|pair| u8::from_str_radix(std::str::from_utf8(pair).unwrap(), 16).unwrap())
             .collect();
         let mut sink = |kind: DhcpEventKind, fields: DhcpEventFields<'_>, _logging: DhcpLogging| {

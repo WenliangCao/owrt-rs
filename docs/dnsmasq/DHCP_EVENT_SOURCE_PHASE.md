@@ -65,9 +65,9 @@ sudo -n sh tools/dnsmasq/run_isolated.sh \
   --rust "$FROZEN_RUST_OBSERVER" --output private/dhcp-events-rerun
 ```
 
-This stage does not close the previously missing ACK/INFORM `host_from_dns`
-reverse-static-host lookup. That needs its own C baseline and shared DNS hook;
-it must not use dynamic DHCP names or a system resolver as a substitute.
+The subsequent [reverse-host-name stage](DHCP_REVERSE_HOST_NAME_PHASE.md) closes
+the previously missing ACK/INFORM `host_from_dns` path with an independent C
+baseline and shared static hosts hook. Startup/HUP renaming remains separate.
 The instrumented maintenance-order observer below closes the earlier pending
 file/DNS order check; external ubusd arrival order is never used as that proof. No whole-daemon, resource,
 performance or physical-router acceptance claim follows from these passes.
