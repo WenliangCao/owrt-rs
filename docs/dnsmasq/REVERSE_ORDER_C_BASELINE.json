@@ -1,0 +1,3489 @@
+{
+  "planned_invocations": 42,
+  "runs": [
+    {
+      "profile": "D",
+      "runtime": "native",
+      "repeat": 0,
+      "exit": 0,
+      "stdout_sha256": "c1e34df8b563dfe7eefa8e05b83619326b363a24093fb2616ad7867ba79afd3e",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "4ebbedd15feab9792b405bc88e6d77b54166f8e9b2417981eae4e052c27dfdff",
+      "mix_sha256": "813c779b5ed8e77f6a4ed7273a10f77bccd65709452fd12a8d31c187f4a8b1ff",
+      "relations_sha256": "69f161466af0e82f9b4e170e1b900a9054fbe42455f51cb36a70f2abddee6d98",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          0,
+          1,
+          2
+        ],
+        "selected_buckets": [
+          16,
+          63,
+          3
+        ],
+        "input_deadlines": [
+          220,
+          220,
+          220
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2,
+          3
+        ],
+        "parent_prelookup_rrset_lru": [
+          3,
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            3,
+            [
+              3
+            ]
+          ],
+          [
+            16,
+            [
+              1
+            ]
+          ],
+          [
+            63,
+            [
+              2
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            3,
+            [
+              3
+            ]
+          ],
+          [
+            16,
+            [
+              1
+            ]
+          ],
+          [
+            63,
+            [
+              2
+            ]
+          ]
+        ],
+        "child_address_order": [
+          2,
+          1,
+          3
+        ],
+        "parent_address_order": [
+          2,
+          1,
+          3
+        ],
+        "actual_parent_tail_role": 3,
+        "actual_parent_tail_deadline": 220,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "D",
+      "runtime": "native",
+      "repeat": 1,
+      "exit": 0,
+      "stdout_sha256": "467d7a7c3cdeccf78bf39b49eac7703fac9823824de9903c14e12de7636b7aa3",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "5152e05cfeff9dcdcb9e6ef79c40d8d59ad4578605aa68772eac5877c6c54cc1",
+      "mix_sha256": "9973c465d059d304bcda291cb6268d4375f835620f949776d7c82fa1fa9607da",
+      "relations_sha256": "784c4140b31929ace7eaee482b46302c27d01ce4a3c8f90a15e0f1d6706e2330",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          0,
+          1,
+          2
+        ],
+        "selected_buckets": [
+          5,
+          54,
+          9
+        ],
+        "input_deadlines": [
+          220,
+          220,
+          220
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2,
+          3
+        ],
+        "parent_prelookup_rrset_lru": [
+          3,
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            5,
+            [
+              1
+            ]
+          ],
+          [
+            9,
+            [
+              3
+            ]
+          ],
+          [
+            54,
+            [
+              2
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            5,
+            [
+              1
+            ]
+          ],
+          [
+            9,
+            [
+              3
+            ]
+          ],
+          [
+            54,
+            [
+              2
+            ]
+          ]
+        ],
+        "child_address_order": [
+          2,
+          3,
+          1
+        ],
+        "parent_address_order": [
+          2,
+          3,
+          1
+        ],
+        "actual_parent_tail_role": 1,
+        "actual_parent_tail_deadline": 220,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "D",
+      "runtime": "native",
+      "repeat": 2,
+      "exit": 0,
+      "stdout_sha256": "804dd344721c2dedb47077d9a24ec09169eb08a54325143f2d5d8c3b06354e0a",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "fc9f56c4e8081c6cb7a0b14284e9169b7ef6f55d4228a994c40bd8433acc5e6b",
+      "mix_sha256": "1db21abdfbd3f5e6956bc4b407a491d6b729b32c333e76652191f962c8a7861a",
+      "relations_sha256": "e499bac5159cf247db57e194ed9db1357f18a92531f803c96e387b6d6454244c",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          0,
+          1,
+          2
+        ],
+        "selected_buckets": [
+          20,
+          29,
+          31
+        ],
+        "input_deadlines": [
+          220,
+          220,
+          220
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2,
+          3
+        ],
+        "parent_prelookup_rrset_lru": [
+          3,
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            20,
+            [
+              1
+            ]
+          ],
+          [
+            29,
+            [
+              2
+            ]
+          ],
+          [
+            31,
+            [
+              3
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            20,
+            [
+              1
+            ]
+          ],
+          [
+            29,
+            [
+              2
+            ]
+          ],
+          [
+            31,
+            [
+              3
+            ]
+          ]
+        ],
+        "child_address_order": [
+          3,
+          2,
+          1
+        ],
+        "parent_address_order": [
+          3,
+          2,
+          1
+        ],
+        "actual_parent_tail_role": 1,
+        "actual_parent_tail_deadline": 220,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "D",
+      "runtime": "target",
+      "repeat": 0,
+      "exit": 0,
+      "stdout_sha256": "1555b6f176c53b3ab3b1c3ba7afd05bb5567e148b9e5b152294f93958a1e9bf0",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "0780fc238bde8e8d44569ad0764945b18bec1cec77861a5a1831b69ba8204b62",
+      "mix_sha256": "460d1942fcaf3454bf9132486d51998ee278b98d6dd4eedbb7d868d2b2a8e75d",
+      "relations_sha256": "e8c211b8aabb18505fef42f9806a91596409b05cccd775a78adbf6c7a34b1f4f",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          0,
+          1,
+          2
+        ],
+        "selected_buckets": [
+          37,
+          61,
+          53
+        ],
+        "input_deadlines": [
+          220,
+          220,
+          220
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2,
+          3
+        ],
+        "parent_prelookup_rrset_lru": [
+          3,
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            37,
+            [
+              1
+            ]
+          ],
+          [
+            53,
+            [
+              3
+            ]
+          ],
+          [
+            61,
+            [
+              2
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            37,
+            [
+              1
+            ]
+          ],
+          [
+            53,
+            [
+              3
+            ]
+          ],
+          [
+            61,
+            [
+              2
+            ]
+          ]
+        ],
+        "child_address_order": [
+          2,
+          3,
+          1
+        ],
+        "parent_address_order": [
+          2,
+          3,
+          1
+        ],
+        "actual_parent_tail_role": 1,
+        "actual_parent_tail_deadline": 220,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "D",
+      "runtime": "target",
+      "repeat": 1,
+      "exit": 0,
+      "stdout_sha256": "1555b6f176c53b3ab3b1c3ba7afd05bb5567e148b9e5b152294f93958a1e9bf0",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "0780fc238bde8e8d44569ad0764945b18bec1cec77861a5a1831b69ba8204b62",
+      "mix_sha256": "460d1942fcaf3454bf9132486d51998ee278b98d6dd4eedbb7d868d2b2a8e75d",
+      "relations_sha256": "e8c211b8aabb18505fef42f9806a91596409b05cccd775a78adbf6c7a34b1f4f",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          0,
+          1,
+          2
+        ],
+        "selected_buckets": [
+          37,
+          61,
+          53
+        ],
+        "input_deadlines": [
+          220,
+          220,
+          220
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2,
+          3
+        ],
+        "parent_prelookup_rrset_lru": [
+          3,
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            37,
+            [
+              1
+            ]
+          ],
+          [
+            53,
+            [
+              3
+            ]
+          ],
+          [
+            61,
+            [
+              2
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            37,
+            [
+              1
+            ]
+          ],
+          [
+            53,
+            [
+              3
+            ]
+          ],
+          [
+            61,
+            [
+              2
+            ]
+          ]
+        ],
+        "child_address_order": [
+          2,
+          3,
+          1
+        ],
+        "parent_address_order": [
+          2,
+          3,
+          1
+        ],
+        "actual_parent_tail_role": 1,
+        "actual_parent_tail_deadline": 220,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "D",
+      "runtime": "target",
+      "repeat": 2,
+      "exit": 0,
+      "stdout_sha256": "1555b6f176c53b3ab3b1c3ba7afd05bb5567e148b9e5b152294f93958a1e9bf0",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "0780fc238bde8e8d44569ad0764945b18bec1cec77861a5a1831b69ba8204b62",
+      "mix_sha256": "460d1942fcaf3454bf9132486d51998ee278b98d6dd4eedbb7d868d2b2a8e75d",
+      "relations_sha256": "e8c211b8aabb18505fef42f9806a91596409b05cccd775a78adbf6c7a34b1f4f",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          0,
+          1,
+          2
+        ],
+        "selected_buckets": [
+          37,
+          61,
+          53
+        ],
+        "input_deadlines": [
+          220,
+          220,
+          220
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2,
+          3
+        ],
+        "parent_prelookup_rrset_lru": [
+          3,
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            37,
+            [
+              1
+            ]
+          ],
+          [
+            53,
+            [
+              3
+            ]
+          ],
+          [
+            61,
+            [
+              2
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            37,
+            [
+              1
+            ]
+          ],
+          [
+            53,
+            [
+              3
+            ]
+          ],
+          [
+            61,
+            [
+              2
+            ]
+          ]
+        ],
+        "child_address_order": [
+          2,
+          3,
+          1
+        ],
+        "parent_address_order": [
+          2,
+          3,
+          1
+        ],
+        "actual_parent_tail_role": 1,
+        "actual_parent_tail_deadline": 220,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "C",
+      "runtime": "native",
+      "repeat": 0,
+      "exit": 0,
+      "stdout_sha256": "beb3c68806ee0c92223a6f0e937c59de4b8b673440b34b56fe256e8342b92950",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "3d71cdc9fa917e198ac53c3e21e9f74065b805f86ffcb8b8623c23b0e4e26f15",
+      "mix_sha256": "167b6436c1e20c6330f580e939cf4c191f2d88f2ae6287dd6f258eb02f3f1e47",
+      "relations_sha256": "2aa90d5e0c094c915759ffcc668599d5e8199f24915388a6491c43eb5d99b5fa",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          1,
+          9,
+          10
+        ],
+        "selected_buckets": [
+          0,
+          0,
+          0
+        ],
+        "input_deadlines": [
+          220,
+          220,
+          220
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2,
+          3
+        ],
+        "parent_prelookup_rrset_lru": [
+          3,
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            0,
+            [
+              1,
+              2,
+              3
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            0,
+            [
+              3,
+              2,
+              1
+            ]
+          ]
+        ],
+        "child_address_order": [
+          3,
+          2,
+          1
+        ],
+        "parent_address_order": [
+          1,
+          2,
+          3
+        ],
+        "actual_parent_tail_role": 3,
+        "actual_parent_tail_deadline": 220,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "C",
+      "runtime": "native",
+      "repeat": 1,
+      "exit": 0,
+      "stdout_sha256": "25046ea66c0af0e20a74736924051b8c9d48606721bfd4a8f2c5ef273260fe9c",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "984ef3837c8667d91f23423021902d7c0d159f9949546b35b709724d0c58d14e",
+      "mix_sha256": "98612ba146bd6c08cfef96119d67cc57e33d930f3ea875543bae560783c6cec3",
+      "relations_sha256": "8b7866e8abe6542237a49d85ef4198937a6782e3a981ce7bc0301a3801efd85b",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          203,
+          213,
+          223
+        ],
+        "selected_buckets": [
+          0,
+          0,
+          0
+        ],
+        "input_deadlines": [
+          220,
+          220,
+          220
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2,
+          3
+        ],
+        "parent_prelookup_rrset_lru": [
+          3,
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            0,
+            [
+              1,
+              2,
+              3
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            0,
+            [
+              3,
+              2,
+              1
+            ]
+          ]
+        ],
+        "child_address_order": [
+          3,
+          2,
+          1
+        ],
+        "parent_address_order": [
+          1,
+          2,
+          3
+        ],
+        "actual_parent_tail_role": 3,
+        "actual_parent_tail_deadline": 220,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "C",
+      "runtime": "native",
+      "repeat": 2,
+      "exit": 0,
+      "stdout_sha256": "12ba3ba8dacb2d77f95e3c5bdb260961ddafe4e734db75fe684d15e34e2c2e5b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "748d6a4396294673fd8e0633b5e21f0b4f4abb1e6b7b6f5a871894ad00d977e2",
+      "mix_sha256": "14e92bf8a1d2fc026d4243ebe6113d6a065ad3175ac258dee9b370d0b23ab6aa",
+      "relations_sha256": "2ab3d41e04810c259c2b9d55d0fa53bd6ed3cfd16aa56090103f3b73ea76a1b5",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          13,
+          165,
+          202
+        ],
+        "selected_buckets": [
+          0,
+          0,
+          0
+        ],
+        "input_deadlines": [
+          220,
+          220,
+          220
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2,
+          3
+        ],
+        "parent_prelookup_rrset_lru": [
+          3,
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            0,
+            [
+              1,
+              2,
+              3
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            0,
+            [
+              3,
+              2,
+              1
+            ]
+          ]
+        ],
+        "child_address_order": [
+          3,
+          2,
+          1
+        ],
+        "parent_address_order": [
+          1,
+          2,
+          3
+        ],
+        "actual_parent_tail_role": 3,
+        "actual_parent_tail_deadline": 220,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "C",
+      "runtime": "target",
+      "repeat": 0,
+      "exit": 0,
+      "stdout_sha256": "920211b9f26526f3bd4ec9610ef7445f63c3321d61f5b3e1c3b6525f9df2ea26",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "0780fc238bde8e8d44569ad0764945b18bec1cec77861a5a1831b69ba8204b62",
+      "mix_sha256": "460d1942fcaf3454bf9132486d51998ee278b98d6dd4eedbb7d868d2b2a8e75d",
+      "relations_sha256": "94e56bc185731746409944b10307abde6c16d75b94299970873910c06f3c1335",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          163,
+          203,
+          206
+        ],
+        "selected_buckets": [
+          0,
+          0,
+          0
+        ],
+        "input_deadlines": [
+          220,
+          220,
+          220
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2,
+          3
+        ],
+        "parent_prelookup_rrset_lru": [
+          3,
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            0,
+            [
+              1,
+              2,
+              3
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            0,
+            [
+              3,
+              2,
+              1
+            ]
+          ]
+        ],
+        "child_address_order": [
+          3,
+          2,
+          1
+        ],
+        "parent_address_order": [
+          1,
+          2,
+          3
+        ],
+        "actual_parent_tail_role": 3,
+        "actual_parent_tail_deadline": 220,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "C",
+      "runtime": "target",
+      "repeat": 1,
+      "exit": 0,
+      "stdout_sha256": "920211b9f26526f3bd4ec9610ef7445f63c3321d61f5b3e1c3b6525f9df2ea26",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "0780fc238bde8e8d44569ad0764945b18bec1cec77861a5a1831b69ba8204b62",
+      "mix_sha256": "460d1942fcaf3454bf9132486d51998ee278b98d6dd4eedbb7d868d2b2a8e75d",
+      "relations_sha256": "94e56bc185731746409944b10307abde6c16d75b94299970873910c06f3c1335",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          163,
+          203,
+          206
+        ],
+        "selected_buckets": [
+          0,
+          0,
+          0
+        ],
+        "input_deadlines": [
+          220,
+          220,
+          220
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2,
+          3
+        ],
+        "parent_prelookup_rrset_lru": [
+          3,
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            0,
+            [
+              1,
+              2,
+              3
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            0,
+            [
+              3,
+              2,
+              1
+            ]
+          ]
+        ],
+        "child_address_order": [
+          3,
+          2,
+          1
+        ],
+        "parent_address_order": [
+          1,
+          2,
+          3
+        ],
+        "actual_parent_tail_role": 3,
+        "actual_parent_tail_deadline": 220,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "C",
+      "runtime": "target",
+      "repeat": 2,
+      "exit": 0,
+      "stdout_sha256": "920211b9f26526f3bd4ec9610ef7445f63c3321d61f5b3e1c3b6525f9df2ea26",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "0780fc238bde8e8d44569ad0764945b18bec1cec77861a5a1831b69ba8204b62",
+      "mix_sha256": "460d1942fcaf3454bf9132486d51998ee278b98d6dd4eedbb7d868d2b2a8e75d",
+      "relations_sha256": "94e56bc185731746409944b10307abde6c16d75b94299970873910c06f3c1335",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          163,
+          203,
+          206
+        ],
+        "selected_buckets": [
+          0,
+          0,
+          0
+        ],
+        "input_deadlines": [
+          220,
+          220,
+          220
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2,
+          3
+        ],
+        "parent_prelookup_rrset_lru": [
+          3,
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            0,
+            [
+              1,
+              2,
+              3
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            0,
+            [
+              3,
+              2,
+              1
+            ]
+          ]
+        ],
+        "child_address_order": [
+          3,
+          2,
+          1
+        ],
+        "parent_address_order": [
+          1,
+          2,
+          3
+        ],
+        "actual_parent_tail_role": 3,
+        "actual_parent_tail_deadline": 220,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "M",
+      "runtime": "native",
+      "repeat": 0,
+      "exit": 0,
+      "stdout_sha256": "d0e362a245079b19985e727765277b15ea037bcdcb20a464eacb301319d6ed15",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "560a73da45dc1f001ed1aa6f3ccdec2fc1df93d7f7369726e448b6b6cb001c9a",
+      "mix_sha256": "1acd079cae4cdf14cb24326d9d807c1e9cf388a95d2a67f2c55fb8f6d3061af8",
+      "relations_sha256": "2981f0b852b24842a3f8e17e0364c3d3fe628635ae5ac0e4a3f8e1bbc1fc6b02",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          46,
+          61,
+          0
+        ],
+        "selected_buckets": [
+          0,
+          0,
+          48
+        ],
+        "input_deadlines": [
+          220,
+          220,
+          220
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2,
+          3
+        ],
+        "parent_prelookup_rrset_lru": [
+          3,
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            0,
+            [
+              1,
+              2
+            ]
+          ],
+          [
+            48,
+            [
+              3
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            0,
+            [
+              2,
+              1
+            ]
+          ],
+          [
+            48,
+            [
+              3
+            ]
+          ]
+        ],
+        "child_address_order": [
+          3,
+          2,
+          1
+        ],
+        "parent_address_order": [
+          3,
+          1,
+          2
+        ],
+        "actual_parent_tail_role": 2,
+        "actual_parent_tail_deadline": 220,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "M",
+      "runtime": "native",
+      "repeat": 1,
+      "exit": 0,
+      "stdout_sha256": "76c1f807d04424311c2f24eea84fe99bf90ba8ea1c9b58e8c9f084e8b07240ef",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "71318f91552504953ddae9ec4231513c81e0970f75cdd0d472170d36b65e0833",
+      "mix_sha256": "90a2eb46ab8321dac665898a8dd809cc1b6e8974cab7824ddddcede2aba52ae5",
+      "relations_sha256": "9367f5149a46e7a31a25655661d6accd8e7d8b8f1c21795a94e0dfc850374aac",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          3,
+          38,
+          0
+        ],
+        "selected_buckets": [
+          0,
+          0,
+          53
+        ],
+        "input_deadlines": [
+          220,
+          220,
+          220
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2,
+          3
+        ],
+        "parent_prelookup_rrset_lru": [
+          3,
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            0,
+            [
+              1,
+              2
+            ]
+          ],
+          [
+            53,
+            [
+              3
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            0,
+            [
+              2,
+              1
+            ]
+          ],
+          [
+            53,
+            [
+              3
+            ]
+          ]
+        ],
+        "child_address_order": [
+          3,
+          2,
+          1
+        ],
+        "parent_address_order": [
+          3,
+          1,
+          2
+        ],
+        "actual_parent_tail_role": 2,
+        "actual_parent_tail_deadline": 220,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "M",
+      "runtime": "native",
+      "repeat": 2,
+      "exit": 0,
+      "stdout_sha256": "9f69fb09bdb60ea9462a9ecc3e791ad8c969420299e6c5c2b74ec0073849f5ea",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "00c7b37d042b3e4f57bbd7fc1129c81abcf97618666e390aa2814d374d813527",
+      "mix_sha256": "3cd0dd75bbb7a34e5abd5e93527097c48c4c73f0ff6a0fcc125999a2039db47a",
+      "relations_sha256": "5d26f6f833ec0c5f8d093f29dbe0d9a1635412249ce769a4cfd4408a41c0fcae",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          26,
+          45,
+          0
+        ],
+        "selected_buckets": [
+          0,
+          0,
+          8
+        ],
+        "input_deadlines": [
+          220,
+          220,
+          220
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2,
+          3
+        ],
+        "parent_prelookup_rrset_lru": [
+          3,
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            0,
+            [
+              1,
+              2
+            ]
+          ],
+          [
+            8,
+            [
+              3
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            0,
+            [
+              2,
+              1
+            ]
+          ],
+          [
+            8,
+            [
+              3
+            ]
+          ]
+        ],
+        "child_address_order": [
+          3,
+          2,
+          1
+        ],
+        "parent_address_order": [
+          3,
+          1,
+          2
+        ],
+        "actual_parent_tail_role": 2,
+        "actual_parent_tail_deadline": 220,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "M",
+      "runtime": "target",
+      "repeat": 0,
+      "exit": 0,
+      "stdout_sha256": "745140a4ec47af942f7b7fcefec81ee40a9b3e7763830a2cf5a8982bc79148d2",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "0780fc238bde8e8d44569ad0764945b18bec1cec77861a5a1831b69ba8204b62",
+      "mix_sha256": "460d1942fcaf3454bf9132486d51998ee278b98d6dd4eedbb7d868d2b2a8e75d",
+      "relations_sha256": "ff8645e3417244791787d2a1cd5414cbaa5174019b6b6e3810fd594cb0ae347a",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          163,
+          203,
+          0
+        ],
+        "selected_buckets": [
+          0,
+          0,
+          37
+        ],
+        "input_deadlines": [
+          220,
+          220,
+          220
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2,
+          3
+        ],
+        "parent_prelookup_rrset_lru": [
+          3,
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            0,
+            [
+              1,
+              2
+            ]
+          ],
+          [
+            37,
+            [
+              3
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            0,
+            [
+              2,
+              1
+            ]
+          ],
+          [
+            37,
+            [
+              3
+            ]
+          ]
+        ],
+        "child_address_order": [
+          3,
+          2,
+          1
+        ],
+        "parent_address_order": [
+          3,
+          1,
+          2
+        ],
+        "actual_parent_tail_role": 2,
+        "actual_parent_tail_deadline": 220,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "M",
+      "runtime": "target",
+      "repeat": 1,
+      "exit": 0,
+      "stdout_sha256": "745140a4ec47af942f7b7fcefec81ee40a9b3e7763830a2cf5a8982bc79148d2",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "0780fc238bde8e8d44569ad0764945b18bec1cec77861a5a1831b69ba8204b62",
+      "mix_sha256": "460d1942fcaf3454bf9132486d51998ee278b98d6dd4eedbb7d868d2b2a8e75d",
+      "relations_sha256": "ff8645e3417244791787d2a1cd5414cbaa5174019b6b6e3810fd594cb0ae347a",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          163,
+          203,
+          0
+        ],
+        "selected_buckets": [
+          0,
+          0,
+          37
+        ],
+        "input_deadlines": [
+          220,
+          220,
+          220
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2,
+          3
+        ],
+        "parent_prelookup_rrset_lru": [
+          3,
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            0,
+            [
+              1,
+              2
+            ]
+          ],
+          [
+            37,
+            [
+              3
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            0,
+            [
+              2,
+              1
+            ]
+          ],
+          [
+            37,
+            [
+              3
+            ]
+          ]
+        ],
+        "child_address_order": [
+          3,
+          2,
+          1
+        ],
+        "parent_address_order": [
+          3,
+          1,
+          2
+        ],
+        "actual_parent_tail_role": 2,
+        "actual_parent_tail_deadline": 220,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "M",
+      "runtime": "target",
+      "repeat": 2,
+      "exit": 0,
+      "stdout_sha256": "745140a4ec47af942f7b7fcefec81ee40a9b3e7763830a2cf5a8982bc79148d2",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "0780fc238bde8e8d44569ad0764945b18bec1cec77861a5a1831b69ba8204b62",
+      "mix_sha256": "460d1942fcaf3454bf9132486d51998ee278b98d6dd4eedbb7d868d2b2a8e75d",
+      "relations_sha256": "ff8645e3417244791787d2a1cd5414cbaa5174019b6b6e3810fd594cb0ae347a",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          163,
+          203,
+          0
+        ],
+        "selected_buckets": [
+          0,
+          0,
+          37
+        ],
+        "input_deadlines": [
+          220,
+          220,
+          220
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2,
+          3
+        ],
+        "parent_prelookup_rrset_lru": [
+          3,
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            0,
+            [
+              1,
+              2
+            ]
+          ],
+          [
+            37,
+            [
+              3
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            0,
+            [
+              2,
+              1
+            ]
+          ],
+          [
+            37,
+            [
+              3
+            ]
+          ]
+        ],
+        "child_address_order": [
+          3,
+          2,
+          1
+        ],
+        "parent_address_order": [
+          3,
+          1,
+          2
+        ],
+        "actual_parent_tail_role": 2,
+        "actual_parent_tail_deadline": 220,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "E",
+      "runtime": "native",
+      "repeat": 0,
+      "exit": 0,
+      "stdout_sha256": "40ef082bc639d7e6d818f1c8c7a19a3bd01ac440677330e824b6cbe05ba2812f",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "6c2b3746fa543595e780e05499dcf6645ac2f01566b651cd82ece4cd250767ef",
+      "mix_sha256": "0d1765ad1b2d3696c043a15cfa1da972fafcfafc8526bd207d5bf4d60c598f7b",
+      "relations_sha256": "2a002c59b96ab382d62973671ce33671afaabd8276d491e56cec48913db50d24",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          0,
+          0,
+          0
+        ],
+        "selected_buckets": [
+          1,
+          1,
+          1
+        ],
+        "input_deadlines": [
+          130,
+          160,
+          190
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2,
+          3
+        ],
+        "parent_prelookup_rrset_lru": [
+          3,
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            1,
+            [
+              3,
+              2,
+              1
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            1,
+            [
+              1,
+              2,
+              3
+            ]
+          ]
+        ],
+        "child_address_order": [
+          1,
+          2,
+          3
+        ],
+        "parent_address_order": [
+          3,
+          2,
+          1
+        ],
+        "actual_parent_tail_role": 1,
+        "actual_parent_tail_deadline": 130,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "E",
+      "runtime": "native",
+      "repeat": 1,
+      "exit": 0,
+      "stdout_sha256": "bf875564244fb6afd7e7080da748860a0594e3f91d87a2683c3c868125588aef",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "543c1ddb71afb2788b74ca87c5b5ba0ec5ad30d471019b70ac6e862d39fe5cee",
+      "mix_sha256": "6be7bf0d28ff3a62409cee8f7c80ab1c7c0a6a5599c845bbdcb8178fac5a39e8",
+      "relations_sha256": "014ade7d8994ff478d75d7a3415a58a49d68f455a1ecbf66915b65f62ef8afea",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          0,
+          0,
+          0
+        ],
+        "selected_buckets": [
+          39,
+          39,
+          39
+        ],
+        "input_deadlines": [
+          130,
+          160,
+          190
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2,
+          3
+        ],
+        "parent_prelookup_rrset_lru": [
+          3,
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            39,
+            [
+              3,
+              2,
+              1
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            39,
+            [
+              1,
+              2,
+              3
+            ]
+          ]
+        ],
+        "child_address_order": [
+          1,
+          2,
+          3
+        ],
+        "parent_address_order": [
+          3,
+          2,
+          1
+        ],
+        "actual_parent_tail_role": 1,
+        "actual_parent_tail_deadline": 130,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "E",
+      "runtime": "native",
+      "repeat": 2,
+      "exit": 0,
+      "stdout_sha256": "0c540355f4a522b4523d19ed531bf10b0b942e8814446d71bf73743caa0ea307",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "02a7963028ea26954c6881a0269b659138ff9a34ece6b98de3dc33732b932f97",
+      "mix_sha256": "14b4976e0b6b2ff7400a62be4e6a6c7f9b1431e2167cfd2a5aeb30454aa79ab1",
+      "relations_sha256": "91c44b70a64cc8cd48cc697535bf5999ae478f6d782b74e940674d2cb9dac056",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          0,
+          0,
+          0
+        ],
+        "selected_buckets": [
+          48,
+          48,
+          48
+        ],
+        "input_deadlines": [
+          130,
+          160,
+          190
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2,
+          3
+        ],
+        "parent_prelookup_rrset_lru": [
+          3,
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            48,
+            [
+              3,
+              2,
+              1
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            48,
+            [
+              1,
+              2,
+              3
+            ]
+          ]
+        ],
+        "child_address_order": [
+          1,
+          2,
+          3
+        ],
+        "parent_address_order": [
+          3,
+          2,
+          1
+        ],
+        "actual_parent_tail_role": 1,
+        "actual_parent_tail_deadline": 130,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "E",
+      "runtime": "target",
+      "repeat": 0,
+      "exit": 0,
+      "stdout_sha256": "1835d51ba7183785a679666fc0d95a23c77ab677f194a05cc2038af9fb93668f",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "0780fc238bde8e8d44569ad0764945b18bec1cec77861a5a1831b69ba8204b62",
+      "mix_sha256": "460d1942fcaf3454bf9132486d51998ee278b98d6dd4eedbb7d868d2b2a8e75d",
+      "relations_sha256": "daf8f7e88fd18800cddb3e698da443cbfdc50e1fe2304cf70e83d7f7267d65f1",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          0,
+          0,
+          0
+        ],
+        "selected_buckets": [
+          37,
+          37,
+          37
+        ],
+        "input_deadlines": [
+          130,
+          160,
+          190
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2,
+          3
+        ],
+        "parent_prelookup_rrset_lru": [
+          3,
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            37,
+            [
+              3,
+              2,
+              1
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            37,
+            [
+              1,
+              2,
+              3
+            ]
+          ]
+        ],
+        "child_address_order": [
+          1,
+          2,
+          3
+        ],
+        "parent_address_order": [
+          3,
+          2,
+          1
+        ],
+        "actual_parent_tail_role": 1,
+        "actual_parent_tail_deadline": 130,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "E",
+      "runtime": "target",
+      "repeat": 1,
+      "exit": 0,
+      "stdout_sha256": "1835d51ba7183785a679666fc0d95a23c77ab677f194a05cc2038af9fb93668f",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "0780fc238bde8e8d44569ad0764945b18bec1cec77861a5a1831b69ba8204b62",
+      "mix_sha256": "460d1942fcaf3454bf9132486d51998ee278b98d6dd4eedbb7d868d2b2a8e75d",
+      "relations_sha256": "daf8f7e88fd18800cddb3e698da443cbfdc50e1fe2304cf70e83d7f7267d65f1",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          0,
+          0,
+          0
+        ],
+        "selected_buckets": [
+          37,
+          37,
+          37
+        ],
+        "input_deadlines": [
+          130,
+          160,
+          190
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2,
+          3
+        ],
+        "parent_prelookup_rrset_lru": [
+          3,
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            37,
+            [
+              3,
+              2,
+              1
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            37,
+            [
+              1,
+              2,
+              3
+            ]
+          ]
+        ],
+        "child_address_order": [
+          1,
+          2,
+          3
+        ],
+        "parent_address_order": [
+          3,
+          2,
+          1
+        ],
+        "actual_parent_tail_role": 1,
+        "actual_parent_tail_deadline": 130,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "E",
+      "runtime": "target",
+      "repeat": 2,
+      "exit": 0,
+      "stdout_sha256": "1835d51ba7183785a679666fc0d95a23c77ab677f194a05cc2038af9fb93668f",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "0780fc238bde8e8d44569ad0764945b18bec1cec77861a5a1831b69ba8204b62",
+      "mix_sha256": "460d1942fcaf3454bf9132486d51998ee278b98d6dd4eedbb7d868d2b2a8e75d",
+      "relations_sha256": "daf8f7e88fd18800cddb3e698da443cbfdc50e1fe2304cf70e83d7f7267d65f1",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          0,
+          0,
+          0
+        ],
+        "selected_buckets": [
+          37,
+          37,
+          37
+        ],
+        "input_deadlines": [
+          130,
+          160,
+          190
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2,
+          3
+        ],
+        "parent_prelookup_rrset_lru": [
+          3,
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            37,
+            [
+              3,
+              2,
+              1
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            37,
+            [
+              1,
+              2,
+              3
+            ]
+          ]
+        ],
+        "child_address_order": [
+          1,
+          2,
+          3
+        ],
+        "parent_address_order": [
+          3,
+          2,
+          1
+        ],
+        "actual_parent_tail_role": 1,
+        "actual_parent_tail_deadline": 130,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "I",
+      "runtime": "native",
+      "repeat": 0,
+      "exit": 0,
+      "stdout_sha256": "f27955aeaba8bd327ca4207a663540e44c603f3cc0711ccbf4f9fbcdcee4bbd5",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 89,
+      "passed": 89,
+      "failed": 0,
+      "pool_sha256": "0bd2ae81cd372f1a76c9f685dd11de6649ee7b5e2627525244ea1f4af58d18fe",
+      "mix_sha256": "d314a3485bc2883eccf6266cc5838987ea4012bd8085f2cbf45d3235ad33a66a",
+      "relations_sha256": "767bf98182dd14eaeef862b185aa6602c39f6e6f6f5ece116a6d753ad9daa6f0",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          171,
+          208,
+          171
+        ],
+        "selected_buckets": [
+          0,
+          0,
+          0
+        ],
+        "input_deadlines": [
+          130,
+          160,
+          190
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2,
+          3
+        ],
+        "parent_prelookup_rrset_lru": [
+          3,
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            0,
+            [
+              1,
+              2,
+              3
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            0,
+            [
+              3,
+              2,
+              1
+            ]
+          ]
+        ],
+        "child_address_order": [
+          3,
+          2,
+          1
+        ],
+        "parent_address_order": [
+          1,
+          2,
+          3
+        ],
+        "actual_parent_tail_role": 3,
+        "actual_parent_tail_deadline": 190,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "I",
+      "runtime": "native",
+      "repeat": 1,
+      "exit": 0,
+      "stdout_sha256": "11b240f8f19d777e1a48fef3fc8ff7c59718a402b4a44537d521f50f4f06c6fc",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 89,
+      "passed": 89,
+      "failed": 0,
+      "pool_sha256": "d0c7dda88f40b769541209845da27345f5a283024c50a561a7724407f65a1ef6",
+      "mix_sha256": "606ed7ced115f2da19423bfebf3118ddad1936842a4fc5ff6cbec8fa2dbd5385",
+      "relations_sha256": "0d46a0fda9793abf25ccfad61282a89bcdcd710d2a11c5e19676872404239a50",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          110,
+          130,
+          110
+        ],
+        "selected_buckets": [
+          0,
+          0,
+          0
+        ],
+        "input_deadlines": [
+          130,
+          160,
+          190
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2,
+          3
+        ],
+        "parent_prelookup_rrset_lru": [
+          3,
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            0,
+            [
+              1,
+              2,
+              3
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            0,
+            [
+              3,
+              2,
+              1
+            ]
+          ]
+        ],
+        "child_address_order": [
+          3,
+          2,
+          1
+        ],
+        "parent_address_order": [
+          1,
+          2,
+          3
+        ],
+        "actual_parent_tail_role": 3,
+        "actual_parent_tail_deadline": 190,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "I",
+      "runtime": "native",
+      "repeat": 2,
+      "exit": 0,
+      "stdout_sha256": "ad0a8046f60c4b2b9045048764b2d8cee29f085a4018a7ed34ddde2d40d4724f",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 89,
+      "passed": 89,
+      "failed": 0,
+      "pool_sha256": "be4c26a2b1377f42b493e0be549ac4d4e5c38911e4583b257e6d5cb438233a9c",
+      "mix_sha256": "c1bb466b26d7b1ed2bb5d943b3ec0746e183936d7cd596178990ad01e64385e7",
+      "relations_sha256": "7690f719284e04ddc3a4957bae112c241a223d3345f5912e6ca02204e98c2a88",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          34,
+          81,
+          34
+        ],
+        "selected_buckets": [
+          0,
+          0,
+          0
+        ],
+        "input_deadlines": [
+          130,
+          160,
+          190
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2,
+          3
+        ],
+        "parent_prelookup_rrset_lru": [
+          3,
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            0,
+            [
+              1,
+              2,
+              3
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            0,
+            [
+              3,
+              2,
+              1
+            ]
+          ]
+        ],
+        "child_address_order": [
+          3,
+          2,
+          1
+        ],
+        "parent_address_order": [
+          1,
+          2,
+          3
+        ],
+        "actual_parent_tail_role": 3,
+        "actual_parent_tail_deadline": 190,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "I",
+      "runtime": "target",
+      "repeat": 0,
+      "exit": 0,
+      "stdout_sha256": "5617b98339e6eca22d989b8d2a8fe5b145797ba75f2594c490dce7a6792a9462",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 89,
+      "passed": 89,
+      "failed": 0,
+      "pool_sha256": "0780fc238bde8e8d44569ad0764945b18bec1cec77861a5a1831b69ba8204b62",
+      "mix_sha256": "460d1942fcaf3454bf9132486d51998ee278b98d6dd4eedbb7d868d2b2a8e75d",
+      "relations_sha256": "b1752cfb93f8a19d0d731e3deedb40ac4779a104bff6b894a26eced6d2a44fd1",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          163,
+          203,
+          163
+        ],
+        "selected_buckets": [
+          0,
+          0,
+          0
+        ],
+        "input_deadlines": [
+          130,
+          160,
+          190
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2,
+          3
+        ],
+        "parent_prelookup_rrset_lru": [
+          3,
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            0,
+            [
+              1,
+              2,
+              3
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            0,
+            [
+              3,
+              2,
+              1
+            ]
+          ]
+        ],
+        "child_address_order": [
+          3,
+          2,
+          1
+        ],
+        "parent_address_order": [
+          1,
+          2,
+          3
+        ],
+        "actual_parent_tail_role": 3,
+        "actual_parent_tail_deadline": 190,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "I",
+      "runtime": "target",
+      "repeat": 1,
+      "exit": 0,
+      "stdout_sha256": "5617b98339e6eca22d989b8d2a8fe5b145797ba75f2594c490dce7a6792a9462",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 89,
+      "passed": 89,
+      "failed": 0,
+      "pool_sha256": "0780fc238bde8e8d44569ad0764945b18bec1cec77861a5a1831b69ba8204b62",
+      "mix_sha256": "460d1942fcaf3454bf9132486d51998ee278b98d6dd4eedbb7d868d2b2a8e75d",
+      "relations_sha256": "b1752cfb93f8a19d0d731e3deedb40ac4779a104bff6b894a26eced6d2a44fd1",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          163,
+          203,
+          163
+        ],
+        "selected_buckets": [
+          0,
+          0,
+          0
+        ],
+        "input_deadlines": [
+          130,
+          160,
+          190
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2,
+          3
+        ],
+        "parent_prelookup_rrset_lru": [
+          3,
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            0,
+            [
+              1,
+              2,
+              3
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            0,
+            [
+              3,
+              2,
+              1
+            ]
+          ]
+        ],
+        "child_address_order": [
+          3,
+          2,
+          1
+        ],
+        "parent_address_order": [
+          1,
+          2,
+          3
+        ],
+        "actual_parent_tail_role": 3,
+        "actual_parent_tail_deadline": 190,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "I",
+      "runtime": "target",
+      "repeat": 2,
+      "exit": 0,
+      "stdout_sha256": "5617b98339e6eca22d989b8d2a8fe5b145797ba75f2594c490dce7a6792a9462",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 89,
+      "passed": 89,
+      "failed": 0,
+      "pool_sha256": "0780fc238bde8e8d44569ad0764945b18bec1cec77861a5a1831b69ba8204b62",
+      "mix_sha256": "460d1942fcaf3454bf9132486d51998ee278b98d6dd4eedbb7d868d2b2a8e75d",
+      "relations_sha256": "b1752cfb93f8a19d0d731e3deedb40ac4779a104bff6b894a26eced6d2a44fd1",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          163,
+          203,
+          163
+        ],
+        "selected_buckets": [
+          0,
+          0,
+          0
+        ],
+        "input_deadlines": [
+          130,
+          160,
+          190
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2,
+          3
+        ],
+        "parent_prelookup_rrset_lru": [
+          3,
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            0,
+            [
+              1,
+              2,
+              3
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            0,
+            [
+              3,
+              2,
+              1
+            ]
+          ]
+        ],
+        "child_address_order": [
+          3,
+          2,
+          1
+        ],
+        "parent_address_order": [
+          1,
+          2,
+          3
+        ],
+        "actual_parent_tail_role": 3,
+        "actual_parent_tail_deadline": 190,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "S1",
+      "runtime": "native",
+      "repeat": 0,
+      "exit": 0,
+      "stdout_sha256": "19f3e1146243184f3113dc18b1ff7b7203e04eb4fd462ae77b5888c112463092",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "08a1618a84161472d54568e0c30ab9233e1cb4e9f07c751d126dbcded61a1c34",
+      "mix_sha256": "003022970896a40712011895412e50a6df1452b8c00c9a7d4623d131a0f78c71",
+      "relations_sha256": "48b2337b9d73e8c051b26611c3c7e630616cd2a7211e57e6dd90c70c733bd0bf",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          0,
+          0
+        ],
+        "selected_buckets": [
+          43,
+          43
+        ],
+        "input_deadlines": [
+          110,
+          160
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2
+        ],
+        "parent_prelookup_rrset_lru": [
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            43,
+            [
+              2,
+              1
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            43,
+            [
+              1,
+              2
+            ]
+          ]
+        ],
+        "child_address_order": [
+          1,
+          2
+        ],
+        "parent_address_order": [
+          2,
+          1
+        ],
+        "actual_parent_tail_role": 1,
+        "actual_parent_tail_deadline": 110,
+        "live_freed_after_pressure": 0
+      }
+    },
+    {
+      "profile": "S1",
+      "runtime": "native",
+      "repeat": 1,
+      "exit": 0,
+      "stdout_sha256": "6b7ac39acdacfeb6ba1a010ea2bd6ac64dbaf1d8703369d5b369293ad66c1175",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "757747dfcdbff07792b1b65ad65ebfaab1cd13d8484f8520a70f865c3194553f",
+      "mix_sha256": "8b611879264ee445b6fa93d52f32693545c0f2936d3029199635bbd4b71dd4af",
+      "relations_sha256": "bfef9b043188ec2b8992675f95808cbdef301d0d7c7f5c1bc6d1dba542694bed",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          0,
+          0
+        ],
+        "selected_buckets": [
+          18,
+          18
+        ],
+        "input_deadlines": [
+          110,
+          160
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2
+        ],
+        "parent_prelookup_rrset_lru": [
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            18,
+            [
+              2,
+              1
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            18,
+            [
+              1,
+              2
+            ]
+          ]
+        ],
+        "child_address_order": [
+          1,
+          2
+        ],
+        "parent_address_order": [
+          2,
+          1
+        ],
+        "actual_parent_tail_role": 1,
+        "actual_parent_tail_deadline": 110,
+        "live_freed_after_pressure": 0
+      }
+    },
+    {
+      "profile": "S1",
+      "runtime": "native",
+      "repeat": 2,
+      "exit": 0,
+      "stdout_sha256": "d3fa8cf087b1b2d2248d9bc710d683175526c3046bc540998cd70e1556a4a7c8",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "dc5cc0cd9635e0c25bcd4a418fdc8710442c06d5adb27ea659778400738f9c04",
+      "mix_sha256": "e2982c9033496982951ea6dc3befb98f0edd3d9ff9462d9485a0856cb4f49228",
+      "relations_sha256": "c0cb40b8eb8f25935ccbf159a32fd1e33f9d2c1aac7a46e1dbe428f694710c4e",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          0,
+          0
+        ],
+        "selected_buckets": [
+          52,
+          52
+        ],
+        "input_deadlines": [
+          110,
+          160
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2
+        ],
+        "parent_prelookup_rrset_lru": [
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            52,
+            [
+              2,
+              1
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            52,
+            [
+              1,
+              2
+            ]
+          ]
+        ],
+        "child_address_order": [
+          1,
+          2
+        ],
+        "parent_address_order": [
+          2,
+          1
+        ],
+        "actual_parent_tail_role": 1,
+        "actual_parent_tail_deadline": 110,
+        "live_freed_after_pressure": 0
+      }
+    },
+    {
+      "profile": "S1",
+      "runtime": "target",
+      "repeat": 0,
+      "exit": 0,
+      "stdout_sha256": "ea0857c0ef4c2192982543bcd0f6d102c99f1e502f98d7a6ccda2fd219ae0783",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "0780fc238bde8e8d44569ad0764945b18bec1cec77861a5a1831b69ba8204b62",
+      "mix_sha256": "460d1942fcaf3454bf9132486d51998ee278b98d6dd4eedbb7d868d2b2a8e75d",
+      "relations_sha256": "35b76ea80f97a7a8ae9eb38ee98996fb572991619a2289d22199d7adbb552909",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          0,
+          0
+        ],
+        "selected_buckets": [
+          37,
+          37
+        ],
+        "input_deadlines": [
+          110,
+          160
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2
+        ],
+        "parent_prelookup_rrset_lru": [
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            37,
+            [
+              2,
+              1
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            37,
+            [
+              1,
+              2
+            ]
+          ]
+        ],
+        "child_address_order": [
+          1,
+          2
+        ],
+        "parent_address_order": [
+          2,
+          1
+        ],
+        "actual_parent_tail_role": 1,
+        "actual_parent_tail_deadline": 110,
+        "live_freed_after_pressure": 0
+      }
+    },
+    {
+      "profile": "S1",
+      "runtime": "target",
+      "repeat": 1,
+      "exit": 0,
+      "stdout_sha256": "ea0857c0ef4c2192982543bcd0f6d102c99f1e502f98d7a6ccda2fd219ae0783",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "0780fc238bde8e8d44569ad0764945b18bec1cec77861a5a1831b69ba8204b62",
+      "mix_sha256": "460d1942fcaf3454bf9132486d51998ee278b98d6dd4eedbb7d868d2b2a8e75d",
+      "relations_sha256": "35b76ea80f97a7a8ae9eb38ee98996fb572991619a2289d22199d7adbb552909",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          0,
+          0
+        ],
+        "selected_buckets": [
+          37,
+          37
+        ],
+        "input_deadlines": [
+          110,
+          160
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2
+        ],
+        "parent_prelookup_rrset_lru": [
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            37,
+            [
+              2,
+              1
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            37,
+            [
+              1,
+              2
+            ]
+          ]
+        ],
+        "child_address_order": [
+          1,
+          2
+        ],
+        "parent_address_order": [
+          2,
+          1
+        ],
+        "actual_parent_tail_role": 1,
+        "actual_parent_tail_deadline": 110,
+        "live_freed_after_pressure": 0
+      }
+    },
+    {
+      "profile": "S1",
+      "runtime": "target",
+      "repeat": 2,
+      "exit": 0,
+      "stdout_sha256": "ea0857c0ef4c2192982543bcd0f6d102c99f1e502f98d7a6ccda2fd219ae0783",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "0780fc238bde8e8d44569ad0764945b18bec1cec77861a5a1831b69ba8204b62",
+      "mix_sha256": "460d1942fcaf3454bf9132486d51998ee278b98d6dd4eedbb7d868d2b2a8e75d",
+      "relations_sha256": "35b76ea80f97a7a8ae9eb38ee98996fb572991619a2289d22199d7adbb552909",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          0,
+          0
+        ],
+        "selected_buckets": [
+          37,
+          37
+        ],
+        "input_deadlines": [
+          110,
+          160
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2
+        ],
+        "parent_prelookup_rrset_lru": [
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            37,
+            [
+              2,
+              1
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            37,
+            [
+              1,
+              2
+            ]
+          ]
+        ],
+        "child_address_order": [
+          1,
+          2
+        ],
+        "parent_address_order": [
+          2,
+          1
+        ],
+        "actual_parent_tail_role": 1,
+        "actual_parent_tail_deadline": 110,
+        "live_freed_after_pressure": 0
+      }
+    },
+    {
+      "profile": "S2",
+      "runtime": "native",
+      "repeat": 0,
+      "exit": 0,
+      "stdout_sha256": "a8cc5e6d0d6bf693c04c24cff778a06bff85024be857355654fb2b2691734827",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "6a63cd6afbc528e29a2835883c60dcddaf7fd128634335f64f80fd1f7c56db7b",
+      "mix_sha256": "11c0305294615271d703da6470086d94d3443238cf445e739f73e9fe312ea9f4",
+      "relations_sha256": "c022b635babc811353052e1f76ce3ebb05ab0aaf15ea2ed20cfa0b166acae4d8",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          0,
+          0
+        ],
+        "selected_buckets": [
+          18,
+          18
+        ],
+        "input_deadlines": [
+          160,
+          110
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2
+        ],
+        "parent_prelookup_rrset_lru": [
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            18,
+            [
+              2,
+              1
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            18,
+            [
+              1,
+              2
+            ]
+          ]
+        ],
+        "child_address_order": [
+          1,
+          2
+        ],
+        "parent_address_order": [
+          2,
+          1
+        ],
+        "actual_parent_tail_role": 1,
+        "actual_parent_tail_deadline": 160,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "S2",
+      "runtime": "native",
+      "repeat": 1,
+      "exit": 0,
+      "stdout_sha256": "55a50c297e9d75fa74f320feca740dd82b3a73d5a7b1ab19814145c9f76eb609",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "aefc7014e35141f2dd244b0929e11097907ab9012169317fa4dc9f49f642cd6e",
+      "mix_sha256": "3aa4f56ea8f7a82895848e34548f933a8ec1c2fa3864a707162ddbd35e6e632b",
+      "relations_sha256": "3623c3172934a1e2f83cf432a0f6e1286079b7e53320c3628420d9d9b1f5ffea",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          0,
+          0
+        ],
+        "selected_buckets": [
+          2,
+          2
+        ],
+        "input_deadlines": [
+          160,
+          110
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2
+        ],
+        "parent_prelookup_rrset_lru": [
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            2,
+            [
+              2,
+              1
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            2,
+            [
+              1,
+              2
+            ]
+          ]
+        ],
+        "child_address_order": [
+          1,
+          2
+        ],
+        "parent_address_order": [
+          2,
+          1
+        ],
+        "actual_parent_tail_role": 1,
+        "actual_parent_tail_deadline": 160,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "S2",
+      "runtime": "native",
+      "repeat": 2,
+      "exit": 0,
+      "stdout_sha256": "2b2c5e37209b4902f5b9d8b2b8f073e22edd9265cc0e91d238767727f7920a20",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "3bb50eb96cc61a6a58b25910fbac35183b99410dbbbe2e076ff0cdc9083644a0",
+      "mix_sha256": "c4f4991bc77af6173f6198bbf02ea034608b8965d0da3a991dd8c38c94bc66a3",
+      "relations_sha256": "6c7c4b9ddb8a85e687bb4da180c07c7752ab84d7293f069a7b6f1517863d359c",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          0,
+          0
+        ],
+        "selected_buckets": [
+          1,
+          1
+        ],
+        "input_deadlines": [
+          160,
+          110
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2
+        ],
+        "parent_prelookup_rrset_lru": [
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            1,
+            [
+              2,
+              1
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            1,
+            [
+              1,
+              2
+            ]
+          ]
+        ],
+        "child_address_order": [
+          1,
+          2
+        ],
+        "parent_address_order": [
+          2,
+          1
+        ],
+        "actual_parent_tail_role": 1,
+        "actual_parent_tail_deadline": 160,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "S2",
+      "runtime": "target",
+      "repeat": 0,
+      "exit": 0,
+      "stdout_sha256": "bae8c339e2e9f98b8b583e1dbb1d917640d1338210bde0680725bedc95f7e846",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "0780fc238bde8e8d44569ad0764945b18bec1cec77861a5a1831b69ba8204b62",
+      "mix_sha256": "460d1942fcaf3454bf9132486d51998ee278b98d6dd4eedbb7d868d2b2a8e75d",
+      "relations_sha256": "53110ee262efc3a43d9e3c6669be7af6b02b81d7f51bd14d57e2398619380e72",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          0,
+          0
+        ],
+        "selected_buckets": [
+          37,
+          37
+        ],
+        "input_deadlines": [
+          160,
+          110
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2
+        ],
+        "parent_prelookup_rrset_lru": [
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            37,
+            [
+              2,
+              1
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            37,
+            [
+              1,
+              2
+            ]
+          ]
+        ],
+        "child_address_order": [
+          1,
+          2
+        ],
+        "parent_address_order": [
+          2,
+          1
+        ],
+        "actual_parent_tail_role": 1,
+        "actual_parent_tail_deadline": 160,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "S2",
+      "runtime": "target",
+      "repeat": 1,
+      "exit": 0,
+      "stdout_sha256": "bae8c339e2e9f98b8b583e1dbb1d917640d1338210bde0680725bedc95f7e846",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "0780fc238bde8e8d44569ad0764945b18bec1cec77861a5a1831b69ba8204b62",
+      "mix_sha256": "460d1942fcaf3454bf9132486d51998ee278b98d6dd4eedbb7d868d2b2a8e75d",
+      "relations_sha256": "53110ee262efc3a43d9e3c6669be7af6b02b81d7f51bd14d57e2398619380e72",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          0,
+          0
+        ],
+        "selected_buckets": [
+          37,
+          37
+        ],
+        "input_deadlines": [
+          160,
+          110
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2
+        ],
+        "parent_prelookup_rrset_lru": [
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            37,
+            [
+              2,
+              1
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            37,
+            [
+              1,
+              2
+            ]
+          ]
+        ],
+        "child_address_order": [
+          1,
+          2
+        ],
+        "parent_address_order": [
+          2,
+          1
+        ],
+        "actual_parent_tail_role": 1,
+        "actual_parent_tail_deadline": 160,
+        "live_freed_after_pressure": 1
+      }
+    },
+    {
+      "profile": "S2",
+      "runtime": "target",
+      "repeat": 2,
+      "exit": 0,
+      "stdout_sha256": "bae8c339e2e9f98b8b583e1dbb1d917640d1338210bde0680725bedc95f7e846",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks": 87,
+      "passed": 87,
+      "failed": 0,
+      "pool_sha256": "0780fc238bde8e8d44569ad0764945b18bec1cec77861a5a1831b69ba8204b62",
+      "mix_sha256": "460d1942fcaf3454bf9132486d51998ee278b98d6dd4eedbb7d868d2b2a8e75d",
+      "relations_sha256": "53110ee262efc3a43d9e3c6669be7af6b02b81d7f51bd14d57e2398619380e72",
+      "calibration": {
+        "identical_trace": true,
+        "changed_order_rejected": true,
+        "changed_counter_rejected": true,
+        "missing_row_rejected": true
+      },
+      "role_observations": {
+        "selected_pool_indices": [
+          0,
+          0
+        ],
+        "selected_buckets": [
+          37,
+          37
+        ],
+        "input_deadlines": [
+          160,
+          110
+        ],
+        "child_prelookup_rrset_lru": [
+          1,
+          2
+        ],
+        "parent_prelookup_rrset_lru": [
+          2,
+          1
+        ],
+        "child_hash_chains": [
+          [
+            37,
+            [
+              2,
+              1
+            ]
+          ]
+        ],
+        "parent_hash_chains": [
+          [
+            37,
+            [
+              1,
+              2
+            ]
+          ]
+        ],
+        "child_address_order": [
+          1,
+          2
+        ],
+        "parent_address_order": [
+          2,
+          1
+        ],
+        "actual_parent_tail_role": 1,
+        "actual_parent_tail_deadline": 160,
+        "live_freed_after_pressure": 1
+      }
+    }
+  ],
+  "failures": [],
+  "status": "C-relations-complete",
+  "completed_invocations": 42,
+  "relation_checks": 3666,
+  "passed_relations": 3666,
+  "failed_relations": 0,
+  "scope": "C-only dynamic IPv4 PTR topology, transfer, lookup and actual-tail pressure relations; not same-input cross-process order equality",
+  "freeze_commit": "9e8caf9",
+  "offline_audit_commit": "20b92df",
+  "baseline_result_sha256": "3e5a67972c4424af3cead4aab8acd8bafb8be2790c8274b699409caab508c83b",
+  "baseline_identity_sha256": "3df5c55ac116646fb122f276d19a8a652c4f031913a5c51a9bfa1be9d4b2073a",
+  "plan_sha256": "fa4064f97f6dc221695b6d746e554df297c3b7d91c4892b484fe7a3240ee2d74",
+  "tool_archive_sha256": "cd7402b23a10108c1e836050eff2848b5c2a642457e690dc2146806472197218",
+  "offline_result_sha256": "1712bb50d1803e73b7a93d7e5aa4ee8708fca4db5194e1875979e5c8a2e20d43",
+  "native_reference_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+  "cache_source_sha256": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c",
+  "source_identity_sha256": "62cec0e9dda0265cb9c4f6af27f7d23067aed967afab3c74e37370149a8326e9",
+  "target_reference_identity_sha256": "fb873b9abae841a6723db1660752e1a4254a626b81bac099b19d9274a0d719aa",
+  "driver_sha256": "d94b7b204d7e91197d2dd064fb2021c877599b65fef8f9a56d3f1758f4cd7544",
+  "tool_sha256": "54071f778999a29f4a6aeca575e42497c817e66886787ece594bacef00756fdd",
+  "native_oracle_sha256": "762b80314af32a137d0d8171eb841d7db894d57ffda2f46ed138373aa6e621a6",
+  "target_oracle_sha256": "64f803e9a21e79a08b770d02c6c438712caf00b126fb7e6ba26b8c05cfbff473",
+  "mix_fingerprint_counts": {
+    "native": 21,
+    "target": 1
+  },
+  "offline_completeness": {
+    "tool_sha256": "316da3bb8dfb8d04a1f844a9257c485a42a17268afc19e05a47eca57bd8c8029",
+    "original_tool_sha256": "54071f778999a29f4a6aeca575e42497c817e66886787ece594bacef00756fdd",
+    "baseline_result_sha256": "3e5a67972c4424af3cead4aab8acd8bafb8be2790c8274b699409caab508c83b",
+    "baseline_identity_sha256": "3df5c55ac116646fb122f276d19a8a652c4f031913a5c51a9bfa1be9d4b2073a",
+    "baseline_plan_sha256": "fa4064f97f6dc221695b6d746e554df297c3b7d91c4892b484fe7a3240ee2d74",
+    "new_oracle_invocations": 0,
+    "failures": [],
+    "status": "passed-offline-completeness-audit",
+    "original_relations_rechecked": 3666,
+    "complete_snapshots": 462,
+    "missing_hash_negatives": 42
+  },
+  "boundaries": [
+    "42 top-level oracle invocations, each forks one child; not a total count of all OS processes.",
+    "Role numbers label inserted records; repeated canonical names with different deadlines keep distinct roles. Projections preserve original sequence and are display/relationship data, not sorted trace equivalence.",
+    "All original stdout/stderr/complete relation files remain separate and hash-pinned; raw pool and mixing bytes are not in this derived report.",
+    "The unchanged original checker validated 3666 relations; a separate offline audit validated 462 snapshot memberships and 42 missing-HASH negatives, without any new C execution.",
+    "SDK oracle is newly linked matching source using verified image loader/libraries, not the stock dnsmasq ELF.",
+    "Small 64-bucket dynamic IPv4 cache primitive only. No arbitrary topology, local prefix, rehash lifecycle, full wire service, Rust candidate, OOM/resource/performance or router qualification.",
+    "Old 21-case/12-order-row comparison and 0eaa candidate remain unchanged; full old comparator still exits 1."
+  ],
+  "evidence_archive_sha256": "b5801e1bde471003397689482b2967facb34562c0534a6db287ad9e28a3bf87d",
+  "evidence_manifest_sha256": "0d90c26f70b9fc9cb1faa086df318b72b5d4edac3369105c3e0392cbf1dd6014",
+  "derived_input_sha256": "d9032ddc1aeecd57fd3be60c708cfe0fa2718e5ee0b1a711456e095482d28728",
+  "verified_archive_files": 200
+}
