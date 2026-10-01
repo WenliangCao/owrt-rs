@@ -32,7 +32,11 @@ data and ordered upstream queries/replies. Upstream transaction IDs are
 normalized. Only designated fresh cached TTLs allow a one-second difference
 between runs; stale TTL, EDE, flags, refresh count and EOF/release order remain
 exact. C's child PID and pipe structure are checked only on C, since the private
-candidate uses threads. Active-slot metrics and cleanup remain required on both.
+candidate uses threads. The ten inapplicable checks are exactly two C process-
+shape checks in each of five profiles; they are not counted as candidate passes
+or silently included in 154. Active-slot metrics and cleanup remain required on
+both. The 41 explicit paired observations are separate from these auxiliary
+calibration totals.
 
 Comparison calibrations accept an identical trace and reject missing
 observations, changed RCODE, changed stale TTL, and reversed downstream
@@ -58,6 +62,42 @@ sudo -n sh tools/dnsmasq/run_isolated.sh \
   --rust "$PRIVATE_CANDIDATE" \
   --out private/stale-tcp-paired
 ```
+
+The private implementation replaces the old stale-policy rejection with a
+deliverable cached packet plus the engine's observed stale flag. Only a
+successful downstream send of an actual stale answer triggers shutdown and
+close. The same worker then forwards the original query once, retaining its
+accept clock and writeback pipe, discards the refreshed downstream result and
+exits. A failed send does not refresh; a stale observation with no answer
+remains an ordinary forward miss. Tests separately pin expiry equality (TTL 0
+without stale), finite cutoff, and a positive-TTL answer marked stale by the
+CNAME/NXDOMAIN pre-scan, so TTL is never used as the stale classifier.
+
+The borrowed cache policy was reconciled before the stale implementation:
+private `319a3e2` incorporates `7f60791`, and `ee5f279` adapts `ddac95d` through
+the capture wrapper. Unsupported metadata, extraction without ordinary commit,
+and normal commit remain distinct; independent bogus transactions keep their
+own commit boundary. TCP uses the restored request CD rather than UDP raw reply
+CD. This interface alignment is **not** an actual TCP CD/bogus or CD-prefix
+qualification; those combinations remain outside this gate.
+
+The same frozen native candidate passes the ordinary TCP regression (32/32),
+UBus daemon integration (69/69 paired observations, 585 checks), namespace-
+isolated Linux tests (398 library + 7 main passed, 16 ignored), and native plus
+aarch64-musl all-target Clippy with warnings denied. The ignored drivers are
+not passes. Tests ran through `run_isolated.sh` as the build user; no library
+test was run in the ordinary oracle namespace for this stale task. Regression
+raw files and logs are under ignored `private/stale-reference-evidence/` in the
+private reference worktree and oracle
+`/home/ubuntu/dnsmasq-tcp-stale-reference-20261001/2a773f8/`.
+
+The complete cache clone and typed pipe codec remain private references. No
+snapshot representation has passed the existing resource guards, and this code
+must not be merged into the default product cache as a `Clone` implementation.
+Capture/encode/decode allocation failure, abnormal partial EOF effects, typed
+codec byte-size/backpressure differences from C, and resource cost remain
+unqualified. The earlier ordinary private report remains frozen at its old
+source, including its then-explicit stale exclusion and known gaps.
 
 This run does not cover DO/CD combinations, CNAME stale/no-answer service
 cases, EDE size boundaries, malformed partial frames, or OOM. Deliberately

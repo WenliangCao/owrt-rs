@@ -145,5 +145,60 @@
     "No throughput, latency, memory or target-musl acceptance.",
     "No DO/CD additions, CNAME stale/no-answer service cases, stale EDE size-boundary cases, partial-frame or OOM tests.",
     "Process-exit/pipe-EOF reverse ordering remains the separate slot gate responsibility."
-  ]
+  ],
+  "auxiliary_check_scope": {
+    "paired_observations": 41,
+    "c_checks": 164,
+    "rust_checks": 154,
+    "not_applicable_to_rust": 10,
+    "reason": "two C child-process/cache-pipe-shape checks per five profiles; not candidate passes"
+  },
+  "private_implementation": {
+    "source": "2a773f8",
+    "normal_reference": "df75fb4",
+    "borrowed_policy_prerequisites": {
+      "7f60791": "319a3e2",
+      "ddac95d": "ee5f279"
+    },
+    "tcp_cd_bogus_composition_qualified": false,
+    "snapshot_representation_accepted": false
+  },
+  "regressions": {
+    "ordinary_tcp": {
+      "planned": 32,
+      "c_observations": 32,
+      "matched": 32,
+      "failures": [],
+      "result_sha256": "4150e8467834ec56e292a13c4a0f325f3a0294fb87a3299b3d57587f7556a439"
+    },
+    "ubus": {
+      "paired_observations": 69,
+      "paired_matches": 69,
+      "passed": 585,
+      "failed": 0,
+      "error": null,
+      "result_sha256": "34925e95f0a290176cf1f8ee8664ebf9869458a907031e86259d3537d51b9165"
+    }
+  },
+  "unit_tests": {
+    "namespace_isolated": true,
+    "library_passed": 398,
+    "main_passed": 7,
+    "ignored": 16,
+    "ignored_are_passes": false
+  },
+  "clippy": {
+    "native_all_targets": "pass",
+    "aarch64_musl_all_targets": "pass"
+  },
+  "build_and_test_log_sha256": {
+    "build.log": "4590127090579bbe4cce664b8f63b463fab84c92fec47a087d05e717505a3727",
+    "isolated-tests.log": "ff1f1c42ac926d8df29544a0f55a4abe1dfb304c7d4b4f5e4afd4d86b3fdeeb1",
+    "native-clippy.log": "60d695881685ffcffe4507f5c743f5a7ede36dfc27af97f22443379e6f49f752",
+    "musl-clippy.log": "b52a7ca021ae68ac826d1be1da7851eac988507c0967103f14af429928be3269"
+  },
+  "local_archive_sha256": {
+    "all-c-evidence.tar.gz": "026bf574726fddeba2bf657e65133eb8e6ed3601a22368a5636fc2d50b2c3df3",
+    "paired-01-evidence.tar.gz": "6f1cd7e207e8ab79334d089804bc1e46e9be4dec94ad9ea64af34df908b0c7bf"
+  }
 }
