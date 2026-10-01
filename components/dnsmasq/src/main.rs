@@ -763,33 +763,39 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                 index += 1;
                             }
                         }
-                        let (stream, _) = match tcp.accept() {
-                            Ok(connection) => connection,
-                            Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
-                            Err(_) => {
-                                // C returns to its event loop after accept
-                                // errors without closing the listener. Keep
-                                // resource pressure recoverable, and bound
-                                // retries in this nonblocking polling loop.
-                                thread::sleep(Duration::from_millis(20));
-                                continue;
-                            }
-                        };
-                        // dnsmasq.c clears inherited O_NONBLOCK after accept.
-                        // Darwin inherits it; Linux does not.
-                        if stream.set_nonblocking(false).is_err() {
-                            continue;
-                        }
-                        // C forks one cache/hosts snapshot per accepted TCP
-                        // session. Keep that lifetime here without holding a
-                        // shared lock during client or upstream socket I/O.
-                        let (mut service, permit) = {
+                        let (stream, mut service, permit) = {
                             let Ok(mut event) = tcp_events.lock() else {
                                 break;
                             };
+                            // C leaves clients queued while all TCP slots are
+                            // occupied. Serialize admission across listeners
+                            // through the existing parent-event owner.
                             if event.tcp_active >= tcp_limit {
+                                drop(event);
+                                thread::sleep(Duration::from_millis(20));
                                 continue;
                             }
+                            let (stream, _) = match tcp.accept() {
+                                Ok(connection) => connection,
+                                Err(error) if error.kind() == io::ErrorKind::Interrupted => {
+                                    continue
+                                }
+                                Err(_) => {
+                                    // C retains the listener after accept
+                                    // errors. Release the event gate before
+                                    // waiting so other services can progress.
+                                    drop(event);
+                                    thread::sleep(Duration::from_millis(20));
+                                    continue;
+                                }
+                            };
+                            // dnsmasq.c clears inherited O_NONBLOCK after accept.
+                            // Darwin inherits it; Linux does not.
+                            if stream.set_nonblocking(false).is_err() {
+                                continue;
+                            }
+                            // Snapshot at accept without holding a shared lock
+                            // during subsequent client or upstream socket I/O.
                             match tcp_service.lock() {
                                 Ok(parent) => {
                                     let mut snapshot = LocalDnsService::new_with_limits(
@@ -801,7 +807,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                     );
                                     snapshot.leases = Arc::clone(&parent.local.leases);
                                     event.tcp_active += 1;
-                                    (snapshot, TcpPermit(Arc::clone(&tcp_events)))
+                                    (stream, snapshot, TcpPermit(Arc::clone(&tcp_events)))
                                 }
                                 Err(_) => continue,
                             }
