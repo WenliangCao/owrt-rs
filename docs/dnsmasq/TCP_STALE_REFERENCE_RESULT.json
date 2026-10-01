@@ -1,0 +1,149 @@
+{
+  "scope": "C-first real -k stale TCP functionality differential; no performance acceptance",
+  "reference": {
+    "kind": "native-glibc",
+    "elf_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431"
+  },
+  "tool_sha256": "034c2b9fd79be61c14e17f02307d273debf9a0b99dd1d8bf1aa5fa8a9f9d6b8b",
+  "rust_sha256": "012448b55401f3ca5e0550751b1cd695dc4b137f948c624a366afa6886233e4a",
+  "passed": 164,
+  "failed": 0,
+  "matched": 41,
+  "profiles": [
+    {
+      "name": "finite-success",
+      "stale_seconds": 30,
+      "wait": 2.2,
+      "stale": true,
+      "refresh": "reply",
+      "observations": 8,
+      "trace_sha256": "f76dd693e8e739a24c0fe6a2ec19fb22bc3135655ee9faf889c9d2bb7dd2df9e"
+    },
+    {
+      "name": "finite-refresh-eof",
+      "stale_seconds": 30,
+      "wait": 2.2,
+      "stale": true,
+      "refresh": "eof",
+      "observations": 7,
+      "trace_sha256": "965ff0786d230a4fc3a690195f730396d25420380c1de1d6e5864382a3caa1df"
+    },
+    {
+      "name": "forever-success",
+      "stale_seconds": 0,
+      "wait": 3.2,
+      "stale": true,
+      "refresh": "reply",
+      "observations": 8,
+      "trace_sha256": "dbf1fb719562a59c8749cc453f6a7794ee7f4de6f83cfae1a4545615e8a5e5e2"
+    },
+    {
+      "name": "finite-cutoff",
+      "stale_seconds": 1,
+      "wait": 3.2,
+      "stale": false,
+      "refresh": "reply",
+      "observations": 10,
+      "trace_sha256": "3328c436e7a9772fa6d741e4d33734d96cb5e36e0672225363cf4a3cde5859f9"
+    },
+    {
+      "name": "finite-empty-opt",
+      "stale_seconds": 30,
+      "wait": 2.2,
+      "stale": true,
+      "refresh": "reply",
+      "empty_opt": true,
+      "observations": 8,
+      "trace_sha256": "db5ca8bd418dbd56132c8da9c4291b3bb4a21596040235e7be8ef3980ce1be8a"
+    }
+  ],
+  "failures": [],
+  "comparison_failures": [],
+  "tool_commit": "bdecb33",
+  "candidate_commit": "2a773f8",
+  "c_checks": {
+    "passed": 164,
+    "total": 164
+  },
+  "rust_checks": {
+    "passed": 154,
+    "total": 154
+  },
+  "artifact_sha256": {
+    "result.json": "b643631b86c77258f71d6759b3d777245319d5fe091609508708d24ebdd5bad0",
+    "c/finite-success/trace.json": "f76dd693e8e739a24c0fe6a2ec19fb22bc3135655ee9faf889c9d2bb7dd2df9e",
+    "rust/finite-success/trace.json": "6b5729f82987dcb670e1d553e3c46e2b239596b24baeece6f31894abddd7764f",
+    "c/finite-refresh-eof/trace.json": "965ff0786d230a4fc3a690195f730396d25420380c1de1d6e5864382a3caa1df",
+    "rust/finite-refresh-eof/trace.json": "094127df8d6e4487bcb9651e1192f186925ea46bdf9f210a6058768b744bb98d",
+    "c/forever-success/trace.json": "dbf1fb719562a59c8749cc453f6a7794ee7f4de6f83cfae1a4545615e8a5e5e2",
+    "rust/forever-success/trace.json": "6426571c17db4262667589503bc81c59e597963cc0eb51d313b06e1b9823fb85",
+    "c/finite-cutoff/trace.json": "3328c436e7a9772fa6d741e4d33734d96cb5e36e0672225363cf4a3cde5859f9",
+    "rust/finite-cutoff/trace.json": "fed40e4157b91164c4e17618a1625c54f6ca56b43c5762c9c8536be01122df3f",
+    "c/finite-empty-opt/trace.json": "db5ca8bd418dbd56132c8da9c4291b3bb4a21596040235e7be8ef3980ce1be8a",
+    "rust/finite-empty-opt/trace.json": "d20c8a31a4abb98ba79a8e4d8d7930d06f7f94d8a381371af3b001938e135311"
+  },
+  "evidence_archive_sha256": "6f1cd7e207e8ab79334d089804bc1e46e9be4dec94ad9ea64af34df908b0c7bf",
+  "fixture_checks": {
+    "c/finite-success": {
+      "passed": 58,
+      "total": 58
+    },
+    "rust/finite-success": {
+      "passed": 90,
+      "total": 90
+    },
+    "c/finite-refresh-eof": {
+      "passed": 50,
+      "total": 50
+    },
+    "rust/finite-refresh-eof": {
+      "passed": 82,
+      "total": 82
+    },
+    "c/forever-success": {
+      "passed": 58,
+      "total": 58
+    },
+    "rust/forever-success": {
+      "passed": 90,
+      "total": 90
+    },
+    "c/finite-cutoff": {
+      "passed": 62,
+      "total": 62
+    },
+    "rust/finite-cutoff": {
+      "passed": 86,
+      "total": 86
+    },
+    "c/finite-empty-opt": {
+      "passed": 58,
+      "total": 58
+    },
+    "rust/finite-empty-opt": {
+      "passed": 86,
+      "total": 86
+    }
+  },
+  "normalization": [
+    "C and candidate run the same five profiles; all C profiles finish first.",
+    "All 30 parent UBus metrics, packet flags/counts/ordered RR data, and ordered upstream event content are compared.",
+    "Only old connection cached TTL, parent cached writeback TTL, and reused finite-cutoff connection cached TTL may differ by one second across runs.",
+    "Stale TTL, EDE, packet flags, refresh count and EOF-before-release order are exact.",
+    "Upstream query/response transaction IDs are normalized to zero.",
+    "C process/pipe shape is excluded from cross-runtime comparison; active TCP slot metrics and final cleanup checks remain."
+  ],
+  "comparison_calibrations": [
+    "identical traces accepted",
+    "missing observation rejected",
+    "RCODE difference rejected",
+    "stale TTL difference rejected",
+    "downstream EOF/upstream-release inversion rejected"
+  ],
+  "limitations": [
+    "Private native correctness prototype only; not merged into product.",
+    "No throughput, latency, memory or target-musl acceptance.",
+    "No DO/CD additions, CNAME stale/no-answer service cases, stale EDE size-boundary cases, partial-frame or OOM tests.",
+    "Process-exit/pipe-EOF reverse ordering remains the separate slot gate responsibility."
+  ]
+}
