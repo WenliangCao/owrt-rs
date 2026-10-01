@@ -3,7 +3,8 @@
 //! Standalone calls can use fixed monotonic deadlines. The daemon uses C's
 //! forwarding-table lifetime: wall-clock reply validity and lazy reclamation
 //! on new admission. Every socket belongs to one transaction and is dropped
-//! on completion, cancellation, reclamation or I/O failure. Packets are **unchecked
+//! on completion, cancellation, reclamation or an unusable descriptor. Receive
+//! errors alone retain the transaction. Packets are **unchecked
 //! by process_reply policy**: callers must apply address/rebind/cache/EDNS and
 //! OpenWrt policies before replying to clients. Integrated TCP fallback is not
 //! wired here; [`tcp_exchange`] is a standalone one-query helper below.
@@ -24,6 +25,7 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 const RECEIVE_BUDGET: usize = 16;
 const POLLNVAL: i16 = 0x20;
+const EMPTY_ERROR_RETRY: Duration = Duration::from_millis(10);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Lifetime {
@@ -233,6 +235,15 @@ struct OwnedSocket {
     query: QueryId,
     server: ServerId,
     socket: UdpSocket,
+    // First empty POLLERR records `now` without delay. A repeated readiness
+    // with neither SO_ERROR nor a datagram schedules one bounded retry.
+    empty_error_retry: Option<Instant>,
+}
+
+impl OwnedSocket {
+    fn pollable_at(&self, now: Instant) -> bool {
+        self.empty_error_retry.is_none_or(|retry| retry <= now)
+    }
 }
 
 /// An event-driven UDP transport with a single-query convenience wrapper.
@@ -399,7 +410,13 @@ impl<R: Random> UpstreamResolver<R> {
             }
             let mut tokens = Vec::with_capacity(self.sockets.len());
             let mut fds = Vec::with_capacity(self.sockets.len());
+            let now = Instant::now();
+            let mut deadline = self.next_wakeup(call_deadline);
             for (&token, owned) in &self.sockets {
+                if !owned.pollable_at(now) {
+                    deadline = deadline.min(owned.empty_error_retry.unwrap());
+                    continue;
+                }
                 tokens.push(token);
                 fds.push(PollFd {
                     fd: owned.socket.as_raw_fd(),
@@ -407,7 +424,6 @@ impl<R: Random> UpstreamResolver<R> {
                     revents: 0,
                 });
             }
-            let deadline = self.next_wakeup(call_deadline);
             let remaining = deadline.saturating_duration_since(Instant::now());
             let millis = remaining
                 .as_millis()
@@ -583,6 +599,7 @@ impl<R: Random> UpstreamResolver<R> {
                 query: id,
                 server,
                 socket,
+                empty_error_retry: None,
             },
         );
         self.transactions
@@ -666,7 +683,33 @@ impl<R: Random> UpstreamResolver<R> {
     where
         F: Fn(&[u8]) -> bool,
     {
-        let Some(owned) = self.sockets.get(&token) else {
+        self.receive_ready_with_io(
+            token,
+            revents,
+            ignore,
+            Instant::now(),
+            UdpSocket::recv_from,
+            UdpSocket::take_error,
+        );
+    }
+
+    // A private syscall boundary keeps controlled errno tests on real owned
+    // sockets. Production calls the standard socket methods directly; no
+    // socket options or connect behavior change to manufacture error delivery.
+    fn receive_ready_with_io<F, Receive, TakeError>(
+        &mut self,
+        token: SocketToken,
+        revents: i16,
+        ignore: &F,
+        now: Instant,
+        mut receive: Receive,
+        mut take_error: TakeError,
+    ) where
+        F: Fn(&[u8]) -> bool,
+        Receive: FnMut(&UdpSocket, &mut [u8]) -> io::Result<(usize, SocketAddr)>,
+        TakeError: FnMut(&UdpSocket) -> io::Result<Option<io::Error>>,
+    {
+        let Some(owned) = self.sockets.get_mut(&token) else {
             return;
         };
         let id = owned.query;
@@ -674,9 +717,32 @@ impl<R: Random> UpstreamResolver<R> {
             self.fail(id, io::Error::other("invalid upstream socket").into());
             return;
         }
-        if revents & (POLLERR | POLLHUP) != 0 && revents & POLLIN == 0 {
-            self.fail(id, io::Error::other("upstream socket poll error").into());
+        if revents & POLLHUP != 0 && revents & POLLIN == 0 {
+            self.fail(id, io::Error::other("upstream socket hung up").into());
             return;
+        }
+        if !owned.pollable_at(now) {
+            return;
+        }
+        let mut empty_poll_error = false;
+        if revents & POLLERR != 0 {
+            match take_error(&owned.socket) {
+                // Reading SO_ERROR consumes the pending asynchronous error.
+                // Retain the transaction so a later retry/reply can complete.
+                Ok(Some(_)) => {
+                    owned.empty_error_retry = None;
+                    if revents & POLLIN == 0 {
+                        return;
+                    }
+                }
+                Ok(None) => empty_poll_error = true,
+                Err(error) => {
+                    self.fail(id, error.into());
+                    return;
+                }
+            }
+        } else {
+            owned.empty_error_retry = None;
         }
         for _ in 0..RECEIVE_BUDGET {
             let Some(transaction) = self.transactions.get(&id) else {
@@ -686,16 +752,24 @@ impl<R: Random> UpstreamResolver<R> {
                 self.fail(id, ResolveError::Timeout);
                 break;
             }
-            let Some(owned) = self.sockets.get(&token) else {
+            let Some(owned) = self.sockets.get_mut(&token) else {
                 break;
             };
-            let result = owned.socket.recv_from(&mut self.receive_buffer);
+            let result = receive(&owned.socket, &mut self.receive_buffer);
             let (length, source) = match result {
-                Ok(result) => result,
+                Ok(result) => {
+                    empty_poll_error = false;
+                    owned.empty_error_retry = None;
+                    result
+                }
                 Err(error) if error.kind() == io::ErrorKind::WouldBlock => break,
                 Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
-                Err(error) => {
-                    self.fail(id, error.into());
+                // C reply_query returns before frec lookup on recvfrom error.
+                // End this batch without changing ID, recipients, retry state
+                // or deadline. A later POLLNVAL identifies an unusable FD.
+                Err(_) => {
+                    empty_poll_error = false;
+                    owned.empty_error_retry = None;
                     break;
                 }
             };
@@ -766,6 +840,15 @@ impl<R: Random> UpstreamResolver<R> {
                     break;
                 }
                 None => break,
+            }
+        }
+        if empty_poll_error {
+            if let Some(owned) = self.sockets.get_mut(&token) {
+                owned.empty_error_retry = Some(if owned.empty_error_retry.is_some() {
+                    now + EMPTY_ERROR_RETRY
+                } else {
+                    now
+                });
             }
         }
     }
@@ -1392,5 +1475,316 @@ mod tests {
         assert_eq!(transport.pending_count(), 0);
         assert_eq!(transport.socket_count(), 0);
         thread.join().unwrap();
+    }
+
+    fn pending_receive(
+        lifetime: Lifetime,
+    ) -> (UpstreamResolver<Counter>, UdpSocket, QueryId, SocketToken) {
+        let server = UdpSocket::bind("127.0.0.1:0").unwrap();
+        server
+            .set_read_timeout(Some(Duration::from_secs(1)))
+            .unwrap();
+        let dispatcher = ForwardDispatcher::new(
+            Options::default(),
+            [group(&[server.local_addr().unwrap()], false)],
+            1232,
+        );
+        let mut transport =
+            UpstreamResolver::with_lifetime(dispatcher, Counter(0), lifetime).unwrap();
+        let id = transport
+            .start_udp(&query(), client(), GroupId(1), Scope::Shared)
+            .unwrap()
+            .id;
+        let mut sibling = client();
+        sibling.source.set_port(53001);
+        assert_eq!(
+            transport
+                .start_udp(&query(), sibling, GroupId(1), Scope::Shared)
+                .unwrap()
+                .id,
+            id
+        );
+        let token = *transport.transactions[&id].sockets.values().next().unwrap();
+        (transport, server, id, token)
+    }
+
+    #[test]
+    fn controlled_receive_errors_preserve_transaction_and_later_real_reply() {
+        for lifetime in [
+            Lifetime::Fixed(Duration::from_secs(1)),
+            Lifetime::ForwardTable,
+        ] {
+            let (mut transport, server, id, token) = pending_receive(lifetime);
+            let deadline = transport.transactions[&id].deadline;
+            let upstream_id = transport.dispatcher.table().get(id).unwrap().upstream_id;
+            let counters = transport.counters();
+            for error in [
+                io::ErrorKind::ConnectionRefused,
+                io::ErrorKind::ConnectionReset,
+                io::ErrorKind::TimedOut,
+                io::ErrorKind::Other,
+            ] {
+                let mut calls = 0;
+                transport.receive_ready_with_io(
+                    token,
+                    POLLIN,
+                    &|_| false,
+                    Instant::now(),
+                    |_, _| {
+                        calls += 1;
+                        Err(io::Error::from(error))
+                    },
+                    |_| panic!("POLLIN alone does not read SO_ERROR"),
+                );
+                assert_eq!(calls, 1);
+                assert!(transport.events.is_empty());
+                assert_eq!(transport.transactions[&id].deadline, deadline);
+                assert_eq!(
+                    transport.dispatcher.table().get(id).unwrap().upstream_id,
+                    upstream_id
+                );
+                assert_eq!(
+                    transport
+                        .dispatcher
+                        .table()
+                        .get(id)
+                        .unwrap()
+                        .recipients
+                        .len(),
+                    2
+                );
+                assert_eq!(transport.counters(), counters);
+                assert_eq!(
+                    (transport.pending_count(), transport.socket_count()),
+                    (1, 1)
+                );
+            }
+            let mut request = [0; 2048];
+            let (length, peer) = server.recv_from(&mut request).unwrap();
+            server
+                .send_to(&response(&request[..length], 0x8180, true), peer)
+                .unwrap();
+            let event = wait_for_event(&mut transport, Duration::from_millis(100));
+            assert_eq!(event.id, id);
+            let reply = event.result.unwrap();
+            assert_eq!(Header::parse(&reply.packet).unwrap().id, upstream_id);
+            assert_eq!(reply.recipients.len(), 2);
+            assert_eq!(
+                (transport.pending_count(), transport.socket_count()),
+                (0, 0)
+            );
+            assert_eq!(transport.counters(), counters);
+        }
+    }
+
+    #[test]
+    fn controlled_poll_error_is_consumed_without_cancellation_or_deadline_extension() {
+        let (mut transport, _server, id, token) =
+            pending_receive(Lifetime::Fixed(Duration::from_secs(1)));
+        let deadline = transport.transactions[&id].deadline;
+        let mut calls = 0;
+        transport.receive_ready_with_io(
+            token,
+            POLLERR,
+            &|_| false,
+            Instant::now(),
+            |_, _| panic!("consumed standalone socket error ends the batch"),
+            |_| {
+                calls += 1;
+                Ok(Some(io::ErrorKind::ConnectionRefused.into()))
+            },
+        );
+        assert_eq!(calls, 1);
+        assert!(transport.events.is_empty());
+        assert_eq!(transport.transactions[&id].deadline, deadline);
+        transport.run_timers_at(deadline, unix_seconds(), transport.milliseconds());
+        assert_eq!(
+            (transport.pending_count(), transport.socket_count()),
+            (0, 0)
+        );
+        assert!(matches!(
+            transport.events.pop_front().unwrap().result,
+            Err(ResolveError::Timeout)
+        ));
+    }
+
+    #[test]
+    fn controlled_interrupted_receive_has_a_finite_batch_budget() {
+        let (mut transport, _server, id, token) = pending_receive(Lifetime::ForwardTable);
+        let mut calls = 0;
+        transport.receive_ready_with_io(
+            token,
+            POLLIN,
+            &|_| false,
+            Instant::now(),
+            |_, _| {
+                calls += 1;
+                Err(io::ErrorKind::Interrupted.into())
+            },
+            |_| panic!("no error readiness"),
+        );
+        assert_eq!(calls, RECEIVE_BUDGET);
+        assert!(transport.events.is_empty());
+        assert!(transport.cancel(id));
+        assert_eq!(
+            (transport.pending_count(), transport.socket_count()),
+            (0, 0)
+        );
+    }
+
+    #[test]
+    fn controlled_invalid_fd_and_hangup_are_distinct_terminal_events() {
+        for revents in [POLLNVAL, POLLHUP] {
+            let (mut transport, _server, id, token) = pending_receive(Lifetime::ForwardTable);
+            transport.receive_ready_with_io(
+                token,
+                revents,
+                &|_| false,
+                Instant::now(),
+                |_, _| panic!("unusable descriptor must not receive"),
+                |_| panic!("unusable descriptor must not read SO_ERROR"),
+            );
+            let event = transport.events.pop_front().unwrap();
+            assert_eq!(event.id, id);
+            assert!(matches!(event.result, Err(ResolveError::Io(_))));
+            assert_eq!(
+                (transport.pending_count(), transport.socket_count()),
+                (0, 0)
+            );
+            assert_eq!(transport.counters().unanswered, 0);
+        }
+    }
+
+    #[test]
+    fn failed_socket_error_inspection_is_an_explicit_terminal_boundary() {
+        let (mut transport, _server, id, token) = pending_receive(Lifetime::ForwardTable);
+        transport.receive_ready_with_io(
+            token,
+            POLLERR,
+            &|_| false,
+            Instant::now(),
+            |_, _| panic!("failed socket inspection must not receive"),
+            |_| Err(io::ErrorKind::InvalidInput.into()),
+        );
+        let event = transport.events.pop_front().unwrap();
+        assert_eq!(event.id, id);
+        assert!(matches!(event.result, Err(ResolveError::Io(_))));
+        assert_eq!(
+            (transport.pending_count(), transport.socket_count()),
+            (0, 0)
+        );
+    }
+
+    #[test]
+    fn repeated_empty_poll_error_does_not_continuously_retry_receive() {
+        let (mut transport, server, id, token) = pending_receive(Lifetime::ForwardTable);
+        let deadline = transport.transactions[&id].deadline;
+        let counters = transport.counters();
+        let now = Instant::now();
+        let mut calls = 0;
+        // Model a stale readiness source: SO_ERROR is empty and recvfrom has
+        // no datagram, yet the containing loop reports POLLERR repeatedly.
+        for attempt in 0..3 {
+            transport.receive_ready_with_io(
+                token,
+                POLLERR,
+                &|_| false,
+                now,
+                |_, _| {
+                    calls += 1;
+                    Err(io::ErrorKind::WouldBlock.into())
+                },
+                |_| Ok(None),
+            );
+            if attempt == 0 {
+                assert!(transport.sockets[&token].pollable_at(now));
+            }
+        }
+        assert_eq!(calls, 2, "third readiness must wait for a scheduled retry");
+        let retry = now + Duration::from_millis(10);
+        assert_eq!(transport.sockets[&token].empty_error_retry, Some(retry));
+        assert!(!transport.sockets[&token].pollable_at(now));
+        assert!(transport.sockets[&token].pollable_at(retry));
+        assert_eq!(transport.transactions[&id].deadline, deadline);
+        assert_eq!(transport.counters(), counters);
+        let mut request = [0; 2048];
+        let (length, peer) = server.recv_from(&mut request).unwrap();
+        server
+            .send_to(&response(&request[..length], 0x8180, true), peer)
+            .unwrap();
+        wait_until_readable(&transport.sockets[&token].socket);
+        transport.receive_ready_with_io(
+            token,
+            POLLIN,
+            &|_| false,
+            retry,
+            UdpSocket::recv_from,
+            |_| panic!("normal readable retry needs no SO_ERROR"),
+        );
+        assert_eq!(
+            transport
+                .events
+                .pop_front()
+                .unwrap()
+                .result
+                .unwrap()
+                .recipients
+                .len(),
+            2
+        );
+        assert_eq!(
+            (transport.pending_count(), transport.socket_count()),
+            (0, 0)
+        );
+        assert_eq!(transport.counters(), counters);
+        println!(
+            "owned_socket_bytes={} previous_socket_fields_bytes={}",
+            std::mem::size_of::<OwnedSocket>(),
+            std::mem::size_of::<(QueryId, ServerId, UdpSocket)>()
+        );
+    }
+
+    #[test]
+    fn controlled_poll_error_with_data_still_delivers_the_readable_reply() {
+        let (mut transport, server, _id, token) = pending_receive(Lifetime::ForwardTable);
+        let mut request = [0; 2048];
+        let (length, peer) = server.recv_from(&mut request).unwrap();
+        server
+            .send_to(&response(&request[..length], 0x8180, true), peer)
+            .unwrap();
+        wait_until_readable(&transport.sockets[&token].socket);
+        transport.receive_ready_with_io(
+            token,
+            POLLERR | POLLIN,
+            &|_| false,
+            Instant::now(),
+            UdpSocket::recv_from,
+            |_| Ok(Some(io::ErrorKind::ConnectionRefused.into())),
+        );
+        assert_eq!(
+            transport
+                .events
+                .pop_front()
+                .unwrap()
+                .result
+                .unwrap()
+                .recipients
+                .len(),
+            2
+        );
+        assert_eq!(
+            (transport.pending_count(), transport.socket_count()),
+            (0, 0)
+        );
+    }
+
+    fn wait_until_readable(socket: &UdpSocket) {
+        let mut fd = [PollFd {
+            fd: socket.as_raw_fd(),
+            events: POLLIN,
+            revents: 0,
+        }];
+        assert_eq!(poll_once(&mut fd, 1000).unwrap(), 1);
+        assert_ne!(fd[0].revents & POLLIN, 0);
     }
 }

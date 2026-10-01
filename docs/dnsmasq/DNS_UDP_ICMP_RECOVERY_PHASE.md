@@ -6,6 +6,11 @@ the application's receive-error branch. The tool deliberately exits **2** and
 records that coverage gap. Kernel ICMP traffic is not evidence that a UDP
 application received POLLERR or a failing recvfrom.
 
+This report describes the original `2415216` experiment. The later
+[receive-error repair](DNS_UDP_RECEIVE_ERROR_PHASE.md) adds controlled I/O
+coverage and repeats the actual-service gate; real errno delivery remains
+uncovered in that recheck too.
+
 No product source was changed. In particular, this work does not modify
 `upstream.rs`, enable socket error options, connect the daemon's UDP sockets,
 inject syscall faults, or access a router/production network.
