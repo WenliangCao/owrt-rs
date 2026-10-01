@@ -248,6 +248,35 @@ impl<R: Random> DnsDaemon<R> {
         }
     }
 
+    /// Publish a completed DHCP source against this parent's forwarded cache.
+    /// The caller installs the result before allowing the DHCP ACK to be sent.
+    pub fn publish_lease_names(
+        &mut self,
+        records: &[crate::dhcp::persistence::DnsLeaseRecord<'_>],
+        hosts: &mut Hosts,
+        cnames: &[crate::config::records::Cname],
+        policy: super::lease_names::LeasePolicy,
+    ) -> super::lease_names::LeaseNames {
+        match self.cache.as_mut() {
+            Some(cache) => {
+                super::lease_names::LeaseNames::build(records, hosts, cnames, policy, cache)
+            }
+            None => super::lease_names::LeaseNames::build(records, hosts, cnames, policy, &mut ()),
+        }
+    }
+
+    pub fn rebuild_lease_names(
+        &mut self,
+        previous: &super::lease_names::LeaseNames,
+        hosts: &mut Hosts,
+        cnames: &[crate::config::records::Cname],
+    ) -> super::lease_names::LeaseNames {
+        match self.cache.as_mut() {
+            Some(cache) => previous.rebuild(hosts, cnames, cache),
+            None => previous.rebuild(hosts, cnames, &mut ()),
+        }
+    }
+
     /// Enable the positive forward cache after daemon construction.  Keeping
     /// this explicit lets the caller pass scalar options (cache-size and TTL
     /// bounds) without duplicating them in `DnsConfig`.
@@ -379,6 +408,7 @@ impl<R: Random> DnsDaemon<R> {
         let events = self.upstream.poll_with_filter(wait, move |packet| {
             ignore_reply(packet, &policy).unwrap_or(false)
         })?;
+        let now = unix_seconds();
         let mut responses = Vec::new();
         for event in events {
             let reply = event.result?;
@@ -409,8 +439,13 @@ impl<R: Random> DnsDaemon<R> {
                 .packet;
                 apply_known_local_nxdomain(&mut candidate, rcode, |name| {
                     let local = external_local.unwrap_or(&self.local);
-                    super::local::known_forwarded_domain(&local.config, &local.hosts, name)
-                        || self.routing.has_configured_address(name)
+                    super::local::known_forwarded_domain_with_leases(
+                        &local.config,
+                        &local.hosts,
+                        name,
+                        &local.leases,
+                        now,
+                    ) || self.routing.has_configured_address(name)
                 })?;
                 let report = process_reply(&mut candidate, &self.policy)?;
                 if report.action == ProcessAction::Deliver
@@ -418,7 +453,7 @@ impl<R: Random> DnsDaemon<R> {
                     && !report.malformed_address
                     && !report.bogus_nxdomain
                 {
-                    self.cache_reply(&candidate);
+                    self.cache_reply_at(&candidate, now);
                 }
             }
             for recipient in reply.recipients {
@@ -436,8 +471,13 @@ impl<R: Random> DnsDaemon<R> {
                 let mut packet = envelope.packet;
                 apply_known_local_nxdomain(&mut packet, rcode, |name| {
                     let local = external_local.unwrap_or(&self.local);
-                    super::local::known_forwarded_domain(&local.config, &local.hosts, name)
-                        || self.routing.has_configured_address(name)
+                    super::local::known_forwarded_domain_with_leases(
+                        &local.config,
+                        &local.hosts,
+                        name,
+                        &local.leases,
+                        now,
+                    ) || self.routing.has_configured_address(name)
                 })?;
                 if matches!(rcode, 0 | 3) {
                     let report = process_reply(&mut packet, &self.policy)?;
@@ -749,10 +789,6 @@ impl<R: Random> DnsDaemon<R> {
             return Ok(Some(finish_cached_answer(writer)?));
         }
         Ok(None)
-    }
-
-    fn cache_reply(&mut self, packet: &[u8]) {
-        self.cache_reply_at(packet, unix_seconds());
     }
 
     fn cache_reply_at(&mut self, packet: &[u8], now: i64) {

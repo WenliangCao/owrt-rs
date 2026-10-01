@@ -215,7 +215,15 @@ fn finish_reply(
     if matches!(envelope.rcode, 0 | 3) {
         apply_known_local_nxdomain(&mut packet, envelope.rcode, |name| {
             local.is_some_and(|local| {
-                super::local::known_forwarded_domain(&local.config, &local.hosts, name)
+                super::local::known_forwarded_domain_with_leases(
+                    &local.config,
+                    &local.hosts,
+                    name,
+                    &local.leases,
+                    std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .map_or(0, |time| time.as_secs() as i64),
+                )
             }) || routing.is_some_and(|routing| routing.has_configured_address(name))
         })?;
         let report = process_reply(&mut packet, policy).map_err(TcpServiceError::Process)?;
