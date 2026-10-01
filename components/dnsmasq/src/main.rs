@@ -1097,6 +1097,7 @@ impl DnsWorkers {
                                 let _ = socket.send(&response.packet, response.destination, None);
                             }
                         }
+                        drop(event);
                         if incoming.is_none() {
                             thread::park_timeout(Duration::from_millis(20));
                         }
