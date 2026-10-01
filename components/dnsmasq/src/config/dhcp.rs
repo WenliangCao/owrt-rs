@@ -116,6 +116,7 @@ pub struct DhcpConfig {
     pub sequential: bool,
     pub ignore_client_id: bool,
     pub fqdn_only: bool,
+    pub read_ethers: bool,
     pub name_matches: Vec<DhcpNameMatch>,
     pub ignore_names: Vec<TagPredicate>,
     pub force_broadcast: Vec<TagPredicate>,
@@ -143,6 +144,7 @@ impl Default for DhcpConfig {
             sequential: false,
             ignore_client_id: false,
             fqdn_only: false,
+            read_ethers: false,
             name_matches: Vec::new(),
             ignore_names: Vec::new(),
             force_broadcast: Vec::new(),
@@ -237,6 +239,7 @@ impl DhcpConfig {
             b"dhcp-sequential-ip" => self.sequential = true,
             b"dhcp-ignore-clid" => self.ignore_client_id = true,
             b"dhcp-fqdn" => self.fqdn_only = true,
+            b"read-ethers" => self.read_ethers = true,
             b"dhcp-name-match" => {
                 let rule = DhcpNameMatch::parse(argument.ok_or(Error("missing parameter"))?)?;
                 self.name_matches.insert(0, rule);
@@ -607,6 +610,7 @@ mod tests {
     #[test]
     fn generated_lan_tags_keep_context_and_hostname_policies_separate() {
         let mut config = DhcpConfig::default();
+        assert!(!config.read_ethers);
         for line in [
             b"dhcp-range=set:lan,192.0.2.100,192.0.2.149,255.255.255.0,12h".as_slice(),
             b"dhcp-broadcast=tag:needs-broadcast",
@@ -614,10 +618,12 @@ mod tests {
             b"dhcp-name-match=set:dhcp_bogus_hostname,localhost",
             b"dhcp-name-match=set:dhcp_bogus_hostname,wpad",
             b"no-dhcp-interface=wan,guest",
+            b"read-ethers",
         ] {
             assert!(config.apply(&lex_line(line).unwrap().unwrap()).unwrap());
         }
         assert_eq!(config.ranges[0].set_tag.as_deref(), Some(b"lan".as_slice()));
+        assert!(config.read_ethers);
         assert_eq!(config.ranges[0].lease_time, 43_200);
         let tags: Vec<_> = config
             .name_matches
