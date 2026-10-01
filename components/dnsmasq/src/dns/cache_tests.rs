@@ -18,6 +18,52 @@ fn lookup(cache: &mut Cache, name: &str, kind: Kind, now: i64) -> Vec<u8> {
         .collect()
 }
 
+#[test]
+fn forward_name_presence_keeps_index_links_and_expired_records_untouched() {
+    let mut cache = Cache::new(4, Policy::default());
+    cache.start_insert();
+    let address = cache
+        .insert(record("address.test", Kind::Ipv4, 1), 100, 10)
+        .unwrap();
+    let mut nodata = record("nodata.test", Kind::Ipv6, 0);
+    nodata.negative = true;
+    cache.insert(nodata, 100, 60).unwrap();
+    let mut nx = record("nx.test", Kind::NxDomain, 0);
+    nx.negative = true;
+    cache.insert(nx, 100, 60).unwrap();
+    assert!(cache.commit());
+    let names = cache.names.clone();
+    let links = || {
+        cache
+            .slots
+            .iter()
+            .map(|slot| (slot.prev, slot.next, slot.generation))
+            .collect::<Vec<_>>()
+    };
+    let before_links = links();
+    let ends = (cache.head, cache.tail);
+    for (name, now, expected) in [
+        ("ADDRESS.TEST", 100, true),
+        ("address.test", 110, false),
+        ("address.test", 100, true),
+        ("nodata.test", 100, true),
+        ("nx.test", 100, false),
+        ("test", 100, false),
+    ] {
+        assert_eq!(
+            cache.contains_forward_name(&Name::from_ascii(name).unwrap(), now),
+            expected
+        );
+    }
+    assert_eq!(cache.names, names);
+    assert_eq!(links(), before_links);
+    assert_eq!((cache.head, cache.tail), ends);
+    assert!(
+        cache.get(address).is_some(),
+        "presence check must not purge expiry"
+    );
+}
+
 fn check_ownership(cache: &Cache) {
     let mut linked = HashSet::new();
     let mut previous = None;

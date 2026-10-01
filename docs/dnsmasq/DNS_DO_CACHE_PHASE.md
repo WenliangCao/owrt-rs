@@ -76,7 +76,7 @@ Their tool SHA-256 is
 `a45cf8e2895c25193a7959f52205ed0ac1aae865e12e5bc4ef82265d27a167c4`.
 The original retry gate's 83/14 historical result remains unchanged.
 
-Host Rust 1.98.1 DNS tests pass 212/0/4 ignored. New regressions preserve DO/AD/CD
+Host Rust 1.98.1 DNS tests pass 213/0/4 ignored. New regressions preserve DO/AD/CD
 forwarding metadata and block raw reply-CD cache admission after client-CD
 restoration, with proxy both off and on. Unsupported EDNS bits, versions,
 options and unmeasured qtypes remain rejected by the metadata helper. Target
@@ -85,3 +85,37 @@ musl checking, all-targets Clippy and changed-file formatting pass.
 Frozen implementation replay follows separately. No DNSSEC validation,
 signature cache, arbitrary EDNS-option, other-qtype AD, target-Rust execution
 or complete DNS equivalence is claimed.
+
+## Live forwarded-name composition
+
+The first frozen implementation `a0fa1b8` passes 742/750 observations against
+both native and actual image C. All AD/CD metadata checks and insertion counts
+match. Eight retained rows expose another existing caller-composition gap:
+after a CNAME-to-NXDOMAIN answer is cached, a new DO query goes upstream. C
+converts the repeated NXDOMAIN to authoritative NODATA because the queried
+alias now exists; the following cached CD replay likewise becomes NODATA.
+Rust's known-name callback consulted only local/config/lease sources and kept
+NXDOMAIN. Both failed runs remain `native-after-01` and `image-after-01`.
+
+The source is explicit: `rfc1035.c::check_for_local_domain` delegates to
+`cache.c::cache_find_non_terminal`. That predicate considers any live exact-name
+forward record except NXDOMAIN, including dynamic CNAME and negative NODATA.
+It excludes pending/uncommitted records, expired records and outdated CNAME
+targets, and does not perform normal lookup's LRU promotion, rotation or purge.
+
+`Cache::contains_forward_name` now implements that read-only predicate using
+the existing name index and validity check. The daemon composes it with the
+existing local-name callback before extraction. No cache fields or transaction
+representation change; cache transfer remains independently owned.
+
+`cache_name_presence_diff.py` calls the unchanged C predicate through the
+audited full reference objects. The C-first baseline has 11 scenarios,
+108 commands and 53 presence probes, each repeated three times identically.
+It covers positive/NODATA/NXDOMAIN/generic kinds, pending replacement/abort,
+exact-name versus descendants, case, outdated CNAME pointers, expiry/stale/zero
+TTL boundaries, clock rollback without purge, and eviction proving no LRU
+promotion. An expired target can still leave an alias present until normal
+lookup actually purges the target; that distinction is preserved. Rust's
+additional unit test checks index, links, generations and expired-record
+retention directly. The first harness attempt failed while hashing a string
+path and ran no comparisons; `name-c-baseline-01` remains beside baseline 02.

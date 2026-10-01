@@ -275,6 +275,21 @@ impl Cache {
             .as_ref()
     }
 
+    /// C cache_find_non_terminal: any live exact-name forward record except
+    /// NXDOMAIN establishes existence, including NODATA and dynamic CNAMEs.
+    /// Do not promote, rotate or remove records as a normal lookup would.
+    pub fn contains_forward_name(&self, name: &Name, now: i64) -> bool {
+        self.names.get(&name.canonical_wire()).is_some_and(|slots| {
+            slots.iter().any(|&slot| {
+                self.slots[slot]
+                    .entry
+                    .as_ref()
+                    .is_some_and(|entry| entry.record.kind != Kind::NxDomain)
+                    && !self.invalid(slot, now)
+            })
+        })
+    }
+
     /// Check that a handle still refers to a live cache entry at `now`.
     ///
     /// Handles are intentionally read-only; callers that need the normal
