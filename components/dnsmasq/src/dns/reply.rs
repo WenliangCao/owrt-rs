@@ -6,8 +6,8 @@
 //! the caller. All offsets below refer to a fully bounded wire packet.
 
 use super::wire::{
-    find_pseudoheader, name_descriptor, skip_name, Header, Message, Section, WireError, HEADER_LEN,
-    TYPE_OPT,
+    find_pseudoheader, name_descriptor, skip_name, Header, Message, Name, Question, Section,
+    WireError, HEADER_LEN, TYPE_OPT,
 };
 use std::ops::Range;
 
@@ -152,6 +152,25 @@ pub struct ReplyEnvelope {
     /// RCODE including the OPT extension, captured before possible OPT removal.
     pub rcode: u16,
     pub signed: bool,
+}
+
+/// process_reply's known-local NXDOMAIN conversion. Keep name ownership in
+/// the caller so UDP can use its current generation and TCP its fork-equivalent
+/// connection snapshot. `rcode` was captured before any OPT stripping.
+pub(super) fn apply_known_local_nxdomain(
+    packet: &mut [u8],
+    rcode: u16,
+    known: impl FnOnce(&Name) -> bool,
+) -> Result<(), WireError> {
+    let mut header = Header::parse(packet)?;
+    if rcode == 3 && header.opcode() == 0 && header.flags & 0x0200 == 0 {
+        let question = Question::parse(packet, HEADER_LEN)?;
+        if known(&question.name) {
+            header.flags = (header.flags & !0x000f) | 0x0400;
+            header.write(packet)?;
+        }
+    }
+    Ok(())
 }
 
 /// Apply CD restoration, EDNS removal/size, AD proxy policy, RA and trailing

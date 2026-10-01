@@ -13,7 +13,7 @@ use super::cache_reply::{append_cname_record, append_negative_authority, append_
 use super::forward::{Client, Options as ForwardOptions, QueryId, Random, Scope};
 use super::forward_service::ForwardDispatcher;
 use super::process::{ignore_reply, process_reply, AddressPolicy, ProcessAction, ProcessError};
-use super::reply::{limit_udp_reply, prepare_reply, ReplyPolicy};
+use super::reply::{apply_known_local_nxdomain, limit_udp_reply, prepare_reply, ReplyPolicy};
 use super::routing::{RouteReason, RoutingError, RoutingTable};
 use super::service::{LocalDnsService, ServiceError};
 use super::upstream::{OsRandom, ResolveError, UpstreamResolver};
@@ -40,6 +40,7 @@ pub struct ClientRequest {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ClientResponse {
     pub destination: SocketAddr,
+    pub listener: Option<super::forward::SocketToken>,
     pub packet: Vec<u8>,
 }
 
@@ -298,6 +299,17 @@ impl<R: Random> DnsDaemon<R> {
         query: &[u8],
         client: ClientRequest,
     ) -> Result<QueryResult, DaemonError> {
+        self.forward_udp_on_listener(query, client, None)
+    }
+
+    /// Preserve the receiving socket when multiple listeners share one
+    /// forwarding table. Coalesced recipients retain their own listener.
+    pub fn forward_udp_on_listener(
+        &mut self,
+        query: &[u8],
+        client: ClientRequest,
+        listener: Option<super::forward::SocketToken>,
+    ) -> Result<QueryResult, DaemonError> {
         if query.len() > self.max_udp {
             return Ok(QueryResult::Dropped);
         }
@@ -329,7 +341,7 @@ impl<R: Random> DnsDaemon<R> {
             source: client.source,
             destination: client.destination,
             interface: client.interface,
-            listener: None,
+            listener,
             udp_limit: 512,
             log_id: u64::from(question.rrtype),
         };
@@ -344,6 +356,25 @@ impl<R: Random> DnsDaemon<R> {
     /// full C `process_reply` contract (cache/SOA/ubus/TCP fallback remain
     /// outside this adapter).
     pub fn poll(&mut self, wait: Duration) -> Result<Vec<ClientResponse>, DaemonError> {
+        self.poll_inner(wait, None)
+    }
+
+    /// Complete replies using the parent's current local-name generation.
+    /// A reload or synchronous lease publication can change it while an
+    /// upstream query is pending; callers must not substitute an old clone.
+    pub fn poll_with_local(
+        &mut self,
+        wait: Duration,
+        local: &LocalDnsService,
+    ) -> Result<Vec<ClientResponse>, DaemonError> {
+        self.poll_inner(wait, Some(local))
+    }
+
+    fn poll_inner(
+        &mut self,
+        wait: Duration,
+        external_local: Option<&LocalDnsService>,
+    ) -> Result<Vec<ClientResponse>, DaemonError> {
         let policy = self.policy.clone();
         let events = self.upstream.poll_with_filter(wait, move |packet| {
             ignore_reply(packet, &policy).unwrap_or(false)
@@ -351,16 +382,36 @@ impl<R: Random> DnsDaemon<R> {
         let mut responses = Vec::new();
         for event in events {
             let reply = event.result?;
+            let rcode = u16::from(Header::parse(&reply.packet)?.rcode())
+                | find_pseudoheader(&reply.packet, false)?
+                    .opt
+                    .as_ref()
+                    .map_or(0, |opt| u16::from(opt.extended_rcode()) << 4);
             // Cache only a clean, successful positive reply.  Address policy
             // runs on a clone first so a blocked/bogus/malformed response is
             // never admitted to the cache or later exposed to a recipient.
             if self.cache.is_some()
+                && matches!(rcode, 0 | 3)
                 && !reply.flags.no_cache
                 && !reply.flags.had_opt
                 && !reply.flags.ad_requested
                 && !reply.flags.checking_disabled
             {
-                let mut candidate = reply.packet.clone();
+                let mut candidate = prepare_reply(
+                    &reply.packet,
+                    ReplyPolicy {
+                        client_had_opt: reply.flags.had_opt,
+                        checking_disabled: reply.flags.checking_disabled,
+                        proxy_dnssec: self.proxy_dnssec,
+                        edns_packet_max: self.edns_packet_max,
+                    },
+                )?
+                .packet;
+                apply_known_local_nxdomain(&mut candidate, rcode, |name| {
+                    let local = external_local.unwrap_or(&self.local);
+                    super::local::known_forwarded_domain(&local.config, &local.hosts, name)
+                        || self.routing.has_configured_address(name)
+                })?;
                 let report = process_reply(&mut candidate, &self.policy)?;
                 if report.action == ProcessAction::Deliver
                     && !report.blocked_rebind
@@ -373,22 +424,49 @@ impl<R: Random> DnsDaemon<R> {
             for recipient in reply.recipients {
                 let mut packet = reply.packet.clone();
                 recipient.restore_question(&mut packet)?;
-                let report = process_reply(&mut packet, &self.policy)?;
-                if report.action == ProcessAction::Ignore {
-                    continue;
-                }
                 let envelope = prepare_reply(
                     &packet,
                     ReplyPolicy {
                         client_had_opt: reply.flags.had_opt,
                         checking_disabled: reply.flags.checking_disabled,
                         proxy_dnssec: self.proxy_dnssec,
-                        edns_packet_max: recipient.client.udp_limit,
+                        edns_packet_max: self.edns_packet_max,
                     },
                 )?;
-                let packet = limit_udp_reply(&envelope.packet, recipient.client.udp_limit)?;
+                let mut packet = envelope.packet;
+                apply_known_local_nxdomain(&mut packet, rcode, |name| {
+                    let local = external_local.unwrap_or(&self.local);
+                    super::local::known_forwarded_domain(&local.config, &local.hosts, name)
+                        || self.routing.has_configured_address(name)
+                })?;
+                if matches!(rcode, 0 | 3) {
+                    let report = process_reply(&mut packet, &self.policy)?;
+                    if report.action == ProcessAction::Ignore {
+                        continue;
+                    }
+                    let ede = if report.blocked_rebind || report.bogus_nxdomain {
+                        Some(15)
+                    } else if report.malformed_address {
+                        Some(0)
+                    } else {
+                        None
+                    };
+                    if let Some(ede) = ede {
+                        if find_pseudoheader(&packet, false)?.opt.is_some() {
+                            super::tcp_service::add_ede(
+                                &mut packet,
+                                self.edns_packet_max,
+                                reply.flags.dnssec_ok,
+                                ede,
+                                usize::from(self.edns_packet_max),
+                            )?;
+                        }
+                    }
+                }
+                let packet = limit_udp_reply(&packet, recipient.client.udp_limit)?;
                 responses.push(ClientResponse {
                     destination: recipient.client.source,
+                    listener: recipient.client.listener,
                     packet,
                 });
             }
@@ -1105,6 +1183,10 @@ pub(super) fn validate_runtime_config(config: &DnsConfig) -> Result<(), DaemonEr
 #[cfg(test)]
 #[path = "daemon_cache_tests.rs"]
 mod cache_tests;
+
+#[cfg(test)]
+#[path = "daemon_policy_tests.rs"]
+mod policy_tests;
 
 #[cfg(test)]
 mod tests {

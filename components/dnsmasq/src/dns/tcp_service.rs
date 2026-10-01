@@ -7,7 +7,7 @@
 
 use super::daemon::{address_policy, validate_runtime_config, DaemonError};
 use super::process::{process_reply, AddressPolicy, ProcessError};
-use super::reply::{prepare_reply, strip_opt, ReplyPolicy};
+use super::reply::{apply_known_local_nxdomain, prepare_reply, strip_opt, ReplyPolicy};
 use super::routing::{RouteReason, RoutingTable};
 use super::service::LocalDnsService;
 use super::tcp_upstream::{TcpError, TcpOptions, TcpUpstream};
@@ -213,17 +213,11 @@ fn finish_reply(
     // process_reply captures the full RCODE before possibly stripping OPT.
     // Do not reinterpret an extended error as NOERROR after that strip.
     if matches!(envelope.rcode, 0 | 3) {
-        let mut header = Header::parse(&packet)?;
-        if envelope.rcode == 3 && header.opcode() == 0 && header.flags & 0x0200 == 0 {
-            let question = Question::parse(&packet, 12)?;
-            if local.is_some_and(|local| {
-                super::local::known_forwarded_domain(&local.config, &local.hosts, &question.name)
-            }) || routing.is_some_and(|routing| routing.has_configured_address(&question.name))
-            {
-                header.flags = (header.flags & !0x000f) | 0x0400;
-                header.write(&mut packet)?;
-            }
-        }
+        apply_known_local_nxdomain(&mut packet, envelope.rcode, |name| {
+            local.is_some_and(|local| {
+                super::local::known_forwarded_domain(&local.config, &local.hosts, name)
+            }) || routing.is_some_and(|routing| routing.has_configured_address(name))
+        })?;
         let report = process_reply(&mut packet, policy).map_err(TcpServiceError::Process)?;
         let ede = if report.blocked_rebind || report.bogus_nxdomain {
             Some(15)
@@ -244,7 +238,7 @@ fn finish_reply(
 /// EDE insertion/replacement follows edns0.c::add_pseudoheader, including its
 /// strict option-loop bound and relocation of a non-final OPT. Other EDNS
 /// decoration is deliberately not inferred from the UDP dispatcher.
-fn add_ede(
+pub(super) fn add_ede(
     packet: &mut Vec<u8>,
     max: u16,
     set_do: bool,
