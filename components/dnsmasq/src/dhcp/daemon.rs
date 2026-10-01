@@ -105,6 +105,8 @@ pub struct LocalProvider {
     states: Vec<ContextState>,
     hosts: Vec<HostPolicy>,
     inline_hosts: Vec<HostConfig>,
+    main_host_count: usize,
+    ethers: crate::config::ethers::Ethers,
     host_files: HostFiles,
     host_files_ready: bool,
     reserved: Vec<Ipv4Addr>,
@@ -174,6 +176,8 @@ impl LocalProvider {
             states: config.ranges.iter().map(ContextState::new).collect(),
             hosts: config.hosts.iter().map(host_policy).collect(),
             inline_hosts: config.hosts.clone(),
+            main_host_count: config.hosts.len(),
+            ethers: crate::config::ethers::Ethers::new(&config.hosts),
             host_files: HostFiles::new(&config.host_files),
             host_files_ready: true,
             reserved: config
@@ -470,34 +474,69 @@ impl LocalProvider {
     }
 
     fn reread_host_files(&mut self) -> Vec<HostFileError> {
-        // C parses new file rules before clearing old inferred inline
-        // addresses. Those old addresses still reject duplicate file rows.
-        let inline_start = self.config.hosts.len() - self.inline_hosts.len();
-        let mut report = self.host_files.reload(&self.config.hosts[inline_start..]);
+        self.reread_host_files_at(Path::new("/etc/ethers"))
+    }
+
+    fn reread_host_files_at(&mut self, ethers_path: &Path) -> Vec<HostFileError> {
+        let mut errors = Vec::new();
+        let old_base_count = self.inline_hosts.len();
+        let mut refreshed_ethers = None;
+        if self.config.read_ethers {
+            match self.ethers.reload(ethers_path) {
+                Ok(lines) => {
+                    refreshed_ethers = Some(self.ethers.hosts().to_vec());
+                    for line in lines {
+                        errors.push(HostFileError {
+                            path: ethers_path.to_path_buf(),
+                            line: Some(line),
+                            kind: crate::config::dhcp::HostFileErrorKind::Line(
+                                crate::config::Error("bad ethers entry"),
+                            ),
+                        });
+                    }
+                }
+                Err(error) => errors.push(HostFileError {
+                    path: ethers_path.to_path_buf(),
+                    line: None,
+                    kind: crate::config::dhcp::HostFileErrorKind::Io(error),
+                }),
+            }
+        }
+        // Without a successful ethers reload, retain inferred addresses during
+        // hosts-file parsing, just as C does before clearing CONFIG_ADDR_HOSTS.
+        let old_base = self.config.hosts.len() - old_base_count;
+        let base = refreshed_ethers
+            .as_deref()
+            .unwrap_or(&self.config.hosts[old_base..]);
+        let mut report = self.host_files.reload(base);
         self.host_files_ready = report.ready();
         if self.host_files_ready {
-            let file_count = report.hosts.len() - self.inline_hosts.len();
-            for (host, original) in report.hosts[file_count..]
-                .iter_mut()
-                .zip(&self.inline_hosts)
-            {
-                // Rebuild inferred addresses from this DNS generation. The
-                // immutable main rules distinguish explicit from inferred.
+            let originals = refreshed_ethers.as_deref().unwrap_or(&self.inline_hosts);
+            let base_count = originals.len();
+            let file_count = report.hosts.len() - base_count;
+            for (host, original) in report.hosts[file_count..].iter_mut().zip(originals) {
                 host.address = original.address;
             }
-            // C frees CONFIG_BANK records and their DECLINE state; unchanged
-            // command-line/main records retain theirs across SIGHUP.
-            let inline = self
-                .hosts
-                .split_off(self.hosts.len() - self.inline_hosts.len());
-            self.hosts = report.hosts[..report.hosts.len() - self.inline_hosts.len()]
-                .iter()
-                .map(host_policy)
-                .collect();
-            self.hosts.extend(inline);
+            // Inline rules survive both data reloads. A successful ethers
+            // reload replaces its own entries; hosts-file rules always reset.
+            let keep_count = if refreshed_ethers.is_some() {
+                self.main_host_count
+            } else {
+                old_base_count
+            };
+            let old_policies = self.hosts.split_off(self.hosts.len() - keep_count);
+            self.hosts = report.hosts.iter().map(host_policy).collect();
+            let first_kept = self.hosts.len() - keep_count;
+            for (policy, old) in self.hosts[first_kept..].iter_mut().zip(old_policies) {
+                policy.declined_at = old.declined_at;
+            }
             self.config.hosts = report.hosts;
+            if let Some(hosts) = refreshed_ethers {
+                self.inline_hosts = hosts;
+            }
         }
-        report.errors
+        errors.extend(report.errors);
+        errors
     }
 
     /// SIGHUP data-file stage, after the caller reloads DNS hosts and before
@@ -1075,6 +1114,54 @@ fn event_mac(packet: super::packet::Packet<'_>, client_id: Option<&[u8]>) -> Vec
 #[cfg(test)]
 mod startup_tests {
     use super::*;
+
+    #[test]
+    fn ethers_reload_replaces_created_rules_and_preserves_inline_decline() {
+        let mut config = DhcpConfig {
+            no_ping: true,
+            lease_read_only: true,
+            read_ethers: true,
+            ..DhcpConfig::default()
+        };
+        config
+            .apply(
+                &crate::config::lex_line(b"dhcp-host=02:00:00:00:00:01,192.0.2.10,configured")
+                    .unwrap()
+                    .unwrap(),
+            )
+            .unwrap();
+        let mut provider = LocalProvider::new(config, Vec::new(), 0, || false).unwrap();
+        provider.hosts[0].declined_at = Some(50);
+        let path = std::env::temp_dir().join(format!("dnsmasq-ethers-{}", std::process::id()));
+        std::fs::write(
+            &path,
+            b"02:00:00:00:00:02 192.0.2.10\n02:00:00:00:00:03 192.0.2.11\n",
+        )
+        .unwrap();
+        assert!(provider.reread_host_files_at(&path).is_empty());
+        assert_eq!(provider.hosts.len(), 2);
+        assert_eq!(provider.hosts[1].declined_at, Some(50));
+        assert_eq!(
+            provider.hosts[1].hardware_addresses[0].hardware_address[5],
+            2
+        );
+        provider.hosts[0].declined_at = Some(60);
+        std::fs::write(&path, b"02:00:00:00:00:03 192.0.2.12\n").unwrap();
+        assert!(provider.reread_host_files_at(&path).is_empty());
+        assert_eq!(
+            provider.hosts[0].address,
+            Some(Ipv4Addr::new(192, 0, 2, 12))
+        );
+        assert_eq!(provider.hosts[0].declined_at, None);
+        assert_eq!(provider.hosts[1].declined_at, Some(50));
+        std::fs::remove_file(&path).unwrap();
+        assert_eq!(provider.reread_host_files_at(&path).len(), 1);
+        assert_eq!(provider.hosts.len(), 2);
+        assert_eq!(
+            provider.hosts[0].address,
+            Some(Ipv4Addr::new(192, 0, 2, 12))
+        );
+    }
 
     #[test]
     fn address_lookup_error_pauses_admission_until_successful_reload() {
