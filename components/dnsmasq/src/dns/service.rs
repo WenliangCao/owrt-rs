@@ -4,12 +4,14 @@
 //! owns answer selection.  An unowned query is returned as `None` so a future
 //! upstream dispatcher can take over without changing the wire boundary.
 
+use super::lease_names::LeaseNames;
 use super::local::{AnswerError, LocalAnswerer};
 use super::wire::{find_pseudoheader, Header};
 use crate::config::dns::DnsConfig;
 use crate::hosts::Hosts;
 use std::io::{self, Read, Write};
 use std::net::{TcpStream, UdpSocket};
+use std::sync::Arc;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FrameError {
@@ -163,6 +165,8 @@ impl From<io::Error> for ServiceError {
 pub struct LocalDnsService {
     pub config: DnsConfig,
     pub hosts: Hosts,
+    /// A completed publication. Existing TCP children retain their snapshot.
+    pub leases: Arc<LeaseNames>,
     pub local_ttl: u32,
     pub max_udp: usize,
     pub edns_packet_max: u16,
@@ -189,6 +193,7 @@ impl LocalDnsService {
         Self {
             config,
             hosts,
+            leases: Arc::new(LeaseNames::default()),
             local_ttl,
             max_udp: receive_limit.max(512),
             edns_packet_max,
@@ -196,6 +201,14 @@ impl LocalDnsService {
     }
 
     pub fn handle_udp(&mut self, query: &[u8]) -> Result<Option<Vec<u8>>, ServiceError> {
+        self.handle_udp_at(query, unix_now())
+    }
+
+    pub fn handle_udp_at(
+        &mut self,
+        query: &[u8],
+        now: i64,
+    ) -> Result<Option<Vec<u8>>, ServiceError> {
         // C treats an invalid additional section as no pseudoheader; a
         // valid question may still receive a local answer.
         let opt = find_pseudoheader(query, true)
@@ -211,7 +224,7 @@ impl LocalDnsService {
             local_ttl: self.local_ttl,
             max_packet: limit,
         };
-        let Some(mut answer) = answerer.answer_with_source(query)? else {
+        let Some(mut answer) = answerer.answer_with_lease_source(query, &self.leases, now)? else {
             return Ok(None);
         };
         if opt.is_some() {
@@ -233,6 +246,14 @@ impl LocalDnsService {
     }
 
     pub fn handle_tcp_payload(&mut self, query: &[u8]) -> Result<Option<Vec<u8>>, ServiceError> {
+        self.handle_tcp_payload_at(query, unix_now())
+    }
+
+    pub fn handle_tcp_payload_at(
+        &mut self,
+        query: &[u8],
+        now: i64,
+    ) -> Result<Option<Vec<u8>>, ServiceError> {
         let opt = find_pseudoheader(query, true)
             .ok()
             .and_then(|scan| scan.opt);
@@ -243,7 +264,7 @@ impl LocalDnsService {
             local_ttl: self.local_ttl,
             max_packet: u16::MAX as usize,
         };
-        let Some(mut packet) = answerer.answer(query)? else {
+        let Some(mut packet) = answerer.answer_with_leases(query, &self.leases, now)? else {
             return Ok(None);
         };
         if opt.is_some() {
@@ -305,6 +326,12 @@ impl LocalDnsService {
             }
         }
     }
+}
+
+fn unix_now() -> i64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_or(0, |duration| duration.as_secs().min(i64::MAX as u64) as i64)
 }
 
 /// Local answers contain no client OPT. edns0.c checks room for the empty

@@ -5,6 +5,7 @@
 //! upstream forwarder.  Keeping that boundary explicit prevents an incomplete
 //! forwarder from turning an upstream miss into a fake empty answer.
 
+use super::lease_names::LeaseNames;
 use super::wire::{Header, Name, PacketWriter, Section, WireError};
 use crate::config::dns::{DnsConfig, DomainPattern, RuleTarget};
 use crate::config::records::{MxRecord, NaptrRecord, RawRecord, SrvRecord};
@@ -73,6 +74,13 @@ pub(crate) struct LocalAnswer {
     pub forward_rule: bool,
 }
 
+#[derive(Clone, Copy)]
+struct LeaseView<'a> {
+    names: &'a LeaseNames,
+    now: i64,
+    local_ttl: u32,
+}
+
 impl<'a> LocalAnswerer<'a> {
     pub fn answer(&mut self, query: &[u8]) -> Result<Option<Vec<u8>>, AnswerError> {
         Ok(self.answer_with_source(query)?.map(|answer| answer.packet))
@@ -82,6 +90,31 @@ impl<'a> LocalAnswerer<'a> {
         &mut self,
         query: &[u8],
     ) -> Result<Option<LocalAnswer>, AnswerError> {
+        self.answer_with_lease_source(query, &LeaseNames::default(), 0)
+    }
+
+    pub fn answer_with_leases(
+        &mut self,
+        query: &[u8],
+        leases: &LeaseNames,
+        now: i64,
+    ) -> Result<Option<Vec<u8>>, AnswerError> {
+        Ok(self
+            .answer_with_lease_source(query, leases, now)?
+            .map(|answer| answer.packet))
+    }
+
+    pub(crate) fn answer_with_lease_source(
+        &mut self,
+        query: &[u8],
+        leases: &LeaseNames,
+        now: i64,
+    ) -> Result<Option<LocalAnswer>, AnswerError> {
+        let leases = LeaseView {
+            names: leases,
+            now,
+            local_ttl: self.local_ttl,
+        };
         let header = Header::parse(query).map_err(|_| AnswerError::Malformed)?;
         if header.opcode() != 0
             || header.flags & 0x8000 != 0
@@ -122,7 +155,7 @@ impl<'a> LocalAnswerer<'a> {
                 self.hosts,
                 &question.name,
                 question.qtype,
-                self.local_ttl,
+                leases,
                 &mut rows,
                 &mut extra_rows,
             );
@@ -134,6 +167,7 @@ impl<'a> LocalAnswerer<'a> {
                     &name,
                     question.qtype,
                     self.local_ttl,
+                    leases,
                 );
                 rows.extend(local_rows);
                 owned = local_owned;
@@ -159,8 +193,11 @@ impl<'a> LocalAnswerer<'a> {
         if blocked && !owned {
             return Ok(None);
         }
-        let nxdomain =
-            !owned && local_only && !has_descendant_local(self.config, self.hosts, &question.name);
+        let nxdomain = !owned
+            && local_only
+            && !has_descendant_local(self.config, self.hosts, &question.name)
+            && !wire_to_dotted(&question.name)
+                .is_some_and(|name| leases.names.name_exists(&name, leases.now));
         if local_only {
             // domain-match.c returns F_NXDOMAIN for an unmatched local-only
             // suffix.  It is a completed response with AA clear, not an empty
@@ -374,10 +411,11 @@ fn add_cname_chain(
     hosts: &mut Hosts,
     alias: &Name,
     qtype: u16,
-    ttl: u32,
+    leases: LeaseView<'_>,
     rows: &mut Vec<(u16, u32, Vec<u8>)>,
     extra_rows: &mut Vec<(Vec<u8>, u16, u32, Vec<u8>)>,
 ) -> bool {
+    let ttl = leases.local_ttl;
     let Some(mut current) = wire_to_dotted(alias) else {
         return false;
     };
@@ -417,7 +455,7 @@ fn add_cname_chain(
     }
 
     let (terminal_rows, _terminal_owned) =
-        add_local_records_for_name(config, hosts, &current, qtype, ttl);
+        add_local_records_for_name(config, hosts, &current, qtype, ttl, leases);
     let owner = wire_name(&current).unwrap_or_else(|| vec![0]);
     for (rrtype, record_ttl, data) in terminal_rows {
         extra_rows.push((owner.clone(), rrtype, record_ttl, data));
@@ -436,6 +474,7 @@ fn add_local_records_for_name(
     name: &[u8],
     qtype: u16,
     ttl: u32,
+    leases: LeaseView<'_>,
 ) -> (Vec<(u16, u32, Vec<u8>)>, bool) {
     let key = dotted_key(name);
     let mut rows = Vec::new();
@@ -469,12 +508,23 @@ fn add_local_records_for_name(
             }
         }
         if !explicit_ptr {
-            if let Some(host) = arpa_address(name).and_then(|address| hosts.reverse(address)) {
+            let address = arpa_address(name);
+            if let Some(host) = address.and_then(|address| hosts.reverse(address)) {
                 owned = true;
                 rows.push((
                     TYPE_PTR,
                     host.ttl,
                     wire_name(&host.name).unwrap_or_else(|| vec![0]),
+                ));
+            } else if let Some(lease) = address.and_then(|address| match address {
+                IpAddr::V4(address) => leases.names.reverse(address, leases.now),
+                IpAddr::V6(_) => None,
+            }) {
+                owned = true;
+                rows.push((
+                    TYPE_PTR,
+                    lease.ttl(leases.now, leases.names.policy()),
+                    wire_name(&lease.name).unwrap_or_else(|| vec![0]),
                 ));
             }
         }
@@ -487,6 +537,16 @@ fn add_local_records_for_name(
     for ipv6 in [false, true] {
         let rrtype = if ipv6 { TYPE_AAAA } else { TYPE_A };
         if qtype == 255 || qtype == rrtype {
+            if !ipv6 {
+                for lease in leases.names.lookup(name, leases.now) {
+                    rows.push((
+                        TYPE_A,
+                        lease.ttl(leases.now, leases.names.policy()),
+                        lease.address.octets().to_vec(),
+                    ));
+                    owned = true;
+                }
+            }
             for host in hosts.lookup(name, Some(ipv6), config.no_round_robin) {
                 rows.push((rrtype, host.ttl, ip_bytes(host.address)));
                 owned = true;
@@ -765,6 +825,19 @@ pub(super) fn known_forwarded_domain(config: &DnsConfig, hosts: &Hosts, query: &
             || !config.records.naptr.is_empty();
     }
     has_descendant_local(config, hosts, query)
+}
+
+/// Presence used for local-only domains and upstream NXDOMAIN conversion.
+/// This does not mean the name has a locally answerable requested RR type.
+pub fn known_forwarded_domain_with_leases(
+    config: &DnsConfig,
+    hosts: &Hosts,
+    query: &Name,
+    leases: &LeaseNames,
+    now: i64,
+) -> bool {
+    known_forwarded_domain(config, hosts, query)
+        || wire_to_dotted(query).is_some_and(|name| leases.name_exists(&name, now))
 }
 
 fn has_descendant_local(config: &DnsConfig, hosts: &Hosts, query: &Name) -> bool {

@@ -17,6 +17,7 @@ pub struct LeasePolicy {
     pub local_ttl: u32,
     pub dhcp_ttl: Option<u32>,
     pub stale: StalePolicy,
+    pub no_round_robin: bool,
 }
 
 impl Default for LeasePolicy {
@@ -25,6 +26,7 @@ impl Default for LeasePolicy {
             local_ttl: 0,
             dhcp_ttl: None,
             stale: StalePolicy::Disabled,
+            no_round_robin: false,
         }
     }
 }
@@ -73,6 +75,7 @@ pub struct PublicationBlocker {
 
 pub struct ForwardPublication<'a> {
     pub name: &'a [u8],
+    pub no_round_robin: bool,
     pub blockers: &'a [PublicationBlocker],
 }
 
@@ -150,7 +153,7 @@ impl LeaseNames {
     /// short name. fqdn-only filtering belongs to the lease publisher.
     pub fn build(
         records: &[DnsLeaseRecord<'_>],
-        hosts: &Hosts,
+        hosts: &mut Hosts,
         cnames: &[Cname],
         policy: LeasePolicy,
         cache: &mut impl PublicationCache,
@@ -175,7 +178,7 @@ impl LeaseNames {
 
     pub fn rebuild(
         &self,
-        hosts: &Hosts,
+        hosts: &mut Hosts,
         cnames: &[Cname],
         cache: &mut impl PublicationCache,
     ) -> Self {
@@ -239,7 +242,7 @@ impl LeaseNames {
     fn add(
         &mut self,
         record: DnsLeaseRecord<'_>,
-        hosts: &Hosts,
+        hosts: &mut Hosts,
         cnames: &[Cname],
         cache: &mut impl PublicationCache,
     ) {
@@ -277,13 +280,15 @@ impl LeaseNames {
                 immortal: self.entries[id].expires.is_none(),
             }));
         }
+        let static_addresses = hosts.lookup(record.name, Some(false), self.policy.no_round_robin);
         cache.prepare_name(ForwardPublication {
             name: record.name,
+            no_round_robin: self.policy.no_round_robin,
             blockers: &blockers,
         });
 
         let mut conflict = None;
-        for host in hosts.addresses(record.name) {
+        for host in static_addresses {
             if let IpAddr::V4(address) = host.address {
                 if address == record.address {
                     return; // any same address wins over all mismatched ones
@@ -388,7 +393,7 @@ mod tests {
             local_ttl: 37,
             ..LeasePolicy::default()
         };
-        let names = LeaseNames::build(&records, &Hosts::new(), &[], policy, &mut ());
+        let names = LeaseNames::build(&records, &mut Hosts::new(), &[], policy, &mut ());
         assert_eq!(
             names.reverse(records[0].address, 999).unwrap().name,
             b"lease.example"
@@ -418,7 +423,7 @@ mod tests {
             37,
             1,
         );
-        let names = LeaseNames::build(&records, &hosts, &[], LeasePolicy::default(), &mut ());
+        let names = LeaseNames::build(&records, &mut hosts, &[], LeasePolicy::default(), &mut ());
         assert_eq!(names.inputs().len(), 1);
         assert!(names.entries().is_empty());
         assert!(matches!(
@@ -432,7 +437,7 @@ mod tests {
             37,
             1,
         );
-        let names = names.rebuild(&hosts, &[], &mut ());
+        let names = names.rebuild(&mut hosts, &[], &mut ());
         assert_eq!(names.entries().len(), 1);
         assert!(names.entries()[0].reverse);
     }
@@ -446,7 +451,7 @@ mod tests {
         }];
         let names = LeaseNames::build(
             &[input(b"lease.example", 7, Some(1000))],
-            &Hosts::new(),
+            &mut Hosts::new(),
             &cnames,
             LeasePolicy::default(),
             &mut (),
@@ -470,7 +475,7 @@ mod tests {
         }
         let names = LeaseNames::build(
             &[input(b"lease.example", 7, Some(1000))],
-            &Hosts::new(),
+            &mut Hosts::new(),
             &[],
             LeasePolicy::default(),
             &mut Cache,
@@ -478,5 +483,87 @@ mod tests {
         assert_eq!(names.entries().len(), 1);
         assert!(!names.entries()[0].reverse);
         assert!(names.reverse(Ipv4Addr::new(192, 0, 2, 7), 999).is_none());
+    }
+
+    #[test]
+    fn actual_local_answer_keeps_lease_ttl_and_wrong_type_forwarding() {
+        use crate::config::dns::DnsConfig;
+        use crate::dns::service::LocalDnsService;
+        use crate::dns::wire::{Message, Name, PacketWriter, Section};
+        use std::sync::Arc;
+
+        let mut service = LocalDnsService::new(DnsConfig::default(), Hosts::new(), 37, 512);
+        service.leases = Arc::new(LeaseNames::build(
+            &[input(b"lease.example", 7, Some(1000))],
+            &mut service.hosts,
+            &[],
+            LeasePolicy {
+                local_ttl: 37,
+                ..LeasePolicy::default()
+            },
+            &mut (),
+        ));
+        let query = |name, kind| {
+            let mut writer = PacketWriter::new(0x2930, 0x100, 512).unwrap();
+            writer
+                .question(&Name::from_ascii(name).unwrap(), kind, 1)
+                .unwrap();
+            writer.finish()
+        };
+        let wire = service
+            .handle_udp_at(&query("lease.example", 1), 999)
+            .unwrap()
+            .unwrap();
+        let message = Message::parse(&wire).unwrap();
+        assert_eq!(message.header.flags, 0x8580); // exact C baseline
+        assert_eq!(message.header.answers, 1);
+        let answer = message.records(Section::Answer).next().unwrap();
+        assert_eq!(answer.ttl, 1);
+        assert_eq!(answer.rdata, &[192, 0, 2, 7]);
+        assert!(service
+            .handle_udp_at(&query("lease.example", 28), 999)
+            .unwrap()
+            .is_none());
+        assert!(service
+            .handle_tcp_payload_at(&query("example", 1), 999)
+            .unwrap()
+            .is_none());
+        assert!(service
+            .handle_udp_at(&query("lease.example", 1), 1000)
+            .unwrap()
+            .is_none());
+    }
+
+    #[test]
+    fn stale_dhcp_ttl_preserves_measured_c_wire_narrowing() {
+        let policy = LeasePolicy {
+            local_ttl: 37,
+            stale: StalePolicy::Seconds(2),
+            ..LeasePolicy::default()
+        };
+        let names = LeaseNames::build(
+            &[input(b"lease.example", 7, Some(1000))],
+            &mut Hosts::new(),
+            &[],
+            policy,
+            &mut (),
+        );
+        assert_eq!(
+            names
+                .lookup(b"lease.example", 1000)
+                .next()
+                .unwrap()
+                .ttl(1000, policy),
+            0
+        );
+        assert_eq!(
+            names
+                .lookup(b"lease.example", 1001)
+                .next()
+                .unwrap()
+                .ttl(1001, policy),
+            u32::MAX
+        );
+        assert!(names.lookup(b"lease.example", 1002).next().is_none());
     }
 }

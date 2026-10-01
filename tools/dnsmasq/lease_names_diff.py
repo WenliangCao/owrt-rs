@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 import struct
 import subprocess
+import shutil
 
 import local_answer_diff
 
@@ -61,6 +62,14 @@ def corpus():
         ("static-other-family", "local-ttl=37\nhost-record=lease.example,2001:db8::7",commands([record],questions)),
         ("static-ptr-owner", "local-ttl=37\nhost-record=static.example,192.0.2.7",commands([record],questions)),
         ("static-cname", "local-ttl=37\ncname=lease.example,target.example\nhost-record=target.example,192.0.2.9",commands([record],questions)),
+        ("cname-to-lease", "local-ttl=37\ncname=alias.example,lease.example,19",commands([record],questions+[("alias.example",kind) for kind in (1,28,5,255,65280)])),
+        ("stale-two-seconds", "local-ttl=37\nuse-stale-cache=2",commands([record],questions,times=(999,1000,1001,1002))),
+        ("stale-forever", "local-ttl=37\nuse-stale-cache",commands([record],questions,times=(999,1000,1001,1009))),
+        ("real-parent-extended", "local-ttl=37", commands([("example","192.0.2.8",1000),record[:-1]+(1010,)],questions+[("example",1),("8.2.0.192.in-addr.arpa",12)],times=(999,1000,1009,1010))),
+        ("real-parent-infinite-child", "local-ttl=37", commands([("example","192.0.2.8",1000),record[:-1]+(0,)],questions+[("example",1),("8.2.0.192.in-addr.arpa",12)])),
+        ("static-same-among-different", "local-ttl=37\nhost-record=lease.example,192.0.2.9\nhost-record=lease.example,192.0.2.7",commands([record],questions)),
+        ("static-publication-round-robin", "local-ttl=37\nhost-record=first.example,192.0.2.9\nhost-record=second.example,192.0.2.8\nhost-record=lease.example,192.0.2.9\nhost-record=lease.example,192.0.2.8",commands([record],questions)),
+        ("ptr-no-promotion", "local-ttl=37", commands([record,("other.example","192.0.2.7",1010)],questions+[("other.example",1)],times=(999,1000,1009,1010))),
     ]
     for label,packet in [
         ("prior-forward-nxdomain",negative("lease.example")),
@@ -75,14 +84,98 @@ def corpus():
     return rows
 
 
+def observations(commands, output):
+    """Keep flags/TTLs/record order; only unordered cache inventory is sorted."""
+    lines = iter(output.splitlines())
+    results = []
+    for command in commands:
+        line = next(lines)
+        if command == "E":
+            entries = []
+            while line != "END":
+                fields = line.split()
+                if len(fields) != 13 or fields[0] != "E":
+                    raise ValueError(f"invalid cache inventory row: {line}")
+                if fields[3] == "1":  # independently tagged C F_DHCP
+                    entries.append(line)
+                line = next(lines)
+            results.append(sorted(entries))
+        elif command.startswith("Q "):
+            results.append(local_answer_diff.dns_semantics(line))
+        else:
+            results.append(line)
+    if next(lines, None) is not None:
+        raise ValueError("extra output after final command")
+    return results
+
+
+def compare(args, output):
+    baseline = args.compare_baseline.resolve()
+    identity = json.loads((baseline / "result.json").read_text())
+    if identity["failures"]:
+        raise SystemExit("reference baseline contains failed invocations")
+    if hashlib.sha256((baseline / "local-answer-oracle").read_bytes()).hexdigest() != identity["c_oracle_sha256"]:
+        raise SystemExit("reference executable identity differs")
+    rows, deferred, mismatches = [], [], []
+    compared = queries = inventories = 0
+    for case in identity["rows"]:
+        index = case["case"]
+        commands = (baseline / f"{index:02}.input").read_text().splitlines()
+        if any(command.startswith("P ") for command in commands):
+            deferred.append({"case": index, "label": case["label"], "reason": "forward-cache publication is tested by lease_cache_diff, not this local snapshot probe"})
+            continue
+        config = output / f"{index:02}.conf"
+        shutil.copy2(baseline / f"{index:02}.conf", config)
+        wire = "\n".join(commands)+"\n"
+        (output / f"{index:02}.input").write_text(wire)
+        expected_wire = (baseline / f"{index:02}.stdout").read_text()
+        run = subprocess.run([str(args.rust.resolve()), "-C", str(config)], input=wire, text=True, capture_output=True)
+        (output / f"{index:02}.rust.stdout").write_text(run.stdout)
+        (output / f"{index:02}.rust.stderr").write_text(run.stderr)
+        (output / f"{index:02}.c.stdout").write_text(expected_wire)
+        expected = observations(commands, expected_wire)
+        actual = observations(commands, run.stdout) if not run.returncode else []
+        if run.returncode:
+            mismatches.append({"case": index, "label": case["label"], "exit": run.returncode})
+        else:
+            for step, (left, right) in enumerate(zip(expected, actual, strict=True)):
+                compared += 1
+                queries += commands[step].startswith("Q ")
+                inventories += commands[step] == "E"
+                if left != right:
+                    mismatches.append({"case":index,"label":case["label"],"step":step,"command":commands[step],"c":left,"rust":right})
+        rows.append({"case": index, "label": case["label"], "exit": run.returncode, "commands": len(commands)})
+    # A controlled wrong result must increase the comparator's failure count.
+    expected = observations(["Q 0 " + query("calibration.example").hex()], "NONE\n")
+    corrupted = observations(["Q 0 " + query("calibration.example").hex()], positive("calibration.example",bytes([192,0,2,7])).hex()+"\n")
+    assert sum(a != b for a,b in zip(expected,corrupted,strict=True)) == 1
+    report = {"scope":"exact C DHCP inventory, local DNS answers and known-local presence; forwarded cache scenarios deferred",
+        "c_oracle_sha256":identity["c_oracle_sha256"],"rust_sha256":hashlib.sha256(args.rust.read_bytes()).hexdigest(),
+        "cases":len(rows),"compared":compared,"queries":queries,"inventories":inventories,
+        "mismatches":mismatches,"deferred":deferred,"rows":rows,
+        "calibration":{"injected_wrong_answer_detected":1,"invalid_c_config_rejected":identity["calibration"]["invalid_config_rejected"]}}
+    (output/"result.json").write_text(json.dumps(report,indent=2)+"\n")
+    print(json.dumps({k:v for k,v in report.items() if k not in ("rows","mismatches","deferred")}|{"mismatches":len(mismatches),"deferred":len(deferred)}))
+    return int(bool(mismatches))
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--reference-build",type=Path,required=True)
-    parser.add_argument("--source",type=Path,required=True)
+    parser.add_argument("--reference-build",type=Path)
+    parser.add_argument("--source",type=Path)
+    parser.add_argument("--compare-baseline",type=Path)
+    parser.add_argument("--rust",type=Path)
     parser.add_argument("--output",type=Path,required=True)
     args=parser.parse_args(); output=args.output.resolve()
     if output.exists() or not output.is_relative_to(ROOT/"private"):
         parser.error("new private output directory required")
+    if args.compare_baseline:
+        if not args.rust:
+            parser.error("--compare-baseline requires --rust")
+        output.mkdir(parents=True)
+        return compare(args,output)
+    if not args.reference_build or not args.source:
+        parser.error("C baseline requires --reference-build and --source")
     for filename,expected in HASHES.items():
         if hashlib.sha256((args.source/"src"/filename).read_bytes()).hexdigest()!=expected:
             parser.error(f"source identity differs: {filename}")
@@ -92,7 +185,8 @@ def main():
     rows=[]
     for index,(label,extra,lines) in enumerate(corpus()):
         config=output/f"{index:02}.conf"
-        config.write_text("no-hosts\nno-resolv\ncache-size=64\nneg-ttl=60\nno-round-robin\n"+extra+"\n")
+        config.write_text("no-hosts\nno-resolv\ncache-size=64\nneg-ttl=60\n"+
+                          ("" if label == "static-publication-round-robin" else "no-round-robin\n")+extra+"\n")
         wire="\n".join(lines)+"\n"; (output/f"{index:02}.input").write_text(wire)
         run=subprocess.run([str(binary),"-C",str(config)],input=wire,text=True,capture_output=True)
         (output/f"{index:02}.stdout").write_text(run.stdout);(output/f"{index:02}.stderr").write_text(run.stderr)
