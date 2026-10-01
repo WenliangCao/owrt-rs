@@ -399,8 +399,11 @@ pub fn prepare_query(
 
 /// Rust's current cache metadata subset, independent of C's forwarding flags.
 /// FREC_NO_CACHE changes duplicate matching and is reserved for source-bound
-/// EDNS configuration. Ordinary empty OPT may populate the cache; unsupported
-/// option/version/signature metadata must not alter that forwarding contract.
+/// EDNS configuration. Empty OPT, with or without DO, may populate the cache;
+/// a DO address query still cannot consume these unsigned records. New DO/AD
+/// admission is bounded to IN A/AAAA and their represented CNAME/negative paths.
+/// Unsupported option/version/signature metadata must not alter the forwarding
+/// contract.
 pub(super) fn ordinary_cache_query(packet: &[u8]) -> bool {
     let Ok(header) = Header::parse(packet) else {
         return false;
@@ -408,11 +411,17 @@ pub(super) fn ordinary_cache_query(packet: &[u8]) -> bool {
     let Ok(scan) = find_pseudoheader(packet, true) else {
         return false;
     };
+    if scan.signed {
+        return false;
+    }
+    if (header.flags & 0x20 != 0 || scan.opt.as_ref().is_some_and(|opt| opt.dnssec_ok()))
+        && !super::forward::Question::parse(packet)
+            .is_ok_and(|question| question.class == 1 && matches!(question.rrtype, 1 | 28))
+    {
+        return false;
+    }
     scan.opt.as_ref().is_none_or(|opt| {
-        !scan.signed
-            && header.additionals == 1
-            && opt.record.ttl == 0
-            && opt.record.rdata.is_empty()
+        header.additionals == 1 && opt.record.ttl & !0x8000 == 0 && opt.record.rdata.is_empty()
     })
 }
 
@@ -505,7 +514,8 @@ mod tests {
     #[test]
     fn opt_cache_eligibility_does_not_admit_unrepresented_metadata() {
         for (ttl, data) in [
-            (0x8000u32, &[][..]),
+            (1u32, &[][..]),
+            (0x4000, &[][..]),
             (0x10000, &[][..]),
             (0x1000000, &[][..]),
             (0, &[0, 12, 0, 0][..]),
@@ -520,6 +530,41 @@ mod tests {
             assert!(metadata.had_opt && !metadata.flags.no_cache);
             assert!(!ordinary_cache_query(&packet));
         }
+    }
+
+    #[test]
+    fn do_cache_admission_keeps_forwarding_and_security_flags() {
+        let mut packet = query("example.test", 9);
+        let question_type = packet.len() - 4;
+        packet[3] |= 0x30; // AD and CD remain forwarding-key metadata.
+        packet[11] = 1;
+        packet.extend_from_slice(&[0, 0, 41, 4, 210, 0, 0, 0x80, 0, 0, 0]);
+        let (prepared, metadata) = prepare_query(&packet, 1232).unwrap();
+        assert!(ordinary_cache_query(&packet));
+        assert!(metadata.flags.dnssec_ok && metadata.flags.ad_requested);
+        assert!(metadata.flags.checking_disabled && !metadata.flags.no_cache);
+        assert_eq!(Header::parse(&prepared).unwrap().flags & 0x30, 0x30);
+        assert!(find_pseudoheader(&prepared, false)
+            .unwrap()
+            .opt
+            .unwrap()
+            .dnssec_ok());
+        for rrtype in [5u16, 16, 46, 48] {
+            packet[question_type..question_type + 2].copy_from_slice(&rrtype.to_be_bytes());
+            assert!(!ordinary_cache_query(&packet));
+        }
+    }
+
+    #[test]
+    fn ad_does_not_admit_a_signed_address_query_without_opt() {
+        let mut packet = query("example.test", 9);
+        packet[3] |= 0x20;
+        packet[11] = 1;
+        packet.extend_from_slice(&[0, 0, 250, 0, 255, 0, 0, 0, 0, 0, 0]);
+        let (prepared, metadata) = prepare_query(&packet, 1232).unwrap();
+        assert!(metadata.signed);
+        assert_eq!(prepared, packet);
+        assert!(!ordinary_cache_query(&packet));
     }
 
     #[test]

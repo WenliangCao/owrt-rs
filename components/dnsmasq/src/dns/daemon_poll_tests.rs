@@ -208,6 +208,31 @@ fn one_bad_recipient_preserves_its_sibling_and_other_queries() {
 }
 
 #[test]
+fn raw_reply_cd_blocks_cache_before_client_cd_is_restored() {
+    for proxy in [false, true] {
+        let (mut daemon, mut events, _) = completed_pair();
+        daemon.proxy_dnssec = proxy;
+        daemon.enable_cache(4, 0, 0, StalePolicy::Disabled);
+        let rejected = events[0].result.as_ref().unwrap().recipients[0]
+            .question_name
+            .clone();
+        events[0].result.as_mut().unwrap().packet[3] |= 0x30;
+        let responses = daemon.finish_upstream_events(events, 100, None);
+        assert_eq!(responses.len(), 2);
+        assert!(responses
+            .iter()
+            .all(|row| Header::parse(&row.packet).unwrap().flags & 0x10 == 0));
+        assert_eq!(daemon.cache_counters().inserted, 1);
+        assert!(daemon
+            .cache
+            .as_mut()
+            .unwrap()
+            .lookup(&rejected, &[Kind::Ipv4], 100, false)
+            .is_empty());
+    }
+}
+
+#[test]
 fn background_delivery_is_suppressed_without_suppressing_cache_admission() {
     let (mut daemon, mut events, _) = completed_pair();
     daemon.enable_cache(4, 0, 0, StalePolicy::Disabled);
