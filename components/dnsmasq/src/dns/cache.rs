@@ -187,7 +187,7 @@ struct TransferredRecord {
     authority_name: Option<Name>,
 }
 
-/// Current parent local-name match at cache_scan_free's existing boundary.
+/// Current parent forward local-name match at cache_scan_free's boundary.
 /// The caller supplies its usual hosts/lease/configured-CNAME precedence.
 #[derive(Clone, Copy, Debug)]
 pub struct LocalCacheMatch {
@@ -692,8 +692,9 @@ impl Cache {
     }
 
     /// Apply a whole received transaction against the parent's current state.
-    /// `local_match` is a read-only lookup using the caller's existing local
-    /// precedence; it must not use the child's old local-name generation.
+    /// `local_match` is a read-only lookup called only for forward records.
+    /// It uses current local precedence, not the child's old name generation.
+    /// Reverse records coexist with local entries and bypass that name check.
     /// Ordered removals/evictions survive a later failure, as in C. Counters
     /// come only from these actual parent operations, never the child totals.
     pub fn import_counted(
@@ -729,7 +730,12 @@ impl Cache {
                 self.failed = true;
                 break;
             }
-            let inserted = if let Some(local) = local_match(&record) {
+            let local = if record.kind.is_reverse() {
+                None
+            } else {
+                local_match(&record)
+            };
+            let inserted = if let Some(local) = local {
                 self.check_local_insert(expires == now, local.same_address)
                     .ok()
                     .map(|()| CnameTarget::Local(self.local_target(record.name, local.from_lease)))
