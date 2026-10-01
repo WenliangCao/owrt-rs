@@ -9,6 +9,7 @@ use dnsmasq_rs::config::dhcp::DhcpConfig;
 use dnsmasq_rs::config::dns::DnsConfig;
 use dnsmasq_rs::config::loader::{self, Action};
 use dnsmasq_rs::config::tftp::TftpConfig;
+use dnsmasq_rs::config::ubus::UbusConfig;
 use dnsmasq_rs::config::{Error, ScalarConfig, StaleCache};
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 use dnsmasq_rs::dhcp::daemon::LocalProvider as DhcpProvider;
@@ -24,16 +25,20 @@ use dnsmasq_rs::dns::lease_names::{LeasePolicy, PublicationWarning};
 use dnsmasq_rs::dns::service::{encode_tcp_frame, LocalDnsService, TcpFramer};
 use dnsmasq_rs::dns::tcp_service::TcpDnsService;
 use dnsmasq_rs::hosts::Hosts;
+use dnsmasq_rs::metrics::{Metric, Metrics};
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 use dnsmasq_rs::tftp_listener::TftpListener;
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 use dnsmasq_rs::tftp_runtime::{RealFileOpener, RuntimeConfig, RuntimePathPolicy, TransferRuntime};
+use dnsmasq_rs::ubus_service::{ConnectError, DnsResult, UbusService};
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+use dnsmasq_rs::ubus_service::{DhcpEventFields, DhcpEventKind, DhcpLogging};
 use std::ffi::OsString;
 use std::io::{self, Read, Write};
 use std::net::{IpAddr, SocketAddr, TcpListener, UdpSocket};
 use std::path::Path;
-use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -77,6 +82,9 @@ fn startup_status(error: &(dyn std::error::Error + 'static)) -> i32 {
     if error.is::<NetworkStartupError>() {
         return 2;
     }
+    if error.is::<ConnectError>() {
+        return 5; // dnsmasq.c startup UBus registration failure: EC_MISC.
+    }
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     if let Some(error) = error.downcast_ref::<dnsmasq_rs::dhcp::daemon::StartupError>() {
         return error.exit_code();
@@ -89,6 +97,7 @@ struct Runtime {
     dns: DnsConfig,
     tftp: TftpConfig,
     dhcp: DhcpConfig,
+    ubus: UbusConfig,
 }
 
 // C's UDP listeners mutate one parent hosts generation. Each accepted TCP
@@ -96,6 +105,156 @@ struct Runtime {
 struct ParentDns {
     local: LocalDnsService,
     daemon: Option<DnsDaemon>,
+}
+
+/// One serialized parent event, including synchronous ubus callbacks. These
+/// counters belong to the actual UDP send and TCP-session lifetime below;
+/// cache/forward/DHCP counters stay with their engines and are only borrowed.
+struct ParentEvents {
+    ubus_name: Option<Vec<u8>>,
+    ubus: Option<UbusService>,
+    ubus_error_logged: bool,
+    local_answered: u32,
+    stale_answered: u32,
+    tcp_active: usize,
+}
+
+impl ParentEvents {
+    fn new(config: &UbusConfig) -> Result<Self, Box<dyn std::error::Error>> {
+        let name = config.object_name()?.map(<[u8]>::to_vec);
+        let ubus = match name.as_deref() {
+            None => None,
+            Some(name) => match UbusService::connect_bytes(None, name) {
+                Ok(service) => Some(service),
+                Err(ConnectError::Transport(_)) => None,
+                Err(error) => return Err(Box::new(error)),
+            },
+        };
+        Ok(Self {
+            ubus_name: name,
+            ubus,
+            ubus_error_logged: false,
+            local_answered: 0,
+            stale_answered: 0,
+            tcp_active: 0,
+        })
+    }
+
+    fn write_metrics(&self, metrics: &mut Metrics) {
+        metrics.set(Metric::LocalAnswered, self.local_answered);
+        metrics.set(Metric::StaleAnswered, self.stale_answered);
+        metrics.set(Metric::TcpConnections, self.tcp_active as u32);
+    }
+
+    fn disconnect(&mut self, error: &dyn std::fmt::Display) {
+        self.ubus = None;
+        if !self.ubus_error_logged {
+            eprintln!("dnsmasq-rs: UBus: {error}");
+            self.ubus_error_logged = true;
+        }
+    }
+
+    fn process_ubus(&mut self, metrics: &Metrics) {
+        let Some(name) = self.ubus_name.as_deref() else {
+            return;
+        };
+        if self.ubus.is_none() {
+            match UbusService::connect_bytes(None, name) {
+                Ok(service) => {
+                    self.ubus = Some(service);
+                    self.ubus_error_logged = false;
+                }
+                Err(error @ ConnectError::Transport(_)) => {
+                    self.disconnect(&error);
+                    return;
+                }
+                Err(error @ ConnectError::Registration(_)) => {
+                    // C treats registration failure during retry as fatal to
+                    // UBus only. The DNS/DHCP service keeps running.
+                    self.disconnect(&error);
+                    self.ubus_name = None;
+                    return;
+                }
+            }
+        }
+        while let Some(ubus) = self.ubus.as_mut() {
+            match ubus.process_one(metrics) {
+                Ok(true) => {}
+                Ok(false) => break,
+                Err(error) => {
+                    self.disconnect(&error);
+                    break;
+                }
+            }
+        }
+    }
+
+    fn doctor(&mut self, result: &DnsResult<'_>, metrics: &Metrics) -> Option<IpAddr> {
+        match self
+            .ubus
+            .as_mut()?
+            .doctor_dns(result, Some(stopping), metrics)
+        {
+            Ok(address) => address,
+            Err(error) => {
+                self.disconnect(&error);
+                None
+            }
+        }
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    fn notify_dhcp(
+        &mut self,
+        kind: DhcpEventKind,
+        fields: DhcpEventFields<'_>,
+        logging: DhcpLogging,
+    ) {
+        if let Some(ubus) = &mut self.ubus {
+            if let Err(error) = ubus.notify_dhcp(kind, fields, logging) {
+                self.disconnect(&error);
+            }
+        }
+    }
+}
+
+fn stopping() -> bool {
+    STOP_REQUESTED.load(Ordering::Acquire)
+}
+
+fn write_dns_metrics(
+    metrics: &mut Metrics,
+    cache: dnsmasq_rs::dns::cache::CacheCounters,
+    forward: dnsmasq_rs::dns::forward::ForwardCounters,
+) {
+    metrics.set(Metric::CacheInserted, cache.inserted);
+    metrics.set(Metric::CacheLiveFreed, cache.live_freed);
+    metrics.set(Metric::QueriesForwarded, forward.queries_forwarded);
+    metrics.set(Metric::Unanswered, forward.unanswered);
+}
+
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+fn write_dhcp_metrics(metrics: &mut Metrics, provider: &DhcpProvider) {
+    let leases = provider.lease_counters();
+    metrics.set(Metric::LeasesAllocated4, leases.allocated4);
+    metrics.set(Metric::LeasesPruned4, leases.pruned4);
+    metrics.set(Metric::LeasesPruned6, leases.pruned6);
+    let messages = provider.message_counters();
+    for (metric, value) in [
+        (Metric::Bootp, messages.bootp),
+        (Metric::Pxe, messages.pxe),
+        (Metric::DhcpAck, messages.ack),
+        (Metric::DhcpDecline, messages.decline),
+        (Metric::DhcpDiscover, messages.discover),
+        (Metric::DhcpInform, messages.inform),
+        (Metric::DhcpNak, messages.nak),
+        (Metric::DhcpOffer, messages.offer),
+        (Metric::DhcpRelease, messages.release),
+        (Metric::DhcpRequest, messages.request),
+        (Metric::NoAnswer, messages.no_answer),
+    ] {
+        metrics.set(metric, value);
+    }
 }
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -158,6 +317,7 @@ fn load(args: &[OsString]) -> Result<(Action, Runtime), loader::LoadError> {
         dns: DnsConfig::default(),
         tftp: TftpConfig::default(),
         dhcp: DhcpConfig::default(),
+        ubus: UbusConfig::default(),
     };
     let action = loader::load(args, Path::new("/etc/dnsmasq.conf"), |directive, _| {
         // `-k/--keep-in-foreground` is a process-mode switch consumed by the
@@ -169,6 +329,7 @@ fn load(args: &[OsString]) -> Result<(Action, Runtime), loader::LoadError> {
             || runtime.dns.apply(directive)?
             || runtime.tftp.apply(directive)?
             || runtime.dhcp.apply(directive)?
+            || runtime.ubus.apply(directive)?
         {
             Ok(())
         } else {
@@ -185,7 +346,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             println!("dnsmasq-rs 0.1.0");
             println!("Mode: development DNS daemon");
             println!("Implemented: DNS UDP/TCP, cache subsets, DHCPv4 listener boundary and TFTP transfer listener");
-            println!("Not implemented: full DNS cache/reload policy, DHCP relay/PXE/leasequery, UBus and metrics");
+            println!("Not implemented: full DNS cache/reload policy and DHCP relay/PXE/leasequery");
             return Ok(());
         }
         Action::Help | Action::HelpDhcp => {
@@ -278,10 +439,10 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         ),
         daemon,
     }));
-    let tcp_active = Arc::new(AtomicUsize::new(0));
-    // Parent reload is one C event. Lock order is event -> DHCP (if used) ->
-    // DNS. Socket waits stay outside this gate; ordinary readers can overlap.
-    let parent_events = Arc::new(RwLock::new(()));
+    // C mutates all parent engines in one event loop. Fetch DHCP metrics
+    // before locking DNS; synchronous doctor callbacks must never invert it.
+    // Socket waits remain outside this gate.
+    let parent_events = Arc::new(Mutex::new(ParentEvents::new(&runtime.ubus)?));
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     let mut dhcp_provider = None;
     let mut workers = Vec::new();
@@ -420,6 +581,8 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         let listener = SocketToken(listener_index as u64);
         let parent_service = Arc::clone(&service);
         let udp_events = Arc::clone(&parent_events);
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        let udp_dhcp = dhcp_provider.clone();
         workers.push(
             thread::Builder::new()
                 .name(format!("dns-udp-{address}"))
@@ -444,13 +607,28 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                         };
                         // HUP cannot split one admitted query's answer from
                         // its send/refresh. The receive wait stays outside.
-                        let Ok(_event) = udp_events.read() else { break };
+                        let Ok(mut event) = udp_events.lock() else {
+                            break;
+                        };
+                        let mut metrics = Metrics::default();
+                        event.write_metrics(&mut metrics);
+                        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+                        if let Some(provider) = &udp_dhcp {
+                            let Ok(provider) = provider.lock() else { break };
+                            write_dhcp_metrics(&mut metrics, &provider);
+                        }
                         let (answer, responses) = {
                             let Ok(mut parent) = parent_service.lock() else {
                                 break;
                             };
                             let ParentDns { local, daemon } = &mut *parent;
                             let daemon = daemon.as_mut().expect("DNS listener owns the forwarder");
+                            write_dns_metrics(
+                                &mut metrics,
+                                daemon.cache_counters(),
+                                daemon.forward_counters(),
+                            );
+                            event.process_ubus(&metrics);
                             let answer = incoming.and_then(|(length, peer)| {
                                 let packet = &query[..length];
                                 match dnsmasq_rs::dns::udp_query::inspect(
@@ -488,13 +666,30 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                             });
                             // This poll is nonblocking. Keep local-name policy
                             // and cache updates in the same generation as lookup.
-                            let responses = daemon
-                                .poll_with_local(Duration::ZERO, local)
-                                .unwrap_or_default();
-                            (answer, responses)
+                            let responses = if event
+                                .ubus
+                                .as_ref()
+                                .is_some_and(UbusService::dns_has_subscribers)
+                            {
+                                let mut doctor = |name: &[u8], ttl, address, cache, forward| {
+                                    write_dns_metrics(&mut metrics, cache, forward);
+                                    event.doctor(&DnsResult { name, ttl, address }, &metrics)
+                                };
+                                daemon.poll_with_local_doctor(Duration::ZERO, local, &mut doctor)
+                            } else {
+                                daemon.poll_with_local(Duration::ZERO, local)
+                            };
+                            (answer, responses.unwrap_or_default())
                         };
                         if let Some((peer, answer, stale)) = answer {
                             let _ = udp.send_to(&answer, peer);
+                            // C increments after its send attempt, including
+                            // a failed send; ordinary TCP answers do not count.
+                            if stale {
+                                event.stale_answered = event.stale_answered.wrapping_add(1);
+                            } else {
+                                event.local_answered = event.local_answered.wrapping_add(1);
+                            }
                             if stale {
                                 // Preserve C's send-before-refresh order even
                                 // when the downstream send itself fails.
@@ -502,7 +697,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                     break;
                                 };
                                 let length = incoming.expect("stale reply has a query").0;
-                                let _ = parent
+                                let refresh = parent
                                     .daemon
                                     .as_mut()
                                     .expect("DNS listener owns the forwarder")
@@ -515,6 +710,11 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                         },
                                         Some(listener),
                                     );
+                                if matches!(refresh, Ok(QueryResult::Local(_))) {
+                                    // forward_query's fallback counts even
+                                    // when fd=-1 suppresses a second reply.
+                                    event.local_answered = event.local_answered.wrapping_add(1);
+                                }
                             }
                         }
                         for response in responses {
@@ -535,7 +735,6 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         let tcp_events = Arc::clone(&parent_events);
         let tcp_resolvers = resolvers.clone();
         let tcp_edns_max = daemon_options.edns_packet_max;
-        let tcp_active_for_listener = Arc::clone(&tcp_active);
         workers.push(
             thread::Builder::new()
                 .name(format!("dns-tcp-{address}"))
@@ -567,15 +766,16 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                         if stream.set_nonblocking(false).is_err() {
                             continue;
                         }
-                        if !try_acquire_tcp(&tcp_active_for_listener, tcp_limit) {
-                            continue;
-                        }
-                        let permit = TcpPermit(Arc::clone(&tcp_active_for_listener));
                         // C forks one cache/hosts snapshot per accepted TCP
                         // session. Keep that lifetime here without holding a
                         // shared lock during client or upstream socket I/O.
-                        let mut service = {
-                            let Ok(_event) = tcp_events.read() else { break };
+                        let (mut service, permit) = {
+                            let Ok(mut event) = tcp_events.lock() else {
+                                break;
+                            };
+                            if event.tcp_active >= tcp_limit {
+                                continue;
+                            }
                             match tcp_service.lock() {
                                 Ok(parent) => {
                                     let mut snapshot = LocalDnsService::new_with_limits(
@@ -586,7 +786,8 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                                         parent.local.edns_packet_max,
                                     );
                                     snapshot.leases = Arc::clone(&parent.local.leases);
-                                    snapshot
+                                    event.tcp_active += 1;
+                                    (snapshot, TcpPermit(Arc::clone(&tcp_events)))
                                 }
                                 Err(_) => continue,
                             }
@@ -696,23 +897,37 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     if let Some((shared_provider, mut listener)) = dhcp_runtime {
         let dhcp_events = Arc::clone(&parent_events);
+        let dhcp_dns = Arc::clone(&service);
         workers.push(
             thread::Builder::new()
                 .name("dhcp-listener".into())
                 .spawn(move || {
                     let mut output = vec![0; 16_384];
                     while !STOP_REQUESTED.load(Ordering::Acquire) {
-                        let Ok(event) = dhcp_events.read() else { break };
+                        let Ok(mut event) = dhcp_events.lock() else { break };
                         let Ok(mut provider) = shared_provider.lock() else { break };
+                        let mut metrics = Metrics::default();
+                        event.write_metrics(&mut metrics);
+                        write_dhcp_metrics(&mut metrics, &provider);
+                        {
+                            let Ok(parent) = dhcp_dns.lock() else { break };
+                            if let Some(daemon) = &parent.daemon {
+                                write_dns_metrics(&mut metrics, daemon.cache_counters(), daemon.forward_counters());
+                            }
+                        }
+                        event.process_ubus(&metrics);
                         let now = SystemTime::now().duration_since(UNIX_EPOCH)
                             .map_or(0, |time| time.as_secs() as i64);
                         if let Some(report) = provider.tick(now) {
                             report_dhcp_maintenance(&report);
                         }
                         let mut idle = false;
-                        match listener.process_once_local(&mut *provider, &[], &mut output, || {
-                            STOP_REQUESTED.load(Ordering::Acquire)
-                        }) {
+                        let result = {
+                            let mut sink = |kind, fields: DhcpEventFields<'_>, logging| event.notify_dhcp(kind, fields, logging);
+                            let mut provider = provider.with_event_sink(&mut sink);
+                            listener.process_once_local(&mut provider, &[], &mut output, stopping)
+                        };
+                        match result {
                             Ok(ListenerStep::WouldBlock) | Ok(ListenerStep::Ignored) => {
                                 idle = true;
                             }
@@ -776,7 +991,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     while !STOP_REQUESTED.load(Ordering::Acquire) {
         if RELOAD_REQUESTED.swap(false, Ordering::AcqRel) {
             let _event = parent_events
-                .write()
+                .lock()
                 .map_err(|_| io::Error::other("parent event lock poisoned"))?;
             // C SIGHUP rereads data files, not the main configuration. A
             // missing hosts source is logged and its old names disappear.
@@ -809,6 +1024,33 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                 report_dhcp_maintenance(&provider.reload_host_files(now));
             }
         }
+        {
+            // Metrics still work with port=0 and no incoming DHCP packets.
+            // No provider lock is acquired after the DNS parent lock.
+            let mut event = parent_events
+                .lock()
+                .map_err(|_| io::Error::other("parent event lock poisoned"))?;
+            let mut metrics = Metrics::default();
+            event.write_metrics(&mut metrics);
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            if let Some(provider) = &dhcp_provider {
+                let provider = provider
+                    .lock()
+                    .map_err(|_| io::Error::other("DHCP state lock poisoned"))?;
+                write_dhcp_metrics(&mut metrics, &provider);
+            }
+            let parent = service
+                .lock()
+                .map_err(|_| io::Error::other("DNS state lock poisoned"))?;
+            if let Some(daemon) = &parent.daemon {
+                write_dns_metrics(
+                    &mut metrics,
+                    daemon.cache_counters(),
+                    daemon.forward_counters(),
+                );
+            }
+            event.process_ubus(&metrics);
+        }
         thread::park_timeout(Duration::from_millis(100));
     }
     for worker in workers {
@@ -817,7 +1059,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-struct TcpPermit(Arc<AtomicUsize>);
+struct TcpPermit(Arc<Mutex<ParentEvents>>);
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 fn report_dhcp_maintenance(report: &dnsmasq_rs::dhcp::daemon::MaintenanceReport) {
@@ -842,24 +1084,8 @@ fn report_dhcp_maintenance(report: &dnsmasq_rs::dhcp::daemon::MaintenanceReport)
 
 impl Drop for TcpPermit {
     fn drop(&mut self) {
-        self.0.fetch_sub(1, Ordering::AcqRel);
-    }
-}
-
-fn try_acquire_tcp(active: &AtomicUsize, limit: usize) -> bool {
-    let mut current = active.load(Ordering::Acquire);
-    loop {
-        if current >= limit {
-            return false;
-        }
-        match active.compare_exchange_weak(
-            current,
-            current + 1,
-            Ordering::AcqRel,
-            Ordering::Acquire,
-        ) {
-            Ok(_) => return true,
-            Err(observed) => current = observed,
+        if let Ok(mut event) = self.0.lock() {
+            event.tcp_active -= 1;
         }
     }
 }

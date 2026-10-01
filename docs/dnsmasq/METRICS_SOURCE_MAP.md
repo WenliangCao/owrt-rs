@@ -53,6 +53,12 @@ or one count per successful socket send.
 
 ## Current Rust boundary
 
+The subsequent [real-daemon UBus phase](UBUS_DAEMON_PHASE.md) aggregates these
+actual engine counters and adds the runner's local/stale send counters and TCP
+active-slot gauge. Its 69 paired service observations retain one explicit TCP
+cache-writeback failure; the historical zero-producer snapshot below does not
+describe that later implementation.
+
 The later [cache-counter phase](METRICS_CACHE_PHASE.md) and
 [lease-counter phase](METRICS_LEASE_PHASE.md) add real owner-held counter updates
 and exact C snapshot tests. Product aggregation/publication is a separate gate;
