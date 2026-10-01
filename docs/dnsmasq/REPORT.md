@@ -20,7 +20,10 @@
 | 普通 miss 的通用记录查找 | `5c15e16`：独立NX/SOA门从原108/120、DO修复后116/120到native/image各120/120；保留原direct/CNAME门各120/120；最终隔离389+7/16ignored及native/musl Clippy | 全部no-answer路径、旋转与桶清理另验 |
 | 通用记录配置与缓存 | `4bf072d`：native/image各22配置+78正向配对，独立QTYPE0各9；最终`ac8a3b6`保留native22+78 | reverse9仍仅C；首次image启动readiness失败保留；泛型DO/AD及完整类型合同未关闭 |
 | 畸形通用记录错误回复 | `ac8a3b6`：native/image各35/35，修复前各14差异；保留有序prefix副作用，负控34/1；policy210、bogus256、隔离389+7/16ignored、native/muslClippy通过 | 超大RDATA表示限制与任意畸形输入另验；见[实现回归](GENERIC_MALFORMED_IMPLEMENTATION_VALIDATION.md) |
-| 私有反向 PTR 缓存 | `deab8a0` primitive125/125；`62894d6`真实UDP native/image各124/124，before33差异，负控123/1；共享容量/LRU并保留target大小写 | 未合产品；local/lease共存、reverse transfer、多target顺序和资源门另验；C-only cohort顺序变化保留 |
+| 私有反向 PTR 缓存 | `deab8a0` primitive125/125；`62894d6`真实UDP native/image各124/124，before33差异，负控123/1；共享容量/LRU并保留target大小写 | 未合产品；多target顺序和资源门未关闭，后续边界见以下三行 |
+| 反向记录 typed transfer | `54346fd`修复配置CNAME错误阻断导入；184/184确定观察，原forward307保留 | 另12条多PTR顺序观察仍有native4/SDK2差异，完整比较器exit1；见[结果](REVERSE_TRANSFER_AFTER_RESULT.md) |
+| 真实DHCP与动态PTR共存 | native/image C各62/62；Rust62894完成54，40相同/14差异 | `dhcp-fqdn`启动拒绝，另8未执行；time0归属、本地+动态回答及FQDN接线修复进行中；见[修复前结果](REVERSE_LEASE_SERVICE_RESULT.md) |
+| 同名正向操作清理过期PTR | 独立C27/27，Rust54346fd21/27，0实验失败；只读存在性与live共存对照通过 | RD0/RD1查询和插入各留2差异，共6；见[修复前结果](REVERSE_NAME_EXPIRY_BEFORE_RESULT.md) |
 | TCP 缓存 | typed transfer原语307/307已合入；私有stream参考TCP32、native UBus69/69、并发12、stale41、CD65、partialEOF27；native/musl transfer各307 | 私有代码未合入；快照表示、OOM/大记录/native管道饱和及全部策略组合仍未验收 |
 | 最新目标阶段 | 冻结 `405b7c1`，ELF 1,178,407 B，APK 622,772 B；匹配 SDK/镜像依赖 | 完整目标 UBus 67/69，保留两项失败；不是替换包或生产验收 |
 

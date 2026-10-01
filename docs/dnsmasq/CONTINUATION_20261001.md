@@ -57,11 +57,16 @@ Current agents/ownership:
   complete. The separate four-process C-only multi-target cohort retains
   two real output/LRU orders; no sorting or Rust pass is inferred.
   Original unsupported-option attempts and the readiness timeout stay archived.
-- `reverse_cache_impl` owns the private candidate worktree at `62894d6`.
-  Final native ELF is
+- `reverse_cache_impl` owns the private candidate worktree, with reverse-import
+  correction `54346fd` and time-zero lease ownership `ff3f184` committed.
+  The earlier fully checked `62894d6` native ELF is
   `601550b04418152ba5a865343ee3e44d93c64b610f29440577c1e294a547726e`.
-  It is running backward forward-cache/transfer and allocation/layout checks;
-  no publication/import/local-composition changes before their C gates.
+  Its backward checks are complete. Stage3's independent real-DHCP before gate
+  now calibrates native/image C62/62: Rust62894 completes54 with14 differences,
+  while dhcp-fqdn rejects startup and leaves8 unexecuted. The owner is wiring
+  local/dynamic PTR composition and dhcp-fqdn runtime/restore/default-domain
+  policy. No after pass is claimed until a frozen new source is replayed.
+  See `REVERSE_LEASE_SERVICE_RESULT.md`.
 - `tcp_stream_resume` completed the reverse-transfer gate: 20 deterministic
   cases/184 observations agree across native and SDK-musl C (three runs each).
   Before62894 has3 configured-CNAME import differences; private fix54346fd
@@ -74,6 +79,12 @@ Current agents/ownership:
   `generic-malformed-gate-20261001` at `c6a1121`: final native/image35 and
   negative34/1. All tools/reports are merged; raw prefix effects and old14
   differences remain. Root implementation validation is separately linked.
+  Its independent same-name expiry addon now proves6 differences on54346fd:
+  C27/27, Rust21/27, no fixture failures. Forward lookup (RD0/RD1) and insertion
+  leave expired reverse records alive; read-only existence and live coexistence
+  controls pass. See `REVERSE_NAME_EXPIRY_BEFORE_RESULT.md`. The owner reviews
+  all shared-name index consumers before the implementation correction, then
+  will run only the frozen27-row after gate. Original125/cohort44 are unchanged.
 - `tcp_reference_resume` completed a private correctness reference, preserved on
   tag `evidence/20261001/dnsmasq-tcp-reference` at `df75fb4`; worktree is
   `private/dnsmasq-rewrite/tcp-private-reference-20261001`. Frozen executable
