@@ -89,3 +89,35 @@ that attempt. Neither attempt is counted as acceptance.
 Every network experiment used the isolated build-host network/mount/PID
 namespace wrapper. No physical router was accessed. The gate and report make
 no product implementation change; a corrected replay remains outstanding.
+
+## Corrected product replay
+
+The root-owned product fix at `aeba67e930e48386ad971d93fd96342cef7ec874`
+preserves the C lookup sequence for empty-OPT IN A/AAAA DO queries:
+CNAME/NXDOMAIN first, then the requested address kind, then generic/NXDOMAIN
+when the first result is not a CNAME. A dynamic CNAME stops lookup before
+following its target. The query still forwards. Existing non-DO answer
+construction is unchanged.
+
+The same frozen 120-observation tool replays successfully against the fresh
+`aeba67e` ELF:
+
+| Run | Result |
+| --- | --- |
+| `native-after-01` | 120/120 paired observations, zero differences/failures |
+| `image-after-01` | 120/120 paired observations, zero differences/failures |
+| `native-negative-01` | Exactly one deliberately altered cache-hit observation differs; exit 1, zero fixture failures |
+
+Executed Rust ELF SHA-256:
+`d2643e676b226ab3527d2ba8a76ae887d2e56743eab5df7a9b78f70f6fef203d`.
+Source archive SHA-256:
+`7217dc5345a1bc8ba5f33a3c3625477fd5a00a748a711b05b42dadc6d08bb9e0`.
+Build directory:
+`/home/ubuntu/dns-do-lookup-fix-20261001/aeba67e-01/`.
+
+The independent source review found the implemented lookup order consistent
+with the matching C branches. Its generic/NXDOMAIN third stage is source
+supported but was not exercised by these 120 schedules; a separately frozen
+cross-type/SOA unit owns that additional evidence. All original before runs
+and the initial fixture failure remain. This closes the measured direct and
+CNAME DO eviction gap, with all earlier scope exclusions still in force.
