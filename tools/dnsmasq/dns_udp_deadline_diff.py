@@ -31,6 +31,11 @@ def valid_completions(replies):
             and 10 < replies[0]["elapsed_s"] < 40)
 
 
+def configuration(listen_port, upstream_port):
+    return (f"no-resolv\nno-hosts\nlisten-address=127.0.0.1\nport={listen_port}\ncache-size=0\n"
+            f"edns-packet-max=1232\nserver=127.0.0.1#{upstream_port}\nhost-record=ready.test,192.0.2.254\n")
+
+
 def query(host, ident):
     return struct.pack("!6H", ident, 0x100, 1, 0, 0, 0) + name(host) + struct.pack("!HH", 1, 1)
 
@@ -146,27 +151,51 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--c", type=Path, required=True); p.add_argument("--c-identity", type=Path)
     p.add_argument("--rust", type=Path, required=True); p.add_argument("--output", type=Path, required=True)
+    p.add_argument("--c-baseline", type=Path, help="reuse a successful unchanged C window and its exact configuration")
     args = p.parse_args()
     assert os.environ.get("DNSMASQ_TEST_ISOLATED") == "1"
     assert sorted(name for _, name in socket.if_nameindex()) == ["lo"]
     reference = verify_reference(args.c, args.c_identity)
     output = args.output.resolve(); assert "private" in output.parts and not output.exists(); output.mkdir(parents=True)
-    with socket.socket() as a, socket.socket() as b:
-        a.bind(("127.0.0.1", 0)); b.bind(("127.0.0.1", 0)); listen_port, upstream_port = a.getsockname()[1], b.getsockname()[1]
+    expected = None
+    if args.c_baseline:
+        previous = json.loads((args.c_baseline / "plan.json").read_text())
+        assert previous["reference"] == reference and previous["send_delays_s"] == DELAYS
+        assert previous["fresh_probe_at_s"] == PROBE_AT
+        text = (args.c_baseline / "dnsmasq.conf").read_text()
+        assert hashlib.sha256(text.encode()).hexdigest() == previous["config_sha256"]
+        listen_port = int(next(line.removeprefix("port=") for line in text.splitlines() if line.startswith("port=")))
+        upstream_port = int(next(line.removeprefix("server=127.0.0.1#") for line in text.splitlines() if line.startswith("server=127.0.0.1#")))
+        assert text == configuration(listen_port, upstream_port)
+        expected = json.loads((args.c_baseline / "c/result.json").read_text())
+        assert not expected["failures"] and expected["exit"] == 0 and expected["closed"]
+        assert valid_completions(expected["replies"]) and len(expected["upstream"]) == 3
+    else:
+        with socket.socket() as a, socket.socket() as b:
+            a.bind(("127.0.0.1", 0)); b.bind(("127.0.0.1", 0)); listen_port, upstream_port = a.getsockname()[1], b.getsockname()[1]
     config = output / "dnsmasq.conf"
-    config.write_text(f"no-resolv\nno-hosts\nlisten-address=127.0.0.1\nport={listen_port}\ncache-size=0\nedns-packet-max=1232\nserver=127.0.0.1#{upstream_port}\nhost-record=ready.test,192.0.2.254\n")
+    config.write_text(configuration(listen_port, upstream_port))
     plan = {"rounds_per_side": 1, "send_delays_s": DELAYS, "fresh_probe_at_s": PROBE_AT,
             "expected_completed_per_side": 2, "expected_unanswered_per_side": 1,
             "comparison": "exact client reply bytes and upstream semantics/order/counts; random upstream ID normalized; elapsed time checked against frozen window, not a performance comparison",
             "reference": reference, "rust_sha256": hashlib.sha256(args.rust.read_bytes()).hexdigest(),
+            "tool_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
             "config_sha256": hashlib.sha256(config.read_bytes()).hexdigest()}
+    if args.c_baseline:
+        plan["c_reused_from"] = str(args.c_baseline.resolve())
+        plan["c_result_sha256"] = hashlib.sha256((args.c_baseline / "c/result.json").read_bytes()).hexdigest()
+        plan["new_rounds"] = {"c": 0, "rust": 1}
     (output / "plan.json").write_text(json.dumps(plan, indent=2) + "\n")
     # Calibrate rejection of a lost valid completion and of an extra late one.
     sample = [{"id": IDS["delayed.test"], "elapsed_s": 11}, {"id": IDS["probe.test"], "elapsed_s": 42}]
     assert valid_completions(sample)
     assert not valid_completions(sample[1:])
     assert not valid_completions([*sample, {"id": IDS["expired.test"], "elapsed_s": 41}])
-    expected = run(args.c, "c", config, listen_port, upstream_port, output / "c")
+    if expected is None:
+        expected = run(args.c, "c", config, listen_port, upstream_port, output / "c")
+    else:
+        (output / "c").mkdir()
+        (output / "c/result.json").write_text(json.dumps(expected, indent=2) + "\n")
     actual = run(args.rust, "rust", config, listen_port, upstream_port, output / "rust")
     differences = []
     if [row["wire"] for row in expected["replies"]] != [row["wire"] for row in actual["replies"]]: differences.append("client replies")

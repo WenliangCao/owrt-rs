@@ -64,7 +64,17 @@ Both processes are reaped after SIGTERM. These are individual functional-window
 observations, not throughput, tail-latency or exclusive-memory measurements.
 
 The new forwarding-table lifetime removes that proactive cancellation instead
-of adding deferred metric bookkeeping to it. A final real-daemon replay of the
-new lifetime remains pending at this checkpoint. Actual counters require
-accounting at their source events; neither the old FD difference nor the
-corrected behavior is claimed as a performance improvement.
+of adding deferred metric bookkeeping to it. The final Rust-only replay reuses
+the unchanged successful C trace and its exact configuration. All three query
+outcomes, client bytes and upstream observations match; Rust now observes FDs
+6 → 8 → 7 → 7 at 40.5 seconds → 6 after the fresh probe. It therefore retains
+the idle expired socket until the same admission boundary as C in this window.
+The absolute FD/thread differences remain; this is not general resource
+equivalence or a performance improvement.
+
+Final replay, build log and recovered ELF are in
+`private/dnsmasq-rewrite/udp-policy-20261001/lifetime-runtime/`:
+`deadline-lazy-01/` and `source-ad7e2a7.tar`. The ELF SHA-256 is
+`e6ae3b478bb6bb9b80e782c46014e38b027258751fde271d057e666751da11f6`.
+The plan records reuse of the prior C result by hash; that C window was not
+rerun to select a different outcome.

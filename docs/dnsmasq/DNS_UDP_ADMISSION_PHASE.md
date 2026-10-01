@@ -87,5 +87,16 @@ normalize away. Rust's selected behavior is REFUSED with the rejected client's
 original ID/question while preserving pending work; its former silent drop is
 not equivalent either. The DuplicateFull product hook now uses `table_full` on
 that original client query. A socket-backed regression checks the corrected
-client ID, question, empty OPT and both accepted completions; the paired
-real-daemon comparison remains separate from the completed GroupFull gate.
+client ID, question, empty OPT and both accepted completions. The real-daemon
+`dns_udp_duplicate_policy_diff.py` replays the retained C inputs/configuration
+against the frozen Rust ELF and compares all five observations. Both accepted
+requests complete using one upstream query; the selected refusal policy has
+zero failures, and exactly one C/Rust wire difference remains at the rejected
+third recipient. That counted reference difference keeps the tool exit nonzero.
+The expected corrected envelope is derived from the original client input and
+the independently established REFUSED contract, never from Rust output.
+
+Evidence is `private/dnsmasq-rewrite/udp-policy-20261001/lifetime-runtime/`:
+`duplicate-policy-02/` and the copied `duplicate-c-baseline/`. The first attempt's
+log records an incorrect baseline directory and no executed comparison. The
+Rust ELF is `e6ae3b478bb6bb9b80e782c46014e38b027258751fde271d057e666751da11f6`.
