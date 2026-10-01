@@ -1,6 +1,7 @@
 /* Socket-free oracle linked to the exact OpenWrt dnsmasq 2.93 object files.
  * P feeds a complete upstream packet to extract_addresses at a frozen time;
- * Q invokes answer_request; RESET performs the real cache_reload lifecycle.
+ * Q invokes answer_request; T also exposes its actual stale/filtered outputs.
+ * RESET performs the real cache_reload lifecycle. Existing Q/M output is kept.
  * Input: OP NOW LIMIT HEX. Configuration is supplied through normal -C FILE.
  */
 /* Match the object build before dnsmasq.h declares feature-dependent state. */
@@ -67,11 +68,12 @@ int main(int argc, char **argv)
         }
       else
         {
-          assert(op == 'Q');
+          assert(op == 'Q' || op == 'T');
           int stale = 0, filtered = 0;
           size_t answer = answer_request(header, daemon->packet + limit, length,
                                          (struct in_addr){0}, (struct in_addr){0},
                                          (time_t)now, 0, 0, 0, &stale, &filtered);
+          if (op == 'T') printf("T %d %d ", stale, filtered);
           if (!answer) puts("NONE");
           else
             {
