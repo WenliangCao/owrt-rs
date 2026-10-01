@@ -12,5 +12,6 @@ pub mod routing;
 pub mod service;
 pub mod tcp_service;
 pub mod tcp_upstream;
+pub mod udp_query;
 pub mod upstream;
 pub mod wire;
