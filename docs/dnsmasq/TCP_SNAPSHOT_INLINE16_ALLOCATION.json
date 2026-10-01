@@ -1,0 +1,401 @@
+{
+  "status": "correctness-and-allocation-passed-timing-pending",
+  "baseline_revision": "e77d966d0bf92e5296f73ee3e54fdaf960ed7781",
+  "baseline_source_sha256": {
+    "cache.rs": "8c73672d4ebe3959d8172cecf5b951afef61f23ec568c52b27f6b00ae081e9a5",
+    "wire.rs": "23e8d6c70d6c9177beb7d799ecb0fc39f5ef2378c7a2ca43b7f2e599c7d1510f",
+    "lease_names.rs": "cb05a82f1d5f8e90e37dfee942b0464366eedac92b6dfcc35ecb50c86fe2b0b3"
+  },
+  "compiler": {
+    "path": "/home/ubuntu/.rustup/toolchains/1.98.1-aarch64-unknown-linux-gnu/bin/rustc",
+    "sha256": "d4217a981a778bfe445c0a29c408f5a25a92e9bb5222701579ad5a35bd913e8f",
+    "version": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8\n"
+  },
+  "flags": [
+    "--edition=2021",
+    "-A",
+    "dead_code",
+    "-A",
+    "unused_imports",
+    "-Copt-level=3",
+    "-Clto",
+    "-Ccodegen-units=1",
+    "-Cpanic=abort"
+  ],
+  "frozen_plan_sha256": "ee16cc05e11884b0d0b53f7a5a86198042b825dda913502a127d6f2d006d96c9",
+  "tool_sha256": "3f2ae4a2c96bd54553fb0bc89b26e3ce8a30360231a87eb32eaca87a08c4d945",
+  "rdata_wrapper_sha256": "62182ec2d9f55663593d954217d459ca3629e70e48953013b598fa3c13053ea3",
+  "gate": {
+    "status": "passed",
+    "results": [
+      {
+        "variant": "deep",
+        "scenarios": 21,
+        "operations": 22571,
+        "failures": 0,
+        "cross_type_order_variations": 138,
+        "layout": [
+          168,
+          160,
+          120,
+          56,
+          24
+        ],
+        "payload_checks": {
+          "lengths": [
+            0,
+            1,
+            4,
+            15,
+            16,
+            17,
+            257
+          ],
+          "drop_orders": 2,
+          "retained_detachment": true,
+          "balanced": true
+        }
+      },
+      {
+        "variant": "shared_inline16",
+        "scenarios": 21,
+        "operations": 22571,
+        "failures": 0,
+        "cross_type_order_variations": 138,
+        "layout": [
+          168,
+          32,
+          120,
+          56,
+          24
+        ],
+        "payload_checks": {
+          "lengths": [
+            0,
+            1,
+            4,
+            15,
+            16,
+            17,
+            257
+          ],
+          "drop_orders": 2,
+          "retained_detachment": true,
+          "balanced": true
+        }
+      }
+    ],
+    "binaries": {
+      "deep-gate": "66113ab5c4dc28056446e4ec128bbc156bb241d5f57fcdd3c63c32c3e42edd60",
+      "deep-payload": "7b91fda4eb63b1cb87b3953f77da1e0b26b580327f906486f47391f9fbfa8a49",
+      "deep": "faf243a6beabdb7e709523c35c2956db93f29b5da81693e6eee07c8812ed4727",
+      "deep-alloc": "5dcb834e1bea5e41cda2d1dd9cea166ab2aeb6414dee4026d432bcf9edd3e1a1",
+      "shared_inline16-gate": "cd07a4238b2f7637f75f331d26c47af2c01176ea16c86d105f043c426d53bb8a",
+      "shared_inline16-payload": "dc1940f230ea44815a76b1e0bc64611954a00b8c54de1e0592954e4a7de002bf",
+      "shared_inline16": "155c64f95f3db73906f2ae9ea3a72479ca951bc06002593cf9e46d9ad7704bd1",
+      "shared_inline16-alloc": "28b9d60518f7ff86ce110298c726087f2c1f2e9df4f8541ac101a43504c107bc"
+    },
+    "negative_control": {
+      "matches": 12,
+      "failures": 1,
+      "exit": 1,
+      "missing_observation_rejected": true
+    },
+    "oracle": "reused exact C; no Rust-generated expectation",
+    "normalization": "Only cross-type Generic RR grouping; within-type order, data, TTL, expiry, negative and stale flags exact.",
+    "retained_state_checks_per_variant": 22571
+  },
+  "allocation": {
+    "status": "allocation-only-timing-pending",
+    "results": [
+      {
+        "variant": "deep",
+        "profiles": [
+          {
+            "capacity": 150,
+            "filled": 0,
+            "steady_requested_heap": 24000,
+            "steady_heap_ratio": 1.0,
+            "snapshot_live_requested_heap": 480000,
+            "snapshot_live_heap_gain": 0.0,
+            "peak_extra_requested": 480020,
+            "population_allocations": [
+              1,
+              0
+            ],
+            "no_extra_population_allocations": true,
+            "snapshot_allocations": [
+              20,
+              0
+            ],
+            "lookup_allocations": [
+              20,
+              0
+            ],
+            "layout": [
+              168,
+              160,
+              120,
+              56,
+              24
+            ],
+            "image_layout": 168,
+            "balanced": true
+          },
+          {
+            "capacity": 150,
+            "filled": 150,
+            "steady_requested_heap": 51338,
+            "steady_heap_ratio": 1.0,
+            "snapshot_live_requested_heap": 954120,
+            "snapshot_live_heap_gain": 0.0,
+            "peak_extra_requested": 954249,
+            "population_allocations": [
+              909,
+              330
+            ],
+            "no_extra_population_allocations": true,
+            "snapshot_allocations": [
+              12040,
+              0
+            ],
+            "lookup_allocations": [
+              80,
+              0
+            ],
+            "layout": [
+              168,
+              160,
+              120,
+              56,
+              24
+            ],
+            "image_layout": 168,
+            "balanced": true
+          },
+          {
+            "capacity": 1000,
+            "filled": 1000,
+            "steady_requested_heap": 358792,
+            "steady_heap_ratio": 1.0,
+            "snapshot_live_requested_heap": 6695200,
+            "snapshot_live_heap_gain": 0.0,
+            "peak_extra_requested": 6695329,
+            "population_allocations": [
+              6012,
+              2200
+            ],
+            "no_extra_population_allocations": true,
+            "snapshot_allocations": [
+              80040,
+              0
+            ],
+            "lookup_allocations": [
+              80,
+              0
+            ],
+            "layout": [
+              168,
+              160,
+              120,
+              56,
+              24
+            ],
+            "image_layout": 168,
+            "balanced": true
+          },
+          {
+            "capacity": 10000,
+            "filled": 10000,
+            "steady_requested_heap": 3386856,
+            "steady_heap_ratio": 1.0,
+            "snapshot_live_requested_heap": 62936480,
+            "snapshot_live_heap_gain": 0.0,
+            "peak_extra_requested": 62936609,
+            "population_allocations": [
+              60015,
+              22000
+            ],
+            "no_extra_population_allocations": true,
+            "snapshot_allocations": [
+              800040,
+              0
+            ],
+            "lookup_allocations": [
+              80,
+              0
+            ],
+            "layout": [
+              168,
+              160,
+              120,
+              56,
+              24
+            ],
+            "image_layout": 168,
+            "balanced": true
+          }
+        ],
+        "allocation_gates": {
+          "balanced": true,
+          "steady_heap": true,
+          "snapshot_live_heap": false,
+          "no_extra_population_allocations": true
+        },
+        "status": "reference"
+      },
+      {
+        "variant": "shared_inline16",
+        "profiles": [
+          {
+            "capacity": 150,
+            "filled": 0,
+            "steady_requested_heap": 4800,
+            "steady_heap_ratio": 0.2,
+            "snapshot_live_requested_heap": 96000,
+            "snapshot_live_heap_gain": 0.8,
+            "peak_extra_requested": 96020,
+            "population_allocations": [
+              1,
+              0
+            ],
+            "no_extra_population_allocations": true,
+            "snapshot_allocations": [
+              20,
+              0
+            ],
+            "lookup_allocations": [
+              20,
+              0
+            ],
+            "layout": [
+              168,
+              32,
+              120,
+              56,
+              24
+            ],
+            "image_layout": 168,
+            "balanced": true
+          },
+          {
+            "capacity": 150,
+            "filled": 150,
+            "steady_requested_heap": 51494,
+            "steady_heap_ratio": 1.0030386847948887,
+            "snapshot_live_requested_heap": 460140,
+            "snapshot_live_heap_gain": 0.5177336184127783,
+            "peak_extra_requested": 460269,
+            "population_allocations": [
+              909,
+              330
+            ],
+            "no_extra_population_allocations": true,
+            "snapshot_allocations": [
+              6040,
+              0
+            ],
+            "lookup_allocations": [
+              80,
+              0
+            ],
+            "layout": [
+              168,
+              32,
+              120,
+              56,
+              24
+            ],
+            "image_layout": 168,
+            "balanced": true
+          },
+          {
+            "capacity": 1000,
+            "filled": 1000,
+            "steady_requested_heap": 359792,
+            "steady_heap_ratio": 1.0027871301478293,
+            "snapshot_live_requested_heap": 3401200,
+            "snapshot_live_heap_gain": 0.49199426454773565,
+            "peak_extra_requested": 3401329,
+            "population_allocations": [
+              6012,
+              2200
+            ],
+            "no_extra_population_allocations": true,
+            "snapshot_allocations": [
+              40040,
+              0
+            ],
+            "lookup_allocations": [
+              80,
+              0
+            ],
+            "layout": [
+              168,
+              32,
+              120,
+              56,
+              24
+            ],
+            "image_layout": 168,
+            "balanced": true
+          },
+          {
+            "capacity": 10000,
+            "filled": 10000,
+            "steady_requested_heap": 3396856,
+            "steady_heap_ratio": 1.0029525908394097,
+            "snapshot_live_requested_heap": 29996480,
+            "snapshot_live_heap_gain": 0.5233848477067672,
+            "peak_extra_requested": 29996609,
+            "population_allocations": [
+              60015,
+              22000
+            ],
+            "no_extra_population_allocations": true,
+            "snapshot_allocations": [
+              400040,
+              0
+            ],
+            "lookup_allocations": [
+              80,
+              0
+            ],
+            "layout": [
+              168,
+              32,
+              120,
+              56,
+              24
+            ],
+            "image_layout": 168,
+            "balanced": true
+          }
+        ],
+        "allocation_gates": {
+          "balanced": true,
+          "steady_heap": true,
+          "snapshot_live_heap": true,
+          "no_extra_population_allocations": true
+        },
+        "status": "timing-pending"
+      }
+    ],
+    "allocation_sha256": "8994977173db4ee15056246b03a64beb31c5f1425800299ace9a825d6bbe3b42",
+    "gate_sha256": "c14055c96cb42950bf9db4c9f63e3d155bbf138e1f5ced5c6106f74eace4459b",
+    "scope": "private host primitive screen; no C-versus-Rust, component or router performance claim",
+    "extra_rounds": 0
+  },
+  "artifact_sha256": {
+    "manifest.json": "8b2a0cd941f637ead63bc0bd5df8a9666bd19cef8799d6b4dcb39d5da3fa018a",
+    "gate.json": "c14055c96cb42950bf9db4c9f63e3d155bbf138e1f5ced5c6106f74eace4459b",
+    "allocation.json": "8994977173db4ee15056246b03a64beb31c5f1425800299ace9a825d6bbe3b42",
+    "allocation-result.json": "31011db83233e10072ab2532230ded8a3507f7d417e27b5bd4a4a7f4064dabc6"
+  },
+  "source_archives": {
+    "source-e77d966.tar": "35aef6bc78621bf129a949c72e54925cdd79ba1160aef8993477d41cfa9092d0",
+    "tools-01.tar": "d49a5e816c4aded6c02735ebc811e809ef245a065e53a0333c12b310cc2b07ec",
+    "tools-02.tar": "290e5e9bdaf7f7bc1861a553909ba0c3cf7c2565b37008b6a6dff9327c3cb253"
+  },
+  "scope": "private e77 native aarch64 primitive mechanism; no timing, representation adoption, mixed-RR population, C/Rust service or router acceptance"
+}
