@@ -567,6 +567,8 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             Err(error) => return Err(Box::new(NetworkStartupError(error))),
         }
     }
+    listeners::validate_bind_interfaces(&daemon_config, &interface_snapshot.lock().unwrap())
+        .map_err(NetworkStartupError)?;
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     let tftp_listener = if tftp_config.enabled {
         let bind_ip = daemon_config
