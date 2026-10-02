@@ -82,6 +82,7 @@ class Scenario:
                               ('etc/hosts', '127.0.0.1 localhost\n192.0.2.51 lifecycle.lan\n'),
                               ('etc/ethers', ''), ('etc/dnsmasq.conf', '')]:
             (self.root / path).write_text(content)
+        (self.root / 'tmp/hosts/dhcp').write_text('192.0.2.51 lifecycle.lan\n')
         if args.jail_procfs:
             init = self.root / 'etc/init.d/dnsmasq'
             init.write_text(init.read_text().replace('procd_add_jail dnsmasq ubus log',
@@ -199,7 +200,7 @@ class Scenario:
         result['generated_config'] = (self.root / 'var/etc/dnsmasq.conf.m2').read_text()
         result['service'] = self.bus('service', 'list', {'name': 'dnsmasq', 'verbose': True})
         result['steps']['dhcp_range_generated'] = 'dhcp-range=' in result['generated_config']
-        (self.root / 'etc/hosts').write_text('127.0.0.1 localhost\n192.0.2.52 lifecycle.lan\n')
+        (self.root / 'tmp/hosts/dhcp').write_text('192.0.2.52 lifecycle.lan\n')
         os.kill(self.daemon_pid(), signal.SIGHUP)
         result['steps']['sighup_hosts'] = self.expect_dns('lifecycle.lan', '192.0.2.52')
         result['steps']['sighup_keeps_pid'] = self.daemon_pid() == first['pid']
