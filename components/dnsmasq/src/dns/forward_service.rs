@@ -404,7 +404,7 @@ pub fn prepare_query(
 /// admission is bounded to IN A/AAAA and their represented CNAME/negative paths.
 /// Unsupported option/version/signature metadata must not alter the forwarding
 /// contract.
-pub(super) fn ordinary_cache_query(packet: &[u8]) -> bool {
+pub(crate) fn ordinary_cache_query(packet: &[u8]) -> bool {
     let Ok(header) = Header::parse(packet) else {
         return false;
     };

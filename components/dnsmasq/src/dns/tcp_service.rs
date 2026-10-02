@@ -51,6 +51,10 @@ pub struct TcpDnsService {
 }
 
 impl TcpDnsService {
+    pub fn cache_eligible(query: &[u8]) -> bool {
+        super::forward_service::ordinary_cache_query(query)
+    }
+
     pub fn new(
         config: &DnsConfig,
         default_resolvers: &[SocketAddr],

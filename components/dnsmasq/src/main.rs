@@ -1320,7 +1320,11 @@ impl DnsWorkers {
                                                         &|| STOP_REQUESTED.load(Ordering::Acquire),
                                                     ) {
                                                         Ok((answer, from_upstream)) => {
-                                                            if from_upstream {
+                                                            if from_upstream
+                                                                && TcpDnsService::cache_eligible(
+                                                                    &query,
+                                                                )
+                                                            {
                                                                 if let Ok(mut parent) =
                                                                     client_parent.lock()
                                                                 {
