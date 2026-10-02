@@ -109,7 +109,7 @@ def dhcp6_options(packet):
 # replacing it with a host DHCPv6 implementation. The fixed DUID and FQDN make
 # C/Rust lifecycle runs directly comparable.
 DHCP6_CLIENT = r'''
-import json, socket, struct
+import json, socket, struct, time
 
 IFACE = "client0"
 IFINDEX = socket.if_nametoindex(IFACE)
@@ -145,6 +145,20 @@ def first(options, code):
 def send(sock, packet):
     sock.sendto(packet, ("ff02::1:2", 547, 0, IFINDEX))
 
+def receive(sock, packet, message_type):
+    sock.settimeout(1)
+    for _ in range(5):
+        send(sock, packet)
+        deadline = time.monotonic() + 1
+        while time.monotonic() < deadline:
+            try:
+                candidate, peer = sock.recvfrom(4096)
+            except socket.timeout:
+                break
+            if len(candidate) >= 4 and candidate[0] == message_type and candidate[1:4] == txid:
+                return candidate
+    raise RuntimeError("odhcpd did not return DHCPv6 message type %d" % message_type)
+
 sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
 sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_IF, IFINDEX)
 sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, 1)
@@ -152,29 +166,12 @@ sock.bind(("fe80::2", 546, 0, IFINDEX))
 txid = b"\x4d\x32\x01"
 common = opt(1, DUID) + ia_na() + fqdn(HOST)
 solicit = b"\x01" + txid + common
-send(sock, solicit)
-sock.settimeout(5)
-advertise = None
-while True:
-    packet, peer = sock.recvfrom(4096)
-    if len(packet) >= 4 and packet[0] == 2 and packet[1:4] == txid:
-        advertise = packet
-        break
-if advertise is None:
-    raise RuntimeError("odhcpd did not advertise")
+advertise = receive(sock, solicit, 2)
 serverid = first(parse_options(advertise), 2)
 if not serverid:
     raise RuntimeError("advertise has no server-id")
 request = b"\x03" + txid + opt(1, DUID) + opt(2, serverid) + ia_na() + fqdn(HOST)
-send(sock, request)
-reply = None
-while True:
-    packet, peer = sock.recvfrom(4096)
-    if len(packet) >= 4 and packet[0] == 7 and packet[1:4] == txid:
-        reply = packet
-        break
-if reply is None:
-    raise RuntimeError("odhcpd did not reply")
+reply = receive(sock, request, 7)
 ia = first(parse_options(reply), 3)
 address = None
 if ia:
