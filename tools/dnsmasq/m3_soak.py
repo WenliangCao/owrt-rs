@@ -403,6 +403,21 @@ def run_side(args: argparse.Namespace) -> int:
                 except Exception as error:
                     failures.append({"event": "mixed", "tick": tick, "error": repr(error)})
                 tick += 1
+        # Give the deliberately unrenewed dynamic client one source-defined
+        # lease interval to expire while the daemon is idle. This boundary is
+        # outside the mixed request loop and is counted only after observing
+        # the row disappear from the lease file.
+        if expiry_address and accounting["expiry"] == 0:
+            deadline = time.monotonic() + 65
+            while time.monotonic() < deadline:
+                if not any(len(row) > 2 and row[2] == expiry_address
+                           for row in read_lease_rows(product.leasefile)):
+                    accounting["expiry"] = 1
+                    break
+                time.sleep(1)
+            if accounting["expiry"] == 0:
+                failures.append({"event": "expiry", "address": expiry_address,
+                                 "error": "unrenewed lease remained after 65 seconds"})
         # Exercise explicit release/DECLINE after the fixed window.  These are
         # post-load boundary events and are counted separately from throughput.
         if product.dhcp_addresses:
