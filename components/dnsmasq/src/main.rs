@@ -905,11 +905,15 @@ impl SinglePoll {
     }
 
     fn step_udp(&mut self, index: usize) {
-        let listener = &self.listeners[index];
+        let udp = Arc::clone(&self.listeners[index].udp);
+        let token = self.listeners[index].token;
         let mut query = vec![0; 65_535];
-        let incoming = match listener.udp.receive(&mut query) {
+        let incoming = match udp.receive(&mut query) {
             Ok(Some(incoming)) if incoming.len <= self.packet_limit => incoming,
-            Ok(_) => return,
+            Ok(_) => {
+                self.poll_udp_completions(index);
+                return;
+            }
             Err(error)
                 if matches!(
                     error.kind(),
@@ -918,7 +922,8 @@ impl SinglePoll {
                         | io::ErrorKind::Interrupted
                 ) =>
             {
-                return
+                self.poll_udp_completions(index);
+                return;
             }
             Err(_) => return,
         };
@@ -926,16 +931,18 @@ impl SinglePoll {
             Ok(interfaces) => interfaces,
             Err(_) => return,
         };
-        if !listeners::admit(
+        let admitted = listeners::admit(
             &self.config,
             &interfaces,
             incoming.peer.ip(),
             incoming.destination,
             incoming.interface,
-        ) {
+        );
+        drop(interfaces);
+        if !admitted {
+            self.poll_udp_completions(index);
             return;
         }
-        drop(interfaces);
         let mut event = match self.parent_events.lock() {
             Ok(event) => event,
             Err(_) => return,
@@ -979,7 +986,7 @@ impl SinglePoll {
                         destination: incoming.destination,
                         interface: incoming.interface,
                     },
-                    Some(listener.token),
+                    Some(token),
                     local,
                 ) {
                     Ok(QueryResult::Local(answer) | QueryResult::Cached(answer)) => {
@@ -1010,7 +1017,7 @@ impl SinglePoll {
         };
         drop(parent);
         if let Some((answer, stale)) = answer {
-            let _ = listener.udp.send(
+            let _ = udp.send(
                 &answer,
                 incoming.peer,
                 Some((incoming.destination, incoming.interface)),
@@ -1029,7 +1036,7 @@ impl SinglePoll {
                                 destination: incoming.destination,
                                 interface: incoming.interface,
                             },
-                            Some(listener.token),
+                            Some(token),
                         );
                         if matches!(refresh, Ok(QueryResult::Local(_))) {
                             event.local_answered = event.local_answered.wrapping_add(1);
@@ -1047,6 +1054,54 @@ impl SinglePoll {
                 continue;
             };
             if let Some(target) = self.listeners.iter().find(|target| target.token == token) {
+                let _ = target.udp.send(
+                    &response.packet,
+                    response.destination,
+                    Some((response.source, response.interface)),
+                );
+            }
+        }
+    }
+
+    fn poll_udp_completions(&mut self, index: usize) {
+        let token = self.listeners[index].token;
+        let mut event = match self.parent_events.lock() {
+            Ok(event) => event,
+            Err(_) => return,
+        };
+        let mut metrics = Metrics::default();
+        event.write_metrics(&mut metrics);
+        let mut parent = match self.service.lock() {
+            Ok(parent) => parent,
+            Err(_) => return,
+        };
+        let ParentDns { local, daemon } = &mut *parent;
+        let Some(daemon) = daemon.as_mut() else {
+            return;
+        };
+        write_dns_metrics(
+            &mut metrics,
+            daemon.cache_counters(),
+            daemon.forward_counters(),
+            event.local_answered,
+        );
+        event.process_ubus(&metrics);
+        let responses = daemon
+            .poll_with_local(Duration::ZERO, local)
+            .unwrap_or_default();
+        drop(parent);
+        for response in responses {
+            let Some(response_token) = response.listener else {
+                continue;
+            };
+            if response_token != token {
+                continue;
+            }
+            if let Some(target) = self
+                .listeners
+                .iter()
+                .find(|target| target.token == response_token)
+            {
                 let _ = target.udp.send(
                     &response.packet,
                     response.destination,
