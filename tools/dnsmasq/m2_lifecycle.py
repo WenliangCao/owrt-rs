@@ -49,6 +49,7 @@ DHCP = """config dnsmasq 'm2'
  option ednspacket_max '1232'
  option rebind_protection '0'
  option logfacility '/tmp/dnsmasq.log'
+ option confdir 'none'
 config dhcp 'lan'
  option interface 'lan'
  option start '100'
@@ -146,6 +147,11 @@ class Scenario:
             return response if [r['data'] for r in response['records'] if r['section'] == 'answer'] == [address] else None
         return self.wait(check, f'DNS {name} -> {address}')
 
+    def service_debug(self):
+        result = self.run('/bin/ubus', 'call', 'service', 'list',
+                          {'name': 'dnsmasq', 'verbose': True}, check=False)
+        return result.stdout + result.stderr
+
     def daemon_pid(self):
         return int((self.root / 'var/run/dnsmasq/dnsmasq.m2.pid').read_text())
 
@@ -163,6 +169,7 @@ class Scenario:
 
     def execute(self):
         result = {'implementation': self.args.implementation, 'steps': {}, 'support': {}}
+        self.partial = result
         ubusd = self.start('/sbin/ubusd')
         self.wait(lambda: self.run('/bin/ubus', 'list', check=False).returncode == 0, 'ubusd')
         for path, obj in [('/sbin/logd', 'log'), ('/sbin/procd', 'service'),
@@ -173,7 +180,13 @@ class Scenario:
         result['support']['/sbin/ubusd'] = process_identity(self.root, ubusd.pid)
         self.wait(lambda: self.bus('network.interface.lan', 'status').get('up'), 'netifd lan')
         self.run('/etc/init.d/dnsmasq', 'start')
-        result['steps']['init_start'] = self.expect_dns('lifecycle.lan', '192.0.2.51')
+        result['service_after_start'] = self.service_debug()
+        try:
+            result['steps']['init_start'] = self.expect_dns('lifecycle.lan', '192.0.2.51')
+        except AssertionError as error:
+            result['init_failure_service_debug'] = self.service_debug()
+            result['init_failure_log'] = (self.root / 'tmp/dnsmasq.log').read_text(errors='replace') if (self.root / 'tmp/dnsmasq.log').exists() else ''
+            raise error
         first = self.live_dnsmasq()
         result['initial_process'] = first
         result['generated_config'] = (self.root / 'var/etc/dnsmasq.conf.m2').read_text()
@@ -237,7 +250,8 @@ def main():
     try:
         result = scenario.execute()
     except Exception:
-        result = {'passed': False, 'error': traceback.format_exc()}
+        result = getattr(scenario, 'partial', {'passed': False})
+        result.update({'passed': False, 'error': traceback.format_exc()})
     finally:
         scenario.close()
     (args.output / 'result.json').write_text(json.dumps(result, indent=2) + '\n')

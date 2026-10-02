@@ -152,9 +152,14 @@ def prepare(image_root, runtime_root, evidence_dir, rust_binary):
             shutil.copy2(entry, target, follow_symlinks=False)
     shutil.rmtree(saved_tmp)
     subprocess.run(['mount', '-t', 'tmpfs', '-o', 'mode=0755', 'm2-dev', str(root / 'dev')], check=True)
-    for name, minor in [('null', 3), ('zero', 5), ('random', 8), ('urandom', 9)]:
+    for name, minor in [('null', 3), ('zero', 5), ('full', 7), ('random', 8), ('urandom', 9), ('tty', 0)]:
         os.mknod(root / 'dev' / name, stat.S_IFCHR | 0o666, os.makedev(1, minor))
         (root / 'dev' / name).chmod(0o666)
+    os.mknod(root / 'dev/console', stat.S_IFCHR | 0o600, os.makedev(5, 1))
+    (root / 'dev/console').chmod(0o600)
+    (root / 'dev/pts').mkdir(exist_ok=True)
+    (root / 'dev/shm').mkdir(exist_ok=True)
+    (root / 'dev/ptmx').symlink_to('pts/ptmx')
     (root / 'dev/fd').symlink_to('/proc/self/fd')
     # chroot alone leaves the child root as an ordinary directory. ujail's
     # first operation is mount --make-rprivate /, which returns EINVAL unless
