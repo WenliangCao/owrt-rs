@@ -198,6 +198,10 @@ class Product:
         policy_line = 'all-servers\n' if self.policy == 'all-servers' else 'strict-order\n'
         config = ('no-hosts\nno-resolv\nlisten-address=127.0.0.1\ninterface=lo\nport=15353\n'
                   'cache-size=4096\nlocal-ttl=120\n' + policy_line +
+                  'dhcp-authoritative\nno-ping\n'
+                  'dhcp-range=127.0.0.10,127.0.0.40,255.0.0.0,127.255.255.255,60s\n'
+                  'dhcp-lease-max=150\n'
+                  'dhcp-leasefile=/m2/m2-dns.leases\n'
                   'neg-ttl=3\n'
                   'host-record=desktop.home.test,192.0.2.10,2001:db8::10\n'
                   f'enable-ubus={OBJECT}\n')
