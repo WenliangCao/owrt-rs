@@ -648,7 +648,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(target_os = "linux")]
     identity.check_capabilities(capabilities)?;
     #[cfg(target_os = "linux")]
-    let _pid_file = identity.write_pid(&runtime.process)?;
+    let pid_file = identity.write_pid(&runtime.process)?;
     #[cfg(target_os = "linux")]
     identity.drop_privileges(&runtime.process, capabilities)?;
     let dns_context = DnsWorkers {
@@ -899,6 +899,8 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     for worker in workers {
         let _ = worker.join();
     }
+    #[cfg(target_os = "linux")]
+    pid_file.cleanup();
     Ok(())
 }
 

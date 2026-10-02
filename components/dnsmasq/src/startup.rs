@@ -73,8 +73,10 @@ fn failure(code: i32, context: &str) -> StartupError {
 }
 
 pub struct PidFile(Option<PathBuf>);
-impl Drop for PidFile {
-    fn drop(&mut self) {
+impl PidFile {
+    /// C removes the configured PID path on its normal termination event,
+    /// but leaves a newly written file when later initialization fails.
+    pub fn cleanup(self) {
         if let Some(path) = &self.0 {
             let _ = std::fs::remove_file(path);
         }
@@ -248,7 +250,7 @@ mod linux {
                 .open(path);
             let mut file = match file {
                 Ok(file) => file,
-                Err(_) if !self.root => return Ok(PidFile(None)),
+                Err(_) if !self.root => return Ok(PidFile(Some(path.clone()))),
                 Err(error) => {
                     return Err(StartupError {
                         code: 3,
@@ -321,6 +323,16 @@ pub use linux::Identity;
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn pid_cleanup_is_explicit_after_successful_startup() {
+        let path = std::env::temp_dir().join(format!("dnsmasq-pid-cleanup-{}", std::process::id()));
+        std::fs::write(&path, b"sentinel\n").unwrap();
+        let failed_startup = PidFile(Some(path.clone()));
+        drop(failed_startup);
+        assert_eq!(std::fs::read(&path).unwrap(), b"sentinel\n");
+        PidFile(Some(path.clone())).cleanup();
+        assert!(!path.exists());
+    }
     #[test]
     fn required_capabilities_follow_broadcast_ping_and_dynamic_configuration() {
         assert_eq!(network_capabilities(true, true, true, false, false), 0);
