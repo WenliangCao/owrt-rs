@@ -4,7 +4,9 @@
 
 use owrt_ubus::sys::{IoVec, MsgHdr};
 use std::io;
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6, UdpSocket};
+use std::net::{
+    IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6, TcpStream, UdpSocket,
+};
 use std::os::fd::{AsRawFd, FromRawFd, OwnedFd, RawFd};
 
 const AF_INET: i32 = 2;
@@ -15,6 +17,9 @@ const SOCK_NONBLOCK: i32 = 0o4000;
 const IPPROTO_IP: i32 = 0;
 const IPPROTO_IPV6: i32 = 41;
 const IP_PKTINFO: i32 = 8;
+const IP_PKTOPTIONS: i32 = 9;
+const IPV6_2292PKTINFO: i32 = 2;
+const IPV6_2292PKTOPTIONS: i32 = 6;
 const IPV6_V6ONLY: i32 = 26;
 const IPV6_RECVPKTINFO: i32 = 49;
 const IPV6_PKTINFO: i32 = 50;
@@ -25,6 +30,8 @@ extern "C" {
     fn socket(domain: i32, kind: i32, protocol: i32) -> i32;
     fn bind(fd: i32, address: *const u8, len: u32) -> i32;
     fn setsockopt(fd: i32, level: i32, option: i32, value: *const i32, len: u32) -> i32;
+    fn getsockopt(fd: i32, level: i32, option: i32, value: *mut i32, len: *mut u32) -> i32;
+    fn if_indextoname(index: u32, name: *mut std::ffi::c_char) -> *mut std::ffi::c_char;
     fn recvmsg(fd: i32, message: *mut MsgHdr, flags: i32) -> isize;
     fn sendmsg(fd: i32, message: *const MsgHdr, flags: i32) -> isize;
     fn sendto(
@@ -141,6 +148,53 @@ fn set_flag(fd: RawFd, level: i32, flag: i32) -> io::Result<()> {
     } else {
         Ok(())
     }
+}
+
+/// C network.c::tcp_interface reads the SYN's ingress through IP_PKTOPTIONS,
+/// including the retained RFC-2292 IPv6 ABI. Missing metadata means fallback;
+/// the connection's destination does not identify its arrival interface.
+pub(crate) fn tcp_interface(stream: &TcpStream, ipv6: bool) -> Option<(Vec<u8>, bool)> {
+    let fd = stream.as_raw_fd();
+    let (level, option) = if ipv6 {
+        if let Err(error) = set_flag(fd, IPPROTO_IPV6, IPV6_RECVPKTINFO) {
+            if error.raw_os_error() != Some(92) // ENOPROTOOPT
+                || set_flag(fd, IPPROTO_IPV6, IPV6_2292PKTINFO).is_err()
+            {
+                return None;
+            }
+        }
+        (IPPROTO_IPV6, IPV6_2292PKTOPTIONS)
+    } else {
+        set_flag(fd, IPPROTO_IP, IP_PKTINFO).ok()?;
+        (IPPROTO_IP, IP_PKTOPTIONS)
+    };
+    // Only pktinfo is enabled on this stream: CMSG_SPACE is 32 or 40 bytes.
+    let mut storage = [0u64; 8];
+    let mut length = 64;
+    // SAFETY: initialized aligned storage is writable for the supplied length.
+    let bytes = unsafe { std::slice::from_raw_parts_mut(storage.as_mut_ptr().cast::<u8>(), 64) };
+    if unsafe { getsockopt(fd, level, option, bytes.as_mut_ptr().cast(), &mut length) } < 0 {
+        return None;
+    }
+    let (_, _, index) = packet_info(bytes.get(..length as usize)?, ipv6)?;
+    if index == 0 {
+        return None;
+    }
+    let mut request = [0u64; 5];
+    // SAFETY: Linux 64-bit ifreq is 40 bytes, with a 16-byte interface name.
+    let bytes = unsafe { std::slice::from_raw_parts_mut(request.as_mut_ptr().cast::<u8>(), 40) };
+    if unsafe { if_indextoname(index, bytes.as_mut_ptr().cast()) }.is_null() {
+        return None;
+    }
+    let name = bytes[..16]
+        .iter()
+        .copied()
+        .take_while(|byte| *byte != 0)
+        .collect();
+    // C's loopback_exception is unavailable when SIOCGIFFLAGS fails.
+    let loopback = unsafe { ioctl(fd, 0x8913, bytes.as_mut_ptr()) } == 0
+        && u16::from_ne_bytes([bytes[16], bytes[17]]) & 8 != 0;
+    Some((name, loopback))
 }
 
 /// Linux raw ICMP socket used only by the DHCP conflict probe. Every success,
@@ -607,7 +661,11 @@ fn packet_info(mut bytes: &[u8], ipv6: bool) -> Option<(IpAddr, IpAddr, u32)> {
                 u32::from_ne_bytes(bytes[16..20].try_into().ok()?),
             ));
         }
-        if ipv6 && level == IPPROTO_IPV6 && kind == IPV6_PKTINFO && len >= 36 {
+        if ipv6
+            && level == IPPROTO_IPV6
+            && matches!(kind, IPV6_PKTINFO | IPV6_2292PKTINFO)
+            && len >= 36
+        {
             return Some((
                 IpAddr::V6(Ipv6Addr::from(<[u8; 16]>::try_from(&bytes[16..32]).ok()?)),
                 IpAddr::V6(Ipv6Addr::from(<[u8; 16]>::try_from(&bytes[16..32]).ok()?)),
@@ -657,6 +715,42 @@ mod tests {
         );
         for length in 0..28 {
             assert_eq!(packet_info(&bytes[..length], false), None);
+        }
+    }
+
+    #[test]
+    fn ipv6_pktinfo_reads_scope_from_current_and_rfc2292_headers() {
+        for kind in [IPV6_PKTINFO, IPV6_2292PKTINFO] {
+            let mut bytes = [0; 40];
+            bytes[..8].copy_from_slice(&36usize.to_ne_bytes());
+            bytes[8..12].copy_from_slice(&IPPROTO_IPV6.to_ne_bytes());
+            bytes[12..16].copy_from_slice(&kind.to_ne_bytes());
+            let address: Ipv6Addr = "fe80::1".parse().unwrap();
+            bytes[16..32].copy_from_slice(&address.octets());
+            bytes[32..36].copy_from_slice(&7u32.to_ne_bytes());
+            assert_eq!(
+                packet_info(&bytes, true),
+                Some((address.into(), address.into(), 7))
+            );
+            for length in 0..36 {
+                assert_eq!(packet_info(&bytes[..length], true), None);
+            }
+        }
+    }
+
+    #[test]
+    #[ignore = "requires Linux isolated network namespace; run with run_isolated.sh"]
+    fn tcp_pktoptions_identifies_loopback_for_both_families() {
+        assert_eq!(std::env::var("DNSMASQ_TEST_ISOLATED").as_deref(), Ok("1"));
+        for bind in ["127.0.0.1:0", "[::1]:0"] {
+            let listener = std::net::TcpListener::bind(bind).unwrap();
+            let address = listener.local_addr().unwrap();
+            let _client = TcpStream::connect(address).unwrap();
+            let (stream, _) = listener.accept().unwrap();
+            assert_eq!(
+                tcp_interface(&stream, address.is_ipv6()),
+                Some((b"lo".to_vec(), true))
+            );
         }
     }
 
