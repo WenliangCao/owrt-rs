@@ -45,12 +45,19 @@ class PackageBuildTests(unittest.TestCase):
     def test_payload_rejects_extra_files_and_symlinks(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
-            (root / "usr/libexec").mkdir(parents=True)
-            (root / "usr/libexec/dnsmasq-rs").write_bytes(b"ELF fixture")
-            (root / "lib/apk/packages").mkdir(parents=True)
-            (root / "lib/apk/packages/owrt-dnsmasq.list").write_text("/usr/libexec/dnsmasq-rs\n")
-            self.assertEqual(len(package.audit_payload(root)), 2)
+            for relative in package.REPLACEMENT_FILES | {
+                "lib/apk/packages/dnsmasq.rusers",
+                "lib/upgrade/keep.d/dnsmasq",
+            }:
+                path = root / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(b"fixture")
+            listing = root / "lib/apk/packages/dnsmasq.list"
+            listing.parent.mkdir(parents=True, exist_ok=True)
+            listing.write_text("\n".join(package.OWNERSHIP_LIST) + "\n")
+            self.assertEqual(len(package.audit_payload(root)), len(package.PAYLOAD_FILES))
             extra = root / "usr/libexec/extra"
+            extra.parent.mkdir(parents=True)
             extra.write_text("unexpected")
             with self.assertRaises(ValueError):
                 package.audit_payload(root)

@@ -1,8 +1,8 @@
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=owrt-dnsmasq
-PKG_VERSION:=0.1.0
-PKG_RELEASE:=$(if $(V1_PACKAGE_RELEASE),$(V1_PACKAGE_RELEASE),1)
+PKG_NAME:=dnsmasq
+PKG_VERSION:=2.93
+PKG_RELEASE:=$(if $(V1_PACKAGE_RELEASE),$(V1_PACKAGE_RELEASE),2)
 
 PKG_MAINTAINER:=owrt-control-plane-rs project
 PKG_LICENSE:=GPL-2.0-only OR GPL-3.0-only
@@ -23,18 +23,28 @@ RUST_TARGET:=aarch64-unknown-linux-musl
 
 include $(INCLUDE_DIR)/package.mk
 
-define Package/owrt-dnsmasq
+define Package/dnsmasq
   SECTION:=net
   CATEGORY:=Base system
-  TITLE:=Rust dnsmasq rewrite (staging package)
-  DEPENDS:=@(aarch64) +libubus
+  TITLE:=Rust dnsmasq replacement (deployment candidate)
+  URL:=https://github.com/openwrt/openwrt
+  DEPENDS:=@(aarch64) +libubus20251202 +@BUSYBOX_CONFIG_PIDOF
+  USERID:=dnsmasq=453:dnsmasq=453
+  PROVIDES:=dnsmasq-any
+  CONFLICTS:=dnsmasq-dhcpv6 dnsmasq-full
+  REPLACES:=dnsmasq
 endef
 
-define Package/owrt-dnsmasq/description
-Development Rust DNS/DHCPv4/TFTP rewrite artifacts. This package is
-deliberately inert: it installs dnsmasq-rs under /usr/libexec and does not
-replace the stock dnsmasq binary or init script until the compatibility gates
-in docs/dnsmasq/REPORT.md are complete.
+define Package/dnsmasq/description
+Rust implementation of the OpenWrt dnsmasq 2.93 nodhcpv6 package contract.
+This candidate owns the stock package paths so apk can replace the stock
+dnsmasq package while retaining its UCI, init, ujail and ubus ACL contract.
+endef
+
+define Package/dnsmasq/conffiles
+/etc/config/dhcp
+/etc/dnsmasq.conf
+/etc/dnsmasq.d/
 endef
 
 define Build/Prepare
@@ -63,9 +73,28 @@ define Build/Compile
 	$(V1_CARGO) build --release --frozen --manifest-path $(PKG_BUILD_DIR)/dnsmasq/Cargo.toml --bin dnsmasq-rs --target-dir $(PKG_BUILD_DIR)/dnsmasq/target
 endef
 
-define Package/owrt-dnsmasq/install
-	$(INSTALL_DIR) $(1)/usr/libexec
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/dnsmasq/target/$(RUST_TARGET)/release/dnsmasq-rs $(1)/usr/libexec/dnsmasq-rs
+define Package/dnsmasq/install
+	$(INSTALL_DIR) $(1)/usr/sbin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/dnsmasq/target/$(RUST_TARGET)/release/dnsmasq-rs $(1)/usr/sbin/dnsmasq
+	$(INSTALL_DIR) $(1)/etc/config
+	$(INSTALL_CONF) ./files/dhcp.conf $(1)/etc/config/dhcp
+	$(INSTALL_CONF) ./files/dnsmasq.conf $(1)/etc/dnsmasq.conf
+	$(INSTALL_DIR) $(1)/etc/init.d
+	$(INSTALL_BIN) ./files/dnsmasq.init $(1)/etc/init.d/dnsmasq
+	$(INSTALL_DIR) $(1)/etc/hotplug.d/dhcp $(1)/etc/hotplug.d/neigh $(1)/etc/hotplug.d/ntp $(1)/etc/hotplug.d/tftp
+	$(INSTALL_DATA) ./files/dnsmasqsec.hotplug $(1)/etc/hotplug.d/ntp/25-dnsmasqsec
+	$(INSTALL_DIR) $(1)/etc/uci-defaults
+	$(INSTALL_BIN) ./files/50-dnsmasq-migrate-resolv-conf-auto.sh $(1)/etc/uci-defaults
+	$(INSTALL_BIN) ./files/50-dnsmasq-migrate-ipset.sh $(1)/etc/uci-defaults
+	$(INSTALL_DIR) $(1)/usr/share/dnsmasq
+	$(INSTALL_CONF) ./files/dhcpbogushostname.conf $(1)/usr/share/dnsmasq/dhcpbogushostname.conf
+	$(INSTALL_CONF) ./files/rfc6761.conf $(1)/usr/share/dnsmasq/rfc6761.conf
+	$(INSTALL_DIR) $(1)/usr/lib/dnsmasq
+	$(INSTALL_BIN) ./files/dhcp-script.sh $(1)/usr/lib/dnsmasq/dhcp-script.sh
+	$(INSTALL_DIR) $(1)/usr/share/acl.d
+	$(INSTALL_DATA) ./files/dnsmasq_acl.json $(1)/usr/share/acl.d/dnsmasq_acl.json
+	$(INSTALL_DIR) $(1)/lib/upgrade/keep.d
+	$(INSTALL_DATA) ./files/dnsmasq.keep $(1)/lib/upgrade/keep.d/dnsmasq
 endef
 
-$(eval $(call BuildPackage,owrt-dnsmasq))
+$(eval $(call BuildPackage,dnsmasq))

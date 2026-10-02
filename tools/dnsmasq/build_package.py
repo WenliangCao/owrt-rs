@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build and audit only the inert dnsmasq package in the matching SDK.
+"""Build and audit a dnsmasq replacement candidate in the matching SDK.
 
 Inputs are snapshotted before prepare; output/build directories are new and
 task-owned. The SDK package recipe is restored even when make fails. Full logs,
@@ -17,12 +17,34 @@ import re
 import shutil
 import subprocess
 import sys
-import tomllib
 
 ROOT = Path(__file__).resolve().parents[2]
-PACKAGE = "owrt-dnsmasq"
+PACKAGE = "dnsmasq"
+RECIPE = "owrt-dnsmasq"
 TARGET = "aarch64-unknown-linux-musl"
 ARCH = "aarch64_cortex-a53"
+PACKAGE_VERSION = "2.93"
+PACKAGE_RELEASE = "2"
+REPLACEMENT_FILES = {
+    "etc/config/dhcp",
+    "etc/dnsmasq.conf",
+    "etc/hotplug.d/ntp/25-dnsmasqsec",
+    "etc/init.d/dnsmasq",
+    "etc/uci-defaults/50-dnsmasq-migrate-ipset.sh",
+    "etc/uci-defaults/50-dnsmasq-migrate-resolv-conf-auto.sh",
+    "usr/lib/dnsmasq/dhcp-script.sh",
+    "usr/sbin/dnsmasq",
+    "usr/share/acl.d/dnsmasq_acl.json",
+    "usr/share/dnsmasq/dhcpbogushostname.conf",
+    "usr/share/dnsmasq/rfc6761.conf",
+}
+PACKAGE_METADATA_FILES = {
+    "lib/apk/packages/dnsmasq.list",
+    "lib/apk/packages/dnsmasq.rusers",
+    "lib/upgrade/keep.d/dnsmasq",
+}
+PAYLOAD_FILES = REPLACEMENT_FILES | PACKAGE_METADATA_FILES
+OWNERSHIP_LIST = sorted("/" + path for path in PAYLOAD_FILES if not path.endswith(".list"))
 
 
 def sha(path):
@@ -75,7 +97,9 @@ def snapshot(root, destination, expected):
 
 @contextmanager
 def package_recipe(sdk, source, out, report):
-    active = sdk / "package" / PACKAGE
+    stock = sdk / "package/network/services/dnsmasq"
+    active = stock if stock.exists() else sdk / "package" / RECIPE
+    report["sdk_recipe_path"] = str(active)
     # SDK discovery scans even hidden directories below package/. Keep the
     # recovery copy outside that tree so it cannot become a second recipe.
     backup = sdk / f".dnsmasq-backup-{out.name}"
@@ -108,12 +132,52 @@ def run(command, log, *, cwd=None, env=None):
 
 
 def audit_payload(payload):
-    allowed = {"usr/libexec/dnsmasq-rs", "lib/apk/packages/owrt-dnsmasq.list"}
+    allowed = PAYLOAD_FILES
     found = {str(path.relative_to(payload)): sha(path) for path in files_below(payload)}
     require(set(found) == allowed, f"unexpected package payload paths: {sorted(found)}")
-    listing = (payload / "lib/apk/packages/owrt-dnsmasq.list").read_text().splitlines()
-    require(listing == ["/usr/libexec/dnsmasq-rs"], f"unexpected package ownership list: {listing}")
+    listing = (payload / "lib/apk/packages/dnsmasq.list").read_text().splitlines()
+    require(listing == OWNERSHIP_LIST, f"unexpected package ownership list: {listing}")
     return found
+
+
+def audit_metadata(metadata):
+    """Check replacement identity without treating adbdump text as authority."""
+    required = {
+        "name": PACKAGE,
+        "version": f"{PACKAGE_VERSION}-{PACKAGE_RELEASE}",
+        "arch": ARCH,
+    }
+    for field, expected in required.items():
+        require(re.search(rf"^  {re.escape(field)}: {re.escape(expected)}$", metadata, re.MULTILINE),
+                f"APK metadata {field} does not identify {expected}")
+    for field, values in {
+        "provides": ("dnsmasq-any",),
+        "conflicts": ("dnsmasq-dhcpv6", "dnsmasq-full"),
+        "replaces": ("dnsmasq",),
+        "depends": ("libc", "libubus20251202"),
+    }.items():
+        block = re.search(rf"^  {field}:.*?(?=^  [a-z]|^# data block|\Z)", metadata,
+                          re.MULTILINE | re.DOTALL)
+        require(block and all(re.search(rf"^    - {re.escape(value)}$", block.group(0), re.MULTILINE)
+                              for value in values), f"APK metadata {field} misses required entries")
+    return {"name": PACKAGE, "version": f"{PACKAGE_VERSION}-{PACKAGE_RELEASE}",
+            "arch": ARCH, "provides": ["dnsmasq-any"],
+            "conflicts": ["dnsmasq-dhcpv6", "dnsmasq-full"],
+            "replaces": ["dnsmasq"], "depends": ["libc", "libubus20251202"]}
+
+
+def read_budget(path):
+    require(path.is_file(), f"M4 budget is missing: {path}")
+    try:
+        budget = json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError) as error:
+        raise ValueError(f"invalid M4 budget: {error}") from error
+    require(budget.get("schema") == 1, "M4 budget schema must be 1")
+    for field in ("elf_max_bytes", "apk_max_bytes"):
+        require(isinstance(budget.get(field), int) and budget[field] > 0,
+                f"M4 budget {field} must be a positive integer")
+    return {"schema": 1, "elf_max_bytes": budget["elf_max_bytes"],
+            "apk_max_bytes": budget["apk_max_bytes"], "sha256": sha(path)}
 
 
 def audit_build(args, out, report):
@@ -170,7 +234,7 @@ def audit_build(args, out, report):
     report["rustc_version"] = run([str(cargo.with_name("rustc")), "-Vv"], out / "rustc-version.log", env=env).strip()
     report["target_cc_version"] = run([str(toolchain / "bin/aarch64-openwrt-linux-musl-gcc"), "--version"], out / "target-cc-version.log").strip()
     build, output = out / "package-build", out / "sdk-output"
-    make_vars = ["V=s", "-j1", "V1_PACKAGE_RELEASE=1", f"V1_CARGO={cargo}",
+    make_vars = ["V=s", "-j1", f"V1_CARGO={cargo}",
                  f"V1_CARGO_HOME={safe_path(Path(env.get('CARGO_HOME', str(Path.home() / '.cargo'))).resolve())}",
                  f"V1_RUSTUP_HOME={safe_path(Path(env.get('RUSTUP_HOME', str(Path.home() / '.rustup'))).resolve())}",
                  f"OWRT_COMPONENTS_SOURCE={source / 'components'}",
@@ -178,7 +242,7 @@ def audit_build(args, out, report):
     report["commands"] = []
     with (sdk / ".owrt-dnsmasq-build.lock").open("a") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        with package_recipe(sdk, source / "packaging/openwrt/owrt-dnsmasq", out, report):
+        with package_recipe(sdk, source / f"packaging/openwrt/{RECIPE}", out, report):
             for stage in ("prepare", "compile"):
                 command = ["make", f"package/{PACKAGE}/{stage}", *make_vars]
                 report["commands"].append(command)
@@ -188,8 +252,7 @@ def audit_build(args, out, report):
                     for name, expected in copied.items():
                         require(sha(build / name) == expected, f"SDK prepare copied stale source: {name}")
                     report["prepared_source_files"] = copied
-    version = tomllib.loads((source / "components/dnsmasq/Cargo.toml").read_text())["package"]["version"]
-    artifact = output / f"packages/{ARCH}/base/{PACKAGE}-{version}-r1.apk"
+    artifact = output / f"packages/{ARCH}/base/{PACKAGE}-{PACKAGE_VERSION}-r{PACKAGE_RELEASE}.apk"
     candidates = list(output.rglob(f"{PACKAGE}-*.apk"))
     require(candidates == [artifact], f"expected exactly the current package artifact; found {candidates}")
     shutil.copy2(artifact, out / artifact.name)
@@ -198,32 +261,43 @@ def audit_build(args, out, report):
     payload.mkdir()
     run([str(apk), "extract", "--allow-untrusted", "--no-network", "--no-chown", "--destination", str(payload), str(artifact)], out / "extract.log")
     report["payload_files"] = audit_payload(payload)
-    elf = payload / "usr/libexec/dnsmasq-rs"
+    elf = payload / "usr/sbin/dnsmasq"
     elf_text = run([str(readelf), "-h", "-l", "-d", str(elf)], out / "elf-readelf.log")
     require("AArch64" in elf_text and "ELF64" in elf_text, "package ELF has the wrong target architecture")
     require("/lib/ld-musl-aarch64.so.1" in elf_text or "There is no dynamic section" in elf_text,
             "package ELF is neither target musl nor static")
-    report["apk_metadata"] = run([str(apk), "adbdump", str(artifact)], out / "apk-metadata.log")
+    metadata = run([str(apk), "adbdump", str(artifact)], out / "apk-metadata.log")
+    report["apk_metadata"] = audit_metadata(metadata)
     require(inputs(ROOT) == source_hashes, "source changed while building; artifact is not current")
     report["artifact"] = {"name": artifact.name, "sha256": sha(artifact), "size": artifact.stat().st_size}
-    report["elf"] = {"sha256": sha(elf), "size": elf.stat().st_size, "install_path": "/usr/libexec/dnsmasq-rs"}
-    (out / "SHA256SUMS").write_text(f"{sha(artifact)}  {artifact.name}\n{sha(elf)}  payload/usr/libexec/dnsmasq-rs\n")
+    report["elf"] = {"sha256": sha(elf), "size": elf.stat().st_size, "install_path": "/usr/sbin/dnsmasq"}
+    require(report["artifact"]["size"] <= report["budget"]["apk_max_bytes"],
+            f"APK exceeds M4 budget: {report['artifact']['size']} > {report['budget']['apk_max_bytes']}")
+    require(report["elf"]["size"] <= report["budget"]["elf_max_bytes"],
+            f"ELF exceeds M4 budget: {report['elf']['size']} > {report['budget']['elf_max_bytes']}")
+    report["budget_checks"] = {"apk": True, "elf": True}
+    (out / "SHA256SUMS").write_text(f"{sha(artifact)}  {artifact.name}\n{sha(elf)}  payload/usr/sbin/dnsmasq\n")
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("sdk", type=Path)
     parser.add_argument("out", type=Path)
+    parser.add_argument("--budget", type=Path, required=True,
+                        help="frozen JSON with elf_max_bytes/apk_max_bytes")
     parser.add_argument("--source-commit", help="original commit of a copied source snapshot")
     parser.add_argument("--source-date-epoch", help="original commit timestamp for that snapshot")
     parser.add_argument("--expected-source-digest", help="freeze SHA256 over the sorted input hash map")
     args = parser.parse_args()
     out = safe_path(args.out.resolve())
+    budget_path = safe_path(args.budget.resolve())
     require(out.is_relative_to(ROOT / "private") and out != ROOT / "private", "output must be a new task directory below private/")
     out.parent.mkdir(parents=True, exist_ok=True)
     out.mkdir()  # Refuse reused outputs before touching SDK state.
-    report = {"package": PACKAGE, "target": TARGET, "activation": "inert", "physical_router": False,
-              "status": "building", "scope": "Target staging package; no image assembly, deployment or production acceptance"}
+    report = {"package": PACKAGE, "recipe": RECIPE, "target": TARGET, "activation": "candidate",
+              "physical_router": False, "status": "building",
+              "scope": "Replacement package candidate; no image assembly, deployment or production acceptance",
+              "budget": read_budget(budget_path)}
     try:
         audit_build(args, out, report)
         report["status"] = "built-and-audited"

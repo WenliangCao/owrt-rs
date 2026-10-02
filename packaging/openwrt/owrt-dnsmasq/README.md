@@ -1,11 +1,12 @@
 # owrt-dnsmasq
 
-This SDK package is a staging artifact for the Rust dnsmasq rewrite. It
-installs `dnsmasq-rs` at `/usr/libexec/dnsmasq-rs` and intentionally leaves the
-stock OpenWrt `dnsmasq` package, `/usr/sbin/dnsmasq`, init script, UCI files,
-and ownership unchanged. It must not be included in a production image yet.
+This is the M4 deployment-candidate recipe for the AX3000T `dnsmasq` package.
+It keeps the package identity `dnsmasq` at version 2.93-r2, provides
+`dnsmasq-any`, and declares conflicts/replacement for the stock DHCPv6/full
+variants. The candidate installs the daemon at `/usr/sbin/dnsmasq`
+and carries the stock package's init script, UCI conffiles, hotplug helper,
+dhcp-script, migration scripts, default data and ubus ACL paths.
 
-The package becomes a replacement only after the DNS/DHCPv4/TFTP integration,
-OpenWrt lifecycle, target build, and frozen performance gates in
-`docs/dnsmasq/REPORT.md` pass. Keeping this package inert prevents an SDK build
-from being mistaken for a deployable daemon.
+The recipe is a packaging candidate, not production acceptance. The matching
+SDK build, exact-image install/upgrade/uninstall/rollback checks, complete
+M5 contract, and M6 performance gate must pass before deployment is considered.
