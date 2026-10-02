@@ -81,6 +81,28 @@ impl Drop for PidFile {
     }
 }
 
+/// dnsmasq.c needs ARP injection only when the head broadcast rule is
+/// conditional or absent. UBus can configure privileged ports and device
+/// binding later, independently of the current DHCP settings.
+pub fn network_capabilities(
+    dhcp: bool,
+    no_ping: bool,
+    unconditional_broadcast: bool,
+    dynamic_ports: bool,
+    ubus: bool,
+) -> u32 {
+    (if dhcp && !unconditional_broadcast {
+        1 << 12
+    } else {
+        0
+    }) | (if dynamic_ports || ubus { 1 << 10 } else { 0 })
+        | (if (dhcp && !no_ping) || ubus {
+            1 << 13
+        } else {
+            0
+        })
+}
+
 #[cfg(target_os = "linux")]
 mod linux {
     use super::*;
@@ -121,6 +143,7 @@ mod linux {
         fn getgrnam(name: *const c_char) -> *mut Group;
         fn getgrgid(gid: u32) -> *mut Group;
         fn getuid() -> u32;
+        fn geteuid() -> u32;
         fn setuid(uid: u32) -> c_int;
         fn setgid(gid: u32) -> c_int;
         fn setgroups(count: usize, groups: *const u32) -> c_int;
@@ -136,6 +159,37 @@ mod linux {
         root: bool,
     }
     impl Identity {
+        /// File-policy consumers are constructed before the UID transition.
+        /// Use the same identity they will execute under after that transition.
+        pub fn runtime_uid(&self, config: &ProcessConfig) -> u32 {
+            if !config.debug && self.root {
+                self.uid
+                    .filter(|uid| *uid != 0)
+                    .unwrap_or_else(|| unsafe { geteuid() })
+            } else {
+                unsafe { geteuid() }
+            }
+        }
+
+        pub fn check_capabilities(&self, required: u32) -> Result<(), StartupError> {
+            let mut header = CapHeader {
+                version: 0x20080522,
+                pid: 0,
+            };
+            let mut data = [CapData::default(); 2];
+            // SAFETY: Linux capability v3 reads exactly two initialized entries.
+            if unsafe { capget(&mut header, data.as_mut_ptr()) } < 0 {
+                return Err(failure(5, "capget"));
+            }
+            if data[0].permitted & required != required {
+                return Err(StartupError {
+                    code: 5,
+                    message: "process is missing required network capabilities".into(),
+                });
+            }
+            Ok(())
+        }
+
         pub fn resolve(config: &ProcessConfig) -> Result<Self, StartupError> {
             let unknown = |name: &[u8]| StartupError {
                 code: 1,
@@ -222,33 +276,13 @@ mod linux {
         pub fn drop_privileges(
             &self,
             config: &ProcessConfig,
-            dhcp: bool,
-            no_ping: bool,
-            dynamic_ports: bool,
-            ubus: bool,
+            keep: u32,
         ) -> Result<(), StartupError> {
-            let keep = (if dhcp { 1 << 12 } else { 0 })
-                | (if dynamic_ports || ubus { 1 << 10 } else { 0 })
-                | (if (dhcp && !no_ping) || ubus {
-                    1 << 13
-                } else {
-                    0
-                });
-            let mut header = CapHeader {
+            let header = CapHeader {
                 version: 0x20080522,
                 pid: 0,
             };
             let mut data = [CapData::default(); 2];
-            // C checks required capabilities even when an external supervisor dropped UID.
-            if unsafe { capget(&mut header, data.as_mut_ptr()) } < 0 {
-                return Err(failure(5, "capget"));
-            }
-            if data[0].permitted & keep != keep {
-                return Err(StartupError {
-                    code: 5,
-                    message: "process is missing required network capabilities".into(),
-                });
-            }
             if config.debug || !self.root {
                 return Ok(());
             }
@@ -287,6 +321,26 @@ pub use linux::Identity;
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn required_capabilities_follow_broadcast_ping_and_dynamic_configuration() {
+        assert_eq!(network_capabilities(true, true, true, false, false), 0);
+        assert_eq!(
+            network_capabilities(true, true, false, false, false),
+            1 << 12
+        );
+        assert_eq!(
+            network_capabilities(true, false, true, false, false),
+            1 << 13
+        );
+        assert_eq!(
+            network_capabilities(false, false, false, true, false),
+            1 << 10
+        );
+        assert_eq!(
+            network_capabilities(false, false, false, false, true),
+            (1 << 10) | (1 << 13)
+        );
+    }
     #[test]
     fn explicit_empty_values_disable_identity_and_pid_defaults() {
         let mut config = ProcessConfig::default();

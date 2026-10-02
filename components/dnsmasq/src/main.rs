@@ -49,6 +49,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 static STOP_REQUESTED: AtomicBool = AtomicBool::new(false);
 static RELOAD_REQUESTED: AtomicBool = AtomicBool::new(false);
+static DEBUG_MODE: AtomicBool = AtomicBool::new(false);
 // SIGHUP is 1 on the supported Linux and Darwin hosts.
 const SIGHUP: i32 = 1;
 const STOP_CHECK_INTERVAL: Duration = Duration::from_millis(100);
@@ -59,6 +60,18 @@ extern "C" fn request_stop(_signal: i32) {
 
 extern "C" fn request_reload(_signal: i32) {
     RELOAD_REQUESTED.store(true, Ordering::Release);
+}
+
+extern "C" fn request_interrupt(_signal: i32) {
+    if DEBUG_MODE.load(Ordering::Relaxed) {
+        extern "C" {
+            fn _exit(status: i32) -> !;
+        }
+        // SAFETY: _exit is async-signal-safe. C exits debug mode with EC_MISC;
+        // PID cleanup is specific to SIGTERM and must not run on this path.
+        unsafe { _exit(5) }
+    }
+    // The nodhcpv6/no-DNSSEC C variant has no EVENT_TIME work in normal mode.
 }
 
 fn main() {
@@ -404,7 +417,8 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     );
     let tftp_config = runtime.tftp.clone();
     let dhcp_config = runtime.dhcp.clone();
-    owrt_ubus::sys::set_signal_handler(owrt_ubus::sys::SIGINT, request_stop);
+    DEBUG_MODE.store(runtime.process.debug, Ordering::Relaxed);
+    owrt_ubus::sys::set_signal_handler(owrt_ubus::sys::SIGINT, request_interrupt);
     owrt_ubus::sys::set_signal_handler(owrt_ubus::sys::SIGTERM, request_stop);
     owrt_ubus::sys::set_signal_handler(SIGHUP, request_reload);
     // dnsmasq.c allocates `edns_pktsz + MAXDNAME + RRFIXEDSZ` as scratch space.
@@ -584,7 +598,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             mtu: tftp_config.mtu,
             ipv6: false,
             no_block_size: tftp_config.no_block_size,
-            effective_uid: 0,
+            effective_uid: identity.runtime_uid(&runtime.process),
             secure: tftp_config.secure,
             max_transfers: tftp_config.max_transfers,
             single_port: tftp_config.single_port,
@@ -619,15 +633,24 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         report_dhcp_maintenance(&provider.initialize(now));
     }
     #[cfg(target_os = "linux")]
-    let _pid_file = identity.write_pid(&runtime.process)?;
-    #[cfg(target_os = "linux")]
-    identity.drop_privileges(
-        &runtime.process,
+    let capabilities = dnsmasq_rs::startup::network_capabilities(
         !runtime.dhcp.ranges.is_empty(),
         runtime.dhcp.no_ping,
+        runtime
+            .dhcp
+            .force_broadcast
+            .first()
+            .is_some_and(|rule| rule.is_unconditional()),
         daemon_config.bind_dynamic && runtime.scalar.dns_port <= 1024 && dns_enabled,
         runtime.ubus.object_name()?.is_some(),
-    )?;
+    );
+    // Fail missing capabilities before touching a pre-existing PID file.
+    #[cfg(target_os = "linux")]
+    identity.check_capabilities(capabilities)?;
+    #[cfg(target_os = "linux")]
+    let _pid_file = identity.write_pid(&runtime.process)?;
+    #[cfg(target_os = "linux")]
+    identity.drop_privileges(&runtime.process, capabilities)?;
     let dns_context = DnsWorkers {
         service: Arc::clone(&service),
         parent_events: Arc::clone(&parent_events),

@@ -10,6 +10,12 @@ pub struct TagPredicate {
 }
 
 impl TagPredicate {
+    /// A rule with no selector applies to every packet. A negated selector
+    /// which happens to match an empty tag list is still conditional.
+    pub fn is_unconditional(&self) -> bool {
+        self.tags.is_empty()
+    }
+
     pub(super) fn parse(argument: Option<&EncodedArg>) -> Result<Self, Error> {
         let mut tags = Vec::new();
         if let Some(argument) = argument {
@@ -91,6 +97,10 @@ mod tests {
         assert!(!rule.matches(&[b"lan", b"blocked"]));
         assert!(!rule.matches(&[]));
         assert!(TagPredicate::parse(None).unwrap().matches(&[]));
+        assert!(TagPredicate::parse(None).unwrap().is_unconditional());
+        let negative = TagPredicate::parse(Some(&EncodedArg::command_line(b"tag:!known"))).unwrap();
+        assert!(negative.matches(&[]));
+        assert!(!negative.is_unconditional());
         let rule =
             TagPredicate::parse(Some(&EncodedArg::command_line(b"net:lan,#blocked"))).unwrap();
         assert!(rule.matches(&[b"lan"]));
