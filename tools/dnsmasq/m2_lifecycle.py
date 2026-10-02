@@ -353,6 +353,7 @@ class Scenario:
         except AssertionError as error:
             result['init_failure_service_debug'] = self.service_debug()
             result['init_failure_log'] = (self.root / 'tmp/dnsmasq.log').read_text(errors='replace') if (self.root / 'tmp/dnsmasq.log').exists() else ''
+            result['init_failure_logread'] = self.run('/sbin/logread', check=False).stdout
             raise error
         first = self.live_dnsmasq()
         result['initial_process'] = first
