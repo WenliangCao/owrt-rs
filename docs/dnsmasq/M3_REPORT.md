@@ -16,6 +16,6 @@
 
 Rust 的额外线程来自独立 DNS UDP worker、DNS TCP accept/worker、DHCP listener 以及 UBus/事件处理所需的并发执行上下文；C 将这些路径合并在单一事件循环。额外 RSS 主要是线程栈、同步对象和每个 worker 的接收/响应缓冲，表现为约 392 KiB 的中位数 PSS 差和 5 个常驻线程。M4 可评估把空闲 worker 合并为事件循环或降低线程栈保留，但在 M4 前不改变实现。
 
-压力子门尚未通过。本轮记录的 ENOSPC/EMFILE 尝试保留在 ignored `private/dnsmasq-rewrite/evidence/M3/pressure-*`：旧工具要求 native/glibc C 和预构建 ubus 依赖，无法直接执行 exact image musl C；新增 exact-image probe 也在 daemon readiness 边界失败，未产生可计入的 C/Rust pressure 结果。缺少本轮 ENOSPC/EMFILE raw evidence，因此不能把 M3 称为完整关闭，也不能进入 M4 的正式候选包门。
+压力子门按用户的限时纠偏关闭：旧工具要求 native/glibc C 和预构建 ubus 依赖，无法在本轮 exact-image musl C 上启动；新增 exact-image probe 也在 daemon readiness 阶段失败。限时到达后采用已有源码编译 C 证据：EMFILE 17 项 TCP accept 恢复对照，以及 `dhcp_lease_lifecycle` 的 ENOSPC lease 写入、60 秒重试和恢复场景。该替代证据明确不是镜像 ELF，原因是旧压力工具的 C/ubus 辅助程序绑定 native build 依赖，无法代表设备镜像；它只证明同一源码的故障边界，不增加 image-ELF 身份结论。原始失败记录保留在 `private/dnsmasq-rewrite/evidence/M3/pressure-*`。
 
-M3 资源长跑按上述判据通过；完整 M3 仍被 ENOSPC 和 EMFILE 两个可重复压力门阻塞。物理路由器未操作。
+M3 资源长跑和压力替代证据均已记录，M3 收尾完成。物理路由器未操作。
