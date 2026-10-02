@@ -40,12 +40,16 @@ REPLACEMENT_FILES = {
     "usr/share/dnsmasq/rfc6761.conf",
 }
 PACKAGE_METADATA_FILES = {
+    "lib/apk/packages/dnsmasq.conffiles",
+    "lib/apk/packages/dnsmasq.conffiles_static",
     "lib/apk/packages/dnsmasq.list",
     "lib/apk/packages/dnsmasq.rusers",
     "lib/upgrade/keep.d/dnsmasq",
 }
 PAYLOAD_FILES = REPLACEMENT_FILES | PACKAGE_METADATA_FILES
-OWNERSHIP_LIST = sorted("/" + path for path in PAYLOAD_FILES if not path.endswith(".list"))
+OWNERSHIP_LIST = sorted("/" + path for path in REPLACEMENT_FILES | {
+    "lib/apk/packages/dnsmasq.rusers", "lib/upgrade/keep.d/dnsmasq"
+})
 
 
 def sha(path):

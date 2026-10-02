@@ -46,6 +46,9 @@ class PackageBuildTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             for relative in package.REPLACEMENT_FILES | {
+                "lib/apk/packages/dnsmasq.conffiles",
+                "lib/apk/packages/dnsmasq.conffiles_static",
+                "lib/apk/packages/dnsmasq.list",
                 "lib/apk/packages/dnsmasq.rusers",
                 "lib/upgrade/keep.d/dnsmasq",
             }:
@@ -53,7 +56,6 @@ class PackageBuildTests(unittest.TestCase):
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_bytes(b"fixture")
             listing = root / "lib/apk/packages/dnsmasq.list"
-            listing.parent.mkdir(parents=True, exist_ok=True)
             listing.write_text("\n".join(package.OWNERSHIP_LIST) + "\n")
             self.assertEqual(len(package.audit_payload(root)), len(package.PAYLOAD_FILES))
             extra = root / "usr/libexec/extra"
