@@ -1119,7 +1119,11 @@ impl DnsWorkers {
                                 .ok()
                                 .and_then(|sockets| sockets.get(&listener).cloned());
                             if let Some(socket) = socket {
-                                let _ = socket.send(&response.packet, response.destination, None);
+                                let _ = socket.send(
+                                    &response.packet,
+                                    response.destination,
+                                    Some((response.source, response.interface)),
+                                );
                             }
                         }
                         drop(event);
@@ -1191,6 +1195,9 @@ impl DnsWorkers {
                                 destination.ip(),
                                 0,
                             ) {
+                                // C shuts down denied connections before close,
+                                // including when the client already sent a query.
+                                let _ = stream.shutdown(std::net::Shutdown::Both);
                                 continue;
                             }
                             let local_network =

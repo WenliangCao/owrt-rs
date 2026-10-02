@@ -73,6 +73,36 @@ fn cached_details(
 }
 
 #[test]
+fn cached_cname_local_terminal_uses_the_current_query_network() {
+    let mut daemon = daemon();
+    daemon.local.config.localise_queries = true;
+    daemon.local.config.no_round_robin = true;
+    for address in ["192.0.2.1", "198.51.100.3"] {
+        daemon
+            .local
+            .hosts
+            .insert(b"target.test".to_vec(), address.parse().unwrap(), 0, 1);
+    }
+    daemon.cache_reply_at(&chain_reply(1, false), 100);
+    for (network, expected) in [
+        (Some("192.0.2.254"), vec![vec![192, 0, 2, 1]]),
+        (Some("198.51.100.254"), vec![vec![198, 51, 100, 3]]),
+        (None, vec![vec![192, 0, 2, 1], vec![198, 51, 100, 3]]),
+    ] {
+        daemon.local.local_network =
+            network.map(|address| (address.parse().unwrap(), "255.255.255.0".parse().unwrap()));
+        let answer = cached(&mut daemon, "alias.test", 1, 100).unwrap();
+        let message = Message::parse(&answer).unwrap();
+        let addresses = message
+            .records(Section::Answer)
+            .filter(|record| record.rrtype == 1)
+            .map(|record| record.rdata.to_vec())
+            .collect::<Vec<_>>();
+        assert_eq!(addresses, expected);
+    }
+}
+
+#[test]
 fn malformed_replacement_keeps_prefix_removal_but_zero_ttl_stops_before_removal() {
     for ttl in [0, 53] {
         let mut daemon = daemon();

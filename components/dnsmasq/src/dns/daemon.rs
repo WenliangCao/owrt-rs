@@ -48,6 +48,10 @@ pub struct ClientRequest {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ClientResponse {
     pub destination: SocketAddr,
+    /// Original query destination and ingress, retained per recipient even
+    /// when several clients share one upstream transaction or wildcard socket.
+    pub source: IpAddr,
+    pub interface: u32,
     pub listener: Option<super::forward::SocketToken>,
     pub packet: Vec<u8>,
 }
@@ -632,6 +636,8 @@ impl<R: Random> DnsDaemon<R> {
                 match self.recipient_packet(&reply, recipient, rcode) {
                     Ok(Some(packet)) => responses.push(ClientResponse {
                         destination: recipient.client.source,
+                        source: recipient.client.destination,
+                        interface: recipient.client.interface,
                         listener: recipient.client.listener,
                         packet,
                     }),
