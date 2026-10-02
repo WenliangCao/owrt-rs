@@ -1,23 +1,105 @@
 //! dhcp.c::dhcp_read_ethers: /etc/ethers augments the configured host list.
-use super::dhcp::{HardwareAddress, HostConfig};
+// Standalone configuration parsing is portable; staged file reloads are used
+// by the Linux 64-bit DHCP daemon.
+#![cfg_attr(
+    not(all(target_os = "linux", target_pointer_width = "64")),
+    allow(dead_code)
+)]
+
+use super::dhcp::{HardwareAddress, HostConfig, HostFiles, HostReload};
 use std::io::{self, BufRead};
 use std::net::Ipv4Addr;
 use std::path::Path;
 
 pub struct Ethers {
     hosts: Vec<HostConfig>,
-    created: Vec<bool>,
+    origins: Vec<Origin>,
+}
+
+#[derive(Clone, Copy, Eq, PartialEq)]
+enum Source {
+    Main,
+    HostFile,
+    Ethers,
+}
+
+#[derive(Clone, Copy)]
+struct Origin {
+    source: Source,
+    previous: Option<usize>,
+    inferred_address: bool,
 }
 
 impl Ethers {
     pub fn new(hosts: &[HostConfig]) -> Self {
         Self {
             hosts: hosts.to_vec(),
-            created: vec![false; hosts.len()],
+            origins: vec![
+                Origin {
+                    source: Source::Main,
+                    previous: None,
+                    inferred_address: false,
+                };
+                hosts.len()
+            ],
         }
     }
     pub fn hosts(&self) -> &[HostConfig] {
         &self.hosts
+    }
+
+    /// C drops CONFIG_BANK rows before parsing host files, while previous
+    /// ethers rows and hosts-inferred addresses still participate in conflicts.
+    pub(crate) fn reload_host_files(
+        &mut self,
+        files: &mut HostFiles,
+        current: &[HostConfig],
+    ) -> HostReload {
+        let retained: Vec<_> = self
+            .origins
+            .iter()
+            .enumerate()
+            .filter_map(|(index, origin)| (origin.source != Source::HostFile).then_some(index))
+            .collect();
+        let base: Vec<_> = retained
+            .iter()
+            .map(|&index| current[index].clone())
+            .collect();
+        let report = files.reload(&base);
+        if report.ready() {
+            let file_count = report.hosts.len() - base.len();
+            let mut origins = vec![
+                Origin {
+                    source: Source::HostFile,
+                    previous: None,
+                    inferred_address: false,
+                };
+                file_count
+            ];
+            origins.extend(retained.iter().map(|&index| Origin {
+                source: self.origins[index].source,
+                previous: Some(index),
+                inferred_address: self.hosts[index].address.is_none()
+                    && current[index].address.is_some(),
+            }));
+            self.hosts = report.hosts.clone();
+            self.origins = origins;
+        }
+        report
+    }
+
+    /// Clear CONFIG_ADDR_HOSTS only after ethers has matched the old addresses.
+    pub(crate) fn clear_inferred_addresses(&mut self) {
+        for (host, origin) in self.hosts.iter_mut().zip(&self.origins) {
+            if origin.inferred_address {
+                host.address = None;
+            }
+        }
+    }
+
+    /// Surviving rows retain DECLINE state; fresh file/ethers rows do not.
+    pub(crate) fn previous_indices(&self) -> impl Iterator<Item = Option<usize>> + '_ {
+        self.origins.iter().map(|origin| origin.previous)
     }
 
     /// An open failure preserves the previous generation. Once opened, remove
@@ -30,11 +112,12 @@ impl Ethers {
     fn read(&mut self, mut reader: impl BufRead) -> Vec<usize> {
         let mut index = 0;
         self.hosts.retain(|_| {
-            let keep = !self.created[index];
+            let keep = self.origins[index].source != Source::Ethers;
             index += 1;
             keep
         });
-        self.created = vec![false; self.hosts.len()];
+        self.origins
+            .retain(|origin| origin.source != Source::Ethers);
         let mut bad = Vec::new();
         let mut line = Vec::new();
         let mut number = 0;
@@ -95,7 +178,7 @@ impl Ethers {
                         .is_some_and(|host| host.eq_ignore_ascii_case(name))
                 })
         });
-        if named.is_some_and(|index| self.created[index]) {
+        if named.is_some_and(|index| self.origins[index].source == Source::Ethers) {
             return None;
         }
         let index = if let Some(index) = named {
@@ -108,7 +191,14 @@ impl Ethers {
             });
             let index = by_mac.unwrap_or_else(|| {
                 self.hosts.insert(0, HostConfig::default());
-                self.created.insert(0, true);
+                self.origins.insert(
+                    0,
+                    Origin {
+                        source: Source::Ethers,
+                        previous: None,
+                        inferred_address: false,
+                    },
+                );
                 0
             });
             if let Some(address) = address {

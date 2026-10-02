@@ -104,8 +104,6 @@ pub struct LocalProvider {
     leases: LeaseStore,
     states: Vec<ContextState>,
     hosts: Vec<HostPolicy>,
-    inline_hosts: Vec<HostConfig>,
-    main_host_count: usize,
     ethers: crate::config::ethers::Ethers,
     host_files: HostFiles,
     host_files_ready: bool,
@@ -175,8 +173,6 @@ impl LocalProvider {
             leases,
             states: config.ranges.iter().map(ContextState::new).collect(),
             hosts: config.hosts.iter().map(host_policy).collect(),
-            inline_hosts: config.hosts.clone(),
-            main_host_count: config.hosts.len(),
             ethers: crate::config::ethers::Ethers::new(&config.hosts),
             host_files: HostFiles::new(&config.host_files),
             host_files_ready: true,
@@ -478,13 +474,19 @@ impl LocalProvider {
     }
 
     fn reread_host_files_at(&mut self, ethers_path: &Path) -> Vec<HostFileError> {
-        let mut errors = Vec::new();
-        let old_base_count = self.inline_hosts.len();
-        let mut refreshed_ethers = None;
+        // dnsmasq.c clear_cache_and_reload: reread_dhcp, dhcp_read_ethers,
+        // then dhcp_update_configs. Ethers merges into the fresh file rows.
+        let report = self
+            .ethers
+            .reload_host_files(&mut self.host_files, &self.config.hosts);
+        self.host_files_ready = report.ready();
+        let mut errors = report.errors;
+        if !self.host_files_ready {
+            return errors;
+        }
         if self.config.read_ethers {
             match self.ethers.reload(ethers_path) {
                 Ok(lines) => {
-                    refreshed_ethers = Some(self.ethers.hosts().to_vec());
                     for line in lines {
                         errors.push(HostFileError {
                             path: ethers_path.to_path_buf(),
@@ -502,40 +504,19 @@ impl LocalProvider {
                 }),
             }
         }
-        // Without a successful ethers reload, retain inferred addresses during
-        // hosts-file parsing, just as C does before clearing CONFIG_ADDR_HOSTS.
-        let old_base = self.config.hosts.len() - old_base_count;
-        let base = refreshed_ethers
-            .as_deref()
-            .unwrap_or(&self.config.hosts[old_base..]);
-        let mut report = self.host_files.reload(base);
-        self.host_files_ready = report.ready();
-        if self.host_files_ready {
-            let originals = refreshed_ethers.as_deref().unwrap_or(&self.inline_hosts);
-            let base_count = originals.len();
-            let file_count = report.hosts.len() - base_count;
-            for (host, original) in report.hosts[file_count..].iter_mut().zip(originals) {
-                host.address = original.address;
-            }
-            // Inline rules survive both data reloads. A successful ethers
-            // reload replaces its own entries; hosts-file rules always reset.
-            let keep_count = if refreshed_ethers.is_some() {
-                self.main_host_count
-            } else {
-                old_base_count
-            };
-            let old_policies = self.hosts.split_off(self.hosts.len() - keep_count);
-            self.hosts = report.hosts.iter().map(host_policy).collect();
-            let first_kept = self.hosts.len() - keep_count;
-            for (policy, old) in self.hosts[first_kept..].iter_mut().zip(old_policies) {
-                policy.declined_at = old.declined_at;
-            }
-            self.config.hosts = report.hosts;
-            if let Some(hosts) = refreshed_ethers {
-                self.inline_hosts = hosts;
-            }
-        }
-        errors.extend(report.errors);
+        self.ethers.clear_inferred_addresses();
+        self.hosts = self
+            .ethers
+            .hosts()
+            .iter()
+            .zip(self.ethers.previous_indices())
+            .map(|(host, previous)| {
+                let mut policy = host_policy(host);
+                policy.declined_at = previous.and_then(|index| self.hosts[index].declined_at);
+                policy
+            })
+            .collect();
+        self.config.hosts = self.ethers.hosts().to_vec();
         errors
     }
 
@@ -1114,6 +1095,180 @@ fn event_mac(packet: super::packet::Packet<'_>, client_id: Option<&[u8]>) -> Vec
 #[cfg(test)]
 mod startup_tests {
     use super::*;
+
+    #[test]
+    fn ethers_merges_after_host_files_at_startup_and_reload() {
+        let folder = std::env::var_os("DNSMASQ_REVIEW_EVIDENCE")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(std::env::temp_dir)
+            .join(format!("hostfile-ethers-unit-{}", std::process::id()));
+        std::fs::create_dir_all(&folder).unwrap();
+        let bank = folder.join("dhcp-hosts");
+        let ethers = folder.join("ethers");
+        std::fs::write(&bank, b"02:00:00:00:00:01,192.0.2.10,fixed,1200s\n").unwrap();
+        std::fs::write(&ethers, b"02:00:00:00:00:02 192.0.2.10\n").unwrap();
+        let config = DhcpConfig {
+            no_ping: true,
+            lease_read_only: true,
+            read_ethers: true,
+            host_files: vec![bank.as_os_str().as_encoded_bytes().to_vec()],
+            ..DhcpConfig::default()
+        };
+        let mut provider = LocalProvider::new(config, Vec::new(), 0, || false).unwrap();
+        for _ in 0..2 {
+            assert!(provider.reread_host_files_at(&ethers).is_empty());
+            assert_eq!(provider.config.hosts.len(), 1);
+            let host = &provider.config.hosts[0];
+            assert_eq!(host.hostname.as_deref(), Some(b"fixed".as_slice()));
+            assert_eq!(host.lease_time, Some(1200));
+            assert_eq!(host.hardware[0].address, [2, 0, 0, 0, 0, 2]);
+        }
+        std::fs::remove_dir_all(folder).unwrap();
+    }
+
+    #[test]
+    fn host_file_replacement_preserves_only_surviving_ethers_and_main_declines() {
+        let folder = std::env::var_os("DNSMASQ_REVIEW_EVIDENCE")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(std::env::temp_dir)
+            .join(format!(
+                "hostfile-ethers-retention-unit-{}",
+                std::process::id()
+            ));
+        std::fs::create_dir_all(&folder).unwrap();
+        let bank = folder.join("dhcp-hosts");
+        let ethers = folder.join("ethers");
+        std::fs::write(&bank, b"02:00:00:00:00:01,192.0.2.10,file,1200s\n").unwrap();
+        std::fs::write(
+            &ethers,
+            b"02:00:00:00:00:02 192.0.2.10\n02:00:00:00:00:03 192.0.2.11\n",
+        )
+        .unwrap();
+        let mut config = DhcpConfig {
+            no_ping: true,
+            lease_read_only: true,
+            read_ethers: true,
+            host_files: vec![bank.as_os_str().as_encoded_bytes().to_vec()],
+            ..DhcpConfig::default()
+        };
+        config
+            .apply(
+                &crate::config::lex_line(b"dhcp-host=02:00:00:00:00:04,192.0.2.20,main")
+                    .unwrap()
+                    .unwrap(),
+            )
+            .unwrap();
+        let mut provider = LocalProvider::new(config, Vec::new(), 0, || false).unwrap();
+        provider.hosts[0].declined_at = Some(50);
+        assert!(provider.reread_host_files_at(&ethers).is_empty());
+        assert_eq!(
+            provider
+                .hosts
+                .iter()
+                .map(|host| host.address.unwrap().octets()[3])
+                .collect::<Vec<_>>(),
+            [11, 10, 20]
+        );
+        provider.hosts[0].declined_at = Some(60);
+        provider.hosts[1].declined_at = Some(70);
+
+        std::fs::remove_file(&ethers).unwrap();
+        std::fs::write(&bank, b"02:00:00:00:00:05,192.0.2.12,replacement\n").unwrap();
+        assert_eq!(provider.reread_host_files_at(&ethers).len(), 1);
+        assert_eq!(
+            provider
+                .hosts
+                .iter()
+                .map(|host| host.address.unwrap().octets()[3])
+                .collect::<Vec<_>>(),
+            [12, 11, 20]
+        );
+        assert_eq!(
+            provider
+                .hosts
+                .iter()
+                .map(|host| host.declined_at)
+                .collect::<Vec<_>>(),
+            [None, Some(60), Some(50)]
+        );
+
+        std::fs::write(&ethers, b"").unwrap();
+        assert!(provider.reread_host_files_at(&ethers).is_empty());
+        assert_eq!(
+            provider
+                .hosts
+                .iter()
+                .map(|host| host.address.unwrap().octets()[3])
+                .collect::<Vec<_>>(),
+            [12, 20]
+        );
+        assert_eq!(
+            provider
+                .hosts
+                .iter()
+                .map(|host| host.declined_at)
+                .collect::<Vec<_>>(),
+            [None, Some(50)]
+        );
+        std::fs::remove_dir_all(folder).unwrap();
+    }
+
+    #[test]
+    fn ethers_matches_inferred_addresses_before_rebuilding_them() {
+        let folder = std::env::var_os("DNSMASQ_REVIEW_EVIDENCE")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(std::env::temp_dir)
+            .join(format!(
+                "hostfile-ethers-inferred-unit-{}",
+                std::process::id()
+            ));
+        std::fs::create_dir_all(&folder).unwrap();
+        let bank = folder.join("dhcp-hosts");
+        let ethers = folder.join("ethers");
+        std::fs::write(&bank, b"").unwrap();
+        std::fs::write(&ethers, b"").unwrap();
+        let mut config = DhcpConfig {
+            no_ping: true,
+            lease_read_only: true,
+            read_ethers: true,
+            host_files: vec![bank.as_os_str().as_encoded_bytes().to_vec()],
+            ..DhcpConfig::default()
+        };
+        config
+            .apply(
+                &crate::config::lex_line(b"dhcp-host=02:00:00:00:00:01,derived")
+                    .unwrap()
+                    .unwrap(),
+            )
+            .unwrap();
+        let mut provider = LocalProvider::new(config, Vec::new(), 53, || false).unwrap();
+        provider.set_config_host_lookup(|_| Ok(Some(Ipv4Addr::new(192, 0, 2, 10))));
+        assert!(provider.reread_host_files_at(&ethers).is_empty());
+        assert!(provider.update_configured_addresses().is_none());
+
+        std::fs::write(&bank, b"02:00:00:00:00:03,192.0.2.10,file\n").unwrap();
+        std::fs::write(&ethers, b"02:00:00:00:00:02 192.0.2.10\n").unwrap();
+        let errors = provider.reread_host_files_at(&ethers);
+        assert_eq!(errors.len(), 1);
+        assert_eq!(errors[0].path, bank);
+        assert_eq!(provider.config.hosts.len(), 1);
+        assert_eq!(
+            provider.config.hosts[0].hostname.as_deref(),
+            Some(b"derived".as_slice())
+        );
+        assert_eq!(
+            provider.config.hosts[0].hardware[0].address,
+            [2, 0, 0, 0, 0, 2]
+        );
+        assert_eq!(provider.config.hosts[0].address, None);
+        provider.set_config_host_lookup(|_| Ok(Some(Ipv4Addr::new(192, 0, 2, 11))));
+        assert!(provider.update_configured_addresses().is_none());
+        assert_eq!(
+            provider.config.hosts[0].address,
+            Some(Ipv4Addr::new(192, 0, 2, 11))
+        );
+        std::fs::remove_dir_all(folder).unwrap();
+    }
 
     #[test]
     fn ethers_reload_replaces_created_rules_and_preserves_inline_decline() {
