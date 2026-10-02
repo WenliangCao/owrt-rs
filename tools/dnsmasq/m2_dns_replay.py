@@ -41,6 +41,7 @@ def main():
     cases = {'baseline': baseline}
     changed = copy.deepcopy(rust_trace)
     changed['rows'][0]['responses'][0] = '00'
+    changed['rows'][0]['semantic'][0]['records'][0]['data'] = 'mutated-rdata'
     cases['changed_reply'] = compare(c_trace, changed)
     if len(cases['changed_reply']['differences']) != 1:
         raise SystemExit('changed reply was not detected')
