@@ -101,7 +101,7 @@ def profile_failure(product):
 
 def profile_strict_order(product):
     """All primary/secondary failure transitions with strict-order fixed."""
-    product.servers[0].configure('silent')
+    product.servers[0].configure('refused')
     product.servers[1].configure('answer', generation=1)
     rows = [product.ask('strict-timeout-failover', 'strict-timeout.m2.test', expected_upstream=2)]
     product.servers[0].configure('answer', generation=2)
