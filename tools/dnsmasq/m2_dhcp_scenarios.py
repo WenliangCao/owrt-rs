@@ -282,8 +282,10 @@ def run(args):
             with (root / relative).open('a') as stream:
                 stream.write('\n' + profile[key])
     leasefile = root / 'tmp/dhcp.leases'
-    leasefile.write_text('')
-    os.chown(leasefile, 453, 453)
+    # Let the daemon create its empty lease database, as on first boot. A file
+    # pre-owned by UID 453 in sticky /tmp triggers Linux protected_regular when
+    # C opens it with O_CREAT before dropping root.
+    leasefile.unlink(missing_ok=True)
     result = {'implementation': args.implementation, 'profile': args.profile, 'plan_sha256': digest(args.plan),
               'config_sha256': digest(config), 'events': [], 'errors': [], 'processes': [], 'stops': []}
     tool_names = ['m2_dhcp_scenarios.py', 'm2_dhcp_suite.py', 'm2_rootfs.py', 'actual_config_network.py',
