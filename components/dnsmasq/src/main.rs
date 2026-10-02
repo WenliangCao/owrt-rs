@@ -911,7 +911,7 @@ impl SinglePoll {
         let incoming = match udp.receive(&mut query) {
             Ok(Some(incoming)) if incoming.len <= self.packet_limit => incoming,
             Ok(_) => {
-                self.poll_udp_completions(index);
+                self.poll_udp_completions();
                 return;
             }
             Err(error)
@@ -922,7 +922,7 @@ impl SinglePoll {
                         | io::ErrorKind::Interrupted
                 ) =>
             {
-                self.poll_udp_completions(index);
+                self.poll_udp_completions();
                 return;
             }
             Err(_) => return,
@@ -940,7 +940,7 @@ impl SinglePoll {
         );
         drop(interfaces);
         if !admitted {
-            self.poll_udp_completions(index);
+            self.poll_udp_completions();
             return;
         }
         let mut event = match self.parent_events.lock() {
@@ -1063,8 +1063,7 @@ impl SinglePoll {
         }
     }
 
-    fn poll_udp_completions(&mut self, index: usize) {
-        let token = self.listeners[index].token;
+    fn poll_udp_completions(&mut self) {
         let mut event = match self.parent_events.lock() {
             Ok(event) => event,
             Err(_) => return,
@@ -1094,9 +1093,6 @@ impl SinglePoll {
             let Some(response_token) = response.listener else {
                 continue;
             };
-            if response_token != token {
-                continue;
-            }
             if let Some(target) = self
                 .listeners
                 .iter()
