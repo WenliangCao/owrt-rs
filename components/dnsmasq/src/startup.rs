@@ -284,7 +284,6 @@ mod linux {
                 version: 0x20080522,
                 pid: 0,
             };
-            let mut data = [CapData::default(); 2];
             if config.debug || !self.root {
                 return Ok(());
             }
@@ -295,7 +294,7 @@ mod linux {
                 }
             }
             if let Some(uid) = self.uid.filter(|uid| *uid != 0) {
-                data = [CapData::default(); 2];
+                let mut data = [CapData::default(); 2];
                 data[0].effective = keep | (1 << 7);
                 data[0].permitted = data[0].effective;
                 // SAFETY: Linux capability v3 has two entries. Keep only network + temporary SETUID.
