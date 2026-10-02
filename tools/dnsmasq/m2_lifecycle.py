@@ -82,6 +82,10 @@ class Scenario:
                               ('etc/hosts', '127.0.0.1 localhost\n192.0.2.51 lifecycle.lan\n'),
                               ('etc/ethers', ''), ('etc/dnsmasq.conf', '')]:
             (self.root / path).write_text(content)
+        if args.jail_procfs:
+            init = self.root / 'etc/init.d/dnsmasq'
+            init.write_text(init.read_text().replace('procd_add_jail dnsmasq ubus log',
+                                                       'procd_add_jail dnsmasq ubus log procfs'))
         # rc.common's dnsmasq_stop always restores the resolver symlink, even
         # when noresolv is enabled. The deployed image normally receives this
         # directory from netifd; the isolated fixture must provide it too.
@@ -96,6 +100,7 @@ class Scenario:
             'expectation_authority': 'same fixed scenario on image C',
             'dnsmasq_sha256': sha256(self.root / 'usr/sbin/dnsmasq'),
             'init_sha256': sha256(self.root / 'etc/init.d/dnsmasq'),
+            'jail_procfs_fixture': args.jail_procfs,
         }, indent=2) + '\n')
 
     def run(self, *args, check=True):
@@ -245,6 +250,8 @@ def main():
     parser.add_argument('--implementation', choices=['c', 'rust'], required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--skip-odhcpd', action='store_true')
+    parser.add_argument('--jail-procfs', action='store_true',
+                        help='fixture-only: mount proc in ujail, as on a booted router')
     args = parser.parse_args()
     scenario = Scenario(args)
     try:
