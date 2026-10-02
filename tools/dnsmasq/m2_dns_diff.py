@@ -82,7 +82,7 @@ def profile_tcp(product):
 
 def profile_failure(product):
     rows = []
-    product.servers[0].configure('silent')
+    product.servers[0].configure('refused')
     product.servers[1].configure('answer', generation=2)
     rows.append(product.ask('primary-timeout-no-reply', 'failover.m2.test', expect_reply=False, expected_upstream=1))
     product.servers[0].configure('answer', generation=3)
@@ -118,9 +118,9 @@ def profile_all_servers(product):
     product.servers[0].configure('answer', generation=1)
     product.servers[1].configure('answer', generation=2)
     rows = [product.ask('all-servers-first', 'all-first.m2.test', expected_upstream=1)]
-    product.servers[0].configure('silent')
+    product.servers[0].configure('refused')
     product.servers[1].configure('answer', generation=3)
-    rows.append(product.ask('all-servers-primary-silent', 'all-silent.m2.test', expected_upstream=2))
+    rows.append(product.ask('all-servers-primary-refused', 'all-refused.m2.test', expected_upstream=2))
     product.servers[0].configure('answer', generation=4)
     product.servers[1].configure('silent')
     rows.append(product.ask('all-servers-secondary-silent', 'all-secondary.m2.test', expected_upstream=1))
