@@ -334,6 +334,8 @@ def run_side(args: argparse.Namespace) -> int:
             except Exception as error:
                 failures.append({"event": "dora", "client": client, "error": repr(error)})
         (out / "leases-after-dora").write_bytes(product.leasefile.read_bytes())
+        expiry_client = max(1, args.clients - 2)
+        expiry_address = product.dhcp_addresses.get(expiry_client)
         with samples_path.open("w", newline="") as samples:
             total_ticks = max(1, math.ceil(args.duration_seconds / args.sample_seconds))
             tick = 0
@@ -365,14 +367,14 @@ def run_side(args: argparse.Namespace) -> int:
                         accounting["dns_tcp"] += 1
                     elif kind == 4 and product.dhcp_addresses:
                         client = 1 + (tick % args.clients)
-                        if client == args.clients:
+                        if client == expiry_client:
                             tick += 1
                             continue
                         product.dhcp_exchange(3, client, product.dhcp_addresses.get(client), rebind=False)
                         accounting["renew"] += 1
                     elif kind == 5 and product.dhcp_addresses:
                         client = 1 + (tick % args.clients)
-                        if client == args.clients:
+                        if client == expiry_client:
                             tick += 1
                             continue
                         product.dhcp_exchange(3, client, product.dhcp_addresses.get(client), rebind=True)
@@ -395,7 +397,7 @@ def run_side(args: argparse.Namespace) -> int:
                         product.restart_daemon()
                         accounting["restart"] += 1
                     if tick >= 70 and accounting["expiry"] == 0:
-                        if not any(len(row) > 2 and row[2] == '127.0.0.35'
+                        if expiry_address and not any(len(row) > 2 and row[2] == expiry_address
                                    for row in read_lease_rows(product.leasefile)):
                             accounting["expiry"] = 1
                 except Exception as error:
