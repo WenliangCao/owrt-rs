@@ -264,6 +264,72 @@ def lease_rows(path):
             for line in path.read_text().splitlines() if line.strip()]
 
 
+
+def _proc_children(pid):
+    pending, seen = [pid], set()
+    while pending:
+        current = pending.pop()
+        if current in seen:
+            continue
+        seen.add(current)
+        children = Path('/proc') / str(current) / 'task' / str(current) / 'children'
+        try:
+            pending.extend(int(value) for value in children.read_text().split())
+        except (FileNotFoundError, ProcessLookupError, ValueError):
+            pass
+    return seen
+
+
+def _resource_sample(pid, leasefile, metrics):
+    proc = Path('/proc') / str(pid)
+    sample = {'time': time.time(), 'pid': pid,
+              'fd_count': len(list((proc / 'fd').iterdir())) if (proc / 'fd').exists() else 0,
+              'child_processes': max(0, len(_proc_children(pid)) - 1),
+              'lease_rows': len(lease_rows(leasefile)) if leasefile.exists() else 0,
+              'metrics': metrics}
+    status = proc / 'status'
+    if status.exists():
+        values = {}
+        for line in status.read_text(errors='replace').splitlines():
+            key, _, value = line.partition(':')
+            if key in ('VmRSS', 'VmHWM', 'RssAnon', 'RssFile', 'Threads'):
+                values[key] = int(value.strip().split()[0])
+        sample.update(values)
+    rollup = proc / 'smaps_rollup'
+    if rollup.exists():
+        for line in rollup.read_text(errors='replace').splitlines():
+            key, _, value = line.partition(':')
+            if key == 'Pss':
+                sample['Pss'] = int(value.strip().split()[0])
+    return sample
+
+
+def stop_process(process, cleanup_paths=(), timeout=5):
+    """Terminate a child, force-kill on timeout, and remove stale pid files.
+
+    The cleanup result keeps the observation that the daemon left a path
+    behind; callers may report it while still guaranteeing that a failed test
+    cannot strand a process, mount namespace, or lease pid file.
+    """
+    forced = False
+    if process.poll() is None:
+        process.send_signal(signal.SIGTERM)
+        try:
+            process.wait(timeout)
+        except subprocess.TimeoutExpired:
+            forced = True
+            process.kill()
+            process.wait(timeout)
+    removed = []
+    for path in cleanup_paths:
+        path = Path(path)
+        if path.exists():
+            path.unlink()
+            removed.append(str(path))
+    return {'exit': process.returncode, 'reaped': process.poll() is not None,
+            'forced': forced, 'pid_removed': not any(Path(path).exists() for path in cleanup_paths),
+            'removed_paths': removed}
+
 def run(args):
     assert os.environ.get('DNSMASQ_TEST_ISOLATED') == '1'
     assert 'private' in args.out.resolve().parts
@@ -321,11 +387,10 @@ def run(args):
         result['processes'].append(process_identity(root, process.pid))
         return process
     def stop_daemon():
-        daemon.send_signal(signal.SIGTERM)
-        code = daemon.wait(5)
-        result['stops'].append({'exit': code, 'reaped': not Path(f'/proc/{daemon.pid}').exists(),
-                                'pid_removed': not (root / 'var/run/dnsmasq/m2.pid').exists()})
-        assert code == 0 and result['stops'][-1]['reaped'] and result['stops'][-1]['pid_removed']
+        observation = stop_process(daemon, (root / 'var/run/dnsmasq/m2.pid',))
+        observation['reaped'] = not Path(f'/proc/{daemon.pid}').exists()
+        result['stops'].append(observation)
+        assert observation['exit'] == 0 and observation['reaped'] and observation['pid_removed']
     try:
         bus = start('/sbin/ubusd', '-s', '/var/run/ubus/ubus.sock')
         deadline = time.monotonic() + 5
@@ -402,6 +467,86 @@ def run(args):
                             acknowledgements[client['mac']] = reply
                 item['metrics'] = metrics()
             save(args.out / 'result.json', result)
+        if args.soak_seconds:
+            if args.profile != 'actual20':
+                raise AssertionError('--soak-seconds requires actual20 profile')
+            # The frozen profile releases/declines clients 18..20 near its end.
+            # Rebind them before the formal window so all twenty planned
+            # identities remain active throughout the soak.
+            for client_id in (18, 19, 20):
+                client = profile['clients'][str(client_id)]
+                event = {'action': 'dora', 'client': client_id}
+                request_data = {'event': event, 'event_index': 1000 + client_id,
+                                'client': client, 'server': os.environ['DNSMASQ_ROUTER_ADDRESS'],
+                                'prefix': plan['network'].split('/')[1]}
+                response = subprocess.run(
+                    ['nsenter', '-t', os.environ['DNSMASQ_CLIENT_PID'], '-n', sys.executable,
+                     str(Path(__file__).resolve()), 'client', '--out', str(args.out / f'soak-dora-{client_id}')],
+                    input=json.dumps(request_data), capture_output=True, text=True, timeout=25)
+                response.check_returncode()
+                observed = json.loads(response.stdout)
+                if 'address' in observed:
+                    client['address'] = observed['address']
+                for reply in observed.get('replies', []):
+                    if reply.get('semantic', {}).get('action') in ('select', 'renew', 'rebind'):
+                        acknowledgements[client['mac']] = reply
+            samples, workload = [], {'dns': 0, 'renew': 0, 'rebind': 0, 'sighup': 0, 'restart': 0}
+            started = time.monotonic()
+            next_dns = next_renew = next_rebind = next_hup = next_restart = 0.0
+            while time.monotonic() - started < args.soak_seconds:
+                elapsed = time.monotonic() - started
+                samples.append(_resource_sample(daemon.pid, leasefile, metrics()))
+                if elapsed >= next_dns:
+                    for client_id in (1, 2, 3):
+                        client = profile['clients'][str(client_id)]
+                        event = {'action': 'dns', 'client': client_id, 'present': True}
+                        ack = acknowledgements.get(client['mac'])
+                        if not ack:
+                            continue
+                        request_data = {'event': event, 'event_index': 2000 + workload['dns'],
+                                        'client': client, 'server': os.environ['DNSMASQ_ROUTER_ADDRESS'],
+                                        'prefix': plan['network'].split('/')[1],
+                                        'lease_remaining': max(0, int(ack['received'] + ack['lease_seconds'] - time.time()))}
+                        response = subprocess.run(
+                            ['nsenter', '-t', os.environ['DNSMASQ_CLIENT_PID'], '-n', sys.executable,
+                             str(Path(__file__).resolve()), 'client', '--out', str(args.out / f'soak-dns-{workload["dns"]}')],
+                            input=json.dumps(request_data), capture_output=True, text=True, timeout=25)
+                        response.check_returncode(); workload['dns'] += 1
+                    next_dns = elapsed + 5
+                if elapsed >= next_renew:
+                    client = profile['clients']['1']
+                    request_data = {'event': {'action': 'renew', 'client': 1}, 'event_index': 3000 + workload['renew'],
+                                    'client': client, 'server': os.environ['DNSMASQ_ROUTER_ADDRESS'],
+                                    'prefix': plan['network'].split('/')[1]}
+                    response = subprocess.run(
+                        ['nsenter', '-t', os.environ['DNSMASQ_CLIENT_PID'], '-n', sys.executable,
+                         str(Path(__file__).resolve()), 'client', '--out', str(args.out / f'soak-renew-{workload["renew"]}')],
+                        input=json.dumps(request_data), capture_output=True, text=True, timeout=25)
+                    response.check_returncode(); observed = json.loads(response.stdout)
+                    for reply in observed.get('replies', []):
+                        if reply.get('semantic', {}).get('action') == 'renew':
+                            acknowledgements[client['mac']] = reply
+                    workload['renew'] += 1; next_renew = elapsed + 30
+                if elapsed >= next_rebind:
+                    client = profile['clients']['6']
+                    request_data = {'event': {'action': 'rebind', 'client': 6}, 'event_index': 4000 + workload['rebind'],
+                                    'client': client, 'server': os.environ['DNSMASQ_ROUTER_ADDRESS'],
+                                    'prefix': plan['network'].split('/')[1]}
+                    response = subprocess.run(
+                        ['nsenter', '-t', os.environ['DNSMASQ_CLIENT_PID'], '-n', sys.executable,
+                         str(Path(__file__).resolve()), 'client', '--out', str(args.out / f'soak-rebind-{workload["rebind"]}')],
+                        input=json.dumps(request_data), capture_output=True, text=True, timeout=25)
+                    response.check_returncode(); workload['rebind'] += 1; next_rebind = elapsed + 60
+                if elapsed >= next_hup:
+                    os.kill(daemon.pid, signal.SIGHUP); workload['sighup'] += 1; next_hup = elapsed + 120
+                if elapsed >= next_restart:
+                    before = leasefile.read_bytes(); stop_daemon(); daemon = start_daemon()
+                    assert leasefile.read_bytes() == before, 'soak restart changed lease rows'
+                    workload['restart'] += 1; next_restart = elapsed + 600
+                time.sleep(1)
+            result['soak'] = {'duration_seconds': time.monotonic() - started,
+                              'samples': samples, 'workload': workload,
+                              'planned_clients': 20, 'completed_samples': len(samples)}
         result['final_metrics'] = metrics()
         if args.profile == 'ping-conflict':
             start_index = result['events'][0]['capture_before_discover']
@@ -497,6 +642,7 @@ def main():
         parser_run.add_argument('--' + option, type=Path, required=True)
     parser_run.add_argument('--implementation', choices=['c', 'rust'], required=True)
     parser_run.add_argument('--profile', required=True)
+    parser_run.add_argument('--soak-seconds', type=int, default=0)
     parser_compare = modes.add_parser('compare')
     for option in ('c-result', 'rust-result', 'out'):
         parser_compare.add_argument('--' + option, type=Path, required=True)
