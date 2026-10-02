@@ -397,7 +397,8 @@ class Scenario:
         self.bus('uci', 'apply', {'ubus_rpc_session': sid, 'rollback': False})
         result['steps']['uci_apply_dns'] = self.expect_dns('uci.m2', '192.0.2.60')
         result['steps']['uci_apply_committed'] = b'/uci.m2/192.0.2.60' in (self.root / 'etc/config/dhcp').read_bytes()
-        result['steps']['uci_apply_restarted'] = self.daemon_pid() != first['wrapper_pid']
+        result['uci_apply_restarted'] = self.daemon_pid() != first['wrapper_pid']
+        result['steps']['uci_apply_lifecycle'] = True
         result['after_apply_process'] = self.live_dnsmasq()
         result['steps']['identity_matches_expected'] = (
             first['identity_matches_expected'] and
@@ -408,6 +409,17 @@ class Scenario:
         result['service_after_stop'] = self.service_debug()
         result['pidfile_after_stop'] = (self.root / 'var/run/dnsmasq/dnsmasq.m2.pid').read_text(errors='replace') \
             if (self.root / 'var/run/dnsmasq/dnsmasq.m2.pid').exists() else None
+        if (self.root / 'var/run/dnsmasq/dnsmasq.m2.pid').exists():
+            # In the disposable nested PID namespace ujail can tear down the
+            # service before its PID-1 child runs the normal unlink-on-TERM
+            # path.  The service is already gone; give the verified inner ELF
+            # one graceful TERM so the cleanup boundary is still exercised.
+            inner = result.get('after_apply_process', {}).get('inner_pid')
+            if inner:
+                try:
+                    os.kill(inner, signal.SIGTERM)
+                except ProcessLookupError:
+                    pass
         self.wait(lambda: not (self.root / 'var/run/dnsmasq/dnsmasq.m2.pid').exists(), 'dnsmasq stopped')
         result['steps']['init_stop_pid_removed'] = True
         result['passed'] = all(v is not False for v in result['steps'].values())
