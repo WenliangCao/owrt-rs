@@ -1352,6 +1352,24 @@ impl SinglePoll {
         if let Some(report) = provider.take_maintenance_report() {
             report_dhcp_maintenance(&report);
         }
+        // A DHCP packet can complete between the pre-dispatch metrics
+        // snapshot and the UBus request. Publish a second snapshot after the
+        // state transition so callers observe the same cumulative counters as
+        // the C event loop.
+        let mut metrics = Metrics::default();
+        event.write_metrics(&mut metrics);
+        write_dhcp_metrics(&mut metrics, &provider);
+        if let Ok(parent) = self.service.lock() {
+            if let Some(daemon) = &parent.daemon {
+                write_dns_metrics(
+                    &mut metrics,
+                    daemon.cache_counters(),
+                    daemon.forward_counters(),
+                    event.local_answered,
+                );
+            }
+        }
+        event.process_ubus(&metrics);
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
