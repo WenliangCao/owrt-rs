@@ -34,7 +34,6 @@ define Package/dnsmasq
   URL:=https://github.com/openwrt/openwrt
   DEPENDS:=@(aarch64) +libubus20251202 +@BUSYBOX_CONFIG_PIDOF
   USERID:=dnsmasq=453:dnsmasq=453
-  PROVIDES:=dnsmasq-any
   REPLACES:=dnsmasq
 endef
 
