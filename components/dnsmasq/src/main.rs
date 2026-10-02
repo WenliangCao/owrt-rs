@@ -1108,6 +1108,9 @@ impl SinglePoll {
         let Ok(forward) = TcpDnsService::new(&self.config, &self.resolvers, self.edns_max) else {
             return;
         };
+        if let Ok(mut event) = self.parent_events.lock() {
+            event.tcp_active = event.tcp_active.saturating_add(1);
+        }
         let _ = self.clients.push(PollTcpClient {
             stream,
             service: snapshot,
@@ -1173,6 +1176,9 @@ impl SinglePoll {
                 }
             }
             if remove {
+                if let Ok(mut event) = self.parent_events.lock() {
+                    event.tcp_active = event.tcp_active.saturating_sub(1);
+                }
                 self.clients.swap_remove(index);
             } else {
                 index += 1;
