@@ -456,8 +456,9 @@ class Scenario:
         result['odhcpd_start'] = {'rc': started.returncode, 'stdout': started.stdout,
                                   'stderr': started.stderr}
         if started.returncode == 0:
-            self.wait(lambda: self.run('/bin/ubus', 'list', 'odhcpd', check=False).returncode == 0,
-                      'odhcpd ubus', seconds=5)
+            # The image daemon can serve DHCPv6 before its optional UBus
+            # object appears. Packet exchange is the readiness gate here.
+            time.sleep(.5)
             lease = self.dhcp6_exchange()
             result['odhcpd_dhcpv6'] = lease
             for name, packet in lease.get('packets', {}).items():
