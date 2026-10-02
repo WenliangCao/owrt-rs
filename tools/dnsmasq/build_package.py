@@ -26,6 +26,7 @@ TARGET = "aarch64-unknown-linux-musl"
 ARCH = "aarch64_cortex-a53"
 PACKAGE_VERSION = "2.93"
 PACKAGE_RELEASE = "2"
+PACKAGE_ID = f"{PACKAGE_VERSION}-r{PACKAGE_RELEASE}"
 REPLACEMENT_FILES = {
     "etc/config/dhcp",
     "etc/dnsmasq.conf",
@@ -149,7 +150,7 @@ def audit_metadata(metadata):
     """Check replacement identity without treating adbdump text as authority."""
     required = {
         "name": PACKAGE,
-        "version": f"{PACKAGE_VERSION}-{PACKAGE_RELEASE}",
+        "version": PACKAGE_ID,
         "arch": ARCH,
     }
     for field, expected in required.items():
@@ -165,7 +166,7 @@ def audit_metadata(metadata):
                           re.MULTILINE | re.DOTALL)
         require(block and all(re.search(rf"^    - {re.escape(value)}$", block.group(0), re.MULTILINE)
                               for value in values), f"APK metadata {field} misses required entries")
-    return {"name": PACKAGE, "version": f"{PACKAGE_VERSION}-{PACKAGE_RELEASE}",
+    return {"name": PACKAGE, "version": PACKAGE_ID,
             "arch": ARCH, "provides": ["dnsmasq-any"],
             "conflicts": ["dnsmasq-dhcpv6", "dnsmasq-full"],
             "replaces": ["dnsmasq"], "depends": ["libc", "libubus20251202"]}

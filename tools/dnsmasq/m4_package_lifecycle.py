@@ -29,6 +29,8 @@ CONTRACT_FILES = (
     "etc/uci-defaults/50-dnsmasq-migrate-ipset.sh",
     "etc/uci-defaults/50-dnsmasq-migrate-resolv-conf-auto.sh",
     "lib/apk/packages/dnsmasq.rusers",
+    "lib/apk/packages/dnsmasq.conffiles",
+    "lib/apk/packages/dnsmasq.conffiles_static",
     "lib/upgrade/keep.d/dnsmasq",
     "usr/lib/dnsmasq/dhcp-script.sh",
     "usr/sbin/dnsmasq",
