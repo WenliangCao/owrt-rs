@@ -125,8 +125,10 @@ def prepare(image_root, runtime_root, evidence_dir, rust_binary):
     image_path(root, 'tmp').chmod(0o1777)
     os.chown(image_path(root, 'tmp/run/dnsmasq'), 453, 453)
     run = image_path(root, 'run', follow_leaf=False)
-    if not run.exists() and not run.is_symlink():
-        run.symlink_to('tmp/run')
+    if run.is_symlink():
+        run.unlink()
+    run.mkdir(parents=True, exist_ok=True)
+    subprocess.run(['mount', '-t', 'tmpfs', '-o', 'mode=0755', 'm2-run', str(run)], check=True)
     # ubusd rejects ACLs that are not owned by root; the image was extracted by
     # an unprivileged user, so restore the original root ownership in this copy.
     acl = image_path(root, 'usr/share/acl.d')
