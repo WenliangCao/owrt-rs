@@ -158,7 +158,14 @@ class Scenario:
         return result.stdout + result.stderr
 
     def daemon_pid(self):
-        return int((self.root / 'var/run/dnsmasq/dnsmasq.m2.pid').read_text())
+        # ujail gives the child a private PID namespace, so its pidfile contains
+        # namespace PID 1. procd's service object carries the host-visible PID
+        # needed for signals and /proc identity checks.
+        info = self.bus('service', 'list', {'name': 'dnsmasq', 'verbose': True}, check=False)
+        try:
+            return int(info['dnsmasq']['instances']['m2']['pid'])
+        except (KeyError, TypeError, ValueError):
+            return int((self.root / 'var/run/dnsmasq/dnsmasq.m2.pid').read_text())
 
     def live_dnsmasq(self):
         pid = self.daemon_pid()
@@ -222,7 +229,7 @@ class Scenario:
         if not self.args.skip_odhcpd:
             self.odhcpd(result)
         self.run('/etc/init.d/dnsmasq', 'stop')
-        self.wait(lambda: not (self.root / 'var/run/dnsmasq/dnsmasq.m2.pid').exists(), 'dnsmasq stopped')
+        self.wait(lambda: not self.bus('service', 'list', {'name': 'dnsmasq'}, check=False).get('dnsmasq', {}).get('instances', {}).get('m2', {}).get('running', False), 'dnsmasq stopped')
         result['steps']['init_stop_pid_removed'] = True
         result['passed'] = all(v is not False for v in result['steps'].values())
         return result
