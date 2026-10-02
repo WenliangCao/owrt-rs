@@ -806,10 +806,8 @@ fn open_dns_listener(address: SocketAddr) -> io::Result<(Arc<DnsSocket>, TcpList
     Ok((udp, tcp))
 }
 
-/// The production event owner.  All daemon sockets are advanced from the
-/// caller's loop; no listener or TCP connection gets a worker thread.  The
-/// older `DnsWorkers` implementation below is retained temporarily as a
-/// reference while the single-owner path is brought through the M2 gates.
+/// The production event owner. All daemon sockets are advanced from the
+/// caller's loop; no listener or TCP connection gets a worker thread.
 struct SinglePoll {
     listeners: Vec<PollListener>,
     clients: Vec<PollTcpClient>,
