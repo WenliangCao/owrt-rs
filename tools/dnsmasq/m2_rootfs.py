@@ -128,7 +128,6 @@ def prepare(image_root, runtime_root, evidence_dir, rust_binary):
     if run.is_symlink():
         run.unlink()
     run.mkdir(parents=True, exist_ok=True)
-    subprocess.run(['mount', '-t', 'tmpfs', '-o', 'mode=0755', 'm2-run', str(run)], check=True)
     # ubusd rejects ACLs that are not owned by root; the image was extracted by
     # an unprivileged user, so restore the original root ownership in this copy.
     acl = image_path(root, 'usr/share/acl.d')
@@ -136,7 +135,13 @@ def prepare(image_root, runtime_root, evidence_dir, rust_binary):
         for path in [acl, *acl.rglob('*')]:
             os.chown(path, 0, 0, follow_symlinks=False)
     subprocess.run(['mount', '--make-rprivate', '/'], check=True)
+    # chroot alone leaves the child root as an ordinary directory. Bind it
+    # before adding nested mounts; binding afterward hides those mounts from
+    # the chroot and makes /dev/urandom and /proc disappear.
+    subprocess.run(['mount', '--bind', str(root), str(root)], check=True)
+    subprocess.run(['mount', '--make-rprivate', str(root)], check=True)
     subprocess.run(['mount', '-t', 'proc', 'proc', str(root / 'proc')], check=True)
+    subprocess.run(['mount', '-t', 'tmpfs', '-o', 'mode=0755', 'm2-run', str(run)], check=True)
     # OpenWrt mounts /tmp as tmpfs during boot. ujail's private bind setup
     # rejects an ordinary squashfs directory here (EINVAL), so reproduce that
     # mount boundary and restore captured files/empty directories into it.
@@ -161,11 +166,6 @@ def prepare(image_root, runtime_root, evidence_dir, rust_binary):
     (root / 'dev/shm').mkdir(exist_ok=True)
     (root / 'dev/ptmx').symlink_to('pts/ptmx')
     (root / 'dev/fd').symlink_to('/proc/self/fd')
-    # chroot alone leaves the child root as an ordinary directory. ujail's
-    # first operation is mount --make-rprivate /, which returns EINVAL unless
-    # that directory is itself a mount point (as it is after a real boot).
-    subprocess.run(['mount', '--bind', str(root), str(root)], check=True)
-    subprocess.run(['mount', '--make-rprivate', str(root)], check=True)
     identity = {
         'image_root': str(image_root), 'runtime_root': str(runtime_root) if runtime_root else None,
         'image_provenance_sha256': sha256(provenance_file) if provenance else None,
