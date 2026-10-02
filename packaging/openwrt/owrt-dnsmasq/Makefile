@@ -100,4 +100,7 @@ define Package/dnsmasq/install
 	$(INSTALL_DATA) ./files/dnsmasq.keep $(1)/lib/upgrade/keep.d/dnsmasq
 endef
 
+# BuildPackage evaluates Package/Default, which resets recipe globals. Set it
+# again immediately before emission so the APK control block retains it.
+CONFLICTS:=dnsmasq-dhcpv6 dnsmasq-full
 $(eval $(call BuildPackage,dnsmasq))
