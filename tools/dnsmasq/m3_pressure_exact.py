@@ -54,7 +54,7 @@ def run_side(args, impl, out):
     root = prepare(args.image_root, None, out / 'rootfs-stage', args.rust)
     (root / 'm3').mkdir(exist_ok=True)
     config = root / 'm3/config'
-    config.write_text('no-resolv\nno-hosts\nlisten-address=127.0.0.1\nport=15353\n'
+    config.write_text('no-resolv\nno-hosts\nlisten-address=127.0.0.1\ninterface=lo\nbind-interfaces\nport=15353\n'
                       'user=root\nno-ping\ndhcp-authoritative\n'
                       'dhcp-range=127.0.0.10,127.0.0.20,255.0.0.0,60s\n'
                       'dhcp-leasefile=/m3/leases\nserver=127.0.0.2#15354\n')
