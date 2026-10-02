@@ -419,7 +419,12 @@ class Scenario:
                 os.kill(inner, signal.SIGTERM)
             except ProcessLookupError:
                 pass
-        result['steps']['init_stop_service_gone'] = not self.service_debug().strip()
+        service_after_stop = result['service_after_stop']
+        try:
+            service_after_stop_obj = json.loads(service_after_stop)
+        except json.JSONDecodeError:
+            service_after_stop_obj = {'raw': service_after_stop}
+        result['steps']['init_stop_service_gone'] = not service_after_stop_obj
         result['steps']['init_stop_inner_gone'] = inner is None or not Path('/proc').joinpath(str(inner)).exists()
         # Keep the raw observation: an outer rootfs PID file can remain after
         # ujail unmounts its private bind. It is not used as a liveness claim.
