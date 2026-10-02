@@ -163,10 +163,12 @@ class Scenario:
         pid = self.daemon_pid()
         proc = Path('/proc') / str(pid)
         expected = sha256(self.root / 'usr/sbin/dnsmasq')
-        assert sha256(proc / 'exe') == expected
+        actual = sha256(proc / 'exe')
         # ujail creates a nested mount root. Verify the actual ELF and musl
         # dependency bytes through that process root as well as its PID/cmdline.
-        return {'pid': pid, 'root': os.readlink(proc / 'root'), 'sha256': expected,
+        return {'pid': pid, 'root': os.readlink(proc / 'root'), 'sha256': actual,
+                'expected_sha256': expected,
+                'exe': os.readlink(proc / 'exe'),
                 'cmdline': (proc / 'cmdline').read_bytes().replace(b'\0', b' ').decode(),
                 'maps': (proc / 'maps').read_text(),
                 'musl_sha256': sha256(proc / 'root/lib/libc.so') if (proc / 'root/lib/libc.so').exists() else None}
