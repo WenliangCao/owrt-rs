@@ -233,29 +233,29 @@ def client_worker(args):
 class Capture:
     def __init__(self, out):
         self.out, self.rows, self.stop = out, [], threading.Event()
-        self.socket = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(0x0800))
-        self.socket.bind(('br-lan', 0))
-        self.socket.settimeout(.1)
-        self.thread = threading.Thread(target=self.run, daemon=True)
-        self.thread.start()
-
+        self.sockets = []
+        for interface in ("br-lan", "lan-port"):
+            try:
+                endpoint = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(0x0800))
+                endpoint.bind((interface, 0)); endpoint.settimeout(.1)
+                self.sockets.append((interface, endpoint))
+            except OSError:
+                pass
+        if not self.sockets:
+            raise RuntimeError("cannot capture bridge or lan port")
+        self.thread = threading.Thread(target=self.run, daemon=True); self.thread.start()
     def run(self):
         while not self.stop.is_set():
-            try:
-                frame = self.socket.recv(65535)
-            except socket.timeout:
-                continue
-            if len(frame) >= 42 and frame[23] == 1:
-                index = len(self.rows)
-                (self.out / f'icmp-{index:04}.ethernet').write_bytes(frame)
-                offset = 14 + (frame[14] & 15) * 4
-                self.rows.append({'type': frame[offset], 'source': socket.inet_ntoa(frame[26:30]),
-                                  'destination': socket.inet_ntoa(frame[30:34]), 'time': time.time()})
-
+            for interface, endpoint in self.sockets:
+                try: frame = endpoint.recv(65535)
+                except socket.timeout: continue
+                if len(frame) >= 42 and frame[23] == 1:
+                    index = len(self.rows); (self.out / f"icmp-{index:04}.ethernet").write_bytes(frame)
+                    offset = 14 + (frame[14] & 15) * 4
+                    self.rows.append({'type': frame[offset], 'source': socket.inet_ntoa(frame[26:30]), 'destination': socket.inet_ntoa(frame[30:34]), 'interface': interface, 'time': time.time()})
     def close(self):
-        self.stop.set()
-        self.thread.join(1)
-        self.socket.close()
+        self.stop.set(); self.thread.join(1)
+        for _, endpoint in self.sockets: endpoint.close()
         save(self.out / 'icmp.json', self.rows)
 
 
