@@ -135,6 +135,20 @@ def prepare(image_root, runtime_root, evidence_dir, rust_binary):
             os.chown(path, 0, 0, follow_symlinks=False)
     subprocess.run(['mount', '--make-rprivate', '/'], check=True)
     subprocess.run(['mount', '-t', 'proc', 'proc', str(root / 'proc')], check=True)
+    # OpenWrt mounts /tmp as tmpfs during boot. ujail's private bind setup
+    # rejects an ordinary squashfs directory here (EINVAL), so reproduce that
+    # mount boundary and restore captured files/empty directories into it.
+    saved_tmp = root / '.m2-tmp-saved'
+    shutil.move(root / 'tmp', saved_tmp)
+    (root / 'tmp').mkdir()
+    subprocess.run(['mount', '-t', 'tmpfs', '-o', 'mode=1777', 'm2-tmp', str(root / 'tmp')], check=True)
+    for entry in saved_tmp.iterdir():
+        target = root / 'tmp' / entry.name
+        if entry.is_dir() and not entry.is_symlink():
+            shutil.copytree(entry, target, symlinks=True)
+        else:
+            shutil.copy2(entry, target, follow_symlinks=False)
+    shutil.rmtree(saved_tmp)
     subprocess.run(['mount', '-t', 'tmpfs', '-o', 'mode=0755', 'm2-dev', str(root / 'dev')], check=True)
     for name, minor in [('null', 3), ('zero', 5), ('full', 7), ('random', 8), ('urandom', 9), ('tty', 0)]:
         os.mknod(root / 'dev' / name, stat.S_IFCHR | 0o666, os.makedev(1, minor))
