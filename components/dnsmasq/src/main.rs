@@ -370,11 +370,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     match action {
         Action::Version => {
             println!("dnsmasq-rs 0.1.0");
-            // The OpenWrt init script uses this exact token to decide which
-            // generated DHCP directives belong in the runtime config. Keep
-            // the advertised set truthful: DHCPv4, DNS over IPv6, TFTP and
-            // UBus are available; DHCPv6 remains owned by odhcpd.
-            println!("Compile time options: IPv6 DHCP TFTP UBus");
+            println!("Compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile");
             println!("Mode: development DNS daemon");
             println!("Implemented: DNS UDP/TCP, cache subsets, DHCPv4 listener boundary and TFTP transfer listener");
             println!("Not implemented: full DNS cache/reload policy and DHCP relay/PXE/leasequery");
