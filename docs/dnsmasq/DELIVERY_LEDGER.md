@@ -18,7 +18,7 @@
 
 本轮最多四个子代理，M1按进程权限、DNS/监听并发、DHCP/ethers/netlink、整合回归分工；审查人与前一轮实现者分离。确认问题后按文件归属修复，主代理整合。一次红色结果先原样复跑确认，失败证据保留。普通修复单元+一次受影响C差分；解析器、租约状态机、缓存一致性、权限与资源边界保留独立复核、负向对照和回归集。M1 已完成，报告为 [M1_REVIEW_REPORT.md](M1_REVIEW_REPORT.md)，当前进入 M2。
 
-M2 当前进度：DHCP 四组镜像 C/Rust 对照已完成且零差异（actual20、static-ethers、expiry120、ping-conflict），解析器有界差分已完成；DNS exact-image C/Rust 的 UDP cache 11/11、expiry 6/6、TCP/cache 10/10、failure/failover 4/4、代表性混合流 1000/1000 均零差异，旧产品红和 fixture 红保留。精确镜像 init/procd/ujail 生命周期的 c-lifecycle-16 已完成启动、SIGHUP、init reload、rpcd UCI apply 和 stop，且 runner 不使用 `--jail-procfs`；早期 jail/procfs 红仍保留。odhcpd live hosts publication 仍未执行，故 M2 未关闭。
+M2 当前进度：DHCP 四组镜像 C/Rust 对照已完成且零差异（actual20、static-ethers、expiry120、ping-conflict），解析器有界差分已完成；DNS exact-image C/Rust 的 UDP cache 11/11、expiry 6/6、TCP/cache 10/10、failure/failover 4/4、代表性混合流 1000/1000 均零差异，旧产品红和 fixture 红保留。精确镜像 init/procd/ujail 生命周期的 c-lifecycle-16 已完成启动、SIGHUP、init reload、rpcd UCI apply 和 stop，且 runner 不使用 `--jail-procfs`；早期 jail/procfs 红仍保留。原捕获的 odhcpd 配置没有落入可执行的 DHCPv6 主服务配置（`maindhcp=0`/缺少可用 odhcpd UCI 段），真实 odhcpd hosts publication 仍未执行，故 M2 未关闭；临时跳过或手造 hosts 文件不计通过。
 
 DHCP M2 原始输出在 `private/dnsmasq-rewrite/evidence/M2/dhcp`：四组共 80/11/6/4 事件（含 20 客户端、续租/重绑定/释放/DECLINE、ethers/static/restart、120 秒到期、ICMP 冲突）C/Rust 零差异；镜像 C `097a9e…cab87`，Rust release `72f70a…c09a7`。DNS/DHCP 解析器有界语料已分别完成 659 和 9,797 个 exact-source cases，零差异；它们是 parser primitive 证据，不替代 daemon service。
 
