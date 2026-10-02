@@ -210,6 +210,8 @@ def client_worker(args):
             (out / f'dns-{kind}.reply').write_bytes(answer)
             decoded = semantics(answer)
             records = [row for row in decoded['records'] if row['section'] == 'answer']
+            for record in decoded['records']:
+                assert 0 <= record['ttl'] <= data['lease_remaining'] + 2, record
             expected = client['address'] if kind == 1 else client['hostname'] + '.lan'
             assert any(row['type'] == kind and row['data'] == expected for row in records) == event['present'], decoded
             result.append(decoded)
@@ -284,6 +286,14 @@ def run(args):
     os.chown(leasefile, 453, 453)
     result = {'implementation': args.implementation, 'profile': args.profile, 'plan_sha256': digest(args.plan),
               'config_sha256': digest(config), 'events': [], 'errors': [], 'processes': [], 'stops': []}
+    tool_names = ['m2_dhcp_scenarios.py', 'm2_dhcp_suite.py', 'm2_rootfs.py', 'actual_config_network.py',
+                  'dhcp_boot_service_diff.py', 'dns_service_probe.py']
+    tool_root = Path(__file__).resolve().parent
+    result['tool_sha256'] = {name: digest(tool_root / name) for name in tool_names}
+    archive = args.out / 'tools'
+    archive.mkdir()
+    for name in tool_names:
+        (archive / name).write_bytes((tool_root / name).read_bytes())
     save(args.out / 'profile.json', profile)
     daemon = bus = capture = None
     logs = []
@@ -370,6 +380,9 @@ def run(args):
                 client = profile['clients'][str(event['client'])]
                 request_data = {'event': event, 'event_index': index, 'client': client,
                                 'server': os.environ['DNSMASQ_ROUTER_ADDRESS'], 'prefix': plan['network'].split('/')[1]}
+                if action == 'dns':
+                    ack = acknowledgements[client['mac']]
+                    request_data['lease_remaining'] = max(0, int(ack['received'] + ack['lease_seconds'] - time.time()))
                 response = subprocess.run(['nsenter', '-t', os.environ['DNSMASQ_CLIENT_PID'], '-n', sys.executable,
                                            str(Path(__file__).resolve()), 'client', '--out', str(args.out / f'event-{index:03}')],
                                           input=json.dumps(request_data), capture_output=True, text=True, timeout=25)
@@ -422,7 +435,8 @@ def comparable(result):
         if 'observed' in item:
             observed = item['observed']
             if 'replies' in observed:
-                value['dhcp'] = [row.get('semantic', {'action': row['action'], 'reply': None}) if 'semantic' not in row else row['semantic'] for row in observed['replies']]
+                value['dhcp'] = [row['semantic'] if 'semantic' in row else {'action': row['action'], 'reply': None}
+                                 for row in observed['replies']]
             if 'dns' in observed:
                 value['dns'] = copy.deepcopy(observed['dns'])
                 for reply in value['dns']:
