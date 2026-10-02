@@ -244,8 +244,10 @@ def audit_build(args, out, report):
     with (sdk / ".owrt-dnsmasq-build.lock").open("a") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         with package_recipe(sdk, source / f"packaging/openwrt/{RECIPE}", out, report):
+            recipe_target = Path(report["sdk_recipe_path"]).relative_to(sdk).as_posix()
+            report["make_recipe_target"] = recipe_target
             for stage in ("prepare", "compile"):
-                command = ["make", f"package/{PACKAGE}/{stage}", *make_vars]
+                command = ["make", f"{recipe_target}/{stage}", *make_vars]
                 report["commands"].append(command)
                 run(command, out / f"{stage}.log", cwd=sdk, env=env)
                 if stage == "prepare":
