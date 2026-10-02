@@ -2,7 +2,7 @@
 use crate::config::dns::DnsConfig;
 use crate::interfaces::DnsInterface;
 use std::io;
-use std::net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV6, TcpListener};
+use std::net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV6, TcpListener, TcpStream};
 
 pub fn snapshot() -> io::Result<Vec<DnsInterface>> {
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -164,6 +164,76 @@ fn same_network(a: IpAddr, b: IpAddr, mask: IpAddr) -> bool {
         _ => false,
     }
 }
+fn local_source(config: &DnsConfig, interfaces: &[DnsInterface], peer: IpAddr) -> bool {
+    !config.local_service_net
+        || explicit_access(config)
+        || interfaces
+            .iter()
+            .any(|interface| same_network(peer, interface.address, interface.netmask))
+}
+
+pub fn tcp_interface(stream: &TcpStream, ipv6: bool) -> Option<(Vec<u8>, bool)> {
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    {
+        crate::net::tcp_interface(stream, ipv6)
+    }
+    #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
+    {
+        let _ = (stream, ipv6);
+        None
+    }
+}
+
+/// check_dns_listeners checks a wildcard TCP stream's actual arrival name.
+/// Unlike UDP, TCP has no label exception. Bound sockets already select their
+/// addresses; all modes still enforce the local-service source restriction.
+pub fn admit_tcp(
+    config: &DnsConfig,
+    interfaces: &[DnsInterface],
+    peer: IpAddr,
+    destination: SocketAddr,
+    ingress: Option<(&[u8], bool)>,
+) -> bool {
+    if !local_source(config, interfaces, peer) {
+        return false;
+    }
+    if config.bind_interfaces || config.bind_dynamic {
+        return true;
+    }
+    #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
+    if interfaces.is_empty() {
+        return config.listen_addresses.is_empty()
+            || config.listen_addresses.contains(&destination.ip());
+    }
+    let selected_destination = interfaces.iter().any(|interface| {
+        interface.address == destination.ip()
+            && selected(config, interface)
+            && match destination {
+                SocketAddr::V6(address) if address.ip().is_unicast_link_local() => {
+                    address.scope_id() == interface.index
+                }
+                _ => true,
+            }
+    });
+    let Some((name, loopback)) = ingress else {
+        // C's fallback requires an enumerated, selected destination address.
+        return selected_destination;
+    };
+    let named = config
+        .interfaces
+        .iter()
+        .any(|pattern| name_matches(pattern, name, loopback))
+        || !config.interfaces.is_empty() && loopback;
+    let excluded = config
+        .excluded_interfaces
+        .iter()
+        .any(|pattern| name_matches(pattern, name, loopback));
+    config.listen_addresses.contains(&destination.ip())
+        || (config.interfaces.is_empty() && config.listen_addresses.is_empty() || named)
+            && !excluded
+        || loopback && selected_destination
+}
+
 pub fn admit(
     config: &DnsConfig,
     interfaces: &[DnsInterface],
@@ -171,12 +241,7 @@ pub fn admit(
     destination: IpAddr,
     ingress: u32,
 ) -> bool {
-    if config.local_service_net
-        && !explicit_access(config)
-        && !interfaces
-            .iter()
-            .any(|interface| same_network(peer, interface.address, interface.netmask))
-    {
+    if !local_source(config, interfaces, peer) {
         return false;
     }
     #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
@@ -386,6 +451,88 @@ mod tests {
         assert!(validate_bind_interfaces(&config, &interfaces).is_ok());
         config.interfaces.push(Some(b"missing123".to_vec()));
         assert!(validate_bind_interfaces(&config, &interfaces).is_err());
+    }
+    #[test]
+    fn tcp_checks_arrival_names_and_preserves_bound_and_fallback_rules() {
+        let mut lan = interface("192.0.2.1", "255.255.255.0", 3);
+        let mut wan = interface("198.51.100.1", "255.255.255.0", 4);
+        wan.name = b"wan".to_vec();
+        let mut config = DnsConfig::default();
+        config.interfaces.push(Some(b"lan".to_vec()));
+        config.excluded_interfaces.push(Some(b"wan".to_vec()));
+        let peer = "198.51.100.2".parse().unwrap();
+        let destination = "192.0.2.1:53".parse().unwrap();
+        for (ingress, allowed) in [
+            (Some((b"lan".as_slice(), false)), true),
+            (Some((b"wan".as_slice(), false)), false),
+            (Some((b"lo".as_slice(), true)), true),
+            (None, true),
+        ] {
+            assert_eq!(
+                admit_tcp(
+                    &config,
+                    &[lan.clone(), wan.clone()],
+                    peer,
+                    destination,
+                    ingress
+                ),
+                allowed
+            );
+        }
+        let unknown = "203.0.113.1:53".parse().unwrap();
+        config.listen_addresses.push("203.0.113.1".parse().unwrap());
+        assert!(!admit_tcp(&config, &[lan.clone()], peer, unknown, None));
+        assert!(admit_tcp(
+            &config,
+            &[lan.clone()],
+            peer,
+            unknown,
+            Some((b"wan", false))
+        ));
+        for dynamic in [false, true] {
+            config.bind_interfaces = !dynamic;
+            config.bind_dynamic = dynamic;
+            assert!(admit_tcp(
+                &config,
+                &[lan.clone()],
+                peer,
+                destination,
+                Some((b"wan", false))
+            ));
+        }
+        config = DnsConfig::default();
+        config.bind_dynamic = true;
+        config.local_service_net = true;
+        assert!(!admit_tcp(&config, &[lan.clone()], peer, destination, None));
+
+        config = DnsConfig::default();
+        config.interfaces.push(Some(b"lan:0".to_vec()));
+        lan.name = b"lan:0".to_vec();
+        assert!(!admit_tcp(
+            &config,
+            &[lan],
+            peer,
+            destination,
+            Some((b"lan", false))
+        ));
+    }
+
+    #[test]
+    fn tcp_fallback_keeps_link_local_destination_scope() {
+        let interfaces = [interface("fe80::1", "ffff:ffff:ffff:ffff::", 3)];
+        let config = DnsConfig::default();
+        for (destination, allowed) in [("[fe80::1%3]:53", true), ("[fe80::1%4]:53", false)] {
+            assert_eq!(
+                admit_tcp(
+                    &config,
+                    &interfaces,
+                    "fe80::2".parse().unwrap(),
+                    destination.parse().unwrap(),
+                    None
+                ),
+                allowed
+            );
+        }
     }
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     #[test]

@@ -1187,15 +1187,22 @@ impl DnsWorkers {
                             let Ok(destination) = stream.local_addr() else {
                                 continue;
                             };
+                            let ingress = if tcp_config.bind_interfaces || tcp_config.bind_dynamic {
+                                None
+                            } else {
+                                listeners::tcp_interface(&stream, destination.is_ipv6())
+                            };
                             let Ok(interfaces) = tcp_interfaces.lock() else {
                                 break;
                             };
-                            if !listeners::admit(
+                            if !listeners::admit_tcp(
                                 &tcp_config,
                                 &interfaces,
                                 peer.ip(),
-                                destination.ip(),
-                                0,
+                                destination,
+                                ingress
+                                    .as_ref()
+                                    .map(|(name, loopback)| (name.as_slice(), *loopback)),
                             ) {
                                 // C shuts down denied connections before close,
                                 // including when the client already sent a query.
