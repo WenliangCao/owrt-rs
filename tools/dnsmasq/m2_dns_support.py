@@ -167,8 +167,8 @@ def normalized_upstream(events):
 
 
 class Product:
-    def __init__(self, root, side, out, servers=1):
-        self.root, self.side, self.out = root, side, out
+    def __init__(self, root, side, out, servers=1, policy='strict-order'):
+        self.root, self.side, self.out, self.policy = root, side, out, policy
         out.mkdir()
         self.servers = [Upstream(f'127.0.0.{index + 2}', f'upstream-{index + 1}') for index in range(servers)]
         self.rows, self.ubus_calls, self.checks, self.udp_clients, self.tcp_clients = [], [], [], {}, {}
@@ -186,8 +186,9 @@ class Product:
             assert self.bus.poll() is None and time.monotonic() < deadline, 'ubusd readiness timeout'
             time.sleep(.01)
         profile = image_path(self.root, f'm2/{self.out.name}.conf')
+        policy_line = 'all-servers\n' if self.policy == 'all-servers' else 'strict-order\n'
         config = ('no-hosts\nno-resolv\nlisten-address=127.0.0.1\nport=15353\n'
-                  'cache-size=4096\nlocal-ttl=120\nstrict-order\n'
+                  'cache-size=4096\nlocal-ttl=120\n' + policy_line +
                   'neg-ttl=3\n'
                   'host-record=desktop.home.test,192.0.2.10,2001:db8::10\n'
                   f'enable-ubus={OBJECT}\n')

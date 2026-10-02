@@ -99,6 +99,36 @@ def profile_failure(product):
     return rows
 
 
+def profile_strict_order(product):
+    """All primary/secondary failure transitions with strict-order fixed."""
+    product.servers[0].configure('silent')
+    product.servers[1].configure('answer', generation=1)
+    rows = [product.ask('strict-timeout-failover', 'strict-timeout.m2.test', expected_upstream=2)]
+    product.servers[0].configure('answer', generation=2)
+    product.servers[1].configure('silent')
+    rows.append(product.ask('strict-primary-recovered', 'strict-recovered.m2.test', expected_upstream=1))
+    product.servers[0].configure('servfail')
+    product.servers[1].configure('answer', generation=3)
+    rows.append(product.ask('strict-servfail-failover', 'strict-servfail.m2.test', expected_upstream=2))
+    return rows
+
+
+def profile_all_servers(product):
+    """Concurrent upstream selection and recovery with all-servers enabled."""
+    product.servers[0].configure('answer', generation=1)
+    product.servers[1].configure('answer', generation=2)
+    rows = [product.ask('all-servers-first', 'all-first.m2.test', expected_upstream=2)]
+    product.servers[0].configure('silent')
+    product.servers[1].configure('answer', generation=3)
+    rows.append(product.ask('all-servers-primary-silent', 'all-silent.m2.test', expected_upstream=2))
+    product.servers[0].configure('answer', generation=4)
+    product.servers[1].configure('silent')
+    rows.append(product.ask('all-servers-secondary-silent', 'all-secondary.m2.test', expected_upstream=2))
+    product.servers[1].configure('answer', generation=5)
+    rows.append(product.ask('all-servers-recovered', 'all-recovered.m2.test', expected_upstream=2))
+    return rows
+
+
 def profile_mix(product):
     # The deterministic sequence is deliberately synthetic. Its 80/20 split
     # follows the single observed metrics snapshot, while QTYPE/transport and
@@ -140,13 +170,18 @@ PROFILES = {
     'expiry': profile_expiry,
     'tcp': profile_tcp,
     'failure-recovery': profile_failure,
+    'strict-order': profile_strict_order,
+    'all-servers': profile_all_servers,
     'representative-mix': profile_mix,
 }
 
 
 def run_side(args, side, profile, out):
     root = prepare(args.image_root, args.runtime_root, out, args.rust)
-    product = Product(root, side, out / 'service', servers=2 if profile == 'failure-recovery' else 1)
+    policy = 'all-servers' if profile == 'all-servers' else 'strict-order'
+    product = Product(root, side, out / 'service',
+                      servers=2 if profile in ('failure-recovery', 'strict-order', 'all-servers') else 1,
+                      policy=policy)
     try:
         product.start()
         rows = PROFILES[profile](product)
