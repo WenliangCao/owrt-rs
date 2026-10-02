@@ -30,12 +30,41 @@ def command(root, binary, *args):
     return ['chroot', str(root), binary, *map(str, args)]
 
 
-def _overlay(source, destination):
+def image_path(root, relative, follow_leaf=True):
+    """Resolve links as chroot would, never as the host filesystem would."""
+    root = Path(root).resolve()
+    pending = list(Path(str(relative).lstrip('/')).parts)
+    resolved = []
+    links = 0
+    while pending:
+        part = pending.pop(0)
+        if part in ('', '.'):
+            continue
+        if part == '..':
+            if not resolved:
+                raise ValueError('image path escapes root')
+            resolved.pop()
+            continue
+        candidate = root.joinpath(*resolved, part)
+        if candidate.is_symlink() and (pending or follow_leaf):
+            links += 1
+            if links > 40:
+                raise ValueError('image symlink loop')
+            target = candidate.readlink()
+            if target.is_absolute():
+                resolved = []
+            pending = list(Path(str(target).lstrip('/')).parts) + pending
+        else:
+            resolved.append(part)
+    return root.joinpath(*resolved)
+
+
+def _overlay(source, root, relative):
     """Overlay captured regular files without following destination symlinks."""
     for path in sorted(source.rglob('*')):
         if not path.is_file() or path.is_symlink():
             continue
-        target = destination / path.relative_to(source)
+        target = image_path(root, Path(relative) / path.relative_to(source), follow_leaf=False)
         target.parent.mkdir(parents=True, exist_ok=True)
         if target.is_symlink():
             target.unlink()
@@ -57,28 +86,45 @@ def prepare(image_root, runtime_root, evidence_dir, rust_binary):
         raise ValueError('evidence must be stored under private')
     if sha256(image_root / 'usr/sbin/dnsmasq') != STOCK_SHA256:
         raise ValueError('stock image dnsmasq SHA-256 mismatch')
+    provenance_file = image_root.parent / 'image-identity.json'
+    provenance = json.loads(provenance_file.read_text()) if provenance_file.exists() else None
+    if provenance:
+        for relative, digest in provenance['files'].items():
+            if sha256(image_path(image_root, relative)) != digest:
+                raise ValueError(f'image file changed after extraction: {relative}')
+        for relative, target in provenance['symlinks'].items():
+            if str(image_path(image_root, relative, follow_leaf=False).readlink()) != target:
+                raise ValueError(f'image symlink changed after extraction: {relative}')
     evidence_dir.mkdir(parents=True, exist_ok=True)
     root = evidence_dir.resolve() / 'rootfs'
-    shutil.copytree(image_root, root, symlinks=True)
+    # Extracted /dev/console is a character device. copyfile would open the
+    # build host console and block; the private /dev below replaces all devices.
+    def skip_special(directory, names):
+        return [name for name in names
+                if not (Path(directory, name).is_symlink()
+                        or Path(directory, name).is_file()
+                        or Path(directory, name).is_dir())]
+
+    shutil.copytree(image_root, root, symlinks=True, ignore=skip_special)
     if runtime_root is not None:
         runtime_root = Path(runtime_root)
         for relative in ('etc', 'tmp', 'var', 'usr/share'):
             source = runtime_root / relative
             if source.is_dir():
-                _overlay(source, root / relative)
-    shutil.copy2(rust_binary, root / 'usr/sbin/dnsmasq-rs')
-    (root / 'usr/sbin/dnsmasq-rs').chmod(0o755)
+                _overlay(source, root, relative)
+    shutil.copy2(rust_binary, image_path(root, 'usr/sbin/dnsmasq-rs'))
+    image_path(root, 'usr/sbin/dnsmasq-rs').chmod(0o755)
     for relative in ('proc', 'dev', 'm2', 'tmp', 'tmp/run/ubus', 'tmp/run/dnsmasq',
                      'tmp/lock', 'tmp/state', 'tmp/etc', 'tmp/hosts', 'tmp/.uci'):
-        (root / relative).mkdir(parents=True, exist_ok=True)
-    (root / 'tmp').chmod(0o1777)
-    os.chown(root / 'tmp/run/dnsmasq', 453, 453)
-    run = root / 'run'
+        image_path(root, relative).mkdir(parents=True, exist_ok=True)
+    image_path(root, 'tmp').chmod(0o1777)
+    os.chown(image_path(root, 'tmp/run/dnsmasq'), 453, 453)
+    run = image_path(root, 'run', follow_leaf=False)
     if not run.exists() and not run.is_symlink():
         run.symlink_to('tmp/run')
     # ubusd rejects ACLs that are not owned by root; the image was extracted by
     # an unprivileged user, so restore the original root ownership in this copy.
-    acl = root / 'usr/share/acl.d'
+    acl = image_path(root, 'usr/share/acl.d')
     if acl.exists():
         for path in [acl, *acl.rglob('*')]:
             os.chown(path, 0, 0, follow_symlinks=False)
@@ -91,6 +137,8 @@ def prepare(image_root, runtime_root, evidence_dir, rust_binary):
     (root / 'dev/fd').symlink_to('/proc/self/fd')
     identity = {
         'image_root': str(image_root), 'runtime_root': str(runtime_root) if runtime_root else None,
+        'image_provenance_sha256': sha256(provenance_file) if provenance else None,
+        'image_sha256': provenance['image_sha256'] if provenance else None,
         'root': str(root), 'c_sha256': sha256(root / 'usr/sbin/dnsmasq'),
         'rust_source_path': str(rust_binary), 'rust_sha256': sha256(root / 'usr/sbin/dnsmasq-rs'),
         'kernel': os.uname().release, 'machine': os.uname().machine,
