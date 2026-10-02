@@ -489,7 +489,7 @@ class PressureDaemon:
         }
         client = socket.create_connection(("127.0.0.1", 15353), timeout=2)
         self.pressure_socket = client
-        request = dns_query("ready.m3.test", 0x4D330201)
+        request = dns_query("ready.m3.test", 0x3201)
         client.sendall(struct.pack("!H", len(request)) + request)
         client.settimeout(.25)
         no_reply = False
@@ -632,7 +632,15 @@ def pressure_pair(args: argparse.Namespace) -> int:
                 failures.append("pressure suite timeout")
                 break
             try:
-                result = run_pressure_side(args, implementation, scenario,
+                # Bound each side by both the requested per-case deadline and
+                # the remaining suite wall clock.  A stuck C run therefore
+                # cannot consume the hour and still start a second case.
+                side_args = argparse.Namespace(**vars(args))
+                side_args.duration_seconds = min(
+                    args.duration_seconds,
+                    max(0.1, args.timeout_seconds - (time.monotonic() - started)),
+                )
+                result = run_pressure_side(side_args, implementation, scenario,
                                            out / scenario / implementation)
             except Exception as error:
                 result = {"implementation": implementation, "scenario": scenario,
