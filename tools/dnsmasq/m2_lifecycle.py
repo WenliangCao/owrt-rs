@@ -243,7 +243,32 @@ class Scenario:
         return result
 
     def odhcpd(self, result):
-        raise NotImplementedError('DHCPv6 publication driver pending')
+        # Exercise the image's own odhcpd init path. The exact captured UCI
+        # profile may set maindhcp=0, in which case no lease publication is
+        # expected; record that boundary instead of synthesizing a hosts file.
+        before = {
+            str(path.relative_to(self.root / 'tmp/hosts')): path.read_bytes()
+            for path in (self.root / 'tmp/hosts').glob('*') if path.is_file()
+        }
+        started = self.run('/etc/init.d/odhcpd', 'start', check=False)
+        result['steps']['odhcpd_init_start'] = started.returncode == 0
+        result['odhcpd_start'] = {'rc': started.returncode, 'stdout': started.stdout,
+                                  'stderr': started.stderr}
+        if started.returncode == 0:
+            time.sleep(.5)
+            after = {
+                str(path.relative_to(self.root / 'tmp/hosts')): path.read_bytes()
+                for path in (self.root / 'tmp/hosts').glob('*') if path.is_file()
+            }
+            result['odhcpd_hosts_before'] = {key: value.decode(errors='replace') for key, value in before.items()}
+            result['odhcpd_hosts_after'] = {key: value.decode(errors='replace') for key, value in after.items()}
+            result['steps']['odhcpd_hosts_unchanged_without_dhcpv6'] = before == after
+            # M2 requires an actual odhcpd lease publication observation. A
+            # maindhcp=0 profile that merely starts cleanly does not satisfy
+            # that exit condition, so keep this explicit red boundary.
+            result['steps']['odhcpd_publication'] = before != after
+            self.run('/etc/init.d/odhcpd', 'stop', check=False)
+        return result['steps'].get('odhcpd_publication', False)
 
     def close(self):
         self.run('/etc/init.d/dnsmasq', 'stop', check=False)
