@@ -234,7 +234,7 @@ class Capture:
     def __init__(self, out):
         self.out, self.rows, self.stop = out, [], threading.Event()
         self.sockets = []
-        for interface in ("br-lan", "lan-port"):
+        for interface in ("", "br-lan", "lan-port"):
             try:
                 endpoint = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(0x0800))
                 endpoint.bind((interface, 0)); endpoint.settimeout(.1)
