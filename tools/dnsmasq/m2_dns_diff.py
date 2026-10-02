@@ -82,7 +82,7 @@ def profile_tcp(product):
 
 def profile_failure(product):
     rows = []
-    product.servers[0].configure('refused')
+    product.servers[0].configure('silent')
     product.servers[1].configure('answer', generation=2)
     rows.append(product.ask('primary-timeout-no-reply', 'failover.m2.test', expect_reply=False, expected_upstream=1))
     product.servers[0].configure('answer', generation=3)
