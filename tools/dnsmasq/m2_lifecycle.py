@@ -249,7 +249,39 @@ class Scenario:
         return result
 
     def odhcpd(self, result):
-        raise NotImplementedError('DHCPv6 publication driver pending')
+        process = self.start('/usr/sbin/odhcpd', '-f')
+        self.wait(lambda: self.run('/bin/ubus', 'list', 'odhcpd', check=False).returncode == 0, 'odhcpd ubus')
+        signature = self.run('/bin/ubus', '-v', 'list', 'odhcpd', check=False)
+        result['odhcpd_signature'] = signature.stdout
+        before = sorted(str(path.relative_to(self.root / 'tmp/hosts'))
+                        for path in (self.root / 'tmp/hosts').glob('*') if path.is_file())
+        result['odhcpd_hosts_before'] = before
+        probes = {}
+        for method, payload in [
+            ('ipv6leases', {}),
+            ('add_lease', {'ifname': 'lan', 'address': 'fd00:2::51', 'hostname': 'odhcpd.m2',
+                           'iaid': 51, 'preferred': 120, 'valid': 240}),
+        ]:
+            reply = self.run('/bin/ubus', '-t', '10', 'call', 'odhcpd', method,
+                             json.dumps(payload), check=False)
+            probes[method] = {'rc': reply.returncode, 'stdout': reply.stdout, 'stderr': reply.stderr}
+        result['odhcpd_probes'] = probes
+        deadline = time.monotonic() + 5
+        while time.monotonic() < deadline:
+            entries = sorted(str(path.relative_to(self.root / 'tmp/hosts'))
+                             for path in (self.root / 'tmp/hosts').glob('*') if path.is_file())
+            if entries != before:
+                break
+            time.sleep(.1)
+        result['odhcpd_hosts_after'] = entries
+        result['odhcpd_host_contents'] = {
+            name: (self.root / 'tmp/hosts' / name).read_text(errors='replace')
+            for name in entries
+        }
+        result['steps']['odhcpd_publication'] = entries != before and any(
+            'odhcpd.m2' in content for content in result['odhcpd_host_contents'].values())
+        process.terminate()
+        process.wait(5)
 
     def close(self):
         self.run('/etc/init.d/dnsmasq', 'stop', check=False)
