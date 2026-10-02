@@ -14,7 +14,8 @@ import threading
 import time
 
 ROOT = Path(__file__).resolve().parents[2]
-C_HASH = "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431"
+# M3 uses the exact AX3000T image ELF, not the older native build oracle.
+C_HASH = "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
 TARGET_FILES = {
     "usr/sbin/dnsmasq": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
     "lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
