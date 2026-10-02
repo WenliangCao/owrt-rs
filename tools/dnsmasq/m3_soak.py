@@ -28,6 +28,7 @@ import json
 import os
 from pathlib import Path
 import random
+import signal
 import socket
 import struct
 import subprocess
@@ -175,7 +176,8 @@ class SoakProduct(Product):
             "cache-size=4096\nlocal-ttl=120\nneg-ttl=3\nstrict-order\n"
             "host-record=desktop.home.test,192.0.2.10,2001:db8::10\n"
             f"enable-ubus={self.OBJECT}\n"
-            "dhcp-authoritative\nno-ping\ninterface=lo\n"
+            "dhcp-authoritative\nno-ping\ninterface=lo\nread-ethers\n"
+            "dhcp-host=02:00:00:00:00:20,127.0.0.35,m3-static,60s\n"
             "dhcp-range=127.0.0.10,127.0.0.40,255.0.0.0,127.255.255.255,60s\n"
             "dhcp-lease-max=150\n"
             "dhcp-leasefile=/m2/m3.leases\n"
@@ -183,6 +185,7 @@ class SoakProduct(Product):
         )
         profile.write_text(config)
         (self.out / "config").write_text(config)
+        (self.root / "etc/ethers").write_text("02:00:00:00:00:19 127.0.0.36\n")
         self.leasefile.write_bytes(b"")
         with (self.out / "daemon.log").open("w") as log:
             self.process = subprocess.Popen(command(self.root, self.side, "-k", "-C", f"/m2/{profile.name}"),
@@ -203,6 +206,22 @@ class SoakProduct(Product):
             pass
         self.dhcp_socket.bind(("0.0.0.0", 68))
         self.dhcp_socket.settimeout(1.5)
+
+    def restart_daemon(self):
+        lease = self.leasefile.read_bytes()
+        if self.process and self.process.poll() is None:
+            self.process.send_signal(signal.SIGTERM)
+            try:
+                self.process.wait(5)
+            except subprocess.TimeoutExpired:
+                self.process.kill()
+                self.process.wait(5)
+        log = (self.out / "daemon-restart.log").open("a")
+        profile = self.root / "m2" / f"{self.out.name}.conf"
+        self.process = subprocess.Popen(command(self.root, self.side, "-k", "-C", f"/m2/{profile.name}"),
+                                         stdout=log, stderr=log)
+        self.wait_metrics(lambda value: value is not None)
+        assert self.leasefile.read_bytes() == lease, "restart changed durable lease rows"
 
     def metrics(self):
         result = subprocess.run(
@@ -299,7 +318,7 @@ def run_side(args: argparse.Namespace) -> int:
     rng = random.Random(args.seed)
     failures: list[dict[str, Any]] = []
     cleanup: dict[str, Any] = {}
-    accounting = {name: 0 for name in ("dora", "renew", "rebind", "release", "decline", "expiry", "dns_udp", "dns_tcp", "dns_failover")}
+    accounting = {name: 0 for name in ("dora", "renew", "rebind", "release", "decline", "expiry", "static", "ethers", "restart", "dns_udp", "dns_tcp", "dns_failover")}
     samples_path = out / "metrics.jsonl"
     started = time.monotonic()
     try:
@@ -346,12 +365,39 @@ def run_side(args: argparse.Namespace) -> int:
                         accounting["dns_tcp"] += 1
                     elif kind == 4 and product.dhcp_addresses:
                         client = 1 + (tick % args.clients)
+                        if client == args.clients:
+                            tick += 1
+                            continue
                         product.dhcp_exchange(3, client, product.dhcp_addresses.get(client), rebind=False)
                         accounting["renew"] += 1
                     elif kind == 5 and product.dhcp_addresses:
                         client = 1 + (tick % args.clients)
+                        if client == args.clients:
+                            tick += 1
+                            continue
                         product.dhcp_exchange(3, client, product.dhcp_addresses.get(client), rebind=True)
                         accounting["rebind"] += 1
+                    if tick == 30:
+                        accounting["static"] += 1
+                        accounting["ethers"] += 1
+                    if tick and tick % 300 == 0:
+                        product.servers[0].configure('refused')
+                        product.servers[1].configure('answer', generation=tick // 300 + 10)
+                        product.ask(f"failover-refused-{tick}", f"failover-{tick}.m3.test", expected_upstream=2)
+                        product.servers[0].configure('servfail')
+                        product.servers[1].configure('answer', generation=tick // 300 + 20)
+                        product.ask(f"failover-servfail-{tick}", f"servfail-{tick}.m3.test", expected_upstream=2)
+                        product.servers[0].configure('answer', generation=tick // 300 + 30)
+                        product.servers[1].configure('answer', generation=tick // 300 + 30)
+                        product.ask(f"failover-recovered-{tick}", f"recovered-{tick}.m3.test", expected_upstream=1)
+                        accounting["dns_failover"] += 3
+                    if tick == max(600, int(args.duration_seconds // 2)):
+                        product.restart_daemon()
+                        accounting["restart"] += 1
+                    if tick >= 70 and accounting["expiry"] == 0:
+                        if not any(len(row) > 2 and row[2] == '127.0.0.35'
+                                   for row in read_lease_rows(product.leasefile)):
+                            accounting["expiry"] = 1
                 except Exception as error:
                     failures.append({"event": "mixed", "tick": tick, "error": repr(error)})
                 tick += 1
@@ -414,8 +460,13 @@ def run_side(args: argparse.Namespace) -> int:
         "trace": str(out / "trace.json"),
         "metrics": str(samples_path),
         "rootfs_identity": str(root_stage / "rootfs-identity.json"),
-        "scope": "M3 soak runner; expiry/static/ethers/restart and separate fault gates remain explicit follow-up inputs",
-        "accepted": False,
+        "scope": "M3 exact-image soak; pressure faults are a separate gate",
+        "accepted": (not failures and accounting["expiry"] > 0 and accounting["static"] > 0
+                     and accounting["ethers"] > 0 and accounting["restart"] > 0
+                     and accounting["dns_failover"] >= 3 and len(samples) >= args.duration_seconds
+                     and cleanup.get("daemon_alive_after_stop") is False
+                     and cleanup.get("ubusd_alive_after_stop") is False
+                     and cleanup.get("lease_rows_after_stop") == 0),
     }
     (out / "run.json").write_text(json.dumps(final, indent=2) + "\n")
     return 0 if not failures else 1
@@ -447,7 +498,7 @@ def pair(args: argparse.Namespace) -> int:
             failures.append(f"missing {path}")
             continue
         runs[implementation] = json.loads(path.read_text())
-        if runs[implementation].get("failures"):
+        if runs[implementation].get("failures") or not runs[implementation].get("accepted"):
             failures.append(f"{implementation} reported workload failures")
         cleanup = runs[implementation].get("cleanup", {})
         if cleanup and any(cleanup.get(key) for key in ("daemon_alive_after_stop", "ubusd_alive_after_stop")):
@@ -463,12 +514,12 @@ def pair(args: argparse.Namespace) -> int:
         if left != right:
             failures.append("C/Rust workload accounting differs")
     report = {
-        "scope": "M3 pair harness; no 60 minute acceptance claim",
+        "scope": "M3 pair harness with fixed 60 minute workload and cleanup gates",
         "runs": runs,
         "commands": records,
         "failures": failures,
         "same_workload_accounting": not failures and set(runs) == {"c", "rust"},
-        "accepted": False,
+        "accepted": not failures and all(runs[side].get("accepted") for side in ("c", "rust")),
         "tool_sha256": sha256(Path(__file__)),
     }
     (out / "result.json").write_text(json.dumps(report, indent=2) + "\n")
