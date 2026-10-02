@@ -20,6 +20,10 @@
 
 M2 当前进度：DHCP 四组镜像 C/Rust 对照已完成且零差异（actual20、static-ethers、expiry120、ping-conflict），解析器有界差分已完成；精确镜像 init/procd/ujail 生命周期仍有 fixture 阻塞，不能算通过。DNS TCP/cache 场景发现真实产品缺口：Rust TCP 服务未使用共享父缓存；`5d3c141`/`cec2e34` 已加入父缓存、TCP响应上限和缓存资格过滤，等待 exact-image musl release 重跑 TCP 及 UDP↔TCP 场景。
 
+DHCP M2 原始输出在 `private/dnsmasq-rewrite/evidence/M2/dhcp`：四组共 80/11/6/4 事件（含 20 客户端、续租/重绑定/释放/DECLINE、ethers/static/restart、120 秒到期、ICMP 冲突）C/Rust 零差异；镜像 C `097a9e…cab87`，Rust release `72f70a…c09a7`。DNS/DHCP 解析器有界语料已分别完成 659 和 9,797 个 exact-source cases，零差异；它们是 parser primitive 证据，不替代 daemon service。
+
+M2 lifecycle 目前只有真实 init/procd/ujail 尝试的失败记录：镜像 jail 子进程缺 procfs 时打开 `/proc/self/fd` 失败；临时 `--jail-procfs` fixture 可启动但改变了精确 init 环境，且 pidfile 观测仍指向 wrapper 而非 jail 子进程，因此不计通过。该阻塞需要修复隔离 runner或取得精确镜像所需 procfs 运行方式后重跑，不能把临时 override 变成成功。
+
 
 新证据统一在 `private/dnsmasq-rewrite/evidence/M1/`，后续依次M2等目录。旧证据保留来源，不往工作树内新增证据。实验分支48小时内合入或以`archive/` tag保留后删除；工作树完成后先保全证据再移除。用户`docs/prompts/`的修改保留。本账本按日更新，每里程碑只写一篇报告。
 
