@@ -365,7 +365,12 @@ class Scenario:
         result['steps']['dhcp_range_generated'] = 'dhcp-range=' in result['generated_config']
         (self.root / 'etc/hosts').write_text('127.0.0.1 localhost\n192.0.2.52 lifecycle.lan\n')
         (self.root / 'tmp/hosts/dhcp').write_text('192.0.2.52 lifecycle.lan\n')
-        os.kill(self.daemon_pid(), signal.SIGHUP)
+        # The pid file is in the private PID namespace and contains the
+        # namespace-local wrapper PID (usually 1 under run_isolated.sh).  A
+        # signal to that PID is ignored by Linux's PID-1 rules and does not
+        # reach the jailed daemon.  Use the inner ELF PID already verified by
+        # live_dnsmasq(), which is visible from this namespace.
+        os.kill(first['inner_pid'], signal.SIGHUP)
         try:
             result['steps']['sighup_hosts'] = self.expect_dns('lifecycle.lan', '192.0.2.52')
         except AssertionError:
