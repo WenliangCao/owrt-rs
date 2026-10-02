@@ -202,7 +202,20 @@ class Scenario:
         result['steps']['dhcp_range_generated'] = 'dhcp-range=' in result['generated_config']
         (self.root / 'tmp/hosts/dhcp').write_text('192.0.2.52 lifecycle.lan\n')
         os.kill(self.daemon_pid(), signal.SIGHUP)
-        result['steps']['sighup_hosts'] = self.expect_dns('lifecycle.lan', '192.0.2.52')
+        try:
+            result['steps']['sighup_hosts'] = self.expect_dns('lifecycle.lan', '192.0.2.52')
+        except AssertionError:
+            pid = self.daemon_pid()
+            proc = Path('/proc') / str(pid)
+            result['sighup_debug'] = {
+                'pid': pid,
+                'exe': os.readlink(proc / 'exe') if proc.exists() else None,
+                'cmdline': proc.joinpath('cmdline').read_bytes().replace(b'\0', b' ').decode() if proc.exists() else None,
+                'service': self.service_debug(),
+                'hostfile': (self.root / 'tmp/hosts/dhcp').read_text(),
+                'log': (self.root / 'tmp/dnsmasq.log').read_text(errors='replace') if (self.root / 'tmp/dnsmasq.log').exists() else '',
+            }
+            raise
         result['steps']['sighup_keeps_pid'] = self.daemon_pid() == first['pid']
         self.run('/etc/init.d/dnsmasq', 'reload')
         result['steps']['init_reload_hosts'] = self.expect_dns('lifecycle.lan', '192.0.2.52')
