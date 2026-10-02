@@ -32,6 +32,8 @@ config interface 'lan'
  option ipaddr '192.168.1.1'
  option netmask '255.255.255.0'
  list ip6addr 'fd00:2::1/64'
+config globals 'globals'
+ option dhcp_default_duid '00030001020000000001'
 """
 DHCP = """config dnsmasq 'm2'
  option domainneeded '1'
