@@ -148,7 +148,7 @@ fn udp_address_rule_is_known_but_upstream_rule_is_not() {
 }
 
 #[test]
-fn coalesced_replies_retain_each_receiving_listener() {
+fn coalesced_replies_retain_each_receiving_listener_and_source() {
     let upstream = UdpSocket::bind("127.0.0.1:0").unwrap();
     upstream
         .set_read_timeout(Some(Duration::from_secs(2)))
@@ -160,14 +160,18 @@ fn coalesced_replies_retain_each_receiving_listener() {
         DaemonOptions::default(),
     )
     .unwrap();
-    for (listener, port) in [(10, 39001), (20, 39002)] {
+    let clients = [
+        (10, "127.0.0.1:39001", "127.0.0.2", 1),
+        (20, "[fe80::2%7]:39002", "fe80::1", 7),
+    ];
+    for (listener, source, destination, interface) in clients {
         let result = daemon
             .forward_udp_on_listener(
                 &request("shared.test", 1),
                 ClientRequest {
-                    source: SocketAddr::from(([127, 0, 0, 1], port)),
-                    destination: "127.0.0.1".parse().unwrap(),
-                    interface: 1,
+                    source: source.parse().unwrap(),
+                    destination: destination.parse().unwrap(),
+                    interface,
                 },
                 Some(crate::dns::forward::SocketToken(listener)),
             )
@@ -178,10 +182,12 @@ fn coalesced_replies_retain_each_receiving_listener() {
     negative_reply(&upstream);
     let responses = daemon.poll(Duration::from_millis(250)).unwrap();
     assert_eq!(responses.len(), 2);
-    for (listener, port) in [(10, 39001), (20, 39002)] {
+    for (listener, source, destination, interface) in clients {
         assert!(responses.iter().any(|response| {
             response.listener == Some(crate::dns::forward::SocketToken(listener))
-                && response.destination.port() == port
+                && response.destination == source.parse::<SocketAddr>().unwrap()
+                && response.source == destination.parse::<IpAddr>().unwrap()
+                && response.interface == interface
         }));
     }
 }

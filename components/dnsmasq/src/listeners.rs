@@ -92,15 +92,11 @@ pub fn bound_addresses(
             }
         }
         result
-    } else if !config.listen_addresses.is_empty() {
-        config
-            .listen_addresses
-            .iter()
-            .map(|address| SocketAddr::new(*address, port))
-            .collect()
     } else {
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         {
+            // C uses wildcard sockets unless a bind mode is selected.
+            // Interface and address options are a union enforced by admit().
             vec![
                 SocketAddr::new("0.0.0.0".parse().unwrap(), port),
                 SocketAddr::new("::".parse().unwrap(), port),
@@ -108,7 +104,15 @@ pub fn bound_addresses(
         }
         #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
         {
-            vec![SocketAddr::new("::".parse().unwrap(), port)]
+            if config.listen_addresses.is_empty() {
+                vec![SocketAddr::new("::".parse().unwrap(), port)]
+            } else {
+                config
+                    .listen_addresses
+                    .iter()
+                    .map(|address| SocketAddr::new(*address, port))
+                    .collect()
+            }
         }
     }
 }
@@ -168,14 +172,14 @@ pub fn admit(
             .iter()
             .any(|interface| interface.address == destination && interface.loopback);
     }
+    if config.listen_addresses.contains(&destination) {
+        return true;
+    }
     if ingress == 0 || config.bind_interfaces && !config.bind_dynamic && destination.is_ipv4() {
         return !explicit_access(config)
             || interfaces
                 .iter()
                 .any(|interface| interface.address == destination && selected(config, interface));
-    }
-    if config.listen_addresses.contains(&destination) {
-        return true;
     }
     if config.bind_dynamic || explicit_access(config) {
         interfaces
@@ -342,6 +346,48 @@ mod tests {
             netmask: netmask.parse().unwrap(),
             loopback: false,
         }
+    }
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    fn wildcard_listeners_keep_interface_and_address_access_as_a_union() {
+        let mut lan = interface("192.0.2.1", "255.255.255.0", 3);
+        lan.name = b"lan".to_vec();
+        let mut wan = interface("198.51.100.1", "255.255.255.0", 4);
+        wan.name = b"wan".to_vec();
+        let interfaces = [lan, wan];
+        let mut config = DnsConfig::default();
+        config.interfaces.push(Some(b"lan".to_vec()));
+        config.listen_addresses.push("203.0.113.1".parse().unwrap());
+        assert_eq!(
+            bound_addresses(&config, 53, &interfaces),
+            ["0.0.0.0:53".parse().unwrap(), "[::]:53".parse().unwrap()]
+        );
+        for (destination, ingress, allowed) in [
+            ("192.0.2.1", 3, true),
+            ("203.0.113.1", 4, true),
+            ("203.0.113.1", 0, true),
+            ("198.51.100.1", 4, false),
+            ("198.51.100.1", 0, false),
+        ] {
+            assert_eq!(
+                admit(
+                    &config,
+                    &interfaces,
+                    "198.51.100.2".parse().unwrap(),
+                    destination.parse().unwrap(),
+                    ingress,
+                ),
+                allowed
+            );
+        }
+        config.bind_interfaces = true;
+        assert_eq!(
+            bound_addresses(&config, 53, &interfaces),
+            [
+                "192.0.2.1:53".parse().unwrap(),
+                "203.0.113.1:53".parse().unwrap()
+            ]
+        );
     }
     #[test]
     fn local_service_filters_both_families_and_explicit_access_overrides_it() {

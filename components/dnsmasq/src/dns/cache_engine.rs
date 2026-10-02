@@ -846,8 +846,12 @@ fn append_local_terminal(
         local_ttl: local.local_ttl,
         max_packet: u16::MAX as usize,
     };
-    let Some(answer) =
-        answerer.answer_with_lease_source(&query.finish(), &mut local.leases, now)?
+    let Some(answer) = answerer.answer_on_network(
+        &query.finish(),
+        &mut local.leases,
+        now,
+        local.local_network,
+    )?
     else {
         return Ok(None);
     };
