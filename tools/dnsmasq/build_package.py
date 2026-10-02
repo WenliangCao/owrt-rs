@@ -159,7 +159,6 @@ def audit_metadata(metadata):
     for field, values in {
         "provides": ("dnsmasq-any",),
         "conflicts": ("dnsmasq-dhcpv6", "dnsmasq-full"),
-        "replaces": ("dnsmasq",),
         "depends": ("libc", "libubus20251202"),
     }.items():
         block = re.search(rf"^  {field}:.*?(?=^  [a-z]|^# data block|\Z)", metadata,
@@ -169,7 +168,8 @@ def audit_metadata(metadata):
     return {"name": PACKAGE, "version": PACKAGE_ID,
             "arch": ARCH, "provides": ["dnsmasq-any"],
             "conflicts": ["dnsmasq-dhcpv6", "dnsmasq-full"],
-            "replaces": ["dnsmasq"], "depends": ["libc", "libubus20251202"]}
+            "replacement": "same package name dnsmasq, newer release 2.93-r2",
+            "depends": ["libc", "libubus20251202"]}
 
 
 def read_budget(path):

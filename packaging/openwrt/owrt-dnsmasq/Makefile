@@ -23,6 +23,10 @@ RUST_TARGET:=aarch64-unknown-linux-musl
 
 include $(INCLUDE_DIR)/package.mk
 
+# package-pack.mk reads CONFLICTS as a recipe-global field when emitting APK
+# metadata. Keep the variant conflicts visible in the generated package.
+CONFLICTS:=dnsmasq-dhcpv6 dnsmasq-full
+
 define Package/dnsmasq
   SECTION:=net
   CATEGORY:=Base system
@@ -31,7 +35,6 @@ define Package/dnsmasq
   DEPENDS:=@(aarch64) +libubus20251202 +@BUSYBOX_CONFIG_PIDOF
   USERID:=dnsmasq=453:dnsmasq=453
   PROVIDES:=dnsmasq-any
-  CONFLICTS:=dnsmasq-dhcpv6 dnsmasq-full
   REPLACES:=dnsmasq
 endef
 
