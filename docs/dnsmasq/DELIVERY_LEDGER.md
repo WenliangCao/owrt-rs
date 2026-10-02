@@ -18,33 +18,20 @@
 
 本轮最多四个子代理，M1按进程权限、DNS/监听并发、DHCP/ethers/netlink、整合回归分工；审查人与前一轮实现者分离。确认问题后按文件归属修复，主代理整合。一次红色结果先原样复跑确认，失败证据保留。普通修复单元+一次受影响C差分；解析器、租约状态机、缓存一致性、权限与资源边界保留独立复核、负向对照和回归集。M1 已完成，报告为 [M1_REVIEW_REPORT.md](M1_REVIEW_REPORT.md)；M2 已完成并转入 M3 计划。
 
-M2 已关闭，剩余阻塞项为 0。DHCP 四组镜像 C/Rust 对照保持零差异（actual20、static-ethers、expiry120、ping-conflict），DNS exact-image C/Rust 的 UDP cache 11/11、expiry 6/6、TCP/cache 10/10、failure/failover 4/4、代表性混合流 1000/1000 均零差异，解析器有界差分也保持零差异。新的 exact-image 生命周期证据在 `private/dnsmasq-rewrite/evidence/M2/integration/c-lifecycle-m2-version-1790948584/` 和 `rust-lifecycle-m2-version-1790948548/`：C SHA-256 `097a9e21…cab87`，Rust 当前 release SHA-256 `5f712dcf…ff654`，两边均通过启动、SIGHUP hosts、init reload、rpcd UCI staged/apply、停止回收，以及真实 DHCPv6 Solicit→Advertise→Request→Reply；固定客户端取得 `fd00:2::7ed`，odhcpd 写入 `odhcpd.hosts.lan`，dnsmasq 随后返回相同 AAAA。Rust 增加了与 OpenWrt init 脚本兼容的 DHCPv4 feature token，生成的 DHCP range 与 C 一致。旧 jail/procfs 红、旧 Rust 启动红和本轮 DHCP runner 的 PID 文件红均原样保留；它们不被算作通过。
+M2 已关闭，剩余阻塞项为 0。DHCP 四组镜像 C/Rust 对照保持零差异（actual20、static-ethers、expiry120、ping-conflict），DNS exact-image C/Rust 的 UDP cache 11/11、expiry 6/6、TCP/cache 10/10、failure/failover 4/4、代表性混合流 1000/1000 均零差异，解析器有界差分也保持零差异。新的 exact-image 生命周期证据在 `private/dnsmasq-rewrite/evidence/M2/integration/c-lifecycle-m2-version-1790948584/` 和 `rust-lifecycle-m2-version-1790948548/`：C SHA-256 `097a9e21…cab87`，Rust 最终 release SHA-256 `8cd25e32…f851`，两边均通过启动、SIGHUP hosts、init reload、rpcd UCI staged/apply、停止回收，以及真实 DHCPv6 Solicit→Advertise→Request→Reply；固定客户端取得 `fd00:2::7ed`，odhcpd 写入 `odhcpd.hosts.lan`，dnsmasq 随后返回相同 AAAA。Rust 已逐字镜像 C 的 Compile time options 行，OpenWrt init 生成的 DHCP range 与 C 一致。M2 详情见 [M2_REPORT.md](M2_REPORT.md)。旧 jail/procfs 红、旧 Rust 启动红和本轮 DHCP runner 的 PID 文件红均原样保留；它们不被算作通过。
 
 M3 已只冻结计划并未启动正式 60 分钟负载。计划、指标、故障注入和退出条件在 ignored `private/dnsmasq-rewrite/evidence/M3/plan-v1.json`（SHA-256 `c2587d70a2d00e1b6fe698f51607d8df9b0aab4b7e17aa0674c10eac1df8a3af`）；M2 刚完成，M3 尚无可计入验收的数据，也未进行性能测量。
 
-DHCP M2 原始输出在 `private/dnsmasq-rewrite/evidence/M2/dhcp`：既有四组通过证据覆盖 80/11/6/4 事件（含 20 客户端、续租/重绑定/释放/DECLINE、ethers/static/restart、120 秒到期、ICMP 冲突）且 C/Rust 零差异；既有证据的 Rust release 为 `72f70ae…c09a7`，本次生命周期使用 `5f712dcf…ff654`。本轮为确认收尾而重跑的 DHCP sweep 保留在 `m2-final-1790948743`，C 在隔离 runner 的 PID 文件清理边界失败并按规则复跑，未计作新的通过。DNS/DHCP 解析器有界语料已分别完成 659 和 9,797 个 exact-source cases，零差异；它们是 parser primitive 证据，不替代 daemon service。
+DHCP M2 原始输出在 `private/dnsmasq-rewrite/evidence/M2/dhcp`：最终 release `8cd25e32…f851` 的 actual20、static-ethers、expiry120、ping-conflict 四组均完成 C/Rust 对照且零差异；修复后的 runner 记录了超时强制清理和真实 PID 文件移除。旧 release `72f70ae…c09a7` 的历史证据仍保留。DNS/DHCP 解析器有界语料已分别完成 659 和 9,797 个 exact-source cases，零差异；三项目标的 cargo-fuzz 每个运行 1,800 秒，日志在 `private/dnsmasq-rewrite/evidence/M2/fuzz-final-1790955830/`；它们是 parser primitive 证据，不替代 daemon service。
 
 M2 lifecycle 的早期失败记录仍保留：镜像 jail 子进程缺 procfs 时打开 `/proc/self/fd` 失败，旧工具还曾把 ujail wrapper 当作 dnsmasq 身份。本次工具已递归校验 jail 内实际 ELF，并在不改变 exact init 的情况下完成 C/Rust 生命周期和 odhcpd publication；临时 `--jail-procfs` 结果仍不作为通过依据。
 
 
 新证据统一在 `private/dnsmasq-rewrite/evidence/M2/`，旧证据保留来源，不往工作树内新增证据。实验分支48小时内合入或以`archive/` tag保留后删除；工作树完成后先保全证据再移除。用户`docs/prompts/`的修改保留。本账本按日更新，每里程碑只写一篇报告。
 
-## 北极星起点（已完成，非本轮完成声明）
+## 北极星起点（历史摘要）
 
-产品 `3cfd22e` 的实际配置冒烟完成了1个客户端DORA、租约文件、4次DNS及UBus注册，对照构建机native C，Rust为debug构建。它不覆盖本轮M2及后续验收。原配置737字节，SHA-256 `273642923b52722c6b423c22d1586972e7475d78142c2f14185a940230ad9afe`，保持原样；详情见 [实际配置阶段报告](ACTUAL_CONFIG_STAGE.md)。未访问物理路由器。
-
-## 已关闭的八项
-
-1. **原配置与依赖加载。** `read-ethers` 进入启动/HUP，include、账户、hosts等原路径依赖齐备，原配置检查和完整启动均通过。ethers解析与重载29 cases/36 generations一致。
-2. **真实 DHCP 标签。** range的`set:lan`、条件广播和忽略名字、实际`dhcp-name-match`规则均已接线。配置C差分114项合同匹配；8项已知未支持边界单列。
-3. **DHCP 接口与发送选择。** `no-dhcp-interface`、标签广播和名字策略实包13/13一致。最终E2E发现option28差异，已改为读取实际内核广播属性，保留显式非标准广播地址；修后原闭环通过。
-4. **目录 hosts。** 加载`/tmp/hosts`中的实际生成文件，保留文件顺序与排除规则，原配置下租约/本地回答正常。
-5. **实际 DNS 策略。** `domain-needed`、`bogus-priv`、`localise-queries`已实现，和目录hosts一起完成UDP/TCP 38/38对照。
-6. **接口监听与来源限制。** `bind-dynamic`、`local-service`、IPv6 scope、地址增删和退出清理26/26一致。
-7. **进程身份与 PID。** 按原用户/组降权、保留所需能力、PID文件和清理6/6一致。修复了no-ping时多留能力、debug退出不删除PID两处差异。
-8. **原配置端到端对照。** 最终`rust-e2e-02`对`c-e2e-06`通过：2个DHCP回复、4次DNS、租约、身份、UBus、各上游端点次数和退出码均一致。
-
-这是一篇大块完成报告，具体范围、身份和失败记录见 [实际配置阶段报告](ACTUAL_CONFIG_STAGE.md)。不再追加逐个复验报告。
+北极星冒烟曾用实际 UCI 配置完成单客户端 DORA、租约文件、DNS 查询和 UBus 注册；它使用旧 debug Rust 与构建机 C，仅作为起点，不替代 M2–M7 验收。完整过程、原始身份和失败记录见 [ACTUAL_CONFIG_STAGE.md](ACTUAL_CONFIG_STAGE.md)。
 
 ## 实现与验证状态
 
