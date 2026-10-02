@@ -13,6 +13,7 @@ import signal
 import socket
 import struct
 import subprocess
+import sys
 import time
 import traceback
 
@@ -57,7 +58,9 @@ config dhcp 'lan'
  option leasetime '2m'
  option dhcpv4 'server'
  option dhcpv6 'server'
- option ra 'disabled'
+ option ra 'server'
+ option ra_management '1'
+ option ra_default '1'
  option force '1'
 config odhcpd 'odhcpd'
  option maindhcp '0'
@@ -66,6 +69,124 @@ config odhcpd 'odhcpd'
  option leasetrigger '/usr/sbin/odhcpd-update'
  option loglevel '7'
 """
+
+
+def dhcp6_option(code, payload):
+    """Encode one DHCPv6 option (RFC 8415 section 21)."""
+    return struct.pack('!HH', code, len(payload)) + payload
+
+
+def dhcp6_fqdn(hostname):
+    """Encode the DHCPv6 Client FQDN option with a DNS wire name."""
+    labels = hostname.rstrip('.').split('.')
+    wire = b''.join(bytes([len(label)]) + label.encode('ascii') for label in labels) + b'\0'
+    return dhcp6_option(39, b'\0' + wire)
+
+
+def dhcp6_ia_na(iaid):
+    # T1/T2 zero asks the server to choose them. No IAADDR is included in the
+    # Request; the server's Advertise binding is selected by server-id.
+    return dhcp6_option(3, struct.pack('!III', iaid, 0, 0))
+
+
+def dhcp6_options(packet):
+    """Return a bounded list of (code, value) pairs from a DHCPv6 packet."""
+    out, offset = [], 4
+    while offset + 4 <= len(packet):
+        code, length = struct.unpack_from('!HH', packet, offset)
+        offset += 4
+        if offset + length > len(packet):
+            break
+        out.append((code, packet[offset:offset + length]))
+        offset += length
+    return out
+
+
+# This runs in the client network namespace created by actual_config_network.py.
+# Keeping the exchange here makes the server the image's own odhcpd and avoids
+# replacing it with a host DHCPv6 implementation. The fixed DUID and FQDN make
+# C/Rust lifecycle runs directly comparable.
+DHCP6_CLIENT = r'''
+import json, socket, struct
+
+IFACE = "client0"
+IFINDEX = socket.if_nametoindex(IFACE)
+DUID = bytes.fromhex("00030001020000000006")
+IAID = 0x4d320001
+HOST = "m2-dhcp6"
+
+def opt(code, payload):
+    return struct.pack("!HH", code, len(payload)) + payload
+
+def fqdn(name):
+    wire = b"".join(bytes((len(label),)) + label.encode("ascii")
+                    for label in name.split(".")) + b"\0"
+    return opt(39, b"\0" + wire)
+
+def ia_na():
+    return opt(3, struct.pack("!III", IAID, 0, 0))
+
+def parse_options(packet):
+    result, offset = [], 4
+    while offset + 4 <= len(packet):
+        code, length = struct.unpack_from("!HH", packet, offset)
+        offset += 4
+        if offset + length > len(packet):
+            break
+        result.append((code, packet[offset:offset + length]))
+        offset += length
+    return result
+
+def first(options, code):
+    return next((value for option, value in options if option == code), None)
+
+def send(sock, packet):
+    sock.sendto(packet, ("ff02::1:2", 547, 0, IFINDEX))
+
+sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
+sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_IF, IFINDEX)
+sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, 1)
+sock.bind(("fe80::2", 546, 0, IFINDEX))
+txid = b"\x4d\x32\x01"
+common = opt(1, DUID) + ia_na() + fqdn(HOST)
+solicit = b"\x01" + txid + common
+send(sock, solicit)
+sock.settimeout(5)
+advertise = None
+while True:
+    packet, peer = sock.recvfrom(4096)
+    if len(packet) >= 4 and packet[0] == 2 and packet[1:4] == txid:
+        advertise = packet
+        break
+if advertise is None:
+    raise RuntimeError("odhcpd did not advertise")
+serverid = first(parse_options(advertise), 2)
+if not serverid:
+    raise RuntimeError("advertise has no server-id")
+request = b"\x03" + txid + opt(1, DUID) + opt(2, serverid) + ia_na() + fqdn(HOST)
+send(sock, request)
+reply = None
+while True:
+    packet, peer = sock.recvfrom(4096)
+    if len(packet) >= 4 and packet[0] == 7 and packet[1:4] == txid:
+        reply = packet
+        break
+if reply is None:
+    raise RuntimeError("odhcpd did not reply")
+ia = first(parse_options(reply), 3)
+address = None
+if ia:
+    for code, value in parse_options(b"\0\0\0\0" + ia[12:]):
+        if code == 5 and len(value) >= 16:
+            address = socket.inet_ntop(socket.AF_INET6, value[:16])
+            break
+if not address:
+    raise RuntimeError("reply has no IA_NA address")
+print(json.dumps({"address": address, "hostname": HOST,
+                  "advertise_type": advertise[0], "reply_type": reply[0],
+                  "packets": {"solicit": solicit.hex(), "advertise": advertise.hex(),
+                              "request": request.hex(), "reply": reply.hex()}}))
+'''
 
 
 class Scenario:
@@ -161,19 +282,58 @@ class Scenario:
     def daemon_pid(self):
         return int((self.root / 'var/run/dnsmasq/dnsmasq.m2.pid').read_text())
 
+    @staticmethod
+    def _descendants(pid):
+        """Yield descendants from the host-visible proc tree."""
+        pending, seen = [pid], set()
+        while pending:
+            current = pending.pop()
+            if current in seen:
+                continue
+            seen.add(current)
+            children = Path('/proc') / str(current) / 'task' / str(current) / 'children'
+            try:
+                values = [int(value) for value in children.read_text().split()]
+            except (FileNotFoundError, ProcessLookupError, ValueError):
+                values = []
+            pending.extend(values)
+            yield current
+
     def live_dnsmasq(self):
-        pid = self.daemon_pid()
-        proc = Path('/proc') / str(pid)
+        wrapper_pid = self.daemon_pid()
+        wrapper_proc = Path('/proc') / str(wrapper_pid)
+        daemon_pid = None
+        daemon_proc = None
+        for candidate in self._descendants(wrapper_pid):
+            proc = Path('/proc') / str(candidate)
+            try:
+                executable = os.readlink(proc / 'exe')
+            except (FileNotFoundError, ProcessLookupError):
+                continue
+            if executable.endswith('/usr/sbin/dnsmasq'):
+                daemon_pid, daemon_proc = candidate, proc
+                break
         expected = sha256(self.root / 'usr/sbin/dnsmasq')
-        actual = sha256(proc / 'exe')
-        # ujail creates a nested mount root. Verify the actual ELF and musl
-        # dependency bytes through that process root as well as its PID/cmdline.
-        return {'pid': pid, 'root': os.readlink(proc / 'root'), 'sha256': actual,
-                'expected_sha256': expected,
-                'exe': os.readlink(proc / 'exe'),
-                'cmdline': (proc / 'cmdline').read_bytes().replace(b'\0', b' ').decode(),
-                'maps': (proc / 'maps').read_text(),
-                'musl_sha256': sha256(proc / 'root/lib/libc.so') if (proc / 'root/lib/libc.so').exists() else None}
+        actual = sha256(daemon_proc / 'exe') if daemon_proc else None
+        identity = {
+            'pid': wrapper_pid,
+            'wrapper_pid': wrapper_pid,
+            'inner_pid': daemon_pid,
+            'root': os.readlink(daemon_proc / 'root') if daemon_proc else os.readlink(wrapper_proc / 'root'),
+            'sha256': actual,
+            'expected_sha256': expected,
+            'exe': os.readlink(daemon_proc / 'exe') if daemon_proc else None,
+            'cmdline': (daemon_proc / 'cmdline').read_bytes().replace(b'\0', b' ').decode()
+                       if daemon_proc else None,
+            'wrapper_exe': os.readlink(wrapper_proc / 'exe'),
+            'wrapper_cmdline': wrapper_proc.joinpath('cmdline').read_bytes().replace(b'\0', b' ').decode(),
+            'maps': (daemon_proc / 'maps').read_text() if daemon_proc else '',
+            'wrapper_maps': wrapper_proc.joinpath('maps').read_text(),
+            'musl_sha256': sha256(daemon_proc / 'root/lib/libc.so')
+                           if daemon_proc and (daemon_proc / 'root/lib/libc.so').exists() else None,
+            'identity_matches_expected': actual == expected,
+        }
+        return identity
 
     def execute(self):
         result = {'implementation': self.args.implementation, 'steps': {}, 'support': {}}
@@ -197,6 +357,7 @@ class Scenario:
             raise error
         first = self.live_dnsmasq()
         result['initial_process'] = first
+        result['steps']['initial_identity_matches_expected'] = first['identity_matches_expected']
         result['generated_config'] = (self.root / 'var/etc/dnsmasq.conf.m2').read_text()
         result['service'] = self.bus('service', 'list', {'name': 'dnsmasq', 'verbose': True})
         result['steps']['dhcp_range_generated'] = 'dhcp-range=' in result['generated_config']
@@ -217,10 +378,10 @@ class Scenario:
                 'log': (self.root / 'tmp/dnsmasq.log').read_text(errors='replace') if (self.root / 'tmp/dnsmasq.log').exists() else '',
             }
             raise
-        result['steps']['sighup_keeps_pid'] = self.daemon_pid() == first['pid']
+        result['steps']['sighup_keeps_pid'] = self.daemon_pid() == first['wrapper_pid']
         self.run('/etc/init.d/dnsmasq', 'reload')
         result['steps']['init_reload_hosts'] = self.expect_dns('lifecycle.lan', '192.0.2.52')
-        result['steps']['init_reload_keeps_pid'] = self.daemon_pid() == first['pid']
+        result['steps']['init_reload_keeps_pid'] = self.daemon_pid() == first['wrapper_pid']
         sid = self.bus('session', 'create', {'timeout': 300})['ubus_rpc_session']
         self.bus('session', 'grant', {'ubus_rpc_session': sid, 'scope': 'uci', 'objects': [['dhcp', 'read'], ['dhcp', 'write']]})
         before = (self.root / 'etc/config/dhcp').read_bytes()
@@ -232,8 +393,11 @@ class Scenario:
         self.bus('uci', 'apply', {'ubus_rpc_session': sid, 'rollback': False})
         result['steps']['uci_apply_dns'] = self.expect_dns('uci.m2', '192.0.2.60')
         result['steps']['uci_apply_committed'] = b'/uci.m2/192.0.2.60' in (self.root / 'etc/config/dhcp').read_bytes()
-        result['steps']['uci_apply_restarted'] = self.daemon_pid() != first['pid']
+        result['steps']['uci_apply_restarted'] = self.daemon_pid() != first['wrapper_pid']
         result['after_apply_process'] = self.live_dnsmasq()
+        result['steps']['identity_matches_expected'] = (
+            first['identity_matches_expected'] and
+            result['after_apply_process']['identity_matches_expected'])
         if not self.args.skip_odhcpd:
             self.odhcpd(result)
         self.run('/etc/init.d/dnsmasq', 'stop')
@@ -242,10 +406,40 @@ class Scenario:
         result['passed'] = all(v is not False for v in result['steps'].values())
         return result
 
+    def dhcp6_exchange(self):
+        """Run a real DHCPv6 client in the isolated client network namespace."""
+        client_pid = os.environ.get('DNSMASQ_CLIENT_PID')
+        if not client_pid:
+            raise AssertionError('DNSMASQ_CLIENT_PID is required for DHCPv6 publication')
+
+        # actual_config_network.py leaves the client peer unnumbered. Give it
+        # a deterministic link-local source address in its own namespace. The
+        # router-side address remains the one configured and owned by netifd.
+        for command_args in [
+                ('ip', '-6', 'addr', 'replace', 'fe80::2/64', 'dev', 'client0', 'nodad'),
+                ('ip', 'link', 'set', 'client0', 'up')]:
+            result = subprocess.run(['nsenter', '-t', client_pid, '-n', *command_args],
+                                    capture_output=True, text=True, timeout=10)
+            if result.returncode:
+                raise AssertionError({'command': command_args, 'rc': result.returncode,
+                                      'stdout': result.stdout, 'stderr': result.stderr})
+
+        result = subprocess.run(
+            ['nsenter', '-t', client_pid, '-n', sys.executable, '-c', DHCP6_CLIENT],
+            capture_output=True, text=True, timeout=20)
+        if result.returncode:
+            raise AssertionError({'command': 'DHCPv6 client', 'rc': result.returncode,
+                                  'stdout': result.stdout, 'stderr': result.stderr})
+        try:
+            return json.loads(result.stdout)
+        except json.JSONDecodeError as error:
+            raise AssertionError({'command': 'DHCPv6 client', 'stdout': result.stdout,
+                                  'stderr': result.stderr}) from error
+
     def odhcpd(self, result):
-        # Exercise the image's own odhcpd init path. The exact captured UCI
-        # profile may set maindhcp=0, in which case no lease publication is
-        # expected; record that boundary instead of synthesizing a hosts file.
+        # Exercise the image's own odhcpd init path and real DHCPv6 lease
+        # publication. The hosts file is accepted only after an IA_NA Reply
+        # carrying the same client FQDN; this test never writes it directly.
         before = {
             str(path.relative_to(self.root / 'tmp/hosts')): path.read_bytes()
             for path in (self.root / 'tmp/hosts').glob('*') if path.is_file()
@@ -255,18 +449,32 @@ class Scenario:
         result['odhcpd_start'] = {'rc': started.returncode, 'stdout': started.stdout,
                                   'stderr': started.stderr}
         if started.returncode == 0:
-            time.sleep(.5)
-            after = {
-                str(path.relative_to(self.root / 'tmp/hosts')): path.read_bytes()
-                for path in (self.root / 'tmp/hosts').glob('*') if path.is_file()
-            }
+            lease = self.dhcp6_exchange()
+            result['odhcpd_dhcpv6'] = lease
+            for name, packet in lease.get('packets', {}).items():
+                (self.out / f'dhcp6-{name}.hex').write_text(packet + '\n')
+
+            def published_hosts():
+                entries = {
+                    str(path.relative_to(self.root / 'tmp/hosts')): path.read_bytes()
+                    for path in (self.root / 'tmp/hosts').glob('*') if path.is_file()
+                }
+                return entries if any(
+                    lease['hostname'] in content.decode(errors='replace') and
+                    lease['address'] in content.decode(errors='replace')
+                    for content in entries.values()) else None
+
+            after = self.wait(published_hosts, 'odhcpd hosts publication', seconds=10)
             result['odhcpd_hosts_before'] = {key: value.decode(errors='replace') for key, value in before.items()}
             result['odhcpd_hosts_after'] = {key: value.decode(errors='replace') for key, value in after.items()}
-            result['steps']['odhcpd_hosts_unchanged_without_dhcpv6'] = before == after
-            # M2 requires an actual odhcpd lease publication observation. A
-            # maindhcp=0 profile that merely starts cleanly does not satisfy
-            # that exit condition, so keep this explicit red boundary.
+            result['odhcpd_host_contents'] = {
+                key: value.decode(errors='replace') for key, value in after.items()
+            }
+            leasefile = self.root / 'tmp/odhcpd.leases'
+            result['odhcpd_leasefile'] = leasefile.read_text(errors='replace') if leasefile.exists() else ''
             result['steps']['odhcpd_publication'] = before != after
+            result['steps']['odhcpd_dns_publication'] = self.expect_dns(
+                lease['hostname'], lease['address'], kind=28)
             self.run('/etc/init.d/odhcpd', 'stop', check=False)
         return result['steps'].get('odhcpd_publication', False)
 
