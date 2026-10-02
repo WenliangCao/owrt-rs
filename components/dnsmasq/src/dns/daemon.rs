@@ -825,6 +825,17 @@ impl<R: Random> DnsDaemon<R> {
         now: i64,
         external_local: Option<&mut LocalDnsService>,
     ) -> Result<CachedAnswer, DaemonError> {
+        self.cached_answer_at_with_local_limit(query, question, now, external_local, self.max_udp)
+    }
+
+    fn cached_answer_at_with_local_limit(
+        &mut self,
+        query: &[u8],
+        question: &super::forward::Question,
+        now: i64,
+        external_local: Option<&mut LocalDnsService>,
+        max_udp: usize,
+    ) -> Result<CachedAnswer, DaemonError> {
         let Some(cache) = self.cache.as_mut() else {
             return Ok(CachedAnswer {
                 packet: None,
@@ -842,14 +853,13 @@ impl<R: Random> DnsDaemon<R> {
             question,
             now,
             external_local.unwrap_or(&mut self.local),
-            self.max_udp,
+            max_udp,
             self.edns_packet_max,
         )
         .map_err(Into::into)
     }
 
-    #[cfg(test)]
-    fn cache_reply_at(&mut self, packet: &[u8], now: i64) {
+    pub fn cache_tcp_reply(&mut self, packet: &[u8], now: i64) {
         let Ok(header) = Header::parse(packet) else {
             return;
         };
@@ -870,6 +880,22 @@ impl<R: Random> DnsDaemon<R> {
             header.rcode().into(),
             OrdinaryCacheMode::Commit,
         );
+    }
+
+    pub fn cached_tcp_answer(
+        &mut self,
+        query: &[u8],
+        local: &mut LocalDnsService,
+        now: i64,
+    ) -> Result<Option<Vec<u8>>, DaemonError> {
+        let question = super::forward::Question::parse(query).map_err(DaemonError::Wire)?;
+        self.cached_answer_at_with_local_limit(query, &question, now, Some(local), 65536)
+            .map(|answer| answer.packet)
+    }
+
+    #[cfg(test)]
+    fn cache_reply_at(&mut self, packet: &[u8], now: i64) {
+        self.cache_tcp_reply(packet, now);
     }
 }
 

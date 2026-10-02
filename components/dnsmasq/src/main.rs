@@ -43,9 +43,7 @@ use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread;
-use std::time::{Duration, Instant};
-#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 static STOP_REQUESTED: AtomicBool = AtomicBool::new(false);
 static RELOAD_REQUESTED: AtomicBool = AtomicBool::new(false);
@@ -53,6 +51,12 @@ static DEBUG_MODE: AtomicBool = AtomicBool::new(false);
 // SIGHUP is 1 on the supported Linux and Darwin hosts.
 const SIGHUP: i32 = 1;
 const STOP_CHECK_INTERVAL: Duration = Duration::from_millis(100);
+
+fn now_seconds() -> i64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_or(0, |time| time.as_secs() as i64)
+}
 
 extern "C" fn request_stop(_signal: i32) {
     STOP_REQUESTED.store(true, Ordering::Release);
@@ -1136,6 +1140,7 @@ impl DnsWorkers {
                 })?,
         );
         let tcp_service = Arc::clone(&self.service);
+        let tcp_parent = Arc::clone(&self.service);
         let tcp_events = Arc::clone(&self.parent_events);
         let tcp_resolvers = self.resolvers.clone();
         let tcp_edns_max = self.edns_max;
@@ -1242,92 +1247,122 @@ impl DnsWorkers {
                                 Ok(service) => service,
                                 Err(_) => continue,
                             };
-                        let client =
-                            thread::Builder::new()
-                                .name("dns-tcp-client".into())
-                                .spawn(move || {
-                                    let _permit = permit;
-                                    let mut stream = stream;
-                                    let deadline = Instant::now() + Duration::from_secs(150);
-                                    let mut framer = TcpFramer::with_max_frame(packet_limit);
-                                    let mut input = [0u8; 4096];
-                                    let mut queries = 0usize;
-                                    'connection: while let Some(remaining) =
-                                        deadline.checked_duration_since(Instant::now())
+                        let client_parent = Arc::clone(&tcp_parent);
+                        let client = thread::Builder::new().name("dns-tcp-client".into()).spawn(
+                            move || {
+                                let _permit = permit;
+                                let mut stream = stream;
+                                let deadline = Instant::now() + Duration::from_secs(150);
+                                let mut framer = TcpFramer::with_max_frame(packet_limit);
+                                let mut input = [0u8; 4096];
+                                let mut queries = 0usize;
+                                'connection: while let Some(remaining) =
+                                    deadline.checked_duration_since(Instant::now())
+                                {
+                                    if remaining.is_zero() || STOP_REQUESTED.load(Ordering::Acquire)
                                     {
-                                        if remaining.is_zero()
-                                            || STOP_REQUESTED.load(Ordering::Acquire)
-                                        {
-                                            break;
+                                        break;
+                                    }
+                                    if stream
+                                        .set_read_timeout(Some(remaining.min(STOP_CHECK_INTERVAL)))
+                                        .is_err()
+                                    {
+                                        break;
+                                    }
+                                    let count = match stream.read(&mut input) {
+                                        Err(error) if retry_tcp_io(&error) => continue,
+                                        Ok(0) | Err(_) => break,
+                                        Ok(count) => count,
+                                    };
+                                    let mut offset = 0;
+                                    while offset < count {
+                                        let (consumed, query) =
+                                            match framer.push_frame(&input[offset..count]) {
+                                                Ok(result) => result,
+                                                Err(_) => break 'connection,
+                                            };
+                                        offset += consumed;
+                                        let Some(query) = query else { continue };
+                                        // C ignores short headers and QR
+                                        // packets before its query counter.
+                                        if query.len() < 12 || query[2] & 0x80 != 0 {
+                                            continue;
                                         }
-                                        if stream
-                                            .set_read_timeout(Some(
-                                                remaining.min(STOP_CHECK_INTERVAL),
-                                            ))
-                                            .is_err()
-                                        {
-                                            break;
+                                        queries += 1;
+                                        if queries > 100 {
+                                            break 'connection;
                                         }
-                                        let count = match stream.read(&mut input) {
-                                            Err(error) if retry_tcp_io(&error) => continue,
-                                            Ok(0) | Err(_) => break,
-                                            Ok(count) => count,
+                                        if query.len() > packet_limit {
+                                            break 'connection;
+                                        }
+                                        let cached = if let Ok(mut parent) = client_parent.lock() {
+                                            parent
+                                                .daemon
+                                                .as_mut()
+                                                .expect("DNS listener owns the forwarder")
+                                                .cached_tcp_answer(
+                                                    &query,
+                                                    &mut service,
+                                                    now_seconds(),
+                                                )
+                                        } else {
+                                            break 'connection;
                                         };
-                                        let mut offset = 0;
-                                        while offset < count {
-                                            let (consumed, query) =
-                                                match framer.push_frame(&input[offset..count]) {
-                                                    Ok(result) => result,
-                                                    Err(_) => break 'connection,
-                                                };
-                                            offset += consumed;
-                                            let Some(query) = query else { continue };
-                                            // C ignores short headers and QR
-                                            // packets before its query counter.
-                                            if query.len() < 12 || query[2] & 0x80 != 0 {
-                                                continue;
-                                            }
-                                            queries += 1;
-                                            if queries > 100 {
-                                                break 'connection;
-                                            }
-                                            if query.len() > packet_limit {
-                                                break 'connection;
-                                            }
-                                            let answer = match service.handle_tcp_payload(&query) {
+                                        let answer = match cached {
+                                            Ok(Some(answer)) => answer,
+                                            Ok(None) => match service.handle_tcp_payload(&query) {
                                                 Ok(Some(answer)) => answer,
                                                 Ok(None) | Err(_) => {
-                                                    match forward.handle_with_local(
+                                                    match forward.handle_with_local_upstream(
                                                         &query,
                                                         &service,
                                                         deadline,
                                                         &|| STOP_REQUESTED.load(Ordering::Acquire),
                                                     ) {
-                                                        Ok(answer) => answer,
+                                                        Ok((answer, from_upstream)) => {
+                                                            if from_upstream {
+                                                                if let Ok(mut parent) =
+                                                                    client_parent.lock()
+                                                                {
+                                                                    if let Some(daemon) =
+                                                                        parent.daemon.as_mut()
+                                                                    {
+                                                                        daemon.cache_tcp_reply(
+                                                                            &answer,
+                                                                            now_seconds(),
+                                                                        );
+                                                                    }
+                                                                }
+                                                            }
+                                                            answer
+                                                        }
                                                         Err(_) => break 'connection,
                                                     }
                                                 }
-                                            };
-                                            let Ok(frame) = encode_tcp_frame(&answer) else {
-                                                break 'connection;
-                                            };
-                                            let Some(remaining) =
-                                                deadline.checked_duration_since(Instant::now())
-                                            else {
-                                                break 'connection;
-                                            };
-                                            if remaining.is_zero()
-                                                || write_frame_until(&mut stream, &frame, deadline)
-                                                    .is_err()
-                                            {
-                                                break 'connection;
-                                            }
-                                            if queries == 100 {
-                                                break 'connection;
-                                            }
+                                            },
+                                            Err(_) => break 'connection,
+                                        };
+                                        let Ok(frame) = encode_tcp_frame(&answer) else {
+                                            break 'connection;
+                                        };
+                                        let Some(remaining) =
+                                            deadline.checked_duration_since(Instant::now())
+                                        else {
+                                            break 'connection;
+                                        };
+                                        if remaining.is_zero()
+                                            || write_frame_until(&mut stream, &frame, deadline)
+                                                .is_err()
+                                        {
+                                            break 'connection;
+                                        }
+                                        if queries == 100 {
+                                            break 'connection;
                                         }
                                     }
-                                });
+                                }
+                            },
+                        );
                         if let Ok(client) = client {
                             clients.push(client);
                         }

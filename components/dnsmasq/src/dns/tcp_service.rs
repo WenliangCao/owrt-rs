@@ -85,6 +85,7 @@ impl TcpDnsService {
         stopped: &dyn Fn() -> bool,
     ) -> Result<Vec<u8>, TcpServiceError> {
         self.handle_inner(query, None, deadline, stopped)
+            .map(|(packet, _)| packet)
     }
 
     /// Use the downstream connection's local-name snapshot for the C
@@ -97,6 +98,20 @@ impl TcpDnsService {
         stopped: &dyn Fn() -> bool,
     ) -> Result<Vec<u8>, TcpServiceError> {
         self.handle_inner(query, Some(local), deadline, stopped)
+            .map(|(packet, _)| packet)
+    }
+
+    /// Return whether the response came from the upstream TCP exchange. The
+    /// parent daemon uses this bit to commit the response into its shared
+    /// cache; local answers remain connection-local.
+    pub fn handle_with_local_upstream(
+        &mut self,
+        query: &[u8],
+        local: &LocalDnsService,
+        deadline: Instant,
+        stopped: &dyn Fn() -> bool,
+    ) -> Result<(Vec<u8>, bool), TcpServiceError> {
+        self.handle_inner(query, Some(local), deadline, stopped)
     }
 
     fn handle_inner(
@@ -105,19 +120,19 @@ impl TcpDnsService {
         local: Option<&LocalDnsService>,
         deadline: Instant,
         stopped: &dyn Fn() -> bool,
-    ) -> Result<Vec<u8>, TcpServiceError> {
+    ) -> Result<(Vec<u8>, bool), TcpServiceError> {
         let header = Header::parse(query)?;
         if header.flags & 0x8000 != 0 {
             return Err(TcpServiceError::InvalidQuery);
         }
         if let Some(reply) = query_error(query)? {
-            return Ok(reply);
+            return Ok((reply, false));
         }
         if let Some(packet) =
             self.query_policy
                 .reply(query, &self.routing, local, self.edns_packet_max, true)?
         {
-            return Ok(packet);
+            return Ok((packet, false));
         }
         let question = Question::parse(query, 12)?;
         let route = self
@@ -125,9 +140,10 @@ impl TcpDnsService {
             .select(&question.name, question.qtype, question.class, false);
         let Some(group) = route.upstream_group() else {
             return match route.reason {
-                RouteReason::NoMatchingRule => {
-                    Ok(refusal(query, self.edns_packet_max, 14, TCP_LIMIT, true)?)
-                }
+                RouteReason::NoMatchingRule => Ok((
+                    refusal(query, self.edns_packet_max, 14, TCP_LIMIT, true)?,
+                    false,
+                )),
                 _ => Err(TcpServiceError::LocalRouteNotAnswered),
             };
         };
@@ -140,10 +156,12 @@ impl TcpDnsService {
                 self.edns_packet_max,
                 local,
                 Some(&self.routing),
-            ),
-            Err(TcpError::NoReply) => {
-                Ok(refusal(query, self.edns_packet_max, 23, TCP_LIMIT, true)?)
-            }
+            )
+            .map(|packet| (packet, true)),
+            Err(TcpError::NoReply) => Ok((
+                refusal(query, self.edns_packet_max, 23, TCP_LIMIT, true)?,
+                false,
+            )),
             Err(error) => Err(TcpServiceError::Transport(error)),
         }
     }
