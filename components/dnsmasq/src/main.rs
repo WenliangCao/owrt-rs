@@ -1085,9 +1085,23 @@ impl SinglePoll {
             event.local_answered,
         );
         event.process_ubus(&metrics);
-        let responses = daemon
-            .poll_with_local(Duration::ZERO, local)
-            .unwrap_or_default();
+        let responses = if event
+            .ubus
+            .as_ref()
+            .is_some_and(UbusService::dns_has_subscribers)
+        {
+            let mut doctor = |name: &[u8], ttl, address, cache, forward| {
+                write_dns_metrics(&mut metrics, cache, forward, event.local_answered);
+                event.doctor(&DnsResult { name, ttl, address }, &metrics)
+            };
+            daemon
+                .poll_with_local_doctor(Duration::ZERO, local, &mut doctor)
+                .unwrap_or_default()
+        } else {
+            daemon
+                .poll_with_local(Duration::ZERO, local)
+                .unwrap_or_default()
+        };
         drop(parent);
         for response in responses {
             let Some(response_token) = response.listener else {
