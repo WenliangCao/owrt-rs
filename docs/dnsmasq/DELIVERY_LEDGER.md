@@ -18,7 +18,7 @@
 
 本轮最多四个子代理，M1按进程权限、DNS/监听并发、DHCP/ethers/netlink、整合回归分工；审查人与前一轮实现者分离。确认问题后按文件归属修复，主代理整合。一次红色结果先原样复跑确认，失败证据保留。普通修复单元+一次受影响C差分；解析器、租约状态机、缓存一致性、权限与资源边界保留独立复核、负向对照和回归集。M1 已完成，报告为 [M1_REVIEW_REPORT.md](M1_REVIEW_REPORT.md)，当前进入 M2。
 
-M2 当前进度：DHCP 四组镜像 C/Rust 对照已完成且零差异（actual20、static-ethers、expiry120、ping-conflict），解析器有界差分已完成；精确镜像 init/procd/ujail 生命周期仍有 fixture 阻塞，不能算通过。DNS TCP/cache 场景发现真实产品缺口：Rust TCP 服务未使用共享父缓存；该缺口已在 `5d3c141` 修复，等待 exact-image musl release 重跑 TCP 及 UDP↔TCP 场景。
+M2 当前进度：DHCP 四组镜像 C/Rust 对照已完成且零差异（actual20、static-ethers、expiry120、ping-conflict），解析器有界差分已完成；精确镜像 init/procd/ujail 生命周期仍有 fixture 阻塞，不能算通过。DNS TCP/cache 场景发现真实产品缺口：Rust TCP 服务未使用共享父缓存；`5d3c141`/`cec2e34` 已加入父缓存、TCP响应上限和缓存资格过滤，等待 exact-image musl release 重跑 TCP 及 UDP↔TCP 场景。
 
 
 新证据统一在 `private/dnsmasq-rewrite/evidence/M1/`，后续依次M2等目录。旧证据保留来源，不往工作树内新增证据。实验分支48小时内合入或以`archive/` tag保留后删除；工作树完成后先保全证据再移除。用户`docs/prompts/`的修改保留。本账本按日更新，每里程碑只写一篇报告。
