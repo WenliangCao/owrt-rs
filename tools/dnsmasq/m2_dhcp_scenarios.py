@@ -598,7 +598,11 @@ def comparable(result):
             value['metrics'] = item['metrics']
         rows.append(value)
     return {'events': rows, 'initial_metrics': result.get('initial_metrics'), 'final_metrics': result.get('final_metrics'),
-            'stops': result['stops'], 'conflict_ping_verified': result.get('conflict_ping_verified')}
+            # Cleanup paths identify each disposable rootfs and therefore are
+            # intentionally excluded from the C/Rust semantic comparison.
+            'stops': [{key: value for key, value in stop.items() if key != 'removed_paths'}
+                      for stop in result['stops']],
+            'conflict_ping_verified': result.get('conflict_ping_verified')}
 
 
 def compare(args):
