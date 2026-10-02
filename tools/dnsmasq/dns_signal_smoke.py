@@ -55,7 +55,7 @@ def main() -> int:
         "--signal",
         choices=("SIGTERM", "SIGINT"),
         default="SIGTERM",
-        help="shutdown signal to exercise",
+        help="signal to exercise; foreground SIGINT is followed by SIGTERM",
     )
     args = parser.parse_args()
     if not math.isfinite(args.timeout) or args.timeout <= 0:
@@ -149,6 +149,17 @@ def main() -> int:
             time.sleep(0.1)
             start = time.monotonic()
             process.send_signal(getattr(signal, args.signal))
+            if args.signal == "SIGINT":
+                # Matching C ignores SIGINT in -k mode. Confirm the same
+                # established connection still serves before orderly shutdown.
+                time.sleep(0.25)
+                assert process.poll() is None, "foreground SIGINT exited the daemon"
+                client.sendall(frame)
+                check_answer(client, 0x2345)
+                result["checks_passed"] += 1
+                result["sigint_kept_serving"] = True
+                process.send_signal(signal.SIGTERM)
+                start = time.monotonic()
             process.wait(timeout=args.timeout)
             result["exit_code"] = process.returncode
             result["shutdown_seconds"] = time.monotonic() - start
