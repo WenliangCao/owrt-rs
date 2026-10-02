@@ -16,6 +16,6 @@
 
 Rust 的额外线程来自独立 DNS UDP worker、DNS TCP accept/worker、DHCP listener 以及 UBus/事件处理所需的并发执行上下文；C 将这些路径合并在单一事件循环。额外 RSS 主要是线程栈、同步对象和每个 worker 的接收/响应缓冲，表现为约 392 KiB 的中位数 PSS 差和 5 个常驻线程。M4 可评估把空闲 worker 合并为事件循环或降低线程栈保留，但在 M4 前不改变实现。
 
-压力子门按用户的限时纠偏关闭：旧工具要求 native/glibc C 和预构建 ubus 依赖，无法在本轮 exact-image musl C 上启动；新增 exact-image probe 也在 daemon readiness 阶段失败。限时到达后采用已有源码编译 C 证据：EMFILE 17 项 TCP accept 恢复对照，以及 `dhcp_lease_lifecycle` 的 ENOSPC lease 写入、60 秒重试和恢复场景。该替代证据明确不是镜像 ELF，原因是旧压力工具的 C/ubus 辅助程序绑定 native build 依赖，无法代表设备镜像；它只证明同一源码的故障边界，不增加 image-ELF 身份结论。原始失败记录保留在 `private/dnsmasq-rewrite/evidence/M3/pressure-*`。
+压力子门已用同一 exact image musl C/Rust runner 完成：5 分钟 smoke 通过，随后 ENOSPC 和 EMFILE 各自正式执行一次，结果均 accepted。ENOSPC 观察到满盘期间无 durable lease row，释放空间后约 60 秒重试恢复；EMFILE 观察到 FD 压力下无回复、daemon 存活，恢复 limit 后同一连接回包。原始证据在 `private/dnsmasq-rewrite/evidence/M3/m3-pressure-smoke2-1790977374/`、`m3-pressure-formal-enospc-1790977511/` 和 `m3-pressure-formal-emfile-1790977632/`，C SHA `097a9e21…cab87`，Rust SHA `8cd25e32…f851`。旧 native/glibc 工具失败记录仍保留。
 
-M3 资源长跑和压力替代证据均已记录，M3 收尾完成。物理路由器未操作。
+M3 资源长跑和两个 exact-image 压力门均已记录，M3 收尾完成。物理路由器未操作。
