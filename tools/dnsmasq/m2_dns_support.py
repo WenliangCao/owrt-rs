@@ -196,7 +196,7 @@ class Product:
             time.sleep(.01)
         profile = image_path(self.root, f'm2/{self.out.name}.conf')
         policy_line = 'all-servers\n' if self.policy == 'all-servers' else 'strict-order\n'
-        config = ('no-hosts\nno-resolv\nlisten-address=127.0.0.1\nport=15353\n'
+        config = ('no-hosts\nno-resolv\nlisten-address=127.0.0.1\ninterface=lo\nport=15353\n'
                   'cache-size=4096\nlocal-ttl=120\n' + policy_line +
                   'neg-ttl=3\n'
                   'host-record=desktop.home.test,192.0.2.10,2001:db8::10\n'
