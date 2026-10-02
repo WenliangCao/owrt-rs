@@ -405,6 +405,9 @@ class Scenario:
         if not self.args.skip_odhcpd:
             self.odhcpd(result)
         self.run('/etc/init.d/dnsmasq', 'stop')
+        result['service_after_stop'] = self.service_debug()
+        result['pidfile_after_stop'] = (self.root / 'var/run/dnsmasq/dnsmasq.m2.pid').read_text(errors='replace') \
+            if (self.root / 'var/run/dnsmasq/dnsmasq.m2.pid').exists() else None
         self.wait(lambda: not (self.root / 'var/run/dnsmasq/dnsmasq.m2.pid').exists(), 'dnsmasq stopped')
         result['steps']['init_stop_pid_removed'] = True
         result['passed'] = all(v is not False for v in result['steps'].values())
