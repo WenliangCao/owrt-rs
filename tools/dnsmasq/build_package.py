@@ -158,7 +158,6 @@ def audit_metadata(metadata):
                 f"APK metadata {field} does not identify {expected}")
     for field, values in {
         "provides": ("dnsmasq-any",),
-        "conflicts": ("dnsmasq-dhcpv6", "dnsmasq-full"),
         "depends": ("libc", "libubus20251202"),
     }.items():
         block = re.search(rf"^  {field}:.*?(?=^  [a-z]|^# data block|\Z)", metadata,
@@ -167,7 +166,11 @@ def audit_metadata(metadata):
                               for value in values), f"APK metadata {field} misses required entries")
     return {"name": PACKAGE, "version": PACKAGE_ID,
             "arch": ARCH, "provides": ["dnsmasq-any"],
-            "conflicts": ["dnsmasq-dhcpv6", "dnsmasq-full"],
+            # The matching SDK emits the same metadata shape for stock
+            # dnsmasq: same-name upgrades are exclusive, while variant
+            # conflicts remain a recipe declaration rather than an APK field.
+            "conflicts": [],
+            "declared_conflicts": ["dnsmasq-dhcpv6", "dnsmasq-full"],
             "replacement": "same package name dnsmasq, newer release 2.93-r2",
             "depends": ["libc", "libubus20251202"]}
 
