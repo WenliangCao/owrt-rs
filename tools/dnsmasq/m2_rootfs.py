@@ -62,7 +62,12 @@ def image_path(root, relative, follow_leaf=True):
 def _overlay(source, root, relative):
     """Overlay captured regular files without following destination symlinks."""
     for path in sorted(source.rglob('*')):
-        if not path.is_file() or path.is_symlink():
+        if path.is_symlink():
+            continue
+        if path.is_dir():
+            image_path(root, Path(relative) / path.relative_to(source)).mkdir(parents=True, exist_ok=True)
+            continue
+        if not path.is_file():
             continue
         target = image_path(root, Path(relative) / path.relative_to(source), follow_leaf=False)
         target.parent.mkdir(parents=True, exist_ok=True)
