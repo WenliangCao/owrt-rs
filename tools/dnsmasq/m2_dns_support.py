@@ -185,6 +185,15 @@ class Product:
         while not image_path(self.root, 'run/ubus/ubus.sock').exists():
             assert self.bus.poll() is None and time.monotonic() < deadline, 'ubusd readiness timeout'
             time.sleep(.01)
+        while True:
+            probe = subprocess.run(
+                command(self.root, '/bin/ubus', '-s', '/run/ubus/ubus.sock', 'list'),
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            )
+            if probe.returncode == 0:
+                break
+            assert self.bus.poll() is None and time.monotonic() < deadline, 'ubusd request readiness timeout'
+            time.sleep(.01)
         profile = image_path(self.root, f'm2/{self.out.name}.conf')
         policy_line = 'all-servers\n' if self.policy == 'all-servers' else 'strict-order\n'
         config = ('no-hosts\nno-resolv\nlisten-address=127.0.0.1\nport=15353\n'
