@@ -352,6 +352,9 @@ class Scenario:
         except AssertionError as error:
             result['init_failure_service_debug'] = self.service_debug()
             result['init_failure_log'] = (self.root / 'tmp/dnsmasq.log').read_text(errors='replace') if (self.root / 'tmp/dnsmasq.log').exists() else ''
+            config = self.root / 'var/etc/dnsmasq.conf.m2'
+            result['init_failure_generated_config'] = config.read_text(errors='replace') if config.exists() else ''
+            result['init_failure_test'] = self.run('/usr/sbin/dnsmasq', '-C', '/var/etc/dnsmasq.conf.m2', '-t', check=False).__dict__
             result['init_failure_logread'] = self.run('/sbin/logread', check=False).stdout
             raise error
         first = self.live_dnsmasq()
