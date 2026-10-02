@@ -50,6 +50,28 @@ fn explicit_access(config: &DnsConfig) -> bool {
         || !config.excluded_interfaces.is_empty()
         || !config.listen_addresses.is_empty()
 }
+
+/// C checks unused interface names after opening static bound listeners.
+/// Dynamic binding instead permits interfaces which have not appeared yet.
+pub fn validate_bind_interfaces(config: &DnsConfig, interfaces: &[DnsInterface]) -> io::Result<()> {
+    if !config.bind_interfaces || config.bind_dynamic {
+        return Ok(());
+    }
+    for pattern in &config.interfaces {
+        let Some(name) = pattern else { continue };
+        if !interfaces
+            .iter()
+            .any(|interface| name_matches(pattern, &interface.name, interface.loopback))
+        {
+            return Err(io::Error::new(
+                io::ErrorKind::NotFound,
+                format!("unknown interface {}", String::from_utf8_lossy(name)),
+            ));
+        }
+    }
+    Ok(())
+}
+
 pub fn bound_addresses(
     config: &DnsConfig,
     port: u16,
@@ -346,6 +368,24 @@ mod tests {
             netmask: netmask.parse().unwrap(),
             loopback: false,
         }
+    }
+    #[test]
+    fn static_binding_rejects_missing_names_but_accepts_matching_patterns() {
+        let interfaces = [interface("192.0.2.1", "255.255.255.0", 3)];
+        let mut config = DnsConfig::default();
+        config.interfaces.push(Some(b"missing123".to_vec()));
+        assert!(validate_bind_interfaces(&config, &interfaces).is_ok());
+        config.bind_interfaces = true;
+        let error = validate_bind_interfaces(&config, &interfaces).unwrap_err();
+        assert_eq!(error.kind(), io::ErrorKind::NotFound);
+        assert_eq!(error.to_string(), "unknown interface missing123");
+        config.bind_dynamic = true;
+        assert!(validate_bind_interfaces(&config, &interfaces).is_ok());
+        config.bind_dynamic = false;
+        config.interfaces = vec![Some(b"la*".to_vec())];
+        assert!(validate_bind_interfaces(&config, &interfaces).is_ok());
+        config.interfaces.push(Some(b"missing123".to_vec()));
+        assert!(validate_bind_interfaces(&config, &interfaces).is_err());
     }
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     #[test]
