@@ -140,6 +140,11 @@ def prepare(image_root, runtime_root, evidence_dir, rust_binary):
         os.mknod(root / 'dev' / name, stat.S_IFCHR | 0o666, os.makedev(1, minor))
         (root / 'dev' / name).chmod(0o666)
     (root / 'dev/fd').symlink_to('/proc/self/fd')
+    # chroot alone leaves the child root as an ordinary directory. ujail's
+    # first operation is mount --make-rprivate /, which returns EINVAL unless
+    # that directory is itself a mount point (as it is after a real boot).
+    subprocess.run(['mount', '--bind', str(root), str(root)], check=True)
+    subprocess.run(['mount', '--make-rprivate', str(root)], check=True)
     identity = {
         'image_root': str(image_root), 'runtime_root': str(runtime_root) if runtime_root else None,
         'image_provenance_sha256': sha256(provenance_file) if provenance else None,
