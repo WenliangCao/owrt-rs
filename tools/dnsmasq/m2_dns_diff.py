@@ -117,15 +117,15 @@ def profile_all_servers(product):
     """Concurrent upstream selection and recovery with all-servers enabled."""
     product.servers[0].configure('answer', generation=1)
     product.servers[1].configure('answer', generation=2)
-    rows = [product.ask('all-servers-first', 'all-first.m2.test', expected_upstream=2)]
+    rows = [product.ask('all-servers-first', 'all-first.m2.test', expected_upstream=1)]
     product.servers[0].configure('silent')
     product.servers[1].configure('answer', generation=3)
     rows.append(product.ask('all-servers-primary-silent', 'all-silent.m2.test', expected_upstream=2))
     product.servers[0].configure('answer', generation=4)
     product.servers[1].configure('silent')
-    rows.append(product.ask('all-servers-secondary-silent', 'all-secondary.m2.test', expected_upstream=2))
+    rows.append(product.ask('all-servers-secondary-silent', 'all-secondary.m2.test', expected_upstream=1))
     product.servers[1].configure('answer', generation=5)
-    rows.append(product.ask('all-servers-recovered', 'all-recovered.m2.test', expected_upstream=2))
+    rows.append(product.ask('all-servers-recovered', 'all-recovered.m2.test', expected_upstream=1))
     return rows
 
 
