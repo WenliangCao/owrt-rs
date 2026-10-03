@@ -3,11 +3,13 @@
 //! snapshots are refreshed for each admitted packet.
 
 use super::allocation::ProbeResult;
+use super::allocation::RangeKind;
 use super::context::{select_contexts, ContextState, SelectedContext};
 use super::interface_admission::{interface_matches, InterfacePolicy, Selection};
 use super::lease::{
     ClientIdentity, Lease, LeaseCounters, LeaseError, LeaseStore, NameLost, RestoreError,
 };
+use super::lease_query::{self, Query as LeaseQueryInput};
 use super::persistence::{
     self, AlarmAction, DnsPublisher, DnsReport, LeasePersistence, PersistReport,
 };
@@ -1068,6 +1070,50 @@ impl LocalProvider {
 }
 
 impl OutcomeProvider for LocalProvider {
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    fn lease_query_reply(
+        &mut self,
+        packet: super::packet::Packet<'_>,
+        source: Ipv4Addr,
+        output: &mut [u8],
+    ) -> Result<Option<usize>, RuntimeError> {
+        let ranges: Vec<_> = self
+            .config
+            .ranges
+            .iter()
+            .map(|range| super::allocation::AddressRange {
+                start: range.start,
+                end: range.end,
+                netmask: range.netmask.unwrap_or(Ipv4Addr::UNSPECIFIED),
+                router: Ipv4Addr::UNSPECIFIED,
+                local: Ipv4Addr::UNSPECIFIED,
+                lease_time: range.lease_time,
+                kind: RangeKind::Dynamic,
+                filter: range.filter.tags().to_vec(),
+                epoch: 0,
+            })
+            .collect();
+        let Some(reply) = lease_query::query(
+            &self.leases,
+            &ranges,
+            LeaseQueryInput {
+                packet,
+                source,
+                enabled: self.config.lease_query.enabled,
+                allowed_sources: &self.config.lease_query.allowed_sources,
+                tags: &[],
+                now: epoch_seconds(),
+                ignore_client_id: self.config.ignore_client_id,
+                configured_lease_time: None,
+            },
+        ) else {
+            return Ok(None);
+        };
+        let encoded = lease_query::encode_reply(packet, &reply, &[], output)
+            .map_err(|error| RuntimeError::State(format!("leasequery reply: {error:?}")))?;
+        Ok(Some(encoded.len))
+    }
+
     fn resolve(&mut self, dispatch: &Dispatch<'_>) -> Result<Outcome, RuntimeError> {
         self.resolve_events(dispatch, None, None, None)
     }
@@ -1191,6 +1237,16 @@ impl OutcomeProvider for LocalProvider {
 }
 
 impl OutcomeProvider for EventProvider<'_> {
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    fn lease_query_reply(
+        &mut self,
+        packet: super::packet::Packet<'_>,
+        source: Ipv4Addr,
+        output: &mut [u8],
+    ) -> Result<Option<usize>, RuntimeError> {
+        self.provider.lease_query_reply(packet, source, output)
+    }
+
     fn resolve(&mut self, dispatch: &Dispatch<'_>) -> Result<Outcome, RuntimeError> {
         self.provider
             .resolve_events(dispatch, None, Some(self.sink), self.wait.as_deref_mut())

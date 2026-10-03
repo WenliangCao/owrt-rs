@@ -99,6 +99,16 @@ impl DatagramSender for crate::net::DatagramSocket {
 pub trait OutcomeProvider {
     fn resolve(&mut self, dispatch: &Dispatch<'_>) -> Result<Outcome, RuntimeError>;
 
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    fn lease_query_reply(
+        &mut self,
+        _packet: super::packet::Packet<'_>,
+        _source: Ipv4Addr,
+        _output: &mut [u8],
+    ) -> Result<Option<usize>, RuntimeError> {
+        Ok(None)
+    }
+
     /// Interface name captured before state/probing, matching dhcp.c's event
     /// and routing snapshot. Ordinary pure providers need no interface string.
     fn resolve_on_interface(
@@ -494,6 +504,58 @@ where
         route: dispatch.route,
         interface: dispatch.ingress.interface_index,
     }];
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    if dispatch.kind == DispatchKind::LeaseQuery {
+        let source = match dispatch.route {
+            Route::Relay { giaddr } => giaddr,
+            Route::RelaySource { .. } => match peer.ip() {
+                IpAddr::V4(address) => address,
+                IpAddr::V6(_) => Ipv4Addr::UNSPECIFIED,
+            },
+            Route::Local => Ipv4Addr::UNSPECIFIED,
+        };
+        if source.is_unspecified() {
+            events.push(RuntimeEvent::NoReply);
+            return Ok(RuntimeReport {
+                events,
+                outcome: None,
+            });
+        }
+        let length = match provider.lease_query_reply(dispatch.packet, source, buffer) {
+            Ok(length) => length,
+            Err(error) => return Err(failure(error, events, None, false)),
+        };
+        if let Some(length) = length {
+            let destination = Destination {
+                address: SocketAddr::from((source, 67)),
+                interface: dispatch.ingress.interface_index,
+                kind: DestinationKind::Peer,
+                arp: None,
+            };
+            events.push(RuntimeEvent::Built {
+                length,
+                omitted: 0,
+                overload: 0,
+            });
+            events.push(RuntimeEvent::DestinationSelected(destination.clone()));
+            if let Err(error) = send_with_retry(|| sender.send(&buffer[..length], &destination)) {
+                return Err(failure(RuntimeError::Send(error), events, None, false));
+            }
+            events.push(RuntimeEvent::Sent { length });
+            events.push(RuntimeEvent::Cleanup {
+                outcome_dropped: true,
+            });
+            return Ok(RuntimeReport {
+                events,
+                outcome: None,
+            });
+        }
+        events.push(RuntimeEvent::NoReply);
+        return Ok(RuntimeReport {
+            events,
+            outcome: None,
+        });
+    }
     if dispatch.kind != DispatchKind::Dhcp && dispatch.kind != DispatchKind::Bootp
         || dispatch.route != Route::Local
     {
