@@ -199,6 +199,17 @@ scripts:
 
 
 class PackageLifecycleTests(unittest.TestCase):
+    def test_restart_is_reported_as_operator_activation_not_postinst(self):
+        report = {}
+        scenario = lifecycle.Scenario(Path("/unused"), Path("/unused"), report)
+        with patch.object(scenario, "run") as run:
+            scenario.activate_after_transaction("stock-to-candidate-upgrade")
+        run.assert_called_once_with(["/etc/init.d/dnsmasq", "restart"],
+                                    "stock-to-candidate-upgrade-explicit-restart")
+        self.assertEqual(report["activation_steps"], [{
+            "transaction": "stock-to-candidate-upgrade",
+            "command": ["/etc/init.d/dnsmasq", "restart"], "automatic_restart_claimed": False}])
+
     def test_database_rejects_duplicate_package_and_escaping_path(self):
         base = "P:dnsmasq\nV:2.93-r1\nF:usr/sbin\nR:dnsmasq\n"
         with self.assertRaisesRegex(RuntimeError, "duplicate package"):

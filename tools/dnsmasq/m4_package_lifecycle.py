@@ -222,9 +222,12 @@ class Scenario:
                 return result["returncode"] == 0 and (not obj or obj in result["stdout"].splitlines())
             self.wait(ready, binary)
 
-    def service(self, expected_sha):
+    def service(self, expected_sha, stage):
         def live():
             listing = self.bus("service", "list", {"name": "dnsmasq", "verbose": True})
+            observed = []
+            self.report["last_service_probe"] = {"stage": stage, "expected_sha256": expected_sha,
+                                                  "listing": listing, "processes": observed}
             instances = listing.get("dnsmasq", {}).get("instances", {})
             for instance in instances.values():
                 if not instance.get("running"):
@@ -233,7 +236,10 @@ class Scenario:
                 for pid in {wrapper} | descendants(wrapper):
                     executable = Path(f"/proc/{pid}/exe")
                     try:
-                        if sha256(executable) == expected_sha:
+                        digest = sha256(executable)
+                        observed.append({"pid": pid, "exe": str(executable.readlink()), "sha256": digest,
+                                         "cmdline": Path(f"/proc/{pid}/cmdline").read_bytes().replace(b"\0", b" ").decode()})
+                        if digest == expected_sha:
                             cmdline = Path(f"/proc/{wrapper}/cmdline").read_bytes().replace(b"\0", b" ").decode()
                             require("ujail" in cmdline, "dnsmasq was started without the stock ujail wrapper")
                             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
@@ -247,10 +253,20 @@ class Scenario:
                             return {"listing": listing, "pid": pid, "wrapper_pid": wrapper,
                                     "wrapper_cmdline": cmdline, "elf_sha256": expected_sha,
                                     "dns_reply": reply}
-                    except (FileNotFoundError, ProcessLookupError):
-                        pass
+                    except (FileNotFoundError, ProcessLookupError) as error:
+                        observed.append({"pid": pid, "probe_error": repr(error)})
             return None
-        return self.wait(live, "jailed dnsmasq with expected ELF and DNS answer")
+        return self.wait(live, f"{stage}: jailed dnsmasq {expected_sha} and DNS answer")
+
+    def activate_after_transaction(self, label):
+        # The stock SDK's post-upgrade runs init start. procd can keep the
+        # existing instance when its configuration is unchanged, including an
+        # old ELF whose pathname APK has replaced. Activation is a separate,
+        # explicitly recorded operator step; never attribute it to postinst.
+        command = ["/etc/init.d/dnsmasq", "restart"]
+        self.run(command, f"{label}-explicit-restart")
+        self.report.setdefault("activation_steps", []).append({
+            "transaction": label, "command": command, "automatic_restart_claimed": False})
 
     def stopped(self):
         listing = self.bus("service", "list", {"name": "dnsmasq"})
@@ -278,7 +294,7 @@ class Scenario:
         require(any("/S" in path for path in init_links), "postinst did not enable dnsmasq")
         stage = {"name": label, "version": version, "packages": packages, "files": actual,
                  "user": user, "group": group, "init_links": init_links,
-                 "service": self.service(expected_sha)}
+                 "service": self.service(expected_sha, label)}
         self.report["stages"].append(stage)
         return stage
 
@@ -330,6 +346,10 @@ class Scenario:
     def cleanup(self):
         errors = []
         try:
+            self.run(["/sbin/logread"], "cleanup-logread", check=False)
+        except (OSError, RuntimeError, subprocess.SubprocessError) as error:
+            self.report["diagnostic_error"] = str(error)
+        try:
             self.run(["/etc/init.d/dnsmasq", "stop"], "cleanup-init-stop", check=False)
         except (OSError, RuntimeError, subprocess.SubprocessError) as error:
             errors.append(str(error))
@@ -374,6 +394,18 @@ def execute(args, root, out, report):
             shutil.copy2(source, root / "m4" / name)
         metadata = case.apk(["adbdump", "/m4/candidate.apk"], "candidate-metadata")
         report["candidate_metadata"] = audit_metadata(metadata["stdout"])
+        stock_metadata = case.apk(["adbdump", "/m4/stock.apk"], "stock-metadata")
+        def upgrade_script(text):
+            match = re.search(r"^  post-upgrade: \|\n(.*?)(?=^  [a-z]|^#|\Z)", text,
+                              re.MULTILINE | re.DOTALL)
+            require(match is not None, "APK lacks post-upgrade script")
+            return match.group(1)
+        report["post_upgrade_scripts"] = {
+            "stock": upgrade_script(stock_metadata["stdout"]),
+            "candidate": upgrade_script(metadata["stdout"]),
+            "semantics": "stock default_postinst invokes init start; explicit restart activates changed ELF"}
+        require(report["post_upgrade_scripts"]["stock"] == report["post_upgrade_scripts"]["candidate"],
+                "candidate changed the stock post-upgrade script")
         (root / "m4/candidate-payload").mkdir()
         case.apk(["extract", "--destination", "/m4/candidate-payload", "/m4/candidate.apk"], "extract-payload")
         payload = root / "m4/candidate-payload"
@@ -392,13 +424,21 @@ def execute(args, root, out, report):
         report["modified_configuration"] = configs
         case.start_support()
         case.run(["/etc/init.d/dnsmasq", "start"], "stock-start")
-        report["stock_service"] = case.service(STOCK_SHA256)
+        report["stock_service"] = case.service(STOCK_SHA256, "stock-baseline")
+        case.apk(["add", "--force-reinstall", "/m4/stock.apk"], "stock-reinstall-control")
+        control = case.service(STOCK_SHA256, "stock-reinstall-control")
+        report["stock_reinstall_control"] = {
+            "service": control, "explicit_restart": False,
+            "same_wrapper_pid": control["wrapper_pid"] == report["stock_service"]["wrapper_pid"],
+            "same_daemon_pid": control["pid"] == report["stock_service"]["pid"]}
         # A genuine upgrade changes the installed version. Same-version
         # force-reinstall is measured separately and never called an upgrade.
         case.apk(["add", "/m4/candidate.apk"], "stock-to-candidate-upgrade")
+        case.activate_after_transaction("stock-to-candidate-upgrade")
         case.capture("stock-to-candidate-upgrade", args.candidate_elf_sha256, PACKAGE_ID,
                      baseline, candidate_files, configs)
         case.apk(["add", "--force-reinstall", "/m4/candidate.apk"], "candidate-reinstall")
+        case.activate_after_transaction("candidate-reinstall")
         case.capture("candidate-reinstall", args.candidate_elf_sha256, PACKAGE_ID,
                      baseline, candidate_files, configs)
         case.remove("candidate-uninstall", configs)
@@ -415,10 +455,12 @@ def execute(args, root, out, report):
         case.apk(["add", "/m4/stock.apk"], "stock-rollback-after-removal")
         case.capture("stock-rollback-after-removal", STOCK_SHA256, "2.93-r1", baseline, stock_files, configs)
         case.apk(["add", "/m4/candidate.apk"], "candidate-upgrade-for-downgrade")
+        case.activate_after_transaction("candidate-upgrade-for-downgrade")
         case.capture("candidate-upgrade-for-downgrade", args.candidate_elf_sha256, PACKAGE_ID,
                      baseline, candidate_files, configs)
         case.variants(args.variant_apk, args.variant_dependency_apk)
         case.apk(["add", "/m4/stock.apk"], "direct-stock-downgrade")
+        case.activate_after_transaction("direct-stock-downgrade")
         case.capture("direct-stock-downgrade", STOCK_SHA256, "2.93-r1", baseline, stock_files, configs)
         report["status"] = "passed"
     finally:
