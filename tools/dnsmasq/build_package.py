@@ -101,6 +101,60 @@ def snapshot(root, destination, expected):
     require(inputs(root) == expected, "inputs changed during source snapshot")
 
 
+def sdk_inputs(sdk):
+    """Identify the pinned SDK tools used for either codegen or packaging."""
+    toolchain = sdk / f"staging_dir/toolchain-{ARCH}_gcc-14.3.0_musl"
+    paths = [sdk / name for name in (
+        ".config", "rules.mk", "include/package.mk", "include/package-pack.mk", "include/feeds.mk",
+        "scripts/rstrip.sh", "staging_dir/host/bin/apk", "staging_dir/host/bin/sstrip",
+        "staging_dir/host/bin/patchelf", "staging_dir/host/bin/.apk.bin",
+        "staging_dir/host/bin/.sstrip.bin", "staging_dir/host/bin/.patchelf.bin", "staging_dir/host/lib/runas.so",
+        "staging_dir/host/lib/ld-linux-x86-64.so.2")]
+    paths += [toolchain / name for name in ("include/stdio.h", "lib/libc.so", "lib/crt1.o")]
+    # Hash the executable wrappers and their hidden .bin implementations.
+    paths += [path for path in sorted((toolchain / "bin").iterdir()) if path.is_file()]
+    return {str(path.relative_to(sdk)): sha(path) for path in paths}
+
+
+def verify_freeze(freeze, source_files, sdk, source_commit, epoch, expected_elf_sha256):
+    """Bind a previously validated ELF to product, packaging and SDK inputs.
+
+    source_commit identifies the product used for the ELF. source_files also
+    locks the later packaging recipe and scripts; packaging does not claim
+    that those later tools were part of the product commit.
+    """
+    require(isinstance(freeze, dict), "freeze manifest must be a JSON object")
+    require(freeze.get("schema") == 1 and freeze.get("frozen") is True,
+            "freeze manifest must have schema 1 and frozen=true")
+    require(not freeze.get("pending"), "freeze manifest still has pending validation")
+    require(freeze.get("source_commit") == source_commit,
+            "freeze manifest product commit differs from --source-commit")
+    require(str(freeze.get("source_date_epoch")) == str(epoch),
+            "freeze manifest source timestamp differs from --source-date-epoch")
+    require(freeze.get("rust_elf_sha256") == expected_elf_sha256,
+            "freeze manifest ELF differs from --expected-elf-sha256")
+    locked = freeze.get("source_files")
+    require(isinstance(locked, dict), "freeze manifest must contain the complete source_files map")
+    require(all(isinstance(name, str) and isinstance(digest, str) and re.fullmatch(r"[0-9a-f]{64}", digest)
+                for name, digest in locked.items()), "freeze source_files must map names to SHA256 hashes")
+    changed = sorted(name for name in source_files.keys() | locked.keys()
+                     if source_files.get(name) != locked.get(name))
+    require(not changed, f"source/packaging inputs differ from freeze: {changed}")
+    require(freeze.get("sdk_archive_sha256") == sdk["archive_sha256"],
+            "freeze manifest SDK archive identity differs")
+    require(freeze.get("sdk_files") == sdk["files"],
+            "freeze manifest SDK file identities differ")
+    postprocess = freeze.get("postprocess", {})
+    require(isinstance(postprocess, dict) and postprocess.get("mode") in ("none", "sdk-sstrip")
+            and postprocess.get("output_sha256") == expected_elf_sha256
+            and isinstance(postprocess.get("input_sha256"), str)
+            and re.fullmatch(r"[0-9a-f]{64}", postprocess["input_sha256"]),
+            "freeze must identify postprocessing, including an explicit none when not applied")
+    if postprocess["mode"] == "none":
+        require(postprocess["input_sha256"] == expected_elf_sha256 and postprocess.get("reason"),
+                "postprocess=none must preserve ELF identity and record why no extra processing ran")
+
+
 @contextmanager
 def package_recipe(sdk, source, out, report):
     stock = sdk / "package/network/services/dnsmasq"
@@ -198,6 +252,8 @@ def audit_sizes(report):
                 f"{report['budget'][kind + '_max_bytes']} bytes"
                 for kind, key in (("apk", "artifact"), ("elf", "elf"))
                 if not report["budget_checks"][kind]]
+    if failures:
+        report["failure_boundary"] = "size-target"
     require(not failures, "; ".join(failures))
 
 
@@ -233,19 +289,9 @@ def audit_build(args, out, report):
     toolchain = sdk / f"staging_dir/toolchain-{ARCH}_gcc-14.3.0_musl"
     readelf = toolchain / "bin/aarch64-openwrt-linux-musl-readelf"
     apk = sdk / "staging_dir/host/bin/apk"
-    identity_paths = [sdk / ".config", sdk / "rules.mk", sdk / "include/package.mk",
-                      sdk / "include/package-pack.mk", sdk / "include/feeds.mk",
-                      toolchain / "include/stdio.h", toolchain / "lib/libc.so", toolchain / "lib/crt1.o",
-                      readelf, apk, sdk / "staging_dir/host/lib/runas.so",
-                      sdk / "staging_dir/host/lib/ld-linux-x86-64.so.2"]
-    # This SDK ships executable wrappers and hidden .bin tools. Hash both,
-    # including linker variants, instead of identifying only a shell wrapper.
-    identity_paths += [path for path in sorted((toolchain / "bin").iterdir()) if path.is_file()]
     report["sdk"] = {"path": str(sdk), "archive_sha256": expected_hash,
-                     "files": {str(path.relative_to(sdk)): sha(path) for path in identity_paths}}
+                     "files": sdk_inputs(sdk)}
     channel = tomllib.loads((source / "rust-toolchain.toml").read_text())["toolchain"]["channel"]
-    cargo = safe_path(Path(os.environ.get("CARGO") or shutil.which("cargo") or Path.home() / ".cargo/bin/cargo").absolute())
-    require(cargo.is_file() and os.access(cargo, os.X_OK), "cargo executable missing")
     env = os.environ.copy()
     for name in ("CARGO_ENCODED_RUSTFLAGS", "RUSTC_WRAPPER", "RUSTC_WORKSPACE_WRAPPER", "RUSTC", "RUSTFLAGS", "CARGO_BUILD_TARGET", "CARGO_TARGET_DIR"):
         env.pop(name, None)
@@ -253,15 +299,41 @@ def audit_build(args, out, report):
     env["SOURCE_DATE_EPOCH"] = epoch
     report["rust_channel"] = channel
     report["source_date_epoch"] = env["SOURCE_DATE_EPOCH"]
-    report["cargo_version"] = run([str(cargo), "--version"], out / "cargo-version.log", env=env).strip()
-    report["rustc_version"] = run([str(cargo.with_name("rustc")), "-Vv"], out / "rustc-version.log", env=env).strip()
-    report["target_cc_version"] = run([str(toolchain / "bin/aarch64-openwrt-linux-musl-gcc"), "--version"], out / "target-cc-version.log").strip()
     build, output = out / "package-build", out / "sdk-output"
-    make_vars = ["V=s", "-j1", f"V1_CARGO={cargo}",
-                 f"V1_CARGO_HOME={safe_path(Path(env.get('CARGO_HOME', str(Path.home() / '.cargo'))).resolve())}",
-                 f"V1_RUSTUP_HOME={safe_path(Path(env.get('RUSTUP_HOME', str(Path.home() / '.rustup'))).resolve())}",
+    make_vars = ["V=s", "-j1",
                  f"OWRT_COMPONENTS_SOURCE={source / 'components'}",
                  f"OWRT_DNSMASQ_BUILD_DIR={build}", f"OWRT_DNSMASQ_OUTPUT_DIR={output}"]
+    if args.frozen_elf:
+        frozen_elf = safe_path(args.frozen_elf.resolve())
+        manifest = args.freeze_manifest.resolve()
+        manifest_digest = sha(manifest)
+        freeze = json.loads(manifest.read_text())
+        verify_freeze(freeze, source_hashes, report["sdk"], args.source_commit, epoch, args.expected_elf_sha256)
+        require(frozen_elf.is_file() and sha(frozen_elf) == args.expected_elf_sha256,
+                "frozen ELF input does not match its validated identity")
+        copied_elf = out / "frozen-dnsmasq"
+        shutil.copy2(frozen_elf, copied_elf)
+        shutil.copy2(manifest, out / "freeze-manifest.json")
+        require(sha(copied_elf) == args.expected_elf_sha256 and sha(manifest) == manifest_digest
+                and sha(out / "freeze-manifest.json") == manifest_digest,
+                "frozen inputs changed during snapshot")
+        report["build_mode"] = "package-frozen-elf"
+        report["freeze_manifest_sha256"] = manifest_digest
+        report["frozen_elf_input"] = {"sha256": sha(copied_elf), "size": copied_elf.stat().st_size}
+        report["frozen_build_profile"] = freeze.get("build_profile")
+        report["postprocess"] = freeze["postprocess"]
+        report["strip_policy"] = "skip SDK RSTRIP to preserve the previously validated frozen ELF identity"
+        make_vars.append(f"OWRT_DNSMASQ_FROZEN_ELF={copied_elf}")
+    else:
+        cargo = safe_path(Path(os.environ.get("CARGO") or shutil.which("cargo") or Path.home() / ".cargo/bin/cargo").absolute())
+        require(cargo.is_file() and os.access(cargo, os.X_OK), "cargo executable missing")
+        report["build_mode"] = "compile-and-package"
+        report["cargo_version"] = run([str(cargo), "--version"], out / "cargo-version.log", env=env).strip()
+        report["rustc_version"] = run([str(cargo.with_name("rustc")), "-Vv"], out / "rustc-version.log", env=env).strip()
+        report["target_cc_version"] = run([str(toolchain / "bin/aarch64-openwrt-linux-musl-gcc"), "--version"], out / "target-cc-version.log").strip()
+        make_vars += [f"V1_CARGO={cargo}",
+                      f"V1_CARGO_HOME={safe_path(Path(env.get('CARGO_HOME', str(Path.home() / '.cargo'))).resolve())}",
+                      f"V1_RUSTUP_HOME={safe_path(Path(env.get('RUSTUP_HOME', str(Path.home() / '.rustup'))).resolve())}"]
     report["commands"] = []
     with (sdk / ".owrt-dnsmasq-build.lock").open("a") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -277,6 +349,9 @@ def audit_build(args, out, report):
                     for name, expected in copied.items():
                         require(sha(build / name) == expected, f"SDK prepare copied stale source: {name}")
                     report["prepared_source_files"] = copied
+                    if args.frozen_elf:
+                        require(sha(build / "frozen-dnsmasq") == args.expected_elf_sha256,
+                                "SDK prepare changed frozen ELF")
     artifact = output / f"packages/{ARCH}/base/{PACKAGE}-{PACKAGE_VERSION}-r{PACKAGE_RELEASE}.apk"
     candidates = list(output.rglob(f"{PACKAGE}-*.apk"))
     require(candidates == [artifact], f"expected exactly the current package artifact; found {candidates}")
@@ -294,6 +369,10 @@ def audit_build(args, out, report):
     metadata = run([str(apk), "adbdump", str(artifact)], out / "apk-metadata.log")
     report["apk_metadata"] = audit_metadata(metadata)
     require(inputs(ROOT) == source_hashes, "source changed while building; artifact is not current")
+    if args.frozen_elf:
+        require(sha(out / "frozen-dnsmasq") == args.expected_elf_sha256,
+                "frozen ELF snapshot changed while packaging")
+        require(sdk_inputs(sdk) == report["sdk"]["files"], "SDK inputs changed while packaging")
     report["artifact"] = {"name": artifact.name, "sha256": sha(artifact), "size": artifact.stat().st_size}
     report["elf"] = {"sha256": sha(elf), "size": elf.stat().st_size, "install_path": "/usr/sbin/dnsmasq"}
     (out / "SHA256SUMS").write_text(f"{sha(artifact)}  {artifact.name}\n{sha(elf)}  payload/usr/sbin/dnsmasq\n")
@@ -301,6 +380,7 @@ def audit_build(args, out, report):
     report["elf"]["expected_sha256"] = args.expected_elf_sha256
     require(report["elf"]["sha256"] == args.expected_elf_sha256,
             "packaged ELF differs from the frozen ELF; retain artifact and investigate build inputs")
+    report["artifact_identity_verified"] = True
     audit_sizes(report)
 
 
@@ -315,7 +395,15 @@ def main():
     parser.add_argument("--expected-source-digest", help="freeze SHA256 over the sorted input hash map")
     parser.add_argument("--expected-elf-sha256", required=True,
                         help="SHA256 of the final validated and frozen ELF")
+    parser.add_argument("--frozen-elf", type=Path,
+                        help="package this previously stripped, validated ELF without codegen or further stripping")
+    parser.add_argument("--freeze-manifest", type=Path,
+                        help="schema-1 freeze identity with complete source_files and sdk_files maps")
     args = parser.parse_args()
+    require(bool(args.frozen_elf) == bool(args.freeze_manifest),
+            "--frozen-elf and --freeze-manifest must be supplied together")
+    require(not args.frozen_elf or args.source_commit,
+            "frozen ELF packaging requires --source-commit")
     require(re.fullmatch(r"[0-9a-f]{64}", args.expected_elf_sha256), "frozen ELF SHA256 must be 64 lowercase hex digits")
     out = safe_path(args.out.resolve())
     budget_path = safe_path(args.budget.resolve())

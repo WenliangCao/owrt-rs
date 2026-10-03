@@ -23,6 +23,16 @@ RUST_TARGET:=aarch64-unknown-linux-musl
 
 include $(INCLUDE_DIR)/package.mk
 
+ifneq ($(OWRT_DNSMASQ_FROZEN_ELF),)
+  # This ELF was already stripped before its regression freeze.
+  # Re-running RSTRIP could change identity. build_package.py still checks
+  # the APK-extracted ELF hash against that freeze, with no allowed mismatch.
+  RSTRIP:=:
+  DNSMASQ_INSTALL_ELF:=$(PKG_BUILD_DIR)/frozen-dnsmasq
+else
+  DNSMASQ_INSTALL_ELF:=$(PKG_BUILD_DIR)/dnsmasq/target/$(RUST_TARGET)/release/dnsmasq-rs
+endif
+
 define Package/dnsmasq
   SECTION:=net
   CATEGORY:=Base system
@@ -53,11 +63,17 @@ define Build/Prepare
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/dnsmasq/src/. $(PKG_BUILD_DIR)/dnsmasq/src/
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/ubus/Cargo.toml $(PKG_BUILD_DIR)/ubus/
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/ubus/src/. $(PKG_BUILD_DIR)/ubus/src/
+	$(if $(OWRT_DNSMASQ_FROZEN_ELF),$(CP) $(OWRT_DNSMASQ_FROZEN_ELF) $(PKG_BUILD_DIR)/frozen-dnsmasq)
 endef
 
 define Build/Configure
 endef
 
+ifneq ($(OWRT_DNSMASQ_FROZEN_ELF),)
+define Build/Compile
+	test -s $(PKG_BUILD_DIR)/frozen-dnsmasq
+endef
+else
 define Build/Compile
 	+RUSTUP_HOME="$(V1_RUSTUP_HOME)" \
 	CARGO_HOME="$(V1_CARGO_HOME)" \
@@ -69,10 +85,11 @@ define Build/Compile
 	RUSTFLAGS="--remap-path-prefix=$(PKG_BUILD_DIR)=/build --remap-path-prefix=$(V1_CARGO_HOME)=/cargo -Clink-arg=-fuse-ld=$(TARGET_LINKER) -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Clink-arg=-Wl,-z,pack-relative-relocs" \
 	$(V1_CARGO) build --release --frozen --manifest-path $(PKG_BUILD_DIR)/dnsmasq/Cargo.toml --bin dnsmasq-rs --target-dir $(PKG_BUILD_DIR)/dnsmasq/target
 endef
+endif
 
 define Package/dnsmasq/install
 	$(INSTALL_DIR) $(1)/usr/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/dnsmasq/target/$(RUST_TARGET)/release/dnsmasq-rs $(1)/usr/sbin/dnsmasq
+	$(INSTALL_BIN) $(DNSMASQ_INSTALL_ELF) $(1)/usr/sbin/dnsmasq
 	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_CONF) ./files/dhcp.conf $(1)/etc/config/dhcp
 	$(INSTALL_CONF) ./files/dnsmasq.conf $(1)/etc/dnsmasq.conf

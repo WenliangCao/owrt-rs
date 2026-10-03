@@ -4,6 +4,7 @@ from pathlib import Path
 import copy
 import json
 import signal
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -105,6 +106,75 @@ scripts:
         for script in ("post-install", "pre-deinstall", "post-upgrade"):
             with self.subTest(script=script), self.assertRaisesRegex(ValueError, script):
                 package.audit_metadata(metadata.replace(f"  {script}: |\n", ""))
+
+    def test_frozen_elf_requires_full_source_sdk_and_binary_identity(self):
+        source = {"components/dnsmasq/src/main.rs": "a" * 64,
+                  "packaging/openwrt/owrt-dnsmasq/Makefile": "b" * 64,
+                  "tools/dnsmasq/build_package.py": "c" * 64}
+        sdk = {"archive_sha256": "d" * 64, "files": {"rules.mk": "e" * 64}}
+        freeze = {"schema": 1, "frozen": True, "source_commit": "1" * 40,
+                  "source_date_epoch": 123, "rust_elf_sha256": "f" * 64,
+                  "source_files": source, "sdk_archive_sha256": sdk["archive_sha256"],
+                  "sdk_files": sdk["files"],
+                  "postprocess": {"mode": "none", "reason": "rustc strip=true; preserve qualified identity",
+                                  "input_sha256": "f" * 64, "output_sha256": "f" * 64}}
+        package.verify_freeze(freeze, source, sdk, "1" * 40, "123", "f" * 64)
+        mutations = [
+            ("source_commit", "2" * 40), ("rust_elf_sha256", "0" * 64),
+            ("source_date_epoch", 456), ("frozen", False), ("pending", ["pressure"]),
+            ("source_files", {k: v for k, v in source.items() if not k.startswith("tools/")}),
+            ("source_files", dict(source, extra="0" * 64)),
+            ("source_files", dict(source, **{"components/dnsmasq/src/main.rs": "0" * 64})),
+            ("source_files", dict(source, **{"packaging/openwrt/owrt-dnsmasq/Makefile": "0" * 64})),
+            ("sdk_archive_sha256", "0" * 64), ("sdk_files", {"rules.mk": "0" * 64}),
+            ("postprocess", {"mode": "none", "reason": "identity changed unexpectedly",
+                             "input_sha256": "0" * 64, "output_sha256": "f" * 64}),
+            ("postprocess", {"mode": "sdk-sstrip", "input_sha256": "0" * 64, "output_sha256": "1" * 64}),
+        ]
+        for field, value in mutations:
+            changed = dict(freeze, **{field: value})
+            with self.subTest(field=field, value=value), self.assertRaises(ValueError):
+                package.verify_freeze(changed, source, sdk, "1" * 40, "123", "f" * 64)
+
+    def test_frozen_recipe_never_calls_cargo_or_restrips(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "rules.mk").write_text("")
+            (root / "package.mk").write_text("")
+            (root / "frozen-dnsmasq").write_bytes(b"already-validated-ELF-fixture")
+            harness = root / "harness.mk"
+            harness.write_text("check:\n\t$(Build/Compile)\n"
+                               "\ttest '$(RSTRIP)' = ':'\n"
+                               "\ttest '$(DNSMASQ_INSTALL_ELF)' = '$(PKG_BUILD_DIR)/frozen-dnsmasq'\n")
+            recipe = package.ROOT / "packaging/openwrt/owrt-dnsmasq/Makefile"
+            result = subprocess.run(["make", "--no-print-directory", "-f", str(recipe), "-f", str(harness),
+                                     f"TOPDIR={root}", f"INCLUDE_DIR={root}", f"PKG_BUILD_DIR={root}",
+                                     f"OWRT_DNSMASQ_FROZEN_ELF={root / 'frozen-dnsmasq'}",
+                                     "V1_CARGO=/must-not-call-cargo", "check"], text=True, capture_output=True)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_oversized_experiment_keeps_artifacts_and_failure_manifest(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp).resolve()
+            budget = root / "budget.json"
+            budget.write_text(json.dumps({"schema": 1, "elf_max_bytes": 700000, "apk_max_bytes": 800000}))
+            out = root / "private/result"
+            def oversized(args, output, report):
+                (output / "dnsmasq.apk").write_bytes(b"artifact")
+                (output / "dnsmasq").write_bytes(b"ELF")
+                report.update(artifact={"size": 510000}, elf={"size": 980000})
+                package.audit_sizes(report)
+            argv = ["build_package.py", str(root / "sdk"), str(out), "--budget", str(budget),
+                    "--expected-elf-sha256", "f" * 64]
+            with patch.object(package, "ROOT", root), patch.object(package, "audit_build", side_effect=oversized), \
+                    patch.object(sys, "argv", argv), patch("builtins.print"):
+                self.assertEqual(package.main(), 1)
+            report = json.loads((out / "manifest.json").read_text())
+            self.assertEqual(report["status"], "failed")
+            self.assertEqual(report["failure_boundary"], "size-target")
+            self.assertEqual(report["budget_checks"], {"apk": True, "elf": False})
+            self.assertTrue((out / "dnsmasq.apk").is_file())
+            self.assertTrue((out / "dnsmasq").is_file())
 
 
 class PackageLifecycleTests(unittest.TestCase):
