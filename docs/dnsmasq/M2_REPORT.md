@@ -8,7 +8,7 @@ OpenWrt init 能力检测随后生成了与 C 相同的 `dhcp-range=set:lan,192.
 
 生命周期与 odhcpd 收尾证据在 `private/dnsmasq-rewrite/evidence/M2/integration/c-lifecycle-m2-version-1790948584/` 和 `rust-lifecycle-m2-version-1790948548/`。两边均完成 init start、SIGHUP hosts、init reload、rpcd UCI staged/apply、stop、真实 DHCPv6 Solicit→Advertise→Request→Reply、`odhcpd.hosts.lan` 写入和 AAAA 查询；固定客户端地址为 `fd00:2::7ed`，原始四个 DHCPv6 报文和租约文件均保留。
 
-DNS exact-image 既有 UDP/cache、expiry、TCP/cache、故障恢复和代表性混合流证据保持有效；新增 strict-order 和 all-servers 上游恢复对照均为零差异，结果位于 `private/dnsmasq-rewrite/evidence/M2/dns/`。旧的失败记录和本轮 runner 红色记录均保留，没有把缺失运行算作通过。
+DNS exact-image 既有 UDP/cache、expiry、TCP/cache、故障恢复、strict-order 和代表性混合流证据位于 `private/dnsmasq-rewrite/evidence/M2/dns/`。2026-10-03 的 M4 复核发现，旧 all-servers 夹具实际同时启用了 strict-order，因此撤销旧 all-servers 覆盖声明；工具修正后在 M4 最终 ELF 上完成真正 all-servers 的镜像 C 对照，见 [M4_REPORT.md](M4_REPORT.md)。旧结果和 runner 红色记录全部保留，不把配置错误的场景算作已覆盖。
 
 DNS、DHCP 和配置解析器的定向语料保持零差异。新增 cargo-fuzz 目标为 DNS wire、DHCP packet 和 config line；每个目标已在 nightly libFuzzer 上运行至少 30 分钟，未产生崩溃或 panic，运行日志和 corpus 在 `private/dnsmasq-rewrite/evidence/M2/fuzz-final-1790955830/`。
 
