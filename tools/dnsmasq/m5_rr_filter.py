@@ -124,6 +124,9 @@ class Upstream:
         while not self.stop.is_set():
             try: packet, peer = self.udp.recvfrom(65535)
             except socket.timeout: continue
+            except OSError:
+                if self.stop.is_set(): break
+                raise
             try:
                 self.record(packet, "udp"); self.udp.sendto(upstream_reply(packet), peer)
             except Exception as error: self.errors.append(repr(error))
@@ -132,6 +135,9 @@ class Upstream:
         while not self.stop.is_set():
             try: client, _ = self.tcp.accept()
             except socket.timeout: continue
+            except OSError:
+                if self.stop.is_set(): break
+                raise
             worker = threading.Thread(target=self.connection, args=(client,)); worker.start(); self.threads.append(worker)
 
     def connection(self, client):
