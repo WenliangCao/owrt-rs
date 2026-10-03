@@ -763,31 +763,10 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             }
         }
         {
-            // Metrics still work with port=0 and no incoming DHCP packets.
-            // No provider lock is acquired after the DNS parent lock.
             let mut event = parent_events
                 .lock()
                 .map_err(|_| io::Error::other("parent event lock poisoned"))?;
-            let mut metrics = Metrics::default();
-            event.write_metrics(&mut metrics);
-            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-            if let Some(provider) = &dhcp_provider {
-                let provider = provider
-                    .lock()
-                    .map_err(|_| io::Error::other("DHCP state lock poisoned"))?;
-                write_dhcp_metrics(&mut metrics, &provider);
-            }
-            let parent = service
-                .lock()
-                .map_err(|_| io::Error::other("DNS state lock poisoned"))?;
-            if let Some(daemon) = &parent.daemon {
-                write_dns_metrics(
-                    &mut metrics,
-                    daemon.cache_counters(),
-                    daemon.forward_counters(),
-                    event.local_answered,
-                );
-            }
+            let metrics = poll.metrics(&event);
             event.process_ubus(&metrics);
         }
         thread::park_timeout(Duration::from_millis(2));
@@ -1048,7 +1027,35 @@ impl SinglePoll {
         self.listeners.retain(|listener| listener.token != token);
     }
 
+    // Every UBus entry point uses the same complete snapshot. In particular,
+    // idle UDP completion must not answer a metrics call with zero DHCP fields.
+    fn metrics(&self, event: &ParentEvents) -> Metrics {
+        let mut metrics = Metrics::default();
+        event.write_metrics(&mut metrics);
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if let Some((provider, _)) = &self.dhcp {
+            write_dhcp_metrics(&mut metrics, &provider.lock().unwrap());
+        }
+        let parent = self.service.lock().unwrap();
+        if let Some(daemon) = &parent.daemon {
+            write_dns_metrics(
+                &mut metrics,
+                daemon.cache_counters(),
+                daemon.forward_counters(),
+                event.local_answered,
+            );
+        }
+        metrics
+    }
+
     fn step(&mut self) {
+        // C drains subscription/metrics requests before processing DHCP.
+        // This also applies to port=0, where no DNS listener can drain UBus.
+        {
+            let mut event = self.parent_events.lock().unwrap();
+            let metrics = self.metrics(&event);
+            event.process_ubus(&metrics);
+        }
         // Bound work per turn.  This keeps a busy UDP socket from starving
         // DHCP, TFTP, reload and TCP admission.
         let listeners = self.listeners.len();
@@ -1106,14 +1113,7 @@ impl SinglePoll {
             Ok(event) => event,
             Err(_) => return,
         };
-        let mut metrics = Metrics::default();
-        event.write_metrics(&mut metrics);
-        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-        if let Some((provider, _)) = &self.dhcp {
-            if let Ok(provider) = provider.lock() {
-                write_dhcp_metrics(&mut metrics, &provider);
-            }
-        }
+        let mut metrics = self.metrics(&event);
         let mut parent = match self.service.lock() {
             Ok(parent) => parent,
             Err(_) => return,
@@ -1227,8 +1227,7 @@ impl SinglePoll {
             Ok(event) => event,
             Err(_) => return,
         };
-        let mut metrics = Metrics::default();
-        event.write_metrics(&mut metrics);
+        let mut metrics = self.metrics(&event);
         let mut parent = match self.service.lock() {
             Ok(parent) => parent,
             Err(_) => return,
@@ -1374,20 +1373,6 @@ impl SinglePoll {
         let Ok(mut provider) = shared_provider.lock() else {
             return;
         };
-        let mut metrics = Metrics::default();
-        event.write_metrics(&mut metrics);
-        write_dhcp_metrics(&mut metrics, &provider);
-        if let Ok(parent) = self.service.lock() {
-            if let Some(daemon) = &parent.daemon {
-                write_dns_metrics(
-                    &mut metrics,
-                    daemon.cache_counters(),
-                    daemon.forward_counters(),
-                    event.local_answered,
-                );
-            }
-        }
-        event.process_ubus(&metrics);
         let now = now_seconds();
         if let Some(report) = provider.tick(now) {
             report_dhcp_maintenance(&report);
@@ -1423,24 +1408,6 @@ impl SinglePoll {
         if let Some(report) = provider.take_maintenance_report() {
             report_dhcp_maintenance(&report);
         }
-        // A DHCP packet can complete between the pre-dispatch metrics
-        // snapshot and the UBus request. Publish a second snapshot after the
-        // state transition so callers observe the same cumulative counters as
-        // the C event loop.
-        let mut metrics = Metrics::default();
-        event.write_metrics(&mut metrics);
-        write_dhcp_metrics(&mut metrics, &provider);
-        if let Ok(parent) = self.service.lock() {
-            if let Some(daemon) = &parent.daemon {
-                write_dns_metrics(
-                    &mut metrics,
-                    daemon.cache_counters(),
-                    daemon.forward_counters(),
-                    event.local_answered,
-                );
-            }
-        }
-        event.process_ubus(&metrics);
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -1718,6 +1685,56 @@ fn read_resolvers(config: &DnsConfig) -> Result<Vec<SocketAddr>, io::Error> {
 mod tests {
     use super::*;
     use dnsmasq_rs::config::{lex_line, validate_directive};
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    fn idle_snapshot_includes_restored_dhcp_leases_with_dns_disabled() {
+        let path = std::env::temp_dir().join(format!(
+            "single-owner-metrics-{}.leases",
+            std::process::id()
+        ));
+        std::fs::write(&path, b"0 02:00:00:00:00:01 192.0.2.10 lease-client *\n").unwrap();
+        let config = DhcpConfig {
+            no_ping: true,
+            lease_file: Some(path.as_os_str().as_encoded_bytes().to_vec()),
+            ..DhcpConfig::default()
+        };
+        let provider = DhcpProvider::new(config, Vec::new(), 0, || false).unwrap();
+        let listener =
+            DhcpSocketListener::bind("127.0.0.1:0".parse().unwrap(), DhcpListener::Dhcp, &[])
+                .unwrap();
+        let event = ParentEvents::new(&UbusConfig::default()).unwrap();
+        let owner = SinglePoll::new(
+            Arc::new(Mutex::new(ParentDns {
+                local: LocalDnsService::new_with_limits(
+                    DnsConfig::default(),
+                    Hosts::new(),
+                    0,
+                    512,
+                    512,
+                ),
+                daemon: None,
+            })),
+            Arc::new(Mutex::new(
+                ParentEvents::new(&UbusConfig::default()).unwrap(),
+            )),
+            Arc::new(Mutex::new(Vec::new())),
+            DnsConfig::default(),
+            Vec::new(),
+            512,
+            20,
+            512,
+            Vec::new(),
+            Some((Arc::new(Mutex::new(provider)), listener)),
+            None,
+        );
+        for _ in 0..3 {
+            assert_eq!(owner.metrics(&event).get(Metric::LeasesAllocated4), 1);
+            assert_eq!(owner.metrics(&event).get(Metric::LocalAnswered), 0);
+        }
+        drop(owner);
+        std::fs::remove_file(path).unwrap();
+    }
 
     #[test]
     fn dns_snapshots_add_background_local_answers_once_and_wrap() {
