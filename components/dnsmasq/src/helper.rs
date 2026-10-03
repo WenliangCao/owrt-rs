@@ -82,6 +82,27 @@ pub struct LeaseEventContext {
     pub log_dhcp: bool,
 }
 
+/// Owned lease callback plus the packet snapshot captured when dnsmasq queued
+/// it.  The poll owner keeps this value while the helper pipe applies
+/// backpressure; retrying therefore cannot accidentally rebuild `old`/`del`
+/// from a later lease or packet state.
+#[derive(Clone, Debug)]
+pub struct LeaseDelivery {
+    pub event: crate::dhcp::lease::ScriptEvent,
+    pub context: LeaseEventContext,
+}
+
+impl LeaseDelivery {
+    pub fn new(event: crate::dhcp::lease::ScriptEvent, context: LeaseEventContext) -> Self {
+        Self { event, context }
+    }
+
+    /// Build the fixed helper event without mutating the DHCP queue or store.
+    pub fn lease_event(&self) -> LeaseEvent {
+        LeaseEvent::from_script_event(&self.event, self.context.clone())
+    }
+}
+
 impl LeaseEvent {
     /// Convert one owned DHCP script event to the fixed helper wire event.
     ///
@@ -553,5 +574,52 @@ mod tests {
         assert_eq!(converted.relay_address, Some(Ipv4Addr::new(192, 0, 2, 1)));
         assert!(converted.log_dhcp);
         assert_eq!(converted.extra.as_ref().unwrap().vendor_class, b"vendor");
+    }
+
+    #[test]
+    fn owned_delivery_rebuilds_the_same_snapshot_for_retries() {
+        let event = crate::dhcp::lease::ScriptEvent {
+            action: crate::dhcp::lease::ScriptAction::Delete,
+            lease: lease_store_fixture(),
+            name: Some(b"queued.lan".to_vec()),
+        };
+        let delivery = LeaseDelivery::new(
+            event,
+            LeaseEventContext {
+                interface: b"br-lan".to_vec(),
+                now: 900,
+                relay_address: Some(Ipv4Addr::new(192, 0, 2, 1)),
+                extra: None,
+                log_dhcp: true,
+            },
+        );
+        let first = delivery.lease_event();
+        let second = delivery.lease_event();
+        assert_eq!(first, second);
+        assert_eq!(first.action, LeaseAction::Delete);
+        assert_eq!(first.hostname.as_deref(), Some(b"queued.lan".as_slice()));
+        assert_eq!(first.expires, 400);
+        assert_eq!(first.now, 900);
+        assert_eq!(first.interface, b"br-lan");
+        assert!(first.log_dhcp);
+        assert!(first.extra.is_none());
+    }
+
+    fn lease_store_fixture() -> crate::dhcp::lease::Lease {
+        let mut store = crate::dhcp::lease::LeaseStore::new(1);
+        store
+            .allocate(
+                Ipv4Addr::new(192, 0, 2, 10),
+                crate::dhcp::lease::ClientIdentity {
+                    hardware_type: 1,
+                    hardware_address: vec![2, 0, 0, 0, 0, 1],
+                    client_id: Some(vec![1, 2]),
+                },
+            )
+            .unwrap();
+        store
+            .set_expires(Ipv4Addr::new(192, 0, 2, 10), 300, 100)
+            .unwrap();
+        store.get(Ipv4Addr::new(192, 0, 2, 10)).unwrap().clone()
     }
 }
