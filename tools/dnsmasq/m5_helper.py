@@ -40,6 +40,7 @@ id -g > "$prefix.gid"
 id -G > "$prefix.groups"
 printf '%s\n' "$$" > "$prefix.pid"
 date +%s > "$prefix.time"
+readlink /proc/$$/fd/0 > "$prefix.stdin"
 for f in /proc/$$/fd/*; do readlink "$f"; done > "$prefix.fds"
 if [ "$M5_SLOW" = 1 ] && [ "$count" = 1 ]; then
   : > "$M5_OUTPUT/slow-ready"
@@ -99,7 +100,8 @@ def capture(folder):
                        'groups': sorted(map(int, prefix.with_suffix('.groups').read_text().split())),
                        'pid': int(prefix.with_suffix('.pid').read_text()),
                        'time': int(prefix.with_suffix('.time').read_text()),
-                       'fds': prefix.with_suffix('.fds').read_text().splitlines()})
+                       'fds': prefix.with_suffix('.fds').read_text().splitlines(),
+                       'stdin': prefix.with_suffix('.stdin').read_text().strip()})
     return result
 
 
@@ -107,6 +109,8 @@ def normalized(records, start, end):
     result = copy.deepcopy(records)
     for row in result:
         row.pop('pid'); row.pop('time')
+        if row.get('stdin', '').startswith('pipe:'): row['stdin'] = 'pipe'
+        elif row.get('stdin', '').startswith('socket:'): row['stdin'] = 'socket'
         # FDs include script/output files and vary by PID/implementation. The
         # service socket/pipe boundary is asserted independently below.
         row['fd_isolated'] = not any(value.startswith('socket:') or value.endswith('/leases') for value in row.pop('fds'))
@@ -218,7 +222,7 @@ class Side:
         response.pop('id', None)
         return response
 
-    def exchange(self, kind, address=None, selecting=False, client=1, hostname=None):
+    def exchange(self, kind, address=None, selecting=False, client=1, hostname=None, reboot=False):
         self.xid += 1
         request = bytearray(packet(kind, self.xid, client, address, selecting))
         if hostname is not None:
@@ -239,7 +243,10 @@ class Side:
             for code, value in extras:
                 request.extend([code, len(value)]); request.extend(value)
             request.append(255)
-        destination = '255.255.255.255' if kind == 1 or selecting else '127.0.0.1'
+        if reboot:
+            request[12:16] = b'\0' * 4
+            request[-1:] = bytes([50, 4]) + socket.inet_aton(address) + b'\xff'
+        destination = '255.255.255.255' if kind == 1 or selecting or reboot else '127.0.0.1'
         started = time.monotonic()
         self.client.sendto(request, (destination, 67))
         (self.out / f'{self.side}-{self.name}-{self.xid}.request').write_bytes(request)
@@ -350,7 +357,19 @@ def run_case(root, side, out, case):
         if case == 'readonly':
             runner.stage('restored-old', 1)
         address = runner.dora()
-        if case == 'missing-exec':
+        if case == 'helper-death':
+            runner.stage('add-before-helper-death', 1)
+            owned = children(runner.process.pid) - {runner.process.pid}
+            wait(lambda: len(children(runner.process.pid) - {runner.process.pid}) == 1, 'one idle helper')
+            helper_pid = next(iter(children(runner.process.pid) - {runner.process.pid}))
+            runner.descendants.add(helper_pid)
+            os.kill(helper_pid, signal.SIGKILL)
+            time.sleep(.05)
+            runner.dora(2)
+            result['dns_after_script'] = runner.dns()
+            runner.stage('no-second-script-after-helper-death')
+            if len(runner.raw) != 1: raise AssertionError('unexpected script after helper death')
+        elif case == 'missing-exec':
             time.sleep(.2)
             result['dns_after_script'] = runner.dns()
             if capture(runner.events): raise AssertionError('missing executable generated a script capture')
@@ -376,6 +395,8 @@ def run_case(root, side, out, case):
             count = runner.stage('renewal', count + 1 if case == 'renewal' else None)
             runner.exchange(3, address, hostname=b'renamed')
             count = runner.stage('name-change', count + 2)
+            runner.exchange(3, address, hostname=b'renamed', reboot=True)
+            count = runner.stage('init-reboot-refreshes-extradata', count + 1)
             runner.process.send_signal(signal.SIGHUP)
             count = runner.stage('sighup', count + 1)
             runner.exchange(7, address)
@@ -395,9 +416,11 @@ def run_case(root, side, out, case):
     return result
 
 
-def compare(rows):
+def compare(rows, expected_cases=None):
     errors = []
-    for case in sorted({row['case'] for row in rows}):
+    cases = set(expected_cases) if expected_cases is not None else {row['case'] for row in rows}
+    if any(row['case'] not in cases for row in rows): errors.append('unexpected scenario')
+    for case in sorted(cases):
         sides = [row for row in rows if row['case'] == case]
         if sorted(row['side'] for row in sides) != ['c', 'rust']:
             errors.append(f'{case}: missing or duplicate side'); continue
@@ -411,17 +434,33 @@ def compare(rows):
 
 
 def controls(rows):
+    expected = {row['case'] for row in rows}
+    def populated(values):
+        return next((row for row in values if row['side'] == 'rust' and row.get('stages') and row['stages'][0]['records']), None)
     changed = copy.deepcopy(rows)
-    row = next(row for row in changed if row['side'] == 'rust' and row.get('stages'))
-    row['stages'][0]['records'][0]['uid'] ^= 1
-    identity = bool(compare(changed))
+    row = populated(changed)
+    if row:
+        row['stages'][0]['records'][0]['uid'] ^= 1
+    else:
+        next(row for row in changed if row['side'] == 'rust')['status'] = 'failed'
+    identity = bool(compare(changed, expected))
     changed = copy.deepcopy(rows)
-    row = next(row for row in changed if row['side'] == 'rust' and row.get('stages'))
-    row['stages'][0]['records'][0]['env']['DNSMASQ_INTERFACE'] = b'wrong-interface'.hex()
-    environment = bool(compare(changed))
-    changed = copy.deepcopy(rows); changed.pop()
-    return {'changed-credentials': identity, 'changed-environment': environment,
-            'missing-side': bool(compare(changed))}
+    row = populated(changed)
+    if row:
+        row['stages'][0]['records'][0]['env']['DNSMASQ_INTERFACE'] = b'wrong-interface'.hex()
+    else:
+        next(row for row in changed if row['side'] == 'rust')['cleanup']['forced'] = True
+    environment = bool(compare(changed, expected))
+    changed = copy.deepcopy(rows)
+    stage = next((stage for row in changed if row['side'] == 'rust' for stage in row.get('stages', []) if len(stage['records']) > 1), None)
+    if stage:
+        stage['records'].reverse()
+    else:
+        next(row for row in changed if row['side'] == 'rust')['side'] = 'c'
+    ordering = bool(compare(changed, expected))
+    missing = [row for row in rows if row['case'] != next(iter(expected))]
+    return {'changed-credentials-or-status': identity, 'changed-environment-or-cleanup': environment,
+            'changed-order-or-duplicate-side': ordering, 'missing-whole-scenario': bool(compare(missing, expected))}
 
 
 def main():
@@ -430,7 +469,7 @@ def main():
     parser.add_argument('--rust', type=Path, required=True)
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--side', choices=('both', 'c', 'rust'), default='both')
-    parser.add_argument('--cases', default='lifecycle,renewal,scriptuser,scriptuser-debug,slow,exit,signal,readonly,hotplug,missing-exec,unknown-user,init-exit')
+    parser.add_argument('--cases', default='lifecycle,renewal,scriptuser,scriptuser-debug,slow,exit,signal,readonly,hotplug,missing-exec,unknown-user,init-exit,helper-death')
     args = parser.parse_args()
     if os.geteuid() != 0 or os.environ.get('DNSMASQ_TEST_ISOLATED') != '1':
         parser.error('root under run_isolated.sh required')
@@ -442,14 +481,14 @@ def main():
     root = prepare(args.image_root, None, out, args.rust)
     rows = []
     for case in args.cases.split(','):
-        if case not in ('lifecycle', 'renewal', 'scriptuser', 'scriptuser-debug', 'slow', 'exit', 'signal', 'readonly', 'hotplug', 'missing-exec', 'unknown-user', 'init-exit'):
+        if case not in ('lifecycle', 'renewal', 'scriptuser', 'scriptuser-debug', 'slow', 'exit', 'signal', 'readonly', 'hotplug', 'missing-exec', 'unknown-user', 'init-exit', 'helper-death'):
             parser.error('unknown case ' + case)
         for side in (('c', 'rust') if args.side == 'both' else (args.side,)):
             rows.append(run_case(root, side, out, case))
-    failures = compare(rows) if args.side == 'both' else [f"{r['case']}: {r.get('error', 'cleanup failed')}" for r in rows if r['status'] != 'passed']
+    failures = compare(rows, args.cases.split(',')) if args.side == 'both' else [f"{r['case']}: {r.get('error', 'cleanup failed')}" for r in rows if r['status'] != 'passed']
     negative = controls(rows) if args.side == 'both' and not failures else {'not-run': False}
     result = {'passed': not failures and (args.side != 'both' or all(negative.values())),
-              'comparison_executed': args.side == 'both',
+              'comparison_executed': args.side == 'both', 'requested_cases': args.cases.split(','),
               'c_sha256': STOCK_SHA256, 'rust_sha256': sha256(args.rust),
               'failures': failures, 'negative_controls': negative,
               'cases': rows, 'scope': 'helper family incl image dhcp-script.sh and real hotplug.dhcp bus handler; raw records retained; script-arp/TFTP producers remain separate until integrated'}

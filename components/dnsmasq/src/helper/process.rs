@@ -36,6 +36,8 @@ extern "C" {
     fn setgroups(count: usize, groups: *const u32) -> c_int;
     fn getpwnam(name: *const c_char) -> *mut Passwd;
     fn waitpid(pid: c_int, status: *mut c_int, options: c_int) -> c_int;
+    #[cfg(test)]
+    fn kill(pid: c_int, signal: c_int) -> c_int;
     fn getrlimit(resource: c_int, limit: *mut [usize; 2]) -> c_int;
     fn _exit(code: c_int) -> !;
 }
@@ -65,7 +67,7 @@ fn start_error(error: io::Error) -> StartError {
 pub struct Helper {
     pid: c_int,
     writer: Option<File>,
-    reader: File,
+    reader: Option<File>,
     pending: Vec<u8>,
     written: usize,
     incoming: Vec<u8>,
@@ -126,7 +128,7 @@ impl Helper {
         Ok(Self {
             pid,
             writer: Some(File::from(commands_write)),
-            reader: File::from(events_read),
+            reader: Some(File::from(events_read)),
             pending: Vec::new(),
             written: 0,
             incoming: Vec::new(),
@@ -165,7 +167,7 @@ impl Helper {
                 if self.eof {
                     -1
                 } else {
-                    self.reader.as_raw_fd()
+                    self.reader.as_ref().map_or(-1, AsRawFd::as_raw_fd)
                 },
                 POLLIN,
             ),
@@ -191,9 +193,15 @@ impl Helper {
     pub fn step(&mut self) -> io::Result<Vec<Notice>> {
         let mut notices = Vec::new();
         let mut buffer = [0u8; 8192];
+        let mut channel_error = None;
         // Read first, preventing child log output from stalling command progress.
-        for _ in 0..8 {
-            match self.reader.read(&mut buffer) {
+        // A malformed/partial notification disables IPC but must still reach
+        // WNOHANG below. Returning early here can leave a dead helper a zombie.
+        'reads: for _ in 0..8 {
+            let Some(reader) = self.reader.as_mut() else {
+                break;
+            };
+            match reader.read(&mut buffer) {
                 Ok(0) => {
                     self.eof = true;
                     break;
@@ -206,13 +214,21 @@ impl Helper {
                             self.incoming[consumed..consumed + 4].try_into().unwrap(),
                         ) as usize;
                         if size == 0 || size > wire::MAX_FRAME {
-                            return Err(invalid());
+                            channel_error = Some(invalid());
+                            break 'reads;
                         }
                         if self.incoming.len() - consumed < 4 + size {
                             break;
                         }
-                        let notice =
-                            decode_notice(&self.incoming[consumed + 4..consumed + 4 + size])?;
+                        let notice = match decode_notice(
+                            &self.incoming[consumed + 4..consumed + 4 + size],
+                        ) {
+                            Ok(notice) => notice,
+                            Err(error) => {
+                                channel_error = Some(error);
+                                break 'reads;
+                            }
+                        };
                         if notice == Notice::Ready {
                             self.ready = true;
                         }
@@ -221,25 +237,42 @@ impl Helper {
                     }
                     self.incoming.drain(..consumed);
                     if self.incoming.len() > wire::MAX_FRAME + 4 {
-                        return Err(invalid());
+                        channel_error = Some(invalid());
+                        break;
                     }
                 }
                 Err(error) if error.kind() == io::ErrorKind::WouldBlock => break,
                 Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
-                Err(error) => return Err(error),
+                Err(error) => {
+                    channel_error = Some(error);
+                    break;
+                }
             }
         }
         if self.eof && !self.incoming.is_empty() {
-            return Err(invalid());
+            channel_error = Some(invalid());
+        }
+        if let Some(error) = channel_error {
+            notices.push(Notice::Error(error.raw_os_error().unwrap_or(22)));
+            self.eof = true;
+        }
+        if self.eof {
+            // Closing both directions wakes a live helper as well as cleaning
+            // up a dead one; no future frame can reach its fixed command.
+            self.reader.take();
+            self.writer.take();
+            self.incoming.clear();
+            self.pending.clear();
+            self.written = 0;
+            self.stopping = true;
         }
         if let Some(writer) = &mut self.writer {
             if !self.pending.is_empty() {
                 match writer.write(&self.pending[self.written..]) {
                     Ok(0) => {
-                        return Err(io::Error::new(
-                            io::ErrorKind::WriteZero,
-                            "helper pipe closed",
-                        ))
+                        self.pending.clear();
+                        self.written = 0;
+                        notices.push(Notice::Error(5));
                     }
                     Ok(length) => {
                         self.written += length;
@@ -253,7 +286,13 @@ impl Helper {
                             error.kind(),
                             io::ErrorKind::WouldBlock | io::ErrorKind::Interrupted
                         ) => {}
-                    Err(error) => return Err(error),
+                    Err(error) => {
+                        // C helper_write drops a failed frame but keeps DNS and
+                        // DHCP alive. Still reach waitpid below on EPIPE.
+                        self.pending.clear();
+                        self.written = 0;
+                        notices.push(Notice::Error(error.raw_os_error().unwrap_or(5)));
+                    }
                 }
             }
         }
@@ -265,6 +304,9 @@ impl Helper {
             let result = unsafe { waitpid(self.pid, &mut status, WNOHANG) };
             if result == self.pid {
                 self.reaped = Some(status);
+                self.pending.clear();
+                self.written = 0;
+                self.writer.take();
                 notices.push(Notice::Reaped(status));
             } else if result < 0 {
                 let error = io::Error::last_os_error();
@@ -473,6 +515,10 @@ fn run_script(config: &Config, call: Invocation, events: &mut File) -> io::Resul
     let mut output = None;
     if !config.debug {
         let (read, write) = pipe()?;
+        // dnsmasq.c redirects the daemon's stdin to /dev/null before helper
+        // creation outside debug mode. Preserve the script boundary even when
+        // our foreground owner keeps its own stderr attached to its logger.
+        command.stdin(Stdio::null());
         command
             .stdout(Stdio::from(write.try_clone()?))
             .stderr(Stdio::from(write));
@@ -621,6 +667,7 @@ mod tests {
             .copied()
             .collect::<Vec<_>>();
         assert!(!String::from_utf8_lossy(&output).contains("must-not-inherit"));
+        assert!(String::from_utf8_lossy(&output).contains("/dev/null"));
         drop(helper);
         drop(file);
         std::fs::remove_dir_all(folder).unwrap();
@@ -656,5 +703,53 @@ mod tests {
         assert!(!notices.iter().any(|n| matches!(n, Notice::Output(_))));
         drop(helper);
         std::fs::remove_dir_all(folder).unwrap();
+    }
+    #[test]
+    fn killed_helper_drops_pipe_frame_without_poisoning_owner_or_reap() {
+        let (folder, config) = script("exit 0");
+        let mut helper = Helper::start(config).unwrap();
+        until(&mut helper, |h, _| h.ready());
+        assert_eq!(unsafe { kill(helper.pid(), 9) }, 0);
+        std::thread::sleep(Duration::from_millis(20));
+        // A command raced with the helper death; parent write sees EPIPE.
+        helper
+            .enqueue(&Event::Lease(super::super::tests::lease()))
+            .unwrap();
+        let notices = until(&mut helper, |h, _| h.is_finished());
+        assert!(notices.iter().any(|n| matches!(n, Notice::Reaped(9))));
+        assert!(!helper.can_enqueue());
+        assert!(helper.pending.is_empty());
+        assert!(!std::path::Path::new(&format!("/proc/{}", helper.pid())).exists());
+        drop(helper);
+        std::fs::remove_dir_all(folder).unwrap();
+    }
+    #[test]
+    fn partial_and_invalid_notice_frames_close_ipc_then_reap() {
+        for partial in [
+            vec![8, 0, 0, 0, 1, b'x'],
+            vec![0xff, 0xff, 0xff, 0x7f],
+            vec![1, 0, 0, 0, 255],
+        ] {
+            let (folder, config) = script("echo must-not-run");
+            let mut helper = Helper::start(config).unwrap();
+            until(&mut helper, |h, _| h.ready());
+            // Substitute the notice transport only, leaving the real helper
+            // idle on its command pipe. EOF/error must close that command pipe,
+            // allow normal child exit and still execute the parent's waitpid.
+            let (input, output) = pipe().unwrap();
+            let mut output = File::from(output);
+            output.write_all(&partial).unwrap();
+            drop(output);
+            nonblocking(input.as_raw_fd()).unwrap();
+            helper.reader = Some(File::from(input));
+            let notices = until(&mut helper, |h, _| h.is_finished());
+            assert!(notices.contains(&Notice::Error(22)));
+            assert!(notices.contains(&Notice::Reaped(0)));
+            assert_eq!(helper.poll_fds(), [(-1, POLLIN), (-1, POLLOUT)]);
+            assert!(helper.step().unwrap().is_empty());
+            assert!(!std::path::Path::new(&format!("/proc/{}", helper.pid())).exists());
+            drop(helper);
+            std::fs::remove_dir_all(folder).unwrap();
+        }
     }
 }
