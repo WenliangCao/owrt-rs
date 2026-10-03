@@ -310,6 +310,11 @@ impl LocalProvider {
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     pub fn take_script_delivery(&mut self) -> Option<LeaseDelivery> {
+        self.pending_delivery.take()
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    fn queue_script_from_maintenance(&mut self) {
         if self.pending_delivery.is_none() && self.config.script.is_some() {
             if let Some(event) = self.scripts.next(
                 &mut self.leases,
@@ -322,7 +327,6 @@ impl LocalProvider {
                     Some(LeaseDelivery::new(event, LeaseEventContext::default()));
             }
         }
-        self.pending_delivery.take()
     }
 
     fn select_boot(&mut self, outcome: &Outcome) {
@@ -428,6 +432,8 @@ impl LocalProvider {
         report.host_files = host_files;
         report.address_error = address_error;
         report.name_error = name_error;
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        self.queue_script_from_maintenance();
         report
     }
 
@@ -631,6 +637,8 @@ impl LocalProvider {
         report.host_files = host_files;
         report.address_error = address_error;
         report.name_error = name_error;
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        self.queue_script_from_maintenance();
         report
     }
 
@@ -646,7 +654,10 @@ impl LocalProvider {
         }
         self.pending_alarms -= 1;
         let removed = self.leases.prune(None, now);
-        Some(self.maintain(now, removed, false))
+        let report = self.maintain(now, removed, false);
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        self.queue_script_from_maintenance();
+        Some(report)
     }
 }
 
