@@ -478,12 +478,19 @@ pub fn reverse_patterns(address: IpAddr, prefix: u8) -> Result<Vec<DomainPattern
         let mut name = Vec::new();
         for (index, &digit) in significant.iter().enumerate().rev() {
             let digit = digit + if index + 1 == count { delta as u8 } else { 0 };
-            let value = if unit == 8 {
-                digit.to_string()
+            if unit == 8 {
+                // An IPv4 octet needs at most three ASCII digits. Avoid an
+                // allocated formatting buffer for every reverse-name label.
+                if digit >= 100 {
+                    name.push(b'0' + digit / 100);
+                }
+                if digit >= 10 {
+                    name.push(b'0' + digit / 10 % 10);
+                }
+                name.push(b'0' + digit % 10);
             } else {
-                format!("{digit:x}")
-            };
-            name.extend_from_slice(value.as_bytes());
+                name.push(b"0123456789abcdef"[usize::from(digit)]);
+            }
             name.push(b'.');
         }
         name.extend_from_slice(suffix);
@@ -915,6 +922,26 @@ mod tests {
         let mut config = DnsConfig::default();
         apply(&mut config, b"server=upstream.test").unwrap();
         assert!(config.validate_ready().is_err());
+    }
+
+    #[test]
+    fn reverse_labels_cover_all_octets_and_nibbles() {
+        for digit in 0..=u8::MAX {
+            let address = IpAddr::V4(Ipv4Addr::new(digit, digit, digit, digit));
+            let patterns = reverse_patterns(address, 32).unwrap();
+            assert_eq!(patterns.len(), 1);
+            assert_eq!(
+                patterns[0].suffix,
+                format!("{digit}.{digit}.{digit}.{digit}.in-addr.arpa").as_bytes()
+            );
+        }
+        for digit in 0..16u8 {
+            let address = IpAddr::V6(std::net::Ipv6Addr::from([digit * 17; 16]));
+            let patterns = reverse_patterns(address, 128).unwrap();
+            assert_eq!(patterns.len(), 1);
+            let expected = format!("{digit:x}.").repeat(32) + "ip6.arpa";
+            assert_eq!(patterns[0].suffix, expected.as_bytes());
+        }
     }
 
     #[test]

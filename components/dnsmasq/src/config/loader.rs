@@ -59,6 +59,24 @@ impl LoadError {
             message: message.into(),
         }
     }
+
+    // Keep the repeated path/error formatting out of the include loader's
+    // success path. All callers use the same message structure.
+    #[cold]
+    #[inline(never)]
+    fn path_io(
+        location: &Location,
+        exit_code: i32,
+        action: &str,
+        path: &Path,
+        error: io::Error,
+    ) -> Self {
+        Self::new(
+            location,
+            exit_code,
+            format!("{action} {}: {error}", path.display()),
+        )
+    }
 }
 
 impl fmt::Display for LoadError {
@@ -375,26 +393,16 @@ where
                 .stdin(Stdio::inherit())
                 .stdout(Stdio::piped())
                 .spawn()
-                .map_err(|e| {
-                    LoadError::new(
-                        &location,
-                        3,
-                        format!("cannot execute {}: {e}", path.display()),
-                    )
-                })?;
+                .map_err(|e| LoadError::path_io(&location, 3, "cannot execute", path, e))?;
             let result = self.read(BufReader::new(child.stdout.take().unwrap()), path, true);
             // Always reap the child even if its output has a parse error.
             // Closing the pipe above prevents a writer waiting on our reader.
             if result.is_err() {
                 let _ = child.kill();
             }
-            let status = child.wait().map_err(|e| {
-                LoadError::new(
-                    &location,
-                    5,
-                    format!("error executing {}: {e}", path.display()),
-                )
-            })?;
+            let status = child
+                .wait()
+                .map_err(|e| LoadError::path_io(&location, 5, "error executing", path, e))?;
             result?;
             if !status.success() {
                 return Err(LoadError::new(
@@ -408,11 +416,7 @@ where
         match File::open(path) {
             Ok(file) => self.read(BufReader::new(file), path, false),
             Err(e) if missing_ok && e.kind() == io::ErrorKind::NotFound => Ok(()),
-            Err(e) => Err(LoadError::new(
-                &location,
-                3,
-                format!("cannot read {}: {e}", path.display()),
-            )),
+            Err(e) => Err(LoadError::path_io(&location, 3, "cannot read", path, e)),
         }
     }
 
@@ -435,11 +439,7 @@ where
             }
         }
         let entries = fs::read_dir(&directory).map_err(|e| {
-            LoadError::new(
-                location,
-                3,
-                format!("cannot access directory {}: {e}", directory.display()),
-            )
+            LoadError::path_io(location, 3, "cannot access directory", &directory, e)
         })?;
         let mut files = Vec::new();
         for entry in entries {
@@ -459,13 +459,8 @@ where
                 continue;
             }
             let path = entry.path();
-            let metadata = fs::metadata(&path).map_err(|e| {
-                LoadError::new(
-                    location,
-                    3,
-                    format!("cannot access {}: {e}", path.display()),
-                )
-            })?;
+            let metadata = fs::metadata(&path)
+                .map_err(|e| LoadError::path_io(location, 3, "cannot access", &path, e))?;
             if metadata.is_file() {
                 files.push(path);
             }
@@ -519,6 +514,45 @@ mod tests {
             }
         })?;
         Ok((action, config))
+    }
+
+    #[test]
+    fn path_io_errors_preserve_text_and_location() {
+        let location = Location {
+            file: Some("main.conf".into()),
+            line: Some(7),
+            from_script: false,
+        };
+        for (action, code) in [
+            ("cannot execute", 3),
+            ("error executing", 5),
+            ("cannot read", 3),
+            ("cannot access directory", 3),
+            ("cannot access", 3),
+        ] {
+            for (path, displayed) in [
+                (b"/tmp/config file".as_slice(), "/tmp/config file"),
+                (b"/tmp/non-utf8-\xff".as_slice(), "/tmp/non-utf8-\u{fffd}"),
+            ] {
+                let path = Path::new(std::ffi::OsStr::from_bytes(path));
+                let error = LoadError::path_io(
+                    &location,
+                    code,
+                    action,
+                    path,
+                    io::Error::other("test I/O failure"),
+                );
+                assert_eq!(error.exit_code, code);
+                assert_eq!(
+                    error.message,
+                    format!("{action} {displayed}: test I/O failure")
+                );
+                assert_eq!(
+                    error.to_string(),
+                    format!("{action} {displayed}: test I/O failure at line 7 of main.conf")
+                );
+            }
+        }
     }
 
     #[test]
