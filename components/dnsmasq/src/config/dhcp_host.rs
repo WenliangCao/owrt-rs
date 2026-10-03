@@ -1,15 +1,11 @@
 //! Ordinary IPv4 dhcp-host rules from option.c:4004-4244 and dhcp-common.c.
 
-use super::{ip, Error};
+use super::{ip, tags::TagPredicate, Error};
 use crate::config::EncodedArg;
 use std::net::Ipv4Addr;
 
-const WILDCARD: Error = Error("DHCP host wildcard selectors are not implemented");
-const TAGS: Error = Error("DHCP host tag selectors are not implemented");
-const NAME_ONLY: Error = Error("DHCP host name-only selectors are not implemented");
-
-pub(super) fn unsupported(error: &Error) -> bool {
-    [WILDCARD, TAGS, NAME_ONLY].contains(error)
+pub(super) fn unsupported(_error: &Error) -> bool {
+    false
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -17,6 +13,8 @@ pub struct HardwareAddress {
     /// Zero matches every hardware type, as in config_has_mac.
     pub kind: u32,
     pub address: Vec<u8>,
+    /// Bit zero corresponds to the last byte, matching parse_hex.
+    pub wildcard_mask: u16,
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -30,14 +28,22 @@ pub struct HostConfig {
     pub hardware: Vec<HardwareAddress>,
     pub ignore_client_id: bool,
     pub ignore: bool,
+    pub set_tags: Vec<Vec<u8>>,
+    pub filter: TagPredicate,
 }
 
 /// util.c parse_hex without wildcard selectors. Like C, validate each whole
 /// group, accept odd/compact groups, and stop at the hardware length limit.
-fn hex(input: &[u8], maximum: usize, mut typed: bool) -> Result<HardwareAddress, Error> {
+pub(super) fn parse_hardware(
+    input: &[u8],
+    maximum: usize,
+    mut typed: bool,
+    wildcards: bool,
+) -> Result<HardwareAddress, Error> {
     let mut result = HardwareAddress {
         kind: 0,
         address: Vec::new(),
+        wildcard_mask: 0,
     };
     let mut rest = input;
     while result.address.len() < maximum {
@@ -46,10 +52,10 @@ fn hex(input: &[u8], maximum: usize, mut typed: bool) -> Result<HardwareAddress,
             .position(|b| b":- ".contains(b))
             .unwrap_or(rest.len());
         let group = &rest[..end];
-        if group.contains(&b'*') {
-            return Err(WILDCARD);
-        }
-        if !group.iter().all(u8::is_ascii_hexdigit) {
+        if !group
+            .iter()
+            .all(|b| b.is_ascii_hexdigit() || (wildcards && *b == b'*'))
+        {
             return Err(Error("bad DHCP host hex constant"));
         }
         if !group.is_empty() {
@@ -63,11 +69,18 @@ fn hex(input: &[u8], maximum: usize, mut typed: bool) -> Result<HardwareAddress,
                     })
                     .ok_or(Error("DHCP hardware type exceeds defined integer range"))?;
                 typed = false;
+            } else if group == b"*" {
+                result.address.push(0);
+                result.wildcard_mask = (result.wildcard_mask << 1) | 1;
             } else {
+                if group.contains(&b'*') {
+                    return Err(Error("bad DHCP host hex constant"));
+                }
                 for pair in group.chunks(2).take(maximum - result.address.len()) {
                     result.address.push(pair.iter().fold(0u8, |value, digit| {
                         value * 16 + (*digit as char).to_digit(16).unwrap() as u8
                     }));
+                    result.wildcard_mask <<= 1;
                 }
             }
         }
@@ -126,18 +139,20 @@ impl HostConfig {
                         host.ignore_client_id = true;
                     } else {
                         host.client_id = Some(if bytes[3..].contains(&b':') {
-                            hex(&bytes[3..], usize::MAX, false)?.address
+                            parse_hardware(&bytes[3..], usize::MAX, false, false)?.address
                         } else {
                             part.decoded()[3..].to_vec()
                         });
                     }
-                } else if [b"net:".as_slice(), b"set:", b"tag:"]
-                    .iter()
-                    .any(|prefix| bytes.starts_with(prefix))
-                {
-                    return Err(TAGS);
+                } else if bytes.starts_with(b"net:") || bytes.starts_with(b"set:") {
+                    host.set_tags.insert(0, part.decoded()[4..].to_vec());
+                } else if bytes.starts_with(b"tag:") {
+                    let mut tags = host.filter.tags().to_vec();
+                    tags.insert(0, part.decoded()[4..].to_vec());
+                    host.filter = TagPredicate::from_tags(tags);
                 } else {
-                    host.hardware.insert(0, hex(bytes, 16, true)?);
+                    host.hardware
+                        .insert(0, parse_hardware(bytes, 16, true, true)?);
                 }
             } else if let Ok(address) = ip(bytes) {
                 if existing.iter().any(|entry| entry.address == Some(address)) {
@@ -173,15 +188,74 @@ impl HostConfig {
                 host.hostname = Some(name);
             }
         }
-        if host.client_id.is_none() && host.hardware.is_empty() {
-            return Err(NAME_ONLY);
-        }
         Ok(host)
     }
 
     pub fn matches_hardware(&self, kind: u32, address: &[u8]) -> bool {
         self.hardware.iter().any(|hardware| {
-            (hardware.kind == 0 || hardware.kind == kind) && hardware.address == address
+            hardware.wildcard_mask == 0
+                && (hardware.kind == 0 || hardware.kind == kind)
+                && hardware.address == address
         })
+    }
+
+    /// C considers wildcard MACs only after client-id, exact MAC and hostname
+    /// passes. A larger score wins, equal scores preserve list order.
+    pub fn wildcard_score(&self, kind: u32, address: &[u8]) -> usize {
+        self.hardware
+            .iter()
+            .filter_map(|hardware| {
+                if hardware.wildcard_mask == 0
+                    || hardware.address.len() != address.len()
+                    || (hardware.kind != 0 && hardware.kind != kind)
+                {
+                    return None;
+                }
+                let mut score = 1;
+                for (index, (left, right)) in hardware.address.iter().zip(address).enumerate() {
+                    if hardware.wildcard_mask & (1 << (address.len() - index - 1)) == 0 {
+                        if left != right {
+                            return None;
+                        }
+                        score += 1;
+                    }
+                }
+                Some(score)
+            })
+            .max()
+            .unwrap_or(0)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn host_tags_name_only_and_masked_hardware_preserve_distinct_selectors() {
+        let host = HostConfig::parse(
+            &EncodedArg::command_line(
+                b"tag:lan,set:chosen,net:legacy,02:00:*:00:00:01,host,192.0.2.10",
+            ),
+            &[],
+        )
+        .unwrap();
+        assert!(host.filter.matches_with(&[b"lan"], false));
+        assert!(!host.filter.matches_with(&[], false));
+        assert_eq!(host.set_tags, [b"legacy".to_vec(), b"chosen".to_vec()]);
+        assert!(!host.matches_hardware(1, &[2, 0, 9, 0, 0, 1]));
+        assert_eq!(host.wildcard_score(1, &[2, 0, 9, 0, 0, 1]), 6);
+        assert_eq!(host.wildcard_score(1, &[2, 1, 9, 0, 0, 1]), 0);
+        let named = HostConfig::parse(&EncodedArg::command_line(b"named,192.0.2.11"), &[]).unwrap();
+        assert!(named.hardware.is_empty());
+        assert_eq!(named.hostname.as_deref(), Some(b"named".as_slice()));
+    }
+    #[test]
+    fn compact_and_typed_hex_keep_c_octet_limits_and_mask_positions() {
+        let address = parse_hardware(b"1-0200:ab:*:00:01", 16, true, true).unwrap();
+        assert_eq!(address.kind, 1);
+        assert_eq!(address.address, [2, 0, 171, 0, 0, 1]);
+        assert_eq!(address.wildcard_mask, 4);
+        assert!(parse_hardware(b"02:0*:00", 16, true, true).is_err());
+        assert!(parse_hardware(b"01:*", usize::MAX, false, false).is_err());
     }
 }

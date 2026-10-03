@@ -15,7 +15,10 @@ use super::probe::IcmpProbe;
 use super::runtime::{NetworkOptions, OutcomeProvider, ReplyNames, RuntimeError, StateProvider};
 use super::service::Dispatch;
 use super::state::{Environment, HostPolicy, Outcome, Reply};
-use crate::config::dhcp::{DhcpConfig, HostConfig, HostFileError, HostFiles, NameDomains};
+use crate::config::dhcp::{
+    option_filter, ClassKind, DhcpConfig, FilteredOptions, HostConfig, HostFileError, HostFiles,
+    NameDomains, TagIf,
+};
 use crate::interfaces::{ipv4_interfaces, primary_ipv4};
 use crate::ubus_service::{DhcpEventFields, DhcpEventKind, DhcpLogging};
 use std::ffi::OsStr;
@@ -120,6 +123,7 @@ pub struct LocalProvider {
     domains: NameDomains,
     reply_hostname: Option<Vec<u8>>,
     force_broadcast: bool,
+    request_tags: Vec<Vec<u8>>,
     selected: Vec<SelectedContext>,
     interface_policy: InterfacePolicy,
     dns_port: u16,
@@ -206,6 +210,7 @@ impl LocalProvider {
             domains: NameDomains::default(),
             reply_hostname: None,
             force_broadcast: false,
+            request_tags: Vec::new(),
             probe,
             probe_error: None,
             should_stop,
@@ -691,27 +696,58 @@ impl LocalProvider {
             })
             .flatten();
         let event_mac = events.as_ref().map(|_| event_mac(packet, clid));
-        let host_index = self.config.find_host(
+        let mut tags: Vec<&[u8]> = interface_name.into_iter().collect();
+        for rule in &self.config.macs {
+            if rule.matches(identity.hardware_type, &identity.hardware_address) {
+                tags.push(&rule.set_tag);
+            }
+        }
+        for rule in &self.config.classes {
+            let data = match rule.kind {
+                ClassKind::Vendor => packet.option(60, 1),
+                ClassKind::User => packet.option(77, 1),
+                ClassKind::Circuit => relay_suboption(packet, 1),
+                ClassKind::Remote => relay_suboption(packet, 2),
+                ClassKind::Subscriber => relay_suboption(packet, 6),
+            };
+            if data.is_some_and(|data| rule.matches(data)) {
+                tags.push(&rule.set_tag);
+            }
+        }
+        for rule in &self.config.matches {
+            if rule.matches_packet(packet) {
+                tags.push(&rule.set_tag);
+            }
+        }
+        let in_context = |address| ranges.iter().any(|range| range.same_subnet(address));
+        let mut lookup_tags = tags.clone();
+        TagIf::apply_all(&self.config.tag_if, &mut lookup_tags);
+        let mut host_index = self.config.find_host_tagged(
             clid,
             identity.hardware_type,
             Some(&identity.hardware_address),
-            |address| {
-                ranges.iter().any(|range| {
-                    u32::from(address) & u32::from(range.netmask)
-                        == u32::from(range.start) & u32::from(range.netmask)
-                })
-            },
+            None,
+            &lookup_tags,
+            in_context,
         );
-        let configured = host_index.map(|index| &self.config.hosts[index]);
-        let configured_name = configured.and_then(|host| host.hostname.as_deref());
-        let client_name = packet.client_hostname();
-        // C matches the full client-provided name before choosing an
-        // authoritative name and before adding the selected range tag.
-        let full_client_name = packet.client_hostname_full();
-        let mut tags: Vec<&[u8]> = interface_name.into_iter().collect();
-        if configured.is_some() {
+        if host_index.is_some() {
             tags.push(b"known");
+        } else if self
+            .config
+            .find_host_tagged(
+                clid,
+                identity.hardware_type,
+                Some(&identity.hardware_address),
+                None,
+                &lookup_tags,
+                |_| true,
+            )
+            .is_some()
+        {
+            tags.push(b"known-othernet");
         }
+        let client_name = packet.client_hostname();
+        let full_client_name = packet.client_hostname_full();
         for rule in &self.config.name_matches {
             if full_client_name
                 .as_deref()
@@ -720,9 +756,46 @@ impl LocalProvider {
                 tags.push(&rule.set_tag);
             }
         }
+        let mut configured_by_name = false;
+        if host_index.is_none() {
+            if let Some(name) = client_name.as_deref() {
+                lookup_tags = tags.clone();
+                TagIf::apply_all(&self.config.tag_if, &mut lookup_tags);
+                if let Some(index) = self.config.find_host_tagged(
+                    None,
+                    identity.hardware_type,
+                    Some(&identity.hardware_address),
+                    Some(name),
+                    &lookup_tags,
+                    in_context,
+                ) {
+                    let host = &self.config.hosts[index];
+                    // rfc2131.c's second lookup cannot authenticate an ID/MAC
+                    // rule merely by claiming its configured hostname.
+                    if host.client_id.is_none() && host.hardware.is_empty() {
+                        host_index = Some(index);
+                        configured_by_name = true;
+                        tags.push(b"known");
+                    }
+                }
+            }
+        }
+        let configured = host_index.map(|index| &self.config.hosts[index]);
+        let configured_name = configured
+            .filter(|_| !configured_by_name)
+            .and_then(|host| host.hostname.as_deref());
+        if let Some(host) = configured {
+            tags.extend(host.set_tags.iter().map(Vec::as_slice));
+        }
+        self.request_tags = tags.iter().map(|tag| tag.to_vec()).collect();
+        TagIf::apply_all(&self.config.tag_if, &mut tags);
         self.force_broadcast = self.config.force_broadcast_for(&tags);
-        let ignore_client_name = if packet.message_type() == 3 {
-            let mut name_tags = tags.clone();
+        let ack = packet.message_type() == 3
+            || (packet.message_type() == 1
+                && self.config.rapid_commit
+                && packet.option(80, 0).is_some());
+        let mut name_tags = tags.clone();
+        let ignore_client_name = if ack {
             // The state machine uses the server-ID suffix of the context
             // chain for SELECTING, then narrows it by the requested address.
             let first = if packet.requested_address().is_some() {
@@ -744,6 +817,7 @@ impl LocalProvider {
                     name_tags.push(tag);
                 }
             }
+            TagIf::apply_all(&self.config.tag_if, &mut name_tags);
             self.config.ignore_client_name(&name_tags)
         } else {
             false
@@ -799,15 +873,31 @@ impl LocalProvider {
         } else if ignore_client_name && configured_name.is_none() {
             self.reply_hostname = None;
         }
+        let generated_name = if ack
+            && self.reply_hostname.is_none()
+            && self
+                .config
+                .generate_names
+                .iter()
+                .any(|rule| rule.matches(&name_tags))
+        {
+            generated_hostname(packet, clid)
+        } else {
+            None
+        };
+        if let Some(name) = &generated_name {
+            self.reply_hostname = Some(name.clone());
+        }
         let environment = Environment {
             now,
             interface,
             authoritative: self.config.authoritative,
             unicast_destination: dispatch.ingress.unicast_destination,
-            ignored: configured.is_some_and(|host| host.ignore),
+            ignored: configured.is_some_and(|host| host.ignore)
+                || self.config.ignore.iter().any(|rule| rule.matches(&tags)),
             ignore_client_id: self.config.ignore_client_id,
             fqdn_only: self.config.fqdn_only,
-            rapid_commit: false,
+            rapid_commit: self.config.rapid_commit,
             bootp_dynamic: self.config.bootp_dynamic,
             consecutive_addresses: self.config.sequential,
             override_server: None,
@@ -884,6 +974,7 @@ impl LocalProvider {
         );
         provider.configured_name = dns_name.as_deref().or(configured_name);
         provider.ignore_client_name = ignore_client_name;
+        provider.generated_name = generated_name.as_deref();
         provider.domains = Some(&self.domains);
         provider.quiet_dhcp = self.config.quiet_dhcp;
         provider.message_counters = Some(&mut self.message_counters);
@@ -924,6 +1015,32 @@ impl OutcomeProvider for LocalProvider {
 
     fn configured_options(&self) -> &[crate::config::dhcp::DhcpOption] {
         &self.config.options
+    }
+
+    fn selected_options(&self, outcome: &Outcome) -> FilteredOptions<'_> {
+        let tags: Vec<_> = self.request_tags.iter().map(Vec::as_slice).collect();
+        let context = match outcome.reply {
+            Reply::Offer { context, .. }
+            | Reply::Ack { context, .. }
+            | Reply::Bootp { context, .. } => Some(context),
+            Reply::Inform { context, .. } => context,
+            _ => None,
+        };
+        let context_tag = context
+            .and_then(|index| self.selected.get(index))
+            .and_then(|selected| self.config.ranges[selected.source_index].set_tag.as_deref());
+        let contexts: Vec<_> = context_tag.into_iter().collect();
+        option_filter(
+            &self.config.options,
+            &tags,
+            &contexts,
+            &self.config.tag_if,
+            0,
+        )
+    }
+
+    fn client_update(&self) -> bool {
+        self.config.client_update
     }
 
     fn boot_next_server(&mut self) -> io::Result<Option<Ipv4Addr>> {
@@ -1031,6 +1148,13 @@ impl OutcomeProvider for EventProvider<'_> {
 
     fn boot_config(&self) -> Option<&crate::config::dhcp::BootConfig> {
         self.provider.boot_config()
+    }
+
+    fn selected_options(&self, outcome: &Outcome) -> FilteredOptions<'_> {
+        self.provider.selected_options(outcome)
+    }
+    fn client_update(&self) -> bool {
+        self.provider.client_update()
     }
 
     fn boot_next_server(&mut self) -> io::Result<Option<Ipv4Addr>> {
@@ -1583,4 +1707,43 @@ mod startup_tests {
             5
         );
     }
+}
+
+fn relay_suboption(packet: super::packet::Packet<'_>, wanted: u8) -> Option<&[u8]> {
+    let bytes = packet.option(82, 1)?;
+    let mut cursor = 0;
+    while cursor + 2 <= bytes.len() {
+        let code = bytes[cursor];
+        let length = usize::from(bytes[cursor + 1]);
+        let end = cursor + 2 + length;
+        if end > bytes.len() {
+            return None;
+        }
+        if code == wanted && length != 0 {
+            return Some(&bytes[cursor + 2..end]);
+        }
+        cursor = end;
+    }
+    None
+}
+
+fn generated_hostname(
+    packet: super::packet::Packet<'_>,
+    client_id: Option<&[u8]>,
+) -> Option<Vec<u8>> {
+    let mac = packet.hardware_address();
+    let bytes = if mac.is_empty() { client_id? } else { mac };
+    if bytes.is_empty() {
+        return None;
+    }
+    const HEX: &[u8; 16] = b"0123456789abcdef";
+    let mut result = Vec::with_capacity(bytes.len().min(80) * 3);
+    for (index, byte) in bytes.iter().take(80).enumerate() {
+        if index != 0 {
+            result.push(b'-');
+        }
+        result.push(HEX[(byte >> 4) as usize]);
+        result.push(HEX[(byte & 15) as usize]);
+    }
+    Some(result)
 }

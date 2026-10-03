@@ -112,7 +112,7 @@ fn main() {
         let lease_time = words.next().unwrap().parse().unwrap();
         let lease_time_explicit = words.next().unwrap() == "1";
         let epoch = words.next().unwrap().parse().unwrap();
-        let config = RangeConfig {set_tag:None,start,end,netmask,broadcast,lease_time,lease_time_explicit};
+        let config = RangeConfig {set_tag:None,filter:Default::default(),start,end,netmask,broadcast,lease_time,lease_time_explicit};
         let mut state = ContextState::new(&config); state.epoch = epoch;
         configs.push(config); states.push(state);
     }

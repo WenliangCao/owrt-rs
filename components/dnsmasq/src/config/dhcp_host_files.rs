@@ -206,7 +206,7 @@ mod tests {
     use std::time::{SystemTime, UNIX_EPOCH};
 
     #[test]
-    fn unsupported_selectors_are_not_skippable_file_syntax_errors() {
+    fn reload_preserves_selectors_and_skips_only_invalid_lines() {
         let folder = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../../private/dnsmasq-rewrite/hostfile-unit")
             .join(format!(
@@ -222,11 +222,10 @@ mod tests {
         fs::write(&path, b"02:00:00:00:00:01,tag:known,ignore\n").unwrap();
         let mut files = HostFiles::new(&[path.as_os_str().as_bytes().to_vec()]);
         let report = files.reload(&[]);
-        assert!(!report.ready());
-        assert!(matches!(
-            report.errors[0].kind,
-            HostFileErrorKind::Unsupported(_)
-        ));
+        assert!(report.ready());
+        assert!(report.errors.is_empty());
+        assert!(report.hosts[0].filter.matches_with(&[b"known"], false));
+        assert!(!report.hosts[0].filter.matches_with(&[], false));
         fs::write(&path, b"bad:hex\n02:00:00:00:00:01,192.0.2.10,valid\n").unwrap();
         let report = files.reload(&[]);
         assert!(report.ready());

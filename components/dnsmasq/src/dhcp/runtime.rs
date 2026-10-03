@@ -122,6 +122,12 @@ pub trait OutcomeProvider {
     fn configured_options(&self) -> &[DhcpOption] {
         &[]
     }
+    fn selected_options(&self, _: &Outcome) -> crate::config::dhcp::FilteredOptions<'_> {
+        crate::config::dhcp::option_filter(self.configured_options(), &[], &[], &[], 0)
+    }
+    fn client_update(&self) -> bool {
+        false
+    }
 
     /// Request tags selected by the daemon's do_options policy. This changes
     /// the reply flag before the existing destination/ARP decision.
@@ -200,6 +206,7 @@ pub struct StateProvider<'a, F> {
     /// Suppress an unauthenticated client name on ACK without clearing a
     /// name already owned by the lease. Configured/static names still win.
     pub ignore_client_name: bool,
+    pub generated_name: Option<&'a [u8]>,
     pub domains: Option<&'a crate::config::dhcp::NameDomains>,
     pub environment: Environment<'a>,
     pub quiet_dhcp: bool,
@@ -229,6 +236,7 @@ impl<'a, F> StateProvider<'a, F> {
             reserved,
             configured_name: None,
             ignore_client_name: false,
+            generated_name: None,
             domains: None,
             environment,
             quiet_dhcp: false,
@@ -267,11 +275,12 @@ where
                 removed: expired,
             });
         }
-        let hostname = (packet.message_type() != 3 || !self.ignore_client_name)
+        let hostname = (!self.ignore_client_name)
             .then(|| packet.client_hostname())
             .flatten();
         let name = self
             .configured_name
+            .or(self.generated_name)
             .or(hostname.as_deref())
             .map(|hostname| Name {
                 hostname,
@@ -564,17 +573,22 @@ where
         ]
     });
     let names = provider.reply_names(dispatch.packet, &outcome);
-    let name_values = names.map(|names| encode_name_options(dispatch.packet, names));
+    let name_values =
+        names.map(|names| encode_name_options(dispatch.packet, names, provider.client_update()));
     let mut configured_codes = [false; 256];
     let mut fixed_boot_fields = [None, None];
-    let configured = encode_configured_options(
+    let selection = provider.selected_options(&outcome);
+    let mut option_next_server = None;
+    let configured = encode_filtered_options(
         dispatch.packet,
         outcome.reply,
         network.map(|network| network.next_server),
         provider.configured_options(),
+        &selection,
         &mut configured_codes,
         provider.boot_config().is_some(),
         &mut fixed_boot_fields,
+        &mut option_next_server,
     );
     let boot_next_server = if matches!(outcome.reply, Reply::Nak { .. }) {
         None
@@ -613,7 +627,7 @@ where
         for (code, value) in [15, 12, 81].into_iter().zip(names) {
             if let Some(value) = value {
                 if !options.iter().any(|option| option.code == code)
-                    && !configured_codes[usize::from(code)]
+                    && (code == 81 || !configured_codes[usize::from(code)])
                 {
                     combined.push(ReplyOption { code, value });
                 }
@@ -667,8 +681,9 @@ where
         omitted: encoding.omitted,
         overload: encoding.overload,
     });
-    if let Some(next_server) =
-        boot_next_server.or_else(|| network.map(|network| network.next_server))
+    if let Some(next_server) = boot_next_server
+        .or(option_next_server)
+        .or_else(|| network.map(|network| network.next_server))
     {
         buffer[20..24].copy_from_slice(&next_server.octets());
     }
@@ -728,6 +743,7 @@ where
 /// Select ordinary untagged options in C's reverse configuration order.
 /// `present` intentionally records options before PRL and empty-value tests:
 /// those options still suppress network/name defaults when omitted from wire.
+#[cfg(test)]
 fn encode_configured_options(
     packet: super::packet::Packet<'_>,
     reply: Reply,
@@ -737,72 +753,206 @@ fn encode_configured_options(
     has_boot: bool,
     fixed_boot_fields: &mut [Option<Vec<u8>>; 2],
 ) -> Vec<(u8, Vec<u8>)> {
-    let mut values = Vec::with_capacity(configured.len().min(10));
+    let selection = crate::config::dhcp::option_filter(configured, &[], &[], &[], 0);
+    encode_filtered_options(
+        packet,
+        reply,
+        local,
+        configured,
+        &selection,
+        present,
+        has_boot,
+        fixed_boot_fields,
+        &mut None,
+    )
+}
+
+// The arguments mirror the C do_options call boundary: packet/reply context,
+// selected configuration, and two output slots. Keeping them explicit makes
+// the precedence and mutation points auditable against that call chain.
+#[allow(clippy::too_many_arguments)]
+fn encode_filtered_options(
+    packet: super::packet::Packet<'_>,
+    reply: Reply,
+    local: Option<Ipv4Addr>,
+    configured: &[DhcpOption],
+    selection: &crate::config::dhcp::FilteredOptions<'_>,
+    present: &mut [bool; 256],
+    has_boot: bool,
+    fixed_boot_fields: &mut [Option<Vec<u8>>; 2],
+    next_server: &mut Option<Ipv4Addr>,
+) -> Vec<(u8, Vec<u8>)> {
+    use crate::config::dhcp::Encapsulation;
+    let mut values = Vec::new();
     if matches!(reply, Reply::Nak { .. } | Reply::Ignore) {
         return values;
     }
     let bootp = matches!(reply, Reply::Bootp { .. });
     let null_term = !bootp && broken_string_option(packet);
-    for option in configured {
-        let slot = &mut present[usize::from(option.code)];
-        if *slot {
-            eprintln!("dnsmasq-rs: Ignoring duplicate dhcp-option {}", option.code);
+    for _ in 0..selection.duplicate_warnings {
+        eprintln!("dnsmasq-rs: Ignoring duplicate dhcp-option");
+    }
+    for &index in &selection.selected {
+        let option = &configured[index];
+        present[usize::from(option.code)] = true;
+        if option.code == 255 {
+            if !has_boot {
+                let bytes = option.value.bytes(None, false);
+                if let Some(bytes) = bytes.get(..4) {
+                    *next_server = Some(Ipv4Addr::from(<[u8; 4]>::try_from(bytes).unwrap()));
+                }
+            }
             continue;
         }
-        *slot = true;
         if matches!(option.code, 66 | 67)
             && !has_boot
             && !option.force
             && (bootp || packet.option(55, 0).is_none() || !packet.requests(option.code))
         {
-            let value = match &option.value {
-                OptionValue::String(value) => value.clone(),
-                OptionValue::Empty => Vec::new(),
-                _ => continue, // The typed parser admits only boot strings.
-            };
+            let value = option.value.bytes(None, false);
             fixed_boot_fields[usize::from(option.code - 66)] = Some(value);
             continue;
         }
         if matches!(option.code, 58 | 59) {
-            // do_options consumes these internally, independently of PRL.
-            // BOOTP and INFORM never send them through the ordinary loop.
-            if !matches!(reply, Reply::Offer { .. } | Reply::Ack { .. }) {
-                continue;
+            if matches!(reply, Reply::Offer { .. } | Reply::Ack { .. }) {
+                let bytes = option.value.bytes(None, false);
+                if let Some(bytes) = bytes.get(..4) {
+                    values.push((option.code, bytes.to_vec()));
+                }
             }
-        } else if !option.force && !bootp && !packet.requests(option.code) {
             continue;
         }
-        let value = match &option.value {
-            OptionValue::Empty if matches!(option.code, 66 | 67) => Vec::new(),
-            OptionValue::Empty => continue,
-            OptionValue::Addresses(addresses) => addresses
-                .iter()
-                .flat_map(|address| {
-                    if address.is_unspecified() {
-                        local.unwrap_or(*address)
-                    } else {
-                        *address
-                    }
-                    .octets()
-                })
-                .collect(),
-            OptionValue::String(value) => {
-                let mut value = value.clone();
-                if (null_term || matches!(option.code, 66 | 67)) && value.len() != 255 {
-                    value.push(0);
-                }
-                value
-            }
-            OptionValue::Time(value) => value.to_be_bytes().to_vec(),
-        };
+        if matches!(option.code, 0 | 52 | 57 | 81) {
+            continue;
+        }
+        if !option.force && !bootp && !packet.requests(option.code) {
+            continue;
+        }
+        let mut value = option
+            .value
+            .bytes(local, null_term || matches!(option.code, 66 | 67));
+        if matches!(option.code, 1 | 3 | 6 | 12 | 15 | 28)
+            && option.value.bytes(None, false).is_empty()
+        {
+            continue;
+        }
+        // Empty (absent value) is distinct from a quoted empty string.
+        if matches!(option.value, OptionValue::Empty) {
+            value.clear();
+        }
         values.push((option.code, value));
     }
+    let requested = |code| bootp || packet.requests(code);
+    let mut completed = Vec::new();
+    for option in configured {
+        if !matches!(
+            option.encapsulation,
+            Encapsulation::Option(_) | Encapsulation::Enterprise(_)
+        ) || completed.contains(&option.encapsulation)
+        {
+            continue;
+        }
+        completed.push(option.encapsulation.clone());
+        let outer = match option.encapsulation {
+            Encapsulation::Option(code) => code,
+            _ => 125,
+        };
+        let selected: Vec<_> = configured
+            .iter()
+            .filter(|other| {
+                other.encapsulation == option.encapsulation
+                    && other.tags.matches_with(&selection.tags, true)
+                    && other.pxe_ok(0)
+                    && (other.force || requested(outer))
+            })
+            .collect();
+        if selected.is_empty() {
+            continue;
+        }
+        if let Encapsulation::Enterprise(number) = option.encapsulation {
+            let mut data = Vec::new();
+            for child in selected {
+                let value = child.value.bytes(None, false);
+                data.extend_from_slice(&[child.code, value.len() as u8]);
+                data.extend_from_slice(&value);
+            }
+            if data.len() > 250 {
+                eprintln!("dnsmasq-rs: cannot send RFC3925 option: too many options for enterprise number {number}");
+            } else {
+                let mut payload = number.to_be_bytes().to_vec();
+                payload.push(data.len() as u8);
+                payload.extend(data);
+                values.push((125, payload));
+            }
+        } else {
+            append_encapsulated(&mut values, outer, &selected, null_term);
+        }
+    }
+    let vendor_sent = values
+        .iter()
+        .find(|(code, _)| *code == 60)
+        .map(|(_, value)| value.as_slice());
+    let vendor = vendor_sent.or_else(|| packet.option(60, 1));
+    if let Some(vendor) = vendor {
+        let selected: Vec<_> = configured
+            .iter()
+            .filter(|option| {
+                let Encapsulation::Vendor(needle) = &option.encapsulation else {
+                    return false;
+                };
+                option.tags.matches_with(&selection.tags, true)
+                    && (needle.is_empty()
+                        || vendor.windows(needle.len()).any(|part| part == needle))
+            })
+            .collect();
+        if !selected.is_empty()
+            && (selected.iter().any(|option| option.force) || requested(43) || requested(60))
+        {
+            let echo = vendor_sent
+                .is_none()
+                .then(|| packet.option(60, 1).map(<[u8]>::to_vec))
+                .flatten();
+            append_encapsulated(&mut values, 43, &selected, null_term);
+            if let Some(echo) = echo {
+                values.push((60, echo));
+            }
+        }
+    }
     values
+}
+
+fn append_encapsulated(
+    values: &mut Vec<(u8, Vec<u8>)>,
+    outer: u8,
+    options: &[&DhcpOption],
+    null_term: bool,
+) {
+    let mut block = Vec::new();
+    for option in options {
+        let value = option.value.bytes(None, null_term);
+        if value.len() + 2 > 255 {
+            continue;
+        }
+        if block.len() + value.len() + 2 > 255 {
+            values.push((outer, std::mem::take(&mut block)));
+        }
+        block.extend_from_slice(&[option.code, value.len() as u8]);
+        block.extend_from_slice(&value);
+    }
+    if !block.is_empty() {
+        // Never emit the C boundary bug: a 256-byte option encoded with a
+        // zero length. A full final block is sent without an extra END byte.
+        if block.len() < 255 {
+            block.push(255);
+        }
+        values.push((outer, block));
+    }
 }
 
 fn encode_name_options(
     packet: super::packet::Packet<'_>,
     names: ReplyNames<'_>,
+    client_update: bool,
 ) -> [Option<Vec<u8>>; 3] {
     let fqdn = (packet.message_type() != 0)
         .then(|| packet.option(81, 3))
@@ -832,10 +982,17 @@ fn encode_name_options(
         .map(string);
     let fqdn = fqdn.zip(names.hostname).map(|(input, name)| {
         let mut flags = input[0];
-        if flags & 1 == 0 {
-            flags |= 3;
+        if client_update {
+            if flags & 1 != 0 {
+                flags = (flags | 2) & !1;
+            }
+            flags |= 8;
+        } else {
+            if flags & 1 == 0 {
+                flags |= 3;
+            }
+            flags &= !8;
         }
-        flags &= !8;
         let mut output = vec![flags & 15, 255, 255];
         if flags & 4 != 0 {
             for label in name.split(|byte| *byte == b'.') {
@@ -1059,26 +1216,31 @@ mod tests {
                 code: 3,
                 force: false,
                 value: OptionValue::Empty,
+                ..Default::default()
             },
             DhcpOption {
                 code: 3,
                 force: true,
                 value: OptionValue::Addresses(vec![Ipv4Addr::LOCALHOST]),
+                ..Default::default()
             },
             DhcpOption {
                 code: 6,
                 force: false,
                 value: OptionValue::Addresses(vec![Ipv4Addr::UNSPECIFIED]),
+                ..Default::default()
             },
             DhcpOption {
                 code: 15,
                 force: true,
                 value: OptionValue::String(b"wire.test".to_vec()),
+                ..Default::default()
             },
             DhcpOption {
                 code: 58,
                 force: false,
                 value: OptionValue::Time(180),
+                ..Default::default()
             },
         ];
         let request = packet(

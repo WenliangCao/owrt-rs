@@ -111,7 +111,7 @@ pub fn select_contexts(
                     local: state.local,
                     lease_time: config.lease_time,
                     kind: RangeKind::Dynamic,
-                    filter: Vec::new(),
+                    filter: config.filter.tags().to_vec(),
                     epoch: state.epoch,
                 },
                 broadcast: state.broadcast,
@@ -131,6 +131,7 @@ mod tests {
     fn config() -> RangeConfig {
         RangeConfig {
             set_tag: None,
+            filter: Default::default(),
             start: address("192.0.2.10"),
             end: address("192.0.2.20"),
             netmask: None,

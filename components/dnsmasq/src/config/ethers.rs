@@ -212,6 +212,7 @@ impl Ethers {
         let host = &mut self.hosts[index];
         host.ignore_client_id = true;
         host.hardware = vec![HardwareAddress {
+            wildcard_mask: 0,
             kind: 1,
             address: hardware,
         }];

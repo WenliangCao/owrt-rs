@@ -15,10 +15,12 @@ mod host_files;
 pub use host_files::{HostFileError, HostFileErrorKind, HostFiles, HostReload};
 #[path = "dhcp_options.rs"]
 mod ordinary_options;
-pub use ordinary_options::{DhcpOption, OptionValue};
+pub use ordinary_options::{
+    option_filter, DhcpMatch, DhcpOption, Encapsulation, FilteredOptions, OptionValue,
+};
 #[path = "dhcp_tags.rs"]
 mod tags;
-pub use tags::{DhcpNameMatch, TagPredicate};
+pub use tags::{ClassKind, DhcpClass, DhcpMac, DhcpNameMatch, TagIf, TagPredicate};
 
 /// A validated copy of only the DNS address-to-domain fields. Keeping these
 /// fields in DnsConfig reuses its audited selector ordering and matching.
@@ -47,6 +49,7 @@ impl NameDomains {
 pub struct RangeConfig {
     /// Tag set only after this address context has been selected.
     pub set_tag: Option<Vec<u8>>,
+    pub filter: TagPredicate,
     pub start: Ipv4Addr,
     pub end: Ipv4Addr,
     /// None asks the runtime to derive the netmask from the serving interface.
@@ -109,6 +112,7 @@ pub struct DhcpConfig {
     /// Last configured first, including duplicates for C warning behavior.
     pub options: Vec<DhcpOption>,
     pub authoritative: bool,
+    pub rapid_commit: bool,
     pub bootp_dynamic: bool,
     /// Last untagged directive wins, matching find_boot's reverse list.
     pub boot: Option<BootConfig>,
@@ -118,6 +122,13 @@ pub struct DhcpConfig {
     pub fqdn_only: bool,
     pub read_ethers: bool,
     pub name_matches: Vec<DhcpNameMatch>,
+    pub tag_if: Vec<TagIf>,
+    pub classes: Vec<DhcpClass>,
+    pub macs: Vec<DhcpMac>,
+    pub matches: Vec<DhcpMatch>,
+    pub ignore: Vec<TagPredicate>,
+    pub generate_names: Vec<TagPredicate>,
+    pub client_update: bool,
     pub ignore_names: Vec<TagPredicate>,
     pub force_broadcast: Vec<TagPredicate>,
     pub no_dhcp_interfaces: Vec<Option<Vec<u8>>>,
@@ -138,6 +149,7 @@ impl Default for DhcpConfig {
             host_files: Vec::new(),
             options: Vec::new(),
             authoritative: false,
+            rapid_commit: false,
             bootp_dynamic: false,
             boot: None,
             no_override: false,
@@ -146,6 +158,13 @@ impl Default for DhcpConfig {
             fqdn_only: false,
             read_ethers: false,
             name_matches: Vec::new(),
+            tag_if: Vec::new(),
+            classes: Vec::new(),
+            macs: Vec::new(),
+            matches: Vec::new(),
+            ignore: Vec::new(),
+            generate_names: Vec::new(),
+            client_update: false,
             ignore_names: Vec::new(),
             force_broadcast: Vec::new(),
             no_dhcp_interfaces: Vec::new(),
@@ -214,10 +233,12 @@ impl DhcpConfig {
         let argument = directive.argument.as_ref();
         match directive.name.as_slice() {
             b"dhcp-authoritative" => self.authoritative = true,
-            b"dhcp-option" | b"dhcp-option-force" => {
-                let option = DhcpOption::parse(
+            b"dhcp-rapid-commit" => self.rapid_commit = true,
+            b"dhcp-option" | b"dhcp-option-force" | b"dhcp-option-pxe" => {
+                let option = DhcpOption::parse_mode(
                     argument.ok_or(Error("missing parameter"))?,
                     directive.name == b"dhcp-option-force",
+                    directive.name == b"dhcp-option-pxe",
                 )?;
                 self.options.insert(0, option);
             }
@@ -240,6 +261,36 @@ impl DhcpConfig {
             b"dhcp-ignore-clid" => self.ignore_client_id = true,
             b"dhcp-fqdn" => self.fqdn_only = true,
             b"read-ethers" => self.read_ethers = true,
+            b"tag-if" => self
+                .tag_if
+                .push(TagIf::parse(argument.ok_or(Error("missing parameter"))?)?),
+            b"dhcp-mac" => self.macs.insert(
+                0,
+                DhcpMac::parse(argument.ok_or(Error("missing parameter"))?)?,
+            ),
+            b"dhcp-match" => self.matches.insert(
+                0,
+                DhcpMatch::parse(argument.ok_or(Error("missing parameter"))?)?,
+            ),
+            b"dhcp-vendorclass" | b"dhcp-userclass" | b"dhcp-circuitid" | b"dhcp-remoteid"
+            | b"dhcp-subscrid" => {
+                let kind = match directive.name.as_slice() {
+                    b"dhcp-vendorclass" => ClassKind::Vendor,
+                    b"dhcp-userclass" => ClassKind::User,
+                    b"dhcp-circuitid" => ClassKind::Circuit,
+                    b"dhcp-remoteid" => ClassKind::Remote,
+                    _ => ClassKind::Subscriber,
+                };
+                self.classes.insert(
+                    0,
+                    DhcpClass::parse(argument.ok_or(Error("missing parameter"))?, kind)?,
+                );
+            }
+            b"dhcp-ignore" => self.ignore.insert(0, TagPredicate::parse(argument)?),
+            b"dhcp-generate-names" => self
+                .generate_names
+                .insert(0, TagPredicate::parse(argument)?),
+            b"dhcp-client-update" => self.client_update = true,
             b"dhcp-name-match" => {
                 let rule = DhcpNameMatch::parse(argument.ok_or(Error("missing parameter"))?)?;
                 self.name_matches.insert(0, rule);
@@ -251,7 +302,7 @@ impl DhcpConfig {
                 self.force_broadcast
                     .insert(0, TagPredicate::parse(argument)?);
             }
-            b"no-dhcp-interface" => {
+            b"no-dhcp-interface" | b"no-dhcpv4-interface" => {
                 for value in argument.ok_or(Error("missing parameter"))?.split(b',') {
                     let value = value.decoded();
                     self.no_dhcp_interfaces
@@ -273,15 +324,27 @@ impl DhcpConfig {
             b"dhcp-range" => {
                 let argument = argument.ok_or(Error("missing parameter"))?;
                 let parts = argument.split(b',');
-                let (set_tag, parts) = if parts
-                    .first()
-                    .is_some_and(|part| part.encoded().starts_with(b"set:"))
-                {
-                    let tag = parts[0].decoded()[4..].to_vec();
-                    ((!tag.is_empty()).then_some(tag), &parts[1..])
-                } else {
-                    (None, parts.as_slice())
-                };
+                let mut set_tag = None;
+                let mut filters = Vec::new();
+                let mut first = 0;
+                while first < parts.len() && ip(parts[first].encoded()).is_err() {
+                    let bytes = parts[first].encoded();
+                    if bytes.starts_with(b"tag:") || bytes.starts_with(b"net:") {
+                        if bytes.len() > 4 {
+                            filters.push(parts[first].decoded()[4..].to_vec());
+                        }
+                    } else {
+                        if set_tag.is_some() {
+                            return Err(Error("only one tag allowed"));
+                        }
+                        let value = parts[first].decoded();
+                        let tag = value.strip_prefix(b"set:").unwrap_or(&value).to_vec();
+                        set_tag = (!tag.is_empty()).then_some(tag);
+                    }
+                    first += 1;
+                }
+                let filter = TagPredicate::from_tags(filters);
+                let parts = &parts[first..];
                 if parts.len() < 2 || parts.len() > 5 {
                     return Err(Error("bad DHCP range"));
                 }
@@ -316,6 +379,7 @@ impl DhcpConfig {
                     0,
                     RangeConfig {
                         set_tag,
+                        filter,
                         start,
                         end,
                         netmask,
@@ -337,18 +401,8 @@ impl DhcpConfig {
                 }
                 self.host_files.insert(0, value);
             }
-            b"dhcp-vendorclass"
-            | b"dhcp-userclass"
-            | b"dhcp-match"
-            | b"dhcp-ignore"
-            | b"dhcp-hostsdir"
-            | b"dhcp-optsfile"
-            | b"dhcp-optsdir"
-            | b"dhcp-script"
-            | b"dhcp-scriptuser"
-            | b"dhcp-client-update"
-            | b"dhcp-rapid-commit"
-            | b"dhcp-reply-delay" => {
+            b"dhcp-hostsdir" | b"dhcp-optsfile" | b"dhcp-optsdir" | b"dhcp-script"
+            | b"dhcp-scriptuser" | b"dhcp-reply-delay" => {
                 return Err(Error(
                     "DHCP option is parsed but runtime wiring is not complete",
                 ));
@@ -395,23 +449,81 @@ impl DhcpConfig {
         hardware_address: Option<&[u8]>,
         in_context: impl Fn(Ipv4Addr) -> bool,
     ) -> Option<usize> {
-        let eligible = |host: &HostConfig| host.address.is_none_or(&in_context);
-        client_id
-            .and_then(|id| {
-                self.hosts.iter().position(|host| {
+        self.find_host_tagged(
+            client_id,
+            hardware_type,
+            hardware_address,
+            None,
+            &[],
+            in_context,
+        )
+    }
+
+    pub fn find_host_tagged(
+        &self,
+        client_id: Option<&[u8]>,
+        hardware_type: u32,
+        hardware_address: Option<&[u8]>,
+        hostname: Option<&[u8]>,
+        tags: &[&[u8]],
+        in_context: impl Fn(Ipv4Addr) -> bool,
+    ) -> Option<usize> {
+        // find_config does the complete selector search for tagged rules
+        // before allowing untagged rules, not one pass per selector globally.
+        for allow_untagged in [false, true] {
+            let eligible = |host: &HostConfig| {
+                host.address.is_none_or(&in_context)
+                    && host.filter.matches_with(tags, allow_untagged)
+            };
+            if let Some(id) = client_id {
+                if let Some(index) = self.hosts.iter().position(|host| {
                     eligible(host)
                         && host.client_id.as_deref().is_some_and(|configured| {
                             configured == id || (id.first() == Some(&0) && configured == &id[1..])
                         })
-                })
-            })
-            .or_else(|| {
-                hardware_address.and_then(|address| {
-                    self.hosts.iter().position(|host| {
-                        eligible(host) && host.matches_hardware(hardware_type, address)
-                    })
-                })
-            })
+                }) {
+                    return Some(index);
+                }
+            }
+            if let Some(address) = hardware_address {
+                if let Some(index) = self.hosts.iter().position(|host| {
+                    eligible(host) && host.matches_hardware(hardware_type, address)
+                }) {
+                    return Some(index);
+                }
+            }
+            if let Some(name) = hostname {
+                if let Some(index) = self.hosts.iter().position(|host| {
+                    eligible(host)
+                        && host
+                            .hostname
+                            .as_deref()
+                            .is_some_and(|configured| configured.eq_ignore_ascii_case(name))
+                }) {
+                    return Some(index);
+                }
+            }
+            if let Some(address) = hardware_address {
+                let mut best = None;
+                let mut score = 0;
+                for (index, host) in self
+                    .hosts
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, host)| eligible(host))
+                {
+                    let candidate = host.wildcard_score(hardware_type, address);
+                    if candidate > score {
+                        score = candidate;
+                        best = Some(index);
+                    }
+                }
+                if best.is_some() {
+                    return best;
+                }
+            }
+        }
+        None
     }
 
     /// Target Linux CLI default from config.h. OpenWrt init passes its own
@@ -497,6 +609,23 @@ mod tests {
         let mut config = DhcpConfig::default();
         config.apply(&directive)?;
         Ok(config.ranges.remove(0))
+    }
+
+    #[test]
+    fn tagged_range_filters_preserve_c_empty_selector_semantics() {
+        let range = parse("tag:known,net:lan,192.0.2.10,192.0.2.20").unwrap();
+        assert_eq!(range.filter.tags(), &[b"known".to_vec(), b"lan".to_vec()]);
+        assert!(range.filter.matches(&[b"known", b"lan"]));
+        assert!(!range.filter.matches(&[b"known"]));
+        // option.c:'F' deliberately ignores empty tag:/net: selectors.
+        assert!(parse("tag:,192.0.2.10,192.0.2.20")
+            .unwrap()
+            .filter
+            .is_unconditional());
+        assert!(parse("net:,192.0.2.10,192.0.2.20")
+            .unwrap()
+            .filter
+            .is_unconditional());
     }
 
     // Expected fields below come from exact option.c read_opts state, retained
@@ -657,7 +786,6 @@ mod tests {
             "192.0.2.10,192.0.2.20,,1h",
             "\"192.0.2.10\",192.0.2.20",
             "192.0.2.10,192.0.2.20,\"12h\"",
-            "tag:known,192.0.2.10,192.0.2.20",
             "192.0.2.10,static",
             "192.0.2.10,proxy",
         ] {
