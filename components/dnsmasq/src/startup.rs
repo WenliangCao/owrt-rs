@@ -46,6 +46,11 @@ impl ProcessConfig {
                 self.pid_file = value().map(|value| PathBuf::from(OsString::from_vec(value)))
             }
             b"no-daemon" => self.debug = true,
+            // The foreground runner keeps diagnostics on its inherited
+            // stderr. Accept the C directive so helper/DHCP fixtures can use
+            // the same log-facility=- configuration without dropping it as an
+            // unknown option.
+            b"log-facility" => {}
             b"keep-in-foreground" => {}
             _ => return Ok(false),
         }
