@@ -530,7 +530,8 @@ class PressureDaemon:
                 self.process.kill()
                 self.process.wait(5)
         pid_alive = bool(pid and proc_resources(pid).get("alive"))
-        if self.pid_path.exists():
+        pid_file_before_runner_cleanup = self.pid_path.exists()
+        if pid_file_before_runner_cleanup:
             self.pid_path.unlink()
         if self.scenario == "enospc" and self.mountpoint.exists():
             subprocess.run(["umount", str(self.mountpoint)], check=False)
@@ -538,6 +539,8 @@ class PressureDaemon:
             self.log.close()
         return {
             "daemon_alive_after_stop": pid_alive,
+            "pid_file_before_runner_cleanup": pid_file_before_runner_cleanup,
+            "pid_file_removed_by_runner": pid_file_before_runner_cleanup,
             "pid_file_after_stop": self.pid_path.exists(),
             "lease_rows_after_stop": len(read_lease_rows(self.leasefile))
             if self.leasefile.exists() else 0,
@@ -562,6 +565,7 @@ def run_pressure_side(args: argparse.Namespace, implementation: str,
     }
     daemon = PressureDaemon(root, side, out, scenario,
                             time.monotonic() + args.duration_seconds)
+    started = time.monotonic()
     try:
         daemon.start()
         if scenario == "enospc":
@@ -574,6 +578,7 @@ def run_pressure_side(args: argparse.Namespace, implementation: str,
         result["cleanup"] = daemon.stop()
         result["checks"] = daemon.checks
         result["observations"] = daemon.observations
+        result["elapsed_seconds"] = round(time.monotonic() - started, 3)
     result["rootfs_identity"] = str(root_stage / "rootfs-identity.json")
     result["accepted"] = (
         not result["failures"]
@@ -665,6 +670,8 @@ def pressure_pair(args: argparse.Namespace) -> int:
     report = {
         "scope": "M3 exact-image bounded ENOSPC and EMFILE recovery",
         "duration_seconds": args.duration_seconds,
+        "elapsed_seconds": round(time.monotonic() - started, 3),
+        "duration_note": "duration_seconds is a deadline per side, not measured exposure time",
         "timeout_seconds": args.timeout_seconds,
         "scenarios": scenarios,
         "runs": runs,
