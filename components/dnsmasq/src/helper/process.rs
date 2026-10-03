@@ -172,6 +172,17 @@ impl Helper {
         let event = Event::Lease(LeaseEvent::from_script_event(event, context));
         self.enqueue(&event)
     }
+
+    /// Queue an owned lease callback while the caller retains ownership of the
+    /// [`LeaseDelivery`] across a false (backpressure) result.  The delivery's
+    /// packet snapshot is converted only when the single bounded command slot
+    /// is available, so the owner can retry the exact same callback later.
+    pub fn enqueue_delivery(&mut self, delivery: &LeaseDelivery) -> io::Result<bool> {
+        if !self.can_enqueue() {
+            return Ok(false);
+        }
+        self.enqueue(&Event::Lease(delivery.lease_event()))
+    }
     /// FDs are -1 when inactive, compatible with poll's ignored entries.
     pub fn poll_fds(&self) -> [(RawFd, i16); 2] {
         [
