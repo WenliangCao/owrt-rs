@@ -310,7 +310,22 @@ impl LocalProvider {
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     pub fn take_script_delivery(&mut self) -> Option<LeaseDelivery> {
-        self.pending_delivery.take()
+        let delivery = self.pending_delivery.take();
+        if let Some(previous) = delivery.as_ref() {
+            if self.config.script.is_some() {
+                if let Some(event) = self.scripts.next(
+                    &mut self.leases,
+                    super::lease::ScriptOptions {
+                        lease_file_read_only: self.config.lease_read_only,
+                        notify_renewals: self.config.script_on_renewal,
+                    },
+                ) {
+                    self.pending_delivery =
+                        Some(LeaseDelivery::new(event, previous.context.clone()));
+                }
+            }
+        }
+        delivery
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
