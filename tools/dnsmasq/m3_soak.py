@@ -9,8 +9,8 @@ The command has two phases:
     series, workload accounting, and process identity below ``private/``.
 
 ``pair``
-    Runs C and Rust sequentially through ``run_isolated.sh`` with the same
-    inputs, then checks that both sides accounted for the same workload.  It
+    Runs C and Rust concurrently in separate namespaces and on separate CPU
+    cores through ``run_isolated.sh``, then checks their workload accounting. It
     does not claim M3 acceptance: the 60 minute window and the separate disk
     full/FD exhaustion gates must both be completed before the ledger can be
     closed.
@@ -36,6 +36,7 @@ import random
 import resource
 import signal
 import socket
+import statistics
 import struct
 import subprocess
 import sys
@@ -207,7 +208,7 @@ class SoakProduct(Product):
             f"enable-ubus={self.OBJECT}\n"
             "dhcp-authoritative\nno-ping\ninterface=lo\nread-ethers\n"
             "dhcp-host=02:00:00:00:00:20,127.0.0.35,m3-static,60s\n"
-            "dhcp-range=127.0.0.10,127.0.0.40,255.0.0.0,127.255.255.255,60s\n"
+            "dhcp-range=127.0.0.10,127.0.0.40,255.0.0.0,127.255.255.255,12h\n"
             "dhcp-lease-max=150\n"
             "dhcp-leasefile=/m2/m3.leases\n"
             f"server=127.0.0.2#{UPSTREAM_PORT}\nserver=127.0.0.3#{UPSTREAM_PORT}\n"
@@ -679,9 +680,14 @@ def pressure_pair(args: argparse.Namespace) -> int:
 
 def sample(product: SoakProduct, started: float) -> dict[str, Any]:
     metrics = product.metrics()
-    if metrics is None:
-        metrics = {}
     process = proc_resources(product.process.pid) if product.process else {"alive": False}
+    if metrics is None or not process.get("alive"):
+        raise RuntimeError("daemon or UBus metrics missing during resource sample")
+    for source, keys in ((process, ("rss_kib", "pss_kib", "fd_count", "thread_count", "child_processes")),
+                         (metrics, ("dns_cache_inserted", "dns_cache_live_freed"))):
+        for key in keys:
+            if type(source.get(key)) is not int or source[key] < 0:
+                raise RuntimeError(f"missing or invalid resource sample field: {key}")
     upstream = sum(len(server.snapshot()) for server in product.servers)
     return {
         "elapsed_seconds": round(time.monotonic() - started, 3),
@@ -689,7 +695,8 @@ def sample(product: SoakProduct, started: float) -> dict[str, Any]:
         "lease_rows": len(read_lease_rows(product.leasefile)),
         "cache_inserted": metrics.get("dns_cache_inserted"),
         "cache_live_freed": metrics.get("dns_cache_live_freed"),
-        "cache_entries_estimate": (
+        # These UBus counters are cumulative and do not expose live occupancy.
+        "cache_inserted_minus_live_freed": (
             metrics.get("dns_cache_inserted", 0) - metrics.get("dns_cache_live_freed", 0)
             if metrics else None
         ),
@@ -697,6 +704,33 @@ def sample(product: SoakProduct, started: float) -> dict[str, Any]:
         "upstream_requests": upstream,
         "dns_metrics": metrics,
     }
+
+
+def run_accepted(failures, cleanup, samples, expected_samples, elapsed, duration):
+    """Accept resource collection and cleanup, without repeating M2 coverage."""
+    return (not failures and samples == expected_samples and elapsed >= duration
+            and cleanup.get("daemon_alive_after_stop") is False
+            and cleanup.get("ubusd_alive_after_stop") is False
+            and cleanup.get("lease_rows_after_stop") == 0
+            and all(cleanup.get(key) is True for key in
+                    ("dhcp_socket_closed", "tcp_clients_closed", "udp_clients_closed")))
+
+
+def resource_summary(path: Path) -> dict[str, Any]:
+    """Expose later-quarter medians for review; do not invent growth budgets."""
+    rows = [json.loads(line) for line in path.read_text().splitlines()]
+    result = {}
+    for key in ("rss_kib", "pss_kib", "fd_count", "thread_count", "child_processes",
+                "lease_rows", "cache_inserted", "cache_live_freed"):
+        values = [row.get(key) for row in rows]
+        if not values or any(value is None for value in values):
+            result[key] = {"missing_samples": sum(value is None for value in values)}
+            continue
+        halfway, final_quarter = len(values) // 2, 3 * len(values) // 4
+        result[key] = {"first": values[0], "last": values[-1], "peak": max(values),
+                       "third_quarter_median": statistics.median(values[halfway:final_quarter] or values),
+                       "fourth_quarter_median": statistics.median(values[final_quarter:])}
+    return result
 
 
 def run_side(args: argparse.Namespace) -> int:
@@ -718,10 +752,10 @@ def run_side(args: argparse.Namespace) -> int:
     accounting = {name: 0 for name in ("dora", "renew", "rebind", "release", "decline", "expiry", "static", "ethers", "restart", "dns_udp", "dns_tcp", "dns_failover")}
     samples_path = out / "metrics.jsonl"
     sample_count = 0
+    elapsed = 0.0
     started = time.monotonic()
     try:
         product.start()
-        started = time.monotonic()
         # Establish a real lease for each planned client before the timer starts.
         for client in range(1, args.clients + 1):
             try:
@@ -732,8 +766,7 @@ def run_side(args: argparse.Namespace) -> int:
             except Exception as error:
                 failures.append({"event": "dora", "client": client, "error": repr(error)})
         (out / "leases-after-dora").write_bytes(product.leasefile.read_bytes())
-        expiry_client = max(1, args.clients - 2)
-        expiry_address = product.dhcp_addresses.get(expiry_client)
+        started = time.monotonic()
         with samples_path.open("w", newline="") as samples:
             total_ticks = max(1, math.ceil(args.duration_seconds / args.sample_seconds))
             tick = 0
@@ -766,21 +799,12 @@ def run_side(args: argparse.Namespace) -> int:
                         accounting["dns_tcp"] += 1
                     elif kind == 4 and product.dhcp_addresses:
                         client = 1 + (tick % args.clients)
-                        if client == expiry_client:
-                            tick += 1
-                            continue
                         product.dhcp_exchange(3, client, product.dhcp_addresses.get(client), rebind=False)
                         accounting["renew"] += 1
                     elif kind == 5 and product.dhcp_addresses:
                         client = 1 + (tick % args.clients)
-                        if client == expiry_client:
-                            tick += 1
-                            continue
                         product.dhcp_exchange(3, client, product.dhcp_addresses.get(client), rebind=True)
                         accounting["rebind"] += 1
-                    if tick == 30:
-                        accounting["static"] += 1
-                        accounting["ethers"] += 1
                     if tick and tick % 300 == 0:
                         product.servers[0].configure('refused')
                         product.servers[1].configure('answer', generation=tick // 300 + 10)
@@ -792,31 +816,14 @@ def run_side(args: argparse.Namespace) -> int:
                         product.servers[1].configure('answer', generation=tick // 300 + 30)
                         product.ask(f"failover-recovered-{tick}", f"recovered-{tick}.m3.test", expected_upstream=1)
                         accounting["dns_failover"] += 3
-                    if tick == max(600, int(args.duration_seconds // 2)):
-                        product.restart_daemon()
-                        accounting["restart"] += 1
-                    if tick >= 70 and accounting["expiry"] == 0:
-                        if expiry_address and not any(len(row) > 2 and row[2] == expiry_address
-                                   for row in read_lease_rows(product.leasefile)):
-                            accounting["expiry"] = 1
                 except Exception as error:
                     failures.append({"event": "mixed", "tick": tick, "error": repr(error)})
                 tick += 1
-        # Give the deliberately unrenewed dynamic client one source-defined
-        # lease interval to expire while the daemon is idle. This boundary is
-        # outside the mixed request loop and is counted only after observing
-        # the row disappear from the lease file.
-        if expiry_address and accounting["expiry"] == 0:
-            deadline = time.monotonic() + 65
-            while time.monotonic() < deadline:
-                if not any(len(row) > 2 and row[2] == expiry_address
-                           for row in read_lease_rows(product.leasefile)):
-                    accounting["expiry"] = 1
-                    break
-                time.sleep(1)
-            if accounting["expiry"] == 0:
-                failures.append({"event": "expiry", "address": expiry_address,
-                                 "error": "unrenewed lease remained after 65 seconds"})
+        # Finish the final sampling interval before stopping the fixed window.
+        delay = started + args.duration_seconds - time.monotonic()
+        if delay > 0:
+            time.sleep(delay)
+        elapsed = time.monotonic() - started
         # Exercise explicit release/DECLINE after the fixed window.  These are
         # post-load boundary events and are counted separately from throughput.
         if product.dhcp_addresses:
@@ -828,10 +835,6 @@ def run_side(args: argparse.Namespace) -> int:
                 accounting["decline"] += 1
             except Exception as error:
                 failures.append({"event": "release-decline", "error": repr(error)})
-        # A lease file row may disappear naturally after expiry.  We do not
-        # call this passed unless an expiry is actually observed by a later
-        # full run with a suitably short lease interval.
-        accounting["expiry"] = 0
         daemon_pid = product.process.pid if product.process else None
         bus_pid = product.bus.pid if product.bus else None
         product.close()
@@ -864,9 +867,12 @@ def run_side(args: argparse.Namespace) -> int:
     final = {
         "implementation": args.implementation,
         "duration_seconds": args.duration_seconds,
+        "observed_duration_seconds": elapsed,
         "sample_seconds": args.sample_seconds,
         "clients": args.clients,
         "seed": args.seed,
+        "cpu_affinity": sorted(os.sched_getaffinity(0)),
+        "network_namespace": os.readlink("/proc/self/ns/net"),
         "binary_sha256": sha256(root / ("usr/sbin/dnsmasq" if args.implementation == "c" else "usr/sbin/dnsmasq-rs")),
         "image_c_sha256": sha256(root / "usr/sbin/dnsmasq"),
         "rust_sha256": sha256(root / "usr/sbin/dnsmasq-rs"),
@@ -875,18 +881,66 @@ def run_side(args: argparse.Namespace) -> int:
         "cleanup": cleanup,
         "trace": str(out / "trace.json"),
         "metrics": str(samples_path),
+        "resource_summary": resource_summary(samples_path) if samples_path.exists() else {},
+        "resource_review_required": True,
+        "cache_capacity": 4096,
+        "cache_live_occupancy": None,
+        "cache_metric_note": ("The exact ELF has no live occupancy metric. UBus cache counters "
+                              "are cumulative; capacity and RSS only bound memory, not live entries."),
         "rootfs_identity": str(root_stage / "rootfs-identity.json"),
         "scope": "M3 exact-image soak; pressure faults are a separate gate",
-        "accepted": (not failures and accounting["expiry"] > 0 and accounting["static"] > 0
-                     and accounting["ethers"] > 0 and accounting["restart"] > 0
-                     and accounting["dns_failover"] >= 3
-                     and sample_count >= math.ceil(args.duration_seconds / args.sample_seconds)
-                     and cleanup.get("daemon_alive_after_stop") is False
-                     and cleanup.get("ubusd_alive_after_stop") is False
-                     and cleanup.get("lease_rows_after_stop") == 0),
+        "accepted": run_accepted(failures, cleanup, sample_count,
+                                 math.ceil(args.duration_seconds / args.sample_seconds),
+                                 elapsed, args.duration_seconds),
     }
     (out / "run.json").write_text(json.dumps(final, indent=2) + "\n")
-    return 0 if not failures else 1
+    return 0 if final["accepted"] else 1
+
+
+def stop_process_group(process, grace_seconds=5):
+    """Bound timeout cleanup, including a namespace wrapper and its children."""
+    try:
+        os.killpg(process.pid, signal.SIGTERM)
+    except ProcessLookupError:
+        process.wait(grace_seconds)
+        return
+    try:
+        process.wait(grace_seconds)
+    except subprocess.TimeoutExpired:
+        pass
+    # A wrapper may exit while a descendant ignores TERM; always kill its group.
+    try:
+        os.killpg(process.pid, signal.SIGKILL)
+    except ProcessLookupError:
+        pass
+    process.wait(grace_seconds)
+
+
+def run_parallel(records, out: Path, timeout_seconds: float):
+    """Start both isolated sides before waiting, retaining bounded log files."""
+    processes, logs = [], []
+    deadline = time.monotonic() + timeout_seconds
+    try:
+        for record in records:
+            log_path = out / (record["implementation"] + ".log")
+            log = log_path.open("w")
+            logs.append(log)
+            process = subprocess.Popen(record["argv"], stdout=log, stderr=log,
+                                       start_new_session=True)
+            processes.append(process)
+            record.update({"pid": process.pid, "log": str(log_path), "timed_out": False})
+        for record, process in zip(records, processes):
+            try:
+                process.wait(max(0, deadline - time.monotonic()))
+            except subprocess.TimeoutExpired:
+                record["timed_out"] = True
+                stop_process_group(process)
+            record["returncode"] = process.returncode
+    finally:
+        for process in processes:
+            stop_process_group(process)
+        for log in logs:
+            log.close()
 
 
 def pair(args: argparse.Namespace) -> int:
@@ -895,20 +949,29 @@ def pair(args: argparse.Namespace) -> int:
         raise SystemExit("--out must be a new path below private/")
     out.mkdir(parents=True)
     scripts = Path(__file__).resolve().parent
+    cpus = args.cpus or sorted(os.sched_getaffinity(0))[:2]
+    if len(cpus) != 2 or cpus[0] == cpus[1] or not set(cpus) <= os.sched_getaffinity(0):
+        raise SystemExit("pair requires two distinct available CPUs")
     records = []
-    for implementation in ("c", "rust"):
+    for implementation, cpu in zip(("c", "rust"), cpus):
         side_out = out / implementation
-        argv = ["sh", str(scripts / "run_isolated.sh"), sys.executable, str(Path(__file__).resolve()),
+        argv = ["taskset", "-c", str(cpu), "sh", str(scripts / "run_isolated.sh"),
+                sys.executable, str(Path(__file__).resolve()),
                 "run", "--image-root", str(args.image_root), "--rust-binary", str(args.rust_binary),
                 "--implementation", implementation, "--duration-seconds", str(args.duration_seconds),
                 "--sample-seconds", str(args.sample_seconds), "--clients", str(args.clients),
                 "--seed", str(args.seed), "--out", str(side_out)]
-        result = subprocess.run(argv, capture_output=True, text=True)
-        records.append({"implementation": implementation, "argv": argv,
-                        "returncode": result.returncode, "stdout": result.stdout,
-                        "stderr": result.stderr})
-    runs: dict[str, dict[str, Any]] = {}
+        records.append({"implementation": implementation, "cpu": cpu, "argv": argv})
     failures: list[str] = []
+    try:
+        run_parallel(records, out, args.duration_seconds + args.timeout_slack_seconds)
+    except Exception as error:
+        failures.append(f"pair runner failed: {error!r}")
+    (out / "commands.json").write_text(json.dumps(records, indent=2) + "\n")
+    runs: dict[str, dict[str, Any]] = {}
+    for record in records:
+        if record.get("returncode") != 0 or record.get("timed_out"):
+            failures.append(f'{record["implementation"]} runner exited {record.get("returncode")}, timeout={record.get("timed_out")}')
     for implementation in ("c", "rust"):
         path = out / implementation / "run.json"
         if not path.exists():
@@ -930,18 +993,24 @@ def pair(args: argparse.Namespace) -> int:
         right = runs["rust"].get("accounting")
         if left != right:
             failures.append("C/Rust workload accounting differs")
+        if runs["c"].get("network_namespace") == runs["rust"].get("network_namespace"):
+            failures.append("C/Rust network namespaces are not independent")
+        for side, cpu in zip(("c", "rust"), cpus):
+            if runs[side].get("cpu_affinity") != [cpu]:
+                failures.append(f"{side} CPU affinity differs from assigned core")
     report = {
         "scope": "M3 pair harness with fixed 60 minute workload and cleanup gates",
         "runs": runs,
         "commands": records,
         "failures": failures,
-        "same_workload_accounting": not failures and set(runs) == {"c", "rust"},
+        "same_workload_accounting": (set(runs) == {"c", "rust"}
+                                     and runs["c"].get("accounting") == runs["rust"].get("accounting")),
         "accepted": not failures and all(runs[side].get("accepted") for side in ("c", "rust")),
         "tool_sha256": sha256(Path(__file__)),
     }
     (out / "result.json").write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps({"same_workload_accounting": report["same_workload_accounting"], "failures": failures}))
-    return 0 if report["same_workload_accounting"] else 1
+    return 0 if report["accepted"] else 1
 
 
 def main() -> int:
@@ -954,6 +1023,11 @@ def main() -> int:
         child.add_argument("--out", type=Path, required=True)
         if mode == "run":
             child.add_argument("--implementation", choices=("c", "rust"), required=True)
+        else:
+            child.add_argument("--cpus", type=int, nargs=2,
+                               help="distinct C and Rust CPU cores (default: first two available)")
+            child.add_argument("--timeout-slack-seconds", type=float, default=180,
+                               help="additional wall-clock budget for startup and cleanup")
         child.add_argument("--duration-seconds", type=float, default=3600)
         child.add_argument("--sample-seconds", type=float, default=1)
         child.add_argument("--clients", type=int, default=20)
@@ -984,6 +1058,8 @@ def main() -> int:
     if args.mode == "run":
         return run_side(args)
     if args.mode == "pair":
+        if args.timeout_slack_seconds <= 0:
+            parser.error("timeout slack must be positive")
         return pair(args)
     if args.timeout_seconds <= 0:
         parser.error("timeout must be positive")
