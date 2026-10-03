@@ -291,6 +291,14 @@ impl<R: Random> DnsDaemon<R> {
         self.poll_failures
     }
 
+    pub fn append_poll_fds(
+        &self,
+        fds: &mut Vec<owrt_ubus::sys::PollFd>,
+        deadline: std::time::Instant,
+    ) -> std::time::Instant {
+        self.upstream.append_poll_fds(fds, deadline)
+    }
+
     /// Cumulative real cache events since initialization or the last reload.
     /// Reading is non-destructive and independent of ubus enablement.
     pub fn cache_counters(&self) -> CacheCounters {

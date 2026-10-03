@@ -4,7 +4,10 @@
 
 use super::allocation::ProbeResult;
 use super::context::{select_contexts, ContextState, SelectedContext};
-use super::lease::{ClientIdentity, Lease, LeaseError, LeaseStore, NameLost, RestoreError};
+use super::interface_admission::{interface_matches, InterfacePolicy, Selection};
+use super::lease::{
+    ClientIdentity, Lease, LeaseCounters, LeaseError, LeaseStore, NameLost, RestoreError,
+};
 use super::persistence::{
     self, AlarmAction, DnsPublisher, DnsReport, LeasePersistence, PersistReport,
 };
@@ -92,11 +95,17 @@ type ReverseHostLookup = Box<dyn FnMut(Ipv4Addr) -> io::Result<Option<Vec<u8>>> 
 pub type DhcpEventSink<'a> =
     dyn for<'event> FnMut(DhcpEventKind, DhcpEventFields<'event>, DhcpLogging) + 'a;
 
+/// The counters reflect the lease state at this probe, including removals
+/// made by this packet. The waiter can publish them without reentering DHCP.
+pub type DhcpProbeWait<'a> =
+    dyn FnMut(&crate::net::IcmpSocket, Duration, LeaseCounters) -> io::Result<bool> + 'a;
+
 /// Borrowed event owner for one listener operation. The sink does not acquire
 /// the provider again, and notification failure cannot undo DHCP state.
 pub struct EventProvider<'a> {
     provider: &'a mut LocalProvider,
     sink: &'a mut DhcpEventSink<'a>,
+    wait: Option<&'a mut DhcpProbeWait<'a>>,
 }
 
 pub struct LocalProvider {
@@ -112,7 +121,7 @@ pub struct LocalProvider {
     reply_hostname: Option<Vec<u8>>,
     force_broadcast: bool,
     selected: Vec<SelectedContext>,
-    listen_addresses: Vec<IpAddr>,
+    interface_policy: InterfacePolicy,
     dns_port: u16,
     control: UdpSocket,
     probe: IcmpProbe,
@@ -137,6 +146,19 @@ impl LocalProvider {
         EventProvider {
             provider: self,
             sink,
+            wait: None,
+        }
+    }
+
+    pub fn with_event_sink_and_wait<'a>(
+        &'a mut self,
+        sink: &'a mut DhcpEventSink<'a>,
+        wait: &'a mut DhcpProbeWait<'a>,
+    ) -> EventProvider<'a> {
+        EventProvider {
+            provider: self,
+            sink,
+            wait: Some(wait),
         }
     }
 
@@ -189,7 +211,7 @@ impl LocalProvider {
             should_stop,
             config,
             selected: Vec::new(),
-            listen_addresses,
+            interface_policy: InterfacePolicy::new(listen_addresses),
             dns_port,
             control: UdpSocket::bind((Ipv4Addr::UNSPECIFIED, 0)).map_err(StartupError::Socket)?,
             persistence,
@@ -248,13 +270,14 @@ impl LocalProvider {
         self.reverse_host_lookup = Some(Box::new(lookup));
     }
 
-    /// Install the validated address-to-domain fields before initialize.
+    /// Install the validated interface and address-to-domain policy before initialize.
     pub fn set_dns_config(&mut self, config: &crate::config::dns::DnsConfig) -> io::Result<()> {
         self.config
             .validate_dns_config(config)
             .map_err(|error| io::Error::new(io::ErrorKind::InvalidInput, error))?;
         self.domains = NameDomains::new(config)
             .map_err(|error| io::Error::new(io::ErrorKind::InvalidInput, error))?;
+        self.interface_policy = InterfacePolicy::from_dns(config);
         Ok(())
     }
 
@@ -590,6 +613,7 @@ impl LocalProvider {
         dispatch: &Dispatch<'_>,
         interface_name: Option<&[u8]>,
         mut events: Option<&mut DhcpEventSink<'_>>,
+        mut wait: Option<&mut DhcpProbeWait<'_>>,
     ) -> Result<Outcome, RuntimeError> {
         self.force_broadcast = false;
         if !self.host_files_ready
@@ -616,27 +640,22 @@ impl LocalProvider {
             .iter()
             .any(|address| address.index == interface && address.loopback);
         self.selected.clear();
-        if !self.listen_addresses.is_empty() && !self.listen_addresses.contains(&IpAddr::V4(local))
+        match self
+            .interface_policy
+            .select(interface_name, interface, local, &addresses)
         {
-            // dhcp.c:340-361: an explicitly selected secondary address gets
-            // the first complete_context pass, before the full enumeration.
-            let secondary = addresses
-                .iter()
-                .rev()
-                .find(|address| {
-                    address.index == interface
-                        && self.listen_addresses.contains(&IpAddr::V4(address.address))
-                })
-                .copied();
-            let Some(secondary) = secondary else {
+            Some(Selection::Primary) => {}
+            Some(Selection::Secondary(secondary)) => {
+                local = secondary.address;
+                addresses.insert(0, secondary);
+            }
+            None => {
                 return Ok(Outcome {
                     reply: Reply::Ignore,
                     removed: Vec::new(),
                     lost_names: Vec::new(),
                 });
-            };
-            local = secondary.address;
-            addresses.insert(0, secondary);
+            }
         }
         self.selected =
             select_contexts(&self.config.ranges, &mut self.states, &addresses, interface);
@@ -840,17 +859,26 @@ impl LocalProvider {
             host_index.map(|index| &mut self.hosts[index]),
             &self.reserved,
             environment,
-            |address, hash| match self.probe.check_with_stop(
-                now,
-                address,
-                hash,
-                loopback,
-                self.should_stop,
-            ) {
-                Ok(result) => result,
-                Err(error) => {
-                    probe_error = Some(error);
-                    ProbeResult::Failed
+            |address, hash, counters| {
+                let result = if let Some(wait) = wait.as_deref_mut() {
+                    self.probe.check_with_wait(
+                        now,
+                        address,
+                        hash,
+                        loopback,
+                        self.should_stop,
+                        &mut |socket, timeout| wait(socket, timeout, counters),
+                    )
+                } else {
+                    self.probe
+                        .check_with_stop(now, address, hash, loopback, self.should_stop)
+                };
+                match result {
+                    Ok(result) => result,
+                    Err(error) => {
+                        probe_error = Some(error);
+                        ProbeResult::Failed
+                    }
                 }
             },
         );
@@ -875,7 +903,7 @@ impl LocalProvider {
 
 impl OutcomeProvider for LocalProvider {
     fn resolve(&mut self, dispatch: &Dispatch<'_>) -> Result<Outcome, RuntimeError> {
-        self.resolve_events(dispatch, None, None)
+        self.resolve_events(dispatch, None, None, None)
     }
 
     fn resolve_on_interface(
@@ -883,7 +911,7 @@ impl OutcomeProvider for LocalProvider {
         dispatch: &Dispatch<'_>,
         interface: Option<&[u8]>,
     ) -> Result<Outcome, RuntimeError> {
-        self.resolve_events(dispatch, interface, None)
+        self.resolve_events(dispatch, interface, None, None)
     }
 
     fn force_broadcast(&self, _: &Outcome) -> bool {
@@ -973,7 +1001,7 @@ impl OutcomeProvider for LocalProvider {
 impl OutcomeProvider for EventProvider<'_> {
     fn resolve(&mut self, dispatch: &Dispatch<'_>) -> Result<Outcome, RuntimeError> {
         self.provider
-            .resolve_events(dispatch, None, Some(self.sink))
+            .resolve_events(dispatch, None, Some(self.sink), self.wait.as_deref_mut())
     }
 
     fn resolve_on_interface(
@@ -981,8 +1009,12 @@ impl OutcomeProvider for EventProvider<'_> {
         dispatch: &Dispatch<'_>,
         interface: Option<&[u8]>,
     ) -> Result<Outcome, RuntimeError> {
-        self.provider
-            .resolve_events(dispatch, interface, Some(self.sink))
+        self.provider.resolve_events(
+            dispatch,
+            interface,
+            Some(self.sink),
+            self.wait.as_deref_mut(),
+        )
     }
 
     fn network_options(&self, outcome: &Outcome) -> Option<NetworkOptions> {
@@ -1016,19 +1048,6 @@ impl OutcomeProvider for EventProvider<'_> {
     ) -> Option<ReplyNames<'_>> {
         self.provider.reply_names(packet, outcome)
     }
-}
-
-/// util.c wildcard_match accepts any nonempty suffix at the first '*'.
-fn interface_matches(pattern: &[u8], name: &[u8]) -> bool {
-    for (pattern, actual) in pattern.iter().zip(name) {
-        if *pattern == b'*' {
-            return true;
-        }
-        if pattern != actual {
-            return false;
-        }
-    }
-    pattern.len() == name.len()
 }
 
 /// dhcp.c:1092 host_from_dns: suffix must match get_domain, then validate the

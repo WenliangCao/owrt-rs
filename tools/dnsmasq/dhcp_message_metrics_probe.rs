@@ -153,7 +153,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             selected.map(|index| &mut hosts[index]),
                             &reserved,
                             environment,
-                            |_, hash| ProbeResult::Available { offer_hash: hash },
+                            |_, hash, _| ProbeResult::Available { offer_hash: hash },
                         );
                         provider.quiet_dhcp = config.quiet_dhcp;
                         provider.message_counters = Some(&mut counters);

@@ -11,6 +11,13 @@ use std::net::Ipv4Addr;
 
 pub const CACHE_SECONDS: i64 = 30;
 pub const WAIT_SECONDS: u64 = 3;
+/// Service DNS/TFTP while waiting for a conflict reply, as C's delay_dhcp
+/// does. Return true for readiness on any polled socket, not just ICMP, so
+/// unrelated traffic does not count as one of the twelve timeout fallbacks.
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+pub type ProbeWait<'a> =
+    dyn FnMut(&crate::net::IcmpSocket, std::time::Duration) -> io::Result<bool> + 'a;
+
 // C: (int)(0.6 * (PING_CACHE_TIME / PING_WAIT)). No more than six
 // successful checks can be live, so six fixed slots also hold expired nodes.
 const CACHE_CAPACITY: usize = 6;
@@ -194,7 +201,28 @@ impl IcmpProbe {
         address: Ipv4Addr,
         hash: u32,
         loopback: bool,
+        should_stop: impl FnMut() -> bool,
+    ) -> io::Result<ProbeResult> {
+        self.check_with_wait(
+            now,
+            address,
+            hash,
+            loopback,
+            should_stop,
+            &mut |socket, timeout| socket.wait(timeout),
+        )
+    }
+
+    /// The borrowed wait must not process another DHCP packet or reacquire
+    /// its provider: the allocation and lease state remain borrowed here.
+    pub fn check_with_wait(
+        &mut self,
+        now: i64,
+        address: Ipv4Addr,
+        hash: u32,
+        loopback: bool,
         mut should_stop: impl FnMut() -> bool,
+        wait: &mut ProbeWait<'_>,
     ) -> io::Result<ProbeResult> {
         use std::io::Read;
         if should_stop() {
@@ -207,13 +235,18 @@ impl IcmpProbe {
             .check(now, address, hash, self.no_ping, loopback, |address| {
                 let mut bytes = [0; 2];
                 self.random.read_exact(&mut bytes)?;
-                ping(address, u16::from_ne_bytes(bytes), &mut should_stop)
+                ping(address, u16::from_ne_bytes(bytes), &mut should_stop, wait)
             })
     }
 }
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-fn ping(address: Ipv4Addr, id: u16, should_stop: &mut impl FnMut() -> bool) -> io::Result<bool> {
+fn ping(
+    address: Ipv4Addr,
+    id: u16,
+    should_stop: &mut impl FnMut() -> bool,
+    wait: &mut ProbeWait<'_>,
+) -> io::Result<bool> {
     use std::time::Duration;
     let socket = crate::net::IcmpSocket::open()?;
     let request = echo_request(id);
@@ -246,7 +279,7 @@ fn ping(address: Ipv4Addr, id: u16, should_stop: &mut impl FnMut() -> bool) -> i
                 "ICMP probe stopped",
             ));
         }
-        let ready = match socket.wait(Duration::from_millis(250)) {
+        let ready = match wait(&socket, Duration::from_millis(250)) {
             Ok(ready) => ready,
             Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
             Err(error) => return Err(error),
@@ -272,6 +305,75 @@ fn ping(address: Ipv4Addr, id: u16, should_stop: &mut impl FnMut() -> bool) -> i
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn wall_clock_and_timeout_fallback_have_independent_bounds() {
+        assert!(wait_pending(100, 103, 0));
+        assert!(!wait_pending(100, 104, 0));
+        assert!(wait_pending(100, 90, 11));
+        assert!(!wait_pending(100, 90, 12));
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    fn borrowed_wait_preserves_cache_no_ping_and_loopback_bypasses() {
+        let address = Ipv4Addr::new(192, 0, 2, 10);
+        let mut probe = IcmpProbe::new(false).unwrap();
+        probe
+            .cache
+            .check(100, address, 7, false, false, |_| Ok(false))
+            .unwrap();
+        let mut wait_calls = 0;
+        let mut wait = |_: &crate::net::IcmpSocket, _| {
+            wait_calls += 1;
+            Err(io::Error::other("bypassed probe entered the wait callback"))
+        };
+        assert_eq!(
+            probe
+                .check_with_wait(130, address, 9, false, || false, &mut wait)
+                .unwrap(),
+            ProbeResult::Available { offer_hash: 7 }
+        );
+        assert_eq!(
+            probe
+                .check_with_wait(131, address, 9, true, || false, &mut wait)
+                .unwrap(),
+            ProbeResult::Available { offer_hash: 9 }
+        );
+        probe.set_no_ping(true);
+        assert_eq!(
+            probe
+                .check_with_wait(131, address, 11, false, || false, &mut wait)
+                .unwrap(),
+            ProbeResult::Available { offer_hash: 11 }
+        );
+        assert_eq!(wait_calls, 0);
+        assert_eq!(
+            probe.cache.entries().collect::<Vec<_>>(),
+            [(address, 100, 7)]
+        );
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    fn stopped_probe_does_not_enter_wait_or_mutate_cache() {
+        let mut probe = IcmpProbe::new(false).unwrap();
+        let mut wait_calls = 0;
+        let result = probe.check_with_wait(
+            100,
+            Ipv4Addr::new(192, 0, 2, 10),
+            7,
+            false,
+            || true,
+            &mut |_, _| {
+                wait_calls += 1;
+                Ok(false)
+            },
+        );
+        assert_eq!(result.unwrap_err().kind(), io::ErrorKind::Interrupted);
+        assert_eq!(wait_calls, 0);
+        assert_eq!(probe.cache.entries().count(), 0);
+    }
 
     #[test]
     fn cached_hash_expires_strictly_after_thirty_seconds() {
@@ -423,7 +525,7 @@ mod tests {
             None,
             &[],
             environment,
-            |address, hash| {
+            |address, hash, _| {
                 assert_eq!((address, hash), (requested, 0));
                 calls.set(calls.get() + 1);
                 ProbeResult::Failed

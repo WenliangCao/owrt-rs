@@ -53,6 +53,27 @@ impl<O: FileOpener> TftpListener<O> {
         self.runtime.active_len()
     }
 
+    /// Include both admission and transfer ACK sockets in the containing
+    /// owner's wait; a DHCP conflict probe must not stall an active transfer.
+    pub fn append_poll_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>) {
+        use owrt_ubus::sys::{PollFd, POLLIN};
+        use std::os::fd::AsRawFd;
+        if self.runtime.can_receive_server() {
+            fds.push(PollFd {
+                fd: self.server.as_raw_fd(),
+                events: POLLIN,
+                revents: 0,
+            });
+        }
+        for socket in self.transfers.values() {
+            fds.push(PollFd {
+                fd: socket.as_raw_fd(),
+                events: POLLIN,
+                revents: 0,
+            });
+        }
+    }
+
     /// Poll one bounded datagram from the server/transfer sockets and run one
     /// retransmission tick. `Send` events are attempted before return;
     /// nonfatal socket/send failures are reported as `TransportError`.

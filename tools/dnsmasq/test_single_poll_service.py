@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Exact-image scheduling gate with one owned upstream silent for 10 seconds.
+"""Exact-image TCP scheduling and interface/listen-address union regressions.
 
 Use run_isolated.sh. The tool starts its own C/Rust daemons and creates a
 private bridge/veth client; it accepts no target address. During one ordinary
 TCP request, local UDP DNS and one DHCP DORA must each complete within 2 s.
 All wire evidence, config and process identities remain under private/.
+--mode interface-union omits TCP and keeps the original interface=br-lan plus
+listen-address=127.0.0.1 combination, which must admit DHCP on br-lan.
 """
 from __future__ import annotations
 import argparse
@@ -223,19 +225,27 @@ def dns_ready(process):
     raise AssertionError('daemon readiness deadline')
 
 
+def profile_config(mode, upstream_port=None):
+    config = ('no-hosts\nno-resolv\nuser=root\ninterface=br-lan\n'
+              f'port={DNS_PORT}\nhost-record=local.test,192.0.2.7\n'
+              'dhcp-authoritative\nno-ping\ndhcp-range=10.77.0.10,10.77.0.30,255.255.255.0,12h\n'
+              'dhcp-leasefile=/m2/owner.leases\npid-file=/m2/owner.pid\n')
+    if mode == 'interface-union':
+        config += 'listen-address=127.0.0.1\n'
+    if upstream_port is not None:
+        config += f'server=127.0.0.1#{upstream_port}\n'
+    return config
+
+
 def run_side(args, root, network, side):
     out = args.out / side
     out.mkdir()
     row = {'side': side, 'passed': False}
-    upstream = DelayedUpstream(out)
+    upstream = DelayedUpstream(out) if args.mode == 'tcp-stall' else None
     daemon = probe = None
     log = None
     try:
-        config = ('no-hosts\nno-resolv\nuser=root\ninterface=br-lan\n'
-                  f'port={DNS_PORT}\nhost-record=local.test,192.0.2.7\n'
-                  'dhcp-authoritative\nno-ping\ndhcp-range=10.77.0.10,10.77.0.30,255.255.255.0,12h\n'
-                  'dhcp-leasefile=/m2/owner.leases\npid-file=/m2/owner.pid\n'
-                  f'server=127.0.0.1#{upstream.port}\n')
+        config = profile_config(args.mode, upstream.port if upstream else None)
         (root / 'm2/owner.conf').write_text(config)
         (out / 'dnsmasq.conf').write_text(config)
         (root / 'm2/owner.leases').write_bytes(b'')
@@ -244,10 +254,11 @@ def run_side(args, root, network, side):
                                   stdout=log, stderr=log, start_new_session=True)
         dns_ready(daemon)
         row['identity'] = process_identity(root, daemon.pid)
-        probe = socket.create_connection(('127.0.0.1', DNS_PORT), timeout=3)
-        packet = query('held.test', ident=0x4433)
-        probe.sendall(struct.pack('!H', len(packet)) + packet)
-        assert upstream.received.wait(3), 'upstream request missing'
+        if upstream is not None:
+            probe = socket.create_connection(('127.0.0.1', DNS_PORT), timeout=3)
+            packet = query('held.test', ident=0x4433)
+            probe.sendall(struct.pack('!H', len(packet)) + packet)
+            assert upstream.received.wait(3), 'upstream request missing'
         row['runtime'] = {
             'threads': len(list(Path(f'/proc/{daemon.pid}/task').iterdir())),
             'children': Path(f'/proc/{daemon.pid}/task/{daemon.pid}/children').read_text().split(),
@@ -258,32 +269,34 @@ def run_side(args, root, network, side):
         save(out / 'client-process.json', {'returncode': response.returncode,
                                          'stdout': response.stdout, 'stderr': response.stderr})
         row['client'] = json.loads((out / 'client/result.json').read_text())
-        # Complete the controlled upstream exchange even if the client gate
-        # failed, retaining a full ten-second interval and bounded cleanup.
-        probe.settimeout(HOLD_SECONDS + 2)
-        size = struct.unpack('!H', exact_read(probe, 2))[0]
-        response_packet = exact_read(probe, size)
-        row['tcp'] = semantics(response_packet)
-        (out / 'tcp.reply').write_bytes(response_packet)
-        upstream.thread.join(1)
-        row['upstream'] = dict(upstream.row)
+        if upstream is not None:
+            # Finish even on a client failure, preserving the full interval.
+            probe.settimeout(HOLD_SECONDS + 2)
+            size = struct.unpack('!H', exact_read(probe, 2))[0]
+            response_packet = exact_read(probe, size)
+            row['tcp'] = semantics(response_packet)
+            (out / 'tcp.reply').write_bytes(response_packet)
+            upstream.thread.join(1)
+            row['upstream'] = dict(upstream.row)
         lease = (root / 'm2/owner.leases').read_bytes()
         (out / 'leases').write_bytes(lease)
         row['leases'] = [line.decode().split()[1:] for line in lease.splitlines()]
-        end = row['upstream']['closed_monotonic']
-        row['within_hold'] = all(value.get('finished_monotonic', end + 1) < end
-                                 for value in row['client'].values() if isinstance(value, dict))
-        row['passed'] = (row['client']['passed'] and row['within_hold']
-                         and row['upstream']['hold_seconds'] >= HOLD_SECONDS
-                         and row['tcp']['id'] == 0x4433 and row['tcp']['flags'] & 15 == 5
-                         and len(row['leases']) == 1)
+        row['passed'] = row['client']['passed'] and len(row['leases']) == 1
+        if upstream is not None:
+            end = row['upstream']['closed_monotonic']
+            row['within_hold'] = all(value.get('finished_monotonic', end + 1) < end
+                                     for value in row['client'].values() if isinstance(value, dict))
+            row['passed'] = (row['passed'] and row['within_hold']
+                             and row['upstream']['hold_seconds'] >= HOLD_SECONDS
+                             and row['tcp']['id'] == 0x4433 and row['tcp']['flags'] & 15 == 5)
     except Exception as error:
         row['error'] = repr(error)
     finally:
         if probe is not None:
             probe.close()
         row['cleanup'] = stop(daemon)
-        upstream.close()
+        if upstream is not None:
+            upstream.close()
         if log is not None:
             log.close()
         row['pidfile_removed'] = not (root / 'm2/owner.pid').exists()
@@ -314,6 +327,7 @@ def main():
     parser.add_argument('--image-root', type=Path)
     parser.add_argument('--rust', type=Path)
     parser.add_argument('--out', required=True, type=Path)
+    parser.add_argument('--mode', choices=('tcp-stall', 'interface-union'), default='tcp-stall')
     parser.add_argument('--client', action='store_true', help=argparse.SUPPRESS)
     args = parser.parse_args()
     if os.environ.get('DNSMASQ_TEST_ISOLATED') != '1' or os.geteuid() != 0:
@@ -328,10 +342,13 @@ def main():
     if sorted(name for _, name in socket.if_nameindex()) != ['lo']:
         parser.error('start in a namespace containing only lo')
     args.out.mkdir(parents=True, exist_ok=False)
-    plan = {'upstream_hold_seconds': HOLD_SECONDS, 'udp_deadline_seconds': ITEM_SECONDS,
+    plan = {'mode': args.mode, 'upstream_hold_seconds': HOLD_SECONDS if args.mode == 'tcp-stall' else None,
+            'udp_deadline_seconds': ITEM_SECONDS,
             'dora_deadline_seconds': ITEM_SECONDS, 'clients': 1, 'no_ping': True,
-            'upstream_end': 'close without reply after 10 seconds; C network-error REFUSED',
-            'scope': 'single-owner TCP scheduling; ICMP coexistence is a separate gate',
+            'upstream_end': 'close without reply after 10 seconds; C network-error REFUSED'
+                            if args.mode == 'tcp-stall' else None,
+            'scope': 'single-owner TCP scheduling; ICMP coexistence is a separate gate'
+                     if args.mode == 'tcp-stall' else 'original interface=br-lan + listen-address=127.0.0.1 DHCP union',
             'tool_sha256': sha256(Path(__file__)), 'rust_sha256': sha256(args.rust)}
     save(args.out / 'plan.json', plan)
     network = Network()

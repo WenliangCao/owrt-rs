@@ -312,6 +312,11 @@ pub struct DnsSocket {
     socket: std::net::UdpSocket,
 }
 impl DnsSocket {
+    pub fn as_raw_fd(&self) -> std::os::fd::RawFd {
+        use std::os::fd::AsRawFd;
+        self.socket.as_raw_fd()
+    }
+
     pub fn bind(address: SocketAddr) -> io::Result<Self> {
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         {

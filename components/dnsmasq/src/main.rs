@@ -258,10 +258,7 @@ fn write_dns_metrics(
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 fn write_dhcp_metrics(metrics: &mut Metrics, provider: &DhcpProvider) {
-    let leases = provider.lease_counters();
-    metrics.set(Metric::LeasesAllocated4, leases.allocated4);
-    metrics.set(Metric::LeasesPruned4, leases.pruned4);
-    metrics.set(Metric::LeasesPruned6, leases.pruned6);
+    write_lease_metrics(metrics, provider.lease_counters());
     let messages = provider.message_counters();
     for (metric, value) in [
         (Metric::Bootp, messages.bootp),
@@ -278,6 +275,13 @@ fn write_dhcp_metrics(metrics: &mut Metrics, provider: &DhcpProvider) {
     ] {
         metrics.set(metric, value);
     }
+}
+
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+fn write_lease_metrics(metrics: &mut Metrics, leases: dnsmasq_rs::dhcp::lease::LeaseCounters) {
+    metrics.set(Metric::LeasesAllocated4, leases.allocated4);
+    metrics.set(Metric::LeasesPruned4, leases.pruned4);
+    metrics.set(Metric::LeasesPruned6, leases.pruned6);
 }
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -798,6 +802,7 @@ struct SinglePoll {
     packet_limit: usize,
     tcp_limit: usize,
     edns_max: u16,
+    probe_metrics: Option<Metrics>,
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     dhcp: Option<(Arc<Mutex<DhcpProvider>>, DhcpSocketListener)>,
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -1012,6 +1017,7 @@ impl SinglePoll {
             packet_limit,
             tcp_limit,
             edns_max,
+            probe_metrics: None,
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             dhcp,
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -1030,7 +1036,7 @@ impl SinglePoll {
     // Every UBus entry point uses the same complete snapshot. In particular,
     // idle UDP completion must not answer a metrics call with zero DHCP fields.
     fn metrics(&self, event: &ParentEvents) -> Metrics {
-        let mut metrics = Metrics::default();
+        let mut metrics = self.probe_metrics.unwrap_or_default();
         event.write_metrics(&mut metrics);
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if let Some((provider, _)) = &self.dhcp {
@@ -1128,7 +1134,9 @@ impl SinglePoll {
             daemon.forward_counters(),
             event.local_answered,
         );
-        event.process_ubus(&metrics);
+        if self.probe_metrics.is_none() {
+            event.process_ubus(&metrics);
+        }
         if let Ok(interfaces) = self.interfaces.lock() {
             local.local_network = listeners::local_network(&interfaces, incoming.destination);
         }
@@ -1242,7 +1250,9 @@ impl SinglePoll {
             daemon.forward_counters(),
             event.local_answered,
         );
-        event.process_ubus(&metrics);
+        if self.probe_metrics.is_none() {
+            event.process_ubus(&metrics);
+        }
         let responses = if event
             .ubus
             .as_ref()
@@ -1363,30 +1373,118 @@ impl SinglePoll {
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    fn wait_during_probe(
+        &mut self,
+        icmp: &dnsmasq_rs::net::IcmpSocket,
+        timeout: Duration,
+        leases: dnsmasq_rs::dhcp::lease::LeaseCounters,
+    ) -> io::Result<bool> {
+        use owrt_ubus::sys::{PollFd, POLLIN, POLLOUT};
+        use std::os::fd::AsRawFd;
+        // The provider owns its lease transaction. The snapshot is taken at
+        // the actual probe call, after packet/BOOTP pruning, not before it.
+        if let Some(metrics) = self.probe_metrics.as_mut() {
+            write_lease_metrics(metrics, leases);
+        }
+        let full_deadline = Instant::now() + timeout;
+        let mut deadline = full_deadline;
+        let mut fds = vec![PollFd {
+            fd: icmp.as_raw_fd(),
+            events: POLLIN,
+            revents: 0,
+        }];
+        for listener in &self.listeners {
+            fds.push(PollFd {
+                fd: listener.udp.as_raw_fd(),
+                events: POLLIN,
+                revents: 0,
+            });
+            if self.clients.len() < self.tcp_limit {
+                fds.push(PollFd {
+                    fd: listener.tcp.as_raw_fd(),
+                    events: POLLIN,
+                    revents: 0,
+                });
+            }
+        }
+        if let Some(daemon) = &self.service.lock().unwrap().daemon {
+            deadline = daemon.append_poll_fds(&mut fds, deadline);
+        }
+        for client in &self.clients {
+            deadline = deadline.min(client.deadline);
+            let (fd, events) = match &client.phase {
+                TcpClientPhase::Reading => {
+                    if client.input_offset < client.input.len() {
+                        deadline = Instant::now();
+                    }
+                    (client.stream.as_raw_fd(), POLLIN)
+                }
+                TcpClientPhase::Writing { .. } => (client.stream.as_raw_fd(), POLLOUT),
+                TcpClientPhase::Forwarding { wait, .. } => {
+                    deadline = deadline.min(wait.deadline);
+                    (wait.fd, wait.events)
+                }
+            };
+            fds.push(PollFd {
+                fd,
+                events,
+                revents: 0,
+            });
+        }
+        if let Some(tftp) = &self.tftp {
+            tftp.append_poll_fds(&mut fds);
+        }
+        let remaining = deadline.saturating_duration_since(Instant::now());
+        let millis = remaining
+            .as_nanos()
+            .div_ceil(1_000_000)
+            .min(i32::MAX as u128) as i32;
+        let ready = owrt_ubus::sys::poll_fds(&mut fds, millis)?;
+        // Neither signals/reload nor another DHCP packet may reenter the
+        // borrowed state. All DNS and TFTP packet buffers are distinct.
+        for index in 0..self.listeners.len() {
+            self.step_udp(index);
+            self.step_tcp_accept(index);
+        }
+        self.step_tcp_clients();
+        self.step_tftp();
+        // Early DNS/TCP timers or any listener activity must not consume an
+        // ICMP quarter-second timeout. Only the full idle poll counts as one.
+        Ok(ready != 0 || deadline < full_deadline)
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     fn step_dhcp(&mut self) {
-        let Some((shared_provider, listener)) = self.dhcp.as_mut() else {
+        let Some((shared_provider, mut listener)) = self.dhcp.take() else {
             return;
         };
-        let Ok(mut event) = self.parent_events.lock() else {
-            return;
-        };
-        let Ok(mut provider) = shared_provider.lock() else {
+        let provider_ref = Arc::clone(&shared_provider);
+        let Ok(mut provider) = provider_ref.lock() else {
+            self.dhcp = Some((shared_provider, listener));
             return;
         };
         let now = now_seconds();
         if let Some(report) = provider.tick(now) {
             report_dhcp_maintenance(&report);
         }
+        let mut metrics = Metrics::default();
+        write_dhcp_metrics(&mut metrics, &provider);
+        self.probe_metrics = Some(metrics);
         let mut output = vec![0; 16_384];
+        let events = Arc::clone(&self.parent_events);
         let result = {
             let mut sink = |kind, fields: DhcpEventFields<'_>, logging| {
-                event.notify_dhcp(kind, fields, logging)
+                events.lock().unwrap().notify_dhcp(kind, fields, logging)
             };
-            let mut provider = provider.with_event_sink(&mut sink);
+            let mut wait = |socket: &dnsmasq_rs::net::IcmpSocket, duration, leases| {
+                self.wait_during_probe(socket, duration, leases)
+            };
+            let mut provider = provider.with_event_sink_and_wait(&mut sink, &mut wait);
             listener.process_once_local(&mut provider, &[], &mut output, || {
                 STOP_REQUESTED.load(Ordering::Acquire)
             })
         };
+        self.probe_metrics = None;
         if let Ok(ListenerStep::Processed(result)) = result {
             let events = match &result {
                 Ok(report) => &report.events,
@@ -1408,6 +1506,8 @@ impl SinglePoll {
         if let Some(report) = provider.take_maintenance_report() {
             report_dhcp_maintenance(&report);
         }
+        drop(provider);
+        self.dhcp = Some((shared_provider, listener));
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]

@@ -15,7 +15,7 @@ use super::service::{Dispatch, DispatchKind, Route};
 use super::state::{self, Environment, HostPolicy, Name, Outcome, Reply, Request};
 use super::{
     allocation::{AddressRange, ProbeResult},
-    lease::LeaseStore,
+    lease::{LeaseCounters, LeaseStore},
 };
 use crate::config::dhcp::{BootConfig, DhcpOption, OptionValue};
 use std::io::{self, Read};
@@ -206,6 +206,8 @@ pub struct StateProvider<'a, F> {
     /// Optional owner supplied by the daemon; pure state callers can omit it.
     pub message_counters: Option<&'a mut MessageCounters>,
     pub(crate) event_sink: Option<&'a mut state::LogSink<'a>>,
+    /// Each probe borrows the current lease counters after packet/BOOTP prune.
+    /// The owner can report live counters while its provider is borrowed.
     pub probe: F,
 }
 
@@ -239,7 +241,7 @@ impl<'a, F> StateProvider<'a, F> {
 
 impl<'a, F> OutcomeProvider for StateProvider<'a, F>
 where
-    F: FnMut(Ipv4Addr, u32) -> ProbeResult,
+    F: FnMut(Ipv4Addr, u32, LeaseCounters) -> ProbeResult,
 {
     fn resolve(&mut self, dispatch: &Dispatch<'_>) -> Result<Outcome, RuntimeError> {
         let mut environment = self.environment;
@@ -1860,7 +1862,7 @@ mod tests {
             None,
             reserved,
             environment,
-            |_, _| ProbeResult::Available { offer_hash: 1 },
+            |_, _, _| ProbeResult::Available { offer_hash: 1 },
         );
         provider.message_counters = Some(&mut counters);
         provider.event_sink = Some(&mut on_event);
@@ -2004,7 +2006,7 @@ mod tests {
             None,
             &[],
             environment,
-            |_, _| ProbeResult::InUse,
+            |_, _, _| ProbeResult::InUse,
         );
         let outcome = provider.resolve(&dispatch).unwrap();
         assert_eq!(outcome.reply, Reply::Ignore);
@@ -2012,6 +2014,99 @@ mod tests {
         assert_eq!(outcome.removed[0].address, expired);
         assert_eq!(outcome.lost_names[0].name, b"old");
         assert!(provider.store.is_empty());
+    }
+
+    #[test]
+    fn probe_snapshot_includes_expiry_and_bootp_wrong_network_prunes() {
+        let offered = Ipv4Addr::new(192, 0, 2, 10);
+        let server = Ipv4Addr::new(192, 0, 2, 1);
+        let hardware = vec![2, 0, 0, 0, 0, 1];
+        for bootp in [false, true] {
+            let options = if bootp {
+                vec![255]
+            } else {
+                vec![53, 1, 1, 50, 4, 192, 0, 2, 10, 255]
+            };
+            let mut bytes = packet(&options, 0, Ipv4Addr::UNSPECIFIED, Ipv4Addr::UNSPECIFIED);
+            bytes[28..34].copy_from_slice(&hardware);
+            let dispatch = dispatch_for(&bytes);
+            let previous = if bootp {
+                Ipv4Addr::new(198, 51, 100, 10)
+            } else {
+                offered
+            };
+            let mut store = LeaseStore::new(2);
+            store
+                .allocate(
+                    previous,
+                    crate::dhcp::lease::ClientIdentity {
+                        hardware_type: 1,
+                        hardware_address: hardware.clone(),
+                        client_id: None,
+                    },
+                )
+                .unwrap();
+            if !bootp {
+                store.set_expires(previous, 10, 90).unwrap();
+            }
+            let mut ranges = [AddressRange {
+                start: offered,
+                end: offered,
+                netmask: Ipv4Addr::new(255, 255, 255, 0),
+                router: Ipv4Addr::new(192, 0, 2, 254),
+                local: server,
+                lease_time: 600,
+                kind: RangeKind::Dynamic,
+                filter: Vec::new(),
+                epoch: 0,
+            }];
+            let environment = Environment {
+                now: 100,
+                interface: 0,
+                authoritative: false,
+                unicast_destination: false,
+                ignored: false,
+                ignore_client_id: false,
+                fqdn_only: false,
+                rapid_commit: false,
+                bootp_dynamic: true,
+                consecutive_addresses: false,
+                override_server: None,
+                fallback_server: server,
+                server_aliases: &[],
+            };
+            let snapshots = Cell::new(0);
+            let mut provider = StateProvider::new(
+                &mut store,
+                &mut ranges,
+                &[],
+                None,
+                &[],
+                environment,
+                |address, hash, counters| {
+                    assert_eq!(address, offered);
+                    assert_eq!(
+                        counters,
+                        LeaseCounters {
+                            allocated4: 1,
+                            pruned4: 1,
+                            pruned6: 0
+                        }
+                    );
+                    snapshots.set(snapshots.get() + 1);
+                    ProbeResult::Available { offer_hash: hash }
+                },
+            );
+            let outcome = provider.resolve(&dispatch).unwrap();
+            assert_eq!(snapshots.get(), 1);
+            assert_eq!(outcome.removed.len(), 1);
+            assert_eq!(outcome.removed[0].address, previous);
+            assert!(if bootp {
+                matches!(outcome.reply, Reply::Bootp { address, .. } if address == offered)
+            } else {
+                matches!(outcome.reply, Reply::Offer { address, .. } if address == offered)
+            });
+        }
     }
 
     #[test]

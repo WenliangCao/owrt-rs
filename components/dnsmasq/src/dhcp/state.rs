@@ -6,7 +6,7 @@
 use super::allocation::{
     allocate_address, available, narrow, AddressRange, ProbeResult, RangeKind,
 };
-use super::lease::{ClientIdentity, Lease, LeaseError, LeaseStore, NameLost};
+use super::lease::{ClientIdentity, Lease, LeaseCounters, LeaseError, LeaseStore, NameLost};
 use super::message_counters::MessageCounters;
 use super::packet::Packet;
 use super::request::{
@@ -436,13 +436,13 @@ pub fn discover(
     store: &mut LeaseStore,
     ranges: &mut [AddressRange],
     request: Request<'_>,
-    probe: impl FnMut(Ipv4Addr, u32) -> ProbeResult,
+    mut probe: impl FnMut(Ipv4Addr, u32) -> ProbeResult,
 ) -> Result<Outcome, LeaseError> {
     discover_counted(
         store,
         ranges,
         request,
-        probe,
+        |address, hash, _| probe(address, hash),
         false,
         &mut MessageCounters::default(),
         None,
@@ -453,7 +453,7 @@ pub(crate) fn discover_counted(
     store: &mut LeaseStore,
     ranges: &mut [AddressRange],
     request: Request<'_>,
-    mut probe: impl FnMut(Ipv4Addr, u32) -> ProbeResult,
+    mut probe: impl FnMut(Ipv4Addr, u32, LeaseCounters) -> ProbeResult,
     quiet: bool,
     counters: &mut MessageCounters,
     events: Option<&mut LogSink<'_>>,
@@ -495,7 +495,7 @@ pub(crate) fn discover_counted(
                 && !request.reserved.contains(address)
         });
         if let Some(address) = eligible {
-            match probe(address, 0) {
+            match probe(address, 0, store.counters()) {
                 ProbeResult::Available { .. } => Some(address),
                 ProbeResult::InUse => None,
                 ProbeResult::Failed => return Ok(discover_failed(counters)),
@@ -524,7 +524,7 @@ pub(crate) fn discover_counted(
             request.tags,
             env.consecutive_addresses,
             |address| request.reserved.contains(&address),
-            &mut probe,
+            |address, hash| probe(address, hash, store.counters()),
         ) else {
             return Ok(discover_failed(counters));
         };
@@ -568,13 +568,13 @@ pub fn bootp(
     store: &mut LeaseStore,
     ranges: &mut [AddressRange],
     request: Request<'_>,
-    probe: impl FnMut(Ipv4Addr, u32) -> ProbeResult,
+    mut probe: impl FnMut(Ipv4Addr, u32) -> ProbeResult,
 ) -> Result<Outcome, LeaseError> {
     bootp_counted(
         store,
         ranges,
         request,
-        probe,
+        |address, hash, _| probe(address, hash),
         &mut MessageCounters::default(),
     )
 }
@@ -583,7 +583,7 @@ pub(crate) fn bootp_counted(
     store: &mut LeaseStore,
     ranges: &mut [AddressRange],
     request: Request<'_>,
-    probe: impl FnMut(Ipv4Addr, u32) -> ProbeResult,
+    mut probe: impl FnMut(Ipv4Addr, u32, LeaseCounters) -> ProbeResult,
     counters: &mut MessageCounters,
 ) -> Result<Outcome, LeaseError> {
     let mut output = Outcome::ignored();
@@ -628,7 +628,7 @@ pub(crate) fn bootp_counted(
                 request.tags,
                 env.consecutive_addresses,
                 |address| request.reserved.contains(&address),
-                probe,
+                |address, hash| probe(address, hash, store.counters()),
             ) else {
                 return Ok(bootp_finished(output, counters));
             };

@@ -11,6 +11,8 @@ pub mod allocation;
 pub mod context;
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 pub mod daemon;
+#[cfg(any(test, all(target_os = "linux", target_pointer_width = "64")))]
+mod interface_admission;
 pub mod lease;
 pub mod lease_file;
 pub mod lease_query;

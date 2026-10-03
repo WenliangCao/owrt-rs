@@ -330,6 +330,28 @@ impl<R: Random> UpstreamResolver<R> {
         self.sockets.len()
     }
 
+    /// Borrow readiness interests without waiting or advancing any query.
+    /// Used by the service owner while DHCP temporarily owns its state.
+    pub fn append_poll_fds(&self, fds: &mut Vec<PollFd>, deadline: Instant) -> Instant {
+        let now = Instant::now();
+        let mut deadline = self.next_wakeup(deadline);
+        if !self.events.is_empty() {
+            deadline = deadline.min(now);
+        }
+        for owned in self.sockets.values() {
+            if owned.pollable_at(now) {
+                fds.push(PollFd {
+                    fd: owned.socket.as_raw_fd(),
+                    events: POLLIN,
+                    revents: 0,
+                });
+            } else if let Some(retry) = owned.empty_error_retry {
+                deadline = deadline.min(retry);
+            }
+        }
+        deadline
+    }
+
     pub fn counters(&self) -> super::forward::ForwardCounters {
         self.dispatcher.table().counters()
     }

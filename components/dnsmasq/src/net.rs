@@ -202,6 +202,11 @@ pub(crate) fn tcp_interface(stream: &TcpStream, ipv6: bool) -> Option<(Vec<u8>, 
 pub struct IcmpSocket(OwnedFd);
 
 impl IcmpSocket {
+    /// Borrow the descriptor for the caller's DNS/TFTP/ICMP poll set.
+    pub fn as_raw_fd(&self) -> RawFd {
+        self.0.as_raw_fd()
+    }
+
     pub fn open() -> io::Result<Self> {
         // SAFETY: no pointers; successful socket returns unique ownership.
         let fd = unsafe { socket(AF_INET, 3 | SOCK_CLOEXEC | SOCK_NONBLOCK, 1) };
