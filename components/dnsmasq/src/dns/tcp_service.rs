@@ -8,7 +8,7 @@
 
 use super::daemon::{address_policy, validate_runtime_config, DaemonError};
 use super::process::{apply_static_aliases, process_admitted_reply, AddressPolicy, ProcessError};
-use super::reply::{apply_known_local_nxdomain, prepare_reply, strip_opt, ReplyPolicy};
+use super::reply::{apply_known_local_nxdomain, filter_rrs, prepare_reply, strip_opt, ReplyPolicy};
 use super::routing::{RouteReason, RoutingTable};
 use super::service::LocalDnsService;
 pub use super::tcp_upstream::TcpWait;
@@ -62,6 +62,7 @@ pub struct TcpDnsService {
     query_policy: super::query_policy::QueryPolicy,
     proxy_dnssec: bool,
     edns_packet_max: u16,
+    filter_rr: Vec<u16>,
     pending_query: Option<Vec<u8>>,
 }
 
@@ -94,6 +95,7 @@ impl TcpDnsService {
             query_policy: super::query_policy::QueryPolicy::from_config(config),
             proxy_dnssec: config.proxy_dnssec,
             edns_packet_max,
+            filter_rr: config.filter_rr.clone(),
             pending_query: None,
         })
     }
@@ -192,6 +194,7 @@ impl TcpDnsService {
                 &self.policy,
                 self.proxy_dnssec,
                 self.edns_packet_max,
+                &self.filter_rr,
                 Some(local),
                 Some(&self.routing),
             )
@@ -259,6 +262,7 @@ impl TcpDnsService {
                 &self.policy,
                 self.proxy_dnssec,
                 self.edns_packet_max,
+                &self.filter_rr,
                 local,
                 Some(&self.routing),
             )
@@ -326,6 +330,7 @@ fn finish_reply(
     policy: &AddressPolicy,
     proxy_dnssec: bool,
     edns_packet_max: u16,
+    filter_rr: &[u16],
     local: Option<&LocalDnsService>,
     routing: Option<&RoutingTable>,
 ) -> Result<Vec<u8>, TcpServiceError> {
@@ -373,6 +378,10 @@ fn finish_reply(
             if find_pseudoheader(&packet, false)?.opt.is_some() {
                 add_ede(&mut packet, edns_packet_max, do_bit, ede, TCP_LIMIT)?;
             }
+        }
+        let filtered = filter_rrs(&mut packet, filter_rr)?.matched != 0;
+        if filtered && find_pseudoheader(&packet, false)?.opt.is_some() {
+            add_ede(&mut packet, edns_packet_max, do_bit, 17, TCP_LIMIT)?;
         }
     }
     Ok(packet)

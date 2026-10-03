@@ -19,7 +19,8 @@ use super::process::{
     AddressPrefix, ProcessAction, ProcessError,
 };
 use super::reply::{
-    apply_known_local_nxdomain, limit_udp_reply, prepare_udp_reply, resize_reply, ReplyPolicy,
+    apply_known_local_nxdomain, filter_rrs, limit_udp_reply, prepare_udp_reply, resize_reply,
+    ReplyPolicy,
 };
 use super::routing::{RouteReason, RoutingError, RoutingTable};
 use super::service::{LocalDnsService, ServiceError};
@@ -203,6 +204,7 @@ pub struct DnsDaemon<R = OsRandom> {
     proxy_dnssec: bool,
     max_udp: usize,
     edns_packet_max: u16,
+    filter_rr: Vec<u16>,
     poll_failures: PollFailures,
 }
 
@@ -259,6 +261,7 @@ impl<R: Random> DnsDaemon<R> {
             UpstreamResolver::with_lifetime(dispatcher, random, options.upstream_lifetime)?;
         let policy = address_policy(&config)?;
         let query_policy = super::query_policy::QueryPolicy::from_config(&config);
+        let filter_rr = config.filter_rr.clone();
         let local = LocalDnsService::new_with_limits(
             config,
             hosts,
@@ -279,6 +282,7 @@ impl<R: Random> DnsDaemon<R> {
             proxy_dnssec: options.proxy_dnssec,
             max_udp: options.max_udp.max(512),
             edns_packet_max: options.edns_packet_max,
+            filter_rr,
             poll_failures: PollFailures::default(),
         })
     }
@@ -754,6 +758,7 @@ impl<R: Random> DnsDaemon<R> {
                     counters: &mut self.cache_counters,
                     negative_cache: self.negative_cache,
                     negative_ttl: self.negative_ttl,
+                    filter_rr: &self.filter_rr,
                 }
                 .insert_reply_with_policy(
                     &reply.packet,
@@ -824,6 +829,16 @@ impl<R: Random> DnsDaemon<R> {
                     )?;
                 }
             }
+            let filtered = filter_rrs(&mut packet, &self.filter_rr)?.matched != 0;
+            if filtered && find_pseudoheader(&packet, false)?.opt.is_some() {
+                super::tcp_service::add_ede(
+                    &mut packet,
+                    self.edns_packet_max,
+                    reply.flags.dnssec_ok,
+                    17,
+                    usize::from(self.edns_packet_max),
+                )?;
+            }
         }
         resize_reply(&mut packet);
         Ok(Some(limit_udp_reply(&packet, recipient.client.udp_limit)?))
@@ -878,6 +893,7 @@ impl<R: Random> DnsDaemon<R> {
             counters: &mut self.cache_counters,
             negative_cache: self.negative_cache,
             negative_ttl: self.negative_ttl,
+            filter_rr: &self.filter_rr,
         }
         .answer_udp(
             query,
@@ -902,6 +918,7 @@ impl<R: Random> DnsDaemon<R> {
             counters: &mut self.cache_counters,
             negative_cache: self.negative_cache,
             negative_ttl: self.negative_ttl,
+            filter_rr: &self.filter_rr,
         }
         .insert_reply_with_policy(
             packet,
@@ -1210,6 +1227,47 @@ mod tests {
         let responses = daemon.poll(Duration::from_secs(1)).unwrap();
         assert_eq!(responses.len(), 1);
         assert_eq!(Header::parse(&responses[0].packet).unwrap().id, 0x4321);
+        worker.join().unwrap();
+    }
+
+    #[test]
+    fn configured_a_filter_elides_forwarded_answer_after_cache_extraction() {
+        let server = UdpSocket::bind("127.0.0.1:0").unwrap();
+        let address = server.local_addr().unwrap();
+        let worker = thread::spawn(move || {
+            let mut input = [0; 2048];
+            let (length, peer) = server.recv_from(&mut input).unwrap();
+            let request = &input[..length];
+            let header = Header::parse(request).unwrap();
+            let name = Name::from_ascii("filtered.test").unwrap();
+            let mut writer = PacketWriter::new(header.id, 0x8180, 1232).unwrap();
+            writer.question(&name, 1, 1).unwrap();
+            writer
+                .record(Section::Answer, &name, 1, 1, 30, &[192, 0, 2, 9])
+                .unwrap();
+            server.send_to(&writer.finish(), peer).unwrap();
+        });
+        let mut config = DnsConfig::default();
+        apply(&mut config, b"filter-A");
+        let mut daemon =
+            DnsDaemon::with_random(config, Hosts::new(), &[address], options(), Counter(0))
+                .unwrap();
+        daemon.enable_cache(8, 0, 60, StalePolicy::Disabled);
+        assert!(matches!(
+            daemon.handle_udp(
+                &query("filtered.test", 0x1234),
+                ClientRequest {
+                    source: "127.0.0.1:53000".parse().unwrap(),
+                    destination: "127.0.0.1".parse().unwrap(),
+                    interface: 0,
+                },
+            ),
+            Ok(QueryResult::Forwarded(_))
+        ));
+        let responses = daemon.poll(Duration::from_secs(1)).unwrap();
+        assert_eq!(responses.len(), 1);
+        let packet = Message::parse(&responses[0].packet).unwrap();
+        assert_eq!(packet.header.answers, 0);
         worker.join().unwrap();
     }
 

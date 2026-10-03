@@ -101,6 +101,144 @@ pub fn strip_opt(packet: &mut Vec<u8>) -> Result<FilterResult, WireError> {
     Ok(result)
 }
 
+/// Apply `--filter-A`, `--filter-AAAA` and `--filter-rr` to an answer.
+///
+/// `rrfilter.c::rrfilter(RRFILTER_CONF)` only elides IN records in the answer
+/// section.  `filter-rr=ANY` has the RFC 8482 special case for ANY queries:
+/// retain A, AAAA, MX and CNAME while removing every other IN answer.  The
+/// packet is left byte-for-byte unchanged when a kept name points into a
+/// record selected for removal, matching C's conservative pointer check.
+pub fn filter_rrs(packet: &mut Vec<u8>, filter_rr: &[u16]) -> Result<FilterResult, WireError> {
+    if filter_rr.is_empty() {
+        return Ok(FilterResult::default());
+    }
+    let message = Message::parse(packet)?;
+    if message.header.questions != 1 {
+        return Ok(FilterResult::default());
+    }
+    let question = Question::parse(packet, HEADER_LEN)?;
+    let any_filter = question.qtype == 255 && filter_rr.contains(&255);
+    let mut header = message.header;
+    let mut retained = Vec::new();
+    for section in [Section::Answer, Section::Authority, Section::Additional] {
+        retained.extend(
+            message
+                .records(section)
+                .map(|rr| (rr.start, rr.end, rr.fixed, rr.class, rr.rrtype)),
+        );
+    }
+    let sections = if any_filter {
+        vec![Section::Answer, Section::Authority, Section::Additional]
+    } else {
+        vec![Section::Answer]
+    };
+    let mut selected = Vec::new();
+    for section in sections {
+        for (start, end, _fixed, class, rrtype) in message
+            .records(section)
+            .map(|rr| (rr.start, rr.end, rr.fixed, rr.class, rr.rrtype))
+        {
+            if class == 1
+                && if any_filter {
+                    !matches!(rrtype, 1 | 28 | 15 | 5)
+                } else {
+                    filter_rr.contains(&rrtype)
+                }
+            {
+                selected.push((start..end, section));
+            }
+        }
+    }
+    let removed: Vec<Range<usize>> = selected.iter().map(|(range, _)| range.clone()).collect();
+    let matched = removed.len();
+    if removed.is_empty() {
+        return Ok(FilterResult::default());
+    }
+
+    let mut fixups = Vec::new();
+    if relocate_name(packet, HEADER_LEN, &removed, &mut fixups).is_err() {
+        return Ok(FilterResult {
+            matched,
+            removed: 0,
+        });
+    }
+    for (start, _end, fixed, class, rrtype) in retained {
+        if removed.iter().any(|range| range.start == start) {
+            continue;
+        }
+        if relocate_name(packet, start, &removed, &mut fixups).is_err() {
+            return Ok(FilterResult {
+                matched,
+                removed: 0,
+            });
+        }
+        if class == 1 {
+            let mut cursor = fixed + 10;
+            for &part in name_descriptor(rrtype) {
+                if part == 0 {
+                    cursor = match relocate_name(packet, cursor, &removed, &mut fixups) {
+                        Ok(next) => next,
+                        Err(_) => {
+                            return Ok(FilterResult {
+                                matched,
+                                removed: 0,
+                            })
+                        }
+                    };
+                } else {
+                    cursor += part;
+                }
+            }
+        }
+    }
+
+    let fixups: Vec<_> = fixups
+        .into_iter()
+        .map(|(at, target)| {
+            (
+                at - removed
+                    .iter()
+                    .filter(|range| range.start < at)
+                    .map(Range::len)
+                    .sum::<usize>(),
+                target,
+            )
+        })
+        .collect();
+    let mut write = removed[0].start;
+    for (index, range) in removed.iter().enumerate() {
+        let end = removed
+            .get(index + 1)
+            .map_or(packet.len(), |next| next.start);
+        packet.copy_within(range.end..end, write);
+        write += end - range.end;
+    }
+    packet.truncate(write);
+    let answer_removed = selected
+        .iter()
+        .filter(|(_, section)| matches!(section, Section::Answer))
+        .count();
+    let authority_removed = selected
+        .iter()
+        .filter(|(_, section)| matches!(section, Section::Authority))
+        .count();
+    let additional_removed = selected
+        .iter()
+        .filter(|(_, section)| matches!(section, Section::Additional))
+        .count();
+    header.answers -= answer_removed as u16;
+    header.authorities -= authority_removed as u16;
+    header.additionals -= additional_removed as u16;
+    header.write(packet)?;
+    for (at, target) in fixups {
+        packet[at..at + 2].copy_from_slice(&(0xc000 | target as u16).to_be_bytes());
+    }
+    Ok(FilterResult {
+        matched,
+        removed: matched,
+    })
+}
+
 fn relocate_name(
     packet: &[u8],
     mut at: usize,
@@ -346,5 +484,70 @@ mod tests {
         assert_eq!(output.len(), end + 16);
         resize_reply(&mut output);
         assert_eq!(output.len(), end);
+    }
+
+    #[test]
+    fn configured_rr_filter_elides_only_in_answer_records() {
+        let name = Name::from_ascii("filter.test").unwrap();
+        let mut writer = PacketWriter::new(9, 0x8180, 1232).unwrap();
+        writer.question(&name, 1, 1).unwrap();
+        writer
+            .record(Section::Answer, &name, 1, 1, 30, &[192, 0, 2, 1])
+            .unwrap();
+        writer
+            .record(Section::Answer, &name, 28, 1, 30, &[0; 16])
+            .unwrap();
+        writer
+            .record(Section::Answer, &name, 1, 3, 30, &[192, 0, 2, 2])
+            .unwrap();
+        writer
+            .record(Section::Authority, &name, 1, 1, 30, &[192, 0, 2, 3])
+            .unwrap();
+        let mut packet = writer.finish();
+        let result = filter_rrs(&mut packet, &[1]).unwrap();
+        assert_eq!(
+            result,
+            FilterResult {
+                matched: 1,
+                removed: 1
+            }
+        );
+        let message = Message::parse(&packet).unwrap();
+        assert_eq!(message.header.answers, 2);
+        assert_eq!(message.header.authorities, 1);
+        let records = message.records(Section::Answer).collect::<Vec<_>>();
+        assert_eq!(records[0].rrtype, 28);
+        assert_eq!(records[1].class, 3);
+    }
+
+    #[test]
+    fn any_filter_keeps_address_mx_cname_and_removes_other_in_types() {
+        let name = Name::from_ascii("any.test").unwrap();
+        let mut writer = PacketWriter::new(10, 0x8180, 1232).unwrap();
+        writer.question(&name, 255, 1).unwrap();
+        writer
+            .record(Section::Answer, &name, 1, 1, 30, &[192, 0, 2, 1])
+            .unwrap();
+        writer
+            .record(Section::Answer, &name, 16, 1, 30, &[1, b'x'])
+            .unwrap();
+        writer
+            .record(Section::Answer, &name, 16, 3, 30, &[1, b'y'])
+            .unwrap();
+        writer
+            .record(Section::Additional, &name, 16, 1, 30, &[1, b'z'])
+            .unwrap();
+        writer
+            .record(Section::Additional, &name, 16, 3, 30, &[1, b'w'])
+            .unwrap();
+        let mut packet = writer.finish();
+        let result = filter_rrs(&mut packet, &[255]).unwrap();
+        assert_eq!(result.removed, 2);
+        let message = Message::parse(&packet).unwrap();
+        assert_eq!(message.header.answers, 2);
+        assert_eq!(message.header.additionals, 2);
+        assert!(message
+            .records(Section::Answer)
+            .all(|rr| rr.rrtype == 1 || rr.class != 1));
     }
 }
