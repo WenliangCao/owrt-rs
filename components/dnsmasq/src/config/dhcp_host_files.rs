@@ -87,7 +87,9 @@ impl HostFiles {
                     }),
                     Ok(mut children) => {
                         // The pinned no-IDN/no-NLS target keeps the C locale.
-                        children.sort_by_key(|child| child.file_name());
+                        crate::sorting::sort_by(&mut children, |a, b| {
+                            a.file_name().cmp(&b.file_name())
+                        });
                         for child in children {
                             let name = child.file_name();
                             let bytes = name.as_bytes();

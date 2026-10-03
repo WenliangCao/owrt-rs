@@ -487,6 +487,33 @@ fn free_slots_precede_timeout_reuse_and_absolute_expiry() {
 }
 
 #[test]
+fn retry_schedule_keeps_slot_order_after_holes_and_reuse() {
+    let mut table = ForwardTable::new(Options {
+        fast_retry_ms: 100,
+        ..Options::default()
+    });
+    let mut rng = Counter(0);
+    let a = submit(&mut table, "a", 1, 1, 100, &mut rng).id;
+    let b = submit(&mut table, "b", 2, 2, 100, &mut rng).id;
+    let c = submit(&mut table, "c", 3, 3, 100, &mut rng).id;
+    table.finish(b);
+    let reused = submit(&mut table, "reused", 4, 4, 100, &mut rng).id;
+    let _unsent = submit(&mut table, "unsent", 5, 5, 100, &mut rng).id;
+    let waiting = submit(&mut table, "waiting", 6, 6, 100, &mut rng).id;
+    for id in [a, c, reused] {
+        table.note_sent(id, ServerId(1), SocketToken(1), 100_000);
+    }
+    table.note_sent(waiting, ServerId(1), SocketToken(1), 100_050);
+    let due = table.fast_retries(100, 100_100);
+    assert_eq!(due.due, [c, reused, a]);
+    assert_eq!(due.next_ms, Some(50));
+    table.finish(c);
+    let due = table.fast_retries(100, 100_100);
+    assert_eq!(due.due, [reused, a]);
+    assert_eq!(due.next_ms, Some(50));
+}
+
+#[test]
 fn retry_schedule_wraps_milliseconds_and_doubles_only_after_attempt() {
     let mut table = ForwardTable::new(Options {
         fast_retry_ms: 100,

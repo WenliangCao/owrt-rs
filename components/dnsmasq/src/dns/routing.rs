@@ -191,9 +191,9 @@ impl RoutingTable {
                 .any(|candidate| candidate == &pattern)
             {
                 bucket.patterns.push(pattern);
-                bucket
-                    .patterns
-                    .sort_by_key(|candidate| (candidate.wildcard, candidate.wildcard_dot));
+                crate::sorting::sort_by(&mut bucket.patterns, |a, b| {
+                    (a.wildcard, a.wildcard_dot).cmp(&(b.wildcard, b.wildcard_dot))
+                });
             }
             match &rule.target {
                 RuleTarget::Literal(address) => bucket.literals.push(*address),
@@ -247,7 +247,7 @@ impl RoutingTable {
         }
         // Dotless routes override only the empty-domain/default route. A
         // nonempty domain rule still wins for a matching single-label name.
-        buckets.sort_by(|left, right| {
+        crate::sorting::sort_by(&mut buckets, |left, right| {
             right
                 .representative()
                 .suffix
@@ -375,7 +375,7 @@ impl RoutingTable {
     /// selection is required; the current isolated adapter has no I/O owner.
     pub fn into_groups(self) -> Vec<ServerGroup> {
         let mut groups: Vec<_> = self.groups.into_values().collect();
-        groups.sort_by_key(|group| group.id.0);
+        crate::sorting::sort_by(&mut groups, |a, b| a.id.0.cmp(&b.id.0));
         groups
     }
 
@@ -395,7 +395,7 @@ impl RoutingTable {
                 )
             })
             .collect();
-        groups.sort_by_key(|group| group.id.0);
+        crate::sorting::sort_by(&mut groups, |a, b| a.id.0.cmp(&b.id.0));
         groups
     }
 }

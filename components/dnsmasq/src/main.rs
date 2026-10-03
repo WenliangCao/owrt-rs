@@ -1745,7 +1745,7 @@ fn read_hosts(config: &DnsConfig, local_ttl: u32) -> Hosts {
                 path.is_file().then_some(path)
             })
             .collect::<Vec<_>>();
-        files.sort();
+        dnsmasq_rs::sorting::sort_by(&mut files, Ord::cmp);
         directory_files.extend(files);
     }
     for (index, path) in directory_files.iter().enumerate() {

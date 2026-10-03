@@ -573,7 +573,11 @@ impl ForwardTable {
         if self.options.fast_retry_ms == 0 {
             return result;
         }
-        for forward in self.pending.values() {
+        // C walks allocated frecs newest-slot first, including when older
+        // slots are reused. Walking the existing slot list preserves that
+        // order without sorting an independently collected due list.
+        for id in self.slots.iter().rev().flatten() {
+            let forward = &self.pending[id];
             if forward.sent_to.is_none()
                 || age(now, forward.created) >= self.options.fast_retry_timeout_s
             {
@@ -592,10 +596,6 @@ impl ForwardTable {
                 );
             }
         }
-        // Stable order of newly allocated frecs is newest first.
-        result
-            .due
-            .sort_by_key(|id| std::cmp::Reverse(self.pending[id].slot));
         result
     }
 

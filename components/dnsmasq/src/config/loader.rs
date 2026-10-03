@@ -466,7 +466,9 @@ where
             }
         }
         // Same strcmp byte order; O(n log n) instead of C's insertion-list O(n²).
-        files.sort_unstable_by(|a, b| a.as_os_str().as_bytes().cmp(b.as_os_str().as_bytes()));
+        crate::sorting::sort_by(&mut files, |a, b| {
+            a.as_os_str().as_bytes().cmp(b.as_os_str().as_bytes())
+        });
         for path in files {
             self.file(&path, false, false)?;
         }

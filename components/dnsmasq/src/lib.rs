@@ -11,6 +11,8 @@ pub mod interfaces;
 pub mod metrics;
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 pub mod net;
+#[doc(hidden)]
+pub mod sorting;
 pub mod tftp;
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 pub mod tftp_listener;
