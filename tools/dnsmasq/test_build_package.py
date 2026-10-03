@@ -214,6 +214,11 @@ class PackageLifecycleTests(unittest.TestCase):
         result["stderr"] = "APK archive is corrupt\n"
         with self.assertRaisesRegex(RuntimeError, "without evidence"):
             lifecycle.assert_variant_rejected(result, "dnsmasq-full")
+        result["stderr"] = "world: dnsmasq-full=2.93-r1 dnsmasq=2.93-r2\n  libexample-2:\n    conflicts: libexample-1\n"
+        with self.assertRaisesRegex(RuntimeError, "without evidence"):
+            lifecycle.assert_variant_rejected(result, "dnsmasq-full")
+        result["stderr"] = "  dnsmasq-2.93-r2:\n    breaks: dnsmasq-full-2.93-r1[dnsmasq=2.93-r1]\n"
+        lifecycle.assert_variant_rejected(result, "dnsmasq-full")
 
     def test_timed_out_script_is_forcibly_reaped_and_failure_logged(self):
         with tempfile.TemporaryDirectory() as temp:

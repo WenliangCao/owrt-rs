@@ -162,8 +162,20 @@ def assert_variant_rejected(result, variant):
     require(result["returncode"] != 0, f"solver allows simultaneous candidate and {variant}")
     require("no such package" not in text.lower() and "not available" not in text.lower(),
             f"{variant} fixture dependencies are incomplete; rejection is not exclusion evidence")
-    require(re.search(r"(?:conflicts|breaks):", text) and "dnsmasq" in text and variant in text,
-            f"{variant} failed without evidence of a dnsmasq solver conflict")
+    owner, conflict = None, False
+    for line in text.splitlines():
+        # An unrelated dependency conflict must not count merely because the
+        # candidate and variant names also appear in the requested world.
+        header = re.match(r"\s*([A-Za-z0-9_.+-]+-[0-9][^\s:]*):\s*(.*)", line)
+        if header:
+            owner, line = header.groups()
+        if not re.search(r"(?:conflicts|breaks):", line):
+            continue
+        if owner and owner.startswith(variant + "-"):
+            conflict |= bool(re.search(r"\bdnsmasq-[0-9]", line))
+        elif owner and re.match(r"dnsmasq-[0-9]", owner):
+            conflict |= bool(re.search(rf"\b{re.escape(variant)}-[0-9]", line))
+    require(conflict, f"{variant} failed without evidence of a dnsmasq solver conflict")
 
 
 class Scenario:
@@ -287,8 +299,14 @@ class Scenario:
         self.report["stages"].append({"name": label, "package_absent": True,
                                       "elf_absent": True, "modified_configuration_retained": True})
 
-    def variants(self, fixtures):
+    def variants(self, fixtures, dependency_fixtures):
         rows, names = [], set()
+        dependencies, dependency_rows = [], []
+        for index, fixture in enumerate(dependency_fixtures):
+            target = f"/m4/variant-dependency-{index}.apk"
+            shutil.copy2(fixture, image_path(self.root, target))
+            dependencies.append(target)
+            dependency_rows.append({"file": fixture.name, "sha256": sha256(fixture)})
         for index, fixture in enumerate(fixtures):
             target = f"/m4/variant-{index}.apk"
             shutil.copy2(fixture, image_path(self.root, target))
@@ -299,14 +317,15 @@ class Scenario:
             require(name not in names, f"duplicate variant fixture {name}")
             names.add(name)
             before = database(self.root)
-            result = self.apk(["add", "--simulate", "/m4/candidate.apk", target],
+            result = self.apk(["add", "--simulate", "/m4/candidate.apk", target, *dependencies],
                               f"{name}-solver-exclusion", check=False)
             assert_variant_rejected(result, name)
             require(database(self.root) == before, "solver simulation changed the package database")
             rows.append({"name": name, "apk_sha256": sha256(fixture), "simultaneous_install_rejected": True})
         self.report["variant_exclusion"] = {
             "status": "passed" if names == {"dnsmasq-dhcpv6", "dnsmasq-full"} else "partial" if names else "not-run",
-            "results": rows, "missing": sorted({"dnsmasq-dhcpv6", "dnsmasq-full"} - names)}
+            "results": rows, "dependency_apks_for_simulation_only": dependency_rows,
+            "missing": sorted({"dnsmasq-dhcpv6", "dnsmasq-full"} - names)}
 
     def cleanup(self):
         errors = []
@@ -398,7 +417,7 @@ def execute(args, root, out, report):
         case.apk(["add", "/m4/candidate.apk"], "candidate-upgrade-for-downgrade")
         case.capture("candidate-upgrade-for-downgrade", args.candidate_elf_sha256, PACKAGE_ID,
                      baseline, candidate_files, configs)
-        case.variants(args.variant_apk)
+        case.variants(args.variant_apk, args.variant_dependency_apk)
         case.apk(["add", "/m4/stock.apk"], "direct-stock-downgrade")
         case.capture("direct-stock-downgrade", STOCK_SHA256, "2.93-r1", baseline, stock_files, configs)
         report["status"] = "passed"
@@ -418,6 +437,8 @@ def main():
     parser.add_argument("--source-commit", required=True)
     parser.add_argument("--variant-apk", type=Path, action="append", default=[],
                         help="actual stock dnsmasq-dhcpv6/full APK; repeat for both solver tests")
+    parser.add_argument("--variant-dependency-apk", type=Path, action="append", default=[],
+                        help="exact image-release dependency APK for solver simulation only; never installed")
     args = parser.parse_args()
     if os.name != "posix" or os.geteuid() != 0 or os.environ.get("DNSMASQ_TEST_ISOLATED") != "1":
         parser.error("root inside run_isolated.sh is required")
@@ -426,16 +447,21 @@ def main():
     args.rootfs, args.stock_apk, args.candidate_apk, args.out = (
         path.resolve() for path in (args.rootfs, args.stock_apk, args.candidate_apk, args.out))
     args.variant_apk = [path.resolve() for path in args.variant_apk]
+    args.variant_dependency_apk = [path.resolve() for path in args.variant_dependency_apk]
     out = args.out
     if not out.is_relative_to(PRIVATE) or out == PRIVATE or out.exists():
         parser.error("--out must be a new path below private/")
     if not all(path.is_file() for path in (args.stock_apk, args.candidate_apk, args.rootfs / "usr/bin/apk")):
         parser.error("stock APK, candidate APK and exact image apk executable required")
-    if any(not path.is_file() for path in args.variant_apk):
+    if any(not path.is_file() for path in args.variant_apk + args.variant_dependency_apk):
         parser.error("variant APK fixtures must exist")
+    if args.variant_dependency_apk and not args.variant_apk:
+        parser.error("variant dependency fixtures require --variant-apk")
     out.mkdir(parents=True)
     root = out / "rootfs-stage/rootfs"
     report = {"status": "failed", "source_commit": args.source_commit,
+              "runner_files": {name: sha256(Path(__file__).with_name(name)) for name in
+                               ("m4_package_lifecycle.py", "build_package.py", "m2_rootfs.py", "dns_service_probe.py")},
               "stock_elf_sha256": STOCK_SHA256, "candidate_elf_sha256": args.candidate_elf_sha256,
               "stock_apk_sha256": sha256(args.stock_apk), "candidate_apk_sha256": sha256(args.candidate_apk),
               "namespaces": {name: os.readlink(f"/proc/self/ns/{name}") for name in ("net", "mnt", "pid")},
