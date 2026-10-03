@@ -391,10 +391,33 @@ impl<R: Random> DnsDaemon<R> {
             super::udp_query::Admission::Reply(reply) => return Ok(QueryResult::Local(reply)),
             super::udp_query::Admission::Continue => {}
         }
-        if let Some(answer) = self.local.handle_udp(query)? {
+        if let Some(answer) =
+            self.local
+                .handle_udp_with_cache(query, unix_seconds(), self.cache.as_mut())?
+        {
             return Ok(QueryResult::Local(answer));
         }
         self.forward_udp(query, client)
+    }
+
+    /// The single poll owner supplies its local generation. MX/SRV Additional
+    /// addresses consult the same cache as ordinary lookups, without I/O.
+    pub fn local_udp_answer(
+        &mut self,
+        query: &[u8],
+        local: &mut LocalDnsService,
+        now: i64,
+    ) -> Result<Option<Vec<u8>>, DaemonError> {
+        Ok(local.handle_udp_with_cache(query, now, self.cache.as_mut())?)
+    }
+
+    pub fn local_tcp_answer(
+        &mut self,
+        query: &[u8],
+        local: &mut LocalDnsService,
+        now: i64,
+    ) -> Result<Option<Vec<u8>>, DaemonError> {
+        Ok(local.handle_tcp_with_cache(query, now, self.cache.as_mut())?)
     }
 
     /// Continue only after the caller's shared local generation returned

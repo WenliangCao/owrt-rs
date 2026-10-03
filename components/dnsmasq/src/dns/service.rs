@@ -4,6 +4,7 @@
 //! owns answer selection.  An unowned query is returned as `None` so a future
 //! upstream dispatcher can take over without changing the wire boundary.
 
+use super::cache::Cache;
 use super::lease_names::LeaseNames;
 use super::local::{AnswerError, LocalAnswerer};
 use super::wire::{find_pseudoheader, Header};
@@ -213,6 +214,15 @@ impl LocalDnsService {
         query: &[u8],
         now: i64,
     ) -> Result<Option<Vec<u8>>, ServiceError> {
+        self.handle_udp_with_cache(query, now, None)
+    }
+
+    pub(crate) fn handle_udp_with_cache(
+        &mut self,
+        query: &[u8],
+        now: i64,
+        cache: Option<&mut Cache>,
+    ) -> Result<Option<Vec<u8>>, ServiceError> {
         // C treats an invalid additional section as no pseudoheader; a
         // valid question may still receive a local answer.
         let opt = find_pseudoheader(query, true)
@@ -228,8 +238,13 @@ impl LocalDnsService {
             local_ttl: self.local_ttl,
             max_packet: limit,
         };
-        let Some(mut answer) =
-            answerer.answer_on_network(query, &mut self.leases, now, self.local_network)?
+        let Some(mut answer) = answerer.answer_on_network_with_cache(
+            query,
+            &mut self.leases,
+            now,
+            self.local_network,
+            cache,
+        )?
         else {
             return Ok(None);
         };
@@ -260,6 +275,15 @@ impl LocalDnsService {
         query: &[u8],
         now: i64,
     ) -> Result<Option<Vec<u8>>, ServiceError> {
+        self.handle_tcp_with_cache(query, now, None)
+    }
+
+    pub(crate) fn handle_tcp_with_cache(
+        &mut self,
+        query: &[u8],
+        now: i64,
+        cache: Option<&mut Cache>,
+    ) -> Result<Option<Vec<u8>>, ServiceError> {
         let opt = find_pseudoheader(query, true)
             .ok()
             .and_then(|scan| scan.opt);
@@ -270,8 +294,13 @@ impl LocalDnsService {
             local_ttl: self.local_ttl,
             max_packet: u16::MAX as usize,
         };
-        let Some(answer) =
-            answerer.answer_on_network(query, &mut self.leases, now, self.local_network)?
+        let Some(answer) = answerer.answer_on_network_with_cache(
+            query,
+            &mut self.leases,
+            now,
+            self.local_network,
+            cache,
+        )?
         else {
             return Ok(None);
         };

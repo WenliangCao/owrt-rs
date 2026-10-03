@@ -1,5 +1,6 @@
 //! Local record configuration from option.c:2335-2373,4971-5251.
 use super::{Directive, EncodedArg, Error, META};
+use std::cell::RefCell;
 use std::collections::HashMap;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -44,6 +45,12 @@ pub struct NaptrRecord {
     pub regexp: Option<Vec<u8>>,
     pub replacement: Option<Vec<u8>>,
 }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum MailRecord {
+    Mx(usize),
+    Srv(usize),
+}
+
 #[derive(Clone, Debug, Default)]
 pub struct RecordConfig {
     /// Declaration order; all public name fields retain their original case.
@@ -57,6 +64,10 @@ pub struct RecordConfig {
     pub mx_target: Option<Vec<u8>>,
     pub local_mx: bool,
     pub self_mx: bool,
+    hostname_finalized: bool,
+    // C keeps MX and SRV in one newest-first list. Answering SRV moves its
+    // first matching entry to the global tail; TCP clones inherit this order.
+    mail_order: RefCell<Vec<MailRecord>>,
 }
 
 fn canon(arg: &EncodedArg) -> Result<Vec<u8>, Error> {
@@ -253,11 +264,15 @@ impl RecordConfig {
                     }
                     None => (None, 1),
                 };
-                self.mx.push(MxRecord {
+                let record = MxRecord {
                     name: canon(&name)?,
                     target,
                     preference,
-                });
+                };
+                self.mail_order
+                    .get_mut()
+                    .insert(0, MailRecord::Mx(self.mx.len()));
+                self.mx.push(record);
             }
             b"mx-target" => {
                 self.mx_target = Some(canon(argument.ok_or(Error("missing parameter"))?)?)
@@ -288,6 +303,9 @@ impl RecordConfig {
                         }
                     }
                 }
+                self.mail_order
+                    .get_mut()
+                    .insert(0, MailRecord::Srv(self.srv.len()));
                 self.srv.push(record);
             }
             b"naptr-record" => {
@@ -318,7 +336,11 @@ impl RecordConfig {
     /// target was explicit. The caller supplies the platform hostname and
     /// handles its I/O failure before reporting --test success.
     pub fn needs_hostname(&self) -> bool {
-        self.local_mx || !self.mx.is_empty() || !self.srv.is_empty() || self.mx_target.is_some()
+        !self.hostname_finalized
+            && (self.local_mx
+                || !self.mx.is_empty()
+                || !self.srv.is_empty()
+                || self.mx_target.is_some())
     }
 
     /// option.c:6214-6248. Keep this system dependency separate from parsing.
@@ -331,17 +353,37 @@ impl RecordConfig {
             .iter()
             .any(|record| record.name.eq_ignore_ascii_case(hostname));
         if (self.mx_target.is_some() || self.local_mx) && !own_mx {
+            self.mail_order
+                .get_mut()
+                .insert(0, MailRecord::Mx(self.mx.len()));
             self.mx.push(MxRecord {
                 name: hostname.to_vec(),
                 target: None,
-                preference: 1,
+                preference: 0,
             });
         }
+        self.hostname_finalized = true;
         let default = self.mx_target.get_or_insert_with(|| hostname.to_vec());
         for record in &mut self.mx {
             if record.target.is_none() {
                 record.target = Some(default.clone());
             }
+        }
+    }
+
+    /// Current C MX/SRV linked-list order, before a query mutates it.
+    pub(crate) fn mail_order(&self) -> Vec<MailRecord> {
+        self.mail_order.borrow().clone()
+    }
+
+    pub(crate) fn rotate_srv(&self, name: &[u8]) {
+        let mut order = self.mail_order.borrow_mut();
+        if let Some(at) = order.iter().position(|entry| match entry {
+            MailRecord::Srv(index) => self.srv[*index].name.eq_ignore_ascii_case(name),
+            MailRecord::Mx(_) => false,
+        }) {
+            let first = order.remove(at);
+            order.push(first);
         }
     }
 
@@ -463,6 +505,16 @@ mod tests {
         apply(&mut config, b"ptr-record=example.test").unwrap();
         assert_eq!(config.ptr[0].target, None);
         assert!(apply(&mut config, b"dns-rr=test,1,\"abcd\"").is_err());
+    }
+
+    #[test]
+    fn rejected_mx_name_cannot_leave_an_invalid_runtime_index() {
+        let mut config = RecordConfig::default();
+        let invalid = format!("mx-host={}.test,target.test", "x".repeat(64));
+        assert!(apply(&mut config, invalid.as_bytes()).is_err());
+        assert!(config.mail_order().is_empty());
+        apply(&mut config, b"mx-host=valid.test,target.test").unwrap();
+        assert_eq!(config.mail_order(), [MailRecord::Mx(0)]);
     }
 
     #[test]

@@ -517,7 +517,15 @@ fn host_record(argument: &EncodedArg) -> Result<HostRecord, Error> {
     };
     for part in parts {
         if part.encoded().iter().all(u8::is_ascii_digit) {
-            record.ttl = Some(numeric(part.encoded())?);
+            // host-record uses the full on-wire u32 TTL in the image. Its
+            // all-ones value becomes C's -1 sentinel and inherits local-ttl.
+            let ttl = part.encoded().iter().try_fold(0u32, |value, digit| {
+                value
+                    .checked_mul(10)
+                    .and_then(|value| value.checked_add(u32::from(digit - b'0')))
+                    .ok_or(Error("host-record TTL exceeds unsigned 32-bit range"))
+            })?;
+            record.ttl = (ttl != u32::MAX).then_some(ttl);
         } else if let Some(address) = ip(part.encoded()) {
             match address {
                 IpAddr::V4(address) => record.address4 = Some(address),
@@ -777,6 +785,17 @@ impl DnsConfig {
         Ok(())
     }
 
+    /// Finalize the gethostname-dependent MX defaults before startup or --test.
+    /// C uses the OS hostname as-is: domain-suffix is only applied to SRV owners.
+    pub fn finalize_hostname(&mut self, hostname: &[u8]) -> Result<(), Error> {
+        let hostname = hostname.split(|&byte| byte == 0).next().unwrap_or_default();
+        if hostname.len() > 502 {
+            return Err(Error("host-name exceeds DNS configuration buffer"));
+        }
+        self.records.finalize_mx(hostname);
+        Ok(())
+    }
+
     /// Address-specific suffix selection from domain.c:218-302. Unknown
     /// interface state and the unverified C IPv6 range case fail explicitly.
     pub fn domain_for_address(&self, address: IpAddr) -> Result<Option<&[u8]>, Error> {
@@ -850,6 +869,24 @@ mod tests {
 
     fn apply(config: &mut DnsConfig, input: &[u8]) -> Result<bool, Error> {
         config.apply(&lex_line(input)?.ok_or(Error("empty test directive"))?)
+    }
+
+    #[test]
+    fn host_record_ttl_preserves_full_wire_width_and_inheritance_sentinel() {
+        let mut config = DnsConfig::default();
+        for (ttl, expected) in [
+            (2147483647u32, Some(2147483647)),
+            (2147483648, Some(2147483648)),
+            (u32::MAX, None),
+        ] {
+            apply(
+                &mut config,
+                format!("host-record=ttl.test,192.0.2.1,{ttl}").as_bytes(),
+            )
+            .unwrap();
+            assert_eq!(config.host_records.last().unwrap().ttl, expected);
+        }
+        assert!(apply(&mut config, b"host-record=ttl.test,192.0.2.1,4294967296").is_err());
     }
 
     #[test]

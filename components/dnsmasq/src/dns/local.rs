@@ -5,10 +5,11 @@
 //! upstream forwarder.  Keeping that boundary explicit prevents an incomplete
 //! forwarder from turning an upstream miss into a fake empty answer.
 
+use super::cache::{Cache, Kind};
 use super::lease_names::LeaseNames;
 use super::wire::{Header, Name, PacketWriter, Section, WireError};
 use crate::config::dns::{DnsConfig, DomainPattern, RuleTarget};
-use crate::config::records::{MxRecord, NaptrRecord, RawRecord, SrvRecord};
+use crate::config::records::{MailRecord, NaptrRecord, RawRecord, RecordConfig};
 use crate::hosts::Hosts;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::sync::Arc;
@@ -122,6 +123,17 @@ impl<'a> LocalAnswerer<'a> {
         now: i64,
         local_network: Option<(Ipv4Addr, Ipv4Addr)>,
     ) -> Result<Option<LocalAnswer>, AnswerError> {
+        self.answer_on_network_with_cache(query, leases, now, local_network, None)
+    }
+
+    pub(crate) fn answer_on_network_with_cache(
+        &mut self,
+        query: &[u8],
+        lease_names: &mut Arc<LeaseNames>,
+        now: i64,
+        local_network: Option<(Ipv4Addr, Ipv4Addr)>,
+        cache: Option<&mut Cache>,
+    ) -> Result<Option<LocalAnswer>, AnswerError> {
         let header = Header::parse(query).map_err(|_| AnswerError::Malformed)?;
         if header.opcode() != 0
             || header.flags & 0x8000 != 0
@@ -139,10 +151,16 @@ impl<'a> LocalAnswerer<'a> {
         // the local-only NXDOMAIN/NOERROR boundary but never an A/TXT/etc RR.
         let class_in = question.class == CLASS_IN;
         if class_in {
-            expire_lease_lookups(self.config, leases, &question.name, question.qtype, now);
+            expire_lease_lookups(
+                self.config,
+                lease_names,
+                &question.name,
+                question.qtype,
+                now,
+            );
         }
         let leases = LeaseView {
-            names: leases,
+            names: lease_names,
             now,
             local_ttl: self.local_ttl,
             local_network,
@@ -244,6 +262,7 @@ impl<'a> LocalAnswerer<'a> {
         let mut truncated = false;
         let mut extra_owner = question.name.as_wire().to_vec();
         let mut owner_offset = 12;
+        let mut additional = Vec::new();
         for (rrtype, ttl, data) in rows {
             let start = writer.position();
             if writer
@@ -253,6 +272,13 @@ impl<'a> LocalAnswerer<'a> {
                 truncated = true;
                 break;
             }
+            remember_mail_target(
+                &mut additional,
+                question.name.as_wire(),
+                rrtype,
+                &data,
+                start + 12,
+            );
             if rrtype == TYPE_CNAME {
                 extra_owner = data;
                 owner_offset = start + 12; // compressed owner and fixed RR header
@@ -278,12 +304,28 @@ impl<'a> LocalAnswerer<'a> {
                     truncated = true;
                     break;
                 }
+                remember_mail_target(
+                    &mut additional,
+                    &owner,
+                    rrtype,
+                    &data,
+                    start + if compressed { 12 } else { owner.len() + 10 },
+                );
                 if rrtype == TYPE_CNAME {
                     owner_offset = start + if compressed { 12 } else { owner.len() + 10 };
                     extra_owner = data;
                 }
             }
         }
+        append_mail_addresses(
+            &mut writer,
+            self,
+            lease_names,
+            now,
+            cache,
+            &additional,
+            truncated,
+        )?;
         let mut packet = writer.finish();
         if truncated {
             // answer_request/make_local_answer discard the entire RRset on
@@ -301,6 +343,160 @@ impl<'a> LocalAnswerer<'a> {
             forward_rule: rule_owned || local_only,
         }))
     }
+}
+
+struct MailTarget {
+    owner: Vec<u8>,
+    rrtype: u16,
+    target: Vec<u8>,
+    offset: usize,
+}
+
+fn remember_mail_target(
+    targets: &mut Vec<MailTarget>,
+    owner: &[u8],
+    rrtype: u16,
+    data: &[u8],
+    start: usize,
+) {
+    let prefix = match rrtype {
+        TYPE_MX => 2,
+        TYPE_SRV => 6,
+        _ => return,
+    };
+    if data.len() > prefix {
+        targets.push(MailTarget {
+            owner: owner.to_vec(),
+            rrtype,
+            target: data[prefix..].to_vec(),
+            offset: start + prefix,
+        });
+    }
+}
+
+fn append_mail_addresses(
+    writer: &mut PacketWriter,
+    answerer: &mut LocalAnswerer<'_>,
+    lease_names: &mut Arc<LeaseNames>,
+    now: i64,
+    mut cache: Option<&mut Cache>,
+    emitted: &[MailTarget],
+    truncated: bool,
+) -> Result<(), AnswerError> {
+    if emitted.is_empty() {
+        return Ok(());
+    }
+    let limit = answerer.max_packet.max(super::wire::HEADER_LEN);
+    let config = answerer.config;
+    let hosts = &mut *answerer.hosts;
+    let mut seen = Vec::<Vec<u8>>::new();
+    // SRV rotation has already occurred. C walks this updated list for
+    // Additional, which can differ from its Answer record order.
+    for entry in config.records.mail_order() {
+        let (owner, target, rrtype) = match entry {
+            MailRecord::Mx(index) => {
+                let record = &config.records.mx[index];
+                (&record.name, record.target.as_deref(), TYPE_MX)
+            }
+            MailRecord::Srv(index) => {
+                let record = &config.records.srv[index];
+                (&record.name, record.target.as_deref(), TYPE_SRV)
+            }
+        };
+        let Some(target) = target else { continue };
+        let Some(owner_wire) = wire_name(owner) else {
+            continue;
+        };
+        let Some(target_wire) = wire_name(target) else {
+            continue;
+        };
+        let Some(emitted) = emitted.iter().find(|row| {
+            row.rrtype == rrtype
+                && row.owner.eq_ignore_ascii_case(&owner_wire)
+                && row.target.eq_ignore_ascii_case(&target_wire)
+        }) else {
+            continue;
+        };
+        if seen.iter().any(|name| name.eq_ignore_ascii_case(target)) {
+            continue;
+        }
+        seen.push(target.to_vec());
+        let mut addresses = Vec::new();
+        for host in hosts.lookup(target, None, config.no_round_robin) {
+            addresses.push((host.address, host.ttl));
+        }
+        if lease_names.has_expired_name(target, now) {
+            Arc::make_mut(lease_names).expire_name(target, now);
+        }
+        for lease in lease_names.lookup(target, now) {
+            addresses.push((
+                IpAddr::V4(lease.address),
+                lease.ttl(now, lease_names.policy()),
+            ));
+        }
+        if let (Some(cache), Some(name)) =
+            (cache.as_deref_mut(), Name::from_dotted_bytes(target).ok())
+        {
+            let ids = cache.lookup(
+                &name,
+                &[Kind::Ipv4, Kind::Ipv6],
+                now,
+                !config.no_round_robin,
+            );
+            for id in ids {
+                let Some(entry) = cache.get(id) else { continue };
+                if entry.record.negative {
+                    continue;
+                }
+                let address = match (entry.record.kind, entry.record.data.as_slice()) {
+                    (Kind::Ipv4, [a, b, c, d]) => IpAddr::V4(Ipv4Addr::new(*a, *b, *c, *d)),
+                    (Kind::Ipv6, data) if data.len() == 16 => {
+                        IpAddr::V6(Ipv6Addr::from(<[u8; 16]>::try_from(data).unwrap()))
+                    }
+                    _ => continue,
+                };
+                addresses.push((address, entry.reply_ttl(now, cache.policy())));
+            }
+        }
+        if truncated {
+            // C still performs the Additional cache lookup after an Answer
+            // overflow, then discards all records in its final TC response.
+            continue;
+        }
+        for (address, ttl) in addresses {
+            let data = ip_bytes(address);
+            let kind = if address.is_ipv4() { TYPE_A } else { TYPE_AAAA };
+            // Optional Additional overflow must not set TC or discard answers.
+            let owner_len = if emitted.offset < 0x4000 {
+                2
+            } else {
+                target_wire.len()
+            };
+            if writer.position() + owner_len + 10 + data.len() > limit {
+                continue;
+            }
+            if emitted.offset < 0x4000 {
+                writer.record_at(
+                    Section::Additional,
+                    emitted.offset as u16,
+                    kind,
+                    CLASS_IN,
+                    ttl,
+                    &data,
+                )?;
+            } else {
+                writer.record_wire(
+                    Section::Additional,
+                    &target_wire,
+                    kind,
+                    CLASS_IN,
+                    ttl,
+                    &data,
+                )?;
+            }
+        }
+    }
+    Ok(())
 }
 
 /// These are the name/reverse lookup boundaries in answer_request, including
@@ -552,7 +748,7 @@ fn add_local_records_for_name(
     add_raw(&config.records.raw, &key, qtype, ttl, &mut rows, &mut owned);
     if qtype == TYPE_PTR || qtype == 255 {
         let mut explicit_ptr = false;
-        for record in &config.records.ptr {
+        for record in config.records.ptr.iter().rev() {
             if dotted_key(&record.name) == key {
                 explicit_ptr = true;
                 owned = true;
@@ -626,12 +822,12 @@ fn add_local_records_for_name(
             }
         }
     }
-    add_mx(&config.records.mx, &key, qtype, ttl, &mut rows, &mut owned);
+    add_mx(&config.records, &key, qtype, ttl, &mut rows, &mut owned);
     // rfc1035.c:2201-2214: selfmx applies to hosts/DHCP names, including
     // their non-terminals, unless an explicit MX record already matched.
     // F_NO_RR means this existence check must not rotate address records.
     if (qtype == TYPE_MX || qtype == 255)
-        && config.records.self_mx
+        && (config.records.self_mx || config.records.local_mx)
         && !config
             .records
             .mx
@@ -640,11 +836,19 @@ fn add_local_records_for_name(
         && (hosts.name_exists(name) || leases.names.name_exists(name, leases.now))
     {
         let mut data = 1u16.to_be_bytes().to_vec();
-        data.extend(wire_name(name).unwrap_or_else(|| vec![0]));
+        let target = if config.records.self_mx {
+            name
+        } else {
+            config.records.mx_target.as_deref().unwrap_or_default()
+        };
+        data.extend(wire_name(target).unwrap_or_else(|| vec![0]));
         rows.push((TYPE_MX, ttl, data));
         owned = true;
     }
-    add_srv(&config.records.srv, &key, qtype, ttl, &mut rows, &mut owned);
+    add_srv(&config.records, &key, qtype, ttl, &mut rows, &mut owned);
+    if qtype == TYPE_SRV || qtype == 255 {
+        config.records.rotate_srv(name);
+    }
     add_naptr(
         &config.records.naptr,
         &key,
@@ -668,7 +872,7 @@ fn add_typed_records(
     if qtype != 255 && qtype != rrtype {
         return;
     }
-    for record in records {
+    for record in records.iter().rev() {
         if record.rr_type == rrtype && dotted_key(&record.name) == key {
             *owned = true;
             rows.push((rrtype, ttl, record.data.clone()));
@@ -677,7 +881,7 @@ fn add_typed_records(
 }
 
 fn add_mx(
-    records: &[MxRecord],
+    records: &RecordConfig,
     key: &[u8],
     qtype: u16,
     ttl: u32,
@@ -687,7 +891,11 @@ fn add_mx(
     if qtype != 255 && qtype != TYPE_MX {
         return;
     }
-    for record in records {
+    for entry in records.mail_order() {
+        let MailRecord::Mx(index) = entry else {
+            continue;
+        };
+        let record = &records.mx[index];
         if dotted_key(&record.name) == key {
             let Some(target) = record.target.as_deref() else {
                 // The service must resolve C's hostname default before this
@@ -703,7 +911,7 @@ fn add_mx(
 }
 
 fn add_srv(
-    records: &[SrvRecord],
+    records: &RecordConfig,
     key: &[u8],
     qtype: u16,
     ttl: u32,
@@ -713,11 +921,14 @@ fn add_srv(
     if qtype != 255 && qtype != TYPE_SRV {
         return;
     }
-    for record in records {
+    for entry in records.mail_order() {
+        let MailRecord::Srv(index) = entry else {
+            continue;
+        };
+        let record = &records.srv[index];
         if dotted_key(&record.name) == key {
-            let Some(target) = record.target.as_deref() else {
-                continue;
-            };
+            // C leaves an omitted target NULL and encodes the DNS root.
+            let target = record.target.as_deref().unwrap_or_default();
             *owned = true;
             let mut data = Vec::with_capacity(8);
             data.extend(record.priority.to_be_bytes());
@@ -740,7 +951,7 @@ fn add_naptr(
     if qtype != 255 && qtype != TYPE_NAPTR {
         return;
     }
-    for record in records {
+    for record in records.iter().rev() {
         if dotted_key(&record.name) == key {
             if [&record.flags, &record.services, &record.regexp]
                 .into_iter()
@@ -777,7 +988,7 @@ fn add_raw(
     rows: &mut Vec<(u16, u32, Vec<u8>)>,
     owned: &mut bool,
 ) {
-    for record in records {
+    for record in records.iter().rev() {
         if dotted_key(&record.name) == key && (qtype == 255 || qtype == record.rr_type) {
             *owned = true;
             rows.push((record.rr_type, ttl, record.data.clone()));
@@ -1751,5 +1962,242 @@ mod tests {
             super::super::wire::Header::parse(&answer).unwrap().rcode(),
             3
         );
+    }
+}
+
+#[cfg(test)]
+mod local_record_family_tests {
+    use super::*;
+    use crate::config::lex_line;
+    use crate::dns::cache::{Policy, Record};
+    use crate::dns::wire::Message;
+
+    fn setup(lines: &[&str]) -> (DnsConfig, Hosts) {
+        let mut config = DnsConfig::default();
+        for line in lines {
+            config
+                .apply(&lex_line(line.as_bytes()).unwrap().unwrap())
+                .unwrap();
+        }
+        config.finalize_hostname(b"gateway").unwrap();
+        config.finalize().unwrap();
+        let hosts = configured_hosts(&config, 37);
+        (config, hosts)
+    }
+
+    fn request(owner: &str, rrtype: u16) -> Vec<u8> {
+        let mut writer = PacketWriter::new(1, 0x100, 512).unwrap();
+        writer
+            .question(&Name::from_ascii(owner).unwrap(), rrtype, 1)
+            .unwrap();
+        writer.finish()
+    }
+
+    fn answer(
+        config: &DnsConfig,
+        hosts: &mut Hosts,
+        owner: &str,
+        rrtype: u16,
+        limit: usize,
+    ) -> Vec<u8> {
+        LocalAnswerer {
+            config,
+            hosts,
+            local_ttl: 37,
+            max_packet: limit,
+        }
+        .answer(&request(owner, rrtype))
+        .unwrap()
+        .unwrap()
+    }
+
+    #[test]
+    fn hostname_mx_defaults_and_srv_root_follow_c() {
+        let (config, mut hosts) = setup(&[
+            "domain=example.test",
+            "localmx",
+            "mx-host=mail.test",
+            "srv-host=_none._tcp",
+        ]);
+        assert!(!config.records.needs_hostname());
+        for (owner, rrtype, prefix) in [
+            ("gateway", TYPE_MX, vec![0, 0]),
+            ("mail.test", TYPE_MX, vec![0, 1]),
+        ] {
+            let packet = answer(&config, &mut hosts, owner, rrtype, 512);
+            let message = Message::parse(&packet).unwrap();
+            let record = message.records(Section::Answer).next().unwrap();
+            let mut expected = prefix;
+            expected.extend(Name::from_ascii("gateway").unwrap().as_wire());
+            assert_eq!(record.rdata, expected);
+        }
+        let packet = answer(
+            &config,
+            &mut hosts,
+            "_none._tcp.example.test",
+            TYPE_SRV,
+            512,
+        );
+        let message = Message::parse(&packet).unwrap();
+        assert_eq!(
+            message.records(Section::Answer).next().unwrap().rdata,
+            [0, 0, 0, 0, 0, 1, 0]
+        );
+    }
+
+    #[test]
+    fn srv_rotates_before_additional_order_and_clones_keep_private_order() {
+        let (config, mut hosts) = setup(&[
+            "srv-host=service.test,a.test,1",
+            "srv-host=service.test,b.test,2",
+            "host-record=a.test,192.0.2.1",
+            "host-record=b.test,192.0.2.2",
+        ]);
+        let snapshot = config.clone();
+        let packet = answer(&config, &mut hosts, "service.test", TYPE_SRV, 512);
+        let message = Message::parse(&packet).unwrap();
+        let data: Vec<_> = message
+            .records(Section::Additional)
+            .map(|record| record.rdata.to_vec())
+            .collect();
+        assert_eq!(data, [vec![192, 0, 2, 1], vec![192, 0, 2, 2]]);
+        assert_ne!(config.records.mail_order(), snapshot.records.mail_order());
+        let packet = answer(&config, &mut hosts, "service.test", TYPE_SRV, 512);
+        let message = Message::parse(&packet).unwrap();
+        let data: Vec<_> = message
+            .records(Section::Additional)
+            .map(|record| record.rdata.to_vec())
+            .collect();
+        assert_eq!(data, [vec![192, 0, 2, 2], vec![192, 0, 2, 1]]);
+    }
+
+    #[test]
+    fn optional_additional_overflow_keeps_answer_without_tc() {
+        let (config, mut hosts) = setup(&[
+            "mx-host=mail.test,a.test",
+            "host-record=a.test,192.0.2.1,2001:db8::1",
+        ]);
+        let full = answer(&config, &mut hosts, "mail.test", TYPE_MX, 512);
+        let message = Message::parse(&full).unwrap();
+        assert_eq!(message.header.additionals, 2);
+        let answer_end = message.records(Section::Answer).next().unwrap().end;
+        let bounded = answer(&config, &mut hosts, "mail.test", TYPE_MX, answer_end);
+        let header = Header::parse(&bounded).unwrap();
+        assert_eq!(header.flags & 0x200, 0);
+        assert_eq!((header.answers, header.additionals), (1, 0));
+    }
+
+    #[test]
+    fn additional_cache_lookup_prunes_expired_addresses() {
+        let (config, mut hosts) = setup(&["mx-host=mail.test,cached.test"]);
+        let mut cache = Cache::new(8, Policy::default());
+        cache.start_insert();
+        cache
+            .insert(
+                Record {
+                    name: Name::from_ascii("cached.test").unwrap(),
+                    kind: Kind::Ipv4,
+                    negative: false,
+                    data: vec![192, 0, 2, 9],
+                },
+                100,
+                10,
+            )
+            .unwrap();
+        assert!(cache.commit());
+        for (now, expected) in [(105, 1), (110, 0), (105, 0)] {
+            let mut answerer = LocalAnswerer {
+                config: &config,
+                hosts: &mut hosts,
+                local_ttl: 37,
+                max_packet: 512,
+            };
+            let reply = answerer
+                .answer_on_network_with_cache(
+                    &request("mail.test", TYPE_MX),
+                    &mut Arc::new(LeaseNames::default()),
+                    now,
+                    None,
+                    Some(&mut cache),
+                )
+                .unwrap()
+                .unwrap();
+            assert_eq!(Header::parse(&reply.packet).unwrap().additionals, expected);
+        }
+    }
+    #[test]
+    fn additional_lease_expiry_is_sticky_after_clock_rollback() {
+        let (config, mut hosts) = setup(&["mx-host=mail.test,lease.test"]);
+        let mut leases = Arc::new(LeaseNames::build(
+            &[crate::dhcp::persistence::DnsLeaseRecord {
+                name: b"lease.test",
+                address: Ipv4Addr::new(192, 0, 2, 8),
+                expires: Some(110),
+            }],
+            &mut hosts,
+            &[],
+            crate::dns::lease_names::LeasePolicy::default(),
+            &mut (),
+        ));
+        for (now, expected) in [(105, 1), (110, 0), (105, 0)] {
+            let mut answerer = LocalAnswerer {
+                config: &config,
+                hosts: &mut hosts,
+                local_ttl: 37,
+                max_packet: 512,
+            };
+            let reply = answerer
+                .answer_on_network_with_cache(
+                    &request("mail.test", TYPE_MX),
+                    &mut leases,
+                    now,
+                    None,
+                    None,
+                )
+                .unwrap()
+                .unwrap();
+            assert_eq!(Header::parse(&reply.packet).unwrap().additionals, expected);
+        }
+    }
+
+    #[test]
+    fn truncated_answers_still_visit_their_successful_mail_targets() {
+        let long = format!("mx-host=mail.test,{}.test", "x".repeat(60));
+        let (config, mut hosts) = setup(&[&long, "mx-host=mail.test,cached.test"]);
+        let mut cache = Cache::new(8, Policy::default());
+        cache.start_insert();
+        let id = cache
+            .insert(
+                Record {
+                    name: Name::from_ascii("cached.test").unwrap(),
+                    kind: Kind::Ipv4,
+                    negative: false,
+                    data: vec![192, 0, 2, 9],
+                },
+                100,
+                10,
+            )
+            .unwrap();
+        assert!(cache.commit());
+        let mut answerer = LocalAnswerer {
+            config: &config,
+            hosts: &mut hosts,
+            local_ttl: 37,
+            max_packet: 60,
+        };
+        let reply = answerer
+            .answer_on_network_with_cache(
+                &request("mail.test", TYPE_MX),
+                &mut Arc::new(LeaseNames::default()),
+                110,
+                None,
+                Some(&mut cache),
+            )
+            .unwrap()
+            .unwrap();
+        let header = Header::parse(&reply.packet).unwrap();
+        assert_ne!(header.flags & 0x200, 0);
+        assert_eq!(header.answers, 0);
+        assert!(cache.get(id).is_none());
     }
 }

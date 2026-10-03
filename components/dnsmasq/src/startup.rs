@@ -58,6 +58,30 @@ pub struct StartupError {
     pub code: i32,
     pub message: String,
 }
+
+/// option.c finalizes MX/SRV defaults before returning from syntax-check mode.
+/// This is a local kernel query, never a DNS resolver lookup.
+pub fn hostname() -> Result<Vec<u8>, StartupError> {
+    unsafe extern "C" {
+        fn gethostname(name: *mut std::ffi::c_char, length: usize) -> std::ffi::c_int;
+    }
+    let mut name = [0u8; 503]; // C MAXDNAMESTR, including room for its terminator.
+                               // SAFETY: gethostname receives the complete writable buffer and its size.
+    if unsafe { gethostname(name.as_mut_ptr().cast(), name.len()) } != 0 {
+        return Err(StartupError {
+            code: 5,
+            message: format!("cannot get host-name: {}", std::io::Error::last_os_error()),
+        });
+    }
+    let end = name
+        .iter()
+        .position(|byte| *byte == 0)
+        .ok_or_else(|| StartupError {
+            code: 5,
+            message: "host-name exceeds the configuration buffer".into(),
+        })?;
+    Ok(name[..end].to_vec())
+}
 impl std::fmt::Display for StartupError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(&self.message)

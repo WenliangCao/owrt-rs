@@ -385,6 +385,11 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             // C read_opts performs cross-option checks and CNAME-loop
             // validation before its syntax-check success message.  It does
             // not run the daemon-only EDNS/source-port finalization below.
+            if runtime.dns.records.needs_hostname() {
+                runtime
+                    .dns
+                    .finalize_hostname(&dnsmasq_rs::startup::hostname()?)?;
+            }
             runtime.dns.finalize()?;
             runtime.dhcp.validate_dns_config(&runtime.dns)?;
             return Ok(());
@@ -394,6 +399,11 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(target_os = "linux")]
     let identity = dnsmasq_rs::startup::Identity::resolve(&runtime.process)?;
     runtime.scalar.finalize_runtime()?;
+    if runtime.dns.records.needs_hostname() {
+        runtime
+            .dns
+            .finalize_hostname(&dnsmasq_rs::startup::hostname()?)?;
+    }
     runtime.dns.finalize()?;
     runtime.dhcp.validate_dns_config(&runtime.dns)?;
     runtime.tftp.validate_ready()?;
@@ -947,18 +957,20 @@ impl PollTcpClient {
                         continue;
                     }
                     self.queries += 1;
-                    let cached = {
+                    let answered = {
                         let mut parent = parent.lock().map_err(|_| ())?;
-                        parent
-                            .daemon
-                            .as_mut()
-                            .ok_or(())?
+                        let daemon = parent.daemon.as_mut().ok_or(())?;
+                        let cached = daemon
                             .cached_tcp_answer(&query, &mut self.service, now_seconds())
-                            .map_err(|_| ())?
+                            .map_err(|_| ())?;
+                        cached.or_else(|| {
+                            daemon
+                                .local_tcp_answer(&query, &mut self.service, now_seconds())
+                                .ok()
+                                .flatten()
+                        })
                     };
-                    if let Some(packet) = cached {
-                        self.queue_answer(parent, packet, false)?;
-                    } else if let Ok(Some(packet)) = self.service.handle_tcp_payload(&query) {
+                    if let Some(packet) = answered {
                         self.queue_answer(parent, packet, false)?;
                     } else {
                         let cache_eligible = TcpDnsService::cache_eligible(&query);
@@ -1147,26 +1159,28 @@ impl SinglePoll {
         let answer = match dnsmasq_rs::dns::udp_query::inspect(packet, local.edns_packet_max) {
             dnsmasq_rs::dns::udp_query::Admission::Drop => return,
             dnsmasq_rs::dns::udp_query::Admission::Reply(answer) => Some((answer, false)),
-            dnsmasq_rs::dns::udp_query::Admission::Continue => match local.handle_udp(packet) {
-                Ok(Some(answer)) => Some((answer, false)),
-                Ok(None) => match daemon.forward_udp_on_listener_with_local(
-                    packet,
-                    ClientRequest {
-                        source: incoming.peer,
-                        destination: incoming.destination,
-                        interface: incoming.interface,
+            dnsmasq_rs::dns::udp_query::Admission::Continue => {
+                match daemon.local_udp_answer(packet, local, now_seconds()) {
+                    Ok(Some(answer)) => Some((answer, false)),
+                    Ok(None) => match daemon.forward_udp_on_listener_with_local(
+                        packet,
+                        ClientRequest {
+                            source: incoming.peer,
+                            destination: incoming.destination,
+                            interface: incoming.interface,
+                        },
+                        Some(token),
+                        local,
+                    ) {
+                        Ok(QueryResult::Local(answer) | QueryResult::Cached(answer)) => {
+                            Some((answer, false))
+                        }
+                        Ok(QueryResult::Stale(answer)) => Some((answer, true)),
+                        _ => None,
                     },
-                    Some(token),
-                    local,
-                ) {
-                    Ok(QueryResult::Local(answer) | QueryResult::Cached(answer)) => {
-                        Some((answer, false))
-                    }
-                    Ok(QueryResult::Stale(answer)) => Some((answer, true)),
-                    _ => None,
-                },
-                Err(_) => None,
-            },
+                    Err(_) => None,
+                }
+            }
         };
         let responses = if event
             .ubus
