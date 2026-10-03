@@ -52,6 +52,8 @@ M5 退出条件：169项全部实现并有C差分，或已证明与C一致的拒
 
 本次续接已完成代码级推进但不下调盘点数：`dhcp-boot` 的 `tag:`/`net:` 多条目选择现在按请求 tag、`tag-if` 和已选 range context 选择完整 BootEntry；`filter-A`/`filter-AAAA`/`filter-rr` 已接入本地、UDP/TCP、缓存答案和 clipped/ANY 边界。两族的本地测试和 clippy 通过，精确镜像族级差分尚未在当前工作机复跑，因此仍按原状态计数；对应分支已合入 main，旧 worktree 已以 `archive/m5-boot-53b330b`、`archive/m5-dns-filter-1b099e1` 保留。后续优先补这两族的精确 C 配对，再处理 helper 接线和 relay/leasequery。
 
+helper 族现在有有界 `LeaseDelivery` 快照和重试 API，leasequery 族有 ACL/parser、状态和 PRL/overload reply encoder；两者仍未接入主 poll owner，也没有精确镜像差分，所以不改变 142 项计数。对应已合入提交和 archive refs 为 `9404725`/`archive/m5-helper-52673fc`、`4b1016a`/`archive/m5-leasequery-cd15ef5`；接线时必须保留 helper backpressure 下的同一 delivery，leasequery source 必须按 C 的 `giaddr`/relay-source 路径选取，不能无条件使用 peer。
+
 文件归属：tags负责人维护config/dhcp_tags、dhcp_host、dhcp_options及编码逻辑；网络负责人维护boot/relay/leasequery和TFTP；helper负责人维护helper/filewatch和loader；DNS负责人维护dns/*、config/dns和本地记录/策略。主代理独占main.rs、config/dhcp.rs、dhcp/daemon.rs及共用接线，其他人用明确patch/API交接。每族仅一个差分测试器，证据统一在 `private/dnsmasq-rewrite/evidence/M5/`。
 
 | 选项 | 组 / init 行 | 负责人 | 状态 | 证据或具体缺口 |
