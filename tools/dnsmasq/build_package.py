@@ -164,14 +164,13 @@ def audit_metadata(metadata):
                           re.MULTILINE | re.DOTALL)
         require(block and all(re.search(rf"^    - {re.escape(value)}$", block.group(0), re.MULTILINE)
                               for value in values), f"APK metadata {field} misses required entries")
+    for script in ("post-install", "pre-deinstall", "post-upgrade"):
+        require(re.search(rf"^  {script}: \|$", metadata, re.MULTILINE),
+                f"APK metadata misses {script} script")
     return {"name": PACKAGE, "version": PACKAGE_ID,
             "arch": ARCH, "provides": ["dnsmasq-any"],
-            # The matching SDK emits the same metadata shape for stock
-            # dnsmasq: same-name upgrades are exclusive, while variant
-            # conflicts remain a recipe declaration rather than an APK field.
-            "conflicts": [],
-            "declared_conflicts": ["dnsmasq-dhcpv6", "dnsmasq-full"],
             "replacement": "same package name dnsmasq, newer release 2.93-r2",
+            "variant_exclusion": "requires lifecycle solver tests with stock variant APKs",
             "depends": ["libc", "libubus20251202"]}
 
 
@@ -187,6 +186,19 @@ def read_budget(path):
                 f"M4 budget {field} must be a positive integer")
     return {"schema": 1, "elf_max_bytes": budget["elf_max_bytes"],
             "apk_max_bytes": budget["apk_max_bytes"], "sha256": sha(path)}
+
+
+def audit_sizes(report):
+    """Retain both measurements even when either target is exceeded."""
+    report["budget_checks"] = {
+        "apk": report["artifact"]["size"] <= report["budget"]["apk_max_bytes"],
+        "elf": report["elf"]["size"] <= report["budget"]["elf_max_bytes"],
+    }
+    failures = [f"{kind.upper()} size {report[key]['size']} exceeds target "
+                f"{report['budget'][kind + '_max_bytes']} bytes"
+                for kind, key in (("apk", "artifact"), ("elf", "elf"))
+                if not report["budget_checks"][kind]]
+    require(not failures, "; ".join(failures))
 
 
 def audit_build(args, out, report):
@@ -210,7 +222,9 @@ def audit_build(args, out, report):
         report["git_commit"] = subprocess.check_output(["git", "-C", str(ROOT), "rev-parse", "HEAD"], text=True).strip()
         report["source_commit_provenance"] = "local git checkout; exact file hashes remain authoritative"
         report["source_git_status"] = subprocess.check_output(["git", "-C", str(ROOT), "status", "--porcelain", "--",
-            "components/dnsmasq", "components/ubus", "packaging/openwrt/owrt-dnsmasq", "tools/dnsmasq/build_package.sh", "tools/dnsmasq/build_package.py"], text=True)
+            "rust-toolchain.toml", "manifests/release-25.12.5.json", "components/dnsmasq", "components/ubus",
+            "packaging/openwrt/owrt-dnsmasq", "tools/dnsmasq/build_package.sh", "tools/dnsmasq/build_package.py"], text=True)
+        require(not report["source_git_status"], "build inputs have uncommitted changes; source commit would be inaccurate")
         epoch = subprocess.check_output(["git", "-C", str(ROOT), "show", "-s", "--format=%ct", "HEAD"], text=True).strip()
     archive_name, expected_hash = json.loads((source / "manifests/release-25.12.5.json").read_text())["inputs"]["sdk"].split(" sha256 ")
     require(sdk.name == archive_name.removesuffix(".tar.zst"), "SDK name differs from pinned release manifest")
@@ -275,19 +289,19 @@ def audit_build(args, out, report):
     elf = payload / "usr/sbin/dnsmasq"
     elf_text = run([str(readelf), "-h", "-l", "-d", str(elf)], out / "elf-readelf.log")
     require("AArch64" in elf_text and "ELF64" in elf_text, "package ELF has the wrong target architecture")
-    require("/lib/ld-musl-aarch64.so.1" in elf_text or "There is no dynamic section" in elf_text,
-            "package ELF is neither target musl nor static")
+    require("INTERP" not in elf_text and "(NEEDED)" not in elf_text,
+            "M4 package ELF must be static (no interpreter or needed shared libraries)")
     metadata = run([str(apk), "adbdump", str(artifact)], out / "apk-metadata.log")
     report["apk_metadata"] = audit_metadata(metadata)
     require(inputs(ROOT) == source_hashes, "source changed while building; artifact is not current")
     report["artifact"] = {"name": artifact.name, "sha256": sha(artifact), "size": artifact.stat().st_size}
     report["elf"] = {"sha256": sha(elf), "size": elf.stat().st_size, "install_path": "/usr/sbin/dnsmasq"}
-    require(report["artifact"]["size"] <= report["budget"]["apk_max_bytes"],
-            f"APK exceeds M4 budget: {report['artifact']['size']} > {report['budget']['apk_max_bytes']}")
-    require(report["elf"]["size"] <= report["budget"]["elf_max_bytes"],
-            f"ELF exceeds M4 budget: {report['elf']['size']} > {report['budget']['elf_max_bytes']}")
-    report["budget_checks"] = {"apk": True, "elf": True}
     (out / "SHA256SUMS").write_text(f"{sha(artifact)}  {artifact.name}\n{sha(elf)}  payload/usr/sbin/dnsmasq\n")
+    report["elf"]["source_commit"] = report["git_commit"]
+    report["elf"]["expected_sha256"] = args.expected_elf_sha256
+    require(report["elf"]["sha256"] == args.expected_elf_sha256,
+            "packaged ELF differs from the frozen ELF; retain artifact and investigate build inputs")
+    audit_sizes(report)
 
 
 def main():
@@ -299,17 +313,20 @@ def main():
     parser.add_argument("--source-commit", help="original commit of a copied source snapshot")
     parser.add_argument("--source-date-epoch", help="original commit timestamp for that snapshot")
     parser.add_argument("--expected-source-digest", help="freeze SHA256 over the sorted input hash map")
+    parser.add_argument("--expected-elf-sha256", required=True,
+                        help="SHA256 of the final validated and frozen ELF")
     args = parser.parse_args()
+    require(re.fullmatch(r"[0-9a-f]{64}", args.expected_elf_sha256), "frozen ELF SHA256 must be 64 lowercase hex digits")
     out = safe_path(args.out.resolve())
     budget_path = safe_path(args.budget.resolve())
     require(out.is_relative_to(ROOT / "private") and out != ROOT / "private", "output must be a new task directory below private/")
     out.parent.mkdir(parents=True, exist_ok=True)
     out.mkdir()  # Refuse reused outputs before touching SDK state.
-    report = {"package": PACKAGE, "recipe": RECIPE, "target": TARGET, "activation": "candidate",
+    report = {"package": PACKAGE, "recipe": RECIPE, "target": TARGET, "activation": "unvalidated-package",
               "physical_router": False, "status": "building",
-              "scope": "Replacement package candidate; no image assembly, deployment or production acceptance",
-              "budget": read_budget(budget_path)}
+              "scope": "APK build audit only; lifecycle and deployment acceptance are separate"}
     try:
+        report["budget"] = read_budget(budget_path)
         audit_build(args, out, report)
         report["status"] = "built-and-audited"
     except (OSError, ValueError, subprocess.SubprocessError) as error:

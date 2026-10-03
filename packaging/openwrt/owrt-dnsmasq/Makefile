@@ -23,18 +23,13 @@ RUST_TARGET:=aarch64-unknown-linux-musl
 
 include $(INCLUDE_DIR)/package.mk
 
-# package-pack.mk reads CONFLICTS as a recipe-global field when emitting APK
-# metadata. Keep the variant conflicts visible in the generated package.
-CONFLICTS:=dnsmasq-dhcpv6 dnsmasq-full
-
 define Package/dnsmasq
   SECTION:=net
   CATEGORY:=Base system
-  TITLE:=Rust dnsmasq replacement (deployment candidate)
+  TITLE:=Rust dnsmasq replacement
   URL:=https://github.com/openwrt/openwrt
   DEPENDS:=@(aarch64) +libubus20251202 +@BUSYBOX_CONFIG_PIDOF
   USERID:=dnsmasq=453:dnsmasq=453
-  REPLACES:=dnsmasq
 endef
 
 define Package/dnsmasq/description
@@ -99,7 +94,8 @@ define Package/dnsmasq/install
 	$(INSTALL_DATA) ./files/dnsmasq.keep $(1)/lib/upgrade/keep.d/dnsmasq
 endef
 
-# BuildPackage evaluates Package/Default, which resets recipe globals. Set it
-# again immediately before emission so the APK control block retains it.
-CONFLICTS:=dnsmasq-dhcpv6 dnsmasq-full
+# The stock nodhcpv6 package has this same name. APK upgrades it by version;
+# do not claim that recipe-only CONFLICTS/REPLACES become APK metadata. The
+# other stock variants provide dnsmasq; their solver behavior is tested with
+# the actual variant APKs by m4_package_lifecycle.py.
 $(eval $(call BuildPackage,dnsmasq))

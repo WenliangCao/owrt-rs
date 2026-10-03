@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 """Local failure-boundary checks; no SDK commands or network access."""
 from pathlib import Path
+import copy
+import json
+import signal
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
 
 import build_package as package
+import m4_package_lifecycle as lifecycle
 
 
 class PackageBuildTests(unittest.TestCase):
@@ -72,6 +77,98 @@ class PackageBuildTests(unittest.TestCase):
         for path in ("/tmp/a b", "/tmp/a;id", "/tmp/$(id)", "/tmp/a\nb", "/tmp/a#b"):
             with self.subTest(path=path), self.assertRaises(ValueError):
                 package.safe_path(Path(path))
+
+    def test_exceeded_size_targets_keep_both_measurements(self):
+        report = {"artifact": {"size": 801_000}, "elf": {"size": 1_200_000},
+                  "budget": {"apk_max_bytes": 800_000, "elf_max_bytes": 700_000}}
+        with self.assertRaisesRegex(ValueError, "APK size 801000.*ELF size 1200000"):
+            package.audit_sizes(report)
+        self.assertEqual(report["budget_checks"], {"apk": False, "elf": False})
+        self.assertEqual(report["elf"]["size"], 1_200_000)
+
+    def test_candidate_metadata_requires_actual_lifecycle_scripts(self):
+        metadata = """info:
+  name: dnsmasq
+  version: 2.93-r2
+  arch: aarch64_cortex-a53
+  depends: # 2 items
+    - libc
+    - libubus20251202
+  provides: # 1 items
+    - dnsmasq-any
+scripts:
+  post-install: |
+  pre-deinstall: |
+  post-upgrade: |
+"""
+        self.assertEqual(package.audit_metadata(metadata)["version"], "2.93-r2")
+        for script in ("post-install", "pre-deinstall", "post-upgrade"):
+            with self.subTest(script=script), self.assertRaisesRegex(ValueError, script):
+                package.audit_metadata(metadata.replace(f"  {script}: |\n", ""))
+
+
+class PackageLifecycleTests(unittest.TestCase):
+    def test_database_rejects_duplicate_package_and_escaping_path(self):
+        base = "P:dnsmasq\nV:2.93-r1\nF:usr/sbin\nR:dnsmasq\n"
+        with self.assertRaisesRegex(RuntimeError, "duplicate package"):
+            lifecycle.installed_packages(base + "\n" + base)
+        with self.assertRaisesRegex(RuntimeError, "unsafe path"):
+            lifecycle.installed_packages(base.replace("R:dnsmasq", "R:../../../outside"))
+
+    def test_upgrade_requires_new_version_and_exclusive_ownership(self):
+        baseline = {
+            "dnsmasq": {"version": "2.93-r1", "files": sorted(package.PAYLOAD_FILES)},
+            "libc": {"version": "1", "files": ["lib/libc.so"]},
+        }
+        with self.assertRaisesRegex(RuntimeError, "wrong dnsmasq version"):
+            lifecycle.assert_database(baseline, "2.93-r2", baseline)
+        current = copy.deepcopy(baseline)
+        current["dnsmasq"]["version"] = "2.93-r2"
+        lifecycle.assert_database(current, "2.93-r2", baseline)
+        current["libc"]["version"] = "2"
+        with self.assertRaisesRegex(RuntimeError, "another installed package"):
+            lifecycle.assert_database(current, "2.93-r2", baseline)
+        baseline["libc"]["files"].append("usr/sbin/dnsmasq")
+        current = copy.deepcopy(baseline)
+        current["dnsmasq"]["version"] = "2.93-r2"
+        with self.assertRaisesRegex(RuntimeError, "duplicate file owner"):
+            lifecycle.assert_database(current, "2.93-r2", baseline)
+
+    def test_missing_variant_dependency_is_not_conflict_evidence(self):
+        result = {"returncode": 1, "stdout": "", "stderr":
+                  "dnsmasq-full-2.93-r1: conflicts: dnsmasq-2.93-r2\n"}
+        lifecycle.assert_variant_rejected(result, "dnsmasq-full")
+        result["stderr"] += "libnettle (no such package)\n"
+        with self.assertRaisesRegex(RuntimeError, "incomplete"):
+            lifecycle.assert_variant_rejected(result, "dnsmasq-full")
+        result["stderr"] = "APK archive is corrupt\n"
+        with self.assertRaisesRegex(RuntimeError, "without evidence"):
+            lifecycle.assert_variant_rejected(result, "dnsmasq-full")
+
+    def test_timed_out_script_is_forcibly_reaped_and_failure_logged(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root, log = Path(temp), Path(temp) / "timeout.json"
+            argv = [sys.executable, "-c", "import signal,time; signal.signal(signal.SIGTERM, signal.SIG_IGN); time.sleep(60)"]
+            with patch.object(lifecycle, "command", return_value=argv):
+                with self.assertRaisesRegex(RuntimeError, "timed out"):
+                    lifecycle.invoke(root, ["unused"], log, timeout=.5)
+            result = json.loads(log.read_text())
+            self.assertTrue(result["timed_out"])
+            self.assertEqual(result["returncode"], -signal.SIGKILL)
+
+    def test_failure_record_does_not_suppress_apk_scripts(self):
+        with tempfile.TemporaryDirectory() as temp:
+            log = Path(temp) / "failed.json"
+            process = unittest.mock.Mock()
+            process.communicate.return_value = ("", "post-install failed")
+            process.returncode = 1
+            with patch.object(lifecycle.subprocess, "Popen", return_value=process) as popen:
+                with self.assertRaisesRegex(RuntimeError, "command failed"):
+                    lifecycle.invoke(Path(temp), ["/usr/bin/apk", "add", "candidate.apk"], log)
+            environment = popen.call_args.kwargs["env"]
+            self.assertNotIn("IPKG_INSTROOT", environment)
+            self.assertNotIn("IPKG_NO_SCRIPT", environment)
+            self.assertEqual(json.loads(log.read_text())["returncode"], 1)
 
 
 if __name__ == "__main__":
