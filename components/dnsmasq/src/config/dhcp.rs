@@ -70,11 +70,10 @@ pub struct BootConfig {
 }
 
 impl BootConfig {
-    fn parse(argument: &super::EncodedArg) -> Result<Self, Error> {
-        let (file, tail) = argument.split_once(b',');
-        if file.encoded().starts_with(b"tag:") || file.encoded().starts_with(b"net:") {
-            return Err(Error("DHCP boot tag selectors are not implemented"));
-        }
+    fn parse_fields(
+        file: &super::EncodedArg,
+        tail: Option<super::EncodedArg>,
+    ) -> Result<Self, Error> {
         let (server, next) = tail
             .map(|tail| tail.split_once(b','))
             .map(|(server, next)| (Some(server), next))
@@ -98,6 +97,36 @@ impl BootConfig {
             next_server,
             next_server_name,
         })
+    }
+
+    /// Parse the optional leading `tag:`/`net:` selectors used by
+    /// `dhcp-boot`. Selectors are consumed before the ordinary three fields;
+    /// the latter retain EncodedArg's quoted-comma behavior.
+    fn parse_selected(argument: &super::EncodedArg) -> Result<(TagPredicate, Self), Error> {
+        let mut selectors = Vec::new();
+        let mut rest = argument.clone();
+        loop {
+            let (head, tail) = rest.split_once(b',');
+            let bytes = head.encoded();
+            let prefix_len = if bytes.starts_with(b"tag:") || bytes.starts_with(b"net:") {
+                4
+            } else {
+                0
+            };
+            if prefix_len == 0 {
+                return Ok((
+                    TagPredicate::from_tags(selectors),
+                    Self::parse_fields(&head, tail)?,
+                ));
+            }
+            let value = head.decoded();
+            let tag = &value[prefix_len..];
+            if tag.is_empty() || matches!(tag, b"!" | b"#") {
+                return Err(Error("empty DHCP boot tag selector"));
+            }
+            selectors.push(tag.to_vec());
+            rest = tail.ok_or(Error("DHCP boot selector requires boot fields"))?;
+        }
     }
 }
 
@@ -244,9 +273,59 @@ impl DhcpConfig {
             }
             b"dhcp-no-override" => self.no_override = true,
             b"dhcp-boot" => {
-                self.boot = Some(BootConfig::parse(
-                    argument.ok_or(Error("missing parameter"))?,
-                )?);
+                let (filter, boot) =
+                    BootConfig::parse_selected(argument.ok_or(Error("missing parameter"))?)?;
+                if filter.is_unconditional() {
+                    self.boot = Some(boot);
+                } else {
+                    // Tagged boot entries participate in the normal option
+                    // selector pass. Keep fixed-field and siaddr values as
+                    // synthetic options so one entry is chosen per request.
+                    if !boot.next_server.is_unspecified() {
+                        let value = boot.next_server;
+                        self.options.insert(
+                            0,
+                            DhcpOption {
+                                code: 255,
+                                value: OptionValue::Raw(value.octets().to_vec()),
+                                tags: filter.clone(),
+                                ..DhcpOption::default()
+                            },
+                        );
+                    } else if let Some(value) = boot.next_server_name {
+                        self.options.insert(
+                            0,
+                            DhcpOption {
+                                code: 255,
+                                value: OptionValue::String(value),
+                                tags: filter.clone(),
+                                ..DhcpOption::default()
+                            },
+                        );
+                    }
+                    if let Some(value) = boot.filename {
+                        self.options.insert(
+                            0,
+                            DhcpOption {
+                                code: 67,
+                                value: OptionValue::String(value),
+                                tags: filter.clone(),
+                                ..DhcpOption::default()
+                            },
+                        );
+                    }
+                    if let Some(value) = boot.server_name {
+                        self.options.insert(
+                            0,
+                            DhcpOption {
+                                code: 66,
+                                value: OptionValue::String(value),
+                                tags: filter,
+                                ..DhcpOption::default()
+                            },
+                        );
+                    }
+                }
             }
             b"bootp-dynamic" => {
                 // option.c:4664-4701 stores optional tag predicates. Until
@@ -661,11 +740,36 @@ mod tests {
                 Some(name.as_bytes())
             );
         }
-        for line in ["dhcp-boot=tag:known,file", "dhcp-boot=net:known,file"] {
-            let before = config.clone();
-            assert!(config
+        for line in [
+            "dhcp-boot=tag:known,tag:uefi,file,boot.test,192.0.2.3",
+            "dhcp-boot=net:lan,net:trusted,recovery.img,,192.0.2.4",
+        ] {
+            config
                 .apply(&lex_line(line.as_bytes()).unwrap().unwrap())
-                .is_err());
+                .unwrap();
+        }
+        assert_eq!(config.options.len(), 5);
+        assert!(config.options.iter().all(|option| {
+            matches!(option.code, 66 | 67 | 255) && option.tags.tags().len() == 2
+        }));
+        let tags: Vec<_> = config.options[2]
+            .tags
+            .tags()
+            .iter()
+            .map(Vec::as_slice)
+            .collect();
+        let selected = option_filter(&config.options, &tags, &[], &[], 0);
+        assert_eq!(selected.selected.len(), 3);
+        assert!(selected
+            .selected
+            .iter()
+            .all(|index| matches!(config.options[*index].code, 66 | 67 | 255)));
+        for line in [
+            b"dhcp-boot=tag:,file".as_slice(),
+            b"dhcp-boot=tag:known".as_slice(),
+        ] {
+            let before = config.clone();
+            assert!(config.apply(&lex_line(line).unwrap().unwrap()).is_err());
             assert_eq!(config, before);
         }
         config
