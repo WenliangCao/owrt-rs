@@ -524,7 +524,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     let dhcp_runtime = if !dhcp_config.ranges.is_empty() {
         let mut provider = DhcpProvider::new(
-            dhcp_config,
+            dhcp_config.clone(),
             daemon_config.listen_addresses.clone(),
             runtime.scalar.dns_port,
             || STOP_REQUESTED.load(Ordering::Acquire),
