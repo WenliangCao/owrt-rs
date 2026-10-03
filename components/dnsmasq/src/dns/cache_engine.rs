@@ -40,6 +40,7 @@ pub(super) struct CacheContext<'a> {
     pub counters: &'a mut CacheCounters,
     pub negative_cache: bool,
     pub negative_ttl: u32,
+    pub filter_rr: &'a [u16],
 }
 
 /// Ordinary extraction can remove old records and evict entries even when
@@ -128,6 +129,12 @@ impl CacheContext<'_> {
             .as_ref()
             .map_or(512, |opt| usize::from(opt.udp_size(edns_packet_max)));
         let mut answer = self.answer_records(question, header, now, local, max_udp.min(limit))?;
+        if let Some(packet) = &mut answer.packet {
+            // Forward-cache answers are filtered at the same post-selection
+            // boundary as C's answer_request output. Local direct answers
+            // never enter this method.
+            super::reply::filter_rrs(packet, self.filter_rr)?;
+        }
         if edns.opt.is_some() {
             if let Some(packet) = &mut answer.packet {
                 // receive_query appends against the configured daemon limit,

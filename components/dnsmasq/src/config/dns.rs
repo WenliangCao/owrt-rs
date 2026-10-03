@@ -134,6 +134,10 @@ pub struct DnsConfig {
     /// Additional cacheable RR types; 255 selects all types in extraction.
     /// CNAME and ANY queries retain their special insertion rules.
     pub cache_rr: Vec<u16>,
+    /// RR types elided from forwarded upstream and dynamic-cache answers. The
+    /// list preserves declaration order (newest first), matching option.c's
+    /// rrlist; configured/hosts/DHCP local answers bypass this policy.
+    pub filter_rr: Vec<u16>,
     pub domain_suffix: Option<Vec<u8>>,
     pub domain_from_resolv: bool,
     /// Newest declaration first, matching C's cond_domain linked list.
@@ -179,6 +183,7 @@ impl Default for DnsConfig {
             bogus_addresses: Vec::new(),
             ignore_addresses: Vec::new(),
             cache_rr: Vec::new(),
+            filter_rr: Vec::new(),
             domain_suffix: None,
             domain_from_resolv: false,
             conditional_domains: Vec::new(),
@@ -598,6 +603,14 @@ impl DnsConfig {
                         .insert(0, super::rrtypes::parse(&field.decoded())?);
                 }
             }
+            b"filter-A" => self.filter_rr.insert(0, 1),
+            b"filter-AAAA" => self.filter_rr.insert(0, 28),
+            b"filter-rr" => {
+                for field in arg.unwrap().split(b',') {
+                    self.filter_rr
+                        .insert(0, super::rrtypes::parse(&field.decoded())?);
+                }
+            }
             b"domain" | b"domain-suffix" => self.domain(arg.unwrap())?,
             b"local-service" => match arg.map(EncodedArg::encoded) {
                 None | Some(b"net") => self.local_service_net = true,
@@ -901,6 +914,16 @@ mod tests {
         assert_eq!(config.aliases[1].mask, Ipv4Addr::BROADCAST);
         assert!(config.finalize().is_ok());
         assert!(config.validate_ready().is_ok());
+    }
+
+    #[test]
+    fn rr_filter_options_share_c_rrlist_parsing() {
+        let mut config = DnsConfig::default();
+        apply(&mut config, b"filter-A").unwrap();
+        apply(&mut config, b"filter-AAAA").unwrap();
+        apply(&mut config, b"filter-rr=MX,257,ANY").unwrap();
+        assert_eq!(config.filter_rr, vec![255, 257, 15, 28, 1]);
+        assert!(apply(&mut config, b"filter-rr=not-a-type").is_err());
     }
 
     #[test]
