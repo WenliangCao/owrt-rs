@@ -1209,31 +1209,6 @@ mod tests {
         }
     }
 
-    fn option_value(packet: &[u8], code: u8) -> Option<&[u8]> {
-        let mut at = 240;
-        while at + 1 < packet.len() {
-            let option = packet[at];
-            if option == 255 {
-                break;
-            }
-            at += 1;
-            if option == 0 {
-                continue;
-            }
-            let length = usize::from(*packet.get(at)?);
-            at += 1;
-            let end = at.checked_add(length)?;
-            if end > packet.len() {
-                return None;
-            }
-            if option == code {
-                return Some(&packet[at..end]);
-            }
-            at = end;
-        }
-        None
-    }
-
     #[test]
     fn configured_presence_precedes_prl_and_bootp_uses_all_options() {
         let configured = [
@@ -1320,76 +1295,6 @@ mod tests {
     }
 
     #[test]
-    fn tagged_boot_fields_override_fallback_when_prl_omits_boot_codes() {
-        let configured = [
-            DhcpOption {
-                code: 66,
-                value: OptionValue::String(b"boot.test".to_vec()),
-                tags: crate::config::dhcp::TagPredicate::from_tags(vec![b"known".to_vec()]),
-                ..Default::default()
-            },
-            DhcpOption {
-                code: 67,
-                value: OptionValue::String(b"known.img".to_vec()),
-                tags: crate::config::dhcp::TagPredicate::from_tags(vec![b"known".to_vec()]),
-                ..Default::default()
-            },
-            DhcpOption {
-                code: 255,
-                value: OptionValue::Raw(Ipv4Addr::new(192, 0, 2, 9).octets().to_vec()),
-                tags: crate::config::dhcp::TagPredicate::from_tags(vec![b"known".to_vec()]),
-                ..Default::default()
-            },
-        ];
-        let bytes = packet(
-            &[53, 1, 1, 55, 1, 1, 255],
-            BROADCAST_FLAG,
-            Ipv4Addr::UNSPECIFIED,
-            Ipv4Addr::UNSPECIFIED,
-        );
-        let request = super::super::packet::Packet::parse(&bytes).unwrap();
-        let selection = crate::config::dhcp::option_filter(&configured, &[b"known"], &[], &[], 0);
-        let mut present = [false; 256];
-        let mut fixed = [None, None];
-        let mut next_server = None;
-        let values = encode_filtered_options(
-            request,
-            offer().reply,
-            None,
-            &configured,
-            &selection,
-            &mut present,
-            false,
-            &mut fixed,
-            &mut next_server,
-        );
-        assert!(values.is_empty());
-        assert_eq!(fixed[0].as_deref(), Some(b"boot.test".as_slice()));
-        assert_eq!(fixed[1].as_deref(), Some(b"known.img".as_slice()));
-        assert_eq!(next_server, Some(Ipv4Addr::new(192, 0, 2, 9)));
-        let boot = BootConfig {
-            filename: fixed[1].take(),
-            server_name: fixed[0].take(),
-            next_server: next_server.unwrap(),
-            next_server_name: None,
-        };
-        let mut output = [0; 548];
-        let encoding = build_reply_with_boot(
-            request,
-            offer().reply,
-            &[],
-            true,
-            0,
-            Some(&boot),
-            &mut output,
-        )
-        .unwrap();
-        assert_eq!(output[20..24], [192, 0, 2, 9]);
-        assert_eq!(&output[44..54], b"boot.test\0");
-        assert_eq!(&output[108..118], b"known.img\0");
-    }
-
-    #[test]
     fn boot_lookup_failure_retains_committed_outcome_without_sending() {
         struct Provider;
         impl OutcomeProvider for Provider {
@@ -1430,6 +1335,55 @@ mod tests {
                 outcome_dropped: true
             })
         ));
+    }
+
+    #[test]
+    fn selected_boot_fields_are_sent_by_the_runtime_without_prl_codes() {
+        struct Provider {
+            boot: BootConfig,
+        }
+        impl OutcomeProvider for Provider {
+            fn resolve(&mut self, _: &Dispatch<'_>) -> Result<Outcome, RuntimeError> {
+                Ok(offer())
+            }
+            fn boot_config(&self) -> Option<&BootConfig> {
+                Some(&self.boot)
+            }
+            fn boot_next_server(&mut self) -> io::Result<Option<Ipv4Addr>> {
+                Ok(Some(self.boot.next_server))
+            }
+        }
+        let bytes = packet(
+            &[53, 1, 1, 55, 1, 1, 255],
+            BROADCAST_FLAG,
+            Ipv4Addr::UNSPECIFIED,
+            Ipv4Addr::UNSPECIFIED,
+        );
+        let mut sender = Sender {
+            sent: Vec::new(),
+            fail: false,
+        };
+        let mut output = [0; 548];
+        process(
+            dispatch_for(&bytes),
+            "0.0.0.0:68".parse().unwrap(),
+            &mut Provider {
+                boot: BootConfig {
+                    filename: Some(b"known.img".to_vec()),
+                    server_name: Some(b"boot.test".to_vec()),
+                    next_server: Ipv4Addr::new(192, 0, 2, 9),
+                    next_server_name: None,
+                },
+            },
+            &mut sender,
+            &[],
+            &mut output,
+        )
+        .unwrap();
+        let sent = &sender.sent[0].0;
+        assert_eq!(&sent[20..24], [192, 0, 2, 9]);
+        assert_eq!(&sent[44..54], b"boot.test\0");
+        assert_eq!(&sent[108..118], b"known.img\0");
     }
 
     #[test]

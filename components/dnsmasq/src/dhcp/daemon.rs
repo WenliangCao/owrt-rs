@@ -16,8 +16,8 @@ use super::runtime::{NetworkOptions, OutcomeProvider, ReplyNames, RuntimeError, 
 use super::service::Dispatch;
 use super::state::{Environment, HostPolicy, Outcome, Reply};
 use crate::config::dhcp::{
-    option_filter, ClassKind, DhcpConfig, FilteredOptions, HostConfig, HostFileError, HostFiles,
-    NameDomains, OptionValue, TagIf,
+    option_filter, BootConfig, ClassKind, DhcpConfig, FilteredOptions, HostConfig, HostFileError,
+    HostFiles, NameDomains, TagIf,
 };
 use crate::interfaces::{ipv4_interfaces, primary_ipv4};
 use crate::ubus_service::{DhcpEventFields, DhcpEventKind, DhcpLogging};
@@ -123,10 +123,8 @@ pub struct LocalProvider {
     domains: NameDomains,
     reply_hostname: Option<Vec<u8>>,
     force_broadcast: bool,
-    /// A matching tagged `dhcp-boot` entry is represented by synthetic
-    /// options. Suppress the untagged fixed-field fallback for this request.
-    tagged_boot_override: bool,
-    tagged_boot_next_server_name: Option<Vec<u8>>,
+    /// Boot entry selected after the state outcome identifies its context.
+    selected_boot: Option<BootConfig>,
     request_tags: Vec<Vec<u8>>,
     selected: Vec<SelectedContext>,
     interface_policy: InterfacePolicy,
@@ -214,8 +212,7 @@ impl LocalProvider {
             domains: NameDomains::default(),
             reply_hostname: None,
             force_broadcast: false,
-            tagged_boot_override: false,
-            tagged_boot_next_server_name: None,
+            selected_boot: None,
             request_tags: Vec::new(),
             probe,
             probe_error: None,
@@ -296,7 +293,7 @@ impl LocalProvider {
         self.maintenance_report.take()
     }
 
-    fn select_tagged_boot(&mut self, outcome: &Outcome) {
+    fn select_boot(&mut self, outcome: &Outcome) {
         let context = match outcome.reply {
             Reply::Offer { context, .. }
             | Reply::Ack { context, .. }
@@ -313,27 +310,13 @@ impl LocalProvider {
         let Some(selected) = self.selected.get(context) else {
             return;
         };
-        let mut tags: Vec<&[u8]> = self.request_tags.iter().map(Vec::as_slice).collect();
-        TagIf::apply_all(&self.config.tag_if, &mut tags);
+        let mut tags: Vec<&[u8]> = Vec::new();
         if let Some(tag) = self.config.ranges[selected.source_index].set_tag.as_deref() {
             tags.push(tag);
         }
-        let matches = |option: &crate::config::dhcp::DhcpOption| {
-            matches!(option.code, 66 | 67 | 255)
-                && !option.tags.is_unconditional()
-                && option.tags.matches(&tags)
-        };
-        if !self.config.options.iter().any(matches) {
-            return;
-        }
-        self.tagged_boot_override = true;
-        if let Some(option) = self.config.options.iter().find(|option| {
-            option.code == 255 && !option.tags.is_unconditional() && option.tags.matches(&tags)
-        }) {
-            if let OptionValue::String(name) = &option.value {
-                self.tagged_boot_next_server_name = Some(name.clone());
-            }
-        }
+        tags.extend(self.request_tags.iter().map(Vec::as_slice));
+        TagIf::apply_all(&self.config.tag_if, &mut tags);
+        self.selected_boot = self.config.boot_for(&tags).cloned();
     }
 
     pub fn next_maintenance(&self) -> Option<Instant> {
@@ -667,8 +650,7 @@ impl LocalProvider {
         mut wait: Option<&mut DhcpProbeWait<'_>>,
     ) -> Result<Outcome, RuntimeError> {
         self.force_broadcast = false;
-        self.tagged_boot_override = false;
-        self.tagged_boot_next_server_name = None;
+        self.selected_boot = None;
         if !self.host_files_ready
             || interface_name.is_some_and(|name| {
                 self.config
@@ -1029,7 +1011,7 @@ impl LocalProvider {
         provider.event_sink = Some(&mut on_event);
         let result = provider.resolve(dispatch);
         if let Ok(outcome) = &result {
-            self.select_tagged_boot(outcome);
+            self.select_boot(outcome);
         }
         self.probe_error = probe_error;
         for (selected, range) in self.selected.iter().zip(&ranges) {
@@ -1061,9 +1043,7 @@ impl OutcomeProvider for LocalProvider {
     }
 
     fn boot_config(&self) -> Option<&crate::config::dhcp::BootConfig> {
-        (!self.tagged_boot_override)
-            .then(|| self.config.boot.as_ref())
-            .flatten()
+        self.selected_boot.as_ref()
     }
 
     fn configured_options(&self) -> &[crate::config::dhcp::DhcpOption] {
@@ -1097,28 +1077,7 @@ impl OutcomeProvider for LocalProvider {
     }
 
     fn boot_next_server(&mut self) -> io::Result<Option<Ipv4Addr>> {
-        if self.tagged_boot_override {
-            let Some(name) = self.tagged_boot_next_server_name.as_deref() else {
-                return Ok(None);
-            };
-            let address = if self.dns_port == 0 {
-                None
-            } else {
-                let lookup = self
-                    .boot_host_lookup
-                    .as_mut()
-                    .ok_or_else(|| io::Error::other("DHCP boot hosts lookup is not attached"))?;
-                lookup(name)?
-            };
-            if address.is_none() {
-                eprintln!(
-                    "dnsmasq-rs: No IPv4 address found for {}",
-                    String::from_utf8_lossy(name)
-                );
-            }
-            return Ok(Some(address.unwrap_or(Ipv4Addr::UNSPECIFIED)));
-        }
-        let Some(boot) = &self.config.boot else {
+        let Some(boot) = self.selected_boot.as_ref() else {
             return Ok(None);
         };
         if !boot.next_server.is_unspecified() {
