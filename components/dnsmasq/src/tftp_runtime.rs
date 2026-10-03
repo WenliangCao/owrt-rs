@@ -154,6 +154,15 @@ pub struct RuntimeConfig {
     pub single_port: bool,
 }
 
+/// Per-request interface policy. Existing transfers retain their negotiated
+/// block size and open file when interface state or root contents change.
+#[derive(Clone, Debug)]
+pub struct RequestPolicy {
+    pub path: RuntimePathPolicy,
+    pub mtu: Option<u32>,
+    pub ipv6: bool,
+}
+
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct RuntimePathPolicy {
     pub prefix: Option<Vec<u8>>,
@@ -281,6 +290,10 @@ impl<O: FileOpener> TransferRuntime<O> {
         self.active.len()
     }
 
+    pub fn contains_transfer(&self, id: TransferId) -> bool {
+        self.active.contains_key(&id)
+    }
+
     /// Whether the caller should multiplex RRQ and transfer traffic on one
     /// socket. Separate-port mode owns one socket per RRQ instance.
     pub fn single_port(&self) -> bool {
@@ -333,12 +346,22 @@ impl<O: FileOpener> TransferRuntime<O> {
         packet: &[u8],
         now: u64,
     ) -> Result<Vec<RuntimeEvent>, RuntimeError> {
+        self.handle_datagram_with_policy(peer, packet, now, None)
+    }
+
+    pub fn handle_datagram_with_policy(
+        &mut self,
+        peer: SocketAddr,
+        packet: &[u8],
+        now: u64,
+        policy: Option<&RequestPolicy>,
+    ) -> Result<Vec<RuntimeEvent>, RuntimeError> {
         if packet.len() < 2 {
             return Ok(Vec::new());
         }
         if !self.config.single_port {
             return if self.can_receive_server() && matches!(opcode(packet), Some(1) | Some(2)) {
-                self.start_rrq(peer, packet, now)
+                self.start_rrq(peer, packet, now, policy)
             } else {
                 Ok(Vec::new())
             };
@@ -359,12 +382,12 @@ impl<O: FileOpener> TransferRuntime<O> {
             PeerAdmission::Replace(index) => {
                 let id = self.id_at(index);
                 self.active.remove(&id);
-                self.start_rrq(peer, packet, now)
+                self.start_rrq(peer, packet, now, policy)
             }
             PeerAdmission::Ignore => Ok(Vec::new()),
             PeerAdmission::New => {
                 if matches!(opcode(packet), Some(1) | Some(2)) {
-                    self.start_rrq(peer, packet, now)
+                    self.start_rrq(peer, packet, now, policy)
                 } else {
                     Ok(Vec::new())
                 }
@@ -419,12 +442,13 @@ impl<O: FileOpener> TransferRuntime<O> {
         peer: SocketAddr,
         packet: &[u8],
         now: u64,
+        policy: Option<&RequestPolicy>,
     ) -> Result<Vec<RuntimeEvent>, RuntimeError> {
         let request = match tftp::parse_request(
             packet,
             self.config.packet_buffer_size,
-            self.config.mtu,
-            self.config.ipv6,
+            policy.map_or(self.config.mtu, |policy| policy.mtu),
+            policy.map_or(self.config.ipv6, |policy| policy.ipv6),
             self.config.no_block_size,
         ) {
             Ok(request) => request,
@@ -440,9 +464,10 @@ impl<O: FileOpener> TransferRuntime<O> {
             Some(request) => request,
             None => return Ok(Vec::new()),
         };
+        let path_policy = policy.map_or(&self.config.path, |policy| &policy.path);
         let path = resolve_path(
-            self.config.path.prefix.as_deref(),
-            self.config.path.lowercase,
+            path_policy.prefix.as_deref(),
+            path_policy.lowercase,
             request.filename,
         );
         let path = match path {
@@ -1407,5 +1432,49 @@ mod tests {
             panic!("expected DATA")
         };
         assert!(packet.len() <= 4 + 8);
+    }
+    #[test]
+    fn per_request_root_and_mtu_do_not_mutate_live_transfers() {
+        let mut runtime = runtime(&[b'a'; 800]);
+        runtime.opener.files.lock().unwrap().insert(
+            b"/other/boot.bin".to_vec(),
+            Arc::new(MemoryReader {
+                data: vec![b'b'; 800],
+                identity: FileIdentity {
+                    device: 1,
+                    inode: 3,
+                },
+            }),
+        );
+        let first = runtime
+            .handle_datagram(peer(1000), &rrq(b"boot.bin", b"octet"), 1)
+            .unwrap();
+        assert!(matches!(&first[0],RuntimeEvent::Send{packet,..} if packet[4..]==[b'a';512]));
+        let policy = RequestPolicy {
+            path: RuntimePathPolicy {
+                prefix: Some(b"/other".to_vec()),
+                lowercase: false,
+            },
+            mtu: Some(600),
+            ipv6: true,
+        };
+        let second = runtime
+            .handle_datagram_with_policy(peer(1001), &rrq(b"boot.bin", b"octet"), 1, Some(&policy))
+            .unwrap();
+        assert!(matches!(&second[0],RuntimeEvent::Send{packet,..} if packet[4..]==[b'b';512]));
+        let continued = runtime
+            .handle_transfer_datagram(1, peer(1000), &[0, 4, 0, 1], 2)
+            .unwrap();
+        assert!(matches!(&continued[0],RuntimeEvent::Send{packet,..} if packet[4..]==[b'a';288]));
+        let mut request = rrq(b"boot.bin", b"octet");
+        request.extend_from_slice(b"blksize\x002000\0");
+        let negotiated = runtime
+            .handle_datagram_with_policy(peer(1002), &request, 1, Some(&policy))
+            .unwrap();
+        assert!(
+            matches!(&negotiated[0],RuntimeEvent::Send{packet,..} if packet.starts_with(&[0,6]))
+        );
+        assert_eq!(runtime.active_len(), 3);
+        assert!(runtime.config.path.prefix.as_deref() == Some(b"/srv/tftp"));
     }
 }

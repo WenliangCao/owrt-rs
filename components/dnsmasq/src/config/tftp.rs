@@ -23,8 +23,7 @@ pub struct TftpConfig {
     /// it parses them, so this vector keeps the same newest-first order.
     pub interfaces: Vec<Option<Vec<u8>>>,
     /// `--tftp-root=<path>,<iface>` entries, also newest-first like C's
-    /// `daemon->if_prefix` list. These are parsed even though the current
-    /// listener has no per-interface prefix hook.
+    /// `daemon->if_prefix` list. The last matching list node wins at runtime.
     pub interface_roots: Vec<TftpRoot>,
     /// C's `start_tftp_port`/`end_tftp_port`; reversed bounds are swapped.
     pub port_range: Option<(u16, u16)>,
@@ -157,20 +156,65 @@ impl TftpConfig {
         Ok(true)
     }
 
-    /// Validate options against the currently wired listener capabilities.
-    /// Parsing retains every C option; callers must invoke this gate before
-    /// starting a listener so unsupported selectors cannot be silently lost.
+    /// Every parsed TFTP option is consumed by the integrated listener.
     pub fn validate_ready(&self) -> Result<(), Error> {
-        if !self.interfaces.is_empty() {
-            return Err(Error("TFTP interface selectors are not wired"));
-        }
-        if !self.interface_roots.is_empty() {
-            return Err(Error("TFTP per-interface roots are not wired"));
-        }
-        if self.unique_root_ip || self.unique_root_mac {
-            return Err(Error("TFTP unique-root is not wired"));
-        }
         Ok(())
+    }
+
+    /// C iterates the entire newest-first prefix list without breaking, so
+    /// the earliest matching directive wins (unlike the global root).
+    pub fn root_for_interface(&self, name: &[u8]) -> Option<&[u8]> {
+        let mut root = self.root.as_deref();
+        for entry in &self.interface_roots {
+            if entry.interface.as_deref() == Some(name) {
+                root = entry.path.as_deref();
+            }
+        }
+        root
+    }
+
+    /// dnsmasq.c reserves the DNS random socket pool and normal service FDs,
+    /// then estimates one/two descriptors per transfer and caps port ranges.
+    /// A negative C limit means no new request can be admitted.
+    pub fn transfer_limit(&self, open_max: u64, random_sockets: usize) -> Option<usize> {
+        let mut available = i128::from(open_max) - 30 - random_sockets as i128;
+        available = if available < 0 {
+            5
+        } else if available < 100 && !self.single_port {
+            available / 2
+        } else {
+            available - 20
+        };
+        if let Some((start, end)) = self.port_range.filter(|(start, _)| *start != 0) {
+            available = available.min(i128::from(end - start) + 1);
+        }
+        usize::try_from(available)
+            .ok()
+            .map(|limit| limit.min(self.max_transfers))
+    }
+
+    /// Must run after dropping privileges, matching C's opendir checks.
+    /// Returns inaccessible roots only when --tftp-no-fail permits startup.
+    #[cfg(unix)]
+    pub fn validate_roots(&self) -> std::io::Result<Vec<Vec<u8>>> {
+        use std::os::unix::ffi::OsStrExt;
+        let mut warnings = Vec::new();
+        if !self.enabled {
+            return Ok(warnings);
+        }
+        for root in self.root.iter().chain(
+            self.interface_roots
+                .iter()
+                .filter_map(|entry| entry.path.as_ref()),
+        ) {
+            if let Err(error) = std::fs::read_dir(std::ffi::OsStr::from_bytes(root)) {
+                if !self.no_fail {
+                    return Err(error);
+                }
+                warnings.push(root.clone());
+            }
+        }
+        Ok(warnings)
     }
 }
 
@@ -231,14 +275,14 @@ mod tests {
     }
 
     #[test]
-    fn unique_root_bits_and_runtime_gate_are_explicit() {
+    fn unique_root_bits_are_independent() {
         let mut config = TftpConfig::default();
         assert!(apply(&mut config, b"tftp-unique-root").unwrap());
         assert!(apply(&mut config, b"tftp-unique-root=mac").unwrap());
         assert!(config.unique_root_ip);
         assert!(config.unique_root_mac);
         assert!(apply(&mut config, b"tftp-unique-root=").is_err());
-        assert!(config.validate_ready().is_err());
+        assert!(config.validate_ready().is_ok());
 
         let mut supported = TftpConfig::default();
         assert!(apply(&mut supported, b"enable-tftp").unwrap());
@@ -261,15 +305,60 @@ mod tests {
     }
 
     #[test]
-    fn port_range_is_ready_but_interface_selectors_remain_explicit() {
+    fn port_range_and_interface_selectors_are_ready() {
         let mut config = TftpConfig::default();
         apply(&mut config, b"tftp-port-range=69,70").unwrap();
         assert_eq!(config.port_range, Some((69, 70)));
         assert!(config.validate_ready().is_ok());
         apply(&mut config, b"enable-tftp=eth0").unwrap();
+        assert!(config.validate_ready().is_ok());
+    }
+    #[test]
+    fn interface_root_order_and_fd_budget_follow_c() {
+        let mut config = TftpConfig::default();
+        apply(&mut config, b"tftp-root=/global").unwrap();
+        apply(&mut config, b"tftp-root=/first,lan").unwrap();
+        apply(&mut config, b"tftp-root=/last,lan").unwrap();
         assert_eq!(
-            config.validate_ready().unwrap_err(),
-            Error("TFTP interface selectors are not wired")
+            config.root_for_interface(b"lan"),
+            Some(b"/first".as_slice())
         );
+        assert_eq!(
+            config.root_for_interface(b"other"),
+            Some(b"/global".as_slice())
+        );
+        assert_eq!(config.transfer_limit(1024, 75), Some(50));
+        assert_eq!(config.transfer_limit(64, 21), Some(6));
+        assert_eq!(config.transfer_limit(16, 0), Some(5));
+        config.single_port = true;
+        assert_eq!(config.transfer_limit(64, 21), None);
+        config.port_range = Some((40000, 40003));
+        assert_eq!(config.transfer_limit(1024, 75), Some(4));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn no_fail_only_tolerates_inaccessible_roots() {
+        let path = std::env::temp_dir().join(format!("tftp-roots-{}", std::process::id()));
+        std::fs::create_dir_all(&path).unwrap();
+        let missing = path.join("missing");
+        use std::os::unix::ffi::OsStrExt;
+        let mut config = TftpConfig {
+            enabled: true,
+            root: Some(missing.as_os_str().as_bytes().to_vec()),
+            ..TftpConfig::default()
+        };
+        assert_eq!(
+            config.validate_roots().unwrap_err().kind(),
+            std::io::ErrorKind::NotFound
+        );
+        config.no_fail = true;
+        assert_eq!(
+            config.validate_roots().unwrap(),
+            vec![config.root.clone().unwrap()]
+        );
+        std::fs::create_dir(&missing).unwrap();
+        assert!(config.validate_roots().unwrap().is_empty());
+        std::fs::remove_dir_all(path).unwrap();
     }
 }

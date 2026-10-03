@@ -1,69 +1,152 @@
-//! Linux UDP listener around the socket-independent TFTP transfer runtime.
-//!
-//! The runtime owns protocol state and file descriptors; this module owns the
-//! port-69 socket, per-RRQ transfer sockets, pktinfo admission and event
-//! cleanup. Interface admission and helper integration remain caller-owned.
-
+//! Single-owner TFTP listeners sharing one transfer table and capacity limit.
 #![cfg(all(target_os = "linux", target_pointer_width = "64"))]
 
+#[path = "tftp_policy.rs"]
+mod policy;
+use crate::config::{dns::DnsConfig, tftp::TftpConfig};
+use crate::neighbors::MacLookup;
 use crate::net::{Datagram, DatagramSocket};
-use crate::tftp_runtime::{FileOpener, RuntimeEvent, SocketRole, TransferId, TransferRuntime};
-use std::collections::BTreeMap;
+use crate::tftp_runtime::{
+    FileOpener, RealFileOpener, RequestPolicy, RuntimeConfig, RuntimeEvent, RuntimePathPolicy,
+    SocketRole, TransferId, TransferRuntime,
+};
+use policy::Policy;
+use std::collections::{BTreeMap, VecDeque};
 use std::io;
-use std::net::{IpAddr, SocketAddr, UdpSocket};
+use std::net::{IpAddr, SocketAddr, SocketAddrV6, UdpSocket};
+use std::os::fd::AsRawFd;
+
+struct Server {
+    socket: DatagramSocket,
+    address: SocketAddr,
+    accepting: bool,
+}
+#[derive(Clone, Copy)]
+struct Route {
+    server: SocketAddr,
+    local: IpAddr,
+    interface: u32,
+}
+struct Pending {
+    datagram: Datagram,
+    bytes: Vec<u8>,
+    route: Route,
+    name: Vec<u8>,
+    mtu: Option<u32>,
+    deadline: u64,
+}
 
 pub struct TftpListener<O> {
-    server: DatagramSocket,
+    servers: Vec<Server>,
     transfers: BTreeMap<TransferId, UdpSocket>,
+    routes: BTreeMap<TransferId, Route>,
     runtime: TransferRuntime<O>,
-    bind_ip: IpAddr,
     port_range: Option<(u16, u16)>,
     single_port: bool,
     buffer: Vec<u8>,
+    policy: Option<Policy>,
+    pending: VecDeque<Pending>,
+    refreshed: u64,
+    accepting: bool,
 }
-
+impl TftpListener<RealFileOpener> {
+    /// Bind before dropping privileges. Directory checks belong to
+    /// validate_roots AFTER the caller drops its UID/GID/capabilities.
+    /// random_sockets is C's DNS-forward-max / 2, or zero with DNS disabled.
+    pub fn bind_config(
+        config: &TftpConfig,
+        dns: &DnsConfig,
+        no_dhcp: &[Option<Vec<u8>>],
+        effective_uid: u32,
+        random_sockets: usize,
+    ) -> io::Result<Self> {
+        let policy = Policy::new(config, dns, no_dhcp)?;
+        let open_max = descriptor_limit()?;
+        let limit = config.transfer_limit(open_max, random_sockets.min((open_max / 3) as usize));
+        let runtime = TransferRuntime::new(
+            RuntimeConfig {
+                path: RuntimePathPolicy {
+                    prefix: config.root.clone(),
+                    lowercase: config.lowercase,
+                },
+                mtu: config.mtu,
+                secure: config.secure,
+                effective_uid,
+                no_block_size: config.no_block_size,
+                max_transfers: limit.unwrap_or(0),
+                single_port: config.single_port,
+                ..RuntimeConfig::default()
+            },
+            RealFileOpener::new(effective_uid, config.secure),
+        );
+        let mut listener = Self::empty(runtime, config.port_range);
+        listener.accepting = limit.is_some();
+        listener.policy = Some(policy);
+        listener.sync_servers(true)?;
+        Ok(listener)
+    }
+}
 impl<O: FileOpener> TftpListener<O> {
+    fn empty(runtime: TransferRuntime<O>, port_range: Option<(u16, u16)>) -> Self {
+        let single_port = runtime.single_port();
+        Self {
+            servers: Vec::new(),
+            transfers: BTreeMap::new(),
+            routes: BTreeMap::new(),
+            runtime,
+            port_range: port_range.map(|(a, b)| (a.min(b), a.max(b))),
+            single_port,
+            buffer: vec![0; 65535],
+            policy: None,
+            pending: VecDeque::new(),
+            refreshed: 0,
+            accepting: true,
+        }
+    }
     pub fn bind(address: SocketAddr, runtime: TransferRuntime<O>) -> io::Result<Self> {
         Self::bind_with_port_range(address, runtime, None)
     }
-
     pub fn bind_with_port_range(
         address: SocketAddr,
         runtime: TransferRuntime<O>,
         port_range: Option<(u16, u16)>,
     ) -> io::Result<Self> {
-        let server = DatagramSocket::bind(address)?;
-        let single_port = runtime_single_port(&runtime);
-        Ok(Self {
-            server,
-            transfers: BTreeMap::new(),
-            runtime,
-            bind_ip: address.ip(),
-            port_range: port_range.map(|(start, end)| (start.min(end), start.max(end))),
-            single_port,
-            buffer: vec![0; 65_535],
-        })
+        let socket = DatagramSocket::bind(address)?;
+        let address = socket.local_addr()?;
+        let mut listener = Self::empty(runtime, port_range);
+        listener.servers.push(Server {
+            socket,
+            address,
+            accepting: true,
+        });
+        Ok(listener)
     }
-
+    pub fn validate_roots(&self) -> io::Result<Vec<Vec<u8>>> {
+        self.policy
+            .as_ref()
+            .map_or_else(|| Ok(Vec::new()), |policy| policy.config.validate_roots())
+    }
     pub fn local_addr(&self) -> io::Result<SocketAddr> {
-        self.server.local_addr()
+        self.servers
+            .first()
+            .map(|server| server.address)
+            .ok_or_else(|| io::Error::new(io::ErrorKind::AddrNotAvailable, "no TFTP listener"))
     }
-
     pub fn active_transfers(&self) -> usize {
         self.runtime.active_len()
     }
-
-    /// Include both admission and transfer ACK sockets in the containing
-    /// owner's wait; a DHCP conflict probe must not stall an active transfer.
     pub fn append_poll_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>) {
         use owrt_ubus::sys::{PollFd, POLLIN};
-        use std::os::fd::AsRawFd;
-        if self.runtime.can_receive_server() {
-            fds.push(PollFd {
-                fd: self.server.as_raw_fd(),
-                events: POLLIN,
-                revents: 0,
-            });
+        for server in &self.servers {
+            if self.single_port
+                || self.accepting && server.accepting && self.runtime.can_receive_server()
+            {
+                fds.push(PollFd {
+                    fd: server.socket.as_raw_fd(),
+                    events: POLLIN,
+                    revents: 0,
+                });
+            }
         }
         for socket in self.transfers.values() {
             fds.push(PollFd {
@@ -73,37 +156,205 @@ impl<O: FileOpener> TftpListener<O> {
             });
         }
     }
-
-    /// Poll one bounded datagram from the server/transfer sockets and run one
-    /// retransmission tick. `Send` events are attempted before return;
-    /// nonfatal socket/send failures are reported as `TransportError`.
     pub fn poll_once(&mut self, now: u64) -> io::Result<Vec<RuntimeEvent>> {
+        self.poll_once_with_mac(now, &mut |_, _, _| MacLookup::Ready(None))
+    }
+    /// The callback checks DHCP leases first, then the shared nonblocking
+    /// neighbor cache. At most eight RRQs may await a neighbor snapshot.
+    pub fn poll_once_with_mac(
+        &mut self,
+        now: u64,
+        mac: &mut dyn FnMut(IpAddr, u32, u64) -> MacLookup,
+    ) -> io::Result<Vec<RuntimeEvent>> {
         let mut events = Vec::new();
-        self.receive_server(now, &mut events)?;
+        if self.policy.is_some() && now != self.refreshed {
+            self.refreshed = now;
+            if let Some(policy) = self.policy.as_mut() {
+                policy.refresh()?;
+            }
+            self.sync_servers(false)?;
+        }
+        let waiting = self.pending.len();
+        for _ in 0..waiting {
+            let pending = self.pending.pop_front().unwrap();
+            let found = match mac(pending.datagram.peer.ip(), pending.datagram.interface, now) {
+                MacLookup::Ready(found) => found,
+                MacLookup::Pending if now < pending.deadline => {
+                    self.pending.push_back(pending);
+                    continue;
+                }
+                MacLookup::Pending => None,
+            };
+            self.dispatch(pending, found, now, &mut events)?;
+        }
+        for index in 0..self.servers.len() {
+            self.receive_server(index, now, mac, &mut events)?;
+        }
         if !self.single_port {
             let ids: Vec<_> = self.transfers.keys().copied().collect();
             for id in ids {
                 self.receive_transfer(id, now, &mut events)?;
             }
         }
-        let mut tick_events = self.runtime.tick(now).map_err(runtime_io)?;
-        self.flush_events(&mut tick_events, None);
-        events.extend(tick_events);
+        let mut tick = self.runtime.tick(now).map_err(runtime_io)?;
+        self.flush_events(&mut tick, None, None);
+        events.extend(tick);
+        self.routes
+            .retain(|id, _| self.runtime.contains_transfer(*id));
         Ok(events)
     }
-
-    fn receive_server(&mut self, now: u64, events: &mut Vec<RuntimeEvent>) -> io::Result<()> {
-        if !self.runtime.can_receive_server() {
+    fn sync_servers(&mut self, initial: bool) -> io::Result<()> {
+        let Some(policy) = &self.policy else {
+            return Ok(());
+        };
+        if !initial && !policy.dns.bind_dynamic {
             return Ok(());
         }
-        let Some(datagram) = receive_pending(&self.server, &mut self.buffer)? else {
+        let addresses = policy.addresses();
+        for server in &mut self.servers {
+            server.accepting = addresses.contains(&server.address);
+        }
+        for address in addresses {
+            if self.servers.iter().any(|server| server.address == address) {
+                continue;
+            }
+            match DatagramSocket::bind(address) {
+                Ok(socket) => self.servers.push(Server {
+                    socket,
+                    address,
+                    accepting: true,
+                }),
+                Err(error)
+                    if policy.dns.bind_dynamic
+                        && matches!(
+                            error.kind(),
+                            io::ErrorKind::AddrNotAvailable | io::ErrorKind::AddrInUse
+                        ) => {}
+                // A kernel without IPv6 follows C's optional IPv6 listener.
+                Err(error)
+                    if address.is_ipv6() && matches!(error.raw_os_error(), Some(97 | 93)) => {}
+                Err(error) => return Err(error),
+            }
+        }
+        // Keep a removed single-port listener until its existing transfers
+        // finish, preserving ACK and retransmission routing during reload.
+        self.servers.retain(|server| {
+            server.accepting
+                || self
+                    .routes
+                    .values()
+                    .any(|route| route.server == server.address)
+        });
+        Ok(())
+    }
+    fn receive_server(
+        &mut self,
+        index: usize,
+        now: u64,
+        mac: &mut dyn FnMut(IpAddr, u32, u64) -> MacLookup,
+        events: &mut Vec<RuntimeEvent>,
+    ) -> io::Result<()> {
+        if !self.single_port
+            && (!self.accepting
+                || !self.servers[index].accepting
+                || !self.runtime.can_receive_server())
+        {
+            return Ok(());
+        }
+        let Some(datagram) = receive_pending(&self.servers[index].socket, &mut self.buffer)? else {
             return Ok(());
         };
         let bytes = self.buffer[..datagram.len].to_vec();
-        // C allocates/binds the dedicated socket before opening the file.
-        // This order also decides the wire result with only one FD left.
+        let new_request = matches!(bytes.get(..2), Some([0, 1] | [0, 2]));
+        if new_request && (!self.accepting || !self.servers[index].accepting) {
+            return Ok(());
+        }
+        let route = Route {
+            server: self.servers[index].address,
+            local: datagram.local_address,
+            interface: datagram.interface,
+        };
+        let mut name = Vec::new();
+        let mut mtu = None;
+        if let Some(policy) = &self.policy {
+            let bound =
+                policy.dns.bind_interfaces && !policy.dns.bind_dynamic && datagram.peer.is_ipv4();
+            if bound {
+                if let Some(row) = policy
+                    .interfaces
+                    .iter()
+                    .find(|row| row.address == route.server.ip())
+                {
+                    name.clone_from(&row.name);
+                }
+            } else {
+                let Ok(found) =
+                    crate::net::interface_name(&self.servers[index].socket, datagram.interface)
+                else {
+                    return Ok(());
+                };
+                name.extend(found.into_iter().take_while(|byte| *byte != 0));
+            }
+            if !policy.admitted(&datagram, &name) {
+                return Ok(());
+            }
+            mtu = interface_mtu(self.servers[index].socket.as_raw_fd(), &name);
+        }
+        let pending = Pending {
+            datagram,
+            bytes,
+            route,
+            name,
+            mtu,
+            deadline: now.saturating_add(2),
+        };
+        let need_mac = new_request
+            && self
+                .policy
+                .as_ref()
+                .is_some_and(|policy| policy.needs_mac(&pending.name));
+        if need_mac && self.pending.len() >= 8 {
+            return Ok(());
+        }
+        let found = if need_mac {
+            match mac(datagram.peer.ip(), datagram.interface, now) {
+                MacLookup::Ready(found) => found,
+                MacLookup::Pending => {
+                    if self.pending.len() < 8 {
+                        self.pending.push_back(pending);
+                    }
+                    return Ok(());
+                }
+            }
+        } else {
+            None
+        };
+        self.dispatch(pending, found, now, events)
+    }
+    fn dispatch(
+        &mut self,
+        pending: Pending,
+        mac: Option<[u8; 6]>,
+        now: u64,
+        events: &mut Vec<RuntimeEvent>,
+    ) -> io::Result<()> {
+        let Pending {
+            datagram,
+            bytes,
+            route,
+            name,
+            mtu,
+            ..
+        } = pending;
+        if !self.single_port && !self.runtime.can_receive_server() {
+            return Ok(());
+        }
+        // C opens the transfer socket before opening the file.
         let socket = if !self.single_port && matches!(bytes.get(..2), Some([0, 1] | [0, 2])) {
-            match bind_transfer(self.bind_ip, self.port_range) {
+            match bind_transfer_address(
+                local_address(route.local, route.interface),
+                self.port_range,
+            ) {
                 Ok(socket) => Some(socket),
                 Err(error) => {
                     events.push(RuntimeEvent::TransportError {
@@ -117,15 +368,18 @@ impl<O: FileOpener> TftpListener<O> {
         } else {
             None
         };
+        let request: Option<RequestPolicy> = self
+            .policy
+            .as_ref()
+            .map(|policy| policy.request(&datagram, &name, mtu, mac));
         let mut received = self
             .runtime
-            .handle_socket_datagram(SocketRole::Server, datagram.peer, &bytes, now)
+            .handle_datagram_with_policy(datagram.peer, &bytes, now, request.as_ref())
             .map_err(runtime_io)?;
-        self.flush_events(&mut received, socket);
+        self.flush_events(&mut received, socket, Some(route));
         events.extend(received);
         Ok(())
     }
-
     fn receive_transfer(
         &mut self,
         id: TransferId,
@@ -135,42 +389,46 @@ impl<O: FileOpener> TftpListener<O> {
         let Some(socket) = self.transfers.get(&id) else {
             return Ok(());
         };
-        // C's dedicated path uses recvfrom, without ancillary admission.
-        // A receive error leaves the transfer for its timer/retry path.
         let (len, peer) = match socket.recv_from(&mut self.buffer) {
-            Ok(datagram) => datagram,
+            Ok(value) => value,
             Err(_) => return Ok(()),
         };
-        let bytes = self.buffer[..len].to_vec();
         let mut received = self
             .runtime
-            .handle_socket_datagram(SocketRole::Transfer(id), peer, &bytes, now)
+            .handle_socket_datagram(SocketRole::Transfer(id), peer, &self.buffer[..len], now)
             .map_err(runtime_io)?;
-        self.flush_events(&mut received, None);
+        self.flush_events(&mut received, None, None);
         events.extend(received);
         Ok(())
     }
-
-    fn flush_events(&mut self, events: &mut Vec<RuntimeEvent>, mut new_socket: Option<UdpSocket>) {
+    fn flush_events(
+        &mut self,
+        events: &mut Vec<RuntimeEvent>,
+        mut socket: Option<UdpSocket>,
+        route: Option<Route>,
+    ) {
         let mut errors = Vec::new();
         for event in &*events {
             let sending = match event {
                 RuntimeEvent::Send { id, peer, packet } => Some((*id, *peer, packet)),
                 RuntimeEvent::TidError { id, peer, packet } => Some((Some(*id), *peer, packet)),
-                RuntimeEvent::Completed(completion) => {
-                    self.transfers.remove(&completion.id);
+                RuntimeEvent::Completed(done) => {
+                    self.transfers.remove(&done.id);
+                    self.routes.remove(&done.id);
                     None
                 }
                 RuntimeEvent::Failed { id, .. } | RuntimeEvent::TimedOut { id, .. } => {
                     self.transfers.remove(id);
+                    self.routes.remove(id);
                     None
                 }
                 RuntimeEvent::TransportError { .. } => None,
             };
             if let Some((id, peer, packet)) = sending {
-                // C ignores send_from's failure result and keeps the transfer
-                // for its normal retransmission/timeout path.
-                if let Err(error) = self.transmit(id, peer, packet, &mut new_socket) {
+                if let (Some(id), Some(route)) = (id, route) {
+                    self.routes.entry(id).or_insert(route);
+                }
+                if let Err(error) = self.transmit(id, peer, packet, &mut socket, route) {
                     errors.push(RuntimeEvent::TransportError {
                         id,
                         peer,
@@ -181,16 +439,27 @@ impl<O: FileOpener> TftpListener<O> {
         }
         events.extend(errors);
     }
-
     fn transmit(
         &mut self,
         id: Option<TransferId>,
         peer: SocketAddr,
         packet: &[u8],
         new_socket: &mut Option<UdpSocket>,
+        incoming: Option<Route>,
     ) -> io::Result<()> {
         if self.single_port {
-            return self.server.send(packet, peer, None);
+            let route = id
+                .and_then(|id| self.routes.get(&id).copied())
+                .or(incoming)
+                .ok_or_else(|| io::Error::other("missing TFTP source route"))?;
+            let server = self
+                .servers
+                .iter()
+                .find(|server| server.address == route.server)
+                .ok_or_else(|| io::Error::other("missing TFTP listener"))?;
+            return server
+                .socket
+                .send(packet, peer, Some((route.local, route.interface)));
         }
         let socket = if let Some(id) = id {
             if let std::collections::btree_map::Entry::Vacant(entry) = self.transfers.entry(id) {
@@ -200,31 +469,47 @@ impl<O: FileOpener> TftpListener<O> {
                         .ok_or_else(|| io::Error::other("missing TFTP transfer socket"))?,
                 );
             }
-            self.transfers.get(&id).expect("inserted transfer socket")
+            self.transfers.get(&id).unwrap()
         } else {
             new_socket
                 .as_ref()
                 .ok_or_else(|| io::Error::other("missing TFTP error socket"))?
         };
-        loop {
-            match socket.send_to(packet, peer) {
-                Ok(sent) if sent == packet.len() => return Ok(()),
-                Ok(_) => return Err(io::Error::new(io::ErrorKind::WriteZero, "short TFTP send")),
-                Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
-                Err(error) => return Err(error),
-            }
+        match socket.send_to(packet, peer) {
+            Ok(sent) if sent == packet.len() => Ok(()),
+            Ok(_) => Err(io::Error::new(io::ErrorKind::WriteZero, "short TFTP send")),
+            Err(error) => Err(error),
         }
     }
 }
-
+fn local_address(ip: IpAddr, interface: u32) -> SocketAddr {
+    match ip {
+        IpAddr::V6(ip) => SocketAddr::V6(SocketAddrV6::new(
+            ip,
+            0,
+            0,
+            if ip.is_unicast_link_local() {
+                interface
+            } else {
+                0
+            },
+        )),
+        ip => SocketAddr::new(ip, 0),
+    }
+}
+#[cfg(test)]
 fn bind_transfer(ip: IpAddr, range: Option<(u16, u16)>) -> io::Result<UdpSocket> {
-    // Unlike DNS listeners these sockets must not use SO_REUSEADDR: each
-    // live RRQ requires its own source TID, including identical peers.
+    bind_transfer_address(SocketAddr::new(ip, 0), range)
+}
+fn bind_transfer_address(
+    mut address: SocketAddr,
+    range: Option<(u16, u16)>,
+) -> io::Result<UdpSocket> {
     let (start, end) = range.unwrap_or((0, 0));
-    // C treats a zero start as an ephemeral bind, irrespective of end.
     let end = if start == 0 { 0 } else { end };
     for port in start..=end {
-        match UdpSocket::bind(SocketAddr::new(ip, port)) {
+        address.set_port(port);
+        match UdpSocket::bind(address) {
             Ok(socket) => {
                 socket.set_nonblocking(true)?;
                 return Ok(socket);
@@ -233,9 +518,8 @@ fn bind_transfer(ip: IpAddr, range: Option<(u16, u16)>) -> io::Result<UdpSocket>
             Err(error) => return Err(error),
         }
     }
-    unreachable!("normalized inclusive port range is nonempty")
+    unreachable!("normalized port range")
 }
-
 fn receive_pending(socket: &DatagramSocket, buffer: &mut [u8]) -> io::Result<Option<Datagram>> {
     match socket.receive(buffer) {
         Err(error)
@@ -249,13 +533,40 @@ fn receive_pending(socket: &DatagramSocket, buffer: &mut [u8]) -> io::Result<Opt
         result => result,
     }
 }
-
-fn runtime_single_port<O: FileOpener>(runtime: &TransferRuntime<O>) -> bool {
-    runtime.single_port()
-}
-
 fn runtime_io<E: std::fmt::Debug>(error: E) -> io::Error {
     io::Error::other(format!("TFTP runtime: {error:?}"))
+}
+fn interface_mtu(fd: i32, name: &[u8]) -> Option<u32> {
+    if name.is_empty() || name.len() >= 16 {
+        return None;
+    }
+    extern "C" {
+        fn ioctl(fd: i32, request: usize, argument: *mut u8) -> i32;
+    }
+    let mut request = [0u64; 5];
+    // SAFETY: Linux 64-bit ifreq is 40 bytes with name and aligned union.
+    let bytes = unsafe { std::slice::from_raw_parts_mut(request.as_mut_ptr().cast::<u8>(), 40) };
+    bytes[..name.len()].copy_from_slice(name);
+    // SAFETY: SIOCGIFMTU writes a native int in the live ifreq union.
+    if unsafe { ioctl(fd, 0x8921, bytes.as_mut_ptr()) } < 0 {
+        return None;
+    }
+    u32::try_from(i32::from_ne_bytes(bytes[16..20].try_into().unwrap())).ok()
+}
+fn descriptor_limit() -> io::Result<u64> {
+    extern "C" {
+        // Keep this declaration byte-for-byte compatible with the helper
+        // process module's fallback declaration. `rlimit` is two native
+        // unsigned longs on the supported 64-bit Linux targets.
+        fn getrlimit(resource: i32, limit: *mut [usize; 2]) -> i32;
+    }
+    let mut limit = [0usize; 2];
+    // SAFETY: Linux 64-bit rlimit contains two 64-bit fields.
+    if unsafe { getrlimit(7, &mut limit) } < 0 {
+        Err(io::Error::last_os_error())
+    } else {
+        Ok(limit[0] as u64)
+    }
 }
 
 #[cfg(test)]
@@ -367,6 +678,76 @@ mod tests {
             drop(listener);
             let _reclaimed = UdpSocket::bind(server).unwrap();
         }
+        std::fs::remove_dir_all(root).unwrap();
+    }
+    #[test]
+    #[ignore = "requires tools/dnsmasq/run_isolated.sh network namespace"]
+    fn integrated_dual_stack_shares_capacity_and_pending_mac_does_not_block() {
+        assert_eq!(std::env::var("DNSMASQ_TEST_ISOLATED").as_deref(), Ok("1"));
+        let root = std::env::temp_dir().join(format!("tftp-policy-{}", std::process::id()));
+        let unique = root.join("02-00-00-00-00-01");
+        std::fs::create_dir_all(&unique).unwrap();
+        std::fs::write(unique.join("boot.bin"), b"selected").unwrap();
+        std::fs::set_permissions(
+            unique.join("boot.bin"),
+            std::fs::Permissions::from_mode(0o644),
+        )
+        .unwrap();
+        let config = TftpConfig {
+            enabled: true,
+            root: Some(root.as_os_str().as_bytes().to_vec()),
+            unique_root_mac: true,
+            max_transfers: 0,
+            ..TftpConfig::default()
+        };
+        let dns = DnsConfig::default();
+        let mut listener = TftpListener::bind_config(&config, &dns, &[], 0, 0).unwrap();
+        assert_eq!(listener.servers.len(), 2);
+        assert!(listener.validate_roots().unwrap().is_empty());
+        let v4 = UdpSocket::bind("127.0.0.1:0").unwrap();
+        let v6 = UdpSocket::bind("[::1]:0").unwrap();
+        for endpoint in [&v4, &v6] {
+            endpoint
+                .set_read_timeout(Some(Duration::from_millis(30)))
+                .unwrap();
+        }
+        v4.send_to(b"\0\x01boot.bin\0octet\0", "127.0.0.1:69")
+            .unwrap();
+        assert!(listener
+            .poll_once_with_mac(1, &mut |_, _, _| MacLookup::Pending)
+            .unwrap()
+            .is_empty());
+        assert_eq!(listener.pending.len(), 1);
+        assert_eq!(listener.active_transfers(), 0);
+        let mut bytes = [0; 512];
+        assert!(v4.recv_from(&mut bytes).is_err());
+        listener
+            .poll_once_with_mac(1, &mut |_, _, _| MacLookup::Ready(Some([2, 0, 0, 0, 0, 1])))
+            .unwrap();
+        let (len, source) = v4.recv_from(&mut bytes).unwrap();
+        assert_eq!(&bytes[..len], b"\0\x03\0\x01selected");
+        assert_eq!(listener.active_transfers(), 1);
+        v6.send_to(b"\0\x01boot.bin\0octet\0", "[::1]:69").unwrap();
+        listener
+            .poll_once_with_mac(1, &mut |_, _, _| MacLookup::Ready(Some([2, 0, 0, 0, 0, 1])))
+            .unwrap();
+        assert!(
+            v6.recv_from(&mut bytes).is_err(),
+            "capacity is global across address families"
+        );
+        v4.send_to(&[0, 4, 0, 1], source).unwrap();
+        listener.poll_once(1).unwrap();
+        listener
+            .poll_once_with_mac(1, &mut |_, _, _| MacLookup::Ready(Some([2, 0, 0, 0, 0, 1])))
+            .unwrap();
+        let (len, source) = v6.recv_from(&mut bytes).unwrap();
+        assert_eq!(&bytes[..len], b"\0\x03\0\x01selected");
+        v6.send_to(&[0, 4, 0, 1], source).unwrap();
+        listener.poll_once(1).unwrap();
+        assert_eq!(listener.active_transfers(), 0);
+        assert!(listener.transfers.is_empty());
+        assert!(listener.routes.is_empty());
+        drop(listener);
         std::fs::remove_dir_all(root).unwrap();
     }
 }

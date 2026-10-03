@@ -75,6 +75,57 @@ pub fn resolve_path(
     Ok(path)
 }
 
+/// Select C's optional peer directory before appending the requested file.
+/// Missing directories fall back independently; when both bits are set the
+/// MAC directory is looked up beneath the selected IP directory.
+pub fn unique_root(
+    prefix: Option<&[u8]>,
+    peer: std::net::IpAddr,
+    mac: Option<[u8; 6]>,
+    by_ip: bool,
+    by_mac: bool,
+    mut is_directory: impl FnMut(&[u8]) -> bool,
+) -> Option<Vec<u8>> {
+    let prefix = prefix?;
+    if !by_ip && !by_mac {
+        return Some(prefix.to_vec());
+    }
+    let mut path = if prefix.starts_with(b"/") {
+        Vec::new()
+    } else {
+        vec![b'/']
+    };
+    append_bounded(&mut path, prefix);
+    if !prefix.ends_with(b"/") {
+        append_bounded(&mut path, b"/");
+    }
+    if by_ip {
+        let base = path.len();
+        append_bounded(&mut path, peer.to_string().as_bytes());
+        append_bounded(&mut path, b"/");
+        if !is_directory(&path) {
+            path.truncate(base);
+        }
+    }
+    if let Some(mac) = mac.filter(|_| by_mac) {
+        let base = path.len();
+        let mut component = [b'-'; 18];
+        const HEX: &[u8] = b"0123456789abcdef";
+        for (index, byte) in mac.into_iter().enumerate() {
+            component[index * 3] = HEX[usize::from(byte >> 4)];
+            component[index * 3 + 1] = HEX[usize::from(byte & 15)];
+        }
+        component[17] = b'/';
+        // C uses snprintf rather than strncat here, reserving a NUL byte.
+        let available = MAX_PATH_BYTES.saturating_sub(path.len()).saturating_sub(1);
+        path.extend_from_slice(&component[..component.len().min(available)]);
+        if !is_directory(&path) {
+            path.truncate(base);
+        }
+    }
+    Some(path)
+}
+
 /// Additional checks after a successful `open(O_RDONLY)` followed by fstat.
 /// Kernel access checks are still required; this predicate does not replace
 /// opening the file under the daemon's effective identity.
@@ -203,5 +254,28 @@ mod tests {
         );
         assert_eq!(admission(&[0], peer, &[peer], true, 1), Admission::Ignore);
         assert_eq!(admission(&[0, 1], peer, &[peer], false, 1), Admission::New);
+    }
+    #[test]
+    fn unique_peer_roots_fall_back_and_preserve_combined_order() {
+        let ip = "192.0.2.1".parse().unwrap();
+        let mac = Some([2, 0, 0, 0, 0, 1]);
+        assert_eq!(
+            unique_root(Some(b"/srv"), ip, mac, true, true, |_| true).unwrap(),
+            b"/srv/192.0.2.1/02-00-00-00-00-01/"
+        );
+        assert_eq!(
+            unique_root(Some(b"/srv"), ip, mac, true, true, |p| !p
+                .ends_with(b"192.0.2.1/"))
+            .unwrap(),
+            b"/srv/02-00-00-00-00-01/"
+        );
+        assert_eq!(
+            unique_root(Some(b"/srv"), ip, mac, true, true, |_| false).unwrap(),
+            b"/srv/"
+        );
+        assert_eq!(
+            unique_root(None, ip, mac, true, true, |_| panic!("no root lookup")),
+            None
+        );
     }
 }
