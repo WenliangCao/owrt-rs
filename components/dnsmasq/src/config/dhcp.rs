@@ -896,6 +896,18 @@ mod tests {
     }
 
     #[test]
+    fn leasequery_configuration_keeps_acl_and_enable_bit() {
+        let mut config = DhcpConfig::default();
+        for line in [b"leasequery".as_slice(), b"leasequery=192.0.2.0/24"] {
+            assert!(config.apply(&lex_line(line).unwrap().unwrap()).unwrap());
+        }
+        assert!(config.lease_query.enabled);
+        assert_eq!(config.lease_query.allowed_sources.len(), 1);
+        assert!(config.lease_query.allows("192.0.2.44".parse().unwrap()));
+        assert!(!config.lease_query.allows("198.51.100.44".parse().unwrap()));
+    }
+
+    #[test]
     fn rejects_extra_fields_quotes_and_unimplemented_selectors() {
         for input in [
             "192.0.2.10,192.0.2.20,1h,2h",
