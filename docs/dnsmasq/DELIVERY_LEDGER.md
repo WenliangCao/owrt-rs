@@ -50,6 +50,8 @@ M4 的单 poll owner 已替换六线程接线，决定见 [ADR_THREAD_MODEL.md](
 
 M5 退出条件：169项全部实现并有C差分，或已证明与C一致的拒绝/未启用；产品没有 not implemented 拒绝点，零已知功能缺陷；同一版本完成完整M2、实际5分钟资源试跑、两项压力、APK生命周期及满载RSS比较，最后写M5_REPORT。体积/内存相对M4的1,159,280字节/2,676KiB逐项报告；M4的体积特许不能复用到新ELF，新增体积待用户决定。
 
+本次续接已完成代码级推进但不下调盘点数：`dhcp-boot` 的 `tag:`/`net:` 多条目选择现在按请求 tag、`tag-if` 和已选 range context 选择完整 BootEntry；`filter-A`/`filter-AAAA`/`filter-rr` 已接入本地、UDP/TCP、缓存答案和 clipped/ANY 边界。两族的本地测试和 clippy 通过，精确镜像族级差分尚未在当前工作机复跑，因此仍按原状态计数；对应分支已合入 main，旧 worktree 已以 `archive/m5-boot-53b330b`、`archive/m5-dns-filter-1b099e1` 保留。后续优先补这两族的精确 C 配对，再处理 helper 接线和 relay/leasequery。
+
 文件归属：tags负责人维护config/dhcp_tags、dhcp_host、dhcp_options及编码逻辑；网络负责人维护boot/relay/leasequery和TFTP；helper负责人维护helper/filewatch和loader；DNS负责人维护dns/*、config/dns和本地记录/策略。主代理独占main.rs、config/dhcp.rs、dhcp/daemon.rs及共用接线，其他人用明确patch/API交接。每族仅一个差分测试器，证据统一在 `private/dnsmasq-rewrite/evidence/M5/`。
 
 | 选项 | 组 / init 行 | 负责人 | 状态 | 证据或具体缺口 |
