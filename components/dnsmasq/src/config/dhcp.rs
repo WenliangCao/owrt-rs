@@ -138,6 +138,11 @@ impl BootConfig {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DhcpConfig {
+    /// RFC4388 leasequery configuration. The parser is kept with the DHCP
+    /// config, while query state and wire encoding stay in the DHCP module.
+    pub lease_query: crate::dhcp::lease_query::LeaseQueryConfig,
+    pub script: Option<Vec<u8>>,
+    pub script_user: Option<Vec<u8>>,
     /// Matches C's context-list order: the last configured range comes first.
     pub ranges: Vec<RangeConfig>,
     /// Last directive first, matching daemon->dhcp_conf.
@@ -184,6 +189,9 @@ pub struct DhcpConfig {
 impl Default for DhcpConfig {
     fn default() -> Self {
         Self {
+            lease_query: Default::default(),
+            script: None,
+            script_user: None,
             ranges: Vec::new(),
             hosts: Vec::new(),
             host_files: Vec::new(),
@@ -271,6 +279,9 @@ fn ip(bytes: &[u8]) -> Result<Ipv4Addr, Error> {
 impl DhcpConfig {
     pub fn apply(&mut self, directive: &Directive) -> Result<bool, Error> {
         validate_directive(directive)?;
+        if self.lease_query.apply(directive)? {
+            return Ok(true);
+        }
         let argument = directive.argument.as_ref();
         match directive.name.as_slice() {
             b"dhcp-authoritative" => self.authoritative = true,
@@ -451,8 +462,13 @@ impl DhcpConfig {
                 }
                 self.host_files.insert(0, value);
             }
-            b"dhcp-hostsdir" | b"dhcp-optsfile" | b"dhcp-optsdir" | b"dhcp-script"
-            | b"dhcp-scriptuser" | b"dhcp-reply-delay" => {
+            b"dhcp-script" => {
+                self.script = Some(argument.ok_or(Error("missing parameter"))?.decoded());
+            }
+            b"dhcp-scriptuser" => {
+                self.script_user = Some(argument.ok_or(Error("missing parameter"))?.decoded());
+            }
+            b"dhcp-hostsdir" | b"dhcp-optsfile" | b"dhcp-optsdir" | b"dhcp-reply-delay" => {
                 return Err(Error(
                     "DHCP option is parsed but runtime wiring is not complete",
                 ));
