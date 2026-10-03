@@ -24,6 +24,8 @@ use dnsmasq_rs::dns::forward::SocketToken;
 use dnsmasq_rs::dns::lease_names::{LeasePolicy, PublicationWarning};
 use dnsmasq_rs::dns::service::{encode_tcp_frame, LocalDnsService, TcpFramer};
 use dnsmasq_rs::dns::tcp_service::{TcpDnsService, TcpServiceProgress, TcpWait};
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+use dnsmasq_rs::helper::{Config as HelperConfig, Helper, LeaseDelivery};
 use dnsmasq_rs::hosts::Hosts;
 use dnsmasq_rs::interfaces::DnsInterface;
 use dnsmasq_rs::listeners::{self, DnsSocket};
@@ -38,7 +40,11 @@ use dnsmasq_rs::ubus_service::{DhcpEventFields, DhcpEventKind, DhcpLogging};
 use std::ffi::OsString;
 use std::io::{self, Read, Write};
 use std::net::{IpAddr, SocketAddr, TcpListener, TcpStream};
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+use std::os::unix::ffi::OsStringExt;
 use std::path::Path;
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -495,6 +501,16 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     let parent_events = Arc::new(Mutex::new(ParentEvents::new(&runtime.ubus)?));
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     let mut dhcp_provider = None;
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    let dhcp_helper = if let Some(script) = dhcp_config.script.clone() {
+        Some(Helper::start(HelperConfig {
+            script: PathBuf::from(OsString::from_vec(script)),
+            script_user: dhcp_config.script_user.clone(),
+            debug: runtime.process.debug,
+        })?)
+    } else {
+        None
+    };
     #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
     if !dhcp_config.ranges.is_empty() {
         return Err(Box::new(Error("DHCP listener requires 64-bit Linux")));
@@ -692,6 +708,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         daemon_options.edns_packet_max,
         poll_listeners,
         dhcp_runtime,
+        dhcp_helper,
         tftp_listener,
     );
     #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
@@ -818,6 +835,10 @@ struct SinglePoll {
     probe_metrics: Option<Metrics>,
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     dhcp: Option<(Arc<Mutex<DhcpProvider>>, DhcpSocketListener)>,
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    helper: Option<Helper>,
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    pending_delivery: Option<LeaseDelivery>,
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     tftp: Option<TftpListener<RealFileOpener>>,
 }
@@ -1014,6 +1035,7 @@ impl SinglePoll {
             Arc<Mutex<DhcpProvider>>,
             DhcpSocketListener,
         )>,
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))] helper: Option<Helper>,
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))] tftp: Option<
             TftpListener<RealFileOpener>,
         >,
@@ -1035,6 +1057,10 @@ impl SinglePoll {
             probe_metrics: None,
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             dhcp,
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            helper,
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            pending_delivery: None,
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             tftp,
         }
@@ -1472,6 +1498,25 @@ impl SinglePoll {
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     fn step_dhcp(&mut self) {
+        if let Some(helper) = self.helper.as_mut() {
+            if let Some(delivery) = self.pending_delivery.as_ref() {
+                match helper.enqueue_delivery(delivery) {
+                    Ok(true) => self.pending_delivery = None,
+                    Ok(false) => {}
+                    Err(error) => eprintln!("dnsmasq-rs: DHCP helper enqueue: {error}"),
+                }
+            }
+            match helper.step() {
+                Ok(notices) => {
+                    for notice in notices {
+                        if !matches!(notice, dnsmasq_rs::helper::Notice::Ready) {
+                            eprintln!("dnsmasq-rs: DHCP helper: {notice:?}");
+                        }
+                    }
+                }
+                Err(error) => eprintln!("dnsmasq-rs: DHCP helper step: {error}"),
+            }
+        }
         let Some((shared_provider, mut listener)) = self.dhcp.take() else {
             return;
         };
@@ -1501,6 +1546,9 @@ impl SinglePoll {
                 STOP_REQUESTED.load(Ordering::Acquire)
             })
         };
+        if self.pending_delivery.is_none() {
+            self.pending_delivery = provider.take_script_delivery();
+        }
         self.probe_metrics = None;
         if let Ok(ListenerStep::Processed(result)) = result {
             let events = match &result {
@@ -1859,6 +1907,7 @@ mod tests {
             512,
             Vec::new(),
             Some((Arc::new(Mutex::new(provider)), listener)),
+            None,
             None,
         );
         for _ in 0..3 {

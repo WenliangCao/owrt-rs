@@ -19,6 +19,8 @@ use crate::config::dhcp::{
     option_filter, BootConfig, ClassKind, DhcpConfig, FilteredOptions, HostConfig, HostFileError,
     HostFiles, NameDomains, TagIf,
 };
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+use crate::helper::{LeaseDelivery, LeaseEventContext};
 use crate::interfaces::{ipv4_interfaces, primary_ipv4};
 use crate::ubus_service::{DhcpEventFields, DhcpEventKind, DhcpLogging};
 use std::ffi::OsStr;
@@ -111,6 +113,13 @@ pub struct EventProvider<'a> {
     wait: Option<&'a mut DhcpProbeWait<'a>>,
 }
 
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+impl EventProvider<'_> {
+    pub fn take_script_delivery(&mut self) -> Option<LeaseDelivery> {
+        self.provider.take_script_delivery()
+    }
+}
+
 pub struct LocalProvider {
     config: DhcpConfig,
     leases: LeaseStore,
@@ -145,6 +154,8 @@ pub struct LocalProvider {
     pending_alarms: u32,
     maintenance_report: Option<MaintenanceReport>,
     message_counters: super::message_counters::MessageCounters,
+    scripts: super::lease::ScriptQueue,
+    pending_delivery: Option<LeaseDelivery>,
 }
 
 impl LocalProvider {
@@ -234,6 +245,8 @@ impl LocalProvider {
             pending_alarms: 0,
             maintenance_report: None,
             message_counters: super::message_counters::MessageCounters::default(),
+            scripts: super::lease::ScriptQueue::default(),
+            pending_delivery: None,
         })
     }
 
@@ -293,6 +306,11 @@ impl LocalProvider {
         self.maintenance_report.take()
     }
 
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    pub fn take_script_delivery(&mut self) -> Option<LeaseDelivery> {
+        self.pending_delivery.take()
+    }
+
     fn select_boot(&mut self, outcome: &Outcome) {
         let context = match outcome.reply {
             Reply::Offer { context, .. }
@@ -338,6 +356,7 @@ impl LocalProvider {
     }
 
     fn maintain(&mut self, now: i64, removed: Vec<Lease>, force_dns: bool) -> MaintenanceReport {
+        self.scripts.add_pruned(removed.clone());
         let file = self.persistence.update(&mut self.leases, now);
         // A signal which became due during state/file work remains pending
         // even when this update installs a newer relative alarm.
@@ -1014,6 +1033,28 @@ impl LocalProvider {
             self.select_boot(outcome);
         }
         self.probe_error = probe_error;
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if self.pending_delivery.is_none() && self.config.script.is_some() {
+            if let Some(event) = self.scripts.next(
+                &mut self.leases,
+                super::lease::ScriptOptions {
+                    lease_file_read_only: self.config.lease_read_only,
+                    notify_renewals: false,
+                },
+            ) {
+                self.pending_delivery = Some(LeaseDelivery::new(
+                    event,
+                    LeaseEventContext {
+                        interface: interface_name.unwrap_or_default().to_vec(),
+                        now,
+                        relay_address: (!packet.giaddr().is_unspecified())
+                            .then_some(packet.giaddr()),
+                        extra: None,
+                        log_dhcp: self.config.log_dhcp,
+                    },
+                ));
+            }
+        }
         for (selected, range) in self.selected.iter().zip(&ranges) {
             self.states[selected.source_index].epoch = range.epoch;
         }
