@@ -1272,6 +1272,48 @@ mod tests {
     }
 
     #[test]
+    fn filtered_cache_miss_uses_existing_other_type_as_nodata() {
+        let server = UdpSocket::bind("127.0.0.1:0").unwrap();
+        let address = server.local_addr().unwrap();
+        let worker = thread::spawn(move || {
+            let mut input = [0; 2048];
+            let (length, peer) = server.recv_from(&mut input).unwrap();
+            let header = Header::parse(&input[..length]).unwrap();
+            let name = Name::from_ascii("shortcut.test").unwrap();
+            let mut writer = PacketWriter::new(header.id, 0x8180, 1232).unwrap();
+            writer.question(&name, 1, 1).unwrap();
+            writer
+                .record(Section::Answer, &name, 1, 1, 30, &[192, 0, 2, 10])
+                .unwrap();
+            server.send_to(&writer.finish(), peer).unwrap();
+        });
+        let mut config = DnsConfig::default();
+        apply(&mut config, b"filter-AAAA");
+        let mut daemon =
+            DnsDaemon::with_random(config, Hosts::new(), &[address], options(), Counter(0))
+                .unwrap();
+        daemon.enable_cache(8, 0, 60, StalePolicy::Disabled);
+        let client = ClientRequest {
+            source: "127.0.0.1:53001".parse().unwrap(),
+            destination: "127.0.0.1".parse().unwrap(),
+            interface: 0,
+        };
+        assert!(matches!(
+            daemon.handle_udp(&query("shortcut.test", 0x2001), client.clone()),
+            Ok(QueryResult::Forwarded(_))
+        ));
+        assert_eq!(daemon.poll(Duration::from_secs(1)).unwrap().len(), 1);
+        let result = daemon
+            .handle_udp(&query_type("shortcut.test", 28, 0x2002), client)
+            .unwrap();
+        let QueryResult::Cached(packet) = result else {
+            panic!("filtered cache shortcut forwarded unexpectedly")
+        };
+        assert_eq!(Message::parse(&packet).unwrap().header.answers, 0);
+        worker.join().unwrap();
+    }
+
+    #[test]
     fn positive_cache_hit_restores_new_client_id_without_second_upstream_send() {
         let server = UdpSocket::bind("127.0.0.1:0").unwrap();
         let address = server.local_addr().unwrap();

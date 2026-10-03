@@ -128,7 +128,14 @@ impl CacheContext<'_> {
             .opt
             .as_ref()
             .map_or(512, |opt| usize::from(opt.udp_size(edns_packet_max)));
-        let mut answer = self.answer_records(question, header, now, local, max_udp.min(limit))?;
+        let mut answer = self.answer_records(
+            question,
+            header,
+            now,
+            local,
+            max_udp.min(limit),
+            dnssec_requested,
+        )?;
         if let Some(packet) = &mut answer.packet {
             // Forward-cache answers are filtered at the same post-selection
             // boundary as C's answer_request output. Local direct answers
@@ -169,6 +176,7 @@ impl CacheContext<'_> {
         now: i64,
         local: &mut LocalDnsService,
         limit: usize,
+        dnssec_requested: bool,
     ) -> Result<CachedAnswer, CacheError> {
         let mut stale = false;
         let round_robin = !local.config.no_round_robin;
@@ -194,6 +202,27 @@ impl CacheContext<'_> {
         };
         let ids = cache.lookup(&question.name, kinds, now, round_robin);
         if ids.is_empty() {
+            // rfc1035.c uses an existing cached RR of any family/type to
+            // answer filtered requests as NODATA, avoiding an upstream round
+            // trip. DNSSEC/DO requests bypass this unauthenticated shortcut.
+            if header.flags & 0x0100 != 0
+                && !dnssec_requested
+                && question.rrtype != 255
+                && self.filter_rr.contains(&question.rrtype)
+                && !cache
+                    .lookup(
+                        &question.name,
+                        &[Kind::Cname, Kind::Ipv4, Kind::Ipv6, Kind::Generic(0)],
+                        now,
+                        round_robin,
+                    )
+                    .is_empty()
+            {
+                let mut writer =
+                    PacketWriter::new(header.id, (header.flags & 0x0110) | 0x8080, limit)?;
+                writer.question(&question.name, question.rrtype, question.class)?;
+                return Ok(finish_cached_answer(writer, false)?);
+            }
             // An address/CNAME miss still reaches C's final F_RR lookup.
             // An unrelated generic record cannot answer this question, but
             // its lookup promotes it before the caller forwards the query.
