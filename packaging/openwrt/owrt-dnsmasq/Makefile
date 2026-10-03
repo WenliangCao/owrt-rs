@@ -107,8 +107,6 @@ define Package/dnsmasq/install
 	$(INSTALL_BIN) ./files/dhcp-script.sh $(1)/usr/lib/dnsmasq/dhcp-script.sh
 	$(INSTALL_DIR) $(1)/usr/share/acl.d
 	$(INSTALL_DATA) ./files/dnsmasq_acl.json $(1)/usr/share/acl.d/dnsmasq_acl.json
-	$(INSTALL_DIR) $(1)/lib/upgrade/keep.d
-	$(INSTALL_DATA) ./files/dnsmasq.keep $(1)/lib/upgrade/keep.d/dnsmasq
 endef
 
 # The stock nodhcpv6 package has this same name. APK upgrades it by version;

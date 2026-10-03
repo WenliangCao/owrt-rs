@@ -63,7 +63,13 @@ class PackageBuildTests(unittest.TestCase):
                 path.write_bytes(b"fixture")
             listing = root / "lib/apk/packages/dnsmasq.list"
             listing.write_text("\n".join(package.OWNERSHIP_LIST) + "\n")
+            keep = root / "lib/upgrade/keep.d/dnsmasq"
+            keep.write_text("/etc/dnsmasq.d/\n")
             self.assertEqual(len(package.audit_payload(root)), len(package.PAYLOAD_FILES))
+            keep.write_text("/etc/dnsmasq.d/\n/etc/dnsmasq.d/\n")
+            with self.assertRaisesRegex(ValueError, "upgrade keep file"):
+                package.audit_payload(root)
+            keep.write_text("/etc/dnsmasq.d/\n")
             extra = root / "usr/libexec/extra"
             extra.parent.mkdir(parents=True)
             extra.write_text("unexpected")

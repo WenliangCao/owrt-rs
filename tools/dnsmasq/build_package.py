@@ -197,6 +197,10 @@ def audit_payload(payload):
     require(set(found) == allowed, f"unexpected package payload paths: {sorted(found)}")
     listing = (payload / "lib/apk/packages/dnsmasq.list").read_text().splitlines()
     require(listing == OWNERSHIP_LIST, f"unexpected package ownership list: {listing}")
+    # The pinned SDK generates this from conffiles. Installing another copy
+    # in the recipe makes package-pack.mk append the same directory twice.
+    require((payload / "lib/upgrade/keep.d/dnsmasq").read_text() == "/etc/dnsmasq.d/\n",
+            "upgrade keep file differs from the image's single directory entry")
     return found
 
 
