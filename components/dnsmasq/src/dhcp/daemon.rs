@@ -1030,6 +1030,7 @@ impl LocalProvider {
         provider.event_sink = Some(&mut on_event);
         let result = provider.resolve(dispatch);
         if let Ok(outcome) = &result {
+            self.scripts.add_pruned(outcome.removed.clone());
             self.select_boot(outcome);
         }
         self.probe_error = probe_error;
