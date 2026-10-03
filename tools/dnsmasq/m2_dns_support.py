@@ -18,6 +18,7 @@ from m2_rootfs import command, image_path, process_identity
 LISTEN = ('127.0.0.1', 15353)
 UPSTREAM_PORT = 15354
 OBJECT = 'm2.dns'
+BUS_SOCKET = '/var/run/ubus/ubus.sock'
 
 
 def response(packet, generation, transport):
@@ -179,15 +180,16 @@ class Product:
         self.bus = None
 
     def start(self):
-        self.bus = subprocess.Popen(command(self.root, '/sbin/ubusd', '-s', '/run/ubus/ubus.sock'),
+        image_path(self.root, BUS_SOCKET).parent.mkdir(parents=True, exist_ok=True)
+        self.bus = subprocess.Popen(command(self.root, '/sbin/ubusd', '-s', BUS_SOCKET),
                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         deadline = time.monotonic() + 3
-        while not image_path(self.root, 'run/ubus/ubus.sock').exists():
+        while not image_path(self.root, BUS_SOCKET).exists():
             assert self.bus.poll() is None and time.monotonic() < deadline, 'ubusd readiness timeout'
             time.sleep(.01)
         while True:
             probe = subprocess.run(
-                command(self.root, '/bin/ubus', '-s', '/run/ubus/ubus.sock', 'list'),
+                command(self.root, '/bin/ubus', '-s', BUS_SOCKET, 'list'),
                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
             )
             if probe.returncode == 0:
@@ -216,7 +218,7 @@ class Product:
         (self.out / 'process-identity.json').write_text(json.dumps(process_identity(self.root, self.process.pid), indent=2) + '\n')
 
     def metrics(self):
-        result = subprocess.run(command(self.root, '/bin/ubus', '-s', '/run/ubus/ubus.sock', 'call', OBJECT, 'metrics'), capture_output=True, text=True, timeout=3)
+        result = subprocess.run(command(self.root, '/bin/ubus', '-s', BUS_SOCKET, 'call', OBJECT, 'metrics'), capture_output=True, text=True, timeout=3)
         self.ubus_calls.append({'exit': result.returncode, 'stdout': result.stdout, 'stderr': result.stderr})
         if result.returncode:
             return None
@@ -284,12 +286,25 @@ class Product:
             for _ in packets:
                 replies.append(exact_read(stream, struct.unpack('!H', exact_read(stream, 2))[0]))
         events = [event for server, offset in zip(self.servers, offsets) for event in server.snapshot()[offset:]]
+        # all-servers dispatches both sends, but its first reply can reach the
+        # client before the second fixture thread records reception. Observe
+        # both side effects before advancing the next server configuration.
+        if self.policy == 'all-servers' and expected_upstream is not None:
+            until = time.monotonic() + 1
+            while len(events) < expected_upstream and time.monotonic() < until:
+                time.sleep(.001)
+                events = [event for server, offset in zip(self.servers, offsets)
+                          for event in server.snapshot()[offset:]]
         decoded = [semantics(reply) for reply in replies]
         row = {'label': label, 'queries': [packet.hex() for packet in packets], 'responses': [reply.hex() for reply in replies],
                'semantic': decoded, 'transport': 'tcp' if connection else 'udp', 'client': client,
                'upstream_raw': events, 'upstream': normalized_upstream(events),
                'expect_reply': expect_reply, 'expected_upstream': expected_upstream,
                'elapsed': began - self.started, 'ttl_checks': []}
+        if self.policy == 'all-servers':
+            # Concurrent arrival order is permitted to differ. Keep raw times
+            # above, and compare each server's query/reply semantics and count.
+            row['upstream'].sort(key=lambda event: (event['server'], event['transport']))
         self.rows.append(row)
         assert len(replies) == (len(packets) if expect_reply else 0), ('reply count', label)
         assert all(reply[:2] == packet[:2] for packet, reply in zip(packets, replies)), ('transaction association', label)

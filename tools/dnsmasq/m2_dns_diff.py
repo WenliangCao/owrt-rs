@@ -103,7 +103,7 @@ def profile_strict_order(product):
     """All primary/secondary failure transitions with strict-order fixed."""
     product.servers[0].configure('refused')
     product.servers[1].configure('answer', generation=1)
-    rows = [product.ask('strict-timeout-failover', 'strict-timeout.m2.test', expected_upstream=2)]
+    rows = [product.ask('strict-refused-failover', 'strict-refused.m2.test', expected_upstream=2)]
     product.servers[0].configure('answer', generation=2)
     product.servers[1].configure('silent')
     rows.append(product.ask('strict-primary-recovered', 'strict-recovered.m2.test', expected_upstream=1))
@@ -116,16 +116,23 @@ def profile_strict_order(product):
 def profile_all_servers(product):
     """Concurrent upstream selection and recovery with all-servers enabled."""
     product.servers[0].configure('answer', generation=1)
-    product.servers[1].configure('answer', generation=2)
-    rows = [product.ask('all-servers-first', 'all-first.m2.test', expected_upstream=1)]
+    product.servers[1].configure('answer', generation=1)
+    rows = [product.ask('all-servers-first', 'all-first.m2.test', expected_upstream=2)]
     product.servers[0].configure('refused')
     product.servers[1].configure('answer', generation=3)
     rows.append(product.ask('all-servers-primary-refused', 'all-refused.m2.test', expected_upstream=2))
     product.servers[0].configure('answer', generation=4)
     product.servers[1].configure('silent')
-    rows.append(product.ask('all-servers-secondary-silent', 'all-secondary.m2.test', expected_upstream=1))
+    rows.append(product.ask('all-servers-secondary-silent', 'all-secondary.m2.test', expected_upstream=2))
+    product.servers[0].configure('answer', generation=5)
     product.servers[1].configure('answer', generation=5)
-    rows.append(product.ask('all-servers-recovered', 'all-recovered.m2.test', expected_upstream=1))
+    rows.append(product.ask('all-servers-recovered', 'all-recovered.m2.test', expected_upstream=2))
+    product.servers[0].configure('silent')
+    product.servers[1].configure('silent')
+    rows.append(product.ask('all-servers-timeout', 'all-timeout.m2.test', expect_reply=False, expected_upstream=2))
+    product.servers[0].configure('answer', generation=6)
+    product.servers[1].configure('answer', generation=6)
+    rows.append(product.ask('all-servers-after-timeout', 'all-after-timeout.m2.test', expected_upstream=2))
     return rows
 
 
@@ -211,6 +218,25 @@ def compare(c_trace, rust_trace):
             'unexecuted': abs(len(left['rows']) - len(right['rows'])), 'differences': differences}
 
 
+def comparison_controls(reference):
+    """Prove missing outcomes, reply changes and false cache hits stay visible."""
+    controls = []
+    changed = copy.deepcopy(reference)
+    changed['rows'].pop()
+    report = compare(reference, changed)
+    controls.append({'name': 'missing-row', 'detected': bool(report['unexecuted'])})
+    changed = copy.deepcopy(reference)
+    answered = next(row for row in changed['rows'] if row['semantic'])
+    answered['semantic'][0]['flags'] ^= 1
+    controls.append({'name': 'reply-rcode', 'detected': bool(compare(reference, changed)['differences'])})
+    changed = copy.deepcopy(reference)
+    forwarded = next(row for row in changed['rows'] if row['upstream'])
+    forwarded['upstream'].pop()
+    controls.append({'name': 'missing-upstream', 'detected': bool(compare(reference, changed)['differences'])})
+    assert all(row['detected'] for row in controls), ('comparison negative control', controls)
+    return controls
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--image-root', type=Path, required=True)
@@ -234,9 +260,14 @@ def main():
     report = compare(c_trace, rust_trace)
     report.update({'profile': args.profile, 'seed': MIX_SEED if args.profile == 'representative-mix' else None,
                    'c_sha256': digest((out / 'c/rootfs/usr/sbin/dnsmasq')), 'rust_sha256': digest((out / 'rust/rootfs/usr/sbin/dnsmasq-rs')),
-                   'image_sha256': IMAGE_SHA, 'failures': []})
+                   'image_sha256': IMAGE_SHA, 'failures': [],
+                   'negative_controls': comparison_controls(c_trace)})
     if report['unexecuted']:
         report['failures'].append('row-count mismatch')
+    for side, trace in [('c', c_trace), ('rust', rust_trace)]:
+        for check in trace['checks']:
+            if not check['pass']:
+                report['failures'].append(f"{side}: {check['name']}")
     (out / 'result.json').write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps({key: value if key != 'differences' else len(value) for key, value in report.items()}))
     return int(bool(report['differences'] or report['failures'] or report['unexecuted']))
