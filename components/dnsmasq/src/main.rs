@@ -621,7 +621,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         match TftpListener::bind_config(
             &tftp_config,
             &daemon_config,
-            &dhcp_config.no_dhcp_interfaces,
+            &runtime.dhcp.no_dhcp_interfaces,
             identity.runtime_uid(&runtime.process),
             if dns_enabled {
                 (runtime.scalar.forward_max as usize) / 2
