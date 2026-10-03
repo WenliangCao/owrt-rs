@@ -87,6 +87,21 @@ class PackageBuildTests(unittest.TestCase):
         self.assertEqual(report["budget_checks"], {"apk": False, "elf": False})
         self.assertEqual(report["elf"]["size"], 1_200_000)
 
+    def test_user_size_exception_is_bound_to_one_elf_and_retains_original_miss(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "budget.json"
+            path.write_text(json.dumps({"schema": 1, "elf_max_bytes": 1159280, "apk_max_bytes": 700000,
+                "user_accepted_elf": {"bytes": 1159280, "sha256": "f" * 64, "original_target_bytes": 1000000,
+                                      "reason": "User explicitly accepted measured option A"}}))
+            report = {"budget": package.read_budget(path), "elf": {"size": 1159280, "sha256": "f" * 64},
+                      "artifact": {"size": 600000}}
+            package.audit_sizes(report)
+            self.assertFalse(report["original_elf_target_met"])
+            self.assertIn("explicit-user-exception", report["size_acceptance"])
+            report["elf"]["sha256"] = "a" * 64
+            with self.assertRaisesRegex(ValueError, "does not authorize"):
+                package.audit_sizes(report)
+
     def test_candidate_metadata_requires_actual_lifecycle_scripts(self):
         metadata = """info:
   name: dnsmasq

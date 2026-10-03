@@ -238,12 +238,30 @@ def read_budget(path):
     for field in ("elf_max_bytes", "apk_max_bytes"):
         require(isinstance(budget.get(field), int) and budget[field] > 0,
                 f"M4 budget {field} must be a positive integer")
-    return {"schema": 1, "elf_max_bytes": budget["elf_max_bytes"],
-            "apk_max_bytes": budget["apk_max_bytes"], "sha256": sha(path)}
+    result = {"schema": 1, "elf_max_bytes": budget["elf_max_bytes"],
+              "apk_max_bytes": budget["apk_max_bytes"], "sha256": sha(path)}
+    if "user_accepted_elf" in budget:
+        accepted = budget["user_accepted_elf"]
+        require(isinstance(accepted, dict) and isinstance(accepted.get("sha256"), str)
+                and re.fullmatch(r"[0-9a-f]{64}", accepted["sha256"])
+                and accepted.get("bytes") == budget["elf_max_bytes"]
+                and isinstance(accepted.get("original_target_bytes"), int)
+                and 0 < accepted["original_target_bytes"] < accepted["bytes"]
+                and isinstance(accepted.get("reason"), str) and accepted["reason"],
+                "user ELF exception must identify the accepted bytes, SHA256, original target and reason")
+        result["user_accepted_elf"] = accepted
+    return result
 
 
 def audit_sizes(report):
     """Retain both measurements even when either target is exceeded."""
+    accepted = report["budget"].get("user_accepted_elf")
+    if accepted:
+        report["original_elf_target_met"] = report["elf"]["size"] <= accepted["original_target_bytes"]
+        require(report["elf"].get("sha256") == accepted["sha256"]
+                and report["elf"]["size"] == accepted["bytes"],
+                "user ELF size exception does not authorize this artifact")
+        report["size_acceptance"] = "explicit-user-exception; original ELF target remains unmet"
     report["budget_checks"] = {
         "apk": report["artifact"]["size"] <= report["budget"]["apk_max_bytes"],
         "elf": report["elf"]["size"] <= report["budget"]["elf_max_bytes"],
