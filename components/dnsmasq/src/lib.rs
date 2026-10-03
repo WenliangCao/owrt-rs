@@ -6,9 +6,13 @@
 pub mod config;
 pub mod dhcp;
 pub mod dns;
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+pub mod helper;
 pub mod hosts;
 pub mod interfaces;
 pub mod metrics;
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+pub mod neighbors;
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 pub mod net;
 #[doc(hidden)]

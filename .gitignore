@@ -19,6 +19,7 @@
 # Rust build output
 /target/
 /components/*/target/
+/components/dnsmasq/fuzz/target/
 /tools/benchmark/target/
 
 # Python analysis-tool cache
