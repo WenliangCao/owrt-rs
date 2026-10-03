@@ -924,6 +924,7 @@ mod tests {
         apply(&mut config, b"filter-rr=MX,257,ANY").unwrap();
         assert_eq!(config.filter_rr, vec![255, 257, 15, 28, 1]);
         assert!(apply(&mut config, b"filter-rr=not-a-type").is_err());
+        assert!(apply(&mut config, b"filter-rr=").is_err());
     }
 
     #[test]

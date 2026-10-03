@@ -22,7 +22,13 @@ pub struct FilterResult {
 /// causes the entire operation to leave the packet unchanged. Unknown RDATA
 /// is opaque. Collect/check first, then mutate, so failure is atomic.
 pub fn strip_opt(packet: &mut Vec<u8>) -> Result<FilterResult, WireError> {
-    let message = Message::parse(packet)?;
+    // rrfilter.c scans bounded sections and simply leaves malformed/clipped
+    // replies unchanged. The caller still performs the strict policy checks
+    // elsewhere; filtering must not turn a clipped upstream packet into a
+    // transport failure.
+    let Ok(message) = Message::parse(packet) else {
+        return Ok(FilterResult::default());
+    };
     if message.header.questions != 1 {
         return Ok(FilterResult::default());
     }
@@ -112,11 +118,15 @@ pub fn filter_rrs(packet: &mut Vec<u8>, filter_rr: &[u16]) -> Result<FilterResul
     if filter_rr.is_empty() {
         return Ok(FilterResult::default());
     }
-    let message = Message::parse(packet)?;
+    let Ok(message) = Message::parse(packet) else {
+        return Ok(FilterResult::default());
+    };
     if message.header.questions != 1 {
         return Ok(FilterResult::default());
     }
-    let question = Question::parse(packet, HEADER_LEN)?;
+    let Ok(question) = Question::parse(packet, HEADER_LEN) else {
+        return Ok(FilterResult::default());
+    };
     let any_filter = question.qtype == 255 && filter_rr.contains(&255);
     let mut header = message.header;
     let mut retained = Vec::new();
@@ -545,9 +555,21 @@ mod tests {
         assert_eq!(result.removed, 2);
         let message = Message::parse(&packet).unwrap();
         assert_eq!(message.header.answers, 2);
-        assert_eq!(message.header.additionals, 2);
+        assert_eq!(message.header.additionals, 1);
         assert!(message
             .records(Section::Answer)
             .all(|rr| rr.rrtype == 1 || rr.class != 1));
+    }
+
+    #[test]
+    fn clipped_answer_is_left_unchanged_for_rr_filtering() {
+        let mut packet = packet();
+        packet.pop();
+        let before = packet.clone();
+        assert_eq!(
+            filter_rrs(&mut packet, &[1]).unwrap(),
+            FilterResult::default()
+        );
+        assert_eq!(packet, before);
     }
 }
