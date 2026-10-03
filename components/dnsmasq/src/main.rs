@@ -1122,6 +1122,8 @@ impl SinglePoll {
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         self.step_dhcp();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        self.step_neighbors();
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         self.step_tftp();
     }
 
