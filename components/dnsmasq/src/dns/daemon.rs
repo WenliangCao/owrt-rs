@@ -829,15 +829,21 @@ impl<R: Random> DnsDaemon<R> {
                     )?;
                 }
             }
-            let filtered = filter_rrs(&mut packet, &self.filter_rr)?.matched != 0;
-            if filtered && find_pseudoheader(&packet, false)?.opt.is_some() {
-                super::tcp_service::add_ede(
-                    &mut packet,
-                    self.edns_packet_max,
-                    reply.flags.dnssec_ok,
-                    17,
-                    usize::from(self.edns_packet_max),
-                )?;
+            // forward.c skips the configured rrfilter for non-NOERROR
+            // replies and for upstream TC packets. Filtering either case
+            // would mutate a negative authority or a clipped prefix that C
+            // deliberately returns untouched.
+            if rcode == 0 && Header::parse(&packet)?.flags & 0x0200 == 0 {
+                let filtered = filter_rrs(&mut packet, &self.filter_rr)?.matched != 0;
+                if filtered && find_pseudoheader(&packet, false)?.opt.is_some() {
+                    super::tcp_service::add_ede(
+                        &mut packet,
+                        self.edns_packet_max,
+                        reply.flags.dnssec_ok,
+                        17,
+                        usize::from(self.edns_packet_max),
+                    )?;
+                }
             }
         }
         resize_reply(&mut packet);
