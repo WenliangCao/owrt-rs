@@ -143,6 +143,7 @@ pub struct DhcpConfig {
     pub lease_query: crate::dhcp::lease_query::LeaseQueryConfig,
     pub script: Option<Vec<u8>>,
     pub script_user: Option<Vec<u8>>,
+    pub script_on_renewal: bool,
     /// Matches C's context-list order: the last configured range comes first.
     pub ranges: Vec<RangeConfig>,
     /// Last directive first, matching daemon->dhcp_conf.
@@ -192,6 +193,7 @@ impl Default for DhcpConfig {
             lease_query: Default::default(),
             script: None,
             script_user: None,
+            script_on_renewal: false,
             ranges: Vec::new(),
             hosts: Vec::new(),
             host_files: Vec::new(),
@@ -468,6 +470,7 @@ impl DhcpConfig {
             b"dhcp-scriptuser" => {
                 self.script_user = Some(argument.ok_or(Error("missing parameter"))?.decoded());
             }
+            b"script-on-renewal" => self.script_on_renewal = true,
             b"dhcp-hostsdir" | b"dhcp-optsfile" | b"dhcp-optsdir" | b"dhcp-reply-delay" => {
                 return Err(Error(
                     "DHCP option is parsed but runtime wiring is not complete",
