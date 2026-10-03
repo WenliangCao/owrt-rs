@@ -52,7 +52,7 @@ M5 退出条件：169项全部实现并有C差分，或已证明与C一致的拒
 
 本次续接已完成代码级推进但不下调盘点数：`dhcp-boot` 的 `tag:`/`net:` 多条目选择现在按请求 tag、`tag-if` 和已选 range context 选择完整 BootEntry；`filter-A`/`filter-AAAA`/`filter-rr` 已接入本地、UDP/TCP、缓存答案和 clipped/ANY 边界。两族的本地测试和 clippy 通过，精确镜像族级差分尚未在当前工作机复跑，因此仍按原状态计数；对应分支已合入 main，旧 worktree 已以 `archive/m5-boot-53b330b`、`archive/m5-dns-filter-1b099e1` 保留。后续优先补这两族的精确 C 配对，再处理 helper 接线和 relay/leasequery。
 
-helper 和 leasequery 已接入单一 poll owner：helper 启动、delivery backpressure、维护/packet 脚本队列，以及 leasequery 的 ACL、source route、状态和 wire reply 都已接线；对应提交为 `9404725`、`4b1016a`、`19320f3`、`c918c8b`。最终 Oracle 构建的 candidate ELF 为 `2e19d183…1eac`、1,294,448 字节。四族同版本 Oracle 结果保存在 `private/dnsmasq-rewrite/evidence/M5/four/`：DHCP tags/options 55 条全部通过，已把 13 个选项从盘点扣除；helper 仍有 lifecycle/name-change、readonly/init-exit、renewal 等差异；TFTP 18 场景仅 6 场相等；RR filter 和 leasequery 尚缺族级镜像 daemon harness。因此当前计数降为 129，helper/TFTP/RR/leasequery 的未通过结果保留，不继续开启新族。
+helper 和 leasequery 已接入单一 poll owner：helper 启动、delivery backpressure、维护/packet 脚本队列，以及 leasequery 的 ACL、source route、状态和 wire reply 都已接线；对应提交为 `9404725`、`4b1016a`、`19320f3`、`c918c8b`。最终 Oracle candidate `2e19d183…1eac` 为 1,294,448 字节。DHCP tags/options 的 final4 结果在该 ELF 上运行，55 条全部通过，已把 13 个选项从盘点扣除。helper 的 `run-final2` 与 TFTP 的 `run-final` 是前一版 candidate `69d5e322…` 的失败诊断：helper 仍有 lifecycle/init-reboot、readonly/init-exit、renewal 差异，TFTP 18 场景仅 6 场相等；RR filter 和 leasequery 尚缺族级镜像 daemon harness。最终 candidate 的 helper/TFTP 复跑必须在这些修复后重做；因此当前计数为 129，不继续开启新族。
 
 文件归属：tags负责人维护config/dhcp_tags、dhcp_host、dhcp_options及编码逻辑；网络负责人维护boot/relay/leasequery和TFTP；helper负责人维护helper/filewatch和loader；DNS负责人维护dns/*、config/dns和本地记录/策略。主代理独占main.rs、config/dhcp.rs、dhcp/daemon.rs及共用接线，其他人用明确patch/API交接。每族仅一个差分测试器，证据统一在 `private/dnsmasq-rewrite/evidence/M5/`。
 
