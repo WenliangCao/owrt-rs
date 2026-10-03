@@ -23,7 +23,7 @@ use dnsmasq_rs::dns::forward::SocketToken;
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 use dnsmasq_rs::dns::lease_names::{LeasePolicy, PublicationWarning};
 use dnsmasq_rs::dns::service::{encode_tcp_frame, LocalDnsService, TcpFramer};
-use dnsmasq_rs::dns::tcp_service::TcpDnsService;
+use dnsmasq_rs::dns::tcp_service::{TcpDnsService, TcpServiceProgress, TcpWait};
 use dnsmasq_rs::hosts::Hosts;
 use dnsmasq_rs::interfaces::DnsInterface;
 use dnsmasq_rs::listeners::{self, DnsSocket};
@@ -838,6 +838,165 @@ struct PollTcpClient {
     framer: TcpFramer,
     deadline: Instant,
     queries: usize,
+    input: Vec<u8>,
+    input_offset: usize,
+    phase: TcpClientPhase,
+}
+
+enum TcpClientPhase {
+    Reading,
+    Forwarding { cache_eligible: bool, wait: TcpWait },
+    Writing { frame: Vec<u8>, offset: usize },
+}
+
+impl PollTcpClient {
+    fn queue_answer(
+        &mut self,
+        parent: &Arc<Mutex<ParentDns>>,
+        packet: Vec<u8>,
+        insert_cache: bool,
+    ) -> Result<(), ()> {
+        if insert_cache {
+            let mut parent = parent.lock().map_err(|_| ())?;
+            if let Some(daemon) = parent.daemon.as_mut() {
+                daemon.cache_tcp_reply(&packet, now_seconds());
+            }
+        }
+        self.phase = TcpClientPhase::Writing {
+            frame: encode_tcp_frame(&packet).map_err(|_| ())?,
+            offset: 0,
+        };
+        Ok(())
+    }
+
+    // A small per-turn budget prevents pipelined queries on one connection
+    // starving UDP/DHCP. Partial input, upstream I/O and downstream writes
+    // retain their offsets; WouldBlock always yields to the service owner.
+    fn step(&mut self, parent: &Arc<Mutex<ParentDns>>) -> Result<bool, ()> {
+        for _ in 0..8 {
+            if Instant::now() >= self.deadline || STOP_REQUESTED.load(Ordering::Acquire) {
+                return Ok(false);
+            }
+            match &mut self.phase {
+                TcpClientPhase::Writing { frame, offset } => {
+                    match self.stream.write(&frame[*offset..]) {
+                        Ok(0) => return Ok(false),
+                        Ok(count) => *offset += count,
+                        Err(error)
+                            if matches!(
+                                error.kind(),
+                                io::ErrorKind::WouldBlock | io::ErrorKind::Interrupted
+                            ) =>
+                        {
+                            return Ok(true)
+                        }
+                        Err(_) => return Ok(false),
+                    }
+                    if *offset == frame.len() {
+                        if self.queries == 100 {
+                            return Ok(false);
+                        }
+                        self.phase = TcpClientPhase::Reading;
+                    }
+                }
+                TcpClientPhase::Forwarding {
+                    cache_eligible,
+                    wait,
+                } => {
+                    if wait.fd >= 0 && Instant::now() < wait.deadline {
+                        let mut readiness = [owrt_ubus::sys::PollFd {
+                            fd: wait.fd,
+                            events: wait.events,
+                            revents: 0,
+                        }];
+                        if owrt_ubus::sys::poll_fds(&mut readiness, 0).map_err(|_| ())? == 0 {
+                            return Ok(true);
+                        }
+                    }
+                    let cache_eligible = *cache_eligible;
+                    match self
+                        .forward
+                        .step_with_local_upstream(&self.service)
+                        .map_err(|_| ())?
+                    {
+                        TcpServiceProgress::Pending(wait) => {
+                            self.phase = TcpClientPhase::Forwarding {
+                                cache_eligible,
+                                wait,
+                            };
+                            return Ok(true);
+                        }
+                        TcpServiceProgress::Complete(packet, from_upstream) => {
+                            self.queue_answer(parent, packet, cache_eligible && from_upstream)?;
+                        }
+                    }
+                }
+                TcpClientPhase::Reading => {
+                    if self.input_offset == self.input.len() {
+                        self.input.resize(4096, 0);
+                        self.input_offset = 0;
+                        match self.stream.read(&mut self.input) {
+                            Ok(0) => return Ok(false),
+                            Ok(count) => self.input.truncate(count),
+                            Err(error)
+                                if matches!(
+                                    error.kind(),
+                                    io::ErrorKind::WouldBlock | io::ErrorKind::Interrupted
+                                ) =>
+                            {
+                                self.input.clear();
+                                return Ok(true);
+                            }
+                            Err(_) => return Ok(false),
+                        }
+                    }
+                    let (consumed, query) = self
+                        .framer
+                        .push_frame(&self.input[self.input_offset..])
+                        .map_err(|_| ())?;
+                    self.input_offset += consumed;
+                    let Some(query) = query else { continue };
+                    if query.len() < 12 || query[2] & 0x80 != 0 {
+                        continue;
+                    }
+                    self.queries += 1;
+                    let cached = {
+                        let mut parent = parent.lock().map_err(|_| ())?;
+                        parent
+                            .daemon
+                            .as_mut()
+                            .ok_or(())?
+                            .cached_tcp_answer(&query, &mut self.service, now_seconds())
+                            .map_err(|_| ())?
+                    };
+                    if let Some(packet) = cached {
+                        self.queue_answer(parent, packet, false)?;
+                    } else if let Ok(Some(packet)) = self.service.handle_tcp_payload(&query) {
+                        self.queue_answer(parent, packet, false)?;
+                    } else {
+                        let cache_eligible = TcpDnsService::cache_eligible(&query);
+                        match self
+                            .forward
+                            .start_with_local_upstream(&query, &self.service, self.deadline)
+                            .map_err(|_| ())?
+                        {
+                            TcpServiceProgress::Pending(wait) => {
+                                self.phase = TcpClientPhase::Forwarding {
+                                    cache_eligible,
+                                    wait,
+                                };
+                                return Ok(true);
+                            }
+                            TcpServiceProgress::Complete(packet, from_upstream) => {
+                                self.queue_answer(parent, packet, cache_eligible && from_upstream)?;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Ok(true)
+    }
 }
 
 impl SinglePoll {
@@ -1155,7 +1314,9 @@ impl SinglePoll {
         }
         let local_network = listeners::local_network(&interfaces, destination.ip());
         drop(interfaces);
-        let _ = stream.set_nonblocking(true);
+        if stream.set_nonblocking(true).is_err() {
+            return;
+        }
         let parent = match self.service.lock() {
             Ok(parent) => parent,
             Err(_) => return,
@@ -1176,119 +1337,29 @@ impl SinglePoll {
         if let Ok(mut event) = self.parent_events.lock() {
             event.tcp_active = event.tcp_active.saturating_add(1);
         }
-        let _ = self.clients.push(PollTcpClient {
+        self.clients.push(PollTcpClient {
             stream,
             service: snapshot,
             forward,
             framer: TcpFramer::with_max_frame(self.packet_limit),
             deadline: Instant::now() + Duration::from_secs(150),
             queries: 0,
+            input: Vec::new(),
+            input_offset: 0,
+            phase: TcpClientPhase::Reading,
         });
     }
 
     fn step_tcp_clients(&mut self) {
         let mut index = 0;
-        let mut input = [0u8; 4096];
-        let parent_service = Arc::clone(&self.service);
         while index < self.clients.len() {
-            let mut remove = false;
-            let client = &mut self.clients[index];
-            if Instant::now() >= client.deadline || STOP_REQUESTED.load(Ordering::Acquire) {
-                remove = true;
-            } else {
-                match client.stream.read(&mut input) {
-                    Ok(0) => remove = true,
-                    Err(error) if error.kind() == io::ErrorKind::WouldBlock => {}
-                    Err(_) => remove = true,
-                    Ok(count) => {
-                        let mut offset = 0;
-                        while offset < count {
-                            let Ok((consumed, query)) =
-                                client.framer.push_frame(&input[offset..count])
-                            else {
-                                remove = true;
-                                break;
-                            };
-                            offset += consumed;
-                            let Some(query) = query else { continue };
-                            if query.len() < 12 || query[2] & 0x80 != 0 {
-                                continue;
-                            }
-                            client.queries += 1;
-                            if client.queries > 100 || query.len() > self.packet_limit {
-                                remove = true;
-                                break;
-                            }
-                            let answer = Self::answer_tcp(&parent_service, client, &query);
-                            let Ok(answer) = answer else {
-                                remove = true;
-                                break;
-                            };
-                            let Ok(frame) = encode_tcp_frame(&answer) else {
-                                remove = true;
-                                break;
-                            };
-                            if client.stream.write_all(&frame).is_err() {
-                                remove = true;
-                                break;
-                            }
-                            if client.queries == 100 {
-                                remove = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            if remove {
-                if let Ok(mut event) = self.parent_events.lock() {
-                    event.tcp_active = event.tcp_active.saturating_sub(1);
-                }
-                self.clients.swap_remove(index);
-            } else {
+            let result = self.clients[index].step(&self.service);
+            if result.unwrap_or(false) {
                 index += 1;
+            } else {
+                self.clients.swap_remove(index);
+                self.parent_events.lock().unwrap().tcp_active = self.clients.len();
             }
-        }
-    }
-
-    fn answer_tcp(
-        parent_service: &Arc<Mutex<ParentDns>>,
-        client: &mut PollTcpClient,
-        query: &[u8],
-    ) -> Result<Vec<u8>, ()> {
-        let cached = parent_service.lock().ok().and_then(|mut parent| {
-            parent.daemon.as_mut().and_then(|daemon| {
-                daemon
-                    .cached_tcp_answer(query, &mut client.service, now_seconds())
-                    .ok()
-                    .flatten()
-            })
-        });
-        if let Some(answer) = cached {
-            return Ok(answer);
-        }
-        match client.service.handle_tcp_payload(query) {
-            Ok(Some(answer)) => Ok(answer),
-            Ok(None) => client
-                .forward
-                .handle_with_local_upstream(
-                    query,
-                    &client.service,
-                    Instant::now() + Duration::from_secs(150),
-                    &|| STOP_REQUESTED.load(Ordering::Acquire),
-                )
-                .map(|(answer, from_upstream)| {
-                    if from_upstream && TcpDnsService::cache_eligible(query) {
-                        if let Ok(mut parent) = parent_service.lock() {
-                            if let Some(daemon) = parent.daemon.as_mut() {
-                                daemon.cache_tcp_reply(&answer, now_seconds());
-                            }
-                        }
-                    }
-                    answer
-                })
-                .map_err(|_| ()),
-            Err(_) => Err(()),
         }
     }
 

@@ -1,6 +1,7 @@
 use super::*;
 use crate::dns::forward::{Server as ConfiguredServer, ServerId};
 use crate::dns::wire::{Name, PacketWriter, Section};
+use std::io::{Read, Write};
 use std::net::TcpListener;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -187,4 +188,149 @@ fn refused_connect_advances_without_retaining_a_failed_socket() {
     transport.clear();
     assert_eq!(transport.socket_count(), 0);
     worker.join().unwrap();
+}
+
+fn step_after_poll(transport: &mut TcpUpstream, wait: TcpWait) -> Result<TcpProgress, TcpError> {
+    let mut poll = [PollFd {
+        fd: wait.fd,
+        events: wait.events,
+        revents: 0,
+    }];
+    let timeout = wait
+        .deadline
+        .saturating_duration_since(Instant::now())
+        .min(Duration::from_millis(50));
+    poll_fds(&mut poll, timeout.as_millis() as i32).unwrap();
+    transport.step()
+}
+
+fn waiting_for_reply(transport: &mut TcpUpstream, mut progress: TcpProgress) -> TcpWait {
+    loop {
+        match progress {
+            TcpProgress::Pending(wait) if wait.events == owrt_ubus::sys::POLLIN => return wait,
+            TcpProgress::Pending(wait) => progress = step_after_poll(transport, wait).unwrap(),
+            TcpProgress::Complete(_) => panic!("unreplied query completed"),
+        }
+    }
+}
+
+#[test]
+fn nonblocking_exchange_yields_for_each_fragment_and_keeps_its_connection() {
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let mut transport = transport(&[listener.local_addr().unwrap()]);
+    let deadline = Instant::now() + Duration::from_secs(2);
+    let began = Instant::now();
+    let progress = transport.start(GroupId(1), &query(11), deadline).unwrap();
+    assert!(
+        began.elapsed() < Duration::from_millis(250),
+        "start waited for a reply"
+    );
+    waiting_for_reply(&mut transport, progress);
+    let (mut server, _) = listener.accept().unwrap();
+    let received = read_query(&mut server);
+    assert_eq!(received, query(11));
+    assert!(matches!(
+        transport.start(GroupId(1), &query(12), deadline),
+        Err(TcpError::Busy)
+    ));
+    let reply = response(&received, 0);
+    let frame = encode_tcp_frame(&reply).unwrap();
+    // The owner must retain both partial prefix and body across repeated turns.
+    for chunk in [&frame[..1], &frame[1..7], &frame[7..frame.len() - 1]] {
+        server.write_all(chunk).unwrap();
+        let began = Instant::now();
+        let progress = transport.step().unwrap();
+        assert!(
+            began.elapsed() < Duration::from_millis(250),
+            "step waited for a fragment"
+        );
+        assert!(matches!(progress, TcpProgress::Pending(_)));
+    }
+    server.write_all(&frame[frame.len() - 1..]).unwrap();
+    let mut progress = transport.step().unwrap();
+    loop {
+        match progress {
+            TcpProgress::Pending(wait) => progress = step_after_poll(&mut transport, wait).unwrap(),
+            TcpProgress::Complete(packet) => {
+                assert_eq!(packet, reply);
+                break;
+            }
+        }
+    }
+    assert_eq!(transport.socket_count(), 1);
+    let progress = transport.start(GroupId(1), &query(12), deadline).unwrap();
+    waiting_for_reply(&mut transport, progress);
+    assert_eq!(read_query(&mut server), query(12));
+    transport.clear();
+    assert_eq!(transport.socket_count(), 0);
+    assert!(matches!(transport.step(), Err(TcpError::NotStarted)));
+    let mut byte = [0];
+    assert_eq!(server.read(&mut byte).unwrap(), 0);
+}
+
+#[test]
+fn absolute_deadline_survives_partial_progress_and_closes_owned_socket() {
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let mut transport = transport(&[listener.local_addr().unwrap()]);
+    let deadline = Instant::now() + Duration::from_millis(120);
+    let progress = transport.start(GroupId(1), &query(1), deadline).unwrap();
+    let wait = waiting_for_reply(&mut transport, progress);
+    assert_eq!(wait.deadline, deadline);
+    let (mut server, _) = listener.accept().unwrap();
+    let received = read_query(&mut server);
+    let frame = encode_tcp_frame(&response(&received, 0)).unwrap();
+    // Each positive read refreshes the idle timeout, but never the enclosing
+    // connection deadline. The final incomplete response must be discarded.
+    for chunk in [&frame[..1], &frame[1..2], &frame[2..3]] {
+        server.write_all(chunk).unwrap();
+        thread::sleep(Duration::from_millis(10));
+        match transport.step().unwrap() {
+            TcpProgress::Pending(wait) => assert_eq!(wait.deadline, deadline),
+            TcpProgress::Complete(_) => panic!("incomplete response accepted"),
+        }
+    }
+    thread::sleep(deadline.saturating_duration_since(Instant::now()) + Duration::from_millis(1));
+    assert!(matches!(transport.step(), Err(TcpError::Deadline)));
+    assert_eq!(transport.socket_count(), 0);
+    let mut byte = [0];
+    assert_eq!(server.read(&mut byte).unwrap(), 0);
+}
+
+#[test]
+fn idle_timeout_advances_server_without_blocking_the_owner() {
+    let first = TcpListener::bind("127.0.0.1:0").unwrap();
+    let second = TcpListener::bind("127.0.0.1:0").unwrap();
+    let mut transport = transport(&[first.local_addr().unwrap(), second.local_addr().unwrap()]);
+    transport.options.read_timeout = Duration::from_millis(40);
+    let deadline = Instant::now() + Duration::from_secs(2);
+    let progress = transport.start(GroupId(1), &query(1), deadline).unwrap();
+    let wait = waiting_for_reply(&mut transport, progress);
+    let (mut stalled, _) = first.accept().unwrap();
+    read_query(&mut stalled);
+    thread::sleep(
+        wait.deadline.saturating_duration_since(Instant::now()) + Duration::from_millis(1),
+    );
+    let progress = transport.step().unwrap();
+    waiting_for_reply(&mut transport, progress);
+    let (mut recovered, _) = second.accept().unwrap();
+    let received = read_query(&mut recovered);
+    let reply = response(&received, 0);
+    recovered
+        .write_all(&encode_tcp_frame(&reply).unwrap())
+        .unwrap();
+    let mut progress = transport.step().unwrap();
+    loop {
+        match progress {
+            TcpProgress::Pending(wait) => progress = step_after_poll(&mut transport, wait).unwrap(),
+            TcpProgress::Complete(packet) => {
+                assert_eq!(packet, reply);
+                break;
+            }
+        }
+    }
+    let mut byte = [0];
+    assert_eq!(stalled.read(&mut byte).unwrap(), 0);
+    assert_eq!(transport.socket_count(), 1);
+    transport.clear();
+    assert_eq!(recovered.read(&mut byte).unwrap(), 0);
 }

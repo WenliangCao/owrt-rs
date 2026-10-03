@@ -7,21 +7,22 @@
 use super::forward::{GroupId, Question, ServerGroup};
 use super::service::encode_tcp_frame;
 use super::wire::{Header, WireError};
-use owrt_ubus::sys::{poll_fds, PollFd, POLLIN, POLLOUT};
+use owrt_ubus::sys::{poll_fds, PollFd};
 use std::collections::HashMap;
-use std::io::{self, Read, Write};
 use std::net::{SocketAddr, TcpStream};
-use std::os::fd::AsRawFd;
 use std::time::{Duration, Instant};
 
 const CANCEL_INTERVAL: Duration = Duration::from_millis(50);
 
 #[cfg(all(
-    target_os = "linux",
+    any(target_os = "linux", target_os = "macos"),
     any(target_arch = "aarch64", target_arch = "x86_64")
 ))]
 #[path = "tcp_connect.rs"]
 mod tcp_connect;
+#[path = "tcp_exchange.rs"]
+mod tcp_exchange;
+use tcp_exchange::Exchange;
 
 #[derive(Clone, Copy, Debug)]
 pub struct TcpOptions {
@@ -50,6 +51,8 @@ pub enum TcpError {
     NoReply,
     Deadline,
     Cancelled,
+    Busy,
+    NotStarted,
 }
 
 impl From<WireError> for TcpError {
@@ -74,12 +77,29 @@ struct Group {
     last_connected: usize,
 }
 
+/// Readiness required to advance an in-flight exchange. The fd is borrowed
+/// until the next start/step/clear call; the caller must not close it. A negative
+/// fd means yield to the owner loop and step again at `deadline`.
+#[derive(Clone, Copy, Debug)]
+pub struct TcpWait {
+    pub fd: std::os::fd::RawFd,
+    pub events: i16,
+    pub deadline: Instant,
+}
+
+#[derive(Debug)]
+pub enum TcpProgress {
+    Pending(TcpWait),
+    Complete(Vec<u8>),
+}
+
 /// One instance belongs to one accepted downstream TCP connection. Dropping
 /// it or calling `clear` closes every persistent upstream connection. There
 /// are no background threads or tasks and no sharing between client sessions.
 pub struct TcpUpstream {
     groups: HashMap<GroupId, Group>,
     options: TcpOptions,
+    pending: Option<Exchange>,
 }
 
 impl TcpUpstream {
@@ -121,6 +141,7 @@ impl TcpUpstream {
         Ok(Self {
             groups: configured,
             options,
+            pending: None,
         })
     }
 
@@ -133,6 +154,7 @@ impl TcpUpstream {
     }
 
     pub fn clear(&mut self) {
+        self.pending = None;
         for server in self
             .groups
             .values_mut()
@@ -142,14 +164,53 @@ impl TcpUpstream {
         }
     }
 
-    /// Exchange one query using C's persistent-connection and failover rules.
-    /// `deadline` is the containing downstream connection's absolute bound.
-    /// Read/write waits observe cancellation at least every 50 ms. Linux
-    /// aarch64/x86_64 connects use the same cancellation interval; other hosts
-    /// use std's bounded connect, which cannot observe cancellation mid-call.
-    ///
-    /// As in tcp_talk, reply acceptance checks QR and the complete question;
-    /// it does not introduce a transaction-ID check absent from the C path.
+    /// Start one exchange without waiting for connect, read or write readiness.
+    /// A downstream session may have one exchange in flight. Completed replies
+    /// retain their upstream connection for the next request, as tcp_talk does.
+    pub fn start(
+        &mut self,
+        group: GroupId,
+        query: &[u8],
+        deadline: Instant,
+    ) -> Result<TcpProgress, TcpError> {
+        if self.pending.is_some() {
+            return Err(TcpError::Busy);
+        }
+        check_bound(deadline, &|| false)?;
+        let header = Header::parse(query)?;
+        if query.len() > u16::MAX as usize || header.flags & 0x8000 != 0 || header.opcode() != 0 {
+            return Err(TcpError::InvalidQuery);
+        }
+        let question = Question::parse(query)?;
+        let frame = encode_tcp_frame(query).map_err(|_| TcpError::InvalidQuery)?;
+        let configured = self.groups.get(&group).ok_or(TcpError::UnknownGroup)?;
+        let start = if configured.strict_order {
+            0
+        } else {
+            configured.last_connected
+        };
+        self.pending = Some(Exchange::new(group, question, frame, start, deadline));
+        self.step()
+    }
+
+    /// Advance only currently possible I/O, then return its fd interest and
+    /// next absolute timer. Call after readiness or a timer, and on each owner
+    /// loop turn if convenient. No poll, sleep, timeout connect or thread runs
+    /// here. A fixed I/O budget keeps a writable peer from owning the loop.
+    pub fn step(&mut self) -> Result<TcpProgress, TcpError> {
+        let mut pending = self.pending.take().ok_or(TcpError::NotStarted)?;
+        let result = pending.step(&mut self.groups, self.options);
+        if matches!(result, Ok(TcpProgress::Pending(_))) {
+            self.pending = Some(pending);
+        } else if matches!(result, Err(TcpError::Deadline | TcpError::Cancelled)) {
+            self.clear();
+        }
+        result
+    }
+
+    /// Compatibility wrapper for synchronous callers. The production single
+    /// poll owner uses start/step instead; both paths execute the same state
+    /// machine and preserve C's question, reuse and failover rules.
     pub fn exchange(
         &mut self,
         group: GroupId,
@@ -157,120 +218,40 @@ impl TcpUpstream {
         deadline: Instant,
         stopped: &dyn Fn() -> bool,
     ) -> Result<Vec<u8>, TcpError> {
-        let result = self.exchange_inner(group, query, deadline, stopped);
-        if matches!(result, Err(TcpError::Cancelled | TcpError::Deadline)) {
+        if let Err(error) = check_bound(deadline, stopped) {
             self.clear();
+            return Err(error);
         }
-        result
-    }
-
-    fn exchange_inner(
-        &mut self,
-        group: GroupId,
-        query: &[u8],
-        deadline: Instant,
-        stopped: &dyn Fn() -> bool,
-    ) -> Result<Vec<u8>, TcpError> {
-        check_bound(deadline, stopped)?;
-        let header = Header::parse(query)?;
-        if query.len() > u16::MAX as usize || header.flags & 0x8000 != 0 || header.opcode() != 0 {
-            return Err(TcpError::InvalidQuery);
-        }
-        let question = Question::parse(query)?;
-        let frame = encode_tcp_frame(query).map_err(|_| TcpError::InvalidQuery)?;
-        let group = self.groups.get_mut(&group).ok_or(TcpError::UnknownGroup)?;
-        let start = if group.strict_order {
-            0
-        } else {
-            group.last_connected
-        };
-        for offset in 0..group.servers.len() {
-            let index = (start + offset) % group.servers.len();
-            let server = &mut group.servers[index];
-            loop {
-                check_bound(deadline, stopped)?;
-                if server.connection.is_none() {
-                    let timeout = self
-                        .options
-                        .connect_timeout
-                        .min(deadline.saturating_duration_since(Instant::now()));
-                    if timeout.is_zero() {
-                        return Err(TcpError::Deadline);
+        let mut progress = self.start(group, query, deadline)?;
+        loop {
+            match progress {
+                TcpProgress::Complete(reply) => return Ok(reply),
+                TcpProgress::Pending(wait) => {
+                    if let Err(error) = check_bound(deadline, stopped) {
+                        self.clear();
+                        return Err(error);
                     }
-                    let stream = match connect_until(server.address, timeout, deadline, stopped) {
-                        Ok(stream) => stream,
-                        Err(TcpError::NoReply) => {
-                            check_bound(deadline, stopped)?;
-                            break;
-                        }
-                        Err(error) => return Err(error),
-                    };
-                    check_bound(deadline, stopped)?;
-                    if stream.set_nonblocking(true).is_err() {
-                        break;
+                    let timeout = wait
+                        .deadline
+                        .saturating_duration_since(Instant::now())
+                        .min(CANCEL_INTERVAL);
+                    let mut poll = [PollFd {
+                        fd: wait.fd,
+                        events: wait.events,
+                        revents: 0,
+                    }];
+                    if poll_fds(&mut poll, timeout.as_millis() as i32).is_err() {
+                        self.clear();
+                        return Err(TcpError::NoReply);
                     }
-                    server.connection = Some(Connection {
-                        stream,
-                        had_reply: false,
-                    });
-                    group.last_connected = index;
-                }
-                let connection = server.connection.as_mut().expect("connection established");
-                match exchange_frame(
-                    &mut connection.stream,
-                    &frame,
-                    self.options,
-                    deadline,
-                    stopped,
-                ) {
-                    Ok(reply) => {
-                        // Question mismatches try another server while retaining
-                        // this connected fd, exactly as tcp_talk does.
-                        if !matches_question(&reply, &question) {
-                            break;
-                        }
-                        connection.had_reply = true;
-                        return Ok(reply);
+                    if let Err(error) = check_bound(deadline, stopped) {
+                        self.clear();
+                        return Err(error);
                     }
-                    Err(TcpError::Cancelled) => return Err(TcpError::Cancelled),
-                    Err(TcpError::Deadline) => return Err(TcpError::Deadline),
-                    Err(_) => {
-                        let retry = connection.had_reply;
-                        server.connection = None;
-                        // A connection that previously returned data is allowed
-                        // one fresh reconnect. A fresh failure advances server.
-                        if !retry {
-                            break;
-                        }
-                    }
+                    progress = self.step()?;
                 }
             }
         }
-        Err(TcpError::NoReply)
-    }
-}
-
-fn connect_until(
-    address: SocketAddr,
-    timeout: Duration,
-    deadline: Instant,
-    stopped: &dyn Fn() -> bool,
-) -> Result<TcpStream, TcpError> {
-    #[cfg(all(
-        target_os = "linux",
-        any(target_arch = "aarch64", target_arch = "x86_64")
-    ))]
-    {
-        tcp_connect::connect_until(address, Instant::now() + timeout, deadline, stopped)
-    }
-    #[cfg(not(all(
-        target_os = "linux",
-        any(target_arch = "aarch64", target_arch = "x86_64")
-    )))]
-    {
-        let result = TcpStream::connect_timeout(&address, timeout).map_err(|_| TcpError::NoReply);
-        check_bound(deadline, stopped)?;
-        result
     }
 }
 
@@ -283,65 +264,6 @@ fn matches_question(reply: &[u8], question: &Question) -> bool {
         })
 }
 
-fn exchange_frame(
-    stream: &mut TcpStream,
-    frame: &[u8],
-    options: TcpOptions,
-    deadline: Instant,
-    stopped: &dyn Fn() -> bool,
-) -> Result<Vec<u8>, TcpError> {
-    let mut remaining = frame;
-    let mut idle = Instant::now() + options.write_timeout;
-    while !remaining.is_empty() {
-        check_bound(deadline, stopped)?;
-        match stream.write(remaining) {
-            Ok(0) => return Err(TcpError::NoReply),
-            Ok(count) => {
-                remaining = &remaining[count..];
-                idle = Instant::now() + options.write_timeout;
-            }
-            Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
-            Err(error) if error.kind() == io::ErrorKind::WouldBlock => {
-                wait_ready(stream, POLLOUT, idle, deadline, stopped)?;
-            }
-            Err(_) => return Err(TcpError::NoReply),
-        }
-    }
-    let mut prefix = [0; 2];
-    read_exact(stream, &mut prefix, options.read_timeout, deadline, stopped)?;
-    // The wire u16 bounds allocation before any body is read. Zero-length
-    // frames proceed to question validation, as C's read_write(0) does.
-    let mut reply = vec![0; usize::from(u16::from_be_bytes(prefix))];
-    read_exact(stream, &mut reply, options.read_timeout, deadline, stopped)?;
-    Ok(reply)
-}
-
-fn read_exact(
-    stream: &mut TcpStream,
-    mut output: &mut [u8],
-    timeout: Duration,
-    deadline: Instant,
-    stopped: &dyn Fn() -> bool,
-) -> Result<(), TcpError> {
-    let mut idle = Instant::now() + timeout;
-    while !output.is_empty() {
-        check_bound(deadline, stopped)?;
-        match stream.read(output) {
-            Ok(0) => return Err(TcpError::NoReply),
-            Ok(count) => {
-                output = &mut output[count..];
-                idle = Instant::now() + timeout;
-            }
-            Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
-            Err(error) if error.kind() == io::ErrorKind::WouldBlock => {
-                wait_ready(stream, POLLIN, idle, deadline, stopped)?;
-            }
-            Err(_) => return Err(TcpError::NoReply),
-        }
-    }
-    Ok(())
-}
-
 fn check_bound(deadline: Instant, stopped: &dyn Fn() -> bool) -> Result<(), TcpError> {
     if stopped() {
         Err(TcpError::Cancelled)
@@ -350,30 +272,6 @@ fn check_bound(deadline: Instant, stopped: &dyn Fn() -> bool) -> Result<(), TcpE
     } else {
         Ok(())
     }
-}
-
-fn wait_ready(
-    stream: &TcpStream,
-    events: i16,
-    idle: Instant,
-    deadline: Instant,
-    stopped: &dyn Fn() -> bool,
-) -> Result<(), TcpError> {
-    check_bound(deadline, stopped)?;
-    let remaining = idle.saturating_duration_since(Instant::now());
-    if remaining.is_zero() {
-        return Err(TcpError::NoReply);
-    }
-    let wait = remaining
-        .min(deadline.saturating_duration_since(Instant::now()))
-        .min(CANCEL_INTERVAL);
-    let mut fd = [PollFd {
-        fd: stream.as_raw_fd(),
-        events,
-        revents: 0,
-    }];
-    poll_fds(&mut fd, wait.as_millis().max(1) as i32).map_err(|_| TcpError::NoReply)?;
-    Ok(())
 }
 
 #[cfg(test)]

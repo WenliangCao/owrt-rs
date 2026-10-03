@@ -11,7 +11,8 @@ use super::process::{apply_static_aliases, process_admitted_reply, AddressPolicy
 use super::reply::{apply_known_local_nxdomain, prepare_reply, strip_opt, ReplyPolicy};
 use super::routing::{RouteReason, RoutingTable};
 use super::service::LocalDnsService;
-use super::tcp_upstream::{TcpError, TcpOptions, TcpUpstream};
+pub use super::tcp_upstream::TcpWait;
+use super::tcp_upstream::{TcpError, TcpOptions, TcpProgress, TcpUpstream};
 use super::wire::{find_pseudoheader, skip_questions, Header, Message, Question, WireError};
 use crate::config::dns::DnsConfig;
 use std::net::SocketAddr;
@@ -41,6 +42,19 @@ impl From<WireError> for TcpServiceError {
     }
 }
 
+/// Incremental result for the downstream connection owner. `Complete` carries
+/// the same upstream/cache-eligibility bit as handle_with_local_upstream.
+#[derive(Debug)]
+pub enum TcpServiceProgress {
+    Pending(TcpWait),
+    Complete(Vec<u8>, bool),
+}
+
+enum PreparedQuery {
+    Answer(Vec<u8>),
+    Forward(super::forward::GroupId),
+}
+
 pub struct TcpDnsService {
     routing: RoutingTable,
     upstream: TcpUpstream,
@@ -48,6 +62,7 @@ pub struct TcpDnsService {
     query_policy: super::query_policy::QueryPolicy,
     proxy_dnssec: bool,
     edns_packet_max: u16,
+    pending_query: Option<Vec<u8>>,
 }
 
 impl TcpDnsService {
@@ -79,6 +94,7 @@ impl TcpDnsService {
             query_policy: super::query_policy::QueryPolicy::from_config(config),
             proxy_dnssec: config.proxy_dnssec,
             edns_packet_max,
+            pending_query: None,
         })
     }
 
@@ -118,25 +134,93 @@ impl TcpDnsService {
         self.handle_inner(query, Some(local), deadline, stopped)
     }
 
-    fn handle_inner(
+    /// Start a query without waiting on any upstream socket. The caller must
+    /// finish or clear it before starting the next frame on this connection.
+    pub fn start_with_local_upstream(
         &mut self,
         query: &[u8],
-        local: Option<&LocalDnsService>,
+        local: &LocalDnsService,
         deadline: Instant,
-        stopped: &dyn Fn() -> bool,
-    ) -> Result<(Vec<u8>, bool), TcpServiceError> {
+    ) -> Result<TcpServiceProgress, TcpServiceError> {
+        if self.pending_query.is_some() {
+            return Err(TcpServiceError::Transport(TcpError::Busy));
+        }
+        let group = match self.prepare(query, Some(local))? {
+            PreparedQuery::Answer(packet) => {
+                return Ok(TcpServiceProgress::Complete(packet, false))
+            }
+            PreparedQuery::Forward(group) => group,
+        };
+        let progress = self.upstream.start(group, query, deadline);
+        self.finish_progress(query.to_vec(), local, progress)
+    }
+
+    /// Resume after fd readiness or its absolute timer. This is also safe to
+    /// call on each owner-loop turn: all transport syscalls are nonblocking.
+    pub fn step_with_local_upstream(
+        &mut self,
+        local: &LocalDnsService,
+    ) -> Result<TcpServiceProgress, TcpServiceError> {
+        let query = self
+            .pending_query
+            .take()
+            .ok_or(TcpServiceError::Transport(TcpError::NotStarted))?;
+        let progress = self.upstream.step();
+        self.finish_progress(query, local, progress)
+    }
+
+    /// Cancel the current exchange and release all per-session upstream fds.
+    pub fn clear(&mut self) {
+        self.pending_query = None;
+        self.upstream.clear();
+    }
+
+    fn finish_progress(
+        &mut self,
+        query: Vec<u8>,
+        local: &LocalDnsService,
+        progress: Result<TcpProgress, TcpError>,
+    ) -> Result<TcpServiceProgress, TcpServiceError> {
+        match progress {
+            Ok(TcpProgress::Pending(wait)) => {
+                self.pending_query = Some(query);
+                Ok(TcpServiceProgress::Pending(wait))
+            }
+            Ok(TcpProgress::Complete(reply)) => finish_reply(
+                &query,
+                &reply,
+                &self.policy,
+                self.proxy_dnssec,
+                self.edns_packet_max,
+                Some(local),
+                Some(&self.routing),
+            )
+            .map(|packet| TcpServiceProgress::Complete(packet, true)),
+            Err(TcpError::NoReply) => Ok(TcpServiceProgress::Complete(
+                refusal(&query, self.edns_packet_max, 23, TCP_LIMIT, true)?,
+                false,
+            )),
+            Err(error) => Err(TcpServiceError::Transport(error)),
+        }
+    }
+
+    fn prepare(
+        &self,
+        query: &[u8],
+        local: Option<&LocalDnsService>,
+    ) -> Result<PreparedQuery, TcpServiceError> {
         let header = Header::parse(query)?;
         if header.flags & 0x8000 != 0 {
             return Err(TcpServiceError::InvalidQuery);
         }
         if let Some(reply) = query_error(query)? {
-            return Ok((reply, false));
+            return Ok(PreparedQuery::Answer(reply));
         }
         if let Some(packet) =
             self.query_policy
                 .reply(query, &self.routing, local, self.edns_packet_max, true)?
         {
-            return Ok((packet, false));
+            return Ok(PreparedQuery::Answer(packet));
         }
         let question = Question::parse(query, 12)?;
         let route = self
@@ -144,12 +228,29 @@ impl TcpDnsService {
             .select(&question.name, question.qtype, question.class, false);
         let Some(group) = route.upstream_group() else {
             return match route.reason {
-                RouteReason::NoMatchingRule => Ok((
-                    refusal(query, self.edns_packet_max, 14, TCP_LIMIT, true)?,
-                    false,
-                )),
+                RouteReason::NoMatchingRule => Ok(PreparedQuery::Answer(refusal(
+                    query,
+                    self.edns_packet_max,
+                    14,
+                    TCP_LIMIT,
+                    true,
+                )?)),
                 _ => Err(TcpServiceError::LocalRouteNotAnswered),
             };
+        };
+        Ok(PreparedQuery::Forward(group))
+    }
+
+    fn handle_inner(
+        &mut self,
+        query: &[u8],
+        local: Option<&LocalDnsService>,
+        deadline: Instant,
+        stopped: &dyn Fn() -> bool,
+    ) -> Result<(Vec<u8>, bool), TcpServiceError> {
+        let group = match self.prepare(query, local)? {
+            PreparedQuery::Answer(packet) => return Ok((packet, false)),
+            PreparedQuery::Forward(group) => group,
         };
         match self.upstream.exchange(group, query, deadline, stopped) {
             Ok(reply) => finish_reply(
