@@ -68,6 +68,59 @@ pub struct LeaseEvent {
     pub log_dhcp: bool,
 }
 
+/// Per-packet context which is not retained in [`crate::dhcp::lease::Lease`].
+///
+/// The C helper receives this snapshot at the point where the lease event is
+/// queued.  Keeping it explicit prevents the service owner from looking up a
+/// later interface/packet state while a script is still pending.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct LeaseEventContext {
+    pub interface: Vec<u8>,
+    pub now: i64,
+    pub relay_address: Option<Ipv4Addr>,
+    pub extra: Option<ExtraData>,
+    pub log_dhcp: bool,
+}
+
+impl LeaseEvent {
+    /// Convert one owned DHCP script event to the fixed helper wire event.
+    ///
+    /// `name` is taken from the queue event, rather than re-derived from the
+    /// current lease, because `old`/`del` must preserve the name observed when
+    /// C queued the callback.  The caller supplies the transient packet
+    /// context and interface snapshot; restored/deleted events should pass
+    /// `extra: None`.
+    pub fn from_script_event(
+        event: &crate::dhcp::lease::ScriptEvent,
+        context: LeaseEventContext,
+    ) -> Self {
+        let action = match event.action {
+            crate::dhcp::lease::ScriptAction::Add => LeaseAction::Add,
+            crate::dhcp::lease::ScriptAction::Old => LeaseAction::Old,
+            crate::dhcp::lease::ScriptAction::Delete => LeaseAction::Delete,
+            crate::dhcp::lease::ScriptAction::OldHostname => LeaseAction::OldHostname,
+        };
+        Self {
+            action,
+            hardware_type: event.lease.identity.hardware_type,
+            hardware_address: event.lease.identity.hardware_address.clone(),
+            address: event.lease.address,
+            hostname: event
+                .name
+                .clone()
+                .or_else(|| event.lease.published_name().map(<[u8]>::to_vec)),
+            client_id: event.lease.identity.client_id.clone().unwrap_or_default(),
+            interface: context.interface,
+            // C represents an infinite lease as a zero absolute expiry.
+            expires: event.lease.expires.unwrap_or(0),
+            now: context.now,
+            relay_address: context.relay_address,
+            extra: context.extra,
+            log_dhcp: context.log_dhcp,
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Event {
     Lease(LeaseEvent),
@@ -445,5 +498,60 @@ mod tests {
             assert!(invocation(&event).unwrap().env.is_empty());
             assert_eq!(wire::decode(&wire::encode(&event).unwrap()).unwrap(), event);
         }
+    }
+
+    #[test]
+    fn script_event_conversion_keeps_queued_name_and_snapshot_context() {
+        let mut store = crate::dhcp::lease::LeaseStore::new(1);
+        store
+            .allocate(
+                Ipv4Addr::new(192, 0, 2, 10),
+                crate::dhcp::lease::ClientIdentity {
+                    hardware_type: 1,
+                    hardware_address: vec![2, 0, 0, 0, 0, 1],
+                    client_id: Some(vec![1, 2]),
+                },
+            )
+            .unwrap();
+        store
+            .set_expires(Ipv4Addr::new(192, 0, 2, 10), 600, 100)
+            .unwrap();
+        store
+            .set_hostname(
+                Ipv4Addr::new(192, 0, 2, 10),
+                Some(b"client.lan"),
+                false,
+                None,
+                false,
+            )
+            .unwrap();
+        let mut queue = crate::dhcp::lease::ScriptQueue::default();
+        let event = queue
+            .next(&mut store, crate::dhcp::lease::ScriptOptions::default())
+            .unwrap();
+        let converted = LeaseEvent::from_script_event(
+            &event,
+            LeaseEventContext {
+                interface: b"br-lan".to_vec(),
+                now: 100,
+                relay_address: Some(Ipv4Addr::new(192, 0, 2, 1)),
+                extra: Some(ExtraData {
+                    vendor_class: b"vendor".to_vec(),
+                    ..ExtraData::default()
+                }),
+                log_dhcp: true,
+            },
+        );
+        assert_eq!(converted.action, LeaseAction::Add);
+        assert_eq!(
+            converted.hostname.as_deref(),
+            Some(b"client.lan".as_slice())
+        );
+        assert_eq!(converted.client_id, [1, 2]);
+        assert_eq!(converted.expires, 700);
+        assert_eq!(converted.interface, b"br-lan");
+        assert_eq!(converted.relay_address, Some(Ipv4Addr::new(192, 0, 2, 1)));
+        assert!(converted.log_dhcp);
+        assert_eq!(converted.extra.as_ref().unwrap().vendor_class, b"vendor");
     }
 }

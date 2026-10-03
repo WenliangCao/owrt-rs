@@ -160,6 +160,18 @@ impl Helper {
         self.written = 0;
         Ok(true)
     }
+
+    /// Queue one DHCP lease callback using the same bounded command channel as
+    /// ARP/TFTP events.  Conversion happens before touching the pipe, so a
+    /// malformed event leaves the caller's lease ownership unchanged.
+    pub fn enqueue_lease(
+        &mut self,
+        event: &crate::dhcp::lease::ScriptEvent,
+        context: LeaseEventContext,
+    ) -> io::Result<bool> {
+        let event = Event::Lease(LeaseEvent::from_script_event(event, context));
+        self.enqueue(&event)
+    }
     /// FDs are -1 when inactive, compatible with poll's ignored entries.
     pub fn poll_fds(&self) -> [(RawFd, i16); 2] {
         [
