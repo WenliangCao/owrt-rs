@@ -5,6 +5,9 @@
 use super::Error;
 
 pub(super) fn parse(bytes: &[u8]) -> Result<u16, Error> {
+    if bytes.is_empty() {
+        return Err(Error("bad RR type"));
+    }
     if bytes.iter().all(u8::is_ascii_digit) {
         let value = bytes.iter().try_fold(0u32, |value, digit| {
             value

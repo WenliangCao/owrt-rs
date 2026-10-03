@@ -324,6 +324,7 @@ fn query_error(query: &[u8]) -> Result<Option<Vec<u8>>, WireError> {
     Ok(None)
 }
 
+#[allow(clippy::too_many_arguments)]
 fn finish_reply(
     query: &[u8],
     reply: &[u8],
