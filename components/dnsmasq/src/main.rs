@@ -97,6 +97,9 @@ impl std::error::Error for NetworkStartupError {}
 fn startup_status(error: &(dyn std::error::Error + 'static)) -> i32 {
     // dnsmasq.h: EC_BADCONF=1, EC_BADNET=2. Other initialization boundaries
     // supply their own code rather than guessing from an errno alone.
+    if let Some(error) = error.downcast_ref::<loader::LoadError>() {
+        return error.exit_code;
+    }
     if let Some(error) = error.downcast_ref::<dnsmasq_rs::startup::StartupError>() {
         return error.code;
     }
@@ -1785,6 +1788,22 @@ fn read_resolvers(config: &DnsConfig) -> Result<Vec<SocketAddr>, io::Error> {
 mod tests {
     use super::*;
     use dnsmasq_rs::config::{lex_line, validate_directive};
+
+    #[test]
+    fn startup_status_retains_config_loader_exit_codes() {
+        for exit_code in [1, 3, 5, (3 << 8) + 10] {
+            let error = loader::LoadError {
+                location: loader::Location {
+                    file: None,
+                    line: None,
+                    from_script: false,
+                },
+                exit_code,
+                message: "configuration input failure".into(),
+            };
+            assert_eq!(startup_status(&error), exit_code);
+        }
+    }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     #[test]
