@@ -471,7 +471,7 @@ mod tests {
         bytes
     }
 
-    fn reply_option<'a>(bytes: &'a [u8], code: u8) -> Option<&'a [u8]> {
+    fn reply_option(bytes: &[u8], code: u8) -> Option<&[u8]> {
         find_option(&bytes[OPTIONS_OFFSET..], code, 1).map(|option| option.value)
     }
 
