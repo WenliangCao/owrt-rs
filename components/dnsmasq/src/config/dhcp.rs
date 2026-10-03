@@ -69,12 +69,17 @@ pub struct BootConfig {
     pub next_server_name: Option<Vec<u8>>,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BootEntry {
+    pub filter: TagPredicate,
+    pub config: BootConfig,
+}
+
 impl BootConfig {
-    fn parse(argument: &super::EncodedArg) -> Result<Self, Error> {
-        let (file, tail) = argument.split_once(b',');
-        if file.encoded().starts_with(b"tag:") || file.encoded().starts_with(b"net:") {
-            return Err(Error("DHCP boot tag selectors are not implemented"));
-        }
+    fn parse_fields(
+        file: &super::EncodedArg,
+        tail: Option<super::EncodedArg>,
+    ) -> Result<Self, Error> {
         let (server, next) = tail
             .map(|tail| tail.split_once(b','))
             .map(|(server, next)| (Some(server), next))
@@ -99,6 +104,36 @@ impl BootConfig {
             next_server_name,
         })
     }
+
+    /// Parse the optional leading `tag:`/`net:` selectors used by
+    /// `dhcp-boot`. Selectors are consumed before the ordinary three fields;
+    /// the latter retain EncodedArg's quoted-comma behavior.
+    fn parse_selected(argument: &super::EncodedArg) -> Result<(TagPredicate, Self), Error> {
+        let mut selectors = Vec::new();
+        let mut rest = argument.clone();
+        loop {
+            let (head, tail) = rest.split_once(b',');
+            let bytes = head.encoded();
+            let prefix_len = if bytes.starts_with(b"tag:") || bytes.starts_with(b"net:") {
+                4
+            } else {
+                0
+            };
+            if prefix_len == 0 {
+                return Ok((
+                    TagPredicate::from_tags(selectors),
+                    Self::parse_fields(&head, tail)?,
+                ));
+            }
+            let value = head.decoded();
+            let tag = &value[prefix_len..];
+            if tag.is_empty() || matches!(tag, b"!" | b"#") {
+                return Err(Error("empty DHCP boot tag selector"));
+            }
+            selectors.push(tag.to_vec());
+            rest = tail.ok_or(Error("DHCP boot selector requires boot fields"))?;
+        }
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -116,6 +151,11 @@ pub struct DhcpConfig {
     pub bootp_dynamic: bool,
     /// Last untagged directive wins, matching find_boot's reverse list.
     pub boot: Option<BootConfig>,
+    /// All dhcp-boot directives in reverse declaration order. Tagged entries
+    /// are selected after the request context is known; the untagged entry is
+    /// retained in `boot` for compatibility with callers that only need the
+    /// fallback configuration.
+    pub boot_entries: Vec<BootEntry>,
     pub no_override: bool,
     pub sequential: bool,
     pub ignore_client_id: bool,
@@ -152,6 +192,7 @@ impl Default for DhcpConfig {
             rapid_commit: false,
             bootp_dynamic: false,
             boot: None,
+            boot_entries: Vec::new(),
             no_override: false,
             sequential: false,
             ignore_client_id: false,
@@ -244,9 +285,18 @@ impl DhcpConfig {
             }
             b"dhcp-no-override" => self.no_override = true,
             b"dhcp-boot" => {
-                self.boot = Some(BootConfig::parse(
-                    argument.ok_or(Error("missing parameter"))?,
-                )?);
+                let (filter, boot) =
+                    BootConfig::parse_selected(argument.ok_or(Error("missing parameter"))?)?;
+                self.boot_entries.insert(
+                    0,
+                    BootEntry {
+                        filter: filter.clone(),
+                        config: boot.clone(),
+                    },
+                );
+                if filter.is_unconditional() {
+                    self.boot = Some(boot);
+                }
             }
             b"bootp-dynamic" => {
                 // option.c:4664-4701 stores optional tag predicates. Until
@@ -437,6 +487,17 @@ impl DhcpConfig {
             ));
         }
         Ok(())
+    }
+
+    /// Select the first matching boot entry. Entries are already in C's
+    /// reverse declaration order, and an empty predicate matches every
+    /// request, so this preserves "last matching directive wins" behavior.
+    pub fn boot_for(&self, tags: &[&[u8]]) -> Option<&BootConfig> {
+        self.boot_entries
+            .iter()
+            .find(|entry| entry.filter.matches(tags))
+            .map(|entry| &entry.config)
+            .or(self.boot.as_ref())
     }
 
     /// dhcp-common.c find_config's ordinary selector passes: all client IDs
@@ -661,11 +722,25 @@ mod tests {
                 Some(name.as_bytes())
             );
         }
-        for line in ["dhcp-boot=tag:known,file", "dhcp-boot=net:known,file"] {
-            let before = config.clone();
-            assert!(config
+        for line in [
+            "dhcp-boot=tag:known,tag:uefi,file,boot.test,192.0.2.3",
+            "dhcp-boot=net:lan,net:trusted,recovery.img,,192.0.2.4",
+        ] {
+            config
                 .apply(&lex_line(line.as_bytes()).unwrap().unwrap())
-                .is_err());
+                .unwrap();
+        }
+        assert!(config.options.is_empty());
+        assert!(config.boot_entries.iter().any(|entry| {
+            entry.filter.tags() == [b"known".to_vec(), b"uefi".to_vec()]
+                && entry.config.filename.as_deref() == Some(b"file".as_slice())
+        }));
+        for line in [
+            b"dhcp-boot=tag:,file".as_slice(),
+            b"dhcp-boot=tag:known".as_slice(),
+        ] {
+            let before = config.clone();
+            assert!(config.apply(&lex_line(line).unwrap().unwrap()).is_err());
             assert_eq!(config, before);
         }
         config
@@ -679,6 +754,31 @@ mod tests {
                 next_server: Ipv4Addr::UNSPECIFIED,
                 next_server_name: None,
             })
+        );
+    }
+
+    #[test]
+    fn tagged_boot_selection_uses_context_tags_and_untagged_fallback() {
+        let mut config = DhcpConfig::default();
+        for line in [
+            b"dhcp-boot=fallback.img,,192.0.2.1".as_slice(),
+            b"dhcp-boot=tag:known,known.img,known.test,192.0.2.2".as_slice(),
+            b"dhcp-boot=tag:known,latest.img,latest.test,192.0.2.3".as_slice(),
+        ] {
+            config.apply(&lex_line(line).unwrap().unwrap()).unwrap();
+        }
+        assert_eq!(
+            config.boot_for(&[b"known"]),
+            Some(&BootConfig {
+                filename: Some(b"latest.img".to_vec()),
+                server_name: Some(b"latest.test".to_vec()),
+                next_server: Ipv4Addr::new(192, 0, 2, 3),
+                next_server_name: None,
+            })
+        );
+        assert_eq!(
+            config.boot_for(&[b"other"]).unwrap().filename.as_deref(),
+            Some(b"fallback.img".as_slice())
         );
     }
 

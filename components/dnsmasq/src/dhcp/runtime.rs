@@ -798,7 +798,7 @@ fn encode_filtered_options(
         if option.code == 255 {
             if !has_boot {
                 let bytes = option.value.bytes(None, false);
-                if let Some(bytes) = bytes.get(..4) {
+                if bytes.len() == 4 {
                     *next_server = Some(Ipv4Addr::from(<[u8; 4]>::try_from(bytes).unwrap()));
                 }
             }
@@ -1335,6 +1335,55 @@ mod tests {
                 outcome_dropped: true
             })
         ));
+    }
+
+    #[test]
+    fn selected_boot_fields_are_sent_by_the_runtime_without_prl_codes() {
+        struct Provider {
+            boot: BootConfig,
+        }
+        impl OutcomeProvider for Provider {
+            fn resolve(&mut self, _: &Dispatch<'_>) -> Result<Outcome, RuntimeError> {
+                Ok(offer())
+            }
+            fn boot_config(&self) -> Option<&BootConfig> {
+                Some(&self.boot)
+            }
+            fn boot_next_server(&mut self) -> io::Result<Option<Ipv4Addr>> {
+                Ok(Some(self.boot.next_server))
+            }
+        }
+        let bytes = packet(
+            &[53, 1, 1, 55, 1, 1, 255],
+            BROADCAST_FLAG,
+            Ipv4Addr::UNSPECIFIED,
+            Ipv4Addr::UNSPECIFIED,
+        );
+        let mut sender = Sender {
+            sent: Vec::new(),
+            fail: false,
+        };
+        let mut output = [0; 548];
+        process(
+            dispatch_for(&bytes),
+            "0.0.0.0:68".parse().unwrap(),
+            &mut Provider {
+                boot: BootConfig {
+                    filename: Some(b"known.img".to_vec()),
+                    server_name: Some(b"boot.test".to_vec()),
+                    next_server: Ipv4Addr::new(192, 0, 2, 9),
+                    next_server_name: None,
+                },
+            },
+            &mut sender,
+            &[],
+            &mut output,
+        )
+        .unwrap();
+        let sent = &sender.sent[0].0;
+        assert_eq!(&sent[20..24], [192, 0, 2, 9]);
+        assert_eq!(&sent[44..54], b"boot.test\0");
+        assert_eq!(&sent[108..118], b"known.img\0");
     }
 
     #[test]

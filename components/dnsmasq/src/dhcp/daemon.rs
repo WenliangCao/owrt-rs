@@ -16,8 +16,8 @@ use super::runtime::{NetworkOptions, OutcomeProvider, ReplyNames, RuntimeError, 
 use super::service::Dispatch;
 use super::state::{Environment, HostPolicy, Outcome, Reply};
 use crate::config::dhcp::{
-    option_filter, ClassKind, DhcpConfig, FilteredOptions, HostConfig, HostFileError, HostFiles,
-    NameDomains, TagIf,
+    option_filter, BootConfig, ClassKind, DhcpConfig, FilteredOptions, HostConfig, HostFileError,
+    HostFiles, NameDomains, TagIf,
 };
 use crate::interfaces::{ipv4_interfaces, primary_ipv4};
 use crate::ubus_service::{DhcpEventFields, DhcpEventKind, DhcpLogging};
@@ -123,6 +123,8 @@ pub struct LocalProvider {
     domains: NameDomains,
     reply_hostname: Option<Vec<u8>>,
     force_broadcast: bool,
+    /// Boot entry selected after the state outcome identifies its context.
+    selected_boot: Option<BootConfig>,
     request_tags: Vec<Vec<u8>>,
     selected: Vec<SelectedContext>,
     interface_policy: InterfacePolicy,
@@ -210,6 +212,7 @@ impl LocalProvider {
             domains: NameDomains::default(),
             reply_hostname: None,
             force_broadcast: false,
+            selected_boot: None,
             request_tags: Vec::new(),
             probe,
             probe_error: None,
@@ -288,6 +291,32 @@ impl LocalProvider {
 
     pub fn take_maintenance_report(&mut self) -> Option<MaintenanceReport> {
         self.maintenance_report.take()
+    }
+
+    fn select_boot(&mut self, outcome: &Outcome) {
+        let context = match outcome.reply {
+            Reply::Offer { context, .. }
+            | Reply::Ack { context, .. }
+            | Reply::Bootp { context, .. } => Some(context),
+            Reply::Inform {
+                context: Some(context),
+                ..
+            } => Some(context),
+            _ => None,
+        };
+        let Some(context) = context else {
+            return;
+        };
+        let Some(selected) = self.selected.get(context) else {
+            return;
+        };
+        let mut tags: Vec<&[u8]> = Vec::new();
+        if let Some(tag) = self.config.ranges[selected.source_index].set_tag.as_deref() {
+            tags.push(tag);
+        }
+        tags.extend(self.request_tags.iter().map(Vec::as_slice));
+        TagIf::apply_all(&self.config.tag_if, &mut tags);
+        self.selected_boot = self.config.boot_for(&tags).cloned();
     }
 
     pub fn next_maintenance(&self) -> Option<Instant> {
@@ -621,6 +650,7 @@ impl LocalProvider {
         mut wait: Option<&mut DhcpProbeWait<'_>>,
     ) -> Result<Outcome, RuntimeError> {
         self.force_broadcast = false;
+        self.selected_boot = None;
         if !self.host_files_ready
             || interface_name.is_some_and(|name| {
                 self.config
@@ -980,6 +1010,9 @@ impl LocalProvider {
         provider.message_counters = Some(&mut self.message_counters);
         provider.event_sink = Some(&mut on_event);
         let result = provider.resolve(dispatch);
+        if let Ok(outcome) = &result {
+            self.select_boot(outcome);
+        }
         self.probe_error = probe_error;
         for (selected, range) in self.selected.iter().zip(&ranges) {
             self.states[selected.source_index].epoch = range.epoch;
@@ -1010,7 +1043,7 @@ impl OutcomeProvider for LocalProvider {
     }
 
     fn boot_config(&self) -> Option<&crate::config::dhcp::BootConfig> {
-        self.config.boot.as_ref()
+        self.selected_boot.as_ref()
     }
 
     fn configured_options(&self) -> &[crate::config::dhcp::DhcpOption] {
@@ -1044,7 +1077,7 @@ impl OutcomeProvider for LocalProvider {
     }
 
     fn boot_next_server(&mut self) -> io::Result<Option<Ipv4Addr>> {
-        let Some(boot) = &self.config.boot else {
+        let Some(boot) = self.selected_boot.as_ref() else {
             return Ok(None);
         };
         if !boot.next_server.is_unspecified() {
