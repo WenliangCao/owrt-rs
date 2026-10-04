@@ -295,6 +295,15 @@ impl FileWatch {
         self.fd.as_raw_fd()
     }
 
+    pub(super) fn pending(&self) -> io::Result<bool> {
+        let mut fds = [owrt_ubus::sys::PollFd {
+            fd: self.raw_fd(),
+            events: 1,
+            revents: 0,
+        }];
+        Ok(owrt_ubus::sys::poll_fds(&mut fds, 0)? != 0)
+    }
+
     /// Consume one bounded kernel batch. Remaining events keep POLLIN set and
     /// are drained on the next owner turn; no read-to-empty busy loop.
     pub fn read_events(&mut self) -> io::Result<bool> {

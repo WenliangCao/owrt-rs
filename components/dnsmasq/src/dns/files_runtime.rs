@@ -209,6 +209,7 @@ pub struct DnsFiles {
     warned_empty: bool,
     initializing: bool,
     active_reason: Option<ReloadReason>,
+    notify_seen: bool,
 }
 
 impl DnsFiles {
@@ -237,6 +238,7 @@ impl DnsFiles {
             warned_empty: false,
             initializing: false,
             active_reason: None,
+            notify_seen: false,
         })
     }
 
@@ -271,7 +273,10 @@ impl DnsFiles {
     }
 
     pub fn has_work(&self) -> bool {
-        self.job.is_some() || !self.requests.is_empty() || !self.triggers.is_empty()
+        self.job.is_some()
+            || !self.requests.is_empty()
+            || !self.triggers.is_empty()
+            || self.notify_seen
     }
 
     /// The PID/listeners may already exist, as in C, but queued DNS requests
@@ -346,14 +351,22 @@ impl DnsFiles {
 
     pub fn step(&mut self) -> FileStep {
         let mut result = FileStep::default();
+        let mut watch_more = false;
         if let Some(watch) = &mut self.watch {
             match watch.read_events() {
-                Ok(true) => self.request(ReloadReason::Notify),
+                Ok(true) => self.notify_seen = true,
                 Ok(false) => {}
                 Err(error) => result.diagnostics.push(FileDiagnostic::Watch(error)),
             }
+            watch_more = watch.pending().unwrap_or(false);
         }
-        if self.job.is_none() && self.requests.is_empty() {
+        // C drains inotify_check and emits one hit for the entire ready burst.
+        // Yield between batches while retaining that coalescing boundary.
+        if self.notify_seen && !watch_more {
+            self.notify_seen = false;
+            self.request(ReloadReason::Notify);
+        }
+        if self.job.is_none() && self.requests.is_empty() && !watch_more {
             if let Some(reason) = self.triggers.pop_front() {
                 self.active_reason = Some(reason);
                 self.schedule(reason, &mut result.diagnostics);
@@ -431,6 +444,7 @@ impl DnsFiles {
             !self.requests.is_empty() || !self.triggers.is_empty(),
             |job| !job.wait_readiness,
         );
+        result.runnable |= watch_more;
         result
     }
 }
@@ -596,6 +610,33 @@ mod tests {
         }
         assert_eq!(completions, 1);
         assert!(!files.step().signal_complete);
+    }
+
+    #[test]
+    fn a_ready_event_burst_produces_one_resolver_reload_across_read_budgets() {
+        let dir = Directory::new();
+        let config = dir.config();
+        let resolv = &config.resolv_files[0];
+        fs::write(resolv, b"nameserver 192.0.2.1\n").unwrap();
+        let mut files = DnsFiles::new(&config, true, true).unwrap();
+        files.request(ReloadReason::Init);
+        drain(&mut files);
+        let neighbor = dir.0.join("unrelated".repeat(20));
+        for _ in 0..100 {
+            fs::write(resolv, b"nameserver 192.0.2.2\n").unwrap();
+            fs::write(&neighbor, b"ignore").unwrap();
+        }
+        let mut updates = Vec::new();
+        for _ in 0..100 {
+            let step = files.step();
+            let runnable = step.runnable;
+            updates.extend(step.update);
+            if !runnable && !files.has_work() {
+                break;
+            }
+        }
+        assert_eq!(updates.len(), 1);
+        assert!(updates[0].full_reload);
     }
 
     #[test]
