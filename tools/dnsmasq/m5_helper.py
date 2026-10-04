@@ -361,14 +361,18 @@ def run_case(root, side, out, case):
     result = {'case': case, 'side': side, 'status': 'failed'}
     try:
         if case in ('unknown-user', 'init-exit', 'init-capacity'):
-            log = (out / f'{side}-{case}.log').open('wb')
-            proc = subprocess.Popen(command(root, side, '--keep-in-foreground', '--conf-file=' + runner.inside + '/config'), env=runner.env, stdout=log, stderr=log, start_new_session=True)
-            try:
-                result['startup_exit'] = proc.wait(5)
-            except subprocess.TimeoutExpired:
-                os.killpg(proc.pid, signal.SIGKILL); proc.wait(3)
-                raise AssertionError('startup failure did not exit')
-            finally: log.close()
+            runner.log = (out / f'{side}-{case}.log').open('wb')
+            runner.process = subprocess.Popen(command(root, side, '--keep-in-foreground', '--conf-file=' + runner.inside + '/config'), env=runner.env, stdout=runner.log, stderr=runner.log, start_new_session=True)
+            deadline = time.monotonic() + 5
+            while runner.process.poll() is None:
+                runner.descendants.update(children(runner.process.pid))
+                if time.monotonic() >= deadline:
+                    raise AssertionError('startup failure did not exit')
+                time.sleep(.005)
+            # This isolated PID-namespace driver adopts fast-exiting helper
+            # children; they must be reaped and checked just like live ones.
+            runner.descendants.update(children(os.getpid()) - {os.getpid()})
+            result['startup_exit'] = runner.process.returncode
             expected = {'unknown-user': 1, 'init-exit': 17, 'init-capacity': 5}[case]
             if result['startup_exit'] != expected:
                 raise AssertionError(f'expected startup exit {expected}, got {result["startup_exit"]}')
@@ -436,8 +440,10 @@ def run_case(root, side, out, case):
         result['error'] = f'{type(error).__name__}: {error}'
         result['traceback'] = traceback.format_exc()
     finally:
+        result['raw'] = capture(runner.events)
+        result['stages'] = runner.stages
         result['cleanup'] = runner.stop()
-        expected_cleanup = {'forced': False, 'exit': None if case in ('unknown-user', 'init-exit', 'init-capacity') else 0, 'remaining': [], 'pid_removed': True}
+        expected_cleanup = {'forced': False, 'exit': {'unknown-user': 1, 'init-exit': 17, 'init-capacity': 5}.get(case, 0), 'remaining': [], 'pid_removed': True}
         if result['cleanup'] != expected_cleanup:
             result['status'] = 'failed'
         write_json(out / f'{side}-{case}.json', result)
@@ -456,6 +462,11 @@ def compare(rows, expected_cases=None):
         rust = next(row for row in sides if row['side'] == 'rust')
         if c['status'] != 'passed' or rust['status'] != 'passed':
             errors.append(f'{case}: unexecuted/failed stage'); continue
+        expected_exit = {'unknown-user': 1, 'init-exit': 17, 'init-capacity': 5}.get(case, 0)
+        for row in (c, rust):
+            cleanup = row.get('cleanup')
+            if cleanup != {'forced': False, 'exit': expected_exit, 'remaining': [], 'pid_removed': True}:
+                errors.append(f'{case}: missing or failed cleanup')
         for field in ('stages', 'cleanup', 'dns_after_script', 'hotplug_events', 'startup_exit'):
             if c.get(field) != rust.get(field): errors.append(f'{case}: {field} differ')
     return errors
@@ -487,7 +498,12 @@ def controls(rows):
         next(row for row in changed if row['side'] == 'rust')['side'] = 'c'
     ordering = bool(compare(changed, expected))
     missing = [row for row in rows if row['case'] != next(iter(expected))]
-    return {'changed-credentials-or-status': identity, 'changed-environment-or-cleanup': environment,
+    startup = copy.deepcopy(rows)
+    for row in startup:
+        if row['case'] in ('unknown-user', 'init-exit', 'init-capacity'):
+            row.pop('cleanup', None)
+    startup_detected = bool(compare(startup, expected)) if any(row['case'] in ('unknown-user', 'init-exit', 'init-capacity') for row in rows) else True
+    return {'missing-startup-cleanup-both-sides': startup_detected, 'changed-credentials-or-status': identity, 'changed-environment-or-cleanup': environment,
             'changed-order-or-duplicate-side': ordering, 'missing-whole-scenario': bool(compare(missing, expected))}
 
 
