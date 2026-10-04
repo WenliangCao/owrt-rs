@@ -561,6 +561,10 @@ def configuration(case):
 def lease_snapshot(root, durations):
     file = root/'m2/range.leases'
     text = file.read_text() if file.exists() else ''
+    return text, normalize_leases(text, durations)
+
+
+def normalize_leases(text, durations):
     rows = []
     for line in text.splitlines():
         fields = line.split()
@@ -575,7 +579,7 @@ def lease_snapshot(root, durations):
             else:
                 fields[0] = 'infinite'
         rows.append(fields)
-    return text, sorted(rows)
+    return sorted(rows)
 
 
 def decode(raw, event):
@@ -920,12 +924,126 @@ def boundary_plan(cases):
     }
 
 
+def qualify_runs(runs, manifests, probe_tests, out):
+    """Replay every frozen requirement from locally verified immutable runs."""
+    from m5_option_matrix_archive import verify
+    required = {case['name']: case for case in syntax_cases()+list(service_cases())}
+    assert len(required) == len(syntax_cases())+len(list(service_cases()))
+    archives = {}
+    for manifest in manifests:
+        report = json.loads(manifest.read_text())
+        archive = manifest.with_name(report['archive_name'])
+        verified = verify(archive, manifest, None)
+        archives[report['prefix']] = (report, verified)
+    identities, completed, source_commits = set(), {}, set()
+    for run_dir in runs:
+        report, verified = archives[run_dir.name]
+        # The plain review copy must still match the independently verified
+        # tar, including driver/config/raw packet and terminal observations.
+        for name, entry in report['entries'].items():
+            if entry['kind'] == 'file' and 'rootfs-overlay' not in Path(name).parts:
+                assert sha256(run_dir/name) == entry['sha256'], (run_dir, name)
+        result = json.loads((run_dir/'result.json').read_text())
+        plan = json.loads((run_dir/'plan.json').read_text())
+        assert result['passed'] and result['comparison_executed'] and not result['failures']
+        assert not result.get('unexecuted')
+        assert result['c_sha256'] == STOCK_SHA256
+        assert result['tool_sha256'] == sha256(__file__) == sha256(run_dir/'driver.py')
+        for name, expected in result['dependencies'].items():
+            assert sha256(Path(__file__).with_name(name)) == expected, name
+        assert json.loads((run_dir/'negative-controls.json').read_text()) == controls()
+        identities.add(result['rust_sha256'])
+        source_commits.add(result['source_commit'])
+        assert [row['name'] for row in result['cases']] == [case['name'] for case in plan]
+        for case in plan:
+            assert case == required[case['name']], case['name']
+            observed = {}
+            for side in ['c', 'rust']:
+                folder = run_dir/case['name']/side
+                assert (folder/'config').read_text() == configuration(case)
+                observed[side] = json.loads((folder/'observed.json').read_text())
+                value = observed[side]
+                assert value['status'] == 'ok' and len(value['rows']) == len(case['events'])
+                if not case['events']:
+                    continue
+                assert value['identity']['sha256'] == (STOCK_SHA256 if side == 'c' else result['rust_sha256'])
+                assert not value['guards'] and value['fd_stable']
+                assert value['reaped'] and value['interfaces_clean'] and value['pid_removed']
+                assert not value['forced'] and value['exit'] == 0
+                assert not value['network_cleanup']['forced'] and value['network_cleanup']['returncode'] == -15
+                assigned, durations = {}, {}
+                for index, (source_event, row) in enumerate(zip(case['events'], value['rows'])):
+                    event_folder = folder/f'{index:03}'
+                    assert row['id'] == source_event['id']
+                    action = source_event['action']
+                    if action not in ('network', 'restart'):
+                        wire_source = copy.deepcopy(source_event)
+                        if action == 'bootp':
+                            wire_source['action'] = 'discover'
+                        event = dhcp.wire_event(wire_source, assigned)
+                        if source_event.get('omit_prl'):
+                            event['packet'].pop('prl', None)
+                        if action == 'bootp':
+                            event['packet']['kind'] = 0
+                        raw = json.loads((event_folder/'raw.json').read_text())
+                        assert request(event['packet'], 0xb500+index).hex() == raw['request']
+                        decoded = decode(raw, event)
+                        assert decoded == row['response']
+                        icmp = json.loads((event_folder/'icmp.json').read_text())
+                        if source_event.get('cancel'):
+                            cancelled = json.loads((event_folder/'cancellation.json').read_text())
+                            assert cancelled['exit'] == 0 and 1.5 < cancelled['exit_after_signal_seconds'] < 5
+                            assert decoded and decoded['status'] == 2 and row['cancellation_verified']
+                        else:
+                            assert not guard_row(row, source_event, raw, icmp)
+                        if source_event.get('coexistence'):
+                            witness = json.loads((event_folder/'coexistence.json').read_text())
+                            assert witness['sent'] == raw['sent'] and witness['received'] == raw['received']
+                            assert raw['sent'] < witness['dns_at'] <= witness['tftp_at'] < raw['received']
+                            assert witness['dns']['records'][0]['data'] == '8.8.8.8'
+                            assert witness['tftp']['reply'] == (b'\0\3\0\1matrix-tftp').hex()
+                        if decoded and decoded['status'] in (0, 2, 5) and decoded['address'] != '0.0.0.0':
+                            assigned[str(event.get('client', 1))] = decoded['address']
+                            if decoded['status'] == 5 and decoded['lease_time'] is not None:
+                                durations[decoded['address']] = (decoded['lease_time'], raw['sent'], raw['received'])
+                    assert row['leases'] == normalize_leases((event_folder/'leases').read_text(), durations)
+            assert comparable(observed['c']) == comparable(observed['rust'])
+            completed[case['name']] = {'run': str(run_dir), 'events': len(case['events']),
+                                       'archive_sha256': verified['archive_sha256']}
+    assert set(completed) == set(required), sorted(set(required)-set(completed))
+    assert len(identities) == len(source_commits) == 1
+    checklist = json.loads(Path(__file__).with_name('m5_dhcp_range_checklist.json').read_text())
+    tests = probe_tests.read_text()
+    for boundary in checklist['boundaries']:
+        for name in boundary.get('unit_guards', []):
+            assert 'dhcp::probe::tests::'+name+' ... ok' in tests, name
+        required_cases = boundary['case_catalogue']
+        assert required_cases and all(name in completed for name in required_cases)
+        boundary.update(status='passed', evidence=[completed[name] | {'case': name} for name in required_cases])
+    checklist.update(status='qualified', checked=len(checklist['boundaries']),
+                     source_commit=next(iter(source_commits)), rust_sha256=next(iter(identities)),
+                     tool_sha256=sha256(__file__), cases=len(completed),
+                     events_per_side=sum(case['events'] for case in completed.values()),
+                     unit_evidence={'path': str(probe_tests), 'sha256': sha256(probe_tests)})
+    save(out, checklist)
+    return {'qualified': True, 'boundaries': checklist['checked'], 'cases': len(completed),
+            'events_per_side': checklist['events_per_side'], 'source_commit': checklist['source_commit']}
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--image-root',type=Path,required=True);parser.add_argument('--rust',type=Path,required=True)
+    parser.add_argument('--image-root',type=Path);parser.add_argument('--rust',type=Path)
     parser.add_argument('--out',type=Path,required=True);parser.add_argument('--side',choices=['c','rust','both'],default='both')
     parser.add_argument('--syntax',action='store_true');parser.add_argument('--case',action='append');parser.add_argument('--source-commit')
-    args=parser.parse_args();assert os.geteuid()==0 and os.environ.get('DNSMASQ_TEST_ISOLATED')=='1'
+    parser.add_argument('--qualify-runs', nargs='+', type=Path)
+    parser.add_argument('--archive-manifest', action='append', type=Path, default=[])
+    parser.add_argument('--probe-tests', type=Path)
+    args=parser.parse_args()
+    if args.qualify_runs:
+        print(json.dumps(qualify_runs(args.qualify_runs, args.archive_manifest, args.probe_tests, args.out)))
+        return 0
+    assert args.image_root is not None and args.rust is not None
+    assert os.geteuid()==0 and os.environ.get('DNSMASQ_TEST_ISOLATED')=='1'
     assert [name for _,name in socket.if_nameindex()]==['lo'];assert 'private' in args.out.resolve().parts and not args.out.exists()
     root=prepare(args.image_root,None,args.out/'image',args.rust);(root/'m2').chmod(0o777)
     (args.out/'driver.py').write_bytes(Path(__file__).read_bytes())
@@ -950,6 +1068,9 @@ def main():
                 ['m5_option_matrix_dhcp.py', 'm5_dhcp_tags_options.py', 'm2_dhcp_scenarios.py',
                  'test_single_poll_service.py', 'dns_service_probe.py', 'm2_rootfs.py',
                  'dhcp_boot_service_diff.py', 'run_isolated.sh']}}
+    (args.out/'driver-dependencies').mkdir()
+    for name in result['dependencies']:
+        (args.out/'driver-dependencies'/name).write_bytes(Path(__file__).with_name(name).read_bytes())
     for case in cases:
         folder=args.out/case['name'];folder.mkdir();observations={}
         for side in ['c','rust'] if args.side=='both' else [args.side]:observations[side]=run(root,side,case,folder/side,args.syntax)
