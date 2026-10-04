@@ -11,6 +11,7 @@ use std::io::{self, BufRead};
 use std::net::Ipv4Addr;
 use std::path::Path;
 
+#[derive(Clone)]
 pub struct Ethers {
     hosts: Vec<HostConfig>,
     origins: Vec<Origin>,
@@ -155,22 +156,56 @@ impl Ethers {
                 break;
             }
             number += 1;
-            line.truncate(
-                line.iter()
-                    .position(|byte| *byte == 0)
-                    .unwrap_or(line.len()),
-            );
-            while line.last().is_some_and(u8::is_ascii_whitespace) {
-                line.pop();
-            }
-            if line.is_empty() || matches!(line[0], b'#' | b'+') {
-                continue;
-            }
-            if self.add(&line).is_none() {
+            if !self.read_line(&mut line) {
                 bad.push(number);
             }
         }
         bad
+    }
+
+    fn read_line(&mut self, line: &mut Vec<u8>) -> bool {
+        line.truncate(
+            line.iter()
+                .position(|byte| *byte == 0)
+                .unwrap_or(line.len()),
+        );
+        while line.last().is_some_and(u8::is_ascii_whitespace) {
+            line.pop();
+        }
+        line.is_empty() || matches!(line[0], b'#' | b'+') || self.add(line).is_some()
+    }
+
+    /// A nonblocking draft read. The old generation remains available to the
+    /// owner until the returned reader completes. Open failure changes nothing.
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    pub(crate) fn begin_read(&self, path: &Path) -> io::Result<EthersRead> {
+        use std::os::unix::fs::{FileTypeExt, OpenOptionsExt};
+        let file = std::fs::OpenOptions::new()
+            .read(true)
+            .custom_flags(0o4000)
+            .open(path)?;
+        let wait_readiness = file.metadata().is_ok_and(|metadata| {
+            metadata.file_type().is_fifo() || metadata.file_type().is_char_device()
+        });
+        let mut draft = self.clone();
+        let mut index = 0;
+        draft.hosts.retain(|_| {
+            let keep = draft.origins[index].source != Source::Ethers;
+            index += 1;
+            keep
+        });
+        draft
+            .origins
+            .retain(|origin| origin.source != Source::Ethers);
+        Ok(EthersRead {
+            draft,
+            file,
+            wait_readiness,
+            line: Vec::new(),
+            number: 0,
+            bad: Vec::new(),
+            done: false,
+        })
     }
 
     fn add(&mut self, line: &[u8]) -> Option<()> {
@@ -245,6 +280,104 @@ impl Ethers {
             address: hardware,
         }];
         Some(())
+    }
+}
+
+/// Owner-driven /etc/ethers reader. Completion transfers the full draft, with
+/// inline/file provenance and previous-index mappings preserved.
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+pub(crate) struct EthersRead {
+    draft: Ethers,
+    file: std::fs::File,
+    wait_readiness: bool,
+    line: Vec<u8>,
+    number: usize,
+    bad: Vec<usize>,
+    done: bool,
+}
+
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+impl EthersRead {
+    pub(crate) fn append_poll_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>) {
+        use std::os::fd::AsRawFd;
+        if self.wait_readiness && !self.done {
+            fds.push(owrt_ubus::sys::PollFd {
+                fd: self.file.as_raw_fd(),
+                events: 1,
+                revents: 0,
+            });
+        }
+    }
+
+    pub(crate) fn runnable(&self) -> bool {
+        !self.wait_readiness && !self.done
+    }
+
+    fn line(&mut self) {
+        self.number += 1;
+        if !self.draft.read_line(&mut self.line) {
+            self.bad.push(self.number);
+        }
+        self.line.clear();
+    }
+
+    pub(crate) fn step(&mut self) -> bool {
+        use std::io::Read;
+        use std::os::fd::AsRawFd;
+        if self.done {
+            return true;
+        }
+        if self.wait_readiness {
+            let mut fds = [owrt_ubus::sys::PollFd {
+                fd: self.file.as_raw_fd(),
+                events: 1,
+                revents: 0,
+            }];
+            match owrt_ubus::sys::poll_fds(&mut fds, 0) {
+                Ok(0) => return false,
+                Err(error) if error.kind() == io::ErrorKind::Interrupted => return false,
+                Err(_) => {
+                    if !self.line.is_empty() {
+                        self.line();
+                    }
+                    self.done = true;
+                    return true;
+                }
+                Ok(_) => {}
+            }
+        }
+        let mut bytes = [0; 4096];
+        let length = match self.file.read(&mut bytes) {
+            Ok(length) => length,
+            Err(error)
+                if matches!(
+                    error.kind(),
+                    io::ErrorKind::WouldBlock | io::ErrorKind::Interrupted
+                ) =>
+            {
+                return false
+            }
+            Err(_) => 0,
+        };
+        for byte in &bytes[..length] {
+            if *byte == b'\n' {
+                self.line();
+            } else {
+                self.line.push(*byte);
+            }
+        }
+        if length == 0 {
+            if !self.line.is_empty() {
+                self.line();
+            }
+            self.done = true;
+        }
+        self.done
+    }
+
+    pub(crate) fn into_result(self) -> (Ethers, Vec<usize>) {
+        assert!(self.done, "ethers draft must complete before publication");
+        (self.draft, self.bad)
     }
 }
 
@@ -351,6 +484,34 @@ mod tests {
             Some(b"renamed".as_slice())
         );
     }
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    fn staged_ethers_read_keeps_previous_generation_until_complete() {
+        let path = std::env::temp_dir().join(format!(
+            "ethers-stage-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        let mut original = Ethers::new(&[]);
+        original.read(&b"00:11:22:33:44:55 old\n"[..]);
+        let mut data = vec![b'#'; 5000];
+        data.extend_from_slice(b"\nbad-row\n00:11:22:33:44:66 new");
+        std::fs::write(&path, data).unwrap();
+        let mut staged = original.begin_read(&path).unwrap();
+        assert!(!staged.step());
+        assert_eq!(original.hosts()[0].hostname.as_deref(), Some(&b"old"[..]));
+        assert!(!staged.step());
+        assert!(staged.step());
+        let (published, bad) = staged.into_result();
+        assert_eq!(bad, [2]);
+        assert_eq!(published.hosts().len(), 1);
+        assert_eq!(published.hosts()[0].hostname.as_deref(), Some(&b"new"[..]));
+        std::fs::remove_file(path).unwrap();
+    }
+
     #[test]
     fn malformed_rows_and_missing_file_preserve_the_c_boundaries() {
         let mut ethers = Ethers::new(&[]);
