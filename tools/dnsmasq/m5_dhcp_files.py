@@ -663,8 +663,12 @@ def compare(c,rust):
     if wire.comparable_syntax(c.get('syntax',{}))!=wire.comparable_syntax(rust.get('syntax',{})):failures.append('syntax')
     if len(c['rows'])!=len(rust['rows']):failures.append('row count')
     for first,second in zip(c['rows'],rust['rows']):
-        for key in ['index','event','alive','health','peer','comparable','dns','helper','bank_fds_closed','emfile_verified','owner_health_verified','partial_eio_verified','malformed']:
+        for key in ['index','event','alive','health','peer','comparable','dns','helper','bank_fds_closed','emfile_verified','owner_health_verified','partial_eio_verified']:
             if first.get(key)!=second.get(key):failures.append(f"{first['index']}:{key}")
+        if 'malformed' in first or 'malformed' in second:
+            left,right=first.get('malformed',{}),second.get('malformed',{})
+            if left.get('injected') is not True or right.get('injected') is not True or left.get('event')!=right.get('event'):
+                failures.append(f"{first['index']}:malformed")
         if (first.get('response') is None)!=(second.get('response') is None):failures.append(f"{first['index']}:response presence")
         if 'pending_protocol' in first or 'pending_protocol' in second:
             left,right=copy.deepcopy(first.get('pending_protocol')),copy.deepcopy(second.get('pending_protocol'))
