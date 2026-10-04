@@ -27,7 +27,11 @@
         "auth-alias-0-127-0-0-1",
         "auth-alias-1-10-77-0-254",
         "auth-alias-1-127-0-0-1",
-        "authoritative-invalid"
+        "authoritative-invalid",
+        "nonauth-alias-0-10-77-0-254",
+        "nonauth-alias-0-127-0-0-1",
+        "nonauth-alias-1-10-77-0-254",
+        "nonauth-alias-1-127-0-0-1"
       ],
       "checklist": [
         {
@@ -42,7 +46,11 @@
             "auth-alias-0-127-0-0-1",
             "auth-alias-1-10-77-0-254",
             "auth-alias-1-127-0-0-1",
-            "authoritative-invalid"
+            "authoritative-invalid",
+            "nonauth-alias-0-10-77-0-254",
+            "nonauth-alias-0-127-0-0-1",
+            "nonauth-alias-1-10-77-0-254",
+            "nonauth-alias-1-127-0-0-1"
           ]
         },
         {
@@ -57,7 +65,11 @@
             "auth-alias-0-127-0-0-1",
             "auth-alias-1-10-77-0-254",
             "auth-alias-1-127-0-0-1",
-            "authoritative-invalid"
+            "authoritative-invalid",
+            "nonauth-alias-0-10-77-0-254",
+            "nonauth-alias-0-127-0-0-1",
+            "nonauth-alias-1-10-77-0-254",
+            "nonauth-alias-1-127-0-0-1"
           ]
         },
         {
@@ -72,7 +84,11 @@
             "auth-alias-0-127-0-0-1",
             "auth-alias-1-10-77-0-254",
             "auth-alias-1-127-0-0-1",
-            "authoritative-invalid"
+            "authoritative-invalid",
+            "nonauth-alias-0-10-77-0-254",
+            "nonauth-alias-0-127-0-0-1",
+            "nonauth-alias-1-10-77-0-254",
+            "nonauth-alias-1-127-0-0-1"
           ]
         },
         {
@@ -87,7 +103,11 @@
             "auth-alias-0-127-0-0-1",
             "auth-alias-1-10-77-0-254",
             "auth-alias-1-127-0-0-1",
-            "authoritative-invalid"
+            "authoritative-invalid",
+            "nonauth-alias-0-10-77-0-254",
+            "nonauth-alias-0-127-0-0-1",
+            "nonauth-alias-1-10-77-0-254",
+            "nonauth-alias-1-127-0-0-1"
           ]
         },
         {
@@ -102,7 +122,11 @@
             "auth-alias-0-127-0-0-1",
             "auth-alias-1-10-77-0-254",
             "auth-alias-1-127-0-0-1",
-            "authoritative-invalid"
+            "authoritative-invalid",
+            "nonauth-alias-0-10-77-0-254",
+            "nonauth-alias-0-127-0-0-1",
+            "nonauth-alias-1-10-77-0-254",
+            "nonauth-alias-1-127-0-0-1"
           ]
         },
         {
@@ -117,7 +141,11 @@
             "auth-alias-0-127-0-0-1",
             "auth-alias-1-10-77-0-254",
             "auth-alias-1-127-0-0-1",
-            "authoritative-invalid"
+            "authoritative-invalid",
+            "nonauth-alias-0-10-77-0-254",
+            "nonauth-alias-0-127-0-0-1",
+            "nonauth-alias-1-10-77-0-254",
+            "nonauth-alias-1-127-0-0-1"
           ]
         }
       ]
@@ -183,7 +211,7 @@
           ]
         },
         {
-          "boundary": "Request MAC/vendor/tag-if/implicit interface tags can match; range set-tag is not yet present at force-broadcast evaluation.",
+          "boundary": "Original request MAC/vendor/implicit interface tags can match; both tag-if-derived tags and range context tags are absent from the original netid consumed by force-broadcast (dhcp-common.c112-124/rfc2131.c2663).",
           "checked": false,
           "required_scenarios": [
             "broadcast-off",
@@ -1289,7 +1317,14 @@
             "dhcp"
           ],
           "address": "10.77.0.10",
-          "server_id": "10.77.0.254"
+          "server_id": "10.77.0.254",
+          "expect": {
+            "status": 6,
+            "flags": 32768,
+            "leases": 0,
+            "message": "wrong server-ID",
+            "server_id": "10.77.0.1"
+          }
         }
       ],
       "expected_test_exit": 0,
@@ -1313,7 +1348,14 @@
             "dhcp"
           ],
           "address": "10.77.0.10",
-          "server_id": "127.0.0.1"
+          "server_id": "127.0.0.1",
+          "expect": {
+            "status": 6,
+            "flags": 32768,
+            "leases": 0,
+            "message": "wrong server-ID",
+            "server_id": "10.77.0.1"
+          }
         }
       ],
       "expected_test_exit": 0,
@@ -1337,7 +1379,14 @@
             "dhcp"
           ],
           "address": "10.77.0.10",
-          "server_id": "10.77.0.254"
+          "server_id": "10.77.0.254",
+          "expect": {
+            "status": 6,
+            "flags": 32768,
+            "leases": 0,
+            "message": "wrong network",
+            "server_id": "10.77.0.254"
+          }
         }
       ],
       "expected_test_exit": 0,
@@ -1361,7 +1410,14 @@
             "dhcp"
           ],
           "address": "10.77.0.10",
-          "server_id": "127.0.0.1"
+          "server_id": "127.0.0.1",
+          "expect": {
+            "status": 6,
+            "flags": 32768,
+            "leases": 0,
+            "message": "wrong network",
+            "server_id": "127.0.0.1"
+          }
         }
       ],
       "expected_test_exit": 0,
@@ -1668,7 +1724,7 @@
           },
           "expect": {
             "status": 2,
-            "flags": 32768,
+            "flags": 0,
             "leases": 0
           }
         }
@@ -2894,6 +2950,124 @@
         }
       ],
       "expected_test_exit": 0
+    },
+    {
+      "id": "nonauth-alias-0-10-77-0-254",
+      "options": [
+        "dhcp-authoritative"
+      ],
+      "adapter": "dhcp",
+      "config": "",
+      "probes": [
+        {
+          "id": "alias",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.10",
+          "server_id": "10.77.0.254",
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "server_aliases": [
+        "10.77.0.254"
+      ],
+      "tftp": false
+    },
+    {
+      "id": "nonauth-alias-0-127-0-0-1",
+      "options": [
+        "dhcp-authoritative"
+      ],
+      "adapter": "dhcp",
+      "config": "",
+      "probes": [
+        {
+          "id": "alias",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.10",
+          "server_id": "127.0.0.1",
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "server_aliases": [
+        "10.77.0.254"
+      ],
+      "tftp": false
+    },
+    {
+      "id": "nonauth-alias-1-10-77-0-254",
+      "options": [
+        "dhcp-authoritative"
+      ],
+      "adapter": "dhcp",
+      "config": "enable-tftp\ntftp-root=/m2/tftp\n",
+      "probes": [
+        {
+          "id": "alias",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.10",
+          "server_id": "10.77.0.254",
+          "expect": {
+            "status": 6,
+            "flags": 32768,
+            "leases": 0,
+            "message": "wrong network",
+            "server_id": "10.77.0.254"
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "server_aliases": [
+        "10.77.0.254"
+      ],
+      "tftp": true
+    },
+    {
+      "id": "nonauth-alias-1-127-0-0-1",
+      "options": [
+        "dhcp-authoritative"
+      ],
+      "adapter": "dhcp",
+      "config": "enable-tftp\ntftp-root=/m2/tftp\n",
+      "probes": [
+        {
+          "id": "alias",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.10",
+          "server_id": "127.0.0.1",
+          "expect": {
+            "status": 6,
+            "flags": 32768,
+            "leases": 0,
+            "message": "wrong network",
+            "server_id": "127.0.0.1"
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "server_aliases": [
+        "10.77.0.254"
+      ],
+      "tftp": true
     }
   ],
   "qualification_ready": true
