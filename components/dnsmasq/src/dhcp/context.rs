@@ -5,7 +5,7 @@
 //! admission, listen-address/bridge filtering, shared networks and relays are
 //! outside this boundary. Guessed fields persist across packets as they do in C.
 
-use super::allocation::{AddressRange, RangeKind};
+use super::allocation::AddressRange;
 use crate::config::dhcp::RangeConfig;
 use crate::interfaces::Ipv4Interface;
 use std::net::Ipv4Addr;
@@ -110,7 +110,7 @@ pub fn select_remote_contexts(
                 router: state.router,
                 local: state.local,
                 lease_time: config.lease_time,
-                kind: RangeKind::Dynamic,
+                kind: config.kind,
                 filter: config.filter.tags().to_vec(),
                 epoch: state.epoch,
             },
@@ -193,7 +193,7 @@ pub fn select_contexts(
                     router: state.router,
                     local: state.local,
                     lease_time: config.lease_time,
-                    kind: RangeKind::Dynamic,
+                    kind: config.kind,
                     filter: config.filter.tags().to_vec(),
                     epoch: state.epoch,
                 },
@@ -206,6 +206,7 @@ pub fn select_contexts(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::dhcp::allocation::RangeKind;
 
     fn address(text: &str) -> Ipv4Addr {
         text.parse().unwrap()
@@ -213,6 +214,7 @@ mod tests {
 
     fn config() -> RangeConfig {
         RangeConfig {
+            kind: RangeKind::Dynamic,
             set_tag: None,
             filter: Default::default(),
             start: address("192.0.2.10"),
