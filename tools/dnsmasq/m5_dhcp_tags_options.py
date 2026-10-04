@@ -146,6 +146,10 @@ def identity_fixtures():
                [event(chaddr='2001db0801', hlen=5)])
 
     common = marked('dhcp-match=set:hit,vi-encap:1234,needle\n')
+    for code in (256, 65535):
+        yield case('identity-match-grammar', f'non-wire-{code}',
+                   marked(f'dhcp-match=set:hit,{code},needle\n'),
+                   [event('no-option', kind=1), event('ordinary-option', kind=1, extra=opts((224, b'needle')))])
     yield case('identity-match-enterprise', 'identification', common,
                marker_events([('same', vi(1234, b'needle')), ('other', vi(1235, b'needle')),
                               ('short', b'\0\0\x04\xd2'), ('absent', b'')]) +
@@ -435,7 +439,8 @@ def identity_parser_cases():
         yield 'identity-host-ipv6',value,'dhcp-host='+value+'\n',None
     for i,value in enumerate(['set:hit,vi-encap:1234','hit,vi-encap:1234,text','set:hit,vi-encap:1234,01:*:03',
                               'set:hit,vi-encap:1234,258s','vi-encap:1234','set:a,set:b,vi-encap:1234',
-                              'set:a,vendor:foo,1','set:a,encap:1,1','set:a,option6:1,1']):
+                              'set:a,vendor:foo,1','set:a,encap:1,1','set:a,option6:1,1',
+                              'set:hit,256,needle','set:hit,65535,needle']):
         yield 'identity-match-grammar',str(i),'dhcp-match='+value+'\n',None
     for i,value in enumerate(['set:hit,work','hit,work*','set:hit,"work"','set:hit,wo*rk','set:hit,work**','set:hit','set:hit,','set:a,set:b,work']):
         yield 'identity-name-grammar',str(i),'dhcp-name-match='+value+'\n',None
