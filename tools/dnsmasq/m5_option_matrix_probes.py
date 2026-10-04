@@ -190,6 +190,29 @@ def controls():
     override_case = copy.deepcopy(admission_case); override_case['probes'][0]['admission']['udp'] = 'reply'
     assert local_service_guards([admission], override_case)
     found['admission-ignores-explicit-override'] = 'detected'
+    timer_probe = {'id': 'timer', 'name': 'timer.test', 'interval_ms': 50, 'expected_queries': 3, 'reply_after': 3}
+    timer_scenario = {'probes': [timer_probe]}
+    timer_events = [{'name': 'timer.test', 'server': '127.0.0.2', 'monotonic': t, 'wire': '12340000'} for t in [1, 1.05, 1.15]]
+    timer_row = {'id': 'timer:retry', 'upstream': timer_events, 'response': {'health': [reply['packet']], 'replies': [reply['packet']]}}
+    assert not retry_guards([timer_row], timer_scenario)
+    for control in ['missing-retry', 'retry-after-success', 'wrong-interval', 'changed-retry-packet', 'missing-success-reply']:
+        changed = copy.deepcopy(timer_row)
+        if control == 'missing-retry': changed['upstream'].pop()
+        elif control == 'retry-after-success': changed['upstream'].append(dict(timer_events[-1], monotonic=1.35))
+        elif control == 'wrong-interval': changed['upstream'][1]['monotonic'] += .3
+        elif control == 'changed-retry-packet': changed['upstream'][1]['wire'] = '12340001'
+        elif control == 'missing-success-reply': changed['response']['replies'].clear()
+        assert retry_guards([changed], timer_scenario), control
+        found['retry-' + control] = 'detected'
+    queued_case = {'probes': [{'id': 'queued', 'source': '192.0.2.12', 'scheduling': 'queued', 'transports': ['tcp'], 'admission': {'tcp': 'close'}}]}
+    queued_row = {'id': 'queued:tcp', 'response': {'stage': 'receive', 'status': 'closed', 'termination': 'reset', 'errno': 104, 'source_address': '192.0.2.12', 'queued_rx_bytes': 41, 'reply': None}}
+    assert not local_service_guards([queued_row], queued_case)
+    for control in ['EOF-with-queued-data', 'missing-kernel-queue-proof']:
+        changed = copy.deepcopy(queued_row)
+        if control == 'EOF-with-queued-data': changed['response']['termination'] = 'EOF'; changed['response']['errno'] = None
+        else: changed['response']['queued_rx_bytes'] = 0
+        assert local_service_guards([changed], queued_case), control
+        found['admission-' + control] = 'detected'
     return found
 
 
@@ -331,14 +354,19 @@ def network_probe(spec):
     result = {'stage': 'connect', 'status': None, 'reply': None, 'raw': None,
               'source_address': None, 'errno': None}
     with socket.socket(family, socket.SOCK_STREAM if tcp else socket.SOCK_DGRAM) as client:
-        client.settimeout(.18)
+        client.settimeout(2)
         if spec.get('source'):
             client.bind((spec['source'], 0))
         try:
             client.connect((spec['destination'], spec['port']))
             result['source_address'] = client.getsockname()[0]
+            client.settimeout(2 if spec.get('queued') else .18)
             result['stage'] = 'receive'
-            client.sendall(struct.pack('!H', len(request)) + request if tcp else request)
+            if spec.get('send_dns', True):
+                client.sendall(struct.pack('!H', len(request)) + request if tcp else request)
+            if spec.get('queued'):
+                import json
+                print(json.dumps({'queued': True, 'sent_bytes': len(request) + 2}), flush=True)
             response = receive(client, tcp)
             if response is None:
                 result['status'] = 'timeout'
@@ -365,16 +393,22 @@ def observe_local_service(port, probe, ident, transport, topology):
     import sys
     from pathlib import Path
     spec = {'destination': probe['destination'], 'source': probe.get('source'),
-            'port': port, 'transport': transport, 'ident': ident}
-    if probe.get('remote'):
+            'port': port, 'transport': transport, 'ident': ident,
+            'send_dns': probe.get('scheduling') != 'idle', 'queued': probe.get('scheduling') == 'queued'}
+    queued_bytes = None
+    if spec['queued']:
+        result, queued_bytes = queued_network_probe(topology, spec)
+    elif probe.get('remote'):
         result = json.loads(topology.client([sys.executable, str(Path(__file__).resolve()), '--network-probe', json.dumps(spec)]))
     else:
         result = network_probe(spec)
     raw = result.pop('raw')
-    # Preserve reset-vs-EOF errno in raw evidence. Both denote the same accepted
-    # TCP connection being closed by the source admission check, unlike a
-    # connect-stage refusal caused by host-only binding.
-    raw_errno = result.pop('errno')
+    # Preserve and compare reset versus EOF; the controlled queued-byte probe
+    # exposed shutdown(Both) as a real difference even with data pending.
+    raw_errno = result['errno']
+    if probe.get('scheduling'):
+        result['termination'] = 'reset' if raw_errno == 104 else ('EOF' if result['status'] == 'closed' and raw_errno is None else result['status'])
+        result['queued_rx_bytes'] = queued_bytes
     return {'id': probe['id'] + ':' + transport, 'response': result, 'upstream': [],
             'raw': {'reply': raw, 'errno': raw_errno}, 'request': spec, 'elapsed': 0}
 
@@ -399,9 +433,198 @@ def local_service_guards(rows, scenario):
             failures.append({'id': row['id'], 'expected_accepted_then_closed': actual})
         elif expected == 'no-listener' and actual['status'] != 'refused':
             failures.append({'id': row['id'], 'expected_no_listener': actual})
+        if probe.get('scheduling') and actual.get('termination') != ('reset' if probe['scheduling'] == 'queued' else 'EOF'):
+            failures.append({'id': row['id'], 'wrong_termination_boundary': actual})
+        if probe.get('scheduling') == 'queued' and (actual.get('errno') != 104 or (actual.get('queued_rx_bytes') or 0) < len(question_packet('admission.matrix.test', 0)) + 2):
+            failures.append({'id': row['id'], 'missing_queued_reset_proof': actual})
         if probe.get('source') and actual['source_address'] not in (None, probe['source']):
             failures.append({'id': row['id'], 'wrong_source': actual['source_address']})
     return failures
+
+
+def align_second():
+    # C uses whole wall-clock seconds for the timeout and milliseconds for its
+    # exponential schedule. Start both sides away from the truncation boundary.
+    fraction = time.time() % 1
+    delay = .15 - fraction
+    if delay < 0:
+        delay += 1
+    time.sleep(delay)
+
+
+def local_health(port, ident):
+    out = []
+    for tcp in [False, True]:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM if tcp else socket.SOCK_DGRAM) as client:
+            client.settimeout(.4)
+            client.connect(('127.0.0.1', port))
+            packet = question_packet('retry-health.matrix.test', ident + int(tcp))
+            client.sendall(struct.pack('!H', len(packet)) + packet if tcp else packet)
+            packet = receive(client, tcp)
+            out.append(semantics(packet) if packet is not None else None)
+    return out
+
+
+def observe_retry(port, probe, ident, transport, upstream):
+    import subprocess
+    del transport
+    align_second()
+    before = len(upstream.events)
+    captured_before = len(upstream.captured)
+    sources = [upstream] + ([upstream.alternate] if upstream.alternate else [])
+    before_counts = [len(source.events) for source in sources]
+    captured_total = sum(len(source.captured) for source in sources)
+    started = time.monotonic()
+    request = question_packet(probe['name'], ident)
+    raws, output, routes = [], {}, []
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as client:
+        client.settimeout(.02)
+        client.connect(('127.0.0.1', port))
+        client.send(request)
+        while sum(len(source.captured) for source in sources) == captured_total:
+            if time.monotonic() - started > .5:
+                raise AssertionError('initial retry query not forwarded')
+            time.sleep(.002)
+        output['health'] = local_health(port, ident + 1)
+        if probe.get('send_failure'):
+            subprocess.run(['ip', 'addr', 'del', upstream.host + '/32', 'dev', 'lo'], check=True)
+            try:
+                lookup = subprocess.run(['ip', 'route', 'get', upstream.host], capture_output=True, text=True)
+                routes.append({'phase': 'removed', 'exit': lookup.returncode, 'stderr': lookup.stderr, 'stdout': lookup.stdout})
+                if lookup.returncode == 0:
+                    raise AssertionError('removed upstream still has a route')
+                with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as check:
+                    try:
+                        check.sendto(b'route-check', (upstream.host, upstream.port))
+                    except OSError as error:
+                        output['route_send_errno'] = error.errno
+                    else:
+                        raise AssertionError('send to removed upstream unexpectedly succeeded')
+                time.sleep(.25)
+                output['health_during_failure'] = local_health(port, ident + 4)
+            finally:
+                subprocess.run(['ip', 'addr', 'add', upstream.host + '/32', 'dev', 'lo'], check=True)
+            held, peer, answer = upstream.captured[captured_before]
+            upstream.udp.sendto(answer, peer)
+            client.settimeout(.18)
+            late = receive(client)
+            output['late_after_failure'] = semantics(late) if late is not None else None
+            raws.append(late.hex() if late else None)
+            recovery = question_packet('recovery.matrix.test', ident + 8)
+            client.send(recovery)
+            client.settimeout(.5)
+            reply = receive(client)
+            output['recovery'] = semantics(reply) if reply is not None else None
+            raws.append(reply.hex() if reply else None)
+            time.sleep(.1)
+        else:
+            replies = []
+            deadline = started + probe['duration']
+            while time.monotonic() < deadline:
+                packet = receive(client)
+                if packet is not None:
+                    replies.append(semantics(packet))
+                    raws.append(packet.hex())
+            output['replies'] = replies
+        events = copy.deepcopy([event for source, count in zip(sources, before_counts) for event in source.events[count:]])
+        events.sort(key=lambda event: event.get('monotonic', 0))
+    return {'id': probe['id'] + ':retry', 'response': output, 'upstream': events,
+            'raw': {'replies': raws, 'routes': routes}, 'request': request.hex(),
+            'elapsed': time.monotonic() - started}
+
+
+def retry_projection(row):
+    row = copy.deepcopy(row)
+    for key in ['raw', 'request', 'elapsed']:
+        row.pop(key)
+    for event in row['upstream']:
+        event['query_without_id'] = event.pop('wire')[4:]
+        for key in ['monotonic', 'wall_time']:
+            event.pop(key, None)
+    row['upstream'].sort(key=lambda event: (event.get('server', ''), event['name']))
+    return row
+
+
+def retry_guards(rows, scenario):
+    failures = []
+    probes = {p['id']: p for p in scenario['probes']}
+    for row in rows:
+        probe = probes[row['id'].split(':')[0]]
+        events = [e for e in row['upstream'] if e['name'] == probe['name'].lower()]
+        if len(events) != probe['expected_queries']:
+            failures.append({'id': row['id'], 'expected_queries': probe['expected_queries'], 'actual_queries': len(events)})
+        if len({event['wire'] for event in events}) > 1:
+            failures.append({'id': row['id'], 'retry_changed_packet_or_id': True})
+        for server in {e.get('server') for e in events}:
+            times = [e['monotonic'] for e in events if e.get('server') == server]
+            for index, (left, right) in enumerate(zip(times, times[1:])):
+                expected_interval = probe['interval_ms'] * (2 ** index) / 1000
+                interval = right - left
+                if not expected_interval - .012 <= interval <= expected_interval + .09:
+                    failures.append({'id': row['id'], 'server': server, 'interval': interval, 'expected_interval': expected_interval})
+        for phase in ['health', 'health_during_failure']:
+            for response in row['response'].get(phase, []):
+                if response is None or [r['data'] for r in response['records']] != ['8.8.8.8']:
+                    failures.append({'id': row['id'], 'unresponsive_health': phase})
+        if probe.get('send_failure'):
+            if row['response'].get('route_send_errno') != 101:
+                failures.append({'id': row['id'], 'missing_real_enetunreach': row['response'].get('route_send_errno')})
+            if row['response']['late_after_failure'] is not None:
+                failures.append({'id': row['id'], 'failed_retry_still_live': True})
+            response = row['response']['recovery']
+            if response is None or response['flags'] & 15 or not response['records']:
+                failures.append({'id': row['id'], 'failed_recovery': response})
+        elif probe.get('reply_after'):
+            responses = row['response']['replies']
+            if len(responses) != 1 or [r['data'] for r in responses[0]['records']] != ['8.8.8.8']:
+                failures.append({'id': row['id'], 'wrong_success_reply': responses})
+        elif row['response']['replies']:
+            failures.append({'id': row['id'], 'blackhole_replied': row['response']['replies']})
+    return failures
+
+
+def queued_network_probe(topology, spec):
+    import json
+    import os
+    from pathlib import Path
+    import select
+    import signal
+    import subprocess
+    import sys
+    process = None
+    os.kill(topology.daemon_pid, signal.SIGSTOP)
+    try:
+        process = subprocess.Popen(['nsenter', '-t', str(topology.child.pid), '-n', sys.executable,
+                                    str(Path(__file__).resolve()), '--network-probe', json.dumps(spec)],
+                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if not select.select([process.stdout], [], [], 2)[0]:
+            raise AssertionError('queued client did not connect/send')
+        sent = json.loads(process.stdout.readline())
+        if not sent.get('queued'):
+            raise AssertionError({'queued_client': sent})
+        deadline = time.monotonic() + 1
+        queued_bytes = 0
+        while time.monotonic() < deadline:
+            for table in ['/proc/net/tcp', '/proc/net/tcp6']:
+                for line in Path(table).read_text().splitlines()[1:]:
+                    fields = line.split()
+                    if int(fields[1].rsplit(':', 1)[1], 16) == spec['port'] and fields[3] == '01':
+                        queued_bytes = max(queued_bytes, int(fields[4].split(':')[1], 16))
+            if queued_bytes >= sent['sent_bytes']:
+                break
+            time.sleep(.005)
+        if queued_bytes < sent['sent_bytes']:
+            raise AssertionError({'missing_kernel_receive_queue': queued_bytes, 'sent': sent})
+        os.kill(topology.daemon_pid, signal.SIGCONT)
+        stdout, stderr = process.communicate(timeout=3)
+        if process.returncode:
+            raise AssertionError({'client_failure': stderr})
+        return json.loads(stdout), queued_bytes
+    finally:
+        os.kill(topology.daemon_pid, signal.SIGCONT)
+        if process and process.poll() is None:
+            process.kill()
+            process.wait(timeout=2)
 
 
 if __name__ == '__main__':

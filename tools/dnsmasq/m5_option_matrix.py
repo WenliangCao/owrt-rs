@@ -46,15 +46,17 @@ def query(probe, ident):
 
 class Upstream:
     """Packet fixtures are input stimuli, never expected daemon responses."""
-    def __init__(self, probes):
+    def __init__(self, probes, host="127.0.0.2"):
         self.probes = {(p['name'].lower(), p.get('type', 1)): p for p in probes}
+        self.host = host
+        self.captured = []
         self.udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.udp.bind(('127.0.0.2', 0))
+        self.udp.bind((host, 0))
         self.port = self.udp.getsockname()[1]
         self.udp.settimeout(.05)
         self.tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.tcp.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.tcp.bind(('127.0.0.2', self.port))
+        self.tcp.bind((host, self.port))
         self.tcp.listen()
         self.tcp.settimeout(.05)
         self.stop = threading.Event()
@@ -69,6 +71,10 @@ class Upstream:
         self.events.append({'name': host, 'type': kind, 'class': cls, 'transport': transport,
                             'wire': packet.hex()})
         probe = self.probes.get((host, kind), {})
+        if probe.get('timed'):
+            self.events[-1]['monotonic'] = time.monotonic()
+            self.events[-1]['wall_time'] = time.time()
+            self.events[-1]['server'] = self.host
         value = probe.get('reply', '192.0.2.10' if kind == 1 else '2001:db8::10')
         record_kind = kind
         if kind == 12:
@@ -99,6 +105,10 @@ class Upstream:
                 response = self.answer(packet, 'udp')
                 host, end = read_name(packet, 12)
                 probe = self.probes.get((host, struct.unpack_from('!H', packet, end)[0]), {})
+                self.captured.append((packet, peer, response))
+                count = sum(event['name'] == host and event['transport'] == 'udp' for event in self.events)
+                if probe.get('drop_all') or count < probe.get('reply_after', 1):
+                    continue
                 if probe.get('delay_ms'):
                     time.sleep(probe['delay_ms'] / 1000)
                 if probe.get('spoof_case'):
@@ -202,7 +212,12 @@ def descendants(root):
 def run_side(root, side, scenario, folder):
     folder.mkdir()
     topology = probes_extra.LocalTopology() if scenario.get('adapter') == 'local-service' else None
-    upstream = Upstream(scenario['probes'])
+    isolated_address = scenario.get('upstream_address')
+    if isolated_address:
+        subprocess.run(['ip', 'addr', 'add', isolated_address + '/32', 'dev', 'lo'], check=True)
+    upstream = Upstream(scenario['probes'], isolated_address or '127.0.0.2')
+    alternate = Upstream(scenario['probes'], '127.0.0.3') if scenario.get('alternate_upstream') else None
+    upstream.alternate = alternate
     with socket.socket() as reserve:
         reserve.bind(('127.0.0.1', 0))
         port = reserve.getsockname()[1]
@@ -210,8 +225,9 @@ def run_side(root, side, scenario, folder):
             + ('' if scenario.get('adapter') == 'casing' else 'no-0x20-encode\n')
             + ('' if scenario.get('listen_addresses') == [] else 'listen-address=' + ','.join(scenario.get('listen_addresses', ['127.0.0.1'])) + '\n')
             + f'port={port}\ncache-size={scenario.get("cache_size", 0)}\nlocal-ttl=120\n'
-            f'server=127.0.0.2#{upstream.port}\npid-file=/m2/matrix.pid\n'
-            'addn-hosts=/m2/matrix.hosts\n' + scenario['config'].replace('{upstream}', str(upstream.port)))
+            f'server={upstream.host}#{upstream.port}\npid-file=/m2/matrix.pid\n'
+            'addn-hosts=/m2/matrix.hosts\n'
+            + (f'server=127.0.0.3#{alternate.port}\n' if alternate else '') + scenario['config'].replace('{upstream}', str(upstream.port)))
     (root / 'm2/matrix.conf').write_text(conf)
     (root / 'm2/matrix.hosts').write_text(scenario.get('hosts', ''))
     (folder / 'config').write_text(conf)
@@ -247,10 +263,12 @@ def run_side(root, side, scenario, folder):
                 result['startup'] = {'ready': False, 'exit': process.returncode}
             if result['startup']['ready']:
                 result['identity'] = process_identity(root, process.pid)
+                if topology:
+                    topology.daemon_pid = process.pid
                 verify_identity(result['identity']['sha256'], sha256(root / ('usr/sbin/dnsmasq' if side == 'c' else 'usr/sbin/dnsmasq-rs')))
                 for index, probe in enumerate(scenario['probes']):
                     for transport in probe.get('transports', ['udp', 'tcp']):
-                        observer = {'casing': probes_extra.observe_casing, 'capacity': probes_extra.observe_capacity}.get(scenario.get('adapter'), observe)
+                        observer = {'casing': probes_extra.observe_casing, 'capacity': probes_extra.observe_capacity, 'retry': probes_extra.observe_retry}.get(scenario.get('adapter'), observe)
                         if topology:
                             result['rows'].append(probes_extra.observe_local_service(port, probe, 0x4100 + index * 4, transport, topology))
                         else:
@@ -267,6 +285,10 @@ def run_side(root, side, scenario, folder):
                 result['forced_kill'] = True
             result['exit'] = process.returncode
         upstream.close()
+        if alternate:
+            alternate.close()
+        if isolated_address:
+            subprocess.run(['ip', 'addr', 'del', isolated_address + '/32', 'dev', 'lo'], check=True)
         if topology:
             topology.close()
             dump(folder / 'network.json', {'inventory': topology.inventory, 'commands': topology.commands, 'cleanup': 'restored'})
@@ -318,6 +340,14 @@ def compare(expected, actual, scenario):
     if scenario.get('adapter') == 'capacity':
         for side, observed in [('c', expected), ('rust', actual)]:
             failures.extend({'phase': 'capacity-guard', 'side': side, **failure} for failure in probes_extra.capacity_guards(observed['rows'], scenario))
+    if scenario.get('adapter') == 'retry':
+        for side, observed in [('c', expected), ('rust', actual)]:
+            failures.extend({'phase': 'retry-guard', 'side': side, **failure} for failure in probes_extra.retry_guards(observed['rows'], scenario))
+        for left, right in zip(expected['rows'], actual['rows']):
+            a, b = probes_extra.retry_projection(left), probes_extra.retry_projection(right)
+            if a != b:
+                failures.append({'phase': 'runtime', 'id': left['id'], 'c': a, 'rust': b})
+        return failures
     if scenario.get('adapter') == 'casing':
         for side, observed in [('c', expected), ('rust', actual)]:
             failures.extend({'phase': 'casing-guard', 'side': side, **failure} for failure in probes_extra.casing_guards(observed['rows'], scenario))
@@ -420,8 +450,11 @@ def main():
               'manifest_sha256': sha256(args.manifest), 'tool_sha256': sha256(Path(__file__)),
               'dependency_sha256': {filename: sha256(Path(__file__).with_name(filename)) for filename in ['m2_rootfs.py', 'dns_service_probe.py', 'run_isolated.sh', 'm5_option_matrix_probes.py']},
               'normalization': ['executable stderr/stdout prefix dnsmasq-rs: -> dnsmasq:',
-                                'upstream transaction ID removed; name/type/class/transport/count exact'],
-              'negative_controls': controls, 'scenarios': [], 'options': {}, 'failures': []}
+                                'upstream transaction ID removed; name/type/class/transport/count exact',
+                                'casing: random bit patterns retained raw; compare allowed positions, enabled activity and exact client question bytes',
+                                'local-service: connect/receive stage and errno, including TCP reset versus EOF, compare exactly; queued-byte timing proof retained',
+                                'retry: raw clocks retained; exponential intervals checked within -12/+90ms; compare per-server traces to avoid receiver-thread scheduling order'],
+              'negative_controls': controls, 'reference_timings': manifest.get('reference_timing'), 'scenarios': [], 'options': {}, 'failures': []}
     dump(output / 'manifest.json', manifest)
     roots = {side: prepare(args.image_root, None, output / side, args.rust) for side in ('c', 'rust')}
     for scenario in scenarios:

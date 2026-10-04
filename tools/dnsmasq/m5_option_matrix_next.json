@@ -7,7 +7,11 @@
     "rfc1035.c": "231f0b4989039ff4963f3916df22871dd13025dde65769465b2b3052ad807222",
     "forward.c": "ac05784d4233ed10bd166da5fe91e464afecf2883d3c2a0063305d3e81692f95",
     "cache.c": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c",
-    "util.c": "33920165ef3e92f65d1cab75fe8da7772ad7389b37da79ba881957080f12f973"
+    "util.c": "33920165ef3e92f65d1cab75fe8da7772ad7389b37da79ba881957080f12f973",
+    "dnsmasq.c": "d4bb7cde522376200a0293427b0812625ebc457f10dc9d3e2bef243ccba8ccd1",
+    "network.c": "8229872d30a2fb2d86ec9a9e550e51fbb8d8d97926e7a02b0137f2a7b40c40c9",
+    "domain-match.c": "66356136ffe0920fca4fa7dcad579727c7d8d1ec6e799597bfda2e1a63fe9606",
+    "config.h": "dacbe1f8d0e03d93e53a81901956b07ab7a5059d1e5db3225150a9688a1122da"
   },
   "options": {
     "do-0x20-encode": {
@@ -448,6 +452,149 @@
         "local-service-host-listen",
         "local-service-invalid",
         "local-service-duplicate"
+      ]
+    },
+    "fast-dns-retry": {
+      "source": [
+        "C: option.c:3552\u20133575; forward.c:472\u2013489, 628\u2013670, 3204;\ndnsmasq.c:1103. Rust ScalarConfig/FastRetry and ForwardTable retry deadlines are\nconnected. Reuse the stimuli from `dns_retry_failure_diff.py`, not its native C\nexecution wrapper."
+      ],
+      "checklist": [
+        {
+          "checked": false,
+          "boundary": "Syntax/startup: absent, bare flag, `50`, `50,0`, `50,999`, `50,1000`, `50,1999`; reject `49`, nonnumeric fields and extra fields. Check exact output.",
+          "required_scenarios": [
+            "retry-absent",
+            "retry-bare",
+            "retry-50",
+            "retry-zero",
+            "retry-999",
+            "retry-1000",
+            "retry-1999",
+            "retry-success",
+            "retry-two-normal",
+            "retry-two-strict",
+            "retry-send-failure",
+            "retry-invalid-49",
+            "retry-invalid-bad",
+            "retry-invalid-extra"
+          ]
+        },
+        {
+          "checked": false,
+          "boundary": "Blackhole one upstream: first send then exponential retry intervals; timeout milliseconds truncate to seconds. Compare C-derived event counts and ordering; retain actual timestamps and use explicit bounded scheduler jitter.",
+          "required_scenarios": [
+            "retry-absent",
+            "retry-bare",
+            "retry-50",
+            "retry-zero",
+            "retry-999",
+            "retry-1000",
+            "retry-1999",
+            "retry-success",
+            "retry-two-normal",
+            "retry-two-strict",
+            "retry-send-failure",
+            "retry-invalid-49",
+            "retry-invalid-bad",
+            "retry-invalid-extra"
+          ]
+        },
+        {
+          "checked": false,
+          "boundary": "A successful reply cancels further retries; timeout stops retries. A subsecond timeout performs no timer retries after truncation to zero.",
+          "required_scenarios": [
+            "retry-absent",
+            "retry-bare",
+            "retry-50",
+            "retry-zero",
+            "retry-999",
+            "retry-1000",
+            "retry-1999",
+            "retry-success",
+            "retry-two-normal",
+            "retry-two-strict",
+            "retry-send-failure",
+            "retry-invalid-49",
+            "retry-invalid-bad",
+            "retry-invalid-extra"
+          ]
+        },
+        {
+          "checked": false,
+          "boundary": "Retry send failure does not leak a forward slot; recovered transport can answer later queries. Observe upstream selection under strict order and the normal selection mode, with the same source-derived fixture for each side.",
+          "required_scenarios": [
+            "retry-absent",
+            "retry-bare",
+            "retry-50",
+            "retry-zero",
+            "retry-999",
+            "retry-1000",
+            "retry-1999",
+            "retry-success",
+            "retry-two-normal",
+            "retry-two-strict",
+            "retry-send-failure",
+            "retry-invalid-49",
+            "retry-invalid-bad",
+            "retry-invalid-extra"
+          ]
+        },
+        {
+          "checked": false,
+          "boundary": "DNS local UDP/TCP queries remain responsive while a retry is pending.",
+          "required_scenarios": [
+            "retry-absent",
+            "retry-bare",
+            "retry-50",
+            "retry-zero",
+            "retry-999",
+            "retry-1000",
+            "retry-1999",
+            "retry-success",
+            "retry-two-normal",
+            "retry-two-strict",
+            "retry-send-failure",
+            "retry-invalid-49",
+            "retry-invalid-bad",
+            "retry-invalid-extra"
+          ]
+        },
+        {
+          "checked": false,
+          "boundary": "Controls: suppress a retry, leave retries active after success, mutate the interval sequence, omit a deadline observation.",
+          "required_scenarios": [
+            "retry-absent",
+            "retry-bare",
+            "retry-50",
+            "retry-zero",
+            "retry-999",
+            "retry-1000",
+            "retry-1999",
+            "retry-success",
+            "retry-two-normal",
+            "retry-two-strict",
+            "retry-send-failure",
+            "retry-invalid-49",
+            "retry-invalid-bad",
+            "retry-invalid-extra"
+          ]
+        }
+      ],
+      "scenarios": [
+        "retry-absent",
+        "retry-bare",
+        "retry-50",
+        "retry-zero",
+        "retry-999",
+        "retry-1000",
+        "retry-1999",
+        "retry-success",
+        "retry-two-normal",
+        "retry-two-strict",
+        "retry-send-failure",
+        "retry-invalid-49",
+        "retry-invalid-bad",
+        "retry-invalid-extra"
       ]
     }
   },
@@ -5493,41 +5640,338 @@
       "listen_addresses": [],
       "expected_test_exit": 1,
       "hosts": ""
-    }
-  ],
-  "pending_families": [
+    },
     {
+      "id": "retry-absent",
       "options": [
         "fast-dns-retry"
       ],
-      "source_and_scope": "C: option.c:3552\u20133575; forward.c:472\u2013489, 628\u2013670, 3204;\ndnsmasq.c:1103. Rust ScalarConfig/FastRetry and ForwardTable retry deadlines are\nconnected. Reuse the stimuli from `dns_retry_failure_diff.py`, not its native C\nexecution wrapper.",
-      "checklist": [
+      "config": "host-record=retry-health.matrix.test,8.8.8.8\n",
+      "probes": [
         {
-          "checked": false,
-          "boundary": "Syntax/startup: absent, bare flag, `50`, `50,0`, `50,999`, `50,1000`, `50,1999`; reject `49`, nonnumeric fields and extra fields. Check exact output."
-        },
-        {
-          "checked": false,
-          "boundary": "Blackhole one upstream: first send then exponential retry intervals; timeout milliseconds truncate to seconds. Compare C-derived event counts and ordering; retain actual timestamps and use explicit bounded scheduler jitter."
-        },
-        {
-          "checked": false,
-          "boundary": "A successful reply cancels further retries; timeout stops retries. A subsecond timeout performs no timer retries after truncation to zero."
-        },
-        {
-          "checked": false,
-          "boundary": "Retry send failure does not leak a forward slot; recovered transport can answer later queries. Observe upstream selection under strict order and the normal selection mode, with the same source-derived fixture for each side."
-        },
-        {
-          "checked": false,
-          "boundary": "DNS local UDP/TCP queries remain responsive while a retry is pending."
-        },
-        {
-          "checked": false,
-          "boundary": "Controls: suppress a retry, leave retries active after success, mutate the interval sequence, omit a deadline observation."
+          "id": "timer",
+          "name": "timer.matrix.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "timed": true,
+          "transports": [
+            "retry"
+          ],
+          "interval_ms": 0,
+          "duration": 0.4,
+          "expected_queries": 1,
+          "drop_all": true
         }
       ],
-      "notes": "Known common diagnostic gap from static read: Rust scalar errors currently say\n`retry interval below 50 ms` / `bad integer`; C uses its generic `error`. Keep\nthese rows failing until the root agent fixes the shared diagnostic boundary."
+      "adapter": "retry",
+      "alternate_upstream": false,
+      "expected_test_exit": 0,
+      "hosts": ""
+    },
+    {
+      "id": "retry-bare",
+      "options": [
+        "fast-dns-retry"
+      ],
+      "config": "fast-dns-retry\nhost-record=retry-health.matrix.test,8.8.8.8\n",
+      "probes": [
+        {
+          "id": "timer",
+          "name": "timer.matrix.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "timed": true,
+          "transports": [
+            "retry"
+          ],
+          "interval_ms": 1000,
+          "duration": 1.25,
+          "expected_queries": 2,
+          "drop_all": true
+        }
+      ],
+      "adapter": "retry",
+      "alternate_upstream": false,
+      "expected_test_exit": 0,
+      "hosts": ""
+    },
+    {
+      "id": "retry-50",
+      "options": [
+        "fast-dns-retry"
+      ],
+      "config": "fast-dns-retry=50\nhost-record=retry-health.matrix.test,8.8.8.8\n",
+      "probes": [
+        {
+          "id": "timer",
+          "name": "timer.matrix.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "timed": true,
+          "transports": [
+            "retry"
+          ],
+          "interval_ms": 50,
+          "duration": 0.9,
+          "expected_queries": 5,
+          "drop_all": true
+        }
+      ],
+      "adapter": "retry",
+      "alternate_upstream": false,
+      "expected_test_exit": 0,
+      "hosts": ""
+    },
+    {
+      "id": "retry-zero",
+      "options": [
+        "fast-dns-retry"
+      ],
+      "config": "fast-dns-retry=50,0\nhost-record=retry-health.matrix.test,8.8.8.8\n",
+      "probes": [
+        {
+          "id": "timer",
+          "name": "timer.matrix.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "timed": true,
+          "transports": [
+            "retry"
+          ],
+          "interval_ms": 50,
+          "duration": 0.4,
+          "expected_queries": 1,
+          "drop_all": true
+        }
+      ],
+      "adapter": "retry",
+      "alternate_upstream": false,
+      "expected_test_exit": 0,
+      "hosts": ""
+    },
+    {
+      "id": "retry-999",
+      "options": [
+        "fast-dns-retry"
+      ],
+      "config": "fast-dns-retry=50,999\nhost-record=retry-health.matrix.test,8.8.8.8\n",
+      "probes": [
+        {
+          "id": "timer",
+          "name": "timer.matrix.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "timed": true,
+          "transports": [
+            "retry"
+          ],
+          "interval_ms": 50,
+          "duration": 0.4,
+          "expected_queries": 1,
+          "drop_all": true
+        }
+      ],
+      "adapter": "retry",
+      "alternate_upstream": false,
+      "expected_test_exit": 0,
+      "hosts": ""
+    },
+    {
+      "id": "retry-1000",
+      "options": [
+        "fast-dns-retry"
+      ],
+      "config": "fast-dns-retry=50,1000\nhost-record=retry-health.matrix.test,8.8.8.8\n",
+      "probes": [
+        {
+          "id": "timer",
+          "name": "timer.matrix.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "timed": true,
+          "transports": [
+            "retry"
+          ],
+          "interval_ms": 50,
+          "duration": 1.25,
+          "expected_queries": 5,
+          "drop_all": true
+        }
+      ],
+      "adapter": "retry",
+      "alternate_upstream": false,
+      "expected_test_exit": 0,
+      "hosts": ""
+    },
+    {
+      "id": "retry-1999",
+      "options": [
+        "fast-dns-retry"
+      ],
+      "config": "fast-dns-retry=50,1999\nhost-record=retry-health.matrix.test,8.8.8.8\n",
+      "probes": [
+        {
+          "id": "timer",
+          "name": "timer.matrix.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "timed": true,
+          "transports": [
+            "retry"
+          ],
+          "interval_ms": 50,
+          "duration": 1.25,
+          "expected_queries": 5,
+          "drop_all": true
+        }
+      ],
+      "adapter": "retry",
+      "alternate_upstream": false,
+      "expected_test_exit": 0,
+      "hosts": ""
+    },
+    {
+      "id": "retry-success",
+      "options": [
+        "fast-dns-retry"
+      ],
+      "config": "fast-dns-retry=50,1000\nhost-record=retry-health.matrix.test,8.8.8.8\n",
+      "probes": [
+        {
+          "id": "timer",
+          "name": "timer.matrix.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "timed": true,
+          "transports": [
+            "retry"
+          ],
+          "interval_ms": 50,
+          "duration": 0.9,
+          "expected_queries": 3,
+          "reply_after": 3
+        }
+      ],
+      "adapter": "retry",
+      "alternate_upstream": false,
+      "expected_test_exit": 0,
+      "hosts": ""
+    },
+    {
+      "id": "retry-two-normal",
+      "options": [
+        "fast-dns-retry"
+      ],
+      "config": "fast-dns-retry=50,1000\nhost-record=retry-health.matrix.test,8.8.8.8\n",
+      "probes": [
+        {
+          "id": "timer",
+          "name": "timer.matrix.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "timed": true,
+          "transports": [
+            "retry"
+          ],
+          "interval_ms": 50,
+          "duration": 0.9,
+          "expected_queries": 6,
+          "reply_after": 3
+        }
+      ],
+      "adapter": "retry",
+      "alternate_upstream": true,
+      "expected_test_exit": 0,
+      "hosts": ""
+    },
+    {
+      "id": "retry-two-strict",
+      "options": [
+        "fast-dns-retry"
+      ],
+      "config": "fast-dns-retry=50,1000\nstrict-order\nhost-record=retry-health.matrix.test,8.8.8.8\n",
+      "probes": [
+        {
+          "id": "timer",
+          "name": "timer.matrix.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "timed": true,
+          "transports": [
+            "retry"
+          ],
+          "interval_ms": 50,
+          "duration": 0.9,
+          "expected_queries": 3,
+          "reply_after": 3
+        }
+      ],
+      "adapter": "retry",
+      "alternate_upstream": true,
+      "expected_test_exit": 0,
+      "hosts": ""
+    },
+    {
+      "id": "retry-send-failure",
+      "options": [
+        "fast-dns-retry"
+      ],
+      "config": "fast-dns-retry=50,1000\ndns-forward-max=1\nhost-record=retry-health.matrix.test,8.8.8.8\n",
+      "probes": [
+        {
+          "id": "send-failure",
+          "name": "failure.matrix.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "timed": true,
+          "transports": [
+            "retry"
+          ],
+          "interval_ms": 50,
+          "duration": 0.9,
+          "expected_queries": 1,
+          "drop_all": true,
+          "send_failure": true
+        }
+      ],
+      "adapter": "retry",
+      "upstream_address": "198.18.0.53",
+      "expected_test_exit": 0,
+      "hosts": ""
+    },
+    {
+      "id": "retry-invalid-49",
+      "options": [
+        "fast-dns-retry"
+      ],
+      "config": "fast-dns-retry=49\n",
+      "probes": [],
+      "adapter": "retry",
+      "expected_test_exit": 1,
+      "hosts": ""
+    },
+    {
+      "id": "retry-invalid-bad",
+      "options": [
+        "fast-dns-retry"
+      ],
+      "config": "fast-dns-retry=bad\n",
+      "probes": [],
+      "adapter": "retry",
+      "expected_test_exit": 1,
+      "hosts": ""
+    },
+    {
+      "id": "retry-invalid-extra",
+      "options": [
+        "fast-dns-retry"
+      ],
+      "config": "fast-dns-retry=50,1000,3\n",
+      "probes": [],
+      "adapter": "retry",
+      "expected_test_exit": 1,
+      "hosts": ""
     }
-  ]
+  ],
+  "pending_families": []
 }
