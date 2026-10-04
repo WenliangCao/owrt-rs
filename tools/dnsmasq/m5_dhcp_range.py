@@ -311,8 +311,10 @@ def service_cases():
               [event('first'), event('ack', 'select', address='assigned'), event('exhausted', client=2, expect_status=None)],
               boundaries=['CFG-01', 'SELECT-03', 'SELECT-08', 'SELECT-09'])
     for name, tail in [('absent',''),('empty',','),('deprecated',',deprecated'),('infinite',',infinite'),
-                       ('minimum',',0'),('wide',',4294967297')]:
-        yield row('range-lease-wire--'+name, ['10.77.0.10,10.77.0.14'+tail], [event('offer')],
+                       ('minimum',',0'),('wide',',4294967297'),
+                       ('signed-boundary', ',2147483648'), ('maximum-finite', ',4294967294')]:
+        yield row('range-lease-wire--'+name, ['10.77.0.10,10.77.0.14'+tail],
+                  [event('offer'), event('commit', 'select', address='assigned')],
                   boundaries=['CFG-06', 'CFG-07', 'CFG-08', 'LEASE-01'])
     yield row('range-static--known-unknown', ['10.77.0.0,static,255.255.255.0,600'],
               [event('known'), event('ack', 'select', address='10.77.0.40'), event('unknown', client=2, expect_status=None)],
@@ -421,10 +423,25 @@ def service_cases():
               boundaries=['SELECT-06'])
     yield row('range-bootp-dynamic--permission', ['10.77.0.10,10.77.0.14,255.255.255.0,600'],
               [event('bootp', 'bootp')], 'bootp-dynamic\n', boundaries=['SELECT-06'])
+    for mode in ['static', 'proxy']:
+        yield row('range-bootp-dynamic--'+mode+'-does-not-allocate',
+                  ['10.77.0.0,'+mode+',255.255.255.0,600'],
+                  [event('unknown', 'bootp', expect_status=None)], 'bootp-dynamic\n', boundaries=['SELECT-06'])
     yield row('range-mixed-proxy--head', ['10.77.0.0,proxy,255.255.255.0,600',
                                           '10.77.0.10,10.77.0.14,255.255.255.0,600'],
               [event('ordinary', expect_status=None), event('pxe', packet={'extra': [[60, b'PXEClient'.hex()], [93, '0000']]})],
               'pxe-service=0,Range fixture,boot.bin\n', boundaries=['SELECT-07', 'SELECT-10'])
+    for proxy_first in [False, True]:
+        ranges = ['tag:allowed,10.77.0.0,proxy,255.255.255.0,600',
+                  '10.77.0.10,10.77.0.14,255.255.255.0,600']
+        if not proxy_first:
+            ranges.reverse()
+        yield row('range-mixed-proxy--tagged-'+('head' if proxy_first else 'tail'), ranges,
+                  [event('allowed-pxe', packet={'extra': [[60, b'PXEClient'.hex()], [93, '0000']]}),
+                   event('unmatched-pxe', client=2, expect_status=None if proxy_first else 2,
+                         packet={'extra': [[60, b'PXEClient'.hex()], [93, '0000']]})],
+                  'dhcp-mac=set:allowed,'+dhcp.mac(1)+'\npxe-service=0,Range fixture,boot.bin\n',
+                  boundaries=['SELECT-07'])
     for prefix, expected in [('192.0.2', None), ('10.77.0', 2), ('172.16.0', 2)]:
         for last in [0, 255]:
             address = prefix+'.'+str(last)
