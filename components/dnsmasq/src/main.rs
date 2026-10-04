@@ -116,6 +116,10 @@ fn startup_status(error: &(dyn std::error::Error + 'static)) -> i32 {
         return 5; // dnsmasq.c startup UBus registration failure: EC_MISC.
     }
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    if let Some(error) = error.downcast_ref::<dnsmasq_rs::helper::StartError>() {
+        return error.code;
+    }
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     if let Some(error) = error.downcast_ref::<dnsmasq_rs::dhcp::daemon::StartupError>() {
         return error.exit_code();
     }
@@ -503,11 +507,14 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     let mut dhcp_provider = None;
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     let dhcp_helper = if let Some(script) = dhcp_config.script.clone() {
-        Some(Helper::start(HelperConfig {
-            script: PathBuf::from(OsString::from_vec(script)),
-            script_user: dhcp_config.script_user.clone(),
-            debug: runtime.process.debug,
-        })?)
+        Some(Helper::start_with_init(
+            HelperConfig {
+                script: PathBuf::from(OsString::from_vec(script)),
+                script_user: dhcp_config.script_user.clone(),
+                debug: runtime.process.debug,
+            },
+            dhcp_config.lease_read_only && !dhcp_config.ranges.is_empty(),
+        )?)
     } else {
         None
     };
@@ -728,6 +735,11 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     let mut last_interfaces = Instant::now();
     while !STOP_REQUESTED.load(Ordering::Acquire) {
         poll.step();
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if let Some(error) = poll.helper_init_error.take() {
+            pid_file.cleanup();
+            return Err(Box::new(error));
+        }
         if last_interfaces.elapsed() >= Duration::from_millis(100) {
             last_interfaces = Instant::now();
             if let Ok(interfaces) = listeners::snapshot() {
@@ -837,6 +849,10 @@ struct SinglePoll {
     dhcp: Option<(Arc<Mutex<DhcpProvider>>, DhcpSocketListener)>,
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     helper: Option<Helper>,
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    helper_init: Option<Vec<u8>>,
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    helper_init_error: Option<dnsmasq_rs::helper::StartError>,
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     pending_delivery: Option<LeaseDelivery>,
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -1057,6 +1073,13 @@ impl SinglePoll {
             probe_metrics: None,
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             dhcp,
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            helper_init: helper
+                .as_ref()
+                .is_some_and(Helper::initializes_leases)
+                .then(Vec::new),
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            helper_init_error: None,
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             helper,
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -1509,13 +1532,59 @@ impl SinglePoll {
             match helper.step() {
                 Ok(notices) => {
                     for notice in notices {
-                        if !matches!(notice, dnsmasq_rs::helper::Notice::Ready) {
-                            eprintln!("dnsmasq-rs: DHCP helper: {notice:?}");
+                        use dnsmasq_rs::helper::{Notice, StartError};
+                        match notice {
+                            Notice::InitData(bytes) => {
+                                if let Some(output) = self.helper_init.as_mut() {
+                                    output.extend(bytes);
+                                }
+                            }
+                            Notice::InitExit(status) => {
+                                if let Some(output) = self.helper_init.take() {
+                                    if status != 0 {
+                                        self.helper_init_error = Some(StartError {
+                                            code: if status == 126 || status == 127 {
+                                                3
+                                            } else {
+                                                status + 10
+                                            },
+                                            message: format!(
+                                                "lease-init script returned exit code {status}"
+                                            ),
+                                        });
+                                    } else if let Some((provider, _)) = self.dhcp.as_ref() {
+                                        match provider
+                                            .lock()
+                                            .unwrap()
+                                            .restore_script_init(&output, now_seconds())
+                                        {
+                                            Ok(report) => report_dhcp_maintenance(&report),
+                                            Err(error) => {
+                                                self.helper_init_error = Some(StartError {
+                                                    code: error.exit_code(),
+                                                    message: error.to_string(),
+                                                })
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            Notice::Reaped(_) | Notice::Error(_) if self.helper_init.is_some() => {
+                                self.helper_init_error = Some(StartError {
+                                    code: 3,
+                                    message: "lease-init helper failed".into(),
+                                });
+                            }
+                            Notice::Ready => {}
+                            notice => eprintln!("dnsmasq-rs: DHCP helper: {notice:?}"),
                         }
                     }
                 }
                 Err(error) => eprintln!("dnsmasq-rs: DHCP helper step: {error}"),
             }
+        }
+        if self.helper_init.is_some() || self.helper_init_error.is_some() {
+            return;
         }
         let Some((shared_provider, mut listener)) = self.dhcp.take() else {
             return;
