@@ -5,7 +5,8 @@
 //! may answer AAAA and an IPv6 server may answer A. Family priority applies to
 //! local `address=` literals only.
 
-use super::forward::{GroupId, Server, ServerGroup, ServerId};
+use super::files::{ServerSources, Source, SourceRule};
+use super::forward::{GroupId, Server, ServerGroup};
 use super::wire::Name;
 use crate::config::dns::{
     DnsConfig, DomainPattern, RuleTarget, ServerEndpoint, ServerHost, ServerRule,
@@ -93,7 +94,7 @@ struct RuleBucket {
     zeros: usize,
     local_only: bool,
     use_defaults: bool,
-    endpoints: Vec<SocketAddr>,
+    servers: Vec<Server>,
     group: Option<GroupId>,
 }
 
@@ -105,7 +106,7 @@ impl RuleBucket {
             zeros: 0,
             local_only: false,
             use_defaults: false,
-            endpoints: Vec::new(),
+            servers: Vec::new(),
             group: None,
         }
     }
@@ -124,6 +125,8 @@ impl RuleBucket {
 pub struct RoutingTable {
     rules: Vec<RuleBucket>,
     groups: HashMap<GroupId, ServerGroup>,
+    default_group: Option<GroupId>,
+    next_group: u64,
 }
 
 impl RoutingTable {
@@ -134,12 +137,7 @@ impl RoutingTable {
         config: &DnsConfig,
         default_resolvers: &[SocketAddr],
     ) -> Result<Self, RoutingError> {
-        if !config.no_resolv && default_resolvers.is_empty() {
-            return Err(RoutingError::MissingDefaultResolvers);
-        }
-        let mut config = config.clone();
-        Self::add_default_resolver_rule(&mut config, default_resolvers);
-        Self::from_config(&config, default_resolvers)
+        Self::from_config(config, default_resolvers)
     }
 
     /// Publish the active resolver-file default tier to the local-answer
@@ -167,80 +165,99 @@ impl RoutingTable {
         }
     }
 
-    /// `default_resolvers` contains the active, already-resolved resolv.conf
-    /// endpoints. File loading/no-resolv policy belongs to the caller. They
-    /// are expanded only for an explicit `server=/.../#` rule; an empty list
-    /// for such a rule is an error. Unresolved hostname, scope or source
-    /// binding is an explicit error.
+    /// File selection belongs to the caller. Empty resolver input is legal:
+    /// the service can start and later receive its first nameserver via inotify.
     pub fn from_config(
         config: &DnsConfig,
         default_resolvers: &[SocketAddr],
     ) -> Result<Self, RoutingError> {
+        let mut sources = ServerSources::new(&config.rules);
+        if !config.no_resolv {
+            sources.replace(
+                Source::Resolv,
+                default_resolvers
+                    .iter()
+                    .copied()
+                    .map(|address| SourceRule::resolver(address, 0))
+                    .collect(),
+            );
+        }
+        Self::from_sources(config, &sources, None)
+    }
+
+    /// Preserve live server IDs supplied by mark/reuse source state, and the
+    /// group IDs of surviving domain tiers. Rebuild only route metadata; the
+    /// owner reconciles the existing forwarding engine with dispatcher_groups.
+    pub fn from_sources(
+        config: &DnsConfig,
+        sources: &ServerSources,
+        previous: Option<&Self>,
+    ) -> Result<Self, RoutingError> {
         let mut buckets: Vec<RuleBucket> = Vec::new();
-        for rule in &config.rules {
+        for entry in sources.rules() {
+            let rule = &entry.value.rule;
             let mut pattern = rule.domain.clone();
             pattern.suffix.make_ascii_lowercase();
-            let bucket = match buckets.iter_mut().position(|b| {
-                let representative = b.representative();
-                representative == &pattern
-            }) {
+            let bucket = match buckets
+                .iter()
+                .position(|bucket| bucket.representative() == &pattern)
+            {
                 Some(index) => &mut buckets[index],
                 None => {
-                    buckets.push(RuleBucket::new(pattern.clone()));
+                    buckets.push(RuleBucket::new(pattern));
                     buckets.last_mut().unwrap()
                 }
             };
             match &rule.target {
-                // local_domains is a head-inserted C list. Stable sorting
-                // retains its reverse configuration order within a family.
                 RuleTarget::Literal(address) => bucket.literals.insert(0, *address),
                 RuleTarget::ZeroAddresses => bucket.zeros += 1,
                 RuleTarget::LocalOnly => bucket.local_only = true,
                 RuleTarget::DefaultResolvers => bucket.use_defaults = true,
                 RuleTarget::Upstream(endpoint) => {
-                    bucket.endpoints.push(validate_endpoint(endpoint)?);
-                }
-            }
-        }
-        for bucket in &mut buckets {
-            if bucket.use_defaults {
-                if default_resolvers.is_empty() {
-                    return Err(RoutingError::MissingDefaultResolvers);
-                }
-                // `filter_servers()` narrows a matching tier to
-                // SERV_USE_RESOLV before ordinary upstream servers. Keep the
-                // same precedence when both `server=/domain/#` and a
-                // domain-specific literal are configured.
-                bucket.endpoints.clear();
-                bucket.endpoints.extend_from_slice(default_resolvers);
-            }
-        }
-
-        let mut groups = HashMap::new();
-        let mut next_server = 1;
-        for bucket in &mut buckets {
-            if bucket.endpoints.is_empty() {
-                continue;
-            }
-            let id = GroupId(groups.len() as u64 + 1);
-            let servers = bucket
-                .endpoints
-                .drain(..)
-                .map(|address| {
-                    let id = ServerId(next_server);
-                    next_server += 1;
-                    Server {
-                        id,
+                    let address = match entry.value.address {
+                        Some(address) => address,
+                        None => validate_endpoint(endpoint)?,
+                    };
+                    bucket.servers.push(Server {
+                        id: entry
+                            .server
+                            .expect("upstream source owns a server identity"),
                         address,
                         bound_socket: None,
-                    }
-                })
-                .collect();
+                    });
+                }
+            }
+        }
+        let mut groups = HashMap::new();
+        let mut next_group = previous.map_or(0, |table| table.next_group);
+        let mut default_group = None;
+        for bucket in &mut buckets {
+            if bucket.servers.is_empty() {
+                continue;
+            }
+            let existing = previous
+                .and_then(|table| table.rules.iter().find(|old| old.pattern == bucket.pattern))
+                .and_then(|old| old.group);
+            let id = existing.unwrap_or_else(|| {
+                next_group += 1;
+                GroupId(next_group)
+            });
             groups.insert(
                 id,
-                ServerGroup::new(id, servers, config.strict_order, config.all_servers),
+                ServerGroup::new(
+                    id,
+                    std::mem::take(&mut bucket.servers),
+                    config.strict_order,
+                    config.all_servers,
+                ),
             );
             bucket.group = Some(id);
+            if bucket.pattern.suffix.is_empty()
+                && !bucket.pattern.wildcard
+                && !bucket.pattern.dotless
+            {
+                default_group = Some(id);
+            }
         }
         // Dotless routes override only the empty-domain/default route. A
         // nonempty domain rule still wins for a matching single-label name.
@@ -265,6 +282,8 @@ impl RoutingTable {
         Ok(Self {
             rules: buckets,
             groups,
+            default_group,
+            next_group,
         })
     }
 
@@ -301,7 +320,15 @@ impl RoutingTable {
             if bucket.local_only {
                 return RouteSelection::local(RouteReason::LocalOnly);
             }
-            if let Some(group) = bucket.group {
+            // SERV_USE_RESOLV restarts at the ordinary global-server tier
+            // with F_SERVER, so default literals are skipped. These are all
+            // global upstreams, including inline and servers-file origins.
+            let group = if bucket.use_defaults {
+                self.default_group
+            } else {
+                bucket.group
+            };
+            if let Some(group) = group {
                 return RouteSelection {
                     group: Some(group),
                     reason: RouteReason::Upstream {
@@ -310,6 +337,9 @@ impl RoutingTable {
                         family,
                     },
                 };
+            }
+            if bucket.use_defaults {
+                return RouteSelection::local(RouteReason::NoMatchingRule);
             }
             // C's late NODOTS override also overrides an existing default
             // route with no match if its local address family is inapplicable.
@@ -325,7 +355,8 @@ impl RoutingTable {
     pub(super) fn has_domain_server(&self, name: &Name) -> bool {
         let query = dotted_name(name);
         self.rules.iter().any(|bucket| {
-            bucket.group.is_some()
+            !bucket.use_defaults
+                && bucket.group.is_some()
                 && (!bucket.representative().suffix.is_empty() || bucket.representative().dotless)
                 && bucket.matched_pattern(&query).is_some()
         })
@@ -534,6 +565,60 @@ mod tests {
     }
 
     #[test]
+    fn default_redirect_shares_all_global_servers_and_preserves_reload_identities() {
+        let mut config = DnsConfig::default();
+        for line in [
+            "server=192.0.2.1",
+            "server=/redirect.test/#",
+            "address=/#/192.0.2.77",
+        ] {
+            config
+                .apply(&lex_line(line.as_bytes()).unwrap().unwrap())
+                .unwrap();
+        }
+        let mut sources = ServerSources::new(&config.rules);
+        sources.replace(
+            Source::Resolv,
+            vec![SourceRule::resolver("192.0.2.2:53".parse().unwrap(), 1)],
+        );
+        let first = RoutingTable::from_sources(&config, &sources, None).unwrap();
+        let redirected = route(&first, "x.redirect.test", 1);
+        let group = first.group(redirected.group.unwrap()).unwrap();
+        let ids: Vec<_> = group.servers.iter().map(|server| server.id).collect();
+        assert_eq!(
+            endpoints(&first, redirected),
+            vec![
+                "192.0.2.1:53".parse().unwrap(),
+                "192.0.2.2:53".parse().unwrap()
+            ]
+        );
+        assert_eq!(
+            addresses(route(&first, "ordinary.test", 1)),
+            vec!["192.0.2.77".parse::<IpAddr>().unwrap()]
+        );
+        assert!(sources
+            .replace(
+                Source::Resolv,
+                vec![SourceRule::resolver("192.0.2.9:53".parse().unwrap(), 1)]
+            )
+            .is_empty());
+        let next = RoutingTable::from_sources(&config, &sources, Some(&first)).unwrap();
+        let selected = next
+            .group(route(&next, "x.redirect.test", 1).group.unwrap())
+            .unwrap();
+        assert_eq!(selected.id, group.id);
+        assert_eq!(
+            selected
+                .servers
+                .iter()
+                .map(|server| server.id)
+                .collect::<Vec<_>>(),
+            ids
+        );
+        assert_eq!(selected.servers[1].address, "192.0.2.9:53".parse().unwrap());
+    }
+
+    #[test]
     fn local_family_priority_and_shorter_suffix_fallback() {
         let table = table(&[
             "address=/example.test/192.0.2.7",
@@ -713,7 +798,10 @@ mod tests {
         );
         assert_eq!(
             endpoints(&table, route(&table, "a.test", TYPE_AAAA)),
-            vec!["192.0.2.9:5353".parse().unwrap()]
+            vec![
+                "192.0.2.53:53".parse().unwrap(),
+                "192.0.2.9:5353".parse().unwrap()
+            ]
         );
     }
 
@@ -779,7 +867,6 @@ mod tests {
                 "server=/test/192.0.2.53@wan",
                 RoutingError::UnresolvedSource,
             ),
-            ("server=/test/#", RoutingError::MissingDefaultResolvers),
         ] {
             let mut config = DnsConfig::default();
             config

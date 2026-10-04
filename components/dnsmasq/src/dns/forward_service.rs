@@ -137,6 +137,21 @@ impl ForwardDispatcher {
         self.groups.get_mut(&id)
     }
 
+    /// Reconcile a rebuilt C server array while keeping the live frec table.
+    /// build_server_array resets last_server, so the fresh groups deliberately
+    /// reset selection hints; cumulative table counters remain untouched.
+    pub fn replace_groups(&mut self, groups: Vec<ServerGroup>, removed: &[ServerId]) {
+        for server in removed {
+            self.table.server_gone(*server);
+        }
+        let membership = groups
+            .iter()
+            .flat_map(|group| group.servers.iter().map(|server| (server.id, group.id)))
+            .collect();
+        self.table.rebind_groups(&membership);
+        self.groups = groups.into_iter().map(|group| (group.id, group)).collect();
+    }
+
     /// Parse and submit one client query.  The caller supplies the already
     /// selected server group and socket-independent client identity.
     pub fn submit(

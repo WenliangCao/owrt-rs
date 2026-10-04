@@ -11,7 +11,7 @@
 
 use super::forward::{
     Client, Flags, GroupId, QueryId, Random, Recipient, ReleaseReason, ReplyAction, Scope,
-    SendPlan, ServerId, SocketToken, Submission, ABSOLUTE_TIMEOUT,
+    SendPlan, ServerGroup, ServerId, SocketToken, Submission, ABSOLUTE_TIMEOUT,
 };
 use super::forward_service::{DispatchError, ForwardDispatcher};
 use super::wire::{Header, Name, WireError};
@@ -504,6 +504,22 @@ impl<R: Random> UpstreamResolver<R> {
             self.cancel(id);
         }
         self.events.clear();
+    }
+
+    /// Apply file-source changes without reconstructing this resolver. Only
+    /// frecs sent to retired C server slots are cancelled. Other random socket
+    /// references remain owned until their pending exchange is released.
+    pub fn replace_server_groups(&mut self, groups: Vec<ServerGroup>, removed: &[ServerId]) {
+        self.dispatcher.replace_groups(groups, removed);
+        self.consume_releases();
+        // server_gone silently frees frecs; it is not an upstream error or a
+        // timeout and must not create a client reply or failure metric.
+        self.events.retain(|event| {
+            !matches!(
+                event.result,
+                Err(ResolveError::Released(ReleaseReason::ServerGone))
+            )
+        });
     }
 
     /// Convenience wrapper for one UDP query. Busy is returned before any
@@ -1159,6 +1175,55 @@ mod tests {
             }
         }
         panic!("no upstream event");
+    }
+
+    #[test]
+    fn file_reload_keeps_pending_socket_and_counters_but_retires_removed_slots() {
+        let old = UdpSocket::bind("127.0.0.1:0").unwrap();
+        let new = UdpSocket::bind("127.0.0.1:0").unwrap();
+        old.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
+        new.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
+        let mut resolver = transport(
+            group(&[old.local_addr().unwrap()], false),
+            Options::default(),
+            Duration::from_secs(2),
+        );
+        let submission = resolver
+            .start_udp(&query(), client(), GroupId(1), Scope::Shared)
+            .unwrap();
+        let mut packet = [0; 2048];
+        let (length, peer) = old.recv_from(&mut packet).unwrap();
+        let created = resolver
+            .dispatcher
+            .table()
+            .get(submission.id)
+            .unwrap()
+            .created;
+        let counters = resolver.counters();
+        let mut replacement = group(&[new.local_addr().unwrap()], false);
+        replacement.id = GroupId(2); // C server pointer moved into another tier.
+        resolver.replace_server_groups(vec![replacement], &[]);
+        let pending = resolver.dispatcher.table().get(submission.id).unwrap();
+        assert_eq!((pending.group, pending.created), (GroupId(2), created));
+        assert_eq!(resolver.socket_count(), 1);
+        assert_eq!(resolver.counters(), counters);
+        packet[2..4].copy_from_slice(&0x8180u16.to_be_bytes());
+        old.send_to(&packet[..length], peer).unwrap();
+        assert!(resolver.poll(Duration::from_millis(5)).unwrap().is_empty());
+        new.send_to(&packet[..length], peer).unwrap();
+        assert!(wait_for_event(&mut resolver, Duration::from_millis(5))
+            .result
+            .is_ok());
+        assert_eq!(resolver.pending_count(), 0);
+        resolver
+            .start_udp(&query(), client(), GroupId(2), Scope::Shared)
+            .unwrap();
+        new.recv_from(&mut packet).unwrap();
+        let counters = resolver.counters();
+        resolver.replace_server_groups(Vec::new(), &[ServerId(1)]);
+        assert_eq!((resolver.pending_count(), resolver.socket_count()), (0, 0));
+        assert_eq!(resolver.counters(), counters);
+        assert!(resolver.events.is_empty());
     }
 
     #[test]
