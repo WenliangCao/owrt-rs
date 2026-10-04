@@ -382,8 +382,6 @@ def profiles():
         profile("static-explicit-broadcast",legacy,[case("static-broadcast")],["CFG-R01"],mode="static",range_value="10.77.0.1,static,255.255.255.0,10.77.0.255,600s"),
         profile("bootp-bare-predicate",["bootp-dynamic=bootp,#missing"],[case("bare-and-negative",kind=0,arch=None,vendor=None,prl=None)],
                 ["CFG-B01"],mode="dynamic",static_host=False),
-        profile("bootp-empty-predicate",["bootp-dynamic="],[case("empty-denied",kind=0,arch=None,vendor=None,prl=None,reply=False)],
-                ["CFG-B01"],mode="dynamic",static_host=False),
         profile("prompt-only-enables",["pxe-prompt=Choose"],[case("prompt-no-service")],["START01"]),
         profile("prompt-no-range",["pxe-prompt=Choose"],[case("no-listener",listener=4011,reply=False)],["START01"],mode="none",expect4011=False),
     ])
@@ -498,8 +496,9 @@ def grammar_cases():
                         ("encap", "encap:172,17,value"), ("enterprise", "vi-encap:13,17,value")]:
         add("option-pxe-"+name, "dhcp-option-pxe="+value)
     for name, value in [("global", "bootp-dynamic"), ("positive", "bootp-dynamic=tag:bootp"),
-                        ("negative", "bootp-dynamic=tag:!skip"), ("legacy", "bootp-dynamic=net:bootp,#skip"), ("empty", "bootp-dynamic="), ("bare", "bootp-dynamic=bootp,#skip")]:
+                        ("negative", "bootp-dynamic=tag:!skip"), ("legacy", "bootp-dynamic=net:bootp,#skip"), ("bare", "bootp-dynamic=bootp,#skip")]:
         add("bootp-"+name, value)
+    add("bootp-empty", "bootp-dynamic=", "C NULL predicate from dhcp_netid_create dereferenced in match_netid; retained first-packet SIGSEGV in paired-checklist-02")
     return rows
 
 
@@ -825,7 +824,52 @@ def negative_controls(rows, corpus):
         elif mutation == "thread-added": row["threads"] = 2
         elif mutation == "cleanup-forced": row["cleanup"]["forced"] = True
         controls.append({"name": mutation, "detected": bool(evaluate(changed, corpus, ["c", "rust"]))})
-    return {"passed": all(row["detected"] for row in controls), "controls": controls}
+    def fields(wire, start=240, end=None):
+        end=len(wire) if end is None else end
+        while start<end:
+            code=wire[start]
+            if code==255:break
+            if code==0:start+=1;continue
+            if start+2>end or start+2+wire[start+1]>end:break
+            length=wire[start+1]
+            yield code,start+2,length
+            start+=2+length
+    unavailable=[]
+    for name in ["input-vendor","vendor-value","uuid","boot-service-type","boot-layer","option43-order","menu-service-type"]:
+        found=None
+        for row_index,row in enumerate(rows):
+            if row["side"]!="rust":continue
+            for case_index,case in enumerate(row["cases"]):
+                wire=bytearray.fromhex(case["request"]) if name=="input-vendor" else (bytearray.fromhex(case["replies"][0]["packet"]) if case["replies"] else bytearray())
+                if len(wire)<240:continue
+                for code,offset,length in fields(wire):
+                    if name in ["input-vendor","vendor-value"] and code==60 and length:
+                        wire[offset]^=1;found=(row_index,case_index,wire);break
+                    if name=="uuid" and code==97 and length>=17:
+                        wire[offset+16]^=1;found=(row_index,case_index,wire);break
+                    if code!=43:continue
+                    nested=list(fields(wire,offset,offset+length))
+                    if name=="option43-order" and len(nested)>=2:
+                        _,a,alen=nested[0];_,b,blen=nested[1]
+                        wire[a-2:b+blen]=wire[b-2:b+blen]+wire[a-2:a+alen]
+                        found=(row_index,case_index,wire);break
+                    for subcode,suboffset,sublength in nested:
+                        if name in ["boot-service-type","boot-layer"] and subcode==71 and sublength>=4:
+                            wire[suboffset+(2 if name=="boot-layer" else 0)]^=1
+                            found=(row_index,case_index,wire);break
+                        if name=="menu-service-type" and subcode==9 and sublength>=3:
+                            wire[suboffset]^=1;found=(row_index,case_index,wire);break
+                    if found:break
+                if found:break
+            if found:break
+        if found is None:
+            unavailable.append(name);continue
+        row_index,case_index,wire=found;changed=copy.deepcopy(rows);changed_case=changed[row_index]["cases"][case_index]
+        if name=="input-vendor":changed_case["request"]=wire.hex()
+        else:changed_case["replies"][0]["packet"]=wire.hex()
+        controls.append({"name":name,"detected":bool(evaluate(changed,corpus,["c","rust"]))})
+    return {"passed": all(row["detected"] for row in controls), "controls": controls,
+            "field_controls_unavailable_in_subset":unavailable}
 
 
 def main(args):
