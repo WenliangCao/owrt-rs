@@ -2,8 +2,8 @@
 
 ## 当前状态与下一步
 
-- 当前里程碑：M5；169 项中 **76 项已关闭、56 项部分实现、37 项未实现，剩余 93 项**。
-- 刚关闭：DHCP identity族8项，149配置／每侧336事件／66语法、56条C清单与1043负控全部通过；11条原版NULL路径仅安全语法/源码分类，已逐项记账。独立族ELF1,396,848字节，增量0。
+- 当前里程碑：M5；169 项中 **75 项已关闭、57 项部分实现、37 项未实现，剩余 94 项**。
+- 刚关闭：identity其余7项维持关闭；独立审计发现GEN-08续租夹具实际上是SELECTING，dhcp-generate-names重新打开，正按冻结边界定向补真实续租，不重复全族。
 - 当前代码：产品冻结候选 `f1668e28`，ELF SHA256 `9c73a0d979aa1faa79b542fc08bb34f45a716d8bba2a89153ff61d841ed2ebd5`，1,396,848字节（本次relay接线段+20,480，case修复+0，M4+237,568）。随后local-service拒绝TCP连接修复已构建为 `24671034` / SHA256 `99aaa63c4325389349cf00005b5c89accee6d1eeada14eb9e6fef8246d4f0dd3`，体积不变；相同integration目录下保留构建和ELF。Oracle产物在 `/home/ubuntu/m5-root-20261004/f1668e28/`，本地在 `evidence/M5/integration-20261004/f1668e28/`；统一库517通过／18忽略、main10通过。上一候选9da20ac0的helper16场景／32侧、boot102事件、leasequery22配置／38查询复跑通过，f166同版六族复跑完成；4,312份证据已回拷校验，汇总见integration-20261004/f1668e28/runs/regression-01/BATCH_VERIFICATION.json。
 - 下一步：identity已闭合并准备归档清理分支；主干cb4861a5已整合其修复和static/proxy基础，ELF1,400,944字节（混合接线/布局+4,096，不冒称全属identity）。PXE继续scoped BOOTP、4011、option模式接线；矩阵address/bogus-nxdomain实证差异由dns_address_fix在独立树修复，修复后镜像复跑。local endpoint仍留后续server/resolv族。
 - 阻塞点：无。清理结束Oracle `/` 实测可用43,216,506,880字节（40.25GiB），使用率约80%；唯一共享target约454MiB已计入。磁盘不足造成的casing-02与relay paired-03都发生在rootfs准备阶段，零产品观察，后续同候选复跑已通过；ENOSPC审计保存在oracle-cleanup-20261004/enospc-audit.json。物理路由器及r85/netifd/reload/sdk/owrt-evidence内容未修改或删除。
@@ -55,7 +55,7 @@ M4 的单 poll owner 已替换六线程接线，决定见 [ADR_THREAD_MODEL.md](
 
 ## M5 盘点与工作顺序
 
-盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**76 项已实现并有 C 差分，56 项部分实现，37 项未实现；剩余 93 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
+盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**75 项已实现并有 C 差分，57 项部分实现，37 项未实现；剩余 94 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
 
 对镜像 init 的静态调用路径核对得到 **A 组 99 项、B 组 70 项**。A 表示原生 UCI/init 生成或调用，行号链接到保留原文的 init；B 表示通常需额外配置。`extraconftext`/conf-dir 可以透传任意指令，不据此把全部选项都算原生生成。`pxe-service`、`pxe-prompt`、`interface-name` 实际有 init 生成路径，归 A。26 个 excluded-capability 选项不混入169项计数；其与C一致的禁用/拒绝边界仍保留。
 
@@ -174,7 +174,7 @@ M5 退出条件：169项全部实现并有C差分，或已证明与C一致的拒
 | `version` | A / 31,946 | 启动/日志/监听 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-service/summary.json)；仅 Compile time options 与镜像逐字一致；版本首行和后续 banner 不同。 |
 | `dhcp-alternate-port` | B / — | DHCP tags/options | 已实现，有C差分 | [M5 relay闭合](../../private/dnsmasq-rewrite/evidence/M5/relay/close-summary.json)；43条C清单、37配置／174报文场景、40语法、4绑定模式、15负控和6实际Linux隔离守卫通过；relay-only、本地服务共存、端口、接口重建、split/opaque/容量/清理均覆盖，C既有quirks单列。候选f1668e28／ELF9c73a0d9…d2ebd5，1,396,848字节（族段增量+20,480）。 |
 | `dhcp-client-update` | B / — | DHCP tags/options | 已实现，有C差分 | [M5 dhcp-tags-options final3](../../private/dnsmasq-rewrite/evidence/M5/four/dhcp-tags/run-final4/summary.json)；client-update FQDN flags 在精确镜像配对中通过。|
-| `dhcp-generate-names` | B / — | DHCP tags/options | 已实现，有C差分 | [M5 identity闭合](../../private/dnsmasq-rewrite/evidence/M5/dhcp-identity/close-summary.json)；56条C清单、149配置／每侧336运行事件／66语法、1043负控全部通过；名称/option124/82扫描与echo/活租约metadata边界覆盖。11条C NULL路径单独语法及源码分类，不冒称危险运行路径配对。候选2711e9b2／ELF7ce861e5…86a51，1,396,848字节（独立族增量0）。 |
+| `dhcp-generate-names` | B / — | DHCP tags/options | 部分实现 | identity paired-06的普通ACK/CLID/名称发布通过；独立审计GEN-08发现名为renew的夹具实际仍携带50/54、ciaddr=0，是SELECTING。该项重新打开，正在补非零ciaddr、无50/54的真实续租名称/lease/DNS镜像证据。 |
 | `dhcp-hostsdir` | B / — | DHCP tags/options | 未实现 | 当前无通过证据；配置显式拒绝；无 inotify 动态文件 append/update 接口，不可拿 SIGHUP hostsfile replacement 代替。 |
 | `dhcp-ignore` | B / — | DHCP tags/options | 已实现，有C差分 | [M5 dhcp-tags-options final3](../../private/dnsmasq-rewrite/evidence/M5/four/dhcp-tags/run-final4/summary.json)；全局 tag predicate ignore 在精确镜像配对中通过。|
 | `dhcp-ignore-clid` | B / — | DHCP tags/options | 部分实现 | [按原始索引](../../docs/dnsmasq/DHCP_STATIC_PHASE.md)；全局 ignore_client_id 已接线到 packet identity；普通 source C 静态/ID 证据存在，但需镜像 C 对同 MAC 变化 CLID、同 CLID 不同 MAC、恢复 leasefile 的专门族差分。 |
