@@ -232,6 +232,11 @@ impl Helper {
     pub fn begin_shutdown(&mut self) {
         self.stopping = true;
     }
+    /// EVENT_TERM hands queued work to the helper, then closes its command
+    /// pipe. The parent does not wait for the helper's last script to finish.
+    pub fn commands_drained(&self) -> bool {
+        self.stopping && self.pending.is_empty() && self.writer.is_none()
+    }
     pub fn is_finished(&self) -> bool {
         self.reaped.is_some() && self.eof
     }
@@ -368,9 +373,9 @@ impl Helper {
 
 impl Drop for Helper {
     fn drop(&mut self) {
-        // Normal owner shutdown calls step until is_finished. On an early
-        // startup error, EOF still preserves C's queued-script completion; this
-        // destructor must never wait for an arbitrary user script.
+        // Normal shutdown waits only for commands_drained. On startup errors
+        // EOF likewise preserves queued-script completion; never wait here for
+        // an arbitrary script. init/systemd or the test subreaper owns orphans.
         self.writer.take();
         if self.reaped.is_none() {
             let mut status = 0;
@@ -456,7 +461,21 @@ fn decode_notice(bytes: &[u8]) -> io::Result<Notice> {
     }
 }
 fn send(events: &mut File, notice: Notice) -> io::Result<()> {
-    events.write_all(&wire::frame(&notice_payload(notice)?))
+    let runtime_notice = matches!(
+        &notice,
+        Notice::Ready
+            | Notice::Output(_)
+            | Notice::ExecError(_)
+            | Notice::ScriptSignal(_)
+            | Notice::ScriptExit(_)
+    );
+    match events.write_all(&wire::frame(&notice_payload(notice)?)) {
+        // C send_event ignores a departed parent's event pipe. Its helper
+        // still consumes every command queued before EOF. Initialization and
+        // IPC/setup errors remain strict, as do all non-EPIPE failures.
+        Err(error) if runtime_notice && error.kind() == io::ErrorKind::BrokenPipe => Ok(()),
+        result => result,
+    }
 }
 
 fn close_inherited(keep: [RawFd; 2]) -> io::Result<()> {
@@ -839,6 +858,88 @@ mod tests {
         drop(helper);
         drop(file);
         std::fs::remove_dir_all(folder).unwrap();
+    }
+
+    #[test]
+    fn command_handoff_does_not_wait_and_closed_parent_keeps_queued_scripts() {
+        let (folder, config) = script(
+            r#"
+dir=${0%/*}
+n=0
+[ ! -f "$dir/count" ] || read -r n < "$dir/count"
+n=$((n + 1))
+printf '%s\n' "$n" > "$dir/count"
+: > "$dir/started-$n"
+if [ "$n" = 1 ]; then
+  while [ ! -f "$dir/release" ]; do sleep 0.01; done
+fi
+echo "output after parent closed: $n"
+: > "$dir/done-$n"
+case "$n" in 1) exit 7;; 2) kill -USR1 "$$";; esac
+"#,
+        );
+        let mut helper = Helper::start(config).unwrap();
+        until(&mut helper, |h, _| h.ready());
+        let event = Event::Lease(super::super::tests::lease());
+        assert!(helper.enqueue(&event).unwrap());
+        until(&mut helper, |_, _| folder.join("started-1").exists());
+        assert!(helper.enqueue(&event).unwrap());
+        until(&mut helper, |h, _| h.can_enqueue());
+        assert!(helper.enqueue(&event).unwrap());
+        helper.begin_shutdown();
+        assert!(!helper.commands_drained());
+        until(&mut helper, |h, _| h.commands_drained());
+        assert!(!helper.is_finished());
+        assert!(!folder.join("done-1").exists());
+        // This is the parent's exit boundary: no event reader survives.
+        helper.reader.take();
+        std::fs::write(folder.join("release"), b"").unwrap();
+        until(&mut helper, |h, _| h.reaped.is_some());
+        assert_eq!(helper.reaped, Some(0));
+        for number in 1..=3 {
+            assert!(folder.join(format!("done-{number}")).exists());
+        }
+        drop(helper);
+        std::fs::remove_dir_all(folder).unwrap();
+    }
+
+    #[test]
+    fn only_runtime_notices_tolerate_broken_parent_pipe() {
+        let (reader, writer) = pipe().unwrap();
+        drop(reader);
+        let mut writer = File::from(writer);
+        for notice in [
+            Notice::Ready,
+            Notice::Output(b"late log".to_vec()),
+            Notice::ExecError(2),
+            Notice::ScriptSignal(10),
+            Notice::ScriptExit(7),
+        ] {
+            send(&mut writer, notice).unwrap();
+        }
+        let record = crate::dhcp::lease_file::parse(b"0 02:00:00:00:00:01 192.0.2.10 client *\n")
+            .records
+            .remove(0);
+        for notice in [
+            Notice::InitRecord(record),
+            Notice::InitEnd {
+                invalid_records: 0,
+                clean_end: true,
+            },
+            Notice::InitExit(7),
+            Notice::InitError(5),
+            Notice::Error(22),
+        ] {
+            assert_eq!(
+                send(&mut writer, notice).unwrap_err().kind(),
+                io::ErrorKind::BrokenPipe
+            );
+        }
+        let mut read_only = File::open("/dev/null").unwrap();
+        assert_ne!(
+            send(&mut read_only, Notice::Ready).unwrap_err().kind(),
+            io::ErrorKind::BrokenPipe
+        );
     }
     #[test]
     fn unknown_user_is_configuration_failure_and_missing_script_is_event() {
