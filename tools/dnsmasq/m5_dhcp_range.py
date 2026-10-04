@@ -1068,7 +1068,8 @@ def qualify_runs(runs, manifests, probe_tests, out):
                      events_per_side=sum(case['events'] for case in completed.values()),
                      unit_evidence={'path': str(probe_tests), 'sha256': sha256(probe_tests)})
     save(out, checklist)
-    return {'qualified': True, 'boundaries': checklist['checked'], 'cases': len(completed),
+    return {'qualified': checklist['status'] == 'qualified', 'status': checklist['status'],
+            'blocked': blocked, 'boundaries': checklist['checked'], 'cases': len(completed),
             'events_per_side': checklist['events_per_side'], 'source_commit': checklist['source_commit']}
 
 
