@@ -257,6 +257,13 @@ fn lease_time(bytes: &[u8]) -> Result<(u32, bool), Error> {
     if bytes.is_empty() {
         return Ok((3600, false));
     }
+    // option.c accepts this IPv6 deprecation marker in the shared range
+    // grammar.  The nodhcpv6 build has no corresponding runtime bit, so the
+    // IPv4 context keeps its ordinary default lease and does not mark it as
+    // an explicit duration.
+    if bytes == b"deprecated" {
+        return Ok((3600, false));
+    }
     if bytes == b"infinite" {
         return Ok((u32::MAX, true));
     }
@@ -917,6 +924,7 @@ mod tests {
             ("1W", 604_800, true),
             ("h", 120, true),
             ("infinite", u32::MAX, true),
+            ("deprecated", 3600, false),
         ] {
             let range = parse(&format!("192.0.2.10,192.0.2.20,{input}")).unwrap();
             assert_eq!(
