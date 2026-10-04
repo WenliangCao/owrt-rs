@@ -250,6 +250,16 @@ def scenarios():
          probe('new-name', 'ethername.files.test'), probe('old-name', 'leased.files.test'),
          {'op': 'helper-events', 'id': 'ethers-events'}],
         dhcp_config + 'read-ethers\n', dhcp_witness=True, sys_files={'/etc/ethers': ''})
+    add('init-generated-file-paths', 'INI-01', {},
+        [probe('touched-empty'), {'op': 'write-system', 'path': '/tmp/resolv.conf.d/resolv.conf.auto', 'text': r1},
+         probe('netifd-populated'), probe('server-before', 'a.file.test'),
+         {'op': 'write-system', 'path': '/tmp/file-servers.conf', 'text': 'server=/file.test/127.0.0.4\n'},
+         signal_reload(), probe('server-after', 'b.file.test')],
+        'resolv-file=/tmp/resolv.conf.d/resolv.conf.auto\nservers-file=/tmp/file-servers.conf\n',
+        default_resolv=False, sys_files={'/tmp/resolv.conf.d/resolv.conf.auto': '', '/tmp/file-servers.conf': 'server=/file.test/127.0.0.3\n'})
+    add('resolver-link-local-scope', 'RSLV-04', {'resolv': 'nameserver fe80::53%m5scope\n'},
+        [probe('scope-valid'), write('resolv', 'nameserver fe80::53%missing\n'), probe('scope-missing'),
+         write('resolv', 'nameserver fe80::53%m5scope\n'), probe('scope-restored')], scoped_upstream=True)
     add('file-event-burst', 'FAIL-02,CLEAR-01,CLEAR-03', initial,
         [{'op': 'reading-count', 'id': 'startup-read', 'minimum': 1, 'expect_reading': 1},
          {'op': 'file-burst', 'count': 512, 'text': r2},
@@ -358,6 +368,11 @@ def run_side(root, side, case, folder):
         subprocess.run(['ip', 'link', 'set', 'm5filelan', 'up'], check=True)
         subprocess.run(['ip', 'addr', 'add', '198.18.5.1/24', 'dev', 'm5filelan'], check=True)
         links.append('m5filelan')
+    if case.get('scoped_upstream'):
+        subprocess.run(['ip', 'link', 'add', 'm5scope', 'type', 'dummy'], check=True)
+        subprocess.run(['ip', 'link', 'set', 'm5scope', 'up'], check=True)
+        subprocess.run(['ip', '-6', 'addr', 'add', 'fe80::53/64', 'dev', 'm5scope', 'nodad'], check=True)
+        links.append('m5scope')
     route_socket = None
     if any(a['op'] in ('route', 'address-route') for a in case['actions']):
         route_socket = socket.socket(socket.AF_NETLINK, socket.SOCK_RAW, 0)
@@ -370,7 +385,7 @@ def run_side(root, side, case, folder):
     helper_offset = 0
     names = {(a['name'], a.get('type', 1)) for a in case['actions'] if a['op'] in ('query', 'start-udp')}
     upstreams = []
-    for index, address in enumerate(['127.0.0.2', '127.0.0.3', '127.0.0.4', '::1'] + (['127.0.0.1'] if case.get('local_upstream') else [])):
+    for index, address in enumerate(['127.0.0.2', '127.0.0.3', '127.0.0.4', '::1'] + (['127.0.0.1'] if case.get('local_upstream') else []) + (['fe80::53%m5scope'] if case.get('scoped_upstream') else [])):
         fixtures = [{'name': host, 'type': kind, 'reply': f'192.0.2.{11 + index}' if kind == 1 else f'2001:db8::{11 + index}'} for host, kind in names]
         delayed = {a['name'] for a in case['actions'] if a['op'] == 'start-udp'}
         for fixture in fixtures:
