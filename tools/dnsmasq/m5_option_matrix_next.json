@@ -286,6 +286,169 @@
         "capacity-zero",
         "capacity-invalid"
       ]
+    },
+    "local-service": {
+      "source": [
+        "C: option.c:3485\u20133492 and 6309\u20136321; network.c:271; forward.c:1685\u20131725,\n2416\u20132450. Rust config finalization and ingress policy consumers already exist."
+      ],
+      "checklist": [
+        {
+          "checked": false,
+          "boundary": "Syntax/startup: absent, no argument, `net`, `host`, invalid value. Preserve exact diagnostic streams; Rust's static `bad local-service` differs from C's generic `error` and must remain visible until corrected.",
+          "required_scenarios": [
+            "local-service-absent",
+            "local-service-bare",
+            "local-service-net",
+            "local-service-host",
+            "local-service-cli-net",
+            "local-service-cli-host",
+            "local-service-net-interface",
+            "local-service-net-except",
+            "local-service-net-listen",
+            "local-service-host-interface",
+            "local-service-host-except",
+            "local-service-host-listen",
+            "local-service-invalid",
+            "local-service-duplicate"
+          ]
+        },
+        {
+          "checked": false,
+          "boundary": "With no explicit interface/listen-address ACL, `net` admits only directly connected source subnets. Test local and routed non-local IPv4/IPv6 clients, each through UDP and TCP, using veths inside this family's private namespace.",
+          "required_scenarios": [
+            "local-service-absent",
+            "local-service-bare",
+            "local-service-net",
+            "local-service-host",
+            "local-service-cli-net",
+            "local-service-cli-host",
+            "local-service-net-interface",
+            "local-service-net-except",
+            "local-service-net-listen",
+            "local-service-host-interface",
+            "local-service-host-except",
+            "local-service-host-listen",
+            "local-service-invalid",
+            "local-service-duplicate"
+          ]
+        },
+        {
+          "checked": false,
+          "boundary": "`host` creates loopback-only binding equivalent to C's interface=lo plus bind-interfaces; check both address families and non-loopback destination.",
+          "required_scenarios": [
+            "local-service-absent",
+            "local-service-bare",
+            "local-service-net",
+            "local-service-host",
+            "local-service-cli-net",
+            "local-service-cli-host",
+            "local-service-net-interface",
+            "local-service-net-except",
+            "local-service-net-listen",
+            "local-service-host-interface",
+            "local-service-host-except",
+            "local-service-host-listen",
+            "local-service-invalid",
+            "local-service-duplicate"
+          ]
+        },
+        {
+          "checked": false,
+          "boundary": "Explicit interface, except-interface or listen-address configuration disables local-service restrictions; cover each override independently.",
+          "required_scenarios": [
+            "local-service-absent",
+            "local-service-bare",
+            "local-service-net",
+            "local-service-host",
+            "local-service-cli-net",
+            "local-service-cli-host",
+            "local-service-net-interface",
+            "local-service-net-except",
+            "local-service-net-listen",
+            "local-service-host-interface",
+            "local-service-host-except",
+            "local-service-host-listen",
+            "local-service-invalid",
+            "local-service-duplicate"
+          ]
+        },
+        {
+          "checked": false,
+          "boundary": "Check source subnet boundaries and distinguish source admission from destination listener presence. Namespace route setup and interface deletion must be recorded and cleaned up without touching the host network.",
+          "required_scenarios": [
+            "local-service-absent",
+            "local-service-bare",
+            "local-service-net",
+            "local-service-host",
+            "local-service-cli-net",
+            "local-service-cli-host",
+            "local-service-net-interface",
+            "local-service-net-except",
+            "local-service-net-listen",
+            "local-service-host-interface",
+            "local-service-host-except",
+            "local-service-host-listen",
+            "local-service-invalid",
+            "local-service-duplicate"
+          ]
+        },
+        {
+          "checked": false,
+          "boundary": "Controls: invert one admission decision, retain local-service despite an explicit ACL, delete one IPv6 or TCP observation.",
+          "required_scenarios": [
+            "local-service-absent",
+            "local-service-bare",
+            "local-service-net",
+            "local-service-host",
+            "local-service-cli-net",
+            "local-service-cli-host",
+            "local-service-net-interface",
+            "local-service-net-except",
+            "local-service-net-listen",
+            "local-service-host-interface",
+            "local-service-host-except",
+            "local-service-host-listen",
+            "local-service-invalid",
+            "local-service-duplicate"
+          ]
+        },
+        {
+          "checked": false,
+          "boundary": "ARG_ONE rejects same-origin duplicate but permits CLI plus config; net wins over host across origins (option.c2032-2043/6316).",
+          "required_scenarios": [
+            "local-service-absent",
+            "local-service-bare",
+            "local-service-net",
+            "local-service-host",
+            "local-service-cli-net",
+            "local-service-cli-host",
+            "local-service-net-interface",
+            "local-service-net-except",
+            "local-service-net-listen",
+            "local-service-host-interface",
+            "local-service-host-except",
+            "local-service-host-listen",
+            "local-service-invalid",
+            "local-service-duplicate"
+          ]
+        }
+      ],
+      "scenarios": [
+        "local-service-absent",
+        "local-service-bare",
+        "local-service-net",
+        "local-service-host",
+        "local-service-cli-net",
+        "local-service-cli-host",
+        "local-service-net-interface",
+        "local-service-net-except",
+        "local-service-net-listen",
+        "local-service-host-interface",
+        "local-service-host-except",
+        "local-service-host-listen",
+        "local-service-invalid",
+        "local-service-duplicate"
+      ]
     }
   },
   "scenarios": [
@@ -4168,6 +4331,1168 @@
       "adapter": "capacity",
       "expected_test_exit": 1,
       "hosts": ""
+    },
+    {
+      "id": "local-service-absent",
+      "options": [
+        "local-service"
+      ],
+      "config": "host-record=admission.matrix.test,8.8.8.8\n",
+      "probes": [
+        {
+          "id": "remote-v4-0",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.11",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v4-1",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.9",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v4-2",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.12",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v6-0",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::11",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v6-1",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::f",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v6-2",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::12",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "loop4",
+          "name": "admission.matrix.test",
+          "destination": "127.0.0.1",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "loop6",
+          "name": "admission.matrix.test",
+          "destination": "::1",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "unassigned-loop4",
+          "name": "admission.matrix.test",
+          "destination": "127.0.0.2",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        }
+      ],
+      "adapter": "local-service",
+      "listen_addresses": [],
+      "arguments": [],
+      "readiness_address": "127.0.0.1",
+      "expected_test_exit": 0,
+      "hosts": ""
+    },
+    {
+      "id": "local-service-bare",
+      "options": [
+        "local-service"
+      ],
+      "config": "local-service\nhost-record=admission.matrix.test,8.8.8.8\n",
+      "probes": [
+        {
+          "id": "remote-v4-0",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.11",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v4-1",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.9",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "drop",
+            "tcp": "close"
+          }
+        },
+        {
+          "id": "remote-v4-2",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.12",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "drop",
+            "tcp": "close"
+          }
+        },
+        {
+          "id": "remote-v6-0",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::11",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v6-1",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::f",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "drop",
+            "tcp": "close"
+          }
+        },
+        {
+          "id": "remote-v6-2",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::12",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "drop",
+            "tcp": "close"
+          }
+        },
+        {
+          "id": "loop4",
+          "name": "admission.matrix.test",
+          "destination": "127.0.0.1",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "loop6",
+          "name": "admission.matrix.test",
+          "destination": "::1",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "unassigned-loop4",
+          "name": "admission.matrix.test",
+          "destination": "127.0.0.2",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        }
+      ],
+      "adapter": "local-service",
+      "listen_addresses": [],
+      "arguments": [],
+      "readiness_address": "127.0.0.1",
+      "expected_test_exit": 0,
+      "hosts": ""
+    },
+    {
+      "id": "local-service-net",
+      "options": [
+        "local-service"
+      ],
+      "config": "local-service=net\nhost-record=admission.matrix.test,8.8.8.8\n",
+      "probes": [
+        {
+          "id": "remote-v4-0",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.11",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v4-1",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.9",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "drop",
+            "tcp": "close"
+          }
+        },
+        {
+          "id": "remote-v4-2",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.12",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "drop",
+            "tcp": "close"
+          }
+        },
+        {
+          "id": "remote-v6-0",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::11",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v6-1",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::f",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "drop",
+            "tcp": "close"
+          }
+        },
+        {
+          "id": "remote-v6-2",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::12",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "drop",
+            "tcp": "close"
+          }
+        },
+        {
+          "id": "loop4",
+          "name": "admission.matrix.test",
+          "destination": "127.0.0.1",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "loop6",
+          "name": "admission.matrix.test",
+          "destination": "::1",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "unassigned-loop4",
+          "name": "admission.matrix.test",
+          "destination": "127.0.0.2",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        }
+      ],
+      "adapter": "local-service",
+      "listen_addresses": [],
+      "arguments": [],
+      "readiness_address": "127.0.0.1",
+      "expected_test_exit": 0,
+      "hosts": ""
+    },
+    {
+      "id": "local-service-host",
+      "options": [
+        "local-service"
+      ],
+      "config": "local-service=host\nhost-record=admission.matrix.test,8.8.8.8\n",
+      "probes": [
+        {
+          "id": "remote-v4-0",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.11",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "no-listener",
+            "tcp": "no-listener"
+          }
+        },
+        {
+          "id": "remote-v4-1",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.9",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "no-listener",
+            "tcp": "no-listener"
+          }
+        },
+        {
+          "id": "remote-v4-2",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.12",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "no-listener",
+            "tcp": "no-listener"
+          }
+        },
+        {
+          "id": "remote-v6-0",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::11",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "no-listener",
+            "tcp": "no-listener"
+          }
+        },
+        {
+          "id": "remote-v6-1",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::f",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "no-listener",
+            "tcp": "no-listener"
+          }
+        },
+        {
+          "id": "remote-v6-2",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::12",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "no-listener",
+            "tcp": "no-listener"
+          }
+        },
+        {
+          "id": "loop4",
+          "name": "admission.matrix.test",
+          "destination": "127.0.0.1",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "loop6",
+          "name": "admission.matrix.test",
+          "destination": "::1",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "unassigned-loop4",
+          "name": "admission.matrix.test",
+          "destination": "127.0.0.2",
+          "admission": {
+            "udp": "no-listener",
+            "tcp": "no-listener"
+          }
+        }
+      ],
+      "adapter": "local-service",
+      "listen_addresses": [],
+      "arguments": [],
+      "readiness_address": "127.0.0.1",
+      "expected_test_exit": 0,
+      "hosts": ""
+    },
+    {
+      "id": "local-service-cli-net",
+      "options": [
+        "local-service"
+      ],
+      "config": "local-service=host\nhost-record=admission.matrix.test,8.8.8.8\n",
+      "probes": [
+        {
+          "id": "remote-v4-0",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.11",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v4-1",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.9",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "drop",
+            "tcp": "close"
+          }
+        },
+        {
+          "id": "remote-v4-2",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.12",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "drop",
+            "tcp": "close"
+          }
+        },
+        {
+          "id": "remote-v6-0",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::11",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v6-1",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::f",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "drop",
+            "tcp": "close"
+          }
+        },
+        {
+          "id": "remote-v6-2",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::12",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "drop",
+            "tcp": "close"
+          }
+        },
+        {
+          "id": "loop4",
+          "name": "admission.matrix.test",
+          "destination": "127.0.0.1",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "loop6",
+          "name": "admission.matrix.test",
+          "destination": "::1",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "unassigned-loop4",
+          "name": "admission.matrix.test",
+          "destination": "127.0.0.2",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        }
+      ],
+      "adapter": "local-service",
+      "listen_addresses": [],
+      "arguments": [
+        "--local-service=net"
+      ],
+      "readiness_address": "127.0.0.1",
+      "expected_test_exit": 0,
+      "hosts": ""
+    },
+    {
+      "id": "local-service-cli-host",
+      "options": [
+        "local-service"
+      ],
+      "config": "local-service=net\nhost-record=admission.matrix.test,8.8.8.8\n",
+      "probes": [
+        {
+          "id": "remote-v4-0",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.11",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v4-1",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.9",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "drop",
+            "tcp": "close"
+          }
+        },
+        {
+          "id": "remote-v4-2",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.12",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "drop",
+            "tcp": "close"
+          }
+        },
+        {
+          "id": "remote-v6-0",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::11",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v6-1",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::f",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "drop",
+            "tcp": "close"
+          }
+        },
+        {
+          "id": "remote-v6-2",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::12",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "drop",
+            "tcp": "close"
+          }
+        },
+        {
+          "id": "loop4",
+          "name": "admission.matrix.test",
+          "destination": "127.0.0.1",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "loop6",
+          "name": "admission.matrix.test",
+          "destination": "::1",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "unassigned-loop4",
+          "name": "admission.matrix.test",
+          "destination": "127.0.0.2",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        }
+      ],
+      "adapter": "local-service",
+      "listen_addresses": [],
+      "arguments": [
+        "--local-service=host"
+      ],
+      "readiness_address": "127.0.0.1",
+      "expected_test_exit": 0,
+      "hosts": ""
+    },
+    {
+      "id": "local-service-net-interface",
+      "options": [
+        "local-service"
+      ],
+      "config": "local-service=net\ninterface=m5srv\nhost-record=admission.matrix.test,8.8.8.8\n",
+      "probes": [
+        {
+          "id": "remote-v4-0",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.11",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v4-1",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.9",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v4-2",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.12",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v6-0",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::11",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v6-1",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::f",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v6-2",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::12",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        }
+      ],
+      "adapter": "local-service",
+      "listen_addresses": [],
+      "arguments": [],
+      "readiness_address": "127.0.0.1",
+      "expected_test_exit": 0,
+      "hosts": ""
+    },
+    {
+      "id": "local-service-net-except",
+      "options": [
+        "local-service"
+      ],
+      "config": "local-service=net\nexcept-interface=missing0\nhost-record=admission.matrix.test,8.8.8.8\n",
+      "probes": [
+        {
+          "id": "remote-v4-0",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.11",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v4-1",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.9",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v4-2",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.12",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v6-0",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::11",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v6-1",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::f",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v6-2",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::12",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        }
+      ],
+      "adapter": "local-service",
+      "listen_addresses": [],
+      "arguments": [],
+      "readiness_address": "127.0.0.1",
+      "expected_test_exit": 0,
+      "hosts": ""
+    },
+    {
+      "id": "local-service-net-listen",
+      "options": [
+        "local-service"
+      ],
+      "config": "local-service=net\nlisten-address=192.0.2.10,2001:db8:5::10\nhost-record=admission.matrix.test,8.8.8.8\n",
+      "probes": [
+        {
+          "id": "remote-v4-0",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.11",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v4-1",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.9",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v4-2",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.12",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v6-0",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::11",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v6-1",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::f",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v6-2",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::12",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        }
+      ],
+      "adapter": "local-service",
+      "listen_addresses": [],
+      "arguments": [],
+      "readiness_address": "192.0.2.10",
+      "expected_test_exit": 0,
+      "hosts": ""
+    },
+    {
+      "id": "local-service-host-interface",
+      "options": [
+        "local-service"
+      ],
+      "config": "local-service=host\ninterface=m5srv\nhost-record=admission.matrix.test,8.8.8.8\n",
+      "probes": [
+        {
+          "id": "remote-v4-0",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.11",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v4-1",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.9",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v4-2",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.12",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v6-0",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::11",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v6-1",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::f",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v6-2",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::12",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        }
+      ],
+      "adapter": "local-service",
+      "listen_addresses": [],
+      "arguments": [],
+      "readiness_address": "127.0.0.1",
+      "expected_test_exit": 0,
+      "hosts": ""
+    },
+    {
+      "id": "local-service-host-except",
+      "options": [
+        "local-service"
+      ],
+      "config": "local-service=host\nexcept-interface=missing0\nhost-record=admission.matrix.test,8.8.8.8\n",
+      "probes": [
+        {
+          "id": "remote-v4-0",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.11",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v4-1",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.9",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v4-2",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.12",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v6-0",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::11",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v6-1",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::f",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v6-2",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::12",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        }
+      ],
+      "adapter": "local-service",
+      "listen_addresses": [],
+      "arguments": [],
+      "readiness_address": "127.0.0.1",
+      "expected_test_exit": 0,
+      "hosts": ""
+    },
+    {
+      "id": "local-service-host-listen",
+      "options": [
+        "local-service"
+      ],
+      "config": "local-service=host\nlisten-address=192.0.2.10,2001:db8:5::10\nhost-record=admission.matrix.test,8.8.8.8\n",
+      "probes": [
+        {
+          "id": "remote-v4-0",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.11",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v4-1",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.9",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v4-2",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "192.0.2.12",
+          "destination": "192.0.2.10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v6-0",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::11",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v6-1",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::f",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        },
+        {
+          "id": "remote-v6-2",
+          "name": "admission.matrix.test",
+          "remote": true,
+          "source": "2001:db8:5::12",
+          "destination": "2001:db8:5::10",
+          "admission": {
+            "udp": "reply",
+            "tcp": "reply"
+          }
+        }
+      ],
+      "adapter": "local-service",
+      "listen_addresses": [],
+      "arguments": [],
+      "readiness_address": "192.0.2.10",
+      "expected_test_exit": 0,
+      "hosts": ""
+    },
+    {
+      "id": "local-service-invalid",
+      "options": [
+        "local-service"
+      ],
+      "config": "local-service=invalid\n",
+      "probes": [],
+      "adapter": "local-service",
+      "listen_addresses": [],
+      "expected_test_exit": 1,
+      "hosts": ""
+    },
+    {
+      "id": "local-service-duplicate",
+      "options": [
+        "local-service"
+      ],
+      "config": "local-service=host\nlocal-service=net\n",
+      "probes": [],
+      "adapter": "local-service",
+      "listen_addresses": [],
+      "expected_test_exit": 1,
+      "hosts": ""
     }
   ],
   "pending_families": [
@@ -4203,39 +5528,6 @@
         }
       ],
       "notes": "Known common diagnostic gap from static read: Rust scalar errors currently say\n`retry interval below 50 ms` / `bad integer`; C uses its generic `error`. Keep\nthese rows failing until the root agent fixes the shared diagnostic boundary."
-    },
-    {
-      "options": [
-        "local-service"
-      ],
-      "source_and_scope": "C: option.c:3485\u20133492 and 6309\u20136321; network.c:271; forward.c:1685\u20131725,\n2416\u20132450. Rust config finalization and ingress policy consumers already exist.",
-      "checklist": [
-        {
-          "checked": false,
-          "boundary": "Syntax/startup: absent, no argument, `net`, `host`, invalid value. Preserve exact diagnostic streams; Rust's static `bad local-service` differs from C's generic `error` and must remain visible until corrected."
-        },
-        {
-          "checked": false,
-          "boundary": "With no explicit interface/listen-address ACL, `net` admits only directly connected source subnets. Test local and routed non-local IPv4/IPv6 clients, each through UDP and TCP, using veths inside this family's private namespace."
-        },
-        {
-          "checked": false,
-          "boundary": "`host` creates loopback-only binding equivalent to C's interface=lo plus bind-interfaces; check both address families and non-loopback destination."
-        },
-        {
-          "checked": false,
-          "boundary": "Explicit interface, except-interface or listen-address configuration disables local-service restrictions; cover each override independently."
-        },
-        {
-          "checked": false,
-          "boundary": "Check source subnet boundaries and distinguish source admission from destination listener presence. Namespace route setup and interface deletion must be recorded and cleaned up without touching the host network."
-        },
-        {
-          "checked": false,
-          "boundary": "Controls: invert one admission decision, retain local-service despite an explicit ACL, delete one IPv6 or TCP observation."
-        }
-      ],
-      "notes": "This batch qualifies five options only after all their checked rows pass. Do not\ninclude reverse-cache, max-ttl, EDNS identity mutation, dynamic-file or other\nknown functionality gaps merely to increase the matrix's option count."
     }
   ]
 }
