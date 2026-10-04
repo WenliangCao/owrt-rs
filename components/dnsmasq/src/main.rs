@@ -587,7 +587,10 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             dhcp_config.clone(),
             daemon_config.listen_addresses.clone(),
             runtime.scalar.dns_port,
-            || STOP_REQUESTED.load(Ordering::Acquire),
+            // C delay_dhcp finishes the accepted transaction before consuming
+            // SIGTERM. The listener still checks STOP before each new packet;
+            // DNS/TFTP continue through the borrowed probe wait meanwhile.
+            || false,
         )?;
         provider.set_dns_config(&daemon_config)?;
         provider.set_tftp_config(&tftp_config);
