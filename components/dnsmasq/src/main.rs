@@ -596,6 +596,12 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             // DNS/TFTP continue through the borrowed probe wait meanwhile.
             || false,
         )?;
+        provider
+            .start_interface_owner()
+            .map_err(|error| dnsmasq_rs::startup::StartupError {
+                code: 5,
+                message: format!("cannot create DHCP netlink socket: {error}"),
+            })?;
         provider.set_dns_config(&daemon_config)?;
         provider.set_tftp_config(&tftp_config);
         if dns_enabled {
@@ -2074,6 +2080,11 @@ impl SinglePoll {
         if self.helper_init.is_some() || self.helper_init_error.is_some() {
             return;
         }
+        // EVENT_RELOAD is consumed before DHCP in C. A completed bank is
+        // still intermediate when another delivered SIGHUP waits in the queue.
+        if RELOAD_REQUESTED.load(Ordering::Acquire) != 0 || self.reload_in_progress() {
+            return;
+        }
         let Some(mut dhcp) = self.dhcp.take() else {
             return;
         };
@@ -2101,6 +2112,21 @@ impl SinglePoll {
         let now = now_seconds();
         if let Some(report) = provider.tick(now) {
             report_dhcp_maintenance(&report);
+        }
+        // Leave input in the kernel until a fresh address generation arrives.
+        // Each turn advances at most one netlink datagram without a blocking wait.
+        if !dhcp.listener.has_input().unwrap_or(false)
+            || match provider.prepare_packet_interfaces() {
+                Ok(ready) => !ready,
+                Err(error) => {
+                    eprintln!("dnsmasq-rs: DHCP interface snapshot: {error}");
+                    true
+                }
+            }
+        {
+            drop(provider);
+            self.dhcp = Some(dhcp);
+            return;
         }
         if self
             .tftp
@@ -2140,6 +2166,7 @@ impl SinglePoll {
             };
             [primary, pxe]
         };
+        provider.finish_packet_interfaces();
         if self.pending_delivery.is_none() {
             self.pending_delivery = provider.take_script_delivery();
         }

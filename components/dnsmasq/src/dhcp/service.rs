@@ -265,6 +265,28 @@ impl SocketListener {
         Ok(())
     }
 
+    /// Observe readiness without consuming the queued packet. The owner can
+    /// complete its kernel address dump before borrowing packet/state buffers.
+    pub fn has_input(&self) -> io::Result<bool> {
+        use std::os::fd::AsRawFd;
+        if self.pending_reply.is_some() {
+            return Ok(true);
+        }
+        let mut fds = vec![owrt_ubus::sys::PollFd {
+            fd: self.socket.as_raw_fd(),
+            events: 1,
+            revents: 0,
+        }];
+        if let Some(socket) = &self.pxe_socket {
+            fds.push(owrt_ubus::sys::PollFd {
+                fd: socket.as_raw_fd(),
+                events: 1,
+                revents: 0,
+            });
+        }
+        Ok(owrt_ubus::sys::poll_fds(&mut fds, 0)? != 0)
+    }
+
     pub fn has_pxe_listener(&self) -> bool {
         self.pxe_socket.is_some()
     }
