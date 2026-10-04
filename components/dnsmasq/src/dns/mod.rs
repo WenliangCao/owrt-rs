@@ -5,6 +5,8 @@ pub mod cache_reply;
 pub mod daemon;
 pub mod doctor;
 pub mod files;
+#[cfg(target_os = "linux")]
+pub mod filewatch;
 pub mod forward;
 pub mod forward_service;
 pub mod lease_names;
