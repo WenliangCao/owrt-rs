@@ -248,6 +248,17 @@ def profiles():
             case("forward-via-primary",listener=4011,source_port=4011,reply=False,upstream=1),
             case("reply-uses-shared-interface",sender="server",source_port=67,listener=server_port,raw=raw_reply),
         ],["RX06","OWNER02"],mode="none",expect4011=True,needs_server=True))
+    rows.extend([
+        profile("pxe-metrics-success",legacy,[
+            case("proxy-count"),case("boot-item-count",kind=3,ciaddr=CLIENT,boot_item=item()),
+            case("bis-not-counted",kind=3,ciaddr=CLIENT,boot_item=item(32768,32768),reply=False),
+            case("nonpxe-not-counted",vendor=b"ordinary",reply=False),
+            case("bootp-proxy-not-counted",kind=0,arch=None,vendor=None,prl=None,reply=False),
+        ],["PROXY06","BOOTP04"],metrics=[1,2,2,2,2]),
+        profile("pxe-metrics-ignored",legacy+["dhcp-ignore=tag:client0"],[
+            case("ignored-proxy-counted",reply=False),case("ignored-item-not-counted",kind=3,ciaddr=CLIENT,boot_item=item(),reply=False),
+        ],["PROXY06"],metrics=[1,1]),
+    ])
     return rows
 
 
@@ -265,6 +276,8 @@ def config(profile):
     if profile.get("static_host", True):
         lines.append("dhcp-host=02:00:00:4d:35:03,10.77.0.10")
     lines.extend(profile["options"])
+    if profile.get("metrics") is not None:
+        lines.append("enable-ubus=pxe-metrics")
     return "\n".join(lines) + "\n"
 
 
@@ -279,6 +292,12 @@ def heartbeat():
 def bound4011():
     return any(int(line.split()[1].split(":")[1], 16) == 4011
                for line in Path("/proc/net/udp").read_text().splitlines()[1:])
+
+
+def metrics(root):
+    response=subprocess.run(command(root,"/bin/ubus","call","pxe-metrics","metrics","{}"),capture_output=True,text=True,timeout=2)
+    if response.returncode:raise AssertionError(f"metrics failed: {response.returncode} {response.stderr}")
+    return json.loads(response.stdout)
 
 
 def grammar_cases():
@@ -364,8 +383,17 @@ def run_profile(root, side, profile, client, server, out):
     tested = subprocess.run(command(root, side, "--test", "-C", "/m2/pxe.conf"), capture_output=True, text=True, timeout=3)
     row = {"profile": profile["name"], "side": side, "started": False, "cases": [],
            "test": {"exit": tested.returncode, "stdout": tested.stdout, "stderr": tested.stderr}}
-    process = None
+    process = None;bus=None;bus_log=None
     try:
+        if profile.get("metrics") is not None:
+            bus_log=(out/"ubusd.log").open("wb")
+            bus=subprocess.Popen(command(root,"/sbin/ubusd"),stdout=bus_log,stderr=bus_log,start_new_session=True)
+            deadline=time.monotonic()+2
+            while True:
+                ready=subprocess.run(command(root,"/bin/ubus","list"),capture_output=True,timeout=1)
+                if ready.returncode==0:break
+                if bus.poll() is not None or time.monotonic()>=deadline:raise AssertionError("ubusd startup")
+                time.sleep(.02)
         with (out/"daemon.log").open("wb") as log:
             process = subprocess.Popen(command(root, side, "-k", "-C", "/m2/pxe.conf"), stdout=log, stderr=log, start_new_session=True)
             time.sleep(.2)
@@ -376,6 +404,7 @@ def run_profile(root, side, profile, client, server, out):
             if not heartbeat():
                 raise AssertionError("startup DNS heartbeat")
             row["fd_start"] = net.descriptors(process.pid)
+            if profile.get("metrics") is not None:row["initial_metrics"]=metrics(root)
             for item in profile["cases"]:
                 if item["reload_hosts"] is not None:
                     (root/"m2/pxe.hosts").write_text(item["reload_hosts"])
@@ -395,13 +424,16 @@ def run_profile(root, side, profile, client, server, out):
                 row["cases"].append({"name": item["name"], "request": item["request"], "replies": replies,
                                      "peer_echo": echoes, "alive": process.poll() is None, "heartbeat": heartbeat(),
                                      "leases": leases.read_text() if leases.exists() else None,
-                                     "observed_epoch":int(time.time()),"upstream":upstream})
+                                     "observed_epoch":int(time.time()),"upstream":upstream,
+                                     "metrics":metrics(root) if profile.get("metrics") is not None else None})
             row["fd_end"] = net.descriptors(process.pid)
     except Exception as error:
         row["error"] = repr(error)
     finally:
         if process is not None:
             row["cleanup"] = stop(process)
+        if bus is not None:row["bus_cleanup"]=stop(bus)
+        if bus_log is not None:bus_log.close()
         row["pid_removed"] = not (root/"m2/pxe.pid").exists()
     save(out/"result.json", row)
     return row
@@ -461,7 +493,7 @@ def evaluate(rows, corpus, sides):
             observed = {item["name"]: item for item in row["cases"]}
             if len(observed) != len(row["cases"]) or set(observed) != {item["name"] for item in profile["cases"]}:
                 failures.append(f"{key}: missing/extra case")
-            for item in profile["cases"]:
+            for index,item in enumerate(profile["cases"]):
                 case = observed.get(item["name"])
                 if case is None:
                     continue
@@ -476,6 +508,11 @@ def evaluate(rows, corpus, sides):
                     failures.append(f"{key}/{item['name']}: unhealthy daemon")
                 if profile["mode"]=="proxy" and lease_state(case):
                     failures.append(f"{key}/{item['name']}: proxy allocated a lease")
+                if profile.get("metrics") is not None and (case.get("metrics") or {}).get("pxe")!=profile["metrics"][index]:
+                    failures.append(f"{key}/{item['name']}: PXE counter")
+            if profile.get("metrics") is not None:
+                if (row.get("initial_metrics") or {}).get("pxe")!=0:failures.append(f"{key}: initial PXE count")
+                if not row.get("bus_cleanup") or row["bus_cleanup"].get("forced"):failures.append(f"{key}: ubusd cleanup")
         if sides == ["c", "rust"]:
             first = indexed.get((profile["name"], "c")); second = indexed.get((profile["name"], "rust"))
             if not first or not second:
@@ -488,6 +525,10 @@ def evaluate(rows, corpus, sides):
                     failures.append(f"{profile['name']}/{c['name']}: wire/endpoint differs")
                 if not same_leases(c,rust):
                     failures.append(f"{profile['name']}/{c['name']}: lease state differs")
+                if c.get("metrics") is not None:
+                    counters=lambda data:{key:value for key,value in data.items() if key in ["pxe","bootp"] or key.startswith("dhcp_")}
+                    if rust.get("metrics") is None or counters(c["metrics"])!=counters(rust["metrics"]):
+                        failures.append(f"{profile['name']}/{c['name']}: DHCP/PXE metrics differ")
     return failures
 
 
