@@ -4,6 +4,9 @@
 #[cfg(unix)]
 #[path = "dns_endpoints.rs"]
 pub mod endpoints;
+#[cfg(target_os = "linux")]
+#[path = "dns_lookup.rs"]
+pub mod lookup;
 
 use super::{validate_directive, Directive, EncodedArg, Error};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
