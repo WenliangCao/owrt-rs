@@ -332,6 +332,12 @@ def guards(rows, scenario):
         for key in ['flags', 'address', 'server_id', 'message']:
             if key in expected and (response is None or response[key] != expected[key]):
                 failures.append({'id': row['id'], 'field': key, 'expected': expected[key], 'actual': response})
+        if 'option_values' in expected:
+            wire = (response or {}).get('wire')
+            values = {str(code): value for code, value in options(bytes.fromhex(wire))} if wire else {}
+            for code, wanted in expected['option_values'].items():
+                if values.get(code) != wanted:
+                    failures.append({'id': row['id'], 'option': code, 'expected': wanted, 'actual': values.get(code)})
         if 'destination' in expected and (response is None or response['destination']['address'] != expected['destination']):
             failures.append({'id': row['id'], 'expected_destination': expected['destination'], 'actual': response})
         if 'leases' in expected and len(row['leases']) != expected['leases']:
@@ -430,6 +436,15 @@ def controls():
             bad['response']['dns']['udp']['records'][0][label] = 0
         assert guards([bad], {'probes': [event]})
         result['dhcp-dns-' + label] = 'detected'
+    packet = bytearray(240)
+    packet[236:240] = bytes.fromhex('63825363')
+    packet += bytes([224, 1, 2, 255])
+    event = {'id': 'tag-control', 'expect': {'option_values': {'224': '02', '225': None}}}
+    row = {'id': 'tag-control:dhcp', 'response': {'wire': packet.hex()}}
+    assert not guards([row], {'probes': [event]})
+    row['response']['wire'] = (packet[:242] + bytes([1, 255])).hex()
+    assert guards([row], {'probes': [event]})
+    result['dhcp-derived-option-value'] = 'detected'
     c = {'syntax': {'exit': 0, 'stdout': '', 'stderr': 'dnsmasq: syntax check OK.\n'}, 'startup': {'ready': False}, 'rows': []}
     rust = {'syntax': {'exit': 1, 'stdout': '', 'stderr': '\ndnsmasq: empty DHCP tag predicate at line 1 of /m2/matrix.conf\n'}, 'startup': {'ready': False}, 'rows': [], 'config_line': 1}
     assert not reference_difference(c, rust, {'config': 'dhcp-broadcast=tag:\n'})
