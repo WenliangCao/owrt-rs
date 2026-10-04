@@ -310,6 +310,7 @@ impl LocalProvider {
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     pub fn take_script_delivery(&mut self) -> Option<LeaseDelivery> {
+        self.queue_script_from_maintenance();
         let delivery = self.pending_delivery.take();
         self.queue_script_from_maintenance();
         delivery
@@ -1170,7 +1171,7 @@ impl LocalProvider {
                             now,
                             relay_address: (!packet.giaddr().is_unspecified())
                                 .then_some(packet.giaddr()),
-                            extra,
+                            extra: extra.map(Box::new),
                             log_dhcp: self.config.log_dhcp,
                         },
                     );
