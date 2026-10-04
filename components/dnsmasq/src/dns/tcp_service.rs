@@ -3,8 +3,8 @@
 //! One service belongs to one downstream connection. The caller first attempts
 //! its local answer path. Supported configuration adds no client-dependent EDNS
 //! options, so the forwarded query remains byte-for-byte unchanged. Dynamic
-//! cache insertion, ubus doctor notifications and additional RR filtering are
-//! separate work. Static aliases run once on each eligible upstream reply.
+//! cache insertion and ubus doctor notifications belong to the daemon owner.
+//! Static aliases run once on each eligible upstream reply.
 
 use super::daemon::{address_policy, validate_runtime_config, DaemonError};
 use super::process::{apply_static_aliases, process_admitted_reply, AddressPolicy, ProcessError};
@@ -13,7 +13,7 @@ use super::routing::{RouteReason, RoutingTable};
 use super::service::LocalDnsService;
 pub use super::tcp_upstream::TcpWait;
 use super::tcp_upstream::{TcpError, TcpOptions, TcpProgress, TcpUpstream};
-use super::wire::{find_pseudoheader, skip_questions, Header, Message, Question, WireError};
+use super::wire::{find_pseudoheader, skip_questions, Header, Message, Name, Question, WireError};
 use crate::config::dns::DnsConfig;
 use std::net::SocketAddr;
 use std::time::Instant;
@@ -55,6 +55,11 @@ enum PreparedQuery {
     Forward(super::forward::GroupId),
 }
 
+struct FinishedReply {
+    packet: Vec<u8>,
+    bogus: Option<(Name, u32)>,
+}
+
 pub struct TcpDnsService {
     routing: RoutingTable,
     upstream: TcpUpstream,
@@ -64,6 +69,7 @@ pub struct TcpDnsService {
     edns_packet_max: u16,
     filter_rr: Vec<u16>,
     pending_query: Option<Vec<u8>>,
+    pending_bogus: Option<(Name, u32)>,
 }
 
 impl TcpDnsService {
@@ -97,7 +103,15 @@ impl TcpDnsService {
             edns_packet_max,
             filter_rr: config.filter_rr.clone(),
             pending_query: None,
+            pending_bogus: None,
         })
+    }
+
+    /// A matching bogus RR commits even for CD or --no-negcache. The owner
+    /// consumes this before ordinary response insertion, which has lost the
+    /// matching owner and TTL after NXDOMAIN rewriting.
+    pub fn take_bogus_cache_entry(&mut self) -> Option<(Name, u32)> {
+        self.pending_bogus.take()
     }
 
     pub fn handle(
@@ -147,6 +161,7 @@ impl TcpDnsService {
         if self.pending_query.is_some() {
             return Err(TcpServiceError::Transport(TcpError::Busy));
         }
+        self.pending_bogus = None;
         let group = match self.prepare(query, Some(local))? {
             PreparedQuery::Answer(packet) => {
                 return Ok(TcpServiceProgress::Complete(packet, false))
@@ -174,6 +189,7 @@ impl TcpDnsService {
     /// Cancel the current exchange and release all per-session upstream fds.
     pub fn clear(&mut self) {
         self.pending_query = None;
+        self.pending_bogus = None;
         self.upstream.clear();
     }
 
@@ -198,7 +214,10 @@ impl TcpDnsService {
                 Some(local),
                 Some(&self.routing),
             )
-            .map(|packet| TcpServiceProgress::Complete(packet, true)),
+            .map(|reply| {
+                self.pending_bogus = reply.bogus;
+                TcpServiceProgress::Complete(reply.packet, true)
+            }),
             Err(TcpError::NoReply) => Ok(TcpServiceProgress::Complete(
                 refusal(&query, self.edns_packet_max, 23, TCP_LIMIT, true)?,
                 false,
@@ -251,6 +270,7 @@ impl TcpDnsService {
         deadline: Instant,
         stopped: &dyn Fn() -> bool,
     ) -> Result<(Vec<u8>, bool), TcpServiceError> {
+        self.pending_bogus = None;
         let group = match self.prepare(query, local)? {
             PreparedQuery::Answer(packet) => return Ok((packet, false)),
             PreparedQuery::Forward(group) => group,
@@ -266,7 +286,10 @@ impl TcpDnsService {
                 local,
                 Some(&self.routing),
             )
-            .map(|packet| (packet, true)),
+            .map(|reply| {
+                self.pending_bogus = reply.bogus;
+                (reply.packet, true)
+            }),
             Err(TcpError::NoReply) => Ok((
                 refusal(query, self.edns_packet_max, 23, TCP_LIMIT, true)?,
                 false,
@@ -334,7 +357,7 @@ fn finish_reply(
     filter_rr: &[u16],
     local: Option<&LocalDnsService>,
     routing: Option<&RoutingTable>,
-) -> Result<Vec<u8>, TcpServiceError> {
+) -> Result<FinishedReply, TcpServiceError> {
     let query_header = Header::parse(query)?;
     let scan = find_pseudoheader(query, true)?;
     let do_bit = scan.opt.as_ref().is_some_and(|opt| opt.dnssec_ok());
@@ -348,6 +371,7 @@ fn finish_reply(
         },
     )?;
     let mut packet = envelope.packet;
+    let mut bogus = None;
     // process_reply captures the full RCODE before possibly stripping OPT.
     // Do not reinterpret an extended error as NOERROR after that strip.
     if matches!(envelope.rcode, 0 | 3) {
@@ -366,8 +390,15 @@ fn finish_reply(
         })?;
         apply_static_aliases(&mut packet, &policy.static_aliases, envelope.rcode)
             .map_err(TcpServiceError::Process)?;
+        // Read the match before process_admitted_reply removes all answer
+        // records. Only its bogus decision is allowed to publish this event.
+        let bogus_candidate =
+            super::process::bogus_cache_entry(&packet, Header::parse(&packet)?.answers, policy);
         let report = process_admitted_reply(&mut packet, policy, envelope.rcode)
             .map_err(TcpServiceError::Process)?;
+        if report.bogus_nxdomain {
+            bogus = bogus_candidate;
+        }
         let ede = if report.blocked_rebind || report.bogus_nxdomain {
             Some(15)
         } else if report.malformed_address {
@@ -390,7 +421,7 @@ fn finish_reply(
             }
         }
     }
-    Ok(packet)
+    Ok(FinishedReply { packet, bogus })
 }
 
 /// EDE insertion/replacement follows edns0.c::add_pseudoheader, including its
@@ -565,6 +596,50 @@ mod tests {
         assert_eq!(header.additionals, 0);
         drop(service);
         worker.join().unwrap();
+    }
+
+    #[test]
+    fn bogus_cache_event_keeps_matching_owner_and_ttl_before_rewriting() {
+        let query_name = Name::from_ascii("caller.test").unwrap();
+        let target = Name::from_ascii("target.test").unwrap();
+        for checking_disabled in [false, true] {
+            let mut request = query(true);
+            request[3] = if checking_disabled { 0x10 } else { 0 };
+            let mut writer = PacketWriter::new(0x2930, 0x8180, 1232).unwrap();
+            writer.question(&query_name, 1, 1).unwrap();
+            writer
+                .record(Section::Answer, &query_name, 5, 1, 37, target.as_wire())
+                .unwrap();
+            writer
+                .record(Section::Answer, &target, 1, 1, 120, &[8, 8, 4, 4])
+                .unwrap();
+            writer
+                .record(Section::Additional, &Name::root(), 41, 1232, 0x8000, &[])
+                .unwrap();
+            let mut reply = writer.finish();
+            let policy = AddressPolicy {
+                bogus_addresses: vec![super::super::process::AddressPrefix::new(
+                    "8.8.4.4".parse().unwrap(),
+                    32,
+                )
+                .unwrap()],
+                ..AddressPolicy::default()
+            };
+            let finished =
+                finish_reply(&request, &reply, &policy, false, 1232, &[], None, None).unwrap();
+            assert_eq!(finished.bogus, Some((target.clone(), 120)));
+            let header = Header::parse(&finished.packet).unwrap();
+            assert_eq!((header.rcode(), header.answers), (3, 0));
+            assert_eq!(header.flags & 0x10 != 0, checking_disabled);
+
+            // TC and an original NXDOMAIN bypass check_for_bogus_wildcard.
+            for flags in [0x8380u16, 0x8183] {
+                reply[2..4].copy_from_slice(&flags.to_be_bytes());
+                let finished =
+                    finish_reply(&request, &reply, &policy, false, 1232, &[], None, None).unwrap();
+                assert_eq!(finished.bogus, None);
+            }
+        }
     }
 
     #[test]
