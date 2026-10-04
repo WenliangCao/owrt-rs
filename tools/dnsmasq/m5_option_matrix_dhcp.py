@@ -254,7 +254,9 @@ def decode(response, event, destination):
     normalized_event = copy.deepcopy(event['packet'])
     if kind != 5: normalized_event.pop('renew', None)
     comparable = comparable_reply(response, normalized_event)
-    return {'wire': comparable, 'status': kind, 'flags': int.from_bytes(response[10:12], 'big'),
+    return {'wire': comparable, 'status': kind,
+            'server_id': socket.inet_ntoa(decoded[54]) if 54 in decoded else None,
+            'message': decoded.get(56, b'').decode(errors='backslashreplace'), 'flags': int.from_bytes(response[10:12], 'big'),
             'address': socket.inet_ntoa(response[16:20]), 'destination': destination}
 
 
@@ -266,7 +268,7 @@ def guards(rows, scenario):
         if 'status' in expected:
             actual = response.get('status') if response else None
             if actual != expected['status']: failures.append({'id': row['id'], 'expected_status': expected['status'], 'actual': actual})
-        for key in ['flags', 'address']:
+        for key in ['flags', 'address', 'server_id', 'message']:
             if key in expected and (response is None or response[key] != expected[key]):
                 failures.append({'id': row['id'], 'field': key, 'expected': expected[key], 'actual': response})
         if 'destination' in expected and (response is None or response['destination']['address'] != expected['destination']):
