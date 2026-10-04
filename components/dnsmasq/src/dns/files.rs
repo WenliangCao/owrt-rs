@@ -10,6 +10,12 @@ use crate::config::{lex_line, validate_directive, Error};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV6};
 use std::path::PathBuf;
 
+#[cfg(target_os = "linux")]
+#[path = "files_runtime.rs"]
+mod runtime;
+#[cfg(target_os = "linux")]
+pub use runtime::{DnsFiles, FileDiagnostic, FileStep, ReloadReason, SourceUpdate};
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct FileStamp {
     /// stat.st_mtime, in whole seconds, as used by the exact image.
