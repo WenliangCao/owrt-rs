@@ -234,6 +234,18 @@ impl ServerSources {
         &self.rules
     }
 
+    /// Local answers and newly accepted TCP clients see the same active rule
+    /// sources. Original inline configuration remains immutable in the owner.
+    pub fn effective_config(&self, base: &DnsConfig) -> DnsConfig {
+        let mut config = base.clone();
+        config.rules = self
+            .rules
+            .iter()
+            .map(|entry| entry.value.rule.clone())
+            .collect();
+        config
+    }
+
     /// Call only after a successful source open; even zero valid rows must
     /// replace the old bank. Returned IDs are genuinely retired C slots.
     pub fn replace(&mut self, source: Source, rows: Vec<SourceRule>) -> Vec<ServerId> {

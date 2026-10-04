@@ -563,6 +563,17 @@ impl ForwardTable {
         }
     }
 
+    /// C frecs retain a server pointer, whose current domain tier is looked
+    /// up after server-array rebuilding. Reflect that without resetting IDs,
+    /// deadlines, retries, recipients or the table's counters.
+    pub fn rebind_groups(&mut self, groups: &HashMap<ServerId, GroupId>) {
+        for pending in self.pending.values_mut() {
+            if let Some(group) = pending.sent_to.and_then(|server| groups.get(&server)) {
+                pending.group = *group;
+            }
+        }
+    }
+
     /// Due records are not mutated: after each actual send call retry_finished.
     /// Unsigned wrapping subtraction follows dnsmasq's u32 millisecond clock.
     pub fn fast_retries(&self, now: i64, now_ms: u32) -> RetrySchedule {
