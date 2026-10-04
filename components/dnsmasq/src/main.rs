@@ -408,6 +408,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             }
             runtime.dns.finalize()?;
             runtime.dhcp.validate_dns_config(&runtime.dns)?;
+            eprintln!("dnsmasq: syntax check OK.");
             return Ok(());
         }
         Action::Run => {}
