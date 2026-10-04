@@ -10,12 +10,6 @@ use crate::config::{lex_line, validate_directive, Error};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV6};
 use std::path::PathBuf;
 
-#[cfg(target_os = "linux")]
-#[path = "files_runtime.rs"]
-mod runtime;
-#[cfg(target_os = "linux")]
-pub use runtime::{DnsFiles, FileDiagnostic, FileStep, ReloadReason, SourceUpdate};
-
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct FileStamp {
     /// stat.st_mtime, in whole seconds, as used by the exact image.
@@ -232,34 +226,6 @@ impl ServerSources {
 
     pub fn rules(&self) -> &[SourcedRule] {
         &self.rules
-    }
-
-    /// Local answers and newly accepted TCP clients see the same active rule
-    /// sources. Original inline configuration remains immutable in the owner.
-    pub fn effective_config(&self, base: &DnsConfig) -> DnsConfig {
-        let mut config = base.clone();
-        config.rules = self
-            .rules
-            .iter()
-            .map(|entry| entry.value.rule.clone())
-            .collect();
-        config
-    }
-
-    /// check_servers removes unusable upstream rows from their owning list;
-    /// local-only/default/address rules are never affected by that scan.
-    pub fn retain_servers(&mut self, mut keep: impl FnMut(&SourceRule) -> bool) -> Vec<ServerId> {
-        let mut removed = Vec::new();
-        self.rules.retain(|entry| {
-            if let Some(server) = entry.server {
-                if !keep(&entry.value) {
-                    removed.push(server);
-                    return false;
-                }
-            }
-            true
-        });
-        removed
     }
 
     /// Call only after a successful source open; even zero valid rows must
