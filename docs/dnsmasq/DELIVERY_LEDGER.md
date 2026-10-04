@@ -3,12 +3,12 @@
 ## 当前状态与下一步
 
 - 当前里程碑：M5；169 项中 **96 项已关闭、39 项部分实现、34 项未实现，剩余 73 项**。
-- 刚关闭：dns-rr、txt-record、caa-record、naptr-record共4项；5404efea的21配置／418服务观察／102语法／11清单、9负控通过，3条C缺陷单列。整份2982项metadata／2905普通文件校验通过并清远端。
-- 当前代码：最新候选 `275a1150c6de8bd3e9cbc8ce41a821729bea0c3a` / ELF SHA256 `e795fd68055a66b9d9ea5b1e703afccb7f38d4e6f8e06bd69384a6a0603664de`，**1,474,584字节**（M4+315,304）；含已关5404efea记录族（0d889b52…130688）及inotify跨读batch合并修复，正做DNSfiles定向。前864的helper与FQDN/TTL已过；a238统一批12任务全过（库567/main10，另10条隔离ignored守卫实跑通过，仍8个C driver未执行，不冒称全库零ignored）。各候选在Oracle `/home/ubuntu/m5-root-20261004/<commit>/`、本地 `evidence/M5/integration-20261004/<commit>/`；记录族、helper shutdown、FQDN/TTL修复的ELF增量均0，PXE阶段+40,960；DNSfiles最终归因待收尾。
-- 下一步：5树及4子代理已恢复。a238统一批12任务已全绿，13tar／16368 metadata／13359 regular归档SHA+metadata验证后远端已清；收据由batch负责人整理。helper10清单与a238/864各13场景／26侧／8负控均通过，已重新关闭dhcp-script并合工具。864正在DNSfiles35配置、FQDN/TTL34配置／149事件定向镜像。record-boundaries在399完成396服务行／91语法、4负控全通过；3个C缺陷单列。额外int边界已冻结第11清单，C补证22服务行／11语法接受大整数低32位；已安全wrapping修def33297→5404efea，正在构建后做补证，尚不扣4项。
-- 阻塞点：无。Oracle清理后曾可用43,216,506,880字节（40.25GiB）；当前并行测试/构建中复测可用39,178,842,112字节（36.49GiB），使用率82%，继续执行每批归档即清理。磁盘不足造成的casing-02与relay paired-03都发生在rootfs准备阶段，零产品观察，后续同候选复跑已通过；ENOSPC审计保存在oracle-cleanup-20261004/enospc-audit.json。物理路由器及r85/netifd/reload/sdk/owrt-evidence内容未修改或删除。
-- 活跃分工：dns_address_fix继续m5/dns-files的275候选burst/Signal和余清单；option_matrix已转m5/config-inputs（conf-file/conf-script）；dhcp_identity已转m5/dhcp-range先冻结完整范围清单；relay_checklist已转m5/dhcp-files先冻结hostsfile/hostsdir/optsfile/optsdir清单。root统一公共入口及下批集成。旧PXE、matrix4/5、dhcp-policy、helper-shutdown、batch-regression-2均已保留archive tags后删除；record-boundaries已关闭并待同样清理。
-- 续接注意：DNSfiles不得在DHCP probe回调里读取，C delay_dhcp只服务DNS/TFTP；check_servers只看DNS-selected的实际接口地址与端口/scope；初始ParentDns.local需用daemon裁剪后config。Helper新接口commands_drained不是is_finished，父进程在init gate通过且来源和管道排空后退出；runtime notices仅忽略BrokenPipe，init仍严格。056历史Linux库565/main10证据已校验归档并删除remote run。
+- 刚关闭：本轮续接暂无新增关闭；最近关闭仍为 dns-rr、txt-record、caa-record、naptr-record 四项。DNS files 的 66 配置／372 服务观察／12 负控已通过，但冻结清单的细项未全覆盖，不能仅凭 boundary ID 扣数。
+- 当前代码：主干已整合 config-inputs、DHCP files planner/provenance、DNS files 驱动及读取诊断、range parser 两处修复。已构建候选 `954fcf92ff84c6777fb9c951661ed85587b9efe1` / ELF SHA256 `d9800cf5501a635f9c4ef42edcfe13c839d463bd217a625959a835c5ea25399c`，**1,478,680 字节**（相对 275a1150 +4,096；M4 +319,400）。这是混合整合增量，不冒称单族归因；之后的 range deprecated、loader CLI/shell诊断及工具修订尚待新构建。之前的 275a1150 / e795fd68…3664de / 1,474,584 字节身份保留。
+- 下一步：完成现有四族再开新实现。DNS files `paired-275-03` 完整66场景通过、799 metadata／565普通文件归档验证并清远端；补 large/long/FIFO/partial read、运行期EMFILE、pending shutdown、TFTP重载、pending TCP 等 required_cases，servers-file 的 SFILE-05 endpoint依赖继续开放。config-inputs `config-954fcf92-02` 51配置发现短参数诊断、shell argv0及parse-error管道生命周期差异；前两项已修8562261c，继续查精确popen生命周期。DHCP files `dhcp-files-954fcf92-01` 15配置中4静态host场景通过，11配置仍拒绝opts/动态目录；补实现和owner接线。range已扩充73语法／41服务目录；PROBE-03/04/05/07仍明确未执行，驱动还在补真实探测等待及报文接收，不能按目录数扣项。
+- 阻塞点：无须用户决定。Oracle可用38,192,590,848字节（35.57GiB），82%；每批归档逐SHA和metadata核验后清理。旧 f4c892a8 驱动的 `paired-275-01` 在scoped IPv6夹具 OSError(22)后残留线程，已保留112项完整失败归档并回收孤儿；53863d71修ifindex绑定后同275候选 `paired-275-02` 1配置／6行通过并归档。绝不以半截或C-only计通过。物理路由器未触碰。
+- 活跃分工：`ledger`负责m5/dns-files逐required_case补证；`branches`负责m5/dhcp-files独立银行/目录状态机；`range_impl`负责m5/dhcp-range清单与真实probe驱动；`oracle`负责config-inputs剩余popen差异及同镜像复跑。root独占main.rs、config/dhcp.rs、dhcp/daemon.rs等公共接线。初始5树均干净，4活跃树保留；重复旧 `m5-dns-files-faults` 已以 annotated tag `archive/m5-dns-files-faults-20261004` 保存0711419a后删除worktree/branch。其余旧detached树有私有历史数据，本轮不清理。
+- 续接注意：只从本账本恢复，不读旧聊天。DNSfiles不得在DHCP probe回调里读取，C delay_dhcp只服务DNS/TFTP；check_servers只看DNS-selected的实际接口地址与端口/scope；初始ParentDns.local需用daemon裁剪后config。Helper接口commands_drained不是is_finished。DNS files自动资格曾在f7474dbf误把boundary IDs当完整清单，尚未改账即被审计撤回403be644；失败审计保留`evidence/M5/dns-files/premature-qualification-20261005.json`，任何partial/reference-only运行都不能自动关项。
 
 ## 工作规则
 
@@ -28,7 +28,7 @@
 - M5 结束时，在同一版本执行完整 M2、实际 5 分钟资源试跑、两项压力测试和 APK 生命周期验证；复测 ELF 体积和满载 RSS，与 M4 的 1,159,280 字节、2,676 KiB 比较。M4 体积例外仅属于原 ELF，新增体积不能自行豁免。
 - 物理路由器不碰；本阶段只做本地与构建机隔离验证。
 
-日更：2026-10-04。本文件是唯一进度入口；每个里程碑只保留一篇报告，原始失败与产物留在 ignored/private。当前进入 **M5**；M4 按用户接受的方案 A 完成。M5 盘点见下表，M6 未完成，未经 M7 不能称生产验收。
+日更：2026-10-05。本文件是唯一进度入口；每个里程碑只保留一篇报告，原始失败与产物留在 ignored/private。当前进入 **M5**；M4 按用户接受的方案 A 完成。M5 盘点见下表，M6 未完成，未经 M7 不能称生产验收。
 
 ## 当前状态与退出条件
 
