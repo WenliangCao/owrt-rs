@@ -953,23 +953,17 @@ fn add_naptr(
     }
     for record in records.iter().rev() {
         if dotted_key(&record.name) == key {
-            if [&record.flags, &record.services, &record.regexp]
-                .into_iter()
-                .any(|value| value.as_ref().is_some_and(|value| value.len() > 255))
-            {
-                // Never emit a structurally malformed character string.
-                // Acceptance/rejection of this C narrowing edge is tracked
-                // separately from successful local answer construction.
-                continue;
-            }
             *owned = true;
             let mut data = Vec::new();
             data.extend(record.order.to_be_bytes());
             data.extend(record.preference.to_be_bytes());
             for field in [&record.flags, &record.services, &record.regexp] {
                 let value = field.as_deref().unwrap_or_default();
-                data.push(value.len() as u8);
-                data.extend(value);
+                // add_resource_record('z') assigns strlen to unsigned short
+                // before clamping the character-string to 255 bytes.
+                let length = usize::from((value.len() as u16).min(255));
+                data.push(length as u8);
+                data.extend(&value[..length]);
             }
             data.extend(
                 wire_name(record.replacement.as_deref().unwrap_or_default())
@@ -1238,6 +1232,34 @@ mod tests {
         packet.extend(qtype.to_be_bytes());
         packet.extend(class.to_be_bytes());
         packet
+    }
+
+    #[test]
+    fn naptr_character_strings_narrow_before_clamping() {
+        let record = NaptrRecord {
+            name: b"test".to_vec(),
+            order: 1,
+            preference: 2,
+            flags: Some(vec![b'f'; 65536]),
+            services: Some(vec![b's'; 65537]),
+            regexp: Some(vec![b'r'; 257]),
+            replacement: None,
+        };
+        let mut rows = Vec::new();
+        let mut owned = false;
+        add_naptr(
+            &[record],
+            &dotted_key(b"test"),
+            TYPE_NAPTR,
+            37,
+            &mut rows,
+            &mut owned,
+        );
+        assert!(owned);
+        let mut expected = vec![0, 1, 0, 2, 0, 1, b's', 255];
+        expected.extend([b'r'; 255]);
+        expected.push(0);
+        assert_eq!(rows, vec![(TYPE_NAPTR, 37, expected)]);
     }
 
     #[test]
