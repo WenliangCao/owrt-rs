@@ -406,6 +406,18 @@ fn load(args: &[OsString]) -> Result<(Action, Runtime), loader::LoadError> {
     Ok((action, runtime))
 }
 
+fn finalize_dns(config: &mut DnsConfig) -> Result<(), loader::LoadError> {
+    config.finalize().map_err(|error| loader::LoadError {
+        location: loader::Location {
+            file: None,
+            line: None,
+            from_script: false,
+        },
+        exit_code: 1,
+        message: error.to_string(),
+    })
+}
+
 fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     let (action, mut runtime) = load(args)?;
     match action {
@@ -430,7 +442,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                     .dns
                     .finalize_hostname(&dnsmasq_rs::startup::hostname()?)?;
             }
-            runtime.dns.finalize()?;
+            finalize_dns(&mut runtime.dns)?;
             runtime.dhcp.validate_dns_config(&runtime.dns)?;
             eprintln!("dnsmasq: syntax check OK.");
             return Ok(());
@@ -445,7 +457,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             .dns
             .finalize_hostname(&dnsmasq_rs::startup::hostname()?)?;
     }
-    runtime.dns.finalize()?;
+    finalize_dns(&mut runtime.dns)?;
     runtime.dhcp.validate_dns_config(&runtime.dns)?;
     runtime.tftp.validate_ready()?;
     runtime.dhcp.validate_ready()?;
