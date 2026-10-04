@@ -1,7 +1,7 @@
 //! One bounded result pipe for blocking libc hostname lookup in a child.
 //! The daemon remains single-threaded and polls this pipe. No live owner call
 //! invokes getaddrinfo or a blocking waitpid.
-use super::{endpoints, RuleTarget, ServerHost, ServerRule};
+use super::dns::{endpoints, RuleTarget, ServerHost, ServerRule};
 use owrt_ubus::sys::PollFd;
 use std::fs::File;
 use std::io::{self, Read, Write};
