@@ -1,0 +1,2053 @@
+{
+  "schema": 1,
+  "scope": "Partial DNS policy options with no known code gap at selection; boundary failures reopen rather than disappear.",
+  "source_identity": {
+    "option.c": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
+    "rfc1035.c": "231f0b4989039ff4963f3916df22871dd13025dde65769465b2b3052ad807222",
+    "forward.c": "ac05784d4233ed10bd166da5fe91e464afecf2883d3c2a0063305d3e81692f95",
+    "cache.c": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c"
+  },
+  "options": {
+    "domain-needed": {
+      "source": [
+        "option.c:429",
+        "forward.c:357-362",
+        "forward.c:2606"
+      ],
+      "checklist": [
+        {
+          "boundary": "boolean valid and unexpected argument",
+          "checked": false,
+          "required_scenarios": [
+            "domain-needed",
+            "domain-needed-invalid"
+          ]
+        },
+        {
+          "boundary": "single-label A/AAAA suppressed, TXT forwarded, empty root forwarded",
+          "checked": false,
+          "required_scenarios": [
+            "domain-needed",
+            "domain-needed-invalid"
+          ]
+        },
+        {
+          "boundary": "local single-label names retained and local name other-type NODATA",
+          "checked": false,
+          "required_scenarios": [
+            "domain-needed",
+            "domain-needed-invalid"
+          ]
+        },
+        {
+          "boundary": "dotted names forwarded; UDP and TCP",
+          "checked": false,
+          "required_scenarios": [
+            "domain-needed",
+            "domain-needed-invalid"
+          ]
+        }
+      ],
+      "scenarios": [
+        "domain-needed",
+        "domain-needed-invalid"
+      ]
+    },
+    "bogus-priv": {
+      "source": [
+        "option.c:424",
+        "rfc1035.c:420-455",
+        "rfc1035.c:2003-2013"
+      ],
+      "checklist": [
+        {
+          "boundary": "boolean valid and unexpected argument",
+          "checked": false,
+          "required_scenarios": [
+            "bogus-priv",
+            "bogus-priv-explicit",
+            "bogus-priv-invalid"
+          ]
+        },
+        {
+          "boundary": "all C IPv4/IPv6 private classes and adjacent public boundaries",
+          "checked": false,
+          "required_scenarios": [
+            "bogus-priv",
+            "bogus-priv-explicit",
+            "bogus-priv-invalid"
+          ]
+        },
+        {
+          "boundary": "local reverse record wins; explicit reverse server wins",
+          "checked": false,
+          "required_scenarios": [
+            "bogus-priv",
+            "bogus-priv-explicit",
+            "bogus-priv-invalid"
+          ]
+        },
+        {
+          "boundary": "PTR/ANY and UDP/TCP",
+          "checked": false,
+          "required_scenarios": [
+            "bogus-priv",
+            "bogus-priv-explicit",
+            "bogus-priv-invalid"
+          ]
+        }
+      ],
+      "scenarios": [
+        "bogus-priv",
+        "bogus-priv-explicit",
+        "bogus-priv-invalid"
+      ]
+    },
+    "localise-queries": {
+      "source": [
+        "option.c:496",
+        "forward.c:1796",
+        "rfc1035.c:2085-2135"
+      ],
+      "checklist": [
+        {
+          "boundary": "boolean valid and unexpected argument",
+          "checked": false,
+          "required_scenarios": [
+            "localise-queries",
+            "localise-invalid"
+          ]
+        },
+        {
+          "boundary": "hosts IPv4 uses destination interface subnet only when a matching address exists",
+          "checked": false,
+          "required_scenarios": [
+            "localise-queries",
+            "localise-invalid"
+          ]
+        },
+        {
+          "boundary": "IPv6 records are not filtered",
+          "checked": false,
+          "required_scenarios": [
+            "localise-queries",
+            "localise-invalid"
+          ]
+        },
+        {
+          "boundary": "configured host-record data is not host-file data; UDP/TCP",
+          "checked": false,
+          "required_scenarios": [
+            "localise-queries",
+            "localise-invalid"
+          ]
+        }
+      ],
+      "scenarios": [
+        "localise-queries",
+        "localise-invalid"
+      ]
+    },
+    "expand-hosts": {
+      "source": [
+        "option.c:431",
+        "cache.c:1440-1515"
+      ],
+      "checklist": [
+        {
+          "boundary": "boolean valid and unexpected argument",
+          "checked": false,
+          "required_scenarios": [
+            "expand-hosts",
+            "expand-no-suffix",
+            "expand-invalid"
+          ]
+        },
+        {
+          "boundary": "single-label original and expanded name; dotted names unchanged",
+          "checked": false,
+          "required_scenarios": [
+            "expand-hosts",
+            "expand-no-suffix",
+            "expand-invalid"
+          ]
+        },
+        {
+          "boundary": "IPv4/IPv6 aliases and reverse owner precedence",
+          "checked": false,
+          "required_scenarios": [
+            "expand-hosts",
+            "expand-no-suffix",
+            "expand-invalid"
+          ]
+        },
+        {
+          "boundary": "without suffix no expansion; additional hosts files are expanded",
+          "checked": false,
+          "required_scenarios": [
+            "expand-hosts",
+            "expand-no-suffix",
+            "expand-invalid"
+          ]
+        }
+      ],
+      "scenarios": [
+        "expand-hosts",
+        "expand-no-suffix",
+        "expand-invalid"
+      ]
+    },
+    "alias": {
+      "source": [
+        "option.c:4870-4910",
+        "rfc1035.c:do_doctor",
+        "forward.c:806-824"
+      ],
+      "checklist": [
+        {
+          "boundary": "IPv4 singleton, netmask, range endpoints and outside, newest rule precedence",
+          "checked": false,
+          "required_scenarios": [
+            "alias-single",
+            "alias-range",
+            "alias-mask",
+            "alias-newest",
+            "alias-zero-mask",
+            "alias-cache",
+            "alias-missing",
+            "alias-descending"
+          ]
+        },
+        {
+          "boundary": "IPv6 and non-IN unchanged; answer/authority/additional section policy",
+          "checked": false,
+          "required_scenarios": [
+            "alias-single",
+            "alias-range",
+            "alias-mask",
+            "alias-newest",
+            "alias-zero-mask",
+            "alias-cache",
+            "alias-missing",
+            "alias-descending"
+          ]
+        },
+        {
+          "boundary": "CNAME targets; TC/error path; local records exempt; cache replay",
+          "checked": false,
+          "required_scenarios": [
+            "alias-single",
+            "alias-range",
+            "alias-mask",
+            "alias-newest",
+            "alias-zero-mask",
+            "alias-cache",
+            "alias-missing",
+            "alias-descending"
+          ]
+        },
+        {
+          "boundary": "invalid missing IPv4/descending range rejection",
+          "checked": false,
+          "required_scenarios": [
+            "alias-single",
+            "alias-range",
+            "alias-mask",
+            "alias-newest",
+            "alias-zero-mask",
+            "alias-cache",
+            "alias-missing",
+            "alias-descending"
+          ]
+        }
+      ],
+      "scenarios": [
+        "alias-single",
+        "alias-range",
+        "alias-mask",
+        "alias-newest",
+        "alias-zero-mask",
+        "alias-cache",
+        "alias-missing",
+        "alias-descending"
+      ]
+    },
+    "stop-dns-rebind": {
+      "source": [
+        "option.c:538",
+        "rfc1035.c:420-455",
+        "rfc1035.c:1073-1082",
+        "forward.c:1428",
+        "forward.c:2717"
+      ],
+      "checklist": [
+        {
+          "boundary": "boolean valid and unexpected argument",
+          "checked": false,
+          "required_scenarios": [
+            "rebind-ranges",
+            "rebind-invalid"
+          ]
+        },
+        {
+          "boundary": "all C IPv4/IPv6 private ranges, public adjacent boundaries, IPv4-mapped IPv6",
+          "checked": false,
+          "required_scenarios": [
+            "rebind-ranges",
+            "rebind-invalid"
+          ]
+        },
+        {
+          "boundary": "CNAME-linked address extraction; local records exempt",
+          "checked": false,
+          "required_scenarios": [
+            "rebind-ranges",
+            "rebind-invalid"
+          ]
+        },
+        {
+          "boundary": "UDP/TCP and EDNS error data retained",
+          "checked": false,
+          "required_scenarios": [
+            "rebind-ranges",
+            "rebind-invalid"
+          ]
+        }
+      ],
+      "scenarios": [
+        "rebind-ranges",
+        "rebind-invalid"
+      ]
+    },
+    "rebind-localhost-ok": {
+      "source": [
+        "option.c:OPT_LOCAL_REBIND",
+        "rfc1035.c:420-455",
+        "rfc1035.c:1073-1082"
+      ],
+      "checklist": [
+        {
+          "boundary": "boolean valid and unexpected argument",
+          "checked": false,
+          "required_scenarios": [
+            "rebind-localhost",
+            "rebind-localhost-invalid"
+          ]
+        },
+        {
+          "boundary": "127/8, zero/8, ::, ::1 and mapped forms exempt",
+          "checked": false,
+          "required_scenarios": [
+            "rebind-localhost",
+            "rebind-localhost-invalid"
+          ]
+        },
+        {
+          "boundary": "RFC1918/ULA remain blocked; UDP/TCP",
+          "checked": false,
+          "required_scenarios": [
+            "rebind-localhost",
+            "rebind-localhost-invalid"
+          ]
+        }
+      ],
+      "scenarios": [
+        "rebind-localhost",
+        "rebind-localhost-invalid"
+      ]
+    },
+    "rebind-domain-ok": {
+      "source": [
+        "option.c:3037-3056",
+        "forward.c:145-172",
+        "forward.c:413",
+        "forward.c:2548"
+      ],
+      "checklist": [
+        {
+          "boundary": "plain and slash-delimited multiple suffixes; case-insensitive names",
+          "checked": false,
+          "required_scenarios": [
+            "domain-plain",
+            "domain-list",
+            "rebind-domain-root",
+            "rebind-domain-invalid"
+          ]
+        },
+        {
+          "boundary": "exact/subdomain match and non-boundary suffix nonmatch",
+          "checked": false,
+          "required_scenarios": [
+            "domain-plain",
+            "domain-list",
+            "rebind-domain-root",
+            "rebind-domain-invalid"
+          ]
+        },
+        {
+          "boundary": "IPv4/IPv6 and CNAME; UDP/TCP",
+          "checked": false,
+          "required_scenarios": [
+            "domain-plain",
+            "domain-list",
+            "rebind-domain-root",
+            "rebind-domain-invalid"
+          ]
+        },
+        {
+          "boundary": "empty root domain behavior and malformed domain parser boundary",
+          "checked": false,
+          "required_scenarios": [
+            "domain-plain",
+            "domain-list",
+            "rebind-domain-root",
+            "rebind-domain-invalid"
+          ]
+        }
+      ],
+      "scenarios": [
+        "domain-plain",
+        "domain-list",
+        "rebind-domain-root",
+        "rebind-domain-invalid"
+      ]
+    },
+    "ignore-address": {
+      "source": [
+        "option.c:2942-2993",
+        "rfc1035.c:check_bad_address",
+        "forward.c:1241-1246"
+      ],
+      "checklist": [
+        {
+          "boundary": "IPv4/IPv6 exact and subnet boundary/nonmatch",
+          "checked": false,
+          "required_scenarios": [
+            "ignore-v4",
+            "ignore-v6",
+            "ignore-exact",
+            "ignore-before-alias",
+            "ignore-invalid4",
+            "ignore-invalid6"
+          ]
+        },
+        {
+          "boundary": "UDP NOERROR discarded before alias; TCP bypass as source call chain",
+          "checked": false,
+          "required_scenarios": [
+            "ignore-v4",
+            "ignore-v6",
+            "ignore-exact",
+            "ignore-before-alias",
+            "ignore-invalid4",
+            "ignore-invalid6"
+          ]
+        },
+        {
+          "boundary": "NXDOMAIN bypass; CNAME linked addresses; other RR types unaffected",
+          "checked": false,
+          "required_scenarios": [
+            "ignore-v4",
+            "ignore-v6",
+            "ignore-exact",
+            "ignore-before-alias",
+            "ignore-invalid4",
+            "ignore-invalid6"
+          ]
+        },
+        {
+          "boundary": "invalid family/prefix bounds",
+          "checked": false,
+          "required_scenarios": [
+            "ignore-v4",
+            "ignore-v6",
+            "ignore-exact",
+            "ignore-before-alias",
+            "ignore-invalid4",
+            "ignore-invalid6"
+          ]
+        }
+      ],
+      "scenarios": [
+        "ignore-v4",
+        "ignore-v6",
+        "ignore-exact",
+        "ignore-before-alias",
+        "ignore-invalid4",
+        "ignore-invalid6"
+      ]
+    }
+  },
+  "scenarios": [
+    {
+      "id": "domain-needed",
+      "options": [
+        "domain-needed"
+      ],
+      "config": "domain-needed\nhost-record=known,192.0.2.9\n",
+      "probes": [
+        {
+          "id": "simple-a",
+          "name": "unknown",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "simple-aaaa",
+          "name": "unknown",
+          "type": 28,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "simple-txt",
+          "name": "unknown",
+          "type": 16,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "root",
+          "name": "",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "known",
+          "name": "known",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "known-other",
+          "name": "known",
+          "type": 28,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "dotted",
+          "name": "other.test",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        }
+      ],
+      "hosts": ""
+    },
+    {
+      "id": "domain-needed-invalid",
+      "options": [
+        "domain-needed"
+      ],
+      "config": "domain-needed=yes\n",
+      "probes": [],
+      "hosts": ""
+    },
+    {
+      "id": "bogus-priv",
+      "options": [
+        "bogus-priv"
+      ],
+      "config": "bogus-priv\nhost-record=private-local.test,10.1.2.3\n",
+      "probes": [
+        {
+          "id": "reverse-0",
+          "name": "3.2.1.0.in-addr.arpa",
+          "type": 12,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "reverse-1",
+          "name": "2.0.0.127.in-addr.arpa",
+          "type": 12,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "reverse-2",
+          "name": "1.0.0.10.in-addr.arpa",
+          "type": 12,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "reverse-3",
+          "name": "1.0.64.100.in-addr.arpa",
+          "type": 12,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "reverse-4",
+          "name": "1.0.16.172.in-addr.arpa",
+          "type": 12,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "reverse-5",
+          "name": "1.0.168.192.in-addr.arpa",
+          "type": 12,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "reverse-6",
+          "name": "1.1.254.169.in-addr.arpa",
+          "type": 12,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "reverse-7",
+          "name": "1.2.0.192.in-addr.arpa",
+          "type": 12,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "reverse-8",
+          "name": "1.100.51.198.in-addr.arpa",
+          "type": 12,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "reverse-9",
+          "name": "1.113.0.203.in-addr.arpa",
+          "type": 12,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "reverse-10",
+          "name": "255.255.255.255.in-addr.arpa",
+          "type": 12,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "reverse-11",
+          "name": "0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa",
+          "type": 12,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "reverse-12",
+          "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa",
+          "type": 12,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "reverse-13",
+          "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.e.f.ip6.arpa",
+          "type": 12,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "reverse-14",
+          "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.c.e.f.ip6.arpa",
+          "type": 12,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "reverse-15",
+          "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.c.f.ip6.arpa",
+          "type": 12,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "reverse-16",
+          "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+          "type": 12,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "reverse-17",
+          "name": "1.0.0.0.0.0.a.0.f.f.f.f.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa",
+          "type": 12,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "reverse-18",
+          "name": "1.1.1.1.in-addr.arpa",
+          "type": 12,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "reverse-19",
+          "name": "255.255.63.100.in-addr.arpa",
+          "type": 12,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "reverse-20",
+          "name": "1.0.128.100.in-addr.arpa",
+          "type": 12,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "reverse-21",
+          "name": "255.255.15.172.in-addr.arpa",
+          "type": 12,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "reverse-22",
+          "name": "1.0.32.172.in-addr.arpa",
+          "type": 12,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "reverse-23",
+          "name": "255.255.253.169.in-addr.arpa",
+          "type": 12,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "reverse-24",
+          "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.6.8.4.1.0.0.2.ip6.arpa",
+          "type": 12,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "reverse-25",
+          "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.9.b.d.0.1.0.0.2.ip6.arpa",
+          "type": 12,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "reverse-26",
+          "name": "8.0.8.0.8.0.8.0.f.f.f.f.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa",
+          "type": 12,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "known-reverse",
+          "name": "3.2.1.10.in-addr.arpa",
+          "type": 12,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "reverse-any",
+          "name": "1.0.0.10.in-addr.arpa",
+          "type": 255,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        }
+      ],
+      "hosts": ""
+    },
+    {
+      "id": "bogus-priv-explicit",
+      "options": [
+        "bogus-priv"
+      ],
+      "config": "bogus-priv\nserver=/10.in-addr.arpa/127.0.0.2#{upstream}\n",
+      "probes": [
+        {
+          "id": "explicit",
+          "name": "1.0.0.10.in-addr.arpa",
+          "type": 12,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        }
+      ],
+      "hosts": ""
+    },
+    {
+      "id": "bogus-priv-invalid",
+      "options": [
+        "bogus-priv"
+      ],
+      "config": "bogus-priv=yes\n",
+      "probes": [],
+      "hosts": ""
+    },
+    {
+      "id": "localise-queries",
+      "options": [
+        "localise-queries"
+      ],
+      "config": "localise-queries\nhost-record=configured,127.0.0.30,192.0.2.30\n",
+      "probes": [
+        {
+          "id": "subnet-hosts",
+          "name": "multihost",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "no-subnet",
+          "name": "remotehost",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "ipv6",
+          "name": "multihost",
+          "type": 28,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "configured",
+          "name": "configured",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "any",
+          "name": "multihost",
+          "type": 255,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        }
+      ],
+      "hosts": "127.0.0.10 multihost\n192.0.2.10 multihost\n192.0.2.20 remotehost\n198.51.100.20 remotehost\n2001:db8::10 multihost\n2001:db8::20 multihost\n"
+    },
+    {
+      "id": "localise-invalid",
+      "options": [
+        "localise-queries"
+      ],
+      "config": "localise-queries=yes\n",
+      "probes": [],
+      "hosts": ""
+    },
+    {
+      "id": "expand-hosts",
+      "options": [
+        "expand-hosts"
+      ],
+      "config": "expand-hosts\ndomain=matrix.test\n",
+      "probes": [
+        {
+          "id": "short",
+          "name": "simple",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "expanded",
+          "name": "simple.matrix.test",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "alias",
+          "name": "alias.matrix.test",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "dotted",
+          "name": "dotted.other",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "dotted-unexpanded",
+          "name": "dotted.other.matrix.test",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "six",
+          "name": "six.matrix.test",
+          "type": 28,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "reverse",
+          "name": "5.2.0.192.in-addr.arpa",
+          "type": 12,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        }
+      ],
+      "hosts": "192.0.2.5 simple alias dotted.other\n2001:db8::5 six\n"
+    },
+    {
+      "id": "expand-no-suffix",
+      "options": [
+        "expand-hosts"
+      ],
+      "config": "expand-hosts\n",
+      "probes": [
+        {
+          "id": "short",
+          "name": "simple",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "absent-expanded",
+          "name": "simple.matrix.test",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        }
+      ],
+      "hosts": "192.0.2.5 simple alias dotted.other\n2001:db8::5 six\n"
+    },
+    {
+      "id": "expand-invalid",
+      "options": [
+        "expand-hosts"
+      ],
+      "config": "expand-hosts=yes\n",
+      "probes": [],
+      "hosts": ""
+    },
+    {
+      "id": "alias-single",
+      "options": [
+        "alias"
+      ],
+      "config": "alias=192.0.2.10,198.51.100.20\nhost-record=local.test,192.0.2.10\n",
+      "probes": [
+        {
+          "id": "ordinary",
+          "name": "normal.test",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "sections",
+          "name": "sections.test",
+          "type": 1,
+          "sections": true,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "cname",
+          "name": "cname.test",
+          "type": 1,
+          "cname": true,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "local",
+          "name": "local.test",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "ipv6",
+          "name": "six.test",
+          "type": 28,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "non-in",
+          "name": "nonin.test",
+          "type": 1,
+          "class": 3,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "tc",
+          "name": "tc.test",
+          "type": 1,
+          "tc": true,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "error",
+          "name": "error.test",
+          "type": 1,
+          "rcode": 2,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        }
+      ],
+      "hosts": ""
+    },
+    {
+      "id": "alias-range",
+      "options": [
+        "alias"
+      ],
+      "config": "alias=192.0.2.10-192.0.2.20,198.51.100.0,255.255.255.0\n",
+      "probes": [
+        {
+          "id": "edge-9",
+          "name": "range9.test",
+          "type": 1,
+          "reply": "192.0.2.9",
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "edge-10",
+          "name": "range10.test",
+          "type": 1,
+          "reply": "192.0.2.10",
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "edge-20",
+          "name": "range20.test",
+          "type": 1,
+          "reply": "192.0.2.20",
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "edge-21",
+          "name": "range21.test",
+          "type": 1,
+          "reply": "192.0.2.21",
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        }
+      ],
+      "hosts": ""
+    },
+    {
+      "id": "alias-mask",
+      "options": [
+        "alias"
+      ],
+      "config": "alias=192.0.2.0,198.51.100.0,255.255.255.0\n",
+      "probes": [
+        {
+          "id": "mask",
+          "name": "masked.test",
+          "type": 1,
+          "reply": "192.0.2.77",
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        }
+      ],
+      "hosts": ""
+    },
+    {
+      "id": "alias-newest",
+      "options": [
+        "alias"
+      ],
+      "config": "alias=192.0.2.10,198.51.100.20\nalias=192.0.2.10,203.0.113.99\n",
+      "probes": [
+        {
+          "id": "newest",
+          "name": "newest.test",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        }
+      ],
+      "hosts": ""
+    },
+    {
+      "id": "alias-zero-mask",
+      "options": [
+        "alias"
+      ],
+      "config": "alias=0.0.0.0,203.0.113.0,0.0.0.0\n",
+      "probes": [
+        {
+          "id": "zero-mask",
+          "name": "zero.test",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        }
+      ],
+      "hosts": ""
+    },
+    {
+      "id": "alias-cache",
+      "options": [
+        "alias"
+      ],
+      "config": "alias=192.0.2.10,198.51.100.20\n",
+      "probes": [
+        {
+          "id": "fill",
+          "name": "cached.test",
+          "type": 1,
+          "transports": [
+            "udp"
+          ],
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "hit",
+          "name": "cached.test",
+          "type": 1,
+          "transports": [
+            "udp"
+          ],
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        }
+      ],
+      "hosts": "",
+      "cache_size": 20
+    },
+    {
+      "id": "alias-missing",
+      "options": [
+        "alias"
+      ],
+      "config": "alias=192.0.2.1\n",
+      "probes": [],
+      "hosts": ""
+    },
+    {
+      "id": "alias-descending",
+      "options": [
+        "alias"
+      ],
+      "config": "alias=192.0.2.20-192.0.2.10,198.51.100.0,255.255.255.0\n",
+      "probes": [],
+      "hosts": ""
+    },
+    {
+      "id": "rebind-ranges",
+      "options": [
+        "stop-dns-rebind"
+      ],
+      "config": "stop-dns-rebind\nhost-record=local.test,10.1.2.3\n",
+      "probes": [
+        {
+          "id": "address-0",
+          "name": "addr0.test",
+          "type": 1,
+          "reply": "0.1.2.3",
+          "edns": true,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "address-1",
+          "name": "addr1.test",
+          "type": 1,
+          "reply": "127.0.0.2",
+          "edns": false,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "address-2",
+          "name": "addr2.test",
+          "type": 1,
+          "reply": "10.0.0.1",
+          "edns": true,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "address-3",
+          "name": "addr3.test",
+          "type": 1,
+          "reply": "100.64.0.1",
+          "edns": false,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "address-4",
+          "name": "addr4.test",
+          "type": 1,
+          "reply": "172.16.0.1",
+          "edns": true,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "address-5",
+          "name": "addr5.test",
+          "type": 1,
+          "reply": "192.168.0.1",
+          "edns": false,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "address-6",
+          "name": "addr6.test",
+          "type": 1,
+          "reply": "169.254.1.1",
+          "edns": true,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "address-7",
+          "name": "addr7.test",
+          "type": 1,
+          "reply": "192.0.2.1",
+          "edns": false,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "address-8",
+          "name": "addr8.test",
+          "type": 1,
+          "reply": "198.51.100.1",
+          "edns": true,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "address-9",
+          "name": "addr9.test",
+          "type": 1,
+          "reply": "203.0.113.1",
+          "edns": false,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "address-10",
+          "name": "addr10.test",
+          "type": 1,
+          "reply": "255.255.255.255",
+          "edns": true,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "address-11",
+          "name": "addr11.test",
+          "type": 28,
+          "reply": "::",
+          "edns": false,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "address-12",
+          "name": "addr12.test",
+          "type": 28,
+          "reply": "::1",
+          "edns": true,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "address-13",
+          "name": "addr13.test",
+          "type": 28,
+          "reply": "fe80::1",
+          "edns": false,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "address-14",
+          "name": "addr14.test",
+          "type": 28,
+          "reply": "fec0::1",
+          "edns": true,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "address-15",
+          "name": "addr15.test",
+          "type": 28,
+          "reply": "fc00::1",
+          "edns": false,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "address-16",
+          "name": "addr16.test",
+          "type": 28,
+          "reply": "2001:db8::1",
+          "edns": true,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "address-17",
+          "name": "addr17.test",
+          "type": 28,
+          "reply": "::ffff:10.0.0.1",
+          "edns": false,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "address-18",
+          "name": "addr18.test",
+          "type": 1,
+          "reply": "1.1.1.1",
+          "edns": true,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "address-19",
+          "name": "addr19.test",
+          "type": 1,
+          "reply": "100.63.255.255",
+          "edns": false,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "address-20",
+          "name": "addr20.test",
+          "type": 1,
+          "reply": "100.128.0.1",
+          "edns": true,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "address-21",
+          "name": "addr21.test",
+          "type": 1,
+          "reply": "172.15.255.255",
+          "edns": false,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "address-22",
+          "name": "addr22.test",
+          "type": 1,
+          "reply": "172.32.0.1",
+          "edns": true,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "address-23",
+          "name": "addr23.test",
+          "type": 1,
+          "reply": "169.253.255.255",
+          "edns": false,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "address-24",
+          "name": "addr24.test",
+          "type": 28,
+          "reply": "2001:4860::1",
+          "edns": true,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "address-25",
+          "name": "addr25.test",
+          "type": 28,
+          "reply": "2001:db9::1",
+          "edns": false,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "address-26",
+          "name": "addr26.test",
+          "type": 28,
+          "reply": "::ffff:8.8.8.8",
+          "edns": true,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "cname-private",
+          "name": "cname-private.test",
+          "type": 1,
+          "reply": "10.1.2.3",
+          "cname": true,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "local-exempt",
+          "name": "local.test",
+          "type": 1,
+          "reply": "10.1.2.3",
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        }
+      ],
+      "hosts": ""
+    },
+    {
+      "id": "rebind-invalid",
+      "options": [
+        "stop-dns-rebind"
+      ],
+      "config": "stop-dns-rebind=yes\n",
+      "probes": [],
+      "hosts": ""
+    },
+    {
+      "id": "rebind-localhost",
+      "options": [
+        "rebind-localhost-ok"
+      ],
+      "config": "stop-dns-rebind\nrebind-localhost-ok\n",
+      "probes": [
+        {
+          "id": "local-0",
+          "name": "localhost0.test",
+          "type": 1,
+          "reply": "127.1.2.3",
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "local-1",
+          "name": "localhost1.test",
+          "type": 1,
+          "reply": "0.1.2.3",
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "local-2",
+          "name": "localhost2.test",
+          "type": 28,
+          "reply": "::",
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "local-3",
+          "name": "localhost3.test",
+          "type": 28,
+          "reply": "::1",
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "local-4",
+          "name": "localhost4.test",
+          "type": 28,
+          "reply": "::ffff:127.0.0.1",
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "local-5",
+          "name": "localhost5.test",
+          "type": 28,
+          "reply": "::ffff:0.1.2.3",
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "local-6",
+          "name": "localhost6.test",
+          "type": 1,
+          "reply": "10.0.0.1",
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "local-7",
+          "name": "localhost7.test",
+          "type": 28,
+          "reply": "fc00::1",
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        }
+      ],
+      "hosts": ""
+    },
+    {
+      "id": "rebind-localhost-invalid",
+      "options": [
+        "rebind-localhost-ok"
+      ],
+      "config": "rebind-localhost-ok=yes\n",
+      "probes": [],
+      "hosts": ""
+    },
+    {
+      "id": "domain-plain",
+      "options": [
+        "rebind-domain-ok"
+      ],
+      "config": "stop-dns-rebind\nrebind-domain-ok=allowed.test\n",
+      "probes": [
+        {
+          "id": "name-0",
+          "name": "allowed.test",
+          "type": 1,
+          "reply": "10.0.0.1",
+          "cname": false,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "name-1",
+          "name": "sub.allowed.test",
+          "type": 28,
+          "reply": "fd00::1",
+          "cname": false,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "name-2",
+          "name": "notallowed.test",
+          "type": 1,
+          "reply": "10.0.0.1",
+          "cname": false,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "name-3",
+          "name": "allowed.test.evil",
+          "type": 28,
+          "reply": "fd00::1",
+          "cname": false,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "name-4",
+          "name": "SECOND.TEST",
+          "type": 1,
+          "reply": "10.0.0.1",
+          "cname": true,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        }
+      ],
+      "hosts": ""
+    },
+    {
+      "id": "domain-list",
+      "options": [
+        "rebind-domain-ok"
+      ],
+      "config": "stop-dns-rebind\nrebind-domain-ok=/allowed.test/second.test/\n",
+      "probes": [
+        {
+          "id": "name-0",
+          "name": "allowed.test",
+          "type": 1,
+          "reply": "10.0.0.1",
+          "cname": false,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "name-1",
+          "name": "sub.allowed.test",
+          "type": 28,
+          "reply": "fd00::1",
+          "cname": false,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "name-2",
+          "name": "notallowed.test",
+          "type": 1,
+          "reply": "10.0.0.1",
+          "cname": false,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "name-3",
+          "name": "allowed.test.evil",
+          "type": 28,
+          "reply": "fd00::1",
+          "cname": false,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "name-4",
+          "name": "SECOND.TEST",
+          "type": 1,
+          "reply": "10.0.0.1",
+          "cname": true,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        }
+      ],
+      "hosts": ""
+    },
+    {
+      "id": "rebind-domain-root",
+      "options": [
+        "rebind-domain-ok"
+      ],
+      "config": "stop-dns-rebind\nrebind-domain-ok=/\n",
+      "probes": [
+        {
+          "id": "root-match",
+          "name": "any.test",
+          "type": 1,
+          "reply": "10.0.0.1",
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        }
+      ],
+      "hosts": ""
+    },
+    {
+      "id": "rebind-domain-invalid",
+      "options": [
+        "rebind-domain-ok"
+      ],
+      "config": "rebind-domain-ok=bad..test\n",
+      "probes": [],
+      "hosts": ""
+    },
+    {
+      "id": "ignore-v4",
+      "options": [
+        "ignore-address"
+      ],
+      "config": "ignore-address=192.0.2.0/24\n",
+      "probes": [
+        {
+          "id": "match",
+          "name": "match.test",
+          "type": 1,
+          "c_expect": {
+            "udp": "timeout",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "outside",
+          "name": "outside.test",
+          "type": 1,
+          "reply": "192.0.3.10",
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "nx",
+          "name": "nx.test",
+          "type": 1,
+          "rcode": 3,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "cname",
+          "name": "cname.test",
+          "type": 1,
+          "cname": true,
+          "c_expect": {
+            "udp": "timeout",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "txt",
+          "name": "txt.test",
+          "type": 16,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        }
+      ],
+      "hosts": ""
+    },
+    {
+      "id": "ignore-v6",
+      "options": [
+        "ignore-address"
+      ],
+      "config": "ignore-address=2001:db8::/64\n",
+      "probes": [
+        {
+          "id": "match6",
+          "name": "match6.test",
+          "type": 28,
+          "c_expect": {
+            "udp": "timeout",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "outside6",
+          "name": "outside6.test",
+          "type": 28,
+          "reply": "2001:db8:1::10",
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        }
+      ],
+      "hosts": ""
+    },
+    {
+      "id": "ignore-exact",
+      "options": [
+        "ignore-address"
+      ],
+      "config": "ignore-address=192.0.2.10\nignore-address=2001:db8::10\n",
+      "probes": [
+        {
+          "id": "exact4",
+          "name": "exact4.test",
+          "type": 1,
+          "c_expect": {
+            "udp": "timeout",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "near4",
+          "name": "near4.test",
+          "type": 1,
+          "reply": "192.0.2.11",
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "exact6",
+          "name": "exact6.test",
+          "type": 28,
+          "c_expect": {
+            "udp": "timeout",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "near6",
+          "name": "near6.test",
+          "type": 28,
+          "reply": "2001:db8::11",
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        }
+      ],
+      "hosts": ""
+    },
+    {
+      "id": "ignore-before-alias",
+      "options": [
+        "ignore-address"
+      ],
+      "config": "ignore-address=192.0.2.10\nalias=192.0.2.10,8.8.8.8\n",
+      "probes": [
+        {
+          "id": "pre-alias",
+          "name": "prealias.test",
+          "type": 1,
+          "c_expect": {
+            "udp": "timeout",
+            "tcp": "response"
+          }
+        }
+      ],
+      "hosts": ""
+    },
+    {
+      "id": "ignore-invalid4",
+      "options": [
+        "ignore-address"
+      ],
+      "config": "ignore-address=192.0.2.0/33\n",
+      "probes": [],
+      "hosts": ""
+    },
+    {
+      "id": "ignore-invalid6",
+      "options": [
+        "ignore-address"
+      ],
+      "config": "ignore-address=2001:db8::/129\n",
+      "probes": [],
+      "hosts": ""
+    }
+  ]
+}
