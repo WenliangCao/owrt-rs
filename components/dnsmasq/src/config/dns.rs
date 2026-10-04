@@ -1,6 +1,10 @@
 //! Typed DNS configuration derived from option.c, domain-match.c and domain.c.
 //! Parsing does not activate features. In particular, hostname upstreams and
 //! interface-derived domains need platform resolution before startup.
+#[cfg(unix)]
+#[path = "dns_endpoints.rs"]
+pub mod endpoints;
+
 use super::{validate_directive, Directive, EncodedArg, Error};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 #[cfg(unix)]
@@ -39,6 +43,8 @@ pub struct ServerEndpoint {
     pub host: ServerHost,
     pub port: u16,
     pub scope: Option<Vec<u8>>,
+    /// Validated at directive consumption; preserves the original interface index.
+    pub scope_id: Option<u32>,
     /// None inherits the final global query-port.
     pub source: Option<SourceBinding>,
 }
@@ -227,7 +233,13 @@ fn numeric(bytes: &[u8]) -> Result<u32, Error> {
     })
 }
 fn port(bytes: &[u8]) -> Result<u16, Error> {
-    numeric(bytes)?.try_into().map_err(|_| Error("bad port"))
+    let value = bytes.iter().try_fold(0u32, |n, c| {
+        if !c.is_ascii_digit() {
+            return Err(Error("bad port"));
+        }
+        Ok(n.wrapping_mul(10).wrapping_add(u32::from(c - b'0')))
+    })?;
+    u16::try_from(value as i32).map_err(|_| Error("bad port"))
 }
 fn ip(bytes: &[u8]) -> Option<IpAddr> {
     std::str::from_utf8(bytes).ok()?.parse().ok()
@@ -401,7 +413,11 @@ pub fn parse_endpoint(bytes: &[u8]) -> Result<ServerEndpoint, Error> {
         };
         if let (ServerHost::Address(server), Some(source)) = (&host, address) {
             if server.is_ipv4() != source.is_ipv4() {
-                return Err(Error("server and source address families differ"));
+                return Err(Error(if server.is_ipv4() {
+                    "cannot use IPv4 server address with IPv6 source address"
+                } else {
+                    "cannot use IPv6 server address with IPv4 source address"
+                }));
             }
         }
         Some(SourceBinding {
@@ -416,6 +432,7 @@ pub fn parse_endpoint(bytes: &[u8]) -> Result<ServerEndpoint, Error> {
         host,
         port: server_port,
         scope,
+        scope_id: None,
         source,
     })
 }
@@ -475,7 +492,11 @@ pub fn reverse_patterns(address: IpAddr, prefix: u8) -> Result<Vec<DomainPattern
         ),
     };
     if prefix == 0 || prefix > width {
-        return Err(Error("bad reverse prefix length"));
+        return Err(Error(if width == 32 {
+            "bad IPv4 prefix length"
+        } else {
+            "bad IPv6 prefix length"
+        }));
     }
     let count = usize::from(prefix.div_ceil(unit));
     let rem = prefix % unit;
@@ -548,6 +569,23 @@ fn host_record(argument: &EncodedArg) -> Result<HostRecord, Error> {
 }
 
 impl DnsConfig {
+    /// Startup loader boundary only. C resolves at each directive, before
+    /// --test returns and before later files or scripts execute.
+    #[cfg(unix)]
+    pub fn apply_resolved(&mut self, directive: &Directive) -> Result<bool, Error> {
+        let begin = self.rules.len();
+        let consumed = self.apply(directive)?;
+        if self.rules.len() != begin {
+            let added = self.rules.split_off(begin);
+            let expanded = endpoints::resolve_rules(&added, directive.name == b"rev-server");
+            self.rules.extend(expanded.rules);
+            if let Some(error) = expanded.error {
+                return Err(error);
+            }
+        }
+        Ok(consumed)
+    }
+
     /// Return false for an option owned by another/unimplemented subsystem.
     pub fn apply(&mut self, directive: &Directive) -> Result<bool, Error> {
         validate_directive(directive)?;
@@ -668,7 +706,11 @@ impl DnsConfig {
             _ => width,
         };
         if prefix > width || prefix == 0 {
-            return Err(Error("bad reverse prefix length"));
+            return Err(Error(if width == 32 {
+                "bad IPv4 prefix length"
+            } else {
+                "bad IPv6 prefix length"
+            }));
         }
         let target = match server {
             None => RuleTarget::LocalOnly,
@@ -858,7 +900,10 @@ impl DnsConfig {
                 if matches!(server.host, ServerHost::Name(_)) {
                     return Err(Error("upstream hostname resolution not implemented"));
                 }
-                if server.scope.is_some() {
+                if server.scope.is_some()
+                    && server.scope_id.is_none()
+                    && matches!(server.host, ServerHost::Address(IpAddr::V6(_)))
+                {
                     return Err(Error("upstream scope validation not implemented"));
                 }
             }
