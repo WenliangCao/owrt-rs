@@ -2,12 +2,12 @@
 
 ## 当前状态与下一步
 
-- 当前里程碑：M5；169 项中 **68 项已关闭、64 项部分实现、37 项未实现，剩余 101 项**。
-- 刚关闭：本次无功能项新增。Oracle已删除218个经Cargo标记/路径/无活引用复核的可重建target，共39,343,943,680字节；identity、matrix、relay及近期回归的已归档runs也经完整SHA复核后清理。
+- 当前里程碑：M5；169 项中 **76 项已关闭、56 项部分实现、37 项未实现，剩余 93 项**。
+- 刚关闭：DHCP identity族8项，149配置／每侧336事件／66语法、56条C清单与1043负控全部通过；11条原版NULL路径仅安全语法/源码分类，已逐项记账。独立族ELF1,396,848字节，增量0。
 - 当前代码：产品冻结候选 `f1668e28`，ELF SHA256 `9c73a0d979aa1faa79b542fc08bb34f45a716d8bba2a89153ff61d841ed2ebd5`，1,396,848字节（本次relay接线段+20,480，case修复+0，M4+237,568）。随后local-service拒绝TCP连接修复已构建为 `24671034` / SHA256 `99aaa63c4325389349cf00005b5c89accee6d1eeada14eb9e6fef8246d4f0dd3`，体积不变；相同integration目录下保留构建和ELF。Oracle产物在 `/home/ubuntu/m5-root-20261004/f1668e28/`，本地在 `evidence/M5/integration-20261004/f1668e28/`；统一库517通过／18忽略、main10通过。上一候选9da20ac0的helper16场景／32侧、boot102事件、leasequery22配置／38查询复跑通过，f166同版六族复跑完成；4,312份证据已回拷校验，汇总见integration-20261004/f1668e28/runs/regression-01/BATCH_VERIFICATION.json。
-- 下一步：急清理完成：218个target与61个历史已归档run已删除；共享target release重建与原f166 ELF逐字SHA相同，tests模式实际产生可运行的lib/main测试ELF。只读共享基底仅准备一次（保留旧夹具root:root所有权），每轮overlay；双根C/Rust查询、lower只读、写入/whiteout隔离及原镜像1225项完整性验证通过，基础设施验证批也已回拷逐项验SHA/metadata并清理。现在恢复identity最终修复镜像、PXE接线和第三批地址政策矩阵。
+- 下一步：identity已闭合并准备归档清理分支；主干cb4861a5已整合其修复和static/proxy基础，ELF1,400,944字节（混合接线/布局+4,096，不冒称全属identity）。PXE继续scoped BOOTP、4011、option模式接线；矩阵address/bogus-nxdomain实证差异由dns_address_fix在独立树修复，修复后镜像复跑。local endpoint仍留后续server/resolv族。
 - 阻塞点：无。清理结束Oracle `/` 实测可用43,216,506,880字节（40.25GiB），使用率约80%；唯一共享target约454MiB已计入。磁盘不足造成的casing-02与relay paired-03都发生在rootfs准备阶段，零产品观察，后续同候选复跑已通过；ENOSPC审计保存在oracle-cleanup-20261004/enospc-audit.json。物理路由器及r85/netifd/reload/sdk/owrt-evidence内容未修改或删除。
-- 活跃分工：relay及第二批matrix任务均已完成，按规则归档清理。`m5/dhcp-identity` / `worktrees/m5-dhcp-identity` 实现与接线（dhcp_identity），identity/harness已合入父分支并归档清理；`m5/pxe` / `worktrees/m5-pxe`（relay_checklist）55条C清单已冻结，已授权纯模块/族测试器开工。`m5/option-matrix-3` / `worktrees/m5-option-matrix-3`（option_matrix）只改矩阵工具与manifest，候选沿用24671034；主代理统一公共接线。上述worktree均在 `private/dnsmasq-rewrite/` 下。
+- 活跃分工：identity和其harness均完成，按规则归档清理；`m5/pxe` / `worktrees/m5-pxe`（relay_checklist）55条清单，纯模块与C基线完成，root接公共入口；`m5/option-matrix-3` / `worktrees/m5-option-matrix-3`（option_matrix）维护工具/镜像；`m5/dns-address-fix` / `worktrees/m5-dns-address-fix`（dns_address_fix）修DNS产品，公共daemon/main/config补丁由root整合。worktree均在 `private/dnsmasq-rewrite/` 下。
 
 ## 工作规则
 
@@ -55,7 +55,7 @@ M4 的单 poll owner 已替换六线程接线，决定见 [ADR_THREAD_MODEL.md](
 
 ## M5 盘点与工作顺序
 
-盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**68 项已实现并有 C 差分，64 项部分实现，37 项未实现；剩余 101 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
+盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**76 项已实现并有 C 差分，56 项部分实现，37 项未实现；剩余 93 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
 
 对镜像 init 的静态调用路径核对得到 **A 组 99 项、B 组 70 项**。A 表示原生 UCI/init 生成或调用，行号链接到保留原文的 init；B 表示通常需额外配置。`extraconftext`/conf-dir 可以透传任意指令，不据此把全部选项都算原生生成。`pxe-service`、`pxe-prompt`、`interface-name` 实际有 init 生成路径，归 A。26 个 excluded-capability 选项不混入169项计数；其与C一致的禁用/拒绝边界仍保留。
 
@@ -75,21 +75,21 @@ M5 退出条件：169项全部实现并有C差分，或已证明与C一致的拒
 | --- | --- | --- | --- | --- |
 | `dhcp-authoritative` | A / 983 | DHCP tags/options | 部分实现 | [按原始索引](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-dhcp-1791029005/actual20-comparison.json)；Env 与 REQUEST 分支已接线，M4 authoritative 正常 DORA/renew/rebind 通过；错误 server-id、未知租约 INIT-REBOOT/broadcast/unicast NAK 分支只有旧状态机/源码 C 证据，需镜像族级补证。 |
 | `dhcp-broadcast` | A / 1168 | DHCP tags/options | 部分实现 | [按原始索引](../../private/dnsmasq-rewrite/evidence/M1/regression/gates/dhcp_actual_tags_diff-01/result.json)；普通/tag 谓词写入广播标志且遵循 range tag 尚未加入的时点；依赖缺失完整 tags。空/坏 tag 配置需镜像 C 验证，当前 parser 额外拒绝空 tag。 |
-| `dhcp-circuitid` | A / 291 | DHCP tags/options | 部分实现 | 解析和option82子TLV精确匹配已接入config/dhcp_tags及daemon；尚缺独立镜像族级边界证据，本地server option82原样echo仍是待补合同。 |
+| `dhcp-circuitid` | A / 291 | DHCP tags/options | 已实现，有C差分 | [M5 identity闭合](../../private/dnsmasq-rewrite/evidence/M5/dhcp-identity/close-summary.json)；56条C清单、149配置／每侧336运行事件／66语法、1043负控全部通过；名称/option124/82扫描与echo/活租约metadata边界覆盖。11条C NULL路径单独语法及源码分类，不冒称危险运行路径配对。候选2711e9b2／ELF7ce861e5…86a51，1,396,848字节（独立族增量0）。 |
 | `dhcp-fqdn` | A / 1009 | DHCP tags/options | 部分实现 | [按原始索引](../../docs/dnsmasq/DHCP_FQDN_IMPLEMENTATION_VALIDATION.json)；已接线 DNS publication/restore/collision 且曾比对镜像 C 8 事件+5配置；报告明确域名恢复/名称碰撞组合未覆盖，未查到该选项完整镜像矩阵在 M4 最终 ELF 上执行。 |
-| `dhcp-host` | A / 416,418 | DHCP tags/options | 部分实现 | 2026-10-04 复核：tags/wildcard/name-only 已有正常路径配对；原盘点要求的 nodhcpv6 IPv6 host 拒绝边界尚缺镜像证据。 |
+| `dhcp-host` | A / 416,418 | DHCP tags/options | 已实现，有C差分 | [M5 identity闭合](../../private/dnsmasq-rewrite/evidence/M5/dhcp-identity/close-summary.json)；56条C清单、149配置／每侧336运行事件／66语法、1043负控全部通过；名称/option124/82扫描与echo/活租约metadata边界覆盖。11条C NULL路径单独语法及源码分类，不冒称危险运行路径配对。候选2711e9b2／ELF7ce861e5…86a51，1,396,848字节（独立族增量0）。 |
 | `dhcp-hostsfile` | A / 1118 | DHCP tags/options | 部分实现 | [按原始索引](../../docs/dnsmasq/DHCP_HOST_FILES_PHASE.md)；普通选择器文件、目录扩展和 SIGHUP 银行替换已实现；通用 host parser 仍拒绝 tags/wildcards/name-only，reload 会暂停 DHCP；empty/stdin 路径被拒绝尚非与 C 等价。 |
-| `dhcp-ignore-names` | A / 1198 | DHCP tags/options | 部分实现 | 2026-10-04 复核：现有镜像用例与 generate-names 联用，缺独立无条件、不匹配、配置或 DNS 权威名称保留分支。 |
+| `dhcp-ignore-names` | A / 1198 | DHCP tags/options | 已实现，有C差分 | [M5 identity闭合](../../private/dnsmasq-rewrite/evidence/M5/dhcp-identity/close-summary.json)；56条C清单、149配置／每侧336运行事件／66语法、1043负控全部通过；名称/option124/82扫描与echo/活租约metadata边界覆盖。11条C NULL路径单独语法及源码分类，不冒称危险运行路径配对。候选2711e9b2／ELF7ce861e5…86a51，1,396,848字节（独立族增量0）。 |
 | `dhcp-lease-max` | A / 1032 | DHCP tags/options | 部分实现 | [按原始索引](../../docs/dnsmasq/DHCP_CONFIG_PHASE.md)；解析和 LeaseStore 上限已接线；M4 默认租约规模未达到上限，缺镜像 C 的 0/1/满上限/释放回收/重启恢复场景。 |
 | `dhcp-mac` | A / 497 | DHCP tags/options | 已实现，有C差分 | [M5 dhcp-tags-options final3](../../private/dnsmasq-rewrite/evidence/M5/four/dhcp-tags/run-final4/summary.json)；dhcp-mac set-tag、MAC wildcard 和匹配边界在精确镜像配对中通过。|
-| `dhcp-match` | A / 340 | DHCP tags/options | 部分实现 | 2026-10-04 复核：镜像运行用例缺入站 option 124 / vi-encap enterprise/class-list 匹配，输出 vi-encap 编码不能替代该项。 |
+| `dhcp-match` | A / 340 | DHCP tags/options | 已实现，有C差分 | [M5 identity闭合](../../private/dnsmasq-rewrite/evidence/M5/dhcp-identity/close-summary.json)；56条C清单、149配置／每侧336运行事件／66语法、1043负控全部通过；名称/option124/82扫描与echo/活租约metadata边界覆盖。11条C NULL路径单独语法及源码分类，不冒称危险运行路径配对。候选2711e9b2／ELF7ce861e5…86a51，1,396,848字节（独立族增量0）。 |
 | `dhcp-option` | A / 484,693 | DHCP tags/options | 已实现，有C差分 | [M5 dhcp-tags-options final3](../../private/dnsmasq-rewrite/evidence/M5/four/dhcp-tags/run-final4/summary.json)；完整 named/numeric option 表、地址/域名/封装编码在精确镜像配对中通过。|
 | `dhcp-option-force` | A / 484,693 | DHCP tags/options | 已实现，有C差分 | [M5 dhcp-tags-options final3](../../private/dnsmasq-rewrite/evidence/M5/four/dhcp-tags/run-final4/summary.json)；force/PRL 优先级、封装和重复选项在精确镜像配对中通过。|
 | `dhcp-range` | A / 614,651,655,659,663 | DHCP tags/options | 部分实现 | [按原始索引](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-dhcp-1791029005/actual20-comparison.json)；已实现动态 IPv4、单个 set:、mask/broadcast/租期；缺 tag:/net: filters、旧式裸 tag、static 和 proxy 模式；探测 I/O 错误时已知与 C 行为不同，不能以已有 DORA 覆盖全部范围。 |
 | `dhcp-rapid-commit` | A / 1017 | DHCP tags/options | 已实现，有C差分 | [M5 dhcp-tags-options final3](../../private/dnsmasq-rewrite/evidence/M5/four/dhcp-tags/run-final4/summary.json)；rapid-commit 配置和普通/rapid 请求族在精确镜像配对中通过。|
-| `dhcp-remoteid` | A / 274 | DHCP tags/options | 部分实现 | 解析和option82子TLV精确匹配已接入config/dhcp_tags及daemon；尚缺独立镜像族级边界证据，与relay-agent tags同族补齐。 |
+| `dhcp-remoteid` | A / 274 | DHCP tags/options | 已实现，有C差分 | [M5 identity闭合](../../private/dnsmasq-rewrite/evidence/M5/dhcp-identity/close-summary.json)；56条C清单、149配置／每侧336运行事件／66语法、1043负控全部通过；名称/option124/82扫描与echo/活租约metadata边界覆盖。11条C NULL路径单独语法及源码分类，不冒称危险运行路径配对。候选2711e9b2／ELF7ce861e5…86a51，1,396,848字节（独立族增量0）。 |
 | `dhcp-sequential-ip` | A / 1014 | DHCP tags/options | 部分实现 | [按原始索引](../../docs/dnsmasq/DHCP_SOURCE_MAP.md)；allocation/state 已接线 sequential，源 C 差分覆盖部分 epoch/conflict 分配；未找到镜像 C 开启该选项的多客户端/DECLINE/wrap/restart 族证据。 |
-| `dhcp-subscrid` | A / 258 | DHCP tags/options | 部分实现 | 解析和option82子TLV精确匹配已接入config/dhcp_tags及daemon；尚缺独立镜像族级边界证据，与relay-agent tags同族补齐。 |
+| `dhcp-subscrid` | A / 258 | DHCP tags/options | 已实现，有C差分 | [M5 identity闭合](../../private/dnsmasq-rewrite/evidence/M5/dhcp-identity/close-summary.json)；56条C清单、149配置／每侧336运行事件／66语法、1043负控全部通过；名称/option124/82扫描与echo/活租约metadata边界覆盖。11条C NULL路径单独语法及源码分类，不冒称危险运行路径配对。候选2711e9b2／ELF7ce861e5…86a51，1,396,848字节（独立族增量0）。 |
 | `dhcp-userclass` | A / 307 | DHCP tags/options | 已实现，有C差分 | [M5 dhcp-tags-options final3](../../private/dnsmasq-rewrite/evidence/M5/four/dhcp-tags/run-final4/summary.json)；userclass counted-string 匹配和 tag 选择在精确镜像配对中通过。|
 | `dhcp-vendorclass` | A / 324 | DHCP tags/options | 已实现，有C差分 | [M5 dhcp-tags-options final3](../../private/dnsmasq-rewrite/evidence/M5/four/dhcp-tags/run-final4/summary.json)；vendorclass 前缀匹配和 tag 选择在精确镜像配对中通过。|
 | `no-dhcp-interface` | A / 541 | DHCP tags/options | 部分实现 | [按原始索引](../../private/dnsmasq-rewrite/evidence/M1/regression/gates/dhcp_actual_tags_diff-01/result.json)；列表和 wildcard admission 已实现；旧源码 C 的 excluded-interface 通过，未找到镜像 ELF 对空项、多模式、wildcard 和实际多接口的完整此选项差分。 |
@@ -174,11 +174,11 @@ M5 退出条件：169项全部实现并有C差分，或已证明与C一致的拒
 | `version` | A / 31,946 | 启动/日志/监听 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-service/summary.json)；仅 Compile time options 与镜像逐字一致；版本首行和后续 banner 不同。 |
 | `dhcp-alternate-port` | B / — | DHCP tags/options | 已实现，有C差分 | [M5 relay闭合](../../private/dnsmasq-rewrite/evidence/M5/relay/close-summary.json)；43条C清单、37配置／174报文场景、40语法、4绑定模式、15负控和6实际Linux隔离守卫通过；relay-only、本地服务共存、端口、接口重建、split/opaque/容量/清理均覆盖，C既有quirks单列。候选f1668e28／ELF9c73a0d9…d2ebd5，1,396,848字节（族段增量+20,480）。 |
 | `dhcp-client-update` | B / — | DHCP tags/options | 已实现，有C差分 | [M5 dhcp-tags-options final3](../../private/dnsmasq-rewrite/evidence/M5/four/dhcp-tags/run-final4/summary.json)；client-update FQDN flags 在精确镜像配对中通过。|
-| `dhcp-generate-names` | B / — | DHCP tags/options | 部分实现 | 2026-10-04 复核：无硬件地址时 client-id 回退未按 C 检查长度及剥除硬件类型；现有镜像用例仅覆盖 Ethernet，待补证。 |
+| `dhcp-generate-names` | B / — | DHCP tags/options | 已实现，有C差分 | [M5 identity闭合](../../private/dnsmasq-rewrite/evidence/M5/dhcp-identity/close-summary.json)；56条C清单、149配置／每侧336运行事件／66语法、1043负控全部通过；名称/option124/82扫描与echo/活租约metadata边界覆盖。11条C NULL路径单独语法及源码分类，不冒称危险运行路径配对。候选2711e9b2／ELF7ce861e5…86a51，1,396,848字节（独立族增量0）。 |
 | `dhcp-hostsdir` | B / — | DHCP tags/options | 未实现 | 当前无通过证据；配置显式拒绝；无 inotify 动态文件 append/update 接口，不可拿 SIGHUP hostsfile replacement 代替。 |
 | `dhcp-ignore` | B / — | DHCP tags/options | 已实现，有C差分 | [M5 dhcp-tags-options final3](../../private/dnsmasq-rewrite/evidence/M5/four/dhcp-tags/run-final4/summary.json)；全局 tag predicate ignore 在精确镜像配对中通过。|
 | `dhcp-ignore-clid` | B / — | DHCP tags/options | 部分实现 | [按原始索引](../../docs/dnsmasq/DHCP_STATIC_PHASE.md)；全局 ignore_client_id 已接线到 packet identity；普通 source C 静态/ID 证据存在，但需镜像 C 对同 MAC 变化 CLID、同 CLID 不同 MAC、恢复 leasefile 的专门族差分。 |
-| `dhcp-name-match` | B / — | DHCP tags/options | 部分实现 | 2026-10-04 复核：prefix 已有镜像运行证据；精确全名/域名边界及 name-match 到 tag-if 组合未覆盖。 |
+| `dhcp-name-match` | B / — | DHCP tags/options | 已实现，有C差分 | [M5 identity闭合](../../private/dnsmasq-rewrite/evidence/M5/dhcp-identity/close-summary.json)；56条C清单、149配置／每侧336运行事件／66语法、1043负控全部通过；名称/option124/82扫描与echo/活租约metadata边界覆盖。11条C NULL路径单独语法及源码分类，不冒称危险运行路径配对。候选2711e9b2／ELF7ce861e5…86a51，1,396,848字节（独立族增量0）。 |
 | `dhcp-optsdir` | B / — | DHCP tags/options | 未实现 | 当前无通过证据；配置显式拒绝；无 inotify 动态文件 append/update 接口，不可拿 SIGHUP hostsfile replacement 代替。 |
 | `dhcp-optsfile` | B / — | DHCP tags/options | 未实现 | 当前无通过证据；配置显式拒绝；没有 option bank reload，需先完整 option grammar 再复用 host file scanner/expand ordering。 |
 | `dhcp-reply-delay` | B / — | DHCP tags/options | 未实现 | 当前无通过证据；配置显式拒绝；无 tag-specific delay storage 和 pending DHCP deadline。应接单 owner 状态机，等待期间处理 DNS/TFTP，禁止 sleep。 |
