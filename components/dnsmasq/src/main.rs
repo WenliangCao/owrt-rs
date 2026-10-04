@@ -31,9 +31,11 @@ use dnsmasq_rs::interfaces::DnsInterface;
 use dnsmasq_rs::listeners::{self, DnsSocket};
 use dnsmasq_rs::metrics::{Metric, Metrics};
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+use dnsmasq_rs::neighbors::NeighborCache;
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 use dnsmasq_rs::tftp_listener::TftpListener;
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-use dnsmasq_rs::tftp_runtime::{RealFileOpener, RuntimeConfig, RuntimePathPolicy, TransferRuntime};
+use dnsmasq_rs::tftp_runtime::RealFileOpener;
 use dnsmasq_rs::ubus_service::{ConnectError, DnsResult, UbusService};
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 use dnsmasq_rs::ubus_service::{DhcpEventFields, DhcpEventKind, DhcpLogging};
@@ -522,7 +524,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     let dhcp_runtime = if !dhcp_config.ranges.is_empty() {
         let mut provider = DhcpProvider::new(
-            dhcp_config,
+            dhcp_config.clone(),
             daemon_config.listen_addresses.clone(),
             runtime.scalar.dns_port,
             || STOP_REQUESTED.load(Ordering::Acquire),
@@ -616,34 +618,16 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         .map_err(NetworkStartupError)?;
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     let tftp_listener = if tftp_config.enabled {
-        let bind_ip = daemon_config
-            .listen_addresses
-            .iter()
-            .copied()
-            .find(IpAddr::is_ipv4)
-            .unwrap_or(IpAddr::V4(std::net::Ipv4Addr::UNSPECIFIED));
-        let runtime_config = RuntimeConfig {
-            path: RuntimePathPolicy {
-                prefix: tftp_config.root.clone(),
-                lowercase: tftp_config.lowercase,
+        match TftpListener::bind_config(
+            &tftp_config,
+            &daemon_config,
+            &runtime.dhcp.no_dhcp_interfaces,
+            identity.runtime_uid(&runtime.process),
+            if dns_enabled {
+                (runtime.scalar.forward_max as usize) / 2
+            } else {
+                0
             },
-            packet_buffer_size: 8192,
-            mtu: tftp_config.mtu,
-            ipv6: false,
-            no_block_size: tftp_config.no_block_size,
-            effective_uid: identity.runtime_uid(&runtime.process),
-            secure: tftp_config.secure,
-            max_transfers: tftp_config.max_transfers,
-            single_port: tftp_config.single_port,
-        };
-        let runtime = TransferRuntime::new(
-            runtime_config.clone(),
-            RealFileOpener::new(runtime_config.effective_uid, runtime_config.secure),
-        );
-        match TftpListener::bind_with_port_range(
-            SocketAddr::new(bind_ip, 69),
-            runtime,
-            tftp_config.port_range,
         ) {
             Ok(listener) => Some(listener),
             Err(error) if tftp_config.no_fail => {
@@ -684,6 +668,16 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     let pid_file = identity.write_pid(&runtime.process)?;
     #[cfg(target_os = "linux")]
     identity.drop_privileges(&runtime.process, capabilities)?;
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    if let Some(listener) = &tftp_listener {
+        if let Err(error) = listener.validate_roots() {
+            if tftp_config.no_fail {
+                eprintln!("dnsmasq-rs: TFTP root unavailable: {error}");
+            } else {
+                return Err(Box::new(NetworkStartupError(error)));
+            }
+        }
+    }
     // The daemon owns all sockets from the foreground loop.  This keeps the
     // runtime at one service thread and makes ordering explicit across DNS,
     // DHCP, TFTP and UBus.
@@ -696,6 +690,12 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         bound_listeners.push((address, token));
         poll_listeners.push((token, udp, tcp));
     }
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    let neighbor_cache = if tftp_config.unique_root_mac {
+        NeighborCache::new().ok()
+    } else {
+        None
+    };
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     let mut poll = SinglePoll::new(
         Arc::clone(&service),
@@ -710,6 +710,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         dhcp_runtime,
         dhcp_helper,
         tftp_listener,
+        neighbor_cache,
     );
     #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
     let mut poll = SinglePoll::new(
@@ -841,6 +842,8 @@ struct SinglePoll {
     pending_delivery: Option<LeaseDelivery>,
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     tftp: Option<TftpListener<RealFileOpener>>,
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    neighbors: Option<NeighborCache>,
 }
 
 struct PollListener {
@@ -1039,6 +1042,9 @@ impl SinglePoll {
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))] tftp: Option<
             TftpListener<RealFileOpener>,
         >,
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))] neighbors: Option<
+            NeighborCache,
+        >,
     ) -> Self {
         Self {
             listeners: listeners
@@ -1063,6 +1069,8 @@ impl SinglePoll {
             pending_delivery: None,
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             tftp,
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            neighbors,
         }
     }
 
@@ -1113,6 +1121,8 @@ impl SinglePoll {
         self.step_tcp_clients();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         self.step_dhcp();
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        self.step_neighbors();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         self.step_tftp();
     }
@@ -1477,6 +1487,10 @@ impl SinglePoll {
         if let Some(tftp) = &self.tftp {
             tftp.append_poll_fds(&mut fds);
         }
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if let Some(neighbors) = &self.neighbors {
+            neighbors.append_poll_fds(&mut fds);
+        }
         let remaining = deadline.saturating_duration_since(Instant::now());
         let millis = remaining
             .as_nanos()
@@ -1490,6 +1504,8 @@ impl SinglePoll {
             self.step_tcp_accept(index);
         }
         self.step_tcp_clients();
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        self.step_neighbors();
         self.step_tftp();
         // Early DNS/TCP timers or any listener activity must not consume an
         // ICMP quarter-second timeout. Only the full idle poll counts as one.
@@ -1576,11 +1592,30 @@ impl SinglePoll {
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    fn step_neighbors(&mut self) {
+        let Some(neighbors) = self.neighbors.as_mut() else {
+            return;
+        };
+        if let Err(error) = neighbors.step(now_seconds() as u64) {
+            if error.kind() != io::ErrorKind::TimedOut {
+                eprintln!("dnsmasq-rs: neighbor snapshot: {error}");
+            }
+        }
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     fn step_tftp(&mut self) {
         let Some(listener) = self.tftp.as_mut() else {
             return;
         };
-        let _ = listener.poll_once(now_seconds() as u64);
+        let now = now_seconds() as u64;
+        if let Some(neighbors) = self.neighbors.as_mut() {
+            let _ = listener.poll_once_with_mac(now, &mut |address, interface, now| {
+                neighbors.query(address, interface, now)
+            });
+        } else {
+            let _ = listener.poll_once(now);
+        }
     }
 }
 
@@ -1907,6 +1942,7 @@ mod tests {
             512,
             Vec::new(),
             Some((Arc::new(Mutex::new(provider)), listener)),
+            None,
             None,
             None,
         );
