@@ -95,9 +95,6 @@ pub struct SourceUpdate {
 pub struct FileStep {
     pub update: Option<SourceUpdate>,
     pub diagnostics: Vec<FileDiagnostic>,
-    /// EVENT_RELOAD rerun_scripts belongs after that signal's file reads,
-    /// even if a later inotify/route trigger is already queued.
-    pub signal_complete: bool,
     /// Local parse work remains. Poll the owner without a long sleep; special
     /// stream inputs waiting for readiness do not set this bit.
     pub runnable: bool,
@@ -207,9 +204,6 @@ pub struct DnsFiles {
     requests: VecDeque<ReadRequest>,
     job: Option<ReadJob>,
     warned_empty: bool,
-    initializing: bool,
-    active_reason: Option<ReloadReason>,
-    notify_seen: bool,
 }
 
 impl DnsFiles {
@@ -236,18 +230,12 @@ impl DnsFiles {
             requests: VecDeque::new(),
             job: None,
             warned_empty: false,
-            initializing: false,
-            active_reason: None,
-            notify_seen: false,
         })
     }
 
     /// Initial owner calls Init once; SIGHUP calls Signal after its existing
     /// full reload. Route is the qualifying EVENT_NEWROUTE, not every netlink event.
     pub fn request(&mut self, reason: ReloadReason) {
-        if reason == ReloadReason::Init {
-            self.initializing = true;
-        }
         if !self.triggers.contains(&reason) {
             self.triggers.push_back(reason);
         }
@@ -273,17 +261,7 @@ impl DnsFiles {
     }
 
     pub fn has_work(&self) -> bool {
-        self.job.is_some()
-            || !self.requests.is_empty()
-            || !self.triggers.is_empty()
-            || self.notify_seen
-    }
-
-    /// The PID/listeners may already exist, as in C, but queued DNS requests
-    /// must not receive a transient no-server answer before the initial file
-    /// reads finish. Other owner duties can continue while this is true.
-    pub fn initializing(&self) -> bool {
-        self.initializing
+        self.job.is_some() || !self.requests.is_empty() || !self.triggers.is_empty()
     }
 
     fn schedule(&mut self, reason: ReloadReason, diagnostics: &mut Vec<FileDiagnostic>) {
@@ -351,24 +329,15 @@ impl DnsFiles {
 
     pub fn step(&mut self) -> FileStep {
         let mut result = FileStep::default();
-        let mut watch_more = false;
         if let Some(watch) = &mut self.watch {
             match watch.read_events() {
-                Ok(true) => self.notify_seen = true,
+                Ok(true) => self.request(ReloadReason::Notify),
                 Ok(false) => {}
                 Err(error) => result.diagnostics.push(FileDiagnostic::Watch(error)),
             }
-            watch_more = watch.pending().unwrap_or(false);
         }
-        // C drains inotify_check and emits one hit for the entire ready burst.
-        // Yield between batches while retaining that coalescing boundary.
-        if self.notify_seen && !watch_more {
-            self.notify_seen = false;
-            self.request(ReloadReason::Notify);
-        }
-        if self.job.is_none() && self.requests.is_empty() && !watch_more {
+        if self.job.is_none() && self.requests.is_empty() {
             if let Some(reason) = self.triggers.pop_front() {
-                self.active_reason = Some(reason);
                 self.schedule(reason, &mut result.diagnostics);
             }
         }
@@ -430,21 +399,10 @@ impl DnsFiles {
                 self.job = Some(job);
             }
         }
-        if self.job.is_none() && self.requests.is_empty() {
-            result.signal_complete = self.active_reason.take() == Some(ReloadReason::Signal);
-        }
-        if self.initializing
-            && self.job.is_none()
-            && self.requests.is_empty()
-            && !self.triggers.contains(&ReloadReason::Init)
-        {
-            self.initializing = false;
-        }
         result.runnable = self.job.as_ref().map_or(
             !self.requests.is_empty() || !self.triggers.is_empty(),
             |job| !job.wait_readiness,
         );
-        result.runnable |= watch_more;
         result
     }
 }
@@ -582,64 +540,6 @@ mod tests {
     }
 
     #[test]
-    fn signal_completion_is_after_its_reads_not_after_later_notifications() {
-        let dir = Directory::new();
-        let mut config = dir.config();
-        config.no_resolv = true;
-        config.servers_file = Some(dir.0.join("servers"));
-        let mut bytes = vec![b'#'];
-        bytes.extend(std::iter::repeat_n(b'x', 9000));
-        bytes.extend_from_slice(b"\nserver=/test/127.0.0.2\n");
-        fs::write(config.servers_file.as_ref().unwrap(), bytes).unwrap();
-        let mut files = DnsFiles::new(&config, true, true).unwrap();
-        files.request(ReloadReason::Signal);
-        files.request(ReloadReason::Notify);
-        let first = files.step();
-        assert!(!first.signal_complete && first.update.is_none());
-        let mut completions = 0;
-        for _ in 0..10 {
-            let step = files.step();
-            if step.signal_complete {
-                completions += 1;
-                assert_eq!(step.update.unwrap().source, Source::ServersFile);
-                assert!(files.has_work()); // A later Notify still remains.
-            }
-            if !files.has_work() {
-                break;
-            }
-        }
-        assert_eq!(completions, 1);
-        assert!(!files.step().signal_complete);
-    }
-
-    #[test]
-    fn a_ready_event_burst_produces_one_resolver_reload_across_read_budgets() {
-        let dir = Directory::new();
-        let config = dir.config();
-        let resolv = &config.resolv_files[0];
-        fs::write(resolv, b"nameserver 192.0.2.1\n").unwrap();
-        let mut files = DnsFiles::new(&config, true, true).unwrap();
-        files.request(ReloadReason::Init);
-        drain(&mut files);
-        let neighbor = dir.0.join("unrelated".repeat(20));
-        for _ in 0..100 {
-            fs::write(resolv, b"nameserver 192.0.2.2\n").unwrap();
-            fs::write(&neighbor, b"ignore").unwrap();
-        }
-        let mut updates = Vec::new();
-        for _ in 0..100 {
-            let step = files.step();
-            let runnable = step.runnable;
-            updates.extend(step.update);
-            if !runnable && !files.has_work() {
-                break;
-            }
-        }
-        assert_eq!(updates.len(), 1);
-        assert!(updates[0].full_reload);
-    }
-
-    #[test]
     fn watch_parent_and_symlink_limit_follow_the_image() {
         let dir = Directory::new();
         let mut config = dir.config();
@@ -683,9 +583,7 @@ mod tests {
         let mut files = DnsFiles::new(&config, true, false).unwrap();
         files.request(ReloadReason::Init);
         assert!(files.step().update.is_none());
-        assert!(files.initializing());
         let (updates, _) = drain(&mut files);
-        assert!(!files.initializing());
         assert_eq!(updates[0].rows.len(), 1);
         drop(files);
         fs::remove_file(path).unwrap();

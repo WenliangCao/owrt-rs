@@ -18,166 +18,6 @@ const MAX_SYMLINKS: usize = 20;
 extern "C" {
     fn inotify_init1(flags: i32) -> i32;
     fn inotify_add_watch(fd: i32, path: *const std::ffi::c_char, mask: u32) -> i32;
-    fn socket(domain: i32, kind: i32, protocol: i32) -> i32;
-    fn bind(fd: i32, address: *const u8, length: u32) -> i32;
-    fn recvfrom(
-        fd: i32,
-        bytes: *mut u8,
-        length: usize,
-        flags: i32,
-        address: *mut u8,
-        address_length: *mut u32,
-    ) -> isize;
-}
-
-#[repr(C)]
-#[derive(Default)]
-struct NetlinkAddress {
-    family: u16,
-    pad: u16,
-    pid: u32,
-    groups: u32,
-}
-
-/// Only the route-event predicate needed by poll_resolv. Address snapshots
-/// retain their separate existing owner; they are not fabricated route events.
-pub struct RouteWatch {
-    fd: File,
-    bytes: Vec<u8>,
-}
-
-impl RouteWatch {
-    pub fn new() -> io::Result<Self> {
-        // SAFETY: no pointers; new nonblocking/CLOEXEC NETLINK_ROUTE descriptor.
-        let raw = unsafe { socket(16, 3 | IN_NONBLOCK | IN_CLOEXEC, 0) };
-        if raw < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        // SAFETY: transfer fresh fd to exactly one owner.
-        let fd = unsafe { File::from_raw_fd(raw) };
-        let mut address = NetlinkAddress {
-            family: 16,
-            groups: 0x40 | 0x400,
-            ..NetlinkAddress::default()
-        };
-        // SAFETY: initialized Linux sockaddr_nl, 12 bytes, valid for this call.
-        if unsafe { bind(raw, (&address as *const NetlinkAddress).cast(), 12) } < 0 {
-            let error = io::Error::last_os_error();
-            if error.raw_os_error() != Some(1) {
-                return Err(error);
-            }
-            // Exact C tolerates denial of multicast membership and falls back
-            // to an ungrouped socket. Do not treat EPERM as a parser failure.
-            address.groups = 0;
-            // SAFETY: same initialized destination and descriptor as above.
-            if unsafe { bind(raw, (&address as *const NetlinkAddress).cast(), 12) } < 0 {
-                return Err(io::Error::last_os_error());
-            }
-        }
-        Ok(Self {
-            fd,
-            bytes: vec![0; 512],
-        })
-    }
-
-    pub fn append_poll_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>) {
-        fds.push(owrt_ubus::sys::PollFd {
-            fd: self.fd.as_raw_fd(),
-            events: 1,
-            revents: 0,
-        });
-    }
-
-    /// Read at most one datagram per owner turn. Peek its actual size first,
-    /// following netlink_recv, and reject clipped/user-origin messages.
-    pub fn read_events(&mut self) -> io::Result<bool> {
-        let mut address = NetlinkAddress::default();
-        let mut address_length = 12;
-        // SAFETY: writable live buffers, sockaddr length initialized for recvfrom.
-        let needed = unsafe {
-            recvfrom(
-                self.fd.as_raw_fd(),
-                self.bytes.as_mut_ptr(),
-                self.bytes.len(),
-                0x2 | 0x20,
-                (&mut address as *mut NetlinkAddress).cast(),
-                &mut address_length,
-            )
-        };
-        if needed < 0 {
-            let error = io::Error::last_os_error();
-            return if matches!(
-                error.kind(),
-                io::ErrorKind::WouldBlock | io::ErrorKind::Interrupted
-            ) {
-                Ok(false)
-            } else {
-                Err(error)
-            };
-        }
-        if needed as usize > self.bytes.len() {
-            self.bytes.resize(needed as usize, 0);
-        }
-        address_length = 12;
-        // SAFETY: same live buffers; MSG_TRUNC permits explicit size validation.
-        let length = unsafe {
-            recvfrom(
-                self.fd.as_raw_fd(),
-                self.bytes.as_mut_ptr(),
-                self.bytes.len(),
-                0x20,
-                (&mut address as *mut NetlinkAddress).cast(),
-                &mut address_length,
-            )
-        };
-        if length < 0 {
-            let error = io::Error::last_os_error();
-            return if matches!(
-                error.kind(),
-                io::ErrorKind::WouldBlock | io::ErrorKind::Interrupted
-            ) {
-                Ok(false)
-            } else {
-                Err(error)
-            };
-        }
-        if length as usize > self.bytes.len()
-            || address_length < 12
-            || address.family != 16
-            || address.pid != 0
-        {
-            return Ok(false);
-        }
-        Ok(qualifying_route(&self.bytes[..length as usize]))
-    }
-}
-
-fn qualifying_route(mut bytes: &[u8]) -> bool {
-    while bytes.len() >= 16 {
-        let length = u32::from_ne_bytes(bytes[..4].try_into().unwrap()) as usize;
-        if length < 16 || length > bytes.len() {
-            break;
-        }
-        let kind = u16::from_ne_bytes(bytes[4..6].try_into().unwrap());
-        let pid = u32::from_ne_bytes(bytes[12..16].try_into().unwrap());
-        // netlink.c::nl_async: RTM_NEWROUTE, RTN_UNICAST, RT_SCOPE_LINK,
-        // RT_TABLE_MAIN or RT_TABLE_LOCAL. A delete/address message is not it.
-        if kind == 24
-            && pid == 0
-            && length >= 28
-            && bytes[23] == 1
-            && bytes[22] == 253
-            && matches!(bytes[20], 254 | 255)
-        {
-            return true;
-        }
-        let aligned = (length + 3) & !3;
-        if aligned > bytes.len() {
-            break;
-        }
-        bytes = &bytes[aligned..];
-    }
-    false
 }
 
 #[derive(Debug)]
@@ -295,15 +135,6 @@ impl FileWatch {
         self.fd.as_raw_fd()
     }
 
-    pub(super) fn pending(&self) -> io::Result<bool> {
-        let mut fds = [owrt_ubus::sys::PollFd {
-            fd: self.raw_fd(),
-            events: 1,
-            revents: 0,
-        }];
-        Ok(owrt_ubus::sys::poll_fds(&mut fds, 0)? != 0)
-    }
-
     /// Consume one bounded kernel batch. Remaining events keep POLLIN set and
     /// are drained on the next owner turn; no read-to-empty busy loop.
     pub fn read_events(&mut self) -> io::Result<bool> {
@@ -381,25 +212,6 @@ fn follow_links(original: &Path) -> Result<(PathBuf, io::Error), WatchError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn route_predicate_requires_complete_kernel_link_scope_unicast() {
-        let mut row = [0; 28];
-        row[..4].copy_from_slice(&28u32.to_ne_bytes());
-        row[4..6].copy_from_slice(&24u16.to_ne_bytes());
-        row[20] = 254;
-        row[22] = 253;
-        row[23] = 1;
-        assert!(qualifying_route(&row));
-        for (index, value) in [(4, 25), (12, 1), (20, 100), (22, 0), (23, 2)] {
-            let mut wrong = row;
-            wrong[index] = value;
-            assert!(!qualifying_route(&wrong));
-        }
-        assert!(!qualifying_route(&row[..27]));
-        row[20] = 255;
-        assert!(qualifying_route(&row));
-    }
 
     #[test]
     fn event_scanner_observes_file_names_and_global_filters() {
