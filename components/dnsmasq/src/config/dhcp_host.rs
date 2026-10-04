@@ -56,7 +56,7 @@ pub(super) fn parse_hardware(
             .iter()
             .all(|b| b.is_ascii_hexdigit() || (wildcards && *b == b'*'))
         {
-            return Err(Error("bad DHCP host hex constant"));
+            return Err(Error("bad hex constant"));
         }
         if !group.is_empty() {
             if typed && result.address.is_empty() && rest.get(end) == Some(&b'-') {
@@ -74,7 +74,7 @@ pub(super) fn parse_hardware(
                 result.wildcard_mask = (result.wildcard_mask << 1) | 1;
             } else {
                 if group.contains(&b'*') {
-                    return Err(Error("bad DHCP host hex constant"));
+                    return Err(Error("bad hex constant"));
                 }
                 for pair in group.chunks(2).take(maximum - result.address.len()) {
                     result.address.push(pair.iter().fold(0u8, |value, digit| {

@@ -86,11 +86,9 @@ pub struct DhcpNameMatch {
 impl DhcpNameMatch {
     pub(super) fn parse(argument: &EncodedArg) -> Result<Self, Error> {
         let (tag, name) = argument.split_once(b',');
-        let mut name = name
-            .ok_or(Error("DHCP name match requires a hostname"))?
-            .decoded();
+        let mut name = name.ok_or(Error("error"))?.decoded();
         if name.is_empty() {
-            return Err(Error("DHCP name match requires a hostname"));
+            return Err(Error("error"));
         }
         let prefix = name.last() == Some(&b'*');
         if prefix {
@@ -216,7 +214,7 @@ impl DhcpMac {
 impl DhcpClass {
     pub fn parse(argument: &EncodedArg, kind: ClassKind) -> Result<Self, Error> {
         let (tag, value) = argument.split_once(b',');
-        let value = value.ok_or(Error("bad DHCP class rule"))?;
+        let value = value.ok_or(Error("error"))?;
         let mut enterprise = None;
         let value = if kind == ClassKind::Vendor && value.encoded().starts_with(b"enterprise:") {
             let (number, tail) = value.split_once(b',');
