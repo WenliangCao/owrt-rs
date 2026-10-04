@@ -206,6 +206,50 @@ def scenarios():
          probe('new-lease-name', 'newname.files.test'), probe('old-name-forwarded', 'leased.files.test'),
          {'op': 'helper-events', 'id': 'changed-helper'}],
         dhcp_config + 'dhcp-hostsfile=/m2/files/dhcp.hosts\n', dhcp_witness=True)
+    add('no-poll-missing-atomic', 'CFG-02,NPOLL-01', {},
+        [probe('missing'), write('resolv', r1), probe('created-no-hup'), signal_reload(), probe('created-hup'),
+         write('resolv', r2, atomic=True), probe('renamed-no-hup'), signal_reload(), probe('renamed-hup')], 'no-poll\n')
+    add('empty-no-poll', 'CFG-02', {}, [probe('empty-initial'), signal_reload(), probe('empty-hup')],
+        'resolv-file=\nno-poll\n', default_resolv=False, sys_files={'/etc/resolv.conf': r1})
+    for no_poll in (False, True):
+        add('clear-helper-signal-' + str(int(no_poll)), 'CLEAR-02,CLEAR-03,NPOLL-01', dhcp_files,
+            [{'op': 'helper-events', 'id': 'initial'}, probe('seed', 'cached.files.test', cache=True),
+             {'op': 'metrics', 'id': 'seed-counts'}, write('resolv', r2),
+             probe('after-write', 'cached.files.test', cache=True), {'op': 'metrics', 'id': 'write-counts'},
+             signal_reload(), {'op': 'helper-events', 'id': 'one-hup'}, probe('after-hup', 'cached.files.test', cache=True),
+             {'op': 'metrics', 'id': 'hup-counts'}, {'op': 'signal-burst', 'count': 8},
+             {'op': 'helper-events', 'id': 'coalesced'}, {'op': 'metrics', 'id': 'burst-counts'}],
+            dhcp_config + ('no-poll\n' if no_poll else ''), dhcp_witness=True, cache_size=64, metrics=True)
+    add('clear-servers-file-signal', 'SFILE-01,CLEAR-03',
+        dict(dhcp_files, servers='server=/file.test/127.0.0.3\n'),
+        [{'op': 'helper-events', 'id': 'initial'}, probe('seed', 'cached.file.test', cache=True),
+         write('servers', 'server=/file.test/127.0.0.4\n'), write('resolv', r2),
+         probe('resolver-does-not-read-server-file', 'fresh.file.test'), {'op': 'helper-events', 'id': 'auto'},
+         signal_reload(), {'op': 'helper-events', 'id': 'hup'}, probe('server-file-after-hup', 'cached.file.test', cache=True)],
+        dhcp_config + 'servers-file=/m2/files/servers\n', dhcp_witness=True, cache_size=64)
+    for clear in (False, True):
+        add('cache-rewrite-neg-' + str(int(clear)), 'CLEAR-01,CLEAR-03,STATE-05', initial,
+            [probe('seed-positive', 'positive.files.test', cache=True), probe('seed-negative', 'negative.files.test', cache=True),
+             {'op': 'metrics', 'id': 'seed-counts'}, write('resolv', r1),
+             probe('rewrite-positive', 'positive.files.test', cache=True), probe('rewrite-negative', 'negative.files.test', cache=True),
+             {'op': 'metrics', 'id': 'rewrite-counts'}, write('resolv', ''),
+             probe('empty-positive', 'positive.files.test', cache=True), probe('empty-negative', 'negative.files.test', cache=True),
+             {'op': 'metrics', 'id': 'empty-counts'}, write('resolv', 'nameserver 0.0.0.0\n'),
+             probe('filtered-positive', 'positive.files.test', cache=True), probe('filtered-negative', 'negative.files.test', cache=True),
+             {'op': 'metrics', 'id': 'filtered-counts'}],
+            'neg-ttl=120\n' + ('clear-on-reload\n' if clear else ''), cache_size=64, metrics=True,
+            negative_names=['negative.files.test'])
+    add('clear-open-failure', 'CLEAR-01,RSLV-05', initial,
+        [probe('seed', 'cached.files.test', cache=True), write('resolv', r2, mode=0),
+         probe('denied-cache', 'cached.files.test', cache=True), probe('denied-source', 'fresh.files.test'),
+         write('resolv', r2, mode=0o644), probe('recovered-cache', 'cached.files.test', cache=True)],
+        'clear-on-reload\n', user='dnsmasq', group='dnsmasq', cache_size=64)
+    add('clear-ethers-lease', 'CLEAR-02', dhcp_files,
+        [{'op': 'helper-events', 'id': 'initial'}, probe('lease', 'leased.files.test'),
+         {'op': 'write-system', 'path': '/etc/ethers', 'text': '02:11:22:33:44:55 ethername\n'}, write('resolv', r2),
+         probe('new-name', 'ethername.files.test'), probe('old-name', 'leased.files.test'),
+         {'op': 'helper-events', 'id': 'ethers-events'}],
+        dhcp_config + 'read-ethers\n', dhcp_witness=True, sys_files={'/etc/ethers': ''})
     expected = {
         'inplace-rename-delete-empty': {'initial': 11, 'inplace': 12, 'renamed': 11, 'deleted': 11, 'empty': 5, 'invalid': 5, 'recovered': 12},
         'missing-leaf': {'missing': 5, 'created': 11},
@@ -294,6 +338,9 @@ def run_side(root, side, case, folder):
     data = root / 'm2/files'
     if data.exists(): shutil.rmtree(data)
     data.mkdir()
+    # Nonroot daemon fixtures need write access to the PID parent at shutdown.
+    # The resolver data stays root-owned so chmod(0) still witnesses EACCES.
+    (root / 'm2').chmod(0o777 if case.get('user', 'root') != 'root' else 0o755)
     opened, connections, pending = {}, {}, {}
     routes, addresses, links = [], [], []
     if case.get('dhcp_witness'):
@@ -318,6 +365,7 @@ def run_side(root, side, case, folder):
         delayed = {a['name'] for a in case['actions'] if a['op'] == 'start-udp'}
         for fixture in fixtures:
             if fixture['name'] in delayed: fixture['drop_all'] = True
+            if fixture['name'] in case.get('negative_names', []): fixture.update(rcode=3, records=[])
         upstreams.append(Upstream(fixtures, address, 53))
     with socket.socket() as reserve:
         reserve.bind(('127.0.0.1', 0)); port = reserve.getsockname()[1]
@@ -326,12 +374,20 @@ def run_side(root, side, case, folder):
               + f'listen-address={case.get("listen", "127.0.0.1")}\nhost-record=ready.files.test,192.0.2.250\n'
               'pid-file=/m2/files.pid\n' + f'port={port}\ncache-size={case.get("cache_size", 0)}\n'
               + ('resolv-file=/m2/files/resolv\n' if case.get('default_resolv', True) else '') + case['config'].replace('{listen_port}', str(port)))
+    if case.get('metrics'): config += 'enable-ubus=file-metrics\n'
     (root / 'm2/files.conf').write_text(config)
     (folder / 'config').write_text(config)
     test = subprocess.run(command(root, side, '--test', '-C', '/m2/files.conf'), capture_output=True, timeout=5)
     result = {'syntax': {'exit': test.returncode, 'stdout': test.stdout.decode(errors='replace'), 'stderr': test.stderr.decode(errors='replace')}, 'rows': [], 'actions': []}
-    process = None
+    process, bus, bus_log = None, None, None
     try:
+        if case.get('metrics'):
+            bus_log = (folder / 'ubusd.log').open('wb')
+            bus = subprocess.Popen(command(root, '/sbin/ubusd'), stdout=bus_log, stderr=bus_log, start_new_session=True)
+            deadline = time.monotonic() + 2
+            while subprocess.run(command(root, '/bin/ubus', 'list'), capture_output=True, timeout=1).returncode:
+                if bus.poll() is not None or time.monotonic() >= deadline: raise AssertionError('ubusd startup')
+                time.sleep(.02)
         with (folder / 'stdout').open('wb') as stdout, (folder / 'stderr').open('wb') as stderr:
             argv = command(root, side, '-k', '-C', '/m2/files.conf')
             if case.get('inotify_fault'): argv = [sys.executable, str(Path(__file__).resolve()), '--exec-inotify-fault', *argv]
@@ -420,11 +476,27 @@ def run_side(root, side, case, folder):
                         lines = path.read_text().splitlines() if path.exists() else []
                         result['rows'].append({'id': action['id'] + ':helper', 'helper_events': lines[helper_offset:], 'response': None, 'error': None, 'cache': False, 'upstreams': []})
                         helper_offset = len(lines)
+                    elif op == 'metrics':
+                        response = subprocess.run(command(root, '/bin/ubus', 'call', 'file-metrics', 'metrics', '{}'), capture_output=True, text=True, timeout=2)
+                        if response.returncode: raise AssertionError('ubus metrics failed: ' + response.stderr)
+                        value = json.loads(response.stdout)
+                        result['rows'].append({'id': action['id'] + ':metrics', 'metrics': value, 'response': None,
+                                               'error': None, 'cache': False, 'upstreams': []})
+                    elif op == 'write-system': image_path(root, action['path']).write_text(action['text'])
                     elif op == 'write': put(root, action['path'], action, opened)
                     elif op == 'unlink': image_path(root, '/m2/files/' + action['path'], follow_leaf=False).unlink()
                     elif op == 'symlink': put(root, action['path'], {'symlink': action['target']}, opened)
                     elif op == 'close-file': opened.pop(action['path']).close()
                     elif op == 'signal': process.send_signal(signal.SIGHUP)
+                    elif op == 'signal-burst':
+                        # Freeze the owner so standard signals deterministically coalesce.
+                        process.send_signal(signal.SIGSTOP)
+                        deadline = time.monotonic() + 1
+                        while '\nState:\tT' not in Path(f'/proc/{process.pid}/status').read_text():
+                            if time.monotonic() > deadline: raise AssertionError('SIGSTOP not observed')
+                            time.sleep(.001)
+                        for _ in range(action['count']): process.send_signal(signal.SIGHUP)
+                        process.send_signal(signal.SIGCONT)
                     elif op == 'connect': connections[action['id']] = socket.create_connection(('127.0.0.1', port), .5)
                     elif op == 'disconnect': connections.pop(action['id']).close()
                     else: raise ValueError(op)
@@ -444,6 +516,11 @@ def run_side(root, side, case, folder):
             except subprocess.TimeoutExpired:
                 os.killpg(process.pid, signal.SIGKILL); process.wait(timeout=3); result['forced_kill'] = True
         result['exit'] = process.returncode if process else None
+        if bus is not None:
+            bus.terminate()
+            try: bus.wait(timeout=2)
+            except subprocess.TimeoutExpired: bus.kill(); bus.wait(); result['forced_bus_kill'] = True
+        if bus_log: bus_log.close()
         for upstream in upstreams: upstream.close()
         deadline = time.monotonic() + 2
         while descendants(root) and time.monotonic() < deadline: time.sleep(.02)
@@ -477,10 +554,12 @@ def compare(left, right, case):
             for stream in ('stdout', 'stderr'):
                 if stream in value: value[stream] = normalized_text(value[stream])
         if a != b: failures.append({'phase': phase, 'c': a, 'rust': b})
-    wanted = [action['id'] + ':' + transport for action in case['actions'] if action['op'] in ('query', 'receive-udp', 'helper-events') for transport in (['helper'] if action['op'] == 'helper-events' else ['udp-async'] if action['op'] == 'receive-udp' else action.get('transports', ['udp', 'tcp']))] if left['startup']['ready'] else []
+    suffixes = {'helper-events': ['helper'], 'receive-udp': ['udp-async'], 'metrics': ['metrics']}
+    wanted = [action['id'] + ':' + transport for action in case['actions'] if action['op'] in ('query', *suffixes)
+              for transport in suffixes.get(action['op'], action.get('transports', ['udp', 'tcp']))] if left['startup']['ready'] else []
     for side, observed in [('c', left), ('rust', right)]:
         if [row['id'] for row in observed['rows']] != wanted: failures.append({'phase': 'coverage', 'side': side})
-        if observed.get('forced_kill') or observed['cleanup']['live_pids']: failures.append({'phase': 'cleanup', 'side': side})
+        if observed.get('forced_kill') or observed.get('forced_bus_kill') or observed['cleanup']['live_pids']: failures.append({'phase': 'cleanup', 'side': side})
         if observed['startup']['ready'] and (observed['exit'] != 0 or observed['cleanup']['pid_file']): failures.append({'phase': 'shutdown', 'side': side})
     if left['cleanup'] != right['cleanup']: failures.append({'phase': 'cleanup-state', 'c': left['cleanup'], 'rust': right['cleanup']})
     for a, b in zip(left['rows'], right['rows']):
