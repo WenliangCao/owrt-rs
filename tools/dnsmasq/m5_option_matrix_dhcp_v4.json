@@ -1,0 +1,956 @@
+{
+  "schema": 1,
+  "executable": true,
+  "qualification_ready": true,
+  "status": "source-frozen-before-image-comparison",
+  "scope": "Explicit no-dhcpv4-interface alias grammar and real dual-interface DHCP/DNS/TFTP behavior; existing implementation without known code gap.",
+  "source_identity": {
+    "option.c": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
+    "rfc2131.c": "14f2e10792ef6108aeb7b69e551f089ba287c8c84d39ea178a5f33acd2038c2c",
+    "dhcp.c": "600dc068b0516d7edebcde9b02ae2091a278fc154551106823ddc388170d7001",
+    "lease.c": "4260039af27b40084cbe6dbbae2bb9417fa3a91806ea53f3f6bdd20234cad763",
+    "network.c": "8229872d30a2fb2d86ec9a9e550e51fbb8d8d97926e7a02b0137f2a7b40c40c9",
+    "dhcp-common.c": "9139906c5d3a438853fe84e90387cfc299c3c28e7b16a23c7d0d6922847ccc79"
+  },
+  "options": {
+    "no-dhcpv4-interface": {
+      "source": [
+        "option.c:2897-2926 INAME_4 only",
+        "dhcp.c:329-331 INAME_4 admission",
+        "network.c:539-558 common TFTP veto/dedicated list override",
+        "tftp.c:225-231 wildcard tests both INAME_4 and INAME_6"
+      ],
+      "scenarios": [
+        "v4-exclude-none",
+        "v4-exclude-lan",
+        "v4-exclude-guest",
+        "v4-exclude-wildcard",
+        "v4-exclude-empty",
+        "v4-exclude-empty-list",
+        "v4-exclude-csv",
+        "v4-exclude-repeat",
+        "v4-exclude-listen-union",
+        "v4-exclude-tftp-0",
+        "v4-exclude-tftp-1",
+        "v4-missing-argument",
+        "v4-exclude-tftp-0-bind-interfaces",
+        "v4-exclude-tftp-1-bind-interfaces",
+        "v4-exclude-tftp-0-bind-dynamic",
+        "v4-exclude-tftp-1-bind-dynamic",
+        "v4-mixed-spellings"
+      ],
+      "checklist": [
+        {
+          "boundary": "Empty list items are ignored; exact interface, wildcard, repeated directives and comma lists exclude only matching ingress interfaces.",
+          "checked": false,
+          "required_scenarios": [
+            "v4-exclude-none",
+            "v4-exclude-lan",
+            "v4-exclude-guest",
+            "v4-exclude-wildcard",
+            "v4-exclude-empty",
+            "v4-exclude-empty-list",
+            "v4-exclude-csv",
+            "v4-exclude-repeat",
+            "v4-exclude-listen-union",
+            "v4-exclude-tftp-0",
+            "v4-exclude-tftp-1"
+          ]
+        },
+        {
+          "boundary": "Two actual server interfaces and client links prove selective exclusion; changing listen-address/interface must not bypass exclusion.",
+          "checked": false,
+          "required_scenarios": [
+            "v4-exclude-none",
+            "v4-exclude-lan",
+            "v4-exclude-guest",
+            "v4-exclude-wildcard",
+            "v4-exclude-empty",
+            "v4-exclude-empty-list",
+            "v4-exclude-csv",
+            "v4-exclude-repeat",
+            "v4-exclude-listen-union",
+            "v4-exclude-tftp-0",
+            "v4-exclude-tftp-1"
+          ]
+        },
+        {
+          "boundary": "DNS remains available on DHCP-excluded interfaces, distinguishing this option from except-interface.",
+          "checked": false,
+          "required_scenarios": [
+            "v4-exclude-none",
+            "v4-exclude-lan",
+            "v4-exclude-guest",
+            "v4-exclude-wildcard",
+            "v4-exclude-empty",
+            "v4-exclude-empty-list",
+            "v4-exclude-csv",
+            "v4-exclude-repeat",
+            "v4-exclude-listen-union",
+            "v4-exclude-tftp-0",
+            "v4-exclude-tftp-1"
+          ]
+        },
+        {
+          "boundary": "Exact-image TFTP distinction: wildcard admission ignores IPv4-only exclusion; bind-interfaces/bind-dynamic suppress excluded listeners; dedicated enable-tftp interface overrides either mode. Mixed full/v4 spelling preserves DHCP exclusion.",
+          "checked": false,
+          "required_scenarios": [
+            "v4-exclude-tftp-0",
+            "v4-exclude-tftp-1",
+            "v4-exclude-tftp-0-bind-interfaces",
+            "v4-exclude-tftp-1-bind-interfaces",
+            "v4-exclude-tftp-0-bind-dynamic",
+            "v4-exclude-tftp-1-bind-dynamic",
+            "v4-mixed-spellings"
+          ]
+        },
+        {
+          "boundary": "No-DHCP interfaces produce no DHCP packets or lease mutations; positive control on other interface and full namespace/process cleanup are mandatory.",
+          "checked": false,
+          "required_scenarios": [
+            "v4-exclude-none",
+            "v4-exclude-lan",
+            "v4-exclude-guest",
+            "v4-exclude-wildcard",
+            "v4-exclude-empty",
+            "v4-exclude-empty-list",
+            "v4-exclude-csv",
+            "v4-exclude-repeat",
+            "v4-exclude-listen-union",
+            "v4-exclude-tftp-0",
+            "v4-exclude-tftp-1"
+          ]
+        },
+        {
+          "boundary": "Required argument rejects before startup; --test and runtime diagnostic are exact. Both no-DHCP aliases share parsing but nodhcpv6 retains INAME_4 policy.",
+          "checked": false,
+          "required_scenarios": [
+            "v4-missing-argument",
+            "v4-exclude-repeat",
+            "v4-exclude-csv",
+            "v4-exclude-empty"
+          ]
+        }
+      ]
+    }
+  },
+  "scenarios": [
+    {
+      "id": "v4-exclude-none",
+      "options": [
+        "no-dhcpv4-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "",
+      "probes": [
+        {
+          "id": "lan",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        },
+        {
+          "id": "guest",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "address": "10.78.0.10",
+          "expect": {
+            "status": 5,
+            "leases": 2
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "two_interfaces": true
+    },
+    {
+      "id": "v4-exclude-lan",
+      "options": [
+        "no-dhcpv4-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "no-dhcpv4-interface=br-lan\n",
+      "probes": [
+        {
+          "id": "lan",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        },
+        {
+          "id": "guest",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "address": "10.78.0.10",
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "two_interfaces": true
+    },
+    {
+      "id": "v4-exclude-guest",
+      "options": [
+        "no-dhcpv4-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "no-dhcpv4-interface=br-guest\n",
+      "probes": [
+        {
+          "id": "lan-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "expect": {
+            "status": 2,
+            "leases": 0
+          }
+        },
+        {
+          "id": "lan-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        },
+        {
+          "id": "guest-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "expect": {
+            "status": null
+          }
+        },
+        {
+          "id": "guest-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "address": "10.78.0.10",
+          "expect": {
+            "status": null,
+            "leases": 1
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "two_interfaces": true
+    },
+    {
+      "id": "v4-exclude-wildcard",
+      "options": [
+        "no-dhcpv4-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "no-dhcpv4-interface=br-*\n",
+      "probes": [
+        {
+          "id": "lan-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        },
+        {
+          "id": "lan-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        },
+        {
+          "id": "guest-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "expect": {
+            "status": null
+          }
+        },
+        {
+          "id": "guest-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "address": "10.78.0.10",
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "two_interfaces": true
+    },
+    {
+      "id": "v4-exclude-empty",
+      "options": [
+        "no-dhcpv4-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "no-dhcpv4-interface=\n",
+      "probes": [
+        {
+          "id": "lan-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "expect": {
+            "status": 2,
+            "leases": 0
+          }
+        },
+        {
+          "id": "lan-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        },
+        {
+          "id": "guest-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "expect": {
+            "status": 2
+          }
+        },
+        {
+          "id": "guest-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "address": "10.78.0.10",
+          "expect": {
+            "status": 5,
+            "leases": 2
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "two_interfaces": true
+    },
+    {
+      "id": "v4-exclude-empty-list",
+      "options": [
+        "no-dhcpv4-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "no-dhcpv4-interface=,br-lan,\n",
+      "probes": [
+        {
+          "id": "lan-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        },
+        {
+          "id": "lan-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        },
+        {
+          "id": "guest-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "expect": {
+            "status": 2
+          }
+        },
+        {
+          "id": "guest-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "address": "10.78.0.10",
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "two_interfaces": true
+    },
+    {
+      "id": "v4-exclude-csv",
+      "options": [
+        "no-dhcpv4-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "no-dhcpv4-interface=missing0,br-lan\n",
+      "probes": [
+        {
+          "id": "lan-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        },
+        {
+          "id": "lan-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        },
+        {
+          "id": "guest-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "expect": {
+            "status": 2
+          }
+        },
+        {
+          "id": "guest-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "address": "10.78.0.10",
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "two_interfaces": true
+    },
+    {
+      "id": "v4-exclude-repeat",
+      "options": [
+        "no-dhcpv4-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "no-dhcpv4-interface=br-lan\nno-dhcpv4-interface=br-guest\n",
+      "probes": [
+        {
+          "id": "lan-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        },
+        {
+          "id": "lan-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        },
+        {
+          "id": "guest-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "expect": {
+            "status": null
+          }
+        },
+        {
+          "id": "guest-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "address": "10.78.0.10",
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "two_interfaces": true
+    },
+    {
+      "id": "v4-exclude-listen-union",
+      "options": [
+        "no-dhcpv4-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "no-dhcpv4-interface=br-lan\nlisten-address=127.0.0.1\n",
+      "probes": [
+        {
+          "id": "lan-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        },
+        {
+          "id": "lan-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        },
+        {
+          "id": "guest-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "expect": {
+            "status": 2
+          }
+        },
+        {
+          "id": "guest-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "address": "10.78.0.10",
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "two_interfaces": true
+    },
+    {
+      "id": "v4-exclude-tftp-0",
+      "options": [
+        "no-dhcpv4-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "no-dhcpv4-interface=br-lan\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "probes": [
+        {
+          "id": "lan-tftp",
+          "action": "tftp",
+          "transports": [
+            "dhcp"
+          ],
+          "expect": {
+            "tftp": true
+          }
+        },
+        {
+          "id": "guest-tftp",
+          "action": "tftp",
+          "transports": [
+            "dhcp"
+          ],
+          "server": "10.78.0.1",
+          "expect": {
+            "tftp": true
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "two_interfaces": true,
+      "tftp": true
+    },
+    {
+      "id": "v4-exclude-tftp-1",
+      "options": [
+        "no-dhcpv4-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "no-dhcpv4-interface=br-lan\nenable-tftp=br-lan,br-guest\ntftp-root=/m2/tftp\n",
+      "probes": [
+        {
+          "id": "lan-tftp",
+          "action": "tftp",
+          "transports": [
+            "dhcp"
+          ],
+          "expect": {
+            "tftp": true
+          }
+        },
+        {
+          "id": "guest-tftp",
+          "action": "tftp",
+          "transports": [
+            "dhcp"
+          ],
+          "server": "10.78.0.1",
+          "expect": {
+            "tftp": true
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "two_interfaces": true,
+      "tftp": true
+    },
+    {
+      "id": "v4-missing-argument",
+      "options": [
+        "no-dhcpv4-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "no-dhcpv4-interface\n",
+      "probes": [],
+      "expected_test_exit": 1
+    },
+    {
+      "id": "v4-exclude-tftp-0-bind-interfaces",
+      "options": [
+        "no-dhcpv4-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "no-dhcpv4-interface=br-lan\nenable-tftp\ntftp-root=/m2/tftp\nbind-interfaces\n",
+      "probes": [
+        {
+          "id": "lan-tftp",
+          "action": "tftp",
+          "transports": [
+            "dhcp"
+          ],
+          "expect": {
+            "tftp": false
+          }
+        },
+        {
+          "id": "guest-tftp",
+          "action": "tftp",
+          "transports": [
+            "dhcp"
+          ],
+          "server": "10.78.0.1",
+          "expect": {
+            "tftp": true
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "two_interfaces": true,
+      "tftp": true
+    },
+    {
+      "id": "v4-exclude-tftp-1-bind-interfaces",
+      "options": [
+        "no-dhcpv4-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "no-dhcpv4-interface=br-lan\nenable-tftp=br-lan,br-guest\ntftp-root=/m2/tftp\nbind-interfaces\n",
+      "probes": [
+        {
+          "id": "lan-tftp",
+          "action": "tftp",
+          "transports": [
+            "dhcp"
+          ],
+          "expect": {
+            "tftp": true
+          }
+        },
+        {
+          "id": "guest-tftp",
+          "action": "tftp",
+          "transports": [
+            "dhcp"
+          ],
+          "server": "10.78.0.1",
+          "expect": {
+            "tftp": true
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "two_interfaces": true,
+      "tftp": true
+    },
+    {
+      "id": "v4-exclude-tftp-0-bind-dynamic",
+      "options": [
+        "no-dhcpv4-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "no-dhcpv4-interface=br-lan\nenable-tftp\ntftp-root=/m2/tftp\nbind-dynamic\n",
+      "probes": [
+        {
+          "id": "lan-tftp",
+          "action": "tftp",
+          "transports": [
+            "dhcp"
+          ],
+          "expect": {
+            "tftp": false
+          }
+        },
+        {
+          "id": "guest-tftp",
+          "action": "tftp",
+          "transports": [
+            "dhcp"
+          ],
+          "server": "10.78.0.1",
+          "expect": {
+            "tftp": true
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "two_interfaces": true,
+      "tftp": true
+    },
+    {
+      "id": "v4-exclude-tftp-1-bind-dynamic",
+      "options": [
+        "no-dhcpv4-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "no-dhcpv4-interface=br-lan\nenable-tftp=br-lan,br-guest\ntftp-root=/m2/tftp\nbind-dynamic\n",
+      "probes": [
+        {
+          "id": "lan-tftp",
+          "action": "tftp",
+          "transports": [
+            "dhcp"
+          ],
+          "expect": {
+            "tftp": true
+          }
+        },
+        {
+          "id": "guest-tftp",
+          "action": "tftp",
+          "transports": [
+            "dhcp"
+          ],
+          "server": "10.78.0.1",
+          "expect": {
+            "tftp": true
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "two_interfaces": true,
+      "tftp": true
+    },
+    {
+      "id": "v4-mixed-spellings",
+      "options": [
+        "no-dhcpv4-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "no-dhcp-interface=br-guest\nno-dhcpv4-interface=br-lan\n",
+      "probes": [
+        {
+          "id": "lan-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        },
+        {
+          "id": "lan-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        },
+        {
+          "id": "guest-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "expect": {
+            "status": 2
+          }
+        },
+        {
+          "id": "guest-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "address": "10.78.0.10",
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "two_interfaces": true
+    }
+  ],
+  "calibration_notes": [
+    "paired-01 retained: source review initially missed tftp.c wildcard both-family predicate; exact C TFTP answer identified a real Rust alias policy gap. Bound and wildcard modes now separately frozen."
+  ]
+}

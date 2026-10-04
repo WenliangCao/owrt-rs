@@ -1,9 +1,9 @@
 //! DHCP address-conflict cache and Linux ICMP dependency.
 //! Exact references: dhcp.c:769-826, dnsmasq.c:2350-2505.
 //!
-//! Cache hits and documented C bypasses are distinct from I/O failures.
-//! Failures are never cached as an available address; callers must retain
-//! the error and return `ProbeResult::Failed` to stop an allocation scan.
+//! ICMP network errors have C's no-reply meaning and enter the free cache.
+//! Cancellation, entropy and owner-dispatch failures remain errors: callers
+//! retain those and return `ProbeResult::Failed` to stop allocation.
 
 use super::allocation::ProbeResult;
 use std::io;
@@ -248,7 +248,11 @@ fn ping(
     wait: &mut ProbeWait<'_>,
 ) -> io::Result<bool> {
     use std::time::Duration;
-    let socket = crate::net::IcmpSocket::open()?;
+    // make_icmp_sock/icmp_ping returns no reply after either socket or
+    // SO_DONTROUTE failure. OwnedFd still closes a failed setup socket.
+    let Ok(socket) = crate::net::IcmpSocket::open() else {
+        return Ok(false);
+    };
     let request = echo_request(id);
     let mut retries = 0;
     loop {
@@ -260,12 +264,28 @@ fn ping(
         }
         match socket.send(&request, address) {
             Ok(()) => break,
-            Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
-            Err(error) if error.kind() == io::ErrorKind::WouldBlock && retries < 1000 => {
+            Err(error)
+                if matches!(
+                    error.kind(),
+                    io::ErrorKind::Interrupted | io::ErrorKind::WouldBlock
+                ) && retries < 1000 =>
+            {
                 retries += 1;
-                std::thread::sleep(Duration::from_micros(10));
+                // util.c retry_send pauses EAGAIN retries. Yield through the
+                // same owner so DNS/TFTP remain serviceable; do not sleep in
+                // the allocator. EINTR is bounded too, with stop checked on
+                // each attempt.
+                if error.kind() == io::ErrorKind::WouldBlock {
+                    match wait(&socket, Duration::from_micros(10)) {
+                        Ok(_) => {}
+                        Err(error) if error.kind() == io::ErrorKind::Interrupted => {}
+                        Err(error) => return Err(error),
+                    }
+                }
             }
-            Err(error) => return Err(error),
+            // C always enters delay_dhcp after retry_send finishes, even
+            // when the terminal send failed or its retries were exhausted.
+            Err(_) => break,
         }
     }
     let start = wall_seconds();
@@ -281,7 +301,10 @@ fn ping(
         }
         let ready = match wait(&socket, Duration::from_millis(250)) {
             Ok(ready) => ready,
-            Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+            Err(error) if error.kind() == io::ErrorKind::Interrupted => {
+                now = wall_seconds();
+                continue;
+            }
             Err(error) => return Err(error),
         };
         now = wall_seconds();
@@ -294,9 +317,9 @@ fn ping(
                 return Ok(true)
             }
             Ok(_) => continue,
-            Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
-            Err(error) if error.kind() == io::ErrorKind::WouldBlock => {}
-            Err(error) => return Err(error),
+            // delay_dhcp only confirms conflict after a full, matching
+            // receive. Any failed recvfrom keeps the bounded wait alive.
+            Err(_) => {}
         }
     }
     Ok(false)
@@ -305,6 +328,24 @@ fn ping(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn only_the_fixed_matching_echo_reply_confirms_a_conflict() {
+        let target = Ipv4Addr::new(192, 0, 2, 10);
+        let id = 0x1234;
+        let mut reply = [0; 48];
+        reply[24..26].copy_from_slice(&u16::to_ne_bytes(id));
+        assert!(echo_reply_matches(&reply, target, target, id));
+        assert!(!echo_reply_matches(&reply[..47], target, target, id));
+        assert!(!echo_reply_matches(&[0; 49], target, target, id));
+        assert!(!echo_reply_matches(&reply, Ipv4Addr::LOCALHOST, target, id));
+        assert!(!echo_reply_matches(&reply, target, target, id + 1));
+        for offset in [20, 26, 27] {
+            let mut changed = reply;
+            changed[offset] = 1;
+            assert!(!echo_reply_matches(&changed, target, target, id));
+        }
+    }
 
     #[test]
     fn wall_clock_and_timeout_fallback_have_independent_bounds() {
@@ -372,6 +413,26 @@ mod tests {
         );
         assert_eq!(result.unwrap_err().kind(), io::ErrorKind::Interrupted);
         assert_eq!(wait_calls, 0);
+        assert_eq!(probe.cache.entries().count(), 0);
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    fn entropy_failure_is_not_an_icmp_network_failure() {
+        let mut probe = IcmpProbe {
+            cache: PingCache::default(),
+            random: std::fs::File::open("/dev/null").unwrap(),
+            no_ping: false,
+        };
+        let result = probe.check_with_wait(
+            100,
+            Ipv4Addr::new(192, 0, 2, 10),
+            7,
+            false,
+            || false,
+            &mut |_, _| panic!("entropy failure must precede socket and owner wait"),
+        );
+        assert_eq!(result.unwrap_err().kind(), io::ErrorKind::UnexpectedEof);
         assert_eq!(probe.cache.entries().count(), 0);
     }
 

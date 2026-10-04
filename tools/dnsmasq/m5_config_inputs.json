@@ -1903,7 +1903,7 @@
       ],
       "expected_exit": 1,
       "expected_effects": {
-        "pipe": "706970650a"
+        "missed": "6d69737365640a"
       },
       "expected_effects_at_parent_exit": [],
       "expected_scripts_at_parent_exit": {
@@ -1913,6 +1913,7 @@
   ],
   "qualification_ready": true,
   "calibration_notes": [
-    "c-baseline-01 retained: exact BusyBox sleep rejects fractional .4; slow-script fixture changed to integer 1 second, not a product mismatch."
+    "c-baseline-01 retained: exact BusyBox sleep rejects fractional .4; slow-script fixture changed to integer 1 second, not a product mismatch.",
+    "Exact-image strace: dnsmasq.c ignores SIGPIPE before read_opts(); popen shell retains SIG_IGN, so its attempted PIPE trap remains ignored and the post-write missed marker is emitted after parse-error parent exit. Rust Command must restore SIG_IGN in pre_exec."
   ]
 }

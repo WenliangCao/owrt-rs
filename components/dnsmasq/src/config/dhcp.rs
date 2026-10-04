@@ -200,6 +200,8 @@ pub struct DhcpConfig {
     pub ignore_names: Vec<TagPredicate>,
     pub force_broadcast: Vec<TagPredicate>,
     pub no_dhcp_interfaces: Vec<Option<Vec<u8>>>,
+    /// Only the dual-family spelling vetoes wildcard TFTP admission.
+    pub no_tftp_interfaces: Vec<Option<Vec<u8>>>,
     pub no_ping: bool,
     /// Also controls the C early return for an ignored DISCOVER.
     pub quiet_dhcp: bool,
@@ -247,6 +249,7 @@ impl Default for DhcpConfig {
             ignore_names: Vec::new(),
             force_broadcast: Vec::new(),
             no_dhcp_interfaces: Vec::new(),
+            no_tftp_interfaces: Vec::new(),
             no_ping: false,
             quiet_dhcp: false,
             log_dhcp: false,
@@ -292,18 +295,16 @@ fn lease_time(bytes: &[u8]) -> Result<(u32, bool), Error> {
         Some(b'w' | b'W') => (&bytes[..bytes.len() - 1], 604_800),
         _ => (bytes, 1),
     };
-    // C accepts a bare suffix: after stripping it, atoi("") is zero. Avoid
-    // inventing semantics for inputs whose C int multiplication overflows.
-    let value = if digits.is_empty() {
-        0
-    } else {
-        integer(digits)?
-    };
-    value
-        .checked_mul(multiplier)
-        .filter(|value| *value <= i32::MAX as u32)
-        .map(|value| (value.max(120), true))
-        .ok_or(Error("DHCP lease time exceeds defined C int range"))
+    // The pinned image uses musl atoi and a 32-bit multiplication before
+    // storing the unsigned lease time. Preserve those low bits safely,
+    // including a bare suffix (atoi("") == 0).
+    let value = digits.iter().try_fold(0u32, |value, digit| {
+        if !digit.is_ascii_digit() {
+            return Err(Error("bad dhcp-range"));
+        }
+        Ok(value.wrapping_mul(10).wrapping_add(u32::from(digit - b'0')))
+    })?;
+    Ok((value.wrapping_mul(multiplier).max(120), true))
 }
 
 fn ip(bytes: &[u8]) -> Result<Ipv4Addr, Error> {
@@ -320,13 +321,12 @@ fn ip(bytes: &[u8]) -> Result<Ipv4Addr, Error> {
 /// treats a token outside that alphabet as a legacy/set or `tag:`/`net:`
 /// selector.  This distinction matters for names such as `red` (a legacy
 /// tag) versus address-shaped values such as `dead` or `1.2.3`, which must
-/// reach the IPv4 parser and fail as a malformed range.  Empty fields remain
-/// selector slots, matching C's empty `set:` behaviour.
+/// reach the IPv4 parser and fail as a malformed range. An empty first field
+/// also reaches the address parser; an explicit `set:` remains a selector.
 fn range_address_lexeme(bytes: &[u8]) -> bool {
-    !bytes.is_empty()
-        && bytes.iter().all(|byte| {
-            byte.is_ascii_digit() || matches!(byte, b'a'..=b'f' | b'A'..=b'F' | b'.' | b':' | b' ')
-        })
+    bytes.iter().all(|byte| {
+        byte.is_ascii_digit() || matches!(byte, b'a'..=b'f' | b'A'..=b'F' | b'.' | b':' | b' ')
+    })
 }
 
 impl DhcpConfig {
@@ -449,8 +449,11 @@ impl DhcpConfig {
             b"no-dhcp-interface" | b"no-dhcpv4-interface" => {
                 for value in argument.ok_or(Error("missing parameter"))?.split(b',') {
                     let value = value.decoded();
-                    self.no_dhcp_interfaces
-                        .insert(0, (!value.is_empty()).then_some(value));
+                    let name = (!value.is_empty()).then_some(value);
+                    if directive.name == b"no-dhcp-interface" {
+                        self.no_tftp_interfaces.insert(0, name.clone());
+                    }
+                    self.no_dhcp_interfaces.insert(0, name);
                 }
             }
             b"no-ping" => self.no_ping = true,
@@ -482,7 +485,11 @@ impl DhcpConfig {
                             return Err(Error("only one tag allowed"));
                         }
                         let value = parts[first].decoded();
-                        let tag = value.strip_prefix(b"set:").unwrap_or(&value).to_vec();
+                        let tag = if bytes.starts_with(b"set:") {
+                            value[4..].to_vec()
+                        } else {
+                            value
+                        };
                         set_tag = (!tag.is_empty()).then_some(tag);
                     }
                     first += 1;
@@ -490,15 +497,18 @@ impl DhcpConfig {
                 let filter = TagPredicate::from_tags(filters);
                 let parts = &parts[first..];
                 if parts.len() < 2 || parts.len() > 5 {
-                    return Err(Error("bad DHCP range"));
+                    return Err(Error("bad dhcp-range"));
                 }
                 // option.c does not unhide quoted metacharacters for ranges.
-                let mut start = ip(parts[0].encoded())?;
+                let mut start = ip(parts[0].encoded()).map_err(|_| Error("bad dhcp-range"))?;
                 use crate::dhcp::allocation::RangeKind;
                 let (kind, mut end) = match parts[1].encoded() {
                     b"static" => (RangeKind::Static, start),
                     b"proxy" => (RangeKind::Proxy, start),
-                    value => (RangeKind::Dynamic, ip(value)?),
+                    value => (
+                        RangeKind::Dynamic,
+                        ip(value).map_err(|_| Error("bad dhcp-range"))?,
+                    ),
                 };
                 if start > end {
                     std::mem::swap(&mut start, &mut end);
@@ -518,7 +528,7 @@ impl DhcpConfig {
                     }
                 }
                 if parts.len() > leasepos + 1 {
-                    return Err(Error("bad DHCP range"));
+                    return Err(Error("bad dhcp-range"));
                 }
                 let (duration, explicit) = match parts.get(leasepos) {
                     Some(part) => lease_time(part.encoded())?,
@@ -544,12 +554,26 @@ impl DhcpConfig {
                     HostConfig::parse(argument.ok_or(Error("missing parameter"))?, &self.hosts)?;
                 self.hosts.insert(0, host);
             }
-            b"dhcp-hostsfile" => {
+            b"dhcp-hostsfile" | b"dhcp-optsfile" => {
                 let value = argument.ok_or(Error("missing parameter"))?.decoded();
-                if value.is_empty() || value == b"-" {
-                    return Err(Error("DHCP hosts file requires a nonempty file path"));
+                if directive.name == b"dhcp-hostsfile" {
+                    self.host_files.insert(0, value);
+                } else {
+                    self.option_files.insert(0, value);
                 }
-                self.host_files.insert(0, value);
+            }
+            b"dhcp-hostsdir" | b"dhcp-optsdir" => {
+                self.dynamic_dirs.insert(
+                    0,
+                    DynamicFileDirectory {
+                        kind: if directive.name == b"dhcp-hostsdir" {
+                            DynamicFileKind::Hosts
+                        } else {
+                            DynamicFileKind::Options
+                        },
+                        path: argument.ok_or(Error("missing parameter"))?.decoded(),
+                    },
+                );
             }
             b"dhcp-script" => {
                 self.script = Some(argument.ok_or(Error("missing parameter"))?.decoded());
@@ -558,7 +582,7 @@ impl DhcpConfig {
                 self.script_user = Some(argument.ok_or(Error("missing parameter"))?.decoded());
             }
             b"script-on-renewal" => self.script_on_renewal = true,
-            b"dhcp-hostsdir" | b"dhcp-optsfile" | b"dhcp-optsdir" | b"dhcp-reply-delay" => {
+            b"dhcp-reply-delay" => {
                 return Err(Error(
                     "DHCP option is parsed but runtime wiring is not complete",
                 ));
@@ -809,9 +833,11 @@ mod tests {
             let range = parse(&format!("{tag},192.0.2.10,192.0.2.20")).unwrap();
             assert_eq!(range.set_tag.as_deref(), Some(tag.as_bytes()));
         }
+        let quoted = parse("\"set:red\",192.0.2.10,192.0.2.20").unwrap();
+        assert_eq!(quoted.set_tag.as_deref(), Some(b"set:red".as_slice()));
         // option.c's restricted scan sends these tokens to the IPv4 parser;
         // they are not silently widened into legacy tags.
-        for token in ["dead", "1234", "1.2.3", "2001:db8::1"] {
+        for token in ["", "dead", "1234", "1.2.3", "2001:db8::1"] {
             assert!(
                 parse(&format!("{token},192.0.2.10,192.0.2.20")).is_err(),
                 "{token}"
@@ -949,8 +975,16 @@ mod tests {
                 (expected, explicit)
             );
         }
-        assert!(lease_time(b"2147483648").is_err());
-        assert!(lease_time(b"2147483647w").is_err());
+        for (input, expected) in [
+            ("2147483648", 2_147_483_648),
+            ("4294967295", u32::MAX),
+            ("4294967296", 120),
+            ("4294967297", 120),
+            ("2147483647w", 4_294_362_496),
+            ("18446744073709551616", 120),
+        ] {
+            assert_eq!(lease_time(input.as_bytes()).unwrap(), (expected, true));
+        }
     }
 
     #[test]
