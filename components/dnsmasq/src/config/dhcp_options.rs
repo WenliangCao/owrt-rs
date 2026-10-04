@@ -239,7 +239,10 @@ impl DhcpMatch {
                     let mut item = at + 5;
                     while item < end {
                         let last = item + 1 + usize::from(bytes[item]);
-                        if last > end {
+                        // C bounds class data by the entire option, not by
+                        // its enterprise block. Preserve that defined wire
+                        // behavior while keeping the slice inside the option.
+                        if last > bytes.len() {
                             break;
                         }
                         if self.matches_value(&bytes[item + 1..last]) {
@@ -811,6 +814,20 @@ mod tests {
         assert!(!masked.matches_value(&[0, 1, 2, 3]));
         let text = DhcpMatch::parse(&EncodedArg::command_line(b"set:yes,224,text")).unwrap();
         assert!(text.matches_value(b"prefix-text-suffix"));
+    }
+
+    #[test]
+    fn enterprise_class_is_bounded_by_whole_option_like_c() {
+        let rule = DhcpMatch::parse(&EncodedArg::command_line(b"set:a,vi-encap:1234,abc")).unwrap();
+        let mut bytes = vec![0; 240];
+        bytes[..3].copy_from_slice(&[1, 1, 6]);
+        bytes[236..240].copy_from_slice(&crate::dhcp::packet::COOKIE);
+        // Class 'abc' extends two bytes beyond its enterprise data but stays
+        // inside option124. C accepts this safe, noncanonical layout.
+        bytes.extend_from_slice(&[53, 1, 1, 124, 9, 0, 0, 4, 210, 2, 3, b'a', b'b', b'c', 255]);
+        assert!(rule.matches_packet(crate::dhcp::packet::Packet::parse(&bytes).unwrap()));
+        bytes[250] = 4; // Class would cross the whole option: must not match.
+        assert!(!rule.matches_packet(crate::dhcp::packet::Packet::parse(&bytes).unwrap()));
     }
     #[test]
     fn request_tag_priority_beats_later_context_and_untagged_rules() {

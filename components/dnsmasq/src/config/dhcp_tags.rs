@@ -32,7 +32,7 @@ impl TagPredicate {
                     value.encoded().starts_with(b"tag:") || value.encoded().starts_with(b"net:");
                 let value = value.decoded();
                 let tag = if prefixed { &value[4..] } else { &value };
-                if tag.is_empty() || matches!(tag, b"!" | b"#") {
+                if tag.is_empty() {
                     return Err(Error("empty DHCP tag predicate"));
                 }
                 tags.push(tag.to_vec());
@@ -309,8 +309,13 @@ mod tests {
             TagPredicate::parse(Some(&EncodedArg::command_line(b"net:lan,#blocked"))).unwrap();
         assert!(rule.matches(&[b"lan"]));
         assert!(!rule.matches(&[b"lan", b"blocked"]));
-        for value in [b"".as_slice(), b"tag:", b"tag:!", b"lan,,other"] {
+        for value in [b"".as_slice(), b"tag:", b"lan,,other"] {
             assert!(TagPredicate::parse(Some(&EncodedArg::command_line(value))).is_err());
+        }
+        for value in [b"tag:!".as_slice(), b"#"] {
+            assert!(TagPredicate::parse(Some(&EncodedArg::command_line(value)))
+                .unwrap()
+                .matches(&[b"ordinary"]));
         }
     }
 

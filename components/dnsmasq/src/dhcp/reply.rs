@@ -227,7 +227,9 @@ pub fn build_reply_with_boot(
         });
     }
 
-    let mut writer = OptionWriter::new(&mut output[..required]);
+    let agent_id = request.echo_agent_id();
+    let reserved = agent_id.map_or(0, |value| value.len() + 2);
+    let mut writer = OptionWriter::new(&mut output[..required], reserved);
     append_mandatory(&mut writer, reply, broken_string_option(request))?;
     if let Some(boot) = boot {
         // free_space may already use empty fields while adding 66/67, before
@@ -281,7 +283,7 @@ pub fn build_reply_with_boot(
             }
         }
     }
-    let (end, omitted, overload) = writer.finish();
+    let (end, omitted, overload) = writer.finish(agent_id);
     Ok(ReplyEncoding {
         len: end.max(MIN_PACKET_SIZE),
         omitted,
@@ -515,6 +517,8 @@ struct OptionWriter<'a> {
     packet: &'a mut [u8],
     primary: usize,
     primary_end: usize,
+    /// End before the reserved relay-agent TLV, including overload allowance.
+    options_end: usize,
     file: usize,
     sname: usize,
     overload_offset: Option<usize>,
@@ -524,12 +528,13 @@ struct OptionWriter<'a> {
 }
 
 impl<'a> OptionWriter<'a> {
-    fn new(packet: &'a mut [u8]) -> Self {
-        let primary_end = packet.len();
+    fn new(packet: &'a mut [u8], reserved: usize) -> Self {
+        let primary_end = packet.len() - reserved;
         Self {
             packet,
             primary: OPTIONS_OFFSET,
             primary_end,
+            options_end: primary_end,
             file: FILE_OFFSET,
             sname: SNAME_OFFSET,
             overload_offset: None,
@@ -609,7 +614,7 @@ impl<'a> OptionWriter<'a> {
     }
 
     fn ensure_overload(&mut self) {
-        if self.overload_offset.is_none() && self.primary + 3 < self.packet.len() {
+        if self.overload_offset.is_none() && self.primary + 3 < self.options_end {
             let offset = self.primary;
             self.packet[offset..offset + 3].copy_from_slice(&[OPTION_OVERLOAD, 1, 0]);
             self.primary += 3;
@@ -629,8 +634,12 @@ impl<'a> OptionWriter<'a> {
         self.packet[position + 2..position + 2 + option.value.len()].copy_from_slice(option.value);
     }
 
-    fn finish(mut self) -> (usize, usize, u8) {
+    fn finish(mut self, agent_id: Option<&[u8]>) -> (usize, usize, u8) {
         self.set_overload();
+        if let Some(value) = agent_id {
+            self.write_at(self.primary, ReplyOption { code: 82, value });
+            self.primary += value.len() + 2;
+        }
         if self.primary < self.packet.len() {
             self.packet[self.primary] = OPTION_END;
             self.primary += 1;
@@ -666,6 +675,72 @@ mod tests {
         bytes[236..240].copy_from_slice(&COOKIE);
         bytes.extend_from_slice(options);
         bytes
+    }
+
+    #[test]
+    fn relay_agent_reservation_is_strict_and_echo_stays_last() {
+        let mut bytes = request(&[53, 1, 1, 82, 3, 1, 1, 9]);
+        bytes.resize(542, 0);
+        bytes.push(255);
+        let packet = Packet::parse(&bytes).unwrap();
+        assert_eq!(packet.echo_agent_id(), Some(&[1, 1, 9][..]));
+        let reply = Reply::Offer {
+            address: Ipv4Addr::new(192, 0, 2, 42),
+            lease_time: 600,
+            context: 0,
+            server: Ipv4Addr::new(192, 0, 2, 1),
+        };
+        let mut output = [0; 548];
+        let encoded = build_reply(packet, reply, &[], &mut output).unwrap();
+        let end = super::super::packet::find_option(&output[240..encoded.len], 255, 0)
+            .unwrap()
+            .offset
+            + 240;
+        assert_eq!(&output[end - 5..end], &[82, 3, 1, 1, 9]);
+        bytes.insert(542, 0); // END == capacity - total: C does not reserve.
+        let packet = Packet::parse(&bytes).unwrap();
+        assert_eq!(packet.echo_agent_id(), None);
+        build_reply(packet, reply, &[], &mut output).unwrap();
+        assert_eq!(option_value(&output, 82), None);
+    }
+
+    #[test]
+    fn relay_agent_tail_reserves_space_before_options_and_overload() {
+        let mut bytes = request(&[53, 1, 1, 55, 1, 224, 82, 255]);
+        bytes.extend_from_slice(&[7; 255]);
+        bytes.push(255);
+        // 240+3+3+257 input needs a larger advertised packet to preserve82.
+        bytes.splice(240..240, [57, 2, 3, 32]); // 800 - 28 = 772.
+        let packet = Packet::parse(&bytes).unwrap();
+        assert!(packet.echo_agent_id().is_some());
+        let mut output = [0; 772];
+        let encoded = build_reply(
+            packet,
+            Reply::Inform {
+                context: Some(0),
+                server: Ipv4Addr::LOCALHOST,
+                lease_time: None,
+            },
+            &[
+                ReplyOption {
+                    code: 224,
+                    value: &[3; 255],
+                },
+                ReplyOption {
+                    code: 225,
+                    value: &[4; 100],
+                },
+            ],
+            &mut output,
+        )
+        .unwrap();
+        let end = super::super::packet::find_option(&output[240..encoded.len], 255, 0)
+            .unwrap()
+            .offset
+            + 240;
+        assert_eq!(&output[end - 257..end - 255], &[82, 255]);
+        assert_eq!(&output[end - 255..end], &[7; 255]);
+        assert!(encoded.overload != 0);
     }
 
     #[test]
