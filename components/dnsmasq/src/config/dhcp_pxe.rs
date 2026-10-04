@@ -40,7 +40,7 @@ impl PxeConfig {
     pub fn add_service(&mut self, argument: &EncodedArg) -> Result<(), Error> {
         let (filter, rest) = leading_tags(argument)?;
         let (architecture, rest) = rest.split_once(b',');
-        let rest = rest.ok_or(Error("bad dhcp-option"))?;
+        let rest = rest.ok_or(Error("error"))?;
         let architecture = architecture.encoded();
         const NAMES: [&[u8]; 12] = [
             b"x86PC",
@@ -62,7 +62,7 @@ impl PxeConfig {
         {
             Some(value) => value as u16,
             None => integer(&EncodedArg::command_line(architecture).decoded())?
-                .ok_or(Error("bad dhcp-option"))? as u16,
+                .ok_or(Error("error"))? as u16,
         };
         let (menu, tail) = rest.split_once(b',');
         let menu = menu.decoded();
@@ -168,7 +168,7 @@ fn leading_tags(argument: &EncodedArg) -> Result<(TagPredicate, EncodedArg), Err
             return Err(Error("empty DHCP tag predicate"));
         }
         tags.push(decoded[4..].to_vec());
-        rest = tail.ok_or(Error("bad dhcp-option"))?;
+        rest = tail.ok_or(Error("error"))?;
     }
     Ok((TagPredicate::from_tags(tags), rest))
 }
