@@ -967,6 +967,7 @@ def qualify_runs(runs, manifests, probe_tests, out):
     """Replay every frozen requirement from locally verified immutable runs."""
     from m5_option_matrix_archive import verify
     required = {}
+    driver_sha = sha256(runs[0]/'driver.py')
     archives = {}
     for manifest in manifests:
         report = json.loads(manifest.read_text())
@@ -986,9 +987,9 @@ def qualify_runs(runs, manifests, probe_tests, out):
         assert result['passed'] and result['comparison_executed'] and not result['failures']
         assert not result.get('unexecuted')
         assert result['c_sha256'] == STOCK_SHA256
-        assert result['tool_sha256'] == sha256(__file__) == sha256(run_dir/'driver.py')
+        assert result['tool_sha256'] == driver_sha == sha256(run_dir/'driver.py')
         for name, expected in result['dependencies'].items():
-            assert sha256(Path(__file__).with_name(name)) == expected, name
+            assert sha256(run_dir/'driver-dependencies'/name) == expected, name
         assert json.loads((run_dir/'negative-controls.json').read_text()) == controls()
         identities.add(result['rust_sha256'])
         source_commits.add(result['source_commit'])
@@ -1063,7 +1064,7 @@ def qualify_runs(runs, manifests, probe_tests, out):
     checklist.update(status='qualified' if not blocked else 'partial', checked=len(checklist['boundaries'])-len(blocked),
                      blocked=blocked,
                      source_commit=next(iter(source_commits)), rust_sha256=next(iter(identities)),
-                     tool_sha256=sha256(__file__), cases=len(completed),
+                     tool_sha256=driver_sha, cases=len(completed),
                      events_per_side=sum(case['events'] for case in completed.values()),
                      unit_evidence={'path': str(probe_tests), 'sha256': sha256(probe_tests)})
     save(out, checklist)
