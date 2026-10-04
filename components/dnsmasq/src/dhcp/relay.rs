@@ -126,58 +126,59 @@ impl Relay {
                 packet[end] = 255;
             }
             let mut length = bytes.len();
-            let source;
-            if !rule.split && state.interface != 0 && state.interface == ingress.interface {
-                if giaddr == rule.local {
-                    continue;
-                }
-                if giaddr.is_unspecified() {
-                    packet[24..28].copy_from_slice(&rule.local.octets());
-                }
-                source = rule.local;
-            } else if rule.split && rule.local == ingress.address {
-                if let Some(name) = &rule.interface {
-                    let Some(uplink) = named_interface(interfaces, name) else {
+            let source =
+                if !rule.split && state.interface != 0 && state.interface == ingress.interface {
+                    if giaddr == rule.local {
                         continue;
-                    };
-                    state.uplink = uplink.address;
-                }
-                if !giaddr.is_unspecified() && giaddr == state.uplink {
-                    continue;
-                }
-                if giaddr.is_unspecified() {
-                    packet[24..28].copy_from_slice(&state.uplink.octets());
-                    let end = match split_end {
-                        Some(end) => end,
-                        None => {
-                            let Some(end) = find_option(packet, OPTIONS, bytes.len(), 255, 0)
-                            else {
-                                continue;
-                            };
-                            if end + 24 > SPLIT_LIMIT {
-                                continue;
+                    }
+                    if giaddr.is_unspecified() {
+                        packet[24..28].copy_from_slice(&rule.local.octets());
+                    }
+                    rule.local
+                } else if rule.split && rule.local == ingress.address {
+                    if let Some(name) = &rule.interface {
+                        let Some(uplink) = named_interface(interfaces, name) else {
+                            continue;
+                        };
+                        state.uplink = uplink.address;
+                    }
+                    if !giaddr.is_unspecified() && giaddr == state.uplink {
+                        continue;
+                    }
+                    if giaddr.is_unspecified() {
+                        packet[24..28].copy_from_slice(&state.uplink.octets());
+                        let end = match split_end {
+                            Some(end) => end,
+                            None => {
+                                let Some(end) = find_option(packet, OPTIONS, bytes.len(), 255, 0)
+                                else {
+                                    continue;
+                                };
+                                if end + 24 > SPLIT_LIMIT {
+                                    continue;
+                                }
+                                split_end = Some(end);
+                                packet[end..end + 24].copy_from_slice(&[
+                                    82, 21, 5, 4, 0, 0, 0, 0, 11, 4, 0, 0, 0, 0, 10, 1, 0, 2, 4, 0,
+                                    0, 0, 0, 255,
+                                ]);
+                                // C resets length for every rule but recomputes
+                                // this appended length only on the first split.
+                                length = end + 24;
+                                end
                             }
-                            split_end = Some(end);
-                            packet[end..end + 24].copy_from_slice(&[
-                                82, 21, 5, 4, 0, 0, 0, 0, 11, 4, 0, 0, 0, 0, 10, 1, 0, 2, 4, 0, 0,
-                                0, 0, 255,
-                            ]);
-                            // C resets length for every rule but recomputes
-                            // this appended length only on the first split.
-                            length = end + 24;
-                            end
-                        }
-                    };
-                    packet[end] = 82;
-                    packet[end + 4..end + 8].copy_from_slice(&rule.local.octets());
-                    packet[end + 10..end + 14].copy_from_slice(&rule.local.octets());
-                    packet[end + 16] = if ingress.unicast { 0x80 } else { 0 };
-                    packet[end + 19..end + 23].copy_from_slice(&ingress.interface.to_be_bytes());
-                }
-                source = state.uplink;
-            } else {
-                continue;
-            }
+                        };
+                        packet[end] = 82;
+                        packet[end + 4..end + 8].copy_from_slice(&rule.local.octets());
+                        packet[end + 10..end + 14].copy_from_slice(&rule.local.octets());
+                        packet[end + 16] = if ingress.unicast { 0x80 } else { 0 };
+                        packet[end + 19..end + 23]
+                            .copy_from_slice(&ingress.interface.to_be_bytes());
+                    }
+                    state.uplink
+                } else {
+                    continue;
+                };
             let destination = if rule.server.is_unspecified() {
                 let Some(interface) = rule
                     .interface

@@ -5,6 +5,7 @@
 //! until their owning subsystem implements them.
 
 pub mod dhcp;
+pub mod dhcp_relay;
 pub mod dns;
 pub mod ethers;
 #[cfg(unix)]

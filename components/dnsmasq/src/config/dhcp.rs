@@ -140,6 +140,8 @@ impl BootConfig {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DhcpConfig {
+    pub relay: Vec<super::dhcp_relay::RelayRule>,
+    pub ports: super::dhcp_relay::DhcpPorts,
     /// RFC4388 leasequery configuration. The parser is kept with the DHCP
     /// config, while query state and wire encoding stay in the DHCP module.
     pub lease_query: crate::dhcp::lease_query::LeaseQueryConfig,
@@ -192,6 +194,8 @@ pub struct DhcpConfig {
 impl Default for DhcpConfig {
     fn default() -> Self {
         Self {
+            relay: Vec::new(),
+            ports: Default::default(),
             lease_query: Default::default(),
             script: None,
             script_user: None,
@@ -288,6 +292,16 @@ impl DhcpConfig {
         }
         let argument = directive.argument.as_ref();
         match directive.name.as_slice() {
+            b"dhcp-relay" | b"dhcp-split-relay" => self.relay.insert(
+                0,
+                super::dhcp_relay::RelayRule::parse(
+                    argument.ok_or(Error("missing parameter"))?,
+                    directive.name == b"dhcp-split-relay",
+                )?,
+            ),
+            b"dhcp-alternate-port" => {
+                self.ports = super::dhcp_relay::DhcpPorts::parse(argument)?;
+            }
             b"dhcp-authoritative" => self.authoritative = true,
             b"dhcp-rapid-commit" => self.rapid_commit = true,
             b"dhcp-option" | b"dhcp-option-force" | b"dhcp-option-pxe" => {

@@ -21,6 +21,7 @@ pub mod packet;
 pub mod persistence;
 pub mod probe;
 pub mod pxe;
+pub mod relay;
 pub mod reply;
 pub mod request;
 pub mod runtime;

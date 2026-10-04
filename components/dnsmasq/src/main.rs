@@ -530,7 +530,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         None
     };
     #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
-    if !dhcp_config.ranges.is_empty() {
+    if !dhcp_config.ranges.is_empty() || !dhcp_config.relay.is_empty() {
         return Err(Box::new(Error("DHCP listener requires 64-bit Linux")));
     }
     #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
@@ -538,7 +538,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         return Err(Box::new(Error("TFTP listener requires 64-bit Linux")));
     }
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    let dhcp_runtime = if !dhcp_config.ranges.is_empty() {
+    let provider = if !dhcp_config.ranges.is_empty() {
         let mut provider = DhcpProvider::new(
             dhcp_config.clone(),
             daemon_config.listen_addresses.clone(),
@@ -605,15 +605,26 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         }
         let shared_provider = Arc::new(Mutex::new(provider));
         dhcp_provider = Some(Arc::clone(&shared_provider));
-        // dhcp_init binds INADDR_ANY even with listen-address: initial
-        // clients send broadcasts, and interface admission happens later.
-        let listener = DhcpSocketListener::bind(
-            SocketAddr::from((std::net::Ipv4Addr::UNSPECIFIED, 67)),
+        Some(shared_provider)
+    } else {
+        None
+    };
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    let dhcp_runtime = if provider.is_some() || !dhcp_config.relay.is_empty() {
+        // A relay-only listener must not create or restore a lease file.
+        let mut listener = DhcpSocketListener::bind(
+            SocketAddr::from((std::net::Ipv4Addr::UNSPECIFIED, dhcp_config.ports.server)),
             DhcpListener::Dhcp,
             &[],
         )
         .map_err(NetworkStartupError)?;
-        Some((shared_provider, listener))
+        listener.configure_relay(
+            &dhcp_config.relay,
+            &daemon_config,
+            &dhcp_config.no_dhcp_interfaces,
+            dhcp_config.ports,
+        )?;
+        Some(DhcpService { provider, listener })
     } else {
         None
     };
@@ -652,7 +663,10 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         None
     };
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    if let Some((provider, _)) = &dhcp_runtime {
+    if let Some(provider) = dhcp_runtime
+        .as_ref()
+        .and_then(|dhcp| dhcp.provider.as_ref())
+    {
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .map_or(0, |time| time.as_secs() as i64);
@@ -663,7 +677,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     }
     #[cfg(target_os = "linux")]
     let capabilities = dnsmasq_rs::startup::network_capabilities(
-        !runtime.dhcp.ranges.is_empty(),
+        !runtime.dhcp.ranges.is_empty() || !runtime.dhcp.relay.is_empty(),
         runtime.dhcp.no_ping,
         runtime
             .dhcp
@@ -757,7 +771,16 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         if last_interfaces.elapsed() >= Duration::from_millis(100) {
             last_interfaces = Instant::now();
             if let Ok(interfaces) = listeners::snapshot() {
+                let changed = *interface_snapshot.lock().unwrap() != interfaces;
                 *interface_snapshot.lock().unwrap() = interfaces.clone();
+                #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+                if changed {
+                    if let Some(dhcp) = &mut poll.dhcp {
+                        dhcp.listener.invalidate_relay_interfaces();
+                    }
+                }
+                #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
+                let _ = changed;
                 if daemon_config.bind_dynamic {
                     let addresses = listeners::bound_addresses(
                         &daemon_config,
@@ -861,6 +884,12 @@ fn open_dns_listener(address: SocketAddr) -> io::Result<(Arc<DnsSocket>, TcpList
     Ok((udp, tcp))
 }
 
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+struct DhcpService {
+    provider: Option<Arc<Mutex<DhcpProvider>>>,
+    listener: DhcpSocketListener,
+}
+
 /// The production event owner. All daemon sockets are advanced from the
 /// caller's loop; no listener or TCP connection gets a worker thread.
 struct SinglePoll {
@@ -876,7 +905,7 @@ struct SinglePoll {
     edns_max: u16,
     probe_metrics: Option<Metrics>,
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    dhcp: Option<(Arc<Mutex<DhcpProvider>>, DhcpSocketListener)>,
+    dhcp: Option<DhcpService>,
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     helper: Option<Helper>,
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -1083,10 +1112,7 @@ impl SinglePoll {
         tcp_limit: usize,
         edns_max: u16,
         listeners: Vec<(SocketToken, Arc<DnsSocket>, TcpListener)>,
-        #[cfg(all(target_os = "linux", target_pointer_width = "64"))] dhcp: Option<(
-            Arc<Mutex<DhcpProvider>>,
-            DhcpSocketListener,
-        )>,
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))] dhcp: Option<DhcpService>,
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))] helper: Option<Helper>,
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))] tftp: Option<
             TftpListener<RealFileOpener>,
@@ -1148,7 +1174,7 @@ impl SinglePoll {
         let mut metrics = self.probe_metrics.unwrap_or_default();
         event.write_metrics(&mut metrics);
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-        if let Some((provider, _)) = &self.dhcp {
+        if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
             write_dhcp_metrics(&mut metrics, &provider.lock().unwrap());
         }
         let parent = self.service.lock().unwrap();
@@ -1575,10 +1601,13 @@ impl SinglePoll {
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     fn step_helper(&mut self) {
         if self.pending_delivery.is_none() && self.helper_init.is_none() {
-            self.pending_delivery = self
-                .dhcp
-                .as_ref()
-                .and_then(|(provider, _)| provider.try_lock().ok()?.take_script_delivery());
+            self.pending_delivery = self.dhcp.as_ref().and_then(|dhcp| {
+                dhcp.provider
+                    .as_ref()?
+                    .try_lock()
+                    .ok()?
+                    .take_script_delivery()
+            });
         }
         if let Some(helper) = self.helper.as_mut() {
             if let Some(delivery) = self.pending_delivery.as_ref() {
@@ -1659,7 +1688,9 @@ impl SinglePoll {
                                             code: 3,
                                             message: "incomplete lease-init database".into(),
                                         });
-                                    } else if let Some((provider, _)) = self.dhcp.as_ref() {
+                                    } else if let Some(provider) =
+                                        self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref())
+                                    {
                                         match provider
                                             .lock()
                                             .unwrap()
@@ -1691,7 +1722,7 @@ impl SinglePoll {
             }
             if helper.is_finished() {
                 self.pending_delivery = None;
-                if let Some((provider, _)) = self.dhcp.as_ref() {
+                if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
                     if let Ok(mut provider) = provider.try_lock() {
                         provider.disable_script_delivery();
                     }
@@ -1718,7 +1749,7 @@ impl SinglePoll {
             self.pending_delivery = self
                 .dhcp
                 .as_ref()
-                .and_then(|(provider, _)| provider.lock().ok()?.take_script_delivery());
+                .and_then(|dhcp| dhcp.provider.as_ref()?.lock().ok()?.take_script_delivery());
         }
         if self.pending_delivery.is_none()
             && self
@@ -1737,12 +1768,18 @@ impl SinglePoll {
         if self.helper_init.is_some() || self.helper_init_error.is_some() {
             return;
         }
-        let Some((shared_provider, mut listener)) = self.dhcp.take() else {
+        let Some(mut dhcp) = self.dhcp.take() else {
             return;
         };
-        let provider_ref = Arc::clone(&shared_provider);
+        let Some(provider_ref) = dhcp.provider.as_ref().map(Arc::clone) else {
+            let _ = dhcp
+                .listener
+                .process_once_relay_only(|| STOP_REQUESTED.load(Ordering::Acquire));
+            self.dhcp = Some(dhcp);
+            return;
+        };
         let Ok(mut provider) = provider_ref.lock() else {
-            self.dhcp = Some((shared_provider, listener));
+            self.dhcp = Some(dhcp);
             return;
         };
         let now = now_seconds();
@@ -1769,9 +1806,10 @@ impl SinglePoll {
                 self.wait_during_probe(socket, duration, leases)
             };
             let mut provider = provider.with_event_sink_and_wait(&mut sink, &mut wait);
-            listener.process_once_local(&mut provider, &[], &mut output, || {
-                STOP_REQUESTED.load(Ordering::Acquire)
-            })
+            dhcp.listener
+                .process_once_local(&mut provider, &[], &mut output, || {
+                    STOP_REQUESTED.load(Ordering::Acquire)
+                })
         };
         if self.pending_delivery.is_none() {
             self.pending_delivery = provider.take_script_delivery();
@@ -1800,7 +1838,7 @@ impl SinglePoll {
             report_dhcp_maintenance(&report);
         }
         drop(provider);
-        self.dhcp = Some((shared_provider, listener));
+        self.dhcp = Some(dhcp);
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -1824,7 +1862,7 @@ impl SinglePoll {
         let provider = self
             .dhcp
             .as_ref()
-            .and_then(|(provider, _)| provider.try_lock().ok());
+            .and_then(|dhcp| dhcp.provider.as_ref()?.try_lock().ok());
         let neighbors = &mut self.neighbors;
         let _ = listener.poll_once_with_mac(now, &mut |address, interface, now| {
             if let IpAddr::V4(address) = address {
@@ -2174,7 +2212,10 @@ mod tests {
             20,
             512,
             Vec::new(),
-            Some((Arc::new(Mutex::new(provider)), listener)),
+            Some(DhcpService {
+                provider: Some(Arc::new(Mutex::new(provider))),
+                listener,
+            }),
             None,
             None,
             None,
