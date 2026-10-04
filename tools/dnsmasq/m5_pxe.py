@@ -76,7 +76,7 @@ def profiles():
     serial = 0
 
     def case(name, reply=True, listener=67, source_port=68, *, raw=None,
-             reload_hosts=None, copies=1, sender="client", upstream=0, **fields):
+             reload_hosts=None, copies=1, sender="client", upstream=0, helper_busy=False, **fields):
         nonlocal serial
         serial += 1
         packet = bytearray(raw) if raw is not None else request(**fields)
@@ -84,7 +84,7 @@ def profiles():
             packet[4:8] = struct.pack("!I", 0x5F000000 + serial)
         return {"name": name, "request": packet.hex(), "reply": reply,
                 "listener": listener, "source_port": source_port,
-                "reload_hosts": reload_hosts, "copies": copies,"sender":sender,"upstream":upstream}
+                "reload_hosts": reload_hosts, "copies": copies,"sender":sender,"upstream":upstream,"helper_busy":helper_busy}
 
     def profile(name, options, cases, ids, *, mode="proxy", **extra):
         return dict(name=name, options=options, cases=cases, boundaries=ids, mode=mode, **extra)
@@ -281,6 +281,12 @@ def profiles():
                 ["CFG-B01","BOOTP02"],mode="dynamic",static_host=False),
         profile("bootp-context-negative",["bootp-dynamic=tag:bootp,tag:!deny"],[case("range-tag-veto",kind=0,arch=None,vendor=None,prl=None,reply=False)],
                 ["BOOTP02"],mode="dynamic",static_host=False,range_value="set:deny,10.77.0.10,10.77.0.20,255.255.255.0,600s"),
+        profile("owner-helper-tftp",legacy+["bootp-dynamic","dhcp-vendorclass=set:pxe,PXEClient",
+                    "dhcp-range=tag:pxe,10.77.0.1,proxy,255.255.255.0","dhcp-script=/m2/pxe-helper",
+                    "enable-tftp","tftp-root=/m2/pxe-tftp"],[
+            case("bootp-starts-helper",kind=0,arch=None,vendor=None,prl=None),
+            case("pxe-during-helper",helper_busy=True),
+        ],["OWNER01","BOOTP04","PROXY06"],mode="dynamic",static_host=False,helper=True,tftp=True),
     ])
     for kind in ["external-conflict","default-exclusive","bind-interfaces","bind-dynamic"]:
         rows.append(profile("bind-4011-"+kind,[],[],["START02","OWNER01"],mode="none",bind_kind=kind))
@@ -323,6 +329,16 @@ def metrics(root):
     response=subprocess.run(command(root,"/bin/ubus","call","pxe-metrics","metrics","{}"),capture_output=True,text=True,timeout=2)
     if response.returncode:raise AssertionError(f"metrics failed: {response.returncode} {response.stderr}")
     return json.loads(response.stdout)
+
+
+def tftp_health():
+    with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as endpoint:
+        endpoint.settimeout(.6)
+        endpoint.sendto(b"\0\1health\0octet\0",("127.0.0.1",69))
+        data,peer=endpoint.recvfrom(1024)
+        if data!=b"\0\3\0\1pxe-owner-health":raise AssertionError(f"TFTP health response {data!r}")
+        endpoint.sendto(b"\0\4\0\1",peer)
+    return True
 
 
 def grammar_cases():
@@ -407,6 +423,13 @@ def run_profile(root, side, profile, client, server, out):
         (root/"m2"/name).unlink(missing_ok=True)
     if profile.get("initial_leases") is not None:
         (root/"m2/pxe.leases").write_text(profile["initial_leases"])
+    if profile.get("helper"):
+        for name in ["pxe-helper.events","pxe-helper.running","pxe-helper.done"]:(root/"m2"/name).unlink(missing_ok=True)
+        script=root/"m2/pxe-helper"
+        script.write_text('#!/bin/sh\nprintf "%s %s %s\\n" "$1" "$2" "$3" >> /m2/pxe-helper.events\n: > /m2/pxe-helper.running\nsleep 2\n: > /m2/pxe-helper.done\n')
+        script.chmod(0o755)
+    if profile.get("tftp"):
+        directory=root/"m2/pxe-tftp";directory.mkdir(exist_ok=True);(directory/"health").write_bytes(b"pxe-owner-health")
     tested = subprocess.run(command(root, side, "--test", "-C", "/m2/pxe.conf"), capture_output=True, text=True, timeout=3)
     row = {"profile": profile["name"], "side": side, "started": False, "cases": [],
            "test": {"exit": tested.returncode, "stdout": tested.stdout, "stderr": tested.stderr}}
@@ -433,6 +456,12 @@ def run_profile(root, side, profile, client, server, out):
             row["fd_start"] = net.descriptors(process.pid)
             if profile.get("metrics") is not None:row["initial_metrics"]=metrics(root)
             for item in profile["cases"]:
+                if item["helper_busy"]:
+                    deadline=time.monotonic()+1
+                    while not (root/"m2/pxe-helper.running").exists():
+                        if time.monotonic()>=deadline:raise AssertionError("helper did not start")
+                        time.sleep(.01)
+                    if (root/"m2/pxe-helper.done").exists():raise AssertionError("helper already finished before concurrency witness")
                 if item["reload_hosts"] is not None:
                     (root/"m2/pxe.hosts").write_text(item["reload_hosts"])
                     process.send_signal(signal.SIGHUP)
@@ -448,12 +477,22 @@ def run_profile(root, side, profile, client, server, out):
                 replies = [entry for entry in raw if entry not in echoes]
                 upstream=server.call(op="take")["packets"] if server is not None else []
                 leases = root/"m2/pxe.leases"
+                tftp=tftp_health() if profile.get("tftp") else None
+                if item["helper_busy"] and (root/"m2/pxe-helper.done").exists():raise AssertionError("helper finished before PXE/DNS/TFTP witness")
+                helper_events=(root/"m2/pxe-helper.events").read_text().splitlines() if profile.get("helper") and (root/"m2/pxe-helper.events").exists() else None
                 row["cases"].append({"name": item["name"], "request": item["request"], "replies": replies,
                                      "peer_echo": echoes, "alive": process.poll() is None, "heartbeat": heartbeat(),
                                      "leases": leases.read_text() if leases.exists() else None,
                                      "observed_epoch":int(time.time()),"upstream":upstream,
+                                     "tftp":tftp,"helper_events":helper_events,"helper_busy_observed":item["helper_busy"],
                                      "metrics":metrics(root) if profile.get("metrics") is not None else None})
             row["fd_end"] = net.descriptors(process.pid)
+            if profile.get("helper"):
+                deadline=time.monotonic()+3
+                while not (root/"m2/pxe-helper.done").exists():
+                    if time.monotonic()>=deadline:raise AssertionError("helper did not complete")
+                    time.sleep(.02)
+                row["helper_events"]=(root/"m2/pxe-helper.events").read_text().splitlines()
     except Exception as error:
         row["error"] = repr(error)
     finally:
@@ -578,16 +617,22 @@ def evaluate(rows, corpus, sides):
                     failures.append(f"{key}/{item['name']}: unhealthy daemon")
                 if profile["mode"]=="proxy" and lease_state(case):
                     failures.append(f"{key}/{item['name']}: proxy allocated a lease")
+                if profile.get("tftp") and case.get("tftp") is not True:failures.append(f"{key}/{item['name']}: TFTP health")
+                if item["helper_busy"] and case.get("helper_busy_observed") is not True:failures.append(f"{key}/{item['name']}: no concurrent helper witness")
                 if profile.get("metrics") is not None and (case.get("metrics") or {}).get("pxe")!=profile["metrics"][index]:
                     failures.append(f"{key}/{item['name']}: PXE counter")
             if profile.get("metrics") is not None:
                 if (row.get("initial_metrics") or {}).get("pxe")!=0:failures.append(f"{key}: initial PXE count")
                 if not row.get("bus_cleanup") or row["bus_cleanup"].get("forced"):failures.append(f"{key}: ubusd cleanup")
+            if profile.get("helper") and (len(row.get("helper_events",[]))!=1 or not row["helper_events"][0].startswith("add ")):
+                failures.append(f"{key}: BOOTP add/proxy no-event boundary")
         if sides == ["c", "rust"]:
             first = indexed.get((profile["name"], "c")); second = indexed.get((profile["name"], "rust"))
             if not first or not second:
                 continue
             if profile.get("bind_kind"):continue
+            if profile.get("helper") and first.get("helper_events")!=second.get("helper_events"):
+                failures.append(f"{profile['name']}: helper events differ")
             for stream in ["stdout", "stderr"]:
                 if first["test"][stream] != second["test"][stream].replace("dnsmasq-rs:", "dnsmasq:"):
                     failures.append(f"{profile['name']}: --test {stream} differs")
