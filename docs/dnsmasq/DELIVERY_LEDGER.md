@@ -2,10 +2,10 @@
 
 ## 当前状态与下一步
 
-- 当前里程碑：M5；169 项中 **59 项已关闭、66 项部分实现、44 项未实现，剩余 110 项**。
-- 刚关闭：ignore-address 最后两处边界差异修复并通过；run-05 共39配置／276运行行／39组启动与--test配对通过。审计发现localise-queries的同名host-record夹具未有效覆盖既定边界，该项暂重开并立即修正；其余8项维持关闭。
+- 当前里程碑：M5；169 项中 **60 项已关闭、65 项部分实现、44 项未实现，剩余 109 项**。
+- 刚关闭：localise-queries 夹具已补齐，两条同名host-record在启用时仅返回子网内地址、禁用时返回两地址，C/Rust的UDP/TCP均通过；run-07-localise 3配置／12行，4条清单全部通过。通用矩阵首批9项现全部关闭。
 - 当前代码：矩阵候选 `14d4e5fa`，ELF SHA256 `e78d5f286c08d4c3c053c3a9ad8173be865351e10416ffb116466a2085750989`，1,376,368字节（本批+0，M4+217,088）。前批db51616d的helper、leasequery、RR filter、boot和TFTP统一复测已通过。
-- 下一步：relay按冻结43项C清单整合单poll接线，relay-only不创建租约文件，已开始镜像C基线；通用矩阵下一批为大小写编码、fast-dns-retry、max-tcp-connections、local-service 5项，先核对C清单和诊断边界。
+- 下一步：relay按冻结43项C清单整合单poll接线，relay-only不创建租约文件；首批C基线18配置／72报文和40语法场景通过，正在构建1e4eeb27整合候选；通用矩阵下一批为大小写编码、fast-dns-retry、max-tcp-connections、local-service 5项，先核对C清单和诊断边界。
 - 阻塞点：无须用户决定的事项。物理路由器未操作。helper保留上下文48字节（原328）、Lease新增可选指针8字节，暂存ExtraData用完释放；体积逐族测量记录，M5结束汇总。
 
 ## 工作规则
@@ -53,7 +53,7 @@ M4 的单 poll owner 已替换六线程接线，决定见 [ADR_THREAD_MODEL.md](
 
 ## M5 盘点与工作顺序
 
-盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**59 项已实现并有 C 差分，66 项部分实现，44 项未实现；剩余 110 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
+盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**60 项已实现并有 C 差分，65 项部分实现，44 项未实现；剩余 109 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
 
 对镜像 init 的静态调用路径核对得到 **A 组 99 项、B 组 70 项**。A 表示原生 UCI/init 生成或调用，行号链接到保留原文的 init；B 表示通常需额外配置。`extraconftext`/conf-dir 可以透传任意指令，不据此把全部选项都算原生生成。`pxe-service`、`pxe-prompt`、`interface-name` 实际有 init 生成路径，归 A。26 个 excluded-capability 选项不混入169项计数；其与C一致的禁用/拒绝边界仍保留。
 
@@ -132,7 +132,7 @@ M5 退出条件：169项全部实现并有C差分，或已证明与C一致的拒
 | `interface-name` | A / 228 | DNS 记录/策略 | 未实现 | [source-extracted](../../docs/dnsmasq/INTERFACE_NAME_SOURCE_REVIEW.md)；Metadata only; no parser or dynamic interface-derived record state. Need netlink IPv6 flags, no-address existence, PTR precedence and TCP inherited snapshot semantics. |
 | `local` | A / 175,1037 | DNS 记录/策略 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-dns/summary.json)；Local/domain routing is wired and has exact-source primitive and native daemon coverage; full option matrix against image C missing (wildcards, family priority, empty/null literal, classes, rebind interoperation). |
 | `local-ttl` | A / 1078 | DNS 记录/策略 | 已实现，有C差分 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-dns/summary.json)；Default local TTL reaches configured records/hosts and exact image queries; option override parsing covered. DHCP-specific TTL contract is separately owned. |
-| `localise-queries` | A / 992 | DNS 记录/策略 | 部分实现 | run-05普通路径通过；清单审计发现单条host-record的多IPv4被C覆盖，未覆盖同名子网内外配置记录的本地化行为，正在拆为两条同名记录复测。 |
+| `localise-queries` | A / 992 | DNS 记录/策略 | 已实现，有C差分 | [M5 补正矩阵](../../private/dnsmasq-rewrite/evidence/M5/option-matrix/run-07-localise/result.json)；3配置／12行，hosts及两条同名host-record子网内外地址，启用/禁用基线和UDP/TCP通过，4条C清单全部关闭；候选14d4e5fa，ELF e78d5f28…750989。 |
 | `max-cache-ttl` | A / 1081 | DNS 记录/策略 | 部分实现 | [source-extracted](../../docs/dnsmasq/DNS_SOURCE_MAP.md)；Cache policy is connected (max clamp before min clamp) with primitive frozen-clock differential; exact image daemon option gate and reverse extraction semantics remain. |
 | `max-port` | A / 1035 | DNS 记录/策略 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final/config-image)；Scalar parser exists but nondefault values are rejected by main::validate_runtime_ready. Upstream socket allocator does not consume configured source-port range/pool semantics. |
 | `max-ttl` | A / 1079 | DNS 记录/策略 | 部分实现 | [source-extracted](../../docs/dnsmasq/DNS_STALE_METADATA_ORACLE.md)；Scalar and cache policy primitives exist; main rejects nondefault max-ttl. It clips certain live upstream TTLs before cache insertion, not just cached replay TTL. |

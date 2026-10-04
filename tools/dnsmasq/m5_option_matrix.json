@@ -108,7 +108,8 @@
       "source": [
         "option.c:496",
         "forward.c:1796",
-        "rfc1035.c:2085-2135"
+        "rfc1035.c:2085-2135",
+        "cache.c:1646-1668"
       ],
       "checklist": [
         {
@@ -116,7 +117,8 @@
           "checked": false,
           "required_scenarios": [
             "localise-queries",
-            "localise-invalid"
+            "localise-invalid",
+            "localise-disabled"
           ]
         },
         {
@@ -124,7 +126,8 @@
           "checked": false,
           "required_scenarios": [
             "localise-queries",
-            "localise-invalid"
+            "localise-invalid",
+            "localise-disabled"
           ]
         },
         {
@@ -132,21 +135,24 @@
           "checked": false,
           "required_scenarios": [
             "localise-queries",
-            "localise-invalid"
+            "localise-invalid",
+            "localise-disabled"
           ]
         },
         {
-          "boundary": "configured host-record data is not host-file data; UDP/TCP",
+          "boundary": "host-record entries carry F_HOSTS|F_CONFIG and localise like hosts; two same-name host-records prove inside/outside selection against option-disabled baseline; UDP/TCP",
           "checked": false,
           "required_scenarios": [
             "localise-queries",
-            "localise-invalid"
+            "localise-invalid",
+            "localise-disabled"
           ]
         }
       ],
       "scenarios": [
         "localise-queries",
-        "localise-invalid"
+        "localise-invalid",
+        "localise-disabled"
       ]
     },
     "expand-hosts": {
@@ -940,7 +946,7 @@
       "options": [
         "localise-queries"
       ],
-      "config": "localise-queries\nhost-record=configured,127.0.0.30,192.0.2.30\n",
+      "config": "localise-queries\nhost-record=configured,127.0.0.30\nhost-record=configured,192.0.2.30\n",
       "probes": [
         {
           "id": "subnet-hosts",
@@ -975,7 +981,10 @@
           "type": 1,
           "c_expect": {
             "udp": "response",
-            "tcp": "response"
+            "tcp": "response",
+            "answer_addresses": [
+              "127.0.0.30"
+            ]
           }
         },
         {
@@ -2336,6 +2345,30 @@
       "hosts": "",
       "expected_test_exit": 0,
       "source_note": "Image AArch64 util.c514 is_same_net_prefix shifts signed int by32 for IPv4 prefix0; observed mask is all ones. Baseline run03 retained. Compare exact-host and different-host separately; do not suppress Rust difference."
+    },
+    {
+      "id": "localise-disabled",
+      "options": [
+        "localise-queries"
+      ],
+      "config": "host-record=configured,127.0.0.30\nhost-record=configured,192.0.2.30\n",
+      "probes": [
+        {
+          "id": "configured",
+          "name": "configured",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response",
+            "answer_addresses": [
+              "127.0.0.30",
+              "192.0.2.30"
+            ]
+          }
+        }
+      ],
+      "hosts": "127.0.0.10 multihost\n192.0.2.10 multihost\n192.0.2.20 remotehost\n198.51.100.20 remotehost\n2001:db8::10 multihost\n2001:db8::20 multihost\n",
+      "expected_test_exit": 0
     }
   ]
 }

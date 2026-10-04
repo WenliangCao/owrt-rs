@@ -278,6 +278,10 @@ def compare(expected, actual, scenario):
             wanted = probe['c_expect'].get(transport, 'response')
             if (row['response'] is None) != (wanted == 'timeout'):
                 failures.append({'phase': 'c-calibration', 'id': row['id'], 'expected': wanted, 'c': row})
+            if 'answer_addresses' in probe['c_expect']:
+                addresses = sorted(r['data'] for r in (row['response'] or {}).get('records', []) if r['section'] == 'answer' and r['type'] in (1, 28))
+                if addresses != sorted(probe['c_expect']['answer_addresses']):
+                    failures.append({'phase': 'c-calibration', 'id': row['id'], 'expected_addresses': probe['c_expect']['answer_addresses'], 'c_addresses': addresses})
     for left, right in zip(expected['rows'], actual['rows']):
         a, b = copy.deepcopy(left), copy.deepcopy(right)
         for row in (a, b):

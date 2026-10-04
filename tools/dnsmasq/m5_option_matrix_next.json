@@ -1,0 +1,148 @@
+{
+  "schema": "m5-option-matrix-plan-v1",
+  "status": "planned-unexecuted",
+  "executable": false,
+  "reference": "Matching dnsmasq2.93 OpenWrt source identified in m5_option_matrix.json",
+  "evidence_root": "private/dnsmasq-rewrite/evidence/M5/option-matrix",
+  "common_rules": [
+    "Reuse m5_option_matrix.py probe adapters; product fixes integrated by root.",
+    "All syntax and startup stdout/stderr, process/ELF identity and cleanup stay exact.",
+    "Remove base no-0x20-encode for casing profiles and base listen-address for local-service profiles; these otherwise disable the tested feature.",
+    "No option closes without every source checklist row and C comparison."
+  ],
+  "families": [
+    {
+      "options": [
+        "do-0x20-encode",
+        "no-0x20-encode"
+      ],
+      "source_and_scope": "C: option.c:609\u2013610; forward.c:268\u2013320, 391\u2013395, 1292, 1323\u20131340,\n1457\u20131518, 3232\u20133276; rfc1035.c:extract_name. Rust consumers exist in\nconfig/dns.rs and dns/forward.rs. No runtime gap identified in this source read.",
+      "checklist": [
+        {
+          "checked": false,
+          "boundary": "Compare absent/do/no/both flags in each order, repeat flags, and rejected unexpected arguments; compare syntax and actual startup diagnostic streams."
+        },
+        {
+          "checked": false,
+          "boundary": "For UDP, record raw outbound question casing. `do && !no` randomizes only the first 32 alphabetic characters; digit, hyphen and label separator positions do not consume bits. Check short and more-than-64-letter mixed-case names."
+        },
+        {
+          "checked": false,
+          "boundary": "Do not compare random bit patterns or random IDs exactly. Require C and Rust to obey the same enabled/disabled rules and collect 64 independent requests so a disabled RNG path cannot pass an enabled profile."
+        },
+        {
+          "checked": false,
+          "boundary": "Reply with exact echoed question; then with exactly one alphabetic case bit flipped. Enabled UDP must reject the second response and accept a later correctly cased one. Disabled UDP follows C's case-insensitive lookup."
+        },
+        {
+          "checked": false,
+          "boundary": "Compare exact client question bytes, including original mixed case. Coalesce two clients whose letter-case difference occurs after letter 32 and after letter 64; both receive their own original question case and ID."
+        },
+        {
+          "checked": false,
+          "boundary": "Exercise TCP separately; its forwarding path does not use the UDP frec encoding step. Record the observed C behavior rather than imposing UDP rules."
+        },
+        {
+          "checked": false,
+          "boundary": "Controls: force no outbound case changes in enabled mode; mutate restored client case; accept an incorrect-case response; delete an observation."
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "options": [
+        "fast-dns-retry"
+      ],
+      "source_and_scope": "C: option.c:3552\u20133575; forward.c:472\u2013489, 628\u2013670, 3204;\ndnsmasq.c:1103. Rust ScalarConfig/FastRetry and ForwardTable retry deadlines are\nconnected. Reuse the stimuli from `dns_retry_failure_diff.py`, not its native C\nexecution wrapper.",
+      "checklist": [
+        {
+          "checked": false,
+          "boundary": "Syntax/startup: absent, bare flag, `50`, `50,0`, `50,999`, `50,1000`, `50,1999`; reject `49`, nonnumeric fields and extra fields. Check exact output."
+        },
+        {
+          "checked": false,
+          "boundary": "Blackhole one upstream: first send then exponential retry intervals; timeout milliseconds truncate to seconds. Compare C-derived event counts and ordering; retain actual timestamps and use explicit bounded scheduler jitter."
+        },
+        {
+          "checked": false,
+          "boundary": "A successful reply cancels further retries; timeout stops retries. A subsecond timeout performs no timer retries after truncation to zero."
+        },
+        {
+          "checked": false,
+          "boundary": "Retry send failure does not leak a forward slot; recovered transport can answer later queries. Observe upstream selection under strict order and the normal selection mode, with the same source-derived fixture for each side."
+        },
+        {
+          "checked": false,
+          "boundary": "DNS local UDP/TCP queries remain responsive while a retry is pending."
+        },
+        {
+          "checked": false,
+          "boundary": "Controls: suppress a retry, leave retries active after success, mutate the interval sequence, omit a deadline observation."
+        }
+      ],
+      "notes": "Known common diagnostic gap from static read: Rust scalar errors currently say\n`retry interval below 50 ms` / `bad integer`; C uses its generic `error`. Keep\nthese rows failing until the root agent fixes the shared diagnostic boundary."
+    },
+    {
+      "options": [
+        "max-tcp-connections"
+      ],
+      "source_and_scope": "C: option.c:5453\u20135462 (zero rejected); dnsmasq.c:1901\u20131915, 1994\u20132008,\n1631\u20131650 (slot requires both child exit and pipe EOF). Rust's shared owner\nalready consumes max_tcp_connections. Reuse the schedule from\n`dns_tcp_capacity_diff.py`; execute both daemons in the exact image with `-k`.",
+      "checklist": [
+        {
+          "checked": false,
+          "boundary": "Syntax/startup: one, two and zero; zero must fail rather than become an unlimited or disabled TCP service. Retain invalid-number diagnostics."
+        },
+        {
+          "checked": false,
+          "boundary": "Fill all slots with idle clients, then connect/send an additional client. The extra request waits in the kernel accept queue and receives no response until a slot is released; it is not reset or rejected prematurely."
+        },
+        {
+          "checked": false,
+          "boundary": "Close one client and observe queued-client admission and reply. Repeat through both listener addresses so the limit is global rather than per socket."
+        },
+        {
+          "checked": false,
+          "boundary": "Keep UDP queries successful during TCP saturation, repeat fill/drain, and check child/socket/PID cleanup on shutdown. Use UDP readiness so readiness itself does not temporarily consume a TCP slot."
+        },
+        {
+          "checked": false,
+          "boundary": "Controls: serve the excess client early, drop its eventual response, report per-listener capacity, retain a child after shutdown."
+        }
+      ],
+      "notes": "Known common diagnostic gap: Rust rejects zero with `max-tcp-connections must\nbe positive`; C uses generic `error`. This is not evidence of a runtime gap."
+    },
+    {
+      "options": [
+        "local-service"
+      ],
+      "source_and_scope": "C: option.c:3485\u20133492 and 6309\u20136321; network.c:271; forward.c:1685\u20131725,\n2416\u20132450. Rust config finalization and ingress policy consumers already exist.",
+      "checklist": [
+        {
+          "checked": false,
+          "boundary": "Syntax/startup: absent, no argument, `net`, `host`, invalid value. Preserve exact diagnostic streams; Rust's static `bad local-service` differs from C's generic `error` and must remain visible until corrected."
+        },
+        {
+          "checked": false,
+          "boundary": "With no explicit interface/listen-address ACL, `net` admits only directly connected source subnets. Test local and routed non-local IPv4/IPv6 clients, each through UDP and TCP, using veths inside this family's private namespace."
+        },
+        {
+          "checked": false,
+          "boundary": "`host` creates loopback-only binding equivalent to C's interface=lo plus bind-interfaces; check both address families and non-loopback destination."
+        },
+        {
+          "checked": false,
+          "boundary": "Explicit interface, except-interface or listen-address configuration disables local-service restrictions; cover each override independently."
+        },
+        {
+          "checked": false,
+          "boundary": "Check source subnet boundaries and distinguish source admission from destination listener presence. Namespace route setup and interface deletion must be recorded and cleaned up without touching the host network."
+        },
+        {
+          "checked": false,
+          "boundary": "Controls: invert one admission decision, retain local-service despite an explicit ACL, delete one IPv6 or TCP observation."
+        }
+      ],
+      "notes": "This batch qualifies five options only after all their checked rows pass. Do not\ninclude reverse-cache, max-ttl, EDNS identity mutation, dynamic-file or other\nknown functionality gaps merely to increase the matrix's option count."
+    }
+  ]
+}
