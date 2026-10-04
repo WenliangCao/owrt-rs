@@ -571,6 +571,26 @@ impl CacheContext<'_> {
         })
     }
 
+    /// check_for_bogus_wildcard commits independently of ordinary extraction.
+    /// TCP preserves this event before rewriting its reply to an empty NXDOMAIN.
+    pub fn insert_bogus(&mut self, name: Name, ttl: u32, now: i64, local: &LocalDnsService) {
+        self.cache.start_insert();
+        insert_cache_record(
+            self.cache,
+            self.counters,
+            local,
+            Record {
+                name,
+                kind: Kind::NxDomain,
+                negative: true,
+                data: Vec::new(),
+            },
+            now,
+            ttl,
+        );
+        let _ = self.cache.commit_counted(self.counters);
+    }
+
     /// Preserve ordered cache effects, including a prefix before bad generic
     /// RDATA. Return that validation error so the caller rejects the reply;
     /// an insertion failure such as capacity exhaustion is not a wire error.
@@ -589,32 +609,18 @@ impl CacheContext<'_> {
         if header.opcode() != 0 || !matches!(original_rcode, 0 | 3) || header.flags & 0x0200 != 0 {
             return Ok(());
         }
-        let cache = &mut *self.cache;
-        let counters = &mut *self.counters;
         if original_rcode != 3 {
             if let Some((name, ttl)) =
                 super::process::bogus_cache_entry(packet, header.answers, policy)
             {
                 // This independent branch uses the matching RR's owner/TTL;
                 // --no-negcache, RA and CD do not suppress its commit in C.
-                cache.start_insert();
-                insert_cache_record(
-                    cache,
-                    counters,
-                    local,
-                    Record {
-                        name,
-                        kind: Kind::NxDomain,
-                        negative: true,
-                        data: Vec::new(),
-                    },
-                    now,
-                    ttl,
-                );
-                let _ = cache.commit_counted(counters);
+                self.insert_bogus(name, ttl, now, local);
                 return Ok(());
             }
         }
+        let cache = &mut *self.cache;
+        let counters = &mut *self.counters;
         // Unsupported query metadata stays outside ordinary extraction.
         // CD/no_cache instead run its ordered effects and gate only commit.
         if ordinary == OrdinaryCacheMode::Unsupported {
