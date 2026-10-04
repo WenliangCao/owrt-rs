@@ -42,6 +42,7 @@ pub enum FileDiagnostic {
         error: Error,
     },
     EmptyResolvers(PathBuf),
+    ReadingResolvers(PathBuf),
     Watch(io::Error),
 }
 
@@ -76,6 +77,7 @@ impl std::fmt::Display for FileDiagnostic {
             Self::EmptyResolvers(path) => {
                 write!(out, "no servers found in {}, will retry", path.display())
             }
+            Self::ReadingResolvers(path) => write!(out, "reading {}", path.display()),
             Self::Watch(error) => write!(out, "inotify read: {}", os_message(error)),
         }
     }
@@ -413,6 +415,14 @@ impl DnsFiles {
                 if job.request.source == Source::Resolv {
                     if successful_resolv {
                         self.warned_empty = false;
+                        // poll_resolv logs only after a successful read, before
+                        // check_servers and any clear-on-reload side effects.
+                        // no-poll calls reload_servers directly, without this.
+                        if !self.no_poll {
+                            result
+                                .diagnostics
+                                .push(FileDiagnostic::ReadingResolvers(job.request.path.clone()));
+                        }
                     } else {
                         self.resolver_failed(&job.request, &mut result.diagnostics);
                     }
