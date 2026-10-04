@@ -1201,6 +1201,21 @@ impl LocalProvider {
         provider.event_sink = Some(&mut on_event);
         let result = provider.resolve(dispatch);
         if let Ok(outcome) = &result {
+            if let Reply::Ack { address, .. } = outcome.reply {
+                if self.config.lease_query.enabled {
+                    // C keeps prior metadata when this ACK has no usable
+                    // incoming value. Agent retention shares echo reservation.
+                    if let Some(agent) = packet.echo_agent_id() {
+                        let _ = self.leases.set_agent_id(address, Some(agent));
+                    }
+                    if let Some(vendor) = packet.option(60, 1) {
+                        let _ = self.leases.set_vendor_class(address, Some(vendor));
+                    }
+                } else {
+                    let _ = self.leases.set_agent_id(address, None);
+                    let _ = self.leases.set_vendor_class(address, None);
+                }
+            }
             if self.config.script.is_some() {
                 self.scripts.add_pruned(outcome.removed.clone());
             }
@@ -1817,23 +1832,11 @@ fn reverse_hostname(mut name: Vec<u8>, domain: Option<&[u8]>) -> Option<Vec<u8>>
 /// rfc2131.c extended_hwaddr followed by util.c print_mac. A zero-length
 /// hardware value still has a non-NULL pointer in this path, hence "<null>".
 fn event_mac(packet: super::packet::Packet<'_>, client_id: Option<&[u8]>) -> Vec<u8> {
-    let hardware = packet.hardware_address();
-    let mac = if hardware.is_empty() {
-        client_id
-            .filter(|clid| clid.len() > 3)
-            .map(|clid| {
-                if clid[0] == packet.hardware_type()
-                    || (clid[0] == 27 && packet.hardware_type() == 24)
-                {
-                    &clid[1..]
-                } else {
-                    clid
-                }
-            })
-            .unwrap_or(hardware)
-    } else {
-        hardware
-    };
+    let mac = super::request::extended_hardware_id(
+        packet.hardware_type(),
+        packet.hardware_address(),
+        client_id,
+    );
     if mac.is_empty() {
         return b"<null>".to_vec();
     }
@@ -1849,40 +1852,29 @@ fn event_mac(packet: super::packet::Packet<'_>, client_id: Option<&[u8]>) -> Vec
 }
 
 fn relay_suboption(packet: super::packet::Packet<'_>, wanted: u8) -> Option<&[u8]> {
-    let bytes = packet.option(82, 1)?;
-    let mut cursor = 0;
-    while cursor + 2 <= bytes.len() {
-        let code = bytes[cursor];
-        let length = usize::from(bytes[cursor + 1]);
-        let end = cursor + 2 + length;
-        if end > bytes.len() {
-            return None;
-        }
-        if code == wanted && length != 0 {
-            return Some(&bytes[cursor + 2..end]);
-        }
-        cursor = end;
-    }
-    None
+    super::packet::find_option(packet.option(82, 1)?, wanted, 1).map(|option| option.value)
 }
 
 fn generated_hostname(
     packet: super::packet::Packet<'_>,
     client_id: Option<&[u8]>,
 ) -> Option<Vec<u8>> {
-    let mac = packet.hardware_address();
-    let bytes = if mac.is_empty() { client_id? } else { mac };
+    let bytes = super::request::extended_hardware_id(
+        packet.hardware_type(),
+        packet.hardware_address(),
+        client_id,
+    );
     if bytes.is_empty() {
         return None;
     }
     const HEX: &[u8; 16] = b"0123456789abcdef";
     let mut result = Vec::with_capacity(bytes.len().min(80) * 3);
     for (index, byte) in bytes.iter().take(80).enumerate() {
-        if index != 0 {
-            result.push(b'-');
-        }
         result.push(HEX[(byte >> 4) as usize]);
         result.push(HEX[(byte & 15) as usize]);
+        if index + 1 != bytes.len() {
+            result.push(b'-');
+        }
     }
     Some(result)
 }
@@ -1890,6 +1882,26 @@ fn generated_hostname(
 #[cfg(test)]
 mod startup_tests {
     use super::*;
+
+    #[test]
+    fn generated_name_uses_extended_hardware_and_c_truncation_separator() {
+        let mut bytes = vec![0; 240];
+        bytes[..3].copy_from_slice(&[1, 24, 0]);
+        bytes[236..240].copy_from_slice(&super::super::packet::COOKIE);
+        let packet = super::super::packet::Packet::parse(&bytes).unwrap();
+        assert_eq!(generated_hostname(packet, Some(&[27, 1, 2])), None);
+        assert_eq!(
+            generated_hostname(packet, Some(&[27, 1, 2, 3])),
+            Some(b"01-02-03".to_vec())
+        );
+        assert_eq!(
+            generated_hostname(packet, Some(&[1, 1, 2, 3])),
+            Some(b"01-01-02-03".to_vec())
+        );
+        let maximum = generated_hostname(packet, Some(&[1; 81])).unwrap();
+        assert_eq!(maximum.len(), 240);
+        assert_eq!(maximum.last(), Some(&b'-'));
+    }
 
     #[test]
     fn ethers_merges_after_host_files_at_startup_and_reload() {
