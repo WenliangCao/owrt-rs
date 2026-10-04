@@ -2,11 +2,11 @@
 
 ## 当前状态与下一步
 
-- 当前里程碑：M5；169 项中 **61 项已关闭、71 项部分实现、37 项未实现，剩余 108 项**。
-- 刚关闭：max-tcp-connections 4配置和两轮跨地址容量/恢复/UDP行为均通过，5条清单及20负向控制通过，立即扣1项。
-- 当前代码：relay候选 `9da20ac0` / ELF `4586c5d2e545a11b8f4246208e762e4f19fed0081dac5e20efd480f2e1ccafed`，1,396,848字节（relay当前+20,480，M4+237,568）；helper16场景／32侧、boot102事件、leasequery22配置／38查询复跑通过，Linux musl库516通过／18忽略、main10通过。DNS case修复e89f9f67已提交，f1668e28候选SHA9c73a0d979aa1faa79b542fc08bb34f45a716d8bba2a89153ff61d841ed2ebd5、体积不变，等待对照。
-- 下一步：relay扩展31配置／135报文／40语法／4类binding仅剩已修hops副作用待复跑，单次FD计数波动正定位。矩阵第二批大小写编码发现关闭编码时上游改case被覆盖，已修为C的相对XOR语义，待新候选对照；容量/retry/local-service继续并行。表中7个已有消费者选项已从未实现校正为部分实现，未提前扣数。
-- 阻塞点：Oracle磁盘ENOSPC导致新夹具复制失败，尚未运行的对照不计通过；各负责人正删除自己已退出namespace且证据已回拷的可重建rootfs/构建缓存，保留原始结果、配置、身份和运行末态。无需用户决定；物理路由器未操作。
+- 当前里程碑：M5；169 项中 **63 项已关闭、69 项部分实现、37 项未实现，剩余 106 项**。
+- 刚关闭：do-0x20-encode、no-0x20-encode 8配置／420行全部通过，含关闭编码时上游改case、启用时认证及合并客户端case恢复；20负向控制通过。第二批矩阵累计关闭3项。
+- 当前代码：relay候选 `9da20ac0` / ELF `4586c5d2e545a11b8f4246208e762e4f19fed0081dac5e20efd480f2e1ccafed`，1,396,848字节（relay当前+20,480，M4+237,568）；helper16场景／32侧、boot102事件、leasequery22配置／38查询复跑通过，Linux musl库516通过／18忽略、main10通过。DNS case修复e89f9f67已提交，f1668e28候选SHA9c73a0d979aa1faa79b542fc08bb34f45a716d8bba2a89153ff61d841ed2ebd5、体积不变，大小写矩阵已通过。
+- 下一步：relay f1668e28 完成36配置／168报文、40语法、4类binding及11负控，全部通过；正补冻结清单STATE-03的实际接口删除/重建索引用例，完成即关闭3项。矩阵第二批大小写相对XOR修复已通过，retry/local-service继续推进；DHCP identity下一族仅准备C边界清单，尚未开工产品。
+- 阻塞点：Oracle ENOSPC已通过删除各自已归档的可重建rootfs/构建缓存缓解，可用约1GiB；正在清理另23份已完成副本并保留/m2末态。无须用户决定。物理路由器未操作。
 
 ## 工作规则
 
@@ -53,7 +53,7 @@ M4 的单 poll owner 已替换六线程接线，决定见 [ADR_THREAD_MODEL.md](
 
 ## M5 盘点与工作顺序
 
-盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**61 项已实现并有 C 差分，71 项部分实现，37 项未实现；剩余 108 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
+盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**63 项已实现并有 C 差分，69 项部分实现，37 项未实现；剩余 106 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
 
 对镜像 init 的静态调用路径核对得到 **A 组 99 项、B 组 70 项**。A 表示原生 UCI/init 生成或调用，行号链接到保留原文的 init；B 表示通常需额外配置。`extraconftext`/conf-dir 可以透传任意指令，不据此把全部选项都算原生生成。`pxe-service`、`pxe-prompt`、`interface-name` 实际有 init 生成路径，归 A。26 个 excluded-capability 选项不混入169项计数；其与C一致的禁用/拒绝边界仍保留。
 
@@ -211,7 +211,7 @@ M5 退出条件：169项全部实现并有C差分，或已证明与C一致的拒
 | `caa-record` | B / — | DNS 记录/策略 | 部分实现 | 2026-10-04 复核：正常配对保留；OPENWRT_CONTRACT 中 CAA tag 接受集差异尚未结案，不算完整关闭。 |
 | `clear-on-reload` | B / — | DNS 记录/策略 | 未实现 | 当前无通过证据；No consumer outside option metadata; generic not-implemented rejection. C triggers cache clear when resolv.conf-driven servers change; ordinary SIGHUP always-clear evidence is not this option. |
 | `dns-loop-detect` | B / — | DNS 记录/策略 | 未实现 | 当前无通过证据；Advertised compile capability but no startup probe scheduler or loop-detection policy; generic rejection. |
-| `do-0x20-encode` | B / — | DNS 记录/策略 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final/config-image)；ForwardTable case randomization is connected and has unit tests; no dedicated image daemon behavioral gate found. |
+| `do-0x20-encode` | B / — | DNS 记录/策略 | 已实现，有C差分 | [M5 大小写矩阵](../../private/dnsmasq-rewrite/evidence/M5/option-matrix/batch2/casing-03/result.json)；8配置／420行，启停/双flag顺序、首32字母随机化、错误case认证、合并客户端超过32/64字母及TCP通过；关闭编码时保留上游case变化，20负控通过。候选f1668e28，ELF9c73a0d9…d2ebd5（1,396,848字节，case修复增量0）。 |
 | `domain-suffix` | B / — | DNS 记录/策略 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final/config-image)；Ordinary suffix and IPv4/IPv6 prefix selectors exist. domain=# resolver search, interface selectors and explicit IPv6 ranges are rejected by validate_ready/domain_for_address. Alias shares implementation but needs explicit paired coverage. |
 | `dynamic-host` | B / — | DNS 记录/策略 | 未实现 | [source-extracted](../../docs/dnsmasq/INTERFACE_NAME_SOURCE_REVIEW.md)；Metadata only; no parser or dynamic interface-derived record state. Need netlink IPv6 flags, no-address existence, PTR precedence and TCP inherited snapshot semantics. |
 | `fast-dns-retry` | B / — | DNS 记录/策略 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final)；Nonblocking retry state is connected, source-native retry failure/order gate exists, including M4 sorting-change replay. Exact image option-specific retry schedule/failure family gate not indexed. |
@@ -221,7 +221,7 @@ M5 退出条件：169项全部实现并有C差分，或已证明与C一致的拒
 | `mx-target` | B / — | DNS 记录/策略 | 已实现，有C差分 | [M5 paired-04](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)；显式 target、默认 target 和 Additional 行为通过。 |
 | `naptr-record` | B / — | DNS 记录/策略 | 部分实现 | 2026-10-04 复核：超过 255 字节的字符字段目前丢弃整条记录，C 会截断字段；paired-04 未覆盖，待修复并重跑。 |
 | `neg-ttl` | B / — | DNS 记录/策略 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-dns/summary.json)；No-SOA fallback is connected and historically C-compared for forward records; reverse negative extraction absent and image option-specific TTL/fallback family gate needed. |
-| `no-0x20-encode` | B / — | DNS 记录/策略 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final/config-image)；Explicit disable is consumed and used by historical image gates, but enabled/disabled conflict precedence and authenticated reply casing need one current daemon image family gate. |
+| `no-0x20-encode` | B / — | DNS 记录/策略 | 已实现，有C差分 | [M5 大小写矩阵](../../private/dnsmasq-rewrite/evidence/M5/option-matrix/batch2/casing-03/result.json)；8配置／420行，启停/双flag顺序、首32字母随机化、错误case认证、合并客户端超过32/64字母及TCP通过；关闭编码时保留上游case变化，20负控通过。候选f1668e28，ELF9c73a0d9…d2ebd5（1,396,848字节，case修复增量0）。 |
 | `no-round-robin` | B / — | DNS 记录/策略 | 部分实现 | [source-native](../../private/dnsmasq-rewrite/cache-answer-20260930/selection-common-04/summary.json)；Forward/hosts rotation flag is wired; native cache/host ordering differential exists. Reverse-cache paths and exact-image multi-record option matrix remain incomplete. |
 | `port-limit` | B / — | DNS 记录/策略 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final/config-image)；Scalar parser exists but nondefault values are rejected by main::validate_runtime_ready. Upstream socket allocator does not consume configured source-port range/pool semantics. |
 | `ptr-record` | B / — | DNS 记录/策略 | 已实现，有C差分 | [M5 paired-04](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)；显式和省略 target、PTR owner/order 与本地查询通过。 |
