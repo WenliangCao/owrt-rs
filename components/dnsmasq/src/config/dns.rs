@@ -334,7 +334,9 @@ fn pattern(bytes: &[u8], dotless: bool) -> Result<DomainPattern, Error> {
         wildcard_dot = wildcard && suffix.first() == Some(&b'.');
     }
     Ok(DomainPattern {
-        suffix: canon(suffix)?,
+        // add_update_server reports canonicalisation failures through the
+        // generic option parser error, unlike other named-record parsers.
+        suffix: canon(suffix).map_err(|_| Error("error"))?,
         wildcard,
         wildcard_dot,
         dotless,
@@ -983,6 +985,17 @@ mod tests {
         let mut config = DnsConfig::default();
         apply(&mut config, b"server=upstream.test").unwrap();
         assert!(config.validate_ready().is_err());
+    }
+
+    #[test]
+    fn server_domain_label_limit_uses_the_c_generic_diagnostic() {
+        for option in ["address", "server", "local"] {
+            let accepted = format!("{option}=/{}/192.0.2.1", "a".repeat(63));
+            let rejected = format!("{option}=/{}/192.0.2.1", "a".repeat(64));
+            let mut config = DnsConfig::default();
+            apply(&mut config, accepted.as_bytes()).unwrap();
+            assert_eq!(apply(&mut config, rejected.as_bytes()), Err(Error("error")));
+        }
     }
 
     #[test]
