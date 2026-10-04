@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "executable": false,
-  "status": "source-boundaries-frozen-before-probes",
+  "executable": true,
+  "status": "full-source-boundary-schedule-unqualified",
   "scope": "IPv4 dhcp-fqdn, dhcp-ignore-clid and dhcp-ttl. TTL parser differences remain open until exact-image evidence and a product fix. Does not qualify unrelated DNS cache or reverse options.",
   "source_identity": {
     "option.c": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
@@ -20,47 +20,209 @@
       ],
       "eligible_for_closure": true,
       "known_gaps": [],
-      "scenarios": [],
+      "scenarios": [
+        "fqdn-off-live",
+        "fqdn-off-restore",
+        "fqdn-off-authoritative",
+        "fqdn-off-option81-ascii",
+        "fqdn-off-option81-encoded",
+        "fqdn-on-live",
+        "fqdn-on-restore",
+        "fqdn-on-authoritative",
+        "fqdn-on-option81-ascii",
+        "fqdn-on-option81-encoded",
+        "fqdn-restore-same-domain",
+        "fqdn-domain-change-restart",
+        "fqdn-unnamed",
+        "fqdn-no-default",
+        "fqdn-conditional-only",
+        "fqdn-invalid-argument",
+        "fqdn-duplicate"
+      ],
       "checklist": [
         {
           "boundary": "Boolean syntax, duplicate flags, unexpected argument; missing default domain and conditional-domain-only configurations reject while literal default with conditional overrides starts.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "fqdn-off-live",
+            "fqdn-off-restore",
+            "fqdn-off-authoritative",
+            "fqdn-off-option81-ascii",
+            "fqdn-off-option81-encoded",
+            "fqdn-on-live",
+            "fqdn-on-restore",
+            "fqdn-on-authoritative",
+            "fqdn-on-option81-ascii",
+            "fqdn-on-option81-encoded",
+            "fqdn-restore-same-domain",
+            "fqdn-domain-change-restart",
+            "fqdn-unnamed",
+            "fqdn-no-default",
+            "fqdn-conditional-only",
+            "fqdn-invalid-argument",
+            "fqdn-duplicate"
+          ]
         },
         {
           "boundary": "Live DHCP publication selects address-specific domain; default mode publishes short and qualified names, fqdn-only suppresses only short names. Query A/PTR through UDP and TCP after real ACK.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "fqdn-off-live",
+            "fqdn-off-restore",
+            "fqdn-off-authoritative",
+            "fqdn-off-option81-ascii",
+            "fqdn-off-option81-encoded",
+            "fqdn-on-live",
+            "fqdn-on-restore",
+            "fqdn-on-authoritative",
+            "fqdn-on-option81-ascii",
+            "fqdn-on-option81-encoded",
+            "fqdn-restore-same-domain",
+            "fqdn-domain-change-restart",
+            "fqdn-unnamed",
+            "fqdn-no-default",
+            "fqdn-conditional-only",
+            "fqdn-invalid-argument",
+            "fqdn-duplicate"
+          ]
         },
         {
           "boundary": "Name collisions compare case-insensitive short names in default mode and case-insensitive FQDN in fqdn-only mode: different domains coexist only in fqdn-only mode; same-domain collision removes old ownership.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "fqdn-off-live",
+            "fqdn-off-restore",
+            "fqdn-off-authoritative",
+            "fqdn-off-option81-ascii",
+            "fqdn-off-option81-encoded",
+            "fqdn-on-live",
+            "fqdn-on-restore",
+            "fqdn-on-authoritative",
+            "fqdn-on-option81-ascii",
+            "fqdn-on-option81-encoded",
+            "fqdn-restore-same-domain",
+            "fqdn-domain-change-restart",
+            "fqdn-unnamed",
+            "fqdn-no-default",
+            "fqdn-conditional-only",
+            "fqdn-invalid-argument",
+            "fqdn-duplicate"
+          ]
         },
         {
           "boundary": "Restore calculates FQDNs after loading all lease short names: same short names in separate domains and duplicate same-domain FQDNs retain C order and publication; restart reproduces it.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "fqdn-off-live",
+            "fqdn-off-restore",
+            "fqdn-off-authoritative",
+            "fqdn-off-option81-ascii",
+            "fqdn-off-option81-encoded",
+            "fqdn-on-live",
+            "fqdn-on-restore",
+            "fqdn-on-authoritative",
+            "fqdn-on-option81-ascii",
+            "fqdn-on-option81-encoded",
+            "fqdn-restore-same-domain",
+            "fqdn-domain-change-restart",
+            "fqdn-unnamed",
+            "fqdn-no-default",
+            "fqdn-conditional-only",
+            "fqdn-invalid-argument",
+            "fqdn-duplicate"
+          ]
         },
         {
           "boundary": "Configured authoritative hostname cannot be taken by a client-supplied name; configured names still publish while absent client names do not invent a name.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "fqdn-off-live",
+            "fqdn-off-restore",
+            "fqdn-off-authoritative",
+            "fqdn-off-option81-ascii",
+            "fqdn-off-option81-encoded",
+            "fqdn-on-live",
+            "fqdn-on-restore",
+            "fqdn-on-authoritative",
+            "fqdn-on-option81-ascii",
+            "fqdn-on-option81-encoded",
+            "fqdn-restore-same-domain",
+            "fqdn-domain-change-restart",
+            "fqdn-unnamed",
+            "fqdn-no-default",
+            "fqdn-conditional-only",
+            "fqdn-invalid-argument",
+            "fqdn-duplicate"
+          ]
         },
         {
           "boundary": "Hostname option12 and encoded/unencoded option81 feed the same publication mode; domain stripping and case handling use actual C packet responses.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "fqdn-off-live",
+            "fqdn-off-restore",
+            "fqdn-off-authoritative",
+            "fqdn-off-option81-ascii",
+            "fqdn-off-option81-encoded",
+            "fqdn-on-live",
+            "fqdn-on-restore",
+            "fqdn-on-authoritative",
+            "fqdn-on-option81-ascii",
+            "fqdn-on-option81-encoded",
+            "fqdn-restore-same-domain",
+            "fqdn-domain-change-restart",
+            "fqdn-unnamed",
+            "fqdn-no-default",
+            "fqdn-conditional-only",
+            "fqdn-invalid-argument",
+            "fqdn-duplicate"
+          ]
         },
         {
           "boundary": "Rename, release and SIGHUP replace only current DHCP names; former forward/PTR ownership disappears and non-DHCP local records remain responsive.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "fqdn-off-live",
+            "fqdn-off-restore",
+            "fqdn-off-authoritative",
+            "fqdn-off-option81-ascii",
+            "fqdn-off-option81-encoded",
+            "fqdn-on-live",
+            "fqdn-on-restore",
+            "fqdn-on-authoritative",
+            "fqdn-on-option81-ascii",
+            "fqdn-on-option81-encoded",
+            "fqdn-restore-same-domain",
+            "fqdn-domain-change-restart",
+            "fqdn-unnamed",
+            "fqdn-no-default",
+            "fqdn-conditional-only",
+            "fqdn-invalid-argument",
+            "fqdn-duplicate"
+          ]
         },
         {
           "boundary": "Full DHCP reply, persisted lease identity/name, exact DNS questions/flags/answer values/order/TTL and process/interface cleanup are retained and compared.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "fqdn-off-live",
+            "fqdn-off-restore",
+            "fqdn-off-authoritative",
+            "fqdn-off-option81-ascii",
+            "fqdn-off-option81-encoded",
+            "fqdn-on-live",
+            "fqdn-on-restore",
+            "fqdn-on-authoritative",
+            "fqdn-on-option81-ascii",
+            "fqdn-on-option81-encoded",
+            "fqdn-restore-same-domain",
+            "fqdn-domain-change-restart",
+            "fqdn-unnamed",
+            "fqdn-no-default",
+            "fqdn-conditional-only",
+            "fqdn-invalid-argument",
+            "fqdn-duplicate"
+          ]
         }
       ]
     },
@@ -73,37 +235,135 @@
       ],
       "eligible_for_closure": true,
       "known_gaps": [],
-      "scenarios": [],
+      "scenarios": [
+        "clid-off-same-mac-other-id",
+        "clid-off-same-id-other-mac",
+        "clid-off-missing-id",
+        "clid-off-restore",
+        "clid-on-same-mac-other-id",
+        "clid-on-same-id-other-mac",
+        "clid-on-missing-id",
+        "clid-on-restore",
+        "clid-on-restored-id-static-match",
+        "clid-duplicate",
+        "clid-invalid-argument",
+        "clid-off-unrelated-release-decline",
+        "clid-on-unrelated-release-decline"
+      ],
       "checklist": [
         {
           "boundary": "Boolean syntax, duplicate flag, unexpected argument and option absent/present baseline.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "clid-off-same-mac-other-id",
+            "clid-off-same-id-other-mac",
+            "clid-off-missing-id",
+            "clid-off-restore",
+            "clid-on-same-mac-other-id",
+            "clid-on-same-id-other-mac",
+            "clid-on-missing-id",
+            "clid-on-restore",
+            "clid-on-restored-id-static-match",
+            "clid-duplicate",
+            "clid-invalid-argument",
+            "clid-off-unrelated-release-decline",
+            "clid-on-unrelated-release-decline"
+          ]
         },
         {
           "boundary": "Same MAC with changing nonempty option61 creates or reuses identity according to the global flag; missing and zero-length IDs follow hardware fallback.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "clid-off-same-mac-other-id",
+            "clid-off-same-id-other-mac",
+            "clid-off-missing-id",
+            "clid-off-restore",
+            "clid-on-same-mac-other-id",
+            "clid-on-same-id-other-mac",
+            "clid-on-missing-id",
+            "clid-on-restore",
+            "clid-on-restored-id-static-match",
+            "clid-duplicate",
+            "clid-invalid-argument",
+            "clid-off-unrelated-release-decline",
+            "clid-on-unrelated-release-decline"
+          ]
         },
         {
           "boundary": "Same nonempty option61 with different MACs moves an existing lease when enabled by default, but distinct hardware identities remain separate when ignored.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "clid-off-same-mac-other-id",
+            "clid-off-same-id-other-mac",
+            "clid-off-missing-id",
+            "clid-off-restore",
+            "clid-on-same-mac-other-id",
+            "clid-on-same-id-other-mac",
+            "clid-on-missing-id",
+            "clid-on-restore",
+            "clid-on-restored-id-static-match",
+            "clid-duplicate",
+            "clid-invalid-argument",
+            "clid-off-unrelated-release-decline",
+            "clid-on-unrelated-release-decline"
+          ]
         },
         {
           "boundary": "Restored nonempty client ID is reused after hardware lookup even with global ignore enabled; verify retained file ID, identity matching and id-based static host selection.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "clid-off-same-mac-other-id",
+            "clid-off-same-id-other-mac",
+            "clid-off-missing-id",
+            "clid-off-restore",
+            "clid-on-same-mac-other-id",
+            "clid-on-same-id-other-mac",
+            "clid-on-missing-id",
+            "clid-on-restore",
+            "clid-on-restored-id-static-match",
+            "clid-duplicate",
+            "clid-invalid-argument",
+            "clid-off-unrelated-release-decline",
+            "clid-on-unrelated-release-decline"
+          ]
         },
         {
           "boundary": "Restart preserves selected identity and release/decline cannot remove an unrelated hardware lease when incoming IDs are ignored.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "clid-off-same-mac-other-id",
+            "clid-off-same-id-other-mac",
+            "clid-off-missing-id",
+            "clid-off-restore",
+            "clid-on-same-mac-other-id",
+            "clid-on-same-id-other-mac",
+            "clid-on-missing-id",
+            "clid-on-restore",
+            "clid-on-restored-id-static-match",
+            "clid-duplicate",
+            "clid-invalid-argument",
+            "clid-off-unrelated-release-decline",
+            "clid-on-unrelated-release-decline"
+          ]
         },
         {
           "boundary": "Full wire reply, allocation address, hostname/client-ID lease rows, DNS health, restart and cleanup compare strictly.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "clid-off-same-mac-other-id",
+            "clid-off-same-id-other-mac",
+            "clid-off-missing-id",
+            "clid-off-restore",
+            "clid-on-same-mac-other-id",
+            "clid-on-same-id-other-mac",
+            "clid-on-missing-id",
+            "clid-on-restore",
+            "clid-on-restored-id-static-match",
+            "clid-duplicate",
+            "clid-invalid-argument",
+            "clid-off-unrelated-release-decline",
+            "clid-on-unrelated-release-decline"
+          ]
         }
       ]
     },
@@ -118,40 +378,3681 @@
         "Source review: nonnumeric scalar error text differs from option.c generic error; requires image confirmation.",
         "Source review: Rust integer rejects >INT_MAX; exact image atoi behavior not yet calibrated."
       ],
-      "scenarios": [],
+      "scenarios": [
+        "ttl-absent",
+        "ttl-empty",
+        "ttl-zero",
+        "ttl-custom",
+        "ttl-infinite",
+        "ttl-int-max",
+        "ttl-int-wrap",
+        "ttl-uint-max",
+        "ttl-uint-wrap",
+        "ttl-finite-ceiling",
+        "ttl-live-and-elapsed",
+        "ttl-nonnumeric",
+        "ttl-negative",
+        "ttl-duplicate"
+      ],
       "checklist": [
         {
           "boundary": "Scalar grammar: absent, explicit empty/zero, positive, INT_MAX, nonnumeric/negative, duplicate directive; inspect exact parser diagnostics and image-libc integer boundaries.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "ttl-absent",
+            "ttl-empty",
+            "ttl-zero",
+            "ttl-custom",
+            "ttl-infinite",
+            "ttl-int-max",
+            "ttl-int-wrap",
+            "ttl-uint-max",
+            "ttl-uint-wrap",
+            "ttl-finite-ceiling",
+            "ttl-live-and-elapsed",
+            "ttl-nonnumeric",
+            "ttl-negative",
+            "ttl-duplicate"
+          ]
         },
         {
           "boundary": "DHCP TTL overrides local-ttl for both qualified/short forward A and PTR while static host TTL retains local-ttl.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "ttl-absent",
+            "ttl-empty",
+            "ttl-zero",
+            "ttl-custom",
+            "ttl-infinite",
+            "ttl-int-max",
+            "ttl-int-wrap",
+            "ttl-uint-max",
+            "ttl-uint-wrap",
+            "ttl-finite-ceiling",
+            "ttl-live-and-elapsed",
+            "ttl-nonnumeric",
+            "ttl-negative",
+            "ttl-duplicate"
+          ]
         },
         {
           "boundary": "Finite lease clamps to exact remaining seconds when configured TTL is larger; scheduled requests occur wholly inside a preselected wall-clock second and wire TTL compares exactly without range normalization.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "ttl-absent",
+            "ttl-empty",
+            "ttl-zero",
+            "ttl-custom",
+            "ttl-infinite",
+            "ttl-int-max",
+            "ttl-int-wrap",
+            "ttl-uint-max",
+            "ttl-uint-wrap",
+            "ttl-finite-ceiling",
+            "ttl-live-and-elapsed",
+            "ttl-nonnumeric",
+            "ttl-negative",
+            "ttl-duplicate"
+          ]
         },
         {
           "boundary": "Infinite lease retains configured TTL including INT_MAX; finite lease with small configured TTL remains fixed across an elapsed second.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "ttl-absent",
+            "ttl-empty",
+            "ttl-zero",
+            "ttl-custom",
+            "ttl-infinite",
+            "ttl-int-max",
+            "ttl-int-wrap",
+            "ttl-uint-max",
+            "ttl-uint-wrap",
+            "ttl-finite-ceiling",
+            "ttl-live-and-elapsed",
+            "ttl-nonnumeric",
+            "ttl-negative",
+            "ttl-duplicate"
+          ]
         },
         {
           "boundary": "Runtime restore and new ACK publication use identical TTL policy across UDP/TCP; zero is an explicit override rather than fallback.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "ttl-absent",
+            "ttl-empty",
+            "ttl-zero",
+            "ttl-custom",
+            "ttl-infinite",
+            "ttl-int-max",
+            "ttl-int-wrap",
+            "ttl-uint-max",
+            "ttl-uint-wrap",
+            "ttl-finite-ceiling",
+            "ttl-live-and-elapsed",
+            "ttl-nonnumeric",
+            "ttl-negative",
+            "ttl-duplicate"
+          ]
         },
         {
           "boundary": "All accepted/rejected startup and --test output, raw clocks/packets, DNS TTLs and cleanup are retained; integer overflow differences are classified explicitly.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "ttl-absent",
+            "ttl-empty",
+            "ttl-zero",
+            "ttl-custom",
+            "ttl-infinite",
+            "ttl-int-max",
+            "ttl-int-wrap",
+            "ttl-uint-max",
+            "ttl-uint-wrap",
+            "ttl-finite-ceiling",
+            "ttl-live-and-elapsed",
+            "ttl-nonnumeric",
+            "ttl-negative",
+            "ttl-duplicate"
+          ]
         }
       ]
     }
   },
-  "scenarios": []
+  "scenarios": [
+    {
+      "id": "fqdn-off-live",
+      "options": [
+        "dhcp-fqdn"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\ndomain=other.names.test,10.77.0.11\nlocal-ttl=17\ndhcp-ttl=60\nno-round-robin\n",
+      "probes": [
+        {
+          "id": "first",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "4e6f6465"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        },
+        {
+          "id": "short-first",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        },
+        {
+          "id": "first-qualified",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        },
+        {
+          "id": "first-ptr",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "10.0.77.10.in-addr.arpa",
+          "type": 12,
+          "expect": {
+            "answers": [
+              "node.base.names.test"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        },
+        {
+          "id": "different-domain",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "address": "10.77.0.11",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "6e6f6465"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5,
+            "leases": 2
+          }
+        },
+        {
+          "id": "short-second",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.11"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        },
+        {
+          "id": "first-domain-after-second",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": []
+          }
+        },
+        {
+          "id": "second-domain",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node.other.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.11"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        },
+        {
+          "id": "same-domain",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 3,
+          "address": "10.77.0.12",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "4e4f4445"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5,
+            "leases": 3
+          }
+        },
+        {
+          "id": "same-domain-moved",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.12"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        },
+        {
+          "id": "other-domain-after-third",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node.other.names.test",
+          "type": 1,
+          "expect": {
+            "answers": []
+          }
+        },
+        {
+          "id": "former-owner-ptr",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "10.0.77.10.in-addr.arpa",
+          "type": 12,
+          "expect": {
+            "answers": []
+          }
+        },
+        {
+          "id": "rename",
+          "action": "renew",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 3,
+          "address": "10.77.0.12",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "72656e616d6564"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "old-name-gone",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": []
+          }
+        },
+        {
+          "id": "renamed-qualified",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "renamed.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.12"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        },
+        {
+          "id": "reload",
+          "action": "hup",
+          "transports": [
+            "dhcp"
+          ]
+        },
+        {
+          "id": "after-hup",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "renamed.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.12"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        },
+        {
+          "id": "static-health",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "matrix.ready",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "8.8.8.8"
+            ],
+            "rcode": 0,
+            "ttl": 17
+          }
+        },
+        {
+          "id": "release",
+          "action": "release",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 3,
+          "address": "10.77.0.12",
+          "packet": {
+            "extra": []
+          },
+          "expect": {
+            "status": null,
+            "leases": 2
+          }
+        },
+        {
+          "id": "released-qualified",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "renamed.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": []
+          }
+        },
+        {
+          "id": "released-ptr",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "12.0.77.10.in-addr.arpa",
+          "type": 12,
+          "expect": {
+            "answers": []
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "fqdn-off-restore",
+      "options": [
+        "dhcp-fqdn"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\ndomain=other.names.test,10.77.0.11\nlocal-ttl=17\ndhcp-ttl=60\nno-round-robin\n",
+      "probes": [
+        {
+          "id": "restored-file",
+          "action": "snapshot",
+          "transports": [
+            "dhcp"
+          ]
+        },
+        {
+          "id": "restored-short",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.11"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        },
+        {
+          "id": "restored-first",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": []
+          }
+        },
+        {
+          "id": "restored-second",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node.other.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.11"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        },
+        {
+          "id": "restored-ptr",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "10.0.77.10.in-addr.arpa",
+          "type": 12,
+          "expect": {
+            "answers": []
+          }
+        },
+        {
+          "id": "restart",
+          "action": "restart",
+          "transports": [
+            "dhcp"
+          ]
+        },
+        {
+          "id": "second-after-restart",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node.other.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.11"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        },
+        {
+          "id": "live-collision",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 3,
+          "address": "10.77.0.12",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "6e6f6465"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "live-moved",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.12"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        },
+        {
+          "id": "other-retained",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node.other.names.test",
+          "type": 1,
+          "expect": {
+            "answers": []
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "seed_leases": "0 02:00:4d:35:44:01 10.77.0.10 node *\n0 02:00:4d:35:44:02 10.77.0.11 node *\n"
+    },
+    {
+      "id": "fqdn-off-authoritative",
+      "options": [
+        "dhcp-fqdn"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\ndomain=other.names.test,10.77.0.11\nlocal-ttl=17\ndhcp-ttl=60\nno-round-robin\ndhcp-host=02:00:4d:35:44:01,authnode,10.77.0.10\n",
+      "probes": [
+        {
+          "id": "configured-owner",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "packet": {
+            "extra": []
+          },
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "client-collision",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "address": "10.77.0.12",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "617574686e6f6465"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "auth-retained",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "authnode.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        },
+        {
+          "id": "challenger-no-ptr",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "12.0.77.10.in-addr.arpa",
+          "type": 12,
+          "expect": {
+            "answers": []
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "fqdn-off-option81-ascii",
+      "options": [
+        "dhcp-fqdn"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\ndomain=other.names.test,10.77.0.11\nlocal-ttl=17\ndhcp-ttl=60\nno-round-robin\n",
+      "probes": [
+        {
+          "id": "fqdn-option",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "packet": {
+            "extra": [
+              [
+                81,
+                "000000576972652e626173652e6e616d65732e74657374"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "option-short",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "wire",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        },
+        {
+          "id": "option-qualified",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "wire.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "fqdn-off-option81-encoded",
+      "options": [
+        "dhcp-fqdn"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\ndomain=other.names.test,10.77.0.11\nlocal-ttl=17\ndhcp-ttl=60\nno-round-robin\n",
+      "probes": [
+        {
+          "id": "fqdn-option",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "packet": {
+            "extra": [
+              [
+                81,
+                "04000004576972650462617365056e616d6573047465737400"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "option-short",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "wire",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        },
+        {
+          "id": "option-qualified",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "wire.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "fqdn-on-live",
+      "options": [
+        "dhcp-fqdn"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\ndomain=other.names.test,10.77.0.11\nlocal-ttl=17\ndhcp-ttl=60\nno-round-robin\ndhcp-fqdn\n",
+      "probes": [
+        {
+          "id": "first",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "4e6f6465"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        },
+        {
+          "id": "short-first",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node",
+          "type": 1,
+          "expect": {
+            "answers": []
+          }
+        },
+        {
+          "id": "first-qualified",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        },
+        {
+          "id": "first-ptr",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "10.0.77.10.in-addr.arpa",
+          "type": 12,
+          "expect": {
+            "answers": [
+              "node.base.names.test"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        },
+        {
+          "id": "different-domain",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "address": "10.77.0.11",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "6e6f6465"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5,
+            "leases": 2
+          }
+        },
+        {
+          "id": "short-second",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node",
+          "type": 1,
+          "expect": {
+            "answers": []
+          }
+        },
+        {
+          "id": "first-domain-after-second",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        },
+        {
+          "id": "second-domain",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node.other.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.11"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        },
+        {
+          "id": "same-domain",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 3,
+          "address": "10.77.0.12",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "4e4f4445"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5,
+            "leases": 3
+          }
+        },
+        {
+          "id": "same-domain-moved",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.12"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        },
+        {
+          "id": "other-domain-after-third",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node.other.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.11"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        },
+        {
+          "id": "former-owner-ptr",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "10.0.77.10.in-addr.arpa",
+          "type": 12,
+          "expect": {
+            "answers": []
+          }
+        },
+        {
+          "id": "rename",
+          "action": "renew",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 3,
+          "address": "10.77.0.12",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "72656e616d6564"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "old-name-gone",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": []
+          }
+        },
+        {
+          "id": "renamed-qualified",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "renamed.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.12"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        },
+        {
+          "id": "reload",
+          "action": "hup",
+          "transports": [
+            "dhcp"
+          ]
+        },
+        {
+          "id": "after-hup",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "renamed.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.12"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        },
+        {
+          "id": "static-health",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "matrix.ready",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "8.8.8.8"
+            ],
+            "rcode": 0,
+            "ttl": 17
+          }
+        },
+        {
+          "id": "release",
+          "action": "release",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 3,
+          "address": "10.77.0.12",
+          "packet": {
+            "extra": []
+          },
+          "expect": {
+            "status": null,
+            "leases": 2
+          }
+        },
+        {
+          "id": "released-qualified",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "renamed.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": []
+          }
+        },
+        {
+          "id": "released-ptr",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "12.0.77.10.in-addr.arpa",
+          "type": 12,
+          "expect": {
+            "answers": []
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "fqdn-on-restore",
+      "options": [
+        "dhcp-fqdn"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\ndomain=other.names.test,10.77.0.11\nlocal-ttl=17\ndhcp-ttl=60\nno-round-robin\ndhcp-fqdn\n",
+      "probes": [
+        {
+          "id": "restored-file",
+          "action": "snapshot",
+          "transports": [
+            "dhcp"
+          ]
+        },
+        {
+          "id": "restored-short",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node",
+          "type": 1,
+          "expect": {
+            "answers": []
+          }
+        },
+        {
+          "id": "restored-first",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        },
+        {
+          "id": "restored-second",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node.other.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.11"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        },
+        {
+          "id": "restored-ptr",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "10.0.77.10.in-addr.arpa",
+          "type": 12,
+          "expect": {
+            "answers": [
+              "node.base.names.test"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        },
+        {
+          "id": "restart",
+          "action": "restart",
+          "transports": [
+            "dhcp"
+          ]
+        },
+        {
+          "id": "second-after-restart",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node.other.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.11"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        },
+        {
+          "id": "live-collision",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 3,
+          "address": "10.77.0.12",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "6e6f6465"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "live-moved",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.12"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        },
+        {
+          "id": "other-retained",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node.other.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.11"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "seed_leases": "0 02:00:4d:35:44:01 10.77.0.10 node *\n0 02:00:4d:35:44:02 10.77.0.11 node *\n"
+    },
+    {
+      "id": "fqdn-on-authoritative",
+      "options": [
+        "dhcp-fqdn"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\ndomain=other.names.test,10.77.0.11\nlocal-ttl=17\ndhcp-ttl=60\nno-round-robin\ndhcp-fqdn\ndhcp-host=02:00:4d:35:44:01,authnode,10.77.0.10\n",
+      "probes": [
+        {
+          "id": "configured-owner",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "packet": {
+            "extra": []
+          },
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "client-collision",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "address": "10.77.0.12",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "617574686e6f6465"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "auth-retained",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "authnode.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        },
+        {
+          "id": "challenger-no-ptr",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "12.0.77.10.in-addr.arpa",
+          "type": 12,
+          "expect": {
+            "answers": []
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "fqdn-on-option81-ascii",
+      "options": [
+        "dhcp-fqdn"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\ndomain=other.names.test,10.77.0.11\nlocal-ttl=17\ndhcp-ttl=60\nno-round-robin\ndhcp-fqdn\n",
+      "probes": [
+        {
+          "id": "fqdn-option",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "packet": {
+            "extra": [
+              [
+                81,
+                "000000576972652e626173652e6e616d65732e74657374"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "option-short",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "wire",
+          "type": 1,
+          "expect": {
+            "answers": []
+          }
+        },
+        {
+          "id": "option-qualified",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "wire.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "fqdn-on-option81-encoded",
+      "options": [
+        "dhcp-fqdn"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\ndomain=other.names.test,10.77.0.11\nlocal-ttl=17\ndhcp-ttl=60\nno-round-robin\ndhcp-fqdn\n",
+      "probes": [
+        {
+          "id": "fqdn-option",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "packet": {
+            "extra": [
+              [
+                81,
+                "04000004576972650462617365056e616d6573047465737400"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "option-short",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "wire",
+          "type": 1,
+          "expect": {
+            "answers": []
+          }
+        },
+        {
+          "id": "option-qualified",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "wire.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "fqdn-restore-same-domain",
+      "options": [
+        "dhcp-fqdn"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\ndhcp-fqdn\nlocal-ttl=17\ndhcp-ttl=60\nno-round-robin\n",
+      "probes": [
+        {
+          "id": "both-restored",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.11",
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        },
+        {
+          "id": "restart",
+          "action": "restart",
+          "transports": [
+            "dhcp"
+          ]
+        },
+        {
+          "id": "both-after-restart",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.11",
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "seed_leases": "0 02:00:4d:35:44:01 10.77.0.10 node *\n0 02:00:4d:35:44:02 10.77.0.11 node *\n"
+    },
+    {
+      "id": "fqdn-domain-change-restart",
+      "options": [
+        "dhcp-fqdn"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\ndomain=other.names.test,10.77.0.11\nlocal-ttl=17\ndhcp-ttl=60\nno-round-robin\ndhcp-fqdn\n",
+      "probes": [
+        {
+          "id": "original-domain",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        },
+        {
+          "id": "restart-new-domain",
+          "action": "restart",
+          "transports": [
+            "dhcp"
+          ],
+          "replace_config": [
+            [
+              "domain=base.names.test",
+              "domain=replaced.names.test"
+            ]
+          ]
+        },
+        {
+          "id": "new-domain",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node.replaced.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        },
+        {
+          "id": "old-domain-gone",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "node.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": []
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "seed_leases": "0 02:00:4d:35:44:01 10.77.0.10 node *\n"
+    },
+    {
+      "id": "fqdn-unnamed",
+      "options": [
+        "dhcp-fqdn"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\ndomain=other.names.test,10.77.0.11\nlocal-ttl=17\ndhcp-ttl=60\nno-round-robin\ndhcp-fqdn\n",
+      "probes": [
+        {
+          "id": "no-client-name",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "packet": {
+            "extra": []
+          },
+          "expect": {
+            "status": 5,
+            "lease_names": {
+              "10.77.0.10": "*"
+            }
+          }
+        },
+        {
+          "id": "no-synthesized-name",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "10.0.77.10.in-addr.arpa",
+          "type": 12,
+          "expect": {
+            "answers": []
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "fqdn-no-default",
+      "options": [
+        "dhcp-fqdn"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-fqdn\n",
+      "probes": [],
+      "expected_test_exit": 1
+    },
+    {
+      "id": "fqdn-conditional-only",
+      "options": [
+        "dhcp-fqdn"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=other.names.test,10.77.0.0/24\ndhcp-fqdn\n",
+      "probes": [],
+      "expected_test_exit": 1
+    },
+    {
+      "id": "fqdn-invalid-argument",
+      "options": [
+        "dhcp-fqdn"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\ndhcp-fqdn=x\n",
+      "probes": [],
+      "expected_test_exit": 1
+    },
+    {
+      "id": "fqdn-duplicate",
+      "options": [
+        "dhcp-fqdn"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\ndomain=other.names.test,10.77.0.11\nlocal-ttl=17\ndhcp-ttl=60\nno-round-robin\ndhcp-fqdn\ndhcp-fqdn\n",
+      "probes": [
+        {
+          "id": "ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "6475706c6963617465"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "short-suppressed",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "duplicate",
+          "type": 1,
+          "expect": {
+            "answers": []
+          }
+        },
+        {
+          "id": "qualified",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "duplicate.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "clid-off-same-mac-other-id",
+      "options": [
+        "dhcp-ignore-clid"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\ndomain=other.names.test,10.77.0.11\nlocal-ttl=17\ndhcp-ttl=60\nno-round-robin\n",
+      "probes": [
+        {
+          "id": "initial",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "6964656e74697479"
+              ],
+              [
+                61,
+                "0101"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        },
+        {
+          "id": "changed",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.12",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "6964656e7469747932"
+              ],
+              [
+                61,
+                "0102"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5,
+            "leases": 2
+          }
+        },
+        {
+          "id": "restart",
+          "action": "restart",
+          "transports": [
+            "dhcp"
+          ]
+        },
+        {
+          "id": "post-restart-renew",
+          "action": "renew",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.12",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "6964656e7469747932"
+              ],
+              [
+                61,
+                "0102"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "release",
+          "action": "release",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.12",
+          "packet": {
+            "extra": [
+              [
+                61,
+                "0102"
+              ]
+            ]
+          },
+          "expect": {
+            "status": null
+          }
+        },
+        {
+          "id": "final-file",
+          "action": "snapshot",
+          "transports": [
+            "dhcp"
+          ]
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "clid-off-same-id-other-mac",
+      "options": [
+        "dhcp-ignore-clid"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\ndomain=other.names.test,10.77.0.11\nlocal-ttl=17\ndhcp-ttl=60\nno-round-robin\n",
+      "probes": [
+        {
+          "id": "initial",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "6964656e74697479"
+              ],
+              [
+                61,
+                "0101"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        },
+        {
+          "id": "changed",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "address": "10.77.0.12",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "6964656e7469747932"
+              ],
+              [
+                61,
+                "0101"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        },
+        {
+          "id": "restart",
+          "action": "restart",
+          "transports": [
+            "dhcp"
+          ]
+        },
+        {
+          "id": "post-restart-renew",
+          "action": "renew",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "address": "10.77.0.12",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "6964656e7469747932"
+              ],
+              [
+                61,
+                "0101"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "release",
+          "action": "release",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "address": "10.77.0.12",
+          "packet": {
+            "extra": [
+              [
+                61,
+                "0101"
+              ]
+            ]
+          },
+          "expect": {
+            "status": null
+          }
+        },
+        {
+          "id": "final-file",
+          "action": "snapshot",
+          "transports": [
+            "dhcp"
+          ]
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "clid-off-missing-id",
+      "options": [
+        "dhcp-ignore-clid"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\ndomain=other.names.test,10.77.0.11\nlocal-ttl=17\ndhcp-ttl=60\nno-round-robin\n",
+      "probes": [
+        {
+          "id": "initial",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "6d697373696e67"
+              ],
+              [
+                61,
+                "0101"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "missing-id",
+          "action": "renew",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "6d697373696e67"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "zero-length-id",
+          "action": "renew",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "6d697373696e67"
+              ],
+              [
+                61,
+                ""
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "restart",
+          "action": "restart",
+          "transports": [
+            "dhcp"
+          ]
+        },
+        {
+          "id": "renew-after-restart",
+          "action": "renew",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "6d697373696e67"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "clid-off-restore",
+      "options": [
+        "dhcp-ignore-clid"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\ndomain=other.names.test,10.77.0.11\nlocal-ttl=17\ndhcp-ttl=60\nno-round-robin\n",
+      "probes": [
+        {
+          "id": "changed-id-after-restore",
+          "action": "renew",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "packet": {
+            "extra": [
+              [
+                61,
+                "01cd"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 6
+          }
+        },
+        {
+          "id": "missing-id-after-restore",
+          "action": "renew",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "packet": {
+            "extra": []
+          },
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "file",
+          "action": "snapshot",
+          "transports": [
+            "dhcp"
+          ]
+        }
+      ],
+      "expected_test_exit": 0,
+      "seed_leases": "0 02:00:4d:35:44:01 10.77.0.10 restored 01:ab\n"
+    },
+    {
+      "id": "clid-on-same-mac-other-id",
+      "options": [
+        "dhcp-ignore-clid"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\ndomain=other.names.test,10.77.0.11\nlocal-ttl=17\ndhcp-ttl=60\nno-round-robin\ndhcp-ignore-clid\n",
+      "probes": [
+        {
+          "id": "initial",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "6964656e74697479"
+              ],
+              [
+                61,
+                "0101"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        },
+        {
+          "id": "changed",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.12",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "6964656e7469747932"
+              ],
+              [
+                61,
+                "0102"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        },
+        {
+          "id": "restart",
+          "action": "restart",
+          "transports": [
+            "dhcp"
+          ]
+        },
+        {
+          "id": "post-restart-renew",
+          "action": "renew",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.12",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "6964656e7469747932"
+              ],
+              [
+                61,
+                "0102"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "release",
+          "action": "release",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.12",
+          "packet": {
+            "extra": [
+              [
+                61,
+                "0102"
+              ]
+            ]
+          },
+          "expect": {
+            "status": null
+          }
+        },
+        {
+          "id": "final-file",
+          "action": "snapshot",
+          "transports": [
+            "dhcp"
+          ]
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "clid-on-same-id-other-mac",
+      "options": [
+        "dhcp-ignore-clid"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\ndomain=other.names.test,10.77.0.11\nlocal-ttl=17\ndhcp-ttl=60\nno-round-robin\ndhcp-ignore-clid\n",
+      "probes": [
+        {
+          "id": "initial",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "6964656e74697479"
+              ],
+              [
+                61,
+                "0101"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        },
+        {
+          "id": "changed",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "address": "10.77.0.12",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "6964656e7469747932"
+              ],
+              [
+                61,
+                "0101"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5,
+            "leases": 2
+          }
+        },
+        {
+          "id": "restart",
+          "action": "restart",
+          "transports": [
+            "dhcp"
+          ]
+        },
+        {
+          "id": "post-restart-renew",
+          "action": "renew",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "address": "10.77.0.12",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "6964656e7469747932"
+              ],
+              [
+                61,
+                "0101"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "release",
+          "action": "release",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "address": "10.77.0.12",
+          "packet": {
+            "extra": [
+              [
+                61,
+                "0101"
+              ]
+            ]
+          },
+          "expect": {
+            "status": null
+          }
+        },
+        {
+          "id": "final-file",
+          "action": "snapshot",
+          "transports": [
+            "dhcp"
+          ]
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "clid-on-missing-id",
+      "options": [
+        "dhcp-ignore-clid"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\ndomain=other.names.test,10.77.0.11\nlocal-ttl=17\ndhcp-ttl=60\nno-round-robin\ndhcp-ignore-clid\n",
+      "probes": [
+        {
+          "id": "initial",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "6d697373696e67"
+              ],
+              [
+                61,
+                "0101"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "missing-id",
+          "action": "renew",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "6d697373696e67"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "zero-length-id",
+          "action": "renew",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "6d697373696e67"
+              ],
+              [
+                61,
+                ""
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "restart",
+          "action": "restart",
+          "transports": [
+            "dhcp"
+          ]
+        },
+        {
+          "id": "renew-after-restart",
+          "action": "renew",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "6d697373696e67"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "clid-on-restore",
+      "options": [
+        "dhcp-ignore-clid"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\ndomain=other.names.test,10.77.0.11\nlocal-ttl=17\ndhcp-ttl=60\nno-round-robin\ndhcp-ignore-clid\n",
+      "probes": [
+        {
+          "id": "changed-id-after-restore",
+          "action": "renew",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "packet": {
+            "extra": [
+              [
+                61,
+                "01cd"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "missing-id-after-restore",
+          "action": "renew",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "packet": {
+            "extra": []
+          },
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "file",
+          "action": "snapshot",
+          "transports": [
+            "dhcp"
+          ]
+        }
+      ],
+      "expected_test_exit": 0,
+      "seed_leases": "0 02:00:4d:35:44:01 10.77.0.10 restored 01:ab\n"
+    },
+    {
+      "id": "clid-on-restored-id-static-match",
+      "options": [
+        "dhcp-ignore-clid"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\ndomain=other.names.test,10.77.0.11\nlocal-ttl=17\ndhcp-ttl=60\nno-round-robin\ndhcp-ignore-clid\ndhcp-host=id:01:ab,stored-id,10.77.0.10\n",
+      "probes": [
+        {
+          "id": "restored-static-match",
+          "action": "renew",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "packet": {
+            "extra": [
+              [
+                61,
+                "01cd"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "static-name",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "stored-id.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 60
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "seed_leases": "0 02:00:4d:35:44:01 10.77.0.10 restored 01:ab\n"
+    },
+    {
+      "id": "clid-duplicate",
+      "options": [
+        "dhcp-ignore-clid"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\ndomain=other.names.test,10.77.0.11\nlocal-ttl=17\ndhcp-ttl=60\nno-round-robin\ndhcp-ignore-clid\ndhcp-ignore-clid\n",
+      "probes": [
+        {
+          "id": "ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "packet": {
+            "extra": [
+              [
+                61,
+                "0101"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5,
+            "lease_ids": {
+              "10.77.0.10": "*"
+            }
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "clid-invalid-argument",
+      "options": [
+        "dhcp-ignore-clid"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-ignore-clid=x\n",
+      "probes": [],
+      "expected_test_exit": 1
+    },
+    {
+      "id": "ttl-absent",
+      "options": [
+        "dhcp-ttl"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\nlocal-ttl=17\n",
+      "probes": [
+        {
+          "id": "short",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "ttl",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 17
+          }
+        },
+        {
+          "id": "qualified",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "ttl.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 17
+          }
+        },
+        {
+          "id": "ptr",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "10.0.77.10.in-addr.arpa",
+          "type": 12,
+          "expect": {
+            "answers": [
+              "ttl.base.names.test"
+            ],
+            "rcode": 0,
+            "ttl": 17
+          }
+        },
+        {
+          "id": "static-unaffected",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "matrix.ready",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "8.8.8.8"
+            ],
+            "rcode": 0,
+            "ttl": 17
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "seed_leases": "0 02:00:4d:35:44:01 10.77.0.10 ttl *\n"
+    },
+    {
+      "id": "ttl-empty",
+      "options": [
+        "dhcp-ttl"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\nlocal-ttl=17\ndhcp-ttl=\n",
+      "probes": [
+        {
+          "id": "short",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "ttl",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 0
+          }
+        },
+        {
+          "id": "qualified",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "ttl.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 0
+          }
+        },
+        {
+          "id": "ptr",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "10.0.77.10.in-addr.arpa",
+          "type": 12,
+          "expect": {
+            "answers": [
+              "ttl.base.names.test"
+            ],
+            "rcode": 0,
+            "ttl": 0
+          }
+        },
+        {
+          "id": "static-unaffected",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "matrix.ready",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "8.8.8.8"
+            ],
+            "rcode": 0,
+            "ttl": 17
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "seed_leases": "0 02:00:4d:35:44:01 10.77.0.10 ttl *\n"
+    },
+    {
+      "id": "ttl-zero",
+      "options": [
+        "dhcp-ttl"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\nlocal-ttl=17\ndhcp-ttl=0\n",
+      "probes": [
+        {
+          "id": "short",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "ttl",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 0
+          }
+        },
+        {
+          "id": "qualified",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "ttl.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 0
+          }
+        },
+        {
+          "id": "ptr",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "10.0.77.10.in-addr.arpa",
+          "type": 12,
+          "expect": {
+            "answers": [
+              "ttl.base.names.test"
+            ],
+            "rcode": 0,
+            "ttl": 0
+          }
+        },
+        {
+          "id": "static-unaffected",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "matrix.ready",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "8.8.8.8"
+            ],
+            "rcode": 0,
+            "ttl": 17
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "seed_leases": "0 02:00:4d:35:44:01 10.77.0.10 ttl *\n"
+    },
+    {
+      "id": "ttl-custom",
+      "options": [
+        "dhcp-ttl"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\nlocal-ttl=17\ndhcp-ttl=61\n",
+      "probes": [
+        {
+          "id": "short",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "ttl",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 61
+          }
+        },
+        {
+          "id": "qualified",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "ttl.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 61
+          }
+        },
+        {
+          "id": "ptr",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "10.0.77.10.in-addr.arpa",
+          "type": 12,
+          "expect": {
+            "answers": [
+              "ttl.base.names.test"
+            ],
+            "rcode": 0,
+            "ttl": 61
+          }
+        },
+        {
+          "id": "static-unaffected",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "matrix.ready",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "8.8.8.8"
+            ],
+            "rcode": 0,
+            "ttl": 17
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "seed_leases": "0 02:00:4d:35:44:01 10.77.0.10 ttl *\n"
+    },
+    {
+      "id": "ttl-infinite",
+      "options": [
+        "dhcp-ttl"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\nlocal-ttl=17\ndhcp-ttl=700\n",
+      "probes": [
+        {
+          "id": "short",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "ttl",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 700
+          }
+        },
+        {
+          "id": "qualified",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "ttl.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 700
+          }
+        },
+        {
+          "id": "ptr",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "10.0.77.10.in-addr.arpa",
+          "type": 12,
+          "expect": {
+            "answers": [
+              "ttl.base.names.test"
+            ],
+            "rcode": 0,
+            "ttl": 700
+          }
+        },
+        {
+          "id": "static-unaffected",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "matrix.ready",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "8.8.8.8"
+            ],
+            "rcode": 0,
+            "ttl": 17
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "seed_leases": "0 02:00:4d:35:44:01 10.77.0.10 ttl *\n"
+    },
+    {
+      "id": "ttl-int-max",
+      "options": [
+        "dhcp-ttl"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\nlocal-ttl=17\ndhcp-ttl=2147483647\n",
+      "probes": [
+        {
+          "id": "short",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "ttl",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 2147483647
+          }
+        },
+        {
+          "id": "qualified",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "ttl.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 2147483647
+          }
+        },
+        {
+          "id": "ptr",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "10.0.77.10.in-addr.arpa",
+          "type": 12,
+          "expect": {
+            "answers": [
+              "ttl.base.names.test"
+            ],
+            "rcode": 0,
+            "ttl": 2147483647
+          }
+        },
+        {
+          "id": "static-unaffected",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "matrix.ready",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "8.8.8.8"
+            ],
+            "rcode": 0,
+            "ttl": 17
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "seed_leases": "0 02:00:4d:35:44:01 10.77.0.10 ttl *\n"
+    },
+    {
+      "id": "ttl-int-wrap",
+      "options": [
+        "dhcp-ttl"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\nlocal-ttl=17\ndhcp-ttl=2147483648\n",
+      "probes": [
+        {
+          "id": "short",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "ttl",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 2147483648
+          }
+        },
+        {
+          "id": "qualified",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "ttl.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 2147483648
+          }
+        },
+        {
+          "id": "ptr",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "10.0.77.10.in-addr.arpa",
+          "type": 12,
+          "expect": {
+            "answers": [
+              "ttl.base.names.test"
+            ],
+            "rcode": 0,
+            "ttl": 2147483648
+          }
+        },
+        {
+          "id": "static-unaffected",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "matrix.ready",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "8.8.8.8"
+            ],
+            "rcode": 0,
+            "ttl": 17
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "seed_leases": "0 02:00:4d:35:44:01 10.77.0.10 ttl *\n"
+    },
+    {
+      "id": "ttl-uint-max",
+      "options": [
+        "dhcp-ttl"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\nlocal-ttl=17\ndhcp-ttl=4294967295\n",
+      "probes": [
+        {
+          "id": "short",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "ttl",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 4294967295
+          }
+        },
+        {
+          "id": "qualified",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "ttl.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 4294967295
+          }
+        },
+        {
+          "id": "ptr",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "10.0.77.10.in-addr.arpa",
+          "type": 12,
+          "expect": {
+            "answers": [
+              "ttl.base.names.test"
+            ],
+            "rcode": 0,
+            "ttl": 4294967295
+          }
+        },
+        {
+          "id": "static-unaffected",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "matrix.ready",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "8.8.8.8"
+            ],
+            "rcode": 0,
+            "ttl": 17
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "seed_leases": "0 02:00:4d:35:44:01 10.77.0.10 ttl *\n"
+    },
+    {
+      "id": "ttl-uint-wrap",
+      "options": [
+        "dhcp-ttl"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\nlocal-ttl=17\ndhcp-ttl=4294967296\n",
+      "probes": [
+        {
+          "id": "short",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "ttl",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 0
+          }
+        },
+        {
+          "id": "qualified",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "ttl.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 0
+          }
+        },
+        {
+          "id": "ptr",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "10.0.77.10.in-addr.arpa",
+          "type": 12,
+          "expect": {
+            "answers": [
+              "ttl.base.names.test"
+            ],
+            "rcode": 0,
+            "ttl": 0
+          }
+        },
+        {
+          "id": "static-unaffected",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "matrix.ready",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "8.8.8.8"
+            ],
+            "rcode": 0,
+            "ttl": 17
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "seed_leases": "0 02:00:4d:35:44:01 10.77.0.10 ttl *\n"
+    },
+    {
+      "id": "ttl-finite-ceiling",
+      "options": [
+        "dhcp-ttl"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\nlocal-ttl=17\ndhcp-ttl=700\n",
+      "probes": [
+        {
+          "id": "exact-remaining",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "ttl.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 597
+          },
+          "at_seed_age": 3
+        },
+        {
+          "id": "exact-ptr",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "10.0.77.10.in-addr.arpa",
+          "type": 12,
+          "expect": {
+            "answers": [
+              "ttl.base.names.test"
+            ],
+            "rcode": 0,
+            "ttl": 596
+          },
+          "at_seed_age": 4
+        }
+      ],
+      "expected_test_exit": 0,
+      "seed_leases": "{expiry} 02:00:4d:35:44:01 10.77.0.10 ttl *\n"
+    },
+    {
+      "id": "ttl-live-and-elapsed",
+      "options": [
+        "dhcp-ttl"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\nlocal-ttl=17\ndhcp-ttl=61\n",
+      "probes": [
+        {
+          "id": "live-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "packet": {
+            "extra": [
+              [
+                12,
+                "74746c"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "immediate",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "ttl.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 61
+          }
+        },
+        {
+          "id": "after-second",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "ttl.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 61
+          },
+          "at_seed_age": 3
+        },
+        {
+          "id": "restart",
+          "action": "restart",
+          "transports": [
+            "dhcp"
+          ]
+        },
+        {
+          "id": "restored",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "ttl.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 61
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "ttl-nonnumeric",
+      "options": [
+        "dhcp-ttl"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-ttl=x\n",
+      "probes": [],
+      "expected_test_exit": 1
+    },
+    {
+      "id": "ttl-negative",
+      "options": [
+        "dhcp-ttl"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-ttl=-1\n",
+      "probes": [],
+      "expected_test_exit": 1
+    },
+    {
+      "id": "ttl-duplicate",
+      "options": [
+        "dhcp-ttl"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-ttl=5\ndhcp-ttl=6\n",
+      "probes": [],
+      "expected_test_exit": 1
+    },
+    {
+      "id": "clid-off-unrelated-release-decline",
+      "options": [
+        "dhcp-ignore-clid"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\ndomain=other.names.test,10.77.0.11\nlocal-ttl=17\ndhcp-ttl=60\nno-round-robin\n",
+      "probes": [
+        {
+          "id": "initial",
+          "action": "select",
+          "client": 1,
+          "address": "10.77.0.10",
+          "transports": [
+            "dhcp"
+          ],
+          "packet": {
+            "extra": [
+              [
+                61,
+                "0101"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        },
+        {
+          "id": "unrelated-release",
+          "action": "release",
+          "client": 2,
+          "address": "10.77.0.10",
+          "transports": [
+            "dhcp"
+          ],
+          "packet": {
+            "extra": [
+              [
+                61,
+                "0101"
+              ]
+            ]
+          },
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        },
+        {
+          "id": "replace-initial",
+          "action": "select",
+          "client": 1,
+          "address": "10.77.0.10",
+          "transports": [
+            "dhcp"
+          ],
+          "packet": {
+            "extra": [
+              [
+                61,
+                "0101"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        },
+        {
+          "id": "unrelated-decline",
+          "action": "decline",
+          "client": 2,
+          "address": "10.77.0.10",
+          "transports": [
+            "dhcp"
+          ],
+          "packet": {
+            "extra": [
+              [
+                61,
+                "0101"
+              ]
+            ]
+          },
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "clid-on-unrelated-release-decline",
+      "options": [
+        "dhcp-ignore-clid"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\ndomain=other.names.test,10.77.0.11\nlocal-ttl=17\ndhcp-ttl=60\nno-round-robin\ndhcp-ignore-clid\n",
+      "probes": [
+        {
+          "id": "initial",
+          "action": "select",
+          "client": 1,
+          "address": "10.77.0.10",
+          "transports": [
+            "dhcp"
+          ],
+          "packet": {
+            "extra": [
+              [
+                61,
+                "0101"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        },
+        {
+          "id": "unrelated-release",
+          "action": "release",
+          "client": 2,
+          "address": "10.77.0.10",
+          "transports": [
+            "dhcp"
+          ],
+          "packet": {
+            "extra": [
+              [
+                61,
+                "0101"
+              ]
+            ]
+          },
+          "expect": {
+            "status": null,
+            "leases": 1
+          }
+        },
+        {
+          "id": "replace-initial",
+          "action": "select",
+          "client": 1,
+          "address": "10.77.0.10",
+          "transports": [
+            "dhcp"
+          ],
+          "packet": {
+            "extra": [
+              [
+                61,
+                "0101"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        },
+        {
+          "id": "unrelated-decline",
+          "action": "decline",
+          "client": 2,
+          "address": "10.77.0.10",
+          "transports": [
+            "dhcp"
+          ],
+          "packet": {
+            "extra": [
+              [
+                61,
+                "0101"
+              ]
+            ]
+          },
+          "expect": {
+            "status": null,
+            "leases": 1
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    }
+  ]
 }
