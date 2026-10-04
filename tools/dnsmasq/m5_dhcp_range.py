@@ -50,6 +50,37 @@ def save(path, value):
     Path(path).write_text(json.dumps(value, indent=2, sort_keys=True) + '\n')
 
 
+def fd_snapshot(pid):
+    files = {}
+    for entry in Path(f'/proc/{pid}/fd').iterdir():
+        try:
+            files[entry.name] = os.readlink(entry)
+        except FileNotFoundError:
+            pass
+    return {'files': files, 'sockets': {name: Path(f'/proc/{pid}/net/{name}').read_text()
+            for name in ['udp', 'udp6', 'tcp', 'tcp6', 'unix']}}
+
+
+def settled_fds(pid, path, expected=None):
+    """Require actual return to the baseline, allowing an active OS borrow."""
+    samples, repeated, last = [], 0, None
+    deadline = time.monotonic()+1
+    while time.monotonic() < deadline:
+        snapshot = fd_snapshot(pid)
+        count = len(snapshot['files'])
+        samples.append({'at': time.time(), **snapshot})
+        if count == (count if expected is None else expected):
+            repeated = repeated+1 if last == count else 1
+        else:
+            repeated = 0
+        if repeated == 3:
+            break
+        last = count
+        time.sleep(.02)
+    save(path, {'expected': expected, 'stable': repeated == 3, 'samples': samples})
+    return count, repeated == 3
+
+
 class RangeCapture(Capture):
     def __init__(self, out):
         self.out, self.rows, self.stop = out, [], threading.Event()
@@ -332,6 +363,15 @@ def service_cases():
               boundaries=['CTX-01', 'CTX-06'])
     yield row('range-mask-broadcast--explicit-zero', ['10.77.0.10,10.77.0.14,255.255.255.0,0.0.0.0,600'],
               [event('offer', prl=[1, 3, 28, 51, 58, 59])], boundaries=['CTX-02', 'LEASE-02'])
+    yield row('range-mask-broadcast--fallback-and-no-prl', ['10.77.0.10,10.77.0.14,255.255.255.128,600'],
+              [event('offer', prl=[1, 3, 28, 51, 58, 59]), event('no-prl', omit_prl=True)],
+              boundaries=['CTX-02', 'LEASE-02'])
+    yield row('range-no-context--excluded-ingress', ['10.77.0.10,10.77.0.14'],
+              [event('ignored', expect_status=None)], extra='no-dhcp-interface=br-lan\n', boundaries=['CTX-06'])
+    for suffix in ['', ',0.0.0.0']:
+        yield row('range-full-address-space--'+('derived' if not suffix else 'zero-mask'),
+                  ['0.0.0.0,255.255.255.255'+suffix], [event('no-context', expect_status=None)],
+                  boundaries=['CFG-09', 'CTX-06'])
     yield row('range-interface-aliases--first-local', ['10.77.0.10,10.77.0.14'], [event('offer')],
               server_aliases=['10.77.0.3'], boundaries=['CTX-03', 'CTX-04'])
     yield row('range-interface-aliases--explicit-secondary', ['10.77.0.10,10.77.0.14'],
@@ -602,14 +642,16 @@ def controls():
     assert 'unexpected-icmp' in guard_row(row, dict(event, icmp='none'), raw, icmp)
     result['unexpected-icmp'] = 'detected'
     baseline = {'status': 'ok', 'syntax': {'stdout': '', 'stderr': ''}, 'rows': [row], 'planned': 1}
-    for kind in ['missing-row', 'wrong-diagnostic', 'leftover-pid']:
+    for kind in ['missing-row', 'wrong-diagnostic', 'leftover-pid', 'descriptor-leak']:
         changed = copy.deepcopy(baseline)
         if kind == 'missing-row':
             changed['rows'] = []
         elif kind == 'wrong-diagnostic':
             changed['syntax']['stderr'] = 'wrong'
-        else:
+        elif kind == 'leftover-pid':
             changed['pid_removed'] = False
+        else:
+            changed['fd_stable'] = False
         assert comparable(changed) != comparable(baseline)
         result[kind] = 'detected'
     return result
@@ -740,7 +782,9 @@ def run(root, side, case, folder, syntax_only):
             expected_sha = sha256(root/('usr/sbin/dnsmasq' if side == 'c' else 'usr/sbin/dnsmasq-rs'))
             assert result['identity']['sha256'] == expected_sha
             assigned, durations = {}, {}
-            result['fd_samples'] = [len(list(Path(f'/proc/{process.pid}/fd').iterdir()))]
+            baseline, stable = settled_fds(process.pid, folder/'startup-fds.json')
+            assert stable, 'startup descriptors did not settle'
+            result['fd_samples'] = [baseline]
             for index, source_event in enumerate(case['events']):
                 event_folder = folder/f'{index:03}'
                 event_folder.mkdir()
@@ -766,6 +810,8 @@ def run(root, side, case, folder, syntax_only):
                     if wire_source['action'] == 'bootp':
                         wire_source['action'] = 'discover'
                     event = dhcp.wire_event(wire_source, assigned)
+                    if source_event.get('omit_prl'):
+                        event['packet'].pop('prl', None)
                     if source_event['action'] == 'bootp':
                         event['packet']['kind'] = 0
                     event.setdefault('timeout', 8 if not case.get('no_ping', True) else 2)
@@ -798,7 +844,10 @@ def run(root, side, case, folder, syntax_only):
                         result['guards'].append({'event': event['id'], 'errors': errors})
                 result['rows'].append(row)
                 if not source_event.get('cancel'):
-                    result['fd_samples'].append(len(list(Path(f'/proc/{process.pid}/fd').iterdir())))
+                    count, stable = settled_fds(process.pid, event_folder/'fds.json', baseline)
+                    result['fd_samples'].append(count)
+                    if not stable:
+                        result['guards'].append({'event': event['id'], 'errors': ['descriptor-leak']})
                 save(folder/'observed.json', result)
             result['fd_stable'] = result['fd_samples'][-1] == result['fd_samples'][0]
             if not result['fd_stable']:

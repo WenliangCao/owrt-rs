@@ -313,7 +313,9 @@
         "range-ipv6--ipv6-75",
         "range-full-address-space--full-76",
         "range-full-address-space--full-77",
-        "range-full-address-space--full-78"
+        "range-full-address-space--full-78",
+        "range-full-address-space--derived",
+        "range-full-address-space--zero-mask"
       ],
       "cases": [
         "range-invalid",
@@ -347,7 +349,8 @@
       "case_catalogue": [
         "range-basic--dora",
         "range-derived-mask--offer",
-        "range-mask-broadcast--explicit-zero"
+        "range-mask-broadcast--explicit-zero",
+        "range-mask-broadcast--fallback-and-no-prl"
       ],
       "cases": [
         "range-mask-broadcast-wire"
@@ -408,6 +411,9 @@
     {
       "case_catalogue": [
         "range-inconsistent-derived--none",
+        "range-no-context--excluded-ingress",
+        "range-full-address-space--derived",
+        "range-full-address-space--zero-mask",
         "range-multi-interface--guest"
       ],
       "cases": [
@@ -622,7 +628,8 @@
         "range-broadcast-grammar--broadcast-64",
         "range-tag-priority--matched",
         "range-set-tag-stage--options",
-        "range-mask-broadcast--explicit-zero"
+        "range-mask-broadcast--explicit-zero",
+        "range-mask-broadcast--fallback-and-no-prl"
       ],
       "cases": [
         "range-mask-broadcast-wire",
