@@ -957,8 +957,8 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         // EVENT_TERM drains sources and command bytes, not script execution.
         // Keep IPC and init processing nonblocking in the same poll owner.
         let mut fds = Vec::new();
-        if let Some((fd, events)) = poll.helper.as_ref().unwrap().poll_fds() {
-            fds.push(owrt_ubus::sys::PollFd { fd, events, revents: 0 });
+        for (fd, events) in poll.helper.as_ref().unwrap().poll_fds() {
+            if fd >= 0 { fds.push(owrt_ubus::sys::PollFd { fd, events, revents: 0 }); }
         }
         if let Some(files) = &poll.dns_files { files.append_poll_fds(&mut fds); }
         owrt_ubus::sys::poll_fds(&mut fds, 2)?;
