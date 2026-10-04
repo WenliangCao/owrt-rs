@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "executable": true,
-  "status": "ready-for-old-candidate-overlay-comparison",
+  "status": "full-paired-verification-of-root-repair-candidate",
   "scope": "Third matrix batch: address and bogus-nxdomain eligible; local endpoint gaps retained separately, not qualified.",
   "source_identity": {
     "option.c": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
@@ -268,12 +268,15 @@
         "address-resolv-default-star-dot",
         "address-resolv-default-hash"
       ],
-      "eligible_for_closure": false,
-      "known_gaps": [
-        "Static review: routing.rs merges exact and wildcard groups that C order_servers distinguishes; preserve old-candidate image failure before root repair.",
-        "Static review: literal family mismatch skips a same-group numeric upstream in Rust; C filter_servers retains it.",
-        "Static review: canonicalised empty wildcard /*./ is never matched in Rust; C can select it when no exact empty-domain default exists."
-      ]
+      "eligible_for_closure": true,
+      "resolved_by_candidate": {
+        "source": "9e81b3e2",
+        "previous_gaps": [
+          "Static review: routing.rs merges exact and wildcard groups that C order_servers distinguishes; preserve old-candidate image failure before root repair.",
+          "Static review: literal family mismatch skips a same-group numeric upstream in Rust; C filter_servers retains it.",
+          "Static review: canonicalised empty wildcard /*./ is never matched in Rust; C can select it when no exact empty-domain default exists."
+        ]
+      }
     },
     "bogus-nxdomain": {
       "source": [
@@ -308,7 +311,8 @@
             "bogus-invalid-v6-width",
             "bogus-invalid-bad-ip",
             "bogus-invalid-bad-prefix",
-            "bogus-invalid-empty"
+            "bogus-invalid-empty",
+            "bogus-tcp-zero-expiry"
           ]
         },
         {
@@ -335,7 +339,8 @@
             "bogus-invalid-v6-width",
             "bogus-invalid-bad-ip",
             "bogus-invalid-bad-prefix",
-            "bogus-invalid-empty"
+            "bogus-invalid-empty",
+            "bogus-tcp-zero-expiry"
           ]
         },
         {
@@ -362,7 +367,8 @@
             "bogus-invalid-v6-width",
             "bogus-invalid-bad-ip",
             "bogus-invalid-bad-prefix",
-            "bogus-invalid-empty"
+            "bogus-invalid-empty",
+            "bogus-tcp-zero-expiry"
           ]
         },
         {
@@ -389,7 +395,8 @@
             "bogus-invalid-v6-width",
             "bogus-invalid-bad-ip",
             "bogus-invalid-bad-prefix",
-            "bogus-invalid-empty"
+            "bogus-invalid-empty",
+            "bogus-tcp-zero-expiry"
           ]
         },
         {
@@ -416,7 +423,8 @@
             "bogus-invalid-v6-width",
             "bogus-invalid-bad-ip",
             "bogus-invalid-bad-prefix",
-            "bogus-invalid-empty"
+            "bogus-invalid-empty",
+            "bogus-tcp-zero-expiry"
           ]
         },
         {
@@ -443,7 +451,8 @@
             "bogus-invalid-v6-width",
             "bogus-invalid-bad-ip",
             "bogus-invalid-bad-prefix",
-            "bogus-invalid-empty"
+            "bogus-invalid-empty",
+            "bogus-tcp-zero-expiry"
           ]
         },
         {
@@ -470,7 +479,8 @@
             "bogus-invalid-v6-width",
             "bogus-invalid-bad-ip",
             "bogus-invalid-bad-prefix",
-            "bogus-invalid-empty"
+            "bogus-invalid-empty",
+            "bogus-tcp-zero-expiry"
           ]
         }
       ],
@@ -495,8 +505,10 @@
         "bogus-invalid-v6-width",
         "bogus-invalid-bad-ip",
         "bogus-invalid-bad-prefix",
-        "bogus-invalid-empty"
-      ]
+        "bogus-invalid-empty",
+        "bogus-tcp-zero-expiry"
+      ],
+      "eligible_for_closure": true
     },
     "local": {
       "eligible_for_closure": false,
@@ -9073,6 +9085,130 @@
       "no_default_server": true,
       "resolv_nameserver": "127.0.0.2",
       "upstream_port": 53
+    },
+    {
+      "id": "bogus-tcp-zero-expiry",
+      "options": [
+        "bogus-nxdomain"
+      ],
+      "config": "bogus-nxdomain=8.8.4.4\n",
+      "probes": [
+        {
+          "id": "tcp-zero-seed",
+          "name": "tcp-zero.test",
+          "type": 1,
+          "reply": "8.8.4.4",
+          "reply_ttl": 0,
+          "transports": [
+            "tcp"
+          ],
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response",
+            "rcode": 3,
+            "upstream_count": 1
+          },
+          "pair_start": "tcp-zero"
+        },
+        {
+          "id": "tcp-zero-replay",
+          "name": "tcp-zero.test",
+          "type": 1,
+          "reply": "8.8.4.4",
+          "reply_ttl": 0,
+          "transports": [
+            "udp"
+          ],
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response",
+            "rcode": 3,
+            "upstream_count": 1
+          },
+          "pair_end": "tcp-zero",
+          "sleep_before": 0.03
+        },
+        {
+          "id": "tcp-expiry-seed",
+          "name": "tcp-expiry.test",
+          "type": 1,
+          "responses": [
+            {
+              "reply": "8.8.4.4",
+              "reply_ttl": 1
+            },
+            {
+              "reply": "8.8.4.5",
+              "reply_ttl": 120
+            }
+          ],
+          "transports": [
+            "tcp"
+          ],
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response",
+            "rcode": 3,
+            "upstream_count": 1
+          },
+          "pair_start": "tcp-expiry"
+        },
+        {
+          "id": "tcp-expiry-cached",
+          "name": "tcp-expiry.test",
+          "type": 1,
+          "responses": [
+            {
+              "reply": "8.8.4.4",
+              "reply_ttl": 1
+            },
+            {
+              "reply": "8.8.4.5",
+              "reply_ttl": 120
+            }
+          ],
+          "transports": [
+            "udp"
+          ],
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response",
+            "rcode": 3,
+            "upstream_count": 0
+          },
+          "pair_end": "tcp-expiry",
+          "sleep_before": 0.03
+        },
+        {
+          "id": "tcp-expiry-expired",
+          "name": "tcp-expiry.test",
+          "type": 1,
+          "responses": [
+            {
+              "reply": "8.8.4.4",
+              "reply_ttl": 1
+            },
+            {
+              "reply": "8.8.4.5",
+              "reply_ttl": 120
+            }
+          ],
+          "transports": [
+            "udp"
+          ],
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response",
+            "rcode": 0,
+            "upstream_count": 1
+          },
+          "sleep_before": 1.2
+        }
+      ],
+      "hosts": "",
+      "expected_test_exit": 0,
+      "strict_upstream_wire": true,
+      "cache_size": 64
     }
   ]
 }
