@@ -4,10 +4,10 @@
 
 - 当前里程碑：M5；169 项中 **66 项已关闭、66 项部分实现、37 项未实现，剩余 103 项**。
 - 刚关闭：relay三项保持闭合。local-service定向TCP测试证实C/Rust拒绝连接的FIN/RST差异来自显式shutdown，不能归一化隐藏；该项重新打开并已修复，待候选复测。
-- 当前代码：产品冻结候选 `f1668e28`，ELF SHA256 `9c73a0d979aa1faa79b542fc08bb34f45a716d8bba2a89153ff61d841ed2ebd5`，1,396,848字节（本次relay接线段+20,480，case修复+0，M4+237,568）。此后main仅测试器/账本变更。Oracle产物在 `/home/ubuntu/m5-root-20261004/f1668e28/`，本地在 `evidence/M5/integration-20261004/f1668e28/`；统一库517通过／18忽略、main10通过。上一候选9da20ac0的helper16场景／32侧、boot102事件、leasequery22配置／38查询复跑通过，f166同版复跑正在进行。
-- 下一步：第一批矩阵9项与relay3项已完成接线和镜像对照，f166统一回归五族已过，TFTP实际超时场景尚在运行。第二批矩阵已关闭4项，fast-dns-retry继续；按A组顺序启动DHCP identity族（56条C清单／8项），先修真实缺口再跑族级镜像对照。local-service重新打开：SIGSTOP后排入41字节再恢复，精确证明C RST/Rust FIN差异；已删除拒绝分支shutdown，正在构建复测，不采用该归一化。
-- 阻塞点：Oracle ENOSPC已通过删除各自已归档的可重建rootfs/构建缓存缓解，可用约1GiB；另23份已完成副本已清理、/m2末态回拷并校验。f1668e28统一回归正在执行（库517通过／18忽略、main10通过），每次最多两族并行并及时回收可重建副本。无须用户决定。物理路由器未操作。
-- 活跃分工：relay任务已完成并归档清理；`m5/option-matrix-2` / `worktrees/m5-option-matrix-2`（option_matrix）推进retry，已关闭的3项不要重复扣数，local-service重新打开待修复复测；`m5/dhcp-identity` / `worktrees/m5-dhcp-identity` 已冻结56条C清单，开始实现与测试；batch_verify只跑f166同版回归并回拷证据，主代理统一公共接线。上述worktree均在 `private/dnsmasq-rewrite/` 下。
+- 当前代码：产品冻结候选 `f1668e28`，ELF SHA256 `9c73a0d979aa1faa79b542fc08bb34f45a716d8bba2a89153ff61d841ed2ebd5`，1,396,848字节（本次relay接线段+20,480，case修复+0，M4+237,568）。随后local-service拒绝TCP连接修复已构建为 `24671034` / SHA256 `99aaa63c4325389349cf00005b5c89accee6d1eeada14eb9e6fef8246d4f0dd3`，体积不变；相同integration目录下保留构建和ELF。Oracle产物在 `/home/ubuntu/m5-root-20261004/f1668e28/`，本地在 `evidence/M5/integration-20261004/f1668e28/`；统一库517通过／18忽略、main10通过。上一候选9da20ac0的helper16场景／32侧、boot102事件、leasequery22配置／38查询复跑通过，f166同版六族复跑完成；4,312份证据已回拷校验，汇总见integration-20261004/f1668e28/runs/regression-01/BATCH_VERIFICATION.json。
+- 下一步：第一批矩阵9项与relay3项已完成接线和镜像对照，f166统一回归六族全部通过（helper/boot/leasequery/RR/TFTP/首批matrix），TFTP真实120秒窗口双方完成。第二批矩阵当前关闭3项，fast-dns-retry继续；按A组顺序启动DHCP identity族（56条C清单／8项），先修真实缺口再跑族级镜像对照。local-service重新打开：SIGSTOP后排入41字节再恢复，精确证明C RST/Rust FIN差异；已删除拒绝分支shutdown，新候选24671034正在复测，不采用该归一化。
+- 阻塞点：Oracle ENOSPC已通过删除各自已归档的可重建rootfs/构建缓存缓解，可用约1GiB；另23份已完成副本已清理、/m2末态回拷并校验。f1668e28统一回归完成（库517通过／18忽略、main10通过），已回收完成副本且无残留进程。无须用户决定。物理路由器未操作。
+- 活跃分工：relay任务已完成并归档清理；`m5/option-matrix-2` / `worktrees/m5-option-matrix-2`（option_matrix）推进retry，已关闭的3项不要重复扣数，local-service重新打开待修复复测；`m5/dhcp-identity` / `worktrees/m5-dhcp-identity` 已冻结56条C清单，开始实现与测试；identity/harness使用独立 `m5/dhcp-identity-harness` 只改族测试器；`m5/pxe` / `worktrees/m5-pxe`（relay_checklist）仅准备C清单/API，未授权产品开工；batch_verify已完成f166统一回归，主代理统一公共接线。上述worktree均在 `private/dnsmasq-rewrite/` 下。
 
 ## 工作规则
 
