@@ -49,7 +49,7 @@ def main():
     root = prepare(args.image_root, None, args.out/'image', args.rust)
     (root/'m2').chmod(0o777)
     cases = list(fixtures())
-    save(args.out/'plan.json', cases)
+    save(args.out/'plan.json', {'cases':cases,'checklist': {'option.c:dhcp_tags':'quoted fields, tag/net/empty selectors, syntax-only invalid runtime', 'rfc2131.c:find_boot':'tagged before fallback; reverse order within tag class', 'rfc2131.c:do_options':'PRL/no override, context and tag-if, next-server hosts lookup, empty fields and NAK', 'rfc2131.c:option_put_string/free_space':'fixed field limits, 254/255 data, default/large capacity, overwide syntax rejection defect'},'reference_defects_runtime_excluded':['empty tag null dereference','overwide TLV length narrowing']})
     report = dict(c_sha256=sha256(root/'usr/sbin/dnsmasq'), rust_sha256=sha256(args.rust),
                   cases=[], failures=[], parser=[], reference_differences=[], negative_controls=[], compared=0)
     assert report['c_sha256'] == STOCK_SHA256
@@ -71,7 +71,9 @@ def main():
             report['negative_controls'].append(label)
         save(args.out/'result.json', report)
     for label, text in [('empty-tag','dhcp-boot=tag:,file'), ('empty-negated','dhcp-boot=tag:!,file'),
-                        ('no-fields','dhcp-boot=tag:known'), ('hostname','dhcp-boot=tag:known,file,,boot.test')]:
+                        ('no-fields','dhcp-boot=tag:known'), ('hostname','dhcp-boot=tag:known,file,,boot.test'),
+                        ('overwide-filename','dhcp-boot='+('f'*256)),
+                        ('overwide-servername','dhcp-boot=file,'+('s'*256))]:
         row=dict(name=label)
         (root/'m2/parser.conf').write_text(text+'\n')
         for side in ['c','rust']:
@@ -80,9 +82,9 @@ def main():
             (args.out/f'parser-{label}-{side}.stderr').write_bytes(result.stderr)
         report['parser'].append(row)
         if row['c']!=row['rust']:
-            if label=='empty-tag' and (row['c'],row['rust'])==(0,1):
+            if label in ('empty-tag','overwide-filename','overwide-servername') and (row['c'],row['rust'])==(0,1):
                 report['reference_differences'].append(dict(name=label, scope='syntax only',
-                    reason='candidate rejects an unusable empty boot selector; unsafe reference runtime excluded'))
+                    reason=('empty selector becomes a null netid in C' if label=='empty-tag' else 'C option_put_string narrows a length greater than one-byte DHCP capacity'), candidate='explicit configuration error', source=('option.c dhcp_netid_create/match_netid' if label=='empty-tag' else 'rfc2131.c option_put_string/free_space'), disposition='retain bounded Rust rejection; only --test runs for this reference defect'))
             else:report['failures'].append('parser-'+label)
     report['passed'] = not report['failures'] and len(report['negative_controls'])==len(cases)
     save(args.out/'result.json',report)
