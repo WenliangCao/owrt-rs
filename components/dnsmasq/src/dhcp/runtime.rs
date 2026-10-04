@@ -1041,6 +1041,7 @@ fn encode_configured_options(
 // The arguments mirror the C do_options call boundary: packet/reply context,
 // selected configuration, and two output slots. Keeping them explicit makes
 // the precedence and mutation points auditable against that call chain.
+#[cfg(test)]
 #[allow(clippy::too_many_arguments)]
 pub(super) fn encode_filtered_options(
     packet: super::packet::Packet<'_>,

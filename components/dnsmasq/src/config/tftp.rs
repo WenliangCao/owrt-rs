@@ -83,6 +83,7 @@ fn optional_bytes(bytes: &[u8]) -> Option<Vec<u8>> {
 
 /// network.c:246,539-558: dedicated TFTP names override DHCP exclusions.
 /// This is shared by listener admission and DHCP's server-ID alias check.
+#[cfg(any(test, all(target_os = "linux", target_pointer_width = "64")))]
 pub(crate) fn interface_enabled(
     enabled: bool,
     interfaces: &[Option<Vec<u8>>],
@@ -103,6 +104,7 @@ pub(crate) fn interface_enabled(
         }
 }
 
+#[cfg(any(test, all(target_os = "linux", target_pointer_width = "64")))]
 pub(crate) fn matches_name(pattern: &[u8], name: &[u8]) -> bool {
     for (pattern, actual) in pattern.iter().zip(name) {
         if *pattern == b'*' {

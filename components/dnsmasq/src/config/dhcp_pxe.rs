@@ -254,7 +254,10 @@ mod tests {
         }
         assert!(config.parse_prompt(&arg(b"tag:only")).is_err());
         assert_eq!(config.parse_prompt(&arg(b"")).unwrap().data, [255]);
-        assert_eq!(config.parse_prompt(&arg(&[b'a'; 251])).unwrap().data.len(), 252);
+        assert_eq!(
+            config.parse_prompt(&arg(&[b'a'; 251])).unwrap().data.len(),
+            252
+        );
         assert!(config.parse_prompt(&arg(&[b'a'; 252])).is_err());
     }
 }
