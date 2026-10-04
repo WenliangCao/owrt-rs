@@ -378,11 +378,13 @@ def boundary_plan(cases):
             'cases': [case['name'] for case in selected],
             'planned_only': [case['name'] for case in selected if case.get('planned_only')],
             'scheduled': bool(selected),
+            'unexecuted': any(case.get('planned_only') for case in selected),
         }
     return {
         'schema': 'm5-dhcp-range-boundary-plan-v1',
         'boundaries': rows,
         'missing': [boundary for boundary, row in rows.items() if not row['scheduled']],
+        'unexecuted': [boundary for boundary, row in rows.items() if row['unexecuted']],
         'planned_only': sorted({name for row in rows.values() for name in row['planned_only']}),
     }
 
