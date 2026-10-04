@@ -292,18 +292,16 @@ fn lease_time(bytes: &[u8]) -> Result<(u32, bool), Error> {
         Some(b'w' | b'W') => (&bytes[..bytes.len() - 1], 604_800),
         _ => (bytes, 1),
     };
-    // C accepts a bare suffix: after stripping it, atoi("") is zero. Avoid
-    // inventing semantics for inputs whose C int multiplication overflows.
-    let value = if digits.is_empty() {
-        0
-    } else {
-        integer(digits)?
-    };
-    value
-        .checked_mul(multiplier)
-        .filter(|value| *value <= i32::MAX as u32)
-        .map(|value| (value.max(120), true))
-        .ok_or(Error("DHCP lease time exceeds defined C int range"))
+    // The pinned image uses musl atoi and a 32-bit multiplication before
+    // storing the unsigned lease time. Preserve those low bits safely,
+    // including a bare suffix (atoi("") == 0).
+    let value = digits.iter().try_fold(0u32, |value, digit| {
+        if !digit.is_ascii_digit() {
+            return Err(Error("bad dhcp-range"));
+        }
+        Ok(value.wrapping_mul(10).wrapping_add(u32::from(digit - b'0')))
+    })?;
+    Ok((value.wrapping_mul(multiplier).max(120), true))
 }
 
 fn ip(bytes: &[u8]) -> Result<Ipv4Addr, Error> {
@@ -493,15 +491,18 @@ impl DhcpConfig {
                 let filter = TagPredicate::from_tags(filters);
                 let parts = &parts[first..];
                 if parts.len() < 2 || parts.len() > 5 {
-                    return Err(Error("bad DHCP range"));
+                    return Err(Error("bad dhcp-range"));
                 }
                 // option.c does not unhide quoted metacharacters for ranges.
-                let mut start = ip(parts[0].encoded())?;
+                let mut start = ip(parts[0].encoded()).map_err(|_| Error("bad dhcp-range"))?;
                 use crate::dhcp::allocation::RangeKind;
                 let (kind, mut end) = match parts[1].encoded() {
                     b"static" => (RangeKind::Static, start),
                     b"proxy" => (RangeKind::Proxy, start),
-                    value => (RangeKind::Dynamic, ip(value)?),
+                    value => (
+                        RangeKind::Dynamic,
+                        ip(value).map_err(|_| Error("bad dhcp-range"))?,
+                    ),
                 };
                 if start > end {
                     std::mem::swap(&mut start, &mut end);
@@ -521,7 +522,7 @@ impl DhcpConfig {
                     }
                 }
                 if parts.len() > leasepos + 1 {
-                    return Err(Error("bad DHCP range"));
+                    return Err(Error("bad dhcp-range"));
                 }
                 let (duration, explicit) = match parts.get(leasepos) {
                     Some(part) => lease_time(part.encoded())?,
@@ -968,8 +969,16 @@ mod tests {
                 (expected, explicit)
             );
         }
-        assert!(lease_time(b"2147483648").is_err());
-        assert!(lease_time(b"2147483647w").is_err());
+        for (input, expected) in [
+            ("2147483648", 2_147_483_648),
+            ("4294967295", u32::MAX),
+            ("4294967296", 120),
+            ("4294967297", 120),
+            ("2147483647w", 4_294_362_496),
+            ("18446744073709551616", 120),
+        ] {
+            assert_eq!(lease_time(input.as_bytes()).unwrap(), (expected, true));
+        }
     }
 
     #[test]
