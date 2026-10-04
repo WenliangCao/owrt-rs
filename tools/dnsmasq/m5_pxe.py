@@ -363,6 +363,51 @@ def profiles():
         if name=="zero-htype":raw[1]=0
         malformed.append(case(name,raw=raw,reply=name in ["truncated-tlv","overload-file"]))
     rows.append(profile("malformed-input",legacy,malformed,["RX01","RX03","OWNER01"]))
+    rows.extend([
+        profile("service-negative-tags",["pxe-service=tag:!missing,0,Visible,boot","pxe-service=tag:!known,0,Hidden,hidden"],
+                [case("negative-tag-menu")],["CFG-S04","MENU01"]),
+        profile("proxy-nooverride4011",legacy+["dhcp-no-override"],
+                [case("nooverride4011",kind=3,ciaddr=CLIENT,listener=4011)],["CFG-N01"]),
+        profile("boot-item-relay-route",legacy,
+                [case("giaddr67",kind=3,ciaddr=CLIENT,giaddr=CLIENT,boot_item=item(),source_port=67),
+                 case("giaddr4011",kind=3,ciaddr=CLIENT,giaddr=CLIENT,boot_item=item(),listener=4011,source_port=9999)],["BOOT05"]),
+        profile("uefi-arch5-6",["pxe-service=5,Legacy,legacy","pxe-service=6,EFI,efi"],
+                [case("arch5-legacy",arch=5),case("arch6-redirect",arch=6),case("arch6-target4011",arch=6,kind=3,ciaddr=CLIENT,listener=4011)],["UEFI01","PROXY03"]),
+        profile("proxy-existing-lease",legacy,[case("proxy-preserves-existing"),case("boot-preserves-existing",kind=3,ciaddr=CLIENT,boot_item=item())],
+                ["PROXY06"],initial_leases="0 02:00:00:4d:35:03 10.77.0.10 existing *\n"),
+        profile("proxy-expired-lease",legacy,[case("proxy-prunes-expired")],["PROXY06"],expire_before_packet=True),
+        profile("pxe-excluded-interface",legacy+["no-dhcp-interface=client0"],
+                [case("excluded67",reply=False),case("excluded4011",listener=4011,reply=False)],["RX04"]),
+        profile("proxy-mask-inferred",legacy,[case("inferred-mask")],["CFG-R01"],range_value="10.77.0.1,proxy"),
+        profile("static-explicit-broadcast",legacy,[case("static-broadcast")],["CFG-R01"],mode="static",range_value="10.77.0.1,static,255.255.255.0,10.77.0.255,600s"),
+        profile("bootp-bare-predicate",["bootp-dynamic=bootp,#missing"],[case("bare-and-negative",kind=0,arch=None,vendor=None,prl=None)],
+                ["CFG-B01"],mode="dynamic",static_host=False),
+        profile("bootp-empty-predicate",["bootp-dynamic="],[case("empty-denied",kind=0,arch=None,vendor=None,prl=None,reply=False)],
+                ["CFG-B01"],mode="dynamic",static_host=False),
+        profile("prompt-only-enables",["pxe-prompt=Choose"],[case("prompt-no-service")],["START01"]),
+        profile("prompt-no-range",["pxe-prompt=Choose"],[case("no-listener",listener=4011,reply=False)],["START01"],mode="none",expect4011=False),
+    ])
+    # Seeded mutations retain structurally valid transport while stressing the
+    # C scanner's early END, duplicate TLV and nested71 interpretation.
+    import random
+    randomizer=random.Random(0x4d35505845)
+    mutations=[]
+    for index in range(32):
+        payload=bytes(randomizer.randrange(256) for _ in range(randomizer.randrange(0,24)))
+        if index%4==0:
+            raw=request(extra=option(224,payload))
+            expected=True
+        elif index%4==1:
+            raw=request(vendor=b"not-PXE"+payload)
+            expected=False
+        elif index%4==2:
+            raw=request(arch=struct.pack("!H",randomizer.randrange(65536))+payload)
+            expected=True
+        else:
+            raw=request(kind=3,ciaddr=CLIENT,boot_item=struct.pack("!HH",32768,randomizer.randrange(32768))+payload)
+            expected=True
+        mutations.append(case(f"seeded-{index:02}",raw=raw,reply=expected))
+    rows.append(profile("pxe-seeded-scanner",legacy,mutations,["RX01","RX02","RX03","BOOT01","OWNER01"]))
     for kind in ["external-conflict","default-exclusive","bind-interfaces","bind-dynamic"]:
         rows.append(profile("bind-4011-"+kind,[],[],["START02","OWNER01"],mode="none",bind_kind=kind))
     return rows
@@ -427,7 +472,7 @@ def grammar_cases():
         add(f"architecture-{name}", f"pxe-service={value},Menu,boot")
     for name, text in [
         ("local", "pxe-service=0,Local"), ("numeric", "pxe-service=0,Remote,12"),
-        ("numeric-wrap", "pxe-service=0,Remote,65536"), ("filename", "pxe-service=0,Menu,boot.efi"),
+        ("numeric-wrap", "pxe-service=0,Remote,65536"), ("empty-basename", "pxe-service=0,Empty,"), ("filename", "pxe-service=0,Menu,boot.efi"),
         ("server-ip", "pxe-service=0,Menu,boot,10.77.0.8"),
         ("server-name", "pxe-service=0,Menu,boot,boot-server"),
         ("tags", "pxe-service=tag:known,net:!other,0,Menu,boot"),
@@ -453,7 +498,7 @@ def grammar_cases():
                         ("encap", "encap:172,17,value"), ("enterprise", "vi-encap:13,17,value")]:
         add("option-pxe-"+name, "dhcp-option-pxe="+value)
     for name, value in [("global", "bootp-dynamic"), ("positive", "bootp-dynamic=tag:bootp"),
-                        ("negative", "bootp-dynamic=tag:!skip"), ("legacy", "bootp-dynamic=net:bootp,#skip")]:
+                        ("negative", "bootp-dynamic=tag:!skip"), ("legacy", "bootp-dynamic=net:bootp,#skip"), ("empty", "bootp-dynamic="), ("bare", "bootp-dynamic=bootp,#skip")]:
         add("bootp-"+name, value)
     return rows
 
@@ -498,6 +543,8 @@ def run_profile(root, side, profile, client, server, out):
         (root/"m2"/name).unlink(missing_ok=True)
     if profile.get("initial_leases") is not None:
         (root/"m2/pxe.leases").write_text(profile["initial_leases"])
+    if profile.get("expire_before_packet"):
+        (root/"m2/pxe.leases").write_text(f"{int(time.time())+2} 02:00:00:4d:35:03 10.77.0.10 old *\n")
     if profile.get("helper"):
         for name in ["pxe-helper.events","pxe-helper.running","pxe-helper.done"]:(root/"m2"/name).unlink(missing_ok=True)
         script=root/"m2/pxe-helper"
@@ -530,6 +577,9 @@ def run_profile(root, side, profile, client, server, out):
             if not health():
                 raise AssertionError("startup DNS heartbeat")
             row["fd_start"] = net.descriptors(process.pid)
+            if profile.get("expire_before_packet"):
+                row["initial_leases"]=(root/"m2/pxe.leases").read_text()
+                time.sleep(2.1)
             if profile.get("metrics") is not None:row["initial_metrics"]=metrics(root)
             for item in profile["cases"]:
                 if item["helper_busy"]:
@@ -695,7 +745,7 @@ def evaluate(rows, corpus, sides):
                     failures.append(f"{key}/{item['name']}: upstream relay count")
                 if not case["alive"] or not case["heartbeat"]:
                     failures.append(f"{key}/{item['name']}: unhealthy daemon")
-                if profile["mode"]=="proxy" and lease_state(case):
+                if profile["mode"]=="proxy" and not profile.get("initial_leases") and lease_state(case):
                     failures.append(f"{key}/{item['name']}: proxy allocated a lease")
                 if profile.get("tftp") and case.get("tftp") is not True:failures.append(f"{key}/{item['name']}: TFTP health")
                 if item["helper_busy"] and case.get("helper_busy_observed") is not True:failures.append(f"{key}/{item['name']}: no concurrent helper witness")
