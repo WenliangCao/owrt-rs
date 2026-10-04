@@ -443,6 +443,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     if dns_enabled && !runtime.dns.no_resolv && resolvers.is_empty() {
         return Err(Box::new(Error("no nameserver in resolver files")));
     }
+    dnsmasq_rs::dns::routing::RoutingTable::add_default_resolver_rule(&mut runtime.dns, &resolvers);
     let interface_snapshot = Arc::new(Mutex::new(
         listeners::snapshot().map_err(NetworkStartupError)?,
     ));

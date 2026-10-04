@@ -138,11 +138,21 @@ impl RoutingTable {
             return Err(RoutingError::MissingDefaultResolvers);
         }
         let mut config = config.clone();
+        Self::add_default_resolver_rule(&mut config, default_resolvers);
+        Self::from_config(&config, default_resolvers)
+    }
+
+    /// Publish the active resolver-file default tier to the local-answer
+    /// view too. In particular, this tier precedes an empty wildcard (`/*./`)
+    /// but shares the ordinary empty suffix with `address=/#/` literals.
+    pub fn add_default_resolver_rule(config: &mut DnsConfig, default_resolvers: &[SocketAddr]) {
         if !config.no_resolv
+            && !default_resolvers.is_empty()
             && !config.rules.iter().any(|rule| {
                 matches!(rule.target, RuleTarget::DefaultResolvers)
                     && rule.domain.suffix.is_empty()
                     && !rule.domain.dotless
+                    && !rule.domain.wildcard
             })
         {
             config.rules.push(ServerRule {
@@ -155,7 +165,6 @@ impl RoutingTable {
                 target: RuleTarget::DefaultResolvers,
             });
         }
-        Self::from_config(&config, default_resolvers)
     }
 
     /// `default_resolvers` contains the active, already-resolved resolv.conf
