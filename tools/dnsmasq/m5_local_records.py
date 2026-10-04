@@ -208,7 +208,10 @@ def parse_configs(root, side, out):
     if getattr(parse_configs, 'length_only', False):
         cases = []
     original_count = len(cases)
-    cases += list(length_parse_cases())
+    if getattr(parse_configs, 'profiles', None):
+        cases += [line for label, text, _ in length_profiles() if label in parse_configs.profiles for line in text.splitlines()]
+    else:
+        cases += list(length_parse_cases())
     result = []
     corpus = out / 'config-corpus' 
     corpus.mkdir(exist_ok=True)
@@ -234,6 +237,11 @@ def run(args, side, out):
     selected = list(length_profiles())
     if not args.length_only:
         selected = list(profiles(hostname)) + selected
+    if args.profiles:
+        names = set(args.profiles.split(','))
+        selected = [row for row in selected if row[0] in names]
+        if {row[0] for row in selected} != names:
+            raise ValueError('requested profile not found')
     for profile, extra, questions in selected:
         upstream = Upstream() if profile == 'dynamic-additional' else None
         config = BASE + extra + (f'server=127.0.0.1#{upstream.port}\n' if upstream else '')
@@ -391,8 +399,10 @@ def main():
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--c-only', action='store_true')
     parser.add_argument('--length-only', action='store_true')
+    parser.add_argument('--profiles')
     args = parser.parse_args()
     parse_configs.length_only = args.length_only
+    parse_configs.profiles = set(args.profiles.split(',')) if args.profiles else None
     if os.environ.get('DNSMASQ_TEST_ISOLATED') != '1' or os.geteuid() != 0:
         parser.error('requires root in run_isolated.sh')
     if args.out.exists() or 'private' not in args.out.resolve().parts:
