@@ -966,7 +966,11 @@ pub(super) fn address_policy(config: &DnsConfig) -> Result<AddressPolicy, Daemon
     let mut rebind_domains = Vec::with_capacity(config.rebind_domains.len());
     for domain in &config.rebind_domains {
         let text = std::str::from_utf8(domain).map_err(|_| ConfigError("bad rebind domain"))?;
-        rebind_domains.push(Name::from_ascii(text)?.canonical_wire());
+        // C permits empty internal labels in this textual exception list.
+        // They cannot match a valid wire name, but must not abort startup.
+        if let Ok(name) = Name::from_ascii(text) {
+            rebind_domains.push(name.canonical_wire());
+        }
     }
     Ok(AddressPolicy {
         stop_rebind: config.stop_rebind,

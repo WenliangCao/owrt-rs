@@ -251,15 +251,15 @@ fn address_prefix(argument: &EncodedArg) -> Result<PrefixConfig, Error> {
     // Unlike aliases, C unhides the whole argument before splitting the slash.
     let argument = EncodedArg::command_line(&argument.decoded());
     let (address, prefix) = argument.split_once(b'/');
-    let address = ip(address.encoded()).ok_or(Error("bad address prefix"))?;
+    let address = ip(address.encoded()).ok_or(Error("error"))?;
     let width = if address.is_ipv4() { 32 } else { 128 };
     let prefix = match prefix {
         // C numeric_check accepts an empty string and atoi gives zero.
-        Some(prefix) => numeric(prefix.encoded())?,
+        Some(prefix) => numeric(prefix.encoded()).map_err(|_| Error("error"))?,
         None => width,
     };
     if prefix > width {
-        return Err(Error("bad address prefix"));
+        return Err(Error("error"));
     }
     Ok(PrefixConfig {
         address,

@@ -55,11 +55,17 @@ impl AddressPrefix {
 
 impl AddressPolicy {
     pub(super) fn rejects_rebind(&self, question: &super::wire::Name, address: IpAddr) -> bool {
+        let name = question.as_wire();
         self.stop_rebind
-            && !self
-                .rebind_domains
-                .iter()
-                .any(|domain| suffix_match(&question.canonical_wire(), domain))
+            && !self.rebind_domains.iter().any(|domain| {
+                // forward.c::domain_no_rebind: an empty configured
+                // domain exempts root/single-label names, not all suffixes.
+                if domain == &[0] {
+                    name.len() <= usize::from(name[0]) + 2
+                } else {
+                    suffix_match(&question.canonical_wire(), domain)
+                }
+            })
             && !is_allowed_address(address, self.rebind_localhost_ok)
     }
 }
@@ -689,6 +695,19 @@ mod tests {
         )
         .unwrap();
         assert!(report.blocked_rebind);
+    }
+
+    #[test]
+    fn empty_rebind_exception_is_only_for_single_label_queries() {
+        let policy = AddressPolicy {
+            stop_rebind: true,
+            rebind_domains: vec![vec![0]],
+            ..AddressPolicy::default()
+        };
+        let private = IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1));
+        assert!(!policy.rejects_rebind(&Name::root(), private));
+        assert!(!policy.rejects_rebind(&Name::from_ascii("host").unwrap(), private));
+        assert!(policy.rejects_rebind(&Name::from_ascii("host.test").unwrap(), private));
     }
 
     #[test]

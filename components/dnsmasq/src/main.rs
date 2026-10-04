@@ -87,6 +87,9 @@ extern "C" fn request_interrupt(_signal: i32) {
 fn main() {
     let args: Vec<OsString> = std::env::args_os().skip(1).collect();
     if let Err(error) = run(&args) {
+        if error.is::<loader::LoadError>() {
+            eprintln!();
+        }
         eprintln!("dnsmasq-rs: {error}");
         std::process::exit(startup_status(error.as_ref()));
     }
