@@ -10,6 +10,7 @@ import copy
 import ctypes
 import errno
 import platform
+import re
 import resource
 import threading
 import json
@@ -187,7 +188,13 @@ def fifo_reload(root,side,folder,event,process,endpoint,out,index):
     try:
         os.write(writer,event['text'].encode())
         if event.get('repeat_signals'):
-            for _ in range(3):process.send_signal(signal.SIGHUP)
+            observed['signal_delivery_windows']=[]
+            for _ in range(3):
+                process.send_signal(signal.SIGHUP);time.sleep(.02)
+                status=Path(f'/proc/{process.pid}/status').read_text().splitlines()
+                pending=[int(line.split()[1],16) for line in status if line.startswith(('SigPnd:','ShdPnd:'))]
+                assert pending and not any(mask & 1 for mask in pending),'SIGHUP remained pending past delivery window'
+                observed['signal_delivery_windows'].append('not-pending-after-20ms')
             path.unlink();write_file(path,'224,second-generation\n')
         try:health();observed['dns_during_read']='reply'
         except socket.timeout:observed['dns_during_read']='timeout'
@@ -543,6 +550,32 @@ def compare(c,rust):
     return failures
 
 
+def audit_trace(folder,mode):
+    report=json.loads((folder/'run/result.json').read_text())
+    assert report['selected_comparison_passed'] and not report['failures']
+    lines=(folder/'syscalls.log').read_text().splitlines()
+    observations={}
+    for side,observed in report['results'][0]['sides'].items():
+        pid=observed['identity']['pid'];selected=[(number+1,line) for number,line in enumerate(lines) if re.match(str(pid)+r'\s',line)]
+        if mode=='watch':
+            watched=next((number,line) for number,line in selected if 'inotify_add_watch(' in line and '"/m2/dhcp-files/opts"' in line)
+            opened=next((number,line) for number,line in selected if number>watched[0] and 'openat(' in line and '"/m2/dhcp-files/opts"' in line and 'O_DIRECTORY' in line)
+            descriptor=int(re.search(r'= (\d+)$',opened[1])[1])
+            read=next((number,line) for number,line in selected if number>opened[0] and f'getdents64({descriptor},' in line and re.search(r'= [1-9][0-9]*$',line))
+            observations[side]={'pid':pid,'watch_before_open_before_readdir':True,'syscalls':[watched,opened,read]}
+        elif mode=='signals':
+            delivered=[(number,line) for number,line in selected if '--- SIGHUP ' in line]
+            fifo=next(row for row in observed['rows'] if row['event']['op']=='fifo-reload')
+            helpers=observed['rows'][-1]['helper']
+            assert len(delivered)==4,(side,delivered)
+            assert len([line for line in helpers if line.startswith('old|')])==len(delivered),(side,helpers)
+            observations[side]={'pid':pid,'delivered_sighup_count':len(delivered),'helper_events':helpers,'delivery_syscalls':delivered,'delivery_windows':fifo['fifo']['signal_delivery_windows']}
+        else:raise ValueError(mode)
+    proof={'checked':True,'scope':mode,'source_commit':json.loads((folder/'run/manifest.json').read_text())['source_commit'],'trace_sha256':sha256(folder/'syscalls.log'),'observations':observations}
+    save(folder/'trace-proof.json',proof)
+    return proof
+
+
 def witness_errors(scenario,observed,side):
     errors=[]
     for event,row in zip(scenario['events'],observed['rows']):
@@ -658,6 +691,8 @@ def main(args):
 
 
 if __name__=='__main__':
+    if len(sys.argv)>1 and sys.argv[1]=='--audit-trace':
+        print(json.dumps(audit_trace(Path(sys.argv[3]),sys.argv[2])));raise SystemExit(0)
     if len(sys.argv)>1 and sys.argv[1]=='--self-test':
         print(json.dumps({'scenarios':len(scenarios()),'negative_controls':controls()}));raise SystemExit(0)
     if len(sys.argv)>1 and sys.argv[1]=='--exec-watch-fault':exec_watch_fault(sys.argv[2:])
