@@ -6,7 +6,7 @@ use super::allocation::{match_tags, AddressRange};
 use super::packet::{find_option, Packet};
 use std::net::Ipv4Addr;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Service {
     pub architecture: u16,
     pub service_type: u16,
