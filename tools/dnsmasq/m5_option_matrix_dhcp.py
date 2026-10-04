@@ -208,6 +208,17 @@ def run_side(root, side, scenario, folder):
     network, process = None, None
     try:
         network = setup_network(scenario)
+        if scenario.get('wait_for_address_ready'):
+            # These cases test exclusion on established interfaces. Retain
+            # initial DAD failure separately in the listener-family evidence.
+            deadline = time.monotonic() + 5
+            while True:
+                addresses = json.loads(subprocess.check_output(['ip', '-j', '-6', 'addr', 'show']))
+                if not any('tentative' in address.get('flags', []) or address.get('tentative')
+                           for interface in addresses for address in interface.get('addr_info', [])):
+                    break
+                if time.monotonic() >= deadline: raise AssertionError('interface DAD did not complete')
+                time.sleep(.02)
         write_json(folder / 'network.json', {'server': json.loads(subprocess.check_output(['ip', '-j', 'addr'])),
                    'client': json.loads(network.exec('ip', '-j', 'addr').stdout),
                    'client_arp_ignore': network.exec('sysctl', '-n', 'net.ipv4.conf.all.arp_ignore').stdout.strip()})
