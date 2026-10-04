@@ -37,11 +37,26 @@ def rr(kind, data, owner=b'\xc0\x0c', ttl=120, cls=1):
 def query(probe, ident):
     host = probe['name']
     encoded = name(host) if host else b'\0'
-    packet = struct.pack('!6H', ident, 0x100, 1, 0, 0, int(probe.get('edns', False)))
+    edns = probe.get('edns', False) or probe.get('do', False)
+    flags = probe.get('query_flags', 0x100) | (0x10 if probe.get('cd') else 0) | (0x20 if probe.get('ad') else 0)
+    packet = struct.pack('!6H', ident, flags, 1, 0, 0, int(edns))
     packet += encoded + struct.pack('!HH', probe.get('type', 1), probe.get('class', 1))
-    if probe.get('edns'):
-        packet += rr(41, b'', b'\0', 0, 1232)
+    if edns:
+        packet += rr(41, b'', b'\0', 0x8000 if probe.get('do') else 0, probe.get('udp_size', 1232))
     return packet
+
+
+def fixture_record(record):
+    kind = record['type']
+    owner = name(record['owner']) if 'owner' in record else b'\xc0\x0c'
+    if 'address' in record:
+        data = ipaddress.ip_address(record['address']).packed
+    elif 'target' in record:
+        data = name(record['target'])
+    else:
+        data = bytes.fromhex(record.get('hex', ''))
+    declared = record.get('declared_length', len(data))
+    return owner + struct.pack('!HHIH', kind, record.get('class', 1), record.get('ttl', 120), declared) + data
 
 
 class Upstream:
@@ -50,11 +65,12 @@ class Upstream:
         self.probes = {(p['name'].lower(), p.get('type', 1)): p for p in probes}
         self.host = host
         self.captured = []
-        self.udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.family = socket.AF_INET6 if ':' in host else socket.AF_INET
+        self.udp = socket.socket(self.family, socket.SOCK_DGRAM)
         self.udp.bind((host, 0))
         self.port = self.udp.getsockname()[1]
         self.udp.settimeout(.05)
-        self.tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.tcp = socket.socket(self.family, socket.SOCK_STREAM)
         self.tcp.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.tcp.bind((host, self.port))
         self.tcp.listen()
@@ -71,6 +87,9 @@ class Upstream:
         self.events.append({'name': host, 'type': kind, 'class': cls, 'transport': transport,
                             'wire': packet.hex()})
         probe = self.probes.get((host, kind), {})
+        if probe.get('responses'):
+            count = sum(event['name'] == host and event['type'] == kind for event in self.events)
+            probe = dict(probe, **probe['responses'][min(count - 1, len(probe['responses']) - 1)])
         if probe.get('timed'):
             self.events[-1]['monotonic'] = time.monotonic()
             self.events[-1]['wall_time'] = time.time()
@@ -83,6 +102,9 @@ class Upstream:
             data = ipaddress.ip_address(value).packed
         elif kind == 16:
             data = b'\x06matrix'
+        elif kind == 255:
+            record_kind = 1
+            data = ipaddress.ip_address('192.0.2.10').packed
         else:
             data = b'\x01x'
         owner = b'\xc0\x0c'
@@ -90,13 +112,27 @@ class Upstream:
         if probe.get('cname'):
             owner = name('target.matrix.test')
             records.append(rr(5, owner))
-        records.append(rr(record_kind, data, owner, cls=cls))
+        records.append(rr(record_kind, data, owner, ttl=probe.get('reply_ttl', 120), cls=probe.get('reply_class', cls)))
         section_count = [len(records), 0, 0]
         if probe.get('sections') and kind == 1:
             records.extend([rr(1, data, name('ns.matrix.test')), rr(1, data, name('extra.matrix.test'))])
             section_count = [1, 1, 1]
-        flags = 0x8580 | probe.get('rcode', 0) | (0x200 if probe.get('tc') else 0)
-        return packet[:2] + struct.pack('!5H', flags, 1, *section_count) + packet[12:end + 4] + b''.join(records)
+        if 'records' in probe:
+            records = []
+            section_count = []
+            for section in ['answer', 'authority', 'additional']:
+                selected = [r for r in probe['records'] if r.get('section', 'answer') == section]
+                section_count.append(len(selected))
+                records.extend(fixture_record(record) for record in selected)
+        if probe.get('echo_edns'):
+            opt = next((r for r in semantics(packet)['records'] if r['type'] == 41), None)
+            if opt is not None:
+                records.append(rr(41, b'', b'\0', opt['ttl'] & 0x8000, 1232))
+                section_count[2] += 1
+        flags = probe.get('reply_flags', 0x8580) | probe.get('rcode', 0) | (0x200 if probe.get('tc') else 0)
+        response = packet[:2] + struct.pack('!5H', flags, 1, *section_count) + packet[12:end + 4] + b''.join(records)
+        self.events[-1]['reply_wire'] = response.hex()
+        return response
 
     def udp_loop(self):
         while not self.stop.is_set():
@@ -176,6 +212,8 @@ class Upstream:
 
 
 def observe(port, probe, ident, transport, upstream):
+    if probe.get('sleep_before'):
+        time.sleep(probe['sleep_before'])
     packet = query(probe, ident)
     before = len(upstream.events)
     started = time.monotonic()
@@ -188,10 +226,14 @@ def observe(port, probe, ident, transport, upstream):
             response = client.recv(65535) if transport == 'udp' else exact_read(client, struct.unpack('!H', exact_read(client, 2))[0])
         except socket.timeout:
             pass
-    result = semantics(response) if response is not None else None
+    try:
+        result = semantics(response) if response is not None else None
+    except (ValueError, IndexError, struct.error) as error:
+        result = {'id': int.from_bytes(response[:2], 'big'), 'flags': int.from_bytes(response[2:4], 'big'), 'malformed': str(error), 'wire_without_id': response[2:].hex()}
     if result is not None and result['id'] != ident:
         raise AssertionError('wrong client transaction ID')
     return {'id': probe['id'] + ':' + transport, 'response': result,
+            'question_wire': (response[12:read_name(response, 12)[1] + 4].hex() if response is not None else None),
             'raw': response.hex() if response is not None else None,
             'request': packet.hex(), 'elapsed': time.monotonic() - started,
             'upstream': copy.deepcopy(upstream.events[before:])}
@@ -215,7 +257,7 @@ def run_side(root, side, scenario, folder):
     isolated_address = scenario.get('upstream_address')
     if isolated_address:
         subprocess.run(['ip', 'addr', 'add', isolated_address + '/32', 'dev', 'lo'], check=True)
-    upstream = Upstream(scenario['probes'], isolated_address or '127.0.0.2')
+    upstream = Upstream(scenario['probes'], isolated_address or scenario.get('upstream_host', '127.0.0.2'))
     alternate = Upstream(scenario['probes'], '127.0.0.3') if scenario.get('alternate_upstream') else None
     upstream.alternate = alternate
     with socket.socket() as reserve:
@@ -272,13 +314,21 @@ def run_side(root, side, scenario, folder):
                         if result['ipv6_network_warmup']['status'] != 'reply':
                             raise AssertionError('on-link IPv6 readiness failed')
                 verify_identity(result['identity']['sha256'], sha256(root / ('usr/sbin/dnsmasq' if side == 'c' else 'usr/sbin/dnsmasq-rs')))
+                pairs = {}
                 for index, probe in enumerate(scenario['probes']):
+                    if probe.get('pair_start'):
+                        fraction = time.time() % 1
+                        if fraction > .55:
+                            time.sleep(1.03 - fraction)
+                        pairs[probe['pair_start']] = int(time.time())
                     for transport in probe.get('transports', ['udp', 'tcp']):
                         observer = {'casing': probes_extra.observe_casing, 'capacity': probes_extra.observe_capacity, 'retry': probes_extra.observe_retry}.get(scenario.get('adapter'), observe)
                         if topology:
                             result['rows'].append(probes_extra.observe_local_service(port, probe, 0x4100 + index * 4, transport, topology))
                         else:
                             result['rows'].append(observer(port, probe, 0x4100 + index * 4, transport, upstream))
+                    if probe.get('pair_end') and pairs[probe['pair_end']] != int(time.time()):
+                        raise AssertionError('cache seed/replay pair crossed a wall-clock second; exact TTL gate must rerun')
     finally:
         if process is not None:
             if process.poll() is None:
@@ -370,6 +420,10 @@ def compare(expected, actual, scenario):
             wanted = probe['c_expect'].get(transport, 'response')
             if (row['response'] is None) != (wanted == 'timeout'):
                 failures.append({'phase': 'c-calibration', 'id': row['id'], 'expected': wanted, 'c': row})
+            if 'upstream_count' in probe['c_expect'] and len(row['upstream']) != probe['c_expect']['upstream_count']:
+                failures.append({'phase': 'c-calibration', 'id': row['id'], 'expected_upstream_count': probe['c_expect']['upstream_count'], 'actual': len(row['upstream'])})
+            if 'rcode' in probe['c_expect'] and (row['response'] is None or row['response'].get('flags', 0) & 15 != probe['c_expect']['rcode']):
+                failures.append({'phase': 'c-calibration', 'id': row['id'], 'expected_rcode': probe['c_expect']['rcode'], 'c': row['response']})
             if 'answer_addresses' in probe['c_expect']:
                 addresses = sorted(r['data'] for r in (row['response'] or {}).get('records', []) if r['section'] == 'answer' and r['type'] in (1, 28))
                 if addresses != sorted(probe['c_expect']['answer_addresses']):
@@ -380,7 +434,10 @@ def compare(expected, actual, scenario):
             for key in ('raw', 'request', 'elapsed'):
                 row.pop(key)
             for event in row['upstream']:
-                event.pop('wire')  # randomized upstream ID/source port are not behavior
+                wire = event.pop('wire')
+                if scenario.get('strict_upstream_wire'):
+                    event['query_without_id'] = wire[4:]
+                event.pop('reply_wire', None)
         if a != b:
             failures.append({'phase': 'runtime', 'id': left['id'], 'c': a, 'rust': b})
     return failures
@@ -421,6 +478,26 @@ def self_test():
         controls['wrong-running-identity'] = 'detected'
     else:
         raise AssertionError('identity calibration failed')
+    causal_case = {'strict_upstream_wire': True, 'probes': [{'id': 'required', 'c_expect': {'rcode': 0, 'upstream_count': 1, 'answer_addresses': ['8.8.8.8']}}]}
+    causal = copy.deepcopy(base)
+    for row in causal['rows']:
+        row['question_wire'] = '01610000010001'
+        row['response'] = {'flags': 0x8180, 'records': [{'section': 'answer', 'type': 1, 'data': '8.8.8.8', 'ttl': 120}]}
+        row['upstream'] = [{'wire': '0001abcd', 'reply_wire': '00010102'}]
+    assert not compare(causal, copy.deepcopy(causal), causal_case)
+    changed = copy.deepcopy(causal); changed['rows'][0]['upstream'][0]['wire'] = 'ffffabcd'
+    assert not compare(causal, changed, causal_case), 'only random upstream transaction ID is ignored'
+    for label in ['address', 'rcode', 'ttl', 'question-case', 'cache-causality', 'upstream-wire']:
+        changed = copy.deepcopy(causal)
+        row = changed['rows'][0]
+        if label == 'address': row['response']['records'][0]['data'] = '8.8.4.4'
+        elif label == 'rcode': row['response']['flags'] |= 3
+        elif label == 'ttl': row['response']['records'][0]['ttl'] = 119
+        elif label == 'question-case': row['question_wire'] = '01410000010001'
+        elif label == 'cache-causality': row['upstream'].clear()
+        elif label == 'upstream-wire': row['upstream'][0]['wire'] = '0001abcc'
+        assert compare(causal, changed, causal_case), label
+        controls['policy-' + label] = 'detected'
     return controls
 
 
@@ -448,6 +525,8 @@ def main():
         raise ValueError('fresh private evidence path required')
     output.mkdir(parents=True)
     manifest = json.loads(args.manifest.read_text())
+    if manifest.get('executable') is False:
+        raise ValueError('source checklist is not executable yet')
     selected = args.options.split(',') if args.options else list(manifest['options'])
     if set(selected) - set(manifest['options']):
         raise ValueError('unknown selected option')
@@ -460,6 +539,7 @@ def main():
                                 'casing: random bit patterns retained raw; compare allowed positions, enabled activity and exact client question bytes',
                                 'local-service: connect/receive stage and errno, including TCP reset versus EOF, compare exactly; queued-byte timing proof retained',
                                 'retry: raw clocks retained; exponential intervals checked within -12/+90ms; compare per-server traces to avoid receiver-thread scheduling order'],
+              'strict_upstream_wire_scenarios': [scenario['id'] for scenario in scenarios if scenario.get('strict_upstream_wire')],
               'negative_controls': controls, 'reference_timings': manifest.get('reference_timing'), 'scenarios': [], 'options': {}, 'failures': []}
     frozen = output / 'driver'
     frozen.mkdir()
@@ -486,7 +566,8 @@ def main():
         completed = {s['id']: s for s in report['scenarios'] if s['id'] in required}
         missing = sorted(set(required) - completed.keys())
         failed = [key for key, row in completed.items() if row['failures']]
-        report['options'][option] = {'closed': not missing and not failed,
+        report['options'][option] = {'closed': not missing and not failed and manifest['options'][option].get('eligible_for_closure', True),
+                                      'known_gaps': manifest['options'][option].get('known_gaps', []),
                                       'missing_scenarios': missing, 'failed_scenarios': failed,
                                       'checklist': [dict(boundary, checked=all(key in completed and not completed[key]['failures'] for key in boundary['required_scenarios'])) for boundary in manifest['options'][option]['checklist']]}
     report['failures'] = [dict(scenario=s['id'], **failure) for s in report['scenarios'] for failure in s['failures']]
