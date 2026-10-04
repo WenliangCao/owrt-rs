@@ -707,17 +707,18 @@ mod tests {
             assert_eq!(source, transfer_addresses[1]);
             assert_eq!(&buffer[..len], b"\0\x03\0\x01hello");
             let timeout = listener.poll_once(122).unwrap();
-            assert!(matches!(
-                timeout.as_slice(),
-                [RuntimeEvent::TimedOut { .. }]
-            ));
+            assert!(matches!(timeout.as_slice(), [RuntimeEvent::Completed(_)]));
             assert_eq!(listener.active_transfers(), 0);
             assert!(listener.transfers.is_empty());
-            // Timeout never creates a second success callback.
-            assert_eq!(listener.completed.len(), 1);
+            // C treats missing only the final ACK as successful.
+            assert_eq!(listener.completed.len(), 2);
             let done = listener.pop_completion().unwrap();
             assert_eq!(done.peer, first.local_addr().unwrap());
             assert_eq!(done.size, 5);
+            assert_eq!(
+                listener.pop_completion().unwrap().peer,
+                second.local_addr().unwrap()
+            );
             assert!(listener.front_completion().is_none());
             let _reclaimed = UdpSocket::bind(transfer_addresses[1]).unwrap();
             drop(listener);

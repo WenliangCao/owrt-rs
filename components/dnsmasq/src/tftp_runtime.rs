@@ -302,12 +302,14 @@ impl<O: FileOpener> TransferRuntime<O> {
 
     /// Dedicated listeners admit one transfer past the configured limit;
     /// single-port admission uses a strict limit instead.
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     pub(crate) fn transfer_capacity(&self) -> usize {
         self.config
             .max_transfers
             .saturating_add(usize::from(!self.config.single_port))
     }
 
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     pub(crate) fn has_peer(&self, peer: SocketAddr) -> bool {
         self.active.values().any(|active| active.peer == peer)
     }
@@ -422,10 +424,24 @@ impl<O: FileOpener> TransferRuntime<O> {
             };
             if expired {
                 let active = self.active.remove(&id).unwrap();
-                events.push(RuntimeEvent::TimedOut {
-                    id,
-                    peer: active.peer,
-                });
+                // C treats a client that omits only the final ACK as a
+                // successful transfer (tftp.c check_tftp_listeners). Earlier
+                // stalls and unacknowledged netascii offsets remain failures.
+                events.push(
+                    if active.transfer.mode == Mode::Octet && active.final_block.is_some() {
+                        RuntimeEvent::Completed(Completion {
+                            id,
+                            peer: active.peer,
+                            path: active.file.path.clone(),
+                            size: active.file.size,
+                        })
+                    } else {
+                        RuntimeEvent::TimedOut {
+                            id,
+                            peer: active.peer,
+                        }
+                    },
+                );
                 continue;
             }
             if retransmit {
@@ -1053,6 +1069,25 @@ mod tests {
             })]
         );
         assert_eq!(runtime.active_len(), 0);
+    }
+
+    #[test]
+    fn timeout_after_final_data_completes_but_earlier_stall_does_not() {
+        for (size, completed) in [(0, true), (511, true), (512, false), (1024, false)] {
+            let mut runtime = runtime(&vec![b'x'; size]);
+            runtime
+                .handle_datagram(peer(1000), &rrq(b"boot.bin", b"octet"), 1)
+                .unwrap();
+            let events = runtime.tick(122).unwrap();
+            assert_eq!(events.len(), 1);
+            assert_eq!(matches!(events[0], RuntimeEvent::Completed(_)), completed);
+            assert_eq!(
+                matches!(events[0], RuntimeEvent::TimedOut { .. }),
+                !completed
+            );
+            assert_eq!(runtime.active_len(), 0);
+            assert!(runtime.tick(123).unwrap().is_empty());
+        }
     }
 
     #[test]
