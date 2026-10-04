@@ -121,6 +121,22 @@ def scenarios():
          probe('parent-new'), probe('held-after', transports=['held']), {'op': 'disconnect', 'id': 'held'}, probe('fresh-tcp')])
     add('zero-and-own-server', 'RSLV-09', {'resolv': 'nameserver 0.0.0.0\n'},
         [probe('zero'), write('resolv', r1), probe('valid')])
+    for mode in ('poll', 'no-poll'):
+        add('route-event-' + mode, 'RSLV-02,NPOLL-02', initial,
+            [probe('initial'), write('resolv', r2, hold_open=True), {'op': 'route', 'prefix': '198.18.1.0/24'},
+             probe('after-route'), {'op': 'close-file', 'path': 'resolv'}],
+            'no-poll\n' if mode == 'no-poll' else '')
+    add('pending-reused-slot', 'STATE-01,STATE-02', initial,
+        [{'op': 'start-udp', 'id': 'held', 'name': 'pending.files.test'}, write('resolv', r2),
+         {'op': 'inject', 'id': 'held', 'server': 0}, {'op': 'receive-udp', 'id': 'old-reply', 'pending': 'held'},
+         {'op': 'inject', 'id': 'held', 'server': 1}, {'op': 'receive-udp', 'id': 'new-reply', 'pending': 'held'}])
+    add('pending-retired-slot', 'STATE-02', initial,
+        [{'op': 'start-udp', 'id': 'held', 'name': 'pending.files.test'}, write('resolv', ''),
+         {'op': 'inject', 'id': 'held', 'server': 0}, {'op': 'receive-udp', 'id': 'retired-reply', 'pending': 'held'}, probe('fresh-refused')])
+    add('pending-all-servers-retired-last-slot', 'STATE-02', {'resolv': r1 + r2},
+        [{'op': 'start-udp', 'id': 'held', 'name': 'pending.files.test', 'upstream_count': 2}, write('resolv', r2),
+         {'op': 'inject', 'id': 'held', 'server': 1, 'capture_server': 1},
+         {'op': 'receive-udp', 'id': 'retired-last-reply', 'pending': 'held'}, probe('fresh-survivor')], 'all-servers\n')
     return cases
 
 
@@ -181,12 +197,16 @@ def run_side(root, side, case, folder):
     data = root / 'm2/files'
     if data.exists(): shutil.rmtree(data)
     data.mkdir()
-    opened, connections = {}, {}
+    opened, connections, pending = {}, {}, {}
+    routes = []
     for path, value in case['files'].items(): put(root, path, value, opened)
-    names = {(a['name'], a.get('type', 1)) for a in case['actions'] if a['op'] == 'query'}
+    names = {(a['name'], a.get('type', 1)) for a in case['actions'] if a['op'] in ('query', 'start-udp')}
     upstreams = []
     for index, address in enumerate(['127.0.0.2', '127.0.0.3', '127.0.0.4', '::1']):
         fixtures = [{'name': host, 'type': kind, 'reply': f'192.0.2.{11 + index}' if kind == 1 else f'2001:db8::{11 + index}'} for host, kind in names]
+        delayed = {a['name'] for a in case['actions'] if a['op'] == 'start-udp'}
+        for fixture in fixtures:
+            if fixture['name'] in delayed: fixture['drop_all'] = True
         upstreams.append(Upstream(fixtures, address, 53))
     with socket.socket() as reserve:
         reserve.bind(('127.0.0.1', 0)); port = reserve.getsockname()[1]
@@ -222,6 +242,37 @@ def run_side(root, side, case, folder):
                     if op == 'query':
                         for number, transport in enumerate(action.get('transports', ['udp', 'tcp'])):
                             result['rows'].append(exchange(port, action, 0x4000 + index * 4 + number, transport, upstreams, connections))
+                    elif op == 'start-udp':
+                        client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM); client.settimeout(.2)
+                        packet = query(action, 0x4000 + index * 4)
+                        before = [len(u.events) for u in upstreams]
+                        client.sendto(packet, ('127.0.0.1', port))
+                        pending[action['id']] = {'client': client, 'packet': packet, 'before': before, 'name': action['name']}
+                        deadline = time.monotonic() + 1
+                        while sum(len(u.events) - n for u, n in zip(upstreams, before)) < action.get('upstream_count', 1):
+                            if time.monotonic() > deadline: raise AssertionError('pending query did not reach expected upstreams')
+                            time.sleep(.005)
+                    elif op == 'inject':
+                        held = pending[action['id']]
+                        captured = upstreams[action.get('capture_server', 0)]
+                        original, peer, _ = next(row for row in captured.captured if read_name(row[0], 12)[0] == held['name'])
+                        end = read_name(original, 12)[1]
+                        answer = original[:2] + struct.pack('!5H', 0x8580, 1, 1, 0, 0) + original[12:end + 4]
+                        answer += b'\xc0\x0c' + struct.pack('!HHIH', 1, 1, 120, 4) + bytes([192, 0, 2, 11 + action['server']])
+                        upstreams[action['server']].udp.sendto(answer, peer)
+                        result['actions'].append({'op': 'injected-wire', 'wire': answer.hex(), 'server': action['server'], 'peer': list(peer)})
+                    elif op == 'receive-udp':
+                        held = pending[action['pending']]
+                        response, error = None, None
+                        try: response = held['client'].recv(65535)
+                        except OSError as problem: error = {'kind': type(problem).__name__, 'errno': getattr(problem, 'errno', None)}
+                        result['rows'].append({'id': action['id'] + ':udp-async', 'response': semantics(response) if response else None,
+                            'error': error, 'request': held['packet'].hex(), 'reply': response.hex() if response else None, 'elapsed': 0, 'cache': False,
+                            'upstreams': [{'server': u.host, 'events': copy.deepcopy(u.events[n:])} for u, n in zip(upstreams, held['before'])]})
+                        held['before'] = [len(u.events) for u in upstreams]
+                    elif op == 'route':
+                        subprocess.run(['ip', 'route', 'add', action['prefix'], 'dev', 'lo', 'scope', 'link'], check=True)
+                        routes.append(action['prefix'])
                     elif op == 'write': put(root, action['path'], action, opened)
                     elif op == 'unlink': image_path(root, '/m2/files/' + action['path'], follow_leaf=False).unlink()
                     elif op == 'symlink': put(root, action['path'], {'symlink': action['target']}, opened)
@@ -235,6 +286,8 @@ def run_side(root, side, case, folder):
     finally:
         for handle in opened.values(): handle.close()
         for client in connections.values(): client.close()
+        for held in pending.values(): held['client'].close()
+        for prefix in routes: subprocess.run(['ip', 'route', 'del', prefix, 'dev', 'lo'], check=True)
         if process is not None and process.poll() is None:
             process.send_signal(signal.SIGTERM)
             try: process.wait(timeout=3)
@@ -270,11 +323,12 @@ def compare(left, right, case):
             for stream in ('stdout', 'stderr'):
                 if stream in value: value[stream] = normalized_text(value[stream])
         if a != b: failures.append({'phase': phase, 'c': a, 'rust': b})
-    wanted = [action['id'] + ':' + transport for action in case['actions'] if action['op'] == 'query' for transport in action.get('transports', ['udp', 'tcp'])] if left['startup']['ready'] else []
+    wanted = [action['id'] + ':' + transport for action in case['actions'] if action['op'] in ('query', 'receive-udp') for transport in (['udp-async'] if action['op'] == 'receive-udp' else action.get('transports', ['udp', 'tcp']))] if left['startup']['ready'] else []
     for side, observed in [('c', left), ('rust', right)]:
         if [row['id'] for row in observed['rows']] != wanted: failures.append({'phase': 'coverage', 'side': side})
         if observed.get('forced_kill') or observed['cleanup']['live_pids']: failures.append({'phase': 'cleanup', 'side': side})
         if observed['startup']['ready'] and (observed['exit'] != 0 or observed['cleanup']['pid_file']): failures.append({'phase': 'shutdown', 'side': side})
+    if left['cleanup'] != right['cleanup']: failures.append({'phase': 'cleanup-state', 'c': left['cleanup'], 'rust': right['cleanup']})
     for a, b in zip(left['rows'], right['rows']):
         a, b = projection(a), projection(b)
         if a.get('cache') and a.get('response') and b.get('response'):
