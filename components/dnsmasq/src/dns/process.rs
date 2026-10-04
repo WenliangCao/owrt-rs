@@ -32,7 +32,10 @@ impl AddressPrefix {
             (IpAddr::V4(network), IpAddr::V4(candidate)) => {
                 let bits = self.prefix;
                 let mask = if bits == 0 {
-                    0
+                    // util.c shifts a 32-bit value by 32 here. The exact
+                    // AArch64 image treats /0 as /32; preserve that observed
+                    // policy without reproducing the undefined C shift.
+                    u32::MAX
                 } else {
                     u32::MAX << (32 - bits)
                 };
@@ -451,6 +454,19 @@ pub(super) fn is_allowed_address(address: IpAddr, allow_localhost: bool) -> bool
 mod tests {
     use super::*;
     use crate::dns::wire::{Header, Message, Name, PacketWriter, Section};
+
+    #[test]
+    fn zero_prefix_follows_the_image_for_each_address_family() {
+        let v4 = AddressPrefix::new("192.0.2.1".parse().unwrap(), 0).unwrap();
+        assert!(v4.contains("192.0.2.1".parse().unwrap()));
+        assert!(!v4.contains("192.0.2.2".parse().unwrap()));
+        assert!(!v4.contains("8.8.8.8".parse().unwrap()));
+        let v6 = AddressPrefix::new("2001:db8::1".parse().unwrap(), 0).unwrap();
+        assert!(v6.contains("2001:db8::1".parse().unwrap()));
+        assert!(v6.contains("2001:db8::2".parse().unwrap()));
+        assert!(v6.contains("::1".parse().unwrap()));
+        assert!(!v6.contains("192.0.2.1".parse().unwrap()));
+    }
 
     fn packet(address: IpAddr) -> Vec<u8> {
         let name = Name::from_ascii("rebind.test").unwrap();
