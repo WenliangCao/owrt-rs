@@ -406,8 +406,8 @@ fn load(args: &[OsString]) -> Result<(Action, Runtime), loader::LoadError> {
     Ok((action, runtime))
 }
 
-fn finalize_dns(config: &mut DnsConfig) -> Result<(), loader::LoadError> {
-    config.finalize().map_err(|error| loader::LoadError {
+fn config_diagnostic(error: Error) -> loader::LoadError {
+    loader::LoadError {
         location: loader::Location {
             file: None,
             line: None,
@@ -415,7 +415,7 @@ fn finalize_dns(config: &mut DnsConfig) -> Result<(), loader::LoadError> {
         },
         exit_code: 1,
         message: error.to_string(),
-    })
+    }
 }
 
 fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
@@ -442,8 +442,11 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                     .dns
                     .finalize_hostname(&dnsmasq_rs::startup::hostname()?)?;
             }
-            finalize_dns(&mut runtime.dns)?;
-            runtime.dhcp.validate_dns_config(&runtime.dns)?;
+            runtime.dns.finalize().map_err(config_diagnostic)?;
+            runtime
+                .dhcp
+                .validate_dns_config(&runtime.dns)
+                .map_err(config_diagnostic)?;
             eprintln!("dnsmasq: syntax check OK.");
             return Ok(());
         }
@@ -457,8 +460,11 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             .dns
             .finalize_hostname(&dnsmasq_rs::startup::hostname()?)?;
     }
-    finalize_dns(&mut runtime.dns)?;
-    runtime.dhcp.validate_dns_config(&runtime.dns)?;
+    runtime.dns.finalize().map_err(config_diagnostic)?;
+    runtime
+        .dhcp
+        .validate_dns_config(&runtime.dns)
+        .map_err(config_diagnostic)?;
     runtime.tftp.validate_ready()?;
     runtime.dhcp.validate_ready()?;
     validate_runtime_ready(&runtime.scalar, &runtime.dns)?;
