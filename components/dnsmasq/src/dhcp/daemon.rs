@@ -44,16 +44,22 @@ pub enum StartupError {
 }
 
 impl StartupError {
-    pub fn exit_code(&self) -> i32 {
+    pub fn is_lease_capacity(&self) -> bool {
         match self {
-            Self::LeaseFile(error)
-                if error
-                    .get_ref()
-                    .is_some_and(|cause| cause.is::<super::lease_file::CapacityExceeded>()) =>
-            {
-                5
-            }
-            Self::Restore(RestoreError::Lease(LeaseError::Full)) | Self::Entropy(_) => 5,
+            Self::LeaseFile(error) => error
+                .get_ref()
+                .is_some_and(|cause| cause.is::<super::lease_file::CapacityExceeded>()),
+            Self::Restore(RestoreError::Lease(LeaseError::Full)) => true,
+            _ => false,
+        }
+    }
+
+    pub fn exit_code(&self) -> i32 {
+        if self.is_lease_capacity() {
+            return 5;
+        }
+        match self {
+            Self::Entropy(_) => 5,
             Self::LeaseFile(_) | Self::Restore(_) => 3,
             Self::Socket(_) => 2,
         }
@@ -62,6 +68,9 @@ impl StartupError {
 
 impl std::fmt::Display for StartupError {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.is_lease_capacity() {
+            return formatter.write_str("too many stored leases");
+        }
         match self {
             Self::LeaseFile(error) => write!(formatter, "cannot open or read lease file: {error}"),
             Self::Restore(error) => write!(formatter, "cannot restore lease database: {error:?}"),
@@ -2689,7 +2698,19 @@ mod startup_tests {
         assert_eq!(StartupError::Entropy(denied()).exit_code(), 5);
         let file = b"0 02:00:00:00:00:01 192.0.2.10 named *\n";
         let capacity = super::super::lease_file::parse_reader(&file[..], 0).unwrap_err();
-        assert_eq!(StartupError::LeaseFile(capacity).exit_code(), 5);
+        let capacity = StartupError::LeaseFile(capacity);
+        assert_eq!(capacity.exit_code(), 5);
+        assert!(capacity.is_lease_capacity());
+        assert_eq!(capacity.to_string(), "too many stored leases");
+        let similar_text = StartupError::LeaseFile(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "too many stored leases",
+        ));
+        assert!(!similar_text.is_lease_capacity());
+        assert_eq!(
+            similar_text.to_string(),
+            "cannot open or read lease file: too many stored leases"
+        );
         assert_eq!(
             StartupError::LeaseFile(io::Error::new(
                 io::ErrorKind::InvalidData,

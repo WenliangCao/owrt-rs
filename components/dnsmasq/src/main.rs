@@ -87,7 +87,13 @@ extern "C" fn request_interrupt(_signal: i32) {
 fn main() {
     let args: Vec<OsString> = std::env::args_os().skip(1).collect();
     if let Err(error) = run(&args) {
-        if error.is::<loader::LoadError>() {
+        let blank_line = error.is::<loader::LoadError>();
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        let blank_line = blank_line
+            || error
+                .downcast_ref::<dnsmasq_rs::dhcp::daemon::StartupError>()
+                .is_some_and(|error| error.is_lease_capacity());
+        if blank_line {
             eprintln!();
         }
         eprintln!("dnsmasq-rs: {error}");
