@@ -148,6 +148,19 @@ def length_profiles():
             questions.extend([(host, 35), (host, 255)])
         yield f'length-naptr-{field}', '\n'.join(lines) + '\n', questions
 
+    lines, questions = [], []
+    for index, integer in enumerate(['2147483647', '2147483648', '4294967295', '4294967296', '9' * 64]):
+        kind = int(integer) & 65535
+        host = f'rr-int-{index}.m5.test'
+        lines.append(f'dns-rr={host},{integer},ab')
+        questions.append((host, kind))
+        host = f'caa-int-{index}.m5.test'
+        lines.append(f'caa-record={host},{integer},t,v')
+        questions.append((host, 257))
+    lines.append('naptr-record=naptr-int.m5.test,4294967296,4294967297,f,s,r,.')
+    questions.append(('naptr-int.m5.test', 35))
+    yield 'integer-widths', '\n'.join(lines) + '\n', questions
+
 
 def length_parse_cases():
     # Safe full-width allocation for RR and TXT; C retains only a u16 length.
