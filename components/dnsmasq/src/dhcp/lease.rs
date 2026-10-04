@@ -54,6 +54,9 @@ pub struct Lease {
     pub agent_id: Option<Vec<u8>>,
     pub vendor_class: Option<Vec<u8>>,
     pub server_override: Option<Ipv4Addr>,
+    /// Lease-local helper snapshot; transient extradata is consumed on add/old.
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    pub helper_context: Option<Box<crate::helper::LeaseEventContext>>,
     sequence: u64,
     old_hostname: Option<Vec<u8>>,
     script: ScriptFlags,
@@ -167,11 +170,16 @@ impl ScriptQueue {
             ScriptAction::Old
         };
         lease.script = ScriptFlags::default();
-        Some(ScriptEvent {
+        let event = ScriptEvent {
             action,
             name: lease.fqdn.clone().or_else(|| lease.hostname.clone()),
             lease: lease.clone(),
-        })
+        };
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if let Some(context) = lease.helper_context.as_mut() {
+            context.extra = None;
+        }
+        Some(event)
     }
 }
 
@@ -335,6 +343,8 @@ impl LeaseStore {
                 agent_id: None,
                 vendor_class: None,
                 server_override: None,
+                #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+                helper_context: None,
                 sequence,
                 old_hostname: None,
                 script: ScriptFlags {
@@ -504,6 +514,31 @@ impl LeaseStore {
         for lease in self.leases.values_mut() {
             lease.script.changed = true;
         }
+    }
+
+    /// Packet context belongs to this lease, including pruned/name-loss clones.
+    /// Classes are refreshed only for SELECTING, INIT-REBOOT or a new lease.
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    pub fn set_helper_context(
+        &mut self,
+        address: Ipv4Addr,
+        context: crate::helper::LeaseEventContext,
+    ) -> Result<(), LeaseError> {
+        let lease = self.leases.get_mut(&address).ok_or(LeaseError::NotFound)?;
+        if let Some(current) = lease.helper_context.as_mut() {
+            current.interface = context.interface;
+            if context.relay_address.is_some() {
+                current.relay_address = context.relay_address;
+            }
+            if context.extra.is_some() {
+                current.extra = context.extra;
+                lease.script.changed = true;
+            }
+        } else {
+            lease.script.changed |= context.extra.is_some();
+            lease.helper_context = Some(Box::new(context));
+        }
+        Ok(())
     }
 
     pub fn set_agent_id(
@@ -1069,6 +1104,50 @@ mod tests {
                 pruned6: 0,
             }
         );
+    }
+
+    #[test]
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    fn helper_context_stays_with_lease_and_extradata_is_one_shot() {
+        let mut store = LeaseStore::new(2);
+        let mut queue = ScriptQueue::default();
+        for index in 1..=2 {
+            store.allocate(address(index), client(index, None)).unwrap();
+            store
+                .set_helper_context(
+                    address(index),
+                    crate::helper::LeaseEventContext {
+                        interface: format!("eth{index}").into_bytes(),
+                        extra: Some(crate::helper::ExtraData {
+                            vendor_class: vec![index],
+                            ..Default::default()
+                        }),
+                        ..Default::default()
+                    },
+                )
+                .unwrap();
+        }
+        for index in (1..=2).rev() {
+            let event = queue.next(&mut store, ScriptOptions::default()).unwrap();
+            let context = event.lease.helper_context.unwrap();
+            assert_eq!(context.interface, format!("eth{index}").as_bytes());
+            assert_eq!(context.extra.unwrap().vendor_class, vec![index]);
+            assert!(store
+                .get(address(index))
+                .unwrap()
+                .helper_context
+                .as_ref()
+                .unwrap()
+                .extra
+                .is_none());
+        }
+        store.rerun_scripts();
+        let event = queue.next(&mut store, ScriptOptions::default()).unwrap();
+        assert_eq!(
+            event.lease.helper_context.as_ref().unwrap().interface,
+            b"eth2"
+        );
+        assert!(event.lease.helper_context.unwrap().extra.is_none());
     }
 
     #[test]
