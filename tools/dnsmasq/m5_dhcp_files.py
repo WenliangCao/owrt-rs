@@ -109,6 +109,7 @@ def write_file(path, value):
     if value.get('fifo'):os.mkfifo(path);return
     if 'symlink' in value:
         path.unlink(missing_ok=True);path.symlink_to(value['symlink']);return
+    if path.exists() and not path.is_file() and not path.is_dir():path.unlink()
     data=bytes.fromhex(value['hex']) if 'hex' in value else value.get('text','').encode()
     target=path.with_name(path.name+'.new') if value.get('atomic') else path
     target.write_bytes(data)
