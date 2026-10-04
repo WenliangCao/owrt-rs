@@ -5,7 +5,8 @@
     "option.c": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
     "rfc1035.c": "231f0b4989039ff4963f3916df22871dd13025dde65769465b2b3052ad807222",
     "forward.c": "ac05784d4233ed10bd166da5fe91e464afecf2883d3c2a0063305d3e81692f95",
-    "cache.c": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c"
+    "cache.c": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c",
+    "util.c": "33920165ef3e92f65d1cab75fe8da7772ad7389b37da79ba881957080f12f973"
   },
   "options": {
     "domain-needed": {
@@ -448,7 +449,8 @@
       "source": [
         "option.c:2942-2993",
         "rfc1035.c:check_bad_address",
-        "forward.c:1241-1246"
+        "forward.c:1241-1246",
+        "util.c:514-536"
       ],
       "checklist": [
         {
@@ -516,7 +518,7 @@
           ]
         },
         {
-          "boundary": "zero prefix IPv4/IPv6 and empty prefix means zero",
+          "boundary": "IPv4 /0 and empty prefix image shift edge (acts as /32); IPv6 /0 matches all",
           "checked": false,
           "required_scenarios": [
             "ignore-v4",
@@ -2258,18 +2260,29 @@
       "config": "ignore-address=1.2.3.4/0\n",
       "probes": [
         {
-          "id": "zero-matches",
+          "id": "zero-prefix-unmatched",
           "name": "ignore-zero4.test",
           "type": 1,
           "c_expect": {
-            "udp": "timeout",
+            "udp": "response",
             "tcp": "response"
           },
           "reply": "8.8.8.8"
+        },
+        {
+          "id": "zero-prefix-exact",
+          "name": "ignore-zero4-exact.test",
+          "type": 1,
+          "reply": "1.2.3.4",
+          "c_expect": {
+            "udp": "timeout",
+            "tcp": "response"
+          }
         }
       ],
       "hosts": "",
-      "expected_test_exit": 0
+      "expected_test_exit": 0,
+      "source_note": "Image AArch64 util.c514 is_same_net_prefix shifts signed int by32 for IPv4 prefix0; observed mask is all ones. Baseline run03 retained. Compare exact-host and different-host separately; do not suppress Rust difference."
     },
     {
       "id": "ignore-zero6",
@@ -2300,18 +2313,29 @@
       "config": "ignore-address=192.0.2.0/\n",
       "probes": [
         {
-          "id": "zero-matches",
+          "id": "zero-prefix-unmatched",
           "name": "ignore-empty-prefix.test",
           "type": 1,
           "c_expect": {
-            "udp": "timeout",
+            "udp": "response",
             "tcp": "response"
           },
           "reply": "8.8.8.8"
+        },
+        {
+          "id": "zero-prefix-exact",
+          "name": "ignore-empty-prefix-exact.test",
+          "type": 1,
+          "reply": "192.0.2.0",
+          "c_expect": {
+            "udp": "timeout",
+            "tcp": "response"
+          }
         }
       ],
       "hosts": "",
-      "expected_test_exit": 0
+      "expected_test_exit": 0,
+      "source_note": "Image AArch64 util.c514 is_same_net_prefix shifts signed int by32 for IPv4 prefix0; observed mask is all ones. Baseline run03 retained. Compare exact-host and different-host separately; do not suppress Rust difference."
     }
   ]
 }
