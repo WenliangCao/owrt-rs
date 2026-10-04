@@ -482,7 +482,19 @@ def negative_controls(rows, corpus):
         elif mutation == "missing-case": row["cases"].pop()
         elif mutation == "missing-profile": changed.pop(position)
         elif mutation == "input-architecture":
-            wire = bytearray.fromhex(case["request"]); wire[-2] ^= 1; case["request"] = wire.hex()
+            wire = bytearray.fromhex(case["request"])
+            offset = 240
+            while offset + 2 < len(wire) and wire[offset] != 255:
+                if wire[offset] == 0:
+                    offset += 1; continue
+                if wire[offset] == 93 and wire[offset+1] >= 2:
+                    wire[offset+2] ^= 1; break
+                offset += wire[offset+1] + 2
+            else:
+                # A focused BOOTP-only run has no architecture input; its
+                # manifest-integrity control changes the fixed xid instead.
+                wire[4] ^= 1
+            case["request"] = wire.hex()
         elif mutation == "lease-side-effect": case["leases"] = "0 02:00:00:4d:35:03 10.77.0.10 injected *\n"
         elif mutation == "no-health": case["heartbeat"] = False
         elif mutation == "thread-added": row["threads"] = 2
@@ -532,6 +544,9 @@ def main(args):
               "comparison_executed": len(sides) == 2, "failures": failures, "profiles": rows,
               "profile_count": len(corpus), "case_count": sum(len(profile["cases"]) for profile in corpus),
               "syntax":syntax,"syntax_count":len(syntax_corpus),
+              "reference_differences":[{"name":item["name"],"source_reason":item["unsafe_runtime"],
+                                         "c_runtime_executed":False,"candidate_policy":"safe syntax rejection"}
+                                        for item in syntax_corpus if item["unsafe_runtime"]],
               "negative_controls":controls,
               "cleanup": cleanup, "normalization": "No response wire fields normalized; lease absolute expiry compared as remaining seconds within2s; infinite/finite and all other lease fields exact"}
     save(out/"result.json", result)
