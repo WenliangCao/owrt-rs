@@ -10,6 +10,7 @@ only for wall-clock lease timers.
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import json
 import os
@@ -331,7 +332,10 @@ def run_profile(root: Path, network: Network, side: str, profile: dict,
         row["error"] = repr(error)
     finally:
         if process is not None:
-            row["cleanup"] = stop_side(process, log)
+            try:
+                row["cleanup"] = stop_side(process, log)
+            except Exception as error:
+                row["cleanup"] = {"error": repr(error)}
     save(out / "result.json", row)
     return row
 
@@ -404,6 +408,161 @@ def compare(c: dict, rust: dict) -> list[str]:
     return errors
 
 
+def cleanup_errors(cleanup, label: str, returncodes: tuple[int, ...]) -> list[str]:
+    if not isinstance(cleanup, dict):
+        return [f"{label}: cleanup evidence missing"]
+    if cleanup.get("error") or cleanup.get("forced") is not False or cleanup.get("returncode") not in returncodes:
+        return [f"{label}: cleanup failed"]
+    return []
+
+
+def evaluate(rows: list[dict], profiles: list[dict], network_cleanup) -> list[str]:
+    """Validate coverage and execution before comparing any C/Rust packets."""
+    failures = cleanup_errors(network_cleanup, "network", (0, -15))
+    expected = {(profile["name"], side) for profile in profiles for side in ("c", "rust")}
+    actual = [(row.get("profile"), row.get("side")) for row in rows]
+    if not profiles:
+        failures.append("no selected profiles")
+    if len(actual) != len(set(actual)) or set(actual) != expected:
+        failures.append("profile/side coverage differs from selected fixtures")
+    by_key = {(row.get("profile"), row.get("side")): row for row in rows}
+    for profile in profiles:
+        expected_queries = {item["name"]: item for item in profile["queries"]}
+        valid_sides = True
+        for side in ("c", "rust"):
+            label = f"{profile['name']}/{side}"
+            row = by_key.get((profile["name"], side))
+            if row is None:
+                valid_sides = False
+                continue
+            if row.get("error") or row.get("started") is not True or not row.get("identity"):
+                failures.append(f"{label}: side execution failed or identity missing")
+                valid_sides = False
+            failures.extend(cleanup_errors(row.get("cleanup"), label, (0,)))
+            queries = row.get("queries", [])
+            names = [query.get("name") for query in queries]
+            if len(names) != len(set(names)) or set(names) != set(expected_queries):
+                failures.append(f"{label}: query coverage differs from selected fixtures")
+                valid_sides = False
+            for query in queries:
+                name = query.get("name")
+                if name not in expected_queries:
+                    continue
+                item = expected_queries[name]
+                observed = query.get("observed", {})
+                if observed.get("error") or not observed:
+                    failures.append(f"{label}/{name}: query execution failed")
+                    valid_sides = False
+                    continue
+                expected_request = item["packet"].hex()
+                if query.get("request") != expected_request or observed.get("request") != expected_request:
+                    failures.append(f"{label}/{name}: request differs from fixture")
+                try:
+                    if observed.get("reply"):
+                        encoded = bytes.fromhex(observed["reply"])
+                        peer = observed.get("semantic", {}).get("peer")
+                        if not isinstance(peer, list) or len(peer) != 2:
+                            raise ValueError("missing UDP peer")
+                        actual_semantic = semantic(encoded, tuple(peer))
+                        if actual_semantic != observed.get("semantic"):
+                            failures.append(f"{label}/{name}: decoded observation differs from raw reply")
+                        if actual_semantic["status"] != item["status"]:
+                            failures.append(f"{label}/{name}: raw response status differs from fixture")
+                        if observed.get("timeout"):
+                            failures.append(f"{label}/{name}: contradictory reply and timeout")
+                    elif item["status"] is not None or observed.get("timeout") is not True:
+                        failures.append(f"{label}/{name}: missing expected response or timeout evidence")
+                except (ValueError, KeyError, TypeError, IndexError, AssertionError) as error:
+                    failures.append(f"{label}/{name}: malformed response evidence: {error}")
+                    valid_sides = False
+        if valid_sides:
+            try:
+                errors = compare(by_key[(profile["name"], "c")], by_key[(profile["name"], "rust")])
+                failures.extend(f"{profile['name']}: {error}" for error in errors)
+            except (ValueError, KeyError, TypeError, IndexError, AssertionError) as error:
+                failures.append(f"{profile['name']}: malformed paired evidence: {error}")
+    return failures
+
+
+def negative_controls(rows: list[dict], profiles: list[dict], network_cleanup) -> dict:
+    """Reject deliberately corrupted copies through the real result evaluator."""
+    baseline_errors = evaluate(rows, profiles, network_cleanup)
+    if baseline_errors:
+        return {"passed": False, "baseline_accepted": False,
+                "baseline_errors": baseline_errors, "controls": []}
+    active = next(((index, query_index) for index, row in enumerate(rows)
+                   if row["side"] == "rust"
+                   for query_index, query in enumerate(row["queries"])
+                   if query["observed"].get("semantic", {}).get("status") == 13
+                   and {51, 61}.issubset({code for code, _ in query["observed"]["semantic"]["options"]})), None)
+    if active is None:
+        return {"passed": False, "baseline_accepted": True,
+                "error": "negative controls require an observed ACTIVE reply with client ID and lease timer", "controls": []}
+    active_index, active_query = active
+    controls = []
+
+    def check(name, mutate):
+        altered, cleanup = copy.deepcopy(rows), copy.deepcopy(network_cleanup)
+        mutate(altered, cleanup)
+        errors = evaluate(altered, profiles, cleanup)
+        controls.append({"name": name, "detected": bool(errors), "failures": errors})
+
+    def set_value(mapping, key, value):
+        mapping[key] = value
+
+    def observation(altered):
+        return altered[active_index]["queries"][active_query]["observed"]
+
+    def flip_option(altered, code):
+        observed = observation(altered)
+        packet = bytearray.fromhex(observed["reply"])
+        position = 240
+        while position + 2 < len(packet) and packet[position] != 255:
+            if packet[position] == 0:
+                position += 1
+                continue
+            length = packet[position + 1]
+            if packet[position] == code and length:
+                packet[position + 2] ^= 1
+                observed["reply"] = packet.hex()
+                observed["semantic"] = semantic(packet, tuple(observed["semantic"]["peer"]))
+                return
+            position += length + 2
+        raise AssertionError(f"negative control option {code} missing in ACTIVE fixture")
+
+    check("response-status", lambda altered, _: flip_option(altered, 53))
+    check("response-client-id-option", lambda altered, _: flip_option(altered, 61))
+    check("response-timer", lambda altered, _: flip_option(altered, 51))
+    check("response-peer-port", lambda altered, _: set_value(observation(altered)["semantic"]["peer"], 1, 9999))
+    check("missing-query", lambda altered, _: altered[active_index]["queries"].pop(active_query))
+    check("failed-side", lambda altered, _: set_value(altered[active_index], "error", "injected failure"))
+    check("side-not-started", lambda altered, _: set_value(altered[active_index], "started", False))
+    check("missing-side", lambda altered, _: altered.pop(active_index))
+    check("duplicate-side", lambda altered, _: altered.append(copy.deepcopy(altered[active_index])))
+    profile_name = rows[active_index]["profile"]
+    query_name = rows[active_index]["queries"][active_query]["name"]
+
+    def omit_profile(altered, _):
+        altered[:] = [row for row in altered if row["profile"] != profile_name]
+
+    def omit_query_both(altered, _):
+        for row in altered:
+            if row["profile"] == profile_name:
+                row["queries"] = [query for query in row["queries"] if query["name"] != query_name]
+
+    check("missing-entire-profile", omit_profile)
+    check("missing-query-both-sides", omit_query_both)
+    check("daemon-cleanup-forced", lambda altered, _: set_value(altered[active_index]["cleanup"], "forced", True))
+    check("daemon-cleanup-bad-exit", lambda altered, _: set_value(altered[active_index]["cleanup"], "returncode", 2))
+    check("daemon-cleanup-missing", lambda altered, _: altered[active_index].pop("cleanup"))
+    check("network-cleanup-forced", lambda _, cleanup: set_value(cleanup, "forced", True))
+    check("network-cleanup-bad-exit", lambda _, cleanup: set_value(cleanup, "returncode", 2))
+    check("network-cleanup-error", lambda _, cleanup: set_value(cleanup, "error", "injected cleanup failure"))
+    check("network-cleanup-missing", lambda _, cleanup: cleanup.clear())
+    return {"passed": all(control["detected"] for control in controls),
+            "baseline_accepted": True, "count": len(controls), "controls": controls}
+
+
 def close_network(network: Network) -> dict:
     result = stop(network.client)
     for link in reversed(network.links):
@@ -428,13 +587,14 @@ def main(args: argparse.Namespace) -> int:
     out.mkdir(parents=True)
     root = prepare(args.image_root, None, out, args.rust)
     network = Network()
-    network.start()
     expiry = int(time.time()) + 600
     leases = lease_file(expiry)
     (out / "lease-input").write_bytes(leases)
     rows = []
     profiles = [profile for profile in scenarios() if not args.profile or profile["name"] in args.profile]
+    run_errors = []
     try:
+        network.start()
         for profile in profiles:
             for side in (("c", "rust") if args.side == "both" else (args.side,)):
                 duration = profile.get("expiry", 540)
@@ -442,19 +602,21 @@ def main(args: argparse.Namespace) -> int:
                 profile_leases = profile_leases.replace(RANGE_START.encode(), profile.get("lease_address", RANGE_START).encode())
                 rows.append(run_profile(root, network, side, profile, profile_leases,
                                         out / f"{profile['name']}-{side}"))
+    except Exception as error:
+        run_errors.append(f"run execution failure: {error!r}")
     finally:
-        network_cleanup = close_network(network)
-    failures = []
-    if args.side == "both":
-        for profile in profiles:
-            c = next(row for row in rows if row["side"] == "c" and row["profile"] == profile["name"])
-            rust = next(row for row in rows if row["side"] == "rust" and row["profile"] == profile["name"])
-            failures.extend(f"{profile['name']}: {error}" for error in compare(c, rust))
-    else:
-        failures = [f"{row['profile']}: {row.get('error')}" for row in rows if row.get("error")]
+        try:
+            network_cleanup = close_network(network)
+        except Exception as error:
+            network_cleanup = {"error": repr(error)}
+    failures = run_errors + evaluate(rows, profiles, network_cleanup)
+    controls = negative_controls(rows, profiles, network_cleanup)
+    if not controls["passed"]:
+        failures.append("comparator negative controls did not all pass")
     result = {
         "passed": not failures,
         "network_cleanup": network_cleanup,
+        "negative_controls": controls,
         "comparison_executed": args.side == "both",
         "failures": failures,
         "profiles": rows,
