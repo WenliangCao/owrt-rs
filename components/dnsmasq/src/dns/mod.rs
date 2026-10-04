@@ -4,6 +4,7 @@ mod cache_engine;
 pub mod cache_reply;
 pub mod daemon;
 pub mod doctor;
+pub mod files;
 pub mod forward;
 pub mod forward_service;
 pub mod lease_names;
