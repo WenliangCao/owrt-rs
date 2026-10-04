@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import socket
+import shutil
 import stat
 import subprocess
 import time
@@ -77,11 +78,13 @@ def main():
     (roots[0] / 'm2/private-marker').write_text('one')
     assert not (roots[1] / 'm2/private-marker').exists()
     # Removing a lower file must create a whiteout in one overlay only.
-    relative = 'usr/sbin/ubusd'
+    relative = 'usr/sbin/dnsmasq'
     original = image_path(args.image_root, relative)
     assert original.is_file()
     image_path(roots[0], relative).unlink()
     assert original.is_file() and image_path(roots[1], relative).is_file()
+    assert not image_path(roots[0], relative).exists()
+    shutil.copy2(original, image_path(roots[0], relative))
     lower = roots[0].parent / 'rootfs-overlay/lower'
     try:
         (lower / '.dnsmasq-overlay-write-check').write_text('must fail')
