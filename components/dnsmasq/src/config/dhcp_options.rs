@@ -49,6 +49,9 @@ pub enum Encapsulation {
     #[default]
     None,
     Vendor(Vec<u8>),
+    /// pxe-prompt shares the ordered option bank and matches any configured
+    /// PXE vendor by substring. Distinct from the dhcp-option-pxe mode bit.
+    PxeVendor,
     Option(u8),
     Enterprise(u32),
 }
