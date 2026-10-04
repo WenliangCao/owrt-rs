@@ -689,7 +689,11 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                 daemon_config.bind_interfaces || daemon_config.bind_dynamic,
             )
             .map_err(NetworkStartupError)?;
-        Some(DhcpService { provider, listener })
+        Some(DhcpService {
+            provider,
+            listener,
+            pxe_next: false,
+        })
     } else {
         None
     };
@@ -991,6 +995,7 @@ fn open_dns_listener(address: SocketAddr) -> io::Result<(Arc<DnsSocket>, TcpList
 struct DhcpService {
     provider: Option<Arc<Mutex<DhcpProvider>>>,
     listener: DhcpSocketListener,
+    pxe_next: bool,
 }
 
 /// The production event owner. All daemon sockets are advanced from the
@@ -2148,14 +2153,29 @@ impl SinglePoll {
                 self.wait_during_probe(socket, duration, leases)
             };
             let mut provider = provider.with_event_sink_and_wait(&mut sink, &mut wait);
-            let primary = dhcp
-                .listener
-                .process_once_local(&mut provider, &[], &mut output, || {
-                    STOP_REQUESTED.load(Ordering::Acquire)
-                });
-            let pxe = if dhcp.listener.has_pxe_listener() {
+            let has_pxe = dhcp.listener.has_pxe_listener();
+            let mut selected = if dhcp.pxe_next && has_pxe {
+                DhcpListener::Pxe
+            } else {
+                DhcpListener::Dhcp
+            };
+            let first = dhcp.listener.process_once_on_listener(
+                selected,
+                &mut provider,
+                &[],
+                &mut output,
+                || STOP_REQUESTED.load(Ordering::Acquire),
+            );
+            // A probe can take several seconds. Never carry its address dump
+            // into a second packet; the next owner turn obtains a fresh one.
+            let second = if matches!(first, Ok(ListenerStep::WouldBlock)) && has_pxe {
+                selected = if selected == DhcpListener::Pxe {
+                    DhcpListener::Dhcp
+                } else {
+                    DhcpListener::Pxe
+                };
                 dhcp.listener.process_once_on_listener(
-                    DhcpListener::Pxe,
+                    selected,
                     &mut provider,
                     &[],
                     &mut output,
@@ -2164,7 +2184,8 @@ impl SinglePoll {
             } else {
                 Ok(ListenerStep::WouldBlock)
             };
-            [primary, pxe]
+            dhcp.pxe_next = has_pxe && selected == DhcpListener::Dhcp;
+            [first, second]
         };
         provider.finish_packet_interfaces();
         if self.pending_delivery.is_none() {
@@ -2568,6 +2589,7 @@ mod tests {
             Some(DhcpService {
                 provider: Some(Arc::new(Mutex::new(provider))),
                 listener,
+                pxe_next: false,
             }),
             None,
             None,
