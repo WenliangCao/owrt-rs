@@ -508,13 +508,12 @@ impl DhcpConfig {
         Ok(())
     }
 
-    /// Select the first matching boot entry. Entries are already in C's
-    /// reverse declaration order, and an empty predicate matches every
-    /// request, so this preserves "last matching directive wins" behavior.
+    /// rfc2131.c::find_boot first scans every tagged entry, then falls back
+    /// to an untagged entry. Both passes retain reverse declaration order.
     pub fn boot_for(&self, tags: &[&[u8]]) -> Option<&BootConfig> {
         self.boot_entries
             .iter()
-            .find(|entry| entry.filter.matches(tags))
+            .find(|entry| entry.filter.matches_with(tags, false))
             .map(|entry| &entry.config)
             .or(self.boot.as_ref())
     }
@@ -783,6 +782,7 @@ mod tests {
             b"dhcp-boot=fallback.img,,192.0.2.1".as_slice(),
             b"dhcp-boot=tag:known,known.img,known.test,192.0.2.2".as_slice(),
             b"dhcp-boot=tag:known,latest.img,latest.test,192.0.2.3".as_slice(),
+            b"dhcp-boot=fallback.img,,192.0.2.1".as_slice(),
         ] {
             config.apply(&lex_line(line).unwrap().unwrap()).unwrap();
         }
