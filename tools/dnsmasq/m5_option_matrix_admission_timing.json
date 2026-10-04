@@ -1,0 +1,105 @@
+{
+  "schema": 1,
+  "scope": "Targeted supplement for local-service denial timing; not a whole-option qualification.",
+  "source_identity": {
+    "option.c": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
+    "rfc1035.c": "231f0b4989039ff4963f3916df22871dd13025dde65769465b2b3052ad807222",
+    "forward.c": "ac05784d4233ed10bd166da5fe91e464afecf2883d3c2a0063305d3e81692f95",
+    "cache.c": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c",
+    "util.c": "33920165ef3e92f65d1cab75fe8da7772ad7389b37da79ba881957080f12f973"
+  },
+  "reference_timing": {
+    "id": "tcp-denial-unread-data-timing",
+    "baseline": "batch2/local-service-02",
+    "raw_difference": "C ECONNRESET vs Rust EOF on receive-stage denied TCP, with no DNS answer.",
+    "claim_under_test": "After the implementation fix, no DNS data gives EOF and kernel-confirmed queued DNS bytes give reset, in both IPv4 and IPv6.",
+    "finding": "Uncontrolled C reset vs Rust EOF was not only timing: admission-timing-01 proved Rust f1668e28 returned EOF with 41 bytes already queued. Root fix6506913 removes shutdown(Both), so plain close preserves the image boundary."
+  },
+  "options": {
+    "local-service-denial-timing": {
+      "scenarios": [
+        "admission-timing"
+      ],
+      "checklist": [
+        {
+          "boundary": "IPv4 and IPv6: idle connection EOF; kernel-confirmed queued DNS bytes -> reset; both reject without DNS reply.",
+          "checked": false,
+          "required_scenarios": [
+            "admission-timing"
+          ]
+        }
+      ]
+    }
+  },
+  "scenarios": [
+    {
+      "id": "admission-timing",
+      "options": [
+        "local-service-denial-timing"
+      ],
+      "config": "local-service=net\nhost-record=admission.matrix.test,8.8.8.8\n",
+      "probes": [
+        {
+          "id": "v4-idle",
+          "name": "admission.matrix.test",
+          "source": "192.0.2.12",
+          "destination": "192.0.2.10",
+          "remote": true,
+          "scheduling": "idle",
+          "transports": [
+            "tcp"
+          ],
+          "admission": {
+            "tcp": "close"
+          }
+        },
+        {
+          "id": "v4-queued",
+          "name": "admission.matrix.test",
+          "source": "192.0.2.12",
+          "destination": "192.0.2.10",
+          "remote": true,
+          "scheduling": "queued",
+          "transports": [
+            "tcp"
+          ],
+          "admission": {
+            "tcp": "close"
+          }
+        },
+        {
+          "id": "v6-idle",
+          "name": "admission.matrix.test",
+          "source": "2001:db8:5::12",
+          "destination": "2001:db8:5::10",
+          "remote": true,
+          "scheduling": "idle",
+          "transports": [
+            "tcp"
+          ],
+          "admission": {
+            "tcp": "close"
+          }
+        },
+        {
+          "id": "v6-queued",
+          "name": "admission.matrix.test",
+          "source": "2001:db8:5::12",
+          "destination": "2001:db8:5::10",
+          "remote": true,
+          "scheduling": "queued",
+          "transports": [
+            "tcp"
+          ],
+          "admission": {
+            "tcp": "close"
+          }
+        }
+      ],
+      "adapter": "local-service",
+      "listen_addresses": [],
+      "expected_test_exit": 0,
+      "hosts": ""
+    }
+  ]
+}
