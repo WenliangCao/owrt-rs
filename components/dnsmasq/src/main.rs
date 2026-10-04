@@ -961,11 +961,11 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             .as_ref()
             .unwrap()
             .poll_fds()
-            .map(|(fd, events)| owrt_ubus::sys::PollFd {
+            .map(|(fd, events)| vec![owrt_ubus::sys::PollFd {
                 fd,
                 events,
                 revents: 0,
-            });
+            }]);
         if let Some(files) = &poll.dns_files {
             files.append_poll_fds(&mut fds);
         }
