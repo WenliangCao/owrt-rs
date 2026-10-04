@@ -75,6 +75,7 @@ def scenarios():
             {'static':f'{MAC},127.0.0.30,static\n','dynamic/a':f'{MAC},127.0.0.31,dynamic\n'},[packet('dynamic-after-static'),hup(),packet('same-after-hup')],['RELOAD01']),
     ]
     rows.extend(extra_scenarios())
+    rows.extend(remaining_scenarios())
     mapping = {
         'static-host-reload': ['HOST01/host-selectors', 'FILE02/static-no-live-watch', 'FILE02/hup-replace', 'FILE02/hup-empty-removes'],
         'dynamic-host-append': ['DYN04/host-live-add', 'DYN04/host-rewrite-same-ip', 'DYN04/host-rewrite-new-ip', 'DYN04/host-truncate-keeps-old', 'DYN06/host-delete-retained', 'DYN06/hup-after-delete'],
@@ -100,6 +101,7 @@ def scenarios():
 def write_file(path, value):
     if isinstance(value, str): value={'text':value}
     if value.get('directory'):path.mkdir(exist_ok=True);return
+    if value.get('fifo'):os.mkfifo(path);return
     if 'symlink' in value:
         path.unlink(missing_ok=True);path.symlink_to(value['symlink']);return
     data=bytes.fromhex(value['hex']) if 'hex' in value else value.get('text','').encode()
@@ -180,6 +182,9 @@ def fifo_reload(root,side,folder,event,process,endpoint,out,index):
     observed={}
     try:
         os.write(writer,event['text'].encode())
+        if event.get('repeat_signals'):
+            for _ in range(3):process.send_signal(signal.SIGHUP)
+            path.unlink();write_file(path,'224,second-generation\n')
         try:health();observed['dns_during_read']='reply'
         except socket.timeout:observed['dns_during_read']='timeout'
         request_event=dict(kind=8,label='fifo-queued',ciaddr='127.0.0.40',prl=[224])
@@ -209,8 +214,80 @@ def exec_watch_fault(argv):
     os.execvp(argv[0],argv)
 
 
+def remaining_scenarios():
+    def packet(label,kind=1,**fields):return dict(op='packet',label=label,kind=kind,**fields)
+    def inform(label):return packet(label,8,ciaddr='127.0.0.40',prl=[224,225])
+    def action(op,**fields):return dict(op=op,**fields)
+    def write(path,text):return action('write',path=path,text=text)
+    def hup():return action('hup')
+    def case(name,config,files,events,cases,**fields):return dict(name=name,config=config,files=files,events=events,cases=cases,boundaries=sorted({c.split('/')[0] for c in cases}),**fields)
+    rows=[]
+    for directive in ['dhcp-hostsfile','dhcp-optsfile','dhcp-hostsdir','dhcp-optsdir']:
+        for suffix,exit_code in [('',1),('=',0)]:
+            rows.append(case('syntax-'+directive+('-missing' if not suffix else '-empty'),directive+suffix,{},[],['CFG01/required-path'] if not suffix else ['CFG01/empty-safe-syntax','SAFE01/unsafe-empty-combinations'],syntax_only=True,expected_syntax=exit_code))
+    rows.append(case('literal-dash-is-a-file','dhcp-optsfile=-',{},[inform('literal-dash')],['CFG01/literal-dash','FILE01/literal-dash-runtime'],system_files={'/-':'224,dash-file\n'}))
+    rows.append(case('relative-byte-paths','dhcp-optsfile=m2/dhcp-files/\udcffopts\ndhcp-hostsfile="m2/dhcp-files/host file"',{'\udcffopts':'224,raw-path\n','host file':f'{MAC},127.0.0.30,relative\n'},[inform('non-utf8-path'),packet('relative-quoted')],['CFG01/relative-quoted']))
+    rows.append(case('ethers-surviving-conflicts-open-failure','read-ethers\ndhcp-hostsfile={base}/hosts',{'hosts':''},[packet('ethers-initial'),action('system-unlink',path='/etc/ethers'),hup(),packet('ethers-open-failed-keeps-old'),write('hosts','02:00:00:00:00:02,127.0.0.30,bank-conflict\n'),hup(),packet('ethers-still-first'),packet('conflicting-bank-rejected',mac='020000000002'),action('system-write',path='/etc/ethers',text=MAC+' 127.0.0.31\n'),hup(),packet('ethers-new-address')],['STATE03/ethers-open-failure','STATE03/ethers-retained-conflict'],system_files={'/etc/ethers':MAC+' 127.0.0.30\n'}))
+    decline=lambda label,mac,address:packet(label,4,mac=mac,extra=[option(50,socket.inet_aton(address)),option(54,socket.inet_aton('127.0.0.1'))],no_reply=True)
+    rows.append(case('decline-inline-retained-bank-reset','dhcp-host=02:00:00:00:00:02,127.0.0.31,inline\ndhcp-hostsfile={base}/hosts',{'hosts':f'{MAC},127.0.0.30,file\n'},[packet('file-initial'),packet('inline-initial',mac='020000000002'),decline('file-decline','020000000001','127.0.0.30'),decline('inline-decline','020000000002','127.0.0.31'),packet('file-declined'),packet('inline-declined',mac='020000000002'),hup(),packet('file-decline-reset'),packet('inline-decline-retained',mac='020000000002')],['STATE03/inline-decline-survives','STATE03/file-decline-resets']))
+    rows.append(case('auto-clear-data-without-script-rerun','resolv-file={base}/resolv\nclear-on-reload\ndhcp-optsfile={base}/opts',{'resolv':'nameserver 127.0.0.2\n','opts':'224,old\n'},[packet('lease',3,address='127.0.0.30',extra=[option(12,b'leased')]),write('opts','224,new\n'),write('resolv','nameserver 127.0.0.3\n'),inform('automatic-options'),action('snapshot'),hup(),action('snapshot')],['RELOAD02/automatic-clear-no-rerun','RELOAD02/hup-scripts'],helper=True,auto_resolv=True))
+    rows.append(case('repeated-signal-during-bank-read','dhcp-optsfile={base}/opts',{'opts':'224,old\n'},[packet('lease',3,address='127.0.0.30'),action('fifo-reload',path='opts',text='224,first-generation',repeat_signals=True),inform('second-generation'),action('snapshot')],['RELOAD02/repeat-hup-during-read'],helper=True,owner_liveness_difference=True))
+    rows.append(case('startup-queued-dhcp-file','dhcp-optsfile={base}/opts',{'opts':{'fifo':True}},[inform('after-startup')],['OWNER02/startup-queued-dhcp','CFG02/test-skips-bank'],startup_fifo='opts'))
+    rows.append(case('stop-during-stream-load','dhcp-optsfile={base}/opts',{'opts':'224,old\n'},[inform('initial'),action('stop-loading',path='opts')],['OWNER02/stop-mid-load'],stop_loading=True,owner_liveness_difference=True))
+    rows.append(case('fd-lifecycle-and-recovery','dhcp-hostsfile={base}/hosts\ndhcp-optsdir={base}/opts',{'hosts':f'{MAC},127.0.0.30,first\n','opts/a':'224,first\n'},[packet('initial'),action('fd-check'),action('unlink',path='hosts'),hup(),packet('missing-continues'),write('hosts',f'{MAC},127.0.0.31,second\n'),hup(),packet('recovered'),write('opts/a','224,second\n'),inform('option'),action('fd-check')],['OWNER02/failed-file-recovers','OWNER03/fd-count','OWNER03/watch-cleanup']))
+    rows.append(case('dynamic-only-full-clear','dhcp-hostsdir={base}/hosts\ndhcp-optsdir={base}/opts',{'hosts/a':f'{MAC},127.0.0.30,first\n','opts/a':'224,first\n'},[packet('host-initial'),inform('option-initial'),action('unlink',path='hosts/a'),action('unlink',path='opts/a'),packet('live-host-retained'),inform('live-option-retained'),hup(),packet('host-bank-cleared'),inform('option-bank-cleared')],['RELOAD01/hup-dynamic-only']))
+    return rows
+
+
+def file_syntax(root,side,text,out):
+    out.mkdir()
+    result=subprocess.run(command(root,side,'--test','-C','/m2/files.conf'),capture_output=True,timeout=5)
+    (out/'stdout').write_bytes(result.stdout);(out/'stderr').write_bytes(result.stderr)
+    return {'exit':result.returncode,'stdout':result.stdout.decode(errors='backslashreplace'),'stderr':result.stderr.decode(errors='backslashreplace')}
+
+
+def fifo_writer(path):
+    deadline=time.monotonic()+2
+    while True:
+        try:return os.open(path,os.O_WRONLY|os.O_NONBLOCK)
+        except OSError as error:
+            if error.errno!=errno.ENXIO or time.monotonic()>deadline:raise
+            time.sleep(.005)
+
+
+def startup_stream(folder,scenario,endpoint,out):
+    writer=fifo_writer(folder/scenario['startup_fifo'])
+    event=dict(kind=8,label='startup-queued',ciaddr='127.0.0.40',prl=[224])
+    request=wire.request(event,0xD5110000)
+    try:
+        os.write(writer,b'224,startup-partial')
+        endpoint.sendto(request,('255.255.255.255',67));endpoint.settimeout(.1)
+        try:early,_=endpoint.recvfrom(65535)
+        except socket.timeout:early=None
+        assert early is None,'startup published incomplete bank'
+    finally:os.close(writer)
+    endpoint.settimeout(2);response,peer=endpoint.recvfrom(65535)
+    assert response[4:8]==request[4:8]
+    (out/'startup.request').write_bytes(request);(out/'startup.response').write_bytes(response)
+    return {'deferred':True,'reply':wire.comparable_reply(response,event),'peer':list(peer)}
+
+
+def stop_stream(folder,event,process):
+    path=folder/event['path'];path.unlink();os.mkfifo(path)
+    process.send_signal(signal.SIGHUP);writer=fifo_writer(path)
+    try:
+        os.write(writer,b'224,incomplete')
+        process.send_signal(signal.SIGTERM)
+        try:process.wait(.15);before='exited'
+        except subprocess.TimeoutExpired:before='waiting'
+    finally:os.close(writer)
+    process.wait(3)
+    return {'before_writer_close':before,'exit_after_close':process.returncode}
+
+
 def config(scenario):
-    return wire.config({'fixed_host':False,'range':scenario.get('dhcp',True),'dns_port':scenario.get('dns_port',15353),'text':f"user={scenario.get('user','root')}\ngroup={scenario.get('user','root')}\nhost-record=health.test,192.0.2.7\n"+scenario['config'].format(base=BASE)+'\n'+ ('dhcp-script='+BASE+'/helper.sh\n' if scenario.get('helper') else '')})
+    text=wire.config({'fixed_host':False,'range':scenario.get('dhcp',True),'dns_port':scenario.get('dns_port',15353),'text':f"user={scenario.get('user','root')}\ngroup={scenario.get('user','root')}\nhost-record=health.test,192.0.2.7\n"+scenario['config'].format(base=BASE)+'\n'+ ('dhcp-script='+BASE+'/helper.sh\n' if scenario.get('helper') else '')})
+    return text.replace('no-resolv\n','') if scenario.get('auto_resolv') else text
 
 
 def install(root,scenario):
@@ -246,15 +323,18 @@ def lease_state(root):
 
 def run_side(root,side,scenario,out):
     out.mkdir();folder=install(root,scenario);text=config(scenario)
-    (out/'config').write_text(text);(root/'m2/files.conf').write_text(text)
+    (out/'config').write_bytes(text.encode(errors='surrogateescape'));(root/'m2/files.conf').write_bytes(text.encode(errors='surrogateescape'))
     result={'side':side,'scenario':scenario['name'],'rows':[],'started':False};process=None;owned=set();opened={}
     with (out/'daemon.log').open('wb') as log,socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as endpoint:
         endpoint.bind(('0.0.0.0',68));endpoint.setsockopt(socket.SOL_SOCKET,socket.SO_BROADCAST,1);endpoint.setsockopt(socket.SOL_SOCKET,25,b'lo\0')
         try:
-            result['syntax']=wire.syntax(root,side,text,out/'syntax');assert result['syntax']['exit']==0,'--test rejection'
+            result['syntax']=file_syntax(root,side,text,out/'syntax');assert result['syntax']['exit']==scenario.get('expected_syntax',0),'--test result'
+            if scenario.get('syntax_only'):
+                result.update(syntax_only=True,exit=0,pid_removed=True);save(out/'result.json',result);return result
             argv=command(root,side,'-k','-C','/m2/files.conf')
             if scenario.get('watch_fault'):argv=[sys.executable,str(Path(__file__).resolve()),'--exec-watch-fault',*argv]
             process=subprocess.Popen(argv,stdout=log,stderr=log,start_new_session=True)
+            if scenario.get('startup_fifo'):result['startup_file']=startup_stream(folder,scenario,endpoint,out)
             deadline=time.monotonic()+3
             while True:
                 assert process.poll() is None,'startup exit'
@@ -294,6 +374,14 @@ def run_side(root,side,scenario,out):
                 elif event['op']=='symlink':(folder/event['path']).symlink_to(event['target']);time.sleep(.1)
                 elif event['op']=='dns':observed['dns']=wire.dns_observe(event['name'],event.get('kind',1),0xD500+index)
                 elif event['op']=='snapshot':time.sleep(.1)
+                elif event['op']=='fd-check':
+                    targets={p.name:os.readlink(p) for p in Path(f'/proc/{process.pid}/fd').iterdir()}
+                    observed['fd_targets']=targets
+                    assert not any(BASE in target for target in targets.values()),'completed bank retained an open data file'
+                    observed['bank_fds_closed']=True
+                elif event['op']=='system-write':write_file(root/event['path'].lstrip('/'),event['text']);time.sleep(.1)
+                elif event['op']=='system-unlink':(root/event['path'].lstrip('/')).unlink();time.sleep(.1)
+                elif event['op']=='stop-loading':observed['stop']=stop_stream(folder,event,process)
                 elif event['op']=='fifo-reload':observed['fifo']=fifo_reload(root,side,folder,event,process,endpoint,out,index)
                 elif event['op']=='event-burst':
                     process.send_signal(signal.SIGSTOP)
@@ -308,12 +396,13 @@ def run_side(root,side,scenario,out):
                     time.sleep(.2)
                 else:raise AssertionError('unknown event')
                 leases,observed['leases']=lease_state(root);(out/f'{index:03}.leases').write_text(leases)
-                observed['health']=health(scenario);observed['fds']=len(list(Path(f'/proc/{process.pid}/fd').iterdir()))
+                observed['health']={'stopped':True} if process.poll() is not None else health(scenario)
+                observed['fds']=len(list(Path(f'/proc/{process.pid}/fd').iterdir())) if process.poll() is None else None
                 if scenario.get('helper'):
                     time.sleep(.1);helper=folder/'helper.log';observed['helper']=helper.read_text().splitlines() if helper.exists() else []
                 result['rows'].append(observed);save(out/'result.json',result)
-            result['health_after']=health(scenario)
-            result['fd_after']=len(list(Path(f'/proc/{process.pid}/fd').iterdir()))
+            result['health_after']={'stopped':True} if process.poll() is not None else health(scenario)
+            result['fd_after']=len(list(Path(f'/proc/{process.pid}/fd').iterdir())) if process.poll() is None else None
         except Exception as error:result['error']=repr(error)
         finally:
             for opened_file in opened.values():opened_file.close()
@@ -340,14 +429,16 @@ def run_side(root,side,scenario,out):
 
 def compare(c,rust):
     failures=[]
-    for key in ['started','threads','health_before','health_after','exit','pid_removed','forced','remaining','error']:
+    for key in ['started','threads','health_before','health_after','exit','pid_removed','forced','remaining','error','startup_file']:
         if c.get(key)!=rust.get(key):failures.append(key)
     if wire.comparable_syntax(c.get('syntax',{}))!=wire.comparable_syntax(rust.get('syntax',{})):failures.append('syntax')
     if len(c['rows'])!=len(rust['rows']):failures.append('row count')
     for first,second in zip(c['rows'],rust['rows']):
-        for key in ['index','event','alive','health','peer','comparable','dns','helper']:
+        for key in ['index','event','alive','health','peer','comparable','dns','helper','bank_fds_closed']:
             if first.get(key)!=second.get(key):failures.append(f"{first['index']}:{key}")
         if (first.get('response') is None)!=(second.get('response') is None):failures.append(f"{first['index']}:response presence")
+        if 'stop' in first or 'stop' in second:
+            if first.get('stop')!={'before_writer_close':'waiting','exit_after_close':0} or second.get('stop')!={'before_writer_close':'exited','exit_after_close':0}:failures.append(f"{first['index']}:stop owner disposition")
         if 'fifo' in first or 'fifo' in second:
             left,right=copy.deepcopy(first.get('fifo')),copy.deepcopy(second.get('fifo'))
             if left is None or right is None:failures.append(f"{first['index']}:fifo missing")
@@ -424,6 +515,9 @@ def main(args):
         rows={side:run_side(root,side,scenario,args.out/(scenario['name']+'-'+side)) for side in manifest['sides']}
         errors=[]
         for side,value in rows.items():
+            if scenario.get('syntax_only'):
+                if value.get('error') or value['syntax']['exit']!=scenario.get('expected_syntax',0):errors.append(side+': syntax result')
+                continue
             if not value['started'] or value.get('error') or value.get('exit')!=0 or value.get('forced') or value.get('remaining') or not value['pid_removed'] or value.get('threads')!=1 or len(value['rows'])!=len(scenario['events']):errors.append(side+': lifecycle/events')
         if args.side=='both':errors+=compare(rows['c'],rows['rust'])
         results.append({'scenario':scenario['name'],'sides':rows,'errors':errors});failures.extend(scenario['name']+': '+e for e in errors)
