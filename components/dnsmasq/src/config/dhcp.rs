@@ -200,6 +200,8 @@ pub struct DhcpConfig {
     pub ignore_names: Vec<TagPredicate>,
     pub force_broadcast: Vec<TagPredicate>,
     pub no_dhcp_interfaces: Vec<Option<Vec<u8>>>,
+    /// Only the dual-family spelling vetoes wildcard TFTP admission.
+    pub no_tftp_interfaces: Vec<Option<Vec<u8>>>,
     pub no_ping: bool,
     /// Also controls the C early return for an ignored DISCOVER.
     pub quiet_dhcp: bool,
@@ -247,6 +249,7 @@ impl Default for DhcpConfig {
             ignore_names: Vec::new(),
             force_broadcast: Vec::new(),
             no_dhcp_interfaces: Vec::new(),
+            no_tftp_interfaces: Vec::new(),
             no_ping: false,
             quiet_dhcp: false,
             log_dhcp: false,
@@ -446,8 +449,11 @@ impl DhcpConfig {
             b"no-dhcp-interface" | b"no-dhcpv4-interface" => {
                 for value in argument.ok_or(Error("missing parameter"))?.split(b',') {
                     let value = value.decoded();
-                    self.no_dhcp_interfaces
-                        .insert(0, (!value.is_empty()).then_some(value));
+                    let name = (!value.is_empty()).then_some(value);
+                    if directive.name == b"no-dhcp-interface" {
+                        self.no_tftp_interfaces.insert(0, name.clone());
+                    }
+                    self.no_dhcp_interfaces.insert(0, name);
                 }
             }
             b"no-ping" => self.no_ping = true,

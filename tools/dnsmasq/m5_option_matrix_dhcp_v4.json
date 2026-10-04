@@ -17,7 +17,8 @@
       "source": [
         "option.c:2897-2926 INAME_4 only",
         "dhcp.c:329-331 INAME_4 admission",
-        "network.c:539-558 common TFTP veto/dedicated list override"
+        "network.c:539-558 common TFTP veto/dedicated list override",
+        "tftp.c:225-231 wildcard tests both INAME_4 and INAME_6"
       ],
       "scenarios": [
         "v4-exclude-none",
@@ -31,7 +32,12 @@
         "v4-exclude-listen-union",
         "v4-exclude-tftp-0",
         "v4-exclude-tftp-1",
-        "v4-missing-argument"
+        "v4-missing-argument",
+        "v4-exclude-tftp-0-bind-interfaces",
+        "v4-exclude-tftp-1-bind-interfaces",
+        "v4-exclude-tftp-0-bind-dynamic",
+        "v4-exclude-tftp-1-bind-dynamic",
+        "v4-mixed-spellings"
       ],
       "checklist": [
         {
@@ -86,20 +92,16 @@
           ]
         },
         {
-          "boundary": "Existing TFTP admission respects exclusion; explicit enable-tftp interface list overrides it per C network.c. Only this selector boundary, not PXE/TFTP internals.",
+          "boundary": "Exact-image TFTP distinction: wildcard admission ignores IPv4-only exclusion; bind-interfaces/bind-dynamic suppress excluded listeners; dedicated enable-tftp interface overrides either mode. Mixed full/v4 spelling preserves DHCP exclusion.",
           "checked": false,
           "required_scenarios": [
-            "v4-exclude-none",
-            "v4-exclude-lan",
-            "v4-exclude-guest",
-            "v4-exclude-wildcard",
-            "v4-exclude-empty",
-            "v4-exclude-empty-list",
-            "v4-exclude-csv",
-            "v4-exclude-repeat",
-            "v4-exclude-listen-union",
             "v4-exclude-tftp-0",
-            "v4-exclude-tftp-1"
+            "v4-exclude-tftp-1",
+            "v4-exclude-tftp-0-bind-interfaces",
+            "v4-exclude-tftp-1-bind-interfaces",
+            "v4-exclude-tftp-0-bind-dynamic",
+            "v4-exclude-tftp-1-bind-dynamic",
+            "v4-mixed-spellings"
           ]
         },
         {
@@ -683,7 +685,7 @@
             "dhcp"
           ],
           "expect": {
-            "tftp": false
+            "tftp": true
           }
         },
         {
@@ -745,6 +747,210 @@
       "config": "no-dhcpv4-interface\n",
       "probes": [],
       "expected_test_exit": 1
+    },
+    {
+      "id": "v4-exclude-tftp-0-bind-interfaces",
+      "options": [
+        "no-dhcpv4-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "no-dhcpv4-interface=br-lan\nenable-tftp\ntftp-root=/m2/tftp\nbind-interfaces\n",
+      "probes": [
+        {
+          "id": "lan-tftp",
+          "action": "tftp",
+          "transports": [
+            "dhcp"
+          ],
+          "expect": {
+            "tftp": false
+          }
+        },
+        {
+          "id": "guest-tftp",
+          "action": "tftp",
+          "transports": [
+            "dhcp"
+          ],
+          "server": "10.78.0.1",
+          "expect": {
+            "tftp": true
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "two_interfaces": true,
+      "tftp": true
+    },
+    {
+      "id": "v4-exclude-tftp-1-bind-interfaces",
+      "options": [
+        "no-dhcpv4-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "no-dhcpv4-interface=br-lan\nenable-tftp=br-lan,br-guest\ntftp-root=/m2/tftp\nbind-interfaces\n",
+      "probes": [
+        {
+          "id": "lan-tftp",
+          "action": "tftp",
+          "transports": [
+            "dhcp"
+          ],
+          "expect": {
+            "tftp": true
+          }
+        },
+        {
+          "id": "guest-tftp",
+          "action": "tftp",
+          "transports": [
+            "dhcp"
+          ],
+          "server": "10.78.0.1",
+          "expect": {
+            "tftp": true
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "two_interfaces": true,
+      "tftp": true
+    },
+    {
+      "id": "v4-exclude-tftp-0-bind-dynamic",
+      "options": [
+        "no-dhcpv4-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "no-dhcpv4-interface=br-lan\nenable-tftp\ntftp-root=/m2/tftp\nbind-dynamic\n",
+      "probes": [
+        {
+          "id": "lan-tftp",
+          "action": "tftp",
+          "transports": [
+            "dhcp"
+          ],
+          "expect": {
+            "tftp": false
+          }
+        },
+        {
+          "id": "guest-tftp",
+          "action": "tftp",
+          "transports": [
+            "dhcp"
+          ],
+          "server": "10.78.0.1",
+          "expect": {
+            "tftp": true
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "two_interfaces": true,
+      "tftp": true
+    },
+    {
+      "id": "v4-exclude-tftp-1-bind-dynamic",
+      "options": [
+        "no-dhcpv4-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "no-dhcpv4-interface=br-lan\nenable-tftp=br-lan,br-guest\ntftp-root=/m2/tftp\nbind-dynamic\n",
+      "probes": [
+        {
+          "id": "lan-tftp",
+          "action": "tftp",
+          "transports": [
+            "dhcp"
+          ],
+          "expect": {
+            "tftp": true
+          }
+        },
+        {
+          "id": "guest-tftp",
+          "action": "tftp",
+          "transports": [
+            "dhcp"
+          ],
+          "server": "10.78.0.1",
+          "expect": {
+            "tftp": true
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "two_interfaces": true,
+      "tftp": true
+    },
+    {
+      "id": "v4-mixed-spellings",
+      "options": [
+        "no-dhcpv4-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "no-dhcp-interface=br-guest\nno-dhcpv4-interface=br-lan\n",
+      "probes": [
+        {
+          "id": "lan-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        },
+        {
+          "id": "lan-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        },
+        {
+          "id": "guest-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "expect": {
+            "status": 2
+          }
+        },
+        {
+          "id": "guest-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "address": "10.78.0.10",
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "two_interfaces": true
     }
+  ],
+  "calibration_notes": [
+    "paired-01 retained: source review initially missed tftp.c wildcard both-family predicate; exact C TFTP answer identified a real Rust alias policy gap. Bound and wildcard modes now separately frozen."
   ]
 }

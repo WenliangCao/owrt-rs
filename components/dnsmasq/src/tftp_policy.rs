@@ -11,6 +11,7 @@ pub(super) struct Policy {
     pub config: TftpConfig,
     pub dns: DnsConfig,
     no_dhcp: Vec<Option<Vec<u8>>>,
+    no_tftp: Vec<Option<Vec<u8>>>,
     pub interfaces: Vec<DnsInterface>,
     tentative: Vec<(Ipv6Addr, u32)>,
 }
@@ -19,6 +20,7 @@ impl Policy {
         config: &TftpConfig,
         dns: &DnsConfig,
         no_dhcp: &[Option<Vec<u8>>],
+        no_tftp: &[Option<Vec<u8>>],
     ) -> io::Result<Self> {
         // Only interface policy is retained; no DNS records, cache or leases.
         let mut selected_dns = DnsConfig::default();
@@ -36,6 +38,7 @@ impl Policy {
             config: config.clone(),
             dns,
             no_dhcp: no_dhcp.to_vec(),
+            no_tftp: no_tftp.to_vec(),
             interfaces: crate::interfaces::dns_interfaces()?,
             tentative: tentative_addresses()?,
         })
@@ -69,7 +72,13 @@ impl Policy {
         crate::config::tftp::interface_enabled(
             self.config.enabled,
             &self.config.interfaces,
-            &self.no_dhcp,
+            // network.c excludes either family at bound-socket creation.
+            // tftp.c's wildcard path excludes only INAME_4|INAME_6 together.
+            if self.dns.bind_interfaces || self.dns.bind_dynamic {
+                &self.no_dhcp
+            } else {
+                &self.no_tftp
+            },
             name,
         )
     }
@@ -177,6 +186,7 @@ mod tests {
             },
             dns: DnsConfig::default(),
             no_dhcp: vec![Some(b"lan".to_vec())],
+            no_tftp: vec![Some(b"lan".to_vec())],
             interfaces: vec![],
             tentative: vec![],
         };
@@ -186,6 +196,14 @@ mod tests {
         assert!(!policy.tftp_interface(b"wan"));
         assert!(!matches_name(b"lan*", b"lan"));
         assert!(matches_name(b"lan*", b"lan0"));
+        policy.config.interfaces.clear();
+        policy.no_tftp.clear();
+        assert!(policy.tftp_interface(b"lan"));
+        policy.dns.bind_interfaces = true;
+        assert!(!policy.tftp_interface(b"lan"));
+        policy.dns.bind_interfaces = false;
+        policy.dns.bind_dynamic = true;
+        assert!(!policy.tftp_interface(b"lan"));
     }
     #[test]
     fn request_mtu_is_minimum_and_zero_means_unspecified() {
@@ -193,6 +211,7 @@ mod tests {
             config: TftpConfig::default(),
             dns: DnsConfig::default(),
             no_dhcp: vec![],
+            no_tftp: vec![],
             interfaces: vec![],
             tentative: vec![],
         };

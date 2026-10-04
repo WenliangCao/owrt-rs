@@ -704,6 +704,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             &tftp_config,
             &daemon_config,
             &runtime.dhcp.no_dhcp_interfaces,
+            &runtime.dhcp.no_tftp_interfaces,
             identity.runtime_uid(&runtime.process),
             if dns_enabled {
                 (runtime.scalar.forward_max as usize) / 2
