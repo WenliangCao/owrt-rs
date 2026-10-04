@@ -6,7 +6,7 @@ use super::{
     OccurrenceTracker, OptionSpec, Origin, OPTIONS,
 };
 use std::collections::HashSet;
-use std::ffi::OsString;
+use std::ffi::{c_int, OsString};
 use std::fmt;
 use std::fs::{self, File};
 use std::io::{self, BufRead, BufReader};
@@ -15,6 +15,10 @@ use std::os::unix::fs::MetadataExt;
 use std::os::unix::process::{CommandExt, ExitStatusExt};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
+
+extern "C" {
+    fn signal(signum: c_int, handler: usize) -> usize;
+}
 
 const SHORT_OPTIONS: &[u8] = b"951yZDNLERKzowefnbvhdkqr:m:p:c:l:s:i:t:u:g:a:x:S:C:A:T:H:Q:I:B:F:G:O:M:X:V:U:j:P:J:W:Y:2:4:6:7:8:0:3:";
 
@@ -208,7 +212,13 @@ where
                         index += 1;
                         Some(
                             args.get(index)
-                                .ok_or_else(|| LoadError::new(&location, 1, "bad command line options: try --help"))?
+                                .ok_or_else(|| {
+                                    LoadError::new(
+                                        &location,
+                                        1,
+                                        "bad command line options: try --help",
+                                    )
+                                })?
                                 .as_bytes(),
                         )
                     }
@@ -236,7 +246,13 @@ where
                         } else {
                             index += 1;
                             args.get(index)
-                                .ok_or_else(|| LoadError::new(&location, 1, "bad command line options: try --help"))?
+                                .ok_or_else(|| {
+                                    LoadError::new(
+                                        &location,
+                                        1,
+                                        "bad command line options: try --help",
+                                    )
+                                })?
                                 .as_bytes()
                         };
                         cursor = bytes.len();
@@ -400,12 +416,24 @@ where
             }
         }
         if script {
-            let mut child = Command::new("/bin/sh")
+            let mut command = Command::new("/bin/sh");
+            command
                 .arg0("sh")
                 .arg("-c")
                 .arg(path.as_os_str())
                 .stdin(Stdio::inherit())
-                .stdout(Stdio::piped())
+                .stdout(Stdio::piped());
+            // dnsmasq.c ignores SIGPIPE before read_opts(), and popen keeps
+            // that disposition in its shell. Command resets it before exec;
+            // restore the inherited contract using only an async-signal-safe
+            // operation in the child.
+            unsafe {
+                command.pre_exec(|| {
+                    signal(13, 1);
+                    Ok(())
+                });
+            }
+            let mut child = command
                 .spawn()
                 .map_err(|e| LoadError::path_io(&location, 3, "cannot execute", path, e))?;
             // A parse error is startup-fatal: main exits just as C die does,
