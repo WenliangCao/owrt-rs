@@ -12,6 +12,7 @@ import json
 import os
 from pathlib import Path
 import signal
+import shutil
 import socket
 import struct
 import subprocess
@@ -27,6 +28,7 @@ SERVER = net.DOWN
 CLIENT = net.CLIENT
 DNS_PORT = 15353
 net.PORTS = sorted(set(net.PORTS + [4011]))
+ACTOR_SCRIPT = Path(__file__).resolve()
 
 
 def save(path, value):
@@ -38,7 +40,7 @@ class Peer(net.Peer):
         # Reuse the audited peer transport, but start this file's actor mode
         # so its extra4011 socket exists in the child namespace too.
         if args and args[-1] == "--actor":
-            args = (sys.executable, Path(__file__).resolve(), "--actor")
+            args = (sys.executable, ACTOR_SCRIPT, "--actor")
         return super().argv(*args)
 
 
@@ -584,6 +586,7 @@ def negative_controls(rows, corpus):
 
 
 def main(args):
+    global ACTOR_SCRIPT
     if os.geteuid() != 0 or os.environ.get("DNSMASQ_TEST_ISOLATED") != "1":
         raise SystemExit("run only through run_isolated.sh")
     if sorted(name for _, name in socket.if_nameindex()) != ["lo"]:
@@ -592,6 +595,14 @@ def main(args):
     if out.exists() or "private" not in out.parts:
         raise SystemExit("fresh output directory below private/ required")
     out.mkdir(parents=True)
+    executed=out/"executed-tools"
+    executed.mkdir()
+    tool_root=Path(__file__).resolve().parent
+    sources={Path(__file__).resolve()}
+    sources.update(Path(module.__file__).resolve() for module in list(sys.modules.values())
+                   if getattr(module,"__file__",None) and Path(module.__file__).resolve().parent==tool_root)
+    for source in sources:shutil.copy2(source,executed/source.name)
+    ACTOR_SCRIPT=executed/Path(__file__).name
     root = prepare(args.image_root, None, out, args.rust)
     available = profiles()
     unknown = set(args.profile or []) - {profile["name"] for profile in available}
@@ -602,6 +613,7 @@ def main(args):
     save(out/"manifest.json", {"profiles": corpus, "sides": sides, "tool_sha256": sha256(__file__),
                               "transport_tool_sha256": sha256(net.__file__), "c_sha256": STOCK_SHA256,
                               "rust_sha256": sha256(args.rust), "elf_bytes": args.rust.stat().st_size})
+    save(out/"executed-tools.json",{source.name:sha256(executed/source.name) for source in sources})
     rows = []; failures = []; client = None; server=None; cleanup = None; server_cleanup=None; syntax=[]
     syntax_corpus=grammar_cases() if args.syntax_only or args.syntax or not args.profile else []
     try:
