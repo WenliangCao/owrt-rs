@@ -50,7 +50,9 @@
             "address-global-hash-with-upstream",
             "address-global-star-dot-no-upstream",
             "address-global-star-no-upstream",
-            "address-global-hash-no-upstream"
+            "address-global-hash-no-upstream",
+            "address-resolv-default-star-dot",
+            "address-resolv-default-hash"
           ]
         },
         {
@@ -84,7 +86,9 @@
             "address-global-hash-with-upstream",
             "address-global-star-dot-no-upstream",
             "address-global-star-no-upstream",
-            "address-global-hash-no-upstream"
+            "address-global-hash-no-upstream",
+            "address-resolv-default-star-dot",
+            "address-resolv-default-hash"
           ]
         },
         {
@@ -118,7 +122,9 @@
             "address-global-hash-with-upstream",
             "address-global-star-dot-no-upstream",
             "address-global-star-no-upstream",
-            "address-global-hash-no-upstream"
+            "address-global-hash-no-upstream",
+            "address-resolv-default-star-dot",
+            "address-resolv-default-hash"
           ]
         },
         {
@@ -152,7 +158,9 @@
             "address-global-hash-with-upstream",
             "address-global-star-dot-no-upstream",
             "address-global-star-no-upstream",
-            "address-global-hash-no-upstream"
+            "address-global-hash-no-upstream",
+            "address-resolv-default-star-dot",
+            "address-resolv-default-hash"
           ]
         },
         {
@@ -186,7 +194,9 @@
             "address-global-hash-with-upstream",
             "address-global-star-dot-no-upstream",
             "address-global-star-no-upstream",
-            "address-global-hash-no-upstream"
+            "address-global-hash-no-upstream",
+            "address-resolv-default-star-dot",
+            "address-resolv-default-hash"
           ]
         },
         {
@@ -220,7 +230,9 @@
             "address-global-hash-with-upstream",
             "address-global-star-dot-no-upstream",
             "address-global-star-no-upstream",
-            "address-global-hash-no-upstream"
+            "address-global-hash-no-upstream",
+            "address-resolv-default-star-dot",
+            "address-resolv-default-hash"
           ]
         }
       ],
@@ -252,7 +264,9 @@
         "address-global-hash-with-upstream",
         "address-global-star-dot-no-upstream",
         "address-global-star-no-upstream",
-        "address-global-hash-no-upstream"
+        "address-global-hash-no-upstream",
+        "address-resolv-default-star-dot",
+        "address-resolv-default-hash"
       ],
       "eligible_for_closure": false,
       "known_gaps": [
@@ -9001,6 +9015,64 @@
       "expected_test_exit": 0,
       "strict_upstream_wire": true,
       "no_default_server": true
+    },
+    {
+      "id": "address-resolv-default-star-dot",
+      "options": [
+        "address"
+      ],
+      "config": "resolv-file=/m2/matrix.resolv\naddress=/*./192.0.2.77\n",
+      "probes": [
+        {
+          "id": "implicit-default",
+          "name": "implicit.test",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response",
+            "upstream_count": 1,
+            "rcode": 0,
+            "answer_addresses": [
+              "192.0.2.10"
+            ]
+          }
+        }
+      ],
+      "hosts": "",
+      "expected_test_exit": 0,
+      "strict_upstream_wire": true,
+      "no_default_server": true,
+      "resolv_nameserver": "127.0.0.2",
+      "upstream_port": 53
+    },
+    {
+      "id": "address-resolv-default-hash",
+      "options": [
+        "address"
+      ],
+      "config": "resolv-file=/m2/matrix.resolv\naddress=/#/192.0.2.77\n",
+      "probes": [
+        {
+          "id": "implicit-default",
+          "name": "implicit.test",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response",
+            "upstream_count": 0,
+            "rcode": 0,
+            "answer_addresses": [
+              "192.0.2.77"
+            ]
+          }
+        }
+      ],
+      "hosts": "",
+      "expected_test_exit": 0,
+      "strict_upstream_wire": true,
+      "no_default_server": true,
+      "resolv_nameserver": "127.0.0.2",
+      "upstream_port": 53
     }
   ]
 }

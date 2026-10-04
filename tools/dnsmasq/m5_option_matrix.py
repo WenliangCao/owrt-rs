@@ -61,13 +61,13 @@ def fixture_record(record):
 
 class Upstream:
     """Packet fixtures are input stimuli, never expected daemon responses."""
-    def __init__(self, probes, host="127.0.0.2"):
+    def __init__(self, probes, host="127.0.0.2", port=0):
         self.probes = {(p['name'].lower(), p.get('type', 1)): p for p in probes}
         self.host = host
         self.captured = []
         self.family = socket.AF_INET6 if ':' in host else socket.AF_INET
         self.udp = socket.socket(self.family, socket.SOCK_DGRAM)
-        self.udp.bind((host, 0))
+        self.udp.bind((host, port))
         self.port = self.udp.getsockname()[1]
         self.udp.settimeout(.05)
         self.tcp = socket.socket(self.family, socket.SOCK_STREAM)
@@ -218,6 +218,7 @@ def observe(port, probe, ident, transport, upstream):
     before = len(upstream.events)
     started = time.monotonic()
     response = None
+    transport_error = None
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM if transport == 'udp' else socket.SOCK_STREAM) as client:
         client.settimeout(.5)
         client.connect(('127.0.0.1', port))
@@ -225,14 +226,16 @@ def observe(port, probe, ident, transport, upstream):
         try:
             response = client.recv(65535) if transport == 'udp' else exact_read(client, struct.unpack('!H', exact_read(client, 2))[0])
         except socket.timeout:
-            pass
+            transport_error = {'kind': 'timeout', 'errno': None}
+        except (ConnectionError, OSError) as error:
+            transport_error = {'kind': type(error).__name__, 'errno': getattr(error, 'errno', None), 'message': str(error)}
     try:
         result = semantics(response) if response is not None else None
     except (ValueError, IndexError, struct.error) as error:
         result = {'id': int.from_bytes(response[:2], 'big'), 'flags': int.from_bytes(response[2:4], 'big'), 'malformed': str(error), 'wire_without_id': response[2:].hex()}
     if result is not None and result['id'] != ident:
         raise AssertionError('wrong client transaction ID')
-    return {'id': probe['id'] + ':' + transport, 'response': result,
+    return {'id': probe['id'] + ':' + transport, 'response': result, 'transport_error': transport_error,
             'question_wire': (response[12:read_name(response, 12)[1] + 4].hex() if response is not None else None),
             'raw': response.hex() if response is not None else None,
             'request': packet.hex(), 'elapsed': time.monotonic() - started,
@@ -257,13 +260,14 @@ def run_side(root, side, scenario, folder):
     isolated_address = scenario.get('upstream_address')
     if isolated_address:
         subprocess.run(['ip', 'addr', 'add', isolated_address + '/32', 'dev', 'lo'], check=True)
-    upstream = Upstream(scenario['probes'], isolated_address or scenario.get('upstream_host', '127.0.0.2'))
+    upstream = Upstream(scenario['probes'], isolated_address or scenario.get('upstream_host', '127.0.0.2'), scenario.get('upstream_port', 0))
     alternate = Upstream(scenario['probes'], '127.0.0.3') if scenario.get('alternate_upstream') else None
     upstream.alternate = alternate
     with socket.socket() as reserve:
         reserve.bind(('127.0.0.1', 0))
         port = reserve.getsockname()[1]
-    conf = ('no-resolv\nno-hosts\nno-round-robin\nuser=root\ngroup=root\n'
+    conf = (('' if scenario.get('resolv_nameserver') else 'no-resolv\n')
+            + 'no-hosts\nno-round-robin\nuser=root\ngroup=root\n'
             + ('' if scenario.get('adapter') == 'casing' else 'no-0x20-encode\n')
             + ('' if scenario.get('listen_addresses') == [] else 'listen-address=' + ','.join(scenario.get('listen_addresses', ['127.0.0.1'])) + '\n')
             + f'port={port}\ncache-size={scenario.get("cache_size", 0)}\nlocal-ttl=120\n'
@@ -273,6 +277,10 @@ def run_side(root, side, scenario, folder):
             + (f'server=127.0.0.3#{alternate.port}\n' if alternate else '') + scenario['config'].replace('{upstream}', str(upstream.port)))
     (root / 'm2/matrix.conf').write_text(conf)
     (root / 'm2/matrix.hosts').write_text(scenario.get('hosts', ''))
+    if scenario.get('resolv_nameserver'):
+        resolv = 'nameserver ' + scenario['resolv_nameserver'] + '\n'
+        (root / 'm2/matrix.resolv').write_text(resolv)
+        (folder / 'resolv.conf').write_text(resolv)
     (folder / 'config').write_text(conf)
     (folder / 'hosts').write_text(scenario.get('hosts', ''))
     test = subprocess.run(command(root, side, '--test', '-C', '/m2/matrix.conf', *scenario.get('arguments', [])), capture_output=True, timeout=5)
