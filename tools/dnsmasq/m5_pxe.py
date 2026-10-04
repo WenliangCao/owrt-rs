@@ -288,6 +288,81 @@ def profiles():
             case("pxe-during-helper",helper_busy=True),
         ],["OWNER01","BOOTP04","PROXY06"],mode="dynamic",static_host=False,helper=True,tftp=True),
     ])
+    # Supplemental source-checklist witnesses. Keep safe malformed inputs
+    # bounded; known NULL/length-overflow C configurations stay syntax-only.
+    rows.extend([
+        profile("architecture-case-wrap",["pxe-service=X86pC,Case,case","pxe-service=65536,Wrapped,wrap","pxe-service=0,Local wrapped,65536"],
+                [case("case-and-wrap-menu"),case("auto-type-second",kind=3,ciaddr=CLIENT,boot_item=item(32769,3))],["CFG-S01","CFG-S02"]),
+        profile("quoted-service-prompt",['pxe-service=0,"Menu, with spaces",boot','pxe-prompt="Choose, now",2'],[case("quoted-values")],["CFG-S04","CFG-P01"]),
+        profile("hosts-multiple",["pxe-service=0,Multi,boot,boot-server"],[case("multiple-addresses",kind=3,ciaddr=CLIENT,boot_item=item())],
+                ["CFG-S03","BOOT03"],initial_hosts="10.77.0.8 boot-server\n10.77.0.9 boot-server\n"),
+        profile("hosts-dns-disabled",["pxe-service=0,No DNS,boot,boot-server","port=0","enable-tftp","tftp-root=/m2/pxe-tftp"],
+                [case("lookup-disabled",kind=3,ciaddr=CLIENT,boot_item=item())],["CFG-S03","BOOT03"],dns_disabled=True,tftp=True),
+        profile("vendor-repeat-order",legacy+["dhcp-pxe-vendor=custom-long","dhcp-pxe-vendor=custom,custom-other"],
+                [case("last-prefix-wins",vendor=b"custom-long:client"),case("case-rejected",vendor=b"Custom-long:client",reply=False)], ["CFG-V01","RX01"]),
+        profile("vendor-quoted",legacy+['dhcp-pxe-vendor="custom,long",other'],[case("quoted-prefix",vendor=b"custom,long:client")],["CFG-V01"]),
+        profile("boot-item-requested-address",legacy,[case("option50-clears-ciaddr",kind=3,ciaddr=CLIENT,boot_item=item(),extra=option(50,socket.inet_aton(CLIENT)),reply=False)], ["BOOT02"]),
+        profile("boot-item-context-negative",legacy,[case("missing-required-context",kind=3,ciaddr=CLIENT,boot_item=item(),reply=False)],
+                ["RX04","BOOT02"],range_value="tag:missing,10.77.0.1,proxy,255.255.255.0"),
+        profile("boot-item-vendor-tags",legacy+["dhcp-option=vendor:PXEClient,20,untagged","dhcp-option=tag:known,vendor:PXEClient,20,known",
+                     "dhcp-option=tag:missing,vendor:PXEClient,21,hidden"],
+                [case("vendor-pruning",kind=3,ciaddr=CLIENT,boot_item=item(),uuid=bytes(range(17)))],["BOOT04"]),
+        profile("boot-item-capacity",legacy+["dhcp-option=vendor:PXEClient,20,"+"a"*220,"dhcp-option=vendor:PXEClient,21,"+"b"*160],
+                [case("vendor-overload-agent",kind=3,ciaddr=CLIENT,boot_item=item(),uuid=bytes(range(17)),extra=option(82,b"\x01\x03abc"))],["BOOT04","RX03"]),
+        profile("boot-item-ip-dot",["pxe-service=0,Dot,file.efi,10.77.0.9"],[case("numeric-target-dot",kind=3,ciaddr=CLIENT,boot_item=item(32768,55))],["BOOT03"]),
+        profile("proxy-tag-if",["tag-if=tag:pool,set:derived","pxe-service=tag:derived,0,Derived,boot","pxe-prompt=tag:derived,Derived,1",
+                     "dhcp-option-pxe=tag:derived,225,derived"],[case("context-tag-if")],["PROXY02","MENU01"],range_value="set:pool,10.77.0.1,proxy,255.255.255.0"),
+        profile("proxy-boot-target",["pxe-service=7,Other,other.efi","dhcp-boot=tag:known,fallback.img,unused-name,10.77.0.9"],
+                [case("tagged-fallback-ip")],["PROXY04"]),
+        profile("proxy-boot-hosts-missing",["pxe-service=7,Other,other.efi","dhcp-boot=fallback.img,unused-name,missing-host"],
+                [case("fallback-missing-host")],["PROXY04"]),
+        profile("proxy-option-priority-zero",legacy+["dhcp-option-pxe=225,untagged","dhcp-option-pxe=tag:known,225,known","dhcp-option-pxe=3,0.0.0.0"],
+                [case("duplicate-and-local-zero",prl=b"\x01")],["PROXY05"]),
+        profile("disabled-host",legacy+["dhcp-host=02:00:00:4d:35:03,ignore"],
+                [case("disabled-proxy",reply=False),case("disabled-item",kind=3,ciaddr=CLIENT,boot_item=item(),reply=False)], ["RX04"],static_host=False),
+        profile("uefi-one-basename-numeric",efi+["pxe-service=7,Numeric,12,10.77.0.9"],
+                [case("one-basename-plus-number",arch=7,kind=3,ciaddr=CLIENT,listener=4011)],["UEFI01"]),
+        profile("uefi-field-bounds",["pxe-service=7,Long,"+"f"*150+","+"h"*100],
+                [case("long-fields",arch=7,kind=3,ciaddr=CLIENT,listener=4011)],["UEFI02"]),
+        profile("ordinary-option-priority",legacy+["dhcp-option=225,normal","dhcp-option-pxe=tag:known,225,pxe-known","dhcp-option=60,configured"],
+                [case("pxe-synthetic60",prl=bytes([60,225])),case("ordinary-configured60",arch=None,vendor=b"ordinary",prl=bytes([60,225]))], ["NORMAL02"],mode="dynamic"),
+        profile("ordinary-forced-vendor",legacy+["dhcp-option-force=vendor:PXEClient,20,forced"],
+                [case("forced-no-prl43",prl=b"\x01")],["NORMAL04"],mode="dynamic"),
+        profile("no-override-long-forced",legacy+["dhcp-option-force=66,"+"s"*90,"dhcp-option-force=67,"+"f"*150,"dhcp-no-override"],
+                [case("forced-long-options",prl=b"\x01")],["NOOVERRIDE01"],mode="dynamic"),
+        profile("no-override-long-boot",legacy+["dhcp-boot="+"f"*150+","+"s"*90,"dhcp-no-override"],
+                [case("truncated-boot-fields",prl=bytes([66,67]))],["NOOVERRIDE01"],mode="dynamic"),
+        profile("bootp-no-override",["bootp-dynamic","dhcp-no-override","dhcp-boot=bootp.img,bootp-name","dhcp-option=224,"+"o"*100],
+                [case("bootp-vendor64",kind=0,arch=None,vendor=None,prl=None)],["CFG-N01","NOOVERRIDE02","BOOTP04"],mode="dynamic",static_host=False),
+        profile("bootp-filename128",["bootp-dynamic=tag:"+"f"*128,"dhcp-boot=tag:"+"f"*128+",selected.img"],
+                [case("file-tag128",kind=0,arch=None,vendor=None,prl=None,filename=b"f"*128)],["BOOTP01"],mode="dynamic",static_host=False),
+        profile("bootp-with-pxe-vendor",legacy+["bootp-dynamic"],
+                [case("bootp-not-pxe",kind=0),case("zero-hlen",kind=0,hlen=0,reply=False)],["BOOTP01"],mode="dynamic",static_host=False),
+        profile("leasequery-active-encap",legacy+["leasequery","dhcp-option-pxe=encap:172,17,nested","dhcp-option-pxe=vi-encap:13,17,enterprise"],
+                [case("query-active4011",kind=10,giaddr=CLIENT,ciaddr="10.77.0.10",listener=4011,source_port=67,prl=bytes([172,125]))],
+                ["RX05","NORMAL03"],mode="dynamic",initial_leases="0 02:00:00:4d:35:03 10.77.0.10 existing *\n"),
+    ])
+    for timeout in ["0","255","-1","bad","","65536"]:
+        rows.append(profile("prompt-runtime-"+(timeout or "empty"),legacy+["pxe-prompt=Choose,"+timeout],[case("timeout-byte")],["CFG-P01"]))
+    for total in [251,252,253]:
+        rows.append(profile(f"menu-accumulated-{total}",["pxe-service=0,"+"a"*125+",first","pxe-service=0,"+"b"*(total-131)+",second","pxe-prompt=Keep,1"],
+                            [case("accumulated-capacity")],["CFG-S05","MENU04"]))
+    for name,first,second in [
+        ("dynamic-proxy","set:dynamic,10.77.0.10,10.77.0.20,255.255.255.0","set:proxy,10.77.0.1,proxy,255.255.255.0"),
+        ("proxy-dynamic","set:proxy,10.77.0.1,proxy,255.255.255.0","set:dynamic,10.77.0.10,10.77.0.20,255.255.255.0"),
+        ("static-proxy","set:static,10.77.0.1,static,255.255.255.0","set:proxy,10.77.0.1,proxy,255.255.255.0"),
+        ("proxy-static","set:proxy,10.77.0.1,proxy,255.255.255.0","set:static,10.77.0.1,static,255.255.255.0"),
+    ]:
+        rows.append(profile("mixed-"+name,legacy+["dhcp-range="+second,"dhcp-option-pxe=tag:proxy,225,proxy","dhcp-option=tag:dynamic,226,dynamic","dhcp-option=tag:static,227,static"],
+                            [case("pxe-context",prl=bytes([43,60,225,226,227]))],["CFG-R01","CFG-R02","PROXY02"],mode="dynamic",range_value=first))
+    malformed=[]
+    for name,raw in [("short-fixed",request()[:200]),("bad-op",request()),("zero-htype",request()),
+                     ("truncated-tlv",request(extra=b"\xe0\xfe")),("overload-file",request(extra=option(52,b"\x01"),filename=b"\x3c\xfe")),
+                     ("vendor-after-end",request(vendor=None,extra=b"\xff"+option(60,b"PXEClient")))]:
+        if name=="bad-op":raw[0]=2
+        if name=="zero-htype":raw[1]=0
+        malformed.append(case(name,raw=raw,reply=name in ["truncated-tlv","overload-file"]))
+    rows.append(profile("malformed-input",legacy,malformed,["RX01","RX03","OWNER01"]))
     for kind in ["external-conflict","default-exclusive","bind-interfaces","bind-dynamic"]:
         rows.append(profile("bind-4011-"+kind,[],[],["START02","OWNER01"],mode="none",bind_kind=kind))
     return rows
@@ -368,7 +443,7 @@ def grammar_cases():
     add("prompt-empty", "pxe-prompt=")
     add("prompt-tags-only", "pxe-prompt=tag:only")
     add("prompt-quoted", 'pxe-prompt="Choose, now",2')
-    for length in [251,252,253,255]:
+    for length in [251,252,253,254,255]:
         add(f"prompt-length-{length}", "pxe-prompt="+"p"*length,
             "C prompt bypasses length check and can wrap outer43 length" if length>=252 else None)
     add("vendor-list", "dhcp-pxe-vendor=custom,iPXE")
@@ -417,7 +492,7 @@ def run_profile(root, side, profile, client, server, out):
     out.mkdir()
     text = config(profile)
     (root/"m2/pxe.conf").write_text(text)
-    (root/"m2/pxe.hosts").write_text("10.77.0.8 boot-server\n")
+    (root/"m2/pxe.hosts").write_text(profile.get("initial_hosts","10.77.0.8 boot-server\n"))
     (out/"dnsmasq.conf").write_text(text)
     for name in ["pxe.pid", "pxe.leases"]:
         (root/"m2"/name).unlink(missing_ok=True)
@@ -434,6 +509,7 @@ def run_profile(root, side, profile, client, server, out):
     row = {"profile": profile["name"], "side": side, "started": False, "cases": [],
            "test": {"exit": tested.returncode, "stdout": tested.stdout, "stderr": tested.stderr}}
     process = None;bus=None;bus_log=None
+    health=tftp_health if profile.get("dns_disabled") else heartbeat
     try:
         if profile.get("metrics") is not None:
             bus_log=(out/"ubusd.log").open("wb")
@@ -451,7 +527,7 @@ def run_profile(root, side, profile, client, server, out):
                 raise AssertionError(f"startup exit {process.returncode}")
             row.update(started=True, identity=process_identity(root, process.pid), listening4011=bound4011(),
                        threads=len(list(Path(f"/proc/{process.pid}/task").iterdir())))
-            if not heartbeat():
+            if not health():
                 raise AssertionError("startup DNS heartbeat")
             row["fd_start"] = net.descriptors(process.pid)
             if profile.get("metrics") is not None:row["initial_metrics"]=metrics(root)
@@ -481,7 +557,7 @@ def run_profile(root, side, profile, client, server, out):
                 if item["helper_busy"] and (root/"m2/pxe-helper.done").exists():raise AssertionError("helper finished before PXE/DNS/TFTP witness")
                 helper_events=(root/"m2/pxe-helper.events").read_text().splitlines() if profile.get("helper") and (root/"m2/pxe-helper.events").exists() else None
                 row["cases"].append({"name": item["name"], "request": item["request"], "replies": replies,
-                                     "peer_echo": echoes, "alive": process.poll() is None, "heartbeat": heartbeat(),
+                                     "peer_echo": echoes, "alive": process.poll() is None, "heartbeat": health(),
                                      "leases": leases.read_text() if leases.exists() else None,
                                      "observed_epoch":int(time.time()),"upstream":upstream,
                                      "tftp":tftp,"helper_events":helper_events,"helper_busy_observed":item["helper_busy"],
