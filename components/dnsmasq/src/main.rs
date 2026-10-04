@@ -527,7 +527,9 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     };
     let service = Arc::new(Mutex::new(ParentDns {
         local: LocalDnsService::new_with_limits(
-            runtime.dns,
+            daemon
+                .as_ref()
+                .map_or(runtime.dns, |daemon| daemon.local_config().clone()),
             hosts,
             runtime.scalar.local_ttl,
             packet_limit,
@@ -750,7 +752,10 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     let route_watch = dns_enabled
         .then(RouteWatch::new)
         .transpose()
-        .map_err(NetworkStartupError)?;
+        .map_err(|error| dnsmasq_rs::startup::StartupError {
+            code: 5,
+            message: format!("cannot create netlink socket: {error}"),
+        })?;
     #[cfg(target_os = "linux")]
     dns_files.request(ReloadReason::Init);
     // The daemon owns all sockets from the foreground loop.  This keeps the
@@ -1768,21 +1773,14 @@ impl SinglePoll {
         if let Some(neighbors) = &self.neighbors {
             neighbors.append_poll_fds(&mut fds);
         }
-        #[cfg(target_os = "linux")]
-        {
-            self.append_file_fds(&mut fds);
-            if self.files_runnable {
-                deadline = Instant::now();
-            }
-        }
         let remaining = deadline.saturating_duration_since(Instant::now());
         let millis = remaining
             .as_nanos()
             .div_ceil(1_000_000)
             .min(i32::MAX as u128) as i32;
         let ready = owrt_ubus::sys::poll_fds(&mut fds, millis)?;
-        #[cfg(target_os = "linux")]
-        self.step_dns_files();
+        // C's delay_dhcp does not consume inotify/route events. They remain
+        // queued until the outer owner can apply all reload effects together.
         // Neither signals/reload nor another DHCP packet may reenter the
         // borrowed state. All DNS and TFTP packet buffers are distinct.
         for index in 0..self.listeners.len() {
