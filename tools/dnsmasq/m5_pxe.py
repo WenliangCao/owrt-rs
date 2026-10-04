@@ -206,6 +206,18 @@ def profiles():
             case("unrequested-fields",prl=b"\x01"),case("requested-options",prl=bytes([66,67])),
         ],["NOOVERRIDE01"],mode="dynamic"),
         profile("owner-burst",legacy,[case("burst16",copies=16)],["OWNER01"]),
+        profile("proxy-context-tags",["pxe-service=tag:pool,0,Pool menu,netboot", "pxe-prompt=tag:pool,Pool prompt,3", "dhcp-option-pxe=tag:pool,225,from-pool"],
+                [case("context-tag-options")],["PROXY02","PROXY05","CFG-R02"],range_value=f"set:pool,{SERVER},proxy,255.255.255.0"),
+        profile("bootp-filename-tag",["bootp-dynamic=tag:firmware", "dhcp-boot=tag:firmware,selected.img"],
+                [case("file-tag",kind=0,arch=None,vendor=None,prl=None,filename=b"firmware")],["BOOTP01","BOOTP02"],mode="dynamic",static_host=False),
+        profile("bootp-context-tag",["bootp-dynamic=tag:pool"],
+                [case("selected-range-permission",kind=0,arch=None,vendor=None,prl=None)],["BOOTP02"],mode="dynamic",static_host=False,
+                range_value="set:pool,10.77.0.10,10.77.0.20,255.255.255.0,600s"),
+        profile("bootp-context-tag-if",["tag-if=tag:pool,set:permit", "bootp-dynamic=tag:permit"],
+                [case("range-tag-if-permission",kind=0,arch=None,vendor=None,prl=None)],["BOOTP02"],mode="dynamic",static_host=False,
+                range_value="set:pool,10.77.0.10,10.77.0.20,255.255.255.0,600s"),
+        profile("bootp-negative-tag",["bootp-dynamic=tag:!bootp"],
+                [case("negative-bootp-denied",kind=0,arch=None,vendor=None,prl=None,reply=False)],["CFG-B01","BOOTP02"],mode="dynamic",static_host=False),
     ])
     for length in [249,250]:
         rows.append(profile(f"menu-length-{length}",["pxe-service=0,"+"m"*length+",boot","pxe-prompt=Keep prompt,1"],
@@ -227,7 +239,9 @@ def config(profile):
              "user=root", "group=root", "no-ping", "address=/health.test/192.0.2.7",
              "pid-file=/m2/pxe.pid", "dhcp-leasefile=/m2/pxe.leases", "addn-hosts=/m2/pxe.hosts"]
     mode = profile["mode"]
-    if mode == "dynamic":
+    if profile.get("range_value") is not None:
+        lines.append("dhcp-range="+profile["range_value"])
+    elif mode == "dynamic":
         lines.append("dhcp-range=10.77.0.10,10.77.0.20,255.255.255.0,600s")
     elif mode != "none":
         lines.append(f"dhcp-range={SERVER},{mode},255.255.255.0,600s")
