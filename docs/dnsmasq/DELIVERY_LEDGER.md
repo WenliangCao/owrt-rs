@@ -2,8 +2,8 @@
 
 ## 当前状态与下一步
 
-- 当前里程碑：M5；169 项中 **88 项已关闭、47 项部分实现、34 项未实现，剩余 81 项**。
-- 刚关闭：PXE族6项（pxe-service、pxe-prompt、dhcp-option-pxe、dhcp-pxe-vendor、dhcp-no-override、bootp-dynamic）。55条C清单／138唯一配置／260报文场景／58语法／20负控通过，root重核通过；不关闭dhcp-range和helper-shutdown。
+- 当前里程碑：M5；169 项中 **89 项已关闭、46 项部分实现、34 项未实现，剩余 80 项**。
+- 刚关闭：dhcp-ignore-clid，13配置／51事件／6条C边界通过；PXE6项已关闭并归档删除任务树。批5FQDN运行时通过，前导换行修复中；TTL确认整数overflow/diagnostic缺口正在修，不扣数。
 - 当前代码：已统一验证的候选 `9e81b3e2` / SHA256 `ae351b9f455b9f3f74045eacb6ff3edb7d647c5d7cf3ecef711a22332eaee739`，1,396,848字节（M4+237,568）；本批库538／main10及identity/DNS第三批/helper/boot/leasequery/RR全部通过，TFTP引用f166。PXE开发候选 `c24799de` / SHA256 `e77e7c244b29cd4013d8c71830ca31850f73b7fb0523ee897a6ca0419a00ed9e`，1,437,808字节（对9e阶段净+40,960），正在镜像，不计完成。Oracle不可变产物在 `/home/ubuntu/m5-root-20261004/<commit>/`，本地对应 `evidence/M5/integration-20261004/<commit>/`；远端构建脚本已改用唯一共享target。
 - 下一步：第四批已完整归档（1173项／944 regular，SHA及全部metadata通过）并清远端；旧matrix4/policy树已保留archive tags后删除。PXE6项已关闭并完成全部归档清理；helper shutdown修复已整合待镜像。DNS files主接线953f4e81已合、Linux全目标clippy通过，正构建供完整镜像；servers-file endpoint缺口仍开放。matrix5新树按C清单准备fqdn/ttl/ignore-clid证据。
 - 阻塞点：无。清理结束Oracle清理后曾可用43,216,506,880字节（40.25GiB）；当前并行测试/构建中复测可用41,356,668,928字节（38.52GiB），使用率81%，继续执行每批归档即清理。磁盘不足造成的casing-02与relay paired-03都发生在rootfs准备阶段，零产品观察，后续同候选复跑已通过；ENOSPC审计保存在oracle-cleanup-20261004/enospc-audit.json。物理路由器及r85/netifd/reload/sdk/owrt-evidence内容未修改或删除。
@@ -56,7 +56,7 @@ M4 的单 poll owner 已替换六线程接线，决定见 [ADR_THREAD_MODEL.md](
 
 ## M5 盘点与工作顺序
 
-盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**88 项已实现并有 C 差分，47 项部分实现，34 项未实现；剩余 81 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
+盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**89 项已实现并有 C 差分，46 项部分实现，34 项未实现；剩余 80 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
 
 对镜像 init 的静态调用路径核对得到 **A 组 99 项、B 组 70 项**。A 表示原生 UCI/init 生成或调用，行号链接到保留原文的 init；B 表示通常需额外配置。`extraconftext`/conf-dir 可以透传任意指令，不据此把全部选项都算原生生成。`pxe-service`、`pxe-prompt`、`interface-name` 实际有 init 生成路径，归 A。26 个 excluded-capability 选项不混入169项计数；其与C一致的禁用/拒绝边界仍保留。
 
@@ -178,7 +178,7 @@ M5 退出条件：169项全部实现并有C差分，或已证明与C一致的拒
 | `dhcp-generate-names` | B / — | DHCP tags/options | 已实现，有C差分 | [identity完整族](../../private/dnsmasq-rewrite/evidence/M5/dhcp-identity/close-summary.json)及[GEN-08真实续租补证](../../private/dnsmasq-rewrite/evidence/M5/dhcp-identity/paired-07-renewal/supplemental-verification.json)通过；保留3个SELECTING，并新增3个非零ciaddr/无50及54的单播续租，ACK/lease/A/PTR一致，仅经关系校验的58/59随机fuzz归一化。独立审计无其他清单缺口，候选2711e9b2，族增量0。 |
 | `dhcp-hostsdir` | B / — | DHCP tags/options | 未实现 | 当前无通过证据；配置显式拒绝；无 inotify 动态文件 append/update 接口，不可拿 SIGHUP hostsfile replacement 代替。 |
 | `dhcp-ignore` | B / — | DHCP tags/options | 已实现，有C差分 | [M5 dhcp-tags-options final3](../../private/dnsmasq-rewrite/evidence/M5/four/dhcp-tags/run-final4/summary.json)；全局 tag predicate ignore 在精确镜像配对中通过。|
-| `dhcp-ignore-clid` | B / — | DHCP tags/options | 部分实现 | [按原始索引](../../docs/dnsmasq/DHCP_STATIC_PHASE.md)；全局 ignore_client_id 已接线到 packet identity；普通 source C 静态/ID 证据存在，但需镜像 C 对同 MAC 变化 CLID、同 CLID 不同 MAC、恢复 leasefile 的专门族差分。 |
+| `dhcp-ignore-clid` | B / — | DHCP tags/options | 已实现，有C差分 | [M5第五批矩阵](../../private/dnsmasq-rewrite/evidence/M5/option-matrix/batch5/paired-before-01/result.json)；13配置／51事件／6边界通过；同MAC变化CLID、同CLID不同MAC、恢复leasefile及覆盖参数均保持C行为。候选a238a6cf／7c95c96c…ab23f4，1,474,584字节，无产品改动。 |
 | `dhcp-name-match` | B / — | DHCP tags/options | 已实现，有C差分 | [M5 identity闭合](../../private/dnsmasq-rewrite/evidence/M5/dhcp-identity/close-summary.json)；56条C清单、149配置／每侧336运行事件／66语法、1043负控全部通过；名称/option124/82扫描与echo/活租约metadata边界覆盖。11条C NULL路径单独语法及源码分类，不冒称危险运行路径配对。候选2711e9b2／ELF7ce861e5…86a51，1,396,848字节（独立族增量0）。 |
 | `dhcp-optsdir` | B / — | DHCP tags/options | 未实现 | 当前无通过证据；配置显式拒绝；无 inotify 动态文件 append/update 接口，不可拿 SIGHUP hostsfile replacement 代替。 |
 | `dhcp-optsfile` | B / — | DHCP tags/options | 未实现 | 当前无通过证据；配置显式拒绝；没有 option bank reload，需先完整 option grammar 再复用 host file scanner/expand ordering。 |
