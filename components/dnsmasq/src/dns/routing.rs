@@ -85,7 +85,7 @@ pub enum RoutingError {
     MissingDefaultResolvers,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct RuleBucket {
     /// C keeps exact and wildcard rules in separate server tiers, including
     /// the empty wildcard suffix produced by `/*./`.
@@ -394,6 +394,21 @@ impl RoutingTable {
         self.groups.values()
     }
 
+    /// Per-connection fork-equivalent metadata, including resolved scope IDs.
+    /// Reloading the parent later cannot mutate an existing TCP connection.
+    pub fn snapshot(&self) -> Self {
+        Self {
+            rules: self.rules.clone(),
+            groups: self
+                .dispatcher_groups()
+                .into_iter()
+                .map(|group| (group.id, group))
+                .collect(),
+            default_group: self.default_group,
+            next_group: self.next_group,
+        }
+    }
+
     /// Move groups to a dispatcher. Clone route metadata first if further
     /// selection is required; the current isolated adapter has no I/O owner.
     pub fn into_groups(self) -> Vec<ServerGroup> {
@@ -423,7 +438,7 @@ impl RoutingTable {
     }
 }
 
-fn validate_endpoint(endpoint: &ServerEndpoint) -> Result<SocketAddr, RoutingError> {
+pub(super) fn validate_endpoint(endpoint: &ServerEndpoint) -> Result<SocketAddr, RoutingError> {
     let address = match &endpoint.host {
         ServerHost::Address(address) => *address,
         ServerHost::Name(name) => return Err(RoutingError::UnresolvedHostname(name.clone())),
