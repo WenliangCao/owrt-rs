@@ -864,9 +864,17 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         thread::park_timeout(Duration::from_millis(2));
     }
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    while !poll.step_helper_shutdown() {
-        // EVENT_TERM drains pending lease transitions. Keep writes, output and
-        // child reaping nonblocking while waiting in the same poll owner.
+    loop {
+        let drained = poll.step_helper_shutdown();
+        if let Some(error) = poll.helper_init_error.take() {
+            pid_file.cleanup();
+            return Err(Box::new(error));
+        }
+        if drained {
+            break;
+        }
+        // EVENT_TERM drains sources and command bytes, not script execution.
+        // Keep IPC and init processing nonblocking in the same poll owner.
         let mut fds = poll
             .helper
             .as_ref()
@@ -1772,7 +1780,9 @@ impl SinglePoll {
                 .as_ref()
                 .is_none_or(|listener| listener.front_completion().is_none())
         {
-            self.helper.as_mut().unwrap().begin_shutdown();
+            let helper = self.helper.as_mut().unwrap();
+            helper.begin_shutdown();
+            return helper.commands_drained();
         }
         false
     }
