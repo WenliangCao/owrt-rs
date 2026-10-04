@@ -2,8 +2,9 @@
 """Family-level DHCP tags/options comparison against the exact image ELF.
 
 Run under run_isolated.sh; no host listeners or router state are used. Expected
-packets always come from the image C daemon. Full wire bytes, lease names and
-exit/cleanup are retained; only lease epoch fields are normalized.
+packets always come from the image C daemon. Raw wire bytes, diagnostics, lease
+names and cleanup are retained; only documented executable names and validated
+clock fields are normalized for comparison.
 """
 import argparse
 import copy
@@ -899,6 +900,12 @@ def main():
             rust_expected = 0 if group == 'identity-name-reference-defects' and variant == '0' else 1
             if (row['c']['exit'], row['rust']['exit']) != (0, rust_expected):
                 row['errors'].append('reference-disposition-changed'); report['failures'].append(group+'--'+variant)
+            if rust_expected == 1:
+                reason = ('empty DHCP name-match tag' if group == 'identity-name-reference-defects'
+                          else 'empty DHCP class tag' if group == 'identity-agent-reference-defects'
+                          else 'empty DHCP tag predicate')
+                if reason+' at line ' not in row['rust']['stderr']:
+                    row['errors'].append('reference-rejection-reason-changed'); report['failures'].append(group+'--'+variant)
         if not args.c_only and comparable_syntax(row['c']) != comparable_syntax(row['rust']):
             if defect and row['c']['exit'] == 0 and row['rust']['exit'] == 1:
                 report['reference_differences'].append({'case': group+'--'+variant, 'scope': 'syntax only', 'reason': defect,
