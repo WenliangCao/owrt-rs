@@ -523,6 +523,30 @@ impl LocalProvider {
         self.leases.counters()
     }
 
+    /// TFTP uses the stored Ethernet identity before consulting neighbors.
+    pub fn tftp_lease_mac(&self, address: Ipv4Addr) -> Option<[u8; 6]> {
+        let identity = &self.leases.get(address)?.identity;
+        (identity.hardware_type == 1)
+            .then(|| identity.hardware_address.as_slice().try_into().ok())
+            .flatten()
+    }
+
+    /// Only used during an ICMP wait, when the owner cannot reenter DHCP.
+    /// Expired leases are excluded as the pending request prunes them first.
+    pub fn tftp_lease_snapshot(&self, now: i64) -> Vec<(Ipv4Addr, [u8; 6])> {
+        self.leases
+            .active_newest_first()
+            .into_iter()
+            .filter_map(|lease| {
+                if lease.expires.is_some_and(|expires| expires <= now) {
+                    return None;
+                }
+                self.tftp_lease_mac(lease.address)
+                    .map(|mac| (lease.address, mac))
+            })
+            .collect()
+    }
+
     /// Cumulative message events, including valid no-reply branches and
     /// construction before send errors. Reload and maintenance preserve it.
     pub fn message_counters(&self) -> super::message_counters::MessageCounters {

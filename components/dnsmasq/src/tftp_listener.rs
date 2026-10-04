@@ -139,6 +139,11 @@ impl<O: FileOpener> TftpListener<O> {
     pub fn active_transfers(&self) -> usize {
         self.runtime.active_len()
     }
+    pub fn needs_mac_lookup(&self) -> bool {
+        self.policy
+            .as_ref()
+            .is_some_and(|policy| policy.config.unique_root_mac)
+    }
     /// Retain successful transfers until the poll owner hands each event to
     /// the nonblocking helper. Active plus completed transfers share the
     /// configured capacity, so a slow script cannot grow this queue.

@@ -884,6 +884,8 @@ struct SinglePoll {
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     pending_delivery: Option<LeaseDelivery>,
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    probe_tftp_macs: Vec<(std::net::Ipv4Addr, [u8; 6])>,
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     tftp: Option<TftpListener<RealFileOpener>>,
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     neighbors: Option<NeighborCache>,
@@ -1119,6 +1121,8 @@ impl SinglePoll {
             helper,
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             pending_delivery: None,
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            probe_tftp_macs: Vec::new(),
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             tftp,
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -1566,12 +1570,36 @@ impl SinglePoll {
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     fn step_helper(&mut self) {
+        if self.pending_delivery.is_none() && self.helper_init.is_none() {
+            self.pending_delivery = self
+                .dhcp
+                .as_ref()
+                .and_then(|(provider, _)| provider.try_lock().ok()?.take_script_delivery());
+        }
         if let Some(helper) = self.helper.as_mut() {
             if let Some(delivery) = self.pending_delivery.as_ref() {
                 match helper.enqueue_delivery(delivery) {
                     Ok(true) => self.pending_delivery = None,
                     Ok(false) => {}
                     Err(error) => eprintln!("dnsmasq-rs: DHCP helper enqueue: {error}"),
+                }
+            }
+            if self.pending_delivery.is_none() && helper.can_enqueue() {
+                if let Some(listener) = self.tftp.as_mut() {
+                    if let Some(done) = listener.front_completion() {
+                        let event = dnsmasq_rs::helper::Event::Tftp {
+                            size: done.size,
+                            address: done.peer.ip(),
+                            filename: done.path.clone(),
+                        };
+                        match helper.enqueue(&event) {
+                            Ok(true) => {
+                                listener.pop_completion();
+                            }
+                            Ok(false) => {}
+                            Err(error) => eprintln!("dnsmasq-rs: TFTP helper enqueue: {error}"),
+                        }
+                    }
                 }
             }
             match helper.step() {
@@ -1680,7 +1708,12 @@ impl SinglePoll {
                 .as_ref()
                 .and_then(|(provider, _)| provider.lock().ok()?.take_script_delivery());
         }
-        if self.pending_delivery.is_none() {
+        if self.pending_delivery.is_none()
+            && self
+                .tftp
+                .as_ref()
+                .is_none_or(|listener| listener.front_completion().is_none())
+        {
             self.helper.as_mut().unwrap().begin_shutdown();
         }
         false
@@ -1704,6 +1737,13 @@ impl SinglePoll {
         if let Some(report) = provider.tick(now) {
             report_dhcp_maintenance(&report);
         }
+        if self
+            .tftp
+            .as_ref()
+            .is_some_and(TftpListener::needs_mac_lookup)
+        {
+            self.probe_tftp_macs = provider.tftp_lease_snapshot(now);
+        }
         let mut metrics = Metrics::default();
         write_dhcp_metrics(&mut metrics, &provider);
         self.probe_metrics = Some(metrics);
@@ -1725,6 +1765,7 @@ impl SinglePoll {
             self.pending_delivery = provider.take_script_delivery();
         }
         self.probe_metrics = None;
+        self.probe_tftp_macs.clear();
         if let Ok(ListenerStep::Processed(result)) = result {
             let events = match &result {
                 Ok(report) => &report.events,
@@ -1768,12 +1809,33 @@ impl SinglePoll {
             return;
         };
         let now = now_seconds() as u64;
-        if let Some(neighbors) = self.neighbors.as_mut() {
-            let _ = listener.poll_once_with_mac(now, &mut |address, interface, now| {
-                neighbors.query(address, interface, now)
-            });
-        } else {
-            let _ = listener.poll_once(now);
+        let provider = self
+            .dhcp
+            .as_ref()
+            .and_then(|(provider, _)| provider.try_lock().ok());
+        let neighbors = &mut self.neighbors;
+        let _ = listener.poll_once_with_mac(now, &mut |address, interface, now| {
+            if let IpAddr::V4(address) = address {
+                let mac = provider
+                    .as_ref()
+                    .and_then(|provider| provider.tftp_lease_mac(address))
+                    .or_else(|| {
+                        self.probe_tftp_macs
+                            .iter()
+                            .find_map(|(ip, mac)| (*ip == address).then_some(*mac))
+                    });
+                if mac.is_some() {
+                    return dnsmasq_rs::neighbors::MacLookup::Ready(mac);
+                }
+            }
+            neighbors
+                .as_mut()
+                .map_or(dnsmasq_rs::neighbors::MacLookup::Ready(None), |neighbors| {
+                    neighbors.query(address, interface, now)
+                })
+        });
+        if self.helper.as_ref().is_none_or(Helper::is_finished) {
+            while listener.pop_completion().is_some() {}
         }
     }
 }
