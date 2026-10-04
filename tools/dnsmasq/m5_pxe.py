@@ -263,6 +263,24 @@ def profiles():
         profile("prompt-length-251-runtime",legacy+["pxe-prompt="+"p"*251],[
             case("largest-safe-prompt",extra=option(57,struct.pack("!H",1500))),
         ],["CFG-P03","MENU04"]),
+        profile("bootp-static-conflict",[],[case("static-address-in-use",kind=0,arch=None,vendor=None,prl=None,reply=False)],
+                ["BOOTP03","BOOTP04"],mode="static",metrics=[0],initial_leases="0 02:00:00:4d:35:ff 10.77.0.10 victim *\n"),
+        profile("bootp-existing-lease",["bootp-dynamic"],[case("reuse-and-ignore-clientid",kind=0,arch=None,vendor=None,prl=None,extra=option(61,b"new-client-id"))],
+                ["BOOTP03"],mode="dynamic",static_host=False,initial_leases="0 02:00:00:4d:35:03 10.77.0.15 existing *\n"),
+        profile("bootp-wrong-network-prune",["bootp-dynamic=tag:missing"],[case("prune-before-permission",kind=0,arch=None,vendor=None,prl=None,reply=False)],
+                ["BOOTP03","BOOTP04"],mode="dynamic",static_host=False,metrics=[0],initial_leases="0 02:00:00:4d:35:03 192.0.2.10 old *\n"),
+        profile("bootp-pool-full",["bootp-dynamic"],[case("no-free-address",kind=0,arch=None,vendor=None,prl=None,reply=False)],
+                ["BOOTP03"],mode="dynamic",static_host=False,range_value="10.77.0.10,10.77.0.10,255.255.255.0,600s",initial_leases="0 02:00:00:4d:35:ff 10.77.0.10 victim *\n"),
+        profile("bootp-lease-capacity",["bootp-dynamic","dhcp-lease-max=0"],[case("lease-limit",kind=0,arch=None,vendor=None,prl=None,reply=False)],
+                ["BOOTP03","BOOTP04"],mode="dynamic",static_host=False,metrics=[0]),
+        profile("bootp-host-time",["dhcp-host=02:00:00:4d:35:03,10.77.0.10,300s"],[case("finite-host-time",kind=0,arch=None,vendor=None,prl=None)],
+                ["BOOTP03"],mode="static",static_host=False),
+        profile("bootp-static-no-dynamic",["bootp-dynamic"],[case("static-pool-never-allocates",kind=0,arch=None,vendor=None,prl=None,reply=False)],
+                ["CFG-R01","BOOTP03"],mode="static",static_host=False),
+        profile("bootp-predicate-or-and",["bootp-dynamic=tag:missing","bootp-dynamic=tag:bootp,tag:!deny"],[case("second-conjunction",kind=0,arch=None,vendor=None,prl=None)],
+                ["CFG-B01","BOOTP02"],mode="dynamic",static_host=False),
+        profile("bootp-context-negative",["bootp-dynamic=tag:bootp,tag:!deny"],[case("range-tag-veto",kind=0,arch=None,vendor=None,prl=None,reply=False)],
+                ["BOOTP02"],mode="dynamic",static_host=False,range_value="set:deny,10.77.0.10,10.77.0.20,255.255.255.0,600s"),
     ])
     return rows
 
@@ -385,6 +403,8 @@ def run_profile(root, side, profile, client, server, out):
     (out/"dnsmasq.conf").write_text(text)
     for name in ["pxe.pid", "pxe.leases"]:
         (root/"m2"/name).unlink(missing_ok=True)
+    if profile.get("initial_leases") is not None:
+        (root/"m2/pxe.leases").write_text(profile["initial_leases"])
     tested = subprocess.run(command(root, side, "--test", "-C", "/m2/pxe.conf"), capture_output=True, text=True, timeout=3)
     row = {"profile": profile["name"], "side": side, "started": False, "cases": [],
            "test": {"exit": tested.returncode, "stdout": tested.stdout, "stderr": tested.stderr}}
