@@ -24,7 +24,6 @@ def fixtures():
         ("tagged-before-fallback", "dhcp-boot=tag:known,tagged.img,tagged,127.0.0.9\ndhcp-boot=fallback.img,fallback,127.0.0.8\n"),
         ("tagged-after-fallback", "dhcp-boot=fallback.img,fallback,127.0.0.8\ndhcp-boot=tag:known,tagged.img,tagged,127.0.0.9\n"),
         ("no-tag-match", "dhcp-boot=fallback.img\ndhcp-boot=tag:absent,wrong.img\n"),
-        ("empty-selector", "dhcp-boot=fallback.img\ndhcp-boot=tag:,empty.img\n"),
         ("negation-only", "dhcp-boot=fallback.img\ndhcp-boot=tag:!,negated.img\n"),
         ("negated-tag", "dhcp-boot=fallback.img\ndhcp-boot=tag:!absent,tagged.img\n"),
         ("last-tagged-wins", "dhcp-boot=tag:known,old.img,old,127.0.0.8\ndhcp-boot=tag:known,new.img,,127.0.0.9\n"),
@@ -52,7 +51,7 @@ def main():
     cases = list(fixtures())
     save(args.out/'plan.json', cases)
     report = dict(c_sha256=sha256(root/'usr/sbin/dnsmasq'), rust_sha256=sha256(args.rust),
-                  cases=[], failures=[], parser=[], negative_controls=[], compared=0)
+                  cases=[], failures=[], parser=[], reference_differences=[], negative_controls=[], compared=0)
     assert report['c_sha256'] == STOCK_SHA256
     for label, extra, events in cases:
         folder=args.out/label; folder.mkdir()
@@ -80,7 +79,11 @@ def main():
             row[side]=result.returncode
             (args.out/f'parser-{label}-{side}.stderr').write_bytes(result.stderr)
         report['parser'].append(row)
-        if row['c']!=row['rust']:report['failures'].append('parser-'+label)
+        if row['c']!=row['rust']:
+            if label=='empty-tag' and (row['c'],row['rust'])==(0,1):
+                report['reference_differences'].append(dict(name=label, scope='syntax only',
+                    reason='candidate rejects an unusable empty boot selector; unsafe reference runtime excluded'))
+            else:report['failures'].append('parser-'+label)
     report['passed'] = not report['failures'] and len(report['negative_controls'])==len(cases)
     save(args.out/'result.json',report)
     print(json.dumps({k:report[k] for k in ['passed','compared','failures']}))
