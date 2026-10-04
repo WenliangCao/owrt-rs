@@ -14,7 +14,7 @@ import subprocess
 import sys
 import time
 
-from dns_service_probe import query, semantics
+from dns_service_probe import exact_read, query, read_name, semantics
 from m2_rootfs import command, process_identity, sha256
 from test_single_poll_service import Network, stop
 from m2_dhcp_scenarios import make_client, receive as receive_frame
@@ -144,6 +144,43 @@ def dns_health(address='127.0.0.1'):
         return semantics(endpoint.recv(4096))
 
 
+def dns_probe(event, ident, seed_epoch):
+    if 'at_seed_age' in event:
+        # Both daemons must answer in the same relative integer second. This
+        # makes lease-ceiling TTL exact, without accepting a TTL range.
+        wanted = seed_epoch + event['at_seed_age']
+        remaining = wanted + .2 - time.time()
+        if remaining > 0:
+            time.sleep(remaining)
+        if int(time.time()) != wanted:
+            raise AssertionError('missed scheduled DNS second')
+    packet = query(event['name'], event.get('type', 1), ident)
+    observations, raw = {}, {}
+    for transport in ['udp', 'tcp']:
+        sent = time.time()
+        if transport == 'udp':
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as endpoint:
+                endpoint.settimeout(1)
+                endpoint.sendto(packet, ('127.0.0.1', 15353))
+                response, peer = endpoint.recvfrom(65535)
+        else:
+            with socket.create_connection(('127.0.0.1', 15353), 1) as endpoint:
+                endpoint.sendall(struct.pack('!H', len(packet)) + packet)
+                response = exact_read(endpoint, struct.unpack('!H', exact_read(endpoint, 2))[0])
+                peer = endpoint.getpeername()
+        received = time.time()
+        if response[:2] != packet[:2]:
+            raise AssertionError('DNS client transaction changed')
+        if 'at_seed_age' in event and not (int(sent) == int(received) == wanted):
+            raise AssertionError('DNS observation crossed scheduled second')
+        observations[transport] = semantics(response)
+        observations[transport]['question_wire'] = response[12:read_name(response, 12)[1] + 4].hex()
+        raw[transport] = {'request': packet.hex(), 'reply': response.hex(),
+                          'sent': sent, 'received': received, 'peer': list(peer),
+                          'seed_epoch': seed_epoch}
+    return {'dns': observations}, raw
+
+
 def run_side(root, side, scenario, folder):
     folder.mkdir()
     text = config(scenario)
@@ -151,8 +188,9 @@ def run_side(root, side, scenario, folder):
     (folder / 'config').write_text(text)
     for name in ['family.leases', 'matrix.pid']:
         (root / 'm2' / name).unlink(missing_ok=True)
+    seed_epoch = int(time.time())
     if scenario.get('seed_leases'):
-        seed = scenario['seed_leases'].replace('{expiry}', str(int(time.time()) + 600)).replace('{expired}', str(int(time.time()) - 100))
+        seed = scenario['seed_leases'].replace('{expiry}', str(seed_epoch + 600)).replace('{expired}', str(seed_epoch - 100))
         (root / 'm2/family.leases').write_text(seed)
         (folder / 'seed.leases').write_text(seed)
     if scenario.get('tftp'):
@@ -196,9 +234,21 @@ def run_side(root, side, scenario, folder):
                     row = {'id': event['id'] + ':dhcp', 'response': None, 'raw': None, 'request': None, 'elapsed': 0, 'upstream': []}
                     if event.get('action') == 'restart':
                         stopped = stop(process)
+                        for old, new in event.get('replace_config', []):
+                            text = text.replace(old, new)
+                        (root / 'm2/matrix.conf').write_text(text)
+                        (folder / f'{index:03}.config').write_text(text)
                         process, ready = start()
                         if stopped['returncode'] != 0 or stopped['forced'] or not ready['ready']: raise AssertionError('restart failed')
                         row['response'] = {'restarted': True}
+                    elif event.get('action') == 'snapshot':
+                        row['response'] = {'snapshot': True}
+                    elif event.get('action') == 'hup':
+                        process.send_signal(signal.SIGHUP)
+                        time.sleep(.05)
+                        row['response'] = {'hup': True}
+                    elif event.get('action') == 'dns':
+                        row['response'], row['raw'] = dns_probe(event, 0xd400 + index, seed_epoch)
                     elif event.get('action') == 'leasequery':
                         event = wire_event(event, assigned)
                         time.sleep(1.05)
@@ -275,6 +325,26 @@ def guards(rows, scenario):
             failures.append({'id': row['id'], 'expected_destination': expected['destination'], 'actual': response})
         if 'leases' in expected and len(row['leases']) != expected['leases']:
             failures.append({'id': row['id'], 'expected_lease_count': expected['leases'], 'actual': row['leases']})
+        for key, column in [('lease_names', 3), ('lease_ids', 4)]:
+            if key not in expected:
+                continue
+            actual = {lease[2]: lease[column] for lease in row.get('leases', [])}
+            if actual != expected[key]:
+                failures.append({'id': row['id'], 'field': key, 'expected': expected[key], 'actual': actual})
+        replies = (response or {}).get('dns', {})
+        if event.get('action') == 'dns' and set(replies) != {'udp', 'tcp'}:
+            failures.append({'id': row['id'], 'missing_dns_transport': sorted(replies)})
+        for transport, reply in replies.items():
+            answers = [record for record in reply['records'] if record['section'] == 'answer']
+            for key, actual in [('answers', [record['data'] for record in answers]),
+                                ('rcode', reply['flags'] & 15),
+                                ('ttl', [record['ttl'] for record in answers])]:
+                wanted = expected.get(key)
+                if key == 'ttl' and wanted is not None:
+                    wanted = [wanted] * len(answers)
+                if wanted is not None and actual != wanted:
+                    failures.append({'id': row['id'], 'transport': transport,
+                                     'field': key, 'expected': wanted, 'actual': actual})
         if 'tftp' in expected and (
             ((response or {}).get('tftp') != (b'\0\3\0\1matrix-tftp').hex()) if expected['tftp']
             else (response or {}).get('tftp') is not None):
@@ -331,6 +401,24 @@ def controls():
         row['response']['tftp'] = (b'\0\3\0\1wrong-file').hex()
         assert guards([row], {'probes': [event]})
         result['dhcp-tftp-' + ('wrong-payload' if allowed else 'unexpected-reply')] = 'detected'
+    event = {'id': 'lease-id-control', 'expect': {'lease_ids': {'10.77.0.10': '01:ab'}}}
+    row = {'id': 'lease-id-control:dhcp', 'response': None, 'leases': [['infinite', 'mac', '10.77.0.10', 'host', '01:ab']]}
+    assert not guards([row], {'probes': [event]})
+    row['leases'][0][4] = '*'
+    assert guards([row], {'probes': [event]})
+    result['dhcp-restored-client-id-lost'] = 'detected'
+    event = {'id': 'dns-control', 'action': 'dns', 'expect': {'answers': ['10.77.0.10'], 'ttl': 597}}
+    reply = {'flags': 0x8180, 'records': [{'section': 'answer', 'data': '10.77.0.10', 'ttl': 597}]}
+    row = {'id': 'dns-control:dhcp', 'response': {'dns': {'udp': copy.deepcopy(reply), 'tcp': copy.deepcopy(reply)}}}
+    assert not guards([row], {'probes': [event]})
+    for label in ['ttl', 'data', 'missing-transport']:
+        bad = copy.deepcopy(row)
+        if label == 'missing-transport':
+            bad['response']['dns'].pop('tcp')
+        else:
+            bad['response']['dns']['udp']['records'][0][label] = 0
+        assert guards([bad], {'probes': [event]})
+        result['dhcp-dns-' + label] = 'detected'
     c = {'syntax': {'exit': 0, 'stdout': '', 'stderr': 'dnsmasq: syntax check OK.\n'}, 'startup': {'ready': False}, 'rows': []}
     rust = {'syntax': {'exit': 1, 'stdout': '', 'stderr': '\ndnsmasq: empty DHCP tag predicate at line 1 of /m2/matrix.conf\n'}, 'startup': {'ready': False}, 'rows': [], 'config_line': 1}
     assert not reference_difference(c, rust, {'config': 'dhcp-broadcast=tag:\n'})
