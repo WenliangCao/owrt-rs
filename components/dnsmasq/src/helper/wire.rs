@@ -233,6 +233,64 @@ pub(super) fn decode(payload: &[u8]) -> io::Result<Event> {
     Ok(event)
 }
 
+/// Init records use independent bounded frames; the owner never receives the
+/// raw script output or one frame proportional to the whole lease database.
+pub(super) fn encode_init(record: &crate::dhcp::lease_file::LeaseRecord) -> io::Result<Vec<u8>> {
+    let mut out = Vec::new();
+    out.extend(record.address.octets());
+    out.extend(record.expires.to_le_bytes());
+    out.extend(record.hardware_type.to_le_bytes());
+    bytes(&mut out, &record.hardware_address)?;
+    for value in [
+        &record.client_id,
+        &record.hostname,
+        &record.agent_id,
+        &record.vendor_class,
+    ] {
+        out.push(u8::from(value.is_some()));
+        if let Some(value) = value {
+            bytes(&mut out, value)?;
+        }
+    }
+    Ok(out)
+}
+
+pub(super) fn decode_init(payload: &[u8]) -> io::Result<crate::dhcp::lease_file::LeaseRecord> {
+    if payload.len() > MAX_FRAME {
+        return Err(invalid());
+    }
+    let mut input = Reader(payload);
+    let address = input.ipv4()?;
+    let expires = input.number()? as i64;
+    let hardware_type = u32::from_le_bytes(input.take(4)?.try_into().unwrap());
+    let hardware_address = input.bytes()?;
+    let mut field = || -> io::Result<Option<Vec<u8>>> {
+        if input.boolean()? {
+            let bytes = input.bytes()?;
+            if bytes.len() > 255 {
+                return Err(invalid());
+            }
+            Ok(Some(bytes))
+        } else {
+            Ok(None)
+        }
+    };
+    let record = crate::dhcp::lease_file::LeaseRecord {
+        address,
+        expires,
+        hardware_type,
+        hardware_address,
+        client_id: field()?,
+        hostname: field()?,
+        agent_id: field()?,
+        vendor_class: field()?,
+    };
+    if !input.0.is_empty() || record.hardware_address.len() > 16 {
+        return Err(invalid());
+    }
+    Ok(record)
+}
+
 pub(super) fn frame(payload: &[u8]) -> Vec<u8> {
     let mut out = Vec::with_capacity(payload.len() + 4);
     out.extend((payload.len() as u32).to_le_bytes());
@@ -243,6 +301,22 @@ pub(super) fn frame(payload: &[u8]) -> Vec<u8> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn init_record_roundtrip_rejects_truncation_and_oversized_fields() {
+        let mut record = crate::dhcp::lease_file::parse(
+            b"0 02:00:00:00:00:01 127.0.0.11 one 01:02\nagent-info 127.0.0.11 61:62\n",
+        )
+        .records
+        .remove(0);
+        let encoded = encode_init(&record).unwrap();
+        assert_eq!(decode_init(&encoded).unwrap(), record);
+        for length in 0..encoded.len() {
+            assert!(decode_init(&encoded[..length]).is_err());
+        }
+        record.hostname = Some(vec![b'x'; 256]);
+        assert!(decode_init(&encode_init(&record).unwrap()).is_err());
+    }
+
     #[test]
     fn typed_roundtrip_and_each_truncated_boundary() {
         let event = Event::Lease(super::super::tests::lease());
