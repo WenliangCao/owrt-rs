@@ -130,6 +130,75 @@ pub fn build_reply_with_fuzz(
     build_reply_with_boot(request, reply, options, allow_overload, fuzz, None, output)
 }
 
+/// Boot-item/proxy branches write53/54 and ordered PXE options directly,
+/// without lease timers or do_options' three-byte overload reservation.
+/// Empty file/sname still permit free_space to overload. The caller owns
+/// listener routing and the normalized giaddr state.
+pub fn build_pxe_reply(
+    request: Packet<'_>,
+    fields: &super::pxe::ReplyFields,
+    options: &[ReplyOption<'_>],
+    output: &mut [u8],
+) -> Result<ReplyEncoding, ReplyError> {
+    let required = request.response_capacity().max(MIN_PACKET_SIZE);
+    if output.len() < required {
+        return Err(ReplyError::BufferTooSmall {
+            required,
+            available: output.len(),
+        });
+    }
+    for option in options {
+        if option.value.len() > 255 {
+            return Err(ReplyError::OptionTooLong {
+                code: option.code,
+                length: option.value.len(),
+            });
+        }
+    }
+    output[..required].fill(0);
+    output[..44].copy_from_slice(&request.bytes()[..44]);
+    output[0] = OP_REPLY;
+    output[10..12].copy_from_slice(&fields.flags.to_be_bytes());
+    put_ipv4(&mut output[12..16], fields.client_address);
+    put_ipv4(&mut output[16..20], fields.assigned_address);
+    put_ipv4(&mut output[20..24], fields.target.next_server);
+    if let Some(cookie) = request.bytes().get(236..240) {
+        output[236..240].copy_from_slice(cookie);
+    }
+    write_boot_string(
+        &mut output[SNAME_OFFSET..SNAME_OFFSET + SNAME_LEN],
+        &fields.target.server_name,
+    );
+    write_boot_string(
+        &mut output[FILE_OFFSET..FILE_OFFSET + FILE_LEN],
+        &fields.target.filename,
+    );
+    let agent_id = request.echo_agent_id();
+    let mut writer = OptionWriter::new(
+        &mut output[..required],
+        agent_id.map_or(0, |value| value.len() + 2),
+    );
+    // Avoid allow_overload(), which is do_options' reservation step.
+    writer.allow_overload = true;
+    writer.append(ReplyOption {
+        code: OPTION_MESSAGE_TYPE,
+        value: &[fields.message_type],
+    })?;
+    writer.append(ReplyOption {
+        code: OPTION_SERVER_IDENTIFIER,
+        value: &fields.server_identifier.octets(),
+    })?;
+    for option in options {
+        writer.append(*option)?;
+    }
+    let (end, omitted, overload) = writer.finish(agent_id);
+    Ok(ReplyEncoding {
+        len: end.max(MIN_PACKET_SIZE),
+        omitted,
+        overload,
+    })
+}
+
 /// The ordinary dhcp-boot path runs before lease timers and default options.
 /// Its fixed fields also determine which regions remain usable for overload.
 pub fn build_reply_with_boot(
@@ -681,6 +750,81 @@ mod tests {
         bytes[236..240].copy_from_slice(&COOKIE);
         bytes.extend_from_slice(options);
         bytes
+    }
+
+    #[test]
+    fn pxe_direct_writer_uses_full_primary_space_without_lease_options() {
+        let request = request(&[53, 1, 1, 255]);
+        let request = Packet::parse(&request).unwrap();
+        let fields = super::super::pxe::ReplyFields {
+            message_type: 2,
+            server_identifier: Ipv4Addr::new(192, 0, 2, 1),
+            client_address: Ipv4Addr::UNSPECIFIED,
+            assigned_address: Ipv4Addr::UNSPECIFIED,
+            flags: 0x8000,
+            target: super::super::pxe::BootTarget {
+                next_server: Ipv4Addr::UNSPECIFIED,
+                filename: vec![],
+                server_name: vec![],
+            },
+        };
+        let mut output = [0; 548];
+        let encoded = build_pxe_reply(
+            request,
+            &fields,
+            &[
+                ReplyOption {
+                    code: 224,
+                    value: &[1; 255],
+                },
+                ReplyOption {
+                    code: 225,
+                    value: &[2; 38],
+                },
+            ],
+            &mut output,
+        )
+        .unwrap();
+        assert_eq!(
+            (encoded.len, encoded.overload, encoded.omitted),
+            (547, 0, 0)
+        );
+        assert_eq!(&output[240..249], &[53, 1, 2, 54, 4, 192, 0, 2, 1]);
+        assert_eq!(output[249], 224);
+        assert_eq!(output[506], 225);
+    }
+
+    #[test]
+    fn pxe_direct_writer_preserves_fixed_fields_and_agent_tail() {
+        let bytes = request(&[53, 1, 3, 82, 3, 1, 1, 9, 255]);
+        let packet = Packet::parse(&bytes).unwrap();
+        let fields = super::super::pxe::ReplyFields {
+            message_type: 5,
+            server_identifier: Ipv4Addr::LOCALHOST,
+            client_address: Ipv4Addr::UNSPECIFIED,
+            assigned_address: Ipv4Addr::new(192, 0, 2, 20),
+            flags: 0,
+            target: super::super::pxe::BootTarget {
+                next_server: Ipv4Addr::LOCALHOST,
+                filename: b"netboot.0".to_vec(),
+                server_name: vec![],
+            },
+        };
+        let mut output = [0; 548];
+        let encoded = build_pxe_reply(
+            packet,
+            &fields,
+            &[ReplyOption {
+                code: 60,
+                value: b"PXEClient",
+            }],
+            &mut output,
+        )
+        .unwrap();
+        assert_eq!(encoded.overload, 0);
+        assert_eq!(&output[108..118], b"netboot.0\0");
+        assert_eq!(&output[260..266], &[82, 3, 1, 1, 9, 255]);
+        assert_eq!(&output[16..20], &[192, 0, 2, 20]);
     }
 
     #[test]
