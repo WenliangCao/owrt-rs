@@ -300,6 +300,18 @@ impl<O: FileOpener> TransferRuntime<O> {
         self.config.single_port
     }
 
+    /// Dedicated listeners admit one transfer past the configured limit;
+    /// single-port admission uses a strict limit instead.
+    pub(crate) fn transfer_capacity(&self) -> usize {
+        self.config
+            .max_transfers
+            .saturating_add(usize::from(!self.config.single_port))
+    }
+
+    pub(crate) fn has_peer(&self, peer: SocketAddr) -> bool {
+        self.active.values().any(|active| active.peer == peer)
+    }
+
     /// C set_tftp_listeners() uses <=, allowing max + 1 active transfers
     /// for one dedicated listener. The caller must stop receiving while
     /// false so pending requests remain queued until capacity returns.
