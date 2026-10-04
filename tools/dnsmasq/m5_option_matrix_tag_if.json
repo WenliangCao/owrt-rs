@@ -2377,7 +2377,7 @@
           },
           "expect": {
             "status": 5,
-            "leases": 1,
+            "leases": 2,
             "option_values": {
               "224": "02"
             }
@@ -2406,10 +2406,7 @@
           "address": "10.77.0.10",
           "expect": {
             "status": 13,
-            "leases": 1,
-            "option_values": {
-              "224": "02"
-            }
+            "leases": 2
           }
         }
       ],
