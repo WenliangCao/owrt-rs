@@ -330,7 +330,8 @@
       "case_catalogue": [
         "range-basic--dora",
         "range-derived-mask--offer",
-        "range-inconsistent-derived--none"
+        "range-inconsistent-derived--none",
+        "range-address-update--mask-and-restore"
       ],
       "cases": [
         "range-derived-mask",
@@ -360,6 +361,7 @@
     {
       "case_catalogue": [
         "range-interface-aliases--first-local",
+        "range-interface-aliases--explicit-secondary",
         "range-context-order--two-pools"
       ],
       "cases": [
@@ -368,7 +370,6 @@
       ],
       "evidence": [],
       "id": "CTX-03",
-      "remaining_fixture_gap": "Explicit listen-address secondary before all aliases still needs daemon witness.",
       "requirement": "Receiving primary/explicit secondary selection and context prepend order are retained with multiple addresses on the same interface; first selected local/router is not overwritten by later aliases.",
       "source": "dhcp.c:340-363,644-665",
       "status": "pending"
@@ -376,6 +377,7 @@
     {
       "case_catalogue": [
         "range-interface-aliases--first-local",
+        "range-address-update--mask-and-restore",
         "range-multi-interface--guest"
       ],
       "cases": [
@@ -384,7 +386,6 @@
       ],
       "evidence": [],
       "id": "CTX-04",
-      "remaining_fixture_gap": "Live address/netmask changes and persisted guesses still need daemon witness.",
       "requirement": "Multiple receiving interfaces and repeated address/mask snapshots keep their own contexts; guessed fields update/persist as C, without mixing a pool onto the wrong ingress.",
       "source": "dhcp.c:568-587,644-665",
       "status": "pending"
@@ -461,7 +462,8 @@
         "range-basic--normal",
         "range-one-address--single",
         "range-basic--dora",
-        "range-one-address--exhaust"
+        "range-one-address--exhaust",
+        "range-identity-seed--extended-client"
       ],
       "cases": [
         "range-basic",
@@ -470,7 +472,6 @@
       ],
       "evidence": [],
       "id": "SELECT-03",
-      "remaining_fixture_gap": "Extended client identity seed inputs need service expansion.",
       "requirement": "SDBM hardware/extended-client identity seed and inclusive bounds determine free offer; OFFER does not commit. One-address exhaustion/reuse stays bounded.",
       "source": "dhcp.c:838-861;rfc2131.c:1275-1389",
       "status": "pending"
@@ -494,7 +495,8 @@
     {
       "case_catalogue": [
         "range-static--known-unknown",
-        "range-narrow-priority--static"
+        "range-narrow-priority--static",
+        "range-restart-renew--static-outside-pool"
       ],
       "cases": [
         "range-static",
@@ -581,14 +583,14 @@
         "range-context-order--two-pools",
         "range-remote-selectors--link-selection",
         "range-mixed-proxy--head",
-        "range-selecting-context-chain--server-id"
+        "range-selecting-context-chain--server-id",
+        "range-selecting-context-chain--consumed-prefix"
       ],
       "cases": [
         "range-selecting-context-chain"
       ],
       "evidence": [],
       "id": "SELECT-10",
-      "remaining_fixture_gap": "Multiple different local/server IDs and consumed-prefix alias fallback need dedicated context-chain witness.",
       "requirement": "SELECTING server-ID consumes context-chain prefix before address narrowing; known static/TFTP alias policy must not reset consumed chain. Correct subnet ACK and wrong-network NAK preserved across multiple contexts.",
       "source": "rfc2131.c:1403-1445,1504-1558",
       "status": "pending"
@@ -635,7 +637,9 @@
     {
       "case_catalogue": [
         "range-narrow-priority--static",
-        "range-restart-renew--existing"
+        "range-restart-renew--existing",
+        "range-restart-renew--static-outside-pool",
+        "range-restart-renew--wrong-network-rebind"
       ],
       "cases": [
         "range-restart-renew",
@@ -643,7 +647,6 @@
       ],
       "evidence": [],
       "id": "LEASE-03",
-      "remaining_fixture_gap": "Static outside-pool restart/renew and wrong-network rebind need expansion.",
       "requirement": "Restarted leases, wrong-network renewal/rebind and static outside-pool renewal preserve final lease table and chosen range semantics. Use600s renewal to reuse validated fuzz normalization.",
       "source": "dhcp.c:372;rfc2131.c:1392-1751",
       "status": "pending"
@@ -652,7 +655,8 @@
       "case_catalogue": [
         "range-probe-free--icmp",
         "range-probe-conflict--occupied",
-        "range-probe-bypass--no-ping"
+        "range-probe-bypass--no-ping",
+        "range-probe-bypass--loopback"
       ],
       "cases": [
         "range-probe-free",
@@ -667,7 +671,9 @@
     },
     {
       "case_catalogue": [
-        "range-probe-cache--same-client"
+        "range-probe-cache--same-client",
+        "range-probe-cache--six-live-entry-bypass",
+        "range-probe-cache--sequential-owner-hash"
       ],
       "cases": [
         "range-probe-cache",
@@ -675,10 +681,13 @@
       ],
       "evidence": [],
       "id": "PROBE-02",
-      "remaining_fixture_gap": "Live six-entry pressure and exact 30/31 clock boundary link remain to attach.",
       "requirement": "Same-address cache reuse retains offer hash for30s; expiry and six-live-entry high-load bypass follow source. Image witnesses for live/cache behavior, frozen-clock source/unit boundary for exact age30/31.",
       "source": "dhcp.c:782-821",
-      "status": "pending"
+      "status": "pending",
+      "unit_guards": [
+        "cached_hash_expires_strictly_after_thirty_seconds",
+        "high_load_and_expired_victim_follow_c_list_order"
+      ]
     },
     {
       "case_catalogue": [
@@ -698,7 +707,9 @@
     },
     {
       "case_catalogue": [
-        "range-probe-send-failure--cache"
+        "range-probe-send-failure--cache",
+        "range-probe-retry--eagain-exhaustion",
+        "range-probe-progress--send-failure-dns-tftp"
       ],
       "cases": [
         "range-probe-send-error"
@@ -720,15 +731,19 @@
       ],
       "evidence": [],
       "id": "PROBE-05",
-      "remaining_fixture_gap": "Malformed reply source/type/ID/length source/unit guard remains to attach.",
       "requirement": "Receive failure/mismatched reply cannot be treated as confirmed conflict; ordinary wrong ID/source/type/length are ignored until valid reply or timeout. Inject recvfrom(len48) only for runtime error witness.",
       "source": "dnsmasq.c:2495-2505",
       "status": "pending",
-      "suspected_or_known_gap": "Rust currently propagates non-EINTR/non-EAGAIN receive failure."
+      "suspected_or_known_gap": "Rust currently propagates non-EINTR/non-EAGAIN receive failure.",
+      "unit_guards": [
+        "only_the_fixed_matching_echo_reply_confirms_a_conflict"
+      ]
     },
     {
       "case_catalogue": [
-        "range-probe-progress--dns-tftp"
+        "range-probe-retry--eagain-exhaustion",
+        "range-probe-progress--dns-tftp",
+        "range-probe-progress--send-failure-dns-tftp"
       ],
       "cases": [
         "range-probe-progress"
@@ -741,7 +756,8 @@
     },
     {
       "case_catalogue": [
-        "range-probe-cancel-failure--planned"
+        "range-probe-cancel--pending",
+        "range-probe-retry--eagain-exhaustion"
       ],
       "cases": [
         "unit-probe-error-classes",
@@ -749,15 +765,20 @@
       ],
       "evidence": [],
       "id": "PROBE-07",
-      "remaining_fixture_gap": "Cancellation/entropy/retry-exhaustion remains planned-only; ordinary syscall failures are distinct.",
-      "requirement": "Retry exhaustion stays bounded; remove no new owner blocking sleep/thread. Cancellation and entropy errors remain distinct from C-compatible network-error free result.",
+      "requirement": "retry_send EAGAIN exhaustion is bounded; production SIGTERM during ICMP delay is deferred until current packet finishes, exactly as C. Keep explicit internal cancellation and entropy/owner errors distinct from no-reply ICMP failures. Retry waits service the single owner without sleep/thread.",
       "source": "dnsmasq.c:2409-2412;util.c:718-749",
-      "status": "pending"
+      "status": "pending",
+      "unit_guards": [
+        "entropy_failure_is_not_an_icmp_network_failure",
+        "stopped_probe_does_not_enter_wait_or_mutate_cache",
+        "probe_errors_never_become_negative_cache_entries"
+      ]
     },
     {
       "case_catalogue": [
         "range-probe-conflict--occupied",
-        "range-probe-cache--same-client"
+        "range-probe-cache--same-client",
+        "range-probe-cache--sequential-owner-hash"
       ],
       "cases": [
         "range-probe-conflict",
@@ -848,7 +869,7 @@
     "rfc2131.c": "14f2e10792ef6108aeb7b69e551f089ba287c8c84d39ea178a5f33acd2038c2c",
     "util.c": "33920165ef3e92f65d1cab75fe8da7772ad7389b37da79ba881957080f12f973"
   },
-  "status": "source-frozen; catalogue extended; no paired boundaries closed",
+  "status": "all 39 boundary IDs have executable cases or explicit unit guards; qualification pending latest strict paired run",
   "total": 39,
   "updated": "2026-10-05"
 }
