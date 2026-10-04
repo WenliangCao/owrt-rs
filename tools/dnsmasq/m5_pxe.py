@@ -360,7 +360,8 @@ def run_profile(root, side, profile, client, out):
                 leases = root/"m2/pxe.leases"
                 row["cases"].append({"name": item["name"], "request": item["request"], "replies": replies,
                                      "peer_echo": echoes, "alive": process.poll() is None, "heartbeat": heartbeat(),
-                                     "leases": leases.read_text() if leases.exists() else None})
+                                     "leases": leases.read_text() if leases.exists() else None,
+                                     "observed_epoch":int(time.time())})
             row["fd_end"] = net.descriptors(process.pid)
     except Exception as error:
         row["error"] = repr(error)
@@ -370,6 +371,34 @@ def run_profile(root, side, profile, client, out):
         row["pid_removed"] = not (root/"m2/pxe.pid").exists()
     save(out/"result.json", row)
     return row
+
+
+def lease_state(case):
+    if case["leases"] is None:
+        return None
+    rows=[]
+    for line in case["leases"].splitlines():
+        fields=line.split()
+        if not fields:continue
+        if fields[0].isdigit() and len(fields)>=5:
+            expiry=int(fields[0])
+            rows.append({"record":fields[1:],"remaining":None if expiry==0 else expiry-case["observed_epoch"]})
+        else:
+            rows.append({"sidecar":fields})
+    return rows
+
+
+def same_leases(first,second):
+    a=lease_state(first);b=lease_state(second)
+    if a is None or b is None:return a==b
+    if len(a)!=len(b):return False
+    for left,right in zip(a,b):
+        if left.get("record")!=right.get("record") or left.get("sidecar")!=right.get("sidecar"):return False
+        x=left.get("remaining");y=right.get("remaining")
+        if x is None or y is None:
+            if x!=y:return False
+        elif abs(x-y)>2:return False
+    return True
 
 
 def evaluate(rows, corpus, sides):
@@ -402,11 +431,15 @@ def evaluate(rows, corpus, sides):
                 case = observed.get(item["name"])
                 if case is None:
                     continue
+                if case["request"] != item["request"]:
+                    failures.append(f"{key}/{item['name']}: request differs from manifest")
                 expected = item["copies"] if item["reply"] else 0
                 if len(case["replies"]) != expected:
                     failures.append(f"{key}/{item['name']}: reply count {len(case['replies'])}!={expected}")
                 if not case["alive"] or not case["heartbeat"]:
                     failures.append(f"{key}/{item['name']}: unhealthy daemon")
+                if profile["mode"]=="proxy" and lease_state(case):
+                    failures.append(f"{key}/{item['name']}: proxy allocated a lease")
         if sides == ["c", "rust"]:
             first = indexed.get((profile["name"], "c")); second = indexed.get((profile["name"], "rust"))
             if not first or not second:
@@ -417,7 +450,45 @@ def evaluate(rows, corpus, sides):
             for c, rust in zip(first["cases"], second["cases"]):
                 if c["name"] != rust["name"] or c["replies"] != rust["replies"]:
                     failures.append(f"{profile['name']}/{c['name']}: wire/endpoint differs")
+                if not same_leases(c,rust):
+                    failures.append(f"{profile['name']}/{c['name']}: lease state differs")
     return failures
+
+
+def negative_controls(rows, corpus):
+    baseline = evaluate(rows, corpus, ["c", "rust"])
+    if baseline:
+        return {"passed": False, "baseline_errors": baseline, "controls": []}
+    position = next((index for index, row in enumerate(rows) if row["side"] == "rust"
+                     and any(case["replies"] for case in row["cases"])), None)
+    if position is None:
+        return {"passed": False, "error": "no positive PXE reply", "controls": []}
+    controls = []
+    for mutation in ["message-type", "boot-field", "server-id", "reply-port", "missing-packet",
+                     "extra-packet", "missing-case", "missing-profile", "input-architecture",
+                     "lease-side-effect", "no-health", "thread-added", "cleanup-forced"]:
+        changed = copy.deepcopy(rows)
+        row = changed[position]
+        case = next(case for case in row["cases"] if case["replies"])
+        response = case["replies"][0]
+        if mutation in ["message-type", "boot-field", "server-id"]:
+            wire = bytearray.fromhex(response["packet"])
+            offset = {"message-type": 242, "boot-field": 108, "server-id": 245}[mutation]
+            wire[offset] ^= 1
+            response["packet"] = wire.hex()
+        elif mutation == "reply-port": response["source"][1] ^= 1
+        elif mutation == "missing-packet": case["replies"].clear()
+        elif mutation == "extra-packet": case["replies"].append(copy.deepcopy(response))
+        elif mutation == "missing-case": row["cases"].pop()
+        elif mutation == "missing-profile": changed.pop(position)
+        elif mutation == "input-architecture":
+            wire = bytearray.fromhex(case["request"]); wire[-2] ^= 1; case["request"] = wire.hex()
+        elif mutation == "lease-side-effect": case["leases"] = "0 02:00:00:4d:35:03 10.77.0.10 injected *\n"
+        elif mutation == "no-health": case["heartbeat"] = False
+        elif mutation == "thread-added": row["threads"] = 2
+        elif mutation == "cleanup-forced": row["cleanup"]["forced"] = True
+        controls.append({"name": mutation, "detected": bool(evaluate(changed, corpus, ["c", "rust"]))})
+    return {"passed": all(row["detected"] for row in controls), "controls": controls}
 
 
 def main(args):
@@ -454,11 +525,15 @@ def main(args):
     failures += evaluate(rows, corpus, sides)+syntax_errors(syntax,syntax_corpus,sides)
     if cleanup is None or cleanup.get("actor_exit") != 0 or cleanup.get("namespace", {}).get("forced"):
         failures.append("peer cleanup")
+    controls = negative_controls(rows,corpus) if len(sides)==2 else {"passed":False,"not_executed":"reference-only run"}
+    if len(sides)==2 and not controls["passed"]:
+        failures.append("comparator negative controls")
     result = {"passed": not failures and len(sides) == 2, "reference_checks_passed": not failures,
               "comparison_executed": len(sides) == 2, "failures": failures, "profiles": rows,
               "profile_count": len(corpus), "case_count": sum(len(profile["cases"]) for profile in corpus),
               "syntax":syntax,"syntax_count":len(syntax_corpus),
-              "cleanup": cleanup, "normalization": "No forwarding/response wire fields normalized"}
+              "negative_controls":controls,
+              "cleanup": cleanup, "normalization": "No response wire fields normalized; lease absolute expiry compared as remaining seconds within2s; infinite/finite and all other lease fields exact"}
     save(out/"result.json", result)
     print(json.dumps({key: result[key] for key in ["passed", "reference_checks_passed", "case_count", "failures"]}))
     return 0 if not failures else 1
