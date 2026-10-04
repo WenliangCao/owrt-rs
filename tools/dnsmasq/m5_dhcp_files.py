@@ -272,7 +272,7 @@ def trace_malformed_inotify(pid, descriptor, output):
     event=struct.pack('=iIII',1,0x00000008,0,8)+b'\0xxx\0\0\0\0'
     report={'pid':pid,'descriptor':descriptor,'event':event.hex(),'injected':False,'reads':[]};attached=False;active=False
     try:
-        ptrace(16);os.waitpid(pid,0);attached=True;Path(str(output)+'.ready').write_text('attached\n')
+        ptrace(16);os.waitpid(pid,0);attached=True;ptrace(0x4200,0,1);Path(str(output)+'.ready').write_text('attached\n')
         while True:
             ptrace(24);_,status=os.waitpid(pid,0)
             if not os.WIFSTOPPED(status):raise AssertionError('tracee ended before inotify read')
