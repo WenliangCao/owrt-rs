@@ -9,6 +9,7 @@ import argparse
 import copy
 import json
 import os
+import re
 from pathlib import Path
 import signal
 import socket
@@ -405,7 +406,10 @@ def identity_fixtures():
         event('no-metadata'),query('query-retained'),rejected,query('query-after-no-reservation'),
         event('update',extra=opts((82,wrong),(60,b'VendorUpdated'))),query('query-updated')])
     yield case('identity-agent-leasequery-retention','disabled','',[
-        event('metadata-disabled',extra=opts((82,good),(60,b'VendorOriginal'))),event('without-metadata')])
+        event('metadata-disabled',extra=opts((82,good),(60,b'VendorOriginal')),
+            seed_leases='{expiry} 02:00:00:00:00:01 127.0.0.40 * *\n'+
+                'agent-info 127.0.0.40 '+':'.join(f'{value:02x}' for value in good)+'\n'+
+                'vendorclass 127.0.0.40 56:65:6e:64:6f:72:53:65:65:64\n'),event('without-metadata')])
     for variant,prefix in [('ordinary',b''),('padded',b'\0'),('short-before-valid',option(5,b'x')+option(11,b'x'))]:
         payload=prefix+option(5,socket.inet_aton('127.0.0.1'))+prefix+option(11,socket.inet_aton('127.0.0.9'))+good
         yield case('identity-agent-context-regression',variant,relay_config+agent_setup,[
@@ -569,16 +573,34 @@ def primary_options(wire):
 
 
 def comparable_reply(response, event):
-    # Leasequery timers depend on ACK wall time. Raw bytes are always retained.
+    # Leasequery is deliberately sent more than one second after ACK. Verify
+    # the exact 600-second lease relationships before normalizing clock phase.
     if event['kind'] != 10: return response.hex()
     normalized = bytearray(response)
-    for row in primary_options(response)['rows']:
-        if row['code'] in (51, 91):
-            value = int(row['value'], 16)
-            assert (580 <= value <= 600) if row['code'] == 51 else (0 <= value <= 20)
+    rows = primary_options(response)['rows']
+    timers = {row['code']: int(row['value'], 16) for row in rows if row['code'] in (51, 58, 59, 91)}
+    if 51 in timers:
+        remaining = timers[51]
+        assert 580 <= remaining < 600, timers
+        assert timers == {51: remaining, 58: remaining-300, 59: remaining-75, 91: 600-remaining}, timers
+    else:
+        assert not timers, timers
+    for row in rows:
+        if row['code'] in (51, 58, 59, 91):
             start = row['offset']+2
+            assert len(bytes.fromhex(row['value'])) == 4
             normalized[start:start+4] = b'\0'*4
     return normalized.hex()
+
+
+def comparable_syntax(row):
+    row = copy.deepcopy(row)
+    for stream in ('stdout', 'stderr'):
+        if stream in row:
+            row[stream] = re.sub(r'(?m)^dnsmasq-rs:', 'dnsmasq:', row[stream])
+    if 'startup' in row:
+        row['startup'] = comparable_syntax(row['startup'])
+    return row
 
 
 def run(root, side, folder, text, events):
@@ -587,6 +609,10 @@ def run(root, side, folder, text, events):
     (root/'m2/family.conf').write_text(text)
     for path in ('family.leases', 'family.pid'):
         (root/'m2'/path).unlink(missing_ok=True)
+    if events and 'seed_leases' in events[0]:
+        seeded = events[0]['seed_leases'].replace('{expiry}', str(int(time.time())+600))
+        (root/'m2/family.leases').write_text(seeded)
+        (folder/'seed.leases').write_text(seeded)
     trace = {'status': 'failed', 'rows': [], 'planned': len(events), 'ready': False}
     process = None; network = None
     with (folder/'daemon.log').open('w') as log, socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as client:
@@ -613,6 +639,8 @@ def run(root, side, folder, text, events):
             trace['ready'] = True
             trace['identity'] = process_identity(root, process.pid)
             for index, event in enumerate(events):
+                if event['kind'] == 10:
+                    time.sleep(1.05)  # make option91 presence deterministic after the preceding ACK
                 wire = request(event, 0xa100+index)
                 (folder/f'{index:03}.request').write_bytes(wire)
                 if event.get('transport') == 'relay':
@@ -681,7 +709,7 @@ def compare(expected, actual):
         if side.get('namespace_error') or ('namespace_cleanup' in side and (not side.get('namespace_reaped') or side['namespace_cleanup']['forced'] or side['namespace_cleanup']['returncode'] != -signal.SIGTERM)):
             errors.append('namespace-cleanup')
         if len(side['rows']) != side.get('planned', len(side['rows'])): errors.append('unexecuted-row')
-    if expected.get('syntax') != actual.get('syntax'): errors.append('syntax')
+    if comparable_syntax(expected.get('syntax', {})) != comparable_syntax(actual.get('syntax', {})): errors.append('syntax')
     if len(expected['rows']) != len(actual['rows']): errors.append('row-count')
     for index, (left, right) in enumerate(zip(expected['rows'], actual['rows'])):
         if left != right: errors.append(f'row-{index}')
@@ -816,6 +844,9 @@ def main():
     save(args.out/'plan.json', {'service': cases, 'parser': parsers})
     report = {'c_sha256': sha256(root/'usr/sbin/dnsmasq'), 'rust_sha256': sha256(root/'usr/sbin/dnsmasq-rs'),
               'tool_sha256': sha256(Path(__file__)), 'source_commit': args.source_commit,
+              'normalizations': ['diagnostics: only line-leading executable prefix dnsmasq-rs: becomes dnsmasq:; raw streams retained',
+                'leasequery: wait 1.05 seconds before each query; validate 600-second lease T1/T2/elapsed relationships then zero only option51/58/59/91 values; raw .response retained',
+                'leasefile: finite expiry epochs become finite-600 after checking remaining lifetime; lease identities/names/extensions unchanged'],
               'c_only': args.c_only, 'required_case_map': required_map, 'cases': [], 'parser': [], 'failures': [], 'negative_controls': [], 'reference_differences': []}
     assert report['c_sha256'] == STOCK_SHA256
     for label, extra, events in cases:
@@ -840,7 +871,7 @@ def main():
             row[side] = syntax(root, side, config(dict(text=text, fixed_host=False)), args.out/label/side, startup=defect is None)
         if row['c'].get('timeout') or row['c'].get('startup', {}).get('timeout'):
             row['errors'].append('c-timeout'); report['failures'].append(group+'--'+variant)
-        if not args.c_only and row['c'] != row['rust']:
+        if not args.c_only and comparable_syntax(row['c']) != comparable_syntax(row['rust']):
             if defect and row['c']['exit'] in (0, 1) and row['rust']['exit'] == 1:
                 report['reference_differences'].append({'case': group+'--'+variant, 'scope': 'syntax only', 'reason': defect,
                     'c': row['c'], 'rust': row['rust'], 'path': label})
