@@ -12,7 +12,7 @@ mod host;
 pub use host::{HardwareAddress, HostConfig};
 #[path = "dhcp_host_files.rs"]
 mod host_files;
-pub use host_files::{HostFileError, HostFileErrorKind, HostFiles, HostReload};
+pub use host_files::{FilePlanStep, HostFileError, HostFileErrorKind, HostFiles, HostReload};
 #[path = "dhcp_options.rs"]
 mod ordinary_options;
 pub use ordinary_options::{
@@ -139,6 +139,18 @@ impl BootConfig {
     }
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum DynamicFileKind {
+    Hosts,
+    Options,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct DynamicFileDirectory {
+    pub kind: DynamicFileKind,
+    pub path: Vec<u8>,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DhcpConfig {
     pub pxe: super::dhcp_pxe::PxeConfig,
@@ -156,6 +168,9 @@ pub struct DhcpConfig {
     pub hosts: Vec<HostConfig>,
     /// Last configured path first, as in daemon->dhcp_hosts_file.
     pub host_files: Vec<Vec<u8>>,
+    pub option_files: Vec<Vec<u8>>,
+    /// Mixed hosts/options directories retain reverse declaration order.
+    pub dynamic_dirs: Vec<DynamicFileDirectory>,
     /// Last configured first, including duplicates for C warning behavior.
     pub options: Vec<DhcpOption>,
     pub authoritative: bool,
@@ -207,6 +222,8 @@ impl Default for DhcpConfig {
             ranges: Vec::new(),
             hosts: Vec::new(),
             host_files: Vec::new(),
+            option_files: Vec::new(),
+            dynamic_dirs: Vec::new(),
             options: Vec::new(),
             authoritative: false,
             rapid_commit: false,
