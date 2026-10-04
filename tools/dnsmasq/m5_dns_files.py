@@ -755,7 +755,9 @@ def main():
         report['scenarios'].append(row)
         dump(out / 'progress.json', report)
     report['failures'] = [dict(scenario=row['id'], **failure) for row in report['scenarios'] for failure in row['failures']]
-    if not report['failures']:
+    # A focused rerun is evidence for its selected cases only. Qualification
+    # requires the whole frozen family and an actual paired run.
+    if args.sides == 'both' and not report['failures'] and len(selected) == len(scenarios()):
         report['closed_options'] = ['resolv-file', 'no-poll', 'clear-on-reload']
         report['qualification'] = {
             'resolv-file': {'checked': True, 'deferred': []},
