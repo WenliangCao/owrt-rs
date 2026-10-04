@@ -317,6 +317,196 @@ fn packet_option(bytes: &[u8], wanted: u8, minimum: usize) -> Option<usize> {
     None
 }
 
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+pub use linux::RelayService;
+
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+mod linux {
+    use super::*;
+    use crate::dhcp::interface_admission::{interface_matches, InterfacePolicy, Selection};
+    use crate::net::{Datagram, DatagramSocket};
+    use std::io;
+    use std::net::{IpAddr, SocketAddr, UdpSocket};
+
+    pub struct RelayService {
+        relay: Relay,
+        policy: InterfacePolicy,
+        excluded: Vec<Option<Vec<u8>>>,
+        client_port: u16,
+        control: UdpSocket,
+    }
+
+    impl RelayService {
+        pub fn new(
+            rules: &[RelayRule],
+            dns: &crate::config::dns::DnsConfig,
+            excluded: &[Option<Vec<u8>>],
+            client_port: u16,
+        ) -> io::Result<Self> {
+            Ok(Self {
+                relay: Relay::new(rules),
+                policy: InterfacePolicy::from_dns(dns),
+                excluded: excluded.to_vec(),
+                client_port,
+                control: UdpSocket::bind((Ipv4Addr::UNSPECIFIED, 0))?,
+            })
+        }
+
+        pub fn invalidate_interfaces(&mut self) {
+            self.relay.invalidate_interfaces();
+        }
+
+        /// True consumes a reply or admission failure. False allows the owner
+        /// to pass the original request to an optional local DHCP provider.
+        pub fn intercept(
+            &mut self,
+            socket: &DatagramSocket,
+            bytes: &mut [u8],
+            datagram: &Datagram,
+        ) -> io::Result<bool> {
+            if bytes.len() < FIXED {
+                return Ok(true);
+            }
+            let Ok(name) = crate::net::interface_name(socket, datagram.interface) else {
+                return Ok(true);
+            };
+            let name = &name[..name
+                .iter()
+                .position(|byte| *byte == 0)
+                .unwrap_or(name.len())];
+            let all_ones = ip(bytes, 24) == Ipv4Addr::BROADCAST;
+            if all_ones {
+                bytes[24..28].fill(0);
+            }
+            let result = self.intercept_normalized(socket, bytes, datagram, name);
+            if all_ones {
+                bytes[24..28].fill(255);
+            }
+            result
+        }
+
+        fn intercept_normalized(
+            &mut self,
+            socket: &DatagramSocket,
+            bytes: &mut [u8],
+            datagram: &Datagram,
+            name: &[u8],
+        ) -> io::Result<bool> {
+            if let Some(index) = self.relay.reply(bytes, name) {
+                if let Ok(name) = crate::net::interface_name(socket, index) {
+                    if let Err(error) = send_reply(socket, bytes, index, &name, self.client_port) {
+                        eprintln!("dnsmasq-rs: DHCP relay reply send: {error}");
+                    }
+                }
+                return Ok(true);
+            }
+            if self
+                .excluded
+                .iter()
+                .flatten()
+                .any(|pattern| interface_matches(pattern, name))
+            {
+                return Ok(true);
+            }
+            let Ok(primary) = crate::interfaces::primary_ipv4(datagram.interface, &self.control)
+            else {
+                return Ok(true);
+            };
+            let snapshot = crate::interfaces::ipv4_interfaces()?;
+            let address =
+                match self
+                    .policy
+                    .select(Some(name), datagram.interface, primary, &snapshot)
+                {
+                    Some(Selection::Primary) => primary,
+                    Some(Selection::Secondary(interface)) => interface.address,
+                    None => return Ok(true),
+                };
+            let interfaces: Vec<_> = snapshot
+                .iter()
+                .filter_map(|interface| {
+                    let name = crate::net::interface_name(socket, interface.index).ok()?;
+                    let end = name
+                        .iter()
+                        .position(|byte| *byte == 0)
+                        .unwrap_or(name.len());
+                    Some(RelayInterface {
+                        index: interface.index,
+                        name: name[..end].to_vec(),
+                        address: interface.address,
+                        broadcast: interface.broadcast,
+                    })
+                })
+                .collect();
+            let report = self.relay.upstream(
+                bytes,
+                RelayIngress {
+                    interface: datagram.interface,
+                    address,
+                    unicast: datagram.destination != IpAddr::V4(Ipv4Addr::BROADCAST),
+                },
+                &interfaces,
+                |forward| match socket.send_once(
+                    forward.packet,
+                    SocketAddr::V4(forward.destination),
+                    Some((IpAddr::V4(forward.source), 0)),
+                ) {
+                    Ok(()) => true,
+                    Err(error) => {
+                        eprintln!("dnsmasq-rs: DHCP relay upstream send: {error}");
+                        false
+                    }
+                },
+            );
+            for address in report.duplicate_addresses {
+                eprintln!(
+                    "dnsmasq-rs: DHCP relay address {address} appears on more than one interface"
+                );
+            }
+            Ok(false)
+        }
+    }
+
+    fn send_reply(
+        socket: &DatagramSocket,
+        bytes: &[u8],
+        interface: u32,
+        name: &[u8; 16],
+        port: u16,
+    ) -> io::Result<()> {
+        let ciaddr = ip(bytes, 12);
+        if !ciaddr.is_unspecified() {
+            // dhcp.c's ciaddr branch has no outbound pktinfo cmsg.
+            return socket.send_once(bytes, SocketAddr::from((ciaddr, port)), None);
+        }
+        let htype = bytes[1];
+        let hlen = usize::from(bytes[2]);
+        let broadcast = bytes[10] & 0x80 != 0 || hlen == 0 || hlen > 14 || htype == 0;
+        let destination = SocketAddr::V4(SocketAddrV4::new(
+            if broadcast {
+                Ipv4Addr::BROADCAST
+            } else {
+                ip(bytes, 16)
+            },
+            port,
+        ));
+        if !broadcast {
+            if let SocketAddr::V4(address) = destination {
+                if let Err(error) = crate::net::inject_arp_with_name(
+                    socket,
+                    address,
+                    htype,
+                    &bytes[28..28 + hlen],
+                    name,
+                ) {
+                    eprintln!("dnsmasq-rs: DHCP ARP injection: {error}");
+                }
+            }
+        }
+        socket.send_on_interface_once(bytes, destination, interface)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
