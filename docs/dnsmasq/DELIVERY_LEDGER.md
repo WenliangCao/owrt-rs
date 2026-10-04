@@ -2,10 +2,10 @@
 
 ## 当前状态与下一步
 
-- 当前里程碑：M5；169 项中 **59 项已关闭、66 项部分实现、44 项未实现，剩余 110 项**。
-- 刚关闭：通用选项矩阵关闭 domain-needed、bogus-priv、localise-queries、expand-hosts、alias、stop-dns-rebind、rebind-domain-ok、rebind-localhost-ok 共8项；run-04各项C源码边界清单、启动、--test与运行行为均通过。
-- 当前代码：产品候选 `62734d5f`，ELF SHA256 `dd0bbaae9c5007728cc3880e22413445a825ff6466cc1736fcddff2112d0ba9a`，1,376,368字节（本批+0，M4+217,088）。前批db51616d的helper、leasequery、RR filter、boot和TFTP统一复测已通过。
-- 下一步：修复 ignore-address 的 IPv4 `/0` 和空前缀边界，保留精确镜像已观察行为且避免C未定义移位；随后复跑关闭该项。relay按冻结43项C清单整合非阻塞接线并准备镜像对照。
+- 当前里程碑：M5；169 项中 **60 项已关闭、65 项部分实现、44 项未实现，剩余 109 项**。
+- 刚关闭：ignore-address 最后两处边界差异修复并通过；通用矩阵首批9项全部关闭，run-05 共39配置／276运行行／39组启动与--test，37条清单和10负向控制全部通过。
+- 当前代码：矩阵候选 `14d4e5fa`，ELF SHA256 `e78d5f286c08d4c3c053c3a9ad8173be865351e10416ffb116466a2085750989`，1,376,368字节（本批+0，M4+217,088）。前批db51616d的helper、leasequery、RR filter、boot和TFTP统一复测已通过。
+- 下一步：relay按冻结43项C清单整合单poll接线，relay-only不创建租约文件，已开始镜像C基线；通用矩阵下一批为大小写编码、fast-dns-retry、max-tcp-connections、local-service 5项，先核对C清单和诊断边界。
 - 阻塞点：无须用户决定的事项。物理路由器未操作。helper保留上下文48字节（原328）、Lease新增可选指针8字节，暂存ExtraData用完释放；体积逐族测量记录，M5结束汇总。
 
 ## 工作规则
@@ -53,7 +53,7 @@ M4 的单 poll owner 已替换六线程接线，决定见 [ADR_THREAD_MODEL.md](
 
 ## M5 盘点与工作顺序
 
-盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**59 项已实现并有 C 差分，66 项部分实现，44 项未实现；剩余 110 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
+盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**60 项已实现并有 C 差分，65 项部分实现，44 项未实现；剩余 109 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
 
 对镜像 init 的静态调用路径核对得到 **A 组 99 项、B 组 70 项**。A 表示原生 UCI/init 生成或调用，行号链接到保留原文的 init；B 表示通常需额外配置。`extraconftext`/conf-dir 可以透传任意指令，不据此把全部选项都算原生生成。`pxe-service`、`pxe-prompt`、`interface-name` 实际有 init 生成路径，归 A。26 个 excluded-capability 选项不混入169项计数；其与C一致的禁用/拒绝边界仍保留。
 
@@ -215,7 +215,7 @@ M5 退出条件：169项全部实现并有C差分，或已证明与C一致的拒
 | `domain-suffix` | B / — | DNS 记录/策略 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final/config-image)；Ordinary suffix and IPv4/IPv6 prefix selectors exist. domain=# resolver search, interface selectors and explicit IPv6 ranges are rejected by validate_ready/domain_for_address. Alias shares implementation but needs explicit paired coverage. |
 | `dynamic-host` | B / — | DNS 记录/策略 | 未实现 | [source-extracted](../../docs/dnsmasq/INTERFACE_NAME_SOURCE_REVIEW.md)；Metadata only; no parser or dynamic interface-derived record state. Need netlink IPv6 flags, no-address existence, PTR precedence and TCP inherited snapshot semantics. |
 | `fast-dns-retry` | B / — | DNS 记录/策略 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final)；Nonblocking retry state is connected, source-native retry failure/order gate exists, including M4 sorting-change replay. Exact image option-specific retry schedule/failure family gate not indexed. |
-| `ignore-address` | B / — | DNS 记录/策略 | 部分实现 | [source-native](../../private/dnsmasq-rewrite/dns-alias-config-20261001/source03/private/service-diff-03/result.json)；Live parser/policy is connected; native full-daemon differential exists. Exact-image option-specific replay and complete current-path qualification still required. |
+| `ignore-address` | B / — | DNS 记录/策略 | 已实现，有C差分 | [M5 通用矩阵 run-05](../../private/dnsmasq-rewrite/evidence/M5/option-matrix/run-05/result.json)；10配置／34运行行，启动、--test、IPv4/IPv6地址边界和处理顺序通过。IPv4 /0与空前缀安全实现精确镜像的/32行为，IPv6 /0仍匹配全部；候选14d4e5fa，ELF e78d5f28…750989，1,376,368字节（增量0）。 |
 | `localmx` | B / — | DNS 记录/策略 | 已实现，有C差分 | [M5 paired-04](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)；默认 MX、hostname finalize 和 localmx 交互通过。 |
 | `max-tcp-connections` | B / — | DNS 记录/策略 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-dns/summary.json)；Runtime connection bound is connected, source-native capacity/recovery tests exist, and ordinary image TCP regression passes. Exact image full limits (including zero) and saturation recovery must be indexed/run for M5. |
 | `mx-target` | B / — | DNS 记录/策略 | 已实现，有C差分 | [M5 paired-04](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)；显式 target、默认 target 和 Additional 行为通过。 |
