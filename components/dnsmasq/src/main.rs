@@ -397,7 +397,7 @@ fn load(args: &[OsString]) -> Result<(Action, Runtime), loader::LoadError> {
     let action = loader::load(args, Path::new("/etc/dnsmasq.conf"), |directive, _| {
         if runtime.process.apply(directive)?
             || runtime.scalar.apply(directive)?
-            || runtime.dns.apply(directive)?
+            || runtime.dns.apply_resolved(directive)?
             || runtime.tftp.apply(directive)?
             || runtime.dhcp.apply(directive)?
             || runtime.ubus.apply(directive)?
