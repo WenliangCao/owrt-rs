@@ -1023,6 +1023,7 @@ fn select_local_rules(
         for rule in config
             .rules
             .iter()
+            .rev()
             .filter(|rule| pattern_score(&rule.domain) == score)
             .filter(|rule| matches_domain(name, &rule.domain))
         {
@@ -1076,7 +1077,11 @@ fn select_local_rules(
                 }
                 return (true, false, false);
             }
-            None if local_only => return (false, true, false),
+            // is_local_answer rolls back within this domain tier: an
+            // address of another family proves existence, hence NODATA.
+            None if local_only => {
+                return (!v4.is_empty() || !v6.is_empty() || zeros != 0, true, false)
+            }
             None if blocks_upstream => return (false, false, true),
             Some(_) => unreachable!("local rule family tier is bounded"),
             None => {}
@@ -1094,7 +1099,7 @@ fn matches_domain(name: &Name, pattern: &DomainPattern) -> bool {
         return false;
     }
     if suffix.is_empty() {
-        return !pattern.wildcard;
+        return true;
     }
     if pattern.wildcard {
         if pattern.wildcard_dot {
@@ -1561,6 +1566,79 @@ mod tests {
                 .rcode(),
             3
         );
+    }
+
+    #[test]
+    fn repeated_literals_reverse_configuration_order_and_prove_local_existence() {
+        let mut config = DnsConfig::default();
+        for line in [
+            "address=/example.test/192.0.2.7",
+            "address=/example.test/192.0.2.8",
+            "local=/example.test/",
+            "local=/absent.test/",
+        ] {
+            apply(&mut config, line.as_bytes());
+        }
+        let mut hosts = configured_hosts(&config, 60);
+        let mut answerer = LocalAnswerer {
+            config: &config,
+            hosts: &mut hosts,
+            local_ttl: 60,
+            max_packet: 512,
+        };
+        let answer = answerer
+            .answer(&query("example.test", TYPE_A))
+            .unwrap()
+            .unwrap();
+        let message = super::super::wire::Message::parse(&answer).unwrap();
+        assert_eq!(
+            message
+                .records(Section::Answer)
+                .map(|rr| rr.rdata)
+                .collect::<Vec<_>>(),
+            vec![&[192, 0, 2, 8][..], &[192, 0, 2, 7][..]]
+        );
+        for kind in [TYPE_AAAA, 16] {
+            let answer = answerer
+                .answer(&query("example.test", kind))
+                .unwrap()
+                .unwrap();
+            let header = Header::parse(&answer).unwrap();
+            assert_eq!(
+                (header.rcode(), header.answers, header.flags & 0x0400),
+                (0, 0, 0)
+            );
+        }
+        let absent = answerer
+            .answer(&query("absent.test", TYPE_AAAA))
+            .unwrap()
+            .unwrap();
+        assert_eq!(Header::parse(&absent).unwrap().rcode(), 3);
+    }
+
+    #[test]
+    fn empty_wildcard_literal_yields_to_a_default_upstream() {
+        for with_server in [false, true] {
+            let mut config = DnsConfig::default();
+            apply(&mut config, b"address=/*./192.0.2.77");
+            if with_server {
+                apply(&mut config, b"server=192.0.2.53");
+            }
+            let mut hosts = configured_hosts(&config, 60);
+            let mut answerer = LocalAnswerer {
+                config: &config,
+                hosts: &mut hosts,
+                local_ttl: 60,
+                max_packet: 512,
+            };
+            assert_eq!(
+                answerer
+                    .answer(&query("example.test", TYPE_A))
+                    .unwrap()
+                    .is_none(),
+                with_server
+            );
+        }
     }
 
     #[test]
