@@ -8,7 +8,9 @@
 
 use super::daemon::{address_policy, validate_runtime_config, DaemonError};
 use super::process::{apply_static_aliases, process_admitted_reply, AddressPolicy, ProcessError};
-use super::reply::{apply_known_local_nxdomain, filter_rrs, prepare_reply, strip_opt, ReplyPolicy};
+use super::reply::{
+    apply_known_local_nxdomain, filter_rrs, prepare_udp_reply, resize_reply, strip_opt, ReplyPolicy,
+};
 use super::routing::{RouteReason, RoutingTable};
 use super::service::LocalDnsService;
 pub use super::tcp_upstream::TcpWait;
@@ -361,7 +363,9 @@ fn finish_reply(
     let query_header = Header::parse(query)?;
     let scan = find_pseudoheader(query, true)?;
     let do_bit = scan.opt.as_ref().is_some_and(|opt| opt.dnssec_ok());
-    let envelope = prepare_reply(
+    // A complete TCP frame may contain a clipped RR. C runs bogus/extract
+    // policy before resize_packet, just as for a received UDP datagram.
+    let envelope = prepare_udp_reply(
         reply,
         ReplyPolicy {
             client_had_opt: scan.opt.is_some(),
@@ -421,6 +425,7 @@ fn finish_reply(
             }
         }
     }
+    resize_reply(&mut packet);
     Ok(FinishedReply { packet, bogus })
 }
 
@@ -638,6 +643,47 @@ mod tests {
                 let finished =
                     finish_reply(&request, &reply, &policy, false, 1232, &[], None, None).unwrap();
                 assert_eq!(finished.bogus, None);
+            }
+        }
+    }
+
+    #[test]
+    fn clipped_tcp_rr_runs_bogus_before_malformed_address_policy() {
+        let name = Name::from_ascii("caller.test").unwrap();
+        let policy = AddressPolicy {
+            bogus_addresses: vec![super::super::process::AddressPrefix::new(
+                "8.8.4.4".parse().unwrap(),
+                32,
+            )
+            .unwrap()],
+            ..AddressPolicy::default()
+        };
+        for (address, rcode) in [([8, 8, 4, 4], 3), ([8, 8, 4, 5], 2)] {
+            for later_match in [false, true] {
+                let mut writer = PacketWriter::new(0x2930, 0x8180, 1232).unwrap();
+                writer.question(&name, 1, 1).unwrap();
+                writer
+                    .record(Section::Answer, &name, 1, 1, 120, &address)
+                    .unwrap();
+                if later_match {
+                    writer
+                        .record(Section::Answer, &name, 1, 1, 15, &[8, 8, 4, 4])
+                        .unwrap();
+                }
+                let mut reply = writer.finish();
+                let fixed = Message::parse(&reply)
+                    .unwrap()
+                    .records(Section::Answer)
+                    .next()
+                    .unwrap()
+                    .fixed;
+                reply[fixed + 8..fixed + 10].copy_from_slice(&u16::MAX.to_be_bytes());
+                let finished =
+                    finish_reply(&query(false), &reply, &policy, false, 1232, &[], None, None)
+                        .unwrap();
+                let header = Header::parse(&finished.packet).unwrap();
+                assert_eq!((header.rcode(), header.answers), (rcode, 0));
+                assert_eq!(finished.bogus, (rcode == 3).then(|| (name.clone(), 120)));
             }
         }
     }
