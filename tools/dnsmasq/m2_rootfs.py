@@ -2,7 +2,7 @@
 """Disposable exact-image filesystem for isolated M2 service comparisons.
 
 The host Python driver remains outside chroot. Both service binaries execute
-inside the same copied image; no host loader, libraries, configuration or bus is
+inside an overlay of the exact image; no host loader, libraries, configuration or bus is
 substituted for the image. Call prepare only under run_isolated.sh.
 """
 import argparse
@@ -77,10 +77,11 @@ def _overlay(source, root, relative):
 
 
 def prepare(image_root, runtime_root, evidence_dir, rust_binary):
-    """Copy image and optional captured runtime, mount private proc/dev, return root.
+    """Overlay a read-only image, mount private proc/dev, return the writable root.
 
     evidence_dir must be a fresh private directory (or have no rootfs child).
-    Caller owns service lifetime. Mount namespace teardown releases proc/dev.
+    Caller owns service lifetime. Namespace teardown releases all mounts;
+    rootfs-overlay/upper retains changed files and whiteouts for evidence.
     Profiles may write files under the returned root; /m2 is a writable profile
     directory. Host evidence paths are intentionally not mounted into the image.
     """
@@ -102,15 +103,22 @@ def prepare(image_root, runtime_root, evidence_dir, rust_binary):
                 raise ValueError(f'image symlink changed after extraction: {relative}')
     evidence_dir.mkdir(parents=True, exist_ok=True)
     root = evidence_dir.resolve() / 'rootfs'
-    # Extracted /dev/console is a character device. copyfile would open the
-    # build host console and block; the private /dev below replaces all devices.
-    def skip_special(directory, names):
-        return [name for name in names
-                if not (Path(directory, name).is_symlink()
-                        or Path(directory, name).is_file()
-                        or Path(directory, name).is_dir())]
-
-    shutil.copytree(image_root, root, symlinks=True, ignore=skip_special)
+    overlay = evidence_dir.resolve() / 'rootfs-overlay'
+    root.mkdir()
+    overlay.mkdir()
+    lower, upper, work = [overlay / name for name in ('lower', 'upper', 'work')]
+    for path in (lower, upper, work):
+        path.mkdir()
+    # The source image remains untouched. A private read-only bind prevents
+    # accidental writes through lower, and overlay writes only changed files.
+    for path in (lower, upper, work):
+        if any(char in str(path) for char in ',:\\'):
+            raise ValueError('overlay paths cannot contain comma, colon or backslash')
+    subprocess.run(['mount', '--make-rprivate', '/'], check=True)
+    subprocess.run(['mount', '--bind', str(image_root.resolve()), str(lower)], check=True)
+    subprocess.run(['mount', '-o', 'remount,bind,ro', str(lower)], check=True)
+    subprocess.run(['mount', '-t', 'overlay', 'dnsmasq-test-root', '-o',
+                    f'lowerdir={lower},upperdir={upper},workdir={work}', str(root)], check=True)
     if runtime_root is not None:
         runtime_root = Path(runtime_root)
         for relative in ('etc', 'tmp', 'var', 'usr/share'):
@@ -129,16 +137,12 @@ def prepare(image_root, runtime_root, evidence_dir, rust_binary):
         run.unlink()
     run.mkdir(parents=True, exist_ok=True)
     # ubusd rejects ACLs that are not owned by root; the image was extracted by
-    # an unprivileged user, so restore the original root ownership in this copy.
+    # an unprivileged user, so restore root ownership only in the writable layer.
     acl = image_path(root, 'usr/share/acl.d')
     if acl.exists():
         for path in [acl, *acl.rglob('*')]:
             os.chown(path, 0, 0, follow_symlinks=False)
-    subprocess.run(['mount', '--make-rprivate', '/'], check=True)
-    # chroot alone leaves the child root as an ordinary directory. Bind it
-    # before adding nested mounts; binding afterward hides those mounts from
-    # the chroot and makes /dev/urandom and /proc disappear.
-    subprocess.run(['mount', '--bind', str(root), str(root)], check=True)
+    # The overlay is already a mount boundary before adding nested mounts.
     subprocess.run(['mount', '--make-rprivate', str(root)], check=True)
     subprocess.run(['mount', '-t', 'proc', 'proc', str(root / 'proc')], check=True)
     subprocess.run(['mount', '-t', 'tmpfs', '-o', 'mode=0755', 'm2-run', str(run)], check=True)
@@ -171,6 +175,8 @@ def prepare(image_root, runtime_root, evidence_dir, rust_binary):
         'image_provenance_sha256': sha256(provenance_file) if provenance else None,
         'image_sha256': provenance['image_sha256'] if provenance else None,
         'root': str(root), 'c_sha256': sha256(root / 'usr/sbin/dnsmasq'),
+        'filesystem': {'kind': 'overlay', 'lower_read_only': True,
+                       'lower': str(lower), 'upper': str(upper), 'work': str(work)},
         'rust_source_path': str(rust_binary), 'rust_sha256': sha256(root / 'usr/sbin/dnsmasq-rs'),
         'kernel': os.uname().release, 'machine': os.uname().machine,
         'namespaces': {name: os.readlink('/proc/self/ns/' + name) for name in ('mnt', 'net', 'pid')},

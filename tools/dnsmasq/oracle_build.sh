@@ -1,0 +1,60 @@
+#!/bin/sh
+# Build an immutable source snapshot; all Oracle DNS builds share one cache.
+# Usage: sh oracle_build.sh SOURCE FRESH_PRIVATE_OUTPUT [release|tests]
+set -eu
+[ "$#" -ge 2 ] && [ "$#" -le 3 ] || exit 2
+source_dir=$(realpath "$1")
+output_dir=$(realpath -m "$2")
+build_kind=${3:-release}
+case "$output_dir" in /home/ubuntu/*/private/*) ;; *) echo 'private output required' >&2; exit 2;; esac
+[ ! -e "$output_dir" ] || { echo 'fresh output required' >&2; exit 2; }
+[ -f "$source_dir/components/dnsmasq/Cargo.toml" ] || exit 2
+case "$source_dir" in *' '*) echo 'source path contains whitespace' >&2; exit 2;; esac
+case "$build_kind" in release|tests) ;; *) exit 2;; esac
+export CARGO_TARGET_DIR=/home/ubuntu/dnsmasq-cargo-target
+mkdir -p "$CARGO_TARGET_DIR" "$output_dir"
+# Keep artifact copying inside the lock: another build must not replace a
+# shared output between Cargo returning and the immutable copy being saved.
+exec 9>"$CARGO_TARGET_DIR/.dnsmasq-build.lock"
+flock 9
+toolchain=/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl
+export STAGING_DIR="$toolchain"
+export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER="$toolchain/bin/aarch64-openwrt-linux-musl-gcc"
+export RUSTFLAGS="--remap-path-prefix=$source_dir=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no"
+unset CARGO_ENCODED_RUSTFLAGS RUSTC_WRAPPER RUSTC_WORKSPACE_WRAPPER
+export CARGO_PROFILE_RELEASE_OPT_LEVEL=3
+cargo=/home/ubuntu/.cargo/bin/cargo
+if [ "$build_kind" = release ]; then
+    "$cargo" +1.98.1 build --release --frozen --target aarch64-unknown-linux-musl \
+        --manifest-path "$source_dir/components/dnsmasq/Cargo.toml" --bin dnsmasq-rs \
+        >"$output_dir/build.stdout" 2>"$output_dir/build.log"
+    cp "$CARGO_TARGET_DIR/aarch64-unknown-linux-musl/release/dnsmasq-rs" "$output_dir/dnsmasq-rs"
+else
+    "$cargo" +1.98.1 test --frozen --target aarch64-unknown-linux-musl \
+        --manifest-path "$source_dir/components/dnsmasq/Cargo.toml" --lib --bin dnsmasq-rs \
+        --no-run --message-format=json >"$output_dir/build.stdout" 2>"$output_dir/build.log"
+fi
+python3 - "$source_dir" "$output_dir" "$build_kind" <<'PY'
+import hashlib, json, os, pathlib, shutil, sys
+source, out, kind = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2]), sys.argv[3]
+artifacts = [out / 'dnsmasq-rs'] if kind == 'release' else []
+if kind == 'tests':
+    for line in (out / 'build.stdout').read_text().splitlines():
+        row = json.loads(line)
+        if row.get('reason') != 'compiler-artifact' or not row.get('executable'):
+            continue
+        if not row.get('profile', {}).get('test'):
+            continue
+        target = row['target']
+        path = out / (target['kind'][0] + '-' + target['name'])
+        shutil.copy2(row['executable'], path)
+        artifacts.append(path)
+    if len(artifacts) != 2:
+        raise RuntimeError('expected one library and one main test executable')
+report = {'source': str(source), 'kind': kind, 'cargo_target_dir': os.environ['CARGO_TARGET_DIR'],
+          'rustflags': os.environ['RUSTFLAGS'], 'artifacts': [
+              {'path': path.name, 'bytes': path.stat().st_size,
+               'sha256': hashlib.sha256(path.read_bytes()).hexdigest()} for path in artifacts]}
+(out / 'build.json').write_text(json.dumps(report, indent=2) + '\n')
+print(json.dumps(report))
+PY
