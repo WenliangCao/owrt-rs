@@ -141,6 +141,7 @@ impl BootConfig {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DhcpConfig {
+    pub pxe: super::dhcp_pxe::PxeConfig,
     pub relay: Vec<super::dhcp_relay::RelayRule>,
     pub ports: super::dhcp_relay::DhcpPorts,
     /// RFC4388 leasequery configuration. The parser is kept with the DHCP
@@ -196,6 +197,7 @@ pub struct DhcpConfig {
 impl Default for DhcpConfig {
     fn default() -> Self {
         Self {
+            pxe: Default::default(),
             relay: Vec::new(),
             ports: Default::default(),
             lease_query: Default::default(),
@@ -305,6 +307,12 @@ impl DhcpConfig {
             b"dhcp-alternate-port" => {
                 self.ports = super::dhcp_relay::DhcpPorts::parse(argument)?;
             }
+            b"pxe-service" => self
+                .pxe
+                .add_service(argument.ok_or(Error("missing parameter"))?)?,
+            b"dhcp-pxe-vendor" => self
+                .pxe
+                .add_vendors(argument.ok_or(Error("missing parameter"))?)?,
             b"dhcp-authoritative" => self.authoritative = true,
             b"dhcp-rapid-commit" => self.rapid_commit = true,
             b"dhcp-option" | b"dhcp-option-force" | b"dhcp-option-pxe" => {
