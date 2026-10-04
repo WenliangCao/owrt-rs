@@ -66,19 +66,12 @@ impl Policy {
         addresses
     }
     fn tftp_interface(&self, name: &[u8]) -> bool {
-        if !self.config.interfaces.is_empty() {
-            self.config
-                .interfaces
-                .iter()
-                .flatten()
-                .any(|pattern| matches_name(pattern, name))
-        } else {
-            !self
-                .no_dhcp
-                .iter()
-                .flatten()
-                .any(|pattern| matches_name(pattern, name))
-        }
+        crate::config::tftp::interface_enabled(
+            self.config.enabled,
+            &self.config.interfaces,
+            &self.no_dhcp,
+            name,
+        )
     }
     pub fn admitted(&self, datagram: &Datagram, name: &[u8]) -> bool {
         if self.dns.bind_interfaces && !self.dns.bind_dynamic && datagram.destination.is_ipv4() {
@@ -158,21 +151,10 @@ fn tentative_address(row: &str) -> Option<(Ipv6Addr, u32)> {
     let flags = u32::from_str_radix(fields.next()?, 16).ok()?;
     (flags & 0x40 != 0).then_some((Ipv6Addr::from(address), interface))
 }
-fn matches_name(pattern: &[u8], name: &[u8]) -> bool {
-    for (pattern, actual) in pattern.iter().zip(name) {
-        if *pattern == b'*' {
-            return true;
-        }
-        if pattern != actual {
-            return false;
-        }
-    }
-    pattern.len() == name.len()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::tftp::matches_name;
     #[test]
     fn address_flags_distinguish_dad_from_link_flags() {
         let address = "fe80::1".parse().unwrap();
@@ -189,7 +171,10 @@ mod tests {
     #[test]
     fn dedicated_interfaces_override_dhcp_exclusion_but_require_nonempty_wildcards() {
         let mut policy = Policy {
-            config: TftpConfig::default(),
+            config: TftpConfig {
+                enabled: true,
+                ..TftpConfig::default()
+            },
             dns: DnsConfig::default(),
             no_dhcp: vec![Some(b"lan".to_vec())],
             interfaces: vec![],

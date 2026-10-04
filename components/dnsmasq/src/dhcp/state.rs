@@ -289,6 +289,15 @@ fn transaction(
     } else {
         0
     };
+    // The alias exception sets override only after the server-ID scan has
+    // exhausted the context chain. Keep that empty chain (and its NAK), but
+    // echo the accepted alias instead of the fallback interface address.
+    let override_server = env.override_server.or_else(|| {
+        (mode == RequestMode::Selecting && first == ranges.len())
+            .then(|| request.packet.server_identifier())
+            .flatten()
+            .filter(|server| env.server_aliases.contains(server))
+    });
     let selected_ranges = &ranges[first..];
     let mut context = None;
     let mut error = error.map(|error| match error {
@@ -385,7 +394,7 @@ fn transaction(
         output.reply = Reply::Nak {
             reason,
             broadcast,
-            server: server_id(chosen, env, env.override_server),
+            server: server_id(chosen, env, override_server),
         };
         return Ok(output);
     }
@@ -411,7 +420,7 @@ fn transaction(
     }
     store.set_expires(address, duration, env.now)?;
     store.set_interface(address, env.interface)?;
-    let override_id = store.server_override(address, env.override_server)?;
+    let override_id = store.server_override(address, override_server)?;
     counters.ack = counters.ack.wrapping_add(1); // :1738, before wire/send
     if let Some(events) = events {
         events(LogEvent::Ack {
@@ -873,4 +882,82 @@ pub(crate) fn inform_counted(
         server: server_id(context.map(|index| &ranges[index]), env, override_id),
     };
     Ok(output)
+}
+
+#[cfg(test)]
+mod alias_tests {
+    use super::*;
+
+    #[test]
+    fn accepted_alias_echoes_sid_but_does_not_restore_consumed_contexts() {
+        let server = Ipv4Addr::new(10, 77, 0, 1);
+        let alias = Ipv4Addr::new(10, 77, 0, 254);
+        let wanted = Ipv4Addr::new(10, 77, 0, 10);
+        let mut bytes = vec![0; 240];
+        bytes[..3].copy_from_slice(&[1, 1, 6]);
+        bytes[28..34].copy_from_slice(&[2, 0, 0, 0, 0, 1]);
+        bytes[236..240].copy_from_slice(&super::super::packet::COOKIE);
+        bytes.extend_from_slice(&[53, 1, 3, 50, 4, 10, 77, 0, 10, 54, 4, 10, 77, 0, 254, 255]);
+        let ranges = [AddressRange {
+            start: wanted,
+            end: Ipv4Addr::new(10, 77, 0, 20),
+            netmask: Ipv4Addr::new(255, 255, 255, 0),
+            router: server,
+            local: server,
+            lease_time: 600,
+            kind: RangeKind::Dynamic,
+            filter: Vec::new(),
+            epoch: 0,
+        }];
+        for authoritative in [false, true] {
+            for admitted in [false, true] {
+                let aliases = admitted.then_some(alias);
+                let mut store = LeaseStore::new(2);
+                let outcome = request(
+                    &mut store,
+                    &ranges,
+                    Request {
+                        packet: Packet::parse(&bytes).unwrap(),
+                        tags: &[],
+                        host: None,
+                        reserved: &[],
+                        name: None,
+                        environment: Environment {
+                            now: 100,
+                            interface: 1,
+                            authoritative,
+                            unicast_destination: false,
+                            ignored: false,
+                            ignore_client_id: false,
+                            fqdn_only: false,
+                            rapid_commit: false,
+                            bootp_dynamic: false,
+                            consecutive_addresses: false,
+                            override_server: None,
+                            fallback_server: server,
+                            server_aliases: aliases.as_slice(),
+                        },
+                    },
+                )
+                .unwrap();
+                let expected = if admitted {
+                    Reply::Nak {
+                        reason: Refusal::WrongNetwork,
+                        broadcast: true,
+                        server: alias,
+                    }
+                } else if authoritative {
+                    Reply::Nak {
+                        reason: Refusal::WrongServer,
+                        broadcast: true,
+                        server,
+                    }
+                } else {
+                    Reply::Ignore
+                };
+                assert_eq!(outcome.reply, expected);
+                assert!(store.get(wanted).is_none());
+            }
+        }
+    }
 }
