@@ -541,10 +541,10 @@ def service_cases():
               fault_injection='send', extra='enable-tftp\ntftp-root=/m2/tftp\n',
               boundaries=['PROBE-04', 'PROBE-06'])
     yield row('range-address-update--queued-pxe-after-probe',
-              ['10.78.0.0,proxy,255.255.255.0,600',
-               '10.77.0.10,10.77.0.10,255.255.255.0,600'],
+              ['10.77.0.10,10.77.0.10,255.255.255.0,600',
+               '10.77.0.1,proxy,255.255.255.0,600'],
               [event('ordinary-before-pxe', timing='wait', icmp='request', dual_listener=True)],
-              no_ping=False, server_aliases=['10.78.0.1'],
+              no_ping=False, server_aliases=['10.77.0.3'],
               extra='pxe-service=0,Range fixture,boot.bin\nenable-tftp\ntftp-root=/m2\n',
               boundaries=['CTX-04', 'PROBE-06'])
 
@@ -727,12 +727,13 @@ def exchange(network, event, xid, folder, daemon=None):
         time.sleep(.15)
         assert process.poll() is None, 'DHCP completed before coexistence observations'
         if event.get('dual_listener'):
-            for args in [['addr', 'del', '10.78.0.1/24', 'dev', 'br-lan'],
-                         ['addr', 'add', '10.78.0.3/24', 'dev', 'br-lan']]:
+            for args in [['addr', 'del', '10.77.0.1/24', 'dev', 'br-lan'],
+                         ['addr', 'add', '10.77.0.3/24', 'dev', 'br-lan']]:
                 subprocess.run(['ip', *args], check=True, capture_output=True, timeout=3)
             changed_at = time.time()
             secondary = dhcp.wire_event({'id': 'queued-pxe', 'action': 'discover', 'client': 2,
                         'listener_port': 4011, 'source_port': 4011, 'timeout': 6, 'flags': 0x8000,
+                        'destination': '10.77.0.3',
                         'packet': {'extra': [[60, b'PXEClient'.hex()], [93, '0000']]}}, {})
             secondary_spec = {'event': secondary, 'xid': xid+0x1000}
             queued = subprocess.Popen(network.argv(*argv, json.dumps(secondary_spec)),
@@ -752,7 +753,7 @@ def exchange(network, event, xid, folder, daemon=None):
             save(folder/'dual-listener.json', {'address_changed_at': changed_at, 'pxe_event': secondary,
                                                'pxe_raw': pxe_raw, 'pxe': pxe})
             assert raw['sent'] < changed_at < pxe_raw['sent'] < raw['received'] <= pxe_raw['received']
-            assert pxe and pxe['status'] == 2 and pxe['server'] == '10.78.0.3'
+            assert pxe and pxe['status'] == 2 and pxe['server'] == '10.77.0.3'
             return raw, {'queued_before_first_reply': True, 'reply_after_first': True, 'pxe': pxe}
         if event.get('cancel'):
             signalled = time.monotonic()
