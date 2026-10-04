@@ -785,7 +785,10 @@ def checklist_result(checklist, report):
             'path': row['name'], 'case': row['name'], 'passed': not row['errors'] and row['c_rows']==row['planned'] and row.get('rust_rows')==row['planned']})
     for row in report['parser']:
         evidence.setdefault(row['group'], []).append({'path': row['path'], 'case': 'syntax:'+row['group']+'--'+row['variant'], 'passed': not row['errors']})
-    meta_pass = not report['failures'] and not report.get('c_only') and bool(report['cases'])
+    executed = {row['case'] for rows in evidence.values() for row in rows}
+    required = {case for cases in report['required_case_map'].values() for case in cases}
+    complete_run = executed == required
+    meta_pass = complete_run and not report['failures'] and not report.get('c_only') and bool(report['cases'])
     for group in IDENTITY_META:
         evidence[group] = [{'path': 'result.json', 'passed': meta_pass}]
     result = copy.deepcopy(checklist)
@@ -869,6 +872,9 @@ def main():
         row = {'group': group, 'variant': variant, 'path': label, 'errors': []}
         for side in ('c',) if args.c_only else ('c', 'rust'):
             row[side] = syntax(root, side, config(dict(text=text, fixed_host=False)), args.out/label/side, startup=defect is None)
+        for side in ('c',) if args.c_only else ('c', 'rust'):
+            if row[side]['exit'] not in (0, 1) or row[side].get('startup', {}).get('exit', 1) not in (0, 1):
+                row['errors'].append(side+'-abnormal-exit'); report['failures'].append(group+'--'+variant)
         if row['c'].get('timeout') or row['c'].get('startup', {}).get('timeout'):
             row['errors'].append('c-timeout'); report['failures'].append(group+'--'+variant)
         if not args.c_only and comparable_syntax(row['c']) != comparable_syntax(row['rust']):
