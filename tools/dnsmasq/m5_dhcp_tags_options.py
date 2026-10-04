@@ -332,7 +332,7 @@ def identity_fixtures():
             agent('pad',b'\0'+good),agent('end',b'\xff'+good),
             agent('malformed-before',b'\x63\xff'+good),agent('match-before-malformed',good+b'\x63\xff')])
         for variant,value,payload in [('text','match',b'match'),('quoted','"a:b"',b'a:b'),('hex','6d:61:74:63:68',b'match'),
-                                      ('odd','a:b:c',b'\x0a\x0b\x0c'),('compact','aabb:cc',b'\xaa\xbb\xcc'),('empty','',b'')]:
+                                      ('odd','a:b:c',b'\x0a\x0b\x0c'),('compact','aabb:cc',b'\xaa\xbb\xcc'),('text-star','0*',b'0*'),('empty','',b'')]:
             yield case(f'identity-agent-{subcode}-grammar',variant,marked(f'dhcp-{name}=set:hit,{value}\n'),[
                 agent('value',option(subcode,payload))])
     good=option(1,b'match'); wrong=option(1,b'wrong'); outer=option(82,good)
@@ -432,10 +432,10 @@ def identity_parser_cases():
         for i,value in enumerate(['','tag:','net:']):
             yield group,'unsafe-'+str(i),directive+'='+value+'\n','NULL C tag predicate; syntax only, retain explicit safe rejection'
     for subcode,name in [(1,'circuitid'),(2,'remoteid'),(6,'subscrid')]:
-        for i,value in enumerate(['set:hit','set:hit,','hit,"a:b"','set:hit,a:b:c','set:hit,aabb:cc']):
+        for i,value in enumerate(['set:hit','set:hit,','hit,"a:b"','set:hit,a:b:c','set:hit,aabb:cc','set:hit,0*']):
             yield f'identity-agent-{subcode}-grammar',str(i),f'dhcp-{name}='+value+'\n',None
-        for i,value in enumerate(['set:,match','set:hit,0*']):
-            yield 'identity-agent-reference-defects',f'{subcode}-{i}',f'dhcp-{name}='+value+'\n','NULL C tag or parse_hex -1 class allocation; syntax only, retain bounded rejection'
+        for i,value in enumerate(['set:,match']):
+            yield 'identity-agent-reference-defects',f'{subcode}-{i}',f'dhcp-{name}='+value+'\n','NULL C class tag; syntax only, retain bounded rejection'
 
 
 IDENTITY_LEGACY = {'host-filter-and-set','host-name-only','host-wildcard','hostname-prefix','option-match','ignored-and-generated-names'}
@@ -477,19 +477,24 @@ def config(extra):
 def syntax(root, side, text, folder, *, startup=False):
     folder.mkdir(parents=True, exist_ok=True)
     (root/'m2/parser.conf').write_text(text)
-    result = subprocess.run(command(root, side, '--test', '-C', '/m2/parser.conf'),
-                            capture_output=True, timeout=5)
-    row = {'exit': result.returncode, 'stdout': result.stdout.decode(errors='backslashreplace'),
-           'stderr': result.stderr.decode(errors='backslashreplace')}
-    for stream in ('stdout', 'stderr'):
-        (folder/stream).write_bytes(getattr(result, stream))
-    if startup and result.returncode:
+    def invoke(arguments, prefix=''):
+        try:
+            result = subprocess.run(command(root, side, *arguments, '-C', '/m2/parser.conf'),
+                                    capture_output=True, timeout=5)
+            code, stdout, stderr, timed_out = result.returncode, result.stdout, result.stderr, False
+        except subprocess.TimeoutExpired as error:
+            # subprocess.run kills and reaps its child before raising.
+            code, stdout, stderr, timed_out = None, error.stdout or b'', error.stderr or b'', True
+        (folder/(prefix+'stdout')).write_bytes(stdout)
+        (folder/(prefix+'stderr')).write_bytes(stderr)
+        row = {'exit': code, 'stdout': stdout.decode(errors='backslashreplace'),
+               'stderr': stderr.decode(errors='backslashreplace')}
+        if timed_out: row['timeout'] = True
+        return row
+    row = invoke(['--test'])
+    if startup and row['exit'] not in (0, None):
         # Rejected safe configurations must reject at the real entry point too.
-        result = subprocess.run(command(root, side, '-k', '-C', '/m2/parser.conf'),
-                                capture_output=True, timeout=5)
-        row['startup'] = {'exit': result.returncode,
-                          'stdout': result.stdout.decode(errors='backslashreplace'),
-                          'stderr': result.stderr.decode(errors='backslashreplace')}
+        row['startup'] = invoke(['-k'], 'startup-')
     save(folder/'result.json', row)
     return row
 
@@ -651,9 +656,14 @@ def run(root, side, folder, text, events):
                 if trace['exit'] != 0 or not trace['reaped'] or not trace['pid_removed'] or trace.get('forced_cleanup'):
                     trace['status'] = 'failed'
             if network is not None:
-                trace['namespace_cleanup'] = network.close()
-                trace['namespace_reaped'] = not Path(f"/proc/{trace['namespace_cleanup']['pid']}").exists()
-                if not trace['namespace_reaped'] or trace['namespace_cleanup']['returncode'] != -signal.SIGTERM or trace['namespace_cleanup']['forced']:
+                try:
+                    trace['namespace_cleanup'] = network.close()
+                    cleanup = trace['namespace_cleanup']
+                    trace['namespace_reaped'] = cleanup is not None and not Path(f"/proc/{cleanup['pid']}").exists()
+                    if not trace['namespace_reaped'] or cleanup['returncode'] != -signal.SIGTERM or cleanup['forced']:
+                        trace['status'] = 'failed'
+                except Exception as error:
+                    trace['namespace_error'] = repr(error)
                     trace['status'] = 'failed'
             trace['interfaces_clean'] = sorted(name for _, name in socket.if_nameindex()) == ['lo']
             if not trace['interfaces_clean']: trace['status'] = 'failed'
@@ -668,7 +678,7 @@ def compare(expected, actual):
         if any(side.get(key) != value for key, value in [('ready', True), ('exit', 0), ('reaped', True), ('pid_removed', True), ('interfaces_clean', True)]):
             errors.append('cleanup-or-startup')
         if side.get('forced_cleanup'): errors.append('forced-cleanup')
-        if 'namespace_cleanup' in side and (not side.get('namespace_reaped') or side['namespace_cleanup']['forced'] or side['namespace_cleanup']['returncode'] != -signal.SIGTERM):
+        if side.get('namespace_error') or ('namespace_cleanup' in side and (not side.get('namespace_reaped') or side['namespace_cleanup']['forced'] or side['namespace_cleanup']['returncode'] != -signal.SIGTERM)):
             errors.append('namespace-cleanup')
         if len(side['rows']) != side.get('planned', len(side['rows'])): errors.append('unexecuted-row')
     if expected.get('syntax') != actual.get('syntax'): errors.append('syntax')
@@ -828,6 +838,8 @@ def main():
         row = {'group': group, 'variant': variant, 'path': label, 'errors': []}
         for side in ('c',) if args.c_only else ('c', 'rust'):
             row[side] = syntax(root, side, config(dict(text=text, fixed_host=False)), args.out/label/side, startup=defect is None)
+        if row['c'].get('timeout') or row['c'].get('startup', {}).get('timeout'):
+            row['errors'].append('c-timeout'); report['failures'].append(group+'--'+variant)
         if not args.c_only and row['c'] != row['rust']:
             if defect and row['c']['exit'] in (0, 1) and row['rust']['exit'] == 1:
                 report['reference_differences'].append({'case': group+'--'+variant, 'scope': 'syntax only', 'reason': defect,
