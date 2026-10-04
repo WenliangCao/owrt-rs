@@ -4,9 +4,10 @@
 
 - 当前里程碑：M5；169 项中 **63 项已关闭、69 项部分实现、37 项未实现，剩余 106 项**。
 - 刚关闭：do-0x20-encode、no-0x20-encode 8配置／420行全部通过，含关闭编码时上游改case、启用时认证及合并客户端case恢复；20负向控制通过。第二批矩阵累计关闭3项。
-- 当前代码：relay候选 `9da20ac0` / ELF `4586c5d2e545a11b8f4246208e762e4f19fed0081dac5e20efd480f2e1ccafed`，1,396,848字节（relay当前+20,480，M4+237,568）；helper16场景／32侧、boot102事件、leasequery22配置／38查询复跑通过，Linux musl库516通过／18忽略、main10通过。DNS case修复e89f9f67已提交，f1668e28候选SHA9c73a0d979aa1faa79b542fc08bb34f45a716d8bba2a89153ff61d841ed2ebd5、体积不变，大小写矩阵已通过。
-- 下一步：relay f1668e28 完成36配置／168报文、40语法、4类binding及11负控，全部通过；正补冻结清单STATE-03的实际接口删除/重建索引用例和Linux隔离truncation/admission测试，完成即关闭3项。矩阵第二批大小写相对XOR修复已通过，retry/local-service继续推进；DHCP identity下一族仅准备C边界清单，尚未开工产品。
-- 阻塞点：Oracle ENOSPC已通过删除各自已归档的可重建rootfs/构建缓存缓解，可用约1GiB；另23份已完成副本已清理、/m2末态回拷并校验。f1668e28统一回归正在执行，每次最多两族并行并及时回收可重建副本。无须用户决定。物理路由器未操作。
+- 当前代码：产品冻结候选 `f1668e28`，ELF SHA256 `9c73a0d979aa1faa79b542fc08bb34f45a716d8bba2a89153ff61d841ed2ebd5`，1,396,848字节（本次relay接线段+20,480，case修复+0，M4+237,568）。此后main仅测试器/账本变更。Oracle产物在 `/home/ubuntu/m5-root-20261004/f1668e28/`，本地在 `evidence/M5/integration-20261004/f1668e28/`；统一库517通过／18忽略、main10通过。上一候选9da20ac0的helper16场景／32侧、boot102事件、leasequery22配置／38查询复跑通过，f166同版复跑正在进行。
+- 下一步：relay f1668e28 完成37配置／173报文、40语法、4类binding及15负控，全部通过；STATE-03实际接口删除/重建索引已通过；Linux隔离truncation/admission额外6项已实际执行通过，正补LIFE-03清单的16报文同时突发夹具，逐项核完才关闭3项。矩阵第二批大小写相对XOR修复已通过，retry/local-service继续推进；DHCP identity下一族仅准备C边界清单，尚未开工产品。
+- 阻塞点：Oracle ENOSPC已通过删除各自已归档的可重建rootfs/构建缓存缓解，可用约1GiB；另23份已完成副本已清理、/m2末态回拷并校验。f1668e28统一回归正在执行（库517通过／18忽略、main10通过），每次最多两族并行并及时回收可重建副本。无须用户决定。物理路由器未操作。
+- 活跃分工：`m5/relay` / `worktrees/m5-relay`（relay_checklist）完成剩余清单后合入清理；`m5/option-matrix-2` / `worktrees/m5-option-matrix-2`（option_matrix）推进retry/local-service，已关闭的3项不要重复扣数；`m5/dhcp-identity` / `worktrees/m5-dhcp-identity` 已冻结56条C清单，等本批relay闭合后开工；batch_verify只跑f166同版回归并回拷证据，主代理统一公共接线。上述worktree均在 `private/dnsmasq-rewrite/` 下。
 
 ## 工作规则
 
