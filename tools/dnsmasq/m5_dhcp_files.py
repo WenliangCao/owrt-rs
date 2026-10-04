@@ -309,7 +309,8 @@ def find_inotify_fd(pid):
 
 def resource_scenarios():
     def inform(label):return dict(op='packet',label=label,kind=8,ciaddr='127.0.0.40',prl=[224])
-    def case(name,config,events,cases):return dict(name=name,config='no-daemon\n'+config,files={'opts':'224,old\n','dir/a':'224,old\n'},events=events,cases=cases,boundaries=sorted({c.split('/')[0] for c in cases}))
+    def case(name,config,events,cases,**fields):
+        value=dict(name=name,config='no-daemon\n'+config,files={'opts':'224,old\n','dir/a':'224,old\n'},events=events,cases=cases,boundaries=sorted({c.split('/')[0] for c in cases}));value.update(fields);return value
     rows=[]
     for kind,directive,path in [('static','dhcp-optsfile={base}/opts','opts'),('dynamic','dhcp-optsdir={base}/dir','dir/a')]:
         rows.append(case('runtime-emfile-'+kind,directive,[inform('before'),dict(op='fd-limit'),dict(op='write',path=path,text='224,new\n'),dict(op='hup') if kind=='static' else dict(op='snapshot'),dict(op='emfile-witness',path=BASE+'/'+path),inform('during-emfile'),dict(op='fd-limit',restore=True),dict(op='hup'),inform('recovered')],['OWNER03/fd-open-failure','OWNER02/failed-file-recovers']))
