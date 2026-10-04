@@ -98,6 +98,7 @@ def casing_projection(row):
         row.pop(key)
     for event in row['upstream']:
         event.pop('wire')
+        event.pop('reply_wire', None)
     for layout in row['case_layout']:
         layout.pop('question')
         layout.pop('changed_letters')
@@ -539,6 +540,7 @@ def retry_projection(row):
         row.pop(key)
     for event in row['upstream']:
         event['query_without_id'] = event.pop('wire')[4:]
+        event.pop('reply_wire', None)
         for key in ['monotonic', 'wall_time']:
             event.pop(key, None)
     row['upstream'].sort(key=lambda event: (event.get('server', ''), event['name']))
