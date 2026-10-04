@@ -44,7 +44,13 @@
             "address-local-nodata",
             "address-invalid-bad-ip",
             "address-invalid-too-long-label",
-            "address-empty-label-domain"
+            "address-empty-label-domain",
+            "address-global-star-dot-with-upstream",
+            "address-global-star-with-upstream",
+            "address-global-hash-with-upstream",
+            "address-global-star-dot-no-upstream",
+            "address-global-star-no-upstream",
+            "address-global-hash-no-upstream"
           ]
         },
         {
@@ -72,7 +78,13 @@
             "address-local-nodata",
             "address-invalid-bad-ip",
             "address-invalid-too-long-label",
-            "address-empty-label-domain"
+            "address-empty-label-domain",
+            "address-global-star-dot-with-upstream",
+            "address-global-star-with-upstream",
+            "address-global-hash-with-upstream",
+            "address-global-star-dot-no-upstream",
+            "address-global-star-no-upstream",
+            "address-global-hash-no-upstream"
           ]
         },
         {
@@ -100,7 +112,13 @@
             "address-local-nodata",
             "address-invalid-bad-ip",
             "address-invalid-too-long-label",
-            "address-empty-label-domain"
+            "address-empty-label-domain",
+            "address-global-star-dot-with-upstream",
+            "address-global-star-with-upstream",
+            "address-global-hash-with-upstream",
+            "address-global-star-dot-no-upstream",
+            "address-global-star-no-upstream",
+            "address-global-hash-no-upstream"
           ]
         },
         {
@@ -128,7 +146,13 @@
             "address-local-nodata",
             "address-invalid-bad-ip",
             "address-invalid-too-long-label",
-            "address-empty-label-domain"
+            "address-empty-label-domain",
+            "address-global-star-dot-with-upstream",
+            "address-global-star-with-upstream",
+            "address-global-hash-with-upstream",
+            "address-global-star-dot-no-upstream",
+            "address-global-star-no-upstream",
+            "address-global-hash-no-upstream"
           ]
         },
         {
@@ -156,7 +180,13 @@
             "address-local-nodata",
             "address-invalid-bad-ip",
             "address-invalid-too-long-label",
-            "address-empty-label-domain"
+            "address-empty-label-domain",
+            "address-global-star-dot-with-upstream",
+            "address-global-star-with-upstream",
+            "address-global-hash-with-upstream",
+            "address-global-star-dot-no-upstream",
+            "address-global-star-no-upstream",
+            "address-global-hash-no-upstream"
           ]
         },
         {
@@ -184,7 +214,13 @@
             "address-local-nodata",
             "address-invalid-bad-ip",
             "address-invalid-too-long-label",
-            "address-empty-label-domain"
+            "address-empty-label-domain",
+            "address-global-star-dot-with-upstream",
+            "address-global-star-with-upstream",
+            "address-global-hash-with-upstream",
+            "address-global-star-dot-no-upstream",
+            "address-global-star-no-upstream",
+            "address-global-hash-no-upstream"
           ]
         }
       ],
@@ -210,7 +246,13 @@
         "address-local-nodata",
         "address-invalid-bad-ip",
         "address-invalid-too-long-label",
-        "address-empty-label-domain"
+        "address-empty-label-domain",
+        "address-global-star-dot-with-upstream",
+        "address-global-star-with-upstream",
+        "address-global-hash-with-upstream",
+        "address-global-star-dot-no-upstream",
+        "address-global-star-no-upstream",
+        "address-global-hash-no-upstream"
       ]
     },
     "bogus-nxdomain": {
@@ -1089,7 +1131,12 @@
           "type": 1,
           "c_expect": {
             "udp": "response",
-            "tcp": "response"
+            "tcp": "response",
+            "upstream_count": 0,
+            "rcode": 0,
+            "answer_addresses": [
+              "192.0.2.22"
+            ]
           }
         },
         {
@@ -1098,7 +1145,12 @@
           "type": 1,
           "c_expect": {
             "udp": "response",
-            "tcp": "response"
+            "tcp": "response",
+            "upstream_count": 0,
+            "rcode": 0,
+            "answer_addresses": [
+              "192.0.2.22"
+            ]
           }
         },
         {
@@ -1107,7 +1159,12 @@
           "type": 1,
           "c_expect": {
             "udp": "response",
-            "tcp": "response"
+            "tcp": "response",
+            "upstream_count": 0,
+            "rcode": 0,
+            "answer_addresses": [
+              "192.0.2.11"
+            ]
           }
         }
       ],
@@ -8620,6 +8677,192 @@
       "hosts": "",
       "expected_test_exit": 1,
       "strict_upstream_wire": true
+    },
+    {
+      "id": "address-global-star-dot-with-upstream",
+      "options": [
+        "address"
+      ],
+      "config": "address=/*./192.0.2.77\n",
+      "probes": [
+        {
+          "id": "apex",
+          "name": "any.test",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "root",
+          "name": "",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        }
+      ],
+      "hosts": "",
+      "expected_test_exit": 0,
+      "strict_upstream_wire": true,
+      "no_default_server": false
+    },
+    {
+      "id": "address-global-star-with-upstream",
+      "options": [
+        "address"
+      ],
+      "config": "address=/*/192.0.2.77\n",
+      "probes": [
+        {
+          "id": "apex",
+          "name": "any.test",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "root",
+          "name": "",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        }
+      ],
+      "hosts": "",
+      "expected_test_exit": 0,
+      "strict_upstream_wire": true,
+      "no_default_server": false
+    },
+    {
+      "id": "address-global-hash-with-upstream",
+      "options": [
+        "address"
+      ],
+      "config": "address=/#/192.0.2.77\n",
+      "probes": [
+        {
+          "id": "apex",
+          "name": "any.test",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "root",
+          "name": "",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        }
+      ],
+      "hosts": "",
+      "expected_test_exit": 0,
+      "strict_upstream_wire": true,
+      "no_default_server": false
+    },
+    {
+      "id": "address-global-star-dot-no-upstream",
+      "options": [
+        "address"
+      ],
+      "config": "address=/*./192.0.2.77\n",
+      "probes": [
+        {
+          "id": "apex",
+          "name": "any.test",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "root",
+          "name": "",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        }
+      ],
+      "hosts": "",
+      "expected_test_exit": 0,
+      "strict_upstream_wire": true,
+      "no_default_server": true
+    },
+    {
+      "id": "address-global-star-no-upstream",
+      "options": [
+        "address"
+      ],
+      "config": "address=/*/192.0.2.77\n",
+      "probes": [
+        {
+          "id": "apex",
+          "name": "any.test",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "root",
+          "name": "",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        }
+      ],
+      "hosts": "",
+      "expected_test_exit": 0,
+      "strict_upstream_wire": true,
+      "no_default_server": true
+    },
+    {
+      "id": "address-global-hash-no-upstream",
+      "options": [
+        "address"
+      ],
+      "config": "address=/#/192.0.2.77\n",
+      "probes": [
+        {
+          "id": "apex",
+          "name": "any.test",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "root",
+          "name": "",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        }
+      ],
+      "hosts": "",
+      "expected_test_exit": 0,
+      "strict_upstream_wire": true,
+      "no_default_server": true
     }
   ]
 }
