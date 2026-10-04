@@ -320,13 +320,12 @@ fn ip(bytes: &[u8]) -> Result<Ipv4Addr, Error> {
 /// treats a token outside that alphabet as a legacy/set or `tag:`/`net:`
 /// selector.  This distinction matters for names such as `red` (a legacy
 /// tag) versus address-shaped values such as `dead` or `1.2.3`, which must
-/// reach the IPv4 parser and fail as a malformed range.  Empty fields remain
-/// selector slots, matching C's empty `set:` behaviour.
+/// reach the IPv4 parser and fail as a malformed range. An empty first field
+/// also reaches the address parser; an explicit `set:` remains a selector.
 fn range_address_lexeme(bytes: &[u8]) -> bool {
-    !bytes.is_empty()
-        && bytes.iter().all(|byte| {
-            byte.is_ascii_digit() || matches!(byte, b'a'..=b'f' | b'A'..=b'F' | b'.' | b':' | b' ')
-        })
+    bytes.iter().all(|byte| {
+        byte.is_ascii_digit() || matches!(byte, b'a'..=b'f' | b'A'..=b'F' | b'.' | b':' | b' ')
+    })
 }
 
 impl DhcpConfig {
@@ -825,7 +824,7 @@ mod tests {
         }
         // option.c's restricted scan sends these tokens to the IPv4 parser;
         // they are not silently widened into legacy tags.
-        for token in ["dead", "1234", "1.2.3", "2001:db8::1"] {
+        for token in ["", "dead", "1234", "1.2.3", "2001:db8::1"] {
             assert!(
                 parse(&format!("{token},192.0.2.10,192.0.2.20")).is_err(),
                 "{token}"
