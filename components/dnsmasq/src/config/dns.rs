@@ -783,7 +783,7 @@ impl DnsConfig {
     pub fn finalize(&mut self) -> Result<(), Error> {
         self.records.finalize(self.domain_suffix.as_deref())?;
         if !self.no_resolv && self.no_poll && self.resolv_files.len() > 1 {
-            return Err(Error("only one resolv.conf file allowed in no-poll mode"));
+            return Err(Error("only one resolv.conf file allowed in no-poll mode."));
         }
         if self.domain_from_resolv && (self.no_resolv || self.resolv_files.len() != 1) {
             return Err(Error(
