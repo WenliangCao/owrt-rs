@@ -313,17 +313,24 @@ def reference_difference(expected, actual, scenario):
 
 
 def controls():
-    event = {'id': 'control', 'expect': {'status': 5, 'flags': 0, 'address': '10.77.0.10', 'destination': '10.77.0.10', 'leases': 1}}
-    row = {'id': 'control:dhcp', 'response': {'status': 5, 'flags': 0, 'address': '10.77.0.10', 'destination': {'address': '10.77.0.10'}}, 'leases': [['lease']]}
+    event = {'id': 'control', 'expect': {'status': 5, 'flags': 0, 'address': '10.77.0.10', 'destination': '10.77.0.10', 'server_id': SERVER, 'message': 'wrong network', 'leases': 1}}
+    row = {'id': 'control:dhcp', 'response': {'status': 5, 'flags': 0, 'address': '10.77.0.10', 'destination': {'address': '10.77.0.10'}, 'server_id': SERVER, 'message': 'wrong network'}, 'leases': [['lease']]}
     assert not guards([row], {'probes': [event]})
     result = {}
-    for key in ['status', 'flags', 'address', 'destination', 'leases']:
+    for key in ['status', 'flags', 'address', 'destination', 'server_id', 'message', 'leases']:
         bad = copy.deepcopy(row)
         if key == 'leases': bad['leases'] = []
         elif key == 'destination': bad['response']['destination']['address'] = '255.255.255.255'
         else: bad['response'][key] = None
         assert guards([bad], {'probes': [event]}), key
         result['dhcp-' + key] = 'detected'
+    for allowed in (False, True):
+        event = {'id': 'tftp-control', 'expect': {'tftp': allowed}}
+        row = {'id': 'tftp-control:dhcp', 'response': {'tftp': (b'\0\3\0\1matrix-tftp').hex() if allowed else None}}
+        assert not guards([row], {'probes': [event]})
+        row['response']['tftp'] = (b'\0\3\0\1wrong-file').hex()
+        assert guards([row], {'probes': [event]})
+        result['dhcp-tftp-' + ('wrong-payload' if allowed else 'unexpected-reply')] = 'detected'
     c = {'syntax': {'exit': 0, 'stdout': '', 'stderr': 'dnsmasq: syntax check OK.\n'}, 'startup': {'ready': False}, 'rows': []}
     rust = {'syntax': {'exit': 1, 'stdout': '', 'stderr': '\ndnsmasq: empty DHCP tag predicate at line 1 of /m2/matrix.conf\n'}, 'startup': {'ready': False}, 'rows': [], 'config_line': 1}
     assert not reference_difference(c, rust, {'config': 'dhcp-broadcast=tag:\n'})

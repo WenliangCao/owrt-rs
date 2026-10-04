@@ -535,7 +535,11 @@ def main():
     parser.add_argument('--self-test', action='store_true')
     parser.add_argument('--reference-only', action='store_true', help='C baseline only; never qualifies an option')
     args = parser.parse_args()
+    manifest = json.loads(args.manifest.read_text())
     controls = {**self_test(), **probes_extra.controls()}
+    if any(scenario.get('adapter') == 'dhcp' for scenario in manifest['scenarios']):
+        import m5_option_matrix_dhcp
+        controls.update(m5_option_matrix_dhcp.controls())
     if args.self_test:
         print(json.dumps(controls, sort_keys=True))
         return 0
@@ -547,7 +551,6 @@ def main():
     if 'private' not in output.parts or output.exists():
         raise ValueError('fresh private evidence path required')
     output.mkdir(parents=True)
-    manifest = json.loads(args.manifest.read_text())
     if manifest.get('executable') is False:
         raise ValueError('source checklist is not executable yet')
     selected = args.options.split(',') if args.options else list(manifest['options'])
@@ -563,7 +566,6 @@ def main():
     if any(scenario.get('adapter') == 'dhcp' for scenario in scenarios):
         import m5_option_matrix_dhcp
         dependencies.extend(m5_option_matrix_dhcp.DEPENDENCIES)
-        controls.update(m5_option_matrix_dhcp.controls())
     report = {'stock_sha256': STOCK_SHA256, 'rust_sha256': args.rust_sha256, 'source_commit': args.source_commit,
               'manifest_sha256': sha256(args.manifest), 'tool_sha256': sha256(Path(__file__)),
               'dependency_sha256': {filename: sha256(Path(__file__).with_name(filename)) for filename in dependencies},

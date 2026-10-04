@@ -31,7 +31,10 @@
         "nonauth-alias-0-10-77-0-254",
         "nonauth-alias-0-127-0-0-1",
         "nonauth-alias-1-10-77-0-254",
-        "nonauth-alias-1-127-0-0-1"
+        "nonauth-alias-1-127-0-0-1",
+        "auth-alias-lo-dedicated",
+        "auth-alias-lo-excluded",
+        "auth-alias-lo-no-dhcp-dedicated"
       ],
       "checklist": [
         {
@@ -50,7 +53,10 @@
             "nonauth-alias-0-10-77-0-254",
             "nonauth-alias-0-127-0-0-1",
             "nonauth-alias-1-10-77-0-254",
-            "nonauth-alias-1-127-0-0-1"
+            "nonauth-alias-1-127-0-0-1",
+            "auth-alias-lo-dedicated",
+            "auth-alias-lo-excluded",
+            "auth-alias-lo-no-dhcp-dedicated"
           ]
         },
         {
@@ -69,7 +75,10 @@
             "nonauth-alias-0-10-77-0-254",
             "nonauth-alias-0-127-0-0-1",
             "nonauth-alias-1-10-77-0-254",
-            "nonauth-alias-1-127-0-0-1"
+            "nonauth-alias-1-127-0-0-1",
+            "auth-alias-lo-dedicated",
+            "auth-alias-lo-excluded",
+            "auth-alias-lo-no-dhcp-dedicated"
           ]
         },
         {
@@ -88,7 +97,10 @@
             "nonauth-alias-0-10-77-0-254",
             "nonauth-alias-0-127-0-0-1",
             "nonauth-alias-1-10-77-0-254",
-            "nonauth-alias-1-127-0-0-1"
+            "nonauth-alias-1-127-0-0-1",
+            "auth-alias-lo-dedicated",
+            "auth-alias-lo-excluded",
+            "auth-alias-lo-no-dhcp-dedicated"
           ]
         },
         {
@@ -107,7 +119,10 @@
             "nonauth-alias-0-10-77-0-254",
             "nonauth-alias-0-127-0-0-1",
             "nonauth-alias-1-10-77-0-254",
-            "nonauth-alias-1-127-0-0-1"
+            "nonauth-alias-1-127-0-0-1",
+            "auth-alias-lo-dedicated",
+            "auth-alias-lo-excluded",
+            "auth-alias-lo-no-dhcp-dedicated"
           ]
         },
         {
@@ -126,7 +141,10 @@
             "nonauth-alias-0-10-77-0-254",
             "nonauth-alias-0-127-0-0-1",
             "nonauth-alias-1-10-77-0-254",
-            "nonauth-alias-1-127-0-0-1"
+            "nonauth-alias-1-127-0-0-1",
+            "auth-alias-lo-dedicated",
+            "auth-alias-lo-excluded",
+            "auth-alias-lo-no-dhcp-dedicated"
           ]
         },
         {
@@ -145,7 +163,10 @@
             "nonauth-alias-0-10-77-0-254",
             "nonauth-alias-0-127-0-0-1",
             "nonauth-alias-1-10-77-0-254",
-            "nonauth-alias-1-127-0-0-1"
+            "nonauth-alias-1-127-0-0-1",
+            "auth-alias-lo-dedicated",
+            "auth-alias-lo-excluded",
+            "auth-alias-lo-no-dhcp-dedicated"
           ]
         }
       ]
@@ -3045,6 +3066,99 @@
       ],
       "adapter": "dhcp",
       "config": "enable-tftp\ntftp-root=/m2/tftp\n",
+      "probes": [
+        {
+          "id": "alias",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.10",
+          "server_id": "127.0.0.1",
+          "expect": {
+            "status": 6,
+            "flags": 32768,
+            "leases": 0,
+            "message": "wrong network",
+            "server_id": "127.0.0.1"
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "server_aliases": [
+        "10.77.0.254"
+      ],
+      "tftp": true
+    },
+    {
+      "id": "auth-alias-lo-dedicated",
+      "options": [
+        "dhcp-authoritative"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-authoritative\nenable-tftp=lo\ntftp-root=/m2/tftp\n",
+      "probes": [
+        {
+          "id": "alias",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.10",
+          "server_id": "127.0.0.1",
+          "expect": {
+            "status": 6,
+            "flags": 32768,
+            "leases": 0,
+            "message": "wrong network",
+            "server_id": "127.0.0.1"
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "server_aliases": [
+        "10.77.0.254"
+      ],
+      "tftp": true
+    },
+    {
+      "id": "auth-alias-lo-excluded",
+      "options": [
+        "dhcp-authoritative"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-authoritative\nenable-tftp=br-lan\ntftp-root=/m2/tftp\n",
+      "probes": [
+        {
+          "id": "alias",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.10",
+          "server_id": "127.0.0.1",
+          "expect": {
+            "status": 6,
+            "flags": 32768,
+            "leases": 0,
+            "message": "wrong server-ID",
+            "server_id": "10.77.0.1"
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "server_aliases": [
+        "10.77.0.254"
+      ],
+      "tftp": true
+    },
+    {
+      "id": "auth-alias-lo-no-dhcp-dedicated",
+      "options": [
+        "dhcp-authoritative"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-authoritative\nno-dhcp-interface=lo\nenable-tftp=lo\ntftp-root=/m2/tftp\n",
       "probes": [
         {
           "id": "alias",
