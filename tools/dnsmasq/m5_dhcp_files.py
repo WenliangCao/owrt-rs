@@ -25,6 +25,7 @@ import time
 import m5_dhcp_tags_options as wire
 from m2_rootfs import STOCK_SHA256,command,prepare,process_identity,sha256
 from m5_helper import children
+from m5_dns_files import partial_stream_error
 
 MAC='02:00:00:00:00:01'
 BASE='/m2/dhcp-files'
@@ -250,6 +251,8 @@ def resource_scenarios():
         rows.append(case('runtime-emfile-'+kind,directive,[inform('before'),dict(op='fd-limit'),dict(op='write',path=path,text='224,new\n'),dict(op='hup') if kind=='static' else dict(op='snapshot'),dict(op='emfile-witness',path=BASE+'/'+path),inform('during-emfile'),dict(op='fd-limit',restore=True),dict(op='hup'),inform('recovered')],['OWNER03/fd-open-failure','OWNER02/failed-file-recovers']))
     rows.append(case('large-bank-owner-progress','dhcp-optsfile={base}/opts',[inform('before'),dict(op='large-file',path='opts',bytes=16*1024*1024,tail='224,large\n'),inform('after'),dict(op='fd-check')],['OWNER01/large-bank-owner-progress']))
     rows.append(case('watch-burst-owner-progress','dhcp-optsdir={base}/dir',[inform('before'),dict(op='burst-progress',path='dir/a',bytes=256*1024,count=64,tail='224,burst\n'),inform('after'),dict(op='fd-check')],['OWNER01/event-burst-fairness']))
+    for kind,directive,text,probe in [('hosts','dhcp-hostsfile',MAC+',127.0.0.30,partial',dict(op='packet',label='partial-host',kind=1)),('options','dhcp-optsfile','224,partial',inform('partial-option'))]:
+        rows.append(dict(name='partial-read-eio-'+kind,config=directive+'=/m2/files/bank',files={},system_files={'/m2/files/bank':'# initially empty\n'},events=[dict(op='partial-eio',text=text),probe],cases=['LEX01/partial-last-line','OWNER03/partial-stream-eof'],boundaries=['LEX01','OWNER03']))
     return rows
 
 
@@ -458,6 +461,9 @@ def run_side(root,side,scenario,out):
                         ceiling=next(n for n in range(max(descriptors)+2) if n not in descriptors)
                         resource.prlimit(process.pid,resource.RLIMIT_NOFILE,(ceiling,limit_before[1]))
                         observed['fd_exhaustion']={'descriptors':sorted(descriptors),'limits':resource.prlimit(process.pid,resource.RLIMIT_NOFILE)}
+                elif event['op']=='partial-eio':
+                    observed['partial_eio']=partial_stream_error(root,process,event['text'],out,relative='bank')
+                    observed['partial_eio_verified']=True
                 elif event['op']=='emfile-witness':
                     observed['emfile_diagnostics']=[line for line in (out/'daemon.log').read_text(errors='replace').splitlines() if event['path'] in line and ('No file descriptors available' in line or 'Too many open files' in line)]
                     assert observed['emfile_diagnostics'],'file open did not reach EMFILE'
@@ -519,7 +525,7 @@ def compare(c,rust):
     if wire.comparable_syntax(c.get('syntax',{}))!=wire.comparable_syntax(rust.get('syntax',{})):failures.append('syntax')
     if len(c['rows'])!=len(rust['rows']):failures.append('row count')
     for first,second in zip(c['rows'],rust['rows']):
-        for key in ['index','event','alive','health','peer','comparable','dns','helper','bank_fds_closed','emfile_verified','owner_health_verified']:
+        for key in ['index','event','alive','health','peer','comparable','dns','helper','bank_fds_closed','emfile_verified','owner_health_verified','partial_eio_verified']:
             if first.get(key)!=second.get(key):failures.append(f"{first['index']}:{key}")
         if (first.get('response') is None)!=(second.get('response') is None):failures.append(f"{first['index']}:response presence")
         if 'stop' in first or 'stop' in second:
@@ -549,6 +555,9 @@ def witness_errors(scenario,observed,side):
             expected=event.get('count',1)
             if proof.get('completed_reads',0)<expected:errors.append('missing bank event reads')
         if event['op']=='emfile-witness' and not row.get('emfile_diagnostics'):errors.append('missing actual EMFILE diagnostic')
+        if event['op']=='partial-eio':
+            proof=row.get('partial_eio',{})
+            if not proof.get('injected') or not any(read.get('result',0)>0 for read in proof.get('reads',[])) or not any(read.get('injected') and read.get('result')==-errno.EIO for read in proof.get('reads',[])):errors.append('partial data followed by injected EIO not proven')
         if event['op']=='fd-check':
             if not row.get('fd_targets') or any(BASE in target for target in row['fd_targets'].values()):errors.append('bank fd closure not proven')
     if observed.get('started'):
