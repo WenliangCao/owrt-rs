@@ -1,0 +1,706 @@
+{
+  "schema": "m5-endpoint-boundaries-v1",
+  "family": "dns-endpoints",
+  "status": "source-frozen-before-product-edits",
+  "options": [
+    "server",
+    "local",
+    "rev-server",
+    "servers-file",
+    "query-port",
+    "min-port",
+    "max-port",
+    "port-limit"
+  ],
+  "source_identity": {
+    "option.c": {
+      "sha256": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/option.c"
+    },
+    "network.c": {
+      "sha256": "8229872d30a2fb2d86ec9a9e550e51fbb8d8d97926e7a02b0137f2a7b40c40c9",
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/network.c"
+    },
+    "forward.c": {
+      "sha256": "ac05784d4233ed10bd166da5fe91e464afecf2883d3c2a0063305d3e81692f95",
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/forward.c"
+    },
+    "domain-match.c": {
+      "sha256": "66356136ffe0920fca4fa7dcad579727c7d8d1ec6e799597bfda2e1a63fe9606",
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/domain-match.c"
+    },
+    "dnsmasq.c": {
+      "sha256": "d4bb7cde522376200a0293427b0812625ebc457f10dc9d3e2bef243ccba8ccd1",
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/dnsmasq.c"
+    },
+    "config.h": {
+      "sha256": "dacbe1f8d0e03d93e53a81901956b07ab7a5059d1e5db3225150a9688a1122da",
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/config.h"
+    },
+    "dnsmasq.h": {
+      "sha256": "318942419598f037a97611efbdea5aebba1e384b9a1ba5f7eded091c86e0e228",
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/dnsmasq.h"
+    }
+  },
+  "reference_image_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "callers": [
+    "main config loader -> option.c parse_server/parse_server_addr/parse_server_next before --test",
+    "servers-file startup/SIGHUP -> read_servers_file -> same endpoint parser; invalid file rows log/continue",
+    "pre_allocate_sfds before privilege drop -> check_servers -> allocate_sfd/local_bind",
+    "UDP forward_query -> allocate_rfd/random_sock -> local_bind -> sendto; reply_query demux across shared fd",
+    "TCP tcp_talk -> local_bind(is_tcp=1) -> connect; perchild server snapshot"
+  ],
+  "failure_boundaries": [
+    "config parse error is fatal with source location; hostname family mismatch rows are skipped",
+    "startup bound-listener fixed-source failure fatal, wildcard excludes offending source",
+    "runtime serverfile failure line does not roll back valid other rows",
+    "socket allocation failure must retain unrelated pending/other-service progress"
+  ],
+  "owner_files": [
+    "config/dns.rs",
+    "dns/upstream.rs",
+    "dns/routing.rs",
+    "dns/tcp_upstream.rs",
+    "dns/tcp_connect.rs",
+    "dns/tcp_exchange.rs",
+    "dns/files_runtime.rs",
+    "dns/files.rs"
+  ],
+  "root_files": [
+    "main.rs",
+    "dns/daemon.rs",
+    "config/scalar.rs if existing scalar parser changes needed"
+  ],
+  "boundaries": [
+    {
+      "id": "GRAM-01",
+      "options": [
+        "server",
+        "local",
+        "rev-server",
+        "servers-file"
+      ],
+      "source_anchors": [
+        "option.c:900-1005",
+        "option.c:3070-3166"
+      ],
+      "contract": "Server/local share endpoint parser, domain splitting, literal/local/default marker precedence and exact lexical errors.",
+      "required_cases": [
+        "IPv4 default port",
+        "IPv6 default port",
+        "explicit 0 and 65535 port",
+        "empty/65536/negative/text/huge ports",
+        "multiple #/@/% delimiters",
+        "empty endpoint and # special marker",
+        "leading/multiple domain slashes and // dotless",
+        "wildcard character vs label suffix",
+        "hostname attached to server/local/rev-server",
+        "quoted full endpoint and hidden punctuation",
+        "duplicate declarations and insertion order"
+      ],
+      "checked": false,
+      "evidence": []
+    },
+    {
+      "id": "GRAM-02",
+      "options": [
+        "server",
+        "local",
+        "rev-server",
+        "servers-file"
+      ],
+      "source_anchors": [
+        "option.c:921-945",
+        "option.c:1007-1100"
+      ],
+      "contract": "Parse #source-port before optional second @interface; truncate SO_BINDTODEVICE names to IF_NAMESIZE-1; preserve absent vs explicit empty source.",
+      "required_cases": [
+        "@IPv4",
+        "@IPv6",
+        "@interface",
+        "@interface@IPv4",
+        "@interface@IPv6",
+        "source #0/nonzero/empty",
+        "extra @ interface duplicate",
+        "first source substring contains # before second @",
+        "empty source/interface",
+        "interface15/16/long",
+        "numeric IPv4 server with IPv6 source exact error",
+        "numeric IPv6 server with IPv4 source exact error"
+      ],
+      "checked": false,
+      "evidence": []
+    },
+    {
+      "id": "GRAM-03",
+      "options": [
+        "server",
+        "local",
+        "rev-server",
+        "servers-file"
+      ],
+      "source_anchors": [
+        "option.c:943-1004",
+        "option.c:1053-1097"
+      ],
+      "contract": "Endpoint IPv6 scope is strict if_nametoindex unlike permissive resolv-file scope; IPv4 ignores scope token.",
+      "required_cases": [
+        "valid IPv6 interface name",
+        "unknown scope exact bad interface error",
+        "numeric-looking interface token",
+        "empty and double percent",
+        "IPv4 with scope ignored",
+        "link-local scope transport UDP/TCP",
+        "global IPv6 with scope",
+        "hostname returning IPv6 with scope"
+      ],
+      "checked": false,
+      "evidence": []
+    },
+    {
+      "id": "NAME-01",
+      "options": [
+        "server",
+        "local",
+        "rev-server",
+        "servers-file"
+      ],
+      "source_anchors": [
+        "option.c:949-999",
+        "option.c:1102-1128"
+      ],
+      "contract": "getaddrinfo(AI_ADDRCONFIG,AF_UNSPEC,SOCK_DGRAM) expands all returned addresses once at configuration consumption.",
+      "required_cases": [
+        "hosts IPv4 only",
+        "hosts IPv6 only",
+        "multi IPv4 order",
+        "mixed IPv4/IPv6 order",
+        "duplicate hosts names",
+        "loopback-only namespace AI_ADDRCONFIG image behavior",
+        "nonloopback v4/v6 topology",
+        "IPv4 mapped/legacy numeric hostname text",
+        "dot/case/trailing dot names",
+        "no IDN build nonASCII error"
+      ],
+      "checked": false,
+      "evidence": []
+    },
+    {
+      "id": "NAME-02",
+      "options": [
+        "server",
+        "local",
+        "rev-server",
+        "servers-file"
+      ],
+      "source_anchors": [
+        "option.c:1020-1042",
+        "option.c:1064-1090",
+        "option.c:3124-3126"
+      ],
+      "contract": "Hostname plus explicit source skips mismatching address families; numeric family mismatch is fatal; zero surviving hostname addresses is valid empty source. The rev-server branch omits this family-skip check; its source-family mismatch must follow the separate reverse cases.",
+      "required_cases": [
+        "dual-family hostname with v4 source",
+        "dual-family hostname with v6 source",
+        "all hostname addresses mismatching",
+        "scoped hostname v4+v6 source interaction",
+        "@interface@source family filter",
+        "duplicate expanded destinations preserve ordering"
+      ],
+      "checked": false,
+      "evidence": []
+    },
+    {
+      "id": "NAME-03",
+      "options": [
+        "server",
+        "local",
+        "rev-server",
+        "servers-file"
+      ],
+      "source_anchors": [
+        "option.c:990-1003",
+        "option.c:3070-3166",
+        "option.c:6330-6359"
+      ],
+      "contract": "Resolution executes before --test and at directive parse position; preserve libc diagnostic/exit/location and no live listener before startup completion.",
+      "required_cases": [
+        "missing hosts name NXDOMAIN",
+        "temporary SERVFAIL/EAI_AGAIN Cannot resolve server name",
+        "response timeout",
+        "invalid hostname syntax",
+        "temporary resolve recovers next launch",
+        "later invalid config must not suppress earlier resolution",
+        "--test still resolves when port=0/no-resolv",
+        "system /etc/resolv.conf independent of dnsmasq resolv-file",
+        "full and search-list name behavior from image libc"
+      ],
+      "checked": false,
+      "evidence": []
+    },
+    {
+      "id": "REV-01",
+      "options": [
+        "rev-server",
+        "servers-file"
+      ],
+      "source_anchors": [
+        "option.c:1135-1310",
+        "option.c:3168-3210"
+      ],
+      "contract": "Reverse prefix expansion and optional local-only target reuse full endpoint behavior; /non-nibble boundaries remain exact.",
+      "required_cases": [
+        "IPv4 no prefix /0 /24 /25 /32",
+        "IPv6 no prefix /0 /64 /65 /128",
+        "invalid/wide/empty prefix fallback",
+        "reverse no endpoint local-only",
+        "endpoint hostname multisource expansion",
+        "/range input host bits",
+        "malformed address/family rejects",
+        "file reverse provenance retained"
+      ],
+      "checked": false,
+      "evidence": []
+    },
+    {
+      "id": "REV-02",
+      "options": [
+        "rev-server",
+        "servers-file"
+      ],
+      "source_anchors": [
+        "option.c:1197-1220",
+        "option.c:1285-1308"
+      ],
+      "contract": "Hostname reverse expansion frees addrinfo after the first partial-prefix variant, reuses last address for later variants, and repeats freeaddrinfo; reproduce safe rule behavior without importing the invalid lifetime. Exact image --test accepts the minimal one-address case; do not falsely claim a reproduced crash.",
+      "required_cases": [
+        "one-address hostname partial v4 prefix syntax acceptance",
+        "multi-address hostname first variant all addresses then last-address later variants",
+        "partial IPv6 nibble hostname source ordering",
+        "aligned reverse hostname mismatched source families remain, unlike regular server/local",
+        "retain exact-source lifetime-defect classification independent of runtime pass"
+      ],
+      "checked": false,
+      "evidence": []
+    },
+    {
+      "id": "SOURCE-01",
+      "options": [
+        "server",
+        "local",
+        "rev-server",
+        "servers-file",
+        "query-port"
+      ],
+      "source_anchors": [
+        "option.c:6124-6138",
+        "network.c:1451-1564"
+      ],
+      "contract": "Explicit @source defaults to port0 and overrides global query-port; implicit source gets final query-port regardless option order.",
+      "required_cases": [
+        "query-port before/after endpoint",
+        "query-port0 explicitly vs omitted",
+        "@address defaults0 under nonzero global",
+        "@interface defaults0 under nonzero global",
+        "@source#fixed overrides global",
+        "explicit #0 with query-port0 osport",
+        "resolver-file implicit global port",
+        "server/local/rev-file consistent precedence"
+      ],
+      "checked": false,
+      "evidence": []
+    },
+    {
+      "id": "SOURCE-02",
+      "options": [
+        "server",
+        "local",
+        "rev-server",
+        "servers-file"
+      ],
+      "source_anchors": [
+        "network.c:1367-1450",
+        "forward.c:2800-2840"
+      ],
+      "contract": "local_bind uses source address and interface; IPv6 is V6ONLY; target port and scope do not determine local source port identity.",
+      "required_cases": [
+        "v4 source address on wire",
+        "v6 source address on wire",
+        "source device binding on routed topology",
+        "combined address and device",
+        "nonexistent source address",
+        "nonexistent interface",
+        "removed address after startup",
+        "recreated interface after failure",
+        "v4/v6 same configured source port independent sockets"
+      ],
+      "checked": false,
+      "evidence": []
+    },
+    {
+      "id": "SFD-01",
+      "options": [
+        "server",
+        "local",
+        "rev-server",
+        "servers-file",
+        "query-port"
+      ],
+      "source_anchors": [
+        "network.c:1451-1522"
+      ],
+      "contract": "Fixed-port/osport sockets share by source sockaddr+interface+ifindex, never by destination; no SO_REUSEPORT shortcut.",
+      "required_cases": [
+        "two destinations share source fixed port",
+        "same source port different local addresses",
+        "same addr different interface",
+        "default wildcard v4/v6 fixed sockets",
+        "same socket concurrent differing query IDs",
+        "response from unrelated destination/ID ignored",
+        "wrong socket/source-family response ignored",
+        "sourceport0 explicit-osport retains one OS-selected port across queries"
+      ],
+      "checked": false,
+      "evidence": []
+    },
+    {
+      "id": "SFD-02",
+      "options": [
+        "server",
+        "local",
+        "rev-server",
+        "servers-file",
+        "query-port"
+      ],
+      "source_anchors": [
+        "network.c:1525-1564",
+        "dnsmasq.c:450-465"
+      ],
+      "contract": "Preallocate privileged sockets before dropping identity; bound-interface mode fails startup on bind errors, wildcard mode logs and excludes invalid server.",
+      "required_cases": [
+        "low source port under nonroot daemon user",
+        "occupied fixed source port wildcard nonfatal removal",
+        "occupied source bind-interfaces exit2 exact diagnostic",
+        "bind-dynamic failure boundary",
+        "query-port preallocated allfamilies even no inline servers",
+        "--test never binds",
+        "port=0 suppresses DNS binding",
+        "FD/process cleanup on startup failure"
+      ],
+      "checked": false,
+      "evidence": []
+    },
+    {
+      "id": "SFD-03",
+      "options": [
+        "server",
+        "local",
+        "rev-server",
+        "servers-file",
+        "query-port"
+      ],
+      "source_anchors": [
+        "network.c:1566-1710",
+        "domain-match.c:add_update_server"
+      ],
+      "contract": "check_servers filters unusable endpoints and garbage-collects unused fixed sockets while preserving preallocated globals and pending source identities.",
+      "required_cases": [
+        "own selected listen address/port filtered",
+        "unselected local address remains target",
+        "source bind failure removes only failed upstream",
+        "reload unchanged source shares FD",
+        "reload changed source reallocates",
+        "last server removal drops nonpreallocated FD",
+        "configured global query socket retained",
+        "pending reply after reused/removal slot",
+        "no leaked FD after repeated reload"
+      ],
+      "checked": false,
+      "evidence": []
+    },
+    {
+      "id": "PORT-01",
+      "options": [
+        "query-port",
+        "min-port",
+        "max-port",
+        "port-limit"
+      ],
+      "source_anchors": [
+        "option.c:3413-3457",
+        "option.c:3503-3518",
+        "dnsmasq.c:249-261"
+      ],
+      "contract": "Port scalars retain integer widths, explicit-zero osport latch, runtime-only range checks and default completion.",
+      "required_cases": [
+        "empty query/min/max port",
+        "0/1/1024/65535/65536/large integer",
+        "port-limit0/1/2/intwrap",
+        "repeated option origin policy",
+        "min-only defaults max65535",
+        "max-only defaults min1024",
+        "max below min --test succeeds startup fails",
+        "port-limit larger range --test/startup boundary",
+        "query-port0 followed nonzero retains osport flag"
+      ],
+      "checked": false,
+      "evidence": []
+    },
+    {
+      "id": "PORT-02",
+      "options": [
+        "min-port",
+        "max-port"
+      ],
+      "source_anchors": [
+        "network.c:1367-1430",
+        "config.h:SMALL_PORT_RANGE"
+      ],
+      "contract": "Random binding honors inclusive range, small-range systematic retry after EADDRINUSE/EACCES, 100 tries large-range cap, no range applied to TCP.",
+      "required_cases": [
+        "one available port",
+        "two ports with one occupied",
+        "size29/30 range threshold",
+        "both ends used over repetitions",
+        "fully exhausted range",
+        "partial recovery after release",
+        "implicit-zero source address/port bind elision",
+        "fixed source port ignores configured range",
+        "v4 and v6 share same bounded range independently"
+      ],
+      "checked": false,
+      "evidence": []
+    },
+    {
+      "id": "POOL-01",
+      "options": [
+        "port-limit",
+        "min-port",
+        "max-port",
+        "server",
+        "local",
+        "rev-server",
+        "servers-file"
+      ],
+      "source_anchors": [
+        "forward.c:2842-2910"
+      ],
+      "contract": "Within each transaction count source-compatible random sockets; at port-limit rotate last compatible socket to head, defaults to1.",
+      "required_cases": [
+        "two destinations same source limit1 sameport",
+        "limit2 allocates2 then rotates",
+        "limit3 repeated client retry",
+        "UDP error failover source identity",
+        "mixed families separate source identity",
+        "differing source address/interface not pooled",
+        "same destination on distinct contexts",
+        "merged client requests do not add random ports"
+      ],
+      "checked": false,
+      "evidence": []
+    },
+    {
+      "id": "POOL-02",
+      "options": [
+        "port-limit",
+        "min-port",
+        "max-port",
+        "server",
+        "local",
+        "rev-server",
+        "servers-file"
+      ],
+      "source_anchors": [
+        "dnsmasq.c:406-424",
+        "forward.c:2911-3028"
+      ],
+      "contract": "Global random socket slots=fwdmax/2 capped by inherited nofile/3; share compatible busy sockets when pool/range full, otherwise allocate temporary unshared slots.",
+      "required_cases": [
+        "small range fullness forces cross-query sharing",
+        "incompatible source needs temporary FD",
+        "exhausted bind chooses existing compatible socket",
+        "separate groups share compatible source tuple",
+        "source record removed while references alive",
+        "pool slot reuse after final owner release",
+        "FD count under >numrrand pending queries",
+        "multiple temporary sockets release cleanly"
+      ],
+      "checked": false,
+      "evidence": []
+    },
+    {
+      "id": "POOL-03",
+      "options": [
+        "query-port",
+        "min-port",
+        "max-port",
+        "port-limit",
+        "server",
+        "local",
+        "rev-server",
+        "servers-file"
+      ],
+      "source_anchors": [
+        "forward.c:3030-3065",
+        "forward.c:3085-3100"
+      ],
+      "contract": "Reference ownership covers successful replies, retry, cancellation, timeout, failed send, server_gone and reload; receive demultiplexes by wire ID/question/source/socket.",
+      "required_cases": [
+        "two queries share FD complete reverse order",
+        "first owner completes while second still pending",
+        "spoof ID/name/qtype/source",
+        "late reply after cancellation",
+        "retry success cancellation retains sibling",
+        "ICMP/POLLERR keeps pending references",
+        "recv error bounded processing",
+        "no use-after-free on server retirement",
+        "graceful shutdown releases all FDs"
+      ],
+      "checked": false,
+      "evidence": []
+    },
+    {
+      "id": "TCP-01",
+      "options": [
+        "server",
+        "local",
+        "rev-server",
+        "servers-file",
+        "query-port",
+        "min-port",
+        "max-port",
+        "port-limit"
+      ],
+      "source_anchors": [
+        "forward.c:2090-2132",
+        "network.c:1380-1383"
+      ],
+      "contract": "TCP binds source address/interface but always port0, ignoring fixed query-port/source-port/range; existing per-client snapshots persist.",
+      "required_cases": [
+        "v4 source address",
+        "v6 source address",
+        "interface only",
+        "interface+source",
+        "query-port ignored",
+        "explicit @source#port ignored",
+        "min/max singleoccupied port ignored",
+        "invalid source bind failover",
+        "unknown interface failover",
+        "selected server scope respected"
+      ],
+      "checked": false,
+      "evidence": []
+    },
+    {
+      "id": "TCP-02",
+      "options": [
+        "server",
+        "local",
+        "rev-server",
+        "servers-file"
+      ],
+      "source_anchors": [
+        "forward.c:tcp_talk"
+      ],
+      "contract": "TCP connection reuse/failover is unchanged under source binding and hostname-expanded list; snapshot policy remains fork-equivalent.",
+      "required_cases": [
+        "two questions share connection/sourceport",
+        "broken existing connection reconnect",
+        "one source fails later server succeeds",
+        "new connection after file reload uses new source",
+        "open child retains old source/destination",
+        "pending query spanning reload",
+        "child shutdown/EOF no owner FD leak"
+      ],
+      "checked": false,
+      "evidence": []
+    },
+    {
+      "id": "FILE-01",
+      "options": [
+        "server",
+        "local",
+        "rev-server",
+        "servers-file"
+      ],
+      "source_anchors": [
+        "option.c:read_servers_file",
+        "network.c:check_servers"
+      ],
+      "contract": "servers-file resolves full endpoint grammar at INIT and SIGHUP, logs bad rows and continues, preserves source-specific replacement ordering.",
+      "required_cases": [
+        "hostname A/AAAA expansion",
+        "error hostname row followed valid numeric row",
+        "strict scope valid/error rows",
+        "explicit source address/interface/port",
+        "mismatched resolved source family skipped",
+        "invalid numeric family row followed valid row",
+        "changes /etc/hosts before HUP alter expansion",
+        "no automatic reload after file write",
+        "duplicate/order/replacement with inline server/local/rev rules"
+      ],
+      "checked": false,
+      "evidence": []
+    },
+    {
+      "id": "OWNER-01",
+      "options": [
+        "server",
+        "local",
+        "rev-server",
+        "servers-file"
+      ],
+      "source_anchors": [
+        "option.c:parse_server",
+        "option.c:read_servers_file",
+        "dnsmasq.c:set_dns_listeners"
+      ],
+      "contract": "No name-resolution or source-bind retry may block live single poll owner; startup can resolve before service loop.",
+      "required_cases": [
+        "slow getaddrinfo startup readiness gate",
+        "slow runtime hostname lookup while UDP DNS serves",
+        "runtime slow lookup while TCP/DHCP/TFTP progresses",
+        "resolver worker failure/timeout/cancellation",
+        "repeated HUP while lookup active bounded queue",
+        "shutdown while lookup active reaps owned child",
+        "source open/socket errors leave other services live",
+        "one parent daemon thread"
+      ],
+      "checked": false,
+      "evidence": []
+    },
+    {
+      "id": "OBS-01",
+      "options": [
+        "server",
+        "local",
+        "rev-server",
+        "servers-file",
+        "query-port",
+        "min-port",
+        "max-port",
+        "port-limit"
+      ],
+      "source_anchors": [
+        "forward.c:reply_query",
+        "network.c:local_bind"
+      ],
+      "contract": "Freeze exact C expected outcomes, source packet address/port, syntax diagnostics and identities; every required case needs concrete evidence.",
+      "required_cases": [
+        "source and destination tuple captured on actual upstream receives",
+        "source bind negative control",
+        "missing-expanded-address negative control",
+        "wrong shared port/pool rotation negative control",
+        "stale serverfile rule negative control",
+        "readiness/lifecycle and leaked child negative controls",
+        "raw archive SHA+metadata verification before remote prune",
+        "per-family ELF identity and size increment"
+      ],
+      "checked": false,
+      "evidence": []
+    }
+  ],
+  "total_boundaries": 23,
+  "total_required_cases": 196,
+  "checked": 0
+}
