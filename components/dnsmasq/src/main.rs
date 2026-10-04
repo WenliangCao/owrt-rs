@@ -553,6 +553,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             || STOP_REQUESTED.load(Ordering::Acquire),
         )?;
         provider.set_dns_config(&daemon_config)?;
+        provider.set_tftp_config(&tftp_config);
         if dns_enabled {
             let config_dns = Arc::clone(&service);
             provider.set_config_host_lookup(move |name| {

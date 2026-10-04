@@ -153,6 +153,8 @@ pub struct LocalProvider {
     direct_pxe: Option<DirectPxeReply>,
     selected: Vec<SelectedContext>,
     interface_policy: InterfacePolicy,
+    tftp_enabled: bool,
+    tftp_interfaces: Vec<Option<Vec<u8>>>,
     dns_port: u16,
     control: UdpSocket,
     probe: IcmpProbe,
@@ -255,6 +257,8 @@ impl LocalProvider {
             config,
             selected: Vec::new(),
             interface_policy: InterfacePolicy::new(listen_addresses),
+            tftp_enabled: false,
+            tftp_interfaces: Vec::new(),
             dns_port,
             control: UdpSocket::bind((Ipv4Addr::UNSPECIFIED, 0)).map_err(StartupError::Socket)?,
             persistence,
@@ -324,6 +328,13 @@ impl LocalProvider {
             .map_err(|error| io::Error::new(io::ErrorKind::InvalidInput, error))?;
         self.interface_policy = InterfacePolicy::from_dns(config);
         Ok(())
+    }
+
+    /// DHCP accepts unusual server-ID aliases only on TFTP-eligible interfaces.
+    /// Retain only the two selectors needed by network.c's tftp_ok predicate.
+    pub fn set_tftp_config(&mut self, config: &crate::config::tftp::TftpConfig) {
+        self.tftp_enabled = config.enabled;
+        self.tftp_interfaces.clone_from(&config.interfaces);
     }
 
     pub fn take_maintenance_report(&mut self) -> Option<MaintenanceReport> {
@@ -1122,11 +1133,40 @@ impl LocalProvider {
             .iter()
             .map(|selected| selected.range.clone())
             .collect();
-        let aliases: Vec<_> = addresses
-            .iter()
-            .filter(|address| address.index == interface)
-            .map(|address| address.address)
-            .collect();
+        let mut alias = None;
+        if self.tftp_enabled
+            && packet.message_type() == 3
+            && override_server.is_none()
+            && packet.requested_address().is_some()
+        {
+            if let Some(server) = packet
+                .server_identifier()
+                .filter(|server| !ranges.iter().any(|range| range.local == *server))
+            {
+                for address in addresses.iter().filter(|address| address.address == server) {
+                    let Ok(name) = crate::net::interface_name(&self.control, address.index) else {
+                        continue;
+                    };
+                    let name = &name[..name
+                        .iter()
+                        .position(|byte| *byte == 0)
+                        .unwrap_or(name.len())];
+                    if self
+                        .interface_policy
+                        .selected_address(Some(name), server, address.loopback)
+                        && crate::config::tftp::interface_enabled(
+                            self.tftp_enabled,
+                            &self.tftp_interfaces,
+                            &self.config.no_dhcp_interfaces,
+                            name,
+                        )
+                    {
+                        alias = Some(server);
+                        break;
+                    }
+                }
+            }
+        }
         let now = epoch_seconds();
         let packet = dispatch.packet;
         let identity = ClientIdentity {
@@ -1257,8 +1297,9 @@ impl LocalProvider {
             tags.push(b"bootp");
         }
         self.request_tags = tags.iter().map(|tag| tag.to_vec()).collect();
-        TagIf::apply_all(&self.config.tag_if, &mut tags);
+        // do_options checks the original netid head, not tag-if additions.
         self.force_broadcast = self.config.force_broadcast_for(&tags);
+        TagIf::apply_all(&self.config.tag_if, &mut tags);
         let ignored = configured.is_some_and(|host| host.ignore)
             || self.config.ignore.iter().any(|rule| rule.matches(&tags));
         let pxe_listener = dispatch.ingress.listener == super::service::Listener::Pxe;
@@ -1426,7 +1467,7 @@ impl LocalProvider {
             consecutive_addresses: self.config.sequential,
             override_server,
             fallback_server: local,
-            server_aliases: &aliases,
+            server_aliases: alias.as_slice(),
         };
         let now = environment.now;
         let mut probe_error = None;
