@@ -128,6 +128,8 @@ pub struct SocketListener {
     listener: Listener,
     pxe_prefixes: Vec<Vec<u8>>,
     buffer: Vec<u8>,
+    relay: Option<super::relay::RelayService>,
+    ports: crate::config::dhcp_relay::DhcpPorts,
 }
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -153,7 +155,75 @@ impl SocketListener {
             listener,
             pxe_prefixes: pxe_prefixes.iter().map(|prefix| prefix.to_vec()).collect(),
             buffer: vec![0; MAX_PACKET_LEN],
+            relay: None,
+            ports: crate::config::dhcp_relay::DhcpPorts::default(),
         })
+    }
+
+    pub fn configure_relay(
+        &mut self,
+        rules: &[crate::config::dhcp_relay::RelayRule],
+        dns: &crate::config::dns::DnsConfig,
+        excluded: &[Option<Vec<u8>>],
+        ports: crate::config::dhcp_relay::DhcpPorts,
+    ) -> io::Result<()> {
+        self.ports = ports;
+        if !rules.is_empty() {
+            self.buffer.resize(super::relay::MAX_DATAGRAM, 0);
+            self.relay = Some(super::relay::RelayService::new(
+                rules,
+                dns,
+                excluded,
+                ports.client,
+            )?);
+        }
+        Ok(())
+    }
+
+    pub fn invalidate_relay_interfaces(&mut self) {
+        if let Some(relay) = &mut self.relay {
+            relay.invalidate_interfaces();
+        }
+    }
+
+    /// Relay-only service deliberately creates no lease provider or file.
+    pub fn process_once_relay_only(
+        &mut self,
+        stop: impl FnMut() -> bool,
+    ) -> io::Result<ListenerStep> {
+        Ok(match self.receive_for_local(stop)? {
+            Ok(_) => ListenerStep::Ignored,
+            Err(step) => step,
+        })
+    }
+
+    fn receive_for_local(
+        &mut self,
+        mut stop: impl FnMut() -> bool,
+    ) -> io::Result<Result<crate::net::Datagram, ListenerStep>> {
+        if stop() {
+            return Ok(Err(ListenerStep::Stopped));
+        }
+        let datagram = match self.socket.receive(&mut self.buffer) {
+            Ok(Some(datagram)) => datagram,
+            Ok(None) => return Ok(Err(ListenerStep::Ignored)),
+            Err(error) if error.kind() == io::ErrorKind::WouldBlock => {
+                return Ok(Err(ListenerStep::WouldBlock))
+            }
+            Err(error) => return Err(error),
+        };
+        if !datagram.destination.is_ipv4()
+            || !datagram.local_address.is_ipv4()
+            || datagram.interface == 0
+        {
+            return Ok(Err(ListenerStep::Ignored));
+        }
+        if let Some(relay) = &mut self.relay {
+            if relay.intercept(&self.socket, &mut self.buffer[..datagram.len], &datagram)? {
+                return Ok(Err(ListenerStep::Ignored));
+            }
+        }
+        Ok(Ok(datagram))
     }
 
     pub fn local_addr(&self) -> io::Result<SocketAddr> {
@@ -193,35 +263,40 @@ impl SocketListener {
     where
         P: super::runtime::OutcomeProvider,
     {
+        let datagram = match self.receive_for_local(stop)? {
+            Ok(datagram) => datagram,
+            Err(step) => return Ok(step),
+        };
         let prefixes: Vec<&[u8]> = self.pxe_prefixes.iter().map(Vec::as_slice).collect();
-        match poll_once(
-            &self.socket,
-            &mut self.buffer,
-            self.listener,
+        let dispatch = match dispatch(
+            &self.buffer[..datagram.len],
+            Ingress {
+                listener: self.listener,
+                interface_index: datagram.interface,
+                unicast_destination: datagram.destination != IpAddr::V4(Ipv4Addr::BROADCAST),
+            },
             &prefixes,
-            stop,
-        )? {
-            PollOutcome::Stopped => Ok(ListenerStep::Stopped),
-            PollOutcome::Ignored => Ok(ListenerStep::Ignored),
-            PollOutcome::WouldBlock => Ok(ListenerStep::WouldBlock),
-            PollOutcome::Malformed(error) => Ok(ListenerStep::Malformed(error)),
-            PollOutcome::Admitted(received) => Ok(ListenerStep::Processed(
-                super::runtime::process_with_random(
-                    received.dispatch,
-                    received.peer,
-                    provider,
-                    &mut self.socket,
-                    options,
-                    output,
-                    || {
-                        use std::io::Read;
-                        let mut bytes = [0; 2];
-                        self.random.read_exact(&mut bytes)?;
-                        Ok(u16::from_ne_bytes(bytes))
-                    },
-                ),
-            )),
-        }
+        ) {
+            Ok(dispatch) => dispatch,
+            Err(error) => return Ok(ListenerStep::Malformed(error)),
+        };
+        Ok(ListenerStep::Processed(
+            super::runtime::process_with_random_and_ports(
+                dispatch,
+                datagram.peer,
+                provider,
+                &mut self.socket,
+                options,
+                output,
+                self.ports,
+                || {
+                    use std::io::Read;
+                    let mut bytes = [0; 2];
+                    self.random.read_exact(&mut bytes)?;
+                    Ok(u16::from_ne_bytes(bytes))
+                },
+            ),
+        ))
     }
 }
 
