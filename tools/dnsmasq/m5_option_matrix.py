@@ -66,13 +66,28 @@ class Upstream:
         self.host = host
         self.captured = []
         self.family = socket.AF_INET6 if ':' in host else socket.AF_INET
+        # IPv6 link-local endpoints carry their scope in the address text, but
+        # Linux bind(2) requires the numeric interface index in the sockaddr
+        # four-tuple. Keep the original spelling for diagnostics and wire
+        # observations while translating it only for the fixture sockets.
+        bind_host, scope_id = host, 0
+        if self.family == socket.AF_INET6 and '%' in host:
+            bind_host, scope = host.rsplit('%', 1)
+            try:
+                scope_id = int(scope)
+            except ValueError:
+                scope_id = socket.if_nametoindex(scope)
+        bind_address = ((bind_host, port, 0, scope_id)
+                        if self.family == socket.AF_INET6 else (bind_host, port))
         self.udp = socket.socket(self.family, socket.SOCK_DGRAM)
-        self.udp.bind((host, port))
+        self.udp.bind(bind_address)
         self.port = self.udp.getsockname()[1]
         self.udp.settimeout(.05)
         self.tcp = socket.socket(self.family, socket.SOCK_STREAM)
         self.tcp.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.tcp.bind((host, self.port))
+        tcp_address = ((bind_host, self.port, 0, scope_id)
+                       if self.family == socket.AF_INET6 else (bind_host, self.port))
+        self.tcp.bind(tcp_address)
         self.tcp.listen()
         self.tcp.settimeout(.05)
         self.stop = threading.Event()
