@@ -913,6 +913,22 @@ impl<R: Random> DnsDaemon<R> {
         .map_err(Into::into)
     }
 
+    /// TCP emits this before removing a bogus RR from its client response.
+    /// Like C's helper, this insertion is independent of ordinary cache gates.
+    pub fn cache_bogus_reply(&mut self, name: Name, ttl: u32, now: i64) {
+        let Some(cache) = self.cache.as_mut() else {
+            return;
+        };
+        CacheContext {
+            cache,
+            counters: &mut self.cache_counters,
+            negative_cache: self.negative_cache,
+            negative_ttl: self.negative_ttl,
+            filter_rr: &self.filter_rr,
+        }
+        .insert_bogus(name, ttl, now, &self.local);
+    }
+
     pub fn cache_tcp_reply(&mut self, packet: &[u8], now: i64) {
         let Ok(header) = Header::parse(packet) else {
             return;
@@ -1200,6 +1216,35 @@ mod tests {
         assert_eq!(opt.record.ttl, 0);
         assert_eq!(opt.record.rdata, &[0, 15, 0, 2, 0, 14]);
         assert_eq!(daemon.pending_count(), 0);
+    }
+
+    #[test]
+    fn tcp_bogus_event_publishes_matching_owner_despite_no_negcache() {
+        let mut config = DnsConfig::default();
+        config.no_resolv = true;
+        let mut daemon =
+            DnsDaemon::with_random(config, Hosts::new(), &[], options(), Counter(0)).unwrap();
+        daemon.enable_cache(4, 0, 0, StalePolicy::Disabled);
+        daemon.enable_negative_cache(999, false);
+        daemon.cache_bogus_reply(Name::from_ascii("target.test").unwrap(), 120, 1000);
+        let request = query("target.test", 12);
+        let question = super::super::forward::Question::parse(&request).unwrap();
+        let answer = daemon
+            .cached_answer_at(&request, &question, 1119)
+            .unwrap()
+            .unwrap();
+        assert_eq!(Header::parse(&answer).unwrap().rcode(), 3);
+        assert_eq!(daemon.cache_counters().inserted, 1);
+        assert!(daemon
+            .cached_answer_at(&request, &question, 1120)
+            .unwrap()
+            .is_none());
+        let original = query("caller.test", 13);
+        let question = super::super::forward::Question::parse(&original).unwrap();
+        assert!(daemon
+            .cached_answer_at(&original, &question, 1001)
+            .unwrap()
+            .is_none());
     }
 
     #[test]
