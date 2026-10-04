@@ -5,9 +5,9 @@
 - 当前里程碑：M5；169 项中 **68 项已关闭、64 项部分实现、37 项未实现，剩余 101 项**。
 - 刚关闭：fast-dns-retry与修复后的local-service共2项；第二批矩阵5项全部闭合。24671034受影响批次32配置／193观察、31负控严格通过，定向双栈idle/queued另4行通过；旧FIN/RST归一化已撤销。
 - 当前代码：产品冻结候选 `f1668e28`，ELF SHA256 `9c73a0d979aa1faa79b542fc08bb34f45a716d8bba2a89153ff61d841ed2ebd5`，1,396,848字节（本次relay接线段+20,480，case修复+0，M4+237,568）。随后local-service拒绝TCP连接修复已构建为 `24671034` / SHA256 `99aaa63c4325389349cf00005b5c89accee6d1eeada14eb9e6fef8246d4f0dd3`，体积不变；相同integration目录下保留构建和ELF。Oracle产物在 `/home/ubuntu/m5-root-20261004/f1668e28/`，本地在 `evidence/M5/integration-20261004/f1668e28/`；统一库517通过／18忽略、main10通过。上一候选9da20ac0的helper16场景／32侧、boot102事件、leasequery22配置／38查询复跑通过，f166同版六族复跑完成；4,312份证据已回拷校验，汇总见integration-20261004/f1668e28/runs/regression-01/BATCH_VERIFICATION.json。
-- 下一步：DHCP identity族（8项／56条C清单）首个候选38c0050d已构建，准备开始镜像对照；option124 hex union等边界先保留失败再按精确镜像修复。PXE族只准备清单/API。上一批f166统一六族全部通过，246只重跑受影响DNS选项已通过。
+- 下一步：DHCP identity族（8项／56条C清单）首个候选38c0050d已构建，准备开始镜像对照；option124 hex union等边界先保留失败再按精确镜像修复。第三批矩阵优先A组address/local/bogus-nxdomain，先冻结C清单再对照；PXE族只准备清单/API。上一批f166统一六族全部通过，246只重跑受影响DNS选项已通过。
 - 阻塞点：Oracle ENOSPC已通过删除各自已归档的可重建rootfs/构建缓存缓解，可用约1GiB；另23份已完成副本已清理、/m2末态回拷并校验。f1668e28统一回归完成（库517通过／18忽略、main10通过），已回收完成副本且无残留进程。无须用户决定。物理路由器未操作。
-- 活跃分工：relay及第二批matrix任务均已完成，按规则归档清理。`m5/dhcp-identity` / `worktrees/m5-dhcp-identity` 实现与接线（dhcp_identity），`m5/dhcp-identity-harness` 独立子树只扩展族测试器；`m5/pxe` / `worktrees/m5-pxe`（relay_checklist）仅准备C清单/API，未开工产品。主代理统一公共接线。上述worktree均在 `private/dnsmasq-rewrite/` 下。
+- 活跃分工：relay及第二批matrix任务均已完成，按规则归档清理。`m5/dhcp-identity` / `worktrees/m5-dhcp-identity` 实现与接线（dhcp_identity），`m5/dhcp-identity-harness` 独立子树只扩展族测试器；`m5/pxe` / `worktrees/m5-pxe`（relay_checklist）仅准备C清单/API，未开工产品。`m5/option-matrix-3` / `worktrees/m5-option-matrix-3`（option_matrix）只改矩阵工具与manifest，候选沿用24671034；主代理统一公共接线。上述worktree均在 `private/dnsmasq-rewrite/` 下。
 
 ## 工作规则
 
