@@ -307,6 +307,21 @@ impl DhcpConfig {
             b"dhcp-alternate-port" => {
                 self.ports = super::dhcp_relay::DhcpPorts::parse(argument)?;
             }
+            b"pxe-prompt" => {
+                let prompt = self
+                    .pxe
+                    .parse_prompt(argument.ok_or(Error("missing parameter"))?)?;
+                self.options.insert(
+                    0,
+                    DhcpOption {
+                        code: 10,
+                        value: OptionValue::Raw(prompt.data),
+                        tags: prompt.tags,
+                        encapsulation: Encapsulation::PxeVendor,
+                        ..Default::default()
+                    },
+                );
+            }
             b"pxe-service" => self
                 .pxe
                 .add_service(argument.ok_or(Error("missing parameter"))?)?,
