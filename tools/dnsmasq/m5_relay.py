@@ -19,6 +19,7 @@ import struct
 import subprocess
 import sys
 import time
+import random
 
 from dns_service_probe import query
 from m2_rootfs import STOCK_SHA256, command, prepare, process_identity, sha256
@@ -82,7 +83,13 @@ def actor():
             request = json.loads(line)
             try:
                 if request["op"] == "send":
-                    sockets[request.get("port", 68)].sendto(bytes.fromhex(request["packet"]), tuple(request["destination"]))
+                    if request.get("source_address"):
+                        with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as source:
+                            source.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+                            source.bind((request["source_address"],request.get("port",68)))
+                            source.sendto(bytes.fromhex(request["packet"]),tuple(request["destination"]))
+                    else:
+                        sockets[request.get("port", 68)].sendto(bytes.fromhex(request["packet"]), tuple(request["destination"]))
                     result = {"sent": True}
                 elif request["op"] == "take":
                     result = {"packets": rows[:]}
@@ -117,6 +124,7 @@ class Peer:
             self.run("ip", "link", "set", "peer0", "address", "02:00:00:4d:35:03")
             self.run("ip", "addr", "add", "10.77.0.10/24", "dev", "peer0")
         else:
+            self.run("ip", "addr", "add", "10.78.0.3/24", "dev", "peer0")
             self.run("ip", "route", "add", "10.77.0.0/24", "via", UP)
         self.process = subprocess.Popen(self.argv(sys.executable, Path(__file__).resolve(), "--actor"),
                                         stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -180,7 +188,7 @@ def scenarios():
     serial = 0
 
     def case(name, *, upstream=1, downstream=0, sender="client", port=None, destination=None,
-             after=None, raw=None, **fields):
+             after=None, raw=None, source_address=None, **fields):
         nonlocal serial
         serial += 1
         value = bytearray(raw) if raw is not None else packet(**fields)
@@ -189,7 +197,8 @@ def scenarios():
         return {"name": name, "packet": value.hex(), "sender": sender,
                 "source_port": port if port is not None else (68 if sender == "client" else 67),
                 "destination": destination or [DOWN if sender == "client" else UP, 67],
-                "upstream": upstream, "downstream": downstream, "after": after}
+                "upstream": upstream, "downstream": downstream, "after": after,
+                "source_address": source_address}
 
     def reply(name, **kwargs):
         kwargs.setdefault("giaddr", DOWN)
@@ -215,14 +224,19 @@ def scenarios():
                reply("hardware-type-zero", htype=0, flags=0),
                reply("wrong-giaddr", giaddr="192.0.2.1", downstream=0),
                reply("giaddr-zero", giaddr="0.0.0.0", downstream=0),
-               reply("untracked-port", port=9999)]
+               reply("untracked-port", port=9999),reply("untracked-address",source_address="10.78.0.3"),
+               reply("short-fixed-reply",length=236),reply("arp-failure",flags=0,htype=255),
+               reply("interface-down",after="down-interface",downstream=0)]
     split = [f"dhcp-split-relay={DOWN},{SERVER},server0"]
     split_cases = [case("split-unicast"), case("split-broadcast", destination=["255.255.255.255",67]),
+                   case("split-wrong-ingress",sender="server",upstream=0),
                    case("split-foreign", giaddr="192.0.2.1"), case("split-loop", giaddr=UP, upstream=0),
                    case("split-no-end", options=b"\x35\x01\x01", upstream=0),
                    case("split-bad-tlv", options=b"\x35\xff\x01\xff", upstream=0),
                    case("split-cookie", cookie=False),
                    case("split-existing-agent", options=b"\x52\x03\x01\x01x\xff")]
+    main_without_end=packet(options=b"\x34\x01\x01");main_without_end[108]=255
+    split_cases.append(case("split-end-only-overload",raw=main_without_end,upstream=0))
     for end in [524,525]:
         value=packet(options=b"");value.extend(bytes(end-240));value.append(255)
         split_cases.append(case(f"split-end-{end}", raw=value, upstream=int(end==524)))
@@ -237,6 +251,11 @@ def scenarios():
     overload=packet(op=2,giaddr=UP,options=b"\x34\x01\x01\xff")
     overload[108:119]=b"\x52\x08\x02\x06IFIDxx\xff"
     split_reply_cases.append(case("split-overload",sender="server",upstream=0,downstream=1,raw=overload))
+    split_reply_cases.extend([
+        reply("split-after-agent",giaddr=UP,options=b"\x52\x06\x02\x04IFID\x35\x01\x02\xff"),
+        reply("split-malformed-agent",giaddr=UP,options=b"\x52\x06\x02\x05IFID\xff",downstream=0),
+        reply("split-two-agents",giaddr=UP,options=b"\x52\x03\x01\x01x\x52\x06\x02\x04IFID\xff",downstream=0),
+    ])
     profiles = [
         profile("ordinary-opaque", normal, raw_cases, ["LIFE-01","RX-01","RX-02","RX-03","STATE-01","UP-01","UP-02","UP-03","LOCAL-01"]),
         profile("ordinary-reply", normal, replies, ["DOWN-01","DOWN-02","DOWN-05","DOWN-06","DOWN-07","STATE-01"]),
@@ -244,14 +263,20 @@ def scenarios():
         profile("relay-multi", [f"dhcp-relay={DOWN},{SERVER}#67",f"dhcp-relay={DOWN},{SERVER}#1067"], [case("two-servers",upstream=2)], ["UP-04"]),
         profile("relay-broadcast", [f"dhcp-relay={DOWN},server0"], [case("broadcast-server")], ["CFG-03","UP-05"]),
         profile("relay-missing-interface", [f"dhcp-relay={DOWN},absent"], [case("missing",upstream=0)], ["UP-05"]),
+        profile("relay-zero-server",[f"dhcp-relay={DOWN},0.0.0.0"],[case("zero-without-interface",upstream=0)],["CFG-05","UP-05"]),
         profile("relay-excluded", normal+["no-dhcp-interface=client0"], [case("excluded",upstream=0)], ["RX-04"]),
         profile("relay-wrong-interface", normal, [case("wrong",sender="server",upstream=0)], ["STATE-02"]),
         profile("relay-secondary", ["listen-address=10.77.0.3",f"dhcp-relay=10.77.0.3,{SERVER}"], [case("secondary")], ["STATE-02","RX-04"], secondary=True, omit_interface=True),
         profile("split-request", split, split_cases, ["SPLIT-01","SPLIT-02","SPLIT-03","SPLIT-04"]),
         profile("split-literal", [f"dhcp-split-relay={DOWN},{SERVER},{UP}"], [case("literal")], ["CFG-04","SPLIT-01"]),
+        profile("split-zero-uplink",[f"dhcp-split-relay={DOWN},{SERVER},0.0.0.0"],[case("zero-uplink")],["CFG-05","SPLIT-01"]),
         profile("split-missing-uplink", [f"dhcp-split-relay={DOWN},{SERVER},absent"], [case("missing",upstream=0)], ["SPLIT-01"]),
         profile("split-reply", split, split_reply_cases, ["DOWN-01","DOWN-03","DOWN-04","DOWN-08"]),
         profile("split-multiple", split+[f"dhcp-split-relay={DOWN},{SERVER}#1067,server0"], [case("two-split",upstream=2)], ["SPLIT-05"]),
+        profile("split-ordinary-order",normal+split,[case("mixed-rules",upstream=2)],["UP-04","SPLIT-05"]),
+        profile("ordinary-split-order",split+normal,[case("mixed-rules",upstream=2)],["UP-04","SPLIT-05"]),
+        profile("split-reply-order",[f"dhcp-split-relay={DOWN},{SERVER},{UP}",*split],
+                [case("prime-two",upstream=2),case("strip-before-interface",op=2,giaddr=UP,options=b"\x52\x06\x02\x04IFID\xff",upstream=0)],["DOWN-04"]),
         profile("alternate", ["dhcp-alternate-port=1067,1068",*normal],
                 [case("alternate-listener",port=1068,destination=[DOWN,1067]),
                  reply("alternate-broadcast",destination=[UP,1067]),
@@ -261,7 +286,45 @@ def scenarios():
         profile("alternate-default", ["dhcp-alternate-port",*normal], [case("default-alt",port=1068,destination=[DOWN,1067])], ["CFG-06","PORT-01"]),
         profile("alternate-upstream", ["dhcp-alternate-port=2067,2068",f"dhcp-relay={DOWN},{SERVER}#1067"], [case("alt-upstream",port=2068,destination=[DOWN,2067])], ["PORT-01"]),
         profile("address-invalidation", normal, [prime(),reply("learned"),reply("invalidated",after="invalidate",downstream=0),case("reprime"),reply("relearned")], ["STATE-03"]),
+        profile("except-interface",normal+["except-interface=client0"],[case("excluded",upstream=0)],["RX-04"]),
+        profile("no-dhcpv4-interface",normal+["no-dhcpv4-interface=client0"],[case("excluded-v4",upstream=0)],["RX-04"]),
+        profile("listen-address-override",normal+["except-interface=client0",f"listen-address={DOWN}"],[prime()],["RX-04"]),
+        profile("multiple-local-addresses",normal+[f"dhcp-relay=10.77.0.3,{SERVER}#1067"],[case("two-addresses",upstream=2),case("one-loop-rule",giaddr=DOWN)],["STATE-02","UP-03"],secondary=True),
+        profile("duplicate-local-address",normal,[prime(),case("second-request")],["STATE-02"],duplicate=True,debug=True),
+        profile("no-ingress-address",normal,[case("no-address",after="noaddress",destination=["255.255.255.255",67],upstream=0)],["RX-04"]),
+        profile("unreachable-upstream",normal+[f"dhcp-relay={DOWN},192.0.2.2"],[prime()],["UP-06"]),
+        profile("split-unavailable-source",[f"dhcp-split-relay={DOWN},{SERVER},192.0.2.1"],[case("nonlocal-source",upstream=0)],["UP-06"]),
     ]
+    # Deterministic malformed packets preserve op/hops and fixed header bounds
+    # so ordinary forwarding must remain opaque. Split validity is observed
+    # from C without inventing a separate Python DHCP parser.
+    rng=random.Random(0x4D355245)
+    fuzz=[]
+    for number in range(32):
+        value=packet(options=bytes(rng.randrange(256) for _ in range(rng.randrange(0,160))))
+        value[1]=rng.randrange(256);value[2]=rng.randrange(256);value[3]=rng.randrange(21)
+        fuzz.append(case(f"opaque-mutation-{number}",raw=value))
+    profiles.append(profile("opaque-mutations",normal,fuzz,["EVID-04","LIFE-03"]))
+    split_fuzz=[]
+    for number in range(24):
+        data=bytes([rng.randrange(1,255),255])+bytes(rng.randrange(256) for _ in range(rng.randrange(1,180)))
+        split_fuzz.append(case(f"split-truncated-{number}",options=data,hlen=rng.randrange(256),upstream=0))
+    profiles.append(profile("split-mutations",split,split_fuzz,["EVID-04","SPLIT-04","LIFE-03"]))
+    local = ["dhcp-range=10.77.0.10,10.77.0.20,255.255.255.0,600s", "dhcp-host=02:00:00:4d:35:03,10.77.0.10", "dhcp-boot=pxelinux.0"]
+    profiles.append(profile("local-server",normal+local,[
+        case("local-and-forward",options=b"\xff",downstream=1),
+        case("local-original-hops",options=b"\xff",hops=20,downstream=1),
+        case("local-exceeded-hops",options=b"\xff",hops=21,upstream=0,downstream=1),
+        case("local-overflow-hops",options=b"\xff",hops=255,upstream=0,downstream=1),
+        case("local-all-ones",options=b"\xff",giaddr="255.255.255.255",downstream=1),
+        case("local-foreign-giaddr",options=b"\xff",giaddr=CLIENT,downstream=1),
+    ],["LOCAL-01","LOCAL-02","RX-03"],local_server=True))
+    profiles.append(profile("alternate-local-server",["dhcp-alternate-port=2067,2068",*normal,*local],[
+        case("local-alt-client",options=b"\xff",port=2068,destination=[DOWN,2067],downstream=1),
+        case("local-alt-foreign-giaddr",options=b"\xff",giaddr=CLIENT,port=2068,destination=[DOWN,2067],downstream=1),
+        case("local-alt-source-extension",options=b"\xff",giaddr="255.255.255.255",port=9999,destination=[DOWN,2067],downstream=1),
+        case("local-alt-peer-port",options=b"\x35\x01\x08\xff",ciaddr=CLIENT,port=9999,destination=[DOWN,2067],downstream=1),
+    ],["PORT-01","PORT-02"],local_server=True))
     return profiles
 
 
@@ -284,6 +347,20 @@ def heartbeat():
         if len(response)<12 or response[3]&15 or socket.inet_aton("192.0.2.7") not in response:
             raise AssertionError("DNS heartbeat invalid")
         return True
+
+
+def descriptors(pid):
+    samples=[]
+    for _ in range(5):
+        observed={}
+        for path in Path(f"/proc/{pid}/fd").iterdir():
+            try:observed[path.name]=os.readlink(path)
+            except FileNotFoundError:pass
+        samples.append(observed)
+        time.sleep(.02)
+    # A temporary interface-enumeration descriptor can be sampled while its
+    # owner callback is running. Compare idle floors, retain every sample.
+    return {"floor":min(map(len,samples)),"samples":samples}
 
 
 def grammar_cases():
@@ -371,6 +448,52 @@ def grammar_errors(rows, items, sides):
     return failures
 
 
+def run_binding(root,side,kind,out):
+    out.mkdir()
+    row={"side":side,"kind":kind,"startup":[],"cleanup":[],"test":[]}
+    processes=[];logs=[];blocker=None
+    try:
+        if kind=="external-conflict":
+            blocker=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+            blocker.bind(("0.0.0.0",67))
+        for index in range(1 if blocker else 2):
+            interface,local,remote=("client0",DOWN,SERVER) if index==0 else ("server0",UP,CLIENT)
+            lines=["port=0","no-resolv","no-hosts","no-ping","user=root","group=root",
+                   f"interface={interface}",f"dhcp-relay={local},{remote}",f"pid-file=/m2/bind-{index}.pid"]
+            if kind in ["bind-interfaces","bind-dynamic"]:lines.append(kind)
+            text="\n".join(lines)+"\n"
+            (out/f"config-{index}").write_text(text)
+            (root/f"m2/bind-{index}.conf").write_text(text)
+            tested=subprocess.run(command(root,side,"--test","-C",f"/m2/bind-{index}.conf"),capture_output=True,text=True,timeout=3)
+            row["test"].append({"exit":tested.returncode,"stdout":tested.stdout,"stderr":tested.stderr})
+            log=(out/f"daemon-{index}.log").open("wb");logs.append(log)
+            process=subprocess.Popen(command(root,side,"-k","-C",f"/m2/bind-{index}.conf"),stdout=log,stderr=log,start_new_session=True)
+            processes.append(process);time.sleep(.12)
+            row["startup"].append(process.poll())
+        row["identity"]=[process_identity(root,process.pid) for process in processes if process.poll() is None]
+    except Exception as error:row["error"]=repr(error)
+    finally:
+        for process in reversed(processes):row["cleanup"].append(stop(process))
+        for log in logs:log.close()
+        if blocker:blocker.close()
+    save(out/"result.json",row)
+    return row
+
+
+def binding_errors(rows,sides):
+    failures=[]
+    expected={"external-conflict":[2],"default-exclusive":[None,2],"bind-interfaces":[None,None],"bind-dynamic":[None,None]}
+    indexed={(row["kind"],row["side"]):row for row in rows}
+    for kind,startup in expected.items():
+        for side in sides:
+            row=indexed.get((kind,side))
+            if not row:failures.append(f"binding {kind}/{side}: missing");continue
+            if "error" in row or row["startup"]!=startup:failures.append(f"binding {kind}/{side}: {row.get('error',row['startup'])}")
+            if any(item["exit"] for item in row["test"]):failures.append(f"binding {kind}/{side}: --test failed")
+            if any(item.get("forced") for item in row["cleanup"]):failures.append(f"binding {kind}/{side}: forced cleanup")
+    return failures
+
+
 def run_profile(root,side,profile,client,server,out):
     out.mkdir()
     text=config(profile)
@@ -384,25 +507,38 @@ def run_profile(root,side,profile,client,server,out):
     process=None
     if profile.get("secondary"):
         ip("addr","add","10.77.0.3/24","brd","+","dev","client0")
+    if profile.get("duplicate"):
+        ip("link","add","duplicate0","type","dummy")
+        ip("addr","add",DOWN+"/24","brd","+","dev","duplicate0")
+        ip("link","set","duplicate0","up")
     try:
         with (out/"daemon.log").open("wb") as log:
-            process=subprocess.Popen(command(root,side,"-k","-C","/m2/relay.conf"),stdout=log,stderr=log,start_new_session=True)
+            process=subprocess.Popen(command(root,side,"-d" if profile.get("debug") else "-k","-C","/m2/relay.conf"),stdout=log,stderr=log,start_new_session=True)
             time.sleep(.18)
             if process.poll() is not None:
                 raise AssertionError(f"daemon startup exit {process.returncode}")
             row["started"]=True
             row["identity"]=process_identity(root,process.pid)
             row["threads"]=len(list(Path(f"/proc/{process.pid}/task").iterdir()))
+            row["startup_heartbeat"]=heartbeat()
+            row["fd_start_samples"]=descriptors(process.pid)
+            row["fd_start"]=row["fd_start_samples"]["floor"]
             for item in profile["cases"]:
                 if item["after"]=="invalidate":
                     ip("addr","add","10.77.0.99/24","dev","client0")
                     time.sleep(.12)
                     ip("addr","del","10.77.0.99/24","dev","client0")
                     time.sleep(.12)
+                elif item["after"]=="down-interface":
+                    ip("link","set","client0","down")
+                    time.sleep(.12)
+                elif item["after"]=="noaddress":
+                    ip("addr","del",DOWN+"/24","dev","client0")
+                    time.sleep(.12)
                 client.call(op="take");server.call(op="take")
                 value=bytes.fromhex(item["packet"]).replace(b"IFID",struct.pack("!I",socket.if_nametoindex("client0")))
                 peer=client if item["sender"]=="client" else server
-                peer.call(op="send",packet=value.hex(),port=item["source_port"],destination=item["destination"])
+                peer.call(op="send",packet=value.hex(),port=item["source_port"],destination=item["destination"],source_address=item["source_address"])
                 time.sleep(.12)
                 observed={"upstream":server.call(op="take")["packets"],"downstream":client.call(op="take")["packets"]}
                 # Linux loops a peer's own emitted limited broadcast into
@@ -415,7 +551,13 @@ def run_profile(root,side,profile,client,server,out):
                 row["cases"].append({"name":item["name"],"request":value.hex(),"observed":observed,
                                      "peer_echo":echo,
                                      "alive":process.poll() is None,"heartbeat":heartbeat()})
+                if item["after"]=="down-interface":
+                    ip("link","set","client0","up")
+                elif item["after"]=="noaddress":
+                    ip("addr","add",DOWN+"/24","brd","+","dev","client0")
             row["lease_file_exists"]=(root/"m2/relay.leases").exists()
+            row["fd_end_samples"]=descriptors(process.pid)
+            row["fd_end"]=row["fd_end_samples"]["floor"]
     except Exception as error:
         row["error"]=repr(error)
     finally:
@@ -424,6 +566,9 @@ def run_profile(root,side,profile,client,server,out):
         row["pid_removed"]=not (root/"m2/relay.pid").exists()
         if profile.get("secondary"):
             ip("addr","del","10.77.0.3/24","dev","client0")
+        if profile.get("duplicate"):
+            ip("link","del","duplicate0")
+            row["duplicate_warning_count"]=(out/"daemon.log").read_text(errors="replace").count("appears on more than one interface")
     save(out/"result.json",row)
     return row
 
@@ -440,7 +585,9 @@ def evaluate(rows,profiles,sides):
             if not row.get("started") or "error" in row:errors.append(f"{key}: {row.get('error','not started')}")
             if row.get("test",{}).get("exit")!=0:errors.append(f"{key}: --test rejected")
             if row.get("threads")!=1:errors.append(f"{key}: main thread count")
-            if row.get("lease_file_exists"):errors.append(f"{key}: relay-only created leasefile")
+            if row.get("lease_file_exists") and not profile.get("local_server"):errors.append(f"{key}: relay-only created leasefile")
+            if row.get("fd_end",0)>row.get("fd_start",0):errors.append(f"{key}: descriptor count grew")
+            if profile.get("duplicate") and row.get("duplicate_warning_count")!=1:errors.append(f"{key}: duplicate address warning count")
             if not row.get("pid_removed"):errors.append(f"{key}: PID remains")
             if row.get("cleanup",{}).get("forced") or row.get("cleanup",{}).get("returncode")!=0:errors.append(f"{key}: cleanup")
             actual={case["name"]:case for case in row["cases"]}
@@ -465,13 +612,18 @@ def negative_controls(rows,profiles):
     controls=[]
     position=next((i for i,row in enumerate(rows) if row["side"]=="rust" and any(case["observed"]["upstream"] for case in row["cases"])),None)
     if position is None:return {"passed":False,"error":"missing positive forwarding"}
-    for name in ["hops","giaddr","port","missing-packet","extra-packet","missing-side","missing-case","not-alive","cleanup"]:
+    for name in ["hops","giaddr","port","destination","missing-packet","extra-packet","missing-side","missing-case","not-alive","cleanup","option82"]:
         altered=copy.deepcopy(rows);row=altered[position]
+        if name=="option82":
+            row=next(row for row in altered if row["side"]=="rust" and row["profile"]=="split-request")
         case=next(case for case in row["cases"] if case["observed"]["upstream"])
         packets=case["observed"]["upstream"]
         if name in ["hops","giaddr"]:
             value=bytearray.fromhex(packets[0]["packet"]);value[3 if name=="hops" else 24]^=1;packets[0]["packet"]=value.hex()
         elif name=="port":packets[0]["source"][1]^=1
+        elif name=="destination":packets[0]["destination"][0]="192.0.2.99"
+        elif name=="option82":
+            value=bytearray.fromhex(packets[0]["packet"]);value[250]^=1;packets[0]["packet"]=value.hex()
         elif name=="missing-packet":packets.clear()
         elif name=="extra-packet":packets.append(copy.deepcopy(packets[0]))
         elif name=="missing-side":altered.pop(position)
@@ -493,7 +645,7 @@ def main(args):
     sides=["c","rust"] if args.side=="both" else [args.side]
     profiles=[profile for profile in scenarios() if not args.profile or profile["name"] in args.profile]
     save(out/"manifest.json",{"profiles":profiles,"sides":sides,"c_sha256":STOCK_SHA256,"rust_sha256":sha256(args.rust),"elf_bytes":args.rust.stat().st_size,"tool_sha256":sha256(__file__)})
-    rows=[];errors=[];cleanup={};client=server=None;grammar=[]
+    rows=[];errors=[];cleanup={};client=server=None;grammar=[];binding=[]
     grammar_items=[] if args.profile else grammar_cases()
     try:
         for item in grammar_items:
@@ -501,6 +653,9 @@ def main(args):
                 grammar.append(run_grammar(root,side,item,out/f"grammar-{item['name']}-{side}"))
         client=Peer("client0",DOWN,CLIENT);server=Peer("server0",UP,SERVER)
         save(out/"interfaces.json",[{"index":index,"name":name} for index,name in socket.if_nameindex()])
+        if not args.profile:
+            for kind in ["external-conflict","default-exclusive","bind-interfaces","bind-dynamic"]:
+                for side in sides:binding.append(run_binding(root,side,kind,out/f"binding-{kind}-{side}"))
         for profile in profiles:
             for side in sides:
                 row=run_profile(root,side,profile,client,server,out/f"{profile['name']}-{side}")
@@ -513,11 +668,12 @@ def main(args):
                 try:cleanup[name]=peer.close()
                 except Exception as error:cleanup[name]={"error":repr(error)}
     errors+=evaluate(rows,profiles,sides)+grammar_errors(grammar,grammar_items,sides)
+    if not args.profile:errors+=binding_errors(binding,sides)
     for name,result in cleanup.items():
         if result.get("actor_exit")!=0 or "error" in result or result.get("namespace",{}).get("forced"):errors.append(f"{name}: namespace cleanup")
     controls=negative_controls(rows,profiles) if len(sides)==2 else {"passed":False,"not_executed":"reference-only run"}
     if len(sides)==2 and not controls["passed"]:errors.append("negative controls")
-    result={"passed":not errors and len(sides)==2,"reference_checks_passed":not errors,"comparison_executed":len(sides)==2,"errors":errors,"rows":rows,"grammar":grammar,"cleanup":cleanup,"negative_controls":controls,"profiles":len(profiles),"cases":sum(len(profile["cases"]) for profile in profiles)}
+    result={"passed":not errors and len(sides)==2,"reference_checks_passed":not errors,"comparison_executed":len(sides)==2,"errors":errors,"rows":rows,"grammar":grammar,"binding":binding,"cleanup":cleanup,"negative_controls":controls,"profiles":len(profiles),"cases":sum(len(profile["cases"]) for profile in profiles)}
     save(out/"result.json",result)
     print(json.dumps({key:result[key] for key in ["passed","reference_checks_passed","cases","errors"]}))
     return 0 if not errors else 1
