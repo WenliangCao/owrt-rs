@@ -1300,8 +1300,9 @@ impl LocalProvider {
         // do_options checks the original netid head, not tag-if additions.
         self.force_broadcast = self.config.force_broadcast_for(&tags);
         TagIf::apply_all(&self.config.tag_if, &mut tags);
-        let ignored = configured.is_some_and(|host| host.ignore)
-            || self.config.ignore.iter().any(|rule| rule.matches(&tags));
+        // PXE checks dhcp-ignore here; CONFIG_DISABLE belongs to the
+        // later ordinary DHCP/BOOTP state path in rfc2131.c.
+        let ignored = self.config.ignore.iter().any(|rule| rule.matches(&tags));
         let pxe_listener = dispatch.ingress.listener == super::service::Listener::Pxe;
         let decision = if self.config.pxe.enabled || pxe_listener {
             pxe::decide(
@@ -1459,7 +1460,7 @@ impl LocalProvider {
             interface,
             authoritative: self.config.authoritative,
             unicast_destination: dispatch.ingress.unicast_destination,
-            ignored,
+            ignored: ignored || configured.is_some_and(|host| host.ignore),
             ignore_client_id: self.config.ignore_client_id,
             fqdn_only: self.config.fqdn_only,
             rapid_commit: self.config.rapid_commit,
@@ -1889,7 +1890,7 @@ impl OutcomeProvider for LocalProvider {
         let mut present = [false; 256];
         let mut values = Vec::new();
         if let Some(context) = reply.context {
-            let configured = super::runtime::encode_filtered_options(
+            let configured = super::runtime::encode_filtered_options_with_pxe(
                 packet,
                 Reply::Inform {
                     context: Some(context),
@@ -1903,6 +1904,7 @@ impl OutcomeProvider for LocalProvider {
                 true,
                 &mut [None, None],
                 &mut None,
+                &PxeEncoding::ordinary(None, &self.config.pxe.vendors, &[]),
             );
             for (code, address) in [
                 (1, Some(ranges[context].netmask)),
