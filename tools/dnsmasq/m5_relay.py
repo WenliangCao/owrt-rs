@@ -89,7 +89,8 @@ def actor():
                             source.bind((request["source_address"],request.get("port",68)))
                             source.sendto(bytes.fromhex(request["packet"]),tuple(request["destination"]))
                     else:
-                        sockets[request.get("port", 68)].sendto(bytes.fromhex(request["packet"]), tuple(request["destination"]))
+                        for _ in range(request.get("copies",1)):
+                            sockets[request.get("port", 68)].sendto(bytes.fromhex(request["packet"]), tuple(request["destination"]))
                     result = {"sent": True}
                 elif request["op"] == "take":
                     result = {"packets": rows[:]}
@@ -211,7 +212,7 @@ def scenarios():
     serial = 0
 
     def case(name, *, upstream=1, downstream=0, sender="client", port=None, destination=None,
-             after=None, raw=None, source_address=None, **fields):
+             after=None, raw=None, source_address=None, copies=1, **fields):
         nonlocal serial
         serial += 1
         value = bytearray(raw) if raw is not None else packet(**fields)
@@ -221,7 +222,7 @@ def scenarios():
                 "source_port": port if port is not None else (68 if sender == "client" else 67),
                 "destination": destination or [DOWN if sender == "client" else UP, 67],
                 "upstream": upstream, "downstream": downstream, "after": after,
-                "source_address": source_address}
+                "source_address": source_address,"copies":copies}
 
     def reply(name, **kwargs):
         kwargs.setdefault("giaddr", DOWN)
@@ -233,7 +234,7 @@ def scenarios():
 
     normal = [f"dhcp-relay={DOWN},{SERVER}"]
     prime = lambda: case("prime")
-    raw_cases = [case("basic"), case("hops20", hops=20), case("hops21", hops=21, upstream=0),
+    raw_cases = [case("basic"),case("burst16",upstream=16,copies=16), case("hops20", hops=20), case("hops21", hops=21, upstream=0),
                  case("hops255", hops=255, upstream=0), case("loop", giaddr=DOWN, upstream=0),
                  case("foreign-giaddr", giaddr="192.0.2.1"), case("all-ones", giaddr="255.255.255.255"),
                  case("reply-op", op=2, upstream=0), case("unknown-op", op=3, upstream=0),
@@ -568,7 +569,7 @@ def run_profile(root,side,profile,client,server,out):
                 client.call(op="take");server.call(op="take")
                 value=bytes.fromhex(item["packet"]).replace(b"IFID",struct.pack("!I",socket.if_nametoindex("client0")))
                 peer=client if item["sender"]=="client" else server
-                peer.call(op="send",packet=value.hex(),port=item["source_port"],destination=item["destination"],source_address=item["source_address"])
+                peer.call(op="send",packet=value.hex(),port=item["source_port"],destination=item["destination"],source_address=item["source_address"],copies=item["copies"])
                 time.sleep(.12)
                 observed={"upstream":server.call(op="take")["packets"],"downstream":client.call(op="take")["packets"]}
                 # Linux loops a peer's own emitted limited broadcast into
