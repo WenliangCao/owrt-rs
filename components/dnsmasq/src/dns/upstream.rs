@@ -14,7 +14,7 @@ use super::forward::{
     SendPlan, ServerId, SocketToken, Submission, ABSOLUTE_TIMEOUT,
 };
 use super::forward_service::{DispatchError, ForwardDispatcher};
-use super::wire::{Header, WireError};
+use super::wire::{Header, Name, WireError};
 use owrt_ubus::sys::{PollFd, POLLERR, POLLHUP, POLLIN};
 use std::collections::{HashMap, VecDeque};
 use std::fs::File;
@@ -185,6 +185,8 @@ pub fn tcp_exchange(
 #[derive(Debug)]
 pub struct UncheckedReply {
     pub packet: Vec<u8>,
+    /// Move the already-owned upstream question here for relative case restoration.
+    pub upstream_name: Name,
     /// Whether the authenticated UDP response carried DNS header TC.
     ///
     /// The exact OpenWrt `nodhcpv6` build has no `HAVE_DNSSEC`, so C returns
@@ -884,6 +886,7 @@ impl<R: Random> UpstreamResolver<R> {
                             cache_eligible: super::forward_service::ordinary_cache_query(
                                 &pending.packet,
                             ),
+                            upstream_name: pending.question.name,
                             recipients: pending.recipients,
                         }),
                     });

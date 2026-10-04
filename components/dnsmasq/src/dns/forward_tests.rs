@@ -370,7 +370,8 @@ fn case_restore_handles_compressed_question_and_more_than_32_letters() {
         original_id: 7,
         question_name: Name::from_ascii(original).unwrap(),
     };
-    recipient.restore_question(&mut packet).unwrap();
+    let upstream = Question::parse(&packet).unwrap().name;
+    recipient.restore_question(&mut packet, &upstream).unwrap();
     assert_eq!(packet, before);
     let mut compressed = vec![0; 12];
     Header {
@@ -387,7 +388,10 @@ fn case_restore_handles_compressed_question_and_more_than_32_letters() {
             .unwrap()
             .as_wire(),
     );
-    recipient.restore_question(&mut compressed).unwrap();
+    let upstream = Question::parse(&compressed).unwrap().name;
+    recipient
+        .restore_question(&mut compressed, &upstream)
+        .unwrap();
     assert_eq!(
         Question::parse(&compressed).unwrap().name,
         recipient.question_name
@@ -539,4 +543,26 @@ fn ipv6_flowinfo_is_not_part_of_endpoint_but_scope_is() {
     let c = SocketAddr::V6(SocketAddrV6::new(Ipv6Addr::LOCALHOST, 53, 1, 3));
     assert!(same_endpoint(a, b));
     assert!(!same_endpoint(a, c));
+}
+
+#[test]
+fn disabled_encoding_preserves_upstream_case_changes_for_each_recipient() {
+    let upstream = Name::from_ascii("first.example").unwrap();
+    for (client_name, expected) in [
+        ("first.example", "First.example"),
+        ("FIRST.example", "fIRST.example"),
+    ] {
+        let recipient = Recipient {
+            client: client(1),
+            original_id: 7,
+            question_name: Name::from_ascii(client_name).unwrap(),
+        };
+        let mut packet = query("First.example", 42);
+        recipient.restore_question(&mut packet, &upstream).unwrap();
+        assert_eq!(Header::parse(&packet).unwrap().id, 7);
+        assert_eq!(
+            Question::parse(&packet).unwrap().name,
+            Name::from_ascii(expected).unwrap()
+        );
+    }
 }

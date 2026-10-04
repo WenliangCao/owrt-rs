@@ -795,7 +795,7 @@ impl<R: Random> DnsDaemon<R> {
         rcode: u16,
     ) -> Result<Option<Vec<u8>>, DaemonError> {
         let mut packet = reply.packet.clone();
-        recipient.restore_question(&mut packet)?;
+        recipient.restore_question(&mut packet, &reply.upstream_name)?;
         let envelope = prepare_udp_reply(
             &packet,
             ReplyPolicy {

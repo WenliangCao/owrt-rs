@@ -98,11 +98,11 @@ pub struct Recipient {
 }
 
 impl Recipient {
-    /// Restore only ID and the question's ASCII case. Compression references in
-    /// the reply remain valid, including answer names referring to the question.
-    /// Check before mutation, so a non-matching name cannot partially change it.
-    pub fn restore_question(&self, packet: &mut [u8]) -> Result<(), WireError> {
-        restore_name_case(packet, &self.question_name)?;
+    /// Apply the client/upstream case difference, preserving any accepted
+    /// upstream case changes when 0x20 authentication is disabled. Compression
+    /// references remain valid; name validation precedes all mutation.
+    pub fn restore_question(&self, packet: &mut [u8], upstream: &Name) -> Result<(), WireError> {
+        restore_name_case(packet, &self.question_name, upstream)?;
         packet[..2].copy_from_slice(&self.original_id.to_be_bytes());
         Ok(())
     }
@@ -805,12 +805,13 @@ pub fn flip_question_case(packet: &mut [u8], bitmap: &[u32]) -> Result<(), WireE
     Ok(())
 }
 
-fn restore_name_case(packet: &mut [u8], original: &Name) -> Result<(), WireError> {
+fn restore_name_case(packet: &mut [u8], original: &Name, upstream: &Name) -> Result<(), WireError> {
     let (current, _) = decode_name(packet, HEADER_LEN, 0)?;
-    if !current.eq_ignore_ascii_case(original) {
+    if !current.eq_ignore_ascii_case(original) || !upstream.eq_ignore_ascii_case(original) {
         return Err(WireError::InvalidName);
     }
     let original = original.as_wire();
+    let upstream = upstream.as_wire();
     let mut offset = 1;
     let mut left = original[0] as usize;
     visit_label_bytes(packet, |byte| {
@@ -818,7 +819,7 @@ fn restore_name_case(packet: &mut [u8], original: &Name) -> Result<(), WireError
             left = original[offset] as usize;
             offset += 1;
         }
-        *byte = original[offset];
+        *byte ^= original[offset] ^ upstream[offset];
         offset += 1;
         left -= 1;
     });

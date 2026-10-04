@@ -242,7 +242,7 @@ impl ForwardDispatcher {
         let mut replies = Vec::with_capacity(pending.recipients.len());
         for recipient in &pending.recipients {
             let mut restored = packet.to_vec();
-            recipient.restore_question(&mut restored)?;
+            recipient.restore_question(&mut restored, &pending.question.name)?;
             replies.push(ClientReply {
                 client: recipient.client.clone(),
                 original_id: recipient.original_id,
