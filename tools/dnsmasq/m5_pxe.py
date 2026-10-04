@@ -428,6 +428,14 @@ def profiles():
                                     "dhcp-option-pxe=tag:first,225,first","dhcp-option-pxe=tag:second,225,second"],
                             [case("first-matching-proxy")],["CFG-R02","PROXY02"],
                             range_value=f"tag:{first_filter},set:first,10.77.0.1,proxy,255.255.255.0"))
+    rows.extend([
+        profile("boot-item-optional-architecture",legacy,[
+            case("no-architecture",kind=3,arch=None,ciaddr=CLIENT,boot_item=item()),
+            case("short-architecture",kind=8,arch=b"\x00",ciaddr=CLIENT,boot_item=item(),listener=4011),
+        ],["BOOT01","RX02"]),
+        profile("ordinary-no-prl-capacity",legacy+["dhcp-option=224,"+"a"*220,"dhcp-option=225,"+"b"*100],
+                [case("no-prl-reserves-fixed-fields",prl=None)],["NOOVERRIDE02"],mode="dynamic"),
+    ])
     for kind in ["external-conflict","default-exclusive","bind-interfaces","bind-dynamic"]:
         rows.append(profile("bind-4011-"+kind,[],[],["START02","OWNER01"],mode="none",bind_kind=kind))
     return rows
