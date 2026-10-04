@@ -1458,7 +1458,8 @@ impl SinglePoll {
                 .as_ref()
                 .map(|(name, loopback)| (name.as_slice(), *loopback)),
         ) {
-            let _ = stream.shutdown(std::net::Shutdown::Both);
+            // C closes a rejected connection directly. Explicit shutdown
+            // would turn a close with unread request bytes (RST) into FIN.
             return;
         }
         let local_network = listeners::local_network(&interfaces, destination.ip());
