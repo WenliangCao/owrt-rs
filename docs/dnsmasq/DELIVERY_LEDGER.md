@@ -3,11 +3,11 @@
 ## 当前状态与下一步
 
 - 当前里程碑：M5；169 项中 **68 项已关闭、64 项部分实现、37 项未实现，剩余 101 项**。
-- 刚关闭：fast-dns-retry与修复后的local-service共2项；第二批矩阵5项全部闭合。24671034受影响批次32配置／193观察、31负控严格通过，定向双栈idle/queued另4行通过；旧FIN/RST归一化已撤销。
+- 刚关闭：本次无功能项新增。Oracle已删除218个经Cargo标记/路径/无活引用复核的可重建target，共39,343,943,680字节；identity、matrix、relay及近期回归的已归档runs也经完整SHA复核后清理。
 - 当前代码：产品冻结候选 `f1668e28`，ELF SHA256 `9c73a0d979aa1faa79b542fc08bb34f45a716d8bba2a89153ff61d841ed2ebd5`，1,396,848字节（本次relay接线段+20,480，case修复+0，M4+237,568）。随后local-service拒绝TCP连接修复已构建为 `24671034` / SHA256 `99aaa63c4325389349cf00005b5c89accee6d1eeada14eb9e6fef8246d4f0dd3`，体积不变；相同integration目录下保留构建和ELF。Oracle产物在 `/home/ubuntu/m5-root-20261004/f1668e28/`，本地在 `evidence/M5/integration-20261004/f1668e28/`；统一库517通过／18忽略、main10通过。上一候选9da20ac0的helper16场景／32侧、boot102事件、leasequery22配置／38查询复跑通过，f166同版六族复跑完成；4,312份证据已回拷校验，汇总见integration-20261004/f1668e28/runs/regression-01/BATCH_VERIFICATION.json。
-- 下一步：DHCP identity族（8项／56条C清单）首个候选38c0050d已构建，准备开始镜像对照；option124 hex union等边界先保留失败再按精确镜像修复。第三批矩阵优先A组address/local/bogus-nxdomain，先冻结C清单再对照；PXE族只准备清单/API。上一批f166统一六族全部通过，246只重跑受影响DNS选项已通过。
-- 阻塞点：Oracle ENOSPC已通过删除各自已归档的可重建rootfs/构建缓存缓解，可用约1GiB；另23份已完成副本已清理、/m2末态回拷并校验。f1668e28统一回归完成（库517通过／18忽略、main10通过），已回收完成副本且无残留进程。无须用户决定。物理路由器未操作。
-- 活跃分工：relay及第二批matrix任务均已完成，按规则归档清理。`m5/dhcp-identity` / `worktrees/m5-dhcp-identity` 实现与接线（dhcp_identity），`m5/dhcp-identity-harness` 独立子树只扩展族测试器；`m5/pxe` / `worktrees/m5-pxe`（relay_checklist）仅准备C清单/API，未开工产品。`m5/option-matrix-3` / `worktrees/m5-option-matrix-3`（option_matrix）只改矩阵工具与manifest，候选沿用24671034；主代理统一公共接线。上述worktree均在 `private/dnsmasq-rewrite/` 下。
+- 下一步：急清理完成：218个target与61个历史已归档run已删除；共享target release重建与原f166 ELF逐字SHA相同，tests模式实际产生可运行的lib/main测试ELF。只读共享基底仅准备一次（保留旧夹具root:root所有权），每轮overlay；双根C/Rust查询、lower只读、写入/whiteout隔离及原镜像1225项完整性验证通过，基础设施验证批也已回拷逐项验SHA/metadata并清理。现在恢复identity最终修复镜像、PXE接线和第三批地址政策矩阵。
+- 阻塞点：无。清理结束Oracle `/` 实测可用43,216,506,880字节（40.25GiB），使用率约80%；唯一共享target约454MiB已计入。磁盘不足造成的casing-02与relay paired-03都发生在rootfs准备阶段，零产品观察，后续同候选复跑已通过；ENOSPC审计保存在oracle-cleanup-20261004/enospc-audit.json。物理路由器及r85/netifd/reload/sdk/owrt-evidence内容未修改或删除。
+- 活跃分工：relay及第二批matrix任务均已完成，按规则归档清理。`m5/dhcp-identity` / `worktrees/m5-dhcp-identity` 实现与接线（dhcp_identity），identity/harness已合入父分支并归档清理；`m5/pxe` / `worktrees/m5-pxe`（relay_checklist）55条C清单已冻结，已授权纯模块/族测试器开工。`m5/option-matrix-3` / `worktrees/m5-option-matrix-3`（option_matrix）只改矩阵工具与manifest，候选沿用24671034；主代理统一公共接线。上述worktree均在 `private/dnsmasq-rewrite/` 下。
 
 ## 工作规则
 
@@ -20,6 +20,7 @@
 - 每族开工先从精确 C 调用链列出必须覆盖的边界清单，完成后逐条勾选；审计只核对清单及其证据，发现真实缺陷则重新打开对应项。
 - 通用选项矩阵只纳入「部分实现且没有已知代码缺口」的选项，以代表值比较镜像 C/Rust 启动结果、`--test` 输出和代表性行为；有代码缺口的继续按功能族处理。不可仅凭语法通过关闭运行时合同。
 - Oracle 上不同功能族使用各自独立 namespace 并行对照；正式资源/性能窗口仍排除其他负载。
+- Oracle 的 dnsmasq 构建统一使用 `/home/ubuntu/dnsmasq-cargo-target` 作为唯一 `CARGO_TARGET_DIR`，统一入口为 [oracle_build.sh](../../tools/dnsmasq/oracle_build.sh)（release或tests；tests复制测试ELF后再运行），构建和产物复制在同一锁内，不再在每轮目录新建target。旧驱动若显式传独立`--target-dir`必须先改为此共享目录，fuzz也不能另建target。镜像rootfs使用一次性准备的只读共享基底`/home/ubuntu/dnsmasq-image-bases/`（内容/mode/mtime匹配镜像，root:root所有权保持旧夹具语义）加每轮临时overlay，不再整份复制。namespace退出后`rootfs`挂载点为空，变化在`rootfs-overlay/upper`；归档upper须用保留xattr/whiteout/链接和权限的tar，不能把设备节点当普通文件复制。每批运行结束后，先将全部所需证据、运行末态和身份回拷到本地evidence并逐文件校验SHA，再立即删除对应远端运行目录和overlay；未回拷或SHA不符的不能删。清理限dnsmasq M2–M5可重建缓存/已归档运行目录，不碰r85、netifd、reload、sdk、owrt-evidence等无关目录。磁盘不足期间的失败必须核查ENOSPC，并在恢复空间后重跑受影响且未完成的对照。
 - 已实现但未对照的功能族不得继续累积。当前先修 helper、TFTP，再完成 RR filter 与 leasequery daemon 级镜像 C 对照；这批通过后再推进下一批。以后每完成两族就统一接线和镜像 C 对照，体积逐族记录，M5 结束时汇总，不为体积中途暂停。
 - M5 新功能必须接入单一 poll owner，不加线程、不阻塞等待。每个功能族维护一个族级镜像 C 差分测试器；先读精确匹配的 C 调用链，再实现。原版缺陷保留最小复现，单独记录行为差异。
 - 原始证据统一保存在 `private/dnsmasq-rewrite/evidence/M5/`（即 `evidence/M5/`），不散落在临时 worktree；Git 仅提交代码、工具和脱敏报告。用户 `docs/prompts/` 的修改保持原样。
@@ -131,7 +132,7 @@ M5 退出条件：169项全部实现并有C差分，或已证明与C一致的拒
 | `filterwin2k` | A / 986 | DNS 记录/策略 | 未实现 | 当前无通过证据；No typed policy consumer: load falls through to generic option-is-not-implemented rejection. Must cover local answers, cache extraction/replay, upstream filtering and ANY/DO exceptions. |
 | `host-record` | A / 808 | DNS 记录/策略 | 已实现，有C差分 | [M5 paired-04](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)；多地址、PTR owner/order、TTL 全宽度和本地查询行为通过。 |
 | `interface-name` | A / 228 | DNS 记录/策略 | 未实现 | [source-extracted](../../docs/dnsmasq/INTERFACE_NAME_SOURCE_REVIEW.md)；Metadata only; no parser or dynamic interface-derived record state. Need netlink IPv6 flags, no-address existence, PTR precedence and TCP inherited snapshot semantics. |
-| `local` | A / 175,1037 | DNS 记录/策略 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-dns/summary.json)；Local/domain routing is wired and has exact-source primitive and native daemon coverage; full option matrix against image C missing (wildcards, family priority, empty/null literal, classes, rebind interoperation). |
+| `local` | A / 175,1037 | DNS 记录/策略 | 部分实现 | local-only和数值endpoint已接入，待镜像矩阵；精确C local非空尾部继承server的hostname/scope/@source语法，Rust validate_ready/routing仍拒绝这些endpoint。存在真实代码缺口，移入server/resolv/source endpoint族，不能只凭local=/domain/通过关闭。 |
 | `local-ttl` | A / 1078 | DNS 记录/策略 | 已实现，有C差分 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-dns/summary.json)；Default local TTL reaches configured records/hosts and exact image queries; option override parsing covered. DHCP-specific TTL contract is separately owned. |
 | `localise-queries` | A / 992 | DNS 记录/策略 | 已实现，有C差分 | [M5 补正矩阵](../../private/dnsmasq-rewrite/evidence/M5/option-matrix/run-07-localise/result.json)；3配置／12行，hosts及两条同名host-record子网内外地址，启用/禁用基线和UDP/TCP通过，4条C清单全部关闭；候选14d4e5fa，ELF e78d5f28…750989。 |
 | `max-cache-ttl` | A / 1081 | DNS 记录/策略 | 部分实现 | [source-extracted](../../docs/dnsmasq/DNS_SOURCE_MAP.md)；Cache policy is connected (max clamp before min clamp) with primitive frozen-clock differential; exact image daemon option gate and reverse extraction semantics remain. |
