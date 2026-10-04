@@ -107,6 +107,31 @@ pub struct MaintenanceReport {
     pub name_error: Option<io::Error>,
 }
 
+impl MaintenanceReport {
+    /// A scheduled file generation has not published any state yet.
+    fn pending_files() -> Self {
+        Self {
+            file: PersistReport {
+                attempted: false,
+                error: None,
+                next_event: None,
+                alarm: AlarmAction::Keep,
+            },
+            dns: DnsReport {
+                status: persistence::DnsStatus::Pending,
+                records: 0,
+                error: None,
+            },
+            removed: Vec::new(),
+            lost_names: Vec::new(),
+            restore: None,
+            host_files: Vec::new(),
+            address_error: None,
+            name_error: None,
+        }
+    }
+}
+
 type BootHostLookup = Box<dyn FnMut(&[u8]) -> io::Result<Option<Ipv4Addr>> + Send>;
 type ReverseHostLookup = Box<dyn FnMut(Ipv4Addr) -> io::Result<Option<Vec<u8>>> + Send>;
 
@@ -141,6 +166,13 @@ pub struct LocalProvider {
     ethers: crate::config::ethers::Ethers,
     host_files: HostFiles,
     host_files_ready: bool,
+    file_owner: Option<super::files_runtime::DhcpFiles>,
+    ethers_read: Option<crate::config::ethers::EthersRead>,
+    inline_options: Vec<crate::config::dhcp::DhcpOption>,
+    file_reload_pending: bool,
+    file_init_ready: bool,
+    file_runnable: bool,
+    file_scripts_pending: bool,
     reserved: Vec<Ipv4Addr>,
     domains: NameDomains,
     reply_hostname: Option<Vec<u8>>,
@@ -238,6 +270,13 @@ impl LocalProvider {
             ethers: crate::config::ethers::Ethers::new(&config.hosts),
             host_files: HostFiles::new(&config.host_files),
             host_files_ready: true,
+            file_owner: None,
+            ethers_read: None,
+            inline_options: config.options.clone(),
+            file_reload_pending: false,
+            file_init_ready: true,
+            file_runnable: false,
+            file_scripts_pending: false,
             reserved: config
                 .hosts
                 .iter()
@@ -633,9 +672,161 @@ impl LocalProvider {
         }
     }
 
+    /// Attach file input to the single poll owner after privilege setup.
+    /// The initial bank must finish before the normal initialize stage.
+    pub fn start_file_owner(&mut self) -> io::Result<()> {
+        let mut files = super::files_runtime::DhcpFiles::new(
+            &self.config.host_files,
+            &self.config.option_files,
+            &self.config.dynamic_dirs,
+        )?;
+        files.begin_reload(&self.ethers.file_bank_base(&self.config.hosts));
+        self.file_owner = Some(files);
+        self.file_init_ready = false;
+        self.file_runnable = true;
+        Ok(())
+    }
+
+    pub fn files_initializing(&self) -> bool {
+        !self.file_init_ready
+    }
+
+    pub fn file_work_pending(&self) -> bool {
+        self.file_reload_pending
+            || self.ethers_read.is_some()
+            || self.file_owner.as_ref().is_some_and(|files| files.busy())
+    }
+
+    pub fn files_runnable(&self) -> bool {
+        self.file_reload_pending || self.file_runnable
+    }
+
+    pub fn append_file_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>) {
+        if let Some(reader) = &self.ethers_read {
+            reader.append_poll_fds(fds);
+        } else if let Some(files) = &self.file_owner {
+            files.append_poll_fds(fds);
+        }
+    }
+
+    /// At most one file/directory/event turn; packets and helper work run
+    /// between these turns. During ICMP waits this method is never entered.
+    pub fn step_files(&mut self, now: i64) -> Option<MaintenanceReport> {
+        if let Some(reader) = &mut self.ethers_read {
+            let done = reader.step();
+            self.file_runnable = reader.runnable();
+            if !done {
+                return None;
+            }
+            let (ethers, bad) = self.ethers_read.take().unwrap().into_result();
+            self.ethers = ethers;
+            let errors = bad
+                .into_iter()
+                .map(|line| HostFileError {
+                    path: "/etc/ethers".into(),
+                    line: Some(line),
+                    kind: crate::config::dhcp::HostFileErrorKind::Line(crate::config::Error(
+                        "bad ethers entry",
+                    )),
+                })
+                .collect();
+            return Some(self.finish_file_update(now, true, true, errors));
+        }
+        let files = self.file_owner.as_mut()?;
+        if self.file_reload_pending && !files.busy() {
+            files.begin_reload(&self.ethers.file_bank_base(&self.config.hosts));
+            self.file_reload_pending = false;
+        }
+        let step = files.step(&self.config.hosts);
+        self.file_runnable = step.runnable;
+        for diagnostic in step.diagnostics {
+            eprintln!("dnsmasq-rs: {diagnostic}");
+        }
+        let update = step.update?;
+        if update.replacement {
+            self.ethers
+                .replace_file_bank(update.hosts, &self.config.hosts);
+            self.config.options = update.options;
+            self.config.options.extend_from_slice(&self.inline_options);
+        } else {
+            self.ethers
+                .append_file_bank(update.hosts, &self.config.hosts);
+            let mut options = update.options;
+            options.append(&mut self.config.options);
+            self.config.options = options;
+        }
+        let mut errors = Vec::new();
+        if update.replacement && self.config.read_ethers {
+            match self.ethers.begin_read(Path::new("/etc/ethers")) {
+                Ok(reader) => {
+                    self.file_runnable = reader.runnable();
+                    self.ethers_read = Some(reader);
+                    return None;
+                }
+                Err(error) => errors.push(HostFileError {
+                    path: "/etc/ethers".into(),
+                    line: None,
+                    kind: crate::config::dhcp::HostFileErrorKind::Io(error),
+                }),
+            }
+        }
+        Some(self.finish_file_update(now, update.replacement, update.refresh_hosts, errors))
+    }
+
+    fn finish_file_update(
+        &mut self,
+        now: i64,
+        replacement: bool,
+        refresh_hosts: bool,
+        errors: Vec<HostFileError>,
+    ) -> MaintenanceReport {
+        if replacement {
+            self.ethers.clear_inferred_addresses();
+        }
+        self.hosts = self
+            .ethers
+            .hosts()
+            .iter()
+            .zip(self.ethers.previous_indices())
+            .map(|(host, previous)| {
+                let mut policy = host_policy(host);
+                policy.declined_at = previous.and_then(|index| self.hosts[index].declined_at);
+                policy
+            })
+            .collect();
+        self.config.hosts = self.ethers.hosts().to_vec();
+        self.host_files_ready = true;
+        self.file_init_ready = true;
+        let mut report = if !self.initialized {
+            self.initialize(now)
+        } else if refresh_hosts {
+            let address_error = self.update_configured_addresses();
+            let name_error = self
+                .host_files_ready
+                .then(|| self.update_configured_names())
+                .flatten();
+            let mut report = self.maintain(now, Vec::new(), true);
+            report.address_error = address_error;
+            report.name_error = name_error;
+            self.queue_script_from_maintenance();
+            report
+        } else {
+            MaintenanceReport::pending_files()
+        };
+        report.host_files.extend(errors);
+        if self.file_scripts_pending && !self.file_work_pending() {
+            self.file_scripts_pending = false;
+            self.rerun_scripts();
+        }
+        report
+    }
+
     /// Complete startup after socket setup and publisher attachment. Calling
     /// it again is harmless and does not replay removed-lease ownership.
     pub fn initialize(&mut self, now: i64) -> MaintenanceReport {
+        if !self.file_init_ready {
+            return MaintenanceReport::pending_files();
+        }
         let first = !self.initialized;
         let mut host_files = Vec::new();
         let mut address_error = None;
@@ -643,7 +834,9 @@ impl LocalProvider {
         if !self.initialized {
             self.leases
                 .initialize_fqdns(|address| self.domains.for_address(address));
-            host_files = self.reread_host_files();
+            if self.file_owner.is_none() {
+                host_files = self.reread_host_files();
+            }
             if self.host_files_ready {
                 address_error = self.update_configured_addresses();
             }
@@ -931,12 +1124,20 @@ impl LocalProvider {
     /// EVENT_RELOAD reruns unchanged leases after its DNS file reads. A
     /// successful automatic resolver reload only reloads data, without this.
     pub fn rerun_scripts(&mut self) {
+        if self.file_work_pending() {
+            self.file_scripts_pending = true;
+            return;
+        }
         self.leases.rerun_scripts();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         self.queue_script_from_maintenance();
     }
 
     pub fn reload_data_files(&mut self, now: i64) -> MaintenanceReport {
+        if self.file_owner.is_some() {
+            self.file_reload_pending = true;
+            return MaintenanceReport::pending_files();
+        }
         if !self.initialized {
             return self.initialize(now);
         }
@@ -961,6 +1162,9 @@ impl LocalProvider {
     /// Perform expiry and retry maintenance even when no DHCP packet arrives.
     /// The caller owns returned removals/name losses until cleanup completes.
     pub fn tick(&mut self, now: i64) -> Option<MaintenanceReport> {
+        if self.file_work_pending() {
+            return None;
+        }
         if !self.initialized {
             return Some(self.initialize(now));
         }

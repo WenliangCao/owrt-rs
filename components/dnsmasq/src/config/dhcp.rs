@@ -544,12 +544,26 @@ impl DhcpConfig {
                     HostConfig::parse(argument.ok_or(Error("missing parameter"))?, &self.hosts)?;
                 self.hosts.insert(0, host);
             }
-            b"dhcp-hostsfile" => {
+            b"dhcp-hostsfile" | b"dhcp-optsfile" => {
                 let value = argument.ok_or(Error("missing parameter"))?.decoded();
-                if value.is_empty() || value == b"-" {
-                    return Err(Error("DHCP hosts file requires a nonempty file path"));
+                if directive.name == b"dhcp-hostsfile" {
+                    self.host_files.insert(0, value);
+                } else {
+                    self.option_files.insert(0, value);
                 }
-                self.host_files.insert(0, value);
+            }
+            b"dhcp-hostsdir" | b"dhcp-optsdir" => {
+                self.dynamic_dirs.insert(
+                    0,
+                    DynamicFileDirectory {
+                        kind: if directive.name == b"dhcp-hostsdir" {
+                            DynamicFileKind::Hosts
+                        } else {
+                            DynamicFileKind::Options
+                        },
+                        path: argument.ok_or(Error("missing parameter"))?.decoded(),
+                    },
+                );
             }
             b"dhcp-script" => {
                 self.script = Some(argument.ok_or(Error("missing parameter"))?.decoded());
@@ -558,7 +572,7 @@ impl DhcpConfig {
                 self.script_user = Some(argument.ok_or(Error("missing parameter"))?.decoded());
             }
             b"script-on-renewal" => self.script_on_renewal = true,
-            b"dhcp-hostsdir" | b"dhcp-optsfile" | b"dhcp-optsdir" | b"dhcp-reply-delay" => {
+            b"dhcp-reply-delay" => {
                 return Err(Error(
                     "DHCP option is parsed but runtime wiring is not complete",
                 ));

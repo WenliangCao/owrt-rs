@@ -714,19 +714,6 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     } else {
         None
     };
-    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    if let Some(provider) = dhcp_runtime
-        .as_ref()
-        .and_then(|dhcp| dhcp.provider.as_ref())
-    {
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .map_or(0, |time| time.as_secs() as i64);
-        let mut provider = provider
-            .lock()
-            .map_err(|_| io::Error::other("DHCP state lock poisoned"))?;
-        report_dhcp_maintenance(&provider.initialize(now));
-    }
     #[cfg(target_os = "linux")]
     let capabilities = dnsmasq_rs::startup::network_capabilities(
         !runtime.dhcp.ranges.is_empty() || !runtime.dhcp.relay.is_empty(),
@@ -776,6 +763,16 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         })?;
     #[cfg(target_os = "linux")]
     dns_files.request(ReloadReason::Init);
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    if let Some(provider) = dhcp_runtime
+        .as_ref()
+        .and_then(|dhcp| dhcp.provider.as_ref())
+    {
+        provider
+            .lock()
+            .map_err(|_| io::Error::other("DHCP state lock poisoned"))?
+            .start_file_owner()?;
+    }
     // The daemon owns all sockets from the foreground loop.  This keeps the
     // runtime at one service thread and makes ordering explicit across DNS,
     // DHCP, TFTP and UBus.
@@ -834,6 +831,8 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     while !STOP_REQUESTED.load(Ordering::Acquire) {
         #[cfg(target_os = "linux")]
         poll.step_dns_files();
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        poll.step_dhcp_files();
         if std::mem::take(&mut poll.full_reload_pending) {
             poll.reload_data(runtime.scalar.local_ttl)?;
         }
@@ -1300,6 +1299,15 @@ impl SinglePoll {
     }
 
     fn files_initializing(&self) -> bool {
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if self
+            .dhcp
+            .as_ref()
+            .and_then(|dhcp| dhcp.provider.as_ref())
+            .is_some_and(|provider| provider.lock().unwrap().files_initializing())
+        {
+            return true;
+        }
         #[cfg(target_os = "linux")]
         {
             self.dns_files.as_ref().is_some_and(DnsFiles::initializing)
@@ -1354,8 +1362,21 @@ impl SinglePoll {
         }
     }
 
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    fn step_dhcp_files(&mut self) {
+        if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
+            if let Some(report) = provider.lock().unwrap().step_files(now_seconds()) {
+                report_dhcp_maintenance(&report);
+            }
+        }
+    }
+
     #[cfg(target_os = "linux")]
     fn append_file_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>) {
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
+            provider.lock().unwrap().append_file_fds(fds);
+        }
         if let Some(files) = &self.dns_files {
             files.append_poll_fds(fds);
         }
@@ -1369,7 +1390,12 @@ impl SinglePoll {
         {
             let mut fds = Vec::new();
             self.append_file_fds(&mut fds);
-            owrt_ubus::sys::poll_fds(&mut fds, if self.files_runnable { 0 } else { 2 })?;
+            let mut runnable = self.files_runnable;
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
+                runnable |= provider.lock().unwrap().files_runnable();
+            }
+            owrt_ubus::sys::poll_fds(&mut fds, if runnable { 0 } else { 2 })?;
         }
         #[cfg(not(target_os = "linux"))]
         thread::park_timeout(Duration::from_millis(2));
@@ -2019,6 +2045,11 @@ impl SinglePoll {
             self.dhcp = Some(dhcp);
             return;
         };
+        if provider.file_work_pending() {
+            drop(provider);
+            self.dhcp = Some(dhcp);
+            return;
+        }
         let now = now_seconds();
         if let Some(report) = provider.tick(now) {
             report_dhcp_maintenance(&report);
