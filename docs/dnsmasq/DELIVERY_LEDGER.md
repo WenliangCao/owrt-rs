@@ -2,12 +2,12 @@
 
 ## 当前状态与下一步
 
-- 当前里程碑：M5；169 项中 **66 项已关闭、66 项部分实现、37 项未实现，剩余 103 项**。
-- 刚关闭：relay三项保持闭合。local-service定向TCP测试证实C/Rust拒绝连接的FIN/RST差异来自显式shutdown，不能归一化隐藏；该项重新打开并已修复，待候选复测。
+- 当前里程碑：M5；169 项中 **68 项已关闭、64 项部分实现、37 项未实现，剩余 101 项**。
+- 刚关闭：fast-dns-retry与修复后的local-service共2项；第二批矩阵5项全部闭合。24671034受影响批次32配置／193观察、31负控严格通过，定向双栈idle/queued另4行通过；旧FIN/RST归一化已撤销。
 - 当前代码：产品冻结候选 `f1668e28`，ELF SHA256 `9c73a0d979aa1faa79b542fc08bb34f45a716d8bba2a89153ff61d841ed2ebd5`，1,396,848字节（本次relay接线段+20,480，case修复+0，M4+237,568）。随后local-service拒绝TCP连接修复已构建为 `24671034` / SHA256 `99aaa63c4325389349cf00005b5c89accee6d1eeada14eb9e6fef8246d4f0dd3`，体积不变；相同integration目录下保留构建和ELF。Oracle产物在 `/home/ubuntu/m5-root-20261004/f1668e28/`，本地在 `evidence/M5/integration-20261004/f1668e28/`；统一库517通过／18忽略、main10通过。上一候选9da20ac0的helper16场景／32侧、boot102事件、leasequery22配置／38查询复跑通过，f166同版六族复跑完成；4,312份证据已回拷校验，汇总见integration-20261004/f1668e28/runs/regression-01/BATCH_VERIFICATION.json。
-- 下一步：第一批矩阵9项与relay3项已完成接线和镜像对照，f166统一回归六族全部通过（helper/boot/leasequery/RR/TFTP/首批matrix），TFTP真实120秒窗口双方完成。第二批矩阵当前关闭3项，fast-dns-retry继续；按A组顺序启动DHCP identity族（56条C清单／8项），先修真实缺口再跑族级镜像对照。local-service重新打开：SIGSTOP后排入41字节再恢复，精确证明C RST/Rust FIN差异；已删除拒绝分支shutdown，新候选24671034的IPv4/IPv6 idle均EOF、确认41字节排队后均RST已通过，普通矩阵正在严格复测，不采用该归一化。
+- 下一步：DHCP identity族（8项／56条C清单）首个候选38c0050d已构建，准备开始镜像对照；option124 hex union等边界先保留失败再按精确镜像修复。PXE族只准备清单/API。上一批f166统一六族全部通过，246只重跑受影响DNS选项已通过。
 - 阻塞点：Oracle ENOSPC已通过删除各自已归档的可重建rootfs/构建缓存缓解，可用约1GiB；另23份已完成副本已清理、/m2末态回拷并校验。f1668e28统一回归完成（库517通过／18忽略、main10通过），已回收完成副本且无残留进程。无须用户决定。物理路由器未操作。
-- 活跃分工：relay任务已完成并归档清理；`m5/option-matrix-2` / `worktrees/m5-option-matrix-2`（option_matrix）推进retry，已关闭的3项不要重复扣数，local-service重新打开待修复复测；`m5/dhcp-identity` / `worktrees/m5-dhcp-identity` 已冻结56条C清单，首段实现已合入38c0050d（ELF a991ba1c22cceb919d8db68aa72956dacb2433e005a8c624b1d12a787ebefbe5，1,396,848字节，增量0），正跑镜像；vi-encap hex union边界待精确镜像确认；identity/harness使用独立 `m5/dhcp-identity-harness` 只改族测试器；`m5/pxe` / `worktrees/m5-pxe`（relay_checklist）仅准备C清单/API，未授权产品开工；batch_verify已完成f166统一回归，主代理统一公共接线。上述worktree均在 `private/dnsmasq-rewrite/` 下。
+- 活跃分工：relay及第二批matrix任务均已完成，按规则归档清理。`m5/dhcp-identity` / `worktrees/m5-dhcp-identity` 实现与接线（dhcp_identity），`m5/dhcp-identity-harness` 独立子树只扩展族测试器；`m5/pxe` / `worktrees/m5-pxe`（relay_checklist）仅准备C清单/API，未开工产品。主代理统一公共接线。上述worktree均在 `private/dnsmasq-rewrite/` 下。
 
 ## 工作规则
 
@@ -54,7 +54,7 @@ M4 的单 poll owner 已替换六线程接线，决定见 [ADR_THREAD_MODEL.md](
 
 ## M5 盘点与工作顺序
 
-盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**66 项已实现并有 C 差分，66 项部分实现，37 项未实现；剩余 103 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
+盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**68 项已实现并有 C 差分，64 项部分实现，37 项未实现；剩余 101 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
 
 对镜像 init 的静态调用路径核对得到 **A 组 99 项、B 组 70 项**。A 表示原生 UCI/init 生成或调用，行号链接到保留原文的 init；B 表示通常需额外配置。`extraconftext`/conf-dir 可以透传任意指令，不据此把全部选项都算原生生成。`pxe-service`、`pxe-prompt`、`interface-name` 实际有 init 生成路径，归 A。26 个 excluded-capability 选项不混入169项计数；其与C一致的禁用/拒绝边界仍保留。
 
@@ -162,7 +162,7 @@ M5 退出条件：169项全部实现并有C差分，或已证明与C一致的拒
 | `interface` | A / 184 | 启动/日志/监听 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-service/summary.json)；DNS/DHCP 并集和准入有 M4 镜像证据；TFTP/relay 组合接线未完成。 |
 | `keep-in-foreground` | A / 1267 | 启动/日志/监听 | 已实现，有C差分 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-service/summary.json)；前台服务与正常信号退出有 M4 镜像全场景差分；未将无此选项的 daemonize 算通过。 |
 | `listen-address` | A / 188 | 启动/日志/监听 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-service/summary.json)；原始并集和 UDP/TCP 已验证；需完整 IPv6/scope/动态地址的镜像族级覆盖。 |
-| `local-service` | A / 1011 | 启动/日志/监听 | 部分实现 | local-service-02的准入行为通过，但定向admission-timing-01证实未读TCP请求时C为RST、Rust显式shutdown导致FIN；该差异不能按时序归一化，已重新打开，主入口删除拒绝分支shutdown后待新候选镜像复测。 |
+| `local-service` | A / 1011 | 启动/日志/监听 | 已实现，有C差分 | [M5严格准入复跑](../../private/dnsmasq-rewrite/evidence/M5/option-matrix/batch2/affected-24671034/result.json)；14配置／180行含独立IPv4/IPv6本地/相邻非本地源、模式/显式ACL/CLI交互通过；[idle与排队见证](../../private/dnsmasq-rewrite/evidence/M5/option-matrix/batch2/admission-timing-03/result.json)证明双方idle EOF、已排41字节时RST。移除错误shutdown，严格比较errno，不再归一化。候选24671034／ELF99aaa63c…4f0dd3，1,396,848字节（修复增量0）。 |
 | `log-dhcp` | A / 1012 | 启动/日志/监听 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-service/summary.json)；仅参与 DHCP UBus 事件抑制；未实现对应 DHCP 详细日志。 |
 | `log-facility` | A / 1026 | 启动/日志/监听 | 未实现 | [source-native](../../docs/dnsmasq/M1_REVIEW_REPORT.md)；元数据列为可用，但无配置消费者；主入口通用 not implemented 拒绝。 |
 | `log-queries` | A / 990 | 启动/日志/监听 | 未实现 | [source-native](../../docs/dnsmasq/M1_REVIEW_REPORT.md)；元数据列为可用，但无配置消费者；主入口通用 not implemented 拒绝。 |
@@ -215,7 +215,7 @@ M5 退出条件：169项全部实现并有C差分，或已证明与C一致的拒
 | `do-0x20-encode` | B / — | DNS 记录/策略 | 已实现，有C差分 | [M5 大小写矩阵](../../private/dnsmasq-rewrite/evidence/M5/option-matrix/batch2/casing-03/result.json)；8配置／420行，启停/双flag顺序、首32字母随机化、错误case认证、合并客户端超过32/64字母及TCP通过；关闭编码时保留上游case变化，20负控通过。候选f1668e28，ELF9c73a0d9…d2ebd5（1,396,848字节，case修复增量0）。 |
 | `domain-suffix` | B / — | DNS 记录/策略 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final/config-image)；Ordinary suffix and IPv4/IPv6 prefix selectors exist. domain=# resolver search, interface selectors and explicit IPv6 ranges are rejected by validate_ready/domain_for_address. Alias shares implementation but needs explicit paired coverage. |
 | `dynamic-host` | B / — | DNS 记录/策略 | 未实现 | [source-extracted](../../docs/dnsmasq/INTERFACE_NAME_SOURCE_REVIEW.md)；Metadata only; no parser or dynamic interface-derived record state. Need netlink IPv6 flags, no-address existence, PTR precedence and TCP inherited snapshot semantics. |
-| `fast-dns-retry` | B / — | DNS 记录/策略 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final)；Nonblocking retry state is connected, source-native retry failure/order gate exists, including M4 sorting-change replay. Exact image option-specific retry schedule/failure family gate not indexed. |
+| `fast-dns-retry` | B / — | DNS 记录/策略 | 已实现，有C差分 | [M5 retry矩阵](../../private/dnsmasq-rewrite/evidence/M5/option-matrix/batch2/retry-02/result.json)；14配置／11调度观察，6条C清单、29负控全部通过，涵盖50ms边界/超时截秒/指数重试/成功取消/失败与多上游恢复；候选f1668e28。24671034受影响矩阵复跑亦通过，ELF1,396,848字节，无retry产品实现改动。 |
 | `ignore-address` | B / — | DNS 记录/策略 | 已实现，有C差分 | [M5 通用矩阵 run-05](../../private/dnsmasq-rewrite/evidence/M5/option-matrix/run-05/result.json)；10配置／34运行行，启动、--test、IPv4/IPv6地址边界和处理顺序通过。IPv4 /0与空前缀安全实现精确镜像的/32行为，IPv6 /0仍匹配全部；候选14d4e5fa，ELF e78d5f28…750989，1,376,368字节（增量0）。 |
 | `localmx` | B / — | DNS 记录/策略 | 已实现，有C差分 | [M5 paired-04](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)；默认 MX、hostname finalize 和 localmx 交互通过。 |
 | `max-tcp-connections` | B / — | DNS 记录/策略 | 已实现，有C差分 | [M5 容量矩阵](../../private/dnsmasq-rewrite/evidence/M5/option-matrix/batch2/capacity-02/result.json)；1/2/0/非法4配置，跨双地址全局容量、满载排队、释放恢复两轮及UDP持续服务通过，5条C边界清单／20负向控制；候选1e4eeb27，ELF892501c6…e07e75（1,392,752字节），无产品容量实现改动。 |
