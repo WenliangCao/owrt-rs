@@ -12,7 +12,7 @@ use std::fs::{self, File};
 use std::io::{self, BufRead, BufReader};
 use std::os::unix::ffi::{OsStrExt, OsStringExt};
 use std::os::unix::fs::MetadataExt;
-use std::os::unix::process::ExitStatusExt;
+use std::os::unix::process::{CommandExt, ExitStatusExt};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
@@ -71,10 +71,17 @@ impl LoadError {
         path: &Path,
         error: io::Error,
     ) -> Self {
+        let mut description = error.to_string();
+        if let Some(code) = error.raw_os_error() {
+            let suffix = format!(" (os error {code})");
+            if description.ends_with(&suffix) {
+                description.truncate(description.len() - suffix.len());
+            }
+        }
         Self::new(
             location,
             exit_code,
-            format!("{action} {}: {error}", path.display()),
+            format!("{action} {}: {description}", path.display()),
         )
     }
 }
@@ -143,6 +150,8 @@ fn short_option(letter: u8) -> Result<(&'static OptionSpec, bool), Error> {
 /// `conf-script` deliberately executes /bin/sh as C popen does; callers must
 /// only load trusted administrator configuration. Paths are relative to the
 /// process working directory, including paths in nested configuration files.
+/// Errors are startup-fatal. Script parse failures leave the command to finish
+/// after the application reports the error and exits, matching C's die path.
 pub fn load<F>(arguments: &[OsString], default_file: &Path, apply: F) -> Result<Action, LoadError>
 where
     F: FnMut(&Directive, &Location) -> Result<(), Error>,
@@ -199,7 +208,7 @@ where
                         index += 1;
                         Some(
                             args.get(index)
-                                .ok_or_else(|| LoadError::new(&location, 1, "missing parameter"))?
+                                .ok_or_else(|| LoadError::new(&location, 1, "bad command line options: try --help"))?
                                 .as_bytes(),
                         )
                     }
@@ -227,7 +236,7 @@ where
                         } else {
                             index += 1;
                             args.get(index)
-                                .ok_or_else(|| LoadError::new(&location, 1, "missing parameter"))?
+                                .ok_or_else(|| LoadError::new(&location, 1, "bad command line options: try --help"))?
                                 .as_bytes()
                         };
                         cursor = bytes.len();
@@ -350,9 +359,11 @@ where
         };
         loop {
             buffer.clear();
+            // get_line_alloc treats a getc read error as EOF, but still
+            // returns a partial final line. Opening the file failed earlier.
             let count = reader
                 .read_until(b'\n', &mut buffer)
-                .map_err(|e| LoadError::new(&location, 3, e.to_string()))?;
+                .unwrap_or(buffer.len());
             if count == 0 {
                 break;
             }
@@ -370,7 +381,9 @@ where
         let location = Location {
             file: Some(path.to_owned()),
             line: None,
-            from_script: script,
+            // Only parsing emitted lines adds "in output from". popen and
+            // pclose failures themselves are ordinary startup diagnostics.
+            from_script: false,
         };
         if !script && path == Path::new("-") {
             if self.read_stdin {
@@ -388,22 +401,20 @@ where
         }
         if script {
             let mut child = Command::new("/bin/sh")
+                .arg0("sh")
                 .arg("-c")
                 .arg(path.as_os_str())
                 .stdin(Stdio::inherit())
                 .stdout(Stdio::piped())
                 .spawn()
                 .map_err(|e| LoadError::path_io(&location, 3, "cannot execute", path, e))?;
-            let result = self.read(BufReader::new(child.stdout.take().unwrap()), path, true);
-            // Always reap the child even if its output has a parse error.
-            // Closing the pipe above prevents a writer waiting on our reader.
-            if result.is_err() {
-                let _ = child.kill();
-            }
+            // A parse error is startup-fatal: main exits just as C die does,
+            // without killing or waiting for the script. Its remaining work
+            // and closed-output-pipe handling continue after parent exit.
+            self.read(BufReader::new(child.stdout.take().unwrap()), path, true)?;
             let status = child
                 .wait()
                 .map_err(|e| LoadError::path_io(&location, 5, "error executing", path, e))?;
-            result?;
             if !status.success() {
                 return Err(LoadError::new(
                     &location,
@@ -554,6 +565,19 @@ mod tests {
                     format!("{action} {displayed}: test I/O failure at line 7 of main.conf")
                 );
             }
+        }
+        for (code, text) in [(2, "No such file or directory"), (13, "Permission denied")] {
+            let error = LoadError::path_io(
+                &Location::command_line(),
+                3,
+                "cannot read",
+                Path::new("missing.conf"),
+                io::Error::from_raw_os_error(code),
+            );
+            assert_eq!(
+                error.to_string(),
+                format!("cannot read missing.conf: {text}")
+            );
         }
     }
 
