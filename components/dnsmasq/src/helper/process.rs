@@ -75,12 +75,25 @@ pub struct Helper {
     eof: bool,
     reaped: Option<c_int>,
     ready: bool,
+    initialize: bool,
 }
 
 impl Helper {
     /// Call before daemon privilege drop, from the sole service thread. Like C,
     /// the helper retains startup credentials unless script-user changes them.
     pub fn start(config: Config) -> Result<Self, StartError> {
+        Self::start_with_init(config, false)
+    }
+
+    /// Leasefile-ro initialization runs in the helper before credentials drop.
+    /// The owner consumes InitData/InitExit through its normal nonblocking poll.
+    pub fn start_with_init(config: Config, initialize: bool) -> Result<Self, StartError> {
+        if initialize && config.script.as_os_str().as_bytes().len() + 6 > 256 {
+            return Err(StartError {
+                code: 3,
+                message: "lease-change script name is too long".into(),
+            });
+        }
         if config.script.as_os_str().as_bytes().contains(&0) || config.script.as_os_str().is_empty()
         {
             return Err(StartError {
@@ -117,6 +130,7 @@ impl Helper {
             drop(events_read);
             let code = child(
                 config,
+                initialize,
                 identity,
                 File::from(commands_read),
                 File::from(events_write),
@@ -136,10 +150,14 @@ impl Helper {
             eof: false,
             reaped: None,
             ready: false,
+            initialize,
         })
     }
     pub fn pid(&self) -> i32 {
         self.pid
+    }
+    pub fn initializes_leases(&self) -> bool {
+        self.initialize
     }
     pub fn ready(&self) -> bool {
         self.ready
@@ -364,12 +382,18 @@ fn notice_payload(notice: Notice) -> Vec<u8> {
             bytes.insert(0, 1);
             bytes
         }
-        Notice::ScriptExit(value)
+        Notice::InitData(mut bytes) => {
+            bytes.insert(0, 7);
+            bytes
+        }
+        Notice::InitExit(value)
+        | Notice::ScriptExit(value)
         | Notice::ScriptSignal(value)
         | Notice::ExecError(value)
         | Notice::Error(value)
         | Notice::Reaped(value) => {
             let code = match notice {
+                Notice::InitExit(_) => 8,
                 Notice::ScriptExit(_) => 2,
                 Notice::ScriptSignal(_) => 3,
                 Notice::ExecError(_) => 4,
@@ -390,12 +414,16 @@ fn decode_notice(bytes: &[u8]) -> io::Result<Notice> {
     if kind == 1 {
         return Ok(Notice::Output(data.to_vec()));
     }
+    if kind == 7 {
+        return Ok(Notice::InitData(data.to_vec()));
+    }
     let value = i32::from_le_bytes(data.try_into().map_err(|_| invalid())?);
     match kind {
         2 => Ok(Notice::ScriptExit(value)),
         3 => Ok(Notice::ScriptSignal(value)),
         4 => Ok(Notice::ExecError(value)),
         5 => Ok(Notice::Error(value)),
+        8 => Ok(Notice::InitExit(value)),
         _ => Err(invalid()),
     }
 }
@@ -438,6 +466,7 @@ fn close_inherited(keep: [RawFd; 2]) -> io::Result<()> {
 }
 fn child(
     config: Config,
+    initialize: bool,
     identity: Option<(u32, u32)>,
     mut commands: File,
     mut events: File,
@@ -456,6 +485,12 @@ fn child(
             Notice::Error(error.raw_os_error().unwrap_or(5)),
         );
         return 5;
+    }
+    if initialize {
+        match run_init(&config, &mut events) {
+            Ok(0) => {}
+            Ok(_) | Err(_) => return 3,
+        }
     }
     if !config.debug {
         if let Some((uid, gid)) = identity.filter(|(uid, _)| *uid != 0) {
@@ -507,6 +542,39 @@ fn child(
             return 5;
         }
     }
+}
+
+fn run_init(config: &Config, events: &mut File) -> io::Result<i32> {
+    // lease.c uses popen("<fixed script> init", "r") before daemonization and
+    // privilege drop. Only this helper child may block on the init script.
+    let mut command = config.script.as_os_str().to_os_string();
+    command.push(" init");
+    let mut process = Command::new("/bin/sh")
+        .arg("-c")
+        .arg(command)
+        .stdout(Stdio::piped())
+        .spawn()?;
+    let mut output = process.stdout.take().unwrap();
+    let mut buffer = [0; 8192];
+    let result = loop {
+        match output.read(&mut buffer) {
+            Ok(0) => break Ok(()),
+            Ok(length) => {
+                if let Err(error) = send(events, Notice::InitData(buffer[..length].to_vec())) {
+                    break Err(error);
+                }
+            }
+            Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+            Err(error) => break Err(error),
+        }
+    };
+    drop(output);
+    let status = process.wait()?;
+    result?;
+    // C uses WEXITSTATUS without checking WIFEXITED, yielding zero on signal.
+    let status = (status.into_raw() >> 8) & 255;
+    send(events, Notice::InitExit(status))?;
+    Ok(status)
 }
 
 fn run_script(config: &Config, call: Invocation, events: &mut File) -> io::Result<()> {
@@ -634,6 +702,20 @@ mod tests {
         }
         notices
     }
+    #[test]
+    fn initialization_is_streamed_before_ready_without_waiting_in_owner() {
+        let (folder, config) =
+            script(r#"[ "$1" = init ] || exit 8; sleep 0.2; printf lease-data; exit 7"#);
+        let start = Instant::now();
+        let mut helper = Helper::start_with_init(config, true).unwrap();
+        assert!(start.elapsed() < Duration::from_millis(100));
+        let notices = until(&mut helper, |helper, _| helper.is_finished());
+        assert!(notices.contains(&Notice::InitData(b"lease-data".to_vec())));
+        assert!(notices.contains(&Notice::InitExit(7)));
+        assert!(!notices.contains(&Notice::Ready));
+        std::fs::remove_dir_all(folder).unwrap();
+    }
+
     #[test]
     fn serial_scripts_progress_without_blocking_owner_and_eof_reaps() {
         let (folder, config) = script("sleep 0.2; printf '%s\\n' \"$*\"; exit 7");

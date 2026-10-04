@@ -238,7 +238,11 @@ class Side:
         if kind in (1, 3):
             # Binary delimiters and '=' exercise C's extradata conversion;
             # user class uses RFC3004 counted strings, C rewrites them for helper.
-            extras = [(60, b'vendor=ignored'), (77, b'\x03one\x03two'), (161, b'https://mud.test/device')]
+            cpe = b'\x01\x06a1b2c3\x02\x06serial\x03\x05class'
+            agent = b'\x01\x07circuit\x02\x06remote\x06\x0asubscriber'
+            extras = [(60, b'vendor=ignored'), (77, b'\x03one\x03two'),
+                      (161, b'https://mud.test/device'), (82, agent),
+                      (125, struct.pack('!IB', 3561, len(cpe)) + cpe)]
             request.pop()
             for code, value in extras:
                 request.extend([code, len(value)]); request.extend(value)
