@@ -5,7 +5,9 @@ Run through run_isolated.sh. Fixed private bridge/veth endpoints only; the tool
 accepts no network target. It reuses the M2 image-root and process cleanup tools.
 Raw replies and every unsuccessful run stay in evidence/M5/tftp. The directed
 parser cases are bounded corruptions of an ordinary local read request; no
-path traversal, out-of-bounds C reproductions or external services are used.
+real-file traversal, out-of-bounds C reproductions or external services are used.
+Optional reference witnesses use only tiny synthetic files inside the fixture;
+they are separately classified and never relax the normal comparator.
 """
 from __future__ import annotations
 import argparse
@@ -80,6 +82,119 @@ def scenarios():
              requests=[{'capacity': 0, 'single': True}]),
     ])
     return cases
+
+
+# Source-derived checklist is recorded in plan.json before any daemon starts.
+# Deliberate reference differences are not normal-case equivalence passes.
+REFERENCE_SOURCE = {
+    'path': 'dnsmasq-2.93/src/tftp.c',
+    'sha256': 'a6971bf4ce77c0ca4c7ebf0194a2ee9c2ad702b1b8a882d46de87c6c6f5e63f3',
+}
+REFERENCE_FILES = {'boot.bin': b'synthetic boot\n', 'alternate.bin': b'synthetic alternate\n'}
+REFERENCE_CHECKLIST = [
+    {'id': 'fresh-data', 'source': 'tftp.c:247-277,305-309,963-971,1020-1022',
+     'boundary': 'Two ordinary same-peer RRQs replace the active transfer; C caches old DATA, Rust sends the requested tiny alternate file.',
+     'scenarios': ['reference-single-replace-v4', 'reference-single-replace-v6']},
+    {'id': 'file-release', 'source': 'tftp.c:260-263,305-309,588-610,1029-1039',
+     'boundary': 'After final ACK and queue drain C retains the old synthetic boot FD; Rust retains no fixture FD.',
+     'scenarios': ['reference-single-replace-v4', 'reference-single-replace-v6']},
+    {'id': 'parent-component', 'source': 'tftp.c:432-439,487-498,547-556',
+     'boundary': 'A harmless ..safe/../boot.bin path stays within synthetic root; first textual /.. match misses its later parent component in C; Rust rejects.',
+     'scenarios': ['reference-root-parent-component']},
+    {'id': 'bound-ipv4-source', 'source': 'tftp.c:63-66,100-119,198-201,320,522',
+     'boundary': 'Bound IPv4 single-port reads uninitialized addra. Undefined reference behavior is excluded, not reproduced or accepted as an expectation.',
+     'status': 'excluded-undefined-behavior',
+     'prior_witness': 'docs/dnsmasq/TFTP_SINGLE_PORT_PHASE.md; private/dnsmasq-rewrite/tftp-listener-tid-20260930/run-06/'},
+]
+
+
+def reference_scenarios():
+    base = 'enable-tftp\ntftp-root=' + ROOT + '/reference\n'
+    cases = [dict(name='reference-single-replace-'+version, binding='',
+                  config=base+'tftp-single-port\n', reference_difference='single-replacement',
+                  requests=[{'replacement': True, 'v6': v6}], fixture_fds=True)
+             for version, v6 in [('v4', False), ('v6', True)]]
+    cases.append(dict(name='reference-root-parent-component', config=base,
+                      reference_difference='parent-component',
+                      requests=[{'filename': '..safe/../boot.bin'}]))
+    return cases
+
+
+def replacement(item, out):
+    """Exactly two ordinary reads, same peer, tiny synthetic files only."""
+    target = (V6_SERVER if item.get('v6') else SERVER, 69)
+    with socket.socket(socket.AF_INET6 if item.get('v6') else socket.AF_INET, socket.SOCK_DGRAM) as endpoint:
+        endpoint.settimeout(3)
+        packets = []
+        for index, name in enumerate(REFERENCE_FILES):
+            request = read_request({'filename': name})
+            (out/f'request-{index}.bin').write_bytes(request)
+            endpoint.sendto(request, target)
+            packet, peer = endpoint.recvfrom(1024)
+            (out/f'reply-{index}.bin').write_bytes(packet)
+            if peer[0] != target[0] or peer[1] != 69 or packet[:4] != b'\0\3\0\1':
+                raise AssertionError('replacement expected single-port first DATA')
+            packets.append(packet.hex())
+        endpoint.sendto(b'\0\4\0\1', peer)
+        return {'kind': 'replacement', 'packets': packets, 'source': 'single'}
+
+
+def fixture_fds(pid):
+    # Paths are from the disposable fixture only; no host file contents read.
+    found = []
+    for fd in Path(f'/proc/{pid}/fd').iterdir():
+        try:
+            target = os.readlink(fd)
+        except FileNotFoundError:
+            continue
+        marker = ROOT + '/reference/'
+        if marker in target:
+            found.append(target[target.index(marker):])
+    return sorted(found)
+
+
+def reference_pair(c, rust, scenario):
+    """Accept only the exact bounded reference pair; missing evidence fails."""
+    for result in (c, rust):
+        if (result.get('failure') or result.get('started') is not True
+                or result.get('alive_after') is not True or result.get('threads') != 1
+                or result.get('pid_removed') is not True
+                or result.get('cleanup', {}).get('forced') is not False
+                or result.get('cleanup', {}).get('returncode') != 0
+                or 'client_cleanup' not in result or result['client_cleanup'] is not None):
+            return False
+    if scenario['reference_difference'] == 'single-replacement':
+        boot = (b'\0\3\0\1' + REFERENCE_FILES['boot.bin']).hex()
+        alternate = (b'\0\3\0\1' + REFERENCE_FILES['alternate.bin']).hex()
+        for result, second, remainder in [(c, boot, [ROOT+'/reference/boot.bin']), (rust, alternate, [])]:
+            if result.get('requests') != [{'kind': 'replacement', 'packets': [boot, second], 'source': 'single'}]:
+                return False
+            if result.get('fixture_fds_before') != [] or result.get('fixture_fds_after') != remainder:
+                return False
+        return True
+    data = REFERENCE_FILES['boot.bin']
+    return (c.get('requests') == [{'kind': 'data', 'bytes': len(data),
+                                 'sha256': hashlib.sha256(data).hexdigest(),
+                                 'source': 'dedicated', 'options': {}, 'blocks': 1}]
+            and rust.get('requests') == [{'kind': 'error', 'code': 2, 'source': 'dedicated'}])
+
+
+def reference_controls(c, rust, scenario):
+    controls = {}
+    for side, original in [('c', c), ('rust', rust)]:
+        for name in ('missing-requests', 'wrong-payload', 'wrong-fds', 'missing-fds', 'missing-cleanup', 'missing-client-cleanup'):
+            negative = copy.deepcopy(original)
+            if name == 'missing-requests': negative.pop('requests', None)
+            elif name == 'wrong-payload': negative['requests'] = [{'kind': 'corrupt'}]
+            elif name in ('wrong-fds', 'missing-fds'):
+                if scenario['reference_difference'] != 'single-replacement': continue
+                if name == 'wrong-fds': negative['fixture_fds_after'] = ['unexpected-fd']
+                else: negative.pop('fixture_fds_after', None)
+            elif name == 'missing-client-cleanup': negative.pop('client_cleanup', None)
+            else: negative.pop('cleanup', None)
+            controls[side+'-'+name] = not reference_pair(negative if side == 'c' else c,
+                                                       negative if side == 'rust' else rust, scenario)
+    return controls
 
 
 def read_request(item):
@@ -229,7 +344,9 @@ def client(args):
     args.out.mkdir(parents=True, exist_ok=True)
     result = {}
     try:
-        if 'capacity' in item:
+        if item.get('replacement'):
+            result = replacement(item, args.out)
+        elif 'capacity' in item:
             result = capacity(item, args.out)
         elif item.get('corpus'):
             result = {'kind': 'corpus', 'rows': []}
@@ -274,6 +391,9 @@ def files(root):
         path = base/directory; path.mkdir(parents=True, exist_ok=True)
         (path/'boot.bin').write_bytes(data)
         (path/'boot.bin').chmod(0o644)
+    reference = base/'reference'; (reference/'..safe').mkdir(parents=True, exist_ok=True)
+    for name, data in REFERENCE_FILES.items():
+        path = reference/name; path.write_bytes(data); path.chmod(0o644)
     for name, owner in [('owned.bin',453), ('root.bin',0)]:
         path = base/'global'/name; path.write_bytes(b'ownership\n'); path.chmod(0o644); os.chown(path, owner, owner)
 
@@ -312,6 +432,8 @@ def run_side(root, binary, scenario, out, network):
                 result['exit'] = process.returncode
                 return result
             result['identity'] = process_identity(root,process.pid)
+            if scenario.get('fixture_fds'):
+                result['fixture_fds_before'] = fixture_fds(process.pid)
             for index, item in enumerate(scenario['requests']):
                 request_out=out/f'request-{index:02}'
                 argv=network.argv(sys.executable,Path(__file__).resolve(),'--client','--request',json.dumps(item),'--out',request_out)
@@ -337,6 +459,9 @@ def run_side(root, binary, scenario, out, network):
                 time.sleep(.15)
                 raw = trace.read_bytes(); (out/'callback-trace').write_bytes(raw)
                 result['callbacks'] = [line.split('|') for line in raw.decode().splitlines()]
+            if scenario.get('fixture_fds'):
+                time.sleep(.25)  # bounded final ACK/script queue drain
+                result['fixture_fds_after'] = fixture_fds(process.pid)
             result['alive_after']=process.poll() is None
             result['threads']=len(list(Path(f'/proc/{process.pid}/task').iterdir()))
     except Exception as error:
@@ -398,6 +523,7 @@ def main():
     parser.add_argument('--client',action='store_true')
     parser.add_argument('--request')
     parser.add_argument('--write-corpus',action='store_true')
+    parser.add_argument('--reference-differences',action='store_true')
     args=parser.parse_args()
     if args.client:return client(args)
     if args.write_corpus:
@@ -409,10 +535,14 @@ def main():
     if os.environ.get('DNSMASQ_TEST_ISOLATED')!='1' or os.geteuid()!=0:raise SystemExit('run_isolated.sh required')
     if not args.image_root or not args.rust_binary or not args.source_commit:raise SystemExit('image, Rust ELF and source commit required')
     args.out.mkdir(parents=True,exist_ok=False)
-    selected=[item for item in scenarios() if not args.case or item['name'] in args.case]
+    available = scenarios() + (reference_scenarios() if args.reference_differences else [])
+    selected=[item for item in available if not args.case or item['name'] in args.case]
     if args.case and len(selected)!=len(set(args.case)):raise SystemExit('unknown or duplicate scenario')
     save(args.out/'plan.json',{'scenarios':selected,'source_commit':args.source_commit,'rust_sha256':sha256(args.rust_binary),'tool_sha256':sha256(__file__),'deadline_seconds':12,'reference':'image-elf'})
-    network=Network();report={'passed':False,'rows':[],'failures':[]}
+    if args.reference_differences:
+        save(args.out/'reference-plan.json', {'source': REFERENCE_SOURCE, 'checklist': REFERENCE_CHECKLIST,
+                                            'scope': 'synthetic fixture only; wildcard single-port; no undefined-behavior reproduction'})
+    network=Network();report={'passed':False,'rows':[],'failures':[], 'reference_differences': []}
     try:
         root=prepare(args.image_root,None,args.out/'image',args.rust_binary)
         files(root)
@@ -426,6 +556,14 @@ def main():
             row={'scenario':scenario['name']}
             for side in ['c'] if args.sides=='c' else ['c','rust']:
                 row[side]=run_side(root,side,scenario,folder/side,network)
+            if scenario.get('reference_difference'):
+                row['equal'] = args.sides == 'both' and semantic(row['c']) == semantic(row['rust'])
+                row['classified'] = args.sides == 'both' and reference_pair(row['c'], row['rust'], scenario)
+                row['negative_controls'] = reference_controls(row['c'], row['rust'], scenario) if args.sides == 'both' else {}
+                row['negative_control_detected'] = bool(row['negative_controls']) and all(row['negative_controls'].values())
+                row['disposition'] = 'retain fresh Rust bytes and complete release' if scenario['reference_difference'] == 'single-replacement' else 'retain Rust parent-component rejection'
+                report['reference_differences'].append(row); save(args.out/'result.json', report)
+                continue
             if args.sides=='both':
                 row['equal']=semantic(row['c'])==semantic(row['rust'])
                 if row['c'].get('pid_removed') != row['rust'].get('pid_removed'):
@@ -444,11 +582,33 @@ def main():
                 row['negative_control_detected']=all(controls.values())
             row['executed']=all(executed(row[side], scenario) for side in (['c'] if args.sides=='c' else ['c','rust']))
             report['rows'].append(row);save(args.out/'result.json',report)
-        report['passed']=args.sides=='both' and all(row['executed'] and row['equal'] and row['negative_control_detected'] for row in report['rows'])
+        report['passed']=args.sides=='both' and bool(selected) and all(row['executed'] and row['equal'] and row['negative_control_detected'] for row in report['rows']) and all(row['classified'] and row['negative_control_detected'] for row in report['reference_differences'])
+        if args.reference_differences:
+            classified = {row['scenario'] for row in report['reference_differences'] if row['classified']}
+            report['reference_checklist'] = []
+            for item in REFERENCE_CHECKLIST:
+                check = dict(item)
+                if 'scenarios' in check:
+                    check['status'] = 'checked' if set(check['scenarios']) <= classified else 'not-covered'
+                report['reference_checklist'].append(check)
     except Exception as error:
         report['failures'].append(repr(error))
     finally:
-        report['network_cleanup']=network.close()
+        try:
+            try:
+                report['network_cleanup'] = network.close()
+            except subprocess.CalledProcessError as error:
+                # The veth can disappear after Network.close checks it because
+                # stopping the client namespace releases its peer asynchronously.
+                if (error.cmd[:3] != ['ip', 'link', 'delete']
+                        or len(error.cmd) != 4
+                        or any(name == error.cmd[3] for _, name in socket.if_nameindex())):
+                    raise
+                report['cleanup_disappearance_race'] = error.cmd[3]
+                report['network_cleanup'] = network.close()
+        except Exception as error:
+            report['failures'].append('network cleanup: '+repr(error))
+            report['passed'] = False
         report['remaining_interfaces']=[name for _,name in socket.if_nameindex()]
         if sorted(report['remaining_interfaces'])!=['lo']:report['passed']=False
         save(args.out/'result.json',report)
