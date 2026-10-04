@@ -30,12 +30,13 @@ LISTEN_HOST = "127.0.0.1"
 UPSTREAM_HOST = "127.0.0.2"
 
 
-def query(host: str, qtype: int, ident: int, *, do: bool = False, size: int = 1232) -> bytes:
-    flags = 0x0100
-    wire = struct.pack("!6H", ident, flags, 1, 0, 0, 1 if do else 0)
+def query(host: str, qtype: int, ident: int, *, do: bool = False, edns: bool = False, rd: bool = True, size: int = 1232) -> bytes:
+    flags = 0x0100 if rd else 0
+    edns = edns or do
+    wire = struct.pack("!6H", ident, flags, 1, 0, 0, int(edns))
     wire += name(host) + struct.pack("!HH", qtype, 1)
-    if do:
-        wire += b"\0" + struct.pack("!HHIH", 41, size, 0x8000, 0)
+    if edns:
+        wire += b"\0" + struct.pack("!HHIH", 41, size, 0x8000 if do else 0, 0)
     return wire
 
 
@@ -73,6 +74,12 @@ def upstream_reply(packet: bytes) -> bytes:
     question = packet[12:end + 4]
     had_opt = struct.unpack_from("!H", packet, 10)[0] > 0
     opt = rr(41, b"", b"\0", 0, 1232) if had_opt else b""
+    if host.startswith("simple-"):
+        data = {1: ipaddress.ip_address("192.0.2.17").packed,
+                28: ipaddress.ip_address("2001:db8::17").packed,
+                16: b"\x06cached",
+                15: struct.pack("!H", 10) + name("mail.m5.test")}[qtype]
+        return packet[:2] + struct.pack("!5H", 0x8180, 1, 1, 0, int(bool(opt))) + question + rr(qtype, data) + opt
     if host.startswith("nx-"):
         flags = 0x8183
         soa = name("ns.m5.test") + name("hostmaster.m5.test") + struct.pack("!5I", 1, 2, 3, 4, 5)
@@ -175,7 +182,8 @@ def normalized(packet: bytes) -> dict:
         return {"id": struct.unpack_from("!H", packet)[0] if len(packet) >= 2 else None,
                 "wire_length": len(packet), "malformed": repr(error), "wire": packet.hex()}
     result["id"] = 0
-    for record in result["records"]: record["ttl"] = 0
+    for record in result["records"]:
+        if record["type"] != 41: record["ttl"] = 0
     return result
 
 
@@ -191,10 +199,10 @@ def exchange(port: int, packet: bytes, tcp: bool = False) -> bytes:
 def schedule():
     ident = 0x5200
     rows = []
-    def add(label, host, qtype, *, tcp=False, do=False, clipped=False):
+    def add(label, host, qtype, *, tcp=False, do=False, edns=False, rd=True, clipped=False):
         nonlocal ident
         if clipped: host = "clipped-" + host
-        packet = query(host, qtype, ident, do=do); ident += 1
+        packet = query(host, qtype, ident, do=do, edns=edns, rd=rd); ident += 1
         rows.append({"label": label, "host": host, "type": qtype, "tcp": tcp, "do": do, "packet": packet})
     # Local records are intentionally retained by C even when their family is
     # configured for filtering (F_HOSTS/F_CONFIG exemption in answer_request).
@@ -212,6 +220,18 @@ def schedule():
     add("filtered-shortcut-cached-other", "mixed-shortcut.m5.test", 28)
     add("clipped-a", "mixed-a.m5.test", 1, clipped=True)
     add("clipped-any", "mixed-a.m5.test", 255, clipped=True)
+    for qtype in (1, 28, 16):
+        host = f"simple-{qtype}.m5.test"
+        add(f"simple-{qtype}-fill", host, qtype)
+        add(f"simple-{qtype}-edns-cache", host, qtype, edns=True)
+        add(f"simple-{qtype}-tcp-cache", host, qtype, tcp=True, edns=True)
+    add("simple-other-fill", "simple-other.m5.test", 1)
+    add("simple-filtered-other", "simple-other.m5.test", 28, edns=True)
+    add("nonrecursive-cache", "simple-1.m5.test", 1, rd=False, edns=True)
+    add("local-txt", "local.m5.test", 16, edns=True)
+    add("local-alias-a", "alias.m5.test", 1, edns=True)
+    add("local-alias-cname", "alias.m5.test", 5, edns=True)
+    add("generic-filtered-other", "simple-16.m5.test", 15, edns=True)
     return rows
 
 
@@ -223,7 +243,7 @@ def run_side(args, side, folder, directive):
         reserve.bind((LISTEN_HOST, 0)); port = reserve.getsockname()[1]
     config = (f"port={port}\nno-resolv\nno-hosts\nbind-interfaces\nlisten-address={LISTEN_HOST}\n"
               f"server={UPSTREAM_HOST}#{upstream.port}\ncache-size=100\nedns-packet-max=1232\n"
-              f"local-ttl=60\nhost-record=local.m5.test,192.0.2.10,2001:db8::10\n"
+              f"local-ttl=60\nhost-record=local.m5.test,192.0.2.10,2001:db8::10\ntxt-record=local.m5.test,local\ncname=alias.m5.test,local.m5.test\ncache-rr=TXT\n"
               f"pid-file=/m2/rr-filter.pid\nlog-facility=/m2/rr-filter.log\nuser=root\n{directive}\n")
     (root / "m2/rr-filter.conf").write_text(config); (folder / "config").write_text(config)
     rows, process = [], None
@@ -241,7 +261,7 @@ def run_side(args, side, folder, directive):
             (folder / (item["label"] + ".query")).write_bytes(item["packet"])
             (folder / (item["label"] + ".reply")).write_bytes(reply)
             rows.append({k: item[k] for k in ("label", "host", "type", "tcp", "do")} | {"reply": normalized(reply), "wire": reply.hex()})
-        result = {"rows": rows, "upstream": copy.deepcopy(upstream.events), "identity": process_identity(root, process.pid), "exit": None}
+        result = {"rows": rows, "upstream": copy.deepcopy(upstream.events), "identity": process_identity(root, process.pid), "exit": None, "upstream_errors": copy.deepcopy(upstream.errors)}
     finally:
         if process is not None:
             if process.poll() is None: os.killpg(process.pid, signal.SIGTERM)
@@ -255,9 +275,15 @@ def run_side(args, side, folder, directive):
 
 def compare(left, right):
     errors = []
+    for side, result in (("c", left), ("rust", right)):
+        if result["exit"] != 0 or result.get("upstream_errors"):
+            errors.append({"kind": "lifecycle", "side": side, "exit": result["exit"], "upstream_errors": result.get("upstream_errors")})
     if len(left["rows"]) != len(right["rows"]): errors.append({"kind": "row-count"})
     for index, (a, b) in enumerate(zip(left["rows"], right["rows"])):
-        if a != b: errors.append({"kind": "row", "index": index, "c": a, "rust": b})
+        # Raw wire is evidence. Comparison uses decoded DNS semantics so
+        # compression layout and the elapsed TTL second do not create noise.
+        if {k: v for k, v in a.items() if k != "wire"} != {k: v for k, v in b.items() if k != "wire"}:
+            errors.append({"kind": "row", "index": index, "c": a, "rust": b})
     # Upstream side effects are part of the daemon-level contract. IDs and
     # source ports are absent from this normalized event representation.
     if [{k: e[k] for k in ("host", "type", "transport")} for e in left["upstream"]] != [{k: e[k] for k in ("host", "type", "transport")} for e in right["upstream"]]:
@@ -273,7 +299,7 @@ def main():
     if sorted(name for _, name in socket.if_nameindex()) != ["lo"]: raise SystemExit("loopback-only namespace required")
     if out.exists() or "private" not in out.parts: raise SystemExit("fresh private output required")
     out.mkdir(parents=True)
-    directives = ["filter-A", "filter-AAAA", "filter-rr=TXT", "filter-rr=ANY", "filter-A\nfilter-AAAA\nfilter-rr=TXT"]
+    directives = ["filter-A", "filter-AAAA", "filter-rr=TXT", "filter-rr=ANY", "filter-A\nfilter-AAAA\nfilter-rr=TXT", "filter-rr=1,28", "filter-rr=CNAME,TXT,SOA", "filter-rr=MX,ANY"]
     report = {"cases": [], "failures": [], "negative_controls": [], "c_sha256": STOCK_SHA256, "rust_sha256": sha256(args.rust)}
     for index, directive in enumerate(directives):
         label = directive.replace("\n", "+").replace("=", "-").lower() or "none"
@@ -284,8 +310,9 @@ def main():
         report["failures"].extend({"directive": directive, **error} for error in errors)
         changed = copy.deepcopy(left); changed["rows"][0]["reply"]["flags"] ^= 1
         omitted = copy.deepcopy(left); omitted["rows"].pop()
-        report["negative_controls"].append({"directive": directive, "changed_detected": bool(compare(left, changed)), "omitted_detected": bool(compare(left, omitted))})
-    report["passed"] = not report["failures"] and all(row["changed_detected"] and row["omitted_detected"] for row in report["negative_controls"])
+        events = copy.deepcopy(left); events["upstream"].pop()
+        report["negative_controls"].append({"directive": directive, "changed_detected": bool(compare(left, changed)), "omitted_detected": bool(compare(left, omitted)), "upstream_omission_detected": bool(compare(left, events))})
+    report["passed"] = not report["failures"] and all(row["changed_detected"] and row["omitted_detected"] and row["upstream_omission_detected"] for row in report["negative_controls"])
     (out / "result.json").write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps({"cases": len(report["cases"]), "rows": sum(row["rows"] for row in report["cases"]), "failures": len(report["failures"]), "passed": report["passed"]}))
     return int(not report["passed"])
