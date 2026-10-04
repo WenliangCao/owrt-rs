@@ -380,9 +380,17 @@ fn transaction(
             return Ok(output);
         }
         counters.nak = counters.nak.wrapping_add(1); // :1565
-        let chosen = context
-            .map(|index| &ranges[index])
-            .or_else(|| selected_ranges.first());
+
+        // A failed narrow_context assigns NULL in rfc2131.c. Its NAK uses
+        // the ingress fallback, not the former chain head. Earlier mode
+        // errors skip narrowing and still retain that head.
+        let chosen = if reason == Refusal::WrongNetwork {
+            None
+        } else {
+            context
+                .map(|index| &ranges[index])
+                .or_else(|| selected_ranges.first())
+        };
         let client_address = request.packet.effective_ciaddr();
         broadcast |= !env.unicast_destination
             || !request.packet.giaddr().is_unspecified()
@@ -887,6 +895,74 @@ pub(crate) fn inform_counted(
 #[cfg(test)]
 mod alias_tests {
     use super::*;
+
+    #[test]
+    fn failed_narrowing_naks_use_ingress_fallback_for_selecting_and_renewal() {
+        let fallback = Ipv4Addr::new(10, 77, 0, 1);
+        let context_server = Ipv4Addr::new(10, 78, 0, 1);
+        let wanted = Ipv4Addr::new(10, 79, 0, 10);
+        let ranges = [AddressRange {
+            start: Ipv4Addr::new(10, 78, 0, 10),
+            end: Ipv4Addr::new(10, 78, 0, 20),
+            netmask: Ipv4Addr::new(255, 255, 255, 0),
+            router: context_server,
+            local: context_server,
+            lease_time: 600,
+            kind: RangeKind::Dynamic,
+            filter: Vec::new(),
+            epoch: 0,
+        }];
+        for selecting in [false, true] {
+            let mut bytes = vec![0; 240];
+            bytes[..3].copy_from_slice(&[1, 1, 6]);
+            bytes[28..34].copy_from_slice(&[2, 0, 0, 0, 0, 1]);
+            bytes[236..240].copy_from_slice(&super::super::packet::COOKIE);
+            bytes.extend_from_slice(&[53, 1, 3]);
+            if selecting {
+                bytes.extend_from_slice(&[50, 4, 10, 79, 0, 10, 54, 4, 10, 78, 0, 1]);
+            } else {
+                bytes[12..16].copy_from_slice(&wanted.octets());
+            }
+            bytes.push(255);
+            let mut store = LeaseStore::new(2);
+            let outcome = request(
+                &mut store,
+                &ranges,
+                Request {
+                    packet: Packet::parse(&bytes).unwrap(),
+                    tags: &[],
+                    host: None,
+                    reserved: &[],
+                    name: None,
+                    environment: Environment {
+                        now: 100,
+                        interface: 1,
+                        authoritative: true,
+                        unicast_destination: false,
+                        ignored: false,
+                        ignore_client_id: false,
+                        fqdn_only: false,
+                        rapid_commit: false,
+                        bootp_dynamic: false,
+                        consecutive_addresses: false,
+                        override_server: None,
+                        fallback_server: fallback,
+                        server_aliases: &[],
+                    },
+                },
+            )
+            .unwrap();
+            assert_eq!(
+                outcome.reply,
+                Reply::Nak {
+                    reason: Refusal::WrongNetwork,
+                    broadcast: true,
+                    server: fallback,
+                }
+            );
+            assert!(store.is_empty());
+        }
+    }
 
     #[test]
     fn accepted_alias_echoes_sid_but_does_not_restore_consumed_contexts() {
