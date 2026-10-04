@@ -267,8 +267,9 @@ def run_side(root, side, scenario, folder):
             + ('' if scenario.get('adapter') == 'casing' else 'no-0x20-encode\n')
             + ('' if scenario.get('listen_addresses') == [] else 'listen-address=' + ','.join(scenario.get('listen_addresses', ['127.0.0.1'])) + '\n')
             + f'port={port}\ncache-size={scenario.get("cache_size", 0)}\nlocal-ttl=120\n'
-            f'server={upstream.host}#{upstream.port}\npid-file=/m2/matrix.pid\n'
-            'addn-hosts=/m2/matrix.hosts\n'
+            f'pid-file=/m2/matrix.pid\n'
+            + ('' if scenario.get('no_default_server') else f'server={upstream.host}#{upstream.port}\n')
+            + 'addn-hosts=/m2/matrix.hosts\n'
             + (f'server=127.0.0.3#{alternate.port}\n' if alternate else '') + scenario['config'].replace('{upstream}', str(upstream.port)))
     (root / 'm2/matrix.conf').write_text(conf)
     (root / 'm2/matrix.hosts').write_text(scenario.get('hosts', ''))
