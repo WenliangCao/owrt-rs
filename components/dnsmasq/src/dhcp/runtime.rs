@@ -295,6 +295,8 @@ pub struct StateProvider<'a, F> {
     /// name already owned by the lease. Configured/static names still win.
     pub ignore_client_name: bool,
     pub generated_name: Option<&'a [u8]>,
+    /// Scoped BOOTP permission indexed by the context finally chosen by state.
+    pub bootp_contexts: &'a [bool],
     pub domains: Option<&'a crate::config::dhcp::NameDomains>,
     pub environment: Environment<'a>,
     pub quiet_dhcp: bool,
@@ -325,6 +327,7 @@ impl<'a, F> StateProvider<'a, F> {
             configured_name: None,
             ignore_client_name: false,
             generated_name: None,
+            bootp_contexts: &[],
             domains: None,
             environment,
             quiet_dhcp: false,
@@ -398,6 +401,7 @@ where
                 request(),
                 &mut self.probe,
                 counters,
+                self.bootp_contexts,
             ),
             1 => state::discover_counted(
                 self.store,
@@ -2771,7 +2775,12 @@ mod tests {
         let offered = Ipv4Addr::new(192, 0, 2, 10);
         let server = Ipv4Addr::new(192, 0, 2, 1);
         let hardware = vec![2, 0, 0, 0, 0, 1];
-        for bootp in [false, true] {
+        for (bootp, scoped, permitted) in [
+            (false, false, true),
+            (true, false, true),
+            (true, true, true),
+            (true, true, false),
+        ] {
             let options = if bootp {
                 vec![255]
             } else {
@@ -2799,7 +2808,7 @@ mod tests {
             if !bootp {
                 store.set_expires(previous, 10, 90).unwrap();
             }
-            let mut ranges = [AddressRange {
+            let mut ranges = vec![AddressRange {
                 start: offered,
                 end: offered,
                 netmask: Ipv4Addr::new(255, 255, 255, 0),
@@ -2810,6 +2819,11 @@ mod tests {
                 filter: Vec::new(),
                 epoch: 0,
             }];
+            if scoped {
+                let mut excluded = ranges[0].clone();
+                excluded.filter = vec![b"missing".to_vec()];
+                ranges.insert(0, excluded);
+            }
             let environment = Environment {
                 now: 100,
                 interface: 0,
@@ -2819,7 +2833,7 @@ mod tests {
                 ignore_client_id: false,
                 fqdn_only: false,
                 rapid_commit: false,
-                bootp_dynamic: true,
+                bootp_dynamic: !scoped,
                 consecutive_addresses: false,
                 override_server: None,
                 fallback_server: server,
@@ -2847,10 +2861,22 @@ mod tests {
                     ProbeResult::Available { offer_hash: hash }
                 },
             );
+            let permissions = [!permitted, permitted];
+            if scoped {
+                provider.bootp_contexts = &permissions;
+            }
             let outcome = provider.resolve(&dispatch).unwrap();
             assert_eq!(snapshots.get(), 1);
             assert_eq!(outcome.removed.len(), 1);
             assert_eq!(outcome.removed[0].address, previous);
+            if !permitted {
+                assert_eq!(outcome.reply, Reply::Ignore);
+                assert!(provider.store.is_empty());
+                continue;
+            }
+            if scoped {
+                assert!(matches!(outcome.reply, Reply::Bootp { context: 1, .. }));
+            }
             assert!(if bootp {
                 matches!(outcome.reply, Reply::Bootp { address, .. } if address == offered)
             } else {

@@ -576,6 +576,7 @@ pub fn bootp(
         request,
         |address, hash, _| probe(address, hash),
         &mut MessageCounters::default(),
+        &[],
     )
 }
 
@@ -585,6 +586,7 @@ pub(crate) fn bootp_counted(
     request: Request<'_>,
     mut probe: impl FnMut(Ipv4Addr, u32, LeaseCounters) -> ProbeResult,
     counters: &mut MessageCounters,
+    permitted_contexts: &[bool],
 ) -> Result<Outcome, LeaseError> {
     let mut output = Outcome::ignored();
     let env = request.environment;
@@ -638,7 +640,10 @@ pub(crate) fn bootp_counted(
     let Some(context) = narrow(ranges, address, request.tags) else {
         return Ok(bootp_finished(output, counters));
     };
-    if static_address.is_none() && !env.bootp_dynamic {
+    if static_address.is_none()
+        && !env.bootp_dynamic
+        && !permitted_contexts.get(context).copied().unwrap_or(false)
+    {
         return Ok(bootp_finished(output, counters));
     }
     if existing.is_none() {
