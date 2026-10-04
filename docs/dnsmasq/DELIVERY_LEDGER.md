@@ -2,10 +2,10 @@
 
 ## 当前状态与下一步
 
-- 当前里程碑：M5；169 项中 **48 项已关闭、77 项部分实现、44 项未实现，剩余 121 项**。
-- 刚关闭：TFTP 的9项已通过30场景并立即记账；helper4项、leasequery1项、RR filter3项已关闭。本批五个测试器均在同一 `db51616d` ELF `95a23157…c21f` 上通过，见 [批次索引](../../private/dnsmasq-rewrite/evidence/M5/integration-20261004/db51616d/batch.json)。
+- 当前里程碑：M5；169 项中 **51 项已关闭、74 项部分实现、44 项未实现，剩余 118 项**。
+- 刚关闭：boot、TFTP root/single-port 的剩余清单已结案（普通语义配对通过，已知C缺陷/安全拒绝差异逐条单列，不计作零差异）。本批累计关闭20项；当前118项仍未关闭。
 - 当前代码：main 产品基线 `db51616d`，ELF 1,376,368 字节（M4 +217,088）；后续测试器修正和 `--test` 成功提示已提交。helper16场景／32侧，leasequery22配置／38查询，RR filter8配置／256行，boot102行，TFTP30场景；原始证据归档已回拷并校验SHA256。
-- 下一步：完成 TFTP root/single-port 原版缺陷记录和 boot 拒绝边界清单；运行通用选项矩阵首批9项；relay 的 C 清单准备好后进入下批两族接线/镜像验证。未将 bootp-dynamic/PXE/script-arp 混入已关闭项。
+- 下一步：通用矩阵首批9项已运行并暴露两处rebind边界差异，修复已提交 `e5515ab2`，正在构建与复跑；relay按冻结43项C边界清单开发。每两族完成接线和批次对照。
 - 阻塞点：无须用户决定的事项。物理路由器未操作。helper保留上下文48字节（原328）、Lease新增可选指针8字节，暂存ExtraData用完释放；体积逐族测量记录，M5结束汇总。
 
 ## 工作规则
@@ -53,7 +53,7 @@ M4 的单 poll owner 已替换六线程接线，决定见 [ADR_THREAD_MODEL.md](
 
 ## M5 盘点与工作顺序
 
-盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**48 项已实现并有 C 差分，77 项部分实现，44 项未实现；剩余 121 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
+盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**51 项已实现并有 C 差分，74 项部分实现，44 项未实现；剩余 118 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
 
 对镜像 init 的静态调用路径核对得到 **A 组 99 项、B 组 70 项**。A 表示原生 UCI/init 生成或调用，行号链接到保留原文的 init；B 表示通常需额外配置。`extraconftext`/conf-dir 可以透传任意指令，不据此把全部选项都算原生生成。`pxe-service`、`pxe-prompt`、`interface-name` 实际有 init 生成路径，归 A。26 个 excluded-capability 选项不混入169项计数；其与C一致的禁用/拒绝边界仍保留。
 
@@ -63,7 +63,7 @@ M4 的单 poll owner 已替换六线程接线，决定见 [ADR_THREAD_MODEL.md](
 
 M5 退出条件：169项全部实现并有C差分，或已证明与C一致的拒绝/未启用；产品没有 not implemented 拒绝点，零已知功能缺陷；同一版本完成完整M2、实际5分钟资源试跑、两项压力、APK生命周期及满载RSS比较，最后写M5_REPORT。体积/内存相对M4的1,159,280字节/2,676KiB逐项报告；M4的体积特许不能复用到新ELF，新增体积待用户决定。
 
-本批已在源码 `db51616d`、ELF `95a23157d1af2ac7ae9c33c474e876a1dacfb0162840f6d42332fc2c4acac21f` 上统一验证，镜像 C 仍为 `097a9e21…cab87`。helper/RR filter/leasequery 各自分支通过后立即关闭；TFTP30场景的9个无剩余缺口选项也已关闭。`dhcp-boot` 的空tag与超长配置安全边界、`tftp-root` 路径防护、`tftp-single-port` 原版旧数据/FD缺陷仍单列待结案，不把缺陷改名算作零差异。公开状态从此以开头和逐项表为准。
+本批已在源码 `db51616d`、ELF `95a23157d1af2ac7ae9c33c474e876a1dacfb0162840f6d42332fc2c4acac21f` 上统一验证，镜像 C 仍为 `097a9e21…cab87`。helper/RR filter/leasequery 各自分支通过后立即关闭；TFTP30场景的9个无剩余缺口选项也已关闭。`dhcp-boot` 的空tag与超长配置安全边界、`tftp-root` 路径防护、`tftp-single-port` 原版旧数据/FD缺陷已单列结案，不把缺陷改名算作零差异。公开状态从此以开头和逐项表为准。
 
 本批构建使用 Rust1.98.1、SDK GCC14.3.0/musl、opt3/static/strip/panic-abort/no-unwind。实测分支增量：helper完整修复相对1,294,448为+20,480字节；leasequery为+16,384；RR filter修复相对ab5f36a为0。主干构建点依次为ab5f36a=1,323,120、7a1d4b7=1,343,600、5d9da23=1,372,272、db51616d=1,376,368。TFTP接线和后续整合存在链接布局交互，独立族归因仍须补测，不能把这些主干差额冒称全部属于单族。最终满载RSS与APK生命周期尚未执行。
 
@@ -101,13 +101,13 @@ M5 退出条件：169项全部实现并有C差分，或已证明与C一致的拒
 | `resolv-file` | A / 1111 | helper/文件更新 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final/config-image/summary.json)；Only initial nameserver parsing is wired. Rust merges every resolv file and aborts on missing/empty files; C selects latest changed file, tolerates absent file with existing parent directory, retries empty state and updates servers through inotify. SIGHUP/no-poll path missing. |
 | `script-arp` | A / 1018,1100 | helper/文件更新 | 未实现 | 当前无通过证据；Generic unimplemented option rejection; no kernel neighbour/ARP transition producer or helper arp-add/arp-del delivery. Must share C helper and event stream without new thread. |
 | `servers-file` | A / 1072 | helper/文件更新 | 未实现 | 当前无通过证据；Typed path exists but both main and DNS daemon reject it. Need restricted server/rev-server file parsing, source-specific replacement, startup/SIGHUP load and file-error behavior. Exact C does not inotify-watch servers-file; do not invent auto-update behavior. |
-| `dhcp-boot` | A / 516,1077 | Boot/relay/TFTP | 部分实现 | [source-native](../../private/dnsmasq-rewrite/boot-config-20261001/boot-options-boot-regression-01/result.json)；Ordinary untagged boot is implemented, but tag:/net: selectors are explicitly rejected and only one boot directive is retained. Tagged UCI boot sections cannot start. Need same-family image C differential on final code. |
+| `dhcp-boot` | A / 516,1077 | Boot/relay/TFTP | 已实现，有C差分 | [M5 boot102行](../../private/dnsmasq-rewrite/evidence/M5/integration-20261004/db51616d/runs/boot-db51616d-02/result.json)；tag/net 优先级、无tag回退、选中context、PRL/BOOTP/NAK、hosts next-server、字段/容量边界通过。空tag和超过255字节只测语法：保留Rust明确拒绝，C空指针/长度窄化缺陷单列；不执行未定义参考路径，不声称这3例字节相等。 |
 | `dhcp-relay` | A / 846,849 | Boot/relay/TFTP | 未实现 | 当前无通过证据；No relay config or forwarding module. Dispatch merely identifies routes, runtime returns Unsupported before provider. Need source/interface selection, upstream/downstream forwarding and relay-only daemon startup without ranges. |
 | `enable-tftp` | A / 1006 | Boot/relay/TFTP | 已实现，有C差分 | [M5 30 场景](../../private/dnsmasq-rewrite/evidence/M5/integration-20261004/db51616d/runs/tftp-db51616d-01/result.json)；双栈/接口选择、单 poll owner 和 PID/线程回收。 候选95a23157…c21f，所有执行/负向对照/回收检查通过。 |
 | `pxe-prompt` | A / 1082 | Boot/relay/TFTP | 未实现 | 当前无通过证据；Only metadata; no parser, prompt vendor suboption generation, or PXE service loop. |
 | `pxe-service` | A / 224 | Boot/relay/TFTP | 未实现 | 当前无通过证据；Only metadata; no architecture/service parser, UDP4011 socket, proxy menu/discovery/UEFI service dispatch. |
 | `tftp-no-fail` | A / 1007 | Boot/relay/TFTP | 已实现，有C差分 | [M5 30 场景](../../private/dnsmasq-rewrite/evidence/M5/integration-20261004/db51616d/runs/tftp-db51616d-01/result.json)；缺目录允许启动、未启用时 exit3、bind 错误不能被 no-fail 吞掉。 候选95a23157…c21f，所有执行/负向对照/回收检查通过。 |
-| `tftp-root` | A / 1076 | Boot/relay/TFTP | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/icmp-with-tftp-new-1791023305/result.json)；Global root works; per-interface roots are parsed and ignored; startup existence/permission checks absent; path hardening differences need image C minimal reproductions and explicit disposition. |
+| `tftp-root` | A / 1076 | Boot/relay/TFTP | 已实现，有C差分 | [M5 30场景](../../private/dnsmasq-rewrite/evidence/M5/integration-20261004/db51616d/runs/tftp-db51616d-01/result.json)；目录/接口/启动错误/权限通过。[已知差异](../../private/dnsmasq-rewrite/evidence/M5/tftp/reference-differences/summary.json)：合成根目录内父组件路径C接受、Rust明确拒绝，保留防护；双方原始包和负向控制已记录。 |
 | `tftp-unique-root` | A / 1083 | Boot/relay/TFTP | 已实现，有C差分 | [M5 30 场景](../../private/dnsmasq-rewrite/evidence/M5/integration-20261004/db51616d/runs/tftp-db51616d-01/result.json)；IP/MAC/组合、缺目录回退、Ethernet6 租约优先于邻居、非 Ethernet 回退。 候选95a23157…c21f，所有执行/负向对照/回收检查通过。 |
 | `add-mac` | A / 1159 | DNS 记录/策略 | 未实现 | 当前无通过证据；No typed option consumer or EDNS configuration mutation; generic option-is-not-implemented rejection. Need actual client identity, signed-packet rules, existing-option strip/replace, cacheability and ECS response matching. |
 | `add-subnet` | A / 1162 | DNS 记录/策略 | 未实现 | 当前无通过证据；No typed option consumer or EDNS configuration mutation; generic option-is-not-implemented rejection. Need actual client identity, signed-packet rules, existing-option strip/replace, cacheability and ECS response matching. |
@@ -205,7 +205,7 @@ M5 退出条件：169项全部实现并有C差分，或已证明与C一致的拒
 | `tftp-no-blocksize` | B / — | Boot/relay/TFTP | 已实现，有C差分 | [M5 30 场景](../../private/dnsmasq-rewrite/evidence/M5/integration-20261004/db51616d/runs/tftp-db51616d-01/result.json)；忽略 blocksize 并保持其他协商字段。 候选95a23157…c21f，所有执行/负向对照/回收检查通过。 |
 | `tftp-port-range` | B / — | Boot/relay/TFTP | 已实现，有C差分 | [M5 30 场景](../../private/dnsmasq-rewrite/evidence/M5/integration-20261004/db51616d/runs/tftp-db51616d-01/result.json)；双栈端口范围及容量回收，历史耗尽/零起点源码边界证据保留。 候选95a23157…c21f，所有执行/负向对照/回收检查通过。 |
 | `tftp-secure` | B / — | Boot/relay/TFTP | 已实现，有C差分 | [M5 30 场景](../../private/dnsmasq-rewrite/evidence/M5/integration-20261004/db51616d/runs/tftp-db51616d-01/result.json)；正确 UID 允许、root-owned 文件拒绝及普通 mode 权限。 候选95a23157…c21f，所有执行/负向对照/回收检查通过。 |
-| `tftp-single-port` | B / — | Boot/relay/TFTP | 部分实现 | [source-native](../../private/dnsmasq-rewrite/tftp-listener-tid-20260930/run-12-final/summary.json)；Integrated single-port transfer mode. Historical source-native reference has explicit FD leak and stale-file divergences; exact image minimal repro and policy record needed; no complete final daemon matrix. |
+| `tftp-single-port` | B / — | Boot/relay/TFTP | 已实现，有C差分 | [M5 30场景](../../private/dnsmasq-rewrite/evidence/M5/integration-20261004/db51616d/runs/tftp-db51616d-01/result.json)；双栈/容量/回调/超时通过。[原版缺陷](../../private/dnsmasq-rewrite/evidence/M5/tftp/reference-differences/summary.json)：两次普通RRQ的C旧DATA及残留1FD与Rust新DATA/零残留逐字分类；未初始化的bound IPv4源地址路径按源码排除，不复制未定义行为。 |
 | `add-cpe-id` | B / — | DNS 记录/策略 | 未实现 | 当前无通过证据；No typed option consumer or EDNS configuration mutation; generic option-is-not-implemented rejection. Need actual client identity, signed-packet rules, existing-option strip/replace, cacheability and ECS response matching. |
 | `alias` | B / — | DNS 记录/策略 | 部分实现 | [source-native](../../private/dnsmasq-rewrite/dns-alias-config-20261001/source03/private/service-diff-03/result.json)；本轮 paired-04 不包含 alias option，仍需精确镜像选项回放。 |
 | `caa-record` | B / — | DNS 记录/策略 | 部分实现 | 2026-10-04 复核：正常配对保留；OPENWRT_CONTRACT 中 CAA tag 接受集差异尚未结案，不算完整关闭。 |
