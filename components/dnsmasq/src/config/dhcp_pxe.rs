@@ -142,7 +142,7 @@ impl PxeConfig {
         // Vendor suboption payload must fit inside option43 with a two-byte
         // suboption header. C's prompt shortcut omits this check and can emit
         // a wrapped outer length; retain only syntax evidence for that input.
-        if prompt.len() > 252 {
+        if prompt.len() > 251 {
             return Err(Error("PXE prompt too long"));
         }
         let timeout = timeout
@@ -254,6 +254,6 @@ mod tests {
         }
         assert!(config.parse_prompt(&arg(b"tag:only")).is_err());
         assert_eq!(config.parse_prompt(&arg(b"")).unwrap().data, [255]);
-        assert!(config.parse_prompt(&arg(&[b'a'; 253])).is_err());
+        assert!(config.parse_prompt(&arg(&[b'a'; 252])).is_err());
     }
 }
