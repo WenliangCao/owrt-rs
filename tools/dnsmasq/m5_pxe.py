@@ -233,7 +233,7 @@ def profiles():
     # At exactly240 bytes there are no DHCP53/vendor/arch options left, so it
     # is BOOTP on a proxy-only head and must be silent.
     next(item for item in bounds if item["name"]=="request-length-240")["reply"]=False
-    rows.append(profile("packet-capacity",legacy,bounds,["RX03"]))
+    rows.append(profile("packet-capacity",legacy+[f"dhcp-option-pxe={code},"+"x"*240 for code in [224,225,226]],bounds,["RX03"]))
     return rows
 
 
