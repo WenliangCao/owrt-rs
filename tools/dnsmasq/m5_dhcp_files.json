@@ -1,0 +1,411 @@
+{
+  "schema": "m5-family-boundary-checklist-v1",
+  "family": "dhcp-files",
+  "options": [
+    "dhcp-hostsfile",
+    "dhcp-hostsdir",
+    "dhcp-optsfile",
+    "dhcp-optsdir"
+  ],
+  "authority": {
+    "ledger": "docs/dnsmasq/DELIVERY_LEDGER.md",
+    "base_commit": "275a1150",
+    "candidate_sha256": "e795fd68055a66b9d9ea5b1e703afccb7f38d4e6f8e06bd69384a6a0603664de",
+    "candidate_bytes": 1474584,
+    "c_version": "2.93-r1 OpenWrt25.12.5 nodhcpv6",
+    "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "source_sha256": {
+      "src/option.c": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
+      "src/inotify.c": "6a5b0239b9c9fbb1ca0bf638e18efd32914c88d4899602c030b23cf8221b96a7",
+      "src/dnsmasq.c": "d4bb7cde522376200a0293427b0812625ebc457f10dc9d3e2bef243ccba8ccd1",
+      "src/dhcp-common.c": "9139906c5d3a438853fe84e90387cfc299c3c28e7b16a23c7d0d6922847ccc79",
+      "src/dhcp.c": "600dc068b0516d7edebcde9b02ae2091a278fc154551106823ddc388170d7001",
+      "src/lease.c": "4260039af27b40084cbe6dbbae2bb9417fa3a91806ea53f3f6bdd20234cad763"
+    }
+  },
+  "boundary_list_frozen": true,
+  "total": 32,
+  "boundaries": [
+    {
+      "id": "CFG01",
+      "source": "option.c:2405-2448",
+      "title": "Path grammar and declaration order",
+      "requirement": "Four directives require an argument and accept repeated paths; preserve literal/relative/quoted/non-UTF8 path bytes and C reverse declaration order. Empty path has NULL-specific C behavior, and dash is a literal filename for BANK/OPTS, never config stdin. Keep known-unsafe NULL combinations syntax-only.",
+      "cases": [
+        "required-path",
+        "repeat-path",
+        "relative-quoted",
+        "literal-dash",
+        "empty-safe-syntax"
+      ]
+    },
+    {
+      "id": "CFG02",
+      "source": "dnsmasq.c:181-183,852-855,1836-1855;option.c:6199",
+      "title": "Activation and --test boundary",
+      "requirement": "--test validates outer option grammar but does not read DHCP banks. Missing/malformed bank data must not fail --test. DHCP runtime loads only when local DHCP is active; DNS-disabled DHCP still loads/watches. This image supports inotify; do not invent disabled-feature rejection.",
+      "cases": [
+        "test-skips-bank",
+        "no-local-dhcp",
+        "dns-port-zero"
+      ]
+    },
+    {
+      "id": "HOST01",
+      "source": "option.c:4005-4244;config/dhcp_host.rs",
+      "title": "Reuse current host grammar",
+      "requirement": "Reuse HostConfig parsing for MAC/type/CLID, wildcard MAC, name-only/address-only, tags/filter/ignore, lease time and quoted bytes. Family witnesses prove the file path reaches that parser; do not reimplement the already-qualified grammar.",
+      "cases": [
+        "host-selectors",
+        "host-tags",
+        "host-ignore",
+        "host-name-only",
+        "host-id-wildcard"
+      ]
+    },
+    {
+      "id": "HOST02",
+      "source": "option.c:4135-4158",
+      "title": "Duplicate IP and selector precedence",
+      "requirement": "Each incoming bank line sees existing inline/ethers/bank addresses. Duplicate IP is rejected without replacing the prior rule; duplicate selector with a different address is accepted and newest applicable rule wins. Retain valid siblings after a bad row.",
+      "cases": [
+        "duplicate-inline-ip",
+        "duplicate-file-ip",
+        "duplicate-selector-new-ip"
+      ]
+    },
+    {
+      "id": "OPT01",
+      "source": "option.c:4310-4320,parse_dhcp_opt",
+      "title": "Reuse option bank grammar",
+      "requirement": "File lines use LOPT_OPTS argument grammar, not full key=value config. Reuse normal nonforced, non-PXE DhcpOption parser including numeric/named, tag predicates, vendor/encap/enterprise, zero-self, lengths and unsafe existing grammar classification.",
+      "cases": [
+        "option-scalar-name",
+        "option-tags",
+        "option-vendor-encap",
+        "option-enterprise",
+        "option-not-directive"
+      ]
+    },
+    {
+      "id": "OPT02",
+      "source": "option.c:1984-1996;dhcp-common.c:131-223",
+      "title": "Option ordering and duplicate selection",
+      "requirement": "Every successful file row prepends to the global option bank ahead of surviving inline/PXE/prompt entries. Compare same-code tagged/untagged duplicates and interleaved vendor suboption ordering; file options never accidentally gain force/PXE bits.",
+      "cases": [
+        "option-duplicate-priority",
+        "option-inline-forced-retained",
+        "option-vendor-order"
+      ]
+    },
+    {
+      "id": "LEX01",
+      "source": "option.c:5471-5613;util.c:get_line_alloc",
+      "title": "Line framing and lexical rules",
+      "requirement": "Shared lex_argument_line implements whitespace/comment/quote/escape behavior, CRLF, embedded NUL and no-final-newline. Error rows log/skip while earlier/later valid rows survive; stream read failure is EOF with partial final row. Do not impose a new low file/line cap.",
+      "cases": [
+        "blank-comment",
+        "quoted-comma-hash",
+        "crlf-nul",
+        "partial-last-line",
+        "malformed-middle"
+      ]
+    },
+    {
+      "id": "FILE01",
+      "source": "option.c:5630-5717",
+      "title": "Open failures and special file names",
+      "requirement": "Hard-option open failures are nonfatal and do not cause process exit. Explicit file dash is literal; no inode dedup for BANK/OPTS. Missing, permission denied, directory and symlink outcomes follow C; preserve inline rules and continue remaining paths.",
+      "cases": [
+        "missing-file",
+        "denied-file",
+        "literal-dash-runtime",
+        "repeated-inode",
+        "file-symlink"
+      ]
+    },
+    {
+      "id": "FILE02",
+      "source": "option.c:5912-5945",
+      "title": "Static bank reload deletion",
+      "requirement": "Full reload removes all prior host/option BANK rows before opening current sources. A missing/empty/invalid file therefore removes its old bank contribution, while inline and surviving ethers identities remain. Static files are not watched automatically.",
+      "cases": [
+        "static-no-live-watch",
+        "hup-replace",
+        "hup-missing-removes",
+        "hup-empty-removes",
+        "hup-malformed-retains-inline"
+      ]
+    },
+    {
+      "id": "EXP01",
+      "source": "option.c:5738-5838",
+      "title": "Static directory expansion order",
+      "requirement": "hostsfile/optsfile paths which stat as directories expand one level with C byte/locale alphasort. Child paths append to existing persistent expansion list; rows prepend. Compare first/last declaration, filename and line precedence without sorting dynamic directories.",
+      "cases": [
+        "static-dir-sorted",
+        "static-multiple-path-order",
+        "static-line-order"
+      ]
+    },
+    {
+      "id": "EXP02",
+      "source": "option.c:5721-5736,5770-5838",
+      "title": "Static directory filters and type changes",
+      "requirement": "Ignore dotfiles, trailing~ and enclosing#names#. Directory-derived nonregular children are inactive; symlink-to-regular follows stat. No recursion. Preserve explicit-versus-derived path distinction and literal slash overlap semantics across reload/remove/recreate/type changes.",
+      "cases": [
+        "backup-dot-filter",
+        "subdir-no-recursion",
+        "symlink-child",
+        "explicit-overlap",
+        "file-directory-transition"
+      ]
+    },
+    {
+      "id": "DYN01",
+      "source": "inotify.c:193-276",
+      "title": "Directory initial scan and ordering",
+      "requirement": "Dynamic directories process C reverse directive order and underlying readdir order; register the directory watch before scan. Only initial regular files (following stat symlinks) are read, with same backup filters. Repeated directory paths may read multiple times.",
+      "cases": [
+        "dynamic-initial-order",
+        "watch-before-scan",
+        "dynamic-type-filter",
+        "duplicate-directories"
+      ]
+    },
+    {
+      "id": "DYN02",
+      "source": "inotify.c:204-234",
+      "title": "Missing/bad/watch-failed directories",
+      "requirement": "Missing/non-directory/opendir/watch failure is logged and skipped without aborting daemon. Preserve when AH_WD_DONE is set: missing initial dir may become eligible at HUP; watch failure is not silently retried as a new semantic. If filesystem/watch failure cannot be induced safely, use exact-source + isolated unit witness and state limitation.",
+      "cases": [
+        "missing-dir-start",
+        "regular-instead-dir",
+        "create-dir-then-hup",
+        "watch-failure"
+      ]
+    },
+    {
+      "id": "DYN03",
+      "source": "inotify.c:292-316,350-377",
+      "title": "Live event predicates",
+      "requirement": "Process close-write and moved-to only, respecting watched directory descriptor and accepted basename. Creation/open/partial write alone does not publish; atomic rename in publishes. Event name length/NUL/padding and queue batches are bounded; malformed synthetic event input cannot widen selection.",
+      "cases": [
+        "open-write-not-close",
+        "close-write",
+        "rename-in",
+        "hidden-events",
+        "bounded-event-parser"
+      ]
+    },
+    {
+      "id": "DYN04",
+      "source": "inotify.c:350-377;option.c:5617-5627",
+      "title": "Append-only host updates",
+      "requirement": "New or modified DHCP directory file is parsed and prepended without removing prior rows from that file. Same-IP replacement is rejected and old selector persists; selector-to-new-IP adds another rule/reservation. Removing lines from a rewritten file does not remove earlier bank rules.",
+      "cases": [
+        "host-live-add",
+        "host-rewrite-same-ip",
+        "host-rewrite-new-ip",
+        "host-truncate-keeps-old"
+      ]
+    },
+    {
+      "id": "DYN05",
+      "source": "inotify.c:350-377;option.c:4310-4320",
+      "title": "Append-only option updates",
+      "requirement": "Each live optsdir read prepends new options; old values are still present. Selection and vendor/enterprise duplicate behavior use existing filtering. Empty/invalid/open-failed reread cannot delete old bank options.",
+      "cases": [
+        "option-live-add",
+        "option-rewrite-precedence",
+        "option-empty-keeps-old",
+        "option-invalid-keeps-old"
+      ]
+    },
+    {
+      "id": "DYN06",
+      "source": "inotify.c:350",
+      "title": "Delete and move-out retain DHCP banks",
+      "requirement": "IN_DELETE is ignored for DHCP directories. Unlink/rename-out preserves loaded hosts/options until HUP; DHCP semantics deliberately differ from DNS hostsdir source replacement/delete.",
+      "cases": [
+        "host-delete-retained",
+        "option-delete-retained",
+        "move-out-retained",
+        "hup-after-delete"
+      ]
+    },
+    {
+      "id": "DYN07",
+      "source": "inotify.c:203-229,299-316",
+      "title": "Directory identity lifetime",
+      "requirement": "Watch inode semantics survive directory rename; replacement at the original path does not invent a new watch. HUP scans configured path but respects AH_WD_DONE. Directory deletion/recreation and ignored nameless events must not busy-loop or silently reattach.",
+      "cases": [
+        "directory-renamed",
+        "directory-replaced",
+        "hup-existing-watch",
+        "nameless-event"
+      ]
+    },
+    {
+      "id": "RELOAD01",
+      "source": "option.c:5912-5948",
+      "title": "Full reload stage ordering",
+      "requirement": "Freeze one full generation: clear banks, static host paths, static option paths, dynamic dirs. All dynamic BANK rows are cleared even when no static file directives exist, then preexisting directory files are reread. Partial successful rows are retained despite other file failures.",
+      "cases": [
+        "hup-dynamic-only",
+        "static-dynamic-priority",
+        "host-option-stage-order",
+        "mixed-errors"
+      ]
+    },
+    {
+      "id": "RELOAD02",
+      "source": "dnsmasq.c:clear_cache_and_reload,EVENT_RELOAD;main existing clear/HUP separation",
+      "title": "Signal versus automatic reload cause",
+      "requirement": "SIGHUP rereads data and reruns unchanged lease scripts at the established C event boundary. clear-on-reload reuses data reload without fabricating SIGHUP rerun. Coalesce bounded triggers without losing a later generation; do not alter DNSfiles cause behavior.",
+      "cases": [
+        "hup-scripts",
+        "automatic-clear-no-rerun",
+        "repeat-hup-during-read"
+      ]
+    },
+    {
+      "id": "STATE01",
+      "source": "inotify.c:363-369;dhcp-common.c:458-546",
+      "title": "Live host consequences",
+      "requirement": "After successful dynamic host read, recompute inferred host addresses, lease names, persistence and DNS once at the C publication boundary. Name-only rules resolve existing local hosts (including multi-address precedence/port0), never blocking upstream DNS.",
+      "cases": [
+        "host-name-to-address",
+        "host-dns-disabled",
+        "host-reload-dns-source"
+      ]
+    },
+    {
+      "id": "STATE02",
+      "source": "lease.c:256-274,lease_update_file,lease_update_dns",
+      "title": "Existing lease names and scripts",
+      "requirement": "New matching host rule can rename an existing lease when address condition matches. Persist leasefile, publish A/PTR and helper change event in normal order. Address mismatch/no matching new rule does not erase current lease name or renew expiry.",
+      "cases": [
+        "live-lease-rename",
+        "rename-address-mismatch",
+        "lease-expiry-unchanged",
+        "dns-a-ptr-helper"
+      ]
+    },
+    {
+      "id": "STATE03",
+      "source": "option.c:clear_dynamic_conf;dhcp.c:dhcp_read_ethers",
+      "title": "Host provenance and decline preservation",
+      "requirement": "Inline and ethers-origin rows survive bank clear with their proper mutated identity and DECLINE state; new file rows have fresh state. Duplicate checks see previously inferred/ethers addresses before the existing post-ethers clear/recompute point. Reuse Ethers provenance API, preserve existing read-ethers closure.",
+      "cases": [
+        "inline-decline-survives",
+        "file-decline-resets",
+        "ethers-retained-conflict",
+        "ethers-open-failure"
+      ]
+    },
+    {
+      "id": "STATE04",
+      "source": "inotify.c:372-373",
+      "title": "Option-only updates have no host side effects",
+      "requirement": "optsfile/optsdir affects subsequent option selection and PXE/shared bank consumers without reloading host state or emitting unrelated lease helper events. Existing PXE prompt and forced options survive full option-bank clear.",
+      "cases": [
+        "options-no-lease-event",
+        "options-pxe-shared-bank",
+        "inline-prompt-survives"
+      ]
+    },
+    {
+      "id": "STATE05",
+      "source": "rfc2131.c option_filter call sites;runtime existing consumers",
+      "title": "Consumer coverage",
+      "requirement": "Observe actual DHCP DISCOVER/REQUEST/INFORM and BOOTP where applicable; one PXE/leasequery integration witness ensures every relevant consumer sees current host/option banks. No replacement allocation/serializer is introduced.",
+      "cases": [
+        "dora-updated-bank",
+        "inform-updated-bank",
+        "bootp-updated-host",
+        "pxe-query-integration"
+      ]
+    },
+    {
+      "id": "OWNER01",
+      "source": "M5 poll owner rule;dnsmasq.c:1243,inotify.c:292",
+      "title": "Bounded main-loop work",
+      "requirement": "All live file/dir/watch work uses existing poll owner with no added threads or sleep/wait loop. Bound reads to4096 bytes and directory/event processing to one bounded step; return runnable/wait-fd separately, and keep DNS/TFTP/helper service progressing during slow/large loads.",
+      "cases": [
+        "large-bank-owner-progress",
+        "slow-stream-owner-progress",
+        "thread-count",
+        "event-burst-fairness"
+      ]
+    },
+    {
+      "id": "OWNER02",
+      "source": "M5 poll owner rule;C blocking reread boundary",
+      "title": "Consistent admission during staged loads",
+      "requirement": "Avoid serving partially replaced host/option generations. Startup/HUP bank readiness must defer DHCP processing until consistent publication while owner continues unrelated services; do not drop packets through the old unsupported-selector gate. Stop/failed read closes state without a permanently paused DHCP service.",
+      "cases": [
+        "startup-queued-dhcp",
+        "reload-queued-dhcp",
+        "failed-file-recovers",
+        "stop-mid-load"
+      ]
+    },
+    {
+      "id": "OWNER03",
+      "source": "option.c:5630-5717;M5 nonblocking rule",
+      "title": "Special streams and resources",
+      "requirement": "Explicit FIFO/special inputs require nonblocking open/read readiness; EOF/read error handles last partial line and no busy loop. C may block on such reads; retained isolated witness and deliberate owner-liveness disposition must be explicit. FD closure, watch lifecycle, shutdown and max-fd failure are observable.",
+      "cases": [
+        "fifo-hup-read",
+        "partial-stream-eof",
+        "fd-count",
+        "fd-open-failure",
+        "watch-cleanup"
+      ]
+    },
+    {
+      "id": "SAFE01",
+      "source": "option.c:opt_string_alloc,expand_filelist,read_file",
+      "title": "Unsafe C input disposition",
+      "requirement": "Known NULL/undefined configurations are safe syntax-only and source classified; do not deliberately execute a known crash path. Preserve any newly discovered original crash with first observation and no reexecution. Do not relabel implementation mismatches as reference defects.",
+      "cases": [
+        "unsafe-empty-combinations",
+        "existing-parser-unsafe-classification"
+      ]
+    },
+    {
+      "id": "EVID01",
+      "source": "M5 ledger",
+      "title": "Exact image/candidate identity",
+      "requirement": "One m5_dhcp_files.py family driver records stock097a9e21...cab87, candidate source/ELF SHA/bytes, executed tool snapshot, namespace and source checklist. No physical router access; per-family ELF delta recorded, no early size stop.",
+      "cases": [
+        "elf-identity",
+        "source-tool-identity",
+        "size-delta"
+      ]
+    },
+    {
+      "id": "EVID02",
+      "source": "M5 ledger",
+      "title": "Raw pairing and controls",
+      "requirement": "Compare --test/startup outcome, raw DHCP packets/endpoints/options, leases/DNS/helper observations and health. Preserve expected silence with a positive witness. Controls must detect stale/new selector, option order/value, missed delete/HUP semantics, packet loss and missing helper/lease effects.",
+      "cases": [
+        "raw-pairing",
+        "silence-control",
+        "negative-controls"
+      ]
+    },
+    {
+      "id": "EVID03",
+      "source": "M5 ledger",
+      "title": "Coverage and archival",
+      "requirement": "Every frozen boundary maps to real paired/safe-classified evidence. Original failures retained. Shared Cargo target/readonly image base+overlay; per-run tar includes all metadata/xattrs/whiteouts and SHA verification before remote prune. Close only this family4 options, not DNS hostsdir or all host/options contracts.",
+      "cases": [
+        "coverage-map",
+        "archive-verify-prune",
+        "scope-count"
+      ]
+    }
+  ]
+}
