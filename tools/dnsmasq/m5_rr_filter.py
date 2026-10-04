@@ -302,7 +302,8 @@ def main():
     directives = ["filter-A", "filter-AAAA", "filter-rr=TXT", "filter-rr=ANY", "filter-A\nfilter-AAAA\nfilter-rr=TXT", "filter-rr=1,28", "filter-rr=CNAME,TXT,SOA", "filter-rr=MX,ANY"]
     report = {"cases": [], "failures": [], "negative_controls": [], "c_sha256": STOCK_SHA256, "rust_sha256": sha256(args.rust)}
     for index, directive in enumerate(directives):
-        label = directive.replace("\n", "+").replace("=", "-").lower() or "none"
+        # Mount's overlay path list uses commas as separators.
+        label = directive.replace("\n", "+").replace("=", "-").replace(",", "-").lower() or "none"
         left = run_side(args, "c", out / f"{index:02d}-{label}" / "c", directive)
         right = run_side(args, "rust", out / f"{index:02d}-{label}" / "rust", directive)
         errors = compare(left, right)
