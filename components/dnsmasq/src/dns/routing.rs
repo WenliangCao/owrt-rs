@@ -86,10 +86,9 @@ pub enum RoutingError {
 
 #[derive(Debug)]
 struct RuleBucket {
-    /// Exact and wildcard rules with the same suffix share one C server tier.
-    /// A local family mismatch therefore cannot fall through to a wildcard
-    /// upstream at that same suffix.
-    patterns: Vec<DomainPattern>,
+    /// C keeps exact and wildcard rules in separate server tiers, including
+    /// the empty wildcard suffix produced by `/*./`.
+    pattern: DomainPattern,
     literals: Vec<IpAddr>,
     zeros: usize,
     local_only: bool,
@@ -101,7 +100,7 @@ struct RuleBucket {
 impl RuleBucket {
     fn new(pattern: DomainPattern) -> Self {
         Self {
-            patterns: vec![pattern],
+            pattern,
             literals: Vec::new(),
             zeros: 0,
             local_only: false,
@@ -112,14 +111,11 @@ impl RuleBucket {
     }
 
     fn representative(&self) -> &DomainPattern {
-        &self.patterns[0]
+        &self.pattern
     }
 
     fn matched_pattern<'a>(&'a self, query: &[u8]) -> Option<&'a DomainPattern> {
-        self.patterns
-            .iter()
-            .filter(|pattern| matches_domain(query, pattern))
-            .min_by_key(|pattern| (pattern.wildcard, pattern.wildcard_dot))
+        matches_domain(query, &self.pattern).then_some(&self.pattern)
     }
 }
 
@@ -177,7 +173,7 @@ impl RoutingTable {
             pattern.suffix.make_ascii_lowercase();
             let bucket = match buckets.iter_mut().position(|b| {
                 let representative = b.representative();
-                representative.suffix == pattern.suffix && representative.dotless == pattern.dotless
+                representative == &pattern
             }) {
                 Some(index) => &mut buckets[index],
                 None => {
@@ -185,18 +181,10 @@ impl RoutingTable {
                     buckets.last_mut().unwrap()
                 }
             };
-            if !bucket
-                .patterns
-                .iter()
-                .any(|candidate| candidate == &pattern)
-            {
-                bucket.patterns.push(pattern);
-                crate::sorting::sort_by(&mut bucket.patterns, |a, b| {
-                    (a.wildcard, a.wildcard_dot).cmp(&(b.wildcard, b.wildcard_dot))
-                });
-            }
             match &rule.target {
-                RuleTarget::Literal(address) => bucket.literals.push(*address),
+                // local_domains is a head-inserted C list. Stable sorting
+                // retains its reverse configuration order within a family.
+                RuleTarget::Literal(address) => bucket.literals.insert(0, *address),
                 RuleTarget::ZeroAddresses => bucket.zeros += 1,
                 RuleTarget::LocalOnly => bucket.local_only = true,
                 RuleTarget::DefaultResolvers => bucket.use_defaults = true,
@@ -259,6 +247,11 @@ impl RoutingTable {
                         .dotless
                         .cmp(&left.representative().dotless)
                 })
+                .then_with(|| {
+                    left.representative()
+                        .wildcard
+                        .cmp(&right.representative().wildcard)
+                })
         });
         Ok(Self {
             rules: buckets,
@@ -298,16 +291,6 @@ impl RoutingTable {
             }
             if bucket.local_only {
                 return RouteSelection::local(RouteReason::LocalOnly);
-            }
-            // A local address tier is terminal for this suffix even when it
-            // has no record of the requested family. C's filter_servers then
-            // resumes at the next shorter suffix; an upstream sharing this
-            // suffix must not bypass that family decision.
-            if class == CLASS_IN
-                && !matches!(family, QueryFamily::Other)
-                && (!bucket.literals.is_empty() || bucket.zeros != 0)
-            {
-                continue;
             }
             if let Some(group) = bucket.group {
                 return RouteSelection {
@@ -483,7 +466,7 @@ fn matches_domain(query: &[u8], pattern: &DomainPattern) -> bool {
     }
     let suffix = &pattern.suffix;
     if suffix.is_empty() {
-        return !pattern.wildcard;
+        return true;
     }
     if pattern.wildcard {
         query.len() >= suffix.len()
@@ -580,6 +563,39 @@ mod tests {
     }
 
     #[test]
+    fn family_mismatch_uses_upstream_in_the_same_domain_tier() {
+        let table = table(&[
+            "address=/child.example.test/2001:db8::9",
+            "server=/child.example.test/192.0.2.53",
+            "address=/example.test/192.0.2.7",
+        ]);
+        assert_eq!(
+            endpoints(&table, route(&table, "child.example.test", TYPE_A)),
+            vec!["192.0.2.53:53".parse().unwrap()]
+        );
+    }
+
+    #[test]
+    fn empty_wildcard_is_after_the_ordinary_default_tier() {
+        let literal = "address=/*./192.0.2.77";
+        let alone = table(&[literal]);
+        assert_eq!(
+            addresses(route(&alone, "example.test", TYPE_A)),
+            vec!["192.0.2.77".parse::<IpAddr>().unwrap()]
+        );
+        for rules in [
+            vec![literal, "server=192.0.2.53"],
+            vec!["server=192.0.2.53", literal],
+        ] {
+            let with_default = table(&rules);
+            assert_eq!(
+                endpoints(&with_default, route(&with_default, "example.test", TYPE_A)),
+                vec!["192.0.2.53:53".parse().unwrap()]
+            );
+        }
+    }
+
+    #[test]
     fn upstream_transport_family_is_independent_and_order_is_preserved() {
         let table = table(&[
             "strict-order",
@@ -613,10 +629,13 @@ mod tests {
         assert!(
             matches!(&exact.reason, RouteReason::Upstream { pattern, .. } if !pattern.wildcard)
         );
-        assert_eq!(endpoints(&table, exact).len(), 2);
         assert_eq!(
-            endpoints(&table, route(&table, "badexample.test", TYPE_A)).len(),
-            2
+            endpoints(&table, exact),
+            vec!["192.0.2.53:53".parse().unwrap()]
+        );
+        assert_eq!(
+            endpoints(&table, route(&table, "badexample.test", TYPE_A)),
+            vec!["192.0.2.54:53".parse().unwrap()]
         );
         let fallback = table_for_fallback();
         assert!(
