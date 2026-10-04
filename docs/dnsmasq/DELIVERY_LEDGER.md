@@ -2,8 +2,8 @@
 
 ## 当前状态与下一步
 
-- 当前里程碑：M5；169 项中 **89 项已关闭、46 项部分实现、34 项未实现，剩余 80 项**。
-- 刚关闭：dhcp-ignore-clid，13配置／51事件／6条C边界通过；PXE6项已关闭并归档删除任务树。批5FQDN运行时通过，前导换行修复中；TTL确认整数overflow/diagnostic缺口正在修，不扣数。
+- 当前里程碑：M5；169 项中 **90 项已关闭、45 项部分实现、34 项未实现，剩余 79 项**。
+- 刚关闭：重新关闭dhcp-script退出缺陷；a238和864各13场景／26侧、10清单与8负控通过，两新Linux单元实际通过。parent立即退出/删PID、helper串行完成已排队输出与异常脚本、init错误及信号分界均留证，归档1234项metadata核验后远端已清。
 - 当前代码：最新候选 `864b60c849ee508adf6b8a42b24a0e65fe37754e` / ELF SHA256 `838cf680bbdf1e5bf6ccf0e4da81974b2ffe0bf63c79337e10b6e3940a8da6fd`，**1,474,584字节**（M4+315,304）；本地/Oracle文件SHA已重新核验一致。包含PXE全调用接线、DHCP第四批、DNSfiles owner、helper退出修复，以及后继clear/HUP脚本分离、FQDN诊断、TTL溢出修复；后继修复等待各族定向镜像。前候选a238a6cf的Linux库567/main10通过，18 ignored不计；其统一回归证据由batch负责人继续核收，不能冒称最新候选全批已过。Oracle产物 `/home/ubuntu/m5-root-20261004/<commit>/`，本地 `evidence/M5/integration-20261004/<commit>/`。PXE阶段增量+40,960，helper此次修复及后继三修复到864体积增量0；DNS文件最终归因待收尾。
 - 下一步：5树及4子代理已恢复。a238统一批12任务已全绿，13tar／16368 metadata／13359 regular归档SHA+metadata验证后远端已清；收据由batch负责人整理。helper的a238退出补证13场景／26侧／8负控已通过，正映射10清单并做864后继确认。864正在DNSfiles35配置、FQDN/TTL34配置／149事件定向镜像。record-boundaries的精确C基线256服务行／66语法已完成，两个CAA总长度65536/65537在隔离--test稳定SIGSEGV，保留安全拒绝并单列；安全RR/TXT长度窄化与NAPTR先u16后255截断的修复及两定向单元已通过，正构建配对候选。
 - 阻塞点：无。Oracle清理后曾可用43,216,506,880字节（40.25GiB）；当前并行测试/构建中复测可用39,178,842,112字节（36.49GiB），使用率82%，继续执行每批归档即清理。磁盘不足造成的casing-02与relay paired-03都发生在rootfs准备阶段，零产品观察，后续同候选复跑已通过；ENOSPC审计保存在oracle-cleanup-20261004/enospc-audit.json。物理路由器及r85/netifd/reload/sdk/owrt-evidence内容未修改或删除。
@@ -56,7 +56,7 @@ M4 的单 poll owner 已替换六线程接线，决定见 [ADR_THREAD_MODEL.md](
 
 ## M5 盘点与工作顺序
 
-盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**89 项已实现并有 C 差分，46 项部分实现，34 项未实现；剩余 80 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
+盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**90 项已实现并有 C 差分，45 项部分实现，34 项未实现；剩余 79 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
 
 对镜像 init 的静态调用路径核对得到 **A 组 99 项、B 组 70 项**。A 表示原生 UCI/init 生成或调用，行号链接到保留原文的 init；B 表示通常需额外配置。`extraconftext`/conf-dir 可以透传任意指令，不据此把全部选项都算原生生成。`pxe-service`、`pxe-prompt`、`interface-name` 实际有 init 生成路径，归 A。26 个 excluded-capability 选项不混入169项计数；其与C一致的禁用/拒绝边界仍保留。
 
@@ -100,7 +100,7 @@ M5 退出条件：169项全部实现并有C差分，或已证明与C一致的拒
 | `conf-dir` | A / 1175 | helper/文件更新 | 已实现，有C差分 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final/config-image/summary.json)；23 CLI/include acceptance cases and 57 DNS parser cases; syntax only, does not prove daemon runtime |
 | `conf-file` | A / 943,1145,1199,1224,1267 | helper/文件更新 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final/config-image/summary.json)；Ordinary CLI/include/default/stdin/inode dedup paths implemented. Second empty CLI -C deliberately differs from C undefined NULL-path behavior; retain a minimal exact-image reproduction and explicit behavior-difference record before full closure. Existing acceptance corpus does not cover this edge. |
 | `dhcp-leasefile` | A / 1067 | helper/文件更新 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-dhcp-1791029005/static-ethers-comparison.json)；Ordinary file restore/write/retry is implemented with image evidence, but LeaseStore rejects duplicate-address restoration unlike C; explicit documented recovery-policy difference remains. Need source-derived duplicate-address C reproduction and compatible handling. Bare optional --dhcp-leasefile has no argument but apply() currently requires one; empty-string fallback exists. |
-| `dhcp-script` | A / 1099 | helper/文件更新 | 部分实现 | 旧[M5镜像16场景](../../private/dnsmasq-rewrite/evidence/M5/helper/close-build-06/private/run-01/result.json)保留。2026-10-04 PXE shutdown-probe-01发现真实生命周期差异：C parent收到TERM立即删PID退出，helper/script继续；Rust错误等待脚本完成。另需确保parent退出导致通知管道EPIPE不截断已排队脚本。已重开，m5/helper-shutdown修复与补证中。 |
+| `dhcp-script` | A / 1099 | helper/文件更新 | 已实现，有C差分 | 原16场景证据保留；[M5 helper退出补正](../../private/dnsmasq-rewrite/evidence/M5/helper-shutdown/close-summary.json)10边界／13场景／26侧／8负控通过，parent退出与helper收尾分别实测；输出/EPIPE/失败脚本后继续队列，init传输严格。候选a238a6cf，后继864b60c8同组也通过；体积增量0，完整归档校验清理。 |
 | `resolv-file` | A / 1111 | helper/文件更新 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final/config-image/summary.json)；Only initial nameserver parsing is wired. Rust merges every resolv file and aborts on missing/empty files; C selects latest changed file, tolerates absent file with existing parent directory, retries empty state and updates servers through inotify. SIGHUP/no-poll path missing. |
 | `script-arp` | A / 1018,1100 | helper/文件更新 | 未实现 | 当前无通过证据；Generic unimplemented option rejection; no kernel neighbour/ARP transition producer or helper arp-add/arp-del delivery. Must share C helper and event stream without new thread. |
 | `servers-file` | A / 1072 | helper/文件更新 | 未实现 | 当前无通过证据；Typed path exists but both main and DNS daemon reject it. Need restricted server/rev-server file parsing, source-specific replacement, startup/SIGHUP load and file-error behavior. Exact C does not inotify-watch servers-file; do not invent auto-update behavior. |
