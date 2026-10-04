@@ -98,6 +98,14 @@ impl DatagramSender for crate::net::DatagramSocket {
 pub trait OutcomeProvider {
     fn resolve(&mut self, dispatch: &Dispatch<'_>) -> Result<Outcome, RuntimeError>;
 
+    fn direct_pxe_reply(
+        &mut self,
+        _request: super::packet::Packet<'_>,
+        _output: &mut [u8],
+    ) -> Result<Option<super::reply::ReplyEncoding>, RuntimeError> {
+        Ok(None)
+    }
+
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     fn lease_query_reply(
         &mut self,
