@@ -429,6 +429,18 @@ impl<'a> Packet<'a> {
         })
     }
 
+    /// rfc2131.c:189-205: preserve the first relay-agent option only when
+    /// there is room to copy it beyond the incoming primary END marker.
+    /// The same reservation controls reply echo and leasequery retention.
+    pub fn echo_agent_id(self) -> Option<&'a [u8]> {
+        if matches!(self.message_type(), 0 | 10) {
+            return None;
+        }
+        let agent = self.option(82, 1)?;
+        let end = find_option(self.bytes.get(240..)?, 255, 0)?.offset + 240;
+        (end + agent.len() + 2 < self.response_capacity()).then_some(agent)
+    }
+
     /// PXE vendor matching is a configured-prefix match, not exact equality.
     /// The returned slice refers to the configured prefix, as in is_pxe_client.
     pub fn pxe_vendor<'b>(self, prefixes: &'b [&'b [u8]]) -> Option<&'b [u8]> {
