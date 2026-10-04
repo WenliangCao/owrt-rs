@@ -310,6 +310,15 @@ def self_test():
         elif key == 'leaked-pid': changed['cleanup']['pid_file'] = True
         assert compare(base, changed, case), key
         controls[key] = 'detected'
+    rejected_case = {'probes': [], 'expected_test_exit': 1}
+    rejected = {'syntax': {'exit': 1, 'stdout': '', 'stderr': '\ndnsmasq: error at line 1 of /m2/matrix.conf\n'},
+                'startup': {'ready': False, 'exit': 1, 'stdout': '', 'stderr': '\ndnsmasq: error at line 1 of /m2/matrix.conf\n'},
+                'cleanup': {'live_pids': [], 'pid_file': False}, 'exit': 1, 'rows': []}
+    assert not compare(rejected, copy.deepcopy(rejected), rejected_case)
+    changed = copy.deepcopy(rejected)
+    changed['syntax']['stderr'] = '\ndnsmasq: wrong error at line 1 of /m2/matrix.conf\n'
+    assert compare(rejected, changed, rejected_case)
+    controls['same-rejection-code-wrong-error'] = 'detected'
     try:
         verify_identity('unexpected', STOCK_SHA256)
     except AssertionError:
