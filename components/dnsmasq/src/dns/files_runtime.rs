@@ -95,6 +95,9 @@ pub struct SourceUpdate {
 pub struct FileStep {
     pub update: Option<SourceUpdate>,
     pub diagnostics: Vec<FileDiagnostic>,
+    /// EVENT_RELOAD rerun_scripts belongs after that signal's file reads,
+    /// even if a later inotify/route trigger is already queued.
+    pub signal_complete: bool,
     /// Local parse work remains. Poll the owner without a long sleep; special
     /// stream inputs waiting for readiness do not set this bit.
     pub runnable: bool,
@@ -205,6 +208,7 @@ pub struct DnsFiles {
     job: Option<ReadJob>,
     warned_empty: bool,
     initializing: bool,
+    active_reason: Option<ReloadReason>,
 }
 
 impl DnsFiles {
@@ -232,6 +236,7 @@ impl DnsFiles {
             job: None,
             warned_empty: false,
             initializing: false,
+            active_reason: None,
         })
     }
 
@@ -350,6 +355,7 @@ impl DnsFiles {
         }
         if self.job.is_none() && self.requests.is_empty() {
             if let Some(reason) = self.triggers.pop_front() {
+                self.active_reason = Some(reason);
                 self.schedule(reason, &mut result.diagnostics);
             }
         }
@@ -410,6 +416,9 @@ impl DnsFiles {
             } else {
                 self.job = Some(job);
             }
+        }
+        if self.job.is_none() && self.requests.is_empty() {
+            result.signal_complete = self.active_reason.take() == Some(ReloadReason::Signal);
         }
         if self.initializing
             && self.job.is_none()
@@ -556,6 +565,37 @@ mod tests {
                 ..
             }
         ));
+    }
+
+    #[test]
+    fn signal_completion_is_after_its_reads_not_after_later_notifications() {
+        let dir = Directory::new();
+        let mut config = dir.config();
+        config.no_resolv = true;
+        config.servers_file = Some(dir.0.join("servers"));
+        let mut bytes = vec![b'#'];
+        bytes.extend(std::iter::repeat_n(b'x', 9000));
+        bytes.extend_from_slice(b"\nserver=/test/127.0.0.2\n");
+        fs::write(config.servers_file.as_ref().unwrap(), bytes).unwrap();
+        let mut files = DnsFiles::new(&config, true, true).unwrap();
+        files.request(ReloadReason::Signal);
+        files.request(ReloadReason::Notify);
+        let first = files.step();
+        assert!(!first.signal_complete && first.update.is_none());
+        let mut completions = 0;
+        for _ in 0..10 {
+            let step = files.step();
+            if step.signal_complete {
+                completions += 1;
+                assert_eq!(step.update.unwrap().source, Source::ServersFile);
+                assert!(files.has_work()); // A later Notify still remains.
+            }
+            if !files.has_work() {
+                break;
+            }
+        }
+        assert_eq!(completions, 1);
+        assert!(!files.step().signal_complete);
     }
 
     #[test]
