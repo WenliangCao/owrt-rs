@@ -138,17 +138,23 @@ pub fn resolver_line(
 
 /// Hard-option parsing logs errors per line and continues. Retain unresolved
 /// endpoint syntax for its owning resolver, never turn it into a skipped row.
-pub fn server_line(line: &[u8]) -> Result<Vec<ServerRule>, Error> {
+
+pub fn server_line_with_origin(line: &[u8]) -> Result<(Vec<ServerRule>, bool), Error> {
     let Some(directive) = lex_line(line)? else {
-        return Ok(Vec::new());
+        return Ok((Vec::new(), false));
     };
     validate_directive(&directive)?;
     if !matches!(directive.name.as_slice(), b"server" | b"rev-server") {
         return Err(Error("illegal option"));
     }
+    let reverse = directive.name == b"rev-server";
     let mut config = DnsConfig::default();
     config.apply(&directive)?;
-    Ok(config.rules)
+    Ok((config.rules, reverse))
+}
+
+pub fn server_line(line: &[u8]) -> Result<Vec<ServerRule>, Error> {
+    Ok(server_line_with_origin(line)?.0)
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -161,6 +167,7 @@ pub enum Source {
 #[derive(Clone, Debug)]
 pub struct SourceRule {
     pub rule: ServerRule,
+    pub reverse: bool,
     /// Includes the resolved IPv6 scope from a resolver file. Configured
     /// server endpoints may remain unresolved until endpoint preparation.
     pub address: Option<SocketAddr>,
@@ -185,14 +192,20 @@ impl SourceRule {
                     source: None,
                 }),
             },
+            reverse: false,
             address: Some(address),
             line,
         }
     }
 
     pub fn configured(rule: ServerRule, line: usize) -> Self {
+        Self::configured_reverse(rule, line, false)
+    }
+
+    pub fn configured_reverse(rule: ServerRule, line: usize, reverse: bool) -> Self {
         Self {
             rule,
+            reverse,
             address: None,
             line,
         }

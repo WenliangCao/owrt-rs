@@ -2,9 +2,9 @@
 //! here. The caller publishes each completed source in its existing owner.
 
 use super::{resolver_line, server_line, FileStamp, ResolverSelection, Source, SourceRule};
-use crate::config::{dns::DnsConfig, Error};
 use crate::config::dns::{RuleTarget, ServerHost};
 use crate::config::dns_lookup::EndpointLookup;
+use crate::config::{dns::DnsConfig, Error};
 use crate::dns::filewatch::{FileWatch, WatchError};
 use owrt_ubus::sys::PollFd;
 use std::collections::VecDeque;
@@ -46,6 +46,10 @@ pub enum FileDiagnostic {
     EmptyResolvers(PathBuf),
     ReadingResolvers(PathBuf),
     Watch(io::Error),
+    ResolverChild {
+        path: PathBuf,
+        error: String,
+    },
 }
 
 impl std::fmt::Display for FileDiagnostic {
@@ -81,6 +85,12 @@ impl std::fmt::Display for FileDiagnostic {
             }
             Self::ReadingResolvers(path) => write!(out, "reading {}", path.display()),
             Self::Watch(error) => write!(out, "inotify read: {}", os_message(error)),
+            Self::ResolverChild { path, error } => write!(
+                out,
+                "cannot resolve endpoints in {}: {}",
+                path.display(),
+                error
+            ),
         }
     }
 }
@@ -139,12 +149,12 @@ impl ReadJob {
                     .push(SourceRule::resolver(address, self.line_number));
             }
         } else {
-            match server_line(&self.line) {
-                Ok(rules) => self.rows.extend(
-                    rules
-                        .into_iter()
-                        .map(|rule| SourceRule::configured(rule, self.line_number)),
-                ),
+            match super::server_line_with_origin(&self.line) {
+                Ok((rules, reverse)) => {
+                    self.rows.extend(rules.into_iter().map(|rule| {
+                        SourceRule::configured_reverse(rule, self.line_number, reverse)
+                    }))
+                }
                 Err(error) => diagnostics.push(FileDiagnostic::Line {
                     path: self.request.path.clone(),
                     line: self.line_number,
@@ -367,14 +377,21 @@ impl DnsFiles {
             if let Some(done) = lookup.step() {
                 self.endpoint_lookup = None;
                 if let Some(error) = done.error {
-                    result.diagnostics.push(FileDiagnostic::Line {
-                        path: self.endpoint_update.as_ref().map(|u| u.path.clone()).unwrap_or_default(),
-                        line: 0,
-                        error: Error(Box::leak(error.into_boxed_str())),
+                    result.diagnostics.push(FileDiagnostic::ResolverChild {
+                        path: self
+                            .endpoint_update
+                            .as_ref()
+                            .map(|u| u.path.clone())
+                            .unwrap_or_default(),
+                        error,
                     });
                     self.endpoint_update = None;
                 } else if let Some(mut update) = self.endpoint_update.take() {
-                    update.rows = done.rules.into_iter().map(|rule| SourceRule::configured(rule, 0)).collect();
+                    update.rows = done
+                        .rules
+                        .into_iter()
+                        .map(|rule| SourceRule::configured(rule, 0))
+                        .collect();
                     result.update = Some(update);
                 }
             }
@@ -468,8 +485,9 @@ impl DnsFiles {
                     matches!(row.rule.target, RuleTarget::Upstream(ref endpoint) if matches!(endpoint.host, ServerHost::Name(_)))
                 });
                 if needs_lookup {
+                    let reverse = update.rows.iter().any(|row| row.reverse);
                     let rules = update.rows.iter().map(|row| row.rule.clone()).collect();
-                    match EndpointLookup::start(rules, false) {
+                    match EndpointLookup::start(rules, reverse) {
                         Ok(lookup) => {
                             self.endpoint_lookup = Some(lookup);
                             self.endpoint_update = Some(update);
