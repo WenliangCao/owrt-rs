@@ -78,6 +78,7 @@ def fault_program(kind, machine=None):
         'socket': ('socket', [(0, 2, None), (1, 3, 15), (2, 1, None)]),
         'setup': ('setsockopt', [(1, 1, None), (2, 5, None)]),
         'send': ('sendto', [(2, 28, None), (5, 16, None)]),
+        'send-eagain': ('sendto', [(2, 28, None), (5, 16, None)]),
         'receive': ('recvfrom', [(2, 48, None)]),
     }
     syscall, arguments = matchers[kind]
@@ -89,7 +90,8 @@ def fault_program(kind, machine=None):
             program.append([0x54, 0, 0, mask])
         jumps.append(len(program))
         program.append([0x15, 0, 0, wanted])
-    program.extend([[0x06, 0, 0, 0x00050001], [0x06, 0, 0, 0x7fff0000]])  # EPERM / ALLOW
+    error = 11 if kind == 'send-eagain' else 1
+    program.extend([[0x06, 0, 0, 0x00050000 | error], [0x06, 0, 0, 0x7fff0000]])
     for index in jumps:
         program[index][2] = len(program)-index-2
     return program
@@ -114,7 +116,9 @@ def fault_exec(kind, argv):
 def client_worker(spec):
     """Raw response capture includes the 67->67 relay path and BOOTP."""
     event, xid = spec['event'], spec['xid']
-    if event.get('relay'):
+    if event.get('loopback'):
+        interface = 'lo'
+    elif event.get('relay'):
         interface = 'client0'
     elif event.get('guest'):
         interface = 'client1'
@@ -330,6 +334,17 @@ def service_cases():
               [event('offer', prl=[1, 3, 28, 51, 58, 59])], boundaries=['CTX-02', 'LEASE-02'])
     yield row('range-interface-aliases--first-local', ['10.77.0.10,10.77.0.14'], [event('offer')],
               server_aliases=['10.77.0.3'], boundaries=['CTX-03', 'CTX-04'])
+    yield row('range-interface-aliases--explicit-secondary', ['10.77.0.10,10.77.0.14'],
+              [event('offer', expect_server='10.77.0.3')], server_aliases=['10.77.0.3'],
+              secondary_only=True, boundaries=['CTX-03'])
+    yield row('range-address-update--mask-and-restore', ['10.77.0.130,10.77.0.131'],
+              [event('full-mask'),
+               event('smaller-mask', 'network', commands=[['addr', 'del', '10.77.0.1/24', 'dev', 'br-lan'],
+                                                        ['addr', 'add', '10.77.0.1/25', 'dev', 'br-lan']]),
+               event('retained-guessed-mask'),
+               event('restore-mask', 'network', commands=[['addr', 'del', '10.77.0.1/25', 'dev', 'br-lan'],
+                                                        ['addr', 'add', '10.77.0.1/24', 'dev', 'br-lan']]),
+               event('restored')], boundaries=['CTX-01', 'CTX-04'])
     yield row('range-context-order--two-pools',
               ['10.77.0.20,10.77.0.21,255.255.255.0,600', '10.77.0.10,10.77.0.11,255.255.255.0,600'],
               [event('first'), event('second', client=2)], boundaries=['CTX-03', 'SELECT-10'])
@@ -354,7 +369,8 @@ def service_cases():
               [event('discover'), event('requested', 'select', address='10.77.0.12')], boundaries=['SELECT-04'])
     yield row('range-reserved-and-leases--skip', ['10.77.0.10,10.77.0.14,255.255.255.0,600'],
               [event('first'), event('ack', 'select', address='assigned'), event('second', client=2), event('decline', 'decline', address='assigned'),
-               event('release', 'release', address='assigned')],
+               event('after-decline'), event('commit-new', 'select', address='assigned'),
+               event('release', 'release', address='assigned'), event('after-release', client=2)],
               'dhcp-host='+dhcp.mac(3)+',10.77.0.11\n', boundaries=['SELECT-04', 'SELECT-08', 'SELECT-09'])
     yield row('range-narrow-priority--static',
               ['10.77.0.10,10.77.0.14,255.255.255.0,600', '10.77.0.0,static,255.255.255.0,600'],
@@ -380,6 +396,21 @@ def service_cases():
               ['10.77.0.10,10.77.0.11,255.255.255.0,600', '10.77.0.20,10.77.0.21,255.255.255.0,600'],
               [event('selected', 'select', address='10.77.0.20', server_id='10.77.0.1')],
               boundaries=['SELECT-10'])
+    yield row('range-selecting-context-chain--consumed-prefix',
+              ['10.77.0.10,10.77.0.11,255.255.255.0,600',
+               '10.78.0.10,10.78.0.11,255.255.255.0,600',
+               '10.79.0.10,10.79.0.11,255.255.255.0,600'],
+              [event('previous-pool', 'select', address='10.79.0.10', server_id='10.78.0.1', expect_status=6),
+               event('later-pool', 'select', address='10.78.0.10', server_id='10.79.0.1'),
+               event('selected-pool', 'select', address='10.79.0.10', server_id='10.79.0.1'),
+               event('tftp-alias', 'select', client=2, address='10.77.0.10', server_id='10.80.0.1', expect_status=6)],
+              server_aliases=['10.78.0.1', '10.79.0.1', '10.80.0.1'],
+              extra='enable-tftp\ntftp-root=/m2\n', boundaries=['SELECT-10'])
+    yield row('range-identity-seed--extended-client', ['10.77.0.10,10.77.0.24,255.255.255.0,600'],
+              [event('hardware'),
+               event('zero-hardware', packet={'htype': 0, 'hlen': 0, 'chaddr': '', 'extra': [[61, '001122334455']]}),
+               event('alternate-client-id', packet={'htype': 0, 'hlen': 0, 'chaddr': '', 'extra': [[61, '0066778899aa']]})],
+              boundaries=['SELECT-03'])
     yield row('range-host-and-client-lease--floor', ['10.77.0.10,10.77.0.14,255.255.255.0,600'],
               [event('host', packet={'extra': [[50, socket.inet_aton('10.77.0.10').hex()]]})],
               'dhcp-host='+dhcp.mac(1)+',10.77.0.10,60\n', boundaries=['LEASE-01'])
@@ -390,6 +421,17 @@ def service_cases():
     yield row('range-restart-renew--existing', ['10.77.0.10,10.77.0.14,255.255.255.0,600'],
               [event('offer'), event('ack', 'select', address='assigned'), event('restart', 'restart'),
                event('renew', 'renew', address='assigned')], boundaries=['LEASE-03'])
+    yield row('range-restart-renew--static-outside-pool',
+              ['10.77.0.10,10.77.0.14,255.255.255.0,600', '10.77.0.0,static,255.255.255.0,600'],
+              [event('offer'), event('ack', 'select', address='assigned'), event('restart', 'restart'),
+               event('renew', 'renew', address='assigned'), event('rebind', 'rebind', address='assigned')],
+              extra='dhcp-host='+dhcp.mac(1)+',10.77.0.40\n', boundaries=['LEASE-03', 'SELECT-05'])
+    yield row('range-restart-renew--wrong-network-rebind', ['10.77.0.10,10.77.0.14,255.255.255.0,600'],
+              [event('offer'), event('ack', 'select', address='assigned'),
+               event('new-pool', 'restart', replace_config=[
+                   ['dhcp-range=10.77.0.10,10.77.0.14', 'dhcp-range=10.78.0.10,10.78.0.14']]),
+               event('old-network', 'rebind', address='assigned', expect_status=6, timeout=4)],
+              server_aliases=['10.78.0.1'], boundaries=['LEASE-03'])
     probe_range = ['10.77.0.10,10.77.0.10,255.255.255.0,600']
     yield row('range-probe-free--icmp', probe_range,
               [event('offer', timing='wait', icmp='request')], no_ping=False, boundaries=['PROBE-01'])
@@ -399,23 +441,46 @@ def service_cases():
               conflict_address='10.77.0.10', no_ping=False, boundaries=['PROBE-01', 'PROBE-08'])
     yield row('range-probe-bypass--no-ping', probe_range,
               [event('offer', timing='cached', icmp='none')], boundaries=['PROBE-01'])
+    yield row('range-probe-bypass--loopback', ['127.0.0.10,127.0.0.10,255.0.0.0,600'],
+              [event('offer', loopback=True, destination='127.0.0.1', timing='cached', icmp='none')],
+              loopback_only=True, no_ping=False, boundaries=['PROBE-01'])
     yield row('range-probe-cache--same-client', probe_range,
               [event('discover', timing='wait', icmp='request'), event('repeat', timing='cached', icmp='none')],
               no_ping=False, boundaries=['PROBE-02', 'PROBE-08'])
+    yield row('range-probe-cache--six-live-entry-bypass', ['10.77.0.10,10.77.0.20,255.255.255.0,600'],
+              [event('client-'+str(index), client=index+1, timing='wait' if index < 6 else 'cached',
+                     icmp='request' if index < 6 else 'none', expect_address='10.77.0.'+str(10+index),
+                     packet={'extra': [[50, socket.inet_aton('10.77.0.'+str(10+index)).hex()]]})
+               for index in range(7)], no_ping=False, boundaries=['PROBE-02'])
+    yield row('range-probe-cache--sequential-owner-hash', probe_range,
+              [event('first', timing='wait', icmp='request'),
+               event('different-owner', client=2, expect_status=None, timeout=.6, icmp='none'),
+               event('same-owner', timing='cached', icmp='none')],
+              no_ping=False, extra='dhcp-sequential-ip\n', boundaries=['PROBE-02', 'PROBE-08'])
     for fault in ['socket', 'setup', 'send', 'receive']:
         yield row('range-probe-'+fault+'-failure--cache', probe_range,
-                  [event('first', timing='cached' if fault in ('socket', 'setup') else 'wait'),
+                  [event('first', timing='cached' if fault in ('socket', 'setup') else 'wait',
+                         icmp='conflict' if fault == 'receive' else 'none'),
                    event('cached', timing='cached', icmp='none')],
                   no_ping=False, fault_injection=fault,
                   conflict_address='10.77.0.10' if fault == 'receive' else None,
                   boundaries=['PROBE-03' if fault in ('socket', 'setup') else 'PROBE-04' if fault == 'send'
                               else 'PROBE-05'])
-    yield row('range-probe-cancel-failure--planned', probe_range, [], planned_only=True,
-              incomplete_reason='cancellation/entropy unit guard and retry-exhaustion fault still required',
+    yield row('range-probe-cancel--pending', probe_range,
+              [event('signal-during-probe', cancel=True, timeout=5)], no_ping=False,
               boundaries=['PROBE-07'])
+    yield row('range-probe-retry--eagain-exhaustion', probe_range,
+              [event('exhausted-retry', timing='wait', icmp='none', coexistence=True),
+               event('cached', timing='cached', icmp='none')], no_ping=False,
+              fault_injection='send-eagain', extra='enable-tftp\ntftp-root=/m2/tftp\n',
+              boundaries=['PROBE-04', 'PROBE-06', 'PROBE-07'])
     yield row('range-probe-progress--dns-tftp', probe_range,
               [event('offer', timing='wait', icmp='request', coexistence=True)], no_ping=False,
               extra='enable-tftp\ntftp-root=/m2/tftp\n', boundaries=['PROBE-06'])
+    yield row('range-probe-progress--send-failure-dns-tftp', probe_range,
+              [event('offer', timing='wait', icmp='none', coexistence=True)], no_ping=False,
+              fault_injection='send', extra='enable-tftp\ntftp-root=/m2/tftp\n',
+              boundaries=['PROBE-04', 'PROBE-06'])
 
 
 def configuration(case):
@@ -424,6 +489,11 @@ def configuration(case):
            'dhcp-authoritative','dhcp-leasefile=/m2/range.leases','pid-file=/m2/range.pid']
     if case.get('no_ping', True):
         lines.insert(5, 'no-ping')
+    if case.get('secondary_only'):
+        lines.remove('interface=br-lan')
+        lines.append('listen-address=127.0.0.1,10.77.0.3')
+    if case.get('loopback_only'):
+        lines[lines.index('interface=br-lan')] = 'interface=lo'
     lines.extend('dhcp-range='+value for value in case['ranges'])
     if case.get('two_interfaces'):
         lines.extend(['interface=br-guest',
@@ -478,7 +548,7 @@ def guard_row(row, event, raw=None, icmp=None):
         actual = response.get('status') if response else None
         if actual != event['expect_status']:
             errors.append('status')
-    for source, target in [('expect_address', 'address'), ('expect_lease', 'lease_time')]:
+    for source, target in [('expect_address', 'address'), ('expect_lease', 'lease_time'), ('expect_server', 'server')]:
         if source in event and (response is None or response[target] != event[source]):
             errors.append(target)
     if raw is not None and event.get('timing'):
@@ -562,11 +632,14 @@ def start_daemon(root, side, case, stdout, stderr):
     return process, {'ready': ready, 'exit': process.poll()}
 
 
-def exchange(network, event, xid, folder):
+def exchange(network, event, xid, folder, daemon=None):
     spec = {'event': event, 'xid': xid}
     argv = [sys.executable, str(Path(__file__).resolve()), '--client']
-    if not event.get('coexistence'):
-        completed = subprocess.run(network.argv(*argv, json.dumps(spec)), check=True, text=True,
+    if not event.get('coexistence') and not event.get('cancel'):
+        command_line = [*argv, json.dumps(spec)]
+        if not event.get('loopback'):
+            command_line = network.argv(*command_line)
+        completed = subprocess.run(command_line, check=True, text=True,
                                    capture_output=True, timeout=event['timeout']+3)
         return json.loads(completed.stdout), None
     marker = folder/'sent.json'
@@ -581,6 +654,17 @@ def exchange(network, event, xid, folder):
             time.sleep(.01)
         time.sleep(.15)
         assert process.poll() is None, 'DHCP completed before coexistence observations'
+        if event.get('cancel'):
+            signalled = time.monotonic()
+            daemon.send_signal(signal.SIGTERM)
+            daemon.wait(5)
+            elapsed = time.monotonic()-signalled
+            out, err = process.communicate(timeout=event['timeout']+2)
+            assert process.returncode == 0, err
+            raw = json.loads(out)
+            save(folder/'cancellation.json', {'signal': 'SIGTERM', 'exit': daemon.returncode,
+                                            'exit_after_signal_seconds': elapsed})
+            return raw, {'exit_after_signal_seconds': elapsed, 'exit': daemon.returncode}
         dns = dhcp.dns_health()
         dns_at = time.time()
         output = network.exec(sys.executable, str(Path(dhcp.__file__).resolve()), '--client',
@@ -663,9 +747,20 @@ def run(root, side, case, folder, syntax_only):
                 if source_event['action'] == 'restart':
                     ended = stop(process)
                     assert not ended['forced'] and ended['returncode'] == 0
+                    for old, new in source_event.get('replace_config', []):
+                        assert old in text
+                        text = text.replace(old, new)
+                    (root/'m2/range.conf').write_text(text)
+                    (event_folder/'config').write_text(text)
                     process, ready = start_daemon(root, side, case, stdout, stderr)
                     assert ready['ready']
                     observed, event = {'restart': True}, source_event
+                elif source_event['action'] == 'network':
+                    for args in source_event['commands']:
+                        subprocess.run(['ip', *args], check=True, capture_output=True, timeout=3)
+                    save(event_folder/'network.json', json.loads(subprocess.check_output(['ip', '-j', 'addr'])))
+                    time.sleep(.05)
+                    observed, event = {'network_updated': True}, source_event
                 else:
                     wire_source = copy.deepcopy(source_event)
                     if wire_source['action'] == 'bootp':
@@ -674,7 +769,8 @@ def run(root, side, case, folder, syntax_only):
                     if source_event['action'] == 'bootp':
                         event['packet']['kind'] = 0
                     event.setdefault('timeout', 8 if not case.get('no_ping', True) else 2)
-                    raw, coexistence = exchange(network, event, 0xb500+index, event_folder)
+                    before_health = dhcp.dns_health()
+                    raw, coexistence = exchange(network, event, 0xb500+index, event_folder, process)
                     observed = decode(raw, event)
                     save(event_folder/'raw.json', raw)
                     time.sleep(.12)  # let the capture thread drain this packet's ICMP rows
@@ -686,15 +782,23 @@ def run(root, side, case, folder, syntax_only):
                             durations[observed['address']] = (observed['lease_time'], raw['sent'], raw['received'])
                 lease_text, leases = lease_snapshot(root, durations)
                 (event_folder/'leases').write_text(lease_text)
-                row = {'id': event['id'], 'response': observed, 'leases': leases, 'health': dhcp.dns_health()}
+                row = {'id': event['id'], 'response': observed, 'leases': leases,
+                       'health': before_health if source_event.get('cancel') else dhcp.dns_health()}
                 if source_event.get('coexistence'):
                     row['coexistence'] = coexistence
-                if source_event['action'] != 'restart':
+                if source_event.get('cancel'):
+                    elapsed = coexistence['exit_after_signal_seconds']
+                    assert coexistence['exit'] == 0
+                    assert 1.5 < elapsed < 5 and observed and observed['status'] == 2
+                    assert not leases
+                    row['cancellation_verified'] = True
+                elif source_event['action'] not in ('restart', 'network'):
                     errors = guard_row(row, source_event, raw, packet_icmp)
                     if errors:
                         result['guards'].append({'event': event['id'], 'errors': errors})
                 result['rows'].append(row)
-                result['fd_samples'].append(len(list(Path(f'/proc/{process.pid}/fd').iterdir())))
+                if not source_event.get('cancel'):
+                    result['fd_samples'].append(len(list(Path(f'/proc/{process.pid}/fd').iterdir())))
                 save(folder/'observed.json', result)
             result['fd_stable'] = result['fd_samples'][-1] == result['fd_samples'][0]
             if not result['fd_stable']:
@@ -758,6 +862,7 @@ def main():
     args=parser.parse_args();assert os.geteuid()==0 and os.environ.get('DNSMASQ_TEST_ISOLATED')=='1'
     assert [name for _,name in socket.if_nameindex()]==['lo'];assert 'private' in args.out.resolve().parts and not args.out.exists()
     root=prepare(args.image_root,None,args.out/'image',args.rust);(root/'m2').chmod(0o777)
+    (args.out/'driver.py').write_bytes(Path(__file__).read_bytes())
     save(args.out/'negative-controls.json', controls())
     checklist_path = Path(__file__).with_name('m5_dhcp_range_checklist.json')
     if checklist_path.exists():
@@ -786,8 +891,9 @@ def main():
         if any(row['status'] == 'not-executed' for row in observations.values()):
             result['unexecuted'].append(case['name'])
         if any(row['status']!='ok' for row in observations.values()):errors.append('failed-side')
-        if args.side=='both' and comparable(observations['c'])!=comparable(observations['rust']):errors.append('difference')
-        result['cases'].append({'name':case['name'],'group':case['group'],'errors':errors})
+        if args.side == 'both' and comparable(observations['c']) != comparable(observations['rust']):
+            errors.append('difference')
+        result['cases'].append({'name': case['name'], 'group': case['group'], 'errors': errors})
         if errors:result['failures'].append(case['name'])
         save(args.out/'result.json',result)
     result['passed']=not result['failures'];save(args.out/'result.json',result)
