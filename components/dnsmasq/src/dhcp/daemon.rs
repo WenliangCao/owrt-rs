@@ -925,6 +925,21 @@ impl LocalProvider {
             return self.initialize(now);
         }
         self.leases.rerun_scripts();
+        self.reload_data_files(now)
+    }
+
+    /// EVENT_RELOAD reruns unchanged leases after its DNS file reads. A
+    /// successful automatic resolver reload only reloads data, without this.
+    pub fn rerun_scripts(&mut self) {
+        self.leases.rerun_scripts();
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        self.queue_script_from_maintenance();
+    }
+
+    pub fn reload_data_files(&mut self, now: i64) -> MaintenanceReport {
+        if !self.initialized {
+            return self.initialize(now);
+        }
         let host_files = self.reread_host_files();
         let address_error = self
             .host_files_ready

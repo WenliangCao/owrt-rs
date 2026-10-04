@@ -1294,7 +1294,7 @@ impl SinglePoll {
             let mut provider = provider
                 .lock()
                 .map_err(|_| io::Error::other("DHCP state lock poisoned"))?;
-            report_dhcp_maintenance(&provider.reload_host_files(now_seconds()));
+            report_dhcp_maintenance(&provider.reload_data_files(now_seconds()));
         }
         Ok(())
     }
@@ -1344,6 +1344,12 @@ impl SinglePoll {
                     }
                     Err(error) => eprintln!("dnsmasq-rs: {error}"),
                 }
+            }
+        }
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if step.signal_complete {
+            if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
+                provider.lock().unwrap().rerun_scripts();
             }
         }
     }
