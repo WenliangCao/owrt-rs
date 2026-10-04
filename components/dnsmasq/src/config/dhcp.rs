@@ -481,7 +481,11 @@ impl DhcpConfig {
                             return Err(Error("only one tag allowed"));
                         }
                         let value = parts[first].decoded();
-                        let tag = value.strip_prefix(b"set:").unwrap_or(&value).to_vec();
+                        let tag = if bytes.starts_with(b"set:") {
+                            value[4..].to_vec()
+                        } else {
+                            value
+                        };
                         set_tag = (!tag.is_empty()).then_some(tag);
                     }
                     first += 1;
@@ -822,6 +826,8 @@ mod tests {
             let range = parse(&format!("{tag},192.0.2.10,192.0.2.20")).unwrap();
             assert_eq!(range.set_tag.as_deref(), Some(tag.as_bytes()));
         }
+        let quoted = parse("\"set:red\",192.0.2.10,192.0.2.20").unwrap();
+        assert_eq!(quoted.set_tag.as_deref(), Some(b"set:red".as_slice()));
         // option.c's restricted scan sends these tokens to the IPv4 parser;
         // they are not silently widened into legacy tags.
         for token in ["", "dead", "1234", "1.2.3", "2001:db8::1"] {
