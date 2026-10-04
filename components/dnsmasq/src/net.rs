@@ -406,16 +406,26 @@ pub(crate) fn inject_arp_with_name(
 
 impl DatagramSocket {
     pub fn bind(address: SocketAddr) -> io::Result<Self> {
-        Self::bind_options(address, true)
+        Self::bind_options(address, true, false)
     }
 
     /// Default DHCP listeners are exclusive; C enables reuse only for the
     /// separately gated bind-interfaces/bind-dynamic modes.
     pub fn bind_exclusive(address: SocketAddr) -> io::Result<Self> {
-        Self::bind_options(address, false)
+        Self::bind_options(address, false, false)
     }
 
-    fn bind_options(address: SocketAddr, reuse_address: bool) -> io::Result<Self> {
+    /// dhcp.c:70-92 enables both reuse flags only for bind-interfaces or
+    /// bind-dynamic. Older kernels may lack SO_REUSEPORT (ENOPROTOOPT).
+    pub fn bind_dhcp(address: SocketAddr, reuse: bool) -> io::Result<Self> {
+        Self::bind_options(address, reuse, reuse)
+    }
+
+    fn bind_options(
+        address: SocketAddr,
+        reuse_address: bool,
+        reuse_port: bool,
+    ) -> io::Result<Self> {
         let ipv6 = address.is_ipv6();
         // SAFETY: socket has no pointers and returns a new descriptor on success.
         let fd = unsafe {
@@ -430,6 +440,13 @@ impl DatagramSocket {
         }
         // SAFETY: fd is a fresh UDP socket; UdpSocket now owns every close path.
         let socket = unsafe { UdpSocket::from_raw_fd(fd) };
+        if reuse_port {
+            if let Err(error) = set_flag(fd, 1, 15) {
+                if error.raw_os_error() != Some(92) {
+                    return Err(error);
+                }
+            }
+        }
         if reuse_address {
             set_flag(fd, 1, 2)?; // SOL_SOCKET, SO_REUSEADDR (no SO_REUSEPORT).
         }

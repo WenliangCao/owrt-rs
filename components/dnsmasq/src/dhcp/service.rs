@@ -141,13 +141,22 @@ impl SocketListener {
         listener: Listener,
         pxe_prefixes: &[&[u8]],
     ) -> io::Result<Self> {
+        Self::bind_with_reuse(address, listener, pxe_prefixes, false)
+    }
+
+    pub fn bind_with_reuse(
+        address: SocketAddr,
+        listener: Listener,
+        pxe_prefixes: &[&[u8]],
+        reuse: bool,
+    ) -> io::Result<Self> {
         if !address.is_ipv4() {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidInput,
                 "DHCPv4 listener requires an IPv4 bind address",
             ));
         }
-        let socket = crate::net::DatagramSocket::bind_exclusive(address)?;
+        let socket = crate::net::DatagramSocket::bind_dhcp(address, reuse)?;
         socket.configure_dhcp()?;
         Ok(Self {
             socket,
