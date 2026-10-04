@@ -626,6 +626,13 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             &dhcp_config.no_dhcp_interfaces,
             dhcp_config.ports,
         )?;
+        listener
+            .configure_pxe(
+                dhcp_config.pxe.enabled,
+                &dhcp_config.pxe.vendors,
+                daemon_config.bind_interfaces || daemon_config.bind_dynamic,
+            )
+            .map_err(NetworkStartupError)?;
         Some(DhcpService { provider, listener })
     } else {
         None
@@ -1783,6 +1790,11 @@ impl SinglePoll {
             let _ = dhcp
                 .listener
                 .process_once_relay_only(|| STOP_REQUESTED.load(Ordering::Acquire));
+            if dhcp.listener.has_pxe_listener() {
+                let _ = dhcp
+                    .listener
+                    .process_once_pxe_relay_only(|| STOP_REQUESTED.load(Ordering::Acquire));
+            }
             self.dhcp = Some(dhcp);
             return;
         };
@@ -1806,7 +1818,7 @@ impl SinglePoll {
         self.probe_metrics = Some(metrics);
         let mut output = vec![0; 16_384];
         let events = Arc::clone(&self.parent_events);
-        let result = {
+        let results = {
             let mut sink = |kind, fields: DhcpEventFields<'_>, logging| {
                 events.lock().unwrap().notify_dhcp(kind, fields, logging)
             };
@@ -1814,28 +1826,43 @@ impl SinglePoll {
                 self.wait_during_probe(socket, duration, leases)
             };
             let mut provider = provider.with_event_sink_and_wait(&mut sink, &mut wait);
-            dhcp.listener
+            let primary = dhcp
+                .listener
                 .process_once_local(&mut provider, &[], &mut output, || {
                     STOP_REQUESTED.load(Ordering::Acquire)
-                })
+                });
+            let pxe = if dhcp.listener.has_pxe_listener() {
+                dhcp.listener.process_once_on_listener(
+                    DhcpListener::Pxe,
+                    &mut provider,
+                    &[],
+                    &mut output,
+                    || STOP_REQUESTED.load(Ordering::Acquire),
+                )
+            } else {
+                Ok(ListenerStep::WouldBlock)
+            };
+            [primary, pxe]
         };
         if self.pending_delivery.is_none() {
             self.pending_delivery = provider.take_script_delivery();
         }
         self.probe_metrics = None;
         self.probe_tftp_macs.clear();
-        if let Ok(ListenerStep::Processed(result)) = result {
-            let events = match &result {
-                Ok(report) => &report.events,
-                Err(failure) => &failure.events,
-            };
-            for event in events {
-                if let dnsmasq_rs::dhcp::runtime::RuntimeEvent::ArpInjectionFailed {
-                    kind,
-                    raw_os_error,
-                } = event
-                {
-                    eprintln!("dnsmasq-rs: DHCP ARP injection: {kind:?} ({raw_os_error:?})");
+        for result in results {
+            if let Ok(ListenerStep::Processed(result)) = result {
+                let events = match &result {
+                    Ok(report) => &report.events,
+                    Err(failure) => &failure.events,
+                };
+                for event in events {
+                    if let dnsmasq_rs::dhcp::runtime::RuntimeEvent::ArpInjectionFailed {
+                        kind,
+                        raw_os_error,
+                    } = event
+                    {
+                        eprintln!("dnsmasq-rs: DHCP ARP injection: {kind:?} ({raw_os_error:?})");
+                    }
                 }
             }
         }

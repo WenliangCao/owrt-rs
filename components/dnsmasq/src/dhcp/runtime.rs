@@ -738,6 +738,56 @@ where
         removed: outcome.removed.len(),
         lost_names: outcome.lost_names.len(),
     });
+    let direct = match provider.direct_pxe_reply(dispatch.packet, buffer) {
+        Ok(reply) => reply,
+        Err(error) => return Err(failure(error, events, Some(outcome), true)),
+    };
+    if let Some(encoding) = direct {
+        restore_relay_source(&dispatch, buffer);
+        events.push(RuntimeEvent::Built {
+            length: encoding.len,
+            omitted: encoding.omitted,
+            overload: encoding.overload,
+        });
+        // Direct PXE replies already encode all routing-relevant header
+        // fields. They neither use INFORM peer trust nor NAK policy flags.
+        let mut destination =
+            destination_with_ports(&dispatch, peer, &Reply::Ignore, buffer, encoding.len, ports)
+                .map_err(|error| failure(error, events.clone(), None, true))?;
+        if let Some(arp) = &mut destination.arp {
+            arp.interface_name = interface_name;
+        }
+        events.push(RuntimeEvent::DestinationSelected(destination.clone()));
+        if destination.arp.is_some() {
+            match sender.prepare_destination(&destination) {
+                Ok(()) => events.push(RuntimeEvent::ArpInjected),
+                Err(error) => events.push(RuntimeEvent::ArpInjectionFailed {
+                    kind: error.kind(),
+                    raw_os_error: error.raw_os_error(),
+                }),
+            }
+        }
+        // The socket owner accepts transient failures into its bounded queue.
+        // Never enter the legacy retry/sleep loop for a direct PXE response.
+        if let Err(error) = sender.send(&buffer[..encoding.len], &destination) {
+            return Err(failure(
+                RuntimeError::Send(error),
+                events,
+                Some(outcome),
+                true,
+            ));
+        }
+        events.push(RuntimeEvent::Sent {
+            length: encoding.len,
+        });
+        events.push(RuntimeEvent::Cleanup {
+            outcome_dropped: true,
+        });
+        return Ok(RuntimeReport {
+            events,
+            outcome: Some(outcome),
+        });
+    }
     if outcome.reply == Reply::Ignore {
         events.push(RuntimeEvent::NoReply);
         events.push(RuntimeEvent::Cleanup {
