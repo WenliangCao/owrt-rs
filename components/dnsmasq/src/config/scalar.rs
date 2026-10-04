@@ -124,17 +124,17 @@ impl ScalarConfig {
             b"fast-dns-retry" => {
                 let retry = if let Some(arg) = arg {
                     let parts = arg.split(b',');
-                    let interval_ms = integer(parts.first())?;
+                    let interval_ms = integer(parts.first()).map_err(|_| Error("error"))?;
                     if interval_ms < 50 {
-                        return Err(Error("retry interval below 50 ms"));
+                        return Err(Error("error"));
                     }
                     if parts.len() > 2 {
-                        return Err(Error("bad integer"));
+                        return Err(Error("error"));
                     }
                     FastRetry {
                         interval_ms,
                         timeout_seconds: if parts.len() == 2 {
-                            integer(parts.get(1))? / 1000
+                            integer(parts.get(1)).map_err(|_| Error("error"))? / 1000
                         } else {
                             10
                         },
@@ -156,9 +156,9 @@ impl ScalarConfig {
                 }
             }
             b"max-tcp-connections" => {
-                let value = integer(arg)?;
+                let value = integer(arg).map_err(|_| Error("error"))?;
                 if value == 0 {
-                    return Err(Error("max-tcp-connections must be positive"));
+                    return Err(Error("error"));
                 }
                 self.max_tcp_connections = value;
             }

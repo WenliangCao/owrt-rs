@@ -615,7 +615,7 @@ impl DnsConfig {
             b"local-service" => match arg.map(EncodedArg::encoded) {
                 None | Some(b"net") => self.local_service_net = true,
                 Some(b"host") => self.local_service_host = true,
-                _ => return Err(Error("bad local-service")),
+                _ => return Err(Error("error")),
             },
             b"rebind-domain-ok" => {
                 let bytes = arg.unwrap().decoded();
