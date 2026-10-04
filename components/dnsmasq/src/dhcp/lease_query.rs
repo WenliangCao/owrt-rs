@@ -128,6 +128,18 @@ pub fn encode_reply(
     options: &[VendorOption<'_>],
     output: &mut [u8],
 ) -> Result<ReplyEncoding, ReplyError> {
+    encode_reply_with_policy(request, reply, options, true, output)
+}
+
+/// `allow_option_overload` affects do_options only. C writes RFC4388 identity,
+/// timers and the final agent-id outside that policy boundary.
+pub fn encode_reply_with_policy(
+    request: Packet<'_>,
+    reply: &LeaseQueryReply,
+    options: &[VendorOption<'_>],
+    allow_option_overload: bool,
+    output: &mut [u8],
+) -> Result<ReplyEncoding, ReplyError> {
     let required = request.response_capacity().max(300);
     if output.len() < required {
         return Err(ReplyError::BufferTooSmall {
@@ -157,6 +169,7 @@ pub fn encode_reply(
     output[..required].fill(0);
     output[..FIXED_LEN].copy_from_slice(&request.bytes()[..FIXED_LEN]);
     output[0] = 2; // BOOTREPLY, set before clear_packet in rfc2131.c.
+    output[20..24].fill(0); // clear_packet: siaddr.
     output[44..236].fill(0); // clear_packet: sname and file.
     output[OPTIONS_OFFSET..required].fill(0);
     output[236..240].copy_from_slice(&COOKIE);
@@ -169,12 +182,10 @@ pub fn encode_reply(
     if reply.status == Status::Active {
         output[1] = reply.hardware_type;
         output[2] = reply.hardware_address.len() as u8;
-        output[28..44].fill(0);
         output[28..28 + reply.hardware_address.len()].copy_from_slice(&reply.hardware_address);
     }
 
-    let mut writer =
-        LeaseQueryWriter::new(&mut output[..required], request.option(55, 0).is_some());
+    let mut writer = LeaseQueryWriter::new(&mut output[..required], true);
     writer.append(53, &[reply.status as u8])?;
     if reply.status == Status::Active {
         if request.requests(61) {
@@ -202,11 +213,19 @@ pub fn encode_reply(
                 writer.append(91, &value.to_be_bytes())?;
             }
         }
+        writer.allow_overload = allow_option_overload && request.option(55, 0).is_some();
+        writer.primary_end = if writer.allow_overload {
+            writer.packet.len().saturating_sub(3)
+        } else {
+            writer.packet.len()
+        };
         for option in options {
             if !matches!(option.code, 0 | 52 | 255) {
                 writer.append(option.code, option.value)?;
             }
         }
+        writer.allow_overload = true;
+        writer.primary_end = writer.packet.len();
         if request.requests(82) {
             if let Some(value) = reply.agent_id.as_deref().filter(|value| !value.is_empty()) {
                 writer.append(82, value)?;
@@ -230,13 +249,7 @@ struct LeaseQueryWriter<'a> {
 
 impl<'a> LeaseQueryWriter<'a> {
     fn new(packet: &'a mut [u8], allow_overload: bool) -> Self {
-        let mut primary_end = packet.len();
-        if allow_overload && packet[44] == 0 {
-            primary_end = primary_end.saturating_sub(3);
-        }
-        if allow_overload && packet[108] == 0 && primary_end == packet.len() {
-            primary_end = primary_end.saturating_sub(3);
-        }
+        let primary_end = packet.len();
         Self {
             packet,
             primary: OPTIONS_OFFSET,
@@ -263,7 +276,7 @@ impl<'a> LeaseQueryWriter<'a> {
             self.primary += needed;
             return Ok(());
         }
-        if !self.allow_overload {
+        if !self.allow_overload && self.overload_offset.is_none() {
             self.omitted += 1;
             return Ok(());
         }
@@ -272,7 +285,7 @@ impl<'a> LeaseQueryWriter<'a> {
             self.omitted += 1;
             return Ok(());
         }
-        if self.overload & 1 == 0 && self.packet[108] == 0 {
+        if self.overload & 1 == 0 && self.allow_overload && self.packet[108] == 0 {
             self.overload |= 1;
             if self.fits(self.file, 108 + 128, needed) {
                 self.write(self.file, code, value);
@@ -285,7 +298,7 @@ impl<'a> LeaseQueryWriter<'a> {
             self.file += needed;
             return Ok(());
         }
-        if self.packet[44] == 0 {
+        if self.allow_overload && self.packet[44] == 0 {
             self.overload |= 2;
         }
         if self.overload & 2 != 0 && self.fits(self.sname, 44 + 64, needed) {
@@ -548,10 +561,12 @@ mod tests {
 
     #[test]
     fn leasequery_active_reply_follows_prl_and_places_agent_last() {
-        let query_bytes = request(
+        let mut query_bytes = request(
             &[53, 1, 10, 55, 6, 61, 51, 58, 59, 91, 82, 255],
             Ipv4Addr::UNSPECIFIED,
         );
+        query_bytes[20..24].copy_from_slice(&[192, 0, 2, 254]);
+        query_bytes[34..44].copy_from_slice(b"QUERY-TAIL");
         let query_packet = Packet::parse(&query_bytes).unwrap();
         let active = LeaseQueryReply {
             status: Status::Active,
@@ -578,6 +593,8 @@ mod tests {
         )
         .unwrap();
         assert_eq!(output[0], 2);
+        assert_eq!(&output[20..24], &[0; 4]);
+        assert_eq!(&output[34..44], b"QUERY-TAIL");
         assert_eq!(&output[12..16], &active.client_address.octets());
         assert_eq!(output[1], active.hardware_type);
         assert_eq!(&output[28..34], active.hardware_address.as_slice());
