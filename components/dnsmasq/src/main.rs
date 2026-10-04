@@ -827,6 +827,22 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         }
         thread::park_timeout(Duration::from_millis(2));
     }
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    while !poll.step_helper_shutdown() {
+        // EVENT_TERM drains pending lease transitions. Keep writes, output and
+        // child reaping nonblocking while waiting in the same poll owner.
+        let mut fds = poll
+            .helper
+            .as_ref()
+            .unwrap()
+            .poll_fds()
+            .map(|(fd, events)| owrt_ubus::sys::PollFd {
+                fd,
+                events,
+                revents: 0,
+            });
+        owrt_ubus::sys::poll_fds(&mut fds, 2)?;
+    }
     #[cfg(target_os = "linux")]
     pid_file.cleanup();
     Ok(())
@@ -1549,7 +1565,7 @@ impl SinglePoll {
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    fn step_dhcp(&mut self) {
+    fn step_helper(&mut self) {
         if let Some(helper) = self.helper.as_mut() {
             if let Some(delivery) = self.pending_delivery.as_ref() {
                 match helper.enqueue_delivery(delivery) {
@@ -1642,6 +1658,37 @@ impl SinglePoll {
                 Err(error) => eprintln!("dnsmasq-rs: DHCP helper step: {error}"),
             }
         }
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    fn step_helper_shutdown(&mut self) -> bool {
+        self.step_helper();
+        let Some(helper) = self.helper.as_ref() else {
+            return true;
+        };
+        if helper.is_finished() {
+            return true;
+        }
+        // Initialization may still own the child. Its notices must be consumed
+        // before closing the command channel or restoring startup callbacks.
+        if self.helper_init.is_some() {
+            return false;
+        }
+        if self.pending_delivery.is_none() {
+            self.pending_delivery = self
+                .dhcp
+                .as_ref()
+                .and_then(|(provider, _)| provider.lock().ok()?.take_script_delivery());
+        }
+        if self.pending_delivery.is_none() {
+            self.helper.as_mut().unwrap().begin_shutdown();
+        }
+        false
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    fn step_dhcp(&mut self) {
+        self.step_helper();
         if self.helper_init.is_some() || self.helper_init_error.is_some() {
             return;
         }
