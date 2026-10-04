@@ -169,6 +169,56 @@ def profiles():
         profile("enabled-no-range", legacy, [case("no-dhcp67",reply=False),case("no-pxe4011",listener=4011,reply=False)], ["START01"], mode="none", expect4011=False),
         profile("vendor-option-only", ["dhcp-pxe-vendor=PXEClient", "dhcp-option-pxe=225,not-enabled"], [case("ordinary67"),case("4011-absent",listener=4011,reply=False)], ["START01", "CFG-O01", "CFG-V01"], mode="dynamic", expect4011=False),
     ]
+    rows.extend([
+        profile("boot-target-hosts",["pxe-service=0,Host target,netboot,boot-server"],[
+            case("host-target",kind=3,ciaddr=CLIENT,boot_item=item()),
+            case("host-target-reloaded",kind=3,ciaddr=CLIENT,boot_item=item(),reload_hosts="10.77.0.9 boot-server\n"),
+        ],["CFG-S03","BOOT03"]),
+        profile("boot-target-missing",["pxe-service=0,Missing host,netboot,absent-host"],[
+            case("missing-target",kind=3,ciaddr=CLIENT,boot_item=item()),
+        ],["CFG-S03","BOOT03"]),
+        profile("efi-target-hosts",["pxe-service=7,Host target,boot.efi,boot-server"],[
+            case("host-sname",kind=3,arch=7,ciaddr=CLIENT,listener=4011),
+        ],["UEFI02"]),
+        profile("efi-target-missing",["pxe-service=7,Missing target,boot.efi,absent-host"],[
+            case("missing-sname",kind=3,arch=7,ciaddr=CLIENT,listener=4011),
+        ],["UEFI02"]),
+        profile("duplicate-type-numeric-first",["pxe-service=7,Numeric,32768", "pxe-service=0,Basename,netboot"],[
+            case("first-no-basename",kind=3,ciaddr=CLIENT,boot_item=item(),reply=False),
+        ],["CFG-S04","BOOT02"]),
+        profile("duplicate-type-basename-first",["pxe-service=7,Basename,netboot", "pxe-service=0,Numeric,32768"],[
+            case("first-basename-other-arch",kind=3,ciaddr=CLIENT,boot_item=item()),
+        ],["CFG-S04","BOOT02"]),
+        profile("service-tags",["pxe-service=tag:missing,0,Hidden,hidden", "pxe-service=tag:known,0,Known,known", "pxe-service=0,Common,common"],[
+            case("known-menu"),case("boot-item-tag-unchecked",kind=3,ciaddr=CLIENT,boot_item=item()),
+        ],["CFG-S04","MENU01","BOOT02"]),
+        profile("ignored-proxy",legacy+["dhcp-ignore"],[case("ignored",reply=False)], ["PROXY06"]),
+        profile("ignored-boot-item",legacy+["dhcp-ignore"],[case("ignored-item",kind=3,ciaddr=CLIENT,boot_item=item(),reply=False)], ["BOOT01","PROXY06"]),
+        profile("boot-filename-bounds",["pxe-service=0,Long,"+"b"*150],[
+            case("filename-truncated",kind=3,ciaddr=CLIENT,boot_item=item(32768,65535),reply=False),
+            case("filename-127",kind=3,ciaddr=CLIENT,boot_item=item(32768,32767)),
+        ],["BOOT03"]),
+        profile("proxy-option-overload",legacy+["dhcp-option-pxe=224,"+"a"*220,"dhcp-option-pxe=225,"+"b"*100],[case("proxy-overload")],["NOOVERRIDE02","PROXY05"]),
+        profile("proxy-option-overload-nooverride",legacy+["dhcp-option-pxe=224,"+"a"*220,"dhcp-option-pxe=225,"+"b"*100,"dhcp-no-override"],[case("proxy-nooverride-ignored")],["NOOVERRIDE02","CFG-N01"]),
+        profile("ordinary-option-overload",legacy+["dhcp-option=224,"+"a"*220,"dhcp-option=225,"+"b"*100],[case("ordinary-overload",prl=bytes([43,60,224,225]))],["NOOVERRIDE02"],mode="dynamic"),
+        profile("ordinary-option-overload-nooverride",legacy+["dhcp-option=224,"+"a"*220,"dhcp-option=225,"+"b"*100,"dhcp-no-override"],[case("ordinary-overload-disabled",prl=bytes([43,60,224,225]))],["NOOVERRIDE02"],mode="dynamic"),
+        profile("no-boot-option-fallback",legacy+["dhcp-option=66,server-field","dhcp-option=67,file-field"],[
+            case("unrequested-fields",prl=b"\x01"),case("requested-options",prl=bytes([66,67])),
+        ],["NOOVERRIDE01"],mode="dynamic"),
+        profile("owner-burst",legacy,[case("burst16",copies=16)],["OWNER01"]),
+    ])
+    for length in [249,250]:
+        rows.append(profile(f"menu-length-{length}",["pxe-service=0,"+"m"*length+",boot","pxe-prompt=Keep prompt,1"],
+                            [case("menu-capacity")],["MENU04","CFG-S05"]))
+    for count in [35,36,37]:
+        rows.append(profile(f"server-list-{count}",[f"pxe-service=0,M,{index+1},10.77.0.8" for index in range(count)],
+                            [case("server-list-capacity")],["MENU04"]))
+    bounds=[case(f"maxmessage-{size}",extra=option(57,struct.pack("!H",size))) for size in [0,27,28,300,576,65535]]
+    bounds += [case(f"request-length-{size}",length=size,reply=size>=240) for size in [235,236,240,16384,16385,65507]]
+    # At exactly240 bytes there are no DHCP53/vendor/arch options left, so it
+    # is BOOTP on a proxy-only head and must be silent.
+    next(item for item in bounds if item["name"]=="request-length-240")["reply"]=False
+    rows.append(profile("packet-capacity",legacy,bounds,["RX03"]))
     return rows
 
 
