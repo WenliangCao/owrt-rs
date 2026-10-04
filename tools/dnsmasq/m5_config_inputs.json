@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "executable": false,
-  "status": "C-boundaries-frozen-before-probes",
+  "executable": true,
+  "status": "short-C-calibration",
   "scope": "Startup-only conf-file and conf-script. Necessary conf-dir integration is regression-only; physical routers are untouched. C NULL second -C is recorded as a dedicated reference defect, not a blanket acceptance exception.",
   "source_identity": {
     "option.c": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
@@ -60,7 +60,18 @@
           "required_scenarios": []
         }
       ],
-      "scenarios": []
+      "scenarios": [
+        "default-present",
+        "default-missing",
+        "empty-first-default",
+        "null-second-config",
+        "explicit-missing",
+        "directory-read",
+        "unreadable-file",
+        "inode-hardlink",
+        "stdin-once",
+        "relative-cwd"
+      ]
     },
     "conf-script": {
       "checklist": [
@@ -113,8 +124,380 @@
           "required_scenarios": []
         }
       ],
-      "scenarios": []
+      "scenarios": [
+        "script-output",
+        "script-exit-three",
+        "script-signal",
+        "script-slow",
+        "script-parse-error-tail"
+      ]
     }
   },
-  "scenarios": []
+  "scenarios": [
+    {
+      "id": "default-present",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [],
+      "files": {},
+      "probes": [
+        {
+          "id": "default",
+          "name": "default.input",
+          "answers": [
+            "192.0.2.10"
+          ]
+        }
+      ],
+      "default": "host-record=default.input,192.0.2.10\n"
+    },
+    {
+      "id": "default-missing",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [],
+      "files": {},
+      "probes": [
+        {
+          "id": "ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "empty-first-default",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "-C",
+        ""
+      ],
+      "files": {},
+      "probes": [
+        {
+          "id": "default",
+          "name": "default.input",
+          "answers": [
+            "192.0.2.10"
+          ]
+        }
+      ],
+      "default": "host-record=default.input,192.0.2.10\n"
+    },
+    {
+      "id": "null-second-config",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "-C",
+        "/m2/input/empty",
+        "-C",
+        ""
+      ],
+      "files": {
+        "empty": ""
+      },
+      "probes": [
+        {
+          "id": "ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ]
+        }
+      ],
+      "expected_exit": -11,
+      "reference_defect": "NULL second -C reaches strcmp(NULL, \"-\") in option.c:5654; this C-only minimum must never become a blanket exception",
+      "minimal": true
+    },
+    {
+      "id": "explicit-missing",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "-C",
+        "/m2/input/absent"
+      ],
+      "files": {},
+      "probes": [
+        {
+          "id": "ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ]
+        }
+      ],
+      "expected_exit": 3
+    },
+    {
+      "id": "directory-read",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "-C",
+        "/m2/input/is-directory"
+      ],
+      "files": {},
+      "probes": [
+        {
+          "id": "ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ]
+        }
+      ],
+      "directories": [
+        "is-directory"
+      ]
+    },
+    {
+      "id": "unreadable-file",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "-C",
+        "/m2/input/protected"
+      ],
+      "files": {
+        "protected": {
+          "text": "port=0\n",
+          "mode": 384
+        }
+      },
+      "probes": [
+        {
+          "id": "ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ]
+        }
+      ],
+      "userspec": "65534:65534",
+      "expected_exit": 3
+    },
+    {
+      "id": "inode-hardlink",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "-C",
+        "/m2/input/main"
+      ],
+      "files": {
+        "main": "conf-file=/m2/input/a\nconf-file=/m2/input/alias\n",
+        "a": "local-ttl=17\n"
+      },
+      "probes": [
+        {
+          "id": "ttl",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ],
+          "ttl": 17
+        }
+      ],
+      "hardlinks": {
+        "alias": "a"
+      }
+    },
+    {
+      "id": "stdin-once",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "-C",
+        "-",
+        "-C",
+        "-"
+      ],
+      "files": {},
+      "probes": [
+        {
+          "id": "stdin",
+          "name": "stdin.input",
+          "answers": [
+            "192.0.2.11"
+          ]
+        }
+      ],
+      "stdin": "conf-file=-\nhost-record=stdin.input,192.0.2.11\n"
+    },
+    {
+      "id": "relative-cwd",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "-C",
+        "nested/main"
+      ],
+      "files": {
+        "nested/main": "conf-file=relative\n",
+        "relative": "host-record=cwd.input,192.0.2.12\n"
+      },
+      "probes": [
+        {
+          "id": "cwd",
+          "name": "cwd.input",
+          "answers": [
+            "192.0.2.12"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "script-output",
+      "options": [
+        "conf-script"
+      ],
+      "argv": [
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "conf-script=printf 'host-record=script.input,192.0.2.20\\n'\n"
+      },
+      "probes": [
+        {
+          "id": "script",
+          "name": "script.input",
+          "answers": [
+            "192.0.2.20"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "script-exit-three",
+      "options": [
+        "conf-script"
+      ],
+      "argv": [
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "conf-script=exit 3\n"
+      },
+      "probes": [
+        {
+          "id": "ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ]
+        }
+      ],
+      "expected_exit": 10
+    },
+    {
+      "id": "script-signal",
+      "options": [
+        "conf-script"
+      ],
+      "argv": [
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "conf-script=kill -TERM $$\n"
+      },
+      "probes": [
+        {
+          "id": "ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ]
+        }
+      ],
+      "expected_exit": 25
+    },
+    {
+      "id": "script-slow",
+      "options": [
+        "conf-script"
+      ],
+      "argv": [
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "conf-script=/m2/input/slow.sh\n",
+        "slow.sh": {
+          "mode": 493,
+          "text": "#!/bin/sh\necho $$ > /m2/input/pids/slow\necho start > /m2/input/effects/start\nprintf 'host-record=slow.input,'\nsleep 1\nprintf '192.0.2.21\\n'\necho done > /m2/input/effects/done\n"
+        }
+      },
+      "probes": [
+        {
+          "id": "slow",
+          "name": "slow.input",
+          "answers": [
+            "192.0.2.21"
+          ]
+        }
+      ],
+      "gate": "done",
+      "minimum_seconds": 0.9,
+      "expected_effects": {
+        "start": "73746172740a",
+        "done": "646f6e650a"
+      }
+    },
+    {
+      "id": "script-parse-error-tail",
+      "options": [
+        "conf-script"
+      ],
+      "argv": [
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "conf-script=/m2/input/invalid.sh\n",
+        "invalid.sh": {
+          "mode": 493,
+          "text": "#!/bin/sh\necho $$ > /m2/input/pids/script\nprintf 'unknown-config-option\\n'\nsleep 1\necho completed > /m2/input/effects/tail\n"
+        }
+      },
+      "probes": [
+        {
+          "id": "ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ]
+        }
+      ],
+      "expected_exit": 1,
+      "expected_effects": {
+        "tail": "636f6d706c657465640a"
+      },
+      "expected_effects_at_parent_exit": [],
+      "expected_scripts_at_parent_exit": {
+        "script": true
+      }
+    }
+  ],
+  "qualification_ready": false,
+  "calibration_notes": [
+    "c-baseline-01 retained: exact BusyBox sleep rejects fractional .4; slow-script fixture changed to integer 1 second, not a product mismatch."
+  ]
 }
