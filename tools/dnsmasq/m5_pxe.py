@@ -258,6 +258,9 @@ def profiles():
         profile("pxe-metrics-ignored",legacy+["dhcp-ignore=tag:client0"],[
             case("ignored-proxy-counted",reply=False),case("ignored-item-not-counted",kind=3,ciaddr=CLIENT,boot_item=item(),reply=False),
         ],["PROXY06"],metrics=[1,1]),
+        profile("prompt-length-251-runtime",legacy+["pxe-prompt="+"p"*251],[
+            case("largest-safe-prompt",extra=option(57,struct.pack("!H",1500))),
+        ],["CFG-P03","MENU04"]),
     ])
     return rows
 
@@ -590,17 +593,17 @@ def main(args):
         raise SystemExit("fresh output directory below private/ required")
     out.mkdir(parents=True)
     root = prepare(args.image_root, None, out, args.rust)
-    corpus = [profile for profile in profiles() if not args.profile or profile["name"] in args.profile]
+    corpus = [] if args.syntax_only else [profile for profile in profiles() if not args.profile or profile["name"] in args.profile]
     sides = ["c", "rust"] if args.side == "both" else [args.side]
     save(out/"manifest.json", {"profiles": corpus, "sides": sides, "tool_sha256": sha256(__file__),
                               "transport_tool_sha256": sha256(net.__file__), "c_sha256": STOCK_SHA256,
                               "rust_sha256": sha256(args.rust), "elf_bytes": args.rust.stat().st_size})
     rows = []; failures = []; client = None; server=None; cleanup = None; server_cleanup=None; syntax=[]
-    syntax_corpus=[] if args.profile else grammar_cases()
+    syntax_corpus=grammar_cases() if args.syntax_only or args.syntax or not args.profile else []
     try:
         for item in syntax_corpus:
             for side in sides:syntax.append(run_syntax(root,side,item,out/f"syntax-{item['name']}-{side}"))
-        client = Peer("client0", SERVER, CLIENT)
+        if corpus:client = Peer("client0", SERVER, CLIENT)
         if any(profile.get("needs_server") for profile in corpus):server=Peer("server0",net.UP,net.SERVER)
         for profile in corpus:
             for side in sides:
@@ -614,11 +617,11 @@ def main(args):
             cleanup = client.close()
         if server is not None:server_cleanup=server.close()
     failures += evaluate(rows, corpus, sides)+syntax_errors(syntax,syntax_corpus,sides)
-    if cleanup is None or cleanup.get("actor_exit") != 0 or cleanup.get("namespace", {}).get("forced"):
+    if corpus and (cleanup is None or cleanup.get("actor_exit") != 0 or cleanup.get("namespace", {}).get("forced")):
         failures.append("peer cleanup")
     if server is not None and (server_cleanup is None or server_cleanup.get("actor_exit")!=0 or server_cleanup.get("namespace",{}).get("forced")):
         failures.append("upstream peer cleanup")
-    controls = negative_controls(rows,corpus) if len(sides)==2 else {"passed":False,"not_executed":"reference-only run"}
+    controls = negative_controls(rows,corpus) if len(sides)==2 and corpus else {"passed":not corpus,"not_executed":"syntax-only or reference-only run"}
     if len(sides)==2 and not controls["passed"]:
         failures.append("comparator negative controls")
     result = {"passed": not failures and len(sides) == 2, "reference_checks_passed": not failures,
@@ -644,6 +647,8 @@ if __name__ == "__main__":
     parser.add_argument("--out", type=Path)
     parser.add_argument("--side", choices=["c", "rust", "both"], default="both")
     parser.add_argument("--profile", action="append")
+    parser.add_argument("--syntax",action="store_true",help="include syntax cases with selected profiles")
+    parser.add_argument("--syntax-only",action="store_true")
     args = parser.parse_args()
     if args.actor:
         net.actor()
