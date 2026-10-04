@@ -593,7 +593,11 @@ def main(args):
         raise SystemExit("fresh output directory below private/ required")
     out.mkdir(parents=True)
     root = prepare(args.image_root, None, out, args.rust)
-    corpus = [] if args.syntax_only else [profile for profile in profiles() if not args.profile or profile["name"] in args.profile]
+    available = profiles()
+    unknown = set(args.profile or []) - {profile["name"] for profile in available}
+    if unknown:
+        raise SystemExit(f"unknown profiles: {sorted(unknown)}")
+    corpus = [] if args.syntax_only else [profile for profile in available if not args.profile or profile["name"] in args.profile]
     sides = ["c", "rust"] if args.side == "both" else [args.side]
     save(out/"manifest.json", {"profiles": corpus, "sides": sides, "tool_sha256": sha256(__file__),
                               "transport_tool_sha256": sha256(net.__file__), "c_sha256": STOCK_SHA256,
