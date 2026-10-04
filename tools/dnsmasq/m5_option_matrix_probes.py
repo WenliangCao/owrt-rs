@@ -360,7 +360,7 @@ def network_probe(spec):
         try:
             client.connect((spec['destination'], spec['port']))
             result['source_address'] = client.getsockname()[0]
-            client.settimeout(2 if spec.get('queued') else .18)
+            client.settimeout(spec.get('receive_timeout', 2 if spec.get('queued') else .18))
             result['stage'] = 'receive'
             if spec.get('send_dns', True):
                 client.sendall(struct.pack('!H', len(request)) + request if tcp else request)

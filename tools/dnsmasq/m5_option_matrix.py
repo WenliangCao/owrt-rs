@@ -265,6 +265,12 @@ def run_side(root, side, scenario, folder):
                 result['identity'] = process_identity(root, process.pid)
                 if topology:
                     topology.daemon_pid = process.pid
+                    if any(probe.get('scheduling') for probe in scenario['probes']):
+                        warmup = {'source': '2001:db8:5::11', 'destination': '2001:db8:5::10', 'port': port, 'ident': 0x2931, 'transport': 'udp', 'receive_timeout': 1.5}
+                        import sys
+                        result['ipv6_network_warmup'] = json.loads(topology.client([sys.executable, str(Path(probes_extra.__file__).resolve()), '--network-probe', json.dumps(warmup)]))
+                        if result['ipv6_network_warmup']['status'] != 'reply':
+                            raise AssertionError('on-link IPv6 readiness failed')
                 verify_identity(result['identity']['sha256'], sha256(root / ('usr/sbin/dnsmasq' if side == 'c' else 'usr/sbin/dnsmasq-rs')))
                 for index, probe in enumerate(scenario['probes']):
                     for transport in probe.get('transports', ['udp', 'tcp']):
@@ -455,6 +461,11 @@ def main():
                                 'local-service: connect/receive stage and errno, including TCP reset versus EOF, compare exactly; queued-byte timing proof retained',
                                 'retry: raw clocks retained; exponential intervals checked within -12/+90ms; compare per-server traces to avoid receiver-thread scheduling order'],
               'negative_controls': controls, 'reference_timings': manifest.get('reference_timing'), 'scenarios': [], 'options': {}, 'failures': []}
+    frozen = output / 'driver'
+    frozen.mkdir()
+    for filename in [Path(__file__).name, 'm2_rootfs.py', 'dns_service_probe.py', 'run_isolated.sh', 'm5_option_matrix_probes.py']:
+        (frozen / filename).write_bytes(Path(__file__).with_name(filename).read_bytes())
+    (frozen / args.manifest.name).write_bytes(args.manifest.read_bytes())
     dump(output / 'manifest.json', manifest)
     roots = {side: prepare(args.image_root, None, output / side, args.rust) for side in ('c', 'rust')}
     for scenario in scenarios:
