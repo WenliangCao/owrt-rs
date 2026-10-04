@@ -311,37 +311,53 @@ impl LocalProvider {
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     pub fn take_script_delivery(&mut self) -> Option<LeaseDelivery> {
         let delivery = self.pending_delivery.take();
-        if let Some(previous) = delivery.as_ref() {
-            if self.config.script.is_some() {
-                if let Some(event) = self.scripts.next(
-                    &mut self.leases,
-                    super::lease::ScriptOptions {
-                        lease_file_read_only: self.config.lease_read_only,
-                        notify_renewals: self.config.script_on_renewal,
-                    },
-                ) {
-                    self.pending_delivery =
-                        Some(LeaseDelivery::new(event, previous.context.clone()));
-                }
-            }
-        }
+        self.queue_script_from_maintenance();
         delivery
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     fn queue_script_from_maintenance(&mut self) {
-        if self.pending_delivery.is_none() && self.config.script.is_some() {
-            if let Some(event) = self.scripts.next(
-                &mut self.leases,
-                super::lease::ScriptOptions {
-                    lease_file_read_only: self.config.lease_read_only,
-                    notify_renewals: self.config.script_on_renewal,
-                },
-            ) {
-                self.pending_delivery =
-                    Some(LeaseDelivery::new(event, LeaseEventContext::default()));
-            }
+        if self.pending_delivery.is_some() || self.config.script.is_none() {
+            return;
         }
+        if let Some(event) = self.scripts.next(
+            &mut self.leases,
+            super::lease::ScriptOptions {
+                lease_file_read_only: self.config.lease_read_only,
+                notify_renewals: self.config.script_on_renewal,
+            },
+        ) {
+            let mut context = event
+                .lease
+                .helper_context
+                .as_deref()
+                .cloned()
+                .unwrap_or_default();
+            context.now = epoch_seconds();
+            context.log_dhcp = self.config.log_dhcp;
+            self.pending_delivery = Some(LeaseDelivery::new(event, context));
+        }
+    }
+
+    /// Called only after the helper reports successful read-only initialization,
+    /// before admitting DHCP packets. Parsing and restore share leasefile rules.
+    pub fn restore_script_init(
+        &mut self,
+        bytes: &[u8],
+        now: i64,
+    ) -> Result<MaintenanceReport, StartupError> {
+        let restored = super::lease_file::parse_reader(bytes, self.config.lease_max)
+            .map_err(StartupError::LeaseFile)?;
+        self.restore_stats = Some(RestoreStats {
+            invalid_records: restored.invalid_records,
+            clean_end: restored.clean_end,
+        });
+        self.startup_removed = self
+            .leases
+            .restore_with_name_policy(restored.records, now, self.config.fqdn_only)
+            .map_err(StartupError::Restore)?;
+        self.initialized = false;
+        Ok(self.initialize(now))
     }
 
     fn select_boot(&mut self, outcome: &Outcome) {
@@ -425,6 +441,7 @@ impl LocalProvider {
     /// Complete startup after socket setup and publisher attachment. Calling
     /// it again is harmless and does not replay removed-lease ownership.
     pub fn initialize(&mut self, now: i64) -> MaintenanceReport {
+        let first = !self.initialized;
         let mut host_files = Vec::new();
         let mut address_error = None;
         let mut name_error = None;
@@ -439,6 +456,49 @@ impl LocalProvider {
                 name_error = self.update_configured_names();
             }
         }
+        if first && self.config.script.is_some() {
+            // lease_find_interfaces uses the most specific directly connected
+            // subnet before the first script queue turn and EVENT_INIT reload.
+            if let Ok(interfaces) = crate::interfaces::dns_interfaces() {
+                let addresses: Vec<_> = self
+                    .leases
+                    .active_newest_first()
+                    .iter()
+                    .map(|lease| lease.address)
+                    .collect();
+                for address in addresses {
+                    let selected = interfaces
+                        .iter()
+                        .filter_map(|interface| {
+                            let (IpAddr::V4(local), IpAddr::V4(mask)) =
+                                (interface.address, interface.netmask)
+                            else {
+                                return None;
+                            };
+                            let mask = u32::from(mask);
+                            (mask != 0 && (u32::from(local) & mask) == (u32::from(address) & mask))
+                                .then_some((mask.count_ones(), interface))
+                        })
+                        .reduce(|best, candidate| {
+                            if candidate.0 > best.0 {
+                                candidate
+                            } else {
+                                best
+                            }
+                        });
+                    if let Some((_, interface)) = selected {
+                        let _ = self.leases.set_interface(address, interface.index);
+                        let _ = self.leases.set_helper_context(
+                            address,
+                            LeaseEventContext {
+                                interface: interface.name.clone(),
+                                ..Default::default()
+                            },
+                        );
+                    }
+                }
+            }
+        }
         self.initialized = true;
         let mut removed = std::mem::take(&mut self.startup_removed);
         removed.extend(self.leases.prune(None, now));
@@ -449,6 +509,12 @@ impl LocalProvider {
         report.name_error = name_error;
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         self.queue_script_from_maintenance();
+        if first {
+            // C queues one interface-change callback before EVENT_INIT marks
+            // every live lease OLD, so that first record is announced twice.
+            self.leases.rerun_scripts();
+            self.queue_script_from_maintenance();
+        }
         report
     }
 
@@ -639,6 +705,7 @@ impl LocalProvider {
         if !self.initialized {
             return self.initialize(now);
         }
+        self.leases.rerun_scripts();
         let host_files = self.reread_host_files();
         let address_error = self
             .host_files_ready
@@ -786,6 +853,10 @@ impl LocalProvider {
             .flatten();
         let event_mac = events.as_ref().map(|_| event_mac(packet, clid));
         let mut tags: Vec<&[u8]> = interface_name.into_iter().collect();
+        let [oui, serial, _] = crate::helper::cpe_data(packet);
+        if oui.is_some() && serial.is_some() {
+            tags.push(b"cpewan-id");
+        }
         for rule in &self.config.macs {
             if rule.matches(identity.hardware_type, &identity.hardware_address) {
                 tags.push(&rule.set_tag);
@@ -1031,6 +1102,7 @@ impl LocalProvider {
                 );
             }
         };
+        let helper_new_lease = existing.is_none();
         let mut provider = StateProvider::new(
             &mut self.leases,
             &mut ranges,
@@ -1072,30 +1144,44 @@ impl LocalProvider {
         if let Ok(outcome) = &result {
             self.scripts.add_pruned(outcome.removed.clone());
             self.select_boot(outcome);
+            if self.config.script.is_some() {
+                if let Reply::Ack {
+                    address, context, ..
+                }
+                | Reply::Bootp {
+                    address, context, ..
+                } = outcome.reply
+                {
+                    let do_classes = packet.message_type() != 0
+                        && (helper_new_lease || packet.requested_address().is_some());
+                    let extra = do_classes.then(|| {
+                        let mut tags: Vec<_> =
+                            self.request_tags.iter().map(Vec::as_slice).collect();
+                        if let Some(tag) = self.selected.get(context).and_then(|selected| {
+                            self.config.ranges[selected.source_index].set_tag.as_deref()
+                        }) {
+                            tags.push(tag);
+                        }
+                        TagIf::apply_all(&self.config.tag_if, &mut tags);
+                        crate::helper::extra_data(packet, &tags)
+                    });
+                    let _ = self.leases.set_helper_context(
+                        address,
+                        LeaseEventContext {
+                            interface: interface_name.unwrap_or_default().to_vec(),
+                            now,
+                            relay_address: (!packet.giaddr().is_unspecified())
+                                .then_some(packet.giaddr()),
+                            extra,
+                            log_dhcp: self.config.log_dhcp,
+                        },
+                    );
+                }
+            }
         }
         self.probe_error = probe_error;
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-        if self.pending_delivery.is_none() && self.config.script.is_some() {
-            if let Some(event) = self.scripts.next(
-                &mut self.leases,
-                super::lease::ScriptOptions {
-                    lease_file_read_only: self.config.lease_read_only,
-                    notify_renewals: self.config.script_on_renewal,
-                },
-            ) {
-                self.pending_delivery = Some(LeaseDelivery::new(
-                    event,
-                    LeaseEventContext {
-                        interface: interface_name.unwrap_or_default().to_vec(),
-                        now,
-                        relay_address: (!packet.giaddr().is_unspecified())
-                            .then_some(packet.giaddr()),
-                        extra: None,
-                        log_dhcp: self.config.log_dhcp,
-                    },
-                ));
-            }
-        }
+        self.queue_script_from_maintenance();
         for (selected, range) in self.selected.iter().zip(&ranges) {
             self.states[selected.source_index].epoch = range.epoch;
         }
@@ -1402,6 +1488,45 @@ fn event_mac(packet: super::packet::Packet<'_>, client_id: Option<&[u8]>) -> Vec
         text.extend_from_slice(&[HEX[usize::from(byte >> 4)], HEX[usize::from(byte & 15)]]);
     }
     text
+}
+
+fn relay_suboption(packet: super::packet::Packet<'_>, wanted: u8) -> Option<&[u8]> {
+    let bytes = packet.option(82, 1)?;
+    let mut cursor = 0;
+    while cursor + 2 <= bytes.len() {
+        let code = bytes[cursor];
+        let length = usize::from(bytes[cursor + 1]);
+        let end = cursor + 2 + length;
+        if end > bytes.len() {
+            return None;
+        }
+        if code == wanted && length != 0 {
+            return Some(&bytes[cursor + 2..end]);
+        }
+        cursor = end;
+    }
+    None
+}
+
+fn generated_hostname(
+    packet: super::packet::Packet<'_>,
+    client_id: Option<&[u8]>,
+) -> Option<Vec<u8>> {
+    let mac = packet.hardware_address();
+    let bytes = if mac.is_empty() { client_id? } else { mac };
+    if bytes.is_empty() {
+        return None;
+    }
+    const HEX: &[u8; 16] = b"0123456789abcdef";
+    let mut result = Vec::with_capacity(bytes.len().min(80) * 3);
+    for (index, byte) in bytes.iter().take(80).enumerate() {
+        if index != 0 {
+            result.push(b'-');
+        }
+        result.push(HEX[(byte >> 4) as usize]);
+        result.push(HEX[(byte & 15) as usize]);
+    }
+    Some(result)
 }
 
 #[cfg(test)]
@@ -1876,43 +2001,4 @@ mod startup_tests {
             5
         );
     }
-}
-
-fn relay_suboption(packet: super::packet::Packet<'_>, wanted: u8) -> Option<&[u8]> {
-    let bytes = packet.option(82, 1)?;
-    let mut cursor = 0;
-    while cursor + 2 <= bytes.len() {
-        let code = bytes[cursor];
-        let length = usize::from(bytes[cursor + 1]);
-        let end = cursor + 2 + length;
-        if end > bytes.len() {
-            return None;
-        }
-        if code == wanted && length != 0 {
-            return Some(&bytes[cursor + 2..end]);
-        }
-        cursor = end;
-    }
-    None
-}
-
-fn generated_hostname(
-    packet: super::packet::Packet<'_>,
-    client_id: Option<&[u8]>,
-) -> Option<Vec<u8>> {
-    let mac = packet.hardware_address();
-    let bytes = if mac.is_empty() { client_id? } else { mac };
-    if bytes.is_empty() {
-        return None;
-    }
-    const HEX: &[u8; 16] = b"0123456789abcdef";
-    let mut result = Vec::with_capacity(bytes.len().min(80) * 3);
-    for (index, byte) in bytes.iter().take(80).enumerate() {
-        if index != 0 {
-            result.push(b'-');
-        }
-        result.push(HEX[(byte >> 4) as usize]);
-        result.push(HEX[(byte & 15) as usize]);
-    }
-    Some(result)
 }
