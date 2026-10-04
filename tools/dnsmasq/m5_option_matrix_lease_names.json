@@ -1,0 +1,157 @@
+{
+  "schema": 1,
+  "executable": false,
+  "status": "source-boundaries-frozen-before-probes",
+  "scope": "IPv4 dhcp-fqdn, dhcp-ignore-clid and dhcp-ttl. TTL parser differences remain open until exact-image evidence and a product fix. Does not qualify unrelated DNS cache or reverse options.",
+  "source_identity": {
+    "option.c": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
+    "rfc2131.c": "14f2e10792ef6108aeb7b69e551f089ba287c8c84d39ea178a5f33acd2038c2c",
+    "lease.c": "4260039af27b40084cbe6dbbae2bb9417fa3a91806ea53f3f6bdd20234cad763",
+    "dhcp.c": "600dc068b0516d7edebcde9b02ae2091a278fc154551106823ddc388170d7001",
+    "rfc1035.c": "231f0b4989039ff4963f3916df22871dd13025dde65769465b2b3052ad807222",
+    "cache.c": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c"
+  },
+  "options": {
+    "dhcp-fqdn": {
+      "source": [
+        "option.c:340,548,6306-6307",
+        "lease.c:138-149,564-620,1032-1155",
+        "rfc2131.c:695-821,1704-1714"
+      ],
+      "eligible_for_closure": true,
+      "known_gaps": [],
+      "scenarios": [],
+      "checklist": [
+        {
+          "boundary": "Boolean syntax, duplicate flags, unexpected argument; missing default domain and conditional-domain-only configurations reject while literal default with conditional overrides starts.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Live DHCP publication selects address-specific domain; default mode publishes short and qualified names, fqdn-only suppresses only short names. Query A/PTR through UDP and TCP after real ACK.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Name collisions compare case-insensitive short names in default mode and case-insensitive FQDN in fqdn-only mode: different domains coexist only in fqdn-only mode; same-domain collision removes old ownership.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Restore calculates FQDNs after loading all lease short names: same short names in separate domains and duplicate same-domain FQDNs retain C order and publication; restart reproduces it.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Configured authoritative hostname cannot be taken by a client-supplied name; configured names still publish while absent client names do not invent a name.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Hostname option12 and encoded/unencoded option81 feed the same publication mode; domain stripping and case handling use actual C packet responses.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Rename, release and SIGHUP replace only current DHCP names; former forward/PTR ownership disappears and non-DHCP local records remain responsive.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Full DHCP reply, persisted lease identity/name, exact DNS questions/flags/answer values/order/TTL and process/interface cleanup are retained and compared.",
+          "checked": false,
+          "required_scenarios": []
+        }
+      ]
+    },
+    "dhcp-ignore-clid": {
+      "source": [
+        "option.c:394,564",
+        "rfc2131.c:247-268",
+        "lease.c:651-682",
+        "rfc2131.c:1676-1714"
+      ],
+      "eligible_for_closure": true,
+      "known_gaps": [],
+      "scenarios": [],
+      "checklist": [
+        {
+          "boundary": "Boolean syntax, duplicate flag, unexpected argument and option absent/present baseline.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Same MAC with changing nonempty option61 creates or reuses identity according to the global flag; missing and zero-length IDs follow hardware fallback.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Same nonempty option61 with different MACs moves an existing lease when enabled by default, but distinct hardware identities remain separate when ignored.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Restored nonempty client ID is reused after hardware lookup even with global ignore enabled; verify retained file ID, identity matching and id-based static host selection.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Restart preserves selected identity and release/decline cannot remove an unrelated hardware lease when incoming IDs are ignored.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Full wire reply, allocation address, hostname/client-ID lease rows, DNS health, restart and cleanup compare strictly.",
+          "checked": false,
+          "required_scenarios": []
+        }
+      ]
+    },
+    "dhcp-ttl": {
+      "source": [
+        "option.c:3517-3550,754-770",
+        "rfc1035.c:1654-1675",
+        "lease.c:564-620"
+      ],
+      "eligible_for_closure": false,
+      "known_gaps": [
+        "Source review: nonnumeric scalar error text differs from option.c generic error; requires image confirmation.",
+        "Source review: Rust integer rejects >INT_MAX; exact image atoi behavior not yet calibrated."
+      ],
+      "scenarios": [],
+      "checklist": [
+        {
+          "boundary": "Scalar grammar: absent, explicit empty/zero, positive, INT_MAX, nonnumeric/negative, duplicate directive; inspect exact parser diagnostics and image-libc integer boundaries.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "DHCP TTL overrides local-ttl for both qualified/short forward A and PTR while static host TTL retains local-ttl.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Finite lease clamps to exact remaining seconds when configured TTL is larger; scheduled requests occur wholly inside a preselected wall-clock second and wire TTL compares exactly without range normalization.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Infinite lease retains configured TTL including INT_MAX; finite lease with small configured TTL remains fixed across an elapsed second.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Runtime restore and new ACK publication use identical TTL policy across UDP/TCP; zero is an explicit override rather than fallback.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "All accepted/rejected startup and --test output, raw clocks/packets, DNS TTLs and cleanup are retained; integer overflow differences are classified explicitly.",
+          "checked": false,
+          "required_scenarios": []
+        }
+      ]
+    }
+  },
+  "scenarios": []
+}
