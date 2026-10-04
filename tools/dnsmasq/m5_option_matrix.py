@@ -251,6 +251,9 @@ def normalized_text(text):
 
 def compare(expected, actual, scenario):
     failures = []
+    expected_exit = scenario.get('expected_test_exit', 0)
+    if expected['syntax']['exit'] != expected_exit or expected['startup']['ready'] != (expected_exit == 0):
+        failures.append({'phase': 'c-calibration', 'expected_test_exit': expected_exit, 'syntax': expected['syntax'], 'startup': expected['startup']})
     for phase in ('syntax', 'startup'):
         a, b = copy.deepcopy(expected[phase]), copy.deepcopy(actual[phase])
         for data in (a, b):

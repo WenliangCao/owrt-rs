@@ -215,7 +215,10 @@
             "alias-zero-mask",
             "alias-cache",
             "alias-missing",
-            "alias-descending"
+            "alias-descending",
+            "alias-rebind-order",
+            "alias-bogus-order",
+            "alias-v6-invalid"
           ]
         },
         {
@@ -229,7 +232,10 @@
             "alias-zero-mask",
             "alias-cache",
             "alias-missing",
-            "alias-descending"
+            "alias-descending",
+            "alias-rebind-order",
+            "alias-bogus-order",
+            "alias-v6-invalid"
           ]
         },
         {
@@ -243,7 +249,10 @@
             "alias-zero-mask",
             "alias-cache",
             "alias-missing",
-            "alias-descending"
+            "alias-descending",
+            "alias-rebind-order",
+            "alias-bogus-order",
+            "alias-v6-invalid"
           ]
         },
         {
@@ -257,7 +266,27 @@
             "alias-zero-mask",
             "alias-cache",
             "alias-missing",
-            "alias-descending"
+            "alias-descending",
+            "alias-rebind-order",
+            "alias-bogus-order",
+            "alias-v6-invalid"
+          ]
+        },
+        {
+          "boundary": "doctor runs before rebind and bogus classification; IPv6 alias configuration rejection",
+          "checked": false,
+          "required_scenarios": [
+            "alias-single",
+            "alias-range",
+            "alias-mask",
+            "alias-newest",
+            "alias-zero-mask",
+            "alias-cache",
+            "alias-missing",
+            "alias-descending",
+            "alias-rebind-order",
+            "alias-bogus-order",
+            "alias-v6-invalid"
           ]
         }
       ],
@@ -269,7 +298,10 @@
         "alias-zero-mask",
         "alias-cache",
         "alias-missing",
-        "alias-descending"
+        "alias-descending",
+        "alias-rebind-order",
+        "alias-bogus-order",
+        "alias-v6-invalid"
       ]
     },
     "stop-dns-rebind": {
@@ -371,7 +403,7 @@
             "domain-plain",
             "domain-list",
             "rebind-domain-root",
-            "rebind-domain-invalid"
+            "rebind-domain-empty-label"
           ]
         },
         {
@@ -381,7 +413,7 @@
             "domain-plain",
             "domain-list",
             "rebind-domain-root",
-            "rebind-domain-invalid"
+            "rebind-domain-empty-label"
           ]
         },
         {
@@ -391,7 +423,7 @@
             "domain-plain",
             "domain-list",
             "rebind-domain-root",
-            "rebind-domain-invalid"
+            "rebind-domain-empty-label"
           ]
         },
         {
@@ -401,7 +433,7 @@
             "domain-plain",
             "domain-list",
             "rebind-domain-root",
-            "rebind-domain-invalid"
+            "rebind-domain-empty-label"
           ]
         }
       ],
@@ -409,7 +441,7 @@
         "domain-plain",
         "domain-list",
         "rebind-domain-root",
-        "rebind-domain-invalid"
+        "rebind-domain-empty-label"
       ]
     },
     "ignore-address": {
@@ -428,7 +460,11 @@
             "ignore-exact",
             "ignore-before-alias",
             "ignore-invalid4",
-            "ignore-invalid6"
+            "ignore-invalid6",
+            "ignore-address-invalid",
+            "ignore-zero4",
+            "ignore-zero6",
+            "ignore-empty-prefix"
           ]
         },
         {
@@ -440,7 +476,11 @@
             "ignore-exact",
             "ignore-before-alias",
             "ignore-invalid4",
-            "ignore-invalid6"
+            "ignore-invalid6",
+            "ignore-address-invalid",
+            "ignore-zero4",
+            "ignore-zero6",
+            "ignore-empty-prefix"
           ]
         },
         {
@@ -452,7 +492,11 @@
             "ignore-exact",
             "ignore-before-alias",
             "ignore-invalid4",
-            "ignore-invalid6"
+            "ignore-invalid6",
+            "ignore-address-invalid",
+            "ignore-zero4",
+            "ignore-zero6",
+            "ignore-empty-prefix"
           ]
         },
         {
@@ -464,7 +508,27 @@
             "ignore-exact",
             "ignore-before-alias",
             "ignore-invalid4",
-            "ignore-invalid6"
+            "ignore-invalid6",
+            "ignore-address-invalid",
+            "ignore-zero4",
+            "ignore-zero6",
+            "ignore-empty-prefix"
+          ]
+        },
+        {
+          "boundary": "zero prefix IPv4/IPv6 and empty prefix means zero",
+          "checked": false,
+          "required_scenarios": [
+            "ignore-v4",
+            "ignore-v6",
+            "ignore-exact",
+            "ignore-before-alias",
+            "ignore-invalid4",
+            "ignore-invalid6",
+            "ignore-address-invalid",
+            "ignore-zero4",
+            "ignore-zero6",
+            "ignore-empty-prefix"
           ]
         }
       ],
@@ -474,7 +538,11 @@
         "ignore-exact",
         "ignore-before-alias",
         "ignore-invalid4",
-        "ignore-invalid6"
+        "ignore-invalid6",
+        "ignore-address-invalid",
+        "ignore-zero4",
+        "ignore-zero6",
+        "ignore-empty-prefix"
       ]
     }
   },
@@ -550,7 +618,8 @@
           }
         }
       ],
-      "hosts": ""
+      "hosts": "",
+      "expected_test_exit": 0
     },
     {
       "id": "domain-needed-invalid",
@@ -559,7 +628,8 @@
       ],
       "config": "domain-needed=yes\n",
       "probes": [],
-      "hosts": ""
+      "hosts": "",
+      "expected_test_exit": 1
     },
     {
       "id": "bogus-priv",
@@ -830,7 +900,8 @@
           }
         }
       ],
-      "hosts": ""
+      "hosts": "",
+      "expected_test_exit": 0
     },
     {
       "id": "bogus-priv-explicit",
@@ -849,7 +920,8 @@
           }
         }
       ],
-      "hosts": ""
+      "hosts": "",
+      "expected_test_exit": 0
     },
     {
       "id": "bogus-priv-invalid",
@@ -858,7 +930,8 @@
       ],
       "config": "bogus-priv=yes\n",
       "probes": [],
-      "hosts": ""
+      "hosts": "",
+      "expected_test_exit": 1
     },
     {
       "id": "localise-queries",
@@ -913,7 +986,8 @@
           }
         }
       ],
-      "hosts": "127.0.0.10 multihost\n192.0.2.10 multihost\n192.0.2.20 remotehost\n198.51.100.20 remotehost\n2001:db8::10 multihost\n2001:db8::20 multihost\n"
+      "hosts": "127.0.0.10 multihost\n192.0.2.10 multihost\n192.0.2.20 remotehost\n198.51.100.20 remotehost\n2001:db8::10 multihost\n2001:db8::20 multihost\n",
+      "expected_test_exit": 0
     },
     {
       "id": "localise-invalid",
@@ -922,7 +996,8 @@
       ],
       "config": "localise-queries=yes\n",
       "probes": [],
-      "hosts": ""
+      "hosts": "",
+      "expected_test_exit": 1
     },
     {
       "id": "expand-hosts",
@@ -995,7 +1070,8 @@
           }
         }
       ],
-      "hosts": "192.0.2.5 simple alias dotted.other\n2001:db8::5 six\n"
+      "hosts": "192.0.2.5 simple alias dotted.other\n2001:db8::5 six\n",
+      "expected_test_exit": 0
     },
     {
       "id": "expand-no-suffix",
@@ -1023,7 +1099,8 @@
           }
         }
       ],
-      "hosts": "192.0.2.5 simple alias dotted.other\n2001:db8::5 six\n"
+      "hosts": "192.0.2.5 simple alias dotted.other\n2001:db8::5 six\n",
+      "expected_test_exit": 0
     },
     {
       "id": "expand-invalid",
@@ -1032,7 +1109,8 @@
       ],
       "config": "expand-hosts=yes\n",
       "probes": [],
-      "hosts": ""
+      "hosts": "",
+      "expected_test_exit": 1
     },
     {
       "id": "alias-single",
@@ -1119,7 +1197,8 @@
           }
         }
       ],
-      "hosts": ""
+      "hosts": "",
+      "expected_test_exit": 0
     },
     {
       "id": "alias-range",
@@ -1169,7 +1248,8 @@
           }
         }
       ],
-      "hosts": ""
+      "hosts": "",
+      "expected_test_exit": 0
     },
     {
       "id": "alias-mask",
@@ -1189,7 +1269,8 @@
           }
         }
       ],
-      "hosts": ""
+      "hosts": "",
+      "expected_test_exit": 0
     },
     {
       "id": "alias-newest",
@@ -1208,7 +1289,8 @@
           }
         }
       ],
-      "hosts": ""
+      "hosts": "",
+      "expected_test_exit": 0
     },
     {
       "id": "alias-zero-mask",
@@ -1227,7 +1309,8 @@
           }
         }
       ],
-      "hosts": ""
+      "hosts": "",
+      "expected_test_exit": 0
     },
     {
       "id": "alias-cache",
@@ -1262,7 +1345,8 @@
         }
       ],
       "hosts": "",
-      "cache_size": 20
+      "cache_size": 20,
+      "expected_test_exit": 0
     },
     {
       "id": "alias-missing",
@@ -1271,7 +1355,8 @@
       ],
       "config": "alias=192.0.2.1\n",
       "probes": [],
-      "hosts": ""
+      "hosts": "",
+      "expected_test_exit": 1
     },
     {
       "id": "alias-descending",
@@ -1280,7 +1365,8 @@
       ],
       "config": "alias=192.0.2.20-192.0.2.10,198.51.100.0,255.255.255.0\n",
       "probes": [],
-      "hosts": ""
+      "hosts": "",
+      "expected_test_exit": 1
     },
     {
       "id": "rebind-ranges",
@@ -1608,7 +1694,8 @@
           }
         }
       ],
-      "hosts": ""
+      "hosts": "",
+      "expected_test_exit": 0
     },
     {
       "id": "rebind-invalid",
@@ -1617,7 +1704,8 @@
       ],
       "config": "stop-dns-rebind=yes\n",
       "probes": [],
-      "hosts": ""
+      "hosts": "",
+      "expected_test_exit": 1
     },
     {
       "id": "rebind-localhost",
@@ -1707,7 +1795,8 @@
           }
         }
       ],
-      "hosts": ""
+      "hosts": "",
+      "expected_test_exit": 0
     },
     {
       "id": "rebind-localhost-invalid",
@@ -1716,7 +1805,8 @@
       ],
       "config": "rebind-localhost-ok=yes\n",
       "probes": [],
-      "hosts": ""
+      "hosts": "",
+      "expected_test_exit": 1
     },
     {
       "id": "domain-plain",
@@ -1781,7 +1871,8 @@
           }
         }
       ],
-      "hosts": ""
+      "hosts": "",
+      "expected_test_exit": 0
     },
     {
       "id": "domain-list",
@@ -1846,7 +1937,8 @@
           }
         }
       ],
-      "hosts": ""
+      "hosts": "",
+      "expected_test_exit": 0
     },
     {
       "id": "rebind-domain-root",
@@ -1864,18 +1956,41 @@
             "udp": "response",
             "tcp": "response"
           }
+        },
+        {
+          "id": "single-label-match",
+          "name": "single",
+          "type": 1,
+          "reply": "10.0.0.1",
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
         }
       ],
-      "hosts": ""
+      "hosts": "",
+      "expected_test_exit": 0
     },
     {
-      "id": "rebind-domain-invalid",
+      "id": "rebind-domain-empty-label",
       "options": [
         "rebind-domain-ok"
       ],
       "config": "rebind-domain-ok=bad..test\n",
-      "probes": [],
-      "hosts": ""
+      "probes": [
+        {
+          "id": "empty-label-nonmatch",
+          "name": "bad.test",
+          "type": 1,
+          "reply": "10.0.0.1",
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        }
+      ],
+      "hosts": "",
+      "expected_test_exit": 0
     },
     {
       "id": "ignore-v4",
@@ -1933,7 +2048,8 @@
           }
         }
       ],
-      "hosts": ""
+      "hosts": "",
+      "expected_test_exit": 0
     },
     {
       "id": "ignore-v6",
@@ -1962,7 +2078,8 @@
           }
         }
       ],
-      "hosts": ""
+      "hosts": "",
+      "expected_test_exit": 0
     },
     {
       "id": "ignore-exact",
@@ -2010,7 +2127,8 @@
           }
         }
       ],
-      "hosts": ""
+      "hosts": "",
+      "expected_test_exit": 0
     },
     {
       "id": "ignore-before-alias",
@@ -2029,7 +2147,8 @@
           }
         }
       ],
-      "hosts": ""
+      "hosts": "",
+      "expected_test_exit": 0
     },
     {
       "id": "ignore-invalid4",
@@ -2038,7 +2157,8 @@
       ],
       "config": "ignore-address=192.0.2.0/33\n",
       "probes": [],
-      "hosts": ""
+      "hosts": "",
+      "expected_test_exit": 1
     },
     {
       "id": "ignore-invalid6",
@@ -2047,7 +2167,151 @@
       ],
       "config": "ignore-address=2001:db8::/129\n",
       "probes": [],
-      "hosts": ""
+      "hosts": "",
+      "expected_test_exit": 1
+    },
+    {
+      "id": "alias-rebind-order",
+      "options": [
+        "alias"
+      ],
+      "config": "stop-dns-rebind\nalias=192.0.2.10,8.8.8.8\nalias=8.8.4.4,10.0.0.1\nalias=10.0.0.1,8.8.4.4\n",
+      "probes": [
+        {
+          "id": "to-public",
+          "name": "to-public.test",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        },
+        {
+          "id": "to-private",
+          "name": "to-private.test",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          },
+          "reply": "8.8.4.4"
+        },
+        {
+          "id": "from-private",
+          "name": "from-private.test",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          },
+          "reply": "10.0.0.1"
+        }
+      ],
+      "hosts": "",
+      "expected_test_exit": 0
+    },
+    {
+      "id": "alias-bogus-order",
+      "options": [
+        "alias"
+      ],
+      "config": "bogus-nxdomain=198.51.100.20\nalias=192.0.2.10,198.51.100.20\n",
+      "probes": [
+        {
+          "id": "rewritten-bogus",
+          "name": "rewritten-bogus.test",
+          "type": 1,
+          "c_expect": {
+            "udp": "response",
+            "tcp": "response"
+          }
+        }
+      ],
+      "hosts": "",
+      "expected_test_exit": 0
+    },
+    {
+      "id": "alias-v6-invalid",
+      "options": [
+        "alias"
+      ],
+      "config": "alias=2001:db8::1,192.0.2.1\n",
+      "probes": [],
+      "hosts": "",
+      "expected_test_exit": 1
+    },
+    {
+      "id": "ignore-address-invalid",
+      "options": [
+        "ignore-address"
+      ],
+      "config": "ignore-address=not-an-address\n",
+      "probes": [],
+      "hosts": "",
+      "expected_test_exit": 1
+    },
+    {
+      "id": "ignore-zero4",
+      "options": [
+        "ignore-address"
+      ],
+      "config": "ignore-address=1.2.3.4/0\n",
+      "probes": [
+        {
+          "id": "zero-matches",
+          "name": "ignore-zero4.test",
+          "type": 1,
+          "c_expect": {
+            "udp": "timeout",
+            "tcp": "response"
+          },
+          "reply": "8.8.8.8"
+        }
+      ],
+      "hosts": "",
+      "expected_test_exit": 0
+    },
+    {
+      "id": "ignore-zero6",
+      "options": [
+        "ignore-address"
+      ],
+      "config": "ignore-address=2001:db8::/0\n",
+      "probes": [
+        {
+          "id": "zero-matches",
+          "name": "ignore-zero6.test",
+          "type": 28,
+          "c_expect": {
+            "udp": "timeout",
+            "tcp": "response"
+          },
+          "reply": "2001:4860::1"
+        }
+      ],
+      "hosts": "",
+      "expected_test_exit": 0
+    },
+    {
+      "id": "ignore-empty-prefix",
+      "options": [
+        "ignore-address"
+      ],
+      "config": "ignore-address=192.0.2.0/\n",
+      "probes": [
+        {
+          "id": "zero-matches",
+          "name": "ignore-empty-prefix.test",
+          "type": 1,
+          "c_expect": {
+            "udp": "timeout",
+            "tcp": "response"
+          },
+          "reply": "8.8.8.8"
+        }
+      ],
+      "hosts": "",
+      "expected_test_exit": 0
     }
   ]
 }
