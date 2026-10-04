@@ -426,7 +426,7 @@ def run_profile(root, side, profile, client, server, out):
     if profile.get("helper"):
         for name in ["pxe-helper.events","pxe-helper.running","pxe-helper.done"]:(root/"m2"/name).unlink(missing_ok=True)
         script=root/"m2/pxe-helper"
-        script.write_text('#!/bin/sh\nprintf "%s %s %s\\n" "$1" "$2" "$3" >> /m2/pxe-helper.events\n: > /m2/pxe-helper.running\nsleep 2\n: > /m2/pxe-helper.done\n')
+        script.write_text('#!/bin/sh\nprintf "%s %s %s\\n" "$1" "$2" "$3" >> /m2/pxe-helper.events\nif [ "$1" = add ]; then\n: > /m2/pxe-helper.running\nsleep 2\n: > /m2/pxe-helper.done\nfi\n')
         script.chmod(0o755)
     if profile.get("tftp"):
         directory=root/"m2/pxe-tftp";directory.mkdir(exist_ok=True);(directory/"health").write_bytes(b"pxe-owner-health")
@@ -489,7 +489,11 @@ def run_profile(root, side, profile, client, server, out):
             row["fd_end"] = net.descriptors(process.pid)
             if profile.get("helper"):
                 deadline=time.monotonic()+3
-                while not (root/"m2/pxe-helper.done").exists():
+                while True:
+                    event_path=root/"m2/pxe-helper.events"
+                    events=event_path.read_text().splitlines() if event_path.exists() else []
+                    tftp_events=sum(event.startswith("tftp ") for event in events)
+                    if (root/"m2/pxe-helper.done").exists() and (not profile.get("tftp") or tftp_events==len(profile["cases"])):break
                     if time.monotonic()>=deadline:raise AssertionError("helper did not complete")
                     time.sleep(.02)
                 row["helper_events"]=(root/"m2/pxe-helper.events").read_text().splitlines()
@@ -624,8 +628,10 @@ def evaluate(rows, corpus, sides):
             if profile.get("metrics") is not None:
                 if (row.get("initial_metrics") or {}).get("pxe")!=0:failures.append(f"{key}: initial PXE count")
                 if not row.get("bus_cleanup") or row["bus_cleanup"].get("forced"):failures.append(f"{key}: ubusd cleanup")
-            if profile.get("helper") and (len(row.get("helper_events",[]))!=1 or not row["helper_events"][0].startswith("add ")):
-                failures.append(f"{key}: BOOTP add/proxy no-event boundary")
+            if profile.get("helper"):
+                lease_events=[event for event in row.get("helper_events",[]) if event.split()[0] in ["add","old","del"]]
+                if len(lease_events)!=1 or not lease_events[0].startswith("add "):
+                    failures.append(f"{key}: BOOTP add/proxy no-event boundary")
         if sides == ["c", "rust"]:
             first = indexed.get((profile["name"], "c")); second = indexed.get((profile["name"], "rust"))
             if not first or not second:
