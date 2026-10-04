@@ -167,8 +167,14 @@ pub enum Event {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Notice {
     Ready,
-    /// Read-only lease database emitted by the startup script in the helper.
-    InitData(Vec<u8>),
+    /// Parsed startup records, each bounded by the lease-file scanf widths.
+    InitRecord(crate::dhcp::lease_file::LeaseRecord),
+    InitEnd {
+        invalid_records: usize,
+        clean_end: bool,
+    },
+    /// Startup parser failure with the C process exit class.
+    InitError(i32),
     /// Shell exit status; 126/127 map to EC_FILE, others to EC_INIT_OFFSET.
     InitExit(i32),
     /// Merged stdout/stderr bytes; only non-debug scripts are captured by C.
