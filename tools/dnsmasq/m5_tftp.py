@@ -15,6 +15,7 @@ import json
 import os
 from pathlib import Path
 import signal
+import resource
 import socket
 import struct
 import subprocess
@@ -62,7 +63,7 @@ def scenarios():
         dict(name='incomplete-script-not-called', config=base+'dhcp-script=/m2/tftp-capture\n', callbacks=0,
              requests=[{'abort': True}, {'abandon': True}, {'filename': 'absent.bin', 'error': True}]),
         dict(name='final-ack-timeout-script-once', config=base+'dhcp-script=/m2/tftp-capture\n', callbacks=1,
-             callback_wait=125, requests=[{'filename': 'owned.bin', 'abandon': True}]),
+             callback_wait=125, requests=[{'abandon': True}, {'filename': 'owned.bin', 'abandon': True}]),
         dict(name='no-fail-bind-error', config=base+'tftp-no-fail\n', bind_blocker=True,
              requests=[], startup_failure=True),
     ]
@@ -72,6 +73,12 @@ def scenarios():
                               config=base+f'tftp-max={maximum}\n'+('tftp-single-port\n' if single else ''),
                               binding='' if single else 'bind-interfaces\n',
                               requests=[{'capacity': maximum if single else maximum+1, 'single': single}]))
+    cases.extend([
+        dict(name='capacity-dedicated-fd40', config=base, nofile=40,
+             requests=[{'capacity': 6, 'single': False}]),
+        dict(name='capacity-single-fd40', config=base+'tftp-single-port\n', binding='', nofile=40,
+             requests=[{'capacity': 0, 'single': True}]),
+    ])
     return cases
 
 
@@ -294,7 +301,11 @@ def run_side(root, binary, scenario, out, network):
             blocker = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             blocker.bind(('0.0.0.0', 69))
         with (out/'daemon.log').open('w') as log:
-            process = subprocess.Popen(command(root,binary,'-k','-C','/m2/tftp.conf'), stdout=log,stderr=log,start_new_session=True)
+            def limits():
+                if 'nofile' in scenario:
+                    resource.setrlimit(resource.RLIMIT_NOFILE, (scenario['nofile'], scenario['nofile']))
+            process = subprocess.Popen(command(root,binary,'-k','-C','/m2/tftp.conf'), stdout=log,stderr=log,
+                                       start_new_session=True, preexec_fn=limits)
             time.sleep(.25)
             result['started'] = process.poll() is None
             if not result['started']:
