@@ -10,6 +10,8 @@ import copy
 import ctypes
 import errno
 import platform
+import resource
+import threading
 import json
 import os
 from pathlib import Path
@@ -76,6 +78,7 @@ def scenarios():
     ]
     rows.extend(extra_scenarios())
     rows.extend(remaining_scenarios())
+    rows.extend(resource_scenarios())
     mapping = {
         'static-host-reload': ['HOST01/host-selectors', 'FILE02/static-no-live-watch', 'FILE02/hup-replace', 'FILE02/hup-empty-removes'],
         'dynamic-host-append': ['DYN04/host-live-add', 'DYN04/host-rewrite-same-ip', 'DYN04/host-rewrite-new-ip', 'DYN04/host-truncate-keeps-old', 'DYN06/host-delete-retained', 'DYN06/hup-after-delete'],
@@ -239,6 +242,69 @@ def remaining_scenarios():
     return rows
 
 
+def resource_scenarios():
+    def inform(label):return dict(op='packet',label=label,kind=8,ciaddr='127.0.0.40',prl=[224])
+    def case(name,config,events,cases):return dict(name=name,config='no-daemon\n'+config,files={'opts':'224,old\n','dir/a':'224,old\n'},events=events,cases=cases,boundaries=sorted({c.split('/')[0] for c in cases}))
+    rows=[]
+    for kind,directive,path in [('static','dhcp-optsfile={base}/opts','opts'),('dynamic','dhcp-optsdir={base}/dir','dir/a')]:
+        rows.append(case('runtime-emfile-'+kind,directive,[inform('before'),dict(op='fd-limit'),dict(op='write',path=path,text='224,new\n'),dict(op='hup') if kind=='static' else dict(op='snapshot'),dict(op='emfile-witness',path=BASE+'/'+path),inform('during-emfile'),dict(op='fd-limit',restore=True),dict(op='hup'),inform('recovered')],['OWNER03/fd-open-failure','OWNER02/failed-file-recovers']))
+    rows.append(case('large-bank-owner-progress','dhcp-optsfile={base}/opts',[inform('before'),dict(op='large-file',path='opts',bytes=16*1024*1024,tail='224,large\n'),inform('after'),dict(op='fd-check')],['OWNER01/large-bank-owner-progress']))
+    rows.append(case('watch-burst-owner-progress','dhcp-optsdir={base}/dir',[inform('before'),dict(op='burst-progress',path='dir/a',bytes=256*1024,count=64,tail='224,burst\n'),inform('after'),dict(op='fd-check')],['OWNER01/event-burst-fairness']))
+    return rows
+
+
+def open_bank_fds(pid,path):
+    found=[]
+    for item in Path(f'/proc/{pid}/fd').iterdir():
+        try:target=os.readlink(item)
+        except FileNotFoundError:continue
+        if target.endswith(path):found.append(int(item.name))
+    return found
+
+
+def load_progress(folder,process,event,out):
+    path=folder/event['path'];inside=BASE+'/'+event['path']
+    body=(b'#'+b'x'*126+b'\n')*(event['bytes']//128)+event['tail'].encode()
+    samples=[];stop=threading.Event()
+    def sample():
+        while not stop.is_set():
+            opened=bool(open_bank_fds(process.pid,inside));start=time.monotonic()
+            try:answer=health();healthy=True
+            except (OSError,AssertionError) as error:answer=repr(error);healthy=False
+            samples.append({'file_active':opened,'file_still_active':bool(open_bank_fds(process.pid,inside)),'elapsed':time.monotonic()-start,'healthy':healthy,'reply':answer})
+            time.sleep(.001)
+    worker=threading.Thread(target=sample);worker.start()
+    marker='read '+inside
+    prior=sum(marker in line for line in (out/'daemon.log').read_text(errors='replace').splitlines())
+    expected=1 if event['op']=='large-file' else event['count']
+    try:
+        if event['op']=='large-file':
+            path.write_bytes(body);process.send_signal(signal.SIGHUP)
+        else:
+            process.send_signal(signal.SIGSTOP)
+            deadline=time.monotonic()+1
+            while '\nState:\tT' not in Path(f'/proc/{process.pid}/status').read_text():
+                assert time.monotonic()<deadline,'SIGSTOP not observed';time.sleep(.001)
+            try:
+                for _ in range(event['count']):
+                    path.write_bytes(body);path.with_name('.noise').write_text('alternate event\n')
+            finally:process.send_signal(signal.SIGCONT)
+        deadline=time.monotonic()+10
+        while time.monotonic()<deadline:
+            reads=sum(marker in line for line in (out/'daemon.log').read_text(errors='replace').splitlines())-prior
+            if len(samples)>=30 and reads>=expected and not open_bank_fds(process.pid,inside):break
+            time.sleep(.002)
+        else:raise AssertionError('file load did not finish expected reads')
+    finally:
+        stop.set();worker.join(2)
+    assert not worker.is_alive() and samples,'health sampler missing/leaked'
+    latency=sorted(sample['elapsed'] for sample in samples)
+    active=sorted(sample['elapsed'] for sample in samples if sample['file_active'])
+    return {'bytes':len(body),'file_sha256':sha256(path),'completed_reads':reads,'samples':samples,'p95_seconds':latency[min(len(latency)-1,int(len(latency)*.95))],
+        'pending_p95_seconds':active[min(len(active)-1,int(len(active)*.95))] if active else None,
+        'all_healthy':all(sample['healthy'] for sample in samples),'healthy_while_file_open':sum(sample['healthy'] and sample['file_active'] and sample['file_still_active'] for sample in samples)}
+
+
 def file_syntax(root,side,text,out):
     out.mkdir()
     result=subprocess.run(command(root,side,'--test','-C','/m2/files.conf'),capture_output=True,timeout=5)
@@ -324,7 +390,7 @@ def lease_state(root):
 def run_side(root,side,scenario,out):
     out.mkdir();folder=install(root,scenario);text=config(scenario)
     (out/'config').write_bytes(text.encode(errors='surrogateescape'));(root/'m2/files.conf').write_bytes(text.encode(errors='surrogateescape'))
-    result={'side':side,'scenario':scenario['name'],'rows':[],'started':False};process=None;owned=set();opened={}
+    result={'side':side,'scenario':scenario['name'],'rows':[],'started':False,'expected_rust_sha256':sha256(root/'usr/sbin/dnsmasq-rs')};process=None;owned=set();opened={};limit_before=None
     with (out/'daemon.log').open('wb') as log,socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as endpoint:
         endpoint.bind(('0.0.0.0',68));endpoint.setsockopt(socket.SOL_SOCKET,socket.SO_BROADCAST,1);endpoint.setsockopt(socket.SOL_SOCKET,25,b'lo\0')
         try:
@@ -383,6 +449,24 @@ def run_side(root,side,scenario,out):
                 elif event['op']=='system-unlink':(root/event['path'].lstrip('/')).unlink();time.sleep(.1)
                 elif event['op']=='stop-loading':observed['stop']=stop_stream(folder,event,process)
                 elif event['op']=='fifo-reload':observed['fifo']=fifo_reload(root,side,folder,event,process,endpoint,out,index)
+                elif event['op']=='fd-limit':
+                    if event.get('restore'):
+                        resource.prlimit(process.pid,resource.RLIMIT_NOFILE,limit_before);limit_before=None
+                    else:
+                        limit_before=resource.prlimit(process.pid,resource.RLIMIT_NOFILE)
+                        descriptors={int(p.name) for p in Path(f'/proc/{process.pid}/fd').iterdir()}
+                        ceiling=next(n for n in range(max(descriptors)+2) if n not in descriptors)
+                        resource.prlimit(process.pid,resource.RLIMIT_NOFILE,(ceiling,limit_before[1]))
+                        observed['fd_exhaustion']={'descriptors':sorted(descriptors),'limits':resource.prlimit(process.pid,resource.RLIMIT_NOFILE)}
+                elif event['op']=='emfile-witness':
+                    observed['emfile_diagnostics']=[line for line in (out/'daemon.log').read_text(errors='replace').splitlines() if event['path'] in line and ('No file descriptors available' in line or 'Too many open files' in line)]
+                    assert observed['emfile_diagnostics'],'file open did not reach EMFILE'
+                    observed['emfile_verified']=True
+                elif event['op'] in ('large-file','burst-progress'):
+                    observed['progress']=load_progress(folder,process,event,out)
+                    assert observed['progress']['all_healthy'],'DNS failed during file work'
+                    if side=='rust':assert observed['progress']['healthy_while_file_open']>0,'no live owner progress witnessed'
+                    observed['owner_health_verified']=True
                 elif event['op']=='event-burst':
                     process.send_signal(signal.SIGSTOP)
                     deadline=time.monotonic()+1
@@ -406,6 +490,7 @@ def run_side(root,side,scenario,out):
         except Exception as error:result['error']=repr(error)
         finally:
             for opened_file in opened.values():opened_file.close()
+            if limit_before and process and process.poll() is None:resource.prlimit(process.pid,resource.RLIMIT_NOFILE,limit_before)
             if process is not None:
                 owned=children(process.pid)
                 if process.poll() is None:process.terminate()
@@ -434,7 +519,7 @@ def compare(c,rust):
     if wire.comparable_syntax(c.get('syntax',{}))!=wire.comparable_syntax(rust.get('syntax',{})):failures.append('syntax')
     if len(c['rows'])!=len(rust['rows']):failures.append('row count')
     for first,second in zip(c['rows'],rust['rows']):
-        for key in ['index','event','alive','health','peer','comparable','dns','helper','bank_fds_closed']:
+        for key in ['index','event','alive','health','peer','comparable','dns','helper','bank_fds_closed','emfile_verified','owner_health_verified']:
             if first.get(key)!=second.get(key):failures.append(f"{first['index']}:{key}")
         if (first.get('response') is None)!=(second.get('response') is None):failures.append(f"{first['index']}:response presence")
         if 'stop' in first or 'stop' in second:
@@ -450,6 +535,26 @@ def compare(c,rust):
         for x,y in zip(left,right):
             if x['fields']!=y['fields'] or (x['remaining'] is None)!=(y['remaining'] is None) or (x['remaining'] is not None and abs(x['remaining']-y['remaining'])>2):failures.append(f"{first['index']}:lease")
     return failures
+
+
+def witness_errors(scenario,observed,side):
+    errors=[]
+    for event,row in zip(scenario['events'],observed['rows']):
+        if event['op'] in ('large-file','burst-progress'):
+            proof=row.get('progress',{});samples=proof.get('samples',[])
+            overlap=sum(sample.get('healthy',False) and sample.get('file_active',False) and sample.get('file_still_active',False) for sample in samples)
+            if len(samples)<30 or proof.get('bytes',0)<event['bytes'] or not all(sample.get('healthy',False) for sample in samples):errors.append('large/burst health data absent or failed')
+            if side=='rust' and not overlap:errors.append('no DNS progress while a bank file was open')
+            if proof.get('healthy_while_file_open')!=overlap:errors.append('invalid overlap count')
+            expected=event.get('count',1)
+            if proof.get('completed_reads',0)<expected:errors.append('missing bank event reads')
+        if event['op']=='emfile-witness' and not row.get('emfile_diagnostics'):errors.append('missing actual EMFILE diagnostic')
+        if event['op']=='fd-check':
+            if not row.get('fd_targets') or any(BASE in target for target in row['fd_targets'].values()):errors.append('bank fd closure not proven')
+    if observed.get('started'):
+        expected=STOCK_SHA256 if side=='c' else observed.get('expected_rust_sha256')
+        if observed.get('identity',{}).get('sha256')!=expected:errors.append('running ELF identity mismatch')
+    return errors
 
 
 def controls():
@@ -473,6 +578,20 @@ def controls():
         elif name=='leaked-pid':changed['remaining']=[123]
         elif name=='extra-thread':changed['threads']=2
         assert compare(baseline,changed),name
+        detected.append(name)
+    case={'events':[{'op':'large-file','bytes':4096}]}
+    sample={'healthy':True,'file_active':True,'file_still_active':True}
+    witness={'rows':[{'progress':{'bytes':4096,'completed_reads':1,'samples':[sample]*30,'healthy_while_file_open':30}}]}
+    assert not witness_errors(case,witness,'rust')
+    for name in ['missing-health-samples','no-pending-overlap','missing-file-completion','wrong-byte-count']:
+        changed=copy.deepcopy(witness);proof=changed['rows'][0]['progress']
+        if name=='missing-health-samples':proof['samples']=[]
+        elif name=='no-pending-overlap':
+            for sample in proof['samples']:sample['file_still_active']=False
+            proof['healthy_while_file_open']=0
+        elif name=='missing-file-completion':proof['completed_reads']=0
+        elif name=='wrong-byte-count':proof['bytes']=0
+        assert witness_errors(case,changed,'rust'),name
         detected.append(name)
     return detected
 
@@ -515,6 +634,7 @@ def main(args):
         rows={side:run_side(root,side,scenario,args.out/(scenario['name']+'-'+side)) for side in manifest['sides']}
         errors=[]
         for side,value in rows.items():
+            errors.extend(side+': '+error for error in witness_errors(scenario,value,side))
             if scenario.get('syntax_only'):
                 if value.get('error') or value['syntax']['exit']!=scenario.get('expected_syntax',0):errors.append(side+': syntax result')
                 continue
