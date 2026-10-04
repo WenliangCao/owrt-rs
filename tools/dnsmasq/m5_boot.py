@@ -24,6 +24,8 @@ def fixtures():
         ("tagged-before-fallback", "dhcp-boot=tag:known,tagged.img,tagged,127.0.0.9\ndhcp-boot=fallback.img,fallback,127.0.0.8\n"),
         ("tagged-after-fallback", "dhcp-boot=fallback.img,fallback,127.0.0.8\ndhcp-boot=tag:known,tagged.img,tagged,127.0.0.9\n"),
         ("no-tag-match", "dhcp-boot=fallback.img\ndhcp-boot=tag:absent,wrong.img\n"),
+        ("empty-selector", "dhcp-boot=fallback.img\ndhcp-boot=tag:,empty.img\n"),
+        ("negation-only", "dhcp-boot=fallback.img\ndhcp-boot=tag:!,negated.img\n"),
         ("negated-tag", "dhcp-boot=fallback.img\ndhcp-boot=tag:!absent,tagged.img\n"),
         ("last-tagged-wins", "dhcp-boot=tag:known,old.img,old,127.0.0.8\ndhcp-boot=tag:known,new.img,,127.0.0.9\n"),
         ("empty-tagged-fields", "dhcp-boot=fallback.img,fallback,127.0.0.8\ndhcp-boot=tag:known,,,0.0.0.0\n"),

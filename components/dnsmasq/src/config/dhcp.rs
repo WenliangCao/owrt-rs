@@ -127,9 +127,8 @@ impl BootConfig {
             }
             let value = head.decoded();
             let tag = &value[prefix_len..];
-            if tag.is_empty() || matches!(tag, b"!" | b"#") {
-                return Err(Error("empty DHCP boot tag selector"));
-            }
+            // C dhcp_tags retains empty and negation-only strings; they are
+            // predicates on an empty tag, not unconditional fallback entries.
             selectors.push(tag.to_vec());
             rest = tail.ok_or(Error("DHCP boot selector requires boot fields"))?;
         }
@@ -753,10 +752,7 @@ mod tests {
             entry.filter.tags() == [b"known".to_vec(), b"uefi".to_vec()]
                 && entry.config.filename.as_deref() == Some(b"file".as_slice())
         }));
-        for line in [
-            b"dhcp-boot=tag:,file".as_slice(),
-            b"dhcp-boot=tag:known".as_slice(),
-        ] {
+        for line in [b"dhcp-boot=tag:known".as_slice()] {
             let before = config.clone();
             assert!(config.apply(&lex_line(line).unwrap().unwrap()).is_err());
             assert_eq!(config, before);
