@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "executable": true,
-  "status": "short-C-baseline-before-full-paired-schedule",
+  "status": "full-existing-option-paired-matrix",
   "scope": "Fourth matrix: existing IPv4 DHCP options only; excludes DHCP-range ICMP errors, dynamic hostfiles and PXE.",
   "source_identity": {
     "option.c": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
@@ -20,7 +20,14 @@
       ],
       "scenarios": [
         "auth-off-baseline",
-        "auth-on-baseline"
+        "auth-on-baseline",
+        "auth-existing-0",
+        "auth-existing-1",
+        "auth-alias-0-10-77-0-254",
+        "auth-alias-0-127-0-0-1",
+        "auth-alias-1-10-77-0-254",
+        "auth-alias-1-127-0-0-1",
+        "authoritative-invalid"
       ],
       "checklist": [
         {
@@ -28,15 +35,29 @@
           "checked": false,
           "required_scenarios": [
             "auth-off-baseline",
-            "auth-on-baseline"
+            "auth-on-baseline",
+            "auth-existing-0",
+            "auth-existing-1",
+            "auth-alias-0-10-77-0-254",
+            "auth-alias-0-127-0-0-1",
+            "auth-alias-1-10-77-0-254",
+            "auth-alias-1-127-0-0-1",
+            "authoritative-invalid"
           ]
         },
         {
-          "boundary": "Wrong server-ID: silent without authority, NAK with authority; trusted local interface server-ID alias remains accepted.",
+          "boundary": "Wrong server-ID: silent without authority, NAK with authority; enumerate actual interface-alias/TFTP eligibility and remaining-context behavior, without assuming fallback implies ACK.",
           "checked": false,
           "required_scenarios": [
             "auth-off-baseline",
-            "auth-on-baseline"
+            "auth-on-baseline",
+            "auth-existing-0",
+            "auth-existing-1",
+            "auth-alias-0-10-77-0-254",
+            "auth-alias-0-127-0-0-1",
+            "auth-alias-1-10-77-0-254",
+            "auth-alias-1-127-0-0-1",
+            "authoritative-invalid"
           ]
         },
         {
@@ -44,7 +65,14 @@
           "checked": false,
           "required_scenarios": [
             "auth-off-baseline",
-            "auth-on-baseline"
+            "auth-on-baseline",
+            "auth-existing-0",
+            "auth-existing-1",
+            "auth-alias-0-10-77-0-254",
+            "auth-alias-0-127-0-0-1",
+            "auth-alias-1-10-77-0-254",
+            "auth-alias-1-127-0-0-1",
+            "authoritative-invalid"
           ]
         },
         {
@@ -52,7 +80,14 @@
           "checked": false,
           "required_scenarios": [
             "auth-off-baseline",
-            "auth-on-baseline"
+            "auth-on-baseline",
+            "auth-existing-0",
+            "auth-existing-1",
+            "auth-alias-0-10-77-0-254",
+            "auth-alias-0-127-0-0-1",
+            "auth-alias-1-10-77-0-254",
+            "auth-alias-1-127-0-0-1",
+            "authoritative-invalid"
           ]
         },
         {
@@ -60,7 +95,14 @@
           "checked": false,
           "required_scenarios": [
             "auth-off-baseline",
-            "auth-on-baseline"
+            "auth-on-baseline",
+            "auth-existing-0",
+            "auth-existing-1",
+            "auth-alias-0-10-77-0-254",
+            "auth-alias-0-127-0-0-1",
+            "auth-alias-1-10-77-0-254",
+            "auth-alias-1-127-0-0-1",
+            "authoritative-invalid"
           ]
         },
         {
@@ -68,7 +110,14 @@
           "checked": false,
           "required_scenarios": [
             "auth-off-baseline",
-            "auth-on-baseline"
+            "auth-on-baseline",
+            "auth-existing-0",
+            "auth-existing-1",
+            "auth-alias-0-10-77-0-254",
+            "auth-alias-0-127-0-0-1",
+            "auth-alias-1-10-77-0-254",
+            "auth-alias-1-127-0-0-1",
+            "authoritative-invalid"
           ]
         }
       ]
@@ -82,7 +131,27 @@
       ],
       "scenarios": [
         "broadcast-off",
-        "broadcast-on"
+        "broadcast-on",
+        "broadcast-tag",
+        "broadcast-net",
+        "broadcast-bare-tag",
+        "broadcast-no-match",
+        "broadcast-not",
+        "broadcast-legacy-not",
+        "broadcast-and-miss",
+        "broadcast-or",
+        "broadcast-no-wildcard",
+        "broadcast-interface",
+        "broadcast-context-too-late",
+        "broadcast-tag-if",
+        "broadcast-incoming-bit",
+        "broadcast-leasequery",
+        "broadcast-null-empty",
+        "broadcast-null-tag",
+        "broadcast-null-net",
+        "broadcast-and-hit",
+        "broadcast-not-hit",
+        "broadcast-legacy-not-hit"
       ],
       "checklist": [
         {
@@ -90,7 +159,27 @@
           "checked": false,
           "required_scenarios": [
             "broadcast-off",
-            "broadcast-on"
+            "broadcast-on",
+            "broadcast-tag",
+            "broadcast-net",
+            "broadcast-bare-tag",
+            "broadcast-no-match",
+            "broadcast-not",
+            "broadcast-legacy-not",
+            "broadcast-and-miss",
+            "broadcast-or",
+            "broadcast-no-wildcard",
+            "broadcast-interface",
+            "broadcast-context-too-late",
+            "broadcast-tag-if",
+            "broadcast-incoming-bit",
+            "broadcast-leasequery",
+            "broadcast-null-empty",
+            "broadcast-null-tag",
+            "broadcast-null-net",
+            "broadcast-and-hit",
+            "broadcast-not-hit",
+            "broadcast-legacy-not-hit"
           ]
         },
         {
@@ -98,7 +187,27 @@
           "checked": false,
           "required_scenarios": [
             "broadcast-off",
-            "broadcast-on"
+            "broadcast-on",
+            "broadcast-tag",
+            "broadcast-net",
+            "broadcast-bare-tag",
+            "broadcast-no-match",
+            "broadcast-not",
+            "broadcast-legacy-not",
+            "broadcast-and-miss",
+            "broadcast-or",
+            "broadcast-no-wildcard",
+            "broadcast-interface",
+            "broadcast-context-too-late",
+            "broadcast-tag-if",
+            "broadcast-incoming-bit",
+            "broadcast-leasequery",
+            "broadcast-null-empty",
+            "broadcast-null-tag",
+            "broadcast-null-net",
+            "broadcast-and-hit",
+            "broadcast-not-hit",
+            "broadcast-legacy-not-hit"
           ]
         },
         {
@@ -106,7 +215,27 @@
           "checked": false,
           "required_scenarios": [
             "broadcast-off",
-            "broadcast-on"
+            "broadcast-on",
+            "broadcast-tag",
+            "broadcast-net",
+            "broadcast-bare-tag",
+            "broadcast-no-match",
+            "broadcast-not",
+            "broadcast-legacy-not",
+            "broadcast-and-miss",
+            "broadcast-or",
+            "broadcast-no-wildcard",
+            "broadcast-interface",
+            "broadcast-context-too-late",
+            "broadcast-tag-if",
+            "broadcast-incoming-bit",
+            "broadcast-leasequery",
+            "broadcast-null-empty",
+            "broadcast-null-tag",
+            "broadcast-null-net",
+            "broadcast-and-hit",
+            "broadcast-not-hit",
+            "broadcast-legacy-not-hit"
           ]
         },
         {
@@ -114,7 +243,27 @@
           "checked": false,
           "required_scenarios": [
             "broadcast-off",
-            "broadcast-on"
+            "broadcast-on",
+            "broadcast-tag",
+            "broadcast-net",
+            "broadcast-bare-tag",
+            "broadcast-no-match",
+            "broadcast-not",
+            "broadcast-legacy-not",
+            "broadcast-and-miss",
+            "broadcast-or",
+            "broadcast-no-wildcard",
+            "broadcast-interface",
+            "broadcast-context-too-late",
+            "broadcast-tag-if",
+            "broadcast-incoming-bit",
+            "broadcast-leasequery",
+            "broadcast-null-empty",
+            "broadcast-null-tag",
+            "broadcast-null-net",
+            "broadcast-and-hit",
+            "broadcast-not-hit",
+            "broadcast-legacy-not-hit"
           ]
         },
         {
@@ -122,7 +271,27 @@
           "checked": false,
           "required_scenarios": [
             "broadcast-off",
-            "broadcast-on"
+            "broadcast-on",
+            "broadcast-tag",
+            "broadcast-net",
+            "broadcast-bare-tag",
+            "broadcast-no-match",
+            "broadcast-not",
+            "broadcast-legacy-not",
+            "broadcast-and-miss",
+            "broadcast-or",
+            "broadcast-no-wildcard",
+            "broadcast-interface",
+            "broadcast-context-too-late",
+            "broadcast-tag-if",
+            "broadcast-incoming-bit",
+            "broadcast-leasequery",
+            "broadcast-null-empty",
+            "broadcast-null-tag",
+            "broadcast-null-net",
+            "broadcast-and-hit",
+            "broadcast-not-hit",
+            "broadcast-legacy-not-hit"
           ]
         },
         {
@@ -130,7 +299,27 @@
           "checked": false,
           "required_scenarios": [
             "broadcast-off",
-            "broadcast-on"
+            "broadcast-on",
+            "broadcast-tag",
+            "broadcast-net",
+            "broadcast-bare-tag",
+            "broadcast-no-match",
+            "broadcast-not",
+            "broadcast-legacy-not",
+            "broadcast-and-miss",
+            "broadcast-or",
+            "broadcast-no-wildcard",
+            "broadcast-interface",
+            "broadcast-context-too-late",
+            "broadcast-tag-if",
+            "broadcast-incoming-bit",
+            "broadcast-leasequery",
+            "broadcast-null-empty",
+            "broadcast-null-tag",
+            "broadcast-null-net",
+            "broadcast-and-hit",
+            "broadcast-not-hit",
+            "broadcast-legacy-not-hit"
           ]
         }
       ]
@@ -143,7 +332,14 @@
       ],
       "scenarios": [
         "capacity-zero",
-        "capacity-one"
+        "capacity-one",
+        "capacity-restart",
+        "capacity-restored-full",
+        "capacity-overflow-zero",
+        "capacity-overflow-one",
+        "capacity-overflow-expired-counted-first",
+        "capacity-expired-reclaimed",
+        "capacity-invalid"
       ],
       "checklist": [
         {
@@ -151,7 +347,14 @@
           "checked": false,
           "required_scenarios": [
             "capacity-zero",
-            "capacity-one"
+            "capacity-one",
+            "capacity-restart",
+            "capacity-restored-full",
+            "capacity-overflow-zero",
+            "capacity-overflow-one",
+            "capacity-overflow-expired-counted-first",
+            "capacity-expired-reclaimed",
+            "capacity-invalid"
           ]
         },
         {
@@ -159,7 +362,14 @@
           "checked": false,
           "required_scenarios": [
             "capacity-zero",
-            "capacity-one"
+            "capacity-one",
+            "capacity-restart",
+            "capacity-restored-full",
+            "capacity-overflow-zero",
+            "capacity-overflow-one",
+            "capacity-overflow-expired-counted-first",
+            "capacity-expired-reclaimed",
+            "capacity-invalid"
           ]
         },
         {
@@ -167,7 +377,14 @@
           "checked": false,
           "required_scenarios": [
             "capacity-zero",
-            "capacity-one"
+            "capacity-one",
+            "capacity-restart",
+            "capacity-restored-full",
+            "capacity-overflow-zero",
+            "capacity-overflow-one",
+            "capacity-overflow-expired-counted-first",
+            "capacity-expired-reclaimed",
+            "capacity-invalid"
           ]
         },
         {
@@ -175,7 +392,14 @@
           "checked": false,
           "required_scenarios": [
             "capacity-zero",
-            "capacity-one"
+            "capacity-one",
+            "capacity-restart",
+            "capacity-restored-full",
+            "capacity-overflow-zero",
+            "capacity-overflow-one",
+            "capacity-overflow-expired-counted-first",
+            "capacity-expired-reclaimed",
+            "capacity-invalid"
           ]
         },
         {
@@ -183,7 +407,14 @@
           "checked": false,
           "required_scenarios": [
             "capacity-zero",
-            "capacity-one"
+            "capacity-one",
+            "capacity-restart",
+            "capacity-restored-full",
+            "capacity-overflow-zero",
+            "capacity-overflow-one",
+            "capacity-overflow-expired-counted-first",
+            "capacity-expired-reclaimed",
+            "capacity-invalid"
           ]
         }
       ]
@@ -196,42 +427,78 @@
         "rfc2131.c:1237-1268"
       ],
       "scenarios": [
-        "sequential-baseline"
+        "sequential-baseline",
+        "sequential-offer-only",
+        "sequential-wrap",
+        "sequential-reserved",
+        "sequential-decline",
+        "sequential-restored-high",
+        "sequential-invalid"
       ],
       "checklist": [
         {
           "boundary": "Flag grammar; no-ping is fixed for this batch so no ICMP-I/O contract is added.",
           "checked": false,
           "required_scenarios": [
-            "sequential-baseline"
+            "sequential-baseline",
+            "sequential-offer-only",
+            "sequential-wrap",
+            "sequential-reserved",
+            "sequential-decline",
+            "sequential-restored-high",
+            "sequential-invalid"
           ]
         },
         {
           "boundary": "Committed clients allocate ascending addresses from greatest extant lease, skip reserved/static/server addresses, and wrap to a free lower hole.",
           "checked": false,
           "required_scenarios": [
-            "sequential-baseline"
+            "sequential-baseline",
+            "sequential-offer-only",
+            "sequential-wrap",
+            "sequential-reserved",
+            "sequential-decline",
+            "sequential-restored-high",
+            "sequential-invalid"
           ]
         },
         {
           "boundary": "DISCOVER alone does not allocate a lease; with no-ping repeated uncommitted offers remain eligible.",
           "checked": false,
           "required_scenarios": [
-            "sequential-baseline"
+            "sequential-baseline",
+            "sequential-offer-only",
+            "sequential-wrap",
+            "sequential-reserved",
+            "sequential-decline",
+            "sequential-restored-high",
+            "sequential-invalid"
           ]
         },
         {
           "boundary": "DECLINE removes the matching lease and increments epoch, skipping the next otherwise eligible address; restart resets transient epoch while restoring leases.",
           "checked": false,
           "required_scenarios": [
-            "sequential-baseline"
+            "sequential-baseline",
+            "sequential-offer-only",
+            "sequential-wrap",
+            "sequential-reserved",
+            "sequential-decline",
+            "sequential-restored-high",
+            "sequential-invalid"
           ]
         },
         {
           "boundary": "Restart with a high restored lease continues above it then wraps; compare actual offer/ACK sequence and lease table.",
           "checked": false,
           "required_scenarios": [
-            "sequential-baseline"
+            "sequential-baseline",
+            "sequential-offer-only",
+            "sequential-wrap",
+            "sequential-reserved",
+            "sequential-decline",
+            "sequential-restored-high",
+            "sequential-invalid"
           ]
         }
       ]
@@ -244,7 +511,16 @@
       ],
       "scenarios": [
         "exclude-none",
-        "exclude-lan"
+        "exclude-lan",
+        "exclude-guest",
+        "exclude-wildcard",
+        "exclude-empty",
+        "exclude-empty-list",
+        "exclude-csv",
+        "exclude-repeat",
+        "exclude-listen-union",
+        "exclude-tftp-0",
+        "exclude-tftp-1"
       ],
       "checklist": [
         {
@@ -252,7 +528,16 @@
           "checked": false,
           "required_scenarios": [
             "exclude-none",
-            "exclude-lan"
+            "exclude-lan",
+            "exclude-guest",
+            "exclude-wildcard",
+            "exclude-empty",
+            "exclude-empty-list",
+            "exclude-csv",
+            "exclude-repeat",
+            "exclude-listen-union",
+            "exclude-tftp-0",
+            "exclude-tftp-1"
           ]
         },
         {
@@ -260,7 +545,16 @@
           "checked": false,
           "required_scenarios": [
             "exclude-none",
-            "exclude-lan"
+            "exclude-lan",
+            "exclude-guest",
+            "exclude-wildcard",
+            "exclude-empty",
+            "exclude-empty-list",
+            "exclude-csv",
+            "exclude-repeat",
+            "exclude-listen-union",
+            "exclude-tftp-0",
+            "exclude-tftp-1"
           ]
         },
         {
@@ -268,7 +562,16 @@
           "checked": false,
           "required_scenarios": [
             "exclude-none",
-            "exclude-lan"
+            "exclude-lan",
+            "exclude-guest",
+            "exclude-wildcard",
+            "exclude-empty",
+            "exclude-empty-list",
+            "exclude-csv",
+            "exclude-repeat",
+            "exclude-listen-union",
+            "exclude-tftp-0",
+            "exclude-tftp-1"
           ]
         },
         {
@@ -276,7 +579,16 @@
           "checked": false,
           "required_scenarios": [
             "exclude-none",
-            "exclude-lan"
+            "exclude-lan",
+            "exclude-guest",
+            "exclude-wildcard",
+            "exclude-empty",
+            "exclude-empty-list",
+            "exclude-csv",
+            "exclude-repeat",
+            "exclude-listen-union",
+            "exclude-tftp-0",
+            "exclude-tftp-1"
           ]
         },
         {
@@ -284,7 +596,16 @@
           "checked": false,
           "required_scenarios": [
             "exclude-none",
-            "exclude-lan"
+            "exclude-lan",
+            "exclude-guest",
+            "exclude-wildcard",
+            "exclude-empty",
+            "exclude-empty-list",
+            "exclude-csv",
+            "exclude-repeat",
+            "exclude-listen-union",
+            "exclude-tftp-0",
+            "exclude-tftp-1"
           ]
         }
       ]
@@ -784,6 +1105,1796 @@
       ],
       "expected_test_exit": 0,
       "two_interfaces": true
+    },
+    {
+      "id": "auth-existing-0",
+      "options": [
+        "dhcp-authoritative"
+      ],
+      "adapter": "dhcp",
+      "config": "",
+      "probes": [
+        {
+          "id": "create",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.10",
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        },
+        {
+          "id": "same-init",
+          "action": "init-reboot",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.10",
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        },
+        {
+          "id": "wrong-init",
+          "action": "init-reboot",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.11",
+          "expect": {
+            "status": 6,
+            "leases": 1
+          }
+        },
+        {
+          "id": "wrong-renew",
+          "action": "renew",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.11",
+          "expect": {
+            "status": 6,
+            "destination": "255.255.255.255",
+            "leases": 1
+          }
+        },
+        {
+          "id": "wrong-rebind",
+          "action": "rebind",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.11",
+          "expect": {
+            "status": null,
+            "leases": 1
+          }
+        },
+        {
+          "id": "replace",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.11",
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "auth-existing-1",
+      "options": [
+        "dhcp-authoritative"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-authoritative\n",
+      "probes": [
+        {
+          "id": "create",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.10",
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        },
+        {
+          "id": "same-init",
+          "action": "init-reboot",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.10",
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        },
+        {
+          "id": "wrong-init",
+          "action": "init-reboot",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.11",
+          "expect": {
+            "status": 6,
+            "leases": 1
+          }
+        },
+        {
+          "id": "wrong-renew",
+          "action": "renew",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.11",
+          "expect": {
+            "status": 6,
+            "destination": "255.255.255.255",
+            "leases": 1
+          }
+        },
+        {
+          "id": "wrong-rebind",
+          "action": "rebind",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.11",
+          "expect": {
+            "status": null,
+            "leases": 1
+          }
+        },
+        {
+          "id": "replace",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.11",
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "auth-alias-0-10-77-0-254",
+      "options": [
+        "dhcp-authoritative"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-authoritative\n",
+      "probes": [
+        {
+          "id": "alias",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.10",
+          "server_id": "10.77.0.254"
+        }
+      ],
+      "expected_test_exit": 0,
+      "server_aliases": [
+        "10.77.0.254"
+      ],
+      "tftp": false
+    },
+    {
+      "id": "auth-alias-0-127-0-0-1",
+      "options": [
+        "dhcp-authoritative"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-authoritative\n",
+      "probes": [
+        {
+          "id": "alias",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.10",
+          "server_id": "127.0.0.1"
+        }
+      ],
+      "expected_test_exit": 0,
+      "server_aliases": [
+        "10.77.0.254"
+      ],
+      "tftp": false
+    },
+    {
+      "id": "auth-alias-1-10-77-0-254",
+      "options": [
+        "dhcp-authoritative"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-authoritative\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "probes": [
+        {
+          "id": "alias",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.10",
+          "server_id": "10.77.0.254"
+        }
+      ],
+      "expected_test_exit": 0,
+      "server_aliases": [
+        "10.77.0.254"
+      ],
+      "tftp": true
+    },
+    {
+      "id": "auth-alias-1-127-0-0-1",
+      "options": [
+        "dhcp-authoritative"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-authoritative\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "probes": [
+        {
+          "id": "alias",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.10",
+          "server_id": "127.0.0.1"
+        }
+      ],
+      "expected_test_exit": 0,
+      "server_aliases": [
+        "10.77.0.254"
+      ],
+      "tftp": true
+    },
+    {
+      "id": "authoritative-invalid",
+      "options": [
+        "dhcp-authoritative"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-authoritative=yes\n",
+      "probes": [],
+      "expected_test_exit": 1
+    },
+    {
+      "id": "broadcast-tag",
+      "options": [
+        "dhcp-broadcast"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-mac=set:hit,02:00:4d:35:44:01\ndhcp-broadcast=tag:hit\n",
+      "probes": [
+        {
+          "id": "offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "packet": {},
+          "expect": {
+            "status": 2,
+            "flags": 32768,
+            "leases": 0
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "broadcast-net",
+      "options": [
+        "dhcp-broadcast"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-mac=set:hit,02:00:4d:35:44:01\ndhcp-broadcast=net:hit\n",
+      "probes": [
+        {
+          "id": "offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "packet": {},
+          "expect": {
+            "status": 2,
+            "flags": 32768,
+            "leases": 0
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "broadcast-bare-tag",
+      "options": [
+        "dhcp-broadcast"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-mac=set:hit,02:00:4d:35:44:01\ndhcp-broadcast=hit\n",
+      "probes": [
+        {
+          "id": "offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "packet": {},
+          "expect": {
+            "status": 2,
+            "flags": 32768,
+            "leases": 0
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "broadcast-no-match",
+      "options": [
+        "dhcp-broadcast"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-broadcast=tag:missing\n",
+      "probes": [
+        {
+          "id": "offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "packet": {},
+          "expect": {
+            "status": 2,
+            "flags": 0,
+            "leases": 0
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "broadcast-not",
+      "options": [
+        "dhcp-broadcast"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-broadcast=tag:!missing\n",
+      "probes": [
+        {
+          "id": "offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "packet": {},
+          "expect": {
+            "status": 2,
+            "flags": 32768,
+            "leases": 0
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "broadcast-legacy-not",
+      "options": [
+        "dhcp-broadcast"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-broadcast=tag:#missing\n",
+      "probes": [
+        {
+          "id": "offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "packet": {},
+          "expect": {
+            "status": 2,
+            "flags": 32768,
+            "leases": 0
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "broadcast-and-miss",
+      "options": [
+        "dhcp-broadcast"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-mac=set:hit,02:00:4d:35:44:01\ndhcp-broadcast=tag:hit,tag:other\n",
+      "probes": [
+        {
+          "id": "offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "packet": {},
+          "expect": {
+            "status": 2,
+            "flags": 0,
+            "leases": 0
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "broadcast-or",
+      "options": [
+        "dhcp-broadcast"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-mac=set:hit,02:00:4d:35:44:01\ndhcp-broadcast=tag:other\ndhcp-broadcast=tag:hit\n",
+      "probes": [
+        {
+          "id": "offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "packet": {},
+          "expect": {
+            "status": 2,
+            "flags": 32768,
+            "leases": 0
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "broadcast-no-wildcard",
+      "options": [
+        "dhcp-broadcast"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-mac=set:hit,02:00:4d:35:44:01\ndhcp-broadcast=tag:hi*\n",
+      "probes": [
+        {
+          "id": "offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "packet": {},
+          "expect": {
+            "status": 2,
+            "flags": 0,
+            "leases": 0
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "broadcast-interface",
+      "options": [
+        "dhcp-broadcast"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-broadcast=tag:br-lan\n",
+      "probes": [
+        {
+          "id": "offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "packet": {},
+          "expect": {
+            "status": 2,
+            "flags": 32768,
+            "leases": 0
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "broadcast-context-too-late",
+      "options": [
+        "dhcp-broadcast"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-broadcast=tag:range\n",
+      "probes": [
+        {
+          "id": "offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "packet": {},
+          "expect": {
+            "status": 2,
+            "flags": 0,
+            "leases": 0
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "broadcast-tag-if",
+      "options": [
+        "dhcp-broadcast"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-vendorclass=set:vendor,Matrix\ntag-if=tag:vendor,set:derived\ndhcp-broadcast=tag:derived\n",
+      "probes": [
+        {
+          "id": "offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4d6174726978436c69656e74"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "flags": 32768,
+            "leases": 0
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "broadcast-incoming-bit",
+      "options": [
+        "dhcp-broadcast"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-broadcast=tag:missing\n",
+      "probes": [
+        {
+          "id": "client-bit",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "expect": {
+            "status": 2,
+            "flags": 32768,
+            "destination": "255.255.255.255"
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "broadcast-leasequery",
+      "options": [
+        "dhcp-broadcast"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-broadcast\nleasequery\n",
+      "probes": [
+        {
+          "id": "create",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.10",
+          "expect": {
+            "status": 5,
+            "flags": 32768
+          }
+        },
+        {
+          "id": "query",
+          "action": "leasequery",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.10",
+          "prl": [
+            51,
+            58,
+            59,
+            91
+          ],
+          "expect": {
+            "status": 13,
+            "flags": 0
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "broadcast-null-empty",
+      "options": [
+        "dhcp-broadcast"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-broadcast=\n",
+      "probes": [],
+      "expected_test_exit": 0,
+      "syntax_only": true,
+      "reference_defect": {
+        "kind": "null-C-tag-predicate",
+        "source": "option.c1338-1345/4663-4701 -> opt_string_alloc(empty)=NULL -> dhcp-common.c232 dereference",
+        "allowed_difference": "C syntax accepts; Rust safely rejects empty DHCP tag predicate; C runtime intentionally not executed"
+      }
+    },
+    {
+      "id": "broadcast-null-tag",
+      "options": [
+        "dhcp-broadcast"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-broadcast=tag:\n",
+      "probes": [],
+      "expected_test_exit": 0,
+      "syntax_only": true,
+      "reference_defect": {
+        "kind": "null-C-tag-predicate",
+        "source": "option.c1338-1345/4663-4701 -> opt_string_alloc(empty)=NULL -> dhcp-common.c232 dereference",
+        "allowed_difference": "C syntax accepts; Rust safely rejects empty DHCP tag predicate; C runtime intentionally not executed"
+      }
+    },
+    {
+      "id": "broadcast-null-net",
+      "options": [
+        "dhcp-broadcast"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-broadcast=net:\n",
+      "probes": [],
+      "expected_test_exit": 0,
+      "syntax_only": true,
+      "reference_defect": {
+        "kind": "null-C-tag-predicate",
+        "source": "option.c1338-1345/4663-4701 -> opt_string_alloc(empty)=NULL -> dhcp-common.c232 dereference",
+        "allowed_difference": "C syntax accepts; Rust safely rejects empty DHCP tag predicate; C runtime intentionally not executed"
+      }
+    },
+    {
+      "id": "capacity-restart",
+      "options": [
+        "dhcp-lease-max"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-lease-max=2\n",
+      "probes": [
+        {
+          "id": "one",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.10",
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        },
+        {
+          "id": "two",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "address": "10.77.0.11",
+          "expect": {
+            "status": 5,
+            "leases": 2
+          }
+        },
+        {
+          "id": "restart",
+          "action": "restart",
+          "transports": [
+            "dhcp"
+          ],
+          "expect": {
+            "leases": 2
+          }
+        },
+        {
+          "id": "still-full",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 3,
+          "address": "10.77.0.12",
+          "expect": {
+            "status": 6,
+            "leases": 2
+          }
+        },
+        {
+          "id": "release",
+          "action": "release",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "address": "10.77.0.11",
+          "expect": {
+            "status": null,
+            "leases": 1
+          }
+        },
+        {
+          "id": "reclaimed",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 3,
+          "address": "10.77.0.12",
+          "expect": {
+            "status": 5,
+            "leases": 2
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "capacity-restored-full",
+      "options": [
+        "dhcp-lease-max"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-lease-max=1\n",
+      "probes": [
+        {
+          "id": "full",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "address": "10.77.0.11",
+          "expect": {
+            "status": 6,
+            "leases": 1
+          }
+        },
+        {
+          "id": "release-restored",
+          "action": "release",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.10",
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        },
+        {
+          "id": "reuse",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "address": "10.77.0.11",
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "seed_leases": "{expiry} 02:00:4d:35:44:01 10.77.0.10 * *\n"
+    },
+    {
+      "id": "capacity-overflow-zero",
+      "options": [
+        "dhcp-lease-max"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-lease-max=0\n",
+      "probes": [],
+      "expected_test_exit": 0,
+      "seed_leases": "{expiry} 02:00:4d:35:44:01 10.77.0.10 * *\n",
+      "expected_startup_exit": 5
+    },
+    {
+      "id": "capacity-overflow-one",
+      "options": [
+        "dhcp-lease-max"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-lease-max=1\n",
+      "probes": [],
+      "expected_test_exit": 0,
+      "seed_leases": "{expiry} 02:00:4d:35:44:01 10.77.0.10 * *\n{expiry} 02:00:4d:35:44:02 10.77.0.11 * *\n",
+      "expected_startup_exit": 5
+    },
+    {
+      "id": "capacity-overflow-expired-counted-first",
+      "options": [
+        "dhcp-lease-max"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-lease-max=1\n",
+      "probes": [],
+      "expected_test_exit": 0,
+      "seed_leases": "{expired} 02:00:4d:35:44:01 10.77.0.10 * *\n{expiry} 02:00:4d:35:44:02 10.77.0.11 * *\n",
+      "expected_startup_exit": 5
+    },
+    {
+      "id": "capacity-expired-reclaimed",
+      "options": [
+        "dhcp-lease-max"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-lease-max=1\n",
+      "probes": [
+        {
+          "id": "allocate-after-prune",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "address": "10.77.0.11",
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "seed_leases": "{expired} 02:00:4d:35:44:01 10.77.0.10 * *\n"
+    },
+    {
+      "id": "capacity-invalid",
+      "options": [
+        "dhcp-lease-max"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-lease-max=word\n",
+      "probes": [],
+      "expected_test_exit": 1
+    },
+    {
+      "id": "sequential-offer-only",
+      "options": [
+        "dhcp-sequential-ip"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-sequential-ip\n",
+      "probes": [
+        {
+          "id": "first-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "expect": {
+            "status": 2,
+            "address": "10.77.0.10",
+            "leases": 0
+          }
+        },
+        {
+          "id": "second-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "expect": {
+            "status": 2,
+            "address": "10.77.0.10",
+            "leases": 0
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "sequential-wrap",
+      "options": [
+        "dhcp-sequential-ip"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-sequential-ip\n",
+      "probes": [
+        {
+          "id": "ack1",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "ack2",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "address": "10.77.0.11",
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "ack3",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 3,
+          "address": "10.77.0.12",
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "release-low",
+          "action": "release",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "expect": {
+            "status": null,
+            "leases": 2
+          }
+        },
+        {
+          "id": "wrap",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 4,
+          "expect": {
+            "status": 2,
+            "address": "10.77.0.10",
+            "leases": 2
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "ranges": [
+        "dhcp-range=10.77.0.10,10.77.0.12,255.255.255.0,600s"
+      ]
+    },
+    {
+      "id": "sequential-reserved",
+      "options": [
+        "dhcp-sequential-ip"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-sequential-ip\ndhcp-host=02:00:4d:35:44:63,10.77.0.11\n",
+      "probes": [
+        {
+          "id": "seed",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.10",
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "skip-reserved",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "expect": {
+            "status": 2,
+            "address": "10.77.0.12"
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "sequential-decline",
+      "options": [
+        "dhcp-sequential-ip"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-sequential-ip\n",
+      "probes": [
+        {
+          "id": "seed",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.10",
+          "expect": {
+            "status": 5
+          }
+        },
+        {
+          "id": "decline",
+          "action": "decline",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.10",
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        },
+        {
+          "id": "epoch-skip",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "expect": {
+            "status": 2,
+            "address": "10.77.0.11",
+            "leases": 0
+          }
+        },
+        {
+          "id": "restart",
+          "action": "restart",
+          "transports": [
+            "dhcp"
+          ],
+          "expect": {
+            "leases": 0
+          }
+        },
+        {
+          "id": "epoch-reset",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "expect": {
+            "status": 2,
+            "address": "10.77.0.10",
+            "leases": 0
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "sequential-restored-high",
+      "options": [
+        "dhcp-sequential-ip"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-sequential-ip\n",
+      "probes": [
+        {
+          "id": "higher",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "expect": {
+            "status": 2,
+            "address": "10.77.0.14"
+          }
+        },
+        {
+          "id": "ack-high",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "assigned",
+          "expect": {
+            "status": 5,
+            "leases": 2
+          }
+        },
+        {
+          "id": "restart",
+          "action": "restart",
+          "transports": [
+            "dhcp"
+          ],
+          "expect": {
+            "leases": 2
+          }
+        },
+        {
+          "id": "wrap-after-restart",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "expect": {
+            "status": 2,
+            "address": "10.77.0.10",
+            "leases": 2
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "seed_leases": "{expiry} 02:00:4d:35:44:63 10.77.0.13 * *\n"
+    },
+    {
+      "id": "sequential-invalid",
+      "options": [
+        "dhcp-sequential-ip"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-sequential-ip=yes\n",
+      "probes": [],
+      "expected_test_exit": 1
+    },
+    {
+      "id": "exclude-guest",
+      "options": [
+        "no-dhcp-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "no-dhcp-interface=br-guest\n",
+      "probes": [
+        {
+          "id": "lan-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "expect": {
+            "status": 2,
+            "leases": 0
+          }
+        },
+        {
+          "id": "lan-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        },
+        {
+          "id": "guest-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "expect": {
+            "status": null
+          }
+        },
+        {
+          "id": "guest-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "address": "10.78.0.10",
+          "expect": {
+            "status": null,
+            "leases": 1
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "two_interfaces": true
+    },
+    {
+      "id": "exclude-wildcard",
+      "options": [
+        "no-dhcp-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "no-dhcp-interface=br-*\n",
+      "probes": [
+        {
+          "id": "lan-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        },
+        {
+          "id": "lan-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        },
+        {
+          "id": "guest-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "expect": {
+            "status": null
+          }
+        },
+        {
+          "id": "guest-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "address": "10.78.0.10",
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "two_interfaces": true
+    },
+    {
+      "id": "exclude-empty",
+      "options": [
+        "no-dhcp-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "no-dhcp-interface=\n",
+      "probes": [
+        {
+          "id": "lan-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "expect": {
+            "status": 2,
+            "leases": 0
+          }
+        },
+        {
+          "id": "lan-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        },
+        {
+          "id": "guest-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "expect": {
+            "status": 2
+          }
+        },
+        {
+          "id": "guest-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "address": "10.78.0.10",
+          "expect": {
+            "status": 5,
+            "leases": 2
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "two_interfaces": true
+    },
+    {
+      "id": "exclude-empty-list",
+      "options": [
+        "no-dhcp-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "no-dhcp-interface=,br-lan,\n",
+      "probes": [
+        {
+          "id": "lan-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        },
+        {
+          "id": "lan-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        },
+        {
+          "id": "guest-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "expect": {
+            "status": 2
+          }
+        },
+        {
+          "id": "guest-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "address": "10.78.0.10",
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "two_interfaces": true
+    },
+    {
+      "id": "exclude-csv",
+      "options": [
+        "no-dhcp-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "no-dhcp-interface=missing0,br-lan\n",
+      "probes": [
+        {
+          "id": "lan-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        },
+        {
+          "id": "lan-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        },
+        {
+          "id": "guest-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "expect": {
+            "status": 2
+          }
+        },
+        {
+          "id": "guest-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "address": "10.78.0.10",
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "two_interfaces": true
+    },
+    {
+      "id": "exclude-repeat",
+      "options": [
+        "no-dhcp-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "no-dhcp-interface=br-lan\nno-dhcp-interface=br-guest\n",
+      "probes": [
+        {
+          "id": "lan-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        },
+        {
+          "id": "lan-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        },
+        {
+          "id": "guest-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "expect": {
+            "status": null
+          }
+        },
+        {
+          "id": "guest-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "address": "10.78.0.10",
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "two_interfaces": true
+    },
+    {
+      "id": "exclude-listen-union",
+      "options": [
+        "no-dhcp-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "no-dhcp-interface=br-lan\nlisten-address=127.0.0.1\n",
+      "probes": [
+        {
+          "id": "lan-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        },
+        {
+          "id": "lan-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        },
+        {
+          "id": "guest-offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "expect": {
+            "status": 2
+          }
+        },
+        {
+          "id": "guest-ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "address": "10.78.0.10",
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "two_interfaces": true
+    },
+    {
+      "id": "exclude-tftp-0",
+      "options": [
+        "no-dhcp-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "no-dhcp-interface=br-lan\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "probes": [
+        {
+          "id": "lan-tftp",
+          "action": "tftp",
+          "transports": [
+            "dhcp"
+          ],
+          "expect": {
+            "tftp": false
+          }
+        },
+        {
+          "id": "guest-tftp",
+          "action": "tftp",
+          "transports": [
+            "dhcp"
+          ],
+          "server": "10.78.0.1",
+          "expect": {
+            "tftp": true
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "two_interfaces": true,
+      "tftp": true
+    },
+    {
+      "id": "exclude-tftp-1",
+      "options": [
+        "no-dhcp-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "no-dhcp-interface=br-lan\nenable-tftp=br-lan,br-guest\ntftp-root=/m2/tftp\n",
+      "probes": [
+        {
+          "id": "lan-tftp",
+          "action": "tftp",
+          "transports": [
+            "dhcp"
+          ],
+          "expect": {
+            "tftp": true
+          }
+        },
+        {
+          "id": "guest-tftp",
+          "action": "tftp",
+          "transports": [
+            "dhcp"
+          ],
+          "server": "10.78.0.1",
+          "expect": {
+            "tftp": true
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "two_interfaces": true,
+      "tftp": true
+    },
+    {
+      "id": "broadcast-and-hit",
+      "options": [
+        "dhcp-broadcast"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-mac=set:hit,02:00:4d:35:44:01\ndhcp-vendorclass=set:other,Matrix\ndhcp-broadcast=tag:hit,tag:other\n",
+      "probes": [
+        {
+          "id": "offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4d6174726978436c69656e74"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "flags": 32768,
+            "leases": 0
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "broadcast-not-hit",
+      "options": [
+        "dhcp-broadcast"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-mac=set:hit,02:00:4d:35:44:01\ndhcp-broadcast=tag:!hit\n",
+      "probes": [
+        {
+          "id": "offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4d6174726978436c69656e74"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "flags": 0,
+            "leases": 0
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "broadcast-legacy-not-hit",
+      "options": [
+        "dhcp-broadcast"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-mac=set:hit,02:00:4d:35:44:01\ndhcp-broadcast=tag:#hit\n",
+      "probes": [
+        {
+          "id": "offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4d6174726978436c69656e74"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "flags": 0,
+            "leases": 0
+          }
+        }
+      ],
+      "expected_test_exit": 0
     }
-  ]
+  ],
+  "qualification_ready": true
 }

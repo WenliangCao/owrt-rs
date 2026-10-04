@@ -571,7 +571,9 @@ def main():
                                 'upstream transaction ID removed; name/type/class/transport/count exact',
                                 'casing: random bit patterns retained raw; compare allowed positions, enabled activity and exact client question bytes',
                                 'local-service: connect/receive stage and errno, including TCP reset versus EOF, compare exactly; queued-byte timing proof retained',
-                                'retry: raw clocks retained; exponential intervals checked within -12/+90ms; compare per-server traces to avoid receiver-thread scheduling order'],
+                                'retry: raw clocks retained; exponential intervals checked within -12/+90ms; compare per-server traces to avoid receiver-thread scheduling order',
+                                'DHCP: every reply byte except validated renewal T1/T2 fuzz and validated leasequery aging compares exactly; lease-file expiry is independently bounded to600s and lease order sorted; raw lease files retained',
+                                'DHCP L2: destination MAC, IP source/destination and UDP ports exact; independent namespace source MAC and kernel IP ID/checksum retained in raw frames'],
               'strict_upstream_wire_scenarios': [scenario['id'] for scenario in scenarios if scenario.get('strict_upstream_wire')],
               'negative_controls': controls, 'reference_timings': manifest.get('reference_timing'), 'scenarios': [], 'options': {}, 'failures': []}
     frozen = output / 'driver'
@@ -606,10 +608,10 @@ def main():
         completed = {s['id']: s for s in report['scenarios'] if s['id'] in required}
         missing = sorted(set(required) - completed.keys())
         failed = [key for key, row in completed.items() if row['failures']]
-        report['options'][option] = {'closed': not args.reference_only and not missing and not failed and manifest['options'][option].get('eligible_for_closure', True),
+        report['options'][option] = {'closed': not args.reference_only and manifest.get('qualification_ready', True) and not missing and not failed and manifest['options'][option].get('eligible_for_closure', True),
                                       'known_gaps': manifest['options'][option].get('known_gaps', []),
                                       'missing_scenarios': missing, 'failed_scenarios': failed,
-                                      'checklist': [dict(boundary, checked=all(key in completed and not completed[key]['failures'] for key in boundary['required_scenarios'])) for boundary in manifest['options'][option]['checklist']]}
+                                      'checklist': [dict(boundary, checked=not args.reference_only and manifest.get('qualification_ready', True) and all(key in completed and not completed[key]['failures'] for key in boundary['required_scenarios'])) for boundary in manifest['options'][option]['checklist']]}
     report['failures'] = [dict(scenario=s['id'], **failure) for s in report['scenarios'] for failure in s['failures']]
     dump(output / 'result.json', report)
     print(json.dumps({'scenarios': len(scenarios), 'rows': sum(s.get('rows', 0) for s in report['scenarios']),

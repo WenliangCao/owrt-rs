@@ -107,6 +107,9 @@ def client_worker(spec):
 def setup_network(scenario):
     network = Network()
     network.start()
+    # Multiple macvlan clients share this namespace. Without arp_ignore=1, a
+    # previously configured client can answer ARP for another client's lease.
+    network.exec('sysctl', '-qw', 'net.ipv4.conf.all.arp_ignore=1', 'net.ipv4.conf.default.arp_ignore=1')
     for address in scenario.get('server_aliases', []):
         subprocess.run(['ip', 'addr', 'add', address + '/24', 'dev', 'br-lan'], check=True)
     if scenario.get('two_interfaces'):
@@ -167,6 +170,9 @@ def run_side(root, side, scenario, folder):
     network, process = None, None
     try:
         network = setup_network(scenario)
+        write_json(folder / 'network.json', {'server': json.loads(subprocess.check_output(['ip', '-j', 'addr'])),
+                   'client': json.loads(network.exec('ip', '-j', 'addr').stdout),
+                   'client_arp_ignore': network.exec('sysctl', '-n', 'net.ipv4.conf.all.arp_ignore').stdout.strip()})
         with (folder / 'stdout').open('wb') as stdout, (folder / 'stderr').open('wb') as stderr:
             def start():
                 proc = subprocess.Popen(command(root, side, '-k', '-C', '/m2/matrix.conf'),
@@ -267,7 +273,9 @@ def guards(rows, scenario):
             failures.append({'id': row['id'], 'expected_destination': expected['destination'], 'actual': response})
         if 'leases' in expected and len(row['leases']) != expected['leases']:
             failures.append({'id': row['id'], 'expected_lease_count': expected['leases'], 'actual': row['leases']})
-        if 'tftp' in expected and ((response or {}).get('tftp') is not None) != expected['tftp']:
+        if 'tftp' in expected and (
+            ((response or {}).get('tftp') != (b'\0\3\0\1matrix-tftp').hex()) if expected['tftp']
+            else (response or {}).get('tftp') is not None):
             failures.append({'id': row['id'], 'expected_tftp': expected['tftp'], 'actual': response})
     return failures
 
