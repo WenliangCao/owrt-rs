@@ -189,13 +189,22 @@ impl DhcpMatch {
         if option.tags.tags().len() != 1 {
             return Err(Error("illegal dhcp-match"));
         }
+        let enterprise = match option.encapsulation {
+            // C stores enterprise and wildcard mask in the same union. Its
+            // hex parser overwrites the enterprise even without wildcards.
+            // Use explicit unsigned arithmetic, not C's signed mask shifts.
+            Encapsulation::Enterprise(_) if !wildcard.is_empty() => Some(
+                wildcard
+                    .iter()
+                    .fold(0u32, |mask, bit| (mask << 1) | u32::from(*bit)),
+            ),
+            Encapsulation::Enterprise(value) => Some(value),
+            _ => None,
+        };
         Ok(Self {
             set_tag: option.tags.tags()[0].clone(),
             code: option.code,
-            enterprise: match option.encapsulation {
-                Encapsulation::Enterprise(value) => Some(value),
-                _ => None,
-            },
+            enterprise,
             hex: !wildcard.is_empty(),
             string: matches!(option.value, OptionValue::String(_)),
             value: option.value.bytes(None, false),
@@ -828,6 +837,16 @@ mod tests {
         assert!(rule.matches_packet(crate::dhcp::packet::Packet::parse(&bytes).unwrap()));
         bytes[250] = 4; // Class would cross the whole option: must not match.
         assert!(!rule.matches_packet(crate::dhcp::packet::Packet::parse(&bytes).unwrap()));
+    }
+
+    #[test]
+    fn enterprise_hex_uses_the_c_union_mask_value() {
+        let hex =
+            DhcpMatch::parse(&EncodedArg::command_line(b"set:a,vi-encap:1234,01:02")).unwrap();
+        let wildcard =
+            DhcpMatch::parse(&EncodedArg::command_line(b"set:a,vi-encap:1234,01:*:03")).unwrap();
+        assert_eq!(hex.enterprise, Some(0));
+        assert_eq!(wildcard.enterprise, Some(2));
     }
     #[test]
     fn request_tag_priority_beats_later_context_and_untagged_rules() {
