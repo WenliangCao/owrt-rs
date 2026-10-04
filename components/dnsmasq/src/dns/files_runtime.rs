@@ -3,7 +3,7 @@
 
 use super::{resolver_line, server_line, FileStamp, ResolverSelection, Source, SourceRule};
 use crate::config::dns::{RuleTarget, ServerHost};
-use crate::config::dns_lookup::EndpointLookup;
+use crate::config::dns::lookup::EndpointLookup;
 use crate::config::{dns::DnsConfig, Error};
 use crate::dns::filewatch::{FileWatch, WatchError};
 use owrt_ubus::sys::PollFd;
@@ -229,6 +229,24 @@ pub struct DnsFiles {
 }
 
 impl DnsFiles {
+    pub fn begin_shutdown(&mut self) {
+        if let Some(lookup) = &mut self.endpoint_lookup {
+            lookup.cancel();
+        }
+    }
+
+    pub fn lookups_drained(&mut self) -> bool {
+        let Some(lookup) = &mut self.endpoint_lookup else {
+            return true;
+        };
+        if lookup.step().is_some() {
+            self.endpoint_lookup = None;
+            self.endpoint_update = None;
+            true
+        } else {
+            false
+        }
+    }
     pub fn new(
         config: &DnsConfig,
         dns_enabled: bool,
@@ -291,18 +309,6 @@ impl DnsFiles {
                 });
             }
         }
-    }
-
-    /// Cancel a hostname resolver child without waiting. The owner must call
-    /// `step()` until `has_work()` becomes false before dropping the daemon.
-    pub fn begin_shutdown(&mut self) {
-        if let Some(lookup) = &mut self.endpoint_lookup {
-            lookup.cancel();
-        }
-        self.endpoint_update = None;
-        self.requests.clear();
-        self.triggers.clear();
-        self.job = None;
     }
 
     pub fn has_work(&self) -> bool {
