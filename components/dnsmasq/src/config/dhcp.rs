@@ -422,8 +422,8 @@ impl DhcpConfig {
                 self.lease_file = (!value.is_empty()).then_some(value);
             }
             b"dhcp-lease-max" => {
-                self.lease_max =
-                    integer(&argument.ok_or(Error("missing parameter"))?.decoded())? as usize
+                self.lease_max = integer(&argument.ok_or(Error("missing parameter"))?.decoded())
+                    .map_err(|_| Error("error"))? as usize
             }
             b"dhcp-range" => {
                 let argument = argument.ok_or(Error("missing parameter"))?;
@@ -707,6 +707,10 @@ mod tests {
         let mut config = DhcpConfig::default();
         assert_eq!(config.lease_max, 1000); // config.h MAXLEASES, option.c:5978.
         assert_eq!(config.lease_path(), b"/var/lib/misc/dnsmasq.leases");
+        let error = config
+            .apply(&lex_line(b"dhcp-lease-max=word").unwrap().unwrap())
+            .unwrap_err();
+        assert_eq!(error.0, "error");
         for value in [
             b"dhcp-lease=/private/example.leases".as_slice(),
             b"leasefile-ro",
