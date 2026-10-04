@@ -310,7 +310,7 @@ def scenarios():
          probe('old-source-retained', transports=['udp']), write('resolv', r2), probe('recovered')],
         'no-daemon\nclear-on-reload\n', diagnostics=True)
     add('resolver-partial-stream-eio', 'RSLV-05,FAIL-02', initial,
-        [probe('initial'), {'op': 'pty-read-error', 'text': 'nameserver 127.0.0.3\nnameserver 127.0.0.4'},
+        [probe('initial'), {'op': 'stream-read-error', 'text': 'nameserver 127.0.0.3\nnameserver 127.0.0.4'},
          probe('partial-final-line')], 'no-poll\n')
     for kind, length in [('large', 16 * 1024 * 1024), ('long-line', 256 * 1024)]:
         add('resolver-' + kind, 'FAIL-02', initial,
@@ -382,6 +382,25 @@ def scenarios():
     add('pending-kept-server', 'STATE-02', initial,
         [{'op': 'start-udp', 'id': 'held', 'name': 'pending.files.test'}, write('resolv', r1),
          {'op': 'inject', 'id': 'held', 'server': 0}, {'op': 'receive-udp', 'id': 'kept-reply', 'pending': 'held'}])
+    add('servers-partial-stream-eio', 'SFILE-02,SFILE-03,SFILE-06,FAIL-02',
+        dict(initial, servers='server=/file.test/127.0.0.2\n'),
+        [probe('initial', 'a.file.test'), {'op': 'stream-read-error', 'path': 'servers',
+         'text': 'server=/file.test/127.0.0.3\nserver=/second.test/127.0.0.4'},
+         probe('first-complete', 'b.file.test'), probe('partial-final', 'a.second.test')],
+        'servers-file=/m2/files/servers\n')
+    add('pending-reused-fast-retry', 'STATE-02', initial,
+        [{'op': 'start-udp', 'id': 'held', 'name': 'pending.files.test'}, write('resolv', r2),
+         {'op': 'await-upstream', 'id': 'held', 'server': 1},
+         {'op': 'inject', 'id': 'held', 'server': 1, 'capture_server': 1},
+         {'op': 'receive-udp', 'id': 'retry-reply', 'pending': 'held'}], 'fast-dns-retry=500,2000\n')
+    add('pending-cancel-fd-recovery', 'STATE-02,STATE-05', initial,
+        [{'op': 'start-udp', 'id': 'held', 'name': 'pending.files.test'}, write('resolv', ''),
+         {'op': 'inject', 'id': 'held', 'server': 0}, {'op': 'receive-udp', 'id': 'cancelled', 'pending': 'held'}], fd_cancel=True)
+    add('servers-ipv6-reverse-and-marker', 'SFILE-04,STATE-03',
+        dict(initial, servers='server=/marker.test/#\nrev-server=192.0.2.128/25,::1\nserver=/*.wild.test/::1\n'),
+        [probe('marker', 'a.marker.test'), probe('reverse-selected', '130.2.0.192.in-addr.arpa', type=12),
+         probe('reverse-fallback', '1.2.0.192.in-addr.arpa', type=12), probe('wild', 'a.wild.test')],
+        'servers-file=/m2/files/servers\n')
     expected = {
         'inplace-rename-delete-empty': {'initial': 11, 'inplace': 12, 'renamed': 11, 'deleted': 11, 'empty': 5, 'invalid': 5, 'recovered': 12},
         'missing-leaf': {'missing': 5, 'created': 11},
@@ -616,8 +635,8 @@ def trace_read_error(pid, descriptor, output):
     return 0
 
 
-def partial_stream_error(root, process, text, folder):
-    path = root / 'm2/files/resolv'; path.unlink(); os.mkfifo(path)
+def partial_stream_error(root, process, text, folder, relative='resolv'):
+    path = root / 'm2/files' / relative; path.unlink(); os.mkfifo(path)
     process.send_signal(signal.SIGHUP)
     writer = None
     def attach_writer():
@@ -627,7 +646,7 @@ def partial_stream_error(root, process, text, folder):
             if problem.errno != errno.ENXIO: raise
             return False
     await_predicate(attach_writer, 'partial stream reader never opened')
-    fds = await_predicate(lambda: open_file_fds(process.pid, '/m2/files/resolv'), 'partial stream FD not witnessed')
+    fds = await_predicate(lambda: open_file_fds(process.pid, '/m2/files/' + relative), 'partial stream FD not witnessed')
     report_path = folder / 'read-error.json'
     tracer = subprocess.Popen([sys.executable, str(Path(__file__).resolve()), '--trace-read-error',
         str(process.pid), str(fds[0]['fd']), str(report_path)])
@@ -768,6 +787,7 @@ def run_side(root, side, case, folder):
                 result['startup'] = {'ready': False, 'exit': process.poll()}
             if result['startup']['ready']:
                 result['identity'] = process_identity(root, process.pid)
+                if case.get('fd_cancel'): result['fd_before'] = sorted(os.readlink(path) for path in Path(f'/proc/{process.pid}/fd').iterdir())
                 expected = sha256(root / ('usr/sbin/dnsmasq' if side == 'c' else 'usr/sbin/dnsmasq-rs'))
                 if result['identity']['sha256'] != expected: raise AssertionError('running ELF identity mismatch')
                 for index, action in enumerate(case['actions']):
@@ -783,6 +803,9 @@ def run_side(root, side, case, folder):
                         connections[action['id']] = client
                         pending[action['id']] = {'client': client, 'packet': packet, 'before': before, 'name': action['name']}
                         await_predicate(lambda: sum(len(u.events) - n for u, n in zip(upstreams, before)), 'pending TCP did not reach upstream')
+                    elif op == 'await-upstream':
+                        held = pending[action['id']]
+                        await_predicate(lambda: any(read_name(row[0], 12)[0] == held['name'] for row in upstreams[action['server']].captured), 'retry never reached changed upstream')
                     elif op == 'release-tcp': upstreams[action['server']].release_tcp.set()
                     elif op == 'receive-tcp':
                         held = pending[action['pending']]
@@ -862,8 +885,8 @@ def run_side(root, side, case, folder):
                                 ceiling = next(n for n in range(max(descriptors) + 2) if n not in descriptors)
                             resource.prlimit(process.pid, resource.RLIMIT_NOFILE, (ceiling, limit_before[1]))
                         result['actions'].append({'op': 'actual-fd-limit', 'limits': resource.prlimit(process.pid, resource.RLIMIT_NOFILE)})
-                    elif op == 'pty-read-error':
-                        result['actions'].append({'op': 'partial-read-eio', **partial_stream_error(root, process, action['text'], folder)})
+                    elif op == 'stream-read-error':
+                        result['actions'].append({'op': 'partial-read-eio', **partial_stream_error(root, process, action['text'], folder, action.get('path', 'resolv'))})
                     elif op == 'large-file':
                         evidence = large_reload(root, process, port, action)
                         result['actions'].append({'op': 'large-file-health', 'id': action['id'], **evidence})
@@ -967,6 +990,9 @@ def run_side(root, side, case, folder):
                     else: raise ValueError(op)
                     result['actions'].append(dict(action, daemon_alive=process.poll() is None))
                     if op != 'query': time.sleep(.08)
+                if case.get('fd_cancel'):
+                    time.sleep(.1)
+                    result['fd_after'] = sorted(os.readlink(path) for path in Path(f'/proc/{process.pid}/fd').iterdir())
     finally:
         if limit_before is not None and process is not None and process.poll() is None:
             resource.prlimit(process.pid, resource.RLIMIT_NOFILE, limit_before)
@@ -1030,7 +1056,7 @@ def witness_errors(observed, side, case):
                 errors.append('large-file health data absent or failed')
             elif not action['single_line'] and side == 'rust' and not found.get('healthy_while_file_open'):
                 errors.append('Rust did not answer while the large file was still open')
-        elif op == 'pty-read-error':
+        elif op == 'stream-read-error':
             found = witness('partial-read-eio')
             if not found or not found.get('injected') or not any(x.get('result', 0) > 0 for x in found.get('reads', [])) or not any(x.get('injected') and x.get('result') == -errno.EIO for x in found.get('reads', [])):
                 errors.append('partial read plus injected EIO not witnessed')
@@ -1038,7 +1064,7 @@ def witness_errors(observed, side, case):
             found = witness('fifo-progress', action['id'])
             if not found or not found.get('pending_fds') or found.get('health_while_pending', {}).get('healthy') != (side == 'rust'):
                 errors.append('FIFO blocking C/nonblocking Rust classification failed')
-            if action.get('shutdown') and found and ((side == 'c' and found.get('exit_before_release') is not None) or (side == 'rust' and found.get('exit_before_release') != 0)):
+            if action.get('shutdown') and found and found.get('exit_before_release') != 0:
                 errors.append('pending FIFO shutdown classification failed')
         elif op == 'tftp-finish':
             found = next((row for row in observed['rows'] if row['id'] == action['id'] + ':tftp'), {})
@@ -1050,6 +1076,8 @@ def witness_errors(observed, side, case):
     if case.get('fifo_startup') and observed.get('fifo_startup_before_writer', {}).get('healthy') is not False:
         errors.append('FIFO startup replied before initial source completed')
     if observed.get('startup_writer_leaked'): errors.append('FIFO startup writer leaked')
+    if case.get('fd_cancel') and (not observed.get('fd_before') or len(observed.get('fd_after', [])) != len(observed['fd_before'])):
+        errors.append('cancelled upstream descriptor did not return to baseline')
     return errors
 
 
@@ -1118,7 +1146,7 @@ def controls():
         found.append('wrong-' + kind)
     # Every new side channel must be falsifiable independently of the DNS rows.
     for label, op, action, recorded in [
-        ('partial-read', 'pty-read-error', {}, {'op': 'partial-read-eio', 'injected': True, 'reads': [{'result': 41}, {'result': -5, 'injected': True}]}),
+        ('partial-read', 'stream-read-error', {}, {'op': 'partial-read-eio', 'injected': True, 'reads': [{'result': 41}, {'result': -5, 'injected': True}]}),
         ('fifo-progress', 'fifo-reload', {'id': 'fifo'}, {'op': 'fifo-progress', 'id': 'fifo', 'pending_fds': [{'fd': 10}], 'health_while_pending': {'healthy': True}}),
         ('large-progress', 'large-file', {'id': 'large', 'bytes': 1024, 'single_line': False}, {'op': 'large-file-health', 'id': 'large', 'bytes': 1024, 'samples': [{}], 'all_healthy': True, 'healthy_while_file_open': 1}),
     ]:
