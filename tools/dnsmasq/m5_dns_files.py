@@ -141,6 +141,22 @@ def scenarios():
     add('own-v4-same-port', 'RSLV-09', {}, [probe('own-v4')], 'no-resolv\nserver=127.0.0.1#{listen_port}\n')
     add('own-v6-same-port', 'RSLV-09', {}, [probe('own-v6')], 'no-resolv\nserver=::1#{listen_port}\n', listen='127.0.0.1,::1')
     add('own-address-other-port', 'RSLV-09', {'resolv': 'nameserver 127.0.0.1\n'}, [probe('other-port')], local_upstream=True)
+    dhcp_files = dict(initial, **{'leases': '4102444800 02:11:22:33:44:55 198.18.5.10 leased *\n',
+        'helper.sh': '#!/bin/sh\nprintf "%s|%s|%s|%s\\n" "$1" "$2" "$3" "$4" >> /m2/files/helper.log\n', 'dhcp.hosts': ''})
+    dhcp_config = ('clear-on-reload\ninterface=m5filelan\nno-ping\ndomain=files.test\n'
+                   'dhcp-range=198.18.5.10,198.18.5.20,255.255.255.0,1h\n'
+                   'dhcp-leasefile=/m2/files/leases\ndhcp-script=/m2/files/helper.sh\n')
+    add('clear-helper-unchanged', 'CLEAR-02,CLEAR-03', dhcp_files,
+        [{'op': 'helper-events', 'id': 'initial-helper', 'expect_events': 1}, probe('lease-initial', 'leased.files.test'),
+         write('resolv', r2), {'op': 'helper-events', 'id': 'auto-helper', 'expect_events': 0},
+         signal_reload(), {'op': 'helper-events', 'id': 'hup-helper', 'expect_events': 1}],
+        dhcp_config, dhcp_witness=True)
+    add('clear-dhcp-hosts-bank', 'CLEAR-02', dhcp_files,
+        [{'op': 'helper-events', 'id': 'initial-helper', 'expect_events': 1}, probe('lease-initial', 'leased.files.test'),
+         write('dhcp.hosts', '02:11:22:33:44:55,newname,198.18.5.10\n'), write('resolv', r2),
+         probe('new-lease-name', 'newname.files.test'), probe('old-name-forwarded', 'leased.files.test'),
+         {'op': 'helper-events', 'id': 'changed-helper'}],
+        dhcp_config + 'dhcp-hostsfile=/m2/files/dhcp.hosts\n', dhcp_witness=True)
     expected = {
         'inplace-rename-delete-empty': {'initial': 11, 'inplace': 12, 'renamed': 11, 'deleted': 11, 'empty': 5, 'invalid': 5, 'recovered': 12},
         'missing-leaf': {'missing': 5, 'created': 11},
@@ -229,12 +245,20 @@ def run_side(root, side, case, folder):
     if data.exists(): shutil.rmtree(data)
     data.mkdir()
     opened, connections, pending = {}, {}, {}
-    routes, addresses = [], []
+    routes, addresses, links = [], [], []
+    if case.get('dhcp_witness'):
+        subprocess.run(['ip', 'link', 'add', 'm5filelan', 'type', 'dummy'], check=True)
+        subprocess.run(['ip', 'link', 'set', 'm5filelan', 'up'], check=True)
+        subprocess.run(['ip', 'addr', 'add', '198.18.5.1/24', 'dev', 'm5filelan'], check=True)
+        links.append('m5filelan')
     route_socket = None
     if any(a['op'] in ('route', 'address-route') for a in case['actions']):
         route_socket = socket.socket(socket.AF_NETLINK, socket.SOCK_RAW, 0)
         route_socket.bind((0, 0x40 | 0x400)); route_socket.settimeout(.02)
     for path, value in case['files'].items(): put(root, path, value, opened)
+    if case.get('dhcp_witness'):
+        (data / 'helper.sh').chmod(0o755)
+    helper_offset = 0
     names = {(a['name'], a.get('type', 1)) for a in case['actions'] if a['op'] in ('query', 'start-udp')}
     upstreams = []
     for index, address in enumerate(['127.0.0.2', '127.0.0.3', '127.0.0.4', '::1'] + (['127.0.0.1'] if case.get('local_upstream') else [])):
@@ -310,8 +334,12 @@ def run_side(root, side, case, folder):
                             subprocess.run(['ip', 'route', 'add', action['prefix'], 'dev', 'lo', 'scope', 'link'], check=True)
                             routes.append(action['prefix'])
                         else:
-                            subprocess.run(['ip', 'addr', 'add', action['address'], 'dev', 'lo'], check=True)
-                            addresses.append(action['address'])
+                            device = 'm5route'
+                            subprocess.run(['ip', 'link', 'add', device, 'type', 'dummy'], check=True)
+                            subprocess.run(['ip', 'link', 'set', device, 'up'], check=True)
+                            links.append(device)
+                            subprocess.run(['ip', 'addr', 'add', action['address'], 'dev', device], check=True)
+                            addresses.append((action['address'], device))
                         packets = []
                         for _ in range(16):
                             try: wire, peer = route_socket.recvfrom(65535)
@@ -325,6 +353,12 @@ def run_side(root, side, case, folder):
                                 records.append(row); at += (length + 3) & ~3
                             packets.append({'peer': list(peer), 'wire': wire.hex(), 'records': records})
                         result['actions'].append({'op': 'netlink-witness', 'trigger': op, 'packets': packets})
+                    elif op == 'helper-events':
+                        time.sleep(.25)
+                        path = data / 'helper.log'
+                        lines = path.read_text().splitlines() if path.exists() else []
+                        result['rows'].append({'id': action['id'] + ':helper', 'helper_events': lines[helper_offset:], 'response': None, 'error': None, 'cache': False, 'upstreams': []})
+                        helper_offset = len(lines)
                     elif op == 'write': put(root, action['path'], action, opened)
                     elif op == 'unlink': image_path(root, '/m2/files/' + action['path'], follow_leaf=False).unlink()
                     elif op == 'symlink': put(root, action['path'], {'symlink': action['target']}, opened)
@@ -340,7 +374,8 @@ def run_side(root, side, case, folder):
         for client in connections.values(): client.close()
         for held in pending.values(): held['client'].close()
         for prefix in routes: subprocess.run(['ip', 'route', 'del', prefix, 'dev', 'lo'], check=True)
-        for address in addresses: subprocess.run(['ip', 'addr', 'del', address, 'dev', 'lo'], check=True)
+        for address, device in addresses: subprocess.run(['ip', 'addr', 'del', address, 'dev', device], check=True)
+        for device in reversed(links): subprocess.run(['ip', 'link', 'del', device], check=True)
         if route_socket: route_socket.close()
         if process is not None and process.poll() is None:
             process.send_signal(signal.SIGTERM)
@@ -377,7 +412,7 @@ def compare(left, right, case):
             for stream in ('stdout', 'stderr'):
                 if stream in value: value[stream] = normalized_text(value[stream])
         if a != b: failures.append({'phase': phase, 'c': a, 'rust': b})
-    wanted = [action['id'] + ':' + transport for action in case['actions'] if action['op'] in ('query', 'receive-udp') for transport in (['udp-async'] if action['op'] == 'receive-udp' else action.get('transports', ['udp', 'tcp']))] if left['startup']['ready'] else []
+    wanted = [action['id'] + ':' + transport for action in case['actions'] if action['op'] in ('query', 'receive-udp', 'helper-events') for transport in (['helper'] if action['op'] == 'helper-events' else ['udp-async'] if action['op'] == 'receive-udp' else action.get('transports', ['udp', 'tcp']))] if left['startup']['ready'] else []
     for side, observed in [('c', left), ('rust', right)]:
         if [row['id'] for row in observed['rows']] != wanted: failures.append({'phase': 'coverage', 'side': side})
         if observed.get('forced_kill') or observed['cleanup']['live_pids']: failures.append({'phase': 'cleanup', 'side': side})
@@ -463,6 +498,10 @@ def main():
                 row['failures'].append({'phase': 'c-calibration', 'syntax': c['syntax'], 'startup': c['startup']})
             row['rows'] = len(c['rows'])
             for action in case['actions']:
+                if 'expect_events' in action:
+                    actual = next((entry for entry in c['rows'] if entry['id'] == action['id'] + ':helper'), {})
+                    if len(actual.get('helper_events', [])) != action['expect_events']:
+                        row['failures'].append({'phase': 'c-helper-calibration', 'id': action['id'], 'expected': action['expect_events'], 'actual': actual})
                 if 'c_expect' not in action: continue
                 matched = [entry for entry in c['rows'] if entry['id'].rsplit(':', 1)[0] == action['id']]
                 if not matched: row['failures'].append({'phase': 'c-runtime-calibration', 'id': action['id'], 'missing': True})
