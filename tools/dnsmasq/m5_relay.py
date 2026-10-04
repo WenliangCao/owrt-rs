@@ -166,6 +166,29 @@ class Peer:
             holder_stop = stop(self.holder)
         return {"actor_exit": actor_exit, "actor": actor_stop, "namespace": holder_stop}
 
+    def recreate_client_link(self):
+        if self.role!="client0":raise AssertionError("only downstream recreation is exercised")
+        old_index=socket.if_nametoindex(self.role)
+        self.call(op="stop");self.process.wait(3)
+        if self.process.returncode!=0:raise AssertionError("old client actor failed")
+        for pipe in [self.process.stdin,self.process.stdout,self.process.stderr]:pipe.close()
+        ip("link","del",self.role)
+        ip("link","add",self.role,"type","veth","peer","name","peer0")
+        ip("link","set","peer0","netns",self.holder.pid)
+        ip("addr","add",DOWN+"/24","brd","+","dev",self.role)
+        ip("link","set",self.role,"up")
+        self.run("ip","link","set","peer0","address","02:00:00:4d:35:03")
+        self.run("ip","addr","add",CLIENT+"/24","brd","+","dev","peer0")
+        self.run("ip","addr","add","10.77.0.10/24","dev","peer0")
+        self.run("ip","link","set","peer0","up")
+        self.process=subprocess.Popen(self.argv(sys.executable,Path(__file__).resolve(),"--actor"),
+                                      stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,
+                                      text=True,bufsize=1,start_new_session=True)
+        assert self.read().get("ready")
+        new_index=socket.if_nametoindex(self.role)
+        if new_index==old_index:raise AssertionError("interface index did not change")
+        return {"old_index":old_index,"new_index":new_index,"old_actor_exit":0}
+
 
 def packet(xid=1, op=1, hops=0, giaddr="0.0.0.0", ciaddr="0.0.0.0",
            yiaddr="10.77.0.10", flags=0x8000, htype=1, hlen=6, options=None,
@@ -242,7 +265,7 @@ def scenarios():
         split_cases.append(case(f"split-end-{end}", raw=value, upstream=int(end==524)))
     # Runtime ifindex substitution occurs once against the shared topology.
     split_reply = packet(op=2, giaddr=UP, options=b"\x52\x06\x02\x04IFID\xff")
-    split_reply_cases = [case("prime-split"),
+    split_reply_cases = [reply("split-unprimed",giaddr=UP,options=b"\x52\x06\x02\x04IFID\xff",downstream=0),case("prime-split"),
         case("split-reply", sender="server", upstream=0, downstream=1, raw=split_reply),
         reply("split-no-agent", giaddr=UP, downstream=0),
         reply("split-short-agent", giaddr=UP, downstream=0, options=b"\x52\x05\x02\x03abc\xff"),
@@ -251,6 +274,9 @@ def scenarios():
     overload=packet(op=2,giaddr=UP,options=b"\x34\x01\x01\xff")
     overload[108:119]=b"\x52\x08\x02\x06IFIDxx\xff"
     split_reply_cases.append(case("split-overload",sender="server",upstream=0,downstream=1,raw=overload))
+    sname_overload=packet(op=2,giaddr=UP,options=b"\x34\x01\x02\xff")
+    sname_overload[44:53]=b"\x52\x06\x02\x04IFID\xff"
+    split_reply_cases.append(case("split-sname-overload",sender="server",upstream=0,downstream=1,raw=sname_overload))
     split_reply_cases.extend([
         reply("split-after-agent",giaddr=UP,options=b"\x52\x06\x02\x04IFID\x35\x01\x02\xff"),
         reply("split-malformed-agent",giaddr=UP,options=b"\x52\x06\x02\x05IFID\xff",downstream=0),
@@ -265,10 +291,12 @@ def scenarios():
         profile("relay-missing-interface", [f"dhcp-relay={DOWN},absent"], [case("missing",upstream=0)], ["UP-05"]),
         profile("relay-zero-server",[f"dhcp-relay={DOWN},0.0.0.0"],[case("zero-without-interface",upstream=0)],["CFG-05","UP-05"]),
         profile("relay-excluded", normal+["no-dhcp-interface=client0"], [case("excluded",upstream=0)], ["RX-04"]),
+        profile("reply-before-dhcp-exclusion",normal+["no-dhcp-interface=server0"],[prime(),reply("upstream-exclusion-bypassed")],["DOWN-01","LIFE-02"]),
         profile("relay-wrong-interface", normal, [case("wrong",sender="server",upstream=0)], ["STATE-02"]),
         profile("relay-secondary", ["listen-address=10.77.0.3",f"dhcp-relay=10.77.0.3,{SERVER}"], [case("secondary")], ["STATE-02","RX-04"], secondary=True, omit_interface=True),
         profile("split-request", split, split_cases, ["SPLIT-01","SPLIT-02","SPLIT-03","SPLIT-04"]),
-        profile("split-literal", [f"dhcp-split-relay={DOWN},{SERVER},{UP}"], [case("literal")], ["CFG-04","SPLIT-01"]),
+        profile("split-literal", [f"dhcp-split-relay={DOWN},{SERVER},{UP}"],
+                [reply("literal-unprimed",giaddr=UP,options=b"\x52\x06\x02\x04IFID\xff"),case("literal")], ["CFG-04","SPLIT-01","DOWN-03"]),
         profile("split-zero-uplink",[f"dhcp-split-relay={DOWN},{SERVER},0.0.0.0"],[case("zero-uplink")],["CFG-05","SPLIT-01"]),
         profile("split-missing-uplink", [f"dhcp-split-relay={DOWN},{SERVER},absent"], [case("missing",upstream=0)], ["SPLIT-01"]),
         profile("split-reply", split, split_reply_cases, ["DOWN-01","DOWN-03","DOWN-04","DOWN-08"]),
@@ -325,6 +353,9 @@ def scenarios():
         case("local-alt-source-extension",options=b"\xff",giaddr="255.255.255.255",port=9999,destination=[DOWN,2067],downstream=1),
         case("local-alt-peer-port",options=b"\x35\x01\x08\xff",ciaddr=CLIENT,port=9999,destination=[DOWN,2067],downstream=1),
     ],["PORT-01","PORT-02"],local_server=True))
+    profiles.append(profile("interface-recreated",normal,[prime(),reply("old-interface"),
+        reply("old-index-invalid",after="recreate",downstream=0),case("reprime-new-interface"),
+        reply("new-index-reply")],["STATE-03","DOWN-08"]))
     return profiles
 
 
@@ -433,16 +464,11 @@ def grammar_errors(rows, items, sides):
             continue
         if (c["test"]["exit"], c["startup_exit"]) != (rust["test"]["exit"], rust["startup_exit"]):
             failures.append(f"grammar {item['name']}: test/startup outcome differs")
-        # Keep complete raw output; compare emitted parser outcome text after
-        # only the documented executable name and source-location prefixes.
+        # Compare both output streams verbatim except the executable prefix.
+        # Keep source file/line, punctuation and whitespace in the contract.
         def message(row):
-            text = row["test"]["stdout"] + row["test"]["stderr"]
-            if "syntax check OK" in text:
-                return "syntax check OK"
-            for expected in ["Bad dhcp-relay", "invalid port number"]:
-                if expected in text:
-                    return expected
-            return text.strip()
+            return tuple(row["test"][stream].replace("dnsmasq-rs:","dnsmasq:")
+                         for stream in ["stdout","stderr"])
         if message(c) != message(rust):
             failures.append(f"grammar {item['name']}: --test output differs")
     return failures
@@ -524,6 +550,7 @@ def run_profile(root,side,profile,client,server,out):
             row["fd_start_samples"]=descriptors(process.pid)
             row["fd_start"]=row["fd_start_samples"]["floor"]
             for item in profile["cases"]:
+                topology=None
                 if item["after"]=="invalidate":
                     ip("addr","add","10.77.0.99/24","dev","client0")
                     time.sleep(.12)
@@ -535,6 +562,9 @@ def run_profile(root,side,profile,client,server,out):
                 elif item["after"]=="noaddress":
                     ip("addr","del",DOWN+"/24","dev","client0")
                     time.sleep(.12)
+                elif item["after"]=="recreate":
+                    topology=client.recreate_client_link()
+                    time.sleep(.15)
                 client.call(op="take");server.call(op="take")
                 value=bytes.fromhex(item["packet"]).replace(b"IFID",struct.pack("!I",socket.if_nametoindex("client0")))
                 peer=client if item["sender"]=="client" else server
@@ -550,6 +580,7 @@ def run_profile(root,side,profile,client,server,out):
                     observed[direction]=[row for row in observed[direction] if row not in echo]
                 row["cases"].append({"name":item["name"],"request":value.hex(),"observed":observed,
                                      "peer_echo":echo,
+                                     "topology":topology,
                                      "alive":process.poll() is None,"heartbeat":heartbeat()})
                 if item["after"]=="down-interface":
                     ip("link","set","client0","up")
@@ -635,6 +666,38 @@ def negative_controls(rows,profiles):
     return {"passed":all(row["detected"] for row in controls),"controls":controls}
 
 
+def recheck(directory):
+    """Audit retained observations with the current strict comparator."""
+    result=json.loads((directory/"result.json").read_text())
+    manifest=json.loads((directory/"manifest.json").read_text())
+    profiles=scenarios()
+    failures=evaluate(result["rows"],profiles,["c","rust"])
+    failures+=grammar_errors(result["grammar"],grammar_cases(),["c","rust"])
+    failures+=binding_errors(result["binding"],["c","rust"])
+    controls=negative_controls(result["rows"],profiles)
+    grammar_controls=[]
+    for name in ["stdout","stderr","exit","startup"]:
+        altered=copy.deepcopy(result["grammar"])
+        row=next(row for row in altered if row["side"]=="rust")
+        if name in ["stdout","stderr"]:row["test"][name]+="unexpected output\n"
+        elif name=="exit":row["test"]["exit"]^=1
+        else:row["startup_exit"]=7
+        grammar_controls.append({"name":name,"detected":bool(grammar_errors(altered,grammar_cases(),["c","rust"]))})
+    if not controls["passed"] or not all(row["detected"] for row in grammar_controls):failures.append("comparator controls")
+    if manifest["c_sha256"]!=STOCK_SHA256:failures.append("stock identity")
+    if not result.get("comparison_executed") or not result.get("passed"):failures.append("original run not passed")
+    for row in result["rows"]:
+        expected=manifest["c_sha256"] if row["side"]=="c" else manifest["rust_sha256"]
+        if row.get("identity",{}).get("sha256")!=expected:failures.append(f"{row['profile']}/{row['side']}: running ELF identity")
+    review={"passed":not failures,"failures":failures,"tool_sha256":sha256(__file__),
+            "input_result_sha256":sha256(directory/"result.json"),"input_manifest_sha256":sha256(directory/"manifest.json"),
+            "packet_controls":controls,"grammar_controls":grammar_controls,
+            "normalization":"--test executable prefix dnsmasq-rs: to dnsmasq: only; forwarding payload/source/destination unchanged"}
+    save(directory/"review.json",review)
+    print(json.dumps(review))
+    return 0 if review["passed"] else 1
+
+
 def main(args):
     if os.geteuid()!=0 or os.environ.get("DNSMASQ_TEST_ISOLATED")!="1":raise SystemExit("run through run_isolated.sh")
     if sorted(name for _,name in socket.if_nameindex())!=["lo"]:raise SystemExit("isolated namespace must contain only lo")
@@ -682,6 +745,7 @@ def main(args):
 if __name__=="__main__":
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--actor",action="store_true")
+    parser.add_argument("--recheck",type=Path)
     parser.add_argument("--image-root",type=Path)
     parser.add_argument("--rust",type=Path)
     parser.add_argument("--out",type=Path)
@@ -689,6 +753,7 @@ if __name__=="__main__":
     parser.add_argument("--profile",action="append")
     args=parser.parse_args()
     if args.actor:actor()
+    elif args.recheck:raise SystemExit(recheck(args.recheck))
     else:
         if not args.image_root or not args.rust or not args.out:parser.error("--image-root, --rust and --out required")
         raise SystemExit(main(args))
