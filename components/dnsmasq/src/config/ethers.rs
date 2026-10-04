@@ -48,42 +48,70 @@ impl Ethers {
         &self.hosts
     }
 
-    /// C drops CONFIG_BANK rows before parsing host files, while previous
-    /// ethers rows and hosts-inferred addresses still participate in conflicts.
+    /// A full DHCP data reload drops every CONFIG_BANK row, including rows
+    /// appended by a directory notification. Old ethers/inferred addresses
+    /// remain visible to the parser's duplicate-address check at this stage.
+    pub(crate) fn file_bank_base(&self, current: &[HostConfig]) -> Vec<HostConfig> {
+        self.origins
+            .iter()
+            .enumerate()
+            .filter_map(|(index, origin)| {
+                (origin.source != Source::HostFile).then(|| current[index].clone())
+            })
+            .collect()
+    }
+
+    /// Install already parsed bank rows in their newest-first order. The live
+    /// directory path appends without retiring any older file's rows.
+    pub(crate) fn append_file_bank(&mut self, bank: Vec<HostConfig>, current: &[HostConfig]) {
+        self.install_file_bank(bank, current, false);
+    }
+
+    /// Full reload replaces the file bank while retaining inline/ethers rows.
+    pub(crate) fn replace_file_bank(&mut self, bank: Vec<HostConfig>, current: &[HostConfig]) {
+        self.install_file_bank(bank, current, true);
+    }
+
+    fn install_file_bank(
+        &mut self,
+        mut bank: Vec<HostConfig>,
+        current: &[HostConfig],
+        replace: bool,
+    ) {
+        let mut origins = vec![
+            Origin {
+                source: Source::HostFile,
+                previous: None,
+                inferred_address: false,
+            };
+            bank.len()
+        ];
+        for (index, origin) in self.origins.iter().enumerate() {
+            if replace && origin.source == Source::HostFile {
+                continue;
+            }
+            bank.push(current[index].clone());
+            origins.push(Origin {
+                source: origin.source,
+                previous: Some(index),
+                inferred_address: self.hosts[index].address.is_none()
+                    && current[index].address.is_some(),
+            });
+        }
+        self.hosts = bank;
+        self.origins = origins;
+    }
+
     pub(crate) fn reload_host_files(
         &mut self,
         files: &mut HostFiles,
         current: &[HostConfig],
     ) -> HostReload {
-        let retained: Vec<_> = self
-            .origins
-            .iter()
-            .enumerate()
-            .filter_map(|(index, origin)| (origin.source != Source::HostFile).then_some(index))
-            .collect();
-        let base: Vec<_> = retained
-            .iter()
-            .map(|&index| current[index].clone())
-            .collect();
+        let base = self.file_bank_base(current);
         let report = files.reload(&base);
         if report.ready() {
             let file_count = report.hosts.len() - base.len();
-            let mut origins = vec![
-                Origin {
-                    source: Source::HostFile,
-                    previous: None,
-                    inferred_address: false,
-                };
-                file_count
-            ];
-            origins.extend(retained.iter().map(|&index| Origin {
-                source: self.origins[index].source,
-                previous: Some(index),
-                inferred_address: self.hosts[index].address.is_none()
-                    && current[index].address.is_some(),
-            }));
-            self.hosts = report.hosts.clone();
-            self.origins = origins;
+            self.replace_file_bank(report.hosts[..file_count].to_vec(), current);
         }
         report
     }
@@ -243,6 +271,51 @@ fn mac(input: &[u8]) -> Option<Vec<u8>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn directory_append_keeps_old_file_rows_until_full_bank_reload() {
+        let host = |last| HostConfig {
+            address: Some(Ipv4Addr::new(192, 0, 2, last)),
+            ..Default::default()
+        };
+        let mut ethers = Ethers::new(&[host(10)]);
+        assert!(ethers
+            .read(&b"02:00:00:00:00:02 192.0.2.11\n"[..])
+            .is_empty());
+        let current = ethers.hosts().to_vec();
+        ethers.replace_file_bank(vec![host(12)], &current);
+        let current = ethers.hosts().to_vec();
+        ethers.append_file_bank(vec![host(13)], &current);
+        assert_eq!(
+            ethers
+                .hosts()
+                .iter()
+                .map(|h| h.address.unwrap().octets()[3])
+                .collect::<Vec<_>>(),
+            [13, 12, 11, 10]
+        );
+        // Old bank policies keep their DECLINE identity on a live append.
+        assert_eq!(
+            ethers.previous_indices().collect::<Vec<_>>(),
+            [None, Some(0), Some(1), Some(2)]
+        );
+        let current = ethers.hosts().to_vec();
+        assert_eq!(ethers.file_bank_base(&current), current[2..]);
+        ethers.replace_file_bank(vec![host(14)], &current);
+        assert_eq!(
+            ethers
+                .hosts()
+                .iter()
+                .map(|h| h.address.unwrap().octets()[3])
+                .collect::<Vec<_>>(),
+            [14, 11, 10]
+        );
+        // A full reload retires file rows, but preserves ethers/main policies.
+        assert_eq!(
+            ethers.previous_indices().collect::<Vec<_>>(),
+            [None, Some(2), Some(3)]
+        );
+    }
+
     #[test]
     fn ordered_duplicates_merge_by_address_then_mac_and_survive_reload() {
         let explicit = HostConfig {
