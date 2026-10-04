@@ -12,6 +12,7 @@ import json
 import os
 from pathlib import Path
 import signal
+import shutil
 import socket
 import struct
 import subprocess
@@ -27,6 +28,7 @@ SERVER = net.DOWN
 CLIENT = net.CLIENT
 DNS_PORT = 15353
 net.PORTS = sorted(set(net.PORTS + [4011]))
+ACTOR_SCRIPT = Path(__file__).resolve()
 
 
 def save(path, value):
@@ -38,7 +40,7 @@ class Peer(net.Peer):
         # Reuse the audited peer transport, but start this file's actor mode
         # so its extra4011 socket exists in the child namespace too.
         if args and args[-1] == "--actor":
-            args = (sys.executable, Path(__file__).resolve(), "--actor")
+            args = (sys.executable, ACTOR_SCRIPT, "--actor")
         return super().argv(*args)
 
 
@@ -74,7 +76,7 @@ def profiles():
     serial = 0
 
     def case(name, reply=True, listener=67, source_port=68, *, raw=None,
-             reload_hosts=None, copies=1, sender="client", upstream=0, **fields):
+             reload_hosts=None, copies=1, sender="client", upstream=0, helper_busy=False, **fields):
         nonlocal serial
         serial += 1
         packet = bytearray(raw) if raw is not None else request(**fields)
@@ -82,7 +84,7 @@ def profiles():
             packet[4:8] = struct.pack("!I", 0x5F000000 + serial)
         return {"name": name, "request": packet.hex(), "reply": reply,
                 "listener": listener, "source_port": source_port,
-                "reload_hosts": reload_hosts, "copies": copies,"sender":sender,"upstream":upstream}
+                "reload_hosts": reload_hosts, "copies": copies,"sender":sender,"upstream":upstream,"helper_busy":helper_busy}
 
     def profile(name, options, cases, ids, *, mode="proxy", **extra):
         return dict(name=name, options=options, cases=cases, boundaries=ids, mode=mode, **extra)
@@ -248,6 +250,121 @@ def profiles():
             case("forward-via-primary",listener=4011,source_port=4011,reply=False,upstream=1),
             case("reply-uses-shared-interface",sender="server",source_port=67,listener=server_port,raw=raw_reply),
         ],["RX06","OWNER02"],mode="none",expect4011=True,needs_server=True))
+    rows.extend([
+        profile("pxe-metrics-success",legacy,[
+            case("proxy-count"),case("boot-item-count",kind=3,ciaddr=CLIENT,boot_item=item()),
+            case("bis-not-counted",kind=3,ciaddr=CLIENT,boot_item=item(32768,32768),reply=False),
+            case("nonpxe-not-counted",vendor=b"ordinary",reply=False),
+            case("bootp-proxy-not-counted",kind=0,arch=None,vendor=None,prl=None,reply=False),
+        ],["PROXY06","BOOTP04"],metrics=[1,2,2,2,2]),
+        profile("pxe-metrics-ignored",legacy+["dhcp-ignore=tag:client0"],[
+            case("ignored-proxy-counted",reply=False),case("ignored-item-not-counted",kind=3,ciaddr=CLIENT,boot_item=item(),reply=False),
+        ],["PROXY06"],metrics=[1,1]),
+        profile("prompt-length-251-runtime",legacy+["pxe-prompt="+"p"*251],[
+            case("largest-safe-prompt",extra=option(57,struct.pack("!H",1500))),
+        ],["CFG-P03","MENU04"]),
+        profile("bootp-static-conflict",[],[case("static-address-in-use",kind=0,arch=None,vendor=None,prl=None,reply=False)],
+                ["BOOTP03","BOOTP04"],mode="static",metrics=[0],initial_leases="0 02:00:00:4d:35:ff 10.77.0.10 victim *\n"),
+        profile("bootp-existing-lease",["bootp-dynamic"],[case("reuse-and-ignore-clientid",kind=0,arch=None,vendor=None,prl=None,extra=option(61,b"new-client-id"))],
+                ["BOOTP03"],mode="dynamic",static_host=False,initial_leases="0 02:00:00:4d:35:03 10.77.0.15 existing *\n"),
+        profile("bootp-wrong-network-prune",["bootp-dynamic=tag:missing"],[case("prune-before-permission",kind=0,arch=None,vendor=None,prl=None,reply=False)],
+                ["BOOTP03","BOOTP04"],mode="dynamic",static_host=False,metrics=[0],initial_leases="0 02:00:00:4d:35:03 192.0.2.10 old *\n"),
+        profile("bootp-pool-full",["bootp-dynamic"],[case("no-free-address",kind=0,arch=None,vendor=None,prl=None,reply=False)],
+                ["BOOTP03"],mode="dynamic",static_host=False,range_value="10.77.0.10,10.77.0.10,255.255.255.0,600s",initial_leases="0 02:00:00:4d:35:ff 10.77.0.10 victim *\n"),
+        profile("bootp-lease-capacity",["bootp-dynamic","dhcp-lease-max=0"],[case("lease-limit",kind=0,arch=None,vendor=None,prl=None,reply=False)],
+                ["BOOTP03","BOOTP04"],mode="dynamic",static_host=False,metrics=[0]),
+        profile("bootp-host-time",["dhcp-host=02:00:00:4d:35:03,10.77.0.10,300s"],[case("finite-host-time",kind=0,arch=None,vendor=None,prl=None)],
+                ["BOOTP03"],mode="static",static_host=False),
+        profile("bootp-static-no-dynamic",["bootp-dynamic"],[case("static-pool-never-allocates",kind=0,arch=None,vendor=None,prl=None,reply=False)],
+                ["CFG-R01","BOOTP03"],mode="static",static_host=False),
+        profile("bootp-predicate-or-and",["bootp-dynamic=tag:missing","bootp-dynamic=tag:bootp,tag:!deny"],[case("second-conjunction",kind=0,arch=None,vendor=None,prl=None)],
+                ["CFG-B01","BOOTP02"],mode="dynamic",static_host=False),
+        profile("bootp-context-negative",["bootp-dynamic=tag:bootp,tag:!deny"],[case("range-tag-veto",kind=0,arch=None,vendor=None,prl=None,reply=False)],
+                ["BOOTP02"],mode="dynamic",static_host=False,range_value="set:deny,10.77.0.10,10.77.0.20,255.255.255.0,600s"),
+        profile("owner-helper-tftp",legacy+["bootp-dynamic","dhcp-vendorclass=set:pxe,PXEClient",
+                    "dhcp-range=tag:pxe,10.77.0.1,proxy,255.255.255.0","dhcp-script=/m2/pxe-helper",
+                    "enable-tftp","tftp-root=/m2/pxe-tftp"],[
+            case("bootp-starts-helper",kind=0,arch=None,vendor=None,prl=None),
+            case("pxe-during-helper",helper_busy=True),
+        ],["OWNER01","BOOTP04","PROXY06"],mode="dynamic",static_host=False,helper=True,tftp=True),
+    ])
+    # Supplemental source-checklist witnesses. Keep safe malformed inputs
+    # bounded; known NULL/length-overflow C configurations stay syntax-only.
+    rows.extend([
+        profile("architecture-case-wrap",["pxe-service=X86pC,Case,case","pxe-service=65536,Wrapped,wrap","pxe-service=0,Local wrapped,65536"],
+                [case("case-and-wrap-menu"),case("auto-type-second",kind=3,ciaddr=CLIENT,boot_item=item(32769,3))],["CFG-S01","CFG-S02"]),
+        profile("quoted-service-prompt",['pxe-service=0,"Menu, with spaces",boot','pxe-prompt="Choose, now",2'],[case("quoted-values")],["CFG-S04","CFG-P01"]),
+        profile("hosts-multiple",["pxe-service=0,Multi,boot,boot-server"],[case("multiple-addresses",kind=3,ciaddr=CLIENT,boot_item=item())],
+                ["CFG-S03","BOOT03"],initial_hosts="10.77.0.8 boot-server\n10.77.0.9 boot-server\n"),
+        profile("hosts-dns-disabled",["pxe-service=0,No DNS,boot,boot-server","port=0","enable-tftp","tftp-root=/m2/pxe-tftp"],
+                [case("lookup-disabled",kind=3,ciaddr=CLIENT,boot_item=item())],["CFG-S03","BOOT03"],dns_disabled=True,tftp=True),
+        profile("vendor-repeat-order",legacy+["dhcp-pxe-vendor=custom-long","dhcp-pxe-vendor=custom,custom-other"],
+                [case("last-prefix-wins",vendor=b"custom-long:client"),case("case-rejected",vendor=b"Custom-long:client",reply=False)], ["CFG-V01","RX01"]),
+        profile("vendor-quoted",legacy+['dhcp-pxe-vendor="custom,long",other'],[case("quoted-prefix",vendor=b"custom,long:client")],["CFG-V01"]),
+        profile("boot-item-requested-address",legacy,[case("option50-clears-ciaddr",kind=3,ciaddr=CLIENT,boot_item=item(),extra=option(50,socket.inet_aton(CLIENT)),reply=False)], ["BOOT02"]),
+        profile("boot-item-context-negative",legacy,[case("missing-required-context",kind=3,ciaddr=CLIENT,boot_item=item(),reply=False)],
+                ["RX04","BOOT02"],range_value="tag:missing,10.77.0.1,proxy,255.255.255.0"),
+        profile("boot-item-vendor-tags",legacy+["dhcp-option=vendor:PXEClient,20,untagged","dhcp-option=tag:known,vendor:PXEClient,20,known",
+                     "dhcp-option=tag:missing,vendor:PXEClient,21,hidden"],
+                [case("vendor-pruning",kind=3,ciaddr=CLIENT,boot_item=item(),uuid=bytes(range(17)))],["BOOT04"]),
+        profile("boot-item-capacity",legacy+["dhcp-option=vendor:PXEClient,20,"+"a"*220,"dhcp-option=vendor:PXEClient,21,"+"b"*160],
+                [case("vendor-overload-agent",kind=3,ciaddr=CLIENT,boot_item=item(),uuid=bytes(range(17)),extra=option(82,b"\x01\x03abc"))],["BOOT04","RX03"]),
+        profile("boot-item-ip-dot",["pxe-service=0,Dot,file.efi,10.77.0.9"],[case("numeric-target-dot",kind=3,ciaddr=CLIENT,boot_item=item(32768,55))],["BOOT03"]),
+        profile("proxy-tag-if",["tag-if=tag:pool,set:derived","pxe-service=tag:derived,0,Derived,boot","pxe-prompt=tag:derived,Derived,1",
+                     "dhcp-option-pxe=tag:derived,225,derived"],[case("context-tag-if")],["PROXY02","MENU01"],range_value="set:pool,10.77.0.1,proxy,255.255.255.0"),
+        profile("proxy-boot-target",["pxe-service=7,Other,other.efi","dhcp-boot=tag:known,fallback.img,unused-name,10.77.0.9"],
+                [case("tagged-fallback-ip")],["PROXY04"]),
+        profile("proxy-boot-hosts-missing",["pxe-service=7,Other,other.efi","dhcp-boot=fallback.img,unused-name,missing-host"],
+                [case("fallback-missing-host")],["PROXY04"]),
+        profile("proxy-option-priority-zero",legacy+["dhcp-option-pxe=225,untagged","dhcp-option-pxe=tag:known,225,known","dhcp-option-pxe=3,0.0.0.0"],
+                [case("duplicate-and-local-zero",prl=b"\x01")],["PROXY05"]),
+        profile("disabled-host",legacy+["dhcp-host=02:00:00:4d:35:03,ignore"],
+                [case("disabled-proxy",reply=False),case("disabled-item",kind=3,ciaddr=CLIENT,boot_item=item(),reply=False)], ["RX04"],static_host=False),
+        profile("uefi-one-basename-numeric",efi+["pxe-service=7,Numeric,12,10.77.0.9"],
+                [case("one-basename-plus-number",arch=7,kind=3,ciaddr=CLIENT,listener=4011)],["UEFI01"]),
+        profile("uefi-field-bounds",["pxe-service=7,Long,"+"f"*150+","+"h"*100],
+                [case("long-fields",arch=7,kind=3,ciaddr=CLIENT,listener=4011)],["UEFI02"]),
+        profile("ordinary-option-priority",legacy+["dhcp-option=225,normal","dhcp-option-pxe=tag:known,225,pxe-known","dhcp-option=60,configured"],
+                [case("pxe-synthetic60",prl=bytes([60,225])),case("ordinary-configured60",arch=None,vendor=b"ordinary",prl=bytes([60,225]))], ["NORMAL02"],mode="dynamic"),
+        profile("ordinary-forced-vendor",legacy+["dhcp-option-force=vendor:PXEClient,20,forced"],
+                [case("forced-no-prl43",prl=b"\x01")],["NORMAL04"],mode="dynamic"),
+        profile("no-override-long-forced",legacy+["dhcp-option-force=66,"+"s"*90,"dhcp-option-force=67,"+"f"*150,"dhcp-no-override"],
+                [case("forced-long-options",prl=b"\x01")],["NOOVERRIDE01"],mode="dynamic"),
+        profile("no-override-long-boot",legacy+["dhcp-boot="+"f"*150+","+"s"*90,"dhcp-no-override"],
+                [case("truncated-boot-fields",prl=bytes([66,67]))],["NOOVERRIDE01"],mode="dynamic"),
+        profile("bootp-no-override",["bootp-dynamic","dhcp-no-override","dhcp-boot=bootp.img,bootp-name","dhcp-option=224,"+"o"*100],
+                [case("bootp-vendor64",kind=0,arch=None,vendor=None,prl=None)],["CFG-N01","NOOVERRIDE02","BOOTP04"],mode="dynamic",static_host=False),
+        profile("bootp-filename128",["bootp-dynamic=tag:"+"f"*128,"dhcp-boot=tag:"+"f"*128+",selected.img"],
+                [case("file-tag128",kind=0,arch=None,vendor=None,prl=None,filename=b"f"*128)],["BOOTP01"],mode="dynamic",static_host=False),
+        profile("bootp-with-pxe-vendor",legacy+["bootp-dynamic"],
+                [case("bootp-not-pxe",kind=0),case("zero-hlen",kind=0,hlen=0,reply=False)],["BOOTP01"],mode="dynamic",static_host=False),
+        profile("leasequery-active-encap",legacy+["leasequery","dhcp-option-pxe=encap:172,17,nested","dhcp-option-pxe=vi-encap:13,17,enterprise"],
+                [case("query-active4011",kind=10,giaddr=CLIENT,ciaddr="10.77.0.10",listener=4011,source_port=67,prl=bytes([172,125]))],
+                ["RX05","NORMAL03"],mode="dynamic",initial_leases="0 02:00:00:4d:35:03 10.77.0.10 existing *\n"),
+    ])
+    for timeout in ["0","255","-1","bad","","65536"]:
+        rows.append(profile("prompt-runtime-"+(timeout or "empty"),legacy+["pxe-prompt=Choose,"+timeout],[case("timeout-byte")],["CFG-P01"]))
+    for total in [251,252,253]:
+        rows.append(profile(f"menu-accumulated-{total}",["pxe-service=0,"+"a"*125+",first","pxe-service=0,"+"b"*(total-131)+",second","pxe-prompt=Keep,1"],
+                            [case("accumulated-capacity")],["CFG-S05","MENU04"]))
+    for name,first,second in [
+        ("dynamic-proxy","set:dynamic,10.77.0.10,10.77.0.20,255.255.255.0","set:proxy,10.77.0.1,proxy,255.255.255.0"),
+        ("proxy-dynamic","set:proxy,10.77.0.1,proxy,255.255.255.0","set:dynamic,10.77.0.10,10.77.0.20,255.255.255.0"),
+        ("static-proxy","set:static,10.77.0.1,static,255.255.255.0","set:proxy,10.77.0.1,proxy,255.255.255.0"),
+        ("proxy-static","set:proxy,10.77.0.1,proxy,255.255.255.0","set:static,10.77.0.1,static,255.255.255.0"),
+    ]:
+        rows.append(profile("mixed-"+name,legacy+["dhcp-range="+second,"dhcp-option-pxe=tag:proxy,225,proxy","dhcp-option=tag:dynamic,226,dynamic","dhcp-option=tag:static,227,static"],
+                            [case("pxe-context",prl=bytes([43,60,225,226,227]))],["CFG-R01","CFG-R02","PROXY02"],mode="dynamic",range_value=first))
+    malformed=[]
+    for name,raw in [("short-fixed",request()[:200]),("bad-op",request()),("zero-htype",request()),
+                     ("truncated-tlv",request(extra=b"\xe0\xfe")),("overload-file",request(extra=option(52,b"\x01"),filename=b"\x3c\xfe")),
+                     ("vendor-after-end",request(vendor=None,extra=b"\xff"+option(60,b"PXEClient")))]:
+        if name=="bad-op":raw[0]=2
+        if name=="zero-htype":raw[1]=0
+        malformed.append(case(name,raw=raw,reply=name in ["truncated-tlv","overload-file"]))
+    rows.append(profile("malformed-input",legacy,malformed,["RX01","RX03","OWNER01"]))
+    for kind in ["external-conflict","default-exclusive","bind-interfaces","bind-dynamic"]:
+        rows.append(profile("bind-4011-"+kind,[],[],["START02","OWNER01"],mode="none",bind_kind=kind))
     return rows
 
 
@@ -265,6 +382,8 @@ def config(profile):
     if profile.get("static_host", True):
         lines.append("dhcp-host=02:00:00:4d:35:03,10.77.0.10")
     lines.extend(profile["options"])
+    if profile.get("metrics") is not None:
+        lines.append("enable-ubus=pxe-metrics")
     return "\n".join(lines) + "\n"
 
 
@@ -279,6 +398,22 @@ def heartbeat():
 def bound4011():
     return any(int(line.split()[1].split(":")[1], 16) == 4011
                for line in Path("/proc/net/udp").read_text().splitlines()[1:])
+
+
+def metrics(root):
+    response=subprocess.run(command(root,"/bin/ubus","call","pxe-metrics","metrics","{}"),capture_output=True,text=True,timeout=2)
+    if response.returncode:raise AssertionError(f"metrics failed: {response.returncode} {response.stderr}")
+    return json.loads(response.stdout)
+
+
+def tftp_health():
+    with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as endpoint:
+        endpoint.settimeout(.6)
+        endpoint.sendto(b"\0\1health\0octet\0",("127.0.0.1",69))
+        data,peer=endpoint.recvfrom(1024)
+        if data!=b"\0\3\0\1pxe-owner-health":raise AssertionError(f"TFTP health response {data!r}")
+        endpoint.sendto(b"\0\4\0\1",peer)
+    return True
 
 
 def grammar_cases():
@@ -308,7 +443,7 @@ def grammar_cases():
     add("prompt-empty", "pxe-prompt=")
     add("prompt-tags-only", "pxe-prompt=tag:only")
     add("prompt-quoted", 'pxe-prompt="Choose, now",2')
-    for length in [251,252,253,255]:
+    for length in [251,252,253,254,255]:
         add(f"prompt-length-{length}", "pxe-prompt="+"p"*length,
             "C prompt bypasses length check and can wrap outer43 length" if length>=252 else None)
     add("vendor-list", "dhcp-pxe-vendor=custom,iPXE")
@@ -357,15 +492,34 @@ def run_profile(root, side, profile, client, server, out):
     out.mkdir()
     text = config(profile)
     (root/"m2/pxe.conf").write_text(text)
-    (root/"m2/pxe.hosts").write_text("10.77.0.8 boot-server\n")
+    (root/"m2/pxe.hosts").write_text(profile.get("initial_hosts","10.77.0.8 boot-server\n"))
     (out/"dnsmasq.conf").write_text(text)
     for name in ["pxe.pid", "pxe.leases"]:
         (root/"m2"/name).unlink(missing_ok=True)
+    if profile.get("initial_leases") is not None:
+        (root/"m2/pxe.leases").write_text(profile["initial_leases"])
+    if profile.get("helper"):
+        for name in ["pxe-helper.events","pxe-helper.running","pxe-helper.done"]:(root/"m2"/name).unlink(missing_ok=True)
+        script=root/"m2/pxe-helper"
+        script.write_text('#!/bin/sh\nprintf "%s %s %s\\n" "$1" "$2" "$3" >> /m2/pxe-helper.events\nif [ "$1" = add ]; then\n: > /m2/pxe-helper.running\nsleep 2\n: > /m2/pxe-helper.done\nfi\n')
+        script.chmod(0o755)
+    if profile.get("tftp"):
+        directory=root/"m2/pxe-tftp";directory.mkdir(exist_ok=True);(directory/"health").write_bytes(b"pxe-owner-health")
     tested = subprocess.run(command(root, side, "--test", "-C", "/m2/pxe.conf"), capture_output=True, text=True, timeout=3)
     row = {"profile": profile["name"], "side": side, "started": False, "cases": [],
            "test": {"exit": tested.returncode, "stdout": tested.stdout, "stderr": tested.stderr}}
-    process = None
+    process = None;bus=None;bus_log=None
+    health=tftp_health if profile.get("dns_disabled") else heartbeat
     try:
+        if profile.get("metrics") is not None:
+            bus_log=(out/"ubusd.log").open("wb")
+            bus=subprocess.Popen(command(root,"/sbin/ubusd"),stdout=bus_log,stderr=bus_log,start_new_session=True)
+            deadline=time.monotonic()+2
+            while True:
+                ready=subprocess.run(command(root,"/bin/ubus","list"),capture_output=True,timeout=1)
+                if ready.returncode==0:break
+                if bus.poll() is not None or time.monotonic()>=deadline:raise AssertionError("ubusd startup")
+                time.sleep(.02)
         with (out/"daemon.log").open("wb") as log:
             process = subprocess.Popen(command(root, side, "-k", "-C", "/m2/pxe.conf"), stdout=log, stderr=log, start_new_session=True)
             time.sleep(.2)
@@ -373,10 +527,17 @@ def run_profile(root, side, profile, client, server, out):
                 raise AssertionError(f"startup exit {process.returncode}")
             row.update(started=True, identity=process_identity(root, process.pid), listening4011=bound4011(),
                        threads=len(list(Path(f"/proc/{process.pid}/task").iterdir())))
-            if not heartbeat():
+            if not health():
                 raise AssertionError("startup DNS heartbeat")
             row["fd_start"] = net.descriptors(process.pid)
+            if profile.get("metrics") is not None:row["initial_metrics"]=metrics(root)
             for item in profile["cases"]:
+                if item["helper_busy"]:
+                    deadline=time.monotonic()+1
+                    while not (root/"m2/pxe-helper.running").exists():
+                        if time.monotonic()>=deadline:raise AssertionError("helper did not start")
+                        time.sleep(.01)
+                    if (root/"m2/pxe-helper.done").exists():raise AssertionError("helper already finished before concurrency witness")
                 if item["reload_hosts"] is not None:
                     (root/"m2/pxe.hosts").write_text(item["reload_hosts"])
                     process.send_signal(signal.SIGHUP)
@@ -392,19 +553,72 @@ def run_profile(root, side, profile, client, server, out):
                 replies = [entry for entry in raw if entry not in echoes]
                 upstream=server.call(op="take")["packets"] if server is not None else []
                 leases = root/"m2/pxe.leases"
+                tftp=tftp_health() if profile.get("tftp") else None
+                if item["helper_busy"] and (root/"m2/pxe-helper.done").exists():raise AssertionError("helper finished before PXE/DNS/TFTP witness")
+                helper_events=(root/"m2/pxe-helper.events").read_text().splitlines() if profile.get("helper") and (root/"m2/pxe-helper.events").exists() else None
                 row["cases"].append({"name": item["name"], "request": item["request"], "replies": replies,
-                                     "peer_echo": echoes, "alive": process.poll() is None, "heartbeat": heartbeat(),
+                                     "peer_echo": echoes, "alive": process.poll() is None, "heartbeat": health(),
                                      "leases": leases.read_text() if leases.exists() else None,
-                                     "observed_epoch":int(time.time()),"upstream":upstream})
+                                     "observed_epoch":int(time.time()),"upstream":upstream,
+                                     "tftp":tftp,"helper_events":helper_events,"helper_busy_observed":item["helper_busy"],
+                                     "metrics":metrics(root) if profile.get("metrics") is not None else None})
             row["fd_end"] = net.descriptors(process.pid)
+            if profile.get("helper"):
+                deadline=time.monotonic()+3
+                while True:
+                    event_path=root/"m2/pxe-helper.events"
+                    events=event_path.read_text().splitlines() if event_path.exists() else []
+                    tftp_events=sum(event.startswith("tftp ") for event in events)
+                    if (root/"m2/pxe-helper.done").exists() and (not profile.get("tftp") or tftp_events==len(profile["cases"])):break
+                    if time.monotonic()>=deadline:raise AssertionError("helper did not complete")
+                    time.sleep(.02)
+                row["helper_events"]=(root/"m2/pxe-helper.events").read_text().splitlines()
     except Exception as error:
         row["error"] = repr(error)
     finally:
         if process is not None:
             row["cleanup"] = stop(process)
+        if bus is not None:row["bus_cleanup"]=stop(bus)
+        if bus_log is not None:bus_log.close()
         row["pid_removed"] = not (root/"m2/pxe.pid").exists()
     save(out/"result.json", row)
     return row
+
+
+def run_binding(root,side,profile,out):
+    out.mkdir();kind=profile["bind_kind"]
+    row={"profile":profile["name"],"side":side,"cases":[],"binding":{"kind":kind,"startup":[],"cleanup":[],"identity":[]}}
+    processes=[];logs=[];blocker=None
+    try:
+        if kind=="external-conflict":
+            blocker=socket.socket(socket.AF_INET,socket.SOCK_DGRAM);blocker.bind(("0.0.0.0",4011))
+        for index in range(1 if blocker else 2):
+            port=2067 if index==0 else 1067
+            text="\n".join(["port=0","no-resolv","no-hosts","no-ping","user=root","group=root","interface=client0",
+                            "dhcp-range=10.77.0.1,proxy,255.255.255.0","pxe-service=0,Menu,boot",
+                            f"dhcp-alternate-port={port},{port+1}",f"pid-file=/m2/bind-{index}.pid",f"dhcp-leasefile=/m2/bind-{index}.leases",
+                            *([kind] if kind in ["bind-interfaces","bind-dynamic"] else [])])+"\n"
+            (root/f"m2/bind-{index}.conf").write_text(text);(out/f"config-{index}").write_text(text)
+            (root/f"m2/bind-{index}.pid").unlink(missing_ok=True)
+            log=(out/f"daemon-{index}.log").open("wb");logs.append(log)
+            process=subprocess.Popen(command(root,side,"-k","-C",f"/m2/bind-{index}.conf"),stdout=log,stderr=log,start_new_session=True)
+            processes.append(process);time.sleep(.15)
+            row["binding"]["startup"].append(process.poll())
+            if process.poll() is None:row["binding"]["identity"].append(process_identity(root,process.pid))
+    except Exception as error:row["error"]=repr(error)
+    finally:
+        for process in reversed(processes):row["binding"]["cleanup"].append(stop(process))
+        for log in logs:log.close()
+        if blocker:blocker.close()
+    row["binding"]["pid_removed"]=all(not (root/f"m2/bind-{index}.pid").exists() for index in range(len(processes)))
+    released=[]
+    for port in [1067,2067,4011]:
+        try:
+            with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as probe:probe.bind(("0.0.0.0",port))
+            released.append(port)
+        except OSError:pass
+    row["binding"]["ports_released"]=released
+    save(out/"result.json",row);return row
 
 
 def lease_state(case):
@@ -446,6 +660,13 @@ def evaluate(rows, corpus, sides):
             row = indexed.get(key)
             if row is None:
                 failures.append(f"missing {key}"); continue
+            if profile.get("bind_kind"):
+                expected={"external-conflict":[2],"default-exclusive":[None,2],"bind-interfaces":[None,None],"bind-dynamic":[None,None]}[profile["bind_kind"]]
+                binding=row.get("binding",{})
+                if "error" in row or binding.get("startup")!=expected:failures.append(f"{key}: binding startup {row.get('error',binding.get('startup'))}")
+                if not binding.get("pid_removed") or binding.get("ports_released")!=[1067,2067,4011] or any(item.get("forced") for item in binding.get("cleanup",[])):
+                    failures.append(f"{key}: binding cleanup")
+                continue
             if not row.get("started") or "error" in row:
                 failures.append(f"{key}: {row.get('error', 'not started')}")
             if row["test"]["exit"] != 0:
@@ -461,7 +682,7 @@ def evaluate(rows, corpus, sides):
             observed = {item["name"]: item for item in row["cases"]}
             if len(observed) != len(row["cases"]) or set(observed) != {item["name"] for item in profile["cases"]}:
                 failures.append(f"{key}: missing/extra case")
-            for item in profile["cases"]:
+            for index,item in enumerate(profile["cases"]):
                 case = observed.get(item["name"])
                 if case is None:
                     continue
@@ -476,10 +697,24 @@ def evaluate(rows, corpus, sides):
                     failures.append(f"{key}/{item['name']}: unhealthy daemon")
                 if profile["mode"]=="proxy" and lease_state(case):
                     failures.append(f"{key}/{item['name']}: proxy allocated a lease")
+                if profile.get("tftp") and case.get("tftp") is not True:failures.append(f"{key}/{item['name']}: TFTP health")
+                if item["helper_busy"] and case.get("helper_busy_observed") is not True:failures.append(f"{key}/{item['name']}: no concurrent helper witness")
+                if profile.get("metrics") is not None and (case.get("metrics") or {}).get("pxe")!=profile["metrics"][index]:
+                    failures.append(f"{key}/{item['name']}: PXE counter")
+            if profile.get("metrics") is not None:
+                if (row.get("initial_metrics") or {}).get("pxe")!=0:failures.append(f"{key}: initial PXE count")
+                if not row.get("bus_cleanup") or row["bus_cleanup"].get("forced"):failures.append(f"{key}: ubusd cleanup")
+            if profile.get("helper"):
+                lease_events=[event for event in row.get("helper_events",[]) if event.split()[0] in ["add","old","del"]]
+                if len(lease_events)!=1 or not lease_events[0].startswith("add "):
+                    failures.append(f"{key}: BOOTP add/proxy no-event boundary")
         if sides == ["c", "rust"]:
             first = indexed.get((profile["name"], "c")); second = indexed.get((profile["name"], "rust"))
             if not first or not second:
                 continue
+            if profile.get("bind_kind"):continue
+            if profile.get("helper") and first.get("helper_events")!=second.get("helper_events"):
+                failures.append(f"{profile['name']}: helper events differ")
             for stream in ["stdout", "stderr"]:
                 if first["test"][stream] != second["test"][stream].replace("dnsmasq-rs:", "dnsmasq:"):
                     failures.append(f"{profile['name']}: --test {stream} differs")
@@ -488,6 +723,10 @@ def evaluate(rows, corpus, sides):
                     failures.append(f"{profile['name']}/{c['name']}: wire/endpoint differs")
                 if not same_leases(c,rust):
                     failures.append(f"{profile['name']}/{c['name']}: lease state differs")
+                if c.get("metrics") is not None:
+                    counters=lambda data:{key:value for key,value in data.items() if key in ["pxe","bootp"] or key.startswith("dhcp_")}
+                    if rust.get("metrics") is None or counters(c["metrics"])!=counters(rust["metrics"]):
+                        failures.append(f"{profile['name']}/{c['name']}: DHCP/PXE metrics differ")
     return failures
 
 
@@ -540,6 +779,7 @@ def negative_controls(rows, corpus):
 
 
 def main(args):
+    global ACTOR_SCRIPT
     if os.geteuid() != 0 or os.environ.get("DNSMASQ_TEST_ISOLATED") != "1":
         raise SystemExit("run only through run_isolated.sh")
     if sorted(name for _, name in socket.if_nameindex()) != ["lo"]:
@@ -548,22 +788,35 @@ def main(args):
     if out.exists() or "private" not in out.parts:
         raise SystemExit("fresh output directory below private/ required")
     out.mkdir(parents=True)
+    executed=out/"executed-tools"
+    executed.mkdir()
+    tool_root=Path(__file__).resolve().parent
+    sources={Path(__file__).resolve()}
+    sources.update(Path(module.__file__).resolve() for module in list(sys.modules.values())
+                   if getattr(module,"__file__",None) and Path(module.__file__).resolve().parent==tool_root)
+    for source in sources:shutil.copy2(source,executed/source.name)
+    ACTOR_SCRIPT=executed/Path(__file__).name
     root = prepare(args.image_root, None, out, args.rust)
-    corpus = [profile for profile in profiles() if not args.profile or profile["name"] in args.profile]
+    available = profiles()
+    unknown = set(args.profile or []) - {profile["name"] for profile in available}
+    if unknown:
+        raise SystemExit(f"unknown profiles: {sorted(unknown)}")
+    corpus = [] if args.syntax_only else [profile for profile in available if not args.profile or profile["name"] in args.profile]
     sides = ["c", "rust"] if args.side == "both" else [args.side]
     save(out/"manifest.json", {"profiles": corpus, "sides": sides, "tool_sha256": sha256(__file__),
                               "transport_tool_sha256": sha256(net.__file__), "c_sha256": STOCK_SHA256,
                               "rust_sha256": sha256(args.rust), "elf_bytes": args.rust.stat().st_size})
+    save(out/"executed-tools.json",{source.name:sha256(executed/source.name) for source in sources})
     rows = []; failures = []; client = None; server=None; cleanup = None; server_cleanup=None; syntax=[]
-    syntax_corpus=[] if args.profile else grammar_cases()
+    syntax_corpus=grammar_cases() if args.syntax_only or args.syntax or not args.profile else []
     try:
         for item in syntax_corpus:
             for side in sides:syntax.append(run_syntax(root,side,item,out/f"syntax-{item['name']}-{side}"))
-        client = Peer("client0", SERVER, CLIENT)
+        if corpus:client = Peer("client0", SERVER, CLIENT)
         if any(profile.get("needs_server") for profile in corpus):server=Peer("server0",net.UP,net.SERVER)
         for profile in corpus:
             for side in sides:
-                row = run_profile(root, side, profile, client, server, out/f"{profile['name']}-{side}")
+                row = run_binding(root,side,profile,out/f"{profile['name']}-{side}") if profile.get("bind_kind") else run_profile(root, side, profile, client, server, out/f"{profile['name']}-{side}")
                 rows.append(row)
                 print(json.dumps({"profile": profile["name"], "side": side, "cases": len(row["cases"]), "error": row.get("error")}), flush=True)
     except Exception as error:
@@ -573,12 +826,13 @@ def main(args):
             cleanup = client.close()
         if server is not None:server_cleanup=server.close()
     failures += evaluate(rows, corpus, sides)+syntax_errors(syntax,syntax_corpus,sides)
-    if cleanup is None or cleanup.get("actor_exit") != 0 or cleanup.get("namespace", {}).get("forced"):
+    if corpus and (cleanup is None or cleanup.get("actor_exit") != 0 or cleanup.get("namespace", {}).get("forced")):
         failures.append("peer cleanup")
     if server is not None and (server_cleanup is None or server_cleanup.get("actor_exit")!=0 or server_cleanup.get("namespace",{}).get("forced")):
         failures.append("upstream peer cleanup")
-    controls = negative_controls(rows,corpus) if len(sides)==2 else {"passed":False,"not_executed":"reference-only run"}
-    if len(sides)==2 and not controls["passed"]:
+    packet_cases=any(profile["cases"] for profile in corpus)
+    controls = negative_controls(rows,corpus) if len(sides)==2 and packet_cases else {"passed":False,"not_executed":"no paired packet cases"}
+    if len(sides)==2 and packet_cases and not controls["passed"]:
         failures.append("comparator negative controls")
     result = {"passed": not failures and len(sides) == 2, "reference_checks_passed": not failures,
               "comparison_executed": len(sides) == 2, "failures": failures, "profiles": rows,
@@ -603,6 +857,8 @@ if __name__ == "__main__":
     parser.add_argument("--out", type=Path)
     parser.add_argument("--side", choices=["c", "rust", "both"], default="both")
     parser.add_argument("--profile", action="append")
+    parser.add_argument("--syntax",action="store_true",help="include syntax cases with selected profiles")
+    parser.add_argument("--syntax-only",action="store_true")
     args = parser.parse_args()
     if args.actor:
         net.actor()
