@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 import signal
 import socket
+import struct
 import subprocess
 import time
 import traceback
