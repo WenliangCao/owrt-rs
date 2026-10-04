@@ -127,7 +127,9 @@ impl BootConfig {
             }
             let value = head.decoded();
             let tag = &value[prefix_len..];
-            if tag.is_empty() || matches!(tag, b"!" | b"#") {
+            // An empty selector has no usable C runtime representation.
+            // Reject it here; never silently widen it to an untagged rule.
+            if tag.is_empty() {
                 return Err(Error("empty DHCP boot tag selector"));
             }
             selectors.push(tag.to_vec());
@@ -508,13 +510,12 @@ impl DhcpConfig {
         Ok(())
     }
 
-    /// Select the first matching boot entry. Entries are already in C's
-    /// reverse declaration order, and an empty predicate matches every
-    /// request, so this preserves "last matching directive wins" behavior.
+    /// rfc2131.c::find_boot first scans every tagged entry, then falls back
+    /// to an untagged entry. Both passes retain reverse declaration order.
     pub fn boot_for(&self, tags: &[&[u8]]) -> Option<&BootConfig> {
         self.boot_entries
             .iter()
-            .find(|entry| entry.filter.matches(tags))
+            .find(|entry| entry.filter.matches_with(tags, false))
             .map(|entry| &entry.config)
             .or(self.boot.as_ref())
     }
@@ -754,14 +755,11 @@ mod tests {
             entry.filter.tags() == [b"known".to_vec(), b"uefi".to_vec()]
                 && entry.config.filename.as_deref() == Some(b"file".as_slice())
         }));
-        for line in [
-            b"dhcp-boot=tag:,file".as_slice(),
-            b"dhcp-boot=tag:known".as_slice(),
-        ] {
-            let before = config.clone();
-            assert!(config.apply(&lex_line(line).unwrap().unwrap()).is_err());
-            assert_eq!(config, before);
-        }
+        let before = config.clone();
+        assert!(config
+            .apply(&lex_line(b"dhcp-boot=tag:known").unwrap().unwrap())
+            .is_err());
+        assert_eq!(config, before);
         config
             .apply(&lex_line(b"dhcp-boot=,,0.0.0.0").unwrap().unwrap())
             .unwrap();
@@ -783,6 +781,7 @@ mod tests {
             b"dhcp-boot=fallback.img,,192.0.2.1".as_slice(),
             b"dhcp-boot=tag:known,known.img,known.test,192.0.2.2".as_slice(),
             b"dhcp-boot=tag:known,latest.img,latest.test,192.0.2.3".as_slice(),
+            b"dhcp-boot=fallback.img,,192.0.2.1".as_slice(),
         ] {
             config.apply(&lex_line(line).unwrap().unwrap()).unwrap();
         }

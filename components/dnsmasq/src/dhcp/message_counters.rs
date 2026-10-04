@@ -16,6 +16,10 @@ pub struct MessageCounters {
     pub release: u32,
     pub request: u32,
     pub no_answer: u32,
+    pub lease_query: u32,
+    pub lease_unassigned: u32,
+    pub lease_active: u32,
+    pub lease_unknown: u32,
 }
 
 impl MessageCounters {

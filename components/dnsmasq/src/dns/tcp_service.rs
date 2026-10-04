@@ -380,9 +380,14 @@ fn finish_reply(
                 add_ede(&mut packet, edns_packet_max, do_bit, ede, TCP_LIMIT)?;
             }
         }
-        let filtered = filter_rrs(&mut packet, filter_rr)?.matched != 0;
-        if filtered && find_pseudoheader(&packet, false)?.opt.is_some() {
-            add_ede(&mut packet, edns_packet_max, do_bit, 17, TCP_LIMIT)?;
+        // C's process_reply only applies configured filtering to a complete
+        // NOERROR answer. NXDOMAIN authority data and TC prefixes bypass the
+        // rrfilter branch entirely.
+        if envelope.rcode == 0 && Header::parse(&packet)?.flags & 0x0200 == 0 {
+            let filtered = filter_rrs(&mut packet, filter_rr)?.matched != 0;
+            if filtered && find_pseudoheader(&packet, false)?.opt.is_some() {
+                add_ede(&mut packet, edns_packet_max, do_bit, 17, TCP_LIMIT)?;
+            }
         }
     }
     Ok(packet)

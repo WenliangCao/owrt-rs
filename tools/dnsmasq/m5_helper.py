@@ -25,6 +25,11 @@ from m2_rootfs import prepare, command, sha256, STOCK_SHA256
 
 CAPTURE = r'''#!/bin/sh
 if [ "$1" = init ]; then
+  if [ "$M5_SLOW_INIT" = 1 ]; then
+    : > "$M5_OUTPUT/init-sleeping"
+    sleep 2
+    : > "$M5_OUTPUT/init-finished"
+  fi
   cat "$M5_OUTPUT/init.leases"
   exit "${M5_INIT_STATUS:-0}"
 fi
@@ -160,6 +165,7 @@ class Side:
         self.xid = 0; self.raw = []; self.stages = []; self.descendants = set()
         self.support = []
         self.start_epoch = time.time()
+        self.init_dns_latency = None
 
     def start_hotplug(self):
         # Real image ubusd + procd register hotplug.dhcp; neither is mocked.
@@ -203,6 +209,14 @@ class Side:
         self.process = subprocess.Popen(command(self.root, self.side, *args),
                                         env=self.env, stdout=self.log, stderr=self.log,
                                         start_new_session=True)
+        if self.name == 'slow-init':
+            wait(lambda: (self.events / 'init-sleeping').exists(), 'init script sleeping')
+            if self.side == 'rust':
+                started = time.monotonic()
+                wait(self.dns, 'DNS advances during init', timeout=.8)
+                self.init_dns_latency = time.monotonic() - started
+                if (self.events / 'init-finished').exists():
+                    raise AssertionError('DNS did not advance until init completed')
         def ready():
             if self.process.poll() is not None:
                 raise AssertionError(f'{self.side}/{self.name} exited at startup: {self.process.returncode}')
@@ -238,7 +252,11 @@ class Side:
         if kind in (1, 3):
             # Binary delimiters and '=' exercise C's extradata conversion;
             # user class uses RFC3004 counted strings, C rewrites them for helper.
-            extras = [(60, b'vendor=ignored'), (77, b'\x03one\x03two'), (161, b'https://mud.test/device')]
+            cpe = b'\x01\x06a1b2c3\x02\x06serial\x03\x05class'
+            agent = b'\x01\x07circuit\x02\x06remote\x06\x0asubscriber'
+            extras = [(60, b'vendor=ignored'), (77, b'\x03one\x03two'),
+                      (161, b'https://mud.test/device'), (82, agent),
+                      (125, struct.pack('!IB', 3561, len(cpe)) + cpe)]
             request.pop()
             for code, value in extras:
                 request.extend([code, len(value)]); request.extend(value)
@@ -326,19 +344,23 @@ def run_case(root, side, out, case):
     if case == 'renewal': flags.append('script-on-renewal')
     if case == 'scriptuser': flags.append('dhcp-scriptuser=nobody')
     if case == 'scriptuser-debug': flags.append('dhcp-scriptuser=nobody'); debug = True
-    if case == 'slow': env['M5_SLOW'] = '1'
+    if case in ('slow', 'shutdown'): env['M5_SLOW'] = '1'
     if case == 'exit': env['M5_EXIT'] = '1'
     if case == 'signal': env['M5_SIGNAL'] = '1'
-    if case in ('readonly', 'init-exit'): flags.append('leasefile-ro')
+    if case in ('readonly', 'init-exit', 'slow-init', 'init-capacity'): flags.append('leasefile-ro')
+    if case == 'slow-init': env['M5_SLOW_INIT'] = '1'
+    if case == 'init-capacity': flags.append('dhcp-lease-max=1')
     if case == 'init-exit': env['M5_INIT_STATUS'] = '7'
     if case == 'unknown-user': flags.append('dhcp-scriptuser=m5-no-such-user-19375')
     runner = Side(root, side, out, case, flags, env, debug)
-    if case in ('readonly', 'init-exit'):
-        (runner.events / 'init.leases').write_text('0 02:00:00:00:00:09 127.0.0.19 restored *\n')
+    if case in ('readonly', 'init-exit', 'slow-init', 'init-capacity'):
+        contents = '0 02:00:00:00:00:09 127.0.0.19 restored *\n'
+        if case == 'init-capacity': contents += '0 02:00:00:00:00:08 127.0.0.18 overflow *\n'
+        (runner.events / 'init.leases').write_text(contents)
     if case == 'missing-exec': runner.script.unlink()
     result = {'case': case, 'side': side, 'status': 'failed'}
     try:
-        if case in ('unknown-user', 'init-exit'):
+        if case in ('unknown-user', 'init-exit', 'init-capacity'):
             log = (out / f'{side}-{case}.log').open('wb')
             proc = subprocess.Popen(command(root, side, '--keep-in-foreground', '--conf-file=' + runner.inside + '/config'), env=runner.env, stdout=log, stderr=log, start_new_session=True)
             try:
@@ -347,15 +369,16 @@ def run_case(root, side, out, case):
                 os.killpg(proc.pid, signal.SIGKILL); proc.wait(3)
                 raise AssertionError('startup failure did not exit')
             finally: log.close()
-            expected = 1 if case == 'unknown-user' else 17
+            expected = {'unknown-user': 1, 'init-exit': 17, 'init-capacity': 5}[case]
             if result['startup_exit'] != expected:
                 raise AssertionError(f'expected startup exit {expected}, got {result["startup_exit"]}')
             result['status'] = 'passed'
             result['stages'] = []
             return result
         runner.start()
-        if case == 'readonly':
-            runner.stage('restored-old', 1)
+        if case in ('readonly', 'slow-init'):
+            runner.stage('restored-old', 2)
+            if case == 'slow-init': result['init_dns_latency'] = runner.init_dns_latency
         address = runner.dora()
         if case == 'helper-death':
             runner.stage('add-before-helper-death', 1)
@@ -374,6 +397,11 @@ def run_case(root, side, out, case):
             result['dns_after_script'] = runner.dns()
             if capture(runner.events): raise AssertionError('missing executable generated a script capture')
             runner.stage('missing-exec-no-event')
+        elif case == 'shutdown':
+            wait(lambda: (runner.events / 'slow-ready').exists(), 'script sleeping before SIGTERM')
+            runner.dora(2)
+            runner.stop()
+            runner.stage('queued-callbacks-after-sigterm', 2)
         elif case == 'slow':
             wait(lambda: (runner.events / 'slow-ready').exists(), 'script sleeping')
             start = time.monotonic(); runner.dns(); dns_elapsed = time.monotonic() - start
@@ -382,8 +410,8 @@ def run_case(root, side, out, case):
             if dns_elapsed >= 1 or dora_elapsed >= 1:
                 raise AssertionError('script blocked service owner')
             runner.stage('two-adds-after-slow-script', 2)
-        elif case in ('scriptuser', 'scriptuser-debug', 'exit', 'signal', 'readonly', 'hotplug'):
-            runner.stage('add', 2 if case == 'readonly' else 1)
+        elif case in ('scriptuser', 'scriptuser-debug', 'exit', 'signal', 'readonly', 'slow-init', 'hotplug'):
+            runner.stage('add', 3 if case in ('readonly', 'slow-init') else 1)
             result['dns_after_script'] = runner.dns()
             if case == 'hotplug':
                 wait(lambda: runner.hotplug_events(), 'actual hotplug bus handler')
@@ -409,7 +437,7 @@ def run_case(root, side, out, case):
         result['traceback'] = traceback.format_exc()
     finally:
         result['cleanup'] = runner.stop()
-        expected_cleanup = {'forced': False, 'exit': None if case in ('unknown-user', 'init-exit') else 0, 'remaining': [], 'pid_removed': True}
+        expected_cleanup = {'forced': False, 'exit': None if case in ('unknown-user', 'init-exit', 'init-capacity') else 0, 'remaining': [], 'pid_removed': True}
         if result['cleanup'] != expected_cleanup:
             result['status'] = 'failed'
         write_json(out / f'{side}-{case}.json', result)
@@ -469,7 +497,7 @@ def main():
     parser.add_argument('--rust', type=Path, required=True)
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--side', choices=('both', 'c', 'rust'), default='both')
-    parser.add_argument('--cases', default='lifecycle,renewal,scriptuser,scriptuser-debug,slow,exit,signal,readonly,hotplug,missing-exec,unknown-user,init-exit,helper-death')
+    parser.add_argument('--cases', default='lifecycle,renewal,scriptuser,scriptuser-debug,slow,exit,signal,readonly,hotplug,missing-exec,unknown-user,init-exit,helper-death,slow-init,init-capacity,shutdown')
     args = parser.parse_args()
     if os.geteuid() != 0 or os.environ.get('DNSMASQ_TEST_ISOLATED') != '1':
         parser.error('root under run_isolated.sh required')
@@ -481,7 +509,7 @@ def main():
     root = prepare(args.image_root, None, out, args.rust)
     rows = []
     for case in args.cases.split(','):
-        if case not in ('lifecycle', 'renewal', 'scriptuser', 'scriptuser-debug', 'slow', 'exit', 'signal', 'readonly', 'hotplug', 'missing-exec', 'unknown-user', 'init-exit', 'helper-death'):
+        if case not in ('lifecycle', 'renewal', 'scriptuser', 'scriptuser-debug', 'slow', 'exit', 'signal', 'readonly', 'hotplug', 'missing-exec', 'unknown-user', 'init-exit', 'helper-death', 'slow-init', 'init-capacity', 'shutdown'):
             parser.error('unknown case ' + case)
         for side in (('c', 'rust') if args.side == 'both' else (args.side,)):
             rows.append(run_case(root, side, out, case))

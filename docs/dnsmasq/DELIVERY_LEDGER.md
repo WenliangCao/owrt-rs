@@ -7,12 +7,13 @@
 - 汇报固定使用「当前里程碑、刚关闭的项、剩余项数、阻塞点」四项；每完成一个功能族汇报一次，最长间隔 30 分钟。剩余项数以本账本逐项状态为准，未执行的检查不算通过。
 - 并行子代理按功能族分工，每族使用独立 worktree 和任务分支。`main.rs`、`dns/daemon.rs` 等公共文件由主代理统一整合；子代理交付所需接口和补丁，不在主工作树并发修改公共文件。最多同时四个子代理。
 - 提交按明确路径逐个 `git add -- <path>`，不用 `git add -A`；有意义的进展形成小提交。功能族验证完成后由主代理合入 main，再删除对应任务分支并清理 worktree。删除前保留未合入变更、证据和必要的 durable refs，不丢弃活跃任务或未提交工作。
+- 已实现但未对照的功能族不得继续累积。当前先修 helper、TFTP，再完成 RR filter 与 leasequery daemon 级镜像 C 对照；这批通过后再推进下一批。以后每完成两族就统一接线和镜像 C 对照，体积逐族记录，M5 结束时汇总，不为体积中途暂停。
 - M5 新功能必须接入单一 poll owner，不加线程、不阻塞等待。每个功能族维护一个族级镜像 C 差分测试器；先读精确匹配的 C 调用链，再实现。原版缺陷保留最小复现，单独记录行为差异。
 - 原始证据统一保存在 `private/dnsmasq-rewrite/evidence/M5/`（即 `evidence/M5/`），不散落在临时 worktree；Git 仅提交代码、工具和脱敏报告。用户 `docs/prompts/` 的修改保持原样。
 - M5 结束时，在同一版本执行完整 M2、实际 5 分钟资源试跑、两项压力测试和 APK 生命周期验证；复测 ELF 体积和满载 RSS，与 M4 的 1,159,280 字节、2,676 KiB 比较。M4 体积例外仅属于原 ELF，新增体积不能自行豁免。
 - 物理路由器不碰；本阶段只做本地与构建机隔离验证。
 
-日更：2026-10-03。本文件是唯一进度入口；每个里程碑只保留一篇报告，原始失败与产物留在 ignored/private。当前进入 **M5**；M4 按用户接受的方案 A 完成。M5 盘点见下表，M6 未完成，未经 M7 不能称生产验收。
+日更：2026-10-04。本文件是唯一进度入口；每个里程碑只保留一篇报告，原始失败与产物留在 ignored/private。当前进入 **M5**；M4 按用户接受的方案 A 完成。M5 盘点见下表，M6 未完成，未经 M7 不能称生产验收。
 
 ## 当前状态与退出条件
 
@@ -40,7 +41,7 @@ M4 的单 poll owner 已替换六线程接线，决定见 [ADR_THREAD_MODEL.md](
 
 ## M5 盘点与工作顺序
 
-盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**40 项已实现并有 C 差分，80 项部分实现，49 项未实现；剩余 129 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
+盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**31 项已实现并有 C 差分，89 项部分实现，49 项未实现；剩余 138 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
 
 对镜像 init 的静态调用路径核对得到 **A 组 99 项、B 组 70 项**。A 表示原生 UCI/init 生成或调用，行号链接到保留原文的 init；B 表示通常需额外配置。`extraconftext`/conf-dir 可以透传任意指令，不据此把全部选项都算原生生成。`pxe-service`、`pxe-prompt`、`interface-name` 实际有 init 生成路径，归 A。26 个 excluded-capability 选项不混入169项计数；其与C一致的禁用/拒绝边界仍保留。
 
@@ -52,7 +53,7 @@ M5 退出条件：169项全部实现并有C差分，或已证明与C一致的拒
 
 本次续接已完成代码级推进但不下调盘点数：`dhcp-boot` 的 `tag:`/`net:` 多条目选择现在按请求 tag、`tag-if` 和已选 range context 选择完整 BootEntry；`filter-A`/`filter-AAAA`/`filter-rr` 已接入本地、UDP/TCP、缓存答案和 clipped/ANY 边界。两族的本地测试和 clippy 通过，精确镜像族级差分尚未在当前工作机复跑，因此仍按原状态计数；对应分支已合入 main，旧 worktree 已以 `archive/m5-boot-53b330b`、`archive/m5-dns-filter-1b099e1` 保留。后续优先补这两族的精确 C 配对，再处理 helper 接线和 relay/leasequery。
 
-helper 和 leasequery 已接入单一 poll owner：helper 启动、delivery backpressure、维护/packet 脚本队列，以及 leasequery 的 ACL、source route、状态和 wire reply 都已接线；对应提交为 `9404725`、`4b1016a`、`19320f3`、`c918c8b`。最终 Oracle candidate `2e19d183…1eac` 为 1,294,448 字节。DHCP tags/options 的 final4 结果在该 ELF 上运行，55 条全部通过，已把 13 个选项从盘点扣除。helper 的 `run-final2` 与 TFTP 的 `run-final` 是前一版 candidate `69d5e322…` 的失败诊断：helper 仍有 lifecycle/init-reboot、readonly/init-exit、renewal 差异，TFTP 18 场景仅 6 场相等；RR filter 和 leasequery 尚缺族级镜像 daemon harness。最终 candidate 的 helper/TFTP 复跑必须在这些修复后重做；因此当前计数为 129，不继续开启新族。
+helper 和 leasequery 已接入单一 poll owner：helper 启动、delivery backpressure、维护/packet 脚本队列，以及 leasequery 的 ACL、source route、状态和 wire reply 都已接线；对应提交为 `9404725`、`4b1016a`、`19320f3`、`c918c8b`。最终 Oracle candidate `2e19d183…1eac` 为 1,294,448 字节。DHCP tags/options 的 final4 结果在该 ELF 上运行，55 条全部通过，已把 13 个选项从盘点扣除。helper 的 `run-final2` 与 TFTP 的 `run-final` 是前一版 candidate `69d5e322…` 的失败诊断：helper 仍有 lifecycle/init-reboot、readonly/init-exit、renewal 差异，TFTP 18 场景仅 6 场相等；RR filter 和 leasequery 尚缺族级镜像 daemon harness。最终 candidate 的 helper/TFTP 复跑必须在这些修复后重做；该轮曾记录 129 项；2026-10-04 独立复核重新打开 9 项，当前为 138 项。不继续开启新族，先完成已指定四族。
 
 文件归属：tags负责人维护config/dhcp_tags、dhcp_host、dhcp_options及编码逻辑；网络负责人维护boot/relay/leasequery和TFTP；helper负责人维护helper/filewatch和loader；DNS负责人维护dns/*、config/dns和本地记录/策略。主代理独占main.rs、config/dhcp.rs、dhcp/daemon.rs及共用接线，其他人用明确patch/API交接。每族仅一个差分测试器，证据统一在 `private/dnsmasq-rewrite/evidence/M5/`。
 
@@ -62,12 +63,12 @@ helper 和 leasequery 已接入单一 poll owner：helper 启动、delivery back
 | `dhcp-broadcast` | A / 1168 | DHCP tags/options | 部分实现 | [按原始索引](../../private/dnsmasq-rewrite/evidence/M1/regression/gates/dhcp_actual_tags_diff-01/result.json)；普通/tag 谓词写入广播标志且遵循 range tag 尚未加入的时点；依赖缺失完整 tags。空/坏 tag 配置需镜像 C 验证，当前 parser 额外拒绝空 tag。 |
 | `dhcp-circuitid` | A / 291 | DHCP tags/options | 未实现 | 当前无通过证据；无 relay-agent tag matcher；OptionSpec 后 main 通用拒绝。需要 option 82 子 TLV 边界、text/hex 规则和精确匹配，关联 relay owner。 |
 | `dhcp-fqdn` | A / 1009 | DHCP tags/options | 部分实现 | [按原始索引](../../docs/dnsmasq/DHCP_FQDN_IMPLEMENTATION_VALIDATION.json)；已接线 DNS publication/restore/collision 且曾比对镜像 C 8 事件+5配置；报告明确域名恢复/名称碰撞组合未覆盖，未查到该选项完整镜像矩阵在 M4 最终 ELF 上执行。 |
-| `dhcp-host` | A / 416,418 | DHCP tags/options | 已实现，有C差分 | [M5 dhcp-tags-options final3](../../private/dnsmasq-rewrite/evidence/M5/four/dhcp-tags/run-final4/summary.json)；host tag/set/net、wildcard MAC、hostname-only 与固定地址场景在精确镜像配对中通过。|
+| `dhcp-host` | A / 416,418 | DHCP tags/options | 部分实现 | 2026-10-04 复核：tags/wildcard/name-only 已有正常路径配对；原盘点要求的 nodhcpv6 IPv6 host 拒绝边界尚缺镜像证据。 |
 | `dhcp-hostsfile` | A / 1118 | DHCP tags/options | 部分实现 | [按原始索引](../../docs/dnsmasq/DHCP_HOST_FILES_PHASE.md)；普通选择器文件、目录扩展和 SIGHUP 银行替换已实现；通用 host parser 仍拒绝 tags/wildcards/name-only，reload 会暂停 DHCP；empty/stdin 路径被拒绝尚非与 C 等价。 |
-| `dhcp-ignore-names` | A / 1198 | DHCP tags/options | 已实现，有C差分 | [M5 dhcp-tags-options final3](../../private/dnsmasq-rewrite/evidence/M5/four/dhcp-tags/run-final4/summary.json)；ignore-names 与 name-match/tag 传播在精确镜像配对中通过。|
+| `dhcp-ignore-names` | A / 1198 | DHCP tags/options | 部分实现 | 2026-10-04 复核：现有镜像用例与 generate-names 联用，缺独立无条件、不匹配、配置或 DNS 权威名称保留分支。 |
 | `dhcp-lease-max` | A / 1032 | DHCP tags/options | 部分实现 | [按原始索引](../../docs/dnsmasq/DHCP_CONFIG_PHASE.md)；解析和 LeaseStore 上限已接线；M4 默认租约规模未达到上限，缺镜像 C 的 0/1/满上限/释放回收/重启恢复场景。 |
 | `dhcp-mac` | A / 497 | DHCP tags/options | 已实现，有C差分 | [M5 dhcp-tags-options final3](../../private/dnsmasq-rewrite/evidence/M5/four/dhcp-tags/run-final4/summary.json)；dhcp-mac set-tag、MAC wildcard 和匹配边界在精确镜像配对中通过。|
-| `dhcp-match` | A / 340 | DHCP tags/options | 已实现，有C差分 | [M5 dhcp-tags-options final3](../../private/dnsmasq-rewrite/evidence/M5/four/dhcp-tags/run-final4/summary.json)；presence、typed option、masked bytes 和负向匹配在精确镜像配对中通过。|
+| `dhcp-match` | A / 340 | DHCP tags/options | 部分实现 | 2026-10-04 复核：镜像运行用例缺入站 option 124 / vi-encap enterprise/class-list 匹配，输出 vi-encap 编码不能替代该项。 |
 | `dhcp-option` | A / 484,693 | DHCP tags/options | 已实现，有C差分 | [M5 dhcp-tags-options final3](../../private/dnsmasq-rewrite/evidence/M5/four/dhcp-tags/run-final4/summary.json)；完整 named/numeric option 表、地址/域名/封装编码在精确镜像配对中通过。|
 | `dhcp-option-force` | A / 484,693 | DHCP tags/options | 已实现，有C差分 | [M5 dhcp-tags-options final3](../../private/dnsmasq-rewrite/evidence/M5/four/dhcp-tags/run-final4/summary.json)；force/PRL 优先级、封装和重复选项在精确镜像配对中通过。|
 | `dhcp-range` | A / 614,651,655,659,663 | DHCP tags/options | 部分实现 | [按原始索引](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-dhcp-1791029005/actual20-comparison.json)；已实现动态 IPv4、单个 set:、mask/broadcast/租期；缺 tag:/net: filters、旧式裸 tag、static 和 proxy 模式；探测 I/O 错误时已知与 C 行为不同，不能以已有 DORA 覆盖全部范围。 |
@@ -106,7 +107,7 @@ helper 和 leasequery 已接入单一 poll owner：helper 启动、delivery back
 | `cache-size` | A / 1028 | DNS 记录/策略 | 已实现，有C差分 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/cache-full-opt3-formal-1791030027)；Configured slot capacity, disabled cache and full 4096-slot behavior are evidenced; reverse-cache/record-type gaps belong to cache-rr/remaining cache contract and do not imply complete caching parity. |
 | `cname` | A / 787 | DNS 记录/策略 | 已实现，有C差分 | [M5 paired-04](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)；140 条本地记录服务语义与 25 条解析场景通过，含 CNAME 链、冲突、循环和类型边界。 |
 | `dns-forward-max` | A / 1029 | DNS 记录/策略 | 部分实现 | [source-native](../../docs/dnsmasq/DNS_START_FAILURE_PHASE.md)；Runtime table limit is wired but zero is explicitly rejected by DnsDaemon rather than qualified against C; per-server-group limit semantics and image capacity/recovery need review. |
-| `dns-rr` | A / 831 | DNS 记录/策略 | 已实现，有C差分 | [M5 paired-04](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)；Raw RR wire and parser rows match. Illegal hex `gg` remains a separately recorded C allocation-failure defect (C exit 4, Rust configuration error exit 1). |
+| `dns-rr` | A / 831 | DNS 记录/策略 | 部分实现 | 2026-10-04 复核：正常配对和非法 hex 错误差异记录保留；OPENWRT_CONTRACT 中 RDATA 长度接受集差异尚未结案。 |
 | `domain` | A / 1036 | DNS 记录/策略 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final/config-image)；Ordinary suffix and IPv4/IPv6 prefix selectors exist. domain=# resolver search, interface selectors and explicit IPv6 ranges are rejected by validate_ready/domain_for_address. Alias shares implementation but needs explicit paired coverage. |
 | `domain-needed` | A / 985 | DNS 记录/策略 | 部分实现 | [source-native](../../docs/dnsmasq/ACTUAL_CONFIG_STAGE.md)；Implemented in live UDP/TCP paths with original-configuration native C policy evidence; targeted exact-image policy differential is not yet indexed. localise applies only IPv4 and must retain C interface-derived network semantics. |
 | `edns-packet-max` | A / 1031 | DNS 记录/策略 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-dns/summary.json)；Local/forward/cache EDNS envelope limits are wired and native daemon boundary-tested. Image ordinary 1232-byte regression exists; full boundary matrix against image and new add/strip policy interactions remain. |
@@ -159,11 +160,11 @@ helper 和 leasequery 已接入单一 poll owner：helper 启动、delivery back
 | `version` | A / 31,946 | 启动/日志/监听 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-service/summary.json)；仅 Compile time options 与镜像逐字一致；版本首行和后续 banner 不同。 |
 | `dhcp-alternate-port` | B / — | DHCP tags/options | 未实现 | 当前无通过证据；OptionSpec 后 main 通用拒绝；须一路接收发端口到 listener/relay/destination，不能只改变监听端。 |
 | `dhcp-client-update` | B / — | DHCP tags/options | 已实现，有C差分 | [M5 dhcp-tags-options final3](../../private/dnsmasq-rewrite/evidence/M5/four/dhcp-tags/run-final4/summary.json)；client-update FQDN flags 在精确镜像配对中通过。|
-| `dhcp-generate-names` | B / — | DHCP tags/options | 已实现，有C差分 | [M5 dhcp-tags-options final3](../../private/dnsmasq-rewrite/evidence/M5/four/dhcp-tags/run-final4/summary.json)；generate-names 派生主机名在精确镜像配对中通过。|
+| `dhcp-generate-names` | B / — | DHCP tags/options | 部分实现 | 2026-10-04 复核：无硬件地址时 client-id 回退未按 C 检查长度及剥除硬件类型；现有镜像用例仅覆盖 Ethernet，待补证。 |
 | `dhcp-hostsdir` | B / — | DHCP tags/options | 未实现 | 当前无通过证据；配置显式拒绝；无 inotify 动态文件 append/update 接口，不可拿 SIGHUP hostsfile replacement 代替。 |
 | `dhcp-ignore` | B / — | DHCP tags/options | 已实现，有C差分 | [M5 dhcp-tags-options final3](../../private/dnsmasq-rewrite/evidence/M5/four/dhcp-tags/run-final4/summary.json)；全局 tag predicate ignore 在精确镜像配对中通过。|
 | `dhcp-ignore-clid` | B / — | DHCP tags/options | 部分实现 | [按原始索引](../../docs/dnsmasq/DHCP_STATIC_PHASE.md)；全局 ignore_client_id 已接线到 packet identity；普通 source C 静态/ID 证据存在，但需镜像 C 对同 MAC 变化 CLID、同 CLID 不同 MAC、恢复 leasefile 的专门族差分。 |
-| `dhcp-name-match` | B / — | DHCP tags/options | 已实现，有C差分 | [M5 dhcp-tags-options final3](../../private/dnsmasq-rewrite/evidence/M5/four/dhcp-tags/run-final4/summary.json)；精确名与 prefix `*` 选择在精确镜像配对中通过。|
+| `dhcp-name-match` | B / — | DHCP tags/options | 部分实现 | 2026-10-04 复核：prefix 已有镜像运行证据；精确全名/域名边界及 name-match 到 tag-if 组合未覆盖。 |
 | `dhcp-optsdir` | B / — | DHCP tags/options | 未实现 | 当前无通过证据；配置显式拒绝；无 inotify 动态文件 append/update 接口，不可拿 SIGHUP hostsfile replacement 代替。 |
 | `dhcp-optsfile` | B / — | DHCP tags/options | 未实现 | 当前无通过证据；配置显式拒绝；没有 option bank reload，需先完整 option grammar 再复用 host file scanner/expand ordering。 |
 | `dhcp-reply-delay` | B / — | DHCP tags/options | 未实现 | 当前无通过证据；配置显式拒绝；无 tag-specific delay storage 和 pending DHCP deadline。应接单 owner 状态机，等待期间处理 DNS/TFTP，禁止 sleep。 |
@@ -195,7 +196,7 @@ helper 和 leasequery 已接入单一 poll owner：helper 启动、delivery back
 | `tftp-single-port` | B / — | Boot/relay/TFTP | 部分实现 | [source-native](../../private/dnsmasq-rewrite/tftp-listener-tid-20260930/run-12-final/summary.json)；Integrated single-port transfer mode. Historical source-native reference has explicit FD leak and stale-file divergences; exact image minimal repro and policy record needed; no complete final daemon matrix. |
 | `add-cpe-id` | B / — | DNS 记录/策略 | 未实现 | 当前无通过证据；No typed option consumer or EDNS configuration mutation; generic option-is-not-implemented rejection. Need actual client identity, signed-packet rules, existing-option strip/replace, cacheability and ECS response matching. |
 | `alias` | B / — | DNS 记录/策略 | 部分实现 | [source-native](../../private/dnsmasq-rewrite/dns-alias-config-20261001/source03/private/service-diff-03/result.json)；本轮 paired-04 不包含 alias option，仍需精确镜像选项回放。 |
-| `caa-record` | B / — | DNS 记录/策略 | 已实现，有C差分 | [M5 paired-04](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)；CAA 字段、类型和本地应答通过。 |
+| `caa-record` | B / — | DNS 记录/策略 | 部分实现 | 2026-10-04 复核：正常配对保留；OPENWRT_CONTRACT 中 CAA tag 接受集差异尚未结案，不算完整关闭。 |
 | `clear-on-reload` | B / — | DNS 记录/策略 | 未实现 | 当前无通过证据；No consumer outside option metadata; generic not-implemented rejection. C triggers cache clear when resolv.conf-driven servers change; ordinary SIGHUP always-clear evidence is not this option. |
 | `dns-loop-detect` | B / — | DNS 记录/策略 | 未实现 | 当前无通过证据；Advertised compile capability but no startup probe scheduler or loop-detection policy; generic rejection. |
 | `do-0x20-encode` | B / — | DNS 记录/策略 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final/config-image)；ForwardTable case randomization is connected and has unit tests; no dedicated image daemon behavioral gate found. |
@@ -206,7 +207,7 @@ helper 和 leasequery 已接入单一 poll owner：helper 启动、delivery back
 | `localmx` | B / — | DNS 记录/策略 | 已实现，有C差分 | [M5 paired-04](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)；默认 MX、hostname finalize 和 localmx 交互通过。 |
 | `max-tcp-connections` | B / — | DNS 记录/策略 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-dns/summary.json)；Runtime connection bound is connected, source-native capacity/recovery tests exist, and ordinary image TCP regression passes. Exact image full limits (including zero) and saturation recovery must be indexed/run for M5. |
 | `mx-target` | B / — | DNS 记录/策略 | 已实现，有C差分 | [M5 paired-04](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)；显式 target、默认 target 和 Additional 行为通过。 |
-| `naptr-record` | B / — | DNS 记录/策略 | 已实现，有C差分 | [M5 paired-04](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)；字段边界、转义和本地应答通过。 |
+| `naptr-record` | B / — | DNS 记录/策略 | 部分实现 | 2026-10-04 复核：超过 255 字节的字符字段目前丢弃整条记录，C 会截断字段；paired-04 未覆盖，待修复并重跑。 |
 | `neg-ttl` | B / — | DNS 记录/策略 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-dns/summary.json)；No-SOA fallback is connected and historically C-compared for forward records; reverse negative extraction absent and image option-specific TTL/fallback family gate needed. |
 | `no-0x20-encode` | B / — | DNS 记录/策略 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final/config-image)；Explicit disable is consumed and used by historical image gates, but enabled/disabled conflict precedence and authenticated reply casing need one current daemon image family gate. |
 | `no-round-robin` | B / — | DNS 记录/策略 | 部分实现 | [source-native](../../private/dnsmasq-rewrite/cache-answer-20260930/selection-common-04/summary.json)；Forward/hosts rotation flag is wired; native cache/host ordering differential exists. Reverse-cache paths and exact-image multi-record option matrix remain incomplete. |
@@ -214,7 +215,7 @@ helper 和 leasequery 已接入单一 poll owner：helper 启动、delivery back
 | `ptr-record` | B / — | DNS 记录/策略 | 已实现，有C差分 | [M5 paired-04](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)；显式和省略 target、PTR owner/order 与本地查询通过。 |
 | `selfmx` | B / — | DNS 记录/策略 | 已实现，有C差分 | [M5 paired-04](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)；self-MX、显式 MX/localmx 交互和 Additional 顺序通过。 |
 | `synth-domain` | B / — | DNS 记录/策略 | 未实现 | 当前无通过证据；No typed configuration or forward/reverse synthesized-name consumer; generic rejection. |
-| `txt-record` | B / — | DNS 记录/策略 | 已实现，有C差分 | [M5 paired-04](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)；TXT 分段、空值、255/256 边界和截断行为通过。 |
+| `txt-record` | B / — | DNS 记录/策略 | 部分实现 | 2026-10-04 复核：正常分段/截断配对保留；OPENWRT_CONTRACT 中 RDATA 长度接受集差异尚未结案。 |
 | `umbrella` | B / — | DNS 记录/策略 | 未实现 | 当前无通过证据；No typed option consumer or EDNS configuration mutation; generic option-is-not-implemented rejection. Need actual client identity, signed-packet rules, existing-option strip/replace, cacheability and ECS response matching. |
 | `use-stale-cache` | B / — | DNS 记录/策略 | 部分实现 | [source-native](../../private/dnsmasq-rewrite/stale-refresh-20261001/implementation/gate-03/result.json)；UDP stale answer/background refresh implemented for forward records. Native service gate exists; private TCP stale reference is not a merged pass and current TCP/RD/DO/reverse stale semantics need whole-family qualification. |
 | `bind-interfaces` | B / — | 启动/日志/监听 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-service/summary.json)；静态绑定及不存在接口处理已实现；完整 IPv4/IPv6/别名和失败组合缺镜像族级证据。 |

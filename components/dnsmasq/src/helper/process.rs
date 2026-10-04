@@ -1,7 +1,7 @@
 use super::*;
 use std::ffi::{c_char, c_int, CString, OsString};
 use std::fs::File;
-use std::io::{Read, Write};
+use std::io::{BufReader, Read, Write};
 use std::os::fd::{AsRawFd, FromRawFd, OwnedFd, RawFd};
 use std::os::unix::ffi::{OsStrExt, OsStringExt};
 use std::os::unix::process::{CommandExt, ExitStatusExt};
@@ -75,12 +75,28 @@ pub struct Helper {
     eof: bool,
     reaped: Option<c_int>,
     ready: bool,
+    init_capacity: Option<usize>,
 }
 
 impl Helper {
     /// Call before daemon privilege drop, from the sole service thread. Like C,
     /// the helper retains startup credentials unless script-user changes them.
     pub fn start(config: Config) -> Result<Self, StartError> {
+        Self::start_with_init(config, None)
+    }
+
+    /// Leasefile-ro initialization runs in the helper before credentials drop.
+    /// The owner consumes bounded InitRecord/InitEnd/InitExit notices in its poll.
+    pub fn start_with_init(
+        config: Config,
+        init_capacity: Option<usize>,
+    ) -> Result<Self, StartError> {
+        if init_capacity.is_some() && config.script.as_os_str().as_bytes().len() + 6 > 256 {
+            return Err(StartError {
+                code: 3,
+                message: "lease-change script name is too long".into(),
+            });
+        }
         if config.script.as_os_str().as_bytes().contains(&0) || config.script.as_os_str().is_empty()
         {
             return Err(StartError {
@@ -117,6 +133,7 @@ impl Helper {
             drop(events_read);
             let code = child(
                 config,
+                init_capacity,
                 identity,
                 File::from(commands_read),
                 File::from(events_write),
@@ -136,10 +153,17 @@ impl Helper {
             eof: false,
             reaped: None,
             ready: false,
+            init_capacity,
         })
     }
     pub fn pid(&self) -> i32 {
         self.pid
+    }
+    pub fn initializes_leases(&self) -> bool {
+        self.init_capacity.is_some()
+    }
+    pub fn init_capacity(&self) -> Option<usize> {
+        self.init_capacity
     }
     pub fn ready(&self) -> bool {
         self.ready
@@ -357,19 +381,36 @@ impl Drop for Helper {
     }
 }
 
-fn notice_payload(notice: Notice) -> Vec<u8> {
-    match notice {
+fn notice_payload(notice: Notice) -> io::Result<Vec<u8>> {
+    Ok(match notice {
         Notice::Ready => vec![0],
         Notice::Output(mut bytes) => {
             bytes.insert(0, 1);
             bytes
         }
-        Notice::ScriptExit(value)
+        Notice::InitRecord(record) => {
+            let mut bytes = vec![7];
+            bytes.extend(wire::encode_init(&record)?);
+            bytes
+        }
+        Notice::InitEnd {
+            invalid_records,
+            clean_end,
+        } => {
+            let mut bytes = vec![9, u8::from(clean_end)];
+            bytes.extend((invalid_records as u64).to_le_bytes());
+            bytes
+        }
+        Notice::InitError(value)
+        | Notice::InitExit(value)
+        | Notice::ScriptExit(value)
         | Notice::ScriptSignal(value)
         | Notice::ExecError(value)
         | Notice::Error(value)
         | Notice::Reaped(value) => {
             let code = match notice {
+                Notice::InitError(_) => 10,
+                Notice::InitExit(_) => 8,
                 Notice::ScriptExit(_) => 2,
                 Notice::ScriptSignal(_) => 3,
                 Notice::ExecError(_) => 4,
@@ -380,8 +421,9 @@ fn notice_payload(notice: Notice) -> Vec<u8> {
             bytes.extend(value.to_le_bytes());
             bytes
         }
-    }
+    })
 }
+
 fn decode_notice(bytes: &[u8]) -> io::Result<Notice> {
     let (&kind, data) = bytes.split_first().ok_or_else(invalid)?;
     if kind == 0 && data.is_empty() {
@@ -390,17 +432,31 @@ fn decode_notice(bytes: &[u8]) -> io::Result<Notice> {
     if kind == 1 {
         return Ok(Notice::Output(data.to_vec()));
     }
+    if kind == 7 {
+        return wire::decode_init(data).map(Notice::InitRecord);
+    }
+    if kind == 9 {
+        if data.len() != 9 || data[0] > 1 {
+            return Err(invalid());
+        }
+        return Ok(Notice::InitEnd {
+            clean_end: data[0] == 1,
+            invalid_records: u64::from_le_bytes(data[1..].try_into().unwrap()) as usize,
+        });
+    }
     let value = i32::from_le_bytes(data.try_into().map_err(|_| invalid())?);
     match kind {
         2 => Ok(Notice::ScriptExit(value)),
         3 => Ok(Notice::ScriptSignal(value)),
         4 => Ok(Notice::ExecError(value)),
         5 => Ok(Notice::Error(value)),
+        8 => Ok(Notice::InitExit(value)),
+        10 => Ok(Notice::InitError(value)),
         _ => Err(invalid()),
     }
 }
 fn send(events: &mut File, notice: Notice) -> io::Result<()> {
-    events.write_all(&wire::frame(&notice_payload(notice)))
+    events.write_all(&wire::frame(&notice_payload(notice)?))
 }
 
 fn close_inherited(keep: [RawFd; 2]) -> io::Result<()> {
@@ -438,6 +494,7 @@ fn close_inherited(keep: [RawFd; 2]) -> io::Result<()> {
 }
 fn child(
     config: Config,
+    init_capacity: Option<usize>,
     identity: Option<(u32, u32)>,
     mut commands: File,
     mut events: File,
@@ -456,6 +513,12 @@ fn child(
             Notice::Error(error.raw_os_error().unwrap_or(5)),
         );
         return 5;
+    }
+    if let Some(maximum) = init_capacity {
+        match run_init(&config, maximum, &mut events) {
+            Ok(0) => {}
+            Ok(_) | Err(_) => return 3,
+        }
     }
     if !config.debug {
         if let Some((uid, gid)) = identity.filter(|(uid, _)| *uid != 0) {
@@ -507,6 +570,57 @@ fn child(
             return 5;
         }
     }
+}
+
+fn run_init(config: &Config, maximum: usize, events: &mut File) -> io::Result<i32> {
+    // lease.c parses popen("<fixed script> init", "r") before privilege drop.
+    // The existing scanf-width parser bounds scratch space and record count.
+    // Only the helper child waits; raw stdout never reaches owner memory.
+    let mut command = config.script.as_os_str().to_os_string();
+    command.push(" init");
+    let mut process = Command::new("/bin/sh")
+        .arg("-c")
+        .arg(command)
+        .stdout(Stdio::piped())
+        .spawn()?;
+    let output = process.stdout.take().unwrap();
+    let parsed = crate::dhcp::lease_file::parse_reader(BufReader::new(output), maximum);
+    let parsed = match parsed {
+        Ok(parsed) => parsed,
+        Err(error) => {
+            let code = if error
+                .get_ref()
+                .is_some_and(|cause| cause.is::<crate::dhcp::lease_file::CapacityExceeded>())
+            {
+                5
+            } else {
+                3
+            };
+            let sent = send(events, Notice::InitError(code));
+            // Parent learns the failure before this child reaps the producer.
+            // Its stdout has been closed, matching C's fatal parse boundary.
+            let _ = process.wait();
+            sent?;
+            return Ok(code);
+        }
+    };
+    let status = process.wait()?;
+    // C uses WEXITSTATUS without checking WIFEXITED, yielding zero on signal.
+    let status = (status.into_raw() >> 8) & 255;
+    if status == 0 {
+        for record in parsed.records {
+            send(events, Notice::InitRecord(record))?;
+        }
+        send(
+            events,
+            Notice::InitEnd {
+                invalid_records: parsed.invalid_records,
+                clean_end: parsed.clean_end,
+            },
+        )?;
+    }
+    send(events, Notice::InitExit(status))?;
+    Ok(status)
 }
 
 fn run_script(config: &Config, call: Invocation, events: &mut File) -> io::Result<()> {
@@ -634,6 +748,37 @@ mod tests {
         }
         notices
     }
+    #[test]
+    fn initialization_is_streamed_before_ready_without_waiting_in_owner() {
+        let (folder, config) =
+            script(r#"[ "$1" = init ] || exit 8; sleep 0.2; printf lease-data; exit 7"#);
+        let start = Instant::now();
+        let mut helper = Helper::start_with_init(config, Some(1)).unwrap();
+        assert!(start.elapsed() < Duration::from_millis(100));
+        let notices = until(&mut helper, |helper, _| helper.is_finished());
+        assert!(!notices
+            .iter()
+            .any(|notice| matches!(notice, Notice::InitRecord(_))));
+        assert!(notices.contains(&Notice::InitExit(7)));
+        assert!(!notices.contains(&Notice::Ready));
+        std::fs::remove_dir_all(folder).unwrap();
+    }
+
+    #[test]
+    fn initialization_rejects_excess_leases_before_ready() {
+        let (folder, config) = script(
+            r#"printf '%s\n' '0 02:00:00:00:00:01 127.0.0.11 one *' '0 02:00:00:00:00:02 127.0.0.12 two *'"#,
+        );
+        let mut helper = Helper::start_with_init(config, Some(1)).unwrap();
+        let notices = until(&mut helper, |helper, _| helper.is_finished());
+        assert!(notices.contains(&Notice::InitError(5)));
+        assert!(!notices.contains(&Notice::Ready));
+        assert!(!notices
+            .iter()
+            .any(|notice| matches!(notice, Notice::InitRecord(_))));
+        std::fs::remove_dir_all(folder).unwrap();
+    }
+
     #[test]
     fn serial_scripts_progress_without_blocking_owner_and_eof_reaps() {
         let (folder, config) = script("sleep 0.2; printf '%s\\n' \"$*\"; exit 7");

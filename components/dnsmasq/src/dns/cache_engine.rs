@@ -16,6 +16,7 @@ use std::net::IpAddr;
 pub(super) struct CachedAnswer {
     pub packet: Option<Vec<u8>>,
     pub stale: bool,
+    pub filtered: bool,
 }
 
 #[derive(Debug)]
@@ -85,6 +86,7 @@ impl CacheContext<'_> {
             || edns.signed
         {
             return Ok(CachedAnswer {
+                filtered: false,
                 packet: None,
                 stale: false,
             });
@@ -120,6 +122,7 @@ impl CacheContext<'_> {
                 }
             }
             return Ok(CachedAnswer {
+                filtered: false,
                 packet: None,
                 stale,
             });
@@ -136,24 +139,18 @@ impl CacheContext<'_> {
             max_udp.min(limit),
             dnssec_requested,
         )?;
-        if let Some(packet) = &mut answer.packet {
-            // Forward-cache answers are filtered at the same post-selection
-            // boundary as C's answer_request output. Local direct answers
-            // never enter this method.
-            super::reply::filter_rrs(packet, self.filter_rr)?;
-        }
         if edns.opt.is_some() {
             if let Some(packet) = &mut answer.packet {
                 // receive_query appends against the configured daemon limit,
                 // after answer_request used the client's advertised limit.
-                if answer.stale {
+                if answer.stale || answer.filtered {
                     // Add the 17-byte OPT/EDE directly. Adding an empty OPT
                     // first would retain the wrong output at the fit boundary.
                     super::tcp_service::add_ede(
                         packet,
                         edns_packet_max,
                         false,
-                        3,
+                        if answer.filtered { 17 } else { 3 },
                         usize::from(edns_packet_max),
                     )?;
                 } else {
@@ -183,6 +180,7 @@ impl CacheContext<'_> {
         let cache = &mut *self.cache;
         if question.class != 1 {
             return Ok(CachedAnswer {
+                filtered: false,
                 packet: None,
                 stale,
             });
@@ -205,8 +203,7 @@ impl CacheContext<'_> {
             // rfc1035.c uses an existing cached RR of any family/type to
             // answer filtered requests as NODATA, avoiding an upstream round
             // trip. DNSSEC/DO requests bypass this unauthenticated shortcut.
-            if header.flags & 0x0100 != 0
-                && !dnssec_requested
+            if !dnssec_requested
                 && question.rrtype != 255
                 && self.filter_rr.contains(&question.rrtype)
                 && !cache
@@ -221,7 +218,7 @@ impl CacheContext<'_> {
                 let mut writer =
                     PacketWriter::new(header.id, (header.flags & 0x0110) | 0x8080, limit)?;
                 writer.question(&question.name, question.rrtype, question.class)?;
-                return Ok(finish_cached_answer(writer, false)?);
+                return Ok(finish_filtered_answer(writer, false)?);
             }
             // An address/CNAME miss still reaches C's final F_RR lookup.
             // An unrelated generic record cannot answer this question, but
@@ -236,6 +233,7 @@ impl CacheContext<'_> {
                 );
             }
             return Ok(CachedAnswer {
+                filtered: false,
                 packet: None,
                 stale,
             });
@@ -255,7 +253,32 @@ impl CacheContext<'_> {
             }
         }
         if header.flags & 0x0100 == 0 && !(question.rrtype == 5 && direct_negative.is_some()) {
+            // The final filtered-name existence shortcut is independent of
+            // RD, unlike ordinary recursive cache answers.
+            if question.rrtype != 255
+                && self.filter_rr.contains(&question.rrtype)
+                && !dnssec_requested
+                && !ids.iter().any(|id| {
+                    cache
+                        .get(*id)
+                        .is_some_and(|entry| entry.record.kind == Kind::Cname)
+                })
+                && !cache
+                    .lookup(
+                        &question.name,
+                        &[Kind::Ipv4, Kind::Ipv6, Kind::Generic(0)],
+                        now,
+                        round_robin,
+                    )
+                    .is_empty()
+            {
+                let mut writer =
+                    PacketWriter::new(header.id, (header.flags & 0x0110) | 0x8080, limit)?;
+                writer.question(&question.name, question.rrtype, question.class)?;
+                return Ok(finish_filtered_answer(writer, false)?);
+            }
             return Ok(CachedAnswer {
+                filtered: false,
                 packet: None,
                 stale,
             });
@@ -288,6 +311,7 @@ impl CacheContext<'_> {
         if question.rrtype == 5 {
             if header.flags & 0x0100 == 0 {
                 return Ok(CachedAnswer {
+                    filtered: false,
                     packet: None,
                     stale,
                 });
@@ -314,6 +338,7 @@ impl CacheContext<'_> {
                 }
             }
             return Ok(CachedAnswer {
+                filtered: false,
                 packet: None,
                 stale,
             });
@@ -344,47 +369,7 @@ impl CacheContext<'_> {
             return Ok(finish_cached_answer(writer, stale)?);
         }
 
-        // A CNAME can terminate in a cached negative entry.  Preflight the
-        // linked target before creating the writer so its RCODE matches the
-        // terminal result while still emitting every CNAME in the answer.
-        let mut cname_negative = None;
-        for id in &ids {
-            let Some(entry) = cache.get(*id) else {
-                continue;
-            };
-            if entry.record.kind != Kind::Cname {
-                continue;
-            }
-            let mut current = *id;
-            for _ in 0..10 {
-                let Some(current_entry) = cache.get(current) else {
-                    break;
-                };
-                if current_entry.record.kind != Kind::Cname {
-                    if current_entry.record.negative {
-                        cname_negative = Some((current, current_entry.record.kind));
-                    }
-                    break;
-                }
-                let Some(target) = current_entry.cname_target() else {
-                    break;
-                };
-                match target {
-                    CnameTarget::Dynamic(target) => current = target,
-                    CnameTarget::Local(_) => break,
-                }
-            }
-        }
-        let mut writer = PacketWriter::new(
-            header.id,
-            (header.flags & 0x0110)
-                | if cname_negative.is_some_and(|(_, kind)| kind == Kind::NxDomain) {
-                    0x8083
-                } else {
-                    0x8080
-                },
-            limit,
-        )?;
+        let mut writer = PacketWriter::new(header.id, (header.flags & 0x0110) | 0x8080, limit)?;
         writer.question(&question.name, question.rrtype, question.class)?;
         let mut written = false;
         for id in ids {
@@ -434,6 +419,7 @@ impl CacheContext<'_> {
                                 )?
                                 else {
                                     return Ok(CachedAnswer {
+                                        filtered: false,
                                         packet: None,
                                         stale,
                                     });
@@ -444,32 +430,42 @@ impl CacheContext<'_> {
                         let Some(target_entry) = cache.get(target) else {
                             break;
                         };
-                        if matches!(target_entry.record.kind, Kind::Cname) {
+                        if target_entry.record.kind == Kind::Cname {
                             current = target;
                             continue;
                         }
+                        // The link validates the CNAME lifetime, but C looks
+                        // up the terminal name again for the current qtype.
+                        let terminal_name = target_entry.record.name.clone();
+                        let terminal_ids =
+                            cache.lookup_question(&terminal_name, kind, now, round_robin);
+                        let selected = terminal_ids.iter().copied().find(|id| {
+                            cache.get(*id).is_some_and(|entry| {
+                                entry.record.kind == kind || entry.record.kind == Kind::NxDomain
+                            })
+                        });
+                        let Some(target) = selected else {
+                            if question.rrtype != 255
+                                && self.filter_rr.contains(&question.rrtype)
+                                && !dnssec_requested
+                            {
+                                return Ok(finish_filtered_answer(writer, stale)?);
+                            }
+                            return Ok(CachedAnswer {
+                                packet: None,
+                                stale,
+                                filtered: false,
+                            });
+                        };
+                        let Some(target_entry) = cache.get(target) else {
+                            break;
+                        };
                         if target_entry.record.negative {
-                            // A cached NODATA is specific to its original
-                            // qtype. The CNAME link does not make it a
-                            // name-wide negative, nor extend its expiry.
-                            if target_entry.record.kind != kind
-                                && target_entry.record.kind != Kind::NxDomain
-                            {
-                                return Ok(CachedAnswer {
-                                    packet: None,
-                                    stale,
-                                });
-                            }
-                            let terminal_name = target_entry.record.name.clone();
-                            if !cache
-                                .lookup_question(&terminal_name, kind, now, round_robin)
-                                .contains(&target)
-                            {
-                                return Ok(CachedAnswer {
-                                    packet: None,
-                                    stale,
-                                });
-                            }
+                            let negative_flags = if target_entry.record.kind == Kind::NxDomain {
+                                0x8083
+                            } else {
+                                0x8080
+                            };
                             stale |= cache.get(target).is_some_and(|entry| entry.is_stale(now));
                             match append_negative_authority(&mut writer, cache, target, now) {
                                 Ok(_) => {}
@@ -478,22 +474,18 @@ impl CacheContext<'_> {
                                 }
                                 Err(error) => return Err(error.into()),
                             }
-                            complete = true;
+                            return Ok(finish_cached_answer_flags(
+                                writer,
+                                Some(negative_flags),
+                                stale,
+                            )?);
                         } else {
-                            // A CNAME is reusable across qtypes, but its
-                            // cached terminal RRset is not.  C's answer path
-                            // abandons this cache hit when an A chain is
-                            // queried as AAAA (and vice versa).
-                            if target_entry.record.kind != kind {
-                                return Ok(CachedAnswer {
-                                    packet: None,
-                                    stale,
-                                });
+                            if question.rrtype != 255 && self.filter_rr.contains(&question.rrtype) {
+                                let mut answer = finish_cached_answer(writer, stale)?;
+                                answer.filtered = matches!(kind, Kind::Ipv4 | Kind::Ipv6);
+                                return Ok(answer);
                             }
-                            let terminal_name = target_entry.record.name.clone();
                             let terminal_kind = target_entry.record.kind;
-                            let terminal_ids =
-                                cache.lookup(&terminal_name, &[terminal_kind], now, round_robin);
                             for terminal_id in terminal_ids {
                                 if cache
                                     .get(terminal_id)
@@ -527,6 +519,7 @@ impl CacheContext<'_> {
                     }
                     if !complete {
                         return Ok(CachedAnswer {
+                            filtered: false,
                             packet: None,
                             stale,
                         });
@@ -538,6 +531,13 @@ impl CacheContext<'_> {
                 }
                 stale |= entry.is_stale(now);
             }
+            if question.rrtype != 255 && self.filter_rr.contains(&question.rrtype) {
+                let mut answer = finish_cached_answer(writer, stale)?;
+                // C marks address filtering for EDE. The generic F_RR path
+                // suppresses the RR without setting answer_request's flag.
+                answer.filtered = matches!(kind, Kind::Ipv4 | Kind::Ipv6);
+                return Ok(answer);
+            }
             match append_positive_record(&mut writer, cache, id, Section::Answer, now, Some(12)) {
                 Ok(true) => written = true,
                 Ok(false) => {}
@@ -548,7 +548,24 @@ impl CacheContext<'_> {
         if written {
             return Ok(finish_cached_answer(writer, stale)?);
         }
+        // F_RR lookup returns every generic type. An unrelated generic RR
+        // still proves the name exists for C's final filtered-NODATA shortcut.
+        if question.rrtype != 255
+            && self.filter_rr.contains(&question.rrtype)
+            && !dnssec_requested
+            && !cache
+                .lookup(
+                    &question.name,
+                    &[Kind::Cname, Kind::Ipv4, Kind::Ipv6, Kind::Generic(0)],
+                    now,
+                    round_robin,
+                )
+                .is_empty()
+        {
+            return Ok(finish_filtered_answer(writer, stale)?);
+        }
         Ok(CachedAnswer {
+            filtered: false,
             packet: None,
             stale,
         })
@@ -834,6 +851,12 @@ impl CacheContext<'_> {
 
 /// `answer_request` clears all response sections when any cached RR cannot
 /// fit, while the reusable PacketWriter intentionally retains complete RRs.
+fn finish_filtered_answer(writer: PacketWriter, stale: bool) -> Result<CachedAnswer, WireError> {
+    let mut answer = finish_cached_answer(writer, stale)?;
+    answer.filtered = true;
+    Ok(answer)
+}
+
 fn finish_cached_answer(writer: PacketWriter, stale: bool) -> Result<CachedAnswer, WireError> {
     finish_cached_answer_flags(writer, None, stale)
 }
@@ -857,6 +880,7 @@ fn finish_cached_answer_flags(
         header.write(&mut packet)?;
     }
     Ok(CachedAnswer {
+        filtered: false,
         packet: Some(packet),
         stale,
     })
@@ -1057,18 +1081,111 @@ fn insert_cache_record(
 }
 
 fn is_name_suffix(name: &Name, suffix: &Name) -> bool {
-    let name = name.canonical_wire();
-    let suffix = suffix.canonical_wire();
-    let mut offset = 0;
-    while offset < name.len() {
-        if name[offset..].starts_with(&suffix) {
-            return true;
+    // find_soa compares the decoded name's byte suffix, including a suffix
+    // beginning inside a label. Preserve that observable image behavior.
+    let name = name.dnsmasq_bytes();
+    let suffix = suffix.dnsmasq_bytes();
+    name.len() >= suffix.len() && name[name.len() - suffix.len()..].eq_ignore_ascii_case(&suffix)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::dns::DnsConfig;
+    use crate::hosts::Hosts;
+
+    #[test]
+    fn cached_alias_reselects_terminal_family_and_filter_keeps_the_cname() {
+        for filter in [Vec::new(), vec![28]] {
+            let mut cache = Cache::new(8, Default::default());
+            let alias_name = Name::from_ascii("alias.test").unwrap();
+            let terminal_name = Name::from_ascii("target.test").unwrap();
+            cache.start_insert();
+            let alias = cache
+                .insert(
+                    Record {
+                        name: alias_name.clone(),
+                        kind: Kind::Cname,
+                        negative: false,
+                        data: terminal_name.as_wire().to_vec(),
+                    },
+                    100,
+                    60,
+                )
+                .unwrap();
+            let target = cache
+                .insert(
+                    Record {
+                        name: terminal_name.clone(),
+                        kind: Kind::Ipv4,
+                        negative: false,
+                        data: vec![192, 0, 2, 1],
+                    },
+                    100,
+                    60,
+                )
+                .unwrap();
+            cache
+                .insert(
+                    Record {
+                        name: terminal_name,
+                        kind: Kind::Ipv6,
+                        negative: false,
+                        data: vec![0; 16],
+                    },
+                    100,
+                    60,
+                )
+                .unwrap();
+            assert!(cache.set_cname_target(alias, target));
+            assert!(cache.commit());
+            let question = super::super::forward::Question {
+                name: alias_name,
+                rrtype: 28,
+                class: 1,
+            };
+            let mut counters = CacheCounters::default();
+            let mut local = LocalDnsService::new(DnsConfig::default(), Hosts::new(), 60, 1232);
+            let answer = CacheContext {
+                cache: &mut cache,
+                counters: &mut counters,
+                negative_cache: true,
+                negative_ttl: 0,
+                filter_rr: &filter,
+            }
+            .answer_records(
+                &question,
+                Header {
+                    id: 1,
+                    flags: 0x0100,
+                    questions: 1,
+                    answers: 0,
+                    authorities: 0,
+                    additionals: 0,
+                },
+                101,
+                &mut local,
+                1232,
+                false,
+            )
+            .unwrap();
+            assert_eq!(answer.filtered, !filter.is_empty());
+            let packet = answer
+                .packet
+                .expect("the cached AAAA RRset answers the alias");
+            let message = Message::parse(&packet).unwrap();
+            let types: Vec<_> = message
+                .records(Section::Answer)
+                .map(|rr| rr.rrtype)
+                .collect();
+            assert_eq!(
+                types,
+                if filter.is_empty() {
+                    vec![5, 28]
+                } else {
+                    vec![5]
+                }
+            );
         }
-        let length = usize::from(name[offset]);
-        if length == 0 {
-            break;
-        }
-        offset = offset.checked_add(length + 1).unwrap_or(name.len());
     }
-    false
 }

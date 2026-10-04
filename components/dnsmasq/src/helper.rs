@@ -6,9 +6,12 @@ use std::io;
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
 
+#[path = "helper/packet.rs"]
+mod packet;
 #[cfg(target_os = "linux")]
 #[path = "helper/process.rs"]
 mod process;
+pub use packet::{cpe_data, extra_data};
 #[path = "helper/wire.rs"]
 mod wire;
 #[cfg(target_os = "linux")]
@@ -68,7 +71,8 @@ pub struct LeaseEvent {
     pub log_dhcp: bool,
 }
 
-/// Per-packet context which is not retained in [`crate::dhcp::lease::Lease`].
+/// Lease-local helper context. Interface and relay survive after transient
+/// packet extradata has been consumed by the first add/old callback.
 ///
 /// The C helper receives this snapshot at the point where the lease event is
 /// queued.  Keeping it explicit prevents the service owner from looking up a
@@ -142,6 +146,9 @@ impl LeaseEvent {
     }
 }
 
+// Events are serialized immediately; keeping the lease inline avoids another
+// allocation for each callback. The owner queues LeaseDelivery separately.
+#[allow(clippy::large_enum_variant)]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Event {
     Lease(LeaseEvent),
@@ -160,6 +167,16 @@ pub enum Event {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Notice {
     Ready,
+    /// Parsed startup records, each bounded by the lease-file scanf widths.
+    InitRecord(crate::dhcp::lease_file::LeaseRecord),
+    InitEnd {
+        invalid_records: usize,
+        clean_end: bool,
+    },
+    /// Startup parser failure with the C process exit class.
+    InitError(i32),
+    /// Shell exit status; 126/127 map to EC_FILE, others to EC_INIT_OFFSET.
+    InitExit(i32),
     /// Merged stdout/stderr bytes; only non-debug scripts are captured by C.
     Output(Vec<u8>),
     ScriptExit(i32),
@@ -499,7 +516,7 @@ mod tests {
         assert_eq!(hostname(b"-client.lan"), None);
         assert_eq!(hostname(b"client.\xff"), None);
         assert_eq!(hostname(b"client.\n"), None);
-        assert_eq!(hostname(&vec![b'a'; 64]), None);
+        assert_eq!(hostname(&[b'a'; 64]), None);
         assert_eq!(hostname(b"."), Some(Vec::new()));
     }
     #[test]

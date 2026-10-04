@@ -102,7 +102,8 @@ pub trait OutcomeProvider {
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     fn lease_query_reply(
         &mut self,
-        _packet: super::packet::Packet<'_>,
+        _dispatch: &Dispatch<'_>,
+        _interface_name: Option<&[u8]>,
         _source: Ipv4Addr,
         _output: &mut [u8],
     ) -> Result<Option<usize>, RuntimeError> {
@@ -514,20 +515,30 @@ where
             },
             Route::Local => Ipv4Addr::UNSPECIFIED,
         };
-        if source.is_unspecified() {
-            events.push(RuntimeEvent::NoReply);
-            return Ok(RuntimeReport {
-                events,
-                outcome: None,
-            });
-        }
-        let length = match provider.lease_query_reply(dispatch.packet, source, buffer) {
+        let interface_name = sender
+            .interface_name(dispatch.ingress.interface_index)
+            .map_err(|error| {
+                failure(RuntimeError::Interface(error), events.clone(), None, false)
+            })?;
+        let interface_bytes = interface_name.as_ref().map(|name| {
+            &name[..name
+                .iter()
+                .position(|byte| *byte == 0)
+                .unwrap_or(name.len())]
+        });
+        let length = match provider.lease_query_reply(&dispatch, interface_bytes, source, buffer) {
             Ok(length) => length,
             Err(error) => return Err(failure(error, events, None, false)),
         };
         if let Some(length) = length {
+            // dhcp.c restores the all-ones giaddr sentinel and sends to the
+            // original source address AND port for this relay extension.
             let destination = Destination {
-                address: SocketAddr::from((source, 67)),
+                address: if matches!(dispatch.route, Route::RelaySource { .. }) {
+                    peer
+                } else {
+                    SocketAddr::from((source, 67))
+                },
                 interface: dispatch.ingress.interface_index,
                 kind: DestinationKind::Peer,
                 arp: None,
@@ -833,7 +844,7 @@ fn encode_configured_options(
 // selected configuration, and two output slots. Keeping them explicit makes
 // the precedence and mutation points auditable against that call chain.
 #[allow(clippy::too_many_arguments)]
-fn encode_filtered_options(
+pub(super) fn encode_filtered_options(
     packet: super::packet::Packet<'_>,
     reply: Reply,
     local: Option<Ipv4Addr>,
@@ -850,7 +861,8 @@ fn encode_filtered_options(
         return values;
     }
     let bootp = matches!(reply, Reply::Bootp { .. });
-    let null_term = !bootp && broken_string_option(packet);
+    let leasequery = packet.message_type() == 10;
+    let null_term = !bootp && !leasequery && broken_string_option(packet);
     for _ in 0..selection.duplicate_warnings {
         eprintln!("dnsmasq-rs: Ignoring duplicate dhcp-option");
     }
@@ -867,6 +879,7 @@ fn encode_filtered_options(
             continue;
         }
         if matches!(option.code, 66 | 67)
+            && !leasequery
             && !has_boot
             && !option.force
             && (bootp || packet.option(55, 0).is_none() || !packet.requests(option.code))
@@ -887,7 +900,7 @@ fn encode_filtered_options(
         if matches!(option.code, 0 | 52 | 57 | 81) {
             continue;
         }
-        if !option.force && !bootp && !packet.requests(option.code) {
+        if (leasequery || !option.force) && !bootp && !packet.requests(option.code) {
             continue;
         }
         let mut value = option
@@ -955,7 +968,7 @@ fn encode_filtered_options(
         .find(|(code, _)| *code == 60)
         .map(|(_, value)| value.as_slice());
     let vendor = vendor_sent.or_else(|| packet.option(60, 1));
-    if let Some(vendor) = vendor {
+    if let Some(vendor) = vendor.filter(|_| !leasequery) {
         let selected: Vec<_> = configured
             .iter()
             .filter(|option| {
