@@ -165,7 +165,10 @@ def profiles():
         profile("bootp-static", ["dhcp-boot=static.img"], [case("static-without-permission",kind=0,arch=None,vendor=None,prl=None)], ["BOOTP02", "BOOTP03"], mode="static"),
         profile("no-override-default", legacy+["dhcp-boot=file.img,server-name"], [case("requested-boot-options",prl=bytes([43,60,66,67]))], ["NOOVERRIDE01"], mode="dynamic"),
         profile("no-override-enabled", legacy+["dhcp-boot=file.img,server-name", "dhcp-no-override"], [case("fixed-boot-fields",prl=bytes([43,60,66,67]))], ["NOOVERRIDE01", "CFG-N01"], mode="dynamic"),
-        profile("4011-leasequery", legacy+["leasequery"], [case("query-on4011",kind=10,giaddr=CLIENT,ciaddr="10.77.0.19",listener=4011,source_port=67)], ["RX05"], mode="dynamic"),
+        profile("4011-leasequery", legacy+["leasequery"], [
+            case("query-unassigned4011",kind=10,giaddr=CLIENT,ciaddr="10.77.0.10",listener=4011,source_port=67),
+            case("query-unknown4011",kind=10,giaddr=CLIENT,ciaddr="192.0.2.1",listener=4011,source_port=67),
+        ], ["RX05"], mode="dynamic"),
         profile("enabled-no-range", legacy, [case("no-dhcp67",reply=False),case("no-pxe4011",listener=4011,reply=False)], ["START01"], mode="none", expect4011=False),
         profile("vendor-option-only", ["dhcp-pxe-vendor=PXEClient", "dhcp-option-pxe=225,not-enabled"], [case("ordinary67"),case("4011-absent",listener=4011,reply=False)], ["START01", "CFG-O01", "CFG-V01"], mode="dynamic", expect4011=False),
     ]
@@ -192,8 +195,8 @@ def profiles():
         profile("service-tags",["pxe-service=tag:missing,0,Hidden,hidden", "pxe-service=tag:known,0,Known,known", "pxe-service=0,Common,common"],[
             case("known-menu"),case("boot-item-tag-unchecked",kind=3,ciaddr=CLIENT,boot_item=item()),
         ],["CFG-S04","MENU01","BOOT02"]),
-        profile("ignored-proxy",legacy+["dhcp-ignore"],[case("ignored",reply=False)], ["PROXY06"]),
-        profile("ignored-boot-item",legacy+["dhcp-ignore"],[case("ignored-item",kind=3,ciaddr=CLIENT,boot_item=item(),reply=False)], ["BOOT01","PROXY06"]),
+        profile("ignored-proxy",legacy+["dhcp-ignore=tag:client0"],[case("ignored",reply=False)], ["PROXY06"]),
+        profile("ignored-boot-item",legacy+["dhcp-ignore=tag:client0"],[case("ignored-item",kind=3,ciaddr=CLIENT,boot_item=item(),reply=False)], ["BOOT01","PROXY06"]),
         profile("boot-filename-bounds",["pxe-service=0,Long,"+"b"*150],[
             case("filename-truncated",kind=3,ciaddr=CLIENT,boot_item=item(32768,65535),reply=False),
             case("filename-127",kind=3,ciaddr=CLIENT,boot_item=item(32768,32767)),
