@@ -293,6 +293,18 @@ impl DnsFiles {
         }
     }
 
+    /// Cancel a hostname resolver child without waiting. The owner must call
+    /// `step()` until `has_work()` becomes false before dropping the daemon.
+    pub fn begin_shutdown(&mut self) {
+        if let Some(lookup) = &mut self.endpoint_lookup {
+            lookup.cancel();
+        }
+        self.endpoint_update = None;
+        self.requests.clear();
+        self.triggers.clear();
+        self.job = None;
+    }
+
     pub fn has_work(&self) -> bool {
         self.endpoint_lookup.is_some()
             || self.job.is_some()

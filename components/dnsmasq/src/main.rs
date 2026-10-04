@@ -936,8 +936,15 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         }
         poll.wait_for_files()?;
     }
+    #[cfg(target_os = "linux")]
+    if let Some(files) = &mut poll.dns_files {
+        files.begin_shutdown();
+    }
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     loop {
+        if let Some(files) = &mut poll.dns_files {
+            let _ = files.step();
+        }
         let drained = poll.step_helper_shutdown();
         if let Some(error) = poll.helper_init_error.take() {
             pid_file.cleanup();
