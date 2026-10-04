@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "executable": false,
-  "status": "C-source-checklist-frozen",
+  "executable": true,
+  "status": "short-C-baseline-before-full-paired-schedule",
   "scope": "Fourth matrix: existing IPv4 DHCP options only; excludes DHCP-range ICMP errors, dynamic hostfiles and PXE.",
   "source_identity": {
     "option.c": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
@@ -18,37 +18,58 @@
         "rfc2131.c:1392-1591",
         "dhcp.c:414-459"
       ],
-      "scenarios": [],
+      "scenarios": [
+        "auth-off-baseline",
+        "auth-on-baseline"
+      ],
       "checklist": [
         {
           "boundary": "Flag grammar and unexpected-argument rejection; ordinary selecting ACK remains valid with authority off/on.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "auth-off-baseline",
+            "auth-on-baseline"
+          ]
         },
         {
           "boundary": "Wrong server-ID: silent without authority, NAK with authority; trusted local interface server-ID alias remains accepted.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "auth-off-baseline",
+            "auth-on-baseline"
+          ]
         },
         {
           "boundary": "INIT-REBOOT: unknown lease ignored without authority and recoverable with authority; existing matching lease ACK, wrong address NAK.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "auth-off-baseline",
+            "auth-on-baseline"
+          ]
         },
         {
           "boundary": "Unknown RENEW/REBIND: nonauthoritative broadcast ignored, unicast NAK/broadcast destination; authoritative recovery ACK. Existing lease identity at wrong ciaddr follows the same source rule.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "auth-off-baseline",
+            "auth-on-baseline"
+          ]
         },
         {
           "boundary": "Reassignment removes old lease before new selection; NAK ciaddr/flags/server-ID/destination and subsequent lease table are observed on wire and disk.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "auth-off-baseline",
+            "auth-on-baseline"
+          ]
         },
         {
           "boundary": "Compare full reply bytes, physical UDP/IP/Ethernet destination and DNS responsiveness; renewal fuzz is range-validated, not arbitrarily removed.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "auth-off-baseline",
+            "auth-on-baseline"
+          ]
         }
       ]
     },
@@ -59,37 +80,58 @@
         "rfc2131.c:2661-2667",
         "dhcp.c:414-459"
       ],
-      "scenarios": [],
+      "scenarios": [
+        "broadcast-off",
+        "broadcast-on"
+      ],
       "checklist": [
         {
           "boundary": "Bare flag is unconditional; tag:/net:/bare selectors use exact tags, !/# negation, AND within a line and OR across repeated directives.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "broadcast-off",
+            "broadcast-on"
+          ]
         },
         {
           "boundary": "Request MAC/vendor/tag-if/implicit interface tags can match; range set-tag is not yet present at force-broadcast evaluation.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "broadcast-off",
+            "broadcast-on"
+          ]
         },
         {
           "boundary": "No forced flag versus forced flag changes offer/ACK flags and actual broadcast destination. Existing request broadcast bit stays set.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "broadcast-off",
+            "broadcast-on"
+          ]
         },
         {
           "boundary": "Nonzero ciaddr retains unicast delivery even when forced flag is set. Leasequery do_options bypasses forced broadcast.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "broadcast-off",
+            "broadcast-on"
+          ]
         },
         {
           "boundary": "Empty argument/tag:/net: are syntax-only source-NULL defect witnesses: C --test accepts, Rust explicitly rejects. Never send DHCP to those C configs.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "broadcast-off",
+            "broadcast-on"
+          ]
         },
         {
           "boundary": "Comparator rejects missing replies, changed flags/destinations, and unclassified diagnostics; reference defect classification has exact allowlisted inputs/outputs.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "broadcast-off",
+            "broadcast-on"
+          ]
         }
       ]
     },
@@ -99,32 +141,50 @@
         "lease.c:23-178,643,845-870",
         "rfc2131.c:1552-1576"
       ],
-      "scenarios": [],
+      "scenarios": [
+        "capacity-zero",
+        "capacity-one"
+      ],
       "checklist": [
         {
           "boundary": "0/1/default and invalid numeric syntax; zero permits OFFER selection but no ACK lease allocation.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "capacity-zero",
+            "capacity-one"
+          ]
         },
         {
           "boundary": "Fill capacity with distinct identities, reject additional ACK with no-leases-left NAK, allow existing-lease renewal while full.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "capacity-zero",
+            "capacity-one"
+          ]
         },
         {
           "boundary": "RELEASE frees a slot and subsequent client can allocate; ordinary capacity is independent of available pool addresses.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "capacity-zero",
+            "capacity-one"
+          ]
         },
         {
           "boundary": "Restart restores full capacity and leases; restored count above limit fails EC_MISC5 before serving. Expired records consume restore capacity before startup pruning.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "capacity-zero",
+            "capacity-one"
+          ]
         },
         {
           "boundary": "Complete wire and normalized lease snapshots prove both capacity and persistence; absolute expiries are individually checked against declared 600-second duration.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "capacity-zero",
+            "capacity-one"
+          ]
         }
       ]
     },
@@ -135,32 +195,44 @@
         "lease.c:825-842",
         "rfc2131.c:1237-1268"
       ],
-      "scenarios": [],
+      "scenarios": [
+        "sequential-baseline"
+      ],
       "checklist": [
         {
           "boundary": "Flag grammar; no-ping is fixed for this batch so no ICMP-I/O contract is added.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "sequential-baseline"
+          ]
         },
         {
           "boundary": "Committed clients allocate ascending addresses from greatest extant lease, skip reserved/static/server addresses, and wrap to a free lower hole.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "sequential-baseline"
+          ]
         },
         {
           "boundary": "DISCOVER alone does not allocate a lease; with no-ping repeated uncommitted offers remain eligible.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "sequential-baseline"
+          ]
         },
         {
           "boundary": "DECLINE removes the matching lease and increments epoch, skipping the next otherwise eligible address; restart resets transient epoch while restoring leases.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "sequential-baseline"
+          ]
         },
         {
           "boundary": "Restart with a high restored lease continues above it then wraps; compare actual offer/ACK sequence and lease table.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "sequential-baseline"
+          ]
         }
       ]
     },
@@ -170,35 +242,548 @@
         "dhcp.c:329-331",
         "network.c:539-558"
       ],
-      "scenarios": [],
+      "scenarios": [
+        "exclude-none",
+        "exclude-lan"
+      ],
       "checklist": [
         {
           "boundary": "Empty list items are ignored; exact interface, wildcard, repeated directives and comma lists exclude only matching ingress interfaces.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "exclude-none",
+            "exclude-lan"
+          ]
         },
         {
           "boundary": "Two actual server interfaces and client links prove selective exclusion; changing listen-address/interface must not bypass exclusion.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "exclude-none",
+            "exclude-lan"
+          ]
         },
         {
           "boundary": "DNS remains available on DHCP-excluded interfaces, distinguishing this option from except-interface.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "exclude-none",
+            "exclude-lan"
+          ]
         },
         {
           "boundary": "Existing TFTP admission respects exclusion; explicit enable-tftp interface list overrides it per C network.c. Only this selector boundary, not PXE/TFTP internals.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "exclude-none",
+            "exclude-lan"
+          ]
         },
         {
           "boundary": "No-DHCP interfaces produce no DHCP packets or lease mutations; positive control on other interface and full namespace/process cleanup are mandatory.",
           "checked": false,
-          "required_scenarios": []
+          "required_scenarios": [
+            "exclude-none",
+            "exclude-lan"
+          ]
         }
       ]
     }
   },
-  "scenarios": []
+  "scenarios": [
+    {
+      "id": "auth-off-baseline",
+      "options": [
+        "dhcp-authoritative"
+      ],
+      "adapter": "dhcp",
+      "config": "",
+      "probes": [
+        {
+          "id": "select",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.10",
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        },
+        {
+          "id": "wrong-server",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "address": "10.77.0.11",
+          "server_id": "10.77.0.254",
+          "expect": {
+            "status": null,
+            "leases": 1
+          }
+        },
+        {
+          "id": "unknown-init",
+          "action": "init-reboot",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "address": "10.77.0.11",
+          "expect": {
+            "status": null,
+            "leases": 1
+          }
+        },
+        {
+          "id": "unknown-renew",
+          "action": "renew",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "address": "10.77.0.11",
+          "expect": {
+            "status": 6,
+            "destination": "255.255.255.255",
+            "leases": 1
+          }
+        },
+        {
+          "id": "unknown-rebind",
+          "action": "rebind",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "address": "10.77.0.11",
+          "expect": {
+            "status": null,
+            "leases": 1
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "auth-on-baseline",
+      "options": [
+        "dhcp-authoritative"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-authoritative\n",
+      "probes": [
+        {
+          "id": "wrong-server",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "address": "10.77.0.11",
+          "server_id": "10.77.0.254",
+          "expect": {
+            "status": 6,
+            "destination": "255.255.255.255",
+            "leases": 0
+          }
+        },
+        {
+          "id": "unknown-init",
+          "action": "init-reboot",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        },
+        {
+          "id": "unknown-renew",
+          "action": "renew",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "address": "10.77.0.11",
+          "expect": {
+            "status": 5,
+            "leases": 2
+          }
+        },
+        {
+          "id": "unknown-rebind",
+          "action": "rebind",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 3,
+          "address": "10.77.0.12",
+          "expect": {
+            "status": 5,
+            "leases": 3
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "broadcast-off",
+      "options": [
+        "dhcp-broadcast"
+      ],
+      "adapter": "dhcp",
+      "config": "",
+      "probes": [
+        {
+          "id": "offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "expect": {
+            "status": 2,
+            "flags": 0,
+            "leases": 0
+          }
+        },
+        {
+          "id": "ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.10",
+          "expect": {
+            "status": 5,
+            "flags": 0,
+            "leases": 1
+          }
+        },
+        {
+          "id": "renew",
+          "action": "renew",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.10",
+          "expect": {
+            "status": 5,
+            "flags": 0,
+            "destination": "10.77.0.10",
+            "leases": 1
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "broadcast-on",
+      "options": [
+        "dhcp-broadcast"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-broadcast\n",
+      "probes": [
+        {
+          "id": "offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "expect": {
+            "status": 2,
+            "flags": 32768,
+            "leases": 0
+          }
+        },
+        {
+          "id": "ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.10",
+          "expect": {
+            "status": 5,
+            "flags": 32768,
+            "leases": 1
+          }
+        },
+        {
+          "id": "renew",
+          "action": "renew",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.10",
+          "expect": {
+            "status": 5,
+            "flags": 32768,
+            "destination": "10.77.0.10",
+            "leases": 1
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "capacity-zero",
+      "options": [
+        "dhcp-lease-max"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-lease-max=0\n",
+      "probes": [
+        {
+          "id": "offer",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "expect": {
+            "status": 2,
+            "leases": 0
+          }
+        },
+        {
+          "id": "full",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.10",
+          "expect": {
+            "status": 6,
+            "leases": 0
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "capacity-one",
+      "options": [
+        "dhcp-lease-max"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-lease-max=1\n",
+      "probes": [
+        {
+          "id": "first",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.10",
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        },
+        {
+          "id": "full",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "address": "10.77.0.11",
+          "expect": {
+            "status": 6,
+            "leases": 1
+          }
+        },
+        {
+          "id": "renew-full",
+          "action": "renew",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.10",
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        },
+        {
+          "id": "release",
+          "action": "release",
+          "transports": [
+            "dhcp"
+          ],
+          "address": "10.77.0.10",
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        },
+        {
+          "id": "reclaimed",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "address": "10.77.0.11",
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "sequential-baseline",
+      "options": [
+        "dhcp-sequential-ip"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-sequential-ip\n",
+      "probes": [
+        {
+          "id": "offer1",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "expect": {
+            "status": 2,
+            "address": "10.77.0.10",
+            "leases": 0
+          }
+        },
+        {
+          "id": "ack1",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "assigned",
+          "expect": {
+            "status": 5,
+            "address": "10.77.0.10",
+            "leases": 1
+          }
+        },
+        {
+          "id": "offer2",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "expect": {
+            "status": 2,
+            "address": "10.77.0.11",
+            "leases": 1
+          }
+        },
+        {
+          "id": "ack2",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "address": "assigned",
+          "expect": {
+            "status": 5,
+            "address": "10.77.0.11",
+            "leases": 2
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "exclude-none",
+      "options": [
+        "no-dhcp-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "",
+      "probes": [
+        {
+          "id": "lan",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        },
+        {
+          "id": "guest",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "address": "10.78.0.10",
+          "expect": {
+            "status": 5,
+            "leases": 2
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "two_interfaces": true
+    },
+    {
+      "id": "exclude-lan",
+      "options": [
+        "no-dhcp-interface"
+      ],
+      "adapter": "dhcp",
+      "config": "no-dhcp-interface=br-lan\n",
+      "probes": [
+        {
+          "id": "lan",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 1,
+          "address": "10.77.0.10",
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        },
+        {
+          "id": "guest",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "client": 2,
+          "guest": true,
+          "server": "10.78.0.1",
+          "address": "10.78.0.10",
+          "expect": {
+            "status": 5,
+            "leases": 1
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "two_interfaces": true
+    }
+  ]
 }
