@@ -95,8 +95,8 @@ impl Ethers {
             origins.push(Origin {
                 source: origin.source,
                 previous: Some(index),
-                inferred_address: self.hosts[index].address.is_none()
-                    && current[index].address.is_some(),
+                inferred_address: origin.inferred_address
+                    || (self.hosts[index].address.is_none() && current[index].address.is_some()),
             });
         }
         self.hosts = bank;
@@ -119,9 +119,10 @@ impl Ethers {
 
     /// Clear CONFIG_ADDR_HOSTS only after ethers has matched the old addresses.
     pub(crate) fn clear_inferred_addresses(&mut self) {
-        for (host, origin) in self.hosts.iter_mut().zip(&self.origins) {
+        for (host, origin) in self.hosts.iter_mut().zip(&mut self.origins) {
             if origin.inferred_address {
                 host.address = None;
+                origin.inferred_address = false;
             }
         }
     }
@@ -446,6 +447,36 @@ mod tests {
         assert_eq!(
             ethers.previous_indices().collect::<Vec<_>>(),
             [None, Some(2), Some(3)]
+        );
+    }
+
+    #[test]
+    fn inferred_address_provenance_survives_append_and_is_consumed_on_refresh() {
+        let configured = HostConfig {
+            hostname: Some(b"inferred".to_vec()),
+            hardware: vec![HardwareAddress {
+                kind: 1,
+                address: vec![0, 1, 2, 3, 4, 5],
+                wildcard_mask: 0,
+            }],
+            ..Default::default()
+        };
+        let mut ethers = Ethers::new(&[configured]);
+        let mut current = ethers.hosts().to_vec();
+        current[0].address = Some(Ipv4Addr::new(192, 0, 2, 10));
+        ethers.append_file_bank(Vec::new(), &current);
+        ethers.append_file_bank(Vec::new(), &current);
+        ethers.clear_inferred_addresses();
+        assert!(ethers.hosts()[0].address.is_none());
+        // dhcp_update_configs clears CONFIG_ADDR_HOSTS too. A later explicit
+        // ethers mutation must not inherit the retired inference marker.
+        assert!(ethers
+            .read(&b"00:01:02:03:04:05 192.0.2.20\n"[..])
+            .is_empty());
+        ethers.clear_inferred_addresses();
+        assert_eq!(
+            ethers.hosts()[0].address,
+            Some(Ipv4Addr::new(192, 0, 2, 20))
         );
     }
 
