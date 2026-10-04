@@ -90,6 +90,16 @@ impl TcpDnsService {
         validate_runtime_config(config).map_err(TcpServiceError::Config)?;
         let routing = RoutingTable::from_runtime_config(config, default_resolvers)
             .map_err(|error| TcpServiceError::Config(error.into()))?;
+        Self::with_routing(config, routing, edns_packet_max)
+    }
+
+    /// New connections receive the parent's active routing snapshot rather
+    /// than reparsing an obsolete startup resolver list.
+    pub fn with_routing(
+        config: &DnsConfig,
+        routing: RoutingTable,
+        edns_packet_max: u16,
+    ) -> Result<Self, TcpServiceError> {
         let upstream = TcpUpstream::new(routing.dispatcher_groups(), TcpOptions::default())
             .map_err(TcpServiceError::Transport)?;
         let mut policy = address_policy(config).map_err(TcpServiceError::Config)?;

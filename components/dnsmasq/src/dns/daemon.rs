@@ -12,6 +12,7 @@ use super::cache::{Cache, CacheCounters, Policy as CachePolicy, StalePolicy};
 #[cfg(test)]
 use super::cache::{Kind, Record};
 use super::cache_engine::{CacheContext, CacheError, CachedAnswer, OrdinaryCacheMode};
+use super::files::{ServerSources, Source, SourceRule};
 use super::forward::{Client, Options as ForwardOptions, QueryId, Random, Scope};
 use super::forward_service::ForwardDispatcher;
 use super::process::{
@@ -30,7 +31,7 @@ use super::upstream::{
 use super::wire::{find_pseudoheader, Header, Name, WireError};
 #[cfg(test)]
 use super::wire::{Message, PacketWriter, Question as WireQuestion, Section};
-use crate::config::dns::DnsConfig;
+use crate::config::dns::{DnsConfig, RuleTarget};
 use crate::config::{Error as ConfigError, FastRetry};
 use crate::hosts::Hosts;
 use std::io;
@@ -194,6 +195,7 @@ impl From<io::Error> for DaemonError {
 pub struct DnsDaemon<R = OsRandom> {
     local: LocalDnsService,
     routing: RoutingTable,
+    server_sources: ServerSources,
     upstream: UpstreamResolver<R>,
     cache: Option<Cache>,
     cache_counters: CacheCounters,
@@ -239,12 +241,22 @@ impl<R: Random> DnsDaemon<R> {
                 "dns-forward-max must be positive",
             )));
         }
-        if !config.no_resolv && default_resolvers.is_empty() {
-            return Err(DaemonError::MissingDefaultResolvers);
+        let mut server_sources = ServerSources::new(&config.rules);
+        if !config.no_resolv {
+            server_sources.replace(
+                Source::Resolv,
+                default_resolvers
+                    .iter()
+                    .copied()
+                    .map(|address| SourceRule::resolver(address, 0))
+                    .collect(),
+            );
         }
-
-        RoutingTable::add_default_resolver_rule(&mut config, default_resolvers);
-        let routing = RoutingTable::from_runtime_config(&config, default_resolvers)?;
+        // IPv4 zero is always discarded by C's check_servers. Local listener
+        // address filtering follows once the containing owner supplies them.
+        server_sources.retain_servers(|row| server_usable(row, &[]));
+        let routing = RoutingTable::from_sources(&config, &server_sources, None)?;
+        config = server_sources.effective_config(&config);
         let groups = routing.dispatcher_groups();
         let fast_retry = options.fast_retry.map(|retry| ForwardOptions {
             forward_max: options.forward_max,
@@ -273,6 +285,7 @@ impl<R: Random> DnsDaemon<R> {
         Ok(Self {
             local,
             routing,
+            server_sources,
             upstream,
             cache: None,
             cache_counters: CacheCounters::default(),
@@ -290,6 +303,74 @@ impl<R: Random> DnsDaemon<R> {
 
     pub fn pending_count(&self) -> usize {
         self.upstream.pending_count()
+    }
+
+    pub fn local_config(&self) -> &DnsConfig {
+        &self.local.config
+    }
+
+    pub fn tcp_snapshot(
+        &self,
+    ) -> Result<super::tcp_service::TcpDnsService, super::tcp_service::TcpServiceError> {
+        super::tcp_service::TcpDnsService::with_routing(
+            &self.local.config,
+            self.routing.snapshot(),
+            self.edns_packet_max,
+        )
+    }
+
+    /// Publish one successfully opened file source while retaining live
+    /// forwarding state. The owner next clones local_config into ParentDns.local;
+    /// existing TCP sessions keep their earlier immutable routing snapshots.
+    /// Unsupported endpoint forms remain explicit errors until their family
+    /// supplies resolved endpoint state, rather than silently dropping rows.
+    pub fn replace_server_source(
+        &mut self,
+        source: Source,
+        rows: Vec<SourceRule>,
+        local_addresses: &[SocketAddr],
+    ) -> Result<(), DaemonError> {
+        for row in &rows {
+            if row.address.is_none() {
+                if let RuleTarget::Upstream(endpoint) = &row.rule.target {
+                    super::routing::validate_endpoint(endpoint)?;
+                }
+            }
+        }
+        let mut removed = self.server_sources.replace(source, rows);
+        removed.extend(
+            self.server_sources
+                .retain_servers(|row| server_usable(row, local_addresses)),
+        );
+        self.rebuild_server_routes(&removed)
+    }
+
+    /// Initial listener/interface addresses are known after daemon creation.
+    /// No source file needs to be present for check_servers to reject a loop.
+    pub fn check_server_addresses(
+        &mut self,
+        local_addresses: &[SocketAddr],
+    ) -> Result<(), DaemonError> {
+        let removed = self
+            .server_sources
+            .retain_servers(|row| server_usable(row, local_addresses));
+        self.rebuild_server_routes(&removed)
+    }
+
+    fn rebuild_server_routes(
+        &mut self,
+        removed: &[super::forward::ServerId],
+    ) -> Result<(), DaemonError> {
+        let routing = RoutingTable::from_sources(
+            &self.local.config,
+            &self.server_sources,
+            Some(&self.routing),
+        )?;
+        self.upstream
+            .replace_server_groups(routing.dispatcher_groups(), removed);
+        self.routing = routing;
+        self.local.config = self.server_sources.effective_config(&self.local.config);
+        Ok(())
     }
 
     pub fn poll_failures(&self) -> PollFailures {
@@ -979,6 +1060,19 @@ fn unix_seconds() -> i64 {
         })
 }
 
+fn server_usable(row: &SourceRule, local_addresses: &[SocketAddr]) -> bool {
+    let address = row.address.or_else(|| match &row.rule.target {
+        RuleTarget::Upstream(endpoint) => super::routing::validate_endpoint(endpoint).ok(),
+        _ => None,
+    });
+    address.is_none_or(|address| {
+        !matches!(address.ip(), IpAddr::V4(address) if address.is_unspecified())
+            && !local_addresses
+                .iter()
+                .any(|local| super::forward::same_endpoint(*local, address))
+    })
+}
+
 pub(super) fn address_policy(config: &DnsConfig) -> Result<AddressPolicy, DaemonError> {
     let mut rebind_domains = Vec::with_capacity(config.rebind_domains.len());
     for domain in &config.rebind_domains {
@@ -1030,11 +1124,6 @@ pub(super) fn validate_runtime_config(config: &DnsConfig) -> Result<(), DaemonEr
     }
     // Interface selection and local-source admission are consumed by the
     // containing UDP/TCP listeners before this transport-independent engine.
-    if config.no_poll {
-        return Err(DaemonError::Config(ConfigError(
-            "configured DNS policy is not implemented by the daemon",
-        )));
-    }
     if config.records.needs_hostname() {
         return Err(DaemonError::Config(ConfigError(
             "hostname-dependent local records need explicit hostname finalization",
@@ -1243,6 +1332,72 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[test]
+    fn source_publication_keeps_cache_and_tcp_routes_until_explicit_reload() {
+        let config = DnsConfig::default();
+        let mut daemon =
+            DnsDaemon::with_random(config, Hosts::new(), &[], options(), Counter(0)).unwrap();
+        daemon.enable_cache(8, 0, 0, StalePolicy::Disabled);
+        let name = Name::from_ascii("cached.test").unwrap();
+        let mut writer = PacketWriter::new(9, 0x8180, 512).unwrap();
+        writer.question(&name, 1, 1).unwrap();
+        writer
+            .record(Section::Answer, &name, 1, 1, 120, &[192, 0, 2, 8])
+            .unwrap();
+        daemon.cache_reply_at(&writer.finish(), 100);
+        let rows = vec![SourceRule::resolver("[fe80::1%7]:53".parse().unwrap(), 1)];
+        daemon
+            .replace_server_source(Source::Resolv, rows, &[])
+            .unwrap();
+        let old_tcp = daemon.routing.snapshot();
+        let config = daemon.local_config();
+        assert_eq!(config.rules.len(), 1);
+        daemon
+            .replace_server_source(
+                Source::Resolv,
+                vec![SourceRule::resolver("192.0.2.9:53".parse().unwrap(), 1)],
+                &[],
+            )
+            .unwrap();
+        let route = old_tcp.select(&name, 1, 1, false);
+        assert_eq!(
+            old_tcp.group(route.group.unwrap()).unwrap().servers[0].address,
+            "[fe80::1%7]:53".parse().unwrap()
+        );
+        let query = query("cached.test", 8);
+        let question = super::super::forward::Question::parse(&query).unwrap();
+        assert!(daemon
+            .cached_answer_at(&query, &question, 101)
+            .unwrap()
+            .is_some());
+        let local_rule = super::super::files::server_line(b"server=/local.test/")
+            .unwrap()
+            .into_iter()
+            .map(|rule| SourceRule::configured(rule, 1))
+            .collect();
+        daemon
+            .replace_server_source(Source::ServersFile, local_rule, &[])
+            .unwrap();
+        assert!(daemon
+            .local
+            .handle_udp(&query_type("local.test", 1, 7))
+            .unwrap()
+            .is_some());
+        daemon
+            .check_server_addresses(&["192.0.2.9:53".parse().unwrap()])
+            .unwrap();
+        assert_eq!(daemon.routing.groups().count(), 0);
+        assert!(daemon
+            .cached_answer_at(&query, &question, 101)
+            .unwrap()
+            .is_some());
+        daemon.reload_hosts(Hosts::new());
+        assert!(daemon
+            .cached_answer_at(&query, &question, 101)
+            .unwrap()
+            .is_none());
     }
 
     #[test]
