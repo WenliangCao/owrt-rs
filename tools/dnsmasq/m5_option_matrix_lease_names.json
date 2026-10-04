@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "executable": true,
-  "status": "full-source-boundary-schedule-unqualified",
+  "status": "complete-schedule-awaiting-fixed-candidate",
   "scope": "IPv4 dhcp-fqdn, dhcp-ignore-clid and dhcp-ttl. TTL parser differences remain open until exact-image evidence and a product fix. Does not qualify unrelated DNS cache or reverse options.",
   "source_identity": {
     "option.c": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
@@ -373,11 +373,8 @@
         "rfc1035.c:1654-1675",
         "lease.c:564-620"
       ],
-      "eligible_for_closure": false,
-      "known_gaps": [
-        "Source review: nonnumeric scalar error text differs from option.c generic error; requires image confirmation.",
-        "Source review: Rust integer rejects >INT_MAX; exact image atoi behavior not yet calibrated."
-      ],
+      "eligible_for_closure": true,
+      "known_gaps": [],
       "scenarios": [
         "ttl-absent",
         "ttl-empty",
@@ -392,7 +389,10 @@
         "ttl-live-and-elapsed",
         "ttl-nonnumeric",
         "ttl-negative",
-        "ttl-duplicate"
+        "ttl-duplicate",
+        "ttl-finite-int-wrap",
+        "ttl-finite-uint-max",
+        "ttl-long-decimal"
       ],
       "checklist": [
         {
@@ -412,7 +412,10 @@
             "ttl-live-and-elapsed",
             "ttl-nonnumeric",
             "ttl-negative",
-            "ttl-duplicate"
+            "ttl-duplicate",
+            "ttl-finite-int-wrap",
+            "ttl-finite-uint-max",
+            "ttl-long-decimal"
           ]
         },
         {
@@ -432,7 +435,10 @@
             "ttl-live-and-elapsed",
             "ttl-nonnumeric",
             "ttl-negative",
-            "ttl-duplicate"
+            "ttl-duplicate",
+            "ttl-finite-int-wrap",
+            "ttl-finite-uint-max",
+            "ttl-long-decimal"
           ]
         },
         {
@@ -452,7 +458,10 @@
             "ttl-live-and-elapsed",
             "ttl-nonnumeric",
             "ttl-negative",
-            "ttl-duplicate"
+            "ttl-duplicate",
+            "ttl-finite-int-wrap",
+            "ttl-finite-uint-max",
+            "ttl-long-decimal"
           ]
         },
         {
@@ -472,7 +481,10 @@
             "ttl-live-and-elapsed",
             "ttl-nonnumeric",
             "ttl-negative",
-            "ttl-duplicate"
+            "ttl-duplicate",
+            "ttl-finite-int-wrap",
+            "ttl-finite-uint-max",
+            "ttl-long-decimal"
           ]
         },
         {
@@ -492,7 +504,10 @@
             "ttl-live-and-elapsed",
             "ttl-nonnumeric",
             "ttl-negative",
-            "ttl-duplicate"
+            "ttl-duplicate",
+            "ttl-finite-int-wrap",
+            "ttl-finite-uint-max",
+            "ttl-long-decimal"
           ]
         },
         {
@@ -512,10 +527,19 @@
             "ttl-live-and-elapsed",
             "ttl-nonnumeric",
             "ttl-negative",
-            "ttl-duplicate"
+            "ttl-duplicate",
+            "ttl-finite-int-wrap",
+            "ttl-finite-uint-max",
+            "ttl-long-decimal"
           ]
         }
-      ]
+      ],
+      "resolved_source_findings": {
+        "product_commit": "0d207c01",
+        "before_evidence": "batch5/paired-before-01/result.json",
+        "image_integer_evidence": "batch5/c-ttl-overflow-01/result.json",
+        "policy": "explicit wrapping u32 reproduces image musl atoi without Rust overflow; finite ceiling first narrows configured TTL to signed i32, as image rfc1035.c does"
+      }
     }
   },
   "scenarios": [
@@ -4053,6 +4077,234 @@
         }
       ],
       "expected_test_exit": 0
+    },
+    {
+      "id": "ttl-finite-int-wrap",
+      "options": [
+        "dhcp-ttl"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\nlocal-ttl=17\ndhcp-ttl=2147483648\n",
+      "probes": [
+        {
+          "id": "short",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "ttl",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 2147483648
+          }
+        },
+        {
+          "id": "qualified",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "ttl.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 2147483648
+          }
+        },
+        {
+          "id": "ptr",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "10.0.77.10.in-addr.arpa",
+          "type": 12,
+          "expect": {
+            "answers": [
+              "ttl.base.names.test"
+            ],
+            "rcode": 0,
+            "ttl": 2147483648
+          }
+        },
+        {
+          "id": "static-unaffected",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "matrix.ready",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "8.8.8.8"
+            ],
+            "rcode": 0,
+            "ttl": 17
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "seed_leases": "{expiry} 02:00:4d:35:44:01 10.77.0.10 ttl *\n"
+    },
+    {
+      "id": "ttl-finite-uint-max",
+      "options": [
+        "dhcp-ttl"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\nlocal-ttl=17\ndhcp-ttl=4294967295\n",
+      "probes": [
+        {
+          "id": "short",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "ttl",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 4294967295
+          }
+        },
+        {
+          "id": "qualified",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "ttl.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 4294967295
+          }
+        },
+        {
+          "id": "ptr",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "10.0.77.10.in-addr.arpa",
+          "type": 12,
+          "expect": {
+            "answers": [
+              "ttl.base.names.test"
+            ],
+            "rcode": 0,
+            "ttl": 4294967295
+          }
+        },
+        {
+          "id": "static-unaffected",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "matrix.ready",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "8.8.8.8"
+            ],
+            "rcode": 0,
+            "ttl": 17
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "seed_leases": "{expiry} 02:00:4d:35:44:01 10.77.0.10 ttl *\n"
+    },
+    {
+      "id": "ttl-long-decimal",
+      "options": [
+        "dhcp-ttl"
+      ],
+      "adapter": "dhcp",
+      "config": "domain=base.names.test\nlocal-ttl=17\ndhcp-ttl=9999999999999999999999999999999999999999999999999999999999999999\n",
+      "probes": [
+        {
+          "id": "short",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "ttl",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 4294967295
+          }
+        },
+        {
+          "id": "qualified",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "ttl.base.names.test",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "10.77.0.10"
+            ],
+            "rcode": 0,
+            "ttl": 4294967295
+          }
+        },
+        {
+          "id": "ptr",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "10.0.77.10.in-addr.arpa",
+          "type": 12,
+          "expect": {
+            "answers": [
+              "ttl.base.names.test"
+            ],
+            "rcode": 0,
+            "ttl": 4294967295
+          }
+        },
+        {
+          "id": "static-unaffected",
+          "action": "dns",
+          "transports": [
+            "dhcp"
+          ],
+          "name": "matrix.ready",
+          "type": 1,
+          "expect": {
+            "answers": [
+              "8.8.8.8"
+            ],
+            "rcode": 0,
+            "ttl": 17
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "seed_leases": "0 02:00:4d:35:44:01 10.77.0.10 ttl *\n"
     }
   ]
 }
