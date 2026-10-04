@@ -80,6 +80,20 @@ fn integer(argument: Option<&EncodedArg>) -> Result<u32, Error> {
     Ok(value)
 }
 
+fn dhcp_ttl(argument: Option<&EncodedArg>) -> Result<u32, Error> {
+    let argument = argument.ok_or(Error("missing parameter"))?.decoded();
+    let mut value = 0u32;
+    for c in argument {
+        if !c.is_ascii_digit() {
+            return Err(Error("error"));
+        }
+        // option.c uses atoi_check. The exact image's musl atoi wraps to
+        // 32 bits, including long decimal input; express that safely here.
+        value = value.wrapping_mul(10).wrapping_add(u32::from(c - b'0'));
+    }
+    Ok(value)
+}
+
 fn port(argument: Option<&EncodedArg>) -> Result<u16, Error> {
     integer(argument)?
         .try_into()
@@ -119,7 +133,7 @@ impl ScalarConfig {
             b"max-ttl" => self.max_ttl = integer(arg)?,
             b"min-cache-ttl" => self.min_cache_ttl = integer(arg)?.min(3600),
             b"max-cache-ttl" => self.max_cache_ttl = integer(arg)?,
-            b"dhcp-ttl" => self.dhcp_ttl = Some(integer(arg)?),
+            b"dhcp-ttl" => self.dhcp_ttl = Some(dhcp_ttl(arg)?),
             // option.c:3552-3575; timeout input milliseconds truncates to sec.
             b"fast-dns-retry" => {
                 let retry = if let Some(arg) = arg {
@@ -215,6 +229,31 @@ mod tests {
         assert!(apply(&mut config, "port=65536").is_err());
         assert!(apply(&mut config, "local-ttl=-1").is_err());
         assert!(apply(&mut config, "local-ttl=2147483648").is_err());
+    }
+
+    #[test]
+    fn dhcp_ttl_preserves_image_integer_boundaries_and_diagnostics() {
+        let mut config = ScalarConfig::default();
+        for (input, expected) in [
+            ("", 0),
+            ("2147483647", 2_147_483_647),
+            ("2147483648", 2_147_483_648),
+            ("4294967295", u32::MAX),
+            ("4294967296", 0),
+            (
+                "9999999999999999999999999999999999999999999999999999999999999999",
+                u32::MAX,
+            ),
+        ] {
+            apply(&mut config, &format!("dhcp-ttl={input}")).unwrap();
+            assert_eq!(config.dhcp_ttl, Some(expected));
+        }
+        for input in ["-1", "x"] {
+            assert_eq!(
+                apply(&mut config, &format!("dhcp-ttl={input}")),
+                Err(Error("error"))
+            );
+        }
     }
 
     #[test]
