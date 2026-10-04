@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "executable": false,
+  "status": "C-boundaries-frozen-before-probes",
+  "scope": "Startup-only conf-file and conf-script. Necessary conf-dir integration is regression-only; physical routers are untouched. C NULL second -C is recorded as a dedicated reference defect, not a blanket acceptance exception.",
+  "source_identity": {
+    "option.c": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
+    "util.c": "33920165ef3e92f65d1cab75fe8da7772ad7389b37da79ba881957080f12f973",
+    "config.h": "dacbe1f8d0e03d93e53a81901956b07ab7a5059d1e5db3225150a9688a1122da"
+  },
+  "options": {
+    "conf-file": {
+      "checklist": [
+        {
+          "source": "option.c:6059-6074,6087-6094",
+          "boundary": "First CLI -C is deferred until argument traversal ends; subsequent files/includes/scripts execute in place, and real DNS state proves ordering.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "source": "option.c:250,6059-6074",
+          "boundary": "Long optional and short required argument forms, attached values, empty first selection and second empty selection; isolate the latter NULL-path C defect with an exact-image minimal reproduction.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "source": "option.c:5641-5648,5690-5702",
+          "boundary": "Default /etc/dnsmasq.conf missing is optional; explicit missing files, dangling links, unreadable files, directories and read/open failures preserve exit code and diagnostic location.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "source": "option.c:2057-2066,5654-5661",
+          "boundary": "Config conf-file empty is a no-op; stdin - is read only once, including nested/repeated references, and emitted records become queryable.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "source": "option.c:5666-5680",
+          "boundary": "Device/inode deduplication precedes parsing: repeated pathname, hardlink, symlink, recursive pair and cross file/script references execute only once.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "source": "option.c:2057-2066,5471-5612",
+          "boundary": "Relative includes resolve against process cwd rather than includer directory; nested errors identify the actual source and line, with lexing/failure order retained.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "source": "option.c:2080-2191",
+          "boundary": "Necessary conf-dir integration only: byte order, suffix/backup filtering, shared inode dedup and nested include failure; conf-dir itself is already closed.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "source": "option.c:5471-5612,6059-6094",
+          "boundary": "CLI/file duplicate and override semantics, CRLF/comments/quoted file names/final unterminated line, and --test versus actual UDP/TCP DNS results compare strictly.",
+          "checked": false,
+          "required_scenarios": []
+        }
+      ],
+      "scenarios": []
+    },
+    "conf-script": {
+      "checklist": [
+        {
+          "source": "option.c:2068-2076,5650-5652",
+          "boundary": "Execute trusted shell command through /bin/sh; empty directive is no-op, CLI and file input apply output at their source position.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "source": "option.c:5650-5685",
+          "boundary": "Command string is statted before execution: literal executable paths and hardlinks share inode dedup, commands with arguments/pipelines retain their own execution count.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "source": "option.c:5471-5612",
+          "boundary": "Generated config has ordinary lexing/include semantics; parser failures report in output from COMMAND, nested file/script errors preserve innermost source.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "source": "option.c:5705-5716",
+          "boundary": "Successful output changes real UDP/TCP DNS state. Empty stdout and stderr are distinct; nonzero exits, signal termination and missing commands preserve raw wait status plus 10 and exact stderr.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "source": "option.c:5684,5705-5716",
+          "boundary": "Slow and chunked output is consumed before listener startup, including last unterminated line; no new script execution enters the live poll owner.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "source": "option.c:5602-5611,5705-5716",
+          "boundary": "Parse-error and normal-exit descendant boundaries: capture parent/child/grandchild completion, reparenting, broken stdout pipe and marker side effects before fixture cleanup.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "source": "option.c:5684,5705-5716",
+          "boundary": "Pipelines, inherited stdin and nested script output are real shell executions; preserve actual process identity and causality, do not replace scripts with prerecorded output.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "source": "option.c:5705-5716",
+          "boundary": "Every run records listener responsiveness or absence, stdout/stderr, process tree and raw wait statuses; reap fixture-owned descendants and verify no PID/listener residue.",
+          "checked": false,
+          "required_scenarios": []
+        }
+      ],
+      "scenarios": []
+    }
+  },
+  "scenarios": []
+}
