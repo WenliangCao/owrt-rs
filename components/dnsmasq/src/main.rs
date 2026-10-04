@@ -1685,6 +1685,14 @@ impl SinglePoll {
                 }
                 Err(error) => eprintln!("dnsmasq-rs: DHCP helper step: {error}"),
             }
+            if helper.is_finished() {
+                self.pending_delivery = None;
+                if let Some((provider, _)) = self.dhcp.as_ref() {
+                    if let Ok(mut provider) = provider.try_lock() {
+                        provider.disable_script_delivery();
+                    }
+                }
+            }
         }
     }
 

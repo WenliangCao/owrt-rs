@@ -316,6 +316,15 @@ impl LocalProvider {
         delivery
     }
 
+    /// A dead helper is not respawned by C. Stop retaining undeliverable
+    /// callbacks while leaving DHCP, lease persistence and DNS usable.
+    pub fn disable_script_delivery(&mut self) {
+        self.config.script = None;
+        self.scripts = super::lease::ScriptQueue::default();
+        self.pending_delivery = None;
+        self.leases.clear_helper_contexts();
+    }
+
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     fn queue_script_from_maintenance(&mut self) {
         if self.pending_delivery.is_some() || self.config.script.is_none() {
@@ -404,7 +413,9 @@ impl LocalProvider {
     }
 
     fn maintain(&mut self, now: i64, removed: Vec<Lease>, force_dns: bool) -> MaintenanceReport {
-        self.scripts.add_pruned(removed.clone());
+        if self.config.script.is_some() {
+            self.scripts.add_pruned(removed.clone());
+        }
         let file = self.persistence.update(&mut self.leases, now);
         // A signal which became due during state/file work remains pending
         // even when this update installs a newer relative alarm.
@@ -1165,7 +1176,9 @@ impl LocalProvider {
         provider.event_sink = Some(&mut on_event);
         let result = provider.resolve(dispatch);
         if let Ok(outcome) = &result {
-            self.scripts.add_pruned(outcome.removed.clone());
+            if self.config.script.is_some() {
+                self.scripts.add_pruned(outcome.removed.clone());
+            }
             self.select_boot(outcome);
             if self.config.script.is_some() {
                 if let Reply::Ack {

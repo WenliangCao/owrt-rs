@@ -516,6 +516,13 @@ impl LeaseStore {
         }
     }
 
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    pub fn clear_helper_contexts(&mut self) {
+        for lease in self.leases.values_mut() {
+            lease.helper_context = None;
+        }
+    }
+
     /// Packet context belongs to this lease, including pruned/name-loss clones.
     /// Classes are refreshed only for SELECTING, INIT-REBOOT or a new lease.
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
