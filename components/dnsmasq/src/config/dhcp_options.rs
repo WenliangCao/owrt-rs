@@ -279,8 +279,14 @@ fn parse(argument: &EncodedArg, matching: bool) -> Result<(DhcpOption, Vec<bool>
         let (head, tail) = rest.split_once(b',');
         let bytes = head.encoded();
         if bytes.iter().all(u8::is_ascii_digit) {
-            let code =
-                u8::try_from(super::integer(bytes)?).map_err(|_| Error("bad DHCP option code"))?;
+            let code = match u8::try_from(super::integer(bytes)?) {
+                Ok(code) => code,
+                // C accepts a full int matcher which cannot equal a wire
+                // byte. PAD is likewise never returned by option_find, so
+                // it represents this inert selector without widening output.
+                Err(_) if matching => 0,
+                Err(_) => return Err(Error("bad DHCP option code")),
+            };
             break (code, 0, tail);
         }
         if let Some(name) = bytes.strip_prefix(b"option:") {
@@ -847,6 +853,21 @@ mod tests {
             DhcpMatch::parse(&EncodedArg::command_line(b"set:a,vi-encap:1234,01:*:03")).unwrap();
         assert_eq!(hex.enterprise, Some(0));
         assert_eq!(wildcard.enterprise, Some(2));
+    }
+
+    #[test]
+    fn non_wire_match_codes_are_accepted_but_never_match_a_packet() {
+        let mut bytes = vec![0; 240];
+        bytes[..3].copy_from_slice(&[1, 1, 6]);
+        bytes[236..240].copy_from_slice(&crate::dhcp::packet::COOKIE);
+        bytes.extend_from_slice(b"\x35\x01\x01\xe0\x06needle\xff");
+        let packet = crate::dhcp::packet::Packet::parse(&bytes).unwrap();
+        for code in [224, 256, 65535] {
+            let input = format!("set:hit,{code},needle");
+            let rule = DhcpMatch::parse(&EncodedArg::command_line(input.as_bytes())).unwrap();
+            assert_eq!(rule.matches_packet(packet), code == 224);
+        }
+        assert!(DhcpOption::parse(&EncodedArg::command_line(b"256,needle"), false).is_err());
     }
     #[test]
     fn request_tag_priority_beats_later_context_and_untagged_rules() {
