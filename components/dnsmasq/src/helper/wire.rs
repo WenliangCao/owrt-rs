@@ -195,7 +195,7 @@ pub(super) fn decode(payload: &[u8]) -> io::Result<Event> {
                 for _ in 0..input.byte()? {
                     extra.user_classes.push(input.bytes()?);
                 }
-                Some(extra)
+                Some(Box::new(extra))
             } else {
                 None
             };

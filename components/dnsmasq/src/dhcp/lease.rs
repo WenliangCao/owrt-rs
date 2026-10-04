@@ -1118,10 +1118,10 @@ mod tests {
                     address(index),
                     crate::helper::LeaseEventContext {
                         interface: format!("eth{index}").into_bytes(),
-                        extra: Some(crate::helper::ExtraData {
+                        extra: Some(Box::new(crate::helper::ExtraData {
                             vendor_class: vec![index],
                             ..Default::default()
-                        }),
+                        })),
                         ..Default::default()
                     },
                 )

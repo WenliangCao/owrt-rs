@@ -67,7 +67,7 @@ pub struct LeaseEvent {
     pub now: i64,
     pub relay_address: Option<Ipv4Addr>,
     /// None is a restored/deleted lease without packet extradata.
-    pub extra: Option<ExtraData>,
+    pub extra: Option<Box<ExtraData>>,
     pub log_dhcp: bool,
 }
 
@@ -82,7 +82,7 @@ pub struct LeaseEventContext {
     pub interface: Vec<u8>,
     pub now: i64,
     pub relay_address: Option<Ipv4Addr>,
-    pub extra: Option<ExtraData>,
+    pub extra: Option<Box<ExtraData>>,
     pub log_dhcp: bool,
 }
 
@@ -146,9 +146,6 @@ impl LeaseEvent {
     }
 }
 
-// Events are serialized immediately; keeping the lease inline avoids another
-// allocation for each callback. The owner queues LeaseDelivery separately.
-#[allow(clippy::large_enum_variant)]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Event {
     Lease(LeaseEvent),
@@ -311,7 +308,7 @@ fn invocation(event: &Event) -> io::Result<Invocation> {
                 add("DATA_MISSING", Some(b"1".to_vec()));
             }
             let empty = ExtraData::default();
-            let extra = lease.extra.as_ref().unwrap_or(&empty);
+            let extra = lease.extra.as_deref().unwrap_or(&empty);
             for (key, value) in [
                 ("VENDOR_CLASS", &extra.vendor_class),
                 ("SUPPLIED_HOSTNAME", &extra.supplied_hostname),
@@ -441,7 +438,7 @@ mod tests {
             expires: 400,
             now: 100,
             relay_address: None,
-            extra: Some(ExtraData::default()),
+            extra: Some(Box::default()),
             log_dhcp: false,
         }
     }
@@ -573,10 +570,10 @@ mod tests {
                 interface: b"br-lan".to_vec(),
                 now: 100,
                 relay_address: Some(Ipv4Addr::new(192, 0, 2, 1)),
-                extra: Some(ExtraData {
+                extra: Some(Box::new(ExtraData {
                     vendor_class: b"vendor".to_vec(),
                     ..ExtraData::default()
-                }),
+                })),
                 log_dhcp: true,
             },
         );
