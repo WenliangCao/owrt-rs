@@ -534,6 +534,16 @@ impl DatagramSocket {
         self.send_with_interface(bytes, peer, source, None, true)
     }
 
+    /// One owner-scheduled transmission with optional explicit source.
+    pub fn send_once(
+        &self,
+        bytes: &[u8],
+        peer: SocketAddr,
+        source: Option<(IpAddr, u32)>,
+    ) -> io::Result<()> {
+        self.send_with_interface(bytes, peer, source, None, false)
+    }
+
     /// DHCP's unconfigured-client branch supplies `ipi_ifindex` and lets the
     /// kernel choose `ipi_spec_dst`. DNS `send` above intentionally keeps its
     /// IPv4 interface at zero, following forward.c::send_from.

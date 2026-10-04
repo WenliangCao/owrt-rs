@@ -21,7 +21,6 @@ use crate::config::dhcp::{BootConfig, DhcpOption, OptionValue};
 use std::io::{self, Read};
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-const DHCP_CLIENT_PORT: u16 = 68;
 const BROADCAST_FLAG: u16 = 0x8000;
 
 /// A socket-independent sender. Linux's audited `DatagramSocket` implements
@@ -494,6 +493,33 @@ pub fn process_with_random<P, S>(
     sender: &mut S,
     options: &[ReplyOption<'_>],
     buffer: &mut [u8],
+    random: impl FnMut() -> io::Result<u16>,
+) -> Result<RuntimeReport, Box<RuntimeFailure>>
+where
+    P: OutcomeProvider,
+    S: DatagramSender,
+{
+    process_with_random_and_ports(
+        dispatch,
+        peer,
+        provider,
+        sender,
+        options,
+        buffer,
+        crate::config::dhcp_relay::DhcpPorts::default(),
+        random,
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn process_with_random_and_ports<P, S>(
+    dispatch: Dispatch<'_>,
+    peer: SocketAddr,
+    provider: &mut P,
+    sender: &mut S,
+    options: &[ReplyOption<'_>],
+    buffer: &mut [u8],
+    ports: crate::config::dhcp_relay::DhcpPorts,
     mut random: impl FnMut() -> io::Result<u16>,
 ) -> Result<RuntimeReport, Box<RuntimeFailure>>
 where
@@ -537,7 +563,7 @@ where
                 address: if matches!(dispatch.route, Route::RelaySource { .. }) {
                     peer
                 } else {
-                    SocketAddr::from((source, 67))
+                    SocketAddr::from((source, ports.server))
                 },
                 interface: dispatch.ingress.interface_index,
                 kind: DestinationKind::Peer,
@@ -765,7 +791,14 @@ where
     if !matches!(outcome.reply, Reply::Nak { .. }) && provider.force_broadcast(&outcome) {
         buffer[10] |= 0x80;
     }
-    let mut destination = match destination(&dispatch, peer, &outcome.reply, buffer, encoding.len) {
+    let mut destination = match destination_with_ports(
+        &dispatch,
+        peer,
+        &outcome.reply,
+        buffer,
+        encoding.len,
+        ports,
+    ) {
         Ok(destination) => destination,
         Err(error) => {
             events.push(RuntimeEvent::Cleanup {
@@ -1140,6 +1173,24 @@ pub fn destination(
     packet: &[u8],
     length: usize,
 ) -> Result<Destination, RuntimeError> {
+    destination_with_ports(
+        dispatch,
+        peer,
+        reply,
+        packet,
+        length,
+        crate::config::dhcp_relay::DhcpPorts::default(),
+    )
+}
+
+pub fn destination_with_ports(
+    dispatch: &Dispatch<'_>,
+    peer: SocketAddr,
+    reply: &Reply,
+    packet: &[u8],
+    length: usize,
+    ports: crate::config::dhcp_relay::DhcpPorts,
+) -> Result<Destination, RuntimeError> {
     if dispatch.route != Route::Local
         || (dispatch.kind != DispatchKind::Dhcp && dispatch.kind != DispatchKind::Bootp)
     {
@@ -1171,7 +1222,7 @@ pub fn destination(
             address: if trust_peer {
                 peer
             } else {
-                SocketAddr::from((ciaddr, DHCP_CLIENT_PORT))
+                SocketAddr::from((ciaddr, ports.client))
             },
             interface: dispatch.ingress.interface_index,
             kind: if trust_peer {
@@ -1210,7 +1261,7 @@ pub fn destination(
         }
     }
     Ok(Destination {
-        address: SocketAddr::from((address, DHCP_CLIENT_PORT)),
+        address: SocketAddr::from((address, ports.client)),
         interface: dispatch.ingress.interface_index,
         kind,
         arp: (kind == DestinationKind::Client).then(|| ArpRequest {
