@@ -322,10 +322,15 @@ def identity_fixtures():
     yield case('identity-generate-clid-policy','recovered','dhcp-generate-names\n',[
         event('initial',extra=opts((61,b'\x02abcd'))),event('renew-without-clid')])
     generated='02-00-00-00-00-01'
+    renewal = dict(renew=True, ciaddr='127.0.0.40', requested_address=False,
+                   server_id=None, flags=0)
     yield case('identity-generate-publication','lease-dns-renew','dhcp-generate-names\n',[
         ack_with_dns('generated',name=generated),
         ack_with_dns('client-renamed',extra=opts((12,b'client'))),
-        ack_with_dns('generated-again',name=generated)])
+        ack_with_dns('generated-again',name=generated),
+        ack_with_dns('renew-generated',name=generated,**renewal),
+        ack_with_dns('renew-client-renamed',extra=opts((12,b'client')),**renewal),
+        ack_with_dns('renew-generated-again',name=generated,**renewal)])
     yield case('identity-generate-publication','duplicate-name','dhcp-generate-names\n',[
         event('first',hlen=0,chaddr='',htype=1,extra=opts((61,b'\1\xaa\xbb\xcc'))),
         event('second',hlen=0,chaddr='',htype=2,address='127.0.0.41',extra=opts((61,b'\2\xaa\xbb\xcc')))])
@@ -522,13 +527,19 @@ def syntax(root, side, text, folder, *, startup=False):
     return row
 
 
-def receive(client, wire, target, timeout=.8):
+def receive(client, wire, target, timeout=.8, source=None):
     client.setblocking(False)
     drained = 0
     while True:
         try: client.recvfrom(65535); drained += 1
         except BlockingIOError: break
-    client.sendto(wire, target)
+    if source is None:
+        client.sendto(wire, target)
+    else:
+        # Linux IP_PKTINFO selects the leased source address on loopback.
+        # Real renewals unicast from ciaddr, without requested-IP/server-ID.
+        pktinfo = struct.pack('=I4s4s', 0, socket.inet_aton(source), b'\0'*4)
+        client.sendmsg([wire], [(socket.IPPROTO_IP, 8, pktinfo)], 0, target)
     deadline = time.monotonic() + timeout
     foreign = []
     while time.monotonic() < deadline:
@@ -592,6 +603,23 @@ def primary_options(wire):
 
 
 def comparable_reply(response, event):
+    if event.get('renew'):
+        assert event['kind'] == 3 and event['requested_address'] is False
+        assert event['server_id'] is None and event['ciaddr'] != '0.0.0.0'
+        # rfc2131.c do_options: both timers share fuzz in 0..T1/8.
+        # Keep the lease duration exact and normalize only that random draw.
+        rows = primary_options(response)['rows']
+        values = {row['code']: int(row['value'], 16) for row in rows if row['code'] in (53, 51, 58, 59)}
+        assert values.get(53) == 5 and values.get(51) == 600, values
+        fuzz = 300 - values[58]
+        assert 0 <= fuzz <= 37 and values[59] == 525 - fuzz, values
+        normalized = bytearray(response)
+        for row in rows:
+            if row['code'] in (58, 59):
+                assert len(bytes.fromhex(row['value'])) == 4
+                start = row['offset'] + 2
+                normalized[start:start+4] = b'\0'*4
+        return normalized.hex()
     # Leasequery is deliberately sent more than one second after ACK. Verify
     # the exact 600-second lease relationships before normalizing clock phase.
     if event['kind'] != 10: return response.hex()
@@ -671,7 +699,9 @@ def run(root, side, folder, text, events):
                     response = bytes.fromhex(transport['reply']) if transport['reply'] is not None else None
                     peer = transport['peer']; foreign = transport['foreign']; drained = transport['drained']
                 else:
-                    response, peer, foreign, drained = receive(client, wire, ('255.255.255.255', 67))
+                    source = event['ciaddr'] if event.get('renew') else None
+                    target = ('127.0.0.1' if source else '255.255.255.255', 67)
+                    response, peer, foreign, drained = receive(client, wire, target, source=source)
                 save(folder/f'{index:03}.transport.json', {'foreign': foreign, 'drained': drained})
                 row = {'label': event['label']}
                 if response is None:
@@ -867,6 +897,7 @@ def main():
     report = {'c_sha256': sha256(root/'usr/sbin/dnsmasq'), 'rust_sha256': sha256(root/'usr/sbin/dnsmasq-rs'),
               'tool_sha256': sha256(Path(__file__)), 'source_commit': args.source_commit,
               'normalizations': ['diagnostics: only line-leading executable prefix dnsmasq-rs: becomes dnsmasq:; raw streams retained',
+                'explicit renewals: validate lease600 and shared T1/T2 fuzz in0..37, then zero only option58/59; raw .response retained',
                 'leasequery: wait 1.05 seconds before each query; validate 600-second lease T1/T2/elapsed relationships then zero only option51/58/59/91 values; raw .response retained',
                 'leasefile: finite expiry epochs become finite-600 after checking remaining lifetime; lease identities/names/extensions unchanged'],
               'c_only': args.c_only, 'required_case_map': required_map, 'cases': [], 'parser': [], 'failures': [], 'negative_controls': [], 'reference_differences': []}
