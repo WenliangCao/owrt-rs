@@ -81,6 +81,40 @@ fn optional_bytes(bytes: &[u8]) -> Option<Vec<u8>> {
     (!bytes.is_empty()).then(|| bytes.to_vec())
 }
 
+/// network.c:246,539-558: dedicated TFTP names override DHCP exclusions.
+/// This is shared by listener admission and DHCP's server-ID alias check.
+pub(crate) fn interface_enabled(
+    enabled: bool,
+    interfaces: &[Option<Vec<u8>>],
+    no_dhcp: &[Option<Vec<u8>>],
+    name: &[u8],
+) -> bool {
+    enabled
+        && if !interfaces.is_empty() {
+            interfaces
+                .iter()
+                .flatten()
+                .any(|pattern| matches_name(pattern, name))
+        } else {
+            !no_dhcp
+                .iter()
+                .flatten()
+                .any(|pattern| matches_name(pattern, name))
+        }
+}
+
+pub(crate) fn matches_name(pattern: &[u8], name: &[u8]) -> bool {
+    for (pattern, actual) in pattern.iter().zip(name) {
+        if *pattern == b'*' {
+            return true;
+        }
+        if pattern != actual {
+            return false;
+        }
+    }
+    pattern.len() == name.len()
+}
+
 impl TftpConfig {
     pub fn apply(&mut self, directive: &Directive) -> Result<bool, Error> {
         validate_directive(directive)?;
@@ -360,5 +394,29 @@ mod tests {
         std::fs::create_dir(&missing).unwrap();
         assert!(config.validate_roots().unwrap().is_empty());
         std::fs::remove_dir_all(path).unwrap();
+    }
+
+    #[test]
+    fn interface_eligibility_keeps_global_disable_and_dedicated_override() {
+        let no_dhcp = [Some(b"lan".to_vec())];
+        assert!(!interface_enabled(false, &[], &[], b"lan"));
+        assert!(interface_enabled(true, &[], &[], b"lan"));
+        assert!(!interface_enabled(true, &[], &no_dhcp, b"lan"));
+        let dedicated = [Some(b"lan".to_vec())];
+        assert!(interface_enabled(true, &dedicated, &no_dhcp, b"lan"));
+        assert!(!interface_enabled(true, &dedicated, &[], b"lo"));
+        assert!(!interface_enabled(true, &[None], &[], b"lan"));
+        assert!(!interface_enabled(
+            true,
+            &[Some(b"lan*".to_vec())],
+            &[],
+            b"lan"
+        ));
+        assert!(interface_enabled(
+            true,
+            &[Some(b"lan*".to_vec())],
+            &[],
+            b"lan0"
+        ));
     }
 }

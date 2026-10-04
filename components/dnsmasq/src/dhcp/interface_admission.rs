@@ -45,28 +45,10 @@ impl InterfacePolicy {
         primary: Ipv4Addr,
         snapshot: &[Ipv4Interface],
     ) -> Option<Selection> {
-        let explicit_address = self.addresses.contains(&IpAddr::V4(primary));
-        let named = name.is_some_and(|name| {
-            self.names
-                .iter()
-                .flatten()
-                .any(|pattern| interface_matches(pattern, name))
-        });
-        // network.c adds discovered loopback names to a nonempty if_names.
-        let loopback = !self.names.is_empty()
-            && snapshot
-                .iter()
-                .any(|row| row.index == index && row.loopback);
-        let excluded = name.is_some_and(|name| {
-            self.excluded
-                .iter()
-                .flatten()
-                .any(|pattern| interface_matches(pattern, name))
-        });
-        if explicit_address
-            || ((self.names.is_empty() && self.addresses.is_empty()) || named || loopback)
-                && !excluded
-        {
+        let loopback = snapshot
+            .iter()
+            .any(|row| row.index == index && row.loopback);
+        if self.selected_address(name, primary, loopback) {
             return Some(Selection::Primary);
         }
 
@@ -79,6 +61,34 @@ impl InterfacePolicy {
             .find(|row| row.index == index && self.addresses.contains(&IpAddr::V4(row.address)))
             .copied()
             .map(Selection::Secondary)
+    }
+
+    /// network.c iface_check for one enumerated address, without DHCP's
+    /// secondary-address fallback which would admit a different address.
+    pub(super) fn selected_address(
+        &self,
+        name: Option<&[u8]>,
+        address: Ipv4Addr,
+        loopback: bool,
+    ) -> bool {
+        let explicit_address = self.addresses.contains(&IpAddr::V4(address));
+        let named = name.is_some_and(|name| {
+            self.names
+                .iter()
+                .flatten()
+                .any(|pattern| interface_matches(pattern, name))
+        });
+        // network.c adds discovered loopback names to a nonempty if_names.
+        let loopback = !self.names.is_empty() && loopback;
+        let excluded = name.is_some_and(|name| {
+            self.excluded
+                .iter()
+                .flatten()
+                .any(|pattern| interface_matches(pattern, name))
+        });
+        explicit_address
+            || ((self.names.is_empty() && self.addresses.is_empty()) || named || loopback)
+                && !excluded
     }
 }
 
@@ -171,6 +181,8 @@ mod tests {
             policy.select(Some(b"other"), 4, "203.0.113.1".parse().unwrap(), &snapshot),
             None
         );
+        assert!(!policy.selected_address(Some(b"lan"), snapshot[0].address, false));
+        assert!(policy.selected_address(Some(b"lan"), snapshot[1].address, false));
     }
 
     #[test]

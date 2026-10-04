@@ -359,7 +359,7 @@ pub fn inject_arp(
 
 /// Capture the ingress name before DHCP state processing, as dhcp.c does
 /// before bridge aliasing and ICMP delays. Interface indexes survive rename.
-pub fn interface_name(socket: &DatagramSocket, interface: u32) -> io::Result<[u8; 16]> {
+pub fn interface_name(socket: &impl AsRawFd, interface: u32) -> io::Result<[u8; 16]> {
     if interface == 0 || interface > i32::MAX as u32 {
         return Err(io::Error::new(
             io::ErrorKind::InvalidInput,
