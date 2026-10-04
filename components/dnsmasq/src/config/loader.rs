@@ -12,7 +12,7 @@ use std::fs::{self, File};
 use std::io::{self, BufRead, BufReader};
 use std::os::unix::ffi::{OsStrExt, OsStringExt};
 use std::os::unix::fs::MetadataExt;
-use std::os::unix::process::ExitStatusExt;
+use std::os::unix::process::{CommandExt, ExitStatusExt};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
@@ -208,7 +208,7 @@ where
                         index += 1;
                         Some(
                             args.get(index)
-                                .ok_or_else(|| LoadError::new(&location, 1, "missing parameter"))?
+                                .ok_or_else(|| LoadError::new(&location, 1, "bad command line options: try --help"))?
                                 .as_bytes(),
                         )
                     }
@@ -236,7 +236,7 @@ where
                         } else {
                             index += 1;
                             args.get(index)
-                                .ok_or_else(|| LoadError::new(&location, 1, "missing parameter"))?
+                                .ok_or_else(|| LoadError::new(&location, 1, "bad command line options: try --help"))?
                                 .as_bytes()
                         };
                         cursor = bytes.len();
@@ -401,6 +401,7 @@ where
         }
         if script {
             let mut child = Command::new("/bin/sh")
+                .arg0("sh")
                 .arg("-c")
                 .arg(path.as_os_str())
                 .stdin(Stdio::inherit())
