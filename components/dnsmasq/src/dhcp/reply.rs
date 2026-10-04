@@ -261,6 +261,12 @@ pub fn build_reply_with_boot(
     // NAK does not call do_options at all.
     writer.allow_overload(allow_overload && !matches!(reply, Reply::Nak { .. }));
     if !matches!(reply, Reply::Nak { .. }) {
+        if let Some(address) = request.subnet_selector() {
+            writer.append(ReplyOption {
+                code: 118,
+                value: &address.octets(),
+            })?;
+        }
         if let Reply::Offer { lease_time, .. } | Reply::Ack { lease_time, .. } = reply {
             if lease_time != u32::MAX {
                 append_lease_timers(
@@ -741,6 +747,37 @@ mod tests {
         assert_eq!(&output[end - 257..end - 255], &[82, 255]);
         assert_eq!(&output[end - 255..end], &[7; 255]);
         assert!(encoded.overload != 0);
+    }
+
+    #[test]
+    fn link_selection_is_echoed_before_timers_without_a_request_list() {
+        let bytes = request(&[
+            53, 1, 1, 118, 4, 127, 0, 0, 8, 82, 9, 5, 1, 9, 5, 4, 127, 0, 0, 7, 255,
+        ]);
+        let packet = Packet::parse(&bytes).unwrap();
+        let mut output = [0; 548];
+        build_reply(
+            packet,
+            Reply::Offer {
+                address: Ipv4Addr::new(127, 0, 0, 40),
+                lease_time: 600,
+                context: 0,
+                server: Ipv4Addr::LOCALHOST,
+            },
+            &[],
+            &mut output,
+        )
+        .unwrap();
+        assert_eq!(&output[255..261], &[118, 4, 127, 0, 0, 7]);
+        assert_eq!(output[261], 58);
+    }
+
+    #[test]
+    fn full_name_retains_legal_empty_first_label_for_offer_matching() {
+        let bytes = request(&[53, 1, 1, 81, 7, 0, 0, 0, b'.', b'b', b'a', b'd', 255]);
+        let packet = Packet::parse(&bytes).unwrap();
+        assert_eq!(packet.client_hostname_full(), Some(b".bad".to_vec()));
+        assert_eq!(packet.client_hostname(), None);
     }
 
     #[test]

@@ -399,8 +399,21 @@ impl<'a> Packet<'a> {
             self.option(12, 1)?.to_vec()
         };
         let name = crate::hosts::canonicalise(&candidate)?;
-        // Share the exact first-label legality check with the state name path.
-        client_hostname_value(&candidate)?;
+        // legal_hostname checks only the first label. A leading dot is legal
+        // here; strip_hostname later turns it into an absent lease name, but
+        // C retains the empty string for a FQDN OFFER.
+        if !name
+            .split(|byte| *byte == b'.')
+            .next()
+            .unwrap()
+            .iter()
+            .enumerate()
+            .all(|(index, byte)| {
+                byte.is_ascii_alphanumeric() || (index != 0 && matches!(byte, b'-' | b'_'))
+            })
+        {
+            return None;
+        }
         Some(name)
     }
 
@@ -439,6 +452,23 @@ impl<'a> Packet<'a> {
         let agent = self.option(82, 1)?;
         let end = find_option(self.bytes.get(240..)?, 255, 0)?.offset + 240;
         (end + agent.len() + 2 < self.response_capacity()).then_some(agent)
+    }
+
+    /// RFC3527 link selection takes precedence over RFC3011 option118.
+    /// Both are echoed as option118, independently of the request list.
+    pub fn subnet_selector(self) -> Option<Ipv4Addr> {
+        if matches!(self.message_type(), 0 | 10) {
+            return None;
+        }
+        self.option(82, 1)
+            .and_then(|agent| find_option(agent, 5, 4))
+            .map(|option| ipv4(&option.value[..4]))
+            .filter(|address| !address.is_unspecified())
+            .or_else(|| {
+                self.option(118, 4)
+                    .map(|value| ipv4(&value[..4]))
+                    .filter(|address| !address.is_unspecified())
+            })
     }
 
     /// PXE vendor matching is a configured-prefix match, not exact equality.
