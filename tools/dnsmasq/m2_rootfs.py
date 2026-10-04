@@ -6,6 +6,7 @@ inside an overlay of the exact image; no host loader, libraries, configuration o
 substituted for the image. Call prepare only under run_isolated.sh.
 """
 import argparse
+import fcntl
 import hashlib
 import json
 import os
@@ -13,6 +14,7 @@ from pathlib import Path
 import shutil
 import stat
 import subprocess
+import tempfile
 
 
 STOCK_SHA256 = '097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87'
@@ -76,6 +78,69 @@ def _overlay(source, root, relative):
         shutil.copy2(path, target)
 
 
+def _base_manifest(root):
+    """Content/modes/timestamps, excluding devices replaced by private /dev."""
+    files = {}
+    for directory, folders, names in os.walk(root, followlinks=False):
+        for name in folders + names:
+            path = Path(directory, name)
+            info = path.lstat()
+            if not (stat.S_ISREG(info.st_mode) or stat.S_ISDIR(info.st_mode)
+                    or stat.S_ISLNK(info.st_mode)):
+                continue
+            row = {'mode': info.st_mode, 'mtime_ns': info.st_mtime_ns}
+            if stat.S_ISREG(info.st_mode):
+                row['sha256'] = sha256(path)
+            elif stat.S_ISLNK(info.st_mode):
+                row['target'] = str(path.readlink())
+            files[str(path.relative_to(root))] = row
+    return files
+
+
+def _image_base(image_root):
+    """Prepare one root-owned base, matching the previous copytree semantics.
+
+    The extracted image can belong to the unprivileged extracting user. Using
+    it directly as lower would change ownership-sensitive tests. Copy once,
+    then reuse a read-only bind of this base for every per-run overlay.
+    """
+    manifest = _base_manifest(image_root)
+    digest = hashlib.sha256(json.dumps(manifest, sort_keys=True).encode()).hexdigest()
+    cache = Path('/home/ubuntu/dnsmasq-image-bases')
+    cache.mkdir(parents=True, exist_ok=True)
+    base = cache / digest
+    with (cache / '.prepare.lock').open('a') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        if not base.exists():
+            def skip_special(directory, names):
+                return [name for name in names if not (
+                    stat.S_ISREG(Path(directory, name).lstat().st_mode)
+                    or stat.S_ISDIR(Path(directory, name).lstat().st_mode)
+                    or stat.S_ISLNK(Path(directory, name).lstat().st_mode))]
+            with tempfile.TemporaryDirectory(prefix='.prepare-', dir=cache) as temporary:
+                staging = Path(temporary) / 'root'
+                shutil.copytree(image_root, staging, symlinks=True, ignore=skip_special)
+                for directory, folders, names in os.walk(staging, followlinks=False):
+                    os.chown(directory, 0, 0)
+                    for name in folders + names:
+                        os.chown(Path(directory, name), 0, 0, follow_symlinks=False)
+                if _base_manifest(staging) != manifest:
+                    raise RuntimeError('prepared image base differs from source')
+                staging.rename(base)
+            (cache / f'{digest}.json').write_text(json.dumps({
+                'source': str(image_root.resolve()), 'manifest_sha256': digest,
+                'ownership': 'root:root, matching the prior root-run copytree',
+                'files': manifest}, indent=2) + '\n')
+        if _base_manifest(base) != manifest:
+            raise RuntimeError('shared image base changed')
+        for directory, folders, names in os.walk(base, followlinks=False):
+            for path in [Path(directory), *(Path(directory, name) for name in folders + names)]:
+                info = path.lstat()
+                if info.st_uid != 0 or info.st_gid != 0:
+                    raise RuntimeError(f'shared image base ownership changed: {path}')
+    return base, digest
+
+
 def prepare(image_root, runtime_root, evidence_dir, rust_binary):
     """Overlay a read-only image, mount private proc/dev, return the writable root.
 
@@ -102,6 +167,7 @@ def prepare(image_root, runtime_root, evidence_dir, rust_binary):
             if str(image_path(image_root, relative, follow_leaf=False).readlink()) != target:
                 raise ValueError(f'image symlink changed after extraction: {relative}')
     evidence_dir.mkdir(parents=True, exist_ok=True)
+    base, base_digest = _image_base(image_root)
     root = evidence_dir.resolve() / 'rootfs'
     overlay = evidence_dir.resolve() / 'rootfs-overlay'
     root.mkdir()
@@ -115,7 +181,7 @@ def prepare(image_root, runtime_root, evidence_dir, rust_binary):
         if any(char in str(path) for char in ',:\\'):
             raise ValueError('overlay paths cannot contain comma, colon or backslash')
     subprocess.run(['mount', '--make-rprivate', '/'], check=True)
-    subprocess.run(['mount', '--bind', str(image_root.resolve()), str(lower)], check=True)
+    subprocess.run(['mount', '--bind', str(base), str(lower)], check=True)
     subprocess.run(['mount', '-o', 'remount,bind,ro', str(lower)], check=True)
     subprocess.run(['mount', '-t', 'overlay', 'dnsmasq-test-root', '-o',
                     f'lowerdir={lower},upperdir={upper},workdir={work}', str(root)], check=True)
@@ -176,6 +242,7 @@ def prepare(image_root, runtime_root, evidence_dir, rust_binary):
         'image_sha256': provenance['image_sha256'] if provenance else None,
         'root': str(root), 'c_sha256': sha256(root / 'usr/sbin/dnsmasq'),
         'filesystem': {'kind': 'overlay', 'lower_read_only': True,
+                       'base': str(base), 'base_manifest_sha256': base_digest,
                        'lower': str(lower), 'upper': str(upper), 'work': str(work)},
         'rust_source_path': str(rust_binary), 'rust_sha256': sha256(root / 'usr/sbin/dnsmasq-rs'),
         'kernel': os.uname().release, 'machine': os.uname().machine,
