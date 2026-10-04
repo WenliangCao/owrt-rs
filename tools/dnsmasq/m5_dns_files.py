@@ -250,6 +250,16 @@ def scenarios():
          probe('new-name', 'ethername.files.test'), probe('old-name', 'leased.files.test'),
          {'op': 'helper-events', 'id': 'ethers-events'}],
         dhcp_config + 'read-ethers\n', dhcp_witness=True, sys_files={'/etc/ethers': ''})
+    add('file-event-burst', 'FAIL-02,CLEAR-01,CLEAR-03', initial,
+        [{'op': 'reading-count', 'id': 'startup-read', 'minimum': 1, 'expect_reading': 1},
+         {'op': 'file-burst', 'count': 512, 'text': r2},
+         {'op': 'reading-count', 'id': 'burst-read', 'minimum': 2, 'expect_reading': 2},
+         probe('burst-source', transports=['udp'])], 'no-daemon\nclear-on-reload\n')
+    add('reading-no-poll', 'NPOLL-01', initial,
+        [{'op': 'reading-count', 'id': 'startup-no-message', 'minimum': 0, 'expect_reading': 0},
+         write('resolv', r2), signal_reload(), probe('after-hup', transports=['udp']),
+         {'op': 'reading-count', 'id': 'hup-no-message', 'minimum': 0, 'expect_reading': 0}],
+        'no-daemon\nno-poll\n')
     expected = {
         'inplace-rename-delete-empty': {'initial': 11, 'inplace': 12, 'renamed': 11, 'deleted': 11, 'empty': 5, 'invalid': 5, 'recovered': 12},
         'missing-leaf': {'missing': 5, 'created': 11},
@@ -476,6 +486,32 @@ def run_side(root, side, case, folder):
                         lines = path.read_text().splitlines() if path.exists() else []
                         result['rows'].append({'id': action['id'] + ':helper', 'helper_events': lines[helper_offset:], 'response': None, 'error': None, 'cache': False, 'upstreams': []})
                         helper_offset = len(lines)
+                    elif op == 'reading-count':
+                        deadline = time.monotonic() + 2
+                        while True:
+                            lines = (folder / 'stderr').read_text().splitlines()
+                            count = sum('reading /m2/files/resolv' in line for line in lines)
+                            if count >= action['minimum']: break
+                            if time.monotonic() >= deadline: raise AssertionError('missing successful resolver reading message')
+                            time.sleep(.005)
+                        time.sleep(.05)
+                        count = sum('reading /m2/files/resolv' in line for line in (folder / 'stderr').read_text().splitlines())
+                        result['rows'].append({'id': action['id'] + ':reading', 'reading_count': count,
+                                               'response': None, 'error': None, 'cache': False, 'upstreams': []})
+                    elif op == 'file-burst':
+                        process.send_signal(signal.SIGSTOP)
+                        try:
+                            deadline = time.monotonic() + 1
+                            while '\nState:\tT' not in Path(f'/proc/{process.pid}/status').read_text():
+                                if time.monotonic() > deadline: raise AssertionError('SIGSTOP not observed')
+                                time.sleep(.001)
+                            for _ in range(action['count']):
+                                put(root, 'resolv', action['text'], opened)
+                                # Alternate a different name so the kernel cannot
+                                # coalesce identical consecutive close-write events.
+                                put(root, 'noise-' + 'x' * 200, 'irrelevant', opened)
+                        finally:
+                            process.send_signal(signal.SIGCONT)
                     elif op == 'metrics':
                         samples, deadline = [], time.monotonic() + 1
                         while True:
@@ -561,7 +597,7 @@ def compare(left, right, case):
             for stream in ('stdout', 'stderr'):
                 if stream in value: value[stream] = normalized_text(value[stream])
         if a != b: failures.append({'phase': phase, 'c': a, 'rust': b})
-    suffixes = {'helper-events': ['helper'], 'receive-udp': ['udp-async'], 'metrics': ['metrics']}
+    suffixes = {'helper-events': ['helper'], 'receive-udp': ['udp-async'], 'metrics': ['metrics'], 'reading-count': ['reading']}
     wanted = [action['id'] + ':' + transport for action in case['actions'] if action['op'] in ('query', *suffixes)
               for transport in suffixes.get(action['op'], action.get('transports', ['udp', 'tcp']))] if left['startup']['ready'] else []
     for side, observed in [('c', left), ('rust', right)]:
@@ -602,13 +638,15 @@ def controls():
         assert compare(base, mutated, case), change
         found.append(change)
     for kind, op, payload in [('helper', 'helper-events', {'helper_events': ['old|mac|ip|name']}),
-                              ('metrics', 'metrics', {'metrics': {'dns_cache_inserted': 1, 'dns_queries_forwarded': 2}})]:
+                              ('metrics', 'metrics', {'metrics': {'dns_cache_inserted': 1, 'dns_queries_forwarded': 2}}),
+                              ('reading', 'reading-count', {'reading_count': 1})]:
         observed = copy.deepcopy(base)
         observed['rows'] = [dict(id='one:' + kind, response=None, error=None, cache=False, upstreams=[], **payload)]
         config = {'actions': [{'op': op, 'id': 'one'}]}
         assert not compare(observed, copy.deepcopy(observed), config)
         changed = copy.deepcopy(observed)
-        changed['rows'][0]['helper_events' if kind == 'helper' else 'metrics'] = [] if kind == 'helper' else {}
+        key = next(iter(payload))
+        changed['rows'][0][key] = [] if kind == 'helper' else {} if kind == 'metrics' else 0
         assert compare(observed, changed, config)
         found.append('wrong-' + kind)
     return found
@@ -674,6 +712,10 @@ def main():
                 row['failures'].append({'phase': 'c-calibration', 'syntax': c['syntax'], 'startup': c['startup']})
             row['rows'] = len(c['rows'])
             for action in case['actions']:
+                if 'expect_reading' in action:
+                    actual = next((entry for entry in c['rows'] if entry['id'] == action['id'] + ':reading'), {})
+                    if actual.get('reading_count') != action['expect_reading']:
+                        row['failures'].append({'phase': 'c-reading-calibration', 'id': action['id'], 'expected': action['expect_reading'], 'actual': actual})
                 if 'expect_events' in action:
                     actual = next((entry for entry in c['rows'] if entry['id'] == action['id'] + ':helper'), {})
                     if len(actual.get('helper_events', [])) != action['expect_events']:
