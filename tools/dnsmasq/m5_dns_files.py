@@ -10,15 +10,19 @@ from __future__ import annotations
 
 import argparse
 import copy
+import ctypes
 import errno
 import json
 import os
+import platform
+import re
 from pathlib import Path
 import shutil
 import signal
 import socket
 import struct
 import subprocess
+import sys
 import time
 
 from dns_service_probe import exact_read, read_name, semantics
@@ -141,6 +145,51 @@ def scenarios():
     add('own-v4-same-port', 'RSLV-09', {}, [probe('own-v4')], 'no-resolv\nserver=127.0.0.1#{listen_port}\n')
     add('own-v6-same-port', 'RSLV-09', {}, [probe('own-v6')], 'no-resolv\nserver=::1#{listen_port}\n', listen='127.0.0.1,::1')
     add('own-address-other-port', 'RSLV-09', {'resolv': 'nameserver 127.0.0.1\n'}, [probe('other-port')], local_upstream=True)
+    add('default-system-resolver', 'CFG-01', {}, [probe('system-default')], default_resolv=False, sys_files={'/etc/resolv.conf': r1})
+    for label, config, files in [
+        ('empty-resolv', 'resolv-file=\n', {}),
+        ('empty-then-file', 'resolv-file=\nresolv-file=/m2/files/resolv\n', initial),
+        ('file-then-empty', 'resolv-file=/m2/files/resolv\nresolv-file=\n', initial),
+        ('duplicate-file', 'resolv-file=/m2/files/resolv\nresolv-file=/m2/files/resolv\n', initial),
+    ]:
+        add(label, 'CFG-01', files, [probe('grammar')], config, default_resolv=False, sys_files={'/etc/resolv.conf': 'nameserver 127.0.0.4\n'})
+    for flag in ['no-poll', 'clear-on-reload']:
+        add('parameter-' + flag, 'CFG-03', initial, [], flag + '=bad\n', expected_test=1, expected_start=False)
+    for count in [20, 21]:
+        files = {'target': r1}
+        target = 'target'
+        for index in range(count):
+            leaf = 'link' + str(index); files[leaf] = {'symlink': target}; target = leaf
+        add('symlink-limit-' + str(count), 'WATCH-02', files, [probe('limit')] if count == 20 else [],
+            'resolv-file=/m2/files/' + target + '\n', default_resolv=False, expected_start=count == 20)
+    add('symlink-loop', 'WATCH-02', {'resolv': {'symlink': 'resolv'}}, [], expected_start=False)
+    add('absolute-root-leaf', 'WATCH-03', {}, [], 'resolv-file=/leaf\n', default_resolv=False, expected_start=False)
+    add('parent-replacement', 'WATCH-06', {'watch/resolv': r1, 'next/resolv': r2},
+        [probe('parent-initial'), {'op': 'rename', 'path': 'watch', 'to': 'old'},
+         {'op': 'rename', 'path': 'next', 'to': 'watch'}, probe('parent-replaced'),
+         write('watch/resolv', 'nameserver 127.0.0.4\n'), probe('new-parent-unwatched'),
+         write('old/resolv', r1), probe('old-parent-trigger')],
+        'resolv-file=/m2/files/watch/resolv\n', default_resolv=False)
+    add('mtime-zero-negative', 'RSLV-01', {'resolv': {'text': r1, 'mtime': 0}},
+        [probe('zero-time'), write('resolv', r2, mtime=-1), probe('negative-time'),
+         write('resolv', r2, mtime=1), probe('positive-time')])
+    add('removed-winner-route-fallback', 'RSLV-02',
+        {'resolv': {'text': r1, 'mtime': 1700000010}, 'second': {'text': r2, 'mtime': 1700000020}},
+        [probe('winner'), {'op': 'unlink', 'path': 'second'}, probe('delete-ignored'),
+         {'op': 'address-route', 'address': '198.18.2.1/24'}, probe('fallback'),
+         {'op': 'unlink', 'path': 'resolv'}, {'op': 'address-route', 'address': '198.18.3.1/24'}, probe('all-missing-retains')],
+        'resolv-file=/m2/files/second\n')
+    add('resolver-open-permission', 'RSLV-05', initial,
+        [probe('permission-initial'), write('resolv', r2, mode=0), probe('denied-retains'),
+         write('resolv', r2, mode=0o644), probe('permission-recovered')], user='dnsmasq', group='dnsmasq')
+    add('resolver-directory', 'RSLV-05', initial,
+        [probe('file-initial'), {'op': 'directory-replace', 'path': 'resolv'}, probe('directory-empty'),
+         {'op': 'rmdir', 'path': 'resolv'}, write('resolv', r2), probe('file-recovered')])
+    add('diagnostics-debug', 'SFILE-02,SFILE-03,NPOLL-01', {},
+        [write('resolv', r1), write('servers', 'server=/file.test/127.0.0.3\naddress=/bad/1.2.3.4\nserver=/other.test/127.0.0.4\n'),
+         signal_reload(), probe('valid-prefix', 'a.file.test'), probe('valid-after-error', 'a.other.test')],
+        'no-daemon\nno-poll\nservers-file=/m2/files/servers\n', diagnostics=True)
+    add('watch-emfile', 'FAIL-01', initial, [], expected_start=False, inotify_fault=True)
     dhcp_files = dict(initial, **{'leases': '4102444800 02:11:22:33:44:55 198.18.5.10 leased *\n',
         'helper.sh': '#!/bin/sh\nprintf "%s|%s|%s|%s\\n" "$1" "$2" "$3" "$4" >> /m2/files/helper.log\n', 'dhcp.hosts': ''})
     dhcp_config = ('clear-on-reload\ninterface=m5filelan\nno-ping\ndomain=files.test\n'
@@ -203,6 +252,7 @@ def put(root, relative, value, opened):
     handle.flush()
     if 'mtime' in value:
         os.utime(handle.fileno(), (value['mtime'], value['mtime']))
+    if 'mode' in value: os.fchmod(handle.fileno(), value['mode'])
     if value.get('hold_open'):
         opened[relative] = handle
     else:
@@ -256,6 +306,8 @@ def run_side(root, side, case, folder):
         route_socket = socket.socket(socket.AF_NETLINK, socket.SOCK_RAW, 0)
         route_socket.bind((0, 0x40 | 0x400)); route_socket.settimeout(.02)
     for path, value in case['files'].items(): put(root, path, value, opened)
+    for path, value in case.get('sys_files', {}).items():
+        target = image_path(root, path); target.parent.mkdir(parents=True, exist_ok=True); target.write_text(value)
     if case.get('dhcp_witness'):
         (data / 'helper.sh').chmod(0o755)
     helper_offset = 0
@@ -269,8 +321,9 @@ def run_side(root, side, case, folder):
         upstreams.append(Upstream(fixtures, address, 53))
     with socket.socket() as reserve:
         reserve.bind(('127.0.0.1', 0)); port = reserve.getsockname()[1]
-    config = ('no-hosts\nno-0x20-encode\nno-round-robin\nstrict-order\nuser=root\ngroup=root\n'
-              f'listen-address={case.get("listen", "127.0.0.1")}\nhost-record=ready.files.test,192.0.2.250\n'
+    config = ('no-hosts\nno-0x20-encode\nno-round-robin\nstrict-order\n'
+              + f'user={case.get("user", "root")}\ngroup={case.get("group", "root")}\n'
+              + f'listen-address={case.get("listen", "127.0.0.1")}\nhost-record=ready.files.test,192.0.2.250\n'
               'pid-file=/m2/files.pid\n' + f'port={port}\ncache-size={case.get("cache_size", 0)}\n'
               + ('resolv-file=/m2/files/resolv\n' if case.get('default_resolv', True) else '') + case['config'].replace('{listen_port}', str(port)))
     (root / 'm2/files.conf').write_text(config)
@@ -280,7 +333,9 @@ def run_side(root, side, case, folder):
     process = None
     try:
         with (folder / 'stdout').open('wb') as stdout, (folder / 'stderr').open('wb') as stderr:
-            process = subprocess.Popen(command(root, side, '-k', '-C', '/m2/files.conf'), stdout=stdout, stderr=stderr, start_new_session=True)
+            argv = command(root, side, '-k', '-C', '/m2/files.conf')
+            if case.get('inotify_fault'): argv = [sys.executable, str(Path(__file__).resolve()), '--exec-inotify-fault', *argv]
+            process = subprocess.Popen(argv, stdout=stdout, stderr=stderr, start_new_session=True)
             deadline = time.monotonic() + 3
             while process.poll() is None and time.monotonic() < deadline:
                 try:
@@ -334,7 +389,7 @@ def run_side(root, side, case, folder):
                             subprocess.run(['ip', 'route', 'add', action['prefix'], 'dev', 'lo', 'scope', 'link'], check=True)
                             routes.append(action['prefix'])
                         else:
-                            device = 'm5route'
+                            device = 'm5route' + str(len(links))
                             subprocess.run(['ip', 'link', 'add', device, 'type', 'dummy'], check=True)
                             subprocess.run(['ip', 'link', 'set', device, 'up'], check=True)
                             links.append(device)
@@ -353,6 +408,12 @@ def run_side(root, side, case, folder):
                                 records.append(row); at += (length + 3) & ~3
                             packets.append({'peer': list(peer), 'wire': wire.hex(), 'records': records})
                         result['actions'].append({'op': 'netlink-witness', 'trigger': op, 'packets': packets})
+                    elif op == 'rename':
+                        (data / action['path']).rename(data / action['to'])
+                    elif op == 'directory-replace':
+                        path = data / action['path']; temporary = path.with_name('new-directory')
+                        temporary.mkdir(); path.unlink(); temporary.rename(path)
+                    elif op == 'rmdir': (data / action['path']).rmdir()
                     elif op == 'helper-events':
                         time.sleep(.25)
                         path = data / 'helper.log'
@@ -389,6 +450,8 @@ def run_side(root, side, case, folder):
         result['cleanup'] = {'live_pids': descendants(root), 'pid_file': (root / 'm2/files.pid').exists()}
         result['stdout'] = (folder / 'stdout').read_text()
         result['stderr'] = (folder / 'stderr').read_text()
+        result['file_diagnostics'] = [line.removeprefix('dnsmasq: ').removeprefix('dnsmasq-rs: ') for line in result['stderr'].splitlines()
+            if re.search(r'(?:failed to read|cannot read|no servers found) /m2/files/| at line [0-9]+ of /m2/files/', line)]
         if not result.get('startup', {}).get('ready'):
             result.setdefault('startup', {'ready': False}).update(stdout=result['stdout'], stderr=result['stderr'])
         dump(folder / 'observed.json', result)
@@ -406,6 +469,8 @@ def projection(row):
 
 def compare(left, right, case):
     failures = []
+    if case.get('diagnostics') and left['file_diagnostics'] != right['file_diagnostics']:
+        failures.append({'phase': 'file-diagnostics', 'c': left['file_diagnostics'], 'rust': right['file_diagnostics']})
     for phase in ('syntax', 'startup'):
         a, b = copy.deepcopy(left[phase]), copy.deepcopy(right[phase])
         for value in (a, b):
@@ -451,6 +516,21 @@ def controls():
         assert compare(base, mutated, case), change
         found.append(change)
     return found
+
+
+def exec_inotify_fault(argv):
+    if platform.machine() != 'aarch64': raise RuntimeError('fault syscall ABI is pinned AArch64')
+    class Filter(ctypes.Structure):
+        _fields_ = [('code', ctypes.c_ushort), ('jt', ctypes.c_ubyte), ('jf', ctypes.c_ubyte), ('k', ctypes.c_uint)]
+    class Program(ctypes.Structure):
+        _fields_ = [('len', ctypes.c_ushort), ('filter', ctypes.POINTER(Filter))]
+    # asm-generic __NR_inotify_init1=26; deny only this syscall with EMFILE.
+    filters = (Filter * 4)(Filter(0x20, 0, 0, 0), Filter(0x15, 0, 1, 26), Filter(0x06, 0, 0, 0x50000 | errno.EMFILE), Filter(0x06, 0, 0, 0x7fff0000))
+    program = Program(4, filters)
+    libc = ctypes.CDLL(None, use_errno=True)
+    if libc.prctl(38, 1, 0, 0, 0) or libc.prctl(22, 2, ctypes.byref(program), 0, 0):
+        raise OSError(ctypes.get_errno(), 'seccomp setup')
+    os.execvp(argv[0], argv)
 
 
 def main():
@@ -522,4 +602,6 @@ def main():
     return int(bool(report['failures']))
 
 
-if __name__ == '__main__': raise SystemExit(main())
+if __name__ == '__main__':
+    if len(sys.argv) > 1 and sys.argv[1] == '--exec-inotify-fault': exec_inotify_fault(sys.argv[2:])
+    raise SystemExit(main())
