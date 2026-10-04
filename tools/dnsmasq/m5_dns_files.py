@@ -147,12 +147,12 @@ def scenarios():
                    'dhcp-range=198.18.5.10,198.18.5.20,255.255.255.0,1h\n'
                    'dhcp-leasefile=/m2/files/leases\ndhcp-script=/m2/files/helper.sh\n')
     add('clear-helper-unchanged', 'CLEAR-02,CLEAR-03', dhcp_files,
-        [{'op': 'helper-events', 'id': 'initial-helper', 'expect_events': 1}, probe('lease-initial', 'leased.files.test'),
+        [{'op': 'helper-events', 'id': 'initial-helper', 'expect_events': 2}, probe('lease-initial', 'leased.files.test'),
          write('resolv', r2), {'op': 'helper-events', 'id': 'auto-helper', 'expect_events': 0},
          signal_reload(), {'op': 'helper-events', 'id': 'hup-helper', 'expect_events': 1}],
         dhcp_config, dhcp_witness=True)
     add('clear-dhcp-hosts-bank', 'CLEAR-02', dhcp_files,
-        [{'op': 'helper-events', 'id': 'initial-helper', 'expect_events': 1}, probe('lease-initial', 'leased.files.test'),
+        [{'op': 'helper-events', 'id': 'initial-helper', 'expect_events': 2}, probe('lease-initial', 'leased.files.test'),
          write('dhcp.hosts', '02:11:22:33:44:55,newname,198.18.5.10\n'), write('resolv', r2),
          probe('new-lease-name', 'newname.files.test'), probe('old-name-forwarded', 'leased.files.test'),
          {'op': 'helper-events', 'id': 'changed-helper'}],
