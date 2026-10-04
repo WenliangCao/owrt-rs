@@ -775,7 +775,7 @@ def evaluate(rows, corpus, sides):
                 if profile["mode"]=="proxy" and not profile.get("initial_leases") and lease_state(case):
                     failures.append(f"{key}/{item['name']}: proxy allocated a lease")
                 if profile.get("tftp") and case.get("tftp") is not True:failures.append(f"{key}/{item['name']}: TFTP health")
-                if item["helper_busy"] and case.get("helper_busy_observed") is not True:failures.append(f"{key}/{item['name']}: no concurrent helper witness")
+                if item.get("helper_busy") and case.get("helper_busy_observed") is not True:failures.append(f"{key}/{item['name']}: no concurrent helper witness")
                 if profile.get("metrics") is not None and (case.get("metrics") or {}).get("pxe")!=profile["metrics"][index]:
                     failures.append(f"{key}/{item['name']}: PXE counter")
             if profile.get("metrics") is not None:
