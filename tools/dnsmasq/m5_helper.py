@@ -668,9 +668,14 @@ def controls(rows):
         next(row for row in changed if row['side'] == 'rust')['cleanup']['forced'] = True
     environment = bool(compare(changed, expected))
     changed = copy.deepcopy(rows)
-    stage = next((stage for row in changed if row['side'] == 'rust' for stage in row.get('stages', []) if len(stage['records']) > 1), None)
+    stage = next((stage for row in changed if row['side'] == 'rust' for stage in row.get('stages', [])
+                  if any(value != stage['records'][0] for value in stage['records'][1:])), None)
     if stage:
-        stage['records'].reverse()
+        # A TFTP/lease/TFTP sequence is a palindrome. Swap two distinct
+        # records so this control always changes the observed order.
+        records = stage['records']
+        index = next(i for i, value in enumerate(records[1:], 1) if value != records[0])
+        records[0], records[index] = records[index], records[0]
     else:
         next(row for row in changed if row['side'] == 'rust')['side'] = 'c'
     ordering = bool(compare(changed, expected))
