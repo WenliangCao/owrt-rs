@@ -17,11 +17,7 @@ import os
 import platform
 import re
 import resource
-import select
 import threading
-import tty
-import fcntl
-import termios
 from pathlib import Path
 import shutil
 import signal
@@ -34,6 +30,7 @@ import time
 from dns_service_probe import exact_read, read_name, semantics
 from m2_rootfs import STOCK_SHA256, command, image_path, prepare, process_identity, sha256
 from m5_option_matrix import Upstream, descendants, normalized_text, query
+import m5_dhcp_tags_options as dhcp_wire
 
 
 def dump(path, value):
@@ -308,7 +305,7 @@ def scenarios():
          probe('steady'), {'op': 'address-route', 'address': '198.18.2.1/24'}, probe('route-empty'),
          write('resolv', r1), probe('populated')])
     add('runtime-resolver-emfile', 'FAIL-01,RSLV-05,CLEAR-01', initial,
-        [probe('initial', transports=['udp']), {'op': 'fd-limit', 'limit': 0}, write('resolv', r2),
+        [probe('initial', transports=['udp']), {'op': 'fd-limit', 'limit': 'first-free'}, write('resolv', r2),
          probe('local-during-emfile', 'ready.files.test', transports=['udp']), {'op': 'fd-limit', 'restore': True},
          probe('old-source-retained', transports=['udp']), write('resolv', r2), probe('recovered')],
         'no-daemon\nclear-on-reload\n', diagnostics=True)
@@ -333,6 +330,58 @@ def scenarios():
             'no-poll\n', fifo_startup=phase == 'startup')
     add('pending-file-shutdown', 'FAIL-01', initial,
         [{'op': 'fifo-reload', 'id': 'shutdown', 'text': r2, 'shutdown': True}], 'no-poll\n')
+    add('symlink-readlink-eacces', 'WATCH-02,FAIL-01', {'resolv': {'symlink': 'target'}, 'target': r1}, [],
+        expected_start=False, inotify_fault='readlink-eacces')
+    add('servers-lexical-and-forbidden-includes', 'CFG-03,SFILE-02,SFILE-03,SFILE-04,SFILE-06',
+        dict(initial, servers='server=/before.test/127.0.0.3\nconf-file=/m2/files/injected\nconf-dir=/m2/files/include\nunknown-option=x\nserver\nserver="/quoted.test/127.0.0.4" # comment\nrev-server=192.0.2.0/24,127.0.0.3\n',
+             injected='server=/forbidden.test/127.0.0.4\n'),
+        [probe('before', 'a.before.test'), probe('quoted', 'a.quoted.test'),
+         probe('forbidden', 'a.forbidden.test'), probe('reverse', '10.2.0.192.in-addr.arpa', type=12),
+         write('servers', 'invalid-only\n'), signal_reload(), probe('invalid-removes-old', 'a.before.test'),
+         {'op': 'write-system', 'path': '/m2/files.conf', 'text': 'bad-main-config\n'}, signal_reload(), probe('main-not-reread')],
+        'no-daemon\nservers-file=/m2/files/servers\n', diagnostics=True)
+    add('servers-permission-and-literal-dash', 'SFILE-03', dict(initial, **{'servers': 'server=/file.test/127.0.0.3\n', '-': 'server=/dash.test/127.0.0.4\n'}),
+        [probe('file', 'a.file.test'), write('servers', 'server=/file.test/127.0.0.4\n', mode=0), signal_reload(),
+         probe('kept', 'b.file.test'), write('servers', '', mode=0o644), signal_reload(), probe('removed', 'c.file.test')],
+        'no-daemon\nservers-file=/m2/files/servers\n', user='dnsmasq', group='dnsmasq', diagnostics=True)
+    add('servers-relative-dash', 'SFILE-03', {}, [probe('dash', 'a.dash.test')],
+        'no-resolv\nservers-file=-\n', default_resolv=False, sys_files={'/-': 'server=/dash.test/127.0.0.3\n'})
+    for bank in ['inline', 'resolver', 'both']:
+        add('default-marker-' + bank, 'RSLV-07,RSLV-08,STATE-03', initial,
+            [probe('default-marked', 'a.marker.test'), probe('ordinary')],
+            'server=/marker.test/#\n' + ('server=127.0.0.3\n' if bank in ('inline', 'both') else '')
+            + ('no-resolv\n' if bank == 'inline' else ''))
+    add('default-address-marker-precedence', 'RSLV-08,STATE-03', initial,
+        [probe('marked', 'a.marker.test'), probe('default-literal', 'any.test'), probe('wildcard', 'a.wild.test')],
+        'server=/marker.test/#\naddress=/#/192.0.2.60\naddress=/*.wild.test/192.0.2.61\n')
+    add('resolver-default-marker-empty', 'RSLV-08', {'resolv': ''},
+        [probe('no-server', 'a.marker.test')], 'server=/marker.test/#\n')
+    add('no-resolv-retains-file-and-inline', 'RSLV-07', {'servers': 'server=/file.test/127.0.0.3\n'},
+        [probe('inline'), probe('file', 'a.file.test')],
+        'no-resolv\nserver=127.0.0.4\nservers-file=/m2/files/servers\n')
+    add('resolver-reorder-and-duplicates', 'RSLV-07,STATE-01,STATE-03', {'resolv': r1 + r2 + r1},
+        [probe('initial'), write('resolv', r2 + r1 + r2), probe('reordered'), write('resolv', r2 + r1 + r2), probe('identical')])
+    add('file-route-collision-wildcard-order', 'SFILE-04,STATE-01,STATE-03',
+        dict(initial, servers='server=/zone.test/127.0.0.3\nserver=/*.wild.test/127.0.0.3\n'),
+        [probe('collision', 'a.zone.test'), probe('wild-before', 'a.wild.test'),
+         write('servers', 'server=/zone.test/127.0.0.4\nserver=/*.wild.test/127.0.0.4\n'), signal_reload(),
+         probe('collision-after', 'b.zone.test'), probe('wild-after', 'b.wild.test'),
+         write('resolv', r2), probe('after-interleave'), write('servers', ''), signal_reload(), probe('collision-removed', 'c.zone.test')],
+        'servers-file=/m2/files/servers\nserver=/zone.test/127.0.0.2\n')
+    add('dhcp-during-repeated-reloads', 'STATE-05,CLEAR-02', initial,
+        [a for i in range(4) for a in ({'op': 'dhcp-inform', 'id': 'before-' + str(i)},
+         write('resolv', r2 if i % 2 else r1), {'op': 'dhcp-inform', 'id': 'after-' + str(i)}, probe('dns-' + str(i)))],
+        'interface=lo\nno-ping\ndhcp-range=127.0.0.10,127.0.0.20,255.0.0.0,600\n'
+        'dhcp-option=224,file-witness\ndhcp-leasefile=/m2/files/leases\nclear-on-reload\n')
+    add('pending-file-bank-reuse', 'STATE-01,STATE-02', dict(initial, servers='server=/files.test/127.0.0.2\n'),
+        [{'op': 'start-udp', 'id': 'held', 'name': 'pending.files.test'},
+         write('servers', 'server=/files.test/127.0.0.3\n'), signal_reload(),
+         {'op': 'inject', 'id': 'held', 'server': 0}, {'op': 'receive-udp', 'id': 'old-reply', 'pending': 'held'},
+         {'op': 'inject', 'id': 'held', 'server': 1}, {'op': 'receive-udp', 'id': 'new-reply', 'pending': 'held'}],
+        'servers-file=/m2/files/servers\n')
+    add('pending-kept-server', 'STATE-02', initial,
+        [{'op': 'start-udp', 'id': 'held', 'name': 'pending.files.test'}, write('resolv', r1),
+         {'op': 'inject', 'id': 'held', 'server': 0}, {'op': 'receive-udp', 'id': 'kept-reply', 'pending': 'held'}])
     expected = {
         'inplace-rename-delete-empty': {'initial': 11, 'inplace': 12, 'renamed': 11, 'deleted': 11, 'empty': 5, 'invalid': 5, 'recovered': 12},
         'missing-leaf': {'missing': 5, 'created': 11},
@@ -495,39 +544,109 @@ def pending_fifo(root, process, port, text, shutdown=False):
     await_predicate(attach_writer, 'FIFO reader never opened')
     fds = await_predicate(lambda: open_file_fds(process.pid, '/m2/files/resolv'), 'FIFO read FD not witnessed')
     health = local_health(port)
-    if shutdown: process.send_signal(signal.SIGTERM)
+    exit_before_release = None
+    if shutdown:
+        process.send_signal(signal.SIGTERM)
+        time.sleep(.1)
+        exit_before_release = process.poll()
     # Closing the writer is the explicit release gate for blocking C. Keep
     # pending data/no-data observations distinct from forced fixture cleanup.
     if not shutdown: os.write(writer, text.encode())
     os.close(writer)
-    return {'pending_fds': fds, 'health_while_pending': health, 'shutdown': shutdown}
+    return {'pending_fds': fds, 'health_while_pending': health, 'shutdown': shutdown, 'exit_before_release': exit_before_release}
 
 
-def pty_partial_error(root, process, text):
-    """TTY EOF after its master closes is kernel EIO, not a mocked parse result."""
-    master, slave = os.openpty(); tty.setraw(slave)
-    device = os.ttyname(slave); path = root / 'm2/files/resolv'
-    subprocess.run(['mount', '--bind', device, str(path)], check=True)
-    trace = {'device': device, 'input': text.encode().hex()}
+def trace_read_error(pid, descriptor, output):
+    """One child-owned AArch64 read/readv EIO after a successful partial read."""
+    if platform.machine() != 'aarch64': raise RuntimeError('ptrace ABI is pinned AArch64')
+    class Iovec(ctypes.Structure):
+        _fields_ = [('base', ctypes.c_void_p), ('length', ctypes.c_size_t)]
+    libc = ctypes.CDLL(None, use_errno=True)
+    libc.ptrace.restype = ctypes.c_long
+    def ptrace(request, address=0, data=0):
+        ctypes.set_errno(0)
+        value = libc.ptrace(ctypes.c_uint(request), ctypes.c_uint(pid), ctypes.c_void_p(address), ctypes.c_void_p(data))
+        if value == -1 and ctypes.get_errno(): raise OSError(ctypes.get_errno(), 'ptrace')
+        return value
+    registers = (ctypes.c_ulonglong * 34)()
+    def regs(write=False):
+        value = Iovec(ctypes.addressof(registers), ctypes.sizeof(registers))
+        ptrace(0x4205 if write else 0x4204, 1, ctypes.addressof(value))
+    report = {'pid': pid, 'descriptor': descriptor, 'reads': [], 'injected': False}
+    attached = False
     try:
-        process.send_signal(signal.SIGHUP)
-        trace['opened_fds'] = await_predicate(lambda: open_file_fds(process.pid, device), 'PTY reader never opened')
-        os.write(master, text.encode())
-        def consumed():
-            available = struct.unpack('i', fcntl.ioctl(slave, termios.FIONREAD, struct.pack('i', 0)))[0]
-            return available == 0
-        await_predicate(consumed, 'PTY input not consumed')
-        time.sleep(.02)
-        os.close(master); master = None
-        try: trace['terminal_read'] = os.read(slave, 1).hex()
-        except OSError as problem: trace['terminal_errno'] = problem.errno
-        if trace.get('terminal_errno') != errno.EIO: raise AssertionError('PTY did not exhibit EIO')
-        await_predicate(lambda: not open_file_fds(process.pid, device), 'PTY read job did not finish after EIO')
+        ptrace(16); os.waitpid(pid, 0); attached = True
+        ptrace(0x4200, 0, 1)  # PTRACE_O_TRACESYSGOOD
+        Path(str(output) + '.ready').write_text('attached\n')
+        read_active, fault_active, consumed = False, False, False
+        while True:
+            ptrace(24)
+            _, status = os.waitpid(pid, 0)
+            if not os.WIFSTOPPED(status): raise AssertionError('tracee ended before injected read')
+            stop = os.WSTOPSIG(status)
+            if stop != signal.SIGTRAP | 0x80:
+                if stop in (signal.SIGTERM, signal.SIGINT): raise AssertionError('tracee interrupted')
+                continue
+            info = (ctypes.c_ubyte * 128)()
+            ptrace(0x420e, ctypes.sizeof(info), ctypes.addressof(info))
+            regs()
+            if info[0] == 1:
+                read_active = registers[8] in (63, 65) and registers[0] == descriptor
+                fault_active = read_active and consumed
+                if fault_active:
+                    syscall = ctypes.c_int(-1)
+                    value = Iovec(ctypes.addressof(syscall), ctypes.sizeof(syscall))
+                    ptrace(0x4205, 0x404, ctypes.addressof(value))
+            elif info[0] == 2 and read_active:
+                returned = ctypes.c_longlong(registers[0]).value
+                if fault_active:
+                    registers[0] = (1 << 64) - errno.EIO; regs(write=True)
+                    report['reads'].append({'result': -errno.EIO, 'injected': True})
+                    report['injected'] = True
+                    ptrace(17); attached = False; break
+                report['reads'].append({'result': returned, 'injected': False})
+                dump(Path(output), report)
+                consumed |= returned > 0
+                read_active = False
     finally:
-        if master is not None: os.close(master)
-        os.close(slave)
-        subprocess.run(['umount', str(path)], check=True)
-    return trace
+        if attached:
+            try: ptrace(17)
+            except OSError: pass
+        dump(Path(output), report)
+    return 0
+
+
+def partial_stream_error(root, process, text, folder):
+    path = root / 'm2/files/resolv'; path.unlink(); os.mkfifo(path)
+    process.send_signal(signal.SIGHUP)
+    writer = None
+    def attach_writer():
+        nonlocal writer
+        try: writer = os.open(path, os.O_WRONLY | os.O_NONBLOCK); return True
+        except OSError as problem:
+            if problem.errno != errno.ENXIO: raise
+            return False
+    await_predicate(attach_writer, 'partial stream reader never opened')
+    fds = await_predicate(lambda: open_file_fds(process.pid, '/m2/files/resolv'), 'partial stream FD not witnessed')
+    report_path = folder / 'read-error.json'
+    tracer = subprocess.Popen([sys.executable, str(Path(__file__).resolve()), '--trace-read-error',
+        str(process.pid), str(fds[0]['fd']), str(report_path)])
+    try:
+        await_predicate(lambda: Path(str(report_path) + '.ready').exists() or tracer.poll() is not None, 'ptrace attach deadline')
+        if tracer.poll() is not None: raise AssertionError('ptrace attach failed')
+        os.write(writer, text.encode())
+        await_predicate(lambda: report_path.exists() or tracer.poll() is not None, 'successful read not witnessed')
+        # The nonblocking owner waits for FIFO readiness before its next read.
+        # Extra bytes make that attempted read ready; ptrace returns EIO before
+        # they are consumed, leaving the already-read final line partial.
+        if tracer.poll() is None: os.write(writer, b'never-consumed')
+        if tracer.wait(5) != 0: raise AssertionError('read fault injector failed')
+        report = json.loads(report_path.read_text())
+        if not report['injected'] or not any(r['result'] > 0 for r in report['reads']): raise AssertionError('partial read EIO was not reached')
+        return dict(report, input=text.encode().hex())
+    finally:
+        os.close(writer)
+        if tracer.poll() is None: tracer.kill(); tracer.wait()
 
 
 def large_reload(root, process, port, action):
@@ -539,7 +658,8 @@ def large_reload(root, process, port, action):
     def reader():
         while not stop.is_set():
             active = bool(open_file_fds(process.pid, '/m2/files/resolv'))
-            samples.append(dict(local_health(port, 0x3200 + len(samples) % 1024), file_active=active))
+            sample = local_health(port, 0x3200 + len(samples) % 1024)
+            samples.append(dict(sample, file_active=active, file_still_active=bool(open_file_fds(process.pid, '/m2/files/resolv'))))
             time.sleep(.001)
     worker = threading.Thread(target=reader); worker.start()
     try:
@@ -553,10 +673,12 @@ def large_reload(root, process, port, action):
         stop.set(); worker.join(1)
     if worker.is_alive() or not samples: raise AssertionError('health sampler missing or leaked')
     latency = sorted(x['elapsed'] for x in samples)
+    active_latency = sorted(x['elapsed'] for x in samples if x['file_active'])
     return {'bytes': len(body) + len(action['tail']), 'sha256': sha256(path), 'samples': samples,
             'p95_seconds': latency[min(len(latency) - 1, int(len(latency) * .95))],
+            'pending_p95_seconds': active_latency[min(len(active_latency) - 1, int(len(active_latency) * .95))] if active_latency else None,
             'all_healthy': all(x['healthy'] for x in samples),
-            'healthy_while_file_open': sum(x['healthy'] and x['file_active'] for x in samples)}
+            'healthy_while_file_open': sum(x['healthy'] and x['file_active'] and x['file_still_active'] for x in samples)}
 
 
 def run_side(root, side, case, folder):
@@ -720,16 +842,28 @@ def run_side(root, side, case, folder):
                                 records.append(row); at += (length + 3) & ~3
                             packets.append({'peer': list(peer), 'wire': wire.hex(), 'records': records})
                         result['actions'].append({'op': 'netlink-witness', 'trigger': op, 'packets': packets})
+                    elif op == 'dhcp-inform':
+                        request = dhcp_wire.request({'kind': 8, 'ciaddr': '127.0.0.10', 'prl': [224]}, 0xd5800000 + index)
+                        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as endpoint:
+                            endpoint.bind(('0.0.0.0', 68)); endpoint.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1); endpoint.setsockopt(socket.SOL_SOCKET, 25, b'lo\0')
+                            response, peer, _, _ = dhcp_wire.receive(endpoint, request, ('255.255.255.255', 67), timeout=.5)
+                        if response is None: raise AssertionError('DHCP INFORM reply missing across reload')
+                        result['rows'].append({'id': action['id'] + ':dhcp', 'packet': response.hex(), 'request': request.hex(),
+                            'response': None, 'error': None, 'cache': False, 'upstreams': []})
                     elif op == 'pause': time.sleep(action['seconds'])
                     elif op == 'fd-limit':
                         if action.get('restore'):
                             resource.prlimit(process.pid, resource.RLIMIT_NOFILE, limit_before); limit_before = None
                         else:
                             limit_before = resource.prlimit(process.pid, resource.RLIMIT_NOFILE)
-                            resource.prlimit(process.pid, resource.RLIMIT_NOFILE, (action['limit'], limit_before[1]))
+                            descriptors = {int(p.name) for p in Path(f'/proc/{process.pid}/fd').iterdir()}
+                            ceiling = action['limit']
+                            if ceiling == 'first-free':
+                                ceiling = next(n for n in range(max(descriptors) + 2) if n not in descriptors)
+                            resource.prlimit(process.pid, resource.RLIMIT_NOFILE, (ceiling, limit_before[1]))
                         result['actions'].append({'op': 'actual-fd-limit', 'limits': resource.prlimit(process.pid, resource.RLIMIT_NOFILE)})
                     elif op == 'pty-read-error':
-                        result['actions'].append({'op': 'partial-read-eio', **pty_partial_error(root, process, action['text'])})
+                        result['actions'].append({'op': 'partial-read-eio', **partial_stream_error(root, process, action['text'], folder)})
                     elif op == 'large-file':
                         evidence = large_reload(root, process, port, action)
                         result['actions'].append({'op': 'large-file-health', 'id': action['id'], **evidence})
@@ -881,8 +1015,47 @@ def projection(row):
     return row
 
 
+
+def witness_errors(observed, side, case):
+    """Reject empty/missing fault evidence and preserve the C FIFO limitation."""
+    errors = []
+    actions = observed.get('actions', [])
+    def witness(op, ident=None):
+        return next((x for x in actions if x.get('op') == op and (ident is None or x.get('id') == ident)), None)
+    for action in case['actions']:
+        op = action['op']
+        if op == 'large-file':
+            found = witness('large-file-health', action['id'])
+            if not found or not found.get('samples') or found.get('bytes', 0) < action['bytes'] or not found.get('all_healthy'):
+                errors.append('large-file health data absent or failed')
+            elif not action['single_line'] and side == 'rust' and not found.get('healthy_while_file_open'):
+                errors.append('Rust did not answer while the large file was still open')
+        elif op == 'pty-read-error':
+            found = witness('partial-read-eio')
+            if not found or not found.get('injected') or not any(x.get('result', 0) > 0 for x in found.get('reads', [])) or not any(x.get('injected') and x.get('result') == -errno.EIO for x in found.get('reads', [])):
+                errors.append('partial read plus injected EIO not witnessed')
+        elif op == 'fifo-reload':
+            found = witness('fifo-progress', action['id'])
+            if not found or not found.get('pending_fds') or found.get('health_while_pending', {}).get('healthy') != (side == 'rust'):
+                errors.append('FIFO blocking C/nonblocking Rust classification failed')
+            if action.get('shutdown') and found and ((side == 'c' and found.get('exit_before_release') is not None) or (side == 'rust' and found.get('exit_before_release') != 0)):
+                errors.append('pending FIFO shutdown classification failed')
+        elif op == 'tftp-finish':
+            found = next((row for row in observed['rows'] if row['id'] == action['id'] + ':tftp'), {})
+            if found.get('body') != ('T' * 1400).encode().hex() or len(found.get('packets', [])) != 3:
+                errors.append('TFTP transfer payload or blocks missing')
+        elif op == 'fd-limit' and not action.get('restore'):
+            if not any('No file descriptors available' in line for line in observed.get('file_diagnostics', [])):
+                errors.append('runtime resolver EMFILE not reached')
+    if case.get('fifo_startup') and observed.get('fifo_startup_before_writer', {}).get('healthy') is not False:
+        errors.append('FIFO startup replied before initial source completed')
+    if observed.get('startup_writer_leaked'): errors.append('FIFO startup writer leaked')
+    return errors
+
+
 def compare(left, right, case):
-    failures = []
+    failures = [dict(phase='fault-witness', side=side, error=error)
+                for side, observed in [('c', left), ('rust', right)] for error in witness_errors(observed, side, case)]
     if case.get('diagnostics') and left['file_diagnostics'] != right['file_diagnostics']:
         failures.append({'phase': 'file-diagnostics', 'c': left['file_diagnostics'], 'rust': right['file_diagnostics']})
     for phase in ('syntax', 'startup'):
@@ -891,7 +1064,7 @@ def compare(left, right, case):
             for stream in ('stdout', 'stderr'):
                 if stream in value: value[stream] = normalized_text(value[stream])
         if a != b: failures.append({'phase': phase, 'c': a, 'rust': b})
-    suffixes = {'helper-events': ['helper'], 'receive-udp': ['udp-async'], 'metrics': ['metrics'], 'reading-count': ['reading'], 'receive-tcp': ['tcp-async'], 'large-file': ['large'], 'tftp-finish': ['tftp']}
+    suffixes = {'helper-events': ['helper'], 'receive-udp': ['udp-async'], 'metrics': ['metrics'], 'reading-count': ['reading'], 'receive-tcp': ['tcp-async'], 'large-file': ['large'], 'tftp-finish': ['tftp'], 'dhcp-inform': ['dhcp']}
     wanted = [action['id'] + ':' + transport for action in case['actions'] if action['op'] in ('query', *suffixes)
               for transport in suffixes.get(action['op'], action.get('transports', ['udp', 'tcp']))] if left['startup']['ready'] else []
     for side, observed in [('c', left), ('rust', right)]:
@@ -943,12 +1116,23 @@ def controls():
         changed['rows'][0][key] = [] if kind == 'helper' else {} if kind == 'metrics' else 0
         assert compare(observed, changed, config)
         found.append('wrong-' + kind)
+    # Every new side channel must be falsifiable independently of the DNS rows.
+    for label, op, action, recorded in [
+        ('partial-read', 'pty-read-error', {}, {'op': 'partial-read-eio', 'injected': True, 'reads': [{'result': 41}, {'result': -5, 'injected': True}]}),
+        ('fifo-progress', 'fifo-reload', {'id': 'fifo'}, {'op': 'fifo-progress', 'id': 'fifo', 'pending_fds': [{'fd': 10}], 'health_while_pending': {'healthy': True}}),
+        ('large-progress', 'large-file', {'id': 'large', 'bytes': 1024, 'single_line': False}, {'op': 'large-file-health', 'id': 'large', 'bytes': 1024, 'samples': [{}], 'all_healthy': True, 'healthy_while_file_open': 1}),
+    ]:
+        case = {'actions': [dict(op=op, **action)]}
+        sample = {'actions': [recorded], 'rows': []}
+        assert not witness_errors(sample, 'rust', case), label
+        assert witness_errors({'actions': [], 'rows': []}, 'rust', case), label
+        found.append('missing-' + label)
     return found
 
 
 def exec_inotify_fault(argv):
     kind, argv = argv[0], argv[1:]
-    number, error = (27, errno.EACCES) if kind == 'watch-eacces' else (26, errno.EMFILE)
+    number, error = {'watch-eacces': (27, errno.EACCES), 'readlink-eacces': (78, errno.EACCES)}.get(kind, (26, errno.EMFILE))
     if platform.machine() != 'aarch64': raise RuntimeError('fault syscall ABI is pinned AArch64')
     class Filter(ctypes.Structure):
         _fields_ = [('code', ctypes.c_ushort), ('jt', ctypes.c_ubyte), ('jf', ctypes.c_ubyte), ('k', ctypes.c_uint)]
@@ -995,7 +1179,7 @@ def main():
                                         'RSLV-05 partial stream read error',
                                         'SFILE-05 endpoint dependency'], 'closed_options': []}
     driver = out / 'driver'; driver.mkdir()
-    dependencies = ['m5_dns_files.py', 'm5_option_matrix.py', 'm5_option_matrix_probes.py', 'm2_rootfs.py', 'dns_service_probe.py', 'run_isolated.sh']
+    dependencies = ['m5_dns_files.py', 'm5_option_matrix.py', 'm5_option_matrix_probes.py', 'm2_rootfs.py', 'dns_service_probe.py', 'run_isolated.sh', 'm5_dhcp_tags_options.py', 'dhcp_boot_service_diff.py']
     report['driver_sha256'] = {}
     for filename in dependencies:
         source = Path(__file__).with_name(filename)
@@ -1045,5 +1229,7 @@ def main():
 
 
 if __name__ == '__main__':
+    if len(sys.argv) > 1 and sys.argv[1] == '--trace-read-error':
+        raise SystemExit(trace_read_error(int(sys.argv[2]), int(sys.argv[3]), sys.argv[4]))
     if len(sys.argv) > 1 and sys.argv[1] == '--exec-inotify-fault': exec_inotify_fault(sys.argv[2:])
     raise SystemExit(main())
