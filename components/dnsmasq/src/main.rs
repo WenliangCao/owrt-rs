@@ -829,10 +829,10 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     // their bounded receive loops and release sockets before exit.
     let mut last_interfaces = Instant::now();
     while !STOP_REQUESTED.load(Ordering::Acquire) {
-        #[cfg(target_os = "linux")]
-        poll.step_dns_files();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         poll.step_dhcp_files();
+        #[cfg(target_os = "linux")]
+        poll.step_dns_files();
         if std::mem::take(&mut poll.full_reload_pending) {
             poll.reload_data(runtime.scalar.local_ttl)?;
         }
@@ -1320,6 +1320,21 @@ impl SinglePoll {
 
     #[cfg(target_os = "linux")]
     fn step_dns_files(&mut self) {
+        // inotify_check finishes dynamic DHCP input before poll_resolv applies
+        // a resolver-triggered full reload. Yield file work across owner turns
+        // while preserving that order; ordinary DNS/TFTP still run each turn.
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if self
+            .dhcp
+            .as_ref()
+            .and_then(|dhcp| dhcp.provider.as_ref())
+            .is_some_and(|provider| {
+                let provider = provider.lock().unwrap();
+                provider.file_work_pending() || provider.files_runnable()
+            })
+        {
+            return;
+        }
         let Some(files) = &mut self.dns_files else {
             return;
         };

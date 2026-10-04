@@ -749,8 +749,10 @@ impl LocalProvider {
             self.config.options = update.options;
             self.config.options.extend_from_slice(&self.inline_options);
         } else {
-            self.ethers
-                .append_file_bank(update.hosts, &self.config.hosts);
+            if update.refresh_hosts {
+                self.ethers
+                    .append_file_bank(update.hosts, &self.config.hosts);
+            }
             let mut options = update.options;
             options.append(&mut self.config.options);
             self.config.options = options;
@@ -779,11 +781,12 @@ impl LocalProvider {
         refresh_hosts: bool,
         errors: Vec<HostFileError>,
     ) -> MaintenanceReport {
+        if !refresh_hosts {
+            return MaintenanceReport::pending_files();
+        }
         // dhcp_update_configs clears CONFIG_ADDR_HOSTS after parsing both
         // full banks and successful live host-file appends.
-        if refresh_hosts {
-            self.ethers.clear_inferred_addresses();
-        }
+        self.ethers.clear_inferred_addresses();
         self.hosts = self
             .ethers
             .hosts()
@@ -800,7 +803,7 @@ impl LocalProvider {
         self.file_init_ready = true;
         let mut report = if !self.initialized {
             self.initialize(now)
-        } else if refresh_hosts {
+        } else {
             let address_error = self.update_configured_addresses();
             let name_error = self
                 .host_files_ready
@@ -811,8 +814,6 @@ impl LocalProvider {
             report.name_error = name_error;
             self.queue_script_from_maintenance();
             report
-        } else {
-            MaintenanceReport::pending_files()
         };
         report.host_files.extend(errors);
         if self.file_scripts_pending && !self.file_work_pending() {
