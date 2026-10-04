@@ -74,7 +74,7 @@ def profiles():
     serial = 0
 
     def case(name, reply=True, listener=67, source_port=68, *, raw=None,
-             reload_hosts=None, copies=1, **fields):
+             reload_hosts=None, copies=1, sender="client", upstream=0, **fields):
         nonlocal serial
         serial += 1
         packet = bytearray(raw) if raw is not None else request(**fields)
@@ -82,7 +82,7 @@ def profiles():
             packet[4:8] = struct.pack("!I", 0x5F000000 + serial)
         return {"name": name, "request": packet.hex(), "reply": reply,
                 "listener": listener, "source_port": source_port,
-                "reload_hosts": reload_hosts, "copies": copies}
+                "reload_hosts": reload_hosts, "copies": copies,"sender":sender,"upstream":upstream}
 
     def profile(name, options, cases, ids, *, mode="proxy", **extra):
         return dict(name=name, options=options, cases=cases, boundaries=ids, mode=mode, **extra)
@@ -234,6 +234,14 @@ def profiles():
     # is BOOTP on a proxy-only head and must be silent.
     next(item for item in bounds if item["name"]=="request-length-240")["reply"]=False
     rows.append(profile("packet-capacity",legacy+[f"dhcp-option-pxe={code},"+"x"*240 for code in [224,225,226]],bounds,["RX03"]))
+    for server_port,client_port in [(67,68),(2067,2068)]:
+        options=legacy+[f"dhcp-relay={SERVER},{net.SERVER}"]
+        if server_port!=67:options.append(f"dhcp-alternate-port={server_port},{client_port}")
+        raw_reply=net.packet(op=2,giaddr=SERVER,yiaddr="10.77.0.10",flags=0x8000)
+        rows.append(profile(f"4011-relay-{server_port}",options,[
+            case("forward-via-primary",listener=4011,source_port=4011,reply=False,upstream=1),
+            case("reply-uses-shared-interface",sender="server",source_port=67,listener=server_port,raw=raw_reply),
+        ],["RX06","OWNER02"],mode="none",expect4011=True,needs_server=True))
     return rows
 
 
@@ -339,7 +347,7 @@ def syntax_errors(rows,corpus,sides):
     return failures
 
 
-def run_profile(root, side, profile, client, out):
+def run_profile(root, side, profile, client, server, out):
     out.mkdir()
     text = config(profile)
     (root/"m2/pxe.conf").write_text(text)
@@ -368,17 +376,20 @@ def run_profile(root, side, profile, client, out):
                     process.send_signal(signal.SIGHUP)
                     time.sleep(.15)
                 client.call(op="take")
-                client.call(op="send", packet=item["request"], port=item["source_port"],
-                            destination=[SERVER, item["listener"]], copies=item["copies"])
+                if server is not None:server.call(op="take")
+                sender=client if item["sender"]=="client" else server
+                sender.call(op="send", packet=item["request"], port=item["source_port"],
+                            destination=[SERVER if item["sender"]=="client" else net.UP,item["listener"]], copies=item["copies"])
                 time.sleep(.15)
                 raw = client.call(op="take")["packets"]
                 echoes = [entry for entry in raw if entry["packet"] == item["request"] and entry["source"][0] == CLIENT]
                 replies = [entry for entry in raw if entry not in echoes]
+                upstream=server.call(op="take")["packets"] if server is not None else []
                 leases = root/"m2/pxe.leases"
                 row["cases"].append({"name": item["name"], "request": item["request"], "replies": replies,
                                      "peer_echo": echoes, "alive": process.poll() is None, "heartbeat": heartbeat(),
                                      "leases": leases.read_text() if leases.exists() else None,
-                                     "observed_epoch":int(time.time())})
+                                     "observed_epoch":int(time.time()),"upstream":upstream})
             row["fd_end"] = net.descriptors(process.pid)
     except Exception as error:
         row["error"] = repr(error)
@@ -453,6 +464,8 @@ def evaluate(rows, corpus, sides):
                 expected = item["copies"] if item["reply"] else 0
                 if len(case["replies"]) != expected:
                     failures.append(f"{key}/{item['name']}: reply count {len(case['replies'])}!={expected}")
+                if len(case["upstream"])!=item["upstream"]*item["copies"]:
+                    failures.append(f"{key}/{item['name']}: upstream relay count")
                 if not case["alive"] or not case["heartbeat"]:
                     failures.append(f"{key}/{item['name']}: unhealthy daemon")
                 if profile["mode"]=="proxy" and lease_state(case):
@@ -465,7 +478,7 @@ def evaluate(rows, corpus, sides):
                 if first["test"][stream] != second["test"][stream].replace("dnsmasq-rs:", "dnsmasq:"):
                     failures.append(f"{profile['name']}: --test {stream} differs")
             for c, rust in zip(first["cases"], second["cases"]):
-                if c["name"] != rust["name"] or c["replies"] != rust["replies"]:
+                if c["name"] != rust["name"] or c["replies"] != rust["replies"] or c["upstream"]!=rust["upstream"]:
                     failures.append(f"{profile['name']}/{c['name']}: wire/endpoint differs")
                 if not same_leases(c,rust):
                     failures.append(f"{profile['name']}/{c['name']}: lease state differs")
@@ -535,15 +548,16 @@ def main(args):
     save(out/"manifest.json", {"profiles": corpus, "sides": sides, "tool_sha256": sha256(__file__),
                               "transport_tool_sha256": sha256(net.__file__), "c_sha256": STOCK_SHA256,
                               "rust_sha256": sha256(args.rust), "elf_bytes": args.rust.stat().st_size})
-    rows = []; failures = []; client = None; cleanup = None; syntax=[]
+    rows = []; failures = []; client = None; server=None; cleanup = None; server_cleanup=None; syntax=[]
     syntax_corpus=[] if args.profile else grammar_cases()
     try:
         for item in syntax_corpus:
             for side in sides:syntax.append(run_syntax(root,side,item,out/f"syntax-{item['name']}-{side}"))
         client = Peer("client0", SERVER, CLIENT)
+        if any(profile.get("needs_server") for profile in corpus):server=Peer("server0",net.UP,net.SERVER)
         for profile in corpus:
             for side in sides:
-                row = run_profile(root, side, profile, client, out/f"{profile['name']}-{side}")
+                row = run_profile(root, side, profile, client, server, out/f"{profile['name']}-{side}")
                 rows.append(row)
                 print(json.dumps({"profile": profile["name"], "side": side, "cases": len(row["cases"]), "error": row.get("error")}), flush=True)
     except Exception as error:
@@ -551,9 +565,12 @@ def main(args):
     finally:
         if client is not None:
             cleanup = client.close()
+        if server is not None:server_cleanup=server.close()
     failures += evaluate(rows, corpus, sides)+syntax_errors(syntax,syntax_corpus,sides)
     if cleanup is None or cleanup.get("actor_exit") != 0 or cleanup.get("namespace", {}).get("forced"):
         failures.append("peer cleanup")
+    if server is not None and (server_cleanup is None or server_cleanup.get("actor_exit")!=0 or server_cleanup.get("namespace",{}).get("forced")):
+        failures.append("upstream peer cleanup")
     controls = negative_controls(rows,corpus) if len(sides)==2 else {"passed":False,"not_executed":"reference-only run"}
     if len(sides)==2 and not controls["passed"]:
         failures.append("comparator negative controls")
@@ -565,7 +582,8 @@ def main(args):
                                          "c_runtime_executed":False,"candidate_policy":"safe syntax rejection"}
                                         for item in syntax_corpus if item["unsafe_runtime"]],
               "negative_controls":controls,
-              "cleanup": cleanup, "normalization": "No response wire fields normalized; lease absolute expiry compared as remaining seconds within2s; infinite/finite and all other lease fields exact"}
+              "cleanup": cleanup,"upstream_cleanup":server_cleanup,
+              "normalization": "No response wire fields normalized; lease absolute expiry compared as remaining seconds within2s; infinite/finite and all other lease fields exact"}
     save(out/"result.json", result)
     print(json.dumps({key: result[key] for key in ["passed", "reference_checks_passed", "case_count", "failures"]}))
     return 0 if not failures else 1
