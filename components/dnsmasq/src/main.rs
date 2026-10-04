@@ -287,6 +287,10 @@ fn write_dhcp_metrics(metrics: &mut Metrics, provider: &DhcpProvider) {
         (Metric::DhcpRelease, messages.release),
         (Metric::DhcpRequest, messages.request),
         (Metric::NoAnswer, messages.no_answer),
+        (Metric::DhcpLeaseQuery, messages.lease_query),
+        (Metric::DhcpLeaseUnassigned, messages.lease_unassigned),
+        (Metric::DhcpLeaseActive, messages.lease_active),
+        (Metric::DhcpLeaseUnknown, messages.lease_unknown),
     ] {
         metrics.set(metric, value);
     }
@@ -637,10 +641,6 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             },
         ) {
             Ok(listener) => Some(listener),
-            Err(error) if tftp_config.no_fail => {
-                eprintln!("dnsmasq-rs: TFTP disabled: {error}");
-                None
-            }
             Err(error) => return Err(Box::new(NetworkStartupError(error))),
         }
     } else {
@@ -677,12 +677,20 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     identity.drop_privileges(&runtime.process, capabilities)?;
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     if let Some(listener) = &tftp_listener {
-        if let Err(error) = listener.validate_roots() {
-            if tftp_config.no_fail {
-                eprintln!("dnsmasq-rs: TFTP root unavailable: {error}");
-            } else {
-                return Err(Box::new(NetworkStartupError(error)));
-            }
+        // C tolerates inaccessible roots with no-fail, never socket errors.
+        // Root access failures use EC_FILE, not EC_BADNET.
+        let warnings =
+            listener
+                .validate_roots()
+                .map_err(|error| dnsmasq_rs::startup::StartupError {
+                    code: 3,
+                    message: format!("TFTP root unavailable: {error}"),
+                })?;
+        for root in warnings {
+            eprintln!(
+                "dnsmasq-rs: TFTP root unavailable: {}",
+                String::from_utf8_lossy(&root)
+            );
         }
     }
     // The daemon owns all sockets from the foreground loop.  This keeps the
