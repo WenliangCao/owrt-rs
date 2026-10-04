@@ -181,6 +181,7 @@ impl SourceRule {
                     host: ServerHost::Address(address.ip()),
                     port: address.port(),
                     scope: None,
+                    scope_id: None,
                     source: None,
                 }),
             },
