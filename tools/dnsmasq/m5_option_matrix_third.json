@@ -1,0 +1,124 @@
+{
+  "schema": 1,
+  "executable": false,
+  "status": "source-checklist-frozen-before-probes",
+  "scope": "Third matrix batch: address and bogus-nxdomain eligible; local endpoint gaps retained separately, not qualified.",
+  "source_identity": {
+    "option.c": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
+    "domain-match.c": "66356136ffe0920fca4fa7dcad579727c7d8d1ec6e799597bfda2e1a63fe9606",
+    "rfc1035.c": "231f0b4989039ff4963f3916df22871dd13025dde65769465b2b3052ad807222",
+    "forward.c": "ac05784d4233ed10bd166da5fe91e464afecf2883d3c2a0063305d3e81692f95",
+    "util.c": "33920165ef3e92f65d1cab75fe8da7772ad7389b37da79ba881957080f12f973",
+    "cache.c": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c"
+  },
+  "options": {
+    "address": {
+      "source": [
+        "option.c:3058-3158",
+        "domain-match.c:lookup_domain/filter_servers/is_local_answer/make_local_answer/add_update_server",
+        "forward.c:334-363,2600-2625"
+      ],
+      "checklist": [
+        {
+          "boundary": "Grammar: numeric IPv4/IPv6, multiple domains and repeated literals, # zero addresses, empty endpoint, leading dots, character/label wildcards, empty/hash/star global domain and explicit dotless domain; invalid address/domain rejection.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Longest suffix and exact-vs-wildcard precedence; label-boundary versus character wildcard; longer literal family mismatch falls back according to C, including same-tier numeric upstream and shorter-tier literal.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "IN A/AAAA/ANY family priority; TXT/MX/DS/DNSKEY and non-IN classes; dotless DS parent/DNSKEY exclusion; root name does not match dotless.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Empty literal NXDOMAIN for unknown name; NODATA for existing local name or existing other-family literal; local host-record/CNAME answers override address routing.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Local literals are exempt from upstream bogus/rebind checks; numeric server carve-out overrides broader literal. Compare UDP/TCP and EDNS/DO envelopes, flags, TTL, RR order and exact question bytes.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Local-only causal guards require zero upstream packets; numeric carve-outs require one unchanged outbound query apart from transaction ID. Mutated address, flags, upstream count or missing row must fail.",
+          "checked": false,
+          "required_scenarios": []
+        }
+      ],
+      "scenarios": []
+    },
+    "bogus-nxdomain": {
+      "source": [
+        "option.c:2941-2993",
+        "util.c:514-536",
+        "rfc1035.c:check_bad_address/check_for_bogus_wildcard",
+        "forward.c:696-850",
+        "dns/cache transaction predecessor DNS_BOGUS_CACHE_PHASE.md (reference guidance only)"
+      ],
+      "checklist": [
+        {
+          "boundary": "Grammar: IPv4/IPv6 singleton and prefixes, max width and representative in/out subnet boundaries, repeated entries, invalid IP/prefix and empty argument; image IPv4 /0 and empty prefix act as /32, IPv6 /0 matches all.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Only IN A/AAAA in answer section trigger; non-IN and authority/additional-only addresses do not. CNAME target owner and unrelated owner matches retain C scan semantics.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Bogus check runs after alias but before rebind; local records exempt. NXDOMAIN, non-success RCODE, opcode and TC bypass; earlier match versus malformed address/RDLENGTH boundary preserves source scan order.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Blocked result is NXDOMAIN with AA cleared, answer/authority discarded and EDNS EDE behavior preserved. Compare UDP/TCP, client DO/AD/CD and raw upstream CD.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Independent bogus negative-cache insertion ignores no-negcache and both CD guards; A/AAAA cold plus plain replay proves absence of a second upstream query. Ordinary nonmatching replies retain normal CD cache restrictions.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "TCP cold response publication followed by UDP replay, positive/zero TTL and expiry/recovery, matching owner and alias/rebind composition. Preserve exact TTL by bounded same-second pairs rather than normalizing it.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Negative controls must detect omitted packet, changed RCODE/address/TTL, incorrect cache hit/miss or missing upstream send; startup/test text and runtime identity/cleanup remain strict.",
+          "checked": false,
+          "required_scenarios": []
+        }
+      ],
+      "scenarios": []
+    },
+    "local": {
+      "eligible_for_closure": false,
+      "known_gaps": [
+        "C LOPT_LOCAL shares server endpoint syntax (option.c3059,3107); Rust validate_ready rejects upstream hostnames/scope and routing.validate_endpoint rejects explicit source binding. Delegate whole endpoint implementation to server/resolv/source family."
+      ],
+      "source": [
+        "option.c:3059-3158",
+        "option.c:parse_server",
+        "config/dns.rs:validate_ready",
+        "dns/routing.rs:validate_endpoint"
+      ],
+      "checklist": [
+        {
+          "boundary": "Retain minimal C/Rust syntax+startup+runtime examples for numeric local endpoint and inherited hostname/scope/source-binding gaps; this batch must never count local as closed.",
+          "checked": false,
+          "required_scenarios": []
+        }
+      ],
+      "scenarios": []
+    }
+  },
+  "scenarios": []
+}
