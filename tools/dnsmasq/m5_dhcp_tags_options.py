@@ -440,7 +440,9 @@ def identity_parser_cases():
     for i,value in enumerate(['set:hit,work','hit,work*','set:hit,"work"','set:hit,wo*rk','set:hit,work**','set:hit','set:hit,','set:a,set:b,work']):
         yield 'identity-name-grammar',str(i),'dhcp-name-match='+value+'\n',None
     for i,value in enumerate(['set:hit,*','set:,work']):
-        yield 'identity-name-reference-defects',str(i),'dhcp-name-match='+value+'\n','NULL name or tag in C dhcp_netid_create/name matcher; syntax only, retain explicit safe rejection'
+        reason = ('C opt_string_alloc returns NULL for the stripped star-only pattern; rfc2131.c strlen would dereference it; Rust retains safe match-all behavior'
+                  if i == 0 else 'NULL tag in C name matcher; Rust explicitly rejects the empty tag')
+        yield 'identity-name-reference-defects',str(i),'dhcp-name-match='+value+'\n',reason
     for directive,group in [('dhcp-ignore-names','identity-ignore-selector-grammar'),('dhcp-generate-names','identity-generate-selector-grammar')]:
         for i,value in enumerate([None,'!','#','tag:!','tag:#','net:hit','hit']):
             yield group,str(i),directive+('' if value is None else '='+value)+'\n',None
@@ -888,8 +890,12 @@ def main():
                 row['errors'].append(side+'-abnormal-exit'); report['failures'].append(group+'--'+variant)
         if row['c'].get('timeout') or row['c'].get('startup', {}).get('timeout'):
             row['errors'].append('c-timeout'); report['failures'].append(group+'--'+variant)
+        if defect and not args.c_only:
+            rust_expected = 0 if group == 'identity-name-reference-defects' and variant == '0' else 1
+            if (row['c']['exit'], row['rust']['exit']) != (0, rust_expected):
+                row['errors'].append('reference-disposition-changed'); report['failures'].append(group+'--'+variant)
         if not args.c_only and comparable_syntax(row['c']) != comparable_syntax(row['rust']):
-            if defect and row['c']['exit'] in (0, 1) and row['rust']['exit'] == 1:
+            if defect and row['c']['exit'] == 0 and row['rust']['exit'] == 1:
                 report['reference_differences'].append({'case': group+'--'+variant, 'scope': 'syntax only', 'reason': defect,
                     'c': row['c'], 'rust': row['rust'], 'path': label})
             else:
