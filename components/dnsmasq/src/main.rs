@@ -942,10 +942,11 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     }
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     loop {
-        if let Some(files) = &mut poll.dns_files {
-            let _ = files.step();
-        }
-        let drained = poll.step_helper_shutdown();
+        let lookups_drained = poll
+            .dns_files
+            .as_mut()
+            .is_none_or(DnsFiles::lookups_drained);
+        let drained = lookups_drained && poll.step_helper_shutdown();
         if let Some(error) = poll.helper_init_error.take() {
             pid_file.cleanup();
             return Err(Box::new(error));
@@ -965,6 +966,9 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                 events,
                 revents: 0,
             });
+        if let Some(files) = &poll.dns_files {
+            files.append_poll_fds(&mut fds);
+        }
         owrt_ubus::sys::poll_fds(&mut fds, 2)?;
     }
     #[cfg(target_os = "linux")]
