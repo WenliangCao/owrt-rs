@@ -612,10 +612,11 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     let dhcp_runtime = if provider.is_some() || !dhcp_config.relay.is_empty() {
         // A relay-only listener must not create or restore a lease file.
-        let mut listener = DhcpSocketListener::bind(
+        let mut listener = DhcpSocketListener::bind_with_reuse(
             SocketAddr::from((std::net::Ipv4Addr::UNSPECIFIED, dhcp_config.ports.server)),
             DhcpListener::Dhcp,
             &[],
+            daemon_config.bind_interfaces || daemon_config.bind_dynamic,
         )
         .map_err(NetworkStartupError)?;
         listener.configure_relay(

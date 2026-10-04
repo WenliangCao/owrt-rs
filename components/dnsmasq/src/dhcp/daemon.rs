@@ -4,7 +4,7 @@
 
 use super::allocation::ProbeResult;
 use super::allocation::RangeKind;
-use super::context::{select_contexts, ContextState, SelectedContext};
+use super::context::{select_contexts, select_remote_contexts, ContextState, SelectedContext};
 use super::interface_admission::{interface_matches, InterfacePolicy, Selection};
 use super::lease::{
     ClientIdentity, Lease, LeaseCounters, LeaseError, LeaseStore, NameLost, RestoreError,
@@ -831,9 +831,10 @@ impl LocalProvider {
             ipv4_interfaces().map_err(|error| RuntimeError::State(error.to_string()))?;
         let mut local = primary_ipv4(interface, &self.control)
             .map_err(|error| RuntimeError::State(error.to_string()))?;
-        let loopback = addresses
-            .iter()
-            .any(|address| address.index == interface && address.loopback);
+        let loopback = dispatch.packet.giaddr().is_unspecified()
+            && addresses
+                .iter()
+                .any(|address| address.index == interface && address.loopback);
         self.selected.clear();
         match self
             .interface_policy
@@ -852,8 +853,32 @@ impl LocalProvider {
                 });
             }
         }
-        self.selected =
-            select_contexts(&self.config.ranges, &mut self.states, &addresses, interface);
+        let packet = dispatch.packet;
+        let agent_address = |code| {
+            relay_suboption(packet, code)
+                .and_then(|value| <[u8; 4]>::try_from(value.get(..4)?).ok())
+                .map(Ipv4Addr::from)
+                .filter(|address| !address.is_unspecified())
+        };
+        let subnet = agent_address(5)
+            .or_else(|| {
+                packet
+                    .option(118, 4)
+                    .map(|value| Ipv4Addr::new(value[0], value[1], value[2], value[3]))
+            })
+            .unwrap_or(Ipv4Addr::UNSPECIFIED);
+        let override_server = agent_address(11);
+        let ingress = select_contexts(&self.config.ranges, &mut self.states, &addresses, interface);
+        self.selected = select_remote_contexts(
+            &self.config.ranges,
+            &mut self.states,
+            ingress,
+            subnet,
+            packet.giaddr(),
+            packet.effective_ciaddr(),
+            local,
+            override_server,
+        );
         let mut ranges: Vec<_> = self
             .selected
             .iter()
@@ -1094,7 +1119,7 @@ impl LocalProvider {
             rapid_commit: self.config.rapid_commit,
             bootp_dynamic: self.config.bootp_dynamic,
             consecutive_addresses: self.config.sequential,
-            override_server: None,
+            override_server,
             fallback_server: local,
             server_aliases: &aliases,
         };

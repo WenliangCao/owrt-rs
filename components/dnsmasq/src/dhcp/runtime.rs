@@ -82,11 +82,11 @@ impl DatagramSender for crate::net::DatagramSocket {
                 self.send_on_interface_once(bytes, destination.address, destination.interface)
             }
             DestinationKind::Client | DestinationKind::Peer => {
-                // C's `send_from` keeps the receiving interface for renewals
-                // and peer unicasts as well as broadcasts.  Supplying
-                // `ipi_ifindex` here prevents a multi-interface route lookup
-                // from selecting a different source address.
-                self.send_on_interface_once(bytes, destination.address, destination.interface)
+                if destination.interface == 0 {
+                    self.send_once(bytes, destination.address, None)
+                } else {
+                    self.send_on_interface_once(bytes, destination.address, destination.interface)
+                }
             }
         }
     }
@@ -593,9 +593,7 @@ where
             outcome: None,
         });
     }
-    if dispatch.kind != DispatchKind::Dhcp && dispatch.kind != DispatchKind::Bootp
-        || dispatch.route != Route::Local
-    {
+    if dispatch.kind != DispatchKind::Dhcp && dispatch.kind != DispatchKind::Bootp {
         return Err(failure(
             RuntimeError::Unsupported {
                 kind: dispatch.kind,
@@ -606,6 +604,21 @@ where
             false,
         ));
     }
+
+    // dhcp.c clears its all-ones extension before context/state processing.
+    // Keep the route separately so reply delivery restores the received wire
+    // value and uses the original source port.
+    let normalized = matches!(dispatch.route, Route::RelaySource { .. }).then(|| {
+        let mut bytes = dispatch.packet.bytes().to_vec();
+        bytes[24..28].fill(0);
+        bytes
+    });
+    let dispatch = Dispatch {
+        packet: normalized.as_ref().map_or(dispatch.packet, |bytes| {
+            super::packet::Packet::parse(bytes).expect("clearing giaddr preserves packet validity")
+        }),
+        ..dispatch
+    };
 
     let interface_name = match sender.interface_name(dispatch.ingress.interface_index) {
         Ok(name) => name,
@@ -790,6 +803,9 @@ where
     // netid force-broadcast decision; destination still prioritizes ciaddr.
     if !matches!(outcome.reply, Reply::Nak { .. }) && provider.force_broadcast(&outcome) {
         buffer[10] |= 0x80;
+    }
+    if let Route::RelaySource { original_giaddr } = dispatch.route {
+        buffer[24..28].copy_from_slice(&original_giaddr.octets());
     }
     let mut destination = match destination_with_ports(
         &dispatch,
@@ -1191,9 +1207,7 @@ pub fn destination_with_ports(
     length: usize,
     ports: crate::config::dhcp_relay::DhcpPorts,
 ) -> Result<Destination, RuntimeError> {
-    if dispatch.route != Route::Local
-        || (dispatch.kind != DispatchKind::Dhcp && dispatch.kind != DispatchKind::Bootp)
-    {
+    if dispatch.kind != DispatchKind::Dhcp && dispatch.kind != DispatchKind::Bootp {
         return Err(RuntimeError::Unsupported {
             kind: dispatch.kind,
             route: dispatch.route,
@@ -1204,6 +1218,20 @@ pub fn destination_with_ports(
             required: length.max(20),
             available: packet.len(),
         }));
+    }
+    let relayed = match dispatch.route {
+        Route::Relay { giaddr } => Some(SocketAddr::from((giaddr, ports.server))),
+        Route::RelaySource { .. } => Some(peer),
+        Route::Local => None,
+    };
+    if let Some(address) = relayed {
+        return Ok(Destination {
+            address,
+            // C leaves msg_control NULL for a relay: use the route table.
+            interface: 0,
+            kind: DestinationKind::Peer,
+            arp: None,
+        });
     }
     let flags = u16::from_be_bytes([packet[10], packet[11]]);
     // Read the completed wire header: build_outcome applies effective_ciaddr
@@ -2081,60 +2109,67 @@ mod tests {
     }
 
     #[test]
-    fn relay_is_explicitly_unsupported_before_provider() {
-        let mut bytes = packet(
-            &[53, 1, 1, 255],
-            0,
-            Ipv4Addr::UNSPECIFIED,
-            Ipv4Addr::new(192, 0, 2, 254),
-        );
-        let dispatch = dispatch_for(&bytes);
-        let called = Cell::new(false);
-        let mut provider = |_dispatch: &Dispatch<'_>| {
-            called.set(true);
-            Ok(offer())
-        };
-        let mut sender = Sender {
-            sent: Vec::new(),
-            fail: false,
-        };
-        let mut buffer = vec![0; 548];
-        let failure = process(
-            dispatch,
-            SocketAddr::from(([192, 0, 2, 10], 68)),
-            &mut provider,
-            &mut sender,
-            &[],
-            &mut buffer,
-        )
-        .unwrap_err();
-        assert!(!called.get());
-        assert!(!failure.committed);
-        assert!(matches!(
-            failure.error,
-            RuntimeError::Unsupported {
-                route: Route::Relay { .. },
-                ..
-            }
-        ));
-        bytes[24..28].copy_from_slice(&[255, 255, 255, 255]);
-        let source_dispatch = dispatch_for(&bytes);
-        let failure = process(
-            source_dispatch,
-            SocketAddr::from(([192, 0, 2, 10], 68)),
-            &mut provider,
-            &mut sender,
-            &[],
-            &mut buffer,
-        )
-        .unwrap_err();
-        assert!(matches!(
-            failure.error,
-            RuntimeError::Unsupported {
-                route: Route::RelaySource { .. },
-                ..
-            }
-        ));
+    fn relay_routes_commit_and_restore_source_extension() {
+        let peer = SocketAddr::from(([192, 0, 2, 10], 1068));
+        for relay in [Ipv4Addr::new(192, 0, 2, 254), Ipv4Addr::BROADCAST] {
+            let bytes = packet(&[53, 1, 1, 255], 0, Ipv4Addr::UNSPECIFIED, relay);
+            let dispatch = dispatch_for(&bytes);
+            let called = Cell::new(false);
+            let mut provider = |dispatch: &Dispatch<'_>| {
+                called.set(true);
+                assert_eq!(
+                    dispatch.packet.giaddr(),
+                    if relay == Ipv4Addr::BROADCAST {
+                        Ipv4Addr::UNSPECIFIED
+                    } else {
+                        relay
+                    }
+                );
+                Ok(offer())
+            };
+            let mut sender = Sender {
+                sent: Vec::new(),
+                fail: false,
+            };
+            let mut buffer = vec![0; 548];
+            let report = process_with_random_and_ports(
+                dispatch,
+                peer,
+                &mut provider,
+                &mut sender,
+                &[],
+                &mut buffer,
+                crate::config::dhcp_relay::DhcpPorts {
+                    server: 2067,
+                    client: 2068,
+                },
+                || Ok(0),
+            )
+            .unwrap();
+            assert!(called.get());
+            assert_eq!(sender.sent.len(), 1);
+            let (packet, sent_address) = &sender.sent[0];
+            let destination = report
+                .events
+                .iter()
+                .find_map(|event| match event {
+                    RuntimeEvent::DestinationSelected(destination) => Some(destination),
+                    _ => None,
+                })
+                .unwrap();
+            assert_eq!(*sent_address, destination.address);
+            assert_eq!(&packet[24..28], &relay.octets());
+            assert_eq!(
+                destination.address,
+                if relay == Ipv4Addr::BROADCAST {
+                    peer
+                } else {
+                    SocketAddr::from((relay, 2067))
+                }
+            );
+            assert_eq!(destination.interface, 0);
+            assert!(destination.arp.is_none());
+        }
     }
 
     #[test]

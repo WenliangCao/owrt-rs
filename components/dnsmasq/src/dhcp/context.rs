@@ -42,6 +42,89 @@ fn same_net(a: Ipv4Addr, b: Ipv4Addr, mask: Ipv4Addr) -> bool {
     u32::from(a) & u32::from(mask) == u32::from(b) & u32::from(mask)
 }
 
+/// rfc2131.c:280-397 reselects a remote subnet after interface completion.
+/// A selector or relay forces replacement; a client address can fall back to
+/// the ingress chain so the state machine can issue the appropriate NAK.
+#[allow(clippy::too_many_arguments)]
+pub fn select_remote_contexts(
+    configs: &[RangeConfig],
+    states: &mut [ContextState],
+    ingress: Vec<SelectedContext>,
+    subnet: Ipv4Addr,
+    relay: Ipv4Addr,
+    client: Ipv4Addr,
+    fallback: Ipv4Addr,
+    override_server: Option<Ipv4Addr>,
+) -> Vec<SelectedContext> {
+    let forced = !subnet.is_unspecified() || !relay.is_unspecified();
+    let address = if !subnet.is_unspecified() {
+        subnet
+    } else if !relay.is_unspecified() {
+        relay
+    } else {
+        client
+    };
+    if address.is_unspecified()
+        || (!forced
+            && ingress
+                .iter()
+                .any(|context| context.range.same_subnet(address)))
+    {
+        return ingress;
+    }
+    let mut selected = Vec::new();
+    for (index, (config, state)) in configs.iter().zip(states).enumerate() {
+        let mut mask = state.netmask;
+        if config.netmask.is_none() && mask.is_unspecified() {
+            let first = config.start.octets()[0];
+            let last = config.end.octets()[0];
+            mask = match (first, last) {
+                (0..=127, 0..=127) => Ipv4Addr::new(255, 0, 0, 0),
+                (128..=191, 128..=191) => Ipv4Addr::new(255, 255, 0, 0),
+                (192..=223, 192..=223) => Ipv4Addr::new(255, 255, 255, 0),
+                _ => Ipv4Addr::UNSPECIFIED,
+            };
+        }
+        if mask.is_unspecified()
+            || !same_net(address, config.start, mask)
+            || !same_net(address, config.end, mask)
+        {
+            continue;
+        }
+        state.netmask = mask;
+        if state.local.is_unspecified() {
+            state.local = fallback;
+        }
+        if state.router.is_unspecified() {
+            state.router = override_server.unwrap_or(relay);
+        }
+        if config.broadcast.is_none() && state.broadcast.is_unspecified() {
+            state.broadcast = Ipv4Addr::from(u32::from(config.start) | !u32::from(mask));
+        }
+        selected.push(SelectedContext {
+            source_index: index,
+            range: AddressRange {
+                start: config.start,
+                end: config.end,
+                netmask: state.netmask,
+                router: state.router,
+                local: state.local,
+                lease_time: config.lease_time,
+                kind: RangeKind::Dynamic,
+                filter: config.filter.tags().to_vec(),
+                epoch: state.epoch,
+            },
+            broadcast: state.broadcast,
+        });
+    }
+    if selected.is_empty() && !forced {
+        ingress
+    } else {
+        selected.reverse();
+        selected
+    }
+}
+
 /// Complete the current dynamic ranges without reading or changing the OS.
 ///
 /// `states` must have one entry per configured range, in the same order. The
@@ -149,6 +232,81 @@ mod tests {
             broadcast: address("192.0.2.255"),
             loopback: false,
         }
+    }
+
+    #[test]
+    fn remote_subnet_forces_reselection_but_unknown_client_keeps_ingress() {
+        let configs = [config()];
+        let mut states = [ContextState::new(&configs[0])];
+        let ingress = select_contexts(&configs, &mut states, &[interface("192.0.2.1")], 2);
+        let zero = Ipv4Addr::UNSPECIFIED;
+        let outside = address("198.51.100.10");
+        assert_eq!(
+            select_remote_contexts(
+                &configs,
+                &mut states,
+                ingress.clone(),
+                zero,
+                zero,
+                outside,
+                address("192.0.2.1"),
+                None
+            )
+            .len(),
+            1
+        );
+        assert!(select_remote_contexts(
+            &configs,
+            &mut states,
+            ingress.clone(),
+            outside,
+            zero,
+            zero,
+            address("192.0.2.1"),
+            None
+        )
+        .is_empty());
+        assert!(select_remote_contexts(
+            &configs,
+            &mut states,
+            ingress,
+            zero,
+            outside,
+            zero,
+            address("192.0.2.1"),
+            None
+        )
+        .is_empty());
+    }
+
+    #[test]
+    fn relay_guesses_mask_and_retains_config_order_and_override_router() {
+        let configs = [config(), config()];
+        let mut states = configs.each_ref().map(ContextState::new);
+        let zero = Ipv4Addr::UNSPECIFIED;
+        let local = address("198.51.100.1");
+        let router = address("192.0.2.254");
+        let selected = select_remote_contexts(
+            &configs,
+            &mut states,
+            Vec::new(),
+            router,
+            address("203.0.113.1"),
+            zero,
+            local,
+            Some(router),
+        );
+        assert_eq!(
+            selected
+                .iter()
+                .map(|row| row.source_index)
+                .collect::<Vec<_>>(),
+            [1, 0]
+        );
+        assert_eq!(selected[0].range.netmask, address("255.255.255.0"));
+        assert_eq!(selected[0].range.router, router);
+        assert_eq!(selected[0].range.local, local);
+        assert_eq!(selected[0].broadcast, address("192.0.2.255"));
     }
 
     // Expected state is retained from the exact C bodies' deterministic

@@ -5,7 +5,7 @@
 - 当前里程碑：M5；169 项中 **60 项已关闭、65 项部分实现、44 项未实现，剩余 109 项**。
 - 刚关闭：localise-queries 夹具已补齐，两条同名host-record在启用时仅返回子网内地址、禁用时返回两地址，C/Rust的UDP/TCP均通过；run-07-localise 3配置／12行，4条清单全部通过。通用矩阵首批9项现全部关闭。
 - 当前代码：矩阵候选 `14d4e5fa`，ELF SHA256 `e78d5f286c08d4c3c053c3a9ad8173be865351e10416ffb116466a2085750989`，1,376,368字节（本批+0，M4+217,088）。前批db51616d的helper、leasequery、RR filter、boot和TFTP统一复测已通过。
-- 下一步：relay按冻结43项C清单整合单poll接线，relay-only不创建租约文件；首批C基线18配置／72报文和40语法场景通过，正在构建1e4eeb27整合候选；通用矩阵下一批为大小写编码、fast-dns-retry、max-tcp-connections、local-service 5项，先核对C清单和诊断边界。
+- 下一步：relay按冻结43项C清单整合单poll接线，relay-only不创建租约文件；首批C基线18配置／72报文和40语法场景通过，1e4eeb27整合候选已构建，ELF 1,392,752字节（relay首段+16,384），SHA256 892501c63014916a5bbe78d58754dfd5cf7039e4a8d4b0a3b2cad4db68e07e75；开始双侧对照；通用矩阵下一批为大小写编码、fast-dns-retry、max-tcp-connections、local-service 5项，先核对C清单和诊断边界。
 - 阻塞点：无须用户决定的事项。物理路由器未操作。helper保留上下文48字节（原328）、Lease新增可选指针8字节，暂存ExtraData用完释放；体积逐族测量记录，M5结束汇总。
 
 ## 工作规则
