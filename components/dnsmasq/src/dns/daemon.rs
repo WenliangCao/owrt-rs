@@ -243,6 +243,7 @@ impl<R: Random> DnsDaemon<R> {
             return Err(DaemonError::MissingDefaultResolvers);
         }
 
+        RoutingTable::add_default_resolver_rule(&mut config, default_resolvers);
         let routing = RoutingTable::from_runtime_config(&config, default_resolvers)?;
         let groups = routing.dispatcher_groups();
         let fast_retry = options.fast_retry.map(|retry| ForwardOptions {
@@ -1216,6 +1217,32 @@ mod tests {
         assert_eq!(opt.record.ttl, 0);
         assert_eq!(opt.record.rdata, &[0, 15, 0, 2, 0, 14]);
         assert_eq!(daemon.pending_count(), 0);
+    }
+
+    #[test]
+    fn active_resolver_default_precedes_only_the_empty_wildcard_literal() {
+        for (pattern, forwards) in [("*.", true), ("#", false)] {
+            let mut config = DnsConfig::default();
+            apply(
+                &mut config,
+                format!("address=/{pattern}/192.0.2.77").as_bytes(),
+            );
+            let mut daemon = DnsDaemon::with_random(
+                config,
+                Hosts::new(),
+                &["127.0.0.2:53".parse().unwrap()],
+                options(),
+                Counter(0),
+            )
+            .unwrap();
+            for query in [query("example.test", 3), query("single", 4)] {
+                assert_eq!(daemon.local.handle_udp(&query).unwrap().is_none(), forwards);
+                assert_eq!(
+                    daemon.local.handle_tcp_payload(&query).unwrap().is_none(),
+                    forwards
+                );
+            }
+        }
     }
 
     #[test]
