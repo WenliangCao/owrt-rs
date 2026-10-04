@@ -1156,8 +1156,8 @@ pub fn encode_filtered_options_with_pxe(
         &selection.tags,
         pxe,
         vendor_sent,
-        leasequery,
         null_term,
+        local.is_some() || pxe.direct,
     );
     if pxe.direct {
         // The proxy branch emits PXE misc/menu before ordinary mode2 options
@@ -1204,7 +1204,7 @@ pub fn encode_pxe_vendor_options(
     tags: &[&[u8]],
     pxe: &PxeEncoding<'_>,
 ) -> Vec<(u8, Vec<u8>)> {
-    vendor_options(packet, configured, tags, pxe, None, false, false)
+    vendor_options(packet, configured, tags, pxe, None, false, true)
 }
 
 fn vendor_options(
@@ -1213,16 +1213,16 @@ fn vendor_options(
     tags: &[&[u8]],
     pxe: &PxeEncoding<'_>,
     configured_vendor: Option<&[u8]>,
-    leasequery: bool,
     null_term: bool,
+    have_context: bool,
 ) -> Vec<(u8, Vec<u8>)> {
     use crate::config::dhcp::Encapsulation;
     let mut values = Vec::new();
-    if leasequery {
+    if packet.message_type() == 10 {
         return values;
     }
     let active = pxe.active_client();
-    if let Some(client) = active {
+    if let Some(client) = active.filter(|_| have_context) {
         values.push((60, client.vendor.clone()));
         if let Some(uuid) = client.uuid {
             values.push((97, uuid.to_vec()));
@@ -1250,7 +1250,7 @@ fn vendor_options(
                 }
         })
         .collect();
-    let generated = if active.is_some() {
+    let generated = if active.is_some() && have_context {
         pxe.generated_vendor
     } else {
         &[]
@@ -1725,6 +1725,50 @@ mod tests {
             redirected.iter().map(|(code, _)| *code).collect::<Vec<_>>(),
             [60, 97]
         );
+    }
+
+    #[test]
+    fn pxe_inform_without_context_keeps_configured_vendor_but_no_misc() {
+        use crate::config::dhcp::Encapsulation;
+        let configured = [DhcpOption {
+            code: 10,
+            value: OptionValue::Raw(vec![1, b'G', b'o']),
+            encapsulation: Encapsulation::PxeVendor,
+            ..DhcpOption::default()
+        }];
+        let bytes = packet(
+            b"\x35\x01\x08\x3c\x09PXEClient\x37\x02\x2b\x3c\xff",
+            0,
+            Ipv4Addr::new(198, 51, 100, 20),
+            Ipv4Addr::UNSPECIFIED,
+        );
+        let packet = super::super::packet::Packet::parse(&bytes).unwrap();
+        let client = super::super::pxe::Client {
+            vendor: b"PXEClient".to_vec(),
+            architecture: Some(0),
+            uuid: Some([9; 17]),
+        };
+        let prefixes = [b"PXEClient".to_vec()];
+        let generated = [(6, vec![3])];
+        let encoding = PxeEncoding::ordinary(Some(&client), &prefixes, &generated);
+        let selected = crate::config::dhcp::option_filter(&configured, &[], &[], &[], 1);
+        let values = encode_filtered_options_with_pxe(
+            packet,
+            Reply::Inform {
+                lease_time: None,
+                context: None,
+                server: Ipv4Addr::LOCALHOST,
+            },
+            None,
+            &configured,
+            &selected,
+            &mut [false; 256],
+            false,
+            &mut [None, None],
+            &mut None,
+            &encoding,
+        );
+        assert_eq!(values, [(43, vec![10, 3, 1, b'G', b'o', 255])]);
     }
 
     fn dispatch_for(bytes: &[u8]) -> Dispatch<'_> {

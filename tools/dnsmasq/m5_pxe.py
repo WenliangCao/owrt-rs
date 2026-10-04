@@ -209,6 +209,12 @@ def profiles():
             case("unrequested-fields",prl=b"\x01"),case("requested-options",prl=bytes([66,67])),
         ],["NOOVERRIDE01"],mode="dynamic"),
         profile("owner-burst",legacy,[case("burst16",copies=16)],["OWNER01"]),
+        profile("inform-without-context",legacy+["pxe-prompt=Contextless,1","dhcp-option=60,configured-override"],[
+            case("inform-no-context",kind=8,ciaddr="198.51.100.20",prl=bytes([43,60])),
+        ],["NORMAL01","NORMAL02","NORMAL04"],mode="dynamic"),
+        profile("ordinary-efi-configured-vendor",efi+["pxe-prompt=Explicit,1"],[
+            case("normal-efi-no-generated-menu",arch=7,prl=bytes([43,60])),
+        ],["NORMAL01","NORMAL04","UEFI01"],mode="dynamic"),
         profile("proxy-context-tags",["pxe-service=tag:pool,0,Pool menu,netboot", "pxe-prompt=tag:pool,Pool prompt,3", "dhcp-option-pxe=tag:pool,225,from-pool"],
                 [case("context-tag-options")],["PROXY02","PROXY05","CFG-R02"],range_value=f"set:pool,{SERVER},proxy,255.255.255.0"),
         profile("bootp-filename-tag",["bootp-dynamic=tag:firmware", "dhcp-boot=tag:firmware,selected.img"],
