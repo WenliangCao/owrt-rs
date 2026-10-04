@@ -5,8 +5,8 @@
 - 当前里程碑：M5；169 项中 **63 项已关闭、69 项部分实现、37 项未实现，剩余 106 项**。
 - 刚关闭：do-0x20-encode、no-0x20-encode 8配置／420行全部通过，含关闭编码时上游改case、启用时认证及合并客户端case恢复；20负向控制通过。第二批矩阵累计关闭3项。
 - 当前代码：relay候选 `9da20ac0` / ELF `4586c5d2e545a11b8f4246208e762e4f19fed0081dac5e20efd480f2e1ccafed`，1,396,848字节（relay当前+20,480，M4+237,568）；helper16场景／32侧、boot102事件、leasequery22配置／38查询复跑通过，Linux musl库516通过／18忽略、main10通过。DNS case修复e89f9f67已提交，f1668e28候选SHA9c73a0d979aa1faa79b542fc08bb34f45a716d8bba2a89153ff61d841ed2ebd5、体积不变，大小写矩阵已通过。
-- 下一步：relay f1668e28 完成36配置／168报文、40语法、4类binding及11负控，全部通过；正补冻结清单STATE-03的实际接口删除/重建索引用例，完成即关闭3项。矩阵第二批大小写相对XOR修复已通过，retry/local-service继续推进；DHCP identity下一族仅准备C边界清单，尚未开工产品。
-- 阻塞点：Oracle ENOSPC已通过删除各自已归档的可重建rootfs/构建缓存缓解，可用约1GiB；正在清理另23份已完成副本并保留/m2末态。无须用户决定。物理路由器未操作。
+- 下一步：relay f1668e28 完成36配置／168报文、40语法、4类binding及11负控，全部通过；正补冻结清单STATE-03的实际接口删除/重建索引用例和Linux隔离truncation/admission测试，完成即关闭3项。矩阵第二批大小写相对XOR修复已通过，retry/local-service继续推进；DHCP identity下一族仅准备C边界清单，尚未开工产品。
+- 阻塞点：Oracle ENOSPC已通过删除各自已归档的可重建rootfs/构建缓存缓解，可用约1GiB；另23份已完成副本已清理、/m2末态回拷并校验。f1668e28统一回归正在执行，每次最多两族并行并及时回收可重建副本。无须用户决定。物理路由器未操作。
 
 ## 工作规则
 
@@ -49,7 +49,7 @@ M4 的单 poll owner 已替换六线程接线，决定见 [ADR_THREAD_MODEL.md](
 
 参考永远是精确 C，期望不能由 Rust 生成。普通修复用单元加受影响 C 差分；解析器、租约、缓存、权限与资源边界保留独立复核、负向对照和回归。红色结果先复跑确认，未执行不算通过，原始失败保留。任何正式资源窗口先试跑，C/Rust 双 namespace 并行绑不同核；性能窗口不跑其他负载。
 
-最多四个子代理，各自有明确文件所有权。证据按里程碑统一放在 `private/dnsmasq-rewrite/evidence/`；实验分支 48 小时内合入或归档后删除。当前本地仅 main 分支，旧 detached worktree 中有 ignored 证据和未提交内容，未为清理而丢弃。用户在 `docs/prompts/` 的改动保持原样。物理路由器没有操作授权，也没有执行操作。
+最多四个子代理，各自有明确文件所有权。证据按里程碑统一放在 `private/dnsmasq-rewrite/evidence/`；实验分支 48 小时内合入或归档后删除。活跃功能族保留各自任务分支/worktree，完成后按开头规则归档和清理；旧 detached worktree 中有 ignored 证据和未提交内容，未为清理而丢弃。用户在 `docs/prompts/` 的改动保持原样。物理路由器没有操作授权，也没有执行操作。
 
 ## M5 盘点与工作顺序
 
