@@ -222,6 +222,12 @@ def identity_fixtures():
     ]
     yield case('identity-name-source','inputs',marked('dhcp-name-match=set:hit,work*\n'),
                [event(label,kind=1,extra=extra) for label,extra in names])
+    # C retains offer_hostname even after strip_hostname leaves an empty
+    # client label. Observe OFFER and ACK separately for both FQDN encodings.
+    for variant, value in [('leading-dot', b'\0\0\0.bad'), ('root-clear', b'\0\0\0.'),
+                           ('root-encoded', b'\4\0\0\0'), ('valid-full', b'\0\0\0work.pool.test')]:
+        yield case('identity-name-source', variant, marked('dhcp-name-match=set:hit,work*\n'), [
+            event('offer', kind=1, extra=opts((81, value))), event('ack', extra=opts((81, value)))])
     yield case('identity-name-tag-if','derived',
                'dhcp-name-match=set:source,work*\ntag-if=tag:source,set:hit\n'+marked(''),
                [host('match',b'work',kind=1),host('miss',b'other',kind=1),event('absent',kind=1)])
@@ -332,6 +338,8 @@ def identity_fixtures():
             agent('wrong-earlier',option(subcode,b'wrong')+good),
             agent('pad',b'\0'+good),agent('end',b'\xff'+good),
             agent('malformed-before',b'\x63\xff'+good),agent('match-before-malformed',good+b'\x63\xff')])
+        yield case(f'identity-agent-{subcode}-grammar', 'bare-tag', marked(f'dhcp-{name}=hit,match\n'), [
+            agent('bare-selector', good)])
         for variant,value,payload in [('text','match',b'match'),('quoted','"a:b"',b'a:b'),('hex','6d:61:74:63:68',b'match'),
                                       ('odd','a:b:c',b'\x0a\x0b\x0c'),('compact','aabb:cc',b'\xaa\xbb\xcc'),('text-star','0*',b'0*'),('empty','',b'')]:
             yield case(f'identity-agent-{subcode}-grammar',variant,marked(f'dhcp-{name}=set:hit,{value}\n'),[
@@ -377,6 +385,7 @@ def identity_fixtures():
     assert len(large)==255
     for variant,extra,maximum,prl,payload in [
         ('default','','absent',list(range(224,231)),good),
+        ('no-prl','','absent',None,good),
         ('advertised-548','',548,list(range(224,231)),good),
         ('advertised-1500','',1500,list(range(224,231)),good),
         ('empty-prl','','absent',[],good),
@@ -385,7 +394,9 @@ def identity_fixtures():
         ('large-agent-reserved','',1500,[224,225,226],large),
         ('occupied-boot','dhcp-boot=boot.bin,boot.pool.test,127.0.0.1\n','absent',list(range(224,231)),good),
     ]:
-        item=event(kind=1,extra=opts((82,payload)));item['prl']=prl
+        item=event(kind=1,extra=opts((82,payload)))
+        if prl is None: item.pop('prl')
+        else: item['prl']=prl
         if maximum=='absent': item.pop('maximum')
         else: item['maximum']=maximum
         text=extra+''.join(f'dhcp-option={code},"'+chr(65+code-224)*80+'"\n' for code in range(224,231))
