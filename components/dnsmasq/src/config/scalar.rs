@@ -96,7 +96,7 @@ fn dhcp_ttl(argument: Option<&EncodedArg>) -> Result<u32, Error> {
 
 fn port(argument: Option<&EncodedArg>) -> Result<u16, Error> {
     let bytes = argument.ok_or(Error("missing parameter"))?.decoded();
-    if bytes.is_empty() || !bytes.iter().all(u8::is_ascii_digit) {
+    if !bytes.iter().all(u8::is_ascii_digit) {
         return Err(Error("error"));
     }
     // option.c's atoi_check16 calls musl atoi first. Long decimal input wraps
