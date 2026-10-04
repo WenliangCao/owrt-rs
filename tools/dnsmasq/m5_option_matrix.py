@@ -201,6 +201,7 @@ def descendants(root):
 
 def run_side(root, side, scenario, folder):
     folder.mkdir()
+    topology = probes_extra.LocalTopology() if scenario.get('adapter') == 'local-service' else None
     upstream = Upstream(scenario['probes'])
     with socket.socket() as reserve:
         reserve.bind(('127.0.0.1', 0))
@@ -215,22 +216,22 @@ def run_side(root, side, scenario, folder):
     (root / 'm2/matrix.hosts').write_text(scenario.get('hosts', ''))
     (folder / 'config').write_text(conf)
     (folder / 'hosts').write_text(scenario.get('hosts', ''))
-    test = subprocess.run(command(root, side, '--test', '-C', '/m2/matrix.conf'), capture_output=True, timeout=5)
+    test = subprocess.run(command(root, side, '--test', '-C', '/m2/matrix.conf', *scenario.get('arguments', [])), capture_output=True, timeout=5)
     result = {'syntax': {'exit': test.returncode, 'stdout': test.stdout.decode(errors='replace'),
                           'stderr': test.stderr.decode(errors='replace')}, 'rows': []}
     process = None
     try:
         with (folder / 'stdout').open('wb') as stdout, (folder / 'stderr').open('wb') as stderr:
-            process = subprocess.Popen(command(root, side, '-k', '-C', '/m2/matrix.conf'),
+            process = subprocess.Popen(command(root, side, '-k', '-C', '/m2/matrix.conf', *scenario.get('arguments', [])),
                                        stdout=stdout, stderr=stderr, start_new_session=True)
             deadline = time.monotonic() + 3
             while process.poll() is None:
                 try:
-                    if scenario.get('adapter') == 'capacity':
+                    if scenario.get('adapter') in ('capacity', 'local-service'):
                         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as ready:
                             ready.settimeout(.05)
-                            ready.connect(('127.0.0.1', port))
-                            ready.send(probes_extra.question_packet('capacity.matrix.test', 0x2930))
+                            ready.connect((scenario.get('readiness_address', '127.0.0.1'), port))
+                            ready.send(probes_extra.question_packet('admission.matrix.test' if topology else 'capacity.matrix.test', 0x2930))
                             ready.recv(4096)
                     else:
                         with socket.create_connection(('127.0.0.1', port), .05):
@@ -250,7 +251,10 @@ def run_side(root, side, scenario, folder):
                 for index, probe in enumerate(scenario['probes']):
                     for transport in probe.get('transports', ['udp', 'tcp']):
                         observer = {'casing': probes_extra.observe_casing, 'capacity': probes_extra.observe_capacity}.get(scenario.get('adapter'), observe)
-                        result['rows'].append(observer(port, probe, 0x4100 + index * 4, transport, upstream))
+                        if topology:
+                            result['rows'].append(probes_extra.observe_local_service(port, probe, 0x4100 + index * 4, transport, topology))
+                        else:
+                            result['rows'].append(observer(port, probe, 0x4100 + index * 4, transport, upstream))
     finally:
         if process is not None:
             if process.poll() is None:
@@ -263,6 +267,9 @@ def run_side(root, side, scenario, folder):
                 result['forced_kill'] = True
             result['exit'] = process.returncode
         upstream.close()
+        if topology:
+            topology.close()
+            dump(folder / 'network.json', {'inventory': topology.inventory, 'commands': topology.commands, 'cleanup': 'restored'})
         deadline = time.monotonic() + 2
         while descendants(root) and time.monotonic() < deadline:
             time.sleep(.02)
@@ -305,6 +312,9 @@ def compare(expected, actual, scenario):
             failures.append({'phase': 'cleanup', 'side': side, 'actual': observed['cleanup']})
         if observed.get('forced_kill') or (observed['startup']['ready'] and observed['exit'] != 0):
             failures.append({'phase': 'shutdown', 'side': side, 'exit': observed['exit']})
+    if scenario.get('adapter') == 'local-service':
+        for side, observed in [('c', expected), ('rust', actual)]:
+            failures.extend({'phase': 'admission-guard', 'side': side, **failure} for failure in probes_extra.local_service_guards(observed['rows'], scenario))
     if scenario.get('adapter') == 'capacity':
         for side, observed in [('c', expected), ('rust', actual)]:
             failures.extend({'phase': 'capacity-guard', 'side': side, **failure} for failure in probes_extra.capacity_guards(observed['rows'], scenario))

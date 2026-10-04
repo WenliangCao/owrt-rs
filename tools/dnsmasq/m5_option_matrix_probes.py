@@ -176,6 +176,20 @@ def controls():
         elif control == 'missing-admitted-client': changed['response'][0]['admitted'].clear()
         assert capacity_guards([changed], capacity_scenario), control
         found['capacity-' + control] = 'detected'
+    admission_case = {'probes': [{'id': 'outside6', 'source': '2001:db8:5::12', 'transports': ['udp'], 'admission': {'udp': 'drop'}}]}
+    admission = {'id': 'outside6:udp', 'response': {'stage': 'receive', 'status': 'timeout', 'source_address': '2001:db8:5::12', 'reply': None}}
+    assert not local_service_guards([admission], admission_case)
+    wrong = copy.deepcopy(admission); wrong['response']['status'] = 'reply'
+    assert local_service_guards([wrong], admission_case)
+    found['admission-inverted-decision'] = 'detected'
+    wrong = copy.deepcopy(admission); wrong['response']['source_address'] = '2001:db8:5::11'
+    assert local_service_guards([wrong], admission_case)
+    found['admission-wrong-source'] = 'detected'
+    assert local_service_guards([], admission_case)
+    found['admission-missing-ipv6-observation'] = 'detected'
+    override_case = copy.deepcopy(admission_case); override_case['probes'][0]['admission']['udp'] = 'reply'
+    assert local_service_guards([admission], override_case)
+    found['admission-ignores-explicit-override'] = 'detected'
     return found
 
 
@@ -253,3 +267,147 @@ def capacity_guards(rows, scenario):
                 if result['status'] != 'reply' or [r['data'] for r in result.get('packet', {}).get('records', [])] != ['8.8.8.8']:
                     failures.append({'id': row['id'], 'cycle': cycle['cycle'], 'missing_valid_reply': result})
     return failures
+
+
+class LocalTopology:
+    """A client namespace prevents off-subnet sources becoming local addresses."""
+    def __init__(self):
+        import os
+        import subprocess
+        self.commands = []
+        self.child = subprocess.Popen(['unshare', '--net', 'sleep', '3600'])
+        self.before = sorted(name for _, name in socket.if_nameindex())
+        deadline = time.monotonic() + 2
+        while os.readlink('/proc/self/ns/net') == os.readlink(f'/proc/{self.child.pid}/ns/net'):
+            if self.child.poll() is not None or time.monotonic() > deadline:
+                raise RuntimeError('client namespace not created')
+            time.sleep(.01)
+        self.run(['ip', 'link', 'add', 'm5srv', 'type', 'veth', 'peer', 'name', 'm5cli'])
+        self.run(['ip', 'link', 'set', 'm5cli', 'netns', str(self.child.pid)])
+        self.run(['ip', 'addr', 'add', '192.0.2.10/31', 'dev', 'm5srv'])
+        self.run(['ip', '-6', 'addr', 'add', '2001:db8:5::10/127', 'dev', 'm5srv', 'nodad'])
+        self.run(['ip', 'link', 'set', 'm5srv', 'up'])
+        self.client(['ip', 'link', 'set', 'lo', 'up'])
+        self.client(['ip', 'addr', 'add', '192.0.2.11/31', 'dev', 'm5cli'])
+        self.client(['ip', '-6', 'addr', 'add', '2001:db8:5::11/127', 'dev', 'm5cli', 'nodad'])
+        self.client(['ip', 'link', 'set', 'm5cli', 'up'])
+        for address in ['192.0.2.9', '192.0.2.12']:
+            self.client(['ip', 'addr', 'add', address + '/32', 'dev', 'lo'])
+            self.run(['ip', 'route', 'add', address + '/32', 'via', '192.0.2.11', 'dev', 'm5srv'])
+        for address in ['2001:db8:5::f', '2001:db8:5::12']:
+            self.client(['ip', '-6', 'addr', 'add', address + '/128', 'dev', 'lo', 'nodad'])
+            self.run(['ip', '-6', 'route', 'add', address + '/128', 'via', '2001:db8:5::11', 'dev', 'm5srv'])
+        self.inventory = {'server_netns': os.readlink('/proc/self/ns/net'),
+                          'client_netns': os.readlink(f'/proc/{self.child.pid}/ns/net'),
+                          'server_addresses': self.run(['ip', '-j', 'addr']),
+                          'client_addresses': self.client(['ip', '-j', 'addr']),
+                          'server_routes4': self.run(['ip', '-j', 'route']),
+                          'server_routes6': self.run(['ip', '-j', '-6', 'route'])}
+
+    def run(self, args):
+        import subprocess
+        self.commands.append(args)
+        result = subprocess.run(args, capture_output=True, text=True)
+        if result.returncode:
+            raise RuntimeError({'command': args, 'stderr': result.stderr})
+        return result.stdout
+
+    def client(self, args):
+        return self.run(['nsenter', '-t', str(self.child.pid), '-n', *args])
+
+    def close(self):
+        self.run(['ip', 'link', 'del', 'm5srv'])
+        self.child.terminate()
+        self.child.wait(timeout=3)
+        current = sorted(name for _, name in socket.if_nameindex())
+        if current != self.before:
+            raise AssertionError({'interface_cleanup': current, 'expected': self.before})
+
+
+def network_probe(spec):
+    family = socket.AF_INET6 if ':' in spec['destination'] else socket.AF_INET
+    tcp = spec['transport'] == 'tcp'
+    request = question_packet('admission.matrix.test', spec['ident'])
+    result = {'stage': 'connect', 'status': None, 'reply': None, 'raw': None,
+              'source_address': None, 'errno': None}
+    with socket.socket(family, socket.SOCK_STREAM if tcp else socket.SOCK_DGRAM) as client:
+        client.settimeout(.18)
+        if spec.get('source'):
+            client.bind((spec['source'], 0))
+        try:
+            client.connect((spec['destination'], spec['port']))
+            result['source_address'] = client.getsockname()[0]
+            result['stage'] = 'receive'
+            client.sendall(struct.pack('!H', len(request)) + request if tcp else request)
+            response = receive(client, tcp)
+            if response is None:
+                result['status'] = 'timeout'
+            else:
+                result['status'] = 'reply'
+                result['reply'] = semantics(response)
+                result['raw'] = response.hex()
+        except ConnectionRefusedError as error:
+            result['status'] = 'refused'
+            result['errno'] = error.errno
+        except (ConnectionResetError, ConnectionError) as error:
+            result['status'] = 'closed'
+            result['errno'] = getattr(error, 'errno', None)
+        except socket.timeout:
+            result['status'] = 'timeout'
+        except OSError as error:
+            result['status'] = 'error'
+            result['errno'] = error.errno
+    return result
+
+
+def observe_local_service(port, probe, ident, transport, topology):
+    import json
+    import sys
+    from pathlib import Path
+    spec = {'destination': probe['destination'], 'source': probe.get('source'),
+            'port': port, 'transport': transport, 'ident': ident}
+    if probe.get('remote'):
+        result = json.loads(topology.client([sys.executable, str(Path(__file__).resolve()), '--network-probe', json.dumps(spec)]))
+    else:
+        result = network_probe(spec)
+    raw = result.pop('raw')
+    # Preserve reset-vs-EOF errno in raw evidence. Both denote the same accepted
+    # TCP connection being closed by the source admission check, unlike a
+    # connect-stage refusal caused by host-only binding.
+    raw_errno = result.pop('errno')
+    return {'id': probe['id'] + ':' + transport, 'response': result, 'upstream': [],
+            'raw': {'reply': raw, 'errno': raw_errno}, 'request': spec, 'elapsed': 0}
+
+
+def local_service_guards(rows, scenario):
+    failures = []
+    planned = [p['id'] + ':' + transport for p in scenario['probes'] for transport in p.get('transports', ['udp', 'tcp'])]
+    if [row['id'] for row in rows] != planned:
+        failures.append({'missing_admission_row': True})
+    probes = {p['id']: p for p in scenario['probes']}
+    for row in rows:
+        probe_id, transport = row['id'].rsplit(':', 1)
+        probe = probes[probe_id]
+        actual = row['response']
+        expected = probe.get('admission', {}).get(transport)
+        if expected == 'reply':
+            if actual['status'] != 'reply' or [r['data'] for r in (actual['reply'] or {}).get('records', [])] != ['8.8.8.8']:
+                failures.append({'id': row['id'], 'expected_reply': actual})
+        elif expected == 'drop' and actual['status'] != 'timeout':
+            failures.append({'id': row['id'], 'expected_silent_drop': actual})
+        elif expected == 'close' and (actual['stage'] != 'receive' or actual['status'] != 'closed'):
+            failures.append({'id': row['id'], 'expected_accepted_then_closed': actual})
+        elif expected == 'no-listener' and actual['status'] != 'refused':
+            failures.append({'id': row['id'], 'expected_no_listener': actual})
+        if probe.get('source') and actual['source_address'] not in (None, probe['source']):
+            failures.append({'id': row['id'], 'wrong_source': actual['source_address']})
+    return failures
+
+
+if __name__ == '__main__':
+    import json
+    import sys
+    if len(sys.argv) == 3 and sys.argv[1] == '--network-probe':
+        print(json.dumps(network_probe(json.loads(sys.argv[2]))))
+    else:
+        raise SystemExit('internal --network-probe JSON only')
