@@ -1,54 +1,4176 @@
 {
-  "schema": "m5-option-matrix-plan-v1",
-  "status": "planned-unexecuted",
-  "executable": false,
-  "reference": "Matching dnsmasq2.93 OpenWrt source identified in m5_option_matrix.json",
-  "evidence_root": "private/dnsmasq-rewrite/evidence/M5/option-matrix",
-  "common_rules": [
-    "Reuse m5_option_matrix.py probe adapters; product fixes integrated by root.",
-    "All syntax and startup stdout/stderr, process/ELF identity and cleanup stay exact.",
-    "Remove base no-0x20-encode for casing profiles and base listen-address for local-service profiles; these otherwise disable the tested feature.",
-    "No option closes without every source checklist row and C comparison."
-  ],
-  "families": [
+  "schema": 1,
+  "status": "in-progress",
+  "scope": "Second option matrix batch; only source-checklist-complete options may close.",
+  "source_identity": {
+    "option.c": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
+    "rfc1035.c": "231f0b4989039ff4963f3916df22871dd13025dde65769465b2b3052ad807222",
+    "forward.c": "ac05784d4233ed10bd166da5fe91e464afecf2883d3c2a0063305d3e81692f95",
+    "cache.c": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c",
+    "util.c": "33920165ef3e92f65d1cab75fe8da7772ad7389b37da79ba881957080f12f973"
+  },
+  "options": {
+    "do-0x20-encode": {
+      "source": [
+        "C: option.c:609\u2013610; forward.c:268\u2013320, 391\u2013395, 1292, 1323\u20131340,\n1457\u20131518, 3232\u20133276; rfc1035.c:extract_name. Rust consumers exist in\nconfig/dns.rs and dns/forward.rs. No runtime gap identified in this source read."
+      ],
+      "checklist": [
+        {
+          "checked": false,
+          "boundary": "Compare absent/do/no/both flags in each order, repeat flags, and rejected unexpected arguments; compare syntax and actual startup diagnostic streams.",
+          "required_scenarios": [
+            "case-default",
+            "case-do",
+            "case-no",
+            "case-do-no",
+            "case-no-do",
+            "case-repeat",
+            "invalid-do-0x20-encode"
+          ]
+        },
+        {
+          "checked": false,
+          "boundary": "For UDP, record raw outbound question casing. `do && !no` randomizes only the first 32 alphabetic characters; digit, hyphen and label separator positions do not consume bits. Check short and more-than-64-letter mixed-case names.",
+          "required_scenarios": [
+            "case-default",
+            "case-do",
+            "case-no",
+            "case-do-no",
+            "case-no-do",
+            "case-repeat",
+            "invalid-do-0x20-encode"
+          ]
+        },
+        {
+          "checked": false,
+          "boundary": "Do not compare random bit patterns or random IDs exactly. Require C and Rust to obey the same enabled/disabled rules and collect 64 independent requests so a disabled RNG path cannot pass an enabled profile.",
+          "required_scenarios": [
+            "case-default",
+            "case-do",
+            "case-no",
+            "case-do-no",
+            "case-no-do",
+            "case-repeat",
+            "invalid-do-0x20-encode"
+          ]
+        },
+        {
+          "checked": false,
+          "boundary": "Reply with exact echoed question; then with exactly one alphabetic case bit flipped. Enabled UDP must reject the second response and accept a later correctly cased one. Disabled UDP follows C's case-insensitive lookup.",
+          "required_scenarios": [
+            "case-default",
+            "case-do",
+            "case-no",
+            "case-do-no",
+            "case-no-do",
+            "case-repeat",
+            "invalid-do-0x20-encode"
+          ]
+        },
+        {
+          "checked": false,
+          "boundary": "Compare exact client question bytes, including original mixed case. Coalesce two clients whose letter-case difference occurs after letter 32 and after letter 64; both receive their own original question case and ID.",
+          "required_scenarios": [
+            "case-default",
+            "case-do",
+            "case-no",
+            "case-do-no",
+            "case-no-do",
+            "case-repeat",
+            "invalid-do-0x20-encode"
+          ]
+        },
+        {
+          "checked": false,
+          "boundary": "Exercise TCP separately; its forwarding path does not use the UDP frec encoding step. Record the observed C behavior rather than imposing UDP rules.",
+          "required_scenarios": [
+            "case-default",
+            "case-do",
+            "case-no",
+            "case-do-no",
+            "case-no-do",
+            "case-repeat",
+            "invalid-do-0x20-encode"
+          ]
+        },
+        {
+          "checked": false,
+          "boundary": "Controls: force no outbound case changes in enabled mode; mutate restored client case; accept an incorrect-case response; delete an observation.",
+          "required_scenarios": [
+            "case-default",
+            "case-do",
+            "case-no",
+            "case-do-no",
+            "case-no-do",
+            "case-repeat",
+            "invalid-do-0x20-encode"
+          ]
+        }
+      ],
+      "scenarios": [
+        "case-default",
+        "case-do",
+        "case-no",
+        "case-do-no",
+        "case-no-do",
+        "case-repeat",
+        "invalid-do-0x20-encode"
+      ]
+    },
+    "no-0x20-encode": {
+      "source": [
+        "C: option.c:609\u2013610; forward.c:268\u2013320, 391\u2013395, 1292, 1323\u20131340,\n1457\u20131518, 3232\u20133276; rfc1035.c:extract_name. Rust consumers exist in\nconfig/dns.rs and dns/forward.rs. No runtime gap identified in this source read."
+      ],
+      "checklist": [
+        {
+          "checked": false,
+          "boundary": "Compare absent/do/no/both flags in each order, repeat flags, and rejected unexpected arguments; compare syntax and actual startup diagnostic streams.",
+          "required_scenarios": [
+            "case-default",
+            "case-do",
+            "case-no",
+            "case-do-no",
+            "case-no-do",
+            "case-repeat",
+            "invalid-no-0x20-encode"
+          ]
+        },
+        {
+          "checked": false,
+          "boundary": "For UDP, record raw outbound question casing. `do && !no` randomizes only the first 32 alphabetic characters; digit, hyphen and label separator positions do not consume bits. Check short and more-than-64-letter mixed-case names.",
+          "required_scenarios": [
+            "case-default",
+            "case-do",
+            "case-no",
+            "case-do-no",
+            "case-no-do",
+            "case-repeat",
+            "invalid-no-0x20-encode"
+          ]
+        },
+        {
+          "checked": false,
+          "boundary": "Do not compare random bit patterns or random IDs exactly. Require C and Rust to obey the same enabled/disabled rules and collect 64 independent requests so a disabled RNG path cannot pass an enabled profile.",
+          "required_scenarios": [
+            "case-default",
+            "case-do",
+            "case-no",
+            "case-do-no",
+            "case-no-do",
+            "case-repeat",
+            "invalid-no-0x20-encode"
+          ]
+        },
+        {
+          "checked": false,
+          "boundary": "Reply with exact echoed question; then with exactly one alphabetic case bit flipped. Enabled UDP must reject the second response and accept a later correctly cased one. Disabled UDP follows C's case-insensitive lookup.",
+          "required_scenarios": [
+            "case-default",
+            "case-do",
+            "case-no",
+            "case-do-no",
+            "case-no-do",
+            "case-repeat",
+            "invalid-no-0x20-encode"
+          ]
+        },
+        {
+          "checked": false,
+          "boundary": "Compare exact client question bytes, including original mixed case. Coalesce two clients whose letter-case difference occurs after letter 32 and after letter 64; both receive their own original question case and ID.",
+          "required_scenarios": [
+            "case-default",
+            "case-do",
+            "case-no",
+            "case-do-no",
+            "case-no-do",
+            "case-repeat",
+            "invalid-no-0x20-encode"
+          ]
+        },
+        {
+          "checked": false,
+          "boundary": "Exercise TCP separately; its forwarding path does not use the UDP frec encoding step. Record the observed C behavior rather than imposing UDP rules.",
+          "required_scenarios": [
+            "case-default",
+            "case-do",
+            "case-no",
+            "case-do-no",
+            "case-no-do",
+            "case-repeat",
+            "invalid-no-0x20-encode"
+          ]
+        },
+        {
+          "checked": false,
+          "boundary": "Controls: force no outbound case changes in enabled mode; mutate restored client case; accept an incorrect-case response; delete an observation.",
+          "required_scenarios": [
+            "case-default",
+            "case-do",
+            "case-no",
+            "case-do-no",
+            "case-no-do",
+            "case-repeat",
+            "invalid-no-0x20-encode"
+          ]
+        }
+      ],
+      "scenarios": [
+        "case-default",
+        "case-do",
+        "case-no",
+        "case-do-no",
+        "case-no-do",
+        "case-repeat",
+        "invalid-no-0x20-encode"
+      ]
+    },
+    "max-tcp-connections": {
+      "source": [
+        "C: option.c:5453\u20135462 (zero rejected); dnsmasq.c:1901\u20131915, 1994\u20132008,\n1631\u20131650 (slot requires both child exit and pipe EOF). Rust's shared owner\nalready consumes max_tcp_connections. Reuse the schedule from\n`dns_tcp_capacity_diff.py`; execute both daemons in the exact image with `-k`."
+      ],
+      "checklist": [
+        {
+          "checked": false,
+          "boundary": "Syntax/startup: one, two and zero; zero must fail rather than become an unlimited or disabled TCP service. Retain invalid-number diagnostics.",
+          "required_scenarios": [
+            "capacity-1",
+            "capacity-2",
+            "capacity-zero",
+            "capacity-invalid"
+          ]
+        },
+        {
+          "checked": false,
+          "boundary": "Fill all slots with idle clients, then connect/send an additional client. The extra request waits in the kernel accept queue and receives no response until a slot is released; it is not reset or rejected prematurely.",
+          "required_scenarios": [
+            "capacity-1",
+            "capacity-2",
+            "capacity-zero",
+            "capacity-invalid"
+          ]
+        },
+        {
+          "checked": false,
+          "boundary": "Close one client and observe queued-client admission and reply. Repeat through both listener addresses so the limit is global rather than per socket.",
+          "required_scenarios": [
+            "capacity-1",
+            "capacity-2",
+            "capacity-zero",
+            "capacity-invalid"
+          ]
+        },
+        {
+          "checked": false,
+          "boundary": "Keep UDP queries successful during TCP saturation, repeat fill/drain, and check child/socket/PID cleanup on shutdown. Use UDP readiness so readiness itself does not temporarily consume a TCP slot.",
+          "required_scenarios": [
+            "capacity-1",
+            "capacity-2",
+            "capacity-zero",
+            "capacity-invalid"
+          ]
+        },
+        {
+          "checked": false,
+          "boundary": "Controls: serve the excess client early, drop its eventual response, report per-listener capacity, retain a child after shutdown.",
+          "required_scenarios": [
+            "capacity-1",
+            "capacity-2",
+            "capacity-zero",
+            "capacity-invalid"
+          ]
+        }
+      ],
+      "scenarios": [
+        "capacity-1",
+        "capacity-2",
+        "capacity-zero",
+        "capacity-invalid"
+      ]
+    }
+  },
+  "scenarios": [
     {
+      "id": "case-default",
       "options": [
         "do-0x20-encode",
         "no-0x20-encode"
       ],
-      "source_and_scope": "C: option.c:609\u2013610; forward.c:268\u2013320, 391\u2013395, 1292, 1323\u20131340,\n1457\u20131518, 3232\u20133276; rfc1035.c:extract_name. Rust consumers exist in\nconfig/dns.rs and dns/forward.rs. No runtime gap identified in this source read.",
-      "checklist": [
+      "config": "",
+      "probes": [
         {
-          "checked": false,
-          "boundary": "Compare absent/do/no/both flags in each order, repeat flags, and rejected unexpected arguments; compare syntax and actual startup diagnostic streams."
+          "id": "random-0",
+          "name": "q0-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
         },
         {
-          "checked": false,
-          "boundary": "For UDP, record raw outbound question casing. `do && !no` randomizes only the first 32 alphabetic characters; digit, hyphen and label separator positions do not consume bits. Check short and more-than-64-letter mixed-case names."
+          "id": "random-1",
+          "name": "q1-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
         },
         {
-          "checked": false,
-          "boundary": "Do not compare random bit patterns or random IDs exactly. Require C and Rust to obey the same enabled/disabled rules and collect 64 independent requests so a disabled RNG path cannot pass an enabled profile."
+          "id": "random-2",
+          "name": "q2-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
         },
         {
-          "checked": false,
-          "boundary": "Reply with exact echoed question; then with exactly one alphabetic case bit flipped. Enabled UDP must reject the second response and accept a later correctly cased one. Disabled UDP follows C's case-insensitive lookup."
+          "id": "random-3",
+          "name": "q3-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
         },
         {
-          "checked": false,
-          "boundary": "Compare exact client question bytes, including original mixed case. Coalesce two clients whose letter-case difference occurs after letter 32 and after letter 64; both receive their own original question case and ID."
+          "id": "random-4",
+          "name": "q4-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
         },
         {
-          "checked": false,
-          "boundary": "Exercise TCP separately; its forwarding path does not use the UDP frec encoding step. Record the observed C behavior rather than imposing UDP rules."
+          "id": "random-5",
+          "name": "q5-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
         },
         {
-          "checked": false,
-          "boundary": "Controls: force no outbound case changes in enabled mode; mutate restored client case; accept an incorrect-case response; delete an observation."
+          "id": "random-6",
+          "name": "q6-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-7",
+          "name": "q7-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-8",
+          "name": "q8-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-9",
+          "name": "q9-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-10",
+          "name": "q10-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-11",
+          "name": "q11-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-12",
+          "name": "q12-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-13",
+          "name": "q13-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-14",
+          "name": "q14-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-15",
+          "name": "q15-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-16",
+          "name": "q16-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-17",
+          "name": "q17-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-18",
+          "name": "q18-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-19",
+          "name": "q19-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-20",
+          "name": "q20-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-21",
+          "name": "q21-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-22",
+          "name": "q22-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-23",
+          "name": "q23-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-24",
+          "name": "q24-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-25",
+          "name": "q25-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-26",
+          "name": "q26-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-27",
+          "name": "q27-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-28",
+          "name": "q28-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-29",
+          "name": "q29-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-30",
+          "name": "q30-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-31",
+          "name": "q31-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-32",
+          "name": "q32-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-33",
+          "name": "q33-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-34",
+          "name": "q34-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-35",
+          "name": "q35-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-36",
+          "name": "q36-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-37",
+          "name": "q37-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-38",
+          "name": "q38-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-39",
+          "name": "q39-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-40",
+          "name": "q40-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-41",
+          "name": "q41-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-42",
+          "name": "q42-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-43",
+          "name": "q43-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-44",
+          "name": "q44-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-45",
+          "name": "q45-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-46",
+          "name": "q46-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-47",
+          "name": "q47-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-48",
+          "name": "q48-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-49",
+          "name": "q49-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-50",
+          "name": "q50-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-51",
+          "name": "q51-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-52",
+          "name": "q52-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-53",
+          "name": "q53-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-54",
+          "name": "q54-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-55",
+          "name": "q55-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-56",
+          "name": "q56-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-57",
+          "name": "q57-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-58",
+          "name": "q58-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-59",
+          "name": "q59-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-60",
+          "name": "q60-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-61",
+          "name": "q61-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-62",
+          "name": "q62-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-63",
+          "name": "q63-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "short-udp-tcp",
+          "name": "MiXeD.AlPhAbEt.test",
+          "type": 1,
+          "reply": "8.8.8.8"
+        },
+        {
+          "id": "wrong-reply-case",
+          "name": "CaSeAuTh.AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "spoof_case": true
+        },
+        {
+          "id": "coalesced-after35",
+          "name": "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "clients": [
+            "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+            "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHijkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test"
+          ],
+          "type": 1,
+          "reply": "8.8.8.8",
+          "delay_ms": 40,
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "coalesced-after65",
+          "name": "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "clients": [
+            "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+            "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmnoPqRsTuVwXyZ.test"
+          ],
+          "type": 1,
+          "reply": "8.8.8.8",
+          "delay_ms": 40,
+          "transports": [
+            "udp"
+          ]
         }
       ],
-      "notes": ""
+      "adapter": "casing",
+      "encoding": false,
+      "expected_test_exit": 0,
+      "hosts": ""
     },
+    {
+      "id": "case-do",
+      "options": [
+        "do-0x20-encode",
+        "no-0x20-encode"
+      ],
+      "config": "do-0x20-encode\n",
+      "probes": [
+        {
+          "id": "random-0",
+          "name": "q0-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-1",
+          "name": "q1-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-2",
+          "name": "q2-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-3",
+          "name": "q3-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-4",
+          "name": "q4-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-5",
+          "name": "q5-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-6",
+          "name": "q6-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-7",
+          "name": "q7-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-8",
+          "name": "q8-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-9",
+          "name": "q9-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-10",
+          "name": "q10-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-11",
+          "name": "q11-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-12",
+          "name": "q12-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-13",
+          "name": "q13-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-14",
+          "name": "q14-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-15",
+          "name": "q15-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-16",
+          "name": "q16-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-17",
+          "name": "q17-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-18",
+          "name": "q18-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-19",
+          "name": "q19-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-20",
+          "name": "q20-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-21",
+          "name": "q21-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-22",
+          "name": "q22-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-23",
+          "name": "q23-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-24",
+          "name": "q24-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-25",
+          "name": "q25-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-26",
+          "name": "q26-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-27",
+          "name": "q27-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-28",
+          "name": "q28-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-29",
+          "name": "q29-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-30",
+          "name": "q30-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-31",
+          "name": "q31-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-32",
+          "name": "q32-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-33",
+          "name": "q33-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-34",
+          "name": "q34-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-35",
+          "name": "q35-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-36",
+          "name": "q36-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-37",
+          "name": "q37-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-38",
+          "name": "q38-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-39",
+          "name": "q39-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-40",
+          "name": "q40-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-41",
+          "name": "q41-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-42",
+          "name": "q42-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-43",
+          "name": "q43-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-44",
+          "name": "q44-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-45",
+          "name": "q45-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-46",
+          "name": "q46-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-47",
+          "name": "q47-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-48",
+          "name": "q48-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-49",
+          "name": "q49-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-50",
+          "name": "q50-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-51",
+          "name": "q51-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-52",
+          "name": "q52-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-53",
+          "name": "q53-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-54",
+          "name": "q54-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-55",
+          "name": "q55-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-56",
+          "name": "q56-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-57",
+          "name": "q57-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-58",
+          "name": "q58-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-59",
+          "name": "q59-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-60",
+          "name": "q60-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-61",
+          "name": "q61-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-62",
+          "name": "q62-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-63",
+          "name": "q63-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "short-udp-tcp",
+          "name": "MiXeD.AlPhAbEt.test",
+          "type": 1,
+          "reply": "8.8.8.8"
+        },
+        {
+          "id": "wrong-reply-case",
+          "name": "CaSeAuTh.AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "spoof_case": true
+        },
+        {
+          "id": "coalesced-after35",
+          "name": "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "clients": [
+            "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+            "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHijkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test"
+          ],
+          "type": 1,
+          "reply": "8.8.8.8",
+          "delay_ms": 40,
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "coalesced-after65",
+          "name": "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "clients": [
+            "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+            "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmnoPqRsTuVwXyZ.test"
+          ],
+          "type": 1,
+          "reply": "8.8.8.8",
+          "delay_ms": 40,
+          "transports": [
+            "udp"
+          ]
+        }
+      ],
+      "adapter": "casing",
+      "encoding": true,
+      "expected_test_exit": 0,
+      "hosts": ""
+    },
+    {
+      "id": "case-no",
+      "options": [
+        "do-0x20-encode",
+        "no-0x20-encode"
+      ],
+      "config": "no-0x20-encode\n",
+      "probes": [
+        {
+          "id": "random-0",
+          "name": "q0-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-1",
+          "name": "q1-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-2",
+          "name": "q2-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-3",
+          "name": "q3-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-4",
+          "name": "q4-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-5",
+          "name": "q5-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-6",
+          "name": "q6-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-7",
+          "name": "q7-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-8",
+          "name": "q8-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-9",
+          "name": "q9-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-10",
+          "name": "q10-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-11",
+          "name": "q11-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-12",
+          "name": "q12-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-13",
+          "name": "q13-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-14",
+          "name": "q14-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-15",
+          "name": "q15-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-16",
+          "name": "q16-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-17",
+          "name": "q17-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-18",
+          "name": "q18-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-19",
+          "name": "q19-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-20",
+          "name": "q20-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-21",
+          "name": "q21-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-22",
+          "name": "q22-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-23",
+          "name": "q23-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-24",
+          "name": "q24-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-25",
+          "name": "q25-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-26",
+          "name": "q26-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-27",
+          "name": "q27-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-28",
+          "name": "q28-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-29",
+          "name": "q29-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-30",
+          "name": "q30-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-31",
+          "name": "q31-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-32",
+          "name": "q32-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-33",
+          "name": "q33-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-34",
+          "name": "q34-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-35",
+          "name": "q35-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-36",
+          "name": "q36-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-37",
+          "name": "q37-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-38",
+          "name": "q38-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-39",
+          "name": "q39-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-40",
+          "name": "q40-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-41",
+          "name": "q41-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-42",
+          "name": "q42-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-43",
+          "name": "q43-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-44",
+          "name": "q44-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-45",
+          "name": "q45-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-46",
+          "name": "q46-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-47",
+          "name": "q47-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-48",
+          "name": "q48-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-49",
+          "name": "q49-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-50",
+          "name": "q50-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-51",
+          "name": "q51-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-52",
+          "name": "q52-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-53",
+          "name": "q53-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-54",
+          "name": "q54-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-55",
+          "name": "q55-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-56",
+          "name": "q56-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-57",
+          "name": "q57-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-58",
+          "name": "q58-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-59",
+          "name": "q59-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-60",
+          "name": "q60-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-61",
+          "name": "q61-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-62",
+          "name": "q62-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-63",
+          "name": "q63-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "short-udp-tcp",
+          "name": "MiXeD.AlPhAbEt.test",
+          "type": 1,
+          "reply": "8.8.8.8"
+        },
+        {
+          "id": "wrong-reply-case",
+          "name": "CaSeAuTh.AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "spoof_case": true
+        },
+        {
+          "id": "coalesced-after35",
+          "name": "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "clients": [
+            "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+            "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHijkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test"
+          ],
+          "type": 1,
+          "reply": "8.8.8.8",
+          "delay_ms": 40,
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "coalesced-after65",
+          "name": "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "clients": [
+            "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+            "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmnoPqRsTuVwXyZ.test"
+          ],
+          "type": 1,
+          "reply": "8.8.8.8",
+          "delay_ms": 40,
+          "transports": [
+            "udp"
+          ]
+        }
+      ],
+      "adapter": "casing",
+      "encoding": false,
+      "expected_test_exit": 0,
+      "hosts": ""
+    },
+    {
+      "id": "case-do-no",
+      "options": [
+        "do-0x20-encode",
+        "no-0x20-encode"
+      ],
+      "config": "do-0x20-encode\nno-0x20-encode\n",
+      "probes": [
+        {
+          "id": "random-0",
+          "name": "q0-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-1",
+          "name": "q1-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-2",
+          "name": "q2-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-3",
+          "name": "q3-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-4",
+          "name": "q4-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-5",
+          "name": "q5-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-6",
+          "name": "q6-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-7",
+          "name": "q7-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-8",
+          "name": "q8-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-9",
+          "name": "q9-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-10",
+          "name": "q10-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-11",
+          "name": "q11-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-12",
+          "name": "q12-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-13",
+          "name": "q13-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-14",
+          "name": "q14-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-15",
+          "name": "q15-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-16",
+          "name": "q16-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-17",
+          "name": "q17-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-18",
+          "name": "q18-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-19",
+          "name": "q19-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-20",
+          "name": "q20-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-21",
+          "name": "q21-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-22",
+          "name": "q22-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-23",
+          "name": "q23-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-24",
+          "name": "q24-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-25",
+          "name": "q25-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-26",
+          "name": "q26-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-27",
+          "name": "q27-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-28",
+          "name": "q28-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-29",
+          "name": "q29-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-30",
+          "name": "q30-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-31",
+          "name": "q31-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-32",
+          "name": "q32-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-33",
+          "name": "q33-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-34",
+          "name": "q34-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-35",
+          "name": "q35-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-36",
+          "name": "q36-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-37",
+          "name": "q37-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-38",
+          "name": "q38-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-39",
+          "name": "q39-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-40",
+          "name": "q40-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-41",
+          "name": "q41-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-42",
+          "name": "q42-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-43",
+          "name": "q43-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-44",
+          "name": "q44-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-45",
+          "name": "q45-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-46",
+          "name": "q46-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-47",
+          "name": "q47-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-48",
+          "name": "q48-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-49",
+          "name": "q49-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-50",
+          "name": "q50-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-51",
+          "name": "q51-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-52",
+          "name": "q52-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-53",
+          "name": "q53-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-54",
+          "name": "q54-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-55",
+          "name": "q55-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-56",
+          "name": "q56-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-57",
+          "name": "q57-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-58",
+          "name": "q58-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-59",
+          "name": "q59-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-60",
+          "name": "q60-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-61",
+          "name": "q61-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-62",
+          "name": "q62-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-63",
+          "name": "q63-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "short-udp-tcp",
+          "name": "MiXeD.AlPhAbEt.test",
+          "type": 1,
+          "reply": "8.8.8.8"
+        },
+        {
+          "id": "wrong-reply-case",
+          "name": "CaSeAuTh.AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "spoof_case": true
+        },
+        {
+          "id": "coalesced-after35",
+          "name": "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "clients": [
+            "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+            "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHijkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test"
+          ],
+          "type": 1,
+          "reply": "8.8.8.8",
+          "delay_ms": 40,
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "coalesced-after65",
+          "name": "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "clients": [
+            "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+            "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmnoPqRsTuVwXyZ.test"
+          ],
+          "type": 1,
+          "reply": "8.8.8.8",
+          "delay_ms": 40,
+          "transports": [
+            "udp"
+          ]
+        }
+      ],
+      "adapter": "casing",
+      "encoding": false,
+      "expected_test_exit": 0,
+      "hosts": ""
+    },
+    {
+      "id": "case-no-do",
+      "options": [
+        "do-0x20-encode",
+        "no-0x20-encode"
+      ],
+      "config": "no-0x20-encode\ndo-0x20-encode\n",
+      "probes": [
+        {
+          "id": "random-0",
+          "name": "q0-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-1",
+          "name": "q1-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-2",
+          "name": "q2-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-3",
+          "name": "q3-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-4",
+          "name": "q4-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-5",
+          "name": "q5-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-6",
+          "name": "q6-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-7",
+          "name": "q7-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-8",
+          "name": "q8-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-9",
+          "name": "q9-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-10",
+          "name": "q10-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-11",
+          "name": "q11-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-12",
+          "name": "q12-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-13",
+          "name": "q13-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-14",
+          "name": "q14-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-15",
+          "name": "q15-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-16",
+          "name": "q16-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-17",
+          "name": "q17-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-18",
+          "name": "q18-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-19",
+          "name": "q19-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-20",
+          "name": "q20-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-21",
+          "name": "q21-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-22",
+          "name": "q22-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-23",
+          "name": "q23-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-24",
+          "name": "q24-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-25",
+          "name": "q25-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-26",
+          "name": "q26-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-27",
+          "name": "q27-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-28",
+          "name": "q28-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-29",
+          "name": "q29-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-30",
+          "name": "q30-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-31",
+          "name": "q31-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-32",
+          "name": "q32-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-33",
+          "name": "q33-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-34",
+          "name": "q34-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-35",
+          "name": "q35-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-36",
+          "name": "q36-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-37",
+          "name": "q37-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-38",
+          "name": "q38-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-39",
+          "name": "q39-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-40",
+          "name": "q40-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-41",
+          "name": "q41-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-42",
+          "name": "q42-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-43",
+          "name": "q43-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-44",
+          "name": "q44-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-45",
+          "name": "q45-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-46",
+          "name": "q46-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-47",
+          "name": "q47-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-48",
+          "name": "q48-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-49",
+          "name": "q49-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-50",
+          "name": "q50-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-51",
+          "name": "q51-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-52",
+          "name": "q52-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-53",
+          "name": "q53-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-54",
+          "name": "q54-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-55",
+          "name": "q55-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-56",
+          "name": "q56-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-57",
+          "name": "q57-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-58",
+          "name": "q58-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-59",
+          "name": "q59-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-60",
+          "name": "q60-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-61",
+          "name": "q61-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-62",
+          "name": "q62-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-63",
+          "name": "q63-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "short-udp-tcp",
+          "name": "MiXeD.AlPhAbEt.test",
+          "type": 1,
+          "reply": "8.8.8.8"
+        },
+        {
+          "id": "wrong-reply-case",
+          "name": "CaSeAuTh.AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "spoof_case": true
+        },
+        {
+          "id": "coalesced-after35",
+          "name": "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "clients": [
+            "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+            "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHijkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test"
+          ],
+          "type": 1,
+          "reply": "8.8.8.8",
+          "delay_ms": 40,
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "coalesced-after65",
+          "name": "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "clients": [
+            "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+            "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmnoPqRsTuVwXyZ.test"
+          ],
+          "type": 1,
+          "reply": "8.8.8.8",
+          "delay_ms": 40,
+          "transports": [
+            "udp"
+          ]
+        }
+      ],
+      "adapter": "casing",
+      "encoding": false,
+      "expected_test_exit": 0,
+      "hosts": ""
+    },
+    {
+      "id": "case-repeat",
+      "options": [
+        "do-0x20-encode",
+        "no-0x20-encode"
+      ],
+      "config": "do-0x20-encode\ndo-0x20-encode\n",
+      "probes": [
+        {
+          "id": "random-0",
+          "name": "q0-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-1",
+          "name": "q1-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-2",
+          "name": "q2-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-3",
+          "name": "q3-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-4",
+          "name": "q4-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-5",
+          "name": "q5-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-6",
+          "name": "q6-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-7",
+          "name": "q7-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-8",
+          "name": "q8-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-9",
+          "name": "q9-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-10",
+          "name": "q10-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-11",
+          "name": "q11-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-12",
+          "name": "q12-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-13",
+          "name": "q13-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-14",
+          "name": "q14-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-15",
+          "name": "q15-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-16",
+          "name": "q16-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-17",
+          "name": "q17-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-18",
+          "name": "q18-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-19",
+          "name": "q19-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-20",
+          "name": "q20-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-21",
+          "name": "q21-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-22",
+          "name": "q22-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-23",
+          "name": "q23-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-24",
+          "name": "q24-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-25",
+          "name": "q25-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-26",
+          "name": "q26-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-27",
+          "name": "q27-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-28",
+          "name": "q28-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-29",
+          "name": "q29-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-30",
+          "name": "q30-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-31",
+          "name": "q31-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-32",
+          "name": "q32-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-33",
+          "name": "q33-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-34",
+          "name": "q34-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-35",
+          "name": "q35-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-36",
+          "name": "q36-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-37",
+          "name": "q37-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-38",
+          "name": "q38-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-39",
+          "name": "q39-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-40",
+          "name": "q40-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-41",
+          "name": "q41-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-42",
+          "name": "q42-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-43",
+          "name": "q43-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-44",
+          "name": "q44-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-45",
+          "name": "q45-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-46",
+          "name": "q46-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-47",
+          "name": "q47-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-48",
+          "name": "q48-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-49",
+          "name": "q49-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-50",
+          "name": "q50-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-51",
+          "name": "q51-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-52",
+          "name": "q52-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-53",
+          "name": "q53-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-54",
+          "name": "q54-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-55",
+          "name": "q55-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-56",
+          "name": "q56-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-57",
+          "name": "q57-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-58",
+          "name": "q58-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-59",
+          "name": "q59-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-60",
+          "name": "q60-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-61",
+          "name": "q61-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-62",
+          "name": "q62-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "random-63",
+          "name": "q63-AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "short-udp-tcp",
+          "name": "MiXeD.AlPhAbEt.test",
+          "type": 1,
+          "reply": "8.8.8.8"
+        },
+        {
+          "id": "wrong-reply-case",
+          "name": "CaSeAuTh.AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "type": 1,
+          "reply": "8.8.8.8",
+          "spoof_case": true
+        },
+        {
+          "id": "coalesced-after35",
+          "name": "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "clients": [
+            "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+            "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHijkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test"
+          ],
+          "type": 1,
+          "reply": "8.8.8.8",
+          "delay_ms": 40,
+          "transports": [
+            "udp"
+          ]
+        },
+        {
+          "id": "coalesced-after65",
+          "name": "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+          "clients": [
+            "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ.test",
+            "AbCdEfGhIjKlMnOpQrStUvWxYz-12345678.aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmnoPqRsTuVwXyZ.test"
+          ],
+          "type": 1,
+          "reply": "8.8.8.8",
+          "delay_ms": 40,
+          "transports": [
+            "udp"
+          ]
+        }
+      ],
+      "adapter": "casing",
+      "encoding": true,
+      "expected_test_exit": 0,
+      "hosts": ""
+    },
+    {
+      "id": "invalid-do-0x20-encode",
+      "options": [
+        "do-0x20-encode"
+      ],
+      "config": "do-0x20-encode=yes\n",
+      "probes": [],
+      "adapter": "casing",
+      "encoding": false,
+      "expected_test_exit": 1,
+      "hosts": ""
+    },
+    {
+      "id": "invalid-no-0x20-encode",
+      "options": [
+        "no-0x20-encode"
+      ],
+      "config": "no-0x20-encode=yes\n",
+      "probes": [],
+      "adapter": "casing",
+      "encoding": false,
+      "expected_test_exit": 1,
+      "hosts": ""
+    },
+    {
+      "id": "capacity-1",
+      "options": [
+        "max-tcp-connections"
+      ],
+      "config": "max-tcp-connections=1\nhost-record=capacity.matrix.test,8.8.8.8\n",
+      "probes": [
+        {
+          "id": "fill-drain",
+          "name": "capacity.matrix.test",
+          "limit": 1,
+          "transports": [
+            "capacity"
+          ]
+        }
+      ],
+      "adapter": "capacity",
+      "listen_addresses": [
+        "127.0.0.1",
+        "127.0.0.3"
+      ],
+      "expected_test_exit": 0,
+      "hosts": ""
+    },
+    {
+      "id": "capacity-2",
+      "options": [
+        "max-tcp-connections"
+      ],
+      "config": "max-tcp-connections=2\nhost-record=capacity.matrix.test,8.8.8.8\n",
+      "probes": [
+        {
+          "id": "fill-drain",
+          "name": "capacity.matrix.test",
+          "limit": 2,
+          "transports": [
+            "capacity"
+          ]
+        }
+      ],
+      "adapter": "capacity",
+      "listen_addresses": [
+        "127.0.0.1",
+        "127.0.0.3"
+      ],
+      "expected_test_exit": 0,
+      "hosts": ""
+    },
+    {
+      "id": "capacity-zero",
+      "options": [
+        "max-tcp-connections"
+      ],
+      "config": "max-tcp-connections=0\n",
+      "probes": [],
+      "adapter": "capacity",
+      "expected_test_exit": 1,
+      "hosts": ""
+    },
+    {
+      "id": "capacity-invalid",
+      "options": [
+        "max-tcp-connections"
+      ],
+      "config": "max-tcp-connections=word\n",
+      "probes": [],
+      "adapter": "capacity",
+      "expected_test_exit": 1,
+      "hosts": ""
+    }
+  ],
+  "pending_families": [
     {
       "options": [
         "fast-dns-retry"
@@ -81,35 +4203,6 @@
         }
       ],
       "notes": "Known common diagnostic gap from static read: Rust scalar errors currently say\n`retry interval below 50 ms` / `bad integer`; C uses its generic `error`. Keep\nthese rows failing until the root agent fixes the shared diagnostic boundary."
-    },
-    {
-      "options": [
-        "max-tcp-connections"
-      ],
-      "source_and_scope": "C: option.c:5453\u20135462 (zero rejected); dnsmasq.c:1901\u20131915, 1994\u20132008,\n1631\u20131650 (slot requires both child exit and pipe EOF). Rust's shared owner\nalready consumes max_tcp_connections. Reuse the schedule from\n`dns_tcp_capacity_diff.py`; execute both daemons in the exact image with `-k`.",
-      "checklist": [
-        {
-          "checked": false,
-          "boundary": "Syntax/startup: one, two and zero; zero must fail rather than become an unlimited or disabled TCP service. Retain invalid-number diagnostics."
-        },
-        {
-          "checked": false,
-          "boundary": "Fill all slots with idle clients, then connect/send an additional client. The extra request waits in the kernel accept queue and receives no response until a slot is released; it is not reset or rejected prematurely."
-        },
-        {
-          "checked": false,
-          "boundary": "Close one client and observe queued-client admission and reply. Repeat through both listener addresses so the limit is global rather than per socket."
-        },
-        {
-          "checked": false,
-          "boundary": "Keep UDP queries successful during TCP saturation, repeat fill/drain, and check child/socket/PID cleanup on shutdown. Use UDP readiness so readiness itself does not temporarily consume a TCP slot."
-        },
-        {
-          "checked": false,
-          "boundary": "Controls: serve the excess client early, drop its eventual response, report per-listener capacity, retain a child after shutdown."
-        }
-      ],
-      "notes": "Known common diagnostic gap: Rust rejects zero with `max-tcp-connections must\nbe positive`; C uses generic `error`. This is not evidence of a runtime gap."
     },
     {
       "options": [
