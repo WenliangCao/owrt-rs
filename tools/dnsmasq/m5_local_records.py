@@ -337,6 +337,16 @@ def compare(left, right):
             reference_differences.append({'case': c_row['input'], 'c': c_row, 'rust': rust_row,
                 'source': 'option.c dns-rr parse_hex size_t/-1U error check',
                 'behavior': 'C reports allocation failure; Rust reports invalid hexadecimal configuration'})
+        elif (c_row['input'] == rust_row['input']
+              and c_row['input'].startswith('caa-record=unsafe-total.m5.test,1,t,')
+              and len(c_row['input'].split(',', 3)[3]) + 3 in (65536, 65537)
+              and c_row['exit'] == -11 and rust_row['exit'] == 1
+              and rust_row.get('stderr', '').endswith(f'record data exceeds DNS wire length at line {len(BASE.splitlines()) + 1} of /m2/parse.conf\n')):
+            reference_differences.append({'case': 'CAA total-length allocation overflow',
+                'total': len(c_row['input'].split(',', 3)[3]) + 3,
+                'c_exit': -11, 'rust_exit': 1,
+                'source': 'option.c:5144-5153 allocates u16(len) then memcpy full tag/value',
+                'behavior': 'exact-image C crashes during isolated --test; Rust safely rejects'})
         else:
             differences.append({'parse_c': c_row, 'parse_rust': rust_row})
     if left['processes'] != right['processes']:
