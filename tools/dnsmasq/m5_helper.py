@@ -344,7 +344,7 @@ def run_case(root, side, out, case):
     if case == 'renewal': flags.append('script-on-renewal')
     if case == 'scriptuser': flags.append('dhcp-scriptuser=nobody')
     if case == 'scriptuser-debug': flags.append('dhcp-scriptuser=nobody'); debug = True
-    if case == 'slow': env['M5_SLOW'] = '1'
+    if case in ('slow', 'shutdown'): env['M5_SLOW'] = '1'
     if case == 'exit': env['M5_EXIT'] = '1'
     if case == 'signal': env['M5_SIGNAL'] = '1'
     if case in ('readonly', 'init-exit', 'slow-init', 'init-capacity'): flags.append('leasefile-ro')
@@ -397,6 +397,11 @@ def run_case(root, side, out, case):
             result['dns_after_script'] = runner.dns()
             if capture(runner.events): raise AssertionError('missing executable generated a script capture')
             runner.stage('missing-exec-no-event')
+        elif case == 'shutdown':
+            wait(lambda: (runner.events / 'slow-ready').exists(), 'script sleeping before SIGTERM')
+            runner.dora(2)
+            runner.stop()
+            runner.stage('queued-callbacks-after-sigterm', 2)
         elif case == 'slow':
             wait(lambda: (runner.events / 'slow-ready').exists(), 'script sleeping')
             start = time.monotonic(); runner.dns(); dns_elapsed = time.monotonic() - start
@@ -492,7 +497,7 @@ def main():
     parser.add_argument('--rust', type=Path, required=True)
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--side', choices=('both', 'c', 'rust'), default='both')
-    parser.add_argument('--cases', default='lifecycle,renewal,scriptuser,scriptuser-debug,slow,exit,signal,readonly,hotplug,missing-exec,unknown-user,init-exit,helper-death,slow-init,init-capacity')
+    parser.add_argument('--cases', default='lifecycle,renewal,scriptuser,scriptuser-debug,slow,exit,signal,readonly,hotplug,missing-exec,unknown-user,init-exit,helper-death,slow-init,init-capacity,shutdown')
     args = parser.parse_args()
     if os.geteuid() != 0 or os.environ.get('DNSMASQ_TEST_ISOLATED') != '1':
         parser.error('root under run_isolated.sh required')
@@ -504,7 +509,7 @@ def main():
     root = prepare(args.image_root, None, out, args.rust)
     rows = []
     for case in args.cases.split(','):
-        if case not in ('lifecycle', 'renewal', 'scriptuser', 'scriptuser-debug', 'slow', 'exit', 'signal', 'readonly', 'hotplug', 'missing-exec', 'unknown-user', 'init-exit', 'helper-death', 'slow-init', 'init-capacity'):
+        if case not in ('lifecycle', 'renewal', 'scriptuser', 'scriptuser-debug', 'slow', 'exit', 'signal', 'readonly', 'hotplug', 'missing-exec', 'unknown-user', 'init-exit', 'helper-death', 'slow-init', 'init-capacity', 'shutdown'):
             parser.error('unknown case ' + case)
         for side in (('c', 'rust') if args.side == 'both' else (args.side,)):
             rows.append(run_case(root, side, out, case))
