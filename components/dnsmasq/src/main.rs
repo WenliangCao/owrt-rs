@@ -51,14 +51,14 @@ use std::os::unix::ffi::OsStringExt;
 use std::path::Path;
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 #[cfg(not(target_os = "linux"))]
 use std::thread;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 static STOP_REQUESTED: AtomicBool = AtomicBool::new(false);
-static RELOAD_REQUESTED: AtomicBool = AtomicBool::new(false);
+static RELOAD_REQUESTED: AtomicUsize = AtomicUsize::new(0);
 static DEBUG_MODE: AtomicBool = AtomicBool::new(false);
 // SIGHUP is 1 on the supported Linux and Darwin hosts.
 const SIGHUP: i32 = 1;
@@ -74,7 +74,11 @@ extern "C" fn request_stop(_signal: i32) {
 }
 
 extern "C" fn request_reload(_signal: i32) {
-    RELOAD_REQUESTED.store(true, Ordering::Release);
+    // Standard signals coalesce in the kernel. Each delivered handler maps
+    // to a distinct C EVENT_RELOAD and must survive an active file read.
+    let _ = RELOAD_REQUESTED.fetch_update(Ordering::Release, Ordering::Relaxed, |count| {
+        Some(count.saturating_add(1))
+    });
 }
 
 extern "C" fn request_interrupt(_signal: i32) {
@@ -897,7 +901,12 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
         }
-        let signaled = RELOAD_REQUESTED.swap(false, Ordering::AcqRel);
+        let signaled = !poll.reload_in_progress()
+            && RELOAD_REQUESTED
+                .fetch_update(Ordering::AcqRel, Ordering::Acquire, |count| {
+                    count.checked_sub(1)
+                })
+                .is_ok();
         let file_reload = std::mem::take(&mut poll.full_reload_pending);
         if signaled || file_reload {
             poll.reload_data(runtime.scalar.local_ttl)?;
@@ -1300,6 +1309,26 @@ impl SinglePoll {
             report_dhcp_maintenance(&provider.reload_data_files(now_seconds()));
         }
         Ok(())
+    }
+
+    fn reload_in_progress(&self) -> bool {
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if self
+            .dhcp
+            .as_ref()
+            .and_then(|dhcp| dhcp.provider.as_ref())
+            .is_some_and(|provider| provider.lock().unwrap().file_work_pending())
+        {
+            return true;
+        }
+        #[cfg(target_os = "linux")]
+        {
+            self.dns_files.as_ref().is_some_and(DnsFiles::has_work)
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            false
+        }
     }
 
     fn files_initializing(&self) -> bool {
