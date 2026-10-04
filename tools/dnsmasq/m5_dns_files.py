@@ -12,6 +12,8 @@ import argparse
 import copy
 import ctypes
 import errno
+import hashlib
+import tarfile
 import json
 import os
 import platform
@@ -401,6 +403,17 @@ def scenarios():
         [probe('marker', 'a.marker.test'), probe('reverse-selected', '130.2.0.192.in-addr.arpa', type=12),
          probe('reverse-fallback', '1.2.0.192.in-addr.arpa', type=12), probe('wild', 'a.wild.test')],
         'servers-file=/m2/files/servers\n')
+    add('file-global-source-interleave', 'STATE-03,RSLV-07,RSLV-08',
+        dict(initial, servers='server=127.0.0.3\n'),
+        [probe('initial', 'a.marker.test'), write('resolv', r2), probe('resolver-replaced', 'b.marker.test'),
+         write('servers', 'server=127.0.0.2\n'), signal_reload(), probe('file-replaced', 'c.marker.test'),
+         write('resolv', r2), probe('resolver-last', 'd.marker.test')],
+        'servers-file=/m2/files/servers\nserver=127.0.0.4\nserver=/marker.test/#\n')
+    add('global-source-eligibility', 'RSLV-07,RSLV-08', dict(initial, servers='server=127.0.0.3\n'),
+        [probe('all-three', 'a.marker.test', transports=['udp'], upstream_expected=3), write('resolv', ''),
+         probe('remaining-two', 'b.marker.test', transports=['udp'], upstream_expected=2)],
+        'servers-file=/m2/files/servers\nserver=127.0.0.4\nserver=/marker.test/#\nall-servers\n',
+        strict_order=False, common_upstream_reply=True)
     expected = {
         'inplace-rename-delete-empty': {'initial': 11, 'inplace': 12, 'renamed': 11, 'deleted': 11, 'empty': 5, 'invalid': 5, 'recovered': 12},
         'missing-leaf': {'missing': 5, 'created': 11},
@@ -474,6 +487,8 @@ def exchange(port, action, ident, transport, upstreams, connections):
     finally:
         if owned:
             client.close()
+    if action.get('upstream_expected'):
+        await_predicate(lambda: sum(len(u.events) - n for u, n in zip(upstreams, before)) >= action['upstream_expected'], 'not every eligible source received the query')
     parsed = semantics(response) if response else None
     if parsed and parsed['id'] != ident:
         raise AssertionError('client transaction identity mismatch')
@@ -737,7 +752,7 @@ def run_side(root, side, case, folder):
     names = {(a['name'], a.get('type', 1)) for a in case['actions'] if a['op'] in ('query', 'start-udp', 'start-tcp')}
     upstreams = []
     for index, address in enumerate(['127.0.0.2', '127.0.0.3', '127.0.0.4', '::1'] + (['127.0.0.1'] if case.get('local_upstream') else []) + (['fe80::53%m5scope'] if case.get('scoped_upstream') else [])):
-        fixtures = [{'name': host, 'type': kind, 'reply': f'192.0.2.{11 + index}' if kind == 1 else f'2001:db8::{11 + index}'} for host, kind in names]
+        fixtures = [{'name': host, 'type': kind, 'reply': f'192.0.2.{11 if case.get("common_upstream_reply") else 11 + index}' if kind == 1 else f'2001:db8::{11 + index}'} for host, kind in names]
         delayed = {a['name'] for a in case['actions'] if a['op'] == 'start-udp'}
         for fixture in fixtures:
             if fixture['name'] in delayed: fixture['drop_all'] = True
@@ -746,7 +761,7 @@ def run_side(root, side, case, folder):
         upstreams.append(FileUpstream(fixtures, address, 53))
     with socket.socket() as reserve:
         reserve.bind(('127.0.0.1', 0)); port = reserve.getsockname()[1]
-    config = ('no-hosts\nno-0x20-encode\nno-round-robin\nstrict-order\n'
+    config = ('no-hosts\nno-0x20-encode\nno-round-robin\n' + ('strict-order\n' if case.get('strict_order', True) else '')
               + f'user={case.get("user", "root")}\ngroup={case.get("group", "root")}\n'
               + f'listen-address={case.get("listen", "127.0.0.1")}\nhost-record=ready.files.test,192.0.2.250\n'
               'pid-file=/m2/files.pid\n' + f'port={0 if case.get("dns_disabled") else port}\ncache-size={case.get("cache_size", 0)}\n'
@@ -787,6 +802,7 @@ def run_side(root, side, case, folder):
                 result['startup'] = {'ready': False, 'exit': process.poll()}
             if result['startup']['ready']:
                 result['identity'] = process_identity(root, process.pid)
+                result['inotify_fds'] = open_file_fds(process.pid, 'anon_inode:inotify')
                 if case.get('fd_cancel'): result['fd_before'] = sorted(os.readlink(path) for path in Path(f'/proc/{process.pid}/fd').iterdir())
                 expected = sha256(root / ('usr/sbin/dnsmasq' if side == 'c' else 'usr/sbin/dnsmasq-rs'))
                 if result['identity']['sha256'] != expected: raise AssertionError('running ELF identity mismatch')
@@ -1175,6 +1191,112 @@ def exec_inotify_fault(argv):
     os.execvp(argv[0], argv)
 
 
+
+def qualify(args):
+    """Audit immutable raw runs against every frozen required case."""
+    from m5_option_matrix_archive import verify as verify_archive
+    manifest = json.loads(args.requirements.read_text())
+    frozen = json.loads(args.frozen_checklist.read_text())
+    if manifest['source_identity'] != frozen['source_identity']: raise AssertionError('C source identities changed')
+    if [b['id'] for b in manifest['boundaries']] != [b['id'] for b in frozen['boundaries']]: raise AssertionError('frozen boundary inventory changed')
+    for mapped, original in zip(manifest['boundaries'], frozen['boundaries']):
+        if [x['requirement'] for x in mapped['required_cases']] != original['required_cases']:
+            raise AssertionError('required cases were removed or renamed: ' + mapped['id'])
+    candidate_sha = sha256(args.rust)
+    build = json.loads(args.build_json.read_text())
+    artifact = next(x for x in build['artifacts'] if x['path'] == 'dnsmasq-rs')
+    if artifact['sha256'] != candidate_sha or artifact['bytes'] != args.rust.stat().st_size: raise AssertionError('candidate build artifact mismatch')
+    if args.source_commit not in build['source']: raise AssertionError('candidate source path mismatch')
+    # Git blob hashes bind every compiled crate source/manifest/config to the
+    # original immutable build archive without trusting today's worktree.
+    tree = subprocess.check_output(['git', 'ls-tree', '-rz', args.source_commit, '--',
+        'components/dnsmasq', 'components/ubus', '.cargo', 'rust-toolchain.toml'])
+    expected = {}
+    for row in tree.split(b'\0'):
+        if not row: continue
+        mode, kind, rest = row.split(b' ', 2); blob, path = rest.split(b'\t', 1)
+        if kind == b'blob': expected[path.decode()] = blob.decode()
+    checked = {}
+    with tarfile.open(args.source_archive) as archive:
+        for entry in archive:
+            if entry.name not in expected: continue
+            data = entry.linkname.encode() if entry.issym() else archive.extractfile(entry).read()
+            blob = hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()
+            if blob != expected[entry.name]: raise AssertionError('build input differs from commit: ' + entry.name)
+            checked[entry.name] = hashlib.sha256(data).hexdigest()
+    if set(checked) != set(expected): raise AssertionError('source archive lacks compiled inputs')
+    catalog = {case['id']: case for case in scenarios()}
+    by_case, archives, raw_results = {}, [], []
+    for run in args.qualify_runs:
+        report = json.loads((run / 'result.json').read_text())
+        schedule = json.loads((run / 'schedule.json').read_text())
+        if report['source_commit'] != args.source_commit or report['rust_sha256'] != candidate_sha or report['stock_sha256'] != STOCK_SHA256 or report['failures']:
+            raise AssertionError('run is failed or belongs to a different candidate: ' + str(run))
+        if [x['id'] for x in report['scenarios']] != [x['id'] for x in schedule]: raise AssertionError('schedule incomplete')
+        if set(controls()) - set(report['negative_controls']): raise AssertionError('run lacks required negative controls')
+        for name, digest in report['driver_sha256'].items():
+            if sha256(run / 'driver' / name) != digest: raise AssertionError('executed driver changed')
+        for case, row in zip(schedule, report['scenarios']):
+            if case['id'] not in catalog or row['failures']: raise AssertionError('unknown or failed scenario')
+            observed = {side: json.loads((run / case['id'] / side / 'observed.json').read_text()) for side in ['c', 'rust']}
+            errors = compare(observed['c'], observed['rust'], case)
+            if errors: raise AssertionError({'case': case['id'], 'recheck': errors})
+            for side, value in observed.items():
+                wanted = STOCK_SHA256 if side == 'c' else candidate_sha
+                if value['startup']['ready'] and value.get('identity', {}).get('sha256') != wanted: raise AssertionError('runtime ELF identity missing')
+            if row['rows'] != len(observed['c']['rows']): raise AssertionError('observation count changed')
+            by_case[case['id']] = {'result': str(run / 'result.json'), 'result_sha256': sha256(run / 'result.json'),
+                'observed': {side: {'path': str(run / case['id'] / side / 'observed.json'), 'sha256': sha256(run / case['id'] / side / 'observed.json')} for side in observed},
+                'rows': row['rows']}
+        archived = run.parent / 'archives' / run.name
+        archive, metadata = Path(str(archived) + '.tar.gz'), Path(str(archived) + '.json')
+        verified = verify_archive(archive, metadata, None)
+        prune = json.loads(Path(str(archived) + '.pruned.json').read_text())
+        if prune['archive_sha256'] != verified['archive_sha256']: raise AssertionError('remote prune receipt mismatch')
+        archives.append(dict(path=str(archive), manifest=str(metadata), **verified, remote_removed=prune['removed']))
+        raw_results.append({'path': str(run / 'result.json'), 'sha256': sha256(run / 'result.json')})
+    if set(catalog) != set(by_case): raise AssertionError({'unscheduled_or_missing': sorted(set(catalog) - set(by_case))})
+    enospc = json.loads(args.enospc_audit.read_text())
+    if not enospc['cases'] or any(x['errno'] != errno.ENOSPC or x['product_observations'] != 0 or not x['rerun_passed'] for x in enospc['cases']):
+        raise AssertionError('ENOSPC infrastructure classification missing')
+    # Actual descriptor flags, including inotify NONBLOCK/CLOEXEC, are observed
+    # under both image binaries; they are never inferred from option metadata.
+    flag_case = by_case['file-global-source-interleave']
+    for side in ['c', 'rust']:
+        observed = json.loads(Path(flag_case['observed'][side]['path']).read_text())
+        flags = [int(next(line.split()[1] for line in x['fdinfo'].splitlines() if line.startswith('flags:')), 8) for x in observed.get('inotify_fds', [])]
+        if not flags or any(value & 0o2004000 != 0o2004000 for value in flags): raise AssertionError('inotify descriptor flags missing')
+    audit = []
+    external = {'@enospc-audit', '@negative-controls', '@all-cleanup', '@whole-family', '@all-required', '@archive-verified', '@remote-pruned', '@elf-identity'}
+    for boundary in manifest['boundaries']:
+        cases = []
+        for item in boundary['required_cases']:
+            if item['deferred']:
+                if boundary['id'] != 'SFILE-05': raise AssertionError('unexpected deferred requirement')
+                cases.append(dict(item, checked=False, reason='server/local/rev-server endpoint family')); continue
+            if not item['scenarios'] or any(name not in by_case and name not in external for name in item['scenarios']): raise AssertionError('required case has no concrete witness')
+            cases.append(dict(item, checked=True, evidence=[by_case[name] if name in by_case else {'audit': name} for name in item['scenarios']]))
+        audit.append(dict(boundary, required_cases=cases, checked=all(x['checked'] for x in cases)))
+    options = {}
+    for option in ['resolv-file', 'servers-file', 'no-poll', 'clear-on-reload']:
+        relevant = [b for b in audit if option in b['options']]
+        options[option] = {'checked': all(b['checked'] for b in relevant), 'boundaries': [b['id'] for b in relevant], 'deferred': [b['id'] for b in relevant if not b['checked']]}
+    output = {'schema': 'dns-files-required-case-qualification-v1', 'closed_options': [name for name, value in options.items() if value['checked']],
+        'options': options, 'candidate': {'source_commit': args.source_commit, 'sha256': candidate_sha, 'bytes': args.rust.stat().st_size,
+            'previous_candidate_bytes': 1474584, 'delta_bytes': args.rust.stat().st_size - 1474584}, 'stock_sha256': STOCK_SHA256,
+        'source_archive': {'path': str(args.source_archive), 'sha256': sha256(args.source_archive), 'verified_compiled_inputs': checked},
+        'frozen_checklist_sha256': sha256(args.frozen_checklist), 'requirements_sha256': sha256(args.requirements),
+        'scenarios': len(by_case), 'observations': sum(x['rows'] for x in by_case.values()), 'negative_controls': controls(),
+        'checked_boundaries': sum(b['checked'] for b in audit), 'boundaries': audit, 'raw_results': raw_results, 'archives': archives,
+        'enospc_infrastructure_only': {'path': str(args.enospc_audit), 'sha256': sha256(args.enospc_audit)},
+        'reference_differences': [{'name': 'blocking FIFO stream input', 'scope': 'C blocks DNS while a resolver FIFO writer stays open; Rust retains single-owner DNS service. Both publish the same stream and terminate cleanly on TERM.',
+            'evidence': [by_case[name] for name in ['fifo-startup', 'fifo-runtime', 'pending-file-shutdown']]}]}
+    if args.output.exists(): raise ValueError('fresh qualification output required')
+    dump(args.output, output)
+    print(json.dumps({'closed_options': output['closed_options'], 'scenarios': output['scenarios'], 'observations': output['observations'], 'checked_boundaries': output['checked_boundaries']}))
+    return 0
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--image-root', type=Path)
@@ -1185,8 +1307,15 @@ def main():
     parser.add_argument('--scenarios')
     parser.add_argument('--sides', choices=['both', 'c'], default='both')
     parser.add_argument('--self-test', action='store_true')
+    parser.add_argument('--qualify-runs', nargs='+', type=Path)
+    parser.add_argument('--requirements', type=Path, default=Path(__file__).with_name('m5_dns_files_requirements.json'))
+    parser.add_argument('--frozen-checklist', type=Path)
+    parser.add_argument('--enospc-audit', type=Path)
+    parser.add_argument('--build-json', type=Path)
+    parser.add_argument('--source-archive', type=Path)
     args = parser.parse_args()
     negative = controls()
+    if args.qualify_runs: return qualify(args)
     if args.self_test:
         print(json.dumps({'negative_controls': negative, 'scenarios': len(scenarios())})); return 0
     if not all([args.image_root, args.rust, args.rust_sha256, args.source_commit, args.output]): parser.error('image, candidate identity and output required')

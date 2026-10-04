@@ -1,0 +1,2145 @@
+{
+  "schema": "dns-files-required-case-map-v1",
+  "reference_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "source_identity": {
+    "option.c": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/option.c",
+      "sha256": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed"
+    },
+    "dnsmasq.c": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/dnsmasq.c",
+      "sha256": "d4bb7cde522376200a0293427b0812625ebc457f10dc9d3e2bef243ccba8ccd1"
+    },
+    "network.c": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/network.c",
+      "sha256": "8229872d30a2fb2d86ec9a9e550e51fbb8d8d97926e7a02b0137f2a7b40c40c9"
+    },
+    "domain-match.c": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/domain-match.c",
+      "sha256": "66356136ffe0920fca4fa7dcad579727c7d8d1ec6e799597bfda2e1a63fe9606"
+    },
+    "forward.c": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/forward.c",
+      "sha256": "ac05784d4233ed10bd166da5fe91e464afecf2883d3c2a0063305d3e81692f95"
+    },
+    "inotify.c": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/inotify.c",
+      "sha256": "6a5b0239b9c9fbb1ca0bf638e18efd32914c88d4899602c030b23cf8221b96a7"
+    },
+    "cache.c": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/cache.c",
+      "sha256": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c"
+    },
+    "netlink.c": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/netlink.c",
+      "sha256": "b84884ca8a9c30e1985cf4787f64f56131dff8b3a4c35c09b6ac299ada77cbd1"
+    },
+    "dnsmasq.init": {
+      "path": "private/network-research-20260929/dns/recipe/dnsmasq/files/dnsmasq.init",
+      "sha256": "610f043921f86083ef8e28f34acc2f853145469c6ae4f2994670916bb4062a7f"
+    }
+  },
+  "scope": "Every original required case is retained. SFILE-05 remains the endpoint-family dependency; no option closes from boundary IDs alone.",
+  "boundaries": [
+    {
+      "id": "CFG-01",
+      "options": [
+        "resolv-file"
+      ],
+      "source_anchors": [
+        "option.c:2304-2332",
+        "option.c:5973-5975"
+      ],
+      "contract": "Default /etc/resolv.conf is replaced by the first explicit option, including empty. Later nonempty occurrences prepend; later empty does not clear a nondefault list.",
+      "required_cases": [
+        {
+          "requirement": "default",
+          "scenarios": [
+            "default-system-resolver"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "one custom",
+          "scenarios": [
+            "inplace-rename-delete-empty"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "first empty",
+          "scenarios": [
+            "empty-resolv"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "custom then empty",
+          "scenarios": [
+            "file-then-empty"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "empty then two customs",
+          "scenarios": [
+            "grammar-empty-two-and-duplicate"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "duplicate paths and tie ordering",
+          "scenarios": [
+            "duplicate-file",
+            "newest-file-and-ties"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "CFG-02",
+      "options": [
+        "no-poll",
+        "resolv-file"
+      ],
+      "source_anchors": [
+        "option.c:6244-6248",
+        "dnsmasq.c:985-1000"
+      ],
+      "contract": "no-poll with >1 resolv paths is a configuration error unless no-resolv is set. no-resolv discards resolver-file sources but retains configured/file servers.",
+      "required_cases": [
+        {
+          "requirement": "one no-poll",
+          "scenarios": [
+            "no-poll-signal"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "two no-poll exact --test error text/code",
+          "scenarios": [
+            "no-poll-multiple"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "two no-poll plus no-resolv",
+          "scenarios": [
+            "no-poll-multiple-no-resolv"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "empty no-poll",
+          "scenarios": [
+            "empty-no-poll"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "no-resolv plus nonexistent resolver parent",
+          "scenarios": [
+            "ignored-missing-parent"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "CFG-03",
+      "options": [
+        "servers-file",
+        "resolv-file",
+        "no-poll",
+        "clear-on-reload"
+      ],
+      "source_anchors": [
+        "option.c:2334-2336",
+        "dnsmasq.c:1572-1594",
+        "option.c:6244-6283"
+      ],
+      "contract": "--test checks option grammar and cross-option constraints, but does not load resolver/server files (domain=# is a separately deferred config-time reader). Empty servers-file disables the source.",
+      "required_cases": [
+        {
+          "requirement": "missing files --test succeeds",
+          "scenarios": [
+            "missing-leaf",
+            "servers-file-missing-start"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "malformed servers-file content --test succeeds",
+          "scenarios": [
+            "servers-lexical-and-forbidden-includes"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "servers-file empty",
+          "scenarios": [
+            "servers-empty"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "repeated single servers-file option follows parser occurrence policy",
+          "scenarios": [
+            "servers-repeated-option"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "no-poll/clear-on-reload with extraneous args",
+          "scenarios": [
+            "parameter-no-poll",
+            "parameter-clear-on-reload"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "INI-01",
+      "options": [
+        "resolv-file",
+        "servers-file"
+      ],
+      "source_anchors": [
+        "dnsmasq.init:1069-1074",
+        "dnsmasq.init:1107-1114",
+        "dnsmasq.init:1278-1287",
+        "dnsmasq.init:1377-1380"
+      ],
+      "contract": "Exact init emits these two options, touches the resolver file, mounts resolver parent and servers file, and reloads via procd plus signal. The family must use those interfaces.",
+      "required_cases": [
+        {
+          "requirement": "replay UCI generated resolv-file path",
+          "scenarios": [
+            "init-generated-file-paths"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "empty touched resolver transitions to populated",
+          "scenarios": [
+            "init-generated-file-paths"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "serversfile path included",
+          "scenarios": [
+            "init-generated-file-paths"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "SIGHUP data reload without rereading main config",
+          "scenarios": [
+            "servers-lexical-and-forbidden-includes"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "WATCH-01",
+      "options": [
+        "resolv-file",
+        "no-poll"
+      ],
+      "source_anchors": [
+        "inotify.c:91-150",
+        "dnsmasq.c:851-855"
+      ],
+      "contract": "Resolver inotify is nonblocking/CLOEXEC, watches parent directories, and requires parent existence. A missing leaf is allowed. no-poll still installs the watch at startup.",
+      "required_cases": [
+        {
+          "requirement": "existing leaf",
+          "scenarios": [
+            "inplace-rename-delete-empty"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "missing leaf existing parent",
+          "scenarios": [
+            "missing-leaf"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "missing parent",
+          "scenarios": [
+            "missing-parent"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "missing parent with no-poll",
+          "scenarios": [
+            "missing-parent-no-poll"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "port=0 suppresses resolver watch",
+          "scenarios": [
+            "port-zero-suppresses-watch"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "no-resolv suppresses resolver watch",
+          "scenarios": [
+            "ignored-missing-parent"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "WATCH-02",
+      "options": [
+        "resolv-file"
+      ],
+      "source_anchors": [
+        "inotify.c:39-87",
+        "inotify.c:110-123"
+      ],
+      "contract": "Follow leaf symlink chains at watch setup, resolving relative targets against each symlink parent; stop at missing target; enforce MAXSYMLINKS. Retain original configured path for reload opens.",
+      "required_cases": [
+        {
+          "requirement": "absolute link",
+          "scenarios": [
+            "symlink-absolute"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "relative link",
+          "scenarios": [
+            "symlink-relative"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "two-hop link",
+          "scenarios": [
+            "symlink-two-hop"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "dangling target existing parent",
+          "scenarios": [
+            "symlink-dangling-target"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "loop/too many links",
+          "scenarios": [
+            "symlink-loop",
+            "symlink-limit-20",
+            "symlink-limit-21"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "readlink access failure",
+          "scenarios": [
+            "symlink-readlink-eacces"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "WATCH-03",
+      "options": [
+        "resolv-file"
+      ],
+      "source_anchors": [
+        "inotify.c:126-151"
+      ],
+      "contract": "The exact build requires a directory separator for resolver watch setup; relative bare filenames and root-parent edge paths require exact startup error observation, not silent path normalization.",
+      "required_cases": [
+        {
+          "requirement": "relative bare name",
+          "scenarios": [
+            "relative-name"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "./name",
+          "scenarios": [
+            "relative-dot-name"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "absolute nested file",
+          "scenarios": [
+            "inplace-rename-delete-empty"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "/leaf parent edge",
+          "scenarios": [
+            "absolute-root-leaf"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "watch access failure diagnostics",
+          "scenarios": [
+            "watch-parent-eacces"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "WATCH-04",
+      "options": [
+        "resolv-file"
+      ],
+      "source_anchors": [
+        "inotify.c:129-130",
+        "inotify.c:280-315",
+        "dnsmasq.c:1242-1246"
+      ],
+      "contract": "Only matching close-write or moved-to names trigger forced resolver selection. Delete alone and unrelated basename do not trigger. Match all configured entries sharing a watch descriptor.",
+      "required_cases": [
+        {
+          "requirement": "in-place close-write",
+          "scenarios": [
+            "inplace-rename-delete-empty"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "atomic rename-in",
+          "scenarios": [
+            "inplace-rename-delete-empty"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "unrelated neighbor",
+          "scenarios": [
+            "watch-neighbor-and-deleted-event"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "delete-only retains prior active list",
+          "scenarios": [
+            "inplace-rename-delete-empty"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "two watched leaves same parent",
+          "scenarios": [
+            "newest-file-and-ties"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "close-write then delete before event drain",
+          "scenarios": [
+            "watch-neighbor-and-deleted-event"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "WATCH-05",
+      "options": [
+        "resolv-file"
+      ],
+      "source_anchors": [
+        "inotify.c:303-310"
+      ],
+      "contract": "Global inotify filename filtering ignores dotfiles, trailing tilde, and #name# even when configured as resolver files. Zero-name events are ignored.",
+      "required_cases": [
+        {
+          "requirement": "hidden configured leaf",
+          "scenarios": [
+            "filtered-dothidden"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "backup configured leaf",
+          "scenarios": [
+            "filtered-backuptilde"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "hash-wrapped leaf",
+          "scenarios": [
+            "filtered-hashbackuphash"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "initial load still occurs",
+          "scenarios": [
+            "filtered-dothidden",
+            "filtered-backuptilde",
+            "filtered-hashbackuphash"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "queue/ignored/directory-self event does not invent reload",
+          "scenarios": [
+            "parent-replacement",
+            "file-event-burst"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "WATCH-06",
+      "options": [
+        "resolv-file"
+      ],
+      "source_anchors": [
+        "inotify.c:110-150",
+        "inotify.c:312-315"
+      ],
+      "contract": "Watch paths are fixed at startup. Symlink retarget or parent replacement does not automatically recreate watches in this exact C build.",
+      "required_cases": [
+        {
+          "requirement": "retarget symlink then write new target",
+          "scenarios": [
+            "symlink-relative"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "event at old target reopens original configured name",
+          "scenarios": [
+            "symlink-relative"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "replace watched parent",
+          "scenarios": [
+            "parent-replacement"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "recovery only where an actual C trigger exists",
+          "scenarios": [
+            "parent-replacement",
+            "symlink-relative"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "RSLV-01",
+      "options": [
+        "resolv-file"
+      ],
+      "source_anchors": [
+        "dnsmasq.c:1758-1807"
+      ],
+      "contract": "Forced selection scans all existing candidates and selects greatest whole-second mtime, with strict greater-than comparison and configured list order breaking ties. It does not merge all files.",
+      "required_cases": [
+        {
+          "requirement": "newest file wins",
+          "scenarios": [
+            "newest-file-and-ties"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "equal mtimes last explicit declaration wins",
+          "scenarios": [
+            "grammar-empty-two-and-duplicate",
+            "newest-file-and-ties"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "write older candidate while newer remains",
+          "scenarios": [
+            "newest-file-and-ties"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "inode replacement with unchanged mtime",
+          "scenarios": [
+            "inode-same-mtime"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "mtime zero/negative source edge",
+          "scenarios": [
+            "mtime-zero-negative"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "RSLV-02",
+      "options": [
+        "resolv-file"
+      ],
+      "source_anchors": [
+        "dnsmasq.c:1767-1791"
+      ],
+      "contract": "During a forced scan missing entries have remembered mtime reset and are skipped. An unforced route-trigger scan can detect disappearance and force reselection.",
+      "required_cases": [
+        {
+          "requirement": "initial all missing",
+          "scenarios": [
+            "missing-leaf"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "previous winner missing then matching event",
+          "scenarios": [
+            "removed-winner-route-fallback"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "unforced route-change fallback",
+          "scenarios": [
+            "removed-winner-route-fallback"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "lower-priority survivor unchanged",
+          "scenarios": [
+            "removed-winner-route-fallback"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "all missing preserves prior servers if no file was opened",
+          "scenarios": [
+            "removed-winner-route-fallback"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "RSLV-03",
+      "options": [
+        "resolv-file"
+      ],
+      "source_anchors": [
+        "network.c:1699-1774"
+      ],
+      "contract": "Recognize exact nameserver and server tokens. Split whitespace; only the next token is the address. Accept IPv4 and IPv6; ignore malformed tokens and unrelated directives.",
+      "required_cases": [
+        {
+          "requirement": "nameserver",
+          "scenarios": [
+            "resolver-token-matrix"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "server alias",
+          "scenarios": [
+            "resolver-token-matrix"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "search/domain ignored",
+          "scenarios": [
+            "resolver-lexical-complete"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "leading/trailing whitespace and CRLF",
+          "scenarios": [
+            "resolver-token-matrix",
+            "resolver-lexical-complete"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "trailing words",
+          "scenarios": [
+            "resolver-lexical-complete"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "adjacent # makes address invalid",
+          "scenarios": [
+            "resolver-token-matrix"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "separate # comment follows valid token",
+          "scenarios": [
+            "resolver-token-matrix"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "hostname/port syntax rejected as non-address",
+          "scenarios": [
+            "resolver-lexical-complete"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "RSLV-04",
+      "options": [
+        "resolv-file"
+      ],
+      "source_anchors": [
+        "network.c:1738-1761"
+      ],
+      "contract": "IPv6 resolver scope uses interface-name lookup; unknown names yield scope zero without a parser fatal error. IPv4 scoped tokens are ignored.",
+      "required_cases": [
+        {
+          "requirement": "valid link-local interface scope",
+          "scenarios": [
+            "resolver-link-local-scope"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "unknown scope name",
+          "scenarios": [
+            "resolver-link-local-scope",
+            "resolver-token-matrix"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "numeric-looking scope string",
+          "scenarios": [
+            "resolver-lexical-complete"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "IPv4%interface",
+          "scenarios": [
+            "resolver-token-matrix"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "global IPv6 with scope",
+          "scenarios": [
+            "resolver-token-matrix"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "scope preserved in upstream socket destination",
+          "scenarios": [
+            "resolver-link-local-scope"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "RSLV-05",
+      "options": [
+        "resolv-file"
+      ],
+      "source_anchors": [
+        "network.c:1706-1712",
+        "network.c:1770-1774"
+      ],
+      "contract": "Open failure returns before source marking and retains previous resolver rules. Successful empty or all-invalid reads mark and remove resolver-sourced rules, preserving other source banks.",
+      "required_cases": [
+        {
+          "requirement": "missing after valid",
+          "scenarios": [
+            "inplace-rename-delete-empty"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "EACCES after valid",
+          "scenarios": [
+            "resolver-open-permission"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "empty truncate",
+          "scenarios": [
+            "inplace-rename-delete-empty"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "all-invalid file",
+          "scenarios": [
+            "inplace-rename-delete-empty"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "directory/read error",
+          "scenarios": [
+            "resolver-directory"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "partial successful lines before stream error",
+          "scenarios": [
+            "resolver-partial-stream-eio"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "RSLV-06",
+      "options": [
+        "resolv-file"
+      ],
+      "source_anchors": [
+        "dnsmasq.c:1808-1830",
+        "dnsmasq.c:1242-1261"
+      ],
+      "contract": "Empty reload rebuilds the server array and resets candidate mtime; retry occurs only on actual triggers in HAVE_INOTIFY mode. Do not invent a one-second timer from the non-inotify branch.",
+      "required_cases": [
+        {
+          "requirement": "initial empty then valid close",
+          "scenarios": [
+            "missing-leaf",
+            "resolver-empty-repeated-route"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "valid to empty to valid",
+          "scenarios": [
+            "inplace-rename-delete-empty"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "empty repeated event",
+          "scenarios": [
+            "resolver-empty-repeated-route"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "steady empty without events",
+          "scenarios": [
+            "resolver-empty-repeated-route"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "newroute trigger at empty state",
+          "scenarios": [
+            "resolver-empty-repeated-route"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "RSLV-07",
+      "options": [
+        "resolv-file"
+      ],
+      "source_anchors": [
+        "network.c:1713-1772",
+        "domain-match.c:590-648"
+      ],
+      "contract": "Replace only SERV_FROM_RESOLV rows; retain inline server/local/address and servers-file rows. Keep default resolver order and duplicate occurrences rather than deduplicating addresses.",
+      "required_cases": [
+        {
+          "requirement": "inline global plus resolver global both eligible",
+          "scenarios": [
+            "global-source-eligibility"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "inline domain route",
+          "scenarios": [
+            "inline-file-resolv-banks"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "servers-file survives",
+          "scenarios": [
+            "inline-file-resolv-banks"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "strict-order duplicate/order",
+          "scenarios": [
+            "resolver-reorder-and-duplicates"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "no-resolv retains inline+servers-file",
+          "scenarios": [
+            "no-resolv-retains-file-and-inline"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "RSLV-08",
+      "options": [
+        "resolv-file"
+      ],
+      "source_anchors": [
+        "domain-match.c:203-232",
+        "domain-match.c:337-371"
+      ],
+      "contract": "server=/domain/# refers to all ordinary global upstreams, skips default address literals, and is not synonymous with resolver-file-only servers. Keep implicit global tier visible to the local answer path.",
+      "required_cases": [
+        {
+          "requirement": "domain # with explicit global only",
+          "scenarios": [
+            "default-marker-inline"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "domain # with resolver only",
+          "scenarios": [
+            "default-marker-resolver"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "domain # with both",
+          "scenarios": [
+            "default-marker-both",
+            "global-source-eligibility"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "address=/#/control",
+          "scenarios": [
+            "default-address-marker-precedence"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "address=/*./default precedence",
+          "scenarios": [
+            "default-address-marker-precedence"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "zero default upstream refusal",
+          "scenarios": [
+            "resolver-default-marker-empty"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "RSLV-09",
+      "options": [
+        "resolv-file"
+      ],
+      "source_anchors": [
+        "network.c:1588-1623"
+      ],
+      "contract": "check_servers ignores IPv4 0.0.0.0 and upstream socket addresses equal to a local DNS listener, while retaining valid independent endpoints.",
+      "required_cases": [
+        {
+          "requirement": "0.0.0.0",
+          "scenarios": [
+            "zero-and-own-server"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "own IPv4 address/port",
+          "scenarios": [
+            "own-v4-same-port"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "own IPv6 address/port",
+          "scenarios": [
+            "own-v6-same-port"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "own address different port",
+          "scenarios": [
+            "own-address-other-port"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "all candidates removed",
+          "scenarios": [
+            "zero-and-own-server"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "valid candidate after invalid",
+          "scenarios": [
+            "zero-and-own-server"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "NPOLL-01",
+      "options": [
+        "no-poll",
+        "resolv-file"
+      ],
+      "source_anchors": [
+        "dnsmasq.c:1572-1584",
+        "dnsmasq.c:1767-1768"
+      ],
+      "contract": "no-poll loads its sole file on INIT and SIGHUP, suppressing automatic resolver changes despite receiving inotify readiness.",
+      "required_cases": [
+        {
+          "requirement": "startup query",
+          "scenarios": [
+            "no-poll-signal"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "write without HUP retains old upstream",
+          "scenarios": [
+            "no-poll-signal"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "HUP switches",
+          "scenarios": [
+            "no-poll-signal"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "atomic rename without HUP",
+          "scenarios": [
+            "no-poll-missing-atomic"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "missing startup then HUP creation",
+          "scenarios": [
+            "no-poll-missing-atomic"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "multiple HUP idempotence",
+          "scenarios": [
+            "no-poll-signal"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "NPOLL-02",
+      "options": [
+        "no-poll",
+        "resolv-file"
+      ],
+      "source_anchors": [
+        "dnsmasq.c:1572-1594",
+        "dnsmasq.c:1694-1698"
+      ],
+      "contract": "In ordinary polling mode SIGHUP does not explicitly reread resolv files; in no-poll mode route events also do not reread. Separate file mtime change from real trigger.",
+      "required_cases": [
+        {
+          "requirement": "modify via event-suppressed path then HUP ordinary mode",
+          "scenarios": [
+            "poll-signal"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "same under no-poll",
+          "scenarios": [
+            "no-poll-signal"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "newroute ordinary mode",
+          "scenarios": [
+            "route-event-poll"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "newroute no-poll",
+          "scenarios": [
+            "route-event-no-poll"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "SFILE-01",
+      "options": [
+        "servers-file"
+      ],
+      "source_anchors": [
+        "option.c:5848-5863",
+        "dnsmasq.c:1586-1593"
+      ],
+      "contract": "Read servers-file on INIT and SIGHUP only. It is not inotify watched and ordinary resolv changes do not reload it unless clear-on-reload invokes broader hooks that still exclude read_servers_file.",
+      "required_cases": [
+        {
+          "requirement": "startup",
+          "scenarios": [
+            "servers-file-life"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "write without HUP unchanged",
+          "scenarios": [
+            "servers-file-life"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "HUP activates",
+          "scenarios": [
+            "servers-file-life"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "resolv event alone unchanged",
+          "scenarios": [
+            "clear-servers-file-signal"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "clear-on-reload resolv event still not servers-file reload",
+          "scenarios": [
+            "clear-servers-file-signal"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "SFILE-02",
+      "options": [
+        "servers-file"
+      ],
+      "source_anchors": [
+        "option.c:5471-5608"
+      ],
+      "contract": "Only server and rev-server directives are allowed. Preserve common lexical quotes/comments/whitespace. Invalid lines log and continue, including illegal supported options.",
+      "required_cases": [
+        {
+          "requirement": "server and rev-server together",
+          "scenarios": [
+            "servers-lexical-and-forbidden-includes"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "local/address illegal",
+          "scenarios": [
+            "servers-file-life",
+            "servers-lexical-and-forbidden-includes"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "conf-file/conf-dir illegal and not opened",
+          "scenarios": [
+            "servers-lexical-and-forbidden-includes"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "unknown option",
+          "scenarios": [
+            "servers-lexical-and-forbidden-includes"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "missing argument",
+          "scenarios": [
+            "servers-lexical-and-forbidden-includes"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "quoted value",
+          "scenarios": [
+            "servers-lexical-and-forbidden-includes"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "malformed line followed by valid line",
+          "scenarios": [
+            "servers-lexical-and-forbidden-includes"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "SFILE-03",
+      "options": [
+        "servers-file"
+      ],
+      "source_anchors": [
+        "option.c:5848-5863",
+        "option.c:5599-5612"
+      ],
+      "contract": "File open failure keeps old SERV_FROM_FILE bank. A successfully opened file replaces the bank even if empty/all invalid; errors are nonfatal at startup and reload.",
+      "required_cases": [
+        {
+          "requirement": "missing startup",
+          "scenarios": [
+            "servers-file-missing-start"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "missing after valid",
+          "scenarios": [
+            "servers-file-life"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "EACCES",
+          "scenarios": [
+            "servers-permission-and-literal-dash"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "empty",
+          "scenarios": [
+            "servers-file-life"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "all-invalid",
+          "scenarios": [
+            "servers-lexical-and-forbidden-includes"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "valid-invalid-valid prefix",
+          "scenarios": [
+            "servers-lexical-and-forbidden-includes"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "line-number/path diagnostic",
+          "scenarios": [
+            "diagnostics-debug",
+            "servers-lexical-and-forbidden-includes"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "relative dash path is literal file not stdin",
+          "scenarios": [
+            "servers-relative-dash"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "SFILE-04",
+      "options": [
+        "servers-file"
+      ],
+      "source_anchors": [
+        "option.c:3110-3158",
+        "option.c:3161-3190",
+        "domain-match.c:608-622"
+      ],
+      "contract": "SERV_FROM_FILE applies to both server local-only/default markers and numeric endpoints; rev-server inherits file provenance. Removed file rules must not delete inline local/address/reverse routes.",
+      "required_cases": [
+        {
+          "requirement": "server=/zone/ local-only",
+          "scenarios": [
+            "servers-file-life"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "server=/zone/#",
+          "scenarios": [
+            "servers-ipv6-reverse-and-marker"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "numeric IPv4 and IPv6",
+          "scenarios": [
+            "servers-ipv6-reverse-and-marker"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "rev-server partial prefix",
+          "scenarios": [
+            "servers-ipv6-reverse-and-marker"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "remove local-only file rule",
+          "scenarios": [
+            "servers-file-life"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "same domain inline/file collision",
+          "scenarios": [
+            "file-route-collision-wildcard-order"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "reload rule ordering",
+          "scenarios": [
+            "file-route-collision-wildcard-order"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "SFILE-05",
+      "options": [
+        "servers-file"
+      ],
+      "source_anchors": [
+        "option.c:900-1129",
+        "option.c:3110-3158"
+      ],
+      "contract": "servers-file inherits hostname, IPv6 scope and @source/interface/port semantics from server/rev-server. This is a known endpoint-family dependency; numeric-only testing cannot close the full option.",
+      "required_cases": [
+        {
+          "requirement": "hostname A/AAAA expansion",
+          "scenarios": [],
+          "deferred": true
+        },
+        {
+          "requirement": "resolver failure line then valid line",
+          "scenarios": [],
+          "deferred": true
+        },
+        {
+          "requirement": "valid/invalid scope",
+          "scenarios": [],
+          "deferred": true
+        },
+        {
+          "requirement": "source address",
+          "scenarios": [],
+          "deferred": true
+        },
+        {
+          "requirement": "source interface",
+          "scenarios": [],
+          "deferred": true
+        },
+        {
+          "requirement": "source port",
+          "scenarios": [],
+          "deferred": true
+        },
+        {
+          "requirement": "family mismatch",
+          "scenarios": [],
+          "deferred": true
+        }
+      ]
+    },
+    {
+      "id": "SFILE-06",
+      "options": [
+        "servers-file"
+      ],
+      "source_anchors": [
+        "option.c:5475-5483",
+        "option.c:5599-5612",
+        "option.c:5848-5863"
+      ],
+      "contract": "Runtime parse errors retain valid parsed rows and do not roll back to the old complete source bank. Main config remains immutable across SIGHUP.",
+      "required_cases": [
+        {
+          "requirement": "one invalid row only removes old bank",
+          "scenarios": [
+            "servers-lexical-and-forbidden-includes"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "multiple valid rows around error",
+          "scenarios": [
+            "servers-lexical-and-forbidden-includes"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "change main config on disk plus HUP does not consume it",
+          "scenarios": [
+            "servers-lexical-and-forbidden-includes"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "duplicate/ordering after replacement",
+          "scenarios": [
+            "file-route-collision-wildcard-order"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "CLEAR-01",
+      "options": [
+        "clear-on-reload"
+      ],
+      "source_anchors": [
+        "dnsmasq.c:1808-1826"
+      ],
+      "contract": "clear-on-reload runs the full clear_cache_and_reload hook after a successful noninitial resolver reload; an empty/failed reload does not invoke it. Success is parsed-at-least-one, before later endpoint filtering.",
+      "required_cases": [
+        {
+          "requirement": "flag off/on warm positive cache",
+          "scenarios": [
+            "cache-clear-0",
+            "cache-clear-1"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "warm negative cache",
+          "scenarios": [
+            "cache-rewrite-neg-0",
+            "cache-rewrite-neg-1"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "same endpoints rewritten trigger clear",
+          "scenarios": [
+            "cache-rewrite-neg-0",
+            "cache-rewrite-neg-1"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "empty does not clear",
+          "scenarios": [
+            "cache-rewrite-neg-0",
+            "cache-rewrite-neg-1"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "open failure does not clear",
+          "scenarios": [
+            "clear-open-failure",
+            "runtime-resolver-emfile"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "parse-valid then check_servers removes endpoint",
+          "scenarios": [
+            "cache-rewrite-neg-0",
+            "cache-rewrite-neg-1"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "CLEAR-02",
+      "options": [
+        "clear-on-reload"
+      ],
+      "source_anchors": [
+        "dnsmasq.c:1836-1856",
+        "cache.c:1640-1721"
+      ],
+      "contract": "Full reload refreshes /etc/hosts/addn-hosts and DHCP data banks, ethers, lease names, leasefile and DNS; it is more than dropping dynamic cache. Reuse existing owner hook with its order.",
+      "required_cases": [
+        {
+          "requirement": "hosts modified silently then successful resolver event",
+          "scenarios": [
+            "cache-clear-1"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "DHCP hostsfile/ethers modified then event",
+          "scenarios": [
+            "clear-dhcp-hosts-bank",
+            "clear-ethers-lease"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "lease DNS publication",
+          "scenarios": [
+            "clear-dhcp-hosts-bank",
+            "clear-ethers-lease"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "normal INIT avoids duplicate hook",
+          "scenarios": [
+            "clear-helper-unchanged"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "ordinary SIGHUP clears regardless of flag",
+          "scenarios": [
+            "cache-clear-0",
+            "cache-clear-1"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "CLEAR-03",
+      "options": [
+        "clear-on-reload",
+        "no-poll"
+      ],
+      "source_anchors": [
+        "dnsmasq.c:1572-1594",
+        "dnsmasq.c:1809-1815"
+      ],
+      "contract": "SIGHUP already performs one full reload before no-poll/servers-file reads; no extra clear-on-reload invocation should duplicate lease/script side effects.",
+      "required_cases": [
+        {
+          "requirement": "no-poll + clear-on-reload HUP",
+          "scenarios": [
+            "clear-helper-signal-1"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "servers-file + clear-on-reload HUP",
+          "scenarios": [
+            "clear-servers-file-signal"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "script event count and cache insertion counters",
+          "scenarios": [
+            "clear-helper-signal-0",
+            "clear-helper-signal-1"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "repeated signals coalesced by existing owner",
+          "scenarios": [
+            "clear-helper-signal-0",
+            "clear-helper-signal-1"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "STATE-01",
+      "options": [
+        "resolv-file",
+        "servers-file"
+      ],
+      "source_anchors": [
+        "domain-match.c:590-648",
+        "domain-match.c:716-776"
+      ],
+      "contract": "Marked C server slots are reused by source-update order and matching domain, not endpoint address identity. Same-domain endpoint mutation may preserve the server slot/pending reference.",
+      "required_cases": [
+        {
+          "requirement": "same count endpoint change with delayed reply",
+          "scenarios": [
+            "pending-reused-slot"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "identical list update",
+          "scenarios": [
+            "pending-kept-server"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "reorder two endpoints",
+          "scenarios": [
+            "resolver-reorder-and-duplicates"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "same domain reused from each source bank",
+          "scenarios": [
+            "pending-file-bank-reuse",
+            "pending-reused-slot"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "retain source-independent metrics and health as C does",
+          "scenarios": [
+            "clear-helper-signal-0",
+            "clear-helper-signal-1"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "STATE-02",
+      "options": [
+        "resolv-file",
+        "servers-file"
+      ],
+      "source_anchors": [
+        "domain-match.c:628-648",
+        "forward.c:3300-3323"
+      ],
+      "contract": "Only genuinely removed server slots call server_gone: cancel outstanding frecs sent_to that slot and detach random-socket references. Do not reset every UDP transaction on reload.",
+      "required_cases": [
+        {
+          "requirement": "remove sole pending server",
+          "scenarios": [
+            "pending-retired-slot"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "keep pending server",
+          "scenarios": [
+            "pending-kept-server"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "remove one of multiple slots",
+          "scenarios": [
+            "pending-all-servers-retired-last-slot"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "all-servers pending fanout",
+          "scenarios": [
+            "pending-all-servers-retired-last-slot"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "late datagram from old endpoint",
+          "scenarios": [
+            "pending-retired-slot",
+            "pending-reused-slot"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "fast-retry after reused slot mutation",
+          "scenarios": [
+            "pending-reused-fast-retry"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "STATE-03",
+      "options": [
+        "resolv-file",
+        "servers-file"
+      ],
+      "source_anchors": [
+        "domain-match.c:550-578",
+        "domain-match.c:716-787",
+        "forward.c:3300-3323"
+      ],
+      "contract": "Rebuild route groups without renumbering live server identities incorrectly. Last declaration/list order controls strict-order; stale groups cannot route new queries.",
+      "required_cases": [
+        {
+          "requirement": "specific route removed falls back",
+          "scenarios": [
+            "servers-file-life"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "new route takes effect",
+          "scenarios": [
+            "servers-file-life"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "wildcard route",
+          "scenarios": [
+            "file-route-collision-wildcard-order"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "default literal precedence",
+          "scenarios": [
+            "default-address-marker-precedence"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "strict-order after source reorder",
+          "scenarios": [
+            "resolver-reorder-and-duplicates"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "no dangling group IDs",
+          "scenarios": [
+            "file-route-collision-wildcard-order"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "updating resolv after servers-file changes global source interleaving order exactly as C, rather than a fixed source-bank sort",
+          "scenarios": [
+            "file-global-source-interleave"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "STATE-04",
+      "options": [
+        "resolv-file",
+        "servers-file",
+        "no-poll"
+      ],
+      "source_anchors": [
+        "dnsmasq.c:2124-2197",
+        "forward.c:2367-2735"
+      ],
+      "contract": "In the image init -k mode, existing TCP children retain fork-time server/local snapshots; new accepted connections use refreshed parent state. Rust sessions must retain this distinction. Debug/no-daemon C does not fork and belongs to its separate mode contract.",
+      "required_cases": [
+        {
+          "requirement": "open TCP before update query after update",
+          "scenarios": [
+            "tcp-parent-snapshot"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "TCP query already pending during update",
+          "scenarios": [
+            "tcp-pending-publication"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "new TCP connection after update",
+          "scenarios": [
+            "tcp-parent-snapshot",
+            "tcp-pending-publication"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "UDP after update",
+          "scenarios": [
+            "tcp-parent-snapshot",
+            "tcp-pending-publication"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "cache publication from existing TCP after source change",
+          "scenarios": [
+            "tcp-pending-publication"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "STATE-05",
+      "options": [
+        "resolv-file",
+        "servers-file",
+        "clear-on-reload"
+      ],
+      "source_anchors": [
+        "dnsmasq.c:1572-1594",
+        "dnsmasq.c:1242-1246",
+        "network.c:1699-1774"
+      ],
+      "contract": "Separate file bank publication from full service reset: listener sockets, leases, helper, TFTP, counters and unrelated cache remain live unless the exact reload hook changes them.",
+      "required_cases": [
+        {
+          "requirement": "DNS and DHCP traffic during repeated reload",
+          "scenarios": [
+            "dhcp-during-repeated-reloads"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "TFTP transfer across resolver change",
+          "scenarios": [
+            "tftp-across-resolver-reload"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "cache retains flag-off entries",
+          "scenarios": [
+            "cache-clear-0"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "UBus metrics preserve forward counters",
+          "scenarios": [
+            "clear-helper-signal-0",
+            "clear-helper-signal-1"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "FD count returns after old upstream cancellation",
+          "scenarios": [
+            "pending-cancel-fd-recovery"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "FAIL-01",
+      "options": [
+        "resolv-file",
+        "servers-file",
+        "no-poll"
+      ],
+      "source_anchors": [
+        "inotify.c:91-151",
+        "dnsmasq.c:1540-1557",
+        "network.c:1706-1711"
+      ],
+      "contract": "Distinguish startup watch failure from later nonfatal file read failures. Preserve exact exit/status/diagnostic category and clean all opened descriptors.",
+      "required_cases": [
+        {
+          "requirement": "EMFILE initializing watch",
+          "scenarios": [
+            "watch-emfile"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "EMFILE opening file after service live",
+          "scenarios": [
+            "runtime-resolver-emfile"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "EACCES parent watch",
+          "scenarios": [
+            "watch-parent-eacces"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "missing leaf",
+          "scenarios": [
+            "missing-leaf"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "startup failure PID/FD cleanup",
+          "scenarios": [
+            "watch-emfile",
+            "watch-parent-eacces"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "shutdown while file job pending",
+          "scenarios": [
+            "pending-file-shutdown"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "FAIL-02",
+      "options": [
+        "resolv-file",
+        "servers-file"
+      ],
+      "source_anchors": [
+        "inotify.c:280-315",
+        "option.c:5471-5615",
+        "network.c:1699-1774"
+      ],
+      "contract": "Event processing and file parsing must yield to the single poll owner; preserve all byte/line data needed for C semantics. Hostile nonregular paths may not block the owner and require explicit boundary evidence.",
+      "required_cases": [
+        {
+          "requirement": "large regular file with concurrent DNS p95 witness",
+          "scenarios": [
+            "resolver-large"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "long line",
+          "scenarios": [
+            "resolver-long-line"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "many coalesced events",
+          "scenarios": [
+            "file-event-burst"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "FIFO/nonregular startup/runtime classification",
+          "scenarios": [
+            "fifo-startup",
+            "fifo-runtime"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "partial read failure",
+          "scenarios": [
+            "resolver-partial-stream-eio",
+            "servers-partial-stream-eio"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "ENOSPC confirmed harness error not product mismatch",
+          "scenarios": [
+            "@enospc-audit"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "OBS-01",
+      "options": [
+        "resolv-file",
+        "servers-file",
+        "no-poll",
+        "clear-on-reload"
+      ],
+      "source_anchors": [
+        "dnsmasq.c:1242-1246",
+        "dnsmasq.c:1572-1594",
+        "network.c:1699-1774"
+      ],
+      "contract": "The family mirror records both client answers and per-upstream receives; stale caches or equal answer data cannot hide missing reloads. Freeze --test/startup/runtime identities separately.",
+      "required_cases": [
+        {
+          "requirement": "distinct upstream addresses and answers",
+          "scenarios": [
+            "inplace-rename-delete-empty"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "cache warm/cold control",
+          "scenarios": [
+            "cache-clear-0",
+            "cache-clear-1"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "TCP persistent/new",
+          "scenarios": [
+            "tcp-parent-snapshot",
+            "tcp-pending-publication"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "syntax diagnostics strict",
+          "scenarios": [
+            "no-poll-multiple",
+            "parameter-no-poll",
+            "parameter-clear-on-reload"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "missing reload negative control",
+          "scenarios": [
+            "@negative-controls"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "wrong source replacement negative control",
+          "scenarios": [
+            "@negative-controls"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "namespace/FD/PID cleanup",
+          "scenarios": [
+            "@all-cleanup"
+          ],
+          "deferred": false
+        }
+      ]
+    },
+    {
+      "id": "OBS-02",
+      "options": [
+        "resolv-file",
+        "servers-file",
+        "no-poll",
+        "clear-on-reload"
+      ],
+      "source_anchors": [
+        "dnsmasq.init:1377-1380",
+        "dnsmasq.c:1836-1856"
+      ],
+      "contract": "Final closure requires exact-image paired evidence plus candidate source/ELF identity and size increment; implementation-only or numeric-only endpoint coverage does not close the option.",
+      "required_cases": [
+        {
+          "requirement": "whole family paired run",
+          "scenarios": [
+            "@whole-family"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "all required rows executed",
+          "scenarios": [
+            "@all-required"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "negative controls",
+          "scenarios": [
+            "@negative-controls"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "local SHA+metadata archive verification",
+          "scenarios": [
+            "@archive-verified"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "remote run cleaned after verify",
+          "scenarios": [
+            "@remote-pruned"
+          ],
+          "deferred": false
+        },
+        {
+          "requirement": "family ELF size recorded",
+          "scenarios": [
+            "@elf-identity"
+          ],
+          "deferred": false
+        }
+      ]
+    }
+  ]
+}
