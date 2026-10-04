@@ -40,7 +40,10 @@ def install(root, case):
     default = image_path(root, '/etc/dnsmasq.conf', follow_leaf=False)
     default.unlink(missing_ok=True)
     if 'default' in case:
-        default.write_text(case['default'])
+        default_data = case['default']
+        default_data = {'text': default_data} if isinstance(default_data, str) else default_data
+        default.write_text(default_data['text'])
+        default.chmod(default_data.get('mode', 0o644))
     for name, data in case.get('files', {}).items():
         data = {'text': data} if isinstance(data, str) else data
         path = folder / name
@@ -89,8 +92,8 @@ def processes(pids, start):
 def run_phase(root, side, case, phase, out):
     out.mkdir()
     folder = install(root, case)
-    args = [*([] if case.get('minimal') else BASE), *case.get('argv', [])]
-    args += ['--test'] if phase == 'test' else ['-k']
+    args = [*([] if case.get('minimal') else BASE), '--test' if phase == 'test' else '-k',
+            *case.get('argv', [])]
     executable = '/usr/sbin/dnsmasq' + ('-rs' if side == 'rust' else '')
     argv = command(root, '/bin/sh', '-c', 'cd /m2/input && exec "$@"', 'config-inputs', executable, *args)
     if case.get('userspec'):
@@ -156,6 +159,19 @@ def run_phase(root, side, case, phase, out):
                         answer, raw = dns(probe['name'], probe.get('type', 1), 0x5100 + index, transport)
                         observed['dns'].append({'id': probe['id'], 'transport': transport, 'response': answer})
                         trace['queries'].append(raw)
+                if case.get('hup'):
+                    for name, contents in case.get('change_before_hup', {}).items():
+                        (folder / name).write_text(contents)
+                    process.send_signal(signal.SIGHUP)
+                    time.sleep(.05)
+                    observed['dns_after_hup'] = []
+                    for index, probe in enumerate(case['probes']):
+                        for transport in ['udp', 'tcp']:
+                            answer, raw = dns(probe['name'], probe.get('type', 1), 0x5100 + index, transport)
+                            observed['dns_after_hup'].append({'id': probe['id'], 'transport': transport, 'response': answer})
+                            trace['queries'].append(dict(raw, stage='after-HUP'))
+                    if observed['dns_after_hup'] != observed['dns']:
+                        raise AssertionError('HUP changed startup configuration effects')
                 process.send_signal(signal.SIGTERM)
                 process.wait(2)
             observed['exit'] = process.poll()
@@ -243,7 +259,8 @@ def compare(c, rust, case, reference_only=False):
             allowed = (case['id'] == 'null-second-config' and case.get('minimal')
                        and case['argv'] == ['-C', '/m2/input/empty', '-C', '']
                        and case['files'] == {'empty': ''})
-            if not allowed or left['exit'] != -signal.SIGSEGV or left['stderr'] or left['stdout']:
+            if (not allowed or left['exit'] != -signal.SIGSEGV or left['stderr'] or left['stdout']
+                    or left['dns'] or left['effects'] or left['scripts_at_parent_exit']):
                 failures.append({'phase': phase, 'kind': 'unclassified-reference-defect'})
             else:
                 left['exit'] = 1
@@ -284,7 +301,8 @@ def controls():
         checks[label] = 'detected'
     null_case = {'id': 'null-second-config', 'minimal': True, 'reference_defect': 'NULL strcmp',
                  'expected_exit': -11, 'argv': ['-C', '/m2/input/empty', '-C', ''], 'files': {'empty': ''}}
-    dead = {phase: dict(copy.deepcopy(base), exit=-11) for phase in ['test', 'run']}
+    dead = {phase: dict(copy.deepcopy(base), exit=-11, effects={}, effects_at_parent_exit=[],
+                        scripts_at_parent_exit={}) for phase in ['test', 'run']}
     safe = copy.deepcopy(dead)
     for row in safe.values():
         row.update(exit=1, stderr='\ndnsmasq-rs: empty additional conf-file\n')
