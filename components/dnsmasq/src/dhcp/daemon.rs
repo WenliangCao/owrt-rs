@@ -1852,6 +1852,9 @@ fn event_mac(packet: super::packet::Packet<'_>, client_id: Option<&[u8]>) -> Vec
 }
 
 fn relay_suboption(packet: super::packet::Packet<'_>, wanted: u8) -> Option<&[u8]> {
+    if matches!(packet.message_type(), 0 | 10) {
+        return None;
+    }
     super::packet::find_option(packet.option(82, 1)?, wanted, 1).map(|option| option.value)
 }
 
