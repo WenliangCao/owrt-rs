@@ -28,11 +28,15 @@ V6_SERVER = 'fd42:77::1'
 V6_CLIENT = 'fd42:77::2'
 ROOT = '/m2/tftp'
 MAC = CLIENT['mac'].replace(':', '-')
+LEASE_MAC = '02:00:00:4d:34:fe'
+CAPTURE = '''#!/bin/sh
+printf '%s|%s|%s|%s\\n' "$1" "$2" "$3" "$4" >> /m2/tftp-events
+'''
 
 
 def scenarios():
     base = 'enable-tftp\ntftp-root=' + ROOT + '/global\n'
-    return [
+    cases = [
         dict(name='ordinary-dual-stack', config=base, requests=[{}, {'v6': True}, {'mode': 'netascii'}]),
         dict(name='dedicated-interface', config=base.replace('enable-tftp\n', 'enable-tftp=br-lan\n'), requests=[{}, {'v6': True}]),
         dict(name='excluded-interface', config=base.replace('enable-tftp\n', 'enable-tftp=absent0\n'), requests=[{'silent': True}, {'v6': True, 'silent': True}]),
@@ -51,7 +55,24 @@ def scenarios():
         dict(name='missing-root-no-fail', config=base.replace('/global', '/missing')+'tftp-no-fail\n', requests=[{}]),
         dict(name='sighup-live-transfer', config=base, requests=[{'hold': True}]),
         dict(name='directed-parser-corpus', config=base, requests=[{'corpus': True}]),
+        dict(name='unique-mac-lease-preferred', config=base+'tftp-unique-root=mac\n', lease_mac=LEASE_MAC, requests=[{}]),
+        dict(name='unique-mac-nonether-lease-fallback', config=base+'tftp-unique-root=mac\n', lease_mac='06-'+LEASE_MAC, requests=[{}]),
+        dict(name='completion-script-once', config=base+'dhcp-script=/m2/tftp-capture\n', callbacks=2,
+             requests=[{'duplicate_final_ack': True}, {'v6': True}]),
+        dict(name='incomplete-script-not-called', config=base+'dhcp-script=/m2/tftp-capture\n', callbacks=0,
+             requests=[{'abort': True}, {'abandon': True}, {'filename': 'absent.bin', 'error': True}]),
+        dict(name='final-ack-timeout-script-once', config=base+'dhcp-script=/m2/tftp-capture\n', callbacks=1,
+             callback_wait=125, requests=[{'filename': 'owned.bin', 'abandon': True}]),
+        dict(name='no-fail-bind-error', config=base+'tftp-no-fail\n', bind_blocker=True,
+             requests=[], startup_failure=True),
     ]
+    for single in (False, True):
+        for maximum in (0, 1):
+            cases.append(dict(name=f'capacity-{"single" if single else "dedicated"}-{maximum}',
+                              config=base+f'tftp-max={maximum}\n'+('tftp-single-port\n' if single else ''),
+                              binding='' if single else 'bind-interfaces\n',
+                              requests=[{'capacity': maximum if single else maximum+1, 'single': single}]))
+    return cases
 
 
 def read_request(item):
@@ -125,6 +146,10 @@ def fetch(item, out):
                     continue
                 raise AssertionError('out of order DATA')
             payload.extend(packet[4:])
+            if item.get('abort') or item.get('abandon'):
+                if item.get('abort'):
+                    endpoint.sendto(b'\0\5\0\0client-abort\0', peer)
+                return {'kind': 'aborted' if item.get('abort') else 'incomplete', 'source': source}
             if item.get('hold') and block == 1:
                 (out/'hold-ready').write_text('ready\n')
                 until = time.monotonic()+3
@@ -135,9 +160,61 @@ def fetch(item, out):
             endpoint.sendto(struct.pack('!HH', 4, block), peer)
             expected = (expected+1) & 0xffff
             if len(packet)-4 < blocksize:
+                if item.get('duplicate_final_ack'):
+                    for _ in range(2):
+                        endpoint.sendto(struct.pack('!HH', 4, block), peer)
                 return {'kind': 'data', 'bytes': len(payload), 'sha256': hashlib.sha256(payload).hexdigest(),
                         'source': source, 'options': options, 'blocks': expected-1}
         raise AssertionError('TFTP transfer deadline')
+
+
+def capacity(item, out):
+    """Hold only ordinary reads to show C's limit and release recovery."""
+    endpoints, transfers = [], []
+    admitted = item['capacity']
+    try:
+        for index in range(admitted+1):
+            v6 = index % 2 == 1
+            endpoint = socket.socket(socket.AF_INET6 if v6 else socket.AF_INET, socket.SOCK_DGRAM)
+            endpoint.settimeout(.3)
+            endpoints.append(endpoint)
+            endpoint.sendto(read_request({}), (V6_SERVER if v6 else SERVER, 69))
+            if index < admitted:
+                packet, peer = endpoint.recvfrom(2048)
+                (out/f'admitted-{index}.bin').write_bytes(packet)
+                if packet[:4] != b'\0\3\0\1':
+                    raise AssertionError('capacity fixture expected first DATA')
+                if (peer[1] == 69) != bool(item.get('single')):
+                    raise AssertionError('capacity source port mode')
+                transfers.append((endpoint, peer))
+            else:
+                try:
+                    endpoint.recvfrom(2048)
+                except socket.timeout:
+                    blocked = True
+                else:
+                    raise AssertionError('transfer admitted above capacity')
+        recovered = False
+        if transfers:
+            first, peer = transfers.pop(0)
+            first.sendto(b'\0\5\0\0client-abort\0', peer)
+            endpoint = endpoints[-1]
+            endpoint.settimeout(3)
+            # Dedicated mode leaves the RRQ queued in the kernel. Single-port
+            # mode must consume/drop it while still servicing existing ACKs.
+            if item.get('single'):
+                time.sleep(.1)
+                endpoint.sendto(read_request({}), (V6_SERVER if admitted % 2 else SERVER, 69))
+            packet, peer = endpoint.recvfrom(2048)
+            (out/'recovered.bin').write_bytes(packet)
+            recovered = packet[:4] == b'\0\3\0\1'
+            transfers.append((endpoint, peer))
+        return {'kind': 'capacity', 'admitted': admitted, 'blocked': blocked, 'recovered': recovered}
+    finally:
+        for endpoint, peer in transfers:
+            endpoint.sendto(b'\0\5\0\0client-abort\0', peer)
+        for endpoint in endpoints:
+            endpoint.close()
 
 
 def client(args):
@@ -145,7 +222,9 @@ def client(args):
     args.out.mkdir(parents=True, exist_ok=True)
     result = {}
     try:
-        if item.get('corpus'):
+        if 'capacity' in item:
+            result = capacity(item, args.out)
+        elif item.get('corpus'):
             result = {'kind': 'corpus', 'rows': []}
             for index, packet in enumerate(corpus()):
                 (args.out/f'corpus-{index:03}.bin').write_bytes(packet)
@@ -181,6 +260,7 @@ def files(root):
     variants = {'global': b'global\n'*220, 'first': b'first\r\n'*210, 'last': b'last\n'*260,
                 'global/10.77.0.2': b'ip4\n'*320, 'global/'+V6_CLIENT: b'ip6\n'*320,
                 'global/'+MAC: b'mac\n'*320,
+                'global/'+LEASE_MAC.replace(':', '-'): b'lease-mac\n'*170,
                 'global/10.77.0.2/'+MAC: b'ip4mac\n'*220,
                 'global/'+V6_CLIENT+'/'+MAC: b'ip6mac\n'*220}
     for directory, data in variants.items():
@@ -197,8 +277,22 @@ def run_side(root, binary, scenario, out, network):
     (root/'run/dnsmasq/m5-tftp.pid').unlink(missing_ok=True)
     (root/'m2/tftp.conf').write_text(config)
     (out/'dnsmasq.conf').write_text(config)
-    result, process, client_process = {'requests': []}, None, None
+    lease_path = root/'m2/tftp.leases'
+    lease_path.unlink(missing_ok=True)
+    if scenario.get('lease_mac'):
+        config += 'dhcp-range=10.77.0.10,10.77.0.20,255.255.255.0,10m\nno-ping\ndhcp-leasefile=/m2/tftp.leases\n'
+        lease_path.write_text('0 '+scenario['lease_mac']+' 10.77.0.2 stored *\n')
+        os.chown(lease_path, 453, 453)
+    script = root/'m2/tftp-capture'
+    script.write_text(CAPTURE); script.chmod(0o755)
+    trace = root/'m2/tftp-events'; trace.write_bytes(b''); trace.chmod(0o666)
+    (root/'m2/tftp.conf').write_text(config)
+    (out/'dnsmasq.conf').write_text(config)
+    result, process, client_process, blocker = {'requests': []}, None, None, None
     try:
+        if scenario.get('bind_blocker'):
+            blocker = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            blocker.bind(('0.0.0.0', 69))
         with (out/'daemon.log').open('w') as log:
             process = subprocess.Popen(command(root,binary,'-k','-C','/m2/tftp.conf'), stdout=log,stderr=log,start_new_session=True)
             time.sleep(.25)
@@ -225,11 +319,19 @@ def run_side(root, binary, scenario, out, network):
                     raise AssertionError(f'client exit {client_process.returncode}')
                 row=json.loads((request_out/'result.json').read_text()); result['requests'].append(row)
                 client_process=None
+            if 'callbacks' in scenario:
+                deadline = time.monotonic()+scenario.get('callback_wait', 3)
+                while len(trace.read_text().splitlines()) < scenario['callbacks'] and time.monotonic() < deadline:
+                    time.sleep(.05)
+                time.sleep(.15)
+                raw = trace.read_bytes(); (out/'callback-trace').write_bytes(raw)
+                result['callbacks'] = [line.split('|') for line in raw.decode().splitlines()]
             result['alive_after']=process.poll() is None
             result['threads']=len(list(Path(f'/proc/{process.pid}/task').iterdir()))
     except Exception as error:
         result['failure']=repr(error)
     finally:
+        if blocker is not None: blocker.close()
         result['client_cleanup']=stop(client_process)
         result['cleanup']=stop(process)
         result['pid_removed']=not (root/'run/dnsmasq/m5-tftp.pid').exists()
@@ -248,8 +350,17 @@ def executed(result, scenario):
         return False
     if len(result['requests']) != len(scenario['requests']):
         return False
+    if 'callbacks' in scenario and len(result.get('callbacks', [])) != scenario['callbacks']:
+        return False
     for item, row in zip(scenario['requests'], result['requests']):
+        if 'capacity' in item:
+            if row != {'kind': 'capacity', 'admitted': item['capacity'], 'blocked': True, 'recovered': item['capacity'] > 0}:
+                return False
+            continue
         kind = 'silent' if item.get('silent') else 'corpus' if item.get('corpus') else 'data'
+        if item.get('abort'): kind = 'aborted'
+        if item.get('abandon'): kind = 'incomplete'
+        if item.get('error'): kind = 'error'
         if scenario['name'] == 'missing-root-no-fail' or scenario['name'] == 'secure-ownership' and item.get('filename') == 'root.bin':
             kind = 'error'
         if row.get('kind') != kind:
@@ -262,7 +373,7 @@ def executed(result, scenario):
 def semantic(result):
     if not result.get('started'):
         return {'started': False, 'exit': result.get('exit')}
-    return {key:result.get(key) for key in ['started','requests','alive_after','threads','pid_removed','failure']}
+    return {key:result.get(key) for key in ['started','requests','callbacks','alive_after','threads','pid_removed','failure']}
 
 
 def main():
