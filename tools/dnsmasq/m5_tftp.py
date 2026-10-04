@@ -309,10 +309,10 @@ def main():
                 if row['c'].get('pid_removed') != row['rust'].get('pid_removed'):
                     row['side_effect_difference']={'pid_removed':{'c':row['c'].get('pid_removed'),'rust':row['rust'].get('pid_removed')},'scope':'startup failure PID residue; retained for explicit review'}
                 row['negative_control_detected']=False
-                if row['c'].get('requests'):
+                if row['c'].get('requests') and row['rust'].get('requests'):
                     negative=copy.deepcopy(row['rust']); negative['requests'][0]={'kind':'wrong-response'}
                     row['negative_control_detected']=semantic(row['c'])!=semantic(negative)
-                else:row['negative_control_detected']=True
+                else:row['negative_control_detected']=not row['c'].get('requests')
             row['executed']=all(executed(row[side], scenario) for side in (['c'] if args.sides=='c' else ['c','rust']))
             report['rows'].append(row);save(args.out/'result.json',report)
         report['passed']=args.sides=='both' and all(row['executed'] and row['equal'] and row['negative_control_detected'] for row in report['rows'])

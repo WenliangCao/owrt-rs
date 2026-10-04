@@ -48,6 +48,7 @@ pub struct TftpListener<O> {
     pending: VecDeque<Pending>,
     refreshed: u64,
     accepting: bool,
+    pending_bind: Vec<SocketAddr>,
 }
 impl TftpListener<RealFileOpener> {
     /// Bind before dropping privileges. Directory checks belong to
@@ -101,6 +102,7 @@ impl<O: FileOpener> TftpListener<O> {
             pending: VecDeque::new(),
             refreshed: 0,
             accepting: true,
+            pending_bind: Vec::new(),
         }
     }
     pub fn bind(address: SocketAddr, runtime: TransferRuntime<O>) -> io::Result<Self> {
@@ -207,15 +209,29 @@ impl<O: FileOpener> TftpListener<O> {
         let Some(policy) = &self.policy else {
             return Ok(());
         };
-        if !initial && !policy.dns.bind_dynamic {
+        if !initial && !policy.dns.bind_dynamic && self.pending_bind.is_empty() {
             return Ok(());
         }
-        let addresses = policy.addresses();
-        for server in &mut self.servers {
-            server.accepting = addresses.contains(&server.address);
+        let addresses = if initial || policy.dns.bind_dynamic {
+            policy.addresses()
+        } else {
+            self.pending_bind.clone()
+        };
+        if policy.dns.bind_dynamic {
+            for server in &mut self.servers {
+                server.accepting = addresses.contains(&server.address);
+            }
         }
+        self.pending_bind.clear();
         for address in addresses {
             if self.servers.iter().any(|server| server.address == address) {
+                continue;
+            }
+            // Like C iface->dad, defer only addresses still undergoing DAD.
+            // Static binding retries these at refresh; other bind errors
+            // remain startup failures.
+            if policy.tentative(address) {
+                self.pending_bind.push(address);
                 continue;
             }
             match DatagramSocket::bind(address) {
