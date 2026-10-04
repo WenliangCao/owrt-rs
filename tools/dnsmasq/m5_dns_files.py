@@ -477,9 +477,16 @@ def run_side(root, side, case, folder):
                         result['rows'].append({'id': action['id'] + ':helper', 'helper_events': lines[helper_offset:], 'response': None, 'error': None, 'cache': False, 'upstreams': []})
                         helper_offset = len(lines)
                     elif op == 'metrics':
-                        response = subprocess.run(command(root, '/bin/ubus', 'call', 'file-metrics', 'metrics', '{}'), capture_output=True, text=True, timeout=2)
-                        if response.returncode: raise AssertionError('ubus metrics failed: ' + response.stderr)
-                        value = json.loads(response.stdout)
+                        samples, deadline = [], time.monotonic() + 1
+                        while True:
+                            response = subprocess.run(command(root, '/bin/ubus', 'call', 'file-metrics', 'metrics', '{}'), capture_output=True, text=True, timeout=2)
+                            if response.returncode: raise AssertionError('ubus metrics failed: ' + response.stderr)
+                            value = json.loads(response.stdout)
+                            samples.append(value)
+                            if value['tcp_connections'] == len(connections): break
+                            if time.monotonic() >= deadline: raise AssertionError('closed TCP connection gauge did not drain')
+                            time.sleep(.01)
+                        result['actions'].append({'op': 'metrics-drain', 'id': action['id'], 'samples': samples})
                         result['rows'].append({'id': action['id'] + ':metrics', 'metrics': value, 'response': None,
                                                'error': None, 'cache': False, 'upstreams': []})
                     elif op == 'write-system': image_path(root, action['path']).write_text(action['text'])
@@ -594,6 +601,16 @@ def controls():
         elif change == 'leaked-pid': mutated['cleanup']['pid_file'] = True
         assert compare(base, mutated, case), change
         found.append(change)
+    for kind, op, payload in [('helper', 'helper-events', {'helper_events': ['old|mac|ip|name']}),
+                              ('metrics', 'metrics', {'metrics': {'dns_cache_inserted': 1, 'dns_queries_forwarded': 2}})]:
+        observed = copy.deepcopy(base)
+        observed['rows'] = [dict(id='one:' + kind, response=None, error=None, cache=False, upstreams=[], **payload)]
+        config = {'actions': [{'op': op, 'id': 'one'}]}
+        assert not compare(observed, copy.deepcopy(observed), config)
+        changed = copy.deepcopy(observed)
+        changed['rows'][0]['helper_events' if kind == 'helper' else 'metrics'] = [] if kind == 'helper' else {}
+        assert compare(observed, changed, config)
+        found.append('wrong-' + kind)
     return found
 
 
