@@ -296,7 +296,7 @@ def profiles():
         profile("quoted-service-prompt",['pxe-service=0,"Menu, with spaces",boot','pxe-prompt="Choose, now",2'],[case("quoted-values")],["CFG-S04","CFG-P01"]),
         profile("hosts-multiple",["pxe-service=0,Multi,boot,boot-server"],[case("multiple-addresses",kind=3,ciaddr=CLIENT,boot_item=item())],
                 ["CFG-S03","BOOT03"],initial_hosts="10.77.0.8 boot-server\n10.77.0.9 boot-server\n"),
-        profile("hosts-dns-disabled",["pxe-service=0,No DNS,boot,boot-server","port=0","enable-tftp","tftp-root=/m2/pxe-tftp"],
+        profile("hosts-dns-disabled",["pxe-service=0,No DNS,boot,boot-server","enable-tftp","tftp-root=/m2/pxe-tftp"],
                 [case("lookup-disabled",kind=3,ciaddr=CLIENT,boot_item=item())],["CFG-S03","BOOT03"],dns_disabled=True,tftp=True),
         profile("vendor-repeat-order",legacy+["dhcp-pxe-vendor=custom-long","dhcp-pxe-vendor=custom,custom-other"],
                 [case("last-prefix-wins",vendor=b"custom-long:client"),case("case-rejected",vendor=b"Custom-long:client",reply=False)], ["CFG-V01","RX01"]),
@@ -319,7 +319,7 @@ def profiles():
         profile("proxy-option-priority-zero",legacy+["dhcp-option-pxe=225,untagged","dhcp-option-pxe=tag:known,225,known","dhcp-option-pxe=3,0.0.0.0"],
                 [case("duplicate-and-local-zero",prl=b"\x01")],["PROXY05"]),
         profile("disabled-host",legacy+["dhcp-host=02:00:00:4d:35:03,ignore"],
-                [case("disabled-proxy",reply=False),case("disabled-item",kind=3,ciaddr=CLIENT,boot_item=item(),reply=False)], ["RX04"],static_host=False),
+                [case("disabled-proxy"),case("disabled-item",kind=3,ciaddr=CLIENT,boot_item=item())], ["RX04"],static_host=False),
         profile("uefi-one-basename-numeric",efi+["pxe-service=7,Numeric,12,10.77.0.9"],
                 [case("one-basename-plus-number",arch=7,kind=3,ciaddr=CLIENT,listener=4011)],["UEFI01"]),
         profile("uefi-field-bounds",["pxe-service=7,Long,"+"f"*150+","+"h"*100],
@@ -369,7 +369,7 @@ def profiles():
 
 
 def config(profile):
-    lines = [f"port={DNS_PORT}", "no-resolv", "no-hosts", "interface=client0",
+    lines = [f"port={0 if profile.get('dns_disabled') else DNS_PORT}", "no-resolv", "no-hosts", "interface=client0",
              "user=root", "group=root", "no-ping", "address=/health.test/192.0.2.7",
              "pid-file=/m2/pxe.pid", "dhcp-leasefile=/m2/pxe.leases", "addn-hosts=/m2/pxe.hosts"]
     mode = profile["mode"]
