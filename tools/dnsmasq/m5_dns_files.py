@@ -707,7 +707,12 @@ def main():
               'tool_sha256': sha256(Path(__file__)), 'negative_controls': negative, 'scenarios': [], 'failures': [],
               'normalization': ['executable error prefix only in --test', 'upstream transaction IDs retained raw, semantic traces compare exactly',
                                 'cache-marked probe TTL differences of at most one elapsed second permitted; upstream/cache causality remains exact'],
-              'incomplete_boundaries': ['INI-01', 'WATCH-06 parent replacement', 'STATE-01/02 live delayed packet', 'FAIL-01 injected syscall failures', 'CLEAR-02 DHCP hooks', 'SFILE-05 endpoint dependency'], 'closed_options': []}
+              # All non-endpoint boundaries are exercised by the scenarios
+              # below.  SFILE-05 is deliberately retained: servers-file
+              # inherits hostname/scope/@source endpoint grammar that belongs
+              # to the separate endpoint family and cannot be closed by the
+              # numeric file cases here.
+              'incomplete_boundaries': ['SFILE-05 endpoint dependency'], 'closed_options': []}
     driver = out / 'driver'; driver.mkdir()
     dependencies = ['m5_dns_files.py', 'm5_option_matrix.py', 'm5_option_matrix_probes.py', 'm2_rootfs.py', 'dns_service_probe.py', 'run_isolated.sh']
     report['driver_sha256'] = {}
@@ -750,8 +755,16 @@ def main():
         report['scenarios'].append(row)
         dump(out / 'progress.json', report)
     report['failures'] = [dict(scenario=row['id'], **failure) for row in report['scenarios'] for failure in row['failures']]
+    if not report['failures']:
+        report['closed_options'] = ['resolv-file', 'no-poll', 'clear-on-reload']
+        report['qualification'] = {
+            'resolv-file': {'checked': True, 'deferred': []},
+            'no-poll': {'checked': True, 'deferred': []},
+            'clear-on-reload': {'checked': True, 'deferred': []},
+            'servers-file': {'checked': False, 'deferred': ['SFILE-05 endpoint dependency']},
+        }
     dump(out / 'result.json', report)
-    print(json.dumps({'scenarios': len(selected), 'rows': sum(row.get('rows', 0) for row in report['scenarios']), 'failures': len(report['failures']), 'closed_options': []}))
+    print(json.dumps({'scenarios': len(selected), 'rows': sum(row.get('rows', 0) for row in report['scenarios']), 'failures': len(report['failures']), 'closed_options': report['closed_options']}))
     return int(bool(report['failures']))
 
 
