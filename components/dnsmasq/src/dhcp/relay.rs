@@ -362,6 +362,8 @@ mod linux {
         pub fn intercept(
             &mut self,
             socket: &DatagramSocket,
+            reply_socket: &DatagramSocket,
+            pxe: bool,
             bytes: &mut [u8],
             datagram: &Datagram,
         ) -> io::Result<bool> {
@@ -379,7 +381,8 @@ mod linux {
             if all_ones {
                 bytes[24..28].fill(0);
             }
-            let result = self.intercept_normalized(socket, bytes, datagram, name);
+            let result =
+                self.intercept_normalized(socket, reply_socket, pxe, bytes, datagram, name);
             if all_ones {
                 bytes[24..28].fill(255);
             }
@@ -389,13 +392,26 @@ mod linux {
         fn intercept_normalized(
             &mut self,
             socket: &DatagramSocket,
+            reply_socket: &DatagramSocket,
+            pxe: bool,
             bytes: &mut [u8],
             datagram: &Datagram,
             name: &[u8],
         ) -> io::Result<bool> {
             if let Some(index) = self.relay.reply(bytes, name) {
                 if let Ok(name) = crate::net::interface_name(socket, index) {
-                    if let Err(error) = send_reply(socket, bytes, index, &name, self.client_port) {
+                    let result = if pxe {
+                        let ciaddr = ip(bytes, 12);
+                        let destination = if ciaddr.is_unspecified() {
+                            datagram.peer
+                        } else {
+                            SocketAddr::from((ciaddr, datagram.peer.port()))
+                        };
+                        reply_socket.send_once(bytes, destination, None)
+                    } else {
+                        send_reply(reply_socket, bytes, index, &name, self.client_port)
+                    };
+                    if let Err(error) = result {
                         eprintln!("dnsmasq-rs: DHCP relay reply send: {error}");
                     }
                 }

@@ -7,7 +7,12 @@
 //! `dhcp_reply()`.  Interface discovery, relay forwarding, reply serialising,
 //! and actual UDP sockets remain caller responsibilities.
 
-use super::packet::{Packet, ParseError, FIXED_LEN, MAX_PACKET_LEN};
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+use super::packet::MAX_PACKET_LEN;
+use super::packet::{Packet, ParseError, FIXED_LEN};
+
+/// IPv4 UDP input limit; reply capacity remains MAX_PACKET_LEN.
+pub const MAX_DATAGRAM_LEN: usize = 65_507;
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 use std::io;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
@@ -124,6 +129,7 @@ pub enum ListenerStep {
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 pub struct SocketListener {
     socket: crate::net::DatagramSocket,
+    pxe_socket: Option<crate::net::DatagramSocket>,
     random: std::fs::File,
     listener: Listener,
     pxe_prefixes: Vec<Vec<u8>>,
@@ -160,6 +166,7 @@ impl SocketListener {
         socket.configure_dhcp()?;
         Ok(Self {
             socket,
+            pxe_socket: None,
             random: std::fs::File::open("/dev/urandom")?,
             listener,
             pxe_prefixes: pxe_prefixes.iter().map(|prefix| prefix.to_vec()).collect(),
@@ -189,6 +196,30 @@ impl SocketListener {
         Ok(())
     }
 
+    pub fn configure_pxe(
+        &mut self,
+        enabled: bool,
+        prefixes: &[Vec<u8>],
+        reuse: bool,
+    ) -> io::Result<()> {
+        if !enabled {
+            return Ok(());
+        }
+        let socket = crate::net::DatagramSocket::bind_dhcp(
+            SocketAddr::from((Ipv4Addr::UNSPECIFIED, 4011)),
+            reuse,
+        )?;
+        socket.configure_dhcp()?;
+        self.pxe_socket = Some(socket);
+        self.pxe_prefixes = prefixes.to_vec();
+        self.buffer.resize(MAX_DATAGRAM_LEN, 0);
+        Ok(())
+    }
+
+    pub fn has_pxe_listener(&self) -> bool {
+        self.pxe_socket.is_some()
+    }
+
     pub fn invalidate_relay_interfaces(&mut self) {
         if let Some(relay) = &mut self.relay {
             relay.invalidate_interfaces();
@@ -200,7 +231,17 @@ impl SocketListener {
         &mut self,
         stop: impl FnMut() -> bool,
     ) -> io::Result<ListenerStep> {
-        Ok(match self.receive_for_local(stop)? {
+        Ok(match self.receive_for_local(self.listener, stop)? {
+            Ok(_) => ListenerStep::Ignored,
+            Err(step) => step,
+        })
+    }
+
+    pub fn process_once_pxe_relay_only(
+        &mut self,
+        stop: impl FnMut() -> bool,
+    ) -> io::Result<ListenerStep> {
+        Ok(match self.receive_for_local(Listener::Pxe, stop)? {
             Ok(_) => ListenerStep::Ignored,
             Err(step) => step,
         })
@@ -208,12 +249,20 @@ impl SocketListener {
 
     fn receive_for_local(
         &mut self,
+        listener: Listener,
         mut stop: impl FnMut() -> bool,
     ) -> io::Result<Result<crate::net::Datagram, ListenerStep>> {
         if stop() {
             return Ok(Err(ListenerStep::Stopped));
         }
-        let datagram = match self.socket.receive(&mut self.buffer) {
+        let socket = if listener == self.listener {
+            &self.socket
+        } else if let Some(socket) = self.pxe_socket.as_ref() {
+            socket
+        } else {
+            return Ok(Err(ListenerStep::WouldBlock));
+        };
+        let datagram = match socket.receive(&mut self.buffer) {
             Ok(Some(datagram)) => datagram,
             Ok(None) => return Ok(Err(ListenerStep::Ignored)),
             Err(error) if error.kind() == io::ErrorKind::WouldBlock => {
@@ -228,7 +277,13 @@ impl SocketListener {
             return Ok(Err(ListenerStep::Ignored));
         }
         if let Some(relay) = &mut self.relay {
-            if relay.intercept(&self.socket, &mut self.buffer[..datagram.len], &datagram)? {
+            if relay.intercept(
+                &self.socket,
+                socket,
+                listener == Listener::Pxe,
+                &mut self.buffer[..datagram.len],
+                &datagram,
+            )? {
                 return Ok(Err(ListenerStep::Ignored));
             }
         }
@@ -272,7 +327,21 @@ impl SocketListener {
     where
         P: super::runtime::OutcomeProvider,
     {
-        let datagram = match self.receive_for_local(stop)? {
+        self.process_once_on_listener(self.listener, provider, options, output, stop)
+    }
+
+    pub fn process_once_on_listener<P>(
+        &mut self,
+        listener: Listener,
+        provider: &mut P,
+        options: &[super::reply::ReplyOption<'_>],
+        output: &mut [u8],
+        stop: impl FnMut() -> bool,
+    ) -> io::Result<ListenerStep>
+    where
+        P: super::runtime::OutcomeProvider,
+    {
+        let datagram = match self.receive_for_local(listener, stop)? {
             Ok(datagram) => datagram,
             Err(step) => return Ok(step),
         };
@@ -280,7 +349,7 @@ impl SocketListener {
         let dispatch = match dispatch(
             &self.buffer[..datagram.len],
             Ingress {
-                listener: self.listener,
+                listener,
                 interface_index: datagram.interface,
                 unicast_destination: datagram.destination != IpAddr::V4(Ipv4Addr::BROADCAST),
             },
@@ -289,12 +358,19 @@ impl SocketListener {
             Ok(dispatch) => dispatch,
             Err(error) => return Ok(ListenerStep::Malformed(error)),
         };
+        let socket = if listener == self.listener {
+            &mut self.socket
+        } else {
+            self.pxe_socket
+                .as_mut()
+                .expect("PXE receive requires the socket")
+        };
         Ok(ListenerStep::Processed(
             super::runtime::process_with_random_and_ports(
                 dispatch,
                 datagram.peer,
                 provider,
-                &mut self.socket,
+                socket,
                 options,
                 output,
                 self.ports,
@@ -422,10 +498,10 @@ pub fn dispatch<'a>(
     ingress: Ingress,
     pxe_prefixes: &[&[u8]],
 ) -> Result<Dispatch<'a>, DispatchError> {
-    if bytes.len() > MAX_PACKET_LEN {
+    if bytes.len() > MAX_DATAGRAM_LEN {
         return Err(DispatchError::DatagramTooLarge {
             length: bytes.len(),
-            maximum: MAX_PACKET_LEN,
+            maximum: MAX_DATAGRAM_LEN,
         });
     }
     // Keep the explicit lower bound in this boundary: dhcp.c drops a short
@@ -442,7 +518,9 @@ pub fn dispatch<'a>(
         address if !address.is_unspecified() => Route::Relay { giaddr: address },
         _ => Route::Local,
     };
-    let kind = if ingress.listener == Listener::Pxe || packet.pxe_vendor(pxe_prefixes).is_some() {
+    let kind = if packet.message_type() == 10 {
+        DispatchKind::LeaseQuery
+    } else if ingress.listener == Listener::Pxe || packet.pxe_vendor(pxe_prefixes).is_some() {
         DispatchKind::Pxe
     } else {
         match packet.message_type() {
@@ -519,11 +597,11 @@ mod tests {
             dispatch(&[0; FIXED_LEN - 1], ingress(), &[]),
             Err(DispatchError::Packet(ParseError::TruncatedHeader))
         ));
-        let bytes = vec![0; MAX_PACKET_LEN + 1];
+        let bytes = vec![0; MAX_DATAGRAM_LEN + 1];
         match dispatch(&bytes, ingress(), &[]) {
             Err(DispatchError::DatagramTooLarge { length, maximum }) => {
-                assert_eq!(length, MAX_PACKET_LEN + 1);
-                assert_eq!(maximum, MAX_PACKET_LEN);
+                assert_eq!(length, MAX_DATAGRAM_LEN + 1);
+                assert_eq!(maximum, MAX_DATAGRAM_LEN);
             }
             other => panic!("unexpected dispatch result: {other:?}"),
         }
@@ -646,6 +724,25 @@ mod tests {
         assert!(length >= 300);
         assert_eq!(&response[..4], &[2, 1, 6, 0]);
         assert_eq!(response[16..20], Ipv4Addr::LOCALHOST.octets());
+    }
+
+    #[test]
+    fn pxe_admission_keeps_large_input_and_leasequery_precedence() {
+        let mut bytes = packet(&[53, 1, 1, 255]);
+        bytes.resize(MAX_DATAGRAM_LEN, 0);
+        let pxe_ingress = Ingress {
+            listener: Listener::Pxe,
+            ..ingress()
+        };
+        assert_eq!(
+            dispatch(&bytes, pxe_ingress, &[]).unwrap().kind,
+            DispatchKind::Pxe
+        );
+        bytes[242] = 10;
+        assert_eq!(
+            dispatch(&bytes, pxe_ingress, &[]).unwrap().kind,
+            DispatchKind::LeaseQuery
+        );
     }
 
     #[test]
