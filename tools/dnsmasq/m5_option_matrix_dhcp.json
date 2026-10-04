@@ -1,0 +1,204 @@
+{
+  "schema": 1,
+  "executable": false,
+  "status": "C-source-checklist-frozen",
+  "scope": "Fourth matrix: existing IPv4 DHCP options only; excludes DHCP-range ICMP errors, dynamic hostfiles and PXE.",
+  "source_identity": {
+    "option.c": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
+    "rfc2131.c": "14f2e10792ef6108aeb7b69e551f089ba287c8c84d39ea178a5f33acd2038c2c",
+    "dhcp.c": "600dc068b0516d7edebcde9b02ae2091a278fc154551106823ddc388170d7001",
+    "lease.c": "4260039af27b40084cbe6dbbae2bb9417fa3a91806ea53f3f6bdd20234cad763",
+    "network.c": "8229872d30a2fb2d86ec9a9e550e51fbb8d8d97926e7a02b0137f2a7b40c40c9",
+    "dhcp-common.c": "9139906c5d3a438853fe84e90387cfc299c3c28e7b16a23c7d0d6922847ccc79"
+  },
+  "options": {
+    "dhcp-authoritative": {
+      "source": [
+        "option.c:457",
+        "rfc2131.c:1392-1591",
+        "dhcp.c:414-459"
+      ],
+      "scenarios": [],
+      "checklist": [
+        {
+          "boundary": "Flag grammar and unexpected-argument rejection; ordinary selecting ACK remains valid with authority off/on.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Wrong server-ID: silent without authority, NAK with authority; trusted local interface server-ID alias remains accepted.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "INIT-REBOOT: unknown lease ignored without authority and recoverable with authority; existing matching lease ACK, wrong address NAK.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Unknown RENEW/REBIND: nonauthoritative broadcast ignored, unicast NAK/broadcast destination; authoritative recovery ACK. Existing lease identity at wrong ciaddr follows the same source rule.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Reassignment removes old lease before new selection; NAK ciaddr/flags/server-ID/destination and subsequent lease table are observed on wire and disk.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Compare full reply bytes, physical UDP/IP/Ethernet destination and DNS responsiveness; renewal fuzz is range-validated, not arbitrarily removed.",
+          "checked": false,
+          "required_scenarios": []
+        }
+      ]
+    },
+    "dhcp-broadcast": {
+      "source": [
+        "option.c:1338-1345,4661-4703",
+        "dhcp-common.c:224-248",
+        "rfc2131.c:2661-2667",
+        "dhcp.c:414-459"
+      ],
+      "scenarios": [],
+      "checklist": [
+        {
+          "boundary": "Bare flag is unconditional; tag:/net:/bare selectors use exact tags, !/# negation, AND within a line and OR across repeated directives.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Request MAC/vendor/tag-if/implicit interface tags can match; range set-tag is not yet present at force-broadcast evaluation.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "No forced flag versus forced flag changes offer/ACK flags and actual broadcast destination. Existing request broadcast bit stays set.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Nonzero ciaddr retains unicast delivery even when forced flag is set. Leasequery do_options bypasses forced broadcast.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Empty argument/tag:/net: are syntax-only source-NULL defect witnesses: C --test accepts, Rust explicitly rejects. Never send DHCP to those C configs.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Comparator rejects missing replies, changed flags/destinations, and unclassified diagnostics; reference defect classification has exact allowlisted inputs/outputs.",
+          "checked": false,
+          "required_scenarios": []
+        }
+      ]
+    },
+    "dhcp-lease-max": {
+      "source": [
+        "option.c:3617-3621",
+        "lease.c:23-178,643,845-870",
+        "rfc2131.c:1552-1576"
+      ],
+      "scenarios": [],
+      "checklist": [
+        {
+          "boundary": "0/1/default and invalid numeric syntax; zero permits OFFER selection but no ACK lease allocation.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Fill capacity with distinct identities, reject additional ACK with no-leases-left NAK, allow existing-lease renewal while full.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "RELEASE frees a slot and subsequent client can allocate; ordinary capacity is independent of available pool addresses.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Restart restores full capacity and leases; restored count above limit fails EC_MISC5 before serving. Expired records consume restore capacity before startup pruning.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Complete wire and normalized lease snapshots prove both capacity and persistence; absolute expiries are individually checked against declared 600-second duration.",
+          "checked": false,
+          "required_scenarios": []
+        }
+      ]
+    },
+    "dhcp-sequential-ip": {
+      "source": [
+        "option.c:563",
+        "dhcp.c:820-927",
+        "lease.c:825-842",
+        "rfc2131.c:1237-1268"
+      ],
+      "scenarios": [],
+      "checklist": [
+        {
+          "boundary": "Flag grammar; no-ping is fixed for this batch so no ICMP-I/O contract is added.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Committed clients allocate ascending addresses from greatest extant lease, skip reserved/static/server addresses, and wrap to a free lower hole.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "DISCOVER alone does not allocate a lease; with no-ping repeated uncommitted offers remain eligible.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "DECLINE removes the matching lease and increments epoch, skipping the next otherwise eligible address; restart resets transient epoch while restoring leases.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Restart with a high restored lease continues above it then wraps; compare actual offer/ACK sequence and lease table.",
+          "checked": false,
+          "required_scenarios": []
+        }
+      ]
+    },
+    "no-dhcp-interface": {
+      "source": [
+        "option.c:2896-2926",
+        "dhcp.c:329-331",
+        "network.c:539-558"
+      ],
+      "scenarios": [],
+      "checklist": [
+        {
+          "boundary": "Empty list items are ignored; exact interface, wildcard, repeated directives and comma lists exclude only matching ingress interfaces.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Two actual server interfaces and client links prove selective exclusion; changing listen-address/interface must not bypass exclusion.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "DNS remains available on DHCP-excluded interfaces, distinguishing this option from except-interface.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "Existing TFTP admission respects exclusion; explicit enable-tftp interface list overrides it per C network.c. Only this selector boundary, not PXE/TFTP internals.",
+          "checked": false,
+          "required_scenarios": []
+        },
+        {
+          "boundary": "No-DHCP interfaces produce no DHCP packets or lease mutations; positive control on other interface and full namespace/process cleanup are mandatory.",
+          "checked": false,
+          "required_scenarios": []
+        }
+      ]
+    }
+  },
+  "scenarios": []
+}
