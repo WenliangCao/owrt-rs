@@ -160,6 +160,7 @@ pub struct DhcpConfig {
     pub authoritative: bool,
     pub rapid_commit: bool,
     pub bootp_dynamic: bool,
+    pub bootp_dynamic_tags: Vec<TagPredicate>,
     /// Last untagged directive wins, matching find_boot's reverse list.
     pub boot: Option<BootConfig>,
     /// All dhcp-boot directives in reverse declaration order. Tagged entries
@@ -208,6 +209,7 @@ impl Default for DhcpConfig {
             authoritative: false,
             rapid_commit: false,
             bootp_dynamic: false,
+            bootp_dynamic_tags: Vec::new(),
             boot: None,
             boot_entries: Vec::new(),
             no_override: false,
@@ -329,13 +331,12 @@ impl DhcpConfig {
                 }
             }
             b"bootp-dynamic" => {
-                // option.c:4664-4701 stores optional tag predicates. Until
-                // they reach the BOOTP caller, only the no-argument global
-                // form is supported; never widen scoped permission.
-                if argument.is_some() {
-                    return Err(Error("BOOTP dynamic tag selectors are not implemented"));
+                if argument.is_none() {
+                    self.bootp_dynamic = true;
+                } else {
+                    self.bootp_dynamic_tags
+                        .insert(0, TagPredicate::parse(argument)?);
                 }
-                self.bootp_dynamic = true;
             }
             b"dhcp-sequential-ip" => self.sequential = true,
             b"dhcp-ignore-clid" => self.ignore_client_id = true,
@@ -647,12 +648,17 @@ mod tests {
         for line in [
             b"bootp-dynamic=tag:known".as_slice(),
             b"bootp-dynamic=known",
-            b"bootp-dynamic=",
         ] {
             let mut config = DhcpConfig::default();
-            assert!(config.apply(&lex_line(line).unwrap().unwrap()).is_err());
+            assert!(config.apply(&lex_line(line).unwrap().unwrap()).unwrap());
             assert!(!config.bootp_dynamic);
+            assert_eq!(config.bootp_dynamic_tags.len(), 1);
+            assert!(config.bootp_dynamic_tags[0].matches(&[b"known"]));
+            assert!(!config.bootp_dynamic_tags[0].matches(&[]));
         }
+        assert!(DhcpConfig::default()
+            .apply(&lex_line(b"bootp-dynamic=").unwrap().unwrap())
+            .is_err());
         let mut config = DhcpConfig::default();
         assert!(config
             .apply(&lex_line(b"bootp-dynamic").unwrap().unwrap())

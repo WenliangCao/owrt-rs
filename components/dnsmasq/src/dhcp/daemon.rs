@@ -999,6 +999,18 @@ impl LocalProvider {
         if let Some(host) = configured {
             tags.extend(host.set_tags.iter().map(Vec::as_slice));
         }
+        if packet.message_type() == 0 && dispatch.ingress.listener == super::service::Listener::Dhcp
+        {
+            let file = &packet.bytes()[108..236];
+            let length = file
+                .iter()
+                .position(|byte| *byte == 0)
+                .unwrap_or(file.len());
+            if length != 0 {
+                tags.push(&file[..length]);
+            }
+            tags.push(b"bootp");
+        }
         self.request_tags = tags.iter().map(|tag| tag.to_vec()).collect();
         TagIf::apply_all(&self.config.tag_if, &mut tags);
         self.force_broadcast = self.config.force_broadcast_for(&tags);
@@ -1110,6 +1122,30 @@ impl LocalProvider {
         if let Some(name) = &generated_name {
             self.reply_hostname = Some(name.clone());
         }
+        let bootp_permissions: Vec<bool> = if packet.message_type() == 0
+            && !self.config.bootp_dynamic_tags.is_empty()
+        {
+            self.selected
+                .iter()
+                .map(|selected| {
+                    // run_tag_if starts from raw request tags plus the selected
+                    // context, not from a previously expanded request-only list.
+                    let mut context_tags: Vec<&[u8]> =
+                        self.request_tags.iter().map(Vec::as_slice).collect();
+                    if let Some(tag) = self.config.ranges[selected.source_index].set_tag.as_deref()
+                    {
+                        context_tags.push(tag);
+                    }
+                    TagIf::apply_all(&self.config.tag_if, &mut context_tags);
+                    self.config
+                        .bootp_dynamic_tags
+                        .iter()
+                        .any(|rule| rule.matches(&context_tags))
+                })
+                .collect()
+        } else {
+            Vec::new()
+        };
         let environment = Environment {
             now,
             interface,
@@ -1198,6 +1234,7 @@ impl LocalProvider {
         provider.configured_name = dns_name.as_deref().or(configured_name);
         provider.ignore_client_name = ignore_client_name;
         provider.generated_name = generated_name.as_deref();
+        provider.bootp_contexts = &bootp_permissions;
         provider.domains = Some(&self.domains);
         provider.quiet_dhcp = self.config.quiet_dhcp;
         provider.message_counters = Some(&mut self.message_counters);
