@@ -16,6 +16,12 @@ import json
 import os
 import platform
 import re
+import resource
+import select
+import threading
+import tty
+import fcntl
+import termios
 from pathlib import Path
 import shutil
 import signal
@@ -270,6 +276,63 @@ def scenarios():
          write('resolv', r2), signal_reload(), probe('after-hup', transports=['udp']),
          {'op': 'reading-count', 'id': 'hup-no-message', 'minimum': 0, 'expect_reading': 0}],
         'no-daemon\nno-poll\n')
+    # Frozen required_cases are expanded explicitly; boundary IDs alone never
+    # authorize closing an option. These fixtures cover non-endpoint edges.
+    add('grammar-empty-two-and-duplicate', 'CFG-01,RSLV-01',
+        {'resolv': {'text': r1, 'mtime': 1700000010}, 'second': {'text': r2, 'mtime': 1700000010}},
+        [probe('last-declared')], 'resolv-file=\nresolv-file=/m2/files/resolv\nresolv-file=/m2/files/second\n', default_resolv=False)
+    add('servers-empty', 'CFG-03', initial, [probe('ordinary')], 'servers-file=\n')
+    add('servers-repeated-option', 'CFG-03', initial, [],
+        'servers-file=/m2/files/a\nservers-file=/m2/files/b\n', expected_test=1, expected_start=False)
+    add('port-zero-suppresses-watch', 'WATCH-01', {}, [],
+        'resolv-file=/m2/files/missing/resolv\n', default_resolv=False, dns_disabled=True)
+    add('watch-parent-eacces', 'WATCH-01,WATCH-03,FAIL-01', initial, [],
+        expected_start=False, inotify_fault='watch-eacces')
+    add('symlink-dangling-target', 'WATCH-02', {'resolv': {'symlink': 'target'}},
+        [probe('absent'), write('target', r1), probe('created')])
+    add('symlink-two-hop', 'WATCH-02', {'resolv': {'symlink': 'middle'}, 'middle': {'symlink': 'target'}, 'target': r1},
+        [probe('initial'), write('target', r2), probe('changed')])
+    add('watch-neighbor-and-deleted-event', 'WATCH-04,WATCH-05', initial,
+        [probe('initial'), write('neighbor', r2), probe('neighbor-ignored'),
+         {'op': 'write-delete-paused', 'path': 'resolv', 'text': r2}, probe('deleted-before-drain'),
+         write('resolv', r2), probe('created')])
+    add('inode-same-mtime', 'RSLV-01', {'resolv': {'text': r1, 'mtime': 1700000010}},
+        [probe('initial'), write('resolv', r2, atomic=True, mtime=1700000010), probe('same-time-new-inode')])
+    add('resolver-lexical-complete', 'RSLV-03,RSLV-04', initial,
+        [action for i, text in enumerate(['search ignored.test\ndomain ignored.test\nnameserver 127.0.0.2 trailing words\n',
+          'nameserver host.invalid\nnameserver 127.0.0.3#53\n', 'nameserver ::1%123456\n',
+          'nameserver ::1%lo\n', 'nameserver 127.0.0.3\r\n']) for action in
+         (write('resolv', text), probe('lexical-' + str(i)))])
+    add('resolver-empty-repeated-route', 'RSLV-06', {'resolv': ''},
+        [probe('initial'), write('resolv', ''), probe('repeated'), {'op': 'pause', 'seconds': .15},
+         probe('steady'), {'op': 'address-route', 'address': '198.18.2.1/24'}, probe('route-empty'),
+         write('resolv', r1), probe('populated')])
+    add('runtime-resolver-emfile', 'FAIL-01,RSLV-05,CLEAR-01', initial,
+        [probe('initial', transports=['udp']), {'op': 'fd-limit', 'limit': 0}, write('resolv', r2),
+         probe('local-during-emfile', 'ready.files.test', transports=['udp']), {'op': 'fd-limit', 'restore': True},
+         probe('old-source-retained', transports=['udp']), write('resolv', r2), probe('recovered')],
+        'no-daemon\nclear-on-reload\n', diagnostics=True)
+    add('resolver-partial-stream-eio', 'RSLV-05,FAIL-02', initial,
+        [probe('initial'), {'op': 'pty-read-error', 'text': 'nameserver 127.0.0.3\nnameserver 127.0.0.4'},
+         probe('partial-final-line')], 'no-poll\n')
+    for kind, length in [('large', 16 * 1024 * 1024), ('long-line', 256 * 1024)]:
+        add('resolver-' + kind, 'FAIL-02', initial,
+            [probe('initial'), {'op': 'large-file', 'id': kind, 'bytes': length, 'single_line': kind == 'long-line', 'tail': r2},
+             probe('after-large')])
+    add('tcp-pending-publication', 'STATE-04,STATE-05', initial,
+        [{'op': 'start-tcp', 'id': 'held', 'name': 'delayed.files.test'}, write('resolv', r2), probe('new-parent'),
+         {'op': 'release-tcp', 'server': 0}, {'op': 'receive-tcp', 'id': 'old-pending', 'pending': 'held'},
+         probe('published-cache', 'delayed.files.test', cache=True, transports=['udp']),
+         probe('old-connection', transports=['held']), {'op': 'disconnect', 'id': 'held'}, probe('fresh')], cache_size=64)
+    add('tftp-across-resolver-reload', 'STATE-05', dict(initial, **{'payload': 'T' * 1400}),
+        [{'op': 'tftp-start', 'id': 'transfer'}, write('resolv', r2), probe('changed'),
+         {'op': 'tftp-finish', 'id': 'transfer'}], 'enable-tftp\ntftp-root=/m2/files\n')
+    for phase in ['startup', 'runtime']:
+        add('fifo-' + phase, 'FAIL-02,FAIL-01', initial,
+            [{'op': 'fifo-reload', 'id': phase, 'phase': phase, 'text': r2}, probe('fifo-published')],
+            'no-poll\n', fifo_startup=phase == 'startup')
+    add('pending-file-shutdown', 'FAIL-01', initial,
+        [{'op': 'fifo-reload', 'id': 'shutdown', 'text': r2, 'shutdown': True}], 'no-poll\n')
     expected = {
         'inplace-rename-delete-empty': {'initial': 11, 'inplace': 12, 'renamed': 11, 'deleted': 11, 'empty': 5, 'invalid': 5, 'recovered': 12},
         'missing-leaf': {'missing': 5, 'created': 11},
@@ -353,6 +416,149 @@ def exchange(port, action, ident, transport, upstreams, connections):
                           for upstream, start in zip(upstreams, before)]}
 
 
+
+class FileUpstream(Upstream):
+    """Only test peers use threads; delayed TCP response is driver-controlled."""
+    def __init__(self, *args):
+        self.release_tcp = threading.Event()
+        super().__init__(*args)
+
+    def connection(self, client):
+        try:
+            with client:
+                client.settimeout(2)
+                while not self.stop.is_set():
+                    packet = exact_read(client, struct.unpack('!H', exact_read(client, 2))[0])
+                    response = self.answer(packet, 'tcp')
+                    host, end = read_name(packet, 12)
+                    fixture = self.probes.get((host, struct.unpack_from('!H', packet, end)[0]), {})
+                    if fixture.get('hold_tcp'):
+                        while not self.release_tcp.wait(.01):
+                            if self.stop.is_set(): return
+                    client.sendall(struct.pack('!H', len(response)) + response)
+        except (ConnectionError, OSError, EOFError):
+            pass
+        except Exception as problem:
+            self.errors.append(repr(problem))
+
+    def close(self):
+        self.release_tcp.set()
+        super().close()
+
+
+def local_health(port, ident=0x3100, timeout=.15):
+    packet = query(probe('health', 'ready.files.test'), ident)
+    started = time.monotonic()
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as client:
+        client.settimeout(timeout)
+        client.sendto(packet, ('127.0.0.1', port))
+        try: response = client.recv(4096)
+        except socket.timeout: response = None
+    parsed = semantics(response) if response else None
+    return {'elapsed': time.monotonic() - started, 'request': packet.hex(),
+            'reply': response.hex() if response else None,
+            'healthy': bool(parsed and parsed['id'] == ident and parsed['records'][0]['data'] == '192.0.2.250')}
+
+
+def open_file_fds(pid, suffix):
+    found = []
+    for path in Path(f'/proc/{pid}/fd').iterdir():
+        try:
+            target = os.readlink(path)
+            if target.endswith(suffix): found.append({'fd': int(path.name), 'target': target,
+                'fdinfo': Path(f'/proc/{pid}/fdinfo/{path.name}').read_text()})
+        except (FileNotFoundError, PermissionError): pass
+    return found
+
+
+def await_predicate(test, label, seconds=2):
+    deadline = time.monotonic() + seconds
+    while True:
+        value = test()
+        if value: return value
+        if time.monotonic() >= deadline: raise AssertionError(label)
+        time.sleep(.002)
+
+
+def pending_fifo(root, process, port, text, shutdown=False):
+    """Open a real FIFO with a held writer; release it after progress witness."""
+    path = root / 'm2/files/resolv'
+    path.unlink(); os.mkfifo(path)
+    process.send_signal(signal.SIGHUP)
+    writer = None
+    def attach_writer():
+        nonlocal writer
+        try: writer = os.open(path, os.O_WRONLY | os.O_NONBLOCK); return True
+        except OSError as problem:
+            if problem.errno != errno.ENXIO: raise
+            return False
+    await_predicate(attach_writer, 'FIFO reader never opened')
+    fds = await_predicate(lambda: open_file_fds(process.pid, '/m2/files/resolv'), 'FIFO read FD not witnessed')
+    health = local_health(port)
+    if shutdown: process.send_signal(signal.SIGTERM)
+    # Closing the writer is the explicit release gate for blocking C. Keep
+    # pending data/no-data observations distinct from forced fixture cleanup.
+    if not shutdown: os.write(writer, text.encode())
+    os.close(writer)
+    return {'pending_fds': fds, 'health_while_pending': health, 'shutdown': shutdown}
+
+
+def pty_partial_error(root, process, text):
+    """TTY EOF after its master closes is kernel EIO, not a mocked parse result."""
+    master, slave = os.openpty(); tty.setraw(slave)
+    device = os.ttyname(slave); path = root / 'm2/files/resolv'
+    subprocess.run(['mount', '--bind', device, str(path)], check=True)
+    trace = {'device': device, 'input': text.encode().hex()}
+    try:
+        process.send_signal(signal.SIGHUP)
+        trace['opened_fds'] = await_predicate(lambda: open_file_fds(process.pid, device), 'PTY reader never opened')
+        os.write(master, text.encode())
+        def consumed():
+            available = struct.unpack('i', fcntl.ioctl(slave, termios.FIONREAD, struct.pack('i', 0)))[0]
+            return available == 0
+        await_predicate(consumed, 'PTY input not consumed')
+        time.sleep(.02)
+        os.close(master); master = None
+        try: trace['terminal_read'] = os.read(slave, 1).hex()
+        except OSError as problem: trace['terminal_errno'] = problem.errno
+        if trace.get('terminal_errno') != errno.EIO: raise AssertionError('PTY did not exhibit EIO')
+        await_predicate(lambda: not open_file_fds(process.pid, device), 'PTY read job did not finish after EIO')
+    finally:
+        if master is not None: os.close(master)
+        os.close(slave)
+        subprocess.run(['umount', str(path)], check=True)
+    return trace
+
+
+def large_reload(root, process, port, action):
+    path = root / 'm2/files/resolv'
+    length = action['bytes']
+    body = (b'#' + b'x' * (length - 2) + b'\n' if action['single_line']
+            else (b'#' + b'x' * 126 + b'\n') * (length // 128))
+    samples, stop = [], threading.Event()
+    def reader():
+        while not stop.is_set():
+            active = bool(open_file_fds(process.pid, '/m2/files/resolv'))
+            samples.append(dict(local_health(port, 0x3200 + len(samples) % 1024), file_active=active))
+            time.sleep(.001)
+    worker = threading.Thread(target=reader); worker.start()
+    try:
+        path.write_bytes(body + action['tail'].encode())
+        deadline = time.monotonic() + 5
+        while time.monotonic() < deadline:
+            if len(samples) >= 30 and not open_file_fds(process.pid, '/m2/files/resolv'): break
+            time.sleep(.002)
+        else: raise AssertionError('large resolver job did not drain')
+    finally:
+        stop.set(); worker.join(1)
+    if worker.is_alive() or not samples: raise AssertionError('health sampler missing or leaked')
+    latency = sorted(x['elapsed'] for x in samples)
+    return {'bytes': len(body) + len(action['tail']), 'sha256': sha256(path), 'samples': samples,
+            'p95_seconds': latency[min(len(latency) - 1, int(len(latency) * .95))],
+            'all_healthy': all(x['healthy'] for x in samples),
+            'healthy_while_file_open': sum(x['healthy'] and x['file_active'] for x in samples)}
+
+
 def run_side(root, side, case, folder):
     folder.mkdir()
     data = root / 'm2/files'
@@ -362,6 +568,8 @@ def run_side(root, side, case, folder):
     # The resolver data stays root-owned so chmod(0) still witnesses EACCES.
     (root / 'm2').chmod(0o777 if case.get('user', 'root') != 'root' else 0o755)
     opened, connections, pending = {}, {}, {}
+    transfers, limit_before = {}, None
+    startup_writer = None
     routes, addresses, links = [], [], []
     if case.get('dhcp_witness'):
         subprocess.run(['ip', 'link', 'add', 'm5filelan', 'type', 'dummy'], check=True)
@@ -382,22 +590,25 @@ def run_side(root, side, case, folder):
         target = image_path(root, path); target.parent.mkdir(parents=True, exist_ok=True); target.write_text(value)
     if case.get('dhcp_witness'):
         (data / 'helper.sh').chmod(0o755)
+    if case.get('fifo_startup'):
+        (data / 'resolv').unlink(); os.mkfifo(data / 'resolv')
     helper_offset = 0
-    names = {(a['name'], a.get('type', 1)) for a in case['actions'] if a['op'] in ('query', 'start-udp')}
+    names = {(a['name'], a.get('type', 1)) for a in case['actions'] if a['op'] in ('query', 'start-udp', 'start-tcp')}
     upstreams = []
     for index, address in enumerate(['127.0.0.2', '127.0.0.3', '127.0.0.4', '::1'] + (['127.0.0.1'] if case.get('local_upstream') else []) + (['fe80::53%m5scope'] if case.get('scoped_upstream') else [])):
         fixtures = [{'name': host, 'type': kind, 'reply': f'192.0.2.{11 + index}' if kind == 1 else f'2001:db8::{11 + index}'} for host, kind in names]
         delayed = {a['name'] for a in case['actions'] if a['op'] == 'start-udp'}
         for fixture in fixtures:
             if fixture['name'] in delayed: fixture['drop_all'] = True
+            if any(a['op'] == 'start-tcp' and a['name'] == fixture['name'] for a in case['actions']): fixture['hold_tcp'] = True
             if fixture['name'] in case.get('negative_names', []): fixture.update(rcode=3, records=[])
-        upstreams.append(Upstream(fixtures, address, 53))
+        upstreams.append(FileUpstream(fixtures, address, 53))
     with socket.socket() as reserve:
         reserve.bind(('127.0.0.1', 0)); port = reserve.getsockname()[1]
     config = ('no-hosts\nno-0x20-encode\nno-round-robin\nstrict-order\n'
               + f'user={case.get("user", "root")}\ngroup={case.get("group", "root")}\n'
               + f'listen-address={case.get("listen", "127.0.0.1")}\nhost-record=ready.files.test,192.0.2.250\n'
-              'pid-file=/m2/files.pid\n' + f'port={port}\ncache-size={case.get("cache_size", 0)}\n'
+              'pid-file=/m2/files.pid\n' + f'port={0 if case.get("dns_disabled") else port}\ncache-size={case.get("cache_size", 0)}\n'
               + ('resolv-file=/m2/files/resolv\n' if case.get('default_resolv', True) else '') + case['config'].replace('{listen_port}', str(port)))
     if case.get('metrics'): config += 'enable-ubus=file-metrics\n'
     (root / 'm2/files.conf').write_text(config)
@@ -415,13 +626,18 @@ def run_side(root, side, case, folder):
                 time.sleep(.02)
         with (folder / 'stdout').open('wb') as stdout, (folder / 'stderr').open('wb') as stderr:
             argv = command(root, side, '-k', '-C', '/m2/files.conf')
-            if case.get('inotify_fault'): argv = [sys.executable, str(Path(__file__).resolve()), '--exec-inotify-fault', *argv]
+            if case.get('inotify_fault'): argv = [sys.executable, str(Path(__file__).resolve()), '--exec-inotify-fault', str(case['inotify_fault']), *argv]
             process = subprocess.Popen(argv, stdout=stdout, stderr=stderr, start_new_session=True)
+            if case.get('fifo_startup'):
+                result['fifo_startup_before_writer'] = local_health(port)
+                def initial_writer():
+                    with (data / 'resolv').open('wb') as writer: writer.write(b'nameserver 127.0.0.2\n')
+                startup_writer = threading.Thread(target=initial_writer); startup_writer.start()
             deadline = time.monotonic() + 3
             while process.poll() is None and time.monotonic() < deadline:
                 try:
                     ready = exchange(port, probe('ready', 'ready.files.test'), 0x3000, 'udp', upstreams, connections)
-                    if ready['response']:
+                    if ready['response'] or (case.get('dns_disabled') and (root / 'm2/files.pid').exists()):
                         result['startup'] = {'ready': True}; break
                 except OSError:
                     pass
@@ -437,6 +653,21 @@ def run_side(root, side, case, folder):
                     if op == 'query':
                         for number, transport in enumerate(action.get('transports', ['udp', 'tcp'])):
                             result['rows'].append(exchange(port, action, 0x4000 + index * 4 + number, transport, upstreams, connections))
+                    elif op == 'start-tcp':
+                        client = socket.create_connection(('127.0.0.1', port), 1); client.settimeout(2)
+                        packet = query(action, 0x4000 + index * 4)
+                        before = [len(u.events) for u in upstreams]
+                        client.sendall(struct.pack('!H', len(packet)) + packet)
+                        connections[action['id']] = client
+                        pending[action['id']] = {'client': client, 'packet': packet, 'before': before, 'name': action['name']}
+                        await_predicate(lambda: sum(len(u.events) - n for u, n in zip(upstreams, before)), 'pending TCP did not reach upstream')
+                    elif op == 'release-tcp': upstreams[action['server']].release_tcp.set()
+                    elif op == 'receive-tcp':
+                        held = pending[action['pending']]
+                        response = exact_read(held['client'], struct.unpack('!H', exact_read(held['client'], 2))[0])
+                        result['rows'].append({'id': action['id'] + ':tcp-async', 'response': semantics(response),
+                            'error': None, 'request': held['packet'].hex(), 'reply': response.hex(), 'elapsed': 0, 'cache': False,
+                            'upstreams': [{'server': u.host, 'events': copy.deepcopy(u.events[n:])} for u, n in zip(upstreams, held['before'])]})
                     elif op == 'start-udp':
                         client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM); client.settimeout(.2)
                         packet = query(action, 0x4000 + index * 4)
@@ -489,6 +720,48 @@ def run_side(root, side, case, folder):
                                 records.append(row); at += (length + 3) & ~3
                             packets.append({'peer': list(peer), 'wire': wire.hex(), 'records': records})
                         result['actions'].append({'op': 'netlink-witness', 'trigger': op, 'packets': packets})
+                    elif op == 'pause': time.sleep(action['seconds'])
+                    elif op == 'fd-limit':
+                        if action.get('restore'):
+                            resource.prlimit(process.pid, resource.RLIMIT_NOFILE, limit_before); limit_before = None
+                        else:
+                            limit_before = resource.prlimit(process.pid, resource.RLIMIT_NOFILE)
+                            resource.prlimit(process.pid, resource.RLIMIT_NOFILE, (action['limit'], limit_before[1]))
+                        result['actions'].append({'op': 'actual-fd-limit', 'limits': resource.prlimit(process.pid, resource.RLIMIT_NOFILE)})
+                    elif op == 'pty-read-error':
+                        result['actions'].append({'op': 'partial-read-eio', **pty_partial_error(root, process, action['text'])})
+                    elif op == 'large-file':
+                        evidence = large_reload(root, process, port, action)
+                        result['actions'].append({'op': 'large-file-health', 'id': action['id'], **evidence})
+                        result['rows'].append({'id': action['id'] + ':large', 'all_healthy': evidence['all_healthy'],
+                            'response': None, 'error': None, 'cache': False, 'upstreams': []})
+                    elif op == 'fifo-reload':
+                        evidence = pending_fifo(root, process, port, action['text'], action.get('shutdown', False))
+                        result['actions'].append({'op': 'fifo-progress', 'id': action['id'], **evidence})
+                    elif op == 'write-delete-paused':
+                        process.send_signal(signal.SIGSTOP)
+                        try:
+                            await_predicate(lambda: '\nState:\tT' in Path(f'/proc/{process.pid}/status').read_text(), 'paused owner missing')
+                            put(root, action['path'], action['text'], opened); (data / action['path']).unlink()
+                        finally: process.send_signal(signal.SIGCONT)
+                    elif op == 'tftp-start':
+                        endpoint = socket.socket(socket.AF_INET, socket.SOCK_DGRAM); endpoint.settimeout(1)
+                        endpoint.sendto(b'\x00\x01payload\x00octet\x00', ('127.0.0.1', 69))
+                        packet, peer = endpoint.recvfrom(4096)
+                        if packet[:4] != b'\x00\x03\x00\x01': raise AssertionError('TFTP DATA1 missing')
+                        transfers[action['id']] = {'socket': endpoint, 'peer': peer, 'packets': [packet], 'body': packet[4:]}
+                    elif op == 'tftp-finish':
+                        transfer = transfers[action['id']]; endpoint = transfer['socket']
+                        block = 1
+                        while len(transfer['packets'][-1]) == 516:
+                            endpoint.sendto(struct.pack('!HH', 4, block), transfer['peer'])
+                            packet, peer = endpoint.recvfrom(4096)
+                            block += 1
+                            if peer != transfer['peer'] or packet[:4] != struct.pack('!HH', 3, block): raise AssertionError('TFTP transfer discontinuity')
+                            transfer['packets'].append(packet); transfer['body'] += packet[4:]
+                        endpoint.sendto(struct.pack('!HH', 4, block), transfer['peer'])
+                        result['rows'].append({'id': action['id'] + ':tftp', 'body': transfer['body'].hex(),
+                            'packets': [packet.hex() for packet in transfer['packets']], 'response': None, 'error': None, 'cache': False, 'upstreams': []})
                     elif op == 'rename':
                         (data / action['path']).rename(data / action['to'])
                     elif op == 'directory-replace':
@@ -561,6 +834,12 @@ def run_side(root, side, case, folder):
                     result['actions'].append(dict(action, daemon_alive=process.poll() is None))
                     if op != 'query': time.sleep(.08)
     finally:
+        if limit_before is not None and process is not None and process.poll() is None:
+            resource.prlimit(process.pid, resource.RLIMIT_NOFILE, limit_before)
+        if startup_writer is not None:
+            startup_writer.join(1)
+            if startup_writer.is_alive(): result['startup_writer_leaked'] = True
+        for transfer in transfers.values(): transfer['socket'].close()
         for handle in opened.values(): handle.close()
         for client in connections.values(): client.close()
         for held in pending.values(): held['client'].close()
@@ -612,7 +891,7 @@ def compare(left, right, case):
             for stream in ('stdout', 'stderr'):
                 if stream in value: value[stream] = normalized_text(value[stream])
         if a != b: failures.append({'phase': phase, 'c': a, 'rust': b})
-    suffixes = {'helper-events': ['helper'], 'receive-udp': ['udp-async'], 'metrics': ['metrics'], 'reading-count': ['reading']}
+    suffixes = {'helper-events': ['helper'], 'receive-udp': ['udp-async'], 'metrics': ['metrics'], 'reading-count': ['reading'], 'receive-tcp': ['tcp-async'], 'large-file': ['large'], 'tftp-finish': ['tftp']}
     wanted = [action['id'] + ':' + transport for action in case['actions'] if action['op'] in ('query', *suffixes)
               for transport in suffixes.get(action['op'], action.get('transports', ['udp', 'tcp']))] if left['startup']['ready'] else []
     for side, observed in [('c', left), ('rust', right)]:
@@ -668,13 +947,15 @@ def controls():
 
 
 def exec_inotify_fault(argv):
+    kind, argv = argv[0], argv[1:]
+    number, error = (27, errno.EACCES) if kind == 'watch-eacces' else (26, errno.EMFILE)
     if platform.machine() != 'aarch64': raise RuntimeError('fault syscall ABI is pinned AArch64')
     class Filter(ctypes.Structure):
         _fields_ = [('code', ctypes.c_ushort), ('jt', ctypes.c_ubyte), ('jf', ctypes.c_ubyte), ('k', ctypes.c_uint)]
     class Program(ctypes.Structure):
         _fields_ = [('len', ctypes.c_ushort), ('filter', ctypes.POINTER(Filter))]
     # asm-generic __NR_inotify_init1=26; deny only this syscall with EMFILE.
-    filters = (Filter * 4)(Filter(0x20, 0, 0, 0), Filter(0x15, 0, 1, 26), Filter(0x06, 0, 0, 0x50000 | errno.EMFILE), Filter(0x06, 0, 0, 0x7fff0000))
+    filters = (Filter * 4)(Filter(0x20, 0, 0, 0), Filter(0x15, 0, 1, number), Filter(0x06, 0, 0, 0x50000 | error), Filter(0x06, 0, 0, 0x7fff0000))
     program = Program(4, filters)
     libc = ctypes.CDLL(None, use_errno=True)
     if libc.prctl(38, 1, 0, 0, 0) or libc.prctl(22, 2, ctypes.byref(program), 0, 0):
