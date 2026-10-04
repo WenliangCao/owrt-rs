@@ -124,6 +124,7 @@ def scenarios():
     for mode in ('poll', 'no-poll'):
         add('route-event-' + mode, 'RSLV-02,NPOLL-02', {'resolv': {'text': r1, 'mtime': 1700000010}},
             [probe('initial'), write('resolv', r2, hold_open=True, mtime=1700000020), {'op': 'route', 'prefix': '198.18.1.0/24'},
+             probe('after-manual-route'), {'op': 'address-route', 'address': '198.18.2.1/24'},
              probe('after-route'), {'op': 'close-file', 'path': 'resolv'}],
             'no-poll\n' if mode == 'no-poll' else '')
     add('pending-reused-slot', 'STATE-01,STATE-02', initial,
@@ -149,8 +150,8 @@ def scenarios():
         'symlink-relative': {'initial': 11, 'target-write': 12, 'retarget-no-event': 12, 'new-target-no-watch': 12, 'old-target-trigger': 13},
         'symlink-absolute': {'initial': 11, 'target-write': 12},
         'resolver-token-matrix': {'token-0': 11, 'token-1': 5, 'token-2': 12, 'token-3': 5, 'token-4': 14, 'token-5': 14, 'token-6': 5},
-        'route-event-poll': {'initial': 11, 'after-route': 12},
-        'route-event-no-poll': {'initial': 11, 'after-route': 11},
+        'route-event-poll': {'initial': 11, 'after-manual-route': 11, 'after-route': 12},
+        'route-event-no-poll': {'initial': 11, 'after-manual-route': 11, 'after-route': 11},
         'pending-reused-slot': {'old-reply': None, 'new-reply': 12},
         'pending-retired-slot': {'retired-reply': None, 'fresh-refused': 5},
         'pending-all-servers-retired-last-slot': {'retired-last-reply': None, 'fresh-survivor': 12},
@@ -163,6 +164,10 @@ def scenarios():
             if action.get('id') in wanted:
                 value = wanted[action['id']]
                 action['c_expect'] = {'timeout': True} if value is None else ({'rcode': 5} if value == 5 else {'addresses': ['192.0.2.' + str(value)], 'rcode': 0})
+    for case in cases:
+        if case['id'] == 'resolver-token-matrix':
+            next(a for a in case['actions'] if a.get('id') == 'token-4')['c_expect'] = {
+                'udp': {'timeout': True}, 'tcp': {'addresses': ['192.0.2.14'], 'rcode': 0}}
     return cases
 
 
@@ -224,7 +229,11 @@ def run_side(root, side, case, folder):
     if data.exists(): shutil.rmtree(data)
     data.mkdir()
     opened, connections, pending = {}, {}, {}
-    routes = []
+    routes, addresses = [], []
+    route_socket = None
+    if any(a['op'] in ('route', 'address-route') for a in case['actions']):
+        route_socket = socket.socket(socket.AF_NETLINK, socket.SOCK_RAW, 0)
+        route_socket.bind((0, 0x40 | 0x400)); route_socket.settimeout(.02)
     for path, value in case['files'].items(): put(root, path, value, opened)
     names = {(a['name'], a.get('type', 1)) for a in case['actions'] if a['op'] in ('query', 'start-udp')}
     upstreams = []
@@ -296,9 +305,26 @@ def run_side(root, side, case, folder):
                             'error': error, 'request': held['packet'].hex(), 'reply': response.hex() if response else None, 'elapsed': 0, 'cache': False,
                             'upstreams': [{'server': u.host, 'events': copy.deepcopy(u.events[n:])} for u, n in zip(upstreams, held['before'])]})
                         held['before'] = [len(u.events) for u in upstreams]
-                    elif op == 'route':
-                        subprocess.run(['ip', 'route', 'add', action['prefix'], 'dev', 'lo', 'scope', 'link'], check=True)
-                        routes.append(action['prefix'])
+                    elif op in ('route', 'address-route'):
+                        if op == 'route':
+                            subprocess.run(['ip', 'route', 'add', action['prefix'], 'dev', 'lo', 'scope', 'link'], check=True)
+                            routes.append(action['prefix'])
+                        else:
+                            subprocess.run(['ip', 'addr', 'add', action['address'], 'dev', 'lo'], check=True)
+                            addresses.append(action['address'])
+                        packets = []
+                        for _ in range(16):
+                            try: wire, peer = route_socket.recvfrom(65535)
+                            except socket.timeout: break
+                            records, at = [], 0
+                            while at + 16 <= len(wire):
+                                length, kind, flags, seq, pid = struct.unpack_from('=IHHII', wire, at)
+                                if length < 16 or at + length > len(wire): break
+                                row = {'kind': kind, 'flags': flags, 'sequence': seq, 'pid': pid}
+                                if length >= 28: row['route'] = list(wire[at + 16:at + 28])
+                                records.append(row); at += (length + 3) & ~3
+                            packets.append({'peer': list(peer), 'wire': wire.hex(), 'records': records})
+                        result['actions'].append({'op': 'netlink-witness', 'trigger': op, 'packets': packets})
                     elif op == 'write': put(root, action['path'], action, opened)
                     elif op == 'unlink': image_path(root, '/m2/files/' + action['path'], follow_leaf=False).unlink()
                     elif op == 'symlink': put(root, action['path'], {'symlink': action['target']}, opened)
@@ -314,6 +340,8 @@ def run_side(root, side, case, folder):
         for client in connections.values(): client.close()
         for held in pending.values(): held['client'].close()
         for prefix in routes: subprocess.run(['ip', 'route', 'del', prefix, 'dev', 'lo'], check=True)
+        for address in addresses: subprocess.run(['ip', 'addr', 'del', address, 'dev', 'lo'], check=True)
+        if route_socket: route_socket.close()
         if process is not None and process.poll() is None:
             process.send_signal(signal.SIGTERM)
             try: process.wait(timeout=3)
@@ -439,7 +467,7 @@ def main():
                 matched = [entry for entry in c['rows'] if entry['id'].rsplit(':', 1)[0] == action['id']]
                 if not matched: row['failures'].append({'phase': 'c-runtime-calibration', 'id': action['id'], 'missing': True})
                 for entry in matched:
-                    wanted = action['c_expect']; response = entry['response']
+                    wanted = action['c_expect'].get(entry['id'].rsplit(':', 1)[1], action['c_expect']); response = entry['response']
                     valid = response is None if wanted.get('timeout') else response is not None and response['flags'] & 15 == wanted['rcode']
                     if valid and 'addresses' in wanted:
                         valid = sorted(r['data'] for r in response.get('records', []) if r['type'] in (1, 28) and r['section'] == 'answer') == sorted(wanted['addresses'])
