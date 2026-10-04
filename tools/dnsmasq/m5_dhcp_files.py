@@ -261,6 +261,8 @@ def resource_scenarios():
     rows.append(case('watch-burst-owner-progress','dhcp-optsdir={base}/dir',[inform('before'),dict(op='burst-progress',path='dir/a',bytes=256*1024,count=64,tail='224,burst\n'),inform('after'),dict(op='fd-check')],['OWNER01/event-burst-fairness']))
     for kind,directive,text,probe in [('hosts','dhcp-hostsfile',MAC+',127.0.0.30,partial',dict(op='packet',label='partial-host',kind=1)),('options','dhcp-optsfile','224,partial',inform('partial-option'))]:
         rows.append(dict(name='partial-read-eio-'+kind,config=directive+'=/m2/files/bank',files={},system_files={'/m2/files/bank':'# initially empty\n'},events=[dict(op='partial-eio',text=text),probe],cases=['LEX01/partial-last-line','OWNER03/partial-stream-eof'],boundaries=['LEX01','OWNER03']))
+    rows.append(dict(name='fifo-tftp-owner-progress',config='dhcp-optsfile={base}/opts\nenable-tftp\ntftp-root={base}/data',files={'opts':'224,old\n','data/payload':'T'*1400},events=[dict(op='fifo-tftp',path='opts'),inform('after')],cases=['OWNER01/slow-stream-owner-progress'],boundaries=['OWNER01'],owner_liveness_difference=True))
+    rows.append(dict(name='fifo-helper-owner-progress',config='dhcp-optsfile={base}/opts',files={'opts':'224,old\n'},events=[dict(op='packet',label='lease',kind=3,address='127.0.0.30'),dict(op='fifo-helper',path='opts'),dict(op='snapshot')],cases=['OWNER01/slow-stream-owner-progress'],boundaries=['OWNER01'],helper=True,helper_delay=True))
     return rows
 
 
@@ -271,6 +273,52 @@ def open_bank_fds(pid,path):
         except FileNotFoundError:continue
         if target.endswith(path):found.append(int(item.name))
     return found
+
+
+def fifo_other_protocol(folder,process,event):
+    path=folder/event['path'];kind=event['op'];transfer=None;packets=[]
+    if kind=='fifo-tftp':
+        transfer=socket.socket(socket.AF_INET,socket.SOCK_DGRAM);transfer.settimeout(1)
+        transfer.sendto(b'\0\1payload\0octet\0',('127.0.0.1',69));packet,peer=transfer.recvfrom(4096)
+        assert packet[:4]==b'\0\3\0\1','missing TFTP DATA1';packets.append(packet)
+    path.unlink();os.mkfifo(path);process.send_signal(signal.SIGHUP);writer=fifo_writer(path)
+    proof={}
+    try:
+        os.write(writer,b'224,loaded')
+        assert open_bank_fds(process.pid,BASE+'/'+event['path']),'pending reader absent'
+        if transfer:
+            transfer.sendto(b'\0\4\0\1',peer);transfer.settimeout(.15)
+            try:packet,received=transfer.recvfrom(4096)
+            except socket.timeout:packet=None
+            proof['tftp_while_pending']=packet is not None
+            if packet is not None:
+                assert received==peer and packet[:4]==b'\0\3\0\2';packets.append(packet)
+                transfer.sendto(b'\0\4\0\2',peer);packet,received=transfer.recvfrom(4096)
+                assert received==peer and packet[:4]==b'\0\3\0\3';packets.append(packet)
+                transfer.sendto(b'\0\4\0\3',peer)
+        else:
+            log=folder/'helper.log';before=log.read_text().splitlines() if log.exists() else []
+            assert not any(line.startswith('add|') for line in before),'slow helper finished before pending bank'
+            deadline=time.monotonic()+3
+            while time.monotonic()<deadline:
+                after=log.read_text().splitlines() if log.exists() else []
+                if any(line.startswith('add|') for line in after):break
+                time.sleep(.01)
+            else:raise AssertionError('helper stalled during pending bank')
+            assert open_bank_fds(process.pid,BASE+'/'+event['path']),'bank reader finished before helper witness'
+            proof.update(helper_before=before,helper_while_pending=after,helper_completed_while_pending=True)
+    finally:os.close(writer)
+    if transfer:
+        try:
+            transfer.settimeout(1)
+            if len(packets)==1:
+                packet,received=transfer.recvfrom(4096);assert received==peer and packet[:4]==b'\0\3\0\2';packets.append(packet)
+                transfer.sendto(b'\0\4\0\2',peer);packet,received=transfer.recvfrom(4096)
+                assert received==peer and packet[:4]==b'\0\3\0\3';packets.append(packet);transfer.sendto(b'\0\4\0\3',peer)
+            assert b''.join(packet[4:] for packet in packets)==b'T'*1400,'TFTP body mismatch'
+            proof.update(packets=[packet.hex() for packet in packets],body_bytes=1400)
+        finally:transfer.close()
+    return proof
 
 
 def load_progress(folder,process,event,out):
@@ -378,6 +426,9 @@ def install(root,scenario):
     else:(root/'m2').chmod(0o755)
     if scenario.get('helper'):
         path=folder/'helper.sh';path.write_text("#!/bin/sh\nprintf '%s|%s|%s|%s\\n' \"$1\" \"$2\" \"$3\" \"$4\" >> "+BASE+'/helper.log\n');path.chmod(0o755)
+        if scenario.get('helper_delay'):
+            script=path.read_text().replace('#!/bin/sh\n', '#!/bin/sh\nif [ "$1" = add ]; then : > '+BASE+'/helper-start; sleep 1; fi\n')
+            path.write_text(script)
     for name,value in scenario.get('system_files',{}).items():
         path=root/name.lstrip('/');path.parent.mkdir(parents=True,exist_ok=True);write_file(path,value)
     for name in ['family.pid','family.leases']:(root/'m2'/name).unlink(missing_ok=True)
@@ -460,6 +511,7 @@ def run_side(root,side,scenario,out):
                 elif event['op']=='system-unlink':(root/event['path'].lstrip('/')).unlink();time.sleep(.1)
                 elif event['op']=='stop-loading':observed['stop']=stop_stream(folder,event,process)
                 elif event['op']=='fifo-reload':observed['fifo']=fifo_reload(root,side,folder,event,process,endpoint,out,index)
+                elif event['op'] in ('fifo-tftp','fifo-helper'):observed['pending_protocol']=fifo_other_protocol(folder,process,event)
                 elif event['op']=='fd-limit':
                     if event.get('restore'):
                         resource.prlimit(process.pid,resource.RLIMIT_NOFILE,limit_before);limit_before=None
@@ -536,6 +588,11 @@ def compare(c,rust):
         for key in ['index','event','alive','health','peer','comparable','dns','helper','bank_fds_closed','emfile_verified','owner_health_verified','partial_eio_verified']:
             if first.get(key)!=second.get(key):failures.append(f"{first['index']}:{key}")
         if (first.get('response') is None)!=(second.get('response') is None):failures.append(f"{first['index']}:response presence")
+        if 'pending_protocol' in first or 'pending_protocol' in second:
+            left,right=copy.deepcopy(first.get('pending_protocol')),copy.deepcopy(second.get('pending_protocol'))
+            if first['event']['op']=='fifo-tftp':
+                if left.pop('tftp_while_pending') is not False or right.pop('tftp_while_pending') is not True:failures.append(f"{first['index']}:TFTP owner disposition")
+            if left!=right:failures.append(f"{first['index']}:pending protocol")
         if 'stop' in first or 'stop' in second:
             if first.get('stop')!={'before_writer_close':'waiting','exit_after_close':0} or second.get('stop')!={'before_writer_close':'exited','exit_after_close':0}:failures.append(f"{first['index']}:stop owner disposition")
         if 'fifo' in first or 'fifo' in second:
