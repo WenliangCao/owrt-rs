@@ -780,7 +780,8 @@
       ],
       "expected_test_exit": 0,
       "two_interfaces": true,
-      "tftp": true
+      "tftp": true,
+      "wait_for_address_ready": true
     },
     {
       "id": "v4-exclude-tftp-1-bind-interfaces",
@@ -814,7 +815,8 @@
       ],
       "expected_test_exit": 0,
       "two_interfaces": true,
-      "tftp": true
+      "tftp": true,
+      "wait_for_address_ready": true
     },
     {
       "id": "v4-exclude-tftp-0-bind-dynamic",
@@ -848,7 +850,8 @@
       ],
       "expected_test_exit": 0,
       "two_interfaces": true,
-      "tftp": true
+      "tftp": true,
+      "wait_for_address_ready": true
     },
     {
       "id": "v4-exclude-tftp-1-bind-dynamic",
@@ -882,7 +885,8 @@
       ],
       "expected_test_exit": 0,
       "two_interfaces": true,
-      "tftp": true
+      "tftp": true,
+      "wait_for_address_ready": true
     },
     {
       "id": "v4-mixed-spellings",
@@ -927,7 +931,7 @@
           "guest": true,
           "server": "10.78.0.1",
           "expect": {
-            "status": 2
+            "status": null
           }
         },
         {
@@ -941,8 +945,8 @@
           "server": "10.78.0.1",
           "address": "10.78.0.10",
           "expect": {
-            "status": 5,
-            "leases": 1
+            "status": null,
+            "leases": 0
           }
         }
       ],
@@ -951,6 +955,7 @@
     }
   ],
   "calibration_notes": [
-    "paired-01 retained: source review initially missed tftp.c wildcard both-family predicate; exact C TFTP answer identified a real Rust alias policy gap. Bound and wildcard modes now separately frozen."
+    "paired-01 retained: source review initially missed tftp.c wildcard both-family predicate; exact C TFTP answer identified a real Rust alias policy gap. Bound and wildcard modes now separately frozen.",
+    "paired-02 retained: newly created links have tentative IPv6 addresses; Rust generic bind startup differs from C and remains in the open bind-interface family. Alias-bound cases now wait for DAD to complete before starting either daemon. Mixed-spelling fixture correctly expects exclusion on both interfaces."
   ]
 }
