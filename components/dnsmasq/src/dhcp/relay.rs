@@ -464,6 +464,13 @@ mod linux {
                     "dnsmasq-rs: DHCP relay address {address} appears on more than one interface"
                 );
             }
+            // rfc2131.c:3067 post-increments before the hop-limit return,
+            // which bypasses the normal restore at the end of the function.
+            // The exact image echoes 21 as 22 and 255 as 0 in a subsequent
+            // local BOOTP reply, even though neither request is forwarded.
+            if bytes[0] == 1 && bytes[3] > 20 {
+                bytes[3] = bytes[3].wrapping_add(1);
+            }
             Ok(false)
         }
     }
