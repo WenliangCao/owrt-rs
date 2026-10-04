@@ -282,6 +282,8 @@ def profiles():
         profile("bootp-context-negative",["bootp-dynamic=tag:bootp,tag:!deny"],[case("range-tag-veto",kind=0,arch=None,vendor=None,prl=None,reply=False)],
                 ["BOOTP02"],mode="dynamic",static_host=False,range_value="set:deny,10.77.0.10,10.77.0.20,255.255.255.0,600s"),
     ])
+    for kind in ["external-conflict","default-exclusive","bind-interfaces","bind-dynamic"]:
+        rows.append(profile("bind-4011-"+kind,[],[],["START02","OWNER01"],mode="none",bind_kind=kind))
     return rows
 
 
@@ -464,6 +466,42 @@ def run_profile(root, side, profile, client, server, out):
     return row
 
 
+def run_binding(root,side,profile,out):
+    out.mkdir();kind=profile["bind_kind"]
+    row={"profile":profile["name"],"side":side,"cases":[],"binding":{"kind":kind,"startup":[],"cleanup":[],"identity":[]}}
+    processes=[];logs=[];blocker=None
+    try:
+        if kind=="external-conflict":
+            blocker=socket.socket(socket.AF_INET,socket.SOCK_DGRAM);blocker.bind(("0.0.0.0",4011))
+        for index in range(1 if blocker else 2):
+            port=2067 if index==0 else 1067
+            text="\n".join(["port=0","no-resolv","no-hosts","no-ping","user=root","group=root","interface=client0",
+                            "dhcp-range=10.77.0.1,proxy,255.255.255.0","pxe-service=0,Menu,boot",
+                            f"dhcp-alternate-port={port},{port+1}",f"pid-file=/m2/bind-{index}.pid",f"dhcp-leasefile=/m2/bind-{index}.leases",
+                            *([kind] if kind in ["bind-interfaces","bind-dynamic"] else [])])+"\n"
+            (root/f"m2/bind-{index}.conf").write_text(text);(out/f"config-{index}").write_text(text)
+            (root/f"m2/bind-{index}.pid").unlink(missing_ok=True)
+            log=(out/f"daemon-{index}.log").open("wb");logs.append(log)
+            process=subprocess.Popen(command(root,side,"-k","-C",f"/m2/bind-{index}.conf"),stdout=log,stderr=log,start_new_session=True)
+            processes.append(process);time.sleep(.15)
+            row["binding"]["startup"].append(process.poll())
+            if process.poll() is None:row["binding"]["identity"].append(process_identity(root,process.pid))
+    except Exception as error:row["error"]=repr(error)
+    finally:
+        for process in reversed(processes):row["binding"]["cleanup"].append(stop(process))
+        for log in logs:log.close()
+        if blocker:blocker.close()
+    row["binding"]["pid_removed"]=all(not (root/f"m2/bind-{index}.pid").exists() for index in range(len(processes)))
+    released=[]
+    for port in [1067,2067,4011]:
+        try:
+            with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as probe:probe.bind(("0.0.0.0",port))
+            released.append(port)
+        except OSError:pass
+    row["binding"]["ports_released"]=released
+    save(out/"result.json",row);return row
+
+
 def lease_state(case):
     if case["leases"] is None:
         return None
@@ -503,6 +541,13 @@ def evaluate(rows, corpus, sides):
             row = indexed.get(key)
             if row is None:
                 failures.append(f"missing {key}"); continue
+            if profile.get("bind_kind"):
+                expected={"external-conflict":[2],"default-exclusive":[None,2],"bind-interfaces":[None,None],"bind-dynamic":[None,None]}[profile["bind_kind"]]
+                binding=row.get("binding",{})
+                if "error" in row or binding.get("startup")!=expected:failures.append(f"{key}: binding startup {row.get('error',binding.get('startup'))}")
+                if not binding.get("pid_removed") or binding.get("ports_released")!=[1067,2067,4011] or any(item.get("forced") for item in binding.get("cleanup",[])):
+                    failures.append(f"{key}: binding cleanup")
+                continue
             if not row.get("started") or "error" in row:
                 failures.append(f"{key}: {row.get('error', 'not started')}")
             if row["test"]["exit"] != 0:
@@ -542,6 +587,7 @@ def evaluate(rows, corpus, sides):
             first = indexed.get((profile["name"], "c")); second = indexed.get((profile["name"], "rust"))
             if not first or not second:
                 continue
+            if profile.get("bind_kind"):continue
             for stream in ["stdout", "stderr"]:
                 if first["test"][stream] != second["test"][stream].replace("dnsmasq-rs:", "dnsmasq:"):
                     failures.append(f"{profile['name']}: --test {stream} differs")
@@ -643,7 +689,7 @@ def main(args):
         if any(profile.get("needs_server") for profile in corpus):server=Peer("server0",net.UP,net.SERVER)
         for profile in corpus:
             for side in sides:
-                row = run_profile(root, side, profile, client, server, out/f"{profile['name']}-{side}")
+                row = run_binding(root,side,profile,out/f"{profile['name']}-{side}") if profile.get("bind_kind") else run_profile(root, side, profile, client, server, out/f"{profile['name']}-{side}")
                 rows.append(row)
                 print(json.dumps({"profile": profile["name"], "side": side, "cases": len(row["cases"]), "error": row.get("error")}), flush=True)
     except Exception as error:
@@ -657,8 +703,9 @@ def main(args):
         failures.append("peer cleanup")
     if server is not None and (server_cleanup is None or server_cleanup.get("actor_exit")!=0 or server_cleanup.get("namespace",{}).get("forced")):
         failures.append("upstream peer cleanup")
-    controls = negative_controls(rows,corpus) if len(sides)==2 and corpus else {"passed":not corpus,"not_executed":"syntax-only or reference-only run"}
-    if len(sides)==2 and not controls["passed"]:
+    packet_cases=any(profile["cases"] for profile in corpus)
+    controls = negative_controls(rows,corpus) if len(sides)==2 and packet_cases else {"passed":False,"not_executed":"no paired packet cases"}
+    if len(sides)==2 and packet_cases and not controls["passed"]:
         failures.append("comparator negative controls")
     result = {"passed": not failures and len(sides) == 2, "reference_checks_passed": not failures,
               "comparison_executed": len(sides) == 2, "failures": failures, "profiles": rows,
