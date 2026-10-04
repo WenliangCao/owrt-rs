@@ -98,7 +98,7 @@ python3 tools/dnsmasq/contract_inventory.py --state-differential \
   --work /ignored/private/config-state
 ```
 
-当前显式安全边界还包括拒绝超出 DNS u16 RDATA 长度和 u8 CAA tag 长度的输入；C 对这些长度有窄化行为。它们是记录在案的解析接受集差异，完整兼容/缺陷修复验收仍需保留原版最小复现后作判断，不能算作已无差异。CNAME target 索引从原版逐项查找转为 HashMap 加迭代图遍历，改善 finalization 的预期复杂度；配置重复别名检查、整体时间/内存成本和真实性能收益尚未测量。
+M5已补齐RR/TXT保留长度的u16窄化、CAA tag的u8窄化、NAPTR字符字段先u16再截255和整数32位窄化；21配置／418服务观察／102语法镜像通过，见DELIVERY_LEDGER中的记录边界闭合。CAA总长度65536/65537的原版在窄化后分配、再按完整长度memcpy，隔离--test均SIGSEGV；Rust继续安全拒绝这一原版内存越界路径，缺陷与非法hex的原版ENOMEM差异均单独留证。CNAME target 索引从原版逐项查找转为 HashMap 加迭代图遍历，改善 finalization 的预期复杂度；配置重复别名检查、整体时间/内存成本和真实性能收益尚未测量。
 
 ## OpenWrt 调用方合同
 
