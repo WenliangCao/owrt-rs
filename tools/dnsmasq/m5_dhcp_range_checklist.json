@@ -203,7 +203,9 @@
         "range-lease-wire--deprecated",
         "range-lease-wire--infinite",
         "range-lease-wire--minimum",
-        "range-lease-wire--wide"
+        "range-lease-wire--wide",
+        "range-lease-wire--signed-boundary",
+        "range-lease-wire--maximum-finite"
       ],
       "cases": [
         "range-lease-grammar",
@@ -226,7 +228,9 @@
         "range-lease-wire--deprecated",
         "range-lease-wire--infinite",
         "range-lease-wire--minimum",
-        "range-lease-wire--wide"
+        "range-lease-wire--wide",
+        "range-lease-wire--signed-boundary",
+        "range-lease-wire--maximum-finite"
       ],
       "cases": [
         "range-infinite-deprecated"
@@ -255,7 +259,9 @@
         "range-lease-wire--deprecated",
         "range-lease-wire--infinite",
         "range-lease-wire--minimum",
-        "range-lease-wire--wide"
+        "range-lease-wire--wide",
+        "range-lease-wire--signed-boundary",
+        "range-lease-wire--maximum-finite"
       ],
       "cases": [
         "range-wide-lease"
@@ -518,7 +524,9 @@
       "case_catalogue": [
         "range-proxy--ordinary-pxe",
         "range-bootp-static--known",
-        "range-bootp-dynamic--permission"
+        "range-bootp-dynamic--permission",
+        "range-bootp-dynamic--static-does-not-allocate",
+        "range-bootp-dynamic--proxy-does-not-allocate"
       ],
       "cases": [
         "range-bootp-static",
@@ -533,7 +541,9 @@
     {
       "case_catalogue": [
         "range-proxy--ordinary-pxe",
-        "range-mixed-proxy--head"
+        "range-mixed-proxy--head",
+        "range-mixed-proxy--tagged-tail",
+        "range-mixed-proxy--tagged-head"
       ],
       "cases": [
         "range-proxy",
@@ -609,6 +619,8 @@
         "range-lease-wire--infinite",
         "range-lease-wire--minimum",
         "range-lease-wire--wide",
+        "range-lease-wire--signed-boundary",
+        "range-lease-wire--maximum-finite",
         "range-host-and-client-lease--floor",
         "range-host-and-client-lease--client-floor"
       ],
