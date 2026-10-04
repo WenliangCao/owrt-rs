@@ -2,7 +2,7 @@
 
 ## 当前状态与下一步
 
-- 当前里程碑：M5；169 项中 **107 项已关闭、35 项部分实现、27 项未实现，剩余 62 项**。
+- 当前里程碑：M5；169 项中 **107 项已关闭、34 项部分实现、28 项未实现，剩余 62 项**。
 - 刚关闭：dhcp-hostsfile、dhcp-hostsdir、dhcp-optsfile、dhcp-optsdir 共4项；1614c0fd／272e5b2b…7c67e93的82配置／330事件零差异，32边界／125 required case全有paired/archive证据，DYN03 malformed inotify由AArch64 ptrace注入后C/Rust均保持bank不变，15负控通过。最终2580 metadata／2231普通及77／55 malformed归档逐SHA+metadata核验并清远端。累计本轮关闭10项（配置2、DNS3、no-dhcpv4、range、DHCP files4）。
 - 当前代码：主干已整合 config-inputs、DHCP files planner/provenance、DNS files 驱动及读取诊断、range parser 两处修复。已构建候选 `954fcf92ff84c6777fb9c951661ed85587b9efe1` / ELF SHA256 `d9800cf5501a635f9c4ef42edcfe13c839d463bd217a625959a835c5ea25399c`，**1,478,680 字节**（相对 275a1150 +4,096；M4 +319,400）。这是混合整合增量，不冒称单族归因；config修复候选 `dcabd66a58924850d08a92d8c6dcee4c988da28c` / `9c285be0aefc47d6a4a8d8bf1f463036beed5ad17aadd45b38902e061523d994` 同为1,478,680字节（最后SIGPIPE修复增量0），已过完整配置输入对照。DHCP银行公共接线候选 `6c5e2e146423854db5763da102296e0100459210` / `b4e2ead3c5274e80896cd1f520f19daacf9155325219760c84e597ef60a1bf71`，1,503,256字节（对954 +24,576；M4 +343,976），原15配置／68事件、DNS受影响8配置／79行、helper退出定向均过，仍待完整32清单。c9 Linux库587/main10通过，18 ignored未计；后续range整数宽度3d2887de尚待镜像。之前的 275a1150 / e795fd68…3664de / 1,474,584 字节身份保留。
 - 下一步：DNSfiles非endpoint已关闭，转server/local/rev-server及servers-file继承endpoint族；先冻结精确C接口/源绑定/hostname/scope完整清单。DHCPfiles已48配置／214事件通过，新增18中17通过，FIFO读期间重复SIGHUP丢helper old事件已修31b7，双方实际4次信号及4次old已验证；仍须在queued reload完前gate DHCP，root正在修。运行期EMFILE暴露每包临时interface fd缺陷，正补持久非阻塞netlink dump并在收包前完成，未扣4项。range已闭合，qualification-1614明确按case绑定6c旧75+1614 dual，不冒称单一旧ELF全量；当前候选接口snapshot已补dual更新地址。root的no-dhcpv4已闭合，转tag-if 33配置C-only已校准，补BOOTP/PXE/helper等组合后配对。no-dhcpv4 paired-02还暴露通用bind在tentative IPv6地址时Rust失败/C延迟监听；该缺陷归仍开放的监听族，排除策略对照双方等DAD完成后执行，原失败保留。
@@ -56,7 +56,7 @@ M4 的单 poll owner 已替换六线程接线，决定见 [ADR_THREAD_MODEL.md](
 
 ## M5 盘点与工作顺序
 
-盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**107 项已实现并有 C 差分，35 项部分实现，27 项未实现；剩余 62 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
+盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**107 项已实现并有 C 差分，34 项部分实现，28 项未实现；剩余 62 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
 
 对镜像 init 的静态调用路径核对得到 **A 组 99 项、B 组 70 项**。A 表示原生 UCI/init 生成或调用，行号链接到保留原文的 init；B 表示通常需额外配置。`extraconftext`/conf-dir 可以透传任意指令，不据此把全部选项都算原生生成。`pxe-service`、`pxe-prompt`、`interface-name` 实际有 init 生成路径，归 A。26 个 excluded-capability 选项不混入169项计数；其与C一致的禁用/拒绝边界仍保留。
 
