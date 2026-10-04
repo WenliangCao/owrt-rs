@@ -518,6 +518,7 @@ def main():
     parser.add_argument('--source-commit', required=False)
     parser.add_argument('--output', type=Path)
     parser.add_argument('--manifest', type=Path, default=Path(__file__).with_suffix('.json'))
+    parser.add_argument('--scenarios', help='comma-separated targeted subset; incomplete options remain open')
     parser.add_argument('--options', help='comma-separated subset; incomplete option coverage cannot close')
     parser.add_argument('--self-test', action='store_true')
     args = parser.parse_args()
@@ -540,6 +541,11 @@ def main():
     if set(selected) - set(manifest['options']):
         raise ValueError('unknown selected option')
     scenarios = [s for s in manifest['scenarios'] if set(s['options']) & set(selected)]
+    if args.scenarios:
+        ids = args.scenarios.split(',')
+        if set(ids) - {scenario['id'] for scenario in scenarios}:
+            raise ValueError('unknown scenario or not part of selected options')
+        scenarios = [scenario for scenario in scenarios if scenario['id'] in ids]
     report = {'stock_sha256': STOCK_SHA256, 'rust_sha256': args.rust_sha256, 'source_commit': args.source_commit,
               'manifest_sha256': sha256(args.manifest), 'tool_sha256': sha256(Path(__file__)),
               'dependency_sha256': {filename: sha256(Path(__file__).with_name(filename)) for filename in ['m2_rootfs.py', 'dns_service_probe.py', 'run_isolated.sh', 'm5_option_matrix_probes.py']},
