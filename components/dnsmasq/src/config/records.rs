@@ -82,11 +82,9 @@ fn integer(arg: &EncodedArg) -> Result<u32, Error> {
         if !c.is_ascii_digit() {
             return Err(Error("bad integer"));
         }
-        value
-            .checked_mul(10)
-            .and_then(|v| v.checked_add(u32::from(c - b'0')))
-            .filter(|&v| v <= i32::MAX as u32)
-            .ok_or(Error("integer exceeds defined C int range"))
+        // The image's musl atoi keeps the low 32 bits. Reproduce those
+        // observed values without signed-overflow undefined behavior.
+        Ok(value.wrapping_mul(10).wrapping_add(u32::from(c - b'0')))
     })
 }
 fn uint16(arg: &EncodedArg) -> Result<u16, Error> {
@@ -460,6 +458,26 @@ mod tests {
         let directive = lex_line(text)?.unwrap();
         validate_directive(&directive)?;
         config.apply(&directive)
+    }
+
+    #[test]
+    fn image_record_integer_widths_wrap_before_field_checks() {
+        let mut config = RecordConfig::default();
+        apply(&mut config, b"dns-rr=test,4294967296,ab").unwrap();
+        assert_eq!(config.raw[0].rr_type, 0);
+        apply(
+            &mut config,
+            format!("caa-record=test,{},t,v", "9".repeat(64)).as_bytes(),
+        )
+        .unwrap();
+        assert_eq!(config.raw[1].data[0], 255);
+        apply(
+            &mut config,
+            b"naptr-record=test,4294967296,4294967297,f,s,r,.",
+        )
+        .unwrap();
+        assert_eq!((config.naptr[0].order, config.naptr[0].preference), (0, 1));
+        assert!(apply(&mut config, b"naptr-record=test,2147483648,1,f,s,r,.").is_err());
     }
 
     #[test]
