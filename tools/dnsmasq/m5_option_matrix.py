@@ -23,6 +23,7 @@ import time
 
 from dns_service_probe import exact_read, name, read_name, semantics
 from m2_rootfs import STOCK_SHA256, command, prepare, process_identity, sha256
+import m5_option_matrix_probes as probes_extra
 
 
 def dump(path, data):
@@ -95,7 +96,21 @@ class Upstream:
         while not self.stop.is_set():
             try:
                 packet, peer = self.udp.recvfrom(65535)
-                self.udp.sendto(self.answer(packet, 'udp'), peer)
+                response = self.answer(packet, 'udp')
+                host, end = read_name(packet, 12)
+                probe = self.probes.get((host, struct.unpack_from('!H', packet, end)[0]), {})
+                if probe.get('delay_ms'):
+                    time.sleep(probe['delay_ms'] / 1000)
+                if probe.get('spoof_case'):
+                    wrong = bytearray(response)
+                    for index in range(12, end):
+                        if 65 <= wrong[index] <= 90 or 97 <= wrong[index] <= 122:
+                            wrong[index] ^= 0x20
+                            break
+                    wrong[-4:] = bytes([8, 8, 4, 4])
+                    self.udp.sendto(wrong, peer)
+                    time.sleep(.025)
+                self.udp.sendto(response, peer)
             except socket.timeout:
                 continue
             except OSError:
@@ -123,6 +138,15 @@ class Upstream:
                 while not self.stop.is_set():
                     packet = exact_read(client, struct.unpack('!H', exact_read(client, 2))[0])
                     response = self.answer(packet, 'tcp')
+                    host, end = read_name(packet, 12)
+                    probe = self.probes.get((host, struct.unpack_from('!H', packet, end)[0]), {})
+                    if probe.get('spoof_case'):
+                        response = bytearray(response)
+                        for index in range(12, end):
+                            if 65 <= response[index] <= 90 or 97 <= response[index] <= 122:
+                                response[index] ^= 0x20
+                                break
+                        response[-4:] = bytes([8, 8, 4, 4])
                     client.sendall(struct.pack('!H', len(response)) + response)
         except (ConnectionError, OSError):
             pass
@@ -181,8 +205,10 @@ def run_side(root, side, scenario, folder):
     with socket.socket() as reserve:
         reserve.bind(('127.0.0.1', 0))
         port = reserve.getsockname()[1]
-    conf = ('no-resolv\nno-hosts\nno-0x20-encode\nno-round-robin\nuser=root\ngroup=root\n'
-            f'listen-address=127.0.0.1\nport={port}\ncache-size={scenario.get("cache_size", 0)}\nlocal-ttl=120\n'
+    conf = ('no-resolv\nno-hosts\nno-round-robin\nuser=root\ngroup=root\n'
+            + ('' if scenario.get('adapter') == 'casing' else 'no-0x20-encode\n')
+            + ('' if scenario.get('listen_addresses') == [] else 'listen-address=' + ','.join(scenario.get('listen_addresses', ['127.0.0.1'])) + '\n')
+            + f'port={port}\ncache-size={scenario.get("cache_size", 0)}\nlocal-ttl=120\n'
             f'server=127.0.0.2#{upstream.port}\npid-file=/m2/matrix.pid\n'
             'addn-hosts=/m2/matrix.hosts\n' + scenario['config'].replace('{upstream}', str(upstream.port)))
     (root / 'm2/matrix.conf').write_text(conf)
@@ -200,9 +226,17 @@ def run_side(root, side, scenario, folder):
             deadline = time.monotonic() + 3
             while process.poll() is None:
                 try:
-                    with socket.create_connection(('127.0.0.1', port), .05):
-                        result['startup'] = {'ready': True}
-                        break
+                    if scenario.get('adapter') == 'capacity':
+                        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as ready:
+                            ready.settimeout(.05)
+                            ready.connect(('127.0.0.1', port))
+                            ready.send(probes_extra.question_packet('capacity.matrix.test', 0x2930))
+                            ready.recv(4096)
+                    else:
+                        with socket.create_connection(('127.0.0.1', port), .05):
+                            pass
+                    result['startup'] = {'ready': True}
+                    break
                 except OSError:
                     if time.monotonic() > deadline:
                         result['startup'] = {'ready': False, 'timeout': True}
@@ -215,7 +249,8 @@ def run_side(root, side, scenario, folder):
                 verify_identity(result['identity']['sha256'], sha256(root / ('usr/sbin/dnsmasq' if side == 'c' else 'usr/sbin/dnsmasq-rs')))
                 for index, probe in enumerate(scenario['probes']):
                     for transport in probe.get('transports', ['udp', 'tcp']):
-                        result['rows'].append(observe(port, probe, 0x4100 + index, transport, upstream))
+                        observer = {'casing': probes_extra.observe_casing, 'capacity': probes_extra.observe_capacity}.get(scenario.get('adapter'), observe)
+                        result['rows'].append(observer(port, probe, 0x4100 + index * 4, transport, upstream))
     finally:
         if process is not None:
             if process.poll() is None:
@@ -270,6 +305,17 @@ def compare(expected, actual, scenario):
             failures.append({'phase': 'cleanup', 'side': side, 'actual': observed['cleanup']})
         if observed.get('forced_kill') or (observed['startup']['ready'] and observed['exit'] != 0):
             failures.append({'phase': 'shutdown', 'side': side, 'exit': observed['exit']})
+    if scenario.get('adapter') == 'capacity':
+        for side, observed in [('c', expected), ('rust', actual)]:
+            failures.extend({'phase': 'capacity-guard', 'side': side, **failure} for failure in probes_extra.capacity_guards(observed['rows'], scenario))
+    if scenario.get('adapter') == 'casing':
+        for side, observed in [('c', expected), ('rust', actual)]:
+            failures.extend({'phase': 'casing-guard', 'side': side, **failure} for failure in probes_extra.casing_guards(observed['rows'], scenario))
+        for left, right in zip(expected['rows'], actual['rows']):
+            a, b = probes_extra.casing_projection(left), probes_extra.casing_projection(right)
+            if a != b:
+                failures.append({'phase': 'runtime', 'id': left['id'], 'c': a, 'rust': b})
+        return failures
     for row in expected['rows']:
         probe_id, transport = row['id'].rsplit(':', 1)
         probe = next(p for p in scenario['probes'] if p['id'] == probe_id)
@@ -343,7 +389,7 @@ def main():
     parser.add_argument('--options', help='comma-separated subset; incomplete option coverage cannot close')
     parser.add_argument('--self-test', action='store_true')
     args = parser.parse_args()
-    controls = self_test()
+    controls = {**self_test(), **probes_extra.controls()}
     if args.self_test:
         print(json.dumps(controls, sort_keys=True))
         return 0
@@ -362,7 +408,7 @@ def main():
     scenarios = [s for s in manifest['scenarios'] if set(s['options']) & set(selected)]
     report = {'stock_sha256': STOCK_SHA256, 'rust_sha256': args.rust_sha256, 'source_commit': args.source_commit,
               'manifest_sha256': sha256(args.manifest), 'tool_sha256': sha256(Path(__file__)),
-              'dependency_sha256': {filename: sha256(Path(__file__).with_name(filename)) for filename in ['m2_rootfs.py', 'dns_service_probe.py', 'run_isolated.sh']},
+              'dependency_sha256': {filename: sha256(Path(__file__).with_name(filename)) for filename in ['m2_rootfs.py', 'dns_service_probe.py', 'run_isolated.sh', 'm5_option_matrix_probes.py']},
               'normalization': ['executable stderr/stdout prefix dnsmasq-rs: -> dnsmasq:',
                                 'upstream transaction ID removed; name/type/class/transport/count exact'],
               'negative_controls': controls, 'scenarios': [], 'options': {}, 'failures': []}
