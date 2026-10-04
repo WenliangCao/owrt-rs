@@ -11,7 +11,12 @@ pub mod allocation;
 pub mod context;
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 pub mod daemon;
-#[cfg(any(test, all(target_os = "linux", target_pointer_width = "64")))]
+// The matcher is shared with the portable relay engine; the policy adapter
+// itself has production consumers only in the Linux daemon.
+#[cfg_attr(
+    not(all(target_os = "linux", target_pointer_width = "64")),
+    allow(dead_code)
+)]
 mod interface_admission;
 pub mod lease;
 pub mod lease_file;
