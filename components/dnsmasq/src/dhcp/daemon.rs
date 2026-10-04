@@ -730,7 +730,7 @@ impl LocalProvider {
                     )),
                 })
                 .collect();
-            return Some(self.finish_file_update(now, true, true, errors));
+            return Some(self.finish_file_update(now, true, errors));
         }
         let files = self.file_owner.as_mut()?;
         if self.file_reload_pending && !files.busy() {
@@ -770,17 +770,18 @@ impl LocalProvider {
                 }),
             }
         }
-        Some(self.finish_file_update(now, update.replacement, update.refresh_hosts, errors))
+        Some(self.finish_file_update(now, update.refresh_hosts, errors))
     }
 
     fn finish_file_update(
         &mut self,
         now: i64,
-        replacement: bool,
         refresh_hosts: bool,
         errors: Vec<HostFileError>,
     ) -> MaintenanceReport {
-        if replacement {
+        // dhcp_update_configs clears CONFIG_ADDR_HOSTS after parsing both
+        // full banks and successful live host-file appends.
+        if refresh_hosts {
             self.ethers.clear_inferred_addresses();
         }
         self.hosts = self
