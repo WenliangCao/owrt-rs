@@ -1,0 +1,854 @@
+{
+  "api_plan": {
+    "files": [
+      "tools/dnsmasq/m5_dhcp_range.py",
+      "components/dnsmasq/src/dhcp/probe.rs",
+      "components/dnsmasq/src/dhcp/allocation.rs",
+      "components/dnsmasq/src/dhcp/context.rs"
+    ],
+    "product": "No new public product interface initially: retain RangeConfig/RangeKind/ContextState/ProbeResult and existing single-owner ProbeWait; parent integrates config/dhcp.rs and daemon/main edits separately. Failed remains for cancellation/entropy/owner failures; only actual ICMP network failures are aligned with C after observations.",
+    "shared_root_integration": [
+      "components/dnsmasq/src/config/dhcp.rs",
+      "components/dnsmasq/src/dhcp/daemon.rs",
+      "components/dnsmasq/src/main.rs"
+    ],
+    "tool": "One family driver with packet helpers, raw DHCP/BOOTP/relay port capture, child-only seccomp syscall faults, ICMP capture, timed cache witnesses and concurrent DNS/TFTP during a pending DHCP exchange."
+  },
+  "baseline_candidate": {
+    "bytes": 1474584,
+    "path": "/home/ubuntu/m5-root-20261004/275a1150/dnsmasq-rs",
+    "sha256": "e795fd68055a66b9d9ea5b1e703afccb7f38d4e6f8e06bd69384a6a0603664de",
+    "source": "275a1150"
+  },
+  "boundaries": [
+    {
+      "case_catalogue": [
+        "range-basic--normal",
+        "range-reverse--reverse",
+        "range-one-address--single",
+        "range-repeat--first",
+        "range-reverse--offer",
+        "range-one-address--exhaust"
+      ],
+      "cases": [
+        "range-basic",
+        "range-reverse",
+        "range-repeat"
+      ],
+      "evidence": [],
+      "id": "CFG-01",
+      "requirement": "IPv4 dynamic start/end grammar, single-address pool, reversed endpoints, repeated declaration insertion order; range config does not allocate a lease.",
+      "source": "option.c:3747-3754,3790-3821",
+      "status": "pending"
+    },
+    {
+      "case_catalogue": [
+        "range-prefix-grammar--prefix-5",
+        "range-prefix-grammar--prefix-6",
+        "range-prefix-grammar--prefix-7",
+        "range-prefix-grammar--prefix-8",
+        "range-prefix-grammar--prefix-9",
+        "range-prefix-grammar--prefix-10",
+        "range-prefix-grammar--prefix-11",
+        "range-prefix-grammar--prefix-12",
+        "range-prefix-grammar--prefix-13",
+        "range-prefix-grammar--prefix-14",
+        "range-prefix-grammar--prefix-15",
+        "range-prefix-grammar--prefix-16",
+        "range-prefix-grammar--prefix-17",
+        "range-prefix-grammar--prefix-18",
+        "range-prefix-grammar--prefix-19",
+        "range-prefix-grammar--prefix-20",
+        "range-prefix-grammar--prefix-21",
+        "range-prefix-grammar--prefix-22",
+        "range-prefix-grammar--prefix-23",
+        "range-prefix-grammar--prefix-24",
+        "range-prefix-grammar--prefix-25",
+        "range-legacy-tag--quoted-set-prefix"
+      ],
+      "cases": [
+        "range-prefix-grammar"
+      ],
+      "evidence": [],
+      "id": "CFG-02",
+      "requirement": "Tag prefix recognition uses C allowed-hex/digit/dot/colon scan, not successful IPv4 parsing. Pin bare red/lan versus dead/1234/1.2.3 and quote/meta boundaries.",
+      "source": "option.c:3755-3787",
+      "status": "pending",
+      "suspected_or_known_gap": "Rust currently treats every non-IPv4 prefix as a tag, widening address-like bare tokens."
+    },
+    {
+      "case_catalogue": [
+        "range-prefix-grammar--prefix-5",
+        "range-prefix-grammar--prefix-6",
+        "range-prefix-grammar--prefix-7",
+        "range-prefix-grammar--prefix-8",
+        "range-prefix-grammar--prefix-9",
+        "range-prefix-grammar--prefix-10",
+        "range-prefix-grammar--prefix-11",
+        "range-prefix-grammar--prefix-12",
+        "range-prefix-grammar--prefix-13",
+        "range-prefix-grammar--prefix-14",
+        "range-prefix-grammar--prefix-15",
+        "range-prefix-grammar--prefix-16",
+        "range-prefix-grammar--prefix-17",
+        "range-prefix-grammar--prefix-18",
+        "range-prefix-grammar--prefix-19",
+        "range-prefix-grammar--prefix-20",
+        "range-prefix-grammar--prefix-21",
+        "range-prefix-grammar--prefix-22",
+        "range-prefix-grammar--prefix-23",
+        "range-prefix-grammar--prefix-24",
+        "range-prefix-grammar--prefix-25",
+        "range-tags--range-tags",
+        "range-filter-conjunction--range-filter-conjunction",
+        "range-filter-conjunction--negative",
+        "range-legacy-tag--red",
+        "range-legacy-tag--set-red",
+        "range-legacy-tag--quoted-set-prefix",
+        "range-filter-conjunction--negate-33",
+        "range-filter-conjunction--negate-35"
+      ],
+      "cases": [
+        "range-tags",
+        "range-filter-conjunction",
+        "range-prefix-grammar"
+      ],
+      "evidence": [],
+      "id": "CFG-03",
+      "requirement": "tag:/net: filters are conjunctions with !/# negation and case sensitivity; one set:/legacy bare produced tag; repeated nonempty produced tag errors.",
+      "source": "option.c:3763-3781;dhcp-common.c:224-248",
+      "status": "pending"
+    },
+    {
+      "case_catalogue": [
+        "range-prefix-grammar--prefix-5",
+        "range-prefix-grammar--prefix-6",
+        "range-prefix-grammar--prefix-7",
+        "range-prefix-grammar--prefix-8",
+        "range-prefix-grammar--prefix-9",
+        "range-prefix-grammar--prefix-10",
+        "range-prefix-grammar--prefix-11",
+        "range-prefix-grammar--prefix-12",
+        "range-prefix-grammar--prefix-13",
+        "range-prefix-grammar--prefix-14",
+        "range-prefix-grammar--prefix-15",
+        "range-prefix-grammar--prefix-16",
+        "range-prefix-grammar--prefix-17",
+        "range-prefix-grammar--prefix-18",
+        "range-prefix-grammar--prefix-19",
+        "range-prefix-grammar--prefix-20",
+        "range-prefix-grammar--prefix-21",
+        "range-prefix-grammar--prefix-22",
+        "range-prefix-grammar--prefix-23",
+        "range-prefix-grammar--prefix-24",
+        "range-prefix-grammar--prefix-25",
+        "range-empty-selectors--range-empty-selectors"
+      ],
+      "cases": [
+        "range-empty-selectors"
+      ],
+      "evidence": [],
+      "id": "CFG-04",
+      "requirement": "Empty tag:/net: filters are ignored, empty set: remains absent and permits later produced tag; empty first address-like token is not silently discarded.",
+      "source": "option.c:3765-3779",
+      "status": "pending",
+      "suspected_or_known_gap": "Empty leading address field must reach address parser; empty set: remains a selector and permits a later produced tag."
+    },
+    {
+      "case_catalogue": [
+        "range-mask-grammar--mask-52",
+        "range-mask-grammar--mask-53",
+        "range-mask-grammar--mask-54",
+        "range-mask-grammar--mask-55",
+        "range-mask-grammar--mask-56",
+        "range-mask-grammar--mask-57",
+        "range-mask-grammar--mask-58",
+        "range-mask-grammar--mask-59",
+        "range-mask-grammar--mask-60",
+        "range-mask-grammar--mask-61",
+        "range-broadcast-grammar--broadcast-62",
+        "range-broadcast-grammar--broadcast-63",
+        "range-broadcast-grammar--broadcast-64"
+      ],
+      "cases": [
+        "range-mask-grammar",
+        "range-broadcast-grammar"
+      ],
+      "evidence": [],
+      "id": "CFG-05",
+      "requirement": "Optional dotted IPv4 mask sets explicit-mask flag; start/end must share bitmasked network. Noncontiguous and zero masks follow exact C acceptance. Broadcast consumes next slot only after a valid mask.",
+      "source": "option.c:3823-3841",
+      "status": "pending"
+    },
+    {
+      "case_catalogue": [
+        "range-lease-grammar--lease-29",
+        "range-lease-grammar--lease-30",
+        "range-lease-grammar--lease-31",
+        "range-lease-grammar--lease-32",
+        "range-lease-grammar--lease-33",
+        "range-lease-grammar--lease-34",
+        "range-lease-grammar--lease-35",
+        "range-lease-grammar--lease-36",
+        "range-lease-grammar--lease-37",
+        "range-lease-grammar--lease-38",
+        "range-infinite-deprecated--lease-39",
+        "range-infinite-deprecated--lease-40",
+        "range-infinite-deprecated--lease-41",
+        "range-lease-grammar--lease-42",
+        "range-lease-grammar--lease-43",
+        "range-lease-grammar--lease-44",
+        "range-lease-wire--absent",
+        "range-lease-wire--empty",
+        "range-lease-wire--deprecated",
+        "range-lease-wire--infinite",
+        "range-lease-wire--minimum",
+        "range-lease-wire--wide"
+      ],
+      "cases": [
+        "range-lease-grammar",
+        "range-lease-wire"
+      ],
+      "evidence": [],
+      "id": "CFG-06",
+      "requirement": "Absent and explicit empty lease retain default 3600 without CONTEXT_SETLEASE; zero and bare suffix become120; s/m/h/d/w case variants, minimum120 and malformed/trailing fields have exact startup/--test outcomes.",
+      "source": "option.c:3942-3998",
+      "status": "pending",
+      "suspected_or_known_gap": "Exact bad dhcp-range diagnostic still requires paired grammar coverage."
+    },
+    {
+      "case_catalogue": [
+        "range-infinite-deprecated--lease-39",
+        "range-infinite-deprecated--lease-40",
+        "range-infinite-deprecated--lease-41",
+        "range-lease-wire--absent",
+        "range-lease-wire--empty",
+        "range-lease-wire--deprecated",
+        "range-lease-wire--infinite",
+        "range-lease-wire--minimum",
+        "range-lease-wire--wide"
+      ],
+      "cases": [
+        "range-infinite-deprecated"
+      ],
+      "evidence": [],
+      "id": "CFG-07",
+      "requirement": "infinite is UINT32_MAX; IPv4 deprecated is accepted but only the unused IPv6-deprecation bit changes, so ordinary lease remains default.",
+      "source": "option.c:3950-3956;rfc2131.c:1859-1873",
+      "status": "pending",
+      "suspected_or_known_gap": "Rust rejects deprecated in IPv4 range."
+    },
+    {
+      "case_catalogue": [
+        "range-wide-lease--lease-45",
+        "range-wide-lease--lease-46",
+        "range-wide-lease--lease-47",
+        "range-wide-lease--lease-48",
+        "range-wide-lease--lease-49",
+        "range-wide-lease--lease-50",
+        "range-wide-lease--lease-51",
+        "range-full-address-space--full-76",
+        "range-full-address-space--full-77",
+        "range-full-address-space--full-78",
+        "range-lease-wire--absent",
+        "range-lease-wire--empty",
+        "range-lease-wire--deprecated",
+        "range-lease-wire--infinite",
+        "range-lease-wire--minimum",
+        "range-lease-wire--wide"
+      ],
+      "cases": [
+        "range-wide-lease"
+      ],
+      "evidence": [],
+      "id": "CFG-08",
+      "requirement": "Pin large decimal and suffix product behavior on exact AArch64 image; implement observed low32 arithmetic safely if confirmed, and classify any undefined/unusable reference path separately.",
+      "source": "option.c:3985-3997",
+      "status": "pending",
+      "suspected_or_known_gap": "Rust rejects all values/products beyond signed int; exact-image acceptance pending."
+    },
+    {
+      "case_catalogue": [
+        "range-prefix-grammar--prefix-5",
+        "range-prefix-grammar--prefix-6",
+        "range-prefix-grammar--prefix-7",
+        "range-prefix-grammar--prefix-8",
+        "range-prefix-grammar--prefix-9",
+        "range-prefix-grammar--prefix-10",
+        "range-prefix-grammar--prefix-11",
+        "range-prefix-grammar--prefix-12",
+        "range-prefix-grammar--prefix-13",
+        "range-prefix-grammar--prefix-14",
+        "range-prefix-grammar--prefix-15",
+        "range-prefix-grammar--prefix-16",
+        "range-prefix-grammar--prefix-17",
+        "range-prefix-grammar--prefix-18",
+        "range-prefix-grammar--prefix-19",
+        "range-prefix-grammar--prefix-20",
+        "range-prefix-grammar--prefix-21",
+        "range-prefix-grammar--prefix-22",
+        "range-prefix-grammar--prefix-23",
+        "range-prefix-grammar--prefix-24",
+        "range-prefix-grammar--prefix-25",
+        "range-mask-grammar--mask-52",
+        "range-mask-grammar--mask-53",
+        "range-mask-grammar--mask-54",
+        "range-mask-grammar--mask-55",
+        "range-mask-grammar--mask-56",
+        "range-mask-grammar--mask-57",
+        "range-mask-grammar--mask-58",
+        "range-mask-grammar--mask-59",
+        "range-mask-grammar--mask-60",
+        "range-mask-grammar--mask-61",
+        "range-invalid--invalid-65",
+        "range-invalid--invalid-66",
+        "range-invalid--invalid-67",
+        "range-invalid--invalid-68",
+        "range-invalid--invalid-69",
+        "range-invalid--invalid-70",
+        "range-invalid--invalid-71",
+        "range-invalid--invalid-72",
+        "range-ipv6--ipv6-73",
+        "range-ipv6--ipv6-74",
+        "range-ipv6--ipv6-75",
+        "range-full-address-space--full-76",
+        "range-full-address-space--full-77",
+        "range-full-address-space--full-78"
+      ],
+      "cases": [
+        "range-invalid",
+        "range-ipv6",
+        "range-full-address-space"
+      ],
+      "evidence": [],
+      "id": "CFG-09",
+      "requirement": "nodhcpv6 rejects IPv6 range forms; missing/invalid address, excessive fields and malformed lease use precise C error/startup behavior. Keep bracket/constructor/RA forms separate from ordinary tags.",
+      "source": "option.c:3790-3798,3800-3843,3935-3947",
+      "status": "pending"
+    },
+    {
+      "case_catalogue": [
+        "range-basic--dora",
+        "range-derived-mask--offer",
+        "range-inconsistent-derived--none"
+      ],
+      "cases": [
+        "range-derived-mask",
+        "range-inconsistent-derived"
+      ],
+      "evidence": [],
+      "id": "CTX-01",
+      "requirement": "Derive unspecified mask from actual interface addresses, considering either endpoint; link only a context whose entire pool fits a receiving-interface subnet.",
+      "source": "dhcp.c:333-364,568-587,642-657",
+      "status": "pending"
+    },
+    {
+      "case_catalogue": [
+        "range-basic--dora",
+        "range-derived-mask--offer",
+        "range-mask-broadcast--explicit-zero"
+      ],
+      "cases": [
+        "range-mask-broadcast-wire"
+      ],
+      "evidence": [],
+      "id": "CTX-02",
+      "requirement": "Explicit mask never re-guessed; explicit broadcast including0 remains unchanged; absent broadcast uses matching interface broadcast or start|~mask.",
+      "source": "dhcp.c:644-665",
+      "status": "pending"
+    },
+    {
+      "case_catalogue": [
+        "range-interface-aliases--first-local",
+        "range-context-order--two-pools"
+      ],
+      "cases": [
+        "range-interface-aliases",
+        "range-context-order"
+      ],
+      "evidence": [],
+      "id": "CTX-03",
+      "remaining_fixture_gap": "Explicit listen-address secondary before all aliases still needs daemon witness.",
+      "requirement": "Receiving primary/explicit secondary selection and context prepend order are retained with multiple addresses on the same interface; first selected local/router is not overwritten by later aliases.",
+      "source": "dhcp.c:340-363,644-665",
+      "status": "pending"
+    },
+    {
+      "case_catalogue": [
+        "range-interface-aliases--first-local",
+        "range-multi-interface--guest"
+      ],
+      "cases": [
+        "range-multi-interface",
+        "range-address-update"
+      ],
+      "evidence": [],
+      "id": "CTX-04",
+      "remaining_fixture_gap": "Live address/netmask changes and persisted guesses still need daemon witness.",
+      "requirement": "Multiple receiving interfaces and repeated address/mask snapshots keep their own contexts; guessed fields update/persist as C, without mixing a pool onto the wrong ingress.",
+      "source": "dhcp.c:568-587,644-665",
+      "status": "pending"
+    },
+    {
+      "case_catalogue": [
+        "range-remote-selectors--link-selection",
+        "range-remote-classful--fallback"
+      ],
+      "cases": [
+        "range-remote-selectors",
+        "range-remote-classful"
+      ],
+      "evidence": [],
+      "id": "CTX-05",
+      "requirement": "Nonzero option82 link-selection precedes118, then giaddr, then ciaddr; forced selection with no matching range stays empty, while unmatched ciaddr can retain ingress for NAK. Remote classful guesses only when no explicit or previous mask exists.",
+      "source": "rfc2131.c:278-397",
+      "status": "pending"
+    },
+    {
+      "case_catalogue": [
+        "range-inconsistent-derived--none",
+        "range-multi-interface--guest"
+      ],
+      "cases": [
+        "range-no-context",
+        "range-full-address-space"
+      ],
+      "evidence": [],
+      "id": "CTX-06",
+      "requirement": "No matching context or excluded ingress causes no local DHCP answer; malformed/zero mask cannot accidentally activate a full-space range, and DNS remains healthy.",
+      "source": "rfc2131.c:388-409;dhcp.c:317-335",
+      "status": "pending"
+    },
+    {
+      "case_catalogue": [
+        "range-filter-conjunction--range-filter-conjunction",
+        "range-tag-priority--matched",
+        "range-filter-conjunction--negative",
+        "range-set-tag-stage--cannot-match-self",
+        "range-filter-conjunction--negate-33",
+        "range-filter-conjunction--negate-35"
+      ],
+      "cases": [
+        "range-tag-priority",
+        "range-filter-conjunction"
+      ],
+      "evidence": [],
+      "id": "SELECT-01",
+      "requirement": "Allocation makes tagged matching pool pass before untagged fallback; mismatched tags do not qualify even on second pass; declaration/context order is observed via response address/options.",
+      "source": "dhcp.c:825-853",
+      "status": "pending"
+    },
+    {
+      "case_catalogue": [
+        "range-tag-priority--matched",
+        "range-set-tag-stage--options",
+        "range-legacy-tag--red",
+        "range-legacy-tag--set-red",
+        "range-legacy-tag--quoted-set-prefix",
+        "range-set-tag-stage--cannot-match-self"
+      ],
+      "cases": [
+        "range-set-tag-stage"
+      ],
+      "evidence": [],
+      "id": "SELECT-02",
+      "requirement": "Produced range tag is added only after selection; it can drive options/tag-if/name policy but cannot satisfy its own allocation filter. Original broadcast tags remain distinct.",
+      "source": "rfc2131.c:848,1355-1359,1586-1592;dhcp-common.c:option_filter",
+      "status": "pending"
+    },
+    {
+      "case_catalogue": [
+        "range-basic--normal",
+        "range-one-address--single",
+        "range-basic--dora",
+        "range-one-address--exhaust"
+      ],
+      "cases": [
+        "range-basic",
+        "range-one-address",
+        "range-identity-seed"
+      ],
+      "evidence": [],
+      "id": "SELECT-03",
+      "remaining_fixture_gap": "Extended client identity seed inputs need service expansion.",
+      "requirement": "SDBM hardware/extended-client identity seed and inclusive bounds determine free offer; OFFER does not commit. One-address exhaustion/reuse stays bounded.",
+      "source": "dhcp.c:838-861;rfc2131.c:1275-1389",
+      "status": "pending"
+    },
+    {
+      "case_catalogue": [
+        "range-static--known-unknown",
+        "range-requested-address--eligible",
+        "range-reserved-and-leases--skip"
+      ],
+      "cases": [
+        "range-requested-address",
+        "range-reserved-and-leases"
+      ],
+      "evidence": [],
+      "id": "SELECT-04",
+      "requirement": "Configured host and existing client lease precede generic allocation; requested free address is considered only inside eligible dynamic range and does not override reserved/router/in-use addresses.",
+      "source": "rfc2131.c:1290-1345,1493-1558",
+      "status": "pending"
+    },
+    {
+      "case_catalogue": [
+        "range-static--known-unknown",
+        "range-narrow-priority--static"
+      ],
+      "cases": [
+        "range-static",
+        "range-narrow-priority"
+      ],
+      "evidence": [],
+      "id": "SELECT-05",
+      "requirement": "Static ranges do not allocate unknown clients; configured hosts on subnet can be outside dynamic bounds. Narrowing prefers available dynamic, then static on subnet, then other nonproxy context.",
+      "source": "dhcp.c:717-750;rfc2131.c:1290-1345",
+      "status": "pending"
+    },
+    {
+      "case_catalogue": [
+        "range-proxy--ordinary-pxe",
+        "range-bootp-static--known",
+        "range-bootp-dynamic--permission"
+      ],
+      "cases": [
+        "range-bootp-static",
+        "range-bootp-dynamic"
+      ],
+      "evidence": [],
+      "id": "SELECT-06",
+      "requirement": "BOOTP configured host/static-range path works; dynamic BOOTP permission does not convert static/proxy range into allocator. Reuse existing PXE/BOOTP packet helper.",
+      "source": "rfc2131.c:567-697;dhcp.c:707-743",
+      "status": "pending"
+    },
+    {
+      "case_catalogue": [
+        "range-proxy--ordinary-pxe",
+        "range-mixed-proxy--head"
+      ],
+      "cases": [
+        "range-proxy",
+        "range-mixed-proxy"
+      ],
+      "evidence": [],
+      "id": "SELECT-07",
+      "requirement": "Proxy ranges do not lease; matching PXE discovery receives proxy response, ordinary clients remain unanswered; tagged/mixed proxy/dynamic head behavior follows C.",
+      "source": "rfc2131.c:963-1058;dhcp.c:707-710,849-851",
+      "status": "pending"
+    },
+    {
+      "case_catalogue": [
+        "range-one-address--exhaust",
+        "range-static--known-unknown",
+        "range-reserved-and-leases--skip",
+        "range-class-c-ends--192.0.2.0",
+        "range-class-c-ends--192.0.2.255",
+        "range-class-c-ends--10.77.0.0",
+        "range-class-c-ends--10.77.0.255",
+        "range-class-c-ends--172.16.0.0",
+        "range-class-c-ends--172.16.0.255"
+      ],
+      "cases": [
+        "range-reserved-and-leases",
+        "range-class-c-ends"
+      ],
+      "evidence": [],
+      "id": "SELECT-08",
+      "requirement": "Allocator excludes all contexts router addresses, existing leases, configured static reservations and ClassC .0/.255; equivalent ClassA/B low octets are not blanket rejected.",
+      "source": "dhcp.c:687-714,867-881",
+      "status": "pending"
+    },
+    {
+      "case_catalogue": [
+        "range-one-address--single",
+        "range-basic--dora",
+        "range-one-address--exhaust",
+        "range-reserved-and-leases--skip"
+      ],
+      "cases": [
+        "range-exhaust-wrap",
+        "range-decline-release"
+      ],
+      "evidence": [],
+      "id": "SELECT-09",
+      "requirement": "Pool wrap/exhaustion and DECLINE epoch perturbation are bounded; RELEASE frees lease; no address leaks across contexts. Sequential option regression is interaction only, not a second option close.",
+      "source": "dhcp.c:855-918;rfc2131.c:DHCPDECLINE",
+      "status": "pending"
+    },
+    {
+      "case_catalogue": [
+        "range-context-order--two-pools",
+        "range-remote-selectors--link-selection",
+        "range-mixed-proxy--head",
+        "range-selecting-context-chain--server-id"
+      ],
+      "cases": [
+        "range-selecting-context-chain"
+      ],
+      "evidence": [],
+      "id": "SELECT-10",
+      "remaining_fixture_gap": "Multiple different local/server IDs and consumed-prefix alias fallback need dedicated context-chain witness.",
+      "requirement": "SELECTING server-ID consumes context-chain prefix before address narrowing; known static/TFTP alias policy must not reset consumed chain. Correct subnet ACK and wrong-network NAK preserved across multiple contexts.",
+      "source": "rfc2131.c:1403-1445,1504-1558",
+      "status": "pending"
+    },
+    {
+      "case_catalogue": [
+        "range-lease-wire--absent",
+        "range-lease-wire--empty",
+        "range-lease-wire--deprecated",
+        "range-lease-wire--infinite",
+        "range-lease-wire--minimum",
+        "range-lease-wire--wide",
+        "range-host-and-client-lease--floor",
+        "range-host-and-client-lease--client-floor"
+      ],
+      "cases": [
+        "range-host-and-client-lease"
+      ],
+      "evidence": [],
+      "id": "LEASE-01",
+      "requirement": "Host lease overrides range, client requested lease can shorten but is floored at120; finite/infinite option51 and persisted expiry agree with exact C.",
+      "source": "rfc2131.c:1859-1873;lease.c:lease_set_expires",
+      "status": "pending"
+    },
+    {
+      "case_catalogue": [
+        "range-broadcast-grammar--broadcast-62",
+        "range-broadcast-grammar--broadcast-63",
+        "range-broadcast-grammar--broadcast-64",
+        "range-tag-priority--matched",
+        "range-set-tag-stage--options",
+        "range-mask-broadcast--explicit-zero"
+      ],
+      "cases": [
+        "range-mask-broadcast-wire",
+        "range-set-tag-stage"
+      ],
+      "evidence": [],
+      "id": "LEASE-02",
+      "requirement": "Default option1/3/28/51/58/59 and context-tagged options reflect actual selected pool; PRL/no-PRL and explicit zero broadcast follow C.",
+      "source": "rfc2131.c:do_options;dhcp.c:659-665",
+      "status": "pending"
+    },
+    {
+      "case_catalogue": [
+        "range-narrow-priority--static",
+        "range-restart-renew--existing"
+      ],
+      "cases": [
+        "range-restart-renew",
+        "range-narrow-priority"
+      ],
+      "evidence": [],
+      "id": "LEASE-03",
+      "remaining_fixture_gap": "Static outside-pool restart/renew and wrong-network rebind need expansion.",
+      "requirement": "Restarted leases, wrong-network renewal/rebind and static outside-pool renewal preserve final lease table and chosen range semantics. Use600s renewal to reuse validated fuzz normalization.",
+      "source": "dhcp.c:372;rfc2131.c:1392-1751",
+      "status": "pending"
+    },
+    {
+      "case_catalogue": [
+        "range-probe-free--icmp",
+        "range-probe-conflict--occupied",
+        "range-probe-bypass--no-ping"
+      ],
+      "cases": [
+        "range-probe-free",
+        "range-probe-conflict",
+        "range-probe-bypass"
+      ],
+      "evidence": [],
+      "id": "PROBE-01",
+      "requirement": "no-ping and loopback bypass do not create probe cache entries; ordinary nonloopback free address performs real ICMP wait, while occupied address is skipped.",
+      "source": "dhcp.c:782-800",
+      "status": "pending"
+    },
+    {
+      "case_catalogue": [
+        "range-probe-cache--same-client"
+      ],
+      "cases": [
+        "range-probe-cache",
+        "unit-probe-cache-boundaries"
+      ],
+      "evidence": [],
+      "id": "PROBE-02",
+      "remaining_fixture_gap": "Live six-entry pressure and exact 30/31 clock boundary link remain to attach.",
+      "requirement": "Same-address cache reuse retains offer hash for30s; expiry and six-live-entry high-load bypass follow source. Image witnesses for live/cache behavior, frozen-clock source/unit boundary for exact age30/31.",
+      "source": "dhcp.c:782-821",
+      "status": "pending"
+    },
+    {
+      "case_catalogue": [
+        "range-probe-socket-failure--cache",
+        "range-probe-setup-failure--cache"
+      ],
+      "cases": [
+        "range-probe-socket-error",
+        "range-probe-setup-error"
+      ],
+      "evidence": [],
+      "id": "PROBE-03",
+      "requirement": "ICMP socket or SO_DONTROUTE setup failure is interpreted as no reply, address is offered and cached; no FD leak. Fault only raw-ICMP syscall, not interface enumeration sockets.",
+      "source": "dnsmasq.c:2348-2386;dhcp.c:799-821",
+      "status": "pending",
+      "suspected_or_known_gap": "Current Rust propagates I/O error and aborts allocation without cache."
+    },
+    {
+      "case_catalogue": [
+        "range-probe-send-failure--cache"
+      ],
+      "cases": [
+        "range-probe-send-error"
+      ],
+      "evidence": [],
+      "id": "PROBE-04",
+      "requirement": "ICMP send failure still reaches bounded C wait then caches address as free; repeat is cache hit. Synthetic unreachable /32 leaves DHCP broadcast/DNS connectivity intact.",
+      "source": "dnsmasq.c:2409-2421,2424-2505;dhcp.c:799-821",
+      "status": "pending",
+      "suspected_or_known_gap": "Rust immediately propagates send error and suppresses OFFER."
+    },
+    {
+      "case_catalogue": [
+        "range-probe-receive-failure--cache"
+      ],
+      "cases": [
+        "range-probe-receive-error",
+        "unit-probe-reply-validation"
+      ],
+      "evidence": [],
+      "id": "PROBE-05",
+      "remaining_fixture_gap": "Malformed reply source/type/ID/length source/unit guard remains to attach.",
+      "requirement": "Receive failure/mismatched reply cannot be treated as confirmed conflict; ordinary wrong ID/source/type/length are ignored until valid reply or timeout. Inject recvfrom(len48) only for runtime error witness.",
+      "source": "dnsmasq.c:2495-2505",
+      "status": "pending",
+      "suspected_or_known_gap": "Rust currently propagates non-EINTR/non-EAGAIN receive failure."
+    },
+    {
+      "case_catalogue": [
+        "range-probe-progress--dns-tftp"
+      ],
+      "cases": [
+        "range-probe-progress"
+      ],
+      "evidence": [],
+      "id": "PROBE-06",
+      "requirement": "DNS/TFTP keep progressing during genuine and failed-send ICMP waits; DHCP must not reenter allocation, and no file-reload/probe resource borrow overlaps. Reuse audited ICMP coexistence helpers.",
+      "source": "dnsmasq.c:2424-2484",
+      "status": "pending"
+    },
+    {
+      "case_catalogue": [
+        "range-probe-cancel-failure--planned"
+      ],
+      "cases": [
+        "unit-probe-error-classes",
+        "range-probe-send-error"
+      ],
+      "evidence": [],
+      "id": "PROBE-07",
+      "remaining_fixture_gap": "Cancellation/entropy/retry-exhaustion remains planned-only; ordinary syscall failures are distinct.",
+      "requirement": "Retry exhaustion stays bounded; remove no new owner blocking sleep/thread. Cancellation and entropy errors remain distinct from C-compatible network-error free result.",
+      "source": "dnsmasq.c:2409-2412;util.c:718-749",
+      "status": "pending"
+    },
+    {
+      "case_catalogue": [
+        "range-probe-conflict--occupied",
+        "range-probe-cache--same-client"
+      ],
+      "cases": [
+        "range-probe-conflict",
+        "range-probe-cache"
+      ],
+      "evidence": [],
+      "id": "PROBE-08",
+      "requirement": "Confirmed conflict perturbs epoch only in nonsequential mode; free/error cache stores current offer hash, and sequential offers do not reuse another client hash.",
+      "source": "dhcp.c:893-908",
+      "status": "pending"
+    },
+    {
+      "case_catalogue": [
+        "range-basic--normal",
+        "range-basic--dora"
+      ],
+      "cases": [
+        "range-lifecycle"
+      ],
+      "evidence": [],
+      "id": "LIFE-01",
+      "requirement": "Every safe config compares --test output and real startup; after packets verify DNS health, exit status, PID cleanup, no residual interfaces/children and FD trend.",
+      "source": "dnsmasq.c:main;dhcp.c:dhcp_packet",
+      "status": "pending"
+    },
+    {
+      "case_catalogue": [
+        "range-basic--dora"
+      ],
+      "cases": [
+        "range-artifact-identity"
+      ],
+      "evidence": [],
+      "id": "LIFE-02",
+      "requirement": "Exact image/ELF/source/tool identities, isolated child namespaces, shared read-only base overlay, and complete SHA+tar metadata archive precede remote prune.",
+      "source": "tools/dnsmasq/run_isolated.sh;tools/dnsmasq/m2_rootfs.py",
+      "status": "pending"
+    },
+    {
+      "case_catalogue": [
+        "range-basic--dora"
+      ],
+      "cases": [
+        "range-negative-controls"
+      ],
+      "evidence": [],
+      "id": "LIFE-03",
+      "requirement": "Reject changed address/lease/tags, missing entire scenario, wrong diagnostics, wrong probe timing/cache, and residual resources; pending C-only rows never close paired boundaries.",
+      "source": "tools/dnsmasq/m5_dhcp_range.py",
+      "status": "pending"
+    }
+  ],
+  "catalogue_note": "Each boundary remains pending until every requirement has C/Rust evidence. A case association is a plan, not a qualification claim. Runtime guards and negative controls reject absent observations.",
+  "checked": 0,
+  "created": "2026-10-04",
+  "family": "dhcp-range",
+  "implementation_inventory": {
+    "already_present": [
+      "RangeConfig set_tag/filter/mask/broadcast/lease_time",
+      "RangeKind dynamic/static/proxy",
+      "context completion and remote selection",
+      "two-pass tagged allocation",
+      "PXE/BOOTP mode runtime consumers"
+    ],
+    "suspected_gaps": [
+      "prefix lexical/quoted token classification",
+      "deprecated acceptance and large integer narrowing",
+      "exact diagnostics",
+      "ICMP socket/setup/send/receive outcome/cache"
+    ]
+  },
+  "options": [
+    "dhcp-range"
+  ],
+  "out_of_scope": [
+    "bridge-interface and shared-network remain independent unimplemented169 options; no new implementation hidden in this family",
+    "full PXE service catalogue already closed; only range-mode interactions repeated",
+    "global runtime log formatting belongs logging family; syntax/startup errors here remain exact",
+    "physical router operations"
+  ],
+  "reference_image_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "schema": "m5-family-boundary-checklist-v1",
+  "source": {
+    "dhcp-common.c": "9139906c5d3a438853fe84e90387cfc299c3c28e7b16a23c7d0d6922847ccc79",
+    "dhcp.c": "600dc068b0516d7edebcde9b02ae2091a278fc154551106823ddc388170d7001",
+    "dnsmasq.c": "d4bb7cde522376200a0293427b0812625ebc457f10dc9d3e2bef243ccba8ccd1",
+    "option.c": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
+    "rfc2131.c": "14f2e10792ef6108aeb7b69e551f089ba287c8c84d39ea178a5f33acd2038c2c",
+    "util.c": "33920165ef3e92f65d1cab75fe8da7772ad7389b37da79ba881957080f12f973"
+  },
+  "status": "source-frozen; catalogue extended; no paired boundaries closed",
+  "total": 39,
+  "updated": "2026-10-05"
+}
