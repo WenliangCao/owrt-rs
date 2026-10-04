@@ -82,7 +82,7 @@ def scenarios():
     add('symlink-relative', 'WATCH-02,WATCH-06', {'target': r1, 'resolv': {'symlink': 'target'}},
         [probe('initial'), write('target', r2), probe('target-write'), write('other', r1),
          {'op': 'symlink', 'path': 'resolv', 'target': 'other'}, probe('retarget-no-event'),
-         write('other', r2), probe('new-target-no-watch'), write('target', r1), probe('old-target-trigger')])
+         write('other', 'nameserver 127.0.0.4\n'), probe('new-target-no-watch'), write('target', r1), probe('old-target-trigger')])
     add('symlink-absolute', 'WATCH-02', {'target': r1, 'resolv': {'symlink': '/m2/files/target'}},
         [probe('initial'), write('target', r2), probe('target-write')])
     add('resolver-token-matrix', 'RSLV-03,RSLV-04', {'resolv': ''},
@@ -122,8 +122,8 @@ def scenarios():
     add('zero-and-own-server', 'RSLV-09', {'resolv': 'nameserver 0.0.0.0\n'},
         [probe('zero'), write('resolv', r1), probe('valid')])
     for mode in ('poll', 'no-poll'):
-        add('route-event-' + mode, 'RSLV-02,NPOLL-02', initial,
-            [probe('initial'), write('resolv', r2, hold_open=True), {'op': 'route', 'prefix': '198.18.1.0/24'},
+        add('route-event-' + mode, 'RSLV-02,NPOLL-02', {'resolv': {'text': r1, 'mtime': 1700000010}},
+            [probe('initial'), write('resolv', r2, hold_open=True, mtime=1700000020), {'op': 'route', 'prefix': '198.18.1.0/24'},
              probe('after-route'), {'op': 'close-file', 'path': 'resolv'}],
             'no-poll\n' if mode == 'no-poll' else '')
     add('pending-reused-slot', 'STATE-01,STATE-02', initial,
@@ -137,6 +137,32 @@ def scenarios():
         [{'op': 'start-udp', 'id': 'held', 'name': 'pending.files.test', 'upstream_count': 2}, write('resolv', r2),
          {'op': 'inject', 'id': 'held', 'server': 1, 'capture_server': 1},
          {'op': 'receive-udp', 'id': 'retired-last-reply', 'pending': 'held'}, probe('fresh-survivor')], 'all-servers\n')
+    add('own-v4-same-port', 'RSLV-09', {}, [probe('own-v4')], 'no-resolv\nserver=127.0.0.1#{listen_port}\n')
+    add('own-v6-same-port', 'RSLV-09', {}, [probe('own-v6')], 'no-resolv\nserver=::1#{listen_port}\n', listen='127.0.0.1,::1')
+    add('own-address-other-port', 'RSLV-09', {'resolv': 'nameserver 127.0.0.1\n'}, [probe('other-port')], local_upstream=True)
+    expected = {
+        'inplace-rename-delete-empty': {'initial': 11, 'inplace': 12, 'renamed': 11, 'deleted': 11, 'empty': 5, 'invalid': 5, 'recovered': 12},
+        'missing-leaf': {'missing': 5, 'created': 11},
+        'no-poll-signal': {'before': 11, 'after-hup': 12, 'after-close': 12, 'second-hup': 12},
+        'poll-signal': {'before': 11, 'after-hup': 11, 'after-close': 12, 'second-hup': 12},
+        'newest-file-and-ties': {'newest': 12, 'older-write': 12, 'equal-newest-option': 12, 'replaced-inode': 11},
+        'symlink-relative': {'initial': 11, 'target-write': 12, 'retarget-no-event': 12, 'new-target-no-watch': 12, 'old-target-trigger': 13},
+        'symlink-absolute': {'initial': 11, 'target-write': 12},
+        'resolver-token-matrix': {'token-0': 11, 'token-1': 5, 'token-2': 12, 'token-3': 5, 'token-4': 14, 'token-5': 14, 'token-6': 5},
+        'route-event-poll': {'initial': 11, 'after-route': 12},
+        'route-event-no-poll': {'initial': 11, 'after-route': 11},
+        'pending-reused-slot': {'old-reply': None, 'new-reply': 12},
+        'pending-retired-slot': {'retired-reply': None, 'fresh-refused': 5},
+        'pending-all-servers-retired-last-slot': {'retired-last-reply': None, 'fresh-survivor': 12},
+        'own-v4-same-port': {'own-v4': 5}, 'own-v6-same-port': {'own-v6': 5}, 'own-address-other-port': {'other-port': 15},
+    }
+    for case in cases:
+        if case['id'].startswith('filtered-'): expected[case['id']] = {'initial': 11, 'ignored-write': 11}
+        for action in case['actions']:
+            wanted = expected.get(case['id'], {})
+            if action.get('id') in wanted:
+                value = wanted[action['id']]
+                action['c_expect'] = {'timeout': True} if value is None else ({'rcode': 5} if value == 5 else {'addresses': ['192.0.2.' + str(value)], 'rcode': 0})
     return cases
 
 
@@ -202,7 +228,7 @@ def run_side(root, side, case, folder):
     for path, value in case['files'].items(): put(root, path, value, opened)
     names = {(a['name'], a.get('type', 1)) for a in case['actions'] if a['op'] in ('query', 'start-udp')}
     upstreams = []
-    for index, address in enumerate(['127.0.0.2', '127.0.0.3', '127.0.0.4', '::1']):
+    for index, address in enumerate(['127.0.0.2', '127.0.0.3', '127.0.0.4', '::1'] + (['127.0.0.1'] if case.get('local_upstream') else [])):
         fixtures = [{'name': host, 'type': kind, 'reply': f'192.0.2.{11 + index}' if kind == 1 else f'2001:db8::{11 + index}'} for host, kind in names]
         delayed = {a['name'] for a in case['actions'] if a['op'] == 'start-udp'}
         for fixture in fixtures:
@@ -211,9 +237,9 @@ def run_side(root, side, case, folder):
     with socket.socket() as reserve:
         reserve.bind(('127.0.0.1', 0)); port = reserve.getsockname()[1]
     config = ('no-hosts\nno-0x20-encode\nno-round-robin\nstrict-order\nuser=root\ngroup=root\n'
-              'listen-address=127.0.0.1\nhost-record=ready.files.test,192.0.2.250\n'
+              f'listen-address={case.get("listen", "127.0.0.1")}\nhost-record=ready.files.test,192.0.2.250\n'
               'pid-file=/m2/files.pid\n' + f'port={port}\ncache-size={case.get("cache_size", 0)}\n'
-              + ('resolv-file=/m2/files/resolv\n' if case.get('default_resolv', True) else '') + case['config'])
+              + ('resolv-file=/m2/files/resolv\n' if case.get('default_resolv', True) else '') + case['config'].replace('{listen_port}', str(port)))
     (root / 'm2/files.conf').write_text(config)
     (folder / 'config').write_text(config)
     test = subprocess.run(command(root, side, '--test', '-C', '/m2/files.conf'), capture_output=True, timeout=5)
@@ -408,6 +434,16 @@ def main():
             if c['syntax']['exit'] != case.get('expected_test', 0) or c['startup']['ready'] != case.get('expected_start', True):
                 row['failures'].append({'phase': 'c-calibration', 'syntax': c['syntax'], 'startup': c['startup']})
             row['rows'] = len(c['rows'])
+            for action in case['actions']:
+                if 'c_expect' not in action: continue
+                matched = [entry for entry in c['rows'] if entry['id'].rsplit(':', 1)[0] == action['id']]
+                if not matched: row['failures'].append({'phase': 'c-runtime-calibration', 'id': action['id'], 'missing': True})
+                for entry in matched:
+                    wanted = action['c_expect']; response = entry['response']
+                    valid = response is None if wanted.get('timeout') else response is not None and response['flags'] & 15 == wanted['rcode']
+                    if valid and 'addresses' in wanted:
+                        valid = sorted(r['data'] for r in response.get('records', []) if r['type'] in (1, 28) and r['section'] == 'answer') == sorted(wanted['addresses'])
+                    if not valid: row['failures'].append({'phase': 'c-runtime-calibration', 'id': entry['id'], 'expected': wanted, 'actual': entry})
             if args.sides == 'both': row['failures'].extend(compare(c, observed['rust'], case))
         except Exception as problem:
             row['failures'].append({'phase': 'infrastructure', 'error': repr(problem)})
