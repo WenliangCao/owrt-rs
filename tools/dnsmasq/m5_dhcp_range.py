@@ -968,7 +968,7 @@ def qualify_runs(runs, manifests, probe_tests, out):
     """Replay every frozen requirement from locally verified immutable runs."""
     from m5_option_matrix_archive import verify
     required = {}
-    driver_sha = sha256(runs[0]/'driver.py')
+    driver_shas = set()
     archives = {}
     for manifest in manifests:
         report = json.loads(manifest.read_text())
@@ -988,7 +988,9 @@ def qualify_runs(runs, manifests, probe_tests, out):
         assert result['passed'] and result['comparison_executed'] and not result['failures']
         assert not result.get('unexecuted')
         assert result['c_sha256'] == STOCK_SHA256
-        assert result['tool_sha256'] == driver_sha == sha256(run_dir/'driver.py')
+        driver_sha = sha256(run_dir/'driver.py')
+        assert result['tool_sha256'] == driver_sha
+        driver_shas.add(driver_sha)
         for name, expected in result['dependencies'].items():
             assert sha256(run_dir/'driver-dependencies'/name) == expected, name
         assert json.loads((run_dir/'negative-controls.json').read_text()) == controls()
@@ -1049,8 +1051,10 @@ def qualify_runs(runs, manifests, probe_tests, out):
                     assert row['leases'] == normalize_leases((event_folder/'leases').read_text(), durations)
             assert comparable(observed['c']) == comparable(observed['rust'])
             completed[case['name']] = {'run': str(run_dir), 'events': len(case['events']),
-                                       'archive_sha256': verified['archive_sha256']}
-    assert len(identities) == len(source_commits) == 1
+                                       'archive_sha256': verified['archive_sha256'],
+                                       'source_commit': result['source_commit'],
+                                       'rust_sha256': result['rust_sha256'],
+                                       'tool_sha256': driver_sha}
     checklist = json.loads(Path(__file__).with_name('m5_dhcp_range_checklist.json').read_text())
     tests = probe_tests.read_text()
     for boundary in checklist['boundaries']:
@@ -1064,14 +1068,14 @@ def qualify_runs(runs, manifests, probe_tests, out):
     blocked = [boundary['id'] for boundary in checklist['boundaries'] if boundary['status'] == 'blocked']
     checklist.update(status='qualified' if not blocked else 'partial', checked=len(checklist['boundaries'])-len(blocked),
                      blocked=blocked,
-                     source_commit=next(iter(source_commits)), rust_sha256=next(iter(identities)),
-                     tool_sha256=driver_sha, cases=len(completed),
+                     source_commits=sorted(source_commits), rust_sha256s=sorted(identities),
+                     tool_sha256s=sorted(driver_shas), cases=len(completed),
                      events_per_side=sum(case['events'] for case in completed.values()),
                      unit_evidence={'path': str(probe_tests), 'sha256': sha256(probe_tests)})
     save(out, checklist)
     return {'qualified': checklist['status'] == 'qualified', 'status': checklist['status'],
             'blocked': blocked, 'boundaries': checklist['checked'], 'cases': len(completed),
-            'events_per_side': checklist['events_per_side'], 'source_commit': checklist['source_commit']}
+            'events_per_side': checklist['events_per_side'], 'source_commits': checklist['source_commits']}
 
 
 def main():
