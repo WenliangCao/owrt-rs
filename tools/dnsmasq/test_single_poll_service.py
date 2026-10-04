@@ -96,7 +96,13 @@ class Network:
             # Destroying the peer namespace can already remove its veth.
             present = subprocess.run(['ip', 'link', 'show', link], capture_output=True, timeout=3)
             if present.returncode == 0:
-                ip('link', 'delete', link)
+                deleted = subprocess.run(['ip', 'link', 'delete', link], capture_output=True, timeout=3)
+                if deleted.returncode:
+                    # The peer can disappear after show but before delete.
+                    # Only an absent link makes this race a successful cleanup.
+                    present = subprocess.run(['ip', 'link', 'show', link], capture_output=True, timeout=3)
+                    if present.returncode == 0:
+                        deleted.check_returncode()
         return result
 
 
