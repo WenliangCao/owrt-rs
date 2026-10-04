@@ -98,6 +98,14 @@ impl DatagramSender for crate::net::DatagramSocket {
 pub trait OutcomeProvider {
     fn resolve(&mut self, dispatch: &Dispatch<'_>) -> Result<Outcome, RuntimeError>;
 
+    fn direct_pxe_reply(
+        &mut self,
+        _request: super::packet::Packet<'_>,
+        _output: &mut [u8],
+    ) -> Result<Option<super::reply::ReplyEncoding>, RuntimeError> {
+        Ok(None)
+    }
+
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     fn lease_query_reply(
         &mut self,
@@ -608,6 +616,21 @@ where
     P: OutcomeProvider,
     S: DatagramSender,
 {
+    // dhcp.c clears its all-ones extension before context/state processing.
+    // Keep the route separately so reply delivery restores the received wire
+    // value and uses the original source port.
+    let normalized = matches!(dispatch.route, Route::RelaySource { .. }).then(|| {
+        let mut bytes = dispatch.packet.bytes().to_vec();
+        bytes[24..28].fill(0);
+        bytes
+    });
+    let dispatch = Dispatch {
+        packet: normalized.as_ref().map_or(dispatch.packet, |bytes| {
+            super::packet::Packet::parse(bytes).expect("clearing giaddr preserves packet validity")
+        }),
+        ..dispatch
+    };
+
     let mut events = vec![RuntimeEvent::Admitted {
         kind: dispatch.kind,
         route: dispatch.route,
@@ -639,15 +662,22 @@ where
             Err(error) => return Err(failure(error, events, None, false)),
         };
         if let Some(length) = length {
+            restore_relay_source(&dispatch, buffer);
             // dhcp.c restores the all-ones giaddr sentinel and sends to the
             // original source address AND port for this relay extension.
             let destination = Destination {
-                address: if matches!(dispatch.route, Route::RelaySource { .. }) {
+                address: if dispatch.ingress.listener == super::service::Listener::Pxe {
+                    pxe_peer(buffer, peer)
+                } else if matches!(dispatch.route, Route::RelaySource { .. }) {
                     peer
                 } else {
                     SocketAddr::from((source, ports.server))
                 },
-                interface: dispatch.ingress.interface_index,
+                interface: if dispatch.ingress.listener == super::service::Listener::Pxe {
+                    0
+                } else {
+                    dispatch.ingress.interface_index
+                },
                 kind: DestinationKind::Peer,
                 arp: None,
             };
@@ -675,7 +705,10 @@ where
             outcome: None,
         });
     }
-    if dispatch.kind != DispatchKind::Dhcp && dispatch.kind != DispatchKind::Bootp {
+    if !matches!(
+        dispatch.kind,
+        DispatchKind::Dhcp | DispatchKind::Bootp | DispatchKind::Pxe
+    ) {
         return Err(failure(
             RuntimeError::Unsupported {
                 kind: dispatch.kind,
@@ -686,21 +719,6 @@ where
             false,
         ));
     }
-
-    // dhcp.c clears its all-ones extension before context/state processing.
-    // Keep the route separately so reply delivery restores the received wire
-    // value and uses the original source port.
-    let normalized = matches!(dispatch.route, Route::RelaySource { .. }).then(|| {
-        let mut bytes = dispatch.packet.bytes().to_vec();
-        bytes[24..28].fill(0);
-        bytes
-    });
-    let dispatch = Dispatch {
-        packet: normalized.as_ref().map_or(dispatch.packet, |bytes| {
-            super::packet::Packet::parse(bytes).expect("clearing giaddr preserves packet validity")
-        }),
-        ..dispatch
-    };
 
     let interface_name = match sender.interface_name(dispatch.ingress.interface_index) {
         Ok(name) => name,
@@ -720,6 +738,56 @@ where
         removed: outcome.removed.len(),
         lost_names: outcome.lost_names.len(),
     });
+    let direct = match provider.direct_pxe_reply(dispatch.packet, buffer) {
+        Ok(reply) => reply,
+        Err(error) => return Err(failure(error, events, Some(outcome), true)),
+    };
+    if let Some(encoding) = direct {
+        restore_relay_source(&dispatch, buffer);
+        events.push(RuntimeEvent::Built {
+            length: encoding.len,
+            omitted: encoding.omitted,
+            overload: encoding.overload,
+        });
+        // Direct PXE replies already encode all routing-relevant header
+        // fields. They neither use INFORM peer trust nor NAK policy flags.
+        let mut destination =
+            destination_with_ports(&dispatch, peer, &Reply::Ignore, buffer, encoding.len, ports)
+                .map_err(|error| failure(error, events.clone(), None, true))?;
+        if let Some(arp) = &mut destination.arp {
+            arp.interface_name = interface_name;
+        }
+        events.push(RuntimeEvent::DestinationSelected(destination.clone()));
+        if destination.arp.is_some() {
+            match sender.prepare_destination(&destination) {
+                Ok(()) => events.push(RuntimeEvent::ArpInjected),
+                Err(error) => events.push(RuntimeEvent::ArpInjectionFailed {
+                    kind: error.kind(),
+                    raw_os_error: error.raw_os_error(),
+                }),
+            }
+        }
+        // The socket owner accepts transient failures into its bounded queue.
+        // Never enter the legacy retry/sleep loop for a direct PXE response.
+        if let Err(error) = sender.send(&buffer[..encoding.len], &destination) {
+            return Err(failure(
+                RuntimeError::Send(error),
+                events,
+                Some(outcome),
+                true,
+            ));
+        }
+        events.push(RuntimeEvent::Sent {
+            length: encoding.len,
+        });
+        events.push(RuntimeEvent::Cleanup {
+            outcome_dropped: true,
+        });
+        return Ok(RuntimeReport {
+            events,
+            outcome: Some(outcome),
+        });
+    }
     if outcome.reply == Reply::Ignore {
         events.push(RuntimeEvent::NoReply);
         events.push(RuntimeEvent::Cleanup {
@@ -887,9 +955,7 @@ where
     if !matches!(outcome.reply, Reply::Nak { .. }) && provider.force_broadcast(&outcome) {
         buffer[10] |= 0x80;
     }
-    if let Route::RelaySource { original_giaddr } = dispatch.route {
-        buffer[24..28].copy_from_slice(&original_giaddr.octets());
-    }
+    restore_relay_source(&dispatch, buffer);
     let mut destination = match destination_with_ports(
         &dispatch,
         peer,
@@ -975,6 +1041,7 @@ fn encode_configured_options(
 // The arguments mirror the C do_options call boundary: packet/reply context,
 // selected configuration, and two output slots. Keeping them explicit makes
 // the precedence and mutation points auditable against that call chain.
+#[cfg(test)]
 #[allow(clippy::too_many_arguments)]
 pub(super) fn encode_filtered_options(
     packet: super::packet::Packet<'_>,
@@ -1148,8 +1215,8 @@ pub fn encode_filtered_options_with_pxe(
         &selection.tags,
         pxe,
         vendor_sent,
-        leasequery,
         null_term,
+        local.is_some() || pxe.direct,
     );
     if pxe.direct {
         // The proxy branch emits PXE misc/menu before ordinary mode2 options
@@ -1196,7 +1263,7 @@ pub fn encode_pxe_vendor_options(
     tags: &[&[u8]],
     pxe: &PxeEncoding<'_>,
 ) -> Vec<(u8, Vec<u8>)> {
-    vendor_options(packet, configured, tags, pxe, None, false, false)
+    vendor_options(packet, configured, tags, pxe, None, false, true)
 }
 
 fn vendor_options(
@@ -1205,16 +1272,16 @@ fn vendor_options(
     tags: &[&[u8]],
     pxe: &PxeEncoding<'_>,
     configured_vendor: Option<&[u8]>,
-    leasequery: bool,
     null_term: bool,
+    have_context: bool,
 ) -> Vec<(u8, Vec<u8>)> {
     use crate::config::dhcp::Encapsulation;
     let mut values = Vec::new();
-    if leasequery {
+    if packet.message_type() == 10 {
         return values;
     }
     let active = pxe.active_client();
-    if let Some(client) = active {
+    if let Some(client) = active.filter(|_| have_context) {
         values.push((60, client.vendor.clone()));
         if let Some(uuid) = client.uuid {
             values.push((97, uuid.to_vec()));
@@ -1242,7 +1309,7 @@ fn vendor_options(
                 }
         })
         .collect();
-    let generated = if active.is_some() {
+    let generated = if active.is_some() && have_context {
         pxe.generated_vendor
     } else {
         &[]
@@ -1441,6 +1508,23 @@ pub fn destination(
     )
 }
 
+fn pxe_peer(packet: &[u8], peer: SocketAddr) -> SocketAddr {
+    let ciaddr = Ipv4Addr::new(packet[12], packet[13], packet[14], packet[15]);
+    if ciaddr.is_unspecified() {
+        peer
+    } else {
+        SocketAddr::from((ciaddr, peer.port()))
+    }
+}
+
+fn restore_relay_source(dispatch: &Dispatch<'_>, packet: &mut [u8]) {
+    if dispatch.ingress.listener != super::service::Listener::Pxe {
+        if let Route::RelaySource { original_giaddr } = dispatch.route {
+            packet[24..28].copy_from_slice(&original_giaddr.octets());
+        }
+    }
+}
+
 pub fn destination_with_ports(
     dispatch: &Dispatch<'_>,
     peer: SocketAddr,
@@ -1449,7 +1533,10 @@ pub fn destination_with_ports(
     length: usize,
     ports: crate::config::dhcp_relay::DhcpPorts,
 ) -> Result<Destination, RuntimeError> {
-    if dispatch.kind != DispatchKind::Dhcp && dispatch.kind != DispatchKind::Bootp {
+    if !matches!(
+        dispatch.kind,
+        DispatchKind::Dhcp | DispatchKind::Bootp | DispatchKind::Pxe
+    ) {
         return Err(RuntimeError::Unsupported {
             kind: dispatch.kind,
             route: dispatch.route,
@@ -1460,6 +1547,14 @@ pub fn destination_with_ports(
             required: length.max(20),
             available: packet.len(),
         }));
+    }
+    if dispatch.ingress.listener == super::service::Listener::Pxe {
+        return Ok(Destination {
+            address: pxe_peer(packet, peer),
+            interface: 0,
+            kind: DestinationKind::Peer,
+            arp: None,
+        });
     }
     let relayed = match dispatch.route {
         Route::Relay { giaddr } => Some(SocketAddr::from((giaddr, ports.server))),
@@ -1717,6 +1812,50 @@ mod tests {
             redirected.iter().map(|(code, _)| *code).collect::<Vec<_>>(),
             [60, 97]
         );
+    }
+
+    #[test]
+    fn pxe_inform_without_context_keeps_configured_vendor_but_no_misc() {
+        use crate::config::dhcp::Encapsulation;
+        let configured = [DhcpOption {
+            code: 10,
+            value: OptionValue::Raw(vec![1, b'G', b'o']),
+            encapsulation: Encapsulation::PxeVendor,
+            ..DhcpOption::default()
+        }];
+        let bytes = packet(
+            b"\x35\x01\x08\x3c\x09PXEClient\x37\x02\x2b\x3c\xff",
+            0,
+            Ipv4Addr::new(198, 51, 100, 20),
+            Ipv4Addr::UNSPECIFIED,
+        );
+        let packet = super::super::packet::Packet::parse(&bytes).unwrap();
+        let client = super::super::pxe::Client {
+            vendor: b"PXEClient".to_vec(),
+            architecture: Some(0),
+            uuid: Some([9; 17]),
+        };
+        let prefixes = [b"PXEClient".to_vec()];
+        let generated = [(6, vec![3])];
+        let encoding = PxeEncoding::ordinary(Some(&client), &prefixes, &generated);
+        let selected = crate::config::dhcp::option_filter(&configured, &[], &[], &[], 1);
+        let values = encode_filtered_options_with_pxe(
+            packet,
+            Reply::Inform {
+                lease_time: None,
+                context: None,
+                server: Ipv4Addr::LOCALHOST,
+            },
+            None,
+            &configured,
+            &selected,
+            &mut [false; 256],
+            false,
+            &mut [None, None],
+            &mut None,
+            &encoding,
+        );
+        assert_eq!(values, [(43, vec![10, 3, 1, b'G', b'o', 255])]);
     }
 
     fn dispatch_for(bytes: &[u8]) -> Dispatch<'_> {
@@ -2552,6 +2691,50 @@ mod tests {
             assert_eq!(destination.interface, 0);
             assert!(destination.arp.is_none());
         }
+    }
+
+    #[test]
+    fn pxe_peer_port_precedes_relay_route_and_keeps_cleared_source_sentinel() {
+        let peer = SocketAddr::from(([192, 0, 2, 10], 1040));
+        let bytes = packet(
+            &[53, 1, 1, 255],
+            0,
+            Ipv4Addr::UNSPECIFIED,
+            Ipv4Addr::BROADCAST,
+        );
+        let mut dispatch = dispatch_for(&bytes);
+        dispatch.ingress.listener = super::super::service::Listener::Pxe;
+        dispatch.kind = DispatchKind::Pxe;
+        let mut provider = |request: &Dispatch<'_>| {
+            assert!(request.packet.giaddr().is_unspecified());
+            Ok(offer())
+        };
+        let mut sender = Sender {
+            sent: Vec::new(),
+            fail: false,
+        };
+        let mut output = [0; 548];
+        process_with_random_and_ports(
+            dispatch,
+            peer,
+            &mut provider,
+            &mut sender,
+            &[],
+            &mut output,
+            crate::config::dhcp_relay::DhcpPorts {
+                server: 2067,
+                client: 2068,
+            },
+            || Ok(0),
+        )
+        .unwrap();
+        assert_eq!(sender.sent[0].1, peer);
+        assert_eq!(&sender.sent[0].0[24..28], &[0; 4]);
+        output[12..16].copy_from_slice(&[192, 0, 2, 20]);
+        assert_eq!(
+            pxe_peer(&output, peer),
+            SocketAddr::from(([192, 0, 2, 20], 1040))
+        );
     }
 
     #[test]

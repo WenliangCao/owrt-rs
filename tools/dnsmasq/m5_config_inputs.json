@@ -1,0 +1,1918 @@
+{
+  "schema": 1,
+  "executable": true,
+  "status": "full-C-boundary-matrix-awaiting-calibration-and-fixed-candidate",
+  "scope": "Startup-only conf-file and conf-script. Necessary conf-dir integration is regression-only; physical routers are untouched. C NULL second -C is recorded as a dedicated reference defect, not a blanket acceptance exception.",
+  "source_identity": {
+    "option.c": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
+    "util.c": "33920165ef3e92f65d1cab75fe8da7772ad7389b37da79ba881957080f12f973",
+    "config.h": "dacbe1f8d0e03d93e53a81901956b07ab7a5059d1e5db3225150a9688a1122da"
+  },
+  "options": {
+    "conf-file": {
+      "checklist": [
+        {
+          "source": "option.c:6059-6074,6087-6094",
+          "boundary": "First CLI -C is deferred until argument traversal ends; subsequent files/includes/scripts execute in place, and real DNS state proves ordering.",
+          "checked": false,
+          "required_scenarios": [
+            "default-present",
+            "default-missing",
+            "empty-first-default",
+            "null-second-config",
+            "explicit-missing",
+            "directory-read",
+            "unreadable-file",
+            "inode-hardlink",
+            "stdin-once",
+            "relative-cwd",
+            "first-file-deferred",
+            "file-overrides-cli",
+            "inline-file-beats-later-cli",
+            "long-equals-config",
+            "short-attached-config",
+            "long-optional-not-separated",
+            "short-missing-argument",
+            "default-unreadable",
+            "dangling-file",
+            "symlink-loop",
+            "empty-file-directive",
+            "stdin-in-nested-include",
+            "repeat-path-and-symlink",
+            "recursive-files",
+            "nested-error-location",
+            "quoted-name-crlf-final-line",
+            "long-comment-line",
+            "file-no-reload-on-hup",
+            "conf-dir-integration",
+            "conf-dir-nested-error"
+          ]
+        },
+        {
+          "source": "option.c:250,6059-6074",
+          "boundary": "Long optional and short required argument forms, attached values, empty first selection and second empty selection; isolate the latter NULL-path C defect with an exact-image minimal reproduction.",
+          "checked": false,
+          "required_scenarios": [
+            "default-present",
+            "default-missing",
+            "empty-first-default",
+            "null-second-config",
+            "explicit-missing",
+            "directory-read",
+            "unreadable-file",
+            "inode-hardlink",
+            "stdin-once",
+            "relative-cwd",
+            "first-file-deferred",
+            "file-overrides-cli",
+            "inline-file-beats-later-cli",
+            "long-equals-config",
+            "short-attached-config",
+            "long-optional-not-separated",
+            "short-missing-argument",
+            "default-unreadable",
+            "dangling-file",
+            "symlink-loop",
+            "empty-file-directive",
+            "stdin-in-nested-include",
+            "repeat-path-and-symlink",
+            "recursive-files",
+            "nested-error-location",
+            "quoted-name-crlf-final-line",
+            "long-comment-line",
+            "file-no-reload-on-hup",
+            "conf-dir-integration",
+            "conf-dir-nested-error"
+          ]
+        },
+        {
+          "source": "option.c:5641-5648,5690-5702",
+          "boundary": "Default /etc/dnsmasq.conf missing is optional; explicit missing files, dangling links, unreadable files, directories and read/open failures preserve exit code and diagnostic location.",
+          "checked": false,
+          "required_scenarios": [
+            "default-present",
+            "default-missing",
+            "empty-first-default",
+            "null-second-config",
+            "explicit-missing",
+            "directory-read",
+            "unreadable-file",
+            "inode-hardlink",
+            "stdin-once",
+            "relative-cwd",
+            "first-file-deferred",
+            "file-overrides-cli",
+            "inline-file-beats-later-cli",
+            "long-equals-config",
+            "short-attached-config",
+            "long-optional-not-separated",
+            "short-missing-argument",
+            "default-unreadable",
+            "dangling-file",
+            "symlink-loop",
+            "empty-file-directive",
+            "stdin-in-nested-include",
+            "repeat-path-and-symlink",
+            "recursive-files",
+            "nested-error-location",
+            "quoted-name-crlf-final-line",
+            "long-comment-line",
+            "file-no-reload-on-hup",
+            "conf-dir-integration",
+            "conf-dir-nested-error"
+          ]
+        },
+        {
+          "source": "option.c:2057-2066,5654-5661",
+          "boundary": "Config conf-file empty is a no-op; stdin - is read only once, including nested/repeated references, and emitted records become queryable.",
+          "checked": false,
+          "required_scenarios": [
+            "default-present",
+            "default-missing",
+            "empty-first-default",
+            "null-second-config",
+            "explicit-missing",
+            "directory-read",
+            "unreadable-file",
+            "inode-hardlink",
+            "stdin-once",
+            "relative-cwd",
+            "first-file-deferred",
+            "file-overrides-cli",
+            "inline-file-beats-later-cli",
+            "long-equals-config",
+            "short-attached-config",
+            "long-optional-not-separated",
+            "short-missing-argument",
+            "default-unreadable",
+            "dangling-file",
+            "symlink-loop",
+            "empty-file-directive",
+            "stdin-in-nested-include",
+            "repeat-path-and-symlink",
+            "recursive-files",
+            "nested-error-location",
+            "quoted-name-crlf-final-line",
+            "long-comment-line",
+            "file-no-reload-on-hup",
+            "conf-dir-integration",
+            "conf-dir-nested-error"
+          ]
+        },
+        {
+          "source": "option.c:5666-5680",
+          "boundary": "Device/inode deduplication precedes parsing: repeated pathname, hardlink, symlink, recursive pair and cross file/script references execute only once.",
+          "checked": false,
+          "required_scenarios": [
+            "default-present",
+            "default-missing",
+            "empty-first-default",
+            "null-second-config",
+            "explicit-missing",
+            "directory-read",
+            "unreadable-file",
+            "inode-hardlink",
+            "stdin-once",
+            "relative-cwd",
+            "first-file-deferred",
+            "file-overrides-cli",
+            "inline-file-beats-later-cli",
+            "long-equals-config",
+            "short-attached-config",
+            "long-optional-not-separated",
+            "short-missing-argument",
+            "default-unreadable",
+            "dangling-file",
+            "symlink-loop",
+            "empty-file-directive",
+            "stdin-in-nested-include",
+            "repeat-path-and-symlink",
+            "recursive-files",
+            "nested-error-location",
+            "quoted-name-crlf-final-line",
+            "long-comment-line",
+            "file-no-reload-on-hup",
+            "conf-dir-integration",
+            "conf-dir-nested-error"
+          ]
+        },
+        {
+          "source": "option.c:2057-2066,5471-5612",
+          "boundary": "Relative includes resolve against process cwd rather than includer directory; nested errors identify the actual source and line, with lexing/failure order retained.",
+          "checked": false,
+          "required_scenarios": [
+            "default-present",
+            "default-missing",
+            "empty-first-default",
+            "null-second-config",
+            "explicit-missing",
+            "directory-read",
+            "unreadable-file",
+            "inode-hardlink",
+            "stdin-once",
+            "relative-cwd",
+            "first-file-deferred",
+            "file-overrides-cli",
+            "inline-file-beats-later-cli",
+            "long-equals-config",
+            "short-attached-config",
+            "long-optional-not-separated",
+            "short-missing-argument",
+            "default-unreadable",
+            "dangling-file",
+            "symlink-loop",
+            "empty-file-directive",
+            "stdin-in-nested-include",
+            "repeat-path-and-symlink",
+            "recursive-files",
+            "nested-error-location",
+            "quoted-name-crlf-final-line",
+            "long-comment-line",
+            "file-no-reload-on-hup",
+            "conf-dir-integration",
+            "conf-dir-nested-error"
+          ]
+        },
+        {
+          "source": "option.c:2080-2191",
+          "boundary": "Necessary conf-dir integration only: byte order, suffix/backup filtering, shared inode dedup and nested include failure; conf-dir itself is already closed.",
+          "checked": false,
+          "required_scenarios": [
+            "default-present",
+            "default-missing",
+            "empty-first-default",
+            "null-second-config",
+            "explicit-missing",
+            "directory-read",
+            "unreadable-file",
+            "inode-hardlink",
+            "stdin-once",
+            "relative-cwd",
+            "first-file-deferred",
+            "file-overrides-cli",
+            "inline-file-beats-later-cli",
+            "long-equals-config",
+            "short-attached-config",
+            "long-optional-not-separated",
+            "short-missing-argument",
+            "default-unreadable",
+            "dangling-file",
+            "symlink-loop",
+            "empty-file-directive",
+            "stdin-in-nested-include",
+            "repeat-path-and-symlink",
+            "recursive-files",
+            "nested-error-location",
+            "quoted-name-crlf-final-line",
+            "long-comment-line",
+            "file-no-reload-on-hup",
+            "conf-dir-integration",
+            "conf-dir-nested-error"
+          ]
+        },
+        {
+          "source": "option.c:5471-5612,6059-6094",
+          "boundary": "CLI/file duplicate and override semantics, CRLF/comments/quoted file names/final unterminated line, and --test versus actual UDP/TCP DNS results compare strictly.",
+          "checked": false,
+          "required_scenarios": [
+            "default-present",
+            "default-missing",
+            "empty-first-default",
+            "null-second-config",
+            "explicit-missing",
+            "directory-read",
+            "unreadable-file",
+            "inode-hardlink",
+            "stdin-once",
+            "relative-cwd",
+            "first-file-deferred",
+            "file-overrides-cli",
+            "inline-file-beats-later-cli",
+            "long-equals-config",
+            "short-attached-config",
+            "long-optional-not-separated",
+            "short-missing-argument",
+            "default-unreadable",
+            "dangling-file",
+            "symlink-loop",
+            "empty-file-directive",
+            "stdin-in-nested-include",
+            "repeat-path-and-symlink",
+            "recursive-files",
+            "nested-error-location",
+            "quoted-name-crlf-final-line",
+            "long-comment-line",
+            "file-no-reload-on-hup",
+            "conf-dir-integration",
+            "conf-dir-nested-error"
+          ]
+        }
+      ],
+      "scenarios": [
+        "default-present",
+        "default-missing",
+        "empty-first-default",
+        "null-second-config",
+        "explicit-missing",
+        "directory-read",
+        "unreadable-file",
+        "inode-hardlink",
+        "stdin-once",
+        "relative-cwd",
+        "first-file-deferred",
+        "file-overrides-cli",
+        "inline-file-beats-later-cli",
+        "long-equals-config",
+        "short-attached-config",
+        "long-optional-not-separated",
+        "short-missing-argument",
+        "default-unreadable",
+        "dangling-file",
+        "symlink-loop",
+        "empty-file-directive",
+        "stdin-in-nested-include",
+        "repeat-path-and-symlink",
+        "recursive-files",
+        "nested-error-location",
+        "quoted-name-crlf-final-line",
+        "long-comment-line",
+        "file-no-reload-on-hup",
+        "conf-dir-integration",
+        "conf-dir-nested-error"
+      ]
+    },
+    "conf-script": {
+      "checklist": [
+        {
+          "source": "option.c:2068-2076,5650-5652",
+          "boundary": "Execute trusted shell command through /bin/sh; empty directive is no-op, CLI and file input apply output at their source position.",
+          "checked": false,
+          "required_scenarios": [
+            "script-output",
+            "script-exit-three",
+            "script-signal",
+            "script-slow",
+            "script-parse-error-tail",
+            "script-cli-output",
+            "script-empty-directive",
+            "script-empty-output-stderr",
+            "script-missing-command",
+            "script-not-executable",
+            "script-stdin",
+            "script-inode-dedup",
+            "script-command-with-args-repeats",
+            "script-then-file-same-inode",
+            "script-pipeline-last-status",
+            "script-nested-file-error",
+            "script-lexical-error",
+            "nested-script-output",
+            "script-no-rerun-on-hup",
+            "script-child-survives-parse-error",
+            "script-broken-pipe-after-error"
+          ]
+        },
+        {
+          "source": "option.c:5650-5685",
+          "boundary": "Command string is statted before execution: literal executable paths and hardlinks share inode dedup, commands with arguments/pipelines retain their own execution count.",
+          "checked": false,
+          "required_scenarios": [
+            "script-output",
+            "script-exit-three",
+            "script-signal",
+            "script-slow",
+            "script-parse-error-tail",
+            "script-cli-output",
+            "script-empty-directive",
+            "script-empty-output-stderr",
+            "script-missing-command",
+            "script-not-executable",
+            "script-stdin",
+            "script-inode-dedup",
+            "script-command-with-args-repeats",
+            "script-then-file-same-inode",
+            "script-pipeline-last-status",
+            "script-nested-file-error",
+            "script-lexical-error",
+            "nested-script-output",
+            "script-no-rerun-on-hup",
+            "script-child-survives-parse-error",
+            "script-broken-pipe-after-error"
+          ]
+        },
+        {
+          "source": "option.c:5471-5612",
+          "boundary": "Generated config has ordinary lexing/include semantics; parser failures report in output from COMMAND, nested file/script errors preserve innermost source.",
+          "checked": false,
+          "required_scenarios": [
+            "script-output",
+            "script-exit-three",
+            "script-signal",
+            "script-slow",
+            "script-parse-error-tail",
+            "script-cli-output",
+            "script-empty-directive",
+            "script-empty-output-stderr",
+            "script-missing-command",
+            "script-not-executable",
+            "script-stdin",
+            "script-inode-dedup",
+            "script-command-with-args-repeats",
+            "script-then-file-same-inode",
+            "script-pipeline-last-status",
+            "script-nested-file-error",
+            "script-lexical-error",
+            "nested-script-output",
+            "script-no-rerun-on-hup",
+            "script-child-survives-parse-error",
+            "script-broken-pipe-after-error"
+          ]
+        },
+        {
+          "source": "option.c:5705-5716",
+          "boundary": "Successful output changes real UDP/TCP DNS state. Empty stdout and stderr are distinct; nonzero exits, signal termination and missing commands preserve raw wait status plus 10 and exact stderr.",
+          "checked": false,
+          "required_scenarios": [
+            "script-output",
+            "script-exit-three",
+            "script-signal",
+            "script-slow",
+            "script-parse-error-tail",
+            "script-cli-output",
+            "script-empty-directive",
+            "script-empty-output-stderr",
+            "script-missing-command",
+            "script-not-executable",
+            "script-stdin",
+            "script-inode-dedup",
+            "script-command-with-args-repeats",
+            "script-then-file-same-inode",
+            "script-pipeline-last-status",
+            "script-nested-file-error",
+            "script-lexical-error",
+            "nested-script-output",
+            "script-no-rerun-on-hup",
+            "script-child-survives-parse-error",
+            "script-broken-pipe-after-error"
+          ]
+        },
+        {
+          "source": "option.c:5684,5705-5716",
+          "boundary": "Slow and chunked output is consumed before listener startup, including last unterminated line; no new script execution enters the live poll owner.",
+          "checked": false,
+          "required_scenarios": [
+            "script-output",
+            "script-exit-three",
+            "script-signal",
+            "script-slow",
+            "script-parse-error-tail",
+            "script-cli-output",
+            "script-empty-directive",
+            "script-empty-output-stderr",
+            "script-missing-command",
+            "script-not-executable",
+            "script-stdin",
+            "script-inode-dedup",
+            "script-command-with-args-repeats",
+            "script-then-file-same-inode",
+            "script-pipeline-last-status",
+            "script-nested-file-error",
+            "script-lexical-error",
+            "nested-script-output",
+            "script-no-rerun-on-hup",
+            "script-child-survives-parse-error",
+            "script-broken-pipe-after-error"
+          ]
+        },
+        {
+          "source": "option.c:5602-5611,5705-5716",
+          "boundary": "Parse-error and normal-exit descendant boundaries: capture parent/child/grandchild completion, reparenting, broken stdout pipe and marker side effects before fixture cleanup.",
+          "checked": false,
+          "required_scenarios": [
+            "script-output",
+            "script-exit-three",
+            "script-signal",
+            "script-slow",
+            "script-parse-error-tail",
+            "script-cli-output",
+            "script-empty-directive",
+            "script-empty-output-stderr",
+            "script-missing-command",
+            "script-not-executable",
+            "script-stdin",
+            "script-inode-dedup",
+            "script-command-with-args-repeats",
+            "script-then-file-same-inode",
+            "script-pipeline-last-status",
+            "script-nested-file-error",
+            "script-lexical-error",
+            "nested-script-output",
+            "script-no-rerun-on-hup",
+            "script-child-survives-parse-error",
+            "script-broken-pipe-after-error"
+          ]
+        },
+        {
+          "source": "option.c:5684,5705-5716",
+          "boundary": "Pipelines, inherited stdin and nested script output are real shell executions; preserve actual process identity and causality, do not replace scripts with prerecorded output.",
+          "checked": false,
+          "required_scenarios": [
+            "script-output",
+            "script-exit-three",
+            "script-signal",
+            "script-slow",
+            "script-parse-error-tail",
+            "script-cli-output",
+            "script-empty-directive",
+            "script-empty-output-stderr",
+            "script-missing-command",
+            "script-not-executable",
+            "script-stdin",
+            "script-inode-dedup",
+            "script-command-with-args-repeats",
+            "script-then-file-same-inode",
+            "script-pipeline-last-status",
+            "script-nested-file-error",
+            "script-lexical-error",
+            "nested-script-output",
+            "script-no-rerun-on-hup",
+            "script-child-survives-parse-error",
+            "script-broken-pipe-after-error"
+          ]
+        },
+        {
+          "source": "option.c:5705-5716",
+          "boundary": "Every run records listener responsiveness or absence, stdout/stderr, process tree and raw wait statuses; reap fixture-owned descendants and verify no PID/listener residue.",
+          "checked": false,
+          "required_scenarios": [
+            "script-output",
+            "script-exit-three",
+            "script-signal",
+            "script-slow",
+            "script-parse-error-tail",
+            "script-cli-output",
+            "script-empty-directive",
+            "script-empty-output-stderr",
+            "script-missing-command",
+            "script-not-executable",
+            "script-stdin",
+            "script-inode-dedup",
+            "script-command-with-args-repeats",
+            "script-then-file-same-inode",
+            "script-pipeline-last-status",
+            "script-nested-file-error",
+            "script-lexical-error",
+            "nested-script-output",
+            "script-no-rerun-on-hup",
+            "script-child-survives-parse-error",
+            "script-broken-pipe-after-error"
+          ]
+        }
+      ],
+      "scenarios": [
+        "script-output",
+        "script-exit-three",
+        "script-signal",
+        "script-slow",
+        "script-parse-error-tail",
+        "script-cli-output",
+        "script-empty-directive",
+        "script-empty-output-stderr",
+        "script-missing-command",
+        "script-not-executable",
+        "script-stdin",
+        "script-inode-dedup",
+        "script-command-with-args-repeats",
+        "script-then-file-same-inode",
+        "script-pipeline-last-status",
+        "script-nested-file-error",
+        "script-lexical-error",
+        "nested-script-output",
+        "script-no-rerun-on-hup",
+        "script-child-survives-parse-error",
+        "script-broken-pipe-after-error"
+      ]
+    }
+  },
+  "scenarios": [
+    {
+      "id": "default-present",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [],
+      "files": {},
+      "probes": [
+        {
+          "id": "default",
+          "name": "default.input",
+          "answers": [
+            "192.0.2.10"
+          ]
+        }
+      ],
+      "default": "host-record=default.input,192.0.2.10\n"
+    },
+    {
+      "id": "default-missing",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [],
+      "files": {},
+      "probes": [
+        {
+          "id": "ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "empty-first-default",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "-C",
+        ""
+      ],
+      "files": {},
+      "probes": [
+        {
+          "id": "default",
+          "name": "default.input",
+          "answers": [
+            "192.0.2.10"
+          ]
+        }
+      ],
+      "default": "host-record=default.input,192.0.2.10\n"
+    },
+    {
+      "id": "null-second-config",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "-C",
+        "/m2/input/empty",
+        "-C",
+        ""
+      ],
+      "files": {
+        "empty": ""
+      },
+      "probes": [
+        {
+          "id": "ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ]
+        }
+      ],
+      "expected_exit": -11,
+      "reference_defect": "NULL second -C reaches strcmp(NULL, \"-\") in option.c:5654; this C-only minimum must never become a blanket exception",
+      "minimal": true
+    },
+    {
+      "id": "explicit-missing",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "-C",
+        "/m2/input/absent"
+      ],
+      "files": {},
+      "probes": [
+        {
+          "id": "ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ]
+        }
+      ],
+      "expected_exit": 3
+    },
+    {
+      "id": "directory-read",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "-C",
+        "/m2/input/is-directory"
+      ],
+      "files": {},
+      "probes": [
+        {
+          "id": "ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ]
+        }
+      ],
+      "directories": [
+        "is-directory"
+      ]
+    },
+    {
+      "id": "unreadable-file",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "-C",
+        "/m2/input/protected"
+      ],
+      "files": {
+        "protected": {
+          "text": "port=0\n",
+          "mode": 384
+        }
+      },
+      "probes": [
+        {
+          "id": "ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ]
+        }
+      ],
+      "userspec": "65534:65534",
+      "expected_exit": 3
+    },
+    {
+      "id": "inode-hardlink",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "-C",
+        "/m2/input/main"
+      ],
+      "files": {
+        "main": "conf-file=/m2/input/a\nconf-file=/m2/input/alias\n",
+        "a": "local-ttl=17\n"
+      },
+      "probes": [
+        {
+          "id": "ttl",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ],
+          "ttl": 17
+        }
+      ],
+      "hardlinks": {
+        "alias": "a"
+      }
+    },
+    {
+      "id": "stdin-once",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "-C",
+        "-",
+        "-C",
+        "-"
+      ],
+      "files": {},
+      "probes": [
+        {
+          "id": "stdin",
+          "name": "stdin.input",
+          "answers": [
+            "192.0.2.11"
+          ]
+        }
+      ],
+      "stdin": "conf-file=-\nhost-record=stdin.input,192.0.2.11\n"
+    },
+    {
+      "id": "relative-cwd",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "-C",
+        "nested/main"
+      ],
+      "files": {
+        "nested/main": "conf-file=relative\n",
+        "relative": "host-record=cwd.input,192.0.2.12\n"
+      },
+      "probes": [
+        {
+          "id": "cwd",
+          "name": "cwd.input",
+          "answers": [
+            "192.0.2.12"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "script-output",
+      "options": [
+        "conf-script"
+      ],
+      "argv": [
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "conf-script=printf 'host-record=script.input,192.0.2.20\\n'\n"
+      },
+      "probes": [
+        {
+          "id": "script",
+          "name": "script.input",
+          "answers": [
+            "192.0.2.20"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "script-exit-three",
+      "options": [
+        "conf-script"
+      ],
+      "argv": [
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "conf-script=exit 3\n"
+      },
+      "probes": [
+        {
+          "id": "ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ]
+        }
+      ],
+      "expected_exit": 10
+    },
+    {
+      "id": "script-signal",
+      "options": [
+        "conf-script"
+      ],
+      "argv": [
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "conf-script=kill -TERM $$\n"
+      },
+      "probes": [
+        {
+          "id": "ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ]
+        }
+      ],
+      "expected_exit": 25
+    },
+    {
+      "id": "script-slow",
+      "options": [
+        "conf-script"
+      ],
+      "argv": [
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "conf-script=/m2/input/slow.sh\n",
+        "slow.sh": {
+          "mode": 493,
+          "text": "#!/bin/sh\necho $$ > /m2/input/pids/slow\necho start > /m2/input/effects/start\nprintf 'host-record=slow.input,'\nsleep 1\nprintf '192.0.2.21\\n'\necho done > /m2/input/effects/done\n"
+        }
+      },
+      "probes": [
+        {
+          "id": "slow",
+          "name": "slow.input",
+          "answers": [
+            "192.0.2.21"
+          ]
+        }
+      ],
+      "gate": "done",
+      "minimum_seconds": 0.9,
+      "expected_effects": {
+        "start": "73746172740a",
+        "done": "646f6e650a"
+      }
+    },
+    {
+      "id": "script-parse-error-tail",
+      "options": [
+        "conf-script"
+      ],
+      "argv": [
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "conf-script=/m2/input/invalid.sh\n",
+        "invalid.sh": {
+          "mode": 493,
+          "text": "#!/bin/sh\necho $$ > /m2/input/pids/script\nprintf 'unknown-config-option\\n'\nsleep 1\necho completed > /m2/input/effects/tail\n"
+        }
+      },
+      "probes": [
+        {
+          "id": "ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ]
+        }
+      ],
+      "expected_exit": 1,
+      "expected_effects": {
+        "tail": "636f6d706c657465640a"
+      },
+      "expected_effects_at_parent_exit": [],
+      "expected_scripts_at_parent_exit": {
+        "script": true
+      }
+    },
+    {
+      "id": "first-file-deferred",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "-C",
+        "first",
+        "-C",
+        "second"
+      ],
+      "files": {
+        "first": "local-ttl=17\n",
+        "second": "local-ttl=23\n"
+      },
+      "probes": [
+        {
+          "id": "matrix.ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ]
+        }
+      ],
+      "expected_exit": 1
+    },
+    {
+      "id": "file-overrides-cli",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "--local-ttl=7",
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "local-ttl=17\n"
+      },
+      "probes": [
+        {
+          "id": "matrix.ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ],
+          "ttl": 17
+        }
+      ]
+    },
+    {
+      "id": "inline-file-beats-later-cli",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "-C",
+        "empty",
+        "-C",
+        "inline",
+        "--local-ttl=42"
+      ],
+      "files": {
+        "empty": "",
+        "inline": "local-ttl=17\n"
+      },
+      "probes": [
+        {
+          "id": "matrix.ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ],
+          "ttl": 17
+        }
+      ]
+    },
+    {
+      "id": "long-equals-config",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "--conf-file=main"
+      ],
+      "files": {
+        "main": "host-record=long.input,192.0.2.30\n"
+      },
+      "probes": [
+        {
+          "id": "long.input",
+          "name": "long.input",
+          "answers": [
+            "192.0.2.30"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "short-attached-config",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "-Cmain"
+      ],
+      "files": {
+        "main": "host-record=short.input,192.0.2.31\n"
+      },
+      "probes": [
+        {
+          "id": "short.input",
+          "name": "short.input",
+          "answers": [
+            "192.0.2.31"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "long-optional-not-separated",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "--conf-file",
+        "main"
+      ],
+      "files": {
+        "main": ""
+      },
+      "probes": [
+        {
+          "id": "matrix.ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ]
+        }
+      ],
+      "expected_exit": 1
+    },
+    {
+      "id": "short-missing-argument",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "-C"
+      ],
+      "files": {},
+      "probes": [
+        {
+          "id": "matrix.ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ]
+        }
+      ],
+      "expected_exit": 1
+    },
+    {
+      "id": "default-unreadable",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [],
+      "files": {},
+      "probes": [
+        {
+          "id": "matrix.ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ]
+        }
+      ],
+      "default": {
+        "text": "port=0\n",
+        "mode": 384
+      },
+      "userspec": "65534:65534",
+      "expected_exit": 3
+    },
+    {
+      "id": "dangling-file",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "-C",
+        "dangling"
+      ],
+      "files": {},
+      "probes": [
+        {
+          "id": "matrix.ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ]
+        }
+      ],
+      "symlinks": {
+        "dangling": "absent"
+      },
+      "expected_exit": 3
+    },
+    {
+      "id": "symlink-loop",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "-C",
+        "loop"
+      ],
+      "files": {},
+      "probes": [
+        {
+          "id": "matrix.ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ]
+        }
+      ],
+      "symlinks": {
+        "loop": "loop"
+      },
+      "expected_exit": 3
+    },
+    {
+      "id": "empty-file-directive",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "conf-file=\nconf-file\nhost-record=empty.input,192.0.2.32\n"
+      },
+      "probes": [
+        {
+          "id": "empty.input",
+          "name": "empty.input",
+          "answers": [
+            "192.0.2.32"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stdin-in-nested-include",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "-C",
+        "-",
+        "-C",
+        "inline"
+      ],
+      "files": {
+        "inline": "conf-file=-\nhost-record=inline.input,192.0.2.33\n"
+      },
+      "probes": [
+        {
+          "id": "inline.input",
+          "name": "inline.input",
+          "answers": [
+            "192.0.2.33"
+          ]
+        },
+        {
+          "id": "stdin.input",
+          "name": "stdin.input",
+          "answers": [
+            "192.0.2.34"
+          ]
+        }
+      ],
+      "stdin": "host-record=stdin.input,192.0.2.34\nconf-file=-\n"
+    },
+    {
+      "id": "repeat-path-and-symlink",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "conf-file=shared\nconf-file=shared\nconf-file=link\n",
+        "shared": "local-ttl=19\n"
+      },
+      "probes": [
+        {
+          "id": "matrix.ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ],
+          "ttl": 19
+        }
+      ],
+      "symlinks": {
+        "link": "shared"
+      }
+    },
+    {
+      "id": "recursive-files",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "-C",
+        "a"
+      ],
+      "files": {
+        "a": "conf-file=b\nhost-record=a.input,192.0.2.35\n",
+        "b": "conf-file=a\nhost-record=b.input,192.0.2.36\n"
+      },
+      "probes": [
+        {
+          "id": "a.input",
+          "name": "a.input",
+          "answers": [
+            "192.0.2.35"
+          ]
+        },
+        {
+          "id": "b.input",
+          "name": "b.input",
+          "answers": [
+            "192.0.2.36"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nested-error-location",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "conf-file=nested/other\n",
+        "nested/other": "# line one\nhost-record\n"
+      },
+      "probes": [
+        {
+          "id": "matrix.ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ]
+        }
+      ],
+      "expected_exit": 1
+    },
+    {
+      "id": "quoted-name-crlf-final-line",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "# header\r\n conf-file = \"space file\" # comment\r\n",
+        "space file": "\t# comment\r\nhost-record=quoted.input,192.0.2.37"
+      },
+      "probes": [
+        {
+          "id": "quoted.input",
+          "name": "quoted.input",
+          "answers": [
+            "192.0.2.37"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "long-comment-line",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "#xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nhost-record=longline.input,192.0.2.38\n"
+      },
+      "probes": [
+        {
+          "id": "longline.input",
+          "name": "longline.input",
+          "answers": [
+            "192.0.2.38"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "file-no-reload-on-hup",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "host-record=fixed.input,192.0.2.39\n"
+      },
+      "probes": [
+        {
+          "id": "fixed.input",
+          "name": "fixed.input",
+          "answers": [
+            "192.0.2.39"
+          ]
+        }
+      ],
+      "hup": true,
+      "change_before_hup": {
+        "main": "unknown-option\n"
+      }
+    },
+    {
+      "id": "conf-dir-integration",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "conf-dir=/m2/input/conf.d,*.conf,.skip.conf\n",
+        "conf.d/10.conf": "local-ttl=21\nhost-record=one.input,192.0.2.40\n",
+        "conf.d/20.conf": "conf-file=/m2/input/shared\n",
+        "shared": "host-record=two.input,192.0.2.41\n",
+        "conf.d/30.skip.conf": "unknown\n",
+        "conf.d/.hidden.conf": "unknown\n",
+        "conf.d/backup.conf~": "unknown\n"
+      },
+      "probes": [
+        {
+          "id": "one.input",
+          "name": "one.input",
+          "answers": [
+            "192.0.2.40"
+          ],
+          "ttl": 21
+        },
+        {
+          "id": "two.input",
+          "name": "two.input",
+          "answers": [
+            "192.0.2.41"
+          ],
+          "ttl": 21
+        }
+      ],
+      "directories": [
+        "conf.d/nested.conf"
+      ],
+      "symlinks": {
+        "conf.d/alias.conf": "10.conf"
+      }
+    },
+    {
+      "id": "conf-dir-nested-error",
+      "options": [
+        "conf-file"
+      ],
+      "argv": [
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "conf-dir=/m2/input/conf.d\n",
+        "conf.d/10.conf": "conf-file=/m2/input/absent\n"
+      },
+      "probes": [
+        {
+          "id": "matrix.ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ]
+        }
+      ],
+      "expected_exit": 3
+    },
+    {
+      "id": "script-cli-output",
+      "options": [
+        "conf-script"
+      ],
+      "argv": [
+        "--conf-script=printf 'host-record=cli.input,192.0.2.50\\n'",
+        "-C",
+        "empty"
+      ],
+      "files": {
+        "empty": ""
+      },
+      "probes": [
+        {
+          "id": "cli.input",
+          "name": "cli.input",
+          "answers": [
+            "192.0.2.50"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "script-empty-directive",
+      "options": [
+        "conf-script"
+      ],
+      "argv": [
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "conf-script=\n"
+      },
+      "probes": [
+        {
+          "id": "matrix.ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "script-empty-output-stderr",
+      "options": [
+        "conf-script"
+      ],
+      "argv": [
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "conf-script=echo side-channel >&2\n"
+      },
+      "probes": [
+        {
+          "id": "matrix.ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "script-missing-command",
+      "options": [
+        "conf-script"
+      ],
+      "argv": [
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "conf-script=/m2/input/absent-command\n"
+      },
+      "probes": [
+        {
+          "id": "matrix.ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ]
+        }
+      ],
+      "expected_exit": 10
+    },
+    {
+      "id": "script-not-executable",
+      "options": [
+        "conf-script"
+      ],
+      "argv": [
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "conf-script=/m2/input/readonly.sh\n",
+        "readonly.sh": {
+          "text": "#!/bin/sh\nexit 0\n",
+          "mode": 420
+        }
+      },
+      "probes": [
+        {
+          "id": "matrix.ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ]
+        }
+      ],
+      "expected_exit": 10
+    },
+    {
+      "id": "script-stdin",
+      "options": [
+        "conf-script"
+      ],
+      "argv": [
+        "--conf-script=cat",
+        "-C",
+        "empty"
+      ],
+      "files": {
+        "empty": ""
+      },
+      "probes": [
+        {
+          "id": "stdin-script.input",
+          "name": "stdin-script.input",
+          "answers": [
+            "192.0.2.51"
+          ]
+        }
+      ],
+      "stdin": "host-record=stdin-script.input,192.0.2.51\n"
+    },
+    {
+      "id": "script-inode-dedup",
+      "options": [
+        "conf-script"
+      ],
+      "argv": [
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "conf-script=/m2/input/count.sh\nconf-script=/m2/input/alias.sh\n",
+        "count.sh": {
+          "mode": 493,
+          "text": "#!/bin/sh\necho ran >> /m2/input/effects/runs\nprintf 'host-record=count.input,192.0.2.52\\n'\n"
+        }
+      },
+      "probes": [
+        {
+          "id": "count.input",
+          "name": "count.input",
+          "answers": [
+            "192.0.2.52"
+          ]
+        }
+      ],
+      "hardlinks": {
+        "alias.sh": "count.sh"
+      },
+      "expected_effects": {
+        "runs": "72616e0a"
+      }
+    },
+    {
+      "id": "script-command-with-args-repeats",
+      "options": [
+        "conf-script"
+      ],
+      "argv": [
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "conf-script=/m2/input/count.sh arg\nconf-script=/m2/input/count.sh arg\n",
+        "count.sh": {
+          "mode": 493,
+          "text": "#!/bin/sh\necho ran >> /m2/input/effects/runs\nprintf 'host-record=count.input,192.0.2.52\\n'\n"
+        }
+      },
+      "probes": [
+        {
+          "id": "count.input",
+          "name": "count.input",
+          "answers": [
+            "192.0.2.52"
+          ]
+        }
+      ],
+      "expected_effects": {
+        "runs": "72616e0a72616e0a"
+      }
+    },
+    {
+      "id": "script-then-file-same-inode",
+      "options": [
+        "conf-script"
+      ],
+      "argv": [
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "conf-script=/m2/input/count.sh\nconf-file=/m2/input/count.sh\n",
+        "count.sh": {
+          "mode": 493,
+          "text": "#!/bin/sh\necho ran >> /m2/input/effects/runs\nprintf 'host-record=count.input,192.0.2.52\\n'\n"
+        }
+      },
+      "probes": [
+        {
+          "id": "count.input",
+          "name": "count.input",
+          "answers": [
+            "192.0.2.52"
+          ]
+        }
+      ],
+      "expected_effects": {
+        "runs": "72616e0a"
+      }
+    },
+    {
+      "id": "script-pipeline-last-status",
+      "options": [
+        "conf-script"
+      ],
+      "argv": [
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "conf-script=/m2/input/emit.sh | cat\n",
+        "emit.sh": {
+          "mode": 493,
+          "text": "#!/bin/sh\nprintf 'host-record=pipeline.input,192.0.2.53\\n'\nexit 3\n"
+        }
+      },
+      "probes": [
+        {
+          "id": "pipeline.input",
+          "name": "pipeline.input",
+          "answers": [
+            "192.0.2.53"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "script-nested-file-error",
+      "options": [
+        "conf-script"
+      ],
+      "argv": [
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "conf-script=printf 'conf-file=/m2/input/bad\\n'\n",
+        "bad": "# one\nhost-record\n"
+      },
+      "probes": [
+        {
+          "id": "matrix.ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ]
+        }
+      ],
+      "expected_exit": 1
+    },
+    {
+      "id": "script-lexical-error",
+      "options": [
+        "conf-script"
+      ],
+      "argv": [
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "conf-script=/m2/input/quote.sh\n",
+        "quote.sh": {
+          "mode": 493,
+          "text": "#!/bin/sh\nprintf 'host-record=\"broken\\n'\n"
+        }
+      },
+      "probes": [
+        {
+          "id": "matrix.ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ]
+        }
+      ],
+      "expected_exit": 1
+    },
+    {
+      "id": "nested-script-output",
+      "options": [
+        "conf-script"
+      ],
+      "argv": [
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "conf-script=/m2/input/outer.sh\n",
+        "outer.sh": {
+          "mode": 493,
+          "text": "#!/bin/sh\nprintf 'conf-script=/m2/input/inner.sh\\nhost-record=outer.input,192.0.2.54\\n'\n"
+        },
+        "inner.sh": {
+          "mode": 493,
+          "text": "#!/bin/sh\nprintf 'host-record=inner.input,192.0.2.55'\n"
+        }
+      },
+      "probes": [
+        {
+          "id": "outer.input",
+          "name": "outer.input",
+          "answers": [
+            "192.0.2.54"
+          ]
+        },
+        {
+          "id": "inner.input",
+          "name": "inner.input",
+          "answers": [
+            "192.0.2.55"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "script-no-rerun-on-hup",
+      "options": [
+        "conf-script"
+      ],
+      "argv": [
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "conf-script=/m2/input/count.sh\n",
+        "count.sh": {
+          "mode": 493,
+          "text": "#!/bin/sh\necho ran >> /m2/input/effects/runs\nprintf 'host-record=count.input,192.0.2.52\\n'\n"
+        }
+      },
+      "probes": [
+        {
+          "id": "count.input",
+          "name": "count.input",
+          "answers": [
+            "192.0.2.52"
+          ]
+        }
+      ],
+      "hup": true,
+      "change_before_hup": {
+        "main": "unknown-option\n",
+        "count.sh": "#!/bin/sh\necho wrong >> /m2/input/effects/runs\n"
+      },
+      "expected_effects": {
+        "runs": "72616e0a"
+      }
+    },
+    {
+      "id": "script-child-survives-parse-error",
+      "options": [
+        "conf-script"
+      ],
+      "argv": [
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "conf-script=/m2/input/outer.sh\n",
+        "outer.sh": {
+          "mode": 493,
+          "text": "#!/bin/sh\necho $$ > /m2/input/pids/outer\n/m2/input/child.sh &\nsleep 1\nprintf 'unknown-config-option\\n'\nwait\necho outer > /m2/input/effects/outer\n"
+        },
+        "child.sh": {
+          "mode": 493,
+          "text": "#!/bin/sh\necho $$ > /m2/input/pids/child\nsleep 2\necho child > /m2/input/effects/child\n"
+        }
+      },
+      "probes": [
+        {
+          "id": "matrix.ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ]
+        }
+      ],
+      "expected_exit": 1,
+      "expected_effects": {
+        "outer": "6f757465720a",
+        "child": "6368696c640a"
+      },
+      "expected_effects_at_parent_exit": []
+    },
+    {
+      "id": "script-broken-pipe-after-error",
+      "options": [
+        "conf-script"
+      ],
+      "argv": [
+        "-C",
+        "main"
+      ],
+      "files": {
+        "main": "conf-script=/m2/input/pipe.sh\n",
+        "pipe.sh": {
+          "mode": 493,
+          "text": "#!/bin/sh\necho $$ > /m2/input/pids/pipe\ntrap 'echo pipe > /m2/input/effects/pipe; exit 0' PIPE\nprintf 'unknown-config-option\\n'\nsleep 1\nprintf 'host-record=late.input,192.0.2.56\\n'\necho missed > /m2/input/effects/missed\n"
+        }
+      },
+      "probes": [
+        {
+          "id": "matrix.ready",
+          "name": "matrix.ready",
+          "answers": [
+            "8.8.8.8"
+          ]
+        }
+      ],
+      "expected_exit": 1,
+      "expected_effects": {
+        "pipe": "706970650a"
+      },
+      "expected_effects_at_parent_exit": [],
+      "expected_scripts_at_parent_exit": {
+        "pipe": true
+      }
+    }
+  ],
+  "qualification_ready": true,
+  "calibration_notes": [
+    "c-baseline-01 retained: exact BusyBox sleep rejects fractional .4; slow-script fixture changed to integer 1 second, not a product mismatch."
+  ]
+}

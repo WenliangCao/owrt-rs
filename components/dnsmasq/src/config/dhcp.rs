@@ -257,6 +257,13 @@ fn lease_time(bytes: &[u8]) -> Result<(u32, bool), Error> {
     if bytes.is_empty() {
         return Ok((3600, false));
     }
+    // option.c accepts this IPv6 deprecation marker in the shared range
+    // grammar.  The nodhcpv6 build has no corresponding runtime bit, so the
+    // IPv4 context keeps its ordinary default lease and does not mark it as
+    // an explicit duration.
+    if bytes == b"deprecated" {
+        return Ok((3600, false));
+    }
     if bytes == b"infinite" {
         return Ok((u32::MAX, true));
     }
@@ -289,6 +296,22 @@ fn ip(bytes: &[u8]) -> Result<Ipv4Addr, Error> {
         .ok_or(Error("bad DHCP IPv4 address"))
 }
 
+/// Match option.c's lexical probe used while peeling range selectors.
+///
+/// The C parser does not try `inet_pton` for every prefix-looking token.  It
+/// first scans for a restricted address alphabet (`[0-9a-fA-F.: ]`) and only
+/// treats a token outside that alphabet as a legacy/set or `tag:`/`net:`
+/// selector.  This distinction matters for names such as `red` (a legacy
+/// tag) versus address-shaped values such as `dead` or `1.2.3`, which must
+/// reach the IPv4 parser and fail as a malformed range.  Empty fields remain
+/// selector slots, matching C's empty `set:` behaviour.
+fn range_address_lexeme(bytes: &[u8]) -> bool {
+    !bytes.is_empty()
+        && bytes.iter().all(|byte| {
+            byte.is_ascii_digit() || matches!(byte, b'a'..=b'f' | b'A'..=b'F' | b'.' | b':' | b' ')
+        })
+}
+
 impl DhcpConfig {
     pub fn apply(&mut self, directive: &Directive) -> Result<bool, Error> {
         validate_directive(directive)?;
@@ -306,6 +329,21 @@ impl DhcpConfig {
             ),
             b"dhcp-alternate-port" => {
                 self.ports = super::dhcp_relay::DhcpPorts::parse(argument)?;
+            }
+            b"pxe-prompt" => {
+                let prompt = self
+                    .pxe
+                    .parse_prompt(argument.ok_or(Error("missing parameter"))?)?;
+                self.options.insert(
+                    0,
+                    DhcpOption {
+                        code: 10,
+                        value: OptionValue::Raw(prompt.data),
+                        tags: prompt.tags,
+                        encapsulation: Encapsulation::PxeVendor,
+                        ..Default::default()
+                    },
+                );
             }
             b"pxe-service" => self
                 .pxe
@@ -407,8 +445,8 @@ impl DhcpConfig {
                 self.lease_file = (!value.is_empty()).then_some(value);
             }
             b"dhcp-lease-max" => {
-                self.lease_max =
-                    integer(&argument.ok_or(Error("missing parameter"))?.decoded())? as usize
+                self.lease_max = integer(&argument.ok_or(Error("missing parameter"))?.decoded())
+                    .map_err(|_| Error("error"))? as usize
             }
             b"dhcp-range" => {
                 let argument = argument.ok_or(Error("missing parameter"))?;
@@ -416,7 +454,7 @@ impl DhcpConfig {
                 let mut set_tag = None;
                 let mut filters = Vec::new();
                 let mut first = 0;
-                while first < parts.len() && ip(parts[first].encoded()).is_err() {
+                while first < parts.len() && !range_address_lexeme(parts[first].encoded()) {
                     let bytes = parts[first].encoded();
                     if bytes.starts_with(b"tag:") || bytes.starts_with(b"net:") {
                         if bytes.len() > 4 {
@@ -692,6 +730,10 @@ mod tests {
         let mut config = DhcpConfig::default();
         assert_eq!(config.lease_max, 1000); // config.h MAXLEASES, option.c:5978.
         assert_eq!(config.lease_path(), b"/var/lib/misc/dnsmasq.leases");
+        let error = config
+            .apply(&lex_line(b"dhcp-lease-max=word").unwrap().unwrap())
+            .unwrap_err();
+        assert_eq!(error.0, "error");
         for value in [
             b"dhcp-lease=/private/example.leases".as_slice(),
             b"leasefile-ro",
@@ -742,6 +784,22 @@ mod tests {
             .unwrap()
             .filter
             .is_unconditional());
+    }
+
+    #[test]
+    fn range_prefix_scan_preserves_legacy_tags_but_rejects_address_shaped_tokens() {
+        for tag in ["red", "lan"] {
+            let range = parse(&format!("{tag},192.0.2.10,192.0.2.20")).unwrap();
+            assert_eq!(range.set_tag.as_deref(), Some(tag.as_bytes()));
+        }
+        // option.c's restricted scan sends these tokens to the IPv4 parser;
+        // they are not silently widened into legacy tags.
+        for token in ["dead", "1234", "1.2.3", "2001:db8::1"] {
+            assert!(
+                parse(&format!("{token},192.0.2.10,192.0.2.20")).is_err(),
+                "{token}"
+            );
+        }
     }
 
     // Expected fields below come from exact option.c read_opts state, retained
@@ -866,6 +924,7 @@ mod tests {
             ("1W", 604_800, true),
             ("h", 120, true),
             ("infinite", u32::MAX, true),
+            ("deprecated", 3600, false),
         ] {
             let range = parse(&format!("192.0.2.10,192.0.2.20,{input}")).unwrap();
             assert_eq!(

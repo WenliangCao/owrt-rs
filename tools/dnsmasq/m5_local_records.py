@@ -113,6 +113,65 @@ def profiles(hostname):
     yield 'bounds', overflow, [('large.m5.test', 15), ('large-txt.m5.test', 16), *[(f'txt{size}.m5.test', 16) for size in [0, 255, 256]]]
 
 
+def length_profiles():
+    for prefix, sizes in [
+        ('rr', [0, 1, 255, 65535, 65536, 65537, 131073]),
+        ('txt', [0, 254, 255, 256, 257, 65279, 65280, 65281, 130561]),
+        ('caa-tag', [0, 1, 255, 256, 257, 512]),
+        ('caa-total', [65534, 65535]),
+    ]:
+        lines, questions = [], []
+        for size in sizes:
+            host = f'{prefix}-{size}.m5.test'
+            if prefix == 'rr':
+                # Vary the prefix so length clipping cannot pass by all-zero data.
+                data = (bytes(range(256)) * (size // 256 + 1))[:size].hex()
+                line, kind = f'dns-rr={host},65401,{data}', 65401
+            elif prefix == 'txt':
+                line, kind = f'txt-record={host},' + 'a' * size, 16
+            elif prefix == 'caa-tag':
+                line, kind = f'caa-record={host},256,' + 't' * size + ',v', 257
+            else:
+                line, kind = f'caa-record={host},1,t,' + 'v' * (size - 3), 257
+            lines.append(line)
+            questions.extend([(host, kind), (host, 255)])
+        yield 'length-' + prefix, '\n'.join(lines) + '\n', questions
+    for field in range(4):
+        lines, questions = [], []
+        for size in [0, 254, 255, 256, 257, 65535, 65536, 65537, 65791, 65792]:
+            host = f'naptr-{field}-{size}.m5.test'
+            fields = ['f', 's', 'r']
+            for index in range(3):
+                if field == index or field == 3:
+                    fields[index] = chr(102 + index) * size
+            lines.append(f'naptr-record={host},65535,1,' + ','.join(fields) + ',target.m5.test')
+            questions.extend([(host, 35), (host, 255)])
+        yield f'length-naptr-{field}', '\n'.join(lines) + '\n', questions
+
+    lines, questions = [], []
+    for index, integer in enumerate(['2147483647', '2147483648', '4294967295', '4294967296', '9' * 64]):
+        kind = int(integer) & 65535
+        host = f'rr-int-{index}.m5.test'
+        lines.append(f'dns-rr={host},{integer},ab')
+        questions.append((host, kind))
+        host = f'caa-int-{index}.m5.test'
+        lines.append(f'caa-record={host},{integer},t,v')
+        questions.append((host, 257))
+    lines.append('naptr-record=naptr-int.m5.test,4294967296,4294967297,f,s,r,.')
+    questions.append(('naptr-int.m5.test', 35))
+    yield 'integer-widths', '\n'.join(lines) + '\n', questions
+
+
+def length_parse_cases():
+    # Safe full-width allocation for RR and TXT; C retains only a u16 length.
+    for _, config, _ in length_profiles():
+        yield from config.splitlines()
+    # CAA allocates the already narrowed u16 length then copies full strings.
+    # Keep these isolated syntax-only source-defect witnesses; never serve them.
+    for size in [65536, 65537]:
+        yield 'caa-record=unsafe-total.m5.test,1,t,' + 'v' * (size - 3)
+
+
 def packet(host, kind, ident, cls=1):
     return struct.pack('!6H', ident, 0x100, 1, 0, 0, 0) + name(host) + struct.pack('!HH', kind, cls)
 
@@ -146,8 +205,15 @@ def parse_configs(root, side, out):
         'caa-record=caa.test,0,issue,ca.test', 'caa-record=caa.test,0,issue',
         'naptr-record=n.test,1,2,"S","SIP+D2U","",target.test',
     ]
+    if getattr(parse_configs, 'length_only', False):
+        cases = []
+    original_count = len(cases)
+    if getattr(parse_configs, 'profiles', None):
+        cases += [line for label, text, _ in length_profiles() if label in parse_configs.profiles for line in text.splitlines()]
+    else:
+        cases += list(length_parse_cases())
     result = []
-    corpus = out / 'config-corpus'
+    corpus = out / 'config-corpus' 
     corpus.mkdir(exist_ok=True)
     for index, text in enumerate(cases):
         (root / 'm2/parse.conf').write_text(BASE + text + '\n')
@@ -156,7 +222,11 @@ def parse_configs(root, side, out):
         (out / f'parse-{index:02d}.stdout').write_bytes(completed.stdout)
         (out / f'parse-{index:02d}.stderr').write_bytes(completed.stderr)
         (corpus / f'parse-{index:02d}').write_bytes(text.encode())
-        result.append({'input': text, 'exit': completed.returncode})
+        row = {'input': text, 'exit': completed.returncode}
+        if index >= original_count:
+            row['stdout'] = completed.stdout.decode(errors='replace')
+            row['stderr'] = completed.stderr.decode(errors='replace').replace('dnsmasq-rs:', 'dnsmasq:')
+        result.append(row)
     return result
 
 
@@ -164,7 +234,15 @@ def run(args, side, out):
     root = prepare(args.image_root, None, out, args.rust)
     rows, processes = [], []
     hostname = socket.gethostname()
-    for profile, extra, questions in profiles(hostname):
+    selected = list(length_profiles())
+    if not args.length_only:
+        selected = list(profiles(hostname)) + selected
+    if args.profiles:
+        names = set(args.profiles.split(','))
+        selected = [row for row in selected if row[0] in names]
+        if {row[0] for row in selected} != names:
+            raise ValueError('requested profile not found')
+    for profile, extra, questions in selected:
         upstream = Upstream() if profile == 'dynamic-additional' else None
         config = BASE + extra + (f'server=127.0.0.1#{upstream.port}\n' if upstream else '')
         work = out / profile
@@ -280,6 +358,16 @@ def compare(left, right):
             reference_differences.append({'case': c_row['input'], 'c': c_row, 'rust': rust_row,
                 'source': 'option.c dns-rr parse_hex size_t/-1U error check',
                 'behavior': 'C reports allocation failure; Rust reports invalid hexadecimal configuration'})
+        elif (c_row['input'] == rust_row['input']
+              and c_row['input'].startswith('caa-record=unsafe-total.m5.test,1,t,')
+              and len(c_row['input'].split(',', 3)[3]) + 3 in (65536, 65537)
+              and c_row['exit'] == -11 and rust_row['exit'] == 1
+              and rust_row.get('stderr', '').endswith(f'record data exceeds DNS wire length at line {len(BASE.splitlines()) + 1} of /m2/parse.conf\n')):
+            reference_differences.append({'case': 'CAA total-length allocation overflow',
+                'total': len(c_row['input'].split(',', 3)[3]) + 3,
+                'c_exit': -11, 'rust_exit': 1,
+                'source': 'option.c:5144-5153 allocates u16(len) then memcpy full tag/value',
+                'behavior': 'exact-image C crashes during isolated --test; Rust safely rejects'})
         else:
             differences.append({'parse_c': c_row, 'parse_rust': rust_row})
     if left['processes'] != right['processes']:
@@ -310,7 +398,11 @@ def main():
     parser.add_argument('--rust', type=Path, required=True)
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--c-only', action='store_true')
+    parser.add_argument('--length-only', action='store_true')
+    parser.add_argument('--profiles')
     args = parser.parse_args()
+    parse_configs.length_only = args.length_only
+    parse_configs.profiles = set(args.profiles.split(',')) if args.profiles else None
     if os.environ.get('DNSMASQ_TEST_ISOLATED') != '1' or os.geteuid() != 0:
         parser.error('requires root in run_isolated.sh')
     if args.out.exists() or 'private' not in args.out.resolve().parts:

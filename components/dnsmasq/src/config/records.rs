@@ -82,11 +82,9 @@ fn integer(arg: &EncodedArg) -> Result<u32, Error> {
         if !c.is_ascii_digit() {
             return Err(Error("bad integer"));
         }
-        value
-            .checked_mul(10)
-            .and_then(|v| v.checked_add(u32::from(c - b'0')))
-            .filter(|&v| v <= i32::MAX as u32)
-            .ok_or(Error("integer exceeds defined C int range"))
+        // The image's musl atoi keeps the low 32 bits. Reproduce those
+        // observed values without signed-overflow undefined behavior.
+        Ok(value.wrapping_mul(10).wrapping_add(u32::from(c - b'0')))
     })
 }
 fn uint16(arg: &EncodedArg) -> Result<u16, Error> {
@@ -103,6 +101,13 @@ fn sized(data: Vec<u8>) -> Result<Vec<u8>, Error> {
         return Err(Error("record data exceeds DNS wire length"));
     }
     Ok(data)
+}
+// C allocates the complete RR/TXT backing bytes, then stores their length in
+// txt_record.len (u16). CAA is different: its allocation uses that narrowed
+// length before memcpy, so retain sized()'s safe rejection for that path.
+fn narrowed(mut data: Vec<u8>) -> Vec<u8> {
+    data.truncate(usize::from(data.len() as u16));
+    data
 }
 fn ascii_key(bytes: &[u8]) -> Vec<u8> {
     bytes.iter().map(u8::to_ascii_lowercase).collect()
@@ -153,7 +158,7 @@ fn hex_data(argument: &EncodedArg) -> Result<Vec<u8>, Error> {
         input = end + 1;
     }
     bytes.truncate(output);
-    sized(bytes)
+    Ok(narrowed(bytes))
 }
 
 impl RecordConfig {
@@ -218,7 +223,7 @@ impl RecordConfig {
                 self.txt.push(RawRecord {
                     name: canon(&name)?,
                     rr_type: 16,
-                    data: sized(data)?,
+                    data: narrowed(data),
                 });
             }
             b"dns-rr" => {
@@ -240,9 +245,6 @@ impl RecordConfig {
                 }
                 let flags = integer(&fields[1])? as u8;
                 let tag = fields[2].decoded();
-                if tag.len() > 255 {
-                    return Err(Error("CAA tag exceeds wire length"));
-                }
                 let mut data = vec![flags, tag.len() as u8];
                 data.extend(tag);
                 data.extend(rest.decoded());
@@ -456,6 +458,56 @@ mod tests {
         let directive = lex_line(text)?.unwrap();
         validate_directive(&directive)?;
         config.apply(&directive)
+    }
+
+    #[test]
+    fn image_record_integer_widths_wrap_before_field_checks() {
+        let mut config = RecordConfig::default();
+        apply(&mut config, b"dns-rr=test,4294967296,ab").unwrap();
+        assert_eq!(config.raw[0].rr_type, 0);
+        apply(
+            &mut config,
+            format!("caa-record=test,{},t,v", "9".repeat(64)).as_bytes(),
+        )
+        .unwrap();
+        assert_eq!(config.raw[1].data[0], 255);
+        apply(
+            &mut config,
+            b"naptr-record=test,4294967296,4294967297,f,s,r,.",
+        )
+        .unwrap();
+        assert_eq!((config.naptr[0].order, config.naptr[0].preference), (0, 1));
+        assert!(apply(&mut config, b"naptr-record=test,2147483648,1,f,s,r,.").is_err());
+    }
+
+    #[test]
+    fn record_lengths_follow_safe_backing_allocation_boundaries() {
+        let mut config = RecordConfig::default();
+        apply(
+            &mut config,
+            format!("dns-rr=test,65401,{}", "ab".repeat(65537)).as_bytes(),
+        )
+        .unwrap();
+        assert_eq!(config.raw[0].data, [0xab]);
+        apply(
+            &mut config,
+            format!("txt-record=test,{}", "a".repeat(65280)).as_bytes(),
+        )
+        .unwrap();
+        assert!(config.txt[0].data.is_empty());
+        apply(
+            &mut config,
+            format!("caa-record=test,256,{},v", "t".repeat(256)).as_bytes(),
+        )
+        .unwrap();
+        assert_eq!(&config.raw[1].data[..2], &[0, 0]);
+        assert_eq!(config.raw[1].data.len(), 259);
+        // C allocates u16(total), then overflows it with full strings here.
+        assert!(apply(
+            &mut config,
+            format!("caa-record=test,0,t,{}", "v".repeat(65533)).as_bytes()
+        )
+        .is_err());
     }
 
     #[test]

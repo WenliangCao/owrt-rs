@@ -270,6 +270,9 @@ def descendants(root):
 
 
 def run_side(root, side, scenario, folder):
+    if scenario.get('adapter') == 'dhcp':
+        import m5_option_matrix_dhcp
+        return m5_option_matrix_dhcp.run_side(root, side, scenario, folder)
     folder.mkdir()
     topology = probes_extra.LocalTopology() if scenario.get('adapter') == 'local-service' else None
     isolated_address = scenario.get('upstream_address')
@@ -396,7 +399,13 @@ def normalized_text(text):
 def compare(expected, actual, scenario):
     failures = []
     expected_exit = scenario.get('expected_test_exit', 0)
-    if expected['syntax']['exit'] != expected_exit or expected['startup']['ready'] != (expected_exit == 0):
+    if scenario.get('reference_defect'):
+        import m5_option_matrix_dhcp
+        return m5_option_matrix_dhcp.reference_difference(expected, actual, scenario)
+    wanted_ready = scenario.get('expected_startup_exit', 0) == 0 and expected_exit == 0
+    if 'expected_startup_exit' in scenario and expected['startup'].get('exit', 0) != scenario['expected_startup_exit']:
+        failures.append({'phase': 'c-calibration', 'expected_startup_exit': scenario['expected_startup_exit'], 'actual': expected['startup']})
+    if expected['syntax']['exit'] != expected_exit or expected['startup']['ready'] != wanted_ready:
         failures.append({'phase': 'c-calibration', 'expected_test_exit': expected_exit, 'syntax': expected['syntax'], 'startup': expected['startup']})
     for phase in ('syntax', 'startup'):
         a, b = copy.deepcopy(expected[phase]), copy.deepcopy(actual[phase])
@@ -414,6 +423,9 @@ def compare(expected, actual, scenario):
             failures.append({'phase': 'cleanup', 'side': side, 'actual': observed['cleanup']})
         if observed.get('forced_kill') or (observed['startup']['ready'] and observed['exit'] != 0):
             failures.append({'phase': 'shutdown', 'side': side, 'exit': observed['exit']})
+    if scenario.get('adapter') == 'dhcp':
+        import m5_option_matrix_dhcp
+        failures.extend({'phase': 'c-dhcp-anchor', **failure} for failure in m5_option_matrix_dhcp.guards(expected['rows'], scenario))
     if scenario.get('adapter') == 'local-service':
         for side, observed in [('c', expected), ('rust', actual)]:
             failures.extend({'phase': 'admission-guard', 'side': side, **failure} for failure in probes_extra.local_service_guards(observed['rows'], scenario))
@@ -536,8 +548,13 @@ def main():
     parser.add_argument('--scenarios', help='comma-separated targeted subset; incomplete options remain open')
     parser.add_argument('--options', help='comma-separated subset; incomplete option coverage cannot close')
     parser.add_argument('--self-test', action='store_true')
+    parser.add_argument('--reference-only', action='store_true', help='C baseline only; never qualifies an option')
     args = parser.parse_args()
+    manifest = json.loads(args.manifest.read_text())
     controls = {**self_test(), **probes_extra.controls()}
+    if any(scenario.get('adapter') == 'dhcp' for scenario in manifest['scenarios']):
+        import m5_option_matrix_dhcp
+        controls.update(m5_option_matrix_dhcp.controls())
     if args.self_test:
         print(json.dumps(controls, sort_keys=True))
         return 0
@@ -549,7 +566,6 @@ def main():
     if 'private' not in output.parts or output.exists():
         raise ValueError('fresh private evidence path required')
     output.mkdir(parents=True)
-    manifest = json.loads(args.manifest.read_text())
     if manifest.get('executable') is False:
         raise ValueError('source checklist is not executable yet')
     selected = args.options.split(',') if args.options else list(manifest['options'])
@@ -561,30 +577,43 @@ def main():
         if set(ids) - {scenario['id'] for scenario in scenarios}:
             raise ValueError('unknown scenario or not part of selected options')
         scenarios = [scenario for scenario in scenarios if scenario['id'] in ids]
+    dependencies = ['m2_rootfs.py', 'dns_service_probe.py', 'run_isolated.sh', 'm5_option_matrix_probes.py']
+    if any(scenario.get('adapter') == 'dhcp' for scenario in scenarios):
+        import m5_option_matrix_dhcp
+        dependencies.extend(m5_option_matrix_dhcp.DEPENDENCIES)
     report = {'stock_sha256': STOCK_SHA256, 'rust_sha256': args.rust_sha256, 'source_commit': args.source_commit,
               'manifest_sha256': sha256(args.manifest), 'tool_sha256': sha256(Path(__file__)),
-              'dependency_sha256': {filename: sha256(Path(__file__).with_name(filename)) for filename in ['m2_rootfs.py', 'dns_service_probe.py', 'run_isolated.sh', 'm5_option_matrix_probes.py']},
+              'dependency_sha256': {filename: sha256(Path(__file__).with_name(filename)) for filename in dependencies},
               'normalization': ['executable stderr/stdout prefix dnsmasq-rs: -> dnsmasq:',
                                 'upstream transaction ID removed; name/type/class/transport/count exact',
                                 'casing: random bit patterns retained raw; compare allowed positions, enabled activity and exact client question bytes',
                                 'local-service: connect/receive stage and errno, including TCP reset versus EOF, compare exactly; queued-byte timing proof retained',
-                                'retry: raw clocks retained; exponential intervals checked within -12/+90ms; compare per-server traces to avoid receiver-thread scheduling order'],
+                                'retry: raw clocks retained; exponential intervals checked within -12/+90ms; compare per-server traces to avoid receiver-thread scheduling order',
+                                'DHCP: every reply byte except validated renewal T1/T2 fuzz and validated leasequery aging compares exactly; lease-file expiry is independently bounded to600s and lease order sorted; raw lease files retained',
+                                'DHCP L2: destination MAC, IP source/destination and UDP ports exact; independent namespace source MAC and kernel IP ID/checksum retained in raw frames'],
               'strict_upstream_wire_scenarios': [scenario['id'] for scenario in scenarios if scenario.get('strict_upstream_wire')],
               'negative_controls': controls, 'reference_timings': manifest.get('reference_timing'), 'scenarios': [], 'options': {}, 'failures': []}
     frozen = output / 'driver'
     frozen.mkdir()
-    for filename in [Path(__file__).name, 'm2_rootfs.py', 'dns_service_probe.py', 'run_isolated.sh', 'm5_option_matrix_probes.py']:
+    for filename in [Path(__file__).name, *dependencies]:
         (frozen / filename).write_bytes(Path(__file__).with_name(filename).read_bytes())
     (frozen / args.manifest.name).write_bytes(args.manifest.read_bytes())
     dump(output / 'manifest.json', manifest)
-    roots = {side: prepare(args.image_root, None, output / side, args.rust) for side in ('c', 'rust')}
+    sides = ('c',) if args.reference_only else ('c', 'rust')
+    report['reference_only'] = args.reference_only
+    roots = {side: prepare(args.image_root, None, output / side, args.rust) for side in sides}
     for scenario in scenarios:
         folder = output / scenario['id']
         folder.mkdir()
         row = {'id': scenario['id'], 'options': scenario['options'], 'failures': []}
         try:
-            observed = {side: run_side(roots[side], side, scenario, folder / side) for side in ('c', 'rust')}
-            row['failures'] = compare(observed['c'], observed['rust'], scenario)
+            observed = {side: run_side(roots[side], side, scenario, folder / side) for side in sides}
+            if args.reference_only and scenario.get('reference_defect'):
+                row['failures'] = m5_option_matrix_dhcp.reference_baseline(observed['c'])
+            else:
+                row['failures'] = compare(observed['c'], observed.get('rust', copy.deepcopy(observed['c'])), scenario)
+            if scenario.get('reference_defect'):
+                row['reference_difference'] = scenario['reference_defect']
             row['rows'] = len(observed['c']['rows'])
             row['syntax_rows'] = 1
         except Exception as error:
@@ -596,16 +625,16 @@ def main():
         completed = {s['id']: s for s in report['scenarios'] if s['id'] in required}
         missing = sorted(set(required) - completed.keys())
         failed = [key for key, row in completed.items() if row['failures']]
-        report['options'][option] = {'closed': not missing and not failed and manifest['options'][option].get('eligible_for_closure', True),
+        report['options'][option] = {'closed': not args.reference_only and manifest.get('qualification_ready', True) and not missing and not failed and manifest['options'][option].get('eligible_for_closure', True),
                                       'known_gaps': manifest['options'][option].get('known_gaps', []),
                                       'missing_scenarios': missing, 'failed_scenarios': failed,
-                                      'checklist': [dict(boundary, checked=all(key in completed and not completed[key]['failures'] for key in boundary['required_scenarios'])) for boundary in manifest['options'][option]['checklist']]}
+                                      'checklist': [dict(boundary, checked=not args.reference_only and manifest.get('qualification_ready', True) and all(key in completed and not completed[key]['failures'] for key in boundary['required_scenarios'])) for boundary in manifest['options'][option]['checklist']]}
     report['failures'] = [dict(scenario=s['id'], **failure) for s in report['scenarios'] for failure in s['failures']]
     dump(output / 'result.json', report)
     print(json.dumps({'scenarios': len(scenarios), 'rows': sum(s.get('rows', 0) for s in report['scenarios']),
                       'closed': [k for k, v in report['options'].items() if v['closed']],
                       'failures': len(report['failures'])}, sort_keys=True))
-    return int(bool(report['failures']) or not all(v['closed'] for v in report['options'].values()))
+    return int(bool(report['failures']) or (not args.reference_only and not all(v['closed'] for v in report['options'].values())))
 
 
 if __name__ == '__main__':

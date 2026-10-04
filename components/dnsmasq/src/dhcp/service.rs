@@ -121,6 +121,53 @@ pub enum ListenerStep {
     Processed(Result<super::runtime::RuntimeReport, Box<super::runtime::RuntimeFailure>>),
 }
 
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+struct PendingReply {
+    bytes: Vec<u8>,
+    destination: super::runtime::Destination,
+    listener: Listener,
+    would_block_count: u16,
+}
+
+/// Admit at most one deferred reply. Returning success means the owner has
+/// accepted the packet; a full kernel queue is retried on the next poll turn.
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+struct OwnerSender<'a, S> {
+    socket: &'a mut S,
+    pending: &'a mut Option<PendingReply>,
+    listener: Listener,
+}
+
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+impl<S: super::runtime::DatagramSender> super::runtime::DatagramSender for OwnerSender<'_, S> {
+    fn interface_name(&mut self, index: u32) -> io::Result<Option<[u8; 16]>> {
+        super::runtime::DatagramSender::interface_name(self.socket, index)
+    }
+    fn prepare_destination(&mut self, destination: &super::runtime::Destination) -> io::Result<()> {
+        super::runtime::DatagramSender::prepare_destination(self.socket, destination)
+    }
+    fn send(&mut self, bytes: &[u8], destination: &super::runtime::Destination) -> io::Result<()> {
+        match super::runtime::DatagramSender::send(self.socket, bytes, destination) {
+            Err(error)
+                if matches!(
+                    error.kind(),
+                    io::ErrorKind::WouldBlock | io::ErrorKind::Interrupted
+                ) =>
+            {
+                debug_assert!(self.pending.is_none());
+                *self.pending = Some(PendingReply {
+                    bytes: bytes.to_vec(),
+                    destination: destination.clone(),
+                    listener: self.listener,
+                    would_block_count: u16::from(error.kind() == io::ErrorKind::WouldBlock),
+                });
+                Ok(())
+            }
+            result => result,
+        }
+    }
+}
+
 /// An isolated AF_INET DHCP/PXE socket with the bounded receive buffer and
 /// configured vendor prefixes owned by one value.  This is the service
 /// boundary used by an event loop: it does not bind privileged ports unless
@@ -130,6 +177,7 @@ pub enum ListenerStep {
 pub struct SocketListener {
     socket: crate::net::DatagramSocket,
     pxe_socket: Option<crate::net::DatagramSocket>,
+    pending_reply: Option<PendingReply>,
     random: std::fs::File,
     listener: Listener,
     pxe_prefixes: Vec<Vec<u8>>,
@@ -167,6 +215,7 @@ impl SocketListener {
         Ok(Self {
             socket,
             pxe_socket: None,
+            pending_reply: None,
             random: std::fs::File::open("/dev/urandom")?,
             listener,
             pxe_prefixes: pxe_prefixes.iter().map(|prefix| prefix.to_vec()).collect(),
@@ -247,6 +296,40 @@ impl SocketListener {
         })
     }
 
+    fn flush_pending_reply(&mut self) -> io::Result<bool> {
+        let Some(mut pending) = self.pending_reply.take() else {
+            return Ok(true);
+        };
+        let socket = if pending.listener == self.listener {
+            &mut self.socket
+        } else {
+            self.pxe_socket
+                .as_mut()
+                .expect("queued PXE reply retains its socket")
+        };
+        match super::runtime::DatagramSender::send(socket, &pending.bytes, &pending.destination) {
+            Ok(()) => Ok(true),
+            Err(error)
+                if matches!(
+                    error.kind(),
+                    io::ErrorKind::WouldBlock | io::ErrorKind::Interrupted
+                ) =>
+            {
+                if error.kind() == io::ErrorKind::Interrupted {
+                    pending.would_block_count = 0;
+                } else {
+                    pending.would_block_count += 1;
+                    if pending.would_block_count > 1000 {
+                        return Err(error);
+                    }
+                }
+                self.pending_reply = Some(pending);
+                Ok(false)
+            }
+            Err(error) => Err(error),
+        }
+    }
+
     fn receive_for_local(
         &mut self,
         listener: Listener,
@@ -254,6 +337,9 @@ impl SocketListener {
     ) -> io::Result<Result<crate::net::Datagram, ListenerStep>> {
         if stop() {
             return Ok(Err(ListenerStep::Stopped));
+        }
+        if !self.flush_pending_reply()? {
+            return Ok(Err(ListenerStep::WouldBlock));
         }
         let socket = if listener == self.listener {
             &self.socket
@@ -365,12 +451,17 @@ impl SocketListener {
                 .as_mut()
                 .expect("PXE receive requires the socket")
         };
+        let mut sender = OwnerSender {
+            socket,
+            pending: &mut self.pending_reply,
+            listener,
+        };
         Ok(ListenerStep::Processed(
             super::runtime::process_with_random_and_ports(
                 dispatch,
                 datagram.peer,
                 provider,
-                socket,
+                &mut sender,
                 options,
                 output,
                 self.ports,
@@ -559,6 +650,39 @@ mod tests {
             interface_index: 3,
             unicast_destination: false,
         }
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    fn transient_send_is_deferred_without_an_inner_retry_loop() {
+        use super::super::runtime::{DatagramSender, Destination, DestinationKind};
+        struct Blocked(usize);
+        impl DatagramSender for Blocked {
+            fn send(&mut self, _: &[u8], _: &Destination) -> io::Result<()> {
+                self.0 += 1;
+                Err(io::ErrorKind::WouldBlock.into())
+            }
+        }
+        let mut socket = Blocked(0);
+        let mut pending = None;
+        let destination = Destination {
+            address: "127.0.0.1:4011".parse().unwrap(),
+            interface: 0,
+            kind: DestinationKind::Peer,
+            arp: None,
+        };
+        let mut sender = OwnerSender {
+            socket: &mut socket,
+            pending: &mut pending,
+            listener: Listener::Pxe,
+        };
+        sender.send(&[2; 300], &destination).unwrap();
+        assert_eq!(socket.0, 1);
+        let pending = pending.unwrap();
+        assert_eq!(pending.bytes, [2; 300]);
+        assert_eq!(pending.destination.address, destination.address);
+        assert_eq!(pending.listener, Listener::Pxe);
+        assert_eq!(pending.would_block_count, 1);
     }
 
     #[test]

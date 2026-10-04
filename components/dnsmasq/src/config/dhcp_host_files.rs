@@ -3,8 +3,9 @@
 
 use super::HostConfig;
 use crate::config::{lex_argument_line, Error};
+use std::collections::BTreeSet;
 use std::ffi::OsString;
-use std::fs::{self, File};
+use std::fs::{self, File, ReadDir};
 use std::io::{self, BufRead, BufReader};
 use std::os::unix::ffi::{OsStrExt, OsStringExt};
 use std::path::PathBuf;
@@ -52,6 +53,33 @@ struct Entry {
 pub struct HostFiles {
     entries: Vec<Entry>,
     order: Vec<usize>,
+    expansion: Option<Expansion>,
+    read_position: usize,
+}
+
+#[derive(Debug)]
+enum Expansion {
+    Entry(Option<usize>),
+    Scan {
+        parent: usize,
+        path: PathBuf,
+        entries: ReadDir,
+        names: BTreeSet<OsString>,
+    },
+    Append {
+        parent: usize,
+        path: PathBuf,
+        names: std::collections::btree_set::IntoIter<OsString>,
+    },
+}
+
+/// One bounded directory-plan turn. Files are yielded only after all static
+/// directory expansion completes, preserving expand_filelist's global order.
+#[derive(Debug, Eq, PartialEq)]
+pub enum FilePlanStep {
+    Pending,
+    File(PathBuf),
+    Done,
 }
 
 impl HostFiles {
@@ -67,80 +95,149 @@ impl HostFiles {
                 })
                 .collect(),
             order: (0..paths.len()).collect(),
+            expansion: None,
+            read_position: 0,
         }
     }
 
-    fn expand(&mut self, errors: &mut Vec<HostFileError>) {
+    pub fn begin_plan(&mut self) {
         for entry in &mut self.entries {
             entry.inactive = entry.from_directory;
         }
-        let mut current = self.order.first().copied();
-        while let Some(id) = current {
-            let path = self.entries[id].path.clone();
-            if !self.entries[id].inactive && fs::metadata(&path).is_ok_and(|meta| meta.is_dir()) {
-                self.entries[id].inactive = true;
-                match fs::read_dir(&path).and_then(|dir| dir.collect::<Result<Vec<_>, _>>()) {
-                    Err(error) => errors.push(HostFileError {
+        self.expansion = Some(Expansion::Entry(self.order.first().copied()));
+        self.read_position = 0;
+    }
+
+    fn next_entry(&self, id: usize) -> Option<usize> {
+        self.order
+            .iter()
+            .position(|&candidate| candidate == id)
+            .and_then(|position| self.order.get(position + 1).copied())
+    }
+
+    fn append_child(&mut self, path: &PathBuf, name: OsString) {
+        // C compares a literal slash join, including an explicit duplicate path.
+        let mut full = path.as_os_str().as_bytes().to_vec();
+        full.push(b'/');
+        full.extend_from_slice(name.as_bytes());
+        let full = PathBuf::from(OsString::from_vec(full));
+        let child = if let Some(position) = self.order.iter().position(|&index| {
+            self.entries[index].path.as_os_str().as_bytes() == full.as_os_str().as_bytes()
+        }) {
+            let found = self.order.remove(position);
+            self.entries[found].inactive = false;
+            found
+        } else {
+            let found = self.entries.len();
+            self.entries.push(Entry {
+                path: full,
+                from_directory: true,
+                inactive: false,
+            });
+            found
+        };
+        self.order.push(child);
+        if self.entries[child].from_directory
+            && fs::metadata(&self.entries[child].path).is_ok_and(|meta| !meta.is_file())
+        {
+            self.entries[child].inactive = true;
+        }
+    }
+
+    /// Visit one directory entry or one planned path, without reading file
+    /// contents. Incremental ordered insertion avoids a whole-directory sort
+    /// in a live owner turn; the pinned image uses C-locale byte ordering.
+    pub fn step_plan(&mut self, errors: &mut Vec<HostFileError>) -> FilePlanStep {
+        let Some(expansion) = self.expansion.take() else {
+            let Some(&id) = self.order.get(self.read_position) else {
+                return FilePlanStep::Done;
+            };
+            self.read_position += 1;
+            return if self.entries[id].inactive {
+                FilePlanStep::Pending
+            } else {
+                FilePlanStep::File(self.entries[id].path.clone())
+            };
+        };
+        self.expansion = match expansion {
+            Expansion::Entry(None) => None,
+            Expansion::Entry(Some(parent)) => {
+                let path = self.entries[parent].path.clone();
+                if !self.entries[parent].inactive
+                    && fs::metadata(&path).is_ok_and(|meta| meta.is_dir())
+                {
+                    self.entries[parent].inactive = true;
+                    match fs::read_dir(&path) {
+                        Ok(entries) => Some(Expansion::Scan {
+                            parent,
+                            path,
+                            entries,
+                            names: BTreeSet::new(),
+                        }),
+                        Err(error) => {
+                            errors.push(HostFileError {
+                                path,
+                                line: None,
+                                kind: HostFileErrorKind::Io(error),
+                            });
+                            Some(Expansion::Entry(self.next_entry(parent)))
+                        }
+                    }
+                } else {
+                    Some(Expansion::Entry(self.next_entry(parent)))
+                }
+            }
+            Expansion::Scan {
+                parent,
+                path,
+                mut entries,
+                mut names,
+            } => match entries.next() {
+                Some(Ok(child)) => {
+                    let name = child.file_name();
+                    if accepted_name(name.as_bytes()) {
+                        names.insert(name);
+                    }
+                    Some(Expansion::Scan {
+                        parent,
+                        path,
+                        entries,
+                        names,
+                    })
+                }
+                Some(Err(error)) => {
+                    // scandir failure discards the incomplete directory list.
+                    errors.push(HostFileError {
                         path,
                         line: None,
                         kind: HostFileErrorKind::Io(error),
-                    }),
-                    Ok(mut children) => {
-                        // The pinned no-IDN/no-NLS target keeps the C locale.
-                        crate::sorting::sort_by(&mut children, |a, b| {
-                            a.file_name().cmp(&b.file_name())
-                        });
-                        for child in children {
-                            let name = child.file_name();
-                            let bytes = name.as_bytes();
-                            if bytes.is_empty()
-                                || bytes[0] == b'.'
-                                || bytes.last() == Some(&b'~')
-                                || (bytes[0] == b'#' && bytes.last() == Some(&b'#'))
-                            {
-                                continue;
-                            }
-                            // Preserve C's literal slash join rather than normalizing
-                            // names, since explicit-path overlap compares raw bytes.
-                            let mut full = path.as_os_str().as_bytes().to_vec();
-                            full.push(b'/');
-                            full.extend_from_slice(bytes);
-                            let full = PathBuf::from(OsString::from_vec(full));
-                            let child_id = if let Some(position) =
-                                self.order.iter().position(|&index| {
-                                    self.entries[index].path.as_os_str().as_bytes()
-                                        == full.as_os_str().as_bytes()
-                                }) {
-                                let found = self.order.remove(position);
-                                self.entries[found].inactive = false;
-                                found
-                            } else {
-                                let found = self.entries.len();
-                                self.entries.push(Entry {
-                                    path: full,
-                                    from_directory: true,
-                                    inactive: false,
-                                });
-                                found
-                            };
-                            self.order.push(child_id);
-                            if self.entries[child_id].from_directory
-                                && fs::metadata(&self.entries[child_id].path)
-                                    .is_ok_and(|meta| !meta.is_file())
-                            {
-                                self.entries[child_id].inactive = true;
-                            }
-                        }
-                    }
+                    });
+                    Some(Expansion::Entry(self.next_entry(parent)))
+                }
+                None => Some(Expansion::Append {
+                    parent,
+                    path,
+                    names: names.into_iter(),
+                }),
+            },
+            Expansion::Append {
+                parent,
+                path,
+                mut names,
+            } => {
+                if let Some(name) = names.next() {
+                    self.append_child(&path, name);
+                    Some(Expansion::Append {
+                        parent,
+                        path,
+                        names,
+                    })
+                } else {
+                    Some(Expansion::Entry(self.next_entry(parent)))
                 }
             }
-            let position = self
-                .order
-                .iter()
-                .position(|&index| index == id)
-                .expect("directory entry remains in list");
-            current = self.order.get(position + 1).copied();
-        }
+        };
+        FilePlanStep::Pending
     }
 
     pub fn reload(&mut self, main_hosts: &[HostConfig]) -> HostReload {
@@ -148,17 +245,18 @@ impl HostFiles {
             hosts: main_hosts.to_vec(),
             errors: Vec::new(),
         };
-        self.expand(&mut report.errors);
-        for &id in &self.order {
-            let entry = &self.entries[id];
-            if entry.inactive {
-                continue;
-            }
-            let file = match File::open(&entry.path) {
+        self.begin_plan();
+        loop {
+            let path = match self.step_plan(&mut report.errors) {
+                FilePlanStep::Pending => continue,
+                FilePlanStep::Done => break,
+                FilePlanStep::File(path) => path,
+            };
+            let file = match File::open(&path) {
                 Ok(file) => file,
                 Err(error) => {
                     report.errors.push(HostFileError {
-                        path: entry.path.clone(),
+                        path: path.clone(),
                         line: None,
                         kind: HostFileErrorKind::Io(error),
                     });
@@ -185,7 +283,7 @@ impl HostFiles {
                     Ok(Some(host)) => report.hosts.insert(0, host),
                     Ok(None) => {}
                     Err(error) => report.errors.push(HostFileError {
-                        path: entry.path.clone(),
+                        path: path.clone(),
                         line: Some(lineno),
                         kind: if super::host::unsupported(&error) {
                             HostFileErrorKind::Unsupported(error)
@@ -200,10 +298,59 @@ impl HostFiles {
     }
 }
 
+fn accepted_name(name: &[u8]) -> bool {
+    !name.is_empty()
+        && name[0] != b'.'
+        && !name.ends_with(b"~")
+        && !(name.starts_with(b"#") && name.ends_with(b"#"))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::time::{SystemTime, UNIX_EPOCH};
+
+    #[test]
+    fn planned_directory_order_retains_explicit_paths_and_retires_missing_children() {
+        let folder = std::env::temp_dir().join(format!(
+            "dhcp-file-plan-{}-{}",
+            std::process::id(),
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        fs::create_dir(&folder).unwrap();
+        for name in ["z", "a", ".hidden", "backup~", "#autosave#"] {
+            fs::write(folder.join(name), b"").unwrap();
+        }
+        fs::create_dir(folder.join("nested")).unwrap();
+        let mut plan = HostFiles::new(&[
+            folder.join("z").as_os_str().as_bytes().to_vec(),
+            folder.as_os_str().as_bytes().to_vec(),
+        ]);
+        let collect = |plan: &mut HostFiles| {
+            plan.begin_plan();
+            let mut paths = Vec::new();
+            let mut errors = Vec::new();
+            loop {
+                match plan.step_plan(&mut errors) {
+                    FilePlanStep::Pending => {}
+                    FilePlanStep::File(path) => paths.push(path),
+                    FilePlanStep::Done => break,
+                }
+            }
+            assert!(errors.is_empty());
+            paths
+        };
+        assert_eq!(collect(&mut plan), [folder.join("a"), folder.join("z")]);
+        fs::remove_file(folder.join("a")).unwrap();
+        fs::remove_file(folder.join("z")).unwrap();
+        // The derived child disappears; an explicit missing path still gets
+        // its own nonfatal open error at the later read stage, as C does.
+        assert_eq!(collect(&mut plan), [folder.join("z")]);
+        fs::remove_dir_all(folder).unwrap();
+    }
 
     #[test]
     fn reload_preserves_selectors_and_skips_only_invalid_lines() {

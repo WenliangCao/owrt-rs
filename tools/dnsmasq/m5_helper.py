@@ -21,7 +21,7 @@ import traceback
 from dhcp_lease_lifecycle import packet
 from dhcp_daemon_smoke import decode
 from dns_service_probe import query, semantics
-from m2_rootfs import prepare, command, sha256, STOCK_SHA256
+from m2_rootfs import prepare, command, sha256, STOCK_SHA256, process_identity
 
 CAPTURE = r'''#!/bin/sh
 if [ "$1" = init ]; then
@@ -49,9 +49,18 @@ readlink /proc/$$/fd/0 > "$prefix.stdin"
 for f in /proc/$$/fd/*; do readlink "$f"; done > "$prefix.fds"
 if [ "$M5_SLOW" = 1 ] && [ "$count" = 1 ]; then
   : > "$M5_OUTPUT/slow-ready"
-  sleep 2
+  sleep "${M5_SLOW_SECONDS:-2}"
+fi
+if [ "$M5_LATE_OUTPUT" = 1 ]; then
+  i=0
+  while [ "$i" -lt 2048 ]; do
+    echo 012345678901234567890123456789012345678901234567890123456789012345
+    i=$((i + 1))
+  done
+  echo late-stderr >&2
 fi
 : > "$prefix.done"
+if [ "$M5_REMOVE_SCRIPT" = 1 ] && [ "$count" = 1 ]; then rm "$0"; fi
 if [ "$M5_EXIT" = 1 ]; then echo script-failed >&2; exit 7; fi
 if [ "$M5_SIGNAL" = 1 ]; then kill -USR1 "$$"; fi
 '''
@@ -339,7 +348,173 @@ class Side:
         return result
 
 
+
+SHUTDOWN_CASES = {'shutdown-pid', 'shutdown-group', 'shutdown-queued', 'shutdown-output',
+                  'shutdown-exit', 'shutdown-signal', 'shutdown-exec-error',
+                  'shutdown-int', 'shutdown-debug-int'}
+
+
+def process_snapshot(pids, start):
+    result = []
+    for pid in sorted(pids):
+        try:
+            raw = Path(f'/proc/{pid}/stat').read_text()
+            fields = raw[raw.rindex(')')+2:].split()
+            result.append({'pid': pid, 'ppid': int(fields[1]), 'pgid': int(fields[2]),
+                           'sid': int(fields[3]), 'state': fields[0],
+                           'observed': time.monotonic()-start,
+                           'command': Path(f'/proc/{pid}/cmdline').read_bytes().hex()})
+        except (FileNotFoundError, ProcessLookupError):
+            pass
+    return result
+
+
+def tftp_completed(runner):
+    payload = b'helper-shutdown-evidence'
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as endpoint:
+        endpoint.settimeout(1)
+        endpoint.sendto(b'\0\1health.bin\0octet\0', ('127.0.0.1', 69))
+        reply, peer = endpoint.recvfrom(1024)
+        assert reply == b'\0\3\0\1'+payload, 'unexpected TFTP DATA'
+        endpoint.sendto(b'\0\4\0\1', peer)
+    def released():
+        for fd in Path(f'/proc/{runner.process.pid}/fd').iterdir():
+            try:
+                if os.readlink(fd).endswith('/health.bin'):
+                    return False
+            except FileNotFoundError:
+                pass
+        return True
+    wait(released, 'TFTP completion queued after final ACK')
+
+
+def shutdown_observe(runner, case):
+    start = time.monotonic()
+    parent = runner.process.pid
+    owned = children(parent)
+    before = process_snapshot(owned, start)
+    helpers = [row['pid'] for row in before if row['ppid'] == parent]
+    assert len(helpers) == 1, ('expected one helper', before)
+    result = {'before_signal': before, 'helper_pid': helpers[0], 'samples': [], 'reaped': {}}
+    if case == 'shutdown-int':
+        os.kill(parent, signal.SIGINT)
+        time.sleep(.1)
+        result['nondebug_int_ignored'] = runner.process.poll() is None
+        assert result['nondebug_int_ignored'], 'normal-mode SIGINT terminated parent'
+    signum = signal.SIGINT if case == 'shutdown-debug-int' else signal.SIGTERM
+    group = case in ('shutdown-group', 'shutdown-debug-int')
+    result['signal_at'] = time.monotonic()-start
+    result['signal'] = signum
+    result['group'] = group
+    result['pid_existed_before'] = (runner.folder/'pid').exists()
+    (os.killpg if group else os.kill)(parent, signum)
+    deadline = time.monotonic()+8
+    prior = None
+    while time.monotonic() < deadline:
+        owned.update(children(parent))
+        owned.update(children(os.getpid())-{os.getpid()})
+        runner.descendants.update(owned)
+        if runner.process.poll() is not None and 'parent_exit_at' not in result:
+            result['parent_exit_at'] = time.monotonic()-start
+            result['parent_exit'] = runner.process.returncode
+            result['pid_absent_at_parent_exit'] = not (runner.folder/'pid').exists()
+        if (runner.events/'1.done').exists() and 'first_script_done_at' not in result:
+            result['first_script_done_at'] = time.monotonic()-start
+        for pid in owned-{parent}:
+            try:
+                reaped, status = os.waitpid(pid, os.WNOHANG)
+                if reaped:
+                    result['reaped'][str(reaped)] = status
+            except (ChildProcessError, ProcessLookupError):
+                pass
+        snapshot = process_snapshot(owned, start)
+        key = [(row['pid'], row['ppid'], row['state']) for row in snapshot]
+        if key != prior:
+            result['samples'].append({'at': time.monotonic()-start, 'processes': snapshot})
+            prior = key
+        if runner.process.poll() is not None and not snapshot:
+            break
+        time.sleep(.005)
+    result['remaining'] = process_snapshot(owned, start)
+    result['helper_status'] = result['reaped'].get(str(helpers[0]))
+    result['parent_seconds'] = result.get('parent_exit_at', time.monotonic()-start)-result['signal_at']
+    return result
+
+
+def shutdown_errors(row):
+    observation = row.get('shutdown_observation', {})
+    errors = []
+    expected_exit = 5 if row['case'] == 'shutdown-debug-int' else 0
+    if observation.get('parent_exit') != expected_exit:
+        errors.append('parent-exit')
+    if not 0 <= observation.get('parent_seconds', 99) < .75:
+        errors.append('parent-waited-for-script')
+    if observation.get('parent_exit_at', 99) >= observation.get('first_script_done_at', -1):
+        errors.append('parent-did-not-exit-before-script')
+    if not observation.get('pid_absent_at_parent_exit'):
+        errors.append('pid-file-survived-parent')
+    if observation.get('helper_status') != 0 or observation.get('remaining'):
+        errors.append('helper-exit-or-process-leak')
+    if row['case'] == 'shutdown-int' and not observation.get('nondebug_int_ignored'):
+        errors.append('normal-int-not-ignored')
+    expected_records = 1 if row['case'] == 'shutdown-exec-error' else 3
+    if len(row.get('raw', [])) != expected_records:
+        errors.append('queued-callback-loss')
+    return errors
+
+
+def run_shutdown_case(root, side, out, case):
+    data = root/'m2/helper-shutdown-data'; data.mkdir(exist_ok=True)
+    (data/'health.bin').write_bytes(b'helper-shutdown-evidence')
+    env = {'M5_SLOW': '1', 'M5_SLOW_SECONDS': '3'}
+    if case == 'shutdown-output': env['M5_LATE_OUTPUT'] = '1'
+    if case == 'shutdown-exit': env['M5_EXIT'] = '1'
+    if case == 'shutdown-signal': env['M5_SIGNAL'] = '1'
+    if case == 'shutdown-exec-error': env['M5_REMOVE_SCRIPT'] = '1'
+    runner = Side(root, side, out, case, ['enable-tftp', 'tftp-root=/m2/helper-shutdown-data'], env,
+                  debug=case == 'shutdown-debug-int')
+    result = {'case': case, 'side': side, 'status': 'failed'}
+    try:
+        runner.start()
+        result['daemon_identity'] = process_identity(root, runner.process.pid)
+        if case == 'shutdown-queued':
+            runner.dora(1)
+        else:
+            tftp_completed(runner)
+        wait(lambda: (runner.events/'slow-ready').exists(), 'first callback sleeping')
+        if case == 'shutdown-queued':
+            tftp_completed(runner)
+            runner.dora(2)
+        else:
+            runner.dora(1)
+            tftp_completed(runner)
+        # Ensure both ordinary owner turns consumed accepted network work;
+        # script1 remains asleep for the independently checked parent boundary.
+        runner.dns(); time.sleep(.05)
+        result['shutdown_observation'] = shutdown_observe(runner, case)
+        result['raw'] = capture(runner.events)
+        runner.stage('callbacks-after-parent-exit', 1 if case == 'shutdown-exec-error' else 3)
+        result['stages'] = runner.stages
+        errors = shutdown_errors(result)
+        if errors: raise AssertionError(errors)
+        result['status'] = 'passed'
+    except Exception as error:
+        result['error'] = f'{type(error).__name__}: {error}'
+        result['traceback'] = traceback.format_exc()
+    finally:
+        result['raw'] = capture(runner.events)
+        result['stages'] = runner.stages
+        result['cleanup'] = runner.stop()
+        expected = {'forced': False, 'exit': 5 if case == 'shutdown-debug-int' else 0,
+                    'remaining': [], 'pid_removed': True}
+        if result['cleanup'] != expected: result['status'] = 'failed'
+        write_json(out/f'{side}-{case}.json', result)
+    return result
+
+
 def run_case(root, side, out, case):
+    if case in SHUTDOWN_CASES:
+        return run_shutdown_case(root, side, out, case)
     flags, env, debug = [], {}, False
     if case == 'renewal': flags.append('script-on-renewal')
     if case == 'scriptuser': flags.append('dhcp-scriptuser=nobody')
@@ -462,8 +637,10 @@ def compare(rows, expected_cases=None):
         rust = next(row for row in sides if row['side'] == 'rust')
         if c['status'] != 'passed' or rust['status'] != 'passed':
             errors.append(f'{case}: unexecuted/failed stage'); continue
-        expected_exit = {'unknown-user': 1, 'init-exit': 17, 'init-capacity': 5}.get(case, 0)
+        expected_exit = {'unknown-user': 1, 'init-exit': 17, 'init-capacity': 5, 'shutdown-debug-int': 5}.get(case, 0)
         for row in (c, rust):
+            if case in SHUTDOWN_CASES:
+                errors.extend(f'{case}: {error}' for error in shutdown_errors(row))
             cleanup = row.get('cleanup')
             if cleanup != {'forced': False, 'exit': expected_exit, 'remaining': [], 'pid_removed': True}:
                 errors.append(f'{case}: missing or failed cleanup')
@@ -491,9 +668,14 @@ def controls(rows):
         next(row for row in changed if row['side'] == 'rust')['cleanup']['forced'] = True
     environment = bool(compare(changed, expected))
     changed = copy.deepcopy(rows)
-    stage = next((stage for row in changed if row['side'] == 'rust' for stage in row.get('stages', []) if len(stage['records']) > 1), None)
+    stage = next((stage for row in changed if row['side'] == 'rust' for stage in row.get('stages', [])
+                  if any(value != stage['records'][0] for value in stage['records'][1:])), None)
     if stage:
-        stage['records'].reverse()
+        # A TFTP/lease/TFTP sequence is a palindrome. Swap two distinct
+        # records so this control always changes the observed order.
+        records = stage['records']
+        index = next(i for i, value in enumerate(records[1:], 1) if value != records[0])
+        records[0], records[index] = records[index], records[0]
     else:
         next(row for row in changed if row['side'] == 'rust')['side'] = 'c'
     ordering = bool(compare(changed, expected))
@@ -503,7 +685,13 @@ def controls(rows):
         if row['case'] in ('unknown-user', 'init-exit', 'init-capacity'):
             row.pop('cleanup', None)
     startup_detected = bool(compare(startup, expected)) if any(row['case'] in ('unknown-user', 'init-exit', 'init-capacity') for row in rows) else True
-    return {'missing-startup-cleanup-both-sides': startup_detected, 'changed-credentials-or-status': identity, 'changed-environment-or-cleanup': environment,
+    extra = {}
+    if any(row['case'] in SHUTDOWN_CASES for row in rows):
+        for name, field, value in [('delayed-parent', 'parent_seconds', 9), ('script-before-parent', 'first_script_done_at', -1), ('helper-failure', 'helper_status', 5)]:
+            changed = copy.deepcopy(rows)
+            next(row for row in changed if row['side'] == 'rust' and row['case'] in SHUTDOWN_CASES)['shutdown_observation'][field] = value
+            extra[name] = bool(compare(changed, expected))
+    return {**extra, 'missing-startup-cleanup-both-sides': startup_detected, 'changed-credentials-or-status': identity, 'changed-environment-or-cleanup': environment,
             'changed-order-or-duplicate-side': ordering, 'missing-whole-scenario': bool(compare(missing, expected))}
 
 
@@ -525,7 +713,7 @@ def main():
     root = prepare(args.image_root, None, out, args.rust)
     rows = []
     for case in args.cases.split(','):
-        if case not in ('lifecycle', 'renewal', 'scriptuser', 'scriptuser-debug', 'slow', 'exit', 'signal', 'readonly', 'hotplug', 'missing-exec', 'unknown-user', 'init-exit', 'helper-death', 'slow-init', 'init-capacity', 'shutdown'):
+        if case not in SHUTDOWN_CASES and case not in ('lifecycle', 'renewal', 'scriptuser', 'scriptuser-debug', 'slow', 'exit', 'signal', 'readonly', 'hotplug', 'missing-exec', 'unknown-user', 'init-exit', 'helper-death', 'slow-init', 'init-capacity', 'shutdown'):
             parser.error('unknown case ' + case)
         for side in (('c', 'rust') if args.side == 'both' else (args.side,)):
             rows.append(run_case(root, side, out, case))
@@ -535,7 +723,7 @@ def main():
               'comparison_executed': args.side == 'both', 'requested_cases': args.cases.split(','),
               'c_sha256': STOCK_SHA256, 'rust_sha256': sha256(args.rust),
               'failures': failures, 'negative_controls': negative,
-              'cases': rows, 'scope': 'helper family incl image dhcp-script.sh and real hotplug.dhcp bus handler; raw records retained; script-arp/TFTP producers remain separate until integrated'}
+              'cases': rows, 'scope': 'helper family incl image dhcp-script.sh/hotplug and DHCP/TFTP shutdown ownership; requested cases and raw records retained'}
     write_json(out / 'result.json', result)
     print(json.dumps({k: result[k] for k in ('passed', 'failures', 'negative_controls')}))
     return 0 if result['passed'] else 1

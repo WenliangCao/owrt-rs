@@ -1117,11 +1117,6 @@ pub(super) fn address_policy(config: &DnsConfig) -> Result<AddressPolicy, Daemon
 }
 
 pub(super) fn validate_runtime_config(config: &DnsConfig) -> Result<(), DaemonError> {
-    if config.servers_file.is_some() {
-        return Err(DaemonError::Config(ConfigError(
-            "servers-file loading is not implemented by the DNS daemon",
-        )));
-    }
     // Interface selection and local-source admission are consumed by the
     // containing UDP/TCP listeners before this transport-independent engine.
     if config.records.needs_hostname() {

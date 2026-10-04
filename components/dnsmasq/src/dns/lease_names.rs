@@ -51,7 +51,9 @@ impl LeasePolicy {
             // crec_ttl is capped by lease duration. With use-stale-cache C
             // also retains DHCP entries and writes a negative difference as
             // a wire u32; lease pruning normally removes them first.
-            (i128::from(expires) - i128::from(now)).min(i128::from(configured)) as u32
+            // C first narrows its configured unsigned long into signed int.
+            // Values above INT_MAX therefore bypass a positive lease cap.
+            (i128::from(expires) - i128::from(now)).min(i128::from(configured as i32)) as u32
         })
     }
 }
@@ -614,6 +616,24 @@ mod tests {
             .handle_udp_at(&query("lease.example", 1), 1000)
             .unwrap()
             .is_none());
+    }
+
+    #[test]
+    fn dhcp_ttl_uses_the_image_signed_ceiling() {
+        for (configured, finite) in [
+            (0, 0),
+            (700, 600),
+            (2_147_483_647, 600),
+            (2_147_483_648, 2_147_483_648),
+            (u32::MAX, u32::MAX),
+        ] {
+            let policy = LeasePolicy {
+                dhcp_ttl: Some(configured),
+                ..LeasePolicy::default()
+            };
+            assert_eq!(policy.ttl(Some(700), 100), finite);
+            assert_eq!(policy.ttl(None, 100), configured);
+        }
     }
 
     #[test]
