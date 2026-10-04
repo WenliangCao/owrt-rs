@@ -340,14 +340,12 @@ impl LocalProvider {
     }
 
     /// Called only after the helper reports successful read-only initialization,
-    /// before admitting DHCP packets. Parsing and restore share leasefile rules.
-    pub fn restore_script_init(
+    /// before admitting DHCP packets. The child already applied leasefile rules.
+    pub fn restore_script_records(
         &mut self,
-        bytes: &[u8],
+        restored: super::lease_file::LeaseFile,
         now: i64,
     ) -> Result<MaintenanceReport, StartupError> {
-        let restored = super::lease_file::parse_reader(bytes, self.config.lease_max)
-            .map_err(StartupError::LeaseFile)?;
         self.restore_stats = Some(RestoreStats {
             invalid_records: restored.invalid_records,
             clean_end: restored.clean_end,
