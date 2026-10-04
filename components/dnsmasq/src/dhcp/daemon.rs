@@ -13,7 +13,10 @@ use super::persistence::{
     self, AlarmAction, DnsPublisher, DnsReport, LeasePersistence, PersistReport,
 };
 use super::probe::IcmpProbe;
-use super::runtime::{NetworkOptions, OutcomeProvider, ReplyNames, RuntimeError, StateProvider};
+use super::pxe;
+use super::runtime::{
+    NetworkOptions, OutcomeProvider, PxeEncoding, ReplyNames, RuntimeError, StateProvider,
+};
 use super::service::Dispatch;
 use super::state::{Environment, HostPolicy, Outcome, Reply};
 use crate::config::dhcp::{
@@ -136,6 +139,9 @@ pub struct LocalProvider {
     /// Boot entry selected after the state outcome identifies its context.
     selected_boot: Option<BootConfig>,
     request_tags: Vec<Vec<u8>>,
+    pxe_client: Option<pxe::Client>,
+    pxe_generated: Vec<(u8, Vec<u8>)>,
+    direct_pxe: Option<DirectPxeReply>,
     selected: Vec<SelectedContext>,
     interface_policy: InterfacePolicy,
     dns_port: u16,
@@ -157,6 +163,11 @@ pub struct LocalProvider {
     message_counters: super::message_counters::MessageCounters,
     scripts: super::lease::ScriptQueue,
     pending_delivery: Option<LeaseDelivery>,
+}
+
+struct DirectPxeReply {
+    fields: pxe::ReplyFields,
+    options: Vec<(u8, Vec<u8>)>,
 }
 
 impl LocalProvider {
@@ -226,6 +237,9 @@ impl LocalProvider {
             force_broadcast: false,
             selected_boot: None,
             request_tags: Vec::new(),
+            pxe_client: None,
+            pxe_generated: Vec::new(),
+            direct_pxe: None,
             probe,
             probe_error: None,
             should_stop,
@@ -378,19 +392,171 @@ impl LocalProvider {
             } => Some(context),
             _ => None,
         };
-        let Some(context) = context else {
+        if context.is_none() {
             return;
-        };
-        let Some(selected) = self.selected.get(context) else {
-            return;
-        };
-        let mut tags: Vec<&[u8]> = Vec::new();
-        if let Some(tag) = self.config.ranges[selected.source_index].set_tag.as_deref() {
-            tags.push(tag);
         }
-        tags.extend(self.request_tags.iter().map(Vec::as_slice));
-        TagIf::apply_all(&self.config.tag_if, &mut tags);
-        self.selected_boot = self.config.boot_for(&tags).cloned();
+        let mode = u8::from(
+            self.pxe_client
+                .as_ref()
+                .is_some_and(|client| client.architecture.is_some()),
+        );
+        let selected = pxe_selection(
+            &self.config,
+            &self.request_tags,
+            &self.selected,
+            context,
+            mode,
+        );
+        self.selected_boot = self.config.boot_for(&selected.tags).cloned();
+    }
+
+    fn prepare_normal_pxe(&mut self, packet: super::packet::Packet<'_>, outcome: &Outcome) {
+        self.pxe_generated.clear();
+        let Some(architecture) = self
+            .pxe_client
+            .as_ref()
+            .and_then(|client| client.architecture)
+        else {
+            return;
+        };
+        let context = match outcome.reply {
+            Reply::Offer { context, .. }
+            | Reply::Ack { context, .. }
+            | Reply::Bootp { context, .. } => Some(context),
+            Reply::Inform { context, .. } => context,
+            _ => None,
+        };
+        let Some(local) = context
+            .and_then(|index| self.selected.get(index))
+            .map(|selected| selected.range.local)
+        else {
+            return;
+        };
+        let selected = pxe_selection(&self.config, &self.request_tags, &self.selected, context, 1);
+        if pxe::single_uefi_service(architecture, &self.config.pxe.services, &selected.tags)
+            .is_some()
+        {
+            return;
+        }
+        let prompt = pxe_custom_prompt(&self.config, packet, &selected.tags);
+        self.pxe_generated = pxe::generated_suboptions(
+            architecture,
+            &self.config.pxe.services,
+            &selected.tags,
+            local,
+            prompt,
+            |name| pxe_host(name, self.dns_port, &mut self.boot_host_lookup),
+        )
+        .unwrap_or_else(|_| {
+            eprintln!("dnsmasq-rs: PXE menu too large");
+            Vec::new()
+        });
+    }
+
+    /// Direct paths retain only the next reply, never a PXE transaction table.
+    /// Packet-triggered expiry still follows the ordinary persistence/helper
+    /// maintenance boundary, but no dynamic lease state transition runs.
+    fn prepare_direct_pxe(
+        &mut self,
+        packet: super::packet::Packet<'_>,
+        decision: pxe::Decision,
+        listener: bool,
+        now: i64,
+    ) -> Outcome {
+        self.direct_pxe = match decision {
+            pxe::Decision::BootItem { client, reply } => {
+                let selected =
+                    pxe_selection(&self.config, &self.request_tags, &self.selected, None, 1);
+                let generated = [(71, reply.boot_item.to_vec())];
+                let encoding =
+                    PxeEncoding::direct(&client, &self.config.pxe.vendors, &generated, true);
+                let options = super::runtime::encode_pxe_vendor_options(
+                    packet,
+                    &self.config.options,
+                    &selected.tags,
+                    &encoding,
+                );
+                self.message_counters.pxe = self.message_counters.pxe.wrapping_add(1);
+                Some(DirectPxeReply {
+                    fields: reply.fields(packet),
+                    options,
+                })
+            }
+            pxe::Decision::Proxy {
+                client,
+                context,
+                ignored,
+            } => {
+                let selected = pxe_selection(
+                    &self.config,
+                    &self.request_tags,
+                    &self.selected,
+                    Some(context),
+                    2,
+                );
+                let boot = self.config.boot_for(&selected.tags).cloned();
+                let local = self.selected[context].range.local;
+                let architecture = client
+                    .architecture
+                    .expect("proxy decision has architecture");
+                let reply = pxe::proxy_reply(
+                    packet,
+                    architecture,
+                    listener,
+                    &self.config.pxe.services,
+                    &selected.tags,
+                    local,
+                    boot.as_ref(),
+                    |name| pxe_host(name, self.dns_port, &mut self.boot_host_lookup),
+                );
+                let generated = if reply.include_menu {
+                    let prompt = pxe_custom_prompt(&self.config, packet, &selected.tags);
+                    pxe::generated_suboptions(
+                        architecture,
+                        &self.config.pxe.services,
+                        &selected.tags,
+                        local,
+                        prompt,
+                        |name| pxe_host(name, self.dns_port, &mut self.boot_host_lookup),
+                    )
+                    .unwrap_or_else(|_| {
+                        eprintln!("dnsmasq-rs: PXE menu too large");
+                        Vec::new()
+                    })
+                } else {
+                    Vec::new()
+                };
+                let encoding = PxeEncoding::direct(
+                    &client,
+                    &self.config.pxe.vendors,
+                    &generated,
+                    reply.include_menu,
+                );
+                let options = super::runtime::encode_pxe_options(
+                    packet,
+                    local,
+                    &self.config.options,
+                    &selected,
+                    &encoding,
+                );
+                self.selected_boot = boot;
+                self.message_counters.pxe = self.message_counters.pxe.wrapping_add(1);
+                (!ignored).then_some(DirectPxeReply {
+                    fields: reply.fields,
+                    options,
+                })
+            }
+            pxe::Decision::Ignore => None,
+            pxe::Decision::Continue(_) => unreachable!("ordinary PXE remains in state path"),
+        };
+        let removed = self.leases.prune(None, now);
+        self.maintenance_report = Some(self.maintain(now, removed, false));
+        self.queue_script_from_maintenance();
+        Outcome {
+            reply: Reply::Ignore,
+            removed: Vec::new(),
+            lost_names: Vec::new(),
+        }
     }
 
     pub fn next_maintenance(&self) -> Option<Instant> {
@@ -800,6 +966,73 @@ fn epoch_seconds() -> i64 {
         .map_or(0, |value| value.as_secs() as i64)
 }
 
+fn pxe_selection<'a>(
+    config: &'a DhcpConfig,
+    raw_tags: &'a [Vec<u8>],
+    selected: &[SelectedContext],
+    context: Option<usize>,
+    mode: u8,
+) -> FilteredOptions<'a> {
+    let tags: Vec<_> = raw_tags.iter().map(Vec::as_slice).collect();
+    let context_tag = context
+        .and_then(|index| selected.get(index))
+        .and_then(|selected| config.ranges[selected.source_index].set_tag.as_deref());
+    option_filter(
+        &config.options,
+        &tags,
+        &context_tag.into_iter().collect::<Vec<_>>(),
+        &config.tag_if,
+        mode,
+    )
+}
+
+fn pxe_custom_prompt(
+    config: &DhcpConfig,
+    packet: super::packet::Packet<'_>,
+    tags: &[&[u8]],
+) -> bool {
+    use crate::config::dhcp::Encapsulation;
+    let Some(vendor) = packet.option(60, 1) else {
+        return false;
+    };
+    let contains = |needle: &[u8]| {
+        needle.is_empty() || vendor.windows(needle.len()).any(|part| part == needle)
+    };
+    config.options.iter().any(|option| {
+        option.code == 10
+            && option.tags.matches_with(tags, true)
+            && match &option.encapsulation {
+                Encapsulation::Vendor(needle) => contains(needle),
+                Encapsulation::PxeVendor => {
+                    config.pxe.vendors.iter().any(|prefix| contains(prefix))
+                }
+                _ => false,
+            }
+    })
+}
+
+fn pxe_host(name: &[u8], dns_port: u16, lookup: &mut Option<BootHostLookup>) -> Ipv4Addr {
+    let address = if dns_port == 0 {
+        None
+    } else {
+        match lookup.as_mut().map(|lookup| lookup(name)) {
+            Some(Ok(address)) => address,
+            Some(Err(error)) => {
+                eprintln!("dnsmasq-rs: PXE hosts lookup: {error}");
+                None
+            }
+            None => None,
+        }
+    };
+    if address.is_none() {
+        eprintln!(
+            "dnsmasq-rs: No IPv4 address found for {}",
+            String::from_utf8_lossy(name)
+        );
+    }
+    address.unwrap_or(Ipv4Addr::UNSPECIFIED)
+}
+
 impl LocalProvider {
     fn resolve_events(
         &mut self,
@@ -810,6 +1043,9 @@ impl LocalProvider {
     ) -> Result<Outcome, RuntimeError> {
         self.force_broadcast = false;
         self.selected_boot = None;
+        self.pxe_client = None;
+        self.pxe_generated.clear();
+        self.direct_pxe = None;
         if !self.host_files_ready
             || interface_name.is_some_and(|name| {
                 self.config
@@ -1014,6 +1250,28 @@ impl LocalProvider {
         self.request_tags = tags.iter().map(|tag| tag.to_vec()).collect();
         TagIf::apply_all(&self.config.tag_if, &mut tags);
         self.force_broadcast = self.config.force_broadcast_for(&tags);
+        let ignored = configured.is_some_and(|host| host.ignore)
+            || self.config.ignore.iter().any(|rule| rule.matches(&tags));
+        let pxe_listener = dispatch.ingress.listener == super::service::Listener::Pxe;
+        let decision = if self.config.pxe.enabled || pxe_listener {
+            pxe::decide(
+                packet,
+                pxe_listener,
+                self.config.pxe.enabled,
+                &self.config.pxe.vendors,
+                &self.config.pxe.services,
+                &ranges,
+                &tags,
+                ignored,
+                |name| pxe_host(name, self.dns_port, &mut self.boot_host_lookup),
+            )
+        } else {
+            pxe::Decision::Continue(None)
+        };
+        match decision {
+            pxe::Decision::Continue(client) => self.pxe_client = client,
+            decision => return Ok(self.prepare_direct_pxe(packet, decision, pxe_listener, now)),
+        }
         let ack = packet.message_type() == 3
             || (packet.message_type() == 1
                 && self.config.rapid_commit
@@ -1151,8 +1409,7 @@ impl LocalProvider {
             interface,
             authoritative: self.config.authoritative,
             unicast_destination: dispatch.ingress.unicast_destination,
-            ignored: configured.is_some_and(|host| host.ignore)
-                || self.config.ignore.iter().any(|rule| rule.matches(&tags)),
+            ignored,
             ignore_client_id: self.config.ignore_client_id,
             fqdn_only: self.config.fqdn_only,
             rapid_commit: self.config.rapid_commit,
@@ -1260,6 +1517,7 @@ impl LocalProvider {
                 self.scripts.add_pruned(outcome.removed.clone());
             }
             self.select_boot(outcome);
+            self.prepare_normal_pxe(packet, outcome);
             if self.config.script.is_some() {
                 if let Reply::Ack {
                     address, context, ..
@@ -1310,6 +1568,31 @@ impl LocalProvider {
 }
 
 impl OutcomeProvider for LocalProvider {
+    fn direct_pxe_reply(
+        &mut self,
+        request: super::packet::Packet<'_>,
+        output: &mut [u8],
+    ) -> Result<Option<super::reply::ReplyEncoding>, RuntimeError> {
+        let Some(reply) = self.direct_pxe.take() else {
+            return Ok(None);
+        };
+        let options: Vec<_> = reply
+            .options
+            .iter()
+            .map(|(code, value)| super::reply::ReplyOption { code: *code, value })
+            .collect();
+        super::reply::build_pxe_reply(request, &reply.fields, &options, output)
+            .map(Some)
+            .map_err(RuntimeError::Reply)
+    }
+
+    fn pxe_encoding(&self) -> PxeEncoding<'_> {
+        PxeEncoding::ordinary(
+            self.pxe_client.as_ref(),
+            &self.config.pxe.vendors,
+            &self.pxe_generated,
+        )
+    }
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     fn lease_query_reply(
         &mut self,
@@ -1674,7 +1957,6 @@ impl OutcomeProvider for LocalProvider {
     }
 
     fn selected_options(&self, outcome: &Outcome) -> FilteredOptions<'_> {
-        let tags: Vec<_> = self.request_tags.iter().map(Vec::as_slice).collect();
         let context = match outcome.reply {
             Reply::Offer { context, .. }
             | Reply::Ack { context, .. }
@@ -1682,16 +1964,12 @@ impl OutcomeProvider for LocalProvider {
             Reply::Inform { context, .. } => context,
             _ => None,
         };
-        let context_tag = context
-            .and_then(|index| self.selected.get(index))
-            .and_then(|selected| self.config.ranges[selected.source_index].set_tag.as_deref());
-        let contexts: Vec<_> = context_tag.into_iter().collect();
-        option_filter(
-            &self.config.options,
-            &tags,
-            &contexts,
-            &self.config.tag_if,
-            0,
+        pxe_selection(
+            &self.config,
+            &self.request_tags,
+            &self.selected,
+            context,
+            self.pxe_encoding().option_mode,
         )
     }
 
@@ -1772,6 +2050,17 @@ impl OutcomeProvider for LocalProvider {
 }
 
 impl OutcomeProvider for EventProvider<'_> {
+    fn direct_pxe_reply(
+        &mut self,
+        request: super::packet::Packet<'_>,
+        output: &mut [u8],
+    ) -> Result<Option<super::reply::ReplyEncoding>, RuntimeError> {
+        self.provider.direct_pxe_reply(request, output)
+    }
+
+    fn pxe_encoding(&self) -> PxeEncoding<'_> {
+        self.provider.pxe_encoding()
+    }
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     fn lease_query_reply(
         &mut self,
