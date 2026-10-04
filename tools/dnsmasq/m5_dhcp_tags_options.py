@@ -217,7 +217,7 @@ def identity_fixtures():
         ('empty-first-label',opts((12,b'.work'))),
         ('control',opts((12,b'work\x01'))),
         ('nonascii',opts((12,b'work\xff'))),
-        ('label64',opts((12,b'w'*64))),
+        ('label64',opts((12,b'work'+b'w'*60))),
     ]
     yield case('identity-name-source','inputs',marked('dhcp-name-match=set:hit,work*\n'),
                [event(label,kind=1,extra=extra) for label,extra in names])
@@ -352,7 +352,7 @@ def identity_fixtures():
     yield case('identity-agent-combined','independent-tags',
                'dhcp-circuitid=set:c,match\ndhcp-circuitid=set:again,match\ndhcp-remoteid=set:r,remote\n'+
                'dhcp-subscrid=set:s,subscriber\ntag-if=tag:c,tag:r,tag:s,set:hit\n'+
-               'dhcp-option=tag:c,225,3\ndhcp-option=tag:r,226,4\ndhcp-option=tag:s,227,5\ndhcp-option=tag:again,228,6\n'+marked(''),[
+               'dhcp-option=tag:c,225,3\ndhcp-option=tag:r,226,4\ndhcp-option=tag:s,227,5\ndhcp-option-force=tag:again,228,6\n'+marked(''),[
         event('all',kind=1,extra=opts((82,good+option(2,b'remote')+option(6,b'subscriber')))),
         event('circuit-only',kind=1,extra=opts((82,good)))])
     for variant,payload in [('ordinary',good),('unknown',good+option(99,b'unknown')),('malformed',good+b'\x63\xff'),('pad-end',b'\0'+good+b'\xff\x63\xff')]:
@@ -380,7 +380,8 @@ def identity_fixtures():
         ('advertised-1500','',1500,list(range(224,231)),good),
         ('empty-prl','','absent',[],good),
         ('no-override','dhcp-no-override\n','absent',list(range(224,231)),good),
-        ('large-agent','','absent',[224,225,226],large),
+        ('large-agent-no-reservation','','absent',[224,225,226],large),
+        ('large-agent-reserved','',1500,[224,225,226],large),
         ('occupied-boot','dhcp-boot=boot.bin,boot.pool.test,127.0.0.1\n','absent',list(range(224,231)),good),
     ]:
         item=event(kind=1,extra=opts((82,payload)));item['prl']=prl
@@ -651,7 +652,8 @@ def run(root, side, folder, text, events):
                     trace['status'] = 'failed'
             if network is not None:
                 trace['namespace_cleanup'] = network.close()
-                if trace['namespace_cleanup']['returncode'] != -signal.SIGTERM or trace['namespace_cleanup']['forced']:
+                trace['namespace_reaped'] = not Path(f"/proc/{trace['namespace_cleanup']['pid']}").exists()
+                if not trace['namespace_reaped'] or trace['namespace_cleanup']['returncode'] != -signal.SIGTERM or trace['namespace_cleanup']['forced']:
                     trace['status'] = 'failed'
             trace['interfaces_clean'] = sorted(name for _, name in socket.if_nameindex()) == ['lo']
             if not trace['interfaces_clean']: trace['status'] = 'failed'
@@ -666,6 +668,8 @@ def compare(expected, actual):
         if any(side.get(key) != value for key, value in [('ready', True), ('exit', 0), ('reaped', True), ('pid_removed', True), ('interfaces_clean', True)]):
             errors.append('cleanup-or-startup')
         if side.get('forced_cleanup'): errors.append('forced-cleanup')
+        if 'namespace_cleanup' in side and (not side.get('namespace_reaped') or side['namespace_cleanup']['forced'] or side['namespace_cleanup']['returncode'] != -signal.SIGTERM):
+            errors.append('namespace-cleanup')
         if len(side['rows']) != side.get('planned', len(side['rows'])): errors.append('unexecuted-row')
     if expected.get('syntax') != actual.get('syntax'): errors.append('syntax')
     if len(expected['rows']) != len(actual['rows']): errors.append('row-count')
@@ -714,6 +718,15 @@ def negative_controls(trace):
     return checks
 
 
+def required_case_map(cases, parsers):
+    groups = {}
+    for name, _, _ in cases:
+        groups.setdefault(name.split('--')[0], []).append(name)
+    for group, variant, _, _ in parsers:
+        groups.setdefault(group, []).append('syntax:'+group+'--'+variant)
+    return groups
+
+
 def check_plan(checklist, cases, parsers):
     groups = {name.split('--')[0] for name, _, _ in cases}
     groups.update(group for group, _, _, _ in parsers)
@@ -731,19 +744,24 @@ def checklist_result(checklist, report):
     evidence = {}
     for row in report['cases']:
         evidence.setdefault(row['name'].split('--')[0], []).append({
-            'path': row['name'], 'passed': not row['errors'] and row['c_rows']==row['planned'] and row.get('rust_rows')==row['planned']})
+            'path': row['name'], 'case': row['name'], 'passed': not row['errors'] and row['c_rows']==row['planned'] and row.get('rust_rows')==row['planned']})
     for row in report['parser']:
-        evidence.setdefault(row['group'], []).append({'path': row['path'], 'passed': not row['errors']})
+        evidence.setdefault(row['group'], []).append({'path': row['path'], 'case': 'syntax:'+row['group']+'--'+row['variant'], 'passed': not row['errors']})
     meta_pass = not report['failures'] and not report.get('c_only') and bool(report['cases'])
     for group in IDENTITY_META:
         evidence[group] = [{'path': 'result.json', 'passed': meta_pass}]
     result = copy.deepcopy(checklist)
     for boundary in result['boundaries']:
         records = [record for case in boundary['cases'] for record in evidence.get(case, [])]
-        complete = all(evidence.get(case) for case in boundary['cases'])
+        complete = all(evidence.get(case) and (case in IDENTITY_META or
+            {row['case'] for row in evidence[case]} == set(report['required_case_map'].get(case, [])))
+            for case in boundary['cases'])
         boundary['evidence'] = records
-        boundary['status'] = 'passed' if complete and all(row['passed'] for row in records) else 'pending'
-    result['passed'] = all(row['status']=='passed' for row in result['boundaries'])
+        boundary['status'] = 'passed' if not report.get('c_only') and complete and all(row['passed'] for row in records) else 'pending'
+    result['checked'] = sum(row['status']=='passed' for row in result['boundaries'])
+    result['total'] = len(result['boundaries'])
+    result['passed'] = not report.get('c_only') and result['checked'] == result['total']
+    result['status'] = 'image-evidence-passed' if result['passed'] else 'image-evidence-incomplete'
     return result
 
 
@@ -768,6 +786,7 @@ def main():
     cases = all_cases(args.identity)
     parsers = list(identity_parser_cases()) if args.identity else [('legacy', label, text, None) for label, text in parser_cases()]
     checklist = json.loads(args.checklist.read_text()) if args.checklist else None
+    required_map = required_case_map(cases, parsers)
     if args.validate_plan:
         assert checklist and args.identity
         print(json.dumps(check_plan(checklist, cases, parsers))); return 0
@@ -787,7 +806,7 @@ def main():
     save(args.out/'plan.json', {'service': cases, 'parser': parsers})
     report = {'c_sha256': sha256(root/'usr/sbin/dnsmasq'), 'rust_sha256': sha256(root/'usr/sbin/dnsmasq-rs'),
               'tool_sha256': sha256(Path(__file__)), 'source_commit': args.source_commit,
-              'c_only': args.c_only, 'cases': [], 'parser': [], 'failures': [], 'negative_controls': [], 'reference_differences': []}
+              'c_only': args.c_only, 'required_case_map': required_map, 'cases': [], 'parser': [], 'failures': [], 'negative_controls': [], 'reference_differences': []}
     assert report['c_sha256'] == STOCK_SHA256
     for label, extra, events in cases:
         folder = args.out/label; folder.mkdir()
@@ -810,12 +829,26 @@ def main():
         for side in ('c',) if args.c_only else ('c', 'rust'):
             row[side] = syntax(root, side, config(dict(text=text, fixed_host=False)), args.out/label/side, startup=defect is None)
         if not args.c_only and row['c'] != row['rust']:
-            if defect and row['c']['exit'] == 0 and row['rust']['exit'] == 1:
+            if defect and row['c']['exit'] in (0, 1) and row['rust']['exit'] == 1:
                 report['reference_differences'].append({'case': group+'--'+variant, 'scope': 'syntax only', 'reason': defect,
                     'c': row['c'], 'rust': row['rust'], 'path': label})
             else:
                 row['errors'].append('syntax-or-startup'); report['failures'].append(group+'--'+variant)
+        if defect and not any(item['case'] == group+'--'+variant for item in report['reference_differences']):
+            report['reference_differences'].append({'case': group+'--'+variant, 'scope': 'syntax only',
+                'reason': defect, 'path': label, 'disposition': 'runtime deliberately not executed; outputs retained'})
+        if defect is None and row['c']['exit'] == 0:
+            left = run(root, 'c', args.out/label/'startup-c', config(dict(text=text, fixed_host=False)), [])
+            row['startup_c'] = {key: left.get(key) for key in ['status', 'ready', 'exit', 'reaped', 'pid_removed', 'interfaces_clean']}
+            if not args.c_only:
+                right = run(root, 'rust', args.out/label/'startup-rust', config(dict(text=text, fixed_host=False)), [])
+                row['startup_rust'] = {key: right.get(key) for key in ['status', 'ready', 'exit', 'reaped', 'pid_removed', 'interfaces_clean']}
+                row['errors'].extend(compare(left, right))
+            elif left['status'] != 'ok': row['errors'].append('c-startup')
+            if row['errors'] and group+'--'+variant not in report['failures']:
+                report['failures'].append(group+'--'+variant)
         report['parser'].append(row)
+        save(args.out/'summary.json', report)
     report['passed'] = not report['failures'] and not args.c_only
     save(args.out/'summary.json', report); save(args.out/'result.json', report)
     if checklist:
