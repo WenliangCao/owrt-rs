@@ -246,6 +246,22 @@ impl ServerSources {
         config
     }
 
+    /// check_servers removes unusable upstream rows from their owning list;
+    /// local-only/default/address rules are never affected by that scan.
+    pub fn retain_servers(&mut self, mut keep: impl FnMut(&SourceRule) -> bool) -> Vec<ServerId> {
+        let mut removed = Vec::new();
+        self.rules.retain(|entry| {
+            if let Some(server) = entry.server {
+                if !keep(&entry.value) {
+                    removed.push(server);
+                    return false;
+                }
+            }
+            true
+        });
+        removed
+    }
+
     /// Call only after a successful source open; even zero valid rows must
     /// replace the old bank. Returned IDs are genuinely retired C slots.
     pub fn replace(&mut self, source: Source, rows: Vec<SourceRule>) -> Vec<ServerId> {
