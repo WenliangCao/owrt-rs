@@ -855,7 +855,7 @@ impl LocalProvider {
         }
         let packet = dispatch.packet;
         let agent_address = |code| {
-            relay_suboption(packet, code)
+            relay_suboption(packet, code, 4)
                 .and_then(|value| <[u8; 4]>::try_from(value.get(..4)?).ok())
                 .map(Ipv4Addr::from)
                 .filter(|address| !address.is_unspecified())
@@ -925,9 +925,9 @@ impl LocalProvider {
             let data = match rule.kind {
                 ClassKind::Vendor => packet.option(60, 1),
                 ClassKind::User => packet.option(77, 1),
-                ClassKind::Circuit => relay_suboption(packet, 1),
-                ClassKind::Remote => relay_suboption(packet, 2),
-                ClassKind::Subscriber => relay_suboption(packet, 6),
+                ClassKind::Circuit => relay_suboption(packet, 1, 1),
+                ClassKind::Remote => relay_suboption(packet, 2, 1),
+                ClassKind::Subscriber => relay_suboption(packet, 6, 1),
             };
             if data.is_some_and(|data| rule.matches(data)) {
                 tags.push(&rule.set_tag);
@@ -1851,11 +1851,11 @@ fn event_mac(packet: super::packet::Packet<'_>, client_id: Option<&[u8]>) -> Vec
     text
 }
 
-fn relay_suboption(packet: super::packet::Packet<'_>, wanted: u8) -> Option<&[u8]> {
+fn relay_suboption(packet: super::packet::Packet<'_>, wanted: u8, min_len: usize) -> Option<&[u8]> {
     if matches!(packet.message_type(), 0 | 10) {
         return None;
     }
-    super::packet::find_option(packet.option(82, 1)?, wanted, 1).map(|option| option.value)
+    super::packet::find_option(packet.option(82, 1)?, wanted, min_len).map(|option| option.value)
 }
 
 fn generated_hostname(
