@@ -513,7 +513,8 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                 script_user: dhcp_config.script_user.clone(),
                 debug: runtime.process.debug,
             },
-            dhcp_config.lease_read_only && !dhcp_config.ranges.is_empty(),
+            (dhcp_config.lease_read_only && !dhcp_config.ranges.is_empty())
+                .then_some(dhcp_config.lease_max),
         )?)
     } else {
         None
@@ -817,6 +818,22 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         }
         thread::park_timeout(Duration::from_millis(2));
     }
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    while !poll.step_helper_shutdown() {
+        // EVENT_TERM drains pending lease transitions. Keep writes, output and
+        // child reaping nonblocking while waiting in the same poll owner.
+        let mut fds = poll
+            .helper
+            .as_ref()
+            .unwrap()
+            .poll_fds()
+            .map(|(fd, events)| owrt_ubus::sys::PollFd {
+                fd,
+                events,
+                revents: 0,
+            });
+        owrt_ubus::sys::poll_fds(&mut fds, 2)?;
+    }
     #[cfg(target_os = "linux")]
     pid_file.cleanup();
     Ok(())
@@ -850,7 +867,9 @@ struct SinglePoll {
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     helper: Option<Helper>,
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    helper_init: Option<Vec<u8>>,
+    helper_init: Option<dnsmasq_rs::dhcp::lease_file::LeaseFile>,
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    helper_init_end: bool,
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     helper_init_error: Option<dnsmasq_rs::helper::StartError>,
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -1077,7 +1096,9 @@ impl SinglePoll {
             helper_init: helper
                 .as_ref()
                 .is_some_and(Helper::initializes_leases)
-                .then(Vec::new),
+                .then(Default::default),
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            helper_init_end: false,
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             helper_init_error: None,
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -1520,7 +1541,7 @@ impl SinglePoll {
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    fn step_dhcp(&mut self) {
+    fn step_helper(&mut self) {
         if let Some(helper) = self.helper.as_mut() {
             if let Some(delivery) = self.pending_delivery.as_ref() {
                 match helper.enqueue_delivery(delivery) {
@@ -1534,10 +1555,35 @@ impl SinglePoll {
                     for notice in notices {
                         use dnsmasq_rs::helper::{Notice, StartError};
                         match notice {
-                            Notice::InitData(bytes) => {
-                                if let Some(output) = self.helper_init.as_mut() {
-                                    output.extend(bytes);
+                            Notice::InitRecord(record) => {
+                                if self.helper_init.as_ref().is_some_and(|output| {
+                                    output.records.len() >= helper.init_capacity().unwrap_or(0)
+                                }) {
+                                    self.helper_init.take();
+                                    self.helper_init_error = Some(StartError {
+                                        code: 5,
+                                        message: "too many stored leases".into(),
+                                    });
+                                } else if let Some(output) = self.helper_init.as_mut() {
+                                    output.records.push(record);
                                 }
+                            }
+                            Notice::InitEnd {
+                                invalid_records,
+                                clean_end,
+                            } => {
+                                if let Some(output) = self.helper_init.as_mut() {
+                                    output.invalid_records = invalid_records;
+                                    output.clean_end = clean_end;
+                                    self.helper_init_end = true;
+                                }
+                            }
+                            Notice::InitError(code) => {
+                                self.helper_init.take();
+                                self.helper_init_error = Some(StartError {
+                                    code,
+                                    message: "cannot parse lease-init database".into(),
+                                });
                             }
                             Notice::InitExit(status) => {
                                 if let Some(output) = self.helper_init.take() {
@@ -1552,11 +1598,16 @@ impl SinglePoll {
                                                 "lease-init script returned exit code {status}"
                                             ),
                                         });
+                                    } else if !self.helper_init_end {
+                                        self.helper_init_error = Some(StartError {
+                                            code: 3,
+                                            message: "incomplete lease-init database".into(),
+                                        });
                                     } else if let Some((provider, _)) = self.dhcp.as_ref() {
                                         match provider
                                             .lock()
                                             .unwrap()
-                                            .restore_script_init(&output, now_seconds())
+                                            .restore_script_records(output, now_seconds())
                                         {
                                             Ok(report) => report_dhcp_maintenance(&report),
                                             Err(error) => {
@@ -1583,6 +1634,37 @@ impl SinglePoll {
                 Err(error) => eprintln!("dnsmasq-rs: DHCP helper step: {error}"),
             }
         }
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    fn step_helper_shutdown(&mut self) -> bool {
+        self.step_helper();
+        let Some(helper) = self.helper.as_ref() else {
+            return true;
+        };
+        if helper.is_finished() {
+            return true;
+        }
+        // Initialization may still own the child. Its notices must be consumed
+        // before closing the command channel or restoring startup callbacks.
+        if self.helper_init.is_some() {
+            return false;
+        }
+        if self.pending_delivery.is_none() {
+            self.pending_delivery = self
+                .dhcp
+                .as_ref()
+                .and_then(|(provider, _)| provider.lock().ok()?.take_script_delivery());
+        }
+        if self.pending_delivery.is_none() {
+            self.helper.as_mut().unwrap().begin_shutdown();
+        }
+        false
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    fn step_dhcp(&mut self) {
+        self.step_helper();
         if self.helper_init.is_some() || self.helper_init_error.is_some() {
             return;
         }

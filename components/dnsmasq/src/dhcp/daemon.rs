@@ -310,6 +310,7 @@ impl LocalProvider {
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     pub fn take_script_delivery(&mut self) -> Option<LeaseDelivery> {
+        self.queue_script_from_maintenance();
         let delivery = self.pending_delivery.take();
         self.queue_script_from_maintenance();
         delivery
@@ -340,14 +341,12 @@ impl LocalProvider {
     }
 
     /// Called only after the helper reports successful read-only initialization,
-    /// before admitting DHCP packets. Parsing and restore share leasefile rules.
-    pub fn restore_script_init(
+    /// before admitting DHCP packets. The child already applied leasefile rules.
+    pub fn restore_script_records(
         &mut self,
-        bytes: &[u8],
+        restored: super::lease_file::LeaseFile,
         now: i64,
     ) -> Result<MaintenanceReport, StartupError> {
-        let restored = super::lease_file::parse_reader(bytes, self.config.lease_max)
-            .map_err(StartupError::LeaseFile)?;
         self.restore_stats = Some(RestoreStats {
             invalid_records: restored.invalid_records,
             clean_end: restored.clean_end,
@@ -1172,7 +1171,7 @@ impl LocalProvider {
                             now,
                             relay_address: (!packet.giaddr().is_unspecified())
                                 .then_some(packet.giaddr()),
-                            extra,
+                            extra: extra.map(Box::new),
                             log_dhcp: self.config.log_dhcp,
                         },
                     );
