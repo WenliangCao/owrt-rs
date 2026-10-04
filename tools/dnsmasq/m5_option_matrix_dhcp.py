@@ -44,7 +44,7 @@ def wire_event(event, leases):
     packet = dict(event.get('packet', {}))
     action = event.get('action', 'select')
     packet.update(kind={'discover': 1, 'select': 3, 'init-reboot': 3, 'renew': 3,
-                        'rebind': 3, 'release': 7, 'decline': 4, 'leasequery': 10}[action],
+                        'rebind': 3, 'release': 7, 'decline': 4, 'leasequery': 10, 'bootp': 0}[action],
                   mac=mac(number).replace(':', ''), flags=event.get('flags', 0),
                   maximum=1500, prl=event.get('prl', [1, 3, 6, 12, 15, 51, 54, 58, 59]))
     server = event.get('server', SERVER)
@@ -196,6 +196,14 @@ def run_side(root, side, scenario, folder):
     if scenario.get('tftp'):
         (root / 'm2/tftp').mkdir(exist_ok=True)
         (root / 'm2/tftp/probe.bin').write_bytes(b'matrix-tftp')
+    if scenario.get('helper_tags'):
+        script = root/'m2/tag-script'
+        script.write_text('#!/bin/sh\nprintf "%s|%s\\n" "$1" "$DNSMASQ_TAGS" >> /m2/tag-events\n')
+        script.chmod(0o755)
+        (root/'m2/tag-events').unlink(missing_ok=True)
+        text += 'dhcp-script=/m2/tag-script\n'
+        (root/'m2/matrix.conf').write_text(text)
+        (folder/'config').write_text(text)
     syntax = subprocess.run(command(root, side, '--test', '-C', '/m2/matrix.conf'), capture_output=True, text=True, timeout=5)
     result = {'syntax': {'exit': syntax.returncode, 'stdout': syntax.stdout, 'stderr': syntax.stderr},
               'startup': {'ready': False}, 'rows': [], 'exit': None,
@@ -286,6 +294,16 @@ def run_side(root, side, scenario, folder):
                     row['health'] = dns_health()
                     if scenario.get('two_interfaces'):
                         row['guest_dns_health'] = dns_health('10.78.0.1')
+                    if scenario.get('helper_tags'):
+                        expected_count = len(event.get('expect', {}).get('helper_marks', []))
+                        deadline = time.monotonic() + 2
+                        while True:
+                            log = root/'m2/tag-events'
+                            helper = log.read_text().splitlines() if log.exists() else []
+                            if len(helper) >= expected_count: break
+                            if time.monotonic() >= deadline: raise AssertionError('missing helper tag events')
+                            time.sleep(.01)
+                        row['helper_tags'] = helper
                     result['rows'].append(row)
     finally:
         if process is not None:
@@ -311,7 +329,7 @@ def run_side(root, side, scenario, folder):
 def decode(response, event, destination):
     if response is None: return None
     decoded = {code: bytes.fromhex(value) for code, value in options(response)}
-    kind = decoded[53][0]
+    kind = decoded.get(53,b'\0')[0]
     normalized_event = copy.deepcopy(event['packet'])
     if kind != 5: normalized_event.pop('renew', None)
     comparable = comparable_reply(response, normalized_event)
@@ -332,6 +350,14 @@ def guards(rows, scenario):
         for key in ['flags', 'address', 'server_id', 'message']:
             if key in expected and (response is None or response[key] != expected[key]):
                 failures.append({'id': row['id'], 'field': key, 'expected': expected[key], 'actual': response})
+        if 'helper_marks' in expected:
+            helper = row.get('helper_tags', [])
+            if len(helper) != len(expected['helper_marks']):
+                failures.append({'id': row['id'], 'missing_helper': helper})
+            for line, mark in zip(helper, expected['helper_marks']):
+                action, tags = line.split('|', 1)
+                if action != mark[0] or mark[1] not in tags.split():
+                    failures.append({'id': row['id'], 'wrong_helper_tag': line, 'expected': mark})
         if 'option_values' in expected:
             wire = (response or {}).get('wire')
             values = {str(code): value for code, value in options(bytes.fromhex(wire))} if wire else {}
