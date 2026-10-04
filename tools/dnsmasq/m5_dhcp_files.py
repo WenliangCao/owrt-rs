@@ -289,13 +289,13 @@ def trace_malformed_inotify(pid, descriptor, output):
                     for offset in range(0,len(event),8):
                         word=int.from_bytes(event[offset:offset+8],'little')
                         ptrace(5,buffer+offset,word)
-                    registers[0]=len(event);regs(write=True);report['injected']=True;dump(Path(output),report);ptrace(17);attached=False;return 0
+                    registers[0]=len(event);regs(write=True);report['injected']=True;save(Path(output),report);ptrace(17);attached=False;return 0
                 active=False
     finally:
         if attached:
             try:ptrace(17)
             except OSError:pass
-        dump(Path(output),report)
+        save(Path(output),report)
     return 1
 
 
