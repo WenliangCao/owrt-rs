@@ -83,6 +83,15 @@ pub enum FilePlanStep {
 }
 
 impl HostFiles {
+    /// Reuse the qualified bank grammar outside the configuration module;
+    /// `existing` includes every row visible to C's duplicate-address check.
+    pub(crate) fn parse_row(
+        argument: &crate::config::EncodedArg,
+        existing: &[HostConfig],
+    ) -> Result<HostConfig, Error> {
+        HostConfig::parse(argument, existing)
+    }
+
     /// Paths must already be in C's last-directive-first order.
     pub fn new(paths: &[Vec<u8>]) -> Self {
         Self {
