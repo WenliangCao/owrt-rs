@@ -204,6 +204,7 @@ pub struct DnsFiles {
     requests: VecDeque<ReadRequest>,
     job: Option<ReadJob>,
     warned_empty: bool,
+    initializing: bool,
 }
 
 impl DnsFiles {
@@ -230,12 +231,16 @@ impl DnsFiles {
             requests: VecDeque::new(),
             job: None,
             warned_empty: false,
+            initializing: false,
         })
     }
 
     /// Initial owner calls Init once; SIGHUP calls Signal after its existing
     /// full reload. Route is the qualifying EVENT_NEWROUTE, not every netlink event.
     pub fn request(&mut self, reason: ReloadReason) {
+        if reason == ReloadReason::Init {
+            self.initializing = true;
+        }
         if !self.triggers.contains(&reason) {
             self.triggers.push_back(reason);
         }
@@ -262,6 +267,13 @@ impl DnsFiles {
 
     pub fn has_work(&self) -> bool {
         self.job.is_some() || !self.requests.is_empty() || !self.triggers.is_empty()
+    }
+
+    /// The PID/listeners may already exist, as in C, but queued DNS requests
+    /// must not receive a transient no-server answer before the initial file
+    /// reads finish. Other owner duties can continue while this is true.
+    pub fn initializing(&self) -> bool {
+        self.initializing
     }
 
     fn schedule(&mut self, reason: ReloadReason, diagnostics: &mut Vec<FileDiagnostic>) {
@@ -398,6 +410,13 @@ impl DnsFiles {
             } else {
                 self.job = Some(job);
             }
+        }
+        if self.initializing
+            && self.job.is_none()
+            && self.requests.is_empty()
+            && !self.triggers.contains(&ReloadReason::Init)
+        {
+            self.initializing = false;
         }
         result.runnable = self.job.as_ref().map_or(
             !self.requests.is_empty() || !self.triggers.is_empty(),
@@ -583,7 +602,9 @@ mod tests {
         let mut files = DnsFiles::new(&config, true, false).unwrap();
         files.request(ReloadReason::Init);
         assert!(files.step().update.is_none());
+        assert!(files.initializing());
         let (updates, _) = drain(&mut files);
+        assert!(!files.initializing());
         assert_eq!(updates[0].rows.len(), 1);
         drop(files);
         fs::remove_file(path).unwrap();
