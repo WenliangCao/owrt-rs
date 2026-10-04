@@ -890,6 +890,7 @@ impl<R: Random> DnsDaemon<R> {
     ) -> Result<CachedAnswer, DaemonError> {
         let Some(cache) = self.cache.as_mut() else {
             return Ok(CachedAnswer {
+                filtered: false,
                 packet: None,
                 stale: false,
             });
