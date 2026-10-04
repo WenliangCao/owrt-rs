@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "executable": true,
-  "status": "complete-schedule-awaiting-fixed-candidate",
-  "scope": "IPv4 dhcp-fqdn, dhcp-ignore-clid and dhcp-ttl. TTL parser differences remain open until exact-image evidence and a product fix. Does not qualify unrelated DNS cache or reverse options.",
+  "status": "qualified-against-exact-image",
+  "scope": "IPv4 dhcp-fqdn, dhcp-ignore-clid and dhcp-ttl. All frozen boundaries are qualified by the recorded image daemon differentials; unrelated DNS cache and reverse options are outside this matrix.",
   "source_identity": {
     "option.c": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
     "rfc2131.c": "14f2e10792ef6108aeb7b69e551f089ba287c8c84d39ea178a5f33acd2038c2c",
@@ -4306,5 +4306,21 @@
       "expected_test_exit": 0,
       "seed_leases": "0 02:00:4d:35:44:01 10.77.0.10 ttl *\n"
     }
-  ]
+  ],
+  "qualification": {
+    "dhcp-fqdn": {
+      "evidence": "batch5/paired-after-01/result.json",
+      "source_commit": "864b60c8",
+      "rust_sha256": "838cf680bbdf1e5bf6ccf0e4da81974b2ffe0bf63c79337e10b6e3940a8da6fd"
+    },
+    "dhcp-ttl": {
+      "evidence": "batch5/paired-after-01/result.json",
+      "source_commit": "864b60c8",
+      "rust_sha256": "838cf680bbdf1e5bf6ccf0e4da81974b2ffe0bf63c79337e10b6e3940a8da6fd"
+    },
+    "dhcp-ignore-clid": {
+      "evidence": "batch5/paired-before-01/result.json",
+      "note": "Previously closed; do not decrement a second time."
+    }
+  }
 }
