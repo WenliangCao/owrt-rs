@@ -7,8 +7,8 @@ use crate::config::{dns::DnsConfig, tftp::TftpConfig};
 use crate::neighbors::MacLookup;
 use crate::net::{Datagram, DatagramSocket};
 use crate::tftp_runtime::{
-    FileOpener, RealFileOpener, RequestPolicy, RuntimeConfig, RuntimeEvent, RuntimePathPolicy,
-    SocketRole, TransferId, TransferRuntime,
+    Completion, FileOpener, RealFileOpener, RequestPolicy, RuntimeConfig, RuntimeEvent,
+    RuntimePathPolicy, SocketRole, TransferId, TransferRuntime,
 };
 use policy::Policy;
 use std::collections::{BTreeMap, VecDeque};
@@ -46,6 +46,7 @@ pub struct TftpListener<O> {
     buffer: Vec<u8>,
     policy: Option<Policy>,
     pending: VecDeque<Pending>,
+    completed: VecDeque<Completion>,
     refreshed: u64,
     accepting: bool,
     pending_bind: Vec<SocketAddr>,
@@ -100,6 +101,7 @@ impl<O: FileOpener> TftpListener<O> {
             buffer: vec![0; 65535],
             policy: None,
             pending: VecDeque::new(),
+            completed: VecDeque::new(),
             refreshed: 0,
             accepting: true,
             pending_bind: Vec::new(),
@@ -137,12 +139,32 @@ impl<O: FileOpener> TftpListener<O> {
     pub fn active_transfers(&self) -> usize {
         self.runtime.active_len()
     }
+    /// Retain successful transfers until the poll owner hands each event to
+    /// the nonblocking helper. Active plus completed transfers share the
+    /// configured capacity, so a slow script cannot grow this queue.
+    pub fn front_completion(&self) -> Option<&Completion> {
+        self.completed.front()
+    }
+
+    pub fn pop_completion(&mut self) -> Option<Completion> {
+        self.completed.pop_front()
+    }
+
+    fn has_capacity(&self) -> bool {
+        self.runtime
+            .active_len()
+            .saturating_add(self.completed.len())
+            < self.runtime.transfer_capacity()
+    }
+
+    fn can_start(&self, peer: SocketAddr) -> bool {
+        self.has_capacity() || self.single_port && self.runtime.has_peer(peer)
+    }
+
     pub fn append_poll_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>) {
         use owrt_ubus::sys::{PollFd, POLLIN};
         for server in &self.servers {
-            if self.single_port
-                || self.accepting && server.accepting && self.runtime.can_receive_server()
-            {
+            if self.single_port || self.accepting && server.accepting && self.has_capacity() {
                 fds.push(PollFd {
                     fd: server.socket.as_raw_fd(),
                     events: POLLIN,
@@ -271,9 +293,7 @@ impl<O: FileOpener> TftpListener<O> {
         events: &mut Vec<RuntimeEvent>,
     ) -> io::Result<()> {
         if !self.single_port
-            && (!self.accepting
-                || !self.servers[index].accepting
-                || !self.runtime.can_receive_server())
+            && (!self.accepting || !self.servers[index].accepting || !self.has_capacity())
         {
             return Ok(());
         }
@@ -282,7 +302,9 @@ impl<O: FileOpener> TftpListener<O> {
         };
         let bytes = self.buffer[..datagram.len].to_vec();
         let new_request = matches!(bytes.get(..2), Some([0, 1] | [0, 2]));
-        if new_request && (!self.accepting || !self.servers[index].accepting) {
+        if new_request
+            && (!self.accepting || !self.servers[index].accepting || !self.can_start(datagram.peer))
+        {
             return Ok(());
         }
         let route = Route {
@@ -362,7 +384,7 @@ impl<O: FileOpener> TftpListener<O> {
             mtu,
             ..
         } = pending;
-        if !self.single_port && !self.runtime.can_receive_server() {
+        if matches!(bytes.get(..2), Some([0, 1] | [0, 2])) && !self.can_start(datagram.peer) {
             return Ok(());
         }
         // C opens the transfer socket before opening the file.
@@ -431,6 +453,7 @@ impl<O: FileOpener> TftpListener<O> {
                 RuntimeEvent::Completed(done) => {
                     self.transfers.remove(&done.id);
                     self.routes.remove(&done.id);
+                    self.completed.push_back(done.clone());
                     None
                 }
                 RuntimeEvent::Failed { id, .. } | RuntimeEvent::TimedOut { id, .. } => {
@@ -690,6 +713,12 @@ mod tests {
             ));
             assert_eq!(listener.active_transfers(), 0);
             assert!(listener.transfers.is_empty());
+            // Timeout never creates a second success callback.
+            assert_eq!(listener.completed.len(), 1);
+            let done = listener.pop_completion().unwrap();
+            assert_eq!(done.peer, first.local_addr().unwrap());
+            assert_eq!(done.size, 5);
+            assert!(listener.front_completion().is_none());
             let _reclaimed = UdpSocket::bind(transfer_addresses[1]).unwrap();
             drop(listener);
             let _reclaimed = UdpSocket::bind(server).unwrap();
@@ -753,6 +782,20 @@ mod tests {
         );
         v4.send_to(&[0, 4, 0, 1], source).unwrap();
         listener.poll_once(1).unwrap();
+        assert_eq!(listener.active_transfers(), 0);
+        assert_eq!(
+            listener.front_completion().unwrap().peer,
+            v4.local_addr().unwrap()
+        );
+        listener
+            .poll_once_with_mac(1, &mut |_, _, _| MacLookup::Ready(Some([2, 0, 0, 0, 0, 1])))
+            .unwrap();
+        assert!(
+            v6.recv_from(&mut bytes).is_err(),
+            "helper backpressure reserves capacity"
+        );
+        assert_eq!(listener.completed.len(), 1);
+        listener.pop_completion().unwrap();
         listener
             .poll_once_with_mac(1, &mut |_, _, _| MacLookup::Ready(Some([2, 0, 0, 0, 0, 1])))
             .unwrap();
@@ -763,6 +806,11 @@ mod tests {
         assert_eq!(listener.active_transfers(), 0);
         assert!(listener.transfers.is_empty());
         assert!(listener.routes.is_empty());
+        assert_eq!(
+            listener.pop_completion().unwrap().peer,
+            v6.local_addr().unwrap()
+        );
+        assert!(listener.pop_completion().is_none());
         drop(listener);
         std::fs::remove_dir_all(root).unwrap();
     }
