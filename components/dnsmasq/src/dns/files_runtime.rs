@@ -3,6 +3,8 @@
 
 use super::{resolver_line, server_line, FileStamp, ResolverSelection, Source, SourceRule};
 use crate::config::{dns::DnsConfig, Error};
+use crate::config::dns::{RuleTarget, ServerHost};
+use crate::config::dns_lookup::EndpointLookup;
 use crate::dns::filewatch::{FileWatch, WatchError};
 use owrt_ubus::sys::PollFd;
 use std::collections::VecDeque;
@@ -212,6 +214,8 @@ pub struct DnsFiles {
     initializing: bool,
     active_reason: Option<ReloadReason>,
     notify_seen: bool,
+    endpoint_lookup: Option<EndpointLookup>,
+    endpoint_update: Option<SourceUpdate>,
 }
 
 impl DnsFiles {
@@ -241,6 +245,8 @@ impl DnsFiles {
             initializing: false,
             active_reason: None,
             notify_seen: false,
+            endpoint_lookup: None,
+            endpoint_update: None,
         })
     }
 
@@ -256,6 +262,9 @@ impl DnsFiles {
     }
 
     pub fn append_poll_fds(&self, fds: &mut Vec<PollFd>) {
+        if let Some(lookup) = &self.endpoint_lookup {
+            lookup.append_poll_fds(fds);
+        }
         if let Some(watch) = &self.watch {
             fds.push(PollFd {
                 fd: watch.raw_fd(),
@@ -275,7 +284,8 @@ impl DnsFiles {
     }
 
     pub fn has_work(&self) -> bool {
-        self.job.is_some()
+        self.endpoint_lookup.is_some()
+            || self.job.is_some()
             || !self.requests.is_empty()
             || !self.triggers.is_empty()
             || self.notify_seen
@@ -353,6 +363,24 @@ impl DnsFiles {
 
     pub fn step(&mut self) -> FileStep {
         let mut result = FileStep::default();
+        if let Some(lookup) = &mut self.endpoint_lookup {
+            if let Some(done) = lookup.step() {
+                self.endpoint_lookup = None;
+                if let Some(error) = done.error {
+                    result.diagnostics.push(FileDiagnostic::Line {
+                        path: self.endpoint_update.as_ref().map(|u| u.path.clone()).unwrap_or_default(),
+                        line: 0,
+                        error: Error(Box::leak(error.into_boxed_str())),
+                    });
+                    self.endpoint_update = None;
+                } else if let Some(mut update) = self.endpoint_update.take() {
+                    update.rows = done.rules.into_iter().map(|rule| SourceRule::configured(rule, 0)).collect();
+                    result.update = Some(update);
+                }
+            }
+            result.runnable = self.endpoint_lookup.is_some();
+            return result;
+        }
         let mut watch_more = false;
         if let Some(watch) = &mut self.watch {
             match watch.read_events() {
@@ -427,7 +455,7 @@ impl DnsFiles {
                         self.resolver_failed(&job.request, &mut result.diagnostics);
                     }
                 }
-                result.update = Some(SourceUpdate {
+                let update = SourceUpdate {
                     source: job.request.source,
                     path: job.request.path,
                     rows: job.rows,
@@ -435,7 +463,22 @@ impl DnsFiles {
                         && !self.no_poll
                         && job.request.reload
                         && self.clear_on_reload,
+                };
+                let needs_lookup = update.source == Source::ServersFile && update.rows.iter().any(|row| {
+                    matches!(row.rule.target, RuleTarget::Upstream(ref endpoint) if matches!(endpoint.host, ServerHost::Name(_)))
                 });
+                if needs_lookup {
+                    let rules = update.rows.iter().map(|row| row.rule.clone()).collect();
+                    match EndpointLookup::start(rules, false) {
+                        Ok(lookup) => {
+                            self.endpoint_lookup = Some(lookup);
+                            self.endpoint_update = Some(update);
+                        }
+                        Err(error) => result.diagnostics.push(FileDiagnostic::Watch(error)),
+                    }
+                } else {
+                    result.update = Some(update);
+                }
             } else {
                 self.job = Some(job);
             }
