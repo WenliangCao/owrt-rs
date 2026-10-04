@@ -258,7 +258,8 @@ def resource_scenarios():
     for kind,directive,path in [('static','dhcp-optsfile={base}/opts','opts'),('dynamic','dhcp-optsdir={base}/dir','dir/a')]:
         rows.append(case('runtime-emfile-'+kind,directive,[inform('before'),dict(op='fd-limit'),dict(op='write',path=path,text='224,new\n'),dict(op='hup') if kind=='static' else dict(op='snapshot'),dict(op='emfile-witness',path=BASE+'/'+path),inform('during-emfile'),dict(op='fd-limit',restore=True),dict(op='hup'),inform('recovered')],['OWNER03/fd-open-failure','OWNER02/failed-file-recovers']))
     rows.append(case('large-bank-owner-progress','dhcp-optsfile={base}/opts',[inform('before'),dict(op='large-file',path='opts',bytes=16*1024*1024,tail='224,large\n'),inform('after'),dict(op='fd-check')],['OWNER01/large-bank-owner-progress']))
-    rows.append(case('watch-burst-owner-progress','dhcp-optsdir={base}/dir',[inform('before'),dict(op='burst-progress',path='dir/a',bytes=256*1024,count=64,tail='224,burst\n'),inform('after'),dict(op='fd-check')],['OWNER01/event-burst-fairness']))
+    rows.append(case('long-bank-line','dhcp-optsfile={base}/opts',[inform('before'),dict(op='large-file',path='opts',bytes=1024*1024,tail='224,long-line\n',single_line=True),inform('after')],['LEX01/partial-last-line']))
+    rows.append(case('watch-burst-owner-progress','dhcp-optsdir={base}/dir',[inform('before'),dict(op='burst-progress',path='dir/a',bytes=128*1024,count=128,tail='224,burst\n'),inform('after'),dict(op='fd-check')],['OWNER01/event-burst-fairness']))
     for kind,directive,text,probe in [('hosts','dhcp-hostsfile',MAC+',127.0.0.30,partial',dict(op='packet',label='partial-host',kind=1)),('options','dhcp-optsfile','224,partial',inform('partial-option'))]:
         rows.append(dict(name='partial-read-eio-'+kind,config=directive+'=/m2/files/bank',files={},system_files={'/m2/files/bank':'# initially empty\n'},events=[dict(op='partial-eio',text=text),probe],cases=['LEX01/partial-last-line','OWNER03/partial-stream-eof'],boundaries=['LEX01','OWNER03']))
     rows.append(dict(name='fifo-tftp-owner-progress',config='dhcp-optsfile={base}/opts\nenable-tftp\ntftp-root={base}/data',files={'opts':'224,old\n','data/payload':'T'*1400},events=[dict(op='fifo-tftp',path='opts'),inform('after')],cases=['OWNER01/slow-stream-owner-progress'],boundaries=['OWNER01'],owner_liveness_difference=True))
@@ -323,7 +324,7 @@ def fifo_other_protocol(folder,process,event):
 
 def load_progress(folder,process,event,out):
     path=folder/event['path'];inside=BASE+'/'+event['path']
-    body=(b'#'+b'x'*126+b'\n')*(event['bytes']//128)+event['tail'].encode()
+    body=(b'#'+b'x'*(event['bytes']-2)+b'\n' if event.get('single_line') else (b'#'+b'x'*126+b'\n')*(event['bytes']//128))+event['tail'].encode()
     samples=[];stop=threading.Event()
     def sample():
         while not stop.is_set():
@@ -621,6 +622,10 @@ def audit_trace(folder,mode):
             descriptor=int(re.search(r'= (\d+)$',opened[1])[1])
             read=next((number,line) for number,line in selected if number>opened[0] and f'getdents64({descriptor},' in line and re.search(r'= [1-9][0-9]*$',line))
             observations[side]={'pid':pid,'watch_before_open_before_readdir':True,'syscalls':[watched,opened,read]}
+        elif mode=='watch-fault':
+            attempts=[(number,line) for number,line in selected if 'inotify_add_watch(' in line]
+            assert len(attempts)==2 and all('ENOSPC' in line for _,line in attempts),(side,attempts)
+            observations[side]={'pid':pid,'failed_initial_watches':attempts,'hup_did_not_retry_failed_watch':True}
         elif mode=='signals':
             delivered=[(number,line) for number,line in selected if '--- SIGHUP ' in line]
             fifo=next(row for row in observed['rows'] if row['event']['op']=='fifo-reload')
