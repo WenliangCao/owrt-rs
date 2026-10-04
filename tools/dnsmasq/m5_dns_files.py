@@ -1,0 +1,368 @@
+#!/usr/bin/env python3
+"""Exact-image resolver/server file lifecycle differential. Run in run_isolated.sh.
+
+Each side uses the shared read-only image plus a disposable overlay. Config,
+file mutations, replies, upstream packets and cleanup state are retained under
+private evidence. C supplies runtime expectations; unexercised checklist rows
+remain explicitly open. This driver never operates a physical router.
+"""
+from __future__ import annotations
+
+import argparse
+import copy
+import errno
+import json
+import os
+from pathlib import Path
+import shutil
+import signal
+import socket
+import struct
+import subprocess
+import time
+
+from dns_service_probe import exact_read, read_name, semantics
+from m2_rootfs import STOCK_SHA256, command, image_path, prepare, process_identity, sha256
+from m5_option_matrix import Upstream, descendants, normalized_text, query
+
+
+def dump(path, value):
+    path.write_text(json.dumps(value, indent=2, sort_keys=True) + '\n')
+
+
+def probe(label, host=None, **extra):
+    return dict(op='query', id=label, name=host or label + '.files.test', **extra)
+
+
+def write(path, text, **extra):
+    return dict(op='write', path=path, text=text, **extra)
+
+
+def signal_reload():
+    return {'op': 'signal'}
+
+
+def scenarios():
+    cases = []
+    def add(ident, checks, files, actions, config='', **extra):
+        cases.append(dict(id=ident, checks=checks.split(','), files=files, actions=actions, config=config, **extra))
+    r1, r2 = 'nameserver 127.0.0.2\n', 'nameserver 127.0.0.3\n'
+    initial = {'resolv': r1}
+    add('inplace-rename-delete-empty', 'WATCH-04,RSLV-05,RSLV-06,STATE-05', initial,
+        [probe('initial'), write('resolv', r2), probe('inplace'), write('resolv', r1, atomic=True),
+         probe('renamed'), {'op': 'unlink', 'path': 'resolv'}, probe('deleted'), write('resolv', ''),
+         probe('empty'), write('resolv', 'invalid row\n'), probe('invalid'), write('resolv', r2), probe('recovered')])
+    add('missing-leaf', 'WATCH-01,RSLV-02', {}, [probe('missing'), write('resolv', r1), probe('created')])
+    add('missing-parent', 'WATCH-01,FAIL-01', {}, [], 'resolv-file=/m2/files/missing/resolv\n', expected_start=False)
+    add('missing-parent-no-poll', 'WATCH-01,FAIL-01', {}, [], 'resolv-file=/m2/files/missing/resolv\nno-poll\n', default_resolv=False, expected_start=False)
+    add('ignored-missing-parent', 'CFG-02,WATCH-01', {}, [probe('inline')],
+        'no-resolv\nresolv-file=/m2/files/missing/resolv\nserver=127.0.0.2\n')
+    for mode in ('no-poll', 'poll'):
+        add(mode + '-signal', 'NPOLL-01,NPOLL-02', initial,
+            [probe('before'), write('resolv', r2, hold_open=True), signal_reload(), probe('after-hup'),
+             {'op': 'close-file', 'path': 'resolv'}, probe('after-close'), signal_reload(), probe('second-hup')],
+            'no-poll\n' if mode == 'no-poll' else '')
+    add('no-poll-multiple', 'CFG-02', initial, [],
+        'resolv-file=/m2/files/second\nno-poll\n', expected_test=1, expected_start=False)
+    add('no-poll-multiple-no-resolv', 'CFG-02', initial, [probe('explicit')],
+        'resolv-file=/m2/files/second\nno-poll\nno-resolv\nserver=127.0.0.2\n')
+    add('newest-file-and-ties', 'CFG-01,RSLV-01',
+        {'resolv': {'text': r1, 'mtime': 1700000010}, 'second': {'text': r2, 'mtime': 1700000020}},
+        [probe('newest'), write('resolv', r1, mtime=1700000015), probe('older-write'),
+         write('resolv', r1, mtime=1700000020), probe('equal-newest-option'),
+         write('resolv', r1, atomic=True, mtime=1700000030), probe('replaced-inode')],
+        'resolv-file=/m2/files/second\n')
+    for leaf in ('.hidden', 'backup~', '#backup#'):
+        add('filtered-' + leaf.replace('#', 'hash').replace('.', 'dot').replace('~', 'tilde'),
+            'WATCH-05', {leaf: r1}, [probe('initial'), write(leaf, r2), probe('ignored-write')],
+            f'resolv-file=/m2/files/{leaf}\n', default_resolv=False)
+    add('relative-name', 'WATCH-03', {'resolv': r1}, [], 'resolv-file=resolv\n', default_resolv=False, expected_start=False)
+    add('relative-dot-name', 'WATCH-03', {'resolv': r1}, [probe('relative-missing')],
+        'resolv-file=./missing\n', default_resolv=False)
+    add('symlink-relative', 'WATCH-02,WATCH-06', {'target': r1, 'resolv': {'symlink': 'target'}},
+        [probe('initial'), write('target', r2), probe('target-write'), write('other', r1),
+         {'op': 'symlink', 'path': 'resolv', 'target': 'other'}, probe('retarget-no-event'),
+         write('other', r2), probe('new-target-no-watch'), write('target', r1), probe('old-target-trigger')])
+    add('symlink-absolute', 'WATCH-02', {'target': r1, 'resolv': {'symlink': '/m2/files/target'}},
+        [probe('initial'), write('target', r2), probe('target-write')])
+    add('resolver-token-matrix', 'RSLV-03,RSLV-04', {'resolv': ''},
+        [action for i, text in enumerate(['server 127.0.0.2\r\n', 'nameserver 127.0.0.2#bad\n',
+          ' nameserver\t127.0.0.3 # good\n', 'Nameserver 127.0.0.2\n', 'nameserver ::1%lo\n',
+          'nameserver ::1%unknown\n', 'nameserver 127.0.0.2%lo\n']) for action in
+         (write('resolv', text), probe('token-' + str(i)))])
+    add('servers-file-life', 'SFILE-01,SFILE-02,SFILE-03,SFILE-04,SFILE-06',
+        {'resolv': r1, 'servers': 'server=/file.test/127.0.0.3\nserver=/local.test/\n'},
+        [probe('file-initial', 'initial.file.test'), probe('local-initial', 'initial.local.test'),
+         write('servers', 'server=/file.test/127.0.0.4\naddress=/bad/1.2.3.4\nserver=/new.test/\n'),
+         probe('file-before-hup', 'before.file.test'), signal_reload(), probe('file-after-hup', 'after.file.test'),
+         probe('local-removed', 'removed.local.test'), probe('new-local', 'new.test'),
+         {'op': 'unlink', 'path': 'servers'}, signal_reload(), probe('missing-keeps-file', 'missing.file.test'),
+         write('servers', ''), signal_reload(), probe('empty-removes-file', 'empty.file.test')],
+        'servers-file=/m2/files/servers\n')
+    add('servers-file-missing-start', 'CFG-03,SFILE-03', initial,
+        [probe('missing'), write('servers', 'server=/file.test/127.0.0.3\n'), probe('no-auto', 'before.file.test'),
+         signal_reload(), probe('hup-load', 'after.file.test')], 'servers-file=/m2/files/servers\n')
+    add('inline-file-resolv-banks', 'RSLV-07,RSLV-08,STATE-03',
+        {'resolv': r1, 'servers': 'server=/file.test/127.0.0.3\n'},
+        [probe('inline-initial', 'a.inline.test'), probe('file-initial', 'a.file.test'), probe('default-initial'),
+         write('resolv', r2), probe('inline-after', 'b.inline.test'), probe('file-after', 'b.file.test'), probe('default-after'),
+         write('servers', ''), signal_reload(), probe('file-fallback', 'c.file.test')],
+        'server=/inline.test/127.0.0.4\nservers-file=/m2/files/servers\n')
+    for clear in (False, True):
+        add('cache-clear-' + str(int(clear)), 'CLEAR-01,CLEAR-02,CLEAR-03,STATE-05',
+            {'resolv': r1, 'hosts': '192.0.2.31 host.files.test\n'},
+            [probe('seed', 'cache.files.test', cache=True), write('hosts', '192.0.2.32 host.files.test\n'),
+             write('resolv', r2), probe('cache-after', 'cache.files.test', cache=True), probe('hosts-after', 'host.files.test'),
+             write('resolv', ''), probe('cache-empty', 'cache.files.test', cache=True), signal_reload(),
+             probe('cache-hup', 'cache.files.test', cache=True), probe('hosts-hup', 'host.files.test')],
+            'addn-hosts=/m2/files/hosts\n' + ('clear-on-reload\n' if clear else ''), cache_size=64)
+    add('tcp-parent-snapshot', 'STATE-04', initial,
+        [{'op': 'connect', 'id': 'held'}, probe('held-before', transports=['held']), write('resolv', r2),
+         probe('parent-new'), probe('held-after', transports=['held']), {'op': 'disconnect', 'id': 'held'}, probe('fresh-tcp')])
+    add('zero-and-own-server', 'RSLV-09', {'resolv': 'nameserver 0.0.0.0\n'},
+        [probe('zero'), write('resolv', r1), probe('valid')])
+    return cases
+
+
+def put(root, relative, value, opened):
+    path = image_path(root, '/m2/files/' + relative, follow_leaf=False)
+    value = {'text': value} if isinstance(value, str) else value
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if 'symlink' in value:
+        path.unlink(missing_ok=True)
+        path.symlink_to(value['symlink'])
+        return
+    if path.is_symlink():
+        path = image_path(root, '/m2/files/' + relative)
+    target = path.with_name('temp-' + path.name) if value.get('atomic') else path
+    handle = target.open('wb')
+    handle.write(value.get('text', '').encode())
+    handle.flush()
+    if 'mtime' in value:
+        os.utime(handle.fileno(), (value['mtime'], value['mtime']))
+    if value.get('hold_open'):
+        opened[relative] = handle
+    else:
+        handle.close()
+    if value.get('atomic'):
+        target.replace(path)
+
+
+def exchange(port, action, ident, transport, upstreams, connections):
+    packet = query(action, ident)
+    before = [len(upstream.events) for upstream in upstreams]
+    started = time.monotonic()
+    response, error = None, None
+    owned = transport in ('udp', 'tcp')
+    client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM if transport == 'udp' else socket.SOCK_STREAM) if owned else connections[transport]
+    try:
+        client.settimeout(.5)
+        if owned:
+            client.connect(('127.0.0.1', port))
+        client.sendall(packet if transport == 'udp' else struct.pack('!H', len(packet)) + packet)
+        response = client.recv(65535) if transport == 'udp' else exact_read(client, struct.unpack('!H', exact_read(client, 2))[0])
+    except (OSError, EOFError) as problem:
+        error = {'kind': type(problem).__name__, 'errno': getattr(problem, 'errno', None)}
+    finally:
+        if owned:
+            client.close()
+    parsed = semantics(response) if response else None
+    if parsed and parsed['id'] != ident:
+        raise AssertionError('client transaction identity mismatch')
+    return {'id': action['id'] + ':' + transport, 'response': parsed, 'error': error,
+            'request': packet.hex(), 'reply': response.hex() if response else None,
+            'elapsed': time.monotonic() - started, 'cache': action.get('cache', False),
+            'upstreams': [{'server': upstream.host, 'events': copy.deepcopy(upstream.events[start:])}
+                          for upstream, start in zip(upstreams, before)]}
+
+
+def run_side(root, side, case, folder):
+    folder.mkdir()
+    data = root / 'm2/files'
+    if data.exists(): shutil.rmtree(data)
+    data.mkdir()
+    opened, connections = {}, {}
+    for path, value in case['files'].items(): put(root, path, value, opened)
+    names = {(a['name'], a.get('type', 1)) for a in case['actions'] if a['op'] == 'query'}
+    upstreams = []
+    for index, address in enumerate(['127.0.0.2', '127.0.0.3', '127.0.0.4', '::1']):
+        fixtures = [{'name': host, 'type': kind, 'reply': f'192.0.2.{11 + index}' if kind == 1 else f'2001:db8::{11 + index}'} for host, kind in names]
+        upstreams.append(Upstream(fixtures, address, 53))
+    with socket.socket() as reserve:
+        reserve.bind(('127.0.0.1', 0)); port = reserve.getsockname()[1]
+    config = ('no-hosts\nno-0x20-encode\nno-round-robin\nstrict-order\nuser=root\ngroup=root\n'
+              'listen-address=127.0.0.1\nhost-record=ready.files.test,192.0.2.250\n'
+              'pid-file=/m2/files.pid\n' + f'port={port}\ncache-size={case.get("cache_size", 0)}\n'
+              + ('resolv-file=/m2/files/resolv\n' if case.get('default_resolv', True) else '') + case['config'])
+    (root / 'm2/files.conf').write_text(config)
+    (folder / 'config').write_text(config)
+    test = subprocess.run(command(root, side, '--test', '-C', '/m2/files.conf'), capture_output=True, timeout=5)
+    result = {'syntax': {'exit': test.returncode, 'stdout': test.stdout.decode(errors='replace'), 'stderr': test.stderr.decode(errors='replace')}, 'rows': [], 'actions': []}
+    process = None
+    try:
+        with (folder / 'stdout').open('wb') as stdout, (folder / 'stderr').open('wb') as stderr:
+            process = subprocess.Popen(command(root, side, '-k', '-C', '/m2/files.conf'), stdout=stdout, stderr=stderr, start_new_session=True)
+            deadline = time.monotonic() + 3
+            while process.poll() is None and time.monotonic() < deadline:
+                try:
+                    ready = exchange(port, probe('ready', 'ready.files.test'), 0x3000, 'udp', upstreams, connections)
+                    if ready['response']:
+                        result['startup'] = {'ready': True}; break
+                except OSError:
+                    pass
+                time.sleep(.01)
+            else:
+                result['startup'] = {'ready': False, 'exit': process.poll()}
+            if result['startup']['ready']:
+                result['identity'] = process_identity(root, process.pid)
+                expected = sha256(root / ('usr/sbin/dnsmasq' if side == 'c' else 'usr/sbin/dnsmasq-rs'))
+                if result['identity']['sha256'] != expected: raise AssertionError('running ELF identity mismatch')
+                for index, action in enumerate(case['actions']):
+                    op = action['op']
+                    if op == 'query':
+                        for number, transport in enumerate(action.get('transports', ['udp', 'tcp'])):
+                            result['rows'].append(exchange(port, action, 0x4000 + index * 4 + number, transport, upstreams, connections))
+                    elif op == 'write': put(root, action['path'], action, opened)
+                    elif op == 'unlink': image_path(root, '/m2/files/' + action['path'], follow_leaf=False).unlink()
+                    elif op == 'symlink': put(root, action['path'], {'symlink': action['target']}, opened)
+                    elif op == 'close-file': opened.pop(action['path']).close()
+                    elif op == 'signal': process.send_signal(signal.SIGHUP)
+                    elif op == 'connect': connections[action['id']] = socket.create_connection(('127.0.0.1', port), .5)
+                    elif op == 'disconnect': connections.pop(action['id']).close()
+                    else: raise ValueError(op)
+                    result['actions'].append(dict(action, daemon_alive=process.poll() is None))
+                    if op != 'query': time.sleep(.08)
+    finally:
+        for handle in opened.values(): handle.close()
+        for client in connections.values(): client.close()
+        if process is not None and process.poll() is None:
+            process.send_signal(signal.SIGTERM)
+            try: process.wait(timeout=3)
+            except subprocess.TimeoutExpired:
+                os.killpg(process.pid, signal.SIGKILL); process.wait(timeout=3); result['forced_kill'] = True
+        result['exit'] = process.returncode if process else None
+        for upstream in upstreams: upstream.close()
+        deadline = time.monotonic() + 2
+        while descendants(root) and time.monotonic() < deadline: time.sleep(.02)
+        result['cleanup'] = {'live_pids': descendants(root), 'pid_file': (root / 'm2/files.pid').exists()}
+        result['stdout'] = (folder / 'stdout').read_text()
+        result['stderr'] = (folder / 'stderr').read_text()
+        if not result.get('startup', {}).get('ready'):
+            result.setdefault('startup', {'ready': False}).update(stdout=result['stdout'], stderr=result['stderr'])
+        dump(folder / 'observed.json', result)
+    return result
+
+
+def projection(row):
+    row = copy.deepcopy(row)
+    for key in ['request', 'reply', 'elapsed']: row.pop(key, None)
+    for upstream in row['upstreams']:
+        for event in upstream['events']:
+            event.pop('wire', None); event.pop('reply_wire', None)
+    return row
+
+
+def compare(left, right, case):
+    failures = []
+    for phase in ('syntax', 'startup'):
+        a, b = copy.deepcopy(left[phase]), copy.deepcopy(right[phase])
+        for value in (a, b):
+            for stream in ('stdout', 'stderr'):
+                if stream in value: value[stream] = normalized_text(value[stream])
+        if a != b: failures.append({'phase': phase, 'c': a, 'rust': b})
+    wanted = [action['id'] + ':' + transport for action in case['actions'] if action['op'] == 'query' for transport in action.get('transports', ['udp', 'tcp'])] if left['startup']['ready'] else []
+    for side, observed in [('c', left), ('rust', right)]:
+        if [row['id'] for row in observed['rows']] != wanted: failures.append({'phase': 'coverage', 'side': side})
+        if observed.get('forced_kill') or observed['cleanup']['live_pids']: failures.append({'phase': 'cleanup', 'side': side})
+        if observed['startup']['ready'] and (observed['exit'] != 0 or observed['cleanup']['pid_file']): failures.append({'phase': 'shutdown', 'side': side})
+    for a, b in zip(left['rows'], right['rows']):
+        a, b = projection(a), projection(b)
+        if a.get('cache') and a.get('response') and b.get('response'):
+            ar, br = a['response'].get('records', []), b['response'].get('records', [])
+            for x, y in zip(ar, br):
+                if abs(x.get('ttl', 0) - y.get('ttl', 0)) <= 1: y['ttl'] = x['ttl']
+        if a != b: failures.append({'phase': 'runtime', 'id': a['id'], 'c': a, 'rust': b})
+    return failures
+
+
+def controls():
+    case = {'actions': [probe('one')]}
+    base = {'syntax': {'exit': 0, 'stdout': '', 'stderr': 'dnsmasq: syntax check OK.\n'}, 'startup': {'ready': True},
+            'exit': 0, 'cleanup': {'live_pids': [], 'pid_file': False}, 'rows': [
+                {'id': 'one:' + transport, 'response': {'id': 1, 'flags': 0x8180, 'records': []}, 'error': None, 'cache': False,
+                 'upstreams': [{'server': '127.0.0.2', 'events': [{'name': 'one.files.test', 'type': 1, 'transport': transport}]}]}
+                for transport in ('udp', 'tcp')]}
+    assert not compare(base, copy.deepcopy(base), case)
+    found = []
+    for change in ['missing-row', 'wrong-diagnostic', 'wrong-exit', 'startup', 'wrong-answer', 'missing-forward', 'wrong-server', 'leaked-child', 'leaked-pid']:
+        mutated = copy.deepcopy(base)
+        if change == 'missing-row': mutated['rows'].pop()
+        elif change == 'wrong-diagnostic': mutated['syntax']['stderr'] = 'dnsmasq: wrong\n'
+        elif change == 'wrong-exit': mutated['syntax']['exit'] = 1
+        elif change == 'startup': mutated['startup']['ready'] = False
+        elif change == 'wrong-answer': mutated['rows'][0]['response']['flags'] = 0x8183
+        elif change == 'missing-forward': mutated['rows'][0]['upstreams'][0]['events'].clear()
+        elif change == 'wrong-server': mutated['rows'][0]['upstreams'][0]['server'] = '127.0.0.3'
+        elif change == 'leaked-child': mutated['cleanup']['live_pids'] = [123]
+        elif change == 'leaked-pid': mutated['cleanup']['pid_file'] = True
+        assert compare(base, mutated, case), change
+        found.append(change)
+    return found
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--image-root', type=Path)
+    parser.add_argument('--rust', type=Path)
+    parser.add_argument('--rust-sha256')
+    parser.add_argument('--source-commit')
+    parser.add_argument('--output', type=Path)
+    parser.add_argument('--scenarios')
+    parser.add_argument('--sides', choices=['both', 'c'], default='both')
+    parser.add_argument('--self-test', action='store_true')
+    args = parser.parse_args()
+    negative = controls()
+    if args.self_test:
+        print(json.dumps({'negative_controls': negative, 'scenarios': len(scenarios())})); return 0
+    if not all([args.image_root, args.rust, args.rust_sha256, args.source_commit, args.output]): parser.error('image, candidate identity and output required')
+    if sha256(args.rust) != args.rust_sha256: raise ValueError('candidate SHA mismatch')
+    out = args.output.resolve()
+    if 'private' not in out.parts or out.exists(): raise ValueError('fresh private output required')
+    out.mkdir(parents=True)
+    selected = [case for case in scenarios() if not args.scenarios or case['id'] in args.scenarios.split(',')]
+    sides = ['c', 'rust'] if args.sides == 'both' else ['c']
+    report = {'source_commit': args.source_commit, 'rust_sha256': args.rust_sha256, 'stock_sha256': STOCK_SHA256,
+              'tool_sha256': sha256(Path(__file__)), 'negative_controls': negative, 'scenarios': [], 'failures': [],
+              'normalization': ['executable error prefix only in --test', 'upstream transaction IDs retained raw, semantic traces compare exactly',
+                                'cache-marked probe TTL differences of at most one elapsed second permitted; upstream/cache causality remains exact'],
+              'incomplete_boundaries': ['INI-01', 'WATCH-06 parent replacement', 'STATE-01/02 live delayed packet', 'FAIL-01 injected syscall failures', 'CLEAR-02 DHCP hooks', 'SFILE-05 endpoint dependency'], 'closed_options': []}
+    driver = out / 'driver'; driver.mkdir()
+    dependencies = ['m5_dns_files.py', 'm5_option_matrix.py', 'm5_option_matrix_probes.py', 'm2_rootfs.py', 'dns_service_probe.py', 'run_isolated.sh']
+    report['driver_sha256'] = {}
+    for filename in dependencies:
+        source = Path(__file__).with_name(filename)
+        shutil.copy2(source, driver / filename)
+        report['driver_sha256'][filename] = sha256(source)
+    dump(out / 'schedule.json', selected)
+    roots = {side: prepare(args.image_root, None, out / side, args.rust) for side in sides}
+    for case in selected:
+        folder = out / case['id']; folder.mkdir()
+        row = {'id': case['id'], 'checks': case['checks'], 'failures': []}
+        try:
+            observed = {side: run_side(roots[side], side, case, folder / side) for side in sides}
+            c = observed['c']
+            if c['syntax']['exit'] != case.get('expected_test', 0) or c['startup']['ready'] != case.get('expected_start', True):
+                row['failures'].append({'phase': 'c-calibration', 'syntax': c['syntax'], 'startup': c['startup']})
+            row['rows'] = len(c['rows'])
+            if args.sides == 'both': row['failures'].extend(compare(c, observed['rust'], case))
+        except Exception as problem:
+            row['failures'].append({'phase': 'infrastructure', 'error': repr(problem)})
+        report['scenarios'].append(row)
+        dump(out / 'progress.json', report)
+    report['failures'] = [dict(scenario=row['id'], **failure) for row in report['scenarios'] for failure in row['failures']]
+    dump(out / 'result.json', report)
+    print(json.dumps({'scenarios': len(selected), 'rows': sum(row.get('rows', 0) for row in report['scenarios']), 'failures': len(report['failures']), 'closed_options': []}))
+    return int(bool(report['failures']))
+
+
+if __name__ == '__main__': raise SystemExit(main())
