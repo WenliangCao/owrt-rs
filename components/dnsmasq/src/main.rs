@@ -956,10 +956,15 @@ impl PollTcpClient {
         packet: Vec<u8>,
         insert_cache: bool,
     ) -> Result<(), ()> {
-        if insert_cache {
+        let bogus = self.forward.take_bogus_cache_entry();
+        if insert_cache || bogus.is_some() {
             let mut parent = parent.lock().map_err(|_| ())?;
             if let Some(daemon) = parent.daemon.as_mut() {
-                daemon.cache_tcp_reply(&packet, now_seconds());
+                if let Some((name, ttl)) = bogus {
+                    daemon.cache_bogus_reply(name, ttl, now_seconds());
+                } else {
+                    daemon.cache_tcp_reply(&packet, now_seconds());
+                }
             }
         }
         self.phase = TcpClientPhase::Writing {
