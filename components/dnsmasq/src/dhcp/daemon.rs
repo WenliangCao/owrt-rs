@@ -859,13 +859,7 @@ impl LocalProvider {
                 .map(Ipv4Addr::from)
                 .filter(|address| !address.is_unspecified())
         };
-        let subnet = agent_address(5)
-            .or_else(|| {
-                packet
-                    .option(118, 4)
-                    .map(|value| Ipv4Addr::new(value[0], value[1], value[2], value[3]))
-            })
-            .unwrap_or(Ipv4Addr::UNSPECIFIED);
+        let subnet = packet.subnet_selector().unwrap_or(Ipv4Addr::UNSPECIFIED);
         let override_server = agent_address(11);
         let ingress = select_contexts(&self.config.ranges, &mut self.states, &addresses, interface);
         self.selected = select_remote_contexts(
@@ -1041,6 +1035,16 @@ impl LocalProvider {
             false
         };
         self.reply_hostname = configured_name.map(<[u8]>::to_vec).or(client_name);
+        if packet.message_type() == 1
+            && !ack
+            && packet.option(81, 3).is_some()
+            && self.reply_hostname.is_none()
+            && full_client_name.is_some()
+        {
+            // A legal FQDN beginning with '.' becomes empty when C strips
+            // its domain, while offer_hostname still points at that string.
+            self.reply_hostname = Some(Vec::new());
+        }
         if packet.message_type() == 1 && packet.option(81, 3).is_none() {
             // An ordinary client name alone is not echoed in an OFFER. A
             // configured name must match the full provided name, before strip.
