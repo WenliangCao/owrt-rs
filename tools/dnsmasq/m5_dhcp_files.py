@@ -256,6 +256,57 @@ def remaining_scenarios():
     return rows
 
 
+def trace_malformed_inotify(pid, descriptor, output):
+    """Replace one successful AArch64 inotify read with a bounded nameless event."""
+    if platform.machine() != 'aarch64': raise RuntimeError('ptrace ABI pinned to AArch64 image')
+    class Iovec(ctypes.Structure):
+        _fields_=[('base',ctypes.c_void_p),('length',ctypes.c_size_t)]
+    libc=ctypes.CDLL(None,use_errno=True);libc.ptrace.restype=ctypes.c_long
+    def ptrace(request,address=0,data=0):
+        ctypes.set_errno(0);value=libc.ptrace(ctypes.c_uint(request),ctypes.c_uint(pid),ctypes.c_void_p(address),ctypes.c_void_p(data))
+        if value == -1 and ctypes.get_errno():raise OSError(ctypes.get_errno(),'ptrace')
+        return value
+    registers=(ctypes.c_ulonglong*34)()
+    def regs(write=False):
+        value=Iovec(ctypes.addressof(registers),ctypes.sizeof(registers));ptrace(0x4205 if write else 0x4204,1,ctypes.addressof(value))
+    event=struct.pack('=iIII',1,0x00000008,0,8)+b'\0xxx\0\0\0\0'
+    report={'pid':pid,'descriptor':descriptor,'event':event.hex(),'injected':False,'reads':[]};attached=False;active=False
+    try:
+        ptrace(16);os.waitpid(pid,0);attached=True;Path(str(output)+'.ready').write_text('attached\n')
+        while True:
+            ptrace(24);_,status=os.waitpid(pid,0)
+            if not os.WIFSTOPPED(status):raise AssertionError('tracee ended before inotify read')
+            if os.WSTOPSIG(status) not in (signal.SIGTRAP|0x80,signal.SIGTRAP):continue
+            info=(ctypes.c_ubyte*128)();ptrace(0x420e,ctypes.sizeof(info),ctypes.addressof(info));regs()
+            if info[0]==1:
+                active=registers[8] in (63,65) and registers[0]==descriptor
+                if active:report['reads'].append({'stage':'entry','buffer':int(registers[1])})
+            elif info[0]==2 and active:
+                returned=ctypes.c_longlong(registers[0]).value
+                report['reads'].append({'stage':'exit','result':returned})
+                if returned>0:
+                    buffer=int(registers[1]);
+                    for offset in range(0,len(event),8):
+                        word=int.from_bytes(event[offset:offset+8],'little')
+                        ptrace(5,buffer+offset,word)
+                    registers[0]=len(event);regs(write=True);report['injected']=True;dump(Path(output),report);ptrace(17);attached=False;return 0
+                active=False
+    finally:
+        if attached:
+            try:ptrace(17)
+            except OSError:pass
+        dump(Path(output),report)
+    return 1
+
+
+def find_inotify_fd(pid):
+    for path in Path(f'/proc/{pid}/fd').iterdir():
+        try:
+            if os.readlink(path).startswith('anon_inode:inotify'):return int(path.name)
+        except (FileNotFoundError,PermissionError):pass
+    raise AssertionError('inotify fd not found')
+
+
 def resource_scenarios():
     def inform(label):return dict(op='packet',label=label,kind=8,ciaddr='127.0.0.40',prl=[224])
     def case(name,config,events,cases):return dict(name=name,config='no-daemon\n'+config,files={'opts':'224,old\n','dir/a':'224,old\n'},events=events,cases=cases,boundaries=sorted({c.split('/')[0] for c in cases}))
@@ -265,6 +316,7 @@ def resource_scenarios():
     rows.append(case('runtime-emfile-directory-scan','dhcp-optsdir={base}/dir',[inform('before'),dict(op='fd-limit'),dict(op='hup'),dict(op='emfile-witness',path=BASE+'/dir'),inform('empty-bank-after-failed-opendir'),dict(op='fd-limit',restore=True),dict(op='write',path='dir/a',text='224,recovered\n'),inform('existing-watch-recovers')],['DYN02/watch-failure','OWNER03/fd-open-failure','OWNER02/failed-file-recovers']))
     rows.append(case('large-bank-owner-progress','dhcp-optsfile={base}/opts',[inform('before'),dict(op='large-file',path='opts',bytes=16*1024*1024,tail='224,large\n'),inform('after'),dict(op='fd-check')],['OWNER01/large-bank-owner-progress']))
     rows.append(case('large-option-bank-owner-progress','dhcp-optsfile={base}/opts',[inform('before'),dict(op='large-file',path='opts',bytes=512*1024,bank_rows=8192,tail='224,large-bank\n'),inform('after')],['OWNER01/large-bank-owner-progress']))
+    rows.append(case('malformed-inotify-event','dhcp-optsdir={base}/dir',{'dir/a':'224,initial\n'},[inform('initial'),dict(op='malformed-event',path='dir/a'),inform('after-malformed')],['DYN03/bounded-event-parser'],malformed_event=True))
     rows.append(case('long-bank-line','dhcp-optsfile={base}/opts',[inform('before'),dict(op='large-file',path='opts',bytes=1024*1024,tail='224,long-line\n',single_line=True),inform('after')],['LEX01/partial-last-line']))
     rows.append(case('watch-burst-owner-progress','dhcp-optsdir={base}/dir',[inform('before'),dict(op='burst-progress',path='dir/a',bytes=128*1024,count=128,tail='224,burst\n'),inform('after'),dict(op='fd-check')],['OWNER01/event-burst-fairness']))
     for kind,directive,text,probe in [('hosts','dhcp-hostsfile',MAC+',127.0.0.30,partial',dict(op='packet',label='partial-host',kind=1)),('options','dhcp-optsfile','224,partial',inform('partial-option'))]:
@@ -522,6 +574,21 @@ def run_side(root,side,scenario,out):
                 elif event['op']=='stop-loading':observed['stop']=stop_stream(folder,event,process)
                 elif event['op']=='fifo-reload':observed['fifo']=fifo_reload(root,side,folder,event,process,endpoint,out,index)
                 elif event['op'] in ('fifo-tftp','fifo-helper'):observed['pending_protocol']=fifo_other_protocol(folder,process,event)
+                elif event['op']=='malformed-event':
+                    descriptor=find_inotify_fd(process.pid);report_path=out/'malformed-inotify.json';tracer=subprocess.Popen([sys.executable,str(Path(__file__).resolve()),'--trace-malformed-inotify',str(process.pid),str(descriptor),str(report_path)])
+                    try:
+                        deadline=time.monotonic()+2
+                        while not Path(str(report_path)+'.ready').exists():
+                            if tracer.poll() is not None:raise AssertionError('malformed tracer attach failed')
+                            if time.monotonic()>deadline:raise AssertionError('malformed tracer attach timeout')
+                            time.sleep(.005)
+                        write_file(folder/event['path'],'224,malformed\n');deadline=time.monotonic()+3
+                        while not report_path.exists() and tracer.poll() is None and time.monotonic()<deadline:time.sleep(.005)
+                        if tracer.poll() is None:tracer.wait(2)
+                        observed['malformed']=json.loads(report_path.read_text())
+                        assert observed['malformed'].get('injected'),'malformed event was not injected'
+                    finally:
+                        if tracer.poll() is None:tracer.kill();tracer.wait()
                 elif event['op']=='fd-limit':
                     if event.get('restore'):
                         resource.prlimit(process.pid,resource.RLIMIT_NOFILE,limit_before);limit_before=None
@@ -595,7 +662,7 @@ def compare(c,rust):
     if wire.comparable_syntax(c.get('syntax',{}))!=wire.comparable_syntax(rust.get('syntax',{})):failures.append('syntax')
     if len(c['rows'])!=len(rust['rows']):failures.append('row count')
     for first,second in zip(c['rows'],rust['rows']):
-        for key in ['index','event','alive','health','peer','comparable','dns','helper','bank_fds_closed','emfile_verified','owner_health_verified','partial_eio_verified']:
+        for key in ['index','event','alive','health','peer','comparable','dns','helper','bank_fds_closed','emfile_verified','owner_health_verified','partial_eio_verified','malformed']:
             if first.get(key)!=second.get(key):failures.append(f"{first['index']}:{key}")
         if (first.get('response') is None)!=(second.get('response') is None):failures.append(f"{first['index']}:response presence")
         if 'pending_protocol' in first or 'pending_protocol' in second:
@@ -767,5 +834,7 @@ if __name__=='__main__':
         print(json.dumps(audit_trace(Path(sys.argv[3]),sys.argv[2])));raise SystemExit(0)
     if len(sys.argv)>1 and sys.argv[1]=='--self-test':
         print(json.dumps({'scenarios':len(scenarios()),'negative_controls':controls()}));raise SystemExit(0)
+    if len(sys.argv)>1 and sys.argv[1]=='--trace-malformed-inotify':
+        raise SystemExit(trace_malformed_inotify(int(sys.argv[2]),int(sys.argv[3]),sys.argv[4]))
     if len(sys.argv)>1 and sys.argv[1]=='--exec-watch-fault':exec_watch_fault(sys.argv[2:])
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--image-root',type=Path,required=True);p.add_argument('--rust',type=Path,required=True);p.add_argument('--source-commit',required=True);p.add_argument('--out',type=Path,required=True);p.add_argument('--side',choices=['c','rust','both'],default='both');p.add_argument('--case',action='append');raise SystemExit(main(p.parse_args()))
