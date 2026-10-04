@@ -576,7 +576,7 @@ def run_side(root,side,scenario,out):
                 elif event['op']=='fifo-reload':observed['fifo']=fifo_reload(root,side,folder,event,process,endpoint,out,index)
                 elif event['op'] in ('fifo-tftp','fifo-helper'):observed['pending_protocol']=fifo_other_protocol(folder,process,event)
                 elif event['op']=='malformed-event':
-                    descriptor=find_inotify_fd(process.pid);report_path=out/'malformed-inotify.json';tracer=subprocess.Popen([sys.executable,str(Path(__file__).resolve()),'--trace-malformed-inotify',str(process.pid),str(descriptor),str(report_path)])
+                    descriptor=find_inotify_fd(process.pid);report_path=out/'malformed-inotify.json';trace_log=out/'malformed-trace.log';tracer=subprocess.Popen([sys.executable,str(Path(__file__).resolve()),'--trace-malformed-inotify',str(process.pid),str(descriptor),str(report_path)],stdout=trace_log.open('wb'),stderr=subprocess.STDOUT)
                     try:
                         deadline=time.monotonic()+2
                         while not Path(str(report_path)+'.ready').exists():
@@ -586,6 +586,9 @@ def run_side(root,side,scenario,out):
                         write_file(folder/event['path'],'224,malformed\n');deadline=time.monotonic()+3
                         while not report_path.exists() and tracer.poll() is None and time.monotonic()<deadline:time.sleep(.005)
                         if tracer.poll() is None:tracer.wait(2)
+                        
+                        if not report_path.exists():
+                            raise AssertionError('malformed tracer missing report: '+trace_log.read_text(errors='replace'))
                         observed['malformed']=json.loads(report_path.read_text())
                         assert observed['malformed'].get('injected'),'malformed event was not injected'
                     finally:
