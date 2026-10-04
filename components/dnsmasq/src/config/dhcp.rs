@@ -47,6 +47,7 @@ impl NameDomains {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RangeConfig {
+    pub kind: crate::dhcp::allocation::RangeKind,
     /// Tag set only after this address context has been selected.
     pub set_tag: Option<Vec<u8>>,
     pub filter: TagPredicate,
@@ -429,7 +430,12 @@ impl DhcpConfig {
                 }
                 // option.c does not unhide quoted metacharacters for ranges.
                 let mut start = ip(parts[0].encoded())?;
-                let mut end = ip(parts[1].encoded())?;
+                use crate::dhcp::allocation::RangeKind;
+                let (kind, mut end) = match parts[1].encoded() {
+                    b"static" => (RangeKind::Static, start),
+                    b"proxy" => (RangeKind::Proxy, start),
+                    value => (RangeKind::Dynamic, ip(value)?),
+                };
                 if start > end {
                     std::mem::swap(&mut start, &mut end);
                 }
@@ -457,6 +463,7 @@ impl DhcpConfig {
                 self.ranges.insert(
                     0,
                     RangeConfig {
+                        kind,
                         set_tag,
                         filter,
                         start,
@@ -924,14 +931,33 @@ mod tests {
     }
 
     #[test]
-    fn rejects_extra_fields_quotes_and_unimplemented_selectors() {
+    fn static_and_proxy_ranges_reuse_the_subnet_context() {
+        use crate::dhcp::allocation::RangeKind;
+        for (mode, kind) in [("static", RangeKind::Static), ("proxy", RangeKind::Proxy)] {
+            let mut config = DhcpConfig::default();
+            let line =
+                format!("dhcp-range=tag:client,set:pool,192.0.2.0,{mode},255.255.255.0,600s");
+            config
+                .apply(&lex_line(line.as_bytes()).unwrap().unwrap())
+                .unwrap();
+            let range = &config.ranges[0];
+            assert_eq!(range.kind, kind);
+            assert_eq!(range.start, range.end);
+            assert_eq!(range.netmask, Some(Ipv4Addr::new(255, 255, 255, 0)));
+            assert_eq!(range.lease_time, 600);
+            assert_eq!(range.set_tag.as_deref(), Some(b"pool".as_slice()));
+            assert!(range.filter.matches(&[b"client"]));
+            assert!(!range.filter.matches(&[]));
+        }
+    }
+
+    #[test]
+    fn rejects_extra_fields_and_quoted_ipv4_addresses() {
         for input in [
             "192.0.2.10,192.0.2.20,1h,2h",
             "192.0.2.10,192.0.2.20,,1h",
             "\"192.0.2.10\",192.0.2.20",
             "192.0.2.10,192.0.2.20,\"12h\"",
-            "192.0.2.10,static",
-            "192.0.2.10,proxy",
         ] {
             assert!(parse(input).is_err(), "{input}");
         }

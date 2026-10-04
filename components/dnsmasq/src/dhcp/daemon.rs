@@ -3,7 +3,6 @@
 //! snapshots are refreshed for each admitted packet.
 
 use super::allocation::ProbeResult;
-use super::allocation::RangeKind;
 use super::context::{select_contexts, select_remote_contexts, ContextState, SelectedContext};
 use super::interface_admission::{interface_matches, InterfacePolicy, Selection};
 use super::lease::{
@@ -1370,7 +1369,7 @@ impl OutcomeProvider for LocalProvider {
                 router: state.router,
                 local: state.local,
                 lease_time: range.lease_time,
-                kind: RangeKind::Dynamic,
+                kind: range.kind,
                 filter: range.filter.tags().to_vec(),
                 epoch: state.epoch,
             })
