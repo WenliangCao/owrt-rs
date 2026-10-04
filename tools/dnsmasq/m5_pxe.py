@@ -406,6 +406,28 @@ def profiles():
             expected=True
         mutations.append(case(f"seeded-{index:02}",raw=raw,reply=expected))
     rows.append(profile("pxe-seeded-scanner",legacy,mutations,["RX01","RX02","RX03","BOOT01","OWNER01"]))
+    rows.extend([
+        profile("dual-listener-burst",legacy,[case("burst67",copies=16),case("burst4011",listener=4011,source_port=4011,copies=16),
+                                            case("return-to67")],["OWNER01"]),
+        profile("secondary-interface-context",legacy,[
+            case("secondary-proxy"),case("secondary-boot-item",kind=3,ciaddr="10.88.0.2",boot_item=item(),listener=4011),
+            case("subnet-reselection",extra=option(118,socket.inet_aton("10.88.0.2"))),
+        ],["RX04","BOOT02","CFG-R01"],range_value="10.88.0.1,proxy,255.255.255.0",secondary_addresses=True),
+        profile("disabled-host-ordinary",legacy+["dhcp-host=02:00:00:4d:35:03,ignore","bootp-dynamic"],
+                [case("ordinary-disabled",arch=None,vendor=None,reply=False),case("normal-pxe-disabled",reply=False),
+                 case("bootp-disabled",kind=0,arch=None,vendor=None,prl=None,reply=False)],
+                ["RX04","BOOTP01"],mode="dynamic",static_host=False),
+    ])
+    named_owner=copy.deepcopy(next(row for row in rows if row["name"]=="owner-helper-tftp"))
+    named_owner["name"]="bootp-named-helper"
+    named_owner["options"].append("dhcp-host=02:00:00:4d:35:03,booter")
+    rows.append(named_owner)
+    for first_filter,second_filter in [("known","known"),("missing","known"),("known","missing")]:
+        rows.append(profile("proxy-order-"+first_filter+"-"+second_filter,
+                            legacy+[f"dhcp-range=tag:{second_filter},set:second,10.77.0.1,proxy,255.255.255.0",
+                                    "dhcp-option-pxe=tag:first,225,first","dhcp-option-pxe=tag:second,225,second"],
+                            [case("first-matching-proxy")],["CFG-R02","PROXY02"],
+                            range_value=f"tag:{first_filter},set:first,10.77.0.1,proxy,255.255.255.0"))
     for kind in ["external-conflict","default-exclusive","bind-interfaces","bind-dynamic"]:
         rows.append(profile("bind-4011-"+kind,[],[],["START02","OWNER01"],mode="none",bind_kind=kind))
     return rows
@@ -534,6 +556,9 @@ def syntax_errors(rows,corpus,sides):
 
 def run_profile(root, side, profile, client, server, out):
     out.mkdir()
+    if profile.get("secondary_addresses"):
+        net.ip("addr","add","10.88.0.1/24","dev","client0")
+        client.run("ip","addr","add","10.88.0.2/24","dev","peer0")
     text = config(profile)
     (root/"m2/pxe.conf").write_text(text)
     (root/"m2/pxe.hosts").write_text(profile.get("initial_hosts","10.77.0.8 boot-server\n"))
@@ -630,6 +655,9 @@ def run_profile(root, side, profile, client, server, out):
         if bus is not None:row["bus_cleanup"]=stop(bus)
         if bus_log is not None:bus_log.close()
         row["pid_removed"] = not (root/"m2/pxe.pid").exists()
+        if profile.get("secondary_addresses"):
+            client.run("ip","addr","del","10.88.0.2/24","dev","peer0")
+            net.ip("addr","del","10.88.0.1/24","dev","client0")
     save(out/"result.json", row)
     return row
 
