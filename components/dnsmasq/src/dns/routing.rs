@@ -914,10 +914,6 @@ mod tests {
                 "server=/test/fe80::1%wan",
                 RoutingError::UnresolvedScope(b"wan".to_vec()),
             ),
-            (
-                "server=/test/192.0.2.53@wan",
-                RoutingError::UnresolvedSource,
-            ),
         ] {
             let mut config = DnsConfig::default();
             config
@@ -927,6 +923,41 @@ mod tests {
                 matches!(RoutingTable::from_config(&config, &[]), Err(error) if error == expected)
             );
         }
+        let mut bound = DnsConfig::default();
+        bound
+            .apply(
+                &lex_line(b"server=/bound/192.0.2.53@lo@127.0.0.9#34004")
+                    .unwrap()
+                    .unwrap(),
+            )
+            .unwrap();
+        bound
+            .apply(&lex_line(b"server=/implicit/192.0.2.54").unwrap().unwrap())
+            .unwrap();
+        bound
+            .apply(&lex_line(b"server=/scoped/fe80::53%lo").unwrap().unwrap())
+            .unwrap();
+        let RuleTarget::Upstream(scoped) = &mut bound.rules[2].target else {
+            unreachable!()
+        };
+        scoped.scope_id = Some(17);
+        let bound_table = RoutingTable::from_config(&bound, &[]).unwrap();
+        let bindings = bound_table.source_bindings(34003);
+        let explicit = &bindings[&ServerId(1)];
+        assert_eq!(explicit.address, "127.0.0.9:34004".parse().unwrap());
+        assert_eq!(explicit.interface, b"lo");
+        assert_eq!(
+            explicit.ifindex,
+            crate::config::dns::endpoints::scope_index(b"lo").unwrap_or(0)
+        );
+        assert_eq!(
+            bindings[&ServerId(2)].address,
+            "0.0.0.0:34003".parse().unwrap()
+        );
+        assert_eq!(
+            endpoints(&bound_table, route(&bound_table, "x.scoped", TYPE_A)),
+            vec![std::net::SocketAddrV6::new("fe80::53".parse().unwrap(), 53, 0, 17).into()]
+        );
         let mut config = DnsConfig::default();
         config
             .apply(&lex_line(b"server=/test/#").unwrap().unwrap())
