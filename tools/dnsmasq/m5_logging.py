@@ -1380,7 +1380,12 @@ def compare(reference, candidate, case, reference_only=False):
         messages = [bytes.fromhex(value).decode() for value in reference['syslog']]
         counts = [int(match[1]) for text in messages if (match := re.search(r'overflow: ([0-9]+) log entries lost$', text))]
         if case.get('queued_tcp'):
-            if counts != [4] or any('TCP connection failed' in text or 'exiting on receipt' in text for text in messages):
+            if (counts != [3, 4]
+                or sum('TCP connection failed' in text for text in messages) != 1
+                or sum('started, version' in text for text in messages) != 1
+                or sum('compile time options' in text for text in messages) != 1
+                or any('exiting on receipt' in text for text in messages)
+                or not messages or 'TCP connection failed' not in messages[0]):
                 failures.append({'kind': 'C-TCP-inherited-queue-PID-guard', 'counts': counts, 'actual': messages})
         elif len(counts) != 2 or not all(value > 0 for value in counts):
             failures.append({'kind': 'C-async-repeated-overflow-reset', 'counts': counts, 'actual': messages})
@@ -1594,6 +1599,18 @@ def controls():
     result['debug-unlisten-required'] = bool(compare(dict(debug_row, stderr=debug_row['stderr'].splitlines()[0]), debug_row, debug_case, True))
     result['debug-disabled-no-output'] = bool(compare(debug_row, debug_row, dict(debug_case, debug_enabled=False), True))
     assert all(result[name] for name in ['debug-actual-interface-index', 'debug-unlisten-required', 'debug-disabled-no-output'])
+    copied_case = {'id': 'copied-control', 'kind': 'run', 'queued_tcp': True, 'late_receiver': True}
+    copied_lines = ['TCP connection failed to 127.0.0.2#15955', 'overflow: 3 log entries lost',
+                    'started, version 2.93 cachesize 150', 'compile time options: fixture', 'overflow: 4 log entries lost']
+    copied = dict(row, stderr='', syslog=[('<31>Jan  1 00:00:00 dnsmasq[1]: ' + line).encode().hex() for line in copied_lines])
+    assert not compare(copied, copied, copied_case)
+    for name, corrupt in [('copied-parent-discard', [*copied_lines, copied_lines[2]]),
+                          ('copied-overflow-missing', [line for line in copied_lines if 'overflow: 3' not in line]),
+                          ('copied-overflow-duplicated', [*copied_lines, copied_lines[1]]),
+                          ('copied-record-order', copied_lines[2:] + copied_lines[:2])]:
+        changed = dict(copied, syslog=[('<31>Jan  1 00:00:00 dnsmasq[1]: ' + line).encode().hex() for line in corrupt])
+        result[name] = bool(compare(changed, changed, copied_case, True))
+        assert result[name]
     c_wire = bytes.fromhex('732585800001000100000001046b657074076c6f6767696e670000100001c00c0010000100000000000e0d6578706c696369742d7573657200002904d0000000000000')
     leaked = {'transport': 'tcp', 'probe': {'edns': False}, 'reply_wire': c_wire.hex(), 'response': semantics(c_wire)}
     corrected = without_leaked_tcp_opt(leaked)
