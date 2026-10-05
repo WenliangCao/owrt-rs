@@ -696,6 +696,16 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                     injected_result=-case['fault_errno'] if case['fault_errno'] else result, injected_pid=pid))
                 report['injected'] = True
                 ptrace(17)
+                if case['fault'] == 'fork-two':
+                    # The original parent remains traced while reading its
+                    # startup channel. Reap/detach its SIGCHLD delivery stop
+                    # before Popen sees it as a terminal process status.
+                    pid = process.pid
+                    status = wait_stop()
+                    if os.WIFSTOPPED(status):
+                        ptrace(17)
+                    else:
+                        process.returncode = os.waitstatus_to_exitcode(status)
                 attached = False
                 return process
         raise AssertionError('startup syscall budget exceeded')
