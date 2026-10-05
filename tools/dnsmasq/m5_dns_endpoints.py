@@ -277,6 +277,27 @@ def service_cases():
     add('tcp-existing-upstream-reconnect','server=127.0.0.2@127.0.0.9#34004\n',tcp_close_after_reply=True,
         actions=[dict(op='connect',id='held'),probe('first',transports=['held']),dict(op='pause',seconds=.15),
             probe('reconnected',transports=['held']),dict(op='disconnect',id='held')])
+    add('pool-distinct-groups-compatible','min-port=34100\nmax-port=34100\nserver=/one.endpoint.test/127.0.0.2\nserver=/two.endpoint.test/127.0.0.2\n',same_udp_port=True,source_range=[34100,34100],
+        actions=[dict(op='start-udp',id='one',name='one.endpoint.test'),dict(op='start-udp',id='two',name='two.endpoint.test'),
+            dict(op='inject',id='two',server=0),dict(op='receive-udp',id='two',pending='two'),
+            dict(op='inject',id='one',server=0),dict(op='receive-udp',id='one',pending='one')])
+    add('pool-merged-client-request','server=127.0.0.2\n',udp_unique_ports=1,
+        actions=[dict(op='start-udp',id='one',name='one.endpoint.test'),endpoint_action('merged-client',name='one.endpoint.test'),
+            dict(op='inject',id='one',server=0),dict(op='receive-udp',id='one',pending='one'),endpoint_action('receive-merged',name='one.endpoint.test')])
+    add('pool-limit3-client-retries','port-limit=3\nserver=127.0.0.2\nserver=127.0.0.3\nserver=127.0.0.4\n',udp_unique_ports=3,
+        actions=[dict(op='start-udp',id='one',name='one.endpoint.test'),endpoint_action('resend-client',name='one.endpoint.test'),
+            endpoint_action('resend-client',name='one.endpoint.test'),endpoint_action('resend-client',name='one.endpoint.test'),
+            dict(op='inject',id='one',server=2,capture_server=2),dict(op='receive-udp',id='one',pending='one')])
+    add('slow-lookup-startup-readiness','server=lookup.endpoint.test\n',sys_files=resolver_files,resolver_fixture=True,resolver_delay=.3,startup_gate=True)
+    lifecycle_base='servers-file=/m2/files/servers\n'
+    for label,op in [('burst','lookup-hup-burst'),('shutdown','lookup-shutdown'),('worker-kill','lookup-worker-kill')]:
+        add('lookup-owner-'+label,lifecycle_base,files={'servers':'server=127.0.0.3\n'},
+            sys_files=resolver_files,resolver_fixture=True,resolver_delay=.7,owner_lifecycle=label,
+            actions=[write('servers','server=lookup.endpoint.test\n'),signal_reload(),endpoint_action(op),dict(op='pause',seconds=1.6)]
+                + ([] if label=='shutdown' else [probe('after','ready.files.test' if label=='worker-kill' else 'after.endpoint.test')]),no_upstream=label=='worker-kill')
+    add('lookup-owner-timeout-recovery',lifecycle_base,files={'servers':'server=127.0.0.3\n'},sys_files=resolver_files,resolver_fixture=True,resolver_drop=True,
+        actions=[write('servers','server=lookup.endpoint.test\n'),signal_reload(),dict(op='pause',seconds=1.3),
+            probe('failed','ready.files.test'),write('servers','server=127.0.0.3\n'),signal_reload(),probe('recovered')])
     return cases
 
 
@@ -288,6 +309,10 @@ def run_service_side(root, side, case, folder):
     import m5_dns_files as files
     from dns_service_probe import exact_read, read_name
     parent_pid=None
+    process=None
+    endpoint_receipts=[]
+    sent_queries={}
+    merged_clients={}
     topology=[]
     def create_interface(interface):
         name=interface['name']
@@ -410,6 +435,10 @@ def run_service_side(root, side, case, folder):
     def lookup_pending():
         return any(row['transport']=='resolver' and 'reply_at' not in row for upstream in SourceCapture.instances for row in upstream.source_events)
     class ProgressSocket(original_socket):
+        def sendto(self,data,peer):
+            if threading.current_thread() is threading.main_thread() and peer==('127.0.0.1',15353) and len(data)>=12:
+                sent_queries[read_name(data,12)[0]]=(self,bytes(data),peer)
+            return super().sendto(data,peer)
         def record(self,data,peer=None):
             if case.get('owner_progress') and threading.current_thread() is threading.main_thread() and data:
                 if peer is None:
@@ -429,7 +458,7 @@ def run_service_side(root, side, case, folder):
                 address=('127.0.0.1',15353)
             return super().bind(address)
     def fixture_socket(*args,**kwargs):
-        return ReservedListener() if not args and not kwargs else (ProgressSocket(*args,**kwargs) if case.get("owner_progress") else original_socket(*args,**kwargs))
+        return ReservedListener() if not args and not kwargs else ProgressSocket(*args,**kwargs)
     files.socket.socket=fixture_socket
     original_dhcp_receive=files.dhcp_wire.receive
     def receive_dhcp(*args,**kwargs):
@@ -439,7 +468,10 @@ def run_service_side(root, side, case, folder):
         return original_dhcp_receive(*args,**kwargs)
     files.dhcp_wire.receive=receive_dhcp
     original_put=files.put
-    endpoint_receipts=[]
+    def children():
+        if parent_pid is None: return []
+        try: return [int(pid) for pid in Path('/proc',str(parent_pid),'task',str(parent_pid),'children').read_text().split()]
+        except FileNotFoundError: return []
     def endpoint_put(root,path,value,opened):
         if not isinstance(value,dict) or 'endpoint_action' not in value: return original_put(root,path,value,opened)
         op=value['endpoint_action']
@@ -448,9 +480,52 @@ def run_service_side(root, side, case, folder):
             occupied.remove(bound);bound.close()
         elif op=='ip': subprocess.run(['ip',*value['argv']],check=True)
         elif op=='recreate-interface': create_interface(value['interface'])
+        elif op=='resend-client':
+            client,packet,peer=sent_queries[value['name']];client.sendto(packet,peer)
+        elif op=='merged-client':
+            _,packet,peer=sent_queries[value['name']]
+            client=original_socket(socket.AF_INET,socket.SOCK_DGRAM);client.settimeout(.5)
+            client.sendto(b'\x71\x71'+packet[2:],peer);merged_clients[value['name']]=client
+        elif op=='receive-merged':
+            from dns_service_probe import semantics
+            response=merged_clients[value['name']].recv(65535)
+            endpoint_receipts.append(dict(value,response=semantics(response),reply=response.hex()))
+            if struct.unpack_from('!H',response)[0]!=0x7171: raise AssertionError('merged client ID not restored')
+        elif op.startswith('lookup-'):
+            files.await_predicate(lookup_pending,'resolver request was not witnessed pending')
+            live=children();record=dict(value,pending=True,children=live,samples=[])
+            if side=='rust' and len(live)!=1: raise AssertionError('resolver did not own one child')
+            if op=='lookup-hup-burst':
+                for _ in range(12):
+                    os.kill(parent_pid,signal.SIGHUP)
+                    record['samples'].append({'children':children(),'pending':lookup_pending()});time.sleep(.01)
+            elif op=='lookup-shutdown':
+                process.send_signal(signal.SIGTERM)
+                process.wait(timeout=2)
+                record.update(exit=process.returncode,children_after=children())
+            elif op=='lookup-worker-kill' and side=='rust':
+                os.kill(live[0],signal.SIGKILL);record['killed']=live[0]
+            endpoint_receipts.append(record)
         else: raise ValueError(op)
-        endpoint_receipts.append(dict(value,at=time.monotonic(),identity=identity(root,parent_pid)))
+        if process is not None and process.poll() is None:
+            endpoint_receipts.append(dict(value,at=time.monotonic(),identity=identity(root,parent_pid),children=children()))
     files.put=endpoint_put
+    original_popen=subprocess.Popen
+    def capture_popen(argv,*args,**kwargs):
+        nonlocal parent_pid,process
+        started=original_popen(argv,*args,**kwargs)
+        if '/m2/files.conf' in argv and ('-k' in argv or '-d' in argv): parent_pid=started.pid;process=started
+        return started
+    subprocess.Popen=capture_popen
+    original_exchange=files.exchange
+    ready_attempts=[]
+    def capture_exchange(port,action,*args):
+        result=original_exchange(port,action,*args)
+        if action['id']=='ready': ready_attempts.append(dict(pending=lookup_pending(),response=result['response'],at=time.monotonic()))
+        elif process is not None and process.poll() is None:
+            endpoint_receipts.append({'op':'after-query','id':action['id'],'identity':identity(root,parent_pid),'children':children()})
+        return result
+    files.exchange=capture_exchange
     original_command=files.command
     def wrapped_command(root,side,*args):
         command=original_command(root,side,*case.get('argv',[]),*('-d' if arg=='-k' and case.get('debug') else arg for arg in args))
@@ -472,12 +547,16 @@ def run_service_side(root, side, case, folder):
         files.socket.socket=original_socket
         files.dhcp_wire.receive=original_dhcp_receive
         files.put=original_put
+        subprocess.Popen=original_popen
+        files.exchange=original_exchange
+        for client in merged_clients.values(): client.close()
         for name in reversed(topology):
             if subprocess.run(['ip','link','show',name],capture_output=True).returncode==0:
                 subprocess.run(['ip','link','del',name],check=True)
     result['source_events']=[row for upstream in SourceCapture.instances for row in upstream.source_events]
     result['progress_receipts']=progress_receipts
     result['endpoint_receipts']=endpoint_receipts
+    result['ready_attempts']=ready_attempts
     result['injected_packets']=[row for upstream in SourceCapture.instances for row in getattr(upstream,'injected',[])]
     result['recv_faults']=[upstream.recv_fault for upstream in SourceCapture.instances if hasattr(upstream,'recv_fault')]
     result['fixture_errors']=[error for upstream in SourceCapture.instances for error in upstream.errors]
@@ -507,7 +586,8 @@ def source_guard_errors(result,case):
     if case.get('same_udp_port') and len(ports)!=1: errors.append('shared source uses different ports')
     if case.get('udp_unique_ports') is not None and len(ports)!=case['udp_unique_ports']: errors.append('port-limit allocation differs')
     if case.get('no_udp_upstream') and udp: errors.append('exhausted range still sent UDP')
-    if not case.get('no_upstream') and not case.get('no_udp_upstream') and case.get('expected_start',True) and not udp and any(action['op']=='query' for action in case['actions']): errors.append('no actual upstream source capture')
+    if not case.get('no_upstream') and not case.get('no_udp_upstream') and case.get('expected_start',True) and not udp and any(action['op']=='query' and 'udp' in action.get('transports',['udp','tcp']) for action in case['actions']): errors.append('no actual upstream source capture')
+    if case.get('startup_gate') and (not result.get('ready_attempts') or any(row['pending'] and row['response'] for row in result['ready_attempts'])): errors.append('daemon replied before startup endpoint lookup completed')
     if any(row['peer'][1] in [case.get('expected_source_port'),*(case.get('source_range') or [])] for row in tcp): errors.append('TCP inherited configured UDP source port/range')
     return errors
 
