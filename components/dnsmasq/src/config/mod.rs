@@ -11,6 +11,7 @@ pub mod dhcp_relay;
 pub mod dump;
 pub mod dns;
 pub mod domains;
+pub mod dhcp_device;
 pub mod edns;
 pub mod interface_records;
 pub mod synth_domain;
