@@ -370,6 +370,13 @@ impl Logger {
                     }
                 }
             }
+            if self.fallback && matches!(self.destination, Destination::Syslog { .. }) {
+                // libc syslog silently drops an undeliverable fallback record;
+                // it does not recursively generate another "log failed".
+                self.queue.clear();
+                self.connection_good = false;
+                break;
+            }
             // C abandons its queued records and reports the failure through
             // libc syslog. Use the same destination without a blocking libc call.
             self.queue.clear();
@@ -388,6 +395,10 @@ impl Logger {
                     format!("log failed: {}", error_text(&error)).as_bytes(),
                 );
                 self.queue.push_back(Record::new(bytes));
+                // Complete the immediate fallback attempt before accepting the
+                // next producer. Otherwise the single file buffer drops that
+                // next line and incorrectly emits an overflow warning.
+                continue;
             }
             self.connection_good = false;
             break;
