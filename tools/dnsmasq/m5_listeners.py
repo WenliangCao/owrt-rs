@@ -64,6 +64,7 @@ def scenarios():
             ('unowned-loopback', 'listen-address=127.0.0.2\n'),
             ('explicit-any4', 'listen-address=0.0.0.0\n'),
             ('explicit-any6', 'listen-address=::\n'),
+            ('unowned-scope', 'listen-address=fe80::ff\n'),
             ('missing', 'interface=absent0\n'), ('no-address', 'interface=barren0\n'),
             ('down-link', 'interface=lan\n'),
         ]:
@@ -92,9 +93,12 @@ def scenarios():
         add('tftp-dad-low-port', mode, 'interface=lan\nenable-tftp\ntftp-root=/m2/tftp\nuser=nobody\ngroup=nogroup\n',
             actions=['dad'], dad=True, tftp=True,port=0)
         add('missing-address', mode, 'listen-address=192.0.2.111\n')
+        add('missing-address-v6', mode, 'listen-address=fd42:ffff::1\n')
         for transport in ['udp', 'tcp', 'tftp']:
             add('occupied-'+transport, mode, 'interface=lan\n'+(
                 'enable-tftp\ntftp-root=/m2/tftp\n' if transport == 'tftp' else ''), blocker=transport)
+            add('occupied-'+transport+'-v6', mode, 'interface=lan\n'+(
+                'enable-tftp\ntftp-root=/m2/tftp\n' if transport == 'tftp' else ''), blocker=transport,blocker_v6=True)
     for profile in ['late-interface', 'late-address', 'duplicate-address',
                     'runtime-occupied-udp', 'runtime-occupied-tcp']:
         add(profile, 'dynamic', 'interface=lan,'+('dup0' if profile=='duplicate-address' else 'late0')+'\n'+(
@@ -166,6 +170,8 @@ class Network:
 def wire_probe(item):
     """Executed inside a peer namespace; no external endpoint is accepted."""
     dest, link = item['destination'], item.get('link')
+    allowed=set(V4.values())|set(V6.values())|{'10.77.0.3','10.78.0.3','10.77.0.9','fd42:77::9','192.0.2.111','fe80::1','127.0.0.1','127.0.0.2','::1'}
+    assert os.environ.get('DNSMASQ_TEST_ISOLATED')=='1' and dest in allowed and link in [None,'lpeer','wpeer'],'fixed isolated endpoints required'
     family = socket.AF_INET6 if ':' in dest else socket.AF_INET
     kind = socket.SOCK_STREAM if item['transport']=='tcp' else socket.SOCK_DGRAM
     packet = b'\0\1boot.bin\0octet\0' if item['transport']=='tftp' else query('ready.test', ident=0x5e01)
@@ -260,6 +266,10 @@ def relay_run(root,side,item,out):
     rows=[]
     try:
         client,server=Peer('client0',DOWN,CLIENT),Peer('server0',UP,SERVER)
+        def no_ipv6(peer):
+            ip('link','set',peer.role,'addrgenmode','none');ip('-6','addr','flush','dev',peer.role)
+            peer.run('ip','link','set','peer0','addrgenmode','none');peer.run('ip','-6','addr','flush','dev','peer0')
+        no_ipv6(client);no_ipv6(server)
         config='port=15353\nno-hosts\nno-resolv\nuser=root\ngroup=root\npid-file=/m2/pid\nhost-record=ready.test,192.0.2.53\n'+item['config']
         (root/'m2/listeners.conf').write_text(config);(out/'config').write_text(config)
         with (out/'stderr').open('w') as stderr, (out/'stdout').open('w') as stdout:
@@ -288,6 +298,7 @@ def relay_run(root,side,item,out):
             request('relay-initial')
             if item['profile']=='relay-recreate':
                 save(out/'recreate.json',client.recreate_client_link())
+                no_ipv6(client)
                 time.sleep(.3);request('relay-recreated')
             rows.append(dict(case='sockets',sockets=inventory(process.pid)))
     finally:
@@ -318,8 +329,8 @@ def execute(root,side,item,out):
         port=item.get('port',DNS_PORT)
         if item.get('blocker'):
             transport=item['blocker']
-            blocker=socket.socket(socket.AF_INET,socket.SOCK_STREAM if transport=='tcp' else socket.SOCK_DGRAM)
-            blocker.bind((V4['lan'],69 if transport=='tftp' else port))
+            blocker=socket.socket(socket.AF_INET6 if item.get('blocker_v6') else socket.AF_INET,socket.SOCK_STREAM if transport=='tcp' else socket.SOCK_DGRAM)
+            blocker.bind((V6['lan'] if item.get('blocker_v6') else V4['lan'],69 if transport=='tftp' else port))
             if transport=='tcp': blocker.listen(1)
         identity=('' if 'user=' in item['config'] else 'user=root\n')+('' if 'group=' in item['config'] else 'group=root\n')
         config=f'port={port}\nno-hosts\nno-resolv\n'+identity+'pid-file=/m2/pid\nhost-record=ready.test,192.0.2.53\n'+item['config']
@@ -478,7 +489,8 @@ def validate(result,cases):
         if not observations:failures.append(item['name']+': empty observation')
         startup=next((row for row in observations if row['case']=='startup'),None)
         expected_failure=(item['profile'] in ['conflicting-modes'] or item.get('blocker') or
-                          item['mode']=='static' and item['profile'] in ['missing','no-address','missing-address'])
+                          item['mode']=='static' and item['profile'] in ['missing','no-address','missing-address','missing-address-v6'] or
+                          item['mode']!='wildcard' and item['profile']=='unowned-scope')
         if startup and (startup['exit'] is not None)!=bool(expected_failure): failures.append(item['name']+': unexpected startup')
         if startup and expected_failure and startup['exit']!= (1 if item['profile']=='conflicting-modes' else 2):failures.append(item['name']+': wrong startup exit')
         if not expected_failure:
@@ -527,7 +539,7 @@ def expected_answer(item,case,side='c'):
     if case.startswith('cross-'):
         return case.endswith('-tcp') and bound or case.startswith('cross-v4-') and mode=='static'
     if proto not in ['udp','tcp','tftp']:return None
-    if profile=='missing-address':return False
+    if profile in ['missing-address','missing-address-v6','unowned-scope']:return False
     if case.startswith('lo'):
         tag=case.rsplit('-',1)[0]
         if profile in ['explicit-any4','explicit-any6']:
@@ -624,6 +636,7 @@ def main():
                 requirement['boundary']='A successful UDP, TCP or TFTP transport sets iface->done for all three. Missing transports do not reappear when blockers are released. If all three fail, a later interface event retries the whole group.'
             if requirement['id']=='tftp-selection':requirement['profiles']=list(dict.fromkeys(requirement['profiles']+['tftp-only']))
             if requirement['id']=='dad-capabilities':requirement['profiles']=list(dict.fromkeys(requirement['profiles']+['tftp-dad-low-port']))
+            if requirement['id']=='startup-failures':requirement['profiles']=list(dict.fromkeys(requirement['profiles']+['missing-address-v6','unowned-scope','occupied-udp-v6','occupied-tcp-v6','occupied-tftp-v6']))
         checklist['required_cases']=[item['name'] for item in cases]
         checklist['cases']=cases
         save(HERE/'m5_listeners.json',checklist)
