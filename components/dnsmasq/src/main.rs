@@ -1183,12 +1183,32 @@ fn run_inner(
                 .into_bytes(),
             ));
         }
-        if dns_enabled && daemon_config.no_resolv && daemon_config.rules.is_empty() {
-            logger.emit(LogEvent::new(
-                Service::Dns,
-                Priority::Warning,
-                b"warning: no upstream servers configured".to_vec(),
-            ));
+        for warning in dnsmasq_rs::logging::startup::missing_interfaces(
+            &daemon_config,
+            &interface_snapshot.lock().unwrap(),
+        ) {
+            logger.emit(warning);
+        }
+        if dns_enabled && daemon_config.no_resolv {
+            if daemon_config.has_explicit_resolv_file() {
+                logger.emit(LogEvent::new(
+                    Service::Dns,
+                    Priority::Warning,
+                    b"warning: ignoring resolv-file flag because no-resolv is set".to_vec(),
+                ));
+            }
+            if !daemon_config.rules.iter().any(|rule| {
+                matches!(
+                    rule.target,
+                    dnsmasq_rs::config::dns::RuleTarget::Upstream(_)
+                )
+            }) {
+                logger.emit(LogEvent::new(
+                    Service::Dns,
+                    Priority::Warning,
+                    b"warning: no upstream servers configured".to_vec(),
+                ));
+            }
         }
         let async_limit = logger.async_queue_limit();
         if async_limit != 0 {
