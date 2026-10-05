@@ -141,7 +141,10 @@ def case(args,root,spec):
         'pid-file=/m2/dump.pid','log-facility=-','host-record=dump.test,192.0.2.80','host-record=odd.dump.test,192.0.2.81']
     if not spec.get('no_file'):config += ['dumpfile='+('' if spec.get('empty_file') else path)]
     if 'mask' in spec:config += ['dumpmask='+spec['mask']]
-    config += spec.get('extra',[])
+    extras=spec.get('extra',[])
+    for key in ['user=', 'group=']:
+        if any(value.startswith(key) for value in extras):config=[value for value in config if not value.startswith(key)]
+    config += extras
     (root/'m2/dump.conf').write_text('\n'.join(config)+'\n');(folder/'config').write_text('\n'.join(config)+'\n')
     process=None;captured=b'';witness=[];start=time.time();events=[]
     try:
