@@ -406,7 +406,7 @@ def allocation_contract(args, root, pid, folder, upstream, record):
         assert args.allocator_map is not None, 'production allocator map required'
         symbols = args.allocator_map.read_text()
         offset = int(re.search(r'^\s*0x([0-9a-f]+)\s+realloc\s*$', symbols, re.M)[1], 16)
-        kind, size = 'realloc', 112
+        kind, size = 'realloc', 96
     (folder / 'allocator-symbols').write_text(symbols)
     (root / 'm2/arp-events').write_bytes(b'')
     if record == 'positive':
@@ -745,7 +745,9 @@ def run_side(args):
                 owned = helpers(pid)
                 assert len(owned) == (0 if spec.get('no_helper') else 1), 'helper qualification'
                 baseline = len(list(Path('/proc/' + str(pid) + '/fd').iterdir()))
-                reply = None if spec.get('no_dns') else health()
+                # A health query can itself seed the MAC negative we need to
+                # fault. Resource cases use their own actual lookup replies.
+                reply = None if spec.get('no_dns') or spec.get('allocation') else health()
                 save(folder / 'helper-identities.json', owned)
                 remaining = len(list(Path('/proc/' + str(pid) + '/fd').iterdir()))
                 save(folder / 'descriptor-health.json', dict(before=baseline, after=remaining))
