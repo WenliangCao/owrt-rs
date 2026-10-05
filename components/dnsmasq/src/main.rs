@@ -1173,6 +1173,9 @@ fn run_inner(
                 if changed {
                     let mut parent = service.lock().unwrap();
                     if let Some(daemon) = &mut parent.daemon {
+                        if daemon_config.bind_dynamic || daemon_config.local_service_net {
+                            daemon.refresh_source_interface_indices();
+                        }
                         daemon.check_server_addresses(&dns_local_addresses(
                             &daemon_config,
                             &interfaces,
@@ -2375,7 +2378,7 @@ impl SinglePoll {
         if stream.set_nonblocking(true).is_err() {
             return;
         }
-        let parent = match self.service.lock() {
+        let mut parent = match self.service.lock() {
             Ok(parent) => parent,
             Err(_) => return,
         };
@@ -2388,7 +2391,8 @@ impl SinglePoll {
         );
         snapshot.leases = Arc::clone(&parent.local.leases);
         snapshot.local_network = local_network;
-        let forward = if let Some(daemon) = &parent.daemon {
+        let forward = if let Some(daemon) = &mut parent.daemon {
+            daemon.refresh_source_interface_indices();
             daemon.tcp_snapshot()
         } else {
             TcpDnsService::new(&self.config, &self.resolvers, self.edns_max)
