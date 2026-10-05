@@ -3,9 +3,27 @@
 The frozen required boundary is `m5_logging_requirements.json`. No option is
 qualified by this module submission: paired runtime evidence must cover every
 required row before the ledger changes. `log-queries`, DHCP/TFTP producers,
-`log-async`, `log-debug`, `log-malloc`, CLI banners and capture remain separate
+`log-async`, `log-debug`, `log-malloc` and capture remain separate
 next integrations. The image was compiled with `no-ID`, so `no-ident` accepts
 the Boolean and does not create built-in CHAOS records in either state.
+
+## CLI hook in main.rs (root-owned)
+
+`startup::cli::help_output(false)` contains all193 general-help rows from exact
+`option.c` usage/opts/defaults. `help_output(true)` contains all64 DHCP rows from
+`dhcp-common.c` opttab, excluding OT_INTERNAL. Both source-derived tables have
+been checked byte-for-byte against the actual image's CLI output. Use `print!`
+with these complete strings for Action::Help and Action::HelpDhcp. The loader
+already preserves C's exact argc3/argv2=dhcp dispatch and terminal-action order.
+
+For Action::Version, print `startup::cli::version_output()`. Its only deliberate
+identity difference is the first-line suffix `; dnsmasq-rs 0.1.0 (Rust
+implementation)`. The copyright, compile-options/init contract and every GPL
+and warranty line remain exact. The image init's lines31 and946 consume the
+Compile time options line; they do not require C's first line to impersonate
+the Rust binary. The driver separately discloses this fixed identity suffix and
+rejects altered or omitted license text. `COMPILE_TIME_OPTIONS` also avoids
+duplicating the same image feature string in the startup log producer.
 
 ## Configuration and startup hooks in main.rs (root-owned)
 
