@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+import fcntl
 import hashlib
 import json
 import os
@@ -108,6 +109,15 @@ def profiles():
         dict(case='negative-record-enomem', allocation='negative', extra='add-mac\n'),
         dict(case='stop-buffered-script-finishes', delay=True, stop_buffered=True),
         dict(case='stop-helper-failure-cleanup', helper_failure=True, extra='add-mac\n'),
+        dict(case='edns-negative-refresh', cache_caller='negative-refresh', upstream=True, extra='add-mac\n'),
+        dict(case='negative-upgrade-position', cache_caller='negative-position', upstream=True, extra='add-mac\n'),
+        dict(case='edns-connection-snapshot', cache_caller='connection', upstream=True, extra='add-mac\n',
+             neighbors=[(V4, MAC, 'arps0'), ('192.0.2.18', '02:00:00:91:00:18', 'arps0')]),
+        dict(case='helper-buffer-enomem-reference', helper_frame_fault=True, neighbors=[], extra='add-mac\n'),
+        dict(case='burst-order-and-recovery', pressure=True,
+             extra='enable-tftp\ntftp-root=/m2/arp-tftp\ntftp-unique-root=mac\n'),
+        dict(case='stop-unsent-arp-drop', pressure=True, pressure_stop=True,
+             extra='enable-tftp\ntftp-root=/m2/arp-tftp\ntftp-unique-root=mac\n'),
     ]
     for state in ['reachable', 'stale', 'delay', 'probe', 'permanent', 'none', 'noarp', 'incomplete', 'failed']:
         # The real kernel removes LLADDR when NUD_NONE is requested. The
@@ -192,7 +202,7 @@ def neighbor_packet(entries, sequence, pid, length, interface, done=True):
     return bytes(packet)
 
 
-def refresh_with_fixture(pid, entries, folder, target='127.0.0.1', mode='complete'):
+def refresh_with_fixture(pid, entries, folder, target='127.0.0.1', mode='complete', tftp=False):
     output = folder / 'netlink-fault.json'
     tracer = subprocess.Popen([sys.executable, __file__, '--trace-neighbor', str(pid), str(output), json.dumps(entries), mode])
     try:
@@ -200,13 +210,25 @@ def refresh_with_fixture(pid, entries, folder, target='127.0.0.1', mode='complet
         while not output.with_suffix('.ready').exists() and tracer.poll() is None and time.monotonic() < deadline:
             time.sleep(.01)
         assert output.with_suffix('.ready').exists(), 'neighbor tracer attach'
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as endpoint:
-            endpoint.settimeout(3)
-            endpoint.bind(('127.0.0.20', 0))
-            endpoint.connect((target, PORT))
-            wire = query('arp-health.test', 0x7102)
-            endpoint.sendall(struct.pack('!H', len(wire)) + wire)
-            reply = exact_read(endpoint, struct.unpack('!H', exact_read(endpoint, 2))[0])
+        if tftp:
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as endpoint:
+                endpoint.settimeout(3)
+                endpoint.bind(('127.0.0.30', 0))
+                wire = b'\0\1public\0octet\0timeout\x00255\0'
+                endpoint.sendto(wire, (target, 69))
+                reply, peer = endpoint.recvfrom(4096)
+                assert reply == b'\0\6timeout\x00255\0', 'pressure lookup OACK'
+                endpoint.sendto(b'\0\5\0\0fixture complete\0', peer)
+                (folder / 'lookup.request').write_bytes(wire)
+                (folder / 'lookup.reply').write_bytes(reply)
+        else:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as endpoint:
+                endpoint.settimeout(3)
+                endpoint.bind(('127.0.0.20', 0))
+                endpoint.connect((target, PORT))
+                wire = query('arp-health.test', 0x7102)
+                endpoint.sendall(struct.pack('!H', len(wire)) + wire)
+                reply = exact_read(endpoint, struct.unpack('!H', exact_read(endpoint, 2))[0])
         assert tracer.wait(3) == 0, 'neighbor tracer exit'
         receipt = json.loads(output.read_text())
         assert receipt['injected'], 'actual neighbor syscall receipt'
@@ -509,6 +531,221 @@ def helper_failure_contract(root, pid, folder, owned):
     return dict(case='stop-helper-failure-cleanup', callbacks=observed, dns_health=True)
 
 
+def mac_options(packet):
+    found = edns_options(packet)
+    data = found[4] if found else b''
+    result = []
+    while data:
+        code, size = struct.unpack_from('!HH', data)
+        value, data = data[4:4 + size], data[4 + size:]
+        if code == 65001:
+            result.append(value.hex())
+    return result
+
+
+def forward_identity(upstream, source, target, tcp, label, folder, connection=None):
+    before = len(upstream.events)
+    endpoint = connection or socket.socket(socket.AF_INET, socket.SOCK_STREAM if tcp else socket.SOCK_DGRAM)
+    try:
+        if connection is None:
+            endpoint.settimeout(3)
+            endpoint.bind((source, 0))
+            endpoint.connect((target, PORT))
+        request = edns_query(label + '.arp.test', 0x7160 + before, opts=b'')
+        endpoint.sendall(struct.pack('!H', len(request)) + request if tcp else request)
+        reply = exact_read(endpoint, struct.unpack('!H', exact_read(endpoint, 2))[0]) if tcp else endpoint.recv(4096)
+        assert len(upstream.events) == before + 1, 'actual forwarded MAC caller'
+        wire = bytes.fromhex(upstream.events[-1]['wire'])
+        (folder / (label + '.forwarded')).write_bytes(wire)
+        (folder / (label + '.reply')).write_bytes(reply)
+        return mac_options(wire)
+    finally:
+        if connection is None:
+            endpoint.close()
+
+
+def cache_caller_contract(root, pid, folder, upstream, kind):
+    (root / 'm2/arp-events').write_bytes(b'')
+    first_mac, second_mac = '02:00:00:91:00:18', '02:00:00:91:00:28'
+    if kind == 'connection':
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as endpoint:
+            endpoint.settimeout(3)
+            endpoint.bind(('192.0.2.18', 0))
+            endpoint.connect(('192.0.2.18', PORT))
+            first = forward_identity(upstream, None, None, True, 'connection-first', folder, endpoint)
+            neighbor('192.0.2.18', second_mac)
+            second = forward_identity(upstream, None, None, True, 'connection-second', folder, endpoint)
+        assert first == second == [first_mac.replace(':', '')], 'connection MAC snapshot changed per frame'
+        assert callbacks(root) == [], 'ordinary child IO refreshed the parent neighbor cache'
+        return dict(case='edns-connection-snapshot', mac_options=[first, second], callbacks=[])
+    for address in ['192.0.2.18', *(['192.0.2.19'] if kind == 'negative-position' else [])]:
+        values = forward_identity(upstream, address, '127.0.0.1', False, 'negative-' + address.rsplit('.', 1)[1], folder)
+        assert values == [] and callbacks(root) == [], 'negative UDP lookup invented a MAC or event'
+    if kind == 'negative-refresh':
+        neighbor('192.0.2.18', first_mac)
+        values = forward_identity(upstream, '192.0.2.18', '192.0.2.18', True, 'negative-accept', folder)
+        expected = [['3', 'arp-add', first_mac, '192.0.2.18', '0', '0', 'inherited-iface', 'inherited-id']]
+        assert values == [first_mac.replace(':', '')], 'nonlazy negative accept did not refresh'
+    else:
+        refresh_with_fixture(pid, [dict(address=V4, mac=MAC), dict(address='192.0.2.19', mac='02:00:00:91:00:19'),
+                                  dict(address='192.0.2.20', mac='02:00:00:91:00:20'), dict(address='192.0.2.18', mac=first_mac)], folder)
+        values = []
+        expected = [['3', 'arp-add', '02:00:00:91:00:' + last, '192.0.2.' + last, '0', '0', 'inherited-iface', 'inherited-id'] for last in ['20', '19', '18']]
+    deadline = time.monotonic() + 2
+    while len(callbacks(root)) < len(expected) and time.monotonic() < deadline:
+        time.sleep(.02)
+    observed = callbacks(root)
+    save(folder / 'caller-callbacks.json', observed)
+    assert observed == expected, 'negative upgrade did not retain source cache position'
+    return dict(case='edns-negative-refresh' if kind == 'negative-refresh' else 'negative-upgrade-position', mac_options=values, callbacks=observed)
+
+
+def helper_command_pipe(pid, child):
+    readers = {}
+    for entry in Path(f'/proc/{child}/fd').iterdir():
+        info = dict(line.split(':', 1) for line in Path(f'/proc/{child}/fdinfo/{entry.name}').read_text().splitlines())
+        if int(info['flags'].strip(), 8) & 3 == 0:
+            readers[os.readlink(entry)] = entry
+    for entry in Path(f'/proc/{pid}/fd').iterdir():
+        info = dict(line.split(':', 1) for line in Path(f'/proc/{pid}/fdinfo/{entry.name}').read_text().splitlines())
+        inode = os.readlink(entry)
+        if inode.startswith('pipe:[') and inode in readers and int(info['flags'].strip(), 8) & 3 == 1:
+            writer = os.open(entry, os.O_WRONLY | os.O_NONBLOCK)
+            try:
+                capacity = fcntl.fcntl(writer, 1031, 4096)  # F_SETPIPE_SZ
+            finally:
+                os.close(writer)
+            reader = os.open(readers[inode], os.O_RDONLY | os.O_NONBLOCK)
+            return reader, dict(inode=inode, parent_fd=int(entry.name), helper_fd=int(readers[inode].name), capacity=capacity)
+    raise AssertionError('actual shared helper command pipe missing')
+
+
+def pipe_bytes(reader):
+    value = bytearray(4)
+    fcntl.ioctl(reader, 0x541b, value)  # nonconsuming FIONREAD
+    return struct.unpack('=I', value)[0]
+
+
+def pressure_contract(root, process, pid, folder, owned, stopping):
+    assert len(owned) == 1, 'actual helper for pressure'
+    child = owned[0]['pid']
+    deadline = time.monotonic() + 2
+    while not (root / 'm2/arp-finished').read_bytes() and time.monotonic() < deadline:
+        time.sleep(.01)
+    assert (root / 'm2/arp-finished').read_bytes(), 'initial command actually consumed'
+    os.kill(child, signal.SIGSTOP)
+    reader, pipe = helper_command_pipe(pid, child)
+    try:
+        assert pipe_bytes(reader) == 0, 'pressure starts with an empty actual pipe'
+        (root / 'm2/arp-events').write_bytes(b'')
+        (root / 'm2/arp-finished').write_bytes(b'')
+        entries = [dict(address=V4, mac=MAC)] + [dict(address=f'198.18.{index // 256}.{index % 256}', mac=f'02:00:00:92:{index // 256:02x}:{index % 256:02x}') for index in range(1, 301)]
+        refresh_with_fixture(pid, entries, folder, tftp=True)
+        samples = []
+        deadline = time.monotonic() + 2
+        while time.monotonic() < deadline:
+            samples.append(pipe_bytes(reader))
+            if len(samples) >= 5 and len(set(samples[-5:])) == 1 and samples[-1] > 0:
+                break
+            time.sleep(.05)
+        pipe['readable_bytes'] = samples[-1]
+        pipe['samples'] = samples
+        save(folder / 'command-pipe.json', pipe)
+        assert pipe['readable_bytes'] > pipe['capacity'] - 104, 'actual helper pressure was not reached'
+        assert callbacks(root) == [], 'stopped helper executed a command'
+        save(folder / 'health-under-pressure.json', [health() for _ in range(10)])
+        assert pipe_bytes(reader) == pipe['readable_bytes'], 'health consumed or replaced queued ARP callbacks'
+        if stopping:
+            os.kill(pid, signal.SIGTERM)
+            time.sleep(.1)
+            assert process.poll() is None, 'TERM discarded the already serialized blocked command'
+            save(folder / 'term-before-helper-resume.json', dict(parent_alive=True, readable_bytes=pipe_bytes(reader)))
+        os.kill(child, signal.SIGCONT)
+        expected = [['3', 'arp-add', entry['mac'], entry['address'], '0', '0', 'inherited-iface', 'inherited-id'] for entry in reversed(entries[1:])]
+        if stopping:
+            assert process.wait(5) == 0, 'parent TERM drain'
+            ended, status = os.waitpid(child, 0)
+            assert ended == child and os.waitstatus_to_exitcode(status) == 0, 'helper EOF after TERM'
+            observed = callbacks(root)
+            # C serializes104B commands. The pipe holds39, plus the already
+            # serialized owner slot; all remaining producer NEW entries drop.
+            assert observed == expected[:pipe['capacity'] // 104 + 1], 'TERM callback prefix or unsent NEW drop differs from C'
+        else:
+            deadline = time.monotonic() + 6
+            while len(callbacks(root)) < len(expected) and time.monotonic() < deadline:
+                time.sleep(.01)
+            observed = callbacks(root)
+            assert observed == expected, 'burst order or queue recovery'
+            (folder / 'health-after-recovery.reply').write_bytes(bytes.fromhex(health()))
+        save(folder / 'pressure-callbacks.json', observed)
+        return dict(case='stop-unsent-arp-drop' if stopping else 'burst-order-and-recovery', callbacks=observed,
+                    pipe_capacity=pipe['capacity'], pipe_readable_bytes=pipe['readable_bytes'], dns_health=True)
+    finally:
+        try:
+            os.kill(child, signal.SIGCONT)
+        except ProcessLookupError:
+            pass
+        os.close(reader)
+
+
+def helper_frame_fault_contract(args, root, process, pid, folder):
+    if args.side == 'c':
+        symbols = subprocess.run(['readelf', '-Ds', str(args.image_root / 'lib/libc.so')], capture_output=True, text=True, check=True).stdout
+        offset = int(re.search(r'^\s*\d+:\s+([0-9a-f]+).*\bcalloc\s*$', symbols, re.M)[1], 16)
+        # Exact image struct script_data104, buff_alloc minimum+200.
+        kind, size = 'calloc', 304
+    else:
+        assert args.allocator_map is not None, 'allocator map required'
+        symbols = args.allocator_map.read_text()
+        offset = int(re.search(r'^\s*0x([0-9a-f]+)\s+malloc\s*$', symbols, re.M)[1], 16)
+        # Existing typed IPv4 ARP payload18 plus framing prefix4.
+        kind, size = 'malloc', 22
+    (folder / 'allocator-symbols').write_text(symbols)
+    output = folder / 'frame-allocation.json'
+    tracer = subprocess.Popen([sys.executable, __file__, '--trace-allocation', str(pid), str(size), kind, str(offset), str(output)])
+    try:
+        deadline = time.monotonic() + 3
+        while not Path(str(output) + '.ready').exists() and tracer.poll() is None and time.monotonic() < deadline:
+            time.sleep(.01)
+        assert Path(str(output) + '.ready').exists(), 'frame fault readiness'
+        neighbor('192.0.2.18', '02:00:00:91:00:18')
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as endpoint:
+            endpoint.settimeout(3)
+            endpoint.bind(('127.0.0.1', 0))
+            endpoint.connect(('127.0.0.1', PORT))
+            wire = query('arp-health.test', 0x7170)
+            endpoint.sendall(struct.pack('!H', len(wire)) + wire)
+            try:
+                reply = exact_read(endpoint, struct.unpack('!H', exact_read(endpoint, 2))[0])
+                (folder / 'frame-health.reply').write_bytes(reply)
+            except (OSError, RuntimeError, EOFError):
+                assert args.side == 'c', 'Rust frame failure lost DNS service'
+        assert tracer.wait(3) == 0, 'frame trace exit'
+        receipt = json.loads(output.read_text())
+        assert receipt['injected'], 'actual helper frame fault'
+        deadline = time.monotonic() + 3
+        if args.side == 'c':
+            assert process.wait(3) == -signal.SIGSEGV, 'guarded C NULL helper buffer defect'
+            observed = callbacks(root)
+            assert observed == [], 'C fault unexpectedly invoked a script'
+            healthy = False
+        else:
+            while not callbacks(root) and time.monotonic() < deadline:
+                time.sleep(.02)
+            observed = callbacks(root)
+            assert observed == [['3', 'arp-add', '02:00:00:91:00:18', '192.0.2.18', '0', '0', 'inherited-iface', 'inherited-id']], 'frame ENOMEM did not retain and retry its record'
+            (folder / 'post-frame-fault.reply').write_bytes(bytes.fromhex(health()))
+            healthy = True
+        save(folder / 'frame-fault-callbacks.json', observed)
+        return dict(case='helper-buffer-enomem-reference', callbacks=observed, dns_health=healthy,
+                    reference_difference='c-null-helper-buffer-segv',
+                    fault=dict(injected=True, operation='helper-frame-allocation'))
+    finally:
+        if tracer.poll() is None:
+            tracer.kill()
+            tracer.wait()
+
+
 def callbacks(root):
     return [line.decode('utf-8', 'surrogateescape').split('|')
             for line in (root / 'm2/arp-events').read_bytes().splitlines()]
@@ -784,6 +1021,12 @@ def run_side(args):
                     rows.append(buffered_stop_contract(root, process, pid, folder, owned))
                 elif spec.get('helper_failure'):
                     rows.append(helper_failure_contract(root, pid, folder, owned))
+                elif spec.get('cache_caller'):
+                    rows.append(cache_caller_contract(root, pid, folder, upstream, spec['cache_caller']))
+                elif spec.get('pressure'):
+                    rows.append(pressure_contract(root, process, pid, folder, owned, spec.get('pressure_stop', False)))
+                elif spec.get('helper_frame_fault'):
+                    rows.append(helper_frame_fault_contract(args, root, process, pid, folder))
                 else:
                     row = dict(case=label, callbacks=observed, helper_count=len(owned), dns_health=reply is not None)
                     if spec.get('reference_difference'):
