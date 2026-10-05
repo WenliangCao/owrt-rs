@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 import resource
 import struct
+import ipaddress
 import threading
 import shutil
 import socket
@@ -103,13 +104,13 @@ def service_cases():
         add(option+'-wildcard',option+'=/*endpoint.test/127.0.0.2\n'+option+'=/*.labels.test/127.0.0.3\n',('badendpoint.test','x.labels.test','badlabels.test','labels.test'))
         add(option+'-markers',option+'=/local.endpoint.test/\n'+option+'=//127.0.0.2\n',('local.endpoint.test','dotless','other.endpoint.test'))
     for prefix in ['192.0.2.0/24','192.0.2.128/25','192.0.2.7/32','192.0.2.7/0','2001:db8::/64','2001:db8::/65','2001:db8::1/128']:
-        add('reverse-'+prefix.replace(':','_').replace('/','-'),'rev-server='+prefix+',127.0.0.2\n',('7.2.0.192.in-addr.arpa','129.2.0.192.in-addr.arpa','one.endpoint.test'))
+        add('reverse-'+prefix.replace(':','_').replace('/','-'),'rev-server='+prefix+',127.0.0.2\n',(ipaddress.ip_address(prefix.split('/')[0]).reverse_pointer,'129.2.0.192.in-addr.arpa','one.endpoint.test'),expected_start=not prefix.endswith('/0'),expected_test=1 if prefix.endswith('/0') else 0)
     add('reverse-hostname','rev-server=192.0.2.0/24,multi.endpoint.test\n',('7.2.0.192.in-addr.arpa',),sys_files={'/etc/hosts':HOSTS})
     for order in ('before','after'):
         text='query-port=34003\nserver=127.0.0.2\n' if order=='before' else 'server=127.0.0.2\nquery-port=34003\n'
         add('global-port-'+order,text,expected_source_port=34003)
     add('osport-explicit-zero','query-port=0\nserver=127.0.0.2\n',names=('one.endpoint.test','two.endpoint.test'),same_udp_port=True)
-    add('osport-zero-then-fixed','query-port=0\nquery-port=34003\nserver=127.0.0.2\n',expected_source_port=34003)
+    add('osport-zero-then-fixed','server=127.0.0.2\n',argv=['--query-port=0','--query-port=34003'],expected_source_port=34003)
     for source in ('127.0.0.9','lo','lo@127.0.0.9'):
         add('explicit-source-over-global-'+source.replace('@','-'),'query-port=34003\nserver=127.0.0.2@'+source+'\n',forbidden_udp_port=34003)
     add('fixed-source-over-global','query-port=34003\nserver=127.0.0.2@127.0.0.9#34004\n',expected_source_port=34004)
@@ -122,7 +123,7 @@ def service_cases():
     add('range-fixed-override','min-port=34100\nmax-port=34100\nserver=127.0.0.2@127.0.0.9#34004\n',expected_source_port=34004)
     add('range-two-families','min-port=34100\nmax-port=34100\nserver=127.0.0.2\nserver=::1\nall-servers\n',source_range=[34100,34100])
     for limit in (0,1,2,3):
-        add('allservers-port-limit-'+str(limit),'port-limit='+str(limit)+'\nserver=127.0.0.2\nserver=127.0.0.3\nserver=127.0.0.4\nall-servers\n',udp_unique_ports= max(1,min(3,limit)))
+        add('allservers-port-limit-'+str(limit),'port-limit='+str(limit)+'\nserver=127.0.0.2\nserver=127.0.0.3\nserver=127.0.0.4\nall-servers\n',udp_unique_ports= max(1,min(3,limit)),expected_start=limit!=0,expected_test=1 if limit==0 else 0)
     add('pool-single-port-concurrent','min-port=34100\nmax-port=34100\nserver=127.0.0.2\n',actions=[dict(op='start-udp',id='first',name='first.endpoint.test'),dict(op='start-udp',id='second',name='second.endpoint.test'),dict(op='inject',id='second',server=0),dict(op='receive-udp',id='second',pending='second'),dict(op='inject',id='first',server=0),dict(op='receive-udp',id='first',pending='first')],source_range=[34100,34100],same_udp_port=True)
     add('file-mixed-directives','servers-file=/m2/files/servers\n',files={'servers':'server=/one.endpoint.test/v4.endpoint.test\nrev-server=192.0.2.0/24,multi.endpoint.test\nserver=/two.endpoint.test/127.0.0.3\nserver=/local.endpoint.test/\n'},names=('one.endpoint.test','7.2.0.192.in-addr.arpa','two.endpoint.test','local.endpoint.test'),sys_files={'/etc/hosts':HOSTS})
     add('file-errors-continue','servers-file=/m2/files/servers\n',files={'servers':'server=/bad.endpoint.test/::1%missing\nserver=/one.endpoint.test/v4.endpoint.test\nserver=/badsource.endpoint.test/127.0.0.2@::1\nserver=/two.endpoint.test/127.0.0.3\n'},names=('one.endpoint.test','two.endpoint.test','bad.endpoint.test','badsource.endpoint.test'),sys_files={'/etc/hosts':HOSTS},diagnostics=True)
@@ -171,12 +172,15 @@ def run_service_side(root, side, case, folder):
     files.FileUpstream=Captured
     SourceCapture.instances=[]
     occupied=[]
+    original_command=files.command
+    files.command=lambda root,side,*args: original_command(root,side,*case.get('argv',[]),*args)
     try:
         for port in case.get('occupied_ports',[]):
             bound=socket.socket(socket.AF_INET,socket.SOCK_DGRAM);bound.bind(('0.0.0.0',port));occupied.append(bound)
         result=files.run_side(root,side,case,folder)
     finally:
         for bound in occupied: bound.close()
+        files.command=original_command
     result['source_events']=[row for upstream in SourceCapture.instances for row in upstream.source_events]
     result['fixture_errors']=[error for upstream in SourceCapture.instances for error in upstream.errors]
     result['source_guard_errors']=source_guard_errors(result,case)
@@ -186,6 +190,7 @@ def run_service_side(root, side, case, folder):
 
 def source_guard_errors(result,case):
     errors=[]
+    if not result['startup']['ready']: return errors
     udp=[row for row in result['source_events'] if row['transport']=='udp']
     tcp=[row for row in result['source_events'] if row['transport']=='tcp']
     ports={row['peer'][1] for row in udp}
@@ -232,6 +237,7 @@ def run_service(args, cases):
         row={'id':case['id'],'failures':[]}
         try:
             observed={side:run_service_side(roots[side],side,case,folder/side) for side in sides}
+            if observed['c']['syntax']['exit']!=case.get('expected_test',0): row['failures'].append(dict(phase='c-syntax-calibration',observed=observed['c']['syntax']))
             if observed['c']['startup']['ready'] != case.get('expected_start',True): row['failures'].append(dict(phase='c-startup-calibration',observed=observed['c']['startup']))
             if any(entry.get('response') is None for entry in observed['c']['rows'] if entry['id'].endswith('udp-async')): row['failures'].append(dict(phase='c-async-calibration',error='missing awaited UDP reply'))
             if args.side=='both':
