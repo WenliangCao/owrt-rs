@@ -19,6 +19,7 @@ import signal
 import socket
 import struct
 import subprocess
+import sys
 import threading
 import time
 from dns_service_probe import exact_read, name, read_name, semantics
@@ -271,6 +272,20 @@ for label,action in [
  ('neighbor-positive-retained-before-90','positive-change'),
 ]: case('neighbor-'+label,'add-mac',label,opts=b'',action=action)
 
+for label, directive, length, mode, tcp in [
+ ('raw-length-one','add-mac',1,'complete',False),
+ ('raw-length-sixteen','add-mac',16,'complete',False),
+ ('raw-length-seventeen','add-mac',17,'complete',False),
+ ('text-nonsix','add-mac=text',1,'complete',False),
+ ('neighbor-over16-ignored','add-mac',17,'complete',False),
+ ('neighbor-ip-not-interface','add-mac',6,'complete',False),
+ ('neighbor-valid-complete-dump','add-mac',6,'complete',False),
+ ('neighbor-invalid-partial-dump','add-mac',6,'partial-error',False),
+ ('neighbor-dump-error-progress','add-mac',6,'error',False),
+ ('neighbor-udp-query-park-resume','add-mac',6,'complete',False),
+ ('neighbor-tcp-accept-park-snapshot','add-mac',6,'complete',True),
+]: case('inject-'+label,directive,label,opts=b'',inject=mode,mac_length=length,tcp=tcp)
+
 class Upstream:
     """Test-only selector thread, bounded shutdown; product stays single poll."""
     def __init__(self):
@@ -459,6 +474,20 @@ def diagnostics(data):
     text=data.decode('utf-8','surrogateescape')
     return re.sub(r'dnsmasq(?:-rs)?: ?', '', text).strip()
 
+def start_netlink_fixture(pid, folder, row):
+    output=folder/(row['case']+'.netlink.json')
+    log=(folder/(row['case']+'.netlink.stderr')).open('wb')
+    tracer=subprocess.Popen([sys.executable,str(Path(__file__).with_name('m5_edns_netlink.py')),
+                             '--pid',str(pid),'--out',str(output),'--mode',row['inject'],
+                             '--length',str(row.get('mac_length',6))],stdout=log,stderr=log)
+    deadline=time.monotonic()+4
+    while not output.with_suffix('.ready').exists():
+        if tracer.poll() is not None or time.monotonic()>deadline:
+            tracer.kill();tracer.wait();log.close()
+            raise AssertionError('netlink tracer failed to attach; inspect retained stderr')
+        time.sleep(.01)
+    return tracer,log,output
+
 def run(args):
     if os.geteuid()!=0 or os.environ.get('DNSMASQ_TEST_ISOLATED')!='1':raise ValueError('run through run_isolated.sh')
     network();out=args.out.resolve()
@@ -494,6 +523,7 @@ def run(args):
                 label=row['case'];packet=packet_for(row,index);upstream.behaviors[label]=row
                 (folder/f'{label}.query').write_bytes(packet)
                 before=len(upstream.events);replies=[]
+                fixture=start_netlink_fixture(process.pid,folder,row) if row.get('inject') else None
                 if row.get('action'):
                     replies,witness=neighbor_schedule(port,packet,row)
                     trace.setdefault('action_witness',[]).append({'case':label,'witness':witness})
@@ -507,6 +537,17 @@ def run(args):
                         reply=exchange(port,wire,transport=='tcp',row.get('ipv6',False),row.get('sources',[row.get('source')]*len(transports))[step])
                         if reply is not None:(folder/f'{label}-{step}.reply').write_bytes(reply)
                         replies.append(serial(norm(reply)))
+                if fixture:
+                    tracer,tracer_log,tracer_output=fixture
+                    try:tracer.wait(4)
+                    except subprocess.TimeoutExpired:tracer.kill();tracer.wait();raise AssertionError('netlink injection did not complete')
+                    finally:tracer_log.close()
+                    proof=json.loads(tracer_output.read_text())
+                    if tracer.returncode or not proof['injected']:raise AssertionError('required netlink injection unproven')
+                    trace.setdefault('injection_witness',[]).append({'case':label,'proof':proof})
+                    health=exchange(port,query('local.edns.test',0x6600+index))
+                    if health is None:raise AssertionError('DNS health failed after neighbor fixture')
+                    trace.setdefault('health_witness',[]).append({'case':label,'reply':serial(norm(health))})
                 trace['rows'].append({'case':label,'query':serial(norm(packet)),'replies':replies,'upstream_delta':len(upstream.events)-before})
                 report['executed_cases'].append(label)
         except Exception as error:
@@ -524,6 +565,7 @@ def run(args):
     manifest=json.loads(Path(__file__).with_suffix('.json').read_text());required={c for b in manifest['boundaries'] for c in b['required_cases']}
     report['missing_required_cases']=sorted(required-set(report['executed_cases']));report['required_count']=len(required)
     report['driver_sha256']=sha256(__file__);report['manifest_sha256']=sha256(Path(__file__).with_suffix('.json'))
+    report['netlink_driver_sha256']=sha256(Path(__file__).with_name('m5_edns_netlink.py'))
     (out/'result.json').write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps({'side':args.side,'executed':len(report['executed_cases']),'missing':len(report['missing_required_cases']),'failures':report['failures']}))
     return 1 if report['failures'] else 0
