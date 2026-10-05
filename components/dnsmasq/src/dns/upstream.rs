@@ -285,6 +285,7 @@ pub struct UpstreamResolver<R = OsRandom> {
     receive_buffer: Vec<u8>,
     socket_settings: SocketSettings,
     source_bindings: HashMap<ServerId, SourceSpec>,
+    reply_servers: HashMap<ServerId, SocketAddr>,
     server_sockets: HashMap<ServerId, SocketToken>,
     pool_finger: usize,
     source_diagnostics: VecDeque<SourceSocketDiagnostic>,
@@ -356,6 +357,7 @@ impl<R: Random> UpstreamResolver<R> {
             receive_buffer: vec![0; receive_capacity],
             socket_settings: SocketSettings::default(),
             source_bindings: HashMap::new(),
+            reply_servers: HashMap::new(),
             server_sockets: HashMap::new(),
             pool_finger: 0,
             source_diagnostics: VecDeque::new(),
@@ -748,6 +750,13 @@ impl<R: Random> UpstreamResolver<R> {
     /// Apply file-source changes without reconstructing this resolver. Only
     /// frecs sent to retired C server slots are cancelled. Other random socket
     /// references remain owned until their pending exchange is released.
+    pub(crate) fn set_reply_servers(&mut self, servers: Vec<super::forward::Server>) {
+        self.reply_servers = servers
+            .into_iter()
+            .map(|server| (server.id, server.address))
+            .collect();
+    }
+
     pub fn replace_server_groups(&mut self, groups: Vec<ServerGroup>, removed: &[ServerId]) {
         self.dispatcher.replace_groups(groups, removed);
         for owned in self.sockets.values_mut() {
@@ -1398,13 +1407,40 @@ impl<R: Random> UpstreamResolver<R> {
             let Some(pending) = self.dispatcher.table().get(id) else {
                 continue;
             };
-            let Some(matched) = self.dispatcher.accept_reply(
-                &self.receive_buffer[..length],
-                source,
-                token,
-                pending.group,
-                unix_seconds(),
-            ) else {
+            let Some(matched) = self
+                .dispatcher
+                .accept_reply(
+                    &self.receive_buffer[..length],
+                    source,
+                    token,
+                    pending.group,
+                    unix_seconds(),
+                )
+                .or_else(|| {
+                    // Authenticate current live endpoint, original ID/question and
+                    // this transaction's exact socket ownership; routing exclusion
+                    // alone does not retire a C server record or its sent query.
+                    transaction.sockets.iter().find_map(|(&server, &owned)| {
+                        let address = *self.reply_servers.get(&server)?;
+                        (owned == token && address == source)
+                            .then(|| {
+                                self.dispatcher.accept_reply_server(
+                                    &self.receive_buffer[..length],
+                                    source,
+                                    token,
+                                    pending.group,
+                                    super::forward::Server {
+                                        id: server,
+                                        address,
+                                        bound_socket: Some(token),
+                                    },
+                                    unix_seconds(),
+                                )
+                            })
+                            .flatten()
+                    })
+                })
+            else {
                 continue;
             };
             #[cfg(target_os = "linux")]
@@ -2101,6 +2137,38 @@ mod tests {
         assert_eq!((resolver.pending_count(), resolver.socket_count()), (0, 0));
         assert_eq!(resolver.counters(), counters);
         assert!(resolver.events.is_empty());
+    }
+
+    #[test]
+    fn loop_exclusion_keeps_a_sent_reply_authenticated_until_completion() {
+        let server = UdpSocket::bind("127.0.0.1:0").unwrap();
+        server
+            .set_read_timeout(Some(Duration::from_secs(1)))
+            .unwrap();
+        let address = server.local_addr().unwrap();
+        let dispatcher =
+            ForwardDispatcher::new(Options::default(), [group(&[address], false)], 1232);
+        let mut resolver =
+            UpstreamResolver::with_lifetime(dispatcher, Counter(0), Lifetime::ForwardTable)
+                .unwrap();
+        resolver
+            .start_udp(&query(), client(), GroupId(1), Scope::Shared)
+            .unwrap();
+        let mut packet = [0; 2048];
+        let (length, peer) = server.recv_from(&mut packet).unwrap();
+        resolver.set_reply_servers(vec![Server {
+            id: ServerId(1),
+            address,
+            bound_socket: None,
+        }]);
+        resolver.replace_server_groups(Vec::new(), &[]);
+        assert_eq!(resolver.pending_count(), 1);
+        let reply = response(&packet[..length], 0x8180, true);
+        server.send_to(&reply, peer).unwrap();
+        assert!(wait_for_event(&mut resolver, Duration::from_millis(5))
+            .result
+            .is_ok());
+        assert_eq!((resolver.pending_count(), resolver.socket_count()), (0, 0));
     }
 
     #[test]

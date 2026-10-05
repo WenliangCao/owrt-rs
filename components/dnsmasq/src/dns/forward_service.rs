@@ -14,7 +14,7 @@
 
 use super::forward::{
     Client, Flags, ForwardTable, GroupId, QueryId, Random, ReplyAction, Scope, SendPlan,
-    SendReason, ServerGroup, ServerId, SocketToken, SubmissionKind, SubmitError,
+    SendReason, Server, ServerGroup, ServerId, SocketToken, SubmissionKind, SubmitError,
 };
 #[cfg(test)]
 use super::wire::Message;
@@ -308,6 +308,28 @@ impl ForwardDispatcher {
         let (id, server) = self
             .table
             .accept_reply(packet, source, socket, selected, now)?;
+        Some(MatchedReply {
+            id,
+            server,
+            rcode: Header::parse(packet).ok()?.rcode(),
+        })
+    }
+
+    /// Admit a reply from a still-live server owned by this transaction even
+    /// after loop detection removed that server from new-query routing.
+    pub(crate) fn accept_reply_server(
+        &self,
+        packet: &[u8],
+        source: SocketAddr,
+        socket: SocketToken,
+        group: GroupId,
+        server: Server,
+        now: i64,
+    ) -> Option<MatchedReply> {
+        let selected = ServerGroup::new(group, vec![server], false, false);
+        let (id, server) = self
+            .table
+            .accept_reply(packet, source, socket, &selected, now)?;
         Some(MatchedReply {
             id,
             server,

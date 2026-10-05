@@ -631,6 +631,19 @@ impl<R: Random> DnsDaemon<R> {
             self.upstream
                 .configure_source_sockets(settings, routing.source_bindings(settings.query_port));
         }
+        if self.local.config.loop_detect {
+            let live = RoutingTable::from_sources(
+                &self.local.config,
+                &self.server_sources,
+                Some(&self.routing),
+            )?;
+            self.upstream.set_reply_servers(
+                live.dispatcher_groups()
+                    .into_iter()
+                    .flat_map(|group| group.servers)
+                    .collect(),
+            );
+        }
         self.upstream
             .replace_server_groups(routing.dispatcher_groups(), &removed);
         self.routing = routing;

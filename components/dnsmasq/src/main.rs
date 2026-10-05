@@ -3413,17 +3413,6 @@ impl SinglePoll {
                 );
             }
         }
-        if self.config.loop_detect {
-            let mut parent = self.service.lock().unwrap();
-            let ParentDns { local, daemon, .. } = &mut *parent;
-            if let Some(daemon) = daemon {
-                if daemon.detect_loop(&query).unwrap_or(false) {
-                    local.config = daemon.local_config().clone();
-                    self.config = local.config.clone();
-                    return;
-                }
-            }
-        }
         #[cfg(target_os = "linux")]
         if self.query_logging.enabled {
             if let (Some(logger), Some(event)) = (
@@ -3434,6 +3423,17 @@ impl SinglePoll {
                     dnsmasq_rs::logging::query::format(self.query_logging, query_context, &event)
                 {
                     logger.emit(event);
+                }
+            }
+        }
+        if self.config.loop_detect {
+            let mut parent = self.service.lock().unwrap();
+            let ParentDns { local, daemon, .. } = &mut *parent;
+            if let Some(daemon) = daemon {
+                if daemon.detect_loop(&query).unwrap_or(false) {
+                    local.config = daemon.local_config().clone();
+                    self.config = local.config.clone();
+                    return;
                 }
             }
         }
