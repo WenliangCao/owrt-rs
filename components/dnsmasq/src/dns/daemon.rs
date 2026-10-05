@@ -1317,6 +1317,48 @@ impl<R: Random> DnsDaemon<R> {
         );
     }
 
+    pub fn tcp_cache_view(&self) -> Option<Cache> {
+        self.cache.as_ref().map(Cache::snapshot)
+    }
+
+    pub fn cached_tcp_view_answer(
+        &mut self,
+        cache: &mut Cache,
+        query: &[u8],
+        local: &mut LocalDnsService,
+        now: i64,
+    ) -> Result<super::cache_engine::CachedAnswer, DaemonError> {
+        let question = super::forward::Question::parse(query)?;
+        let filter_rr = local.config.filter_rr.clone();
+        CacheContext {
+            cache,
+            counters: &mut CacheCounters::default(),
+            negative_cache: self.negative_cache,
+            negative_ttl: self.negative_ttl,
+            filter_rr: &filter_rr,
+        }
+        .answer_tcp(query, &question, now, local, self.edns_packet_max)
+        .map_err(Into::into)
+    }
+
+    pub fn import_tcp_cache_transfer(
+        &mut self,
+        transaction: super::cache::CacheTransaction,
+        now: i64,
+    ) -> bool {
+        let Some(cache) = self.cache.as_mut() else {
+            return false;
+        };
+        CacheContext {
+            cache,
+            counters: &mut self.cache_counters,
+            negative_cache: self.negative_cache,
+            negative_ttl: self.negative_ttl,
+            filter_rr: &self.filter_rr,
+        }
+        .import_transfer(transaction, now, &self.local)
+    }
+
     pub fn cached_tcp_answer(
         &mut self,
         query: &[u8],
