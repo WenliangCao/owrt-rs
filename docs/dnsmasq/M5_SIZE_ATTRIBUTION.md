@@ -36,3 +36,15 @@ M4 获准 ELF 为 1,159,280 字节。当前归因基准 `ff2b2d22` 在固定源�
 已找到可保持选择行为的简化：source pool 原来收集候选并完整稳定排序，只读取首个最小 rank；`ad66dfba` 改为直接取同 rank 最小值，唯一 ServerId 使用不稳定排序。精确 Rust 1.98.1 的等值首项和 16,512 个选择控制通过；物理 pool slot 唯一性和排序键已独立审查。同一可编译 `46aaaef5` 基线仅替换 upstream.rs 为排序前版本的受控构建：1,703,976 → 1,687,592，**节省 16,384 字节**；优化前后源码 SHA 固定，优化后首尾控制 ELF 逐字节同为 e95f7f26…f11bd0。直接构建中间 library-only commit 的两轮失败 101 已留档，未用于归因。优化候选完成镜像 C source pool/preallocation 61 配置/350 观察/67 required 子集和 10 负控，不据此冒称全候选已统一回归。[优化构建证据](../../private/dnsmasq-rewrite/evidence/M5/size-family-resume3-fresh/pool-root46-before/source-identity.json)，[C 回归证据](../../private/dnsmasq-rewrite/evidence/M5/interface-records/endpoints-optimized-46aaa-close-summary.json)。
 
 较大混合阶段继续补独立对照：helper、端点/source allocator、DNS files 和日志。保留成熟 std/process 与现有执行路径；没有为了体积变更功能合同或复用 M4 的体积特许。最终新增体积与满载 RSS 在 M5 统一版本验收后交用户决定。
+
+后继产品候选差额如下；这些构建各自使用冻结源码和唯一共享构建目录，但源码路径不同，不把链接布局差额当纯函数成本。4207 的 Linux 650 lib/10 main 单元实际通过，族级资格仍由各自清单给出。完整 source-identity.json、build.json 和产物在 [后继构建证据](../../private/dnsmasq-rewrite/evidence/M5/resume3-20261005/)。
+
+| 后继功能族/阶段 | 源码 | ELF 字节 | 相对前阶段 |
+| --- | --- | ---: | ---: |
+| 日志、端点首轮收尾及 source pool 优化（混合） | `46aaaef5` | 1,687,592 | — |
+| ARP primitive/owner、日志与启动收尾（混合） | `10bf41fe` | 1,712,168 | +24,576 |
+| 接口 immutable records/parser/枚举 caller 与 cache primitive（混合） | `b612de44` | 1,728,552 | +16,384 |
+| TCP 缓存独立视图/时钟/parent import owner | `8389a0fa` | 1,732,648 | +4,096 |
+| TCP 日志上下文/owner及接口空 root parser（混合） | `4207c732` | 1,736,744 | +4,096 |
+
+当前相对 M4 共增加 577,464 字节。Arc<Record> 的 TCP 接受视图共享记录 payload，独立保留容器和状态；具体满载 RSS 成本仍待 M5 统一候选实测，不以代码结构推测内存结果。
