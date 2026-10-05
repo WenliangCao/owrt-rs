@@ -171,7 +171,8 @@ def run_side(args):
         folder = args.out / label
         folder.mkdir()
         for interface in ['arps0', 'arpw0']:
-            ip('neigh', 'flush', 'dev', interface)
+            # iproute's default flush excludes PERMANENT and NOARP entries.
+            ip('neigh', 'flush', 'dev', interface, 'nud', 'all')
         for address, mac, interface in spec.get('neighbors', [(V4, MAC, 'arps0')]):
             neighbor(address, mac, spec.get('state', 'permanent'), interface)
         current = subprocess.run(['ip', '-j', 'neigh', 'show'], capture_output=True, check=True)
@@ -219,6 +220,7 @@ def run_side(args):
                     time.sleep(.02)
                 time.sleep(.15)
                 observed = callbacks(root)
+                save(folder / 'callbacks.json', observed)
                 assert len(observed) == wanted_count, 'initial callback inventory'
                 for call in observed:
                     assert call[0] == '3' and call[1] == 'arp-add', 'ARP argv/action'
@@ -228,7 +230,6 @@ def run_side(args):
                 assert len(owned) == (0 if spec.get('no_helper') else 1), 'helper qualification'
                 baseline = len(list(Path('/proc/' + str(pid) + '/fd').iterdir()))
                 reply = None if spec.get('no_dns') else health()
-                save(folder / 'callbacks.json', observed)
                 save(folder / 'helper-identities.json', owned)
                 remaining = len(list(Path('/proc/' + str(pid) + '/fd').iterdir()))
                 save(folder / 'descriptor-health.json', dict(before=baseline, after=remaining))
@@ -241,6 +242,7 @@ def run_side(args):
         finally:
             cleanup = stop_daemon(process, pid)
             save(folder / 'cleanup.json', cleanup)
+            (folder / 'arp-events.raw').write_bytes((root / 'm2/arp-events').read_bytes())
             if (root / 'm2/arp.log').exists():
                 (folder / 'daemon.log').write_bytes((root / 'm2/arp.log').read_bytes())
                 (root / 'm2/arp.log').unlink()
