@@ -1436,6 +1436,9 @@ fn run_inner(
         for range in &runtime.dhcp.ranges {
             logger.emit(dnsmasq_rs::logging::startup::dhcp_range(range));
         }
+        for relay in &runtime.dhcp.relay {
+            logger.emit(dnsmasq_rs::logging::startup::dhcp_relay(relay));
+        }
         if let Some(event) = dnsmasq_rs::logging::startup::tftp(&runtime.tftp) {
             logger.emit(event);
         }
