@@ -54,7 +54,10 @@ def trace_allocation(pid,size,kind,offset,output,file_record=True):
         Path(str(output)+'.ready').write_text(kind+' breakpoint installed\n')
         for _ in range(1000):
             ptrace(7);_,status=os.waitpid(pid,0)
-            assert os.WIFSTOPPED(status) and os.WSTOPSIG(status)==signal.SIGTRAP,'unexpected calloc trace status'
+            assert os.WIFSTOPPED(status),'tracee ended before allocation fault'
+            if os.WSTOPSIG(status)!=signal.SIGTRAP:
+                ptrace(7,0,os.WSTOPSIG(status));_,status=os.waitpid(pid,0)
+                assert os.WIFSTOPPED(status) and os.WSTOPSIG(status)==signal.SIGTRAP,'allocation signal forwarding'
             regs();assert registers[32]==address,'breakpoint PC mismatch'
             descriptor_paths=[]
             for descriptor in Path('/proc/'+str(pid)+'/fd').iterdir():
