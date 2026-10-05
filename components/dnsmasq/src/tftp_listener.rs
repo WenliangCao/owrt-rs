@@ -20,6 +20,11 @@ struct Server {
     socket: DatagramSocket,
     address: SocketAddr,
     accepting: bool,
+    bound_interface: Option<BoundInterface>,
+}
+struct BoundInterface {
+    name: Vec<u8>,
+    mtu: Option<u32>,
 }
 #[derive(Clone, Copy)]
 struct Route {
@@ -127,6 +132,7 @@ impl<O: FileOpener> TftpListener<O> {
             socket,
             address,
             accepting: true,
+            bound_interface: None,
         });
         Ok(listener)
     }
@@ -237,10 +243,12 @@ impl<O: FileOpener> TftpListener<O> {
             return Ok(true);
         }
         let socket = DatagramSocket::bind(address)?;
+        let bound_interface = bound_interface(policy, address, socket.as_raw_fd());
         self.servers.push(Server {
             socket,
             address,
             accepting: true,
+            bound_interface,
         });
         self.pending_bind.retain(|pending| *pending != address);
         Ok(true)
@@ -373,11 +381,15 @@ impl<O: FileOpener> TftpListener<O> {
                 continue;
             }
             match DatagramSocket::bind(address) {
-                Ok(socket) => self.servers.push(Server {
-                    socket,
-                    address,
-                    accepting: true,
-                }),
+                Ok(socket) => {
+                    let bound_interface = bound_interface(policy, address, socket.as_raw_fd());
+                    self.servers.push(Server {
+                        socket,
+                        address,
+                        accepting: true,
+                        bound_interface,
+                    });
+                }
                 Err(error)
                     if policy.dns.bind_dynamic
                         && (error.kind() == io::ErrorKind::AddrNotAvailable || !initial) => {}
@@ -433,12 +445,9 @@ impl<O: FileOpener> TftpListener<O> {
             let bound =
                 policy.dns.bind_interfaces && !policy.dns.bind_dynamic && datagram.peer.is_ipv4();
             if bound {
-                if let Some(row) = policy
-                    .interfaces
-                    .iter()
-                    .find(|row| row.address == route.server.ip())
-                {
-                    name.extend_from_slice(row.link_name());
+                if let Some(interface) = &self.servers[index].bound_interface {
+                    name.clone_from(&interface.name);
+                    mtu = interface.mtu;
                 }
             } else {
                 let Ok(found) =
@@ -451,7 +460,9 @@ impl<O: FileOpener> TftpListener<O> {
             if !policy.admitted(&datagram, &name) {
                 return Ok(());
             }
-            mtu = interface_mtu(self.servers[index].socket.as_raw_fd(), &name);
+            if !bound {
+                mtu = interface_mtu(self.servers[index].socket.as_raw_fd(), &name);
+            }
         }
         let pending = Pending {
             datagram,
@@ -706,6 +717,20 @@ fn interface_mtu(fd: i32, name: &[u8]) -> Option<u32> {
         return None;
     }
     u32::try_from(i32::from_ne_bytes(bytes[16..20].try_into().unwrap())).ok()
+}
+fn bound_interface(policy: &Policy, address: SocketAddr, fd: i32) -> Option<BoundInterface> {
+    if !policy.dns.bind_interfaces || policy.dns.bind_dynamic || address.is_ipv6() {
+        return None;
+    }
+    let row = policy
+        .interfaces
+        .iter()
+        .find(|row| row.address == address.ip())?;
+    let name = row.link_name().to_vec();
+    Some(BoundInterface {
+        mtu: interface_mtu(fd, &name),
+        name,
+    })
 }
 fn descriptor_limit() -> io::Result<u64> {
     extern "C" {

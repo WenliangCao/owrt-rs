@@ -102,11 +102,10 @@ impl Policy {
     }
     pub fn admitted(&self, datagram: &Datagram, name: &[u8]) -> bool {
         if self.dns.bind_interfaces && !self.dns.bind_dynamic && datagram.destination.is_ipv4() {
-            // Static IPv4 sockets select the destination address, while the
-            // TFTP interface selector still applies to the owning interface.
-            // C rejects an RRQ arriving on an excluded or non-selected
-            // interface even though the socket was already bound.
-            return self.tftp_interface(name);
+            // tftp.c's static IPv4 path trusts socket creation eligibility.
+            // It also accepts an unowned explicit listener, whose cached
+            // name is NULL, without testing the dedicated interface list.
+            return true;
         }
         if !self.config.interfaces.is_empty() {
             return self.tftp_interface(name);
