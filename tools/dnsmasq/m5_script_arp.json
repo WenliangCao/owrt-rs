@@ -221,6 +221,15 @@
         "negative-record-enomem",
         "helper-buffer-enomem-reference"
       ]
+    },
+    {
+      "id": "existing-c-poll-timers",
+      "source": "dnsmasq.c:1105-1112,1180-1183,1212-1218,1228-1260",
+      "boundary": "Any active TFTP transfer limitsCpoll waitto250ms evenif timeout255and no fdreadiness, wakingouterARPfreshnesscheck. Preservethisexistingtimer, withpureidle91negativecontrol. ExactimageHAVE_INOTIFY meansresolvfiles useactualinotifyready, not #else1spollfallback.",
+      "required_cases": [
+        "wake-tftp-timer",
+        "idle-91-no-wake"
+      ]
     }
   ],
   "qualification": {

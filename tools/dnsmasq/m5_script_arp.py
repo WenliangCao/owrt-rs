@@ -90,6 +90,8 @@ def profiles():
         dict(case='link-local-unscoped', neighbors=[('fe80::17', MAC, 'arps0')]),
         dict(case='argv-and-inherited-env'),
         dict(case='idle-91-no-wake', no_dns=True, clock=True),
+        dict(case='wake-tftp-timer', no_dns=True, tftp_clock=True,
+             extra='enable-tftp\ntftp-root=/m2/arp-tftp\n'),
     ]
     for state in ['reachable', 'stale', 'delay', 'probe', 'permanent', 'none', 'noarp', 'incomplete', 'failed']:
         # The real kernel removes LLADDR when NUD_NONE is requested. The
@@ -267,6 +269,36 @@ def zero_positive_contract(root, pid, folder, upstream):
     return rows
 
 
+def tftp_clock_contract(root, pid, folder):
+    initial = callbacks(root)
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as endpoint:
+        endpoint.settimeout(2)
+        endpoint.bind(('127.0.0.3', 0))
+        packet = b'\0\1public\0octet\0timeout\x00255\0'
+        endpoint.sendto(packet, ('127.0.0.1', 69))
+        reply, peer = endpoint.recvfrom(4096)
+        assert reply == b'\0\6timeout\x00255\0', 'actual held TFTP transfer'
+        (folder / 'tftp-hold.request').write_bytes(packet)
+        (folder / 'tftp-hold.reply').write_bytes(reply)
+        neighbor('192.0.2.18', '02:00:00:91:00:18')
+        start = time.monotonic()
+        progress = []
+        next_notice = start
+        while time.monotonic() - start < 91:
+            if time.monotonic() >= next_notice:
+                os.kill(pid, 0)
+                progress.append(dict(elapsed=time.monotonic() - start, callbacks=len(callbacks(root))))
+                save(folder / 'clock-progress.json', progress)
+                print(json.dumps(dict(case='wake-tftp-timer', elapsed=round(time.monotonic() - start, 1))), flush=True)
+                next_notice += 15
+            time.sleep(.05)
+        observed = callbacks(root)
+        save(folder / 'refreshed-callbacks.json', observed)
+        endpoint.sendto(b'\0\5\0\0fixture complete\0', peer)
+    assert observed[len(initial):] == [['3', 'arp-add', '02:00:00:91:00:18', '192.0.2.18', '0', '0', 'inherited-iface', 'inherited-id']], 'existing TFTP poll timer did not refresh ARP'
+    return dict(case='wake-tftp-timer', callbacks=observed[len(initial):], real_wait_seconds=time.monotonic() - start)
+
+
 def callbacks(root):
     return [line.decode('utf-8', 'surrogateescape').split('|')
             for line in (root / 'm2/arp-events').read_bytes().splitlines()]
@@ -330,6 +362,10 @@ def run_side(args):
     script = root / 'm2/arp-script'
     script.write_text(SCRIPT)
     script.chmod(0o755)
+    tftp = root / 'm2/arp-tftp'
+    tftp.mkdir()
+    (tftp / 'public').write_bytes(b'public')
+    (tftp / 'public').chmod(0o644)
     selected = re.compile(args.select or '.')
     rows, failures = [], []
     syntax = [
@@ -470,6 +506,8 @@ def run_side(args):
                 assert baseline == remaining, 'descriptor recovery'
                 if spec.get('clock'):
                     rows.extend(clock_contract(root, pid, folder))
+                elif spec.get('tftp_clock'):
+                    rows.append(tftp_clock_contract(root, pid, folder))
                 elif spec.get('zero_positive'):
                     rows.extend(zero_positive_contract(root, pid, folder, upstream))
                 else:
