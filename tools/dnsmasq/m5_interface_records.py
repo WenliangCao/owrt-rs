@@ -414,6 +414,14 @@ def service_cases():
         'host-record=192-0-2-7.one.records.test,192.0.2.99\nptr-record=8.2.0.192.in-addr.arpa,explicit.records.test\nbogus-priv\n',
         [('192-0-2-7.one.records.test',1),('7.2.0.192.in-addr.arpa',12),('8.2.0.192.in-addr.arpa',12),
          ('9.2.0.192.in-addr.arpa',12),('10.2.0.192.in-addr.arpa',12),('11.2.0.192.in-addr.arpa',12)],'SYN-FWD SYN-PTR')
+    add('interface-enum-same-cycle','interface-name=iface.records.test,m5ir0\n',[],'IF-CALLER',topology=[primary],
+        actions=[dict(op='write',path='same-cycle',text='',enumeration_cycle=True)])
+    add('interface-tcp-inherited-flags','interface-name=iface.records.test,m5ir0\n',[],'IF-CALLER IF-FLAGS',topology=[v4only],
+        actions=[*dad,dict(op='connect',id='held'),files.probe('child-tentative','iface.records.test',type=28,transports=['held']),
+            dict(op='write',path='dad-complete',text='',kernel_wait={'address':'2001:db8:91::9','mask':0x40,'set':False}),state('completed'),
+            files.probe('parent-complete','iface.records.test',type=28,transports=['udp']),
+            files.probe('child-old-flags','iface.records.test',type=28,transports=['held']),
+            files.probe('fresh-flags','iface.records.test',type=28,transports=['tcp']),dict(op='disconnect',id='held')])
     add('interface-enum-allocation-reference','interface-name=iface.records.test,m5ir0\n',[],'IF-CALLER',topology=[primary],c_only=True,
         actions=[files.probe('initial','iface.records.test',transports=['udp']),
             kernel(['ip','addr','add','198.18.91.10/24','dev','m5ir0']),
@@ -449,6 +457,36 @@ def run_service_side(root,side,case,out):
         states.append({'label':label,'at':time.monotonic(),'addresses':json.loads(subprocess.check_output(['ip','-j','address','show'],text=True)),
             'ipv6_flags':Path('/proc/net/if_inet6').read_text()})
     def put(root,path,value,opened):
+        if isinstance(value,dict) and 'enumeration_cycle' in value:
+            pid=int((root/'m2/files.pid').read_text());path=out/'same-cycle.json'
+            tracer=subprocess.Popen([sys.executable,str(Path(__file__).resolve()),'--trace-enumeration',str(pid),side,'count',str(path)])
+            clients=[]
+            try:
+                files.await_predicate(lambda:Path(str(path)+'.ready').exists() or tracer.poll() is not None,'enum count attach')
+                if tracer.poll() is not None:raise AssertionError('enum count attach failed')
+                port=15353;packet=files.query(files.probe('cycle','iface.records.test'),0x7341)
+                udp=socket.socket(socket.AF_INET,socket.SOCK_DGRAM);udp.settimeout(3);clients.append(udp)
+                udp.connect(('127.0.0.1',port));udp.sendall(packet)
+                tcp=socket.create_connection(('127.0.0.1',port),1);tcp.settimeout(3);clients.append(tcp)
+                tcp.sendall(struct.pack('!H',len(packet))+packet)
+                frozen=Path('/proc/'+str(pid)+'/status').read_text()
+                if 'tracing stop' not in frozen:raise AssertionError('both queued transports were not held before one select cycle')
+                Path(str(path)+'.go').write_text('both queued\n')
+                replies=[udp.recv(65535),files.exact_read(tcp,struct.unpack('!H',files.exact_read(tcp,2))[0])]
+                for reply in replies:
+                    parsed=files.semantics(reply)
+                    if parsed['id']!=0x7341 or [r['data'] for r in parsed['records'] if r['type']==1]!=['198.18.91.9']:
+                        raise AssertionError('same-cycle local packet guard failed')
+                Path(str(path)+'.stop').write_text('both received\n')
+                if tracer.wait(5)!=0:raise AssertionError('enum count exit')
+                evidence=json.loads(path.read_text());requests=[r for r in evidence['events'] if r['phase']=='request']
+                if [r['dump_family'] for r in requests]!=[10,2]:raise AssertionError('more than one enumeration for the queued parent cycle')
+                states.append({'label':'same-cycle','frozen_status':frozen,'requests':requests,'replies':[r.hex() for r in replies],
+                    'completed':evidence.get('completed',False)})
+            finally:
+                for client in clients:client.close()
+                if tracer.poll() is None:tracer.kill();tracer.wait()
+            return
         if isinstance(value,dict) and 'allocation_fault' in value:
             if side!='c':raise AssertionError('C allocation reference is not a paired Rust qualification')
             pid=int((root/'m2/files.pid').read_text());path=out/'allocation-fault.json'
@@ -634,10 +672,17 @@ def trace_enumeration(pid,side,stage,output):
     try:
         ptrace(16);os.waitpid(pid,0);attached=True;ptrace(0x4200,0,1)
         Path(str(output)+'.ready').write_text('attached\n')
+        if stage=='count':
+            deadline=time.monotonic()+5
+            while not Path(str(output)+'.go').exists():
+                if time.monotonic()>deadline:raise AssertionError('queued-cycle start was not released')
+                time.sleep(.005)
         while True:
             ptrace(24);_,status=os.waitpid(pid,0)
             if not os.WIFSTOPPED(status):raise AssertionError('tracee ended before fault')
             if os.WSTOPSIG(status)!=(signal.SIGTRAP|0x80):continue
+            if stage=='count' and Path(str(output)+'.stop').exists():
+                report['completed']=True;ptrace(17);attached=False;break
             info=(ctypes.c_ubyte*128)();ptrace(0x420e,ctypes.sizeof(info),ctypes.addressof(info));regs()
             if info[0]==1:
                 number=int(registers[8]);active={'syscall':number,'fd':int(registers[0])};fault=False
