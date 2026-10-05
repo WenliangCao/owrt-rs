@@ -29,6 +29,15 @@ pub enum EdnsMacLookup {
 struct EdnsRecord {
     address: IpAddr,
     hardware_address: Vec<u8>,
+    status: RecordStatus,
+}
+
+#[derive(Clone, Copy, Eq, PartialEq)]
+enum RecordStatus {
+    Mark,
+    Found,
+    New,
+    Empty,
 }
 type Key = (IpAddr, u32);
 const MAX_WAITERS: usize = 256;
@@ -74,9 +83,10 @@ pub struct NeighborCache {
     waiting: BTreeSet<Key>,
     refreshed: Option<u64>,
     dump: Option<Dump>,
-    changes: Vec<NeighborChange>,
     edns_records: Vec<EdnsRecord>,
     edns_waiting: BTreeSet<IpAddr>,
+    old_records: Vec<EdnsRecord>,
+    script_arp: bool,
 }
 impl NeighborCache {
     pub fn new() -> io::Result<Self> {
@@ -105,9 +115,10 @@ impl NeighborCache {
             waiting: BTreeSet::new(),
             refreshed: None,
             dump: None,
-            changes: Vec::new(),
             edns_records: Vec::new(),
             edns_waiting: BTreeSet::new(),
+            old_records: Vec::new(),
+            script_arp: false,
         })
     }
     pub fn append_poll_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>) {
@@ -117,6 +128,76 @@ impl NeighborCache {
                 events: owrt_ubus::sys::POLLIN,
                 revents: 0,
             });
+        }
+    }
+
+    pub fn enable_script_arp(&mut self, enabled: bool) {
+        self.script_arp = enabled;
+        if !enabled {
+            self.discard_script_changes();
+        }
+    }
+
+    /// C checks freshness when its main loop wakes; there is no ARP timer.
+    /// The owner supplies actual service/signal/poll activity, excluding its
+    /// own housekeeping timeout. An existing dump remains nonblocking.
+    pub fn refresh_script_arp(&mut self, now: u64, awake: bool) -> io::Result<()> {
+        if self.script_arp
+            && awake
+            && self
+                .refreshed
+                .is_none_or(|last| now.saturating_sub(last) >= 90)
+        {
+            self.refresh(now)?;
+        }
+        Ok(())
+    }
+
+    /// Keep ownership until the one helper command slot accepts the event.
+    /// C drains its old stack before traversing newly added records.
+    pub fn front_script_change(&self) -> Option<NeighborChange> {
+        if !self.script_arp {
+            return None;
+        }
+        let (added, record) = if let Some(record) = self.old_records.last() {
+            (false, record)
+        } else {
+            (
+                true,
+                self.edns_records
+                    .iter()
+                    .find(|record| record.status == RecordStatus::New)?,
+            )
+        };
+        Some(NeighborChange {
+            added,
+            address: record.address,
+            // C ARP identity and helper payload do not carry interface scope.
+            interface: 0,
+            hardware_address: record.hardware_address.clone(),
+        })
+    }
+
+    pub fn pop_script_change(&mut self) {
+        if self.old_records.pop().is_none() {
+            if let Some(record) = self
+                .edns_records
+                .iter_mut()
+                .find(|record| record.status == RecordStatus::New)
+            {
+                record.status = RecordStatus::Found;
+            }
+        }
+    }
+
+    /// TERM flushes the already serialized helper command, not unsent ARP
+    /// records. No helper has the same record-draining effect without calls.
+    pub fn discard_script_changes(&mut self) {
+        self.old_records.clear();
+        for record in &mut self.edns_records {
+            if record.status == RecordStatus::New {
+                record.status = RecordStatus::Found;
+            }
         }
     }
     /// Trigger a snapshot for script-arp without waiting for a MAC consumer.
@@ -207,7 +288,7 @@ impl NeighborCache {
                 .iter()
                 .find(|record| record.address == address)
             {
-                if !record.hardware_address.is_empty() || lazy {
+                if record.status != RecordStatus::Empty || lazy {
                     return EdnsMacLookup::Ready(
                         (!record.hardware_address.is_empty())
                             .then(|| record.hardware_address.clone()),
@@ -237,31 +318,51 @@ impl NeighborCache {
     fn publish_edns(&mut self, dump: Vec<EdnsRecord>) {
         // Preserve filter_mac's list order: old confirmed identities remain in
         // place, and newly discovered identities are prepended in dump order.
-        let mut records: Vec<_> = std::mem::take(&mut self.edns_records)
-            .into_iter()
-            .map(|record| (record, false, false))
-            .collect();
-        for next in dump {
-            if let Some((record, confirmed, new)) = records.iter_mut().find(|(record, _, new)| {
-                !*new
-                    && record.address == next.address
-                    && (record.hardware_address.is_empty()
-                        || record.hardware_address == next.hardware_address)
-            }) {
-                if record.hardware_address.is_empty() {
-                    record.hardware_address = next.hardware_address;
-                    *new = true;
-                }
-                *confirmed = true;
-            } else {
-                records.insert(0, (next, true, true));
+        let mut records = std::mem::take(&mut self.edns_records);
+        for record in &mut records {
+            if record.status != RecordStatus::Empty {
+                record.status = RecordStatus::Mark;
             }
         }
-        self.edns_records = records
-            .into_iter()
-            .filter(|(record, confirmed, _)| *confirmed || record.hardware_address.is_empty())
-            .map(|(record, _, _)| record)
-            .collect();
+        for mut next in dump {
+            if let Some(record) = records.iter_mut().find(|record| {
+                record.status != RecordStatus::New
+                    && record.address == next.address
+                    && (record.status == RecordStatus::Empty
+                        || record.hardware_address == next.hardware_address)
+            }) {
+                if record.status == RecordStatus::Empty {
+                    record.hardware_address = next.hardware_address;
+                    record.status = RecordStatus::New;
+                } else {
+                    record.status = RecordStatus::Found;
+                }
+            } else {
+                // C whine_malloc failure skips this fresh cache record.
+                // Reserve retirement storage here too, so moving an old
+                // record later cannot introduce a second allocation boundary.
+                let needed = records.len() + 1;
+                if records.try_reserve_exact(1).is_err()
+                    || (self.script_arp && self.old_records.try_reserve_exact(needed).is_err())
+                {
+                    continue;
+                }
+                next.status = RecordStatus::New;
+                records.insert(0, next);
+            }
+        }
+        let mut index = 0;
+        while index < records.len() {
+            if records[index].status == RecordStatus::Mark {
+                let record = records.remove(index);
+                if self.script_arp {
+                    self.old_records.push(record);
+                }
+            } else {
+                index += 1;
+            }
+        }
+        self.edns_records = records;
         for address in std::mem::take(&mut self.edns_waiting) {
             if !self
                 .edns_records
@@ -271,26 +372,39 @@ impl NeighborCache {
                 if self
                     .edns_records
                     .iter()
-                    .filter(|record| record.hardware_address.is_empty())
+                    .filter(|record| record.status == RecordStatus::Empty)
                     .count()
                     >= MAX_NEGATIVE
                 {
                     if let Some(at) = self
                         .edns_records
                         .iter()
-                        .rposition(|record| record.hardware_address.is_empty())
+                        .rposition(|record| record.status == RecordStatus::Empty)
                     {
                         self.edns_records.remove(at);
                     }
+                }
+                if self.edns_records.try_reserve_exact(1).is_err()
+                    || (self.script_arp
+                        && self
+                            .old_records
+                            .try_reserve_exact(self.edns_records.len() + 1)
+                            .is_err())
+                {
+                    continue;
                 }
                 self.edns_records.insert(
                     0,
                     EdnsRecord {
                         address,
                         hardware_address: Vec::new(),
+                        status: RecordStatus::Empty,
                     },
                 );
             }
+        }
+        if !self.script_arp {
+            self.discard_script_changes();
         }
     }
     fn fail_waiters(&mut self, now: u64) {
@@ -383,26 +497,6 @@ impl NeighborCache {
         let dump = self.dump.take().unwrap();
         self.publish_edns(dump.edns);
         let next = dump.entries;
-        for (&(address, interface), mac) in &self.entries {
-            if next.get(&(address, interface)) != Some(mac) {
-                self.changes.push(NeighborChange {
-                    added: false,
-                    address,
-                    interface,
-                    hardware_address: mac.clone(),
-                });
-            }
-        }
-        for (&(address, interface), mac) in &next {
-            if self.entries.get(&(address, interface)) != Some(mac) {
-                self.changes.push(NeighborChange {
-                    added: true,
-                    address,
-                    interface,
-                    hardware_address: mac.clone(),
-                });
-            }
-        }
         self.entries = next;
         self.refreshed = Some(now);
         for key in std::mem::take(&mut self.waiting) {
@@ -412,7 +506,12 @@ impl NeighborCache {
         }
     }
     pub fn take_changes(&mut self) -> Vec<NeighborChange> {
-        std::mem::take(&mut self.changes)
+        let mut result = Vec::new();
+        while let Some(change) = self.front_script_change() {
+            result.push(change);
+            self.pop_script_change();
+        }
+        result
     }
 }
 fn malformed() -> io::Error {
@@ -461,6 +560,7 @@ fn parse_messages(bytes: &[u8], dump: &mut Dump) -> io::Result<bool> {
                         dump.edns.push(EdnsRecord {
                             address: key.0,
                             hardware_address: mac.clone(),
+                            status: RecordStatus::New,
                         });
                         dump.entries.insert(key, mac);
                     }
@@ -510,7 +610,7 @@ fn parse_neighbor(bytes: &[u8]) -> io::Result<Option<(Key, Vec<u8>)>> {
                     _ => return Err(malformed()),
                 })
             }
-            2 if !value.is_empty() && value.len() <= 16 => mac = Some(value.to_vec()),
+            2 if value.len() <= 16 => mac = Some(value.to_vec()),
             _ => {}
         }
         at += aligned(length);
@@ -584,9 +684,10 @@ mod tests {
             waiting: BTreeSet::new(),
             refreshed: None,
             dump: None,
-            changes: Vec::new(),
             edns_records: Vec::new(),
             edns_waiting: BTreeSet::new(),
+            old_records: Vec::new(),
+            script_arp: false,
         }
     }
     #[test]
@@ -609,10 +710,12 @@ mod tests {
             EdnsRecord {
                 address,
                 hardware_address: vec![1],
+                status: RecordStatus::New,
             },
             EdnsRecord {
                 address,
                 hardware_address: vec![2; 16],
+                status: RecordStatus::New,
             },
         ]);
         cache.refreshed = Some(1);
@@ -624,6 +727,7 @@ mod tests {
         cache.publish_edns(vec![EdnsRecord {
             address,
             hardware_address: vec![2; 16],
+            status: RecordStatus::New,
         }]);
         assert_eq!(
             cache.query_edns(address, true, 2),
@@ -662,6 +766,7 @@ mod tests {
         cache.publish_edns(vec![EdnsRecord {
             address,
             hardware_address: vec![2, 0, 0, 0, 0, 1],
+            status: RecordStatus::New,
         }]);
         assert_eq!(
             cache.query_edns(address, true, 2),
@@ -684,5 +789,70 @@ mod tests {
             MacLookup::Ready(None)
         );
         assert_eq!(cache.waiting.len(), MAX_WAITERS);
+    }
+
+    #[test]
+    fn script_order_backpressure_and_discard_follow_the_image() {
+        let mut cache = cache_without_network();
+        cache.enable_script_arp(true);
+        let record = |last, mac| EdnsRecord {
+            address: IpAddr::V4(Ipv4Addr::new(192, 0, 2, last)),
+            hardware_address: vec![mac],
+            status: RecordStatus::New,
+        };
+        cache.publish_edns(vec![record(17, 1), record(18, 2), record(19, 3)]);
+        let first = cache.front_script_change().unwrap();
+        assert_eq!(first.address, record(19, 3).address);
+        assert_eq!(cache.front_script_change(), Some(first));
+        let added = cache.take_changes();
+        assert_eq!(
+            added
+                .iter()
+                .map(|change| change.hardware_address[0])
+                .collect::<Vec<_>>(),
+            [3, 2, 1]
+        );
+        cache.publish_edns(vec![record(17, 1), record(18, 4)]);
+        let changed = cache.take_changes();
+        assert_eq!(
+            changed
+                .iter()
+                .map(|change| (change.added, change.hardware_address[0]))
+                .collect::<Vec<_>>(),
+            [(false, 2), (false, 3), (true, 4)]
+        );
+        cache.publish_edns(vec![record(17, 5)]);
+        assert!(cache.front_script_change().is_some());
+        cache.discard_script_changes();
+        assert!(cache.front_script_change().is_none());
+        assert_eq!(cache.edns_records[0].hardware_address, [5]);
+    }
+
+    #[test]
+    fn zero_positive_stays_positive_and_idle_timeout_does_not_refresh() {
+        let mut cache = cache_without_network();
+        let address = "192.0.2.18".parse().unwrap();
+        cache.enable_script_arp(true);
+        cache.publish_edns(vec![EdnsRecord {
+            address,
+            hardware_address: Vec::new(),
+            status: RecordStatus::New,
+        }]);
+        cache.refreshed = Some(1);
+        cache.pop_script_change();
+        assert_eq!(
+            cache.query_edns(address, true, 2),
+            EdnsMacLookup::Ready(None)
+        );
+        assert_eq!(
+            cache.query_edns(address, false, 2),
+            EdnsMacLookup::Ready(None)
+        );
+        assert!(cache.edns_waiting.is_empty());
+        assert!(cache.negative.is_empty());
+        cache.refresh_script_arp(92, false).unwrap();
+        assert!(cache.dump.is_none());
+        assert_eq!(cache.refreshed, Some(1));
+        assert!(cache.refresh_script_arp(92, true).is_err());
     }
 }
