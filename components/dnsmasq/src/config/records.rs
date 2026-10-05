@@ -392,7 +392,7 @@ impl RecordConfig {
     /// option.c:6139-6190 does a quadratic alias-target pointer construction
     /// followed by loop detection. This index plus iterative graph walk is
     /// linear expected time and cannot overflow the call stack on a long chain.
-    pub fn validate_cnames(&self) -> Result<(), Error> {
+    pub fn cname_loop_alias(&self) -> Option<&[u8]> {
         let index: HashMap<Vec<u8>, usize> = self
             .cnames
             .iter()
@@ -405,11 +405,13 @@ impl RecordConfig {
             .map(|record| index.get(&ascii_key(&record.target)).copied())
             .collect();
         let mut state = vec![0u8; self.cnames.len()];
-        for start in 0..state.len() {
+        // C prepends declarations and reports the first traversal root, even
+        // when that alias points into a later cycle.
+        for start in (0..state.len()).rev() {
             let mut node = Some(start);
             while let Some(current) = node {
                 if state[current] == 1 {
-                    return Err(Error("CNAME loop"));
+                    return Some(&self.cnames[start].alias);
                 }
                 if state[current] == 2 {
                     break;
@@ -426,7 +428,15 @@ impl RecordConfig {
                 node = next[current];
             }
         }
-        Ok(())
+        None
+    }
+
+    pub fn validate_cnames(&self) -> Result<(), Error> {
+        if self.cname_loop_alias().is_some() {
+            Err(Error("CNAME loop"))
+        } else {
+            Ok(())
+        }
     }
 
     /// Call once after the default domain has been obtained, including a

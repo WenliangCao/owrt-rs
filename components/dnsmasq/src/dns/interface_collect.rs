@@ -56,6 +56,7 @@ enum State {
 
 pub struct Enumeration {
     pub addresses: Vec<InterfaceAddress>,
+    pub interfaces: Vec<crate::interfaces::DnsInterface>,
     /// None means both family dumps completed. The addresses remain the
     /// observable C prefix when a later failure interrupts enumeration.
     pub error: Option<io::Error>,
@@ -70,6 +71,7 @@ pub struct InterfaceCollector {
     control: Option<OwnedFd>,
     bytes: Vec<u8>,
     addresses: Vec<InterfaceAddress>,
+    interfaces: Vec<crate::interfaces::DnsInterface>,
     deadline: Instant,
 }
 
@@ -104,6 +106,7 @@ impl InterfaceCollector {
             control: None,
             bytes: vec![0; 512],
             addresses: Vec::new(),
+            interfaces: Vec::new(),
             deadline: Instant::now(),
         })
     }
@@ -119,6 +122,7 @@ impl InterfaceCollector {
         }
         self.control = Some(unsafe { OwnedFd::from_raw_fd(raw) });
         self.addresses.clear();
+        self.interfaces.clear();
         self.deadline = Instant::now() + Duration::from_secs(3);
         self.start_family(10);
         Ok(())
@@ -166,6 +170,7 @@ impl InterfaceCollector {
             Err(error) if error.raw_os_error() == Some(105) => {
                 // ENOBUFS makes C restart from a clear IPv6 dump.
                 self.addresses.clear();
+                self.interfaces.clear();
                 self.start_family(10);
                 None
             }
@@ -177,6 +182,7 @@ impl InterfaceCollector {
         self.control = None;
         Enumeration {
             addresses: std::mem::take(&mut self.addresses),
+            interfaces: std::mem::take(&mut self.interfaces),
             error,
         }
     }
@@ -283,14 +289,17 @@ impl InterfaceCollector {
                         }
                     }
                     20 => {
-                        if let Some(row) = decode(
+                        if let Some((row, interface)) = decode(
                             &self.bytes[at + 16..at + length],
                             self.family,
                             self.control.as_ref().unwrap().as_raw_fd(),
                         )? {
                             // whine_malloc failure omits this individual C row.
-                            if self.addresses.try_reserve(1).is_ok() {
+                            if self.addresses.try_reserve(1).is_ok()
+                                && self.interfaces.try_reserve(1).is_ok()
+                            {
                                 self.addresses.push(row);
+                                self.interfaces.push(interface);
                             }
                         }
                     }
@@ -324,7 +333,11 @@ impl InterfaceCollector {
 fn malformed() -> io::Error {
     io::Error::new(io::ErrorKind::InvalidData, "invalid interface address dump")
 }
-fn decode(bytes: &[u8], family: u8, control: i32) -> io::Result<Option<InterfaceAddress>> {
+fn decode(
+    bytes: &[u8],
+    family: u8,
+    control: i32,
+) -> io::Result<Option<(InterfaceAddress, crate::interfaces::DnsInterface)>> {
     if bytes.len() < 8 {
         return Err(malformed());
     }
@@ -339,6 +352,10 @@ fn decode(bytes: &[u8], family: u8, control: i32) -> io::Result<Option<Interface
         return Err(io::Error::last_os_error());
     }
     let mut label = raw[..16].split(|&byte| byte == 0).next().unwrap().to_vec();
+    if unsafe { ioctl(control, 0x8913, raw.as_mut_ptr()) } < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    let loopback = u16::from_ne_bytes(raw[16..18].try_into().unwrap()) & 8 != 0;
     let mut local = None;
     let mut fallback = None;
     let mut at = 8;
@@ -372,10 +389,32 @@ fn decode(bytes: &[u8], family: u8, control: i32) -> io::Result<Option<Interface
     if address.is_unspecified() {
         return Ok(None);
     }
-    Ok(Some(InterfaceAddress {
-        label,
+    let netmask = if family == 2 {
+        IpAddr::V4(Ipv4Addr::from(
+            u32::MAX.wrapping_shl(32u32.wrapping_sub(u32::from(bytes[1]))),
+        ))
+    } else {
+        IpAddr::V6(Ipv6Addr::from(
+            u128::MAX
+                .checked_shl(128u32.wrapping_sub(u32::from(bytes[1])))
+                .unwrap_or(0),
+        ))
+    };
+    let interface = crate::interfaces::DnsInterface {
+        index,
+        name: label.clone(),
         address,
-        prefix: bytes[1],
-        flags: bytes[2],
-    }))
+        netmask,
+        loopback,
+        tentative: bytes[2] & 0x40 != 0,
+    };
+    Ok(Some((
+        InterfaceAddress {
+            label,
+            address,
+            prefix: bytes[1],
+            flags: bytes[2],
+        },
+        interface,
+    )))
 }
