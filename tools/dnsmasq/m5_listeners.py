@@ -81,6 +81,7 @@ def scenarios():
         add('tftp-change', mode, 'interface=lan\nenable-tftp\ntftp-root=/m2/tftp\n',
             actions=['address-change'], tftp=True)
         add('tftp-single-scope', mode, 'enable-tftp\ntftp-root=/m2/tftp\ntftp-single-port\n', tftp=True)
+        add('tftp-only', mode, 'interface=lan\nenable-tftp\ntftp-root=/m2/tftp\n', tftp=True,port=0)
     for mode in ['static', 'dynamic']:
         for profile, extra in [('dad', ''), ('dad-explicit', 'listen-address=fd42:77::9\n'),
                                ('dad-failed', ''), ('dad-low-port', 'user=nobody\ngroup=nogroup\n')]:
@@ -88,6 +89,8 @@ def scenarios():
                 port=53 if profile == 'dad-low-port' else DNS_PORT)
         add('tftp-dad', mode, 'interface=lan\nenable-tftp\ntftp-root=/m2/tftp\n',
             actions=['dad'], dad=True, tftp=True)
+        add('tftp-dad-low-port', mode, 'interface=lan\nenable-tftp\ntftp-root=/m2/tftp\nuser=nobody\ngroup=nogroup\n',
+            actions=['dad'], dad=True, tftp=True,port=0)
         add('missing-address', mode, 'listen-address=192.0.2.111\n')
         for transport in ['udp', 'tcp', 'tftp']:
             add('occupied-'+transport, mode, 'interface=lan\n'+(
@@ -97,6 +100,8 @@ def scenarios():
         add(profile, 'dynamic', 'interface=lan,'+('dup0' if profile=='duplicate-address' else 'late0')+'\n'+(
             'listen-address=192.0.2.111\n' if profile == 'late-address' else ''), actions=[profile])
     add('conflicting-modes', 'static', 'bind-dynamic\n')
+    for profile in ['runtime-shared-tftp','runtime-shared-dns-both','runtime-shared-all']:
+        add(profile,'dynamic','interface=lan\nenable-tftp\ntftp-root=/m2/tftp\n',tftp=True)
     for mode in MODES:
         for profile, config in [('relay', 'interface=client0\n'),
                                 ('relay-union', 'interface=absent0\nlisten-address=10.77.0.1\n'),
@@ -293,6 +298,7 @@ def relay_run(root,side,item,out):
 def execute(root,side,item,out):
     if item.get('relay'): return relay_run(root,side,item,out)
     net=process=blocker=None
+    blockers=[]
     observer=None
     rows=[]
     try:
@@ -333,6 +339,29 @@ def execute(root,side,item,out):
                 for transport in ['udp','tcp']+(['tftp'] if item.get('tftp') else []):
                     observer.ask('dad-final-'+transport,'fd42:77::9',transport,'lpeer')
                 observer.ask('dad-surviving-udp',V4['lan'],link='lpeer')
+            elif profile.startswith('runtime-shared-'):
+                blocked=[]
+                if profile in ['runtime-shared-dns-both','runtime-shared-all']:blocked.extend([('udp',port),('tcp',port)])
+                if profile in ['runtime-shared-tftp','runtime-shared-all']:blocked.append(('udp',69))
+                observer.sockets('shared-before')
+                for proto,blocked_port in blocked:
+                    endpoint=socket.socket(socket.AF_INET,socket.SOCK_STREAM if proto=='tcp' else socket.SOCK_DGRAM)
+                    endpoint.setsockopt(socket.SOL_IP,15,1)
+                    endpoint.bind(('10.77.0.9',blocked_port))
+                    if proto=='tcp':endpoint.listen(1)
+                    blockers.append(endpoint)
+                ip('addr','add','10.77.0.9/24','dev','lan')
+                observer.sockets('shared-partial')
+                for proto in ['udp','tcp','tftp']:observer.ask('shared-before-release-'+proto,'10.77.0.9',proto,'lpeer')
+                for endpoint in blockers:endpoint.close()
+                blockers.clear()
+                observer.sockets('shared-released')
+                for proto in ['udp','tcp','tftp']:observer.ask('shared-after-release-'+proto,'10.77.0.9',proto,'lpeer')
+                ip('addr','add','10.77.0.10/24','dev','lan')
+                observer.sockets('shared-trigger')
+                for proto in ['udp','tcp','tftp']:observer.ask('shared-after-trigger-'+proto,'10.77.0.9',proto,'lpeer')
+                ip('addr','del','10.77.0.9/24','dev','lan');ip('addr','del','10.77.0.10/24','dev','lan')
+                observer.sockets('shared-removed')
             elif profile.startswith('runtime-occupied-'):
                 transport=profile.rsplit('-',1)[1]
                 observer.sockets('before-occupied')
@@ -395,6 +424,7 @@ def execute(root,side,item,out):
     finally:
         ended=stop(process)
         if blocker: blocker.close()
+        for endpoint in blockers:endpoint.close()
         peer=net.close() if net else None
         save(out/'cleanup.json',dict(daemon=ended,peer=peer))
     rows.append(dict(case='exit',exit=ended['returncode'],forced=ended['forced']))
@@ -466,6 +496,11 @@ def expected_answer(item,case,side='c'):
     """Source-derived reachability guards, independent of observed Rust data."""
     profile,mode=item['profile'],item['mode']
     bound=mode!='wildcard'
+    proto=case.rsplit('-',1)[1]
+    if item.get('port')==0 and proto!='tftp':return False
+    if case.startswith('shared-'):
+        if profile=='runtime-shared-all':return case.startswith('shared-after-trigger-')
+        return (proto=='tftp')==(profile=='runtime-shared-dns-both')
     if case.startswith('dad-'):
         return profile!='dad-failed' or not case.startswith('dad-final-')
     if case.startswith('partial-'):
@@ -476,7 +511,6 @@ def expected_answer(item,case,side='c'):
     if case.startswith('late-') or case=='duplicate-owner':return True
     if case.startswith('cross-'):
         return case.endswith('-tcp') and bound or case.startswith('cross-v4-') and mode=='static'
-    proto=case.rsplit('-',1)[1]
     if proto not in ['udp','tcp','tftp']:return None
     if case.startswith('lo'):
         tag=case.rsplit('-',1)[0]
@@ -510,7 +544,7 @@ def expected_answer(item,case,side='c'):
     if profile=='listen-only':return link=='lan' and tag in ['v4','v6']
     if profile in ['alias','wildcard-empty','tftp-alias']:
         return link=='lan' and tag=='alias' and (bound or proto!='tcp')
-    if profile in ['interface','cross-ingress','address-change','recreate','down-link','tftp-change']:
+    if profile in ['interface','cross-ingress','address-change','recreate','down-link','tftp-change','tftp-only']:
         return link=='lan' and (tag!='alias' or not bound)
     if profile=='union':return link=='wan' and tag in ['v4','v6'] or link=='lan' and (tag!='alias' or not bound)
     if profile=='wildcard-names':return link=='lan'
@@ -568,6 +602,12 @@ def main():
     checklist=json.loads((HERE/'m5_listeners.json').read_text())
     cases=scenarios()
     if args.freeze:
+        for requirement in checklist['requirements']:
+            if requirement['id']=='partial-dynamic-listener':
+                requirement['profiles']=list(dict.fromkeys(requirement['profiles']+['runtime-shared-tftp','runtime-shared-dns-both','runtime-shared-all']))
+                requirement['boundary']='A successful UDP, TCP or TFTP transport sets iface->done for all three. Missing transports do not reappear when blockers are released. If all three fail, a later interface event retries the whole group.'
+            if requirement['id']=='tftp-selection':requirement['profiles']=list(dict.fromkeys(requirement['profiles']+['tftp-only']))
+            if requirement['id']=='dad-capabilities':requirement['profiles']=list(dict.fromkeys(requirement['profiles']+['tftp-dad-low-port']))
         checklist['required_cases']=[item['name'] for item in cases]
         checklist['cases']=cases
         save(HERE/'m5_listeners.json',checklist)
