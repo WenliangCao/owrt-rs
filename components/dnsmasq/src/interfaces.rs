@@ -28,6 +28,15 @@ pub struct DnsInterface {
     pub address: IpAddr,
     pub netmask: IpAddr,
     pub loopback: bool,
+    /// IFA_F_TENTATIVE is an address flag, independent of IFF_UP.
+    pub tentative: bool,
+}
+
+impl DnsInterface {
+    /// IPv4 address labels select addresses; ingress/TFTP uses the real link.
+    pub fn link_name(&self) -> &[u8] {
+        self.name.split(|byte| *byte == b':').next().unwrap_or(&[])
+    }
 }
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -150,13 +159,23 @@ mod linux {
         if unsafe { getifaddrs(&mut head) } < 0 {
             return Err(io::Error::last_os_error());
         }
+        struct Addresses(*mut IfAddrs);
+        impl Drop for Addresses {
+            fn drop(&mut self) {
+                // SAFETY: precisely the owned list returned by getifaddrs.
+                unsafe { freeifaddrs(self.0) };
+            }
+        }
+        let _addresses = Addresses(head);
+        let tentative = tentative_addresses()?;
         let mut current = head;
         let mut result = Vec::new();
         while !current.is_null() {
             // SAFETY: this node belongs to the live getifaddrs list.
             let entry = unsafe { &*current };
             current = entry.next;
-            if entry.flags & 1 == 0 || entry.name.is_null() {
+            // C enumerates addresses on down links as well as up links.
+            if entry.name.is_null() {
                 continue;
             }
             let address = unsafe { interface_ip(entry.address) };
@@ -171,13 +190,36 @@ mod linux {
                         address,
                         netmask,
                         loopback: entry.flags & 8 != 0,
+                        tentative: match address {
+                            IpAddr::V6(ip) => tentative.contains(&(ip, index)),
+                            IpAddr::V4(_) => false,
+                        },
                     });
                 }
             }
         }
-        // SAFETY: all data has been copied and no pointer escapes.
-        unsafe { freeifaddrs(head) };
         Ok(result)
+    }
+
+    // getifaddrs exports link flags. procfs exports the same IPv6 address
+    // flags which dnsmasq's netlink callback uses, within this namespace.
+    fn tentative_addresses() -> io::Result<Vec<(Ipv6Addr, u32)>> {
+        let rows = match std::fs::read_to_string("/proc/net/if_inet6") {
+            Ok(rows) => rows,
+            Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(Vec::new()),
+            Err(error) => return Err(error),
+        };
+        Ok(rows.lines().filter_map(tentative_address).collect())
+    }
+
+    fn tentative_address(row: &str) -> Option<(Ipv6Addr, u32)> {
+        let mut fields = row.split_ascii_whitespace();
+        let address = u128::from_str_radix(fields.next()?, 16).ok()?;
+        let interface = u32::from_str_radix(fields.next()?, 16).ok()?;
+        fields.next()?; // prefix length
+        fields.next()?; // scope
+        let flags = u32::from_str_radix(fields.next()?, 16).ok()?;
+        (flags & 0x40 != 0).then_some((Ipv6Addr::from(address), interface))
     }
 
     unsafe fn interface_ip(pointer: *const u8) -> Option<IpAddr> {
@@ -216,6 +258,19 @@ mod linux {
     #[cfg(test)]
     mod tests {
         use super::*;
+
+        #[test]
+        fn address_flags_distinguish_dad_from_link_flags() {
+            assert_eq!(
+                tentative_address("fe800000000000000000000000000001 02 40 20 40 br-lan"),
+                Some(("fe80::1".parse().unwrap(), 2))
+            );
+            assert_eq!(
+                tentative_address("fe800000000000000000000000000001 02 40 20 80 br-lan"),
+                None
+            );
+            assert_eq!(tentative_address("incomplete row"), None);
+        }
 
         #[test]
         #[ignore = "requires a private Linux network namespace"]

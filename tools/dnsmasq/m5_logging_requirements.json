@@ -1,0 +1,1684 @@
+{
+  "schema": 1,
+  "qualification_ready": false,
+  "source_reference": "matching upstream dnsmasq-2.93, exact image OpenWrt25.12.5 dnsmasq nodhcpv6",
+  "image_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "source_files": {
+    "option.c": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
+    "log.c": "a205b9cbf9556b01f483b43e732df1ae411c82d622a0e5449f79d43b0267c47c",
+    "dnsmasq.c": "d4bb7cde522376200a0293427b0812625ebc457f10dc9d3e2bef243ccba8ccd1",
+    "cache.c": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c",
+    "forward.c": "ac05784d4233ed10bd166da5fe91e464afecf2883d3c2a0063305d3e81692f95",
+    "rfc1035.c": "231f0b4989039ff4963f3916df22871dd13025dde65769465b2b3052ad807222",
+    "rfc2131.c": "14f2e10792ef6108aeb7b69e551f089ba287c8c84d39ea178a5f33acd2038c2c",
+    "tftp.c": "a6971bf4ce77c0ca4c7ebf0194a2ee9c2ad702b1b8a882d46de87c6c6f5e63f3",
+    "dhcp.c": "600dc068b0516d7edebcde9b02ae2091a278fc154551106823ddc388170d7001",
+    "dhcp-common.c": "9139906c5d3a438853fe84e90387cfc299c3c28e7b16a23c7d0d6922847ccc79",
+    "util.c": "33920165ef3e92f65d1cab75fe8da7772ad7389b37da79ba881957080f12f973",
+    "dump.c": "71223f910aa62ffe89292701433f3424813d5c76b597b9c41b6186c8860401e8",
+    "dnsmasq.h": "318942419598f037a97611efbdea5aebba1e384b9a1ba5f7eded091c86e0e228",
+    "config.h": "dacbe1f8d0e03d93e53a81901956b07ab7a5059d1e5db3225150a9688a1122da",
+    "network.c": "8229872d30a2fb2d86ec9a9e550e51fbb8d8d97926e7a02b0137f2a7b40c40c9"
+  },
+  "rules": [
+    "Every required boundary must map to executed paired scenarios before an option can close.",
+    "C-only or syntax-only runs never qualify runtime contracts.",
+    "C nanosleep/blocking behavior differences remain explicit; do not delete guards or relabel differences.",
+    "dumpfile/dumpmask are a separate subsequent packet-capture subfamily."
+  ],
+  "options": {
+    "log-facility": {
+      "required": [
+        {
+          "id": "FAC01",
+          "source": "option.c:2279-2297",
+          "boundary": "Argument containing slash or exactly - selects file; remaining values use ASCII case-insensitive musl facilitynames including security/mark; unknown and empty reject bad log facility.",
+          "required_scenarios": []
+        },
+        {
+          "id": "FAC02",
+          "source": "option.c:2279-2297,log.c:68-80",
+          "boundary": "Facility and file are independent across CLI/config origins; explicit facility overrides daemon/local0 default.",
+          "required_scenarios": []
+        },
+        {
+          "id": "FAC03",
+          "source": "log.c:70-89,361-392",
+          "boundary": "Normal default LOG_DAEMON; debug default LOG_LOCAL0; only syslog payload includes PRI; file/stderr do not.",
+          "required_scenarios": []
+        },
+        {
+          "id": "FAC04",
+          "source": "log.c:80-109,135-160",
+          "boundary": "File append/create0640 after umask022; - duplicates inherited stderr; file disables async queue; file/socket/dup opening failure code3.",
+          "required_scenarios": []
+        },
+        {
+          "id": "FAC05",
+          "source": "log.c:111-128",
+          "boundary": "Initial file selected passwd owner in normal/debug mode; preserve group, make group-root writable if getgid0; nonfatal chown warning.",
+          "required_scenarios": []
+        },
+        {
+          "id": "FAC06",
+          "source": "log.c:362-390",
+          "boundary": "RFC3164 local timestamp, subsystem/PID tag, final NUL stream vs elided NUL datagram vs newline file; total payload cap1024 including terminator.",
+          "required_scenarios": []
+        },
+        {
+          "id": "FAC07",
+          "source": "dnsmasq.c:1682-1688,log.c:135-167",
+          "boundary": "SIGUSR2 reopens file only; preserve existing stderr FD; close old FD before failed reopen; retries/ownership behavior.",
+          "required_scenarios": []
+        },
+        {
+          "id": "FAC08",
+          "source": "log.c:207-293",
+          "boundary": "EINTR retry; EAGAIN defer; ENOBUFS inhibit poll; reconnect ENOTCONN/ECONNREFUSED/EDESTADDRREQ/ECONNRESET; transient connect wait until next log; EPROTOTYPE toggles dgram/stream; EPIPE reopen; fatal write fallback syslog critical.",
+          "required_scenarios": []
+        },
+        {
+          "id": "FAC09",
+          "source": "log.c:296-328,446-456",
+          "boundary": "DHCP/TFTP/script suffix priority masking; debug suppression governed only by log-debug; poll writer registration and readiness gating.",
+          "required_scenarios": []
+        }
+      ]
+    },
+    "no-daemon": {
+      "required": [
+        {
+          "id": "NOD01",
+          "source": "dnsmasq.c:593-644",
+          "boundary": "Default daemon double fork/setsid/chdir root; parent success only after child startup error pipe closes; startup errors retain parent failure code.",
+          "required_scenarios": []
+        },
+        {
+          "id": "NOD02",
+          "source": "dnsmasq.c:593-705,startup identity paths",
+          "boundary": "-d preserves inherited streams/cwd, skips pid write/UID drop, SIGINT5; -k skips fork only and retains normal chdir/stdio/identity/PID behavior.",
+          "required_scenarios": []
+        },
+        {
+          "id": "NOD03",
+          "source": "log.c:68,80-88,301-319,364-372",
+          "boundary": "Debug echoes plain dnsmasq[-service]: message even with file/syslog; - suppresses duplicate echo; -k plus - suppresses timestamp only at primary stderr sink.",
+          "required_scenarios": []
+        },
+        {
+          "id": "NOD04",
+          "source": "dnsmasq.c:705-718",
+          "boundary": "-k/default redirect stdin/stdout/stderr after log_start, therefore - sink retains pre-redirect stderr descriptor.",
+          "required_scenarios": []
+        },
+        {
+          "id": "NOD05",
+          "source": "dnsmasq.c:859-1080,1752",
+          "boundary": "Startup message order/content: cache enable/disable/DNS disable, compile opts, interface/upstream/async/DHCP/TFTP warnings; normal SIGTERM exit notice.",
+          "required_scenarios": []
+        },
+        {
+          "id": "NOD06",
+          "source": "dnsmasq.c:584-607,network.c:884-894,util.c:352-359",
+          "boundary": "Signal pipe read/write nonblocking, primed EVENT_INIT; independent startup-error pipe has nonblocking writer and blocking reader. Pipe/fcntl failures exit5 before fork.",
+          "required_scenarios": []
+        },
+        {
+          "id": "NOD07",
+          "source": "dnsmasq.c:593-640",
+          "boundary": "-d dominates -k and skips daemonize; -k chdir root but keeps PID; default fork1 parent waits on pipe, child closes reader/setsid, fork2 middle exits0, grandchild not session leader.",
+          "required_scenarios": []
+        },
+        {
+          "id": "NOD08",
+          "source": "dnsmasq.c:607-639,1437-1510,dnsmasq.h:174-178",
+          "boundary": "fork1 failure directly fatal5; fork2 failure sent to original parent5. Reference C frame has native event/data/msg_sz int32 and msg without NUL, writer EINTR retry, parent errno restored. Rust own internal frame may differ; qualify external code/text/PID/EOF using each implementation actual framing.",
+          "required_scenarios": []
+        },
+        {
+          "id": "NOD09",
+          "source": "dnsmasq.c:615-625,1460-1488",
+          "boundary": "Parent closes writer, blocks only before owning service poll, consumes one fatal frame; clean EOF/header short read returns success0. Payload short read keeps event with NULL arg. Unknown events/child crash EOF are original-C abnormal cases, retained separately.",
+          "required_scenarios": []
+        },
+        {
+          "id": "NOD10",
+          "source": "dnsmasq.c:1090-1104,helper.c:80-174",
+          "boundary": "Daemon success closes own startup writer before check_servers/poll_resolv/initial cache reload. Helper inherits errfd until init finishes; every held writer affects original-parent EOF; no explicit success frame.",
+          "required_scenarios": []
+        },
+        {
+          "id": "NOD11",
+          "source": "dnsmasq.c:645-700",
+          "boundary": "PID file unlink then exclusive create0644 after final fork; PID is grandchild. Root open/write/close errors3; nonroot open failure ignored. Symlink target never overwritten; group/owner warnings do not fail.",
+          "required_scenarios": []
+        },
+        {
+          "id": "NOD12",
+          "source": "dnsmasq.c:645-718,1752-1765",
+          "boundary": "-d skips PID creation but normal SIGTERM removes configured PID path; SIGINT debug exits5 without cleanup. A later startup failure preserves newly written PID; normal SIGTERM removes after successful daemon startup.",
+          "required_scenarios": []
+        },
+        {
+          "id": "NOD13",
+          "source": "dnsmasq.c:703-730,log.c:68-128",
+          "boundary": "Log start occurs after final fork/PID and before stdio redirect. - captures inherited stderr before redirection; debug no redirect; relative PID/log paths resolve under root in default/-k, original cwd under -d.",
+          "required_scenarios": []
+        },
+        {
+          "id": "NOD14",
+          "source": "dnsmasq.c:730-800,helper.c:80-140",
+          "boundary": "Helper fork occurs in final daemon after log_start/stdio redirect and before daemon UID/GID/cap drop. Verify actual helper PPID/session/stdio/credentials, and no inherited logger/socket FDs after helper close_fds except required command/event/error pipes.",
+          "required_scenarios": []
+        },
+        {
+          "id": "NOD15",
+          "source": "dnsmasq.c:1437-1545,log.c:296-328,479-499",
+          "boundary": "After fork child startup failure only sends event/_exit0. Original parent prints first pretty stderr error and both critical syslog messages; it retains default DAEMON24 facility and original-parent PID regardless child facility/file configuration.",
+          "required_scenarios": []
+        },
+        {
+          "id": "NOD16",
+          "source": "dnsmasq.c:730-840,1499-1545,helper.c:110-138",
+          "boundary": "Credential/cap/helper/TFTP startup errors keep original C exit class: pid/log/TFTP3, fork/helper/UID/GID/cap5; unknown user/group preflight1 before fork. Helper failure also signals EVENT_DIE to daemon when default fork, with proper parent error handoff.",
+          "required_scenarios": []
+        },
+        {
+          "id": "NOD17",
+          "source": "dnsmasq.c:98-111,helper.c:132-174,network.c close_fds",
+          "boundary": "Initial inherited signal/FD/umask policy and helper exec inheritance stay exact; parent/child close their opposite pipe ends; helpers cannot keep an unintended writer or listener alive; shutdown leaves no owned process/FD leak.",
+          "required_scenarios": []
+        },
+        {
+          "id": "NOD18",
+          "source": "dnsmasq.c:1090-1104,1437-1488",
+          "boundary": "Startup success gate excludes first reload/check_servers failure; externally demonstrate parent exit while serving daemon remains alive, and later runtime failure cannot retroactively change parent status.",
+          "required_scenarios": []
+        }
+      ]
+    },
+    "log-async": {
+      "required": [
+        {
+          "id": "ASY01",
+          "source": "option.c:3477-3483,744-766,config.h:58",
+          "boundary": "Bare5, digits-only atoi wrap, values>100 cap100, zero disables queue, negative wrap boundary frozen against image; repeat/origin constraints.",
+          "required_scenarios": []
+        },
+        {
+          "id": "ASY02",
+          "source": "log.c:80-89,97-109,335-362",
+          "boundary": "File/stderr override async0; ordinary preallocated1; async allocation up to limit; saturation drops new records and preserves order.",
+          "required_scenarios": []
+        },
+        {
+          "id": "ASY03",
+          "source": "log.c:198-206",
+          "boundary": "After completed record emit exactly one warning overflow:N log entries lost and reset counter; subsequent overflow continues accounting.",
+          "required_scenarios": []
+        },
+        {
+          "id": "ASY04",
+          "source": "log.c:407-471",
+          "boundary": "Nonblocking deferred sends, partial stream writes, queue readiness, reconnect/down/recover/ENOBUFS; C nanosleep pacing and blocking flush are documented policy differences because product single poll owner may not sleep.",
+          "required_scenarios": []
+        },
+        {
+          "id": "ASY05",
+          "source": "log.c:182-190",
+          "boundary": "Forked record PID guard and TCP child logging behavior; Rust single owner preserves one emission, no new logging thread.",
+          "required_scenarios": []
+        }
+      ]
+    },
+    "log-queries": {
+      "required": [
+        {
+          "id": "QRY01",
+          "source": "option.c:3459-3475",
+          "boundary": "Bare/empty/unknown enable ordinary; extra,proto,auth,only_failed flags accumulate across repeats, proto implies extra, auth suppresses recursive logs on this no-auth image.",
+          "required_scenarios": []
+        },
+        {
+          "id": "QRY02",
+          "source": "cache.c:2312-2342",
+          "boundary": "only_failed includes F_RCODE/F_NEG including NXDOMAIN and NODATA; excludes successful query/forward/reply; auth gate F_NOERR.",
+          "required_scenarios": []
+        },
+        {
+          "id": "QRY03",
+          "source": "cache.c:2344-2444",
+          "boundary": "sanitise QNAME; null name removes gap, root prints dot; query-type and unknown TYPE/CLASS/opcode labels; A/AAAA/PTR/reverse/CNAME/RRNAME data.",
+          "required_scenarios": []
+        },
+        {
+          "id": "QRY04",
+          "source": "cache.c:2372-2411",
+          "boundary": "RCODE SERVFAIL/REFUSED/FORMERR/NOTIMP/numeric and EDE wording including unset; forwarded non53 port appended #port.",
+          "required_scenarios": []
+        },
+        {
+          "id": "QRY05",
+          "source": "cache.c:2420-2478",
+          "boundary": "Source precedence config/DHCP/hosts/reply/auth/query/validation/forwarded/stale/cached; reverse swap; NEG NXDOMAIN vs typed NODATA and CNAME placeholder.",
+          "required_scenarios": []
+        },
+        {
+          "id": "QRY06",
+          "source": "cache.c:2478-2515,forward.c callers",
+          "boundary": "Extra per-client id/address/port on UDP/TCP, retries and multi-source replies. Normal TCP accept reserves100 IDs in parent and session starts from inherited sequence; debug TCP shares parent sequence without reservation. proto chooses UDP/TCP from signed display id; NOEXTRA omits client prefix; restore pending forward client context before logging replies.",
+          "required_scenarios": []
+        },
+        {
+          "id": "QRY07",
+          "source": "forward.c,rfc1035.c,cache.c log_query caller inventory",
+          "boundary": "Every image-enabled local/forward/cache/bogus/filter/rebind/loop/error producer reachable through UDP and TCP; final answer bytes must remain unchanged when logging enabled.",
+          "required_scenarios": []
+        }
+      ]
+    },
+    "log-dhcp": {
+      "required": [
+        {
+          "id": "DHP01",
+          "source": "rfc2131.c:1923-1959",
+          "boundary": "Routine packet log exact spacing address/MAC/client string/error; detailed xid network conversion; quiet suppression only when no err and no detail; ACK/release UBus uses same gate.",
+          "required_scenarios": []
+        },
+        {
+          "id": "DHP02",
+          "source": "rfc2131.c:405-427,536-541,773-774",
+          "boundary": "Available subnet/range, vendor class, user class, client supplied printable name before packet outcomes; tag ordering and string sanitisation.",
+          "required_scenarios": []
+        },
+        {
+          "id": "DHP03",
+          "source": "rfc2131.c:1961-1975,2091-2118,2641-2658",
+          "boundary": "Sent options size/number/name/value order; overloaded fields; requested options split/unknown labels; bootfile/server/nextserver/broadcast messages.",
+          "required_scenarios": []
+        },
+        {
+          "id": "DHP04",
+          "source": "dhcp-common.c:265-297,rfc2131.c:1289-1293,3050-3056,3211-3218",
+          "boundary": "tags list enabled by log-dhcp only; ignored DISCOVER quiet short-circuit applies even with detail, reply-delay quiet gate independent of detail, DHCP relay detail selection.",
+          "required_scenarios": []
+        },
+        {
+          "id": "DHP05",
+          "source": "rfc2131.c packet log callers",
+          "boundary": "DISCOVER/OFFER/REQUEST/ACK/NAK/DECLINE/RELEASE/INFORM/BOOTP/PXE/proxy/leasequery success/error/ignore cases; static conflict and missing range warnings preserved.",
+          "required_scenarios": []
+        }
+      ]
+    },
+    "quiet-dhcp": {
+      "required": [
+        {
+          "id": "QDH01",
+          "source": "rfc2131.c:1923-1959",
+          "boundary": "Suppress successful routine packets and associated ACK/release UBus only without log-dhcp; errors stay logged; enabling log-dhcp overrides routine suppression.",
+          "required_scenarios": []
+        },
+        {
+          "id": "QDH02",
+          "source": "rfc2131.c:1289-1293,3050-3056",
+          "boundary": "Quiet ignored DISCOVER returns before routine packet log even with log-dhcp; reply-delay message suppressed even with detail; log-dhcp tags/details and independent warnings/errors remain.",
+          "required_scenarios": []
+        }
+      ]
+    },
+    "quiet-tftp": {
+      "required": [
+        {
+          "id": "QTF01",
+          "source": "tftp.c:882-898",
+          "boundary": "Suppress only ERR_FNF logs; retain TFTP error response and filename printable sanitise/truncation; bad permissions/mode/opcode/read failure always log.",
+          "required_scenarios": []
+        },
+        {
+          "id": "QTF02",
+          "source": "tftp.c:735-739,821-822",
+          "boundary": "Completed transfer sent log, timeout/failed sending, remote client error and no-free-port messages unaffected by quiet.",
+          "required_scenarios": []
+        }
+      ]
+    },
+    "log-debug": {
+      "required": [
+        {
+          "id": "DBG01",
+          "source": "option.c:596,log.c:307-315",
+          "boundary": "Suppress MS_DEBUG logs only unless option enabled; LOG_DEBUG script output remains emitted independent of option.",
+          "required_scenarios": []
+        },
+        {
+          "id": "DBG02",
+          "source": "all MS_DEBUG my_syslog callers",
+          "boundary": "Freeze and reproduce all image-enabled debug producers, payloads and ordering; do not fabricate substitute debug event.",
+          "required_scenarios": []
+        }
+      ]
+    },
+    "log-malloc": {
+      "required": [
+        {
+          "id": "MAL01",
+          "source": "dnsmasq.c:859,util.c:932-957,1005-1019",
+          "boundary": "Enable after daemon init; calloc/realloc/expand/free wrapper successful trace includes function:source-line bytes truncated pointer24 bits, failures remain error logs.",
+          "required_scenarios": []
+        },
+        {
+          "id": "MAL02",
+          "source": "cache.c and all whine_malloc/realloc/expand/free callers",
+          "boundary": "Identify caller-visible allocation trace contract and architectural differences explicitly; Rust allocator events cannot be claimed exact C source line/address equality.",
+          "required_scenarios": []
+        }
+      ]
+    },
+    "no-ident": {
+      "required": [
+        {
+          "id": "ID01",
+          "source": "option.c:6096-6117,image compile options no-ID",
+          "boundary": "Exact image has NO_ID: Boolean accepted but no generated CHAOS identity/stat records in default/enabled mode; explicit user IN TXT records remain unchanged.",
+          "required_scenarios": [
+            "no-ident-default",
+            "no-ident-enabled",
+            "no-ident-full-default",
+            "no-ident-full-enabled"
+          ]
+        },
+        {
+          "id": "ID02",
+          "source": "rfc1035.c:1806-1855",
+          "boundary": "QCLASS CHAOS3 *.bind/*.server including bare domains, nested suffix and ASCII case always NOTIMP without CHAOS answer; badbind/badserver and literal-dot final label stay negative; UDP/TCP, A/AAAA/TXT/QTYPE ANY; exact raw replies.",
+          "required_scenarios": [
+            "no-ident-full-default",
+            "no-ident-full-enabled"
+          ]
+        },
+        {
+          "id": "ID03",
+          "source": "option.c:5155-5184,rfc1035.c:1806-1816",
+          "boundary": "Explicit TXT always classIN1; QTYPE TXT/ANY and classIN retains records including reserved-looking names; QCLASS ANY255 does not match IN records; no configurable explicit CHAOS TXT in image public option.",
+          "required_scenarios": [
+            "no-ident-full-default",
+            "no-ident-full-enabled"
+          ]
+        },
+        {
+          "id": "ID04",
+          "source": "rfc1035.c:1841-1855,wire extract_name",
+          "boundary": "Earlier binary labels containing literal dot/NUL/byte1 still retain final bind/server suffix; final literal-dot labels do not create suffix boundaries; RD0/1 and EDNS DO0/1, raw question/reply preserved.",
+          "required_scenarios": [
+            "no-ident-full-default",
+            "no-ident-full-enabled"
+          ]
+        }
+      ],
+      "qualification_ready": true
+    },
+    "help": {
+      "required": [
+        {
+          "id": "HLP01",
+          "source": "option.c:827-871,6039-6053",
+          "boundary": "CLI help immediate terminal0 without reading default config; general full option list/source-defined formatting; help dhcp only argc3 and argv2 exact dhcp.",
+          "required_scenarios": [
+            "cli-help",
+            "cli-help-invalid-default",
+            "cli-help-unknown",
+            "cli-help-dhcp6",
+            "cli-help-dhcp-extra"
+          ]
+        },
+        {
+          "id": "HLP02",
+          "source": "dhcp-common.c display_opts/option_names",
+          "boundary": "DHCP4 list64 excludes OT_INTERNAL, prints exact numeric table order and option names; unknown extra help operands and unavailable DHCP6 select general usage.",
+          "required_scenarios": [
+            "cli-help-dhcp"
+          ]
+        }
+      ],
+      "qualification_ready": true
+    },
+    "version": {
+      "required": [
+        {
+          "id": "VER01",
+          "source": "option.c:6055-6063",
+          "boundary": "CLI version immediate0 without reading config; compile options exact image and unchanged init callers; every GPL2/3 and warranty line exact; only first line adds explicit dnsmasq-rs0.1.0 Rust implementation identity.",
+          "required_scenarios": [
+            "cli-version",
+            "cli-version-invalid-default"
+          ]
+        }
+      ],
+      "qualification_ready": true
+    },
+    "test": {
+      "required": [
+        {
+          "id": "TST01",
+          "source": "option.c:6322-6329",
+          "boundary": "Final syntax success to stderr exactly dnsmasq: syntax check OK.; parse/default/include/hostname/CNAME/crossoption errors before success; no runtime sink opening or daemon validation.",
+          "required_scenarios": []
+        }
+      ]
+    },
+    "dumpfile": {
+      "required": [
+        {
+          "id": "DMP01",
+          "source": "option.c:2374-2381,5990,dump.c:46-93",
+          "boundary": "Independent next subfamily: file and default dump mask0xffffffff; create0600 PCAP2.4 native-endian magic/DLT_RAW101/snaplen edns+200; FIFO append RDWR header; existing magic only validated and packet count scans.",
+          "required_scenarios": []
+        },
+        {
+          "id": "DMP02",
+          "source": "dump.c:95-301,dhcp.c/forward.c/tftp.c dump call inventory",
+          "boundary": "UDP/ICMP origination source/destination/port reconstruction, IPv4/IPv6 lengths/checksums,timestamp and success-only record count/log; startup file/header failures3; runtime write failure logs error and later packets continue.",
+          "required_scenarios": []
+        }
+      ]
+    },
+    "dumpmask": {
+      "required": [
+        {
+          "id": "DMK01",
+          "source": "option.c:2378-2381,dnsmasq.h DUMP constants,dump.c:106-129",
+          "boundary": "Unchecked strtol base0 cast to int, including decimal/octal/hex/signed/overflow/trailing input, invalid converts0; mask gating image-enabled DNS/DHCP/TFTP/ICMP bits; excluded DNSSEC gates stated.",
+          "required_scenarios": []
+        }
+      ]
+    }
+  },
+  "producer_inventory": {
+    "option.c": [
+      {
+        "line": 5607,
+        "call": "my_syslog(LOG_ERR, \"%s\", daemon->namebuff);"
+      },
+      {
+        "line": 5619,
+        "call": "my_syslog(MS_DHCP | LOG_INFO, _(\"read %s\"), file);"
+      },
+      {
+        "line": 5696,
+        "call": "my_syslog(LOG_ERR, str, file, strerror(errno));"
+      },
+      {
+        "line": 5772,
+        "call": "my_syslog(LOG_ERR, _(\"cannot access directory %s: %s\"),"
+      },
+      {
+        "line": 5854,
+        "call": "my_syslog(LOG_ERR, _(\"cannot read %s: %s\"), daemon->servers_file, strerror(errno));"
+      },
+      {
+        "line": 5930,
+        "call": "my_syslog(MS_DHCP | LOG_INFO, _(\"read %s\"), hf->fname);"
+      },
+      {
+        "line": 5941,
+        "call": "my_syslog(MS_DHCP | LOG_INFO, _(\"read %s\"), hf->fname);"
+      }
+    ],
+    "log.c": [
+      {
+        "line": 203,
+        "call": "my_syslog(LOG_WARNING, _(\"overflow: %d log entries lost\"), e);"
+      },
+      {
+        "line": 237,
+        "call": "stop trying until the next call to my_syslog()"
+      },
+      {
+        "line": 281,
+        "call": "my_syslog(LOG_CRIT, _(\"log failed: %s\"), strerror(errno));"
+      },
+      {
+        "line": 290,
+        "call": "void my_syslog(int priority, const char *format, ...)"
+      },
+      {
+        "line": 488,
+        "call": "my_syslog(LOG_CRIT, message, arg1, errmess);"
+      },
+      {
+        "line": 490,
+        "call": "my_syslog(LOG_CRIT, _(\"FAILED to start up\"));"
+      }
+    ],
+    "dnsmasq.c": [
+      {
+        "line": 862,
+        "call": "my_syslog(LOG_INFO, _(\"started, version %s DNS disabled\"), VERSION);"
+      },
+      {
+        "line": 867,
+        "call": "my_syslog(LOG_INFO, _(\"started, version %s cachesize %d\"), VERSION, daemon->cachesize);"
+      },
+      {
+        "line": 869,
+        "call": "my_syslog(LOG_WARNING, _(\"cache size greater than 10000 may cause performance issues, and is unlikely to be useful.\"));"
+      },
+      {
+        "line": 872,
+        "call": "my_syslog(LOG_INFO, _(\"started, version %s cache disabled\"), VERSION);"
+      },
+      {
+        "line": 875,
+        "call": "my_syslog(LOG_INFO, _(\"DNS service limited to local subnets\"));"
+      },
+      {
+        "line": 877,
+        "call": "my_syslog(LOG_INFO, _(\"DNS service limited to localhost\"));"
+      },
+      {
+        "line": 880,
+        "call": "my_syslog(LOG_INFO, _(\"compile time options: %s\"), compile_opts);"
+      },
+      {
+        "line": 886,
+        "call": "my_syslog(LOG_INFO, \"chown of PID file %s failed: please add capability CAP_CHOWN\", daemon->runfile);"
+      },
+      {
+        "line": 889,
+        "call": "my_syslog(LOG_WARNING, \"chown of PID file %s failed: %s\", daemon->runfile, strerror(chown_warn));"
+      },
+      {
+        "line": 896,
+        "call": "my_syslog(LOG_INFO, _(\"DBus support enabled: connected to system bus\"));"
+      },
+      {
+        "line": 898,
+        "call": "my_syslog(LOG_INFO, _(\"DBus support enabled: bus connection pending\"));"
+      },
+      {
+        "line": 906,
+        "call": "my_syslog(LOG_INFO, _(\"UBus support enabled: connected to system bus\"));"
+      },
+      {
+        "line": 908,
+        "call": "my_syslog(LOG_INFO, _(\"UBus support enabled: bus connection pending\"));"
+      },
+      {
+        "line": 928,
+        "call": "my_syslog(LOG_INFO, _(\"DNSSEC validation enabled but all unsigned answers are trusted\"));"
+      },
+      {
+        "line": 930,
+        "call": "my_syslog(LOG_INFO, _(\"DNSSEC validation enabled\"));"
+      },
+      {
+        "line": 934,
+        "call": "my_syslog(LOG_INFO, _(\"DNSSEC signature timestamps not checked until receipt of SIGINT\"));"
+      },
+      {
+        "line": 937,
+        "call": "my_syslog(LOG_INFO, _(\"DNSSEC signature timestamps not checked until system time valid\"));"
+      },
+      {
+        "line": 957,
+        "call": "my_syslog(LOG_INFO,"
+      },
+      {
+        "line": 965,
+        "call": "my_syslog(LOG_WARNING, _(\"warning: failed to change owner of %s: %s\"),"
+      },
+      {
+        "line": 970,
+        "call": "my_syslog(LOG_WARNING, _(\"setting --bind-interfaces option because of OS limitations\"));"
+      },
+      {
+        "line": 983,
+        "call": "my_syslog(LOG_WARNING, _(\"warning: interface %s does not currently exist\"), if_tmp->name);"
+      },
+      {
+        "line": 988,
+        "call": "my_syslog(LOG_WARNING, _(\"warning: ignoring resolv-file flag because no-resolv is set\"));"
+      },
+      {
+        "line": 994,
+        "call": "my_syslog(LOG_INFO, _(\"no upstream servers configured - please set them from DBus\"));"
+      },
+      {
+        "line": 997,
+        "call": "my_syslog(LOG_WARNING, _(\"warning: no upstream servers configured\"));"
+      },
+      {
+        "line": 1002,
+        "call": "my_syslog(LOG_INFO, _(\"asynchronous logging enabled, queue limit is %d messages\"), daemon->max_logs);"
+      },
+      {
+        "line": 1023,
+        "call": "my_syslog(MS_DHCP | LOG_INFO, _(\"IPv6 router advertisement enabled\"));"
+      },
+      {
+        "line": 1028,
+        "call": "my_syslog(MS_DHCP | LOG_INFO, _(\"DHCP, sockets bound exclusively to interface %s\"), bound_device);"
+      },
+      {
+        "line": 1031,
+        "call": "my_syslog(LOG_WARNING, netlink_warn);"
+      },
+      {
+        "line": 1044,
+        "call": "my_syslog(MS_TFTP | LOG_INFO, \"TFTP %s%s %s %s\","
+      },
+      {
+        "line": 1051,
+        "call": "my_syslog(MS_TFTP | LOG_WARNING, _(\"warning: %s inaccessible\"), daemon->tftp_prefix);"
+      },
+      {
+        "line": 1055,
+        "call": "my_syslog(MS_TFTP | LOG_WARNING, _(\"warning: TFTP directory %s inaccessible\"), p->prefix);"
+      },
+      {
+        "line": 1080,
+        "call": "my_syslog(MS_TFTP | LOG_WARNING,"
+      },
+      {
+        "line": 1141,
+        "call": "my_syslog(LOG_ERR, _(\"error binding DHCP socket to device %s\"), bound_device);"
+      },
+      {
+        "line": 1211,
+        "call": "more calls to my_syslog() can occur */"
+      },
+      {
+        "line": 1275,
+        "call": "my_syslog(LOG_INFO, _(\"connected to system DBus\"));"
+      },
+      {
+        "line": 1278,
+        "call": "my_syslog(LOG_ERR, _(\"DBus error: %s\"), err);"
+      },
+      {
+        "line": 1296,
+        "call": "my_syslog(LOG_INFO, _(\"connected to system UBus\"));"
+      },
+      {
+        "line": 1299,
+        "call": "my_syslog(LOG_ERR, _(\"UBus error: %s\"), err);"
+      },
+      {
+        "line": 1641,
+        "call": "my_syslog(LOG_WARNING, _(\"TCP helper process %u died unexpectedly\"), (unsigned int)p);"
+      },
+      {
+        "line": 1657,
+        "call": "my_syslog(LOG_WARNING, _(\"script process killed by signal %d\"), ev.data);"
+      },
+      {
+        "line": 1661,
+        "call": "my_syslog(LOG_WARNING, _(\"script process exited with status %d\"), ev.data);"
+      },
+      {
+        "line": 1665,
+        "call": "my_syslog(LOG_ERR, _(\"failed to execute %s: %s\"),"
+      },
+      {
+        "line": 1670,
+        "call": "my_syslog(MS_SCRIPT | LOG_DEBUG, \"%s\", msg ? msg : \"\");"
+      },
+      {
+        "line": 1704,
+        "call": "my_syslog(LOG_INFO, _(\"now checking DNSSEC signature timestamps\"));"
+      },
+      {
+        "line": 1740,
+        "call": "my_syslog(LOG_ERR, _(\"failed to update mtime on %s: %s\"), daemon->timestamp_file, strerror(errno));"
+      },
+      {
+        "line": 1752,
+        "call": "my_syslog(LOG_INFO, _(\"exiting on receipt of SIGTERM\"));"
+      },
+      {
+        "line": 1780,
+        "call": "my_syslog(LOG_WARNING, _(\"failed to access %s: %s\"), res->name, strerror(errno));"
+      },
+      {
+        "line": 1811,
+        "call": "my_syslog(LOG_INFO, _(\"reading %s\"), latest->name);"
+      },
+      {
+        "line": 1827,
+        "call": "my_syslog(LOG_WARNING, _(\"no servers found in %s, will retry\"), latest->name);"
+      }
+    ],
+    "cache.c": [
+      {
+        "line": 760,
+        "call": "my_syslog(LOG_ERR, _(\"Internal error in cache.\"));"
+      },
+      {
+        "line": 1092,
+        "call": "my_syslog(LOG_INFO, _(\"TCP process for DNSSEC validation timed out\"));"
+      },
+      {
+        "line": 1147,
+        "call": "log_query((flags & (F_IPV4 | F_IPV6)) | F_IPSET, sets->domain, &addr, *sets_cur, op == PIPE_OP_IPSET);"
+      },
+      {
+        "line": 1447,
+        "call": "my_syslog(LOG_ERR, _(\"failed to load names from %s: %s\"), filename, strerror(errno));"
+      },
+      {
+        "line": 1469,
+        "call": "my_syslog(LOG_ERR, _(\"bad address at %s line %d\"), filename, lineno);"
+      },
+      {
+        "line": 1532,
+        "call": "my_syslog(LOG_ERR, _(\"bad name at %s line %d\"), filename, lineno);"
+      },
+      {
+        "line": 1543,
+        "call": "my_syslog(LOG_INFO, _(\"read %s - %d names\"), filename, names_done);"
+      },
+      {
+        "line": 1672,
+        "call": "my_syslog(LOG_INFO, _(\"cleared cache\"));"
+      },
+      {
+        "line": 1736,
+        "call": "my_syslog(MS_DHCP | LOG_WARNING, _(\"No IPv4 address found for %s\"), name);"
+      },
+      {
+        "line": 1780,
+        "call": "my_syslog(MS_DHCP | LOG_WARNING,"
+      },
+      {
+        "line": 1804,
+        "call": "my_syslog(MS_DHCP | LOG_WARNING,"
+      },
+      {
+        "line": 2130,
+        "call": "my_syslog(LOG_INFO, \"%s\", buff);"
+      },
+      {
+        "line": 2137,
+        "call": "my_syslog(LOG_INFO, _(\"time %lu\"), (unsigned long)now);"
+      },
+      {
+        "line": 2138,
+        "call": "my_syslog(LOG_INFO, _(\"cache size %d, %d/%d cache insertions re-used unexpired cache entries.\"),"
+      },
+      {
+        "line": 2140,
+        "call": "my_syslog(LOG_INFO, _(\"queries forwarded %u, queries answered locally %u\"),"
+      },
+      {
+        "line": 2143,
+        "call": "my_syslog(LOG_INFO, _(\"queries answered from stale cache %u\"), daemon->metrics[METRIC_DNS_STALE_ANSWERED]);"
+      },
+      {
+        "line": 2145,
+        "call": "my_syslog(LOG_INFO, _(\"queries for authoritative zones %u\"), daemon->metrics[METRIC_DNS_AUTH_ANSWERED]);"
+      },
+      {
+        "line": 2148,
+        "call": "my_syslog(LOG_INFO, _(\"DNSSEC per-query subqueries HWM %u\"), daemon->metrics[METRIC_WORK_HWM]);"
+      },
+      {
+        "line": 2149,
+        "call": "my_syslog(LOG_INFO, _(\"DNSSEC per-query crypto work HWM %u\"), daemon->metrics[METRIC_CRYPTO_HWM]);"
+      },
+      {
+        "line": 2150,
+        "call": "my_syslog(LOG_INFO, _(\"DNSSEC per-RRSet signature fails HWM %u\"), daemon->metrics[METRIC_SIG_FAIL_HWM]);"
+      },
+      {
+        "line": 2154,
+        "call": "my_syslog(LOG_INFO, _(\"child processes for TCP requests: in use %zu, highest since last SIGUSR1 %zu, max allowed %zu.\"),"
+      },
+      {
+        "line": 2183,
+        "call": "my_syslog(LOG_INFO, _(\"server %s#%d: queries sent %u, retried %u, failed %u, nxdomain replies %u, avg. latency %ums\"),"
+      },
+      {
+        "line": 2191,
+        "call": "my_syslog(LOG_INFO, \"Host                           Address                                  Flags      Expires                  Source\");"
+      },
+      {
+        "line": 2192,
+        "call": "my_syslog(LOG_INFO, \"------------------------------ ---------------------------------------- ---------- ------------------------ ------------\");"
+      },
+      {
+        "line": 2321,
+        "call": "void log_query(unsigned int flags, char *name, union all_addr *addr, char *arg, unsigned short type)"
+      },
+      {
+        "line": 2507,
+        "call": "my_syslog(LOG_INFO, \"%s%u %s %s%s%s %s%s\", proto, display_id, source, name, gap, verb, dest, extra);"
+      },
+      {
+        "line": 2511,
+        "call": "my_syslog(LOG_INFO, \"%s%u %s/%u %s %s%s%s %s%s\", proto, display_id, daemon->addrbuff2, port, source, name, gap, verb, dest, extra);"
+      },
+      {
+        "line": 2515,
+        "call": "my_syslog(LOG_INFO, \"%s %s%s%s %s%s\", source, name, gap, verb, dest, extra);"
+      }
+    ],
+    "forward.c": [
+      {
+        "line": 103,
+        "call": "my_syslog(LOG_ERR, _(\"failed to send packet: %s\"), strerror(errno));"
+      },
+      {
+        "line": 127,
+        "call": "log_query(flags | F_IPV4, name, (union all_addr *)&addr->in.sin_addr, arg, type);"
+      },
+      {
+        "line": 133,
+        "call": "log_query(flags | F_IPV6, name, (union all_addr *)&addr->in6.sin6_addr, arg, type);"
+      },
+      {
+        "line": 544,
+        "call": "dump_packet_udp(DUMP_UP_QUERY, (void *)header, plen, NULL, &srv->addr, fd);"
+      },
+      {
+        "line": 616,
+        "call": "dump_packet_udp(DUMP_REPLY, (void *)header, plen, NULL, udpaddr, udpfd);"
+      },
+      {
+        "line": 729,
+        "call": "my_syslog(LOG_WARNING, _(\"discarding DNS reply: subnet option mismatch\"));"
+      },
+      {
+        "line": 771,
+        "call": "my_syslog(LOG_WARNING, _(\"nameserver %s refused to do a recursive query\"), daemon->namebuff);"
+      },
+      {
+        "line": 786,
+        "call": "log_query(F_UPSTREAM | F_RCODE, \"error\", &a, NULL, 0);"
+      },
+      {
+        "line": 792,
+        "call": "log_query(F_UPSTREAM, NULL, NULL, \"truncated\", 0);"
+      },
+      {
+        "line": 836,
+        "call": "my_syslog(LOG_WARNING, _(\"possible DNS-rebind attack detected: %s\"), daemon->namebuff);"
+      },
+      {
+        "line": 931,
+        "call": "log_query(F_UPSTREAM | F_NOEXTRA, daemon->namebuff, NULL, \"truncated\", 0);"
+      },
+      {
+        "line": 1014,
+        "call": "my_syslog(LOG_WARNING, _(\"limit exceeded: per-query subqueries\"));"
+      },
+      {
+        "line": 1081,
+        "call": "dump_packet_udp(DUMP_SEC_QUERY, (void *)header, (size_t)nn, NULL, &server->addr, fd);"
+      },
+      {
+        "line": 1095,
+        "call": "my_syslog(LOG_WARNING, _(\"no server for parent domain of %s, assuming unsigned domain\"), daemon->keyname);"
+      },
+      {
+        "line": 1116,
+        "call": "my_syslog(LOG_WARNING, _(\"validation of %s failed: resource limit exceeded.\"),"
+      },
+      {
+        "line": 1122,
+        "call": "dump_packet_udp((forward->flags & (FREC_DNSKEY_QUERY | FREC_DS_QUERY)) ? DUMP_SEC_BOGUS : DUMP_BOGUS,"
+      },
+      {
+        "line": 1237,
+        "call": "dump_packet_udp((forward->flags & (FREC_DNSKEY_QUERY | FREC_DS_QUERY)) ? DUMP_SEC_REPLY : DUMP_UP_REPLY,"
+      },
+      {
+        "line": 1380,
+        "call": "log_query(F_SECSTAT, \"result\", NULL, \"TRUNCATED\", 0);"
+      },
+      {
+        "line": 1414,
+        "call": "log_query(F_SECSTAT, domain, &a, result, 0);"
+      },
+      {
+        "line": 1480,
+        "call": "dump_packet_udp(DUMP_REPLY, daemon->packet, (size_t)nn, NULL, &src->source, src->fd);"
+      },
+      {
+        "line": 1490,
+        "call": "log_query(F_UPSTREAM, \"query\", NULL, \"duplicate\", 0);"
+      },
+      {
+        "line": 1509,
+        "call": "log_query(F_UPSTREAM, NULL, NULL, \"truncated\", 0);"
+      },
+      {
+        "line": 1527,
+        "call": "dump_packet_udp(DUMP_REPLY, daemon->packet, (size_t)new, NULL, &src->source, src->fd);"
+      },
+      {
+        "line": 1713,
+        "call": "my_syslog(LOG_WARNING, _(\"ignoring query from non-local network %s (logged only once)\"), daemon->addrbuff);"
+      },
+      {
+        "line": 1831,
+        "call": "dump_packet_udp(DUMP_QUERY, daemon->packet, (size_t)n, &source_addr, NULL, listen->fd);"
+      },
+      {
+        "line": 1991,
+        "call": "dump_packet_udp(DUMP_REPLY, daemon->packet, m, NULL, &source_addr, listen->fd);"
+      },
+      {
+        "line": 2142,
+        "call": "my_syslog(LOG_DEBUG|MS_DEBUG, _(\"TCP connection failed to %s#%d\"), daemon->addrbuff, port);"
+      },
+      {
+        "line": 2311,
+        "call": "my_syslog(LOG_WARNING, _(\"limit exceeded: per-query subqueries\"));"
+      },
+      {
+        "line": 2319,
+        "call": "my_syslog(LOG_WARNING, _(\"validation of %s failed: resource limit exceeded.\"),"
+      },
+      {
+        "line": 2441,
+        "call": "my_syslog(LOG_WARNING, _(\"ignoring query from non-local network %s\"), daemon->addrbuff);"
+      },
+      {
+        "line": 2688,
+        "call": "log_query(F_SECSTAT, domain, &a, result, 0);"
+      },
+      {
+        "line": 2832,
+        "call": "my_syslog(LOG_ERR, _(\"failed to bind server socket to %s: %s\"),"
+      },
+      {
+        "line": 3221,
+        "call": "my_syslog(LOG_WARNING, _(\"Maximum number of concurrent DNS queries reached (max: %d)\"), daemon->ftabsize);"
+      },
+      {
+        "line": 3223,
+        "call": "my_syslog(LOG_WARNING, _(\"Maximum number of concurrent DNS queries to %s reached (max: %d)\"), domain, daemon->ftabsize);"
+      },
+      {
+        "line": 3271,
+        "call": "my_syslog(LOG_WARNING, _(\"Case mismatch in DNS reply - check bit 0x20 encoding.\"));"
+      }
+    ],
+    "rfc1035.c": [
+      {
+        "line": 571,
+        "call": "log_query(F_FORWARD | F_CONFIG | F_IPV4, namebuff, &addr, NULL, 0);"
+      },
+      {
+        "line": 753,
+        "call": "log_query(flag, name, NULL, (char*)p1, 0);"
+      },
+      {
+        "line": 847,
+        "call": "log_query(name_encoding | secflag | F_REVERSE | F_UPSTREAM, name, &addr, NULL, 0);"
+      },
+      {
+        "line": 933,
+        "call": "log_query(secflag | F_CNAME | F_FORWARD | F_UPSTREAM, name, NULL, NULL, 0);"
+      },
+      {
+        "line": 967,
+        "call": "log_query(secflag | F_FORWARD | F_UPSTREAM | F_RRNAME, name, NULL, NULL, aqtype);"
+      },
+      {
+        "line": 1096,
+        "call": "log_query((flags & (F_IPV4 | F_IPV6)) | F_IPSET, ipsets->domain, &addr, *ipsets_cur, 1);"
+      },
+      {
+        "line": 1107,
+        "call": "log_query((flags & (F_IPV4 | F_IPV6)) | F_IPSET, nftsets->domain, &addr, *nftsets_cur, 0);"
+      },
+      {
+        "line": 1139,
+        "call": "log_query(flags | F_FORWARD | F_UPSTREAM | secflag, name, &addr, NULL, aqtype);"
+      },
+      {
+        "line": 1157,
+        "call": "log_query(F_UPSTREAM | F_FORWARD | F_NEG | flags | (secure ? F_DNSSECOK : 0), name, NULL, NULL, 0);"
+      },
+      {
+        "line": 1375,
+        "call": "log_query(F_CONFIG | F_RCODE, \"error\", &a, NULL, 0);"
+      },
+      {
+        "line": 1496,
+        "call": "log_query(F_CONFIG | F_FORWARD | F_NEG | F_NXDOMAIN, name, NULL, NULL, 0);"
+      },
+      {
+        "line": 1774,
+        "call": "log_query(stale_flag | crecp->flags, name, NULL, record_source(crecp->uid), 0);"
+      },
+      {
+        "line": 1794,
+        "call": "log_query(stale_flag | crecp->flags, name, NULL, record_source(crecp->uid), 0);"
+      },
+      {
+        "line": 1831,
+        "call": "log_query(F_CONFIG | F_RRNAME, name, NULL, \"<TXT>\", 0);"
+      },
+      {
+        "line": 1851,
+        "call": "log_query(F_CONFIG | F_RCODE, name, &addr, NULL, 0);"
+      },
+      {
+        "line": 1867,
+        "call": "log_query(F_CONFIG | F_RRNAME, name, NULL, NULL, t->class);"
+      },
+      {
+        "line": 1920,
+        "call": "log_query(is_arpa | F_REVERSE | F_CONFIG, intr->name, &addr, NULL, 0);"
+      },
+      {
+        "line": 1930,
+        "call": "log_query(F_CONFIG | F_RRNAME, name, NULL, \"<PTR>\", 0);"
+      },
+      {
+        "line": 1973,
+        "call": "log_query(stale_flag | (crecp->flags & ~F_FORWARD), name, &addr, NULL, 0);"
+      },
+      {
+        "line": 1981,
+        "call": "log_query(stale_flag | (crecp->flags & ~F_FORWARD), cache_get_name(crecp), &addr,"
+      },
+      {
+        "line": 1996,
+        "call": "log_query(F_CONFIG | F_REVERSE | is_arpa, name, &addr, NULL, 0);"
+      },
+      {
+        "line": 2011,
+        "call": "log_query(F_CONFIG | F_REVERSE | is_arpa | F_NEG | F_NXDOMAIN,"
+      },
+      {
+        "line": 2065,
+        "call": "log_query(F_FORWARD | F_CONFIG | flag, name, &addrlist->addr, NULL, 0);"
+      },
+      {
+        "line": 2074,
+        "call": "log_query(F_FORWARD | F_CONFIG | flag | F_NEG, name, NULL, NULL, 0);"
+      },
+      {
+        "line": 2132,
+        "call": "log_query(F_NEG | F_CONFIG | flag, name, NULL, NULL, 0);"
+      },
+      {
+        "line": 2147,
+        "call": "log_query(stale_flag | crecp->flags, name, NULL, NULL, 0);"
+      },
+      {
+        "line": 2160,
+        "call": "log_query(stale_flag | (crecp->flags & ~F_REVERSE), name, &crecp->addr,"
+      },
+      {
+        "line": 2173,
+        "call": "log_query(F_FORWARD | F_CONFIG | flag, name, &addr, NULL, 0);"
+      },
+      {
+        "line": 2191,
+        "call": "log_query(F_CONFIG | F_RRNAME, name, NULL, \"<MX>\", 0);"
+      },
+      {
+        "line": 2206,
+        "call": "log_query(F_CONFIG | F_RRNAME, name, NULL, \"<MX>\", 0);"
+      },
+      {
+        "line": 2225,
+        "call": "log_query(F_CONFIG | F_RRNAME, name, NULL, \"<SRV>\", 0);"
+      },
+      {
+        "line": 2263,
+        "call": "log_query(F_CONFIG | F_RRNAME, name, NULL, \"<NAPTR>\", 0);"
+      },
+      {
+        "line": 2278,
+        "call": "log_query(F_CONFIG | F_NEG, name, &addr, NULL, 0);"
+      },
+      {
+        "line": 2345,
+        "call": "log_query(flags, name, &crecp->addr, NULL, 0);"
+      },
+      {
+        "line": 2354,
+        "call": "log_query(F_CONFIG | F_NEG, name, NULL, NULL, 0);"
+      },
+      {
+        "line": 2373,
+        "call": "log_query(F_NEG | F_CONFIG | flag, name, NULL, NULL, 0);"
+      },
+      {
+        "line": 2462,
+        "call": "log_query(0, \"reply\", NULL, \"truncated\", 0);"
+      }
+    ],
+    "rfc2131.c": [
+      {
+        "line": 36,
+        "call": "static void log_packet(char *type, void *addr, unsigned char *ext_mac,"
+      },
+      {
+        "line": 406,
+        "call": "my_syslog(MS_DHCP | LOG_WARNING, _(\"no address range available for DHCP request %s %s\"),"
+      },
+      {
+        "line": 420,
+        "call": "my_syslog(MS_DHCP | LOG_INFO, _(\"%u available DHCP subnet: %s/%s\"),"
+      },
+      {
+        "line": 426,
+        "call": "my_syslog(MS_DHCP | LOG_INFO, _(\"%u available DHCP range: %s -- %s\"),"
+      },
+      {
+        "line": 539,
+        "call": "my_syslog(MS_DHCP | LOG_INFO, _(\"%u vendor class: %s\"), ntohl(mess->xid), daemon->namebuff);"
+      },
+      {
+        "line": 541,
+        "call": "my_syslog(MS_DHCP | LOG_INFO, _(\"%u user class: %s\"), ntohl(mess->xid), daemon->namebuff);"
+      },
+      {
+        "line": 695,
+        "call": "log_packet(\"BOOTP\", logaddr, mess->chaddr, mess->hlen, iface_name, NULL, message, mess->xid);"
+      },
+      {
+        "line": 774,
+        "call": "my_syslog(MS_DHCP | LOG_INFO, _(\"%u client provides name: %s\"), ntohl(mess->xid), client_hostname);"
+      },
+      {
+        "line": 904,
+        "call": "my_syslog(MS_DHCP | LOG_ERR, _(\"PXE BIS not supported\"));"
+      },
+      {
+        "line": 954,
+        "call": "log_packet(\"PXE\", &mess->yiaddr, emac, emac_len, iface_name, (char *)mess->file, NULL, mess->xid);"
+      },
+      {
+        "line": 1043,
+        "call": "log_packet(\"PXE\", NULL, emac, emac_len, iface_name, ignore ? \"proxy-ignored\" : \"proxy\", NULL, mess->xid);"
+      },
+      {
+        "line": 1088,
+        "call": "my_syslog(MS_DHCP | LOG_WARNING, _(\"leasequery from %s not permitted\"), daemon->workspacename);"
+      },
+      {
+        "line": 1094,
+        "call": "log_packet(\"DHCPLEASEQUERY\", mess->ciaddr.s_addr ? &mess->ciaddr : NULL, emac_len != 0 ? emac : NULL, emac_len,"
+      },
+      {
+        "line": 1172,
+        "call": "log_packet(mess_type == DHCPLEASEACTIVE ? \"DHCPLEASEACTIVE\" : (mess_type == DHCPLEASEUNASSIGNED ? \"DHCPLEASEUNASSIGNED\" : \"DHCPLEASEUNKNOWN\"),"
+      },
+      {
+        "line": 1249,
+        "call": "log_packet(\"DHCPDECLINE\", option_ptr(opt, 0), emac, emac_len, iface_name, NULL, daemon->dhcp_buff, mess->xid);"
+      },
+      {
+        "line": 1259,
+        "call": "my_syslog(MS_DHCP | LOG_WARNING, _(\"disabling DHCP static address %s for %s\"),"
+      },
+      {
+        "line": 1283,
+        "call": "log_packet(\"DHCPRELEASE\", &mess->ciaddr, emac, emac_len, iface_name, NULL, message, mess->xid);"
+      },
+      {
+        "line": 1315,
+        "call": "my_syslog(MS_DHCP | LOG_WARNING, _(\"not using configured address %s because it is leased to %s\"),"
+      },
+      {
+        "line": 1325,
+        "call": "my_syslog(MS_DHCP | LOG_WARNING, _(\"not using configured address %s because it is in use by the server or relay\"), daemon->addrbuff);"
+      },
+      {
+        "line": 1328,
+        "call": "my_syslog(MS_DHCP | LOG_WARNING, _(\"not using configured address %s because it was previously declined\"), daemon->addrbuff);"
+      },
+      {
+        "line": 1350,
+        "call": "log_packet(\"DHCPDISCOVER\", opt ? option_ptr(opt, 0) : NULL, emac, emac_len, iface_name, NULL, message, mess->xid);"
+      },
+      {
+        "line": 1378,
+        "call": "log_packet(\"DHCPOFFER\" , &mess->yiaddr, emac, emac_len, iface_name, NULL, NULL, mess->xid);"
+      },
+      {
+        "line": 1491,
+        "call": "log_packet(\"DHCPREQUEST\", &mess->yiaddr, emac, emac_len, iface_name, NULL, NULL, mess->xid);"
+      },
+      {
+        "line": 1539,
+        "call": "my_syslog(MS_DHCP | LOG_INFO, _(\"abandoning lease to %s of %s\"),"
+      },
+      {
+        "line": 1566,
+        "call": "log_packet(rapid_commit ? \"NOANSWER\" : \"DHCPNAK\", &mess->yiaddr, emac, emac_len, iface_name, NULL, message, mess->xid);"
+      },
+      {
+        "line": 1739,
+        "call": "log_packet(\"DHCPACK\", &mess->yiaddr, emac, emac_len, iface_name, hostname, NULL, mess->xid);"
+      },
+      {
+        "line": 1758,
+        "call": "log_packet(\"DHCPINFORM\", &mess->ciaddr, emac, emac_len, iface_name, message, NULL, mess->xid);"
+      },
+      {
+        "line": 1785,
+        "call": "log_packet(\"DHCPACK\", &mess->ciaddr, emac, emac_len, iface_name, hostname, NULL, mess->xid);"
+      },
+      {
+        "line": 1918,
+        "call": "static void log_packet(char *type, void *addr, unsigned char *ext_mac,"
+      },
+      {
+        "line": 1935,
+        "call": "my_syslog(MS_DHCP | LOG_INFO, \"%u %s(%s) %s%s%s%s%s%s\","
+      },
+      {
+        "line": 1946,
+        "call": "my_syslog(MS_DHCP | LOG_INFO, \"%s(%s) %s%s%s%s%s%s\","
+      },
+      {
+        "line": 1964,
+        "call": "static void log_options(unsigned char *start, u32 xid)"
+      },
+      {
+        "line": 1970,
+        "call": "my_syslog(MS_DHCP | LOG_INFO, \"%u sent size:%3d option:%3d %s  %s\","
+      },
+      {
+        "line": 2092,
+        "call": "log_options(mess->file, mess->xid);"
+      },
+      {
+        "line": 2095,
+        "call": "my_syslog(MS_DHCP | LOG_INFO, _(\"%u bootfile name: %s\"), ntohl(mess->xid), (char *)mess->file);"
+      },
+      {
+        "line": 2101,
+        "call": "log_options(mess->sname, mess->xid);"
+      },
+      {
+        "line": 2104,
+        "call": "my_syslog(MS_DHCP | LOG_INFO, _(\"%u server name: %s\"), ntohl(mess->xid), (char *)mess->sname);"
+      },
+      {
+        "line": 2114,
+        "call": "my_syslog(MS_DHCP | LOG_INFO, _(\"%u next server: %s\"), ntohl(mess->xid), daemon->addrbuff);"
+      },
+      {
+        "line": 2118,
+        "call": "my_syslog(MS_DHCP | LOG_INFO, _(\"%u broadcast response\"), ntohl(mess->xid));"
+      },
+      {
+        "line": 2120,
+        "call": "log_options(&mess->options[0] + sizeof(u32), mess->xid);"
+      },
+      {
+        "line": 2181,
+        "call": "my_syslog(MS_DHCP | LOG_WARNING, _(\"cannot send DHCP/BOOTP option %d: no space left in packet\"), opt);"
+      },
+      {
+        "line": 2492,
+        "call": "my_syslog(MS_DHCP | LOG_ERR, _(\"PXE menu too large\"));"
+      },
+      {
+        "line": 2656,
+        "call": "my_syslog(MS_DHCP | LOG_INFO, _(\"%u requested options: %s\"), ntohl(mess->xid), daemon->namebuff);"
+      },
+      {
+        "line": 3016,
+        "call": "my_syslog(MS_DHCP | LOG_WARNING, _(\"cannot send RFC3925 option: too many options for enterprise number %d\"), opt->u.encap);"
+      },
+      {
+        "line": 3055,
+        "call": "my_syslog(MS_DHCP | LOG_INFO, _(\"%u reply delay: %d\"), ntohl(xid), delay_conf->delay);"
+      },
+      {
+        "line": 3120,
+        "call": "my_syslog(MS_DHCP | LOG_ERR, _(\"Cannot send to server via interface %s: %s\"), relay->interface, strerror(errno));"
+      },
+      {
+        "line": 3191,
+        "call": "my_syslog(MS_DHCP | LOG_ERR, _(\"Cannot broadcast DHCP relay via interface %s: %s\"), relay->interface, strerror(errno));"
+      },
+      {
+        "line": 3205,
+        "call": "dump_packet_udp(DUMP_DHCP, (void *)mess, sz, &fromsock, &to, -1);"
+      },
+      {
+        "line": 3218,
+        "call": "my_syslog(MS_DHCP | LOG_INFO, _(\"DHCP relay at %s -> %s\"), daemon->addrbuff, daemon->dhcp_buff2);"
+      }
+    ],
+    "tftp.c": [
+      {
+        "line": 97,
+        "call": "dump_packet_udp(DUMP_TFTP, (void *)packet, len, (union mysockaddr *)&peer, NULL, listen->tftpfd);"
+      },
+      {
+        "line": 353,
+        "call": "my_syslog(MS_TFTP | LOG_ERR, _(\"unable to get free port for TFTP\"));"
+      },
+      {
+        "line": 525,
+        "call": "dump_packet_udp(DUMP_TFTP, (void *)packet, len, NULL, (union mysockaddr *)&peer, transfer->sockfd);"
+      },
+      {
+        "line": 650,
+        "call": "dump_packet_udp(DUMP_TFTP, (void *)packet, len, (union mysockaddr *)&peer, NULL, transfer->sockfd);"
+      },
+      {
+        "line": 663,
+        "call": "dump_packet_udp(DUMP_TFTP, (void *)packet, len, NULL, (union mysockaddr *)&peer, transfer->sockfd);"
+      },
+      {
+        "line": 720,
+        "call": "dump_packet_udp(DUMP_TFTP, (void *)daemon->packet, len, NULL, (union mysockaddr *)&transfer->peer, transfer->sockfd);"
+      },
+      {
+        "line": 735,
+        "call": "my_syslog(MS_TFTP | LOG_ERR, _(\"timeout sending %s to %s\"), daemon->namebuff, daemon->addrbuff);"
+      },
+      {
+        "line": 737,
+        "call": "my_syslog(MS_TFTP | LOG_ERR, _(\"failed sending %s to %s\"), daemon->namebuff, daemon->addrbuff);"
+      },
+      {
+        "line": 739,
+        "call": "my_syslog(MS_TFTP | LOG_INFO, _(\"sent %s to %s\"), daemon->namebuff, daemon->addrbuff);"
+      },
+      {
+        "line": 821,
+        "call": "my_syslog(MS_TFTP | LOG_ERR, _(\"error %d %s received from %s\"),"
+      },
+      {
+        "line": 896,
+        "call": "my_syslog(MS_TFTP | LOG_ERR, \"%s\", mess->message);"
+      }
+    ],
+    "dhcp.c": [
+      {
+        "line": 241,
+        "call": "dump_packet_udp(DUMP_DHCP, (void *)daemon->dhcp_packet.iov_base, sz, (union mysockaddr *)&dest, sockp, -1);"
+      },
+      {
+        "line": 283,
+        "call": "my_syslog(MS_DHCP | LOG_WARNING,"
+      },
+      {
+        "line": 325,
+        "call": "my_syslog(MS_DHCP | LOG_WARNING, _(\"DHCP packet received on %s which has no address\"), ifr.ifr_name);"
+      },
+      {
+        "line": 466,
+        "call": "my_syslog(MS_DHCP | LOG_ERR, _(\"ARP-cache injection failed: %s\"), strerror(errno));"
+      },
+      {
+        "line": 503,
+        "call": "dump_packet_udp(DUMP_DHCP, (void *)iov.iov_base, iov.iov_len, NULL,"
+      },
+      {
+        "line": 517,
+        "call": "dump_packet_udp(DUMP_DHCP, (void *)iov.iov_base, iov.iov_len, NULL,"
+      },
+      {
+        "line": 527,
+        "call": "my_syslog(MS_DHCP | LOG_WARNING, _(\"Error sending DHCP packet to %s: %s\"),"
+      },
+      {
+        "line": 584,
+        "call": "my_syslog(MS_DHCP | LOG_WARNING, _(\"DHCP range %s -- %s is not consistent with netmask %s\"),"
+      },
+      {
+        "line": 680,
+        "call": "my_syslog(MS_DHCP | LOG_WARNING, _(\"DHCP relay address %s appears on more than one interface\"), daemon->addrbuff);"
+      },
+      {
+        "line": 941,
+        "call": "my_syslog(MS_DHCP | LOG_ERR, _(\"failed to read %s: %s\"), ETHERSFILE, strerror(errno));"
+      },
+      {
+        "line": 979,
+        "call": "my_syslog(MS_DHCP | LOG_ERR, _(\"bad line at %s line %d\"), ETHERSFILE, lineno);"
+      },
+      {
+        "line": 992,
+        "call": "my_syslog(MS_DHCP | LOG_ERR, _(\"bad address at %s line %d\"), ETHERSFILE, lineno);"
+      },
+      {
+        "line": 1008,
+        "call": "my_syslog(MS_DHCP | LOG_ERR, _(\"bad name at %s line %d\"), ETHERSFILE, lineno);"
+      },
+      {
+        "line": 1022,
+        "call": "my_syslog(MS_DHCP | LOG_ERR, _(\"ignoring %s line %d, duplicate name or IP address\"), ETHERSFILE, lineno);"
+      },
+      {
+        "line": 1083,
+        "call": "my_syslog(MS_DHCP | LOG_INFO, _(\"read %s - %d addresses\"), ETHERSFILE, count);"
+      }
+    ],
+    "dhcp-common.c": [
+      {
+        "line": 209,
+        "call": "my_syslog(MS_DHCP | LOG_WARNING, _(\"Ignoring duplicate dhcp-option %d\"), tmp->opt);"
+      },
+      {
+        "line": 286,
+        "call": "my_syslog(MS_DHCP | LOG_INFO, _(\"%u tags: %s\"), xid, s);"
+      },
+      {
+        "line": 506,
+        "call": "my_syslog(MS_DHCP | LOG_WARNING, _(\"%s has more than one address in hostsfile, using %s for DHCP\"),"
+      },
+      {
+        "line": 540,
+        "call": "my_syslog(MS_DHCP | LOG_WARNING, _(\"duplicate IP address %s (%s) in dhcp-config directive\"),"
+      },
+      {
+        "line": 1016,
+        "call": "my_syslog(MS_DHCP | LOG_INFO,"
+      },
+      {
+        "line": 1036,
+        "call": "my_syslog(MS_DHCP | LOG_INFO, _(\"DHCPv4-derived IPv6 names on %s%s\"), daemon->addrbuff, template);"
+      },
+      {
+        "line": 1039,
+        "call": "my_syslog(MS_DHCP | LOG_INFO, _(\"router advertisement on %s%s\"), daemon->addrbuff, template);"
+      },
+      {
+        "line": 1070,
+        "call": "my_syslog(MS_DHCP | LOG_INFO, _(\"DHCP relay from %s via %s\"), daemon->addrbuff, relay->interface);"
+      },
+      {
+        "line": 1072,
+        "call": "my_syslog(MS_DHCP | LOG_INFO, _(\"DHCP split-relay from %s to %s via %s\"), daemon->addrbuff, daemon->namebuff, relay->interface);"
+      },
+      {
+        "line": 1074,
+        "call": "my_syslog(MS_DHCP | LOG_INFO, _(\"DHCP relay from %s to %s via %s\"), daemon->addrbuff, daemon->namebuff, relay->interface);"
+      },
+      {
+        "line": 1077,
+        "call": "my_syslog(MS_DHCP | LOG_INFO, _(\"DHCP relay from %s to %s\"), daemon->addrbuff, daemon->namebuff);"
+      }
+    ],
+    "util.c": [
+      {
+        "line": 269,
+        "call": "my_syslog(LOG_ERR, _(\"failed to allocate memory\"));"
+      },
+      {
+        "line": 938,
+        "call": "my_syslog(LOG_ERR, _(\"failed to allocate %d bytes\"), (int) size);"
+      },
+      {
+        "line": 940,
+        "call": "my_syslog(LOG_INFO, _(\"malloc: %s:%u %zu bytes at %x\"), func, line, size, hash_ptr(ret));"
+      },
+      {
+        "line": 951,
+        "call": "my_syslog(LOG_ERR, _(\"failed to reallocate %d bytes\"), (int) size);"
+      },
+      {
+        "line": 956,
+        "call": "my_syslog(LOG_INFO, _(\"%s: %s:%u %zu bytes from %x to %x\"), wrapper, func, line, size, old, hash_ptr(ret));"
+      },
+      {
+        "line": 1006,
+        "call": "my_syslog(LOG_INFO, _(\"malloc: %s:%u %zu bytes at %x\"), func, line, size, hash_ptr(mem));"
+      },
+      {
+        "line": 1015,
+        "call": "my_syslog(LOG_INFO, _(\"free: %s:%u block at %x\"), func, line, hash_ptr(ptr));"
+      }
+    ],
+    "dump.c": [
+      {
+        "line": 95,
+        "call": "void dump_packet_udp(int mask, void *packet, size_t len,"
+      },
+      {
+        "line": 125,
+        "call": "void dump_packet_icmp(int mask, void *packet, size_t len,"
+      },
+      {
+        "line": 296,
+        "call": "my_syslog(LOG_ERR, _(\"failed to write packet dump\"));"
+      },
+      {
+        "line": 298,
+        "call": "my_syslog(LOG_INFO, _(\"%u dumping packet %u mask 0x%04x\"),  daemon->log_display_id, ++packet_count, mask);"
+      },
+      {
+        "line": 300,
+        "call": "my_syslog(LOG_INFO, _(\"dumping packet %u mask 0x%04x\"), ++packet_count, mask);"
+      }
+    ],
+    "dnsmasq.h": [
+      {
+        "line": 1373,
+        "call": "void log_query(unsigned int flags, char *name, union all_addr *addr, char *arg, unsigned short type);"
+      },
+      {
+        "line": 1553,
+        "call": "void my_syslog(int priority, const char *format, ...);"
+      },
+      {
+        "line": 1966,
+        "call": "void dump_packet_udp(int mask, void *packet, size_t len, union mysockaddr *src,"
+      },
+      {
+        "line": 1968,
+        "call": "void dump_packet_icmp(int mask, void *packet, size_t len, union mysockaddr *src,"
+      }
+    ],
+    "network.c": [
+      {
+        "line": 705,
+        "call": "my_syslog(LOG_DEBUG|MS_DEBUG, _(\"stopped listening on %s(#%d): %s port %d\"),"
+      },
+      {
+        "line": 939,
+        "call": "my_syslog(LOG_WARNING, s, daemon->addrbuff, strerror(errno));"
+      },
+      {
+        "line": 1206,
+        "call": "my_syslog(LOG_DEBUG|MS_DEBUG, _(\"listening on %s(#%d): %s port %d\"),"
+      },
+      {
+        "line": 1233,
+        "call": "my_syslog(LOG_DEBUG|MS_DEBUG, _(\"listening on %s port %d\"), daemon->addrbuff, port);"
+      },
+      {
+        "line": 1265,
+        "call": "my_syslog(LOG_WARNING,"
+      },
+      {
+        "line": 1273,
+        "call": "my_syslog(LOG_WARNING, _(\"LOUD WARNING: use --bind-dynamic rather than --bind-interfaces to avoid DNS amplification attacks via these interface(s)\"));"
+      },
+      {
+        "line": 1282,
+        "call": "my_syslog(LOG_WARNING, _(\"warning: using interface %s instead\"), iface->name);"
+      },
+      {
+        "line": 1291,
+        "call": "my_syslog(LOG_WARNING, _(\"warning: no addresses found for interface %s\"), intname->intr);"
+      },
+      {
+        "line": 1354,
+        "call": "my_syslog(LOG_ERR, _(\"try increasing /proc/sys/net/core/optmem_max\"));"
+      },
+      {
+        "line": 1360,
+        "call": "my_syslog(LOG_ERR, s, iface->name, strerror(errno));"
+      },
+      {
+        "line": 1607,
+        "call": "my_syslog(LOG_WARNING, _(\"ignoring nameserver %s - local interface\"), daemon->namebuff);"
+      },
+      {
+        "line": 1617,
+        "call": "my_syslog(LOG_WARNING,"
+      },
+      {
+        "line": 1628,
+        "call": "my_syslog(LOG_INFO, _(\"more servers are defined but not logged\"));"
+      },
+      {
+        "line": 1644,
+        "call": "my_syslog(LOG_INFO, _(\"using nameserver %s#%d for %s %s%s %s\"), daemon->namebuff, port, s1, s4, s2, s3);"
+      },
+      {
+        "line": 1648,
+        "call": "my_syslog(LOG_INFO, _(\"NOT using nameserver %s#%d - query loop detected\"), daemon->namebuff, port);"
+      },
+      {
+        "line": 1651,
+        "call": "my_syslog(LOG_INFO, _(\"using nameserver %s#%d(via %s)\"), daemon->namebuff, port, serv->interface);"
+      },
+      {
+        "line": 1653,
+        "call": "my_syslog(LOG_INFO, _(\"using nameserver %s#%d\"), daemon->namebuff, port);"
+      },
+      {
+        "line": 1668,
+        "call": "my_syslog(LOG_INFO, _(\"using only locally-known addresses for %s\"), serv->domain);"
+      },
+      {
+        "line": 1671,
+        "call": "my_syslog(LOG_INFO, _(\"using standard nameservers for %s\"), serv->domain);"
+      },
+      {
+        "line": 1675,
+        "call": "my_syslog(LOG_INFO, _(\"using %d more local addresses\"), locals - LOCALS_LOGGED);"
+      },
+      {
+        "line": 1677,
+        "call": "my_syslog(LOG_INFO, _(\"using %d more nameservers\"), count - SERVERS_LOGGED - 1);"
+      },
+      {
+        "line": 1708,
+        "call": "my_syslog(LOG_ERR, _(\"failed to read %s: %s\"), fname, strerror(errno));"
+      }
+    ]
+  },
+  "source_provenance": {
+    "recipe_revision": "f0a60eee2fe051741c643ea6118718aae1ef17fb",
+    "archive_sha256": "0c00d4e5c97c8306e5fb932b348b34269c9c29a0e7df0e8e82958b407092bc19",
+    "copts": [
+      "-DHAVE_UBUS",
+      "-DHAVE_POLL_H",
+      "-DNO_DHCP6",
+      "-DNO_AUTH",
+      "-DNO_IPSET",
+      "-DNO_ID"
+    ],
+    "prepared_identity_sha256": "62cec0e9dda0265cb9c4f6af27f7d23067aed967afab3c74e37370149a8326e9"
+  }
+}

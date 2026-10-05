@@ -1,0 +1,92 @@
+{
+  "schema": 1,
+  "option": "enable-tftp",
+  "reference": {
+    "tftp.c": {
+      "path": "dnsmasq-2.93/src/tftp.c",
+      "sha256": "a6971bf4ce77c0ca4c7ebf0194a2ee9c2ad702b1b8a882d46de87c6c6f5e63f3"
+    },
+    "network.c": {
+      "path": "dnsmasq-2.93/src/network.c",
+      "sha256": "8229872d30a2fb2d86ec9a9e550e51fbb8d8d97926e7a02b0137f2a7b40c40c9"
+    },
+    "log.c": {
+      "path": "dnsmasq-2.93/src/log.c",
+      "sha256": "a205b9cbf9556b01f483b43e732df1ae411c82d622a0e5449f79d43b0267c47c"
+    }
+  },
+  "boundaries": [
+    {
+      "id": "open-enoent",
+      "source": "tftp.c:553-561,879-899",
+      "boundary": "ENOENT produces ERR_FNF=1 and file SANITISED_FULL_PATH not found for PEER_IP. Quiet only suppresses its log.",
+      "required_cases": [
+        "missing-v4",
+        "missing-v6",
+        "missing-no-root",
+        "missing-interface-root",
+        "missing-quiet"
+      ]
+    },
+    {
+      "id": "access-denial",
+      "source": "tftp.c:563-580,613-618",
+      "boundary": "EACCES and uid/secure/world-readable policy denial always produce ERR_PERM=2 with cannot access PATH: strerror(EACCES).",
+      "required_cases": [
+        "mode-denied",
+        "uid-open-denied",
+        "secure-owner-denied"
+      ]
+    },
+    {
+      "id": "open-other-errno",
+      "source": "tftp.c:564-569,620-624,901-906",
+      "boundary": "Other open/fstat errors produce ERR_NOTDEF=0 with cannot read PATH: strerror(errno), independently of Rust ErrorKind.",
+      "required_cases": [
+        "not-directory"
+      ]
+    },
+    {
+      "id": "data-read-errno",
+      "source": "tftp.c:503-511,709-716,901-906",
+      "boundary": "A real read failure uses the same ERR_NOTDEF full-path/error text and releases file/transfer state.",
+      "required_cases": [
+        "directory-read-error"
+      ]
+    },
+    {
+      "id": "sanitise",
+      "source": "tftp.c:862-875,889-890",
+      "boundary": "C sanitises the filename before constructing/logging ERR, retaining only isprint bytes in the fixed C locale. It drops controls, DEL and high bytes.",
+      "required_cases": [
+        "sanitise-controls",
+        "sanitise-high-bytes"
+      ]
+    },
+    {
+      "id": "bounded-message",
+      "source": "tftp.c:878-895",
+      "boundary": "snprintf size500 includes the final zero; maximum ERR has499 message bytes, one zero and4 header bytes. Long error text is truncated before logging and transmitting.",
+      "required_cases": [
+        "message-below-limit",
+        "message-at-limit",
+        "message-over-limit"
+      ]
+    },
+    {
+      "id": "log-wire-api",
+      "source": "tftp.c:891-899",
+      "boundary": "One bounded formatted message is shared by wire and MS_TFTP|LOG_ERR. A logging consumer can extract code/message from the RuntimeEvent without reformatting; quiet suppresses only code1.",
+      "required_cases": [
+        "missing-quiet",
+        "mode-denied"
+      ]
+    }
+  ],
+  "qualification": {
+    "require_raw_wire": true,
+    "require_case_inventory": true,
+    "require_negative_controls": true,
+    "reference_only_cannot_close": true
+  }
+}

@@ -58,6 +58,30 @@ fn invalid(message: &'static str) -> io::Error {
     io::Error::new(io::ErrorKind::InvalidData, message)
 }
 
+#[derive(Debug)]
+struct UnsupportedSocket(io::Error);
+impl std::fmt::Display for UnsupportedSocket {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(formatter)
+    }
+}
+impl std::error::Error for UnsupportedSocket {}
+
+/// C suppresses these errors only when socket() fails. An identical errno
+/// returned by bind()/setsockopt() must still reach the caller's error path.
+pub(crate) fn socket_creation_error(error: io::Error) -> io::Error {
+    if matches!(error.raw_os_error(), Some(93 | 97 | 22)) {
+        io::Error::new(error.kind(), UnsupportedSocket(error))
+    } else {
+        error
+    }
+}
+pub fn is_unsupported_socket_error(error: &io::Error) -> bool {
+    error
+        .get_ref()
+        .is_some_and(|inner| inner.is::<UnsupportedSocket>())
+}
+
 // sockaddr_in/sockaddr_in6 use native family/scope, network port/address; bytes
 // avoid alignment-dependent struct casts. Storage remains aligned for libc.
 struct Address {
@@ -436,7 +460,7 @@ impl DatagramSocket {
             )
         };
         if fd < 0 {
-            return Err(io::Error::last_os_error());
+            return Err(socket_creation_error(io::Error::last_os_error()));
         }
         // SAFETY: fd is a fresh UDP socket; UdpSocket now owns every close path.
         let socket = unsafe { UdpSocket::from_raw_fd(fd) };

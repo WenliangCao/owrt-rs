@@ -1,0 +1,520 @@
+{
+  "version": 1,
+  "frozen": "2026-10-05",
+  "reference": {
+    "source": "dnsmasq-2.93",
+    "image_c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "compile_defines": [
+      "HAVE_UBUS",
+      "HAVE_POLL_H",
+      "NO_DHCP6",
+      "NO_AUTH",
+      "NO_IPSET",
+      "NO_ID"
+    ],
+    "source_files_sha256": {
+      "lease.c": "4260039af27b40084cbe6dbbae2bb9417fa3a91806ea53f3f6bdd20234cad763",
+      "option.c": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
+      "util.c": "33920165ef3e92f65d1cab75fe8da7772ad7389b37da79ba881957080f12f973",
+      "rfc2131.c": "14f2e10792ef6108aeb7b69e551f089ba287c8c84d39ea178a5f33acd2038c2c",
+      "dnsmasq.c": "d4bb7cde522376200a0293427b0812625ebc457f10dc9d3e2bef243ccba8ccd1"
+    }
+  },
+  "required_scenarios": [
+    "absolute-link",
+    "alias",
+    "alias-empty",
+    "alias-required",
+    "bad-address",
+    "bad-address-octet",
+    "bad-client-id",
+    "bad-hardware",
+    "capacity-duplicate",
+    "capacity-expired",
+    "capacity-invalid",
+    "capacity-warning",
+    "capacity-zero",
+    "capacity-zero-empty",
+    "cli-file-origin",
+    "client-fallback",
+    "configured-names",
+    "create-missing",
+    "dangling-link",
+    "directory",
+    "duplicate-client",
+    "duplicate-decline",
+    "duplicate-inform",
+    "duplicate-release",
+    "duplicate-renew",
+    "duplicates",
+    "expiry-integers",
+    "expiry-prune",
+    "expiry-timer",
+    "extensions",
+    "file-alias-required",
+    "file-cli-origin",
+    "file-occurrence",
+    "file-optional",
+    "fqdn-scope",
+    "held-inode",
+    "hex-identities",
+    "inactive-dns",
+    "loop-link",
+    "missing-parent",
+    "name-collision",
+    "occurrence",
+    "optional-empty",
+    "optional-long",
+    "optional-separated",
+    "partial-eio",
+    "partial-eio-warning",
+    "partial-first",
+    "partial-record",
+    "permission",
+    "readonly-fs",
+    "relative-link",
+    "restart",
+    "ro-capacity",
+    "ro-capacity-warning",
+    "ro-init",
+    "ro-init-credentials",
+    "ro-init-gate",
+    "ro-init-gate-expiry",
+    "ro-malformed",
+    "ro-no-script",
+    "ro-partial-record",
+    "scanf-nul",
+    "scanf-space",
+    "scanf-width",
+    "short",
+    "short-empty",
+    "short-required",
+    "sighup",
+    "write-failure"
+  ],
+  "boundaries": [
+    {
+      "id": "activation",
+      "source": "dnsmasq.c:300-315",
+      "contract": "Lease initialization precedes listener creation and occurs only with active local DHCP, not DNS-only or relay-only.",
+      "required_scenarios": [
+        "inactive-dns"
+      ]
+    },
+    {
+      "id": "open-create",
+      "source": "lease.c:207-218",
+      "contract": "Writable startup opens a+ and creates a missing file with umask; default path fallback and option override are explicit.",
+      "required_scenarios": [
+        "create-missing"
+      ]
+    },
+    {
+      "id": "open-missing-parent",
+      "source": "lease.c:210-213",
+      "contract": "Missing parent is EC_FILE, before PID/listener side effects.",
+      "required_scenarios": [
+        "missing-parent"
+      ]
+    },
+    {
+      "id": "open-directory",
+      "source": "lease.c:210-213",
+      "contract": "A directory pathname fails a+ open with EISDIR/EC_FILE.",
+      "required_scenarios": [
+        "directory"
+      ]
+    },
+    {
+      "id": "open-permission",
+      "source": "lease.c:210-213",
+      "contract": "Unreadable/unwritable inode at startup is EC_FILE.",
+      "required_scenarios": [
+        "permission"
+      ]
+    },
+    {
+      "id": "open-readonly-fs",
+      "source": "lease.c:210-213",
+      "contract": "Read-only filesystem rejects a+ even for readable existing data.",
+      "required_scenarios": [
+        "readonly-fs"
+      ]
+    },
+    {
+      "id": "symlink-relative",
+      "source": "lease.c:210-218",
+      "contract": "Relative symlink follows target and preserves symlink on writes.",
+      "required_scenarios": [
+        "relative-link"
+      ]
+    },
+    {
+      "id": "symlink-absolute",
+      "source": "lease.c:210-218",
+      "contract": "Absolute symlink resolves within image root.",
+      "required_scenarios": [
+        "absolute-link"
+      ]
+    },
+    {
+      "id": "symlink-dangling",
+      "source": "lease.c:210-218",
+      "contract": "Dangling leaf symlink creates its target if parent exists.",
+      "required_scenarios": [
+        "dangling-link"
+      ]
+    },
+    {
+      "id": "symlink-loop",
+      "source": "lease.c:210-213",
+      "contract": "Symlink loop rejects startup with ELOOP.",
+      "required_scenarios": [
+        "loop-link"
+      ]
+    },
+    {
+      "id": "inode-held",
+      "source": "lease.c:286-306",
+      "contract": "Open inode persists across rename/replacement; updates do not reopen pathname.",
+      "required_scenarios": [
+        "held-inode"
+      ]
+    },
+    {
+      "id": "readonly-no-script",
+      "source": "lease.c:180-204",
+      "contract": "leasefile-ro without script never opens/reads the configured database.",
+      "required_scenarios": [
+        "ro-no-script"
+      ]
+    },
+    {
+      "id": "readonly-init",
+      "source": "lease.c:185-200,219-246",
+      "contract": "leasefile-ro script init restores a streamed DB; configured file remains untouched.",
+      "required_scenarios": [
+        "ro-init",
+        "ro-malformed",
+        "ro-partial-record",
+        "ro-init-gate",
+        "ro-init-gate-expiry",
+        "ro-init-credentials"
+      ]
+    },
+    {
+      "id": "readonly-capacity",
+      "source": "lease.c:140-141",
+      "contract": "Script init duplicate records consume independent capacity before pruning.",
+      "required_scenarios": [
+        "ro-capacity",
+        "ro-capacity-warning"
+      ]
+    },
+    {
+      "id": "scanf-whitespace",
+      "source": "lease.c:41,92-95",
+      "contract": "All C scanf ASCII spaces cross lines, including vertical tab/form feed.",
+      "required_scenarios": [
+        "scanf-space"
+      ]
+    },
+    {
+      "id": "scanf-widths",
+      "source": "lease.c:41,92-95",
+      "contract": "255/64/255/764 widths split oversized tokens across subsequent fields.",
+      "required_scenarios": [
+        "scanf-width"
+      ]
+    },
+    {
+      "id": "scanf-nul",
+      "source": "lease.c:41,92-95",
+      "contract": "Embedded NUL truncates string interpretation but consumes the entire scanned token.",
+      "required_scenarios": [
+        "scanf-nul"
+      ]
+    },
+    {
+      "id": "partial-first",
+      "source": "lease.c:171",
+      "contract": "A lone first token reports unclean parse but daemon keeps preceding records.",
+      "required_scenarios": [
+        "partial-first"
+      ]
+    },
+    {
+      "id": "partial-record",
+      "source": "lease.c:92-101,171",
+      "contract": "A two-to-four-field EOF tail warns invalid line then succeeds at EOF.",
+      "required_scenarios": [
+        "partial-record"
+      ]
+    },
+    {
+      "id": "bad-address",
+      "source": "lease.c:103-136",
+      "contract": "Invalid/IPv6 addresses (NO_DHCP6 image) warn and skip without taking capacity.",
+      "required_scenarios": [
+        "bad-address",
+        "bad-address-octet"
+      ]
+    },
+    {
+      "id": "bad-hardware",
+      "source": "lease.c:108-113",
+      "contract": "Invalid HW hex empties HW identity; omitted type defaults to Ethernet only with nonzero length.",
+      "required_scenarios": [
+        "bad-hardware"
+      ]
+    },
+    {
+      "id": "hex-width-types",
+      "source": "lease.c:108-113;util.c:612-681",
+      "contract": "Typed HW, compact/odd groups, separators, wildcards, 16/255 truncation match aliasing C parser.",
+      "required_scenarios": [
+        "hex-identities"
+      ]
+    },
+    {
+      "id": "bad-client-id",
+      "source": "lease.c:143-148",
+      "contract": "Invalid/empty client IDs restore as absent; star skips parser.",
+      "required_scenarios": [
+        "bad-client-id"
+      ]
+    },
+    {
+      "id": "expiry-integer",
+      "source": "lease.c:154-166",
+      "contract": "atol prefix/sign/signed saturation casts preserve finite negative/0/infinite behavior.",
+      "required_scenarios": [
+        "expiry-integers"
+      ]
+    },
+    {
+      "id": "expiry-equal",
+      "source": "lease.c:250-253,621-648",
+      "contract": "Expiry at/before now prunes after reading, with independent delete events and persisted rewrite.",
+      "required_scenarios": [
+        "expiry-prune"
+      ]
+    },
+    {
+      "id": "expiry-timer",
+      "source": "lease.c:420-453;dnsmasq.c:1608-1613",
+      "contract": "Nearest finite expiry triggers idle prune/file/DNS/helper maintenance without DHCP traffic.",
+      "required_scenarios": [
+        "expiry-timer"
+      ]
+    },
+    {
+      "id": "capacity-pre-prune",
+      "source": "lease.c:103-141,846-865",
+      "contract": "Every syntactically valid stored row counts before expiry pruning; too many stored leases is EC_MISC.",
+      "required_scenarios": [
+        "capacity-expired",
+        "capacity-zero",
+        "capacity-zero-empty"
+      ]
+    },
+    {
+      "id": "capacity-duplicate",
+      "source": "lease.c:103-141,846-875",
+      "contract": "Duplicate addresses are independently allocated; capacity exhaustion is not bypassed by deduplication.",
+      "required_scenarios": [
+        "capacity-duplicate",
+        "capacity-warning"
+      ]
+    },
+    {
+      "id": "capacity-invalid",
+      "source": "lease.c:130-136",
+      "contract": "Invalid addresses do not consume lease slots.",
+      "required_scenarios": [
+        "capacity-invalid"
+      ]
+    },
+    {
+      "id": "duplicate-address",
+      "source": "lease.c:103-113,846-875",
+      "contract": "All duplicate addresses survive restoration independently in newest-first order.",
+      "required_scenarios": [
+        "duplicates"
+      ]
+    },
+    {
+      "id": "duplicate-client",
+      "source": "lease.c:651-683",
+      "contract": "Client-ID matches newest-first before HW fallback; duplicate IDs on distinct addresses retain all records.",
+      "required_scenarios": [
+        "duplicate-client"
+      ]
+    },
+    {
+      "id": "client-fallback",
+      "source": "lease.c:651-683",
+      "contract": "HW fallback requires missing CLID on at least one side and nonempty HW; type participates.",
+      "required_scenarios": [
+        "client-fallback"
+      ]
+    },
+    {
+      "id": "duplicate-renew",
+      "source": "rfc2131.c:1450-1740;lease.c:948-1008",
+      "contract": "An older same-address client renews its selected object, preserving the newer client's identity and expiry.",
+      "required_scenarios": [
+        "duplicate-renew"
+      ]
+    },
+    {
+      "id": "duplicate-release",
+      "source": "rfc2131.c:1255-1286;lease.c:621-648",
+      "contract": "RELEASE removes only the identity-selected object; wrong client has no deletion authority.",
+      "required_scenarios": [
+        "duplicate-release"
+      ]
+    },
+    {
+      "id": "duplicate-decline",
+      "source": "rfc2131.c:1237-1254;lease.c:621-648",
+      "contract": "DECLINE removes only the matching selected object.",
+      "required_scenarios": [
+        "duplicate-decline"
+      ]
+    },
+    {
+      "id": "duplicate-inform",
+      "source": "rfc2131.c:1755-1830",
+      "contract": "INFORM keeps selected client object for interface/remaining-expiry response.",
+      "required_scenarios": [
+        "duplicate-inform"
+      ]
+    },
+    {
+      "id": "name-collision",
+      "source": "lease.c:1008-1169",
+      "contract": "Newest restored short name steals prior non-authoritative name with old-name notification ordering.",
+      "required_scenarios": [
+        "name-collision"
+      ]
+    },
+    {
+      "id": "fqdn-scope",
+      "source": "lease.c:1008-1169,1371-1399",
+      "contract": "dhcp-fqdn defers FQDN generation and permits equal restored short names until domain scope is known.",
+      "required_scenarios": [
+        "fqdn-scope"
+      ]
+    },
+    {
+      "id": "config-names",
+      "source": "lease.c:256-271;dnsmasq.c:1842-1850",
+      "contract": "Static host configuration applies to each identity-selected lease independently on startup/HUP.",
+      "required_scenarios": [
+        "configured-names"
+      ]
+    },
+    {
+      "id": "dns-duplicate",
+      "source": "lease.c:564-618",
+      "contract": "DNS consumes all active leases in C order; forward names and reverse duplicate precedence are preserved.",
+      "required_scenarios": [
+        "duplicates"
+      ]
+    },
+    {
+      "id": "extension-order",
+      "source": "lease.c:59-88",
+      "contract": "Agent/vendor extension applies to newest existing address; before-row/invalid-address/invalid-hex ignored.",
+      "required_scenarios": [
+        "extensions"
+      ]
+    },
+    {
+      "id": "extension-persist",
+      "source": "lease.c:373-412",
+      "contract": "Extension rows persist after all basic records in newest-first per-record order.",
+      "required_scenarios": [
+        "extensions"
+      ]
+    },
+    {
+      "id": "sighup",
+      "source": "dnsmasq.c:1839-1850;lease.c:1211-1222",
+      "contract": "HUP updates config-derived names and schedules OLD; it does not re-read replaced leasefile content.",
+      "required_scenarios": [
+        "sighup"
+      ]
+    },
+    {
+      "id": "restart",
+      "source": "lease.c:23-253,286-420",
+      "contract": "Restart restores every persisted record with reversed in-file list ordering and identical active ownership.",
+      "required_scenarios": [
+        "restart"
+      ]
+    },
+    {
+      "id": "write-failure",
+      "source": "lease.c:295-306,413-453",
+      "contract": "Failed truncation/write/flush/sync keeps dirty state and schedules 60-second retry without rollback.",
+      "required_scenarios": [
+        "write-failure"
+      ]
+    },
+    {
+      "id": "read-error",
+      "source": "lease.c:219-224",
+      "contract": "Real partial read error is fatal EC_FILE even after earlier valid records.",
+      "required_scenarios": [
+        "partial-eio",
+        "partial-eio-warning"
+      ]
+    },
+    {
+      "id": "optional-long",
+      "source": "option.c:225,2383-2385",
+      "contract": "--dhcp-leasefile without optional argument resets to default; separate next argv is not its value.",
+      "required_scenarios": [
+        "optional-long",
+        "optional-empty",
+        "optional-separated",
+        "file-optional"
+      ]
+    },
+    {
+      "id": "required-alias",
+      "source": "option.c:226,2383-2385",
+      "contract": "--dhcp-lease requires an argument and uses shared canonical occurrence identity.",
+      "required_scenarios": [
+        "alias",
+        "alias-empty",
+        "alias-required",
+        "file-alias-required"
+      ]
+    },
+    {
+      "id": "short-option",
+      "source": "option.c:2383-2385",
+      "contract": "-l requires an argument; empty explicit value resets default.",
+      "required_scenarios": [
+        "short",
+        "short-required",
+        "short-empty"
+      ]
+    },
+    {
+      "id": "occurrence",
+      "source": "option.c:225-226;option.c:one_opt",
+      "contract": "Aliases share duplicate-option tracking and CLI/file origin precedence.",
+      "required_scenarios": [
+        "occurrence",
+        "cli-file-origin",
+        "file-cli-origin",
+        "file-occurrence"
+      ]
+    }
+  ],
+  "qualification_ready": true
+}

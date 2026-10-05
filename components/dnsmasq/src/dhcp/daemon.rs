@@ -46,9 +46,7 @@ pub enum StartupError {
 impl StartupError {
     pub fn is_lease_capacity(&self) -> bool {
         match self {
-            Self::LeaseFile(error) => error
-                .get_ref()
-                .is_some_and(|cause| cause.is::<super::lease_file::CapacityExceeded>()),
+            Self::LeaseFile(error) => super::lease_file::capacity_exceeded(error),
             Self::Restore(RestoreError::Lease(LeaseError::Full)) => true,
             _ => false,
         }
@@ -72,6 +70,13 @@ impl std::fmt::Display for StartupError {
             return formatter.write_str("too many stored leases");
         }
         match self {
+            Self::LeaseFile(error)
+                if error
+                    .get_ref()
+                    .is_some_and(|cause| cause.is::<super::persistence::LeaseFileFailure>()) =>
+            {
+                write!(formatter, "{error}")
+            }
             Self::LeaseFile(error) => write!(formatter, "cannot open or read lease file: {error}"),
             Self::Restore(error) => write!(formatter, "cannot restore lease database: {error:?}"),
             Self::Socket(error) => write!(formatter, "cannot create DHCP control socket: {error}"),
@@ -93,6 +98,8 @@ impl std::error::Error for StartupError {
 pub struct RestoreStats {
     pub invalid_records: usize,
     pub clean_end: bool,
+    pub warnings: Vec<Vec<u8>>,
+    pub diagnostics_logged: bool,
 }
 
 #[derive(Debug)]
@@ -105,6 +112,7 @@ pub struct MaintenanceReport {
     pub host_files: Vec<HostFileError>,
     pub address_error: Option<io::Error>,
     pub name_error: Option<io::Error>,
+    pub file_error_message: Option<Vec<u8>>,
 }
 
 impl MaintenanceReport {
@@ -115,6 +123,7 @@ impl MaintenanceReport {
                 attempted: false,
                 error: None,
                 next_event: None,
+                retry_in: None,
                 alarm: AlarmAction::Keep,
             },
             dns: DnsReport {
@@ -128,6 +137,7 @@ impl MaintenanceReport {
             host_files: Vec::new(),
             address_error: None,
             name_error: None,
+            file_error_message: None,
         }
     }
 }
@@ -201,6 +211,8 @@ pub struct LocalProvider {
     config_host_lookup: Option<BootHostLookup>,
     reverse_host_lookup: Option<ReverseHostLookup>,
     startup_removed: Vec<Lease>,
+    startup_time: i64,
+    startup_script_time: Option<i64>,
     restore_stats: Option<RestoreStats>,
     initialized: bool,
     alarm_deadline: Option<Instant>,
@@ -243,21 +255,64 @@ impl LocalProvider {
         dns_port: u16,
         should_stop: fn() -> bool,
     ) -> Result<Self, StartupError> {
+        Self::new_with_log(config, listen_addresses, dns_port, should_stop, &mut None)
+    }
+
+    pub fn new_with_log(
+        config: DhcpConfig,
+        listen_addresses: Vec<IpAddr>,
+        dns_port: u16,
+        should_stop: fn() -> bool,
+        early_log: &mut Option<crate::logging::Logger>,
+    ) -> Result<Self, StartupError> {
         // The C global entropy check precedes lease-file creation. Keep this
         // provider's dependency failures on the same side of that mutation.
         let probe = IcmpProbe::new(config.no_ping).map_err(StartupError::Entropy)?;
         let now = epoch_seconds();
-        let (persistence, restored) = LeasePersistence::open(
+        let (persistence, restored) = LeasePersistence::open_with_warnings(
             Path::new(OsStr::from_bytes(config.lease_path())),
             config.lease_read_only,
             config.lease_max,
+            |warning| {
+                crate::logging::emit_early(
+                    early_log,
+                    crate::logging::Priority::Warning,
+                    warning.as_slice(),
+                );
+                Ok(())
+            },
         )
-        .map_err(StartupError::LeaseFile)?;
+        .map_err(|error| {
+            let warnings = error
+                .get_ref()
+                .and_then(|cause| cause.downcast_ref::<super::persistence::LeaseFileFailure>())
+                .map_or_else(
+                    || super::lease_file::warnings(&error),
+                    |failure| failure.warnings(),
+                );
+            for warning in warnings {
+                crate::logging::emit_early(
+                    early_log,
+                    crate::logging::Priority::Warning,
+                    warning.as_slice(),
+                );
+            }
+            StartupError::LeaseFile(error)
+        })?;
         let mut leases = LeaseStore::new(config.lease_max);
         let (startup_removed, restore_stats) = if let Some(restored) = restored {
+            if !restored.clean_end {
+                crate::logging::emit_early(
+                    early_log,
+                    crate::logging::Priority::Error,
+                    b"failed to parse lease database cleanly",
+                );
+            }
             let stats = RestoreStats {
                 invalid_records: restored.invalid_records,
                 clean_end: restored.clean_end,
+                warnings: restored.warnings,
+                diagnostics_logged: true,
             };
             let removed = leases
                 .restore_with_name_policy(restored.records, now, config.fqdn_only)
@@ -312,6 +367,8 @@ impl LocalProvider {
             config_host_lookup: None,
             reverse_host_lookup: None,
             startup_removed,
+            startup_time: now,
+            startup_script_time: Some(now),
             restore_stats,
             initialized: false,
             alarm_deadline: None,
@@ -405,7 +462,7 @@ impl LocalProvider {
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     fn queue_script_from_maintenance(&mut self) {
-        if self.pending_delivery.is_some() || self.config.script.is_none() {
+        if !self.initialized || self.pending_delivery.is_some() || self.config.script.is_none() {
             return;
         }
         if let Some(event) = self.scripts.next(
@@ -421,7 +478,10 @@ impl LocalProvider {
                 .as_deref()
                 .cloned()
                 .unwrap_or_default();
-            context.now = epoch_seconds();
+            context.now = self
+                .startup_script_time
+                .take()
+                .unwrap_or_else(epoch_seconds);
             context.log_dhcp = self.config.log_dhcp;
             self.pending_delivery = Some(LeaseDelivery::new(event, context));
         }
@@ -429,20 +489,33 @@ impl LocalProvider {
 
     /// Called only after the helper reports successful read-only initialization,
     /// before admitting DHCP packets. The child already applied leasefile rules.
-    pub fn restore_script_records(
+    pub fn restore_initial_records(
         &mut self,
         restored: super::lease_file::LeaseFile,
         now: i64,
-    ) -> Result<MaintenanceReport, StartupError> {
+    ) -> Result<(), StartupError> {
         self.restore_stats = Some(RestoreStats {
             invalid_records: restored.invalid_records,
             clean_end: restored.clean_end,
+            warnings: restored.warnings,
+            diagnostics_logged: true,
         });
         self.startup_removed = self
             .leases
             .restore_with_name_policy(restored.records, now, self.config.fqdn_only)
             .map_err(StartupError::Restore)?;
         self.initialized = false;
+        self.startup_time = now;
+        self.startup_script_time = Some(now);
+        Ok(())
+    }
+
+    pub fn restore_script_records(
+        &mut self,
+        restored: super::lease_file::LeaseFile,
+        now: i64,
+    ) -> Result<MaintenanceReport, StartupError> {
+        self.restore_initial_records(restored, now)?;
         Ok(self.initialize(now))
     }
 
@@ -647,6 +720,24 @@ impl LocalProvider {
             self.scripts.add_pruned(removed.clone());
         }
         let file = self.persistence.update(&mut self.leases, now);
+        let file_error_message = file.error.as_ref().map(|error| {
+            let mut description = error.to_string();
+            if let Some(code) = error.raw_os_error() {
+                if let Some(text) = description.strip_suffix(&format!(" (os error {code})")) {
+                    description = text.to_owned();
+                }
+            }
+            let mut message = b"failed to write ".to_vec();
+            message.extend_from_slice(self.config.lease_path());
+            message.extend_from_slice(
+                format!(
+                    ": {description} (retry in {} s)",
+                    file.retry_in.unwrap_or(0)
+                )
+                .as_bytes(),
+            );
+            message
+        });
         // A signal which became due during state/file work remains pending
         // even when this update installs a newer relative alarm.
         self.observe_alarm();
@@ -668,6 +759,7 @@ impl LocalProvider {
         let lost_names = LeaseStore::names_lost(&removed);
         MaintenanceReport {
             file,
+            file_error_message,
             dns,
             removed,
             lost_names,
@@ -910,9 +1002,6 @@ impl LocalProvider {
             if self.host_files_ready {
                 address_error = self.update_configured_addresses();
             }
-            if self.host_files_ready {
-                name_error = self.update_configured_names();
-            }
         }
         if first && self.config.script.is_some() {
             // lease_find_interfaces uses the most specific directly connected
@@ -922,9 +1011,10 @@ impl LocalProvider {
                     .leases
                     .active_newest_first()
                     .iter()
-                    .map(|lease| lease.address)
+                    .map(|lease| lease.id())
                     .collect();
-                for address in addresses {
+                for id in addresses {
+                    let address = id.address();
                     let selected = interfaces
                         .iter()
                         .filter_map(|interface| {
@@ -945,9 +1035,9 @@ impl LocalProvider {
                             }
                         });
                     if let Some((_, interface)) = selected {
-                        let _ = self.leases.set_interface(address, interface.index);
-                        let _ = self.leases.set_helper_context(
-                            address,
+                        let _ = self.leases.set_interface_by_id(id, interface.index);
+                        let _ = self.leases.set_helper_context_by_id(
+                            id,
                             LeaseEventContext {
                                 interface: interface.name.clone(),
                                 ..Default::default()
@@ -957,9 +1047,30 @@ impl LocalProvider {
                 }
             }
         }
+        // lease_find_interfaces precedes the first helper queue turn. The
+        // owner may have polled while file initialization was pending, so no
+        // delivery was allowed to consume these records before this point.
         self.initialized = true;
+        if first {
+            // C freezes one event before processing queued EVENT_INIT. Deleted
+            // startup leases take priority during the subsequent maintenance.
+            if self.startup_removed.is_empty() {
+                self.queue_script_from_maintenance();
+                // Only C's pre-EVENT_INIT queue turn sees the original time.
+                self.startup_script_time = None;
+            }
+            if self.host_files_ready {
+                name_error = self.update_configured_names();
+            }
+        }
         let mut removed = std::mem::take(&mut self.startup_removed);
-        removed.extend(self.leases.prune(None, now));
+        // lease_init prunes with its pre-read clock. A lease which elapsed
+        // during slow input survives through startup OLD callbacks, then the
+        // current-time alarm prunes it on the following owner turn.
+        removed.extend(
+            self.leases
+                .prune(None, if first { self.startup_time } else { now }),
+        );
         let mut report = self.maintain(now, removed, true);
         report.restore = self.restore_stats.take();
         report.host_files = host_files;
@@ -968,6 +1079,7 @@ impl LocalProvider {
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         self.queue_script_from_maintenance();
         if first {
+            self.startup_script_time = None;
             // C queues one interface-change callback before EVENT_INIT marks
             // every live lease OLD, so that first record is announced twice.
             self.leases.rerun_scripts();
@@ -997,7 +1109,10 @@ impl LocalProvider {
             .active_newest_first()
             .into_iter()
             .filter_map(|lease| {
-                if lease.expires.is_some_and(|expires| expires <= now) {
+                if lease
+                    .expires
+                    .is_some_and(|expires| super::lease::lease_expired(expires, now))
+                {
                     return None;
                 }
                 self.tftp_lease_mac(lease.address)
@@ -1025,13 +1140,14 @@ impl LocalProvider {
             .leases
             .active_newest_first()
             .iter()
-            .map(|lease| lease.address)
+            .map(|lease| lease.id())
             .collect();
         let mut name_error = None;
-        for address in addresses {
+        for id in addresses {
+            let address = id.address();
             let lease = self
                 .leases
-                .get(address)
+                .get_by_id(id)
                 .expect("lease remains present during name update");
             let configured = self
                 .config
@@ -1071,8 +1187,8 @@ impl LocalProvider {
             if let Some(name) = name {
                 // No address is removed during this loop.
                 self.leases
-                    .set_hostname(
-                        address,
+                    .set_hostname_by_id(
+                        id,
                         Some(&name),
                         true,
                         self.domains.for_address(address),
@@ -1466,10 +1582,11 @@ impl LocalProvider {
                 .then(|| packet.client_id().map(<[u8]>::to_vec))
                 .flatten(),
         };
-        let existing = self
-            .leases
-            .find_client(&identity)
-            .filter(|lease| lease.expires.is_none_or(|expiry| now < expiry));
+        let existing = self.leases.find_client(&identity).filter(|lease| {
+            lease
+                .expires
+                .is_none_or(|expiry| !super::lease::lease_expired(expiry, now))
+        });
         let clid = (packet.message_type() != 0)
             .then(|| {
                 identity
@@ -1799,6 +1916,7 @@ impl LocalProvider {
             }
         };
         let helper_new_lease = existing.is_none();
+        let lease_identity = super::state::identity(packet, environment.ignore_client_id);
         let mut provider = StateProvider::new(
             &mut self.leases,
             &mut ranges,
@@ -1839,19 +1957,28 @@ impl LocalProvider {
         provider.event_sink = Some(&mut on_event);
         let result = provider.resolve(dispatch);
         if let Ok(outcome) = &result {
-            if let Reply::Ack { address, .. } = outcome.reply {
+            let lease_id = match outcome.reply {
+                Reply::Ack { address, .. } | Reply::Bootp { address, .. } => self
+                    .leases
+                    .find_client(&lease_identity)
+                    .filter(|lease| lease.address == address)
+                    .or_else(|| self.leases.get(address))
+                    .map(|lease| lease.id()),
+                _ => None,
+            };
+            if let Some(id) = lease_id.filter(|_| matches!(outcome.reply, Reply::Ack { .. })) {
                 if self.config.lease_query.enabled {
                     // C keeps prior metadata when this ACK has no usable
                     // incoming value. Agent retention shares echo reservation.
                     if let Some(agent) = packet.echo_agent_id() {
-                        let _ = self.leases.set_agent_id(address, Some(agent));
+                        let _ = self.leases.set_agent_id_by_id(id, Some(agent));
                     }
                     if let Some(vendor) = packet.option(60, 1) {
-                        let _ = self.leases.set_vendor_class(address, Some(vendor));
+                        let _ = self.leases.set_vendor_class_by_id(id, Some(vendor));
                     }
                 } else {
-                    let _ = self.leases.set_agent_id(address, None);
-                    let _ = self.leases.set_vendor_class(address, None);
+                    let _ = self.leases.set_agent_id_by_id(id, None);
+                    let _ = self.leases.set_vendor_class_by_id(id, None);
                 }
             }
             if self.config.script.is_some() {
@@ -1880,8 +2007,8 @@ impl LocalProvider {
                         TagIf::apply_all(&self.config.tag_if, &mut tags);
                         crate::helper::extra_data(packet, &tags)
                     });
-                    let _ = self.leases.set_helper_context(
-                        address,
+                    let _ = self.leases.set_helper_context_by_id(
+                        lease_id.expect("committed ACK or BOOTP lease"),
                         LeaseEventContext {
                             interface: interface_name.unwrap_or_default().to_vec(),
                             now,

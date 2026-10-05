@@ -14,11 +14,23 @@ pub fn snapshot() -> io::Result<Vec<DnsInterface>> {
         Ok(Vec::new())
     }
 }
-fn name_matches(pattern: &Option<Vec<u8>>, name: &[u8], loopback: bool) -> bool {
+
+pub fn is_unsupported_socket_error(error: &io::Error) -> bool {
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    {
+        crate::net::is_unsupported_socket_error(error)
+    }
+    #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
+    {
+        let _ = error;
+        false
+    }
+}
+fn name_matches(pattern: &Option<Vec<u8>>, name: &[u8], _loopback: bool) -> bool {
     match pattern {
-        None => loopback,
+        None => false,
         Some(pattern) => match pattern.iter().position(|byte| *byte == b'*') {
-            Some(at) => name.starts_with(&pattern[..at]),
+            Some(at) => name.len() > at && name.starts_with(&pattern[..at]),
             None => pattern == name,
         },
     }
@@ -87,21 +99,9 @@ pub fn bound_addresses(
         let mut result = Vec::new();
         for interface in interfaces
             .iter()
-            .filter(|interface| selected(config, interface))
+            .filter(|interface| selected(config, interface) && !interface.tentative)
         {
-            let address = match interface.address {
-                IpAddr::V6(ip) => SocketAddr::V6(SocketAddrV6::new(
-                    ip,
-                    port,
-                    0,
-                    if ip.is_unicast_link_local() {
-                        interface.index
-                    } else {
-                        0
-                    },
-                )),
-                ip => SocketAddr::new(ip, port),
-            };
+            let address = interface_address(interface, port);
             if !result.contains(&address) {
                 result.push(address);
             }
@@ -109,7 +109,13 @@ pub fn bound_addresses(
         // Explicit addresses can precede interface creation in dynamic mode.
         for address in &config.listen_addresses {
             let address = SocketAddr::new(*address, port);
-            if !result.iter().any(|existing| existing.ip() == address.ip()) {
+            // Matching tentative addresses are already INAME_USED in C, so
+            // they must not be retried as an unowned explicit address.
+            if !interfaces
+                .iter()
+                .any(|interface| interface.address == address.ip())
+                && !result.iter().any(|existing| existing.ip() == address.ip())
+            {
                 result.push(address);
             }
         }
@@ -137,6 +143,45 @@ pub fn bound_addresses(
             }
         }
     }
+}
+
+fn interface_address(interface: &DnsInterface, port: u16) -> SocketAddr {
+    match interface.address {
+        IpAddr::V6(ip) => SocketAddr::V6(SocketAddrV6::new(
+            ip,
+            port,
+            0,
+            if ip.is_unicast_link_local() {
+                interface.index
+            } else {
+                0
+            },
+        )),
+        ip => SocketAddr::new(ip, port),
+    }
+}
+
+/// Capture at startup for static binding. The poll owner may retry only this
+/// set after DAD; later static addresses must not acquire listeners.
+pub fn tentative_addresses(
+    config: &DnsConfig,
+    port: u16,
+    interfaces: &[DnsInterface],
+) -> Vec<SocketAddr> {
+    if port == 0 || !config.bind_interfaces && !config.bind_dynamic {
+        return Vec::new();
+    }
+    let mut addresses = Vec::new();
+    for interface in interfaces
+        .iter()
+        .filter(|interface| interface.tentative && selected(config, interface))
+    {
+        let address = interface_address(interface, port);
+        if !addresses.contains(&address) {
+            addresses.push(address);
+        }
+    }
+    addresses
 }
 pub fn local_network(
     interfaces: &[DnsInterface],
@@ -262,7 +307,12 @@ pub fn admit(
     if config.listen_addresses.contains(&destination) {
         return true;
     }
-    if ingress == 0 || config.bind_interfaces && !config.bind_dynamic && destination.is_ipv4() {
+    // C's static IPv4 receive path trusts the bound socket even when it is
+    // an unowned loopback alias or an explicitly configured wildcard.
+    if config.bind_interfaces && !config.bind_dynamic && destination.is_ipv4() {
+        return true;
+    }
+    if ingress == 0 {
         return !explicit_access(config)
             || interfaces
                 .iter()
@@ -276,12 +326,13 @@ pub fn admit(
                 let excluded = config
                     .excluded_interfaces
                     .iter()
-                    .any(|name| name_matches(name, &interface.name, interface.loopback));
+                    .any(|name| name_matches(name, interface.link_name(), interface.loopback));
                 let allowed = (config.interfaces.is_empty() && config.listen_addresses.is_empty()
                     || config
                         .interfaces
                         .iter()
-                        .any(|name| name_matches(name, &interface.name, interface.loopback)))
+                        .any(|name| name_matches(name, interface.link_name(), interface.loopback))
+                    || !config.interfaces.is_empty() && interface.loopback)
                     && !excluded;
                 // C's loopback and label exceptions retain locally originated DNS
                 // queries to a configured address even when ingress is loopback.
@@ -388,7 +439,7 @@ pub fn tcp_bind(address: SocketAddr) -> io::Result<TcpListener> {
             )
         };
         if fd < 0 {
-            return Err(io::Error::last_os_error());
+            return Err(crate::net::socket_creation_error(io::Error::last_os_error()));
         }
         let listener = unsafe { TcpListener::from_raw_fd(fd) };
         let fd = listener.as_raw_fd();
@@ -437,7 +488,78 @@ mod tests {
             address: address.parse().unwrap(),
             netmask: netmask.parse().unwrap(),
             loopback: false,
+            tentative: false,
         }
+    }
+    #[test]
+    fn tentative_explicit_addresses_are_used_but_deferred_with_scope() {
+        let mut global = interface("fd42::1", "ffff:ffff:ffff:ffff::", 3);
+        let mut local = interface("fe80::1", "ffff:ffff:ffff:ffff::", 3);
+        global.tentative = true;
+        local.tentative = true;
+        let mut config = DnsConfig::default();
+        config.bind_interfaces = true;
+        config.interfaces.push(Some(b"lan".to_vec()));
+        config.listen_addresses.push(global.address);
+        config.listen_addresses.push(local.address);
+        let mut interfaces = vec![global, local];
+        assert!(validate_bind_interfaces(&config, &interfaces).is_ok());
+        assert!(bound_addresses(&config, 53, &interfaces).is_empty());
+        let expected = vec![
+            "[fd42::1]:53".parse().unwrap(),
+            "[fe80::1%3]:53".parse().unwrap(),
+        ];
+        assert_eq!(tentative_addresses(&config, 53, &interfaces), expected);
+        for interface in &mut interfaces {
+            interface.tentative = false;
+        }
+        assert!(tentative_addresses(&config, 53, &interfaces).is_empty());
+        assert_eq!(bound_addresses(&config, 53, &interfaces), expected);
+    }
+    #[test]
+    fn alias_ingress_exception_requires_its_selected_destination() {
+        let primary = interface("192.0.2.1", "255.255.255.0", 3);
+        let mut alias = interface("192.0.2.2", "255.255.255.0", 3);
+        alias.name = b"lan:0".to_vec();
+        let interfaces = [primary, alias];
+        let mut config = DnsConfig::default();
+        config.interfaces.push(Some(b"lan:0".to_vec()));
+        for dynamic in [false, true] {
+            config.bind_dynamic = dynamic;
+            assert!(!admit(
+                &config,
+                &interfaces,
+                "192.0.2.3".parse().unwrap(),
+                "192.0.2.1".parse().unwrap(),
+                3
+            ));
+            assert!(admit(
+                &config,
+                &interfaces,
+                "192.0.2.3".parse().unwrap(),
+                "192.0.2.2".parse().unwrap(),
+                3
+            ));
+        }
+    }
+    #[test]
+    fn wildcard_and_null_names_match_c_string_boundaries() {
+        assert!(!name_matches(&Some(b"lan*".to_vec()), b"lan", false));
+        assert!(name_matches(&Some(b"lan*ignored".to_vec()), b"lan0", false));
+        assert!(!name_matches(&None, b"lo", true));
+    }
+    #[test]
+    fn automatic_loopback_name_admits_unlisted_loopback_destinations() {
+        let mut lo = interface("127.0.0.1", "255.0.0.0", 1);
+        lo.name = b"lo".to_vec();
+        lo.loopback = true;
+        let mut config = DnsConfig::default();
+        config.interfaces.push(Some(b"lan".to_vec()));
+        let peer = "127.0.0.1".parse().unwrap();
+        let destination = "127.0.0.2".parse().unwrap();
+        assert!(admit(&config, &[lo.clone()], peer, destination, 1));
+        config.excluded_interfaces.push(Some(b"lo".to_vec()));
+        assert!(!admit(&config, &[lo], peer, destination, 1));
     }
     #[test]
     fn static_binding_rejects_missing_names_but_accepts_matching_patterns() {

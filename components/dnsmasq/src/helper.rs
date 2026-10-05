@@ -170,6 +170,8 @@ pub enum Notice {
         invalid_records: usize,
         clean_end: bool,
     },
+    /// Parser diagnostics precede init failure and never masquerade as script output.
+    InitWarning(Vec<u8>),
     /// Startup parser failure with the C process exit class.
     InitError(i32),
     /// Shell exit status; 126/127 map to EC_FILE, others to EC_INIT_OFFSET.
@@ -339,7 +341,7 @@ fn invocation(event: &Event) -> io::Result<Invocation> {
             let remaining = if lease.expires == 0 {
                 0
             } else {
-                lease.expires.wrapping_sub(lease.now) as u32
+                crate::dhcp::lease::remaining_seconds(lease.expires, lease.now)
             };
             add(
                 "TIME_REMAINING",

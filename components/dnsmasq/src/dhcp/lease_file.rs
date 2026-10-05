@@ -23,6 +23,7 @@ pub struct LeaseFile {
     pub records: Vec<LeaseRecord>,
     pub invalid_records: usize,
     pub clean_end: bool,
+    pub warnings: Vec<Vec<u8>>,
 }
 
 struct Tokens<R> {
@@ -89,21 +90,117 @@ impl std::fmt::Display for CapacityExceeded {
 
 impl std::error::Error for CapacityExceeded {}
 
+/// An early fatal read/capacity error must retain diagnostics from preceding
+/// records. C emitted these while scanning, before its final startup failure.
+#[derive(Debug)]
+struct ParseFailure {
+    source: io::Error,
+    warnings: Vec<Vec<u8>>,
+}
+
+impl std::fmt::Display for ParseFailure {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let description = self.source.to_string();
+        let suffix = self
+            .source
+            .raw_os_error()
+            .map(|code| format!(" (os error {code})"));
+        formatter.write_str(
+            suffix
+                .as_ref()
+                .and_then(|suffix| description.strip_suffix(suffix))
+                .unwrap_or(&description),
+        )
+    }
+}
+
+impl std::error::Error for ParseFailure {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.source)
+    }
+}
+
+pub fn warnings(error: &io::Error) -> &[Vec<u8>] {
+    error
+        .get_ref()
+        .and_then(|cause| cause.downcast_ref::<ParseFailure>())
+        .map_or(&[], |failure| &failure.warnings)
+}
+
+pub fn capacity_exceeded(error: &io::Error) -> bool {
+    error.get_ref().is_some_and(|cause| {
+        cause.is::<CapacityExceeded>()
+            || cause
+                .downcast_ref::<ParseFailure>()
+                .is_some_and(|failure| capacity_exceeded(&failure.source))
+    })
+}
+
+fn failure(file: &mut LeaseFile, source: io::Error) -> io::Error {
+    if file.warnings.is_empty() {
+        return source;
+    }
+    io::Error::new(
+        source.kind(),
+        ParseFailure {
+            source,
+            warnings: std::mem::take(&mut file.warnings),
+        },
+    )
+}
+
 /// Stream a startup database without allocating its complete contents. Field
 /// widths stay identical to scanf and capacity exhaustion is startup-fatal.
 pub fn parse_reader(reader: impl BufRead, maximum_records: usize) -> io::Result<LeaseFile> {
+    let mut warnings = Vec::new();
+    let parsed = parse_reader_with_warnings(reader, maximum_records, |warning| {
+        warnings.push(warning);
+        Ok(())
+    });
+    match parsed {
+        Ok(mut file) => {
+            file.warnings = warnings;
+            Ok(file)
+        }
+        Err(error) if warnings.is_empty() => Err(error),
+        Err(error) => Err(io::Error::new(
+            error.kind(),
+            ParseFailure {
+                source: error,
+                warnings,
+            },
+        )),
+    }
+}
+
+/// Production startup emits each warning as it is scanned. Arbitrarily many
+/// invalid rows therefore do not accumulate diagnostic text in daemon memory.
+pub fn parse_reader_with_warnings(
+    reader: impl BufRead,
+    maximum_records: usize,
+    mut emit: impl FnMut(Vec<u8>) -> io::Result<()>,
+) -> io::Result<LeaseFile> {
     let mut tokens = Tokens { reader };
     let mut result = LeaseFile::default();
     loop {
-        let Some(first) = tokens.take(255)? else {
+        let Some(first) = tokens
+            .take(255)
+            .map_err(|error| failure(&mut result, error))?
+        else {
             result.clean_end = true;
             break;
         };
-        let Some(second) = tokens.take(255)? else {
+        let Some(second) = tokens
+            .take(255)
+            .map_err(|error| failure(&mut result, error))?
+        else {
             break;
         };
         if first == b"vendorclass" || first == b"agent-info" {
-            if let Some(data) = tokens.take(764)? {
+            if let Some(data) = tokens
+                .take(764)
+                .map_err(|error| failure(&mut result, error))?
+            {
                 if let Some(address) = parse_address(&second) {
                     if let Some(record) = result
                         .records
@@ -124,20 +221,51 @@ pub fn parse_reader(reader: impl BufRead, maximum_records: usize) -> io::Result<
             }
             continue;
         }
-        let address = tokens.take(64)?;
-        let hostname = tokens.take(255)?;
-        let client_id = tokens.take(764)?;
-        let (Some(address), Some(hostname), Some(client_id)) = (address, hostname, client_id)
-        else {
+        let address = tokens
+            .take(64)
+            .map_err(|error| failure(&mut result, error))?;
+        let hostname = tokens
+            .take(255)
+            .map_err(|error| failure(&mut result, error))?;
+        let client_id = tokens
+            .take(764)
+            .map_err(|error| failure(&mut result, error))?;
+        if address.is_none() || hostname.is_none() || client_id.is_none() {
+            let mut message = b"ignoring invalid line in lease database: ".to_vec();
+            for (index, field) in [
+                first.as_slice(),
+                second.as_slice(),
+                address.as_deref().unwrap_or_default(),
+                hostname.as_deref().unwrap_or_default(),
+            ]
+            .into_iter()
+            .enumerate()
+            {
+                if index != 0 {
+                    message.push(b' ');
+                }
+                message.extend_from_slice(field);
+            }
+            message.extend_from_slice(b" ...");
+            emit(message)?;
             result.invalid_records += 1;
             continue;
-        };
+        }
+        let address = address.unwrap();
+        let hostname = hostname.unwrap();
+        let client_id = client_id.unwrap();
         let Some(address) = parse_address(&address) else {
+            let mut message = b"ignoring invalid line in lease database, bad address: ".to_vec();
+            message.extend_from_slice(&address);
+            emit(message)?;
             result.invalid_records += 1;
             continue;
         };
         if result.records.len() >= maximum_records {
-            return Err(io::Error::new(io::ErrorKind::InvalidData, CapacityExceeded));
+            return Err(failure(
+                &mut result,
+                io::Error::new(io::ErrorKind::InvalidData, CapacityExceeded),
+            ));
         }
         let (hardware, mut hardware_type) = parse_hex(&second, 16, true);
         let hardware = hardware.unwrap_or_default();
@@ -235,19 +363,19 @@ fn decimal_prefix(bytes: &[u8]) -> i64 {
         Some(b'+') => (false, &bytes[1..]),
         _ => (false, bytes),
     };
-    let mut value = 0i64;
-    for byte in digits.iter().take_while(|byte| byte.is_ascii_digit()) {
-        if negative {
-            value = value
-                .saturating_mul(10)
-                .saturating_sub(i64::from(byte - b'0'));
-        } else {
-            value = value
-                .saturating_mul(10)
-                .saturating_add(i64::from(byte - b'0'));
-        }
+    // This image's musl atol accumulates in a wrapping signed long. Unlike
+    // strtol, it does not report or saturate an out-of-range decimal value.
+    let value = digits
+        .iter()
+        .take_while(|byte| byte.is_ascii_digit())
+        .fold(0i64, |value, byte| {
+            value.wrapping_mul(10).wrapping_add(i64::from(byte - b'0'))
+        });
+    if negative {
+        value.wrapping_neg()
+    } else {
+        value
     }
-    value
 }
 
 #[cfg(test)]
@@ -292,7 +420,8 @@ mod tests {
         let result = parse(b"200 010203\n192.0.2.1\nhost *\ntrailing");
         assert_eq!(result.records.len(), 1);
         assert!(!result.clean_end);
-        assert_eq!(decimal_prefix(b"-9223372036854775809"), i64::MIN);
+        assert_eq!(decimal_prefix(b"-9223372036854775809"), i64::MAX);
+        assert_eq!(decimal_prefix(b"9223372036854775808"), i64::MIN);
     }
 
     #[test]
@@ -308,6 +437,62 @@ mod tests {
         assert_eq!(
             parse_reader(&bytes[..], 0).unwrap_err().kind(),
             io::ErrorKind::InvalidData
+        );
+    }
+
+    #[test]
+    fn fatal_read_and_capacity_keep_preceding_record_diagnostics() {
+        struct Failed<'a>(&'a [u8]);
+        impl std::io::Read for Failed<'_> {
+            fn read(&mut self, _: &mut [u8]) -> io::Result<usize> {
+                unreachable!()
+            }
+        }
+        impl BufRead for Failed<'_> {
+            fn fill_buf(&mut self) -> io::Result<&[u8]> {
+                if self.0.is_empty() {
+                    Err(io::Error::from_raw_os_error(5))
+                } else {
+                    Ok(self.0)
+                }
+            }
+            fn consume(&mut self, count: usize) {
+                self.0 = &self.0[count..];
+            }
+        }
+        let bytes = b"0 01 invalid bad *\n0 01 192.0.2.1 first *\n";
+        let error = parse_reader(Failed(bytes), 2).unwrap_err();
+        assert_eq!(
+            warnings(&error),
+            [b"ignoring invalid line in lease database, bad address: invalid".to_vec()]
+        );
+        assert!(!capacity_exceeded(&error));
+        let error = parse_reader(&bytes[..], 0).unwrap_err();
+        assert_eq!(warnings(&error).len(), 1);
+        assert!(capacity_exceeded(&error));
+    }
+
+    #[test]
+    fn production_warning_stream_does_not_retain_invalid_row_text() {
+        let bytes = b"0 01 invalid bad *\n".repeat(10_000);
+        let mut warnings = 0;
+        let parsed = parse_reader_with_warnings(&bytes[..], 0, |_| {
+            warnings += 1;
+            Ok(())
+        })
+        .unwrap();
+        assert_eq!(warnings, 10_000);
+        assert_eq!(parsed.invalid_records, 10_000);
+        assert!(parsed.clean_end && parsed.records.is_empty() && parsed.warnings.is_empty());
+    }
+
+    #[test]
+    fn invalid_address_diagnostic_preserves_non_utf8_input_octets() {
+        let parsed = parse(b"0 01 \xff bad *\n");
+        assert_eq!(parsed.invalid_records, 1);
+        assert_eq!(
+            parsed.warnings,
+            [b"ignoring invalid line in lease database, bad address: \xff".to_vec()]
         );
     }
 }

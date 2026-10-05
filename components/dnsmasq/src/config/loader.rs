@@ -337,11 +337,17 @@ where
         origin: Origin,
     ) -> Result<(), LoadError> {
         let spec = validate_directive(&directive).map_err(|e| LoadError::new(location, 1, e.0))?;
-        if !self
-            .occurrences
-            .record(spec, origin)
-            .map_err(|e| LoadError::new(location, 1, e.0))?
-        {
+        if !self.occurrences.record(spec, origin).map_err(|e| {
+            LoadError::new(
+                location,
+                1,
+                if origin == Origin::CommandLine {
+                    format!("bad command line options: {}", e.0)
+                } else {
+                    e.0.to_owned()
+                },
+            )
+        })? {
             return Ok(());
         }
         match spec.id {
@@ -354,9 +360,17 @@ where
             // C handles these commands only on argv; in a file they set bit 0
             // of the option flags, which has no runtime meaning.
             "'v'" | "'w'" | "LOPT_TEST" => {}
-            _ => {
-                (self.apply)(&directive, location).map_err(|e| LoadError::new(location, 1, e.0))?
-            }
+            _ => (self.apply)(&directive, location).map_err(|e| {
+                LoadError::new(
+                    location,
+                    1,
+                    if origin == Origin::CommandLine {
+                        format!("bad command line options: {}", e.0)
+                    } else {
+                        e.0.to_owned()
+                    },
+                )
+            })?,
         }
         Ok(())
     }

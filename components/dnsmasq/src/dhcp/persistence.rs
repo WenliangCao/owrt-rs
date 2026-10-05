@@ -31,6 +31,8 @@ pub struct PersistReport {
     pub attempted: bool,
     pub error: Option<io::Error>,
     pub next_event: Option<i64>,
+    /// C's exact relative deadline printed with a write failure.
+    pub retry_in: Option<u32>,
     pub alarm: AlarmAction,
 }
 
@@ -63,21 +65,83 @@ pub fn update_file(
     let mut next_event = store.next_expiry();
     if error.is_some() {
         let retry = now.saturating_add(LEASE_RETRY_SECONDS);
-        next_event = Some(next_event.map_or(retry, |expiry| expiry.min(retry)));
+        next_event = Some(next_event.map_or(retry, |expiry| {
+            if expiry.wrapping_sub(retry) > 0 {
+                retry
+            } else {
+                expiry
+            }
+        }));
     }
-    let alarm = if now == 0 || next_event.is_some_and(|event| event <= now) {
+    let alarm = if now == 0 || next_event.is_some_and(|event| event.wrapping_sub(now) <= 0) {
         AlarmAction::Immediate
     } else if let Some(event) = next_event {
-        AlarmAction::At(event)
+        // AArch64 conversion to the unsigned alarm argument saturates at
+        // UINT_MAX. Keep that actual relative deadline representable for poll.
+        AlarmAction::At(now.saturating_add(event.wrapping_sub(now).min(i64::from(u32::MAX))))
     } else {
         AlarmAction::Keep
     };
+    let retry_in = error
+        .as_ref()
+        .and_then(|_| next_event.map(|event| super::lease::remaining_seconds(event, now)));
     PersistReport {
         attempted,
         error,
         next_event,
+        retry_in,
         alarm,
     }
+}
+
+/// The caller reports this diagnostic unchanged: lease_init distinguishes
+/// open/create from read failures, both with EC_FILE and the configured path.
+#[derive(Debug)]
+pub struct LeaseFileFailure {
+    action: &'static str,
+    path: std::path::PathBuf,
+    source: io::Error,
+}
+
+impl LeaseFileFailure {
+    pub fn warnings(&self) -> &[Vec<u8>] {
+        super::lease_file::warnings(&self.source)
+    }
+}
+
+impl std::fmt::Display for LeaseFileFailure {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut description = self.source.to_string();
+        if let Some(code) = self.source.raw_os_error() {
+            if let Some(text) = description.strip_suffix(&format!(" (os error {code})")) {
+                description = text.to_owned();
+            }
+        }
+        write!(
+            formatter,
+            "{} {}: {}",
+            self.action,
+            self.path.display(),
+            description
+        )
+    }
+}
+
+impl std::error::Error for LeaseFileFailure {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.source)
+    }
+}
+
+fn file_failure(action: &'static str, path: &Path, source: io::Error) -> io::Error {
+    io::Error::new(
+        source.kind(),
+        LeaseFileFailure {
+            action,
+            path: path.to_owned(),
+            source,
+        },
+    )
 }
 
 struct FileStream(BufWriter<File>);
@@ -115,6 +179,24 @@ impl LeasePersistence {
         read_only: bool,
         maximum_records: usize,
     ) -> io::Result<(Self, Option<LeaseFile>)> {
+        Self::open_inner(path, read_only, maximum_records, None)
+    }
+
+    pub fn open_with_warnings(
+        path: &Path,
+        read_only: bool,
+        maximum_records: usize,
+        mut emit: impl FnMut(Vec<u8>) -> io::Result<()>,
+    ) -> io::Result<(Self, Option<LeaseFile>)> {
+        Self::open_inner(path, read_only, maximum_records, Some(&mut emit))
+    }
+
+    fn open_inner(
+        path: &Path,
+        read_only: bool,
+        maximum_records: usize,
+        emit: Option<&mut dyn FnMut(Vec<u8>) -> io::Result<()>>,
+    ) -> io::Result<(Self, Option<LeaseFile>)> {
         if read_only {
             // leasefile-ro without a script uses an empty DB, even if the
             // configured pathname contains valid leases or cannot be opened.
@@ -124,10 +206,23 @@ impl LeasePersistence {
             .read(true)
             .append(true)
             .create(true)
-            .open(path)?;
+            .open(path)
+            .map_err(|error| file_failure("cannot open or create lease file", path, error))?;
         // C's startup rewind does not inspect errno; read errors remain fatal.
         let _ = file.rewind();
-        let restored = parse_reader(BufReader::with_capacity(1024, &mut file), maximum_records)?;
+        let reader = BufReader::with_capacity(1024, &mut file);
+        let parsed = if let Some(emit) = emit {
+            super::lease_file::parse_reader_with_warnings(reader, maximum_records, emit)
+        } else {
+            parse_reader(reader, maximum_records)
+        };
+        let restored = parsed.map_err(|error| {
+            if super::lease_file::capacity_exceeded(&error) {
+                error
+            } else {
+                file_failure("failed to read lease file", path, error)
+            }
+        })?;
         Ok((
             Self {
                 stream: Some(FileStream(BufWriter::with_capacity(1024, file))),

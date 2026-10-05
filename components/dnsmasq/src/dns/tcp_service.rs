@@ -75,6 +75,13 @@ pub struct TcpDnsService {
 }
 
 impl TcpDnsService {
+    pub fn set_preferred_servers(
+        &mut self,
+        servers: impl IntoIterator<Item = (super::forward::GroupId, super::forward::ServerId)>,
+    ) {
+        self.upstream.set_preferred_servers(servers);
+    }
+
     pub fn cache_eligible(query: &[u8]) -> bool {
         super::forward_service::ordinary_cache_query(query)
     }
@@ -100,8 +107,9 @@ impl TcpDnsService {
         routing: RoutingTable,
         edns_packet_max: u16,
     ) -> Result<Self, TcpServiceError> {
-        let upstream = TcpUpstream::new(routing.dispatcher_groups(), TcpOptions::default())
+        let mut upstream = TcpUpstream::new(routing.dispatcher_groups(), TcpOptions::default())
             .map_err(TcpServiceError::Transport)?;
+        upstream.set_source_bindings(&routing.source_bindings(0));
         let mut policy = address_policy(config).map_err(TcpServiceError::Config)?;
         // ignore-address is a UDP reply_query predicate, absent from C's TCP
         // process_reply path. Keep that distinction if shared policy grows.
