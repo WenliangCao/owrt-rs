@@ -7,6 +7,9 @@ network witnesses; raw timestamps, packets, logs and failures remain private.
 from __future__ import annotations
 import argparse
 import copy
+import ctypes
+import errno
+import platform
 import json
 import os
 from pathlib import Path
@@ -37,6 +40,62 @@ def checksum(data):
     total = sum(struct.unpack('!'+str(len(data)//2)+'H', data))
     while total >> 16: total = (total & 0xffff) + (total >> 16)
     return total
+
+
+def trace_write(pid,descriptor,output):
+    assert platform.machine()=='aarch64','trace ABI is pinned to the image AArch64 deployment'
+    class Iovec(ctypes.Structure):
+        _fields_=[('base',ctypes.c_void_p),('length',ctypes.c_size_t)]
+    libc=ctypes.CDLL(None,use_errno=True);libc.ptrace.restype=ctypes.c_long
+    def ptrace(request,address=0,data=0):
+        ctypes.set_errno(0)
+        result=libc.ptrace(ctypes.c_uint(request),ctypes.c_uint(pid),ctypes.c_void_p(address),ctypes.c_void_p(data))
+        if result==-1 and ctypes.get_errno():raise OSError(ctypes.get_errno(),'ptrace')
+        return result
+    registers=(ctypes.c_ulonglong*34)()
+    def regs(write=False):
+        iov=Iovec(ctypes.addressof(registers),ctypes.sizeof(registers))
+        ptrace(0x4205 if write else 0x4204,1,ctypes.addressof(iov))
+    output=Path(output);receipt=dict(injected=False,errno=errno.EIO,descriptor=descriptor,syscalls=[])
+    attached=False;active=False;memory=None
+    try:
+        ptrace(16);os.waitpid(pid,0);attached=True;ptrace(0x4200,0,1)
+        memory=os.open('/proc/'+str(pid)+'/mem',os.O_RDONLY)
+        Path(str(output)+'.ready').write_text('actual write tracer attached\n')
+        while True:
+            ptrace(24);_,status=os.waitpid(pid,0)
+            assert os.WIFSTOPPED(status),'tracee ended before dump write'
+            if os.WSTOPSIG(status) not in [signal.SIGTRAP|0x80,signal.SIGTRAP]:
+                ptrace(24,0,os.WSTOPSIG(status));os.waitpid(pid,0);continue
+            info=(ctypes.c_ubyte*128)();ptrace(0x420e,ctypes.sizeof(info),ctypes.addressof(info));regs()
+            if info[0]==1 and registers[8]==64 and registers[0]==descriptor:
+                wire=os.pread(memory,min(int(registers[2]),65536),int(registers[1]))
+                receipt['syscalls'].append(dict(number=64,pc=int(registers[32]),fd=int(registers[0]),count=int(registers[2]),wire=wire.hex()))
+                registers[8]=(1<<64)-1;regs(True);active=True
+            elif info[0]==2 and active:
+                registers[0]=(-errno.EIO)&((1<<64)-1);regs(True)
+                receipt['syscalls'][-1]['returned']=-errno.EIO;receipt['injected']=True
+                ptrace(17);attached=False;break
+    finally:
+        if memory is not None:os.close(memory)
+        if attached:ptrace(17)
+        save(output,receipt)
+    return 0
+
+
+def write_fault(process,file,folder):
+    descriptors=[]
+    for entry in Path('/proc/'+str(process.pid)+'/fd').iterdir():
+        try:
+            if Path(os.readlink(entry)).resolve()==file.resolve():descriptors.append(int(entry.name))
+        except FileNotFoundError:pass
+    assert len(descriptors)==1,'unique actual PCAP descriptor'
+    output=folder/'write-fault.json'
+    tracer=subprocess.Popen([sys.executable,__file__,'--trace-write',str(process.pid),str(descriptors[0]),str(output)])
+    deadline=time.monotonic()+3
+    while not Path(str(output)+'.ready').exists() and tracer.poll() is None and time.monotonic()<deadline:time.sleep(.005)
+    assert Path(str(output)+'.ready').exists(),'write-fault attach readiness'
+    return tracer,output
 
 
 def pcap(data, start, end):
@@ -128,6 +187,8 @@ def stop(process):
 
 def profiles():
     rows=[
+        dict(case='actual-write-error',exchange=True,fault=True),
+        dict(case='write-error-recovery',exchange=True,fault=True,copies=2),
         dict(case='dhcp-dora',dhcp=True),dict(case='dhcp-mask-zero',dhcp=True,mask='0'),
         dict(case='dhcp-relay-forward',dhcp=True,relay='forward'),dict(case='dhcp-relay-reply',dhcp=True,relay='reply'),
         dict(case='extra-dhcp-no-display-id',dhcp=True,extra=['log-queries=extra'],display=True),
@@ -331,7 +392,7 @@ def case(args,root,spec):
         data=root/'m2/tftp';data.mkdir(exist_ok=True);(data/'evidence').write_bytes(b'pcap-evidence')
         config += ['enable-tftp','tftp-root=/m2/tftp','tftp-port-range=10690,10690']
     (root/'m2/dump.conf').write_text('\n'.join(config)+'\n');(folder/'config').write_text('\n'.join(config)+'\n')
-    process=None;captured=b'';witness=[];start=time.time();events=[];display_events=[];transport_witness=[]
+    process=None;tracer=None;fault_output=None;captured=b'';witness=[];start=time.time();events=[];display_events=[];transport_witness=[]
     try:
         for phase in range(2 if spec.get('restart') else 1):
             (root/'m2/dump.pid').unlink(missing_ok=True)
@@ -346,9 +407,13 @@ def case(args,root,spec):
                     assert process.poll() is None,'startup died';time.sleep(.005)
                 assert (root/'m2/dump.pid').exists(),'startup readiness'
                 save(folder/f'{phase}.identity.json',process_identity(root,process.pid))
+                if spec.get('fault'):tracer,fault_output=write_fault(process,file,folder)
                 if spec.get('tftp'):transport_witness += tftp_exchange(spec,folder)
                 if spec.get('exchange'):
                     for index in range(spec.get('copies',1)):witness += exchange(spec,folder,phase*10+index)
+                if tracer:
+                    assert tracer.wait(3)==0,'write-fault tracer exit'
+                    receipt=json.loads(fault_output.read_text());assert receipt['injected'],'actual dump write EIO receipt'
                 time.sleep(.05)
                 captured += collect(root,file,reader) if reader is not None else b''
                 stop(process)
@@ -381,6 +446,7 @@ def case(args,root,spec):
                     streams += [(4,forwards[0]['request']),(8,forwards[0]['reply'])]
                 streams += [(2,witness[index+1])]
                 for flag,payload in streams:
+                    if spec.get('fault') and index==0 and flag==1:continue
                     if not spec.get('tcp') and mask&flag:
                         row=observed['records'][cursor]
                         assert row['payload']==payload,'PCAP payload must match actual client/upstream witness before ID normalization'
@@ -397,8 +463,13 @@ def case(args,root,spec):
                 info=file.stat();assert info.st_mode&0o777==0o600 and info.st_uid==0,'startup create permission/owner before daemon privilege drop'
         result=dict(case=label,pcap=observed,events=events)
         if spec.get('display'):result['display_events']=display_events
+        if spec.get('fault'):
+            logged=(folder/'0.log').read_bytes()
+            assert logged.count(b'failed to write packet dump')==1,'one actual dump write failure log'
+            result['fault']=dict(injected=True,errno=errno.EIO,operation='dump-record-write')
         return result
     finally:
+        if tracer is not None and tracer.poll() is None:tracer.kill();tracer.wait()
         if process is not None and process.poll() is None:stop(process)
         if reader is not None:os.close(reader)
         if upstream:upstream.close()
@@ -433,6 +504,7 @@ def run_side(args):
 
 
 def main():
+    if len(sys.argv)>1 and sys.argv[1]=='--trace-write':return trace_write(int(sys.argv[2]),int(sys.argv[3]),sys.argv[4])
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--image-root',type=Path,required=True);parser.add_argument('--rust',type=Path,required=True)
     parser.add_argument('--out',type=Path,required=True);parser.add_argument('--side',choices=['c','rust','both'],default='both');parser.add_argument('--select')
