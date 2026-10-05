@@ -291,6 +291,7 @@ impl CacheContext<'_> {
             }
         }
         if question.rrtype == 12
+            && !ids.is_empty()
             && !ids.iter().any(|id| {
                 cache
                     .get(*id)
@@ -2143,6 +2144,29 @@ mod tests {
                 negative_ttl: 0,
                 filter_rr: &[],
             };
+            let miss_question = super::super::forward::Question {
+                name: terminal.clone(),
+                rrtype: 12,
+                class: 1,
+            };
+            let miss = context
+                .answer_records(
+                    &miss_question,
+                    Header {
+                        id: 2,
+                        flags: 0x0100,
+                        questions: 1,
+                        answers: 0,
+                        authorities: 0,
+                        additionals: 0,
+                    },
+                    101,
+                    &mut local,
+                    1232,
+                    false,
+                )
+                .unwrap();
+            assert!(miss.packet.is_none(), "an empty cache must defer reverse PTR/lease/synthesis precedence to the local caller");
             context
                 .insert_reply_with_policy(
                     &reply,
