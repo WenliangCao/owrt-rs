@@ -1,7 +1,7 @@
 //! Startup messages from dhcp-common.c:950-1025 and dnsmasq.c:1038-1049.
 use super::{LogEvent, Priority, Service};
 use crate::config::dhcp::RangeConfig;
-use crate::config::dns::RuleTarget;
+use crate::config::dns::{RuleTarget, ServerHost};
 use crate::config::tftp::TftpConfig;
 use crate::dhcp::allocation::RangeKind;
 use crate::dns::files::SourcedRule;
@@ -108,11 +108,25 @@ pub fn server_messages(
         let RuleTarget::Upstream(endpoint) = &row.value.rule.target else {
             continue;
         };
-        let Some(address) = row
-            .value
-            .address
-            .or_else(|| crate::dns::routing::validate_endpoint(endpoint).ok())
-        else {
+        let Some(address) = row.value.address.or_else(|| match endpoint.host {
+            ServerHost::Address(std::net::IpAddr::V4(address)) => {
+                Some(std::net::SocketAddr::new(address.into(), endpoint.port))
+            }
+            ServerHost::Address(std::net::IpAddr::V6(address))
+                if endpoint.scope.is_none() || endpoint.scope_id.is_some() =>
+            {
+                Some(
+                    std::net::SocketAddrV6::new(
+                        address,
+                        endpoint.port,
+                        0,
+                        endpoint.scope_id.unwrap_or(0),
+                    )
+                    .into(),
+                )
+            }
+            _ => None,
+        }) else {
             continue;
         };
         if count == 30 {
