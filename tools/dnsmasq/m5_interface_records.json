@@ -1988,7 +1988,8 @@
       ],
       "case_ids": [
         "interface-tcp-inherited",
-        "interface-flag-dad-completion"
+        "interface-flag-dad-completion",
+        "interface-tcp-inherited-flags"
       ],
       "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
@@ -2055,8 +2056,10 @@
         "network.c:1786-1788",
         "rfc1035.c:2016-2088"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-debug-parent-blocking"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-CALLER/15",
@@ -2070,8 +2073,11 @@
         "network.c:1786-1788",
         "rfc1035.c:2016-2088"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-enum-same-cycle",
+        "interface-enum-event-same-cycle"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-CALLER/16",
@@ -2120,8 +2126,10 @@
         "network.c:1786-1788",
         "rfc1035.c:2016-2088"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-enum-allocation-reference"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "DH-COMPOSE/01",
@@ -3501,8 +3509,12 @@
       "source_anchors": [
         "option.c:2621-2801"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-missing-range",
+        "synth-empty",
+        "synth-interface"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-GRAM/02",
@@ -3511,8 +3523,12 @@
       "source_anchors": [
         "option.c:2621-2801"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-single4",
+        "synth-range4",
+        "synth-prefix4"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-GRAM/03",
@@ -3521,8 +3537,12 @@
       "source_anchors": [
         "option.c:2621-2801"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-single6",
+        "synth-range6",
+        "synth-prefix6"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-GRAM/04",
@@ -3531,8 +3551,12 @@
       "source_anchors": [
         "option.c:2621-2801"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-empty-prefix",
+        "synth-case",
+        "synth-service-prefix-literal"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-GRAM/05",
@@ -3541,8 +3565,11 @@
       "source_anchors": [
         "option.c:2621-2801"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-cidr4-limit24",
+        "synth-cidr4-limit25"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-GRAM/06",
@@ -3551,8 +3578,11 @@
       "source_anchors": [
         "option.c:2621-2801"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-cidr6-limit17",
+        "synth-cidr6-limit18"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-GRAM/07",
@@ -3561,8 +3591,11 @@
       "source_anchors": [
         "option.c:2621-2801"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-range-limit47",
+        "synth-range-limit48"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-GRAM/08",
@@ -3571,8 +3604,12 @@
       "source_anchors": [
         "option.c:2621-2801"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-quoted",
+        "synth-quoted-range",
+        "synth-quoted-star"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-GRAM/09",
@@ -3581,8 +3618,13 @@
       "source_anchors": [
         "option.c:2621-2801"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-embedded-star",
+        "synth-double-star",
+        "synth-service-embedded-star",
+        "synth-service-double-star"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-GRAM/10",
@@ -3591,8 +3633,11 @@
       "source_anchors": [
         "option.c:2621-2801"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-index6-small",
+        "synth-index6"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-GRAM/11",
@@ -3601,8 +3646,10 @@
       "source_anchors": [
         "option.c:2621-2801"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-index6-range"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-GRAM/12",
@@ -3611,8 +3658,10 @@
       "source_anchors": [
         "option.c:2621-2801"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-extra"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-GRAM/13",
@@ -3621,8 +3670,11 @@
       "source_anchors": [
         "option.c:2621-2801"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-inverted4",
+        "synth-service-inverted"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-GRAM/14",
@@ -3631,8 +3683,27 @@
       "source_anchors": [
         "option.c:2621-2801"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-width-4-0",
+        "synth-width-4-1",
+        "synth-width-4-31",
+        "synth-width-4-32",
+        "synth-width-4-33",
+        "synth-width-6-0",
+        "synth-width-6-1",
+        "synth-width-6-63",
+        "synth-width-6-64",
+        "synth-width-6-65",
+        "synth-width-6-127",
+        "synth-width-6-128",
+        "synth-width-6-129",
+        "synth-width-empty",
+        "synth-width-text",
+        "synth-width-negative",
+        "synth-width-wrap",
+        "synth-width-int-overflow"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/01",
@@ -3642,8 +3713,10 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-range4"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/02",
@@ -3653,8 +3726,10 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-range6"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/03",
@@ -3664,8 +3739,11 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-range6",
+        "synth-service-prefix6"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/04",
@@ -3675,8 +3753,10 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-prefix-literal"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/05",
@@ -3686,8 +3766,10 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-index4"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/06",
@@ -3697,8 +3779,11 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-index6",
+        "synth-service-index6-128"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/07",
@@ -3708,8 +3793,11 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-index4",
+        "synth-service-empty-index"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/08",
@@ -3719,8 +3807,10 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-index4"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/09",
@@ -3730,8 +3820,10 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-index6"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/10",
@@ -3741,8 +3833,12 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-index4",
+        "synth-service-range4",
+        "synth-service-range6"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/11",
@@ -3752,8 +3848,10 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-overlap-forward"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/12",
@@ -3763,8 +3861,11 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-range6",
+        "synth-service-single6"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/13",
@@ -3774,8 +3875,11 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-index-dual-any",
+        "synth-bits-ttl-0"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/14",
@@ -3785,8 +3889,11 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-bits-ttl-0",
+        "synth-bits-ttl-77"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/15",
@@ -3796,8 +3903,13 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-precedence",
+        "synth-lease-precedence",
+        "synth-cache-forward-positive",
+        "synth-cache-forward-negative"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/16",
@@ -3807,8 +3919,10 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-synth-forward-intercept"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/17",
@@ -3818,8 +3932,11 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-synth-name-exists",
+        "synth-bits-ttl-0"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/18",
@@ -3829,8 +3946,10 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-synth-name-exists"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-PTR/01",
@@ -3840,8 +3959,10 @@
         "domain.c:153-202",
         "rfc1035.c:1875-2011"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-range4"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-PTR/02",
@@ -3851,8 +3972,10 @@
         "domain.c:153-202",
         "rfc1035.c:1875-2011"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-range6"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-PTR/03",
@@ -3862,8 +3985,10 @@
         "domain.c:153-202",
         "rfc1035.c:1875-2011"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-index4"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-PTR/04",
@@ -3873,8 +3998,11 @@
         "domain.c:153-202",
         "rfc1035.c:1875-2011"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-index6",
+        "synth-service-index6-128"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-PTR/05",
@@ -3884,8 +4012,10 @@
         "domain.c:153-202",
         "rfc1035.c:1875-2011"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-range4"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-PTR/06",
@@ -3895,8 +4025,10 @@
         "domain.c:153-202",
         "rfc1035.c:1875-2011"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-range6"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-PTR/07",
@@ -3906,8 +4038,11 @@
         "domain.c:153-202",
         "rfc1035.c:1875-2011"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-precedence",
+        "synth-overlap-forward"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-PTR/08",
@@ -3917,8 +4052,11 @@
         "domain.c:153-202",
         "rfc1035.c:1875-2011"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-synth-ptr-precedence",
+        "synth-precedence"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-PTR/09",
@@ -3928,8 +4066,12 @@
         "domain.c:153-202",
         "rfc1035.c:1875-2011"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-precedence",
+        "synth-lease-precedence",
+        "synth-cache-reverse-precedence"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-PTR/10",
@@ -3953,8 +4095,10 @@
         "domain.c:153-202",
         "rfc1035.c:1875-2011"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-precedence"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-PTR/12",
@@ -3978,7 +4122,8 @@
         "rfc1035.c:1875-2011"
       ],
       "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "status": "deferred-extreme-input-under-user-policy",
+      "scope_note": "Overlong derived DNS labels/names retain the original boundary for later known-differences repair and do not gate ordinary operation closure."
     },
     {
       "id": "SYN-PTR/14",
@@ -3988,8 +4133,11 @@
         "domain.c:153-202",
         "rfc1035.c:1875-2011"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-tcp-snapshot",
+        "synth-bits-ttl-77"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-GRAM/01",
@@ -4000,8 +4148,12 @@
         "dnsmasq.c:182",
         "cache.c:1719"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-basic",
+        "hostsdir-multiple",
+        "hostsdir-repeated"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-GRAM/02",
@@ -4012,8 +4164,11 @@
         "dnsmasq.c:182",
         "cache.c:1719"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-relative",
+        "hostsdir-quoted"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-GRAM/03",
@@ -4024,8 +4179,10 @@
         "dnsmasq.c:182",
         "cache.c:1719"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-empty-path"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-GRAM/04",
@@ -4036,8 +4193,13 @@
         "dnsmasq.c:182",
         "cache.c:1719"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-port-zero",
+        "hostsdir-basic",
+        "hostsdir-coexist",
+        "hostsdir-before-resolver"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-GRAM/05",
@@ -4048,8 +4210,10 @@
         "dnsmasq.c:182",
         "cache.c:1719"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-repeated"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-GRAM/06",
@@ -4060,8 +4224,10 @@
         "dnsmasq.c:182",
         "cache.c:1719"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-symlink-retarget"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-GRAM/07",
@@ -4072,8 +4238,11 @@
         "dnsmasq.c:182",
         "cache.c:1719"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-basic",
+        "hostsdir-before-resolver"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-INIT/01",
@@ -4083,8 +4252,11 @@
         "inotify.c:177-296",
         "cache.c:1436-1545"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-repeated",
+        "hostsdir-relative"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-INIT/02",
@@ -4094,8 +4266,10 @@
         "inotify.c:177-296",
         "cache.c:1436-1545"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-name-filters"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-INIT/03",
@@ -4105,8 +4279,10 @@
         "inotify.c:177-296",
         "cache.c:1436-1545"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-regular-only"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-INIT/04",
@@ -4116,8 +4292,11 @@
         "inotify.c:177-296",
         "cache.c:1436-1545"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-regular-only",
+        "hostsdir-symlink-retarget"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-INIT/05",
@@ -4127,8 +4306,10 @@
         "inotify.c:177-296",
         "cache.c:1436-1545"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-regular-only"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-INIT/06",
@@ -4138,8 +4319,12 @@
         "inotify.c:177-296",
         "cache.c:1436-1545"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-missing",
+        "hostsdir-not-directory",
+        "hostsdir-watch-denied"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-INIT/07",
@@ -4149,8 +4334,10 @@
         "inotify.c:177-296",
         "cache.c:1436-1545"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-unprivileged"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-INIT/08",
@@ -4160,8 +4347,11 @@
         "inotify.c:177-296",
         "cache.c:1436-1545"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-watch-denied",
+        "hostsdir-opendir-denied-hup"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-INIT/09",
@@ -4171,8 +4361,12 @@
         "inotify.c:177-296",
         "cache.c:1436-1545"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-regular-only",
+        "hostsdir-runtime-directory",
+        "hostsdir-runtime-fifo"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-INIT/10",
@@ -4182,8 +4376,12 @@
         "inotify.c:177-296",
         "cache.c:1436-1545"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-identical-loser",
+        "hostsdir-ptr-loser",
+        "hostsdir-multiple"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-INIT/11",
@@ -4193,8 +4391,11 @@
         "inotify.c:177-296",
         "cache.c:1436-1545"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-identical-loser",
+        "hostsdir-rotation"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-INIT/12",
@@ -4204,8 +4405,11 @@
         "inotify.c:177-296",
         "cache.c:1436-1545"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-malformed",
+        "hostsdir-runtime-partial-eio"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-INIT/13",
@@ -4215,8 +4419,11 @@
         "inotify.c:177-296",
         "cache.c:1436-1545"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-malformed",
+        "hostsdir-rotation"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-INIT/14",
@@ -4226,8 +4433,10 @@
         "inotify.c:177-296",
         "cache.c:1436-1545"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-cname-expand"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-EVENT/01",
@@ -4237,8 +4446,10 @@
         "inotify.c:299-405",
         "cache.c:cache_remove_uid"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-basic"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-EVENT/02",
@@ -4248,8 +4459,11 @@
         "inotify.c:299-405",
         "cache.c:cache_remove_uid"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-atomic-stable-uid",
+        "hostsdir-visible-temp-source-guard"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-EVENT/03",
@@ -4259,8 +4473,11 @@
         "inotify.c:299-405",
         "cache.c:cache_remove_uid"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-coexist",
+        "hostsdir-basic"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-EVENT/04",
@@ -4270,8 +4487,10 @@
         "inotify.c:299-405",
         "cache.c:cache_remove_uid"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-open-create-move"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-EVENT/05",
@@ -4281,8 +4500,10 @@
         "inotify.c:299-405",
         "cache.c:cache_remove_uid"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-open-create-move"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-EVENT/06",
@@ -4292,8 +4513,10 @@
         "inotify.c:299-405",
         "cache.c:cache_remove_uid"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-open-create-move"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-EVENT/07",
@@ -4303,8 +4526,11 @@
         "inotify.c:299-405",
         "cache.c:cache_remove_uid"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-name-filters",
+        "hostsdir-actual-queue-overflow"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-EVENT/08",
@@ -4314,8 +4540,10 @@
         "inotify.c:299-405",
         "cache.c:cache_remove_uid"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-name-filters"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-EVENT/09",
@@ -4325,8 +4553,11 @@
         "inotify.c:299-405",
         "cache.c:cache_remove_uid"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-visible-temp-source-guard",
+        "hostsdir-open-create-move"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-EVENT/10",
@@ -4336,8 +4567,10 @@
         "inotify.c:299-405",
         "cache.c:cache_remove_uid"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-watch-removed"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-EVENT/11",
@@ -4347,8 +4580,10 @@
         "inotify.c:299-405",
         "cache.c:cache_remove_uid"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-symlink-retarget"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-EVENT/12",
@@ -4358,8 +4593,11 @@
         "inotify.c:299-405",
         "cache.c:cache_remove_uid"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-burst-order",
+        "hostsdir-actual-queue-overflow"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-EVENT/13",
@@ -4369,8 +4607,10 @@
         "inotify.c:299-405",
         "cache.c:cache_remove_uid"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-runtime-directory"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-EVENT/14",
@@ -4380,8 +4620,10 @@
         "inotify.c:299-405",
         "cache.c:cache_remove_uid"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-runtime-fifo"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-EVENT/15",
@@ -4391,8 +4633,11 @@
         "inotify.c:299-405",
         "cache.c:cache_remove_uid"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-runtime-partial-eio",
+        "hostsdir-runtime-emfile"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-EVENT/16",
@@ -4402,8 +4647,10 @@
         "inotify.c:299-405",
         "cache.c:cache_remove_uid"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-large-owner"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-SOURCE/01",
@@ -4415,8 +4662,11 @@
         "cache.c:add_hosts_entry",
         "cache.c:cache_remove_uid"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-basic",
+        "hostsdir-atomic-stable-uid"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-SOURCE/02",
@@ -4428,8 +4678,10 @@
         "cache.c:add_hosts_entry",
         "cache.c:cache_remove_uid"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-atomic-stable-uid"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-SOURCE/03",
@@ -4441,8 +4693,11 @@
         "cache.c:add_hosts_entry",
         "cache.c:cache_remove_uid"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-identical-loser",
+        "hostsdir-visible-temp-source-guard"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-SOURCE/04",
@@ -4454,8 +4709,10 @@
         "cache.c:add_hosts_entry",
         "cache.c:cache_remove_uid"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-identical-loser"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-SOURCE/05",
@@ -4467,8 +4724,11 @@
         "cache.c:add_hosts_entry",
         "cache.c:cache_remove_uid"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-ptr-loser",
+        "hostsdir-rotation"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-SOURCE/06",
@@ -4480,8 +4740,11 @@
         "cache.c:add_hosts_entry",
         "cache.c:cache_remove_uid"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-identical-loser",
+        "hostsdir-cname-expand"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-SOURCE/07",
@@ -4493,8 +4756,10 @@
         "cache.c:add_hosts_entry",
         "cache.c:cache_remove_uid"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-coexist"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-SOURCE/08",
@@ -4506,8 +4771,11 @@
         "cache.c:add_hosts_entry",
         "cache.c:cache_remove_uid"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-identical-loser",
+        "hostsdir-opendir-denied-hup"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-SOURCE/09",
@@ -4519,8 +4787,12 @@
         "cache.c:add_hosts_entry",
         "cache.c:cache_remove_uid"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-runtime-fifo",
+        "hostsdir-runtime-partial-eio",
+        "hostsdir-runtime-shutdown"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-SOURCE/10",
@@ -4532,8 +4804,12 @@
         "cache.c:add_hosts_entry",
         "cache.c:cache_remove_uid"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-basic",
+        "hostsdir-burst-order",
+        "hostsdir-actual-queue-overflow"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-CALLER/01",
@@ -4544,8 +4820,11 @@
         "dnsmasq.c:inotify_check",
         "lease.c:lease_update_from_configs"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-basic",
+        "hostsdir-open-create-move"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-CALLER/02",
@@ -4556,8 +4835,10 @@
         "dnsmasq.c:inotify_check",
         "lease.c:lease_update_from_configs"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-tcp-view"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-CALLER/03",
@@ -4568,8 +4849,10 @@
         "dnsmasq.c:inotify_check",
         "lease.c:lease_update_from_configs"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-tcp-view"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-CALLER/04",
@@ -4580,8 +4863,11 @@
         "dnsmasq.c:inotify_check",
         "lease.c:lease_update_from_configs"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-dhcp-conflict",
+        "hostsdir-dhcp-configured-address"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-CALLER/05",
@@ -4592,8 +4878,11 @@
         "dnsmasq.c:inotify_check",
         "lease.c:lease_update_from_configs"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-dhcp-name-effects",
+        "hostsdir-dhcp-conflict"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-CALLER/06",
@@ -4604,8 +4893,10 @@
         "dnsmasq.c:inotify_check",
         "lease.c:lease_update_from_configs"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-dhcp-name-effects"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-CALLER/07",
@@ -4616,8 +4907,10 @@
         "dnsmasq.c:inotify_check",
         "lease.c:lease_update_from_configs"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-before-resolver"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-CALLER/08",
@@ -4628,8 +4921,11 @@
         "dnsmasq.c:inotify_check",
         "lease.c:lease_update_from_configs"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-logs-foreground",
+        "hostsdir-logs-debug"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-CALLER/09",
@@ -4640,8 +4936,10 @@
         "dnsmasq.c:inotify_check",
         "lease.c:lease_update_from_configs"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-runtime-shutdown"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-CALLER/10",
@@ -4652,13 +4950,17 @@
         "dnsmasq.c:inotify_check",
         "lease.c:lease_update_from_configs"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "hostsdir-runtime-fifo",
+        "hostsdir-large-owner",
+        "hostsdir-actual-queue-overflow"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     }
   ],
   "total_boundaries": 22,
   "total_required_cases": 289,
-  "qualification": "Empty mappings, case presence, C-only or partial runs never close options. Every row needs actual C-calibrated observations and same-candidate paired evidence.",
+  "qualification": "Case maps only select profiles. Ordinary applicable rows require C/R observations, identities, cleanup and guards. Map presence and C-only runs never qualify rows; extreme rows remain explicitly deferred.",
   "public_files_owned_by_root": [
     "config/dns.rs",
     "dns/daemon.rs",
@@ -4677,6 +4979,11 @@
       "original_description_preserved": true,
       "observation": "Exact musl image atoll numeric overflow wraps low 64 bits, rather than the pre-calibration saturation hypothesis. 2^64 => 0, 2^63 => 0x8000000000000000, 2^64-1 => u64::MAX.",
       "evidence": "calibration-synth-service-c-01/synth-service-index6/c/observed.json"
+    },
+    {
+      "row": "HDIR-SOURCE/06",
+      "original_description_preserved": true,
+      "observation": "Fresh C nonterminal records have zero UID rather than path UID, so removing a path does not reconstruct or necessarily remove ancestors. A real-name insertion deletes an existing empty nonterminal; qualified C/R ancestor and configured-CNAME outcomes preserve this image behavior."
     }
   ],
   "qualification_scope_policy": "Ordinary complete interface/dynamic/synthetic contracts close independently. Extreme-input differences retain their frozen rows and raw red evidence for later repair under the user policy.",
