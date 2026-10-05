@@ -8,6 +8,7 @@ pub mod dhcp;
 pub mod dhcp_network;
 pub mod dhcp_pxe;
 pub mod dhcp_relay;
+pub mod dump;
 pub mod dns;
 pub mod edns;
 pub mod interface_records;
