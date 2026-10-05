@@ -414,6 +414,13 @@ def service_cases():
         'host-record=192-0-2-7.one.records.test,192.0.2.99\nptr-record=8.2.0.192.in-addr.arpa,explicit.records.test\nbogus-priv\n',
         [('192-0-2-7.one.records.test',1),('7.2.0.192.in-addr.arpa',12),('8.2.0.192.in-addr.arpa',12),
          ('9.2.0.192.in-addr.arpa',12),('10.2.0.192.in-addr.arpa',12),('11.2.0.192.in-addr.arpa',12)],'SYN-FWD SYN-PTR')
+    add('interface-debug-parent-blocking','interface-name=iface.records.test,m5ir0\n',[],'IF-CALLER',topology=[primary],debug=True,
+        debug_blocking_reference=True,actions=[dict(op='connect',id='held'),
+            files.probe('debug-before','iface.records.test',transports=['held']),
+            kernel(['ip','addr','add','198.18.91.10/24','dev','m5ir0']),state('debug-added'),
+            files.probe('debug-parent','iface.records.test',transports=['udp']),
+            files.probe('debug-child-after','iface.records.test',transports=['held']),
+            dict(op='disconnect',id='held'),files.probe('debug-fresh','iface.records.test')])
     add('interface-enum-same-cycle','interface-name=iface.records.test,m5ir0\n',[],'IF-CALLER',topology=[primary],
         actions=[dict(op='write',path='same-cycle',text='',enumeration_cycle=True)])
     add('interface-enum-event-same-cycle','interface-name=iface.records.test,m5ir0\nbind-dynamic\n',[],'IF-CALLER',topology=[primary],
@@ -612,6 +619,33 @@ def comparable_service(observed):
     return result
 
 
+def compare_service(left,right,case):
+    differences=[]
+    if case.get('debug_blocking_reference'):
+        expected=[a['id']+':'+transport for a in case['actions'] if a['op']=='query' for transport in a.get('transports',['udp','tcp'])]
+        if [r['id'] for r in left['rows']]!=expected or [r['id'] for r in right['rows']]!=expected:
+            return [{'phase':'debug-boundary','error':'exact transport rows missing'}],[]
+        projections={side:{r['id']:r for r in data['rows']} for side,data in [('c',left),('rust',right)]}
+        for ident,c_data,rust_data in [('debug-parent:udp',None,['198.18.91.10','198.18.91.9']),
+                                      ('debug-child-after:held',['198.18.91.9'],['198.18.91.10','198.18.91.9'])]:
+            for side,wanted in [('c',c_data),('rust',rust_data)]:
+                row=projections[side][ident];answer=row.get('response')
+                if wanted is None:
+                    valid=answer is None and row.get('error',{}).get('kind')=='TimeoutError'
+                else:
+                    valid=answer is not None and row.get('error') is None and answer['flags']==0x8580 and \
+                        [r['data'] for r in answer['records'] if r['type']==1]==wanted and \
+                        all(r['ttl']==0 and r['class']==1 for r in answer['records'])
+                if not valid:return [{'phase':'debug-boundary','side':side,'id':ident,'error':'source blocking/owner progress model not observed'}],[]
+            differences.append({'id':ident,'reason':'C debug TCP loop holds the parent poll; Rust continues UDP and publishes the parent interface generation.',
+                                'c':projections['c'][ident],'rust':projections['rust'][ident]})
+        removed={'debug-parent:udp','debug-child-after:held'}
+        left=copy.deepcopy(left);right=copy.deepcopy(right);case=copy.deepcopy(case)
+        for observed in (left,right):observed['rows']=[row for row in observed['rows'] if row['id'] not in removed]
+        case['actions']=[a for a in case['actions'] if a.get('id') not in {'debug-parent','debug-child-after'}]
+    return files.compare(comparable_service(left),comparable_service(right),case),differences
+
+
 def run_syntax(root,side,case,out):
     out.mkdir(parents=True)
     text='no-hosts\nuser=root\ngroup=root\nport=15353\n'+('no-resolv\n' if case.get('no_resolv',True) else '')+case['config']
@@ -648,13 +682,16 @@ def main():
     report={'mode':args.mode,'comparison_executed':args.side=='both','source_commit':args.source_commit,
         'rust_sha256':sha256(args.rust),'c_sha256':STOCK_SHA256,'tool_sha256':sha256(__file__),
         'requirements_sha256':sha256(Path(__file__).with_suffix('.json')),'cases':[],'failures':[],
-        'closed_options':[],'qualification':'Calibration and partial runs never close a frozen required row.'}
+        'closed_options':[],'reference_differences':[],'qualification':'Calibration and partial runs never close a frozen required row.'}
     for case in selected:
         folder=args.out/case['id'];folder.mkdir();row={'id':case['id'],'failures':[]}
         try:
             observed={side:(run_syntax(roots[side],side,case,folder/side) if args.mode=='syntax' else run_service_side(roots[side],side,case,folder/side)) for side in sides}
             if args.side=='both':
-                row['failures']=([] if endpoints.normal(observed['c'])==endpoints.normal(observed['rust']) else ['syntax differs']) if args.mode=='syntax' else files.compare(comparable_service(observed['c']),comparable_service(observed['rust']),case)
+                if args.mode=='syntax':row['failures']=[] if endpoints.normal(observed['c'])==endpoints.normal(observed['rust']) else ['syntax differs']
+                else:
+                    row['failures'],differences=compare_service(observed['c'],observed['rust'],case)
+                    report['reference_differences'].extend(dict(case=case['id'],**difference) for difference in differences)
             row['sides']={side:({'exit':data['exit']} if args.mode=='syntax' else {'startup':data['startup'],'rows':len(data['rows']),'cleanup':data['cleanup']}) for side,data in observed.items()}
         except Exception as error:
             row['failures'].append({'phase':'infrastructure','error':repr(error)})
