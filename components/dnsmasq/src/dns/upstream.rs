@@ -2,13 +2,16 @@
 //!
 //! Standalone calls can use fixed monotonic deadlines. The daemon uses C's
 //! forwarding-table lifetime: wall-clock reply validity and lazy reclamation
-//! on new admission. Every socket belongs to one transaction and is dropped
-//! on completion, cancellation, reclamation or an unusable descriptor. Receive
+//! on new admission. Fixed source sockets belong to the daemon; random pool
+//! sockets hold one reference per transaction and close after their final
+//! owner releases them. Temporary overflow sockets remain unshared. Receive
 //! errors alone retain the transaction. Packets are **unchecked
 //! by process_reply policy**: callers must apply address/rebind/cache/EDNS and
 //! OpenWrt policies before replying to clients. Integrated TCP fallback is not
 //! wired here; [`tcp_exchange`] is a standalone one-query helper below.
 
+#[path = "source_sockets.rs"]
+pub mod source_sockets;
 use super::forward::{
     Client, Flags, GroupId, QueryId, Random, Recipient, ReleaseReason, ReplyAction, Scope,
     SendPlan, ServerGroup, ServerId, SocketToken, Submission, ABSOLUTE_TIMEOUT,
@@ -16,7 +19,8 @@ use super::forward::{
 use super::forward_service::{DispatchError, ForwardDispatcher};
 use super::wire::{Header, Name, WireError};
 use owrt_ubus::sys::{PollFd, POLLERR, POLLHUP, POLLIN};
-use std::collections::{HashMap, VecDeque};
+use source_sockets::{SocketSettings, SourceSocketDiagnostic, SourceSpec};
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::fs::File;
 use std::io::{self, Read, Write};
 use std::net::{SocketAddr, UdpSocket};
@@ -235,10 +239,16 @@ impl Random for OsRandom {
 struct Transaction {
     deadline: Instant,
     sockets: HashMap<ServerId, SocketToken>,
+    tokens: Vec<SocketToken>,
 }
 struct OwnedSocket {
-    query: QueryId,
-    server: ServerId,
+    owners: HashSet<QueryId>,
+    source: SourceSpec,
+    persistent: bool,
+    pooled: bool,
+    pool_slot: Option<usize>,
+    origin: Option<ServerId>,
+    pinned: bool,
     socket: UdpSocket,
     // First empty POLLERR records `now` without delay. A repeated readiness
     // with neither SO_ERROR nor a datagram schedules one bounded retry.
@@ -265,6 +275,11 @@ pub struct UpstreamResolver<R = OsRandom> {
     clock_origin: Instant,
     next_socket: u64,
     receive_buffer: Vec<u8>,
+    socket_settings: SocketSettings,
+    source_bindings: HashMap<ServerId, SourceSpec>,
+    server_sockets: HashMap<ServerId, SocketToken>,
+    pool_finger: usize,
+    source_diagnostics: VecDeque<SourceSocketDiagnostic>,
 }
 
 impl UpstreamResolver<OsRandom> {
@@ -319,6 +334,11 @@ impl<R: Random> UpstreamResolver<R> {
             clock_origin: Instant::now(),
             next_socket: 0,
             receive_buffer: vec![0; receive_capacity],
+            socket_settings: SocketSettings::default(),
+            source_bindings: HashMap::new(),
+            server_sockets: HashMap::new(),
+            pool_finger: 0,
+            source_diagnostics: VecDeque::new(),
         })
     }
 
@@ -368,17 +388,6 @@ impl<R: Random> UpstreamResolver<R> {
         scope: Scope,
     ) -> Result<Submission, ResolveError> {
         self.run_timers();
-        let selected = self
-            .dispatcher
-            .group(group)
-            .ok_or(DispatchError::UnknownGroup(group))?;
-        if selected
-            .servers
-            .iter()
-            .any(|server| server.bound_socket.is_some())
-        {
-            return Err(ResolveError::BoundSocketUnsupported);
-        }
         let submitted = self.dispatcher.submit(
             packet,
             client,
@@ -395,6 +404,7 @@ impl<R: Random> UpstreamResolver<R> {
         self.transactions.entry(id).or_insert_with(|| Transaction {
             deadline: Instant::now() + self.lifetime.wait_budget(),
             sockets: HashMap::new(),
+            tokens: Vec::new(),
         });
         if let (Some(packet), Some(plan)) = (submitted.packet, submitted.send_plan) {
             if let Err(error) = self.send_plan(id, &packet, &plan) {
@@ -432,7 +442,8 @@ impl<R: Random> UpstreamResolver<R> {
             .unwrap_or_else(Instant::now);
         loop {
             self.run_timers();
-            if !self.events.is_empty() || self.transactions.is_empty() {
+            if !self.events.is_empty() || (self.transactions.is_empty() && self.sockets.is_empty())
+            {
                 return Ok(self.events.drain(..).collect());
             }
             let mut tokens = Vec::with_capacity(self.sockets.len());
@@ -494,7 +505,7 @@ impl<R: Random> UpstreamResolver<R> {
         self.consume_releases();
         // Also remove a socket allocated before its first failed send, which
         // has not yet acquired a ForwardTable socket reference.
-        self.sockets.retain(|_, owned| owned.query != id);
+        self.release_owner(id);
         existed
     }
 
@@ -504,6 +515,8 @@ impl<R: Random> UpstreamResolver<R> {
             self.cancel(id);
         }
         self.events.clear();
+        self.sockets.clear();
+        self.server_sockets.clear();
     }
 
     /// Apply file-source changes without reconstructing this resolver. Only
@@ -511,6 +524,11 @@ impl<R: Random> UpstreamResolver<R> {
     /// references remain owned until their pending exchange is released.
     pub fn replace_server_groups(&mut self, groups: Vec<ServerGroup>, removed: &[ServerId]) {
         self.dispatcher.replace_groups(groups, removed);
+        for owned in self.sockets.values_mut() {
+            if owned.origin.is_some_and(|origin| removed.contains(&origin)) {
+                owned.origin = None;
+            }
+        }
         self.consume_releases();
         // server_gone silently frees frecs; it is not an upstream error or a
         // timeout and must not create a client reply or failure metric.
@@ -624,41 +642,279 @@ impl<R: Random> UpstreamResolver<R> {
         self.consume_releases();
     }
 
+    /// Configure before dropping startup privileges. Bind failures are returned
+    /// by server ID so check_servers can remove only the affected servers.
+    pub fn take_source_diagnostics(&mut self) -> Vec<SourceSocketDiagnostic> {
+        self.source_diagnostics.drain(..).collect()
+    }
+
+    pub fn socket_settings(&self) -> SocketSettings {
+        self.socket_settings
+    }
+
+    pub fn configure_source_sockets(
+        &mut self,
+        settings: SocketSettings,
+        mut sources: HashMap<ServerId, SourceSpec>,
+    ) -> Vec<(ServerId, io::Error)> {
+        // enumerate_interfaces refreshes a server's cached index only after a
+        // successful ioctl. add_update_server does not reset it on slot reuse.
+        for (id, source) in &mut sources {
+            if source.ifindex == 0 {
+                if let Some(previous) = self.source_bindings.get(id) {
+                    source.ifindex = previous.ifindex;
+                }
+            }
+        }
+        self.socket_settings = settings;
+        self.source_bindings = sources;
+        self.server_sockets.retain(|id, token| {
+            self.source_bindings.contains_key(id) && self.sockets.contains_key(token)
+        });
+        let mut failures = Vec::new();
+        if settings.query_port != 0 {
+            for destination in ["0.0.0.0:53", "[::]:53"] {
+                let source =
+                    SourceSpec::wildcard(destination.parse().unwrap(), settings.query_port);
+                if !self
+                    .sockets
+                    .values()
+                    .any(|owned| owned.persistent && owned.source == source)
+                {
+                    let _ = self.open_socket(source, true, false);
+                }
+            }
+        }
+        let mut ordered: Vec<_> = self.source_bindings.clone().into_iter().collect();
+        ordered.sort_by_key(|(id, _)| id.0);
+        for (id, source) in ordered {
+            // add_update_server preserves a reused server's existing sfd even
+            // after its source tuple changes. TCP uses the updated tuple.
+            if self.server_sockets.contains_key(&id) {
+                continue;
+            }
+            if settings.persistent(&source) {
+                let token = self
+                    .sockets
+                    .iter()
+                    .find(|(_, owned)| owned.persistent && owned.source == source)
+                    .map(|(token, _)| *token);
+                match token
+                    .map(Ok)
+                    .unwrap_or_else(|| self.open_socket(source, true, false))
+                {
+                    Ok(token) => {
+                        self.server_sockets.insert(id, token);
+                    }
+                    Err(error) => failures.push((id, error)),
+                }
+            }
+        }
+        self.sockets.retain(|token, owned| {
+            !owned.persistent
+                || owned.pinned
+                || !owned.owners.is_empty()
+                || self.server_sockets.values().any(|used| used == token)
+        });
+        failures
+    }
+
+    fn open_socket(
+        &mut self,
+        source: SourceSpec,
+        persistent: bool,
+        pooled: bool,
+    ) -> io::Result<SocketToken> {
+        let socket = match source_sockets::udp(&source, self.socket_settings, &mut self.random) {
+            Ok(socket) => socket,
+            Err(failure) => {
+                if !persistent
+                    && failure.binding
+                    && (!source.address.ip().is_unspecified()
+                        || failure.error.raw_os_error() != Some(98))
+                {
+                    let error = failure
+                        .error
+                        .raw_os_error()
+                        .map(io::Error::from_raw_os_error)
+                        .unwrap_or_else(|| {
+                            io::Error::new(failure.error.kind(), failure.error.to_string())
+                        });
+                    self.source_diagnostics
+                        .push_back(SourceSocketDiagnostic { source, error });
+                }
+                return Err(failure.error);
+            }
+        };
+        self.next_socket = self
+            .next_socket
+            .checked_add(1)
+            .ok_or_else(|| io::Error::other("upstream socket token exhausted"))?;
+        let token = SocketToken(self.next_socket);
+        let pool_slot = pooled.then(|| {
+            (0..self.socket_settings.pool_slots)
+                .find(|slot| {
+                    !self
+                        .sockets
+                        .values()
+                        .any(|owned| owned.pool_slot == Some(*slot))
+                })
+                .expect("pooled allocation has a free physical slot")
+        });
+        self.sockets.insert(
+            token,
+            OwnedSocket {
+                owners: HashSet::new(),
+                pinned: persistent
+                    && source.address.ip().is_unspecified()
+                    && source.interface.is_empty()
+                    && source.address.port() != 0
+                    && source.address.port() == self.socket_settings.query_port,
+                source,
+                persistent,
+                pooled,
+                pool_slot,
+                origin: None,
+                socket,
+                empty_error_retry: None,
+            },
+        );
+        Ok(token)
+    }
+
     fn socket_for(
         &mut self,
         id: QueryId,
         server: ServerId,
         address: SocketAddr,
     ) -> io::Result<SocketToken> {
-        if let Some(&token) = self.transactions[&id].sockets.get(&server) {
-            return Ok(token);
-        }
-        let socket = UdpSocket::bind(if address.is_ipv4() {
-            "0.0.0.0:0"
+        let source = self
+            .source_bindings
+            .get(&server)
+            .cloned()
+            .unwrap_or_else(|| SourceSpec::wildcard(address, self.socket_settings.query_port));
+        let persistent = self.socket_settings.persistent(&source);
+        let compatible: Vec<_> = self.transactions[&id]
+            .tokens
+            .iter()
+            .copied()
+            .filter(|token| {
+                self.sockets
+                    .get(token)
+                    .is_some_and(|owned| self.random_source_matches(owned, &source))
+            })
+            .collect();
+        let token = if let Some(token) = self.server_sockets.get(&server) {
+            *token
+        } else if persistent {
+            match self
+                .sockets
+                .iter()
+                .find(|(_, owned)| owned.persistent && owned.source == source)
+                .map(|(token, _)| *token)
+            {
+                Some(token) => token,
+                None => self.open_socket(source.clone(), true, false)?,
+            }
+        } else if !compatible.is_empty()
+            && compatible.len() as u32 >= self.socket_settings.port_limit
+        {
+            // C promotes the last compatible reference to the list head.
+            let token = *compatible.last().unwrap();
+            let transaction = self.transactions.get_mut(&id).unwrap();
+            transaction.tokens.retain(|old| *old != token);
+            transaction.tokens.insert(0, token);
+            token
         } else {
-            "[::]:0"
-        })?;
-        socket.set_nonblocking(true)?;
-        self.next_socket = self
-            .next_socket
-            .checked_add(1)
-            .ok_or_else(|| io::Error::other("upstream socket token exhausted"))?;
-        let token = SocketToken(self.next_socket);
-        self.sockets.insert(
-            token,
-            OwnedSocket {
-                query: id,
-                server,
-                socket,
-                empty_error_retry: None,
-            },
-        );
-        self.transactions
-            .get_mut(&id)
-            .unwrap()
-            .sockets
-            .insert(server, token);
+            let pooled_count = self.sockets.values().filter(|owned| owned.pooled).count();
+            let range = u32::from(self.socket_settings.max_port)
+                .saturating_sub(u32::from(self.socket_settings.min_port))
+                + 1;
+            let full_range = self.socket_settings.max_port != 0
+                && range < 30
+                && self
+                    .sockets
+                    .values()
+                    .filter(|owned| {
+                        owned.pooled && owned.source.address.is_ipv4() == source.address.is_ipv4()
+                    })
+                    .count()
+                    >= range as usize;
+            let can_pool = pooled_count < self.socket_settings.pool_slots && !full_range;
+            let allocated = if can_pool {
+                self.open_socket(source.clone(), false, true).ok()
+            } else {
+                None
+            };
+            if let Some(token) = allocated {
+                token
+            } else {
+                let mut reusable: Vec<_> = self
+                    .sockets
+                    .iter()
+                    .filter(|(token, owned)| {
+                        self.random_source_matches(owned, &source)
+                            && !owned.owners.contains(&id)
+                            && owned.owners.len() < 0xfffe
+                            && !compatible.contains(token)
+                    })
+                    .map(|(token, _)| *token)
+                    .collect();
+                let slots = self.socket_settings.pool_slots;
+                reusable.sort_by_key(|token| {
+                    let slot = self.sockets[token]
+                        .pool_slot
+                        .expect("pooled socket has a physical slot");
+                    (slot + slots - self.pool_finger % slots) % slots
+                });
+                match reusable.first() {
+                    Some(token) => {
+                        self.pool_finger = self.sockets[token].pool_slot.unwrap() + 1;
+                        *token
+                    }
+                    None => self.open_socket(source.clone(), false, false)?,
+                }
+            }
+        };
+        let owned = self.sockets.get_mut(&token).unwrap();
+        if owned.pooled && owned.owners.is_empty() {
+            owned.origin = Some(server);
+        }
+        owned.owners.insert(id);
+        let transaction = self.transactions.get_mut(&id).unwrap();
+        if !transaction.tokens.contains(&token) {
+            transaction.tokens.insert(0, token);
+        }
+        transaction.sockets.insert(server, token);
         Ok(token)
+    }
+
+    fn random_source_matches(&self, owned: &OwnedSocket, source: &SourceSpec) -> bool {
+        owned.pooled
+            && owned.origin.is_some_and(|origin| {
+                self.source_bindings.get(&origin).unwrap_or(&owned.source) == source
+            })
+    }
+
+    fn release_owner(&mut self, id: QueryId) {
+        self.sockets.retain(|token, owned| {
+            owned.owners.remove(&id);
+            !owned.owners.is_empty()
+                || (owned.persistent
+                    && (owned.pinned || self.server_sockets.values().any(|used| used == token)))
+        });
+    }
+
+    fn fail_socket(&mut self, token: SocketToken, message: &str) {
+        let ids = self
+            .sockets
+            .get(&token)
+            .map(|owned| owned.owners.iter().copied().collect::<Vec<_>>())
+            .unwrap_or_default();
+        for id in ids {
+            self.fail(id, io::Error::other(message.to_owned()).into());
+        }
+        self.sockets.remove(&token);
     }
 
     fn send_plan(
@@ -777,13 +1033,12 @@ impl<R: Random> UpstreamResolver<R> {
         let Some(owned) = self.sockets.get_mut(&token) else {
             return;
         };
-        let id = owned.query;
         if revents & POLLNVAL != 0 {
-            self.fail(id, io::Error::other("invalid upstream socket").into());
+            self.fail_socket(token, "invalid upstream socket");
             return;
         }
         if revents & POLLHUP != 0 && revents & POLLIN == 0 {
-            self.fail(id, io::Error::other("upstream socket hung up").into());
+            self.fail_socket(token, "upstream socket hung up");
             return;
         }
         if !owned.pollable_at(now) {
@@ -802,7 +1057,7 @@ impl<R: Random> UpstreamResolver<R> {
                 }
                 Ok(None) => empty_poll_error = true,
                 Err(error) => {
-                    self.fail(id, error.into());
+                    self.fail_socket(token, &error.to_string());
                     return;
                 }
             }
@@ -810,13 +1065,6 @@ impl<R: Random> UpstreamResolver<R> {
             owned.empty_error_retry = None;
         }
         for _ in 0..RECEIVE_BUDGET {
-            let Some(transaction) = self.transactions.get(&id) else {
-                break;
-            };
-            if self.lifetime.fixed() && Instant::now() >= transaction.deadline {
-                self.fail(id, ResolveError::Timeout);
-                break;
-            }
             let Some(owned) = self.sockets.get_mut(&token) else {
                 break;
             };
@@ -838,8 +1086,27 @@ impl<R: Random> UpstreamResolver<R> {
                     break;
                 }
             };
+            let Ok(header) = Header::parse(&self.receive_buffer[..length]) else {
+                continue;
+            };
+            let id = self.sockets[&token].owners.iter().copied().find(|id| {
+                self.dispatcher
+                    .table()
+                    .get(*id)
+                    .is_some_and(|pending| pending.upstream_id == header.id)
+            });
+            let Some(id) = id else {
+                continue;
+            };
+            let Some(transaction) = self.transactions.get(&id) else {
+                continue;
+            };
+            if self.lifetime.fixed() && Instant::now() >= transaction.deadline {
+                self.fail(id, ResolveError::Timeout);
+                continue;
+            }
             let Some(pending) = self.dispatcher.table().get(id) else {
-                break;
+                continue;
             };
             let Some(matched) = self.dispatcher.accept_reply(
                 &self.receive_buffer[..length],
@@ -850,9 +1117,6 @@ impl<R: Random> UpstreamResolver<R> {
             ) else {
                 continue;
             };
-            if matched.id != id {
-                continue;
-            }
             // Keep the transaction and its server/retry counters untouched.
             // This must happen after source/ID admission but before
             // `complete_reply`, matching forward.c::reply_query.
@@ -891,7 +1155,7 @@ impl<R: Random> UpstreamResolver<R> {
                     let pending = self.dispatcher.finish(id).expect("matched query exists");
                     self.transactions.remove(&id);
                     self.consume_releases();
-                    self.sockets.retain(|_, owned| owned.query != id);
+                    self.release_owner(id);
                     self.events.push_back(UpstreamEvent {
                         id,
                         result: Ok(UncheckedReply {
@@ -906,7 +1170,6 @@ impl<R: Random> UpstreamResolver<R> {
                             recipients: pending.recipients,
                         }),
                     });
-                    break;
                 }
                 None => break,
             }
@@ -934,16 +1197,19 @@ impl<R: Random> UpstreamResolver<R> {
     fn consume_releases(&mut self) {
         for released in self.dispatcher.take_released() {
             for token in released.sockets {
-                if let Some(owned) = self.sockets.remove(&token) {
-                    if let Some(transaction) = self.transactions.get_mut(&owned.query) {
-                        transaction.sockets.remove(&owned.server);
-                    }
+                if let Some(owned) = self.sockets.get_mut(&token) {
+                    owned.owners.remove(&released.id);
+                }
+                if let Some(transaction) = self.transactions.get_mut(&released.id) {
+                    transaction.sockets.retain(|_, old| *old != token);
+                    transaction.tokens.retain(|old| *old != token);
                 }
             }
+            self.release_owner(released.id);
             if self.dispatcher.table().get(released.id).is_none()
                 && self.transactions.remove(&released.id).is_some()
             {
-                self.sockets.retain(|_, owned| owned.query != released.id);
+                self.release_owner(released.id);
                 self.events.push_back(UpstreamEvent {
                     id: released.id,
                     result: Err(ResolveError::Released(released.reason)),
@@ -1087,6 +1353,278 @@ mod tests {
         frame.extend_from_slice(&(packet.len() as u16).to_be_bytes());
         frame.extend_from_slice(packet);
         frame
+    }
+
+    #[test]
+    fn shared_source_socket_demuxes_reverse_order_and_retains_remaining_owner() {
+        let server = UdpSocket::bind("127.0.0.1:0").unwrap();
+        server
+            .set_read_timeout(Some(Duration::from_secs(1)))
+            .unwrap();
+        let address = server.local_addr().unwrap();
+        let mut resolver = transport(
+            group(&[address], false),
+            Options::default(),
+            Duration::from_secs(2),
+        );
+        let settings = SocketSettings {
+            pool_slots: 1,
+            ..SocketSettings::default()
+        };
+        resolver.configure_source_sockets(settings, HashMap::new());
+        let first = resolver
+            .start_udp(
+                &query(),
+                client(),
+                GroupId(1),
+                Scope::Client("127.0.0.1:1".parse().unwrap()),
+            )
+            .unwrap();
+        let mut buffer = [0; 2048];
+        let (length, peer) = server.recv_from(&mut buffer).unwrap();
+        let first_reply = response(&buffer[..length], 0x8180, true);
+        let second = resolver
+            .start_udp(
+                &query(),
+                client(),
+                GroupId(1),
+                Scope::Client("127.0.0.1:2".parse().unwrap()),
+            )
+            .unwrap();
+        let (length, second_peer) = server.recv_from(&mut buffer).unwrap();
+        assert_eq!(peer, second_peer);
+        assert_eq!(resolver.socket_count(), 1);
+        server
+            .send_to(&response(&buffer[..length], 0x8180, true), peer)
+            .unwrap();
+        let event = wait_for_event(&mut resolver, Duration::from_millis(10));
+        assert_eq!(event.id, second.id);
+        assert!(event.result.is_ok());
+        assert_eq!((resolver.pending_count(), resolver.socket_count()), (1, 1));
+        server.send_to(&first_reply, peer).unwrap();
+        assert_eq!(
+            wait_for_event(&mut resolver, Duration::from_millis(10)).id,
+            first.id
+        );
+        assert_eq!((resolver.pending_count(), resolver.socket_count()), (0, 0));
+    }
+
+    #[test]
+    fn unsolicited_fixed_source_packets_are_drained_without_pending_queries() {
+        let peer = UdpSocket::bind("127.0.0.1:0").unwrap();
+        let address = peer.local_addr().unwrap();
+        let reserved = UdpSocket::bind("127.0.0.1:0").unwrap();
+        let source_address = reserved.local_addr().unwrap();
+        drop(reserved);
+        let mut resolver = transport(
+            group(&[address], false),
+            Options::default(),
+            Duration::from_secs(2),
+        );
+        resolver.configure_source_sockets(
+            SocketSettings::default(),
+            HashMap::from([(
+                ServerId(1),
+                SourceSpec::wildcard(address, source_address.port()),
+            )]),
+        );
+        peer.send_to(&response(&query(), 0x8180, true), source_address)
+            .unwrap();
+        assert!(resolver.poll(Duration::from_millis(20)).unwrap().is_empty());
+        let socket = &resolver.sockets.values().next().unwrap().socket;
+        let mut buffer = [0; 2048];
+        assert_eq!(
+            socket.recv_from(&mut buffer).unwrap_err().kind(),
+            io::ErrorKind::WouldBlock
+        );
+        assert_eq!(resolver.socket_count(), 1);
+    }
+
+    #[test]
+    fn reused_server_keeps_fixed_socket_after_source_tuple_changes() {
+        let peer = UdpSocket::bind("127.0.0.1:0").unwrap();
+        peer.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
+        let address = peer.local_addr().unwrap();
+        let reserved = UdpSocket::bind("127.0.0.1:0").unwrap();
+        let old_port = reserved.local_addr().unwrap().port();
+        drop(reserved);
+        let mut resolver = transport(
+            group(&[address], false),
+            Options::default(),
+            Duration::from_secs(2),
+        );
+        let old_source = SourceSpec::wildcard(address, old_port);
+        assert!(resolver
+            .configure_source_sockets(
+                SocketSettings::default(),
+                HashMap::from([(ServerId(1), old_source)])
+            )
+            .is_empty());
+        let new_source = SourceSpec {
+            address: "127.0.0.9:34004".parse().unwrap(),
+            interface: Vec::new(),
+            ifindex: 0,
+        };
+        assert!(resolver
+            .configure_source_sockets(
+                SocketSettings::default(),
+                HashMap::from([(ServerId(1), new_source.clone())])
+            )
+            .is_empty());
+        assert_eq!(resolver.source_bindings[&ServerId(1)], new_source);
+        let submission = resolver
+            .start_udp(&query(), client(), GroupId(1), Scope::Shared)
+            .unwrap();
+        let mut buffer = [0; 2048];
+        let (_, source) = peer.recv_from(&mut buffer).unwrap();
+        assert_eq!(
+            source,
+            SocketAddr::new("127.0.0.1".parse().unwrap(), old_port)
+        );
+        resolver.configure_source_sockets(SocketSettings::default(), HashMap::new());
+        assert_eq!(resolver.socket_count(), 1);
+        resolver.cancel(submission.id);
+        assert_eq!(resolver.socket_count(), 0);
+    }
+
+    #[test]
+    fn reused_server_preserves_cached_source_index_after_failed_lookup() {
+        let address = "127.0.0.2:53".parse().unwrap();
+        let mut resolver = transport(
+            group(&[address], false),
+            Options::default(),
+            Duration::from_secs(2),
+        );
+        let mut source = SourceSpec::wildcard(address, 0);
+        source.ifindex = 17;
+        source.interface = b"old".to_vec();
+        resolver.configure_source_sockets(
+            SocketSettings::default(),
+            HashMap::from([(ServerId(1), source.clone())]),
+        );
+        source.ifindex = 0;
+        source.interface = b"missing".to_vec();
+        resolver.configure_source_sockets(
+            SocketSettings::default(),
+            HashMap::from([(ServerId(1), source.clone())]),
+        );
+        assert_eq!(resolver.source_bindings[&ServerId(1)].ifindex, 17);
+        source.interface.clear();
+        resolver.configure_source_sockets(
+            SocketSettings::default(),
+            HashMap::from([(ServerId(1), source)]),
+        );
+        assert_eq!(resolver.source_bindings[&ServerId(1)].ifindex, 17);
+    }
+
+    #[test]
+    fn retired_pool_origin_is_not_shared_while_another_server_keeps_its_owner() {
+        let first = UdpSocket::bind("127.0.0.1:0").unwrap();
+        let second = UdpSocket::bind("127.0.0.1:0").unwrap();
+        first
+            .set_read_timeout(Some(Duration::from_secs(1)))
+            .unwrap();
+        second
+            .set_read_timeout(Some(Duration::from_secs(1)))
+            .unwrap();
+        let addresses = [first.local_addr().unwrap(), second.local_addr().unwrap()];
+        let mut resolver = transport(
+            group(&addresses, true),
+            Options::default(),
+            Duration::from_secs(2),
+        );
+        let settings = SocketSettings {
+            pool_slots: 1,
+            ..SocketSettings::default()
+        };
+        let source = SourceSpec::wildcard(addresses[0], 0);
+        resolver.configure_source_sockets(
+            settings,
+            HashMap::from([(ServerId(1), source.clone()), (ServerId(2), source.clone())]),
+        );
+        let original = resolver
+            .start_udp(
+                &query(),
+                client(),
+                GroupId(1),
+                Scope::Client("127.0.0.1:1".parse().unwrap()),
+            )
+            .unwrap();
+        let mut buffer = [0; 2048];
+        let (_, old_peer) = first.recv_from(&mut buffer).unwrap();
+        second.recv_from(&mut buffer).unwrap();
+        let mut remaining = group(&addresses[1..], false);
+        remaining.servers[0].id = ServerId(2);
+        resolver.configure_source_sockets(settings, HashMap::from([(ServerId(2), source)]));
+        resolver.replace_server_groups(vec![remaining], &[ServerId(1)]);
+        assert_eq!(resolver.pending_count(), 1);
+        resolver
+            .start_udp(
+                &query(),
+                client(),
+                GroupId(1),
+                Scope::Client("127.0.0.1:2".parse().unwrap()),
+            )
+            .unwrap();
+        let (_, new_peer) = second.recv_from(&mut buffer).unwrap();
+        assert_ne!(old_peer, new_peer);
+        assert_eq!(resolver.socket_count(), 2);
+        assert!(resolver.dispatcher.table().get(original.id).is_some());
+        resolver.clear();
+    }
+
+    #[test]
+    fn compatible_destinations_use_port_limit_and_fixed_source_survives_queries() {
+        let first = UdpSocket::bind("127.0.0.1:0").unwrap();
+        let second = UdpSocket::bind("127.0.0.1:0").unwrap();
+        first
+            .set_read_timeout(Some(Duration::from_secs(1)))
+            .unwrap();
+        second
+            .set_read_timeout(Some(Duration::from_secs(1)))
+            .unwrap();
+        let mut resolver = transport(
+            group(
+                &[first.local_addr().unwrap(), second.local_addr().unwrap()],
+                true,
+            ),
+            Options::default(),
+            Duration::from_secs(2),
+        );
+        resolver
+            .start_udp(&query(), client(), GroupId(1), Scope::Shared)
+            .unwrap();
+        let mut buffer = [0; 2048];
+        let (_, first_peer) = first.recv_from(&mut buffer).unwrap();
+        let (_, second_peer) = second.recv_from(&mut buffer).unwrap();
+        assert_eq!(first_peer, second_peer);
+        assert_eq!(resolver.socket_count(), 1);
+        resolver.clear();
+        let reserved = UdpSocket::bind("127.0.0.1:0").unwrap();
+        let port = reserved.local_addr().unwrap().port();
+        drop(reserved);
+        let mut bindings = HashMap::new();
+        bindings.insert(
+            ServerId(1),
+            SourceSpec::wildcard(first.local_addr().unwrap(), port),
+        );
+        bindings.insert(
+            ServerId(2),
+            SourceSpec::wildcard(second.local_addr().unwrap(), port),
+        );
+        assert!(resolver
+            .configure_source_sockets(SocketSettings::default(), bindings)
+            .is_empty());
+        resolver
+            .start_udp(&query(), client(), GroupId(1), Scope::Shared)
+            .unwrap();
+        let (_, peer) = first.recv_from(&mut buffer).unwrap();
+        second.recv_from(&mut buffer).unwrap();
+        assert_eq!(peer.port(), port);
+        resolver.cancel(resolver.transactions.keys().copied().next().unwrap());
+        assert_eq!(resolver.socket_count(), 1);
+        resolver.clear();
+        assert_eq!(resolver.socket_count(), 0);
     }
 
     #[test]

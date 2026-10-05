@@ -20,6 +20,12 @@ struct Server {
     socket: DatagramSocket,
     address: SocketAddr,
     accepting: bool,
+    bound_interface: Option<BoundInterface>,
+    persistent_unowned: bool,
+}
+struct BoundInterface {
+    name: Vec<u8>,
+    mtu: Option<u32>,
 }
 #[derive(Clone, Copy)]
 struct Route {
@@ -50,6 +56,8 @@ pub struct TftpListener<O> {
     refreshed: u64,
     accepting: bool,
     pending_bind: Vec<SocketAddr>,
+    shared_listener_owner: bool,
+    retired_explicit: Vec<IpAddr>,
 }
 impl TftpListener<RealFileOpener> {
     /// Bind before dropping privileges. Directory checks belong to
@@ -62,12 +70,14 @@ impl TftpListener<RealFileOpener> {
         no_tftp: &[Option<Vec<u8>>],
         effective_uid: u32,
         random_sockets: usize,
+        packet_buffer_size: usize,
     ) -> io::Result<Self> {
         let policy = Policy::new(config, dns, no_dhcp, no_tftp)?;
         let open_max = descriptor_limit()?;
         let limit = config.transfer_limit(open_max, random_sockets.min((open_max / 3) as usize));
         let runtime = TransferRuntime::new(
             RuntimeConfig {
+                packet_buffer_size,
                 path: RuntimePathPolicy {
                     prefix: config.root.clone(),
                     lowercase: config.lowercase,
@@ -106,6 +116,8 @@ impl<O: FileOpener> TftpListener<O> {
             refreshed: 0,
             accepting: true,
             pending_bind: Vec::new(),
+            shared_listener_owner: false,
+            retired_explicit: Vec::new(),
         }
     }
     pub fn bind(address: SocketAddr, runtime: TransferRuntime<O>) -> io::Result<Self> {
@@ -123,6 +135,8 @@ impl<O: FileOpener> TftpListener<O> {
             socket,
             address,
             accepting: true,
+            bound_interface: None,
+            persistent_unowned: false,
         });
         Ok(listener)
     }
@@ -144,6 +158,130 @@ impl<O: FileOpener> TftpListener<O> {
         self.policy
             .as_ref()
             .is_some_and(|policy| policy.config.unique_root_mac)
+    }
+    pub fn quiet_not_found(&self) -> bool {
+        self.policy
+            .as_ref()
+            .is_some_and(|policy| policy.config.quiet)
+    }
+    /// The owner queries this before dropping privileges. Only static DAD
+    /// and dynamic listeners can need a later privileged TFTP bind.
+    pub fn needs_privileged_rebind(&self) -> bool {
+        !self.pending_bind.is_empty()
+            || self
+                .policy
+                .as_ref()
+                .is_some_and(|policy| policy.dns.bind_dynamic)
+    }
+    /// DNS and TFTP share iface->done in C. The main owner enables this after
+    /// startup, then attempts all transports once per address generation.
+    pub fn use_shared_listener_owner(&mut self) {
+        self.shared_listener_owner = true;
+    }
+    pub fn listener_addresses(&self) -> Vec<SocketAddr> {
+        self.policy.as_ref().map_or_else(Vec::new, |policy| {
+            let mut addresses = policy.addresses();
+            for server in self
+                .servers
+                .iter()
+                .filter(|server| server.persistent_unowned)
+            {
+                if !addresses.contains(&server.address) {
+                    addresses.push(server.address);
+                }
+            }
+            // C's INAME_USED stays set after an explicit address gains an
+            // interface. Losing its last owner cannot create a fallback.
+            addresses.retain(|address| {
+                !self.retired_explicit.contains(&address.ip())
+                    || policy
+                        .interfaces
+                        .iter()
+                        .any(|row| row.address == address.ip())
+            });
+            addresses
+        })
+    }
+    pub fn pending_listener_addresses(&self) -> &[SocketAddr] {
+        &self.pending_bind
+    }
+    /// A common owner key can carry the DNS port (including disabled port 0).
+    pub fn has_listener(&self, mut address: SocketAddr) -> bool {
+        address.set_port(69);
+        self.servers
+            .iter()
+            .any(|server| server.address == address && server.accepting)
+    }
+    pub fn refresh_listener_interfaces(&mut self, interfaces: &[crate::interfaces::DnsInterface]) {
+        let Some(policy) = self.policy.as_mut() else {
+            return;
+        };
+        policy.interfaces = interfaces.to_vec();
+        let dynamic = policy.dns.bind_dynamic;
+        if dynamic {
+            let addresses = self.listener_addresses();
+            for server in &mut self.servers {
+                server.accepting = server.persistent_unowned || addresses.contains(&server.address);
+            }
+            self.discard_inactive_servers();
+        }
+    }
+    /// Retire the last interface owner's listener. Only configured explicit
+    /// IPs are retained as history, bounding this state by configuration size.
+    /// A later real interface can reactivate the address.
+    pub fn retire_listener(&mut self, mut address: SocketAddr) {
+        address.set_port(69);
+        if self
+            .servers
+            .iter()
+            .any(|server| server.address == address && server.persistent_unowned)
+        {
+            return;
+        }
+        if self
+            .policy
+            .as_ref()
+            .is_some_and(|policy| policy.dns.listen_addresses.contains(&address.ip()))
+            && !self.retired_explicit.contains(&address.ip())
+        {
+            self.retired_explicit.push(address.ip());
+        }
+        for server in &mut self.servers {
+            if server.address == address {
+                server.accepting = false;
+            }
+        }
+        self.discard_inactive_servers();
+    }
+    /// Return false for a transport which is disabled by interface policy or
+    /// still waiting for DAD. The owner records success of any transport; an
+    /// error must not cause an independently successful DNS socket to be lost.
+    pub fn bind_listener(&mut self, mut address: SocketAddr) -> io::Result<bool> {
+        address.set_port(69);
+        let Some(policy) = self.policy.as_ref() else {
+            return Ok(false);
+        };
+        if !self.listener_addresses().contains(&address) || policy.tentative(address) {
+            return Ok(false);
+        }
+        if self.has_listener(address) {
+            return Ok(true);
+        }
+        let socket = DatagramSocket::bind(address)?;
+        let bound_interface = bound_interface(policy, address, socket.as_raw_fd());
+        let persistent_unowned = !policy
+            .interfaces
+            .iter()
+            .any(|row| row.address == address.ip());
+        self.servers.push(Server {
+            socket,
+            address,
+            accepting: true,
+            bound_interface,
+            persistent_unowned,
+        });
+        self.pending_bind.retain(|pending| *pending != address);
+        Ok(true)
     }
     /// Retain successful transfers until the poll owner hands each event to
     /// the nonblocking helper. Active plus completed transfers share the
@@ -197,7 +335,7 @@ impl<O: FileOpener> TftpListener<O> {
         mac: &mut dyn FnMut(IpAddr, u32, u64) -> MacLookup,
     ) -> io::Result<Vec<RuntimeEvent>> {
         let mut events = Vec::new();
-        if self.policy.is_some() && now != self.refreshed {
+        if self.policy.is_some() && !self.shared_listener_owner && now != self.refreshed {
             self.refreshed = now;
             if let Some(policy) = self.policy.as_mut() {
                 policy.refresh()?;
@@ -255,6 +393,16 @@ impl<O: FileOpener> TftpListener<O> {
             if self.servers.iter().any(|server| server.address == address) {
                 continue;
             }
+            if !initial
+                && !policy.dns.bind_dynamic
+                && !policy
+                    .interfaces
+                    .iter()
+                    .any(|row| row.address == address.ip())
+            {
+                self.pending_bind.push(address);
+                continue;
+            }
             // Like C iface->dad, defer only addresses still undergoing DAD.
             // Static binding retries these at refresh; other bind errors
             // remain startup failures.
@@ -263,23 +411,32 @@ impl<O: FileOpener> TftpListener<O> {
                 continue;
             }
             match DatagramSocket::bind(address) {
-                Ok(socket) => self.servers.push(Server {
-                    socket,
-                    address,
-                    accepting: true,
-                }),
+                Ok(socket) => {
+                    let bound_interface = bound_interface(policy, address, socket.as_raw_fd());
+                    let persistent_unowned = !policy
+                        .interfaces
+                        .iter()
+                        .any(|row| row.address == address.ip());
+                    self.servers.push(Server {
+                        socket,
+                        address,
+                        accepting: true,
+                        bound_interface,
+                        persistent_unowned,
+                    });
+                }
                 Err(error)
                     if policy.dns.bind_dynamic
-                        && matches!(
-                            error.kind(),
-                            io::ErrorKind::AddrNotAvailable | io::ErrorKind::AddrInUse
-                        ) => {}
+                        && (error.kind() == io::ErrorKind::AddrNotAvailable || !initial) => {}
                 // A kernel without IPv6 follows C's optional IPv6 listener.
-                Err(error)
-                    if address.is_ipv6() && matches!(error.raw_os_error(), Some(97 | 93)) => {}
+                Err(error) if crate::net::is_unsupported_socket_error(&error) => {}
                 Err(error) => return Err(error),
             }
         }
+        self.discard_inactive_servers();
+        Ok(())
+    }
+    fn discard_inactive_servers(&mut self) {
         // Keep a removed single-port listener until its existing transfers
         // finish, preserving ACK and retransmission routing during reload.
         self.servers.retain(|server| {
@@ -289,7 +446,6 @@ impl<O: FileOpener> TftpListener<O> {
                     .values()
                     .any(|route| route.server == server.address)
         });
-        Ok(())
     }
     fn receive_server(
         &mut self,
@@ -324,12 +480,9 @@ impl<O: FileOpener> TftpListener<O> {
             let bound =
                 policy.dns.bind_interfaces && !policy.dns.bind_dynamic && datagram.peer.is_ipv4();
             if bound {
-                if let Some(row) = policy
-                    .interfaces
-                    .iter()
-                    .find(|row| row.address == route.server.ip())
-                {
-                    name.clone_from(&row.name);
+                if let Some(interface) = &self.servers[index].bound_interface {
+                    name.clone_from(&interface.name);
+                    mtu = interface.mtu;
                 }
             } else {
                 let Ok(found) =
@@ -342,7 +495,9 @@ impl<O: FileOpener> TftpListener<O> {
             if !policy.admitted(&datagram, &name) {
                 return Ok(());
             }
-            mtu = interface_mtu(self.servers[index].socket.as_raw_fd(), &name);
+            if !bound {
+                mtu = interface_mtu(self.servers[index].socket.as_raw_fd(), &name);
+            }
         }
         let pending = Pending {
             datagram,
@@ -598,6 +753,20 @@ fn interface_mtu(fd: i32, name: &[u8]) -> Option<u32> {
     }
     u32::try_from(i32::from_ne_bytes(bytes[16..20].try_into().unwrap())).ok()
 }
+fn bound_interface(policy: &Policy, address: SocketAddr, fd: i32) -> Option<BoundInterface> {
+    if !policy.dns.bind_interfaces || policy.dns.bind_dynamic || address.is_ipv6() {
+        return None;
+    }
+    let row = policy
+        .interfaces
+        .iter()
+        .find(|row| row.address == address.ip())?;
+    let name = row.link_name().to_vec();
+    Some(BoundInterface {
+        mtu: interface_mtu(fd, &name),
+        name,
+    })
+}
 fn descriptor_limit() -> io::Result<u64> {
     extern "C" {
         // Keep this declaration byte-for-byte compatible with the helper
@@ -753,7 +922,7 @@ mod tests {
             ..TftpConfig::default()
         };
         let dns = DnsConfig::default();
-        let mut listener = TftpListener::bind_config(&config, &dns, &[], &[], 0, 0).unwrap();
+        let mut listener = TftpListener::bind_config(&config, &dns, &[], &[], 0, 0, 1497).unwrap();
         assert_eq!(listener.servers.len(), 2);
         assert!(listener.validate_roots().unwrap().is_empty());
         let v4 = UdpSocket::bind("127.0.0.1:0").unwrap();

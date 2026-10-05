@@ -692,6 +692,10 @@ pub struct SendPlan {
 }
 
 impl ServerGroup {
+    pub fn preferred_server(&self) -> Option<ServerId> {
+        self.last_server
+    }
+
     pub fn new(id: GroupId, servers: Vec<Server>, strict_order: bool, all_servers: bool) -> Self {
         Self {
             id,

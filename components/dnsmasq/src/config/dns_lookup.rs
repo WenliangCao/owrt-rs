@@ -30,6 +30,8 @@ pub struct EndpointLookup {
     bytes: Vec<u8>,
     eof: bool,
     cancelled: bool,
+    status: Option<i32>,
+    failure: Option<String>,
     rules: Vec<ServerRule>,
 }
 
@@ -86,6 +88,8 @@ impl EndpointLookup {
             bytes: Vec::new(),
             eof: false,
             cancelled: false,
+            status: None,
+            failure: None,
             rules,
         })
     }
@@ -123,28 +127,40 @@ impl EndpointLookup {
                         error.kind(),
                         io::ErrorKind::WouldBlock | io::ErrorKind::Interrupted
                     ) => {}
-                Err(_) => self.cancel(),
+                Err(error) => {
+                    self.failure = Some(format!("endpoint resolver pipe: {error}"));
+                    self.cancel();
+                }
             }
         }
-        let mut status = 0;
         if let Some(pid) = self.pid {
+            let mut status = 0;
             // SAFETY: waitpid is restricted to this owned child; WNOHANG
             // never waits for the resolver or steals another helper's status.
-            if unsafe { waitpid(pid, &mut status, 1) } != pid {
+            let reaped = unsafe { waitpid(pid, &mut status, 1) };
+            if reaped == pid {
+                self.pid = None;
+                self.status = Some(status);
+            } else if reaped < 0 && io::Error::last_os_error().raw_os_error() == Some(10) {
+                self.pid = None;
+                self.failure = Some("endpoint resolver child was already reaped".into());
+            } else {
                 return None;
             }
-            self.pid = None;
         }
         if self.cancelled {
             return Some(LookupResult {
                 rules: Vec::new(),
-                error: None,
+                error: self.failure.take(),
             });
         }
-        if status != 0 {
+        if self.failure.is_some() || self.status.is_some_and(|status| status != 0) {
             return Some(LookupResult {
                 rules: Vec::new(),
-                error: Some("endpoint resolver child failed".into()),
+                error: self
+                    .failure
+                    .take()
+                    .or_else(|| Some("endpoint resolver child failed".into())),
             });
         }
         if !self.eof {
@@ -179,18 +195,15 @@ impl Drop for EndpointLookup {
 
 fn encode(original: &[ServerRule], expanded: endpoints::Expansion) -> Vec<u8> {
     let mut bytes = (expanded.rules.len() as u32).to_be_bytes().to_vec();
-    for rule in &expanded.rules {
-        let index = original
-            .iter()
-            .position(|old| old.domain == rule.domain)
-            .expect("expanded rule domain exists");
+    for (rule, index) in expanded.rules.iter().zip(&expanded.origins) {
+        debug_assert!(original.get(*index).is_some());
         let RuleTarget::Upstream(endpoint) = &rule.target else {
             unreachable!()
         };
         let ServerHost::Address(address) = endpoint.host else {
             unreachable!()
         };
-        bytes.extend_from_slice(&(index as u32).to_be_bytes());
+        bytes.extend_from_slice(&(*index as u32).to_be_bytes());
         match address {
             IpAddr::V4(address) => {
                 bytes.push(4);

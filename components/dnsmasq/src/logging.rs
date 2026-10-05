@@ -567,7 +567,7 @@ fn connect_syslog(fd: RawFd) -> io::Result<()> {
         Ok(())
     }
 }
-fn error_text(error: &io::Error) -> String {
+pub fn error_text(error: &io::Error) -> String {
     match error.raw_os_error() {
         Some(code) => unsafe {
             CStr::from_ptr(strerror(code))
@@ -615,5 +615,16 @@ pub fn report_startup_failure(config: &LoggingConfig, process: &ProcessConfig, m
             b"FAILED to start up".to_vec(),
         ));
         logger.finish();
+    }
+}
+
+/// C opens its libc syslog connection only when the first early diagnostic is
+/// produced. Failed logging never turns a lease warning into a startup error.
+pub fn emit_early(owner: &mut Option<Logger>, priority: Priority, message: &[u8]) {
+    if owner.is_none() {
+        *owner = Logger::early().ok();
+    }
+    if let Some(logger) = owner {
+        logger.emit(LogEvent::new(Service::Dns, priority, message.to_vec()));
     }
 }

@@ -2,6 +2,7 @@
 //! here. The caller publishes each completed source in its existing owner.
 
 use super::{resolver_line, server_line, FileStamp, ResolverSelection, Source, SourceRule};
+use crate::config::dns::endpoints;
 use crate::config::dns::lookup::EndpointLookup;
 use crate::config::dns::{RuleTarget, ServerHost};
 use crate::config::{dns::DnsConfig, Error};
@@ -85,12 +86,7 @@ impl std::fmt::Display for FileDiagnostic {
             }
             Self::ReadingResolvers(path) => write!(out, "reading {}", path.display()),
             Self::Watch(error) => write!(out, "inotify read: {}", os_message(error)),
-            Self::ResolverChild { path, error } => write!(
-                out,
-                "cannot resolve endpoints in {}: {}",
-                path.display(),
-                error
-            ),
+            Self::ResolverChild { error, .. } => write!(out, "{error}"),
         }
     }
 }
@@ -226,6 +222,8 @@ pub struct DnsFiles {
     notify_seen: bool,
     endpoint_lookup: Option<EndpointLookup>,
     endpoint_update: Option<SourceUpdate>,
+    endpoint_groups: VecDeque<Vec<SourceRule>>,
+    endpoint_current: Vec<SourceRule>,
 }
 
 impl DnsFiles {
@@ -275,6 +273,8 @@ impl DnsFiles {
             notify_seen: false,
             endpoint_lookup: None,
             endpoint_update: None,
+            endpoint_groups: VecDeque::new(),
+            endpoint_current: Vec::new(),
         })
     }
 
@@ -312,7 +312,8 @@ impl DnsFiles {
     }
 
     pub fn has_work(&self) -> bool {
-        self.endpoint_lookup.is_some()
+        self.endpoint_update.is_some()
+            || self.endpoint_lookup.is_some()
             || self.job.is_some()
             || !self.requests.is_empty()
             || !self.triggers.is_empty()
@@ -389,31 +390,74 @@ impl DnsFiles {
         }
     }
 
+    fn append_endpoint_result(
+        &mut self,
+        rules: Vec<crate::config::dns::ServerRule>,
+        error: Option<String>,
+        diagnostics: &mut Vec<FileDiagnostic>,
+    ) {
+        let update = self
+            .endpoint_update
+            .as_mut()
+            .expect("endpoint update owns expansion");
+        let origin = &self.endpoint_current[0];
+        update.rows.extend(
+            rules
+                .into_iter()
+                .map(|rule| SourceRule::configured_reverse(rule, origin.line, origin.reverse)),
+        );
+        if let Some(error) = error {
+            diagnostics.push(FileDiagnostic::ResolverChild {
+                path: update.path.clone(),
+                error: format!(
+                    "{error} at line {} of {}",
+                    origin.line,
+                    update.path.display()
+                ),
+            });
+        }
+        self.endpoint_current.clear();
+    }
+
     pub fn step(&mut self) -> FileStep {
         let mut result = FileStep::default();
-        if let Some(lookup) = &mut self.endpoint_lookup {
-            if let Some(done) = lookup.step() {
+        if self.endpoint_update.is_some() {
+            if let Some(lookup) = &mut self.endpoint_lookup {
+                let Some(done) = lookup.step() else {
+                    result.runnable = lookup.reap_pending();
+                    return result;
+                };
                 self.endpoint_lookup = None;
-                if let Some(error) = done.error {
-                    result.diagnostics.push(FileDiagnostic::ResolverChild {
-                        path: self
-                            .endpoint_update
-                            .as_ref()
-                            .map(|u| u.path.clone())
-                            .unwrap_or_default(),
-                        error,
-                    });
-                    self.endpoint_update = None;
-                } else if let Some(mut update) = self.endpoint_update.take() {
-                    update.rows = done
-                        .rules
-                        .into_iter()
-                        .map(|rule| SourceRule::configured(rule, 0))
-                        .collect();
-                    result.update = Some(update);
+                self.append_endpoint_result(done.rules, done.error, &mut result.diagnostics);
+            }
+            if let Some(rows) = self.endpoint_groups.pop_front() {
+                self.endpoint_current = rows;
+                let rules: Vec<_> = self
+                    .endpoint_current
+                    .iter()
+                    .map(|row| row.rule.clone())
+                    .collect();
+                let reverse = self.endpoint_current[0].reverse;
+                if rules.iter().any(|rule| matches!(&rule.target, RuleTarget::Upstream(endpoint) if matches!(endpoint.host, ServerHost::Name(_)))) {
+                    match EndpointLookup::start(rules, reverse) {
+                        Ok(lookup) => self.endpoint_lookup = Some(lookup),
+                        Err(error) => self.append_endpoint_result(Vec::new(), Some(error.to_string()), &mut result.diagnostics),
+                    }
+                } else {
+                    let done = endpoints::resolve_rules(&rules, reverse);
+                    self.append_endpoint_result(done.rules, done.error.map(|error| error.to_string()), &mut result.diagnostics);
+                }
+                result.runnable = self.endpoint_lookup.is_none();
+                return result;
+            }
+            result.update = self.endpoint_update.take();
+            if self.job.is_none() && self.requests.is_empty() {
+                result.signal_complete = self.active_reason.take() == Some(ReloadReason::Signal);
+                if self.initializing && !self.triggers.contains(&ReloadReason::Init) {
+                    self.initializing = false;
                 }
             }
-            result.runnable = self.endpoint_lookup.is_some();
+            result.runnable = !self.requests.is_empty() || !self.triggers.is_empty();
             return result;
         }
         let mut watch_more = false;
@@ -499,26 +543,24 @@ impl DnsFiles {
                         && job.request.reload
                         && self.clear_on_reload,
                 };
-                let needs_lookup = update.source == Source::ServersFile && update.rows.iter().any(|row| {
-                    matches!(row.rule.target, RuleTarget::Upstream(ref endpoint) if matches!(endpoint.host, ServerHost::Name(_)))
-                });
-                if needs_lookup {
-                    let named_rows = update.rows.iter().filter(|row| matches!(row.rule.target, RuleTarget::Upstream(ref endpoint) if matches!(endpoint.host, ServerHost::Name(_))));
-                    let reverse_count = named_rows.clone().filter(|row| row.reverse).count();
-                    let named_count = named_rows.count();
-                    if reverse_count != 0 && reverse_count != named_count {
-                        result.diagnostics.push(FileDiagnostic::ResolverChild { path: update.path.clone(), error: "mixed server/rev-server hostname rows require grouped endpoint jobs".into() });
-                        return result;
-                    }
-                    let reverse = reverse_count != 0;
-                    let rules = update.rows.iter().map(|row| row.rule.clone()).collect();
-                    match EndpointLookup::start(rules, reverse) {
-                        Ok(lookup) => {
-                            self.endpoint_lookup = Some(lookup);
-                            self.endpoint_update = Some(update);
+                if update.source == Source::ServersFile {
+                    // A directive's domain/reverse variants share one expansion.
+                    // Different lines never share hostname, source or reverse state.
+                    for row in update.rows {
+                        if self
+                            .endpoint_groups
+                            .back()
+                            .is_some_and(|group| group[0].line == row.line)
+                        {
+                            self.endpoint_groups.back_mut().unwrap().push(row);
+                        } else {
+                            self.endpoint_groups.push_back(vec![row]);
                         }
-                        Err(error) => result.diagnostics.push(FileDiagnostic::Watch(error)),
                     }
+                    self.endpoint_update = Some(SourceUpdate {
+                        rows: Vec::new(),
+                        ..update
+                    });
                 } else {
                     result.update = Some(update);
                 }
@@ -526,10 +568,11 @@ impl DnsFiles {
                 self.job = Some(job);
             }
         }
-        if self.job.is_none() && self.requests.is_empty() {
+        if self.endpoint_update.is_none() && self.job.is_none() && self.requests.is_empty() {
             result.signal_complete = self.active_reason.take() == Some(ReloadReason::Signal);
         }
         if self.initializing
+            && self.endpoint_update.is_none()
             && self.job.is_none()
             && self.requests.is_empty()
             && !self.triggers.contains(&ReloadReason::Init)
@@ -540,7 +583,7 @@ impl DnsFiles {
             !self.requests.is_empty() || !self.triggers.is_empty(),
             |job| !job.wait_readiness,
         );
-        result.runnable |= watch_more;
+        result.runnable |= watch_more || self.endpoint_update.is_some();
         result
     }
 }
@@ -590,6 +633,36 @@ mod tests {
             }
         }
         panic!("small regular-file job failed to complete");
+    }
+
+    #[test]
+    fn server_file_keeps_distinct_lines_partial_errors_and_reverse_origin() {
+        let directory = Directory::new();
+        let path = directory.0.join("servers");
+        fs::write(&path, b"server=/first/127.0.0.2\nserver=/named/127.1\nserver=/bad/::1%missing_endpoint_if\nrev-server=192.0.2.0/24,127.1\nserver=/last/127.0.0.3\n").unwrap();
+        let mut config = directory.config();
+        config.no_resolv = true;
+        config.servers_file = Some(path);
+        let mut files = DnsFiles::new(&config, true, false).unwrap();
+        files.request(ReloadReason::Init);
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(2);
+        let update = loop {
+            let result = files.step();
+            if let Some(update) = result.update {
+                break update;
+            }
+            assert!(std::time::Instant::now() < deadline);
+            std::thread::sleep(std::time::Duration::from_millis(1));
+        };
+        assert_eq!(
+            update.rows.iter().map(|row| row.line).collect::<Vec<_>>(),
+            [1, 2, 4, 5]
+        );
+        assert!(update.rows[2].reverse);
+        assert!(!update.rows[1].reverse);
+        assert!(
+            matches!(&update.rows[3].rule.target, RuleTarget::Upstream(endpoint) if endpoint.host == ServerHost::Address("127.0.0.3".parse().unwrap()))
+        );
     }
 
     #[test]

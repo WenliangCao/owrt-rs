@@ -60,6 +60,7 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 static STOP_REQUESTED: AtomicBool = AtomicBool::new(false);
 static RELOAD_REQUESTED: AtomicUsize = AtomicUsize::new(0);
 static DEBUG_MODE: AtomicBool = AtomicBool::new(false);
+static LOG_REOPEN_REQUESTED: AtomicUsize = AtomicUsize::new(0);
 // SIGHUP is 1 on the supported Linux and Darwin hosts.
 const SIGHUP: i32 = 1;
 
@@ -81,6 +82,12 @@ extern "C" fn request_reload(_signal: i32) {
     });
 }
 
+extern "C" fn request_log_reopen(_signal: i32) {
+    let _ = LOG_REOPEN_REQUESTED.fetch_update(Ordering::Release, Ordering::Relaxed, |count| {
+        Some(count.saturating_add(1))
+    });
+}
+
 extern "C" fn request_interrupt(_signal: i32) {
     if DEBUG_MODE.load(Ordering::Relaxed) {
         extern "C" {
@@ -94,6 +101,15 @@ extern "C" fn request_interrupt(_signal: i32) {
 }
 
 fn main() {
+    #[cfg(target_os = "linux")]
+    {
+        unsafe extern "C" {
+            fn umask(mask: u32) -> u32;
+        }
+        unsafe {
+            umask(0o022);
+        }
+    }
     let args: Vec<OsString> = std::env::args_os().skip(1).collect();
     if let Err(error) = run(&args) {
         // inotify is initialized after PID/privilege setup, when C's ordinary
@@ -102,9 +118,16 @@ fn main() {
         if error.is::<WatchError>() && !DEBUG_MODE.load(Ordering::Relaxed) {
             std::process::exit(startup_status(error.as_ref()));
         }
-        let blank_line = error.is::<loader::LoadError>();
+        let blank_line = error.is::<loader::LoadError>() || error.is::<Error>()
+            || error
+                .downcast_ref::<dnsmasq_rs::dns::daemon::DaemonError>()
+                .is_some_and(|error| {
+                    matches!(error, dnsmasq_rs::dns::daemon::DaemonError::SourceBind(_))
+                })
+            || error.is::<dnsmasq_rs::startup::StartupError>();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         let blank_line = blank_line
+            || error.is::<dnsmasq_rs::helper::StartError>()
             || error
                 .downcast_ref::<dnsmasq_rs::dhcp::daemon::StartupError>()
                 .is_some_and(|error| error.is_lease_capacity());
@@ -135,7 +158,12 @@ fn startup_status(error: &(dyn std::error::Error + 'static)) -> i32 {
     if let Some(error) = error.downcast_ref::<dnsmasq_rs::startup::StartupError>() {
         return error.code;
     }
-    if error.is::<NetworkStartupError>() {
+    if error.is::<NetworkStartupError>()
+        || matches!(
+            error.downcast_ref::<dnsmasq_rs::dns::daemon::DaemonError>(),
+            Some(dnsmasq_rs::dns::daemon::DaemonError::SourceBind(_))
+        )
+    {
         return 2;
     }
     #[cfg(target_os = "linux")]
@@ -159,6 +187,7 @@ fn startup_status(error: &(dyn std::error::Error + 'static)) -> i32 {
 struct Runtime {
     scalar: ScalarConfig,
     process: dnsmasq_rs::startup::ProcessConfig,
+    logging: dnsmasq_rs::config::logging::LoggingConfig,
     dns: DnsConfig,
     tftp: TftpConfig,
     dhcp: DhcpConfig,
@@ -389,13 +418,15 @@ fn load(args: &[OsString]) -> Result<(Action, Runtime), loader::LoadError> {
     let mut runtime = Runtime {
         scalar: ScalarConfig::default(),
         process: dnsmasq_rs::startup::ProcessConfig::default(),
+        logging: dnsmasq_rs::config::logging::LoggingConfig::default(),
         dns: DnsConfig::default(),
         tftp: TftpConfig::default(),
         dhcp: DhcpConfig::default(),
         ubus: UbusConfig::default(),
     };
     let action = loader::load(args, Path::new("/etc/dnsmasq.conf"), |directive, _| {
-        if runtime.process.apply(directive)?
+        if runtime.logging.apply(directive)?
+            || runtime.process.apply(directive)?
             || runtime.scalar.apply(directive)?
             || runtime.dns.apply_resolved(directive)?
             || runtime.tftp.apply(directive)?
@@ -423,18 +454,38 @@ fn config_diagnostic(error: Error) -> loader::LoadError {
 }
 
 fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
+    #[cfg(target_os = "linux")]
+    let mut startup = dnsmasq_rs::startup::daemonize::StartupChannel::default();
+    let result = run_inner(
+        args,
+        #[cfg(target_os = "linux")]
+        &mut startup,
+    );
+    #[cfg(target_os = "linux")]
+    if startup.active() {
+        if let Err(error) = &result {
+            startup.fail(startup_status(error.as_ref()), &error.to_string());
+            return Ok(());
+        }
+    }
+    result
+}
+
+fn run_inner(
+    args: &[OsString],
+    #[cfg(target_os = "linux")] startup: &mut dnsmasq_rs::startup::daemonize::StartupChannel,
+) -> Result<(), Box<dyn std::error::Error>> {
     let (action, mut runtime) = load(args)?;
     match action {
         Action::Version => {
-            println!("dnsmasq-rs 0.1.0");
-            println!("Compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile");
-            println!("Mode: development DNS daemon");
-            println!("Implemented: DNS UDP/TCP, cache subsets, DHCPv4 listener boundary and TFTP transfer listener");
-            println!("Not implemented: full DNS cache/reload policy and DHCP relay/PXE/leasequery");
+            print!("{}", dnsmasq_rs::startup::cli::version_output());
             return Ok(());
         }
         Action::Help | Action::HelpDhcp => {
-            println!("dnsmasq-rs: use -C FILE and -k to run the implemented DNS service");
+            print!(
+                "{}",
+                dnsmasq_rs::startup::cli::help_output(action == Action::HelpDhcp)
+            );
             return Ok(());
         }
         Action::Test => {
@@ -494,12 +545,18 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         runtime.scalar.dns_port,
         &interface_snapshot.lock().unwrap(),
     );
+    let mut pending_static_dns = listeners::tentative_addresses(
+        &runtime.dns,
+        runtime.scalar.dns_port,
+        &interface_snapshot.lock().unwrap(),
+    );
     let tftp_config = runtime.tftp.clone();
     let dhcp_config = runtime.dhcp.clone();
     DEBUG_MODE.store(runtime.process.debug, Ordering::Relaxed);
     owrt_ubus::sys::set_signal_handler(owrt_ubus::sys::SIGINT, request_interrupt);
     owrt_ubus::sys::set_signal_handler(owrt_ubus::sys::SIGTERM, request_stop);
     owrt_ubus::sys::set_signal_handler(SIGHUP, request_reload);
+    owrt_ubus::sys::set_signal_handler(12, request_log_reopen);
     // dnsmasq.c allocates `edns_pktsz + MAXDNAME + RRFIXEDSZ` as scratch space.
     // TCP uses this frame limit; UDP admission enforces edns_pktsz itself.
     let packet_limit = usize::from(runtime.scalar.edns_packet_max) + 255 + 10;
@@ -523,6 +580,10 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             daemon_hosts,
             &resolvers,
             daemon_options,
+        )?;
+        daemon.configure_source_sockets(
+            dnsmasq_rs::dns::upstream::source_sockets::SocketSettings::from_scalar(&runtime.scalar),
+            true,
         )?;
         daemon.check_server_addresses(&dns_local_addresses(
             &daemon_config,
@@ -564,19 +625,37 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     // Socket waits remain outside this gate.
     let parent_events = Arc::new(Mutex::new(ParentEvents::new(&runtime.ubus)?));
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    let dhcp_helper = if let Some(script) = dhcp_config.script.clone() {
-        Some(Helper::start_with_init(
-            HelperConfig {
-                script: PathBuf::from(OsString::from_vec(script)),
-                script_user: dhcp_config.script_user.clone(),
-                debug: runtime.process.debug,
-            },
+    let helper_config = dhcp_config
+        .script
+        .as_ref()
+        .filter(|_| !dhcp_config.ranges.is_empty() || tftp_config.enabled)
+        .map(|script| HelperConfig {
+            script: PathBuf::from(OsString::from_vec(script.clone())),
+            // dnsmasq.c resolves scriptuser only when DHCP is configured.
+            // TFTP alone still has a helper, inheriting startup credentials.
+            script_user: (!dhcp_config.ranges.is_empty())
+                .then(|| dhcp_config.script_user.clone())
+                .flatten(),
+            debug: runtime.process.debug,
+        });
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    if let Some(config) = &helper_config {
+        Helper::validate_startup(
+            config,
             (dhcp_config.lease_read_only && !dhcp_config.ranges.is_empty())
                 .then_some(dhcp_config.lease_max),
-        )?)
-    } else {
-        None
-    };
+        )?;
+    }
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    let mut early_logger = None;
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    let lease_init_now = now_seconds();
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    let initial_leases = dnsmasq_rs::startup::lease_init::initialize(
+        &dhcp_config,
+        runtime.process.debug,
+        &mut early_logger,
+    )?;
     #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
     if !dhcp_config.ranges.is_empty() || !dhcp_config.relay.is_empty() {
         return Err(Box::new(Error("DHCP listener requires 64-bit Linux")));
@@ -587,7 +666,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     }
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     let provider = if !dhcp_config.ranges.is_empty() {
-        let mut provider = DhcpProvider::new(
+        let mut provider = DhcpProvider::new_with_log(
             dhcp_config.clone(),
             daemon_config.listen_addresses.clone(),
             runtime.scalar.dns_port,
@@ -595,7 +674,18 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             // SIGTERM. The listener still checks STOP before each new packet;
             // DNS/TFTP continue through the borrowed probe wait meanwhile.
             || false,
-        )?;
+            &mut early_logger,
+        )
+        .map_err(|error| {
+            use dnsmasq_rs::logging::{emit_early, Priority};
+            emit_early(
+                &mut early_logger,
+                Priority::Critical,
+                error.to_string().as_bytes(),
+            );
+            emit_early(&mut early_logger, Priority::Critical, b"FAILED to start up");
+            error
+        })?;
         provider
             .start_interface_owner()
             .map_err(|error| dnsmasq_rs::startup::StartupError {
@@ -604,6 +694,9 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             })?;
         provider.set_dns_config(&daemon_config)?;
         provider.set_tftp_config(&tftp_config);
+        if let Some(restored) = initial_leases {
+            provider.restore_initial_records(restored, lease_init_now)?;
+        }
         if dns_enabled {
             let config_dns = Arc::clone(&service);
             provider.set_config_host_lookup(move |name| {
@@ -702,18 +795,16 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     // every socket without leaving an already-running partial service.
     let mut listeners = Vec::new();
     for address in addresses {
-        match open_dns_listener(address) {
-            Ok((udp, tcp)) => listeners.push((address, udp, tcp)),
-            Err(error) if daemon_config.bind_dynamic => {
-                eprintln!("dnsmasq-rs: cannot bind {address}: {error}")
-            }
+        match open_dns_listener(address, daemon_config.bind_dynamic) {
+            Ok((udp, tcp)) if udp.is_some() || tcp.is_some() => listeners.push((address, udp, tcp)),
+            Ok(_) => {}
             Err(error) => return Err(Box::new(NetworkStartupError(error))),
         }
     }
     listeners::validate_bind_interfaces(&daemon_config, &interface_snapshot.lock().unwrap())
         .map_err(NetworkStartupError)?;
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    let tftp_listener = if tftp_config.enabled {
+    let mut tftp_listener = if tftp_config.enabled {
         match TftpListener::bind_config(
             &tftp_config,
             &daemon_config,
@@ -725,6 +816,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             } else {
                 0
             },
+            packet_limit,
         ) {
             Ok(listener) => Some(listener),
             Err(error) => return Err(Box::new(NetworkStartupError(error))),
@@ -741,16 +833,75 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             .force_broadcast
             .first()
             .is_some_and(|rule| rule.is_unconditional()),
-        daemon_config.bind_dynamic && runtime.scalar.dns_port <= 1024 && dns_enabled,
+        (daemon_config.bind_dynamic
+            && (tftp_config.enabled || runtime.scalar.dns_port <= 1024 && dns_enabled))
+            || (!pending_static_dns.is_empty() && runtime.scalar.dns_port <= 1024 && dns_enabled)
+            || tftp_listener
+                .as_ref()
+                .is_some_and(TftpListener::needs_privileged_rebind),
         runtime.ubus.object_name()?.is_some(),
     );
     // Fail missing capabilities before touching a pre-existing PID file.
     #[cfg(target_os = "linux")]
-    identity.check_capabilities(capabilities)?;
+    let have_cap_chown = identity.check_capabilities(capabilities)?;
     #[cfg(target_os = "linux")]
-    let pid_file = identity.write_pid(&runtime.process)?;
+    match startup.begin(&runtime.process) {
+        Ok(true) => return Ok(()),
+        Ok(false) => {}
+        Err(error) => {
+            dnsmasq_rs::logging::report_startup_failure(
+                &Default::default(),
+                &Default::default(),
+                &error.message,
+            );
+            return Err(Box::new(error));
+        }
+    }
     #[cfg(target_os = "linux")]
-    identity.drop_privileges(&runtime.process, capabilities)?;
+    let pid_file = identity.write_pid(&runtime.process).map_err(|error| {
+        if !startup.active() {
+            use dnsmasq_rs::logging::{emit_early, Priority};
+            emit_early(
+                &mut early_logger,
+                Priority::Critical,
+                error.message.as_bytes(),
+            );
+            emit_early(&mut early_logger, Priority::Critical, b"FAILED to start up");
+        }
+        error
+    })?;
+    #[cfg(target_os = "linux")]
+    let (mut logger, log_ownership_warning) = match dnsmasq_rs::logging::Logger::start(
+        &runtime.logging,
+        &runtime.process,
+        identity.log_owner_uid(),
+    ) {
+        Ok(value) => value,
+        Err(error) => {
+            if !startup.active() {
+                dnsmasq_rs::logging::report_startup_failure(
+                    &runtime.logging,
+                    &runtime.process,
+                    &error.message,
+                );
+            }
+            return Err(Box::new(error));
+        }
+    };
+    #[cfg(target_os = "linux")]
+    dnsmasq_rs::startup::redirect_standard_streams(&runtime.process);
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    let dhcp_helper = helper_config.map(Helper::start).transpose()?;
+    #[cfg(target_os = "linux")]
+    identity.drop_privileges(&runtime.process, capabilities).map_err(|error| {
+        if !startup.active() {
+            use dnsmasq_rs::logging::{LogEvent, Priority, Service};
+            logger.emit(LogEvent::new(Service::Dns, Priority::Critical, error.message.as_bytes().to_vec()));
+            logger.emit(LogEvent::new(Service::Dns, Priority::Critical, b"FAILED to start up".to_vec()));
+            logger.finish();
+        }
+        error
+    })?;
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     if let Some(listener) = &tftp_listener {
         // C tolerates inaccessible roots with no-fail, never socket errors.
@@ -804,6 +955,26 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         poll_listeners.push((token, udp, tcp));
     }
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    if let Some(tftp) = &mut tftp_listener {
+        for mut address in tftp.pending_listener_addresses().iter().copied() {
+            address.set_port(runtime.scalar.dns_port);
+            if !pending_static_dns.contains(&address) {
+                pending_static_dns.push(address);
+            }
+        }
+        for mut address in tftp.listener_addresses() {
+            if !tftp.has_listener(address) {
+                continue;
+            }
+            address.set_port(runtime.scalar.dns_port);
+            if !bound_listeners.iter().any(|(bound, _)| *bound == address) {
+                bound_listeners.push((address, SocketToken(next_listener)));
+                next_listener += 1;
+            }
+        }
+        tftp.use_shared_listener_owner();
+    }
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     let neighbor_cache = if tftp_config.unique_root_mac {
         NeighborCache::new().ok()
     } else {
@@ -842,10 +1013,135 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         poll.dns_files = Some(dns_files);
         poll.route_watch = route_watch;
         poll.dns_port = runtime.scalar.dns_port;
+        poll.early_logger = early_logger;
+    }
+    #[cfg(target_os = "linux")]
+    {
+        use dnsmasq_rs::logging::{LogEvent, Priority, Service};
+        let started = if !dns_enabled {
+            "started, version 2.93 DNS disabled".to_owned()
+        } else if runtime.scalar.cache_size == 0 {
+            "started, version 2.93 cache disabled".to_owned()
+        } else {
+            format!(
+                "started, version 2.93 cachesize {}",
+                runtime.scalar.cache_size
+            )
+        };
+        logger.emit(LogEvent::new(
+            Service::Dns,
+            Priority::Info,
+            started.into_bytes(),
+        ));
+        if dns_enabled && runtime.scalar.cache_size > 10000 {
+            logger.emit(LogEvent::new(Service::Dns, Priority::Warning,
+                b"cache size greater than 10000 may cause performance issues, and is unlikely to be useful.".to_vec()));
+        }
+        if dns_enabled && daemon_config.local_service_net {
+            logger.emit(LogEvent::new(
+                Service::Dns,
+                Priority::Info,
+                b"DNS service limited to local subnets".to_vec(),
+            ));
+        } else if dns_enabled && daemon_config.local_service_host {
+            logger.emit(LogEvent::new(
+                Service::Dns,
+                Priority::Info,
+                b"DNS service limited to localhost".to_vec(),
+            ));
+        }
+        logger.emit(LogEvent::new(
+            Service::Dns,
+            Priority::Info,
+            format!(
+                "compile time options: {}",
+                dnsmasq_rs::startup::cli::COMPILE_TIME_OPTIONS
+            )
+            .into_bytes(),
+        ));
+        if let Some(error) = pid_file.ownership_warning() {
+            let path = runtime.process.pid_file.as_ref().unwrap().display();
+            let (priority, message) = if error.raw_os_error() == Some(1) && !have_cap_chown {
+                (
+                    Priority::Info,
+                    format!("chown of PID file {path} failed: please add capability CAP_CHOWN"),
+                )
+            } else {
+                (
+                    Priority::Warning,
+                    format!(
+                        "chown of PID file {path} failed: {}",
+                        dnsmasq_rs::logging::error_text(error)
+                    ),
+                )
+            };
+            logger.emit(LogEvent::new(Service::Dns, priority, message.into_bytes()));
+        }
+        if let Some(error) = log_ownership_warning {
+            logger.emit(LogEvent::new(
+                Service::Dns,
+                Priority::Warning,
+                format!(
+                    "warning: failed to change owner of {}: {}",
+                    runtime.logging.file.as_deref().unwrap().display(),
+                    dnsmasq_rs::logging::error_text(&error)
+                )
+                .into_bytes(),
+            ));
+        }
+        if dns_enabled && daemon_config.no_resolv && daemon_config.rules.is_empty() {
+            logger.emit(LogEvent::new(
+                Service::Dns,
+                Priority::Warning,
+                b"warning: no upstream servers configured".to_vec(),
+            ));
+        }
+        for range in &runtime.dhcp.ranges {
+            logger.emit(dnsmasq_rs::logging::startup::dhcp_range(range));
+        }
+        if let Some(event) = dnsmasq_rs::logging::startup::tftp(&runtime.tftp) {
+            logger.emit(event);
+        }
+        poll.log_cleared_cache = dns_enabled
+            && runtime.scalar.cache_size > 0
+            && daemon_config.no_hosts
+            && daemon_config.addn_hosts.is_empty();
+        if poll.log_cleared_cache {
+            // The initial host/cache generation above has been constructed.
+            logger.emit(LogEvent::new(
+                Service::Dns,
+                Priority::Info,
+                b"cleared cache".to_vec(),
+            ));
+        }
+        poll.logger = Some(logger);
     }
     // `-k` is the normal OpenWrt invocation. Stop handlers let workers leave
     // their bounded receive loops and release sockets before exit.
+    #[cfg(target_os = "linux")]
+    if poll.helper.as_ref().is_none_or(Helper::ready) {
+        startup.complete();
+    }
     let mut last_interfaces = Instant::now();
+    // C's INAME_USED latch survives interface removal. Once an explicit
+    // address belonged to an interface, it cannot become an unowned fallback.
+    let mut owned_explicit: Vec<IpAddr> = interface_snapshot
+        .lock()
+        .unwrap()
+        .iter()
+        .filter(|interface| daemon_config.listen_addresses.contains(&interface.address))
+        .map(|interface| interface.address)
+        .collect();
+    // A listener created without an interface never acquires ownership when
+    // that address later appears. C retains such sockets across removal.
+    let mut persistent_unowned: Vec<SocketAddr> = bound_listeners
+        .iter()
+        .filter(|(address, _)| {
+            daemon_config.listen_addresses.contains(&address.ip())
+                && !owned_explicit.contains(&address.ip())
+        })
+        .map(|(address, _)| *address)
+        .collect();
     while !STOP_REQUESTED.load(Ordering::Acquire) {
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         poll.step_dhcp_files();
@@ -857,8 +1153,11 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         poll.step();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if let Some(error) = poll.helper_init_error.take() {
-            pid_file.cleanup();
             return Err(Box::new(error));
+        }
+        #[cfg(target_os = "linux")]
+        if startup.active() && poll.helper.as_ref().is_none_or(Helper::ready) {
+            startup.complete();
         }
         if last_interfaces.elapsed() >= Duration::from_millis(100) {
             last_interfaces = Instant::now();
@@ -882,31 +1181,135 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                         parent.local.config = daemon.local_config().clone();
                     }
                 }
+                for interface in &interfaces {
+                    if daemon_config.listen_addresses.contains(&interface.address)
+                        && !owned_explicit.contains(&interface.address)
+                    {
+                        owned_explicit.push(interface.address);
+                    }
+                }
+                let mut dns_addresses = listeners::bound_addresses(
+                    &daemon_config,
+                    runtime.scalar.dns_port,
+                    &interfaces,
+                );
                 if daemon_config.bind_dynamic {
-                    let addresses = listeners::bound_addresses(
-                        &daemon_config,
-                        runtime.scalar.dns_port,
-                        &interfaces,
-                    );
+                    dns_addresses.retain(|address| {
+                        !owned_explicit.contains(&address.ip())
+                            || persistent_unowned.contains(address)
+                            || interfaces
+                                .iter()
+                                .any(|interface| interface.address == address.ip())
+                    });
+                }
+                let mut eligible = dns_addresses.clone();
+                #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+                if let Some(tftp) = &mut poll.tftp {
+                    if daemon_config.bind_dynamic {
+                        for (address, _) in &bound_listeners {
+                            if !persistent_unowned.contains(address)
+                                && !interfaces
+                                    .iter()
+                                    .any(|interface| interface.address == address.ip())
+                            {
+                                tftp.retire_listener(*address);
+                            }
+                        }
+                    }
+                    tftp.refresh_listener_interfaces(&interfaces);
+                    for mut address in tftp.listener_addresses() {
+                        address.set_port(runtime.scalar.dns_port);
+                        if !eligible.contains(&address) {
+                            eligible.push(address);
+                        }
+                    }
+                }
+                if daemon_config.bind_dynamic {
                     bound_listeners.retain(|(address, token)| {
-                        if addresses.contains(address) {
+                        if eligible.contains(address) {
                             return true;
                         }
                         poll.remove_listener(*token);
                         false
                     });
-                    for address in addresses {
-                        if bound_listeners.iter().any(|(bound, _)| *bound == address) {
-                            continue;
+                }
+                let attempts = if daemon_config.bind_dynamic {
+                    if changed || poll.retry_bound_listeners {
+                        eligible.clone()
+                    } else {
+                        Vec::new()
+                    }
+                } else {
+                    pending_static_dns.clone()
+                };
+                poll.retry_bound_listeners = false;
+                for address in attempts {
+                    if !eligible.contains(&address)
+                        || bound_listeners.iter().any(|(bound, _)| *bound == address)
+                    {
+                        continue;
+                    }
+                    let (udp, tcp, mut bind_errors) = if dns_addresses.contains(&address) {
+                        open_late_dns_listener(address, daemon_config.bind_dynamic)
+                    } else {
+                        (None, None, Vec::new())
+                    };
+                    let mut opened = udp.is_some() || tcp.is_some();
+                    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+                    if let Some(tftp) = &mut poll.tftp {
+                        match tftp.bind_listener(address) {
+                            Ok(bound) => opened |= bound,
+                            Err(error)
+                                if !suppressed_listener_error(
+                                    &error,
+                                    daemon_config.bind_dynamic,
+                                ) =>
+                            {
+                                bind_errors.push(error)
+                            }
+                            Err(_) => {}
                         }
-                        // An address may still be tentative or not present. Dynamic
-                        // mode keeps the remaining service alive and retries later.
-                        if let Ok((udp, tcp)) = open_dns_listener(address) {
-                            let token = SocketToken(next_listener);
-                            next_listener += 1;
-                            poll.add_listener(token, udp, tcp);
-                            bound_listeners.push((address, token));
+                    }
+                    #[cfg(target_os = "linux")]
+                    if let Some(logger) = &mut poll.logger {
+                        use dnsmasq_rs::logging::{LogEvent, Priority, Service};
+                        let mut label = address.ip().to_string();
+                        if let SocketAddr::V6(address) = address {
+                            if address.scope_id() != 0 {
+                                if let Some(interface) = interfaces
+                                    .iter()
+                                    .find(|interface| interface.index == address.scope_id())
+                                {
+                                    label.push('%');
+                                    label.push_str(&String::from_utf8_lossy(interface.link_name()));
+                                }
+                            }
                         }
+                        for error in bind_errors {
+                            logger.emit(LogEvent::new(
+                                Service::Dns,
+                                Priority::Warning,
+                                format!(
+                                    "failed to create listening socket for {label}: {}",
+                                    dnsmasq_rs::logging::error_text(&error)
+                                )
+                                .into_bytes(),
+                            ));
+                        }
+                    }
+                    if opened {
+                        if daemon_config.listen_addresses.contains(&address.ip())
+                            && !interfaces
+                                .iter()
+                                .any(|interface| interface.address == address.ip())
+                        {
+                            persistent_unowned.push(address);
+                        }
+                        let token = SocketToken(next_listener);
+                        next_listener += 1;
+                        poll.add_listener(token, udp, tcp);
+                        bound_listeners.push((address, token));
+                        pending_static_dns.retain(|pending| *pending != address);
                     }
                 }
             }
@@ -946,7 +1349,8 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             .dns_files
             .as_mut()
             .is_none_or(DnsFiles::lookups_drained);
-        let drained = lookups_drained && poll.step_helper_shutdown();
+        let helper_drained = poll.step_helper_shutdown();
+        let drained = lookups_drained && helper_drained;
         if let Some(error) = poll.helper_init_error.take() {
             pid_file.cleanup();
             return Err(Box::new(error));
@@ -957,11 +1361,42 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         // EVENT_TERM drains sources and command bytes, not script execution.
         // Keep IPC and init processing nonblocking in the same poll owner.
         let mut fds = Vec::new();
-        for (fd, events) in poll.helper.as_ref().unwrap().poll_fds() {
-            if fd >= 0 { fds.push(owrt_ubus::sys::PollFd { fd, events, revents: 0 }); }
+        if let Some(helper) = &poll.helper {
+            for (fd, events) in helper.poll_fds() {
+                if fd >= 0 {
+                    fds.push(owrt_ubus::sys::PollFd {
+                        fd,
+                        events,
+                        revents: 0,
+                    });
+                }
+            }
         }
-        if let Some(files) = &poll.dns_files { files.append_poll_fds(&mut fds); }
+        if let Some(files) = &poll.dns_files {
+            files.append_poll_fds(&mut fds);
+        }
         owrt_ubus::sys::poll_fds(&mut fds, 2)?;
+    }
+    #[cfg(target_os = "linux")]
+    if let Some(logger) = &mut poll.logger {
+        use dnsmasq_rs::logging::{LogEvent, Priority, Service};
+        logger.emit(LogEvent::new(
+            Service::Dns,
+            Priority::Info,
+            b"exiting on receipt of SIGTERM".to_vec(),
+        ));
+        let deadline = Instant::now() + Duration::from_millis(100);
+        while !logger.finish() && Instant::now() < deadline {
+            let mut fds: Vec<_> = logger
+                .poll_fds()
+                .map(|fd| owrt_ubus::sys::PollFd {
+                    fd,
+                    events: owrt_ubus::sys::POLLOUT,
+                    revents: 0,
+                })
+                .collect();
+            owrt_ubus::sys::poll_fds(&mut fds, 2)?;
+        }
     }
     #[cfg(target_os = "linux")]
     pid_file.cleanup();
@@ -985,13 +1420,59 @@ fn dns_local_addresses(
         .collect()
 }
 
-fn open_dns_listener(address: SocketAddr) -> io::Result<(Arc<DnsSocket>, TcpListener)> {
-    let udp = Arc::new(DnsSocket::bind(address)?);
-    let tcp = listeners::tcp_bind(address)?;
-    // The single poll owner must never block in accept/read.  The legacy
-    // worker path also handles WouldBlock, so this is safe for both modes.
-    tcp.set_nonblocking(true)?;
+type DnsListenerPair = (Option<Arc<DnsSocket>>, Option<TcpListener>);
+
+fn suppressed_listener_error(error: &io::Error, dynamic: bool) -> bool {
+    listeners::is_unsupported_socket_error(error)
+        || dynamic && error.kind() == io::ErrorKind::AddrNotAvailable
+}
+
+fn optional_listener<T>(result: io::Result<T>, dynamic: bool) -> io::Result<Option<T>> {
+    match result {
+        Ok(listener) => Ok(Some(listener)),
+        Err(error) if suppressed_listener_error(&error, dynamic) => Ok(None),
+        Err(error) => Err(error),
+    }
+}
+
+fn open_dns_listener(address: SocketAddr, dynamic: bool) -> io::Result<DnsListenerPair> {
+    let udp = optional_listener(DnsSocket::bind(address), dynamic)?.map(Arc::new);
+    let tcp = optional_listener(listeners::tcp_bind(address), dynamic)?;
+    if let Some(tcp) = &tcp {
+        tcp.set_nonblocking(true)?;
+    }
     Ok((udp, tcp))
+}
+
+/// Runtime listener creation preserves independently successful transports.
+/// The owner records the address once any DNS/TFTP socket succeeds, like
+/// C iface->done, and never fills in a failed half until that address retires.
+fn open_late_dns_listener(
+    address: SocketAddr,
+    dynamic: bool,
+) -> (Option<Arc<DnsSocket>>, Option<TcpListener>, Vec<io::Error>) {
+    let mut errors = Vec::new();
+    let udp = match optional_listener(DnsSocket::bind(address), dynamic) {
+        Ok(socket) => socket.map(Arc::new),
+        Err(error) => {
+            errors.push(error);
+            None
+        }
+    };
+    let tcp = match optional_listener(
+        listeners::tcp_bind(address).and_then(|tcp| {
+            tcp.set_nonblocking(true)?;
+            Ok(tcp)
+        }),
+        dynamic,
+    ) {
+        Ok(socket) => socket,
+        Err(error) => {
+            errors.push(error);
+            None
+        }
+    };
+    (udp, tcp, errors)
 }
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -1016,6 +1497,13 @@ struct SinglePoll {
     edns_max: u16,
     probe_metrics: Option<Metrics>,
     full_reload_pending: bool,
+    retry_bound_listeners: bool,
+    #[cfg(target_os = "linux")]
+    logger: Option<dnsmasq_rs::logging::Logger>,
+    #[cfg(target_os = "linux")]
+    early_logger: Option<dnsmasq_rs::logging::Logger>,
+    #[cfg(target_os = "linux")]
+    log_cleared_cache: bool,
     #[cfg(target_os = "linux")]
     dns_files: Option<DnsFiles>,
     #[cfg(target_os = "linux")]
@@ -1046,8 +1534,8 @@ struct SinglePoll {
 
 struct PollListener {
     token: SocketToken,
-    udp: Arc<DnsSocket>,
-    tcp: TcpListener,
+    udp: Option<Arc<DnsSocket>>,
+    tcp: Option<TcpListener>,
 }
 
 struct PollTcpClient {
@@ -1236,7 +1724,7 @@ impl SinglePoll {
         packet_limit: usize,
         tcp_limit: usize,
         edns_max: u16,
-        listeners: Vec<(SocketToken, Arc<DnsSocket>, TcpListener)>,
+        listeners: Vec<(SocketToken, Option<Arc<DnsSocket>>, Option<TcpListener>)>,
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))] dhcp: Option<DhcpService>,
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))] helper: Option<Helper>,
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))] tftp: Option<
@@ -1262,6 +1750,13 @@ impl SinglePoll {
             edns_max,
             probe_metrics: None,
             full_reload_pending: false,
+            retry_bound_listeners: false,
+            #[cfg(target_os = "linux")]
+            logger: None,
+            #[cfg(target_os = "linux")]
+            early_logger: None,
+            #[cfg(target_os = "linux")]
+            log_cleared_cache: false,
             #[cfg(target_os = "linux")]
             dns_files: None,
             #[cfg(target_os = "linux")]
@@ -1320,19 +1815,27 @@ impl SinglePoll {
             let mut provider = provider
                 .lock()
                 .map_err(|_| io::Error::other("DHCP state lock poisoned"))?;
-            report_dhcp_maintenance(&provider.reload_data_files(now_seconds()));
+            report_dhcp_maintenance(
+                &provider.reload_data_files(now_seconds()),
+                self.logger.as_mut(),
+            );
+        }
+        #[cfg(target_os = "linux")]
+        if self.log_cleared_cache {
+            if let Some(logger) = &mut self.logger {
+                use dnsmasq_rs::logging::{LogEvent, Priority, Service};
+                logger.emit(LogEvent::new(
+                    Service::Dns,
+                    Priority::Info,
+                    b"cleared cache".to_vec(),
+                ));
+            }
         }
         Ok(())
     }
 
     fn reload_in_progress(&self) -> bool {
-        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-        if self
-            .dhcp
-            .as_ref()
-            .and_then(|dhcp| dhcp.provider.as_ref())
-            .is_some_and(|provider| provider.lock().unwrap().file_work_pending())
-        {
+        if self.dhcp_reload_in_progress() {
             return true;
         }
         #[cfg(target_os = "linux")]
@@ -1343,6 +1846,19 @@ impl SinglePoll {
         {
             false
         }
+    }
+
+    fn dhcp_reload_in_progress(&self) -> bool {
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if self
+            .dhcp
+            .as_ref()
+            .and_then(|dhcp| dhcp.provider.as_ref())
+            .is_some_and(|provider| provider.lock().unwrap().file_work_pending())
+        {
+            return true;
+        }
+        false
     }
 
     fn files_initializing(&self) -> bool {
@@ -1391,6 +1907,7 @@ impl SinglePoll {
             .is_some_and(|watch| watch.read_events().unwrap_or(false))
         {
             files.request(ReloadReason::Route);
+            self.retry_bound_listeners = true;
         }
         let step = files.step();
         self.files_runnable = step.runnable;
@@ -1428,13 +1945,31 @@ impl SinglePoll {
     fn step_dhcp_files(&mut self) {
         if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
             if let Some(report) = provider.lock().unwrap().step_files(now_seconds()) {
-                report_dhcp_maintenance(&report);
+                report_dhcp_maintenance(&report, self.logger.as_mut());
             }
         }
     }
 
     #[cfg(target_os = "linux")]
     fn append_file_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>) {
+        if let Some(logger) = &self.early_logger {
+            for fd in logger.poll_fds() {
+                fds.push(owrt_ubus::sys::PollFd {
+                    fd,
+                    events: owrt_ubus::sys::POLLOUT,
+                    revents: 0,
+                });
+            }
+        }
+        if let Some(logger) = &self.logger {
+            for fd in logger.poll_fds() {
+                fds.push(owrt_ubus::sys::PollFd {
+                    fd,
+                    events: owrt_ubus::sys::POLLOUT,
+                    revents: 0,
+                });
+            }
+        }
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
             provider.lock().unwrap().append_file_fds(fds);
@@ -1464,7 +1999,12 @@ impl SinglePoll {
         Ok(())
     }
 
-    fn add_listener(&mut self, token: SocketToken, udp: Arc<DnsSocket>, tcp: TcpListener) {
+    fn add_listener(
+        &mut self,
+        token: SocketToken,
+        udp: Option<Arc<DnsSocket>>,
+        tcp: Option<TcpListener>,
+    ) {
         self.listeners.push(PollListener { token, udp, tcp });
     }
 
@@ -1494,6 +2034,22 @@ impl SinglePoll {
     }
 
     fn step(&mut self) {
+        #[cfg(target_os = "linux")]
+        if let Some(logger) = &mut self.early_logger {
+            logger.flush_ready();
+        }
+        #[cfg(target_os = "linux")]
+        if let Some(logger) = &mut self.logger {
+            if LOG_REOPEN_REQUESTED
+                .fetch_update(Ordering::AcqRel, Ordering::Acquire, |count| {
+                    count.checked_sub(1)
+                })
+                .is_ok()
+            {
+                let _ = logger.reopen();
+            }
+            logger.flush_ready();
+        }
         // C drains subscription/metrics requests before processing DHCP.
         // This also applies to port=0, where no DNS listener can drain UBus.
         {
@@ -1508,6 +2064,7 @@ impl SinglePoll {
             self.step_udp(index);
             self.step_tcp_accept(index);
         }
+        self.poll_udp_completions();
         self.step_tcp_clients();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         self.step_dhcp();
@@ -1515,13 +2072,43 @@ impl SinglePoll {
         self.step_neighbors();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         self.step_tftp();
+        #[cfg(target_os = "linux")]
+        self.log_dns_diagnostics();
+    }
+
+    #[cfg(target_os = "linux")]
+    fn log_dns_diagnostics(&mut self) {
+        use dnsmasq_rs::logging::{LogEvent, Priority, Service};
+        let Some(logger) = &mut self.logger else {
+            return;
+        };
+        let mut parent = self.service.lock().unwrap();
+        let Some(daemon) = &mut parent.daemon else {
+            return;
+        };
+        for warning in daemon.take_source_warnings() {
+            logger.emit(LogEvent::new(
+                Service::Dns,
+                Priority::Warning,
+                warning.into_bytes(),
+            ));
+        }
+        for diagnostic in daemon.take_source_diagnostics() {
+            logger.emit(LogEvent::new(
+                Service::Dns,
+                Priority::Error,
+                diagnostic.to_string().into_bytes(),
+            ));
+        }
     }
 
     fn step_udp(&mut self, index: usize) {
         if self.files_initializing() {
             return;
         }
-        let udp = Arc::clone(&self.listeners[index].udp);
+        let Some(udp) = self.listeners[index].udp.as_ref().map(Arc::clone) else {
+            return;
+        };
         let token = self.listeners[index].token;
         let mut query = vec![0; 65_535];
         let incoming = match udp.receive(&mut query) {
@@ -1633,7 +2220,8 @@ impl SinglePoll {
             let _ = udp.send(
                 &answer,
                 incoming.peer,
-                Some((incoming.destination, incoming.interface)),
+                (!self.config.bind_interfaces && !self.config.bind_dynamic)
+                    .then_some((incoming.destination, incoming.interface)),
             );
             if stale {
                 event.stale_answered = event.stale_answered.wrapping_add(1);
@@ -1666,11 +2254,17 @@ impl SinglePoll {
             let Some(token) = response.listener else {
                 continue;
             };
-            if let Some(target) = self.listeners.iter().find(|target| target.token == token) {
-                let _ = target.udp.send(
+            if let Some(target) = self
+                .listeners
+                .iter()
+                .find(|target| target.token == token)
+                .and_then(|listener| listener.udp.as_ref())
+            {
+                let _ = target.send(
                     &response.packet,
                     response.destination,
-                    Some((response.source, response.interface)),
+                    (!self.config.bind_interfaces && !self.config.bind_dynamic)
+                        .then_some((response.source, response.interface)),
                 );
             }
         }
@@ -1725,11 +2319,13 @@ impl SinglePoll {
                 .listeners
                 .iter()
                 .find(|target| target.token == response_token)
+                .and_then(|target| target.udp.as_ref())
             {
-                let _ = target.udp.send(
+                let _ = target.send(
                     &response.packet,
                     response.destination,
-                    Some((response.source, response.interface)),
+                    (!self.config.bind_interfaces && !self.config.bind_dynamic)
+                        .then_some((response.source, response.interface)),
                 );
             }
         }
@@ -1743,7 +2339,10 @@ impl SinglePoll {
             return;
         }
         let listener = &self.listeners[index];
-        let Ok((stream, peer)) = listener.tcp.accept() else {
+        let Some(tcp) = &listener.tcp else {
+            return;
+        };
+        let Ok((stream, peer)) = tcp.accept() else {
             return;
         };
         let Ok(destination) = stream.local_addr() else {
@@ -1841,6 +2440,9 @@ impl SinglePoll {
         if let Some(metrics) = self.probe_metrics.as_mut() {
             write_lease_metrics(metrics, leases);
         }
+        if let Some(logger) = &mut self.logger {
+            logger.flush_ready();
+        }
         let full_deadline = Instant::now() + timeout;
         let mut deadline = full_deadline;
         let mut fds = vec![PollFd {
@@ -1848,18 +2450,31 @@ impl SinglePoll {
             events: POLLIN,
             revents: 0,
         }];
-        for listener in &self.listeners {
-            fds.push(PollFd {
-                fd: listener.udp.as_raw_fd(),
-                events: POLLIN,
-                revents: 0,
-            });
-            if self.clients.len() < self.tcp_limit {
+        if let Some(logger) = &self.logger {
+            for fd in logger.poll_fds() {
                 fds.push(PollFd {
-                    fd: listener.tcp.as_raw_fd(),
+                    fd,
+                    events: POLLOUT,
+                    revents: 0,
+                });
+            }
+        }
+        for listener in &self.listeners {
+            if let Some(udp) = &listener.udp {
+                fds.push(PollFd {
+                    fd: udp.as_raw_fd(),
                     events: POLLIN,
                     revents: 0,
                 });
+            }
+            if self.clients.len() < self.tcp_limit {
+                if let Some(tcp) = &listener.tcp {
+                    fds.push(PollFd {
+                        fd: tcp.as_raw_fd(),
+                        events: POLLIN,
+                        revents: 0,
+                    });
+                }
             }
         }
         if let Some(daemon) = &self.service.lock().unwrap().daemon {
@@ -1907,12 +2522,14 @@ impl SinglePoll {
             self.step_udp(index);
             self.step_tcp_accept(index);
         }
+        self.poll_udp_completions();
         self.step_tcp_clients();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         self.step_neighbors();
         self.step_tftp();
         // Early DNS/TCP timers or any listener activity must not consume an
         // ICMP quarter-second timeout. Only the full idle poll counts as one.
+        self.log_dns_diagnostics();
         Ok(ready != 0 || deadline < full_deadline)
     }
 
@@ -1981,11 +2598,19 @@ impl SinglePoll {
                                     self.helper_init_end = true;
                                 }
                             }
+                            Notice::InitWarning(warning) => {
+                                eprintln!("dnsmasq-rs: {}", String::from_utf8_lossy(&warning));
+                            }
                             Notice::InitError(code) => {
                                 self.helper_init.take();
                                 self.helper_init_error = Some(StartError {
                                     code,
-                                    message: "cannot parse lease-init database".into(),
+                                    message: if code == 5 {
+                                        "too many stored leases"
+                                    } else {
+                                        "cannot parse lease-init database"
+                                    }
+                                    .into(),
                                 });
                             }
                             Notice::InitExit(status) => {
@@ -2014,7 +2639,10 @@ impl SinglePoll {
                                             .unwrap()
                                             .restore_script_records(output, now_seconds())
                                         {
-                                            Ok(report) => report_dhcp_maintenance(&report),
+                                            Ok(report) => report_dhcp_maintenance(
+                                                &report,
+                                                self.logger.as_mut(),
+                                            ),
                                             Err(error) => {
                                                 self.helper_init_error = Some(StartError {
                                                     code: error.exit_code(),
@@ -2029,6 +2657,17 @@ impl SinglePoll {
                                 self.helper_init_error = Some(StartError {
                                     code: 3,
                                     message: "lease-init helper failed".into(),
+                                });
+                            }
+                            Notice::Error(code) if !helper.ready() => {
+                                self.helper_init_error = Some(StartError {
+                                    code: 5,
+                                    message: format!(
+                                        "failed to initialize helper: {}",
+                                        dnsmasq_rs::logging::error_text(
+                                            &io::Error::from_raw_os_error(code)
+                                        )
+                                    ),
                                 });
                             }
                             Notice::Ready => {}
@@ -2090,7 +2729,7 @@ impl SinglePoll {
         }
         // EVENT_RELOAD is consumed before DHCP in C. A completed bank is
         // still intermediate when another delivered SIGHUP waits in the queue.
-        if RELOAD_REQUESTED.load(Ordering::Acquire) != 0 || self.reload_in_progress() {
+        if RELOAD_REQUESTED.load(Ordering::Acquire) != 0 || self.dhcp_reload_in_progress() {
             return;
         }
         let Some(mut dhcp) = self.dhcp.take() else {
@@ -2119,7 +2758,7 @@ impl SinglePoll {
         }
         let now = now_seconds();
         if let Some(report) = provider.tick(now) {
-            report_dhcp_maintenance(&report);
+            report_dhcp_maintenance(&report, self.logger.as_mut());
         }
         // Leave input in the kernel until a fresh address generation arrives.
         // Each turn advances at most one netlink datagram without a blocking wait.
@@ -2217,7 +2856,7 @@ impl SinglePoll {
             eprintln!("dnsmasq-rs: DHCP conflict probe: {error}");
         }
         if let Some(report) = provider.take_maintenance_report() {
-            report_dhcp_maintenance(&report);
+            report_dhcp_maintenance(&report, self.logger.as_mut());
         }
         drop(provider);
         self.dhcp = Some(dhcp);
@@ -2246,7 +2885,8 @@ impl SinglePoll {
             .as_ref()
             .and_then(|dhcp| dhcp.provider.as_ref()?.try_lock().ok());
         let neighbors = &mut self.neighbors;
-        let _ = listener.poll_once_with_mac(now, &mut |address, interface, now| {
+        let quiet_not_found = listener.quiet_not_found();
+        let events = listener.poll_once_with_mac(now, &mut |address, interface, now| {
             if let IpAddr::V4(address) = address {
                 let mac = provider
                     .as_ref()
@@ -2266,6 +2906,16 @@ impl SinglePoll {
                     neighbors.query(address, interface, now)
                 })
         });
+        if let (Ok(events), Some(logger)) = (events, self.logger.as_mut()) {
+            use dnsmasq_rs::logging::{LogEvent, Priority, Service};
+            for event in events {
+                if let Some((code, message)) = event.error_message() {
+                    if code != 1 || !quiet_not_found {
+                        logger.emit(LogEvent::new(Service::Tftp, Priority::Error, message.to_vec()));
+                    }
+                }
+            }
+        }
         if self.helper.as_ref().is_none_or(Helper::is_finished) {
             while listener.pop_completion().is_some() {}
         }
@@ -2273,7 +2923,10 @@ impl SinglePoll {
 }
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-fn report_dhcp_maintenance(report: &dnsmasq_rs::dhcp::daemon::MaintenanceReport) {
+fn report_dhcp_maintenance(
+    report: &dnsmasq_rs::dhcp::daemon::MaintenanceReport,
+    mut logger: Option<&mut dnsmasq_rs::logging::Logger>,
+) {
     if let Some(error) = &report.address_error {
         eprintln!("dnsmasq-rs: failed to update DHCP host addresses: {error}");
     }
@@ -2283,18 +2936,40 @@ fn report_dhcp_maintenance(report: &dnsmasq_rs::dhcp::daemon::MaintenanceReport)
     if let Some(error) = &report.name_error {
         eprintln!("dnsmasq-rs: failed to update lease names from static hosts: {error}");
     }
-    if let Some(error) = &report.file.error {
-        eprintln!("dnsmasq-rs: failed to update lease file: {error}");
+    if let Some(message) = &report.file_error_message {
+        if let Some(logger) = logger.as_deref_mut() {
+            use dnsmasq_rs::logging::{LogEvent, Priority, Service};
+            logger.emit(LogEvent::new(
+                Service::Dhcp,
+                Priority::Error,
+                message.clone(),
+            ));
+        }
     }
     if let Some(error) = &report.dns.error {
         eprintln!("dnsmasq-rs: failed to publish lease names: {error}");
     }
-    if let Some(restore) = &report.restore {
-        if restore.invalid_records != 0 || !restore.clean_end {
-            eprintln!(
-                "dnsmasq-rs: lease file restore: {} invalid records, clean end: {}",
-                restore.invalid_records, restore.clean_end
-            );
+    if let Some(restore) = report
+        .restore
+        .as_ref()
+        .filter(|restore| !restore.diagnostics_logged)
+    {
+        if let Some(logger) = logger {
+            use dnsmasq_rs::logging::{LogEvent, Priority, Service};
+            for warning in &restore.warnings {
+                logger.emit(LogEvent::new(
+                    Service::Dhcp,
+                    Priority::Warning,
+                    warning.clone(),
+                ));
+            }
+            if !restore.clean_end {
+                logger.emit(LogEvent::new(
+                    Service::Dhcp,
+                    Priority::Error,
+                    b"failed to parse lease database cleanly".to_vec(),
+                ));
+            }
         }
     }
 }
@@ -2420,13 +3095,7 @@ fn validate_runtime_ready(scalar: &ScalarConfig, dns: &DnsConfig) -> Result<(), 
         ));
     }
     let defaults = ScalarConfig::default();
-    if scalar.query_port != defaults.query_port
-        || scalar.query_port_os_assigned != defaults.query_port_os_assigned
-        || scalar.min_port != defaults.min_port
-        || scalar.max_port != defaults.max_port
-        || scalar.port_limit != defaults.port_limit
-        || scalar.max_ttl != defaults.max_ttl
-    {
+    if scalar.max_ttl != defaults.max_ttl {
         return Err(Error("scalar option is not implemented"));
     }
     Ok(())

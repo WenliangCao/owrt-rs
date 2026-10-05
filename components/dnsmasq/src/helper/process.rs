@@ -91,6 +91,21 @@ impl Helper {
         config: Config,
         init_capacity: Option<usize>,
     ) -> Result<Self, StartError> {
+        Self::start_inner(config, init_capacity, false)
+    }
+
+    /// Preflight has no pipes, fork, credential changes or producer execution.
+    pub fn validate_startup(
+        config: &Config,
+        init_capacity: Option<usize>,
+    ) -> Result<(), StartError> {
+        Self::startup_identity(config, init_capacity).map(|_| ())
+    }
+
+    fn startup_identity(
+        config: &Config,
+        init_capacity: Option<usize>,
+    ) -> Result<Option<(u32, u32)>, StartError> {
         if init_capacity.is_some() && config.script.as_os_str().as_bytes().len() + 6 > 256 {
             return Err(StartError {
                 code: 3,
@@ -118,6 +133,21 @@ impl Helper {
                 Some((value.uid, value.gid))
             }
         };
+        Ok(identity)
+    }
+
+    /// The prefork owner receives only initialization records and diagnostics.
+    /// This child never drops script credentials, emits READY or reads commands.
+    pub fn start_initializer(config: Config, maximum: usize) -> Result<Self, StartError> {
+        Self::start_inner(config, Some(maximum), true)
+    }
+
+    fn start_inner(
+        config: Config,
+        init_capacity: Option<usize>,
+        initialization_only: bool,
+    ) -> Result<Self, StartError> {
+        let identity = Self::startup_identity(&config, init_capacity)?;
         let (commands_read, commands_write) = pipe().map_err(start_error)?;
         let (events_read, events_write) = pipe().map_err(start_error)?;
         nonblocking(commands_write.as_raw_fd()).map_err(start_error)?;
@@ -137,6 +167,7 @@ impl Helper {
                 identity,
                 File::from(commands_read),
                 File::from(events_write),
+                initialization_only,
             );
             unsafe { _exit(code) }
         }
@@ -393,6 +424,10 @@ fn notice_payload(notice: Notice) -> io::Result<Vec<u8>> {
             bytes.insert(0, 1);
             bytes
         }
+        Notice::InitWarning(mut bytes) => {
+            bytes.insert(0, 11);
+            bytes
+        }
         Notice::InitRecord(record) => {
             let mut bytes = vec![7];
             bytes.extend(wire::encode_init(&record)?);
@@ -436,6 +471,9 @@ fn decode_notice(bytes: &[u8]) -> io::Result<Notice> {
     }
     if kind == 1 {
         return Ok(Notice::Output(data.to_vec()));
+    }
+    if kind == 11 {
+        return Ok(Notice::InitWarning(data.to_vec()));
     }
     if kind == 7 {
         return wire::decode_init(data).map(Notice::InitRecord);
@@ -517,6 +555,7 @@ fn child(
     identity: Option<(u32, u32)>,
     mut commands: File,
     mut events: File,
+    initialization_only: bool,
 ) -> i32 {
     // C ignores these in the helper and its script descendants. SIGCHLD must
     // have its default disposition so wait works, independent of owner hooks.
@@ -535,6 +574,7 @@ fn child(
     }
     if let Some(maximum) = init_capacity {
         match run_init(&config, maximum, &mut events) {
+            Ok(code) if initialization_only => return code,
             Ok(0) => {}
             Ok(_) | Err(_) => return 3,
         }
@@ -603,14 +643,18 @@ fn run_init(config: &Config, maximum: usize, events: &mut File) -> io::Result<i3
         .stdout(Stdio::piped())
         .spawn()?;
     let output = process.stdout.take().unwrap();
-    let parsed = crate::dhcp::lease_file::parse_reader(BufReader::new(output), maximum);
+    let parsed = crate::dhcp::lease_file::parse_reader_with_warnings(
+        BufReader::new(output),
+        maximum,
+        |warning| send(events, Notice::InitWarning(warning)),
+    );
     let parsed = match parsed {
         Ok(parsed) => parsed,
         Err(error) => {
-            let code = if error
-                .get_ref()
-                .is_some_and(|cause| cause.is::<crate::dhcp::lease_file::CapacityExceeded>())
-            {
+            for warning in crate::dhcp::lease_file::warnings(&error) {
+                send(events, Notice::InitWarning(warning.clone()))?;
+            }
+            let code = if crate::dhcp::lease_file::capacity_exceeded(&error) {
                 5
             } else {
                 3
@@ -623,6 +667,15 @@ fn run_init(config: &Config, maximum: usize, events: &mut File) -> io::Result<i3
             return Ok(code);
         }
     };
+    for warning in &parsed.warnings {
+        send(events, Notice::InitWarning(warning.clone()))?;
+    }
+    if !parsed.clean_end {
+        send(
+            events,
+            Notice::InitWarning(b"failed to parse lease database cleanly".to_vec()),
+        )?;
+    }
     let status = process.wait()?;
     // C uses WEXITSTATUS without checking WIFEXITED, yielding zero on signal.
     let status = (status.into_raw() >> 8) & 255;

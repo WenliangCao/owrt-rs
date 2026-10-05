@@ -173,7 +173,8 @@ impl Default for RuntimeConfig {
     fn default() -> Self {
         Self {
             path: RuntimePathPolicy::default(),
-            packet_buffer_size: 8192,
+            // dnsmasq.c:124: EDNS_PKTSZ + MAXDNAME + RRFIXEDSZ.
+            packet_buffer_size: 1232 + 255 + 10,
             mtu: None,
             ipv6: false,
             no_block_size: false,
@@ -222,6 +223,23 @@ pub enum RuntimeEvent {
         peer: SocketAddr,
         kind: io::ErrorKind,
     },
+}
+
+impl RuntimeEvent {
+    /// The logger consumes the exact bounded wire text. quiet-tftp may
+    /// suppress ERR_FNF logging; it must not change the transmitted packet.
+    pub fn error_message(&self) -> Option<(u16, &[u8])> {
+        let packet = match self {
+            Self::Send { packet, .. } | Self::TidError { packet, .. } => packet,
+            _ => return None,
+        };
+        if packet.len() < 5 || packet[..2] != [0, 5] {
+            return None;
+        }
+        let code = u16::from_be_bytes([packet[2], packet[3]]);
+        let message = &packet[4..];
+        Some((code, message.strip_suffix(&[0]).unwrap_or(message)))
+    }
 }
 
 /// Which caller-owned UDP socket delivered a datagram.  In separate-port
@@ -480,12 +498,22 @@ impl<O: FileOpener> TransferRuntime<O> {
             self.config.no_block_size,
         ) {
             Ok(request) => request,
-            Err(_) => {
+            Err(error) => {
+                let label = crate::tftp_service::peer_label(peer);
+                let message = match error {
+                    RequestError::WriteUnsupported => {
+                        format!("unsupported write request from {label}")
+                    }
+                    RequestError::InvalidFilename => {
+                        format!("empty filename in request from {label}")
+                    }
+                    _ => format!("unsupported request from {label}"),
+                };
                 return Ok(vec![RuntimeEvent::Send {
                     id: None,
                     peer,
-                    packet: error_packet(4, "illegal TFTP operation"),
-                }])
+                    packet: error_packet(4, &message),
+                }]);
             }
         };
         let request = match request {
@@ -501,11 +529,17 @@ impl<O: FileOpener> TransferRuntime<O> {
         let path = match path {
             Ok(path) => path,
             Err(_error) => {
+                let rejected = crate::tftp_service::error_path(
+                    path_policy.prefix.as_deref(),
+                    path_policy.lowercase,
+                    request.filename,
+                )
+                .unwrap_or_default();
                 return Ok(vec![RuntimeEvent::Send {
                     id: None,
                     peer,
-                    packet: error_packet(2, "access violation"),
-                }])
+                    packet: access_error_packet(&rejected),
+                }]);
             }
         };
         let opened = match self.opener.open(&path) {
@@ -514,7 +548,7 @@ impl<O: FileOpener> TransferRuntime<O> {
                 return Ok(vec![RuntimeEvent::Send {
                     id: None,
                     peer,
-                    packet: open_error_packet(&error),
+                    packet: open_error_packet(&error, &path, peer),
                 }]);
             }
         };
@@ -527,7 +561,7 @@ impl<O: FileOpener> TransferRuntime<O> {
             return Ok(vec![RuntimeEvent::Send {
                 id: None,
                 peer,
-                packet: error_packet(2, "access violation"),
+                packet: access_error_packet(&path),
             }]);
         }
         let file = self
@@ -601,14 +635,26 @@ impl<O: FileOpener> TransferRuntime<O> {
             return Ok(vec![RuntimeEvent::TidError {
                 id,
                 peer,
-                packet: error_packet(5, "unknown transfer id"),
+                packet: error_packet(
+                    5,
+                    &format!(
+                        "ignoring packet from {} (TID mismatch)",
+                        crate::tftp_service::peer_label(peer)
+                    ),
+                ),
             }]);
         };
         if active.peer != peer {
             return Ok(vec![RuntimeEvent::TidError {
                 id,
                 peer,
-                packet: error_packet(5, "unknown transfer id"),
+                packet: error_packet(
+                    5,
+                    &format!(
+                        "ignoring packet from {} (TID mismatch)",
+                        crate::tftp_service::peer_label(peer)
+                    ),
+                ),
             }]);
         }
         if !active.transfer.receive(packet, now) {
@@ -696,12 +742,12 @@ impl<O: FileOpener> TransferRuntime<O> {
         for _ in 0..count {
             let packet = match self.data_packet(id) {
                 Ok(packet) => packet,
-                Err(_) => {
+                Err(error) => {
                     let active = self.active.get_mut(&id).unwrap();
                     events.push(RuntimeEvent::Send {
                         id: Some(id),
                         peer: active.peer,
-                        packet: error_packet(0, "cannot read file"),
+                        packet: read_error_packet(&active.file.path, &error),
                     });
                     active.transfer.block = active.transfer.block.wrapping_add(1);
                     // C finishes the current window before error cleanup,
@@ -794,7 +840,7 @@ fn opcode(packet: &[u8]) -> Option<u16> {
     (packet.len() >= 2).then(|| u16::from_be_bytes([packet[0], packet[1]]))
 }
 
-fn open_error_packet(error: &io::Error) -> Vec<u8> {
+fn open_error_packet(error: &io::Error, path: &[u8], peer: SocketAddr) -> Vec<u8> {
     // tftp.c:558-570 distinguishes only ENOENT and EACCES. EPERM (which
     // Rust also calls PermissionDenied) remains the generic ERR_NOTDEF.
     let code = match error.raw_os_error() {
@@ -807,27 +853,59 @@ fn open_error_packet(error: &io::Error) -> Vec<u8> {
             _ => 0,
         },
     };
+    let path = sanitised_path(path);
+    match code {
+        1 => error_packet(
+            1,
+            &format!(
+                "file {path} not found for {}",
+                crate::tftp_service::peer_label(peer)
+            ),
+        ),
+        2 => access_error_packet(path.as_bytes()),
+        _ => error_packet(0, &format!("cannot read {path}: {}", error_text(error))),
+    }
+}
+
+fn sanitised_path(path: &[u8]) -> String {
+    path.iter()
+        .copied()
+        .filter(|byte| (0x20..=0x7e).contains(byte))
+        .map(char::from)
+        .collect()
+}
+fn error_text(error: &io::Error) -> String {
+    let text = error.to_string();
+    text.rsplit_once(" (os error ")
+        .filter(|(_, suffix)| suffix.ends_with(')'))
+        .map_or(text.clone(), |(message, _)| message.to_owned())
+}
+fn access_error_packet(path: &[u8]) -> Vec<u8> {
     error_packet(
-        code,
-        match code {
-            1 => "file not found",
-            2 => "access violation",
-            _ => "cannot read file",
-        },
+        2,
+        &format!(
+            "cannot access {}: {}",
+            sanitised_path(path),
+            error_text(&io::Error::from_raw_os_error(13))
+        ),
     )
+}
+fn read_error_packet(path: &[u8], error: &RuntimeError) -> Vec<u8> {
+    match error {
+        RuntimeError::Read(error) => error_packet(
+            0,
+            &format!(
+                "cannot read {}: {}",
+                sanitised_path(path),
+                error_text(error)
+            ),
+        ),
+        _ => error_packet(0, &format!("cannot read {}", sanitised_path(path))),
+    }
 }
 
 fn error_packet(code: u16, message: &str) -> Vec<u8> {
-    let mut packet = Vec::with_capacity(message.len() + 5);
-    packet.extend_from_slice(&[0, 5]);
-    packet.extend_from_slice(&code.to_be_bytes());
-    packet.extend(
-        message
-            .bytes()
-            .filter(|byte| byte.is_ascii() && *byte >= 0x20),
-    );
-    packet.push(0);
-    packet
+    crate::tftp_service::error_packet(code, message.as_bytes())
 }
 
 #[cfg(test)]

@@ -6,6 +6,49 @@ use std::net::SocketAddr;
 /// `dns-protocol.h:50`; `namebuff` has one additional byte for the NUL.
 pub const MAX_PATH_BYTES: usize = 503;
 
+/// tftp.c's MAXMESSAGE includes its trailing zero. The same bounded text is
+/// carried by ERR and consumed by the logging owner without reformatting.
+pub const MAX_ERROR_MESSAGE_BYTES: usize = 500;
+
+/// util.c::prettyprint_addr omits the port and resolves a nonzero IPv6 scope
+/// to its current interface name. No socket or interface state is changed.
+pub fn peer_label(peer: SocketAddr) -> String {
+    let text = peer.ip().to_string();
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    if let SocketAddr::V6(peer) = peer {
+        if peer.scope_id() != 0 {
+            extern "C" {
+                fn if_indextoname(index: u32, name: *mut std::ffi::c_char)
+                    -> *mut std::ffi::c_char;
+            }
+            let mut name = [0 as std::ffi::c_char; 16];
+            // SAFETY: Linux IF_NAMESIZE is 16; the returned name is terminated
+            // and remains in this live array for the conversion below.
+            if !unsafe { if_indextoname(peer.scope_id(), name.as_mut_ptr()) }.is_null() {
+                return format!(
+                    "{text}%{}",
+                    unsafe { std::ffi::CStr::from_ptr(name.as_ptr()) }.to_string_lossy()
+                );
+            }
+        }
+    }
+    text
+}
+pub fn error_packet(code: u16, message: &[u8]) -> Vec<u8> {
+    let mut packet = Vec::with_capacity(MAX_ERROR_MESSAGE_BYTES + 4);
+    packet.extend_from_slice(&[0, 5]);
+    packet.extend_from_slice(&code.to_be_bytes());
+    packet.extend(
+        message
+            .iter()
+            .copied()
+            .filter(|byte| (0x20..=0x7e).contains(byte))
+            .take(MAX_ERROR_MESSAGE_BYTES - 1),
+    );
+    packet.push(0);
+    packet
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum PathError {
     Empty,
@@ -26,6 +69,23 @@ fn append_bounded(output: &mut Vec<u8>, bytes: &[u8]) {
 /// symlinks when opening the resulting path. Unlike C's first-match strstr,
 /// every `/..` component is checked (see the recorded differential fixture).
 pub fn resolve_path(
+    prefix: Option<&[u8]>,
+    lowercase: bool,
+    filename: &[u8],
+) -> Result<Vec<u8>, PathError> {
+    let path = error_path(prefix, lowercase, filename)?;
+    if prefix.is_some()
+        && path
+            .split(|&byte| byte == b'/')
+            .any(|component| component == b"..")
+    {
+        return Err(PathError::Traversal);
+    }
+    Ok(path)
+}
+
+/// Format a rejected path for the C ERR_PERM text without opening it.
+pub fn error_path(
     prefix: Option<&[u8]>,
     lowercase: bool,
     filename: &[u8],
@@ -65,13 +125,6 @@ pub fn resolve_path(
         path.clear();
     }
     append_bounded(&mut path, filename);
-    if prefix.is_some()
-        && path
-            .split(|&b| b == b'/')
-            .any(|component| component == b"..")
-    {
-        return Err(PathError::Traversal);
-    }
     Ok(path)
 }
 

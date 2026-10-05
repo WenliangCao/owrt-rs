@@ -38,6 +38,17 @@ use std::io;
 use std::net::{IpAddr, SocketAddr};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
+fn source_error_text(error: &io::Error) -> String {
+    #[cfg(target_os = "linux")]
+    {
+        super::filewatch::os_message(error)
+    }
+    #[cfg(not(target_os = "linux"))]
+    {
+        error.to_string()
+    }
+}
+
 /// Transport-independent identity of a DNS client datagram.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ClientRequest {
@@ -130,6 +141,7 @@ pub enum DaemonError {
     Process(ProcessError),
     Upstream(ResolveError),
     Io(io::Error),
+    SourceBind(super::upstream::source_sockets::SourceBindError),
 }
 
 impl std::fmt::Display for DaemonError {
@@ -143,6 +155,7 @@ impl std::fmt::Display for DaemonError {
             Self::Process(error) => write!(f, "upstream reply policy: {error:?}"),
             Self::Upstream(error) => write!(f, "upstream DNS: {error:?}"),
             Self::Io(error) => write!(f, "DNS I/O: {error}"),
+            Self::SourceBind(error) => error.fmt(f),
         }
     }
 }
@@ -195,7 +208,9 @@ impl From<io::Error> for DaemonError {
 pub struct DnsDaemon<R = OsRandom> {
     local: LocalDnsService,
     routing: RoutingTable,
+    startup_routing: Option<RoutingTable>,
     server_sources: ServerSources,
+    source_warnings: Vec<String>,
     upstream: UpstreamResolver<R>,
     cache: Option<Cache>,
     cache_counters: CacheCounters,
@@ -252,6 +267,13 @@ impl<R: Random> DnsDaemon<R> {
                     .collect(),
             );
         }
+        // Source FD preallocation precedes check_servers, even for a zero
+        // destination which will never be eligible for actual forwarding.
+        let startup_routing = if server_sources.rules().iter().any(|row| {
+            row.server.is_some() && !server_usable(&row.value, &[])
+        }) {
+            Some(RoutingTable::from_sources(&config, &server_sources, None)?)
+        } else { None };
         // IPv4 zero is always discarded by C's check_servers. Local listener
         // address filtering follows once the containing owner supplies them.
         server_sources.retain_servers(|row| server_usable(row, &[]));
@@ -285,7 +307,9 @@ impl<R: Random> DnsDaemon<R> {
         Ok(Self {
             local,
             routing,
+            startup_routing,
             server_sources,
+            source_warnings: Vec::new(),
             upstream,
             cache: None,
             cache_counters: CacheCounters::default(),
@@ -305,6 +329,16 @@ impl<R: Random> DnsDaemon<R> {
         self.upstream.pending_count()
     }
 
+    pub fn take_source_warnings(&mut self) -> Vec<String> {
+        std::mem::take(&mut self.source_warnings)
+    }
+
+    pub fn take_source_diagnostics(
+        &mut self,
+    ) -> Vec<super::upstream::source_sockets::SourceSocketDiagnostic> {
+        self.upstream.take_source_diagnostics()
+    }
+
     pub fn local_config(&self) -> &DnsConfig {
         &self.local.config
     }
@@ -312,11 +346,19 @@ impl<R: Random> DnsDaemon<R> {
     pub fn tcp_snapshot(
         &self,
     ) -> Result<super::tcp_service::TcpDnsService, super::tcp_service::TcpServiceError> {
-        super::tcp_service::TcpDnsService::with_routing(
+        let mut service = super::tcp_service::TcpDnsService::with_routing(
             &self.local.config,
             self.routing.snapshot(),
             self.edns_packet_max,
-        )
+        )?;
+        service.set_preferred_servers(self.routing.groups().filter_map(|group| {
+            self.upstream
+                .dispatcher()
+                .group(group.id)
+                .and_then(|state| state.preferred_server())
+                .map(|server| (group.id, server))
+        }));
+        Ok(service)
     }
 
     /// Publish one successfully opened file source while retaining live
@@ -357,17 +399,82 @@ impl<R: Random> DnsDaemon<R> {
         self.rebuild_server_routes(&removed)
     }
 
+    pub fn configure_source_sockets(
+        &mut self,
+        settings: super::upstream::source_sockets::SocketSettings,
+        startup: bool,
+    ) -> Result<(), DaemonError> {
+        let startup_routing = self.startup_routing.take().filter(|_| startup);
+        let bindings = startup_routing.as_ref().unwrap_or(&self.routing).source_bindings(settings.query_port);
+        let failures = self
+            .upstream
+            .configure_source_sockets(settings, bindings.clone());
+        if startup && self.local.config.bind_interfaces {
+            if let Some((id, error)) = failures.into_iter().next() {
+                return Err(DaemonError::SourceBind(
+                    super::upstream::source_sockets::SourceBindError {
+                        source: bindings[&id].clone(),
+                        error,
+                    },
+                ));
+            }
+        } else {
+            let ids: Vec<_> = failures
+                .into_iter()
+                // check_servers silently discards zero destinations before
+                // reporting failed per-server bindings in wildcard modes.
+                .filter(|(id, _)| self.server_sources.rules().iter().any(|row| row.server == Some(*id)))
+                .map(|(id, error)| {
+                    self.source_warnings.push(format!(
+                        "ignoring nameserver {} - cannot make/bind socket: {}",
+                        self.routing.server_label(id),
+                        source_error_text(&error)
+                    ));
+                    id
+                })
+                .collect();
+            if !ids.is_empty() {
+                self.server_sources.remove_server_ids(&ids);
+                self.rebuild_server_routes(&ids)?;
+            }
+        }
+        Ok(())
+    }
+
     fn rebuild_server_routes(
         &mut self,
         removed: &[super::forward::ServerId],
     ) -> Result<(), DaemonError> {
-        let routing = RoutingTable::from_sources(
+        let mut routing = RoutingTable::from_sources(
             &self.local.config,
             &self.server_sources,
             Some(&self.routing),
         )?;
+        let settings = self.upstream.socket_settings();
+        let failures = self
+            .upstream
+            .configure_source_sockets(settings, routing.source_bindings(settings.query_port));
+        let mut removed = removed.to_vec();
+        for (id, error) in failures {
+            self.source_warnings.push(format!(
+                "ignoring nameserver {} - cannot make/bind socket: {}",
+                routing.server_label(id),
+                source_error_text(&error)
+            ));
+            removed.push(id);
+        }
+        self.server_sources.remove_server_ids(&removed);
+        if !removed.is_empty() {
+            routing = RoutingTable::from_sources(
+                &self.local.config,
+                &self.server_sources,
+                Some(&routing),
+            )?;
+            self.upstream
+                .configure_source_sockets(settings, routing.source_bindings(settings.query_port));
+        }
         self.upstream
-            .replace_server_groups(routing.dispatcher_groups(), removed);
+            .replace_server_groups(routing.dispatcher_groups(), &removed);
         self.routing = routing;
         self.local.config = self.server_sources.effective_config(&self.local.config);
         Ok(())

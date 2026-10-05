@@ -461,7 +461,9 @@ impl DhcpConfig {
             b"log-dhcp" => self.log_dhcp = true,
             b"leasefile-ro" => self.lease_read_only = true,
             b"dhcp-leasefile" | b"dhcp-lease" => {
-                let value = argument.ok_or(Error("missing parameter"))?.decoded();
+                // C opt_string_alloc maps an omitted optional argument and
+                // an explicit empty string to the same default lease path.
+                let value = argument.map(|value| value.decoded()).unwrap_or_default();
                 self.lease_file = (!value.is_empty()).then_some(value);
             }
             b"dhcp-lease-max" => {
@@ -785,10 +787,11 @@ mod tests {
         assert_eq!(config.lease_path(), b"/private/example.leases");
         assert!(config.lease_read_only);
         assert_eq!(config.lease_max, 0);
-        config
-            .apply(&lex_line(b"dhcp-leasefile=").unwrap().unwrap())
-            .unwrap();
-        assert_eq!(config.lease_path(), b"/var/lib/misc/dnsmasq.leases");
+        for input in [b"dhcp-leasefile=".as_slice(), b"dhcp-leasefile", b"dhcp-lease="] {
+            config.apply(&lex_line(input).unwrap().unwrap()).unwrap();
+            assert_eq!(config.lease_path(), b"/var/lib/misc/dnsmasq.leases");
+        }
+        assert_eq!(config.apply(&lex_line(b"dhcp-lease").unwrap().unwrap()), Err(Error("missing parameter")));
     }
 
     #[test]

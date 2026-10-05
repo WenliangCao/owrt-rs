@@ -34,6 +34,7 @@ pub struct TftpConfig {
     pub no_block_size: bool,
     pub secure: bool,
     pub no_fail: bool,
+    pub quiet: bool,
     pub single_port: bool,
     pub max_transfers: usize,
     pub mtu: Option<u32>,
@@ -53,6 +54,7 @@ impl Default for TftpConfig {
             no_block_size: false,
             secure: false,
             no_fail: false,
+            quiet: false,
             single_port: false,
             max_transfers: 50,
             mtu: None,
@@ -122,6 +124,7 @@ impl TftpConfig {
         validate_directive(directive)?;
         let argument = directive.argument.as_ref();
         match directive.name.as_slice() {
+            b"quiet-tftp" => self.quiet = true,
             b"enable-tftp" => {
                 self.enabled = true;
                 if let Some(argument) = argument {

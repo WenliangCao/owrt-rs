@@ -4,8 +4,9 @@
 //! process/reply/cache policy to the returned packet. RCODEs are returned as
 //! received: TCP does not inherit UDP's SERVFAIL/REFUSED retry state machine.
 
-use super::forward::{GroupId, Question, ServerGroup};
+use super::forward::{GroupId, Question, ServerGroup, ServerId};
 use super::service::encode_tcp_frame;
+use super::upstream::source_sockets::SourceSpec;
 use super::wire::{Header, WireError};
 use owrt_ubus::sys::{poll_fds, PollFd};
 use std::collections::HashMap;
@@ -67,7 +68,9 @@ struct Connection {
 }
 
 struct Server {
+    id: ServerId,
     address: SocketAddr,
+    source: Option<SourceSpec>,
     connection: Option<Connection>,
 }
 
@@ -131,6 +134,8 @@ impl TcpUpstream {
                         .servers
                         .into_iter()
                         .map(|server| Server {
+                            id: server.id,
+                            source: None,
                             address: server.address,
                             connection: None,
                         })
@@ -143,6 +148,33 @@ impl TcpUpstream {
             options,
             pending: None,
         })
+    }
+
+    /// Call on the newly accepted downstream snapshot. Existing connections
+    /// continue to own their original source and destination until close.
+    pub fn set_source_bindings(&mut self, bindings: &HashMap<ServerId, SourceSpec>) {
+        for server in self
+            .groups
+            .values_mut()
+            .flat_map(|group| &mut group.servers)
+        {
+            server.source = bindings.get(&server.id).cloned();
+        }
+    }
+
+    /// Seed a newly accepted child's first choice from the parent's successful
+    /// UDP forwarding state, as C inherits serverarray[first]->last_server.
+    pub fn set_preferred_servers(
+        &mut self,
+        preferred: impl IntoIterator<Item = (GroupId, ServerId)>,
+    ) {
+        for (id, server) in preferred {
+            if let Some(group) = self.groups.get_mut(&id) {
+                if let Some(index) = group.servers.iter().position(|entry| entry.id == server) {
+                    group.last_connected = index;
+                }
+            }
+        }
     }
 
     pub fn socket_count(&self) -> usize {

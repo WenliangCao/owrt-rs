@@ -681,5 +681,27 @@
   ],
   "total_boundaries": 22,
   "total_required_cases": 191,
-  "checked": 0
+  "checked": 0,
+  "source_audit_corrections": [
+    {
+      "boundary": "SFD-03",
+      "required_case": "reload changed source reallocates",
+      "source_anchors": [
+        "domain-match.c:742-775",
+        "network.c:1628-1643"
+      ],
+      "exact_contract": "Reused server slots preserve their non-null sfd even when the source tuple is replaced. A new server slot allocates the new source socket; a previously bound reused slot keeps its old UDP binding. TCP uses the new tuple. The earlier required-case wording described only the new-slot path.",
+      "discovery": "paired-80-02/file-source-snapshot captures C UDP 127.0.0.9 after source changes to 127.0.0.8 while newly accepted TCP uses 127.0.0.8."
+    },
+    {
+      "boundary": "TCP-02",
+      "required_case": "TCP connection reuse/failover is unchanged under source binding and hostname-expanded list; snapshot policy remains fork-equivalent.",
+      "source_anchors": [
+        "forward.c:2611-2621",
+        "forward.c:2138-2140"
+      ],
+      "exact_contract": "New TCP children inherit the parent last successful UDP server for non-strict groups. Existing downstream children retain their own prior selection and source snapshot.",
+      "discovery": "paired-80-02/allservers-port-limit-1 C selected UDP winner for the subsequent TCP session; Rust selected index zero."
+    }
+  ]
 }

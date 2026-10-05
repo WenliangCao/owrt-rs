@@ -19,7 +19,6 @@ pub enum RequestError {
     WriteUnsupported,
     InvalidFilename,
     InvalidMode,
-    NumericOverflow,
     InvalidBufferSize,
 }
 
@@ -110,10 +109,9 @@ fn next_string<'a>(input: &mut &'a [u8]) -> Option<&'a [u8]> {
     Some(value)
 }
 
-/// C `atoi` semantics on its defined signed-int domain: leading whitespace,
-/// optional sign, decimal prefix, nonnumeric => 0, then conversion to unsigned.
-/// Out-of-range input is diagnosed instead of inheriting C's undefined behavior.
-fn option_number(mut input: &[u8]) -> Result<u32, RequestError> {
+/// Exact image musl `atoi`: leading whitespace, optional sign and decimal
+/// prefix. Accumulation wraps to 32 bits, then C converts the result to unsigned.
+fn option_number(mut input: &[u8]) -> u32 {
     while input.first().is_some_and(u8::is_ascii_whitespace) {
         input = &input[1..];
     }
@@ -121,20 +119,14 @@ fn option_number(mut input: &[u8]) -> Result<u32, RequestError> {
     if negative || input.first() == Some(&b'+') {
         input = &input[1..];
     }
-    let mut value = 0i64;
+    let mut value = 0u32;
     for &b in input.iter().take_while(|b| b.is_ascii_digit()) {
-        value = value
-            .checked_mul(10)
-            .and_then(|v| v.checked_add(i64::from(b - b'0')))
-            .ok_or(RequestError::NumericOverflow)?;
-        if value > i64::from(i32::MAX) + i64::from(negative) {
-            return Err(RequestError::NumericOverflow);
-        }
+        value = value.wrapping_mul(10).wrapping_add(u32::from(b - b'0'));
     }
     if negative {
-        value = -value;
+        value = value.wrapping_neg();
     }
-    Ok(value as i32 as u32)
+    value
 }
 
 /// `tftp_request()` lines 369–444: unknown opcodes are silently ignored;
@@ -174,7 +166,7 @@ pub fn parse_request(
         };
         // C evaluates atoi even for unknown options, but its result is unused.
         if name.eq_ignore_ascii_case(b"blksize") && !no_block_size {
-            let mut value = (option_number(arg)? as usize)
+            let mut value = (option_number(arg) as usize)
                 .max(1)
                 .min(packet_buffer_size - 4);
             if let Some(mtu) = mtu.filter(|&v| v != 0) {
@@ -190,10 +182,10 @@ pub fn parse_request(
         } else if name.eq_ignore_ascii_case(b"tsize") && mode == Mode::Octet {
             options.send_transfer_size = true;
         } else if name.eq_ignore_ascii_case(b"timeout") {
-            options.timeout = option_number(arg)?.min(255);
+            options.timeout = option_number(arg).min(255);
             options.send_timeout = true;
         } else if name.eq_ignore_ascii_case(b"windowsize") && mode == Mode::Octet {
-            options.window_size = option_number(arg)?.clamp(1, MAX_WINDOW);
+            options.window_size = option_number(arg).clamp(1, MAX_WINDOW);
             options.send_window_size = true;
         }
     }
@@ -455,6 +447,27 @@ impl Transfer {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn numeric_options_match_image_musl_wrapping() {
+        for (input, expected) in [
+            (&b"2147483648"[..], 0x8000_0000),
+            (&b"4294967296"[..], 0),
+            (&b"4294967297"[..], 1),
+            (&b"9223372036854775808"[..], 0),
+            (&b"10000000000000000000000000000000000000000"[..], 0),
+            (&b"99999999999999999999999999999999999999990"[..], 0xffff_fff6),
+            (&b"-2147483649"[..], 0x7fff_ffff),
+            (&b"-4294967296"[..], 0),
+            (&b"+4294967297tail"[..], 1),
+            (&b" \t+4294967298x"[..], 2),
+            (&b"--1"[..], 0),
+            (&b"abc"[..], 0),
+            (&b"-1"[..], u32::MAX),
+        ] {
+            assert_eq!(option_number(input), expected, "input={input:?}");
+        }
+    }
 
     #[test]
     fn option_negotiation_preserves_c_bounds_and_order() {
