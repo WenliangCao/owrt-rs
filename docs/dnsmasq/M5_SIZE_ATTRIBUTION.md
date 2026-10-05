@@ -56,6 +56,13 @@ M4 获准 ELF 为 1,159,280 字节。当前归因基准 `ff2b2d22` 在固定源�
 | dump配置及主owner PCAP接线 | `2f298a3d` | 1,806,376 | +8,192 |
 | DHCP reply-delay/Windows过滤接线（混合） | `955f681b` | 1,810,472 | +4,096 |
 | Windows过滤普通AA/TCP层序补正 | `19d49a73` | 1,810,472 | +0 |
+| loop probe/owner首次接线、dump上下文API（混合） | `1ed97bef` | 1,830,952 | +20,480 |
+| loop初始fixed-port修复、本地query producer（混合） | `f2a991c7` | 1,839,144 | +8,192 |
+| 反向SYN generic-negative tier | `9ef4567a` | 1,843,240 | +4,096 |
+| query cache/upstream producer、PCAP EOF诊断（混合） | `47ebdc1a` | 1,847,336 | +4,096 |
+| query主owner/UDP/TCP接线、SYN empty-cache补正（混合） | `f16c0971` | 1,871,912 | +24,576 |
+| domain接线、RR空token解析、query policy及hosts readnotice（混合） | `3a9ab75e` | 1,884,200 | +12,288 |
+| relay reply dump、loop固定31字节数组替代Vec/format（混合） | `c36eacbc` | 1,884,200 | +0 |
 
-当前普通资格候选 `19d49a73` 相对 M4 共增加 651,192 字节；dump仍未资格，不冒称统一验收。已关闭bridge的8f95候选增量为638,904字节。Arc<Record> 的 TCP 接受视图共享记录 payload，独立保留容器和状态；具体满载 RSS 成本仍待 M5 统一候选实测，不以代码结构推测内存结果。
+当前构建候选 `c36eacbc` 相对 M4 共增加 724,920 字节；dump/domain/query/loop仍有未资格项，不冒称统一验收。已资格SYN/forward-max的f16候选增量为712,632字节。loop固定31字节探测改用内联数组和直接hex编码，消除每包Vec扩容与format分配，包头布局未变；与relay修复混合构建净体积0，不能声称独立节省。较大的loop初次20,480和query接线24,576阶段继续留作独立拆分/等价简化评估，保持实际日志/调度行为。Arc<Record> 的 TCP 接受视图共享记录 payload，独立保留容器和状态；具体满载 RSS 成本仍待 M5 统一候选实测，不以代码结构推测内存结果。
 
