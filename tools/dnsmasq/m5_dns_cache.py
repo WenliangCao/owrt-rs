@@ -204,6 +204,8 @@ case('generic-compressed-rdata','cache-rr=ANY',kind=12,answers=[{'data':'c00c'}]
 case('generic-binary-name','cache-rr=ANY',kind=12,answers=[{'data':b'\x04\xffA\x00Z\0'.hex()}])
 case('generic-name-past-rdlen','cache-rr=ANY',kind=15,answers=[{'data':(b'\x00\x01'+name('target.cache.test')).hex(),'rdlen':2}])
 case('generic-rdata-past-packet','cache-rr=ANY',kind=65000,opts=None,answers=[{'data':'0102','rdlen':200}])
+case('generic-empty-selector','cache-rr=',kind=0)
+case('generic-comma-empty-selector','cache-rr=TXT,',kind=0)
 case('generic-expanded-u16-overflow','cache-rr=ANY',kind=6,host='.'.join(['x'*63]*3+['y'*61]),transports=['tcp','tcp'],answers=[{'data':(b'\xc0\x0c'*2+b'x'*65200).hex()}])
 case('generic-malformed-prefix-effects','cache-rr=ANY',kind=15,action='malformed-prefix')
 for label,fields in [('generic-large-udp-truncate',{'size':512}),
@@ -1112,6 +1114,7 @@ def comparison_rows(folder,side):
 
 
 def canonical_observations(row,reverse_order=False):
+    if 'observations' not in row:return copy.deepcopy(row)
     observations=[{key:copy.deepcopy(value) for key,value in obs.items() if key not in CLOCK_KEYS}
                   for obs in row['observations']]
     labels={obs['label']:obs for obs in row['observations']}
@@ -1278,7 +1281,9 @@ def compare_family(args):
             elif mode=='capacity-diagnostic':
                 if 'capacity_diagnostics' not in wrong:continue
                 wrong['capacity_diagnostics']=[]
-            else:wrong['observations'].pop()
+            else:
+                if not wrong['observations']:continue
+                wrong['observations'].pop()
             controls.append({'case':label,'control':mode,'rejected':not case_equal(c,wrong,label in variations)})
     result={'candidate_sha256':next(iter(candidate_shas)),'boundaries':[b['id'] for b in boundaries],
             'required_count':len(required),'source_required_count':len(source_required),'deferred_extreme_cases':deferred,'missing_required_cases':missing,'passed_cases':passed,
