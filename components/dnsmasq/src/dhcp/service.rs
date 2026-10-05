@@ -148,21 +148,30 @@ impl DeviceBinding {
     ) -> io::Result<bool> {
         let mut did_bind = false;
         let mut error = None;
+        let mut failed = false;
         for (listener, enabled) in [(Listener::Dhcp, self.bind_main), (Listener::Pxe, has_pxe)] {
             if !enabled {
                 continue;
             }
             match bind(listener, &self.name) {
                 Ok(()) => did_bind = true,
-                Err(failure) if failure.raw_os_error() == Some(1) => did_bind = true,
+                Err(failure) if failure.raw_os_error() == Some(1) => {
+                    did_bind = true;
+                    error = Some(failure);
+                }
                 Err(failure) => {
-                    if error.is_none() {
-                        error = Some(failure);
-                    }
+                    failed = true;
+                    error = Some(failure);
                 }
             }
         }
-        error.map_or(Ok(did_bind), Err)
+        // C combines both result bits but die formats errno from the last
+        // failing syscall, including a later ignored EPERM.
+        if failed {
+            Err(error.unwrap_or_else(|| io::Error::other("device binding failed")))
+        } else {
+            Ok(did_bind)
+        }
     }
 
     fn retry(
@@ -352,7 +361,11 @@ impl SocketListener {
         binding.did_bind =
             binding.bind(self.pxe_socket.is_some(), |listener, name| match listener {
                 Listener::Dhcp => self.socket.bind_device(name),
-                Listener::Pxe => self.pxe_socket.as_ref().unwrap().bind_device(name),
+                Listener::Pxe => self
+                    .pxe_socket
+                    .as_ref()
+                    .ok_or_else(|| io::Error::other("PXE device binding has no socket"))?
+                    .bind_device(name),
             })?;
         let did_bind = binding.did_bind;
         self.device_binding = Some(binding);
@@ -376,7 +389,11 @@ impl SocketListener {
         };
         let notice = binding.retry(self.pxe_socket.is_some(), |listener, name| match listener {
             Listener::Dhcp => self.socket.bind_device(name),
-            Listener::Pxe => self.pxe_socket.as_ref().unwrap().bind_device(name),
+            Listener::Pxe => self
+                .pxe_socket
+                .as_ref()
+                .ok_or_else(|| io::Error::other("PXE device binding has no socket"))?
+                .bind_device(name),
         });
         if let Some(notice) = notice {
             self.network_notices.push(crate::logging::LogEvent::new(
@@ -865,6 +882,14 @@ mod tests {
             .unwrap_err();
         assert_eq!(error.raw_os_error(), Some(19));
         assert_eq!(attempts, [Listener::Dhcp, Listener::Pxe]);
+        let error = binding
+            .bind(true, |listener, _| {
+                Err(io::Error::from_raw_os_error(
+                    if listener == Listener::Dhcp { 19 } else { 1 },
+                ))
+            })
+            .unwrap_err();
+        assert_eq!(error.raw_os_error(), Some(1));
     }
 
     #[test]
