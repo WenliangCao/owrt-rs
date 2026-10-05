@@ -118,8 +118,7 @@
             "file-owner-normal",
             "file-owner-debug",
             "file-existing-group-owner",
-            "startup-fault-log-chown",
-            "file-owner-warning-opaque-path"
+            "startup-fault-log-chown"
           ]
         },
         {
@@ -145,7 +144,8 @@
             "file-rotate",
             "file-reopen-fails",
             "stderr-foreground",
-            "stderr-debug"
+            "stderr-debug",
+            "tcp-accepted-file-rotation"
           ]
         },
         {
@@ -248,29 +248,11 @@
           ]
         },
         {
-          "id": "FAC13",
-          "source": "log.c:301-319,361-393",
-          "boundary": "Debug echo writes complete producer text, independently of the primary record cap1024; actual overlong no-fail TFTP root proves full sign-on/warning echo and exactly capped file records.",
-          "required_scenarios": [
-            "debug-echo-overlong-tftp-root"
-          ]
-        },
-        {
           "id": "FAC14",
           "source": "log.c:68-89,301-319,dnsmasq.c:705-718",
           "boundary": "Debug echo uses inherited stderr directly, with no extra descriptor or extra EMFILE startup boundary. Actual /proc descriptor inventory remains identical across SIGUSR2; the primary stderr destination alone retains its required pre-redirect duplicate.",
           "required_scenarios": [
             "debug-stderr-no-extra-fd"
-          ]
-        },
-        {
-          "id": "FAC15",
-          "source": "option.c:2279-2297,dnsmasq.c:1499-1545,log.c:479-499",
-          "boundary": "An opaque Unix logfile path preserves raw bytes in open-failure class3 stderr and both critical syslog records, default original-parent and direct foreground/debug callers. Diagnostic String is only a view.",
-          "required_scenarios": [
-            "log-path-opaque-failure-default",
-            "log-path-opaque-failure-foreground",
-            "log-path-opaque-failure-debug"
           ]
         }
       ],
@@ -289,7 +271,35 @@
           "blocked-sink-stderr-full-shutdown",
           "blocked-sink-debug-echo-full-shutdown"
         ]
-      }
+      },
+      "qualification_scope": "Ordinary source-defined sink, ownership, reopen, active TCP, blocked FIFO/stderr and producer contracts. User explicitly defers extreme inputs; preserved known differences do not block this gate.",
+      "deferred_extreme_boundaries": [
+        {
+          "id": "FAC13",
+          "source": "log.c:301-319,361-393",
+          "boundary": "Debug echo writes complete producer text, independently of the primary record cap1024; actual overlong no-fail TFTP root proves full sign-on/warning echo and exactly capped file records.",
+          "required_scenarios": [
+            "debug-echo-overlong-tftp-root"
+          ]
+        },
+        {
+          "id": "FAC15",
+          "source": "option.c:2279-2297,dnsmasq.c:1499-1545,log.c:479-499",
+          "boundary": "An opaque Unix logfile path preserves raw bytes in open-failure class3 stderr and both critical syslog records, default original-parent and direct foreground/debug callers. Diagnostic String is only a view.",
+          "required_scenarios": [
+            "log-path-opaque-failure-default",
+            "log-path-opaque-failure-foreground",
+            "log-path-opaque-failure-debug"
+          ]
+        }
+      ],
+      "deferred_extreme_scenarios": [
+        "file-owner-warning-opaque-path",
+        "log-path-opaque-failure-default",
+        "log-path-opaque-failure-foreground",
+        "log-path-opaque-failure-debug",
+        "debug-echo-overlong-tftp-root"
+      ]
     },
     "no-daemon": {
       "required": [
@@ -661,7 +671,8 @@
             "debug-tcp-v4-enabled",
             "debug-tcp-v6-enabled",
             "debug-dynamic-interface-enabled",
-            "debug-dynamic-explicit-enabled"
+            "debug-dynamic-explicit-enabled",
+            "tcp-accepted-file-rotation"
           ]
         }
       ],

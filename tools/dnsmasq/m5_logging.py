@@ -87,6 +87,11 @@ def cases():
          'reopen_directory': True, 'receiver': 'dgram',
          'argv': ['--log-facility=/m2/logging/daemon.log'], 'file': 'daemon.log',
          'options': ['log-facility']},
+        {'id': 'tcp-accepted-file-rotation', 'scope': 'sink', 'kind': 'run',
+         'tcp_rotate': True, 'file': 'daemon.log',
+         'argv': ['--log-facility=/m2/logging/daemon.log', '--log-debug', '--strict-order',
+                  '--server=127.0.0.2#15955', '--server=127.0.0.3#15956'],
+         'options': ['log-facility', 'log-debug']},
         {'id': 'syslog-stream', 'scope': 'sink', 'kind': 'run', 'receiver': 'stream',
          'facility': 24, 'argv': [], 'options': ['log-facility']},
         {'id': 'file-open-missing-parent', 'scope': 'sink', 'kind': 'run', 'exit': 3,
@@ -433,7 +438,7 @@ def cases():
                  'file': '/m2/logging/daemon.log', 'argv': ['--log-facility=/m2/logging/daemon.log'],
                  'config_bytes': (b'enable-tftp\ntftp-no-fail\ntftp-root=' + prefix + b'\n').hex(),
                  'root_prefix': prefix.hex(), 'root_variant': 'global-no-fail', 'root_no_fail': True,
-                 'options': ['no-daemon', 'log-facility']})
+                 'options': ['no-daemon', 'log-facility', 'tftp-root', 'tftp-no-fail']})
     for mode, label in [([], 'default'), (['-k'], 'foreground'), (['-d'], 'debug')]:
         for variant, prefix, no_fail, enabled in [
             ('global-fatal', b'/m2/logging/missing-global', False, True),
@@ -826,6 +831,13 @@ def run(root, side, case, out):
     for name, text in case.get('setup_files', {}).items():
         (folder / name).write_text(text)
     blocker = None
+    tcp_upstream = None
+    if case.get('tcp_rotate'):
+        tcp_upstream = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        tcp_upstream.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        tcp_upstream.bind(('127.0.0.2', 15955))
+        tcp_upstream.listen()
+        tcp_upstream.settimeout(2)
     if case.get('tftp_probes') or case.get('no_dns'):
         (folder / 'public').write_bytes(b'x' * 700)
         (folder / 'public').chmod(0o644)
@@ -897,6 +909,28 @@ def run(root, side, case, out):
                         pass
                 time.sleep(.005)
             if observed['ready']:
+                if case.get('tcp_rotate'):
+                    wire = query('rotation-forward.logging', 1, 0x7520)
+                    with socket.create_connection(('127.0.0.1', 15353), timeout=2) as client:
+                        client.sendall(len(wire).to_bytes(2, 'big') + wire)
+                        peer, _ = tcp_upstream.accept()
+                        peer.settimeout(2)
+                        upstream_wire = exact_read(peer, int.from_bytes(exact_read(peer, 2), 'big'))
+                        path = folder / case['file']
+                        path.rename(path.with_suffix('.old'))
+                        process.send_signal(signal.SIGUSR2)
+                        deadline = time.monotonic() + 1
+                        while not path.exists() and time.monotonic() < deadline:
+                            time.sleep(.005)
+                        if not path.exists():
+                            raise AssertionError('parent file reopen did not complete')
+                        peer.close()
+                        tcp_upstream.close()
+                        reply = exact_read(client, int.from_bytes(exact_read(client, 2), 'big'))
+                        observed['tcp_rotate_reply'] = reply.hex()
+                        trace['tcp_rotate'] = {'request': wire.hex(), 'upstream_request': upstream_wire.hex(),
+                                               'reply': reply.hex()}
+                    time.sleep(.03)
                 if case.get('sink_edge'):
                     def snapshot():
                         return {entry.name: os.readlink(entry) for entry in Path(f'/proc/{process.pid}/fd').iterdir()}
@@ -1050,6 +1084,8 @@ def run(root, side, case, out):
             receiver.close()
             if blocker:
                 blocker.close()
+            if tcp_upstream:
+                tcp_upstream.close()
             trace['duration'] = time.monotonic() - start
             trace['stream_tail'] = receiver.pending.hex()
             save(out / 'trace.json', trace)
@@ -1597,6 +1633,16 @@ def compare(reference, candidate, case, reference_only=False):
                 failures.append({'side': side, 'field': field, 'expected': expected, 'actual': row[field]})
     if 'expected_metadata' in case and reference['file_metadata'].get(case['file']) != case['expected_metadata']:
         failures.append({'kind': 'C-file-metadata', 'actual': reference['file_metadata']})
+    if case.get('tcp_rotate'):
+        for side, row in [('c', reference)] + ([] if reference_only else [('rust', candidate)]):
+            old = bytes.fromhex(row['files'].get('daemon.old', '')).decode(errors='backslashreplace')
+            current = bytes.fromhex(row['files'].get('daemon.log', '')).decode(errors='backslashreplace')
+            for endpoint in ['127.0.0.2#15955', '127.0.0.3#15956']:
+                message = 'TCP connection failed to ' + endpoint
+                if old.count(message) != 1 or message in current:
+                    failures.append({'kind': 'accepted-TCP-pins-log-destination', 'side': side,
+                                     'endpoint': endpoint, 'old_count': old.count(message),
+                                     'new_count': current.count(message)})
     if case.get('sink_edge'):
         wanted = {'same_fds': True} if case['sink_edge'] in ['preserve', 'debug-fd'] else {
             'old_fd_closed': True, 'replacement_metadata': [0o604, 0, 0]}
