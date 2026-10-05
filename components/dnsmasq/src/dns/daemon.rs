@@ -379,6 +379,9 @@ impl<R: Random> DnsDaemon<R> {
                 }
             }
         }
+        if !self.local.config.bind_interfaces {
+            self.refresh_source_interface_indices();
+        }
         let mut removed = self.server_sources.replace(source, rows);
         removed.extend(
             self.server_sources
@@ -397,6 +400,10 @@ impl<R: Random> DnsDaemon<R> {
             .server_sources
             .retain_servers(|row| server_usable(row, local_addresses));
         self.rebuild_server_routes(&removed)
+    }
+
+    pub fn refresh_source_interface_indices(&mut self) {
+        self.upstream.refresh_source_interface_indices();
     }
 
     pub fn configure_source_sockets(
