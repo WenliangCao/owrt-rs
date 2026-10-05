@@ -1094,7 +1094,8 @@ def compare(reference, candidate, case, reference_only=False):
         if (limit > 0 and notice not in text) or (limit <= 0 and 'asynchronous logging enabled' in text):
             failures.append({'kind': 'C-async-notice', 'expected': limit, 'actual': text})
     if case.get('tftp_probes'):
-        text = reference['stderr']
+        text = reference['stderr'] + ''.join(bytes.fromhex(value).decode() for value in reference['syslog'])
+        text += ''.join(bytes.fromhex(value).decode() for value in reference['files'].values())
         variant = case['tftp_probes']
         required = ['sent /m2/logging/public to 127.0.0.1'] if variant == 'script' else [
             'unable to get free port for TFTP'] if variant == 'port-exhausted' else [
