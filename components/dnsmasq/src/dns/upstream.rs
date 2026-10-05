@@ -387,15 +387,40 @@ impl<R: Random> UpstreamResolver<R> {
         group: GroupId,
         scope: Scope,
     ) -> Result<Submission, ResolveError> {
+        self.start_udp_with_metadata(packet, client, group, scope, None)
+    }
+
+    /// The containing owner has already decorated this packet while retaining
+    /// receive_query's original client envelope and source-dependent cache bit.
+    pub fn start_udp_with_metadata(
+        &mut self,
+        packet: &[u8],
+        client: Client,
+        group: GroupId,
+        scope: Scope,
+        metadata: Option<super::forward_service::QueryMetadata>,
+    ) -> Result<Submission, ResolveError> {
         self.run_timers();
-        let submitted = self.dispatcher.submit(
-            packet,
-            client,
-            group,
-            scope,
-            unix_seconds(),
-            &mut self.random,
-        );
+        let submitted = if let Some(metadata) = metadata {
+            self.dispatcher.submit_with_metadata(
+                packet,
+                client,
+                group,
+                scope,
+                unix_seconds(),
+                &mut self.random,
+                metadata,
+            )
+        } else {
+            self.dispatcher.submit(
+                packet,
+                client,
+                group,
+                scope,
+                unix_seconds(),
+                &mut self.random,
+            )
+        };
         // submit may reclaim a different query when its C forwarding slot is
         // reused. Consume its release even if admission of this one failed.
         self.consume_releases();
@@ -436,6 +461,19 @@ impl<R: Random> UpstreamResolver<R> {
     ) -> io::Result<Vec<UpstreamEvent>>
     where
         F: Fn(&[u8]) -> bool,
+    {
+        self.poll_with_context_filter(max_wait, |packet, _| ignore(packet))
+    }
+
+    /// Admission has matched source/id/question but not consumed the pending
+    /// transaction. ECS mismatch must leave it alive for a later valid reply.
+    pub fn poll_with_context_filter<F>(
+        &mut self,
+        max_wait: Duration,
+        ignore: F,
+    ) -> io::Result<Vec<UpstreamEvent>>
+    where
+        F: Fn(&[u8], &super::forward::Pending) -> bool,
     {
         let call_deadline = Instant::now()
             .checked_add(max_wait)
@@ -1002,7 +1040,7 @@ impl<R: Random> UpstreamResolver<R> {
 
     fn receive_ready<F>(&mut self, token: SocketToken, revents: i16, ignore: &F)
     where
-        F: Fn(&[u8]) -> bool,
+        F: Fn(&[u8], &super::forward::Pending) -> bool,
     {
         self.receive_ready_with_io(
             token,
@@ -1026,7 +1064,7 @@ impl<R: Random> UpstreamResolver<R> {
         mut receive: Receive,
         mut take_error: TakeError,
     ) where
-        F: Fn(&[u8]) -> bool,
+        F: Fn(&[u8], &super::forward::Pending) -> bool,
         Receive: FnMut(&UdpSocket, &mut [u8]) -> io::Result<(usize, SocketAddr)>,
         TakeError: FnMut(&UdpSocket) -> io::Result<Option<io::Error>>,
     {
@@ -1120,7 +1158,7 @@ impl<R: Random> UpstreamResolver<R> {
             // Keep the transaction and its server/retry counters untouched.
             // This must happen after source/ID admission but before
             // `complete_reply`, matching forward.c::reply_query.
-            if ignore(&self.receive_buffer[..length]) {
+            if ignore(&self.receive_buffer[..length], pending) {
                 continue;
             }
             let truncated = match udp_reply_is_truncated(&self.receive_buffer[..length]) {
@@ -1163,7 +1201,7 @@ impl<R: Random> UpstreamResolver<R> {
                             truncated,
                             server: matched.server,
                             flags: pending.flags,
-                            cache_eligible: super::forward_service::ordinary_cache_query(
+                            cache_eligible: super::forward_service::edns_cache_query(
                                 &pending.packet,
                             ),
                             upstream_name: pending.question.name,
@@ -2480,7 +2518,7 @@ mod tests {
                 transport.receive_ready_with_io(
                     token,
                     POLLIN,
-                    &|_| false,
+                    &|_, _| false,
                     Instant::now(),
                     |_, _| {
                         calls += 1;
@@ -2538,7 +2576,7 @@ mod tests {
         transport.receive_ready_with_io(
             token,
             POLLERR,
-            &|_| false,
+            &|_, _| false,
             Instant::now(),
             |_, _| panic!("consumed standalone socket error ends the batch"),
             |_| {
@@ -2567,7 +2605,7 @@ mod tests {
         transport.receive_ready_with_io(
             token,
             POLLIN,
-            &|_| false,
+            &|_, _| false,
             Instant::now(),
             |_, _| {
                 calls += 1;
@@ -2591,7 +2629,7 @@ mod tests {
             transport.receive_ready_with_io(
                 token,
                 revents,
-                &|_| false,
+                &|_, _| false,
                 Instant::now(),
                 |_, _| panic!("unusable descriptor must not receive"),
                 |_| panic!("unusable descriptor must not read SO_ERROR"),
@@ -2613,7 +2651,7 @@ mod tests {
         transport.receive_ready_with_io(
             token,
             POLLERR,
-            &|_| false,
+            &|_, _| false,
             Instant::now(),
             |_, _| panic!("failed socket inspection must not receive"),
             |_| Err(io::ErrorKind::InvalidInput.into()),
@@ -2640,7 +2678,7 @@ mod tests {
             transport.receive_ready_with_io(
                 token,
                 POLLERR,
-                &|_| false,
+                &|_, _| false,
                 now,
                 |_, _| {
                     calls += 1;
@@ -2668,7 +2706,7 @@ mod tests {
         transport.receive_ready_with_io(
             token,
             POLLIN,
-            &|_| false,
+            &|_, _| false,
             retry,
             UdpSocket::recv_from,
             |_| panic!("normal readable retry needs no SO_ERROR"),
@@ -2708,7 +2746,7 @@ mod tests {
         transport.receive_ready_with_io(
             token,
             POLLERR | POLLIN,
-            &|_| false,
+            &|_, _| false,
             Instant::now(),
             UdpSocket::recv_from,
             |_| Ok(Some(io::ErrorKind::ConnectionRefused.into())),

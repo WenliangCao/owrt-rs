@@ -16,7 +16,7 @@ use super::forward::{
     Client, Flags, ForwardTable, GroupId, QueryId, Random, ReplyAction, Scope, SendPlan,
     SendReason, ServerGroup, ServerId, SocketToken, SubmissionKind, SubmitError,
 };
-use super::wire::{find_pseudoheader, Header, Message, WireError};
+use super::wire::{find_pseudoheader, Header, WireError};
 use std::collections::HashMap;
 use std::net::SocketAddr;
 
@@ -28,6 +28,13 @@ pub enum DispatchError {
     Wire(WireError),
     Submit(SubmitError),
     UnknownGroup(GroupId),
+}
+
+impl QueryMetadata {
+    pub fn with_cacheable(mut self, cacheable: bool) -> Self {
+        self.flags.no_cache = !cacheable;
+        self
+    }
 }
 
 impl From<WireError> for DispatchError {
@@ -157,16 +164,32 @@ impl ForwardDispatcher {
     pub fn submit(
         &mut self,
         packet: &[u8],
-        mut client: Client,
+        client: Client,
         group: GroupId,
         scope: Scope,
         now: i64,
         random: &mut impl Random,
     ) -> Result<DispatchSubmission, DispatchError> {
+        let (_, metadata) = prepare_query(packet, self.edns_packet_max)?;
+        self.submit_with_metadata(packet, client, group, scope, now, random, metadata)
+    }
+
+    /// receive_query captures this metadata before add_edns0_config changes
+    /// the query. Keep original client OPT/DO/limit while stashing decoration.
+    #[allow(clippy::too_many_arguments)]
+    pub fn submit_with_metadata(
+        &mut self,
+        packet: &[u8],
+        mut client: Client,
+        group: GroupId,
+        scope: Scope,
+        now: i64,
+        random: &mut impl Random,
+        metadata: QueryMetadata,
+    ) -> Result<DispatchSubmission, DispatchError> {
         if !self.groups.contains_key(&group) {
             return Err(DispatchError::UnknownGroup(group));
         }
-        let (_, metadata) = prepare_query(packet, self.edns_packet_max)?;
         client.udp_limit = metadata.udp_limit;
         let submission =
             self.table
@@ -363,52 +386,16 @@ pub fn prepare_query(
         signed: scan.signed,
         flags,
     };
-    if scan.signed {
-        return Ok((packet.to_vec(), metadata));
-    }
-
     let mut prepared = packet.to_vec();
-    if let Some(opt) = scan.opt {
-        // RecordRef::fixed points immediately after the owner name; class is
-        // the advertised UDP size. Message::parse in find_pseudoheader has
-        // already checked this offset and the complete record bounds.
-        prepared[opt.record.fixed + 2..opt.record.fixed + 4]
-            .copy_from_slice(&configured_max.to_be_bytes());
-    } else {
-        // add_pseudoheader() appends an empty OPT after all existing records.
-        // Respect the same output envelope: if it cannot fit, retain the
-        // original query and let the caller apply its normal send policy.
-        let message = Message::parse(packet)?;
-        let can_write_opt = message
-            .end
-            .checked_add(OPT_RECORD_LEN)
-            .is_some_and(|len| len <= configured_max as usize);
-        if can_write_opt {
-            let mut updated = message.header;
-            let original_len = prepared.len();
-            let opt_end = message.end + OPT_RECORD_LEN;
-            prepared.resize(original_len.max(opt_end), 0);
-            prepared[message.end..message.end + 3].copy_from_slice(&[0, 0, 41]);
-            prepared[message.end + 3..message.end + 5]
-                .copy_from_slice(&configured_max.to_be_bytes());
-            prepared[message.end + 5..opt_end].fill(0);
-            // C writes the empty OPT first, then only increments arcount when
-            // four bytes remain for a possible option TLV. On failure it
-            // returns the original plen, not opt_end. Any original trailing
-            // bytes overwritten by that write remain changed in the result.
-            if message
-                .end
-                .checked_add(OPT_RECORD_LEN + 4)
-                .is_some_and(|len| len <= configured_max as usize)
-            {
-                prepared.truncate(opt_end);
-                updated.additionals = updated.additionals.checked_add(1).ok_or(WireError::Full)?;
-                updated.write(&mut prepared)?;
-            } else {
-                prepared.truncate(original_len);
-            }
-        }
-    }
+    super::edns_policy::add_pseudoheader(
+        &mut prepared,
+        configured_max,
+        usize::from(configured_max),
+        None,
+        &[],
+        false,
+        super::edns_policy::Replace::Keep,
+    )?;
     Ok((prepared, metadata))
 }
 
@@ -440,8 +427,47 @@ pub(crate) fn ordinary_cache_query(packet: &[u8]) -> bool {
     })
 }
 
+/// EDNS policy represents source dependence explicitly in FREC_NO_CACHE.
+/// Opaque request options do not change the cached RR representation. Retain
+/// the existing DNSSEC query-type and signature gates independently.
+pub(crate) fn edns_cache_query(packet: &[u8]) -> bool {
+    let Ok(header) = Header::parse(packet) else {
+        return false;
+    };
+    let Ok(scan) = find_pseudoheader(packet, true) else {
+        return false;
+    };
+    if scan.signed {
+        return false;
+    }
+    if (header.flags & 0x20 != 0 || scan.opt.as_ref().is_some_and(|opt| opt.dnssec_ok()))
+        && !super::forward::Question::parse(packet)
+            .is_ok_and(|question| question.class == 1 && matches!(question.rrtype, 1 | 28))
+    {
+        return false;
+    }
+    scan.opt
+        .as_ref()
+        .is_none_or(|opt| header.additionals == 1 && opt.record.ttl & !0x8000 == 0)
+}
+
+/// A proven exact-image defect merges different client MAC/ECS/Umbrella
+/// identities. Keep C's merge/retry behavior for the same effective options,
+/// while separating distinct option content. Client UDP size remains outside
+/// this key; receive_query's original flags already carry DO/AD/CD.
+pub fn edns_scope(packet: &[u8]) -> super::forward::Scope {
+    find_pseudoheader(packet, true)
+        .ok()
+        .and_then(|scan| scan.opt)
+        .filter(|opt| !opt.record.rdata.is_empty())
+        .map_or(super::forward::Scope::Shared, |opt| {
+            super::forward::Scope::Edns(opt.record.rdata.to_vec())
+        })
+}
+
 #[cfg(test)]
 mod tests {
+    use super::super::wire::Message;
     use super::*;
     use crate::dns::forward::{Options, Server};
     use crate::dns::wire::Name;
@@ -743,5 +769,118 @@ mod tests {
             .unwrap_err();
         assert!(matches!(error, DispatchError::Wire(WireError::Truncated)));
         assert!(dispatcher.table().is_empty());
+    }
+    #[test]
+    fn original_client_envelope_and_cache_flag_survive_added_opt() {
+        let mut dispatcher = ForwardDispatcher::new(Options::default(), [group()], 1232);
+        let mut random = Counter(0);
+        let plain = query("client.edns.test", 10);
+        let (prepared, metadata) = prepare_query(&plain, 1232).unwrap();
+        let first = dispatcher
+            .submit_with_metadata(
+                &prepared,
+                client(1000),
+                GroupId(1),
+                Scope::Shared,
+                100,
+                &mut random,
+                metadata.with_cacheable(false),
+            )
+            .unwrap();
+        let second = dispatcher
+            .submit_with_metadata(
+                &prepared,
+                client(1001),
+                GroupId(1),
+                Scope::Shared,
+                100,
+                &mut random,
+                metadata.with_cacheable(false),
+            )
+            .unwrap();
+        assert_eq!(first.id, second.id);
+        assert_eq!(second.kind, SubmissionKind::Coalesced);
+        let pending = dispatcher.table().get(first.id).unwrap();
+        assert!(!pending.flags.had_opt && pending.flags.no_cache);
+        assert_eq!(pending.recipients[0].client.udp_limit, 512);
+    }
+    #[test]
+    fn different_effective_edns_options_isolate_but_same_identity_merges() {
+        let mut dispatcher = ForwardDispatcher::new(Options::default(), [group()], 1232);
+        let mut random = Counter(0);
+        let plain = query("client.edns.test", 10);
+        let (_, metadata) = prepare_query(&plain, 1232).unwrap();
+        let mut first_packet = plain.clone();
+        super::super::edns_policy::add_pseudoheader(
+            &mut first_packet,
+            1232,
+            1232,
+            Some(65001),
+            &[2, 17, 34, 170, 187, 204],
+            false,
+            super::super::edns_policy::Replace::Replace,
+        )
+        .unwrap();
+        let mut other_packet = plain;
+        super::super::edns_policy::add_pseudoheader(
+            &mut other_packet,
+            1232,
+            1232,
+            Some(65001),
+            &[2, 85, 102, 170, 187, 221],
+            false,
+            super::super::edns_policy::Replace::Replace,
+        )
+        .unwrap();
+        let first = dispatcher
+            .submit_with_metadata(
+                &first_packet,
+                client(1000),
+                GroupId(1),
+                edns_scope(&first_packet),
+                100,
+                &mut random,
+                metadata.with_cacheable(false),
+            )
+            .unwrap();
+        let same = dispatcher
+            .submit_with_metadata(
+                &first_packet,
+                client(1001),
+                GroupId(1),
+                edns_scope(&first_packet),
+                100,
+                &mut random,
+                metadata.with_cacheable(false),
+            )
+            .unwrap();
+        assert_eq!(same.id, first.id);
+        assert_eq!(same.kind, SubmissionKind::Coalesced);
+        let retry = dispatcher
+            .submit_with_metadata(
+                &first_packet,
+                client(1000),
+                GroupId(1),
+                edns_scope(&first_packet),
+                100,
+                &mut random,
+                metadata.with_cacheable(false),
+            )
+            .unwrap();
+        assert_eq!(retry.id, first.id);
+        assert_eq!(retry.kind, SubmissionKind::ClientRetry);
+        let other = dispatcher
+            .submit_with_metadata(
+                &other_packet,
+                client(1000),
+                GroupId(1),
+                edns_scope(&other_packet),
+                100,
+                &mut random,
+                metadata.with_cacheable(false),
+            )
+            .unwrap();
+        assert_ne!(other.id, first.id);
+        assert_eq!(other.kind, SubmissionKind::New);
     }
 }
