@@ -754,8 +754,15 @@ fn add_cname_chain(
         current = record.target.clone();
     }
 
-    let (terminal_rows, _terminal_owned) =
-        add_local_records_for_name(config, hosts, &current, qtype, ttl, leases, cache.as_deref());
+    let (terminal_rows, _terminal_owned) = add_local_records_for_name(
+        config,
+        hosts,
+        &current,
+        qtype,
+        ttl,
+        leases,
+        cache.as_deref(),
+    );
     let owner = wire_name(&current).unwrap_or_else(|| vec![0]);
     for (rrtype, record_ttl, data) in terminal_rows {
         extra_rows.push((owner.clone(), rrtype, record_ttl, data));
