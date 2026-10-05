@@ -192,8 +192,9 @@ def cases():
                                 ('error-pipe-flags', 25, errno.EIO),
                                 ('pid-write', 64, errno.EIO), ('pid-close', 57, errno.EIO),
                                 ('log-chown', 55, errno.EPERM), ('pid-chown', 55, errno.EPERM),
-                                ('pid-short-write', 64, 0)]:
-        failed = name not in ['log-chown', 'pid-chown', 'pid-short-write']
+                                ('pid-short-write', 64, 0), ('log-space', 64, errno.ENOSPC),
+                                ('log-interrupt', 64, errno.EINTR)]:
+        failed = name not in ['log-chown', 'pid-chown', 'pid-short-write', 'log-space', 'log-interrupt']
         rows.append({'id': 'startup-fault-' + name, 'scope': 'startup-fault', 'kind': 'run',
                      'mode': [] if name in ['fork-one', 'fork-two', 'error-pipe', 'error-pipe-flags'] else ['-k'],
                      'daemonized': name in ['fork-one', 'fork-two', 'error-pipe', 'error-pipe-flags'], 'fault': name,
@@ -201,8 +202,8 @@ def cases():
                      'exit': (5 if name in ['fork-one', 'fork-two', 'error-pipe', 'error-pipe-flags'] else 3) if failed else 0,
                      'pidfile': '/m2/logging/daemon.pid',
                      'user': 'nobody' if name in ['log-chown', 'pid-chown'] else 'root',
-                     'file': '/m2/logging/daemon.log' if name == 'log-chown' else None,
-                     'argv': ['--log-facility=/m2/logging/daemon.log'] if name == 'log-chown' else ['--log-facility=-'],
+                     'file': '/m2/logging/daemon.log' if name.startswith('log-') else None,
+                     'argv': ['--log-facility=/m2/logging/daemon.log'] if name.startswith('log-') else ['--log-facility=-'],
                      'receiver': 'dgram', 'options': ['no-daemon', 'log-facility']})
     for name, number in [('setgroups', 159), ('setgid', 144), ('setuid', 146), ('capset', 91), ('keepcaps', 167)]:
         rows.append({'id': 'credential-fault-' + name, 'scope': 'credential-fault', 'kind': 'run',
@@ -668,7 +669,7 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                     match &= args[0] == error_writer and args[1] == 4
                 elif case['fault'] in ['pid-write', 'pid-close', 'pid-chown', 'pid-short-write']:
                     match &= target.endswith('/m2/logging/daemon.pid')
-                elif case['fault'] == 'log-chown':
+                elif case['fault'].startswith('log-'):
                     match &= target.endswith('/m2/logging/daemon.log')
                 if not match:
                     continue
