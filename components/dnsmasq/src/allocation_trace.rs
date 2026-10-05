@@ -80,6 +80,7 @@ struct Buffer {
     length: usize,
 }
 
+#[inline(never)]
 fn record(event: Event) {
     if !ENABLED.load(Ordering::Relaxed) {
         return;
@@ -141,6 +142,7 @@ static ALLOCATOR: TraceAllocator = TraceAllocator;
 // SAFETY: every operation preserves System's exact allocator contract. Hooks
 // record scalar values in fixed storage and never allocate or block.
 unsafe impl GlobalAlloc for TraceAllocator {
+    #[inline(never)]
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
         let pointer = unsafe { System.alloc(layout) };
         if !pointer.is_null() {
@@ -155,6 +157,7 @@ unsafe impl GlobalAlloc for TraceAllocator {
         pointer
     }
 
+    #[inline(never)]
     unsafe fn alloc_zeroed(&self, layout: Layout) -> *mut u8 {
         let pointer = unsafe { System.alloc_zeroed(layout) };
         if !pointer.is_null() {
@@ -169,6 +172,7 @@ unsafe impl GlobalAlloc for TraceAllocator {
         pointer
     }
 
+    #[inline(never)]
     unsafe fn realloc(&self, pointer: *mut u8, layout: Layout, size: usize) -> *mut u8 {
         let replacement = unsafe { System.realloc(pointer, layout, size) };
         if !replacement.is_null() {
@@ -183,6 +187,7 @@ unsafe impl GlobalAlloc for TraceAllocator {
         replacement
     }
 
+    #[inline(never)]
     unsafe fn dealloc(&self, pointer: *mut u8, layout: Layout) {
         record(Event {
             operation: Operation::Free,
