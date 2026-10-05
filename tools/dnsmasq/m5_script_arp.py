@@ -109,7 +109,9 @@ def helpers(pid):
 
 def stop_daemon(process, pid):
     if pid is None:
-        return dict(started=False)
+        if process is None or process.poll() is not None:
+            return dict(started=False)
+        pid = process.pid
     os.kill(pid, signal.SIGTERM)
     deadline = time.monotonic() + 5
     status = None
@@ -197,15 +199,20 @@ def run_side(args):
                 flags = [] if spec.get('daemon') else ['-d' if spec.get('debug') else '-k']
                 process = subprocess.Popen(command(root, args.side, *flags, '-C', '/m2/arp.conf'),
                                            stdout=output, stderr=output, env=env, start_new_session=True)
-                deadline = time.monotonic() + 4
-                while not (root / 'm2/arp.pid').exists() and time.monotonic() < deadline:
-                    if process.poll() not in [None, 0]:
-                        raise AssertionError('startup failed')
-                    time.sleep(.01)
-                assert (root / 'm2/arp.pid').exists(), 'pid readiness'
-                pid = int((root / 'm2/arp.pid').read_text())
+                if spec.get('debug'):
+                    # C debug deliberately omits the PID file.
+                    pid = process.pid
+                    time.sleep(.15)
+                    assert process.poll() is None, 'debug startup'
+                else:
+                    deadline = time.monotonic() + 4
+                    while not (root / 'm2/arp.pid').exists() and time.monotonic() < deadline:
+                        if process.poll() not in [None, 0]:
+                            raise AssertionError('startup failed')
+                        time.sleep(.01)
+                    assert (root / 'm2/arp.pid').exists(), 'pid readiness'
+                    pid = int((root / 'm2/arp.pid').read_text())
                 save(folder / 'identity.json', process_identity(root, pid))
-                baseline = len(list(Path('/proc/' + str(pid) + '/fd').iterdir()))
                 wanted_count = 0 if spec.get('no_events') else len(spec.get('neighbors', [(V4, MAC, 'arps0')]))
                 deadline = time.monotonic() + 3
                 while len(callbacks(root)) < wanted_count and time.monotonic() < deadline:
@@ -219,6 +226,7 @@ def run_side(args):
                     assert call[6:] == ['inherited-iface', 'inherited-id'], 'inherited environment'
                 owned = helpers(pid)
                 assert len(owned) == (0 if spec.get('no_helper') else 1), 'helper qualification'
+                baseline = len(list(Path('/proc/' + str(pid) + '/fd').iterdir()))
                 reply = None if spec.get('no_dns') else health()
                 save(folder / 'callbacks.json', observed)
                 save(folder / 'helper-identities.json', owned)
