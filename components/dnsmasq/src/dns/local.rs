@@ -208,6 +208,20 @@ impl<'a> LocalAnswerer<'a> {
             }
         }
 
+        // rfc1035.c answer_request refuses to forward CHAOS identity names
+        // even in this image's NO_ID build, where no built-in TXT exists.
+        let notimp = question.class == 3
+            && !owned
+            && wire_to_dotted(&question.name).is_some_and(|name| {
+                [b"bind".as_slice(), b"server"].iter().any(|suffix| {
+                    name == *suffix
+                        || name
+                            .strip_suffix(*suffix)
+                            .is_some_and(|prefix| prefix.ends_with(b"."))
+                })
+            });
+        owned |= notimp;
+
         // A configured/local record owns the query before address rules. A
         // CNAME also suppresses rules for its alias. Otherwise apply the
         // domain-match family tiers and progressively shorter suffixes.
@@ -254,7 +268,13 @@ impl<'a> LocalAnswerer<'a> {
             } else {
                 0x0400
             }
-            | if nxdomain { 3 } else { 0 }
+            | if notimp {
+                4
+            } else if nxdomain {
+                3
+            } else {
+                0
+            }
             | (header.flags & (0x0100 | 0x0040 | 0x0010));
         let mut writer = PacketWriter::new(header.id, flags, limit)?;
         writer.question(&question.name, question.qtype, question.class)?;
