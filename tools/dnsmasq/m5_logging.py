@@ -1254,7 +1254,6 @@ def compare(reference, candidate, case, reference_only=False):
             if len(long) != 1 or len(long[0]) != (1023 if reference['syslog'] else 1024):
                 failures.append({'kind': 'C-script-max-message', 'lengths': [len(value) for value in long]})
     if case.get('scope') == 'root-access':
-        raw = reference['stderr'].encode('utf-8', 'surrogateescape')
         prefix = bytes.fromhex(case['root_prefix']).decode(errors='backslashreplace')
         text = reference['stderr']
         variant = case['root_variant']
@@ -1267,7 +1266,8 @@ def compare(reference, candidate, case, reference_only=False):
                 failures.append({'kind': 'C-TFTP-root-warning', 'missing': warning, 'actual': text})
             if variant.startswith('both-') and 'warning: TFTP directory /m2/logging/missing-interface inaccessible' not in text:
                 failures.append({'kind': 'C-TFTP-interface-root-warning', 'actual': text})
-            if text.find('TFTP root is ') >= text.find(warning):
+            signon = 'TFTP enabled' if variant.startswith('interface-') else 'TFTP root is '
+            if text.find(signon) < 0 or text.find(signon) >= text.find(warning):
                 failures.append({'kind': 'C-TFTP-root-warning-order', 'actual': text})
         else:
             error = 'Permission denied' if case.get('root_permissions') else 'No such file or directory'
