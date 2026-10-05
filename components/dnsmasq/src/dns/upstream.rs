@@ -656,7 +656,9 @@ impl<R: Random> UpstreamResolver<R> {
                 }
             }
         }
-        for (id, source) in self.source_bindings.clone() {
+        let mut ordered: Vec<_> = self.source_bindings.clone().into_iter().collect();
+        ordered.sort_by_key(|(id, _)| id.0);
+        for (id, source) in ordered {
             if settings.persistent(&source)
                 && !self
                     .sockets
