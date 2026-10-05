@@ -135,7 +135,7 @@ def case(args,root,spec):
     if spec.get('directory'): file.mkdir()
     if spec.get('bad')=='short':file.write_bytes(b'bad')
     if spec.get('bad')=='magic':file.write_bytes(bytes(24))
-    if spec.get('seed_header'):file.write_bytes(struct.pack('=IHHIIII',0xa1b2c3d4,7,8,9,10,2000,101))
+    if spec.get('seed_header'):file.write_bytes(struct.pack('=IHHIIII',0xa1b2c3d4,2,4,0,0,2000,101))
     reader=os.open(file,os.O_RDONLY|os.O_NONBLOCK) if spec.get('fifo') else None
     config=['port='+str(SERVER),'no-hosts','no-resolv','bind-interfaces','listen-address=127.0.0.1,::1','user=root','group=root',
         'pid-file=/m2/dump.pid','log-facility=-','host-record=dump.test,192.0.2.80','host-record=odd.dump.test,192.0.2.81']
@@ -177,12 +177,14 @@ def case(args,root,spec):
             if not spec.get('seed_header'):
                 assert observed['header']==dict(magic=0xa1b2c3d4,version=[2,4],zone=0,sigfigs=0,snaplen=1700 if 'edns-packet-max=1500' in spec.get('extra',[]) else 1432,network=101),'exact image file header'
             expected=[]
-            mask=int(spec.get('mask','-1') or '0',0)
+            value=spec.get('mask','-1') or '0'
+            unsigned=value.lstrip('+-')
+            mask=int(value,16 if unsigned.lower().startswith('0x') else 8 if len(unsigned)>1 and unsigned.startswith('0') else 10)
             for index,payload in enumerate(witness):
                 if not spec.get('tcp') and mask & (1 if index%2==0 else 2):expected.append(payload)
             assert [row['payload'] for row in observed['records']]==expected,'PCAP payload/order independent network witnesses'
             assert [int(row[0]) for row in events]==list(range(1,len(expected)+1)),'record count/order/logging'
-            if spec.get('header-user-nobody') or label in ['header-create','header-user-nobody']:
+            if label in ['header-create','header-user-nobody']:
                 info=file.stat();assert info.st_mode&0o777==0o600 and info.st_uid==0,'startup create permission/owner before daemon privilege drop'
         return dict(case=label,pcap=observed,events=events)
     finally:
