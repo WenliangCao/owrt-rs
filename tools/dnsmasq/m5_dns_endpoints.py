@@ -103,6 +103,9 @@ def run_syntax(root, side, case, out):
     text='no-hosts\nno-resolv\nuser=root\ngroup=root\nport=15353\n'+case['config']
     (out/'config').write_text(text);(root/'m2/endpoints.conf').write_text(text)
     (root/'etc/hosts').write_text(HOSTS)
+    # Invalid hostname grammar must reach the image libc error boundary without
+    # consulting nameservers from the captured router's original configuration.
+    (root/'etc/resolv.conf').write_text('nameserver 127.0.0.9\noptions timeout:1 attempts:1\n')
     with (out/'stdout').open('wb') as stdout,(out/'stderr').open('wb') as stderr:
         process=subprocess.Popen(command(root,side,*case.get('argv',[]),'--test','-C','/m2/endpoints.conf'),stdout=stdout,stderr=stderr)
         try:process.wait(timeout=5)
@@ -214,6 +217,37 @@ def service_cases():
         actions=[write('servers','server=lookup.endpoint.test\n'),signal_reload(),
                  probe('during','ready.files.test'),dict(op='dhcp-inform',id='during-dhcp'),dict(op='tftp-start',id='transfer'),dict(op='tftp-finish',id='transfer'),
                  dict(op='pause',seconds=.4),probe('resolved','resolved.endpoint.test')])
+    add('quoted-endpoint-routing','server="/one.endpoint.test/127.0.0.2"\nlocal="/local.endpoint.test/"\n',
+        ('one.endpoint.test','local.endpoint.test','other.endpoint.test'))
+    add('duplicate-endpoint-order','server=/one.endpoint.test/127.0.0.2\nserver=/one.endpoint.test/127.0.0.3\nserver=/one.endpoint.test/127.0.0.2\n')
+    add('duplicate-expanded-hosts-order','server=duplicate.endpoint.test\nserver=127.0.0.3\nall-servers\n',
+        sys_files={'/etc/hosts':'127.0.0.2 duplicate.endpoint.test\n127.0.0.2 duplicate.endpoint.test\n127.0.0.3 duplicate.endpoint.test\n'})
+    for label,name in [('case','V4.ENDPOINT.TEST'),('trailing-dot','v4.endpoint.test.')]:
+        add('hostname-'+label,'server='+name+'\n',sys_files={'/etc/hosts':HOSTS})
+    add('reverse-local-only','rev-server=192.0.2.0/24\nrev-server=2001:db8::/64\n',
+        ('7.2.0.192.in-addr.arpa',ipaddress.ip_address('2001:db8::7').reverse_pointer,'one.endpoint.test'),no_upstream=True)
+    for prefix in ('192.0.2.199/25','2001:db8::abcd/65'):
+        add('reverse-host-bits-'+prefix.replace(':','_').replace('/','-'),'rev-server='+prefix+',127.0.0.2\n',
+            (ipaddress.ip_address(prefix.split('/')[0]).reverse_pointer,'one.endpoint.test'))
+    add('min-only-default-max','min-port=34100\nserver=127.0.0.2\n',source_range=[34100,65535])
+    add('max-only-default-min','max-port=1025\nserver=127.0.0.2\n',source_range=[1024,1025])
+    add('startup-range-inverted','min-port=34102\nmax-port=34100\n',actions=[],expected_start=False)
+    add('startup-range-port-limit-overflow','min-port=34100\nmax-port=34101\nport-limit=3\n',actions=[],expected_start=False)
+    add('global-query-preallocated-no-inline','query-port=34003\n',actions=[],socket_witness=[34003])
+    add('syntax-source-binding-elided','query-port=34003\n',actions=[],occupied_ports=[34003],expected_start=False)
+    add('port-zero-suppresses-query-bind','query-port=34003\n',actions=[],occupied_ports=[34003],dns_disabled=True,no_upstream=True,socket_absent=[34003])
+    add('self-selected-endpoint-filtered','server=127.0.0.1#{listen_port}\n',no_upstream=True)
+    add('unselected-local-address-endpoint','server=127.0.0.2#15353\n',upstream_port=15353)
+    add('global-query-socket-retained','query-port=34003\nservers-file=/m2/files/servers\n',
+        files={'servers':'server=127.0.0.2\n'},socket_witness=[34003],
+        actions=[probe('initial'),write('servers',''),signal_reload(),probe('removed'),write('servers','server=127.0.0.3\n'),signal_reload(),probe('restored')])
+    add('system-resolver-timeout','server=lookup.endpoint.test\n',sys_files=resolver_files,
+        resolver_fixture=True,resolver_drop=True,expected_start=False,expected_test=1)
+    add('system-resolver-recovered-next-launch','server=lookup.endpoint.test\n',sys_files=resolver_files,resolver_fixture=True)
+    add('system-resolver-test-port-zero','server=lookup.endpoint.test\n',sys_files=resolver_files,
+        resolver_fixture=True,dns_disabled=True,actions=[])
+    add('system-resolver-search-list','server=lookup\n',resolver_fixture=True,
+        sys_files={'/etc/hosts':'','/etc/resolv.conf':'nameserver 127.0.0.2\nsearch endpoint.test\noptions timeout:1 attempts:1\n'})
     return cases
 
 
@@ -233,7 +267,14 @@ def run_service_side(root, side, case, folder):
         uid=int(next(line.split()[1] for line in status if line.startswith('Uid:')))
         expected_uid=next(int(line.split(':')[2]) for line in (root/'etc/passwd').read_text().splitlines() if line.split(':')[0]==case.get('user','root'))
         cap_eff=next(line.split()[1] for line in status if line.startswith('CapEff:'))
-        return dict(original_identity(root,pid),cap_eff=cap_eff,threads=len(list(Path('/proc',str(pid),'task').iterdir())),uid=uid,expected_uid=expected_uid)
+        sockets=[]
+        for family in ('udp','udp6'):
+            for line in Path('/proc',str(pid),'net',family).read_text().splitlines()[1:]:
+                fields=line.split()
+                descriptors=[int(path.name) for path in Path('/proc',str(pid),'fd').iterdir()
+                    if os.readlink(path)=='socket:['+fields[9]+']']
+                if descriptors: sockets.append({'family':family,'local':fields[1],'port':int(fields[1].split(':')[1],16),'fds':descriptors})
+        return dict(original_identity(root,pid),cap_eff=cap_eff,threads=len(list(Path('/proc',str(pid),'task').iterdir())),uid=uid,expected_uid=expected_uid,sockets=sockets)
     files.process_identity=identity
     original_upstream=files.FileUpstream
     class Captured(original_upstream):
@@ -297,6 +338,7 @@ def run_service_side(root, side, case, folder):
                     event=self.source_events[-1]
                     if resolving and case.get('resolver_delay'): time.sleep(case['resolver_delay'])
                     self.captured.append((packet,peer,response))
+                    if resolving and case.get('resolver_drop'): continue
                     if self.probes.get((read_name(packet,12)[0],struct.unpack_from('!H',packet,read_name(packet,12)[1])[0]),{}).get('drop_all'): continue
                     if 'udp_winner' in case and self.host!=['127.0.0.2','127.0.0.3','127.0.0.4'][case['udp_winner']]: time.sleep(.05)
                     if resolving: event['reply_at']=time.monotonic()
@@ -385,6 +427,10 @@ def source_guard_errors(result,case):
     if not result['startup']['ready']: return errors
     if result.get('identity',{}).get('uid')!=result.get('identity',{}).get('expected_uid'): errors.append('daemon UID does not match configured user')
     if result.get('identity',{}).get('threads')!=1: errors.append('parent daemon is not one thread')
+    for port in case.get('socket_witness',[]):
+        if {row['family'] for row in result['identity']['sockets'] if row['port']==port}!={'udp','udp6'}: errors.append('configured query socket not preallocated for both families')
+    for port in case.get('socket_absent',[]):
+        if any(row['port']==port for row in result['identity']['sockets']): errors.append('DNS disabled still bound configured query socket')
     if case.get('recv_fault') and (len(result.get('recv_faults',[]))!=1 or not result['recv_faults'][0].get('injected')): errors.append('actual recvfrom EIO fault missing')
     udp=[row for row in result['source_events'] if row['transport']=='udp']
     tcp=[row for row in result['source_events'] if row['transport']=='tcp']
