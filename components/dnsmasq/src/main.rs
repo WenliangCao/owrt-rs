@@ -2585,7 +2585,7 @@ impl SinglePoll {
     }
 
     #[cfg(target_os = "linux")]
-    fn append_file_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>) {
+    fn append_file_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>, tcp_logs: bool) {
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if let Some(collector) = &self.interface_collector {
             collector.append_poll_fds(fds);
@@ -2603,6 +2603,7 @@ impl SinglePoll {
             for context in self
                 .clients
                 .iter()
+                .filter(|_| tcp_logs)
                 .filter_map(|client| client.log_context.as_ref())
             {
                 if let Some(fd) = logger.tcp_poll_fd(context) {
@@ -2637,7 +2638,7 @@ impl SinglePoll {
         #[cfg(target_os = "linux")]
         {
             let mut fds = Vec::new();
-            self.append_file_fds(&mut fds);
+            self.append_file_fds(&mut fds, true);
             let mut runnable = self.files_runnable;
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
@@ -4045,7 +4046,9 @@ impl SinglePoll {
             || RELOAD_REQUESTED.load(Ordering::Acquire) != 0
             || LOG_REOPEN_REQUESTED.load(Ordering::Acquire) != 0;
         let mut fds = Vec::new();
-        self.append_file_fds(&mut fds);
+        // A normal C TCP child owns its logger readiness. It does not wake
+        // the parent's ARP loop until cache import or its actual completion.
+        self.append_file_fds(&mut fds, false);
         for listener in &self.listeners {
             if let Some(udp) = &listener.udp {
                 fds.push(PollFd {
