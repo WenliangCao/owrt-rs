@@ -340,6 +340,47 @@ def service_cases():
             {'op':'rename','path':'dir/temp-one','to':'dir/one'},files.probe('target-skips-duplicate','one.records.test'),
             {'op':'unlink','path':'dir/one'},files.probe('temp-uid-retained','one.records.test'),
             files.write('dir/one','192.0.2.9 one.records.test\n'),files.probe('temp-plus-recreated','one.records.test')])
+    for label,config,contents in [('missing','hostsdir=/m2/files/missing\n',{}),
+        ('not-directory','hostsdir=/m2/files/plain\n',{'plain':'not a directory'}),('empty-path','hostsdir=\n',{})]:
+        add('hostsdir-'+label,config+'log-facility=-\n',[('ready.files.test',1)],'HDIR-GRAM HDIR-INIT',files=contents)
+    add('hostsdir-unprivileged',hosts_config+'log-facility=-\n',[('readable.records.test',1),('denied.records.test',1)],
+        'HDIR-INIT',user='nobody',group='nogroup',files={'dir/readable':{'text':'192.0.2.7 readable.records.test\n','mode':0o644},
+            'dir/denied':{'text':'192.0.2.8 denied.records.test\n','mode':0o600}})
+    add('hostsdir-port-zero',hosts_config,[],'HDIR-GRAM',dns_disabled=True,
+        files={'dir/one':'192.0.2.7 one.records.test\n'},actions=[files.write('dir/one','192.0.2.8 one.records.test\n')])
+    add('hostsdir-multiple','hostsdir=/m2/files/first\nhostsdir=/m2/files/second\n',
+        [('one.records.test',1),('two.records.test',1),('7.2.0.192.in-addr.arpa',12)],'HDIR-GRAM HDIR-INIT HDIR-SOURCE',
+        files={'first/one':'192.0.2.7 one.records.test\n','second/two':'192.0.2.7 two.records.test\n'})
+    add('hostsdir-malformed',hosts_config+'local-ttl=77\nlog-facility=-\n',
+        [('good.records.test',1),('partial.records.test',28),('records.test',16)],'HDIR-INIT HDIR-SOURCE',
+        files={'dir/one':'not-an-address skipped.records.test\n192.0.2.7 bad..name good.records.test\n2001:db8::8 partial.records.test'})
+    add('hostsdir-coexist',hosts_config+'addn-hosts=/m2/files/additional\nhost-record=explicit.records.test,192.0.2.10\n',[],
+        'HDIR-SOURCE',files={'dir/one':'192.0.2.7 directory.records.test\n','additional':'192.0.2.8 additional.records.test\n'},actions=[
+            files.probe('directory','directory.records.test'),files.probe('additional','additional.records.test'),files.probe('explicit','explicit.records.test'),
+            {'op':'unlink','path':'dir/one'},files.probe('directory-removed','directory.records.test'),
+            files.probe('additional-retained','additional.records.test'),files.probe('explicit-retained','explicit.records.test')])
+    add('hostsdir-cname-expand',hosts_config+'domain=records.test\nexpand-hosts\ncname=alias.records.test,one.records.test\n',[],
+        'HDIR-INIT HDIR-SOURCE',files={'dir/one':'192.0.2.7 one\n'},actions=[files.probe('initial','alias.records.test'),
+            files.write('dir/one','192.0.2.8 one\n'),files.probe('changed','alias.records.test'),
+            {'op':'unlink','path':'dir/one'},files.probe('removed','alias.records.test')])
+    add('hostsdir-rotation',hosts_config+'local-ttl=77\n',[],'HDIR-INIT HDIR-SOURCE',round_robin=True,
+        files={'dir/one':'192.0.2.7 many.records.test\n192.0.2.8 many.records.test\n2001:db8::7 many.records.test\n'},actions=[
+            *[files.probe('rotation-'+str(i),'many.records.test') for i in range(4)],
+            files.write('dir/one','192.0.2.9 many.records.test\n192.0.2.10 many.records.test\n'),
+            *[files.probe('changed-'+str(i),'many.records.test') for i in range(3)]])
+    add('hostsdir-watch-removed',hosts_config,[],'HDIR-EVENT HDIR-SOURCE',files={'dir/one':'192.0.2.7 one.records.test\n'},actions=[
+        files.probe('initial','one.records.test'),{'op':'unlink','path':'dir/one'},{'op':'rmdir','path':'dir'},
+        files.write('dir/two','192.0.2.8 two.records.test\n'),files.probe('recreated-not-watched','two.records.test'),
+        files.signal_reload(),files.probe('hup-scans-survivor','two.records.test'),
+        files.write('dir/two','192.0.2.9 two.records.test\n'),files.probe('still-not-watched','two.records.test')])
+    add('hostsdir-symlink-retarget',hosts_config,[],'HDIR-GRAM HDIR-INIT HDIR-EVENT',
+        files={'real-one/one':'192.0.2.7 one.records.test\n','real-two/one':'192.0.2.8 one.records.test\n','dir':{'symlink':'real-one'}},actions=[
+            files.probe('initial','one.records.test'),{'op':'symlink','path':'dir','target':'real-two'},files.probe('retarget-no-event','one.records.test'),
+            files.write('real-two/one','192.0.2.9 one.records.test\n'),files.probe('new-target-unwatched','one.records.test'),
+            files.write('real-one/one','192.0.2.10 one.records.test\n'),files.probe('old-watch-reads-current-path','one.records.test')])
+    add('hostsdir-runtime-directory',hosts_config,[],'HDIR-EVENT',files={'dir/one':'192.0.2.7 one.records.test\n','staged-directory/item':'unused'},actions=[
+        files.probe('initial','one.records.test'),{'op':'unlink','path':'dir/one'},
+        {'op':'rename','path':'staged-directory','to':'dir/one'},files.probe('directory-replaces-source','one.records.test')])
     def kernel(argv):return dict(op='write',path='kernel-action',text='',kernel_command=argv)
     def state(label):return dict(op='write',path='interface-state',text='',interface_state=label)
     v4only={'name':'m5ir0','addresses':['198.18.91.9/24']}
@@ -696,7 +737,12 @@ def run_service_side(root,side,case,out):
     states=[];dynamic=[];tracers=[];domain_dhcp=[]
     local_sockets=[]
     initial_commands_applied=False
-    original_put=files.put;original_exchange=files.exchange;original_upstream=files.FileUpstream
+    original_put=files.put;original_exchange=files.exchange;original_upstream=files.FileUpstream;original_command=files.command
+    def owner_command(root,side,*args):
+        if case.get('round_robin') and (root/'m2/files.conf').exists():
+            path=root/'m2/files.conf';text=path.read_text().replace('no-round-robin\n','');path.write_text(text)
+            (out/'config').write_text(text)
+        return original_command(root,side,*args)
     class PreparedUpstream(original_upstream):
         def __init__(self,fixtures,*args):
             fixtures={(row['name'],row['type']):row for row in fixtures}
@@ -885,10 +931,10 @@ def run_service_side(root,side,case,out):
                 evidence=json.loads(path.read_text())
                 if not evidence.get('injected'):raise AssertionError('enumeration failure was not witnessed')
         return row
-    files.put=put;files.exchange=exchange
+    files.put=put;files.exchange=exchange;files.command=owner_command
     try:result=endpoints.run_service_side(root,side,case,out)
     finally:
-        files.put=original_put;files.exchange=original_exchange;files.FileUpstream=original_upstream
+        files.put=original_put;files.exchange=original_exchange;files.FileUpstream=original_upstream;files.command=original_command
         for tracer,path in tracers:
             if tracer.poll() is None:tracer.kill();tracer.wait()
             if path.exists():states.append({'label':'enumeration-fault','evidence':json.loads(path.read_text())})
