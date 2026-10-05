@@ -713,6 +713,11 @@ def controls():
                          ('extra-owner-thread',lambda x:x['identity'].update(threads=2)),
                          ('wrong-runtime-uid',lambda x:x['identity'].update(uid=1))]:
         bad=copy.deepcopy(base);change(bad);assert witness_errors(bad,'c',case);found.append(label)
+    local=dict(base,rows=[{'id':'cached:udp','response':{'records':[{'type':1,'ttl':0}]}}])
+    case={'id':'cached','actions':[{'id':'cached','local_address_ttl':0}]}
+    assert not witness_errors(local,'c',case)
+    bad=copy.deepcopy(local);bad['rows'][0]['response']['records'][0]['ttl']=1
+    assert witness_errors(bad,'c',case);found.append('local-ttl-not-hidden-by-cname-clock')
     allocation=dict(base,interface_states=[*base['interface_states'],{'label':'enumeration-fault','evidence':
         {'symbol':'calloc','required_size':40,'injected':True,'address':100,'calls':[{'size':40,'returned':0,'pc':100}]}}])
     case={'id':'allocation','actions':[{'allocation_fault':True}]}
