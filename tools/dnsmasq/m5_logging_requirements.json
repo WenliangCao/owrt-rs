@@ -360,15 +360,36 @@
           "id": "DBG01",
           "source": "option.c:596,log.c:307-315",
           "boundary": "Suppress MS_DEBUG logs only unless option enabled; LOG_DEBUG script output remains emitted independent of option.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "script-logs-stderr-debug-disabled",
+            "script-logs-stderr-debug-enabled",
+            "script-logs-file-debug-disabled",
+            "script-logs-file-debug-enabled",
+            "script-logs-syslog-debug-disabled",
+            "script-logs-syslog-debug-enabled",
+            "script-logs-stream-debug-disabled",
+            "script-logs-stream-debug-enabled",
+            "script-logs-signal",
+            "script-logs-exec"
+          ]
         },
         {
           "id": "DBG02",
           "source": "all MS_DEBUG my_syslog callers",
           "boundary": "Freeze and reproduce all image-enabled debug producers, payloads and ordering; do not fabricate substitute debug event.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "debug-tcp-v4-disabled",
+            "debug-tcp-v6-disabled",
+            "debug-dynamic-interface-disabled",
+            "debug-dynamic-explicit-disabled",
+            "debug-tcp-v4-enabled",
+            "debug-tcp-v6-enabled",
+            "debug-dynamic-interface-enabled",
+            "debug-dynamic-explicit-enabled"
+          ]
         }
-      ]
+      ],
+      "qualification_ready": true
     },
     "log-malloc": {
       "required": [

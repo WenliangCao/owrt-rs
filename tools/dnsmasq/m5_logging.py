@@ -1537,6 +1537,15 @@ def controls():
     frozen['options']['example']['required'][0]['required_scenarios'] = ['unexecuted']
     result['unexecuted-required-case'] = not qualification(frozen, [], False)['example']['closed']
     assert result['empty-required-map'] and result['unexecuted-required-case']
+    debug_case = {'id': 'debug-control', 'kind': 'run', 'debug_probes': 'interface', 'debug_enabled': True}
+    debug_row = dict(row, interface_index=2,
+        stderr='dnsmasq-debug[1]: listening on m5log(#2): 192.0.2.100 port 15353\n'
+               'dnsmasq-debug[1]: stopped listening on m5log(#2): 192.0.2.100 port 15353\n')
+    assert not compare(debug_row, debug_row, debug_case)
+    result['debug-actual-interface-index'] = bool(compare(debug_row, dict(debug_row, interface_index=3), debug_case))
+    result['debug-unlisten-required'] = bool(compare(dict(debug_row, stderr=debug_row['stderr'].splitlines()[0]), debug_row, debug_case, True))
+    result['debug-disabled-no-output'] = bool(compare(debug_row, debug_row, dict(debug_case, debug_enabled=False), True))
+    assert all(result[name] for name in ['debug-actual-interface-index', 'debug-unlisten-required', 'debug-disabled-no-output'])
     c_wire = bytes.fromhex('732585800001000100000001046b657074076c6f6767696e670000100001c00c0010000100000000000e0d6578706c696369742d7573657200002904d0000000000000')
     leaked = {'transport': 'tcp', 'probe': {'edns': False}, 'reply_wire': c_wire.hex(), 'response': semantics(c_wire)}
     corrected = without_leaked_tcp_opt(leaked)
