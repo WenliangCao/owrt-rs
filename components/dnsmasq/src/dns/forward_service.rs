@@ -402,56 +402,21 @@ pub fn prepare_query(
     Ok((prepared, metadata))
 }
 
-/// Rust's current cache metadata subset, independent of C's forwarding flags.
-/// FREC_NO_CACHE changes duplicate matching and is reserved for source-bound
-/// EDNS configuration. Empty OPT, with or without DO, may populate the cache;
-/// a DO address query still cannot consume these unsigned records. New DO/AD
-/// admission is bounded to IN A/AAAA and their represented CNAME/negative paths.
-/// Unsupported option/version/signature metadata must not alter the forwarding
-/// contract.
+/// Request metadata is not an extraction gate in the exact no-DNSSEC C.
+/// FREC_NO_CACHE and CD gate ordinary commit separately; the extractor owns
+/// reply eligibility and RR representation. Signed requests, opaque options,
+/// OPT versions/flags and other Additional records may populate the cache.
 pub(crate) fn ordinary_cache_query(packet: &[u8]) -> bool {
-    let Ok(header) = Header::parse(packet) else {
-        return false;
-    };
-    let Ok(scan) = find_pseudoheader(packet, true) else {
-        return false;
-    };
-    if scan.signed {
-        return false;
-    }
-    if (header.flags & 0x20 != 0 || scan.opt.as_ref().is_some_and(|opt| opt.dnssec_ok()))
-        && !super::forward::Question::parse(packet)
-            .is_ok_and(|question| question.class == 1 && matches!(question.rrtype, 1 | 28))
-    {
-        return false;
-    }
-    scan.opt.as_ref().is_none_or(|opt| {
-        header.additionals == 1 && opt.record.ttl & !0x8000 == 0 && opt.record.rdata.is_empty()
-    })
+    Header::parse(packet).is_ok_and(|header| {
+        header.questions == 1
+            && header.answers == 0
+            && header.authorities == 0
+            && header.opcode() == 0
+    }) && find_pseudoheader(packet, true).is_ok()
 }
 
-/// EDNS policy represents source dependence explicitly in FREC_NO_CACHE.
-/// Opaque request options do not change the cached RR representation. Retain
-/// the existing DNSSEC query-type and signature gates independently.
 pub(crate) fn edns_cache_query(packet: &[u8]) -> bool {
-    let Ok(header) = Header::parse(packet) else {
-        return false;
-    };
-    let Ok(scan) = find_pseudoheader(packet, true) else {
-        return false;
-    };
-    if scan.signed {
-        return false;
-    }
-    if (header.flags & 0x20 != 0 || scan.opt.as_ref().is_some_and(|opt| opt.dnssec_ok()))
-        && !super::forward::Question::parse(packet)
-            .is_ok_and(|question| question.class == 1 && matches!(question.rrtype, 1 | 28))
-    {
-        return false;
-    }
-    scan.opt
-        .as_ref()
-        .is_none_or(|opt| header.additionals == 1 && opt.record.ttl & !0x8000 == 0)
+    ordinary_cache_query(packet)
 }
 
 /// A proven exact-image defect merges different client MAC/ECS/Umbrella
@@ -555,7 +520,7 @@ mod tests {
     }
 
     #[test]
-    fn opt_cache_eligibility_does_not_admit_unrepresented_metadata() {
+    fn opt_cache_eligibility_keeps_metadata_outside_record_representation() {
         for (ttl, data) in [
             (1u32, &[][..]),
             (0x4000, &[][..]),
@@ -571,7 +536,7 @@ mod tests {
             packet.extend_from_slice(data);
             let (_, metadata) = prepare_query(&packet, 1232).unwrap();
             assert!(metadata.had_opt && !metadata.flags.no_cache);
-            assert!(!ordinary_cache_query(&packet));
+            assert!(ordinary_cache_query(&packet));
         }
     }
 
@@ -594,12 +559,12 @@ mod tests {
             .dnssec_ok());
         for rrtype in [5u16, 16, 46, 48] {
             packet[question_type..question_type + 2].copy_from_slice(&rrtype.to_be_bytes());
-            assert!(!ordinary_cache_query(&packet));
+            assert!(ordinary_cache_query(&packet));
         }
     }
 
     #[test]
-    fn ad_does_not_admit_a_signed_address_query_without_opt() {
+    fn signed_address_query_may_populate_ordinary_cache() {
         let mut packet = query("example.test", 9);
         packet[3] |= 0x20;
         packet[11] = 1;
@@ -607,7 +572,7 @@ mod tests {
         let (prepared, metadata) = prepare_query(&packet, 1232).unwrap();
         assert!(metadata.signed);
         assert_eq!(prepared, packet);
-        assert!(!ordinary_cache_query(&packet));
+        assert!(ordinary_cache_query(&packet));
     }
 
     #[test]
