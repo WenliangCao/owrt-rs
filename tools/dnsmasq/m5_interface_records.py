@@ -441,6 +441,19 @@ def service_cases():
             actions=[files.probe('warm','negative-alias.records.test',transports=['udp']),
                 files.probe('terminal','iface.records.test',cache=True),
                 files.probe('cached-alias','negative-alias.records.test',cache=True)])
+    for label,rcode in [('nodata',0),('nxdomain',3)]:
+        add('synth-reverse-negative-'+label,'synth-domain=synthetic.records.test,192.0.2.7,192.0.2.9\n',[],'SYN-PTR',
+            cache_size=16,negative_names=[],upstream_fixtures=[{'name':'10.2.0.192.in-addr.arpa','type':12,'rcode':rcode,
+                'records':[{'type':5,'target':'7.2.0.192.in-addr.arpa'}, {'type':6,'owner':'2.0.192.in-addr.arpa',
+                    'hex':(matrix.name('ns.records.test')+matrix.name('hostmaster.records.test')+struct.pack('!5I',1,60,60,3600,120)).hex(),'section':'authority'}]}],
+            actions=[files.probe('warm','10.2.0.192.in-addr.arpa',type=12,transports=['udp']),
+                files.probe('synthetic','7.2.0.192.in-addr.arpa',type=12,cache=True),
+                files.probe('cached-alias','10.2.0.192.in-addr.arpa',type=12,cache=True)])
+    reverse_bits=[files.probe('reverse-'+str(kind)+'-'+str(cls)+'-'+str(rd)+'-'+str(do),'7.2.0.192.in-addr.arpa',type=kind,
+            **{'class':cls,'query_flags':256 if rd else 0,'do':do,'cd':do})
+        for kind in (12,255) for cls,rd,do in [(1,True,False),(1,False,False),(1,True,True),(3,True,False),(255,True,False)]]
+    add('synth-reverse-bits','synth-domain=synthetic.records.test,192.0.2.7,192.0.2.9\nlocal-ttl=77\n',[],'SYN-PTR',actions=reverse_bits+
+        [files.probe('bad-arpa','invalid.in-addr.arpa',type=12),files.probe('nonarpa','nonarpa.records.test',type=12)])
     add('synth-tcp-snapshot','synth-domain=synthetic.records.test,192.0.2.7,192.0.2.9,p*\nlocal-ttl=77\n',[],
         'SYN-PTR',actions=[dict(op='connect',id='held'),files.probe('child','p0.synthetic.records.test',transports=['held']),
             files.signal_reload(),files.probe('child-after','7.2.0.192.in-addr.arpa',type=12,transports=['held']),
