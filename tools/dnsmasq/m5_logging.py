@@ -412,6 +412,13 @@ def cases():
                      'overlong_pid': target == 'pid', 'receiver': 'dgram',
                      'argv': ['--log-facility=' + (path if target == 'log' else '-')],
                      'options': ['no-daemon', 'log-facility']})
+    prefix = b'/m2/logging/' + b'x' * 5000
+    rows.append({'id': 'debug-echo-overlong-tftp-root', 'scope': 'root-access', 'kind': 'run',
+                 'mode': ['-d'], 'daemonized': False, 'pidfile': '/m2/logging/daemon.pid',
+                 'file': '/m2/logging/daemon.log', 'argv': ['--log-facility=/m2/logging/daemon.log'],
+                 'config_bytes': (b'enable-tftp\ntftp-no-fail\ntftp-root=' + prefix + b'\n').hex(),
+                 'root_prefix': prefix.hex(), 'root_variant': 'global-no-fail', 'root_no_fail': True,
+                 'options': ['no-daemon', 'log-facility']})
     for mode, label in [([], 'default'), (['-k'], 'foreground'), (['-d'], 'debug')]:
         for variant, prefix, no_fail, enabled in [
             ('global-fatal', b'/m2/logging/missing-global', False, True),
@@ -1686,6 +1693,18 @@ def compare(reference, candidate, case, reference_only=False):
         prefix = bytes.fromhex(case['root_prefix']).decode(errors='backslashreplace')
         text = reference['stderr']
         variant = case['root_variant']
+        if case['id'] == 'debug-echo-overlong-tftp-root':
+            for side, row in [('c', reference)] + ([] if reference_only else [('rust', candidate)]):
+                warning = 'dnsmasq-tftp: warning: ' + prefix + ' inaccessible\n'
+                signon = 'dnsmasq-tftp: TFTP root is ' + prefix + '  \n'
+                if warning not in row['stderr'] or signon not in row['stderr']:
+                    failures.append({'kind': 'uncapped-debug-echo-required', 'side': side})
+                primary = [line + b'\n' for value in row['files'].values()
+                           for line in bytes.fromhex(value).splitlines()
+                           if b'TFTP root is ' in line or b': warning: /m2/logging/' in line]
+                if len(primary) != 2 or any(len(record) != 1024 for record in primary):
+                    failures.append({'kind': 'primary-record-cap-required', 'side': side,
+                                     'lengths': [len(record) for record in primary]})
         if variant == 'unused-root':
             if any(message in text for message in ['-tftp[', 'TFTP root is ', 'TFTP enabled', 'inaccessible']):
                 failures.append({'kind': 'C-unused-TFTP-root', 'actual': text})
