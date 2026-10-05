@@ -1,0 +1,385 @@
+{
+  "family": "DHCP device binding callers for bind-interfaces/bind-dynamic",
+  "stock_c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "source": [
+    "dhcp-common.c:558-641",
+    "dnsmasq.c:380-397,1027-1028,1136-1143"
+  ],
+  "observation": "pidfd_getfd then getsockopt(SO_BINDTODEVICE) on actual daemon UDP67/4011 descriptors; saved ELF and exact-image rootfs identity",
+  "cases": [
+    {
+      "case": "static-unique",
+      "mode": "static",
+      "profile": "unique",
+      "config": [
+        "bind-interfaces",
+        "interface=m5a"
+      ],
+      "device": "m5a",
+      "main": true,
+      "pxe": false,
+      "action": null
+    },
+    {
+      "case": "static-wildcard-name",
+      "mode": "static",
+      "profile": "wildcard-name",
+      "config": [
+        "bind-interfaces",
+        "interface=m5*"
+      ],
+      "device": "",
+      "main": true,
+      "pxe": false,
+      "action": null
+    },
+    {
+      "case": "static-two",
+      "mode": "static",
+      "profile": "two",
+      "config": [
+        "bind-interfaces",
+        "interface=m5a",
+        "interface=m5b"
+      ],
+      "device": "",
+      "main": true,
+      "pxe": false,
+      "action": null
+    },
+    {
+      "case": "static-listen-only",
+      "mode": "static",
+      "profile": "listen-only",
+      "config": [
+        "bind-interfaces",
+        "listen-address=192.0.2.1"
+      ],
+      "device": "",
+      "main": true,
+      "pxe": false,
+      "action": null
+    },
+    {
+      "case": "static-no-dhcpv4-ghost6",
+      "mode": "static",
+      "profile": "no-dhcpv4-ghost6",
+      "config": [
+        "bind-interfaces",
+        "interface=m5a",
+        "no-dhcpv4-interface=m5a"
+      ],
+      "device": "m5a",
+      "main": true,
+      "pxe": false,
+      "action": null
+    },
+    {
+      "case": "static-two-with-ghost6",
+      "mode": "static",
+      "profile": "two-with-ghost6",
+      "config": [
+        "bind-interfaces",
+        "interface=m5a",
+        "interface=m5b",
+        "no-dhcpv4-interface=m5b"
+      ],
+      "device": "",
+      "main": true,
+      "pxe": false,
+      "action": null
+    },
+    {
+      "case": "static-no-dhcp-both",
+      "mode": "static",
+      "profile": "no-dhcp-both",
+      "config": [
+        "bind-interfaces",
+        "interface=m5a",
+        "no-dhcp-interface=m5a"
+      ],
+      "device": "",
+      "main": true,
+      "pxe": false,
+      "action": null
+    },
+    {
+      "case": "static-alias",
+      "mode": "static",
+      "profile": "alias",
+      "config": [
+        "bind-interfaces",
+        "interface=m5a:1"
+      ],
+      "device": "m5a",
+      "main": true,
+      "pxe": false,
+      "action": null
+    },
+    {
+      "case": "static-relay-pxe",
+      "mode": "static",
+      "profile": "relay-pxe",
+      "config": [
+        "bind-interfaces",
+        "interface=m5a",
+        "dhcp-relay=192.0.2.1,198.51.100.2",
+        "pxe-service=0,Binding fixture,boot.bin"
+      ],
+      "device": "m5a",
+      "main": false,
+      "pxe": true,
+      "action": null
+    },
+    {
+      "case": "static-relay-only",
+      "mode": "static",
+      "profile": "relay-only",
+      "config": [
+        "bind-interfaces",
+        "interface=m5a",
+        "dhcp-relay=192.0.2.1,198.51.100.2"
+      ],
+      "device": "",
+      "main": false,
+      "pxe": false,
+      "action": null
+    },
+    {
+      "case": "static-runtime-recreate",
+      "mode": "static",
+      "profile": "runtime-recreate",
+      "config": [
+        "bind-interfaces",
+        "interface=m5a",
+        "quiet-dhcp"
+      ],
+      "device": "m5a",
+      "main": true,
+      "pxe": false,
+      "action": "recreate"
+    },
+    {
+      "case": "static-except-listen-override",
+      "mode": "static",
+      "profile": "except-listen-override",
+      "config": [
+        "bind-interfaces",
+        "interface=m5a",
+        "except-interface=m5a",
+        "listen-address=192.0.2.1"
+      ],
+      "device": "m5a",
+      "main": true,
+      "pxe": false,
+      "action": null
+    },
+    {
+      "case": "dynamic-unique",
+      "mode": "dynamic",
+      "profile": "unique",
+      "config": [
+        "bind-dynamic",
+        "interface=m5a"
+      ],
+      "device": "m5a",
+      "main": true,
+      "pxe": false,
+      "action": null
+    },
+    {
+      "case": "dynamic-wildcard-name",
+      "mode": "dynamic",
+      "profile": "wildcard-name",
+      "config": [
+        "bind-dynamic",
+        "interface=m5*"
+      ],
+      "device": "",
+      "main": true,
+      "pxe": false,
+      "action": null
+    },
+    {
+      "case": "dynamic-two",
+      "mode": "dynamic",
+      "profile": "two",
+      "config": [
+        "bind-dynamic",
+        "interface=m5a",
+        "interface=m5b"
+      ],
+      "device": "",
+      "main": true,
+      "pxe": false,
+      "action": null
+    },
+    {
+      "case": "dynamic-listen-only",
+      "mode": "dynamic",
+      "profile": "listen-only",
+      "config": [
+        "bind-dynamic",
+        "listen-address=192.0.2.1"
+      ],
+      "device": "",
+      "main": true,
+      "pxe": false,
+      "action": null
+    },
+    {
+      "case": "dynamic-no-dhcpv4-ghost6",
+      "mode": "dynamic",
+      "profile": "no-dhcpv4-ghost6",
+      "config": [
+        "bind-dynamic",
+        "interface=m5a",
+        "no-dhcpv4-interface=m5a"
+      ],
+      "device": "m5a",
+      "main": true,
+      "pxe": false,
+      "action": null
+    },
+    {
+      "case": "dynamic-two-with-ghost6",
+      "mode": "dynamic",
+      "profile": "two-with-ghost6",
+      "config": [
+        "bind-dynamic",
+        "interface=m5a",
+        "interface=m5b",
+        "no-dhcpv4-interface=m5b"
+      ],
+      "device": "",
+      "main": true,
+      "pxe": false,
+      "action": null
+    },
+    {
+      "case": "dynamic-no-dhcp-both",
+      "mode": "dynamic",
+      "profile": "no-dhcp-both",
+      "config": [
+        "bind-dynamic",
+        "interface=m5a",
+        "no-dhcp-interface=m5a"
+      ],
+      "device": "",
+      "main": true,
+      "pxe": false,
+      "action": null
+    },
+    {
+      "case": "dynamic-alias",
+      "mode": "dynamic",
+      "profile": "alias",
+      "config": [
+        "bind-dynamic",
+        "interface=m5a:1"
+      ],
+      "device": "m5a",
+      "main": true,
+      "pxe": false,
+      "action": null
+    },
+    {
+      "case": "dynamic-relay-pxe",
+      "mode": "dynamic",
+      "profile": "relay-pxe",
+      "config": [
+        "bind-dynamic",
+        "interface=m5a",
+        "dhcp-relay=192.0.2.1,198.51.100.2",
+        "pxe-service=0,Binding fixture,boot.bin"
+      ],
+      "device": "m5a",
+      "main": false,
+      "pxe": true,
+      "action": null
+    },
+    {
+      "case": "dynamic-relay-only",
+      "mode": "dynamic",
+      "profile": "relay-only",
+      "config": [
+        "bind-dynamic",
+        "interface=m5a",
+        "dhcp-relay=192.0.2.1,198.51.100.2"
+      ],
+      "device": "",
+      "main": false,
+      "pxe": false,
+      "action": null
+    },
+    {
+      "case": "dynamic-runtime-recreate",
+      "mode": "dynamic",
+      "profile": "runtime-recreate",
+      "config": [
+        "bind-dynamic",
+        "interface=m5a",
+        "quiet-dhcp"
+      ],
+      "device": "m5a",
+      "main": true,
+      "pxe": false,
+      "action": "recreate"
+    },
+    {
+      "case": "dynamic-except-listen-override",
+      "mode": "dynamic",
+      "profile": "except-listen-override",
+      "config": [
+        "bind-dynamic",
+        "interface=m5a",
+        "except-interface=m5a",
+        "listen-address=192.0.2.1"
+      ],
+      "device": "m5a",
+      "main": true,
+      "pxe": false,
+      "action": null
+    },
+    {
+      "case": "wildcard-listener-unique",
+      "mode": "wildcard",
+      "profile": "unique",
+      "config": [
+        "interface=m5a"
+      ],
+      "device": "",
+      "main": true,
+      "pxe": false,
+      "action": null
+    },
+    {
+      "case": "dynamic-missing-late",
+      "mode": "dynamic",
+      "profile": "missing-late",
+      "config": [
+        "bind-dynamic",
+        "interface=m5a",
+        "interface=m5b"
+      ],
+      "device": "",
+      "main": true,
+      "pxe": false,
+      "action": "late"
+    },
+    {
+      "case": "static-no-dhcp-service",
+      "mode": "static",
+      "profile": "no-service",
+      "config": [
+        "bind-interfaces",
+        "interface=m5a"
+      ],
+      "device": "",
+      "main": false,
+      "pxe": false,
+      "action": null,
+      "no_service": true
+    }
+  ]
+}
