@@ -273,6 +273,17 @@ def cases():
                      'argv': ['--log-facility=-', '--log-queries=proto', '--server=127.0.0.2#15957', '--cache-rr=TXT', *extra],
                      'query_probes': True, 'query_mode': 'proto', 'query_sequence': probes,
                      'query_upstream': True, 'query_required_messages': required, 'options': ['log-queries']})
+    rows.append({'id': 'query-control-labels', 'scope': 'query-control', 'kind': 'run',
+                 'argv': ['--log-facility=-', '--log-queries=proto'], 'query_probes': True,
+                 'query_mode': 'proto', 'query_sequence': [('ready.logging', 1)], 'query_control_probe': True,
+                 'query_required_messages': ['non-query opcode 2 from 127.0.0.1', 'reply opcode is not implemented',
+                                            'config version.bind is not implemented', 'query[A] ready.logging from 127.0.0.1'],
+                 'options': ['log-queries']})
+    rows.append({'id': 'query-upstream-errors', 'scope': 'query-control', 'kind': 'run',
+                 'argv': ['--log-facility=-', '--log-queries=proto', '--all-servers', '--server=127.0.0.2#15957', '--server=127.0.0.3#15958'],
+                 'query_probes': True, 'query_mode': 'proto', 'query_sequence': [('ready.logging', 1), ('formerr.forward.test', 1), ('servfail.forward.test', 1), ('numeric.forward.test', 1)],
+                 'query_upstream': True, 'query_required_messages': ['reply error is FORMERR', 'reply error is SERVFAIL', 'reply error is 10'],
+                 'options': ['log-queries']})
     for kind in ['coalesce', 'clientretry', 'fastretry']:
         rows.append({'id': 'query-transaction-' + kind, 'scope': 'query-transactions', 'kind': 'run',
                      'argv': ['--log-facility=-', '--log-queries=proto', '--server=127.0.0.2#15957',
@@ -1041,6 +1052,8 @@ class QueryUpstream:
         if kind == 12:
             body = rr(12, wire_name('ptr-target.forward.test'))
             return request[:2] + struct.pack('!5H', 0x8180, 1, 1, 0, 0) + question + body
+        for prefix, rcode in [('formerr.', 1), ('servfail.', 2), ('numeric.', 10)]:
+            if name.startswith(prefix): return request[:2] + struct.pack('!5H', 0x8180 | rcode, 1, 0, 0, 0) + question
         if name.startswith('error.'):
             return request[:2] + struct.pack('!5H', 0x8185, 1, 0, 0, 0) + question
         if name.startswith('truncated.'):
@@ -1113,6 +1126,25 @@ def query_transaction_probe(kind):
         rows.append({'transport': 'udp-cached', 'response': answer});trace.append(dict(raw, transport='udp-cached'))
     finally:
         for client in clients: client.close()
+    return rows, trace
+
+
+def query_control_probe():
+    rows, trace = [], []
+    probes = [('ready.logging', 1, 1, 2), ('version.bind', 16, 3, 0), ('ready.logging', 1, 255, 0)]
+    for transport in ['udp', 'tcp']:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM if transport == 'tcp' else socket.SOCK_DGRAM) as client:
+            client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            client.bind(('127.0.0.1', 16510)); client.settimeout(1)
+            if transport == 'tcp': client.connect(('127.0.0.1', 15353))
+            for index, (name, kind, cls, opcode) in enumerate(probes):
+                wire = struct.pack('!6H', 0x7700 + index, 0x0100 | opcode << 11, 1, 0, 0, 0) + wire_name(name) + struct.pack('!HH', kind, cls)
+                if transport == 'tcp':
+                    client.sendall(len(wire).to_bytes(2, 'big') + wire); response = exact_read(client, int.from_bytes(exact_read(client, 2), 'big'))
+                else: client.sendto(wire, ('127.0.0.1', 15353)); response = client.recv(65535)
+                if response[:2] != wire[:2]: raise AssertionError('query control transaction changed')
+                rows.append({'name': name, 'class': cls, 'opcode': opcode, 'transport': transport, 'response': semantics(response)})
+                trace.append({'request': wire.hex(), 'reply': response.hex(), 'transport': transport})
     return rows, trace
 
 
@@ -1420,6 +1452,8 @@ def run(root, side, case, out):
                     answer, raw = exchange('ready.logging', port=16503)
                     observed['dns'].append({'name': 'ready.logging', 'type': 1, 'transport': 'udp-after-tcp', 'response': answer})
                     trace['dns'].append(dict(raw, transport='udp-after-tcp'))
+                    if case.get('query_control_probe'):
+                        rows, raw = query_control_probe(); observed['dns'].extend(rows); trace['dns'].extend(raw)
                     if case.get('query_transaction_probe'):
                         rows, raw = query_transaction_probe(case['query_transaction_probe'])
                         observed['dns'].extend(rows); trace['dns'].extend(raw)
