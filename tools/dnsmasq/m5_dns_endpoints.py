@@ -170,6 +170,15 @@ def service_cases():
     add('system-resolver-before-invalid-row','server=lookup.endpoint.test\ninvalid-option=1\n',sys_files=resolver_files,resolver_fixture=True,expected_start=False,expected_test=1)
     add('file-partial-success-before-scope-error','servers-file=/m2/files/servers\n',files={'servers':'server=/one.endpoint.test/partial.endpoint.test%missing\nserver=/two.endpoint.test/127.0.0.3\n'},sys_files={'/etc/hosts':'127.0.0.2 partial.endpoint.test\n2001:db8::53 partial.endpoint.test\n'},names=('one.endpoint.test','two.endpoint.test'),diagnostics=True)
     add('zero-server-preallocation-bound','bind-interfaces\nserver=0.0.0.0@192.0.2.99#34004\n',expected_start=False,no_upstream=True)
+    reuse_actions=[]
+    for round_index in range(2):
+        for i in range(24):
+            ident=f'r{round_index}-q{i}'
+            reuse_actions.append(dict(op='start-udp',id=ident,name=ident+'.endpoint.test'))
+        for i in reversed(range(24)):
+            ident=f'r{round_index}-q{i}'
+            reuse_actions.extend([dict(op='inject',id=ident,server=0),dict(op='receive-udp',id=ident,pending=ident)])
+    add('pool-slot-reuse-round-robin','dns-forward-max=40\nserver=127.0.0.2\n',inherited_nofile=40,port_epochs=True,actions=reuse_actions)
     return cases
 
 
@@ -273,6 +282,16 @@ def run_service_side(root, side, case, folder):
     files.FileUpstream=Captured
     SourceCapture.instances=[]
     occupied=[]
+    original_socket=socket.socket
+    class ReservedListener(original_socket):
+        def bind(self,address):
+            if address==('127.0.0.1',0):
+                self.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+                address=('127.0.0.1',15353)
+            return super().bind(address)
+    def fixture_socket(*args,**kwargs):
+        return ReservedListener() if not args and not kwargs else original_socket(*args,**kwargs)
+    files.socket.socket=fixture_socket
     original_command=files.command
     def wrapped_command(root,side,*args):
         command=original_command(root,side,*case.get('argv',[]),*('-d' if arg=='-k' and case.get('debug') else arg for arg in args))
@@ -288,6 +307,7 @@ def run_service_side(root, side, case, folder):
         files.command=original_command
         files.FileUpstream=original_upstream
         files.process_identity=original_identity
+        files.socket.socket=original_socket
     result['source_events']=[row for upstream in SourceCapture.instances for row in upstream.source_events]
     result['injected_packets']=[row for upstream in SourceCapture.instances for row in getattr(upstream,'injected',[])]
     result['recv_faults']=[upstream.recv_fault for upstream in SourceCapture.instances if hasattr(upstream,'recv_fault')]
@@ -327,7 +347,7 @@ def source_projection(observed,case):
     for original in observed['source_events']:
         row=copy.deepcopy(original);row.pop('wire',None)
         port=row['peer'][1]
-        key=(row['transport'],port)
+        key=(row['transport'],port,row['name'].split('-')[0] if case.get('port_epochs') else '')
         sequential_range=row['transport']=='udp' and case.get('source_range') and not case.get('same_udp_port') and 'udp_unique_ports' not in case
         if sequential_range: row['peer'][1]='in-range'
         elif port not in exact:
@@ -370,7 +390,7 @@ def run_service(args, cases):
     sides=['c','rust'] if args.side=='both' else ['c']
     roots={side:prepare(args.image_root,None,args.out/side,args.rust) for side in sides}
     save(args.out/'schedule.json',cases)
-    report={'mode':'service','source_commit':args.source_commit,'rust_sha256':sha256(args.rust),'rust_bytes':args.rust.stat().st_size,'c_sha256':STOCK_SHA256,'comparison_executed':args.side=='both','cases':[],'failures':[],'closed_options':[],'negative_controls':controls()}
+    report={'mode':'service','fixture_environment':{'listener_port':15353,'ephemeral_range':[40000,60999],'privileged_port_start':1024},'source_commit':args.source_commit,'rust_sha256':sha256(args.rust),'rust_bytes':args.rust.stat().st_size,'c_sha256':STOCK_SHA256,'comparison_executed':args.side=='both','cases':[],'failures':[],'closed_options':[],'negative_controls':controls()}
     for case in cases:
         folder=args.out/case['id'];folder.mkdir()
         row={'id':case['id'],'failures':[]}
