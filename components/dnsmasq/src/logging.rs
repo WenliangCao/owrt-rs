@@ -2,6 +2,7 @@
 //!
 //! The image's log.c is the formatting, reconnect and overflow reference.
 //! Writes and retry work are bounded: the owner never sleeps for a logger.
+pub mod startup;
 use crate::config::logging::LoggingConfig;
 use crate::startup::{ProcessConfig, StartupError};
 use std::collections::VecDeque;
@@ -118,6 +119,7 @@ impl Logger {
         let config = LoggingConfig {
             facility: Some(24),
             file: None,
+            ..Default::default()
         };
         let (mut logger, _) = Self::start(&config, &ProcessConfig::default(), None)?;
         logger.fallback = true;
@@ -165,6 +167,15 @@ impl Logger {
                 ownership_warning = Some(io::Error::last_os_error());
             }
         }
+        let limit = if matches!(destination, Destination::Syslog { .. }) {
+            if config.async_queue == 0 {
+                1
+            } else {
+                config.async_queue.max(0) as usize
+            }
+        } else {
+            1
+        };
         Ok((
             Self {
                 config: config.clone(),
@@ -172,14 +183,14 @@ impl Logger {
                 echo,
                 echo_queue: VecDeque::new(),
                 queue: VecDeque::new(),
-                limit: 1,
+                limit,
                 lost: 0,
                 facility: config
                     .facility
                     .unwrap_or(if process.debug { 128 } else { 24 }),
                 omit_timestamp: stderr && process.keep_in_foreground,
                 connection_good: true,
-                debug_enabled: false,
+                debug_enabled: config.debug,
                 fallback: false,
             },
             ownership_warning,
@@ -191,11 +202,23 @@ impl Logger {
         self.debug_enabled = enabled;
     }
 
-    /// log-async accepts 0..100; file and stderr destinations always use one
-    /// record. A zero async limit retains the C single preallocated buffer.
-    pub fn set_queue_limit(&mut self, limit: usize) {
+    /// File and stderr ignore log-async; negative wrapped C ints cannot
+    /// allocate any entries. Zero retains the single preallocated buffer.
+    pub fn set_queue_limit(&mut self, limit: i32) {
         if matches!(self.destination, Destination::Syslog { .. }) {
-            self.limit = limit.clamp(1, 100);
+            self.limit = if limit == 0 {
+                1
+            } else {
+                limit.clamp(0, 100) as usize
+            };
+        }
+    }
+
+    pub fn async_queue_limit(&self) -> i32 {
+        if self.config.file.is_none() {
+            self.config.async_queue
+        } else {
+            0
         }
     }
 
@@ -369,6 +392,13 @@ impl Logger {
                     }
                 }
             }
+            if self.fallback && matches!(self.destination, Destination::Syslog { .. }) {
+                // libc syslog silently drops an undeliverable fallback record;
+                // it does not recursively generate another "log failed".
+                self.queue.clear();
+                self.connection_good = false;
+                break;
+            }
             // C abandons its queued records and reports the failure through
             // libc syslog. Use the same destination without a blocking libc call.
             self.queue.clear();
@@ -387,6 +417,10 @@ impl Logger {
                     format!("log failed: {}", error_text(&error)).as_bytes(),
                 );
                 self.queue.push_back(Record::new(bytes));
+                // Complete the immediate fallback attempt before accepting the
+                // next producer. Otherwise the single file buffer drops that
+                // next line and incorrectly emits an overflow warning.
+                continue;
             }
             self.connection_good = false;
             break;
@@ -440,6 +474,7 @@ mod tests {
         let config = LoggingConfig {
             file: Some(path.clone()),
             facility: None,
+            ..Default::default()
         };
         let (mut logger, warning) =
             Logger::start(&config, &ProcessConfig::default(), None).unwrap();
@@ -589,6 +624,7 @@ pub fn report_startup_failure(config: &LoggingConfig, process: &ProcessConfig, m
                 .facility
                 .unwrap_or(if process.debug { 128 } else { 24 }),
         ),
+        ..Default::default()
     };
     if let Ok((mut logger, _)) = Logger::start(&fallback, &ProcessConfig::default(), None) {
         logger.fallback = true;

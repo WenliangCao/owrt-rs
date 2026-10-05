@@ -70,12 +70,14 @@ impl TftpListener<RealFileOpener> {
         no_tftp: &[Option<Vec<u8>>],
         effective_uid: u32,
         random_sockets: usize,
+        packet_buffer_size: usize,
     ) -> io::Result<Self> {
         let policy = Policy::new(config, dns, no_dhcp, no_tftp)?;
         let open_max = descriptor_limit()?;
         let limit = config.transfer_limit(open_max, random_sockets.min((open_max / 3) as usize));
         let runtime = TransferRuntime::new(
             RuntimeConfig {
+                packet_buffer_size,
                 path: RuntimePathPolicy {
                     prefix: config.root.clone(),
                     lowercase: config.lowercase,
@@ -107,7 +109,8 @@ impl<O: FileOpener> TftpListener<O> {
             runtime,
             port_range: port_range.map(|(a, b)| (a.min(b), a.max(b))),
             single_port,
-            buffer: vec![0; 65535],
+            // C receives RRQ/ACK/ERR in workspacename[MAXDNAMESTR].
+            buffer: vec![0; crate::tftp_service::MAX_PATH_BYTES],
             policy: None,
             pending: VecDeque::new(),
             completed: VecDeque::new(),
@@ -156,6 +159,11 @@ impl<O: FileOpener> TftpListener<O> {
         self.policy
             .as_ref()
             .is_some_and(|policy| policy.config.unique_root_mac)
+    }
+    pub fn quiet_not_found(&self) -> bool {
+        self.policy
+            .as_ref()
+            .is_some_and(|policy| policy.config.quiet)
     }
     /// The owner queries this before dropping privileges. Only static DAD
     /// and dynamic listeners can need a later privileged TFTP bind.
@@ -549,6 +557,11 @@ impl<O: FileOpener> TftpListener<O> {
             ) {
                 Ok(socket) => Some(socket),
                 Err(error) => {
+                    if self.port_range.is_some_and(|(start, _)| start != 0)
+                        && error.kind() == io::ErrorKind::AddrInUse
+                    {
+                        events.push(RuntimeEvent::NoFreePort);
+                    }
                     events.push(RuntimeEvent::TransportError {
                         id: None,
                         peer: datagram.peer,
@@ -615,7 +628,9 @@ impl<O: FileOpener> TftpListener<O> {
                     self.routes.remove(id);
                     None
                 }
-                RuntimeEvent::TransportError { .. } => None,
+                RuntimeEvent::TransportError { .. }
+                | RuntimeEvent::ClientError { .. }
+                | RuntimeEvent::NoFreePort => None,
             };
             if let Some((id, peer, packet)) = sending {
                 if let (Some(id), Some(route)) = (id, route) {
@@ -915,7 +930,7 @@ mod tests {
             ..TftpConfig::default()
         };
         let dns = DnsConfig::default();
-        let mut listener = TftpListener::bind_config(&config, &dns, &[], &[], 0, 0).unwrap();
+        let mut listener = TftpListener::bind_config(&config, &dns, &[], &[], 0, 0, 1497).unwrap();
         assert_eq!(listener.servers.len(), 2);
         assert!(listener.validate_roots().unwrap().is_empty());
         let v4 = UdpSocket::bind("127.0.0.1:0").unwrap();

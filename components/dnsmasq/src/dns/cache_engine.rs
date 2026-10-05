@@ -54,7 +54,10 @@ pub(super) enum OrdinaryCacheMode {
 }
 
 impl CacheContext<'_> {
-    pub fn answer_udp(
+    /// The caller has evaluated add_edns0_config's cacheable flag. EDNS
+    /// request options then need no per-record cache representation.
+    #[allow(clippy::too_many_arguments)]
+    pub fn answer_udp_with_edns(
         &mut self,
         query: &[u8],
         question: &super::forward::Question,
@@ -62,6 +65,7 @@ impl CacheContext<'_> {
         local: &mut LocalDnsService,
         max_udp: usize,
         edns_packet_max: u16,
+        allow_options: bool,
     ) -> Result<CachedAnswer, CacheError> {
         self.answer_udp_with_edns(query, question, now, local, max_udp, edns_packet_max, false)
     }

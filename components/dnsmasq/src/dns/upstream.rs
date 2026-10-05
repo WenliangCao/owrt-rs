@@ -690,18 +690,25 @@ impl<R: Random> UpstreamResolver<R> {
         self.socket_settings
     }
 
+    /// Call at C's enumerate_interfaces boundary, independently of route/file
+    /// publication. Wildcard address notifications and SIGHUP do not refresh
+    /// this cache; bound-dynamic address changes and parent TCP accepts do.
+    pub fn refresh_source_interface_indices(&mut self) {
+        for source in self.source_bindings.values_mut() {
+            source.refresh_interface_index();
+        }
+    }
+
     pub fn configure_source_sockets(
         &mut self,
         settings: SocketSettings,
         mut sources: HashMap<ServerId, SourceSpec>,
     ) -> Vec<(ServerId, io::Error)> {
-        // enumerate_interfaces refreshes a server's cached index only after a
-        // successful ioctl. add_update_server does not reset it on slot reuse.
+        // add_update_server does not refresh/reset the cached interface index
+        // on slot reuse. enumerate_interfaces owns that separate boundary.
         for (id, source) in &mut sources {
-            if source.ifindex == 0 {
-                if let Some(previous) = self.source_bindings.get(id) {
-                    source.ifindex = previous.ifindex;
-                }
+            if let Some(previous) = self.source_bindings.get(id) {
+                source.ifindex = previous.ifindex;
             }
         }
         self.socket_settings = settings;
@@ -1553,6 +1560,45 @@ mod tests {
             HashMap::from([(ServerId(1), source)]),
         );
         assert_eq!(resolver.source_bindings[&ServerId(1)].ifindex, 17);
+    }
+
+    #[test]
+    fn interface_cache_refresh_is_separate_from_route_publication() {
+        let address = "127.0.0.2:53".parse().unwrap();
+        let mut resolver = transport(
+            group(&[address], false),
+            Options::default(),
+            Duration::from_secs(2),
+        );
+        let mut source = SourceSpec::wildcard(address, 0);
+        source.interface = if cfg!(target_os = "linux") {
+            b"lo".to_vec()
+        } else {
+            b"lo0".to_vec()
+        };
+        source.refresh_interface_index();
+        let actual = source.ifindex;
+        assert_ne!(actual, 0);
+        source.ifindex = actual + 10;
+        resolver.configure_source_sockets(
+            SocketSettings::default(),
+            HashMap::from([(ServerId(1), source.clone())]),
+        );
+        source.ifindex = actual;
+        resolver.configure_source_sockets(
+            SocketSettings::default(),
+            HashMap::from([(ServerId(1), source)]),
+        );
+        assert_eq!(resolver.source_bindings[&ServerId(1)].ifindex, actual + 10);
+        resolver.refresh_source_interface_indices();
+        assert_eq!(resolver.source_bindings[&ServerId(1)].ifindex, actual);
+        resolver
+            .source_bindings
+            .get_mut(&ServerId(1))
+            .unwrap()
+            .interface = b"missing_endpoint".to_vec();
+        resolver.refresh_source_interface_indices();
+        assert_eq!(resolver.source_bindings[&ServerId(1)].ifindex, actual);
     }
 
     #[test]

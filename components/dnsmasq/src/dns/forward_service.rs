@@ -21,6 +21,7 @@ use std::collections::HashMap;
 use std::net::SocketAddr;
 
 const DNS_DEFAULT_UDP_SIZE: u16 = 512;
+#[cfg(test)]
 const OPT_RECORD_LEN: usize = 11;
 
 #[derive(Debug)]

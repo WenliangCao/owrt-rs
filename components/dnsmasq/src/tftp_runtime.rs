@@ -31,14 +31,31 @@ pub trait FileReader: Send + Sync {
     fn read_at(&self, offset: u64, output: &mut [u8]) -> io::Result<usize>;
 }
 
-#[derive(Clone)]
 pub struct OpenedFile {
     pub path: Vec<u8>,
     pub identity: FileIdentity,
     pub size: u64,
     pub mode: u32,
     pub owner_uid: u32,
-    pub reader: Arc<dyn FileReader>,
+    pub reader: FileSource,
+}
+
+/// Real transfers own a descriptor directly. Adapters can supply a shared
+/// reader without imposing an infallible heap allocation on the real opener.
+pub enum FileSource {
+    #[cfg(unix)]
+    File(File),
+    Shared(Arc<dyn FileReader>),
+}
+
+impl FileSource {
+    fn read_at(&self, offset: u64, output: &mut [u8]) -> io::Result<usize> {
+        match self {
+            #[cfg(unix)]
+            Self::File(file) => file.read_at(output, offset),
+            Self::Shared(reader) => reader.read_at(offset, output),
+        }
+    }
 }
 
 impl std::fmt::Debug for OpenedFile {
@@ -71,33 +88,11 @@ impl RealFileOpener {
     }
 }
 
-#[cfg(unix)]
-struct RealReader {
-    file: Arc<File>,
-    size: u64,
-    identity: FileIdentity,
-}
-
-#[cfg(unix)]
-impl FileReader for RealReader {
-    fn size(&self) -> u64 {
-        self.size
-    }
-
-    fn identity(&self) -> FileIdentity {
-        self.identity
-    }
-
-    fn read_at(&self, offset: u64, output: &mut [u8]) -> io::Result<usize> {
-        self.file.read_at(output, offset)
-    }
-}
-
 impl FileOpener for RealFileOpener {
     fn open(&self, path: &[u8]) -> io::Result<OpenedFile> {
         #[cfg(unix)]
         {
-            let file = Arc::new(File::open(std::ffi::OsString::from_vec(path.to_vec()))?);
+            let file = File::open(std::ffi::OsString::from_vec(path.to_vec()))?;
             // C reports any fstat failure as ERR_NOTDEF, independently of
             // errno. Preserve that distinction from open's ENOENT/EACCES.
             let metadata = file.metadata().map_err(io::Error::other)?;
@@ -116,18 +111,13 @@ impl FileOpener for RealFileOpener {
                     "TFTP file permission policy",
                 ));
             }
-            let reader = Arc::new(RealReader {
-                file,
-                size: metadata.len(),
-                identity,
-            });
             Ok(OpenedFile {
                 path: path.to_vec(),
                 identity,
                 size: metadata.len(),
                 mode: metadata.mode(),
                 owner_uid: metadata.uid(),
-                reader,
+                reader: FileSource::File(file),
             })
         }
         #[cfg(not(unix))]
@@ -173,7 +163,8 @@ impl Default for RuntimeConfig {
     fn default() -> Self {
         Self {
             path: RuntimePathPolicy::default(),
-            packet_buffer_size: 8192,
+            // dnsmasq.c:124: EDNS_PKTSZ + MAXDNAME + RRFIXEDSZ.
+            packet_buffer_size: 1232 + 255 + 10,
             mtu: None,
             ipv6: false,
             no_block_size: false,
@@ -212,16 +203,96 @@ pub enum RuntimeEvent {
     Failed {
         id: TransferId,
         peer: SocketAddr,
+        path: Vec<u8>,
     },
     TimedOut {
         id: TransferId,
         peer: SocketAddr,
+        path: Vec<u8>,
     },
+    ClientError {
+        peer: SocketAddr,
+        code: u16,
+        message: Vec<u8>,
+    },
+    NoFreePort,
     TransportError {
         id: Option<TransferId>,
         peer: SocketAddr,
         kind: io::ErrorKind,
     },
+}
+
+impl RuntimeEvent {
+    /// tftp.c shares the bounded ERR text with its logger. Completion and
+    /// abort messages retain the opened file's identity after cleanup.
+    #[cfg(target_os = "linux")]
+    pub fn log_event(&self, quiet_not_found: bool) -> Option<crate::logging::LogEvent> {
+        use crate::logging::{LogEvent, Priority, Service};
+        if let Some((code, message)) = self.error_message() {
+            return (code != 1 || !quiet_not_found)
+                .then(|| LogEvent::new(Service::Tftp, Priority::Error, message.to_vec()));
+        }
+        let (priority, message) = match self {
+            Self::Completed(done) => (
+                Priority::Info,
+                format!(
+                    "sent {} to {}",
+                    sanitised_path(&done.path),
+                    crate::tftp_service::peer_label(done.peer)
+                ),
+            ),
+            Self::Failed { path, peer, .. } => (
+                Priority::Error,
+                format!(
+                    "failed sending {} to {}",
+                    sanitised_path(path),
+                    crate::tftp_service::peer_label(*peer)
+                ),
+            ),
+            Self::TimedOut { path, peer, .. } => (
+                Priority::Error,
+                format!(
+                    "timeout sending {} to {}",
+                    sanitised_path(path),
+                    crate::tftp_service::peer_label(*peer)
+                ),
+            ),
+            Self::ClientError {
+                code,
+                message,
+                peer,
+            } => (
+                Priority::Error,
+                format!(
+                    "error {code} {} received from {}",
+                    sanitised_path(message),
+                    crate::tftp_service::peer_label(*peer)
+                ),
+            ),
+            Self::NoFreePort => (
+                Priority::Error,
+                "unable to get free port for TFTP".to_owned(),
+            ),
+            _ => return None,
+        };
+        Some(LogEvent::new(Service::Tftp, priority, message.into_bytes()))
+    }
+
+    /// The logger consumes the exact bounded wire text. quiet-tftp may
+    /// suppress ERR_FNF logging; it must not change the transmitted packet.
+    pub fn error_message(&self) -> Option<(u16, &[u8])> {
+        let packet = match self {
+            Self::Send { packet, .. } | Self::TidError { packet, .. } => packet,
+            _ => return None,
+        };
+        if packet.len() < 5 || packet[..2] != [0, 5] {
+            return None;
+        }
+        let code = u16::from_be_bytes([packet[2], packet[3]]);
+        let message = &packet[4..];
+        Some((code, message.strip_suffix(&[0]).unwrap_or(message)))
+    }
 }
 
 /// Which caller-owned UDP socket delivered a datagram.  In separate-port
@@ -250,17 +321,16 @@ impl From<RequestError> for RuntimeError {
     }
 }
 
-#[derive(Clone)]
 struct SharedFile {
     path: Vec<u8>,
     identity: FileIdentity,
     size: u64,
-    reader: Arc<dyn FileReader>,
+    reader: FileSource,
 }
 
 struct Active {
     peer: SocketAddr,
-    file: Arc<SharedFile>,
+    file: usize,
     transfer: Transfer,
     mode: Mode,
     /// Full block number of the last short DATA block emitted.  A transfer
@@ -274,6 +344,9 @@ pub struct TransferRuntime<O> {
     opener: O,
     next_id: u64,
     active: BTreeMap<TransferId, Active>,
+    // Stable slot indices let transfers share one descriptor by path/inode.
+    // Growing the file-record store is fallible, matching check_tftp_fileperm.
+    files: Vec<Option<SharedFile>>,
 }
 
 impl<O: FileOpener> TransferRuntime<O> {
@@ -283,6 +356,7 @@ impl<O: FileOpener> TransferRuntime<O> {
             opener,
             next_id: 1,
             active: BTreeMap::new(),
+            files: Vec::new(),
         }
     }
 
@@ -334,7 +408,9 @@ impl<O: FileOpener> TransferRuntime<O> {
         if packet.is_empty() {
             return Ok(Vec::new());
         }
-        self.receive(id, peer, packet, now)
+        let result = self.receive(id, peer, packet, now);
+        self.prune_files();
+        result
     }
 
     /// Route a datagram received from a caller-owned TFTP socket.  The caller
@@ -364,6 +440,26 @@ impl<O: FileOpener> TransferRuntime<O> {
     }
 
     pub fn handle_datagram_with_policy(
+        &mut self,
+        peer: SocketAddr,
+        packet: &[u8],
+        now: u64,
+        policy: Option<&RequestPolicy>,
+    ) -> Result<Vec<RuntimeEvent>, RuntimeError> {
+        let result = self.datagram_with_policy(peer, packet, now, policy);
+        self.prune_files();
+        result
+    }
+
+    fn prune_files(&mut self) {
+        for (index, file) in self.files.iter_mut().enumerate() {
+            if file.is_some() && !self.active.values().any(|active| active.file == index) {
+                *file = None;
+            }
+        }
+    }
+
+    fn datagram_with_policy(
         &mut self,
         peer: SocketAddr,
         packet: &[u8],
@@ -432,13 +528,14 @@ impl<O: FileOpener> TransferRuntime<O> {
                         RuntimeEvent::Completed(Completion {
                             id,
                             peer: active.peer,
-                            path: active.file.path.clone(),
-                            size: active.file.size,
+                            path: self.files[active.file].as_ref().unwrap().path.clone(),
+                            size: self.files[active.file].as_ref().unwrap().size,
                         })
                     } else {
                         RuntimeEvent::TimedOut {
                             id,
                             peer: active.peer,
+                            path: self.files[active.file].as_ref().unwrap().path.clone(),
                         }
                     },
                 );
@@ -448,12 +545,17 @@ impl<O: FileOpener> TransferRuntime<O> {
                 match self.send_window(id, now) {
                     Ok(new_events) => events.extend(new_events),
                     Err(_) => {
-                        self.active.remove(&id);
-                        events.push(RuntimeEvent::Failed { id, peer });
+                        let active = self.active.remove(&id).unwrap();
+                        events.push(RuntimeEvent::Failed {
+                            id,
+                            peer,
+                            path: self.files[active.file].as_ref().unwrap().path.clone(),
+                        });
                     }
                 }
             }
         }
+        self.prune_files();
         Ok(events)
     }
 
@@ -480,12 +582,22 @@ impl<O: FileOpener> TransferRuntime<O> {
             self.config.no_block_size,
         ) {
             Ok(request) => request,
-            Err(_) => {
+            Err(error) => {
+                let label = crate::tftp_service::peer_label(peer);
+                let message = match error {
+                    RequestError::WriteUnsupported => {
+                        format!("unsupported write request from {label}")
+                    }
+                    RequestError::InvalidFilename => {
+                        format!("empty filename in request from {label}")
+                    }
+                    _ => format!("unsupported request from {label}"),
+                };
                 return Ok(vec![RuntimeEvent::Send {
                     id: None,
                     peer,
-                    packet: error_packet(4, "illegal TFTP operation"),
-                }])
+                    packet: error_packet(4, &message),
+                }]);
             }
         };
         let request = match request {
@@ -501,11 +613,17 @@ impl<O: FileOpener> TransferRuntime<O> {
         let path = match path {
             Ok(path) => path,
             Err(_error) => {
+                let rejected = crate::tftp_service::error_path(
+                    path_policy.prefix.as_deref(),
+                    path_policy.lowercase,
+                    request.filename,
+                )
+                .unwrap_or_default();
                 return Ok(vec![RuntimeEvent::Send {
                     id: None,
                     peer,
-                    packet: error_packet(2, "access violation"),
-                }])
+                    packet: access_error_packet(&rejected),
+                }]);
             }
         };
         let opened = match self.opener.open(&path) {
@@ -514,7 +632,7 @@ impl<O: FileOpener> TransferRuntime<O> {
                 return Ok(vec![RuntimeEvent::Send {
                     id: None,
                     peer,
-                    packet: open_error_packet(&error),
+                    packet: open_error_packet(&error, &path, peer),
                 }]);
             }
         };
@@ -527,22 +645,41 @@ impl<O: FileOpener> TransferRuntime<O> {
             return Ok(vec![RuntimeEvent::Send {
                 id: None,
                 peer,
-                packet: error_packet(2, "access violation"),
+                packet: access_error_packet(&path),
             }]);
         }
-        let file = self
+        let shared = self
             .active
             .values()
-            .find(|active| active.file.path == path && active.file.identity == opened.identity)
-            .map(|active| Arc::clone(&active.file))
-            .unwrap_or_else(|| {
-                Arc::new(SharedFile {
-                    path,
-                    identity: opened.identity,
-                    size: opened.size,
-                    reader: opened.reader,
-                })
+            .find(|active| {
+                let file = self.files[active.file].as_ref().unwrap();
+                file.path == path && file.identity == opened.identity
+            })
+            .map(|active| active.file);
+        let file = if let Some(index) = shared {
+            index
+        } else {
+            let index = if let Some(index) = self.files.iter().position(Option::is_none) {
+                index
+            } else {
+                if self.files.try_reserve_exact(1).is_err() {
+                    return Ok(vec![RuntimeEvent::Send {
+                        id: None,
+                        peer,
+                        packet: open_error_packet(&io::Error::from_raw_os_error(12), &path, peer),
+                    }]);
+                }
+                self.files.push(None);
+                self.files.len() - 1
+            };
+            self.files[index] = Some(SharedFile {
+                path,
+                identity: opened.identity,
+                size: opened.size,
+                reader: opened.reader,
             });
+            index
+        };
         let transfer = Transfer::new(request.options, request.mode, now);
         let id = self.next_id;
         self.next_id = self.next_id.wrapping_add(1).max(1);
@@ -577,7 +714,7 @@ impl<O: FileOpener> TransferRuntime<O> {
             active
                 .transfer
                 .options
-                .write_ack(active.file.size, &mut packet);
+                .write_ack(self.files[active.file].as_ref().unwrap().size, &mut packet);
             let mut framed = vec![0, 6];
             framed.extend_from_slice(&packet[2..]);
             Ok(vec![RuntimeEvent::Send {
@@ -601,28 +738,70 @@ impl<O: FileOpener> TransferRuntime<O> {
             return Ok(vec![RuntimeEvent::TidError {
                 id,
                 peer,
-                packet: error_packet(5, "unknown transfer id"),
+                packet: error_packet(
+                    5,
+                    &format!(
+                        "ignoring packet from {} (TID mismatch)",
+                        crate::tftp_service::peer_label(peer)
+                    ),
+                ),
             }]);
         };
         if active.peer != peer {
             return Ok(vec![RuntimeEvent::TidError {
                 id,
                 peer,
-                packet: error_packet(5, "unknown transfer id"),
+                packet: error_packet(
+                    5,
+                    &format!(
+                        "ignoring packet from {} (TID mismatch)",
+                        crate::tftp_service::peer_label(peer)
+                    ),
+                ),
             }]);
+        }
+        // handle_tftp logs a complete client ERR string before aborting. A
+        // missing, empty or unterminated string is logged as an empty string.
+        if packet.len() >= 4 && opcode(packet) == Some(5) {
+            let message = packet[4..]
+                .iter()
+                .position(|byte| *byte == 0)
+                .map_or_else(Vec::new, |end| packet[4..4 + end].to_vec());
+            let code = u16::from_be_bytes([packet[2], packet[3]]);
+            let active = self.active.remove(&id).unwrap();
+            return Ok(vec![
+                RuntimeEvent::ClientError {
+                    peer,
+                    code,
+                    message,
+                },
+                RuntimeEvent::Failed {
+                    id,
+                    peer,
+                    path: self.files[active.file].as_ref().unwrap().path.clone(),
+                },
+            ]);
         }
         if !active.transfer.receive(packet, now) {
             if active.transfer.failed {
                 let peer = active.peer;
-                self.active.remove(&id);
-                return Ok(vec![RuntimeEvent::Failed { id, peer }]);
+                let active = self.active.remove(&id).unwrap();
+                return Ok(vec![RuntimeEvent::Failed {
+                    id,
+                    peer,
+                    path: self.files[active.file].as_ref().unwrap().path.clone(),
+                }]);
             }
             return Ok(Vec::new());
         }
         if active.transfer.failed {
             let peer = active.peer;
-            self.active.remove(&id);
-            return Ok(vec![RuntimeEvent::Failed { id, peer }]);
+            let active = self.active.remove(&id).unwrap();
+            return Ok(vec![RuntimeEvent::Failed {
+                id,
+                peer,
+                path: self.files[active.file].as_ref().unwrap().path.clone(),
+            }]);
         }
         let acked_block = active.transfer.next_ack.wrapping_sub(1);
         let complete = active.final_block == Some(acked_block);
@@ -631,19 +810,19 @@ impl<O: FileOpener> TransferRuntime<O> {
             return Ok(vec![RuntimeEvent::Completed(Completion {
                 id,
                 peer: active.peer,
-                path: active.file.path.clone(),
-                size: active.file.size,
+                path: self.files[active.file].as_ref().unwrap().path.clone(),
+                size: self.files[active.file].as_ref().unwrap().size,
             })]);
         }
         match self.send_window(id, now) {
             Ok(events) => Ok(events),
             Err(_error) => {
-                let peer = self
-                    .active
-                    .remove(&id)
-                    .map(|active| active.peer)
-                    .unwrap_or(peer);
-                Ok(vec![RuntimeEvent::Failed { id, peer }])
+                let active = self.active.remove(&id);
+                let path = active.as_ref().map_or_else(Vec::new, |active| {
+                    self.files[active.file].as_ref().unwrap().path.clone()
+                });
+                let peer = active.map_or(peer, |active| active.peer);
+                Ok(vec![RuntimeEvent::Failed { id, peer, path }])
             }
         }
     }
@@ -660,7 +839,7 @@ impl<O: FileOpener> TransferRuntime<O> {
                 active
                     .transfer
                     .options
-                    .write_ack(active.file.size, &mut packet);
+                    .write_ack(self.files[active.file].as_ref().unwrap().size, &mut packet);
                 let mut framed = vec![0, 6];
                 framed.extend_from_slice(&packet[2..]);
                 Some((active.peer, framed))
@@ -696,12 +875,15 @@ impl<O: FileOpener> TransferRuntime<O> {
         for _ in 0..count {
             let packet = match self.data_packet(id) {
                 Ok(packet) => packet,
-                Err(_) => {
+                Err(error) => {
                     let active = self.active.get_mut(&id).unwrap();
                     events.push(RuntimeEvent::Send {
                         id: Some(id),
                         peer: active.peer,
-                        packet: error_packet(0, "cannot read file"),
+                        packet: read_error_packet(
+                            &self.files[active.file].as_ref().unwrap().path,
+                            &error,
+                        ),
                     });
                     active.transfer.block = active.transfer.block.wrapping_add(1);
                     // C finishes the current window before error cleanup,
@@ -736,6 +918,7 @@ impl<O: FileOpener> TransferRuntime<O> {
             events.push(RuntimeEvent::Failed {
                 id,
                 peer: active.peer,
+                path: self.files[active.file].as_ref().unwrap().path.clone(),
             });
         }
         Ok(events)
@@ -743,19 +926,18 @@ impl<O: FileOpener> TransferRuntime<O> {
 
     fn data_packet(&mut self, id: u64) -> Result<Vec<u8>, RuntimeError> {
         let active = self.active.get_mut(&id).unwrap();
-        let Some(offset) = active.transfer.file_offset(active.file.size) else {
+        let file = self.files[active.file].as_ref().unwrap();
+        let Some(offset) = active.transfer.file_offset(file.size) else {
             return Ok(Vec::new());
         };
         let block = active.transfer.block as u16;
         let mut raw = vec![0; active.transfer.options.block_size];
-        let remaining = active.file.size.saturating_sub(offset);
+        let remaining = file.size.saturating_sub(offset);
         let to_read = remaining.min(raw.len() as u64) as usize;
         let read = if to_read == 0 {
             0
         } else {
-            active
-                .file
-                .reader
+            file.reader
                 .read_at(offset, &mut raw[..to_read])
                 .map_err(RuntimeError::Read)?
         };
@@ -794,7 +976,7 @@ fn opcode(packet: &[u8]) -> Option<u16> {
     (packet.len() >= 2).then(|| u16::from_be_bytes([packet[0], packet[1]]))
 }
 
-fn open_error_packet(error: &io::Error) -> Vec<u8> {
+fn open_error_packet(error: &io::Error, path: &[u8], peer: SocketAddr) -> Vec<u8> {
     // tftp.c:558-570 distinguishes only ENOENT and EACCES. EPERM (which
     // Rust also calls PermissionDenied) remains the generic ERR_NOTDEF.
     let code = match error.raw_os_error() {
@@ -807,27 +989,59 @@ fn open_error_packet(error: &io::Error) -> Vec<u8> {
             _ => 0,
         },
     };
+    let path = sanitised_path(path);
+    match code {
+        1 => error_packet(
+            1,
+            &format!(
+                "file {path} not found for {}",
+                crate::tftp_service::peer_label(peer)
+            ),
+        ),
+        2 => access_error_packet(path.as_bytes()),
+        _ => error_packet(0, &format!("cannot read {path}: {}", error_text(error))),
+    }
+}
+
+fn sanitised_path(path: &[u8]) -> String {
+    path.iter()
+        .copied()
+        .filter(|byte| (0x20..=0x7e).contains(byte))
+        .map(char::from)
+        .collect()
+}
+fn error_text(error: &io::Error) -> String {
+    let text = error.to_string();
+    text.rsplit_once(" (os error ")
+        .filter(|(_, suffix)| suffix.ends_with(')'))
+        .map_or(text.clone(), |(message, _)| message.to_owned())
+}
+fn access_error_packet(path: &[u8]) -> Vec<u8> {
     error_packet(
-        code,
-        match code {
-            1 => "file not found",
-            2 => "access violation",
-            _ => "cannot read file",
-        },
+        2,
+        &format!(
+            "cannot access {}: {}",
+            sanitised_path(path),
+            error_text(&io::Error::from_raw_os_error(13))
+        ),
     )
+}
+fn read_error_packet(path: &[u8], error: &RuntimeError) -> Vec<u8> {
+    match error {
+        RuntimeError::Read(error) => error_packet(
+            0,
+            &format!(
+                "cannot read {}: {}",
+                sanitised_path(path),
+                error_text(error)
+            ),
+        ),
+        _ => error_packet(0, &format!("cannot read {}", sanitised_path(path))),
+    }
 }
 
 fn error_packet(code: u16, message: &str) -> Vec<u8> {
-    let mut packet = Vec::with_capacity(message.len() + 5);
-    packet.extend_from_slice(&[0, 5]);
-    packet.extend_from_slice(&code.to_be_bytes());
-    packet.extend(
-        message
-            .bytes()
-            .filter(|byte| byte.is_ascii() && *byte >= 0x20),
-    );
-    packet.push(0);
-    packet
+    crate::tftp_service::error_packet(code, message.as_bytes())
 }
 
 #[cfg(test)]
@@ -904,7 +1118,7 @@ mod tests {
                 size: reader.size(),
                 mode: self.mode,
                 owner_uid: self.owner_uid,
-                reader,
+                reader: FileSource::Shared(reader),
             })
         }
     }
@@ -1008,9 +1222,9 @@ mod tests {
                     size: self.size(),
                     mode: 0o644,
                     owner_uid: 0,
-                    reader: Arc::new(FaultFile {
+                    reader: FileSource::Shared(Arc::new(FaultFile {
                         fail_at: self.fail_at,
-                    }),
+                    })),
                 })
             }
         }
@@ -1202,10 +1416,18 @@ mod tests {
             .unwrap();
         assert_eq!(
             failed,
-            vec![RuntimeEvent::Failed {
-                id: 3,
-                peer: peer(1000)
-            }]
+            vec![
+                RuntimeEvent::ClientError {
+                    peer: peer(1000),
+                    code: 0,
+                    message: Vec::new()
+                },
+                RuntimeEvent::Failed {
+                    id: 3,
+                    peer: peer(1000),
+                    path: b"/srv/tftp/boot.bin".to_vec(),
+                }
+            ]
         );
         assert_eq!(runtime.active_len(), 0);
     }
@@ -1383,10 +1605,18 @@ mod tests {
             .unwrap();
         assert_eq!(
             failed,
-            vec![RuntimeEvent::Failed {
-                id: 1,
-                peer: peer(1000)
-            }]
+            vec![
+                RuntimeEvent::ClientError {
+                    peer: peer(1000),
+                    code: 1,
+                    message: b"x".to_vec()
+                },
+                RuntimeEvent::Failed {
+                    id: 1,
+                    peer: peer(1000),
+                    path: b"/srv/tftp/boot.bin".to_vec(),
+                }
+            ]
         );
         assert_eq!(runtime.active_len(), 0);
     }
@@ -1456,7 +1686,8 @@ mod tests {
             timeout,
             vec![RuntimeEvent::TimedOut {
                 id: 1,
-                peer: peer(1000)
+                peer: peer(1000),
+                path: b"/srv/tftp/boot.bin".to_vec(),
             }]
         );
         assert_eq!(runtime.active_len(), 0);
