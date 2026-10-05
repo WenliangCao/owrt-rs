@@ -319,7 +319,8 @@ pub fn admit(
                     || config
                         .interfaces
                         .iter()
-                        .any(|name| name_matches(name, interface.link_name(), interface.loopback)))
+                        .any(|name| name_matches(name, interface.link_name(), interface.loopback))
+                    || !config.interfaces.is_empty() && interface.loopback)
                     && !excluded;
                 // C's loopback and label exceptions retain locally originated DNS
                 // queries to a configured address even when ingress is loopback.
@@ -534,6 +535,19 @@ mod tests {
         assert!(!name_matches(&Some(b"lan*".to_vec()), b"lan", false));
         assert!(name_matches(&Some(b"lan*ignored".to_vec()), b"lan0", false));
         assert!(!name_matches(&None, b"lo", true));
+    }
+    #[test]
+    fn automatic_loopback_name_admits_unlisted_loopback_destinations() {
+        let mut lo = interface("127.0.0.1", "255.0.0.0", 1);
+        lo.name = b"lo".to_vec();
+        lo.loopback = true;
+        let mut config = DnsConfig::default();
+        config.interfaces.push(Some(b"lan".to_vec()));
+        let peer = "127.0.0.1".parse().unwrap();
+        let destination = "127.0.0.2".parse().unwrap();
+        assert!(admit(&config, &[lo.clone()], peer, destination, 1));
+        config.excluded_interfaces.push(Some(b"lo".to_vec()));
+        assert!(!admit(&config, &[lo], peer, destination, 1));
     }
     #[test]
     fn static_binding_rejects_missing_names_but_accepts_matching_patterns() {

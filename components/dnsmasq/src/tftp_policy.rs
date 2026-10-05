@@ -72,7 +72,15 @@ impl Policy {
             addresses.retain(|address| {
                 self.interfaces
                     .iter()
-                    .find(|row| row.address == address.ip())
+                    .find(|row| {
+                        row.address == address.ip()
+                            && match address {
+                                SocketAddr::V6(address) if address.ip().is_unicast_link_local() => {
+                                    address.scope_id() == row.index
+                                }
+                                _ => true,
+                            }
+                    })
                     .is_none_or(|row| self.tftp_interface(row.link_name()))
             });
         }
@@ -153,6 +161,36 @@ impl Policy {
 mod tests {
     use super::*;
     use crate::config::tftp::matches_name;
+    #[test]
+    fn link_local_tftp_policy_uses_the_scoped_owner() {
+        let mut policy = Policy {
+            config: TftpConfig {
+                enabled: true,
+                ..TftpConfig::default()
+            },
+            dns: DnsConfig {
+                bind_interfaces: true,
+                ..DnsConfig::default()
+            },
+            no_dhcp: vec![Some(b"lan".to_vec())],
+            no_tftp: vec![Some(b"lan".to_vec())],
+            interfaces: [(2, b"lan".to_vec()), (3, b"wan".to_vec())]
+                .into_iter()
+                .map(|(index, name)| DnsInterface {
+                    index,
+                    name,
+                    address: "fe80::1".parse().unwrap(),
+                    netmask: "ffff:ffff:ffff:ffff::".parse().unwrap(),
+                    loopback: false,
+                    tentative: false,
+                })
+                .collect(),
+        };
+        assert_eq!(policy.addresses(), vec!["[fe80::1%3]:69".parse().unwrap()]);
+        policy.dns.bind_interfaces = false;
+        policy.dns.bind_dynamic = true;
+        assert_eq!(policy.addresses(), vec!["[fe80::1%3]:69".parse().unwrap()]);
+    }
     #[test]
     fn dedicated_interfaces_override_dhcp_exclusion_but_require_nonempty_wildcards() {
         let mut policy = Policy {
