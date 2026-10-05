@@ -713,12 +713,14 @@ def run_service(args, cases):
     # Keep probe/listener allocation outside configured DNS source ranges.
     subprocess.run(['sysctl','-q','-w','net.ipv4.ip_local_port_range=40000 60999','net.ipv4.ip_unprivileged_port_start=1024'],check=True)
     driver=args.out/'driver';driver.mkdir()
-    for name in ('m5_dns_endpoints.py','m5_dns_endpoints.json','m5_dns_files.py','m5_option_matrix.py','m5_option_matrix_probes.py','m5_dhcp_tags_options.py','dhcp_boot_service_diff.py','dns_service_probe.py','m2_rootfs.py','run_isolated.sh'):
+    for name in ('m5_dns_endpoints.py','m5_dns_endpoints.json','m5_dns_endpoints_requirements.json','m5_dns_files.py','m5_option_matrix.py','m5_option_matrix_probes.py','m5_dhcp_tags_options.py','dhcp_boot_service_diff.py','dns_service_probe.py','m2_rootfs.py','run_isolated.sh'):
         shutil.copy2(Path(__file__).with_name(name),driver/name)
     sides=['c','rust'] if args.side=='both' else ['c']
     roots={side:prepare(args.image_root,None,args.out/side,args.rust) for side in sides}
     save(args.out/'schedule.json',cases)
     report={'mode':'service','fixture_environment':{'listener_port':15353,'ephemeral_range':[40000,60999],'privileged_port_start':1024},'source_commit':args.source_commit,'rust_sha256':sha256(args.rust),'rust_bytes':args.rust.stat().st_size,'c_sha256':STOCK_SHA256,'comparison_executed':args.side=='both','cases':[],'failures':[],'closed_options':[],'negative_controls':controls(),'lifecycle_negative_controls':files.controls(),'reference_differences':[]}
+    report['tool_sha256']=sha256(__file__)
+    report['requirements_sha256']=sha256(Path(__file__).with_name('m5_dns_endpoints_requirements.json'))
     for case in cases:
         folder=args.out/case['id'];folder.mkdir()
         row={'id':case['id'],'failures':[]}
@@ -941,7 +943,7 @@ def main():
     assert cases and (not args.case or len(cases)==len(set(args.case)))
     save(args.out/'schedule.json',cases)
     driver=args.out/'driver';driver.mkdir()
-    for filename in ['m5_dns_endpoints.py','m5_dns_endpoints.json','m2_rootfs.py','run_isolated.sh']:
+    for filename in ['m5_dns_endpoints.py','m5_dns_endpoints.json','m5_dns_endpoints_requirements.json','m2_rootfs.py','run_isolated.sh']:
         shutil.copy2(Path(__file__).with_name(filename),driver/filename)
     root=prepare(args.image_root,None,args.out/'image',args.rust)
     report={'mode':'syntax-only','comparison_executed':args.side=='both','source_commit':args.source_commit,
