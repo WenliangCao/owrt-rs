@@ -10,10 +10,12 @@ import json
 import os
 from pathlib import Path
 import resource
+import select
 import signal
 import socket
 import struct
 import subprocess
+import threading
 import time
 
 from dns_service_probe import query, semantics, exact_read
@@ -428,6 +430,175 @@ def storage_authority(f):
     f.authority = {"later-DATA-reuses-address-storage": proven, "observed": observed}
 
 
+class FrameProxy:
+    """Fixture-only relay; hold one real daemon INVOKE between its bytes."""
+    def __init__(self):
+        self.backend = BUS + ".backend"
+        os.rename(BUS, self.backend)
+        self.listener = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        self.listener.bind(BUS)
+        self.listener.listen()
+        self.listener.setblocking(False)
+        self.stop = threading.Event()
+        self.release = threading.Event()
+        self.held = threading.Event()
+        self.split = None
+        self.rows = []
+        self.errors = []
+        self.peers, self.queues = {}, {}
+        self.daemon_backend = None
+        self.buffer = bytearray()
+        self.thread = threading.Thread(target=self.run, daemon=True)
+        self.thread.start()
+
+    def run(self):
+        try:
+            while not self.stop.is_set():
+                readable, writable, _ = select.select([self.listener, *self.peers],
+                    [sock for sock, data in self.queues.items() if data], [], .01)
+                if self.held.is_set() and self.release.is_set():
+                    self.queues[self.peers[self.daemon_backend]].extend(self.buffer)
+                    self.buffer.clear()
+                    self.split = None
+                for sock in readable:
+                    if sock is self.listener:
+                        client, _ = sock.accept()
+                        backend = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+                        backend.connect(self.backend)
+                        for first, second in ((client, backend), (backend, client)):
+                            first.setblocking(False)
+                            self.peers[first] = second
+                            self.queues[first] = bytearray()
+                        if self.daemon_backend is None:
+                            self.daemon_backend = backend
+                        continue
+                    data = sock.recv(65536)
+                    if not data:
+                        peer = self.peers.pop(sock)
+                        self.peers.pop(peer)
+                        self.queues.pop(sock)
+                        self.queues.pop(peer)
+                        sock.close()
+                        peer.close()
+                        continue
+                    target = self.peers[sock]
+                    if sock is self.daemon_backend and self.split is not None:
+                        self.buffer.extend(data)
+                        if self.held.is_set():
+                            continue
+                        if len(self.buffer) < 12:
+                            continue
+                        total = 8 + (struct.unpack("!I", self.buffer[8:12])[0] & 0xffffff)
+                        if len(self.buffer) < total:
+                            continue
+                        if self.buffer[1] == 5:
+                            frame = bytes(self.buffer[:total])
+                            self.rows.append({"frame": frame.hex(), "split": self.split,
+                                              "held_at_ns": time.monotonic_ns()})
+                            self.queues[target].extend(self.buffer[:self.split])
+                            del self.buffer[:self.split]
+                            self.held.set()
+                            continue
+                        self.queues[target].extend(self.buffer[:total])
+                        del self.buffer[:total]
+                    else:
+                        self.queues[target].extend(data)
+                for sock in writable:
+                    if sock not in self.queues:
+                        continue
+                    try:
+                        sent = sock.send(self.queues[sock])
+                        del self.queues[sock][:sent]
+                    except BlockingIOError:
+                        pass
+        except Exception as error:
+            if not self.stop.is_set():
+                self.errors.append(repr(error))
+
+    def close(self):
+        self.stop.set()
+        self.thread.join(3)
+        for sock in list(self.peers):
+            sock.close()
+        self.listener.close()
+        Path(BUS).unlink(missing_ok=True)
+        os.rename(self.backend, BUS)
+
+
+def ubus_log_rows(path):
+    rows = []
+    for line in path.read_text(errors="replace").splitlines():
+        message = line.split(": ", 1)[-1]
+        if any(message.startswith(prefix) for prefix in
+               ("UBus ", "Cannot reconnect to UBus", "Cannot set UBus", "Cannot poll UBus",
+                "Disconnecting from UBus", "connected to system UBus")):
+            rows.append(message)
+    return rows
+
+
+def run_lifecycle(f, side):
+    observed = {}
+    def record(label, value):
+        assert label not in observed
+        observed[label] = value
+    f.start_product(side, "log-debug\n")
+    watcher1, _ = f.watch(dns=False)
+    watcher2, _ = f.watch(dns=False)
+    f.stop(watcher1)
+    f.client_call("call", method="metrics")
+    f.stop(watcher2)
+    f.client_call("call", method="metrics")
+    watcher, _ = f.watch()
+    f.stop(watcher)
+    f.client_call("call", method="metrics")
+    record("subscription-logs", ubus_log_rows(f.daemon_log))
+    before = f.metrics()
+    f.stop(f.bus)
+    for _ in range(20):
+        f.exchange("local.invalid")
+    record("lost-bus-logs", ubus_log_rows(f.daemon_log))
+    f.start_bus()
+    f.wait_registered()
+    after = f.metrics()
+    before["dns_local_answered"] += 20
+    f.check(side + "-reconnect-preserves-real-local-count", after, before)
+    record("reconnected-logs", ubus_log_rows(f.daemon_log))
+    f.stop(f.daemon)
+    for split in (1, 11, 13, 4096):
+        proxy = FrameProxy()
+        try:
+            f.start_product(side)
+            before_fds = len(list(Path(f"/proc/{f.daemon.pid}/fd").iterdir()))
+            proxy.split = split
+            payload = field("ignored", 3, b"x" * 5000 + b"\0") if split == 4096 else b""
+            child, log = f.spawn([str(f.client), BUS, "call-raw", OBJECT, "metrics", payload.hex()],
+                                 side + "-partial-call")
+            assert proxy.held.wait(3), (split, proxy.errors)
+            first = time.monotonic_ns()
+            answer = f.exchange("local.invalid")
+            second = time.monotonic_ns()
+            time.sleep(.35)
+            later = f.exchange("local.invalid")
+            f.check(side + f"-partial-{split}-owner-health", (second - first) < 75_000_000, True)
+            f.check(side + f"-partial-{split}-same-daemon", f.daemon.poll(), None)
+            proxy.release.set()
+            child.wait(3)
+            result = read_json_lines(log)
+            record(f"partial-{split}-local", [answer, later])
+            record(f"partial-{split}-method", [{"event": row["event"],
+                **({"fields": fields(row["wire"])} if row["event"] == "data" else {"status": row["status"]})}
+                for row in result])
+            record(f"partial-{split}-fd-balance",
+                   len(list(Path(f"/proc/{f.daemon.pid}/fd").iterdir())) - before_fds)
+            f.raw.append({"side": side, "partial_proxy": proxy.rows,
+                          "local_start_ns": first, "local_done_ns": second})
+            f.stop(f.daemon)
+        finally:
+            proxy.close()
+            f.check(side + f"-partial-{split}-proxy-errors", proxy.errors, [])
+    return observed
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--reference-build", type=Path, required=True)
@@ -437,7 +608,7 @@ def main():
     parser.add_argument("--rust-binary", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--inject-error", action="store_true")
-    parser.add_argument("--suite", choices=("baseline", "extended"), default="baseline")
+    parser.add_argument("--suite", choices=("baseline", "extended", "lifecycle"), default="baseline")
     args = parser.parse_args()
     assert os.environ.get("DNSMASQ_TEST_ISOLATED") == "1" and os.geteuid() == 0
     assert not Path("/etc/openwrt_release").exists()
@@ -471,7 +642,7 @@ def main():
         f.start_bus()
         if args.suite == "extended":
             storage_authority(f)
-        schedule = run_side if args.suite == "baseline" else run_extended
+        schedule = {"baseline": run_side, "extended": run_extended, "lifecycle": run_lifecycle}[args.suite]
         expected = schedule(f, "C")
         if args.suite == "baseline":
             assert len(expected) == 69, "frozen paired service schedule changed"
