@@ -16,6 +16,7 @@ import ipaddress
 import json
 import os
 import platform
+import re
 from pathlib import Path
 import signal
 import socket
@@ -174,6 +175,31 @@ class Network:
         return result
 
 
+class Syslog:
+    def __init__(self,root,out):
+        self.path=root/'dev/log'
+        self.out=out
+        self.endpoint=socket.socket(socket.AF_UNIX,socket.SOCK_DGRAM)
+        self.endpoint.bind(str(self.path));self.path.chmod(0o666)
+        self.endpoint.setblocking(False)
+        self.packets=[]
+    def drain(self):
+        while True:
+            try:self.packets.append(self.endpoint.recv(65535))
+            except BlockingIOError:break
+    def close(self):
+        self.drain();self.endpoint.close();self.path.unlink()
+        save(self.out/'syslog.json',[dict(packet=value.hex(),text=value.decode('utf-8','replace')) for value in self.packets])
+        messages=[]
+        for value in self.packets:
+            text=value.decode('utf-8','replace')
+            if 'failed to create listening socket for ' in text:
+                match=re.search(r'<(\d+)>',text)
+                messages.append(dict(priority=int(match.group(1)) if match else None,
+                    text=text[text.index('failed to create listening socket for '):].rstrip('\x00\n')))
+        return messages
+
+
 def wire_probe(item):
     """Executed inside a peer namespace; no external endpoint is accepted."""
     dest, link = item['destination'], item.get('link')
@@ -252,11 +278,13 @@ def snapshot(path):
 
 
 class Observer:
-    def __init__(self, net, process, out, port):
+    def __init__(self, net, process, out, port, log=None):
         self.net,self.process,self.out,self.port=net,process,out,port
+        self.log=log
         self.rows=[]
     def sockets(self, label, delay=.25):
         time.sleep(delay)
+        if self.log:self.log.drain()
         assert self.process.poll() is None, 'daemon exited during '+label
         value=inventory(self.process.pid)
         self.rows.append(dict(case=label, sockets=value))
@@ -275,6 +303,7 @@ class Observer:
             if transport=='tftp': row['answer']=dict(packet=reply.hex(),source=value['peer'][0],dedicated=value['peer'][1]!=69)
             else: row['answer']=dict(semantic=semantics(reply),source=value['peer'][0])
         self.rows.append(row)
+        if self.log:self.log.drain()
         return row
     def ordinary(self, tftp=False):
         self.sockets('initial')
@@ -339,6 +368,7 @@ def relay_run(root,side,item,out):
 def execute(root,side,item,out):
     if item.get('relay'): return relay_run(root,side,item,out)
     net=process=blocker=None
+    log=None
     blockers=[]
     observer=None
     rows=[]
@@ -362,13 +392,15 @@ def execute(root,side,item,out):
         identity=('' if 'user=' in item['config'] else 'user=root\n')+('' if 'group=' in item['config'] else 'group=root\n')
         config=f'port={port}\nno-hosts\nno-resolv\n'+identity+'pid-file=/m2/pid\nhost-record=ready.test,192.0.2.53\n'+item['config']
         (root/'m2/listeners.conf').write_text(config);(out/'config').write_text(config)
+        if profile.startswith('runtime-') or item.get('dad') or item.get('socket_errno') or profile.startswith('missing-address'):
+            log=Syslog(root,out)
         with (out/'stderr').open('w') as stderr,(out/'stdout').open('w') as stdout:
             argv=command(root,side,'-d','-C','/m2/listeners.conf')
             if item.get('socket_errno'):
                 argv=[sys.executable,__file__,'--fault-exec',str(item['socket_errno']),*argv]
                 save(out/'socket-fault.json',dict(syscall=198,family=10,errno=item['socket_errno'],abi='aarch64',filter='errno only socket(AF_INET6)'))
             process=subprocess.Popen(argv,stderr=stderr,stdout=stdout,start_new_session=True)
-            observer=Observer(net,process,out,port)
+            observer=Observer(net,process,out,port,log)
             time.sleep(.2)
             rows.append(dict(case='startup',exit=process.poll()))
             if process.poll() is not None:
@@ -482,12 +514,15 @@ def execute(root,side,item,out):
                         for proto in ['udp','tcp']:observer.ask('cross-'+tag+'-'+proto,dest,proto,'wpeer')
             rows.extend(observer.rows)
     finally:
+        if log:log.drain()
         ended=stop(process)
+        diagnostics=log.close() if log else []
         if blocker: blocker.close()
         for endpoint in blockers:endpoint.close()
         peer=net.close() if net else None
         save(out/'cleanup.json',dict(daemon=ended,peer=peer))
     rows.append(dict(case='exit',exit=ended['returncode'],forced=ended['forced']))
+    if log:rows.append(dict(case='listener-warnings',messages=diagnostics))
     return rows
 
 
@@ -552,6 +587,12 @@ def validate(result,cases):
                 if row['case'].startswith('relay-'):
                     expected=0 if item['profile'] in ['relay-except','relay-no-dhcp'] else 1
                     if len(row['packets'])!=expected:failures.append(item['name']+': relay packet guard '+row['case'])
+        warnings=next((row['messages'] for row in observations if row['case']=='listener-warnings'),None)
+        if warnings is not None:
+            count={'runtime-occupied-udp':1,'runtime-occupied-tcp':1,'runtime-shared-tftp':1,
+                   'runtime-shared-dns-both':2,'runtime-shared-all':3}.get(item['profile'],0)
+            expected=[dict(priority=28,text='failed to create listening socket for 10.77.0.9: Address in use')]*count
+            if warnings!=expected:failures.append(item['name']+': warning priority/text/count guard')
     return failures
 
 
@@ -718,6 +759,12 @@ def main():
                 target=next(row for row in corrupt['rows'][index]['rows'] if row.get('answer'))
                 target['answer']=None
                 controls.append(dict(name='lost-service-'+row['name'],rejected=bool(compare(left,corrupt,selected))))
+            warning=next((item for item in row['rows'] if item.get('messages')),None)
+            if warning:
+                corrupt=copy.deepcopy(right)
+                target=next(item for item in corrupt['rows'][index]['rows'] if item.get('messages'))
+                target['messages'][0]['priority']=31
+                controls.append(dict(name='warning-priority-'+row['name'],rejected=bool(compare(left,corrupt,selected))))
     result=dict(cases=len(selected),observations=sum(len(row['rows']) for row in right['rows']),failures=failures,
                 exits=exits,negative_controls=controls,binary_sha256=right['binary_sha256'],bytes=args.rust_binary.stat().st_size,
                 reference_differences=reference_differences(left,right,selected),

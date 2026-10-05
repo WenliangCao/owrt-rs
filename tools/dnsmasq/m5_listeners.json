@@ -1685,6 +1685,29 @@
         "all"
       ],
       "source": "network.c:705-720; dnsmasq.c:1180-1206"
+    },
+    {
+      "id": "late-bind-diagnostics",
+      "source": "network.c:894-941; util.c:564-586",
+      "boundary": "LOG_WARNING/default LOG_DAEMON produces PRI 28 and failed to create listening socket for ADDRESS: strerror. One warning per failed transport, preserving attempt order. Dynamic EADDRNOTAVAIL and socket-stage EPROTONOSUPPORT/EAFNOSUPPORT/EINVAL are silent; bind EINVAL is not silently suppressed.",
+      "profiles": [
+        "runtime-occupied-udp",
+        "runtime-occupied-tcp",
+        "runtime-shared-tftp",
+        "runtime-shared-dns-both",
+        "runtime-shared-all",
+        "dad",
+        "dad-explicit",
+        "dad-failed",
+        "dad-low-port",
+        "tftp-dad",
+        "tftp-dad-low-port",
+        "missing-address",
+        "missing-address-v6",
+        "socket-unsupported-einval",
+        "socket-unsupported-eafnosupport",
+        "socket-unsupported-eprotonosupport"
+      ]
     }
   ],
   "schema": 1
