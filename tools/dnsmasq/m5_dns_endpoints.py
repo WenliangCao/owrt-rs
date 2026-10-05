@@ -660,7 +660,7 @@ def source_guard_errors(result,case):
     if case.get('no_udp_upstream') and udp: errors.append('exhausted range still sent UDP')
     if not case.get('no_upstream') and not case.get('no_udp_upstream') and case.get('expected_start',True) and not udp and any(action['op']=='query' and 'udp' in action.get('transports',['udp','tcp']) for action in case['actions']): errors.append('no actual upstream source capture')
     if case.get('startup_gate') and (not result.get('ready_attempts') or any(row['pending'] and row['response'] for row in result['ready_attempts'])): errors.append('daemon replied before startup endpoint lookup completed')
-    if case['id'] in ('pool-overflow-incompatible','pool-capacity-compatible','pool-distinct-groups-compatible','pool-single-port-concurrent','shared-pollerr-keeps-pending','pool-retry-completion-keeps-sibling'):
+    if case.get('id') in ('pool-overflow-incompatible','pool-capacity-compatible','pool-distinct-groups-compatible','pool-single-port-concurrent','shared-pollerr-keeps-pending','pool-retry-completion-keeps-sibling'):
         snapshots=[row['identity']['sockets'] for row in result.get('endpoint_receipts',[]) if row.get('op')=='after-action']
         if not snapshots or len(snapshots[-1])!=len(result['identity']['sockets']): errors.append('source socket owners did not return to actual startup FD baseline')
     if any(row['peer'][1] in [case.get('expected_source_port'),*(case.get('source_range') or [])] for row in tcp): errors.append('TCP inherited configured UDP source port/range')
