@@ -253,10 +253,11 @@ impl LocalProvider {
         // provider's dependency failures on the same side of that mutation.
         let probe = IcmpProbe::new(config.no_ping).map_err(StartupError::Entropy)?;
         let now = epoch_seconds();
-        let (persistence, restored) = LeasePersistence::open(
+        let (persistence, restored) = LeasePersistence::open_with_warnings(
             Path::new(OsStr::from_bytes(config.lease_path())),
             config.lease_read_only,
             config.lease_max,
+            |warning| { eprintln!("dnsmasq-rs: {warning}"); Ok(()) },
         )
         .map_err(|error| {
             let warnings = error

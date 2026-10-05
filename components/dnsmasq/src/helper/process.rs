@@ -610,7 +610,8 @@ fn run_init(config: &Config, maximum: usize, events: &mut File) -> io::Result<i3
         .stdout(Stdio::piped())
         .spawn()?;
     let output = process.stdout.take().unwrap();
-    let parsed = crate::dhcp::lease_file::parse_reader(BufReader::new(output), maximum);
+    let parsed = crate::dhcp::lease_file::parse_reader_with_warnings(BufReader::new(output), maximum,
+        |warning| send(events, Notice::InitWarning(warning.into_bytes())));
     let parsed = match parsed {
         Ok(parsed) => parsed,
         Err(error) => {
