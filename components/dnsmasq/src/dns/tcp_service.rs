@@ -75,6 +75,13 @@ pub struct TcpDnsService {
 }
 
 impl TcpDnsService {
+    pub fn set_preferred_servers(
+        &mut self,
+        servers: impl IntoIterator<Item = (super::forward::GroupId, super::forward::ServerId)>,
+    ) {
+        self.upstream.set_preferred_servers(servers);
+    }
+
     pub fn cache_eligible(query: &[u8]) -> bool {
         super::forward_service::ordinary_cache_query(query)
     }

@@ -314,11 +314,19 @@ impl<R: Random> DnsDaemon<R> {
     pub fn tcp_snapshot(
         &self,
     ) -> Result<super::tcp_service::TcpDnsService, super::tcp_service::TcpServiceError> {
-        super::tcp_service::TcpDnsService::with_routing(
+        let mut service = super::tcp_service::TcpDnsService::with_routing(
             &self.local.config,
             self.routing.snapshot(),
             self.edns_packet_max,
-        )
+        )?;
+        service.set_preferred_servers(self.routing.groups().filter_map(|group| {
+            self.upstream
+                .dispatcher()
+                .group(group.id)
+                .and_then(|state| state.preferred_server())
+                .map(|server| (group.id, server))
+        }));
+        Ok(service)
     }
 
     /// Publish one successfully opened file source while retaining live
