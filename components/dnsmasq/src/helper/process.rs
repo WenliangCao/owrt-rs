@@ -56,9 +56,13 @@ fn pipe() -> io::Result<(OwnedFd, OwnedFd)> {
     if unsafe { pipe2(fds.as_mut_ptr(), O_CLOEXEC) } < 0 {
         return Err(io::Error::last_os_error());
     }
+    // SAFETY: successful pipe2 returned two distinct live FDs; transfer each
+    // exactly once into OwnedFd so every later startup error closes both.
     Ok(unsafe { (OwnedFd::from_raw_fd(fds[0]), OwnedFd::from_raw_fd(fds[1])) })
 }
 fn nonblocking(fd: RawFd) -> io::Result<()> {
+    // SAFETY: callers retain the owning pipe FD across both calls. GETFL has
+    // no variadic argument; SETFL receives the native int flags it expects.
     let flags = unsafe { fcntl(fd, F_GETFL) };
     if flags < 0 || unsafe { fcntl(fd, F_SETFL, flags | O_NONBLOCK) } < 0 {
         return Err(io::Error::last_os_error());
@@ -137,7 +141,8 @@ impl Helper {
                     message: format!("unknown script user {}", String::from_utf8_lossy(name)),
                 };
                 let c_name = CString::new(name.as_slice()).map_err(|_| invalid_user())?;
-                // SAFETY: getpwnam returns borrowed static storage. Copy before fork.
+                // SAFETY: the sole startup thread supplies a live NUL-terminated
+                // name, checks NULL, and copies UID/GID before another lookup.
                 let value =
                     unsafe { getpwnam(c_name.as_ptr()).as_ref() }.ok_or_else(invalid_user)?;
                 Some((value.uid, value.gid))
@@ -179,6 +184,8 @@ impl Helper {
                 File::from(events_write),
                 initialization_only,
             );
+            // SAFETY: only the fork child reaches this process-exit syscall.
+            // It must never unwind into the copied parent ownership graph.
             unsafe { _exit(code) }
         }
         drop(commands_read);
@@ -431,6 +438,8 @@ impl Helper {
         }
         if self.reaped.is_none() {
             let mut status = 0;
+            // SAFETY: pid names this helper child and status is a live native
+            // int. WNOHANG preserves the poll owner's nonblocking boundary.
             let result = unsafe { waitpid(self.pid, &mut status, WNOHANG) };
             if result == self.pid {
                 self.reaped = Some(status);
@@ -457,6 +466,8 @@ impl Drop for Helper {
         self.writer.take();
         if self.reaped.is_none() {
             let mut status = 0;
+            // SAFETY: same owned child PID/status ABI as step; never wait for
+            // an arbitrary script from Drop, including after a startup error.
             unsafe {
                 waitpid(self.pid, &mut status, WNOHANG);
             }
@@ -577,11 +588,15 @@ fn close_inherited(keep: [RawFd; 2]) -> io::Result<()> {
         Err(_) => {
             // Match C's fallback when /proc is unavailable in a minimal jail.
             let mut limit = [0; 2];
+            // SAFETY: this Linux64 module uses two aligned native unsigned
+            // longs for rlimit. RLIMIT_NOFILE is 7 in the target image ABI.
             if unsafe { getrlimit(7, &mut limit) } < 0 {
                 return Err(io::Error::last_os_error());
             }
             for fd in 3..limit[0].min(i32::MAX as usize) {
                 if !keep.contains(&(fd as RawFd)) {
+                    // SAFETY: this post-fork child has no other thread opening
+                    // FDs. close accepts any native int; EBADF is harmless.
                     unsafe {
                         close(fd as RawFd);
                     }
@@ -592,6 +607,8 @@ fn close_inherited(keep: [RawFd; 2]) -> io::Result<()> {
     };
     for fd in fds {
         if fd > 2 && !keep.contains(&fd) {
+            // SAFETY: the iterator has dropped; no FD opens occur between its
+            // snapshot and this child-only close. Commands/events are retained.
             unsafe {
                 close(fd);
             }
@@ -609,6 +626,8 @@ fn child(
 ) -> i32 {
     // C ignores these in the helper and its script descendants. SIGCHLD must
     // have its default disposition so wait works, independent of owner hooks.
+    // SAFETY: the helper child owns its signal dispositions. Linux uses zero
+    // and one for SIG_DFL/SIG_IGN; every listed signal number is valid here.
     unsafe {
         for sig in [2, 13, 14, 15] {
             signal(sig, 1);
@@ -631,6 +650,8 @@ fn child(
     }
     if !config.debug {
         if let Some((uid, gid)) = identity.filter(|(uid, _)| *uid != 0) {
+            // SAFETY: credentials change only in this fork child. count=0
+            // permits a NULL group pointer; UID/GID were copied from passwd.
             if unsafe { setgroups(0, std::ptr::null()) } < 0
                 || unsafe { setgid(gid) } < 0
                 || unsafe { setuid(uid) } < 0
@@ -692,6 +713,7 @@ fn run_init(config: &Config, maximum: usize, events: &mut File) -> io::Result<i3
         .arg(command)
         .stdout(Stdio::piped())
         .spawn()?;
+    // Successful spawn with Stdio::piped always supplies this owned stdout.
     let output = process.stdout.take().unwrap();
     let parsed = crate::dhcp::lease_file::parse_reader_with_warnings(
         BufReader::new(output),
@@ -763,8 +785,8 @@ fn run_script(config: &Config, call: Invocation, events: &mut File) -> io::Resul
             command.env_remove(key);
         }
     }
-    // Rust Command resets SIGPIPE before exec. Restore C's ignored disposition;
-    // nothing else in this hook allocates or touches shared Rust state.
+    // SAFETY: this child hook only restores SIGPIPE's target ABI disposition;
+    // it allocates nothing and accesses no shared Rust state before exec.
     unsafe {
         command.pre_exec(|| {
             signal(13, 1);

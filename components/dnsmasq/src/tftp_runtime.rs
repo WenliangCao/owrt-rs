@@ -332,6 +332,9 @@ struct SharedFile {
     reader: FileSource,
 }
 
+// Every active transfer names a live file slot. Admission creates the file
+// first; prune_files removes only slots with no active reference. The sole
+// owner never invokes a producer while mutating these two collections.
 struct Active {
     peer: SocketAddr,
     file: usize,
@@ -606,6 +609,8 @@ impl<O: FileOpener> TransferRuntime<O> {
     }
 
     fn id_at(&self, index: usize) -> u64 {
+        // admission() produced this index from the immediately preceding
+        // active.values() snapshot; no callback or mutation occurs between.
         self.active
             .keys()
             .copied()
