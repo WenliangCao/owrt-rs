@@ -450,6 +450,12 @@ def cases():
                      'tftp_probes': 'script', 'script_probes': outcome,
                      'argv': ['--log-facility=-', '--enable-tftp', '--tftp-root=/m2/logging',
                               '--dhcp-script=/m2/logging/script'], 'options': ['log-facility', 'log-debug']})
+    for mode, label in [(['-k'], 'foreground'), (['-d'], 'debug')]:
+        rows.append({'id': 'helper-exec-inheritance-' + label, 'scope': 'helper-inheritance', 'kind': 'run',
+                     'mode': mode, 'inherited_umask': 0o077, 'tftp_probes': 'script',
+                     'script_probes': 'inheritance', 'argv': ['--log-facility=-', '--enable-tftp',
+                         '--tftp-root=/m2/logging', '--dhcp-script=/m2/logging/script'],
+                     'options': ['no-daemon']})
     dhcp_base = ['--log-facility=-', '--dhcp-leasefile=/m2/logging/leases', '--no-ping', '--dhcp-broadcast']
     for name, arguments, extra in [
         ('cache-disabled', ['--cache-size=0'], {}),
@@ -897,7 +903,9 @@ def run(root, side, case, out):
         outcome = case['script_probes']
         if outcome != 'exec':
             script = folder / 'script'
-            script.write_text('#!/bin/sh\n' + ('kill -USR1 $$\n' if outcome == 'signal' else
+            script.write_text('#!/bin/sh\n' + ("printf 'inherited umask %s\\n' \"$(umask)\"\n"
+                "while read name value rest; do case \"$name\" in SigIgn:) printf 'inherited ignored %s\\n' \"$value\";; esac; done < /proc/self/status\n"
+                if outcome == 'inheritance' else 'kill -USR1 $$\n' if outcome == 'signal' else
                 "printf 'one\\n\\n'; printf 'nul\\000hidden\\n'; head -c 4096 /dev/zero | tr '\\000' x; printf '\\ntail'; exit 7\n"))
             script.chmod(0o755)
     image_path(root, '/etc/dnsmasq.conf', follow_leaf=False).write_text(
@@ -923,7 +931,8 @@ def run(root, side, case, out):
     trace = {'dns': [], 'command': full}
     with (out / 'stdout').open('wb') as stdout, (out / 'stderr').open('wb') as stderr:
         process = subprocess.Popen(full, stdin=subprocess.DEVNULL, stdout=stdout, stderr=stderr,
-                                   env={**os.environ, 'LC_ALL': 'C', 'TZ': 'UTC'}, start_new_session=True)
+                                   env={**os.environ, 'LC_ALL': 'C', 'TZ': 'UTC'}, start_new_session=True,
+                                   preexec_fn=(lambda: os.umask(case['inherited_umask'])) if 'inherited_umask' in case else None)
         try:
             deadline = start + 3
             while time.monotonic() < deadline:
@@ -1070,12 +1079,12 @@ def run(root, side, case, out):
                     deadline = time.monotonic() + 1
                     while time.monotonic() < deadline:
                         receiver.drain()
-                        captured = (out / 'stderr').read_bytes() + b''.join(receiver.raw)
+                        captured = (out / 'stderr').read_bytes() + (out / 'stdout').read_bytes() + b''.join(receiver.raw)
                         if case.get('file') and (folder / case['file']).exists():
                             captured += (folder / case['file']).read_bytes()
                         if any(text in captured for text in [b'script process exited with status 7',
                                                             b'script process killed by signal 10',
-                                                            b'failed to execute /m2/logging/script']):
+                                                            b'failed to execute /m2/logging/script', b'inherited ignored ']):
                             break
                         time.sleep(.005)
                 if case.get('identity_matrix'):
@@ -1598,11 +1607,11 @@ def run_daemon(root, side, case, out):
                             answer, raw = exchange('ready.logging')
                             if [row['data'] for row in answer['records']] != ['192.0.2.1']:
                                 raise AssertionError('wrong daemon readiness answer')
-                            observed['ready'] = True
                             trace['dns'] = [raw]
                             trace['identity'] = process_identity(root, service_pid)
                             if trace['identity']['sha256'] != sha256(image_path(root, executable)):
                                 raise AssertionError('wrong detached daemon ELF')
+                            observed['ready'] = True
                             trace['samples'].append(state)
                             observed['process'] = {'is_original': service_pid == process.pid,
                                 'session_leader': state['sid'] == service_pid,
@@ -1631,7 +1640,7 @@ def run_daemon(root, side, case, out):
                             observed['pid_written'] = pid_path.exists() and pid_path.read_text() != 'sentinel\n'
                             if not case.get('daemonized') or parent_exit == 0:
                                 break
-                        except (socket.timeout, ConnectionRefusedError):
+                        except (socket.timeout, ConnectionRefusedError, FileNotFoundError, ProcessLookupError):
                             pass
                 if parent_exit is not None and (not case.get('daemonized') or parent_exit != 0):
                     break
@@ -1815,7 +1824,15 @@ def compare(reference, candidate, case, reference_only=False):
     if case.get('script_probes'):
         text = reference['stderr'] + ''.join(bytes.fromhex(value).decode() + '\n' for value in reference['syslog'])
         text += ''.join(bytes.fromhex(value).decode() for value in reference['files'].values())
-        required = ['script process killed by signal 10'] if case['script_probes'] == 'signal' else [
+        if case['script_probes'] == 'inheritance':
+            for side, row in [('c', reference)] + ([] if reference_only else [('rust', candidate)]):
+                inherited = row['stdout'] + row['stderr']
+                mask = re.search(r'inherited ignored ([0-9a-fA-F]+)', inherited)
+                if 'inherited umask 0022\n' not in inherited or not mask or int(mask[1], 16) & 0x7002 != 0x7002:
+                    failures.append({'kind': 'helper-exec-signal-umask-control', 'side': side, 'actual': inherited})
+            required = []
+        else:
+            required = ['script process killed by signal 10'] if case['script_probes'] == 'signal' else [
             'failed to execute /m2/logging/script: No such file or directory'] if case['script_probes'] == 'exec' else [
             'dnsmasq-script[', ': one\n', ': \n', ': nul\n', ': tail\n', 'script process exited with status 7']
         for message in required:
