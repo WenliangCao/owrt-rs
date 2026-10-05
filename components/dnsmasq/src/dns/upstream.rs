@@ -648,8 +648,17 @@ impl<R: Random> UpstreamResolver<R> {
     pub fn configure_source_sockets(
         &mut self,
         settings: SocketSettings,
-        sources: HashMap<ServerId, SourceSpec>,
+        mut sources: HashMap<ServerId, SourceSpec>,
     ) -> Vec<(ServerId, io::Error)> {
+        // enumerate_interfaces refreshes a server's cached index only after a
+        // successful ioctl. add_update_server does not reset it on slot reuse.
+        for (id, source) in &mut sources {
+            if source.ifindex == 0 {
+                if let Some(previous) = self.source_bindings.get(id) {
+                    source.ifindex = previous.ifindex;
+                }
+            }
+        }
         self.socket_settings = settings;
         self.source_bindings = sources;
         self.server_sockets.retain(|id, token| {
@@ -1441,6 +1450,36 @@ mod tests {
         assert_eq!(resolver.socket_count(), 1);
         resolver.cancel(submission.id);
         assert_eq!(resolver.socket_count(), 0);
+    }
+
+    #[test]
+    fn reused_server_preserves_cached_source_index_after_failed_lookup() {
+        let address = "127.0.0.2:53".parse().unwrap();
+        let mut resolver = transport(
+            group(&[address], false),
+            Options::default(),
+            Duration::from_secs(2),
+        );
+        let mut source = SourceSpec::wildcard(address, 0);
+        source.ifindex = 17;
+        source.interface = b"old".to_vec();
+        resolver.configure_source_sockets(
+            SocketSettings::default(),
+            HashMap::from([(ServerId(1), source.clone())]),
+        );
+        source.ifindex = 0;
+        source.interface = b"missing".to_vec();
+        resolver.configure_source_sockets(
+            SocketSettings::default(),
+            HashMap::from([(ServerId(1), source.clone())]),
+        );
+        assert_eq!(resolver.source_bindings[&ServerId(1)].ifindex, 17);
+        source.interface.clear();
+        resolver.configure_source_sockets(
+            SocketSettings::default(),
+            HashMap::from([(ServerId(1), source)]),
+        );
+        assert_eq!(resolver.source_bindings[&ServerId(1)].ifindex, 17);
     }
 
     #[test]
