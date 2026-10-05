@@ -23,3 +23,6 @@ pub mod udp_query;
 pub mod upstream;
 pub mod wire;
 pub mod interface_records;
+
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+pub mod interface_collect;
