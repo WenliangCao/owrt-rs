@@ -43,11 +43,13 @@ struct Pending {
     bytes: Vec<u8>,
     position: usize,
     mask: i32,
+    display_id: Option<i32>,
 }
 pub struct DumpWriter {
     file: File,
     mask: i32,
     count: u32,
+    extra: bool,
     queue: VecDeque<Pending>,
     notices: VecDeque<(bool, Vec<u8>)>,
 }
@@ -94,6 +96,7 @@ impl DumpHandle {
             file,
             mask: config.mask,
             count: 0,
+            extra: false,
             queue: VecDeque::new(),
             notices: VecDeque::new(),
         };
@@ -112,6 +115,7 @@ impl DumpHandle {
                 bytes: header,
                 position: 0,
                 mask: 0,
+                display_id: None,
             });
             writer.step();
             if writer.notices.iter().any(|(error, _)| *error) {
@@ -146,6 +150,23 @@ impl DumpHandle {
         Ok(Self(Some(Arc::new(Mutex::new(writer)))))
     }
     pub fn udp(&self, mask: i32, bytes: &[u8], source: SocketAddr, destination: SocketAddr) {
+        self.udp_with_context(mask, bytes, source, destination, Default::default());
+    }
+
+    pub fn set_query_logging(&self, config: crate::config::logging::QueryLogging) {
+        if let Some(writer) = &self.0 {
+            writer.lock().unwrap().extra = config.extra;
+        }
+    }
+
+    pub fn udp_with_context(
+        &self,
+        mask: i32,
+        bytes: &[u8],
+        source: SocketAddr,
+        destination: SocketAddr,
+        context: crate::logging::query::QueryContext,
+    ) {
         let Some(writer) = &self.0 else {
             return;
         };
@@ -176,10 +197,12 @@ impl DumpHandle {
             record.extend_from_slice(&value.to_ne_bytes());
         }
         record.extend_from_slice(&packet);
+        let display_id = (writer.extra && mask & 0xff != 0).then_some(context.display_id);
         writer.queue.push_back(Pending {
             bytes: record,
             position: 0,
             mask,
+            display_id,
         });
         writer.step();
     }
@@ -224,14 +247,18 @@ impl DumpWriter {
                 }
             }
             if front.position == front.bytes.len() {
-                let mask = self.queue.pop_front().unwrap().mask;
+                let pending = self.queue.pop_front().unwrap();
+                let mask = pending.mask;
                 if mask != 0 {
                     self.count = self.count.wrapping_add(1);
-                    self.notices.push_back((
-                        false,
-                        format!("dumping packet {} mask 0x{:04x}", self.count, mask as u32)
-                            .into_bytes(),
+                    let mut message = pending
+                        .display_id
+                        .map_or_else(String::new, |id| format!("{} ", id as u32));
+                    message.push_str(&format!(
+                        "dumping packet {} mask 0x{:04x}",
+                        self.count, mask as u32
                     ));
+                    self.notices.push_back((false, message.into_bytes()));
                 }
             }
         }

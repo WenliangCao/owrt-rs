@@ -648,6 +648,8 @@ fn run_inner(
     validate_runtime_ready(&runtime.scalar, &runtime.dns)?;
     #[cfg(target_os = "linux")]
     let dump = dnsmasq_rs::dump::DumpHandle::open(&runtime.dump, runtime.scalar.edns_packet_max)?;
+    #[cfg(target_os = "linux")]
+    dump.set_query_logging(runtime.logging.queries);
     let dns_enabled = runtime.scalar.dns_port != 0;
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     let (initial_interface_records, initial_interface_collector) = {
@@ -2999,9 +3001,11 @@ impl SinglePoll {
         }
         query.truncate(incoming.len);
         #[cfg(target_os = "linux")]
-        if let Ok(destination) = udp.local_addr() {
-            self.dump
-                .udp(dnsmasq_rs::dump::QUERY, &query, incoming.peer, destination);
+        if query.len() >= 12 && query[2] & 0x80 == 0 {
+            if let Ok(destination) = udp.local_addr() {
+                self.dump
+                    .udp(dnsmasq_rs::dump::QUERY, &query, incoming.peer, destination);
+            }
         }
         let client = ClientRequest {
             source: incoming.peer,
