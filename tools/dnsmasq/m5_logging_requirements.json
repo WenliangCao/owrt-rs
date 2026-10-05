@@ -557,7 +557,7 @@
           ]
         }
       ],
-      "qualification_ready": false,
+      "qualification_ready": true,
       "qualification_scope": "Ordinary startup, process/identity/PID, helper readiness/failure, signals, FD inheritance and caller diagnostics. User priority defers artificial malformed IPC and extreme opaque/overlong arguments; no unused C pipe is recreated solely to manufacture an internal allocation failure.",
       "architecture_policy": {
         "source": "dnsmasq.c:584-607,1341-1430",
