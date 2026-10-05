@@ -73,7 +73,9 @@ pub fn parse(argument: &EncodedArg) -> Result<SynthDomain, Error> {
                 )
             }
             IpAddr::V6(start) => {
-                if size > 128 {
+                // util.c:524 converts a negative prefix byte count to size_t
+                // for memcmp, reading outside in6_addr. Do not reproduce it.
+                if !(0..=128).contains(&size) {
                     return Err(Error("bad prefix length"));
                 }
                 let mask = if size <= 64 {
@@ -297,6 +299,18 @@ impl SynthDomain {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn negative_ipv6_prefix_is_rejected_before_image_out_of_bounds_comparison() {
+        assert!(matches!(
+            parse(&EncodedArg::command_line(b"test,2001:db8::7/4294967295")),
+            Err(Error("bad prefix length"))
+        ));
+        assert!(parse(&EncodedArg::command_line(b"test,2001:db8::7/4294967296")).is_ok());
+        let ipv4 = parse(&EncodedArg::command_line(b"test,192.0.2.7/4294967295")).unwrap();
+        assert!(ipv4.range.contains("192.0.2.6".parse().unwrap()));
+        assert!(!ipv4.range.contains("192.0.2.5".parse().unwrap()));
+    }
     #[test]
     fn image_explicit_ipv6_range_and_indexed_literal_boundaries() {
         let domain = parse(&EncodedArg::command_line(b"test,2001:db8::7,2001:db8::9")).unwrap();
