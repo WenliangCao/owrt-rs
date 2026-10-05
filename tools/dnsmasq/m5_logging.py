@@ -4,8 +4,11 @@ from __future__ import annotations
 
 import argparse
 import copy
+import ctypes
+import errno
 import json
 import os
+import platform
 from pathlib import Path
 import re
 import shutil
@@ -174,6 +177,53 @@ def cases():
                      'argv': ['--log-facility=-', '--enable-tftp', '--tftp-root=/m2/logging',
                               '--dhcp-script=/m2/logging/script', '--dhcp-scriptuser=m5-missing-script-user'],
                      'options': ['no-daemon', 'dhcp-scriptuser']})
+    for name, extra, helper_uid in [
+        ('tftp-nobody', ['--enable-tftp', '--tftp-root=/m2/logging'], 0),
+        ('no-service', [], None),
+        ('dhcp-nobody', ['--dhcp-range=127.0.0.10,127.0.0.20,255.0.0.0,10m', '--no-ping',
+                         '--dhcp-broadcast', '--dhcp-leasefile=/m2/logging/leases'], 65534),
+    ]:
+        rows.append({'id': 'scriptuser-' + name, 'scope': 'scriptuser-boundary', 'kind': 'run',
+                     'mode': ['-k'], 'pidfile': '/m2/logging/daemon.pid', 'helper_script': True,
+                     'expected_helper_uid': helper_uid,
+                     'argv': ['--log-facility=-', '--dhcp-script=/m2/logging/script',
+                              '--dhcp-scriptuser=nobody', *extra], 'options': ['dhcp-scriptuser']})
+    for name, number, error in [('fork-one', 220, errno.EAGAIN), ('error-pipe', 59, errno.EMFILE),
+                                ('error-pipe-flags', 25, errno.EIO),
+                                ('pid-write', 64, errno.EIO), ('pid-close', 57, errno.EIO),
+                                ('log-chown', 55, errno.EPERM), ('pid-chown', 55, errno.EPERM),
+                                ('pid-short-write', 64, 0)]:
+        failed = name not in ['log-chown', 'pid-chown', 'pid-short-write']
+        rows.append({'id': 'startup-fault-' + name, 'scope': 'startup-fault', 'kind': 'run',
+                     'mode': [] if name in ['fork-one', 'error-pipe', 'error-pipe-flags'] else ['-k'],
+                     'daemonized': name in ['fork-one', 'error-pipe', 'error-pipe-flags'], 'fault': name,
+                     'fault_number': number, 'fault_errno': error,
+                     'exit': (5 if name in ['fork-one', 'error-pipe', 'error-pipe-flags'] else 3) if failed else 0,
+                     'pidfile': '/m2/logging/daemon.pid',
+                     'user': 'nobody' if name in ['log-chown', 'pid-chown'] else 'root',
+                     'file': '/m2/logging/daemon.log' if name == 'log-chown' else None,
+                     'argv': ['--log-facility=/m2/logging/daemon.log'] if name == 'log-chown' else ['--log-facility=-'],
+                     'receiver': 'dgram', 'options': ['no-daemon', 'log-facility']})
+    dhcp_base = ['--log-facility=-', '--dhcp-leasefile=/m2/logging/leases', '--no-ping', '--dhcp-broadcast']
+    for name, ranges in [
+        ('dynamic', ['127.0.0.10,127.0.0.20,255.0.0.0,10m']),
+        ('static', ['127.0.0.0,static,255.0.0.0,3723']),
+        ('proxy', ['127.0.0.0,proxy']),
+        ('infinite', ['127.0.0.10,127.0.0.20,255.0.0.0,infinite']),
+        ('multi', ['127.0.0.10,127.0.0.20,255.0.0.0,93784',
+                   '127.0.0.0,static,255.0.0.0,2m', '127.0.0.0,proxy']),
+    ]:
+        rows.append({'id': 'startup-dhcp-' + name, 'scope': 'startup-output', 'kind': 'run',
+                     'argv': [*dhcp_base, *['--dhcp-range=' + value for value in ranges]],
+                     'options': ['log-facility', 'log-dhcp']})
+    for name, flags in [('plain', []), ('secure', ['--tftp-secure']),
+                         ('single', ['--tftp-single-port']),
+                         ('both', ['--tftp-secure', '--tftp-single-port']),
+                         ('no-global-root', ['--tftp-root=/m2/logging,lo'])]:
+        rows.append({'id': 'startup-tftp-' + name, 'scope': 'startup-output', 'kind': 'run',
+                     'argv': ['--log-facility=-', '--enable-tftp',
+                              *([] if name == 'no-global-root' else ['--tftp-root=/m2/logging']), *flags],
+                     'options': ['log-facility']})
     for enabled in [False, True]:
         rows.append({'id': 'no-ident-full-' + ('enabled' if enabled else 'default'),
                      'scope': 'identity-full', 'kind': 'run', 'identity_matrix': True,
@@ -363,7 +413,7 @@ def identity_sequence(transport, calibrate, sticky_probe=None, fresh=False):
 
 
 def run(root, side, case, out):
-    if case.get('scope') in ['daemon', 'scriptuser-boundary']:
+    if case.get('scope') in ['daemon', 'scriptuser-boundary', 'startup-fault']:
         return run_daemon(root, side, case, out)
     out.mkdir()
     folder = image_path(root, '/m2/logging')
@@ -521,6 +571,135 @@ def reap_children():
     return reaped
 
 
+def traced_startup(argv, case, side, stdout, stderr, report_path):
+    if platform.machine() != 'aarch64':
+        raise RuntimeError('startup syscall ABI is pinned AArch64')
+    libc = ctypes.CDLL(None, use_errno=True)
+    libc.ptrace.restype = ctypes.c_long
+    class Iovec(ctypes.Structure):
+        _fields_ = [('base', ctypes.c_void_p), ('size', ctypes.c_size_t)]
+    class Registers(ctypes.Structure):
+        _fields_ = [('x', ctypes.c_uint64 * 31), ('sp', ctypes.c_uint64),
+                    ('pc', ctypes.c_uint64), ('pstate', ctypes.c_uint64)]
+    def preexec():
+        if libc.ptrace(0, 0, None, None) != 0:
+            raise OSError(ctypes.get_errno(), 'PTRACE_TRACEME')
+    process = subprocess.Popen(argv, stdin=subprocess.DEVNULL, stdout=stdout, stderr=stderr,
+        env={**os.environ, 'LC_ALL': 'C', 'TZ': 'UTC'}, start_new_session=True, preexec_fn=preexec)
+    pid = process.pid
+    def ptrace(request, address=0, data=0):
+        ctypes.set_errno(0)
+        result = libc.ptrace(ctypes.c_uint(request), ctypes.c_uint(pid),
+                             ctypes.c_void_p(address), ctypes.c_void_p(data))
+        if result == -1 and ctypes.get_errno():
+            raise OSError(ctypes.get_errno(), 'ptrace')
+        return result
+    def regs(write=False, value=None):
+        value = value or Registers()
+        vec = Iovec(ctypes.addressof(value), ctypes.sizeof(value))
+        ptrace(0x4205 if write else 0x4204, 1, ctypes.addressof(vec))
+        return value
+    report = {'pid': pid, 'fault': case['fault'], 'injected': False, 'events': []}
+    attached, pending, pipes, pipe_pointer, error_writer = True, None, 0, None, None
+    deadline = time.monotonic() + 5
+    def wait_stop():
+        while time.monotonic() < deadline:
+            returned, status = os.waitpid(pid, os.WNOHANG)
+            if returned:
+                return status
+            time.sleep(.001)
+        raise TimeoutError('startup trace syscall deadline')
+    try:
+        status = wait_stop()
+        if not os.WIFSTOPPED(status):
+            raise AssertionError('tracee did not stop at initial exec')
+        ptrace(0x4200, 0, 1)  # TRACESYSGOOD
+        for _ in range(50000):
+            ptrace(24)
+            status = wait_stop()
+            if not os.WIFSTOPPED(status):
+                process.returncode = os.waitstatus_to_exitcode(status)
+                attached = False
+                raise AssertionError('tracee exited before selected startup syscall')
+            if os.WSTOPSIG(status) != signal.SIGTRAP | 0x80:
+                continue
+            info = ctypes.create_string_buffer(128)
+            ptrace(0x420e, ctypes.sizeof(info), ctypes.addressof(info))
+            operation = info.raw[0]
+            if operation == 1:
+                number = struct.unpack_from('=Q', info.raw, 24)[0]
+                args = struct.unpack_from('=6Q', info.raw, 32)
+                try:
+                    executable = os.readlink(f'/proc/{pid}/exe')
+                except FileNotFoundError:
+                    continue
+                if not executable.endswith('/dnsmasq' + ('-rs' if side == 'rust' else '')):
+                    continue
+                if number == 59:
+                    pipes += 1
+                    if case['fault'] == 'error-pipe-flags' and pipes == (2 if side == 'c' else 1):
+                        pipe_pointer = args[0]
+                target = ''
+                if number in [57, 55, 64, 66]:
+                    try:
+                        target = os.readlink(f'/proc/{pid}/fd/{args[0]}')
+                    except FileNotFoundError:
+                        pass
+                match = number == case['fault_number'] or (number == 66 and case['fault_number'] == 64)
+                if case['fault'] == 'error-pipe':
+                    match &= pipes == (2 if side == 'c' else 1)
+                elif case['fault'] == 'error-pipe-flags':
+                    match &= args[0] == error_writer and args[1] == 4
+                elif case['fault'] in ['pid-write', 'pid-close', 'pid-chown', 'pid-short-write']:
+                    match &= target.endswith('/m2/logging/daemon.pid')
+                elif case['fault'] == 'log-chown':
+                    match &= target.endswith('/m2/logging/daemon.log')
+                if not match:
+                    continue
+                pending = {'number': number, 'args': list(args), 'target': target}
+                if case['fault'] == 'pid-short-write':
+                    if number == 66:
+                        pending['iov_length'] = ptrace(2, args[1] + 8) & ((1 << 64) - 1)
+                        ptrace(5, args[1] + 8, 1)
+                    else:
+                        value = regs()
+                        value.x[2] = 1
+                        regs(True, value)
+                elif case['fault'] != 'pid-close':
+                    skipped = ctypes.c_int(-1)
+                    vec = Iovec(ctypes.addressof(skipped), ctypes.sizeof(skipped))
+                    ptrace(0x4205, 0x404, ctypes.addressof(vec))
+            elif operation == 2 and pipe_pointer is not None and pending is None:
+                word = ptrace(2, pipe_pointer) & ((1 << 64) - 1)
+                error_writer = word >> 32
+                pipe_pointer = None
+            elif operation == 2 and pending:
+                result = struct.unpack_from('=q', info.raw, 24)[0]
+                if 'iov_length' in pending:
+                    ptrace(5, pending['args'][1] + 8, pending['iov_length'])
+                if case['fault_errno']:
+                    value = regs()
+                    value.x[0] = (-case['fault_errno']) & ((1 << 64) - 1)
+                    regs(True, value)
+                report['events'].append(dict(pending, actual_result=result,
+                    injected_result=-case['fault_errno'] if case['fault_errno'] else result))
+                report['injected'] = True
+                ptrace(17)
+                attached = False
+                return process
+        raise AssertionError('startup syscall budget exceeded')
+    finally:
+        if attached:
+            try:
+                os.kill(pid, signal.SIGSTOP)
+                os.waitpid(pid, 0)
+                ptrace(17, 0, signal.SIGKILL)
+                process.wait(1)
+            except (OSError, ChildProcessError):
+                pass
+        save(report_path, report)
+
+
 def run_daemon(root, side, case, out):
     out.mkdir()
     folder = image_path(root, '/m2/logging')
@@ -544,7 +723,7 @@ def run_daemon(root, side, case, out):
     receiver = Receiver(root, case.get('receiver'))
     executable = '/usr/sbin/dnsmasq' + ('-rs' if side == 'rust' else '')
     argv = ['-C', '/m2/logging/config', *[arg for arg in BASE if arg != '--pid-file='],
-            '--user=root', '--pid-file=' + case['pidfile'], *case['mode'], *case['argv']]
+            '--user=' + case.get('user', 'root'), '--pid-file=' + case['pidfile'], *case['mode'], *case['argv']]
     full = command(root, '/bin/sh', '-c', 'cd /m2/logging && exec "$@"', 'logging', executable, *argv)
     save(out / 'fixture.json', case)
     save(out / 'command.json', full)
@@ -555,8 +734,9 @@ def run_daemon(root, side, case, out):
     service_pid = None
     start = time.monotonic()
     with (out / 'stdout').open('wb') as stdout, (out / 'stderr').open('wb') as stderr:
-        process = subprocess.Popen(full, stdin=subprocess.DEVNULL, stdout=stdout, stderr=stderr,
-                                   env={**os.environ, 'LC_ALL': 'C', 'TZ': 'UTC'}, start_new_session=True)
+        process = traced_startup(full, case, side, stdout, stderr, out / 'fault.json') if case.get('fault') else subprocess.Popen(
+            full, stdin=subprocess.DEVNULL, stdout=stdout, stderr=stderr,
+            env={**os.environ, 'LC_ALL': 'C', 'TZ': 'UTC'}, start_new_session=True)
         try:
             deadline = start + 3
             while time.monotonic() < deadline:
@@ -587,6 +767,14 @@ def run_daemon(root, side, case, out):
                                 'group_leader': state['pgrp'] == service_pid,
                                 'cwd': state['cwd'], 'stdio': state['stdio'],
                                 'uid': state['uid'], 'gid': state['gid']}
+                            if 'expected_helper_uid' in case:
+                                helpers = []
+                                for item in Path('/proc').iterdir():
+                                    if item.name.isdigit() and int(item.name) != service_pid:
+                                        child = proc_state(int(item.name), root)
+                                        if child and child['state'] != 'Z' and child['ppid'] == service_pid:
+                                            helpers.append(child['uid'][1])
+                                observed['helper_uids'] = sorted(helpers)
                             observed['pid_written'] = pid_path.exists() and pid_path.read_text() != 'sentinel\n'
                             if not case.get('daemonized') or parent_exit == 0:
                                 break
@@ -672,6 +860,11 @@ def compare(reference, candidate, case, reference_only=False):
                 failures.append({'kind': 'C-daemon-PID-write', 'actual': reference['pid_written']})
             if reference['pid_after_exit'] != (case.get('signal') == 'int'):
                 failures.append({'kind': 'C-daemon-PID-cleanup', 'actual': reference['pid_after_exit']})
+    if 'expected_helper_uid' in case:
+        expected = [] if case['expected_helper_uid'] is None else [case['expected_helper_uid']]
+        if reference.get('helper_uids') != expected:
+            failures.append({'kind': 'C-helper-identity-control', 'expected': expected,
+                             'actual': reference.get('helper_uids')})
     if 'facility' in case and expected_ready:
         if not reference['syslog']:
             failures.append({'kind': 'C-no-syslog-records'})
