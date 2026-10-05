@@ -262,7 +262,7 @@ def cases():
     for kind in ['coalesce', 'clientretry', 'fastretry']:
         rows.append({'id': 'query-transaction-' + kind, 'scope': 'query-transactions', 'kind': 'run',
                      'argv': ['--log-facility=-', '--log-queries=proto', '--server=127.0.0.2#15957',
-                              *(['--fast-retry=20,1'] if kind == 'fastretry' else [])],
+                              *(['--fast-dns-retry=50,1000'] if kind == 'fastretry' else [])],
                      'query_probes': True, 'query_mode': 'proto', 'query_sequence': [('ready.logging', 1)],
                      'query_upstream': True, 'query_transaction_probe': kind, 'options': ['log-queries']})
     rows.extend([
