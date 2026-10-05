@@ -11,57 +11,69 @@
       "NO_AUTH",
       "NO_IPSET",
       "NO_ID"
-    ]
+    ],
+    "source_files_sha256": {
+      "lease.c": "4260039af27b40084cbe6dbbae2bb9417fa3a91806ea53f3f6bdd20234cad763",
+      "option.c": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
+      "util.c": "33920165ef3e92f65d1cab75fe8da7772ad7389b37da79ba881957080f12f973",
+      "rfc2131.c": "14f2e10792ef6108aeb7b69e551f089ba287c8c84d39ea178a5f33acd2038c2c",
+      "dnsmasq.c": "d4bb7cde522376200a0293427b0812625ebc457f10dc9d3e2bef243ccba8ccd1"
+    }
   },
   "required_scenarios": [
-    "inactive-dns",
-    "create-missing",
-    "missing-parent",
-    "directory",
-    "permission",
-    "readonly-fs",
-    "relative-link",
     "absolute-link",
-    "dangling-link",
-    "loop-link",
-    "held-inode",
-    "ro-no-script",
-    "ro-init",
-    "ro-capacity",
-    "scanf-space",
-    "scanf-width",
-    "scanf-nul",
-    "partial-first",
-    "partial-record",
+    "alias",
+    "alias-empty",
+    "alias-required",
     "bad-address",
-    "bad-hardware",
-    "hex-identities",
     "bad-client-id",
+    "bad-hardware",
+    "capacity-duplicate",
+    "capacity-expired",
+    "capacity-invalid",
+    "client-fallback",
+    "configured-names",
+    "create-missing",
+    "dangling-link",
+    "directory",
+    "duplicate-client",
+    "duplicate-decline",
+    "duplicate-inform",
+    "duplicate-release",
+    "duplicate-renew",
+    "duplicates",
     "expiry-integers",
     "expiry-prune",
     "expiry-timer",
-    "capacity-expired",
-    "capacity-duplicate",
-    "capacity-invalid",
-    "duplicates",
-    "duplicate-client",
-    "client-fallback",
-    "duplicate-renew",
-    "duplicate-release",
-    "duplicate-decline",
-    "duplicate-inform",
-    "name-collision",
-    "fqdn-scope",
-    "configured-names",
     "extensions",
-    "sighup",
-    "restart",
-    "write-failure",
-    "partial-eio",
+    "fqdn-scope",
+    "held-inode",
+    "hex-identities",
+    "inactive-dns",
+    "loop-link",
+    "missing-parent",
+    "name-collision",
+    "occurrence",
+    "optional-empty",
     "optional-long",
-    "alias",
+    "optional-separated",
+    "partial-eio",
+    "partial-first",
+    "partial-record",
+    "permission",
+    "readonly-fs",
+    "relative-link",
+    "restart",
+    "ro-capacity",
+    "ro-init",
+    "ro-no-script",
+    "scanf-nul",
+    "scanf-space",
+    "scanf-width",
     "short",
-    "occurrence"
+    "short-required",
+    "sighup",
+    "write-failure"
   ],
   "boundaries": [
     {
@@ -437,7 +449,9 @@
       "source": "option.c:225,2383-2385",
       "contract": "--dhcp-leasefile without optional argument resets to default; separate next argv is not its value.",
       "required_scenarios": [
-        "optional-long"
+        "optional-long",
+        "optional-empty",
+        "optional-separated"
       ]
     },
     {
@@ -445,7 +459,9 @@
       "source": "option.c:226,2383-2385",
       "contract": "--dhcp-lease requires an argument and uses shared canonical occurrence identity.",
       "required_scenarios": [
-        "alias"
+        "alias",
+        "alias-empty",
+        "alias-required"
       ]
     },
     {
@@ -453,7 +469,8 @@
       "source": "option.c:2383-2385",
       "contract": "-l requires an argument; empty explicit value resets default.",
       "required_scenarios": [
-        "short"
+        "short",
+        "short-required"
       ]
     },
     {
