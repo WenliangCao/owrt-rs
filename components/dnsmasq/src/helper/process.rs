@@ -381,7 +381,9 @@ impl Helper {
             };
             // SAFETY: one valid pollfd, zero timeout; error/hangup readiness
             // reaches write so the existing EPIPE cleanup remains active.
-            if !self.pending.is_empty() && unsafe { poll(&mut readiness, 1, 0) } > 0 {
+            if !self.pending.is_empty()
+                && (self.stopping || unsafe { poll(&mut readiness, 1, 0) } > 0)
+            {
                 match writer.write(&self.pending[self.written..]) {
                     Ok(0) => {
                         self.pending.clear();
