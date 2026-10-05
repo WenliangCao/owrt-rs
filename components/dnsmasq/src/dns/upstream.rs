@@ -731,7 +731,7 @@ impl<R: Random> UpstreamResolver<R> {
             }
         }
         let mut ordered: Vec<_> = self.source_bindings.clone().into_iter().collect();
-        ordered.sort_by_key(|(id, _)| id.0);
+        ordered.sort_unstable_by_key(|(id, _)| id.0);
         for (id, source) in ordered {
             // add_update_server preserves a reused server's existing sfd even
             // after its source tuple changes. TCP uses the updated tuple.
@@ -894,7 +894,8 @@ impl<R: Random> UpstreamResolver<R> {
             if let Some(token) = allocated {
                 token
             } else {
-                let mut reusable: Vec<_> = self
+                let slots = self.socket_settings.pool_slots;
+                let reusable = self
                     .sockets
                     .iter()
                     .filter(|(token, owned)| {
@@ -903,19 +904,15 @@ impl<R: Random> UpstreamResolver<R> {
                             && owned.owners.len() < 0xfffe
                             && !compatible.contains(token)
                     })
-                    .map(|(token, _)| *token)
-                    .collect();
-                let slots = self.socket_settings.pool_slots;
-                reusable.sort_by_key(|token| {
-                    let slot = self.sockets[token]
-                        .pool_slot
-                        .expect("pooled socket has a physical slot");
-                    (slot + slots - self.pool_finger % slots) % slots
-                });
-                match reusable.first() {
+                    .min_by_key(|(_, owned)| {
+                        let slot = owned.pool_slot.expect("pooled socket has a physical slot");
+                        (slot + slots - self.pool_finger % slots) % slots
+                    })
+                    .map(|(token, _)| *token);
+                match reusable {
                     Some(token) => {
-                        self.pool_finger = self.sockets[token].pool_slot.unwrap() + 1;
-                        *token
+                        self.pool_finger = self.sockets[&token].pool_slot.unwrap() + 1;
+                        token
                     }
                     None => self.open_socket(source.clone(), false, false)?,
                 }

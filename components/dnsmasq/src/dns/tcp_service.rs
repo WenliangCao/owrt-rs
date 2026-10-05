@@ -89,6 +89,10 @@ impl TcpDnsService {
 
     /// Set once when the accepted connection and its local/routing snapshots
     /// are created. MAC lookup remains in the owner's nonblocking path.
+    pub fn take_connection_failures(&mut self) -> Vec<SocketAddr> {
+        self.upstream.take_connection_failures()
+    }
+
     pub fn set_client_source(&mut self, source: IpAddr) {
         self.client_source = Some(source);
     }

@@ -1,7 +1,7 @@
 {
   "schema": "m5-edns-contract-v1",
   "family": "edns",
-  "status": "source-frozen-before-product-edits",
+  "status": "implemented-awaiting-exact-image-qualification",
   "options": [
     "add-mac",
     "add-subnet",
@@ -66,8 +66,8 @@
     "option loader calls semantic parser before --test; dnsmasq.c clamps casted edns max below512 after --test",
     "UDP receive_query captures original OPT/DO/limit, decorates before local/cache, saves decorated query, forwards and retries saved bytes",
     "TCP accept nondebug preloads MAC nonlazy in parent; child connection snapshot; each frame decorated before extraction/local/cache; maximum input and decoration limit packet_buff_sz",
-    "process_reply checks ECS using peer before signed check/OPT stripping; UDP keeps transaction alive on mismatch; TCP takes m=0 local REFUSED fallback",
-    "cacheable=false suppresses only dynamic cache reads and insertion; configured local records remain available; UDP no-cache never matches lookup_frec",
+    "process_reply checks ECS using peer before signed check/OPT stripping; receive_reply already closes random source FDs and return_reply unconditionally frees transaction even on ECS mismatch; TCP takes m=0 local REFUSED fallback",
+    "cacheable=false suppresses dynamic cache reads/insertion but configured local records remain available; actual image DOES match FREC_NO_CACHE peers despite forward.c187 comment; preserve explicit defect witness for source-sensitive coalescing",
     "arp find_mac lazily caches misses90s; nonlazy TCP accept refreshes negatives; only complete kernel snapshots authoritative"
   ],
   "failure_boundaries": [
@@ -292,8 +292,10 @@
         "reply-ecs-fixed-check",
         "reply-ecs-check-signed",
         "reply-ecs-udp-remains-pending",
-        "reply-ecs-tcp-local-fallback"
-      ]
+        "reply-ecs-tcp-local-fallback",
+        "reply-ecs-mismatch-recovery"
+      ],
+      "actual_c_contract": "Misleading old scenario ID reply-ecs-udp-remains-pending is retained. Exact image rejects mismatch, cancels frec and ignores later valid reply. Fresh query must recover; forward.c receive_reply/free_rfds and return_reply/free_frec are authoritative."
     },
     {
       "id": "CACHE-POLICY",
@@ -327,8 +329,15 @@
         "coalesce-fixed-ecs",
         "coalesce-mac",
         "coalesce-umbrella",
-        "coalesce-same-source-uncacheable"
-      ]
+        "coalesce-same-source-uncacheable",
+        "coalesce-ecs-distinct-ip",
+        "coalesce-mac-distinct-ip",
+        "coalesce-umbrella-distinct-ip",
+        "coalesce-ecs-distinct-ip-independent",
+        "coalesce-mac-distinct-ip-independent",
+        "coalesce-umbrella-distinct-ip-independent"
+      ],
+      "actual_c_contract": "Do not trust forward.c:187 comment: receive_query passes fwd_flags including NO_CACHE to lookup_frec. Actual image calibration-c-02 coalesces source-dependent requests with matching flags; same-source/same-id retries reuse upstream ID. Distinct-IP hold repro required before choosing any Rust isolation difference."
     },
     {
       "id": "TRANSPORT",
@@ -389,5 +398,35 @@
     "inventory_entries": 337,
     "verified_regular_files": 300,
     "scope": "SHA and complete archive metadata verified before remote prune"
-  }
+  },
+  "reference_defects": [
+    {
+      "id": "source-sensitive-coalescing",
+      "cases": [
+        "coalesce-ecs-distinct-ip",
+        "coalesce-mac-distinct-ip",
+        "coalesce-umbrella-distinct-ip"
+      ],
+      "decision": "Root source/runtime review: keep C matching for identical effective option bytes, isolate distinct effective option bytes with Scope::Edns. NO_CACHE is a cache gate and still participates in flags matching; it never forces all requests independent.",
+      "proof_run": "coalescing-c-repro-01",
+      "proof_archive_sha256": "6207262ac05bfaa73500d6e472b912b73993fa79248037f8eb38acfa554adc09",
+      "required_negative_controls": "C independent sequential requests from each actual client must give distinct source-keyed payloads; Rust hold test must match each independent C payload and option bytes."
+    },
+    {
+      "id": "netlink-partial-error-publication",
+      "cases": [
+        "neighbor-invalid-partial-dump"
+      ],
+      "source": "arp.c find_mac publishes filter_mac callbacks before iface_enumerate returns; netlink.c NLMSG_ERROR merely logs. Rust rejects failed snapshot. Guard both with byte-identical injected partial/error/done stream and independent exact C complete/absent identity responses."
+    },
+    {
+      "id": "netlink-missing-done-owner-stall",
+      "cases": [
+        "neighbor-dump-timeout-progress",
+        "neighbor-refresh-nonblocking",
+        "neighbor-stop-pending-cleanup"
+      ],
+      "source": "netlink.c netlink_recv retries EINTR and iface_enumerate waits synchronously for NLMSG_DONE. Guard C unrelated DNS timeout and forced kill; Rust retained-positive health, bounded absent fallback and ordinary stop. Same consumed synthetic stream lacks DONE."
+    }
+  ]
 }

@@ -61,6 +61,7 @@ impl Exchange {
         &mut self,
         groups: &mut HashMap<GroupId, Group>,
         options: TcpOptions,
+        connection_failures: &mut Vec<std::net::SocketAddr>,
     ) -> Result<TcpProgress, TcpError> {
         let group = groups.get_mut(&self.group).ok_or(TcpError::UnknownGroup)?;
         // Fairness bound covers interrupted syscalls, partial reads/writes,
@@ -76,6 +77,9 @@ impl Exchange {
             let index = (self.start + self.offset) % group.servers.len();
             let server = &mut group.servers[index];
             if self.phase != Phase::Pick && now >= self.idle {
+                if self.phase == Phase::Connect {
+                    connection_failures.push(server.address);
+                }
                 self.failed(&mut server.connection);
                 continue;
             }
@@ -118,7 +122,10 @@ impl Exchange {
                             group.last_connected = index;
                         }
                     }
-                    Err(_) => self.offset += 1,
+                    Err(_) => {
+                        connection_failures.push(server.address);
+                        self.offset += 1;
+                    }
                 }
                 continue;
             }
@@ -144,7 +151,10 @@ impl Exchange {
                         self.idle = now + options.write_timeout;
                     }
                     Ok(false) => return Ok(self.wait(group)),
-                    Err(_) => self.failed(&mut server.connection),
+                    Err(_) => {
+                        connection_failures.push(server.address);
+                        self.failed(&mut server.connection);
+                    }
                 }
                 continue;
             }
