@@ -97,6 +97,14 @@ impl StartupChannel {
         write_event(writer.as_raw_fd(), -1, code, message);
     }
 
+    /// EVENT_PIDFILE13 uses the same optional raw-argument handoff as C.
+    pub fn fail_pid(&mut self, errno: i32, path: &[u8]) {
+        let Some(writer) = self.writer.take() else {
+            return;
+        };
+        write_event(writer.as_raw_fd(), 13, errno, path);
+    }
+
     /// Exact EVENT_LOG_ERR has the original path as argument, not a formatted
     /// message. A short payload keeps errno and makes the parent use strerror.
     pub fn fail_log(&mut self, errno: i32, path: &[u8]) {
@@ -178,20 +186,20 @@ fn read_startup_event(
         }
         false
     };
-    if matches!(kind, 17 | 20) {
+    if matches!(kind, 13 | 17 | 20) {
         let error = crate::logging::error_text(&io::Error::from_raw_os_error(data));
         let path = if complete && length != 0 {
             &argument
         } else {
             error.as_bytes()
         };
-        let mut message = if kind == 17 {
-            b"cannot open log ".to_vec()
-        } else {
-            b"TFTP directory ".to_vec()
+        let mut message = match kind {
+            13 => b"failed to open pidfile ".to_vec(),
+            17 => b"cannot open log ".to_vec(),
+            _ => b"TFTP directory ".to_vec(),
         };
         message.extend_from_slice(path);
-        message.extend_from_slice(if kind == 17 {
+        message.extend_from_slice(if kind != 20 {
             b": ".as_slice()
         } else {
             b" inaccessible: ".as_slice()
@@ -249,6 +257,31 @@ mod tests {
         }
         for length in 0..12 {
             assert!(read_startup_event(&mut &complete[..length], &mut None).unwrap());
+        }
+        for (kind, prefix) in [
+            (13i32, b"failed to open pidfile ".as_slice()),
+            (20, b"TFTP directory ".as_slice()),
+        ] {
+            for complete in [true, false] {
+                let mut frame = log_frame(2, 8, if complete { b"/missin\xff" } else { b"/miss" });
+                frame[..4].copy_from_slice(&kind.to_ne_bytes());
+                let mut bytes = None;
+                let error = read_startup_event(&mut frame.as_slice(), &mut bytes).unwrap_err();
+                assert_eq!(error.code, 3);
+                let mut expected = prefix.to_vec();
+                expected.extend_from_slice(if complete {
+                    b"/missin\xff".as_slice()
+                } else {
+                    b"No such file or directory"
+                });
+                expected.extend_from_slice(if kind == 20 {
+                    b" inaccessible: ".as_slice()
+                } else {
+                    b": "
+                });
+                expected.extend_from_slice(b"No such file or directory");
+                assert_eq!(bytes.unwrap(), expected);
+            }
         }
         let frame = log_frame(2, 8, b"/missin\xff");
         let mut bytes = None;
