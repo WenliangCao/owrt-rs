@@ -491,6 +491,15 @@ def self_test():
                       'response': None, 'upstream': []} for t in ['udp', 'tcp']]}
     assert not compare(base, copy.deepcopy(base), case)
     controls = {}
+    typed_case = {'probes': [{'id': 'required', 'c_expect': {'answer_types': [6]}}]}
+    typed = copy.deepcopy(base)
+    for row in typed['rows']:
+        row['response'] = {'flags': 0x8180, 'records': [{'section': 'answer', 'type': 6}]}
+    assert not compare(typed, copy.deepcopy(typed), typed_case)
+    for row in typed['rows']:
+        row['response']['records'].clear()
+    assert any(f['phase'] == 'c-calibration' for f in compare(typed, copy.deepcopy(typed), typed_case))
+    controls['vacuous-C-answer-type-anchor'] = 'detected'
     for key in ['missing-row', 'missing-syntax-output', 'wrong-syntax-exit', 'wrong-parser-output', 'startup-failure', 'runtime-change', 'leaked-process', 'leaked-pid']:
         changed = copy.deepcopy(base)
         if key == 'missing-row': changed['rows'].pop()

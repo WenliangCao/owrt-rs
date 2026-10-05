@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "executable": true,
-  "qualification_ready": false,
-  "status": "first-C-calibration-complete; ordinary flags/caller repairs pending paired replay",
+  "qualification_ready": true,
+  "status": "ordinary-19-configurations-C-calibrated-and-repaired-candidate-paired",
   "scope": "filterwin2k exact source rfc1035.c:2274-2279,2350-2355; no wire-level upstream RR filtering exists for this flag",
   "source_identity": {
     "rfc1035.c": "231f0b4989039ff4963f3916df22871dd13025dde65769465b2b3052ad807222",
