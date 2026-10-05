@@ -159,7 +159,7 @@ def service_cases():
     add('range-fixed-override','min-port=34100\nmax-port=34100\nserver=127.0.0.2@127.0.0.9#34004\n',expected_source_port=34004)
     add('range-two-families','min-port=34100\nmax-port=34100\nserver=127.0.0.2\nserver=::1\nall-servers\n',source_range=[34100,34100])
     for limit in (0,1,2,3):
-        add('allservers-port-limit-'+str(limit),'port-limit='+str(limit)+'\nserver=127.0.0.2\nserver=127.0.0.3\nserver=127.0.0.4\nall-servers\n',udp_unique_ports= max(1,min(3,limit)),udp_winner=1,expected_start=limit!=0,expected_test=1 if limit==0 else 0)
+        add('allservers-port-limit-'+str(limit),'port-limit='+str(limit)+'\nserver=127.0.0.2\nserver=127.0.0.3\nserver=127.0.0.4\nall-servers\n',udp_unique_ports= max(1,min(3,limit)),udp_winner=1,udp_expected_receipts=3,expected_start=limit!=0,expected_test=1 if limit==0 else 0)
     add('pool-single-port-concurrent','min-port=34100\nmax-port=34100\nserver=127.0.0.2\n',actions=[dict(op='start-udp',id='first',name='first.endpoint.test'),dict(op='start-udp',id='second',name='second.endpoint.test'),dict(op='inject',id='second',server=0),dict(op='receive-udp',id='second',pending='second'),dict(op='inject',id='first',server=0),dict(op='receive-udp',id='first',pending='first')],source_range=[34100,34100],same_udp_port=True)
     add('file-mixed-directives','servers-file=/m2/files/servers\n',files={'servers':'server=/one.endpoint.test/v4.endpoint.test\nrev-server=192.0.2.0/24,multi.endpoint.test\nserver=/two.endpoint.test/127.0.0.3\nserver=/local.endpoint.test/\n'},names=('one.endpoint.test','7.2.0.192.in-addr.arpa','two.endpoint.test','local.endpoint.test'),sys_files={'/etc/hosts':HOSTS})
     add('file-errors-continue','servers-file=/m2/files/servers\n',files={'servers':'server=/bad.endpoint.test/::1%missing\nserver=/one.endpoint.test/v4.endpoint.test\nserver=/badsource.endpoint.test/127.0.0.2@::1\nserver=/two.endpoint.test/127.0.0.3\n'},names=('one.endpoint.test','two.endpoint.test','bad.endpoint.test','badsource.endpoint.test'),sys_files={'/etc/hosts':HOSTS},diagnostics=True)
@@ -616,6 +616,10 @@ def run_service_side(root, side, case, folder):
     time.sleep=capture_sleep
     ready_attempts=[]
     def capture_exchange(port,action,*args):
+        # A winner reply can reach the client before another peer thread records
+        # its receive. Snapshot all-servers UDP only after every actual receipt.
+        if args[1]=='udp' and case.get('udp_expected_receipts'):
+            action=dict(action,upstream_expected=case['udp_expected_receipts'])
         result=original_exchange(port,action,*args)
         if action['id']=='ready': ready_attempts.append(dict(pending=lookup_pending(),response=result['response'],at=time.monotonic()))
         elif process is not None and process.poll() is None:
