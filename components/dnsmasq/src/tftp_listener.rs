@@ -255,6 +255,16 @@ impl<O: FileOpener> TftpListener<O> {
             if self.servers.iter().any(|server| server.address == address) {
                 continue;
             }
+            if !initial
+                && !policy.dns.bind_dynamic
+                && !policy
+                    .interfaces
+                    .iter()
+                    .any(|row| row.address == address.ip())
+            {
+                self.pending_bind.push(address);
+                continue;
+            }
             // Like C iface->dad, defer only addresses still undergoing DAD.
             // Static binding retries these at refresh; other bind errors
             // remain startup failures.
@@ -270,10 +280,7 @@ impl<O: FileOpener> TftpListener<O> {
                 }),
                 Err(error)
                     if policy.dns.bind_dynamic
-                        && matches!(
-                            error.kind(),
-                            io::ErrorKind::AddrNotAvailable | io::ErrorKind::AddrInUse
-                        ) => {}
+                        && (error.kind() == io::ErrorKind::AddrNotAvailable || !initial) => {}
                 // A kernel without IPv6 follows C's optional IPv6 listener.
                 Err(error)
                     if address.is_ipv6() && matches!(error.raw_os_error(), Some(97 | 93)) => {}
