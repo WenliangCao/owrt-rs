@@ -259,6 +259,12 @@ def cases():
                      'query_probes': True, 'query_mode': mode, 'query_sequence': forward_query_sequence,
                      'query_upstream': True, 'query_required_messages': required,
                      'options': ['log-queries']})
+    for kind in ['coalesce', 'clientretry', 'fastretry']:
+        rows.append({'id': 'query-transaction-' + kind, 'scope': 'query-transactions', 'kind': 'run',
+                     'argv': ['--log-facility=-', '--log-queries=proto', '--server=127.0.0.2#15957',
+                              *(['--fast-retry=20,1'] if kind == 'fastretry' else [])],
+                     'query_probes': True, 'query_mode': 'proto', 'query_sequence': [('ready.logging', 1)],
+                     'query_upstream': True, 'query_transaction_probe': kind, 'options': ['log-queries']})
     rows.extend([
         {'id': 'daemon-default-stderr', 'scope': 'daemon', 'kind': 'run', 'mode': [],
          'argv': ['--log-facility=-'], 'daemonized': True, 'pidfile': '/m2/logging/daemon.pid',
@@ -966,6 +972,7 @@ class QueryUpstream:
     """Fixed-address UDP/TCP fixture; retain each actual request and response."""
     def __init__(self):
         self.sockets, self.clients, self.wire, self.errors = [], {}, [], []
+        self.pending = []
         self.stopped = threading.Event()
         for address, port in [('127.0.0.2', 15957), ('127.0.0.3', 15958)]:
             udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -1000,7 +1007,10 @@ class QueryUpstream:
 
     def run(self):
         while not self.stopped.is_set():
-            ready, _, _ = select.select(self.sockets + list(self.clients), [], [], .02)
+            ready, _, _ = select.select(self.sockets + list(self.clients), [], [], .005)
+            due = [item for item in self.pending if item[0] <= time.monotonic()]
+            self.pending = [item for item in self.pending if item not in due]
+            for _, endpoint, peer, response in due: endpoint.sendto(response, peer)
             for endpoint in ready:
                 try:
                     if endpoint in self.clients:
@@ -1021,7 +1031,9 @@ class QueryUpstream:
                         request, peer = endpoint.recvfrom(65535)
                         response = self.response(request)
                         self.wire.append({'transport': 'udp', 'request': request.hex(), 'reply': response.hex(), 'server': list(endpoint.getsockname())})
-                        endpoint.sendto(response, peer)
+                        if read_name(request, 12)[0] == 'delay.forward.test':
+                            self.pending.append((time.monotonic() + .12, endpoint, peer, response))
+                        else: endpoint.sendto(response, peer)
                 except Exception as error:
                     self.errors.append(repr(error))
                     self.stopped.set()
@@ -1031,6 +1043,35 @@ class QueryUpstream:
         if self.thread.is_alive(): raise AssertionError('query fixture thread leaked')
         for endpoint in self.sockets + list(self.clients): endpoint.close()
         if self.errors: raise AssertionError(('query fixture failure', self.errors))
+
+
+def query_transaction_probe(kind):
+    trace, rows = [], []
+    clients = [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]
+    clients[0].bind(('127.0.0.1', 16505)); clients[0].settimeout(1)
+    if kind == 'coalesce':
+        clients.append(socket.socket(socket.AF_INET, socket.SOCK_DGRAM))
+        clients[1].bind(('127.0.0.1', 16506)); clients[1].settimeout(1)
+    try:
+        first = query_packet('delay.forward.test', 1, 0x7601)
+        clients[0].sendto(first, ('127.0.0.1', 15353))
+        if kind == 'coalesce':
+            second = query_packet('delay.forward.test', 1, 0x7602)
+            clients[1].sendto(second, ('127.0.0.1', 15353))
+        elif kind == 'clientretry':
+            time.sleep(.015)
+            clients[0].sendto(first, ('127.0.0.1', 15353))
+        for index, client in enumerate(clients):
+            response = client.recv(65535)
+            request = first if index == 0 else second
+            if response[:2] != request[:2]: raise AssertionError('transaction recipient ID changed')
+            rows.append({'transport': 'udp', 'response': semantics(response)})
+            trace.append({'transport': 'udp', 'request': request.hex(), 'reply': response.hex(), 'client': list(client.getsockname())})
+        answer, raw = exchange('delay.forward.test', 1, port=16507, timeout=1)
+        rows.append({'transport': 'udp-cached', 'response': answer});trace.append(dict(raw, transport='udp-cached'))
+    finally:
+        for client in clients: client.close()
+    return rows, trace
 
 
 def run(root, side, case, out):
@@ -1268,6 +1309,9 @@ def run(root, side, case, out):
                     answer, raw = exchange('ready.logging', port=16503)
                     observed['dns'].append({'name': 'ready.logging', 'type': 1, 'transport': 'udp-after-tcp', 'response': answer})
                     trace['dns'].append(dict(raw, transport='udp-after-tcp'))
+                    if case.get('query_transaction_probe'):
+                        rows, raw = query_transaction_probe(case['query_transaction_probe'])
+                        observed['dns'].extend(rows); trace['dns'].extend(raw)
                 if case.get('chaos'):
                     for name in ['version.bind', 'authors.bind', 'copyright.bind', 'cachesize.bind',
                                  'insertions.bind', 'evictions.bind', 'hits.bind', 'misses.bind', 'servers.bind']:
@@ -2103,6 +2147,24 @@ def compare(reference, candidate, case, reference_only=False):
             failures.append({'kind': 'C-query-protocol-prefix', 'actual': text})
         if mode == 'only_failed' and 'is NXDOMAIN' not in text:
             failures.append({'kind': 'C-query-only-failed-negative', 'actual': text})
+        transaction = case.get('query_transaction_probe')
+        if transaction:
+            messages = [line.split(': ', 1)[-1] for line in text.splitlines() if 'delay.forward.test' in line or 'query is duplicate' in line]
+            if transaction == 'coalesce':
+                required = ['UDP 104 127.0.0.1/16505 query[A] delay.forward.test',
+                            'UDP 105 127.0.0.1/16506 query[A] delay.forward.test',
+                            'UDP 104 127.0.0.1/16505 reply delay.forward.test is 192.0.2.7',
+                            'UDP 105 127.0.0.1/16506 reply query is duplicate']
+            elif transaction == 'clientretry':
+                required = ['UDP 104 127.0.0.1/16505 query[A] delay.forward.test',
+                            'UDP 105 127.0.0.1/16505 query[A] delay.forward.test',
+                            'UDP 105 127.0.0.1/16505 reply delay.forward.test is 192.0.2.7']
+            else:
+                required = ['UDP 104 forwarded delay.forward.test to 127.0.0.2#15957',
+                            'UDP 104 127.0.0.1/16505 reply delay.forward.test is 192.0.2.7']
+            for item in required:
+                if not any(message.startswith(item) for message in messages):
+                    failures.append({'kind': 'C-query-transaction-producer', 'missing': item, 'actual': messages})
         for message in case.get('query_required_messages', []):
             if message not in text:
                 failures.append({'kind': 'C-query-source-producer', 'missing': message})
