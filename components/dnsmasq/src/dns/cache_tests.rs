@@ -80,17 +80,32 @@ fn live_maximum_ttl_follows_cname_scan_and_leaves_other_sections_alone() {
     let other = Name::from_ascii("other.clip.test").unwrap();
     let mut writer = PacketWriter::new(1, 0x8180, 1232).unwrap();
     writer.question(&alias, 1, 1).unwrap();
-    writer.record_at(Section::Answer, 12, 5, 1, 600, target.as_wire()).unwrap();
-    writer.record_at(Section::Answer, 12, 1, 1, 600, &[198, 51, 100, 1]).unwrap();
-    writer.record(Section::Answer, &target, 1, 1, 400, &[198, 51, 100, 2]).unwrap();
-    writer.record(Section::Answer, &other, 1, 1, 700, &[198, 51, 100, 3]).unwrap();
-    writer.record_at(Section::Answer, 12, 1, 3, 800, &[198, 51, 100, 4]).unwrap();
-    writer.record(Section::Authority, &target, 16, 1, 900, &[1, b'x']).unwrap();
+    writer
+        .record_at(Section::Answer, 12, 5, 1, 600, target.as_wire())
+        .unwrap();
+    writer
+        .record_at(Section::Answer, 12, 1, 1, 600, &[198, 51, 100, 1])
+        .unwrap();
+    writer
+        .record(Section::Answer, &target, 1, 1, 400, &[198, 51, 100, 2])
+        .unwrap();
+    writer
+        .record(Section::Answer, &other, 1, 1, 700, &[198, 51, 100, 3])
+        .unwrap();
+    writer
+        .record_at(Section::Answer, 12, 1, 3, 800, &[198, 51, 100, 4])
+        .unwrap();
+    writer
+        .record(Section::Authority, &target, 16, 1, 900, &[1, b'x'])
+        .unwrap();
     let mut packet = writer.finish();
     clip_live_reply_ttls(&mut packet, 100, 0).unwrap();
     let message = Message::parse(&packet).unwrap();
-    let ttls: Vec<_> = message.records(Section::Answer).chain(message.records(Section::Authority))
-        .map(|record| record.ttl).collect();
+    let ttls: Vec<_> = message
+        .records(Section::Answer)
+        .chain(message.records(Section::Authority))
+        .map(|record| record.ttl)
+        .collect();
     assert_eq!(ttls, [100, 600, 100, 700, 800, 900]);
 }
 
@@ -811,4 +826,48 @@ fn bounded_state_survives_repeated_abort_expiry_and_reuse() {
             check_ownership(&cache);
         }
     }
+}
+
+#[test]
+fn cname_terminal_preview_does_not_expire_terminal_or_mutate_lookup_order() {
+    let alias = Name::from_ascii("alias.interface.test").unwrap();
+    let target = Name::from_ascii("target.interface.test").unwrap();
+    let mut cache = Cache::new(8, Policy::default());
+    cache.start_insert();
+    let alias_id = cache
+        .insert(
+            Record {
+                name: alias.clone(),
+                kind: Kind::Cname,
+                negative: false,
+                data: target.as_wire().to_vec(),
+            },
+            100,
+            60,
+        )
+        .unwrap();
+    let target_id = cache
+        .insert(
+            Record {
+                name: target.clone(),
+                kind: Kind::Ipv4,
+                negative: false,
+                data: vec![198, 51, 100, 7],
+            },
+            100,
+            1,
+        )
+        .unwrap();
+    assert!(cache.set_cname_target(alias_id, target_id));
+    assert!(cache.commit());
+    let before = (cache.head, cache.tail, cache.names.clone());
+    assert_eq!(cache.cname_terminal_name(&alias, 102), Some(target.clone()));
+    assert_eq!((cache.head, cache.tail, cache.names.clone()), before);
+    assert!(cache.get(target_id).is_some());
+    assert_eq!(cache.cname_terminal_name(&alias, 160), None);
+    cache.start_insert();
+    assert_eq!(
+        cache.cname_terminal_name(&Name::from_ascii("other.test").unwrap(), 102),
+        None
+    );
 }

@@ -370,7 +370,11 @@ impl Cache {
     /// interface-record resolver may override before ordinary cached RDATA is
     /// emitted. A broken, expired, or cyclic chain is not a terminal.
     pub fn cname_terminal_name(&self, name: &Name, now: i64) -> Option<Name> {
-        let mut ids = self.names.get(&name.canonical_wire())?.iter().copied();
+        let mut ids = self
+            .names
+            .get(&name.canonical_wire())?
+            .iter()
+            .map(|&slot| self.id(slot));
         let mut id = ids.find(|id| {
             self.get(*id).is_some_and(|entry| {
                 entry.record.kind == Kind::Cname && !self.invalid(id.slot, now)
@@ -385,9 +389,6 @@ impl Cache {
                 CnameTarget::Local(target) => return Some(target.name.clone()),
                 CnameTarget::Dynamic(target) => {
                     let target_entry = self.get(target)?;
-                    if self.invalid(target.slot, now) {
-                        return None;
-                    }
                     if target_entry.record.kind == Kind::Cname {
                         id = target;
                     } else {
