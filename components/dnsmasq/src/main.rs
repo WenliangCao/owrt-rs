@@ -881,6 +881,18 @@ fn run_inner(
         Ok(true) => return Ok(()),
         Ok(false) => {}
         Err(error) => {
+            if let Some(message) = startup.take_failure_bytes() {
+                dnsmasq_rs::logging::report_startup_failure_bytes(
+                    &Default::default(),
+                    &Default::default(),
+                    &message,
+                );
+                let mut stderr = io::stderr();
+                let _ = stderr.write_all(b"\ndnsmasq: ");
+                let _ = stderr.write_all(&message);
+                let _ = stderr.write_all(b"\n");
+                return Err(Box::new(SilentStartupError(error)));
+            }
             dnsmasq_rs::logging::report_startup_failure(
                 &Default::default(),
                 &Default::default(),
@@ -957,7 +969,7 @@ fn run_inner(
                 if startup.active() {
                     return Err(Box::new(error));
                 }
-                logger.fatal(error.to_string().as_bytes());
+                logger.fatal(&error.message_bytes());
                 return Err(Box::new(SilentStartupError(
                     dnsmasq_rs::startup::StartupError {
                         code: 3,
