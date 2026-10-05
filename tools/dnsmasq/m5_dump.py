@@ -280,22 +280,24 @@ def run_side(args):
     args.out.mkdir(parents=True,exist_ok=False)
     plan=json.loads((HERE/'m5_dump.json').read_text());save(args.out/'plan.json',plan)
     root=prepare(args.image_root,None,args.out/'filesystem',args.rust)
-    rows=[];failures=[]
+    rows=[];failures=[];selected=re.compile(args.select or '.')
     syntaxes=[('syntax-file',['dumpfile=/m2/pcap','dumpmask=0x3'],[],0),('syntax-cli',[],['--dumpfile=/m2/pcap','--dumpmask=3'],0),
               ('syntax-repeat-file',['dumpmask=1','dumpmask=2'],[],1),('syntax-repeat-cli',[],['--dumpmask=1','--dumpmask=2'],1)]
     for label,lines,flags,expected in syntaxes:
+        if not selected.search(label):continue
         folder=args.out/label;folder.mkdir();(root/'m2/dump.conf').write_text('\n'.join(lines)+'\n')
         result=subprocess.run(command(root,args.side,'--test','-C','/m2/dump.conf',*flags),capture_output=True,timeout=3)
         (folder/'stdout').write_bytes(result.stdout);(folder/'stderr').write_bytes(result.stderr)
         if result.returncode!=expected:failures.append(dict(case=label,error='C syntax exit differs',exit=result.returncode))
         rows.append(dict(case=label,exit=result.returncode,stdout=result.stdout.hex(),stderr=result.stderr.replace(b'dnsmasq-rs',b'dnsmasq').hex()))
     for spec in profiles():
+        if not selected.search(spec['case']):continue
         try:rows.append(case(args,root,spec))
         except Exception as error:
             failed=dict(case=spec['case'],error=repr(error));failures.append(failed);save(args.out/spec['case']/'failure.json',failed)
     needed={label for group in plan['boundaries'] for label in group['required_cases']}
     result=dict(side=args.side,rows=rows,failures=failures,missing=sorted(needed-{row['case'] for row in rows}),qualified=False,
-        binary_sha256=sha256(args.image_root/'usr/sbin/dnsmasq' if args.side=='c' else args.rust))
+        binary_sha256=sha256(args.image_root/'usr/sbin/dnsmasq' if args.side=='c' else args.rust),selected=args.select)
     save(args.out/'result.json',result);print(json.dumps(dict(side=args.side,executed=len(rows),missing=len(result['missing']),failures=failures)))
     return bool(failures)
 
@@ -303,13 +305,15 @@ def run_side(args):
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--image-root',type=Path,required=True);parser.add_argument('--rust',type=Path,required=True)
-    parser.add_argument('--out',type=Path,required=True);parser.add_argument('--side',choices=['c','rust','both'],default='both')
+    parser.add_argument('--out',type=Path,required=True);parser.add_argument('--side',choices=['c','rust','both'],default='both');parser.add_argument('--select')
     args=parser.parse_args()
     if args.side!='both':return run_side(args)
     args.out.mkdir(parents=True,exist_ok=False);exits={}
     for side in ['c','rust']:
         with (args.out/(side+'.launch.log')).open('wb') as log:
-            exits[side]=subprocess.run(['sh',str(HERE/'run_isolated.sh'),sys.executable,__file__,'--side',side,'--image-root',str(args.image_root),'--rust',str(args.rust),'--out',str(args.out/side)],stdout=log,stderr=log).returncode
+            argv=['sh',str(HERE/'run_isolated.sh'),sys.executable,__file__,'--side',side,'--image-root',str(args.image_root),'--rust',str(args.rust),'--out',str(args.out/side)]
+            if args.select:argv+=['--select',args.select]
+            exits[side]=subprocess.run(argv,stdout=log,stderr=log).returncode
     reports=[json.loads((args.out/side/'result.json').read_text()) for side in ['c','rust']]
     failures=[]
     if any(exits.values()) or any(row['failures'] for row in reports):failures.append(dict(exits=exits,sides=[row['failures'] for row in reports]))
@@ -325,7 +329,7 @@ def main():
                 if label=='wrong-header':target['pcap']['header']['snaplen']+=1
                 else:target['pcap']['records'][0]['payload']='00'
             controls.append(dict(case=label,rejected=bool(mutant['failures']) or mutant['rows']!=reports[0]['rows']))
-    qualified=not failures and not any(row['missing'] for row in reports) and len(controls)==4 and all(row['rejected'] for row in controls)
+    qualified=not args.select and not failures and not any(row['missing'] for row in reports) and len(controls)==4 and all(row['rejected'] for row in controls)
     save(args.out/'result.json',dict(qualified=qualified,failures=failures,controls=controls,missing={row['side']:row['missing'] for row in reports},binary_sha256=sha256(args.rust)))
     print(json.dumps(dict(paired=len(reports[0]['rows']),failures=len(failures),qualified=qualified)))
     return bool(failures)
