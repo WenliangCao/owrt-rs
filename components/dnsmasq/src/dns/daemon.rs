@@ -914,30 +914,9 @@ impl<R: Random> DnsDaemon<R> {
         doctor: Option<&mut ReplyDoctor<'_>>,
     ) -> Result<Vec<ClientResponse>, DaemonError> {
         let policy = self.policy.clone();
-        let edns = self.local.config.edns.clone();
-        let subnet_warnings = std::cell::Cell::new(0usize);
-        let events = self
-            .upstream
-            .poll_with_context_filter(wait, |packet, pending| {
-                if ignore_reply(packet, &policy).unwrap_or(false) {
-                    return true;
-                }
-                let matched = pending.recipients.first().is_none_or(|recipient| {
-                    super::edns_policy::check_reply_source(
-                        packet,
-                        &edns,
-                        recipient.client.source.ip(),
-                    )
-                });
-                if !matched {
-                    subnet_warnings.set(subnet_warnings.get() + 1);
-                }
-                !matched
-            });
-        for _ in 0..subnet_warnings.get() {
-            self.source_warnings
-                .push("discarding DNS reply: subnet option mismatch".to_owned());
-        }
+        let events = self.upstream.poll_with_filter(wait, move |packet| {
+            ignore_reply(packet, &policy).unwrap_or(false)
+        });
         let events = match events {
             Ok(events) => events,
             Err(error) => {
@@ -984,7 +963,8 @@ impl<R: Random> DnsDaemon<R> {
             };
             let rcode =
                 match self.process_completed_reply(&mut reply, now, external_local, &mut doctor) {
-                    Ok(rcode) => rcode,
+                    Ok(Some(rcode)) => rcode,
+                    Ok(None) => continue,
                     Err(_) => {
                         self.poll_failures.invalid_replies =
                             self.poll_failures.invalid_replies.saturating_add(1);
@@ -1020,7 +1000,21 @@ impl<R: Random> DnsDaemon<R> {
         now: i64,
         external_local: Option<&LocalDnsService>,
         doctor: &mut Option<&mut ReplyDoctor<'_>>,
-    ) -> Result<u16, DaemonError> {
+    ) -> Result<Option<u16>, DaemonError> {
+        // C authenticates the reply and releases the source sockets before
+        // process_reply checks ECS. A mismatch cancels this transaction, so a
+        // later valid reply cannot revive it or populate the cache.
+        if reply.recipients.first().is_some_and(|recipient| {
+            !super::edns_policy::check_reply_source(
+                &reply.packet,
+                &self.local.config.edns,
+                recipient.client.source.ip(),
+            )
+        }) {
+            self.source_warnings
+                .push("discarding DNS reply: subnet option mismatch".to_owned());
+            return Ok(None);
+        }
         // C suppresses ordinary commit for original request CD or raw reply
         // CD, before return_reply restores the outgoing bit to the request.
         let upstream_checking_disabled = Header::parse(&reply.packet)?.flags & 0x10 != 0;
@@ -1108,11 +1102,11 @@ impl<R: Random> DnsDaemon<R> {
                             usize::from(self.edns_packet_max),
                         )?;
                     }
-                    return Ok(2);
+                    return Ok(Some(2));
                 }
             }
         }
-        Ok(rcode)
+        Ok(Some(rcode))
     }
 
     fn recipient_packet(
