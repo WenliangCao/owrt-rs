@@ -8,6 +8,7 @@
 use super::lease_names::{BlockerKind, ForwardPublication, PublicationCache};
 use super::wire::Name;
 use std::collections::HashMap;
+use std::net::IpAddr;
 use std::sync::Arc;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -325,6 +326,43 @@ impl Cache {
                     && !self.invalid(slot, now)
             })
         })
+    }
+
+    /// Read-only candidate test used before local synthetic answers. This has
+    /// no LRU, expiry removal, or round-robin side effects. A matching CNAME
+    /// or NXDOMAIN marker is a candidate for every ordinary address query;
+    /// generic requests match any cached generic RR at the name.
+    pub fn has_forward_candidate(&self, name: &Name, rrtype: u16, now: i64) -> bool {
+        let Some(slots) = self.names.get(&name.canonical_wire()) else {
+            return false;
+        };
+        slots.iter().any(|&slot| {
+            let Some(entry) = self.slots[slot].entry.as_ref() else {
+                return false;
+            };
+            if self.invalid(slot, now) {
+                return false;
+            }
+            match (rrtype, entry.record.kind) {
+                (255, Kind::NxDomain) => false,
+                (255, _) => true,
+                (1, Kind::Ipv4 | Kind::Cname | Kind::NxDomain) => true,
+                (28, Kind::Ipv6 | Kind::Cname | Kind::NxDomain) => true,
+                (12, Kind::Generic(12) | Kind::Cname | Kind::NxDomain) => true,
+                (requested, Kind::Generic(actual)) => requested == actual,
+                (_, Kind::Cname | Kind::NxDomain) => true,
+                _ => false,
+            }
+        })
+    }
+
+    /// Read-only reverse candidate test. The current cache stores generic PTR
+    /// and negative records by their reverse owner; positive IP-keyed reverse
+    /// records remain a separate capability. Keep this predicate side-effect
+    /// free so a local synthesizer can defer to normal cache lookup.
+    pub fn has_reverse_candidate(&self, address: IpAddr, now: i64) -> bool {
+        let name = reverse_name(address);
+        self.has_forward_candidate(&name, 12, now)
     }
 
     /// Check that a handle still refers to a live cache entry at `now`.
@@ -1078,6 +1116,30 @@ impl PublicationCache for Cache {
         // Reverse-cache ownership must be implemented with that capability.
         false
     }
+}
+
+fn reverse_name(address: IpAddr) -> Name {
+    let dotted = match address {
+        IpAddr::V4(address) => {
+            let octets = address.octets();
+            format!(
+                "{}.{}.{}.{}.in-addr.arpa",
+                octets[3], octets[2], octets[1], octets[0]
+            )
+        }
+        IpAddr::V6(address) => {
+            address
+                .octets()
+                .iter()
+                .rev()
+                .flat_map(|byte| [byte & 0x0f, byte >> 4])
+                .map(|nibble| format!("{nibble:x}"))
+                .collect::<Vec<_>>()
+                .join(".")
+                + ".ip6.arpa"
+        }
+    };
+    Name::from_ascii(&dotted).expect("IP reverse name is always valid")
 }
 
 #[cfg(test)]
