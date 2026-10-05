@@ -245,7 +245,7 @@ def compare(f, expected, actual, inject_error):
             f.check("guard-empty-name-image-NULL-fault-and-safe-activation-refusal", guarded, True)
             if guarded:
                 left = right
-        if key in ("cache-answer", "rewritten-cache-answer") and right is not None:
+        if key in ("cache-answer", "rewritten-cache-answer", "dns-only-cache") and right is not None:
             for c, r in zip(left["records"], right["records"]):
                 if c["type"] != 41 and abs(c["ttl"] - r["ttl"]) <= 1:
                     r["ttl"] = c["ttl"]
