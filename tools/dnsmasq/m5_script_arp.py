@@ -660,19 +660,14 @@ def priority_producers(root, pid, folder):
         (folder / 'completion.reply').write_bytes(reply)
     deadline = time.monotonic() + 2
     while time.monotonic() < deadline:
-        paths = []
-        for entry in Path(f'/proc/{pid}/fd').iterdir():
-            try:
-                paths.append(os.readlink(entry))
-            except FileNotFoundError:
-                pass
-        udp = Path(f'/proc/{pid}/net/udp').read_text()
-        if not any(int(line.split()[1].split(':')[1], 16) == peer[1] for line in udp.splitlines()[1:]):
-            save(folder / 'completion-descriptors.json', dict(paths=paths, transfer_port=peer[1], udp=udp))
+        logged = (root / 'm2/arp.log').read_bytes()
+        if b'sent /m2/arp-tftp/public to 127.0.0.30' in logged:
+            (folder / 'completed-transfer.log').write_bytes(logged)
             break
         time.sleep(.01)
     else:
         raise AssertionError('final ACK did not queue completed TFTP event')
+
     health()
 
 
