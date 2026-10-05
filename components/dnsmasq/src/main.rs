@@ -992,7 +992,7 @@ fn run_inner(
         None
     };
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    let dhcp_runtime = if provider.is_some() || !dhcp_config.relay.is_empty() {
+    let mut dhcp_runtime = if provider.is_some() || !dhcp_config.relay.is_empty() {
         // A relay-only listener must not create or restore a lease file.
         let mut listener = DhcpSocketListener::bind_with_reuse(
             SocketAddr::from((std::net::Ipv4Addr::UNSPECIFIED, dhcp_config.ports.server)),
@@ -1062,6 +1062,24 @@ fn run_inner(
     #[cfg(target_os = "linux")]
     if let Some(listener) = &mut tftp_listener {
         listener.set_dump(dump.clone());
+    }
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    if daemon_config.bind_interfaces || daemon_config.bind_dynamic {
+        if let Some(dhcp) = &mut dhcp_runtime {
+            let device =
+                dhcp_device_name(&daemon_config, &dhcp_config, &interface_snapshot.borrow());
+            dhcp.listener
+                .configure_device_binding(
+                    device,
+                    dhcp.provider.is_some() && dhcp_config.relay.is_empty(),
+                )
+                .map_err(|error| {
+                    NetworkStartupError(io::Error::other(format!(
+                        "failed to set SO_BINDTODEVICE on DHCP socket: {}",
+                        dnsmasq_rs::logging::error_text(&error)
+                    )))
+                })?;
+        }
     }
     // dnsmasq.c:418-422 scales the socket pool by signed ftabsize / 2
     // after binding the listeners. Values below -1 require an impossible
@@ -1438,6 +1456,16 @@ fn run_inner(
         }
         for relay in &runtime.dhcp.relay {
             logger.emit(dnsmasq_rs::logging::startup::dhcp_relay(relay));
+        }
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if let Some(device) = poll
+            .dhcp
+            .as_ref()
+            .and_then(|dhcp| dhcp.listener.bound_device_notice())
+        {
+            let mut message = b"DHCP, sockets bound exclusively to interface ".to_vec();
+            message.extend_from_slice(device);
+            logger.emit(LogEvent::new(Service::Dhcp, Priority::Info, message));
         }
         if let Some(event) = dnsmasq_rs::logging::startup::tftp(&runtime.tftp) {
             logger.emit(event);
@@ -1899,6 +1927,50 @@ struct DhcpService {
     provider: Option<Rc<RefCell<DhcpProvider>>>,
     listener: DhcpSocketListener,
     pxe_next: bool,
+}
+
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+fn dhcp_device_name(
+    config: &DnsConfig,
+    dhcp: &dnsmasq_rs::config::dhcp::DhcpConfig,
+    interfaces: &[DnsInterface],
+) -> Option<Vec<u8>> {
+    use dnsmasq_rs::config::dhcp_device::{which_device, DeclaredInterface, DeviceInterface};
+    let declarations: Vec<_> = config
+        .interfaces
+        .iter()
+        .map(|name| DeclaredInterface {
+            name: name.as_deref(),
+            // C marks INAME_USED from address labels before exclusion vetoes.
+            used: name
+                .as_ref()
+                .is_some_and(|name| interfaces.iter().any(|interface| interface.name == *name)),
+        })
+        .collect();
+    let excluded = |patterns: &[Option<Vec<u8>>], name: &[u8]| {
+        patterns.iter().flatten().any(|pattern| {
+            pattern
+                .iter()
+                .position(|byte| *byte == b'*')
+                .map_or(pattern == name, |at| {
+                    name.len() > at && name.starts_with(&pattern[..at])
+                })
+        })
+    };
+    let candidates: Vec<_> = interfaces
+        .iter()
+        .filter(|interface| listeners::selected(config, interface))
+        .map(|interface| {
+            let name = interface.link_name();
+            DeviceInterface {
+                name,
+                dhcp4_ok: !interface.loopback && !excluded(&dhcp.no_dhcp_interfaces, name),
+                // whichdevice still sees C's dhcp6_ok in the no-DHCPv6 image.
+                dhcp6_ok: !interface.loopback && !excluded(&dhcp.no_tftp_interfaces, name),
+            }
+        })
+        .collect();
+    which_device(&declarations, &candidates).map(<[u8]>::to_vec)
 }
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -3136,6 +3208,15 @@ impl SinglePoll {
     }
 
     fn step(&mut self) {
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if let Some(dhcp) = &mut self.dhcp {
+            dhcp.listener.retry_device_binding();
+            if let Some(logger) = &mut self.logger {
+                for notice in dhcp.listener.take_network_notices() {
+                    logger.emit(notice);
+                }
+            }
+        }
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         self.step_interface_collector();
         #[cfg(target_os = "linux")]
