@@ -350,15 +350,16 @@ def side(args):
                 wanted=expected(item)
                 assert result['packet']==(wanted.hex() if wanted else None),'C-derived wire error guard'
                 if wanted:assert result['dedicated']==(not item.get('single')),'source transfer socket role'
-                if not item.get('exhausted'):
-                    time.sleep(.05)
-                    recovery=query(dict(filename=(ROOT.encode()+b'/healthy' if item.get('no_root') else b'healthy'),v6=item.get('v6'),response=b'\0\3\0\1public'))
-                    save(out/'recovery.json',recovery)
-                    assert recovery['packet']==b'\0\3\0\1public'.hex(),'post-error transfer health'
-                    time.sleep(.05)
-                    remaining_fds=len(list(Path('/proc/'+str(process.pid)+'/fd').iterdir()))
-                    save(out/'descriptor-health.json',dict(before=baseline_fds,after=remaining_fds))
-                    assert remaining_fds==baseline_fds,'file/transfer descriptor leak'
+                if item.get('exhausted'):
+                    blocker.close();blocker=None
+                time.sleep(.05)
+                recovery=query(dict(filename=(ROOT.encode()+b'/healthy' if item.get('no_root') else b'healthy'),v6=item.get('v6'),response=b'\0\3\0\1public'))
+                save(out/'recovery.json',recovery)
+                assert recovery['packet']==b'\0\3\0\1public'.hex(),'post-error transfer health'
+                time.sleep(.05)
+                remaining_fds=len(list(Path('/proc/'+str(process.pid)+'/fd').iterdir()))
+                save(out/'descriptor-health.json',dict(before=baseline_fds,after=remaining_fds))
+                assert remaining_fds==baseline_fds,'file/transfer descriptor leak'
                 row=dict(case=item['name'],packet=result['packet'],source=result['peer'][0] if result['peer'] else None,dedicated=result['dedicated'])
                 logged=(root/'m2/error.log').read_bytes()
                 (out/'daemon.log').write_bytes(logged)
@@ -370,7 +371,7 @@ def side(args):
                 if item.get('exhausted'):
                     assert messages.count(b'unable to get free port for TFTP')==1,'port exhaustion log guard'
                     row['port_exhaustion_logged']=True
-                row['health']=not item.get('exhausted')
+                row['health']=True
                 if item.get('fault'):row['fault']=dict(injected=True,errno=item['fault_errno'],after=item.get('fault_after',0))
                 if item.get('allocation'):row['allocation']=dict(injected=True,record=item['allocation'])
                 if item.get('window') or item.get('retry'):row['packets']=result['packets']
@@ -401,7 +402,7 @@ def compare(c,r):
         for row,item in zip(result['rows'],cases()):
             packet=expected(item)
             if row['packet']!=(packet.hex() if packet else None):failures.append(dict(side=name,error='wire guard '+item['name']))
-            if row.get('health')!=(not item.get('exhausted')):failures.append(dict(side=name,error='health guard '+item['name']))
+            if row.get('health')!=True:failures.append(dict(side=name,error='health guard '+item['name']))
             if packet and packet[:2]==b'\0\5' and row.get('error_logged')!=(not (item.get('quiet') and packet[2:4]==b'\0\1')):failures.append(dict(side=name,error='error log guard '+item['name']))
             if item.get('fault') and row.get('fault')!=dict(injected=True,errno=item['fault_errno'],after=item.get('fault_after',0)):failures.append(dict(side=name,error='fault guard '+item['name']))
             if item.get('allocation') and row.get('allocation')!=dict(injected=True,record=item['allocation']):failures.append(dict(side=name,error='allocation guard '+item['name']))
