@@ -314,6 +314,7 @@ pub struct StateProvider<'a, F> {
     /// Each probe borrows the current lease counters after packet/BOOTP prune.
     /// The owner can report live counters while its provider is borrowed.
     pub probe: F,
+    pub before_offer: Option<&'a mut state::OfferWait<'a>>,
 }
 
 impl<'a, F> StateProvider<'a, F> {
@@ -342,6 +343,7 @@ impl<'a, F> StateProvider<'a, F> {
             message_counters: None,
             event_sink: None,
             probe,
+            before_offer: None,
         }
     }
 }
@@ -419,6 +421,7 @@ where
                 self.quiet_dhcp,
                 counters,
                 events,
+                self.before_offer.as_deref_mut(),
             ),
             3 => state::request_counted(self.store, self.ranges, request(), counters, events),
             4 => Ok(Outcome {

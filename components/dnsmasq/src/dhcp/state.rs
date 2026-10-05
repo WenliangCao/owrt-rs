@@ -468,8 +468,12 @@ pub fn discover(
         false,
         &mut MessageCounters::default(),
         None,
+        None,
     )
 }
+
+/// Called after successful DISCOVER address narrowing, before rapid lease commit.
+pub type OfferWait<'a> = dyn FnMut(usize, LeaseCounters) -> bool + 'a;
 
 pub(crate) fn discover_counted(
     store: &mut LeaseStore,
@@ -479,6 +483,7 @@ pub(crate) fn discover_counted(
     quiet: bool,
     counters: &mut MessageCounters,
     events: Option<&mut LogSink<'_>>,
+    mut before_offer: Option<&mut OfferWait<'_>>,
 ) -> Result<Outcome, LeaseError> {
     let env = request.environment;
     if request.packet.message_type() != 1 {
@@ -557,6 +562,11 @@ pub(crate) fn discover_counted(
     let Some(context) = narrow(ranges, address, request.tags) else {
         return Ok(Outcome::ignored());
     };
+    if let Some(wait) = before_offer.as_deref_mut() {
+        if !wait(context, store.counters()) {
+            return Ok(Outcome::ignored());
+        }
+    }
     if env.rapid_commit && request.packet.option(80, 0).is_some() {
         return transaction(store, ranges, request, Some(address), counters, events);
     }

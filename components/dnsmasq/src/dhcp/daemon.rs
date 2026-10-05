@@ -29,6 +29,7 @@ use crate::config::dhcp::{
 use crate::helper::{LeaseDelivery, LeaseEventContext};
 use crate::interfaces::{ipv4_interfaces, primary_ipv4};
 use crate::ubus_service::{DhcpEventFields, DhcpEventKind, DhcpLogging};
+use std::cell::RefCell;
 use std::ffi::OsStr;
 use std::io;
 use std::net::{IpAddr, Ipv4Addr, UdpSocket};
@@ -152,8 +153,13 @@ pub type DhcpEventSink<'a> =
 
 /// The counters reflect the lease state at this probe, including removals
 /// made by this packet. The waiter can publish them without reentering DHCP.
-pub type DhcpProbeWait<'a> =
-    dyn FnMut(&crate::net::IcmpSocket, Duration, LeaseCounters) -> io::Result<bool> + 'a;
+pub type DhcpProbeWait<'a> = dyn FnMut(
+        Option<&crate::net::IcmpSocket>,
+        Duration,
+        LeaseCounters,
+        Option<crate::logging::LogEvent>,
+    ) -> io::Result<bool>
+    + 'a;
 
 /// Borrowed event owner for one listener operation. The sink does not acquire
 /// the provider again, and notification failure cannot undo DHCP state.
@@ -1477,6 +1483,47 @@ fn pxe_host(name: &[u8], dns_port: u16, lookup: &mut Option<BootHostLookup>) -> 
     address.unwrap_or(Ipv4Addr::UNSPECIFIED)
 }
 
+fn apply_reply_delay(
+    seconds: Option<u32>,
+    received_at: i64,
+    xid: u32,
+    quiet: bool,
+    counters: LeaseCounters,
+    wait: &RefCell<Option<&mut DhcpProbeWait<'_>>>,
+    notices: &mut Vec<crate::logging::LogEvent>,
+) -> io::Result<()> {
+    let Some(seconds) = seconds else {
+        return Ok(());
+    };
+    let notice = (!quiet).then(|| {
+        crate::logging::LogEvent::new(
+            crate::logging::Service::Dhcp,
+            crate::logging::Priority::Info,
+            format!("{xid} reply delay: {seconds}").into_bytes(),
+        )
+    });
+    let mut borrowed = wait.borrow_mut();
+    let Some(owner_wait) = borrowed.as_deref_mut() else {
+        if let Some(notice) = notice {
+            notices.push(notice);
+        }
+        return if seconds == 0 {
+            Ok(())
+        } else {
+            Err(io::Error::other(
+                "DHCP reply delay requires its owner waiter",
+            ))
+        };
+    };
+    // ZERO transfers the C log write site without servicing network input.
+    if notice.is_some() {
+        owner_wait(None, Duration::ZERO, counters, notice)?;
+    }
+    super::reply_delay::wait(received_at, seconds, epoch_seconds, |timeout| {
+        owner_wait(None, timeout, counters, None)
+    })
+}
+
 impl LocalProvider {
     fn resolve_events(
         &mut self,
@@ -1485,6 +1532,9 @@ impl LocalProvider {
         mut events: Option<&mut DhcpEventSink<'_>>,
         mut wait: Option<&mut DhcpProbeWait<'_>>,
     ) -> Result<Outcome, RuntimeError> {
+        let received_at = epoch_seconds();
+        let wait = RefCell::new(wait);
+        let xid = u32::from_be_bytes(dispatch.packet.bytes()[4..8].try_into().unwrap());
         self.force_broadcast = false;
         self.selected_boot = None;
         self.pxe_client = None;
@@ -1777,7 +1827,33 @@ impl LocalProvider {
         };
         match decision {
             pxe::Decision::Continue(client) => self.pxe_client = client,
-            decision => return Ok(self.prepare_direct_pxe(packet, decision, pxe_listener, now)),
+            decision => {
+                if let pxe::Decision::Proxy {
+                    context,
+                    ignored: false,
+                    ..
+                } = &decision
+                {
+                    let selected = pxe_selection(
+                        &self.config,
+                        &self.request_tags,
+                        &self.selected,
+                        Some(*context),
+                        2,
+                    );
+                    apply_reply_delay(
+                        self.config.network.reply_delay(&selected.tags),
+                        received_at,
+                        xid,
+                        self.config.quiet_dhcp,
+                        self.leases.counters(),
+                        &wait,
+                        &mut self.network_notices,
+                    )
+                    .map_err(|error| RuntimeError::State(error.to_string()))?;
+                }
+                return Ok(self.prepare_direct_pxe(packet, decision, pxe_listener, now));
+            }
         }
         let ack = packet.message_type() == 3
             || (packet.message_type() == 1
@@ -1966,6 +2042,32 @@ impl LocalProvider {
         };
         let helper_new_lease = existing.is_none();
         let lease_identity = super::state::identity(packet, environment.ignore_client_id);
+        let reply_error = RefCell::new(None);
+        let mut before_offer = |context: usize, counters: LeaseCounters| {
+            let mut delay_tags: Vec<_> = self.request_tags.iter().map(Vec::as_slice).collect();
+            if let Some(tag) = self.config.ranges[self.selected[context].source_index]
+                .set_tag
+                .as_deref()
+            {
+                delay_tags.push(tag);
+            }
+            TagIf::apply_all(&self.config.tag_if, &mut delay_tags);
+            match apply_reply_delay(
+                self.config.network.reply_delay(&delay_tags),
+                received_at,
+                xid,
+                self.config.quiet_dhcp,
+                counters,
+                &wait,
+                &mut self.network_notices,
+            ) {
+                Ok(()) => true,
+                Err(error) => {
+                    *reply_error.borrow_mut() = Some(error);
+                    false
+                }
+            }
+        };
         let mut provider = StateProvider::new(
             &mut self.leases,
             &mut ranges,
@@ -1974,14 +2076,15 @@ impl LocalProvider {
             &self.reserved,
             environment,
             |address, hash, counters| {
-                let result = if let Some(wait) = wait.as_deref_mut() {
+                let mut owner_wait = wait.borrow_mut();
+                let result = if let Some(wait) = owner_wait.as_deref_mut() {
                     self.probe.check_with_wait(
                         now,
                         address,
                         hash,
                         loopback,
                         self.should_stop,
-                        &mut |socket, timeout| wait(socket, timeout, counters),
+                        &mut |socket, timeout| wait(Some(socket), timeout, counters, None),
                     )
                 } else {
                     self.probe
@@ -2004,7 +2107,13 @@ impl LocalProvider {
         provider.quiet_dhcp = self.config.quiet_dhcp;
         provider.message_counters = Some(&mut self.message_counters);
         provider.event_sink = Some(&mut on_event);
+        provider.before_offer = Some(&mut before_offer);
         let result = provider.resolve(dispatch);
+        drop(provider);
+        drop(before_offer);
+        if let Some(error) = reply_error.into_inner() {
+            return Err(RuntimeError::State(error.to_string()));
+        }
         if let Ok(outcome) = &result {
             let lease_id = match outcome.reply {
                 Reply::Ack { address, .. } | Reply::Bootp { address, .. } => self

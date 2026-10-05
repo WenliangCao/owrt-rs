@@ -3587,7 +3587,7 @@ impl SinglePoll {
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     fn wait_during_probe(
         &mut self,
-        icmp: &dnsmasq_rs::net::IcmpSocket,
+        icmp: Option<&dnsmasq_rs::net::IcmpSocket>,
         timeout: Duration,
         leases: dnsmasq_rs::dhcp::lease::LeaseCounters,
     ) -> io::Result<bool> {
@@ -3605,7 +3605,7 @@ impl SinglePoll {
         let full_deadline = Instant::now() + timeout;
         let mut deadline = full_deadline;
         let mut fds = vec![PollFd {
-            fd: icmp.as_raw_fd(),
+            fd: icmp.map_or(-1, AsRawFd::as_raw_fd),
             events: POLLIN,
             revents: 0,
         }];
@@ -4072,9 +4072,16 @@ impl SinglePoll {
             let mut sink = |kind, fields: DhcpEventFields<'_>, logging| {
                 events.lock().unwrap().notify_dhcp(kind, fields, logging)
             };
-            let mut wait = |socket: &dnsmasq_rs::net::IcmpSocket, duration, leases| {
-                self.wait_during_probe(socket, duration, leases)
-            };
+            let mut wait =
+                |socket: Option<&dnsmasq_rs::net::IcmpSocket>, duration, leases, notice| {
+                    if let Some(notice) = notice {
+                        if let Some(logger) = &mut self.logger {
+                            logger.emit(notice);
+                        }
+                        return Ok(true);
+                    }
+                    self.wait_during_probe(socket, duration, leases)
+                };
             let mut provider = provider.with_event_sink_and_wait(&mut sink, &mut wait);
             let has_pxe = dhcp.listener.has_pxe_listener();
             let mut selected = if dhcp.pxe_next && has_pxe {
