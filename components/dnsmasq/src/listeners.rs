@@ -295,7 +295,12 @@ pub fn admit(
     if config.listen_addresses.contains(&destination) {
         return true;
     }
-    if ingress == 0 || config.bind_interfaces && !config.bind_dynamic && destination.is_ipv4() {
+    // C's static IPv4 receive path trusts the bound socket even when it is
+    // an unowned loopback alias or an explicitly configured wildcard.
+    if config.bind_interfaces && !config.bind_dynamic && destination.is_ipv4() {
+        return true;
+    }
+    if ingress == 0 {
         return !explicit_access(config)
             || interfaces
                 .iter()

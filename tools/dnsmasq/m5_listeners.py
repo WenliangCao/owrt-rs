@@ -62,6 +62,8 @@ def scenarios():
             ('alias', 'interface=lan:0\n'), ('alias-except', 'except-interface=lan:0\n'),
             ('same-link-local', ''), ('cross-ingress', 'interface=lan\n'),
             ('unowned-loopback', 'listen-address=127.0.0.2\n'),
+            ('explicit-any4', 'listen-address=0.0.0.0\n'),
+            ('explicit-any6', 'listen-address=::\n'),
             ('missing', 'interface=absent0\n'), ('no-address', 'interface=barren0\n'),
             ('down-link', 'interface=lan\n'),
         ]:
@@ -457,6 +459,9 @@ def expected_answer(item,case):
     if proto not in ['udp','tcp','tftp']:return None
     if case.startswith('lo'):
         tag=case.rsplit('-',1)[0]
+        if profile in ['explicit-any4','explicit-any6']:
+            family4=tag!='lo6'
+            return family4==(profile=='explicit-any4') and (proto=='tcp' and bound or mode=='static' and family4 and proto=='udp')
         selected=profile not in ['listen-only','unowned-loopback']
         if profile=='unowned-loopback':selected=tag=='lo-extra'
         elif tag=='lo-extra':selected=selected and not bound
@@ -464,6 +469,9 @@ def expected_answer(item,case):
         return selected
     link,tag,_=case.split('-')
     if link not in ['lan','wan']:return None
+    if profile in ['explicit-any4','explicit-any6']:
+        family4=tag in ['v4','alias']
+        return family4==(profile=='explicit-any4') and (proto=='tcp' and bound or mode=='static' and family4 and proto=='udp')
     if profile=='down-link' and link=='lan':return False
     if proto=='tftp':
         if profile=='tftp-dedicated':return not bound and link=='wan'
