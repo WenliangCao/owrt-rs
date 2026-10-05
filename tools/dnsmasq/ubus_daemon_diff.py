@@ -229,23 +229,50 @@ def compare(f, expected, actual, inject_error):
     for key, reference in expected.items():
         value = actual.get(key)
         left, right = copy.deepcopy(reference), copy.deepcopy(value)
+        if key.startswith("syntax-") or key.startswith("startup-collision"):
+            if right is not None:
+                for output in ("stderr", "log"):
+                    if output in right:
+                        raw = bytes.fromhex(right[output])
+                        if raw.startswith(b"\ndnsmasq-rs: "):
+                            right[output] = (b"\ndnsmasq: " + raw[len(b"\ndnsmasq-rs: "):]).hex()
+        if key == "empty-activation":
+            guarded = (left == {"exit": -11, "log": ""}
+                       and right == {"exit": 1, "log": b"\ndnsmasq-rs: empty enable-ubus object name\n".hex()}
+                       and expected["syntax-cli-01"]["exit"] == actual["syntax-cli-01"]["exit"] == 0)
+            f.check("guard-empty-name-image-NULL-fault-and-safe-activation-refusal", guarded, True)
+            if guarded:
+                left = right
         if key in ("cache-answer", "rewritten-cache-answer") and right is not None:
             for c, r in zip(left["records"], right["records"]):
                 if c["type"] != 41 and abs(c["ttl"] - r["ttl"]) <= 1:
                     r["ttl"] = c["ttl"]
-        if key == "wrong-family-answer":
+        if key in ("wrong-family-answer", "doctor-wrong-family4", "doctor-string-invalid-utf8"):
             # Exact image musl inet_pton(AF_INET, "2001:db8::9", p) returns
             # zero after writing 200 to p[0]. rfc1035.c passes the live RDATA
             # destination, so its rejected subscriber response still mutates A.
             c_records = left.get("records", [])
             r_records = right.get("records", [])
+            rejected = "200.0.2.1" if key != "doctor-string-invalid-utf8" else "192.0.2.9"
             guarded = (len(c_records) == len(r_records) == 1
                        and c_records[0].get("type") == r_records[0].get("type") == 1
-                       and c_records[0].get("data") == "200.0.2.1"
+                       and c_records[0].get("data") == rejected
                        and r_records[0].get("data") == "192.0.2.1")
             f.check("C-partial-inet-pton-rejection-and-Rust-original-A-guard", guarded, True)
             if guarded:
                 left["records"][0]["data"] = right["records"][0]["data"]
+        if key == "doctor-multiple-data-wrongtype-last":
+            c_control = copy.deepcopy(expected["doctor-no-data"])
+            r_control = copy.deepcopy(actual["doctor-ipv4"])
+            for response, name in ((c_control, "multiple-data-wrongtype-last.invalid"),
+                                   (r_control, "multiple-data-wrongtype-last.invalid")):
+                response["questions"][0][0] = name
+                response["records"][0]["name"] = name
+            guarded = (left == c_control and right == r_control
+                       and f.authority.get("later-DATA-reuses-address-storage", False))
+            f.check("guard-image-later-DATA-storage-lifetime-with-independent-controls", guarded, True)
+            if guarded:
+                left = right
         if inject_error and key == "initial":
             left["dns_cache_inserted"] += 1
         f.check("paired-" + key, right, left)
@@ -379,6 +406,28 @@ def run_extended(f, side):
     return observed
 
 
+def storage_authority(f):
+    """Same exact image query; only an unrelated later DATA payload changes."""
+    initial = field("address", 3, b"192.0.2.9\0").hex()
+    observed = []
+    for label, later in [("empty", b""), ("u32", field("address", 5, b"\0\0\0\1")),
+                         ("short", field("note", 3, b"ok\0")),
+                         ("long", field("note", 3, b"message received " * 8 + b"\0"))]:
+        f.start_product("C")
+        watcher, log = f.watch("raw:" + initial + "," + later.hex())
+        observed.append({"label": label, "later": later.hex(),
+                         "answer": f.exchange("reference-lifetime.invalid"),
+                         "notices": f.notices(log, 1)})
+        f.stop(watcher)
+        f.stop(f.daemon)
+    queries = [row["query"] for row in f.raw if row.get("side") == "C" and row.get("query")
+               and bytes.fromhex(row["query"])[12:].startswith(b"\x12reference-lifetime")]
+    distinct = {(row["answer"]["flags"], row["answer"]["records"][0]["data"]) for row in observed}
+    proven = len(queries) == 4 and len(set(queries)) == 1 and len(distinct) > 1
+    f.check("image-C-C-later-DATA-storage-lifetime", proven, True)
+    f.authority = {"later-DATA-reuses-address-storage": proven, "observed": observed}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--reference-build", type=Path, required=True)
@@ -408,6 +457,7 @@ def main():
     subprocess.run(["mount", "-t", "tmpfs", "-o", "mode=0755", "ubus-product", "/run"], check=True)
     Path(BUS).parent.mkdir()
     f = Product(args, out)
+    f.authority = {}
     resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     upstream_answer = f.upstream.answer
     def timed_answer(packet, transport):
@@ -419,6 +469,8 @@ def main():
     error, expected, actual = None, {}, {}
     try:
         f.start_bus()
+        if args.suite == "extended":
+            storage_authority(f)
         schedule = run_side if args.suite == "baseline" else run_extended
         expected = schedule(f, "C")
         if args.suite == "baseline":
@@ -441,6 +493,7 @@ def main():
               "reference_defects": ["C DNS object's type survives bus restart and cannot be resolved",
                                     "Exact image inet_pton rejection writes a partial A destination; Rust retains the original address"],
               "reference": reference,
+              "authority": f.authority,
               "identities": {"c": reference["elf_sha256"], "native_client_build_c": args.c_sha256, "rust": digest(args.rust_binary),
                              "ubusd": digest(args.reference_build / "deps/sbin/ubusd"),
                              "client": digest(f.client), "tool": digest(__file__)}}
