@@ -224,6 +224,23 @@ pub enum RuntimeEvent {
     },
 }
 
+impl RuntimeEvent {
+    /// The logger consumes the exact bounded wire text. quiet-tftp may
+    /// suppress ERR_FNF logging; it must not change the transmitted packet.
+    pub fn error_message(&self) -> Option<(u16, &[u8])> {
+        let packet = match self {
+            Self::Send { packet, .. } | Self::TidError { packet, .. } => packet,
+            _ => return None,
+        };
+        if packet.len() < 5 || packet[..2] != [0, 5] {
+            return None;
+        }
+        let code = u16::from_be_bytes([packet[2], packet[3]]);
+        let message = &packet[4..];
+        Some((code, message.strip_suffix(&[0]).unwrap_or(message)))
+    }
+}
+
 /// Which caller-owned UDP socket delivered a datagram.  In separate-port
 /// mode dnsmasq accepts RRQ/WRQ on the port-69 listener and ACK/ERR only on
 /// the transfer socket created for that RRQ.  This role gate keeps those
@@ -514,7 +531,7 @@ impl<O: FileOpener> TransferRuntime<O> {
                 return Ok(vec![RuntimeEvent::Send {
                     id: None,
                     peer,
-                    packet: open_error_packet(&error),
+                    packet: open_error_packet(&error, &path, peer),
                 }]);
             }
         };
@@ -527,7 +544,7 @@ impl<O: FileOpener> TransferRuntime<O> {
             return Ok(vec![RuntimeEvent::Send {
                 id: None,
                 peer,
-                packet: error_packet(2, "access violation"),
+                packet: access_error_packet(&path),
             }]);
         }
         let file = self
@@ -696,12 +713,12 @@ impl<O: FileOpener> TransferRuntime<O> {
         for _ in 0..count {
             let packet = match self.data_packet(id) {
                 Ok(packet) => packet,
-                Err(_) => {
+                Err(error) => {
                     let active = self.active.get_mut(&id).unwrap();
                     events.push(RuntimeEvent::Send {
                         id: Some(id),
                         peer: active.peer,
-                        packet: error_packet(0, "cannot read file"),
+                        packet: read_error_packet(&active.file.path, &error),
                     });
                     active.transfer.block = active.transfer.block.wrapping_add(1);
                     // C finishes the current window before error cleanup,
@@ -794,7 +811,7 @@ fn opcode(packet: &[u8]) -> Option<u16> {
     (packet.len() >= 2).then(|| u16::from_be_bytes([packet[0], packet[1]]))
 }
 
-fn open_error_packet(error: &io::Error) -> Vec<u8> {
+fn open_error_packet(error: &io::Error, path: &[u8], peer: SocketAddr) -> Vec<u8> {
     // tftp.c:558-570 distinguishes only ENOENT and EACCES. EPERM (which
     // Rust also calls PermissionDenied) remains the generic ERR_NOTDEF.
     let code = match error.raw_os_error() {
@@ -807,27 +824,53 @@ fn open_error_packet(error: &io::Error) -> Vec<u8> {
             _ => 0,
         },
     };
+    let path = sanitised_path(path);
+    match code {
+        1 => error_packet(1, &format!("file {path} not found for {}", peer.ip())),
+        2 => access_error_packet(path.as_bytes()),
+        _ => error_packet(0, &format!("cannot read {path}: {}", error_text(error))),
+    }
+}
+
+fn sanitised_path(path: &[u8]) -> String {
+    path.iter()
+        .copied()
+        .filter(|byte| (0x20..=0x7e).contains(byte))
+        .map(char::from)
+        .collect()
+}
+fn error_text(error: &io::Error) -> String {
+    let text = error.to_string();
+    text.rsplit_once(" (os error ")
+        .filter(|(_, suffix)| suffix.ends_with(')'))
+        .map_or(text.clone(), |(message, _)| message.to_owned())
+}
+fn access_error_packet(path: &[u8]) -> Vec<u8> {
     error_packet(
-        code,
-        match code {
-            1 => "file not found",
-            2 => "access violation",
-            _ => "cannot read file",
-        },
+        2,
+        &format!(
+            "cannot access {}: {}",
+            sanitised_path(path),
+            error_text(&io::Error::from_raw_os_error(13))
+        ),
     )
+}
+fn read_error_packet(path: &[u8], error: &RuntimeError) -> Vec<u8> {
+    match error {
+        RuntimeError::Read(error) => error_packet(
+            0,
+            &format!(
+                "cannot read {}: {}",
+                sanitised_path(path),
+                error_text(error)
+            ),
+        ),
+        _ => error_packet(0, &format!("cannot read {}", sanitised_path(path))),
+    }
 }
 
 fn error_packet(code: u16, message: &str) -> Vec<u8> {
-    let mut packet = Vec::with_capacity(message.len() + 5);
-    packet.extend_from_slice(&[0, 5]);
-    packet.extend_from_slice(&code.to_be_bytes());
-    packet.extend(
-        message
-            .bytes()
-            .filter(|byte| byte.is_ascii() && *byte >= 0x20),
-    );
-    packet.push(0);
-    packet
+    crate::tftp_service::error_packet(code, message.as_bytes())
 }
 
 #[cfg(test)]

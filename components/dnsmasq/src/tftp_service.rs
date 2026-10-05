@@ -6,6 +6,24 @@ use std::net::SocketAddr;
 /// `dns-protocol.h:50`; `namebuff` has one additional byte for the NUL.
 pub const MAX_PATH_BYTES: usize = 503;
 
+/// tftp.c's MAXMESSAGE includes its trailing zero. The same bounded text is
+/// carried by ERR and consumed by the logging owner without reformatting.
+pub const MAX_ERROR_MESSAGE_BYTES: usize = 500;
+pub fn error_packet(code: u16, message: &[u8]) -> Vec<u8> {
+    let mut packet = Vec::with_capacity(MAX_ERROR_MESSAGE_BYTES + 4);
+    packet.extend_from_slice(&[0, 5]);
+    packet.extend_from_slice(&code.to_be_bytes());
+    packet.extend(
+        message
+            .iter()
+            .copied()
+            .filter(|byte| (0x20..=0x7e).contains(byte))
+            .take(MAX_ERROR_MESSAGE_BYTES - 1),
+    );
+    packet.push(0);
+    packet
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum PathError {
     Empty,
