@@ -278,8 +278,11 @@ def relay_run(root,side,item,out):
                 if incoming:
                     response=packet(xid=0x5e001122,op=2,giaddr=DOWN)
                     server.call(op='send',packet=response.hex(),destination=[UP,67],port=67)
-                    time.sleep(.35)
-                    received=client.call(op='take')['packets']
+                    received=[]
+                    deadline=time.monotonic()+2
+                    while not received and time.monotonic()<deadline:
+                        time.sleep(.05)
+                        received.extend(client.call(op='take')['packets'])
                     save(out/(label+'-downstream.json'),received)
                     rows.append(dict(case=label+'-reply',packets=[dict(packet=p['packet'],source=p['source'],destination=p['destination']) for p in received]))
             request('relay-initial')
@@ -334,7 +337,17 @@ def execute(root,side,item,out):
                 assert any(a.get('tentative') for link in json.loads(ip('-j','addr','show','dev','lan').stdout) for a in link['addr_info'] if a['local']=='fd42:77::9'), 'DAD matured before witness'
                 assert not any(row['address']=='fd42:77::9' for row in sockets),'bound a tentative address'
                 observer.ask('dad-live-udp',V4['lan'],link='lpeer')
-                time.sleep(4)
+                deadline=time.monotonic()+8
+                while time.monotonic()<deadline:
+                    flags=next(a for link in json.loads(ip('-j','addr','show','dev','lan').stdout) for a in link['addr_info'] if a['local']=='fd42:77::9')
+                    if flags.get('dadfailed') or not flags.get('tentative'):break
+                    time.sleep(.05)
+                else:raise AssertionError('DAD never completed or failed')
+                if not flags.get('dadfailed'):
+                    deadline=time.monotonic()+2
+                    while not any(row['address']=='fd42:77::9' for row in inventory(process.pid)):
+                        assert process.poll() is None and time.monotonic()<deadline,'mature DAD address never bound'
+                        time.sleep(.05)
                 observer.sockets('dad-finished',0)
                 for transport in ['udp','tcp']+(['tftp'] if item.get('tftp') else []):
                     observer.ask('dad-final-'+transport,'fd42:77::9',transport,'lpeer')
@@ -484,6 +497,8 @@ def validate(result,cases):
                 expected_packet=(b'\0\3\0\1synthetic listener boot\n').hex()
                 if row['answer']['packet']!=expected_packet or row['answer']['dedicated']==(item['profile']=='tftp-single-scope'):
                     failures.append(item['name']+': wrong TFTP data/port '+row['case'])
+                if '-scope-tftp' in row['case'] and row['answer']['source']!='fe80::1':
+                    failures.append(item['name']+': wrong scoped TFTP source '+row['case'])
         if item.get('relay'):
             for row in observations:
                 if row['case'].startswith('relay-'):
@@ -512,6 +527,7 @@ def expected_answer(item,case,side='c'):
     if case.startswith('cross-'):
         return case.endswith('-tcp') and bound or case.startswith('cross-v4-') and mode=='static'
     if proto not in ['udp','tcp','tftp']:return None
+    if profile=='missing-address':return False
     if case.startswith('lo'):
         tag=case.rsplit('-',1)[0]
         if profile in ['explicit-any4','explicit-any6']:
