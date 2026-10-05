@@ -328,6 +328,8 @@ def service_cases():
     for label,extra_config,after in [('hup','',[signal_reload()]),('dynamic','bind-dynamic\n',[]),('wait','',[dict(op='pause',seconds=1)]),
         ('local-net','local-service=net\n',[]),('local-host','local-service=host\n',[])]:
         changed=copy.deepcopy(original);changed['id']='source-interface-recreated-'+label;changed['config']+=extra_config
+        changed['recreated_udp_answer']=label in ('dynamic','local-net')
+        if label in ('local-net','local-host'): changed['listen']=None
         at=next(index for index,action in enumerate(changed['actions']) if action.get('endpoint_action')=='recreate-interface')+1
         changed['actions'][at:at]=after;cases.append(changed)
     add('hostname-scoped-expansion','server=mixed.endpoint.test%lo\nall-servers\n',sys_files={'/etc/hosts':HOSTS})
@@ -675,6 +677,10 @@ def source_guard_errors(result,case):
     udp=[row for row in result['source_events'] if row['transport']=='udp']
     tcp=[row for row in result['source_events'] if row['transport']=='tcp']
     if case.get('diagnostics') and not result.get('file_diagnostics'): errors.append('required servers-file error diagnostic was not observed')
+    if 'recreated_udp_answer' in case:
+        row=next((row for row in result['rows'] if row['id']=='recreated:udp'),None)
+        answered=bool(row and row.get('response') and row['response'].get('records'))
+        if answered!=case['recreated_udp_answer']: errors.append('source interface enumeration caller was not exercised')
     ports={row['peer'][1] for row in udp}
     if case.get('expected_source_port') is not None and any(port!=case['expected_source_port'] for port in ports): errors.append('fixed source port differs')
     if case.get('forbidden_udp_port') in ports: errors.append('explicit source inherited global port')

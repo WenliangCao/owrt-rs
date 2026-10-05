@@ -763,7 +763,8 @@ def run_side(root, side, case, folder):
         reserve.bind(('127.0.0.1', 0)); port = reserve.getsockname()[1]
     config = ('no-hosts\nno-0x20-encode\nno-round-robin\n' + ('strict-order\n' if case.get('strict_order', True) else '')
               + f'user={case.get("user", "root")}\ngroup={case.get("group", "root")}\n'
-              + f'listen-address={case.get("listen", "127.0.0.1")}\nhost-record=ready.files.test,192.0.2.250\n'
+              + (f'listen-address={case.get("listen", "127.0.0.1")}\n' if case.get('listen', '127.0.0.1') is not None else '')
+              + 'host-record=ready.files.test,192.0.2.250\n'
               'pid-file=/m2/files.pid\n' + f'port={0 if case.get("dns_disabled") else port}\ncache-size={case.get("cache_size", 0)}\n'
               + ('resolv-file=/m2/files/resolv\n' if case.get('default_resolv', True) else '') + case['config'].replace('{listen_port}', str(port)))
     if case.get('metrics'): config += 'enable-ubus=file-metrics\n'
