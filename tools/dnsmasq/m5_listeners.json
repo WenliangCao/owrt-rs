@@ -227,6 +227,25 @@
       "tftp": true
     },
     {
+      "actions": [
+        "unowned-loopback-change"
+      ],
+      "config": "listen-address=127.0.0.2\n",
+      "mode": "wildcard",
+      "name": "unowned-loopback-change-wildcard",
+      "profile": "unowned-loopback-change"
+    },
+    {
+      "actions": [
+        "unowned-loopback-change"
+      ],
+      "config": "listen-address=127.0.0.2\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "wildcard",
+      "name": "tftp-unowned-loopback-change-wildcard",
+      "profile": "tftp-unowned-loopback-change",
+      "tftp": true
+    },
+    {
       "actions": [],
       "config": "bind-interfaces\n",
       "mode": "static",
@@ -453,6 +472,25 @@
       "tftp": true
     },
     {
+      "actions": [
+        "unowned-loopback-change"
+      ],
+      "config": "bind-interfaces\nlisten-address=127.0.0.2\n",
+      "mode": "static",
+      "name": "unowned-loopback-change-static",
+      "profile": "unowned-loopback-change"
+    },
+    {
+      "actions": [
+        "unowned-loopback-change"
+      ],
+      "config": "bind-interfaces\nlisten-address=127.0.0.2\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "static",
+      "name": "tftp-unowned-loopback-change-static",
+      "profile": "tftp-unowned-loopback-change",
+      "tftp": true
+    },
+    {
       "actions": [],
       "config": "bind-dynamic\n",
       "mode": "dynamic",
@@ -676,6 +714,25 @@
       "name": "tftp-only-dynamic",
       "port": 0,
       "profile": "tftp-only",
+      "tftp": true
+    },
+    {
+      "actions": [
+        "unowned-loopback-change"
+      ],
+      "config": "bind-dynamic\nlisten-address=127.0.0.2\n",
+      "mode": "dynamic",
+      "name": "unowned-loopback-change-dynamic",
+      "profile": "unowned-loopback-change"
+    },
+    {
+      "actions": [
+        "unowned-loopback-change"
+      ],
+      "config": "bind-dynamic\nlisten-address=127.0.0.2\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "dynamic",
+      "name": "tftp-unowned-loopback-change-dynamic",
+      "profile": "tftp-unowned-loopback-change",
       "tftp": true
     },
     {
@@ -995,6 +1052,16 @@
       "profile": "conflicting-modes"
     },
     {
+      "actions": [
+        "late-address"
+      ],
+      "config": "bind-dynamic\ninterface=lan,late0\nlisten-address=192.0.2.111\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "dynamic",
+      "name": "tftp-late-address-dynamic",
+      "profile": "tftp-late-address",
+      "tftp": true
+    },
+    {
       "actions": [],
       "config": "bind-dynamic\ninterface=lan\nenable-tftp\ntftp-root=/m2/tftp\n",
       "mode": "dynamic",
@@ -1218,6 +1285,8 @@
     "tftp-change-wildcard",
     "tftp-single-scope-wildcard",
     "tftp-only-wildcard",
+    "unowned-loopback-change-wildcard",
+    "tftp-unowned-loopback-change-wildcard",
     "ordinary-static",
     "interface-static",
     "union-static",
@@ -1248,6 +1317,8 @@
     "tftp-change-static",
     "tftp-single-scope-static",
     "tftp-only-static",
+    "unowned-loopback-change-static",
+    "tftp-unowned-loopback-change-static",
     "ordinary-dynamic",
     "interface-dynamic",
     "union-dynamic",
@@ -1278,6 +1349,8 @@
     "tftp-change-dynamic",
     "tftp-single-scope-dynamic",
     "tftp-only-dynamic",
+    "unowned-loopback-change-dynamic",
+    "tftp-unowned-loopback-change-dynamic",
     "dad-static",
     "dad-explicit-static",
     "dad-failed-static",
@@ -1312,6 +1385,7 @@
     "runtime-occupied-udp-dynamic",
     "runtime-occupied-tcp-dynamic",
     "conflicting-modes-static",
+    "tftp-late-address-dynamic",
     "runtime-shared-tftp-dynamic",
     "runtime-shared-dns-both-dynamic",
     "runtime-shared-all-dynamic",
@@ -1415,12 +1489,15 @@
       "source": "dnsmasq.c:500-510"
     },
     {
-      "boundary": "Explicit addresses absent from snapshots are still attempted, including loopback aliases; missing dynamic addresses retry silently, static addresses fail.",
+      "boundary": "Explicit addresses absent from snapshots are attempted. Successfully created unowned listeners remain unowned even if the address later gains/loses an interface; failed unowned addresses first created on a real interface are retired with the last owner. INAME_USED forbids recreating the latter as a fallback.",
       "id": "unowned-address",
       "profiles": [
         "unowned-loopback",
         "missing-address",
-        "late-address"
+        "late-address",
+        "unowned-loopback-change",
+        "tftp-unowned-loopback-change",
+        "tftp-late-address"
       ],
       "source": "network.c:1212-1235"
     },
