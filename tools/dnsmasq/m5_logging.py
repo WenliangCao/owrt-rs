@@ -288,6 +288,37 @@ def cases():
                          'argv': ['--log-facility=-', '--bind-dynamic',
                                   *(['--interface=m5log'] if kind == 'interface' else ['--listen-address=192.0.2.101']),
                                   *(['--log-debug'] if enabled else [])], 'options': ['log-debug']})
+    server = '--server=192.0.2.53#15555'
+    for name, argv, files, skip, actions in [
+        ('resolv-inline', [server, '--resolv-file=/m2/logging/resolv'], {'resolv': 'nameserver 192.0.2.54\n'}, True, []),
+        ('resolv-empty', [server, '--resolv-file=/m2/logging/resolv'], {'resolv': ''}, True, []),
+        ('resolv-missing', [server, '--resolv-file=/m2/logging/resolv'], {}, True, []),
+        ('server-good', [server, '--servers-file=/m2/logging/servers'], {'servers': 'server=192.0.2.55#15556\n'}, False, []),
+        ('server-empty', [server, '--servers-file=/m2/logging/servers'], {'servers': ''}, False, []),
+        ('server-missing', [server, '--servers-file=/m2/logging/servers'], {}, False, []),
+        ('no-poll-both', [server, '--no-poll', '--resolv-file=/m2/logging/resolv', '--servers-file=/m2/logging/servers'],
+         {'resolv': 'nameserver 192.0.2.54\n', 'servers': 'server=192.0.2.55#15556\n'}, True, []),
+        ('no-poll-missing', [server, '--no-poll', '--resolv-file=/m2/logging/resolv'], {}, True, []),
+        ('resolv-server-missing', [server, '--resolv-file=/m2/logging/resolv', '--servers-file=/m2/logging/servers'],
+         {'resolv': 'nameserver 192.0.2.54\n'}, True, []),
+        ('server-replace', [server, '--servers-file=/m2/logging/servers'], {'servers': 'server=192.0.2.55#15556\n'}, False,
+         [('servers', 'server=192.0.2.56#15557\n', 'hup'), ('servers', '', 'hup')]),
+        ('resolv-replace', [server, '--resolv-file=/m2/logging/resolv'], {'resolv': 'nameserver 192.0.2.54\n'}, True,
+         [('resolv', 'nameserver 192.0.2.56\n', 'close')]),
+        ('no-poll-replace', [server, '--no-poll', '--resolv-file=/m2/logging/resolv', '--servers-file=/m2/logging/servers'],
+         {'resolv': 'nameserver 192.0.2.54\n', 'servers': 'server=192.0.2.55#15556\n'}, True,
+         [('resolv', 'nameserver 192.0.2.56\n', 'hup')]),
+    ]:
+        rows.append({'id': 'server-logs-' + name, 'scope': 'server-logs', 'kind': 'run',
+                     'argv': ['--log-facility=-', *argv], 'setup_files': files, 'file_actions': actions,
+                     'base_skip': ['--no-resolv'] if skip else [], 'options': ['log-facility', 'no-daemon']})
+    rows.append({'id': 'server-logs-upstream-limit', 'scope': 'server-logs', 'kind': 'run',
+                 'argv': ['--log-facility=-', *[f'--server=192.0.2.{index}#15555' for index in range(1, 36)]],
+                 'options': ['log-facility', 'no-daemon']})
+    rows.append({'id': 'server-logs-local-limit', 'scope': 'server-logs', 'kind': 'run',
+                 'argv': ['--log-facility=-', *[f'--server=/local{index}.logging/' for index in range(10)],
+                          '--server=/standard.logging/#', '--server=/domain.logging/192.0.2.53#15555',
+                          '--server=//192.0.2.54#15556'], 'options': ['log-facility', 'no-daemon']})
     for quiet in [False, True]:
         for variant in ['requests', 'port-exhausted', 'timeout']:
             rows.append({'id': 'tftp-logs-' + variant + ('-quiet' if quiet else '-ordinary'),
@@ -728,6 +759,8 @@ def run(root, side, case, out):
     folder.mkdir(mode=0o777)
     folder.chmod(0o777)
     (folder / 'config').write_bytes(bytes.fromhex(case['config_bytes']) if 'config_bytes' in case else case.get('config', '').encode())
+    for name, text in case.get('setup_files', {}).items():
+        (folder / name).write_text(text)
     blocker = None
     if case.get('tftp_probes') or case.get('no_dns'):
         (folder / 'public').write_bytes(b'x' * 700)
@@ -800,6 +833,16 @@ def run(root, side, case, out):
                         pass
                 time.sleep(.005)
             if observed['ready']:
+                for name, text, trigger in case.get('file_actions', []):
+                    (folder / name).write_text(text)
+                    if trigger == 'hup':
+                        process.send_signal(signal.SIGHUP)
+                    time.sleep(.08)
+                    receiver.drain()
+                    answer, raw = exchange('ready.logging')
+                    if [value['data'] for value in answer['records']] != ['192.0.2.1']:
+                        raise AssertionError('file replacement harmed client health')
+                    trace['dns'].append(raw)
                 if case.get('debug_probes'):
                     rows, index = debug_sequence(case, out, receiver)
                     observed['debug_wire'] = rows
