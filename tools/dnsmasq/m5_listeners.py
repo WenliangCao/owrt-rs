@@ -114,6 +114,7 @@ def scenarios():
             'listen-address=192.0.2.111\n' if profile == 'late-address' else ''), actions=[profile])
     add('conflicting-modes', 'static', 'bind-dynamic\n')
     add('tftp-unowned-dedicated','static','listen-address=127.0.0.2\nenable-tftp=wan\ntftp-root=/m2/tftp\n',tftp=True)
+    add('tftp-unowned-dedicated','dynamic','listen-address=127.0.0.2\nenable-tftp=wan\ntftp-root=/m2/tftp\n',tftp=True)
     add('tftp-static-renamed','static','interface=lan\nenable-tftp=lan\ntftp-root=/m2/tftp\ntftp-root=/m2/tftp/lan,lan\n',tftp=True)
     add('tftp-late-address','dynamic','interface=lan,late0\nlisten-address=192.0.2.111\nenable-tftp\ntftp-root=/m2/tftp\n',actions=['late-address'],tftp=True)
     for profile in ['runtime-shared-tftp','runtime-shared-dns-both','runtime-shared-all']:
@@ -420,6 +421,11 @@ def execute(root,side,item,out):
             if profile=='tftp-unowned-dedicated':
                 observer.sockets('initial')
                 observer.ask('unowned-check-tftp','127.0.0.2','tftp',local=True)
+                if mode=='dynamic':
+                    ip('addr','add','127.0.0.2/8','dev','lo');observer.sockets('unowned-added')
+                    observer.ask('unowned-added-tftp','127.0.0.2','tftp',local=True)
+                    ip('addr','del','127.0.0.2/8','dev','lo');observer.sockets('unowned-removed')
+                    observer.ask('unowned-removed-tftp','127.0.0.2','tftp',local=True)
             elif profile=='tftp-static-renamed':
                 observer.sockets('initial')
                 observer.ask('cached-before-tftp',V4['lan'],'tftp','lpeer')
@@ -635,7 +641,9 @@ def expected_labels(item):
         return labels+['sockets','exit']
     labels=['startup']
     protocols=['udp','tcp']+(['tftp'] if item.get('tftp') else [])
-    if profile=='tftp-unowned-dedicated':labels.extend(['initial','unowned-check-tftp'])
+    if profile=='tftp-unowned-dedicated':
+        labels.extend(['initial','unowned-check-tftp'])
+        if mode=='dynamic':labels.extend(['unowned-added','unowned-added-tftp','unowned-removed','unowned-removed-tftp'])
     elif profile=='tftp-static-renamed':labels.extend(['initial','cached-before-tftp','renamed','cached-after-tftp'])
     elif item.get('dad'):
         labels.extend(['dad-tentative','dad-live-udp','dad-finished'])
@@ -696,7 +704,7 @@ def expected_answer(item,case,side='c'):
     if case.startswith('added-'):return mode!='static'
     if case.startswith('recreated-'):return mode!='static' or '-scope-' not in case
     if case.startswith('late-') or case=='duplicate-owner':return True
-    if case.startswith('unowned-'):return True
+    if case.startswith('unowned-'):return profile!='tftp-unowned-dedicated' or mode!='dynamic'
     if case.startswith('cached-'):return True
     if case.startswith('cross-'):
         return case.endswith('-tcp') and bound or case.startswith('cross-v4-') and mode=='static'
