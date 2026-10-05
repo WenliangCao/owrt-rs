@@ -350,6 +350,13 @@ def service_cases():
             dict(op='connect',id='enumerator'),files.probe('tcp-enum','ready.files.test',transports=['enumerator']),
             dict(op='disconnect',id='enumerator'),*suffix_probes('old-host-generation'),files.signal_reload(),
             *suffix_probes('reread'),*suffix_probes('reread6','new6')])
+        add(option+'-hostsdir-current-publication',base_domain.replace('addn-hosts=/m2/files/hosts','hostsdir=/m2/files/dir'),[],
+            'DOM-IF DOM-CALLER',topology=[primary],files={'dir/one':'198.18.92.77 newnet\n'},actions=[
+                *suffix_probes('initial'),kernel(['ip','addr','add','198.18.92.9/24','dev','m5ir0']),
+                files.write('dir/one','198.18.92.77 newnet\n'),*suffix_probes('old-published-domain'),
+                dict(op='connect',id='enumerator'),files.probe('enum','ready.files.test',transports=['enumerator']),
+                dict(op='disconnect',id='enumerator'),*suffix_probes('retained-host-generation'),
+                files.write('dir/one','198.18.92.77 newnet\n'),*suffix_probes('current-domain-read')])
         add(option+'-resolver-no-reread',option+'=#\nresolv-file=/m2/files/domain-resolv\nexpand-hosts\naddn-hosts=/m2/files/hosts\n',[],
             'DOM-RESOLV DOM-CALLER',files={'domain-resolv':'search chosen.records.test\n','hosts':'192.0.2.7 short\n'},actions=[
                 files.probe('initial','short.chosen.records.test'),files.write('domain-resolv','search second.records.test\n'),
