@@ -745,6 +745,10 @@ def controls():
     case={'actions':[],'diagnostics':True};assert not compare(ordered,ordered,case)
     wrong=copy.deepcopy(ordered);wrong['file_diagnostics'].reverse()
     tests['file-diagnostic-line-order']=any(row['phase']=='file-diagnostics' for row in compare(ordered,wrong,case))
+    refreshed=dict(sample,rows=[{'id':'recreated:udp','response':{'records':[{'type':1}]}}])
+    assert not source_guard_errors(refreshed,{'recreated_udp_answer':True})
+    refreshed['rows'][0]['response']['records']=[]
+    tests['missing-interface-refresh-answer']=bool(source_guard_errors(refreshed,{'recreated_udp_answer':True}))
     assert all(tests.values()),tests
     return tests
 
@@ -899,6 +903,8 @@ def audit_evidence(argv):
     assert not args.out.exists()
     frozen=json.loads(Path(__file__).with_suffix('.json').read_text())
     requirements=json.loads(Path(__file__).with_name('m5_dns_endpoints_requirements.json').read_text())
+    declared={mode:{case['id']:json.loads(json.dumps(case)) for case in values}
+        for mode,values in [('syntax-only',syntax_cases()),('service',service_cases())]}
     for name,identity in frozen['source_identity'].items():
         if sha256(args.reference_source/name)!=identity['sha256']: raise AssertionError('exact C source changed: '+name)
     cases={};runs=[];service=[]
@@ -921,6 +927,7 @@ def audit_evidence(argv):
             ident=row['id'];case=schedule[ident]
             observed={side:read(ident+'/'+side+'/observed.json') for side in ('c','rust')}
             errors=[]
+            if declared[result['mode']].get(ident)!=case: errors.append('archived fixture differs from the current required-case contract')
             if result['mode']=='syntax-only':
                 if normal(observed['c'])!=normal(observed['rust']): errors.append('raw syntax differs')
                 if case.get('reference_defect'): errors.append('unsafe reference case cannot qualify service')
