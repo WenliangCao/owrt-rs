@@ -49,6 +49,33 @@ impl SourceSpec {
     }
 }
 
+#[derive(Debug)]
+pub struct SourceBindError {
+    pub source: SourceSpec,
+    pub error: io::Error,
+}
+impl std::fmt::Display for SourceBindError {
+    fn fmt(&self, out: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            out,
+            "failed to bind server socket for {}",
+            self.source.address.ip()
+        )?;
+        if !self.source.interface.is_empty() {
+            write!(out, " {}", String::from_utf8_lossy(&self.source.interface))?;
+        }
+        #[cfg(target_os = "linux")]
+        {
+            write!(out, ": {}", crate::dns::filewatch::os_message(&self.error))
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            write!(out, ": {}", self.error)
+        }
+    }
+}
+impl std::error::Error for SourceBindError {}
+
 #[derive(Clone, Copy, Debug)]
 pub struct SocketSettings {
     pub query_port: u16,
