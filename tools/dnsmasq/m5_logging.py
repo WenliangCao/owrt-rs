@@ -2444,6 +2444,16 @@ def controls():
     row = {'ready': True, 'exit': 0, 'forced': False, 'syslog': [], 'files': {},
            'file_metadata': {}, 'dns': [], 'stdout': '', 'stderr': 'dnsmasq: value\n'}
     result = {}
+    quiet_case = {'id': 'quiet-control', 'kind': 'run', 'dhcp_probes': True, 'quiet_dhcp': True, 'detail_dhcp': False}
+    quiet = dict(row, stderr='dnsmasq-dhcp[1]: DHCPRELEASE(lo) 127.0.0.10 02:00:00:00:00:aa unknown lease\n'
+                              'dnsmasq-dhcp[1]: DHCPDECLINE(lo) 127.0.0.10 02:00:00:00:00:aa client declines\n'
+                              'dnsmasq-dhcp[1]: disabling DHCP static address 127.0.0.10 for 10m\n')
+    assert not compare(quiet, quiet, quiet_case)
+    result['quiet-DHCP-success-leak'] = bool(compare(quiet, dict(quiet, stderr=quiet['stderr'] + 'dnsmasq-dhcp[1]: DHCPACK(lo) 127.0.0.10 02:00:00:00:00:aa client\n'), quiet_case))
+    result['quiet-DHCP-error-hidden'] = bool(compare(quiet, dict(quiet, stderr=quiet['stderr'].replace('unknown lease', '')), quiet_case))
+    result['quiet-DHCP-warning-hidden'] = bool(compare(quiet, dict(quiet, stderr=quiet['stderr'].replace('disabling DHCP static address 127.0.0.10 for 10m', '')), quiet_case))
+    result['quiet-DHCP-ignored-discover-leak'] = bool(compare(quiet, dict(quiet, stderr=quiet['stderr'] + 'dnsmasq-dhcp[1]: DHCPDISCOVER(lo) 02:00:00:00:00:bb ignored\n'), quiet_case))
+    assert all(value for key, value in result.items() if key.startswith('quiet-DHCP-'))
     for field, corrupt in [('exit', 3), ('ready', False), ('forced', True), ('stderr', 'dnsmasq: wrong\n'),
                            ('syslog', ['3c33303e77726f6e67']), ('files', {'daemon.log': '77726f6e67'}),
                            ('file_metadata', {'daemon.log': [0o600, 0, 0]}), ('dns', [{'name': 'wrong'}])]:
