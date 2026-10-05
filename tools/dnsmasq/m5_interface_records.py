@@ -296,6 +296,9 @@ def service_cases():
         add('hostsdir-'+label,config,[('one.records.test',1),('alias.records.test',1),('v6.records.test',28),
             ('7.2.0.192.in-addr.arpa',12)],'HDIR-GRAM HDIR-INIT',
             files={'dir/one':'192.0.2.7 one.records.test alias.records.test\n2001:db8::7 v6.records.test\n'})
+        if label=='repeated':cases[-1]['actions']=[files.probe('initial','one.records.test'),
+            files.write('dir/one','192.0.2.8 one.records.test\n'),files.probe('shared-watch-update','one.records.test'),
+            {'op':'unlink','path':'dir/one'},files.probe('shared-watch-delete','one.records.test')]
     add('hostsdir-name-filters',hosts_config,[('visible.records.test',1),('dot.records.test',1),('tilde.records.test',1),('hash.records.test',1)],
         'HDIR-INIT HDIR-EVENT',files={'dir/one':'192.0.2.7 visible.records.test\n','dir/.hidden':'192.0.2.8 dot.records.test\n',
             'dir/backup~':'192.0.2.9 tilde.records.test\n','dir/#temp#':'192.0.2.10 hash.records.test\n'},actions=[
