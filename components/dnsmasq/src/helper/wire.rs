@@ -2,6 +2,9 @@
 use super::*;
 
 pub(super) const MAX_FRAME: usize = 65_536;
+// Exact image script_data occupies104B on its AArch64 helper command pipe.
+// Preserve that logical capacity because pressure changes the TERM prefix.
+const ARP_COMMAND_BYTES: usize = 104;
 
 fn bytes(out: &mut Vec<u8>, value: &[u8]) -> io::Result<()> {
     if value.len() > MAX_FRAME || out.len().saturating_add(value.len() + 4) > MAX_FRAME {
@@ -226,7 +229,11 @@ pub(super) fn decode(payload: &[u8]) -> io::Result<Event> {
         },
         _ => return Err(invalid()),
     };
-    if !input.0.is_empty() {
+    if !input.0.is_empty()
+        && !(matches!(event, Event::Arp { .. })
+            && payload.len() == ARP_COMMAND_BYTES - 4
+            && input.0.iter().all(|&byte| byte == 0))
+    {
         return Err(invalid());
     }
     let _ = invocation(&event)?;
@@ -304,14 +311,14 @@ pub(super) fn arp_frame(added: bool, hardware: &[u8], address: IpAddr) -> io::Re
     if hardware.len() > 16 {
         return Err(invalid());
     }
-    let payload_len = 1 + 2 + 4 + hardware.len() + if address.is_ipv4() { 5 } else { 17 };
     let mut out = Vec::new();
-    out.try_reserve_exact(payload_len + 4)
+    out.try_reserve_exact(ARP_COMMAND_BYTES)
         .map_err(|_| io::Error::from_raw_os_error(12))?;
-    out.extend((payload_len as u32).to_le_bytes());
+    out.extend(((ARP_COMMAND_BYTES - 4) as u32).to_le_bytes());
     out.extend([1, 1, u8::from(added)]);
     bytes(&mut out, hardware)?;
     ip(&mut out, address);
+    out.resize(ARP_COMMAND_BYTES, 0);
     Ok(out)
 }
 
@@ -320,7 +327,7 @@ mod tests {
     use super::*;
     use std::net::Ipv6Addr;
     #[test]
-    fn checked_arp_frame_keeps_the_existing_command_protocol() {
+    fn checked_arp_frame_preserves_c_pipe_capacity_and_rejects_noncanonical_padding() {
         for address in [
             IpAddr::V4(Ipv4Addr::LOCALHOST),
             IpAddr::V6(Ipv6Addr::LOCALHOST),
@@ -332,8 +339,14 @@ mod tests {
                     address,
                 };
                 let framed = arp_frame(true, &vec![2; length], address).unwrap();
-                assert_eq!(framed, frame(&encode(&event).unwrap()));
+                let payload = encode(&event).unwrap();
+                assert_eq!(framed.len(), ARP_COMMAND_BYTES);
+                assert_eq!(&framed[4..4 + payload.len()], payload);
                 assert_eq!(decode(&framed[4..]).unwrap(), event);
+                let mut invalid_padding = framed.clone();
+                *invalid_padding.last_mut().unwrap() = 1;
+                assert!(decode(&invalid_padding[4..]).is_err());
+                assert!(decode(&framed[4..framed.len() - 1]).is_err());
             }
         }
         assert!(arp_frame(true, &[0; 17], Ipv4Addr::LOCALHOST.into()).is_err());
