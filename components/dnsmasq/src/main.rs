@@ -816,6 +816,7 @@ fn run_inner(
             } else {
                 0
             },
+            packet_limit,
         ) {
             Ok(listener) => Some(listener),
             Err(error) => return Err(Box::new(NetworkStartupError(error))),
