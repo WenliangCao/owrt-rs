@@ -253,6 +253,11 @@ def run_side(args):
             ip('neigh', 'flush', 'dev', interface, 'nud', 'all')
         for address, mac, interface in spec.get('neighbors', [(V4, MAC, 'arps0')]):
             neighbor(address, mac, spec.get('state', 'permanent'), interface)
+        if 'raw' in spec:
+            # C grows its receive workspace from the actual kernel datagram.
+            # An ignored NOARP record gives the real buffer room for the
+            # controlled multi-record fixture without inventing a capacity.
+            neighbor('192.0.2.250', MAC, 'noarp')
         current = subprocess.run(['ip', '-j', 'neigh', 'show'], capture_output=True, check=True)
         (folder / 'kernel-neighbors.json').write_bytes(current.stdout)
         (root / 'm2/arp-events').write_bytes(b'')
