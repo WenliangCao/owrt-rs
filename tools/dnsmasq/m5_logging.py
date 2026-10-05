@@ -213,6 +213,24 @@ def cases():
     rows.append({'id': 'pid-chown-capability-missing', 'scope': 'ownership-warning', 'kind': 'run',
                  'mode': ['-k'], 'pidfile': '/m2/logging/daemon.pid', 'user': 'nobody',
                  'drop_chown': True, 'receiver': 'dgram', 'argv': [], 'options': ['no-daemon']})
+    for name, number, error, target in [
+        ('syslog-socket', 198, errno.EMFILE, 'socket-open'),
+        ('stderr-dup', 23, errno.EMFILE, 'stderr-dup'),
+        *[('syslog-' + label, 64, error, 'socket-write') for label, error in [
+            ('interrupt', errno.EINTR), ('again', errno.EAGAIN), ('buffers', errno.ENOBUFS),
+            ('not-connected', errno.ENOTCONN), ('refused', errno.ECONNREFUSED),
+            ('destination', errno.EDESTADDRREQ), ('reset', errno.ECONNRESET), ('pipe', errno.EPIPE),
+            ('fatal', errno.EIO)]],
+        *[('connect-' + label, 203, error, 'socket-connect') for label, error in [
+            ('missing', errno.ENOENT), ('already', errno.EALREADY), ('refused', errno.ECONNREFUSED),
+            ('connected', errno.EISCONN), ('interrupt', errno.EINTR), ('again', errno.EAGAIN)]],
+    ]:
+        rows.append({'id': 'sink-fault-' + name, 'scope': 'sink-fault', 'kind': 'run',
+                     'mode': ['-k'], 'fault': name, 'fault_number': number, 'fault_errno': error,
+                     'fault_target': target, 'exit': 3 if target in ['socket-open', 'stderr-dup'] else 0,
+                     'pidfile': '/m2/logging/daemon.pid', 'receiver': 'dgram',
+                     'argv': ['--log-facility=-'] if target == 'stderr-dup' else [],
+                     'options': ['log-facility']})
     dhcp_base = ['--log-facility=-', '--dhcp-leasefile=/m2/logging/leases', '--no-ping', '--dhcp-broadcast']
     for name, ranges in [
         ('dynamic', ['127.0.0.10,127.0.0.20,255.0.0.0,10m']),
@@ -422,7 +440,7 @@ def identity_sequence(transport, calibrate, sticky_probe=None, fresh=False):
 
 
 def run(root, side, case, out):
-    if case.get('scope') in ['daemon', 'scriptuser-boundary', 'startup-fault', 'credential-fault', 'ownership-warning']:
+    if case.get('scope') in ['daemon', 'scriptuser-boundary', 'startup-fault', 'credential-fault', 'ownership-warning', 'sink-fault']:
         return run_daemon(root, side, case, out)
     out.mkdir()
     folder = image_path(root, '/m2/logging')
@@ -610,6 +628,7 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
         return value
     report = {'pid': pid, 'fault': case['fault'], 'injected': False, 'events': []}
     attached, pending, pipes, pipe_pointer, error_writer = True, None, 0, None, None
+    socket_pending, logging_socket = False, None
     deadline = time.monotonic() + 5
     def wait_stop():
         while time.monotonic() < deadline:
@@ -657,6 +676,8 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                     pipes += 1
                     if case['fault'] == 'error-pipe-flags' and pipes == (2 if side == 'c' else 1):
                         pipe_pointer = args[0]
+                if number == 198 and args[0] == 1:
+                    socket_pending = True
                 target = ''
                 if number in [57, 55, 64, 66]:
                     try:
@@ -672,6 +693,12 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                     match &= args[0] == error_writer and args[1] == 4
                 elif case['fault'] in ['pid-write', 'pid-close', 'pid-chown', 'pid-short-write']:
                     match &= target.endswith('/m2/logging/daemon.pid')
+                elif case.get('fault_target') == 'socket-open':
+                    match &= args[0] == 1
+                elif case.get('fault_target') == 'stderr-dup':
+                    match &= args[0] == 2
+                elif case.get('fault_target') in ['socket-write', 'socket-connect']:
+                    match &= args[0] == logging_socket
                 elif case['fault'].startswith('log-'):
                     match &= target.endswith('/m2/logging/daemon.log')
                 if not match:
@@ -689,6 +716,9 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                     skipped = ctypes.c_int(-1)
                     vec = Iovec(ctypes.addressof(skipped), ctypes.sizeof(skipped))
                     ptrace(0x4205, 0x404, ctypes.addressof(vec))
+            elif operation == 2 and socket_pending and pending is None:
+                logging_socket = struct.unpack_from('=q', info.raw, 24)[0]
+                socket_pending = False
             elif operation == 2 and pipe_pointer is not None and pending is None:
                 word = ptrace(2, pipe_pointer) & ((1 << 64) - 1)
                 error_writer = word >> 32
