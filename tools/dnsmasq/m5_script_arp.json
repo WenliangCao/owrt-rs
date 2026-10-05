@@ -219,7 +219,8 @@
       "required_cases": [
         "positive-record-enomem",
         "negative-record-enomem",
-        "helper-buffer-enomem-reference"
+        "helper-buffer-enomem-reference",
+        "record-fault-recovery"
       ]
     },
     {
