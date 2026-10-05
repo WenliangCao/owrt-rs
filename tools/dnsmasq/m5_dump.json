@@ -1,0 +1,133 @@
+{
+  "schema": 1,
+  "options": [
+    "dumpfile",
+    "dumpmask"
+  ],
+  "image": "ax3000t-stock-openwrt-25.12.5",
+  "reference_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "reference": {
+    "dump.c": "71223f910aa62ffe89292701433f3424813d5c76b597b9c41b6186c8860401e8",
+    "forward.c": "ac05784d4233ed10bd166da5fe91e464afecf2883d3c2a0063305d3e81692f95",
+    "dhcp.c": "600dc068b0516d7edebcde9b02ae2091a278fc154551106823ddc388170d7001",
+    "rfc2131.c": "14f2e10792ef6108aeb7b69e551f089ba287c8c84d39ea178a5f33acd2038c2c",
+    "tftp.c": "a6971bf4ce77c0ca4c7ebf0194a2ee9c2ad702b1b8a882d46de87c6c6f5e63f3",
+    "option.c": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
+    "dnsmasq.c": "d4bb7cde522376200a0293427b0812625ebc457f10dc9d3e2bef243ccba8ccd1",
+    "dnsmasq.h": "318942419598f037a97611efbdea5aebba1e384b9a1ba5f7eded091c86e0e228"
+  },
+  "boundaries": [
+    {
+      "id": "configuration",
+      "source": "option.c:2374-2380,ARG_ONE",
+      "required_cases": [
+        "syntax-file",
+        "syntax-cli",
+        "syntax-repeat-file",
+        "syntax-repeat-cli",
+        "empty-file-disables",
+        "mask-decimal",
+        "mask-hex",
+        "mask-octal",
+        "mask-negative",
+        "mask-empty",
+        "mask-no-file"
+      ]
+    },
+    {
+      "id": "file-startup",
+      "source": "dump.c:55-104;dnsmasq.c:430",
+      "required_cases": [
+        "header-create",
+        "header-user-nobody",
+        "header-edns-max",
+        "append-record-count",
+        "append-header-retained",
+        "bad-magic",
+        "short-header",
+        "missing-parent",
+        "directory-path",
+        "fifo-header"
+      ]
+    },
+    {
+      "id": "dns-local",
+      "source": "forward.c:1831,1991",
+      "required_cases": [
+        "dns-v4-local",
+        "dns-v6-local",
+        "mask-zero",
+        "mask-query",
+        "mask-reply",
+        "mask-unrelated",
+        "dns-v4-odd-length",
+        "tcp-local-no-capture"
+      ]
+    },
+    {
+      "id": "dns-forward",
+      "source": "forward.c:544,1237,1480,1527",
+      "required_cases": [
+        "upstream-v4-all",
+        "upstream-v6-all",
+        "mask-up-query",
+        "mask-up-reply",
+        "cached-second-query",
+        "tcp-forward-no-capture"
+      ]
+    },
+    {
+      "id": "dhcp-relay",
+      "source": "dhcp.c:241,517;rfc2131.c:3205",
+      "required_cases": [
+        "dhcp-dora",
+        "dhcp-mask-zero",
+        "dhcp-relay-forward",
+        "dhcp-relay-reply"
+      ]
+    },
+    {
+      "id": "tftp",
+      "source": "tftp.c:97,525,650,663,720",
+      "required_cases": [
+        "tftp-v4-data",
+        "tftp-v6-data",
+        "tftp-oack-data",
+        "tftp-error-reply",
+        "tftp-client-abort",
+        "tftp-retransmit",
+        "tftp-mask-zero"
+      ]
+    },
+    {
+      "id": "counter-logging",
+      "source": "dump.c:293-311",
+      "required_cases": [
+        "record-count-order",
+        "append-count-logging",
+        "extra-local-display-id",
+        "extra-forward-display-id",
+        "extra-dhcp-no-display-id",
+        "extra-tftp-no-display-id"
+      ]
+    },
+    {
+      "id": "failure-and-cleanup",
+      "source": "dump.c:293-301",
+      "required_cases": [
+        "actual-write-error",
+        "write-error-recovery",
+        "regular-term-cleanup",
+        "fifo-term-cleanup",
+        "cross-family-shared-writer"
+      ]
+    }
+  ],
+  "normalization": "PCAP wall timestamps validated against run interval and microsecond bounds then excluded. DNS forwarding random wire ID must first match the independent actual upstream request/reply witness; only that ID and consequent checksum are canonicalized. Configured fixed client/server/transfer ports prevent hidden endpoint normalization. Keep all IP/UDP header bytes, payloads, record lengths/order/count, file header/metadata and required dump log fields. Runtime TCP control must produce no dump record.",
+  "known_deferred": [
+    "malformed or oversized wire/header combinations",
+    "FIFO pressure beyond ordinary draining consumer",
+    "integer-overflow mask grammar combinations",
+    "allocator and gettimeofday fault combinations"
+  ]
+}
