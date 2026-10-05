@@ -116,6 +116,84 @@
           "source": "dnsmasq.c:859-1080,1752",
           "boundary": "Startup message order/content: cache enable/disable/DNS disable, compile opts, interface/upstream/async/DHCP/TFTP warnings; normal SIGTERM exit notice.",
           "required_scenarios": []
+        },
+        {
+          "id": "NOD06",
+          "source": "dnsmasq.c:584-607,network.c:884-894,util.c:352-359",
+          "boundary": "Signal pipe read/write nonblocking, primed EVENT_INIT; independent startup-error pipe has nonblocking writer and blocking reader. Pipe/fcntl failures exit5 before fork.",
+          "required_scenarios": []
+        },
+        {
+          "id": "NOD07",
+          "source": "dnsmasq.c:593-640",
+          "boundary": "-d dominates -k and skips daemonize; -k chdir root but keeps PID; default fork1 parent waits on pipe, child closes reader/setsid, fork2 middle exits0, grandchild not session leader.",
+          "required_scenarios": []
+        },
+        {
+          "id": "NOD08",
+          "source": "dnsmasq.c:607-639,1437-1510,dnsmasq.h:174-178",
+          "boundary": "fork1 failure calls fatal_event directly5; fork2 failure sends event to original parent5. Error frame is three native int32 fields event/data/msg_sz followed by msg bytes without NUL; writer EINTR retry; parent errno restored from data.",
+          "required_scenarios": []
+        },
+        {
+          "id": "NOD09",
+          "source": "dnsmasq.c:615-625,1460-1488",
+          "boundary": "Parent closes writer, blocks only before owning service poll, consumes one fatal frame; clean EOF/header short read returns success0. Payload short read keeps event with NULL arg. Unknown events/child crash EOF are original-C abnormal cases, retained separately.",
+          "required_scenarios": []
+        },
+        {
+          "id": "NOD10",
+          "source": "dnsmasq.c:1090-1104,helper.c:80-174",
+          "boundary": "Daemon success closes own startup writer before check_servers/poll_resolv/initial cache reload. Helper inherits errfd until init finishes; every held writer affects original-parent EOF; no explicit success frame.",
+          "required_scenarios": []
+        },
+        {
+          "id": "NOD11",
+          "source": "dnsmasq.c:645-700",
+          "boundary": "PID file unlink then exclusive create0644 after final fork; PID is grandchild. Root open/write/close errors3; nonroot open failure ignored. Symlink target never overwritten; group/owner warnings do not fail.",
+          "required_scenarios": []
+        },
+        {
+          "id": "NOD12",
+          "source": "dnsmasq.c:645-718,1752-1765",
+          "boundary": "-d skips PID creation but normal SIGTERM removes configured PID path; SIGINT debug exits5 without cleanup. A later startup failure preserves newly written PID; normal SIGTERM removes after successful daemon startup.",
+          "required_scenarios": []
+        },
+        {
+          "id": "NOD13",
+          "source": "dnsmasq.c:703-730,log.c:68-128",
+          "boundary": "Log start occurs after final fork/PID and before stdio redirect. - captures inherited stderr before redirection; debug no redirect; relative PID/log paths resolve under root in default/-k, original cwd under -d.",
+          "required_scenarios": []
+        },
+        {
+          "id": "NOD14",
+          "source": "dnsmasq.c:730-800,helper.c:80-140",
+          "boundary": "Helper fork occurs in final daemon after log_start/stdio redirect and before daemon UID/GID/cap drop. Verify actual helper PPID/session/stdio/credentials, and no inherited logger/socket FDs after helper close_fds except required command/event/error pipes.",
+          "required_scenarios": []
+        },
+        {
+          "id": "NOD15",
+          "source": "dnsmasq.c:1437-1545,log.c:296-328,479-499",
+          "boundary": "After fork child startup failure only sends event/_exit0. Original parent prints first pretty stderr error and both critical syslog messages; it retains default DAEMON24 facility and original-parent PID regardless child facility/file configuration.",
+          "required_scenarios": []
+        },
+        {
+          "id": "NOD16",
+          "source": "dnsmasq.c:730-840,1499-1545,helper.c:110-138",
+          "boundary": "Credential/cap/helper/TFTP startup errors keep original C exit class: pid/log/TFTP3, fork/helper/UID/GID/cap5; unknown user/group preflight1 before fork. Helper failure also signals EVENT_DIE to daemon when default fork, with proper parent error handoff.",
+          "required_scenarios": []
+        },
+        {
+          "id": "NOD17",
+          "source": "dnsmasq.c:98-111,helper.c:132-174,network.c close_fds",
+          "boundary": "Initial inherited signal/FD/umask policy and helper exec inheritance stay exact; parent/child close their opposite pipe ends; helpers cannot keep an unintended writer or listener alive; shutdown leaves no owned process/FD leak.",
+          "required_scenarios": []
+        },
+        {
+          "id": "NOD18",
+          "source": "dnsmasq.c:1090-1104,1437-1488",
+          "boundary": "Startup success gate excludes first reload/check_servers failure; externally demonstrate parent exit while serving daemon remains alive, and later runtime failure cannot retroactively change parent status.",
+          "required_scenarios": []
         }
       ]
     },
