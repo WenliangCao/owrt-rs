@@ -351,7 +351,7 @@ def cases():
             rows.append({'id': 'tftp-root-' + variant + '-' + label, 'scope': 'root-access',
                          'kind': 'run', 'mode': mode, 'daemonized': not mode,
                          'exit': 0 if no_fail or not enabled else 3,
-                         'pidfile': '/m2/logging/daemon.pid', 'argv': ['--log-facility=-'],
+                         'pidfile': '/m2/logging/daemon.pid', 'receiver': 'dgram', 'argv': ['--log-facility=-'],
                          'config_bytes': config.hex(), 'root_prefix': prefix.hex(),
                          'root_variant': variant, 'root_no_fail': no_fail,
                          'options': ['tftp-root', 'tftp-no-fail'] if no_fail else ['tftp-root']})
@@ -360,7 +360,7 @@ def cases():
                 rows.append({'id': 'tftp-root-permission-' + ('no-fail-' if no_fail else 'fatal-') + label,
                              'scope': 'root-access', 'kind': 'run', 'mode': mode, 'daemonized': not mode,
                              'exit': 0 if no_fail else 3, 'user': 'nobody', 'root_permissions': True,
-                             'pidfile': '/m2/logging/daemon.pid', 'argv': ['--log-facility=-'],
+                             'pidfile': '/m2/logging/daemon.pid', 'receiver': 'dgram', 'argv': ['--log-facility=-'],
                              'config_bytes': (b'enable-tftp\ntftp-root=/m2/logging/private-root\n' +
                                               (b'tftp-no-fail\n' if no_fail else b'')).hex(),
                              'root_prefix': b'/m2/logging/private-root'.hex(), 'root_variant': 'permission',
