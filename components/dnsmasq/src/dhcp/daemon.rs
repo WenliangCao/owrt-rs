@@ -2065,7 +2065,7 @@ impl LocalProvider {
         };
         let now = environment.now;
         let mut probe_error = None;
-        if self.config.log_dhcp {
+        if self.config.log_dhcp && packet.message_type() != 0 {
             if let Some(name) = packet
                 .option(12, 1)
                 .filter(|value| crate::hosts::canonicalise(value).is_some())
