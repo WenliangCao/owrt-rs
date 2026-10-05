@@ -416,6 +416,8 @@ def service_cases():
          ('9.2.0.192.in-addr.arpa',12),('10.2.0.192.in-addr.arpa',12),('11.2.0.192.in-addr.arpa',12)],'SYN-FWD SYN-PTR')
     add('interface-enum-same-cycle','interface-name=iface.records.test,m5ir0\n',[],'IF-CALLER',topology=[primary],
         actions=[dict(op='write',path='same-cycle',text='',enumeration_cycle=True)])
+    add('interface-enum-event-same-cycle','interface-name=iface.records.test,m5ir0\nbind-dynamic\n',[],'IF-CALLER',topology=[primary],
+        actions=[dict(op='write',path='same-cycle',text='',enumeration_cycle=True,cycle_new_address='198.18.91.10/24')])
     add('interface-tcp-inherited-flags','interface-name=iface.records.test,m5ir0\n',[],'IF-CALLER IF-FLAGS',topology=[v4only],
         actions=[*dad,dict(op='connect',id='held'),files.probe('child-tentative','iface.records.test',type=28,transports=['held']),
             dict(op='write',path='dad-complete',text='',kernel_wait={'address':'2001:db8:91::9','mask':0x40,'set':False}),state('completed'),
@@ -464,6 +466,9 @@ def run_service_side(root,side,case,out):
             try:
                 files.await_predicate(lambda:Path(str(path)+'.ready').exists() or tracer.poll() is not None,'enum count attach')
                 if tracer.poll() is not None:raise AssertionError('enum count attach failed')
+                if value.get('cycle_new_address'):
+                    subprocess.run(['ip','addr','add',value['cycle_new_address'],'dev','m5ir0'],check=True)
+                    record('cycle-address-queued')
                 port=15353;packet=files.query(files.probe('cycle','iface.records.test'),0x7341)
                 udp=socket.socket(socket.AF_INET,socket.SOCK_DGRAM);udp.settimeout(3);clients.append(udp)
                 udp.connect(('127.0.0.1',port));udp.sendall(packet)
@@ -475,7 +480,8 @@ def run_service_side(root,side,case,out):
                 replies=[udp.recv(65535),files.exact_read(tcp,struct.unpack('!H',files.exact_read(tcp,2))[0])]
                 for reply in replies:
                     parsed=files.semantics(reply)
-                    if parsed['id']!=0x7341 or [r['data'] for r in parsed['records'] if r['type']==1]!=['198.18.91.9']:
+                    wanted=['198.18.91.10','198.18.91.9'] if value.get('cycle_new_address') else ['198.18.91.9']
+                    if parsed['id']!=0x7341 or [r['data'] for r in parsed['records'] if r['type']==1]!=wanted:
                         raise AssertionError('same-cycle local packet guard failed')
                 Path(str(path)+'.stop').write_text('both received\n')
                 if tracer.wait(5)!=0:raise AssertionError('enum count exit')
