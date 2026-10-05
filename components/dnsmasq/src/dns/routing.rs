@@ -416,6 +416,23 @@ impl RoutingTable {
         }
     }
 
+    pub fn server_label(&self, id: ServerId) -> String {
+        let Some(endpoint) = self.source_endpoints.get(&id) else {
+            return String::new();
+        };
+        let ServerHost::Address(address) = endpoint.host else {
+            return String::new();
+        };
+        let mut label = address.to_string();
+        if address.is_ipv6() && endpoint.scope_id.is_some_and(|index| index != 0) {
+            if let Some(scope) = &endpoint.scope {
+                label.push('%');
+                label.push_str(&String::from_utf8_lossy(scope));
+            }
+        }
+        label
+    }
+
     pub fn source_bindings(&self, query_port: u16) -> HashMap<ServerId, SourceSpec> {
         self.source_endpoints
             .iter()
