@@ -210,6 +210,9 @@ def cases():
                      'mode': ['-k'], 'fault': name, 'fault_number': number, 'fault_errno': errno.EPERM,
                      'exit': 5, 'pidfile': '/m2/logging/daemon.pid', 'user': 'nobody',
                      'receiver': 'dgram', 'argv': [], 'options': ['no-daemon']})
+    rows.append({'id': 'pid-chown-capability-missing', 'scope': 'ownership-warning', 'kind': 'run',
+                 'mode': ['-k'], 'pidfile': '/m2/logging/daemon.pid', 'user': 'nobody',
+                 'drop_chown': True, 'receiver': 'dgram', 'argv': [], 'options': ['no-daemon']})
     dhcp_base = ['--log-facility=-', '--dhcp-leasefile=/m2/logging/leases', '--no-ping', '--dhcp-broadcast']
     for name, ranges in [
         ('dynamic', ['127.0.0.10,127.0.0.20,255.0.0.0,10m']),
@@ -419,7 +422,7 @@ def identity_sequence(transport, calibrate, sticky_probe=None, fresh=False):
 
 
 def run(root, side, case, out):
-    if case.get('scope') in ['daemon', 'scriptuser-boundary', 'startup-fault', 'credential-fault']:
+    if case.get('scope') in ['daemon', 'scriptuser-boundary', 'startup-fault', 'credential-fault', 'ownership-warning']:
         return run_daemon(root, side, case, out)
     out.mkdir()
     folder = image_path(root, '/m2/logging')
@@ -760,10 +763,15 @@ def run_daemon(root, side, case, out):
     trace = {'command': full, 'samples': [], 'reaped': {}}
     service_pid = None
     start = time.monotonic()
+    def drop_chown():
+        libc = ctypes.CDLL(None, use_errno=True)
+        if libc.prctl(24, 0, 0, 0, 0) != 0:  # PR_CAPBSET_DROP, CAP_CHOWN
+            raise OSError(ctypes.get_errno(), 'drop CAP_CHOWN in tracee bounding set')
     with (out / 'stdout').open('wb') as stdout, (out / 'stderr').open('wb') as stderr:
         process = traced_startup(full, case, side, stdout, stderr, out / 'fault.json') if case.get('fault') else subprocess.Popen(
             full, stdin=subprocess.DEVNULL, stdout=stdout, stderr=stderr,
-            env={**os.environ, 'LC_ALL': 'C', 'TZ': 'UTC'}, start_new_session=True)
+            env={**os.environ, 'LC_ALL': 'C', 'TZ': 'UTC'}, start_new_session=True,
+            preexec_fn=drop_chown if case.get('drop_chown') else None)
         try:
             deadline = start + 3
             while time.monotonic() < deadline:
