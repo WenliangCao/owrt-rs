@@ -120,7 +120,8 @@ def raw_profiles():
     add('deletion-stack-order', [], [callback(False, V4, MAC), callback(False, fresh, alternate), callback(False, '192.0.2.19', '02:00:00:91:00:19')])
     rows[-1]['warmup'] = many
     rows[-1]['warmup_expected'] = added
-    add('positive-zero-udp-lazy', [base, dict(address=fresh, mac='')], [callback(True, fresh, '')])
+    add('positive-zero-udp-lazy', [base, dict(address='127.0.0.1', mac=''), dict(address=fresh, mac='')],
+        [callback(True, fresh, ''), callback(True, '127.0.0.1', '')])
     rows[-1]['zero_positive'] = True
     return rows
 
@@ -145,7 +146,7 @@ def neighbor_packet(entries, sequence, pid, length, interface, done=True):
     return bytes(packet)
 
 
-def refresh_with_fixture(pid, entries, folder):
+def refresh_with_fixture(pid, entries, folder, target='127.0.0.1'):
     output = folder / 'netlink-fault.json'
     tracer = subprocess.Popen([sys.executable, __file__, '--trace-neighbor', str(pid), str(output), json.dumps(entries)])
     try:
@@ -156,7 +157,7 @@ def refresh_with_fixture(pid, entries, folder):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as endpoint:
             endpoint.settimeout(3)
             endpoint.bind(('127.0.0.20', 0))
-            endpoint.connect(('127.0.0.1', PORT))
+            endpoint.connect((target, PORT))
             wire = query('arp-health.test', 0x7102)
             endpoint.sendall(struct.pack('!H', len(wire)) + wire)
             reply = exact_read(endpoint, struct.unpack('!H', exact_read(endpoint, 2))[0])
@@ -237,7 +238,8 @@ def zero_positive_contract(root, pid, folder, upstream):
         rows.append(dict(case=label, mac_options=values, callbacks=[]))
     control = folder / 'refresh-control'
     control.mkdir()
-    refresh_with_fixture(pid, [dict(address=V4, mac=MAC), dict(address='192.0.2.18', mac=replacement)], control)
+    refresh_with_fixture(pid, [dict(address=V4, mac=MAC), dict(address='127.0.0.1', mac=''),
+                              dict(address='192.0.2.18', mac=replacement)], control, target='127.0.0.2')
     deadline = time.monotonic() + 2
     while len(callbacks(root)) < 2 and time.monotonic() < deadline:
         time.sleep(.02)
@@ -375,6 +377,7 @@ def run_side(args):
         upstream = Upstream() if spec.get('zero_positive') else None
         if upstream:
             config += 'cache-size=0\nserver=127.0.0.2#' + str(upstream.port) + '\n'
+            config = config.replace('listen-address=127.0.0.1\n', 'listen-address=127.0.0.1,127.0.0.2\n')
             (root / 'm2/arp.conf').write_text(config)
             (folder / 'config').write_text(config)
         try:
