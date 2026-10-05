@@ -44,6 +44,7 @@
 | 第二个空 conf-file | `option.c:5654 one_file` 对第二个空 `-C` 路径执行 `strcmp(NULL, "-")`，镜像最小复现SIGSEGV。 | 安全处理空配置选择，继续普通启动。 | 不复制空指针崩溃；只对此最小输入分类，不放宽普通include/错误结果。 |
 | version 首行实现归属 | `option.c:6057` 打印C版本及原作者版权。 | 首行追加 `dnsmasq-rs 0.1.0 (Rust implementation)`。 | 明确实现归属；版本号、compile options、全部GPL2/3及warranty行仍与镜像一致，CLI分派和早返回均严格配对。 |
 | log-malloc 内容 | `util.c:933–1017 whine_malloc_real/whine_realloc_real/malloc_log_real/free_real` 输出C调用位置、分配尺寸和实际指针摘要。 | 接受选项，启动及--test匹配；不输出逐次分配trace，生产无globalallocator跟踪。 | 用户2026-10-06明确更正：Rust分配方式、调用位置和地址不同，不要求日志内容一致。其他启动日志、退出和服务行为仍严格配对；已移除普通分配包装/检查与128KiB实验缓冲。 |
+| CHAOS NOTIMP 查询日志的EDE后缀 | `rfc1035.c:1838–1854` 对`*.bind`/`*.server`设置NOTIMP时只写rcode（`:1851`），`cache.c:2373–2399`随后读取未初始化的ede，可能附加无依据EDE。 | 保留not implemented诊断，EDE状态初始化为unset，不复制未初始化后缀。 | 不输出栈值决定的错误诊断；普通CHAOS wire、query日志前缀/名称/rcode保持严格配对，原红色最小复现与窄负控保存，最终仍需fresh复跑。 |
 
 ## 当前状态与退出条件
 
