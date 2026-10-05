@@ -1165,7 +1165,7 @@ def reverse_stable(row):
         answers=[rr for rr in obs['reply'].get('records',[]) if rr['section']=='answer']
         if answers and all(rr['type']==12 for rr in answers):
             signatures.append([(rr['name'],rr['type'],rr['class'],rr['data']) for rr in answers])
-    return bool(signatures) and all(value==signatures[0] for value in signatures)
+    return len(signatures)>=2 and all(value==signatures[0] for value in signatures)
 
 
 def real_expiry_witness(row):
@@ -1247,9 +1247,8 @@ def compare_family(args):
         c,r=c_rows[label],r_rows[label];variation=False
         if label in REVERSE_ORDER_CASES:
             versions=c_versions.get(label,[])
-            variation=any(canonical_observations(a,True)==canonical_observations(b,True)
+            variation=any(case_equal(a,b,True)
                           and canonical_observations(a)!=canonical_observations(b)
-                          and reverse_stable(a) and reverse_stable(b)
                           for index,a in enumerate(versions) for b in versions[index+1:])
             if variation:variations.append(label)
         if case_equal(c,r,variation):passed.append(label)
