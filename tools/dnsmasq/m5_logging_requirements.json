@@ -767,15 +767,26 @@
           "id": "QDH01",
           "source": "rfc2131.c:1923-1959",
           "boundary": "Suppress successful routine packets and associated ACK/release UBus only without log-dhcp; errors stay logged; enabling log-dhcp overrides routine suppression.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "dhcp-packets-ordinary",
+            "dhcp-packets-quiet",
+            "dhcp-packets-detail",
+            "dhcp-packets-quiet-detail"
+          ]
         },
         {
           "id": "QDH02",
           "source": "rfc2131.c:1289-1293,3050-3056",
           "boundary": "Quiet ignored DISCOVER returns before routine packet log even with log-dhcp; reply-delay message suppressed even with detail; log-dhcp tags/details and independent warnings/errors remain.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "dhcp-packets-quiet",
+            "dhcp-packets-quiet-detail",
+            "dhcp-packets-quiet-detail-delay"
+          ]
         }
-      ]
+      ],
+      "qualification_ready": true,
+      "qualification_scope": "Ordinary quiet DHCP contract: actual routine/error packet callers, detail override, ignored DISCOVER early return, independent delay notice gate, and retained exact-image ACK/release UBus qualification. No extreme inputs are part of this ordinary gate."
     },
     "quiet-tftp": {
       "required": [
