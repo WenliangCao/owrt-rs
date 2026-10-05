@@ -39,7 +39,8 @@
       "required_cases": [
         "mode-denied",
         "uid-open-denied",
-        "secure-owner-denied"
+        "secure-owner-denied",
+        "forbidden-parent"
       ]
     },
     {
@@ -53,9 +54,13 @@
     {
       "id": "data-read-errno",
       "source": "tftp.c:503-511,709-716,901-906",
-      "boundary": "A real read failure uses the same ERR_NOTDEF full-path/error text and releases file/transfer state.",
+      "boundary": "Initial, post-OACK/window and retry read errors share bounded ERR_NOTDEF path/errno text. C finishes the current window preserving DATA/ERR order, then releases transfer/file state. Fault witnesses replace one actual file read syscall and must prove health/descriptor recovery.",
       "required_cases": [
-        "directory-read-error"
+        "directory-read-error",
+        "initial-read-eio",
+        "oack-read-eio",
+        "window-read-eio",
+        "retry-read-eio"
       ]
     },
     {
@@ -128,12 +133,60 @@
         "port-exhausted",
         "option-invalid-mode"
       ]
+    },
+    {
+      "id": "numeric-option-wire",
+      "source": "tftp.c:383-420; dnsmasq.c:124; image c-numeric-22",
+      "boundary": "Exact image musl atoi wraps modulo32, recognises C whitespace and optional sign, stops at the decimal prefix and casts to unsigned before clamping. All recognised numeric options still receive OACK; block-size cap is EDNS limit+261 and no-blocksize skips its option.",
+      "required_cases": [
+        "numeric-blksize-signed-overflow",
+        "numeric-blksize-unsigned-wrap",
+        "numeric-blksize-unsigned-wrap-one",
+        "numeric-blksize-long-wrap",
+        "numeric-blksize-many-zeroes",
+        "numeric-blksize-many-nines",
+        "numeric-blksize-negative-overflow",
+        "numeric-blksize-negative-wrap",
+        "numeric-blksize-prefix",
+        "numeric-blksize-whitespace-prefix",
+        "numeric-blksize-double-sign",
+        "numeric-blksize-nonnumeric",
+        "numeric-blksize-negative",
+        "numeric-blksize-vertical-whitespace",
+        "numeric-other-unsigned-wrap",
+        "numeric-other-whitespace-prefix",
+        "numeric-other-negative-overflow",
+        "numeric-other-many-nines",
+        "numeric-other-double-sign",
+        "numeric-edns-512",
+        "numeric-edns-4096",
+        "numeric-no-blocksize"
+      ]
+    },
+    {
+      "id": "fstat-errno",
+      "source": "tftp.c:574-575,620-624,901-906",
+      "boundary": "fstat errors always follow oops even for ENOENT/EACCES, and close the opened fd. Inject one actual file metadata syscall error on each side.",
+      "required_cases": [
+        "fstat-5",
+        "fstat-13",
+        "fstat-2"
+      ]
     }
   ],
   "qualification": {
     "require_raw_wire": true,
     "require_case_inventory": true,
     "require_negative_controls": true,
-    "reference_only_cannot_close": true
-  }
+    "reference_only_cannot_close": true,
+    "require_descriptor_health": true,
+    "require_actual_file_fault_receipts": true
+  },
+  "unclosed_callers": [
+    {
+      "source": "tftp.c:596-601",
+      "caller": "file record whine_malloc failure sets ENOMEM then oops",
+      "status": "Pending exact allocation fault and Rust production allocation recoverability. Other passing rows cannot close this caller."
+    }
+  ]
 }
