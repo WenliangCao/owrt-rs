@@ -62,7 +62,28 @@ pub struct Lease {
     script: ScriptFlags,
 }
 
+/// Stable lease identity. Recovery can hold several records for one address;
+/// callers must retain this key when a client lookup selected a particular one.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub struct LeaseId {
+    address: Ipv4Addr,
+    sequence: u64,
+}
+
+impl LeaseId {
+    pub fn address(self) -> Ipv4Addr {
+        self.address
+    }
+}
+
 impl Lease {
+    pub fn id(&self) -> LeaseId {
+        LeaseId {
+            address: self.address,
+            sequence: self.sequence,
+        }
+    }
+
     /// Name currently published for this lease, in the same FQDN-first order
     /// used by script events and DNS removal.  A pruned lease remains owned by
     /// the caller long enough to derive a name-loss notification.
@@ -142,9 +163,9 @@ impl ScriptQueue {
             .values()
             .filter(|lease| lease.old_hostname.is_some())
             .max_by_key(|lease| lease.sequence)
-            .map(|lease| lease.address);
-        if let Some(address) = old_name {
-            let lease = store.leases.get_mut(&address).unwrap();
+            .map(Lease::id);
+        if let Some(id) = old_name {
+            let lease = store.leases.get_mut(&id).unwrap();
             let name = lease.old_hostname.take();
             return Some(ScriptEvent {
                 action: ScriptAction::OldHostname,
@@ -162,7 +183,7 @@ impl ScriptQueue {
                     || (lease.script.expiry && options.notify_renewals)
             })
             .max_by_key(|lease| lease.sequence)
-            .map(|lease| lease.address)?;
+            .map(Lease::id)?;
         let lease = store.leases.get_mut(&changed).unwrap();
         let action = if lease.script.new {
             ScriptAction::Add
@@ -209,8 +230,8 @@ pub struct NameLost {
 /// expiry entry: renewal removes the old key (no stale-timer heap growth).
 /// Client lookup retains newest-first C behavior, including duplicate IDs.
 pub struct LeaseStore {
-    leases: BTreeMap<Ipv4Addr, Lease>,
-    expiry: BTreeSet<(i64, Ipv4Addr)>,
+    leases: BTreeMap<LeaseId, Lease>,
+    expiry: BTreeSet<(i64, LeaseId)>,
     capacity: usize,
     sequence: u64,
     changes: Changes,
@@ -237,8 +258,28 @@ impl LeaseStore {
         self.leases.is_empty()
     }
 
+    fn key(&self, address: Ipv4Addr) -> Option<LeaseId> {
+        self.leases
+            .range(
+                LeaseId {
+                    address,
+                    sequence: 0,
+                }..=LeaseId {
+                    address,
+                    sequence: u64::MAX,
+                },
+            )
+            .next_back()
+            .map(|(&id, _)| id)
+    }
+
+    /// Address lookup returns the newest matching lease, like lease_find_by_addr.
     pub fn get(&self, address: Ipv4Addr) -> Option<&Lease> {
-        self.leases.get(&address)
+        self.get_by_id(self.key(address)?)
+    }
+
+    pub fn get_by_id(&self, id: LeaseId) -> Option<&Lease> {
+        self.leases.get(&id)
     }
 
     pub fn greatest_address(&self, start: Ipv4Addr, end: Ipv4Addr) -> Option<Ipv4Addr> {
@@ -246,9 +287,17 @@ impl LeaseStore {
             return None;
         }
         self.leases
-            .range(start..=end)
+            .range(
+                LeaseId {
+                    address: start,
+                    sequence: 0,
+                }..=LeaseId {
+                    address: end,
+                    sequence: u64::MAX,
+                },
+            )
             .next_back()
-            .map(|(&address, _)| address)
+            .map(|(&id, _)| id.address)
     }
 
     pub fn changes(&self) -> Changes {
@@ -319,9 +368,17 @@ impl LeaseStore {
         if !identity.valid() {
             return Err(LeaseError::InvalidIdentity);
         }
-        if self.leases.contains_key(&address) {
+        if self.get(address).is_some() {
             return Err(LeaseError::AddressInUse);
         }
+        self.allocate_record(address, identity)
+    }
+
+    fn allocate_record(
+        &mut self,
+        address: Ipv4Addr,
+        identity: ClientIdentity,
+    ) -> Result<(), LeaseError> {
         if self.leases.len() >= self.capacity {
             return Err(LeaseError::Full);
         }
@@ -330,8 +387,9 @@ impl LeaseStore {
             .checked_add(1)
             .ok_or(LeaseError::SequenceExhausted)?;
         self.sequence = sequence;
+        let id = LeaseId { address, sequence };
         self.leases.insert(
-            address,
+            id,
             Lease {
                 address,
                 identity,
@@ -353,7 +411,7 @@ impl LeaseStore {
                 },
             },
         );
-        self.expiry.insert((1, address));
+        self.expiry.insert((1, id));
         self.changes.file = true;
         self.counters.allocated4 = self.counters.allocated4.wrapping_add(1);
         Ok(())
@@ -364,10 +422,19 @@ impl LeaseStore {
         address: Ipv4Addr,
         identity: &ClientIdentity,
     ) -> Result<(), LeaseError> {
+        let id = self.key(address).ok_or(LeaseError::NotFound)?;
+        self.set_identity_by_id(id, identity)
+    }
+
+    pub fn set_identity_by_id(
+        &mut self,
+        id: LeaseId,
+        identity: &ClientIdentity,
+    ) -> Result<(), LeaseError> {
         if !identity.valid() {
             return Err(LeaseError::InvalidIdentity);
         }
-        let lease = self.leases.get_mut(&address).ok_or(LeaseError::NotFound)?;
+        let lease = self.leases.get_mut(&id).ok_or(LeaseError::NotFound)?;
         let old = &mut lease.identity;
         if old.hardware_type != identity.hardware_type
             || old.hardware_address != identity.hardware_address
@@ -392,17 +459,27 @@ impl LeaseStore {
         length: u32,
         now: i64,
     ) -> Result<(), LeaseError> {
-        self.set_expires_at(address, expiry_time(length, now))
+        let id = self.key(address).ok_or(LeaseError::NotFound)?;
+        self.set_expires_by_id(id, length, now)
     }
 
-    fn set_expires_at(&mut self, address: Ipv4Addr, expiry: Option<i64>) -> Result<(), LeaseError> {
-        let lease = self.leases.get_mut(&address).ok_or(LeaseError::NotFound)?;
+    pub fn set_expires_by_id(
+        &mut self,
+        id: LeaseId,
+        length: u32,
+        now: i64,
+    ) -> Result<(), LeaseError> {
+        self.set_expires_at(id, expiry_time(length, now))
+    }
+
+    fn set_expires_at(&mut self, id: LeaseId, expiry: Option<i64>) -> Result<(), LeaseError> {
+        let lease = self.leases.get_mut(&id).ok_or(LeaseError::NotFound)?;
         if expiry != lease.expires {
             if let Some(old) = lease.expires {
-                self.expiry.remove(&(old, address));
+                self.expiry.remove(&(old, id));
             }
             if let Some(new) = expiry {
-                self.expiry.insert((new, address));
+                self.expiry.insert((new, id));
             }
             lease.expires = expiry;
             lease.script.auxiliary = true;
@@ -414,8 +491,8 @@ impl LeaseStore {
     }
 
     /// Restore parsed records before serving traffic. C also treats capacity
-    /// exhaustion as startup-fatal. Duplicate addresses remain an explicitly
-    /// tracked recovery-policy difference; names and hardware types preserve
+    /// exhaustion as startup-fatal. Duplicate addresses retain independent
+    /// identities, expiries and helper state; names and hardware types preserve
     /// their original byte/32-bit representation without lossy conversion.
     pub fn restore(
         &mut self,
@@ -442,18 +519,17 @@ impl LeaseStore {
                 hardware_address: record.hardware_address,
                 client_id: record.client_id,
             };
-            self.allocate(record.address, identity)
+            self.allocate_record(record.address, identity)
                 .map_err(RestoreError::Lease)?;
-            self.set_expires_at(
-                record.address,
-                (record.expires != 0).then_some(record.expires),
-            )
-            .map_err(RestoreError::Lease)?;
+            let id = self.key(record.address).unwrap();
+            self.set_expires_at(id, (record.expires != 0).then_some(record.expires))
+                .map_err(RestoreError::Lease)?;
             if let Some(hostname) = record.hostname {
                 self.set_hostname(record.address, Some(&hostname), false, None, fqdn_only)
                     .map_err(RestoreError::Lease)?;
             }
-            let lease = self.leases.get_mut(&record.address).unwrap();
+            let id = self.key(record.address).unwrap();
+            let lease = self.leases.get_mut(&id).unwrap();
             lease.agent_id = record.agent_id;
             lease.vendor_class = record.vendor_class;
             // read_leases clears NEW/CHANGED; expiry is assigned directly in C.
@@ -490,7 +566,12 @@ impl LeaseStore {
     }
 
     pub fn set_interface(&mut self, address: Ipv4Addr, interface: u32) -> Result<bool, LeaseError> {
-        let lease = self.leases.get_mut(&address).ok_or(LeaseError::NotFound)?;
+        let id = self.key(address).ok_or(LeaseError::NotFound)?;
+        self.set_interface_by_id(id, interface)
+    }
+
+    pub fn set_interface_by_id(&mut self, id: LeaseId, interface: u32) -> Result<bool, LeaseError> {
+        let lease = self.leases.get_mut(&id).ok_or(LeaseError::NotFound)?;
         let changed = lease.interface != interface;
         lease.interface = interface;
         lease.script.changed |= changed;
@@ -502,7 +583,16 @@ impl LeaseStore {
         address: Ipv4Addr,
         value: Option<Ipv4Addr>,
     ) -> Result<Option<Ipv4Addr>, LeaseError> {
-        let lease = self.leases.get_mut(&address).ok_or(LeaseError::NotFound)?;
+        let id = self.key(address).ok_or(LeaseError::NotFound)?;
+        self.server_override_by_id(id, value)
+    }
+
+    pub fn server_override_by_id(
+        &mut self,
+        id: LeaseId,
+        value: Option<Ipv4Addr>,
+    ) -> Result<Option<Ipv4Addr>, LeaseError> {
+        let lease = self.leases.get_mut(&id).ok_or(LeaseError::NotFound)?;
         if value.is_some_and(|value| !value.is_unspecified()) {
             lease.server_override = value;
         }
@@ -531,7 +621,17 @@ impl LeaseStore {
         address: Ipv4Addr,
         context: crate::helper::LeaseEventContext,
     ) -> Result<(), LeaseError> {
-        let lease = self.leases.get_mut(&address).ok_or(LeaseError::NotFound)?;
+        let id = self.key(address).ok_or(LeaseError::NotFound)?;
+        self.set_helper_context_by_id(id, context)
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    pub fn set_helper_context_by_id(
+        &mut self,
+        id: LeaseId,
+        context: crate::helper::LeaseEventContext,
+    ) -> Result<(), LeaseError> {
+        let lease = self.leases.get_mut(&id).ok_or(LeaseError::NotFound)?;
         if let Some(current) = lease.helper_context.as_mut() {
             current.interface = context.interface;
             if context.relay_address.is_some() {
@@ -553,7 +653,16 @@ impl LeaseStore {
         address: Ipv4Addr,
         value: Option<&[u8]>,
     ) -> Result<(), LeaseError> {
-        let lease = self.leases.get_mut(&address).ok_or(LeaseError::NotFound)?;
+        let id = self.key(address).ok_or(LeaseError::NotFound)?;
+        self.set_agent_id_by_id(id, value)
+    }
+
+    pub fn set_agent_id_by_id(
+        &mut self,
+        id: LeaseId,
+        value: Option<&[u8]>,
+    ) -> Result<(), LeaseError> {
+        let lease = self.leases.get_mut(&id).ok_or(LeaseError::NotFound)?;
         if lease.agent_id.as_deref() != value {
             lease.agent_id = value.map(<[u8]>::to_vec);
             self.changes.file = true;
@@ -566,7 +675,16 @@ impl LeaseStore {
         address: Ipv4Addr,
         value: Option<&[u8]>,
     ) -> Result<(), LeaseError> {
-        let lease = self.leases.get_mut(&address).ok_or(LeaseError::NotFound)?;
+        let id = self.key(address).ok_or(LeaseError::NotFound)?;
+        self.set_vendor_class_by_id(id, value)
+    }
+
+    pub fn set_vendor_class_by_id(
+        &mut self,
+        id: LeaseId,
+        value: Option<&[u8]>,
+    ) -> Result<(), LeaseError> {
+        let lease = self.leases.get_mut(&id).ok_or(LeaseError::NotFound)?;
         if lease.vendor_class.as_deref() != value {
             lease.vendor_class = value.map(<[u8]>::to_vec);
             self.changes.file = true;
@@ -578,17 +696,22 @@ impl LeaseStore {
     /// among leases removed in one prune call). The caller owns deferred script
     /// delivery, including old-hostname-before-delete, before dropping them.
     pub fn prune(&mut self, target: Option<Ipv4Addr>, now: i64) -> Vec<Lease> {
+        self.prune_lease(target.and_then(|address| self.key(address)), now)
+    }
+
+    /// Prune the selected object, rather than every lease sharing its address.
+    pub fn prune_lease(&mut self, target: Option<LeaseId>, now: i64) -> Vec<Lease> {
         let mut removed = Vec::new();
-        while let Some(&(expires, address)) = self.expiry.first() {
+        while let Some(&(expires, id)) = self.expiry.first() {
             if expires > now {
                 break;
             }
-            if let Some(lease) = self.remove(address) {
+            if let Some(lease) = self.remove(id) {
                 removed.push(lease);
             }
         }
-        if let Some(address) = target {
-            if let Some(lease) = self.remove(address) {
+        if let Some(id) = target {
+            if let Some(lease) = self.remove(id) {
                 removed.push(lease);
             }
         }
@@ -596,16 +719,16 @@ impl LeaseStore {
         removed
     }
 
-    fn remove(&mut self, address: Ipv4Addr) -> Option<Lease> {
-        let lease = self.leases.remove(&address)?;
-        let counter = if address.is_unspecified() {
+    fn remove(&mut self, id: LeaseId) -> Option<Lease> {
+        let lease = self.leases.remove(&id)?;
+        let counter = if id.address.is_unspecified() {
             &mut self.counters.pruned6
         } else {
             &mut self.counters.pruned4
         };
         *counter = counter.wrapping_add(1);
         if let Some(expiry) = lease.expires {
-            self.expiry.remove(&(expiry, address));
+            self.expiry.remove(&(expiry, id));
         }
         self.changes.file = true;
         self.changes.dns |= lease.hostname.is_some();
@@ -623,7 +746,19 @@ impl LeaseStore {
         domain: Option<&[u8]>,
         fqdn_only: bool,
     ) -> Result<Vec<NameLost>, LeaseError> {
-        let lease = self.leases.get(&address).ok_or(LeaseError::NotFound)?;
+        let id = self.key(address).ok_or(LeaseError::NotFound)?;
+        self.set_hostname_by_id(id, name, authoritative, domain, fqdn_only)
+    }
+
+    pub fn set_hostname_by_id(
+        &mut self,
+        id: LeaseId,
+        name: Option<&[u8]>,
+        authoritative: bool,
+        domain: Option<&[u8]>,
+        fqdn_only: bool,
+    ) -> Result<Vec<NameLost>, LeaseError> {
+        let lease = self.leases.get(&id).ok_or(LeaseError::NotFound)?;
         if lease
             .hostname
             .as_deref()
@@ -631,7 +766,7 @@ impl LeaseStore {
             .is_some_and(|(old, new)| old.eq_ignore_ascii_case(new))
         {
             if authoritative {
-                self.leases.get_mut(&address).unwrap().authoritative_name = true;
+                self.leases.get_mut(&id).unwrap().authoritative_name = true;
             }
             return Ok(Vec::new());
         }
@@ -657,7 +792,7 @@ impl LeaseStore {
                 pair.is_some_and(|(old, new)| old.eq_ignore_ascii_case(new))
             })
             .max_by_key(|lease| lease.sequence)
-            .map(|other| (other.address, other.authoritative_name));
+            .map(|other| (other.id(), other.authoritative_name));
         if collision.is_some_and(|(_, auth)| auth && !authoritative) {
             return Ok(Vec::new());
         }
@@ -667,7 +802,7 @@ impl LeaseStore {
             take_name(other, &mut lost);
             other.script.changed = true;
         }
-        let lease = self.leases.get_mut(&address).unwrap();
+        let lease = self.leases.get_mut(&id).unwrap();
         take_name(lease, &mut lost);
         lease.hostname = name.map(<[u8]>::to_vec);
         lease.fqdn = new_fqdn;
@@ -969,14 +1104,34 @@ mod tests {
     }
 
     #[test]
-    fn ambiguous_recovery_is_explicitly_rejected() {
-        let file = super::super::lease_file::parse(b"200 01 192.0.2.1 * *\n200 02 192.0.2.1 * *\n");
-        let mut store = LeaseStore::new(2);
-        assert_eq!(
-            store.restore(file.records, 100).unwrap_err(),
-            RestoreError::Lease(LeaseError::AddressInUse)
+    fn duplicate_address_recovery_keeps_independent_identity_and_expiry() {
+        let file = super::super::lease_file::parse(
+            b"200 01 192.0.2.1 first 01\n300 02 192.0.2.1 second 02\n",
         );
+        let mut store = LeaseStore::new(2);
+        assert!(store.restore(file.records, 100).unwrap().is_empty());
+        assert_eq!(store.len(), 2);
+        assert_eq!(
+            store.get(address(1)).unwrap().identity.hardware_address,
+            [2]
+        );
+        let first = store
+            .find_client(&ClientIdentity {
+                hardware_type: 1,
+                hardware_address: vec![1],
+                client_id: Some(vec![1]),
+            })
+            .unwrap()
+            .id();
+        store.set_expires_by_id(first, 150, 100).unwrap();
+        assert_eq!(store.get(address(1)).unwrap().expires, Some(300));
+        assert_eq!(store.get_by_id(first).unwrap().expires, Some(250));
+        let removed = store.prune_lease(Some(first), 100);
+        assert_eq!(removed.len(), 1);
+        assert_eq!(removed[0].hostname.as_deref(), Some(b"first".as_slice()));
         assert_eq!(store.len(), 1);
+        assert_eq!(store.next_expiry(), Some(300));
+        assert_eq!(store.prune(None, 300).len(), 1);
     }
 
     #[test]
