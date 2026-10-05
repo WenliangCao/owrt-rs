@@ -365,6 +365,19 @@ impl Cache {
         })
     }
 
+    /// A generic NX marker is inspected before local interface/synthetic
+    /// answers. Owners may defer an initial local answer into CacheContext so
+    /// that marker's cached SOA is retained by the final authority footer.
+    pub fn has_nxdomain(&self, name: &Name, now: i64) -> bool {
+        self.names.get(&name.canonical_wire()).is_some_and(|slots| {
+            slots.iter().any(|&slot| {
+                self.slots[slot].entry.as_ref().is_some_and(|entry| {
+                    entry.record.kind == Kind::NxDomain && entry.record.negative
+                }) && !self.invalid(slot, now)
+            })
+        })
+    }
+
     /// Read-only reverse candidate test. The current cache stores generic PTR
     /// and negative records by their reverse owner; positive IP-keyed reverse
     /// records remain a separate capability. Keep this predicate side-effect
