@@ -42,6 +42,7 @@ pub struct Host {
     pub address: IpAddr,
     pub ttl: u32,
     pub source: u32,
+    pub configured: bool,
     pub reverse: bool,
 }
 
@@ -59,6 +60,7 @@ pub struct ReadStats {
 #[derive(Clone, Default)]
 pub struct Hosts {
     entries: Vec<Host>,
+    sources: HashMap<u32, Vec<u8>>,
     forward: HashMap<Vec<u8>, Vec<usize>>,
     reverse: HashMap<IpAddr, usize>,
     non_terminals: HashSet<Vec<u8>>,
@@ -79,6 +81,18 @@ impl Hosts {
         &self.entries
     }
 
+    /// Keep the loader's actual file identity beside this immutable generation.
+    pub fn set_source_name(&mut self, source: u32, name: Vec<u8>) {
+        self.sources.insert(source, name);
+    }
+
+    pub fn source_name(&self, source: u32) -> Option<&[u8]> {
+        self.sources
+            .get(&source)
+            .map(Vec::as_slice)
+            .or((source == 0).then_some(b"/etc/hosts".as_slice()))
+    }
+
     /// Current static address order without the lookup/round-robin mutation.
     pub fn addresses(&self, name: &[u8]) -> impl Iterator<Item = &Host> {
         self.forward
@@ -95,6 +109,17 @@ impl Hosts {
     /// Preserves first-address PTR ownership and same-name/address deduplication
     /// across all input files in this generation.
     pub fn insert(&mut self, name: Vec<u8>, address: IpAddr, ttl: u32, source: u32) -> bool {
+        self.insert_with_origin(name, address, ttl, source, source == 1)
+    }
+
+    fn insert_with_origin(
+        &mut self,
+        name: Vec<u8>,
+        address: IpAddr,
+        ttl: u32,
+        source: u32,
+        configured: bool,
+    ) -> bool {
         // C duplicate detection calls cache_find_by_name, which performs its
         // usual round-robin mutation even while bulk-loading hosts files.
         if self
@@ -135,6 +160,7 @@ impl Hosts {
             address,
             ttl,
             source,
+            configured,
             reverse,
         });
         true
@@ -232,11 +258,14 @@ impl Hosts {
                         expanded.push(b'.');
                         expanded.extend_from_slice(suffix);
                         stats.accepted += 1;
-                        stats.inserted += usize::from(self.insert(expanded, address, ttl, source));
+                        stats.inserted += usize::from(
+                            self.insert_with_origin(expanded, address, ttl, source, false),
+                        );
                     }
                 }
                 stats.accepted += 1;
-                stats.inserted += usize::from(self.insert(name, address, ttl, source));
+                stats.inserted +=
+                    usize::from(self.insert_with_origin(name, address, ttl, source, false));
             }
         }
         stats

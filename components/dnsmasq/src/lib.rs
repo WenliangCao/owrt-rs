@@ -12,13 +12,15 @@ pub mod dump;
 pub mod helper;
 pub mod hosts;
 pub mod interfaces;
-pub mod metrics;
 #[cfg(target_os = "linux")]
 pub mod logging;
+pub mod metrics;
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 pub mod neighbors;
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 pub mod net;
+#[path = "logging/query.rs"]
+pub mod query_logging;
 #[doc(hidden)]
 pub mod sorting;
 pub mod tftp;
