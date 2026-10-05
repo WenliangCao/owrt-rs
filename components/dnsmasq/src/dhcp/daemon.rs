@@ -476,6 +476,14 @@ impl LocalProvider {
         delivery
     }
 
+    /// A bounded hosts read has not reached C's next helper queue turn yet.
+    /// Transfer an already frozen callback without freezing the following
+    /// lease's current name before the new hosts generation is published.
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    pub fn take_frozen_script_delivery(&mut self) -> Option<LeaseDelivery> {
+        self.pending_delivery.take()
+    }
+
     /// A dead helper is not respawned by C. Stop retaining undeliverable
     /// callbacks while leaving DHCP, lease persistence and DNS usable.
     pub fn disable_script_delivery(&mut self) {

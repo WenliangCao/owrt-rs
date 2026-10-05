@@ -4276,12 +4276,14 @@ impl SinglePoll {
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     fn step_helper(&mut self) {
         if self.pending_delivery.is_none() && self.helper_init.is_none() {
+            let hosts_pending = self.hosts_work_pending();
             self.pending_delivery = self.dhcp.as_ref().and_then(|dhcp| {
-                dhcp.provider
-                    .as_ref()?
-                    .try_lock()
-                    .ok()?
-                    .take_script_delivery()
+                let mut provider = dhcp.provider.as_ref()?.try_lock().ok()?;
+                if hosts_pending {
+                    provider.take_frozen_script_delivery()
+                } else {
+                    provider.take_script_delivery()
+                }
             });
         }
         if let Some(helper) = self.helper.as_mut() {
