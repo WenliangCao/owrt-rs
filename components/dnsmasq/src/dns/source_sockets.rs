@@ -41,11 +41,23 @@ impl SourceSpec {
             }
             source.address.set_port(binding.port);
             source.interface = binding.interface.clone().unwrap_or_default();
-            if let Ok(name) = std::ffi::CString::new(source.interface.as_slice()) {
-                source.ifindex = unsafe { if_nametoindex(name.as_ptr()) };
-            }
+            source.refresh_interface_index();
         }
         source
+    }
+
+    /// enumerate_interfaces updates a server's cached index only after a
+    /// successful lookup. A missing or cleared name keeps the previous index.
+    pub fn refresh_interface_index(&mut self) {
+        if self.interface.is_empty() {
+            return;
+        }
+        if let Ok(name) = std::ffi::CString::new(self.interface.as_slice()) {
+            let index = unsafe { if_nametoindex(name.as_ptr()) };
+            if index != 0 {
+                self.ifindex = index;
+            }
+        }
     }
 }
 

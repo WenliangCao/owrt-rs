@@ -652,18 +652,25 @@ impl<R: Random> UpstreamResolver<R> {
         self.socket_settings
     }
 
+    /// Call at C's enumerate_interfaces boundary, independently of route/file
+    /// publication. Wildcard address notifications and SIGHUP do not refresh
+    /// this cache; bound-dynamic address changes and parent TCP accepts do.
+    pub fn refresh_source_interface_indices(&mut self) {
+        for source in self.source_bindings.values_mut() {
+            source.refresh_interface_index();
+        }
+    }
+
     pub fn configure_source_sockets(
         &mut self,
         settings: SocketSettings,
         mut sources: HashMap<ServerId, SourceSpec>,
     ) -> Vec<(ServerId, io::Error)> {
-        // enumerate_interfaces refreshes a server's cached index only after a
-        // successful ioctl. add_update_server does not reset it on slot reuse.
+        // add_update_server does not refresh/reset the cached interface index
+        // on slot reuse. enumerate_interfaces owns that separate boundary.
         for (id, source) in &mut sources {
-            if source.ifindex == 0 {
-                if let Some(previous) = self.source_bindings.get(id) {
-                    source.ifindex = previous.ifindex;
-                }
+            if let Some(previous) = self.source_bindings.get(id) {
+                source.ifindex = previous.ifindex;
             }
         }
         self.socket_settings = settings;
