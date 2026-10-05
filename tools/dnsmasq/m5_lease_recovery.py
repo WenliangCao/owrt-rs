@@ -67,6 +67,10 @@ def scenarios():
     add('ro-init', duplicate, ro=True, probes=probes,
         actions=[dhcp(3), dict(op='hup'), dhcp(7, client=2)])
     add('ro-capacity', duplicate, ro=True, maximum=1, expected_exit=5)
+    add('ro-capacity-warning', '0 01 invalid bad *\n'+duplicate, ro=True, maximum=1, expected_exit=5)
+    add('ro-malformed', '0 01 invalid bad *\n'+row()+'trailing', ro=True, probes=[dict(name='first')])
+    add('ro-partial-record', row()+'0 02 127.0.0.11 unfinished', ro=True, probes=[dict(name='first')])
+    add('capacity-warning', '0 01 invalid bad *\n'+duplicate, maximum=1, expected_exit=5)
     add('scanf-space', '0\v02:00:00:00:00:01\f127.0.0.10\nfirst\t*\r\n', probes=[dict(name='first')])
     add('scanf-width', row() + '0 ' + 'a'*256 + ' 127.0.0.11 wide *\n', probes=[dict(name='first')])
     add('scanf-nul', '0 02:00:00:00:00:01\0ignored 127.0.0.10 first\0ignored *\n', probes=[dict(name='first')])
@@ -80,7 +84,8 @@ def scenarios():
     add('bad-client-id', row(clid='gg') + row(2,11,'second',clid='*'), actions=[dhcp(1, clid='01')])
     add('expiry-integers', row(expiry='-1') + row(2,11,'zero','junk') + row(3,12,'forever','+0junk') +
         row(4,13,'saturated','9223372036854775808') + row(5,14,'negative','-9223372036854775809'),
-        probes=[dict(name=name) for name in ['first','zero','forever','saturated','negative']])
+        probes=[dict(name=name) for name in ['first','zero','forever','saturated','negative']], expiry_environment=True,
+        actions=[dhcp(8,client=4,address=13),dhcp(8,client=5,address=14)])
     add('expiry-prune', row(expiry='PAST') + row(2,name='second',expiry='NOW') + row(3,name='third'), probes=probes)
     add('expiry-timer', row(expiry='SOON') + row(2,name='second'), probes=probes,
         actions=[dict(op='wait', seconds=3), dict(op='probes')])
@@ -116,6 +121,7 @@ def scenarios():
     add('write-failure', row(), limited_write=True, helper=False,
         actions=[dhcp(3),dict(op='lift-write-limit'),dict(op='wait-file',seconds=65)])
     add('partial-eio', row(), fifo=True, expected_exit=3)
+    add('partial-eio-warning', '0 01 invalid bad *\n'+row(), fifo=True, expected_exit=3)
     add('optional-long', row(), spelling=['--dhcp-leasefile'], path=DEFAULT)
     add('optional-empty', row(), spelling=['--dhcp-leasefile='], path=DEFAULT)
     add('optional-separated', spelling=['--dhcp-leasefile','/m2/leases'], expected_test=1, expected_exit=1)
@@ -229,7 +235,9 @@ def trace_read_error(pid, descriptor, output):
         active=fault=consumed=False
         while True:
             ptrace(24);_,status=os.waitpid(pid,0)
-            if not os.WIFSTOPPED(status):raise AssertionError('tracee exited before injection')
+            if not os.WIFSTOPPED(status):
+                if report['injected']:attached=False;break
+                raise AssertionError('tracee exited before injection')
             if os.WSTOPSIG(status)!=signal.SIGTRAP|0x80:continue
             info=(ctypes.c_ubyte*128)();ptrace(0x420e,ctypes.sizeof(info),ctypes.addressof(info));regs()
             if info[0]==1:
@@ -243,7 +251,9 @@ def trace_read_error(pid, descriptor, output):
                     registers[0]=(1<<64)-errno.EIO;regs(True);returned=-errno.EIO;report['injected']=True
                 report['reads'].append(dict(result=returned,injected=fault));save(output,report)
                 consumed|=returned>0;active=False
-                if fault:ptrace(17);attached=False;break
+                # scanf may finish its current conversion and retry once after
+                # ferror; a permanently failed storage descriptor keeps EIO.
+                if len(report['reads'])>16:raise AssertionError('read error did not terminate parser')
     finally:
         if attached:
             try:ptrace(17)
@@ -271,32 +281,57 @@ def run(root, side, case, out):
     for name,contents in case.get('files',{}).items():(folder/name).write_text(contents)
     helper=folder/'helper';helper.write_text('#!/bin/sh\nif [ "$1" = init ]; then cat /m2/init; exit; fi\n'
         'printf "%s|%s|%s|%s|%s|%s|%s\\n" "$1" "$2" "$3" "$4" "${DNSMASQ_CLIENT_ID-}" "${DNSMASQ_INTERFACE-}" "${DNSMASQ_OLD_HOSTNAME-}" >> /m2/events\n')
+    if case.get('expiry_environment'):
+        helper.write_text(helper.read_text().replace('printf "%s|%s|%s|%s|%s|%s|%s',
+            'printf "%s|%s|%s|%s|%s|%s|%s|%s|%s').replace(' >> /m2/events',
+            ' "${DNSMASQ_LEASE_EXPIRES-}" "${DNSMASQ_TIME_REMAINING-}" >> /m2/events'))
     helper.chmod(0o755);(folder/'init').write_bytes(text.encode())
     argv=BASE+([] if case.get('inactive') else [RANGE,'--dhcp-authoritative'])
-    argv+=case.get('spelling',['--dhcp-leasefile='+path])+case.get('config',[])
+    argv+=case.get('config',[])
     if case.get('maximum') is not None:argv+=['--dhcp-lease-max='+str(case['maximum'])]
     if case.get('ro'):argv+=['--leasefile-ro']
     if case['helper']:argv+=['--dhcp-script=/m2/helper']
+    argv+=case.get('spelling',['--dhcp-leasefile='+path])
     binary='/usr/sbin/dnsmasq'+('-rs' if side=='rust' else '')
-    syntax=subprocess.run(command(root,binary,*argv,'--test'),capture_output=True,timeout=3)
+    syslog=socket.socket(socket.AF_UNIX,socket.SOCK_DGRAM);syslog.setblocking(False)
+    (root/'dev/log').unlink(missing_ok=True);syslog.bind(str(root/'dev/log'))
+    syntax=subprocess.run(command(root,binary,'--test',*argv),capture_output=True,timeout=3)
     observed={'syntax':dict(exit=syntax.returncode,stdout=syntax.stdout.decode(errors='backslashreplace').replace('dnsmasq-rs:','dnsmasq:'),
                            stderr=syntax.stderr.decode(errors='backslashreplace').replace('dnsmasq-rs:','dnsmasq:')),
-              'ready':False,'snapshots':[],'dns':[],'dhcp':[],'exit':None,'diagnostics':[], 'forced':False}
+              'ready':False,'snapshots':[],'dns':[],'dhcp':[],'exit':None,'diagnostics':[], 'forced':False,'invalid_timers':[]}
     save(out/'fixture.json',dict(case=case,epochs=epochs,argv=argv));trace={'processes':[],'queries':[],'packets':[]}
     endpoint=socket.socket(socket.AF_INET,socket.SOCK_DGRAM);endpoint.setsockopt(socket.SOL_SOCKET,socket.SO_BROADCAST,1)
     endpoint.setsockopt(socket.SOL_SOCKET,25,b'lo\0');endpoint.bind(('0.0.0.0',68));endpoint.settimeout(.4)
     log=(out/'stderr').open('wb');stdout=(out/'stdout').open('wb');process=None;tracer=None
+    syslog_packets=[]
+    def drain_syslog():
+        while True:
+            try:syslog_packets.append(syslog.recv(65535))
+            except BlockingIOError:break
     def limits():
         if case.get('limited_write'):
             signal.signal(signal.SIGXFSZ,signal.SIG_IGN);resource.setrlimit(resource.RLIMIT_FSIZE,(0,resource.RLIM_INFINITY))
     def snapshot(label):
-        time.sleep(.12)
-        record={'id':label,'files':{},'events':(folder/'events').read_text().splitlines() if (folder/'events').exists() else []}
+        drain_syslog();time.sleep(.12);drain_syslog()
+        record={'id':label,'files':{},'objects':{},'lease_fd_targets':[], 'events':(folder/'events').read_text().splitlines() if (folder/'events').exists() else []}
         for name in [path,'/m2/target','/m2/held','/m2/other']:
+            leaf=image_path(root,name,follow_leaf=False)
+            if leaf.exists() or leaf.is_symlink():
+                info=leaf.lstat()
+                record['objects'][name]={'mode':info.st_mode,'uid':info.st_uid,'gid':info.st_gid,
+                    'link':str(leaf.readlink()) if leaf.is_symlink() else None}
             candidate=image_path(root,name)
             if candidate.is_file():
                 raw=candidate.read_bytes();(out/(label+'-'+name.replace('/','_'))).write_bytes(raw)
                 record['files'][name]=file_rows(raw,epochs,int(time.time()))
+        for descriptor in Path(f'/proc/{process.pid}/fd').glob('*'):
+            try:
+                target=os.readlink(descriptor)
+                if target.startswith(str(root)):target=target[len(str(root)):]
+                if target in [path,'/m2/target','/m2/held','/m2/other']:
+                    record['lease_fd_targets'].append(target)
+            except FileNotFoundError:pass
+        record['lease_fd_targets'].sort()
         observed['snapshots'].append(record)
     def probes(label):
         for index,probe in enumerate(case['probes']):
@@ -305,10 +340,11 @@ def run(root, side, case, out):
                 observed['dns'].append(dict(stage=label,name=probe['name'],transport=transport,response=answer))
     def start():
         nonlocal process
-        launch=command(root,binary,*argv,'-k')
+        launch=command(root,binary,'-k',*argv)
         if case.get('userspec'):launch.insert(1,'--userspec='+case['userspec'])
         process=subprocess.Popen(launch,stdout=stdout,stderr=log,preexec_fn=limits,start_new_session=True)
         def ready():
+            drain_syslog()
             if process.poll() is not None:return 'exited'
             try:
                 answer,_=dns(dict(name='ready.lease.test'),0x4010,'udp')
@@ -322,13 +358,14 @@ def run(root, side, case, out):
             trace['processes'].append(identity);observed['ready']=True
         return status
     def stop():
+        drain_syslog()
         if process and process.poll() is None:
             process.send_signal(signal.SIGTERM)
             try:process.wait(3)
             except subprocess.TimeoutExpired:process.kill();process.wait();observed['forced']=True
     try:
         if case.get('fifo'):
-            process=subprocess.Popen(command(root,binary,*argv,'-k'),stdout=stdout,stderr=log,start_new_session=True)
+            process=subprocess.Popen(command(root,binary,'-k',*argv),stdout=stdout,stderr=log,start_new_session=True)
             def descriptor():
                 for candidate in Path(f'/proc/{process.pid}/fd').glob('*'):
                     try:
@@ -336,10 +373,11 @@ def run(root, side, case, out):
                     except FileNotFoundError:pass
                 return None
             fd=wait(descriptor,3,'lease stream fd absent');fault=out/'read-error.json'
+            trace['processes'].append(process_identity(root,process.pid))
             tracer=subprocess.Popen([sys.executable,str(Path(__file__).resolve()),'--trace-read-error',str(process.pid),str(fd),str(fault)])
             wait(lambda:Path(str(fault)+'.ready').exists(),3,'read tracer attach failed')
             writer=os.open(real,os.O_WRONLY|os.O_NONBLOCK)
-            for data in [text.encode(),row(2,11,'second').encode(),b'uncopied']:
+            for data in [text.encode(),b'0 ',b'uncopied']:
                 os.write(writer,data);time.sleep(.1)
                 if tracer.poll() is not None:break
             os.close(writer);tracer.wait(4);process.wait(4)
@@ -359,6 +397,12 @@ def run(root, side, case, out):
                         result={'request':action,'reply':None}
                         if reply:
                             options=decode(reply,0x5100+index)
+                            if action['kind'] in (1,3):
+                                duration=struct.unpack('!I',options.get(51,b'\0'*4))[0]
+                                t1=struct.unpack('!I',options.get(58,b'\0'*4))[0]
+                                t2=struct.unpack('!I',options.get(59,b'\0'*4))[0]
+                                if not (duration==600 and t2-t1==225 and 263<=t1<=300):
+                                    observed['invalid_timers'].append(dict(stage=label,duration=duration,t1=t1,t2=t2))
                             for code in [58,59]:options.pop(code,None)
                             if action['kind']==8 and 51 in options:
                                 duration=struct.unpack('!I',options[51])[0]
@@ -380,7 +424,10 @@ def run(root, side, case, out):
     finally:
         if tracer and tracer.poll() is None:tracer.kill();tracer.wait()
         stop();endpoint.close();log.close();stdout.close()
-        observed['diagnostics']=diagnostics((out/'stderr').read_bytes())
+        drain_syslog()
+        syslog.close();trace['syslog']=[value.hex() for value in syslog_packets]
+        syslog_diagnostics=diagnostics(b'\n'.join(syslog_packets))
+        observed['diagnostics']=syslog_diagnostics or diagnostics((out/'stderr').read_bytes())
         observed['pid_file']=(folder/'daemon.pid').exists()
         def image_children():
             result=[]
@@ -411,6 +458,17 @@ def compare(c,rust,case):
         if value['exit']!=case.get('expected_exit',0):failures.append(dict(side=side,kind='startup-exit',actual=value['exit']))
         if value['ready']!=(case.get('expected_exit',0)==0):failures.append(dict(side=side,kind='ready'))
         if value['forced'] or value['pid_file'] or value['process_live'] or value.get('live_children'):failures.append(dict(side=side,kind='lifecycle'))
+        if value.get('invalid_timers'):failures.append(dict(side=side,kind='timer-bounds',actual=value['invalid_timers']))
+        if value['ready']:
+            if len(value['snapshots'])!=1+len(case.get('actions',[])):failures.append(dict(side=side,kind='missing-snapshot'))
+            expected_dns=len(case.get('probes',[]))*2*(1+sum(a['op']=='probes' for a in case.get('actions',[])))
+            if len(value['dns'])!=expected_dns:failures.append(dict(side=side,kind='missing-DNS-observation'))
+            actions=[a for a in case.get('actions',[]) if a['op']=='dhcp']
+            if len(value['dhcp'])!=len(actions):failures.append(dict(side=side,kind='missing-DHCP-observation'))
+            for action,result in zip(actions,value['dhcp']):
+                status=result.get('reply',{}).get('options',{}).get('53') if result.get('reply') else None
+                expected={1:'02',3:'05',4:None,7:None,8:'05'}[action['kind']]
+                if status!=expected:failures.append(dict(side=side,kind='DHCP-calibration',actual=status,expected=expected))
         if case.get('fifo'):
             proof=value.get('read_error',{})
             if not proof.get('injected') or not any(r['result']>0 for r in proof.get('reads',[])) or not any(r['result']==-errno.EIO and r['injected'] for r in proof.get('reads',[])):
@@ -421,9 +479,9 @@ def compare(c,rust,case):
 
 
 def controls():
-    case=dict(expected_exit=0)
-    success=dict(syntax=dict(exit=0),ready=True,snapshots=[{'files':{'leases':[1,2]},'events':['old|first','old|second']}],
-        dns=[{'name':'first'}],dhcp=[{'reply':{'address':'127.0.0.10'}}],exit=0,diagnostics=[],forced=False,pid_file=False,process_live=False)
+    case=dict(expected_exit=0,actions=[dict(op='dhcp',kind=3)],probes=[dict(name='first')])
+    success=dict(syntax=dict(exit=0),ready=True,snapshots=[{'files':{'leases':[1,2]},'events':['old|first','old|second']},{'files':{'leases':[1,2]}}],
+        dns=[{'name':'first'},{'name':'first'}],dhcp=[{'reply':{'options':{'53':'05'}}}],exit=0,diagnostics=[],forced=False,pid_file=False,process_live=False)
     rows=[]
     for field,value in [('syntax',dict(exit=1)),('ready',False),('snapshots',[]),('dns',[]),('dhcp',[]),('exit',3),
                         ('diagnostics',['unexpected']),('forced',True),('pid_file',True),('process_live',True)]:
