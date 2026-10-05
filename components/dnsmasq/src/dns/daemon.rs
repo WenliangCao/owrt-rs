@@ -13,7 +13,7 @@ use super::cache::{Cache, CacheCounters, Policy as CachePolicy, StalePolicy};
 use super::cache::{Kind, Record};
 use super::cache_engine::{CacheContext, CacheError, CachedAnswer, OrdinaryCacheMode};
 use super::files::{ServerSources, Source, SourceRule};
-use super::forward::{Client, Options as ForwardOptions, QueryId, Random, Scope};
+use super::forward::{Client, Options as ForwardOptions, QueryId, Random};
 use super::forward_service::ForwardDispatcher;
 use super::process::{
     apply_doctor, apply_static_aliases, ignore_reply, process_admitted_reply, AddressPolicy,
@@ -269,11 +269,15 @@ impl<R: Random> DnsDaemon<R> {
         }
         // Source FD preallocation precedes check_servers, even for a zero
         // destination which will never be eligible for actual forwarding.
-        let startup_routing = if server_sources.rules().iter().any(|row| {
-            row.server.is_some() && !server_usable(&row.value, &[])
-        }) {
+        let startup_routing = if server_sources
+            .rules()
+            .iter()
+            .any(|row| row.server.is_some() && !server_usable(&row.value, &[]))
+        {
             Some(RoutingTable::from_sources(&config, &server_sources, None)?)
-        } else { None };
+        } else {
+            None
+        };
         // IPv4 zero is always discarded by C's check_servers. Local listener
         // address filtering follows once the containing owner supplies them.
         server_sources.retain_servers(|row| server_usable(row, &[]));
@@ -412,7 +416,10 @@ impl<R: Random> DnsDaemon<R> {
         startup: bool,
     ) -> Result<(), DaemonError> {
         let startup_routing = self.startup_routing.take().filter(|_| startup);
-        let bindings = startup_routing.as_ref().unwrap_or(&self.routing).source_bindings(settings.query_port);
+        let bindings = startup_routing
+            .as_ref()
+            .unwrap_or(&self.routing)
+            .source_bindings(settings.query_port);
         let failures = self
             .upstream
             .configure_source_sockets(settings, bindings.clone());
@@ -430,7 +437,12 @@ impl<R: Random> DnsDaemon<R> {
                 .into_iter()
                 // check_servers silently discards zero destinations before
                 // reporting failed per-server bindings in wildcard modes.
-                .filter(|(id, _)| self.server_sources.rules().iter().any(|row| row.server == Some(*id)))
+                .filter(|(id, _)| {
+                    self.server_sources
+                        .rules()
+                        .iter()
+                        .any(|row| row.server == Some(*id))
+                })
                 .map(|(id, error)| {
                     self.source_warnings.push(format!(
                         "ignoring nameserver {} - cannot make/bind socket: {}",
@@ -653,6 +665,76 @@ impl<R: Random> DnsDaemon<R> {
         self.forward_udp_inner(query, client, listener, Some(local))
     }
 
+    /// The owner decorates after preserving the original client metadata and
+    /// completing MAC I/O. Local/cache envelopes still use the original UDP
+    /// query, while forward.c stashes and retries the decorated packet.
+    pub fn forward_udp_prepared_with_local(
+        &mut self,
+        original: &[u8],
+        decorated: &[u8],
+        metadata: super::forward_service::QueryMetadata,
+        client: ClientRequest,
+        listener: Option<super::forward::SocketToken>,
+        local: &mut LocalDnsService,
+    ) -> Result<QueryResult, DaemonError> {
+        let question = super::forward::Question::parse(original)?;
+        if !metadata.flags.no_cache {
+            let answer = self.cached_answer_at_with_edns_limit(
+                original,
+                &question,
+                unix_seconds(),
+                Some(local),
+                self.max_udp,
+                true,
+            )?;
+            if let Some(packet) = answer.packet {
+                return Ok(if answer.stale {
+                    QueryResult::Stale(packet)
+                } else {
+                    QueryResult::Cached(packet)
+                });
+            }
+        }
+        if let Some(packet) = self.query_policy.reply(
+            original,
+            &self.routing,
+            Some(local),
+            self.edns_packet_max,
+            false,
+        )? {
+            return Ok(QueryResult::Local(packet));
+        }
+        self.submit_upstream_with_metadata(
+            decorated,
+            original,
+            &question,
+            client,
+            listener,
+            true,
+            Some(metadata),
+        )
+    }
+
+    pub fn refresh_udp_prepared_on_listener(
+        &mut self,
+        original: &[u8],
+        decorated: &[u8],
+        metadata: super::forward_service::QueryMetadata,
+        client: ClientRequest,
+        listener: Option<super::forward::SocketToken>,
+    ) -> Result<QueryResult, DaemonError> {
+        let question = super::forward::Question::parse(original)?;
+        self.submit_upstream_with_metadata(
+            decorated,
+            original,
+            &question,
+            client,
+            listener,
+            false,
+            Some(metadata),
+        )
+    }
+
     fn forward_udp_inner(
         &mut self,
         query: &[u8],
@@ -710,18 +792,40 @@ impl<R: Random> DnsDaemon<R> {
         listener: Option<super::forward::SocketToken>,
         reply_requested: bool,
     ) -> Result<QueryResult, DaemonError> {
+        self.submit_upstream_with_metadata(
+            query,
+            query,
+            question,
+            client,
+            listener,
+            reply_requested,
+            None,
+        )
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn submit_upstream_with_metadata(
+        &mut self,
+        query: &[u8],
+        original: &[u8],
+        question: &super::forward::Question,
+        client: ClientRequest,
+        listener: Option<super::forward::SocketToken>,
+        reply_requested: bool,
+        metadata: Option<super::forward_service::QueryMetadata>,
+    ) -> Result<QueryResult, DaemonError> {
         let route = self
             .routing
             .select(&question.name, question.rrtype, question.class, false);
         let Some(group) = route.upstream_group() else {
             if route.reason == RouteReason::NoMatchingRule {
-                let limit = find_pseudoheader(query, true)?
+                let limit = find_pseudoheader(original, true)?
                     .opt
                     .map_or(512, |opt| usize::from(opt.udp_size(self.edns_packet_max)));
                 // forward.c::forward_query: EDE_NOT_READY for no server.
                 // UDP's add_pseudoheader clears DO, unlike the TCP caller.
                 return Ok(QueryResult::Local(super::tcp_service::refusal(
-                    query,
+                    original,
                     self.edns_packet_max,
                     14,
                     limit,
@@ -739,12 +843,18 @@ impl<R: Random> DnsDaemon<R> {
             udp_limit: 512,
             log_id: u64::from(question.rrtype),
         };
-        let submission = match self.upstream.start_udp(query, client, group, Scope::Shared) {
+        let submission = match self.upstream.start_udp_with_metadata(
+            query,
+            client,
+            group,
+            super::forward_service::edns_scope(query),
+            metadata,
+        ) {
             Ok(submission) => submission,
             Err(ResolveError::Dispatch(super::forward_service::DispatchError::Submit(
                 super::forward::SubmitError::GroupFull | super::forward::SubmitError::DuplicateFull,
             ))) => {
-                return Ok(super::udp_query::table_full(query, self.edns_packet_max)
+                return Ok(super::udp_query::table_full(original, self.edns_packet_max)
                     .map_or(QueryResult::Dropped, QueryResult::Local))
             }
             Err(ResolveError::Io(_)) => {
@@ -753,11 +863,11 @@ impl<R: Random> DnsDaemon<R> {
                 // start_udp has already released it. Background refreshes
                 // return Local too: the parent counts this fallback without
                 // sending a second response to the stale-answer recipient.
-                let limit = find_pseudoheader(query, true)?
+                let limit = find_pseudoheader(original, true)?
                     .opt
                     .map_or(512, |opt| usize::from(opt.udp_size(self.edns_packet_max)));
                 return Ok(QueryResult::Local(super::tcp_service::refusal(
-                    query,
+                    original,
                     self.edns_packet_max,
                     23,
                     limit,
@@ -804,9 +914,30 @@ impl<R: Random> DnsDaemon<R> {
         doctor: Option<&mut ReplyDoctor<'_>>,
     ) -> Result<Vec<ClientResponse>, DaemonError> {
         let policy = self.policy.clone();
-        let events = self.upstream.poll_with_filter(wait, move |packet| {
-            ignore_reply(packet, &policy).unwrap_or(false)
-        });
+        let edns = self.local.config.edns.clone();
+        let subnet_warnings = std::cell::Cell::new(0usize);
+        let events = self
+            .upstream
+            .poll_with_context_filter(wait, |packet, pending| {
+                if ignore_reply(packet, &policy).unwrap_or(false) {
+                    return true;
+                }
+                let matched = pending.recipients.first().is_none_or(|recipient| {
+                    super::edns_policy::check_reply_source(
+                        packet,
+                        &edns,
+                        recipient.client.source.ip(),
+                    )
+                });
+                if !matched {
+                    subnet_warnings.set(subnet_warnings.get() + 1);
+                }
+                !matched
+            });
+        for _ in 0..subnet_warnings.get() {
+            self.source_warnings
+                .push("discarding DNS reply: subnet option mismatch".to_owned());
+        }
         let events = match events {
             Ok(events) => events,
             Err(error) => {
@@ -1084,6 +1215,19 @@ impl<R: Random> DnsDaemon<R> {
         external_local: Option<&mut LocalDnsService>,
         max_udp: usize,
     ) -> Result<CachedAnswer, DaemonError> {
+        self.cached_answer_at_with_edns_limit(query, question, now, external_local, max_udp, false)
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn cached_answer_at_with_edns_limit(
+        &mut self,
+        query: &[u8],
+        question: &super::forward::Question,
+        now: i64,
+        external_local: Option<&mut LocalDnsService>,
+        max_udp: usize,
+        allow_options: bool,
+    ) -> Result<CachedAnswer, DaemonError> {
         let Some(cache) = self.cache.as_mut() else {
             return Ok(CachedAnswer {
                 filtered: false,
@@ -1098,13 +1242,14 @@ impl<R: Random> DnsDaemon<R> {
             negative_ttl: self.negative_ttl,
             filter_rr: &self.filter_rr,
         }
-        .answer_udp(
+        .answer_udp_with_edns(
             query,
             question,
             now,
             external_local.unwrap_or(&mut self.local),
             max_udp,
             self.edns_packet_max,
+            allow_options,
         )
         .map_err(Into::into)
     }
@@ -1157,6 +1302,23 @@ impl<R: Random> DnsDaemon<R> {
     ) -> Result<Option<Vec<u8>>, DaemonError> {
         let question = super::forward::Question::parse(query).map_err(DaemonError::Wire)?;
         self.cached_answer_at_with_local_limit(query, &question, now, Some(local), 65536)
+            .map(|answer| answer.packet)
+    }
+
+    /// TCP uses its decorated frame for local OPT semantics; the owner has
+    /// already evaluated source dependence from its connection MAC snapshot.
+    pub fn cached_tcp_answer_with_edns(
+        &mut self,
+        query: &[u8],
+        local: &mut LocalDnsService,
+        now: i64,
+        cacheable: bool,
+    ) -> Result<Option<Vec<u8>>, DaemonError> {
+        if !cacheable {
+            return Ok(None);
+        }
+        let question = super::forward::Question::parse(query)?;
+        self.cached_answer_at_with_edns_limit(query, &question, now, Some(local), 65536, true)
             .map(|answer| answer.packet)
     }
 

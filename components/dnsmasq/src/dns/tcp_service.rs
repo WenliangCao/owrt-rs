@@ -9,15 +9,17 @@
 use super::daemon::{address_policy, validate_runtime_config, DaemonError};
 use super::process::{apply_static_aliases, process_admitted_reply, AddressPolicy, ProcessError};
 use super::reply::{
-    apply_known_local_nxdomain, filter_rrs, prepare_udp_reply, resize_reply, strip_opt, ReplyPolicy,
+    apply_known_local_nxdomain, filter_rrs, prepare_udp_reply, resize_reply, ReplyPolicy,
 };
 use super::routing::{RouteReason, RoutingTable};
 use super::service::LocalDnsService;
 pub use super::tcp_upstream::TcpWait;
 use super::tcp_upstream::{TcpError, TcpOptions, TcpProgress, TcpUpstream};
-use super::wire::{find_pseudoheader, skip_questions, Header, Message, Name, Question, WireError};
+#[cfg(test)]
+use super::wire::Message;
+use super::wire::{find_pseudoheader, skip_questions, Header, Name, Question, WireError};
 use crate::config::dns::DnsConfig;
-use std::net::SocketAddr;
+use std::net::{IpAddr, SocketAddr};
 use std::time::Instant;
 
 const TCP_LIMIT: usize = 65536;
@@ -60,6 +62,7 @@ enum PreparedQuery {
 struct FinishedReply {
     packet: Vec<u8>,
     bogus: Option<(Name, u32)>,
+    from_upstream: bool,
 }
 
 pub struct TcpDnsService {
@@ -72,6 +75,8 @@ pub struct TcpDnsService {
     filter_rr: Vec<u16>,
     pending_query: Option<Vec<u8>>,
     pending_bogus: Option<(Name, u32)>,
+    edns: crate::config::edns::EdnsConfig,
+    client_source: Option<IpAddr>,
 }
 
 impl TcpDnsService {
@@ -80,6 +85,16 @@ impl TcpDnsService {
         servers: impl IntoIterator<Item = (super::forward::GroupId, super::forward::ServerId)>,
     ) {
         self.upstream.set_preferred_servers(servers);
+    }
+
+    /// Set once when the accepted connection and its local/routing snapshots
+    /// are created. MAC lookup remains in the owner's nonblocking path.
+    pub fn set_client_source(&mut self, source: IpAddr) {
+        self.client_source = Some(source);
+    }
+
+    pub fn cache_eligible_with_policy(query: &[u8], cacheable: bool) -> bool {
+        cacheable && super::forward_service::edns_cache_query(query)
     }
 
     pub fn cache_eligible(query: &[u8]) -> bool {
@@ -124,6 +139,8 @@ impl TcpDnsService {
             filter_rr: config.filter_rr.clone(),
             pending_query: None,
             pending_bogus: None,
+            edns: config.edns.clone(),
+            client_source: None,
         })
     }
 
@@ -224,7 +241,7 @@ impl TcpDnsService {
                 self.pending_query = Some(query);
                 Ok(TcpServiceProgress::Pending(wait))
             }
-            Ok(TcpProgress::Complete(reply)) => finish_reply(
+            Ok(TcpProgress::Complete(reply)) => finish_reply_with_edns(
                 &query,
                 &reply,
                 &self.policy,
@@ -233,10 +250,11 @@ impl TcpDnsService {
                 &self.filter_rr,
                 Some(local),
                 Some(&self.routing),
+                self.client_source.map(|source| (&self.edns, source)),
             )
             .map(|reply| {
                 self.pending_bogus = reply.bogus;
-                TcpServiceProgress::Complete(reply.packet, true)
+                TcpServiceProgress::Complete(reply.packet, reply.from_upstream)
             }),
             Err(TcpError::NoReply) => Ok(TcpServiceProgress::Complete(
                 refusal(&query, self.edns_packet_max, 23, TCP_LIMIT, true)?,
@@ -296,7 +314,7 @@ impl TcpDnsService {
             PreparedQuery::Forward(group) => group,
         };
         match self.upstream.exchange(group, query, deadline, stopped) {
-            Ok(reply) => finish_reply(
+            Ok(reply) => finish_reply_with_edns(
                 query,
                 &reply,
                 &self.policy,
@@ -305,10 +323,11 @@ impl TcpDnsService {
                 &self.filter_rr,
                 local,
                 Some(&self.routing),
+                self.client_source.map(|source| (&self.edns, source)),
             )
             .map(|reply| {
                 self.pending_bogus = reply.bogus;
-                (reply.packet, true)
+                (reply.packet, reply.from_upstream)
             }),
             Err(TcpError::NoReply) => Ok((
                 refusal(query, self.edns_packet_max, 23, TCP_LIMIT, true)?,
@@ -368,6 +387,7 @@ fn query_error(query: &[u8]) -> Result<Option<Vec<u8>>, WireError> {
 }
 
 #[allow(clippy::too_many_arguments)]
+#[cfg(test)]
 fn finish_reply(
     query: &[u8],
     reply: &[u8],
@@ -378,6 +398,42 @@ fn finish_reply(
     local: Option<&LocalDnsService>,
     routing: Option<&RoutingTable>,
 ) -> Result<FinishedReply, TcpServiceError> {
+    finish_reply_with_edns(
+        query,
+        reply,
+        policy,
+        proxy_dnssec,
+        edns_packet_max,
+        filter_rr,
+        local,
+        routing,
+        None,
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+fn finish_reply_with_edns(
+    query: &[u8],
+    reply: &[u8],
+    policy: &AddressPolicy,
+    proxy_dnssec: bool,
+    edns_packet_max: u16,
+    filter_rr: &[u16],
+    local: Option<&LocalDnsService>,
+    routing: Option<&RoutingTable>,
+    edns: Option<(&crate::config::edns::EdnsConfig, IpAddr)>,
+) -> Result<FinishedReply, TcpServiceError> {
+    if edns.is_some_and(|(config, source)| {
+        !super::edns_policy::check_reply_source(reply, config, source)
+    }) {
+        // forward.c tcp_request sets m=0 after process_reply mismatch, clears
+        // have_pseudoheader, and takes make_local_answer's plain REFUSED.
+        return Ok(FinishedReply {
+            packet: error_reply(query, 5)?,
+            bogus: None,
+            from_upstream: false,
+        });
+    }
     let query_header = Header::parse(query)?;
     let scan = find_pseudoheader(query, true)?;
     let do_bit = scan.opt.as_ref().is_some_and(|opt| opt.dnssec_ok());
@@ -444,7 +500,11 @@ fn finish_reply(
         }
     }
     resize_reply(&mut packet);
-    Ok(FinishedReply { packet, bogus })
+    Ok(FinishedReply {
+        packet,
+        bogus,
+        from_upstream: true,
+    })
 }
 
 /// EDE insertion/replacement follows edns0.c::add_pseudoheader, including its
@@ -457,68 +517,15 @@ pub(super) fn add_ede(
     ede: u16,
     limit: usize,
 ) -> Result<(), WireError> {
-    let scan = find_pseudoheader(packet, true)?;
-    if scan.signed {
-        return Ok(());
-    }
-    let mut ttl = if set_do { 0x8000u32 } else { 0 };
-    let mut options = Vec::new();
-    let mut existing_last = None;
-    if let Some(opt) = scan.opt {
-        ttl |= opt.record.ttl;
-        let fixed = opt.record.fixed;
-        let mut bytes = opt.record.rdata.to_vec();
-        let mut at = 0;
-        let mut malformed = false;
-        while at + 4 < bytes.len() {
-            let code = u16::from_be_bytes([bytes[at], bytes[at + 1]]);
-            let length = usize::from(u16::from_be_bytes([bytes[at + 2], bytes[at + 3]]));
-            if at + 4 + length > bytes.len() {
-                bytes.clear();
-                malformed = true;
-                break;
-            }
-            if code == 15 {
-                bytes.drain(at..at + 4 + length);
-            } else {
-                at += 4 + length;
-            }
-        }
-        if opt.is_last && !malformed {
-            bytes.truncate(at);
-            existing_last = Some(fixed);
-        }
-        options = bytes;
-        packet[fixed + 2..fixed + 4].copy_from_slice(&max.to_be_bytes());
-        packet[fixed + 4..fixed + 8].copy_from_slice(&ttl.to_be_bytes());
-        if existing_last.is_none() {
-            strip_opt(packet)?;
-        }
-    }
-    options.extend_from_slice(&[0, 15, 0, 2]);
-    options.extend_from_slice(&ede.to_be_bytes());
-    if let Some(fixed) = existing_last {
-        if fixed + 10 + options.len() > limit {
-            return Ok(());
-        }
-        packet.truncate(fixed + 10);
-        packet[fixed + 8..fixed + 10].copy_from_slice(&(options.len() as u16).to_be_bytes());
-    } else {
-        let end = Message::parse(packet)?.end;
-        if end + 11 + options.len() > limit {
-            return Ok(());
-        }
-        packet.truncate(end);
-        packet.extend_from_slice(&[0, 0, 41]);
-        packet.extend_from_slice(&max.to_be_bytes());
-        packet.extend_from_slice(&ttl.to_be_bytes());
-        packet.extend_from_slice(&(options.len() as u16).to_be_bytes());
-        let mut header = Header::parse(packet)?;
-        header.additionals = header.additionals.checked_add(1).ok_or(WireError::Full)?;
-        header.write(packet)?;
-    }
-    packet.extend_from_slice(&options);
-    Ok(())
+    super::edns_policy::add_pseudoheader(
+        packet,
+        max,
+        limit,
+        Some(15),
+        &ede.to_be_bytes(),
+        set_do,
+        super::edns_policy::Replace::Replace,
+    )
 }
 
 #[cfg(test)]

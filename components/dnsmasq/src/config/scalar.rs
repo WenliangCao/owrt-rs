@@ -124,7 +124,15 @@ impl ScalarConfig {
             b"max-port" => self.max_port = port(arg)?,
             b"dns-forward-max" => self.forward_max = integer(arg)?,
             // option.c:3494-3550. The EDNS assignment explicitly narrows.
-            b"edns-packet-max" => self.edns_packet_max = integer(arg)? as u16,
+            b"edns-packet-max" => {
+                let bytes = arg.ok_or(Error("missing parameter"))?.decoded();
+                if !bytes.iter().all(u8::is_ascii_digit) {
+                    return Err(Error("error"));
+                }
+                self.edns_packet_max = bytes.iter().fold(0u16, |value, byte| {
+                    value.wrapping_mul(10).wrapping_add(u16::from(byte - b'0'))
+                });
+            }
             b"query-port" => {
                 self.query_port = port(arg)?;
                 if self.query_port == 0 {

@@ -118,7 +118,8 @@ fn main() {
         if error.is::<WatchError>() && !DEBUG_MODE.load(Ordering::Relaxed) {
             std::process::exit(startup_status(error.as_ref()));
         }
-        let blank_line = error.is::<loader::LoadError>() || error.is::<Error>()
+        let blank_line = error.is::<loader::LoadError>()
+            || error.is::<Error>()
             || error
                 .downcast_ref::<dnsmasq_rs::dns::daemon::DaemonError>()
                 .is_some_and(|error| {
@@ -893,15 +894,25 @@ fn run_inner(
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     let dhcp_helper = helper_config.map(Helper::start).transpose()?;
     #[cfg(target_os = "linux")]
-    identity.drop_privileges(&runtime.process, capabilities).map_err(|error| {
-        if !startup.active() {
-            use dnsmasq_rs::logging::{LogEvent, Priority, Service};
-            logger.emit(LogEvent::new(Service::Dns, Priority::Critical, error.message.as_bytes().to_vec()));
-            logger.emit(LogEvent::new(Service::Dns, Priority::Critical, b"FAILED to start up".to_vec()));
-            logger.finish();
-        }
-        error
-    })?;
+    identity
+        .drop_privileges(&runtime.process, capabilities)
+        .map_err(|error| {
+            if !startup.active() {
+                use dnsmasq_rs::logging::{LogEvent, Priority, Service};
+                logger.emit(LogEvent::new(
+                    Service::Dns,
+                    Priority::Critical,
+                    error.message.as_bytes().to_vec(),
+                ));
+                logger.emit(LogEvent::new(
+                    Service::Dns,
+                    Priority::Critical,
+                    b"FAILED to start up".to_vec(),
+                ));
+                logger.finish();
+            }
+            error
+        })?;
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     if let Some(listener) = &tftp_listener {
         // C tolerates inaccessible roots with no-fail, never socket errors.
@@ -975,7 +986,7 @@ fn run_inner(
         tftp.use_shared_listener_owner();
     }
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    let neighbor_cache = if tftp_config.unique_root_mac {
+    let neighbor_cache = if tftp_config.unique_root_mac || daemon_config.edns.needs_mac() {
         NeighborCache::new().ok()
     } else {
         None
@@ -1490,6 +1501,7 @@ struct DhcpService {
 struct SinglePoll {
     listeners: Vec<PollListener>,
     clients: Vec<PollTcpClient>,
+    pending_edns_udp: Vec<PendingEdnsUdp>,
     service: Arc<Mutex<ParentDns>>,
     parent_events: Arc<Mutex<ParentEvents>>,
     interfaces: Arc<Mutex<Vec<DnsInterface>>>,
@@ -1541,6 +1553,36 @@ struct PollListener {
     tcp: Option<TcpListener>,
 }
 
+// Both EDNS queues are advanced by the existing owner. The UDP queue retains
+// the receiving listener token; TCP pending MAC work counts against tcp_limit.
+const MAX_EDNS_UDP_WAITERS: usize = 256;
+struct PendingEdnsUdp {
+    listener: SocketToken,
+    client: ClientRequest,
+    query: Vec<u8>,
+    deadline: Instant,
+}
+enum ClientMacLookup {
+    Ready(Option<Vec<u8>>),
+    Pending,
+}
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+fn lookup_edns_mac(
+    neighbors: &mut Option<NeighborCache>,
+    source: IpAddr,
+    lazy: bool,
+) -> ClientMacLookup {
+    use dnsmasq_rs::neighbors::EdnsMacLookup;
+    match neighbors
+        .as_mut()
+        .map(|neighbors| neighbors.query_edns(source, lazy, now_seconds() as u64))
+    {
+        Some(EdnsMacLookup::Pending) => ClientMacLookup::Pending,
+        Some(EdnsMacLookup::Ready(mac)) => ClientMacLookup::Ready(mac),
+        None => ClientMacLookup::Ready(None),
+    }
+}
+
 struct PollTcpClient {
     stream: TcpStream,
     service: LocalDnsService,
@@ -1551,10 +1593,17 @@ struct PollTcpClient {
     input: Vec<u8>,
     input_offset: usize,
     phase: TcpClientPhase,
+    source: IpAddr,
+    mac: Option<Vec<u8>>,
+    mac_ready: bool,
+    mac_deferred: bool,
+    mac_deadline: Instant,
+    packet_limit: usize,
 }
 
 enum TcpClientPhase {
     Reading,
+    WaitingMac { query: Vec<u8> },
     Forwarding { cache_eligible: bool, wait: TcpWait },
     Writing { frame: Vec<u8>, offset: usize },
 }
@@ -1584,15 +1633,90 @@ impl PollTcpClient {
         Ok(())
     }
 
+    fn answer_query(
+        &mut self,
+        mut query: Vec<u8>,
+        parent: &Arc<Mutex<ParentDns>>,
+    ) -> Result<(), ()> {
+        let decoration = dnsmasq_rs::dns::edns_policy::decorate(
+            &mut query,
+            &self.service.config.edns,
+            self.source,
+            self.mac.as_deref(),
+            self.service.edns_packet_max,
+            self.packet_limit,
+        )
+        .map_err(|_| ())?;
+        let answered = {
+            let mut parent = parent.lock().map_err(|_| ())?;
+            let daemon = parent.daemon.as_mut().ok_or(())?;
+            let cached = daemon
+                .cached_tcp_answer_with_edns(
+                    &query,
+                    &mut self.service,
+                    now_seconds(),
+                    decoration.cacheable,
+                )
+                .map_err(|_| ())?;
+            cached.or_else(|| {
+                daemon
+                    .local_tcp_answer(&query, &mut self.service, now_seconds())
+                    .ok()
+                    .flatten()
+            })
+        };
+        if let Some(packet) = answered {
+            self.queue_answer(parent, packet, false)?;
+        } else {
+            let cache_eligible =
+                TcpDnsService::cache_eligible_with_policy(&query, decoration.cacheable);
+            match self
+                .forward
+                .start_with_local_upstream(&query, &self.service, self.deadline)
+                .map_err(|_| ())?
+            {
+                TcpServiceProgress::Pending(wait) => {
+                    self.phase = TcpClientPhase::Forwarding {
+                        cache_eligible,
+                        wait,
+                    };
+                }
+                TcpServiceProgress::Complete(packet, from_upstream) => {
+                    self.queue_answer(parent, packet, cache_eligible && from_upstream)?;
+                }
+            }
+        }
+        Ok(())
+    }
+
     // A small per-turn budget prevents pipelined queries on one connection
     // starving UDP/DHCP. Partial input, upstream I/O and downstream writes
     // retain their offsets; WouldBlock always yields to the service owner.
-    fn step(&mut self, parent: &Arc<Mutex<ParentDns>>) -> Result<bool, ()> {
+    fn step(
+        &mut self,
+        parent: &Arc<Mutex<ParentDns>>,
+        lookup: &mut dyn FnMut(IpAddr, bool) -> ClientMacLookup,
+    ) -> Result<bool, ()> {
         for _ in 0..8 {
             if Instant::now() >= self.deadline || STOP_REQUESTED.load(Ordering::Acquire) {
                 return Ok(false);
             }
             match &mut self.phase {
+                TcpClientPhase::WaitingMac { query } => {
+                    let mac = if Instant::now() >= self.mac_deadline {
+                        None
+                    } else {
+                        match lookup(self.source, true) {
+                            ClientMacLookup::Ready(mac) => mac,
+                            ClientMacLookup::Pending => return Ok(true),
+                        }
+                    };
+                    self.mac = mac;
+                    self.mac_ready = true;
+                    self.mac_deferred = false;
+                    let query = std::mem::take(query);
+                    self.answer_query(query, parent)?;
+                }
                 TcpClientPhase::Writing { frame, offset } => {
                     match self.stream.write(&frame[*offset..]) {
                         Ok(0) => return Ok(false),
@@ -1675,40 +1799,21 @@ impl PollTcpClient {
                         continue;
                     }
                     self.queries += 1;
-                    let answered = {
-                        let mut parent = parent.lock().map_err(|_| ())?;
-                        let daemon = parent.daemon.as_mut().ok_or(())?;
-                        let cached = daemon
-                            .cached_tcp_answer(&query, &mut self.service, now_seconds())
-                            .map_err(|_| ())?;
-                        cached.or_else(|| {
-                            daemon
-                                .local_tcp_answer(&query, &mut self.service, now_seconds())
-                                .ok()
-                                .flatten()
-                        })
-                    };
-                    if let Some(packet) = answered {
-                        self.queue_answer(parent, packet, false)?;
-                    } else {
-                        let cache_eligible = TcpDnsService::cache_eligible(&query);
-                        match self
-                            .forward
-                            .start_with_local_upstream(&query, &self.service, self.deadline)
-                            .map_err(|_| ())?
-                        {
-                            TcpServiceProgress::Pending(wait) => {
-                                self.phase = TcpClientPhase::Forwarding {
-                                    cache_eligible,
-                                    wait,
-                                };
-                                return Ok(true);
+                    if !self.mac_ready {
+                        match lookup(self.source, true) {
+                            ClientMacLookup::Ready(mac) => {
+                                self.mac = mac;
+                                self.mac_ready = true;
+                                self.mac_deferred = false;
                             }
-                            TcpServiceProgress::Complete(packet, from_upstream) => {
-                                self.queue_answer(parent, packet, cache_eligible && from_upstream)?;
+                            ClientMacLookup::Pending => {
+                                self.mac_deadline = Instant::now() + Duration::from_secs(3);
+                                self.phase = TcpClientPhase::WaitingMac { query };
+                                return Ok(true);
                             }
                         }
                     }
+                    self.answer_query(query, parent)?;
                 }
             }
         }
@@ -1743,6 +1848,7 @@ impl SinglePoll {
                 .map(|(token, udp, tcp)| PollListener { token, udp, tcp })
                 .collect(),
             clients: Vec::new(),
+            pending_edns_udp: Vec::new(),
             service,
             parent_events,
             interfaces,
@@ -2073,6 +2179,7 @@ impl SinglePoll {
         self.step_dhcp();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         self.step_neighbors();
+        self.step_edns_udp();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         self.step_tftp();
         #[cfg(target_os = "linux")]
@@ -2115,7 +2222,7 @@ impl SinglePoll {
         let token = self.listeners[index].token;
         let mut query = vec![0; 65_535];
         let incoming = match udp.receive(&mut query) {
-            Ok(Some(incoming)) if incoming.len <= self.packet_limit => incoming,
+            Ok(Some(incoming)) if incoming.len <= usize::from(self.edns_max) => incoming,
             Ok(_) => {
                 self.poll_udp_completions();
                 return;
@@ -2149,6 +2256,84 @@ impl SinglePoll {
             self.poll_udp_completions();
             return;
         }
+        query.truncate(incoming.len);
+        let client = ClientRequest {
+            source: incoming.peer,
+            destination: incoming.destination,
+            interface: incoming.interface,
+        };
+        let needs_mac = self.config.edns.needs_mac()
+            && matches!(
+                dnsmasq_rs::dns::udp_query::inspect(&query, self.edns_max),
+                dnsmasq_rs::dns::udp_query::Admission::Continue,
+            );
+        let lookup = if needs_mac {
+            self.edns_mac(client.source.ip(), true)
+        } else {
+            ClientMacLookup::Ready(None)
+        };
+        match lookup {
+            ClientMacLookup::Ready(mac) => self.process_udp(token, udp, client, query, mac),
+            ClientMacLookup::Pending if self.pending_edns_udp.len() < MAX_EDNS_UDP_WAITERS => {
+                self.pending_edns_udp.push(PendingEdnsUdp {
+                    listener: token,
+                    client,
+                    query,
+                    deadline: Instant::now() + Duration::from_secs(3),
+                });
+            }
+            ClientMacLookup::Pending => {} // bounded admission; kernel-style drop
+        }
+    }
+
+    fn edns_mac(&mut self, source: IpAddr, lazy: bool) -> ClientMacLookup {
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        {
+            lookup_edns_mac(&mut self.neighbors, source, lazy)
+        }
+        #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
+        {
+            let _ = (source, lazy);
+            ClientMacLookup::Ready(None)
+        }
+    }
+
+    fn step_edns_udp(&mut self) {
+        let mut index = 0;
+        let mut progressed = 0;
+        while index < self.pending_edns_udp.len() && progressed < 32 {
+            let source = self.pending_edns_udp[index].client.source.ip();
+            let lookup = if Instant::now() >= self.pending_edns_udp[index].deadline {
+                ClientMacLookup::Ready(None)
+            } else {
+                self.edns_mac(source, true)
+            };
+            let ClientMacLookup::Ready(mac) = lookup else {
+                index += 1;
+                continue;
+            };
+            let pending = self.pending_edns_udp.remove(index);
+            let udp = self
+                .listeners
+                .iter()
+                .find(|listener| listener.token == pending.listener)
+                .and_then(|listener| listener.udp.as_ref())
+                .map(Arc::clone);
+            if let Some(udp) = udp {
+                self.process_udp(pending.listener, udp, pending.client, pending.query, mac);
+            }
+            progressed += 1;
+        }
+    }
+
+    fn process_udp(
+        &mut self,
+        token: SocketToken,
+        udp: Arc<DnsSocket>,
+        client: ClientRequest,
+        query: Vec<u8>,
+        mac: Option<Vec<u8>>,
+    ) {
         let mut event = match self.parent_events.lock() {
             Ok(event) => event,
             Err(_) => return,
@@ -2172,21 +2357,43 @@ impl SinglePoll {
             event.process_ubus(&metrics);
         }
         if let Ok(interfaces) = self.interfaces.lock() {
-            local.local_network = listeners::local_network(&interfaces, incoming.destination);
+            local.local_network = listeners::local_network(&interfaces, client.destination);
         }
-        let packet = &query[..incoming.len];
+        let packet = &query[..];
+        let mut decorated = query.clone();
+        let mut metadata = None;
         let answer = match dnsmasq_rs::dns::udp_query::inspect(packet, local.edns_packet_max) {
             dnsmasq_rs::dns::udp_query::Admission::Drop => return,
             dnsmasq_rs::dns::udp_query::Admission::Reply(answer) => Some((answer, false)),
             dnsmasq_rs::dns::udp_query::Admission::Continue => {
+                let Ok((_, original_metadata)) =
+                    dnsmasq_rs::dns::forward_service::prepare_query(packet, self.edns_max)
+                else {
+                    return;
+                };
+                let Ok(decoration) = dnsmasq_rs::dns::edns_policy::decorate(
+                    &mut decorated,
+                    &self.config.edns,
+                    client.source.ip(),
+                    mac.as_deref(),
+                    self.edns_max,
+                    usize::from(self.edns_max),
+                ) else {
+                    return;
+                };
+                let prepared_metadata = original_metadata.with_cacheable(decoration.cacheable);
+                metadata = Some(prepared_metadata);
+
                 match daemon.local_udp_answer(packet, local, now_seconds()) {
                     Ok(Some(answer)) => Some((answer, false)),
-                    Ok(None) => match daemon.forward_udp_on_listener_with_local(
+                    Ok(None) => match daemon.forward_udp_prepared_with_local(
                         packet,
+                        &decorated,
+                        prepared_metadata,
                         ClientRequest {
-                            source: incoming.peer,
-                            destination: incoming.destination,
-                            interface: incoming.interface,
+                            source: client.source,
+                            destination: client.destination,
+                            interface: client.interface,
                         },
                         Some(token),
                         local,
@@ -2222,9 +2429,9 @@ impl SinglePoll {
         if let Some((answer, stale)) = answer {
             let _ = udp.send(
                 &answer,
-                incoming.peer,
+                client.source,
                 (!self.config.bind_interfaces && !self.config.bind_dynamic)
-                    .then_some((incoming.destination, incoming.interface)),
+                    .then_some((client.destination, client.interface)),
             );
             if stale {
                 event.stale_answered = event.stale_answered.wrapping_add(1);
@@ -2232,13 +2439,15 @@ impl SinglePoll {
                 // refresh may enqueue an upstream response for a later turn;
                 // it must not hold the parent lock while that I/O completes.
                 if let Ok(mut parent) = self.service.lock() {
-                    if let Some(daemon) = parent.daemon.as_mut() {
-                        let refresh = daemon.refresh_udp_on_listener(
-                            &query[..incoming.len],
+                    if let (Some(daemon), Some(metadata)) = (parent.daemon.as_mut(), metadata) {
+                        let refresh = daemon.refresh_udp_prepared_on_listener(
+                            &query[..],
+                            &decorated,
+                            metadata,
                             ClientRequest {
-                                source: incoming.peer,
-                                destination: incoming.destination,
-                                interface: incoming.interface,
+                                source: client.source,
+                                destination: client.destination,
+                                interface: client.interface,
                             },
                             Some(token),
                         );
@@ -2378,6 +2587,17 @@ impl SinglePoll {
         if stream.set_nonblocking(true).is_err() {
             return;
         }
+        let needs_mac = self.config.edns.needs_mac();
+        let mac_deferred = needs_mac && DEBUG_MODE.load(Ordering::Relaxed);
+        let lookup = if needs_mac && !mac_deferred {
+            self.edns_mac(peer.ip(), false)
+        } else {
+            ClientMacLookup::Ready(None)
+        };
+        let (mac, mac_ready) = match lookup {
+            ClientMacLookup::Ready(mac) => (mac, !mac_deferred),
+            ClientMacLookup::Pending => (None, false),
+        };
         let mut parent = match self.service.lock() {
             Ok(parent) => parent,
             Err(_) => return,
@@ -2398,9 +2618,10 @@ impl SinglePoll {
             TcpDnsService::new(&self.config, &self.resolvers, self.edns_max)
         };
         drop(parent);
-        let Ok(forward) = forward else {
+        let Ok(mut forward) = forward else {
             return;
         };
+        forward.set_client_source(peer.ip());
         if let Ok(mut event) = self.parent_events.lock() {
             event.tcp_active = event.tcp_active.saturating_add(1);
         }
@@ -2414,13 +2635,45 @@ impl SinglePoll {
             input: Vec::new(),
             input_offset: 0,
             phase: TcpClientPhase::Reading,
+            source: peer.ip(),
+            mac,
+            mac_ready,
+            mac_deferred,
+            mac_deadline: Instant::now() + Duration::from_secs(3),
+            packet_limit: self.packet_limit,
         });
     }
 
     fn step_tcp_clients(&mut self) {
         let mut index = 0;
         while index < self.clients.len() {
-            let result = self.clients[index].step(&self.service);
+            if !self.clients[index].mac_ready && !self.clients[index].mac_deferred {
+                let lookup = if Instant::now() >= self.clients[index].mac_deadline {
+                    ClientMacLookup::Ready(None)
+                } else {
+                    self.edns_mac(self.clients[index].source, true)
+                };
+                match lookup {
+                    ClientMacLookup::Ready(mac) => {
+                        self.clients[index].mac = mac;
+                        self.clients[index].mac_ready = true;
+                    }
+                    ClientMacLookup::Pending => {
+                        index += 1;
+                        continue;
+                    }
+                }
+            }
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            let result = {
+                let neighbors = &mut self.neighbors;
+                self.clients[index].step(&self.service, &mut |source, lazy| {
+                    lookup_edns_mac(neighbors, source, lazy)
+                })
+            };
+            #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
+            let result =
+                self.clients[index].step(&self.service, &mut |_, _| ClientMacLookup::Ready(None));
             if result.unwrap_or(false) {
                 index += 1;
             } else {
@@ -2493,6 +2746,10 @@ impl SinglePoll {
                     }
                     (client.stream.as_raw_fd(), POLLIN)
                 }
+                TcpClientPhase::WaitingMac { .. } => {
+                    deadline = deadline.min(client.mac_deadline);
+                    (-1, 0)
+                }
                 TcpClientPhase::Writing { .. } => (client.stream.as_raw_fd(), POLLOUT),
                 TcpClientPhase::Forwarding { wait, .. } => {
                     deadline = deadline.min(wait.deadline);
@@ -2530,6 +2787,7 @@ impl SinglePoll {
         self.step_tcp_clients();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         self.step_neighbors();
+        self.step_edns_udp();
         self.step_tftp();
         // Early DNS/TCP timers or any listener activity must not consume an
         // ICMP quarter-second timeout. Only the full idle poll counts as one.
@@ -2915,7 +3173,11 @@ impl SinglePoll {
             for event in events {
                 if let Some((code, message)) = event.error_message() {
                     if code != 1 || !quiet_not_found {
-                        logger.emit(LogEvent::new(Service::Tftp, Priority::Error, message.to_vec()));
+                        logger.emit(LogEvent::new(
+                            Service::Tftp,
+                            Priority::Error,
+                            message.to_vec(),
+                        ));
                     }
                 }
             }
