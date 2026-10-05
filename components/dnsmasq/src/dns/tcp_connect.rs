@@ -59,7 +59,10 @@ extern "C" {
 /// Returns the owned nonblocking stream and whether connect finished already.
 /// EINPROGRESS/EINTR returns immediately; the owner polls POLLOUT then calls
 /// `connected`. No blocking connect fallback is allowed in the daemon path.
-pub(super) fn start(address: SocketAddr) -> Result<(TcpStream, bool), TcpError> {
+pub(super) fn start(
+    address: SocketAddr,
+    source: Option<&crate::dns::upstream::source_sockets::SourceSpec>,
+) -> Result<(TcpStream, bool), TcpError> {
     #[cfg(target_os = "linux")]
     let kind = SOCK_STREAM | 0o2000000 | 0o4000; // CLOEXEC | NONBLOCK
     #[cfg(target_os = "macos")]
@@ -81,6 +84,10 @@ pub(super) fn start(address: SocketAddr) -> Result<(TcpStream, bool), TcpError> 
         }
         stream
             .set_nonblocking(true)
+            .map_err(|_| TcpError::NoReply)?;
+    }
+    if let Some(source) = source {
+        crate::dns::upstream::source_sockets::bind_tcp(stream.as_raw_fd(), source)
             .map_err(|_| TcpError::NoReply)?;
     }
     let status = match address {

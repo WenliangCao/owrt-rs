@@ -6,7 +6,8 @@
 //! local `address=` literals only.
 
 use super::files::{ServerSources, Source, SourceRule};
-use super::forward::{GroupId, Server, ServerGroup};
+use super::forward::{GroupId, Server, ServerGroup, ServerId};
+use super::upstream::source_sockets::SourceSpec;
 use super::wire::Name;
 use crate::config::dns::{
     DnsConfig, DomainPattern, RuleTarget, ServerEndpoint, ServerHost, ServerRule,
@@ -127,6 +128,7 @@ pub struct RoutingTable {
     groups: HashMap<GroupId, ServerGroup>,
     default_group: Option<GroupId>,
     next_group: u64,
+    source_endpoints: HashMap<ServerId, ServerEndpoint>,
 }
 
 impl RoutingTable {
@@ -194,6 +196,7 @@ impl RoutingTable {
         previous: Option<&Self>,
     ) -> Result<Self, RoutingError> {
         let mut buckets: Vec<RuleBucket> = Vec::new();
+        let mut source_endpoints = HashMap::new();
         for entry in sources.rules() {
             let rule = &entry.value.rule;
             let mut pattern = rule.domain.clone();
@@ -218,6 +221,8 @@ impl RoutingTable {
                         Some(address) => address,
                         None => validate_endpoint(endpoint)?,
                     };
+                    source_endpoints
+                        .insert(entry.server.expect("upstream identity"), endpoint.clone());
                     bucket.servers.push(Server {
                         id: entry
                             .server
@@ -284,6 +289,7 @@ impl RoutingTable {
             groups,
             default_group,
             next_group,
+            source_endpoints,
         })
     }
 
@@ -406,7 +412,15 @@ impl RoutingTable {
                 .collect(),
             default_group: self.default_group,
             next_group: self.next_group,
+            source_endpoints: self.source_endpoints.clone(),
         }
+    }
+
+    pub fn source_bindings(&self, query_port: u16) -> HashMap<ServerId, SourceSpec> {
+        self.source_endpoints
+            .iter()
+            .map(|(id, endpoint)| (*id, SourceSpec::endpoint(endpoint, query_port)))
+            .collect()
     }
 
     /// Move groups to a dispatcher. Clone route metadata first if further
@@ -444,12 +458,17 @@ pub(super) fn validate_endpoint(endpoint: &ServerEndpoint) -> Result<SocketAddr,
         ServerHost::Name(name) => return Err(RoutingError::UnresolvedHostname(name.clone())),
     };
     if let Some(scope) = &endpoint.scope {
-        return Err(RoutingError::UnresolvedScope(scope.clone()));
+        if address.is_ipv6() && endpoint.scope_id.is_none() {
+            return Err(RoutingError::UnresolvedScope(scope.clone()));
+        }
     }
-    if endpoint.source.is_some() {
-        return Err(RoutingError::UnresolvedSource);
-    }
-    Ok(SocketAddr::new(address, endpoint.port))
+    Ok(match address {
+        IpAddr::V4(address) => SocketAddr::new(IpAddr::V4(address), endpoint.port),
+        IpAddr::V6(address) => {
+            std::net::SocketAddrV6::new(address, endpoint.port, 0, endpoint.scope_id.unwrap_or(0))
+                .into()
+        }
+    })
 }
 
 fn local_addresses(literals: &[IpAddr], zeros: usize, family: QueryFamily) -> Vec<IpAddr> {

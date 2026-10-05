@@ -262,6 +262,11 @@ impl ServerSources {
 
     /// check_servers removes unusable upstream rows from their owning list;
     /// local-only/default/address rules are never affected by that scan.
+    pub fn remove_server_ids(&mut self, ids: &[ServerId]) {
+        self.rules
+            .retain(|entry| !entry.server.is_some_and(|id| ids.contains(&id)));
+    }
+
     pub fn retain_servers(&mut self, mut keep: impl FnMut(&SourceRule) -> bool) -> Vec<ServerId> {
         let mut removed = Vec::new();
         self.rules.retain(|entry| {
