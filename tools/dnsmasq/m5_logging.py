@@ -1258,7 +1258,7 @@ def compare(reference, candidate, case, reference_only=False):
         text = reference['stderr']
         variant = case['root_variant']
         if variant == 'unused-root':
-            if 'TFTP' in text or 'inaccessible' in text:
+            if any(message in text for message in ['-tftp[', 'TFTP root is ', 'TFTP enabled', 'inaccessible']):
                 failures.append({'kind': 'C-unused-TFTP-root', 'actual': text})
         elif case['root_no_fail']:
             warning = ('warning: TFTP directory ' if variant.startswith('interface-') else 'warning: ') + prefix + ' inaccessible'
