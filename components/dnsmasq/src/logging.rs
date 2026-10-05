@@ -348,6 +348,27 @@ impl Logger {
         self.flush_ready();
     }
 
+    /// log.c::die echoes only the first critical record, with a leading blank
+    /// line unless stderr is itself the selected primary destination.
+    pub fn fatal(&mut self, message: &[u8]) -> bool {
+        if self.echo.is_some() {
+            self.echo_queue.push_back(Record::new(b"\n".to_vec()));
+        }
+        self.emit(LogEvent::new(
+            Service::Dns,
+            Priority::Critical,
+            message.to_vec(),
+        ));
+        let echo = self.echo.take();
+        self.emit(LogEvent::new(
+            Service::Dns,
+            Priority::Critical,
+            b"FAILED to start up".to_vec(),
+        ));
+        self.echo = echo;
+        self.finish()
+    }
+
     fn format(&self, service: Service, priority: Priority, message: &[u8]) -> Vec<u8> {
         let mut bytes = Vec::with_capacity(MAX_MESSAGE);
         if matches!(self.destination, Destination::Syslog { .. }) {
