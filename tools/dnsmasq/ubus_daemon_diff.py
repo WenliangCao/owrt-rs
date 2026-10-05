@@ -697,8 +697,12 @@ def run_recovery(f, side):
         f.stop(f.bus)
         f.start_product(side, wait_bus=False)
         record("pending" + suffix, ubus_log_rows(f.daemon_log))
-        f.start_bus()
-        holder = hold_object(f, OBJECT + suffix)
+        f.daemon.send_signal(signal.SIGSTOP)
+        try:
+            f.start_bus()
+            holder = hold_object(f, OBJECT + suffix)
+        finally:
+            f.daemon.send_signal(signal.SIGCONT)
         f.exchange("local.invalid")
         deadline = time.monotonic() + 3
         while not any(row.startswith("UBus error:") for row in ubus_log_rows(f.daemon_log)):
