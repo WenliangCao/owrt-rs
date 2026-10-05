@@ -413,7 +413,7 @@ def service_cases():
                     hosts_stream=mode,stream_text='192.0.2.8 one.records.test\n192.0.2.9 partial.records.test'),
                 *([] if mode=='shutdown' else [files.probe('completed','one.records.test'),files.probe('partial-final','partial.records.test')])])
     add('hostsdir-runtime-emfile',hosts_config+'local=/records.test/\nlog-facility=-\n',[],'HDIR-EVENT HDIR-CALLER',
-        files={'dir/one':'192.0.2.7 one.records.test\n'},actions=[files.probe('initial','one.records.test'),
+        files={'dir/one':'192.0.2.7 one.records.test\n'},actions=[files.probe('initial','one.records.test',transports=['udp']),
             {'op':'fd-limit','limit':'first-free'},files.write('dir/one','192.0.2.8 one.records.test\n'),
             files.probe('open-failed-source-removed','one.records.test',transports=['udp']),files.probe('owner-still-healthy','ready.files.test',transports=['udp']),
             {'op':'fd-limit','restore':True},files.write('dir/one','192.0.2.9 one.records.test\n'),files.probe('recovered','one.records.test')])
@@ -1298,7 +1298,7 @@ def compare_service(left,right,case):
         def host_messages(observed):
             messages=[]
             for line in observed['stderr'].splitlines():
-                match=re.match(r'^dnsmasq(?:-rs)?(?:\[\d+\])?: (.*)$',line)
+                match=re.match(r'^(?:(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) +\d{1,2} \d{2}:\d{2}:\d{2} )?dnsmasq(?:-rs)?(?:\[\d+\])?: (.*)$',line)
                 if match and any(marker in match[1] for marker in ('read /m2/files/dir/','inotify: /m2/files/dir/','inotify: flushed')):messages.append(match[1])
             return messages
         if not host_messages(left) or host_messages(left)!=host_messages(right):
