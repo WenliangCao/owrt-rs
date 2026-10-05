@@ -11,6 +11,7 @@ import re
 import shutil
 import signal
 import socket
+import struct
 import subprocess
 import time
 
@@ -166,6 +167,13 @@ def cases():
          'argv': ['--log-facility=-'], 'exit': 3, 'receiver': 'dgram', 'daemonized': True,
          'pidfile': '/m2/logging/missing/daemon.pid', 'options': ['no-daemon']},
     ])
+    for enabled in [False, True]:
+        rows.append({'id': 'no-ident-full-' + ('enabled' if enabled else 'default'),
+                     'scope': 'identity-full', 'kind': 'run', 'identity_matrix': True,
+                     'argv': ['--log-facility=-', '--txt-record=kept.logging,explicit-user',
+                              '--txt-record=version.bind,explicit-user',
+                              '--txt-record=explicit.server,server-user'] + (['--no-ident'] if enabled else []),
+                     'options': ['no-ident']})
     return rows
 
 
@@ -262,6 +270,74 @@ def tcp_sequence(probes):
     return rows, raw
 
 
+def identity_probes():
+    probes = []
+    def add(labels, kind=16, cls=3, rd=True, edns=False, do=False, rcode=None, txt=None):
+        probes.append({'labels': labels, 'type': kind, 'class': cls, 'rd': rd,
+                       'edns': edns, 'do': do, 'rcode': rcode, 'txt': txt})
+    for labels in [[b'bind'], [b'server'], [b'version', b'bind'], [b'explicit', b'server'],
+                   [b'VeRsIoN', b'BiNd'], [b'foo', b'bar', b'SeRvEr']]:
+        for kind in [1, 16, 28, 255]:
+            add(labels, kind, rcode=4)
+    for labels in [[b'badbind'], [b'badserver'], [b'foo', b'badbind'], [b'foo', b'badserver'],
+                   [b'foo.bind'], [b'foo.server']]:
+        add(labels, rcode=5)
+    for labels in [[b'x.y', b'bind'], [b'x\0y', b'bind'], [b'x\1y', b'server']]:
+        add(labels, rcode=4)
+    for rd, do in [(False, False), (True, False), (False, True), (True, True)]:
+        add([b'binary.dot', b'bind'], rd=rd, edns=True, do=do, rcode=4)
+    for labels, value in [([b'kept', b'logging'], 'explicit-user'),
+                          ([b'version', b'bind'], 'explicit-user'),
+                          ([b'explicit', b'server'], 'server-user')]:
+        for kind in [16, 255]:
+            add(labels, kind, 1, rcode=0, txt=value)
+            # QCLASS ANY does not match an explicit IN TXT: exact C uses
+            # t->class==qclass; QTYPE ANY is the independent positive control.
+            add(labels, kind, 255)
+    return probes
+
+
+def identity_sequence(transport):
+    observed, raw = [], []
+    endpoint = socket.socket(socket.AF_INET, socket.SOCK_STREAM if transport == 'tcp' else socket.SOCK_DGRAM)
+    endpoint.settimeout(.5)
+    if transport == 'tcp':
+        endpoint.connect(('127.0.0.1', 15353))
+    try:
+        for index, probe in enumerate(identity_probes()):
+            qname = b''.join(bytes([len(label)]) + label for label in probe['labels']) + b'\0'
+            wire = struct.pack('!6H', 0x7300 + index, 0x100 if probe['rd'] else 0,
+                               1, 0, 0, int(probe['edns']))
+            wire += qname + struct.pack('!HH', probe['type'], probe['class'])
+            if probe['edns']:
+                wire += b'\0' + struct.pack('!HHIH', 41, 1232, 0x8000 if probe['do'] else 0, 0)
+            if transport == 'tcp':
+                endpoint.sendall(len(wire).to_bytes(2, 'big') + wire)
+                reply = exact_read(endpoint, int.from_bytes(exact_read(endpoint, 2), 'big'))
+            else:
+                endpoint.sendto(wire, ('127.0.0.1', 15353))
+                reply = endpoint.recv(65535)
+            answer = semantics(reply)
+            if reply[:2] != wire[:2]:
+                raise AssertionError('identity query transaction changed')
+            if probe['rcode'] is not None and answer['flags'] & 15 != probe['rcode']:
+                raise AssertionError(('identity RCODE calibration', probe, answer))
+            answers = [record for record in answer['records'] if record['section'] == 'answer']
+            if probe['txt'] is not None:
+                expected = (bytes([len(probe['txt'])]) + probe['txt'].encode()).hex()
+                if [record['data'] for record in answers] != [expected] or any(record['class'] != 1 for record in answers):
+                    raise AssertionError(('explicit IN TXT control', probe, answer))
+            elif answers:
+                raise AssertionError(('unexpected identity/class255 record', probe, answer))
+            row = {'probe': dict(probe, labels=[label.hex() for label in probe['labels']]),
+                   'transport': transport, 'response': answer, 'reply_wire': reply.hex()}
+            observed.append(row)
+            raw.append({'request': wire.hex(), 'reply': reply.hex(), 'transport': transport})
+    finally:
+        endpoint.close()
+    return observed, raw
+
+
 def run(root, side, case, out):
     if case.get('scope') == 'daemon':
         return run_daemon(root, side, case, out)
@@ -318,6 +394,11 @@ def run(root, side, case, out):
                         pass
                 time.sleep(.005)
             if observed['ready']:
+                if case.get('identity_matrix'):
+                    for transport in ['udp', 'tcp']:
+                        rows, raw = identity_sequence(transport)
+                        observed['dns'].extend(rows)
+                        trace['dns'].extend(raw)
                 if case.get('query_probes'):
                     for name, kind in query_sequence():
                         answer, raw = exchange(name, kind, port=16501)
