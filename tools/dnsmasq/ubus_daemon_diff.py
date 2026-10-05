@@ -44,9 +44,11 @@ class Product(Fixture):
                           f"dhcp-leasefile={lease}\naddn-hosts={self.hosts}\n"
                           + (f"enable-ubus={OBJECT}\n" if bus else "") + extra)
         binary = (self.args.c_binary or self.args.reference_build / "dnsmasq/dnsmasq") if side == "C" else self.args.rust_binary
-        command = [str(binary), "--keep-in-foreground", "--conf-file=" + str(config)]
-        if side == "C":
-            command += ["--user=root", "--group=root", "--log-facility=-", "--pid-file=" + str(self.out / "pid")]
+        # Both products must reconnect with the same credentials and sink.
+        # C-only root overrides hide the private ubusd socket's access policy.
+        command = [str(binary), "--keep-in-foreground", "--conf-file=" + str(config),
+                   "--user=root", "--group=root", "--log-facility=-",
+                   "--pid-file=" + str(self.out / "pid")]
         self.daemon, self.daemon_log = self.spawn(command, side)
         if bus and wait_bus:
             self.wait_registered()
