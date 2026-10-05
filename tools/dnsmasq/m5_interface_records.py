@@ -1098,6 +1098,14 @@ def controls():
     for label,change in [('missing-dhcp-domain-consumer',lambda x:x.update(domain_dhcp=[])),
         ('wrong-dhcp-domain',lambda x:x['domain_dhcp'][0].update(domain='fallback.records.test'))]:
         bad=copy.deepcopy(consumer);change(bad);assert witness_errors(bad,'c',case);found.append(label)
+    stream=dict(base,interface_states=[*base['interface_states'],{'label':'hosts-stream','mode':'partial-eio',
+        'read_fds':[{'fd':3}],'fault':{'injected':True,'reads':[{'result':32},{'result':-errno.EIO,'injected':True}]}}])
+    case={'id':'hosts-stream','actions':[{'hosts_stream':'partial-eio'}]}
+    assert not witness_errors(stream,'c',case)
+    for label,change in [('missing-hosts-stream',lambda x:x.update(interface_states=[])),
+        ('missing-hosts-read-fd',lambda x:x['interface_states'][-1].update(read_fds=[])),
+        ('missing-hosts-consumed-prefix',lambda x:x['interface_states'][-1]['fault'].update(reads=[{'result':-errno.EIO,'injected':True}]))]:
+        bad=copy.deepcopy(stream);change(bad);assert witness_errors(bad,'c',case);found.append(label)
     return found
 
 
