@@ -245,6 +245,14 @@
           "required_scenarios": [
             "fifo-peer-disconnect-fallback"
           ]
+        },
+        {
+          "id": "FAC13",
+          "source": "log.c:301-319,361-393",
+          "boundary": "Debug echo writes complete producer text, independently of the primary record cap1024; actual overlong no-fail TFTP root proves full sign-on/warning echo and exactly capped file records.",
+          "required_scenarios": [
+            "debug-echo-overlong-tftp-root"
+          ]
         }
       ],
       "qualification_ready": false,

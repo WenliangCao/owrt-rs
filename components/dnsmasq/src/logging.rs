@@ -401,8 +401,7 @@ impl Logger {
             .message
             .iter()
             .position(|byte| *byte == 0)
-            .unwrap_or(event.message.len())
-            .min(MAX_MESSAGE)];
+            .unwrap_or(event.message.len())];
         if self.echo.is_some() {
             let mut bytes = format!("{PROGRAM}{}: ", event.service.suffix()).into_bytes();
             bytes.extend_from_slice(message);
