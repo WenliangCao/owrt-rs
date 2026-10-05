@@ -167,6 +167,13 @@ def cases():
          'argv': ['--log-facility=-'], 'exit': 3, 'receiver': 'dgram', 'daemonized': True,
          'pidfile': '/m2/logging/missing/daemon.pid', 'options': ['no-daemon']},
     ])
+    for mode, label in [([], 'default'), (['-k'], 'foreground'), (['-d'], 'debug')]:
+        rows.append({'id': 'tftp-scriptuser-unknown-' + label, 'scope': 'scriptuser-boundary',
+                     'kind': 'run', 'mode': mode, 'daemonized': not mode,
+                     'pidfile': '/m2/logging/daemon.pid', 'helper_script': True,
+                     'argv': ['--log-facility=-', '--enable-tftp', '--tftp-root=/m2/logging',
+                              '--dhcp-script=/m2/logging/script', '--dhcp-scriptuser=m5-missing-script-user'],
+                     'options': ['no-daemon', 'dhcp-scriptuser']})
     for enabled in [False, True]:
         rows.append({'id': 'no-ident-full-' + ('enabled' if enabled else 'default'),
                      'scope': 'identity-full', 'kind': 'run', 'identity_matrix': True,
@@ -356,7 +363,7 @@ def identity_sequence(transport, calibrate, sticky_probe=None, fresh=False):
 
 
 def run(root, side, case, out):
-    if case.get('scope') == 'daemon':
+    if case.get('scope') in ['daemon', 'scriptuser-boundary']:
         return run_daemon(root, side, case, out)
     out.mkdir()
     folder = image_path(root, '/m2/logging')
@@ -521,6 +528,10 @@ def run_daemon(root, side, case, out):
     folder.mkdir(mode=0o777)
     folder.chmod(0o777)
     (folder / 'config').write_text(case.get('config', ''))
+    if case.get('helper_script'):
+        script = folder / 'script'
+        script.write_text('#!/bin/sh\nexit 0\n')
+        script.chmod(0o755)
     debug = '-d' in case['mode']
     pid_path = image_path(root, case['pidfile'] if case['pidfile'].startswith('/') else
                           ('/m2/logging/' if debug else '/') + case['pidfile'].removeprefix('./'))
