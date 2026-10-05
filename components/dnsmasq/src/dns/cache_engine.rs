@@ -46,12 +46,7 @@ pub(super) struct CacheContext<'a> {
 
 /// Ordinary extraction can remove old records and evict entries even when
 /// its final commit is suppressed. Bogus-wildcard caching is independent.
-#[derive(Clone, Copy, Eq, PartialEq)]
-pub(super) enum OrdinaryCacheMode {
-    Unsupported,
-    ExtractOnly,
-    Commit,
-}
+pub(super) use super::cache::Extraction as OrdinaryCacheMode;
 
 impl CacheContext<'_> {
     /// The caller has evaluated add_edns0_config's cacheable flag. EDNS

@@ -36,6 +36,32 @@ pub enum StalePolicy {
     Seconds(u32),
 }
 
+/// A cache sink receives authenticated source policy separately from query
+/// metadata support. CD/NO_CACHE still extract and remove old records.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum Extraction {
+    Unsupported,
+    ExtractOnly,
+    Commit,
+}
+
+impl Extraction {
+    pub fn from_source(
+        supported: bool,
+        no_cache: bool,
+        request_cd: bool,
+        upstream_cd: bool,
+    ) -> Self {
+        if !supported {
+            Self::Unsupported
+        } else if no_cache || request_cd || upstream_cd {
+            Self::ExtractOnly
+        } else {
+            Self::Commit
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct Policy {
     pub min_ttl: u32,
