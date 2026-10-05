@@ -245,7 +245,8 @@ def cases():
         'reply v6.forward.test is 2001:db8::7', 'cached v6.forward.test is 2001:db8::7',
         'reply alias.forward.test is <CNAME>', 'cached alias.forward.test is <CNAME>',
         'reply 192.0.2.7 is ptr-target.forward.test', 'cached 192.0.2.7 is ptr-target.forward.test',
-        'reply txt.forward.test is <TXT>', 'cached txt.forward.test is <TXT>',
+        'reply txt.forward.test is hello', 'cached txt.forward.test is hello',
+        'reply txt.forward.test is Second', 'cached txt.forward.test is Second',
         'reply nx.forward.test is NXDOMAIN', 'cached nx.forward.test is NXDOMAIN',
         'reply nodata.forward.test is NODATA-IPv6', 'cached nodata.forward.test is NODATA-IPv6',
         'reply error is REFUSED', 'reply is truncated' ]
@@ -985,6 +986,9 @@ class QueryUpstream:
         if name == 'alias.forward.test':
             body = rr(5, wire_name('terminal.forward.test')) + rr(1, bytes([192, 0, 2, 7]), owner=wire_name('terminal.forward.test'))
             return request[:2] + struct.pack('!5H', 0x8180, 1, 2, 0, 0) + question + body
+        if kind == 16:
+            body = rr(16, b'\x05hello\x06Second\x00')
+            return request[:2] + struct.pack('!5H', 0x8180, 1, 1, 0, 0) + question + body
         if kind == 12:
             body = rr(12, wire_name('ptr-target.forward.test'))
             return request[:2] + struct.pack('!5H', 0x8180, 1, 1, 0, 0) + question + body
