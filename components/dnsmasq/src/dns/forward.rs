@@ -93,6 +93,15 @@ pub struct Client {
     pub log_id: u64,
 }
 
+impl Client {
+    pub fn query_context(&self) -> crate::query_logging::QueryContext {
+        crate::query_logging::QueryContext {
+            display_id: self.log_id as i32,
+            client: Some(self.source),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Recipient {
     pub client: Client,
@@ -191,6 +200,16 @@ pub struct Pending {
     key: Key,
     sockets: Vec<SocketToken>,
     slot: usize,
+}
+
+impl Pending {
+    pub fn query_context(&self) -> crate::query_logging::QueryContext {
+        self.recipients
+            .first()
+            .map_or_else(Default::default, |recipient| {
+                recipient.client.query_context()
+            })
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

@@ -35,6 +35,15 @@ pub(super) struct Exchange {
 }
 
 impl Exchange {
+    pub(super) fn reply_server(
+        &self,
+        groups: &HashMap<GroupId, Group>,
+    ) -> Option<std::net::SocketAddr> {
+        let group = groups.get(&self.group)?;
+        let index = (self.start + self.offset) % group.servers.len();
+        Some(group.servers.get(index)?.address)
+    }
+
     pub(super) fn new(
         group: GroupId,
         question: Question,
@@ -78,7 +87,10 @@ impl Exchange {
             let server = &mut group.servers[index];
             if self.phase != Phase::Pick && now >= self.idle {
                 if self.phase == Phase::Connect
-                    || server.connection.as_ref().is_some_and(|connection| !connection.had_reply)
+                    || server
+                        .connection
+                        .as_ref()
+                        .is_some_and(|connection| !connection.had_reply)
                 {
                     connection_failures.push(server.address);
                 }
