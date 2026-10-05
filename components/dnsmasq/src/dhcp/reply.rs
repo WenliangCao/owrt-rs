@@ -396,17 +396,24 @@ fn append_lease_timers(
     options: &[ReplyOption<'_>],
     fuzz: u16,
 ) -> Result<(), ReplyError> {
-    let configured = |code, default| {
-        options
-            .iter()
-            .find(|option| option.code == code)
-            .map(|option| u32::from_be_bytes(option.value.try_into().expect("validated timer")))
-            .filter(|value| *value > 2 && *value < lease_time)
-            .unwrap_or(default)
+    let configured = |code, default| -> Result<u32, ReplyError> {
+        let Some(option) = options.iter().find(|option| option.code == code) else {
+            return Ok(default);
+        };
+        let bytes = option
+            .value
+            .try_into()
+            .map_err(|_| ReplyError::InvalidOption { code })?;
+        let value = u32::from_be_bytes(bytes);
+        Ok(if value > 2 && value < lease_time {
+            value
+        } else {
+            default
+        })
     };
-    let mut t1 = configured(OPTION_T1, lease_time / 2);
+    let mut t1 = configured(OPTION_T1, lease_time / 2)?;
     // Keep C unsigned-int arithmetic, including the large-lease wraparound.
-    let mut t2 = configured(OPTION_T2, lease_time.wrapping_mul(7) / 8);
+    let mut t2 = configured(OPTION_T2, lease_time.wrapping_mul(7) / 8)?;
     if t2 <= t1 {
         t1 = t2.wrapping_sub(1);
     }

@@ -267,7 +267,7 @@ fn transaction(
     let mut existing = existing_id.map(|id| id.address());
     if client.client_id.is_none() {
         client.client_id =
-            existing_id.and_then(|id| store.get_by_id(id).unwrap().identity.client_id.clone());
+            existing_id.and_then(|id| store.get_by_id(id)?.identity.client_id.clone());
     }
     let selection = if let Some(address) = offered {
         RequestDecision::CheckAddress {
@@ -452,7 +452,7 @@ fn transaction(
         };
         return Ok(output);
     }
-    let index = context.expect("address validation selected a context");
+    let index = context.ok_or(LeaseError::NotFound)?;
     if let Some(events) = events.as_deref_mut() {
         events(LogEvent::Tags {
             context: Some(index),
@@ -468,7 +468,7 @@ fn transaction(
     }
     let id = existing_id
         .or_else(|| store.get(address).map(Lease::id))
-        .unwrap();
+        .ok_or(LeaseError::NotFound)?;
     store.set_identity_by_id(id, &client)?;
     if let Some(name) = request.name {
         output.lost_names = store.set_hostname_by_id(
@@ -551,7 +551,7 @@ pub(crate) fn discover_counted(
     let existing = existing_id.map(|id| id.address());
     if client.client_id.is_none() {
         client.client_id =
-            existing_id.and_then(|id| store.get_by_id(id).unwrap().identity.client_id.clone());
+            existing_id.and_then(|id| store.get_by_id(id)?.identity.client_id.clone());
     }
     let static_address = request.host.and_then(|host| {
         host.address.filter(|address| {
@@ -837,7 +837,7 @@ pub(crate) fn bootp_counted_logged(
     }
     let id = existing
         .or_else(|| store.get(address).map(Lease::id))
-        .unwrap();
+        .ok_or(LeaseError::NotFound)?;
     store.set_identity_by_id(id, &client)?;
     if let Some(name) = request.name {
         output.lost_names = store.set_hostname_by_id(
@@ -1095,7 +1095,7 @@ pub(crate) fn inform_counted(
             lease_time = Some(
                 store
                     .get_by_id(existing)
-                    .unwrap()
+                    .ok_or(LeaseError::NotFound)?
                     .expires
                     .map_or(u32::MAX, |expires| {
                         super::lease::remaining_seconds(expires, env.now)

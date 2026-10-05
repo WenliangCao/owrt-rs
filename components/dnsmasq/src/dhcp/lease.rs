@@ -150,7 +150,7 @@ impl ScriptQueue {
                     name: Some(name),
                 });
             }
-            let lease = self.deleted.pop_front().unwrap();
+            let lease = self.deleted.pop_front()?;
             let name = lease.fqdn.clone().or_else(|| lease.hostname.clone());
             return Some(ScriptEvent {
                 action: ScriptAction::Delete,
@@ -165,7 +165,7 @@ impl ScriptQueue {
             .max_by_key(|lease| lease.sequence)
             .map(Lease::id);
         if let Some(id) = old_name {
-            let lease = store.leases.get_mut(&id).unwrap();
+            let lease = store.leases.get_mut(&id)?;
             let name = lease.old_hostname.take();
             return Some(ScriptEvent {
                 action: ScriptAction::OldHostname,
@@ -184,7 +184,7 @@ impl ScriptQueue {
             })
             .max_by_key(|lease| lease.sequence)
             .map(Lease::id)?;
-        let lease = store.leases.get_mut(&changed).unwrap();
+        let lease = store.leases.get_mut(&changed)?;
         let action = if lease.script.new {
             ScriptAction::Add
         } else {
@@ -535,15 +535,22 @@ impl LeaseStore {
             };
             self.allocate_record(record.address, identity)
                 .map_err(RestoreError::Lease)?;
-            let id = self.key(record.address).unwrap();
+            let id = self
+                .key(record.address)
+                .ok_or(RestoreError::Lease(LeaseError::NotFound))?;
             self.set_expires_at(id, (record.expires != 0).then_some(record.expires))
                 .map_err(RestoreError::Lease)?;
             if let Some(hostname) = record.hostname {
                 self.set_hostname(record.address, Some(&hostname), false, None, fqdn_only)
                     .map_err(RestoreError::Lease)?;
             }
-            let id = self.key(record.address).unwrap();
-            let lease = self.leases.get_mut(&id).unwrap();
+            let id = self
+                .key(record.address)
+                .ok_or(RestoreError::Lease(LeaseError::NotFound))?;
+            let lease = self
+                .leases
+                .get_mut(&id)
+                .ok_or(RestoreError::Lease(LeaseError::NotFound))?;
             lease.agent_id = record.agent_id;
             lease.vendor_class = record.vendor_class;
             // read_leases clears NEW/CHANGED; expiry is assigned directly in C.
@@ -789,7 +796,10 @@ impl LeaseStore {
             .is_some_and(|(old, new)| old.eq_ignore_ascii_case(new))
         {
             if authoritative {
-                self.leases.get_mut(&id).unwrap().authoritative_name = true;
+                self.leases
+                    .get_mut(&id)
+                    .ok_or(LeaseError::NotFound)?
+                    .authoritative_name = true;
             }
             return Ok(Vec::new());
         }
@@ -821,11 +831,11 @@ impl LeaseStore {
         }
         let mut lost = Vec::new();
         if let Some((other, _)) = collision {
-            let other = self.leases.get_mut(&other).unwrap();
+            let other = self.leases.get_mut(&other).ok_or(LeaseError::NotFound)?;
             take_name(other, &mut lost);
             other.script.changed = true;
         }
-        let lease = self.leases.get_mut(&id).unwrap();
+        let lease = self.leases.get_mut(&id).ok_or(LeaseError::NotFound)?;
         take_name(lease, &mut lost);
         lease.hostname = name.map(<[u8]>::to_vec);
         lease.fqdn = new_fqdn;
