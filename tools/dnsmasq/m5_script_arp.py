@@ -458,7 +458,7 @@ def allocation_contract(args, root, pid, folder, upstream, record):
             first_reply = tcp_health()
         else:
             first_reply = health()
-        (folder / 'first-health.reply').write_bytes(first_reply)
+        (folder / 'first-health.reply').write_bytes(bytes.fromhex(first_reply) if isinstance(first_reply, str) else first_reply)
         assert tracer.wait(3) == 0, 'allocator trace exit'
         receipt = json.loads(output.read_text())
         assert receipt['injected'], 'actual record allocation did not fail'
@@ -660,18 +660,14 @@ def priority_producers(root, pid, folder):
         (folder / 'completion.reply').write_bytes(reply)
     deadline = time.monotonic() + 2
     while time.monotonic() < deadline:
-        paths = []
-        for entry in Path(f'/proc/{pid}/fd').iterdir():
-            try:
-                paths.append(os.readlink(entry))
-            except FileNotFoundError:
-                pass
-        if not any(path.endswith('/m2/arp-tftp/public') for path in paths):
-            save(folder / 'completion-descriptors.json', paths)
+        logged = (root / 'm2/arp.log').read_bytes()
+        if b'sent /m2/arp-tftp/public to 127.0.0.30' in logged:
+            (folder / 'completed-transfer.log').write_bytes(logged)
             break
         time.sleep(.01)
     else:
         raise AssertionError('final ACK did not queue completed TFTP event')
+
     health()
 
 
@@ -709,9 +705,9 @@ def pressure_contract(root, process, pid, folder, owned, stopping, priority=Fals
             assert callbacks(root) == [], 'priority producers escaped actual helper backpressure'
         if stopping:
             os.kill(pid, signal.SIGTERM)
-            time.sleep(.1)
-            assert process.poll() is None, 'TERM discarded the already serialized blocked command'
-            save(folder / 'term-before-helper-resume.json', dict(parent_alive=True, readable_bytes=pipe_bytes(reader)))
+            assert process.wait(2) == 0, 'TERM did not flush the current command without waiting for its helper'
+            assert pipe_bytes(reader) == 208, 'TERM serialized prefix must contain exactly two C-sized commands'
+            save(folder / 'term-before-helper-resume.json', dict(parent_exited=True, readable_bytes=pipe_bytes(reader)))
         os.kill(child, signal.SIGCONT)
         expected = [['3', 'arp-add', entry['mac'], entry['address'], '0', '0', 'inherited-iface', 'inherited-id'] for entry in reversed(entries[1:])]
         if priority:
@@ -912,6 +908,9 @@ def run_side(args):
             # controlled multi-record fixture without inventing a capacity.
             for index in range(max(1, len(spec.get('warmup', spec['raw'])) - 1)):
                 neighbor('192.0.2.' + str(250 - index), MAC, 'noarp')
+        if spec.get('cache_caller') == 'negative-position':
+            for index in range(3):
+                neighbor('192.0.2.' + str(250 - index), MAC, 'noarp')
         current = subprocess.run(['ip', '-j', 'neigh', 'show'], capture_output=True, check=True)
         (folder / 'kernel-neighbors.json').write_bytes(current.stdout)
         (root / 'm2/arp-events').write_bytes(b'')
@@ -941,11 +940,13 @@ def run_side(args):
         env['M5_ARP_FDS'] = '1' if spec.get('descriptors') else '0'
         process = None
         pid = None
-        upstream = Upstream() if spec.get('zero_positive') or spec.get('allocation') else None
+        upstream = Upstream() if spec.get('zero_positive') or spec.get('allocation') or spec.get('upstream') else None
         held = (root / 'm2/arp-held-fd').open('wb') if spec.get('descriptors') else None
         if upstream:
             config += 'cache-size=0\nserver=127.0.0.2#' + str(upstream.port) + '\n'
             config = config.replace('listen-address=127.0.0.1\n', 'listen-address=127.0.0.1,127.0.0.2\n')
+            if spec.get('cache_caller'):
+                config = config.replace('listen-address=127.0.0.1,127.0.0.2\n', 'listen-address=127.0.0.1,127.0.0.2,192.0.2.18\n')
             (root / 'm2/arp.conf').write_text(config)
             (folder / 'config').write_text(config)
         try:
@@ -1112,7 +1113,8 @@ def run_side(args):
             if (root / 'm2/arp.log').exists():
                 (folder / 'daemon.log').write_bytes((root / 'm2/arp.log').read_bytes())
                 (root / 'm2/arp.log').unlink()
-            if (cleanup.get('forced') or cleanup.get('exit', 0)) and not (spec.get('pending_dump') and args.side == 'c' and cleanup.get('forced') and cleanup.get('exit') == -9):
+            expected_c_fault = spec.get('helper_frame_fault') and args.side == 'c' and cleanup.get('exit') == -signal.SIGSEGV and any(row['case'] == label for row in rows)
+            if (cleanup.get('forced') or cleanup.get('exit', 0)) and not expected_c_fault and not (spec.get('pending_dump') and args.side == 'c' and cleanup.get('forced') and cleanup.get('exit') == -9):
                 failures.append(dict(case=label, cleanup=cleanup))
     required = {case for boundary in plan['boundaries'] for case in boundary['required_cases']}
     executed = {row['case'] for row in rows}
@@ -1178,6 +1180,8 @@ def main():
                 if (row.get('health_while_pending') is not True or row.get('stop_forced') is not False
                         or (row['case'] == 'netlink-missing-done' and row.get('timeout_reply') is not True)):
                     result.append(dict(case=row['case'], error='candidate pending owner contract'))
+            if row['case'] == 'helper-buffer-enomem-reference' and not row.get('dns_health'):
+                result.append(dict(case=row['case'], error='candidate frame fault stopped the service'))
         if [row['case'] for row in left] != [row['case'] for row in right]:
             result.append(dict(error='case inventory mismatch'))
         else:
@@ -1185,6 +1189,13 @@ def main():
                 if c_row == r_row:
                     continue
                 spec = reference_specs.get(c_row['case'])
+                if (c_row['case'] == 'helper-buffer-enomem-reference'
+                        and c_row.get('reference_difference') == r_row.get('reference_difference') == 'c-null-helper-buffer-segv'
+                        and c_row.get('fault') == r_row.get('fault') == dict(injected=True, operation='helper-frame-allocation')
+                        and c_row.get('callbacks') == [] and c_row.get('dns_health') is False
+                        and r_row.get('callbacks') == [['3', 'arp-add', '02:00:00:91:00:18', '192.0.2.18', '0', '0', 'inherited-iface', 'inherited-id']]
+                        and r_row.get('dns_health') is True):
+                    continue
                 if (c_row['case'] in ['netlink-missing-done', 'stop-pending-dump']
                         and c_row.get('reference_difference') == r_row.get('reference_difference') == 'c-no-done-owner-stall'
                         and c_row.get('fault') == r_row.get('fault') and c_row.get('fault', {}).get('injected')
