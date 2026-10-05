@@ -282,6 +282,29 @@ def service_cases():
     def kernel(argv):return dict(op='write',path='kernel-action',text='',kernel_command=argv)
     def state(label):return dict(op='write',path='interface-state',text='',interface_state=label)
     v4only={'name':'m5ir0','addresses':['198.18.91.9/24']}
+    for option in ('domain','domain-suffix'):
+        def suffix_probes(label,host='newnet'):
+            return [files.probe(label+'-'+suffix,host+'.'+suffix+'.records.test',type=28 if host=='new6' else 1,transports=['udp'])
+                for suffix in ('chosen','fallback')]
+        base_domain=option+'=fallback.records.test\n'+option+'=chosen.records.test,m5ir0\nexpand-hosts\naddn-hosts=/m2/files/hosts\n'
+        contents='198.18.92.77 newnet\n2001:db8:92::77 new6\n'
+        add(option+'-interface-publication',base_domain,[],'DOM-IF DOM-CALLER',topology=[primary],files={'hosts':contents},actions=[
+            *suffix_probes('initial'),kernel(['ip','addr','add','198.18.92.9/24','dev','m5ir0']),
+            kernel(['ip','-6','addr','add','2001:db8:92::9/64','dev','m5ir0','nodad']),state('added-subnets'),
+            files.probe('unknown','unknown.records.test',transports=['udp']),files.signal_reload(),*suffix_probes('hup-old'),
+            dict(op='connect',id='enumerator'),files.probe('tcp-enum','ready.files.test',transports=['enumerator']),
+            dict(op='disconnect',id='enumerator'),*suffix_probes('old-host-generation'),files.signal_reload(),
+            *suffix_probes('reread'),*suffix_probes('reread6','new6')])
+        add(option+'-resolver-no-reread',option+'=#\nresolv-file=/m2/files/domain-resolv\nexpand-hosts\naddn-hosts=/m2/files/hosts\n',[],
+            'DOM-RESOLV DOM-CALLER',files={'domain-resolv':'search chosen.records.test\n','hosts':'192.0.2.7 short\n'},actions=[
+                files.probe('initial','short.chosen.records.test'),files.write('domain-resolv','search second.records.test\n'),
+                files.probe('notify-old','short.chosen.records.test'),files.signal_reload(),
+                files.probe('hup-old','short.chosen.records.test'),files.probe('new-search-not-used','short.second.records.test')])
+        cases[-1]['config']=cases[-1]['config'].replace('no-resolv\n','')
+        add(option+'-startup-lease-interface',base_domain+'no-ping\ndhcp-range=198.18.91.2,198.18.91.100,255.255.255.0,600\n'
+            'dhcp-leasefile=/m2/files/leases\n',
+            [('leased.chosen.records.test',1),('leased.fallback.records.test',1),('20.91.18.198.in-addr.arpa',12)],
+            'DOM-CALLER',topology=[primary],files={'hosts':'198.18.91.77 local\n','leases':'4102444800 02:00:00:91:00:20 198.18.91.20 leased *\n'})
     def mutation_probes(label,address):return [files.probe(label+'-aaaa','iface.records.test',type=28),files.probe(label+'-ptr',ipaddress.ip_address(address).reverse_pointer,type=12)]
     add('interface-flag-deprecated','interface-name=iface.records.test,m5ir0\n',[],
         'IF-FLAGS',topology=[v4only],actions=[kernel(['ip','-6','addr','add','2001:db8:91::9/64','dev','m5ir0','nodad','valid_lft','600','preferred_lft','0']),state('deprecated'),*mutation_probes('deprecated','2001:db8:91::9')])
