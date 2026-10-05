@@ -1,0 +1,1638 @@
+{
+  "schema": "m5-dns-endpoint-required-cases-v1",
+  "family": "dns-endpoints",
+  "qualification": "No boundary-ID or case-presence closure; each row needs source-calibrated observations and paired evidence. Empty lists remain open.",
+  "required_cases": [
+    {
+      "id": "GRAM-01/01",
+      "boundary": "GRAM-01",
+      "required_case": "IPv4 default port",
+      "case_ids": [
+        "server-service-v4",
+        "local-service-v4"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "GRAM-01/02",
+      "boundary": "GRAM-01",
+      "required_case": "IPv6 default port",
+      "case_ids": [
+        "server-service-v6",
+        "local-service-v6"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "GRAM-01/03",
+      "boundary": "GRAM-01",
+      "required_case": "explicit 0 and 65535 port",
+      "case_ids": [
+        "endpoint-port-zero",
+        "endpoint-port-65535"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "GRAM-01/04",
+      "boundary": "GRAM-01",
+      "required_case": "empty/65536/negative/text/huge ports",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "GRAM-01/05",
+      "boundary": "GRAM-01",
+      "required_case": "multiple #/@/% delimiters",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "GRAM-01/06",
+      "boundary": "GRAM-01",
+      "required_case": "empty endpoint and # special marker",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "GRAM-01/07",
+      "boundary": "GRAM-01",
+      "required_case": "leading/multiple domain slashes and // dotless",
+      "case_ids": [
+        "server-multi-domain",
+        "local-multi-domain",
+        "server-markers",
+        "local-markers"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "GRAM-01/08",
+      "boundary": "GRAM-01",
+      "required_case": "wildcard character vs label suffix",
+      "case_ids": [
+        "server-wildcard",
+        "local-wildcard"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "GRAM-01/09",
+      "boundary": "GRAM-01",
+      "required_case": "hostname attached to server/local/rev-server",
+      "case_ids": [
+        "server-service-name-v4",
+        "local-service-name-v4",
+        "reverse-hostname"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "GRAM-01/10",
+      "boundary": "GRAM-01",
+      "required_case": "quoted full endpoint and hidden punctuation",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "GRAM-01/11",
+      "boundary": "GRAM-01",
+      "required_case": "duplicate declarations and insertion order",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "GRAM-02/01",
+      "boundary": "GRAM-02",
+      "required_case": "@IPv4",
+      "case_ids": [
+        "server-service-source4"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "GRAM-02/02",
+      "boundary": "GRAM-02",
+      "required_case": "@IPv6",
+      "case_ids": [
+        "server-service-source6"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "GRAM-02/03",
+      "boundary": "GRAM-02",
+      "required_case": "@interface",
+      "case_ids": [
+        "server-service-interface"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "GRAM-02/04",
+      "boundary": "GRAM-02",
+      "required_case": "@interface@IPv4",
+      "case_ids": [
+        "server-service-combined"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "GRAM-02/05",
+      "boundary": "GRAM-02",
+      "required_case": "@interface@IPv6",
+      "case_ids": [
+        "source-ipv6-address-interface"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "GRAM-02/06",
+      "boundary": "GRAM-02",
+      "required_case": "source #0/nonzero/empty",
+      "case_ids": [
+        "osport-explicit-source-zero",
+        "server-service-fixed-source"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "GRAM-02/07",
+      "boundary": "GRAM-02",
+      "required_case": "extra @ interface duplicate",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "GRAM-02/08",
+      "boundary": "GRAM-02",
+      "required_case": "first source substring contains # before second @",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "GRAM-02/09",
+      "boundary": "GRAM-02",
+      "required_case": "empty source/interface",
+      "case_ids": [
+        "server-service-empty-source",
+        "server-service-empty-interface"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "GRAM-02/10",
+      "boundary": "GRAM-02",
+      "required_case": "interface15/16/long",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "GRAM-02/11",
+      "boundary": "GRAM-02",
+      "required_case": "numeric IPv4 server with IPv6 source exact error",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "GRAM-02/12",
+      "boundary": "GRAM-02",
+      "required_case": "numeric IPv6 server with IPv4 source exact error",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "GRAM-03/01",
+      "boundary": "GRAM-03",
+      "required_case": "valid IPv6 interface name",
+      "case_ids": [
+        "server-service-scope6"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "GRAM-03/02",
+      "boundary": "GRAM-03",
+      "required_case": "unknown scope exact bad interface error",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "GRAM-03/03",
+      "boundary": "GRAM-03",
+      "required_case": "numeric-looking interface token",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "GRAM-03/04",
+      "boundary": "GRAM-03",
+      "required_case": "empty and double percent",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "GRAM-03/05",
+      "boundary": "GRAM-03",
+      "required_case": "IPv4 with scope ignored",
+      "case_ids": [
+        "server-service-scope4-ignored"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "GRAM-03/06",
+      "boundary": "GRAM-03",
+      "required_case": "link-local scope transport UDP/TCP",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "GRAM-03/07",
+      "boundary": "GRAM-03",
+      "required_case": "global IPv6 with scope",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "GRAM-03/08",
+      "boundary": "GRAM-03",
+      "required_case": "hostname returning IPv6 with scope",
+      "case_ids": [
+        "server-named-scope"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "NAME-01/01",
+      "boundary": "NAME-01",
+      "required_case": "hosts IPv4 only",
+      "case_ids": [
+        "server-service-name-v4"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "NAME-01/02",
+      "boundary": "NAME-01",
+      "required_case": "hosts IPv6 only",
+      "case_ids": [
+        "server-service-name-v6"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "NAME-01/03",
+      "boundary": "NAME-01",
+      "required_case": "multi IPv4 order",
+      "case_ids": [
+        "server-service-name-multi"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "NAME-01/04",
+      "boundary": "NAME-01",
+      "required_case": "mixed IPv4/IPv6 order",
+      "case_ids": [
+        "server-service-name-mixed"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "NAME-01/05",
+      "boundary": "NAME-01",
+      "required_case": "duplicate hosts names",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "NAME-01/06",
+      "boundary": "NAME-01",
+      "required_case": "loopback-only namespace AI_ADDRCONFIG image behavior",
+      "case_ids": [
+        "server-service-name-mixed"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "NAME-01/07",
+      "boundary": "NAME-01",
+      "required_case": "nonloopback v4/v6 topology",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "NAME-01/08",
+      "boundary": "NAME-01",
+      "required_case": "IPv4 mapped/legacy numeric hostname text",
+      "case_ids": [
+        "server-service-name-legacy"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "NAME-01/09",
+      "boundary": "NAME-01",
+      "required_case": "dot/case/trailing dot names",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "NAME-01/10",
+      "boundary": "NAME-01",
+      "required_case": "no IDN build nonASCII error",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "NAME-02/01",
+      "boundary": "NAME-02",
+      "required_case": "dual-family hostname with v4 source",
+      "case_ids": [
+        "server-service-named-v4-source"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "NAME-02/02",
+      "boundary": "NAME-02",
+      "required_case": "dual-family hostname with v6 source",
+      "case_ids": [
+        "server-service-named-v6-source"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "NAME-02/03",
+      "boundary": "NAME-02",
+      "required_case": "all hostname addresses mismatching",
+      "case_ids": [
+        "server-service-named-all-filtered"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "NAME-02/04",
+      "boundary": "NAME-02",
+      "required_case": "scoped hostname v4+v6 source interaction",
+      "case_ids": [
+        "file-partial-success-before-scope-error"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "NAME-02/05",
+      "boundary": "NAME-02",
+      "required_case": "@interface@source family filter",
+      "case_ids": [
+        "server-named-source4",
+        "server-named-source6"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "NAME-02/06",
+      "boundary": "NAME-02",
+      "required_case": "duplicate expanded destinations preserve ordering",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "NAME-03/01",
+      "boundary": "NAME-03",
+      "required_case": "missing hosts name NXDOMAIN",
+      "case_ids": [
+        "system-resolver-nxdomain"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "NAME-03/02",
+      "boundary": "NAME-03",
+      "required_case": "temporary SERVFAIL/EAI_AGAIN Cannot resolve server name",
+      "case_ids": [
+        "system-resolver-servfail"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "NAME-03/03",
+      "boundary": "NAME-03",
+      "required_case": "response timeout",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "NAME-03/04",
+      "boundary": "NAME-03",
+      "required_case": "invalid hostname syntax",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "NAME-03/05",
+      "boundary": "NAME-03",
+      "required_case": "temporary resolve recovers next launch",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "NAME-03/06",
+      "boundary": "NAME-03",
+      "required_case": "later invalid config must not suppress earlier resolution",
+      "case_ids": [
+        "system-resolver-before-invalid-row"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "NAME-03/07",
+      "boundary": "NAME-03",
+      "required_case": "--test still resolves when port=0/no-resolv",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "NAME-03/08",
+      "boundary": "NAME-03",
+      "required_case": "system /etc/resolv.conf independent of dnsmasq resolv-file",
+      "case_ids": [
+        "system-resolver-startup"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "NAME-03/09",
+      "boundary": "NAME-03",
+      "required_case": "full and search-list name behavior from image libc",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "REV-01/01",
+      "boundary": "REV-01",
+      "required_case": "IPv4 no prefix /0 /24 /25 /32",
+      "case_ids": [
+        "reverse-192.0.2.0-24",
+        "reverse-192.0.2.128-25",
+        "reverse-192.0.2.7-32",
+        "reverse-192.0.2.7-0"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "REV-01/02",
+      "boundary": "REV-01",
+      "required_case": "IPv6 no prefix /0 /64 /65 /128",
+      "case_ids": [
+        "reverse-2001_db8__-64",
+        "reverse-2001_db8__-65",
+        "reverse-2001_db8__1-128"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "REV-01/03",
+      "boundary": "REV-01",
+      "required_case": "invalid/wide/empty prefix fallback",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "REV-01/04",
+      "boundary": "REV-01",
+      "required_case": "reverse no endpoint local-only",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "REV-01/05",
+      "boundary": "REV-01",
+      "required_case": "endpoint hostname multisource expansion",
+      "case_ids": [
+        "reverse-hostname"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "REV-01/06",
+      "boundary": "REV-01",
+      "required_case": "/range input host bits",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "REV-01/07",
+      "boundary": "REV-01",
+      "required_case": "malformed address/family rejects",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "REV-01/08",
+      "boundary": "REV-01",
+      "required_case": "file reverse provenance retained",
+      "case_ids": [
+        "file-mixed-directives"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SOURCE-01/01",
+      "boundary": "SOURCE-01",
+      "required_case": "query-port before/after endpoint",
+      "case_ids": [
+        "global-port-before",
+        "global-port-after"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SOURCE-01/02",
+      "boundary": "SOURCE-01",
+      "required_case": "query-port0 explicitly vs omitted",
+      "case_ids": [
+        "osport-explicit-zero",
+        "server-service-v4"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SOURCE-01/03",
+      "boundary": "SOURCE-01",
+      "required_case": "@address defaults0 under nonzero global",
+      "case_ids": [
+        "explicit-source-over-global-127.0.0.9"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SOURCE-01/04",
+      "boundary": "SOURCE-01",
+      "required_case": "@interface defaults0 under nonzero global",
+      "case_ids": [
+        "explicit-source-over-global-lo"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SOURCE-01/05",
+      "boundary": "SOURCE-01",
+      "required_case": "@source#fixed overrides global",
+      "case_ids": [
+        "fixed-source-over-global"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SOURCE-01/06",
+      "boundary": "SOURCE-01",
+      "required_case": "explicit #0 with query-port0 osport",
+      "case_ids": [
+        "osport-explicit-source-zero"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SOURCE-01/07",
+      "boundary": "SOURCE-01",
+      "required_case": "resolver-file implicit global port",
+      "case_ids": [
+        "low-global-port-nonroot-file"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SOURCE-01/08",
+      "boundary": "SOURCE-01",
+      "required_case": "server/local/rev-file consistent precedence",
+      "case_ids": [
+        "file-mixed-directives"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SOURCE-02/01",
+      "boundary": "SOURCE-02",
+      "required_case": "v4 source address on wire",
+      "case_ids": [
+        "server-service-source4"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SOURCE-02/02",
+      "boundary": "SOURCE-02",
+      "required_case": "v6 source address on wire",
+      "case_ids": [
+        "server-service-source6"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SOURCE-02/03",
+      "boundary": "SOURCE-02",
+      "required_case": "source device binding on routed topology",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SOURCE-02/04",
+      "boundary": "SOURCE-02",
+      "required_case": "combined address and device",
+      "case_ids": [
+        "server-service-combined",
+        "source-ipv6-address-interface"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SOURCE-02/05",
+      "boundary": "SOURCE-02",
+      "required_case": "nonexistent source address",
+      "case_ids": [
+        "bad-source-address-failover"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SOURCE-02/06",
+      "boundary": "SOURCE-02",
+      "required_case": "nonexistent interface",
+      "case_ids": [
+        "bad-source-interface-failover"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SOURCE-02/07",
+      "boundary": "SOURCE-02",
+      "required_case": "removed address after startup",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SOURCE-02/08",
+      "boundary": "SOURCE-02",
+      "required_case": "recreated interface after failure",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SOURCE-02/09",
+      "boundary": "SOURCE-02",
+      "required_case": "v4/v6 same configured source port independent sockets",
+      "case_ids": [
+        "same-fixed-port-two-families"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SFD-01/01",
+      "boundary": "SFD-01",
+      "required_case": "two destinations share source fixed port",
+      "case_ids": [
+        "same-fixed-source-destinations"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SFD-01/02",
+      "boundary": "SFD-01",
+      "required_case": "same source port different local addresses",
+      "case_ids": [
+        "same-fixed-port-distinct-addresses"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SFD-01/03",
+      "boundary": "SFD-01",
+      "required_case": "same addr different interface",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SFD-01/04",
+      "boundary": "SFD-01",
+      "required_case": "default wildcard v4/v6 fixed sockets",
+      "case_ids": [
+        "global-port-before"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SFD-01/05",
+      "boundary": "SFD-01",
+      "required_case": "same socket concurrent differing query IDs",
+      "case_ids": [
+        "pool-single-port-concurrent"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SFD-01/06",
+      "boundary": "SFD-01",
+      "required_case": "response from unrelated destination/ID ignored",
+      "case_ids": [
+        "shared-socket-invalid-replies",
+        "shared-socket-unrelated-source"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SFD-01/07",
+      "boundary": "SFD-01",
+      "required_case": "wrong socket/source-family response ignored",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SFD-01/08",
+      "boundary": "SFD-01",
+      "required_case": "sourceport0 explicit-osport retains one OS-selected port across queries",
+      "case_ids": [
+        "osport-explicit-zero",
+        "osport-explicit-source-zero"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SFD-02/01",
+      "boundary": "SFD-02",
+      "required_case": "low source port under nonroot daemon user",
+      "case_ids": [
+        "low-source-port-nonroot",
+        "low-global-port-nonroot-file"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SFD-02/02",
+      "boundary": "SFD-02",
+      "required_case": "occupied fixed source port wildcard nonfatal removal",
+      "case_ids": [
+        "occupied-fixed-wildcard"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SFD-02/03",
+      "boundary": "SFD-02",
+      "required_case": "occupied source bind-interfaces exit2 exact diagnostic",
+      "case_ids": [
+        "occupied-fixed-bind-interfaces"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SFD-02/04",
+      "boundary": "SFD-02",
+      "required_case": "bind-dynamic failure boundary",
+      "case_ids": [
+        "occupied-fixed-bind-dynamic"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SFD-02/05",
+      "boundary": "SFD-02",
+      "required_case": "query-port preallocated allfamilies even no inline servers",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SFD-02/06",
+      "boundary": "SFD-02",
+      "required_case": "--test never binds",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SFD-02/07",
+      "boundary": "SFD-02",
+      "required_case": "port=0 suppresses DNS binding",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SFD-02/08",
+      "boundary": "SFD-02",
+      "required_case": "FD/process cleanup on startup failure",
+      "case_ids": [
+        "occupied-fixed-bind-interfaces"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SFD-03/01",
+      "boundary": "SFD-03",
+      "required_case": "own selected listen address/port filtered",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SFD-03/02",
+      "boundary": "SFD-03",
+      "required_case": "unselected local address remains target",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SFD-03/03",
+      "boundary": "SFD-03",
+      "required_case": "source bind failure removes only failed upstream",
+      "case_ids": [
+        "bad-fixed-source-only-one-removed"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SFD-03/04",
+      "boundary": "SFD-03",
+      "required_case": "reload unchanged source shares FD",
+      "case_ids": [
+        "source-fixed-repeated-hup"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SFD-03/05",
+      "boundary": "SFD-03",
+      "required_case": "reload changed source reallocates",
+      "case_ids": [
+        "file-source-snapshot",
+        "fixed-new-slot-reallocates"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SFD-03/06",
+      "boundary": "SFD-03",
+      "required_case": "last server removal drops nonpreallocated FD",
+      "case_ids": [
+        "fixed-new-slot-reallocates"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SFD-03/07",
+      "boundary": "SFD-03",
+      "required_case": "configured global query socket retained",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SFD-03/08",
+      "boundary": "SFD-03",
+      "required_case": "pending reply after reused/removal slot",
+      "case_ids": [
+        "late-reply-after-server-retired",
+        "pool-retired-source-reference"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "SFD-03/09",
+      "boundary": "SFD-03",
+      "required_case": "no leaked FD after repeated reload",
+      "case_ids": [
+        "source-fixed-repeated-hup"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "PORT-01/01",
+      "boundary": "PORT-01",
+      "required_case": "empty query/min/max port",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "PORT-01/02",
+      "boundary": "PORT-01",
+      "required_case": "0/1/1024/65535/65536/large integer",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "PORT-01/03",
+      "boundary": "PORT-01",
+      "required_case": "port-limit0/1/2/intwrap",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "PORT-01/04",
+      "boundary": "PORT-01",
+      "required_case": "repeated option origin policy",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "PORT-01/05",
+      "boundary": "PORT-01",
+      "required_case": "min-only defaults max65535",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "PORT-01/06",
+      "boundary": "PORT-01",
+      "required_case": "max-only defaults min1024",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "PORT-01/07",
+      "boundary": "PORT-01",
+      "required_case": "max below min --test succeeds startup fails",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "PORT-01/08",
+      "boundary": "PORT-01",
+      "required_case": "port-limit larger range --test/startup boundary",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "PORT-01/09",
+      "boundary": "PORT-01",
+      "required_case": "query-port0 followed nonzero retains osport flag",
+      "case_ids": [
+        "osport-zero-then-fixed"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "PORT-02/01",
+      "boundary": "PORT-02",
+      "required_case": "one available port",
+      "case_ids": [
+        "range-width-1"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "PORT-02/02",
+      "boundary": "PORT-02",
+      "required_case": "two ports with one occupied",
+      "case_ids": [
+        "range-one-occupied"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "PORT-02/03",
+      "boundary": "PORT-02",
+      "required_case": "size29/30 range threshold",
+      "case_ids": [
+        "range-width-29",
+        "range-width-30"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "PORT-02/04",
+      "boundary": "PORT-02",
+      "required_case": "both ends used over repetitions",
+      "case_ids": [
+        "range-inclusive-ends"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "PORT-02/05",
+      "boundary": "PORT-02",
+      "required_case": "fully exhausted range",
+      "case_ids": [
+        "range-all-occupied"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "PORT-02/06",
+      "boundary": "PORT-02",
+      "required_case": "partial recovery after release",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "PORT-02/07",
+      "boundary": "PORT-02",
+      "required_case": "implicit-zero source address/port bind elision",
+      "case_ids": [
+        "server-service-v4"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "PORT-02/08",
+      "boundary": "PORT-02",
+      "required_case": "fixed source port ignores configured range",
+      "case_ids": [
+        "range-fixed-override"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "PORT-02/09",
+      "boundary": "PORT-02",
+      "required_case": "v4 and v6 share same bounded range independently",
+      "case_ids": [
+        "range-two-families"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "POOL-01/01",
+      "boundary": "POOL-01",
+      "required_case": "two destinations same source limit1 sameport",
+      "case_ids": [
+        "allservers-port-limit-1"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "POOL-01/02",
+      "boundary": "POOL-01",
+      "required_case": "limit2 allocates2 then rotates",
+      "case_ids": [
+        "allservers-port-limit-2"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "POOL-01/03",
+      "boundary": "POOL-01",
+      "required_case": "limit3 repeated client retry",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "POOL-01/04",
+      "boundary": "POOL-01",
+      "required_case": "UDP error failover source identity",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "POOL-01/05",
+      "boundary": "POOL-01",
+      "required_case": "mixed families separate source identity",
+      "case_ids": [
+        "same-fixed-port-two-families",
+        "range-two-families"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "POOL-01/06",
+      "boundary": "POOL-01",
+      "required_case": "differing source address/interface not pooled",
+      "case_ids": [
+        "same-fixed-port-distinct-addresses"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "POOL-01/07",
+      "boundary": "POOL-01",
+      "required_case": "same destination on distinct contexts",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "POOL-01/08",
+      "boundary": "POOL-01",
+      "required_case": "merged client requests do not add random ports",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "POOL-02/01",
+      "boundary": "POOL-02",
+      "required_case": "small range fullness forces cross-query sharing",
+      "case_ids": [
+        "pool-single-port-concurrent"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "POOL-02/02",
+      "boundary": "POOL-02",
+      "required_case": "incompatible source needs temporary FD",
+      "case_ids": [
+        "pool-overflow-incompatible"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "POOL-02/03",
+      "boundary": "POOL-02",
+      "required_case": "exhausted bind chooses existing compatible socket",
+      "case_ids": [
+        "pool-single-port-concurrent"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "POOL-02/04",
+      "boundary": "POOL-02",
+      "required_case": "separate groups share compatible source tuple",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "POOL-02/05",
+      "boundary": "POOL-02",
+      "required_case": "source record removed while references alive",
+      "case_ids": [
+        "pool-retired-source-reference"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "POOL-02/06",
+      "boundary": "POOL-02",
+      "required_case": "pool slot reuse after final owner release",
+      "case_ids": [
+        "pool-slot-reuse-round-robin"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "POOL-02/07",
+      "boundary": "POOL-02",
+      "required_case": "FD count under >numrrand pending queries",
+      "case_ids": [
+        "inherited-nofile-pool-cap",
+        "pool-capacity-compatible"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "POOL-02/08",
+      "boundary": "POOL-02",
+      "required_case": "multiple temporary sockets release cleanly",
+      "case_ids": [
+        "pool-overflow-incompatible"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "POOL-03/01",
+      "boundary": "POOL-03",
+      "required_case": "two queries share FD complete reverse order",
+      "case_ids": [
+        "pool-single-port-concurrent"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "POOL-03/02",
+      "boundary": "POOL-03",
+      "required_case": "first owner completes while second still pending",
+      "case_ids": [
+        "pool-single-port-concurrent"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "POOL-03/03",
+      "boundary": "POOL-03",
+      "required_case": "spoof ID/name/qtype/source",
+      "case_ids": [
+        "shared-socket-invalid-replies",
+        "shared-socket-unrelated-source"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "POOL-03/04",
+      "boundary": "POOL-03",
+      "required_case": "late reply after cancellation",
+      "case_ids": [
+        "late-reply-after-server-retired"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "POOL-03/05",
+      "boundary": "POOL-03",
+      "required_case": "retry success cancellation retains sibling",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "POOL-03/06",
+      "boundary": "POOL-03",
+      "required_case": "ICMP/POLLERR keeps pending references",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "POOL-03/07",
+      "boundary": "POOL-03",
+      "required_case": "recv error bounded processing",
+      "case_ids": [
+        "shared-recvfrom-eio"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "POOL-03/08",
+      "boundary": "POOL-03",
+      "required_case": "no use-after-free on server retirement",
+      "case_ids": [
+        "pool-retired-source-reference"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "POOL-03/09",
+      "boundary": "POOL-03",
+      "required_case": "graceful shutdown releases all FDs",
+      "case_ids": [
+        "@all-cleanup"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "TCP-01/01",
+      "boundary": "TCP-01",
+      "required_case": "v4 source address",
+      "case_ids": [
+        "server-service-source4"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "TCP-01/02",
+      "boundary": "TCP-01",
+      "required_case": "v6 source address",
+      "case_ids": [
+        "server-service-source6"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "TCP-01/03",
+      "boundary": "TCP-01",
+      "required_case": "interface only",
+      "case_ids": [
+        "server-service-interface",
+        "source-ipv6-interface"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "TCP-01/04",
+      "boundary": "TCP-01",
+      "required_case": "interface+source",
+      "case_ids": [
+        "server-service-combined",
+        "source-ipv6-address-interface"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "TCP-01/05",
+      "boundary": "TCP-01",
+      "required_case": "query-port ignored",
+      "case_ids": [
+        "global-port-before"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "TCP-01/06",
+      "boundary": "TCP-01",
+      "required_case": "explicit @source#port ignored",
+      "case_ids": [
+        "server-service-fixed-source"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "TCP-01/07",
+      "boundary": "TCP-01",
+      "required_case": "min/max singleoccupied port ignored",
+      "case_ids": [
+        "range-all-occupied"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "TCP-01/08",
+      "boundary": "TCP-01",
+      "required_case": "invalid source bind failover",
+      "case_ids": [
+        "bad-source-address-failover"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "TCP-01/09",
+      "boundary": "TCP-01",
+      "required_case": "unknown interface failover",
+      "case_ids": [
+        "bad-source-interface-failover"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "TCP-01/10",
+      "boundary": "TCP-01",
+      "required_case": "selected server scope respected",
+      "case_ids": [
+        "server-service-scope6"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "TCP-02/01",
+      "boundary": "TCP-02",
+      "required_case": "two questions share connection/sourceport",
+      "case_ids": [
+        "file-source-snapshot"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "TCP-02/02",
+      "boundary": "TCP-02",
+      "required_case": "broken existing connection reconnect",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "TCP-02/03",
+      "boundary": "TCP-02",
+      "required_case": "one source fails later server succeeds",
+      "case_ids": [
+        "bad-source-address-failover"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "TCP-02/04",
+      "boundary": "TCP-02",
+      "required_case": "new connection after file reload uses new source",
+      "case_ids": [
+        "file-source-snapshot"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "TCP-02/05",
+      "boundary": "TCP-02",
+      "required_case": "open child retains old source/destination",
+      "case_ids": [
+        "file-source-snapshot"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "TCP-02/06",
+      "boundary": "TCP-02",
+      "required_case": "pending query spanning reload",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "TCP-02/07",
+      "boundary": "TCP-02",
+      "required_case": "child shutdown/EOF no owner FD leak",
+      "case_ids": [
+        "@all-cleanup"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "FILE-01/01",
+      "boundary": "FILE-01",
+      "required_case": "hostname A/AAAA expansion",
+      "case_ids": [
+        "file-mixed-directives"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "FILE-01/02",
+      "boundary": "FILE-01",
+      "required_case": "error hostname row followed valid numeric row",
+      "case_ids": [
+        "system-resolver-nxdomain",
+        "file-errors-continue"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "FILE-01/03",
+      "boundary": "FILE-01",
+      "required_case": "strict scope valid/error rows",
+      "case_ids": [
+        "file-errors-continue",
+        "file-partial-success-before-scope-error"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "FILE-01/04",
+      "boundary": "FILE-01",
+      "required_case": "explicit source address/interface/port",
+      "case_ids": [
+        "file-source-snapshot"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "FILE-01/05",
+      "boundary": "FILE-01",
+      "required_case": "mismatched resolved source family skipped",
+      "case_ids": [
+        "server-service-named-v4-source",
+        "server-service-named-v6-source"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "FILE-01/06",
+      "boundary": "FILE-01",
+      "required_case": "invalid numeric family row followed valid row",
+      "case_ids": [
+        "file-errors-continue"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "FILE-01/07",
+      "boundary": "FILE-01",
+      "required_case": "changes /etc/hosts before HUP alter expansion",
+      "case_ids": [
+        "file-hosts-hup-no-auto"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "FILE-01/08",
+      "boundary": "FILE-01",
+      "required_case": "no automatic reload after file write",
+      "case_ids": [
+        "file-hosts-hup-no-auto"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "FILE-01/09",
+      "boundary": "FILE-01",
+      "required_case": "duplicate/order/replacement with inline server/local/rev rules",
+      "case_ids": [
+        "file-mixed-directives",
+        "file-source-snapshot"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "OWNER-01/01",
+      "boundary": "OWNER-01",
+      "required_case": "slow getaddrinfo startup readiness gate",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "OWNER-01/02",
+      "boundary": "OWNER-01",
+      "required_case": "slow runtime hostname lookup while UDP DNS serves",
+      "case_ids": [
+        "slow-lookup-owner-dns-dhcp-tftp"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "OWNER-01/03",
+      "boundary": "OWNER-01",
+      "required_case": "runtime slow lookup while TCP/DHCP/TFTP progresses",
+      "case_ids": [
+        "slow-lookup-owner-dns-dhcp-tftp"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "OWNER-01/04",
+      "boundary": "OWNER-01",
+      "required_case": "resolver worker failure/timeout/cancellation",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "OWNER-01/05",
+      "boundary": "OWNER-01",
+      "required_case": "repeated HUP while lookup active bounded queue",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "OWNER-01/06",
+      "boundary": "OWNER-01",
+      "required_case": "shutdown while lookup active reaps owned child",
+      "case_ids": [],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "OWNER-01/07",
+      "boundary": "OWNER-01",
+      "required_case": "source open/socket errors leave other services live",
+      "case_ids": [
+        "bad-source-address-failover",
+        "bad-source-interface-failover"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "OWNER-01/08",
+      "boundary": "OWNER-01",
+      "required_case": "one parent daemon thread",
+      "case_ids": [
+        "@all-parent-thread-count"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "OBS-01/01",
+      "boundary": "OBS-01",
+      "required_case": "source and destination tuple captured on actual upstream receives",
+      "case_ids": [
+        "@all-source-tuples"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "OBS-01/02",
+      "boundary": "OBS-01",
+      "required_case": "source bind negative control",
+      "case_ids": [
+        "@negative-controls"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "OBS-01/03",
+      "boundary": "OBS-01",
+      "required_case": "missing-expanded-address negative control",
+      "case_ids": [
+        "@negative-controls"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "OBS-01/04",
+      "boundary": "OBS-01",
+      "required_case": "wrong shared port/pool rotation negative control",
+      "case_ids": [
+        "@negative-controls"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "OBS-01/05",
+      "boundary": "OBS-01",
+      "required_case": "stale serverfile rule negative control",
+      "case_ids": [
+        "file-hosts-hup-no-auto"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "OBS-01/06",
+      "boundary": "OBS-01",
+      "required_case": "readiness/lifecycle and leaked child negative controls",
+      "case_ids": [
+        "@all-cleanup"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "OBS-01/07",
+      "boundary": "OBS-01",
+      "required_case": "raw archive SHA+metadata verification before remote prune",
+      "case_ids": [
+        "@archive-verification"
+      ],
+      "status": "awaiting-concrete-evidence"
+    },
+    {
+      "id": "OBS-01/08",
+      "boundary": "OBS-01",
+      "required_case": "per-family ELF identity and size increment",
+      "case_ids": [
+        "@candidate-identity"
+      ],
+      "status": "awaiting-concrete-evidence"
+    }
+  ]
+}

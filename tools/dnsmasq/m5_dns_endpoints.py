@@ -180,6 +180,16 @@ def service_cases():
             reuse_actions.extend([dict(op='inject',id=ident,server=0),dict(op='receive-udp',id=ident,pending=ident)])
     add('pool-slot-reuse-round-robin','dns-forward-max=40\nserver=127.0.0.2\n',inherited_nofile=40,port_epochs=True,actions=reuse_actions)
     add('pool-retired-source-reference','dns-forward-max=2\nall-servers\nservers-file=/m2/files/servers\n',no_resolv=False,default_resolv=True,files={'resolv':'nameserver 127.0.0.2\n','servers':'server=127.0.0.3\n'},actions=[dict(op='start-udp',id='held',name='held.endpoint.test',upstream_count=2),write('resolv',''),dict(op='pause',seconds=.2),probe('new','new.endpoint.test',transports=['udp']),dict(op='inject',id='held',server=1,capture_server=0),dict(op='receive-udp',id='held',pending='held')],udp_unique_ports=2)
+    mixed_config=('servers-file=/m2/files/servers\ninterface=lo\nno-ping\n'
+                  'dhcp-range=127.0.0.10,127.0.0.20,255.0.0.0,600\n'
+                  'dhcp-option=224,owner-witness\ndhcp-leasefile=/m2/files/leases\n'
+                  'enable-tftp\ntftp-root=/m2/files\n')
+    add('slow-lookup-owner-dns-dhcp-tftp',mixed_config,resolver_fixture=True,resolver_delay=.5,owner_progress=True,
+        sys_files={'/etc/hosts':'','/etc/resolv.conf':'nameserver 127.0.0.2\noptions timeout:3 attempts:1\n'},
+        files={'servers':'server=127.0.0.3\n','payload':'T'*1400},
+        actions=[write('servers','server=lookup.endpoint.test\n'),signal_reload(),
+                 probe('during','ready.files.test'),dict(op='dhcp-inform',id='during-dhcp'),dict(op='tftp-start',id='transfer'),dict(op='tftp-finish',id='transfer'),
+                 dict(op='pause',seconds=.4),probe('resolved','resolved.endpoint.test')])
     return cases
 
 
@@ -260,10 +270,12 @@ def run_service_side(root, side, case, folder):
                     host=read_name(packet,12)[0]
                     resolving=case.get('resolver_fixture') and host=='lookup.endpoint.test' and self.host=='127.0.0.2'
                     self.source_events.append(dict(transport='resolver' if resolving else 'udp',peer=list(peer),destination=list(self.udp.getsockname()),name=host,wire=packet.hex()))
+                    event=self.source_events[-1]
                     if resolving and case.get('resolver_delay'): time.sleep(case['resolver_delay'])
                     self.captured.append((packet,peer,response))
                     if self.probes.get((read_name(packet,12)[0],struct.unpack_from('!H',packet,read_name(packet,12)[1])[0]),{}).get('drop_all'): continue
                     if 'udp_winner' in case and self.host!=['127.0.0.2','127.0.0.3','127.0.0.4'][case['udp_winner']]: time.sleep(.05)
+                    if resolving: event['reply_at']=time.monotonic()
                     self.udp.sendto(response,peer)
                 except socket.timeout: continue
                 except OSError:
@@ -284,6 +296,22 @@ def run_service_side(root, side, case, folder):
     SourceCapture.instances=[]
     occupied=[]
     original_socket=socket.socket
+    progress_receipts=[]
+    def lookup_pending():
+        return any(row['transport']=='resolver' and 'reply_at' not in row for upstream in SourceCapture.instances for row in upstream.source_events)
+    class ProgressSocket(original_socket):
+        def record(self,data,peer=None):
+            if case.get('owner_progress') and threading.current_thread() is threading.main_thread() and data:
+                if peer is None:
+                    try: peer=self.getpeername()
+                    except OSError: peer=None
+                progress_receipts.append({'pending':lookup_pending(),'tcp':self.type==socket.SOCK_STREAM,'peer':list(peer) if peer else None,'prefix':data[:4].hex(),'bytes':len(data),'at':time.monotonic()})
+        def recv(self,*args):
+            data=super().recv(*args);self.record(data);return data
+        def recvfrom(self,*args):
+            result=super().recvfrom(*args);self.record(result[0],result[1]);return result
+        def recvmsg(self,*args):
+            result=super().recvmsg(*args);self.record(result[0],result[3]);return result
     class ReservedListener(original_socket):
         def bind(self,address):
             if address==('127.0.0.1',0):
@@ -291,7 +319,7 @@ def run_service_side(root, side, case, folder):
                 address=('127.0.0.1',15353)
             return super().bind(address)
     def fixture_socket(*args,**kwargs):
-        return ReservedListener() if not args and not kwargs else original_socket(*args,**kwargs)
+        return ReservedListener() if not args and not kwargs else (ProgressSocket(*args,**kwargs) if case.get("owner_progress") else original_socket(*args,**kwargs))
     files.socket.socket=fixture_socket
     original_command=files.command
     def wrapped_command(root,side,*args):
@@ -310,6 +338,7 @@ def run_service_side(root, side, case, folder):
         files.process_identity=original_identity
         files.socket.socket=original_socket
     result['source_events']=[row for upstream in SourceCapture.instances for row in upstream.source_events]
+    result['progress_receipts']=progress_receipts
     result['injected_packets']=[row for upstream in SourceCapture.instances for row in getattr(upstream,'injected',[])]
     result['recv_faults']=[upstream.recv_fault for upstream in SourceCapture.instances if hasattr(upstream,'recv_fault')]
     result['fixture_errors']=[error for upstream in SourceCapture.instances for error in upstream.errors]
@@ -346,7 +375,7 @@ def source_projection(observed,case):
     exact=set(case.get('source_range') or [])
     if 'expected_source_port' in case: exact.add(case['expected_source_port'])
     for original in observed['source_events']:
-        row=copy.deepcopy(original);row.pop('wire',None)
+        row=copy.deepcopy(original);row.pop('wire',None);row.pop('reply_at',None)
         port=row['peer'][1]
         key=(row['transport'],port,row['name'].split('-')[0] if case.get('port_epochs') else '')
         sequential_range=row['transport']=='udp' and case.get('source_range') and not case.get('same_udp_port') and 'udp_unique_ports' not in case
@@ -391,7 +420,7 @@ def run_service(args, cases):
     sides=['c','rust'] if args.side=='both' else ['c']
     roots={side:prepare(args.image_root,None,args.out/side,args.rust) for side in sides}
     save(args.out/'schedule.json',cases)
-    report={'mode':'service','fixture_environment':{'listener_port':15353,'ephemeral_range':[40000,60999],'privileged_port_start':1024},'source_commit':args.source_commit,'rust_sha256':sha256(args.rust),'rust_bytes':args.rust.stat().st_size,'c_sha256':STOCK_SHA256,'comparison_executed':args.side=='both','cases':[],'failures':[],'closed_options':[],'negative_controls':controls()}
+    report={'mode':'service','fixture_environment':{'listener_port':15353,'ephemeral_range':[40000,60999],'privileged_port_start':1024},'source_commit':args.source_commit,'rust_sha256':sha256(args.rust),'rust_bytes':args.rust.stat().st_size,'c_sha256':STOCK_SHA256,'comparison_executed':args.side=='both','cases':[],'failures':[],'closed_options':[],'negative_controls':controls(),'reference_differences':[]}
     for case in cases:
         folder=args.out/case['id'];folder.mkdir()
         row={'id':case['id'],'failures':[]}
@@ -402,12 +431,33 @@ def run_service(args, cases):
             timeout_ids={action['id']+':udp-async' for action in case['actions'] if action.get('expect_timeout')}
             if any((entry.get('response') is None)!=(entry['id'] in timeout_ids) for entry in observed['c']['rows'] if entry['id'].endswith('udp-async')): row['failures'].append(dict(phase='c-async-calibration',error='missing awaited UDP reply'))
             if args.side=='both':
-                row['failures'].extend(files.compare(observed['c'],observed['rust'],case))
+                comparison=copy.deepcopy(observed)
+                compared_case=copy.deepcopy(case)
+                if case.get('owner_progress'):
+                    c_health=next(record for record in observed['c']['rows'] if record['id']=='during:udp')
+                    rust_health=next(record for record in observed['rust']['rows'] if record['id']=='during:udp')
+                    if c_health['response'] is not None or rust_health['response'] is None: row['failures'].append(dict(phase='blocked-reference-owner',c=c_health,rust=rust_health))
+                    report['reference_differences'].append({'case':case['id'],'boundary':'OWNER-01','contract':'C blocks its owner in getaddrinfo; Rust resolves in an isolated child while DNS/DHCP/TFTP continue.','c_health':c_health,'rust_health':rust_health})
+                    for side in comparison.values():
+                        side['rows']=[record for record in side['rows'] if record['id']!='during:udp']
+                        for record in side['rows']:
+                            for upstream in record.get('upstreams',[]): upstream['events']=[event for event in upstream['events'] if event['name']!='lookup.endpoint.test']
+                    for action in compared_case['actions']:
+                        if action.get('id')=='during': action['transports']=['tcp']
+                row['failures'].extend(files.compare(comparison['c'],comparison['rust'],compared_case))
                 if case.get('source_diagnostics') and observed['c']['source_diagnostics']!=observed['rust']['source_diagnostics']: row['failures'].append(dict(phase='source-diagnostic',c=observed['c']['source_diagnostics'],rust=observed['rust']['source_diagnostics']))
                 c,rust=(source_projection(observed[side],case) for side in ('c','rust'))
                 if c!=rust: row['failures'].append(dict(phase='source-tuples',c=c,rust=rust))
             for side,result in observed.items():
                 row['failures'].extend(dict(phase='source-witness',side=side,error=error) for error in result['source_guard_errors']+result['fixture_errors'])
+            if case.get('owner_progress') and args.side=='both':
+                receipts=[record for record in observed['rust']['progress_receipts'] if record['pending']]
+                witnessed={
+                    'udp_dns':any(record['peer'] and record['peer'][1]==15353 and not record['tcp'] for record in receipts),
+                    'tcp_dns':any(record['peer'] and record['peer'][1]==15353 and record['tcp'] for record in receipts),
+                    'dhcp':any(record['peer'] and record['peer'][1]==67 for record in receipts),
+                    'tftp':any(record['prefix'].startswith('0003') and not record['tcp'] for record in receipts)}
+                if not all(witnessed.values()): row['failures'].append(dict(phase='owner-progress',witnessed=witnessed))
             row['rows']=len(observed['c']['rows'])
         except Exception as error: row['failures'].append(dict(phase='infrastructure',error=repr(error)))
         report['cases'].append(row)
