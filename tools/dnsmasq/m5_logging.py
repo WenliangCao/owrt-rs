@@ -250,6 +250,13 @@ def cases():
                      'file': '/m2/logging/daemon.log' if name.startswith('log-') else None,
                      'argv': ['--log-facility=/m2/logging/daemon.log'] if name.startswith('log-') else ['--log-facility=-'],
                      'receiver': 'dgram', 'options': ['no-daemon', 'log-facility']})
+    opaque_log = b'/m2/logging/daemon-\xff.log'
+    rows.append({'id': 'file-owner-warning-opaque-path', 'scope': 'startup-fault', 'kind': 'run',
+                 'mode': ['-k'], 'daemonized': False, 'fault': 'log-chown', 'fault_number': 55,
+                 'fault_errno': errno.EPERM, 'pidfile': '/m2/logging/daemon.pid', 'user': 'nobody',
+                 'file': os.fsdecode(opaque_log), 'argv': [], 'receiver': 'dgram',
+                 'config_bytes': (b'log-facility=' + opaque_log + b'\n').hex(),
+                 'options': ['log-facility']})
     for name, number in [('setgroups', 159), ('setgid', 144), ('setuid', 146), ('capset', 91), ('keepcaps', 167)]:
         rows.append({'id': 'credential-fault-' + name, 'scope': 'credential-fault', 'kind': 'run',
                      'mode': ['-k'], 'fault': name, 'fault_number': number, 'fault_errno': errno.EPERM,
@@ -1365,7 +1372,7 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                 elif case.get('fault_target') == 'stream-write':
                     match &= args[0] == logging_socket and logging_socket_type == 1
                 elif case['fault'].startswith('log-'):
-                    match &= target.endswith('/m2/logging/daemon.log')
+                    match &= target.endswith(case.get('file') or '/m2/logging/daemon.log')
                 if not match:
                     continue
                 pending = {'number': number, 'args': list(args), 'target': target}
