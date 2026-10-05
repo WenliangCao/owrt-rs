@@ -12,6 +12,7 @@ const IN_NONBLOCK: i32 = 0o4000;
 const IN_CLOEXEC: i32 = 0o2000000;
 const IN_CLOSE_WRITE: u32 = 0x8;
 const IN_MOVED_TO: u32 = 0x80;
+const IN_DELETE: u32 = 0x200;
 // Pinned AArch64 musl sys/param.h; C allows 20 traversals, rejects the 21st.
 const MAX_SYMLINKS: usize = 20;
 
@@ -239,6 +240,8 @@ struct WatchedFile {
 pub struct FileWatch {
     fd: File,
     files: Vec<WatchedFile>,
+    directories: Vec<(i32, usize)>,
+    hosts_events: Vec<super::hostsdir::DirectoryEvent>,
 }
 
 impl FileWatch {
@@ -254,6 +257,8 @@ impl FileWatch {
             // SAFETY: fresh descriptor, transferred exactly once to File.
             fd: unsafe { File::from_raw_fd(fd) },
             files: Vec::new(),
+            directories: Vec::new(),
+            hosts_events: Vec::new(),
         };
         for original in paths {
             let original = original.as_ref();
@@ -295,6 +300,28 @@ impl FileWatch {
         self.fd.as_raw_fd()
     }
 
+    pub fn add_hosts_directory(&mut self, directory: usize, path: &Path) -> io::Result<()> {
+        let path = CString::new(path.as_os_str().as_bytes())
+            .map_err(|_| io::Error::from_raw_os_error(22))?;
+        // SAFETY: live C string and shared owned nonblocking inotify descriptor.
+        let descriptor = unsafe {
+            inotify_add_watch(
+                self.raw_fd(),
+                path.as_ptr(),
+                IN_CLOSE_WRITE | IN_MOVED_TO | IN_DELETE,
+            )
+        };
+        if descriptor < 0 {
+            return Err(io::Error::last_os_error());
+        }
+        self.directories.push((descriptor, directory));
+        Ok(())
+    }
+
+    pub fn take_hosts_events(&mut self) -> Vec<super::hostsdir::DirectoryEvent> {
+        std::mem::take(&mut self.hosts_events)
+    }
+
     pub(super) fn pending(&self) -> io::Result<bool> {
         let mut fds = [owrt_ubus::sys::PollFd {
             fd: self.raw_fd(),
@@ -322,9 +349,11 @@ impl FileWatch {
         }
     }
 
-    fn contains_resolver_event(&self, mut bytes: &[u8]) -> bool {
+    fn contains_resolver_event(&mut self, mut bytes: &[u8]) -> bool {
+        let mut resolver_hit = false;
         while bytes.len() >= 16 {
             let descriptor = i32::from_ne_bytes(bytes[..4].try_into().unwrap());
+            let mask = u32::from_ne_bytes(bytes[4..8].try_into().unwrap());
             let length = u32::from_ne_bytes(bytes[12..16].try_into().unwrap()) as usize;
             let Some(name) = bytes.get(16..16usize.saturating_add(length)) else {
                 break;
@@ -336,19 +365,25 @@ impl FileWatch {
                     .iter()
                     .any(|file| file.descriptor == descriptor && file.name == name)
             {
-                return true;
+                resolver_hit = true;
+            }
+            if watched_name(name) && mask & (IN_CLOSE_WRITE | IN_MOVED_TO | IN_DELETE) != 0 {
+                for &(_, directory) in self.directories.iter().filter(|(wd, _)| *wd == descriptor) {
+                    self.hosts_events.push(super::hostsdir::DirectoryEvent {
+                        directory,
+                        name: name.to_vec(),
+                        deleted: mask & IN_DELETE != 0,
+                    });
+                }
             }
             bytes = &bytes[16 + length..];
         }
-        false
+        resolver_hit
     }
 }
 
 fn watched_name(name: &[u8]) -> bool {
-    !name.is_empty()
-        && name[0] != b'.'
-        && !name.ends_with(b"~")
-        && !(name.starts_with(b"#") && name.ends_with(b"#"))
+    super::hostsdir::watched_name(name)
 }
 
 fn follow_links(original: &Path) -> Result<(PathBuf, io::Error), WatchError> {
@@ -419,5 +454,48 @@ mod tests {
             assert_eq!(watch.contains_resolver_event(&event), name == b"resolv");
             assert!(!watch.contains_resolver_event(&event[..15]));
         }
+    }
+
+    #[test]
+    fn shared_directory_watch_preserves_burst_order_after_a_resolver_hit() {
+        let mut watch = FileWatch::new(std::iter::empty::<&Path>()).unwrap();
+        watch.files.push(WatchedFile {
+            descriptor: 7,
+            name: b"resolv".to_vec(),
+        });
+        watch.directories.extend([(7, 0), (7, 1)]);
+        let mut bytes = Vec::new();
+        for (mask, name) in [
+            (IN_CLOSE_WRITE, b"resolv".as_slice()),
+            (IN_DELETE, b"one"),
+            (0x40, b"moved-from"),
+            (0x100, b"create"),
+            (IN_MOVED_TO, b"two"),
+            (IN_DELETE, b".hidden"),
+        ] {
+            bytes.extend_from_slice(&7i32.to_ne_bytes());
+            bytes.extend_from_slice(&mask.to_ne_bytes());
+            bytes.extend_from_slice(&0u32.to_ne_bytes());
+            bytes.extend_from_slice(&((name.len() + 1) as u32).to_ne_bytes());
+            bytes.extend_from_slice(name);
+            bytes.push(0);
+        }
+        assert!(watch.contains_resolver_event(&bytes));
+        let events = watch.take_hosts_events();
+        assert_eq!(
+            events
+                .iter()
+                .map(|event| (event.directory, event.name.as_slice(), event.deleted))
+                .collect::<Vec<_>>(),
+            [
+                (0, b"resolv".as_slice(), false),
+                (1, b"resolv", false),
+                (0, b"one", true),
+                (1, b"one", true),
+                (0, b"two", false),
+                (1, b"two", false)
+            ]
+        );
+        assert!(watch.take_hosts_events().is_empty());
     }
 }

@@ -11,6 +11,7 @@ pub mod filewatch;
 pub mod forward;
 pub mod forward_service;
 pub mod interface_records;
+pub mod hostsdir;
 pub mod lease_names;
 pub mod local;
 pub mod loop_detect;
