@@ -105,6 +105,9 @@ impl Hosts {
             return false;
         }
         let key = name.to_ascii_lowercase();
+        // make_non_terminals deletes an empty ancestor when a real name takes
+        // its place. Deleting that later real entry does not restore it.
+        self.non_terminals.remove(&key);
         let indices = self.forward.entry(key.clone()).or_default();
         let id = self.entries.len();
         let reverse =
@@ -142,6 +145,39 @@ impl Hosts {
 
     pub fn reverse(&self, address: IpAddr) -> Option<&Host> {
         self.reverse.get(&address).map(|&id| &self.entries[id])
+    }
+
+    /// cache_remove_uid removes this path's accepted entries, without reloading
+    /// other paths or promoting their previously suppressed PTR ownership.
+    pub fn remove_uid(&mut self, source: u32) -> usize {
+        let before = self.entries.len();
+        let mut relocated = vec![None; before];
+        let mut old = 0;
+        let mut new = 0;
+        self.entries.retain(|entry| {
+            let keep = entry.source != source;
+            if keep {
+                relocated[old] = Some(new);
+                new += 1;
+            }
+            old += 1;
+            keep
+        });
+        self.forward.retain(|_, indices| {
+            *indices = indices.iter().filter_map(|&id| relocated[id]).collect();
+            !indices.is_empty()
+        });
+        self.reverse.retain(|_, id| {
+            if let Some(next) = relocated[*id] {
+                *id = next;
+                true
+            } else {
+                false
+            }
+        });
+        // Fresh C non-terminals have their own zero UID; their ancestor names
+        // are not reconstructed from remaining address records on removal.
+        before - new
     }
 
     pub fn name_exists(&self, name: &[u8]) -> bool {
@@ -246,6 +282,52 @@ impl Hosts {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn incremental_source_removal_keeps_skipped_duplicates_and_ptr_suppressed() {
+        let mut hosts = Hosts::new();
+        let address = "192.0.2.7".parse().unwrap();
+        assert!(hosts.insert(b"first.records.test".to_vec(), address, 0, 7));
+        assert!(!hosts.insert(b"first.records.test".to_vec(), address, 0, 8));
+        assert!(hosts.insert(b"second.records.test".to_vec(), address, 0, 8));
+        assert_eq!(hosts.remove_uid(7), 1);
+        assert!(hosts.addresses(b"first.records.test").next().is_none());
+        assert_eq!(hosts.addresses(b"second.records.test").count(), 1);
+        assert!(hosts.reverse(address).is_none());
+        assert_eq!(hosts.remove_uid(7), 0);
+        assert!(hosts.insert(b"new.records.test".to_vec(), address, 0, 7));
+        assert_eq!(hosts.reverse(address).unwrap().name, b"new.records.test");
+    }
+
+    #[test]
+    fn source_removal_preserves_forward_rotation_and_real_name_ancestor_takeover() {
+        let mut hosts = Hosts::new();
+        for (source, address) in [(1, "192.0.2.1"), (2, "192.0.2.2"), (3, "192.0.2.3")] {
+            hosts.insert(
+                b"one.records.test".to_vec(),
+                address.parse().unwrap(),
+                0,
+                source,
+            );
+        }
+        hosts.lookup(b"one.records.test", Some(false), false);
+        assert_eq!(hosts.remove_uid(1), 1);
+        let addresses: Vec<_> = hosts
+            .addresses(b"one.records.test")
+            .map(|host| host.address)
+            .collect();
+        assert_eq!(
+            addresses,
+            [
+                "192.0.2.3".parse::<IpAddr>().unwrap(),
+                "192.0.2.2".parse().unwrap()
+            ]
+        );
+        assert!(hosts.name_exists(b"records.test"));
+        hosts.insert(b"records.test".to_vec(), "192.0.2.4".parse().unwrap(), 0, 4);
+        hosts.remove_uid(4);
+        assert!(!hosts.name_exists(b"records.test"));
+    }
 
     #[test]
     fn canonical_names_preserve_c_edge_cases() {
