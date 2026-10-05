@@ -23,7 +23,7 @@ import time
 from dns_service_probe import query, exact_read
 from m2_rootfs import command, prepare, process_identity, sha256
 from m5_edns_netlink import trace as trace_neighbor
-from m5_edns import Upstream, options as edns_options, query as edns_query
+from m5_edns import Upstream, fixture_stream, options as edns_options, query as edns_query
 
 HERE = Path(__file__).resolve().parent
 PORT = 15353
@@ -566,7 +566,9 @@ def run_side(args):
                     if spec.get('reference_difference'):
                         receipt = json.loads((folder / 'netlink-fault.json').read_text())
                         row['reference_difference'] = spec['reference_difference']
-                        row['fault'] = dict(injected=receipt['injected'], mode=receipt['mode'])
+                        stream = fixture_stream(receipt['wire'])
+                        assert stream is not None, 'complete raw fault stream identity'
+                        row['fault'] = dict(injected=receipt['injected'], mode=receipt['mode'], wire=stream[0].hex())
                     rows.append(row)
         except Exception as error:
             failed = dict(case=label, error=repr(error))
@@ -646,10 +648,15 @@ def main():
                 spec = reference_specs.get(c_row['case'])
                 if spec:
                     wanted = spec['reference_difference']
-                    proof = dict(injected=True, mode=spec['netlink_mode'])
+                    c_other, r_other = c_row.copy(), r_row.copy()
+                    c_other.pop('callbacks')
+                    r_other.pop('callbacks')
+                    c_fault, r_fault = c_row.get('fault', {}), r_row.get('fault', {})
                     if (c_row.get('callbacks') == spec['expected'] and r_row.get('callbacks') == []
                             and c_row.get('reference_difference') == r_row.get('reference_difference') == wanted
-                            and c_row.get('fault') == r_row.get('fault') == proof
+                            and c_other == r_other and c_fault == r_fault
+                            and c_fault.get('injected') and c_fault.get('mode') == spec['netlink_mode']
+                            and c_fault.get('wire')
                             and c_row.get('dns_health') and r_row.get('dns_health')):
                         continue
                 result.append(dict(c=c_row, rust=r_row))
