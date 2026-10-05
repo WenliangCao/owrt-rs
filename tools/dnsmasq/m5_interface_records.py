@@ -506,6 +506,7 @@ def trace_enumeration(pid,side,stage,output):
             info=(ctypes.c_ubyte*128)();ptrace(0x420e,ctypes.sizeof(info),ctypes.addressof(info));regs()
             if info[0]==1:
                 number=int(registers[8]);active={'syscall':number,'fd':int(registers[0])};fault=False
+                if number in (207,212):active['receive_flags']=int(registers[3 if number==207 else 2])
                 if number==206 and int(registers[2])>=17:
                     request=memory(registers[1],17)
                     kind=struct.unpack_from('=H',request,4)[0];family=request[16]
@@ -515,7 +516,7 @@ def trace_enumeration(pid,side,stage,output):
                         report['events'].append(dict(active,phase='request'))
                 if stage=='before-clear':
                     fault=number==198 and int(registers[0])==(2 if side=='c' else 16) and (int(registers[1])&15)==(2 if side=='c' else 3)
-                elif armed is not None and number in (207,212) and int(registers[0])==armed:
+                elif armed is not None and number in (207,212) and int(registers[0])==armed and not active['receive_flags']&2:
                     family=next(row['dump_family'] for row in reversed(report['events']) if 'dump_family' in row)
                     fault=stage=='empty' or (stage=='partial' and (family==2 if side=='c' else received))
                 if fault:
@@ -527,7 +528,7 @@ def trace_enumeration(pid,side,stage,output):
                     report['events'].append(dict(active,phase='return',result=-errno.EIO,injected=True));report['injected']=True
                     ptrace(17);attached=False;break
                 if armed is not None and active['fd']==armed and active['syscall'] in (207,212):
-                    report['events'].append(dict(active,phase='return',result=returned,injected=False));received|=returned>0
+                    report['events'].append(dict(active,phase='return',result=returned,injected=False));received|=returned>0 and not active['receive_flags']&2
                 active=None
     finally:
         if attached:
