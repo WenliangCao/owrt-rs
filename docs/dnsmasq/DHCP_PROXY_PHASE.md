@@ -1,0 +1,9 @@
+# DHCP relay server identifier policy
+
+`dhcp-proxy` is qualified against the exact OpenWrt 25.12.5 image C daemon: **13 paired cases across 2 source boundaries**, no missing case or observation difference, and 4 mutation controls rejected. The [closure receipt](../../private/dnsmasq-rewrite/evidence/M5/dhcp-network/close-proxy-4866-20261005.json) records the source and artifact identities.
+
+The optional argument selects all relays or an accumulated IPv4 address list. A bare repetition after a configured list retains that list. For an eligible nonzero giaddr, the relay replaces the advertised server identifier only when relay-agent suboption 11 has not supplied a nonzero override. Direct requests and the existing all-ones relay source extension retain their ordinary server identifier. This policy is distinct from PXE proxy ranges.
+
+Actual OFFER, selecting REQUEST/ACK with accepted lease state, and INFORM callers pass. The override is computed after remote context selection, preserving C's existing context default-route behavior. Packet headers, ordered DHCP options, receiving peer and cleanup are compared; the qualifier rejects missing cases, changed server identifiers, changed packet fields and fixture failures.
+
+Candidate `486635d7` has ELF SHA256 `c7b944fac9792e3606bccffd30ffeed76cf86167350e9a2ebfe53a5825f76750`, 1,789,992 bytes. Image C ELF SHA256 is `097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87`. Raw configs, packets, logs, overlays and source snapshots remain private. Archive SHA256 `45a1142d273fcdc9bde059268234b719760a4caec529a15a39305a4fcf912420` covers 585 entries / 420 regular files, verified locally for SHA256 and all metadata before remote pruning. Early shared-network fixture failures in that archive are preserved and do not qualify shared-network. No physical router state changed.
