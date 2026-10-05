@@ -1016,6 +1016,7 @@ fn run_inner(
             )
             .map_err(NetworkStartupError)?;
         listener.set_dump(dump.clone());
+        listener.set_logging(dhcp_config.log_dhcp);
         Some(DhcpService {
             provider,
             listener,

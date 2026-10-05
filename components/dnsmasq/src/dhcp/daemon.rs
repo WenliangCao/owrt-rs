@@ -633,7 +633,15 @@ impl LocalProvider {
         decision: pxe::Decision,
         listener: bool,
         now: i64,
+        interface_name: Option<&[u8]>,
+        mac: Option<&[u8]>,
     ) -> Outcome {
+        let logging = DhcpLogging {
+            quiet_dhcp: self.config.quiet_dhcp,
+            log_options: self.config.log_dhcp,
+            has_error: false,
+        };
+        let xid = packet.transaction_id();
         self.direct_pxe = match decision {
             pxe::Decision::BootItem { client, reply } => {
                 let selected =
@@ -648,6 +656,35 @@ impl LocalProvider {
                     &encoding,
                 );
                 self.message_counters.pxe = self.message_counters.pxe.wrapping_add(1);
+                if let Some(message) = super::logging::packet(
+                    logging,
+                    super::logging::PacketLog {
+                        kind: b"PXE",
+                        address: Some(reply.assigned_address),
+                        mac,
+                        interface: interface_name,
+                        extra: Some(&reply.target.filename[..reply.target.filename.len().min(127)]),
+                        error: None,
+                        xid,
+                    },
+                ) {
+                    self.network_notices.push(crate::logging::LogEvent::new(
+                        crate::logging::Service::Dhcp,
+                        crate::logging::Priority::Info,
+                        message,
+                    ));
+                }
+                if logging.log_options {
+                    let mut tags = selected.tags.clone();
+                    tags.reverse();
+                    if let Some(message) = super::logging::tags(xid, &tags) {
+                        self.network_notices.push(crate::logging::LogEvent::new(
+                            crate::logging::Service::Dhcp,
+                            crate::logging::Priority::Info,
+                            message,
+                        ));
+                    }
+                }
                 Some(DirectPxeReply {
                     fields: reply.fields(packet),
                     options,
@@ -717,12 +754,49 @@ impl LocalProvider {
                 );
                 self.selected_boot = boot;
                 self.message_counters.pxe = self.message_counters.pxe.wrapping_add(1);
+                if let Some(message) = super::logging::packet(
+                    logging,
+                    super::logging::PacketLog {
+                        kind: b"PXE",
+                        address: None,
+                        mac,
+                        interface: interface_name,
+                        extra: Some(if ignored { b"proxy-ignored" } else { b"proxy" }),
+                        error: None,
+                        xid,
+                    },
+                ) {
+                    self.network_notices.push(crate::logging::LogEvent::new(
+                        crate::logging::Service::Dhcp,
+                        crate::logging::Priority::Info,
+                        message,
+                    ));
+                }
+                if logging.log_options {
+                    let mut tags = selected.tags.clone();
+                    tags.reverse();
+                    if let Some(message) = super::logging::tags(xid, &tags) {
+                        self.network_notices.push(crate::logging::LogEvent::new(
+                            crate::logging::Service::Dhcp,
+                            crate::logging::Priority::Info,
+                            message,
+                        ));
+                    }
+                }
                 (!ignored).then_some(DirectPxeReply {
                     fields: reply.fields,
                     options,
                 })
             }
             pxe::Decision::Ignore => None,
+            pxe::Decision::UnsupportedBis => {
+                self.network_notices.push(crate::logging::LogEvent::new(
+                    crate::logging::Service::Dhcp,
+                    crate::logging::Priority::Error,
+                    b"PXE BIS not supported".to_vec(),
+                ));
+                None
+            }
             pxe::Decision::Continue(_) => unreachable!("ordinary PXE remains in state path"),
         };
         let removed = self.leases.prune(None, now);
@@ -1671,6 +1745,29 @@ impl LocalProvider {
             .config
             .network
             .server_override(packet.giaddr(), override_server);
+        if self.selected.is_empty() {
+            let via = if !subnet.is_unspecified() {
+                format!("with subnet selector {subnet}")
+            } else if !packet.giaddr().is_unspecified() {
+                format!("via {}", packet.giaddr())
+            } else {
+                format!(
+                    "via {}",
+                    String::from_utf8_lossy(interface_name.unwrap_or(b"(null)"))
+                )
+            };
+            self.network_notices.push(crate::logging::LogEvent::new(
+                crate::logging::Service::Dhcp,
+                crate::logging::Priority::Warning,
+                format!("no address range available for DHCP request {via}").into_bytes(),
+            ));
+            return Ok(Outcome {
+                reply: Reply::Ignore,
+                removed: Vec::new(),
+                lost_names: Vec::new(),
+            });
+        }
+
         let mut ranges: Vec<_> = self
             .selected
             .iter()
@@ -1754,25 +1851,17 @@ impl LocalProvider {
                         value.into_bytes(),
                     ));
             }
-            for (code, label) in [
-                (60, b"vendor class: ".as_slice()),
-                (77, b"user class: ".as_slice()),
-            ] {
-                if let Some(value) = packet.option(code, 1) {
-                    let value = if code == 77 {
-                        super::logging::user_class(value)
-                    } else {
-                        super::logging::sanitise_option(Some(value))
-                    };
-                    packet_notices
-                        .borrow_mut()
-                        .push(crate::logging::LogEvent::new(
+            packet_notices.borrow_mut().extend(
+                super::logging::request_details(packet)
+                    .into_iter()
+                    .map(|message| {
+                        crate::logging::LogEvent::new(
                             crate::logging::Service::Dhcp,
                             crate::logging::Priority::Info,
-                            super::logging::detail(xid, label, &value),
-                        ));
-                }
-            }
+                            message,
+                        )
+                    }),
+            );
         }
         let mut tags: Vec<&[u8]> = interface_name.into_iter().collect();
         let [oui, serial, _] = crate::helper::cpe_data(packet);
@@ -1907,7 +1996,9 @@ impl LocalProvider {
         match decision {
             pxe::Decision::Continue(client) => self.pxe_client = client,
             decision => {
-                if let pxe::Decision::Proxy {
+                self.network_notices
+                    .extend(packet_notices.borrow_mut().drain(..));
+                let delay = if let pxe::Decision::Proxy {
                     context,
                     ignored: false,
                     ..
@@ -1920,18 +2011,29 @@ impl LocalProvider {
                         Some(*context),
                         2,
                     );
-                    apply_reply_delay(
-                        self.config.network.reply_delay(&selected.tags),
-                        received_at,
-                        xid,
-                        self.config.quiet_dhcp,
-                        self.leases.counters(),
-                        &wait,
-                        &mut self.network_notices,
-                    )
-                    .map_err(|error| RuntimeError::State(error.to_string()))?;
-                }
-                return Ok(self.prepare_direct_pxe(packet, decision, pxe_listener, now));
+                    self.config.network.reply_delay(&selected.tags)
+                } else {
+                    None
+                };
+                let outcome = self.prepare_direct_pxe(
+                    packet,
+                    decision,
+                    pxe_listener,
+                    now,
+                    interface_name,
+                    event_mac.as_deref(),
+                );
+                apply_reply_delay(
+                    delay,
+                    received_at,
+                    xid,
+                    self.config.quiet_dhcp,
+                    self.leases.counters(),
+                    &wait,
+                    &mut self.network_notices,
+                )
+                .map_err(|error| RuntimeError::State(error.to_string()))?;
+                return Ok(outcome);
             }
         }
         let ack = packet.message_type() == 3
@@ -2083,21 +2185,6 @@ impl LocalProvider {
         };
         let now = environment.now;
         let mut probe_error = None;
-        if self.config.log_dhcp && packet.message_type() != 0 {
-            if let Some(name) = packet
-                .option(12, 1)
-                .filter(|value| crate::hosts::canonicalise(value).is_some())
-            {
-                let value = super::logging::sanitise_option(Some(name));
-                packet_notices
-                    .borrow_mut()
-                    .push(crate::logging::LogEvent::new(
-                        crate::logging::Service::Dhcp,
-                        crate::logging::Priority::Info,
-                        super::logging::detail(xid, b"client provides name: ", &value),
-                    ));
-            }
-        }
         let configured_disabled = configured.is_some_and(|host| host.ignore);
         let request_tags = &self.request_tags;
         let ranges_selected = &self.selected;
@@ -2432,9 +2519,22 @@ impl OutcomeProvider for LocalProvider {
             .iter()
             .map(|(code, value)| super::reply::ReplyOption { code: *code, value })
             .collect();
-        super::reply::build_pxe_reply(request, &reply.fields, &options, output)
-            .map(Some)
-            .map_err(RuntimeError::Reply)
+        let encoded = super::reply::build_pxe_reply(request, &reply.fields, &options, output)
+            .map_err(RuntimeError::Reply)?;
+        if self.config.log_dhcp {
+            self.network_notices.extend(
+                super::logging::reply_details(&output[..encoded.len])
+                    .into_iter()
+                    .map(|message| {
+                        crate::logging::LogEvent::new(
+                            crate::logging::Service::Dhcp,
+                            crate::logging::Priority::Info,
+                            message,
+                        )
+                    }),
+            );
+        }
+        Ok(Some(encoded))
     }
 
     fn pxe_encoding(&self) -> PxeEncoding<'_> {
@@ -2547,8 +2647,64 @@ impl OutcomeProvider for LocalProvider {
         let removed = self.leases.prune(None, now);
         self.maintenance_report = Some(self.maintain(now, removed, false));
         self.queue_script_from_maintenance();
+        if self.config.log_dhcp {
+            self.network_notices
+                .extend(
+                    super::logging::request_details(packet)
+                        .into_iter()
+                        .map(|message| {
+                            crate::logging::LogEvent::new(
+                                crate::logging::Service::Dhcp,
+                                crate::logging::Priority::Info,
+                                message,
+                            )
+                        }),
+                );
+        }
         if !self.config.lease_query.allows(source) {
+            if self.config.lease_query.enabled && !source.is_unspecified() {
+                self.network_notices.push(crate::logging::LogEvent::new(
+                    crate::logging::Service::Dhcp,
+                    crate::logging::Priority::Warning,
+                    format!("leasequery from {source} not permitted").into_bytes(),
+                ));
+            }
             return Ok(None);
+        }
+        let logging = DhcpLogging {
+            quiet_dhcp: self.config.quiet_dhcp,
+            log_options: self.config.log_dhcp,
+            has_error: false,
+        };
+        let client_id = (!self.config.ignore_client_id)
+            .then(|| packet.client_id())
+            .flatten();
+        let emac = super::request::extended_hardware_id(
+            packet.hardware_type(),
+            packet.hardware_address(),
+            client_id,
+        );
+        let mac =
+            super::logging::hardware(packet.hardware_type(), packet.hardware_address(), client_id);
+        let source_text = source.to_string();
+        if let Some(message) = super::logging::packet(
+            logging,
+            super::logging::PacketLog {
+                kind: b"DHCPLEASEQUERY",
+                address: (!packet.effective_ciaddr().is_unspecified())
+                    .then_some(packet.effective_ciaddr()),
+                mac: (!emac.is_empty()).then_some(mac.as_slice()),
+                interface: interface_name,
+                extra: Some(b"from "),
+                error: Some(source_text.as_bytes()),
+                xid: packet.transaction_id(),
+            },
+        ) {
+            self.network_notices.push(crate::logging::LogEvent::new(
+                crate::logging::Service::Dhcp,
+                crate::logging::Priority::Info,
+                message,
+            ));
         }
         let ranges: Vec<_> = self
             .config
@@ -2705,6 +2861,57 @@ impl OutcomeProvider for LocalProvider {
             &self.config.tag_if,
             0,
         );
+        if self.config.log_dhcp && reply.status == lease_query::Status::Active {
+            let mut tags = selection.tags.clone();
+            tags.reverse();
+            if let Some(message) = super::logging::tags(packet.transaction_id(), &tags) {
+                self.network_notices.push(crate::logging::LogEvent::new(
+                    crate::logging::Service::Dhcp,
+                    crate::logging::Priority::Info,
+                    message,
+                ));
+            }
+        }
+        let reply_mac = if reply.status == lease_query::Status::Active {
+            lease.map(|lease| {
+                super::logging::hardware(
+                    lease.identity.hardware_type as u8,
+                    &lease.identity.hardware_address,
+                    lease.identity.client_id.as_deref(),
+                )
+            })
+        } else {
+            (!emac.is_empty()).then_some(mac)
+        };
+        if let Some(message) = super::logging::packet(
+            logging,
+            super::logging::PacketLog {
+                kind: match reply.status {
+                    lease_query::Status::Active => b"DHCPLEASEACTIVE",
+                    lease_query::Status::Unassigned => b"DHCPLEASEUNASSIGNED",
+                    lease_query::Status::Unknown => b"DHCPLEASEUNKNOWN",
+                },
+                address: if reply.status == lease_query::Status::Active {
+                    Some(reply.client_address)
+                } else {
+                    (!packet.effective_ciaddr().is_unspecified())
+                        .then_some(packet.effective_ciaddr())
+                },
+                mac: reply_mac.as_deref(),
+                interface: interface_name,
+                extra: (reply.status == lease_query::Status::Active)
+                    .then(|| lease.and_then(|lease| lease.hostname.as_deref()))
+                    .flatten(),
+                error: None,
+                xid: packet.transaction_id(),
+            },
+        ) {
+            self.network_notices.push(crate::logging::LogEvent::new(
+                crate::logging::Service::Dhcp,
+                crate::logging::Priority::Info,
+                message,
+            ));
+        }
         let mut present = [false; 256];
         let mut values = Vec::new();
         if let Some(context) = reply.context {
@@ -2799,6 +3006,24 @@ impl OutcomeProvider for LocalProvider {
             output,
         )
         .map_err(|error| RuntimeError::State(format!("leasequery reply: {error:?}")))?;
+        if self.config.log_dhcp {
+            let mut details = if reply.status == lease_query::Status::Active {
+                packet.option(55, 0).map_or_else(Vec::new, |codes| {
+                    super::logging::requested_options(packet.transaction_id(), codes)
+                })
+            } else {
+                Vec::new()
+            };
+            details.extend(super::logging::reply_details(&output[..encoded.len]));
+            self.network_notices
+                .extend(details.into_iter().map(|message| {
+                    crate::logging::LogEvent::new(
+                        crate::logging::Service::Dhcp,
+                        crate::logging::Priority::Info,
+                        message,
+                    )
+                }));
+        }
         Ok(Some(encoded.len))
     }
 
