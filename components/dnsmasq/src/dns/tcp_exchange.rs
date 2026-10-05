@@ -91,7 +91,7 @@ impl Exchange {
                     any(target_os = "linux", target_os = "macos"),
                     any(target_arch = "aarch64", target_arch = "x86_64")
                 ))]
-                let opened = super::tcp_connect::start(server.address);
+                let opened = super::tcp_connect::start(server.address, server.source.as_ref());
                 #[cfg(not(all(
                     any(target_os = "linux", target_os = "macos"),
                     any(target_arch = "aarch64", target_arch = "x86_64")
