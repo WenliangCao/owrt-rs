@@ -464,6 +464,10 @@ def compare(expected, actual, scenario):
                 addresses = sorted(r['data'] for r in (row['response'] or {}).get('records', []) if r['section'] == 'answer' and r['type'] in (1, 28))
                 if addresses != sorted(probe['c_expect']['answer_addresses']):
                     failures.append({'phase': 'c-calibration', 'id': row['id'], 'expected_addresses': probe['c_expect']['answer_addresses'], 'c_addresses': addresses})
+            if 'answer_types' in probe['c_expect']:
+                types = [r['type'] for r in (row['response'] or {}).get('records', []) if r['section'] == 'answer']
+                if types != probe['c_expect']['answer_types']:
+                    failures.append({'phase': 'c-calibration', 'id': row['id'], 'expected_types': probe['c_expect']['answer_types'], 'c_types': types})
     for left, right in zip(expected['rows'], actual['rows']):
         a, b = copy.deepcopy(left), copy.deepcopy(right)
         for row in (a, b):
