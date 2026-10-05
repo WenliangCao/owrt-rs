@@ -102,7 +102,7 @@ def proxy_case(root, side, out, spec):
 def run_side(args):
     assert os.geteuid() == 0 and os.environ.get('DNSMASQ_TEST_ISOLATED') == '1', 'run_isolated.sh required'
     args.out.mkdir(parents=True, exist_ok=False)
-    plan = json.loads(HERE.with_name('m5_dhcp_network.json').read_text())
+    plan = json.loads((HERE / 'm5_dhcp_network.json').read_text())
     save(args.out / 'plan.json', plan)
     root = prepare(args.image_root, None, args.out / 'filesystem', args.rust)
     rows, failures = [], []
@@ -156,7 +156,15 @@ def main():
             mutant = copy.deepcopy(reports[1])
             if label == 'missing-case': mutant['rows'].pop()
             elif label == 'fixture-failure': mutant['failures'].append(dict(injected=True))
-            else: next(row for row in mutant['rows'] if row.get('packets'))['packets'][0]['wire'] = '00'
+            else:
+                observed = next(row for row in mutant['rows'] if row.get('packets'))['packets'][0]
+                wire = bytearray.fromhex(observed['wire'])
+                if label == 'wrong-server-id':
+                    offset = wire.index(bytes([54, 4]), 240) + 2
+                    wire[offset:offset + 4] = socket.inet_aton('127.0.0.99')
+                else:
+                    wire[24] ^= 1
+                observed['wire'] = wire.hex()
             controls.append(dict(case=label, rejected=mutant['rows'] != reports[0]['rows'] or bool(mutant['failures'])))
     qualified = not failures and not any(report['missing'] for report in reports) and len(controls) == 4 and all(control['rejected'] for control in controls)
     save(args.out / 'result.json', dict(family=args.family, qualified=qualified, failures=failures, controls=controls,
