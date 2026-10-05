@@ -31,6 +31,8 @@ pub struct RelayForward<'a> {
     pub packet: &'a [u8],
     pub destination: SocketAddrV4,
     pub source: Ipv4Addr,
+    pub local: Ipv4Addr,
+    pub broadcast_interface: Option<&'a [u8]>,
 }
 
 #[derive(Debug, Default)]
@@ -197,6 +199,12 @@ impl Relay {
                 packet: &packet[..length],
                 destination: SocketAddrV4::new(destination, rule.port),
                 source,
+                local: rule.local,
+                broadcast_interface: rule
+                    .server
+                    .is_unspecified()
+                    .then(|| rule.interface.as_deref())
+                    .flatten(),
             }) {
                 report.sent += 1;
             } else {
@@ -337,6 +345,7 @@ mod linux {
         control: UdpSocket,
         network: crate::config::dhcp_network::NetworkConfig,
         notices: Vec<crate::logging::LogEvent>,
+        log_options: bool,
         dump: crate::dump::DumpHandle,
     }
 
@@ -356,6 +365,7 @@ mod linux {
                 control: UdpSocket::bind((Ipv4Addr::UNSPECIFIED, 0))?,
                 network: network.clone(),
                 notices: Vec::new(),
+                log_options: false,
                 dump: crate::dump::DumpHandle::default(),
             })
         }
@@ -366,6 +376,10 @@ mod linux {
 
         pub fn take_notices(&mut self) -> Vec<crate::logging::LogEvent> {
             std::mem::take(&mut self.notices)
+        }
+
+        pub fn set_logging(&mut self, enabled: bool) {
+            self.log_options = enabled;
         }
 
         pub fn set_dump(&mut self, dump: crate::dump::DumpHandle) {
@@ -517,7 +531,7 @@ mod linux {
                         )),
                         SocketAddr::V4(forward.destination),
                     );
-                    match socket.send_once(
+                    let sent = match socket.send_once(
                         forward.packet,
                         SocketAddr::V4(forward.destination),
                         Some((IpAddr::V4(forward.source), 0)),
@@ -527,7 +541,21 @@ mod linux {
                             eprintln!("dnsmasq-rs: DHCP relay upstream send: {error}");
                             false
                         }
+                    };
+                    if self.log_options {
+                        let destination = if let Some(interface) = forward.broadcast_interface {
+                            format!("broadcast via {}", String::from_utf8_lossy(interface))
+                        } else {
+                            forward.destination.ip().to_string()
+                        };
+                        self.notices.push(crate::logging::LogEvent::new(
+                            crate::logging::Service::Dhcp,
+                            crate::logging::Priority::Info,
+                            format!("DHCP relay at {} -> {destination}", forward.local)
+                                .into_bytes(),
+                        ));
                     }
+                    sent
                 },
             );
             for address in report.duplicate_addresses {

@@ -256,6 +256,12 @@ impl SocketListener {
         }
         Ok(())
     }
+    pub fn set_logging(&mut self, enabled: bool) {
+        if let Some(relay) = &mut self.relay {
+            relay.set_logging(enabled);
+        }
+    }
+
     pub fn set_dump(&mut self, dump: crate::dump::DumpHandle) {
         if let Some(relay) = &mut self.relay {
             relay.set_dump(dump.clone());
