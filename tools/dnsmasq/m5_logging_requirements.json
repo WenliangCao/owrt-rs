@@ -223,7 +223,11 @@
           "id": "FAC11",
           "source": "dnsmasq.c:1682-1688,log.c:135-167",
           "boundary": "Actual SIGUSR2 on stderr/syslog keeps destination FD; file replacement ownership is not reapplied, failed reopen closes previous FD then later producer falls back; subsequent successful reopen recovers explicit file destination.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "stderr-sigusr2-keeps-fd",
+            "syslog-sigusr2-keeps-fd",
+            "file-reopen-recovers-owner"
+          ]
         }
       ],
       "qualification_ready": false

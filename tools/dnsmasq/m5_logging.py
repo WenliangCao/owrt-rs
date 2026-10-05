@@ -94,6 +94,15 @@ def cases():
         {'id': 'facility-file-origins', 'scope': 'sink', 'kind': 'run',
          'config': 'log-facility=/m2/logging/daemon.log\n', 'file': 'daemon.log',
          'argv': ['--log-facility=local3'], 'options': ['log-facility']},
+        {'id': 'stderr-sigusr2-keeps-fd', 'scope': 'sink', 'kind': 'run',
+         'argv': ['--log-facility=-'], 'sink_edge': 'preserve', 'options': ['log-facility']},
+        {'id': 'syslog-sigusr2-keeps-fd', 'scope': 'sink', 'kind': 'run',
+         'argv': [], 'receiver': 'dgram', 'facility': 24,
+         'sink_edge': 'preserve', 'options': ['log-facility']},
+        {'id': 'file-reopen-recovers-owner', 'scope': 'sink', 'kind': 'run', 'mode': ['-d'],
+         'argv': ['--log-facility=/m2/logging/daemon.log'], 'file': 'daemon.log',
+         'receiver': 'dgram', 'user': 'nobody', 'sink_edge': 'recover',
+         'options': ['log-facility']},
     ])
     for name in ['', 'local8', 'audit', '24', 'foo']:
         rows.append({'id': 'bad-facility-' + (name or 'empty'), 'scope': 'sink',
@@ -850,6 +859,45 @@ def run(root, side, case, out):
                         pass
                 time.sleep(.005)
             if observed['ready']:
+                if case.get('sink_edge'):
+                    def snapshot():
+                        return {entry.name: os.readlink(entry) for entry in Path(f'/proc/{process.pid}/fd').iterdir()}
+                    def health():
+                        answer, raw = exchange('ready.logging')
+                        if [value['data'] for value in answer['records']] != ['192.0.2.1']:
+                            raise AssertionError('reopen harmed client health')
+                        trace['dns'].append(raw)
+                    before = snapshot()
+                    if case['sink_edge'] == 'preserve':
+                        process.send_signal(signal.SIGUSR2)
+                        time.sleep(.08)
+                        after = snapshot()
+                        observed['sink_edge'] = {'same_fds': before == after}
+                        health()
+                    else:
+                        path = folder / case['file']
+                        path.rename(path.with_suffix('.old'))
+                        path.mkdir()
+                        process.send_signal(signal.SIGUSR2)
+                        time.sleep(.08)
+                        failed = snapshot()
+                        process.send_signal(signal.SIGHUP)
+                        time.sleep(.08)
+                        receiver.drain()
+                        health()
+                        path.rmdir()
+                        path.write_text('replacement\n')
+                        path.chmod(0o604)
+                        process.send_signal(signal.SIGUSR2)
+                        time.sleep(.08)
+                        process.send_signal(signal.SIGHUP)
+                        time.sleep(.08)
+                        receiver.drain()
+                        health()
+                        meta = path.stat()
+                        observed['sink_edge'] = {'old_fd_closed': not any(value.endswith('/daemon.old') for value in failed.values()),
+                            'replacement_metadata': [meta.st_mode & 0o777, meta.st_uid, meta.st_gid]}
+                    trace['sink_fds'] = {'before': before, 'after': snapshot()}
                 if case.get('late_receiver'):
                     receiver.close()
                     receiver = Receiver(root, 'dgram')
@@ -1342,6 +1390,13 @@ def compare(reference, candidate, case, reference_only=False):
                 failures.append({'side': side, 'field': field, 'expected': expected, 'actual': row[field]})
     if 'expected_metadata' in case and reference['file_metadata'].get(case['file']) != case['expected_metadata']:
         failures.append({'kind': 'C-file-metadata', 'actual': reference['file_metadata']})
+    if case.get('sink_edge'):
+        wanted = {'same_fds': True} if case['sink_edge'] == 'preserve' else {
+            'old_fd_closed': True, 'replacement_metadata': [0o604, 0, 0]}
+        for side, row in [('c', reference)] + ([] if reference_only else [('rust', candidate)]):
+            if row.get('sink_edge') != wanted:
+                failures.append({'kind': 'sink-reopen-source-control', 'side': side,
+                                 'expected': wanted, 'actual': row.get('sink_edge')})
     if case.get('scope') == 'daemon':
         if reference['live_processes']:
             failures.append({'kind': 'C-daemon-descendants', 'actual': reference['live_processes']})
