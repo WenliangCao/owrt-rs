@@ -471,7 +471,11 @@ def case(args,root,spec):
             if label in ['header-create','header-user-nobody']:
                 info=file.stat();assert info.st_mode&0o777==0o600 and info.st_uid==0,'startup create permission/owner before daemon privilege drop'
         result=dict(case=label,pcap=observed,events=events)
-        if spec.get('display'):result['display_events']=display_events
+        if spec.get('display'):
+            if spec.get('tftp'):assert display_events==[],'TFTP high mask must omit DNS display identifier'
+            else:
+                assert len(display_events)==len(events) and all(row[0]=='1' for row in display_events),'actual selected query display identifier at each DNS dump caller'
+            result['display_events']=display_events
         if spec.get('fault'):
             logged=(folder/'0.log').read_bytes()
             assert logged.count(b'failed to write packet dump')==1,'one actual dump write failure log'
@@ -531,10 +535,18 @@ def main():
     if reports[0]['rows']!=reports[1]['rows']:failures.append(dict(error='exact-image observation difference',c=reports[0]['rows'],rust=reports[1]['rows']))
     controls=[]
     if not failures:
-        for label in ['missing-case','wrong-header','wrong-payload','fixture-failure']:
+        for label in ['missing-case','wrong-header','wrong-payload','fixture-failure','wrong-display-id','missing-write-fault']:
             mutant=copy.deepcopy(reports[1])
             if label=='missing-case':mutant['rows'].pop()
             elif label=='fixture-failure':mutant['failures'].append(dict(injected=True))
+            elif label=='wrong-display-id':
+                target=next((row for row in mutant['rows'] if row.get('display_events')),None)
+                if target is None:continue
+                target['display_events'][0][0]='999'
+            elif label=='missing-write-fault':
+                target=next((row for row in mutant['rows'] if row.get('fault')),None)
+                if target is None:continue
+                target.pop('fault')
             else:
                 target=next(row for row in mutant['rows'] if row.get('pcap') and row['pcap']['records'])
                 if label=='wrong-header':target['pcap']['header']['snaplen']+=1
@@ -558,7 +570,7 @@ def main():
                 elif label=='wrong-mask-capture':mutant['mask-zero']['pcap']['records'].append(copy.deepcopy(mutant['dns-v4-local']['pcap']['records'][0]))
                 option_controls.append(dict(case=label,rejected=injected or mutant!=subsets[0]))
         option_results[option]=dict(qualified=equivalent and not missing and not option_failures and len(option_controls)==4 and all(row['rejected'] for row in option_controls),required_count=len(needed),paired_count=len(subsets[0]),missing=missing,failures=option_failures,observations_equal=equivalent,controls=option_controls)
-    qualified=not args.select and not failures and not any(row['missing'] for row in reports) and len(controls)==4 and all(row['rejected'] for row in controls)
+    qualified=not args.select and not failures and not any(row['missing'] for row in reports) and len(controls)==6 and all(row['rejected'] for row in controls)
     save(args.out/'result.json',dict(qualified=qualified,option_results=option_results,failures=failures,controls=controls,missing={row['side']:row['missing'] for row in reports},binary_sha256=sha256(args.rust)))
     print(json.dumps(dict(paired=len(reports[0]['rows']),failures=len(failures),qualified=qualified)))
     return bool(failures)
