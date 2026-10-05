@@ -172,7 +172,10 @@ def run_service_side(root, side, case, folder):
     def identity(root,pid):
         nonlocal parent_pid
         parent_pid=pid
-        return dict(original_identity(root,pid),threads=len(list(Path('/proc',str(pid),'task').iterdir())))
+        status=Path('/proc',str(pid),'status').read_text().splitlines()
+        uid=int(next(line.split()[1] for line in status if line.startswith('Uid:')))
+        expected_uid=next(int(line.split(':')[2]) for line in (root/'etc/passwd').read_text().splitlines() if line.split(':')[0]==case.get('user','root'))
+        return dict(original_identity(root,pid),threads=len(list(Path('/proc',str(pid),'task').iterdir())),uid=uid,expected_uid=expected_uid)
     files.process_identity=identity
     original_upstream=files.FileUpstream
     class Captured(original_upstream):
@@ -269,6 +272,7 @@ def run_service_side(root, side, case, folder):
 def source_guard_errors(result,case):
     errors=[]
     if not result['startup']['ready']: return errors
+    if result.get('identity',{}).get('uid')!=result.get('identity',{}).get('expected_uid'): errors.append('daemon UID does not match configured user')
     if result.get('identity',{}).get('threads')!=1: errors.append('parent daemon is not one thread')
     if case.get('recv_fault') and (len(result.get('recv_faults',[]))!=1 or not result['recv_faults'][0].get('injected')): errors.append('actual recvfrom EIO fault missing')
     udp=[row for row in result['source_events'] if row['transport']=='udp']
