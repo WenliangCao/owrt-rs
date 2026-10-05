@@ -289,6 +289,14 @@ impl CacheContext<'_> {
             }
         }
         if ids.is_empty() {
+            if local.config.filter_win2k
+                && super::local::filter_win2k_question(&question.name, question.rrtype)
+            {
+                let mut writer =
+                    PacketWriter::new(header.id, (header.flags & 0x0110) | 0x8080, limit)?;
+                writer.question(&question.name, question.rrtype, question.class)?;
+                return Ok(finish_cached_answer(writer, false)?);
+            }
             // rfc1035.c uses an existing cached RR of any family/type to
             // answer filtered requests as NODATA, avoiding an upstream round
             // trip. DNSSEC/DO requests bypass this unauthenticated shortcut.
@@ -549,6 +557,9 @@ impl CacheContext<'_> {
                         // The link validates the CNAME lifetime, but C looks
                         // up the terminal name again for the current qtype.
                         let terminal_name = target_entry.record.name.clone();
+                        if local.config.filter_win2k && question.rrtype == 6 {
+                            return Ok(finish_cached_answer(writer, stale)?);
+                        }
                         let nx_target = (target_entry.record.kind == Kind::NxDomain
                             && target_entry.record.negative)
                             .then_some(target);
@@ -588,6 +599,14 @@ impl CacheContext<'_> {
                             })
                         });
                         let Some(target) = selected else {
+                            if local.config.filter_win2k
+                                && super::local::filter_win2k_question(
+                                    &terminal_name,
+                                    question.rrtype,
+                                )
+                            {
+                                return Ok(finish_cached_answer(writer, stale)?);
+                            }
                             if question.rrtype != 255
                                 && self.filter_rr.contains(&question.rrtype)
                                 && !dnssec_requested

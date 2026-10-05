@@ -173,9 +173,12 @@ impl<'a> LocalAnswerer<'a> {
         let class_in = question.class == CLASS_IN;
         // answer_request inspects the NX prefix before interface addresses.
         // Defer this local answer to CacheContext so its SOA footer survives.
-        if class_in && matches!(question.qtype, TYPE_A | TYPE_AAAA)
+        if class_in
+            && matches!(question.qtype, TYPE_A | TYPE_AAAA)
             && interfaces.declared(&question.name.dnsmasq_bytes())
-            && cache.as_deref().is_some_and(|cache| cache.has_nxdomain(&question.name, now))
+            && cache
+                .as_deref()
+                .is_some_and(|cache| cache.has_nxdomain(&question.name, now))
         {
             return Ok(None);
         }
@@ -238,6 +241,28 @@ impl<'a> LocalAnswerer<'a> {
                 );
                 rows.extend(local_rows);
                 owned = local_owned;
+            }
+        }
+
+        // rfc1035.c suppresses SOA after configured records, before generic
+        // cache lookup. SRV and underscore ANY are suppressed only on a miss.
+        // A cache candidate defers that decision to its actual lookup caller.
+        if class_in && self.config.filter_win2k && !owned {
+            let do_bit = super::wire::find_pseudoheader(query, true)?
+                .opt
+                .is_some_and(|opt| opt.dnssec_ok());
+            let cache_candidate = !do_bit
+                && header.flags & 0x0100 != 0
+                && cache.as_deref().is_some_and(|cache| {
+                    if question.qtype == 6 {
+                        cache.cname_terminal_name(&question.name, now).is_some()
+                    } else {
+                        cache.has_forward_candidate(&question.name, question.qtype, now)
+                            || cache.has_nxdomain(&question.name, now)
+                    }
+                });
+            if !cache_candidate && filter_win2k_question(&question.name, question.qtype) {
+                owned = true;
             }
         }
 
@@ -395,6 +420,10 @@ impl<'a> LocalAnswerer<'a> {
             forward_rule: rule_owned || local_only,
         }))
     }
+}
+
+pub(crate) fn filter_win2k_question(name: &Name, rrtype: u16) -> bool {
+    matches!(rrtype, 6 | 33) || (rrtype == 255 && name.dnsmasq_bytes().contains(&b'_'))
 }
 
 struct MailTarget {
@@ -864,7 +893,11 @@ fn add_local_records_for_name(
     }
 
     let name = synthetic_reverse_name.as_deref().unwrap_or(name);
-    let key = if synthetic_reverse_name.is_some() { dotted_key(name) } else { key };
+    let key = if synthetic_reverse_name.is_some() {
+        dotted_key(name)
+    } else {
+        key
+    };
 
     // The Hosts table passed to this function is already filtered by the
     // loader (`no-hosts` skips /etc/hosts but does not skip addn-hosts).

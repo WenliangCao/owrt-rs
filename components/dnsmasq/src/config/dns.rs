@@ -150,6 +150,7 @@ pub struct DnsConfig {
     /// list preserves declaration order (newest first), matching option.c's
     /// rrlist; configured/hosts/DHCP local answers bypass this policy.
     pub filter_rr: Vec<u16>,
+    pub filter_win2k: bool,
     pub domain_suffix: Option<Vec<u8>>,
     pub domain_from_resolv: bool,
     /// Newest declaration first, matching C's cond_domain linked list.
@@ -200,6 +201,7 @@ impl Default for DnsConfig {
             ignore_addresses: Vec::new(),
             cache_rr: Vec::new(),
             filter_rr: Vec::new(),
+            filter_win2k: false,
             domain_suffix: None,
             domain_from_resolv: false,
             conditional_domains: Vec::new(),
@@ -666,6 +668,7 @@ impl DnsConfig {
                 }
             }
             b"filter-A" => self.filter_rr.insert(0, 1),
+            b"filterwin2k" => self.filter_win2k = true,
             b"filter-AAAA" => self.filter_rr.insert(0, 28),
             b"filter-rr" => {
                 for field in arg.unwrap().split(b',') {
