@@ -148,6 +148,12 @@ def raw_profiles():
         add(label, [base, dict(address=fresh, mac=alternate)], [callback(True, fresh, alternate)])
         rows[-1]['script_failure'] = failure
     rows.append(dict(case='slow-helper-dns-progress', delay=True))
+    add('netlink-error', [base], [callback(False, V4, MAC)])
+    rows[-1]['netlink_mode'] = 'error'
+    rows[-1]['reference_difference'] = 'c-error-dump-retires-complete-cache'
+    add('netlink-partial-error', [base, dict(address=fresh, mac=alternate)], [callback(True, fresh, alternate)])
+    rows[-1]['netlink_mode'] = 'partial-error'
+    rows[-1]['reference_difference'] = 'c-partial-dump-publishes-arp-record'
     return rows
 
 
@@ -171,9 +177,9 @@ def neighbor_packet(entries, sequence, pid, length, interface, done=True):
     return bytes(packet)
 
 
-def refresh_with_fixture(pid, entries, folder, target='127.0.0.1'):
+def refresh_with_fixture(pid, entries, folder, target='127.0.0.1', mode='complete'):
     output = folder / 'netlink-fault.json'
-    tracer = subprocess.Popen([sys.executable, __file__, '--trace-neighbor', str(pid), str(output), json.dumps(entries)])
+    tracer = subprocess.Popen([sys.executable, __file__, '--trace-neighbor', str(pid), str(output), json.dumps(entries), mode])
     try:
         deadline = time.monotonic() + 3
         while not output.with_suffix('.ready').exists() and tracer.poll() is None and time.monotonic() < deadline:
@@ -525,14 +531,15 @@ def run_side(args):
                         save(warmup / 'callbacks.json', callbacks(root))
                         assert callbacks(root) == spec['warmup_expected'], 'C-derived warmup order'
                     (root / 'm2/arp-events').write_bytes(b'')
-                    refresh_with_fixture(pid, spec['raw'], folder)
+                    refresh_with_fixture(pid, spec['raw'], folder, mode=spec.get('netlink_mode', 'complete'))
                     deadline = time.monotonic() + 2
                     while len(callbacks(root)) < len(spec['expected']) and time.monotonic() < deadline:
                         time.sleep(.02)
                     time.sleep(.15)
                     observed = callbacks(root)
                     save(folder / 'raw-callbacks.json', observed)
-                    assert observed == spec['expected'], 'C-derived raw callback order/payload'
+                    expected = [] if args.side == 'rust' and spec.get('reference_difference') else spec['expected']
+                    assert observed == expected, 'C-derived raw callback order/payload or guarded complete-snapshot policy'
                 owned = helpers(pid)
                 assert len(owned) == (0 if spec.get('no_helper') else 1), 'helper qualification'
                 baseline = len(list(Path('/proc/' + str(pid) + '/fd').iterdir()))
@@ -555,7 +562,12 @@ def run_side(args):
                 elif spec.get('zero_positive'):
                     rows.extend(zero_positive_contract(root, pid, folder, upstream))
                 else:
-                    rows.append(dict(case=label, callbacks=observed, helper_count=len(owned), dns_health=reply is not None))
+                    row = dict(case=label, callbacks=observed, helper_count=len(owned), dns_health=reply is not None)
+                    if spec.get('reference_difference'):
+                        receipt = json.loads((folder / 'netlink-fault.json').read_text())
+                        row['reference_difference'] = spec['reference_difference']
+                        row['fault'] = dict(injected=receipt['injected'], mode=receipt['mode'])
+                    rows.append(row)
         except Exception as error:
             failed = dict(case=label, error=repr(error))
             failures.append(failed)
@@ -588,7 +600,7 @@ def run_side(args):
 def main():
     if len(sys.argv) > 1 and sys.argv[1] == '--trace-neighbor':
         pid, output, entries = int(sys.argv[2]), Path(sys.argv[3]), json.loads(sys.argv[4])
-        return trace_neighbor(pid, output, 'complete', 6, 2,
+        return trace_neighbor(pid, output, sys.argv[5] if len(sys.argv) > 5 else 'complete', 6, 2,
                               packet_builder=lambda *args, **kwargs: neighbor_packet(entries, *args, **kwargs))
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--image-root', type=Path, required=True)
@@ -623,8 +635,24 @@ def main():
         result = []
         if candidate['failures']:
             result.append(dict(side='rust', failures=candidate['failures']))
-        if observations(reports[0]) != observations(candidate):
-            result.append(dict(c=observations(reports[0]), rust=observations(candidate)))
+        left, right = observations(reports[0]), observations(candidate)
+        reference_specs = {spec['case']: spec for spec in profiles() if spec.get('reference_difference')}
+        if [row['case'] for row in left] != [row['case'] for row in right]:
+            result.append(dict(error='case inventory mismatch'))
+        else:
+            for c_row, r_row in zip(left, right):
+                if c_row == r_row:
+                    continue
+                spec = reference_specs.get(c_row['case'])
+                if spec:
+                    wanted = spec['reference_difference']
+                    proof = dict(injected=True, mode=spec['netlink_mode'])
+                    if (c_row.get('callbacks') == spec['expected'] and r_row.get('callbacks') == []
+                            and c_row.get('reference_difference') == r_row.get('reference_difference') == wanted
+                            and c_row.get('fault') == r_row.get('fault') == proof
+                            and c_row.get('dns_health') and r_row.get('dns_health')):
+                        continue
+                result.append(dict(c=c_row, rust=r_row))
         return result
     mismatches = differences(reports[1])
     if reports[0]['failures']:
