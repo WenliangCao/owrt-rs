@@ -31,6 +31,15 @@ V4 = '192.0.2.17'
 V6 = 'fd42:91::17'
 SCRIPT = '''#!/bin/sh
 printf '%s|%s|%s|%s|%s|%s|%s|%s\\n' "$#" "$1" "$2" "$3" "$(id -u)" "$(id -g)" "$DNSMASQ_INTERFACE" "$DNSMASQ_CLIENT_ID" >> /m2/arp-events
+if [ "$M5_ARP_DELAY" = 1 ] && [ ! -f /m2/arp-delay-started ]; then
+  : > /m2/arp-delay-started
+  sleep 2
+fi
+case "$M5_ARP_FAILURE" in
+  exit) exit 7 ;;
+  signal) kill -TERM "$$" ;;
+esac
+printf '%s|%s|%s\\n' "$1" "$2" "$3" >> /m2/arp-finished
 '''
 
 
@@ -123,6 +132,10 @@ def raw_profiles():
     add('positive-zero-udp-lazy', [base, dict(address='127.0.0.1', mac=''), dict(address=fresh, mac='')],
         [callback(True, fresh, ''), callback(True, '127.0.0.1', '')])
     rows[-1]['zero_positive'] = True
+    for label, failure in [('script-exit-recovery', 'exit'), ('script-signal-recovery', 'signal')]:
+        add(label, [base, dict(address=fresh, mac=alternate)], [callback(True, fresh, alternate)])
+        rows[-1]['script_failure'] = failure
+    rows.append(dict(case='slow-helper-dns-progress', delay=True))
     return rows
 
 
@@ -358,6 +371,9 @@ def run_side(args):
         (folder / 'kernel-neighbors.json').write_bytes(current.stdout)
         (root / 'm2/arp-events').write_bytes(b'')
         (root / 'm2/arp-events').chmod(0o666)
+        (root / 'm2/arp-finished').write_bytes(b'')
+        (root / 'm2/arp-finished').chmod(0o666)
+        (root / 'm2/arp-delay-started').unlink(missing_ok=True)
         (root / 'm2/arp.pid').unlink(missing_ok=True)
         config = ('port=' + str(0 if spec.get('no_dns') else PORT) + '\nno-hosts\nno-resolv\n'
                   'bind-interfaces\nlisten-address=127.0.0.1\nuser=' + spec.get('user', 'root') + '\n'
@@ -372,6 +388,8 @@ def run_side(args):
         (root / 'm2/arp.conf').write_text(config)
         (folder / 'config').write_text(config)
         env = dict(os.environ, DNSMASQ_INTERFACE='inherited-iface', DNSMASQ_CLIENT_ID='inherited-id')
+        env['M5_ARP_FAILURE'] = spec.get('script_failure', '')
+        env['M5_ARP_DELAY'] = '1' if spec.get('delay') else '0'
         process = None
         pid = None
         upstream = Upstream() if spec.get('zero_positive') else None
@@ -411,6 +429,15 @@ def run_side(args):
                     assert call[0] == '3' and call[1] == 'arp-add', 'ARP argv/action'
                     assert call[4] == str(spec.get('helper_uid', 0)), 'actual helper UID'
                     assert call[6:] == ['inherited-iface', 'inherited-id'], 'inherited environment'
+                if spec.get('delay'):
+                    assert (root / 'm2/arp-delay-started').exists() and not (root / 'm2/arp-finished').read_bytes(), 'slow script is actually active'
+                    replies = [health() for _ in range(10)]
+                    save(folder / 'health-during-script.json', replies)
+                    assert not (root / 'm2/arp-finished').read_bytes(), 'health happened after the script'
+                    deadline = time.monotonic() + 3
+                    while not (root / 'm2/arp-finished').read_bytes() and time.monotonic() < deadline:
+                        time.sleep(.02)
+                    assert (root / 'm2/arp-finished').read_bytes(), 'script recovery'
                 if 'raw' in spec:
                     if 'warmup' in spec:
                         warmup = folder / 'warmup'
