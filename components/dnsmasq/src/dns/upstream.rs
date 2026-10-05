@@ -246,6 +246,7 @@ struct OwnedSocket {
     source: SourceSpec,
     persistent: bool,
     pooled: bool,
+    pool_slot: Option<usize>,
     pinned: bool,
     socket: UdpSocket,
     // First empty POLLERR records `now` without delay. A repeated readiness
@@ -276,7 +277,7 @@ pub struct UpstreamResolver<R = OsRandom> {
     socket_settings: SocketSettings,
     source_bindings: HashMap<ServerId, SourceSpec>,
     server_sockets: HashMap<ServerId, SocketToken>,
-    pool_finger: u64,
+    pool_finger: usize,
     source_diagnostics: VecDeque<SourceSocketDiagnostic>,
 }
 
@@ -744,6 +745,16 @@ impl<R: Random> UpstreamResolver<R> {
             .checked_add(1)
             .ok_or_else(|| io::Error::other("upstream socket token exhausted"))?;
         let token = SocketToken(self.next_socket);
+        let pool_slot = pooled.then(|| {
+            (0..self.socket_settings.pool_slots)
+                .find(|slot| {
+                    !self
+                        .sockets
+                        .values()
+                        .any(|owned| owned.pool_slot == Some(*slot))
+                })
+                .expect("pooled allocation has a free physical slot")
+        });
         self.sockets.insert(
             token,
             OwnedSocket {
@@ -756,6 +767,7 @@ impl<R: Random> UpstreamResolver<R> {
                 source,
                 persistent,
                 pooled,
+                pool_slot,
                 socket,
                 empty_error_retry: None,
             },
@@ -842,10 +854,16 @@ impl<R: Random> UpstreamResolver<R> {
                     })
                     .map(|(token, _)| *token)
                     .collect();
-                reusable.sort_by_key(|token| (token.0 < self.pool_finger, token.0));
+                let slots = self.socket_settings.pool_slots;
+                reusable.sort_by_key(|token| {
+                    let slot = self.sockets[token]
+                        .pool_slot
+                        .expect("pooled socket has a physical slot");
+                    (slot + slots - self.pool_finger % slots) % slots
+                });
                 match reusable.first() {
                     Some(token) => {
-                        self.pool_finger = token.0 + 1;
+                        self.pool_finger = self.sockets[token].pool_slot.unwrap() + 1;
                         *token
                     }
                     None => self.open_socket(source.clone(), false, false)?,
