@@ -127,10 +127,16 @@ impl DumpHandle {
             }
         } else {
             let mut header = [0; 24];
-            writer
-                .file
-                .read_exact(&mut header)
-                .map_err(|error| failure(b"cannot access ", path, Some(error)))?;
+            writer.file.read_exact(&mut header).map_err(|error| {
+                // C read_write leaves errno unchanged on EOF; startup's
+                // last successful open has errno0 in the ordinary path.
+                let error = if error.kind() == io::ErrorKind::UnexpectedEof {
+                    io::Error::from_raw_os_error(0)
+                } else {
+                    error
+                };
+                failure(b"cannot access ", path, Some(error))
+            })?;
             if u32::from_ne_bytes(header[..4].try_into().unwrap()) != MAGIC {
                 return Err(failure(b"bad header in ", path, None));
             }
