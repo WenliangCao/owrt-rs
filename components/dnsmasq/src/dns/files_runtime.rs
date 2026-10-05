@@ -949,6 +949,8 @@ mod tests {
         assert_eq!(unsafe { mkfifo(cpath.as_ptr(), 0o600) }, 0);
         let mut files = DnsFiles::new(&config, true, false).unwrap();
         files.request(ReloadReason::Init);
+        let barrier = files.step();
+        assert!(barrier.initial_cache_reload && barrier.runnable);
         assert!(!files.step().runnable);
         files.request(ReloadReason::Signal);
         let step = files.step();
