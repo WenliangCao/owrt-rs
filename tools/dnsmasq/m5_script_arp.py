@@ -76,6 +76,7 @@ def profiles():
         dict(case='excluded-interface-visible', extra='except-interface=arpw0\n', neighbors=[('198.51.100.17', MAC, 'arpw0')]),
         dict(case='link-local-unscoped', neighbors=[('fe80::17', MAC, 'arps0')]),
         dict(case='argv-and-inherited-env'),
+        dict(case='idle-91-no-wake', no_dns=True, clock=True),
     ]
     for state in ['reachable', 'stale', 'delay', 'probe', 'permanent', 'none', 'noarp', 'incomplete', 'failed']:
         # The real kernel removes LLADDR when NUD_NONE is requested. The
@@ -110,6 +111,12 @@ def raw_profiles():
     add('missing-destination', [base, dict(address=None, mac=MAC)], [])
     add('missing-hardware', [base, dict(address=fresh, mac=None)], [])
     add('state-none-with-hardware', [base, dict(address=fresh, mac=MAC, state=0)], [callback(True, fresh, MAC)])
+    many = [base, dict(address=fresh, mac=alternate), dict(address='192.0.2.19', mac='02:00:00:91:00:19')]
+    added = [callback(True, '192.0.2.19', '02:00:00:91:00:19'), callback(True, fresh, alternate)]
+    add('addition-list-order', many, added)
+    add('deletion-stack-order', [], [callback(False, V4, MAC), callback(False, fresh, alternate), callback(False, '192.0.2.19', '02:00:00:91:00:19')])
+    rows[-1]['warmup'] = many
+    rows[-1]['warmup_expected'] = added
     return rows
 
 
@@ -156,6 +163,38 @@ def refresh_with_fixture(pid, entries, folder):
         if tracer.poll() is None:
             tracer.kill()
             tracer.wait()
+
+
+def clock_contract(root, pid, folder):
+    initial = callbacks(root)
+    neighbor('192.0.2.18', '02:00:00:91:00:18')
+    os.kill(pid, signal.SIGHUP)
+    time.sleep(.3)
+    assert callbacks(root) == initial, 'fresh cache changed before90seconds'
+    start = time.monotonic()
+    next_notice = start
+    progress = []
+    while time.monotonic() - start < 91:
+        if time.monotonic() >= next_notice:
+            os.kill(pid, 0)
+            progress.append(dict(elapsed=time.monotonic() - start, callbacks=len(callbacks(root))))
+            save(folder / 'clock-progress.json', progress)
+            print(json.dumps(dict(case='idle-91-no-wake', elapsed=round(time.monotonic() - start, 1))), flush=True)
+            next_notice += 15
+        time.sleep(.05)
+    idle = callbacks(root)
+    save(folder / 'idle-callbacks.json', idle)
+    assert idle == initial, 'idle ARP-only acquired a wake source'
+    os.kill(pid, signal.SIGHUP)
+    deadline = time.monotonic() + 3
+    while len(callbacks(root)) < len(initial) + 1 and time.monotonic() < deadline:
+        time.sleep(.02)
+    after = callbacks(root)
+    save(folder / 'refreshed-callbacks.json', after)
+    assert after[len(initial):] == [['3', 'arp-add', '02:00:00:91:00:18', '192.0.2.18', '0', '0', 'inherited-iface', 'inherited-id']], 'real91second refresh/wake control'
+    return [dict(case='before-90-retains', unchanged=True),
+            dict(case='idle-91-no-wake', unchanged=True, real_wait_seconds=time.monotonic() - start),
+            dict(case='real-91-active-refresh', callbacks=after[len(initial):])]
 
 
 def callbacks(root):
@@ -257,7 +296,8 @@ def run_side(args):
             # C grows its receive workspace from the actual kernel datagram.
             # An ignored NOARP record gives the real buffer room for the
             # controlled multi-record fixture without inventing a capacity.
-            neighbor('192.0.2.250', MAC, 'noarp')
+            for index in range(max(1, len(spec.get('warmup', spec['raw'])) - 1)):
+                neighbor('192.0.2.' + str(250 - index), MAC, 'noarp')
         current = subprocess.run(['ip', '-j', 'neigh', 'show'], capture_output=True, check=True)
         (folder / 'kernel-neighbors.json').write_bytes(current.stdout)
         (root / 'm2/arp-events').write_bytes(b'')
@@ -310,6 +350,17 @@ def run_side(args):
                     assert call[4] == str(spec.get('helper_uid', 0)), 'actual helper UID'
                     assert call[6:] == ['inherited-iface', 'inherited-id'], 'inherited environment'
                 if 'raw' in spec:
+                    if 'warmup' in spec:
+                        warmup = folder / 'warmup'
+                        warmup.mkdir()
+                        (root / 'm2/arp-events').write_bytes(b'')
+                        refresh_with_fixture(pid, spec['warmup'], warmup)
+                        deadline = time.monotonic() + 2
+                        while len(callbacks(root)) < len(spec['warmup_expected']) and time.monotonic() < deadline:
+                            time.sleep(.02)
+                        time.sleep(.15)
+                        save(warmup / 'callbacks.json', callbacks(root))
+                        assert callbacks(root) == spec['warmup_expected'], 'C-derived warmup order'
                     (root / 'm2/arp-events').write_bytes(b'')
                     refresh_with_fixture(pid, spec['raw'], folder)
                     deadline = time.monotonic() + 2
@@ -327,7 +378,10 @@ def run_side(args):
                 remaining = len(list(Path('/proc/' + str(pid) + '/fd').iterdir()))
                 save(folder / 'descriptor-health.json', dict(before=baseline, after=remaining))
                 assert baseline == remaining, 'descriptor recovery'
-                rows.append(dict(case=label, callbacks=observed, helper_count=len(owned), dns_health=reply is not None))
+                if spec.get('clock'):
+                    rows.extend(clock_contract(root, pid, folder))
+                else:
+                    rows.append(dict(case=label, callbacks=observed, helper_count=len(owned), dns_health=reply is not None))
         except Exception as error:
             failed = dict(case=label, error=repr(error))
             failures.append(failed)
