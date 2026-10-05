@@ -99,7 +99,7 @@ pub enum CnameTarget {
     Local(Arc<LocalTarget>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Record {
     pub name: Name,
     pub kind: Kind,
@@ -109,9 +109,11 @@ pub struct Record {
     pub data: Vec<u8>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Entry {
-    pub record: Record,
+    /// Record payloads are immutable after insertion. A TCP fork view shares
+    /// these bytes while owning its own expiry, links and generation state.
+    pub record: Arc<Record>,
     pub expires: i64,
     target: Option<CnameTarget>,
     authority_name: Option<Name>,
@@ -186,6 +188,7 @@ pub struct LocalCacheMatch {
     pub from_lease: bool,
 }
 
+#[derive(Clone)]
 struct Slot {
     entry: Option<Entry>,
     generation: u64,
@@ -196,6 +199,7 @@ struct Slot {
 /// Fixed number of records, with an index per name and an intrusive LRU of slot
 /// indices. Pending inserts are outside the LRU and invisible to lookups.
 /// Capacity is measured in records, including CNAME and negative records.
+#[derive(Clone)]
 pub struct Cache {
     policy: Policy,
     slots: Vec<Slot>,
@@ -209,6 +213,12 @@ pub struct Cache {
 }
 
 impl Cache {
+    /// C's nondebug TCP child inherits the accepted cache. Share immutable
+    /// payloads; mutable indices, pending insertions and LRU state are private.
+    /// The containing owner supplies the fixed accept clock separately.
+    pub fn snapshot(&self) -> Self {
+        self.clone()
+    }
     pub fn new(capacity: usize, mut policy: Policy) -> Self {
         // C represents a zero stale allowance as the option being disabled.
         if policy.stale == StalePolicy::Seconds(0) {
@@ -458,7 +468,7 @@ impl Cache {
         }
         self.long_names += usize::from(long);
         self.slots[slot].entry = Some(Entry {
-            record,
+            record: Arc::new(record),
             expires,
             target: None,
             authority_name: None,
