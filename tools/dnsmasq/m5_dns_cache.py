@@ -106,6 +106,46 @@ for label,host in [('ptr-ipv4','17.2.0.192.in-addr.arpa'),('ptr-ipv6',ipaddress.
                    ('ptr-partial-v4','2.0.192.in-addr.arpa'),('ptr-v4-octet-wrap','273.2.0.192.in-addr.arpa'),
                    ('ptr-ip6-int',ipaddress.ip_address('2001:db8::17').reverse_pointer.replace('.arpa','.int'))]:
     case(label,kind=12,host=host)
+# Reverse records use the IP as lookup/conflict key, independently of the
+# target's forward name. Preserve the full RR order from the image C.
+PTR4='17.2.0.192.in-addr.arpa'
+for label,host in [('ptr-v4-extra-label','99.17.2.0.192.in-addr.arpa'),
+                   ('ptr-v4-atoi-wrap','4294967313.2.0.192.in-addr.arpa'),
+                   ('ptr-partial-v6','1.0.0.0.ip6.arpa'),
+                   ('ptr-ipv6-legacy-bitstring',r'\[x20010db8000000000000000000000017/128].ip6.int'),
+                   ('ptr-invalid-arpa-generic','nondigit.2.0.192.in-addr.arpa')]:
+    case(label,kind=12,host=host)
+for label,fields in [('ptr-class-other',{'cls':3}),
+                      ('ptr-owner-other',{'answers':[{'data':name('target.cache.test').hex(),'owner':'other.cache.test'}]}),
+                      ('ptr-malformed-target',{'answers':[{'data':'c0ff'}]}),
+                      ('ptr-target-past-rdlen-bounded',{'opts':None,'answers':[{'data':name('target.cache.test').hex(),'rdlen':1}]}),
+                      ('ptr-unrelated-trailing-malformed',{'opts':None,'answers':[{'data':name('target.cache.test').hex()},
+                                              {'kind':16,'data':'0178','rdlen':200,'owner':'other.cache.test'}]}),
+                      ('ptr-negative-nodata',{'answers':[],'soa':True,'soa_owner':'in-addr.arpa'}),
+                      ('ptr-negative-nxdomain',{'answers':[],'soa':True,'soa_owner':'in-addr.arpa','response_flags':0x8183}),
+                      ('ptr-filter-compose',{'config':'filter-rr=PTR'}),
+                      ('ptr-tcp-child-import',{'transports':['tcp','udp']}),
+                      ('ptr-cname-generic-fallback',{'answers':[{'kind':5,'data':name('target.cache.test').hex()},
+                                             {'kind':12,'data':name('terminal.cache.test').hex(),'owner':'target.cache.test'}]}),
+                      ('ptr-multiple-targets',{'answers':[{'data':name('first.cache.test').hex()},
+                                                        {'data':name('second.cache.test').hex()},
+                                                        {'data':name('third.cache.test').hex()}]}),
+                      ('ptr-reverse-bucket-order',{'answers':[{'data':name('a.cache.test').hex()},
+                                                            {'data':name('b.cache.test').hex()},
+                                                            {'data':name('a.cache.test').hex(),'ttl':300}],
+                                                  'transports':['udp','udp','udp']})]:
+    case(label,kind=12,host=PTR4,**fields)
+for label,fields in [('ptr-address-alias-key',{'action':'ptr-alias'}),
+                      ('ptr-two-addresses-same-target',{'action':'ptr-two'}),
+                      ('ptr-reverse-no-forward-alias',{'action':'ptr-forward'}),
+                      ('ptr-forward-independent-same-name',{'action':'ptr-forward-independent'}),
+                      ('ptr-replace-address-rrset',{'action':'ptr-replace'}),
+                      ('ptr-negative-cross-qtype',{'action':'ptr-negative','answers':[],'soa':True,'soa_owner':'in-addr.arpa','response_flags':0x8183}),
+                      ('ptr-expiry-refresh',{'action':'expired-stale','ttl':1}),
+                      ('ptr-stale-refresh',{'action':'expired-stale','ttl':1,'config':'use-stale-cache=0'})]:
+    case(label,kind=12,host=PTR4,**fields)
+case('ptr-static-host-precedence','host-record=static.cache.test,192.0.2.17',kind=12,host=PTR4)
+case('ptr-dhcp-precedence','dhcp-range=192.0.2.40,192.0.2.60,255.255.255.0,120s\ndhcp-authoritative\nno-ping\ndhcp-leasefile=/m2/cache.leases\ndomain=cache.test',kind=12,host='42.2.0.192.in-addr.arpa',action='ptr-lease')
 for option in ['min-cache-ttl','max-cache-ttl','max-ttl']:
     for suffix,kind,fields in [('a',1,{}),('aaaa',28,{}),('generic',16,{}),
                               ('reverse4',12,{'host':'17.2.0.192.in-addr.arpa'}),
@@ -152,6 +192,8 @@ for kind,label in DESCRIPTORS.items():case('generic-'+label,'cache-rr=ANY',kind=
 for kind,label in [(16,'txt'),(35,'naptr-opaque'),(257,'caa'),(64,'svcb-opaque'),(65,'https-opaque'),
                    (43,'ds'),(48,'dnskey'),(46,'rrsig-opaque'),(65000,'unknown')]:
     case('generic-'+label,'cache-rr=ANY',kind=kind)
+case('metadata-dnskey-generic-stale','cache-rr=ANY\nuse-stale-cache=0',kind=48,ttl=1,action='expired-stale')
+case('metadata-ds-generic-stale','cache-rr=ANY\nuse-stale-cache=0',kind=43,ttl=1,action='expired-stale')
 for label,kind,data in [('generic-empty',65000,b''),('generic-inline-13',65000,b'x'*13),
                         ('generic-block-14',65000,b'x'*14),('generic-fixed-prefix-short',15,b'\x00'),
                         ('generic-trailing-data',12,name('target.cache.test')+b'\x00\x01')]:
@@ -162,6 +204,8 @@ case('generic-compressed-rdata','cache-rr=ANY',kind=12,answers=[{'data':'c00c'}]
 case('generic-binary-name','cache-rr=ANY',kind=12,answers=[{'data':b'\x04\xffA\x00Z\0'.hex()}])
 case('generic-name-past-rdlen','cache-rr=ANY',kind=15,answers=[{'data':(b'\x00\x01'+name('target.cache.test')).hex(),'rdlen':2}])
 case('generic-rdata-past-packet','cache-rr=ANY',kind=65000,opts=None,answers=[{'data':'0102','rdlen':200}])
+case('generic-expanded-u16-overflow','cache-rr=ANY',kind=6,host='.'.join(['x'*63]*3+['y'*61]),transports=['tcp','tcp'],answers=[{'data':(b'\xc0\x0c'*2+b'x'*65200).hex()}])
+case('generic-malformed-prefix-effects','cache-rr=ANY',kind=15,action='malformed-prefix')
 for label,fields in [('generic-large-udp-truncate',{'size':512}),
                       ('generic-large-tcp-cache',{'transports':['udp','tcp']}),
                       ('generic-large-tcp-opt512',{'transports':['udp','tcp'],'size':512}),
@@ -339,9 +383,10 @@ def exchange(port,packet,tcp=False,connection=None):
 
 def schedule(spec,port,upstream,folder):
     host=spec.get('host',spec['case']+'.'+ZONE);upstream.plan[host]=spec;observations=[]
-    def packet(label,target=host,tcp=False,connection=None,step=0):
-        wire=query(target,0x5200+step,spec.get('kind',1),spec.get('flags',0x100),spec.get('cls',1),spec.get('do',False),
-                   spec.get('opts',b''),spec.get('opt_ttl',0),spec.get('signed',False),spec.get('extra',False),spec.get('size',1232))
+    def packet(label,target=host,tcp=False,connection=None,step=0,**overrides):
+        fields=dict(spec,**overrides)
+        wire=query(target,0x5200+step,fields.get('kind',1),fields.get('flags',0x100),fields.get('cls',1),fields.get('do',False),
+                   fields.get('opts',b''),fields.get('opt_ttl',0),fields.get('signed',False),fields.get('extra',False),fields.get('size',1232))
         started=time.monotonic_ns();reply=exchange(port,wire,tcp,connection);completed=time.monotonic_ns()
         (folder/(label+'.query')).write_bytes(wire)
         if reply is not None:(folder/(label+'.reply')).write_bytes(reply)
@@ -351,6 +396,40 @@ def schedule(spec,port,upstream,folder):
         upstream.plan[host]=dict(spec,answers=[{'kind':5,'data':name('target.cache.test').hex()},
                                                {'kind':spec.get('kind',1),'owner':'target.cache.test','data':default_rdata(spec.get('kind',1)).hex()}])
     if action=='startup':return observations
+    if action=='expired-stale':
+        packet('seed');time.sleep(2.2)
+        upstream.plan[host]=dict(spec,ttl=600,answers=[{'data':name('refreshed.cache.test').hex() if spec.get('kind')==12 else '11121314'}])
+        packet('expired-stale');time.sleep(.1);packet('refreshed')
+        return observations
+    if action=='malformed-prefix':
+        packet('seed')
+        upstream.plan[host]=dict(spec,answers=[{'data':(b'\x00\x02'+name('changed.cache.test')).hex()},
+                                               {'data':'0002c0ff'}])
+        packet('malformed-cd',flags=0x110,do=True)
+        upstream.plan[host]=dict(spec,answers=[{'data':(b'\x00\x03'+name('recovered.cache.test')).hex()}])
+        packet('old-probe');packet('recovery-hit')
+        return observations
+    if action and action.startswith('ptr-'):
+        packet('seed')
+        if action=='ptr-lease':
+            proof=lease_exchange(folder,'lease');(folder/'lease-witness.json').write_text(json.dumps([proof],indent=2)+'\n')
+            packet('after-lease');packet('lease-forward','leaseold.cache.test',kind=1);packet('reverse-repeat')
+        elif action=='ptr-alias':
+            packet('same-ip-alias','273.2.0.192.in-addr.arpa')
+        elif action=='ptr-two':
+            other='18.2.0.192.in-addr.arpa';upstream.plan[other]=dict(spec)
+            packet('other-ip',other);packet('first-ip');packet('second-ip',other)
+        elif action in ('ptr-forward','ptr-forward-independent'):
+            target='target.cache.test'
+            upstream.plan[target]=dict(kind=1)
+            if action=='ptr-forward-independent':packet('seed-forward',target,kind=1)
+            packet('forward-target',target,kind=1);packet('reverse-retained')
+        elif action=='ptr-negative':
+            packet('other-qtype',kind=28);packet('ptr-negative-hit')
+        elif action=='ptr-replace':
+            upstream.plan[host]=dict(spec,answers=[{'data':name('changed.cache.test').hex()}])
+            packet('replace-forced',do=True);packet('new-rrset');packet('new-rrset-repeat')
+        return observations
     if action and action.startswith('lease-'):
         witnesses=[];old='leaseold.cache.test';new='leasenew.cache.test';lease=None
         if action!='lease-added':
