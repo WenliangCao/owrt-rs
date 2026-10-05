@@ -274,6 +274,20 @@ def cases():
                           '--dhcp-broadcast', *[f'--dhcp-range=127.0.{index}.10,127.0.{index}.20,255.0.0.0,10m'
                                               for index in range(20)]],
                  'options': ['log-async', 'log-facility']})
+    for enabled in [False, True]:
+        for family, server in [('v4', '127.0.0.2'), ('v6', '::1')]:
+            rows.append({'id': 'debug-tcp-' + family + ('-enabled' if enabled else '-disabled'),
+                         'scope': 'debug', 'kind': 'run', 'debug_probes': 'tcp', 'debug_enabled': enabled,
+                         'debug_server': server, 'argv': ['--log-facility=-', '--server=' + server + '#15955',
+                                                        *(['--log-debug'] if enabled else [])],
+                         'options': ['log-debug']})
+        for kind in ['interface', 'explicit']:
+            rows.append({'id': 'debug-dynamic-' + kind + ('-enabled' if enabled else '-disabled'),
+                         'scope': 'debug', 'kind': 'run', 'debug_probes': kind, 'debug_enabled': enabled,
+                         'base_skip': ['--bind-interfaces'],
+                         'argv': ['--log-facility=-', '--bind-dynamic',
+                                  *(['--interface=m5log'] if kind == 'interface' else ['--listen-address=192.0.2.101']),
+                                  *(['--log-debug'] if enabled else [])], 'options': ['log-debug']})
     for quiet in [False, True]:
         for variant in ['requests', 'port-exhausted', 'timeout']:
             rows.append({'id': 'tftp-logs-' + variant + ('-quiet' if quiet else '-ordinary'),
@@ -574,6 +588,61 @@ def tftp_sequence(variant, out, receiver):
     return rows, raw
 
 
+def debug_sequence(case, out, receiver):
+    if case['debug_probes'] == 'tcp':
+        wire = query('debug-forward.logging', 1, 0x7450)
+        with socket.create_connection(('127.0.0.1', 15353), timeout=2) as client:
+            client.sendall(len(wire).to_bytes(2, 'big') + wire)
+            reply = exact_read(client, int.from_bytes(exact_read(client, 2), 'big'))
+        if reply[:2] != wire[:2] or semantics(reply)['flags'] & 15 != 2:
+            raise AssertionError('source TCP upstream-refusal SERVFAIL')
+        time.sleep(.03)
+        receiver.drain()
+        return [{'request': wire.hex(), 'reply': reply.hex()}], None
+    explicit = case['debug_probes'] == 'explicit'
+    old_nonlocal = Path('/proc/sys/net/ipv4/ip_nonlocal_bind').read_text()
+    subprocess.run(['ip', 'link', 'add', 'm5log', 'type', 'dummy'], check=True)
+    index = socket.if_nametoindex('m5log')
+    rows = []
+    try:
+        subprocess.run(['ip', 'link', 'set', 'm5log', 'addrgenmode', 'none'], check=True)
+        if explicit:
+            Path('/proc/sys/net/ipv4/ip_nonlocal_bind').write_text('1\n')
+        subprocess.run(['ip', 'link', 'set', 'm5log', 'up'], check=True)
+        address = '192.0.2.102' if explicit else '192.0.2.100'
+        subprocess.run(['ip', 'address', 'add', address + '/24', 'dev', 'm5log'], check=True)
+        if explicit:
+            subprocess.run(['ip', 'route', 'add', 'local', '192.0.2.101/32', 'dev', 'lo'], check=True)
+        target = '192.0.2.101' if explicit else address
+        deadline = time.monotonic() + 2
+        while time.monotonic() < deadline:
+            receiver.drain()
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as client:
+                client.settimeout(.03)
+                wire = query('ready.logging', 1, 0x7451)
+                client.sendto(wire, (target, 15353))
+                try:
+                    reply = client.recv(65535)
+                    if [value['data'] for value in semantics(reply)['records']] != ['192.0.2.1']:
+                        raise AssertionError('dynamic listener health')
+                    rows.append({'request': wire.hex(), 'reply': reply.hex(), 'target': target})
+                    break
+                except socket.timeout:
+                    pass
+            time.sleep(.01)
+        else:
+            raise AssertionError('dynamic listener did not activate')
+        subprocess.run(['ip', 'link', 'delete', 'm5log'], check=True)
+        time.sleep(.2)
+        receiver.drain()
+    finally:
+        subprocess.run(['ip', 'link', 'delete', 'm5log'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if explicit:
+            subprocess.run(['ip', 'route', 'delete', 'local', '192.0.2.101/32', 'dev', 'lo'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        Path('/proc/sys/net/ipv4/ip_nonlocal_bind').write_text(old_nonlocal)
+    return rows, index
+
+
 def identity_probes():
     probes = []
     def add(labels, kind=16, cls=3, rd=True, edns=False, do=False, rcode=None, txt=None):
@@ -729,6 +798,13 @@ def run(root, side, case, out):
                         pass
                 time.sleep(.005)
             if observed['ready']:
+                if case.get('debug_probes'):
+                    rows, index = debug_sequence(case, out, receiver)
+                    observed['debug_wire'] = rows
+                    if index is not None:
+                        observed['interface_index'] = index
+                    trace['debug_wire'] = rows
+                    trace['interface_index'] = index
                 if case.get('pause_receiver'):
                     deadline = time.monotonic() + .2
                     while time.monotonic() < deadline:
@@ -1285,6 +1361,21 @@ def compare(reference, candidate, case, reference_only=False):
             combined = text + ''.join(bytes.fromhex(value).decode(errors='backslashreplace') for value in reference['syslog'])
             if message not in text or 'FAILED to start up' not in combined:
                 failures.append({'kind': 'C-TFTP-root-fatal', 'missing': message, 'actual': combined})
+    if case.get('debug_probes'):
+        for side, row in [('c', reference)] + ([] if reference_only else [('rust', candidate)]):
+            text = row['stderr']
+            if not case['debug_enabled']:
+                if 'dnsmasq-debug[' in text:
+                    failures.append({'kind': 'debug-disabled-producer', 'side': side, 'actual': text})
+                continue
+            variant = case['debug_probes']
+            required = ['TCP connection failed to ' + case['debug_server'] + '#15955'] if variant == 'tcp' else [
+                'listening on 192.0.2.101 port 15353'] if variant == 'explicit' else [
+                f'listening on m5log(#{row["interface_index"]}): 192.0.2.100 port 15353',
+                f'stopped listening on m5log(#{row["interface_index"]}): 192.0.2.100 port 15353']
+            for message in required:
+                if message not in text:
+                    failures.append({'kind': 'debug-source-producer', 'side': side, 'missing': message, 'actual': text})
     if case['kind'] == 'cli':
         expected = ('Known DHCP options:\n' if case['argv'] == ['--help', 'dhcp'] else
                     'Dnsmasq version 2.93  ' if case['argv'] == ['--version'] else
@@ -1311,6 +1402,13 @@ def compare(reference, candidate, case, reference_only=False):
         return failures
     left, right = copy.deepcopy(reference), copy.deepcopy(candidate)
     for row in [left, right]:
+        if 'interface_index' in row:
+            index = row['interface_index']
+            # Indices increase between sequential namespace fixture creations.
+            # The raw producer guard above verifies each implementation's own
+            # actual index before this identity-only comparison normalization.
+            row['stderr'] = row['stderr'].replace(f'm5log(#{index})', 'm5log(#<INDEX>)')
+            row['interface_index'] = '<INDEX>'
         for stream in ['stdout', 'stderr']:
             row[stream] = normalized(row[stream])
         row['syslog'] = [normalized(bytes.fromhex(value).decode(errors='backslashreplace'))
