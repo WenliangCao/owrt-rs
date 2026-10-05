@@ -254,6 +254,30 @@ def cases():
                  'facility': 24, 'async_notice': 3, 'options': ['log-async']})
     rows.append({'id': 'async-repeat-cli', 'scope': 'async', 'kind': 'test', 'exit': 1,
                  'argv': ['--log-async=3', '--log-async=7'], 'options': ['log-async', 'test']})
+    for quiet in [False, True]:
+        for variant in ['requests', 'port-exhausted', 'timeout']:
+            rows.append({'id': 'tftp-logs-' + variant + ('-quiet' if quiet else '-ordinary'),
+                         'scope': 'tftp-logs', 'kind': 'run', 'tftp_probes': variant,
+                         'quiet': quiet, 'argv': ['--log-facility=-', '--enable-tftp',
+                            '--tftp-root=/m2/logging',
+                            *(['--quiet-tftp'] if quiet else []),
+                            *(['--tftp-port-range=35000,35000'] if variant == 'port-exhausted' else [])],
+                         'options': ['quiet-tftp', 'log-facility']})
+    for destination, extra in [('stderr', {'argv': ['--log-facility=-']}),
+                                ('file', {'argv': ['--log-facility=/m2/logging/daemon.log'], 'file': 'daemon.log'}),
+                                ('syslog', {'argv': [], 'receiver': 'dgram', 'facility': 24})]:
+        for enabled in [False, True]:
+            rows.append({'id': 'script-logs-' + destination + ('-debug-enabled' if enabled else '-debug-disabled'),
+                         'scope': 'script-logs', 'kind': 'run', **extra,
+                         'tftp_probes': 'script', 'script_probes': 'output',
+                         'argv': [*extra['argv'], '--enable-tftp', '--tftp-root=/m2/logging',
+                                  '--dhcp-script=/m2/logging/script', *(['--log-debug'] if enabled else [])],
+                         'options': ['log-facility', 'log-debug']})
+    for outcome in ['signal', 'exec']:
+        rows.append({'id': 'script-logs-' + outcome, 'scope': 'script-logs', 'kind': 'run',
+                     'tftp_probes': 'script', 'script_probes': outcome,
+                     'argv': ['--log-facility=-', '--enable-tftp', '--tftp-root=/m2/logging',
+                              '--dhcp-script=/m2/logging/script'], 'options': ['log-facility', 'log-debug']})
     dhcp_base = ['--log-facility=-', '--dhcp-leasefile=/m2/logging/leases', '--no-ping', '--dhcp-broadcast']
     for name, ranges in [
         ('dynamic', ['127.0.0.10,127.0.0.20,255.0.0.0,10m']),
@@ -388,6 +412,69 @@ def tcp_sequence(probes):
     return rows, raw
 
 
+def tftp_sequence(variant, out, receiver):
+    rows, raw = [], []
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as client:
+        client.bind(('127.0.0.1', 16504))
+        client.settimeout(.2)
+        def request(label, wire, expected, finish=False, remote_error=None):
+            client.sendto(wire, ('127.0.0.1', 69))
+            try:
+                reply, peer = client.recvfrom(65535)
+            except socket.timeout:
+                if expected is not None:
+                    raise
+                rows.append({'label': label, 'response': None})
+                raw.append({'label': label, 'request': wire.hex(), 'reply': None})
+                return
+            if expected is None or reply != expected:
+                raise AssertionError(('TFTP source response', label, expected, reply))
+            rows.append({'label': label, 'response': reply.hex(), 'dedicated': peer[1] != 69})
+            raw.append({'label': label, 'request': wire.hex(), 'reply': reply.hex(), 'peer': list(peer)})
+            if remote_error:
+                client.sendto(remote_error, peer)
+                raw.append({'label': label + '-client-error', 'request': remote_error.hex(), 'peer': list(peer)})
+            if finish:
+                client.sendto(b'\0\4\0\1', peer)
+                last, origin = client.recvfrom(65535)
+                if last != b'\0\3\0\2' + b'x' * 188 or origin != peer:
+                    raise AssertionError('TFTP final block')
+                client.sendto(b'\0\4\0\2', peer)
+                rows.append({'label': label + '-last', 'response': last.hex()})
+                raw.append({'label': label + '-last', 'reply': last.hex(), 'peer': list(peer)})
+            time.sleep(.02)
+            receiver.drain()
+        rrq = b'\0\1public\0octet\0'
+        if variant == 'script':
+            request('completed', rrq, b'\0\3\0\1' + b'x' * 512, finish=True)
+        elif variant == 'port-exhausted':
+            request('port-exhausted', rrq, None)
+        elif variant == 'timeout':
+            request('timeout', rrq, b'\0\3\0\1' + b'x' * 512)
+            deadline = time.monotonic() + 125
+            while time.monotonic() < deadline:
+                receiver.drain()
+                if b'timeout sending /m2/logging/public to 127.0.0.1' in (out / 'stderr').read_bytes():
+                    break
+                time.sleep(.03)
+            else:
+                raise AssertionError('source 120-second transfer timeout did not log')
+        else:
+            request('completed', rrq, b'\0\3\0\1' + b'x' * 512, finish=True)
+            for label, wire, reply in [
+                ('missing', b'\0\1missing\0octet\0', b'\0\5\0\1file /m2/logging/missing not found for 127.0.0.1\0'),
+                ('permissions', b'\0\1private\0octet\0', b'\0\5\0\2cannot access /m2/logging/private: Permission denied\0'),
+                ('read', b'\0\1directory\0octet\0', b'\0\5\0\0cannot read /m2/logging/directory: Is a directory\0'),
+                ('mode', b'\0\1public\0bad\0', b'\0\5\0\4unsupported request from 127.0.0.1\0'),
+                ('write', b'\0\2', b'\0\5\0\4unsupported write request from 127.0.0.1\0'),
+                ('unknown', b'\0\x09', None),
+            ]:
+                request(label, wire, reply)
+            request('client-error', rrq, b'\0\3\0\1' + b'x' * 512,
+                    remote_error=b'\0\5\0\3client\1failed\0')
+    return rows, raw
+
+
 def identity_probes():
     probes = []
     def add(labels, kind=16, cls=3, rd=True, edns=False, do=False, rcode=None, txt=None):
@@ -471,6 +558,23 @@ def run(root, side, case, out):
     folder.mkdir(mode=0o777)
     folder.chmod(0o777)
     (folder / 'config').write_text(case.get('config', ''))
+    blocker = None
+    if case.get('tftp_probes'):
+        (folder / 'public').write_bytes(b'x' * 700)
+        (folder / 'public').chmod(0o644)
+        (folder / 'private').write_bytes(b'private')
+        (folder / 'private').chmod(0o600)
+        (folder / 'directory').mkdir()
+        if case['tftp_probes'] == 'port-exhausted':
+            blocker = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            blocker.bind(('127.0.0.1', 35000))
+    if case.get('script_probes'):
+        outcome = case['script_probes']
+        if outcome != 'exec':
+            script = folder / 'script'
+            script.write_text('#!/bin/sh\n' + ('kill -TERM $$\n' if outcome == 'signal' else
+                "printf 'one\\n\\n'; head -c 4096 /dev/zero | tr '\\000' x; printf '\\ntail'; exit 7\n"))
+            script.chmod(0o755)
     image_path(root, '/etc/dnsmasq.conf', follow_leaf=False).write_text(
         'unrecognised-directive=fail\n' if case.get('invalid_default') else '')
     if 'existing' in case:
@@ -518,6 +622,22 @@ def run(root, side, case, out):
                         pass
                 time.sleep(.005)
             if observed['ready']:
+                if case.get('tftp_probes'):
+                    rows, raw = tftp_sequence(case['tftp_probes'], out, receiver)
+                    observed['tftp'] = rows
+                    trace['tftp'] = raw
+                if case.get('script_probes'):
+                    deadline = time.monotonic() + 1
+                    while time.monotonic() < deadline:
+                        receiver.drain()
+                        captured = (out / 'stderr').read_bytes() + b''.join(receiver.raw)
+                        if case.get('file') and (folder / case['file']).exists():
+                            captured += (folder / case['file']).read_bytes()
+                        if any(text in captured for text in [b'script process exited with status 7',
+                                                            b'script process killed by signal 15',
+                                                            b'failed to execute /m2/logging/script']):
+                            break
+                        time.sleep(.005)
                 if case.get('identity_matrix'):
                     for transport in ['udp', 'tcp']:
                         rows, raw = identity_sequence(transport, side == 'c', case.get('identity_sticky_probe'), case.get('identity_fresh', False))
@@ -568,6 +688,8 @@ def run(root, side, case, out):
                 process.wait(1)
             receiver.drain()
             receiver.close()
+            if blocker:
+                blocker.close()
             trace['duration'] = time.monotonic() - start
             trace['stream_tail'] = receiver.pending.hex()
             save(out / 'trace.json', trace)
@@ -971,6 +1093,45 @@ def compare(reference, candidate, case, reference_only=False):
         notice = f'asynchronous logging enabled, queue limit is {limit} messages'
         if (limit > 0 and notice not in text) or (limit <= 0 and 'asynchronous logging enabled' in text):
             failures.append({'kind': 'C-async-notice', 'expected': limit, 'actual': text})
+    if case.get('tftp_probes'):
+        text = reference['stderr']
+        variant = case['tftp_probes']
+        required = ['sent /m2/logging/public to 127.0.0.1'] if variant == 'script' else [
+            'unable to get free port for TFTP'] if variant == 'port-exhausted' else [
+            'timeout sending /m2/logging/public to 127.0.0.1'] if variant == 'timeout' else [
+            'sent /m2/logging/public to 127.0.0.1',
+            'cannot access /m2/logging/private: Permission denied',
+            'cannot read /m2/logging/directory: Is a directory',
+            'unsupported request from 127.0.0.1', 'unsupported write request from 127.0.0.1',
+            'error 3 clientfailed received from 127.0.0.1',
+            'failed sending /m2/logging/public to 127.0.0.1']
+        if variant == 'requests':
+            missing = 'file /m2/logging/missing not found for 127.0.0.1'
+            if case['quiet'] and missing in text:
+                failures.append({'kind': 'C-quiet-TFTP-not-found', 'actual': text})
+            if not case['quiet']:
+                required.append(missing)
+        for message in required:
+            if message not in text:
+                failures.append({'kind': 'C-TFTP-log-producer', 'missing': message, 'actual': text})
+    if case.get('script_probes'):
+        text = reference['stderr'] + ''.join(bytes.fromhex(value).decode() for value in reference['syslog'])
+        text += ''.join(bytes.fromhex(value).decode() for value in reference['files'].values())
+        required = ['script process killed by signal 15'] if case['script_probes'] == 'signal' else [
+            'failed to execute /m2/logging/script: No such file or directory'] if case['script_probes'] == 'exec' else [
+            'dnsmasq-script[', ': one\n', ': \n', ': tail\n', 'script process exited with status 7']
+        for message in required:
+            if message not in text:
+                failures.append({'kind': 'C-script-log-producer', 'missing': message, 'actual': text})
+        if case['script_probes'] == 'output':
+            records = [bytes.fromhex(value) for value in reference['syslog']]
+            records += [line + b'\n' for value in reference['files'].values()
+                        for line in bytes.fromhex(value).splitlines()]
+            if not records:
+                records = [line + b'\n' for line in reference['stderr'].encode().splitlines()]
+            long = [record for record in records if b': xxxxxxxxxxxxxxxx' in record]
+            if len(long) != 1 or len(long[0]) != (1023 if reference['syslog'] else 1024):
+                failures.append({'kind': 'C-script-max-message', 'lengths': [len(value) for value in long]})
     if case['kind'] == 'cli':
         expected = ('Known DHCP options:\n' if case['argv'] == ['--help', 'dhcp'] else
                     'Dnsmasq version 2.93  ' if case['argv'] == ['--version'] else
