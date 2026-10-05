@@ -268,6 +268,12 @@ def cases():
                  'facility': 24, 'async_notice': 3, 'options': ['log-async']})
     rows.append({'id': 'async-repeat-cli', 'scope': 'async', 'kind': 'test', 'exit': 1,
                  'argv': ['--log-async=3', '--log-async=7'], 'options': ['log-async', 'test']})
+    rows.extend([
+        {'id': 'async-repeat-file', 'scope': 'async', 'kind': 'test', 'exit': 1,
+         'argv': [], 'config': 'log-async=3\nlog-async=7\n', 'options': ['log-async', 'test']},
+        {'id': 'async-invalid-file', 'scope': 'async', 'kind': 'test', 'exit': 1,
+         'argv': [], 'config': 'log-async=-1\n', 'options': ['log-async', 'test']},
+    ])
     rows.append({'id': 'async-overflow-startup', 'scope': 'async-overflow', 'kind': 'run',
                  'pause_receiver': True, 'receiver': 'dgram', 'facility': 24,
                  'argv': ['--log-async=2', '--dhcp-leasefile=/m2/logging/leases', '--no-ping',
