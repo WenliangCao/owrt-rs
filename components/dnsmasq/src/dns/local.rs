@@ -795,6 +795,7 @@ fn add_local_records_for_name(
     let key = dotted_key(name);
     let mut rows = Vec::new();
     let mut owned = false;
+    let mut synthetic_reverse_name = None;
 
     // answer_request emits configured TXT/raw/PTR before address records.
     add_typed_records(
@@ -853,11 +854,17 @@ fn add_local_records_for_name(
                     if let Some(name) = leases.synth.reverse(address) {
                         owned = true;
                         rows.push((TYPE_PTR, ttl, wire_name(&name).unwrap_or_else(|| vec![0])));
+                        // is_rev_synth replaces C's name cursor. ANY then
+                        // evaluates address/mail records at this generated name.
+                        synthetic_reverse_name = Some(name);
                     }
                 }
             }
         }
     }
+
+    let name = synthetic_reverse_name.as_deref().unwrap_or(name);
+    let key = if synthetic_reverse_name.is_some() { dotted_key(name) } else { key };
 
     // The Hosts table passed to this function is already filtered by the
     // loader (`no-hosts` skips /etc/hosts but does not skip addn-hosts).
