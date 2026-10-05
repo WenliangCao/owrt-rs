@@ -2,8 +2,8 @@
 
 ## 当前状态与下一步
 
-- 当前里程碑：M5；169 项中 **109 项已关闭、33 项部分实现、27 项未实现，剩余 60 项**。
-- 刚关闭：help、version；dd9f565d／6457808a…e4a55f完成8个CLI场景、3条冻结边界及13负控。完整193项help、64条DHCP选项表、argc分派、坏默认配置不影响terminal action、GPL/保修信息均配对；版本仅显式追加Rust实现身份。archive c7776b…58d1d的1015路径/813文件完整SHA+metadata核验清远端。日志sink/no-ident同批7差异仍开放，不混算。
+- 当前里程碑：M5；169 项中 **110 项已关闭、33 项部分实现、26 项未实现，剩余 59 项**。
+- 刚关闭：no-ident；c80c04e6／a7b051f3…e32f0d5的8配置／每侧228 DNS观察、4条完整边界及16负控通过。NO_ID默认/启用、CHAOS bind/server、class/type、binary label、UDP/TCP与RD/DO配对；26条C TCP OPT滞留原版缺陷保留2-query复现和严格负控，Rust保持逐请求OPT。archive 68b59d…9ce74的7664路径/6739文件完整SHA+metadata核验清远端。enable-tftp错误包已重开，仍待修复。
 - 当前代码：最新统一候选 `585221ef` / ELF `216a68c686c2ed94182c013f08db9ca4003bdf41a36ee2033ad053d94b96db09`，**1,646,632字节**（M4 +487,352；相对0ac6 +8,192，prefork只读租约初始化/early及ENOSPC日志/缓存ifindex边界，纯族归因待补）。Linux库615/main10通过，19 ignored不计通过。新init-only helper在原startup进程、PID/监听/fork前由单poll读完并回收，runtime helper在fork/stdio后独立启动；初始日志默认facility24和原父PID。0ac6的原55日志场景已零差异，完整sink/NO_ID新边界与默认后台错误合同仍继续验证，help/version外不提前关项。监听149配置的3090观察仅原版scoped-TFTP缺陷分类外无差异，但旧qualifier异常留档、fresh162含新socket-stage/syslog及static-TFTP owner边界重测；后续static-TFTP修复967214a7尚待新ELF。所有失败留档。固定路径归因：planner +4,096，SIGPIPE相对planner再增+4,096、相对固定矩阵累计+8,192。
 - 下一步：端点source preallocation/pool轮转、lease slow-init旧时钟、listener162和logging错误/NO_ID族继续闭合。enable-tftp因新发现的真实错误包文本差异重新打开（剩余+1），先修并对照再扣数；旧30场景证据保留，不将code相同冒称wire相同。其余已完成DHCP files/range/tag-if/DNS files/config输入保持原资格。
 - 阻塞点：无须用户决定。Oracle可用27,018,366,976字节（25.16GiB），88%；每批归档逐SHA和metadata核验后清理。旧 f4c892a8 驱动的 `paired-275-01` 在scoped IPv6夹具 OSError(22)后残留线程，已保留112项完整失败归档并回收孤儿；53863d71修ifindex绑定后同275候选 `paired-275-02` 1配置／6行通过并归档。绝不以半截或C-only计通过。物理路由器未触碰。
@@ -56,7 +56,7 @@ M4 的单 poll owner 已替换六线程接线，决定见 [ADR_THREAD_MODEL.md](
 
 ## M5 盘点与工作顺序
 
-盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**109 项已实现并有 C 差分，33 项部分实现，27 项未实现；剩余 60 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
+盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**110 项已实现并有 C 差分，33 项部分实现，26 项未实现；剩余 59 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
 
 对镜像 init 的静态调用路径核对得到 **A 组 99 项、B 组 70 项**。A 表示原生 UCI/init 生成或调用，行号链接到保留原文的 init；B 表示通常需额外配置。`extraconftext`/conf-dir 可以透传任意指令，不据此把全部选项都算原生生成。`pxe-service`、`pxe-prompt`、`interface-name` 实际有 init 生成路径，归 A。26 个 excluded-capability 选项不混入169项计数；其与C一致的禁用/拒绝边界仍保留。
 
@@ -240,7 +240,7 @@ M5 退出条件：169项全部实现并有C差分，或已证明与C一致的拒
 | `log-async` | B / — | 启动/日志/监听 | 未实现 | [source-native](../../docs/dnsmasq/M1_REVIEW_REPORT.md)；元数据列为可用，但无配置消费者；主入口通用 not implemented 拒绝。 |
 | `log-debug` | B / — | 启动/日志/监听 | 未实现 | [source-native](../../docs/dnsmasq/M1_REVIEW_REPORT.md)；元数据列为可用，但无配置消费者；主入口通用 not implemented 拒绝。 |
 | `log-malloc` | B / — | 启动/日志/监听 | 未实现 | [source-native](../../docs/dnsmasq/M1_REVIEW_REPORT.md)；元数据列为可用，但无配置消费者；主入口通用 not implemented 拒绝。 |
-| `no-ident` | B / — | 启动/日志/监听 | 未实现 | [source-native](../../docs/dnsmasq/M1_REVIEW_REPORT.md)；元数据列为可用，但无配置消费者；主入口通用 not implemented 拒绝。 |
+| `no-ident` | B / — | 启动/日志/监听 | 已实现，有C差分 | [M5 NO_ID闭合](../../private/dnsmasq-rewrite/evidence/M5/logging/final-noident-daemon-c80/no-ident-close-summary.json)；8配置／每侧228观察／4边界／16负控通过；CHAOS bind/server、explicit IN TXT、QCLASS ANY阴性、binary/RD/DO及双传输覆盖。26条C TCP遗留OPT缺陷单列最小复现，未删除DO守卫；c80c04e6／a7b051f3…e32f0d5，1,646,632字节，混合族增量另记；完整归档核验清远端。 |
 | `quiet-tftp` | B / — | 启动/日志/监听 | 未实现 | [source-native](../../docs/dnsmasq/M1_REVIEW_REPORT.md)；元数据列为可用，但无配置消费者；主入口通用 not implemented 拒绝。 |
 | `test` | B / — | 启动/日志/监听 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-service/summary.json)；语法判定、加载错误退出码已有镜像差分；成功时缺 C syntax-check 提示，全部选项还未接收。 |
 
