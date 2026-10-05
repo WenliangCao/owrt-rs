@@ -31,14 +31,31 @@ pub trait FileReader: Send + Sync {
     fn read_at(&self, offset: u64, output: &mut [u8]) -> io::Result<usize>;
 }
 
-#[derive(Clone)]
 pub struct OpenedFile {
     pub path: Vec<u8>,
     pub identity: FileIdentity,
     pub size: u64,
     pub mode: u32,
     pub owner_uid: u32,
-    pub reader: Arc<dyn FileReader>,
+    pub reader: FileSource,
+}
+
+/// Real transfers own a descriptor directly. Adapters can supply a shared
+/// reader without imposing an infallible heap allocation on the real opener.
+pub enum FileSource {
+    #[cfg(unix)]
+    File(File),
+    Shared(Arc<dyn FileReader>),
+}
+
+impl FileSource {
+    fn read_at(&self, offset: u64, output: &mut [u8]) -> io::Result<usize> {
+        match self {
+            #[cfg(unix)]
+            Self::File(file) => file.read_at(output, offset),
+            Self::Shared(reader) => reader.read_at(offset, output),
+        }
+    }
 }
 
 impl std::fmt::Debug for OpenedFile {
@@ -71,33 +88,11 @@ impl RealFileOpener {
     }
 }
 
-#[cfg(unix)]
-struct RealReader {
-    file: Arc<File>,
-    size: u64,
-    identity: FileIdentity,
-}
-
-#[cfg(unix)]
-impl FileReader for RealReader {
-    fn size(&self) -> u64 {
-        self.size
-    }
-
-    fn identity(&self) -> FileIdentity {
-        self.identity
-    }
-
-    fn read_at(&self, offset: u64, output: &mut [u8]) -> io::Result<usize> {
-        self.file.read_at(output, offset)
-    }
-}
-
 impl FileOpener for RealFileOpener {
     fn open(&self, path: &[u8]) -> io::Result<OpenedFile> {
         #[cfg(unix)]
         {
-            let file = Arc::new(File::open(std::ffi::OsString::from_vec(path.to_vec()))?);
+            let file = File::open(std::ffi::OsString::from_vec(path.to_vec()))?;
             // C reports any fstat failure as ERR_NOTDEF, independently of
             // errno. Preserve that distinction from open's ENOENT/EACCES.
             let metadata = file.metadata().map_err(io::Error::other)?;
@@ -116,18 +111,13 @@ impl FileOpener for RealFileOpener {
                     "TFTP file permission policy",
                 ));
             }
-            let reader = Arc::new(RealReader {
-                file,
-                size: metadata.len(),
-                identity,
-            });
             Ok(OpenedFile {
                 path: path.to_vec(),
                 identity,
                 size: metadata.len(),
                 mode: metadata.mode(),
                 owner_uid: metadata.uid(),
-                reader,
+                reader: FileSource::File(file),
             })
         }
         #[cfg(not(unix))]
@@ -268,17 +258,16 @@ impl From<RequestError> for RuntimeError {
     }
 }
 
-#[derive(Clone)]
 struct SharedFile {
     path: Vec<u8>,
     identity: FileIdentity,
     size: u64,
-    reader: Arc<dyn FileReader>,
+    reader: FileSource,
 }
 
 struct Active {
     peer: SocketAddr,
-    file: Arc<SharedFile>,
+    file: usize,
     transfer: Transfer,
     mode: Mode,
     /// Full block number of the last short DATA block emitted.  A transfer
@@ -292,6 +281,9 @@ pub struct TransferRuntime<O> {
     opener: O,
     next_id: u64,
     active: BTreeMap<TransferId, Active>,
+    // Stable slot indices let transfers share one descriptor by path/inode.
+    // Growing the file-record store is fallible, matching check_tftp_fileperm.
+    files: Vec<Option<SharedFile>>,
 }
 
 impl<O: FileOpener> TransferRuntime<O> {
@@ -301,6 +293,7 @@ impl<O: FileOpener> TransferRuntime<O> {
             opener,
             next_id: 1,
             active: BTreeMap::new(),
+            files: Vec::new(),
         }
     }
 
@@ -352,7 +345,9 @@ impl<O: FileOpener> TransferRuntime<O> {
         if packet.is_empty() {
             return Ok(Vec::new());
         }
-        self.receive(id, peer, packet, now)
+        let result = self.receive(id, peer, packet, now);
+        self.prune_files();
+        result
     }
 
     /// Route a datagram received from a caller-owned TFTP socket.  The caller
@@ -382,6 +377,26 @@ impl<O: FileOpener> TransferRuntime<O> {
     }
 
     pub fn handle_datagram_with_policy(
+        &mut self,
+        peer: SocketAddr,
+        packet: &[u8],
+        now: u64,
+        policy: Option<&RequestPolicy>,
+    ) -> Result<Vec<RuntimeEvent>, RuntimeError> {
+        let result = self.datagram_with_policy(peer, packet, now, policy);
+        self.prune_files();
+        result
+    }
+
+    fn prune_files(&mut self) {
+        for (index, file) in self.files.iter_mut().enumerate() {
+            if file.is_some() && !self.active.values().any(|active| active.file == index) {
+                *file = None;
+            }
+        }
+    }
+
+    fn datagram_with_policy(
         &mut self,
         peer: SocketAddr,
         packet: &[u8],
@@ -450,8 +465,8 @@ impl<O: FileOpener> TransferRuntime<O> {
                         RuntimeEvent::Completed(Completion {
                             id,
                             peer: active.peer,
-                            path: active.file.path.clone(),
-                            size: active.file.size,
+                            path: self.files[active.file].as_ref().unwrap().path.clone(),
+                            size: self.files[active.file].as_ref().unwrap().size,
                         })
                     } else {
                         RuntimeEvent::TimedOut {
@@ -472,6 +487,7 @@ impl<O: FileOpener> TransferRuntime<O> {
                 }
             }
         }
+        self.prune_files();
         Ok(events)
     }
 
@@ -564,19 +580,38 @@ impl<O: FileOpener> TransferRuntime<O> {
                 packet: access_error_packet(&path),
             }]);
         }
-        let file = self
+        let shared = self
             .active
             .values()
-            .find(|active| active.file.path == path && active.file.identity == opened.identity)
-            .map(|active| Arc::clone(&active.file))
-            .unwrap_or_else(|| {
-                Arc::new(SharedFile {
-                    path,
-                    identity: opened.identity,
-                    size: opened.size,
-                    reader: opened.reader,
-                })
+            .find(|active| {
+                let file = self.files[active.file].as_ref().unwrap();
+                file.path == path && file.identity == opened.identity
+            })
+            .map(|active| active.file);
+        let file = if let Some(index) = shared {
+            index
+        } else {
+            let index = if let Some(index) = self.files.iter().position(Option::is_none) {
+                index
+            } else {
+                if self.files.try_reserve_exact(1).is_err() {
+                    return Ok(vec![RuntimeEvent::Send {
+                        id: None,
+                        peer,
+                        packet: open_error_packet(&io::Error::from_raw_os_error(12), &path, peer),
+                    }]);
+                }
+                self.files.push(None);
+                self.files.len() - 1
+            };
+            self.files[index] = Some(SharedFile {
+                path,
+                identity: opened.identity,
+                size: opened.size,
+                reader: opened.reader,
             });
+            index
+        };
         let transfer = Transfer::new(request.options, request.mode, now);
         let id = self.next_id;
         self.next_id = self.next_id.wrapping_add(1).max(1);
@@ -611,7 +646,7 @@ impl<O: FileOpener> TransferRuntime<O> {
             active
                 .transfer
                 .options
-                .write_ack(active.file.size, &mut packet);
+                .write_ack(self.files[active.file].as_ref().unwrap().size, &mut packet);
             let mut framed = vec![0, 6];
             framed.extend_from_slice(&packet[2..]);
             Ok(vec![RuntimeEvent::Send {
@@ -677,8 +712,8 @@ impl<O: FileOpener> TransferRuntime<O> {
             return Ok(vec![RuntimeEvent::Completed(Completion {
                 id,
                 peer: active.peer,
-                path: active.file.path.clone(),
-                size: active.file.size,
+                path: self.files[active.file].as_ref().unwrap().path.clone(),
+                size: self.files[active.file].as_ref().unwrap().size,
             })]);
         }
         match self.send_window(id, now) {
@@ -706,7 +741,7 @@ impl<O: FileOpener> TransferRuntime<O> {
                 active
                     .transfer
                     .options
-                    .write_ack(active.file.size, &mut packet);
+                    .write_ack(self.files[active.file].as_ref().unwrap().size, &mut packet);
                 let mut framed = vec![0, 6];
                 framed.extend_from_slice(&packet[2..]);
                 Some((active.peer, framed))
@@ -747,7 +782,7 @@ impl<O: FileOpener> TransferRuntime<O> {
                     events.push(RuntimeEvent::Send {
                         id: Some(id),
                         peer: active.peer,
-                        packet: read_error_packet(&active.file.path, &error),
+                        packet: read_error_packet(&self.files[active.file].as_ref().unwrap().path, &error),
                     });
                     active.transfer.block = active.transfer.block.wrapping_add(1);
                     // C finishes the current window before error cleanup,
@@ -789,18 +824,18 @@ impl<O: FileOpener> TransferRuntime<O> {
 
     fn data_packet(&mut self, id: u64) -> Result<Vec<u8>, RuntimeError> {
         let active = self.active.get_mut(&id).unwrap();
-        let Some(offset) = active.transfer.file_offset(active.file.size) else {
+        let file = self.files[active.file].as_ref().unwrap();
+        let Some(offset) = active.transfer.file_offset(file.size) else {
             return Ok(Vec::new());
         };
         let block = active.transfer.block as u16;
         let mut raw = vec![0; active.transfer.options.block_size];
-        let remaining = active.file.size.saturating_sub(offset);
+        let remaining = file.size.saturating_sub(offset);
         let to_read = remaining.min(raw.len() as u64) as usize;
         let read = if to_read == 0 {
             0
         } else {
-            active
-                .file
+            file
                 .reader
                 .read_at(offset, &mut raw[..to_read])
                 .map_err(RuntimeError::Read)?
@@ -982,7 +1017,7 @@ mod tests {
                 size: reader.size(),
                 mode: self.mode,
                 owner_uid: self.owner_uid,
-                reader,
+                reader: FileSource::Shared(reader),
             })
         }
     }
@@ -1086,9 +1121,9 @@ mod tests {
                     size: self.size(),
                     mode: 0o644,
                     owner_uid: 0,
-                    reader: Arc::new(FaultFile {
+                    reader: FileSource::Shared(Arc::new(FaultFile {
                         fail_at: self.fail_at,
-                    }),
+                    })),
                 })
             }
         }
