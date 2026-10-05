@@ -583,6 +583,20 @@ fn run_inner(
     runtime.dhcp.validate_ready()?;
     validate_runtime_ready(&runtime.scalar, &runtime.dns)?;
     let dns_enabled = runtime.scalar.dns_port != 0;
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    let initial_interface_records = Arc::new(
+        dnsmasq_rs::dns::interface_records::InterfaceRecords::from_addresses(
+            &runtime.dns.interface_records.rules,
+            &if runtime.dns.interface_records.rules.is_empty() {
+                Vec::new()
+            } else {
+                dnsmasq_rs::dns::interface_records::read_addresses()?
+            },
+        ),
+    );
+    #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
+    let initial_interface_records =
+        Arc::new(dnsmasq_rs::dns::interface_records::InterfaceRecords::default());
     let hosts = if dns_enabled {
         read_hosts(&runtime.dns, runtime.scalar.local_ttl)
     } else {
@@ -679,6 +693,13 @@ fn run_inner(
         ),
         daemon,
     }));
+    {
+        let mut parent = service.lock().unwrap();
+        parent.local.interfaces = Arc::clone(&initial_interface_records);
+        if let Some(daemon) = &mut parent.daemon {
+            daemon.publish_interface_records(Arc::clone(&initial_interface_records));
+        }
+    }
     // C mutates all parent engines in one event loop. Fetch DHCP metrics
     // before locking DNS; synchronous doctor callbacks must never invert it.
     // Socket waits remain outside this gate.
@@ -1304,6 +1325,7 @@ fn run_inner(
         .map(|(address, _)| *address)
         .collect();
     while !STOP_REQUESTED.load(Ordering::Acquire) {
+        poll.interfaces_enumerated = false;
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         poll.observe_arp_activity();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -1335,6 +1357,9 @@ fn run_inner(
                     }
                 }
                 if changed {
+                    if daemon_config.bind_dynamic || daemon_config.local_service_net {
+                        poll.enumerate_interface_records();
+                    }
                     let mut parent = service.lock().unwrap();
                     if let Some(daemon) = &mut parent.daemon {
                         if daemon_config.bind_dynamic || daemon_config.local_service_net {
@@ -1705,6 +1730,7 @@ struct SinglePoll {
     probe_metrics: Option<Metrics>,
     full_reload_pending: bool,
     retry_bound_listeners: bool,
+    interfaces_enumerated: bool,
     #[cfg(target_os = "linux")]
     logger: Option<dnsmasq_rs::logging::Logger>,
     #[cfg(target_os = "linux")]
@@ -2060,6 +2086,7 @@ impl SinglePoll {
             probe_metrics: None,
             full_reload_pending: false,
             retry_bound_listeners: false,
+            interfaces_enumerated: false,
             #[cfg(target_os = "linux")]
             logger: None,
             #[cfg(target_os = "linux")]
@@ -2247,6 +2274,9 @@ impl SinglePoll {
             }
         }
         if let Some(update) = step.update {
+            if !self.config.bind_interfaces {
+                self.enumerate_interface_records();
+            }
             let addresses = dns_local_addresses(
                 &self.config,
                 &self.interfaces.lock().unwrap(),
@@ -2287,6 +2317,13 @@ impl SinglePoll {
         }
         // read_servers_file checks internally on success; EVENT_INIT/RELOAD
         // also checks once after its no-poll and servers-file calls, even errors.
+        if (initial_finished || step.signal_complete)
+            && !self.config.bind_interfaces
+            && (self.config.servers_file.is_some()
+                || (self.config.no_poll && !self.config.no_resolv))
+        {
+            self.enumerate_interface_records();
+        }
         if (initial_finished || step.signal_complete)
             && (self.config.servers_file.is_some()
                 || (self.config.no_poll
@@ -2480,6 +2517,31 @@ impl SinglePoll {
         }
     }
 
+    fn enumerate_interface_records(&mut self) {
+        if self.interfaces_enumerated {
+            return;
+        }
+        self.interfaces_enumerated = true;
+        if self.config.interface_records.rules.is_empty() {
+            return;
+        }
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if let Ok(addresses) = dnsmasq_rs::dns::interface_records::read_addresses() {
+            let records = Arc::new(
+                dnsmasq_rs::dns::interface_records::InterfaceRecords::from_addresses(
+                    &self.config.interface_records.rules,
+                    &addresses,
+                ),
+            );
+            let mut parent = self.service.lock().unwrap();
+            parent.local.interfaces = Arc::clone(&records);
+            if let Some(daemon) = &mut parent.daemon {
+                daemon.refresh_source_interface_indices();
+                daemon.publish_interface_records(records);
+            }
+        }
+    }
+
     fn step_udp(&mut self, index: usize) {
         if self.files_initializing() {
             return;
@@ -2525,6 +2587,9 @@ impl SinglePoll {
             return;
         }
         query.truncate(incoming.len);
+        if dnsmasq_rs::dns::local::interface_forward_name(&self.config, &query).is_some() {
+            self.enumerate_interface_records();
+        }
         let client = ClientRequest {
             source: incoming.peer,
             destination: incoming.destination,
@@ -2866,6 +2931,7 @@ impl SinglePoll {
             ClientMacLookup::Ready(mac) => (mac, !mac_deferred),
             ClientMacLookup::Pending => (None, false),
         };
+        self.enumerate_interface_records();
         let mut parent = match self.service.lock() {
             Ok(parent) => parent,
             Err(_) => return,
@@ -2878,6 +2944,7 @@ impl SinglePoll {
             parent.local.edns_packet_max,
         );
         snapshot.leases = Arc::clone(&parent.local.leases);
+        snapshot.interfaces = Arc::clone(&parent.local.interfaces);
         snapshot.local_network = local_network;
         let forward = if let Some(daemon) = &mut parent.daemon {
             daemon.refresh_source_interface_indices();

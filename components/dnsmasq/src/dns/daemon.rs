@@ -591,6 +591,13 @@ impl<R: Random> DnsDaemon<R> {
     /// Enable the positive forward cache after daemon construction.  Keeping
     /// this explicit lets the caller pass scalar options (cache-size and TTL
     /// bounds) without duplicating them in `DnsConfig`.
+    pub fn publish_interface_records(
+        &mut self,
+        records: std::sync::Arc<super::interface_records::InterfaceRecords>,
+    ) {
+        self.local.interfaces = records;
+    }
+
     pub fn enable_cache(
         &mut self,
         capacity: usize,
@@ -707,7 +714,9 @@ impl<R: Random> DnsDaemon<R> {
         local: &mut LocalDnsService,
     ) -> Result<QueryResult, DaemonError> {
         let question = super::forward::Question::parse(original)?;
-        if !metadata.flags.no_cache {
+        if !metadata.flags.no_cache
+            && super::local::interface_forward_name(&local.config, original).is_none()
+        {
             let answer = self.cached_answer_at_with_edns_limit(
                 original,
                 &question,
@@ -1251,6 +1260,21 @@ impl<R: Random> DnsDaemon<R> {
         max_udp: usize,
         allow_options: bool,
     ) -> Result<CachedAnswer, DaemonError> {
+        if super::local::interface_forward_name(
+            &external_local
+                .as_ref()
+                .map_or(&self.local, |local| &**local)
+                .config,
+            query,
+        )
+        .is_some()
+        {
+            return Ok(CachedAnswer {
+                filtered: false,
+                packet: None,
+                stale: false,
+            });
+        }
         let Some(cache) = self.cache.as_mut() else {
             return Ok(CachedAnswer {
                 filtered: false,
@@ -1328,6 +1352,13 @@ impl<R: Random> DnsDaemon<R> {
         local: &mut LocalDnsService,
         now: i64,
     ) -> Result<super::cache_engine::CachedAnswer, DaemonError> {
+        if super::local::interface_forward_name(&local.config, query).is_some() {
+            return Ok(super::cache_engine::CachedAnswer {
+                filtered: false,
+                packet: None,
+                stale: false,
+            });
+        }
         let question = super::forward::Question::parse(query)?;
         let filter_rr = local.config.filter_rr.clone();
         CacheContext {
