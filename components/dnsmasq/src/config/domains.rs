@@ -2,6 +2,19 @@
 //! listener selection and IPv6 forward eligibility.
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
+/// option.c:760 atoi_check accepts decimal digits then the image atoi folds
+/// them into a C int. Keep that signed result for the caller's range checks.
+pub fn image_prefix_length(bytes: &[u8]) -> Result<i32, super::Error> {
+    bytes
+        .iter()
+        .try_fold(0u32, |value, byte| {
+            byte.is_ascii_digit()
+                .then(|| value.wrapping_mul(10).wrapping_add(u32::from(byte - b'0')))
+                .ok_or(super::Error("error"))
+        })
+        .map(|value| value as i32)
+}
+
 #[derive(Clone, Debug)]
 pub struct DomainAddress {
     pub label: Vec<u8>,
@@ -98,6 +111,15 @@ pub fn resolver_search_domain_reader(
 mod tests {
     use super::*;
     use std::io::BufRead;
+
+    #[test]
+    fn image_decimal_prefix_preserves_int_wrap_without_unsafe_arithmetic() {
+        assert_eq!(image_prefix_length(b"4294967296"), Ok(0));
+        assert_eq!(image_prefix_length(b"4294967295"), Ok(-1));
+        assert_eq!(image_prefix_length(b"2147483648"), Ok(i32::MIN));
+        assert_eq!(image_prefix_length(b""), Ok(0));
+        assert!(image_prefix_length(b"-1").is_err());
+    }
     #[test]
     fn resolver_first_token_assignment_preserves_image_latch_order() {
         assert_eq!(
