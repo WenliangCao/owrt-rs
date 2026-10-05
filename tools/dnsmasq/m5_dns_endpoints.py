@@ -111,7 +111,7 @@ def service_cases():
         text='query-port=34003\nserver=127.0.0.2\n' if order=='before' else 'server=127.0.0.2\nquery-port=34003\n'
         add('global-port-'+order,text,expected_source_port=34003)
     add('osport-explicit-zero','query-port=0\nserver=127.0.0.2\n',names=('one.endpoint.test','two.endpoint.test'),same_udp_port=True)
-    add('osport-zero-then-fixed','query-port=0\nserver=127.0.0.2\n',argv=['--query-port=34003'],expected_source_port=34003)
+    add('osport-zero-then-fixed','query-port=34003\nserver=127.0.0.2\n',argv=['--query-port=0'],expected_source_port=34003)
     for source in ('127.0.0.9','lo','lo@127.0.0.9'):
         add('explicit-source-over-global-'+source.replace('@','-'),'query-port=34003\nserver=127.0.0.2@'+source+'\n',forbidden_udp_port=34003)
     add('fixed-source-over-global','query-port=34003\nserver=127.0.0.2@127.0.0.9#34004\n',expected_source_port=34004)
@@ -243,6 +243,26 @@ def source_projection(observed,case):
         result.append(row)
     return result
 
+
+def controls():
+    sample={'startup':{'ready':True},'source_events':[{'transport':'udp','peer':['127.0.0.9',34004],'destination':['127.0.0.2',53],'name':'one.test','wire':'abcd'}]}
+    tests={}
+    wrong=copy.deepcopy(sample);wrong['source_events'][0]['peer'][0]='127.0.0.8'
+    tests['source-address-mutation']=source_projection(sample,{})!=source_projection(wrong,{})
+    wrong=copy.deepcopy(sample);wrong['source_events'][0]['destination'][0]='127.0.0.3'
+    tests['destination-address-mutation']=source_projection(sample,{})!=source_projection(wrong,{})
+    wrong=copy.deepcopy(sample);wrong['source_events'][0]['peer'][1]=34005
+    tests['fixed-port-mutation']=bool(source_guard_errors(wrong,{'expected_source_port':34004}))
+    tests['range-membership-mutation']=bool(source_guard_errors(wrong,{'source_range':[34004,34004]}))
+    shared=copy.deepcopy(sample);shared['source_events'].append(copy.deepcopy(shared['source_events'][0]))
+    shared['source_events'][1]['peer'][1]=34005
+    tests['shared-port-mutation']=bool(source_guard_errors(shared,{'same_udp_port':True}))
+    tests['port-limit-mutation']=bool(source_guard_errors(sample,{'udp_unique_ports':2}))
+    missing=copy.deepcopy(sample);missing['source_events']=[]
+    tests['missing-expanded-endpoint']=bool(source_guard_errors(missing,{'actions':[{'op':'query'}]}))
+    assert all(tests.values()),tests
+    return tests
+
 def run_service(args, cases):
     import m5_dns_files as files
     args.out.mkdir(parents=True)
@@ -252,7 +272,7 @@ def run_service(args, cases):
     sides=['c','rust'] if args.side=='both' else ['c']
     roots={side:prepare(args.image_root,None,args.out/side,args.rust) for side in sides}
     save(args.out/'schedule.json',cases)
-    report={'mode':'service','source_commit':args.source_commit,'rust_sha256':sha256(args.rust),'rust_bytes':args.rust.stat().st_size,'c_sha256':STOCK_SHA256,'comparison_executed':args.side=='both','cases':[],'failures':[],'closed_options':[]}
+    report={'mode':'service','source_commit':args.source_commit,'rust_sha256':sha256(args.rust),'rust_bytes':args.rust.stat().st_size,'c_sha256':STOCK_SHA256,'comparison_executed':args.side=='both','cases':[],'failures':[],'closed_options':[],'negative_controls':controls()}
     for case in cases:
         folder=args.out/case['id'];folder.mkdir()
         row={'id':case['id'],'failures':[]}
