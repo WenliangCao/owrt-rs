@@ -363,6 +363,14 @@ def service_cases():
             files.probe('cache','10.91.18.198.in-addr.arpa',type=12,transports=['udp']),
             kernel(['ip','addr','add','198.18.91.10/24','dev','m5ir0']),files.probe('enum','iface.records.test',transports=['udp']),
             files.probe('interface','10.91.18.198.in-addr.arpa',type=12,transports=['udp'])])
+    for label,interface in [('present','m5ir0'),('empty','missing_ir')]:
+        add('interface-cached-cname-'+label,'interface-name=iface.records.test,'+interface+'\n',[],'IF-FWD IF-CALLER',
+            topology=[primary],cache_size=16,negative_names=[],upstream_fixtures=[{'name':'cached-alias.records.test','type':1,
+                'records':[{'type':5,'target':'iface.records.test'},{'type':1,'owner':'iface.records.test','address':'198.51.100.7'}]}],
+            actions=[files.probe('warm','cached-alias.records.test',transports=['udp']),
+                kernel(['ip','addr','add','198.18.91.10/24','dev','m5ir0']),
+                files.probe('cached-terminal','cached-alias.records.test',transports=['udp']),
+                files.probe('fresh-child','cached-alias.records.test',transports=['tcp'])])
     add('interface-synth-ptr-precedence','interface-name=iface.records.test,m5ir0\nsynth-domain=synthetic.records.test,198.18.91.0/24\n',
         [('9.91.18.198.in-addr.arpa',12),('10.91.18.198.in-addr.arpa',12)],'IF-PTR SYN-PTR',topology=[primary])
     add('interface-synth-forward-intercept','interface-name=198-18-91-9.synthetic.records.test,missing_ir\nsynth-domain=synthetic.records.test,198.18.91.0/24\n',
@@ -420,7 +428,13 @@ def service_cases():
 
 def run_service_side(root,side,case,out):
     states=[];dynamic=[];tracers=[]
-    original_put=files.put;original_exchange=files.exchange
+    original_put=files.put;original_exchange=files.exchange;original_upstream=files.FileUpstream
+    class PreparedUpstream(original_upstream):
+        def __init__(self,fixtures,*args):
+            fixtures={(row['name'],row['type']):row for row in fixtures}
+            fixtures.update({(row['name'],row['type']):row for row in case.get('upstream_fixtures',[])})
+            super().__init__(list(fixtures.values()),*args)
+    files.FileUpstream=PreparedUpstream
     def record(label):
         states.append({'label':label,'at':time.monotonic(),'addresses':json.loads(subprocess.check_output(['ip','-j','address','show'],text=True)),
             'ipv6_flags':Path('/proc/net/if_inet6').read_text()})
@@ -498,7 +512,7 @@ def run_service_side(root,side,case,out):
     files.put=put;files.exchange=exchange
     try:result=endpoints.run_service_side(root,side,case,out)
     finally:
-        files.put=original_put;files.exchange=original_exchange
+        files.put=original_put;files.exchange=original_exchange;files.FileUpstream=original_upstream
         for tracer,path in tracers:
             if tracer.poll() is None:tracer.kill();tracer.wait()
             if path.exists():states.append({'label':'enumeration-fault','evidence':json.loads(path.read_text())})
