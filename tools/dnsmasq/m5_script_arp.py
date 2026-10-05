@@ -666,8 +666,9 @@ def priority_producers(root, pid, folder):
                 paths.append(os.readlink(entry))
             except FileNotFoundError:
                 pass
-        if not any(path.endswith('/m2/arp-tftp/public') for path in paths):
-            save(folder / 'completion-descriptors.json', paths)
+        udp = Path(f'/proc/{pid}/net/udp').read_text()
+        if not any(int(line.split()[1].split(':')[1], 16) == peer[1] for line in udp.splitlines()[1:]):
+            save(folder / 'completion-descriptors.json', dict(paths=paths, transfer_port=peer[1], udp=udp))
             break
         time.sleep(.01)
     else:
@@ -709,9 +710,9 @@ def pressure_contract(root, process, pid, folder, owned, stopping, priority=Fals
             assert callbacks(root) == [], 'priority producers escaped actual helper backpressure'
         if stopping:
             os.kill(pid, signal.SIGTERM)
-            time.sleep(.1)
-            assert process.poll() is None, 'TERM discarded the already serialized blocked command'
-            save(folder / 'term-before-helper-resume.json', dict(parent_alive=True, readable_bytes=pipe_bytes(reader)))
+            assert process.wait(2) == 0, 'TERM did not flush the current command without waiting for its helper'
+            assert pipe_bytes(reader) == 208, 'TERM serialized prefix must contain exactly two C-sized commands'
+            save(folder / 'term-before-helper-resume.json', dict(parent_exited=True, readable_bytes=pipe_bytes(reader)))
         os.kill(child, signal.SIGCONT)
         expected = [['3', 'arp-add', entry['mac'], entry['address'], '0', '0', 'inherited-iface', 'inherited-id'] for entry in reversed(entries[1:])]
         if priority:
