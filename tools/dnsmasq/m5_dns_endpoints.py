@@ -292,12 +292,31 @@ def service_cases():
     lifecycle_base='servers-file=/m2/files/servers\n'
     for label,op in [('burst','lookup-hup-burst'),('shutdown','lookup-shutdown'),('worker-kill','lookup-worker-kill')]:
         add('lookup-owner-'+label,lifecycle_base,files={'servers':'server=127.0.0.3\n'},
-            sys_files=resolver_files,resolver_fixture=True,resolver_delay=.7,owner_lifecycle=label,
+            sys_files=resolver_files,resolver_fixture=True,resolver_delay=.3,owner_lifecycle=label,
             actions=[write('servers','server=lookup.endpoint.test\n'),signal_reload(),endpoint_action(op),dict(op='pause',seconds=1.6)]
                 + ([] if label=='shutdown' else [probe('after','ready.files.test' if label=='worker-kill' else 'after.endpoint.test')]),no_upstream=label=='worker-kill')
     add('lookup-owner-timeout-recovery',lifecycle_base,files={'servers':'server=127.0.0.3\n'},sys_files=resolver_files,resolver_fixture=True,resolver_drop=True,
         actions=[write('servers','server=lookup.endpoint.test\n'),signal_reload(),dict(op='pause',seconds=1.3),
             probe('failed','ready.files.test'),write('servers','server=127.0.0.3\n'),signal_reload(),probe('recovered')])
+    add('same-source-address-distinct-interfaces','query-port=0\nserver=198.18.81.53@epfirst@198.18.81.9\nserver=198.18.82.53@epsecond@198.18.81.9\nall-servers\n',udp_unique_ports=2,
+        topology=[{'name':'epfirst','addresses':['198.18.81.53/24','198.18.81.9/32']},{'name':'epsecond','addresses':['198.18.82.53/24','198.18.81.9/32']}],
+        upstream_remap={'127.0.0.2':'198.18.81.53','127.0.0.3':'198.18.82.53'})
+    for label,second_server,source in [('socket',0,'server=127.0.0.2\n'),('family',3,'min-port=34100\nmax-port=34100\nserver=/one.endpoint.test/127.0.0.2\nserver=/two.endpoint.test/::1\n')]:
+        add('reply-wrong-'+label,source,
+            actions=[dict(op='start-udp',id='one',name='one.endpoint.test'),dict(op='start-udp',id='two',name='two.endpoint.test'),
+                endpoint_action('inject-other-socket',name='one.endpoint.test',target_name='two.endpoint.test',server=second_server),
+                dict(op='receive-udp',id='wrong',pending='one',expect_timeout=True),
+                dict(op='inject',id='two',server=second_server,capture_server=second_server),dict(op='receive-udp',id='two',pending='two'),
+                dict(op='inject',id='one',server=0),dict(op='receive-udp',id='one',pending='one')])
+    add('udp-error-failover-source-identity','server=127.0.0.2@127.0.0.9\nserver=127.0.0.3@127.0.0.8\n',udp_error_server=0)
+    add('pool-retry-completion-keeps-sibling','min-port=34100\nmax-port=34100\nfast-dns-retry=500,2000\nserver=127.0.0.2\nserver=127.0.0.3\n',source_range=[34100,34100],same_udp_port=True,
+        actions=[dict(op='start-udp',id='one',name='one.endpoint.test'),dict(op='start-udp',id='two',name='two.endpoint.test'),
+            dict(op='await-upstream',id='one',server=1),dict(op='inject',id='one',server=1,capture_server=1),dict(op='receive-udp',id='one',pending='one'),
+            dict(op='inject',id='two',server=0),dict(op='receive-udp',id='two',pending='two')])
+    add('shared-pollerr-keeps-pending','min-port=34100\nmax-port=34100\nserver=127.0.0.2\n',poll_fault=True,
+        actions=[dict(op='start-udp',id='first',name='first.endpoint.test'),dict(op='start-udp',id='second',name='second.endpoint.test'),
+            dict(op='inject',id='second',server=0),dict(op='receive-udp',id='second',pending='second'),
+            dict(op='inject',id='first',server=0),dict(op='receive-udp',id='first',pending='first')],source_range=[34100,34100],same_udp_port=True)
     return cases
 
 
@@ -354,14 +373,14 @@ def run_service_side(root, side, case, folder):
                     fixtures.append(fixture)
                 args=(fixtures,*args[1:])
             super().__init__(*args)
-            if case.get('injections') or case.get('recv_fault'):
+            if case.get('injections') or case.get('recv_fault') or case.get('poll_fault'):
                 upstream=self;delegate=self.udp
                 class InjectionSocket:
                     index=0
                     def __getattr__(self,name): return getattr(delegate,name)
                     def sendto(self,packet,peer):
                         if threading.current_thread() is threading.main_thread():
-                            if case.get('recv_fault') and not self.index:
+                            if (case.get('recv_fault') or case.get('poll_fault')) and not self.index:
                                 matches=[]
                                 for line in Path('/proc',str(parent_pid),'net/udp').read_text().splitlines()[1:]:
                                     fields=line.split()
@@ -369,7 +388,7 @@ def run_service_side(root, side, case, folder):
                                 descriptors=[int(path.name) for path in Path('/proc',str(parent_pid),'fd').iterdir() if os.readlink(path)=='socket:['+matches[0]+']']
                                 if len(descriptors)!=1: raise AssertionError('source fd not unique')
                                 output=folder/'recv-fault.json'
-                                tracer=subprocess.Popen([sys.executable,str(Path(__file__).resolve()),'--inject-recvfrom-error',str(parent_pid),str(descriptors[0]),str(output)])
+                                tracer=subprocess.Popen([sys.executable,str(Path(__file__).resolve()),'--inject-pollerr' if case.get('poll_fault') else '--inject-recvfrom-error',str(parent_pid),str(descriptors[0]),str(output)])
                                 deadline=time.monotonic()+2
                                 while not Path(str(output)+'.ready').exists():
                                     if tracer.poll() is not None or time.monotonic()>deadline: raise AssertionError('recv fault tracer failed to attach')
@@ -403,8 +422,12 @@ def run_service_side(root, side, case, folder):
                     if resolving and case.get('resolver_delay'): time.sleep(case['resolver_delay'])
                     self.captured.append((packet,peer,response))
                     if resolving and case.get('resolver_drop'): continue
+                    if case.get('udp_error_server') is not None and self.host==['127.0.0.2','127.0.0.3','127.0.0.4'][case['udp_error_server']]:
+                        end=read_name(packet,12)[1]
+                        response=packet[:2]+struct.pack('!5H',0x8182,1,0,0,0)+packet[12:end+4]
                     if self.probes.get((read_name(packet,12)[0],struct.unpack_from('!H',packet,read_name(packet,12)[1])[0]),{}).get('drop_all'): continue
-                    if 'udp_winner' in case and self.host!=['127.0.0.2','127.0.0.3','127.0.0.4'][case['udp_winner']]: time.sleep(.05)
+                    winner=['127.0.0.2','127.0.0.3','127.0.0.4'][case.get('udp_winner',0)]
+                    if 'udp_winner' in case and self.host!=case.get('upstream_remap',{}).get(winner,winner): time.sleep(.05)
                     if resolving: event['reply_at']=time.monotonic()
                     self.udp.sendto(response,peer)
                 except socket.timeout: continue
@@ -491,6 +514,15 @@ def run_service_side(root, side, case, folder):
             response=merged_clients[value['name']].recv(65535)
             endpoint_receipts.append(dict(value,response=semantics(response),reply=response.hex()))
             if struct.unpack_from('!H',response)[0]!=0x7171: raise AssertionError('merged client ID not restored')
+        elif op=='inject-other-socket':
+            original,_,_=next(row for row in SourceCapture.instances[0].captured if read_name(row[0],12)[0]==value['name'])
+            sender=SourceCapture.instances[value['server']]
+            _,peer,_=next(row for row in sender.captured if read_name(row[0],12)[0]==value['target_name'])
+            end=read_name(original,12)[1]
+            answer=original[:2]+struct.pack('!5H',0x8580,1,1,0,0)+original[12:end+4]
+            answer+=b'\xc0\x0c'+struct.pack('!HHIH',1,1,120,4)+bytes([192,0,2,11])
+            sender.udp.sendto(answer,peer)
+            endpoint_receipts.append(dict(value,wire=answer.hex(),peer=list(peer)))
         elif op.startswith('lookup-'):
             files.await_predicate(lookup_pending,'resolver request was not witnessed pending')
             live=children();record=dict(value,pending=True,children=live,samples=[])
@@ -643,7 +675,7 @@ def run_service(args, cases):
     sides=['c','rust'] if args.side=='both' else ['c']
     roots={side:prepare(args.image_root,None,args.out/side,args.rust) for side in sides}
     save(args.out/'schedule.json',cases)
-    report={'mode':'service','fixture_environment':{'listener_port':15353,'ephemeral_range':[40000,60999],'privileged_port_start':1024},'source_commit':args.source_commit,'rust_sha256':sha256(args.rust),'rust_bytes':args.rust.stat().st_size,'c_sha256':STOCK_SHA256,'comparison_executed':args.side=='both','cases':[],'failures':[],'closed_options':[],'negative_controls':controls(),'reference_differences':[]}
+    report={'mode':'service','fixture_environment':{'listener_port':15353,'ephemeral_range':[40000,60999],'privileged_port_start':1024},'source_commit':args.source_commit,'rust_sha256':sha256(args.rust),'rust_bytes':args.rust.stat().st_size,'c_sha256':STOCK_SHA256,'comparison_executed':args.side=='both','cases':[],'failures':[],'closed_options':[],'negative_controls':controls(),'lifecycle_negative_controls':files.controls(),'reference_differences':[]}
     for case in cases:
         folder=args.out/case['id'];folder.mkdir()
         row={'id':case['id'],'failures':[]}
@@ -691,7 +723,7 @@ def run_service(args, cases):
     return int(bool(report['failures']))
 
 
-def inject_recvfrom_error(pid,descriptor,output):
+def inject_recvfrom_error(pid,descriptor,output,poll_error=False):
     assert os.geteuid()==0 and os.environ.get('DNSMASQ_TEST_ISOLATED')=='1'
     class Iovec(ctypes.Structure): _fields_=[('base',ctypes.c_void_p),('length',ctypes.c_size_t)]
     libc=ctypes.CDLL(None,use_errno=True);libc.ptrace.restype=ctypes.c_long
@@ -708,19 +740,36 @@ def inject_recvfrom_error(pid,descriptor,output):
     try:
         ptrace(16);os.waitpid(pid,0);attached=True;ptrace(0x4200,0,1)
         Path(str(output)+'.ready').write_text('attached\n')
-        active=False
+        active=False;poll_address=None
         while True:
             ptrace(24);_,status=os.waitpid(pid,0)
             if not os.WIFSTOPPED(status): raise AssertionError('tracee exited')
             if os.WSTOPSIG(status)!=(signal.SIGTRAP|0x80): continue
             info=(ctypes.c_ubyte*128)();ptrace(0x420e,ctypes.sizeof(info),ctypes.addressof(info));regs()
             if info[0]==1:
+                if poll_error:
+                    active=registers[8]==73 and registers[1]<=256;poll_address=None
+                    if active:
+                        with Path('/proc',str(pid),'mem').open('rb',buffering=0) as memory:
+                            memory.seek(registers[0]);polls=memory.read(registers[1]*8)
+                        for offset in range(0,len(polls),8):
+                            if struct.unpack_from('i',polls,offset)[0]==descriptor: poll_address=registers[0]+offset
+                    continue
                 active=registers[8]==207 and registers[0]==descriptor
                 if active:
                     syscall=ctypes.c_int(-1);vector=Iovec(ctypes.addressof(syscall),ctypes.sizeof(syscall))
                     ptrace(0x4205,0x404,ctypes.addressof(vector))
                     report['events'].append({'entry':'recvfrom','descriptor':descriptor,'syscall':207})
             elif info[0]==2 and active:
+                if poll_error:
+                    if poll_address is None or registers[0]<=0: continue
+                    with Path('/proc',str(pid),'mem').open('r+b',buffering=0) as memory:
+                        memory.seek(poll_address);poll=bytearray(memory.read(8))
+                        if not struct.unpack_from('h',poll,6)[0]&1: continue
+                        before=bytes(poll);struct.pack_into('h',poll,6,8)
+                        memory.seek(poll_address);memory.write(poll)
+                    report['events'].append({'syscall':'ppoll','descriptor':descriptor,'before':before.hex(),'after':bytes(poll).hex(),'revents':8})
+                    report['injected']=True;ptrace(17);attached=False;break
                 registers[0]=(1<<64)-errno.EIO;regs(write=True)
                 report['events'].append({'exit':-errno.EIO});report['injected']=True
                 ptrace(17);attached=False;break
@@ -733,6 +782,7 @@ def inject_recvfrom_error(pid,descriptor,output):
 
 def main():
     if len(sys.argv)==5 and sys.argv[1]=='--inject-recvfrom-error': return inject_recvfrom_error(int(sys.argv[2]),int(sys.argv[3]),sys.argv[4])
+    if len(sys.argv)==5 and sys.argv[1]=='--inject-pollerr': return inject_recvfrom_error(int(sys.argv[2]),int(sys.argv[3]),sys.argv[4],True)
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--image-root',type=Path,required=True);parser.add_argument('--rust',type=Path,required=True)
     parser.add_argument('--source-commit',required=True);parser.add_argument('--out',type=Path,required=True)
