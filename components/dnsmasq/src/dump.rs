@@ -1,5 +1,6 @@
 //! Image dump.c PCAP records. The one service owner opens, writes and logs them.
 use crate::config::dump::DumpConfig;
+use std::cell::RefCell;
 use std::collections::VecDeque;
 use std::fs::{File, OpenOptions};
 use std::io::{self, Read, Seek, SeekFrom, Write};
@@ -8,7 +9,7 @@ use std::os::fd::{AsRawFd, RawFd};
 use std::os::unix::ffi::OsStrExt;
 use std::os::unix::fs::{FileTypeExt, OpenOptionsExt};
 use std::path::Path;
-use std::sync::{Arc, Mutex};
+use std::rc::Rc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 pub const QUERY: i32 = 1;
@@ -55,7 +56,9 @@ pub struct DumpWriter {
 }
 
 #[derive(Clone, Default)]
-pub struct DumpHandle(Option<Arc<Mutex<DumpWriter>>>);
+// The poll owner and its synchronous producers share one writer; it never
+// crosses threads or calls a producer while borrowed.
+pub struct DumpHandle(Option<Rc<RefCell<DumpWriter>>>);
 impl DumpHandle {
     pub fn open(config: &DumpConfig, edns_max: u16) -> Result<Self, DumpError> {
         let Some(path) = &config.file else {
@@ -153,7 +156,7 @@ impl DumpHandle {
                 writer.count = writer.count.wrapping_add(1);
             }
         }
-        Ok(Self(Some(Arc::new(Mutex::new(writer)))))
+        Ok(Self(Some(Rc::new(RefCell::new(writer)))))
     }
     pub fn udp(&self, mask: i32, bytes: &[u8], source: SocketAddr, destination: SocketAddr) {
         self.udp_with_context(mask, bytes, source, destination, Default::default());
@@ -161,7 +164,7 @@ impl DumpHandle {
 
     pub fn set_query_logging(&self, config: crate::config::logging::QueryLogging) {
         if let Some(writer) = &self.0 {
-            writer.lock().unwrap().extra = config.extra;
+            writer.borrow_mut().extra = config.extra;
         }
     }
 
@@ -176,7 +179,7 @@ impl DumpHandle {
         let Some(writer) = &self.0 else {
             return;
         };
-        let mut writer = writer.lock().unwrap();
+        let mut writer = writer.borrow_mut();
         if writer.mask & mask == 0 {
             return;
         }
@@ -214,17 +217,17 @@ impl DumpHandle {
     }
     pub fn step(&self) {
         if let Some(writer) = &self.0 {
-            writer.lock().unwrap().step();
+            writer.borrow_mut().step();
         }
     }
     pub fn take_notices(&self) -> Vec<(bool, Vec<u8>)> {
         self.0.as_ref().map_or_else(Vec::new, |writer| {
-            writer.lock().unwrap().notices.drain(..).collect()
+            writer.borrow_mut().notices.drain(..).collect()
         })
     }
     pub fn poll_fd(&self) -> Option<RawFd> {
         self.0.as_ref().and_then(|writer| {
-            let writer = writer.lock().unwrap();
+            let writer = writer.borrow_mut();
             (!writer.queue.is_empty()).then(|| writer.file.as_raw_fd())
         })
     }

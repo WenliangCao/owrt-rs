@@ -145,8 +145,8 @@ impl MaintenanceReport {
     }
 }
 
-type BootHostLookup = Box<dyn FnMut(&[u8]) -> io::Result<Option<Ipv4Addr>> + Send>;
-type ReverseHostLookup = Box<dyn FnMut(Ipv4Addr) -> io::Result<Option<Vec<u8>>> + Send>;
+type BootHostLookup = Box<dyn FnMut(&[u8]) -> io::Result<Option<Ipv4Addr>>>;
+type ReverseHostLookup = Box<dyn FnMut(Ipv4Addr) -> io::Result<Option<Vec<u8>>>>;
 
 pub type DhcpEventSink<'a> =
     dyn for<'event> FnMut(DhcpEventKind, DhcpEventFields<'event>, DhcpLogging) + 'a;
@@ -422,7 +422,7 @@ impl LocalProvider {
     /// forwarded cache records or DHCP-derived names.
     pub fn set_boot_host_lookup<F>(&mut self, lookup: F)
     where
-        F: FnMut(&[u8]) -> io::Result<Option<Ipv4Addr>> + Send + 'static,
+        F: FnMut(&[u8]) -> io::Result<Option<Ipv4Addr>> + 'static,
     {
         self.boot_host_lookup = Some(Box::new(lookup));
     }
@@ -432,7 +432,7 @@ impl LocalProvider {
     /// reverse-owning record; a sole nonreverse alias is also eligible.
     pub fn set_config_host_lookup<F>(&mut self, lookup: F)
     where
-        F: FnMut(&[u8]) -> io::Result<Option<Ipv4Addr>> + Send + 'static,
+        F: FnMut(&[u8]) -> io::Result<Option<Ipv4Addr>> + 'static,
     {
         self.config_host_lookup = Some(Box::new(lookup));
     }
@@ -441,7 +441,7 @@ impl LocalProvider {
     /// legal-hostname policy is applied here, not by the DNS callback.
     pub fn set_reverse_host_lookup<F>(&mut self, lookup: F)
     where
-        F: FnMut(Ipv4Addr) -> io::Result<Option<Vec<u8>>> + Send + 'static,
+        F: FnMut(Ipv4Addr) -> io::Result<Option<Vec<u8>>> + 'static,
     {
         self.reverse_host_lookup = Some(Box::new(lookup));
     }

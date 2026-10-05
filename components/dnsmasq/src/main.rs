@@ -43,6 +43,7 @@ use dnsmasq_rs::tftp_runtime::RealFileOpener;
 use dnsmasq_rs::ubus_service::{ConnectError, DnsResult, UbusService};
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 use dnsmasq_rs::ubus_service::{DhcpEventFields, DhcpEventKind, DhcpLogging};
+use std::cell::RefCell;
 use std::ffi::OsString;
 use std::io::{self, Read, Write};
 use std::net::{IpAddr, SocketAddr, TcpListener, TcpStream};
@@ -51,8 +52,9 @@ use std::os::unix::ffi::OsStringExt;
 use std::path::Path;
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 use std::path::PathBuf;
+use std::rc::Rc;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 #[cfg(not(target_os = "linux"))]
 use std::thread;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
@@ -106,6 +108,7 @@ fn main() {
         unsafe extern "C" {
             fn umask(mask: u32) -> u32;
         }
+        // SAFETY: umask accepts a scalar mode and runs before any service starts.
         unsafe {
             umask(0o022);
         }
@@ -330,7 +333,10 @@ impl ParentEvents {
         if self.ubus.is_none() {
             #[cfg(target_os = "linux")]
             self.queue_missing_ubus_notice();
-            match UbusService::connect_bytes(None, self.ubus_name.as_deref().unwrap()) {
+            let Some(name) = self.ubus_name.as_deref() else {
+                return;
+            };
+            match UbusService::connect_bytes(None, name) {
                 Ok(service) => {
                     self.ubus = Some(service);
                     self.ubus_error_logged = false;
@@ -461,7 +467,7 @@ fn write_lease_metrics(metrics: &mut Metrics, leases: dnsmasq_rs::dhcp::lease::L
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 struct LeasePublisher {
-    parent: Arc<Mutex<ParentDns>>,
+    parent: Rc<RefCell<ParentDns>>,
     policy: LeasePolicy,
 }
 
@@ -473,8 +479,8 @@ impl dnsmasq_rs::dhcp::persistence::DnsPublisher for LeasePublisher {
     ) -> io::Result<()> {
         let mut parent = self
             .parent
-            .lock()
-            .map_err(|_| io::Error::other("DNS state lock poisoned"))?;
+            .try_borrow_mut()
+            .map_err(|_| io::Error::other("DNS state already borrowed"))?;
         let ParentDns { local, daemon, .. } = &mut *parent;
         let daemon = daemon
             .as_mut()
@@ -708,12 +714,12 @@ fn run_inner(
                 let wait = if collector.runnable() {
                     0
                 } else {
-                    collector
-                        .deadline()
-                        .unwrap()
-                        .saturating_duration_since(Instant::now())
-                        .as_millis()
-                        .min(i32::MAX as u128) as i32
+                    collector.deadline().map_or(0, |deadline| {
+                        deadline
+                            .saturating_duration_since(Instant::now())
+                            .as_millis()
+                            .min(i32::MAX as u128) as i32
+                    })
                 };
                 owrt_ubus::sys::poll_fds(&mut fds, wait)?;
             };
@@ -748,18 +754,18 @@ fn run_inner(
     } else {
         Vec::new()
     };
-    let interface_snapshot = Arc::new(Mutex::new(
+    let interface_snapshot = Rc::new(RefCell::new(
         listeners::snapshot().map_err(NetworkStartupError)?,
     ));
     let addresses = listeners::bound_addresses(
         &runtime.dns,
         runtime.scalar.dns_port,
-        &interface_snapshot.lock().unwrap(),
+        &interface_snapshot.borrow_mut(),
     );
     let mut pending_static_dns = listeners::tentative_addresses(
         &runtime.dns,
         runtime.scalar.dns_port,
-        &interface_snapshot.lock().unwrap(),
+        &interface_snapshot.borrow_mut(),
     );
     let tftp_config = runtime.tftp.clone();
     let dhcp_config = runtime.dhcp.clone();
@@ -798,7 +804,7 @@ fn run_inner(
         )?;
         daemon.check_server_addresses(&dns_local_addresses(
             &daemon_config,
-            &interface_snapshot.lock().unwrap(),
+            &interface_snapshot.borrow_mut(),
             runtime.scalar.dns_port,
         ))?;
         daemon.enable_cache(
@@ -823,7 +829,7 @@ fn run_inner(
     } else {
         None
     };
-    let service = Arc::new(Mutex::new(ParentDns {
+    let service = Rc::new(RefCell::new(ParentDns {
         local: LocalDnsService::new_with_limits(
             daemon
                 .as_ref()
@@ -837,7 +843,7 @@ fn run_inner(
         query_ids: Default::default(),
     }));
     {
-        let mut parent = service.lock().unwrap();
+        let mut parent = service.borrow_mut();
         parent.local.query_logging = runtime.logging.queries.enabled;
         parent.local.interfaces = Arc::clone(&initial_interface_records);
         if let Some(daemon) = &mut parent.daemon {
@@ -845,9 +851,9 @@ fn run_inner(
         }
     }
     // C mutates all parent engines in one event loop. Fetch DHCP metrics
-    // before locking DNS; synchronous doctor callbacks must never invert it.
-    // Socket waits remain outside this gate.
-    let parent_events = Arc::new(Mutex::new(ParentEvents::new(&runtime.ubus)?));
+    // before borrowing DNS; synchronous doctor callbacks must not reborrow it.
+    // Socket waits run after these short-lived borrows are released.
+    let parent_events = Rc::new(RefCell::new(ParentEvents::new(&runtime.ubus)?));
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     let helper_config = dhcp_config
         .script
@@ -924,11 +930,11 @@ fn run_inner(
             provider.restore_initial_records(restored, lease_init_now)?;
         }
         if dns_enabled {
-            let config_dns = Arc::clone(&service);
+            let config_dns = Rc::clone(&service);
             provider.set_config_host_lookup(move |name| {
                 let mut parent = config_dns
-                    .lock()
-                    .map_err(|_| io::Error::other("DNS state lock poisoned"))?;
+                    .try_borrow_mut()
+                    .map_err(|_| io::Error::other("DNS state already borrowed"))?;
                 let matches = parent.local.hosts.lookup(name, Some(false), false);
                 let selected = if matches.len() == 1 {
                     matches.first().copied()
@@ -940,11 +946,11 @@ fn run_inner(
                     IpAddr::V6(_) => None,
                 }))
             });
-            let boot_dns = Arc::clone(&service);
+            let boot_dns = Rc::clone(&service);
             provider.set_boot_host_lookup(move |name| {
                 let mut parent = boot_dns
-                    .lock()
-                    .map_err(|_| io::Error::other("DNS state lock poisoned"))?;
+                    .try_borrow_mut()
+                    .map_err(|_| io::Error::other("DNS state already borrowed"))?;
                 Ok(parent
                     .local
                     .hosts
@@ -955,11 +961,11 @@ fn run_inner(
                         IpAddr::V6(_) => None,
                     }))
             });
-            let reverse_dns = Arc::clone(&service);
+            let reverse_dns = Rc::clone(&service);
             provider.set_reverse_host_lookup(move |address| {
                 let parent = reverse_dns
-                    .lock()
-                    .map_err(|_| io::Error::other("DNS state lock poisoned"))?;
+                    .try_borrow_mut()
+                    .map_err(|_| io::Error::other("DNS state already borrowed"))?;
                 Ok(parent
                     .local
                     .hosts
@@ -967,7 +973,7 @@ fn run_inner(
                     .map(|host| host.name.clone()))
             });
             provider.set_dns_publisher(Box::new(LeasePublisher {
-                parent: Arc::clone(&service),
+                parent: Rc::clone(&service),
                 policy: LeasePolicy {
                     local_ttl: runtime.scalar.local_ttl,
                     dhcp_ttl: runtime.scalar.dhcp_ttl,
@@ -980,7 +986,7 @@ fn run_inner(
                 },
             }));
         }
-        let shared_provider = Arc::new(Mutex::new(provider));
+        let shared_provider = Rc::new(RefCell::new(provider));
         Some(shared_provider)
     } else {
         None
@@ -1029,7 +1035,7 @@ fn run_inner(
             Err(error) => return Err(Box::new(NetworkStartupError(error))),
         }
     }
-    listeners::validate_bind_interfaces(&daemon_config, &interface_snapshot.lock().unwrap())
+    listeners::validate_bind_interfaces(&daemon_config, &interface_snapshot.borrow_mut())
         .map_err(NetworkStartupError)?;
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     let mut tftp_listener = if tftp_config.enabled {
@@ -1199,8 +1205,8 @@ fn run_inner(
         .and_then(|dhcp| dhcp.provider.as_ref())
     {
         provider
-            .lock()
-            .map_err(|_| io::Error::other("DHCP state lock poisoned"))?
+            .try_borrow_mut()
+            .map_err(|_| io::Error::other("DHCP state already borrowed"))?
             .start_file_owner()?;
     }
     // The daemon owns all sockets from the foreground loop.  This keeps the
@@ -1250,9 +1256,9 @@ fn run_inner(
     };
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     let mut poll = SinglePoll::new(
-        Arc::clone(&service),
-        Arc::clone(&parent_events),
-        Arc::clone(&interface_snapshot),
+        Rc::clone(&service),
+        Rc::clone(&parent_events),
+        Rc::clone(&interface_snapshot),
         daemon_config.clone(),
         resolvers.clone(),
         packet_limit,
@@ -1266,9 +1272,9 @@ fn run_inner(
     );
     #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
     let mut poll = SinglePoll::new(
-        Arc::clone(&service),
-        Arc::clone(&parent_events),
-        Arc::clone(&interface_snapshot),
+        Rc::clone(&service),
+        Rc::clone(&parent_events),
+        Rc::clone(&interface_snapshot),
         daemon_config.clone(),
         resolvers.clone(),
         packet_limit,
@@ -1341,8 +1347,11 @@ fn run_inner(
             )
             .into_bytes(),
         ));
-        if let Some(error) = pid_file.ownership_warning() {
-            let path = runtime.process.pid_file.as_ref().unwrap().display();
+        if let (Some(error), Some(path)) = (
+            pid_file.ownership_warning(),
+            runtime.process.pid_file.as_ref(),
+        ) {
+            let path = path.display();
             let (priority, message) = if error.raw_os_error() == Some(1) && !have_cap_chown {
                 (
                     Priority::Info,
@@ -1360,7 +1369,7 @@ fn run_inner(
             logger.emit(LogEvent::new(Service::Dns, priority, message.into_bytes()));
         }
         {
-            let event = parent_events.lock().unwrap();
+            let event = parent_events.borrow_mut();
             if event.ubus_name.is_some() {
                 logger.emit(LogEvent::new(
                     Service::Dns,
@@ -1373,16 +1382,14 @@ fn run_inner(
                 ));
             }
         }
-        if let Some(error) = log_ownership_warning {
-            logger.emit(dnsmasq_rs::logging::ownership_warning(
-                runtime.logging.file.as_deref().unwrap(),
-                &error,
-            ));
+        if let (Some(error), Some(path)) = (log_ownership_warning, runtime.logging.file.as_deref())
+        {
+            logger.emit(dnsmasq_rs::logging::ownership_warning(path, &error));
         }
 
         for warning in dnsmasq_rs::logging::startup::missing_interfaces(
             &daemon_config,
-            &interface_snapshot.lock().unwrap(),
+            &interface_snapshot.borrow_mut(),
         ) {
             logger.emit(warning);
         }
@@ -1453,7 +1460,7 @@ fn run_inner(
     #[cfg(target_os = "linux")]
     {
         if dns_enabled {
-            if let Some(daemon) = &mut service.lock().unwrap().daemon {
+            if let Some(daemon) = &mut service.borrow_mut().daemon {
                 daemon.queue_server_notices();
             }
         }
@@ -1463,8 +1470,7 @@ fn run_inner(
     // C's INAME_USED latch survives interface removal. Once an explicit
     // address belonged to an interface, it cannot become an unowned fallback.
     let mut owned_explicit: Vec<IpAddr> = interface_snapshot
-        .lock()
-        .unwrap()
+        .borrow_mut()
         .iter()
         .filter(|interface| daemon_config.listen_addresses.contains(&interface.address))
         .map(|interface| interface.address)
@@ -1515,9 +1521,9 @@ fn run_inner(
         if last_interfaces.elapsed() >= Duration::from_millis(100) {
             last_interfaces = Instant::now();
             if let Ok(interfaces) = listeners::snapshot() {
-                let previous_interfaces = interface_snapshot.lock().unwrap().clone();
+                let previous_interfaces = interface_snapshot.borrow_mut().clone();
                 let changed = previous_interfaces != interfaces;
-                *interface_snapshot.lock().unwrap() = interfaces.clone();
+                *interface_snapshot.borrow_mut() = interfaces.clone();
                 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
                 if changed {
                     if let Some(dhcp) = &mut poll.dhcp {
@@ -1531,7 +1537,7 @@ fn run_inner(
                     if poll.interface_work_pending() {
                         poll.pending_interface_server_check = true;
                     } else {
-                        let mut parent = service.lock().unwrap();
+                        let mut parent = service.borrow_mut();
                         if let Some(daemon) = &mut parent.daemon {
                             daemon.check_server_addresses(&dns_local_addresses(
                                 &daemon_config,
@@ -1711,8 +1717,8 @@ fn run_inner(
         }
         {
             let mut event = parent_events
-                .lock()
-                .map_err(|_| io::Error::other("parent event lock poisoned"))?;
+                .try_borrow_mut()
+                .map_err(|_| io::Error::other("parent event already borrowed"))?;
             let metrics = poll.metrics(&event);
             event.process_ubus(&metrics);
         }
@@ -1877,7 +1883,7 @@ fn open_late_dns_listener(
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 struct DhcpService {
-    provider: Option<Arc<Mutex<DhcpProvider>>>,
+    provider: Option<Rc<RefCell<DhcpProvider>>>,
     listener: DhcpSocketListener,
     pxe_next: bool,
 }
@@ -1901,14 +1907,16 @@ fn domain_interface_snapshot(
 
 /// The production event owner. All daemon sockets are advanced from the
 /// caller's loop; no listener or TCP connection gets a worker thread.
+/// Shared callback state uses Rc/RefCell. Borrows end before socket waits;
+/// DHCP probe callbacks use try_borrow_mut when the provider is already active.
 struct SinglePoll {
     query_logging: dnsmasq_rs::config::logging::QueryLogging,
     listeners: Vec<PollListener>,
     clients: Vec<PollTcpClient>,
     pending_edns_udp: Vec<PendingEdnsUdp>,
-    service: Arc<Mutex<ParentDns>>,
-    parent_events: Arc<Mutex<ParentEvents>>,
-    interfaces: Arc<Mutex<Vec<DnsInterface>>>,
+    service: Rc<RefCell<ParentDns>>,
+    parent_events: Rc<RefCell<ParentEvents>>,
+    interfaces: Rc<RefCell<Vec<DnsInterface>>>,
     config: DnsConfig,
     resolvers: Vec<SocketAddr>,
     packet_limit: usize,
@@ -2077,10 +2085,10 @@ enum TcpClientPhase {
 }
 
 impl PollTcpClient {
-    fn start_query(&mut self, query: &[u8], parent: &Arc<Mutex<ParentDns>>) -> Result<(), ()> {
+    fn start_query(&mut self, query: &[u8], parent: &Rc<RefCell<ParentDns>>) -> Result<(), ()> {
         self.query_context = if self.cache_debug {
             parent
-                .lock()
+                .try_borrow_mut()
                 .map_err(|_| ())?
                 .query_ids
                 .next(true, Some(self.peer))
@@ -2105,7 +2113,7 @@ impl PollTcpClient {
     }
     fn queue_answer(
         &mut self,
-        _parent: &Arc<Mutex<ParentDns>>,
+        _parent: &Rc<RefCell<ParentDns>>,
         packet: Vec<u8>,
         _insert_cache: bool,
     ) -> Result<(), ()> {
@@ -2118,7 +2126,7 @@ impl PollTcpClient {
 
     fn run_forward(
         &mut self,
-        parent: &Arc<Mutex<ParentDns>>,
+        parent: &Rc<RefCell<ParentDns>>,
         query: Option<&[u8]>,
         no_cache: bool,
     ) -> Result<TcpServiceProgress, ()> {
@@ -2138,7 +2146,7 @@ impl PollTcpClient {
          -> Result<(), dnsmasq_rs::dns::wire::WireError> {
             if debug {
                 let mut owner = parent
-                    .lock()
+                    .try_borrow_mut()
                     .map_err(|_| dnsmasq_rs::dns::wire::WireError::InvalidName)?;
                 if let Some(daemon) = owner.daemon.as_mut() {
                     daemon.tcp_current_extract(
@@ -2197,7 +2205,7 @@ impl PollTcpClient {
         );
         if let Some(transaction) = transaction {
             self.parent_cache_activity = true;
-            let mut owner = parent.lock().map_err(|_| ())?;
+            let mut owner = parent.try_borrow_mut().map_err(|_| ())?;
             if let Some(daemon) = owner.daemon.as_mut() {
                 daemon.import_tcp_cache_transfer(transaction, now_seconds());
             }
@@ -2208,7 +2216,7 @@ impl PollTcpClient {
     fn answer_query(
         &mut self,
         mut query: Vec<u8>,
-        parent: &Arc<Mutex<ParentDns>>,
+        parent: &Rc<RefCell<ParentDns>>,
     ) -> Result<(), ()> {
         let decoration = dnsmasq_rs::dns::edns_policy::decorate(
             &mut query,
@@ -2223,7 +2231,7 @@ impl PollTcpClient {
         let now = self.accept_clock;
         let mut stale = false;
         let answered = if self.cache_debug {
-            let mut owner = parent.lock().map_err(|_| ())?;
+            let mut owner = parent.try_borrow_mut().map_err(|_| ())?;
             let daemon = owner.daemon.as_mut().ok_or(())?;
             let cached = if decoration.cacheable {
                 Some(daemon.tcp_current_answer(&query, now).map_err(|_| ())?)
@@ -2298,7 +2306,7 @@ impl PollTcpClient {
     // retain their offsets; WouldBlock always yields to the service owner.
     fn step(
         &mut self,
-        parent: &Arc<Mutex<ParentDns>>,
+        parent: &Rc<RefCell<ParentDns>>,
         lookup: &mut dyn FnMut(IpAddr, bool) -> ClientMacLookup,
     ) -> Result<bool, ()> {
         for _ in 0..8 {
@@ -2438,9 +2446,9 @@ impl PollTcpClient {
 impl SinglePoll {
     #[allow(clippy::too_many_arguments)]
     fn new(
-        service: Arc<Mutex<ParentDns>>,
-        parent_events: Arc<Mutex<ParentEvents>>,
-        interfaces: Arc<Mutex<Vec<DnsInterface>>>,
+        service: Rc<RefCell<ParentDns>>,
+        parent_events: Rc<RefCell<ParentEvents>>,
+        interfaces: Rc<RefCell<Vec<DnsInterface>>>,
         config: DnsConfig,
         resolvers: Vec<SocketAddr>,
         packet_limit: usize,
@@ -2538,27 +2546,22 @@ impl SinglePoll {
     }
 
     fn reload_data(&mut self, local_ttl: u32) -> io::Result<()> {
-        let _event = self
-            .parent_events
-            .lock()
-            .map_err(|_| io::Error::other("parent event lock poisoned"))?;
         let mut parent = self
             .service
-            .lock()
-            .map_err(|_| io::Error::other("DNS state lock poisoned"))?;
-        if parent.daemon.is_some() {
+            .try_borrow_mut()
+            .map_err(|_| io::Error::other("DNS state already borrowed"))?;
+        let ParentDns { local, daemon, .. } = &mut *parent;
+        if let Some(daemon) = daemon {
             let hosts = read_hosts(&self.config, local_ttl);
-            parent.daemon.as_mut().unwrap().reload_hosts(hosts.clone());
-            parent.local.hosts = hosts;
-            let ParentDns { local, daemon, .. } = &mut *parent;
-            local.leases = Arc::new(daemon.as_mut().unwrap().rebuild_lease_names(
+            daemon.reload_hosts(hosts.clone());
+            local.hosts = hosts;
+            local.leases = Arc::new(daemon.rebuild_lease_names(
                 &local.leases,
                 &mut local.hosts,
                 &local.config.records.cnames,
             ));
         }
         drop(parent);
-        drop(_event);
         #[cfg(target_os = "linux")]
         self.scan_hosts_dirs(true);
         #[cfg(target_os = "linux")]
@@ -2567,8 +2570,8 @@ impl SinglePoll {
         if !self.hosts_work_pending() {
             if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
                 let mut provider = provider
-                    .lock()
-                    .map_err(|_| io::Error::other("DHCP state lock poisoned"))?;
+                    .try_borrow_mut()
+                    .map_err(|_| io::Error::other("DHCP state already borrowed"))?;
                 report_dhcp_maintenance(
                     &provider.reload_data_files(now_seconds()),
                     self.logger.as_mut(),
@@ -2626,7 +2629,7 @@ impl SinglePoll {
             .dhcp
             .as_ref()
             .and_then(|dhcp| dhcp.provider.as_ref())
-            .is_some_and(|provider| provider.lock().unwrap().file_work_pending())
+            .is_some_and(|provider| provider.borrow_mut().file_work_pending())
         {
             return true;
         }
@@ -2639,7 +2642,7 @@ impl SinglePoll {
             .dhcp
             .as_ref()
             .and_then(|dhcp| dhcp.provider.as_ref())
-            .is_some_and(|provider| provider.lock().unwrap().files_initializing())
+            .is_some_and(|provider| provider.borrow_mut().files_initializing())
         {
             return true;
         }
@@ -2671,7 +2674,7 @@ impl SinglePoll {
             .as_ref()
             .and_then(|dhcp| dhcp.provider.as_ref())
             .is_some_and(|provider| {
-                let provider = provider.lock().unwrap();
+                let provider = provider.borrow_mut();
                 provider.file_work_pending() || provider.files_runnable()
             })
         {
@@ -2735,12 +2738,9 @@ impl SinglePoll {
             }
         }
         if let Some(update) = step.update {
-            let addresses = dns_local_addresses(
-                &self.config,
-                &self.interfaces.lock().unwrap(),
-                self.dns_port,
-            );
-            let mut parent = self.service.lock().unwrap();
+            let addresses =
+                dns_local_addresses(&self.config, &self.interfaces.borrow_mut(), self.dns_port);
+            let mut parent = self.service.borrow_mut();
             if let Some(daemon) = &mut parent.daemon {
                 match daemon.replace_server_source(update.source, update.rows, &addresses) {
                     Ok(()) => {
@@ -2753,12 +2753,9 @@ impl SinglePoll {
         }
         self.log_dns_diagnostics();
         if step.initial_cache_reload {
-            self.parent_events
-                .lock()
-                .unwrap()
-                .queue_missing_ubus_notice();
+            self.parent_events.borrow_mut().queue_missing_ubus_notice();
             if let Some(logger) = &mut self.logger {
-                for notice in self.parent_events.lock().unwrap().ubus_notices.drain(..) {
+                for notice in self.parent_events.borrow_mut().ubus_notices.drain(..) {
                     logger.emit(notice);
                 }
             }
@@ -2785,7 +2782,7 @@ impl SinglePoll {
                     && !self.config.resolv_files.is_empty()))
         {
             {
-                let mut parent = self.service.lock().unwrap();
+                let mut parent = self.service.borrow_mut();
                 if let Some(daemon) = &mut parent.daemon {
                     let _ = daemon.recheck_server_notices();
                 }
@@ -2795,7 +2792,7 @@ impl SinglePoll {
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if step.signal_complete {
             if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
-                provider.lock().unwrap().rerun_scripts();
+                provider.borrow_mut().rerun_scripts();
             }
         }
     }
@@ -2842,7 +2839,7 @@ impl SinglePoll {
     ) -> usize {
         let removed;
         {
-            let mut parent = self.service.lock().unwrap();
+            let mut parent = self.service.borrow_mut();
             let ParentDns { local, daemon, .. } = &mut *parent;
             removed = local.hosts.remove_uid(source.uid);
             local.hosts.set_source_name(
@@ -2869,7 +2866,7 @@ impl SinglePoll {
                 .and_then(|service| service.provider.as_ref())
             {
                 report_dhcp_maintenance(
-                    &provider.lock().unwrap().hosts_changed(now_seconds()),
+                    &provider.borrow_mut().hosts_changed(now_seconds()),
                     self.logger.as_mut(),
                 );
             }
@@ -2884,7 +2881,10 @@ impl SinglePoll {
             if !reader.step().unwrap_or(true) {
                 return;
             }
-            let loaded = self.hosts_read.take().unwrap().finish();
+            let Some(reader) = self.hosts_read.take() else {
+                return;
+            };
+            let loaded = reader.finish();
             let removed = self.publish_hosts_source(&loaded.source, loaded.records, loaded.ttl);
             if !self.hosts_bulk && removed != 0 {
                 self.hosts_notice(
@@ -2921,7 +2921,7 @@ impl SinglePoll {
                 ),
             );
         } else if let Some(change) = self.hosts_requests.pop_front() {
-            let ttl = self.service.lock().unwrap().local.local_ttl;
+            let ttl = self.service.borrow_mut().local.local_ttl;
             if !self.hosts_bulk {
                 self.hosts_notice(
                     Priority::Info,
@@ -2986,7 +2986,7 @@ impl SinglePoll {
                 .as_ref()
                 .and_then(|service| service.provider.as_ref())
             {
-                let mut provider = provider.lock().unwrap();
+                let mut provider = provider.borrow_mut();
                 let report = if self.hosts_full_reload {
                     provider.reload_data_files(now_seconds())
                 } else {
@@ -3000,7 +3000,7 @@ impl SinglePoll {
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     fn step_dhcp_files(&mut self) {
         if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
-            if let Some(report) = provider.lock().unwrap().step_files(now_seconds()) {
+            if let Some(report) = provider.borrow_mut().step_files(now_seconds()) {
                 report_dhcp_maintenance(&report, self.logger.as_mut());
             }
         }
@@ -3053,7 +3053,7 @@ impl SinglePoll {
         }
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
-            provider.lock().unwrap().append_file_fds(fds);
+            provider.borrow_mut().append_file_fds(fds);
         }
         if let Some(files) = &self.dns_files {
             files.append_poll_fds(fds);
@@ -3079,7 +3079,7 @@ impl SinglePoll {
                 || (self.hosts_read.is_none() && !self.hosts_requests.is_empty());
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
-                runnable |= provider.lock().unwrap().files_runnable();
+                runnable |= provider.borrow_mut().files_runnable();
             }
             owrt_ubus::sys::poll_fds(&mut fds, if runnable { 0 } else { 2 })?;
         }
@@ -3108,9 +3108,9 @@ impl SinglePoll {
         event.write_metrics(&mut metrics);
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
-            write_dhcp_metrics(&mut metrics, &provider.lock().unwrap());
+            write_dhcp_metrics(&mut metrics, &provider.borrow_mut());
         }
-        let parent = self.service.lock().unwrap();
+        let parent = self.service.borrow_mut();
         if let Some(daemon) = &parent.daemon {
             write_dns_metrics(
                 &mut metrics,
@@ -3144,13 +3144,13 @@ impl SinglePoll {
         // C drains subscription/metrics requests before processing DHCP.
         // This also applies to port=0, where no DNS listener can drain UBus.
         {
-            let mut event = self.parent_events.lock().unwrap();
+            let mut event = self.parent_events.borrow_mut();
             let metrics = self.metrics(&event);
             event.process_ubus(&metrics);
         }
         #[cfg(target_os = "linux")]
         if let Some(logger) = &mut self.logger {
-            for notice in self.parent_events.lock().unwrap().ubus_notices.drain(..) {
+            for notice in self.parent_events.borrow_mut().ubus_notices.drain(..) {
                 logger.emit(notice);
             }
         }
@@ -3192,7 +3192,7 @@ impl SinglePoll {
                 message,
             ));
         }
-        let mut parent = self.service.lock().unwrap();
+        let mut parent = self.service.borrow_mut();
         let Some(daemon) = &mut parent.daemon else {
             return;
         };
@@ -3226,7 +3226,7 @@ impl SinglePoll {
         self.interfaces_enumerated = true;
         if self.config.interface_records.rules.is_empty() && !self.config.needs_domain_interfaces()
         {
-            if let Some(daemon) = &mut self.service.lock().unwrap().daemon {
+            if let Some(daemon) = &mut self.service.borrow_mut().daemon {
                 daemon.refresh_source_interface_indices();
             }
             return;
@@ -3283,7 +3283,7 @@ impl SinglePoll {
         // selected by its original caller, even across owner turns.
         self.interfaces_enumerated = true;
         if result.error.is_none() {
-            *self.interfaces.lock().unwrap() = result.interfaces;
+            *self.interfaces.borrow_mut() = result.interfaces;
         }
         let domains = domain_interface_snapshot(&result.addresses);
         self.config.domain_interfaces = Arc::clone(&domains);
@@ -3292,7 +3292,7 @@ impl SinglePoll {
             .as_ref()
             .and_then(|service| service.provider.as_ref())
         {
-            if let Err(error) = provider.lock().unwrap().set_dns_config(&self.config) {
+            if let Err(error) = provider.borrow_mut().set_dns_config(&self.config) {
                 eprintln!("dnsmasq-rs: {error}");
             }
         }
@@ -3303,7 +3303,7 @@ impl SinglePoll {
             ),
         );
         {
-            let mut parent = self.service.lock().unwrap();
+            let mut parent = self.service.borrow_mut();
             parent.local.interfaces = Arc::clone(&records);
             parent.local.config.domain_interfaces = Arc::clone(&domains);
             if let Some(daemon) = &mut parent.daemon {
@@ -3313,12 +3313,9 @@ impl SinglePoll {
             }
         }
         if std::mem::take(&mut self.pending_interface_server_check) {
-            let addresses = dns_local_addresses(
-                &self.config,
-                &self.interfaces.lock().unwrap(),
-                self.dns_port,
-            );
-            let mut parent = self.service.lock().unwrap();
+            let addresses =
+                dns_local_addresses(&self.config, &self.interfaces.borrow_mut(), self.dns_port);
+            let mut parent = self.service.borrow_mut();
             if let Some(daemon) = &mut parent.daemon {
                 if let Err(error) = daemon.check_server_addresses(&addresses) {
                     eprintln!("dnsmasq-rs: {error}");
@@ -3377,7 +3374,7 @@ impl SinglePoll {
             }
             Err(_) => return,
         };
-        let interfaces = match self.interfaces.lock() {
+        let interfaces = match self.interfaces.try_borrow_mut() {
             Ok(interfaces) => interfaces,
             Err(_) => return,
         };
@@ -3397,7 +3394,7 @@ impl SinglePoll {
         if query.len() < 12 || query[2] & 0x80 != 0 {
             return;
         }
-        let query_context = match self.service.lock() {
+        let query_context = match self.service.try_borrow_mut() {
             Ok(mut parent) => parent.query_ids.next(false, Some(incoming.peer)),
             Err(_) => return,
         };
@@ -3427,7 +3424,7 @@ impl SinglePoll {
             }
         }
         if self.config.loop_detect {
-            let mut parent = self.service.lock().unwrap();
+            let mut parent = self.service.borrow_mut();
             let ParentDns { local, daemon, .. } = &mut *parent;
             if let Some(daemon) = daemon {
                 if daemon.detect_loop(&query).unwrap_or(false) {
@@ -3528,12 +3525,12 @@ impl SinglePoll {
         mac: Option<Vec<u8>>,
         query_context: dnsmasq_rs::query_logging::QueryContext,
     ) {
-        let mut event = match self.parent_events.lock() {
+        let mut event = match self.parent_events.try_borrow_mut() {
             Ok(event) => event,
             Err(_) => return,
         };
         let mut metrics = self.metrics(&event);
-        let mut parent = match self.service.lock() {
+        let mut parent = match self.service.try_borrow_mut() {
             Ok(parent) => parent,
             Err(_) => return,
         };
@@ -3550,7 +3547,7 @@ impl SinglePoll {
         if self.probe_metrics.is_none() {
             event.process_ubus(&metrics);
         }
-        if let Ok(interfaces) = self.interfaces.lock() {
+        if let Ok(interfaces) = self.interfaces.try_borrow_mut() {
             local.local_network = listeners::local_network(&interfaces, client.destination);
         }
         daemon.set_query_context(query_context);
@@ -3705,8 +3702,8 @@ impl SinglePoll {
                 event.stale_answered = event.stale_answered.wrapping_add(1);
                 // Preserve dnsmasq's send-before-refresh ordering.  The
                 // refresh may enqueue an upstream response for a later turn;
-                // it must not hold the parent lock while that I/O completes.
-                if let Ok(mut parent) = self.service.lock() {
+                // Release the parent borrow before that I/O completes.
+                if let Ok(mut parent) = self.service.try_borrow_mut() {
                     if let (Some(daemon), Some(metadata)) = (parent.daemon.as_mut(), metadata) {
                         let refresh = daemon.refresh_udp_prepared_on_listener(
                             &query[..],
@@ -3761,12 +3758,12 @@ impl SinglePoll {
     }
 
     fn poll_udp_completions(&mut self) {
-        let mut event = match self.parent_events.lock() {
+        let mut event = match self.parent_events.try_borrow_mut() {
             Ok(event) => event,
             Err(_) => return,
         };
         let mut metrics = self.metrics(&event);
-        let mut parent = match self.service.lock() {
+        let mut parent = match self.service.try_borrow_mut() {
             Ok(parent) => parent,
             Err(_) => return,
         };
@@ -3868,7 +3865,7 @@ impl SinglePoll {
         } else {
             listeners::tcp_interface(&stream, destination.is_ipv6())
         };
-        let interfaces = match self.interfaces.lock() {
+        let interfaces = match self.interfaces.try_borrow_mut() {
             Ok(interfaces) => interfaces,
             Err(_) => return,
         };
@@ -3890,7 +3887,7 @@ impl SinglePoll {
         if stream.set_nonblocking(true).is_err() {
             return;
         }
-        let query_ids = match self.service.lock() {
+        let query_ids = match self.service.try_borrow_mut() {
             Ok(mut parent) => {
                 if DEBUG_MODE.load(Ordering::Relaxed) {
                     Default::default()
@@ -3940,7 +3937,7 @@ impl SinglePoll {
             mac_deferred,
             accept_clock,
         } = pending;
-        let mut parent = match self.service.lock() {
+        let mut parent = match self.service.try_borrow_mut() {
             Ok(parent) => parent,
             Err(_) => return,
         };
@@ -3979,7 +3976,7 @@ impl SinglePoll {
         };
         forward.set_client_source(peer.ip());
         forward.set_query_logging(self.query_logging.enabled);
-        if let Ok(mut event) = self.parent_events.lock() {
+        if let Ok(mut event) = self.parent_events.try_borrow_mut() {
             event.tcp_active = event.tcp_active.saturating_add(1);
         }
         self.clients.push(PollTcpClient {
@@ -4116,7 +4113,7 @@ impl SinglePoll {
                 {
                     self.arp_awake = true;
                 } // C parent receives the TCP child's SIGCHLD.
-                self.parent_events.lock().unwrap().tcp_active = self.clients.len();
+                self.parent_events.borrow_mut().tcp_active = self.clients.len();
             }
         }
     }
@@ -4193,7 +4190,7 @@ impl SinglePoll {
                 }
             }
         }
-        if let Some(daemon) = &self.service.lock().unwrap().daemon {
+        if let Some(daemon) = &self.service.borrow_mut().daemon {
             deadline = daemon.append_poll_fds(&mut fds, deadline);
         }
         for client in &self.clients {
@@ -4278,7 +4275,7 @@ impl SinglePoll {
         if self.pending_delivery.is_none() && self.helper_init.is_none() {
             let hosts_pending = self.hosts_work_pending();
             self.pending_delivery = self.dhcp.as_ref().and_then(|dhcp| {
-                let mut provider = dhcp.provider.as_ref()?.try_lock().ok()?;
+                let mut provider = dhcp.provider.as_ref()?.try_borrow_mut().ok()?;
                 if hosts_pending {
                     provider.take_frozen_script_delivery()
                 } else {
@@ -4395,8 +4392,7 @@ impl SinglePoll {
                                         self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref())
                                     {
                                         match provider
-                                            .lock()
-                                            .unwrap()
+                                            .borrow_mut()
                                             .restore_script_records(output, now_seconds())
                                         {
                                             Ok(report) => report_dhcp_maintenance(
@@ -4492,7 +4488,7 @@ impl SinglePoll {
             if helper.is_finished() {
                 self.pending_delivery = None;
                 if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
-                    if let Ok(mut provider) = provider.try_lock() {
+                    if let Ok(mut provider) = provider.try_borrow_mut() {
                         provider.disable_script_delivery();
                     }
                 }
@@ -4515,10 +4511,13 @@ impl SinglePoll {
             return false;
         }
         if self.pending_delivery.is_none() {
-            self.pending_delivery = self
-                .dhcp
-                .as_ref()
-                .and_then(|dhcp| dhcp.provider.as_ref()?.lock().ok()?.take_script_delivery());
+            self.pending_delivery = self.dhcp.as_ref().and_then(|dhcp| {
+                dhcp.provider
+                    .as_ref()?
+                    .try_borrow_mut()
+                    .ok()?
+                    .take_script_delivery()
+            });
         }
         if self.pending_delivery.is_none()
             && self
@@ -4526,7 +4525,9 @@ impl SinglePoll {
                 .as_ref()
                 .is_none_or(|listener| listener.front_completion().is_none())
         {
-            let helper = self.helper.as_mut().unwrap();
+            let Some(helper) = self.helper.as_mut() else {
+                return true;
+            };
             helper.begin_shutdown();
             return helper.commands_drained();
         }
@@ -4550,7 +4551,7 @@ impl SinglePoll {
         let Some(mut dhcp) = self.dhcp.take() else {
             return;
         };
-        let Some(provider_ref) = dhcp.provider.as_ref().map(Arc::clone) else {
+        let Some(provider_ref) = dhcp.provider.as_ref().map(Rc::clone) else {
             let _ = dhcp
                 .listener
                 .process_once_relay_only(|| STOP_REQUESTED.load(Ordering::Acquire));
@@ -4567,7 +4568,7 @@ impl SinglePoll {
             self.dhcp = Some(dhcp);
             return;
         };
-        let Ok(mut provider) = provider_ref.lock() else {
+        let Ok(mut provider) = provider_ref.try_borrow_mut() else {
             self.dhcp = Some(dhcp);
             return;
         };
@@ -4606,10 +4607,10 @@ impl SinglePoll {
         write_dhcp_metrics(&mut metrics, &provider);
         self.probe_metrics = Some(metrics);
         let mut output = vec![0; 16_384];
-        let events = Arc::clone(&self.parent_events);
+        let events = Rc::clone(&self.parent_events);
         let results = {
             let mut sink = |kind, fields: DhcpEventFields<'_>, logging| {
-                events.lock().unwrap().notify_dhcp(kind, fields, logging)
+                events.borrow_mut().notify_dhcp(kind, fields, logging)
             };
             let mut wait =
                 |socket: Option<&dnsmasq_rs::net::IcmpSocket>, duration, leases, notice| {
@@ -4729,13 +4730,13 @@ impl SinglePoll {
                 });
             }
         }
-        let parent = self.service.lock().unwrap();
+        let parent = self.service.borrow_mut();
         if let Some(daemon) = &parent.daemon {
             let deadline = daemon.append_poll_fds(&mut fds, now + Duration::from_secs(3600));
             self.arp_awake |= deadline <= now;
         }
         drop(parent);
-        if let Some(ubus) = &self.parent_events.lock().unwrap().ubus {
+        if let Some(ubus) = &self.parent_events.borrow_mut().ubus {
             fds.push(PollFd {
                 fd: ubus.as_raw_fd(),
                 events: POLLIN,
@@ -4746,8 +4747,7 @@ impl SinglePoll {
             self.arp_awake |= dhcp.listener.has_input().unwrap_or(false);
             if let Some(provider) = &dhcp.provider {
                 self.arp_awake |= provider
-                    .lock()
-                    .unwrap()
+                    .borrow_mut()
                     .next_maintenance()
                     .is_some_and(|deadline| deadline <= now);
             }
@@ -4817,7 +4817,7 @@ impl SinglePoll {
         let provider = self
             .dhcp
             .as_ref()
-            .and_then(|dhcp| dhcp.provider.as_ref()?.try_lock().ok());
+            .and_then(|dhcp| dhcp.provider.as_ref()?.try_borrow_mut().ok());
         let neighbors = &mut self.neighbors;
         let quiet_not_found = listener.quiet_not_found();
         let events = listener.poll_once_with_mac(now, &mut |address, interface, now| {
@@ -5030,10 +5030,10 @@ fn validate_runtime_ready(scalar: &ScalarConfig, dns: &DnsConfig) -> Result<(), 
 
 #[cfg(target_os = "linux")]
 fn emit_hosts_read_notices(
-    service: &Arc<Mutex<ParentDns>>,
+    service: &Rc<RefCell<ParentDns>>,
     logger: &mut Option<dnsmasq_rs::logging::Logger>,
 ) {
-    let Ok(mut parent) = service.lock() else {
+    let Ok(mut parent) = service.try_borrow_mut() else {
         return;
     };
     let hosts = &mut parent.local.hosts;
@@ -5182,7 +5182,7 @@ mod tests {
                 .unwrap();
         let event = ParentEvents::new(&UbusConfig::default()).unwrap();
         let owner = SinglePoll::new(
-            Arc::new(Mutex::new(ParentDns {
+            Rc::new(RefCell::new(ParentDns {
                 local: LocalDnsService::new_with_limits(
                     DnsConfig::default(),
                     Hosts::new(),
@@ -5193,10 +5193,10 @@ mod tests {
                 daemon: None,
                 query_ids: Default::default(),
             })),
-            Arc::new(Mutex::new(
+            Rc::new(RefCell::new(
                 ParentEvents::new(&UbusConfig::default()).unwrap(),
             )),
-            Arc::new(Mutex::new(Vec::new())),
+            Rc::new(RefCell::new(Vec::new())),
             DnsConfig::default(),
             Vec::new(),
             512,
@@ -5204,7 +5204,7 @@ mod tests {
             512,
             Vec::new(),
             Some(DhcpService {
-                provider: Some(Arc::new(Mutex::new(provider))),
+                provider: Some(Rc::new(RefCell::new(provider))),
                 listener,
                 pxe_next: false,
             }),

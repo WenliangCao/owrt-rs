@@ -252,7 +252,8 @@ pub struct DnsLeaseRecord<'a> {
 /// Replace only DHCP-derived DNS entries. Success means the new source is
 /// visible to DNS readers before the caller can transmit its DHCP response.
 /// The DNS implementation owns hosts/config precedence, PTR and TTL policy.
-pub trait DnsPublisher: Send {
+// Publications run synchronously on the single poll owner.
+pub trait DnsPublisher {
     fn replace(&mut self, records: &[DnsLeaseRecord<'_>]) -> io::Result<()>;
 }
 
