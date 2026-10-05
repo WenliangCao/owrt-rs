@@ -109,7 +109,8 @@ impl<O: FileOpener> TftpListener<O> {
             runtime,
             port_range: port_range.map(|(a, b)| (a.min(b), a.max(b))),
             single_port,
-            buffer: vec![0; 65535],
+            // C receives RRQ/ACK/ERR in workspacename[MAXDNAMESTR].
+            buffer: vec![0; crate::tftp_service::MAX_PATH_BYTES],
             policy: None,
             pending: VecDeque::new(),
             completed: VecDeque::new(),
@@ -556,6 +557,11 @@ impl<O: FileOpener> TftpListener<O> {
             ) {
                 Ok(socket) => Some(socket),
                 Err(error) => {
+                    if self.port_range.is_some_and(|(start, _)| start != 0)
+                        && error.kind() == io::ErrorKind::AddrInUse
+                    {
+                        events.push(RuntimeEvent::NoFreePort);
+                    }
                     events.push(RuntimeEvent::TransportError {
                         id: None,
                         peer: datagram.peer,
@@ -622,7 +628,9 @@ impl<O: FileOpener> TftpListener<O> {
                     self.routes.remove(id);
                     None
                 }
-                RuntimeEvent::TransportError { .. } => None,
+                RuntimeEvent::TransportError { .. }
+                | RuntimeEvent::ClientError { .. }
+                | RuntimeEvent::NoFreePort => None,
             };
             if let Some((id, peer, packet)) = sending {
                 if let (Some(id), Some(route)) = (id, route) {
