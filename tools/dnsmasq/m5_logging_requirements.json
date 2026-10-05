@@ -188,7 +188,7 @@
         {
           "id": "QRY06",
           "source": "cache.c:2478-2515,forward.c callers",
-          "boundary": "extra per-client sequence and source address/port across UDP/TCP/retries/cache/local/upstream; proto UDP/TCP and absolute signed TCP display id; NOEXTRA omits client prefix.",
+          "boundary": "Extra per-client id/address/port on UDP/TCP, retries and multi-source replies. Normal TCP accept reserves100 IDs in parent and session starts from inherited sequence; debug TCP shares parent sequence without reservation. proto chooses UDP/TCP from signed display id; NOEXTRA omits client prefix; restore pending forward client context before logging replies.",
           "required_scenarios": []
         },
         {
@@ -328,7 +328,7 @@
         {
           "id": "HLP02",
           "source": "dhcp-common.c display_opts/option_names",
-          "boundary": "DHCP4 option list exact numeric order/name/type, unknown help extra operand falls general usage; unavailable DHCP6 help falls usage.",
+          "boundary": "DHCP4 list64 excludes OT_INTERNAL, prints exact numeric table order and option names; unknown extra help operands and unavailable DHCP6 select general usage.",
           "required_scenarios": [
             "cli-help-dhcp"
           ]
@@ -1560,5 +1560,18 @@
         "call": "my_syslog(LOG_ERR, _(\"failed to read %s: %s\"), fname, strerror(errno));"
       }
     ]
+  },
+  "source_provenance": {
+    "recipe_revision": "f0a60eee2fe051741c643ea6118718aae1ef17fb",
+    "archive_sha256": "0c00d4e5c97c8306e5fb932b348b34269c9c29a0e7df0e8e82958b407092bc19",
+    "copts": [
+      "-DHAVE_UBUS",
+      "-DHAVE_POLL_H",
+      "-DNO_DHCP6",
+      "-DNO_AUTH",
+      "-DNO_IPSET",
+      "-DNO_ID"
+    ],
+    "prepared_identity_sha256": "62cec0e9dda0265cb9c4f6af27f7d23067aed967afab3c74e37370149a8326e9"
   }
 }
