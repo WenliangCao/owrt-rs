@@ -10,6 +10,8 @@ import fcntl
 import json
 import os
 import platform
+import select
+import threading
 from pathlib import Path
 import re
 import shutil
@@ -19,7 +21,7 @@ import struct
 import subprocess
 import time
 
-from dns_service_probe import exact_read, query, semantics
+from dns_service_probe import answer as ordinary_upstream_answer, exact_read, name as wire_name, query, read_name, rr, semantics
 from m2_rootfs import STOCK_SHA256, command, image_path, prepare, process_identity, sha256
 
 DEPENDENCIES = ['dns_service_probe.py', 'm2_rootfs.py', 'run_isolated.sh',
@@ -227,6 +229,35 @@ def cases():
                      'query_probes': True, 'query_mode': mode, 'query_sequence': local_query_sequence,
                      'query_startup_barrier': 'read /m2/logging/hosts.extra - 2 names\n',
                      'query_required_messages': required, 'options': ['log-queries']})
+    forward_query_sequence = [
+        ('ready.logging', 1),
+        ('a.forward.test', 1), ('a.forward.test', 1),
+        ('v6.forward.test', 28), ('v6.forward.test', 28),
+        ('alias.forward.test', 1), ('alias.forward.test', 1),
+        ('7.2.0.192.in-addr.arpa', 12), ('7.2.0.192.in-addr.arpa', 12),
+        ('txt.forward.test', 16), ('txt.forward.test', 16),
+        ('nx.forward.test', 1), ('nx.forward.test', 1),
+        ('nodata.forward.test', 28), ('nodata.forward.test', 28),
+        ('error.forward.test', 1), ('truncated.forward.test', 1)]
+    forward_query_messages = [
+        'forwarded a.forward.test to 127.0.0.2#15957',
+        'reply a.forward.test is 192.0.2.7', 'cached a.forward.test is 192.0.2.7',
+        'reply v6.forward.test is 2001:db8::7', 'cached v6.forward.test is 2001:db8::7',
+        'reply alias.forward.test is <CNAME>', 'cached alias.forward.test is <CNAME>',
+        'reply 192.0.2.7 is ptr-target.forward.test', 'cached 192.0.2.7 is ptr-target.forward.test',
+        'reply txt.forward.test is <TXT>', 'cached txt.forward.test is <TXT>',
+        'reply nx.forward.test is NXDOMAIN', 'cached nx.forward.test is NXDOMAIN',
+        'reply nodata.forward.test is NODATA-IPv6', 'cached nodata.forward.test is NODATA-IPv6',
+        'reply error is REFUSED', 'reply is truncated' ]
+    for label, modes, mode in [('ordinary', [], 'ordinary'), ('proto', ['proto'], 'proto'),
+                               ('failed', ['only_failed'], 'only_failed')]:
+        required = [message for message in forward_query_messages if 'NODATA' in message or 'NXDOMAIN' in message or 'REFUSED' in message] if mode == 'only_failed' else forward_query_messages
+        rows.append({'id': 'query-forward-' + label, 'scope': 'query-forward', 'kind': 'run',
+                     'argv': ['--log-facility=-', '--log-queries', *['--log-queries=' + value for value in modes],
+                              '--server=127.0.0.2#15957', '--server=127.0.0.3#15958', '--all-servers', '--cache-rr=TXT'],
+                     'query_probes': True, 'query_mode': mode, 'query_sequence': forward_query_sequence,
+                     'query_upstream': True, 'query_required_messages': required,
+                     'options': ['log-queries']})
     rows.extend([
         {'id': 'daemon-default-stderr', 'scope': 'daemon', 'kind': 'run', 'mode': [],
          'argv': ['--log-facility=-'], 'daemonized': True, 'pidfile': '/m2/logging/daemon.pid',
@@ -686,14 +717,14 @@ def query_packet(name, kind=1, ident=0x7100):
     return query(name, kind, ident)
 
 
-def exchange(name, kind=1, chaos=False, port=None):
+def exchange(name, kind=1, chaos=False, port=None, timeout=.03):
     wire = query_packet(name, kind, 0x7100)
     if chaos:
         wire = wire[:-2] + b'\0\3'
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as client:
         if port is not None:
             client.bind(('127.0.0.1', port))
-        client.settimeout(.03)
+        client.settimeout(timeout)
         client.sendto(wire, ('127.0.0.1', 15353))
         reply = client.recv(65535)
     if reply[:2] != wire[:2]:
@@ -930,6 +961,74 @@ def identity_sequence(transport, calibrate, sticky_probe=None, fresh=False):
     return observed, raw
 
 
+class QueryUpstream:
+    """Fixed-address UDP/TCP fixture; retain each actual request and response."""
+    def __init__(self):
+        self.sockets, self.clients, self.wire, self.errors = [], {}, [], []
+        self.stopped = threading.Event()
+        for address, port in [('127.0.0.2', 15957), ('127.0.0.3', 15958)]:
+            udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            udp.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            udp.bind((address, port))
+            tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            tcp.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            tcp.bind((address, port))
+            tcp.listen()
+            self.sockets.extend([udp, tcp])
+        self.thread = threading.Thread(target=self.run)
+        self.thread.start()
+
+    def response(self, request):
+        name, end = read_name(request, 12)
+        kind = struct.unpack_from('!H', request, end)[0]
+        question = request[12:end + 4]
+        if name == 'alias.forward.test':
+            body = rr(5, wire_name('terminal.forward.test')) + rr(1, bytes([192, 0, 2, 7]), owner=wire_name('terminal.forward.test'))
+            return request[:2] + struct.pack('!5H', 0x8180, 1, 2, 0, 0) + question + body
+        if kind == 12:
+            body = rr(12, wire_name('ptr-target.forward.test'))
+            return request[:2] + struct.pack('!5H', 0x8180, 1, 1, 0, 0) + question + body
+        if name.startswith('error.'):
+            return request[:2] + struct.pack('!5H', 0x8185, 1, 0, 0, 0) + question
+        if name.startswith('truncated.'):
+            return request[:2] + struct.pack('!5H', 0x8380, 1, 0, 0, 0) + question
+        return ordinary_upstream_answer(request)
+
+    def run(self):
+        while not self.stopped.is_set():
+            ready, _, _ = select.select(self.sockets + list(self.clients), [], [], .02)
+            for endpoint in ready:
+                try:
+                    if endpoint in self.clients:
+                        received = endpoint.recv(65535)
+                        if not received:
+                            endpoint.close(); del self.clients[endpoint]; continue
+                        self.clients[endpoint].extend(received)
+                        pending = self.clients[endpoint]
+                        while len(pending) >= 2 and len(pending) >= 2 + int.from_bytes(pending[:2], 'big'):
+                            length = int.from_bytes(pending[:2], 'big')
+                            request = bytes(pending[2:2 + length]); del pending[:2 + length]
+                            response = self.response(request)
+                            self.wire.append({'transport': 'tcp', 'request': request.hex(), 'reply': response.hex(), 'server': list(endpoint.getsockname())})
+                            endpoint.sendall(len(response).to_bytes(2, 'big') + response)
+                    elif endpoint.type == socket.SOCK_STREAM:
+                        client, _ = endpoint.accept(); client.settimeout(.5); self.clients[client] = bytearray()
+                    else:
+                        request, peer = endpoint.recvfrom(65535)
+                        response = self.response(request)
+                        self.wire.append({'transport': 'udp', 'request': request.hex(), 'reply': response.hex(), 'server': list(endpoint.getsockname())})
+                        endpoint.sendto(response, peer)
+                except Exception as error:
+                    self.errors.append(repr(error))
+                    self.stopped.set()
+
+    def close(self):
+        self.stopped.set(); self.thread.join(1)
+        if self.thread.is_alive(): raise AssertionError('query fixture thread leaked')
+        for endpoint in self.sockets + list(self.clients): endpoint.close()
+        if self.errors: raise AssertionError(('query fixture failure', self.errors))
+
+
 def run(root, side, case, out):
     if case.get('blocked_kind'):
         return run_blocked_sink(root, side, case, out)
@@ -943,6 +1042,7 @@ def run(root, side, case, out):
     (folder / 'config').write_bytes(bytes.fromhex(case['config_bytes']) if 'config_bytes' in case else case.get('config', '').encode())
     for name, text in case.get('setup_files', {}).items():
         (folder / name).write_text(text)
+    query_upstream = QueryUpstream() if case.get('query_upstream') else None
     blocker = None
     tcp_upstream = None
     if case.get('tcp_rotate'):
@@ -1155,7 +1255,7 @@ def run(root, side, case, out):
                         trace['dns'].extend(raw)
                 if case.get('query_probes'):
                     for name, kind in query_sequence(case):
-                        answer, raw = exchange(name, kind, port=16501)
+                        answer, raw = exchange(name, kind, port=16501, timeout=1 if case.get('query_upstream') else .03)
                         observed['dns'].append({'name': name, 'type': kind, 'transport': 'udp', 'response': answer})
                         trace['dns'].append(dict(raw, transport='udp'))
                     rows, raw = tcp_sequence(query_sequence(case))
@@ -1202,6 +1302,9 @@ def run(root, side, case, out):
                 blocker.close()
             if tcp_upstream:
                 tcp_upstream.close()
+            if query_upstream:
+                query_upstream.close()
+                save(out / 'upstream-wire.json', query_upstream.wire)
             trace['duration'] = time.monotonic() - start
             trace['stream_tail'] = receiver.pending.hex()
             save(out / 'trace.json', trace)
