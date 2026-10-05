@@ -118,8 +118,7 @@
             "file-owner-normal",
             "file-owner-debug",
             "file-existing-group-owner",
-            "startup-fault-log-chown",
-            "file-owner-warning-opaque-path"
+            "startup-fault-log-chown"
           ]
         },
         {
@@ -145,7 +144,8 @@
             "file-rotate",
             "file-reopen-fails",
             "stderr-foreground",
-            "stderr-debug"
+            "stderr-debug",
+            "tcp-accepted-file-rotation"
           ]
         },
         {
@@ -239,19 +239,38 @@
           ]
         },
         {
-          "id": "FAC13",
-          "source": "log.c:301-319,361-393",
-          "boundary": "Debug echo writes complete producer text, independently of the primary record cap1024; actual overlong no-fail TFTP root proves full sign-on/warning echo and exactly capped file records.",
-          "required_scenarios": [
-            "debug-echo-overlong-tftp-root"
-          ]
-        },
-        {
           "id": "FAC14",
           "source": "log.c:68-89,301-319,dnsmasq.c:705-718",
           "boundary": "Debug echo uses inherited stderr directly, with no extra descriptor or extra EMFILE startup boundary. Actual /proc descriptor inventory remains identical across SIGUSR2; the primary stderr destination alone retains its required pre-redirect duplicate.",
           "required_scenarios": [
             "debug-stderr-no-extra-fd"
+          ]
+        }
+      ],
+      "qualification_ready": false,
+      "scheduler_policy": {
+        "authority": "Project M5 single poll owner must not sleep or block for logging.",
+        "source": "log.c:135-160,301-319,407-471",
+        "difference": "C blocks at FIFO open, file/stderr write or debug fprintf. Rust waits for FIFO readers with bounded 100ms nonblocking open retries, a single file record buffer and overflow accounting; debug echo has a separate bounded queue. Blocked startup must not prevent service. Shutdown draining remains bounded at 100ms.",
+        "runtime_witnesses": [
+          "blocked-sink-fifo-no-reader",
+          "blocked-sink-fifo-full",
+          "blocked-sink-stderr-full",
+          "blocked-sink-debug-echo-full",
+          "blocked-sink-fifo-no-reader-shutdown",
+          "blocked-sink-fifo-full-shutdown",
+          "blocked-sink-stderr-full-shutdown",
+          "blocked-sink-debug-echo-full-shutdown"
+        ]
+      },
+      "qualification_scope": "Ordinary source-defined sink, ownership, reopen, active TCP, blocked FIFO/stderr and producer contracts. User explicitly defers extreme inputs; preserved known differences do not block this gate.",
+      "deferred_extreme_boundaries": [
+        {
+          "id": "FAC13",
+          "source": "log.c:301-319,361-393",
+          "boundary": "Debug echo writes complete producer text, independently of the primary record cap1024; actual overlong no-fail TFTP root proves full sign-on/warning echo and exactly capped file records.",
+          "required_scenarios": [
+            "debug-echo-overlong-tftp-root"
           ]
         },
         {
@@ -265,7 +284,13 @@
           ]
         }
       ],
-      "qualification_ready": false
+      "deferred_extreme_scenarios": [
+        "file-owner-warning-opaque-path",
+        "log-path-opaque-failure-default",
+        "log-path-opaque-failure-foreground",
+        "log-path-opaque-failure-debug",
+        "debug-echo-overlong-tftp-root"
+      ]
     },
     "no-daemon": {
       "required": [
@@ -548,7 +573,17 @@
           "id": "DBG02",
           "source": "all MS_DEBUG my_syslog callers",
           "boundary": "Freeze and reproduce all image-enabled debug producers, payloads and ordering; do not fabricate substitute debug event.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "debug-tcp-v4-disabled",
+            "debug-tcp-v6-disabled",
+            "debug-dynamic-interface-disabled",
+            "debug-dynamic-explicit-disabled",
+            "debug-tcp-v4-enabled",
+            "debug-tcp-v6-enabled",
+            "debug-dynamic-interface-enabled",
+            "debug-dynamic-explicit-enabled",
+            "tcp-accepted-file-rotation"
+          ]
         }
       ]
     },
