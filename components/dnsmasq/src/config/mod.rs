@@ -9,6 +9,7 @@ pub mod dhcp_pxe;
 pub mod dhcp_relay;
 pub mod dns;
 pub mod ethers;
+pub mod logging;
 #[cfg(unix)]
 pub mod loader;
 mod options;
