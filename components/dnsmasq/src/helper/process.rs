@@ -66,6 +66,7 @@ fn start_error(error: io::Error) -> StartError {
 
 pub struct Helper {
     pid: c_int,
+    script: std::path::PathBuf,
     writer: Option<File>,
     reader: Option<File>,
     pending: Vec<u8>,
@@ -175,6 +176,7 @@ impl Helper {
         drop(events_write);
         Ok(Self {
             pid,
+            script: config.script,
             writer: Some(File::from(commands_write)),
             reader: Some(File::from(events_read)),
             pending: Vec::new(),
@@ -189,6 +191,9 @@ impl Helper {
     }
     pub fn pid(&self) -> i32 {
         self.pid
+    }
+    pub fn script_path(&self) -> &std::path::Path {
+        &self.script
     }
     pub fn initializes_leases(&self) -> bool {
         self.init_capacity.is_some()
@@ -752,13 +757,33 @@ fn run_script(config: &Config, call: Invocation, events: &mut File) -> io::Resul
     let mut event_error = None;
     if let Some(mut output) = output {
         let mut bytes = [0; 8192];
+        let mut line = Vec::with_capacity(1024);
+        let mut has_tail = false;
         loop {
             match output.read(&mut bytes) {
-                Ok(0) => break,
+                Ok(0) => {
+                    if has_tail && event_error.is_none() {
+                        event_error = send(events, Notice::Output(line)).err();
+                    }
+                    break;
+                }
                 Ok(length) => {
-                    if event_error.is_none() {
-                        if let Err(error) = send(events, Notice::Output(bytes[..length].to_vec())) {
-                            event_error = Some(error);
+                    // helper.c/get_line_alloc consumes each complete line,
+                    // including empty lines and an unterminated EOF tail. Its
+                    // normal-mode logger cannot use more than 1024 bytes.
+                    for &byte in &bytes[..length] {
+                        if byte == b'\n' {
+                            if event_error.is_none() {
+                                event_error =
+                                    send(events, Notice::Output(std::mem::take(&mut line))).err();
+                            }
+                            line.clear();
+                            has_tail = false;
+                        } else {
+                            has_tail = true;
+                            if line.len() < 1024 {
+                                line.push(byte);
+                            }
                         }
                     }
                 }
@@ -880,6 +905,34 @@ mod tests {
         );
         assert!(!std::path::Path::new(&format!("/proc/{}", helper.pid())).exists());
         drop(helper);
+        std::fs::remove_dir_all(folder).unwrap();
+    }
+
+    #[test]
+    fn script_output_preserves_empty_lines_and_eof_tail_with_a_bounded_prefix() {
+        let (folder, config) =
+            script("printf 'one\\n\\n'; head -c 4096 /dev/zero | tr '\\000' x; printf '\\ntail'");
+        let mut helper = Helper::start(config).unwrap();
+        until(&mut helper, |helper, _| helper.ready());
+        assert!(helper
+            .enqueue(&Event::Lease(super::super::tests::lease()))
+            .unwrap());
+        helper.begin_shutdown();
+        let notices = until(&mut helper, |helper, _| helper.is_finished());
+        let lines = notices
+            .into_iter()
+            .filter_map(|notice| {
+                if let Notice::Output(bytes) = notice {
+                    Some(bytes)
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(
+            lines,
+            vec![b"one".to_vec(), vec![], vec![b'x'; 1024], b"tail".to_vec()]
+        );
         std::fs::remove_dir_all(folder).unwrap();
     }
     #[test]
