@@ -1411,21 +1411,51 @@ def resolver_fault_syntax(argv,fault,output):
         save(output,report)
 
 
+SCOPES={'interface':['interface-name','dynamic-host'],'synth':['synth-domain'],
+    'domain':['domain','domain-suffix'],'hostsdir':['hostsdir']}
+
+
+def ordinary_contract(scope):
+    manifest=json.loads(Path(__file__).with_suffix('.json').read_text())
+    options=manifest['options'] if scope=='all' else SCOPES[scope]
+    prefixes={'interface':('IF-','DH-'),'synth':('SYN-',),'domain':('DOM',),'hostsdir':('HDIR-',)}
+    rows=[row for row in manifest['required_cases'] if (scope=='all' or row['id'].startswith(prefixes[scope])) and not row['status'].startswith('deferred-')]
+    if not rows or any(not row['case_ids'] for row in rows):raise AssertionError('ordinary source row lacks concrete profiles')
+    return manifest,options,rows
+
+
+def ordinary_cases(mode,scope):
+    manifest,options,rows=ordinary_contract(scope)
+    mapped={ident for row in rows for ident in row['case_ids']}
+    deferred={ident for item in manifest.get('known_deferred_components',[]) for ident in item['case_ids']}
+    prefixes=[]
+    if set(options)&{'interface-name','dynamic-host'}:prefixes+=['interface-','dynamic-']
+    if 'synth-domain' in options:prefixes+=['synth-']
+    if 'domain' in options or 'domain-suffix' in options:prefixes+=['domain-','domain-suffix-']
+    if 'hostsdir' in options:prefixes+=['hostsdir-']
+    catalog=syntax_cases() if mode=='syntax' else service_cases()
+    return [case for case in catalog if not case.get('c_only') and case['id'] not in deferred and
+        (case['id'] in mapped or case['id'].startswith(tuple(prefixes)))]
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--image-root',type=Path,required=True);parser.add_argument('--rust',type=Path,required=True)
     parser.add_argument('--source-commit',required=True);parser.add_argument('--out',type=Path,required=True)
     parser.add_argument('--side',choices=['c','both'],default='c');parser.add_argument('--mode',choices=['syntax','service'],default='syntax')
-    parser.add_argument('--case',action='append');parser.add_argument('--allocator-map',type=Path);args=parser.parse_args()
+    parser.add_argument('--case',action='append');parser.add_argument('--allocator-map',type=Path)
+    parser.add_argument('--ordinary-scope',choices=['all',*SCOPES]);args=parser.parse_args()
     assert os.geteuid()==0 and os.environ.get('DNSMASQ_TEST_ISOLATED')=='1'
     assert not args.out.exists() and 'private' in args.out.parts
     resource.setrlimit(resource.RLIMIT_CORE,(0,0));args.out.mkdir(parents=True)
-    selected=[case for case in (syntax_cases() if args.mode=='syntax' else service_cases()) if (not args.case or case['id'] in args.case) and (args.side=='c' or not case.get('c_only'))]
+    assert not (args.ordinary_scope and args.case),'full ordinary scope cannot be narrowed by --case'
+    catalog=ordinary_cases(args.mode,args.ordinary_scope) if args.ordinary_scope else (syntax_cases() if args.mode=='syntax' else service_cases())
+    selected=[case for case in catalog if (not args.case or case['id'] in args.case) and (args.side=='c' or not case.get('c_only'))]
     assert selected and (not args.case or len(selected)==len(set(args.case)))
     for case in selected:
         if args.allocator_map:case['allocator_map']=str(args.allocator_map)
     save(args.out/'schedule.json',selected);driver=args.out/'driver';driver.mkdir()
-    for name in ['m5_interface_records.py','m5_interface_records.json','m5_dns_endpoints.py','m5_dns_endpoints.json',
+    for name in ['m5_interface_records.py','m5_interface_records_qualify.py','m5_interface_records.json','m5_dns_endpoints.py','m5_dns_endpoints.json',
         'm5_dns_endpoints_requirements.json','m5_dns_files.py','m5_option_matrix.py','m5_option_matrix_probes.py',
         'm5_dhcp_tags_options.py','dhcp_boot_service_diff.py','dns_service_probe.py','m2_rootfs.py','run_isolated.sh',
         'm5_tftp_allocation.py','test_single_poll_service.py','m2_dhcp_scenarios.py']:
@@ -1434,7 +1464,8 @@ def main():
     sides=['c','rust'] if args.side=='both' else ['c'];roots={side:prepare(args.image_root,None,args.out/side,args.rust) for side in sides}
     report={'mode':args.mode,'comparison_executed':args.side=='both','source_commit':args.source_commit,
         'rust_sha256':sha256(args.rust),'c_sha256':STOCK_SHA256,'tool_sha256':sha256(__file__),
-        'requirements_sha256':sha256(Path(__file__).with_suffix('.json')),'cases':[],'failures':[],
+        'requirements_sha256':sha256(Path(__file__).with_suffix('.json')),
+        'driver_sha256':{path.name:sha256(path) for path in driver.iterdir()},'cases':[],'failures':[],
         'closed_options':[],'negative_controls':controls(),'reference_differences':[],'qualification':'Calibration and partial runs never close a frozen required row.'}
     for case in selected:
         folder=args.out/case['id'];folder.mkdir();row={'id':case['id'],'failures':[]}
