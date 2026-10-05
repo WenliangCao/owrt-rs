@@ -391,11 +391,21 @@ impl CacheContext<'_> {
         }) {
             let mut writer = PacketWriter::new(header.id, (header.flags & 0x0110) | 0x8083, limit)?;
             writer.question(&question.name, question.rrtype, question.class)?;
+            let interface = append_interface_terminal(&mut writer, local, &question.name, question, 12)?;
+            let local_flags = match interface {
+                InterfaceTerminal::Answered(flags) => Some(flags),
+                InterfaceTerminal::Empty => None,
+                InterfaceTerminal::Unclaimed => append_synth_terminal(
+                    &mut writer, local, &question.name, question, 12,
+                    ids.iter().any(|id| cache.get(*id).is_some_and(|entry| entry.record.kind == Kind::Ipv4)),
+                    ids.iter().any(|id| cache.get(*id).is_some_and(|entry| entry.record.kind == Kind::Ipv6)),
+                )?,
+            };
             match append_negative_authority(&mut writer, cache, id, now) {
                 Ok(_) | Err(WireError::Full) => {}
                 Err(error) => return Err(error.into()),
             }
-            return Ok(finish_cached_answer(writer, stale)?);
+            return Ok(finish_cached_answer_flags(writer, local_flags, stale)?);
         }
         if question.rrtype == 5 {
             if header.flags & 0x0100 == 0 {
@@ -526,6 +536,7 @@ impl CacheContext<'_> {
                         // The link validates the CNAME lifetime, but C looks
                         // up the terminal name again for the current qtype.
                         let terminal_name = target_entry.record.name.clone();
+                        let nx_target = (target_entry.record.kind == Kind::NxDomain && target_entry.record.negative).then_some(target);
                         match append_interface_terminal(
                             &mut writer,
                             local,
@@ -534,9 +545,15 @@ impl CacheContext<'_> {
                             owner_offset,
                         )? {
                             InterfaceTerminal::Answered(flags) => {
+                                if let Some(id) = nx_target {
+                                    match append_negative_authority(&mut writer, cache, id, now) {
+                                        Ok(_) | Err(WireError::Full) => {},
+                                        Err(error) => return Err(error.into()),
+                                    }
+                                }
                                 return Ok(finish_cached_answer_flags(writer, Some(flags), stale)?);
                             }
-                            InterfaceTerminal::Empty => {
+                            InterfaceTerminal::Empty if nx_target.is_none() => {
                                 // A declared interface with no eligible address
                                 // bypasses the ordinary cached terminal and
                                 // lets the forwarder retry against upstream.
@@ -546,7 +563,7 @@ impl CacheContext<'_> {
                                     filtered: false,
                                 });
                             }
-                            InterfaceTerminal::Unclaimed => {}
+                            InterfaceTerminal::Empty | InterfaceTerminal::Unclaimed => {}
                         }
                         let terminal_ids =
                             cache.lookup_question(&terminal_name, kind, now, round_robin);
@@ -572,6 +589,21 @@ impl CacheContext<'_> {
                             break;
                         };
                         if target_entry.record.negative {
+                            if target_entry.record.kind == Kind::NxDomain
+                                && !local.interfaces.declared(&terminal_name.dnsmasq_bytes())
+                            {
+                                if let Some(flags) = append_synth_terminal(
+                                    &mut writer, local, &terminal_name, question, owner_offset,
+                                    terminal_ids.iter().any(|id| cache.get(*id).is_some_and(|entry| entry.record.kind == Kind::Ipv4)),
+                                    terminal_ids.iter().any(|id| cache.get(*id).is_some_and(|entry| entry.record.kind == Kind::Ipv6)),
+                                )? {
+                                    match append_negative_authority(&mut writer, cache, target, now) {
+                                        Ok(_) | Err(WireError::Full) => {},
+                                        Err(error) => return Err(error.into()),
+                                    }
+                                    return Ok(finish_cached_answer_flags(writer, Some(flags), stale)?);
+                                }
+                            }
                             let negative_flags = if target_entry.record.kind == Kind::NxDomain {
                                 0x8083
                             } else {
@@ -1167,6 +1199,41 @@ fn append_interface_terminal(
     }
 }
 
+/// NXDOMAIN is a generic cache marker in this image: it has no address
+/// family flags. Local synthesis therefore runs before that final NX tier.
+#[allow(clippy::too_many_arguments)]
+fn append_synth_terminal(
+    writer: &mut PacketWriter,
+    local: &LocalDnsService,
+    terminal: &Name,
+    question: &super::forward::Question,
+    owner_offset: u16,
+    blocked4: bool,
+    blocked6: bool,
+) -> Result<Option<u16>, CacheError> {
+    let families: &[bool] = match question.rrtype {
+        1 => &[false],
+        28 => &[true],
+        255 => &[false, true],
+        _ => return Ok(None),
+    };
+    let mut answered = false;
+    for &ipv6 in families {
+        if if ipv6 { blocked6 } else { blocked4 } { continue; }
+        let Some(address) = local.config.synth_domains.forward(&terminal.dnsmasq_bytes(), ipv6) else { continue; };
+        let (rrtype, data) = match address {
+            IpAddr::V4(value) => (1, value.octets().to_vec()),
+            IpAddr::V6(value) => (28, value.octets().to_vec()),
+        };
+        match writer.record_at(Section::Answer, owner_offset, rrtype, 1, local.local_ttl, &data) {
+            Ok(()) => answered = true,
+            Err(WireError::Full) => return Ok(Some(0x0400 | 0x0200)),
+            Err(error) => return Err(error.into()),
+        }
+    }
+    Ok(answered.then_some(0x0400))
+}
+
 /// Reuse the local answer engine for a cached alias's terminal name, including
 /// configured CNAME precedence, lease expiry and address rotation. Forwarding
 /// rules are not an answer_request terminal and must not synthesize this hit.
@@ -1188,7 +1255,9 @@ fn append_local_terminal(
         max_packet: u16::MAX as usize,
     };
     let Some(answer) =
-        answerer.answer_on_network(&query.finish(), &mut local.leases, now, local.local_network)?
+        answerer.answer_on_network_with_interface_cache(
+            &query.finish(), &mut local.leases, now, local.local_network, None, &local.interfaces,
+        )?
     else {
         return Ok(None);
     };
@@ -1462,6 +1531,44 @@ mod tests {
         assert_eq!(record.ttl, 597);
         assert_eq!(record.canonical_rdata().unwrap(), target.as_wire());
         assert_eq!(counters.inserted, 1);
+    }
+
+    #[test]
+    fn synth_overrides_generic_nx_and_keeps_cached_soa_for_direct_and_alias() {
+        use crate::config::synth_domain::{SynthDomain, SynthRange};
+        let alias = Name::from_ascii("alias.records.test").unwrap();
+        let terminal = Name::from_ascii("192-0-2-7.synthetic.records.test").unwrap();
+        let authority = Name::from_ascii("synthetic.records.test").unwrap();
+        let mut config = DnsConfig::default();
+        config.synth_domains.domains.push(SynthDomain {
+            domain: b"synthetic.records.test".to_vec(), prefix: Vec::new(), indexed: false,
+            range: SynthRange::V4 { start: u32::from(Ipv4Addr::new(192, 0, 2, 0)), end: u32::from(Ipv4Addr::new(192, 0, 2, 15)) },
+        });
+        let mut local = LocalDnsService::new(config, Hosts::new(), 60, 1232);
+        let mut soa = Name::from_ascii("ns.synthetic.records.test").unwrap().as_wire().to_vec();
+        soa.extend_from_slice(Name::from_ascii("hm.synthetic.records.test").unwrap().as_wire());
+        for value in [1u32, 60, 60, 600, 300] { soa.extend_from_slice(&value.to_be_bytes()); }
+        let mut writer = PacketWriter::new(1, 0x8183, 1232).unwrap();
+        writer.question(&alias, 1, 1).unwrap();
+        writer.record_at(Section::Answer, 12, 5, 1, 600, terminal.as_wire()).unwrap();
+        writer.record(Section::Authority, &authority, 6, 1, 600, &soa).unwrap();
+        let reply = writer.finish();
+        let mut cache = Cache::new(8, Default::default());
+        let mut counters = CacheCounters::default();
+        let mut context = CacheContext { cache: &mut cache, counters: &mut counters, negative_cache: true, negative_ttl: 0, filter_rr: &[] };
+        context.insert_reply_with_policy(&reply, 100, &local, &Default::default(), 3, OrdinaryCacheMode::Commit).unwrap();
+        for name in [&terminal, &alias] {
+            let question = super::super::forward::Question { name: name.clone(), rrtype: 1, class: 1 };
+            let answer = context.answer_records(&question, Header { id: 2, flags: 0x0100, questions: 1, answers: 0, authorities: 0, additionals: 0 }, 101, &mut local, 1232, false).unwrap().packet.unwrap();
+            let message = Message::parse(&answer).unwrap();
+            assert_eq!(message.header.rcode(), 0);
+            assert_ne!(message.header.flags & 0x0400, 0);
+            assert_eq!(message.header.authorities, 1);
+            let address = message.records(Section::Answer).find(|record| record.rrtype == 1).unwrap();
+            assert_eq!(address.rdata, &[192, 0, 2, 7]);
+            assert_eq!(address.ttl, 60);
+            assert_eq!(message.records(Section::Authority).next().unwrap().rrtype, 6);
+        }
     }
 
     #[test]
