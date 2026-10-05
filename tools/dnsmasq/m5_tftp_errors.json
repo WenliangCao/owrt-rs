@@ -13,6 +13,10 @@
     "log.c": {
       "path": "dnsmasq-2.93/src/log.c",
       "sha256": "a205b9cbf9556b01f483b43e732df1ae411c82d622a0e5449f79d43b0267c47c"
+    },
+    "util.c": {
+      "path": "dnsmasq-2.93/src/util.c",
+      "sha256": "33920165ef3e92f65d1cab75fe8da7772ad7389b37da79ba881957080f12f973"
     }
   },
   "boundaries": [
@@ -80,6 +84,49 @@
       "required_cases": [
         "missing-quiet",
         "mode-denied"
+      ]
+    },
+    {
+      "id": "request-errors",
+      "source": "tftp.c:365-373",
+      "boundary": "WRQ gets code4 unsupported write request from peer; missing/empty/unclosed filename gets code4 empty filename in request from peer; missing/illegal mode gets code4 unsupported request from peer. Unknown opcodes and len<2 are silent.",
+      "required_cases": [
+        "write-request-v4",
+        "write-request-v6",
+        "empty-filename",
+        "unclosed-filename",
+        "missing-mode",
+        "invalid-mode",
+        "unknown-opcode",
+        "short-request"
+      ]
+    },
+    {
+      "id": "foreign-tid",
+      "source": "tftp.c:646-662",
+      "boundary": "Every nonempty packet from a foreign transfer peer gets code5 ignoring packet from peer (TID mismatch), preserving the correct source transfer socket.",
+      "required_cases": [
+        "foreign-tid-v4",
+        "foreign-tid-v6",
+        "foreign-tid-short"
+      ]
+    },
+    {
+      "id": "scoped-peer-label",
+      "source": "util.c:564-586; tftp.c:367-373,560,659",
+      "boundary": "Peer IP text omits port and appends %ifname for resolvable IPv6 scope. Single-port IPv6 avoids the separately recorded dedicated scoped bind defect and must still emit full error text.",
+      "required_cases": [
+        "missing-single-scope",
+        "write-single-scope"
+      ]
+    },
+    {
+      "id": "options-and-resources",
+      "source": "tftp.c:323-414; network.c:1087-1133",
+      "boundary": "Options/MTU use atoi and clamps, without separate ERR text branches. Dedicated transfer port exhaustion has only a LOG_ERR and no wire reply; allocation/fstat/read failures use bounded generic oops. Existing pathological MTU/undefined C behaviours retain their reference classification.",
+      "required_cases": [
+        "port-exhausted",
+        "option-invalid-mode"
       ]
     }
   ],
