@@ -98,6 +98,24 @@ def syntax_cases():
         add(option+'-resolv-missing',option+'=#\nresolv-file=/m2/missing\n','DOM-RESOLV',no_resolv=False)
         add(option+'-resolv-literal-fallback',option+'=literal.records.test\n'+option+'=#\nresolv-file=/m2/records-resolv\n',
             'DOM-RESOLV',no_resolv=False,files={'records-resolv':'nameserver 127.0.0.2\n'})
+        for label,text in [('latch-later-literal',option+'=#\n'+option+'=literal.records.test\n'),
+            ('literal-then-latch',option+'=literal.records.test\n'+option+'=#\n')]:
+            add(option+'-resolv-'+label,text+'resolv-file=/m2/records-resolv\n','DOM-RESOLV',
+                no_resolv=False,files={'records-resolv':'search chosen.records.test\n'})
+        for label,text in [('empty-search','search\n'),('quoted','search "chosen.records.test" second.records.test\n'),
+            ('comment','search #comment ignored.records.test\n'),('partial-last','search chosen.records.test'),
+            ('invalid-only','search bad..name ignored.records.test\n'),('whitespace',' \tsearch\tchosen.records.test\r\n')]:
+            add(option+'-resolv-'+label,option+'=#\nresolv-file=/m2/records-resolv\n','DOM-RESOLV',
+                no_resolv=False,files={'records-resolv':text})
+        add(option+'-resolv-multiple',option+'=#\nresolv-file=/m2/records-resolv\nresolv-file=/m2/second-resolv\n',
+            'DOM-RESOLV',no_resolv=False,files={'records-resolv':'search chosen.records.test\n','second-resolv':'search second.records.test\n'})
+        add(option+'-resolv-port-zero',option+'=#\nport=0\nresolv-file=/m2/records-resolv\n',
+            'DOM-RESOLV',no_resolv=False,files={'records-resolv':'search chosen.records.test\n'})
+        for label,value in [('interface15','abcdefghijklmno'),('interface16','abcdefghijklmnop'),
+            ('interface-long','abcdefghijklmnopqrstuv'),('wildcard','m5ir*'),('quoted-selector','"m5ir0,ignored"')]:
+            add(option+'-'+label,option+'=chosen.records.test,'+value+'\n','DOM-GRAM')
+        add(option+'-default-repeated',option+'=first.records.test\n'+option+'=second.records.test\n','DOM-GRAM')
+    add('domain-short-alias','', 'DOM-GRAM',argv=['-s','chosen.records.test'])
     values=[('missing-range','records.test'),('empty',''),('interface','records.test,m5ir0'),
         ('single4','records.test,192.0.2.7'),('range4','records.test,192.0.2.7,192.0.2.9'),
         ('inverted4','records.test,192.0.2.9,192.0.2.7'),
@@ -136,7 +154,7 @@ def service_cases():
     def add(ident,config,names,checks,**extra):
         actions=extra.pop('actions',probes(names))
         cases.append(dict(id=ident,config='no-resolv\nserver=127.0.0.2\n'+config,checks=checks.split(),
-            files=extra.pop('files',{}),sys_files={},default_resolv=False,strict_order=True,
+            files=extra.pop('files',{}),sys_files={},default_resolv=extra.pop('default_resolv',False),strict_order=True,
             no_upstream=True,negative_names=extra.pop('negative_names',[a['name'] for a in actions if a.get('op')=='query']),actions=actions,**extra))
     targets=[('address','m5ir0'),('family4','m5ir0/4'),('family6','m5ir0/6'),('missing','missing_ir'),('wildcard','m5ir*')]
     for label,target in targets:
@@ -192,6 +210,61 @@ def service_cases():
                  ('outside.chosen.records.test',28),('outside.fallback.records.test',28)],
                 'DOM4 DOM6 DOM-IF DOM-CALLER',topology=[primary],
                 files={'hosts':'192.0.2.7 v4\n2001:db8::7 v6\n2001:db8:ffff::7 outside\n'})
+    def domain_hosts(ident,config,addresses,**extra):
+        names=[];text=''
+        for index,address in enumerate(addresses):
+            host='host'+str(index);kind=1 if ipaddress.ip_address(address).version==4 else 28
+            text+=address+' '+host+'\n'
+            for suffix in ('chosen.records.test','second.records.test','fallback.records.test'):
+                names.append((host+'.'+suffix,kind))
+        add(ident,config+'expand-hosts\naddn-hosts=/m2/files/hosts\n',names,
+            'DOM4 DOM6 DOM-IF DOM-CALLER',files={'hosts':text},**extra)
+    for option in ('domain','domain-suffix'):
+        fallback=option+'=fallback.records.test\n'
+        v4=['192.0.2.6','192.0.2.7','192.0.2.8','192.0.2.9','192.0.2.10','198.51.100.7']
+        for label,selector in [('single4','192.0.2.7'),('range4','192.0.2.7,192.0.2.9'),
+            ('inverted4','192.0.2.9,192.0.2.7'),('empty-selector','')]:
+            domain_hosts(option+'-bounds-'+label,fallback+option+'=chosen.records.test,'+selector+'\n',
+                v4+(['0.0.0.0'] if not selector else []))
+        for width in (0,1,24,31,32):
+            domain_hosts(option+'-bounds-prefix4-'+str(width),fallback+option+'=chosen.records.test,192.0.2.7/'+str(width)+'\n',v4)
+        domain_hosts(option+'-overlap4',fallback+option+'=chosen.records.test,192.0.2.7,192.0.2.9\n'+
+            option+'=second.records.test,192.0.2.8,192.0.2.10\n',v4)
+        v6=['2001:db8::6','2001:db8::7','2001:db8::8','2001:db8::9','2001:db8::a','2001:db8:ffff::7','fd00::7']
+        for width in (0,1,63,64,65,127,128):
+            domain_hosts(option+'-bounds-prefix6-'+str(width),fallback+option+'=chosen.records.test,2001:db8::7/'+str(width)+'\n',v6)
+        for label,selector in [('single6','2001:db8::7'),('range6','2001:db8::7,2001:db8::9'),
+            ('inverted6','2001:db8::9,2001:db8::7'),('cross6','2001:db8::7,2001:db8:ffff::9')]:
+            domain_hosts(option+'-bounds-'+label,fallback+option+'=chosen.records.test,'+selector+'\n',v6)
+        domain_hosts(option+'-overlap6',fallback+option+'=chosen.records.test,2001:db8::7/64\n'+
+            option+'=second.records.test,2001:db8::8/127\n',v6)
+        inside=['198.18.91.77','198.18.92.77','2001:db8:91::77','2001:db8:92::77','fe80::77']
+        for label,selector,topology in [('interface','m5ir0',[primary]),('wildcard','m5ir*',[primary]),
+            ('missing','missing_ir',[primary]),('empty','m5ir0',[{'name':'m5ir0','addresses':[]}]),
+            ('down','m5ir0',[primary]),
+            ('unselected','m5ir0',[primary])]:
+            domain_hosts(option+'-inside-'+label,fallback+option+'=chosen.records.test,'+selector+'\n'+
+                ('interface=lo\n' if label=='unselected' else ''),inside,topology=topology)
+            if label=='down':cases[-1]['initial_kernel_commands']=[['ip','link','set','m5ir0','down']]
+        domain_hosts(option+'-inside-alias',fallback+option+'=chosen.records.test,m5ir0:1\n',inside,
+            topology=[{'name':'m5ir0','addresses':['198.18.91.9/24']}],
+            initial_kernel_commands=[['ip','addr','add','198.18.92.9/24','dev','m5ir0','label','m5ir0:1']])
+        domain_hosts(option+'-inside-overlap',fallback+option+'=chosen.records.test,m5ir0\n'+
+            option+'=second.records.test,m5ir1\n',inside,topology=[primary,{'name':'m5ir1','addresses':['198.18.91.10/24','2001:db8:91::10/64']}])
+        for label,search in [('first','search chosen.records.test ignored.records.test\n'),
+            ('case','Search ignored.records.test\nsearch chosen.records.test\n'),
+            ('invalid-recover','search bad..name ignored.records.test\nsearch chosen.records.test\n'),
+            ('whitespace','\t search\tchosen.records.test\r\n'),
+            ('literal-nosearch','nameserver 127.0.0.2\n')]:
+            prefix=fallback if label=='literal-nosearch' else ''
+            domain_hosts(option+'-search-'+label,prefix+option+'=#\nresolv-file=/m2/files/domain-resolv\n',
+                ['192.0.2.7','2001:db8::7'],default_resolv=False)
+            cases[-1]['config']=cases[-1]['config'].replace('no-resolv\n','')
+            cases[-1]['files']['domain-resolv']=search
+        add(option+'-search-srv',option+'=#\nresolv-file=/m2/files/domain-resolv\nsrv-host=_svc._tcp,target.records.test,1234\n',
+            [('_svc._tcp.chosen.records.test',33),('_svc._tcp',33)],'DOM-RESOLV DOM-CALLER',
+            files={'domain-resolv':'search chosen.records.test\n'})
+        cases[-1]['config']=cases[-1]['config'].replace('no-resolv\n','')
     for label,text in [('literal4','192.0.2.7,192.0.2.9'),('index4','192.0.2.7,192.0.2.9,p*'),
         ('literal6','2001:db8::7/64'),('explicit6','2001:db8::7,2001:db8::9'),('index6','2001:db8::7/64,p*')]:
         add('synth-'+label,'synth-domain=synthetic.records.test,'+text+'\n',
@@ -505,6 +578,7 @@ def service_cases():
 
 def run_service_side(root,side,case,out):
     states=[];dynamic=[];tracers=[]
+    initial_commands_applied=False
     original_put=files.put;original_exchange=files.exchange;original_upstream=files.FileUpstream
     class PreparedUpstream(original_upstream):
         def __init__(self,fixtures,*args):
@@ -516,6 +590,10 @@ def run_service_side(root,side,case,out):
         states.append({'label':label,'at':time.monotonic(),'addresses':json.loads(subprocess.check_output(['ip','-j','address','show'],text=True)),
             'ipv6_flags':Path('/proc/net/if_inet6').read_text()})
     def put(root,path,value,opened):
+        nonlocal initial_commands_applied
+        if not initial_commands_applied:
+            for argv in case.get('initial_kernel_commands',[]):subprocess.run(argv,check=True)
+            initial_commands_applied=True
         if isinstance(value,dict) and 'enumeration_cycle' in value:
             pid=int((root/'m2/files.pid').read_text());path=out/'same-cycle.json'
             tracer=subprocess.Popen([sys.executable,str(Path(__file__).resolve()),'--trace-enumeration',str(pid),side,'count',str(path)])
@@ -764,7 +842,7 @@ def run_syntax(root,side,case,out):
     for path,value in case.get('files',{}).items():
         target=root/'m2'/path;target.parent.mkdir(parents=True,exist_ok=True);target.write_text(value)
     (root/'m2/interface-records.conf').write_text(text);(out/'config').write_text(text)
-    result=subprocess.run(command(root,side,'--test','-C','/m2/interface-records.conf'),capture_output=True,timeout=5)
+    result=subprocess.run(command(root,side,*case.get('argv',[]),'--test','-C','/m2/interface-records.conf'),capture_output=True,timeout=5)
     (out/'stdout').write_bytes(result.stdout);(out/'stderr').write_bytes(result.stderr)
     row={'exit':result.returncode,'stdout':result.stdout.decode(errors='replace'),'stderr':result.stderr.decode(errors='replace')}
     save(out/'observed.json',row);return row
