@@ -11,7 +11,12 @@
         "server-service-v4",
         "local-service-v4"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:900-1005",
+        "option.c:3070-3166"
+      ],
+      "evidence_contract": "IPv4 default port; Server/local share endpoint parser, domain splitting, literal/local/default marker precedence and exact lexical errors."
     },
     {
       "id": "GRAM-01/02",
@@ -21,7 +26,12 @@
         "server-service-v6",
         "local-service-v6"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:900-1005",
+        "option.c:3070-3166"
+      ],
+      "evidence_contract": "IPv6 default port; Server/local share endpoint parser, domain splitting, literal/local/default marker precedence and exact lexical errors."
     },
     {
       "id": "GRAM-01/03",
@@ -31,28 +41,74 @@
         "endpoint-port-zero",
         "endpoint-port-65535"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:900-1005",
+        "option.c:3070-3166"
+      ],
+      "evidence_contract": "explicit 0 and 65535 port; Server/local share endpoint parser, domain splitting, literal/local/default marker precedence and exact lexical errors."
     },
     {
       "id": "GRAM-01/04",
       "boundary": "GRAM-01",
       "required_case": "empty/65536/negative/text/huge ports",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "server-portempty",
+        "server-portwide",
+        "server-portwrap",
+        "server-negative",
+        "server-textport",
+        "local-portempty",
+        "local-portwide",
+        "local-portwrap",
+        "local-negative",
+        "local-textport"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:900-1005",
+        "option.c:3070-3166"
+      ],
+      "evidence_contract": "empty/65536/negative/text/huge ports; Server/local share endpoint parser, domain splitting, literal/local/default marker precedence and exact lexical errors."
     },
     {
       "id": "GRAM-01/05",
       "boundary": "GRAM-01",
       "required_case": "multiple #/@/% delimiters",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "server-doubleport",
+        "server-extra-at",
+        "server-scope-double",
+        "local-doubleport",
+        "local-extra-at",
+        "local-scope-double"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:900-1005",
+        "option.c:3070-3166"
+      ],
+      "evidence_contract": "multiple #/@/% delimiters; Server/local share endpoint parser, domain splitting, literal/local/default marker precedence and exact lexical errors."
     },
     {
       "id": "GRAM-01/06",
       "boundary": "GRAM-01",
       "required_case": "empty endpoint and # special marker",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "server-empty",
+        "local-empty",
+        "server-hash",
+        "local-hash",
+        "server-default",
+        "server-markers",
+        "local-markers"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:900-1005",
+        "option.c:3070-3166"
+      ],
+      "evidence_contract": "empty endpoint and # special marker; Server/local share endpoint parser, domain splitting, literal/local/default marker precedence and exact lexical errors."
     },
     {
       "id": "GRAM-01/07",
@@ -64,7 +120,12 @@
         "server-markers",
         "local-markers"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:900-1005",
+        "option.c:3070-3166"
+      ],
+      "evidence_contract": "leading/multiple domain slashes and // dotless; Server/local share endpoint parser, domain splitting, literal/local/default marker precedence and exact lexical errors."
     },
     {
       "id": "GRAM-01/08",
@@ -74,7 +135,12 @@
         "server-wildcard",
         "local-wildcard"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:900-1005",
+        "option.c:3070-3166"
+      ],
+      "evidence_contract": "wildcard character vs label suffix; Server/local share endpoint parser, domain splitting, literal/local/default marker precedence and exact lexical errors."
     },
     {
       "id": "GRAM-01/09",
@@ -85,21 +151,47 @@
         "local-service-name-v4",
         "reverse-hostname"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:900-1005",
+        "option.c:3070-3166"
+      ],
+      "evidence_contract": "hostname attached to server/local/rev-server; Server/local share endpoint parser, domain splitting, literal/local/default marker precedence and exact lexical errors."
     },
     {
       "id": "GRAM-01/10",
       "boundary": "GRAM-01",
       "required_case": "quoted full endpoint and hidden punctuation",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "quoted-endpoint-routing",
+        "server-hidden-hash",
+        "server-hidden-at",
+        "server-hidden-percent",
+        "local-hidden-hash",
+        "local-hidden-at",
+        "local-hidden-percent"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:900-1005",
+        "option.c:3070-3166"
+      ],
+      "evidence_contract": "quoted full endpoint and hidden punctuation; Server/local share endpoint parser, domain splitting, literal/local/default marker precedence and exact lexical errors."
     },
     {
       "id": "GRAM-01/11",
       "boundary": "GRAM-01",
       "required_case": "duplicate declarations and insertion order",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "duplicate-endpoint-order",
+        "duplicate-expanded-hosts-order"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:900-1005",
+        "option.c:3070-3166"
+      ],
+      "evidence_contract": "duplicate declarations and insertion order; Server/local share endpoint parser, domain splitting, literal/local/default marker precedence and exact lexical errors."
     },
     {
       "id": "GRAM-02/01",
@@ -108,7 +200,12 @@
       "case_ids": [
         "server-service-source4"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:921-945",
+        "option.c:1007-1100"
+      ],
+      "evidence_contract": "@IPv4; Parse #source-port before optional second @interface; truncate SO_BINDTODEVICE names to IF_NAMESIZE-1; preserve absent vs explicit empty source."
     },
     {
       "id": "GRAM-02/02",
@@ -117,7 +214,12 @@
       "case_ids": [
         "server-service-source6"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:921-945",
+        "option.c:1007-1100"
+      ],
+      "evidence_contract": "@IPv6; Parse #source-port before optional second @interface; truncate SO_BINDTODEVICE names to IF_NAMESIZE-1; preserve absent vs explicit empty source."
     },
     {
       "id": "GRAM-02/03",
@@ -126,7 +228,12 @@
       "case_ids": [
         "server-service-interface"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:921-945",
+        "option.c:1007-1100"
+      ],
+      "evidence_contract": "@interface; Parse #source-port before optional second @interface; truncate SO_BINDTODEVICE names to IF_NAMESIZE-1; preserve absent vs explicit empty source."
     },
     {
       "id": "GRAM-02/04",
@@ -135,7 +242,12 @@
       "case_ids": [
         "server-service-combined"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:921-945",
+        "option.c:1007-1100"
+      ],
+      "evidence_contract": "@interface@IPv4; Parse #source-port before optional second @interface; truncate SO_BINDTODEVICE names to IF_NAMESIZE-1; preserve absent vs explicit empty source."
     },
     {
       "id": "GRAM-02/05",
@@ -144,7 +256,12 @@
       "case_ids": [
         "source-ipv6-address-interface"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:921-945",
+        "option.c:1007-1100"
+      ],
+      "evidence_contract": "@interface@IPv6; Parse #source-port before optional second @interface; truncate SO_BINDTODEVICE names to IF_NAMESIZE-1; preserve absent vs explicit empty source."
     },
     {
       "id": "GRAM-02/06",
@@ -154,21 +271,44 @@
         "osport-explicit-source-zero",
         "server-service-fixed-source"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:921-945",
+        "option.c:1007-1100"
+      ],
+      "evidence_contract": "source #0/nonzero/empty; Parse #source-port before optional second @interface; truncate SO_BINDTODEVICE names to IF_NAMESIZE-1; preserve absent vs explicit empty source."
     },
     {
       "id": "GRAM-02/07",
       "boundary": "GRAM-02",
       "required_case": "extra @ interface duplicate",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "server-double-source",
+        "server-extra-at",
+        "local-double-source",
+        "local-extra-at"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:921-945",
+        "option.c:1007-1100"
+      ],
+      "evidence_contract": "extra @ interface duplicate; Parse #source-port before optional second @interface; truncate SO_BINDTODEVICE names to IF_NAMESIZE-1; preserve absent vs explicit empty source."
     },
     {
       "id": "GRAM-02/08",
       "boundary": "GRAM-02",
       "required_case": "first source substring contains # before second @",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "server-source-delimiter-order",
+        "local-source-delimiter-order"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:921-945",
+        "option.c:1007-1100"
+      ],
+      "evidence_contract": "first source substring contains # before second @; Parse #source-port before optional second @interface; truncate SO_BINDTODEVICE names to IF_NAMESIZE-1; preserve absent vs explicit empty source."
     },
     {
       "id": "GRAM-02/09",
@@ -178,28 +318,58 @@
         "server-service-empty-source",
         "server-service-empty-interface"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:921-945",
+        "option.c:1007-1100"
+      ],
+      "evidence_contract": "empty source/interface; Parse #source-port before optional second @interface; truncate SO_BINDTODEVICE names to IF_NAMESIZE-1; preserve absent vs explicit empty source."
     },
     {
       "id": "GRAM-02/10",
       "boundary": "GRAM-02",
       "required_case": "interface15/16/long",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "source-interface-truncate-15",
+        "source-interface-truncate-16",
+        "source-interface-truncate-26"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:921-945",
+        "option.c:1007-1100"
+      ],
+      "evidence_contract": "interface15/16/long; Parse #source-port before optional second @interface; truncate SO_BINDTODEVICE names to IF_NAMESIZE-1; preserve absent vs explicit empty source."
     },
     {
       "id": "GRAM-02/11",
       "boundary": "GRAM-02",
       "required_case": "numeric IPv4 server with IPv6 source exact error",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "server-family4-6",
+        "local-family4-6"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:921-945",
+        "option.c:1007-1100"
+      ],
+      "evidence_contract": "numeric IPv4 server with IPv6 source exact error; Parse #source-port before optional second @interface; truncate SO_BINDTODEVICE names to IF_NAMESIZE-1; preserve absent vs explicit empty source."
     },
     {
       "id": "GRAM-02/12",
       "boundary": "GRAM-02",
       "required_case": "numeric IPv6 server with IPv4 source exact error",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "server-family6-4",
+        "local-family6-4"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:921-945",
+        "option.c:1007-1100"
+      ],
+      "evidence_contract": "numeric IPv6 server with IPv4 source exact error; Parse #source-port before optional second @interface; truncate SO_BINDTODEVICE names to IF_NAMESIZE-1; preserve absent vs explicit empty source."
     },
     {
       "id": "GRAM-03/01",
@@ -208,28 +378,59 @@
       "case_ids": [
         "server-service-scope6"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:943-1004",
+        "option.c:1053-1097"
+      ],
+      "evidence_contract": "valid IPv6 interface name; Endpoint IPv6 scope is strict if_nametoindex unlike permissive resolv-file scope; IPv4 ignores scope token."
     },
     {
       "id": "GRAM-03/02",
       "boundary": "GRAM-03",
       "required_case": "unknown scope exact bad interface error",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "server-scope-unknown",
+        "local-scope-unknown"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:943-1004",
+        "option.c:1053-1097"
+      ],
+      "evidence_contract": "unknown scope exact bad interface error; Endpoint IPv6 scope is strict if_nametoindex unlike permissive resolv-file scope; IPv4 ignores scope token."
     },
     {
       "id": "GRAM-03/03",
       "boundary": "GRAM-03",
       "required_case": "numeric-looking interface token",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "server-scope-number",
+        "local-scope-number"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:943-1004",
+        "option.c:1053-1097"
+      ],
+      "evidence_contract": "numeric-looking interface token; Endpoint IPv6 scope is strict if_nametoindex unlike permissive resolv-file scope; IPv4 ignores scope token."
     },
     {
       "id": "GRAM-03/04",
       "boundary": "GRAM-03",
       "required_case": "empty and double percent",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "server-scope-empty",
+        "server-scope-double",
+        "local-scope-empty",
+        "local-scope-double"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:943-1004",
+        "option.c:1053-1097"
+      ],
+      "evidence_contract": "empty and double percent; Endpoint IPv6 scope is strict if_nametoindex unlike permissive resolv-file scope; IPv4 ignores scope token."
     },
     {
       "id": "GRAM-03/05",
@@ -238,21 +439,40 @@
       "case_ids": [
         "server-service-scope4-ignored"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:943-1004",
+        "option.c:1053-1097"
+      ],
+      "evidence_contract": "IPv4 with scope ignored; Endpoint IPv6 scope is strict if_nametoindex unlike permissive resolv-file scope; IPv4 ignores scope token."
     },
     {
       "id": "GRAM-03/06",
       "boundary": "GRAM-03",
       "required_case": "link-local scope transport UDP/TCP",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "scoped-link-local-endpoint"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:943-1004",
+        "option.c:1053-1097"
+      ],
+      "evidence_contract": "link-local scope transport UDP/TCP; Endpoint IPv6 scope is strict if_nametoindex unlike permissive resolv-file scope; IPv4 ignores scope token."
     },
     {
       "id": "GRAM-03/07",
       "boundary": "GRAM-03",
       "required_case": "global IPv6 with scope",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "scoped-global-ipv6-endpoint"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:943-1004",
+        "option.c:1053-1097"
+      ],
+      "evidence_contract": "global IPv6 with scope; Endpoint IPv6 scope is strict if_nametoindex unlike permissive resolv-file scope; IPv4 ignores scope token."
     },
     {
       "id": "GRAM-03/08",
@@ -261,7 +481,12 @@
       "case_ids": [
         "server-named-scope"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:943-1004",
+        "option.c:1053-1097"
+      ],
+      "evidence_contract": "hostname returning IPv6 with scope; Endpoint IPv6 scope is strict if_nametoindex unlike permissive resolv-file scope; IPv4 ignores scope token."
     },
     {
       "id": "NAME-01/01",
@@ -270,7 +495,12 @@
       "case_ids": [
         "server-service-name-v4"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:949-999",
+        "option.c:1102-1128"
+      ],
+      "evidence_contract": "hosts IPv4 only; getaddrinfo(AI_ADDRCONFIG,AF_UNSPEC,SOCK_DGRAM) expands all returned addresses once at configuration consumption."
     },
     {
       "id": "NAME-01/02",
@@ -279,7 +509,12 @@
       "case_ids": [
         "server-service-name-v6"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:949-999",
+        "option.c:1102-1128"
+      ],
+      "evidence_contract": "hosts IPv6 only; getaddrinfo(AI_ADDRCONFIG,AF_UNSPEC,SOCK_DGRAM) expands all returned addresses once at configuration consumption."
     },
     {
       "id": "NAME-01/03",
@@ -288,7 +523,12 @@
       "case_ids": [
         "server-service-name-multi"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:949-999",
+        "option.c:1102-1128"
+      ],
+      "evidence_contract": "multi IPv4 order; getaddrinfo(AI_ADDRCONFIG,AF_UNSPEC,SOCK_DGRAM) expands all returned addresses once at configuration consumption."
     },
     {
       "id": "NAME-01/04",
@@ -297,14 +537,26 @@
       "case_ids": [
         "server-service-name-mixed"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:949-999",
+        "option.c:1102-1128"
+      ],
+      "evidence_contract": "mixed IPv4/IPv6 order; getaddrinfo(AI_ADDRCONFIG,AF_UNSPEC,SOCK_DGRAM) expands all returned addresses once at configuration consumption."
     },
     {
       "id": "NAME-01/05",
       "boundary": "NAME-01",
       "required_case": "duplicate hosts names",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "duplicate-expanded-hosts-order"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:949-999",
+        "option.c:1102-1128"
+      ],
+      "evidence_contract": "duplicate hosts names; getaddrinfo(AI_ADDRCONFIG,AF_UNSPEC,SOCK_DGRAM) expands all returned addresses once at configuration consumption."
     },
     {
       "id": "NAME-01/06",
@@ -313,14 +565,26 @@
       "case_ids": [
         "server-service-name-mixed"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:949-999",
+        "option.c:1102-1128"
+      ],
+      "evidence_contract": "loopback-only namespace AI_ADDRCONFIG image behavior; getaddrinfo(AI_ADDRCONFIG,AF_UNSPEC,SOCK_DGRAM) expands all returned addresses once at configuration consumption."
     },
     {
       "id": "NAME-01/07",
       "boundary": "NAME-01",
       "required_case": "nonloopback v4/v6 topology",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "hostname-nonloopback-topology"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:949-999",
+        "option.c:1102-1128"
+      ],
+      "evidence_contract": "nonloopback v4/v6 topology; getaddrinfo(AI_ADDRCONFIG,AF_UNSPEC,SOCK_DGRAM) expands all returned addresses once at configuration consumption."
     },
     {
       "id": "NAME-01/08",
@@ -329,21 +593,44 @@
       "case_ids": [
         "server-service-name-legacy"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:949-999",
+        "option.c:1102-1128"
+      ],
+      "evidence_contract": "IPv4 mapped/legacy numeric hostname text; getaddrinfo(AI_ADDRCONFIG,AF_UNSPEC,SOCK_DGRAM) expands all returned addresses once at configuration consumption."
     },
     {
       "id": "NAME-01/09",
       "boundary": "NAME-01",
       "required_case": "dot/case/trailing dot names",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "hostname-case",
+        "hostname-trailing-dot",
+        "server-name-v4",
+        "local-name-v4"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:949-999",
+        "option.c:1102-1128"
+      ],
+      "evidence_contract": "dot/case/trailing dot names; getaddrinfo(AI_ADDRCONFIG,AF_UNSPEC,SOCK_DGRAM) expands all returned addresses once at configuration consumption."
     },
     {
       "id": "NAME-01/10",
       "boundary": "NAME-01",
       "required_case": "no IDN build nonASCII error",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "server-name-nonascii",
+        "local-name-nonascii"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:949-999",
+        "option.c:1102-1128"
+      ],
+      "evidence_contract": "no IDN build nonASCII error; getaddrinfo(AI_ADDRCONFIG,AF_UNSPEC,SOCK_DGRAM) expands all returned addresses once at configuration consumption."
     },
     {
       "id": "NAME-02/01",
@@ -352,7 +639,13 @@
       "case_ids": [
         "server-service-named-v4-source"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:1020-1042",
+        "option.c:1064-1090",
+        "option.c:3124-3126"
+      ],
+      "evidence_contract": "dual-family hostname with v4 source; Hostname plus explicit source skips mismatching address families; numeric family mismatch is fatal; zero surviving hostname addresses is valid empty source."
     },
     {
       "id": "NAME-02/02",
@@ -361,7 +654,13 @@
       "case_ids": [
         "server-service-named-v6-source"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:1020-1042",
+        "option.c:1064-1090",
+        "option.c:3124-3126"
+      ],
+      "evidence_contract": "dual-family hostname with v6 source; Hostname plus explicit source skips mismatching address families; numeric family mismatch is fatal; zero surviving hostname addresses is valid empty source."
     },
     {
       "id": "NAME-02/03",
@@ -370,7 +669,13 @@
       "case_ids": [
         "server-service-named-all-filtered"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:1020-1042",
+        "option.c:1064-1090",
+        "option.c:3124-3126"
+      ],
+      "evidence_contract": "all hostname addresses mismatching; Hostname plus explicit source skips mismatching address families; numeric family mismatch is fatal; zero surviving hostname addresses is valid empty source."
     },
     {
       "id": "NAME-02/04",
@@ -379,7 +684,13 @@
       "case_ids": [
         "file-partial-success-before-scope-error"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:1020-1042",
+        "option.c:1064-1090",
+        "option.c:3124-3126"
+      ],
+      "evidence_contract": "scoped hostname v4+v6 source interaction; Hostname plus explicit source skips mismatching address families; numeric family mismatch is fatal; zero surviving hostname addresses is valid empty source."
     },
     {
       "id": "NAME-02/05",
@@ -389,14 +700,28 @@
         "server-named-source4",
         "server-named-source6"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:1020-1042",
+        "option.c:1064-1090",
+        "option.c:3124-3126"
+      ],
+      "evidence_contract": "@interface@source family filter; Hostname plus explicit source skips mismatching address families; numeric family mismatch is fatal; zero surviving hostname addresses is valid empty source."
     },
     {
       "id": "NAME-02/06",
       "boundary": "NAME-02",
       "required_case": "duplicate expanded destinations preserve ordering",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "duplicate-expanded-hosts-order"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:1020-1042",
+        "option.c:1064-1090",
+        "option.c:3124-3126"
+      ],
+      "evidence_contract": "duplicate expanded destinations preserve ordering; Hostname plus explicit source skips mismatching address families; numeric family mismatch is fatal; zero surviving hostname addresses is valid empty source."
     },
     {
       "id": "NAME-03/01",
@@ -405,7 +730,13 @@
       "case_ids": [
         "system-resolver-nxdomain"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:990-1003",
+        "option.c:3070-3166",
+        "option.c:6330-6359"
+      ],
+      "evidence_contract": "missing hosts name NXDOMAIN; Resolution executes before --test and at directive parse position; preserve libc diagnostic/exit/location and no live listener before startup completion."
     },
     {
       "id": "NAME-03/02",
@@ -414,28 +745,60 @@
       "case_ids": [
         "system-resolver-servfail"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:990-1003",
+        "option.c:3070-3166",
+        "option.c:6330-6359"
+      ],
+      "evidence_contract": "temporary SERVFAIL/EAI_AGAIN Cannot resolve server name; Resolution executes before --test and at directive parse position; preserve libc diagnostic/exit/location and no live listener before startup completion."
     },
     {
       "id": "NAME-03/03",
       "boundary": "NAME-03",
       "required_case": "response timeout",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "system-resolver-timeout"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:990-1003",
+        "option.c:3070-3166",
+        "option.c:6330-6359"
+      ],
+      "evidence_contract": "response timeout; Resolution executes before --test and at directive parse position; preserve libc diagnostic/exit/location and no live listener before startup completion."
     },
     {
       "id": "NAME-03/04",
       "boundary": "NAME-03",
       "required_case": "invalid hostname syntax",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "server-name-invalid",
+        "local-name-invalid"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:990-1003",
+        "option.c:3070-3166",
+        "option.c:6330-6359"
+      ],
+      "evidence_contract": "invalid hostname syntax; Resolution executes before --test and at directive parse position; preserve libc diagnostic/exit/location and no live listener before startup completion."
     },
     {
       "id": "NAME-03/05",
       "boundary": "NAME-03",
       "required_case": "temporary resolve recovers next launch",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "system-resolver-servfail",
+        "system-resolver-recovered-next-launch"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:990-1003",
+        "option.c:3070-3166",
+        "option.c:6330-6359"
+      ],
+      "evidence_contract": "temporary resolve recovers next launch; Resolution executes before --test and at directive parse position; preserve libc diagnostic/exit/location and no live listener before startup completion."
     },
     {
       "id": "NAME-03/06",
@@ -444,14 +807,28 @@
       "case_ids": [
         "system-resolver-before-invalid-row"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:990-1003",
+        "option.c:3070-3166",
+        "option.c:6330-6359"
+      ],
+      "evidence_contract": "later invalid config must not suppress earlier resolution; Resolution executes before --test and at directive parse position; preserve libc diagnostic/exit/location and no live listener before startup completion."
     },
     {
       "id": "NAME-03/07",
       "boundary": "NAME-03",
       "required_case": "--test still resolves when port=0/no-resolv",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "system-resolver-test-port-zero"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:990-1003",
+        "option.c:3070-3166",
+        "option.c:6330-6359"
+      ],
+      "evidence_contract": "--test still resolves when port=0/no-resolv; Resolution executes before --test and at directive parse position; preserve libc diagnostic/exit/location and no live listener before startup completion."
     },
     {
       "id": "NAME-03/08",
@@ -460,14 +837,29 @@
       "case_ids": [
         "system-resolver-startup"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:990-1003",
+        "option.c:3070-3166",
+        "option.c:6330-6359"
+      ],
+      "evidence_contract": "system /etc/resolv.conf independent of dnsmasq resolv-file; Resolution executes before --test and at directive parse position; preserve libc diagnostic/exit/location and no live listener before startup completion."
     },
     {
       "id": "NAME-03/09",
       "boundary": "NAME-03",
       "required_case": "full and search-list name behavior from image libc",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "system-resolver-startup",
+        "system-resolver-search-list"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:990-1003",
+        "option.c:3070-3166",
+        "option.c:6330-6359"
+      ],
+      "evidence_contract": "full and search-list name behavior from image libc; Resolution executes before --test and at directive parse position; preserve libc diagnostic/exit/location and no live listener before startup completion."
     },
     {
       "id": "REV-01/01",
@@ -479,7 +871,12 @@
         "reverse-192.0.2.7-32",
         "reverse-192.0.2.7-0"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:1135-1310",
+        "option.c:3168-3210"
+      ],
+      "evidence_contract": "IPv4 no prefix /0 /24 /25 /32; Reverse prefix expansion and optional local-only target reuse full endpoint behavior; /non-nibble boundaries remain exact."
     },
     {
       "id": "REV-01/02",
@@ -490,21 +887,47 @@
         "reverse-2001_db8__-65",
         "reverse-2001_db8__1-128"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:1135-1310",
+        "option.c:3168-3210"
+      ],
+      "evidence_contract": "IPv6 no prefix /0 /64 /65 /128; Reverse prefix expansion and optional local-only target reuse full endpoint behavior; /non-nibble boundaries remain exact."
     },
     {
       "id": "REV-01/03",
       "boundary": "REV-01",
       "required_case": "invalid/wide/empty prefix fallback",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "rev-v4-empty-prefix",
+        "rev-v4-text-prefix",
+        "rev-v4-wide-prefix",
+        "rev-v4-negative-prefix",
+        "rev-v6-empty-prefix",
+        "rev-v6-text-prefix",
+        "rev-v6-wide-prefix",
+        "rev-v6-negative-prefix"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:1135-1310",
+        "option.c:3168-3210"
+      ],
+      "evidence_contract": "invalid/wide/empty prefix fallback; Reverse prefix expansion and optional local-only target reuse full endpoint behavior; /non-nibble boundaries remain exact."
     },
     {
       "id": "REV-01/04",
       "boundary": "REV-01",
       "required_case": "reverse no endpoint local-only",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "reverse-local-only"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:1135-1310",
+        "option.c:3168-3210"
+      ],
+      "evidence_contract": "reverse no endpoint local-only; Reverse prefix expansion and optional local-only target reuse full endpoint behavior; /non-nibble boundaries remain exact."
     },
     {
       "id": "REV-01/05",
@@ -513,21 +936,42 @@
       "case_ids": [
         "reverse-hostname"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:1135-1310",
+        "option.c:3168-3210"
+      ],
+      "evidence_contract": "endpoint hostname multisource expansion; Reverse prefix expansion and optional local-only target reuse full endpoint behavior; /non-nibble boundaries remain exact."
     },
     {
       "id": "REV-01/06",
       "boundary": "REV-01",
       "required_case": "/range input host bits",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "reverse-host-bits-192.0.2.199-25",
+        "reverse-host-bits-2001_db8__abcd-65"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:1135-1310",
+        "option.c:3168-3210"
+      ],
+      "evidence_contract": "/range input host bits; Reverse prefix expansion and optional local-only target reuse full endpoint behavior; /non-nibble boundaries remain exact."
     },
     {
       "id": "REV-01/07",
       "boundary": "REV-01",
       "required_case": "malformed address/family rejects",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "rev-bad-address",
+        "rev-empty-address"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:1135-1310",
+        "option.c:3168-3210"
+      ],
+      "evidence_contract": "malformed address/family rejects; Reverse prefix expansion and optional local-only target reuse full endpoint behavior; /non-nibble boundaries remain exact."
     },
     {
       "id": "REV-01/08",
@@ -536,7 +980,12 @@
       "case_ids": [
         "file-mixed-directives"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:1135-1310",
+        "option.c:3168-3210"
+      ],
+      "evidence_contract": "file reverse provenance retained; Reverse prefix expansion and optional local-only target reuse full endpoint behavior; /non-nibble boundaries remain exact."
     },
     {
       "id": "SOURCE-01/01",
@@ -546,7 +995,12 @@
         "global-port-before",
         "global-port-after"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:6124-6138",
+        "network.c:1451-1564"
+      ],
+      "evidence_contract": "query-port before/after endpoint; Explicit @source defaults to port0 and overrides global query-port; implicit source gets final query-port regardless option order."
     },
     {
       "id": "SOURCE-01/02",
@@ -556,7 +1010,12 @@
         "osport-explicit-zero",
         "server-service-v4"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:6124-6138",
+        "network.c:1451-1564"
+      ],
+      "evidence_contract": "query-port0 explicitly vs omitted; Explicit @source defaults to port0 and overrides global query-port; implicit source gets final query-port regardless option order."
     },
     {
       "id": "SOURCE-01/03",
@@ -565,7 +1024,12 @@
       "case_ids": [
         "explicit-source-over-global-127.0.0.9"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:6124-6138",
+        "network.c:1451-1564"
+      ],
+      "evidence_contract": "@address defaults0 under nonzero global; Explicit @source defaults to port0 and overrides global query-port; implicit source gets final query-port regardless option order."
     },
     {
       "id": "SOURCE-01/04",
@@ -574,7 +1038,12 @@
       "case_ids": [
         "explicit-source-over-global-lo"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:6124-6138",
+        "network.c:1451-1564"
+      ],
+      "evidence_contract": "@interface defaults0 under nonzero global; Explicit @source defaults to port0 and overrides global query-port; implicit source gets final query-port regardless option order."
     },
     {
       "id": "SOURCE-01/05",
@@ -583,7 +1052,12 @@
       "case_ids": [
         "fixed-source-over-global"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:6124-6138",
+        "network.c:1451-1564"
+      ],
+      "evidence_contract": "@source#fixed overrides global; Explicit @source defaults to port0 and overrides global query-port; implicit source gets final query-port regardless option order."
     },
     {
       "id": "SOURCE-01/06",
@@ -592,7 +1066,12 @@
       "case_ids": [
         "osport-explicit-source-zero"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:6124-6138",
+        "network.c:1451-1564"
+      ],
+      "evidence_contract": "explicit #0 with query-port0 osport; Explicit @source defaults to port0 and overrides global query-port; implicit source gets final query-port regardless option order."
     },
     {
       "id": "SOURCE-01/07",
@@ -601,7 +1080,12 @@
       "case_ids": [
         "low-global-port-nonroot-file"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:6124-6138",
+        "network.c:1451-1564"
+      ],
+      "evidence_contract": "resolver-file implicit global port; Explicit @source defaults to port0 and overrides global query-port; implicit source gets final query-port regardless option order."
     },
     {
       "id": "SOURCE-01/08",
@@ -610,7 +1094,12 @@
       "case_ids": [
         "file-mixed-directives"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:6124-6138",
+        "network.c:1451-1564"
+      ],
+      "evidence_contract": "server/local/rev-file consistent precedence; Explicit @source defaults to port0 and overrides global query-port; implicit source gets final query-port regardless option order."
     },
     {
       "id": "SOURCE-02/01",
@@ -619,7 +1108,12 @@
       "case_ids": [
         "server-service-source4"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1367-1450",
+        "forward.c:2800-2840"
+      ],
+      "evidence_contract": "v4 source address on wire; local_bind uses source address and interface; IPv6 is V6ONLY; target port and scope do not determine local source port identity."
     },
     {
       "id": "SOURCE-02/02",
@@ -628,14 +1122,26 @@
       "case_ids": [
         "server-service-source6"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1367-1450",
+        "forward.c:2800-2840"
+      ],
+      "evidence_contract": "v6 source address on wire; local_bind uses source address and interface; IPv6 is V6ONLY; target port and scope do not determine local source port identity."
     },
     {
       "id": "SOURCE-02/03",
       "boundary": "SOURCE-02",
       "required_case": "source device binding on routed topology",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "source-device-routed-topology"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1367-1450",
+        "forward.c:2800-2840"
+      ],
+      "evidence_contract": "source device binding on routed topology; local_bind uses source address and interface; IPv6 is V6ONLY; target port and scope do not determine local source port identity."
     },
     {
       "id": "SOURCE-02/04",
@@ -645,7 +1151,12 @@
         "server-service-combined",
         "source-ipv6-address-interface"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1367-1450",
+        "forward.c:2800-2840"
+      ],
+      "evidence_contract": "combined address and device; local_bind uses source address and interface; IPv6 is V6ONLY; target port and scope do not determine local source port identity."
     },
     {
       "id": "SOURCE-02/05",
@@ -654,7 +1165,12 @@
       "case_ids": [
         "bad-source-address-failover"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1367-1450",
+        "forward.c:2800-2840"
+      ],
+      "evidence_contract": "nonexistent source address; local_bind uses source address and interface; IPv6 is V6ONLY; target port and scope do not determine local source port identity."
     },
     {
       "id": "SOURCE-02/06",
@@ -663,21 +1179,40 @@
       "case_ids": [
         "bad-source-interface-failover"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1367-1450",
+        "forward.c:2800-2840"
+      ],
+      "evidence_contract": "nonexistent interface; local_bind uses source address and interface; IPv6 is V6ONLY; target port and scope do not determine local source port identity."
     },
     {
       "id": "SOURCE-02/07",
       "boundary": "SOURCE-02",
       "required_case": "removed address after startup",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "source-address-removed-after-start"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1367-1450",
+        "forward.c:2800-2840"
+      ],
+      "evidence_contract": "removed address after startup; local_bind uses source address and interface; IPv6 is V6ONLY; target port and scope do not determine local source port identity."
     },
     {
       "id": "SOURCE-02/08",
       "boundary": "SOURCE-02",
       "required_case": "recreated interface after failure",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "source-interface-recreated"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1367-1450",
+        "forward.c:2800-2840"
+      ],
+      "evidence_contract": "recreated interface after failure; local_bind uses source address and interface; IPv6 is V6ONLY; target port and scope do not determine local source port identity."
     },
     {
       "id": "SOURCE-02/09",
@@ -686,7 +1221,12 @@
       "case_ids": [
         "same-fixed-port-two-families"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1367-1450",
+        "forward.c:2800-2840"
+      ],
+      "evidence_contract": "v4/v6 same configured source port independent sockets; local_bind uses source address and interface; IPv6 is V6ONLY; target port and scope do not determine local source port identity."
     },
     {
       "id": "SFD-01/01",
@@ -695,7 +1235,11 @@
       "case_ids": [
         "same-fixed-source-destinations"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1451-1522"
+      ],
+      "evidence_contract": "two destinations share source fixed port; Fixed-port/osport sockets share by source sockaddr+interface+ifindex, never by destination; no SO_REUSEPORT shortcut."
     },
     {
       "id": "SFD-01/02",
@@ -704,14 +1248,24 @@
       "case_ids": [
         "same-fixed-port-distinct-addresses"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1451-1522"
+      ],
+      "evidence_contract": "same source port different local addresses; Fixed-port/osport sockets share by source sockaddr+interface+ifindex, never by destination; no SO_REUSEPORT shortcut."
     },
     {
       "id": "SFD-01/03",
       "boundary": "SFD-01",
       "required_case": "same addr different interface",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "same-source-address-distinct-interfaces"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1451-1522"
+      ],
+      "evidence_contract": "same addr different interface; Fixed-port/osport sockets share by source sockaddr+interface+ifindex, never by destination; no SO_REUSEPORT shortcut."
     },
     {
       "id": "SFD-01/04",
@@ -720,7 +1274,11 @@
       "case_ids": [
         "global-port-before"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1451-1522"
+      ],
+      "evidence_contract": "default wildcard v4/v6 fixed sockets; Fixed-port/osport sockets share by source sockaddr+interface+ifindex, never by destination; no SO_REUSEPORT shortcut."
     },
     {
       "id": "SFD-01/05",
@@ -729,7 +1287,11 @@
       "case_ids": [
         "pool-single-port-concurrent"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1451-1522"
+      ],
+      "evidence_contract": "same socket concurrent differing query IDs; Fixed-port/osport sockets share by source sockaddr+interface+ifindex, never by destination; no SO_REUSEPORT shortcut."
     },
     {
       "id": "SFD-01/06",
@@ -739,14 +1301,25 @@
         "shared-socket-invalid-replies",
         "shared-socket-unrelated-source"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1451-1522"
+      ],
+      "evidence_contract": "response from unrelated destination/ID ignored; Fixed-port/osport sockets share by source sockaddr+interface+ifindex, never by destination; no SO_REUSEPORT shortcut."
     },
     {
       "id": "SFD-01/07",
       "boundary": "SFD-01",
       "required_case": "wrong socket/source-family response ignored",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "reply-wrong-socket",
+        "reply-wrong-family"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1451-1522"
+      ],
+      "evidence_contract": "wrong socket/source-family response ignored; Fixed-port/osport sockets share by source sockaddr+interface+ifindex, never by destination; no SO_REUSEPORT shortcut."
     },
     {
       "id": "SFD-01/08",
@@ -756,7 +1329,11 @@
         "osport-explicit-zero",
         "osport-explicit-source-zero"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1451-1522"
+      ],
+      "evidence_contract": "sourceport0 explicit-osport retains one OS-selected port across queries; Fixed-port/osport sockets share by source sockaddr+interface+ifindex, never by destination; no SO_REUSEPORT shortcut."
     },
     {
       "id": "SFD-02/01",
@@ -766,7 +1343,12 @@
         "low-source-port-nonroot",
         "low-global-port-nonroot-file"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1525-1564",
+        "dnsmasq.c:450-465"
+      ],
+      "evidence_contract": "low source port under nonroot daemon user; Preallocate privileged sockets before dropping identity; bound-interface mode fails startup on bind errors, wildcard mode logs and excludes invalid server."
     },
     {
       "id": "SFD-02/02",
@@ -775,7 +1357,12 @@
       "case_ids": [
         "occupied-fixed-wildcard"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1525-1564",
+        "dnsmasq.c:450-465"
+      ],
+      "evidence_contract": "occupied fixed source port wildcard nonfatal removal; Preallocate privileged sockets before dropping identity; bound-interface mode fails startup on bind errors, wildcard mode logs and excludes invalid server."
     },
     {
       "id": "SFD-02/03",
@@ -784,7 +1371,12 @@
       "case_ids": [
         "occupied-fixed-bind-interfaces"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1525-1564",
+        "dnsmasq.c:450-465"
+      ],
+      "evidence_contract": "occupied source bind-interfaces exit2 exact diagnostic; Preallocate privileged sockets before dropping identity; bound-interface mode fails startup on bind errors, wildcard mode logs and excludes invalid server."
     },
     {
       "id": "SFD-02/04",
@@ -793,28 +1385,54 @@
       "case_ids": [
         "occupied-fixed-bind-dynamic"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1525-1564",
+        "dnsmasq.c:450-465"
+      ],
+      "evidence_contract": "bind-dynamic failure boundary; Preallocate privileged sockets before dropping identity; bound-interface mode fails startup on bind errors, wildcard mode logs and excludes invalid server."
     },
     {
       "id": "SFD-02/05",
       "boundary": "SFD-02",
       "required_case": "query-port preallocated allfamilies even no inline servers",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "global-query-preallocated-no-inline"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1525-1564",
+        "dnsmasq.c:450-465"
+      ],
+      "evidence_contract": "query-port preallocated allfamilies even no inline servers; Preallocate privileged sockets before dropping identity; bound-interface mode fails startup on bind errors, wildcard mode logs and excludes invalid server."
     },
     {
       "id": "SFD-02/06",
       "boundary": "SFD-02",
       "required_case": "--test never binds",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "syntax-source-binding-elided"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1525-1564",
+        "dnsmasq.c:450-465"
+      ],
+      "evidence_contract": "--test never binds; Preallocate privileged sockets before dropping identity; bound-interface mode fails startup on bind errors, wildcard mode logs and excludes invalid server."
     },
     {
       "id": "SFD-02/07",
       "boundary": "SFD-02",
       "required_case": "port=0 suppresses DNS binding",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "port-zero-suppresses-query-bind"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1525-1564",
+        "dnsmasq.c:450-465"
+      ],
+      "evidence_contract": "port=0 suppresses DNS binding; Preallocate privileged sockets before dropping identity; bound-interface mode fails startup on bind errors, wildcard mode logs and excludes invalid server."
     },
     {
       "id": "SFD-02/08",
@@ -823,21 +1441,40 @@
       "case_ids": [
         "occupied-fixed-bind-interfaces"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1525-1564",
+        "dnsmasq.c:450-465"
+      ],
+      "evidence_contract": "FD/process cleanup on startup failure; Preallocate privileged sockets before dropping identity; bound-interface mode fails startup on bind errors, wildcard mode logs and excludes invalid server."
     },
     {
       "id": "SFD-03/01",
       "boundary": "SFD-03",
       "required_case": "own selected listen address/port filtered",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "self-selected-endpoint-filtered"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1566-1710",
+        "domain-match.c:add_update_server"
+      ],
+      "evidence_contract": "own selected listen address/port filtered; check_servers filters unusable endpoints and garbage-collects unused fixed sockets while preserving preallocated globals and pending source identities."
     },
     {
       "id": "SFD-03/02",
       "boundary": "SFD-03",
       "required_case": "unselected local address remains target",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "unselected-local-address-endpoint"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1566-1710",
+        "domain-match.c:add_update_server"
+      ],
+      "evidence_contract": "unselected local address remains target; check_servers filters unusable endpoints and garbage-collects unused fixed sockets while preserving preallocated globals and pending source identities."
     },
     {
       "id": "SFD-03/03",
@@ -846,7 +1483,12 @@
       "case_ids": [
         "bad-fixed-source-only-one-removed"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1566-1710",
+        "domain-match.c:add_update_server"
+      ],
+      "evidence_contract": "source bind failure removes only failed upstream; check_servers filters unusable endpoints and garbage-collects unused fixed sockets while preserving preallocated globals and pending source identities."
     },
     {
       "id": "SFD-03/04",
@@ -855,7 +1497,12 @@
       "case_ids": [
         "source-fixed-repeated-hup"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1566-1710",
+        "domain-match.c:add_update_server"
+      ],
+      "evidence_contract": "reload unchanged source shares FD; check_servers filters unusable endpoints and garbage-collects unused fixed sockets while preserving preallocated globals and pending source identities."
     },
     {
       "id": "SFD-03/05",
@@ -865,7 +1512,12 @@
         "file-source-snapshot",
         "fixed-new-slot-reallocates"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1566-1710",
+        "domain-match.c:add_update_server"
+      ],
+      "evidence_contract": "reload changed source reallocates; check_servers filters unusable endpoints and garbage-collects unused fixed sockets while preserving preallocated globals and pending source identities."
     },
     {
       "id": "SFD-03/06",
@@ -874,14 +1526,26 @@
       "case_ids": [
         "fixed-new-slot-reallocates"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1566-1710",
+        "domain-match.c:add_update_server"
+      ],
+      "evidence_contract": "last server removal drops nonpreallocated FD; check_servers filters unusable endpoints and garbage-collects unused fixed sockets while preserving preallocated globals and pending source identities."
     },
     {
       "id": "SFD-03/07",
       "boundary": "SFD-03",
       "required_case": "configured global query socket retained",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "global-query-socket-retained"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1566-1710",
+        "domain-match.c:add_update_server"
+      ],
+      "evidence_contract": "configured global query socket retained; check_servers filters unusable endpoints and garbage-collects unused fixed sockets while preserving preallocated globals and pending source identities."
     },
     {
       "id": "SFD-03/08",
@@ -891,7 +1555,12 @@
         "late-reply-after-server-retired",
         "pool-retired-source-reference"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1566-1710",
+        "domain-match.c:add_update_server"
+      ],
+      "evidence_contract": "pending reply after reused/removal slot; check_servers filters unusable endpoints and garbage-collects unused fixed sockets while preserving preallocated globals and pending source identities."
     },
     {
       "id": "SFD-03/09",
@@ -900,63 +1569,175 @@
       "case_ids": [
         "source-fixed-repeated-hup"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1566-1710",
+        "domain-match.c:add_update_server"
+      ],
+      "evidence_contract": "no leaked FD after repeated reload; check_servers filters unusable endpoints and garbage-collects unused fixed sockets while preserving preallocated globals and pending source identities."
     },
     {
       "id": "PORT-01/01",
       "boundary": "PORT-01",
       "required_case": "empty query/min/max port",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "query-port-empty",
+        "min-port-empty",
+        "max-port-empty"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:3413-3457",
+        "option.c:3503-3518",
+        "dnsmasq.c:249-261"
+      ],
+      "evidence_contract": "empty query/min/max port; Port scalars retain integer widths, explicit-zero osport latch, runtime-only range checks and default completion."
     },
     {
       "id": "PORT-01/02",
       "boundary": "PORT-01",
       "required_case": "0/1/1024/65535/65536/large integer",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "query-port-0",
+        "query-port-1",
+        "query-port-1024",
+        "query-port-65535",
+        "query-port-65536",
+        "query-port-4294967296",
+        "query-port-4294967297",
+        "query-port-18446744073709551615",
+        "min-port-0",
+        "min-port-1",
+        "min-port-1024",
+        "min-port-65535",
+        "min-port-65536",
+        "min-port-4294967296",
+        "min-port-4294967297",
+        "min-port-18446744073709551615",
+        "max-port-0",
+        "max-port-1",
+        "max-port-1024",
+        "max-port-65535",
+        "max-port-65536",
+        "max-port-4294967296",
+        "max-port-4294967297",
+        "max-port-18446744073709551615"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:3413-3457",
+        "option.c:3503-3518",
+        "dnsmasq.c:249-261"
+      ],
+      "evidence_contract": "0/1/1024/65535/65536/large integer; Port scalars retain integer widths, explicit-zero osport latch, runtime-only range checks and default completion."
     },
     {
       "id": "PORT-01/03",
       "boundary": "PORT-01",
       "required_case": "port-limit0/1/2/intwrap",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "port-limit-0",
+        "port-limit-1",
+        "port-limit-2",
+        "port-limit-4294967296",
+        "port-limit-4294967297",
+        "port-limit-18446744073709551615"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:3413-3457",
+        "option.c:3503-3518",
+        "dnsmasq.c:249-261"
+      ],
+      "evidence_contract": "port-limit0/1/2/intwrap; Port scalars retain integer widths, explicit-zero osport latch, runtime-only range checks and default completion."
     },
     {
       "id": "PORT-01/04",
       "boundary": "PORT-01",
       "required_case": "repeated option origin policy",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "query-port-repeat-file",
+        "query-port-repeat-cli",
+        "query-port-cli-file",
+        "min-port-repeat-file",
+        "min-port-repeat-cli",
+        "min-port-cli-file",
+        "max-port-repeat-file",
+        "max-port-repeat-cli",
+        "max-port-cli-file",
+        "port-limit-repeat-file",
+        "port-limit-repeat-cli",
+        "port-limit-cli-file"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:3413-3457",
+        "option.c:3503-3518",
+        "dnsmasq.c:249-261"
+      ],
+      "evidence_contract": "repeated option origin policy; Port scalars retain integer widths, explicit-zero osport latch, runtime-only range checks and default completion."
     },
     {
       "id": "PORT-01/05",
       "boundary": "PORT-01",
       "required_case": "min-only defaults max65535",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "min-only-default-max"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:3413-3457",
+        "option.c:3503-3518",
+        "dnsmasq.c:249-261"
+      ],
+      "evidence_contract": "min-only defaults max65535; Port scalars retain integer widths, explicit-zero osport latch, runtime-only range checks and default completion."
     },
     {
       "id": "PORT-01/06",
       "boundary": "PORT-01",
       "required_case": "max-only defaults min1024",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "max-only-default-min"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:3413-3457",
+        "option.c:3503-3518",
+        "dnsmasq.c:249-261"
+      ],
+      "evidence_contract": "max-only defaults min1024; Port scalars retain integer widths, explicit-zero osport latch, runtime-only range checks and default completion."
     },
     {
       "id": "PORT-01/07",
       "boundary": "PORT-01",
       "required_case": "max below min --test succeeds startup fails",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "range-inverted",
+        "startup-range-inverted"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:3413-3457",
+        "option.c:3503-3518",
+        "dnsmasq.c:249-261"
+      ],
+      "evidence_contract": "max below min --test succeeds startup fails; Port scalars retain integer widths, explicit-zero osport latch, runtime-only range checks and default completion."
     },
     {
       "id": "PORT-01/08",
       "boundary": "PORT-01",
       "required_case": "port-limit larger range --test/startup boundary",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "range-limit-overflow",
+        "startup-range-port-limit-overflow"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:3413-3457",
+        "option.c:3503-3518",
+        "dnsmasq.c:249-261"
+      ],
+      "evidence_contract": "port-limit larger range --test/startup boundary; Port scalars retain integer widths, explicit-zero osport latch, runtime-only range checks and default completion."
     },
     {
       "id": "PORT-01/09",
@@ -965,7 +1746,13 @@
       "case_ids": [
         "osport-zero-then-fixed"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:3413-3457",
+        "option.c:3503-3518",
+        "dnsmasq.c:249-261"
+      ],
+      "evidence_contract": "query-port0 followed nonzero retains osport flag; Port scalars retain integer widths, explicit-zero osport latch, runtime-only range checks and default completion."
     },
     {
       "id": "PORT-02/01",
@@ -974,7 +1761,12 @@
       "case_ids": [
         "range-width-1"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1367-1430",
+        "config.h:SMALL_PORT_RANGE"
+      ],
+      "evidence_contract": "one available port; Random binding honors inclusive range, small-range systematic retry after EADDRINUSE/EACCES, 100 tries large-range cap, no range applied to TCP."
     },
     {
       "id": "PORT-02/02",
@@ -983,7 +1775,12 @@
       "case_ids": [
         "range-one-occupied"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1367-1430",
+        "config.h:SMALL_PORT_RANGE"
+      ],
+      "evidence_contract": "two ports with one occupied; Random binding honors inclusive range, small-range systematic retry after EADDRINUSE/EACCES, 100 tries large-range cap, no range applied to TCP."
     },
     {
       "id": "PORT-02/03",
@@ -993,7 +1790,12 @@
         "range-width-29",
         "range-width-30"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1367-1430",
+        "config.h:SMALL_PORT_RANGE"
+      ],
+      "evidence_contract": "size29/30 range threshold; Random binding honors inclusive range, small-range systematic retry after EADDRINUSE/EACCES, 100 tries large-range cap, no range applied to TCP."
     },
     {
       "id": "PORT-02/04",
@@ -1002,7 +1804,12 @@
       "case_ids": [
         "range-inclusive-ends"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1367-1430",
+        "config.h:SMALL_PORT_RANGE"
+      ],
+      "evidence_contract": "both ends used over repetitions; Random binding honors inclusive range, small-range systematic retry after EADDRINUSE/EACCES, 100 tries large-range cap, no range applied to TCP."
     },
     {
       "id": "PORT-02/05",
@@ -1011,14 +1818,26 @@
       "case_ids": [
         "range-all-occupied"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1367-1430",
+        "config.h:SMALL_PORT_RANGE"
+      ],
+      "evidence_contract": "fully exhausted range; Random binding honors inclusive range, small-range systematic retry after EADDRINUSE/EACCES, 100 tries large-range cap, no range applied to TCP."
     },
     {
       "id": "PORT-02/06",
       "boundary": "PORT-02",
       "required_case": "partial recovery after release",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "range-release-partial-recovery"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1367-1430",
+        "config.h:SMALL_PORT_RANGE"
+      ],
+      "evidence_contract": "partial recovery after release; Random binding honors inclusive range, small-range systematic retry after EADDRINUSE/EACCES, 100 tries large-range cap, no range applied to TCP."
     },
     {
       "id": "PORT-02/07",
@@ -1027,7 +1846,12 @@
       "case_ids": [
         "server-service-v4"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1367-1430",
+        "config.h:SMALL_PORT_RANGE"
+      ],
+      "evidence_contract": "implicit-zero source address/port bind elision; Random binding honors inclusive range, small-range systematic retry after EADDRINUSE/EACCES, 100 tries large-range cap, no range applied to TCP."
     },
     {
       "id": "PORT-02/08",
@@ -1036,7 +1860,12 @@
       "case_ids": [
         "range-fixed-override"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1367-1430",
+        "config.h:SMALL_PORT_RANGE"
+      ],
+      "evidence_contract": "fixed source port ignores configured range; Random binding honors inclusive range, small-range systematic retry after EADDRINUSE/EACCES, 100 tries large-range cap, no range applied to TCP."
     },
     {
       "id": "PORT-02/09",
@@ -1045,7 +1874,12 @@
       "case_ids": [
         "range-two-families"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "network.c:1367-1430",
+        "config.h:SMALL_PORT_RANGE"
+      ],
+      "evidence_contract": "v4 and v6 share same bounded range independently; Random binding honors inclusive range, small-range systematic retry after EADDRINUSE/EACCES, 100 tries large-range cap, no range applied to TCP."
     },
     {
       "id": "POOL-01/01",
@@ -1054,7 +1888,11 @@
       "case_ids": [
         "allservers-port-limit-1"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:2842-2910"
+      ],
+      "evidence_contract": "two destinations same source limit1 sameport; Within each transaction count source-compatible random sockets; at port-limit rotate last compatible socket to head, defaults to1."
     },
     {
       "id": "POOL-01/02",
@@ -1063,21 +1901,37 @@
       "case_ids": [
         "allservers-port-limit-2"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:2842-2910"
+      ],
+      "evidence_contract": "limit2 allocates2 then rotates; Within each transaction count source-compatible random sockets; at port-limit rotate last compatible socket to head, defaults to1."
     },
     {
       "id": "POOL-01/03",
       "boundary": "POOL-01",
       "required_case": "limit3 repeated client retry",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "pool-limit3-client-retries"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:2842-2910"
+      ],
+      "evidence_contract": "limit3 repeated client retry; Within each transaction count source-compatible random sockets; at port-limit rotate last compatible socket to head, defaults to1."
     },
     {
       "id": "POOL-01/04",
       "boundary": "POOL-01",
       "required_case": "UDP error failover source identity",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "udp-error-failover-source-identity"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:2842-2910"
+      ],
+      "evidence_contract": "UDP error failover source identity; Within each transaction count source-compatible random sockets; at port-limit rotate last compatible socket to head, defaults to1."
     },
     {
       "id": "POOL-01/05",
@@ -1087,7 +1941,11 @@
         "same-fixed-port-two-families",
         "range-two-families"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:2842-2910"
+      ],
+      "evidence_contract": "mixed families separate source identity; Within each transaction count source-compatible random sockets; at port-limit rotate last compatible socket to head, defaults to1."
     },
     {
       "id": "POOL-01/06",
@@ -1096,21 +1954,37 @@
       "case_ids": [
         "same-fixed-port-distinct-addresses"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:2842-2910"
+      ],
+      "evidence_contract": "differing source address/interface not pooled; Within each transaction count source-compatible random sockets; at port-limit rotate last compatible socket to head, defaults to1."
     },
     {
       "id": "POOL-01/07",
       "boundary": "POOL-01",
       "required_case": "same destination on distinct contexts",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "pool-distinct-groups-compatible"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:2842-2910"
+      ],
+      "evidence_contract": "same destination on distinct contexts; Within each transaction count source-compatible random sockets; at port-limit rotate last compatible socket to head, defaults to1."
     },
     {
       "id": "POOL-01/08",
       "boundary": "POOL-01",
       "required_case": "merged client requests do not add random ports",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "pool-merged-client-request"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:2842-2910"
+      ],
+      "evidence_contract": "merged client requests do not add random ports; Within each transaction count source-compatible random sockets; at port-limit rotate last compatible socket to head, defaults to1."
     },
     {
       "id": "POOL-02/01",
@@ -1119,7 +1993,12 @@
       "case_ids": [
         "pool-single-port-concurrent"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "dnsmasq.c:406-424",
+        "forward.c:2911-3028"
+      ],
+      "evidence_contract": "small range fullness forces cross-query sharing; Global random socket slots=fwdmax/2 capped by inherited nofile/3; share compatible busy sockets when pool/range full, otherwise allocate temporary unshared slots."
     },
     {
       "id": "POOL-02/02",
@@ -1128,7 +2007,12 @@
       "case_ids": [
         "pool-overflow-incompatible"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "dnsmasq.c:406-424",
+        "forward.c:2911-3028"
+      ],
+      "evidence_contract": "incompatible source needs temporary FD; Global random socket slots=fwdmax/2 capped by inherited nofile/3; share compatible busy sockets when pool/range full, otherwise allocate temporary unshared slots."
     },
     {
       "id": "POOL-02/03",
@@ -1137,14 +2021,26 @@
       "case_ids": [
         "pool-single-port-concurrent"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "dnsmasq.c:406-424",
+        "forward.c:2911-3028"
+      ],
+      "evidence_contract": "exhausted bind chooses existing compatible socket; Global random socket slots=fwdmax/2 capped by inherited nofile/3; share compatible busy sockets when pool/range full, otherwise allocate temporary unshared slots."
     },
     {
       "id": "POOL-02/04",
       "boundary": "POOL-02",
       "required_case": "separate groups share compatible source tuple",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "pool-distinct-groups-compatible"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "dnsmasq.c:406-424",
+        "forward.c:2911-3028"
+      ],
+      "evidence_contract": "separate groups share compatible source tuple; Global random socket slots=fwdmax/2 capped by inherited nofile/3; share compatible busy sockets when pool/range full, otherwise allocate temporary unshared slots."
     },
     {
       "id": "POOL-02/05",
@@ -1153,7 +2049,12 @@
       "case_ids": [
         "pool-retired-source-reference"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "dnsmasq.c:406-424",
+        "forward.c:2911-3028"
+      ],
+      "evidence_contract": "source record removed while references alive; Global random socket slots=fwdmax/2 capped by inherited nofile/3; share compatible busy sockets when pool/range full, otherwise allocate temporary unshared slots."
     },
     {
       "id": "POOL-02/06",
@@ -1162,7 +2063,12 @@
       "case_ids": [
         "pool-slot-reuse-round-robin"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "dnsmasq.c:406-424",
+        "forward.c:2911-3028"
+      ],
+      "evidence_contract": "pool slot reuse after final owner release; Global random socket slots=fwdmax/2 capped by inherited nofile/3; share compatible busy sockets when pool/range full, otherwise allocate temporary unshared slots."
     },
     {
       "id": "POOL-02/07",
@@ -1172,7 +2078,12 @@
         "inherited-nofile-pool-cap",
         "pool-capacity-compatible"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "dnsmasq.c:406-424",
+        "forward.c:2911-3028"
+      ],
+      "evidence_contract": "FD count under >numrrand pending queries; Global random socket slots=fwdmax/2 capped by inherited nofile/3; share compatible busy sockets when pool/range full, otherwise allocate temporary unshared slots."
     },
     {
       "id": "POOL-02/08",
@@ -1181,7 +2092,12 @@
       "case_ids": [
         "pool-overflow-incompatible"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "dnsmasq.c:406-424",
+        "forward.c:2911-3028"
+      ],
+      "evidence_contract": "multiple temporary sockets release cleanly; Global random socket slots=fwdmax/2 capped by inherited nofile/3; share compatible busy sockets when pool/range full, otherwise allocate temporary unshared slots."
     },
     {
       "id": "POOL-03/01",
@@ -1190,7 +2106,12 @@
       "case_ids": [
         "pool-single-port-concurrent"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:3030-3065",
+        "forward.c:3085-3100"
+      ],
+      "evidence_contract": "two queries share FD complete reverse order; Reference ownership covers successful replies, retry, cancellation, timeout, failed send, server_gone and reload; receive demultiplexes by wire ID/question/source/socket."
     },
     {
       "id": "POOL-03/02",
@@ -1199,7 +2120,12 @@
       "case_ids": [
         "pool-single-port-concurrent"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:3030-3065",
+        "forward.c:3085-3100"
+      ],
+      "evidence_contract": "first owner completes while second still pending; Reference ownership covers successful replies, retry, cancellation, timeout, failed send, server_gone and reload; receive demultiplexes by wire ID/question/source/socket."
     },
     {
       "id": "POOL-03/03",
@@ -1209,7 +2135,12 @@
         "shared-socket-invalid-replies",
         "shared-socket-unrelated-source"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:3030-3065",
+        "forward.c:3085-3100"
+      ],
+      "evidence_contract": "spoof ID/name/qtype/source; Reference ownership covers successful replies, retry, cancellation, timeout, failed send, server_gone and reload; receive demultiplexes by wire ID/question/source/socket."
     },
     {
       "id": "POOL-03/04",
@@ -1218,21 +2149,40 @@
       "case_ids": [
         "late-reply-after-server-retired"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:3030-3065",
+        "forward.c:3085-3100"
+      ],
+      "evidence_contract": "late reply after cancellation; Reference ownership covers successful replies, retry, cancellation, timeout, failed send, server_gone and reload; receive demultiplexes by wire ID/question/source/socket."
     },
     {
       "id": "POOL-03/05",
       "boundary": "POOL-03",
       "required_case": "retry success cancellation retains sibling",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "pool-retry-completion-keeps-sibling"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:3030-3065",
+        "forward.c:3085-3100"
+      ],
+      "evidence_contract": "retry success cancellation retains sibling; Reference ownership covers successful replies, retry, cancellation, timeout, failed send, server_gone and reload; receive demultiplexes by wire ID/question/source/socket."
     },
     {
       "id": "POOL-03/06",
       "boundary": "POOL-03",
       "required_case": "ICMP/POLLERR keeps pending references",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "shared-pollerr-keeps-pending"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:3030-3065",
+        "forward.c:3085-3100"
+      ],
+      "evidence_contract": "ICMP/POLLERR keeps pending references; Reference ownership covers successful replies, retry, cancellation, timeout, failed send, server_gone and reload; receive demultiplexes by wire ID/question/source/socket."
     },
     {
       "id": "POOL-03/07",
@@ -1241,7 +2191,12 @@
       "case_ids": [
         "shared-recvfrom-eio"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:3030-3065",
+        "forward.c:3085-3100"
+      ],
+      "evidence_contract": "recv error bounded processing; Reference ownership covers successful replies, retry, cancellation, timeout, failed send, server_gone and reload; receive demultiplexes by wire ID/question/source/socket."
     },
     {
       "id": "POOL-03/08",
@@ -1250,7 +2205,12 @@
       "case_ids": [
         "pool-retired-source-reference"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:3030-3065",
+        "forward.c:3085-3100"
+      ],
+      "evidence_contract": "no use-after-free on server retirement; Reference ownership covers successful replies, retry, cancellation, timeout, failed send, server_gone and reload; receive demultiplexes by wire ID/question/source/socket."
     },
     {
       "id": "POOL-03/09",
@@ -1259,7 +2219,12 @@
       "case_ids": [
         "@all-cleanup"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:3030-3065",
+        "forward.c:3085-3100"
+      ],
+      "evidence_contract": "graceful shutdown releases all FDs; Reference ownership covers successful replies, retry, cancellation, timeout, failed send, server_gone and reload; receive demultiplexes by wire ID/question/source/socket."
     },
     {
       "id": "TCP-01/01",
@@ -1268,7 +2233,12 @@
       "case_ids": [
         "server-service-source4"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:2090-2132",
+        "network.c:1380-1383"
+      ],
+      "evidence_contract": "v4 source address; TCP binds source address/interface but always port0, ignoring fixed query-port/source-port/range; existing per-client snapshots persist."
     },
     {
       "id": "TCP-01/02",
@@ -1277,7 +2247,12 @@
       "case_ids": [
         "server-service-source6"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:2090-2132",
+        "network.c:1380-1383"
+      ],
+      "evidence_contract": "v6 source address; TCP binds source address/interface but always port0, ignoring fixed query-port/source-port/range; existing per-client snapshots persist."
     },
     {
       "id": "TCP-01/03",
@@ -1287,7 +2262,12 @@
         "server-service-interface",
         "source-ipv6-interface"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:2090-2132",
+        "network.c:1380-1383"
+      ],
+      "evidence_contract": "interface only; TCP binds source address/interface but always port0, ignoring fixed query-port/source-port/range; existing per-client snapshots persist."
     },
     {
       "id": "TCP-01/04",
@@ -1297,7 +2277,12 @@
         "server-service-combined",
         "source-ipv6-address-interface"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:2090-2132",
+        "network.c:1380-1383"
+      ],
+      "evidence_contract": "interface+source; TCP binds source address/interface but always port0, ignoring fixed query-port/source-port/range; existing per-client snapshots persist."
     },
     {
       "id": "TCP-01/05",
@@ -1306,7 +2291,12 @@
       "case_ids": [
         "global-port-before"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:2090-2132",
+        "network.c:1380-1383"
+      ],
+      "evidence_contract": "query-port ignored; TCP binds source address/interface but always port0, ignoring fixed query-port/source-port/range; existing per-client snapshots persist."
     },
     {
       "id": "TCP-01/06",
@@ -1315,7 +2305,12 @@
       "case_ids": [
         "server-service-fixed-source"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:2090-2132",
+        "network.c:1380-1383"
+      ],
+      "evidence_contract": "explicit @source#port ignored; TCP binds source address/interface but always port0, ignoring fixed query-port/source-port/range; existing per-client snapshots persist."
     },
     {
       "id": "TCP-01/07",
@@ -1324,7 +2319,12 @@
       "case_ids": [
         "range-all-occupied"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:2090-2132",
+        "network.c:1380-1383"
+      ],
+      "evidence_contract": "min/max singleoccupied port ignored; TCP binds source address/interface but always port0, ignoring fixed query-port/source-port/range; existing per-client snapshots persist."
     },
     {
       "id": "TCP-01/08",
@@ -1333,7 +2333,12 @@
       "case_ids": [
         "bad-source-address-failover"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:2090-2132",
+        "network.c:1380-1383"
+      ],
+      "evidence_contract": "invalid source bind failover; TCP binds source address/interface but always port0, ignoring fixed query-port/source-port/range; existing per-client snapshots persist."
     },
     {
       "id": "TCP-01/09",
@@ -1342,7 +2347,12 @@
       "case_ids": [
         "bad-source-interface-failover"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:2090-2132",
+        "network.c:1380-1383"
+      ],
+      "evidence_contract": "unknown interface failover; TCP binds source address/interface but always port0, ignoring fixed query-port/source-port/range; existing per-client snapshots persist."
     },
     {
       "id": "TCP-01/10",
@@ -1351,7 +2361,12 @@
       "case_ids": [
         "server-service-scope6"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:2090-2132",
+        "network.c:1380-1383"
+      ],
+      "evidence_contract": "selected server scope respected; TCP binds source address/interface but always port0, ignoring fixed query-port/source-port/range; existing per-client snapshots persist."
     },
     {
       "id": "TCP-02/01",
@@ -1360,14 +2375,24 @@
       "case_ids": [
         "file-source-snapshot"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:tcp_talk"
+      ],
+      "evidence_contract": "two questions share connection/sourceport; TCP connection reuse/failover is unchanged under source binding and hostname-expanded list; snapshot policy remains fork-equivalent."
     },
     {
       "id": "TCP-02/02",
       "boundary": "TCP-02",
       "required_case": "broken existing connection reconnect",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "tcp-existing-upstream-reconnect"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:tcp_talk"
+      ],
+      "evidence_contract": "broken existing connection reconnect; TCP connection reuse/failover is unchanged under source binding and hostname-expanded list; snapshot policy remains fork-equivalent."
     },
     {
       "id": "TCP-02/03",
@@ -1376,7 +2401,11 @@
       "case_ids": [
         "bad-source-address-failover"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:tcp_talk"
+      ],
+      "evidence_contract": "one source fails later server succeeds; TCP connection reuse/failover is unchanged under source binding and hostname-expanded list; snapshot policy remains fork-equivalent."
     },
     {
       "id": "TCP-02/04",
@@ -1385,7 +2414,11 @@
       "case_ids": [
         "file-source-snapshot"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:tcp_talk"
+      ],
+      "evidence_contract": "new connection after file reload uses new source; TCP connection reuse/failover is unchanged under source binding and hostname-expanded list; snapshot policy remains fork-equivalent."
     },
     {
       "id": "TCP-02/05",
@@ -1394,14 +2427,24 @@
       "case_ids": [
         "file-source-snapshot"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:tcp_talk"
+      ],
+      "evidence_contract": "open child retains old source/destination; TCP connection reuse/failover is unchanged under source binding and hostname-expanded list; snapshot policy remains fork-equivalent."
     },
     {
       "id": "TCP-02/06",
       "boundary": "TCP-02",
       "required_case": "pending query spanning reload",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "tcp-pending-endpoint-reload"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:tcp_talk"
+      ],
+      "evidence_contract": "pending query spanning reload; TCP connection reuse/failover is unchanged under source binding and hostname-expanded list; snapshot policy remains fork-equivalent."
     },
     {
       "id": "TCP-02/07",
@@ -1410,7 +2453,11 @@
       "case_ids": [
         "@all-cleanup"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:tcp_talk"
+      ],
+      "evidence_contract": "child shutdown/EOF no owner FD leak; TCP connection reuse/failover is unchanged under source binding and hostname-expanded list; snapshot policy remains fork-equivalent."
     },
     {
       "id": "FILE-01/01",
@@ -1419,7 +2466,12 @@
       "case_ids": [
         "file-mixed-directives"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:read_servers_file",
+        "network.c:check_servers"
+      ],
+      "evidence_contract": "hostname A/AAAA expansion; servers-file resolves full endpoint grammar at INIT and SIGHUP, logs bad rows and continues, preserves source-specific replacement ordering."
     },
     {
       "id": "FILE-01/02",
@@ -1429,7 +2481,12 @@
         "system-resolver-nxdomain",
         "file-errors-continue"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:read_servers_file",
+        "network.c:check_servers"
+      ],
+      "evidence_contract": "error hostname row followed valid numeric row; servers-file resolves full endpoint grammar at INIT and SIGHUP, logs bad rows and continues, preserves source-specific replacement ordering."
     },
     {
       "id": "FILE-01/03",
@@ -1439,7 +2496,12 @@
         "file-errors-continue",
         "file-partial-success-before-scope-error"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:read_servers_file",
+        "network.c:check_servers"
+      ],
+      "evidence_contract": "strict scope valid/error rows; servers-file resolves full endpoint grammar at INIT and SIGHUP, logs bad rows and continues, preserves source-specific replacement ordering."
     },
     {
       "id": "FILE-01/04",
@@ -1448,7 +2510,12 @@
       "case_ids": [
         "file-source-snapshot"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:read_servers_file",
+        "network.c:check_servers"
+      ],
+      "evidence_contract": "explicit source address/interface/port; servers-file resolves full endpoint grammar at INIT and SIGHUP, logs bad rows and continues, preserves source-specific replacement ordering."
     },
     {
       "id": "FILE-01/05",
@@ -1458,7 +2525,12 @@
         "server-service-named-v4-source",
         "server-service-named-v6-source"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:read_servers_file",
+        "network.c:check_servers"
+      ],
+      "evidence_contract": "mismatched resolved source family skipped; servers-file resolves full endpoint grammar at INIT and SIGHUP, logs bad rows and continues, preserves source-specific replacement ordering."
     },
     {
       "id": "FILE-01/06",
@@ -1467,7 +2539,12 @@
       "case_ids": [
         "file-errors-continue"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:read_servers_file",
+        "network.c:check_servers"
+      ],
+      "evidence_contract": "invalid numeric family row followed valid row; servers-file resolves full endpoint grammar at INIT and SIGHUP, logs bad rows and continues, preserves source-specific replacement ordering."
     },
     {
       "id": "FILE-01/07",
@@ -1476,7 +2553,12 @@
       "case_ids": [
         "file-hosts-hup-no-auto"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:read_servers_file",
+        "network.c:check_servers"
+      ],
+      "evidence_contract": "changes /etc/hosts before HUP alter expansion; servers-file resolves full endpoint grammar at INIT and SIGHUP, logs bad rows and continues, preserves source-specific replacement ordering."
     },
     {
       "id": "FILE-01/08",
@@ -1485,7 +2567,12 @@
       "case_ids": [
         "file-hosts-hup-no-auto"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:read_servers_file",
+        "network.c:check_servers"
+      ],
+      "evidence_contract": "no automatic reload after file write; servers-file resolves full endpoint grammar at INIT and SIGHUP, logs bad rows and continues, preserves source-specific replacement ordering."
     },
     {
       "id": "FILE-01/09",
@@ -1495,14 +2582,27 @@
         "file-mixed-directives",
         "file-source-snapshot"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:read_servers_file",
+        "network.c:check_servers"
+      ],
+      "evidence_contract": "duplicate/order/replacement with inline server/local/rev rules; servers-file resolves full endpoint grammar at INIT and SIGHUP, logs bad rows and continues, preserves source-specific replacement ordering."
     },
     {
       "id": "OWNER-01/01",
       "boundary": "OWNER-01",
       "required_case": "slow getaddrinfo startup readiness gate",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "slow-lookup-startup-readiness"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:parse_server",
+        "option.c:read_servers_file",
+        "dnsmasq.c:set_dns_listeners"
+      ],
+      "evidence_contract": "slow getaddrinfo startup readiness gate; No name-resolution or source-bind retry may block live single poll owner; startup can resolve before service loop."
     },
     {
       "id": "OWNER-01/02",
@@ -1511,7 +2611,13 @@
       "case_ids": [
         "slow-lookup-owner-dns-dhcp-tftp"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:parse_server",
+        "option.c:read_servers_file",
+        "dnsmasq.c:set_dns_listeners"
+      ],
+      "evidence_contract": "slow runtime hostname lookup while UDP DNS serves; No name-resolution or source-bind retry may block live single poll owner; startup can resolve before service loop."
     },
     {
       "id": "OWNER-01/03",
@@ -1520,28 +2626,60 @@
       "case_ids": [
         "slow-lookup-owner-dns-dhcp-tftp"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:parse_server",
+        "option.c:read_servers_file",
+        "dnsmasq.c:set_dns_listeners"
+      ],
+      "evidence_contract": "runtime slow lookup while TCP/DHCP/TFTP progresses; No name-resolution or source-bind retry may block live single poll owner; startup can resolve before service loop."
     },
     {
       "id": "OWNER-01/04",
       "boundary": "OWNER-01",
       "required_case": "resolver worker failure/timeout/cancellation",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "lookup-owner-worker-kill",
+        "lookup-owner-timeout-recovery",
+        "lookup-owner-shutdown"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:parse_server",
+        "option.c:read_servers_file",
+        "dnsmasq.c:set_dns_listeners"
+      ],
+      "evidence_contract": "resolver worker failure/timeout/cancellation; No name-resolution or source-bind retry may block live single poll owner; startup can resolve before service loop."
     },
     {
       "id": "OWNER-01/05",
       "boundary": "OWNER-01",
       "required_case": "repeated HUP while lookup active bounded queue",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "lookup-owner-burst"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:parse_server",
+        "option.c:read_servers_file",
+        "dnsmasq.c:set_dns_listeners"
+      ],
+      "evidence_contract": "repeated HUP while lookup active bounded queue; No name-resolution or source-bind retry may block live single poll owner; startup can resolve before service loop."
     },
     {
       "id": "OWNER-01/06",
       "boundary": "OWNER-01",
       "required_case": "shutdown while lookup active reaps owned child",
-      "case_ids": [],
-      "status": "awaiting-concrete-evidence"
+      "case_ids": [
+        "lookup-owner-shutdown"
+      ],
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:parse_server",
+        "option.c:read_servers_file",
+        "dnsmasq.c:set_dns_listeners"
+      ],
+      "evidence_contract": "shutdown while lookup active reaps owned child; No name-resolution or source-bind retry may block live single poll owner; startup can resolve before service loop."
     },
     {
       "id": "OWNER-01/07",
@@ -1551,7 +2689,13 @@
         "bad-source-address-failover",
         "bad-source-interface-failover"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:parse_server",
+        "option.c:read_servers_file",
+        "dnsmasq.c:set_dns_listeners"
+      ],
+      "evidence_contract": "source open/socket errors leave other services live; No name-resolution or source-bind retry may block live single poll owner; startup can resolve before service loop."
     },
     {
       "id": "OWNER-01/08",
@@ -1560,7 +2704,13 @@
       "case_ids": [
         "@all-parent-thread-count"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "option.c:parse_server",
+        "option.c:read_servers_file",
+        "dnsmasq.c:set_dns_listeners"
+      ],
+      "evidence_contract": "one parent daemon thread; No name-resolution or source-bind retry may block live single poll owner; startup can resolve before service loop."
     },
     {
       "id": "OBS-01/01",
@@ -1569,7 +2719,12 @@
       "case_ids": [
         "@all-source-tuples"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:reply_query",
+        "network.c:local_bind"
+      ],
+      "evidence_contract": "source and destination tuple captured on actual upstream receives; Freeze exact C expected outcomes, source packet address/port, syntax diagnostics and identities; every required case needs concrete evidence."
     },
     {
       "id": "OBS-01/02",
@@ -1578,7 +2733,12 @@
       "case_ids": [
         "@negative-controls"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:reply_query",
+        "network.c:local_bind"
+      ],
+      "evidence_contract": "source bind negative control; Freeze exact C expected outcomes, source packet address/port, syntax diagnostics and identities; every required case needs concrete evidence."
     },
     {
       "id": "OBS-01/03",
@@ -1587,7 +2747,12 @@
       "case_ids": [
         "@negative-controls"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:reply_query",
+        "network.c:local_bind"
+      ],
+      "evidence_contract": "missing-expanded-address negative control; Freeze exact C expected outcomes, source packet address/port, syntax diagnostics and identities; every required case needs concrete evidence."
     },
     {
       "id": "OBS-01/04",
@@ -1596,7 +2761,12 @@
       "case_ids": [
         "@negative-controls"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:reply_query",
+        "network.c:local_bind"
+      ],
+      "evidence_contract": "wrong shared port/pool rotation negative control; Freeze exact C expected outcomes, source packet address/port, syntax diagnostics and identities; every required case needs concrete evidence."
     },
     {
       "id": "OBS-01/05",
@@ -1605,7 +2775,12 @@
       "case_ids": [
         "file-hosts-hup-no-auto"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:reply_query",
+        "network.c:local_bind"
+      ],
+      "evidence_contract": "stale serverfile rule negative control; Freeze exact C expected outcomes, source packet address/port, syntax diagnostics and identities; every required case needs concrete evidence."
     },
     {
       "id": "OBS-01/06",
@@ -1614,7 +2789,12 @@
       "case_ids": [
         "@all-cleanup"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:reply_query",
+        "network.c:local_bind"
+      ],
+      "evidence_contract": "readiness/lifecycle and leaked child negative controls; Freeze exact C expected outcomes, source packet address/port, syntax diagnostics and identities; every required case needs concrete evidence."
     },
     {
       "id": "OBS-01/07",
@@ -1623,7 +2803,12 @@
       "case_ids": [
         "@archive-verification"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:reply_query",
+        "network.c:local_bind"
+      ],
+      "evidence_contract": "raw archive SHA+metadata verification before remote prune; Freeze exact C expected outcomes, source packet address/port, syntax diagnostics and identities; every required case needs concrete evidence."
     },
     {
       "id": "OBS-01/08",
@@ -1632,7 +2817,12 @@
       "case_ids": [
         "@candidate-identity"
       ],
-      "status": "awaiting-concrete-evidence"
+      "status": "awaiting-concrete-evidence",
+      "source_anchors": [
+        "forward.c:reply_query",
+        "network.c:local_bind"
+      ],
+      "evidence_contract": "per-family ELF identity and size increment; Freeze exact C expected outcomes, source packet address/port, syntax diagnostics and identities; every required case needs concrete evidence."
     }
   ]
 }
