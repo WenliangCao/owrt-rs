@@ -456,6 +456,22 @@ impl DatagramSocket {
         Self::bind_options(address, reuse, reuse)
     }
 
+    /// dhcp-common.c bindtodevice passes the terminated name, capped at IFNAMSIZ.
+    /// The caller applies C's EPERM policy and retains any runtime retry state.
+    pub fn bind_device(&self, device: &[u8]) -> io::Result<()> {
+        let name = std::ffi::CString::new(device).map_err(|_| {
+            io::Error::new(io::ErrorKind::InvalidInput, "interface name contains NUL")
+        })?;
+        let bytes = name.as_bytes_with_nul();
+        let length = bytes.len().min(16) as u32;
+        // SAFETY: SO_BINDTODEVICE reads at most IFNAMSIZ bytes from the live
+        // CString; the socket owns its fd and setsockopt retains no pointer.
+        if unsafe { setsockopt(self.as_raw_fd(), 1, 25, bytes.as_ptr().cast(), length) } < 0 {
+            return Err(io::Error::last_os_error());
+        }
+        Ok(())
+    }
+
     fn bind_options(
         address: SocketAddr,
         reuse_address: bool,
