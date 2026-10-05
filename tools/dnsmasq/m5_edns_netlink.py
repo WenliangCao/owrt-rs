@@ -29,7 +29,7 @@ def fixture(sequence, pid, length, interface=2, done=True):
     return packet
 
 
-def trace(pid, output, mode, length):
+def trace(pid, output, mode, length, interface):
     if platform.machine() != 'aarch64':
         raise RuntimeError('netlink ptrace ABI pinned to AArch64 image')
     class Iovec(ctypes.Structure):
@@ -47,7 +47,7 @@ def trace(pid, output, mode, length):
     def regs(write=False):
         value = Iovec(ctypes.addressof(registers), ctypes.sizeof(registers))
         ptrace(0x4205 if write else 0x4204, 1, ctypes.addressof(value))
-    report = {'pid': pid, 'mode': mode, 'mac_length': length, 'requests': [], 'receives': [], 'injected': False}
+    report = {'pid': pid, 'mode': mode, 'mac_length': length, 'interface': interface, 'requests': [], 'receives': [], 'injected': False}
     attached = False
     memory = None
     request = None
@@ -104,12 +104,14 @@ def trace(pid, output, mode, length):
                     original = read(buffer, min(returned, capacity))
                     report['original_wire'] = original.hex()
                     original_pid = struct.unpack_from('=I', original, 12)[0]
-                    packet = fixture(request[1], original_pid, length)
+                    packet = fixture(request[1], original_pid, length, interface)
                     if mode == 'error':
                         packet = struct.pack('=IHHIIi', 20, 2, 2, request[1], original_pid, -errno.EIO)
                     elif mode == 'partial-error':
-                        packet = fixture(request[1], original_pid, length, done=False)
+                        packet = fixture(request[1], original_pid, length, interface, done=False)
                         packet += struct.pack('=IHHIIi', 20, 2, 2, request[1], original_pid, -errno.EIO)
+                    elif mode == 'hold':
+                        packet = fixture(request[1], original_pid, length, interface, done=False)
                     if mode in ('error', 'partial-error'):
                         packet += struct.pack('=IHHIIi', 20, 3, 2, request[1], original_pid, 0)
                     if len(packet) > capacity:
@@ -139,7 +141,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--pid', type=int, required=True)
     parser.add_argument('--out', type=Path, required=True)
-    parser.add_argument('--mode', choices=['complete', 'error', 'partial-error'], default='complete')
+    parser.add_argument('--mode', choices=['complete', 'error', 'partial-error', 'hold'], default='complete')
     parser.add_argument('--length', type=int, default=6)
+    parser.add_argument('--interface', type=int, default=2)
     args = parser.parse_args()
-    raise SystemExit(trace(args.pid, args.out, args.mode, args.length))
+    raise SystemExit(trace(args.pid, args.out, args.mode, args.length, args.interface))

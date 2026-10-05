@@ -217,6 +217,8 @@ for label,reply in [
  ('reply-ecs-tcp-local-fallback','address'),
 ]: case('ecs','add-subnet=24,56',label,opts=None if label=='reply-ecs-check-before-strip' else b'',response=reply,tcp=label=='reply-ecs-tcp-local-fallback')
 case('ecs-fixed','add-subnet=198.51.100.255/25,2001:db8:1234::ffff/65','reply-ecs-fixed-check',opts=b'',response='scope')
+case('ecs','add-subnet=24,56','reply-ecs-mismatch-recovery',opts=b'',repeat=2,
+     response_steps=['mismatch-then-valid','echo'])
 for label,kw in [
  ('capacity-new-exact',{'target_size':491}),('capacity-new-minus-one',{'target_size':492}),
  ('capacity-existing-exact',{'target_size':502,'opts':b''}),
@@ -284,7 +286,10 @@ for label, directive, length, mode, tcp in [
  ('neighbor-dump-error-progress','add-mac',6,'error',False),
  ('neighbor-udp-query-park-resume','add-mac',6,'complete',False),
  ('neighbor-tcp-accept-park-snapshot','add-mac',6,'complete',True),
-]: case('inject-'+label,directive,label,opts=b'',inject=mode,mac_length=length,tcp=tcp)
+]: case('inject-'+label,directive,label,opts=b'',inject=mode,mac_length=length,tcp=tcp,
+        neighbor_interface=999 if label=='neighbor-ip-not-interface' else 2)
+for label in ['neighbor-dump-timeout-progress','neighbor-refresh-nonblocking','neighbor-stop-pending-cleanup']:
+    case('inject-'+label,'add-mac',label,opts=b'',inject='hold',action='pending-dump',source='192.0.2.18')
 
 class Upstream:
     """Test-only selector thread, bounded shutdown; product stays single poll."""
@@ -395,7 +400,7 @@ def exchange(port,packet,tcp=False,ipv6=False,source=None):
         except (socket.timeout,ConnectionError,ConnectionResetError):return None
 
 def packet_for(row,index):
-    excluded={'action','inject','mac_length','sources','case','tcp','ipv6','source','repeat','host','coalesce','same_socket','response','transports','target_size','nonfinal'}
+    excluded={'action','inject','mac_length','neighbor_interface','sources','case','tcp','ipv6','source','repeat','host','coalesce','same_socket','response','response_steps','transports','target_size','nonfinal'}
     params={k:v for k,v in row.items() if k not in excluded}
     host=row.get('host',row['case']+'.edns.test')
     packet=query(host,0x6200+index,**params)
@@ -477,9 +482,10 @@ def diagnostics(data):
 def start_netlink_fixture(pid, folder, row):
     output=folder/(row['case']+'.netlink.json')
     log=(folder/(row['case']+'.netlink.stderr')).open('wb')
-    tracer=subprocess.Popen([sys.executable,str(Path(__file__).with_name('m5_edns_netlink.py')),
+    tracer=subprocess.Popen([sys.executable,str(folder.parent/'drivers'/'m5_edns_netlink.py'),
                              '--pid',str(pid),'--out',str(output),'--mode',row['inject'],
-                             '--length',str(row.get('mac_length',6))],stdout=log,stderr=log)
+                             '--length',str(row.get('mac_length',6)),
+                             '--interface',str(row.get('neighbor_interface',2))],stdout=log,stderr=log)
     deadline=time.monotonic()+4
     while not output.with_suffix('.ready').exists():
         if tracer.poll() is not None or time.monotonic()>deadline:
@@ -488,11 +494,40 @@ def start_netlink_fixture(pid, folder, row):
         time.sleep(.01)
     return tracer,log,output
 
+def pending_neighbor_schedule(port,packet,row,process,fixture,side):
+    tracer,_,output=fixture
+    with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as client:
+        client.settimeout(3.5);client.bind((row['source'],0));client.connect((LISTEN4,port))
+        start=time.monotonic();client.send(packet)
+        deadline=time.monotonic()+4
+        while not output.exists():
+            if tracer.poll() is not None or time.monotonic()>deadline:raise AssertionError('pending netlink fixture was not injected')
+            time.sleep(.01)
+        # Existing positive CLIENT4 remains usable while an unrelated address
+        # waits for completion. C is synchronously blocked inside netlink_recv.
+        health=exchange(port,query('local.edns.test',0x6700))
+        witness={'health_while_pending':serial(norm(health)),'side':side}
+        if row['case']=='neighbor-stop-pending-cleanup':
+            process.send_signal(signal.SIGTERM)
+            try:process.wait(.7)
+            except subprocess.TimeoutExpired:process.kill();process.wait(2);witness['forced_kill']=True
+            witness['stop_exit']=process.returncode
+            return [],[witness]
+        try:reply=client.recv(65535)
+        except socket.timeout:reply=None
+        witness['elapsed_seconds']=time.monotonic()-start
+        if side=='rust' and (health is None or reply is None):raise AssertionError('Rust owner progress/timeout fallback failed')
+        if side=='c' and (health is not None or reply is not None):raise AssertionError('C no-DONE synchronous boundary changed')
+        return [serial(norm(reply))],[witness]
+
 def run(args):
     if os.geteuid()!=0 or os.environ.get('DNSMASQ_TEST_ISOLATED')!='1':raise ValueError('run through run_isolated.sh')
     network();out=args.out.resolve()
     if out.exists() or 'private' not in out.parts:raise ValueError('fresh private output required')
     out.mkdir(parents=True);root=prepare(args.image_root,None,out,args.rust)
+    drivers=out/'drivers';drivers.mkdir()
+    for filename in ['m5_edns.py','m5_edns.json','m5_edns_netlink.py']:
+        (drivers/filename).write_bytes(Path(__file__).with_name(filename).read_bytes())
     report={'side':args.side,'c_sha256':STOCK_SHA256,'rust_sha256':sha256(args.rust),'syntax':[],'profiles':[],'executed_cases':[],'failures':[]}
     pattern=re.compile(args.only or '.')
     for label,directive in SYNTAX:
@@ -523,8 +558,13 @@ def run(args):
                 label=row['case'];packet=packet_for(row,index);upstream.behaviors[label]=row
                 (folder/f'{label}.query').write_bytes(packet)
                 before=len(upstream.events);replies=[]
+                if row.get('action')=='pending-dump':
+                    if exchange(port,query('local.edns.test',0x6601)) is None:raise AssertionError('warm positive neighbor health failed')
                 fixture=start_netlink_fixture(process.pid,folder,row) if row.get('inject') else None
-                if row.get('action'):
+                if row.get('action')=='pending-dump':
+                    replies,witness=pending_neighbor_schedule(port,packet,row,process,fixture,args.side)
+                    trace.setdefault('action_witness',[]).append({'case':label,'witness':witness})
+                elif row.get('action'):
                     replies,witness=neighbor_schedule(port,packet,row)
                     trace.setdefault('action_witness',[]).append({'case':label,'witness':witness})
                 elif row.get('coalesce'):
@@ -533,6 +573,8 @@ def run(args):
                 else:
                     transports=row.get('transports',[('tcp' if row.get('tcp') else 'udp')]*row.get('repeat',1))
                     for step,transport in enumerate(transports):
+                        if row.get('response_steps'):
+                            upstream.behaviors[label]=dict(row,response=row['response_steps'][step])
                         wire=struct.pack('!H',0x6200+index+step)+packet[2:]
                         reply=exchange(port,wire,transport=='tcp',row.get('ipv6',False),row.get('sources',[row.get('source')]*len(transports))[step])
                         if reply is not None:(folder/f'{label}-{step}.reply').write_bytes(reply)
@@ -545,9 +587,10 @@ def run(args):
                     proof=json.loads(tracer_output.read_text())
                     if tracer.returncode or not proof['injected']:raise AssertionError('required netlink injection unproven')
                     trace.setdefault('injection_witness',[]).append({'case':label,'proof':proof})
-                    health=exchange(port,query('local.edns.test',0x6600+index))
-                    if health is None:raise AssertionError('DNS health failed after neighbor fixture')
-                    trace.setdefault('health_witness',[]).append({'case':label,'reply':serial(norm(health))})
+                    if row.get('action')!='pending-dump':
+                        health=exchange(port,query('local.edns.test',0x6600+index))
+                        if health is None:raise AssertionError('DNS health failed after neighbor fixture')
+                        trace.setdefault('health_witness',[]).append({'case':label,'reply':serial(norm(health))})
                 trace['rows'].append({'case':label,'query':serial(norm(packet)),'replies':replies,'upstream_delta':len(upstream.events)-before})
                 report['executed_cases'].append(label)
         except Exception as error:
@@ -562,27 +605,177 @@ def run(args):
             if (root/'m2/edns.pid').exists():(root/'m2/edns.pid').unlink()
             if (root/'m2/edns.log').exists():(folder/'daemon.log').write_bytes((root/'m2/edns.log').read_bytes());(root/'m2/edns.log').unlink()
         (folder/'trace.json').write_text(json.dumps(trace,indent=2)+'\n');report['profiles'].append(trace)
-    manifest=json.loads(Path(__file__).with_suffix('.json').read_text());required={c for b in manifest['boundaries'] for c in b['required_cases']}
+    manifest=json.loads((drivers/'m5_edns.json').read_text());required={c for b in manifest['boundaries'] for c in b['required_cases']}
     report['missing_required_cases']=sorted(required-set(report['executed_cases']));report['required_count']=len(required)
-    report['driver_sha256']=sha256(__file__);report['manifest_sha256']=sha256(Path(__file__).with_suffix('.json'))
-    report['netlink_driver_sha256']=sha256(Path(__file__).with_name('m5_edns_netlink.py'))
+    report['driver_sha256']=sha256(drivers/'m5_edns.py');report['manifest_sha256']=sha256(drivers/'m5_edns.json')
+    report['netlink_driver_sha256']=sha256(drivers/'m5_edns_netlink.py')
     (out/'result.json').write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps({'side':args.side,'executed':len(report['executed_cases']),'missing':len(report['missing_required_cases']),'failures':report['failures']}))
     return 1 if report['failures'] else 0
 
-def compare(args):
-    left=json.loads((args.c/'result.json').read_text());right=json.loads((args.candidate/'result.json').read_text())
-    diffs=[]
-    if left['executed_cases']!=right['executed_cases']:diffs.append({'kind':'executed-case-map','c':left['executed_cases'],'rust':right['executed_cases']})
+def case_observations(report):
+    rows={}
+    for profile in report['profiles']:
+        offset=0
+        for row in profile['rows']:
+            count=row['upstream_delta']
+            events=[{k:v for k,v in event.items() if k!='wire'} for event in profile['upstream'][offset:offset+count]]
+            rows[row['case']]={'row':row,'upstream':events,'profile':profile}
+            offset+=count
+        if offset!=len(profile['upstream']):raise ValueError('unmapped upstream observations')
+    return rows
+
+def canonical_case(value,label):
+    """Compare different fixture names using exact C packet semantics."""
+    if isinstance(value,list):return [canonical_case(item,label) for item in value]
+    if isinstance(value,dict):
+        return {key:(item-len(label)+len('control') if key=='bytes' else canonical_case(item,label))
+                for key,item in value.items()}
+    if isinstance(value,str):return value.replace(label+'.edns.test','control.edns.test')
+    return value
+
+def normalized_observation(observation,label):
+    row={k:v for k,v in observation['row'].items() if k!='case'}
+    return canonical_case({'row':row,'upstream':observation['upstream']},label)
+
+def injection_proof(profile,label):
+    return next((item['proof'] for item in profile.get('injection_witness',[]) if item['case']==label),{})
+
+def action_proof(profile,label):
+    return next((item['witness'][0] for item in profile.get('action_witness',[])
+                 if item['case']==label and item['witness']),{})
+
+def fixture_stream(wire):
+    """Clear only per-process netlink sequence/pid; retain every other byte."""
+    try:packet=bytearray.fromhex(wire)
+    except ValueError:return None
+    at=0;types=[]
+    while at<len(packet):
+        if len(packet)-at<16:return None
+        size,kind=struct.unpack_from('=IH',packet,at)
+        if size<16 or at+size>len(packet):return None
+        packet[at+8:at+16]=b'\0'*8;types.append(kind);at+=(size+3)&~3
+    return bytes(packet),types
+
+def guarded_reference_difference(label,c,r,cases):
+    left,right=c['row'],r['row']
+    if left['query']!=right['query']:return None
+    if label in ('coalesce-ecs-distinct-ip','coalesce-mac-distinct-ip','coalesce-umbrella-distinct-ip'):
+        control=cases.get(label+'-independent')
+        if not control:return None
+        expected=normalized_observation(control,label+'-independent')
+        actual=normalized_observation(r,label)
+        reference=normalized_observation(c,label)
+        if (expected==actual and expected['row']['upstream_delta']==2
+            and expected['row']['replies'][0]!=expected['row']['replies'][1]
+            and reference['row']['upstream_delta']==1
+            and reference['row']['replies']==[expected['row']['replies'][0]]*2
+            and reference['upstream']==expected['upstream'][:1]):
+            return 'source-sensitive-coalescing'
+    if label=='neighbor-invalid-partial-dump':
+        cp,rp=injection_proof(c['profile'],label),injection_proof(r['profile'],label)
+        complete=cases.get('neighbor-valid-complete-dump');absent=cases.get('raw-unknown')
+        cs,rs=fixture_stream(cp.get('wire','')),fixture_stream(rp.get('wire',''))
+        if (complete and absent and cp.get('injected') and rp.get('injected')
+            and cp.get('mode')==rp.get('mode')=='partial-error'
+            and cs is not None and cs==rs and cs[1]==[28,2,3]
+            and normalized_observation(c,label)==normalized_observation(complete,'neighbor-valid-complete-dump')
+            and normalized_observation(r,label)==normalized_observation(absent,'raw-unknown')):
+            return 'netlink-partial-error-publication'
+    if label in ('neighbor-dump-timeout-progress','neighbor-refresh-nonblocking','neighbor-stop-pending-cleanup'):
+        cp,rp=injection_proof(c['profile'],label),injection_proof(r['profile'],label)
+        ca,ra=action_proof(c['profile'],label),action_proof(r['profile'],label)
+        if not (cp.get('injected') and rp.get('injected') and cp.get('mode')==rp.get('mode')=='hold'
+                and cp.get('mac_length')==rp.get('mac_length')==6
+                and ca.get('health_while_pending')==norm(None)
+                and ra.get('health_while_pending',{}).get('records')
+                and c['profile']['exit']==-signal.SIGKILL and r['profile']['exit']==0):return None
+        # Kernel sequence and recipient pid differ; the payload/type stream
+        # must be identical after clearing those two header identity fields.
+        if fixture_stream(cp.get('wire','')) is None or fixture_stream(rp.get('wire','')) is None:return None
+        cs,ct=fixture_stream(cp['wire']);rs,rt=fixture_stream(rp['wire'])
+        if cs!=rs or ct!=rt or 3 in ct:return None
+        if label=='neighbor-stop-pending-cleanup':
+            if ca.get('forced_kill') and ca.get('stop_exit')==-signal.SIGKILL and ra.get('stop_exit')==0:
+                return 'netlink-missing-done-owner-stall'
+        else:
+            absent=cases.get('raw-unknown')
+            if (absent and left['replies']==[norm(None)] and left['upstream_delta']==0
+                and normalized_observation(r,label)==normalized_observation(absent,'raw-unknown')
+                and 0<ra.get('elapsed_seconds',100)<4.2):
+                return 'netlink-missing-done-owner-stall'
+    return None
+
+def comparison_result(left,right,manifest):
+    diffs=[];references=[]
+    required={case for boundary in manifest['boundaries'] for case in boundary['required_cases']}
+    missing=sorted(required-set(left['executed_cases']) | required-set(right['executed_cases']))
+    if left.get('side')!='c' or left.get('c_sha256')!=STOCK_SHA256 or right.get('side')!='rust':
+        diffs.append({'kind':'reference-identity'})
+    if not re.fullmatch('[0-9a-f]{64}',right.get('rust_sha256','')):diffs.append({'kind':'candidate-identity'})
+    for key in ['driver_sha256','manifest_sha256','netlink_driver_sha256']:
+        if not left.get(key) or left.get(key)!=right.get(key):diffs.append({'kind':'driver-identity','field':key})
+    if left['executed_cases']!=right['executed_cases']:diffs.append({'kind':'executed-case-map'})
+    if left['failures'] or right['failures']:diffs.append({'kind':'fixture-failure','c':left['failures'],'rust':right['failures']})
     for a,b in zip(left['syntax'],right['syntax']):
         if a!=b:diffs.append({'kind':'syntax','c':a,'rust':b})
-    for a,b in zip(left['profiles'],right['profiles']):
-        if a['rows']!=b['rows']:diffs.append({'kind':'rows','profile':a['profile'],'c':a['rows'],'rust':b['rows']})
-        an=[{k:v for k,v in e.items() if k!='wire'} for e in a['upstream']];bn=[{k:v for k,v in e.items() if k!='wire'} for e in b['upstream']]
-        if an!=bn:diffs.append({'kind':'upstream','profile':a['profile'],'c':an,'rust':bn})
-        for side,t in [('c',a),('rust',b)]:
-            if t['exit']!=0 or t.get('failure') or t['upstream_errors']:diffs.append({'kind':'lifecycle','profile':a['profile'],'side':side,'trace':t})
-    result={'c_identity':left['c_sha256'],'candidate_identity':right['rust_sha256'],'executed':len(left['executed_cases']),'missing':left['missing_required_cases'],'differences':diffs,'qualified':not diffs and not left['missing_required_cases'] and not right['missing_required_cases']}
+    crows,rrows=case_observations(left),case_observations(right)
+    if crows.keys()!=rrows.keys():diffs.append({'kind':'runtime-case-map'})
+    for label in sorted(crows.keys() & rrows.keys()):
+        c,r=crows[label],rrows[label]
+        reference=guarded_reference_difference(label,c,r,crows)
+        if reference:references.append({'case':label,'reference_defect':reference,'guard':'passed'})
+        elif c['row']!=r['row'] or c['upstream']!=r['upstream']:
+            diffs.append({'kind':'case','case':label,'c':{'row':c['row'],'upstream':c['upstream']},
+                          'rust':{'row':r['row'],'upstream':r['upstream']}})
+        for side,profile in [('c',c['profile']),('rust',r['profile'])]:
+            accepted_stop=reference=='netlink-missing-done-owner-stall' and side=='c'
+            if (profile['exit']!=0 and not accepted_stop) or profile.get('failure') or profile['upstream_errors']:
+                diffs.append({'kind':'lifecycle','case':label,'side':side,'exit':profile['exit']})
+        for side,profile in [('c',c['profile']),('rust',r['profile'])]:
+            row=next((item for spec in PROFILES.values() for item in spec['cases'] if item['case']==label),{})
+            if row.get('inject') and not injection_proof(profile,label).get('injected'):
+                diffs.append({'kind':'missing-injection-proof','case':label,'side':side})
+    return {'c_identity':left['c_sha256'],'candidate_identity':right['rust_sha256'],
+            'executed':len(left['executed_cases']),'required':len(required),'missing':missing,
+            'reference_differences':references,'differences':diffs,'qualified':not diffs and not missing}
+
+def negative_controls(args):
+    left=json.loads((args.c/'result.json').read_text());right=json.loads((args.candidate/'result.json').read_text())
+    manifest=json.loads(Path(__file__).with_suffix('.json').read_text())
+    if not comparison_result(left,right,manifest)['qualified']:raise ValueError('negative controls need a fully qualified unmodified pair')
+    results=[]
+    def check(label,edit,side='rust'):
+        c,r=copy.deepcopy(left),copy.deepcopy(right);edit(c if side=='c' else r)
+        try:result=comparison_result(c,r,manifest);rejected=not result['qualified']
+        except (ValueError,KeyError,TypeError,struct.error):rejected=True
+        if not rejected:raise AssertionError('qualification accepted corrupt evidence: '+label)
+        results.append({'control':label,'rejected':True})
+    for field in ['c_sha256','driver_sha256','manifest_sha256','netlink_driver_sha256']:
+        check('identity-'+field,lambda x,field=field:x.__setitem__(field,'0'*64),side='c')
+    check('candidate-identity',lambda x:x.__setitem__('rust_sha256',''))
+    check('missing-required',lambda x:x['executed_cases'].pop())
+    check('fixture-failure',lambda x:x['failures'].append({'injected':'failure'}))
+    check('syntax-exit',lambda x:x['syntax'][0].__setitem__('exit',1))
+    check('source-independent-control',lambda x:case_observations(x)['coalesce-mac-distinct-ip-independent']['row']['replies'].__setitem__(1,
+          copy.deepcopy(case_observations(x)['coalesce-mac-distinct-ip-independent']['row']['replies'][0])),side='c')
+    for label in ['coalesce-ecs-distinct-ip','coalesce-mac-distinct-ip','coalesce-umbrella-distinct-ip']:
+        check(label+'-recipient-leak',lambda x,label=label:case_observations(x)[label]['row']['replies'].__setitem__(1,
+              copy.deepcopy(case_observations(x)[label]['row']['replies'][0])))
+    for label in ['neighbor-invalid-partial-dump','neighbor-dump-timeout-progress','neighbor-refresh-nonblocking','neighbor-stop-pending-cleanup']:
+        check(label+'-unproven-fixture',lambda x,label=label:injection_proof(case_observations(x)[label]['profile'],label).__setitem__('injected',False))
+    check('held-owner-health',lambda x:action_proof(case_observations(x)['neighbor-refresh-nonblocking']['profile'],'neighbor-refresh-nonblocking').__setitem__('health_while_pending',norm(None)))
+    check('held-owner-timeout',lambda x:action_proof(case_observations(x)['neighbor-dump-timeout-progress']['profile'],'neighbor-dump-timeout-progress').__setitem__('elapsed_seconds',99))
+    check('held-owner-stop',lambda x:action_proof(case_observations(x)['neighbor-stop-pending-cleanup']['profile'],'neighbor-stop-pending-cleanup').__setitem__('stop_exit',-9))
+    check('partial-fixture-bytes',lambda x:injection_proof(case_observations(x)['neighbor-invalid-partial-dump']['profile'],'neighbor-invalid-partial-dump').__setitem__('wire','00'))
+    check('ordinary-lifecycle',lambda x:x['profiles'][0].__setitem__('exit',-9))
+    args.out.parent.mkdir(parents=True,exist_ok=True);args.out.write_text(json.dumps({'passed':len(results),'controls':results},indent=2)+'\n')
+    print(json.dumps({'negative_controls':len(results),'passed':True}));return 0
+
+def compare(args):
+    left=json.loads((args.c/'result.json').read_text());right=json.loads((args.candidate/'result.json').read_text())
+    manifest=json.loads(Path(__file__).with_suffix('.json').read_text())
+    result=comparison_result(left,right,manifest);diffs=result['differences']
     args.out.parent.mkdir(parents=True,exist_ok=True);args.out.write_text(json.dumps(result,indent=2)+'\n')
     print(json.dumps({'differences':len(diffs),'qualified':result['qualified'],'executed':result['executed'],'missing':len(result['missing'])}))
     return int(bool(diffs))
@@ -591,5 +784,6 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__);sub=parser.add_subparsers(dest='action',required=True)
     p=sub.add_parser('run');p.add_argument('--side',choices=['c','rust'],required=True);p.add_argument('--image-root',type=Path,required=True);p.add_argument('--rust',type=Path,required=True);p.add_argument('--out',type=Path,required=True);p.add_argument('--only')
     p=sub.add_parser('compare');p.add_argument('--c',type=Path,required=True);p.add_argument('--candidate',type=Path,required=True);p.add_argument('--out',type=Path,required=True)
-    args=parser.parse_args();raise SystemExit(run(args) if args.action=='run' else compare(args))
+    p=sub.add_parser('negative-controls');p.add_argument('--c',type=Path,required=True);p.add_argument('--candidate',type=Path,required=True);p.add_argument('--out',type=Path,required=True)
+    args=parser.parse_args();raise SystemExit({'run':run,'compare':compare,'negative-controls':negative_controls}[args.action](args))
 if __name__=='__main__':main()
