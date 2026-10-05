@@ -554,14 +554,32 @@ pub(crate) fn discover_counted(
             existing_id.and_then(|id| store.get_by_id(id)?.identity.client_id.clone());
     }
     let static_address = request.host.and_then(|host| {
-        host.address.filter(|address| {
-            store.get(*address).is_none_or(|occupant| {
-                Some(occupant.id()) == existing_id || host.has_hardware(&occupant.identity)
-            }) && ranges.first().is_none_or(|range| range.router != *address)
-                && host
-                    .declined_at
-                    .is_none_or(|time| env.now.saturating_sub(time) >= DECLINE_BACKOFF)
-        })
+        let address = host.address?;
+        let message = if let Some(occupant) = store.get(address).filter(|occupant| {
+            Some(occupant.id()) != existing_id && !host.has_hardware(&occupant.identity)
+        }) {
+            let hardware = super::logging::hardware(
+                occupant.identity.hardware_type as u8,
+                &occupant.identity.hardware_address,
+                occupant.identity.client_id.as_deref(),
+            );
+            Some(format!("not using configured address {address} because it is leased to {}",
+                String::from_utf8_lossy(&hardware)))
+        } else if ranges.first().is_some_and(|range| range.router == address) {
+            Some(format!("not using configured address {address} because it is in use by the server or relay"))
+        } else if host.declined_at.is_some_and(|time| env.now.saturating_sub(time) < DECLINE_BACKOFF) {
+            Some(format!("not using configured address {address} because it was previously declined"))
+        } else {
+            None
+        };
+        if let Some(message) = message {
+            if let Some(events) = events.as_deref_mut() {
+                events(LogEvent::Warning { message: message.as_bytes() });
+            }
+            None
+        } else {
+            Some(address)
+        }
     });
     let retained = existing.filter(|address| {
         available(ranges, *address, request.tags).is_some() && !request.reserved.contains(address)

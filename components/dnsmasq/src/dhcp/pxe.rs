@@ -48,6 +48,8 @@ pub enum Decision {
     /// augments do_options when architecture is Some.
     Continue(Option<Client>),
     Ignore,
+    /// A recognized boot-item request selects the unsupported BIS layer.
+    UnsupportedBis,
     BootItem {
         client: Client,
         reply: BootItemReply,
@@ -97,11 +99,16 @@ pub fn decide(
         .flatten();
     if let Some(client) = client {
         let boot_request = matches!(packet.message_type(), 3 | 8)
-            && packet
-                .option(43, 1)
-                .and_then(|options| find_option(options, 71, 4))
-                .is_some();
-        if boot_request {
+            .then(|| {
+                packet
+                    .option(43, 1)
+                    .and_then(|options| find_option(options, 71, 4))
+            })
+            .flatten();
+        if let Some(item) = boot_request {
+            if !ignored && u16::from_be_bytes([item.value[2], item.value[3]]) & 0x8000 != 0 {
+                return Decision::UnsupportedBis;
+            }
             return match boot_item(packet, services, ranges, tags, ignored, resolve) {
                 Some(reply) => Decision::BootItem { client, reply },
                 None => Decision::Ignore,
