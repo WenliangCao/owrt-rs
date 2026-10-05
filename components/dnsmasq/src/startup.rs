@@ -1,4 +1,5 @@
 //! Foreground service identity and PID lifecycle from dnsmasq.c startup.
+pub mod cli;
 use crate::config::{Directive, Error};
 use std::ffi::OsString;
 #[cfg(target_os = "linux")]
