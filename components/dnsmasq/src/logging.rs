@@ -202,6 +202,7 @@ impl Record {
 #[derive(Clone)]
 enum Destination {
     File(Arc<File>),
+    Closed,
     /// A FIFO without a reader. Opening it must not block the service owner.
     WaitingFile,
     Stderr(Arc<OwnedFd>),
@@ -214,7 +215,7 @@ impl AsRawFd for Destination {
     fn as_raw_fd(&self) -> RawFd {
         match self {
             Self::File(fd) => fd.as_raw_fd(),
-            Self::WaitingFile => -1,
+            Self::WaitingFile | Self::Closed => -1,
             Self::Stderr(fd) => fd.as_raw_fd(),
             Self::Syslog { fd, .. } => fd.as_raw_fd(),
         }
@@ -404,7 +405,11 @@ impl Logger {
     /// File and stderr ignore log-async; negative wrapped C ints cannot
     /// allocate any entries. Zero retains the single preallocated buffer.
     pub fn set_queue_limit(&mut self, limit: i32) {
-        if matches!(self.destination, Destination::Syslog { .. }) {
+        let syslog = matches!(
+            self.destination,
+            Destination::Syslog { .. } | Destination::Closed
+        );
+        if syslog {
             self.limit = if limit == 0 {
                 1
             } else {
@@ -477,7 +482,11 @@ impl Logger {
 
     fn format(&self, service: Service, priority: Priority, message: &[u8]) -> Vec<u8> {
         let mut bytes = Vec::with_capacity(MAX_MESSAGE);
-        if matches!(self.destination, Destination::Syslog { .. }) {
+        let syslog = matches!(
+            self.destination,
+            Destination::Syslog { .. } | Destination::Closed
+        );
+        if syslog {
             bytes.extend_from_slice(format!("<{}>", self.facility | priority as i32).as_bytes());
         }
         if !self.omit_timestamp {
@@ -506,11 +515,7 @@ impl Logger {
         if self.fallback && bytes.last() != Some(&b'\n') {
             bytes.push(b'\n');
         }
-        bytes.push(if matches!(self.destination, Destination::Syslog { .. }) {
-            0
-        } else {
-            b'\n'
-        });
+        bytes.push(if syslog { 0 } else { b'\n' });
         bytes
     }
 
@@ -585,7 +590,10 @@ impl Logger {
                 self.queue.pop_front();
                 continue;
             }
-            let datagram = matches!(self.destination, Destination::Syslog { stream: false, .. });
+            let datagram = matches!(
+                self.destination,
+                Destination::Syslog { stream: false, .. } | Destination::Closed
+            );
             let bytes = &record.bytes[record.offset..record.bytes.len() - usize::from(datagram)];
             self.connection_good = true;
             let result = unsafe {
@@ -654,7 +662,12 @@ impl Logger {
                     }
                 }
             }
-            if self.fallback && matches!(self.destination, Destination::Syslog { .. }) {
+            if self.fallback
+                && matches!(
+                    self.destination,
+                    Destination::Syslog { .. } | Destination::Closed
+                )
+            {
                 // libc syslog silently drops an undeliverable fallback record;
                 // it does not recursively generate another "log failed".
                 self.queue.clear();
@@ -701,13 +714,14 @@ impl Logger {
             return Ok(());
         }
         // Remove the previous file before attempting the replacement.
-        self.destination = syslog_socket(false)?;
+        self.destination = Destination::Closed;
         match open_destination(&self.config) {
             Ok(destination) => self.destination = destination,
             Err(error) => {
                 self.queue.clear();
                 self.omit_timestamp = false;
                 self.fallback = true;
+                self.destination = syslog_socket(false).unwrap_or(Destination::Closed);
                 return Err(error);
             }
         }
