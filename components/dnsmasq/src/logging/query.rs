@@ -124,6 +124,24 @@ impl QueryEvent {
     }
 }
 
+/// rfc1035.c::log_txt emits each counted string through its printable prefix.
+/// The caller supplies the selected upstream/cache RDATA without modifying it.
+pub(crate) fn txt_events(flags: u32, name: &[u8], data: &[u8], events: &mut Vec<QueryEvent>) {
+    let mut position = 0;
+    while position < data.len() {
+        let length = usize::from(data[position]);
+        let Some(text) = data.get(position + 1..position + 1 + length) else {
+            return;
+        };
+        let printable = text
+            .iter()
+            .position(|byte| !(0x20..=0x7e).contains(byte))
+            .unwrap_or(text.len());
+        events.push(QueryEvent::label(flags, name, Some(&text[..printable]), 0));
+        position += length + 1;
+    }
+}
+
 /// Producer-owned finite notices. Disabled logging adds no record allocation.
 pub(crate) struct QueryEvents {
     pub enabled: bool,
@@ -374,6 +392,30 @@ fn ede_text(value: i32) -> &'static str {
         29 => "synthesized",
         -2 => "upstream returned SERVFAIL",
         _ => "unknown",
+    }
+}
+
+#[cfg(test)]
+mod txt_producer_tests {
+    use super::*;
+
+    #[test]
+    fn selected_txt_strings_keep_case_empty_fields_and_input_bytes() {
+        let data = b"\x05hello\x06Second\x00";
+        let before = data.to_vec();
+        let mut events = Vec::new();
+        txt_events(REPLY, b"txt.test", data, &mut events);
+        assert_eq!(
+            events
+                .iter()
+                .map(|event| event.argument.as_deref().unwrap())
+                .collect::<Vec<_>>(),
+            [b"hello".as_slice(), b"Second".as_slice(), b"".as_slice()]
+        );
+        assert!(events
+            .iter()
+            .all(|event| event.flags == REPLY && event.kind == 0));
+        assert_eq!(data.as_slice(), before);
     }
 }
 

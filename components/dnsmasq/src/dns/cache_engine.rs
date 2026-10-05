@@ -1183,12 +1183,23 @@ impl CacheContext<'_> {
                 {
                     found = true;
                     if !matches!(kind, Kind::Ipv4 | Kind::Ipv6) {
-                        query_notice!(QueryEvent::label(
-                            qlog::REPLY | qlog::RRNAME,
-                            &current.dnsmasq_bytes(),
-                            None,
-                            question.qtype
-                        ));
+                        if question.qtype == 16 {
+                            if let Some(events) = notices.as_deref_mut() {
+                                qlog::txt_events(
+                                    qlog::REPLY,
+                                    &current.dnsmasq_bytes(),
+                                    rr.rdata,
+                                    events,
+                                );
+                            }
+                        } else {
+                            query_notice!(QueryEvent::label(
+                                qlog::REPLY | qlog::RRNAME,
+                                &current.dnsmasq_bytes(),
+                                None,
+                                question.qtype
+                            ));
+                        }
                     }
                     // Address replies are extracted/logged even when cache
                     // commit is disabled. Generic RDATA needs no fake decode.
@@ -1377,6 +1388,19 @@ fn record_cached(local: &mut LocalDnsService, cache: &Cache, id: super::cache::E
         return;
     };
     let record = &entry.record;
+    if record.kind == Kind::Generic(16) && !record.negative {
+        let mut events = Vec::new();
+        qlog::txt_events(
+            if entry.is_stale(now) { qlog::STALE } else { 0 },
+            &record.name.dnsmasq_bytes(),
+            &record.data,
+            &mut events,
+        );
+        for event in events {
+            local.record_query_event(event);
+        }
+        return;
+    }
     let mut flags = if entry.is_stale(now) { qlog::STALE } else { 0 };
     flags |= match record.kind {
         Kind::Ipv4 | Kind::ReverseIpv4 => qlog::IPV4,
