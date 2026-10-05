@@ -365,7 +365,8 @@ where
                     location,
                     1,
                     if origin == Origin::CommandLine {
-                        format!("bad command line options: {}", e.0)
+                        let message = if e.0 == "error" { "try --help" } else { e.0 };
+                        format!("bad command line options: {message}")
                     } else {
                         e.0.to_owned()
                     },
