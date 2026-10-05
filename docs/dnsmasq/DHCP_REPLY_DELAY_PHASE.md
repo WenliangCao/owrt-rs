@@ -1,0 +1,9 @@
+# DHCP reply delay
+
+`dhcp-reply-delay` is qualified against exact image C: **19 paired cases across 3 source boundaries**, no missing case or observation difference, and 4 mutation controls rejected. The [closure receipt](../../private/dnsmasq-rewrite/evidence/M5/dhcp-network/close-delay-955f-20261005.json) records the full source and artifact identities.
+
+The parser retains C's once-per-origin flag. Tagged rules precede untagged fallback across command-line/file origins; negation, range tags and tag-if derived tags are tested at the actual successful address-selection caller. Delay starts from the receive clock, uses C's inclusive whole-second check and four idle quarter-second polls per configured second, and services DNS/TFTP/logging through the existing owner callback without a new thread or sleep.
+
+Normal DISCOVER offers and rapid-commit ACKs wait after successful narrowing and before lease commit. The rapid-commit lease remains absent from DNS during the wait and appears after ACK. PXE proxy DISCOVER replies on 67 and REQUEST replies on 4011 also wait. Ordinary REQUEST ACK, INFORM and BOOTP bypass the delay. Actual DNS replies and TFTP DATA/ACK progress while DHCP waits. A pending TERM remains deferred until the first response; the queued second DHCP request is not processed before termination.
+
+Candidate `955f681b` has ELF SHA256 `ada5d880c538ef1af2d8ac8193ae07e192e6f5e5d57e99b147f0854ff208044c`, 1,810,472 bytes. Image C ELF SHA256 is `097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87`. Raw packets, measured intervals, entered-delay log, service and signal observations, overlays and source snapshots stay private. Archive SHA256 `7a3d0f5c502c3e90822d0d69cb9f0e392a6b95dc2228d08f916426f9320f0e52` has 601 entries / 463 regular files, verified locally for SHA256 and full metadata before remote pruning. Integer-overflow and malformed/allocator combinations remain explicitly deferred. No physical router state changed.
