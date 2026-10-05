@@ -348,6 +348,11 @@ def service_cases():
         domain_hosts('domain-interface-flag-'+label,'domain=fallback.records.test\ndomain=chosen.records.test,m5ir0\n',
             ['2001:db8:99::77','2001:db8:98::77'],topology=[v4only],initial_kernel_commands=commands,
             initial_flag={'prefix':'2001:db8:99::/64','mask':mask})
+    for label,prefix,inside,outside in [('v4','192.0.2.199/25','192.0.2.200','192.0.2.7'),
+        ('v6','2001:db8::7/65','2001:db8::8','2001:db8:0:0:8000::7')]:
+        add('domain-local-prefix-'+label,'domain=chosen.records.test,'+prefix+',local\n',
+            [('unknown.chosen.records.test',1),(ipaddress.ip_address(inside).reverse_pointer,12),
+             (ipaddress.ip_address(outside).reverse_pointer,12)],'DOM4 DOM6 DOM-CALLER')
     for option in ('domain','domain-suffix'):
         def suffix_probes(label,host='newnet'):
             return [files.probe(label+'-'+suffix,host+'.'+suffix+'.records.test',type=28 if host=='new6' else 1,transports=['udp'])
