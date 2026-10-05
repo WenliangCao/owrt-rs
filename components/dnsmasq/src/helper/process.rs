@@ -16,6 +16,13 @@ const POLLIN: i16 = 1;
 const POLLOUT: i16 = 4;
 
 #[repr(C)]
+struct PollFd {
+    fd: c_int,
+    events: i16,
+    revents: i16,
+}
+
+#[repr(C)]
 struct Passwd {
     name: *mut c_char,
     password: *mut c_char,
@@ -27,6 +34,7 @@ struct Passwd {
 }
 extern "C" {
     fn pipe2(fds: *mut c_int, flags: c_int) -> c_int;
+    fn poll(fds: *mut PollFd, count: usize, timeout: c_int) -> c_int;
     fn fcntl(fd: c_int, command: c_int, ...) -> c_int;
     fn fork() -> c_int;
     fn close(fd: c_int) -> c_int;
@@ -364,7 +372,16 @@ impl Helper {
             self.stopping = true;
         }
         if let Some(writer) = &mut self.writer {
-            if !self.pending.is_empty() {
+            // C writes only after POLLOUT. An optimistic small write can
+            // fill more pipe capacity and expose extra callbacks on TERM.
+            let mut readiness = PollFd {
+                fd: writer.as_raw_fd(),
+                events: POLLOUT,
+                revents: 0,
+            };
+            // SAFETY: one valid pollfd, zero timeout; error/hangup readiness
+            // reaches write so the existing EPIPE cleanup remains active.
+            if !self.pending.is_empty() && unsafe { poll(&mut readiness, 1, 0) } > 0 {
                 match writer.write(&self.pending[self.written..]) {
                     Ok(0) => {
                         self.pending.clear();
