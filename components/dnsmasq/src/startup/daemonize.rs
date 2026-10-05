@@ -8,6 +8,7 @@ use std::os::fd::{AsRawFd, FromRawFd};
 #[derive(Default)]
 pub struct StartupChannel {
     writer: Option<File>,
+    failure_bytes: Option<Vec<u8>>,
 }
 
 impl StartupChannel {
@@ -46,7 +47,7 @@ impl StartupChannel {
         }
         if pid > 0 {
             drop(writer);
-            return read_startup_event(&mut reader);
+            return read_startup_event(&mut reader, &mut self.failure_bytes);
         }
         drop(reader);
         self.writer = Some(writer);
@@ -74,6 +75,12 @@ impl StartupChannel {
         self.writer.take();
     }
 
+    /// Typed parent errors retain their raw Unix argument for logging and
+    /// stderr. StartupError's public String remains a diagnostic view.
+    pub fn take_failure_bytes(&mut self) -> Option<Vec<u8>> {
+        self.failure_bytes.take()
+    }
+
     pub fn fail(&mut self, code: i32, message: &str) {
         let Some(writer) = self.writer.take() else {
             return;
@@ -89,6 +96,14 @@ impl StartupChannel {
             return;
         };
         write_event(writer.as_raw_fd(), 17, errno, path);
+    }
+
+    /// EVENT_TFTP_ERR uses the same errno/optional-path fallback as LOG_ERR.
+    pub fn fail_tftp(&mut self, errno: i32, path: &[u8]) {
+        let Some(writer) = self.writer.take() else {
+            return;
+        };
+        write_event(writer.as_raw_fd(), 20, errno, path);
     }
 }
 
@@ -117,7 +132,10 @@ fn write_event(fd: i32, kind: i32, data: i32, argument: &[u8]) {
     }
 }
 
-fn read_startup_event(reader: &mut impl Read) -> Result<bool, StartupError> {
+fn read_startup_event(
+    reader: &mut impl Read,
+    failure_bytes: &mut Option<Vec<u8>>,
+) -> Result<bool, StartupError> {
     let mut header = [0; 12];
     if reader.read_exact(&mut header).is_err() {
         return Ok(true);
@@ -150,16 +168,30 @@ fn read_startup_event(reader: &mut impl Read) -> Result<bool, StartupError> {
         }
         false
     };
-    if kind == 17 {
+    if matches!(kind, 17 | 20) {
         let error = crate::logging::error_text(&io::Error::from_raw_os_error(data));
         let path = if complete && length != 0 {
-            String::from_utf8_lossy(&argument).into_owned()
+            &argument
         } else {
-            error.clone()
+            error.as_bytes()
         };
+        let mut message = if kind == 17 {
+            b"cannot open log ".to_vec()
+        } else {
+            b"TFTP directory ".to_vec()
+        };
+        message.extend_from_slice(path);
+        message.extend_from_slice(if kind == 17 {
+            b": ".as_slice()
+        } else {
+            b" inaccessible: ".as_slice()
+        });
+        message.extend_from_slice(error.as_bytes());
+        let diagnostic = String::from_utf8_lossy(&message).into_owned();
+        *failure_bytes = Some(message);
         return Err(StartupError {
             code: 3,
-            message: format!("cannot open log {path}: {error}"),
+            message: diagnostic,
         });
     }
     if kind != -1 || !complete {
@@ -191,14 +223,14 @@ mod tests {
     #[test]
     fn log_event_preserves_errno_with_a_full_or_incomplete_argument() {
         let complete = log_frame(2, 8, b"/missing");
-        let error = read_startup_event(&mut complete.as_slice()).unwrap_err();
+        let error = read_startup_event(&mut complete.as_slice(), &mut None).unwrap_err();
         assert_eq!(error.code, 3);
         assert_eq!(
             error.message,
             "cannot open log /missing: No such file or directory"
         );
         for frame in [log_frame(2, 8, b"/miss"), log_frame(2, 0, b"")] {
-            let error = read_startup_event(&mut frame.as_slice()).unwrap_err();
+            let error = read_startup_event(&mut frame.as_slice(), &mut None).unwrap_err();
             assert_eq!(error.code, 3);
             assert_eq!(
                 error.message,
@@ -206,8 +238,15 @@ mod tests {
             );
         }
         for length in 0..12 {
-            assert!(read_startup_event(&mut &complete[..length]).unwrap());
+            assert!(read_startup_event(&mut &complete[..length], &mut None).unwrap());
         }
+        let frame = log_frame(2, 8, b"/missin\xff");
+        let mut bytes = None;
+        read_startup_event(&mut frame.as_slice(), &mut bytes).unwrap_err();
+        assert_eq!(
+            bytes.unwrap(),
+            b"cannot open log /missin\xff: No such file or directory"
+        );
     }
 }
 

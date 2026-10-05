@@ -104,6 +104,8 @@ pub struct SourceUpdate {
 #[derive(Debug, Default)]
 pub struct FileStep {
     pub update: Option<SourceUpdate>,
+    /// C EVENT_INIT cache barrier: after poll_resolv, before servers-file.
+    pub initial_cache_reload: bool,
     pub diagnostics: Vec<FileDiagnostic>,
     /// EVENT_RELOAD rerun_scripts belongs after that signal's file reads,
     /// even if a later inotify/route trigger is already queued.
@@ -215,6 +217,7 @@ pub struct DnsFiles {
     job: Option<ReadJob>,
     warned_empty: bool,
     initializing: bool,
+    initial_cache_reloaded: bool,
     active_reason: Option<ReloadReason>,
     notify_seen: bool,
     endpoint_lookup: Option<EndpointLookup>,
@@ -267,6 +270,7 @@ impl DnsFiles {
             job: None,
             warned_empty: false,
             initializing: false,
+            initial_cache_reloaded: false,
             active_reason: None,
             notify_seen: false,
             endpoint_lookup: None,
@@ -501,6 +505,20 @@ impl DnsFiles {
                 self.schedule(reason, &mut result.diagnostics);
             }
         }
+        if self.initializing
+            && !self.initial_cache_reloaded
+            && self.job.is_none()
+            && (self.no_poll
+                || self
+                    .requests
+                    .front()
+                    .is_none_or(|request| request.source != Source::Resolv))
+        {
+            self.initial_cache_reloaded = true;
+            result.initial_cache_reload = true;
+            result.runnable = true;
+            return result;
+        }
         if self.job.is_none() {
             if let Some(request) = self.requests.pop_front() {
                 match OpenOptions::new()
@@ -592,6 +610,17 @@ impl DnsFiles {
         }
         if self.endpoint_update.is_none() && self.job.is_none() && self.requests.is_empty() {
             result.signal_complete = self.active_reason.take() == Some(ReloadReason::Signal);
+        }
+        if self.initializing
+            && !self.initial_cache_reloaded
+            && self.job.is_none()
+            && self
+                .requests
+                .front()
+                .is_none_or(|request| request.source != Source::Resolv)
+        {
+            self.initial_cache_reloaded = true;
+            result.initial_cache_reload = true;
         }
         if self.initializing
             && self.endpoint_update.is_none()

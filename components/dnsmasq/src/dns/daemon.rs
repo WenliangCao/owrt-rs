@@ -211,6 +211,8 @@ pub struct DnsDaemon<R = OsRandom> {
     startup_routing: Option<RoutingTable>,
     server_sources: ServerSources,
     source_warnings: Vec<String>,
+    #[cfg(target_os = "linux")]
+    server_notices: Vec<crate::logging::LogEvent>,
     upstream: UpstreamResolver<R>,
     cache: Option<Cache>,
     cache_counters: CacheCounters,
@@ -314,6 +316,8 @@ impl<R: Random> DnsDaemon<R> {
             startup_routing,
             server_sources,
             source_warnings: Vec::new(),
+            #[cfg(target_os = "linux")]
+            server_notices: Vec::new(),
             upstream,
             cache: None,
             cache_counters: CacheCounters::default(),
@@ -331,6 +335,21 @@ impl<R: Random> DnsDaemon<R> {
 
     pub fn pending_count(&self) -> usize {
         self.upstream.pending_count()
+    }
+
+    /// Capture a finite snapshot only at actual C check_servers call sites.
+    #[cfg(target_os = "linux")]
+    pub fn queue_server_notices(&mut self) {
+        self.server_notices
+            .extend(crate::logging::startup::server_messages(
+                self.server_sources.rules(),
+                |_| false,
+            ));
+    }
+
+    #[cfg(target_os = "linux")]
+    pub fn take_server_notices(&mut self) -> Vec<crate::logging::LogEvent> {
+        std::mem::take(&mut self.server_notices)
     }
 
     pub fn take_source_warnings(&mut self) -> Vec<String> {
@@ -386,12 +405,22 @@ impl<R: Random> DnsDaemon<R> {
         if !self.local.config.bind_interfaces {
             self.refresh_source_interface_indices();
         }
+        #[cfg(target_os = "linux")]
+        let log_servers = source == super::files::Source::ServersFile
+            || (source == super::files::Source::Resolv
+                && !self.local.config.no_poll
+                && !rows.is_empty());
         let mut removed = self.server_sources.replace(source, rows);
         removed.extend(
             self.server_sources
                 .retain_servers(|row| server_usable(row, local_addresses)),
         );
-        self.rebuild_server_routes(&removed)
+        self.rebuild_server_routes(&removed)?;
+        #[cfg(target_os = "linux")]
+        if log_servers {
+            self.queue_server_notices();
+        }
+        Ok(())
     }
 
     /// Initial listener/interface addresses are known after daemon creation.
