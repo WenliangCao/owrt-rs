@@ -2332,11 +2332,11 @@ fn report_dhcp_maintenance(report: &dnsmasq_rs::dhcp::daemon::MaintenanceReport)
         eprintln!("dnsmasq-rs: failed to publish lease names: {error}");
     }
     if let Some(restore) = &report.restore {
-        if restore.invalid_records != 0 || !restore.clean_end {
-            eprintln!(
-                "dnsmasq-rs: lease file restore: {} invalid records, clean end: {}",
-                restore.invalid_records, restore.clean_end
-            );
+        for warning in &restore.warnings {
+            eprintln!("dnsmasq-rs: {warning}");
+        }
+        if !restore.clean_end {
+            eprintln!("dnsmasq-rs: failed to parse lease database cleanly");
         }
     }
 }

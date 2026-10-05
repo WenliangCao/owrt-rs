@@ -72,6 +72,8 @@ impl std::fmt::Display for StartupError {
             return formatter.write_str("too many stored leases");
         }
         match self {
+            Self::LeaseFile(error) if error.get_ref().is_some_and(|cause|
+                cause.is::<super::persistence::LeaseFileFailure>()) => write!(formatter, "{error}"),
             Self::LeaseFile(error) => write!(formatter, "cannot open or read lease file: {error}"),
             Self::Restore(error) => write!(formatter, "cannot restore lease database: {error:?}"),
             Self::Socket(error) => write!(formatter, "cannot create DHCP control socket: {error}"),
@@ -93,6 +95,7 @@ impl std::error::Error for StartupError {
 pub struct RestoreStats {
     pub invalid_records: usize,
     pub clean_end: bool,
+    pub warnings: Vec<String>,
 }
 
 #[derive(Debug)]
@@ -258,6 +261,7 @@ impl LocalProvider {
             let stats = RestoreStats {
                 invalid_records: restored.invalid_records,
                 clean_end: restored.clean_end,
+                warnings: restored.warnings,
             };
             let removed = leases
                 .restore_with_name_policy(restored.records, now, config.fqdn_only)
@@ -437,6 +441,7 @@ impl LocalProvider {
         self.restore_stats = Some(RestoreStats {
             invalid_records: restored.invalid_records,
             clean_end: restored.clean_end,
+                warnings: restored.warnings,
         });
         self.startup_removed = self
             .leases
@@ -922,9 +927,10 @@ impl LocalProvider {
                     .leases
                     .active_newest_first()
                     .iter()
-                    .map(|lease| lease.address)
+                    .map(|lease| lease.id())
                     .collect();
-                for address in addresses {
+                for id in addresses {
+                    let address = id.address();
                     let selected = interfaces
                         .iter()
                         .filter_map(|interface| {
@@ -945,9 +951,9 @@ impl LocalProvider {
                             }
                         });
                     if let Some((_, interface)) = selected {
-                        let _ = self.leases.set_interface(address, interface.index);
-                        let _ = self.leases.set_helper_context(
-                            address,
+                        let _ = self.leases.set_interface_by_id(id, interface.index);
+                        let _ = self.leases.set_helper_context_by_id(
+                            id,
                             LeaseEventContext {
                                 interface: interface.name.clone(),
                                 ..Default::default()
@@ -1025,13 +1031,14 @@ impl LocalProvider {
             .leases
             .active_newest_first()
             .iter()
-            .map(|lease| lease.address)
+            .map(|lease| lease.id())
             .collect();
         let mut name_error = None;
-        for address in addresses {
+        for id in addresses {
+            let address = id.address();
             let lease = self
                 .leases
-                .get(address)
+                .get_by_id(id)
                 .expect("lease remains present during name update");
             let configured = self
                 .config
@@ -1071,8 +1078,8 @@ impl LocalProvider {
             if let Some(name) = name {
                 // No address is removed during this loop.
                 self.leases
-                    .set_hostname(
-                        address,
+                    .set_hostname_by_id(
+                        id,
                         Some(&name),
                         true,
                         self.domains.for_address(address),
@@ -1799,6 +1806,7 @@ impl LocalProvider {
             }
         };
         let helper_new_lease = existing.is_none();
+        let lease_identity = super::state::identity(packet, environment.ignore_client_id);
         let mut provider = StateProvider::new(
             &mut self.leases,
             &mut ranges,
@@ -1839,19 +1847,25 @@ impl LocalProvider {
         provider.event_sink = Some(&mut on_event);
         let result = provider.resolve(dispatch);
         if let Ok(outcome) = &result {
-            if let Reply::Ack { address, .. } = outcome.reply {
+            let lease_id = match outcome.reply {
+                Reply::Ack { address, .. } | Reply::Bootp { address, .. } => self.leases
+                    .find_client(&lease_identity).filter(|lease| lease.address == address)
+                    .or_else(|| self.leases.get(address)).map(|lease| lease.id()),
+                _ => None,
+            };
+            if let Some(id) = lease_id.filter(|_| matches!(outcome.reply, Reply::Ack { .. })) {
                 if self.config.lease_query.enabled {
                     // C keeps prior metadata when this ACK has no usable
                     // incoming value. Agent retention shares echo reservation.
                     if let Some(agent) = packet.echo_agent_id() {
-                        let _ = self.leases.set_agent_id(address, Some(agent));
+                        let _ = self.leases.set_agent_id_by_id(id, Some(agent));
                     }
                     if let Some(vendor) = packet.option(60, 1) {
-                        let _ = self.leases.set_vendor_class(address, Some(vendor));
+                        let _ = self.leases.set_vendor_class_by_id(id, Some(vendor));
                     }
                 } else {
-                    let _ = self.leases.set_agent_id(address, None);
-                    let _ = self.leases.set_vendor_class(address, None);
+                    let _ = self.leases.set_agent_id_by_id(id, None);
+                    let _ = self.leases.set_vendor_class_by_id(id, None);
                 }
             }
             if self.config.script.is_some() {
@@ -1880,8 +1894,8 @@ impl LocalProvider {
                         TagIf::apply_all(&self.config.tag_if, &mut tags);
                         crate::helper::extra_data(packet, &tags)
                     });
-                    let _ = self.leases.set_helper_context(
-                        address,
+                    let _ = self.leases.set_helper_context_by_id(
+                        lease_id.expect("committed ACK or BOOTP lease"),
                         LeaseEventContext {
                             interface: interface_name.unwrap_or_default().to_vec(),
                             now,
