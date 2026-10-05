@@ -105,29 +105,22 @@ impl CacheContext<'_> {
         local: &mut LocalDnsService,
         max_udp: usize,
         edns_packet_max: u16,
-        allow_options: bool,
+        _allow_options: bool,
         tcp: bool,
     ) -> Result<CachedAnswer, CacheError> {
         let header = Header::parse(query)?;
-        // Ordinary A/AAAA AD requests can consume unsigned cached records,
-        // including CNAME/negative paths, without asserting validation. DO
-        // still requires upstream DNSSEC data in the target no-DNSSEC build.
-        // Other qtypes' AD, EDNS options and nonzero metadata stay outside
-        // this measured subset; accepting DO on insertion is independent.
+        // answer_request overwrites the Additional section with its own OPT.
+        // Request signatures, OPT version/flags and opaque options do not
+        // change the cached record representation. Source-bound NO_CACHE is
+        // evaluated by the owner before entering this context. DO still
+        // rejects unsigned dynamic records in the exact no-DNSSEC image.
         let edns = find_pseudoheader(query, true)?;
         let dnssec_requested = edns.opt.as_ref().is_some_and(|opt| opt.dnssec_ok());
         if header.questions != 1
             || header.answers != 0
             || header.authorities != 0
-            || header.additionals != u16::from(edns.opt.is_some())
             || header.opcode() != 0
             || header.flags & 0x8000 != 0
-            || (header.flags & 0x0020 != 0 && !matches!(question.rrtype, 1 | 28))
-            || (dnssec_requested && !matches!(question.rrtype, 1 | 28))
-            || edns.opt.as_ref().is_some_and(|opt| {
-                opt.record.ttl & !0x8000 != 0 || (!allow_options && !opt.record.rdata.is_empty())
-            })
-            || edns.signed
         {
             return Ok(CachedAnswer {
                 filtered: false,
@@ -151,12 +144,14 @@ impl CacheContext<'_> {
                 let entry = first.first().and_then(|id| self.cache.get(*id));
                 stale = entry.is_some_and(|entry| entry.is_stale(now));
                 if !entry.is_some_and(|entry| entry.record.kind == Kind::Cname) {
-                    let kind = if question.rrtype == 1 {
-                        Kind::Ipv4
-                    } else {
-                        Kind::Ipv6
+                    let kind = match question.rrtype {
+                        1 => Some(Kind::Ipv4),
+                        28 => Some(Kind::Ipv6),
+                        _ => None,
                     };
-                    self.cache.lookup(&question.name, &[kind], now, round_robin);
+                    if let Some(kind) = kind {
+                        self.cache.lookup(&question.name, &[kind], now, round_robin);
+                    }
                     self.cache.lookup(
                         &question.name,
                         &[Kind::Generic(question.rrtype), Kind::NxDomain],
@@ -484,6 +479,28 @@ impl CacheContext<'_> {
                         // The link validates the CNAME lifetime, but C looks
                         // up the terminal name again for the current qtype.
                         let terminal_name = target_entry.record.name.clone();
+                        match append_interface_terminal(
+                            &mut writer,
+                            local,
+                            &terminal_name,
+                            question,
+                            owner_offset,
+                        )? {
+                            InterfaceTerminal::Answered(flags) => {
+                                return Ok(finish_cached_answer_flags(writer, Some(flags), stale)?);
+                            }
+                            InterfaceTerminal::Empty => {
+                                // A declared interface with no eligible address
+                                // bypasses the ordinary cached terminal and
+                                // lets the forwarder retry against upstream.
+                                return Ok(CachedAnswer {
+                                    packet: None,
+                                    stale,
+                                    filtered: false,
+                                });
+                            }
+                            InterfaceTerminal::Unclaimed => {}
+                        }
                         let terminal_ids =
                             cache.lookup_question(&terminal_name, kind, now, round_robin);
                         let selected = terminal_ids.iter().copied().find(|id| {
@@ -588,7 +605,7 @@ impl CacheContext<'_> {
             match append_positive_record(&mut writer, cache, id, Section::Answer, now, Some(12)) {
                 Ok(true) => written = true,
                 Ok(false) => {}
-                Err(WireError::Full) => break,
+                Err(WireError::Full) => return Ok(finish_cached_answer(writer, stale)?),
                 Err(error) => return Err(error.into()),
             }
         }
@@ -1005,6 +1022,62 @@ fn finish_cached_answer_flags(
     })
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum InterfaceTerminal {
+    Unclaimed,
+    Empty,
+    Answered(u16),
+}
+
+/// Apply a dynamic interface-name terminal to a cached CNAME chain. `None`
+/// means the terminal is not declared; `Some(empty)` is an explicit
+/// declaration with no eligible address and must bypass the cached terminal.
+fn append_interface_terminal(
+    writer: &mut PacketWriter,
+    local: &LocalDnsService,
+    terminal: &Name,
+    question: &super::forward::Question,
+    owner_offset: u16,
+) -> Result<InterfaceTerminal, CacheError> {
+    let families: &[bool] = match question.rrtype {
+        1 => &[false],
+        28 => &[true],
+        255 => &[false, true],
+        _ => return Ok(InterfaceTerminal::Unclaimed),
+    };
+    let mut declared = false;
+    let mut written = false;
+    for &ipv6 in families {
+        let Some(addresses) = local.interfaces.forward(
+            &terminal.dnsmasq_bytes(),
+            ipv6,
+            local.local_network,
+        ) else {
+            continue;
+        };
+        declared = true;
+        for address in addresses {
+            let (rrtype, data) = match address {
+                IpAddr::V4(value) if !ipv6 => (1, value.octets().to_vec()),
+                IpAddr::V6(value) if ipv6 => (28, value.octets().to_vec()),
+                _ => continue,
+            };
+            match writer.record_at(Section::Answer, owner_offset, rrtype, 1, local.local_ttl, &data) {
+                Ok(()) => written = true,
+                Err(WireError::Full) => return Ok(InterfaceTerminal::Answered(0x0400 | 0x0200)),
+                Err(error) => return Err(error.into()),
+            }
+        }
+    }
+    if written {
+        Ok(InterfaceTerminal::Answered(0x0400))
+    } else if declared {
+        Ok(InterfaceTerminal::Empty)
+    } else {
+        Ok(InterfaceTerminal::Unclaimed)
+    }
+}
+
 /// Reuse the local answer engine for a cached alias's terminal name, including
 /// configured CNAME precedence, lease expiry and address rotation. Forwarding
 /// rules are not an answer_request terminal and must not synthesize this hit.
@@ -1224,6 +1297,75 @@ mod tests {
     use super::*;
     use crate::config::dns::DnsConfig;
     use crate::hosts::Hosts;
+    use crate::dns::interface_records::{InterfaceAddress, InterfaceRecords};
+    use crate::dns::cache::Policy;
+    use crate::config::interface_records::InterfaceRule;
+    use std::net::{IpAddr, Ipv4Addr};
+    use std::sync::Arc;
+
+    #[test]
+    fn cached_reply_replaces_request_metadata_with_empty_opt() {
+        let name = Name::from_ascii("metadata.cache.test").unwrap();
+        let question = super::super::forward::Question {
+            name: name.clone(),
+            rrtype: 1,
+            class: 1,
+        };
+        let mut cache = Cache::new(8, Default::default());
+        cache.start_insert();
+        cache
+            .insert(
+                Record {
+                    name: name.clone(),
+                    kind: Kind::Ipv4,
+                    negative: false,
+                    data: vec![198, 51, 100, 7],
+                },
+                100,
+                600,
+            )
+            .unwrap();
+        assert!(cache.commit());
+        let mut counters = CacheCounters::default();
+        let mut local = LocalDnsService::new(DnsConfig::default(), Hosts::new(), 600, 1232);
+        for (ttl, additional_type) in [(0x10000, None), (0x40, None), (0, Some(250)), (0, Some(16))]
+        {
+            let mut query = PacketWriter::new(2, 0x100, 1232).unwrap();
+            query.question(&name, 1, 1).unwrap();
+            query
+                .record(Section::Additional, &Name::root(), 41, 1232, ttl, &[])
+                .unwrap();
+            if let Some(kind) = additional_type {
+                query
+                    .record(Section::Additional, &Name::root(), kind, 255, 0, b"opaque")
+                    .unwrap();
+            }
+            let answer = CacheContext {
+                cache: &mut cache,
+                counters: &mut counters,
+                negative_cache: true,
+                negative_ttl: 0,
+                filter_rr: &[],
+            }
+            .answer_udp_with_edns(
+                &query.finish(),
+                &question,
+                100,
+                &mut local,
+                1232,
+                1232,
+                true,
+            )
+            .unwrap()
+            .packet
+            .unwrap();
+            let message = Message::parse(&answer).unwrap();
+            assert_eq!(message.header.answers, 1);
+            assert_eq!(message.header.additionals, 1);
+            let opt = message.records(Section::Additional).next().unwrap();
+            assert_eq!((opt.rrtype, opt.ttl, opt.rdata), (41, 0, &[][..]));
+        }
+    }
 
     #[test]
     fn child_transfer_keeps_selected_generic_data_and_tcp_ignores_udp_limit() {
@@ -1288,6 +1430,19 @@ mod tests {
         assert_eq!(parent.get(id).unwrap().expires, 700);
         assert_eq!(parent_counters.inserted, 1);
         assert_eq!(child_counters.inserted, 1);
+        let truncated = CacheContext {
+            cache: &mut parent,
+            counters: &mut parent_counters,
+            negative_cache: true,
+            negative_ttl: 0,
+            filter_rr: &[],
+        }
+        .answer_udp_with_edns(&query, &question, 103, &mut parent_local, 1232, 1232, true)
+        .unwrap()
+        .packet
+        .expect("a cached RR too large for UDP still answers with TC");
+        assert_eq!(Header::parse(&truncated).unwrap().answers, 0);
+        assert_ne!(Header::parse(&truncated).unwrap().flags & 0x200, 0);
     }
 
     #[test]
@@ -1384,4 +1539,39 @@ mod tests {
             );
         }
     }
+    #[test]
+    fn dynamic_cname_interface_terminal_overrides_cache_and_empty_refetches() {
+        let alias = Name::from_ascii("alias.interface.test").unwrap();
+        let target = Name::from_ascii("target.interface.test").unwrap();
+        let question = super::super::forward::Question { name: alias.clone(), rrtype: 1, class: 1 };
+        let rule = InterfaceRule { name: target.dnsmasq_bytes(), interface: b"cache0".to_vec(), family4: true, family6: false, prototype4: None, prototype6: None };
+        let inputs = vec![InterfaceAddress { label: b"cache0".to_vec(), address: IpAddr::V4(Ipv4Addr::new(192, 0, 2, 1)), prefix: 24, flags: 0 }];
+        let records = Arc::new(InterfaceRecords::from_addresses(&[rule.clone()], &inputs));
+        let empty_records = Arc::new(InterfaceRecords::from_addresses(&[rule], &[]));
+        let make_cache = || {
+            let mut cache = Cache::new(8, Policy::default());
+            cache.start_insert();
+            let alias_id = cache.insert(Record { name: alias.clone(), kind: Kind::Cname, negative: false, data: target.as_wire().to_vec() }, 100, 600).unwrap();
+            let target_id = cache.insert(Record { name: target.clone(), kind: Kind::Ipv4, negative: false, data: vec![198, 51, 100, 7] }, 100, 600).unwrap();
+            assert!(cache.set_cname_target(alias_id, target_id));
+            assert!(cache.commit());
+            cache
+        };
+        let mut local = LocalDnsService::new(DnsConfig::default(), Hosts::new(), 60, 1232);
+        local.interfaces = records;
+        let mut cache = make_cache();
+        let mut counters = CacheCounters::default();
+        let answer = CacheContext { cache: &mut cache, counters: &mut counters, negative_cache: true, negative_ttl: 0, filter_rr: &[] }
+            .answer_records(&question, Header { id: 1, flags: 0x0100, questions: 1, answers: 0, authorities: 0, additionals: 0 }, 101, &mut local, 1232, false).unwrap().packet.unwrap();
+        let message = Message::parse(&answer).unwrap();
+        assert_eq!(message.records(Section::Answer).map(|record| record.rrtype).collect::<Vec<_>>(), vec![5, 1]);
+        assert_eq!(message.records(Section::Answer).nth(1).unwrap().canonical_rdata().unwrap(), vec![192, 0, 2, 1]);
+        local.interfaces = empty_records;
+        let mut cache = make_cache();
+        let mut counters = CacheCounters::default();
+        let answer = CacheContext { cache: &mut cache, counters: &mut counters, negative_cache: true, negative_ttl: 0, filter_rr: &[] }
+            .answer_records(&question, Header { id: 1, flags: 0x0100, questions: 1, answers: 0, authorities: 0, additionals: 0 }, 101, &mut local, 1232, false).unwrap();
+        assert!(answer.packet.is_none());
+    }
+
 }

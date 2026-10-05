@@ -463,17 +463,7 @@ def main():
         try:
             observed={side:(run_syntax(roots[side],side,case,folder/side) if args.mode=='syntax' else run_service_side(roots[side],side,case,folder/side)) for side in sides}
             if args.side=='both':
-                if args.mode=='syntax':
-                    left,right=endpoints.normal(observed['c']),endpoints.normal(observed['rust'])
-                    # C includes the alias in its loop fatal; Error currently
-                    # owns a static message. Preserve raw stderr while comparing
-                    # the same fatal boundary.
-                    for side in (left,right):
-                        if isinstance(side,dict) and 'stderr' in side:
-                            side['stderr']=side['stderr'].replace('CNAME loop involving b.records.test','CNAME loop')
-                    row['failures']=[] if left==right else ['syntax differs']
-                else:
-                    row['failures']=files.compare(comparable_service(observed['c']),comparable_service(observed['rust']),case)
+                row['failures']=([] if endpoints.normal(observed['c'])==endpoints.normal(observed['rust']) else ['syntax differs']) if args.mode=='syntax' else files.compare(comparable_service(observed['c']),comparable_service(observed['rust']),case)
             row['sides']={side:({'exit':data['exit']} if args.mode=='syntax' else {'startup':data['startup'],'rows':len(data['rows']),'cleanup':data['cleanup']}) for side,data in observed.items()}
         except Exception as error:
             row['failures'].append({'phase':'infrastructure','error':repr(error)})

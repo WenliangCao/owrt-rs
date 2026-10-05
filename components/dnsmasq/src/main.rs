@@ -248,7 +248,12 @@ impl ParentEvents {
             Some(name) => match UbusService::connect_bytes(None, name) {
                 Ok(service) => Some(service),
                 Err(ConnectError::Transport(_)) => None,
-                Err(error) => return Err(Box::new(error)),
+                Err(ConnectError::Registration(error)) => {
+                    return Err(Box::new(dnsmasq_rs::startup::StartupError {
+                        code: 5,
+                        message: ConnectError::registration_message(&error),
+                    }));
+                }
             },
         };
         Ok(Self {
@@ -269,12 +274,17 @@ impl ParentEvents {
         metrics.set(Metric::TcpConnections, self.tcp_active as u32);
     }
 
-    fn disconnect(&mut self, error: &dyn std::fmt::Display) {
+    fn disconnect(&mut self, _error: &dyn std::fmt::Display) {
         self.ubus = None;
-        if !self.ubus_error_logged {
-            eprintln!("dnsmasq-rs: UBus: {error}");
-            self.ubus_error_logged = true;
-        }
+        // libubus reports its failed immediate reconnect before the next
+        // set_ubus_listeners emits the once-only missing-connection notice.
+        #[cfg(target_os = "linux")]
+        self.ubus_notices.push(dnsmasq_rs::logging::LogEvent::new(
+            dnsmasq_rs::logging::Service::Dns,
+            dnsmasq_rs::logging::Priority::Error,
+            b"Cannot reconnect to UBus: Connection failed".to_vec(),
+        ));
+        self.ubus_error_logged = false;
     }
 
     #[cfg(target_os = "linux")]
@@ -307,14 +317,16 @@ impl ParentEvents {
                         b"connected to system UBus".to_vec(),
                     ));
                 }
-                Err(error @ ConnectError::Transport(_)) => {
-                    self.disconnect(&error);
-                    return;
-                }
-                Err(error @ ConnectError::Registration(_)) => {
+                Err(ConnectError::Transport(_)) => return,
+                Err(ConnectError::Registration(error)) => {
                     // C treats registration failure during retry as fatal to
                     // UBus only. The DNS/DHCP service keeps running.
-                    self.disconnect(&error);
+                    #[cfg(target_os = "linux")]
+                    self.ubus_notices.push(dnsmasq_rs::logging::LogEvent::new(
+                        dnsmasq_rs::logging::Service::Dns,
+                        dnsmasq_rs::logging::Priority::Error,
+                        ConnectError::registration_message(&error).into_bytes(),
+                    ));
                     self.ubus_name = None;
                     return;
                 }
@@ -322,7 +334,21 @@ impl ParentEvents {
         }
         while let Some(ubus) = self.ubus.as_mut() {
             match ubus.process_one(metrics) {
-                Ok(true) => {}
+                Ok(true) =>
+                {
+                    #[cfg(target_os = "linux")]
+                    for active in ubus.take_subscription_notices() {
+                        self.ubus_notices.push(dnsmasq_rs::logging::LogEvent::new(
+                            dnsmasq_rs::logging::Service::Dns,
+                            dnsmasq_rs::logging::Priority::Debug,
+                            format!(
+                                "UBus subscription callback: {} subscriber(s)",
+                                u8::from(active)
+                            )
+                            .into_bytes(),
+                        ));
+                    }
+                }
                 Ok(false) => break,
                 Err(error) => {
                     self.disconnect(&error);
@@ -1732,6 +1758,8 @@ struct SinglePoll {
     full_reload_pending: bool,
     retry_bound_listeners: bool,
     interfaces_enumerated: bool,
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    interface_collector: Option<dnsmasq_rs::dns::interface_collect::InterfaceCollector>,
     #[cfg(target_os = "linux")]
     logger: Option<dnsmasq_rs::logging::Logger>,
     #[cfg(target_os = "linux")]
@@ -2193,6 +2221,8 @@ impl SinglePoll {
             full_reload_pending: false,
             retry_bound_listeners: false,
             interfaces_enumerated: false,
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            interface_collector: None,
             #[cfg(target_os = "linux")]
             logger: None,
             #[cfg(target_os = "linux")]
@@ -2463,6 +2493,10 @@ impl SinglePoll {
 
     #[cfg(target_os = "linux")]
     fn append_file_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>) {
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if let Some(collector) = &self.interface_collector {
+            collector.append_poll_fds(fds);
+        }
         if let Some(logger) = &self.early_logger {
             for fd in logger.poll_fds() {
                 fds.push(owrt_ubus::sys::PollFd {
@@ -2558,6 +2592,8 @@ impl SinglePoll {
     }
 
     fn step(&mut self) {
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        self.step_interface_collector();
         #[cfg(target_os = "linux")]
         if let Some(logger) = &mut self.early_logger {
             logger.flush_ready();
@@ -2640,16 +2676,42 @@ impl SinglePoll {
         if self.interfaces_enumerated {
             return;
         }
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if self.interface_collector.is_some() {
+            return;
+        }
         self.interfaces_enumerated = true;
         if self.config.interface_records.rules.is_empty() {
             return;
         }
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-        if let Ok(addresses) = dnsmasq_rs::dns::interface_records::read_addresses() {
+        {
+            let Ok(mut collector) = dnsmasq_rs::dns::interface_collect::InterfaceCollector::new()
+            else {
+                return;
+            };
+            // A control-socket failure happens before C clears its published
+            // lists. Later netlink errors are completed by the owner and
+            // publish the received prefix as a new snapshot.
+            if collector.begin().is_ok() {
+                self.interface_collector = Some(collector);
+            }
+        }
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    fn step_interface_collector(&mut self) {
+        let Some(collector) = &mut self.interface_collector else {
+            return;
+        };
+        for _ in 0..4 {
+            let Some(result) = collector.step() else {
+                break;
+            };
             let records = Arc::new(
                 dnsmasq_rs::dns::interface_records::InterfaceRecords::from_addresses(
                     &self.config.interface_records.rules,
-                    &addresses,
+                    &result.addresses,
                 ),
             );
             let mut parent = self.service.lock().unwrap();
@@ -2658,10 +2720,16 @@ impl SinglePoll {
                 daemon.refresh_source_interface_indices();
                 daemon.publish_interface_records(records);
             }
+            self.interface_collector = None;
+            break;
         }
     }
 
     fn step_udp(&mut self, index: usize) {
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if self.interface_collector.is_some() {
+            return;
+        }
         if self.files_initializing() {
             return;
         }
@@ -2996,6 +3064,10 @@ impl SinglePoll {
     }
 
     fn step_tcp_accept(&mut self, index: usize) {
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if self.interface_collector.is_some() {
+            return;
+        }
         if self.files_initializing() {
             return;
         }
