@@ -274,12 +274,17 @@ impl ParentEvents {
         metrics.set(Metric::TcpConnections, self.tcp_active as u32);
     }
 
-    fn disconnect(&mut self, error: &dyn std::fmt::Display) {
+    fn disconnect(&mut self, _error: &dyn std::fmt::Display) {
         self.ubus = None;
-        if !self.ubus_error_logged {
-            eprintln!("dnsmasq-rs: UBus: {error}");
-            self.ubus_error_logged = true;
-        }
+        // libubus reports its failed immediate reconnect before the next
+        // set_ubus_listeners emits the once-only missing-connection notice.
+        #[cfg(target_os = "linux")]
+        self.ubus_notices.push(dnsmasq_rs::logging::LogEvent::new(
+            dnsmasq_rs::logging::Service::Dns,
+            dnsmasq_rs::logging::Priority::Error,
+            b"Cannot reconnect to UBus: Connection failed".to_vec(),
+        ));
+        self.ubus_error_logged = false;
     }
 
     #[cfg(target_os = "linux")]
@@ -312,14 +317,16 @@ impl ParentEvents {
                         b"connected to system UBus".to_vec(),
                     ));
                 }
-                Err(error @ ConnectError::Transport(_)) => {
-                    self.disconnect(&error);
-                    return;
-                }
-                Err(error @ ConnectError::Registration(_)) => {
+                Err(ConnectError::Transport(_)) => return,
+                Err(ConnectError::Registration(error)) => {
                     // C treats registration failure during retry as fatal to
                     // UBus only. The DNS/DHCP service keeps running.
-                    self.disconnect(&error);
+                    #[cfg(target_os = "linux")]
+                    self.ubus_notices.push(dnsmasq_rs::logging::LogEvent::new(
+                        dnsmasq_rs::logging::Service::Dns,
+                        dnsmasq_rs::logging::Priority::Error,
+                        ConnectError::registration_message(&error).into_bytes(),
+                    ));
                     self.ubus_name = None;
                     return;
                 }
@@ -327,7 +334,21 @@ impl ParentEvents {
         }
         while let Some(ubus) = self.ubus.as_mut() {
             match ubus.process_one(metrics) {
-                Ok(true) => {}
+                Ok(true) =>
+                {
+                    #[cfg(target_os = "linux")]
+                    for active in ubus.take_subscription_notices() {
+                        self.ubus_notices.push(dnsmasq_rs::logging::LogEvent::new(
+                            dnsmasq_rs::logging::Service::Dns,
+                            dnsmasq_rs::logging::Priority::Debug,
+                            format!(
+                                "UBus subscription callback: {} subscriber(s)",
+                                u8::from(active)
+                            )
+                            .into_bytes(),
+                        ));
+                    }
+                }
                 Ok(false) => break,
                 Err(error) => {
                     self.disconnect(&error);
