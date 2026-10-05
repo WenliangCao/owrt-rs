@@ -42,6 +42,8 @@ impl NameDomains {
     pub fn for_address(&self, address: Ipv4Addr) -> Option<&[u8]> {
         self.0
             .domain_for_address(address.into())
+            // The typed address selectors and immutable owner snapshot cannot
+            // produce a runtime configuration error after construction.
             .expect("NameDomains validates selectors at construction")
     }
 }

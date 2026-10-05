@@ -405,6 +405,7 @@ where
             if count == 0 {
                 break;
             }
+            // This reader created line=Some(0) above; no branch removes it.
             *location.line.as_mut().unwrap() += 1;
             if let Some(directive) =
                 lex_line(&buffer).map_err(|e| LoadError::new(&location, 1, e.0))?
@@ -449,6 +450,8 @@ where
             // that disposition in its shell. Command resets it before exec;
             // restore the inherited contract using only an async-signal-safe
             // operation in the child.
+            // SAFETY: the post-fork hook performs only async-signal-safe
+            // signal(2), with scalar SIGPIPE/SIG_IGN, before the shell exec.
             unsafe {
                 command.pre_exec(|| {
                     signal(13, 1);
@@ -461,6 +464,8 @@ where
             // A parse error is startup-fatal: main exits just as C die does,
             // without killing or waiting for the script. Its remaining work
             // and closed-output-pipe handling continue after parent exit.
+            // Successful spawn used Stdio::piped above and no other caller
+            // took this ChildStdout; transfer that sole pipe owner to the reader.
             self.read(BufReader::new(child.stdout.take().unwrap()), path, true)?;
             let status = child
                 .wait()

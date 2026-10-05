@@ -456,6 +456,7 @@ pub fn parse_rules(option: &[u8], argument: &EncodedArg) -> Result<Vec<ServerRul
     let bytes = argument.decoded();
     let (domains, endpoint, explicit) = if let Some(rest) = bytes.strip_prefix(b"/") {
         let mut parts = fields(rest, b'/');
+        // slice.split always yields at least one field, including an empty tail.
         let endpoint = parts.pop().unwrap();
         if parts.is_empty() {
             parts.push(endpoint.clone());
@@ -609,6 +610,8 @@ impl DnsConfig {
     /// Return false for an option owned by another/unimplemented subsystem.
     pub fn apply(&mut self, directive: &Directive) -> Result<bool, Error> {
         validate_directive(directive)?;
+        // Required-argument arms below follow validate_directive; optional
+        // arms keep their explicit Option handling instead of assuming a value.
         let arg = directive.argument.as_ref();
         match directive.name.as_slice() {
             b"synth-domain" => {
