@@ -113,6 +113,8 @@ def scenarios():
         add(profile, 'dynamic', 'interface=lan,'+('dup0' if profile=='duplicate-address' else 'late0')+'\n'+(
             'listen-address=192.0.2.111\n' if profile == 'late-address' else ''), actions=[profile])
     add('conflicting-modes', 'static', 'bind-dynamic\n')
+    add('tftp-unowned-dedicated','static','listen-address=127.0.0.2\nenable-tftp=wan\ntftp-root=/m2/tftp\n',tftp=True)
+    add('tftp-static-renamed','static','interface=lan\nenable-tftp=lan\ntftp-root=/m2/tftp\ntftp-root=/m2/tftp/lan,lan\n',tftp=True)
     add('tftp-late-address','dynamic','interface=lan,late0\nlisten-address=192.0.2.111\nenable-tftp\ntftp-root=/m2/tftp\n',actions=['late-address'],tftp=True)
     for profile in ['runtime-shared-tftp','runtime-shared-dns-both','runtime-shared-all']:
         add(profile,'dynamic','interface=lan\nenable-tftp\ntftp-root=/m2/tftp\n',tftp=True)
@@ -169,7 +171,7 @@ class Network:
 
     def close(self):
         result = stop(self.holder)
-        for link in ['lan', 'wan', 'barren0', 'late0', 'dup0']:
+        for link in ['lan', 'wan', 'barren0', 'late0', 'dup0','retired0']:
             if subprocess.run(['ip', 'link', 'show', link], capture_output=True).returncode == 0:
                 deleted=subprocess.run(['ip','link','del',link],capture_output=True)
                 if deleted.returncode and subprocess.run(['ip','link','show',link],capture_output=True).returncode==0:
@@ -415,7 +417,16 @@ def execute(root,side,item,out):
             if process.poll() is not None:
                 return rows
             save(out/'identity.json',process_identity(root,process.pid))
-            if item.get('dad'):
+            if profile=='tftp-unowned-dedicated':
+                observer.sockets('initial')
+                observer.ask('unowned-check-tftp','127.0.0.2','tftp',local=True)
+            elif profile=='tftp-static-renamed':
+                observer.sockets('initial')
+                observer.ask('cached-before-tftp',V4['lan'],'tftp','lpeer')
+                ip('link','set','lan','name','retired0')
+                observer.sockets('renamed')
+                observer.ask('cached-after-tftp',V4['lan'],'tftp','lpeer')
+            elif item.get('dad'):
                 sockets=observer.sockets('dad-tentative',.01)
                 assert any(a.get('tentative') for link in json.loads(ip('-j','addr','show','dev','lan').stdout) for a in link['addr_info'] if a['local']=='fd42:77::9'), 'DAD matured before witness'
                 assert not any(row['address']=='fd42:77::9' for row in sockets),'bound a tentative address'
@@ -542,6 +553,8 @@ def side_run(args):
     root=prepare(args.image_root,None,args.out/args.side,args.rust_binary)
     (root/'m2/tftp').mkdir();(root/'m2/tftp/boot.bin').write_bytes(b'synthetic listener boot\n')
     (root/'m2/tftp/boot.bin').chmod(0o644)
+    (root/'m2/tftp/lan').mkdir();(root/'m2/tftp/lan/boot.bin').write_bytes(b'synthetic cached owner\n')
+    (root/'m2/tftp/lan/boot.bin').chmod(0o644)
     rows=[]
     failures=[]
     for item in cases:
@@ -586,7 +599,8 @@ def validate(result,cases):
                 if semantic['flags']&15 or not any(rr['type']==1 and rr['data']=='192.0.2.53' for rr in semantic['records']):
                     failures.append(item['name']+': wrong ready.test answer '+row['case'])
             if row['answer'] and 'packet' in row['answer']:
-                expected_packet=(b'\0\3\0\1synthetic listener boot\n').hex()
+                payload=b'synthetic cached owner\n' if item['profile']=='tftp-static-renamed' else b'synthetic listener boot\n'
+                expected_packet=(b'\0\3\0\1'+payload).hex()
                 if row['answer']['packet']!=expected_packet or row['answer']['dedicated']==(item['profile']=='tftp-single-scope'):
                     failures.append(item['name']+': wrong TFTP data/port '+row['case'])
                 if '-scope-tftp' in row['case'] and row['answer']['source']!='fe80::1':
@@ -623,6 +637,7 @@ def expected_answer(item,case,side='c'):
     if case.startswith('recreated-'):return mode!='static' or '-scope-' not in case
     if case.startswith('late-') or case=='duplicate-owner':return True
     if case.startswith('unowned-'):return True
+    if case.startswith('cached-'):return True
     if case.startswith('cross-'):
         return case.endswith('-tcp') and bound or case.startswith('cross-v4-') and mode=='static'
     if proto not in ['udp','tcp','tftp']:return None
@@ -732,6 +747,7 @@ def main():
                 requirement['profiles']=list(dict.fromkeys(requirement['profiles']+['runtime-shared-tftp','runtime-shared-dns-both','runtime-shared-all']))
                 requirement['boundary']='A successful UDP, TCP or TFTP transport sets iface->done for all three. Missing transports do not reappear when blockers are released. If all three fail, a later interface event retries the whole group.'
             if requirement['id']=='tftp-selection':requirement['profiles']=list(dict.fromkeys(requirement['profiles']+['tftp-only']))
+            if requirement['id']=='tftp-selection':requirement['profiles']=list(dict.fromkeys(requirement['profiles']+['tftp-unowned-dedicated','tftp-static-renamed']))
             if requirement['id']=='dad-capabilities':requirement['profiles']=list(dict.fromkeys(requirement['profiles']+['tftp-dad-low-port']))
             if requirement['id']=='startup-failures':requirement['profiles']=list(dict.fromkeys(requirement['profiles']+['missing-address-v6','unowned-scope','occupied-udp-v6','occupied-tcp-v6','occupied-tftp-v6']))
             if requirement['id']=='startup-failures':requirement['profiles']=list(dict.fromkeys(requirement['profiles']+['socket-unsupported-einval','socket-unsupported-eafnosupport','socket-unsupported-eprotonosupport']))

@@ -1153,6 +1153,22 @@
       "profile": "conflicting-modes"
     },
     {
+      "actions": [],
+      "config": "bind-interfaces\nlisten-address=127.0.0.2\nenable-tftp=wan\ntftp-root=/m2/tftp\n",
+      "mode": "static",
+      "name": "tftp-unowned-dedicated-static",
+      "profile": "tftp-unowned-dedicated",
+      "tftp": true
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\ninterface=lan\nenable-tftp=lan\ntftp-root=/m2/tftp\ntftp-root=/m2/tftp/lan,lan\n",
+      "mode": "static",
+      "name": "tftp-static-renamed-static",
+      "profile": "tftp-static-renamed",
+      "tftp": true
+    },
+    {
       "actions": [
         "late-address"
       ],
@@ -1497,6 +1513,8 @@
     "runtime-occupied-udp-dynamic",
     "runtime-occupied-tcp-dynamic",
     "conflicting-modes-static",
+    "tftp-unowned-dedicated-static",
+    "tftp-static-renamed-static",
     "tftp-late-address-dynamic",
     "runtime-shared-tftp-dynamic",
     "runtime-shared-dns-both-dynamic",
@@ -1677,7 +1695,9 @@
         "tftp-no-dhcp",
         "tftp-no-v4",
         "tftp-alias",
-        "tftp-only"
+        "tftp-only",
+        "tftp-unowned-dedicated",
+        "tftp-static-renamed"
       ],
       "source": "network.c:535-562; tftp.c:198-233"
     },
