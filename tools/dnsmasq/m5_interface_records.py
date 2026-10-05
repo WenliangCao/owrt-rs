@@ -361,10 +361,12 @@ def service_cases():
         [('good.records.test',1),('partial.records.test',28),('records.test',16)],'HDIR-INIT HDIR-SOURCE',
         files={'dir/one':'not-an-address skipped.records.test\n192.0.2.7 bad..name good.records.test\n2001:db8::8 partial.records.test'})
     add('hostsdir-coexist',hosts_config+'addn-hosts=/m2/files/additional\nhost-record=explicit.records.test,192.0.2.10\n',[],
-        'HDIR-SOURCE',files={'dir/one':'192.0.2.7 directory.records.test\n','additional':'192.0.2.8 additional.records.test\n'},actions=[
+        'HDIR-SOURCE',system_hosts=True,files={'dir/one':'192.0.2.7 directory.records.test\n','additional':'192.0.2.8 additional.records.test\n'},actions=[
             files.probe('directory','directory.records.test'),files.probe('additional','additional.records.test'),files.probe('explicit','explicit.records.test'),
+            files.probe('system','system.records.test'),
             {'op':'unlink','path':'dir/one'},files.probe('directory-removed','directory.records.test'),
-            files.probe('additional-retained','additional.records.test'),files.probe('explicit-retained','explicit.records.test')])
+            files.probe('additional-retained','additional.records.test'),files.probe('explicit-retained','explicit.records.test'),files.probe('system-retained','system.records.test')])
+    cases[-1]['sys_files']={'/etc/hosts':'192.0.2.11 system.records.test\n'}
     add('hostsdir-cname-expand',hosts_config+'domain=records.test\nexpand-hosts\ncname=alias.records.test,one.records.test\n',[],
         'HDIR-INIT HDIR-SOURCE',files={'dir/one':'192.0.2.7 one\n'},actions=[files.probe('initial','alias.records.test'),
             files.write('dir/one','192.0.2.8 one\n'),files.probe('changed','alias.records.test'),
@@ -407,6 +409,9 @@ def service_cases():
             {'op':'fd-limit','limit':'first-free'},files.write('dir/one','192.0.2.8 one.records.test\n'),
             files.probe('open-failed-source-removed','one.records.test',transports=['udp']),files.probe('owner-still-healthy','ready.files.test',transports=['udp']),
             {'op':'fd-limit','restore':True},files.write('dir/one','192.0.2.9 one.records.test\n'),files.probe('recovered','one.records.test')])
+    add('hostsdir-large-owner',hosts_config+'log-facility=-\n',[],'HDIR-EVENT HDIR-CALLER',
+        files={'dir/one':'192.0.2.7 one.records.test\n'},actions=[files.probe('initial','one.records.test'),
+            dict(op='write',path='hosts-large',text='',hosts_large=1024*1024),files.probe('new-source','one.records.test')])
     def kernel(argv):return dict(op='write',path='kernel-action',text='',kernel_command=argv)
     def state(label):return dict(op='write',path='interface-state',text='',interface_state=label)
     v4only={'name':'m5ir0','addresses':['198.18.91.9/24']}
@@ -765,8 +770,11 @@ def run_service_side(root,side,case,out):
     initial_commands_applied=False
     original_put=files.put;original_exchange=files.exchange;original_upstream=files.FileUpstream;original_command=files.command
     def owner_command(root,side,*args):
-        if case.get('round_robin') and (root/'m2/files.conf').exists():
-            path=root/'m2/files.conf';text=path.read_text().replace('no-round-robin\n','');path.write_text(text)
+        if (case.get('round_robin') or case.get('system_hosts')) and (root/'m2/files.conf').exists():
+            path=root/'m2/files.conf';text=path.read_text()
+            if case.get('round_robin'):text=text.replace('no-round-robin\n','')
+            if case.get('system_hosts'):text=text.replace('no-hosts\n','')
+            path.write_text(text)
             (out/'config').write_text(text)
         return original_command(root,side,*args)
     class PreparedUpstream(original_upstream):
@@ -786,6 +794,25 @@ def run_service_side(root,side,case,out):
                 files.await_predicate(lambda:initial_flag_matches(Path('/proc/net/if_inet6').read_text(),case['initial_flag']),
                     'actual domain-source IPv6 flag before startup')
             initial_commands_applied=True
+        if isinstance(value,dict) and value.get('hosts_large'):
+            import threading
+            pid=int((root/'m2/files.pid').read_text());port=int(re.search(r'^port=(\d+)$',(root/'m2/files.conf').read_text(),re.M).group(1))
+            target=root/'m2/files/dir/one';length=value['hosts_large'];body=(b'#'+b'x'*126+b'\n')*(length//128)+b'192.0.2.8 one.records.test\n'
+            samples=[];stop=threading.Event();offset=len((out/'stderr').read_text())
+            def sampler():
+                while not stop.is_set():
+                    active=bool(files.open_file_fds(pid,'/m2/files/dir/one'));health=files.local_health(port,0x3300+len(samples)%512)
+                    samples.append(dict(health,file_active=active,file_still_active=bool(files.open_file_fds(pid,'/m2/files/dir/one'))));time.sleep(.001)
+            worker=threading.Thread(target=sampler);worker.start()
+            try:
+                target.write_bytes(body)
+                files.await_predicate(lambda:'read /m2/files/dir/one - 1 names' in (out/'stderr').read_text()[offset:],'bounded hosts source completed',seconds=8)
+            finally:stop.set();worker.join(2)
+            if worker.is_alive() or not samples or not all(row['healthy'] for row in samples):raise AssertionError('hosts large-file owner health failed')
+            active_health=sum(row['healthy'] and row['file_active'] and row['file_still_active'] for row in samples)
+            if side=='rust' and not active_health:raise AssertionError('no Rust DNS progress while hosts file stayed open')
+            states.append({'label':'hosts-large','bytes':len(body),'sha256':sha256(target),'samples':samples,'healthy_while_open':active_health})
+            return
         if isinstance(value,dict) and value.get('hosts_stream'):
             pid=int((root/'m2/files.pid').read_text());target=root/'m2/files/dir/one';staged=root/'m2/files/staged-fifo'
             os.mkfifo(staged);staged.replace(target)
