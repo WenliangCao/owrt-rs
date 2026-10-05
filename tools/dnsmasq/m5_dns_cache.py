@@ -303,9 +303,9 @@ def lease_exchange(folder,label,kind=3,hostname='leaseold',server=None):
     (folder/(label+'.dhcp.query')).write_bytes(packet)
     with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as client:
         client.settimeout(2);client.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
-        client.bind((LEASE_CLIENT,68));client.sendto(packet,(LISTEN,67))
-        if kind==7:return {'sent_release':True,'server':server}
-        reply,_=client.recvfrom(4096)
+        client.bind((LEASE_CLIENT,68));sent=time.monotonic_ns();client.sendto(packet,(LISTEN,67))
+        if kind==7:return {'label':label,'sent_release':True,'server':server,'sent_monotonic_ns':sent,'completed_monotonic_ns':time.monotonic_ns()}
+        reply,_=client.recvfrom(4096);completed=time.monotonic_ns()
     (folder/(label+'.dhcp.reply')).write_bytes(reply)
     if len(reply)<240 or struct.unpack_from('!I',reply,4)[0]!=ident:raise AssertionError('DHCP identity mismatch')
     options={};at=240
@@ -315,8 +315,8 @@ def lease_exchange(folder,label,kind=3,hostname='leaseold',server=None):
         if code==0:continue
         size=reply[at];at+=1;options[code]=reply[at:at+size];at+=size
     if options.get(53)!=b'\x05':raise AssertionError('positive DHCP ACK required, got '+repr(options.get(53)))
-    return {'message':5,'address':socket.inet_ntoa(reply[16:20]),'server':socket.inet_ntoa(options[54]),
-            'lease_seconds':struct.unpack('!I',options[51])[0]}
+    return {'label':label,'message':5,'address':socket.inet_ntoa(reply[16:20]),'server':socket.inet_ntoa(options[54]),
+            'lease_seconds':struct.unpack('!I',options[51])[0],'sent_monotonic_ns':sent,'completed_monotonic_ns':completed}
 
 
 def exchange(port,packet,tcp=False,connection=None):
@@ -336,10 +336,10 @@ def schedule(spec,port,upstream,folder):
     def packet(label,target=host,tcp=False,connection=None,step=0):
         wire=query(target,0x5200+step,spec.get('kind',1),spec.get('flags',0x100),spec.get('cls',1),spec.get('do',False),
                    spec.get('opts',b''),spec.get('opt_ttl',0),spec.get('signed',False),spec.get('extra',False),spec.get('size',1232))
-        started=time.monotonic();reply=exchange(port,wire,tcp,connection)
+        started=time.monotonic_ns();reply=exchange(port,wire,tcp,connection);completed=time.monotonic_ns()
         (folder/(label+'.query')).write_bytes(wire)
         if reply is not None:(folder/(label+'.reply')).write_bytes(reply)
-        observations.append({'label':label,'query':normalized(wire),'reply':normalized(reply),'elapsed_seconds':time.monotonic()-started})
+        observations.append({'label':label,'query':normalized(wire),'reply':normalized(reply),'elapsed_seconds':(completed-started)/1e9,'sent_monotonic_ns':started,'completed_monotonic_ns':completed})
     action=spec.get('action')
     if action=='cname':
         upstream.plan[host]=dict(spec,answers=[{'kind':5,'data':name('target.cache.test').hex()},
@@ -433,6 +433,7 @@ def run(args):
             else:raise AssertionError('startup pid readiness deadline')
             trace['identity']=process_identity(root,process.pid);(folder/'pid').write_text(str(process.pid))
             trace['observations']=schedule(spec,port,upstream,folder);report['executed_cases'].append(label)
+            if (folder/'lease-witness.json').exists():trace['lease_witness']=json.loads((folder/'lease-witness.json').read_text())
         except Exception as error:trace['failure']=repr(error);report['failures'].append({'case':label,'error':repr(error)})
         finally:
             if process is not None:
@@ -471,8 +472,25 @@ def dhcp_caller_guard(c,r):
         left,right=cm[label],rm[label]
         for row in [left,right]:
             if row.get('failure') or row['exit']!=0 or row['upstream_errors']:return False
-        a=[{k:copy.deepcopy(v) for k,v in row.items() if k!='elapsed_seconds'} for row in left['observations']]
-        b=[{k:copy.deepcopy(v) for k,v in row.items() if k!='elapsed_seconds'} for row in right['observations']]
+            proofs=row.get('lease_witness',[])
+            expected={'tcp-parent-lease-added':['add'],'tcp-parent-lease-renamed':['seed','rename'],
+                      'tcp-parent-lease-released':['seed','release'],'tcp-existing-lease-ttl':['seed']}[label]
+            if [proof.get('label') for proof in proofs]!=expected:return False
+            for proof in proofs:
+                if not isinstance(proof.get('sent_monotonic_ns'),int) or not isinstance(proof.get('completed_monotonic_ns'),int):return False
+                if proof['completed_monotonic_ns']<proof['sent_monotonic_ns']:return False
+                if proof.get('label')=='release':
+                    if proof.get('sent_release') is not True:return False
+                elif proof.get('message')!=5 or proof.get('address')!=LEASE_CLIENT or proof.get('lease_seconds')!=120:return False
+            for observation in row['observations']:
+                if not isinstance(observation.get('sent_monotonic_ns'),int) or not isinstance(observation.get('completed_monotonic_ns'),int):return False
+                if observation['completed_monotonic_ns']<observation['sent_monotonic_ns']:return False
+            if label=='tcp-existing-lease-ttl':
+                early=next(v for v in row['observations'] if v['label']=='lease-first')
+                late=next(v for v in row['observations'] if v['label']=='lease-after-wait')
+                if late['sent_monotonic_ns']-early['completed_monotonic_ns']<3_200_000_000:return False
+        a=[{k:copy.deepcopy(v) for k,v in row.items() if k not in ('elapsed_seconds','sent_monotonic_ns','completed_monotonic_ns')} for row in left['observations']]
+        b=[{k:copy.deepcopy(v) for k,v in row.items() if k not in ('elapsed_seconds','sent_monotonic_ns','completed_monotonic_ns')} for row in right['observations']]
         if label=='tcp-existing-lease-ttl':
             first=[]
             for rows in [a,b]:
@@ -493,9 +511,9 @@ def qualify_dhcp_caller(args):
         for label in DHCP_CALLERS:
             for side,folder,report in [('c',args.c,c),('rust',args.candidate,r)]:
                 proof=json.loads((folder/label/'lease-witness.json').read_text())
-                if not proof or any(row.get('message')!=5 or row.get('address')!=LEASE_CLIENT or row.get('lease_seconds')!=120
-                                    for row in proof if not row.get('sent_release')):qualified=False
-        for mode in ['lease-added','lease-renamed','lease-released','ttl-decay','ttl-unbounded','missing-case','bad-identity']:
+                case_report=next(row for row in report['scenarios'] if row['case']==label)
+                if proof!=case_report.get('lease_witness'):qualified=False
+        for mode in ['lease-added','lease-renamed','lease-released','ttl-decay','ttl-unbounded','missing-case','bad-identity','missing-witness','short-wait']:
             wrong=copy.deepcopy(r);rows={s['case']:s for s in wrong['scenarios']}
             if mode.startswith('lease-'):
                 label='tcp-parent-'+mode
@@ -504,6 +522,11 @@ def qualify_dhcp_caller(args):
             elif mode.startswith('ttl-'):
                 observation=next(v for v in rows['tcp-existing-lease-ttl']['observations'] if v['label']=='lease-after-wait')
                 observation['reply']['records'][0]['ttl']=117 if mode=='ttl-decay' else 999
+            elif mode=='missing-witness':rows[DHCP_CALLERS[0]].pop('lease_witness')
+            elif mode=='short-wait':
+                first=next(v for v in rows['tcp-existing-lease-ttl']['observations'] if v['label']=='lease-first')
+                late=next(v for v in rows['tcp-existing-lease-ttl']['observations'] if v['label']=='lease-after-wait')
+                late['sent_monotonic_ns']=first['completed_monotonic_ns']+3_000_000_000
             elif mode=='missing-case':wrong['scenarios']=[v for v in wrong['scenarios'] if v['case']!=DHCP_CALLERS[0]]
             else:wrong['rust_sha256']=''
             rejected=not dhcp_caller_guard(c,wrong);controls.append({'control':mode,'rejected':rejected})
