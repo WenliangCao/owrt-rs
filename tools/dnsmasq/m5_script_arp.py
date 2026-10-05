@@ -22,6 +22,7 @@ import time
 from dns_service_probe import query, exact_read
 from m2_rootfs import command, prepare, process_identity, sha256
 from m5_edns_netlink import trace as trace_neighbor
+from m5_edns import Upstream, options as edns_options, query as edns_query
 
 HERE = Path(__file__).resolve().parent
 PORT = 15353
@@ -48,6 +49,8 @@ def network():
         ip('addr', 'add', address, 'dev', name)
     ip('addr', 'add', 'fd42:91::1/64', 'dev', 'arps0', 'nodad')
     ip('addr', 'add', 'fe80::1/64', 'dev', 'arps0', 'nodad')
+    for address in ['192.0.2.18/24', '192.0.2.19/24']:
+        ip('addr', 'add', address, 'dev', 'arps0')
 
 
 def neighbor(address, mac=MAC, state='permanent', interface='arps0'):
@@ -117,6 +120,8 @@ def raw_profiles():
     add('deletion-stack-order', [], [callback(False, V4, MAC), callback(False, fresh, alternate), callback(False, '192.0.2.19', '02:00:00:91:00:19')])
     rows[-1]['warmup'] = many
     rows[-1]['warmup_expected'] = added
+    add('positive-zero-udp-lazy', [base, dict(address=fresh, mac='')], [callback(True, fresh, '')])
+    rows[-1]['zero_positive'] = True
     return rows
 
 
@@ -195,6 +200,55 @@ def clock_contract(root, pid, folder):
     return [dict(case='before-90-retains', unchanged=True),
             dict(case='idle-91-no-wake', unchanged=True, real_wait_seconds=time.monotonic() - start),
             dict(case='real-91-active-refresh', callbacks=after[len(initial):])]
+
+
+def zero_positive_contract(root, pid, folder, upstream):
+    def exchange(label, tcp):
+        before = len(upstream.events)
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM if tcp else socket.SOCK_DGRAM) as endpoint:
+            endpoint.settimeout(3)
+            endpoint.bind(('192.0.2.18', 0))
+            endpoint.connect(('127.0.0.1', PORT))
+            packet = edns_query(label + '.arp.test', 0x7120 + before, opts=b'')
+            endpoint.sendall(struct.pack('!H', len(packet)) + packet if tcp else packet)
+            reply = exact_read(endpoint, struct.unpack('!H', exact_read(endpoint, 2))[0]) if tcp else endpoint.recv(4096)
+        assert len(upstream.events) == before + 1, 'actual forwarded identity query'
+        observation = upstream.events[-1]
+        (folder / (label + '.request')).write_bytes(bytes.fromhex(observation['wire']))
+        (folder / (label + '.reply')).write_bytes(reply)
+        found = edns_options(bytes.fromhex(observation['wire']))
+        values = []
+        data = found[4] if found else b''
+        while data:
+            code, size = struct.unpack_from('!HH', data)
+            value, data = data[4:4 + size], data[4 + size:]
+            if code == 65001:
+                values.append(value.hex())
+        return values
+    (root / 'm2/arp-events').write_bytes(b'')
+    replacement = '02:00:00:91:00:18'
+    neighbor('192.0.2.18', replacement)
+    rows = []
+    for label, tcp in [('positive-zero-udp-lazy', False), ('positive-zero-tcp-nonlazy', True)]:
+        values = exchange(label, tcp)
+        time.sleep(.1)
+        save(folder / (label + '.callbacks.json'), callbacks(root))
+        assert values == [] and callbacks(root) == [], 'positive-zero became a negative cache record'
+        rows.append(dict(case=label, mac_options=values, callbacks=[]))
+    control = folder / 'refresh-control'
+    control.mkdir()
+    refresh_with_fixture(pid, [dict(address=V4, mac=MAC), dict(address='192.0.2.18', mac=replacement)], control)
+    deadline = time.monotonic() + 2
+    while len(callbacks(root)) < 2 and time.monotonic() < deadline:
+        time.sleep(.02)
+    observed = callbacks(root)
+    save(control / 'callbacks.json', observed)
+    assert observed == [['3', 'arp-del', '01-', '192.0.2.18', '0', '0', 'inherited-iface', 'inherited-id'],
+                        ['3', 'arp-add', replacement, '192.0.2.18', '0', '0', 'inherited-iface', 'inherited-id']], 'zero-positive refresh transition control'
+    values = exchange('positive-zero-refresh-control', False)
+    assert values == [replacement.replace(':', '')], 'post-refresh MAC lookup control'
+    rows.append(dict(case='positive-zero-refresh-control', mac_options=values, callbacks=observed))
+    return rows
 
 
 def callbacks(root):
@@ -318,6 +372,11 @@ def run_side(args):
         env = dict(os.environ, DNSMASQ_INTERFACE='inherited-iface', DNSMASQ_CLIENT_ID='inherited-id')
         process = None
         pid = None
+        upstream = Upstream() if spec.get('zero_positive') else None
+        if upstream:
+            config += 'cache-size=0\nserver=127.0.0.2#' + str(upstream.port) + '\n'
+            (root / 'm2/arp.conf').write_text(config)
+            (folder / 'config').write_text(config)
         try:
             with (folder / 'stderr').open('wb') as output:
                 flags = [] if spec.get('daemon') else ['-d' if spec.get('debug') else '-k']
@@ -380,6 +439,8 @@ def run_side(args):
                 assert baseline == remaining, 'descriptor recovery'
                 if spec.get('clock'):
                     rows.extend(clock_contract(root, pid, folder))
+                elif spec.get('zero_positive'):
+                    rows.extend(zero_positive_contract(root, pid, folder, upstream))
                 else:
                     rows.append(dict(case=label, callbacks=observed, helper_count=len(owned), dns_health=reply is not None))
         except Exception as error:
@@ -388,6 +449,8 @@ def run_side(args):
             save(folder / 'failure.json', failed)
         finally:
             cleanup = stop_daemon(process, pid)
+            if upstream:
+                upstream.close()
             save(folder / 'cleanup.json', cleanup)
             (folder / 'arp-events.raw').write_bytes((root / 'm2/arp-events').read_bytes())
             if (root / 'm2/arp.log').exists():

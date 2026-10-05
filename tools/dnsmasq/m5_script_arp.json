@@ -155,7 +155,10 @@
       "required_cases": [
         "edns-negative-refresh",
         "tftp-lookup-refresh",
-        "edns-connection-snapshot"
+        "edns-connection-snapshot",
+        "positive-zero-udp-lazy",
+        "positive-zero-tcp-nonlazy",
+        "positive-zero-refresh-control"
       ]
     },
     {
