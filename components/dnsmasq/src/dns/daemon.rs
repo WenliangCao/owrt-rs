@@ -500,21 +500,22 @@ impl<R: Random> DnsDaemon<R> {
         if !self.local.config.bind_interfaces {
             self.refresh_source_interface_indices();
         }
-        #[cfg(target_os = "linux")]
-        let log_servers = source == super::files::Source::ServersFile
+        let checks_servers = source == super::files::Source::ServersFile
             || (source == super::files::Source::Resolv
                 && !self.local.config.no_poll
                 && !rows.is_empty());
         let mut removed = self.server_sources.replace(source, rows);
         self.loop_state.reset_source(source, &self.server_sources);
-        self.send_loop_probes()?;
+        if checks_servers {
+            self.send_loop_probes()?;
+        }
         removed.extend(
             self.server_sources
                 .retain_servers(|row| server_usable(row, local_addresses)),
         );
         self.rebuild_server_routes(&removed)?;
         #[cfg(target_os = "linux")]
-        if log_servers {
+        if checks_servers {
             self.queue_server_notices();
         }
         Ok(())

@@ -462,7 +462,11 @@ impl<R: Random> UpstreamResolver<R> {
                 if !batch_tokens.contains(&token) {
                     batch_tokens.insert(0, token);
                 }
-                self.sockets.get_mut(&token).unwrap().probe_refs += 1;
+                let owned = self.sockets.get_mut(&token).unwrap();
+                if owned.pooled && owned.origin.is_none() {
+                    owned.origin = Some(server);
+                }
+                owned.probe_refs += 1;
                 self.loop_sends.push_back(LoopSend {
                     token,
                     address,
