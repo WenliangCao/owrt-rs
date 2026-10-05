@@ -24,6 +24,7 @@ from dns_service_probe import query, exact_read
 from m2_rootfs import command, prepare, process_identity, sha256
 from m5_edns_netlink import trace as trace_neighbor
 from m5_edns import Upstream, fixture_stream, options as edns_options, query as edns_query
+from m5_tftp_allocation import trace_allocation
 
 HERE = Path(__file__).resolve().parent
 PORT = 15353
@@ -103,6 +104,8 @@ def profiles():
              extra='enable-tftp\ntftp-root=/m2/arp-tftp\ntftp-unique-root=mac\n'),
         dict(case='netlink-missing-done', pending_dump=True, extra='add-mac\n'),
         dict(case='stop-pending-dump', pending_dump=True, stop_pending=True, extra='add-mac\n'),
+        dict(case='positive-record-enomem', allocation='positive', extra='add-mac\n'),
+        dict(case='negative-record-enomem', allocation='negative', extra='add-mac\n'),
     ]
     for state in ['reachable', 'stale', 'delay', 'probe', 'permanent', 'none', 'noarp', 'incomplete', 'failed']:
         # The real kernel removes LLADDR when NUD_NONE is requested. The
@@ -392,6 +395,68 @@ def pending_dump_contract(root, pid, folder, side, stop_pending):
             tracer.wait()
 
 
+def allocation_contract(args, root, pid, folder, upstream, record):
+    if args.side == 'c':
+        symbols = subprocess.run(['readelf', '-Ds', str(args.image_root / 'lib/libc.so')], capture_output=True, text=True, check=True).stdout
+        offset = int(re.search(r'^\s*\d+:\s+([0-9a-f]+).*\bcalloc\s*$', symbols, re.M)[1], 16)
+        kind, size = 'calloc', 48
+    else:
+        assert args.allocator_map is not None, 'production allocator map required'
+        symbols = args.allocator_map.read_text()
+        offset = int(re.search(r'^\s*0x([0-9a-f]+)\s+realloc\s*$', symbols, re.M)[1], 16)
+        kind, size = 'realloc', 112
+    (folder / 'allocator-symbols').write_text(symbols)
+    (root / 'm2/arp-events').write_bytes(b'')
+    if record == 'positive':
+        neighbor('192.0.2.18', '02:00:00:91:00:18')
+    output = folder / 'allocation.json'
+    tracer = subprocess.Popen([sys.executable, __file__, '--trace-allocation', str(pid), str(size), kind, str(offset), str(output)])
+    def tcp_health():
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as endpoint:
+            endpoint.settimeout(4)
+            endpoint.bind(('127.0.0.1', 0))
+            endpoint.connect(('127.0.0.1', PORT))
+            wire = query('arp-health.test', 0x7140)
+            endpoint.sendall(struct.pack('!H', len(wire)) + wire)
+            return exact_read(endpoint, struct.unpack('!H', exact_read(endpoint, 2))[0])
+    try:
+        deadline = time.monotonic() + 3
+        while not Path(str(output) + '.ready').exists() and tracer.poll() is None and time.monotonic() < deadline:
+            time.sleep(.01)
+        assert Path(str(output) + '.ready').exists(), 'allocator breakpoint readiness'
+        (folder / 'first-health.reply').write_bytes(tcp_health())
+        assert tracer.wait(3) == 0, 'allocator trace exit'
+        receipt = json.loads(output.read_text())
+        assert receipt['injected'], 'actual record allocation did not fail'
+        time.sleep(.1)
+        before = callbacks(root)
+        save(folder / 'failed-allocation-callbacks.json', before)
+        assert before == [], 'allocation failure created an ARP record'
+        if record == 'negative':
+            neighbor('192.0.2.18', '02:00:00:91:00:18')
+            count = len(upstream.events)
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as endpoint:
+                endpoint.settimeout(3)
+                endpoint.bind(('127.0.0.1', 0))
+                endpoint.sendto(edns_query('negative-allocation.arp.test', 0x7141, opts=b''), ('127.0.0.1', PORT))
+                (folder / 'lazy-health.reply').write_bytes(endpoint.recv(4096))
+            assert len(upstream.events) == count + 1, 'actual lazy lookup'
+            (folder / 'lazy-health.request').write_bytes(bytes.fromhex(upstream.events[-1]['wire']))
+        else:
+            (folder / 'second-health.reply').write_bytes(tcp_health())
+        deadline = time.monotonic() + 2
+        while not callbacks(root) and time.monotonic() < deadline:
+            time.sleep(.02)
+        observed = callbacks(root)
+        save(folder / 'recovery-callbacks.json', observed)
+        assert observed == [['3', 'arp-add', '02:00:00:91:00:18', '192.0.2.18', '0', '0', 'inherited-iface', 'inherited-id']], 'uncached allocation failure did not recover on the next lookup'
+        return dict(callbacks=observed, fault=dict(injected=True, operation=record + '-record-allocation'))
+    finally:
+        if tracer.poll() is None:
+            tracer.kill()
+            tracer.wait()
+
+
 def callbacks(root):
     return [line.decode('utf-8', 'surrogateescape').split('|')
             for line in (root / 'm2/arp-events').read_bytes().splitlines()]
@@ -531,7 +596,7 @@ def run_side(args):
         env['M5_ARP_FDS'] = '1' if spec.get('descriptors') else '0'
         process = None
         pid = None
-        upstream = Upstream() if spec.get('zero_positive') else None
+        upstream = Upstream() if spec.get('zero_positive') or spec.get('allocation') else None
         held = (root / 'm2/arp-held-fd').open('wb') if spec.get('descriptors') else None
         if upstream:
             config += 'cache-size=0\nserver=127.0.0.2#' + str(upstream.port) + '\n'
@@ -659,6 +724,8 @@ def run_side(args):
                     save(folder / 'pending-callbacks.json', observed)
                     assert observed == [], 'partial dump emitted a script callback'
                     rows.append(dict(case=label, callbacks=[], reference_difference='c-no-done-owner-stall', **pending))
+                elif spec.get('allocation'):
+                    rows.append(dict(case=label, **allocation_contract(args, root, pid, folder, upstream, spec['allocation'])))
                 else:
                     row = dict(case=label, callbacks=observed, helper_count=len(owned), dns_health=reply is not None)
                     if spec.get('reference_difference'):
@@ -707,12 +774,15 @@ def main():
         pid, output, entries = int(sys.argv[2]), Path(sys.argv[3]), json.loads(sys.argv[4])
         return trace_neighbor(pid, output, sys.argv[5] if len(sys.argv) > 5 else 'complete', 6, 2,
                               packet_builder=lambda *args, **kwargs: neighbor_packet(entries, *args, **kwargs))
+    if len(sys.argv) > 1 and sys.argv[1] == '--trace-allocation':
+        return trace_allocation(int(sys.argv[2]), int(sys.argv[3]), sys.argv[4], int(sys.argv[5]), sys.argv[6], file_record=False)
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--image-root', type=Path, required=True)
     parser.add_argument('--rust-binary', type=Path, required=True)
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--side', choices=['c', 'rust', 'both'], default='both')
     parser.add_argument('--select')
+    parser.add_argument('--allocator-map', type=Path)
     args = parser.parse_args()
     if args.side != 'both':
         return run_side(args)
@@ -724,6 +794,8 @@ def main():
                     '--image-root', str(args.image_root), '--rust-binary', str(args.rust_binary), '--out', str(args.out / side)]
             if args.select:
                 argv += ['--select', args.select]
+            if args.allocator_map:
+                argv += ['--allocator-map', str(args.allocator_map)]
             exits[side] = subprocess.run(argv, stdout=log, stderr=log).returncode
     reports = [json.loads((args.out / side / 'result.json').read_text()) for side in ['c', 'rust']]
     def observations(report):
