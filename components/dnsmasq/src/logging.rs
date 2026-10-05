@@ -12,8 +12,9 @@ use std::io;
 use std::net::SocketAddr;
 use std::os::fd::{AsRawFd, FromRawFd, OwnedFd, RawFd};
 use std::os::unix::ffi::OsStrExt;
-use std::os::unix::fs::{MetadataExt, OpenOptionsExt, PermissionsExt};
+use std::os::unix::fs::{FileTypeExt, MetadataExt, OpenOptionsExt, PermissionsExt};
 use std::path::Path;
+use std::time::{Duration, Instant};
 
 const PROGRAM: &str = "dnsmasq";
 const MAX_MESSAGE: usize = 1024;
@@ -189,13 +190,19 @@ impl Record {
 }
 enum Destination {
     File(File),
+    /// A FIFO without a reader. Opening it must not block the service owner.
+    WaitingFile,
     Stderr(OwnedFd),
-    Syslog { fd: OwnedFd, stream: bool },
+    Syslog {
+        fd: OwnedFd,
+        stream: bool,
+    },
 }
 impl AsRawFd for Destination {
     fn as_raw_fd(&self) -> RawFd {
         match self {
             Self::File(fd) => fd.as_raw_fd(),
+            Self::WaitingFile => -1,
             Self::Stderr(fd) => fd.as_raw_fd(),
             Self::Syslog { fd, .. } => fd.as_raw_fd(),
         }
@@ -215,6 +222,7 @@ pub struct Logger {
     connection_good: bool,
     debug_enabled: bool,
     fallback: bool,
+    fifo_retry_at: Option<Instant>,
 }
 
 /// The normal C TCP worker copies its counters at accept, then discards the
@@ -297,7 +305,26 @@ impl Logger {
             None
         };
         let mut ownership_warning = None;
-        if let (Destination::File(file), Some(uid)) = (&destination, owner_uid) {
+        // A read-only nonblocking FIFO descriptor lets startup apply the
+        // selected owner before dropping credentials. Close it immediately;
+        // retaining our own reader would hide EPIPE when real readers leave.
+        let fifo_owner = if matches!(destination, Destination::WaitingFile) {
+            config.file.as_ref().and_then(|path| {
+                OpenOptions::new()
+                    .read(true)
+                    .custom_flags(O_NONBLOCK)
+                    .open(path)
+                    .ok()
+            })
+        } else {
+            None
+        };
+        let ownership_file = match &destination {
+            Destination::File(file) => Some(file),
+            Destination::WaitingFile => fifo_owner.as_ref(),
+            _ => None,
+        };
+        if let (Some(file), Some(uid)) = (ownership_file, owner_uid) {
             if let Ok(metadata) = file.metadata() {
                 // C makes a root-group file group-writable before changing its
                 // owner; it never changes the existing group ID.
@@ -335,6 +362,7 @@ impl Logger {
                 connection_good: true,
                 debug_enabled: config.debug,
                 fallback: false,
+                fifo_retry_at: None,
             },
             ownership_warning,
         ))
@@ -461,7 +489,8 @@ impl Logger {
     /// Include this descriptor with POLLOUT only while it is returned. Failed
     /// connections retry on the next event, avoiding a permanently-ready spin.
     pub fn poll_fd(&self) -> Option<RawFd> {
-        (!self.queue.is_empty() && self.connection_good).then(|| self.destination.as_raw_fd())
+        (!self.queue.is_empty() && self.connection_good && self.destination.as_raw_fd() >= 0)
+            .then(|| self.destination.as_raw_fd())
     }
 
     pub fn poll_fds(&self) -> impl Iterator<Item = RawFd> {
@@ -478,6 +507,42 @@ impl Logger {
     pub fn flush_ready(&mut self) {
         if let Some(echo) = &self.echo {
             drain_echo(echo.as_raw_fd(), &mut self.echo_queue);
+        }
+        if matches!(self.destination, Destination::WaitingFile) {
+            if self
+                .fifo_retry_at
+                .is_some_and(|deadline| Instant::now() < deadline)
+            {
+                return;
+            }
+            match open_destination(&self.config) {
+                Ok(Destination::WaitingFile) => {
+                    self.fifo_retry_at = Some(Instant::now() + Duration::from_millis(100));
+                    return;
+                }
+                Ok(destination) => {
+                    self.destination = destination;
+                    self.fifo_retry_at = None;
+                }
+                Err(error) => {
+                    self.queue.clear();
+                    self.fifo_retry_at = None;
+                    if let Ok(destination) = syslog_socket(false) {
+                        self.destination = destination;
+                        self.omit_timestamp = false;
+                        self.fallback = true;
+                        let bytes = self.format(
+                            Service::Dns,
+                            Priority::Critical,
+                            format!("log failed: {}", error_text(&error)).as_bytes(),
+                        );
+                        self.queue.push_back(Record::new(bytes));
+                    } else {
+                        self.connection_good = false;
+                        return;
+                    }
+                }
+            }
         }
         if !self.connection_good {
             return;
@@ -620,6 +685,7 @@ impl Logger {
         }
         self.connection_good = true;
         self.fallback = false;
+        self.fifo_retry_at = None;
         Ok(())
     }
 
@@ -636,6 +702,48 @@ impl Logger {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn fifo_without_reader_keeps_service_nonblocking_and_recovers_records() {
+        let path = std::env::temp_dir().join(format!("dnsmasq-log-fifo-{}", std::process::id()));
+        let name = std::ffi::CString::new(path.as_os_str().as_bytes()).unwrap();
+        assert_eq!(unsafe { mkfifo(name.as_ptr(), 0o600) }, 0);
+        let config = LoggingConfig {
+            file: Some(path.clone()),
+            ..Default::default()
+        };
+        let (mut logger, _) = Logger::start(&config, &ProcessConfig::default(), None).unwrap();
+        logger.emit(LogEvent::new(
+            Service::Dns,
+            Priority::Info,
+            b"first".to_vec(),
+        ));
+        logger.emit(LogEvent::new(
+            Service::Dns,
+            Priority::Info,
+            b"dropped".to_vec(),
+        ));
+        assert_eq!(logger.poll_fd(), None);
+        assert!(!logger.finish());
+        let mut reader = OpenOptions::new()
+            .read(true)
+            .custom_flags(O_NONBLOCK)
+            .open(&path)
+            .unwrap();
+        std::thread::sleep(Duration::from_millis(110));
+        logger.flush_ready();
+        assert!(logger.finish());
+        let mut captured = String::new();
+        use std::io::Read;
+        match reader.read_to_string(&mut captured) {
+            Ok(_) => (),
+            Err(error) => assert_eq!(error.kind(), io::ErrorKind::WouldBlock),
+        }
+        assert!(captured.contains(": first\n"));
+        assert!(captured.contains(": overflow: 1 log entries lost\n"));
+        assert!(!captured.contains(": dropped\n"));
+        std::fs::remove_file(path).unwrap();
+    }
 
     #[test]
     fn file_append_reopen_and_maximum_message_preserve_record_boundaries() {
@@ -699,13 +807,22 @@ fn drain_echo(fd: RawFd, records: &mut VecDeque<Record>) {
 fn open_destination(config: &LoggingConfig) -> io::Result<Destination> {
     match config.file.as_deref() {
         Some(path) if path == Path::new("-") => duplicate_stderr().map(Destination::Stderr),
-        Some(path) => OpenOptions::new()
+        Some(path) => match OpenOptions::new()
             .append(true)
             .create(true)
             .mode(0o640)
             .custom_flags(O_NONBLOCK)
             .open(path)
-            .map(Destination::File),
+        {
+            Ok(file) => Ok(Destination::File(file)),
+            Err(error)
+                if error.raw_os_error() == Some(6)
+                    && path.metadata().is_ok_and(|meta| meta.file_type().is_fifo()) =>
+            {
+                Ok(Destination::WaitingFile)
+            }
+            Err(error) => Err(error),
+        },
         None => syslog_socket(false),
     }
 }
@@ -772,6 +889,8 @@ pub fn error_text(error: &io::Error) -> String {
     }
 }
 unsafe extern "C" {
+    #[cfg(test)]
+    fn mkfifo(path: *const c_char, mode: u32) -> c_int;
     fn time(result: *mut i64) -> i64;
     fn ctime_r(value: *const i64, output: *mut c_char) -> *mut c_char;
     fn strerror(error: c_int) -> *mut c_char;
