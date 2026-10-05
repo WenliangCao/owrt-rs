@@ -2876,7 +2876,8 @@ impl SinglePoll {
             .as_ref()
             .and_then(|dhcp| dhcp.provider.as_ref()?.try_lock().ok());
         let neighbors = &mut self.neighbors;
-        let _ = listener.poll_once_with_mac(now, &mut |address, interface, now| {
+        let quiet_not_found = listener.quiet_not_found();
+        let events = listener.poll_once_with_mac(now, &mut |address, interface, now| {
             if let IpAddr::V4(address) = address {
                 let mac = provider
                     .as_ref()
@@ -2896,6 +2897,16 @@ impl SinglePoll {
                     neighbors.query(address, interface, now)
                 })
         });
+        if let (Ok(events), Some(logger)) = (events, self.logger.as_mut()) {
+            use dnsmasq_rs::logging::{LogEvent, Priority, Service};
+            for event in events {
+                if let Some((code, message)) = event.error_message() {
+                    if code != 1 || !quiet_not_found {
+                        logger.emit(LogEvent::new(Service::Tftp, Priority::Error, message.to_vec()));
+                    }
+                }
+            }
+        }
         if self.helper.as_ref().is_none_or(Helper::is_finished) {
             while listener.pop_completion().is_some() {}
         }
