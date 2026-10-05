@@ -600,7 +600,7 @@ def validate(result,cases):
         if warnings is not None:
             count={'runtime-occupied-udp':1,'runtime-occupied-tcp':1,'runtime-shared-tftp':1,
                    'runtime-shared-dns-both':2,'runtime-shared-all':3}.get(item['profile'],0)
-            expected=[dict(priority=28,text='failed to create listening socket for 10.77.0.9: Address in use')]*count
+            expected=[dict(priority=132,text='failed to create listening socket for 10.77.0.9: Address in use')]*count
             if warnings!=expected:failures.append(item['name']+': warning priority/text/count guard')
     return failures
 
@@ -609,7 +609,7 @@ def expected_answer(item,case,side='c'):
     """Source-derived reachability guards, independent of observed Rust data."""
     profile,mode=item['profile'],item['mode']
     bound=mode!='wildcard'
-    proto=case.rsplit('-',1)[1]
+    proto=case.rsplit('-',1)[-1]
     if item.get('port')==0 and proto!='tftp':return False
     if case.startswith('shared-'):
         if profile=='runtime-shared-all':return case.startswith('shared-after-trigger-')
@@ -630,6 +630,7 @@ def expected_answer(item,case,side='c'):
     if case.startswith('lo'):
         tag=case.rsplit('-',1)[0]
         if profile.startswith('socket-unsupported-'):
+            if tag=='lo-extra':return not bound
             return tag!='lo6' or item.get('socket_kind',0) not in [0,1 if proto=='tcp' else 2]
         if profile in ['explicit-any4','explicit-any6']:
             family4=tag!='lo6'

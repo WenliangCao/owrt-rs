@@ -1711,7 +1711,7 @@
       "source": "network.c:705-720; dnsmasq.c:1180-1206"
     },
     {
-      "boundary": "LOG_WARNING/default LOG_DAEMON produces PRI 28 and failed to create listening socket for ADDRESS: strerror. One warning per failed transport, preserving attempt order. Dynamic EADDRNOTAVAIL and socket-stage EPROTONOSUPPORT/EAFNOSUPPORT/EINVAL are silent; bind EINVAL is not silently suppressed.",
+      "boundary": "LOG_WARNING is severity4. With this -d driver C defaults to LOCAL0 (PRI132); ordinary foreground -k defaults to DAEMON (PRI28). The exact failed to create listening socket for ADDRESS: strerror warning occurs once per failed transport in attempt order. Dynamic EADDRNOTAVAIL and socket-stage EPROTONOSUPPORT/EAFNOSUPPORT/EINVAL are silent; bind EINVAL is not silently suppressed.",
       "id": "late-bind-diagnostics",
       "profiles": [
         "runtime-occupied-udp",
@@ -1731,7 +1731,7 @@
         "socket-unsupported-eafnosupport",
         "socket-unsupported-eprotonosupport"
       ],
-      "source": "network.c:894-941; util.c:564-586"
+      "source": "network.c:894-941; util.c:564-586; log.c:57-68,389"
     }
   ],
   "schema": 1
