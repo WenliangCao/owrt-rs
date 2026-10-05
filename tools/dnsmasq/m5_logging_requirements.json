@@ -674,6 +674,145 @@
           "required_scenarios": []
         }
       ]
+    },
+    "tftp-root": {
+      "qualification_ready": false,
+      "qualification_scope": "Reopened complete debug echo and inherited stderr ownership must pair on the corrected product; historical startup/runtime evidence is retained.",
+      "required": [
+        {
+          "id": "TRS01",
+          "source": "option.c:3634-3646,dnsmasq.c:811-849",
+          "boundary": "Enabled global prefix followed by every interface prefix is opendir-checked after actual identity drop; first fatal root keeps exact path/errno, class3, PID retention and parent or selected-sink critical records in default/-k/-d.",
+          "required_scenarios": [
+            "tftp-root-global-fatal-default",
+            "tftp-root-interface-fatal-default",
+            "tftp-root-both-fatal-default",
+            "tftp-root-utf8-fatal-default",
+            "tftp-root-opaque-fatal-default",
+            "tftp-root-empty-interface-fatal-default",
+            "tftp-root-permission-fatal-default",
+            "tftp-root-permission-no-fail-default",
+            "tftp-root-global-fatal-foreground",
+            "tftp-root-interface-fatal-foreground",
+            "tftp-root-both-fatal-foreground",
+            "tftp-root-utf8-fatal-foreground",
+            "tftp-root-opaque-fatal-foreground",
+            "tftp-root-empty-interface-fatal-foreground",
+            "tftp-root-permission-fatal-foreground",
+            "tftp-root-permission-no-fail-foreground",
+            "tftp-root-global-fatal-debug",
+            "tftp-root-interface-fatal-debug",
+            "tftp-root-both-fatal-debug",
+            "tftp-root-utf8-fatal-debug",
+            "tftp-root-opaque-fatal-debug",
+            "tftp-root-empty-interface-fatal-debug",
+            "tftp-root-permission-fatal-debug"
+          ]
+        },
+        {
+          "id": "TRS02",
+          "source": "option.c:677-692,dnsmasq.c:817-838",
+          "boundary": "NULL global skips opendir; NULL interface does not, yielding EFAULT and strerror argument fallback. A declared root without enable-tftp never opens or activates TFTP.",
+          "required_scenarios": [
+            "tftp-root-unused-root-default",
+            "tftp-root-empty-interface-fatal-default",
+            "tftp-root-empty-interface-no-fail-default",
+            "tftp-root-empty-global-default",
+            "tftp-root-unused-root-foreground",
+            "tftp-root-empty-interface-fatal-foreground",
+            "tftp-root-empty-interface-no-fail-foreground",
+            "tftp-root-empty-global-foreground",
+            "tftp-root-unused-root-debug",
+            "tftp-root-empty-interface-fatal-debug",
+            "tftp-root-empty-interface-no-fail-debug",
+            "tftp-root-empty-global-debug"
+          ]
+        },
+        {
+          "id": "TRS03",
+          "source": "dnsmasq.c:827,843,1499-1545,log.c:479-499",
+          "boundary": "Opaque nonUTF8 and valid UTF8 Unix paths retain their original bytes through child error frame, original-parent stderr/syslog, and standalone logger; no replacement characters.",
+          "required_scenarios": [
+            "tftp-root-utf8-fatal-default",
+            "tftp-root-opaque-fatal-default",
+            "tftp-root-utf8-fatal-foreground",
+            "tftp-root-opaque-fatal-foreground",
+            "tftp-root-utf8-fatal-debug",
+            "tftp-root-opaque-fatal-debug"
+          ]
+        },
+        {
+          "id": "TRS04",
+          "source": "dnsmasq.c:1044-1055,log.c:301-319,361-393",
+          "boundary": "Debug with a separate file sink echoes both complete overlong TFTP root sign-on and tolerated inaccessible-root warning; primary records still cap1024. Exact bytes and ordering, no truncation normalization.",
+          "required_scenarios": [
+            "debug-echo-overlong-tftp-root"
+          ]
+        }
+      ]
+    },
+    "tftp-no-fail": {
+      "qualification_ready": false,
+      "qualification_scope": "Reopened complete debug echo and inherited stderr ownership must pair on the corrected product; historical startup/runtime evidence is retained.",
+      "required": [
+        {
+          "id": "TNF01",
+          "source": "dnsmasq.c:823-844,1044-1055",
+          "boundary": "No-fail tolerates each root opendir failure but does not suppress startup or service health. Global warning and interface warning preserve distinct exact text, global-before-interface order, immediately after TFTP sign-on in all modes.",
+          "required_scenarios": [
+            "tftp-root-global-no-fail-default",
+            "tftp-root-interface-no-fail-default",
+            "tftp-root-both-no-fail-default",
+            "tftp-root-utf8-no-fail-default",
+            "tftp-root-opaque-no-fail-default",
+            "tftp-root-empty-interface-no-fail-default",
+            "tftp-root-permission-no-fail-default",
+            "tftp-root-global-no-fail-foreground",
+            "tftp-root-interface-no-fail-foreground",
+            "tftp-root-both-no-fail-foreground",
+            "tftp-root-utf8-no-fail-foreground",
+            "tftp-root-opaque-no-fail-foreground",
+            "tftp-root-empty-interface-no-fail-foreground",
+            "tftp-root-permission-no-fail-foreground",
+            "tftp-root-global-no-fail-debug",
+            "tftp-root-interface-no-fail-debug",
+            "tftp-root-both-no-fail-debug",
+            "tftp-root-utf8-no-fail-debug",
+            "tftp-root-opaque-no-fail-debug",
+            "tftp-root-empty-interface-no-fail-debug"
+          ]
+        },
+        {
+          "id": "TNF02",
+          "source": "option.c:3634-3646,dnsmasq.c:823-844,1044-1055",
+          "boundary": "Permission errors, NULL interface (null), and opaque/UTF8 path bytes all remain visible; disabling no-fail keeps fatal class3; debug retains root identity and can access private root.",
+          "required_scenarios": [
+            "tftp-root-interface-no-fail-default",
+            "tftp-root-utf8-no-fail-default",
+            "tftp-root-opaque-no-fail-default",
+            "tftp-root-empty-interface-no-fail-default",
+            "tftp-root-permission-no-fail-default",
+            "tftp-root-interface-no-fail-foreground",
+            "tftp-root-utf8-no-fail-foreground",
+            "tftp-root-opaque-no-fail-foreground",
+            "tftp-root-empty-interface-no-fail-foreground",
+            "tftp-root-permission-no-fail-foreground",
+            "tftp-root-interface-no-fail-debug",
+            "tftp-root-utf8-no-fail-debug",
+            "tftp-root-opaque-no-fail-debug",
+            "tftp-root-empty-interface-no-fail-debug",
+            "tftp-root-permission-fatal-debug"
+          ]
+        },
+        {
+          "id": "TNF03",
+          "source": "dnsmasq.c:1044-1055,log.c:301-319,361-393",
+          "boundary": "Debug with a separate file sink echoes both complete overlong TFTP root sign-on and tolerated inaccessible-root warning; primary records still cap1024. Exact bytes and ordering, no truncation normalization.",
+          "required_scenarios": [
+            "debug-echo-overlong-tftp-root"
+          ]
+        }
+      ]
     }
   },
   "producer_inventory": {
