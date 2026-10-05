@@ -63,7 +63,7 @@ def trace_allocation(pid,size,kind,offset,output,file_record=True):
             for descriptor in Path('/proc/'+str(pid)+'/fd').iterdir():
                 try:descriptor_paths.append(os.readlink(descriptor))
                 except OSError:pass
-            row=dict(count=registers[0] if kind=='calloc' else 1,size=registers[1] if kind=='calloc' else registers[0],caller=registers[30],pc=registers[32],descriptor_paths=descriptor_paths)
+            row=dict(count=registers[0] if kind=='calloc' else 1,size=registers[1] if kind in ('calloc','realloc') else registers[0],pointer=registers[0] if kind=='realloc' else None,caller=registers[30],pc=registers[32],descriptor_paths=descriptor_paths)
             report['calls'].append(row)
             ptrace(4,address,original);patched=False
             file_open=any(path.endswith('/m2/tftp-errors/public') for path in descriptor_paths)

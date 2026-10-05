@@ -424,7 +424,7 @@ def service_cases():
             files.probe('parent-complete','iface.records.test',type=28,transports=['udp']),
             files.probe('child-old-flags','iface.records.test',type=28,transports=['held']),
             files.probe('fresh-flags','iface.records.test',type=28,transports=['tcp']),dict(op='disconnect',id='held')])
-    add('interface-enum-allocation-reference','interface-name=iface.records.test,m5ir0\n',[],'IF-CALLER',topology=[primary],c_only=True,
+    add('interface-enum-allocation-reference','interface-name=iface.records.test,m5ir0\n',[],'IF-CALLER',topology=[{'name':'m5ir0','addresses':['198.18.91.9/24','2001:db8:91::9/64']}],
         actions=[files.probe('initial','iface.records.test',transports=['udp']),
             kernel(['ip','addr','add','198.18.91.10/24','dev','m5ir0']),
             kernel(['ip','-6','addr','add','2001:db8:91::10/64','dev','m5ir0','nodad']),
@@ -498,12 +498,18 @@ def run_service_side(root,side,case,out):
                 if tracer.poll() is None:tracer.kill();tracer.wait()
             return
         if isinstance(value,dict) and 'allocation_fault' in value:
-            if side!='c':raise AssertionError('C allocation reference is not a paired Rust qualification')
             pid=int((root/'m2/files.pid').read_text());path=out/'allocation-fault.json'
-            symbols=subprocess.check_output(['readelf','-Ds',str(image_path(root,'/lib/libc.so'))],text=True)
+            if side=='c':
+                symbols=subprocess.check_output(['readelf','-Ds',str(image_path(root,'/lib/libc.so'))],text=True)
+                offset=int(re.search(r'^\s*\d+:\s+([0-9a-f]+).*\bcalloc\s*$',symbols,re.M)[1],16)
+                kind,size='calloc',40
+            else:
+                if not case.get('allocator_map'):raise AssertionError('actual Rust allocator map required')
+                symbols=Path(case['allocator_map']).read_text()
+                offset=int(re.search(r'^\s*0x([0-9a-f]+)\s+realloc\s*$',symbols,re.M)[1],16)
+                kind,size='realloc',384
             (out/'allocator-symbols').write_text(symbols)
-            offset=int(re.search(r'^\s*\d+:\s+([0-9a-f]+).*\bcalloc\s*$',symbols,re.M)[1],16)
-            tracer=subprocess.Popen([sys.executable,str(Path(__file__).resolve()),'--trace-interface-allocation',str(pid),str(offset),str(path)])
+            tracer=subprocess.Popen([sys.executable,str(Path(__file__).resolve()),'--trace-interface-allocation',str(pid),str(size),kind,str(offset),str(path)])
             files.await_predicate(lambda:Path(str(path)+'.ready').exists() or tracer.poll() is not None,'allocation breakpoint attach')
             if tracer.poll() is not None:raise AssertionError('allocation breakpoint attach failed')
             tracers.append((tracer,path));return
@@ -623,12 +629,14 @@ def main():
     parser.add_argument('--image-root',type=Path,required=True);parser.add_argument('--rust',type=Path,required=True)
     parser.add_argument('--source-commit',required=True);parser.add_argument('--out',type=Path,required=True)
     parser.add_argument('--side',choices=['c','both'],default='c');parser.add_argument('--mode',choices=['syntax','service'],default='syntax')
-    parser.add_argument('--case',action='append');args=parser.parse_args()
+    parser.add_argument('--case',action='append');parser.add_argument('--allocator-map',type=Path);args=parser.parse_args()
     assert os.geteuid()==0 and os.environ.get('DNSMASQ_TEST_ISOLATED')=='1'
     assert not args.out.exists() and 'private' in args.out.parts
     resource.setrlimit(resource.RLIMIT_CORE,(0,0));args.out.mkdir(parents=True)
     selected=[case for case in (syntax_cases() if args.mode=='syntax' else service_cases()) if (not args.case or case['id'] in args.case) and (args.side=='c' or not case.get('c_only'))]
     assert selected and (not args.case or len(selected)==len(set(args.case)))
+    for case in selected:
+        if args.allocator_map:case['allocator_map']=str(args.allocator_map)
     save(args.out/'schedule.json',selected);driver=args.out/'driver';driver.mkdir()
     for name in ['m5_interface_records.py','m5_interface_records.json','m5_dns_endpoints.py','m5_dns_endpoints.json',
         'm5_dns_endpoints_requirements.json','m5_dns_files.py','m5_option_matrix.py','m5_option_matrix_probes.py',
@@ -742,7 +750,7 @@ def trace_enumeration(pid,side,stage,output):
 if __name__=='__main__':
     if len(sys.argv)>1 and sys.argv[1]=='--trace-interface-allocation':
         from m5_tftp_allocation import trace_allocation
-        raise SystemExit(trace_allocation(int(sys.argv[2]),40,'calloc',int(sys.argv[3]),sys.argv[4],file_record=False))
+        raise SystemExit(trace_allocation(int(sys.argv[2]),int(sys.argv[3]),sys.argv[4],int(sys.argv[5]),sys.argv[6],file_record=False))
     if len(sys.argv)>1 and sys.argv[1]=='--trace-enumeration':
         raise SystemExit(trace_enumeration(int(sys.argv[2]),sys.argv[3],sys.argv[4],sys.argv[5]))
     raise SystemExit(main())
