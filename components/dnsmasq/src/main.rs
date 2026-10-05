@@ -1758,6 +1758,8 @@ struct SinglePoll {
     full_reload_pending: bool,
     retry_bound_listeners: bool,
     interfaces_enumerated: bool,
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    interface_collector: Option<dnsmasq_rs::dns::interface_collect::InterfaceCollector>,
     #[cfg(target_os = "linux")]
     logger: Option<dnsmasq_rs::logging::Logger>,
     #[cfg(target_os = "linux")]
@@ -2219,6 +2221,8 @@ impl SinglePoll {
             full_reload_pending: false,
             retry_bound_listeners: false,
             interfaces_enumerated: false,
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            interface_collector: None,
             #[cfg(target_os = "linux")]
             logger: None,
             #[cfg(target_os = "linux")]
@@ -2489,6 +2493,10 @@ impl SinglePoll {
 
     #[cfg(target_os = "linux")]
     fn append_file_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>) {
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if let Some(collector) = &self.interface_collector {
+            collector.append_poll_fds(fds);
+        }
         if let Some(logger) = &self.early_logger {
             for fd in logger.poll_fds() {
                 fds.push(owrt_ubus::sys::PollFd {
@@ -2584,6 +2592,8 @@ impl SinglePoll {
     }
 
     fn step(&mut self) {
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        self.step_interface_collector();
         #[cfg(target_os = "linux")]
         if let Some(logger) = &mut self.early_logger {
             logger.flush_ready();
@@ -2671,11 +2681,33 @@ impl SinglePoll {
             return;
         }
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-        if let Ok(addresses) = dnsmasq_rs::dns::interface_records::read_addresses() {
+        {
+            let Ok(mut collector) = dnsmasq_rs::dns::interface_collect::InterfaceCollector::new()
+            else {
+                return;
+            };
+            // A control-socket failure happens before C clears its published
+            // lists. Later netlink errors are completed by the owner and
+            // publish the received prefix as a new snapshot.
+            if collector.begin().is_ok() {
+                self.interface_collector = Some(collector);
+            }
+        }
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    fn step_interface_collector(&mut self) {
+        let Some(collector) = &mut self.interface_collector else {
+            return;
+        };
+        for _ in 0..4 {
+            let Some(result) = collector.step() else {
+                break;
+            };
             let records = Arc::new(
                 dnsmasq_rs::dns::interface_records::InterfaceRecords::from_addresses(
                     &self.config.interface_records.rules,
-                    &addresses,
+                    &result.addresses,
                 ),
             );
             let mut parent = self.service.lock().unwrap();
@@ -2684,10 +2716,16 @@ impl SinglePoll {
                 daemon.refresh_source_interface_indices();
                 daemon.publish_interface_records(records);
             }
+            self.interface_collector = None;
+            break;
         }
     }
 
     fn step_udp(&mut self, index: usize) {
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if self.interface_collector.is_some() {
+            return;
+        }
         if self.files_initializing() {
             return;
         }
@@ -3022,6 +3060,10 @@ impl SinglePoll {
     }
 
     fn step_tcp_accept(&mut self, index: usize) {
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if self.interface_collector.is_some() {
+            return;
+        }
         if self.files_initializing() {
             return;
         }
