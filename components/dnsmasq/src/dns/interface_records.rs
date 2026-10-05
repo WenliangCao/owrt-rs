@@ -8,7 +8,7 @@ pub struct InterfaceAddress {
     pub label: Vec<u8>,
     pub address: IpAddr,
     pub prefix: u8,
-    /// Linux ifaddrmsg flags, not link flags. C consumes these three low bits.
+    /// Linux ifaddrmsg flags, not link flags. C consumes the three state bits.
     pub flags: u8,
 }
 
@@ -27,6 +27,63 @@ struct RuleAddresses {
 #[derive(Clone, Debug, Default)]
 pub struct InterfaceRecords {
     entries: Vec<RuleAddresses>,
+}
+
+/// The owner calls this only at an actual C enumeration boundary. Existing
+/// listener/DHCP snapshots stay independent from published interface records.
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+pub fn read_addresses() -> std::io::Result<Vec<InterfaceAddress>> {
+    use std::fs;
+    let interfaces = crate::interfaces::dns_interfaces()?;
+    let flags = match fs::read_to_string("/proc/net/if_inet6") {
+        Ok(text) => text.lines().filter_map(ipv6_flags).collect::<Vec<_>>(),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Vec::new(),
+        Err(error) => return Err(error),
+    };
+    let mut addresses = Vec::new();
+    // Stable family partition matches network.c's IPv6 then IPv4 dumps.
+    for ipv6 in [true, false] {
+        for interface in interfaces
+            .iter()
+            .filter(|value| value.address.is_ipv6() == ipv6)
+        {
+            let prefix = match interface.netmask {
+                IpAddr::V4(mask) => u32::from(mask).count_ones(),
+                IpAddr::V6(mask) => u128::from(mask).count_ones(),
+            } as u8;
+            let state = flags
+                .iter()
+                .find_map(|&(address, index, flags)| {
+                    (interface.index == index && interface.address == IpAddr::V6(address))
+                        .then_some(flags)
+                })
+                .unwrap_or(if interface.tentative { 0x40 } else { 0 });
+            addresses.push(InterfaceAddress {
+                label: interface.name.clone(),
+                address: interface.address,
+                prefix,
+                flags: state,
+            });
+        }
+    }
+    Ok(addresses)
+}
+
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+fn ipv6_flags(line: &str) -> Option<(Ipv6Addr, u32, u8)> {
+    let fields: Vec<_> = line.split_whitespace().collect();
+    if fields.len() != 6 || fields[0].len() != 32 {
+        return None;
+    }
+    let mut bytes = [0u8; 16];
+    for (index, byte) in bytes.iter_mut().enumerate() {
+        *byte = u8::from_str_radix(&fields[0][index * 2..index * 2 + 2], 16).ok()?;
+    }
+    Some((
+        Ipv6Addr::from(bytes),
+        u32::from_str_radix(fields[1], 16).ok()?,
+        u32::from_str_radix(fields[4], 16).ok()? as u8,
+    ))
 }
 
 fn label_matches(label: &[u8], configured: &[u8]) -> bool {
