@@ -432,7 +432,7 @@ def allocation_contract(args, root, pid, folder, upstream, record):
             first_reply = tcp_health()
         else:
             first_reply = health()
-        (folder / 'first-health.reply').write_bytes(first_reply)
+        (folder / 'first-health.reply').write_bytes(bytes.fromhex(first_reply) if isinstance(first_reply, str) else first_reply)
         assert tracer.wait(3) == 0, 'allocator trace exit'
         receipt = json.loads(output.read_text())
         assert receipt['injected'], 'actual record allocation did not fail'
