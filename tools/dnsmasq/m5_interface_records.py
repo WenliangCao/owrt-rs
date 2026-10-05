@@ -226,6 +226,12 @@ def service_cases():
             'DOM4 DOM6 DOM-IF DOM-CALLER',files={'hosts':text},**extra)
     for option in ('domain','domain-suffix'):
         fallback=option+'=fallback.records.test\n'
+        domain_hosts(option+'-default-last',option+'=chosen.records.test\n'+fallback,
+            ['192.0.2.7','2001:db8::7'])
+        domain_hosts(option+'-search-latch-later-literal',option+'=#\n'+fallback+'resolv-file=/m2/files/domain-resolv\n',
+            ['192.0.2.7','2001:db8::7'])
+        cases[-1]['config']=cases[-1]['config'].replace('no-resolv\n','')
+        cases[-1]['files']['domain-resolv']='search chosen.records.test\n'
         v4=['192.0.2.6','192.0.2.7','192.0.2.8','192.0.2.9','192.0.2.10','198.51.100.7']
         for label,selector in [('single4','192.0.2.7'),('range4','192.0.2.7,192.0.2.9'),
             ('inverted4','192.0.2.9,192.0.2.7'),('empty-selector','')]:
