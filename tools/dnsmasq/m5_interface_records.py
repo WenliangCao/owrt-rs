@@ -381,6 +381,15 @@ def service_cases():
     add('hostsdir-runtime-directory',hosts_config,[],'HDIR-EVENT',files={'dir/one':'192.0.2.7 one.records.test\n','staged-directory/item':'unused'},actions=[
         files.probe('initial','one.records.test'),{'op':'unlink','path':'dir/one'},
         {'op':'rename','path':'staged-directory','to':'dir/one'},files.probe('directory-replaces-source','one.records.test')])
+    add('hostsdir-dhcp-name-effects',hosts_config+'domain=records.test\ninterface=lo\nno-ping\n'
+        'dhcp-range=127.0.0.40,127.0.0.60,255.0.0.0,600\ndhcp-leasefile=/m2/files/leases\ndhcp-script=/m2/files/helper.sh\n',[],
+        'HDIR-CALLER',files={'dir/one':'127.0.0.40 fromhosts.records.test\n','leases':
+            '4102444800 02:00:00:00:00:01 127.0.0.40 original *\n',
+            'helper.sh':{'text':'#!/bin/sh\necho "$1|$2|$3|$4" >>/m2/files/helper.log\n','mode':0o755}},actions=[
+                files.probe('initial','fromhosts.records.test'),{'op':'helper-events','id':'initial-helper'},
+                files.write('dir/one','127.0.0.40 updated.records.test\n'),files.probe('changed','updated.records.test'),
+                {'op':'helper-events','id':'changed-helper'},{'op':'unlink','path':'dir/one'},files.probe('lease-name-retained','updated.records.test'),
+                {'op':'helper-events','id':'removed-helper'}])
     def kernel(argv):return dict(op='write',path='kernel-action',text='',kernel_command=argv)
     def state(label):return dict(op='write',path='interface-state',text='',interface_state=label)
     v4only={'name':'m5ir0','addresses':['198.18.91.9/24']}
