@@ -1183,11 +1183,17 @@ impl CacheContext<'_> {
                     && header.rcode() != 3
                 {
                     found = true;
+                    let log_flags = qlog::REPLY
+                        | if self.filter_rr.contains(&question.qtype) {
+                            qlog::CONFIG | qlog::NEGATIVE
+                        } else {
+                            0
+                        };
                     if !matches!(kind, Kind::Ipv4 | Kind::Ipv6) {
                         if question.qtype == 16 {
                             if let Some(events) = notices.as_deref_mut() {
                                 qlog::txt_events(
-                                    qlog::REPLY,
+                                    log_flags,
                                     &current.dnsmasq_bytes(),
                                     rr.rdata,
                                     events,
@@ -1195,7 +1201,7 @@ impl CacheContext<'_> {
                             }
                         } else {
                             query_notice!(QueryEvent::label(
-                                qlog::REPLY | qlog::RRNAME,
+                                log_flags | qlog::RRNAME,
                                 &current.dnsmasq_bytes(),
                                 None,
                                 question.qtype
@@ -1223,7 +1229,7 @@ impl CacheContext<'_> {
                             return Ok(None);
                         }
                         query_notice!(QueryEvent::address(
-                            qlog::REPLY,
+                            log_flags,
                             &current.dnsmasq_bytes(),
                             address,
                             None
