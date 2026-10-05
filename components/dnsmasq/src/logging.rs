@@ -2,7 +2,7 @@
 //!
 //! The image's log.c is the formatting, reconnect and overflow reference.
 //! Writes and retry work are bounded: the owner never sleeps for a logger.
-pub mod query;
+pub use crate::query_logging as query;
 pub mod startup;
 use crate::config::logging::LoggingConfig;
 use crate::startup::{ProcessConfig, StartupError};

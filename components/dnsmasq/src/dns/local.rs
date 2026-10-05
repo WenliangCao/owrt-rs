@@ -11,6 +11,7 @@ use super::wire::{Header, Name, PacketWriter, Section, WireError};
 use crate::config::dns::{DnsConfig, DomainPattern, RuleTarget};
 use crate::config::records::{MailRecord, NaptrRecord, RawRecord, RecordConfig};
 use crate::hosts::Hosts;
+use crate::query_logging::{self as qlog, QueryEvents};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::sync::Arc;
 
@@ -74,6 +75,7 @@ pub(crate) struct LocalAnswer {
     /// Address/local rules use forward_query's OPT policy, while configured
     /// records and hosts use answer_request's policy.
     pub forward_rule: bool,
+    pub query_events: Vec<qlog::QueryEvent>,
 }
 
 #[derive(Clone, Copy)]
@@ -152,9 +154,32 @@ impl<'a> LocalAnswerer<'a> {
         lease_names: &mut Arc<LeaseNames>,
         now: i64,
         local_network: Option<(Ipv4Addr, Ipv4Addr)>,
-        mut cache: Option<&mut Cache>,
+        cache: Option<&mut Cache>,
         interfaces: &super::interface_records::InterfaceRecords,
     ) -> Result<Option<LocalAnswer>, AnswerError> {
+        self.answer_with_query_events(
+            query,
+            lease_names,
+            now,
+            local_network,
+            cache,
+            interfaces,
+            false,
+        )
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub(crate) fn answer_with_query_events(
+        &mut self,
+        query: &[u8],
+        lease_names: &mut Arc<LeaseNames>,
+        now: i64,
+        local_network: Option<(Ipv4Addr, Ipv4Addr)>,
+        mut cache: Option<&mut Cache>,
+        interfaces: &super::interface_records::InterfaceRecords,
+        logging: bool,
+    ) -> Result<Option<LocalAnswer>, AnswerError> {
+        let mut notices = QueryEvents::new(logging);
         let header = Header::parse(query).map_err(|_| AnswerError::Malformed)?;
         if header.opcode() != 0
             || header.flags & 0x8000 != 0
@@ -228,6 +253,7 @@ impl<'a> LocalAnswerer<'a> {
                 cache.as_deref_mut(),
                 &mut rows,
                 &mut extra_rows,
+                &mut notices,
             );
         } else if class_in {
             if let Some(name) = wire_to_dotted(&question.name) {
@@ -239,6 +265,7 @@ impl<'a> LocalAnswerer<'a> {
                     self.local_ttl,
                     leases,
                     cache.as_deref(),
+                    &mut notices,
                 );
                 rows.extend(local_rows);
                 owned = local_owned;
@@ -268,6 +295,12 @@ impl<'a> LocalAnswerer<'a> {
             if !cache_candidate && filter_win2k_question(&question.name, question.qtype) {
                 owned = true;
                 windows_filtered = true;
+                notices.label(
+                    qlog::CONFIG,
+                    &question.name.dnsmasq_bytes(),
+                    Some(b"NODATA"),
+                    0,
+                );
             }
         }
 
@@ -283,6 +316,14 @@ impl<'a> LocalAnswerer<'a> {
             })
         };
         owned |= notimp;
+        if notimp && logging {
+            notices.events.push(qlog::QueryEvent::error(
+                qlog::CONFIG,
+                &question.name.dnsmasq_bytes(),
+                4,
+                None,
+            ));
+        }
 
         // A configured/local record owns the query before address rules. A
         // CNAME also suppresses rules for its alias. Otherwise apply the
@@ -297,6 +338,7 @@ impl<'a> LocalAnswerer<'a> {
                 question.qtype,
                 self.local_ttl,
                 &mut rows,
+                &mut notices,
             )
         };
         owned |= rule_owned;
@@ -313,6 +355,17 @@ impl<'a> LocalAnswerer<'a> {
             // suffix.  It is a completed response with AA clear, not an empty
             // NOERROR answer.
             owned = true;
+            let family = match question.qtype {
+                TYPE_A => qlog::IPV4,
+                TYPE_AAAA => qlog::IPV6,
+                _ => 0,
+            };
+            notices.label(
+                qlog::CONFIG | qlog::NEGATIVE | family | if nxdomain { qlog::NXDOMAIN } else { 0 },
+                &question.name.dnsmasq_bytes(),
+                None,
+                0,
+            );
         }
         if !owned {
             return Ok(None);
@@ -423,6 +476,7 @@ impl<'a> LocalAnswerer<'a> {
         Ok(Some(LocalAnswer {
             packet,
             forward_rule: rule_owned || local_only,
+            query_events: notices.events,
         }))
     }
 }
@@ -756,6 +810,7 @@ fn add_cname_chain(
     cache: Option<&mut Cache>,
     rows: &mut Vec<(u16, u32, Vec<u8>)>,
     extra_rows: &mut Vec<(Vec<u8>, u16, u32, Vec<u8>)>,
+    notices: &mut QueryEvents,
 ) -> bool {
     let ttl = leases.local_ttl;
     let Some(mut current) = wire_to_dotted(alias) else {
@@ -780,6 +835,7 @@ fn add_cname_chain(
             break;
         }
         visited.push(current_key);
+        notices.label(qlog::CONFIG | qlog::CNAME, &current, None, 0);
         let target_wire = wire_name(&record.target).unwrap_or_else(|| vec![0]);
         let record_ttl = record.ttl.unwrap_or(ttl);
         if first {
@@ -804,6 +860,7 @@ fn add_cname_chain(
         ttl,
         leases,
         cache.as_deref(),
+        notices,
     );
     let owner = wire_name(&current).unwrap_or_else(|| vec![0]);
     for (rrtype, record_ttl, data) in terminal_rows {
@@ -825,6 +882,7 @@ fn add_local_records_for_name(
     ttl: u32,
     leases: LeaseView<'_>,
     cache: Option<&Cache>,
+    notices: &mut QueryEvents,
 ) -> (Vec<(u16, u32, Vec<u8>)>, bool) {
     let key = dotted_key(name);
     let mut rows = Vec::new();
@@ -832,6 +890,7 @@ fn add_local_records_for_name(
     let mut synthetic_reverse_name = None;
 
     // answer_request emits configured TXT/raw/PTR before address records.
+    let typed_start = rows.len();
     add_typed_records(
         &config.records.txt,
         TYPE_TXT,
@@ -841,11 +900,21 @@ fn add_local_records_for_name(
         &mut rows,
         &mut owned,
     );
+    for row in &rows[typed_start..] {
+        notices.record(qlog::CONFIG, name, row.0, &row.2);
+    }
+    let raw_start = rows.len();
     add_raw(&config.records.raw, &key, qtype, ttl, &mut rows, &mut owned);
+    for row in &rows[raw_start..] {
+        notices.label(qlog::CONFIG | qlog::RRNAME, name, None, row.0);
+    }
     if qtype == TYPE_PTR || qtype == 255 {
         let interface_ptr =
             arpa_address(name).and_then(|address| leases.interfaces.reverse(address));
         if let Some(target) = interface_ptr {
+            if let Some(address) = arpa_address(name) {
+                notices.address(qlog::CONFIG | qlog::REVERSE, target, address, None);
+            }
             owned = true;
             rows.push((TYPE_PTR, ttl, wire_name(target).unwrap_or_else(|| vec![0])));
         }
@@ -854,6 +923,7 @@ fn add_local_records_for_name(
             if interface_ptr.is_none() && dotted_key(&record.name) == key {
                 explicit_ptr = true;
                 owned = true;
+                notices.label(qlog::CONFIG | qlog::RRNAME, name, Some(b"<PTR>"), 0);
                 rows.push((
                     TYPE_PTR,
                     ttl,
@@ -867,6 +937,17 @@ fn add_local_records_for_name(
         if !explicit_ptr {
             let address = arpa_address(name);
             if let Some(host) = address.and_then(|address| hosts.reverse(address)) {
+                let origin = if host.configured {
+                    qlog::CONFIG
+                } else {
+                    qlog::HOSTS
+                };
+                notices.address(
+                    origin | qlog::REVERSE,
+                    &host.name,
+                    host.address,
+                    hosts.source_name(host.source),
+                );
                 owned = true;
                 rows.push((
                     TYPE_PTR,
@@ -877,6 +958,12 @@ fn add_local_records_for_name(
                 IpAddr::V4(address) => leases.names.reverse(address, leases.now),
                 IpAddr::V6(_) => None,
             }) {
+                notices.address(
+                    qlog::DHCP | qlog::REVERSE,
+                    &lease.name,
+                    IpAddr::V4(lease.address),
+                    None,
+                );
                 owned = true;
                 rows.push((
                     TYPE_PTR,
@@ -886,6 +973,7 @@ fn add_local_records_for_name(
             } else if let Some(address) = address {
                 if !cache.is_some_and(|cache| cache.has_reverse_candidate(address, leases.now)) {
                     if let Some(name) = leases.synth.reverse(address) {
+                        notices.address(qlog::CONFIG | qlog::REVERSE, &name, address, None);
                         owned = true;
                         rows.push((TYPE_PTR, ttl, wire_name(&name).unwrap_or_else(|| vec![0])));
                         // is_rev_synth replaces C's name cursor. ANY then
@@ -916,6 +1004,7 @@ fn add_local_records_for_name(
                 .filter(|_| config.localise_queries && !ipv6);
             if let Some(addresses) = leases.interfaces.forward(name, ipv6, network) {
                 for address in addresses {
+                    notices.address(qlog::CONFIG, name, address, None);
                     rows.push((rrtype, ttl, ip_bytes(address)));
                     owned = true;
                 }
@@ -923,6 +1012,7 @@ fn add_local_records_for_name(
             }
             if !ipv6 {
                 for lease in leases.names.lookup(name, leases.now) {
+                    notices.address(qlog::DHCP, name, IpAddr::V4(lease.address), None);
                     rows.push((
                         TYPE_A,
                         lease.ttl(leases.now, leases.names.policy()),
@@ -943,11 +1033,27 @@ fn add_local_records_for_name(
                 _ => false,
             };
             let localise = host_rows.iter().any(|host| same_network(host.address));
+            let mut host_notices = Vec::new();
             for host in host_rows {
                 if !localise || same_network(host.address) {
+                    if notices.enabled {
+                        host_notices.push((host.address, host.source, host.configured));
+                    }
                     rows.push((rrtype, host.ttl, ip_bytes(host.address)));
                     owned = true;
                 }
+            }
+            for (address, source, configured) in host_notices {
+                notices.address(
+                    if configured {
+                        qlog::CONFIG
+                    } else {
+                        qlog::HOSTS
+                    },
+                    name,
+                    address,
+                    hosts.source_name(source),
+                );
             }
             if !rows.iter().any(|row| row.0 == rrtype)
                 && !cache.is_some_and(|cache| {
@@ -957,12 +1063,14 @@ fn add_local_records_for_name(
                 })
             {
                 if let Some(address) = leases.synth.forward(name, ipv6) {
+                    notices.address(qlog::CONFIG, name, address, None);
                     rows.push((rrtype, ttl, ip_bytes(address)));
                     owned = true;
                 }
             }
         }
     }
+    let mail_start = rows.len();
     add_mx(&config.records, &key, qtype, ttl, &mut rows, &mut owned);
     // rfc1035.c:2201-2214: selfmx applies to hosts/DHCP names, including
     // their non-terminals, unless an explicit MX record already matched.
@@ -998,6 +1106,9 @@ fn add_local_records_for_name(
         &mut rows,
         &mut owned,
     );
+    for row in &rows[mail_start..] {
+        notices.record(qlog::CONFIG, name, row.0, &row.2);
+    }
     (rows, owned)
 }
 
@@ -1138,6 +1249,7 @@ fn select_local_rules(
     qtype: u16,
     ttl: u32,
     rows: &mut Vec<(u16, u32, Vec<u8>)>,
+    notices: &mut QueryEvents,
 ) -> (bool, bool, bool) {
     let class_in = class == CLASS_IN;
     let mut scores = config
@@ -1193,17 +1305,37 @@ fn select_local_rules(
         match selected {
             Some(1) => {
                 for address in v4 {
+                    notices.address(qlog::CONFIG, &name.dnsmasq_bytes(), address, None);
                     rows.push((TYPE_A, ttl, ip_bytes(address)));
                 }
                 return (true, false, false);
             }
             Some(2) => {
                 for address in v6 {
+                    notices.address(qlog::CONFIG, &name.dnsmasq_bytes(), address, None);
                     rows.push((TYPE_AAAA, ttl, ip_bytes(address)));
                 }
                 return (true, false, false);
             }
             Some(3) => {
+                for _ in 0..zeros {
+                    if qtype == 255 || qtype == TYPE_A {
+                        notices.address(
+                            qlog::CONFIG,
+                            &name.dnsmasq_bytes(),
+                            IpAddr::V4(Ipv4Addr::UNSPECIFIED),
+                            None,
+                        );
+                    }
+                    if qtype == 255 || qtype == TYPE_AAAA {
+                        notices.address(
+                            qlog::CONFIG,
+                            &name.dnsmasq_bytes(),
+                            IpAddr::V6(Ipv6Addr::UNSPECIFIED),
+                            None,
+                        );
+                    }
+                }
                 if qtype == 255 || qtype == TYPE_A {
                     rows.extend((0..zeros).map(|_| (TYPE_A, ttl, vec![0; 4])));
                 }

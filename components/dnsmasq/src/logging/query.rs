@@ -1,7 +1,9 @@
 //! Query events from cache.c:2312-2515. Producers supply their actual origin;
 //! this formatter never infers provenance from the final DNS packet.
-use super::{address_text, LogEvent, Priority, Service};
+#[cfg(target_os = "linux")]
 use crate::config::logging::QueryLogging;
+#[cfg(target_os = "linux")]
+use crate::logging::{address_text, LogEvent, Priority, Service};
 use std::net::{IpAddr, SocketAddr};
 
 pub const REVERSE: u32 = 1 << 2;
@@ -69,6 +71,89 @@ pub struct QueryEvent {
     pub kind: u16,
 }
 
+impl QueryEvent {
+    pub fn label(flags: u32, name: &[u8], argument: Option<&[u8]>, kind: u16) -> Self {
+        Self {
+            flags,
+            name: Some(name.to_vec()),
+            data: QueryData::None,
+            argument: argument.map(<[u8]>::to_vec),
+            kind,
+        }
+    }
+
+    pub fn address(flags: u32, name: &[u8], address: IpAddr, argument: Option<&[u8]>) -> Self {
+        Self {
+            flags: flags | if address.is_ipv4() { IPV4 } else { IPV6 },
+            name: Some(name.to_vec()),
+            data: QueryData::Address(address),
+            argument: argument.map(<[u8]>::to_vec),
+            kind: 0,
+        }
+    }
+
+    pub fn error(flags: u32, name: &[u8], value: u16, ede: Option<i32>) -> Self {
+        Self {
+            flags: flags | RCODE,
+            name: Some(name.to_vec()),
+            data: QueryData::Rcode { value, ede },
+            argument: None,
+            kind: 0,
+        }
+    }
+}
+
+/// Producer-owned finite notices. Disabled logging adds no record allocation.
+pub(crate) struct QueryEvents {
+    pub enabled: bool,
+    pub events: Vec<QueryEvent>,
+}
+
+impl QueryEvents {
+    pub fn new(enabled: bool) -> Self {
+        Self {
+            enabled,
+            events: Vec::new(),
+        }
+    }
+
+    pub fn label(&mut self, flags: u32, name: &[u8], argument: Option<&[u8]>, kind: u16) {
+        if self.enabled {
+            self.events
+                .push(QueryEvent::label(flags, name, argument, kind));
+        }
+    }
+
+    pub fn address(&mut self, flags: u32, name: &[u8], address: IpAddr, argument: Option<&[u8]>) {
+        if self.enabled {
+            self.events
+                .push(QueryEvent::address(flags, name, address, argument));
+        }
+    }
+
+    pub fn record(&mut self, flags: u32, name: &[u8], kind: u16, data: &[u8]) {
+        if !self.enabled {
+            return;
+        }
+        let address = match kind {
+            1 => <[u8; 4]>::try_from(data)
+                .ok()
+                .map(|value| IpAddr::V4(value.into())),
+            28 => <[u8; 16]>::try_from(data)
+                .ok()
+                .map(|value| IpAddr::V6(value.into())),
+            _ => None,
+        };
+        if let Some(address) = address {
+            self.address(flags, name, address, None);
+        } else if kind == 5 {
+            self.label(flags | CNAME, name, None, 0);
+        } else {
+            self.label(flags | RRNAME, name, None, kind);
+        }
+    }
+}
+
 pub fn type_text(description: Option<&[u8]>, kind: u16) -> Vec<u8> {
     let label = crate::config::rrtypes::name(kind)
         .map(<[u8]>::to_vec)
@@ -90,6 +175,7 @@ pub fn type_text(description: Option<&[u8]>, kind: u16) -> Vec<u8> {
     }
 }
 
+#[cfg(target_os = "linux")]
 pub fn format(config: QueryLogging, context: QueryContext, event: &QueryEvent) -> Option<LogEvent> {
     let flags = event.flags;
     if !config.enabled
@@ -219,6 +305,7 @@ pub fn format(config: QueryLogging, context: QueryContext, event: &QueryEvent) -
     Some(LogEvent::new(Service::Dns, Priority::Info, message))
 }
 
+#[cfg(target_os = "linux")]
 fn sanitise(name: &[u8]) -> Vec<u8> {
     let name = &name[..name
         .iter()
@@ -231,6 +318,7 @@ fn sanitise(name: &[u8]) -> Vec<u8> {
     }
 }
 
+#[cfg(target_os = "linux")]
 fn ede_text(value: i32) -> &'static str {
     match value {
         0 => "other",
@@ -268,7 +356,7 @@ fn ede_text(value: i32) -> &'static str {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, target_os = "linux"))]
 mod tests {
     use super::*;
     fn enabled() -> QueryLogging {

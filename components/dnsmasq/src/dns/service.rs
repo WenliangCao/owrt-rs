@@ -175,6 +175,8 @@ pub struct LocalDnsService {
     /// IPv4 destination interface address and mask for localise-queries.
     /// The listener supplies this for each UDP request or TCP connection.
     pub local_network: Option<(Ipv4Addr, Ipv4Addr)>,
+    pub query_logging: bool,
+    query_events: Vec<crate::query_logging::QueryEvent>,
 }
 
 impl LocalDnsService {
@@ -204,7 +206,19 @@ impl LocalDnsService {
             max_udp: receive_limit.max(512),
             edns_packet_max,
             local_network: None,
+            query_logging: false,
+            query_events: Vec::new(),
         }
+    }
+
+    pub fn record_query_event(&mut self, event: crate::query_logging::QueryEvent) {
+        if self.query_logging {
+            self.query_events.push(event);
+        }
+    }
+
+    pub fn take_query_events(&mut self) -> Vec<crate::query_logging::QueryEvent> {
+        std::mem::take(&mut self.query_events)
     }
 
     pub fn handle_udp(&mut self, query: &[u8]) -> Result<Option<Vec<u8>>, ServiceError> {
@@ -240,17 +254,19 @@ impl LocalDnsService {
             local_ttl: self.local_ttl,
             max_packet: limit,
         };
-        let Some(mut answer) = answerer.answer_on_network_with_interface_cache(
+        let Some(mut answer) = answerer.answer_with_query_events(
             query,
             &mut self.leases,
             now,
             self.local_network,
             cache,
             &self.interfaces,
+            self.query_logging,
         )?
         else {
             return Ok(None);
         };
+        self.query_events.extend(answer.query_events);
         if opt.is_some() {
             // forward_query and receive_query have different OPT output
             // limits/DO policies. Keep their source-contract distinction.
@@ -297,17 +313,19 @@ impl LocalDnsService {
             local_ttl: self.local_ttl,
             max_packet: u16::MAX as usize,
         };
-        let Some(answer) = answerer.answer_on_network_with_interface_cache(
+        let Some(answer) = answerer.answer_with_query_events(
             query,
             &mut self.leases,
             now,
             self.local_network,
             cache,
             &self.interfaces,
+            self.query_logging,
         )?
         else {
             return Ok(None);
         };
+        self.query_events.extend(answer.query_events);
         let mut packet = answer.packet;
         if opt.is_some() {
             append_empty_opt(
@@ -551,6 +569,66 @@ mod tests {
             1497,
             maximum,
         )
+    }
+
+    #[test]
+    fn query_notices_keep_selected_record_origin_without_changing_answers() {
+        use crate::dns::wire::{Name, PacketWriter};
+        use crate::query_logging::{self as log, QueryData};
+        let lines = [
+            b"host-record=config.test,192.0.2.1".to_vec(),
+            b"cname=alias.test,file.test".to_vec(),
+            b"txt-record=txt.test,hello".to_vec(),
+            b"filterwin2k".to_vec(),
+        ];
+        let mut silent = configured(&lines, 1232);
+        let mut logged = configured(&lines, 1232);
+        for service in [&mut silent, &mut logged] {
+            // File uid1 overlaps the configured uid. Provenance belongs to
+            // the selected row, not a guessed numeric source namespace.
+            service
+                .hosts
+                .set_source_name(1, b"/m2/hosts.extra".to_vec());
+            service
+                .hosts
+                .read(b"192.0.2.2 file.test\n", 1, 37, false, |_| None);
+        }
+        logged.query_logging = true;
+        for (name, kind, origin) in [
+            ("config.test", 1, log::CONFIG),
+            ("file.test", 1, log::HOSTS),
+            ("alias.test", 1, log::CONFIG | log::CNAME),
+            ("2.2.0.192.in-addr.arpa", 12, log::HOSTS | log::REVERSE),
+            ("txt.test", 16, log::CONFIG | log::RRNAME),
+            ("windows.test", 6, log::CONFIG),
+        ] {
+            let mut writer = PacketWriter::new(1, 0x0100, 512).unwrap();
+            writer
+                .question(&Name::from_ascii(name).unwrap(), kind, 1)
+                .unwrap();
+            let request = writer.finish();
+            assert_eq!(
+                logged.handle_udp_at(&request, 100).unwrap(),
+                silent.handle_udp_at(&request, 100).unwrap()
+            );
+            let notices = logged.take_query_events();
+            assert!(!notices.is_empty(), "{name}");
+            assert_eq!(notices[0].flags & origin, origin, "{name}");
+            if name == "file.test" {
+                assert_eq!(
+                    notices[0].argument.as_deref(),
+                    Some(b"/m2/hosts.extra".as_slice())
+                );
+                assert!(matches!(notices[0].data, QueryData::Address(_)));
+            }
+            if name == "alias.test" {
+                assert_eq!(notices.len(), 2);
+                assert_eq!(notices[1].flags & log::HOSTS, log::HOSTS);
+                assert_eq!(notices[1].name.as_deref(), Some(b"file.test".as_slice()));
+            }
+            assert!(silent.take_query_events().is_empty());
+            assert!(logged.take_query_events().is_empty());
+        }
     }
 
     fn opt_query(kind: u16, size: u16) -> Vec<u8> {
