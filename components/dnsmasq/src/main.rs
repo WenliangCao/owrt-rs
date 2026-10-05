@@ -2054,9 +2054,17 @@ impl SinglePoll {
         if let Some(logger) = &mut self.logger {
             use dnsmasq_rs::logging::{LogEvent, Priority, Service};
             for diagnostic in step.diagnostics {
+                use dnsmasq_rs::dns::files::FileDiagnostic;
+                let priority = match &diagnostic {
+                    FileDiagnostic::Access { .. } | FileDiagnostic::EmptyResolvers(_) => {
+                        Priority::Warning
+                    }
+                    FileDiagnostic::ReadingResolvers(_) => Priority::Info,
+                    _ => Priority::Error,
+                };
                 logger.emit(LogEvent::new(
                     Service::Dns,
-                    Priority::Error,
+                    priority,
                     diagnostic.to_string().into_bytes(),
                 ));
             }
