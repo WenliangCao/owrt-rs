@@ -117,11 +117,15 @@ class Network:
             assert self.holder.poll() is None and time.monotonic()<deadline, 'peer namespace readiness'
             time.sleep(.01)
         self.exec('ip', 'link', 'set', 'lo', 'up')
-        for link in ['lan', 'wan']:
-            self.create(link)
-        ip('link', 'add', 'barren0', 'type', 'dummy')
-        ip('link', 'set', 'barren0', 'addrgenmode', 'none')
-        ip('link', 'set', 'barren0', 'up')
+        try:
+            for link in ['lan', 'wan']:
+                self.create(link)
+            ip('link', 'add', 'barren0', 'type', 'dummy')
+            ip('link', 'set', 'barren0', 'addrgenmode', 'none')
+            ip('link', 'set', 'barren0', 'up')
+        except Exception:
+            self.close()
+            raise
 
     def argv(self, *args):
         return ['nsenter', '-t', str(self.holder.pid), '-n', *map(str, args)]
@@ -147,7 +151,9 @@ class Network:
         result = stop(self.holder)
         for link in ['lan', 'wan', 'barren0', 'late0', 'dup0']:
             if subprocess.run(['ip', 'link', 'show', link], capture_output=True).returncode == 0:
-                ip('link', 'del', link)
+                deleted=subprocess.run(['ip','link','del',link],capture_output=True)
+                if deleted.returncode and subprocess.run(['ip','link','show',link],capture_output=True).returncode==0:
+                    deleted.check_returncode()
         return result
 
 
@@ -305,7 +311,8 @@ def execute(root,side,item,out):
             blocker=socket.socket(socket.AF_INET,socket.SOCK_STREAM if transport=='tcp' else socket.SOCK_DGRAM)
             blocker.bind((V4['lan'],69 if transport=='tftp' else port))
             if transport=='tcp': blocker.listen(1)
-        config=f'port={port}\nno-hosts\nno-resolv\nuser=root\ngroup=root\npid-file=/m2/pid\nhost-record=ready.test,192.0.2.53\n'+item['config']
+        identity=('' if 'user=' in item['config'] else 'user=root\n')+('' if 'group=' in item['config'] else 'group=root\n')
+        config=f'port={port}\nno-hosts\nno-resolv\n'+identity+'pid-file=/m2/pid\nhost-record=ready.test,192.0.2.53\n'+item['config']
         (root/'m2/listeners.conf').write_text(config);(out/'config').write_text(config)
         with (out/'stderr').open('w') as stderr,(out/'stdout').open('w') as stdout:
             process=subprocess.Popen(command(root,side,'-d','-C','/m2/listeners.conf'),stderr=stderr,stdout=stdout,start_new_session=True)
