@@ -98,7 +98,7 @@ impl std::error::Error for StartupError {
 pub struct RestoreStats {
     pub invalid_records: usize,
     pub clean_end: bool,
-    pub warnings: Vec<String>,
+    pub warnings: Vec<Vec<u8>>,
     pub diagnostics_logged: bool,
 }
 
@@ -277,7 +277,7 @@ impl LocalProvider {
                 crate::logging::emit_early(
                     early_log,
                     crate::logging::Priority::Warning,
-                    warning.as_bytes(),
+                    warning.as_slice(),
                 );
                 Ok(())
             },
@@ -294,7 +294,7 @@ impl LocalProvider {
                 crate::logging::emit_early(
                     early_log,
                     crate::logging::Priority::Warning,
-                    warning.as_bytes(),
+                    warning.as_slice(),
                 );
             }
             StartupError::LeaseFile(error)

@@ -2879,7 +2879,7 @@ impl SinglePoll {
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 fn report_dhcp_maintenance(
     report: &dnsmasq_rs::dhcp::daemon::MaintenanceReport,
-    logger: Option<&mut dnsmasq_rs::logging::Logger>,
+    mut logger: Option<&mut dnsmasq_rs::logging::Logger>,
 ) {
     if let Some(error) = &report.address_error {
         eprintln!("dnsmasq-rs: failed to update DHCP host addresses: {error}");
@@ -2891,7 +2891,7 @@ fn report_dhcp_maintenance(
         eprintln!("dnsmasq-rs: failed to update lease names from static hosts: {error}");
     }
     if let Some(message) = &report.file_error_message {
-        if let Some(logger) = logger {
+        if let Some(logger) = logger.as_deref_mut() {
             use dnsmasq_rs::logging::{LogEvent, Priority, Service};
             logger.emit(LogEvent::new(
                 Service::Dhcp,
@@ -2908,11 +2908,14 @@ fn report_dhcp_maintenance(
         .as_ref()
         .filter(|restore| !restore.diagnostics_logged)
     {
-        for warning in &restore.warnings {
-            eprintln!("dnsmasq-rs: {warning}");
-        }
-        if !restore.clean_end {
-            eprintln!("dnsmasq-rs: failed to parse lease database cleanly");
+        if let Some(logger) = logger {
+            use dnsmasq_rs::logging::{LogEvent, Priority, Service};
+            for warning in &restore.warnings {
+                logger.emit(LogEvent::new(Service::Dhcp, Priority::Warning, warning.clone()));
+            }
+            if !restore.clean_end {
+                logger.emit(LogEvent::new(Service::Dhcp, Priority::Error, b"failed to parse lease database cleanly".to_vec()));
+            }
         }
     }
 }

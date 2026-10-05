@@ -646,13 +646,13 @@ fn run_init(config: &Config, maximum: usize, events: &mut File) -> io::Result<i3
     let parsed = crate::dhcp::lease_file::parse_reader_with_warnings(
         BufReader::new(output),
         maximum,
-        |warning| send(events, Notice::InitWarning(warning.into_bytes())),
+        |warning| send(events, Notice::InitWarning(warning)),
     );
     let parsed = match parsed {
         Ok(parsed) => parsed,
         Err(error) => {
             for warning in crate::dhcp::lease_file::warnings(&error) {
-                send(events, Notice::InitWarning(warning.as_bytes().to_vec()))?;
+                send(events, Notice::InitWarning(warning.clone()))?;
             }
             let code = if crate::dhcp::lease_file::capacity_exceeded(&error) {
                 5
@@ -668,7 +668,7 @@ fn run_init(config: &Config, maximum: usize, events: &mut File) -> io::Result<i3
         }
     };
     for warning in &parsed.warnings {
-        send(events, Notice::InitWarning(warning.as_bytes().to_vec()))?;
+        send(events, Notice::InitWarning(warning.clone()))?;
     }
     if !parsed.clean_end {
         send(
