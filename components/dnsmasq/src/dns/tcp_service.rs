@@ -54,6 +54,11 @@ pub enum TcpServiceProgress {
     Complete(Vec<u8>, bool),
 }
 
+/// Short-lived completion hook. The caller owns its cache view and collects
+/// a transaction; no parent lock is retained across upstream socket I/O.
+pub type TcpCacheSink<'a> = dyn FnMut(&mut Vec<u8>, &AddressPolicy, u16, super::cache::Extraction) -> Result<(), WireError>
+    + 'a;
+
 enum PreparedQuery {
     Answer(Vec<u8>),
     Forward(super::forward::GroupId),
@@ -199,6 +204,47 @@ impl TcpDnsService {
         local: &LocalDnsService,
         deadline: Instant,
     ) -> Result<TcpServiceProgress, TcpServiceError> {
+        self.start_with_cache_sink(query, local, deadline, None, false, None)
+    }
+
+    pub fn start_with_local_upstream_cache(
+        &mut self,
+        query: &[u8],
+        local: &LocalDnsService,
+        deadline: Instant,
+        no_cache: bool,
+        now: i64,
+        cache: &mut TcpCacheSink<'_>,
+    ) -> Result<TcpServiceProgress, TcpServiceError> {
+        self.start_with_cache_sink(query, local, deadline, Some(cache), no_cache, Some(now))
+    }
+
+    pub fn step_with_local_upstream(
+        &mut self,
+        local: &LocalDnsService,
+    ) -> Result<TcpServiceProgress, TcpServiceError> {
+        self.step_with_cache_sink(local, None, false, None)
+    }
+
+    pub fn step_with_local_upstream_cache(
+        &mut self,
+        local: &LocalDnsService,
+        no_cache: bool,
+        now: i64,
+        cache: &mut TcpCacheSink<'_>,
+    ) -> Result<TcpServiceProgress, TcpServiceError> {
+        self.step_with_cache_sink(local, Some(cache), no_cache, Some(now))
+    }
+
+    fn start_with_cache_sink(
+        &mut self,
+        query: &[u8],
+        local: &LocalDnsService,
+        deadline: Instant,
+        cache: Option<&mut TcpCacheSink<'_>>,
+        no_cache: bool,
+        now: Option<i64>,
+    ) -> Result<TcpServiceProgress, TcpServiceError> {
         if self.pending_query.is_some() {
             return Err(TcpServiceError::Transport(TcpError::Busy));
         }
@@ -210,21 +256,24 @@ impl TcpDnsService {
             PreparedQuery::Forward(group) => group,
         };
         let progress = self.upstream.start(group, query, deadline);
-        self.finish_progress(query.to_vec(), local, progress)
+        self.finish_progress(query.to_vec(), local, progress, cache, no_cache, now)
     }
 
     /// Resume after fd readiness or its absolute timer. This is also safe to
     /// call on each owner-loop turn: all transport syscalls are nonblocking.
-    pub fn step_with_local_upstream(
+    fn step_with_cache_sink(
         &mut self,
         local: &LocalDnsService,
+        cache: Option<&mut TcpCacheSink<'_>>,
+        no_cache: bool,
+        now: Option<i64>,
     ) -> Result<TcpServiceProgress, TcpServiceError> {
         let query = self
             .pending_query
             .take()
             .ok_or(TcpServiceError::Transport(TcpError::NotStarted))?;
         let progress = self.upstream.step();
-        self.finish_progress(query, local, progress)
+        self.finish_progress(query, local, progress, cache, no_cache, now)
     }
 
     /// Cancel the current exchange and release all per-session upstream fds.
@@ -239,6 +288,9 @@ impl TcpDnsService {
         query: Vec<u8>,
         local: &LocalDnsService,
         progress: Result<TcpProgress, TcpError>,
+        cache: Option<&mut TcpCacheSink<'_>>,
+        no_cache: bool,
+        now: Option<i64>,
     ) -> Result<TcpServiceProgress, TcpServiceError> {
         match progress {
             Ok(TcpProgress::Pending(wait)) => {
@@ -255,6 +307,9 @@ impl TcpDnsService {
                 Some(local),
                 Some(&self.routing),
                 self.client_source.map(|source| (&self.edns, source)),
+                cache,
+                no_cache,
+                now,
             )
             .map(|reply| {
                 self.pending_bogus = reply.bogus;
@@ -328,6 +383,9 @@ impl TcpDnsService {
                 local,
                 Some(&self.routing),
                 self.client_source.map(|source| (&self.edns, source)),
+                None,
+                false,
+                None,
             )
             .map(|reply| {
                 self.pending_bogus = reply.bogus;
@@ -412,6 +470,9 @@ fn finish_reply(
         local,
         routing,
         None,
+        None,
+        false,
+        None,
     )
 }
 
@@ -426,6 +487,9 @@ fn finish_reply_with_edns(
     local: Option<&LocalDnsService>,
     routing: Option<&RoutingTable>,
     edns: Option<(&crate::config::edns::EdnsConfig, IpAddr)>,
+    mut cache: Option<&mut TcpCacheSink<'_>>,
+    no_cache: bool,
+    now: Option<i64>,
 ) -> Result<FinishedReply, TcpServiceError> {
     if edns.is_some_and(|(config, source)| {
         !super::edns_policy::check_reply_source(reply, config, source)
@@ -438,6 +502,8 @@ fn finish_reply_with_edns(
             from_upstream: false,
         });
     }
+    let upstream_cd = Header::parse(reply)?.flags & 0x10 != 0;
+    let has_cache_sink = cache.is_some();
     let query_header = Header::parse(query)?;
     let scan = find_pseudoheader(query, true)?;
     let do_bit = scan.opt.as_ref().is_some_and(|opt| opt.dnssec_ok());
@@ -464,14 +530,28 @@ fn finish_reply_with_edns(
                     &local.hosts,
                     name,
                     &local.leases,
-                    std::time::SystemTime::now()
-                        .duration_since(std::time::UNIX_EPOCH)
-                        .map_or(0, |time| time.as_secs() as i64),
+                    now.unwrap_or_else(|| {
+                        std::time::SystemTime::now()
+                            .duration_since(std::time::UNIX_EPOCH)
+                            .map_or(0, |time| time.as_secs() as i64)
+                    }),
                 )
             }) || routing.is_some_and(|routing| routing.has_configured_address(name))
         })?;
         apply_static_aliases(&mut packet, &policy.static_aliases, envelope.rcode)
             .map_err(TcpServiceError::Process)?;
+        let extraction = super::cache::Extraction::from_source(
+            super::forward_service::edns_cache_query(query),
+            no_cache,
+            query_header.flags & 0x10 != 0,
+            upstream_cd,
+        );
+        let cache_failed = cache
+            .as_mut()
+            .is_some_and(|sink| sink(&mut packet, policy, envelope.rcode, extraction).is_err());
+        if cache_failed {
+            super::process::reject_malformed_reply(&mut packet)?;
+        }
         // Read the match before process_admitted_reply removes all answer
         // records. Only its bogus decision is allowed to publish this event.
         let bogus_candidate =
@@ -483,7 +563,7 @@ fn finish_reply_with_edns(
         }
         let ede = if report.blocked_rebind || report.bogus_nxdomain {
             Some(15)
-        } else if report.malformed_address {
+        } else if report.malformed_address || cache_failed {
             Some(0)
         } else {
             None
@@ -504,6 +584,9 @@ fn finish_reply_with_edns(
         }
     }
     resize_reply(&mut packet);
+    if has_cache_sink {
+        bogus = None;
+    }
     Ok(FinishedReply {
         packet,
         bogus,
@@ -540,6 +623,55 @@ mod tests {
     use std::io::{Read, Write};
     use std::net::TcpListener;
     use std::time::Duration;
+
+    #[test]
+    fn completion_sink_precedes_filter_and_preserves_original_cd_admission() {
+        use super::super::cache::Extraction;
+        let owner = Name::from_ascii("sink.test").unwrap();
+        for (no_cache, request_cd, upstream_cd, expected) in [
+            (true, false, false, Extraction::ExtractOnly),
+            (false, true, false, Extraction::ExtractOnly),
+            (false, false, true, Extraction::ExtractOnly),
+            (false, false, false, Extraction::Commit),
+        ] {
+            let mut request =
+                PacketWriter::new(1, 0x100 | if request_cd { 0x10 } else { 0 }, 1232).unwrap();
+            request.question(&owner, 16, 1).unwrap();
+            let request = request.finish();
+            let mut response =
+                PacketWriter::new(1, 0x8180 | if upstream_cd { 0x10 } else { 0 }, 1232).unwrap();
+            response.question(&owner, 16, 1).unwrap();
+            response
+                .record_at(Section::Answer, 12, 16, 1, 600, &[1, b'x'])
+                .unwrap();
+            let response = response.finish();
+            let mut observed = None;
+            let mut sink = |packet: &mut Vec<u8>, _: &AddressPolicy, rcode, mode| {
+                assert_eq!(Header::parse(packet).unwrap().answers, 1);
+                assert_eq!(rcode, 0);
+                assert_eq!(Header::parse(packet).unwrap().flags & 0x10 != 0, request_cd);
+                observed = Some(mode);
+                Ok(())
+            };
+            let result = finish_reply_with_edns(
+                &request,
+                &response,
+                &Default::default(),
+                false,
+                1232,
+                &[16],
+                None,
+                None,
+                None,
+                Some(&mut sink),
+                no_cache,
+                Some(100),
+            )
+            .unwrap();
+            assert_eq!(observed, Some(expected));
+            assert_eq!(Header::parse(&result.packet).unwrap().answers, 0);
+        }
+    }
 
     fn query(opt: bool) -> Vec<u8> {
         let mut writer = PacketWriter::new(0x2930, 0x110, 1232).unwrap();
