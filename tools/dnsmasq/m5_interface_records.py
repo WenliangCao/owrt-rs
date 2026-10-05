@@ -412,6 +412,9 @@ def service_cases():
     add('hostsdir-large-owner',hosts_config+'log-facility=-\n',[],'HDIR-EVENT HDIR-CALLER',
         files={'dir/one':'192.0.2.7 one.records.test\n'},actions=[files.probe('initial','one.records.test'),
             dict(op='write',path='hosts-large',text='',hosts_large=1024*1024),files.probe('new-source','one.records.test')])
+    add('hostsdir-actual-queue-overflow',hosts_config,[],'HDIR-EVENT HDIR-CALLER',files={'dir/one':'192.0.2.7 one.records.test\n'},actions=[
+        files.probe('initial','one.records.test'),dict(op='write',path='overflow',text='',hosts_overflow=True),
+        files.write('dir/one','192.0.2.8 one.records.test\n'),files.probe('recovery-after-overflow','one.records.test')])
     def kernel(argv):return dict(op='write',path='kernel-action',text='',kernel_command=argv)
     def state(label):return dict(op='write',path='interface-state',text='',interface_state=label)
     v4only={'name':'m5ir0','addresses':['198.18.91.9/24']}
@@ -794,6 +797,26 @@ def run_service_side(root,side,case,out):
                 files.await_predicate(lambda:initial_flag_matches(Path('/proc/net/if_inet6').read_text(),case['initial_flag']),
                     'actual domain-source IPv6 flag before startup')
             initial_commands_applied=True
+        if isinstance(value,dict) and value.get('hosts_overflow'):
+            pid=int((root/'m2/files.pid').read_text());limit=int(Path('/proc/sys/fs/inotify/max_queued_events').read_text())
+            os.kill(pid,signal.SIGSTOP)
+            try:
+                files.await_predicate(lambda:'\nState:\tT' in Path('/proc',str(pid),'status').read_text(),'paused hosts queue owner')
+                for _ in range(limit+2):
+                    for name in ('.noise-one','.noise-two'):(root/'m2/files/dir'/name).write_text('ignored')
+                descriptors=files.open_file_fds(pid,'anon_inode:inotify');assert len(descriptors)==1
+                trace_path=out/'hosts-overflow.json'
+                tracer=subprocess.Popen([sys.executable,str(Path(__file__).resolve()),'--trace-hosts-overflow',str(pid),str(descriptors[0]['fd']),str(trace_path)])
+                files.await_predicate(lambda:Path(str(trace_path)+'.ready').exists() or tracer.poll() is not None,'overflow read tracer attached')
+                if tracer.poll() is not None:raise AssertionError('overflow read tracer attach failed')
+            finally:os.kill(pid,signal.SIGCONT)
+            try:
+                if tracer.wait(30)!=0:raise AssertionError('actual queue overflow read not observed')
+                proof=json.loads(trace_path.read_text());assert proof['overflow_observed']
+                states.append({'label':'hosts-overflow','kernel_limit':limit,'close_events':2*(limit+2),'evidence':proof})
+            finally:
+                if tracer.poll() is None:tracer.kill();tracer.wait()
+            return
         if isinstance(value,dict) and value.get('hosts_large'):
             import threading
             pid=int((root/'m2/files.pid').read_text());port=int(re.search(r'^port=(\d+)$',(root/'m2/files.conf').read_text(),re.M).group(1))
@@ -1108,6 +1131,51 @@ def initial_flag_matches(text,wanted):
         int(fields[4],16)&wanted['mask']==wanted['mask'] for fields in (line.split() for line in text.splitlines()))
 
 
+def trace_hosts_overflow(pid,descriptor,output):
+    if platform.machine()!='aarch64':raise RuntimeError('overflow trace ABI is pinned AArch64')
+    class Iovec(ctypes.Structure):
+        _fields_=[('base',ctypes.c_void_p),('length',ctypes.c_size_t)]
+    libc=ctypes.CDLL(None,use_errno=True);libc.ptrace.restype=ctypes.c_long
+    def ptrace(request,address=0,data=0):
+        ctypes.set_errno(0);result=libc.ptrace(ctypes.c_uint(request),ctypes.c_uint(pid),ctypes.c_void_p(address),ctypes.c_void_p(data))
+        if result==-1 and ctypes.get_errno():raise OSError(ctypes.get_errno(),'ptrace')
+        return result
+    registers=(ctypes.c_ulonglong*34)()
+    def regs():
+        iov=Iovec(ctypes.addressof(registers),ctypes.sizeof(registers));ptrace(0x4204,1,ctypes.addressof(iov))
+    def memory(address,length):
+        data=(ctypes.c_ubyte*length)();local=Iovec(ctypes.addressof(data),length);remote=Iovec(address,length)
+        count=libc.process_vm_readv(pid,ctypes.byref(local),1,ctypes.byref(remote),1,0)
+        if count!=length:raise AssertionError('overflow read buffer unavailable')
+        return bytes(data)
+    attached=False;pending=None;report={'pid':pid,'descriptor':descriptor,'read_count':0,'overflow_observed':False}
+    try:
+        ptrace(16);os.waitpid(pid,0);attached=True;ptrace(0x4200,0,1);Path(str(output)+'.ready').write_text('attached\n')
+        while not report['overflow_observed']:
+            ptrace(24);_,status=os.waitpid(pid,0)
+            if not os.WIFSTOPPED(status):raise AssertionError('overflow owner ended')
+            if os.WSTOPSIG(status)!=(signal.SIGTRAP|0x80):continue
+            info=(ctypes.c_ubyte*128)();ptrace(0x420e,128,ctypes.addressof(info));regs()
+            if info[0]==1:
+                pending=int(registers[1]) if registers[8]==63 and registers[0]==descriptor else None
+            elif info[0]==2 and pending is not None:
+                length=ctypes.c_longlong(registers[0]).value
+                if length>0:
+                    report['read_count']+=1;data=memory(pending,length);offset=0
+                    while offset+16<=len(data):
+                        wd,mask,cookie,size=struct.unpack_from('=iIII',data,offset)
+                        if mask&0x4000:
+                            report['overflow_observed']=True;report['event']={'wd':wd,'mask':mask,'cookie':cookie,'name_length':size,'read_bytes':length};break
+                        offset+=16+size
+                pending=None
+        return 0
+    finally:
+        if attached:
+            try:ptrace(17)
+            except OSError:pass
+        save(Path(output),report)
+
+
 def controls():
     found=files.controls()
     base={'startup':{'ready':True},'identity':{'threads':1,'uid':0,'expected_uid':0},
@@ -1420,6 +1488,8 @@ def trace_enumeration(pid,side,stage,output):
 
 
 if __name__=='__main__':
+    if len(sys.argv)>1 and sys.argv[1]=='--trace-hosts-overflow':
+        raise SystemExit(trace_hosts_overflow(int(sys.argv[2]),int(sys.argv[3]),sys.argv[4]))
     if len(sys.argv)>1 and sys.argv[1]=='--trace-interface-allocation':
         from m5_tftp_allocation import trace_allocation
         raise SystemExit(trace_allocation(int(sys.argv[2]),int(sys.argv[3]),sys.argv[4],int(sys.argv[5]),sys.argv[6],file_record=False))
