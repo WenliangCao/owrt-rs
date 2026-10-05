@@ -258,6 +258,12 @@ case('metadata-local-ad',host='health.cache.test',flags=0x120)
 case('metadata-local-do',host='health.cache.test',do=True)
 case('metadata-reply-signed-ad',response_flags=0x81a0,response_signed=True)
 case('metadata-cached-soa-ad','proxy-dnssec',response_flags=0x81a0,answers=[],soa=True,flags=0x120)
+for shape,kind,fields in [('a',1,{}),('aaaa',28,{}),('generic',16,{}),
+                        ('reverse',12,{'host':'17.2.0.192.in-addr.arpa'}),
+                        ('negative',1,{'answers':[],'soa':True}),('cname',1,{'action':'cname'})]:
+    for cd in [False,True]:
+        case('proxy-tcp-metadata-'+shape+('-cd' if cd else '-ad'),'cache-rr=ANY\nproxy-dnssec',
+             kind=kind,flags=0x130 if cd else 0x120,response_flags=0x81a0,transports=['tcp','udp','tcp'],**fields)
 # Each insertion/error case observes actual parent cache/forward counters
 # through the image ubusd and public dnsmasq metrics method.
 def sequence_case(label,steps,config='',**fields):
