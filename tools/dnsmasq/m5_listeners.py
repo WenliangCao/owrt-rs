@@ -80,6 +80,7 @@ def scenarios():
             add(profile, mode, config+'enable-tftp\ntftp-root=/m2/tftp\n', tftp=True)
         add('tftp-change', mode, 'interface=lan\nenable-tftp\ntftp-root=/m2/tftp\n',
             actions=['address-change'], tftp=True)
+        add('tftp-single-scope', mode, 'enable-tftp\ntftp-root=/m2/tftp\ntftp-single-port\n', tftp=True)
     for mode in ['static', 'dynamic']:
         for profile, extra in [('dad', ''), ('dad-explicit', 'listen-address=fd42:77::9\n'),
                                ('dad-failed', ''), ('dad-low-port', 'user=nobody\ngroup=nogroup\n')]:
@@ -347,7 +348,12 @@ def execute(root,side,item,out):
                 ip('addr','del','10.77.0.9/24','dev','lan')
                 observer.sockets('partial-removed')
             else:
-                observer.ordinary(item.get('tftp',False))
+                if profile=='tftp-single-scope':
+                    observer.sockets('initial')
+                    for link in ['lan','wan']:
+                        for dest,tag in [(V6[link],'v6'),('fe80::1','scope')]:
+                            observer.ask(link+'-'+tag+'-tftp',dest,'tftp',PEER[link])
+                else: observer.ordinary(item.get('tftp',False))
                 for action in item['actions']:
                     if action=='address-change':
                         for addr in ['10.77.0.9/24','fd42:77::9/64']:
@@ -379,6 +385,10 @@ def execute(root,side,item,out):
                 if profile=='cross-ingress':
                     net.exec('ip','route','add',V4['lan']+'/32','dev','wpeer')
                     net.exec('ip','-6','route','add',V6['lan']+'/128','dev','wpeer')
+                    # IPv6 ND only answers for addresses on that link. The
+                    # fixed neighbor makes this an ingress-admission test.
+                    mac=json.loads(ip('-j','link','show','dev','wan').stdout)[0]['address']
+                    net.exec('ip','-6','neigh','replace',V6['lan'],'lladdr',mac,'nud','permanent','dev','wpeer')
                     for dest,tag in [(V4['lan'],'v4'),(V6['lan'],'v6')]:
                         for proto in ['udp','tcp']:observer.ask('cross-'+tag+'-'+proto,dest,proto,'wpeer')
             rows.extend(observer.rows)
@@ -433,13 +443,17 @@ def validate(result,cases):
             if not ended or ended.get('exit')!=0 or ended.get('forced'): failures.append(item['name']+': incomplete cleanup')
         for row in observations:
             if 'answer' not in row: continue
-            expected = expected_answer(item, row['case'])
+            expected = expected_answer(item, row['case'], result.get('side','c'))
             if expected is not None and bool(row['answer']) != expected:
                 failures.append(item['name']+': reference guard '+row['case'])
             if row['answer'] and 'semantic' in row['answer']:
                 semantic=row['answer']['semantic']
                 if semantic['flags']&15 or not any(rr['type']==1 and rr['data']=='192.0.2.53' for rr in semantic['records']):
                     failures.append(item['name']+': wrong ready.test answer '+row['case'])
+            if row['answer'] and 'packet' in row['answer']:
+                expected_packet=(b'\0\3\0\1synthetic listener boot\n').hex()
+                if row['answer']['packet']!=expected_packet or row['answer']['dedicated']==(item['profile']=='tftp-single-scope'):
+                    failures.append(item['name']+': wrong TFTP data/port '+row['case'])
         if item.get('relay'):
             for row in observations:
                 if row['case'].startswith('relay-'):
@@ -448,7 +462,7 @@ def validate(result,cases):
     return failures
 
 
-def expected_answer(item,case):
+def expected_answer(item,case,side='c'):
     """Source-derived reachability guards, independent of observed Rust data."""
     profile,mode=item['profile'],item['mode']
     bound=mode!='wildcard'
@@ -476,6 +490,10 @@ def expected_answer(item,case):
         return selected
     link,tag,_=case.split('-')
     if link not in ['lan','wan']:return None
+    if profile=='tftp-single-scope':return True
+    # tftp.c:295-296 resets the dedicated transfer scope to zero. This is a
+    # separately proved original defect, never an ordinary equivalence pass.
+    if proto=='tftp' and tag=='scope' and side=='c':return False
     if profile in ['explicit-any4','explicit-any6']:
         family4=tag in ['v4','alias']
         return family4==(profile=='explicit-any4') and (proto=='tcp' and bound or mode=='static' and family4 and proto=='udp')
@@ -498,7 +516,7 @@ def expected_answer(item,case):
     if profile=='wildcard-names':return link=='lan'
     if profile=='alias-except':return link!='lan' or tag!='alias' or not bound
     if profile=='tftp-dedicated':return link=='lan' and (tag!='alias' or not bound)
-    if profile=='tftp-except':return link=='lan' or tag=='alias'
+    if profile=='tftp-except':return link=='lan' or tag=='alias' and (bound or proto!='tcp')
     if profile in ['late-interface','late-address','duplicate-address']:
         return link=='lan' and (tag!='alias' or not bound)
     return None
@@ -506,9 +524,34 @@ def expected_answer(item,case):
 
 def compare(left,right,cases):
     failures=[dict(side=side,error=error) for side,value in [('c',left),('rust',right)] for error in validate(value,cases)]
+    by_name={item['name']:item for item in cases}
     for c,r in zip(left.get('rows',[]),right.get('rows',[])):
-        if c!=r: failures.append(dict(name=c['name'],c=c,rust=r))
+        normalized=copy.deepcopy(r)
+        item=by_name[c['name']]
+        if len(c['rows'])==len(r['rows']):
+            for index,(cr,rr) in enumerate(zip(c['rows'],r['rows'])):
+                case=cr['case']
+                if '-scope-tftp' in case and item['profile']!='tftp-single-scope' and expected_answer(item,case,'rust'):
+                    if cr.get('answer') is None and rr.get('answer'):
+                        normalized['rows'][index]['answer']=None
+        if c!=normalized: failures.append(dict(name=c['name'],c=c,rust=r))
     return failures
+
+
+def reference_differences(left,right,cases):
+    classified=[]
+    by_name={item['name']:item for item in cases}
+    for c,r in zip(left.get('rows',[]),right.get('rows',[])):
+        item=by_name[c['name']]
+        for cr,rr in zip(c['rows'],r['rows']):
+            case=cr['case']
+            if '-scope-tftp' in case and item['profile']!='tftp-single-scope' and expected_answer(item,case,'rust'):
+                if cr.get('answer') is None and rr.get('answer'):
+                    classified.append(dict(name=c['name'],case=case,c=cr,rust=rr,
+                        classification='original-defect-ipv6-transfer-scope-cleared',
+                        source='dnsmasq-2.93/src/tftp.c:291-296,347-374',
+                        positive_control='tftp-single-scope-'+item['mode']))
+    return classified
 
 
 def main():
@@ -562,6 +605,10 @@ def main():
                 controls.append(dict(name='lost-service-'+row['name'],rejected=bool(compare(left,corrupt,selected))))
     result=dict(cases=len(selected),observations=sum(len(row['rows']) for row in right['rows']),failures=failures,
                 exits=exits,negative_controls=controls,binary_sha256=right['binary_sha256'],bytes=args.rust_binary.stat().st_size,
+                reference_differences=reference_differences(left,right,selected),
+                requirements=[dict(id=req['id'],source=req['source'],
+                    cases=[item['name'] for item in selected if 'all' in req['profiles'] or item['profile'] in req['profiles']],
+                    complete=not args.select and not failures) for req in checklist['requirements']],
                 qualified=not failures and not args.select and all(row['rejected'] for row in controls))
     save(args.out/'result.json',result)
     print(json.dumps(dict(cases=result['cases'],observations=result['observations'],failures=len(failures),qualified=result['qualified'])))

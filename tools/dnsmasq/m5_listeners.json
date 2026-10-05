@@ -204,6 +204,14 @@
     },
     {
       "actions": [],
+      "config": "enable-tftp\ntftp-root=/m2/tftp\ntftp-single-port\n",
+      "mode": "wildcard",
+      "name": "tftp-single-scope-wildcard",
+      "profile": "tftp-single-scope",
+      "tftp": true
+    },
+    {
+      "actions": [],
       "config": "bind-interfaces\n",
       "mode": "static",
       "name": "ordinary-static",
@@ -406,6 +414,14 @@
     },
     {
       "actions": [],
+      "config": "bind-interfaces\nenable-tftp\ntftp-root=/m2/tftp\ntftp-single-port\n",
+      "mode": "static",
+      "name": "tftp-single-scope-static",
+      "profile": "tftp-single-scope",
+      "tftp": true
+    },
+    {
+      "actions": [],
       "config": "bind-dynamic\n",
       "mode": "dynamic",
       "name": "ordinary-dynamic",
@@ -604,6 +620,14 @@
       "mode": "dynamic",
       "name": "tftp-change-dynamic",
       "profile": "tftp-change",
+      "tftp": true
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\nenable-tftp\ntftp-root=/m2/tftp\ntftp-single-port\n",
+      "mode": "dynamic",
+      "name": "tftp-single-scope-dynamic",
+      "profile": "tftp-single-scope",
       "tftp": true
     },
     {
@@ -1027,6 +1051,7 @@
     "tftp-no-v4-wildcard",
     "tftp-alias-wildcard",
     "tftp-change-wildcard",
+    "tftp-single-scope-wildcard",
     "ordinary-static",
     "interface-static",
     "union-static",
@@ -1054,6 +1079,7 @@
     "tftp-no-v4-static",
     "tftp-alias-static",
     "tftp-change-static",
+    "tftp-single-scope-static",
     "ordinary-dynamic",
     "interface-dynamic",
     "union-dynamic",
@@ -1081,6 +1107,7 @@
     "tftp-no-v4-dynamic",
     "tftp-alias-dynamic",
     "tftp-change-dynamic",
+    "tftp-single-scope-dynamic",
     "dad-static",
     "dad-explicit-static",
     "dad-failed-static",
