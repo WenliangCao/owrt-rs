@@ -3100,6 +3100,11 @@ impl SinglePoll {
         let Some(daemon) = daemon.as_mut() else {
             return;
         };
+        if daemon.detect_loop(&query).unwrap_or(false) {
+            local.config = daemon.local_config().clone();
+            self.config = local.config.clone();
+            return;
+        }
         write_dns_metrics(
             &mut metrics,
             daemon.cache_counters(),

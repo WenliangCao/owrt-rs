@@ -243,6 +243,7 @@ struct Transaction {
 }
 struct OwnedSocket {
     owners: HashSet<QueryId>,
+    probe_refs: usize,
     source: SourceSpec,
     persistent: bool,
     pooled: bool,
@@ -282,6 +283,14 @@ pub struct UpstreamResolver<R = OsRandom> {
     server_sockets: HashMap<ServerId, SocketToken>,
     pool_finger: usize,
     source_diagnostics: VecDeque<SourceSocketDiagnostic>,
+    loop_sends: VecDeque<LoopSend>,
+}
+
+struct LoopSend {
+    token: SocketToken,
+    address: SocketAddr,
+    packet: Vec<u8>,
+    deadline: Instant,
 }
 
 impl UpstreamResolver<OsRandom> {
@@ -343,11 +352,116 @@ impl<R: Random> UpstreamResolver<R> {
             server_sockets: HashMap::new(),
             pool_finger: 0,
             source_diagnostics: VecDeque::new(),
+            loop_sends: VecDeque::new(),
         })
     }
 
     pub fn dispatcher(&self) -> &ForwardDispatcher {
         &self.dispatcher
+    }
+
+    pub(crate) fn random_mut(&mut self) -> &mut R {
+        &mut self.random
+    }
+
+    /// loop.c borrows the normal source allocator without a forward record,
+    /// query metric, dump packet, or reply transaction. Hold each reference
+    /// across the whole probe batch, then release it after its actual send.
+    pub(crate) fn loop_probe_batch(&mut self, probes: Vec<super::loop_detect::LoopProbe>) {
+        for probe in probes {
+            let super::loop_detect::LoopProbe {
+                server,
+                address,
+                endpoint,
+                packet,
+            } = probe;
+            let mut source = SourceSpec::endpoint(&endpoint, self.socket_settings.query_port);
+            if let Some(previous) = self.source_bindings.get(&server) {
+                source.ifindex = previous.ifindex;
+            }
+            let token = if let Some(token) = self.server_sockets.get(&server) {
+                Ok(*token)
+            } else {
+                let pooled = self.sockets.values().filter(|owned| owned.pooled).count();
+                let range = u32::from(self.socket_settings.max_port)
+                    .saturating_sub(u32::from(self.socket_settings.min_port))
+                    + 1;
+                let full_range = self.socket_settings.max_port != 0
+                    && range < 30
+                    && self
+                        .sockets
+                        .values()
+                        .filter(|owned| {
+                            owned.pooled
+                                && owned.source.address.is_ipv4() == source.address.is_ipv4()
+                        })
+                        .count()
+                        >= range as usize;
+                let allocated = (pooled < self.socket_settings.pool_slots && !full_range)
+                    .then(|| self.open_socket(source.clone(), false, true).ok())
+                    .flatten();
+                if let Some(token) = allocated {
+                    Ok(token)
+                } else {
+                    let slots = self.socket_settings.pool_slots;
+                    let reusable = self
+                        .sockets
+                        .iter()
+                        .filter(|(_, owned)| {
+                            self.random_source_matches(owned, &source)
+                                && owned.owners.len() + owned.probe_refs < 0xfffe
+                        })
+                        .min_by_key(|(_, owned)| {
+                            (owned.pool_slot.unwrap() + slots - self.pool_finger % slots) % slots
+                        })
+                        .map(|(token, _)| *token);
+                    if let Some(token) = reusable {
+                        self.pool_finger = self.sockets[&token].pool_slot.unwrap() + 1;
+                        Ok(token)
+                    } else {
+                        self.open_socket(source, false, false)
+                    }
+                }
+            };
+            if let Ok(token) = token {
+                self.sockets.get_mut(&token).unwrap().probe_refs += 1;
+                self.loop_sends.push_back(LoopSend {
+                    token,
+                    address,
+                    packet,
+                    deadline: Instant::now() + Duration::from_secs(1),
+                });
+            }
+        }
+        self.step_loop_probes();
+    }
+
+    fn step_loop_probes(&mut self) {
+        for _ in 0..self.loop_sends.len().min(128) {
+            let probe = self.loop_sends.pop_front().unwrap();
+            let Some(socket) = self.sockets.get_mut(&probe.token) else {
+                continue;
+            };
+            let result = socket.socket.send_to(&probe.packet, probe.address);
+            if Instant::now() < probe.deadline
+                && result.as_ref().is_err_and(|error| {
+                    matches!(
+                        error.kind(),
+                        io::ErrorKind::WouldBlock | io::ErrorKind::Interrupted
+                    )
+                })
+            {
+                self.loop_sends.push_back(probe);
+            } else {
+                socket.probe_refs -= 1;
+            }
+        }
+        self.sockets.retain(|token, owned| {
+            !owned.owners.is_empty()
+                || owned.probe_refs != 0
+                || owned.persistent
+                    && (owned.pinned || self.server_sockets.values().any(|used| used == token))
+        });
     }
     #[cfg(target_os = "linux")]
     pub fn set_dump(&mut self, dump: crate::dump::DumpHandle) {
@@ -372,7 +486,12 @@ impl<R: Random> UpstreamResolver<R> {
             if owned.pollable_at(now) {
                 fds.push(PollFd {
                     fd: owned.socket.as_raw_fd(),
-                    events: POLLIN,
+                    events: POLLIN
+                        | if owned.probe_refs != 0 {
+                            owrt_ubus::sys::POLLOUT
+                        } else {
+                            0
+                        },
                     revents: 0,
                 });
             } else if let Some(retry) = owned.empty_error_retry {
@@ -504,7 +623,12 @@ impl<R: Random> UpstreamResolver<R> {
                 tokens.push(token);
                 fds.push(PollFd {
                     fd: owned.socket.as_raw_fd(),
-                    events: POLLIN,
+                    events: POLLIN
+                        | if owned.probe_refs != 0 {
+                            owrt_ubus::sys::POLLOUT
+                        } else {
+                            0
+                        },
                     revents: 0,
                 });
             }
@@ -563,6 +687,7 @@ impl<R: Random> UpstreamResolver<R> {
         self.events.clear();
         self.sockets.clear();
         self.server_sockets.clear();
+        self.loop_sends.clear();
     }
 
     /// Apply file-source changes without reconstructing this resolver. Only
@@ -624,6 +749,9 @@ impl<R: Random> UpstreamResolver<R> {
     }
 
     fn next_wakeup(&self, mut deadline: Instant) -> Instant {
+        for probe in &self.loop_sends {
+            deadline = deadline.min(probe.deadline);
+        }
         if self.lifetime.fixed() {
             for transaction in self.transactions.values() {
                 deadline = deadline.min(transaction.deadline);
@@ -643,6 +771,9 @@ impl<R: Random> UpstreamResolver<R> {
     }
 
     fn run_timers(&mut self) {
+        if !self.loop_sends.is_empty() {
+            self.step_loop_probes();
+        }
         self.run_timers_at(Instant::now(), unix_seconds(), self.milliseconds());
     }
 
@@ -767,6 +898,7 @@ impl<R: Random> UpstreamResolver<R> {
             !owned.persistent
                 || owned.pinned
                 || !owned.owners.is_empty()
+                || owned.probe_refs != 0
                 || self.server_sockets.values().any(|used| used == token)
         });
         failures
@@ -818,6 +950,7 @@ impl<R: Random> UpstreamResolver<R> {
             token,
             OwnedSocket {
                 owners: HashSet::new(),
+                probe_refs: 0,
                 pinned: persistent
                     && source.address.ip().is_unspecified()
                     && source.interface.is_empty()
@@ -950,6 +1083,7 @@ impl<R: Random> UpstreamResolver<R> {
         self.sockets.retain(|token, owned| {
             owned.owners.remove(&id);
             !owned.owners.is_empty()
+                || owned.probe_refs != 0
                 || (owned.persistent
                     && (owned.pinned || self.server_sockets.values().any(|used| used == token)))
         });

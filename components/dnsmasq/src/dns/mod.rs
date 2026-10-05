@@ -10,8 +10,10 @@ pub mod files;
 pub mod filewatch;
 pub mod forward;
 pub mod forward_service;
+pub mod interface_records;
 pub mod lease_names;
 pub mod local;
+pub mod loop_detect;
 pub mod process;
 mod query_policy;
 pub mod reply;
@@ -22,7 +24,6 @@ pub mod tcp_upstream;
 pub mod udp_query;
 pub mod upstream;
 pub mod wire;
-pub mod interface_records;
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 pub mod interface_collect;

@@ -195,9 +195,21 @@ impl RoutingTable {
         sources: &ServerSources,
         previous: Option<&Self>,
     ) -> Result<Self, RoutingError> {
+        Self::from_sources_except(config, sources, previous, &[])
+    }
+
+    pub(crate) fn from_sources_except(
+        config: &DnsConfig,
+        sources: &ServerSources,
+        previous: Option<&Self>,
+        excluded: &[ServerId],
+    ) -> Result<Self, RoutingError> {
         let mut buckets: Vec<RuleBucket> = Vec::new();
         let mut source_endpoints = HashMap::new();
         for entry in sources.rules() {
+            if entry.server.is_some_and(|id| excluded.contains(&id)) {
+                continue;
+            }
             let rule = &entry.value.rule;
             let mut pattern = rule.domain.clone();
             pattern.suffix.make_ascii_lowercase();

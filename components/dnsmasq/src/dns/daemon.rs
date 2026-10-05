@@ -225,6 +225,8 @@ pub struct DnsDaemon<R = OsRandom> {
     edns_packet_max: u16,
     filter_rr: Vec<u16>,
     poll_failures: PollFailures,
+    loop_state: super::loop_detect::LoopState,
+    startup_loop_probes: Vec<super::loop_detect::LoopProbe>,
 }
 
 impl DnsDaemon<OsRandom> {
@@ -248,7 +250,7 @@ impl<R: Random> DnsDaemon<R> {
         hosts: Hosts,
         default_resolvers: &[SocketAddr],
         options: DaemonOptions,
-        random: R,
+        mut random: R,
     ) -> Result<Self, DaemonError> {
         config.finalize()?;
         config.validate_ready().map_err(DaemonError::Config)?;
@@ -264,6 +266,12 @@ impl<R: Random> DnsDaemon<R> {
                     .collect(),
             );
         }
+        let mut loop_state = super::loop_detect::LoopState::default();
+        let startup_loop_probes = if config.loop_detect {
+            loop_state.probes(&server_sources, &mut random)?
+        } else {
+            Vec::new()
+        };
         // Source FD preallocation precedes check_servers, even for a zero
         // destination which will never be eligible for actual forwarding.
         let startup_routing = if server_sources
@@ -325,6 +333,8 @@ impl<R: Random> DnsDaemon<R> {
             edns_packet_max: options.edns_packet_max,
             filter_rr,
             poll_failures: PollFailures::default(),
+            loop_state,
+            startup_loop_probes,
         })
     }
 
@@ -338,7 +348,7 @@ impl<R: Random> DnsDaemon<R> {
         self.server_notices
             .extend(crate::logging::startup::server_messages(
                 self.server_sources.rules(),
-                |_| false,
+                |id| self.loop_state.disabled.contains(&id),
             ));
     }
 
@@ -406,6 +416,7 @@ impl<R: Random> DnsDaemon<R> {
                 && !self.local.config.no_poll
                 && !rows.is_empty());
         let mut removed = self.server_sources.replace(source, rows);
+        self.send_loop_probes()?;
         removed.extend(
             self.server_sources
                 .retain_servers(|row| server_usable(row, local_addresses)),
@@ -424,6 +435,7 @@ impl<R: Random> DnsDaemon<R> {
         &mut self,
         local_addresses: &[SocketAddr],
     ) -> Result<(), DaemonError> {
+        self.send_loop_probes()?;
         let removed = self
             .server_sources
             .retain_servers(|row| server_usable(row, local_addresses));
@@ -488,15 +500,25 @@ impl<R: Random> DnsDaemon<R> {
         &mut self,
         removed: &[super::forward::ServerId],
     ) -> Result<(), DaemonError> {
-        let mut routing = RoutingTable::from_sources(
+        let excluded: Vec<_> = self.loop_state.disabled.iter().copied().collect();
+        let mut routing = RoutingTable::from_sources_except(
             &self.local.config,
             &self.server_sources,
             Some(&self.routing),
+            &excluded,
         )?;
         let settings = self.upstream.socket_settings();
-        let failures = self
-            .upstream
-            .configure_source_sockets(settings, routing.source_bindings(settings.query_port));
+        let bindings = if self.local.config.loop_detect {
+            RoutingTable::from_sources(
+                &self.local.config,
+                &self.server_sources,
+                Some(&self.routing),
+            )?
+            .source_bindings(settings.query_port)
+        } else {
+            routing.source_bindings(settings.query_port)
+        };
+        let failures = self.upstream.configure_source_sockets(settings, bindings);
         let mut removed = removed.to_vec();
         for (id, error) in failures {
             self.source_warnings.push(format!(
@@ -508,10 +530,11 @@ impl<R: Random> DnsDaemon<R> {
         }
         self.server_sources.remove_server_ids(&removed);
         if !removed.is_empty() {
-            routing = RoutingTable::from_sources(
+            routing = RoutingTable::from_sources_except(
                 &self.local.config,
                 &self.server_sources,
                 Some(&routing),
+                &excluded,
             )?;
             self.upstream
                 .configure_source_sockets(settings, routing.source_bindings(settings.query_port));
@@ -520,7 +543,44 @@ impl<R: Random> DnsDaemon<R> {
             .replace_server_groups(routing.dispatcher_groups(), &removed);
         self.routing = routing;
         self.local.config = self.server_sources.effective_config(&self.local.config);
+        if !excluded.is_empty() {
+            self.local.config.rules = self
+                .server_sources
+                .rules()
+                .iter()
+                .filter(|row| !row.server.is_some_and(|id| excluded.contains(&id)))
+                .map(|row| row.value.rule.clone())
+                .collect();
+        }
         Ok(())
+    }
+
+    fn send_loop_probes(&mut self) -> Result<(), DaemonError> {
+        if !self.local.config.loop_detect {
+            return Ok(());
+        }
+        let probes = if !self.startup_loop_probes.is_empty() {
+            std::mem::take(&mut self.startup_loop_probes)
+        } else {
+            self.loop_state
+                .probes(&self.server_sources, self.upstream.random_mut())?
+        };
+        self.upstream.loop_probe_batch(probes);
+        Ok(())
+    }
+
+    /// receive_query detects returned probes before local/cache/forward work.
+    pub fn detect_loop(&mut self, packet: &[u8]) -> Result<bool, DaemonError> {
+        if !self.local.config.loop_detect {
+            return Ok(false);
+        }
+        let Some(_) = self.loop_state.detect(packet, &self.server_sources) else {
+            return Ok(false);
+        };
+        self.rebuild_server_routes(&[])?;
+        #[cfg(target_os = "linux")]
+        self.queue_server_notices();
+        Ok(true)
     }
 
     pub fn poll_failures(&self) -> PollFailures {
