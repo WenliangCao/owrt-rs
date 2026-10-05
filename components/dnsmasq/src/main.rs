@@ -490,6 +490,10 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         if let Err(error) = &result {
             if let Some(log) = error.downcast_ref::<dnsmasq_rs::logging::LogStartError>() {
                 startup.fail_log(log.errno(), log.argument());
+            } else if let Some(tftp) =
+                error.downcast_ref::<dnsmasq_rs::config::tftp::RootAccessError>()
+            {
+                startup.fail_tftp(tftp.error.raw_os_error().unwrap_or(5), &tftp.path);
             } else {
                 startup.fail(startup_status(error.as_ref()), &error.to_string());
             }
@@ -946,23 +950,25 @@ fn run_inner(
             error
         })?;
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    if let Some(listener) = &tftp_listener {
-        // C tolerates inaccessible roots with no-fail, never socket errors.
-        // Root access failures use EC_FILE, not EC_BADNET.
-        let warnings =
-            listener
-                .validate_roots()
-                .map_err(|error| dnsmasq_rs::startup::StartupError {
-                    code: 3,
-                    message: format!("TFTP root unavailable: {error}"),
-                })?;
-        for root in warnings {
-            eprintln!(
-                "dnsmasq-rs: TFTP root unavailable: {}",
-                String::from_utf8_lossy(&root)
-            );
+    let tftp_root_warnings = if let Some(listener) = &tftp_listener {
+        match listener.root_accesses() {
+            Ok(warnings) => warnings,
+            Err(error) => {
+                if startup.active() {
+                    return Err(Box::new(error));
+                }
+                logger.fatal(error.to_string().as_bytes());
+                return Err(Box::new(SilentStartupError(
+                    dnsmasq_rs::startup::StartupError {
+                        code: 3,
+                        message: error.to_string(),
+                    },
+                )));
+            }
         }
-    }
+    } else {
+        Vec::new()
+    };
     #[cfg(target_os = "linux")]
     let mut dns_files = DnsFiles::new(&daemon_config, dns_enabled, daemon_config.clear_on_reload)?;
     #[cfg(target_os = "linux")]
@@ -1153,6 +1159,10 @@ fn run_inner(
         }
         if let Some(event) = dnsmasq_rs::logging::startup::tftp(&runtime.tftp) {
             logger.emit(event);
+        }
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        for warning in &tftp_root_warnings {
+            logger.emit(dnsmasq_rs::logging::startup::tftp_root_warning(warning));
         }
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if let Some(limit) = poll
