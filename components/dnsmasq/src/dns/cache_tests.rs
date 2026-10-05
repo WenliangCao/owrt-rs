@@ -1,4 +1,42 @@
 use super::*;
+
+#[test]
+fn tcp_view_isolates_mutation_shares_payload_and_imports_only_child_transaction() {
+    let a = Name::from_ascii("a.snapshot.test").unwrap();
+    let b = Name::from_ascii("b.snapshot.test").unwrap();
+    let record = |name: Name, address: u8| Record {
+        name,
+        kind: Kind::Ipv4,
+        negative: false,
+        data: vec![198, 51, 100, address],
+    };
+    let mut parent = Cache::new(8, Policy::default());
+    parent.start_insert();
+    let old = parent.insert(record(a.clone(), 7), 100, 60).unwrap();
+    assert!(parent.commit());
+    let mut child = parent.snapshot();
+    assert!(Arc::ptr_eq(
+        &parent.get(old).unwrap().record,
+        &child.get(old).unwrap().record
+    ));
+    parent.start_insert();
+    parent.insert(record(a.clone(), 8), 101, 60).unwrap();
+    assert!(parent.commit());
+    let id = child.lookup(&a, &[Kind::Ipv4], 100, false)[0];
+    assert_eq!(child.get(id).unwrap().record.data, [198, 51, 100, 7]);
+    child.start_insert();
+    child.insert(record(b.clone(), 9), 100, 60).unwrap();
+    let transaction = child
+        .capture_commit_counted(&mut CacheCounters::default())
+        .unwrap();
+    assert!(parent.lookup(&b, &[Kind::Ipv4], 101, false).is_empty());
+    assert!(parent.import_counted(transaction, 101, &mut CacheCounters::default(), |_| None));
+    let parent_a = parent.lookup(&a, &[Kind::Ipv4], 101, false)[0];
+    let parent_b = parent.lookup(&b, &[Kind::Ipv4], 101, false)[0];
+    assert_eq!(parent.get(parent_a).unwrap().record.data, [198, 51, 100, 8]);
+    assert_eq!(parent.get(parent_b).unwrap().record.data, [198, 51, 100, 9]);
+    assert_eq!(child.get(id).unwrap().record.data, [198, 51, 100, 7]);
+}
 use std::collections::HashSet;
 
 fn record(name: &str, kind: Kind, value: u8) -> Record {

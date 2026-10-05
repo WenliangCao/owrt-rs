@@ -277,21 +277,26 @@ impl ParentEvents {
         }
     }
 
+    #[cfg(target_os = "linux")]
+    fn queue_missing_ubus_notice(&mut self) {
+        if self.ubus_name.is_some() && self.ubus.is_none() && !self.ubus_error_logged {
+            self.ubus_notices.push(dnsmasq_rs::logging::LogEvent::new(
+                dnsmasq_rs::logging::Service::Dns,
+                dnsmasq_rs::logging::Priority::Error,
+                b"Cannot set UBus listeners: no connection".to_vec(),
+            ));
+            self.ubus_error_logged = true;
+        }
+    }
+
     fn process_ubus(&mut self, metrics: &Metrics) {
-        let Some(name) = self.ubus_name.as_deref() else {
+        if self.ubus_name.is_none() {
             return;
-        };
+        }
         if self.ubus.is_none() {
-            if !self.ubus_error_logged {
-                #[cfg(target_os = "linux")]
-                self.ubus_notices.push(dnsmasq_rs::logging::LogEvent::new(
-                    dnsmasq_rs::logging::Service::Dns,
-                    dnsmasq_rs::logging::Priority::Error,
-                    b"Cannot set UBus listeners: no connection".to_vec(),
-                ));
-                self.ubus_error_logged = true;
-            }
-            match UbusService::connect_bytes(None, name) {
+            #[cfg(target_os = "linux")]
+            self.queue_missing_ubus_notice();
+            match UbusService::connect_bytes(None, self.ubus_name.as_deref().unwrap()) {
                 Ok(service) => {
                     self.ubus = Some(service);
                     self.ubus_error_logged = false;
@@ -1261,14 +1266,6 @@ fn run_inner(
             && runtime.scalar.cache_size > 0
             && daemon_config.no_hosts
             && daemon_config.addn_hosts.is_empty();
-        if poll.log_cleared_cache {
-            // The initial host/cache generation above has been constructed.
-            logger.emit(LogEvent::new(
-                Service::Dns,
-                Priority::Info,
-                b"cleared cache".to_vec(),
-            ));
-        }
         poll.logger = Some(logger);
     }
     // `-k` is the normal OpenWrt invocation. Stop handlers let workers leave
@@ -1276,6 +1273,15 @@ fn run_inner(
     #[cfg(target_os = "linux")]
     if poll.helper.as_ref().is_none_or(Helper::ready) {
         startup.complete();
+    }
+    #[cfg(target_os = "linux")]
+    {
+        if dns_enabled {
+            if let Some(daemon) = &mut service.lock().unwrap().daemon {
+                daemon.queue_server_notices();
+            }
+        }
+        poll.log_dns_diagnostics(); // C releases startup errfd before check_servers.
     }
     let mut last_interfaces = Instant::now();
     // C's INAME_USED latch survives interface removal. Once an explicit
@@ -1735,6 +1741,8 @@ struct SinglePoll {
     script_arp: bool,
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     arp_awake: bool,
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    tftp_parent_wake: Option<Instant>,
 }
 
 struct PollListener {
@@ -1789,6 +1797,7 @@ struct PollTcpClient {
     mac_deferred: bool,
     mac_deadline: Instant,
     packet_limit: usize,
+    parent_cache_activity: bool,
 }
 
 enum TcpClientPhase {
@@ -1807,6 +1816,7 @@ impl PollTcpClient {
     ) -> Result<(), ()> {
         let bogus = self.forward.take_bogus_cache_entry();
         if insert_cache || bogus.is_some() {
+            self.parent_cache_activity = true;
             let mut parent = parent.lock().map_err(|_| ())?;
             if let Some(daemon) = parent.daemon.as_mut() {
                 if let Some((name, ttl)) = bogus {
@@ -2089,6 +2099,8 @@ impl SinglePoll {
             script_arp: false,
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             arp_awake: true,
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            tftp_parent_wake: None,
         }
     }
 
@@ -2212,7 +2224,9 @@ impl SinglePoll {
             files.request(ReloadReason::Route);
             self.retry_bound_listeners = true;
         }
+        let was_initializing = files.initializing();
         let step = files.step();
+        let initial_finished = was_initializing && !files.initializing();
         self.files_runnable = step.runnable;
         if let Some(logger) = &mut self.logger {
             use dnsmasq_rs::logging::{LogEvent, Priority, Service};
@@ -2248,6 +2262,44 @@ impl SinglePoll {
                     Err(error) => eprintln!("dnsmasq-rs: {error}"),
                 }
             }
+        }
+        self.log_dns_diagnostics();
+        if step.initial_cache_reload {
+            self.parent_events
+                .lock()
+                .unwrap()
+                .queue_missing_ubus_notice();
+            if let Some(logger) = &mut self.logger {
+                for notice in self.parent_events.lock().unwrap().ubus_notices.drain(..) {
+                    logger.emit(notice);
+                }
+            }
+        }
+        if step.initial_cache_reload && self.log_cleared_cache {
+            if let Some(logger) = &mut self.logger {
+                use dnsmasq_rs::logging::{LogEvent, Priority, Service};
+                logger.emit(LogEvent::new(
+                    Service::Dns,
+                    Priority::Info,
+                    b"cleared cache".to_vec(),
+                ));
+            }
+        }
+        // read_servers_file checks internally on success; EVENT_INIT/RELOAD
+        // also checks once after its no-poll and servers-file calls, even errors.
+        if (initial_finished || step.signal_complete)
+            && (self.config.servers_file.is_some()
+                || (self.config.no_poll
+                    && !self.config.no_resolv
+                    && !self.config.resolv_files.is_empty()))
+        {
+            {
+                let mut parent = self.service.lock().unwrap();
+                if let Some(daemon) = &mut parent.daemon {
+                    daemon.queue_server_notices();
+                }
+            }
+            self.log_dns_diagnostics();
         }
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if step.signal_complete {
@@ -2422,6 +2474,9 @@ impl SinglePoll {
                 Priority::Error,
                 diagnostic.to_string().into_bytes(),
             ));
+        }
+        for event in daemon.take_server_notices() {
+            logger.emit(event);
         }
     }
 
@@ -2854,6 +2909,7 @@ impl SinglePoll {
             mac_deferred,
             mac_deadline: Instant::now() + Duration::from_secs(3),
             packet_limit: self.packet_limit,
+            parent_cache_activity: false,
         });
     }
 
@@ -2897,10 +2953,18 @@ impl SinglePoll {
                     logger.emit(LogEvent::new(Service::Debug, Priority::Debug, message));
                 }
             }
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            {
+                self.arp_awake |= std::mem::take(&mut self.clients[index].parent_cache_activity);
+            }
             if result.unwrap_or(false) {
                 index += 1;
             } else {
                 self.clients.swap_remove(index);
+                #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+                {
+                    self.arp_awake = true;
+                } // C parent receives the TCP child's SIGCHLD.
                 self.parent_events.lock().unwrap().tcp_active = self.clients.len();
             }
         }
@@ -3479,6 +3543,18 @@ impl SinglePoll {
         }
         if let Some(tftp) = &self.tftp {
             tftp.append_poll_fds(&mut fds);
+            if tftp.active_transfers() != 0 {
+                // C's existing active-TFTP poll timer is at most 250ms.
+                let wake = self
+                    .tftp_parent_wake
+                    .get_or_insert(now + Duration::from_millis(250));
+                if now >= *wake {
+                    self.arp_awake = true;
+                    *wake = now + Duration::from_millis(250);
+                }
+            } else {
+                self.tftp_parent_wake = None;
+            }
         }
         if let Some(neighbors) = &self.neighbors {
             neighbors.append_poll_fds(&mut fds);
