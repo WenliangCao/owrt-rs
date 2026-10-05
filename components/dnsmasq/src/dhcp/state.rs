@@ -889,7 +889,9 @@ pub(crate) fn inform_counted(
                     .get_by_id(existing)
                     .unwrap()
                     .expires
-                    .map_or(u32::MAX, |expires| expires.saturating_sub(env.now) as u32),
+                    .map_or(u32::MAX, |expires| {
+                        super::lease::remaining_seconds(expires, env.now)
+                    }),
             );
         }
     }

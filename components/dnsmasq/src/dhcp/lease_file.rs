@@ -249,19 +249,19 @@ fn decimal_prefix(bytes: &[u8]) -> i64 {
         Some(b'+') => (false, &bytes[1..]),
         _ => (false, bytes),
     };
-    let mut value = 0i64;
-    for byte in digits.iter().take_while(|byte| byte.is_ascii_digit()) {
-        if negative {
-            value = value
-                .saturating_mul(10)
-                .saturating_sub(i64::from(byte - b'0'));
-        } else {
-            value = value
-                .saturating_mul(10)
-                .saturating_add(i64::from(byte - b'0'));
-        }
+    // This image's musl atol accumulates in a wrapping signed long. Unlike
+    // strtol, it does not report or saturate an out-of-range decimal value.
+    let value = digits
+        .iter()
+        .take_while(|byte| byte.is_ascii_digit())
+        .fold(0i64, |value, byte| {
+            value.wrapping_mul(10).wrapping_add(i64::from(byte - b'0'))
+        });
+    if negative {
+        value.wrapping_neg()
+    } else {
+        value
     }
-    value
 }
 
 #[cfg(test)]
@@ -306,7 +306,8 @@ mod tests {
         let result = parse(b"200 010203\n192.0.2.1\nhost *\ntrailing");
         assert_eq!(result.records.len(), 1);
         assert!(!result.clean_end);
-        assert_eq!(decimal_prefix(b"-9223372036854775809"), i64::MIN);
+        assert_eq!(decimal_prefix(b"-9223372036854775809"), i64::MAX);
+        assert_eq!(decimal_prefix(b"9223372036854775808"), i64::MIN);
     }
 
     #[test]
