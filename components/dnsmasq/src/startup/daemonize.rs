@@ -33,6 +33,9 @@ impl StartupChannel {
         }
         let mut reader = unsafe { File::from_raw_fd(fds[0]) };
         let writer = unsafe { File::from_raw_fd(fds[1]) };
+        if unsafe { fcntl(writer.as_raw_fd(), 4, 0o4000) } < 0 {
+            return Err(failure("cannot create pipe", io::Error::last_os_error()));
+        }
         // No service threads exist. Mutexes are unlocked before this boundary.
         let pid = unsafe { fork() };
         if pid < 0 {
@@ -81,13 +84,6 @@ impl StartupChannel {
                 _exit(0);
             }
         }
-        // One bounded event fits PIPE_BUF. The service never waits for its
-        // invoker, even if that invoker disappears while startup is failing.
-        if let Some(writer) = &self.writer {
-            unsafe {
-                fcntl(writer.as_raw_fd(), 4, 0o4000);
-            }
-        }
         Ok(false)
     }
 
@@ -106,7 +102,12 @@ impl StartupChannel {
         event.extend_from_slice(message);
         // SIGPIPE is already ignored by the startup loader. An absent parent
         // cannot terminate the service before its own orderly failure cleanup.
-        let _ = unsafe { write(writer.as_raw_fd(), event.as_ptr(), event.len()) };
+        for _ in 0..128 {
+            let written = unsafe { write(writer.as_raw_fd(), event.as_ptr(), event.len()) };
+            if written >= 0 || io::Error::last_os_error().kind() != io::ErrorKind::Interrupted {
+                break;
+            }
+        }
     }
 }
 
