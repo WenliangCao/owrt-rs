@@ -13,6 +13,32 @@ pub struct LoggingConfig {
     /// Signed musl atoi result, capped at 100; zero selects one fixed buffer.
     pub async_queue: i32,
     pub debug: bool,
+    pub queries: QueryLogging,
+}
+
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub struct QueryLogging {
+    pub enabled: bool,
+    pub extra: bool,
+    pub protocol: bool,
+    pub only_failed: bool,
+    pub authoritative_only: bool,
+}
+
+impl QueryLogging {
+    fn enable(&mut self, argument: Option<&[u8]>) {
+        self.enabled = true;
+        match argument {
+            Some(b"extra") => self.extra = true,
+            Some(b"proto") => {
+                self.extra = true;
+                self.protocol = true;
+            }
+            Some(b"only_failed") => self.only_failed = true,
+            Some(b"auth") => self.authoritative_only = true,
+            _ => (),
+        }
+    }
 }
 
 impl LoggingConfig {
@@ -48,6 +74,10 @@ impl LoggingConfig {
                 };
             }
             b"log-debug" => self.debug = true,
+            b"log-queries" => {
+                let value = directive.argument.as_ref().map(|value| value.decoded());
+                self.queries.enable(value.as_deref());
+            }
             _ => return Ok(false),
         }
         Ok(true)
@@ -88,6 +118,47 @@ fn facility(value: &[u8]) -> Option<i32> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn query_modes_accumulate_and_unknown_values_only_enable_ordinary_logging() {
+        let mut config = LoggingConfig::default();
+        for line in [
+            "log-queries=EXTRA",
+            "log-queries=",
+            "log-queries=proto",
+            "log-queries=only_failed",
+            "log-queries=auth",
+        ] {
+            config
+                .apply(&crate::config::lex_line(line.as_bytes()).unwrap().unwrap())
+                .unwrap();
+        }
+        assert_eq!(
+            config.queries,
+            QueryLogging {
+                enabled: true,
+                extra: true,
+                protocol: true,
+                only_failed: true,
+                authoritative_only: true
+            }
+        );
+        let mut ordinary = LoggingConfig::default();
+        ordinary
+            .apply(
+                &crate::config::lex_line(b"log-queries=extra,proto")
+                    .unwrap()
+                    .unwrap(),
+            )
+            .unwrap();
+        assert_eq!(
+            ordinary.queries,
+            QueryLogging {
+                enabled: true,
+                ..Default::default()
+            }
+        );
+    }
 
     #[test]
     fn facility_and_file_from_different_origins_are_independent() {
