@@ -147,6 +147,12 @@ pub struct Outcome {
 /// during the state transaction, before the caller persists/publishes/sends.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum LogEvent<'a> {
+    Packet {
+        kind: &'static [u8],
+        address: Option<Ipv4Addr>,
+        extra: Option<&'a [u8]>,
+        error: Option<&'a [u8]>,
+    },
     Ack {
         address: Ipv4Addr,
         name: Option<&'a [u8]>,
@@ -158,6 +164,23 @@ pub(crate) enum LogEvent<'a> {
 }
 
 pub(crate) type LogSink<'a> = dyn for<'event> FnMut(LogEvent<'event>) + 'a;
+
+fn log_packet(
+    events: &mut Option<&mut LogSink<'_>>,
+    kind: &'static [u8],
+    address: Option<Ipv4Addr>,
+    extra: Option<&[u8]>,
+    error: Option<&[u8]>,
+) {
+    if let Some(events) = events.as_deref_mut() {
+        events(LogEvent::Packet {
+            kind,
+            address,
+            extra,
+            error,
+        });
+    }
+}
 
 impl Outcome {
     fn ignored() -> Self {
@@ -226,7 +249,7 @@ fn transaction(
     request: Request<'_>,
     offered: Option<Ipv4Addr>,
     counters: &mut MessageCounters,
-    events: Option<&mut LogSink<'_>>,
+    mut events: Option<&mut LogSink<'_>>,
 ) -> Result<Outcome, LeaseError> {
     let mut output = Outcome::ignored();
     let env = request.environment;
@@ -280,6 +303,7 @@ fn transaction(
     // over this statement after DISCOVER and never counts REQUEST or OFFER.
     if offered.is_none() {
         counters.request = counters.request.wrapping_add(1);
+        log_packet(&mut events, b"DHCPREQUEST", Some(address), None, None);
     }
     // C's server-ID search consumes the front of the context chain.
     let first = if mode == RequestMode::Selecting && env.override_server.is_none() {
@@ -379,9 +403,23 @@ fn transaction(
         // Failed rapid commit sends no NAK (rfc2131.c:1567-1576).
         if offered.is_some() {
             counters.no_answer = counters.no_answer.wrapping_add(1); // :1565
+            log_packet(
+                &mut events,
+                b"NOANSWER",
+                Some(address),
+                None,
+                Some(reason.message().as_bytes()),
+            );
             return Ok(output);
         }
         counters.nak = counters.nak.wrapping_add(1); // :1565
+        log_packet(
+            &mut events,
+            b"DHCPNAK",
+            Some(address),
+            None,
+            Some(reason.message().as_bytes()),
+        );
 
         // A failed narrow_context assigns NULL in rfc2131.c. Its NAK uses
         // the ingress fallback, not the former chain head. Earlier mode
@@ -482,7 +520,7 @@ pub(crate) fn discover_counted(
     mut probe: impl FnMut(Ipv4Addr, u32, LeaseCounters) -> ProbeResult,
     quiet: bool,
     counters: &mut MessageCounters,
-    events: Option<&mut LogSink<'_>>,
+    mut events: Option<&mut LogSink<'_>>,
     mut before_offer: Option<&mut OfferWait<'_>>,
 ) -> Result<Outcome, LeaseError> {
     let env = request.environment;
@@ -493,6 +531,7 @@ pub(crate) fn discover_counted(
         // :1289-1293: quiet-dhcp suppresses this one counter as well as log.
         if !quiet {
             counters.discover = counters.discover.wrapping_add(1);
+            log_packet(&mut events, b"DHCPDISCOVER", None, None, Some(b"ignored"));
         }
         return Ok(Outcome::ignored());
     }
@@ -526,7 +565,14 @@ pub(crate) fn discover_counted(
             match probe(address, 0, store.counters()) {
                 ProbeResult::Available { .. } => Some(address),
                 ProbeResult::InUse => None,
-                ProbeResult::Failed => return Ok(discover_failed(counters)),
+                ProbeResult::Failed => {
+                    return Ok(discover_failed(
+                        counters,
+                        &mut events,
+                        request.packet.requested_address(),
+                        b"no address available",
+                    ))
+                }
             }
         } else {
             None
@@ -543,7 +589,12 @@ pub(crate) fn discover_counted(
             client.client_id.as_deref(),
         );
         if hardware.is_empty() {
-            return Ok(discover_failed(counters));
+            return Ok(discover_failed(
+                counters,
+                &mut events,
+                request.packet.requested_address(),
+                b"no unique-id",
+            ));
         }
         let Some((_, address)) = allocate_address(
             ranges,
@@ -554,11 +605,23 @@ pub(crate) fn discover_counted(
             |address| request.reserved.contains(&address),
             |address, hash| probe(address, hash, store.counters()),
         ) else {
-            return Ok(discover_failed(counters));
+            return Ok(discover_failed(
+                counters,
+                &mut events,
+                request.packet.requested_address(),
+                b"no address available",
+            ));
         };
         address
     };
     counters.discover = counters.discover.wrapping_add(1); // :1349
+    log_packet(
+        &mut events,
+        b"DHCPDISCOVER",
+        request.packet.requested_address(),
+        None,
+        None,
+    );
     let Some(context) = narrow(ranges, address, request.tags) else {
         return Ok(Outcome::ignored());
     };
@@ -571,6 +634,7 @@ pub(crate) fn discover_counted(
         return transaction(store, ranges, request, Some(address), counters, events);
     }
     counters.offer = counters.offer.wrapping_add(1); // :1377
+    log_packet(&mut events, b"DHCPOFFER", Some(address), None, None);
     let lease_time = lease_duration(
         ranges[context].lease_time,
         request.host.and_then(|host| host.lease_time),
@@ -588,9 +652,15 @@ pub(crate) fn discover_counted(
     })
 }
 
-fn discover_failed(counters: &mut MessageCounters) -> Outcome {
+fn discover_failed(
+    counters: &mut MessageCounters,
+    events: &mut Option<&mut LogSink<'_>>,
+    address: Option<Ipv4Addr>,
+    error: &'static [u8],
+) -> Outcome {
     // Address selection/identity errors still reach C's DISCOVER write site.
     counters.discover = counters.discover.wrapping_add(1);
+    log_packet(events, b"DHCPDISCOVER", address, None, Some(error));
     Outcome::ignored()
 }
 
@@ -862,7 +932,7 @@ pub(crate) fn inform_counted(
     ranges: &[AddressRange],
     request: Request<'_>,
     counters: &mut MessageCounters,
-    events: Option<&mut LogSink<'_>>,
+    mut events: Option<&mut LogSink<'_>>,
 ) -> Result<Outcome, LeaseError> {
     let mut output = Outcome::ignored();
     let env = request.environment;
@@ -871,6 +941,13 @@ pub(crate) fn inform_counted(
         return Ok(output);
     }
     counters.inform = counters.inform.wrapping_add(1); // :1757, before ignore/zero-ciaddr
+    log_packet(
+        &mut events,
+        b"DHCPINFORM",
+        Some(address),
+        env.ignored.then_some(b"ignored".as_slice()),
+        None,
+    );
     if env.ignored || address.is_unspecified() {
         return Ok(output);
     }
