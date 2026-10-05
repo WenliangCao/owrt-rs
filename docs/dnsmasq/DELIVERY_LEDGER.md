@@ -2,10 +2,10 @@
 
 ## 当前状态与下一步
 
-- 当前里程碑：M5；169 项中 **117 项已关闭、26 项部分实现、26 项未实现，剩余 52 项**。
-- 刚关闭：本次续接尚无新关项。EDNS 中断的两个工具文件已审查提交 `7e9e2360`；新增真实 91 秒邻居刷新、独立客户端 coalescing 控制等镜像 C 校准通过。既有 dhcp-scriptuser、租约恢复、监听、NO_ID 资格仍按逐项表保留。
+- 当前里程碑：M5；169 项中 **118 项已关闭、25 项部分实现、26 项未实现，剩余 51 项**。
+- 刚关闭：enable-tftp 重新关闭；精确镜像 C/Rust 95 配置/场景、17 冻结边界、10 负控全过。实际生产 calloc/malloc/socket/open/fstat/read 故障、完整 ERR 字节/正文/终止符/TID/恢复/FD 边界已覆盖；源 f8a765bb / ELF 75899f81…253a，1,695,784 字节。完整 2,409 路径/2,174 文件 SHA+metadata 归档已核验清远端，旧失败保留。
 - 当前代码：现场恢复起点 `814a7eed` / ELF `ee1f9302801cd498d246eb855946d44e4ddae0bc8577b007eac0346b12ce94f3`，1,671,208 字节。最新接线候选 `08f2e213` / ELF `468b5d726bc4778623eec041812f8e191f88c2f9a88a4d569b0c3dce20b4be89`，**1,703,976 字节（M4 +544,696）**；EDNS 配置/运行时、端点显式枚举、TFTP 可恢复分配/PMTU/完整日志、async/script 日志已接线，未把接线当资格。`98656142` 的 Linux 632 库测试和 main10 通过，19 ignored 不计通过；新功能族镜像对照仍在继续。
-- 下一步：完成端点 191 required 清单（191 syntax、183 service；修复普通模式子进程诊断后重跑）、EDNS 195 required 配对、日志 sink/后台启动/async/script 边界、TFTP 完整错误与真实分配故障。每族通过立即合入、更新选项和扣数；然后推进其他剩余功能族。
+- 下一步：完成端点 191 required 清单（191 syntax、183 service；修复普通模式子进程诊断后重跑）、EDNS 195 required 配对、日志 sink/后台启动/async/script 边界、quiet-tftp 完整日志合同；TFTP 错误族已关闭。每族通过立即合入、更新选项和扣数；然后推进其他剩余功能族。
 - 阻塞点：无须用户决定。oracle 初查无 M5 残留进程，可用约 30 GiB（85%）；logging 遗留 4,158 路径/3,516 文件已完整 SHA+metadata 核验归档并清理，endpoint 遗留由其负责人继续核验。旧半截、C-only 和已纠正失败保留，不计通过。物理路由器未触碰。体积固定路径矩阵首轮发现历史 tar mtime 触发 Cargo 旧产物复用，整轮已拒绝并保留 calibration-rejection；`ff2b2d22` 在共享构建锁内仅清 dnsmasq package 产物、保留依赖缓存后重新编译测量。旧 fixed_remote 已主动刷新 mtime，原 planner/SIGPIPE 归因不因此撤销；较大族的无行为变化优化继续评估，M5 结束交用户决定。
 - 活跃分工：后续子代理不指定 model/reasoning_effort，fork_turns 用默认值，全量继承主线程模型、推理档位和上下文；当前 4 个运行代理不重启。edns_resume 续接 m5/edns-contract，endpoints_resume 续接 m5/dns-endpoints，logging_resume 续接 m5/logging-contract，tftp_resume 续接 m5/tftp-error-wire；四树均仍有效。root 独占 main.rs、dns/daemon.rs、dns/tcp_service.rs、config/dns.rs、config/dhcp.rs、dhcp/daemon.rs 公共接线和账本。完成族按规则保留 durable refs 后清树/branch；用户 docs/prompts 保持原样。
 - 续接注意：只从本账本恢复，不读旧聊天。DNS files 不得在 DHCP probe 回调里读取；check_servers 只看 DNS-selected 地址/端口/scope。source ifindex 仅在精确 C 枚举边界刷新，普通 inline/HUP/wait 不刷新；dynamic/local-service=net 地址事件、parent TCP accept 与实际 file check_servers 分别有接线。EDNS NO_CACHE 只限制缓存读/写，coalescing 按有效 option bytes 区分；C 跨客户端身份错误保留独立请求控制。任何 partial/reference-only 运行不得自动关项。
@@ -56,7 +56,7 @@ M4 的单 poll owner 已替换六线程接线，决定见 [ADR_THREAD_MODEL.md](
 
 ## M5 盘点与工作顺序
 
-盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**117 项已实现并有 C 差分，26 项部分实现，26 项未实现；剩余 52 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
+盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**118 项已实现并有 C 差分，25 项部分实现，26 项未实现；剩余 51 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
 
 对镜像 init 的静态调用路径核对得到 **A 组 99 项、B 组 70 项**。A 表示原生 UCI/init 生成或调用，行号链接到保留原文的 init；B 表示通常需额外配置。`extraconftext`/conf-dir 可以透传任意指令，不据此把全部选项都算原生生成。`pxe-service`、`pxe-prompt`、`interface-name` 实际有 init 生成路径，归 A。26 个 excluded-capability 选项不混入169项计数；其与C一致的禁用/拒绝边界仍保留。
 
@@ -106,7 +106,7 @@ M5 退出条件：169项全部实现并有C差分，或已证明与C一致的拒
 | `servers-file` | A / 1072 | helper/文件更新 | 未实现 | 当前无通过证据；Typed path exists but both main and DNS daemon reject it. Need restricted server/rev-server file parsing, source-specific replacement, startup/SIGHUP load and file-error behavior. Exact C does not inotify-watch servers-file; do not invent auto-update behavior. |
 | `dhcp-boot` | A / 516,1077 | Boot/relay/TFTP | 已实现，有C差分 | [M5 boot102行](../../private/dnsmasq-rewrite/evidence/M5/integration-20261004/db51616d/runs/boot-db51616d-02/result.json)；tag/net 优先级、无tag回退、选中context、PRL/BOOTP/NAK、hosts next-server、字段/容量边界通过。空tag和超过255字节只测语法：保留Rust明确拒绝，C空指针/长度窄化缺陷单列；不执行未定义参考路径，不声称这3例字节相等。 |
 | `dhcp-relay` | A / 846,849 | Boot/relay/TFTP | 已实现，有C差分 | [M5 relay闭合](../../private/dnsmasq-rewrite/evidence/M5/relay/close-summary.json)；43条C清单、37配置／174报文场景、40语法、4绑定模式、15负控和6实际Linux隔离守卫通过；relay-only、本地服务共存、端口、接口重建、split/opaque/容量/清理均覆盖，C既有quirks单列。候选f1668e28／ELF9c73a0d9…d2ebd5，1,396,848字节（族段增量+20,480）。 |
-| `enable-tftp` | A / 1006 | Boot/relay/TFTP | 部分实现 | [M5 30 场景](../../private/dnsmasq-rewrite/evidence/M5/integration-20261004/db51616d/runs/tftp-db51616d-01/result.json)；双栈/接口选择、单 poll owner 和 PID/线程回收。 候选95a23157…c21f，所有执行/负向对照/回收检查通过。 新审计重开：[TFTP错误包缺口](../../private/dnsmasq-rewrite/evidence/M5/tftp/error-wire-reopened/audit.json)，585的ENOENT wire仅file not found，镜像C为含完整path/peer的文本；同code1不足以证明完整响应相同。listeners_v2负责补齐ENOENT/EACCES/read-error及sanitise/长度边界；quiet-tftp日志合同另保持未实现。 |
+| `enable-tftp` | A / 1006 | Boot/relay/TFTP | 已实现，有C差分 | [M5 完整 TFTP 错误闭合](../../private/dnsmasq-rewrite/evidence/M5/tftp-errors/close-summary.json)；原 30 场景资格保留，新增 95 配置/场景、17 C 边界、10 负控全过，实际生产分配/套接字/文件/read 故障及完整 ERR 字节/日志/终止符/TID/恢复/FD 覆盖。f8a765bb／75899f81…253a，1,695,784 字节；636 Linux 库测试/main10 通过，19 ignored 不计。完整 a5386b22…401ef 归档 2,409 路径/2,174 文件 SHA+metadata 核验后清理；旧真实失败保留，quiet-tftp 仍单独开放。 |
 | `pxe-prompt` | A / 1082 | Boot/relay/TFTP | 已实现，有C差分 | [M5 PXE族闭合](../../private/dnsmasq-rewrite/evidence/M5/pxe/qualification-summary.json)；55清单、138配置／260场景、58语法／20负控通过；最新候选e9621e56／c4998e8f…909af（1,450,096字节），PXE阶段相对9e净+40,960字节，后续混合增量不冒称纯PXE。C空predicate/menu/vendor及超长prompt缺陷单列；helper退出缺陷独立重开。 |
 | `pxe-service` | A / 224 | Boot/relay/TFTP | 已实现，有C差分 | [M5 PXE族闭合](../../private/dnsmasq-rewrite/evidence/M5/pxe/qualification-summary.json)；55清单、138配置／260场景、58语法／20负控通过；最新候选e9621e56／c4998e8f…909af（1,450,096字节），PXE阶段相对9e净+40,960字节，后续混合增量不冒称纯PXE。C空predicate/menu/vendor及超长prompt缺陷单列；helper退出缺陷独立重开。 |
 | `tftp-no-fail` | A / 1007 | Boot/relay/TFTP | 已实现，有C差分 | [M5 30 场景](../../private/dnsmasq-rewrite/evidence/M5/integration-20261004/db51616d/runs/tftp-db51616d-01/result.json)；缺目录允许启动、未启用时 exit3、bind 错误不能被 no-fail 吞掉。 候选95a23157…c21f，所有执行/负向对照/回收检查通过。 |
