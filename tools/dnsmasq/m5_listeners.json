@@ -1,0 +1,227 @@
+{
+  "schema": 1,
+  "options": [
+    "bind-interfaces",
+    "bind-dynamic",
+    "interface",
+    "except-interface",
+    "listen-address"
+  ],
+  "reference": {
+    "network.c": {
+      "path": "dnsmasq-2.93/src/network.c",
+      "sha256": "8229872d30a2fb2d86ec9a9e550e51fbb8d8d97926e7a02b0137f2a7b40c40c9"
+    },
+    "netlink.c": {
+      "path": "dnsmasq-2.93/src/netlink.c",
+      "sha256": "b84884ca8a9c30e1985cf4787f64f56131dff8b3a4c35c09b6ac299ada77cbd1"
+    },
+    "dnsmasq.c": {
+      "path": "dnsmasq-2.93/src/dnsmasq.c",
+      "sha256": "d4bb7cde522376200a0293427b0812625ebc457f10dc9d3e2bef243ccba8ccd1"
+    },
+    "forward.c": {
+      "path": "dnsmasq-2.93/src/forward.c",
+      "sha256": "ac05784d4233ed10bd166da5fe91e464afecf2883d3c2a0063305d3e81692f95"
+    },
+    "tftp.c": {
+      "path": "dnsmasq-2.93/src/tftp.c",
+      "sha256": "a6971bf4ce77c0ca4c7ebf0194a2ee9c2ad702b1b8a882d46de87c6c6f5e63f3"
+    },
+    "dhcp.c": {
+      "path": "dnsmasq-2.93/src/dhcp.c",
+      "sha256": "600dc068b0516d7edebcde9b02ae2091a278fc154551106823ddc388170d7001"
+    },
+    "option.c": {
+      "path": "dnsmasq-2.93/src/option.c",
+      "sha256": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed"
+    },
+    "util.c": {
+      "path": "dnsmasq-2.93/src/util.c",
+      "sha256": "33920165ef3e92f65d1cab75fe8da7772ad7389b37da79ba881957080f12f973"
+    }
+  },
+  "requirements": [
+    {
+      "id": "selection-union",
+      "source": "network.c:112-182,500-533",
+      "boundary": "Interface names and explicit addresses form a union; an explicit address bypasses except-interface. Loopback is added only for a nonempty interface list.",
+      "profiles": [
+        "ordinary",
+        "interface",
+        "union",
+        "listen-only",
+        "empty-interface"
+      ]
+    },
+    {
+      "id": "name-wildcards",
+      "source": "util.c:895-910; network.c:123-151",
+      "boundary": "First wildcard matches only with a remaining name byte; null selectors never match. Static unknown-name check uses per-address matches.",
+      "profiles": [
+        "wildcard-names",
+        "wildcard-empty",
+        "empty-except",
+        "missing",
+        "no-address"
+      ]
+    },
+    {
+      "id": "ipv4-labels",
+      "source": "netlink.c:232-260; network.c:214-232,258-270,527-533",
+      "boundary": "IPv4 IFA_LABEL selects an address; packet arrival uses real name. UDP label exception admits only the selected destination; wildcard TCP has no label exception.",
+      "profiles": [
+        "alias",
+        "alias-except"
+      ]
+    },
+    {
+      "id": "ipv6-scope",
+      "source": "network.c:596-628; forward.c:1738-1774",
+      "boundary": "IPv6 link-local listener scope is the interface index, even for the same address on multiple links; global address scope is zero.",
+      "profiles": [
+        "ordinary",
+        "same-link-local",
+        "recreate"
+      ]
+    },
+    {
+      "id": "static-lifecycle",
+      "source": "network.c:850-874,1177-1237; dnsmasq.c:1226-1231",
+      "boundary": "Static mode retains listeners when addresses disappear and does not bind later addresses once initial DAD has completed.",
+      "profiles": [
+        "address-change",
+        "recreate"
+      ]
+    },
+    {
+      "id": "dynamic-lifecycle",
+      "source": "network.c:674-720,850-874,1177-1237; netlink.c:365-467",
+      "boundary": "Dynamic mode opens new addresses and closes last-owner listeners; duplicate owners retain one socket. Recreated interface changes index and link-local scope.",
+      "profiles": [
+        "address-change",
+        "recreate",
+        "duplicate-address",
+        "late-interface"
+      ]
+    },
+    {
+      "id": "dad-defer",
+      "source": "netlink.c:290-308; network.c:490-498,1184-1186,1294-1305; dnsmasq.c:1112-1116,1226-1231",
+      "boundary": "Tentative IPv6 participates in matching but is never bound; static and dynamic retry after maturity, without exiting or logging EADDRNOTAVAIL.",
+      "profiles": [
+        "dad",
+        "dad-explicit",
+        "dad-failed"
+      ]
+    },
+    {
+      "id": "dad-capabilities",
+      "source": "dnsmasq.c:500-510",
+      "boundary": "Static pending-DAD and dynamic binding preserve CAP_NET_BIND_SERVICE for low DNS/TFTP ports after UID change.",
+      "profiles": [
+        "dad-low-port"
+      ]
+    },
+    {
+      "id": "unowned-address",
+      "source": "network.c:1212-1235",
+      "boundary": "Explicit addresses absent from snapshots are still attempted, including loopback aliases; missing dynamic addresses retry silently, static addresses fail.",
+      "profiles": [
+        "unowned-loopback",
+        "missing-address",
+        "late-address"
+      ]
+    },
+    {
+      "id": "startup-failures",
+      "source": "dnsmasq.c:369-389; network.c:894-966",
+      "boundary": "Both bind modes conflict; unknown static names fail after listeners are attempted. Occupied UDP or TCP fails startup in either bound mode. Dynamic only suppresses EADDRNOTAVAIL.",
+      "profiles": [
+        "conflicting-modes",
+        "missing",
+        "occupied-udp",
+        "occupied-tcp",
+        "occupied-tftp"
+      ]
+    },
+    {
+      "id": "partial-dynamic-listener",
+      "source": "network.c:1087-1133,1184-1200",
+      "boundary": "Noninitial failed UDP/TCP/TFTP creation may retain the successful transports and must preserve service/cleanup on release.",
+      "profiles": [
+        "runtime-occupied-udp",
+        "runtime-occupied-tcp"
+      ]
+    },
+    {
+      "id": "admission-modes",
+      "source": "forward.c:1625-1636,1780-1803; dnsmasq.c:2048-2109",
+      "boundary": "Static IPv4 uses bound-address access; wildcard/dynamic inspect ingress with loopback/UDP-label exceptions. Bound TCP uses socket access in both bound modes.",
+      "profiles": [
+        "cross-ingress",
+        "alias",
+        "interface"
+      ]
+    },
+    {
+      "id": "reply-source",
+      "source": "forward.c:1999-2005; network.c:964-1009",
+      "boundary": "UDP/TCP reply source equals selected destination in IPv4/IPv6 and scoped paths.",
+      "profiles": [
+        "ordinary",
+        "union",
+        "same-link-local"
+      ]
+    },
+    {
+      "id": "tftp-selection",
+      "source": "network.c:535-562; tftp.c:198-233",
+      "boundary": "Bound TFTP is constrained by selected DNS addresses and DHCP exclusions; dedicated TFTP names override DHCP exclusion but not bound DNS selection. Wildcard dedicated TFTP bypasses normal DNS interface admission.",
+      "profiles": [
+        "tftp",
+        "tftp-dedicated",
+        "tftp-except",
+        "tftp-no-dhcp",
+        "tftp-no-v4",
+        "tftp-alias"
+      ]
+    },
+    {
+      "id": "tftp-lifecycle",
+      "source": "network.c:697-720,1087-1133; tftp.c:99-122",
+      "boundary": "Dynamic TFTP listener add/remove uses address/scope semantics; static DAD TFTP is deferred then binds, ordinary static address additions do not add TFTP.",
+      "profiles": [
+        "tftp-change",
+        "tftp-dad"
+      ]
+    },
+    {
+      "id": "relay-combination",
+      "source": "dhcp.c:305-368,669-683; network.c:112-151",
+      "boundary": "Relay request admission shares interface/listen-address union and no-DHCP exclusions; reply ingress can be outside selected downstream, dynamic recreate refreshes ifindex.",
+      "profiles": [
+        "relay",
+        "relay-union",
+        "relay-except",
+        "relay-no-dhcp",
+        "relay-recreate"
+      ]
+    },
+    {
+      "id": "cleanup",
+      "source": "network.c:705-720; dnsmasq.c:1180-1206",
+      "boundary": "Every daemon, peer and namespace exits; all listeners and fixture links disappear. SIGTERM process group cleanup is recorded.",
+      "profiles": [
+        "all"
+      ]
+    }
+  ],
+  "qualification": {
+    "require_full_case_inventory": true,
+    "require_both_sides": true,
+    "require_reference_guards": true,
+    "require_negative_controls": true,
+    "partial_and_reference_only_cannot_close": true
+  }
+}
