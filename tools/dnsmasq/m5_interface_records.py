@@ -112,6 +112,16 @@ def syntax_cases():
     for width in (17,18):values.append(('cidr6-limit'+str(width),'records.test,2001:db8::7/64,'+'p'*width))
     for width in (47,48):values.append(('range-limit'+str(width),'records.test,192.0.2.7,192.0.2.9,'+'p'*width))
     for label,value in values:add('synth-'+label,'synth-domain='+value+'\n','SYN-GRAM')
+    for label,value in [('root',',192.0.2.7,192.0.2.9'),('quoted','"records.test,192.0.2.7,192.0.2.9"'),
+        ('quoted-range','records.test,"192.0.2.7/24,p"'),('quoted-star','records.test,192.0.2.7,192.0.2.9,"p*"'),
+        ('embedded-star','records.test,192.0.2.7,192.0.2.9,p*x'),('double-star','records.test,192.0.2.7,192.0.2.9,p**'),
+        ('empty-prefix','records.test,192.0.2.7,192.0.2.9,'),('case','RECORDS.TEST.,192.0.2.7,192.0.2.9,P*')]:
+        add('synth-'+label,'synth-domain='+value+'\n','SYN-GRAM')
+    for family,address,widths in [(4,'192.0.2.7',(0,1,24,31,32,33)),(6,'2001:db8::7',(0,1,63,64,65,127,128,129))]:
+        for width in widths:
+            add('synth-width-'+str(family)+'-'+str(width),'synth-domain=records.test,'+address+'/'+str(width)+'\n','SYN-GRAM')
+    for label,value in [('empty',''),('text','bad'),('negative','-1'),('wrap','4294967296'),('int-overflow','4294967295')]:
+        add('synth-width-'+label,'synth-domain=records.test,192.0.2.7/'+value+'\n','SYN-GRAM')
     for label,value in [('ordinary','/m2/hosts-dir'),('relative','hosts-dir'),('empty',''),('quoted','"/m2/hosts dir"'),('duplicate','/m2/hosts-dir\nhostsdir=/m2/hosts-dir')]:
         add('hostsdir-'+label,'hostsdir='+value+'\n','HDIR-GRAM')
     return cases
@@ -325,6 +335,48 @@ def service_cases():
     add('interface-flag-optimistic','interface-name=iface.records.test,m5ir0\n',[],'IF-FLAGS',topology=[v4only],actions=[
         *dad[:-1],kernel(['ip','-6','addr','change','2001:db8:91::9/64','dev','m5ir0','optimistic']),state('optimistic'),
         *mutation_probes('optimistic','2001:db8:91::9')])
+    add('interface-synth-ptr-precedence','interface-name=iface.records.test,m5ir0\nsynth-domain=synthetic.records.test,198.18.91.0/24\n',
+        [('9.91.18.198.in-addr.arpa',12),('10.91.18.198.in-addr.arpa',12)],'IF-PTR SYN-PTR',topology=[primary])
+    add('interface-synth-forward-intercept','interface-name=198-18-91-9.synthetic.records.test,missing_ir\nsynth-domain=synthetic.records.test,198.18.91.0/24\n',
+        [('198-18-91-9.synthetic.records.test',1),('198-18-91-9.synthetic.records.test',28),('198-18-91-9.synthetic.records.test',16)],'IF-FWD IF-EXIST SYN-FWD')
+    add('interface-synth-name-exists','interface-name=iface.records.test,missing_ir\nsynth-domain=synthetic.records.test,192.0.2.7,192.0.2.9\n',
+        [('192-0-2-7.synthetic.records.test',28),('192-0-2-7.synthetic.records.test',16),('synthetic.records.test',1),
+         ('child.192-0-2-7.synthetic.records.test',1)],'IF-EXIST SYN-FWD')
+    full6='2001-0db8-0000-0000-0000-0000-0000-0007.synthetic.records.test'
+    for label,range_text in [('single4','192.0.2.7'),('range4','192.0.2.7,192.0.2.9'),('prefix4','192.0.2.7/24'),
+          ('single6','2001:db8::7'),('range6','2001:db8::7,2001:db8::9'),('prefix6','2001:db8::7/64'),
+          ('prefix6-small','2001:db8::7/63'),('inverted','192.0.2.9,192.0.2.7')]:
+        add('synth-service-'+label,'synth-domain=synthetic.records.test,'+range_text+'\n',
+            [('192-0-2-6.synthetic.records.test',1),('192-0-2-7.synthetic.records.test',1),('192-0-2-9.synthetic.records.test',1),
+             ('192-0-2-10.synthetic.records.test',1),(full6,28),('2001-db8--7.synthetic.records.test',28),
+             ('fd00--7.synthetic.records.test',28),('192-0-2-7.synthetic.records.test',255),
+             ('7.2.0.192.in-addr.arpa',12),(ipaddress.ip_address('2001:db8::7').reverse_pointer,12),
+             (ipaddress.ip_address('fd00::7').reverse_pointer,12)],'SYN-FWD SYN-PTR')
+    for label,text in [('index4','192.0.2.7,192.0.2.9,p*'),('index6','2001:db8::7/64,p*'),
+        ('index6-128','2001:db8::7/128,p*'),('prefix-literal','192.0.2.7,192.0.2.9,Pre'),
+        ('empty-index','192.0.2.7,192.0.2.9,*'),('embedded-star','192.0.2.7,192.0.2.9,p*x'),
+        ('double-star','192.0.2.7,192.0.2.9,p**')]:
+        add('synth-service-'+label,'synth-domain=synthetic.records.test,'+text+'\n',
+            [('p0.synthetic.records.test',1),('p2.synthetic.records.test',1),('p3.synthetic.records.test',1),
+             ('p.synthetic.records.test',1),('p0002.synthetic.records.test',1),('p4294967296.synthetic.records.test',1),
+             ('p18446744073709551616.synthetic.records.test',28),('p9223372036854775808.synthetic.records.test',28),
+             ('p18446744073709551615.synthetic.records.test',28),('Pre192-0-2-7.synthetic.records.test',1),
+             ('pre192-0-2-7.SYNTHETIC.records.test',1),('p0.synthetic.records.test',255),
+             ('7.2.0.192.in-addr.arpa',12),(ipaddress.ip_address('2001:db8::7').reverse_pointer,12)],'SYN-FWD SYN-PTR')
+    add('synth-index-dual-any','synth-domain=synthetic.records.test,192.0.2.7,192.0.2.9,p*\nsynth-domain=synthetic.records.test,2001:db8::7/64,p*\n',
+        [('p0.synthetic.records.test',255),('p0.synthetic.records.test',1),('p0.synthetic.records.test',28)],'SYN-FWD')
+    add('synth-record-any','synth-domain=synthetic.records.test,192.0.2.7,192.0.2.9\ntxt-record=192-0-2-7.synthetic.records.test,test\n',
+        [('192-0-2-7.synthetic.records.test',255)],'SYN-FWD')
+    for ttl in (0,77):
+        actions=[files.probe('bits-'+str(kind)+'-'+str(cls)+'-'+str(rd)+'-'+str(do),'192-0-2-7.synthetic.records.test',
+                  type=kind,**{'class':cls,'query_flags':256 if rd else 0,'do':do,'cd':do})
+            for kind in (1,28,255,16) for cls,rd,do in [(1,True,False),(1,False,False),(1,True,True),(3,True,False),(255,True,False)]]
+        add('synth-bits-ttl-'+str(ttl),'synth-domain=synthetic.records.test,192.0.2.7,192.0.2.9\nlocal-ttl='+str(ttl)+'\n',[],
+            'SYN-FWD SYN-PTR',actions=actions)
+    add('synth-precedence','synth-domain=one.records.test,192.0.2.7,192.0.2.9\nsynth-domain=two.records.test,192.0.2.8,192.0.2.10\n'
+        'host-record=192-0-2-7.one.records.test,192.0.2.99\nptr-record=8.2.0.192.in-addr.arpa,explicit.records.test\nbogus-priv\n',
+        [('192-0-2-7.one.records.test',1),('7.2.0.192.in-addr.arpa',12),('8.2.0.192.in-addr.arpa',12),
+         ('9.2.0.192.in-addr.arpa',12),('10.2.0.192.in-addr.arpa',12),('11.2.0.192.in-addr.arpa',12)],'SYN-FWD SYN-PTR')
     for stage in ('before-clear','empty','partial'):
         add('interface-enum-fault-'+stage,'interface-name=iface.records.test,m5ir0\n',[],
             'IF-CALLER',topology=[primary],actions=[files.probe('initial','iface.records.test',transports=['udp']),
