@@ -645,7 +645,7 @@ def trace_enumeration(pid,side,stage,output):
                 if number==206 and int(registers[2])>=17:
                     request=memory(registers[1],17)
                     kind=struct.unpack_from('=H',request,4)[0];family=request[16]
-                    if kind==22:
+                    if kind==22 and family in (10,2):
                         armed=int(registers[0]);received=False
                         active.update(dump_family=family,dump_type=kind)
                         report['events'].append(dict(active,phase='request'))
