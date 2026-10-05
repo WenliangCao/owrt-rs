@@ -547,3 +547,31 @@ unsafe extern "C" {
     fn connect(fd: c_int, address: *const c_void, length: u32) -> c_int;
     fn write(fd: c_int, bytes: *const c_void, length: usize) -> isize;
 }
+
+/// log_start failure reaches fatal_event/die before a logging destination is
+/// usable. Report both critical records through the libc-format syslog path;
+/// the entry point separately prints only the first message to stderr.
+pub fn report_startup_failure(config: &LoggingConfig, process: &ProcessConfig, message: &str) {
+    let fallback = LoggingConfig {
+        file: None,
+        facility: Some(
+            config
+                .facility
+                .unwrap_or(if process.debug { 128 } else { 24 }),
+        ),
+    };
+    if let Ok((mut logger, _)) = Logger::start(&fallback, &ProcessConfig::default(), None) {
+        logger.fallback = true;
+        logger.emit(LogEvent::new(
+            Service::Dns,
+            Priority::Critical,
+            message.as_bytes().to_vec(),
+        ));
+        logger.emit(LogEvent::new(
+            Service::Dns,
+            Priority::Critical,
+            b"FAILED to start up".to_vec(),
+        ));
+        logger.finish();
+    }
+}
