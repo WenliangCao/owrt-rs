@@ -321,6 +321,13 @@ def run_service_side(root, side, case, folder):
     def fixture_socket(*args,**kwargs):
         return ReservedListener() if not args and not kwargs else (ProgressSocket(*args,**kwargs) if case.get("owner_progress") else original_socket(*args,**kwargs))
     files.socket.socket=fixture_socket
+    original_dhcp_receive=files.dhcp_wire.receive
+    def receive_dhcp(*args,**kwargs):
+        # C's blocking lookup cannot service this request. Its successful ACK
+        # remains the byte reference after resolution; Rust receives during it.
+        if side=='c' and case.get('owner_progress'): time.sleep(1.5)
+        return original_dhcp_receive(*args,**kwargs)
+    files.dhcp_wire.receive=receive_dhcp
     original_command=files.command
     def wrapped_command(root,side,*args):
         command=original_command(root,side,*case.get('argv',[]),*('-d' if arg=='-k' and case.get('debug') else arg for arg in args))
@@ -337,6 +344,7 @@ def run_service_side(root, side, case, folder):
         files.FileUpstream=original_upstream
         files.process_identity=original_identity
         files.socket.socket=original_socket
+        files.dhcp_wire.receive=original_dhcp_receive
     result['source_events']=[row for upstream in SourceCapture.instances for row in upstream.source_events]
     result['progress_receipts']=progress_receipts
     result['injected_packets']=[row for upstream in SourceCapture.instances for row in getattr(upstream,'injected',[])]
