@@ -132,7 +132,7 @@
         {
           "id": "NOD08",
           "source": "dnsmasq.c:607-639,1437-1510,dnsmasq.h:174-178",
-          "boundary": "fork1 failure calls fatal_event directly5; fork2 failure sends event to original parent5. Error frame is three native int32 fields event/data/msg_sz followed by msg bytes without NUL; writer EINTR retry; parent errno restored from data.",
+          "boundary": "fork1 failure directly fatal5; fork2 failure sent to original parent5. Reference C frame has native event/data/msg_sz int32 and msg without NUL, writer EINTR retry, parent errno restored. Rust own internal frame may differ; qualify external code/text/PID/EOF using each implementation actual framing.",
           "required_scenarios": []
         },
         {
