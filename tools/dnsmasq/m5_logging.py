@@ -174,6 +174,58 @@ def cases():
                                         '--txt-record=kept.logging,explicit-user',
                                         '--address=/nxdomain.logging/'],
                  'query_probes': True, 'query_mode': 'proto', 'options': ['log-queries', 'no-daemon']})
+    local_query_args = [
+        '--addn-hosts=/m2/logging/hosts.extra',
+        '--host-record=cfg.logging,192.0.2.22,2001:db8::22',
+        '--cname=alias-file.logging,file.logging',
+        '--cname=orphan.logging,missing-target.logging',
+        '--ptr-record=ptr.logging,ptr-target.logging',
+        '--mx-host=mx.logging,file.logging,10',
+        '--srv-host=_demo._tcp.logging,file.logging,1234,1,2',
+        '--naptr-record=naptr.logging,10,20,S,SIP+D2U,,file.logging',
+        '--dns-rr=raw.logging,65280,010203',
+        '--interface-name=interface.logging,lo',
+        '--synth-domain=synth.logging,192.0.2.30,192.0.2.31,s',
+        '--filterwin2k', '--domain-needed', '--bogus-priv',
+        '--address=/zero.logging/#', '--address=/literal.logging/192.0.2.40',
+        '--local=/empty.logging/', '--host-record=known.empty.logging,192.0.2.41',
+        '--address=/nxdomain.logging/']
+    local_query_sequence = [
+        ('READY.LOGGING', 1), ('cfg.logging', 1), ('cfg.logging', 28),
+        ('file.logging', 1), ('v6-file.logging', 28), ('alias-file.logging', 1),
+        ('21.2.0.192.in-addr.arpa', 12), ('ptr.logging', 12),
+        ('mx.logging', 15), ('_demo._tcp.logging', 33), ('naptr.logging', 35),
+        ('raw.logging', 65280), ('interface.logging', 1), ('interface.logging', 28),
+        ('s192-0-2-30.synth.logging', 1), ('30.2.0.192.in-addr.arpa', 12),
+        ('windows.logging', 6), ('_unknown._tcp.logging', 33), ('_unknown.logging', 255),
+        ('dotless', 1), ('1.0.0.10.in-addr.arpa', 12), ('orphan.logging', 1),
+        ('zero.logging', 1), ('zero.logging', 28), ('literal.logging', 1),
+        ('empty.logging', 28), ('missing.empty.logging', 1), ('nxdomain.logging', 1), ('', 1)]
+    local_query_messages = [
+        'config cfg.logging is 192.0.2.22',
+        '/m2/logging/hosts.extra file.logging is 192.0.2.21',
+        'config alias-file.logging is <CNAME>',
+        '/m2/logging/hosts.extra 192.0.2.21 is file.logging',
+        'config ptr.logging is <PTR>', 'config mx.logging is <MX>',
+        'config _demo._tcp.logging is <SRV>', 'config naptr.logging is <NAPTR>',
+        'config raw.logging is <type=65280>',
+        'config interface.logging is 127.0.0.1',
+        'config s192-0-2-30.synth.logging is 192.0.2.30',
+        'config 192.0.2.30 is s192-0-2-30.synth.logging',
+        'config windows.logging is NODATA', 'config dotless is NXDOMAIN',
+        'config 10.0.0.1 is NXDOMAIN', 'config orphan.logging is <CNAME>',
+        'config zero.logging is 0.0.0.0', 'config zero.logging is ::',
+        'config literal.logging is 192.0.2.40',
+        'config empty.logging is NODATA-IPv6',
+        'config missing.empty.logging is NXDOMAIN', 'query[A] . from 127.0.0.1']
+    for name, modes, mode in [('ordinary', [], 'ordinary'), ('proto', ['proto'], 'proto'),
+                              ('failed', ['only_failed'], 'only_failed')]:
+        required = [message for message in local_query_messages if 'NODATA' in message or 'NXDOMAIN' in message] if mode == 'only_failed' else local_query_messages
+        rows.append({'id': 'query-local-' + name, 'scope': 'query-local', 'kind': 'run',
+                     'argv': ['--log-facility=-', '--log-queries', *['--log-queries=' + value for value in modes], *local_query_args],
+                     'setup_files': {'hosts.extra': '192.0.2.21 file.logging\n2001:db8::21 v6-file.logging\n'},
+                     'query_probes': True, 'query_mode': mode, 'query_sequence': local_query_sequence,
+                     'query_required_messages': required, 'options': ['log-queries']})
     rows.extend([
         {'id': 'daemon-default-stderr', 'scope': 'daemon', 'kind': 'run', 'mode': [],
          'argv': ['--log-facility=-'], 'daemonized': True, 'pidfile': '/m2/logging/daemon.pid',
@@ -642,7 +694,9 @@ def exchange(name, kind=1, chaos=False, port=None):
     return semantics(reply), {'request': wire.hex(), 'reply': reply.hex()}
 
 
-def query_sequence():
+def query_sequence(case=None):
+    if case and "query_sequence" in case:
+        return case["query_sequence"]
     return [('ready.logging', 1), ('ready.logging', 28), ('v6.logging', 28),
             ('alias.logging', 1), ('1.2.0.192.in-addr.arpa', 12),
             ('kept.logging', 16), ('nxdomain.logging', 1), ('ready.logging', 65400)]
@@ -1093,11 +1147,11 @@ def run(root, side, case, out):
                         observed['dns'].extend(rows)
                         trace['dns'].extend(raw)
                 if case.get('query_probes'):
-                    for name, kind in query_sequence():
+                    for name, kind in query_sequence(case):
                         answer, raw = exchange(name, kind, port=16501)
                         observed['dns'].append({'name': name, 'type': kind, 'transport': 'udp', 'response': answer})
                         trace['dns'].append(dict(raw, transport='udp'))
-                    rows, raw = tcp_sequence(query_sequence())
+                    rows, raw = tcp_sequence(query_sequence(case))
                     observed['dns'].extend(rows)
                     trace['dns'].extend(raw)
                     answer, raw = exchange('ready.logging', port=16503)
@@ -1935,6 +1989,9 @@ def compare(reference, candidate, case, reference_only=False):
             failures.append({'kind': 'C-query-protocol-prefix', 'actual': text})
         if mode == 'only_failed' and 'is NXDOMAIN' not in text:
             failures.append({'kind': 'C-query-only-failed-negative', 'actual': text})
+        for message in case.get('query_required_messages', []):
+            if message not in text:
+                failures.append({'kind': 'C-query-source-producer', 'missing': message})
     if case.get('blocked_kind') == 'fifo-peer-disconnect':
         for side, row in [('c', reference)] + ([] if reference_only else [('rust', candidate)]):
             if row.get('pre_release_ready') is not True or row.get('fifo_fds_after_failure') != (1 if side == 'c' else 0):
