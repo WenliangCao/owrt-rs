@@ -310,7 +310,8 @@ def source_projection(observed,case):
 
 
 def controls():
-    sample={'startup':{'ready':True},'source_events':[{'transport':'udp','peer':['127.0.0.9',34004],'destination':['127.0.0.2',53],'name':'one.test','wire':'abcd'}]}
+    sample={'startup':{'ready':True},'identity':{'uid':0,'expected_uid':0,'threads':1},'source_events':[{'transport':'udp','peer':['127.0.0.9',34004],'destination':['127.0.0.2',53],'name':'one.test','wire':'abcd'}]}
+    assert not source_guard_errors(sample,{})
     tests={}
     wrong=copy.deepcopy(sample);wrong['source_events'][0]['peer'][0]='127.0.0.8'
     tests['source-address-mutation']=source_projection(sample,{})!=source_projection(wrong,{})
