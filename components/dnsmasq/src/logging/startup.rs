@@ -1,5 +1,12 @@
 //! Startup messages from dhcp-common.c:950-1025 and dnsmasq.c:1038-1049.
 use super::{LogEvent, Priority, Service};
+
+pub fn hosts_read(path: &[u8], names: usize) -> LogEvent {
+    let mut message = b"read ".to_vec();
+    message.extend_from_slice(path);
+    message.extend_from_slice(format!(" - {names} names").as_bytes());
+    LogEvent::new(Service::Dns, Priority::Info, message)
+}
 use crate::config::dhcp::RangeConfig;
 use crate::config::dns::{RuleTarget, ServerHost};
 use crate::config::tftp::TftpConfig;
