@@ -1,0 +1,9 @@
+# DHCP bridge ingress aliases
+
+`bridge-interface` is qualified against exact image C: **13 paired cases across 2 source boundaries**, no missing case or observation difference, and 4 mutation controls rejected. The [closure receipt](../../private/dnsmasq-rewrite/evidence/M5/dhcp-network/close-bridge-8f95-20261005.json) records the artifact and source identities.
+
+Repeated declarations merge aliases on their existing master without changing master precedence; later distinct masters win. The actual packet caller resolves a matching alias to the master's current interface index and name. Effective identity governs policy, context, tags and lease/helper identity. Original ingress identity governs loopback, ordinary physical reply delivery and ARP preparation. Relay interception receives the same early logical remapping. An unknown master logs the exact C warning and drops the packet; a master added after startup becomes usable without reload.
+
+Real veth requests verify exact, wildcard and multiple aliases, declaration precedence, unmatched/missing masters, live master creation, effective interface exclusions, unicast replies and ARP entries on the original physical alias, plus an accepted ACK whose helper reports the effective master. Namespace links and routes are disposable and never touch a physical router.
+
+Candidate `8f95e5ab` has ELF SHA256 `48610864c9ad943b6c1ada2e3816fa21bda866f70b4c6902f3de7d6b6629b004`, 1,798,184 bytes. Image C ELF SHA256 is `097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87`. Raw configs, Ethernet/DHCP packets, neighbor evidence, helper/log state, overlays and source snapshots stay private. Archive SHA256 `43e71c4f7902e2935d1ec5ffdf62bcc500c928d20bb7b7c9fa2c5cc3c29f77f2` has 675 entries / 503 regular files, verified locally for SHA256 and full metadata before remote pruning.
