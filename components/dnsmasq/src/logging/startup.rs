@@ -70,7 +70,7 @@ pub fn missing_interfaces(
     config: &crate::config::dns::DnsConfig,
     interfaces: &[crate::interfaces::DnsInterface],
 ) -> Vec<LogEvent> {
-    if config.bind_interfaces || config.bind_dynamic {
+    if config.bind_interfaces {
         return Vec::new();
     }
     config
