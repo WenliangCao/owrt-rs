@@ -340,9 +340,11 @@ def cases():
             ('opaque-fatal', b'/m2/logging/missing-\xff', False, True),
             ('utf8-no-fail', '/m2/logging/missing-ä'.encode(), True, True),
             ('opaque-no-fail', b'/m2/logging/missing-\xff', True, True),
+            ('empty-interface-fatal', b'', False, True),
+            ('empty-interface-no-fail', b'', True, True),
         ]:
             config = b'enable-tftp\n' if enabled else b''
-            interface = variant.startswith('interface-')
+            interface = variant.startswith('interface-') or variant.startswith('empty-interface-')
             config += b'tftp-root=' + prefix + (b',lo' if interface else b'') + b'\n'
             if variant.startswith('both-'):
                 config += b'tftp-root=/m2/logging/missing-interface,lo\n'
@@ -1261,17 +1263,18 @@ def compare(reference, candidate, case, reference_only=False):
             if any(message in text for message in ['-tftp[', 'TFTP root is ', 'TFTP enabled', 'inaccessible']):
                 failures.append({'kind': 'C-unused-TFTP-root', 'actual': text})
         elif case['root_no_fail']:
-            warning = ('warning: TFTP directory ' if variant.startswith('interface-') else 'warning: ') + prefix + ' inaccessible'
+            interface = variant.startswith('interface-') or variant.startswith('empty-interface-')
+            warning = ('warning: TFTP directory ' if interface else 'warning: ') + ('(null)' if not prefix else prefix) + ' inaccessible'
             if warning not in text:
                 failures.append({'kind': 'C-TFTP-root-warning', 'missing': warning, 'actual': text})
             if variant.startswith('both-') and 'warning: TFTP directory /m2/logging/missing-interface inaccessible' not in text:
                 failures.append({'kind': 'C-TFTP-interface-root-warning', 'actual': text})
-            signon = 'TFTP enabled' if variant.startswith('interface-') else 'TFTP root is '
+            signon = 'TFTP enabled' if interface else 'TFTP root is '
             if text.find(signon) < 0 or text.find(signon) >= text.find(warning):
                 failures.append({'kind': 'C-TFTP-root-warning-order', 'actual': text})
         else:
-            error = 'Permission denied' if case.get('root_permissions') else 'No such file or directory'
-            message = 'TFTP directory ' + prefix + ' inaccessible: ' + error
+            error = 'Bad address' if variant.startswith('empty-interface-') else 'Permission denied' if case.get('root_permissions') else 'No such file or directory'
+            message = 'TFTP directory ' + (prefix or error) + ' inaccessible: ' + error
             # Default parent records its second critical line in syslog;
             # foreground/debug '-' retain both records on inherited stderr.
             combined = text + ''.join(bytes.fromhex(value).decode(errors='backslashreplace') for value in reference['syslog'])
