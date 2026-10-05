@@ -234,10 +234,11 @@ fn transaction(
         return Ok(output);
     }
     let mut client = identity(request.packet, env.ignore_client_id);
-    let mut existing = store.find_client(&client).map(|lease| lease.address);
+    let mut existing_id = store.find_client(&client).map(Lease::id);
+    let mut existing = existing_id.map(|id| id.address());
     if client.client_id.is_none() {
         client.client_id =
-            existing.and_then(|address| store.get(address).unwrap().identity.client_id.clone());
+            existing_id.and_then(|id| store.get_by_id(id).unwrap().identity.client_id.clone());
     }
     let selection = if let Some(address) = offered {
         RequestDecision::CheckAddress {
@@ -271,8 +272,9 @@ fn transaction(
         return Ok(output);
     };
     if prune_old_lease {
-        output.removed = store.prune(existing, env.now);
+        output.removed = store.prune_lease(existing_id, env.now);
         existing = None;
+        existing_id = None;
     }
     // rfc2131.c:1490, after REQUEST-mode early returns. Rapid commit jumps
     // over this statement after DISCOVER and never counts REQUEST or OFFER.
@@ -329,7 +331,7 @@ fn transaction(
                     static_address != address
                         && store
                             .get(static_address)
-                            .is_none_or(|lease| Some(lease.address) == existing)
+                            .is_none_or(|lease| Some(lease.id()) == existing_id)
                 })
             {
                 error = Some(Refusal::StaticLeaseAvailable);
@@ -341,7 +343,7 @@ fn transaction(
                         .host
                         .is_some_and(|host| host.has_hardware(&occupant.identity))
                     {
-                        existing = Some(address);
+                        existing_id = Some(occupant.id());
                     } else {
                         error = Some(Refusal::AddressInUse);
                     }
@@ -415,10 +417,13 @@ fn transaction(
     if request.host.is_some_and(|host| host.ignore_client_id) {
         client.client_id = None;
     }
-    store.set_identity(address, &client)?;
+    let id = existing_id
+        .or_else(|| store.get(address).map(Lease::id))
+        .unwrap();
+    store.set_identity_by_id(id, &client)?;
     if let Some(name) = request.name {
-        output.lost_names = store.set_hostname(
-            address,
+        output.lost_names = store.set_hostname_by_id(
+            id,
             Some(name.hostname),
             name.authoritative,
             name.domains
@@ -426,9 +431,9 @@ fn transaction(
             env.fqdn_only,
         )?;
     }
-    store.set_expires(address, duration, env.now)?;
-    store.set_interface(address, env.interface)?;
-    let override_id = store.server_override(address, override_server)?;
+    store.set_expires_by_id(id, duration, env.now)?;
+    store.set_interface_by_id(id, env.interface)?;
+    let override_id = store.server_override_by_id(id, override_server)?;
     counters.ack = counters.ack.wrapping_add(1); // :1738, before wire/send
     if let Some(events) = events {
         events(LogEvent::Ack {
@@ -487,15 +492,16 @@ pub(crate) fn discover_counted(
         return Ok(Outcome::ignored());
     }
     let mut client = identity(request.packet, env.ignore_client_id);
-    let existing = store.find_client(&client).map(|lease| lease.address);
+    let existing_id = store.find_client(&client).map(Lease::id);
+    let existing = existing_id.map(|id| id.address());
     if client.client_id.is_none() {
         client.client_id =
-            existing.and_then(|address| store.get(address).unwrap().identity.client_id.clone());
+            existing_id.and_then(|id| store.get_by_id(id).unwrap().identity.client_id.clone());
     }
     let static_address = request.host.and_then(|host| {
         host.address.filter(|address| {
             store.get(*address).is_none_or(|occupant| {
-                Some(occupant.address) == existing || host.has_hardware(&occupant.identity)
+                Some(occupant.id()) == existing_id || host.has_hardware(&occupant.identity)
             }) && ranges.first().is_none_or(|range| range.router != *address)
                 && host
                     .declined_at
@@ -621,10 +627,10 @@ pub(crate) fn bootp_counted(
         return Ok(bootp_finished(output, counters));
     }
     let client = identity(packet, true);
-    let mut existing = store.find_client(&client).map(|lease| lease.address);
+    let mut existing = store.find_client(&client).map(Lease::id);
     let static_address = request.host.and_then(|host| host.address);
     let address = if let Some(address) = static_address {
-        existing = store.get(address).map(|lease| lease.address);
+        existing = store.get(address).map(Lease::id);
         if store.get(address).is_some_and(|lease| {
             lease.identity.hardware_type != client.hardware_type
                 || lease.identity.hardware_address != client.hardware_address
@@ -633,12 +639,12 @@ pub(crate) fn bootp_counted(
         }
         address
     } else {
-        if existing.is_some_and(|address| available(ranges, address, request.tags).is_none()) {
-            output.removed = store.prune(existing, env.now);
+        if existing.is_some_and(|id| available(ranges, id.address(), request.tags).is_none()) {
+            output.removed = store.prune_lease(existing, env.now);
             existing = None;
         }
-        if let Some(address) = existing {
-            address
+        if let Some(id) = existing {
+            id.address()
         } else {
             let Some((_, address)) = allocate_address(
                 ranges,
@@ -670,10 +676,13 @@ pub(crate) fn bootp_counted(
             Err(error) => return Err(error),
         }
     }
-    store.set_identity(address, &client)?;
+    let id = existing
+        .or_else(|| store.get(address).map(Lease::id))
+        .unwrap();
+    store.set_identity_by_id(id, &client)?;
     if let Some(name) = request.name {
-        output.lost_names = store.set_hostname(
-            address,
+        output.lost_names = store.set_hostname_by_id(
+            id,
             Some(name.hostname),
             true,
             name.domains
@@ -681,15 +690,15 @@ pub(crate) fn bootp_counted(
             env.fqdn_only,
         )?;
     }
-    store.set_expires(
-        address,
+    store.set_expires_by_id(
+        id,
         request
             .host
             .and_then(|host| host.lease_time)
             .unwrap_or(u32::MAX),
         env.now,
     )?;
-    store.set_interface(address, env.interface)?;
+    store.set_interface_by_id(id, env.interface)?;
     output.reply = Reply::Bootp { address, context };
     Ok(bootp_finished(output, counters))
 }
@@ -743,9 +752,9 @@ pub(crate) fn decline_counted(
     counters.decline = counters.decline.wrapping_add(1); // :1248
     let existing = store
         .find_client(&identity(packet, environment.ignore_client_id))
-        .map(|lease| lease.address);
-    let removed = if existing == Some(address) {
-        store.prune(existing, environment.now)
+        .map(Lease::id);
+    let removed = if existing.is_some_and(|id| id.address() == address) {
+        store.prune_lease(existing, environment.now)
     } else {
         Vec::new()
     };
@@ -805,9 +814,9 @@ pub(crate) fn release_counted(
     }
     let existing = store
         .find_client(&identity(packet, environment.ignore_client_id))
-        .map(|lease| lease.address);
-    let removed = if existing == Some(packet.effective_ciaddr()) {
-        store.prune(existing, environment.now)
+        .map(Lease::id);
+    let removed = if existing.is_some_and(|id| id.address() == packet.effective_ciaddr()) {
+        store.prune_lease(existing, environment.now)
     } else {
         Vec::new()
     };
@@ -815,7 +824,7 @@ pub(crate) fn release_counted(
     if let Some(events) = events {
         events(LogEvent::Release {
             address: packet.effective_ciaddr(),
-            unknown_lease: existing != Some(packet.effective_ciaddr()),
+            unknown_lease: existing.is_none_or(|id| id.address() != packet.effective_ciaddr()),
         });
     }
     removed
@@ -858,26 +867,26 @@ pub(crate) fn inform_counted(
     let context = narrow(ranges, address, request.tags);
     let client_existing = store
         .find_client(&identity(request.packet, env.ignore_client_id))
-        .map(|lease| lease.address);
-    let existing = client_existing.or_else(|| store.get(address).map(|lease| lease.address));
+        .map(Lease::id);
+    let existing = client_existing.or_else(|| store.get(address).map(Lease::id));
     let mut override_id = env.override_server;
     let mut lease_time = None;
     counters.ack = counters.ack.wrapping_add(1); // :1784, before lease interface update
     if let Some(events) = events {
         let name = client_existing
             .is_none()
-            .then(|| existing.and_then(|existing| store.get(existing)?.hostname.as_deref()))
+            .then(|| existing.and_then(|existing| store.get_by_id(existing)?.hostname.as_deref()))
             .flatten()
             .or_else(|| request.name.map(|name| name.hostname));
         events(LogEvent::Ack { address, name });
     }
     if let Some(existing) = existing {
-        store.set_interface(existing, env.interface)?;
-        override_id = store.server_override(existing, override_id)?;
+        store.set_interface_by_id(existing, env.interface)?;
+        override_id = store.server_override_by_id(existing, override_id)?;
         if request.packet.requests(51) {
             lease_time = Some(
                 store
-                    .get(existing)
+                    .get_by_id(existing)
                     .unwrap()
                     .expires
                     .map_or(u32::MAX, |expires| expires.saturating_sub(env.now) as u32),
