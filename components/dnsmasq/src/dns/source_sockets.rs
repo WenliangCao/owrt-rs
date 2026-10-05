@@ -395,3 +395,19 @@ pub fn udp(
     }
     Ok(socket)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn native_bind_layouts_and_signed_empty_pool_match_image_boundary() {
+        assert_eq!(std::mem::size_of::<Inet4>(), 16);
+        assert_eq!(std::mem::size_of::<Inet6>(), 28);
+        for forward_max in [-1, 0, 1] {
+            let mut scalar = ScalarConfig::default();
+            scalar.forward_max = forward_max;
+            assert_eq!(SocketSettings::from_scalar(&scalar).pool_slots, 0);
+        }
+    }
+}

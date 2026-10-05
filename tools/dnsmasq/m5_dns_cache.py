@@ -403,6 +403,10 @@ FORWARD_MODES=[('forward-one-hold-full','full',1,''),('forward-two-slots','two',
  ('forward-wrapped-negative-runtime','negative',2147483648,'')]
 for label,mode,maximum,extra in FORWARD_MODES:
     case(label,'dns-forward-max='+str(maximum)+'\n'+extra,action='forward-capacity',mode=mode,metrics=True)
+for label,value in [('forward-wrapped-minus-one-runtime',4294967295),
+                    ('forward-wrapped-minus-two-runtime',4294967294)]:
+    case(label,'dns-forward-max='+str(value),action='forward-capacity',mode='negative',metrics=True)
+case('forward-wrapped-dns-disabled','dns-forward-max=2147483648\nport=0',action='startup')
 
 for label,mode,fields in [
  ('tcp-accept-expired-stale','expired-before',{'ttl':1,'config':'use-stale-cache=0'}),
