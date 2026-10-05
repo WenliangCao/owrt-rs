@@ -109,8 +109,9 @@ impl<O: FileOpener> TftpListener<O> {
             runtime,
             port_range: port_range.map(|(a, b)| (a.min(b), a.max(b))),
             single_port,
-            // C receives RRQ/ACK/ERR in workspacename[MAXDNAMESTR].
-            buffer: vec![0; crate::tftp_service::MAX_PATH_BYTES],
+            // The shared pktinfo receiver rejects truncated datagrams. Read
+            // the full UDP packet, then expose only C's503-byte workspace.
+            buffer: vec![0; 65535],
             policy: None,
             pending: VecDeque::new(),
             completed: VecDeque::new(),
@@ -463,7 +464,7 @@ impl<O: FileOpener> TftpListener<O> {
         let Some(datagram) = receive_pending(&self.servers[index].socket, &mut self.buffer)? else {
             return Ok(());
         };
-        let bytes = self.buffer[..datagram.len].to_vec();
+        let bytes = self.buffer[..datagram.len.min(crate::tftp_service::MAX_PATH_BYTES)].to_vec();
         let new_request = matches!(bytes.get(..2), Some([0, 1] | [0, 2]));
         if new_request
             && (!self.accepting || !self.servers[index].accepting || !self.can_start(datagram.peer))
@@ -594,10 +595,11 @@ impl<O: FileOpener> TftpListener<O> {
         let Some(socket) = self.transfers.get(&id) else {
             return Ok(());
         };
-        let (len, peer) = match socket.recv_from(&mut self.buffer) {
-            Ok(value) => value,
-            Err(_) => return Ok(()),
-        };
+        let (len, peer) =
+            match socket.recv_from(&mut self.buffer[..crate::tftp_service::MAX_PATH_BYTES]) {
+                Ok(value) => value,
+                Err(_) => return Ok(()),
+            };
         let mut received = self
             .runtime
             .handle_socket_datagram(SocketRole::Transfer(id), peer, &self.buffer[..len], now)
