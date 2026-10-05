@@ -1,6 +1,6 @@
 #!/bin/sh
 # Build an immutable source snapshot; all Oracle DNS builds share one cache.
-# Usage: sh oracle_build.sh SOURCE FRESH_PRIVATE_OUTPUT [release|tests]
+# Usage: sh oracle_build.sh SOURCE FRESH_PRIVATE_OUTPUT [release|tests|ubus-tests]
 set -eu
 [ "$#" -ge 2 ] && [ "$#" -le 3 ] || exit 2
 source_dir=$(realpath "$1")
@@ -10,7 +10,13 @@ case "$output_dir" in /home/ubuntu/*/private/*) ;; *) echo 'private output requi
 [ ! -e "$output_dir" ] || { echo 'fresh output required' >&2; exit 2; }
 [ -f "$source_dir/components/dnsmasq/Cargo.toml" ] || exit 2
 case "$source_dir" in *' '*) echo 'source path contains whitespace' >&2; exit 2;; esac
-case "$build_kind" in release|tests) ;; *) exit 2;; esac
+case "$build_kind" in release|tests|ubus-tests) ;; *) exit 2;; esac
+package_name=dnsmasq-rs
+manifest_path="$source_dir/components/dnsmasq/Cargo.toml"
+if [ "$build_kind" = ubus-tests ]; then
+    package_name=owrt-ubus
+    manifest_path="$source_dir/components/ubus/Cargo.toml"
+fi
 export CARGO_TARGET_DIR=/home/ubuntu/dnsmasq-cargo-target
 mkdir -p "$CARGO_TARGET_DIR" "$output_dir"
 # Keep artifact copying inside the lock: another build must not replace a
@@ -36,12 +42,12 @@ cargo=/home/ubuntu/.cargo/bin/cargo
 # otherwise make Cargo accept stale package artifacts after the input changes.
 # Keep dependency caches, but invalidate this package inside the copy lock.
 if [ "$build_kind" = release ]; then
-    "$cargo" +1.98.1 clean --manifest-path "$source_dir/components/dnsmasq/Cargo.toml" \
-        --package dnsmasq-rs --target aarch64-unknown-linux-musl --release \
+    "$cargo" +1.98.1 clean --manifest-path "$manifest_path" \
+        --package "$package_name" --target aarch64-unknown-linux-musl --release \
         >"$output_dir/clean.stdout" 2>"$output_dir/clean.log"
 else
-    "$cargo" +1.98.1 clean --manifest-path "$source_dir/components/dnsmasq/Cargo.toml" \
-        --package dnsmasq-rs --target aarch64-unknown-linux-musl --profile dev \
+    "$cargo" +1.98.1 clean --manifest-path "$manifest_path" \
+        --package "$package_name" --target aarch64-unknown-linux-musl --profile dev \
         >"$output_dir/clean.stdout" 2>"$output_dir/clean.log"
 fi
 if [ "$build_kind" = release ]; then
@@ -49,16 +55,20 @@ if [ "$build_kind" = release ]; then
         --manifest-path "$source_dir/components/dnsmasq/Cargo.toml" --bin dnsmasq-rs \
         >"$output_dir/build.stdout" 2>"$output_dir/build.log"
     cp "$CARGO_TARGET_DIR/aarch64-unknown-linux-musl/release/dnsmasq-rs" "$output_dir/dnsmasq-rs"
-else
+elif [ "$build_kind" = tests ]; then
     "$cargo" +1.98.1 test --frozen --target aarch64-unknown-linux-musl \
         --manifest-path "$source_dir/components/dnsmasq/Cargo.toml" --lib --bin dnsmasq-rs \
+        --no-run --message-format=json >"$output_dir/build.stdout" 2>"$output_dir/build.log"
+else
+    "$cargo" +1.98.1 test --frozen --target aarch64-unknown-linux-musl \
+        --manifest-path "$manifest_path" --lib \
         --no-run --message-format=json >"$output_dir/build.stdout" 2>"$output_dir/build.log"
 fi
 python3 - "$source_dir" "$output_dir" "$build_kind" <<'PY'
 import hashlib, json, os, pathlib, shutil, sys
 source, out, kind = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2]), sys.argv[3]
 artifacts = [out / 'dnsmasq-rs'] if kind == 'release' else []
-if kind == 'tests':
+if kind in ('tests', 'ubus-tests'):
     for line in (out / 'build.stdout').read_text().splitlines():
         row = json.loads(line)
         if row.get('reason') != 'compiler-artifact' or not row.get('executable'):
@@ -69,8 +79,9 @@ if kind == 'tests':
         path = out / (target['kind'][0] + '-' + target['name'])
         shutil.copy2(row['executable'], path)
         artifacts.append(path)
-    if len(artifacts) != 2:
-        raise RuntimeError('expected one library and one main test executable')
+    expected = 2 if kind == 'tests' else 1
+    if len(artifacts) != expected:
+        raise RuntimeError(f'expected {expected} test executable(s)')
 report = {'source': str(source), 'kind': kind, 'cargo_target_dir': os.environ['CARGO_TARGET_DIR'],
           'rustflags': os.environ['RUSTFLAGS'], 'artifacts': [
               {'path': path.name, 'bytes': path.stat().st_size,
