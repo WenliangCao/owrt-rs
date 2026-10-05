@@ -110,7 +110,10 @@
         "ecs-u8-wrap",
         "ecs-atoi-wrap",
         "ecs-mask-overread-v4",
-        "ecs-mask-overread-v6"
+        "ecs-mask-overread-v6",
+        "ecs-mask-overread-v4-wire",
+        "ecs-mask-overread-v6-wire",
+        "ecs-u8-wrap-wire"
       ]
     },
     {
@@ -358,6 +361,33 @@
         "max-tcp-response-large",
         "max-udp-tc-fallback"
       ]
+    },
+    {
+      "id": "NEIGHBOR-OWNER",
+      "source": "arp.c:filter_mac/find_mac;netlink.c:iface_enumerate;dnsmasq.c:2102-2119",
+      "required_cases": [
+        "neighbor-ip-not-interface",
+        "neighbor-positive-retained-before-90",
+        "neighbor-negative-lazy-before-90",
+        "neighbor-negative-nonlazy-accept",
+        "neighbor-valid-complete-dump",
+        "neighbor-invalid-partial-dump",
+        "neighbor-dump-error-progress",
+        "neighbor-dump-timeout-progress",
+        "neighbor-udp-query-park-resume",
+        "neighbor-tcp-accept-park-snapshot",
+        "neighbor-stop-pending-cleanup",
+        "neighbor-over16-ignored"
+      ]
     }
-  ]
+  ],
+  "reference_calibration": {
+    "run": "calibration-c-01",
+    "executed_cases": 102,
+    "remaining_cases_before_supplement": 72,
+    "archive_sha256": "c90003cd008c013b2b3b91fed79ad9b631799a7b184a166ee7ae625c7e9e42bb",
+    "inventory_entries": 337,
+    "verified_regular_files": 300,
+    "scope": "SHA and complete archive metadata verified before remote prune"
+  }
 }
