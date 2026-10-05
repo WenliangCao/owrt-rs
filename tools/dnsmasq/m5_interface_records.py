@@ -326,6 +326,14 @@ def service_cases():
         files.write('dir/one','192.0.2.8 one.records.test\n'),files.probe('parent-new','one.records.test',transports=['udp']),
         files.probe('child-stays-old','one.records.test',transports=['held']),files.probe('fresh-child','one.records.test',transports=['tcp']),
         dict(op='disconnect',id='held')])
+    add('hostsdir-visible-temp-source-guard',hosts_config+'log-facility=-\n',[],'HDIR-SOURCE HDIR-EVENT',
+        files={'dir/one':'192.0.2.7 one.records.test\n'},actions=[files.probe('initial','one.records.test'),
+            files.write('dir/temp-one','192.0.2.8 one.records.test\n'),
+            dict(op='write',path='read-barrier',text='',hosts_read_barrier='/m2/files/dir/temp-one'),
+            files.probe('temp-read-before-rename','one.records.test'),
+            {'op':'rename','path':'dir/temp-one','to':'dir/one'},files.probe('target-skips-duplicate','one.records.test'),
+            {'op':'unlink','path':'dir/one'},files.probe('temp-uid-retained','one.records.test'),
+            files.write('dir/one','192.0.2.9 one.records.test\n'),files.probe('temp-plus-recreated','one.records.test')])
     def kernel(argv):return dict(op='write',path='kernel-action',text='',kernel_command=argv)
     def state(label):return dict(op='write',path='interface-state',text='',interface_state=label)
     v4only={'name':'m5ir0','addresses':['198.18.91.9/24']}
@@ -674,6 +682,12 @@ def run_service_side(root,side,case,out):
         if not initial_commands_applied:
             for argv in case.get('initial_kernel_commands',[]):subprocess.run(argv,check=True)
             initial_commands_applied=True
+        if isinstance(value,dict) and 'hosts_read_barrier' in value:
+            marker='read '+value['hosts_read_barrier']+' - 1 names'
+            files.await_predicate(lambda:marker in (out/'stderr').read_text(),'hosts source read completion before rename')
+            states.append({'label':'hosts-read-barrier','path':value['hosts_read_barrier'],
+                'matching_lines':[line for line in (out/'stderr').read_text().splitlines() if marker in line]})
+            return
         if isinstance(value,dict) and 'initial_kind' in value:
             target=image_path(root,'/m2/files/'+path,follow_leaf=False);target.parent.mkdir(parents=True,exist_ok=True)
             if value['initial_kind']=='fifo':os.mkfifo(target)
