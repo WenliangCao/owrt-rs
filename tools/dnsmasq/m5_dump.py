@@ -71,7 +71,8 @@ def trace_write(pid,descriptor,output):
             if info[0]==1 and registers[8]==64 and registers[0]==descriptor:
                 wire=os.pread(memory,min(int(registers[2]),65536),int(registers[1]))
                 receipt['syscalls'].append(dict(number=64,pc=int(registers[32]),fd=int(registers[0]),count=int(registers[2]),wire=wire.hex()))
-                registers[8]=(1<<64)-1;regs(True);active=True
+                skip=ctypes.c_int(-1);iov=Iovec(ctypes.addressof(skip),ctypes.sizeof(skip))
+                ptrace(0x4205,0x404,ctypes.addressof(iov));active=True
             elif info[0]==2 and active:
                 registers[0]=(-errno.EIO)&((1<<64)-1);regs(True)
                 receipt['syscalls'][-1]['returned']=-errno.EIO;receipt['injected']=True
@@ -87,7 +88,8 @@ def write_fault(process,file,folder):
     descriptors=[]
     for entry in Path('/proc/'+str(process.pid)+'/fd').iterdir():
         try:
-            if Path(os.readlink(entry)).resolve()==file.resolve():descriptors.append(int(entry.name))
+            actual=entry.stat();expected=file.stat()
+            if (actual.st_dev,actual.st_ino)==(expected.st_dev,expected.st_ino):descriptors.append(int(entry.name))
         except FileNotFoundError:pass
     assert len(descriptors)==1,'unique actual PCAP descriptor'
     output=folder/'write-fault.json'
