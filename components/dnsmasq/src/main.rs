@@ -2977,6 +2977,55 @@ impl SinglePoll {
                                 });
                             }
                             Notice::Ready => {}
+                            Notice::Output(bytes) => {
+                                if let Some(logger) = &mut self.logger {
+                                    use dnsmasq_rs::logging::{LogEvent, Priority, Service};
+                                    logger.emit(LogEvent::new(
+                                        Service::Script,
+                                        Priority::Debug,
+                                        bytes,
+                                    ));
+                                }
+                            }
+                            Notice::ScriptExit(status) => {
+                                if let Some(logger) = &mut self.logger {
+                                    use dnsmasq_rs::logging::{LogEvent, Priority, Service};
+                                    logger.emit(LogEvent::new(
+                                        Service::Dns,
+                                        Priority::Warning,
+                                        format!("script process exited with status {status}")
+                                            .into_bytes(),
+                                    ));
+                                }
+                            }
+                            Notice::ScriptSignal(signal) => {
+                                if let Some(logger) = &mut self.logger {
+                                    use dnsmasq_rs::logging::{LogEvent, Priority, Service};
+                                    logger.emit(LogEvent::new(
+                                        Service::Dns,
+                                        Priority::Warning,
+                                        format!("script process killed by signal {signal}")
+                                            .into_bytes(),
+                                    ));
+                                }
+                            }
+                            Notice::ExecError(code) => {
+                                if let Some(logger) = &mut self.logger {
+                                    use dnsmasq_rs::logging::{LogEvent, Priority, Service};
+                                    logger.emit(LogEvent::new(
+                                        Service::Dns,
+                                        Priority::Error,
+                                        format!(
+                                            "failed to execute {}: {}",
+                                            helper.script_path().display(),
+                                            dnsmasq_rs::logging::error_text(
+                                                &io::Error::from_raw_os_error(code)
+                                            )
+                                        )
+                                        .into_bytes(),
+                                    ));
+                                }
+                            }
                             notice => eprintln!("dnsmasq-rs: DHCP helper: {notice:?}"),
                         }
                     }

@@ -66,6 +66,7 @@ fn start_error(error: io::Error) -> StartError {
 
 pub struct Helper {
     pid: c_int,
+    script: std::path::PathBuf,
     writer: Option<File>,
     reader: Option<File>,
     pending: Vec<u8>,
@@ -175,6 +176,7 @@ impl Helper {
         drop(events_write);
         Ok(Self {
             pid,
+            script: config.script,
             writer: Some(File::from(commands_write)),
             reader: Some(File::from(events_read)),
             pending: Vec::new(),
@@ -189,6 +191,9 @@ impl Helper {
     }
     pub fn pid(&self) -> i32 {
         self.pid
+    }
+    pub fn script_path(&self) -> &std::path::Path {
+        &self.script
     }
     pub fn initializes_leases(&self) -> bool {
         self.init_capacity.is_some()
