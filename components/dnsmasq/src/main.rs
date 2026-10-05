@@ -2556,6 +2556,7 @@ impl SinglePoll {
             ));
         }
         drop(parent);
+        drop(_event);
         #[cfg(target_os = "linux")]
         self.scan_hosts_dirs(true);
         #[cfg(target_os = "linux")]
