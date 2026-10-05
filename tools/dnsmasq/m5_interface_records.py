@@ -415,6 +415,21 @@ def service_cases():
     add('hostsdir-actual-queue-overflow',hosts_config,[],'HDIR-EVENT HDIR-CALLER',files={'dir/one':'192.0.2.7 one.records.test\n'},actions=[
         files.probe('initial','one.records.test'),dict(op='write',path='overflow',text='',hosts_overflow=True),
         files.write('dir/one','192.0.2.8 one.records.test\n'),files.probe('recovery-after-overflow','one.records.test')])
+    for label,debug in [('foreground',False),('debug',True)]:
+        add('hostsdir-logs-'+label,hosts_config+'log-facility=-\n',[],'HDIR-CALLER',debug=debug,hosts_log_guard=True,
+            files={'dir/one':'192.0.2.7 one.records.test\n'},actions=[files.probe('initial','one.records.test'),
+                files.write('dir/one','192.0.2.8 one.records.test\n'),files.probe('changed','one.records.test'),
+                {'op':'unlink','path':'dir/one'},files.probe('removed','one.records.test')])
+    add('hostsdir-burst-order',hosts_config,[],'HDIR-EVENT',files={'dir/one':'192.0.2.7 one.records.test\n','dir/two':'192.0.2.8 two.records.test\n'},actions=[
+        files.probe('initial','one.records.test'),dict(op='write',path='hosts-burst',text='',hosts_burst=[
+            {'path':'dir/one','text':'192.0.2.9 one.records.test\n'},{'path':'dir/two','text':'192.0.2.10 two.records.test\n'},
+            {'path':'dir/one','text':'192.0.2.11 one.records.test\n'}]),files.probe('one-final','one.records.test'),files.probe('two-final','two.records.test')])
+    add('hostsdir-before-resolver',hosts_config+'resolv-file=/m2/files/resolv\nclear-on-reload\nlog-facility=-\n',[],
+        'HDIR-CALLER',files={'dir/one':'192.0.2.7 one.records.test\n','resolv':'nameserver 127.0.0.2\n'},actions=[
+            files.probe('initial','one.records.test'),dict(op='write',path='hosts-burst',text='',hosts_resolver_order=True,hosts_burst=[
+                {'path':'dir/one','text':'192.0.2.8 one.records.test\n'},{'path':'resolv','text':'nameserver 127.0.0.3\n'}]),
+            files.probe('both-published','one.records.test')])
+    cases[-1]['config']=cases[-1]['config'].replace('no-resolv\n','')
     def kernel(argv):return dict(op='write',path='kernel-action',text='',kernel_command=argv)
     def state(label):return dict(op='write',path='interface-state',text='',interface_state=label)
     v4only={'name':'m5ir0','addresses':['198.18.91.9/24']}
@@ -797,6 +812,21 @@ def run_service_side(root,side,case,out):
                 files.await_predicate(lambda:initial_flag_matches(Path('/proc/net/if_inet6').read_text(),case['initial_flag']),
                     'actual domain-source IPv6 flag before startup')
             initial_commands_applied=True
+        if isinstance(value,dict) and value.get('hosts_burst'):
+            pid=int((root/'m2/files.pid').read_text());offset=len((out/'stderr').read_text());os.kill(pid,signal.SIGSTOP)
+            try:
+                files.await_predicate(lambda:'\nState:\tT' in Path('/proc',str(pid),'status').read_text(),'paused hosts event owner')
+                for event in value['hosts_burst']:original_put(root,event['path'],event['text'],opened)
+            finally:os.kill(pid,signal.SIGCONT)
+            proof={'label':'hosts-burst','paused':True,'events':value['hosts_burst']}
+            if value.get('hosts_resolver_order'):
+                files.await_predicate(lambda:'reading /m2/files/resolv' in (out/'stderr').read_text()[offset:],'resolver after hosts event batch')
+                lines=(out/'stderr').read_text()[offset:].splitlines()
+                host=next(i for i,line in enumerate(lines) if 'read /m2/files/dir/one - 1 names' in line)
+                resolver=next(i for i,line in enumerate(lines) if 'reading /m2/files/resolv' in line)
+                if host>=resolver:raise AssertionError('hostsdir read did not precede same-batch resolver reload')
+                proof.update(host_read_line=host,resolver_read_line=resolver,lines=lines)
+            states.append(proof);return
         if isinstance(value,dict) and value.get('hosts_overflow'):
             pid=int((root/'m2/files.pid').read_text());limit=int(Path('/proc/sys/fs/inotify/max_queued_events').read_text())
             os.kill(pid,signal.SIGSTOP)
@@ -1256,6 +1286,15 @@ def compare_service(left,right,case):
         case=copy.deepcopy(case)
         for action in case['actions']:
             if action['op']=='fd-limit':action['op']='write'
+    if case.get('hosts_log_guard'):
+        def host_messages(observed):
+            messages=[]
+            for line in observed['stderr'].splitlines():
+                match=re.match(r'^dnsmasq(?:-rs)?(?:\[\d+\])?: (.*)$',line)
+                if match and any(marker in match[1] for marker in ('read /m2/files/dir/','inotify: /m2/files/dir/','inotify: flushed')):messages.append(match[1])
+            return messages
+        if not host_messages(left) or host_messages(left)!=host_messages(right):
+            return [{'phase':'hosts-logs','c':host_messages(left),'rust':host_messages(right)}],[]
     failures=files.compare(comparable_service(left),comparable_service(right),case)
     if left.get('domain_dhcp',[])!=right.get('domain_dhcp',[]):failures.append('actual DHCP domain packets differ')
     return failures,differences
