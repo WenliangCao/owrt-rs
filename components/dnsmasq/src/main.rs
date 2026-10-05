@@ -830,7 +830,7 @@ fn run_inner(
     );
     // Fail missing capabilities before touching a pre-existing PID file.
     #[cfg(target_os = "linux")]
-    identity.check_capabilities(capabilities)?;
+    let have_cap_chown = identity.check_capabilities(capabilities)?;
     #[cfg(target_os = "linux")]
     match startup.begin(&runtime.process) {
         Ok(true) => return Ok(()),
@@ -1035,6 +1035,24 @@ fn run_inner(
             )
             .into_bytes(),
         ));
+        if let Some(error) = pid_file.ownership_warning() {
+            let path = runtime.process.pid_file.as_ref().unwrap().display();
+            let (priority, message) = if error.raw_os_error() == Some(1) && !have_cap_chown {
+                (
+                    Priority::Info,
+                    format!("chown of PID file {path} failed: please add capability CAP_CHOWN"),
+                )
+            } else {
+                (
+                    Priority::Warning,
+                    format!(
+                        "chown of PID file {path} failed: {}",
+                        dnsmasq_rs::logging::error_text(error)
+                    ),
+                )
+            };
+            logger.emit(LogEvent::new(Service::Dns, priority, message.into_bytes()));
+        }
         if let Some(error) = log_ownership_warning {
             logger.emit(LogEvent::new(
                 Service::Dns,

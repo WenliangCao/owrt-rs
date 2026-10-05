@@ -99,16 +99,31 @@ impl std::error::Error for StartupError {}
 fn failure(code: i32, context: &str) -> StartupError {
     StartupError {
         code,
-        message: format!("{context}: {}", io::Error::last_os_error()),
+        message: format!(
+            "{context}: {}",
+            crate::logging::error_text(&io::Error::last_os_error())
+        ),
     }
 }
 
-pub struct PidFile(Option<PathBuf>);
+pub struct PidFile {
+    path: Option<PathBuf>,
+    ownership_warning: Option<std::io::Error>,
+}
 impl PidFile {
+    fn new(path: Option<PathBuf>) -> Self {
+        Self {
+            path,
+            ownership_warning: None,
+        }
+    }
+    pub fn ownership_warning(&self) -> Option<&std::io::Error> {
+        self.ownership_warning.as_ref()
+    }
     /// C removes the configured PID path on its normal termination event,
     /// but leaves a newly written file when later initialization fails.
     pub fn cleanup(self) {
-        if let Some(path) = &self.0 {
+        if let Some(path) = &self.path {
             let _ = std::fs::remove_file(path);
         }
     }
@@ -140,7 +155,7 @@ pub fn network_capabilities(
 mod linux {
     use super::*;
     use std::ffi::{c_char, c_int, CString};
-    use std::os::fd::AsRawFd;
+    use std::os::fd::{AsRawFd, IntoRawFd};
     use std::os::unix::fs::OpenOptionsExt;
     #[repr(C)]
     struct Passwd {
@@ -181,6 +196,7 @@ mod linux {
         fn setgid(gid: u32) -> c_int;
         fn setgroups(count: usize, groups: *const u32) -> c_int;
         fn fchown(fd: c_int, uid: u32, gid: u32) -> c_int;
+        fn close(fd: c_int) -> c_int;
         fn capget(header: *mut CapHeader, data: *mut CapData) -> c_int;
         fn capset(header: *const CapHeader, data: *const CapData) -> c_int;
         fn prctl(option: c_int, a: usize, b: usize, c: usize, d: usize) -> c_int;
@@ -189,6 +205,7 @@ mod linux {
         uid: Option<u32>,
         user_gid: Option<u32>,
         gid: Option<u32>,
+        group_name: Option<Vec<u8>>,
         root: bool,
     }
     impl Identity {
@@ -210,7 +227,7 @@ mod linux {
             self.uid.filter(|uid| *uid != 0)
         }
 
-        pub fn check_capabilities(&self, required: u32) -> Result<(), StartupError> {
+        pub fn check_capabilities(&self, required: u32) -> Result<bool, StartupError> {
             let mut header = CapHeader {
                 version: 0x20080522,
                 pid: 0,
@@ -221,12 +238,17 @@ mod linux {
                 return Err(failure(5, "capget"));
             }
             if data[0].permitted & required != required {
-                return Err(StartupError {
-                    code: 5,
-                    message: "process is missing required network capabilities".into(),
-                });
+                for (bit, name) in [(12, "NET_ADMIN"), (13, "NET_RAW"), (10, "NET_BIND_SERVICE")] {
+                    if required & (1 << bit) != 0 && data[0].permitted & (1 << bit) == 0 {
+                        return Err(StartupError {
+                            code: 5,
+                            message: format!("process is missing required capability {name}"),
+                        });
+                    }
+                }
+                return Err(StartupError { code: 5, message: "process is missing required capabilities".into() });
             }
-            Ok(())
+            Ok(data[0].permitted & 1 != 0)
         }
 
         pub fn resolve(config: &ProcessConfig) -> Result<Self, StartupError> {
@@ -244,39 +266,44 @@ mod linux {
                     (Some(entry.uid), Some(entry.gid))
                 }
             };
-            let gid = if let Some(name) = &config.group {
+            let (gid, group_name) = if let Some(name) = &config.group {
                 let name_c = CString::new(name.as_slice()).map_err(|_| unknown(name))?;
-                // SAFETY: same libc lookup contract as above.
-                Some(
-                    unsafe { getgrnam(name_c.as_ptr()).as_ref() }
-                        .ok_or_else(|| unknown(name))?
-                        .gid,
-                )
+                let group =
+                    unsafe { getgrnam(name_c.as_ptr()).as_ref() }.ok_or_else(|| unknown(name))?;
+                (Some(group.gid), Some(name.clone()))
             } else if !config.group_set {
-                // C chooses dip first, then the selected user's primary group.
-                let dip = unsafe { getgrnam(c"dip".as_ptr()).as_ref() }.map(|entry| entry.gid);
-                dip.or_else(|| {
-                    user_gid
-                        .and_then(|gid| unsafe { getgrgid(gid).as_ref() }.map(|entry| entry.gid))
-                })
+                let group = unsafe { getgrnam(c"dip".as_ptr()).as_ref() }
+                    .or_else(|| user_gid.and_then(|gid| unsafe { getgrgid(gid).as_ref() }));
+                match group {
+                    Some(group) => (
+                        Some(group.gid),
+                        Some(
+                            unsafe { std::ffi::CStr::from_ptr(group.name) }
+                                .to_bytes()
+                                .to_vec(),
+                        ),
+                    ),
+                    None => (None, None),
+                }
             } else {
-                None
+                (None, None)
             };
             Ok(Self {
                 uid,
                 user_gid,
                 gid,
+                group_name,
                 root: unsafe { getuid() } == 0,
             })
         }
         pub fn write_pid(&self, config: &ProcessConfig) -> Result<PidFile, StartupError> {
             let Some(path) = config.pid_file.as_ref() else {
-                return Ok(PidFile(None));
+                return Ok(PidFile::new(None));
             };
             if config.debug {
                 // Debug mode skips creation, but C still removes the configured
                 // PID path when handling SIGTERM.
-                return Ok(PidFile(Some(path.clone())));
+                return Ok(PidFile::new(Some(path.clone())));
             }
             // Match unlink then exclusive creation: never follow a stale symlink.
             let _ = std::fs::remove_file(path);
@@ -287,30 +314,48 @@ mod linux {
                 .open(path);
             let mut file = match file {
                 Ok(file) => file,
-                Err(_) if !self.root => return Ok(PidFile(Some(path.clone()))),
+                Err(_) if !self.root => return Ok(PidFile::new(Some(path.clone()))),
                 Err(error) => {
                     return Err(StartupError {
                         code: 3,
-                        message: format!("failed to open pidfile {}: {error}", path.display()),
+                        message: format!(
+                            "failed to open pidfile {}: {}",
+                            path.display(),
+                            crate::logging::error_text(&error)
+                        ),
                     })
                 }
             };
+            let mut pid = PidFile::new(Some(path.clone()));
             if self.root && self.uid.is_some_and(|uid| uid != 0) {
                 // SAFETY: fd belongs to file and scalar IDs came from libc.
                 if unsafe { fchown(file.as_raw_fd(), self.uid.unwrap(), self.user_gid.unwrap()) }
                     < 0
                 {
-                    eprintln!(
-                        "dnsmasq-rs: failed to change PID file owner: {}",
-                        io::Error::last_os_error()
-                    );
+                    pid.ownership_warning = Some(io::Error::last_os_error());
                 }
             }
             writeln!(file, "{}", std::process::id()).map_err(|error| StartupError {
                 code: 3,
-                message: format!("failed to write pidfile {}: {error}", path.display()),
+                message: format!(
+                    "failed to open pidfile {}: {}",
+                    path.display(),
+                    crate::logging::error_text(&error)
+                ),
             })?;
-            Ok(PidFile(Some(path.clone())))
+            // Taking the raw descriptor prevents a second close. C treats a
+            // failed close exactly like open/write failure and keeps the path.
+            if unsafe { close(file.into_raw_fd()) } != 0 {
+                return Err(StartupError {
+                    code: 3,
+                    message: format!(
+                        "failed to open pidfile {}: {}",
+                        path.display(),
+                        crate::logging::error_text(&io::Error::last_os_error())
+                    ),
+                });
+            }
+            Ok(pid)
         }
         pub fn drop_privileges(
             &self,
@@ -327,7 +372,13 @@ mod linux {
             if let Some(gid) = self.gid {
                 // SAFETY: no extra groups; this runs before spawning any threads.
                 if unsafe { setgroups(0, std::ptr::null()) } < 0 || unsafe { setgid(gid) } < 0 {
-                    return Err(failure(5, "failed to set group"));
+                    return Err(failure(
+                        5,
+                        &format!(
+                            "failed to change group-id to {}",
+                            String::from_utf8_lossy(self.group_name.as_deref().unwrap_or_default())
+                        ),
+                    ));
                 }
             }
             if let Some(uid) = self.uid.filter(|uid| *uid != 0) {
@@ -338,15 +389,21 @@ mod linux {
                 if unsafe { capset(&header, data.as_ptr()) } < 0
                     || unsafe { prctl(8, 1, 0, 0, 0) } < 0
                 {
-                    return Err(failure(5, "failed to retain capabilities"));
+                    return Err(failure(5, "setting capabilities failed"));
                 }
                 if unsafe { setuid(uid) } < 0 {
-                    return Err(failure(5, "failed to set user"));
+                    return Err(failure(
+                        5,
+                        &format!(
+                            "failed to change user-id to {}",
+                            String::from_utf8_lossy(config.user.as_deref().unwrap_or_default())
+                        ),
+                    ));
                 }
                 data[0].effective = keep;
                 data[0].permitted = keep;
                 if unsafe { capset(&header, data.as_ptr()) } < 0 {
-                    return Err(failure(5, "failed to reduce capabilities"));
+                    return Err(failure(5, "setting capabilities failed"));
                 }
             }
             Ok(())
@@ -387,10 +444,10 @@ mod tests {
     fn pid_cleanup_is_explicit_after_successful_startup() {
         let path = std::env::temp_dir().join(format!("dnsmasq-pid-cleanup-{}", std::process::id()));
         std::fs::write(&path, b"sentinel\n").unwrap();
-        let failed_startup = PidFile(Some(path.clone()));
+        let failed_startup = PidFile::new(Some(path.clone()));
         drop(failed_startup);
         assert_eq!(std::fs::read(&path).unwrap(), b"sentinel\n");
-        PidFile(Some(path.clone())).cleanup();
+        PidFile::new(Some(path.clone())).cleanup();
         assert!(!path.exists());
     }
     #[test]
