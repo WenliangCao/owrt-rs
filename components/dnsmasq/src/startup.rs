@@ -400,7 +400,8 @@ mod linux {
                 let mut data = [CapData::default(); 2];
                 data[0].effective = keep | (1 << 7);
                 data[0].permitted = data[0].effective;
-                // SAFETY: Linux capability v3 has two entries. Keep only network + temporary SETUID.
+                // SAFETY: Linux capability v3 reads the two initialized live
+                // entries; PR_SET_KEEPCAPS takes scalar arguments only.
                 if unsafe { capset(&header, data.as_ptr()) } < 0
                     || unsafe { prctl(8, 1, 0, 0, 0) } < 0
                 {
@@ -418,6 +419,8 @@ mod linux {
                 }
                 data[0].effective = keep;
                 data[0].permitted = keep;
+                // SAFETY: header and both capability entries remain initialized
+                // and live after setuid; capset does not retain their pointers.
                 if unsafe { capset(&header, data.as_ptr()) } < 0 {
                     return Err(failure(5, "setting capabilities failed"));
                 }
@@ -446,6 +449,8 @@ pub fn redirect_standard_streams(config: &ProcessConfig) {
         .open("/dev/null")
     {
         for target in [0, 1, 2] {
+            // SAFETY: /dev/null is owned and live. dup2 takes scalar FDs and
+            // atomically replaces only this process's standard stream target.
             unsafe {
                 dup2(null.as_raw_fd(), target);
             }
