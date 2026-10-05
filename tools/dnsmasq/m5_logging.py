@@ -75,6 +75,10 @@ def cases():
         {'id': 'file-owner-debug', 'scope': 'sink', 'kind': 'run', 'mode': ['-d'], 'user': 'nobody',
          'argv': ['--log-facility=/m2/logging/daemon.log'], 'file': 'daemon.log',
          'expected_metadata': [0o660, 65534, 0], 'options': ['log-facility', 'no-daemon']},
+        {'id': 'file-existing-group-owner', 'scope': 'sink', 'kind': 'run', 'user': 'nobody',
+         'argv': ['--log-facility=/m2/logging/daemon.log'], 'file': 'daemon.log',
+         'existing': 'preexisting\n', 'file_mode': 0o640, 'file_gid': 65534,
+         'expected_metadata': [0o640, 65534, 65534], 'options': ['log-facility']},
         {'id': 'file-rotate', 'scope': 'sink', 'kind': 'run', 'rotate': True,
          'argv': ['--log-facility=/m2/logging/daemon.log'], 'file': 'daemon.log',
          'options': ['log-facility']},
@@ -171,6 +175,16 @@ def cases():
          'pidfile': '/m2/logging/missing/daemon.pid', 'options': ['no-daemon']},
     ])
     for mode, label in [([], 'default'), (['-k'], 'foreground'), (['-d'], 'debug')]:
+        for identity in ['user', 'group']:
+            rows.append({'id': 'startup-unknown-' + identity + '-' + label, 'scope': 'daemon',
+                         'kind': 'run', 'mode': mode, 'daemonized': not mode, 'exit': 1,
+                         'pidfile': '/m2/logging/daemon.pid', identity: 'm5-unknown-identity',
+                         'argv': ['--log-facility=-'], 'options': ['no-daemon']})
+        rows.append({'id': 'startup-tftp-root-missing-' + label, 'scope': 'daemon',
+                     'kind': 'run', 'mode': mode, 'daemonized': not mode, 'exit': 3,
+                     'pidfile': '/m2/logging/daemon.pid', 'receiver': 'dgram',
+                     'argv': ['--log-facility=-', '--enable-tftp', '--tftp-root=/m2/logging/missing'],
+                     'options': ['no-daemon', 'log-facility']})
         rows.append({'id': 'tftp-scriptuser-unknown-' + label, 'scope': 'scriptuser-boundary',
                      'kind': 'run', 'mode': mode, 'daemonized': not mode,
                      'pidfile': '/m2/logging/daemon.pid', 'helper_script': True,
@@ -192,8 +206,9 @@ def cases():
                                 ('error-pipe-flags', 25, errno.EIO),
                                 ('pid-write', 64, errno.EIO), ('pid-close', 57, errno.EIO),
                                 ('log-chown', 55, errno.EPERM), ('pid-chown', 55, errno.EPERM),
-                                ('pid-short-write', 64, 0)]:
-        failed = name not in ['log-chown', 'pid-chown', 'pid-short-write']
+                                ('pid-short-write', 64, 0), ('log-space', 64, errno.ENOSPC),
+                                ('log-interrupt', 64, errno.EINTR)]:
+        failed = name not in ['log-chown', 'pid-chown', 'pid-short-write', 'log-space', 'log-interrupt']
         rows.append({'id': 'startup-fault-' + name, 'scope': 'startup-fault', 'kind': 'run',
                      'mode': [] if name in ['fork-one', 'fork-two', 'error-pipe', 'error-pipe-flags'] else ['-k'],
                      'daemonized': name in ['fork-one', 'fork-two', 'error-pipe', 'error-pipe-flags'], 'fault': name,
@@ -201,15 +216,117 @@ def cases():
                      'exit': (5 if name in ['fork-one', 'fork-two', 'error-pipe', 'error-pipe-flags'] else 3) if failed else 0,
                      'pidfile': '/m2/logging/daemon.pid',
                      'user': 'nobody' if name in ['log-chown', 'pid-chown'] else 'root',
-                     'file': '/m2/logging/daemon.log' if name == 'log-chown' else None,
-                     'argv': ['--log-facility=/m2/logging/daemon.log'] if name == 'log-chown' else ['--log-facility=-'],
+                     'file': '/m2/logging/daemon.log' if name.startswith('log-') else None,
+                     'argv': ['--log-facility=/m2/logging/daemon.log'] if name.startswith('log-') else ['--log-facility=-'],
                      'receiver': 'dgram', 'options': ['no-daemon', 'log-facility']})
     for name, number in [('setgroups', 159), ('setgid', 144), ('setuid', 146), ('capset', 91), ('keepcaps', 167)]:
         rows.append({'id': 'credential-fault-' + name, 'scope': 'credential-fault', 'kind': 'run',
                      'mode': ['-k'], 'fault': name, 'fault_number': number, 'fault_errno': errno.EPERM,
                      'exit': 5, 'pidfile': '/m2/logging/daemon.pid', 'user': 'nobody',
                      'receiver': 'dgram', 'argv': [], 'options': ['no-daemon']})
+    rows.append({'id': 'pid-chown-capability-missing', 'scope': 'ownership-warning', 'kind': 'run',
+                 'mode': ['-k'], 'pidfile': '/m2/logging/daemon.pid', 'user': 'nobody',
+                 'drop_chown': True, 'receiver': 'dgram', 'argv': [], 'options': ['no-daemon']})
+    for name, number, error, target in [
+        ('syslog-socket', 198, errno.EMFILE, 'socket-open'),
+        ('stderr-dup', 23, errno.EMFILE, 'stderr-dup'),
+        *[('syslog-' + label, 64, error, 'socket-write') for label, error in [
+            ('interrupt', errno.EINTR), ('again', errno.EAGAIN), ('buffers', errno.ENOBUFS),
+            ('not-connected', errno.ENOTCONN), ('refused', errno.ECONNREFUSED),
+            ('destination', errno.EDESTADDRREQ), ('reset', errno.ECONNRESET), ('pipe', errno.EPIPE),
+            ('fatal', errno.EIO)]],
+        *[('connect-' + label, 203, error, 'socket-connect') for label, error in [
+            ('missing', errno.ENOENT), ('already', errno.EALREADY), ('refused', errno.ECONNREFUSED),
+            ('connected', errno.EISCONN), ('interrupt', errno.EINTR), ('again', errno.EAGAIN)]],
+    ]:
+        rows.append({'id': 'sink-fault-' + name, 'scope': 'sink-fault', 'kind': 'run',
+                     'mode': ['-k'], 'fault': name, 'fault_number': number, 'fault_errno': error,
+                     'fault_target': target, 'exit': 3 if target in ['socket-open', 'stderr-dup'] else 0,
+                     'pidfile': '/m2/logging/daemon.pid', 'receiver': 'dgram',
+                     'argv': ['--log-facility=-'] if target == 'stderr-dup' else [],
+                     'options': ['log-facility']})
+    for index, value in enumerate([None, '', '0', '1', '5', '100', '101', '2147483648',
+                                   '4294967295', '4294967296', '4294967301', '9' * 80]):
+        argument = '--log-async' + ('' if value is None else '=' + value)
+        integer = 5 if value is None else int(value or '0') & 0xffffffff
+        integer = integer if integer < 0x80000000 else integer - 0x100000000
+        limit = min(integer, 100)
+        rows.append({'id': f'async-value-{index:02d}', 'scope': 'async', 'kind': 'run',
+                     'argv': [argument], 'receiver': 'dgram', 'facility': 24,
+                     'allow_no_syslog': limit < 0, 'async_notice': limit,
+                     'options': ['log-async']})
+    for destination, extra in [('stderr', {'argv': ['--log-facility=-']}),
+                                ('file', {'argv': ['--log-facility=/m2/logging/daemon.log'], 'file': 'daemon.log'})]:
+        rows.append({'id': 'async-overridden-' + destination, 'scope': 'async', 'kind': 'run',
+                     **extra, 'argv': [*extra['argv'], '--log-async=7'], 'async_notice': 0,
+                     'options': ['log-async', 'log-facility']})
+    for index, value in enumerate(['-1', '+1', '1x', ' 1']):
+        rows.append({'id': f'async-invalid-{index:02d}', 'scope': 'async', 'kind': 'test',
+                     'exit': 1, 'argv': ['--log-async=' + value], 'options': ['log-async', 'test']})
+    rows.append({'id': 'async-origin-precedence', 'scope': 'async', 'kind': 'run',
+                 'config': 'log-async=3\n', 'argv': ['--log-async=7'], 'receiver': 'dgram',
+                 'facility': 24, 'async_notice': 3, 'options': ['log-async']})
+    rows.append({'id': 'async-repeat-cli', 'scope': 'async', 'kind': 'test', 'exit': 1,
+                 'argv': ['--log-async=3', '--log-async=7'], 'options': ['log-async', 'test']})
+    rows.append({'id': 'async-overflow-startup', 'scope': 'async-overflow', 'kind': 'run',
+                 'pause_receiver': True, 'receiver': 'dgram', 'facility': 24,
+                 'argv': ['--log-async=2', '--dhcp-leasefile=/m2/logging/leases', '--no-ping',
+                          '--dhcp-broadcast', *[f'--dhcp-range=127.0.{index}.10,127.0.{index}.20,255.0.0.0,10m'
+                                              for index in range(20)]],
+                 'options': ['log-async', 'log-facility']})
+    for quiet in [False, True]:
+        for variant in ['requests', 'port-exhausted', 'timeout']:
+            rows.append({'id': 'tftp-logs-' + variant + ('-quiet' if quiet else '-ordinary'),
+                         'scope': 'tftp-logs', 'kind': 'run', 'tftp_probes': variant,
+                         'quiet': quiet, 'argv': ['--log-facility=-', '--enable-tftp',
+                            '--tftp-root=/m2/logging',
+                            *(['--quiet-tftp'] if quiet else []),
+                            *(['--tftp-port-range=35000,35000'] if variant == 'port-exhausted' else [])],
+                         'options': ['quiet-tftp', 'log-facility']})
+    for destination, extra in [('stderr', {'argv': ['--log-facility=-']}),
+                                ('file', {'argv': ['--log-facility=/m2/logging/daemon.log'], 'file': 'daemon.log'}),
+                                ('syslog', {'argv': [], 'receiver': 'dgram', 'facility': 24}),
+                                ('stream', {'argv': [], 'receiver': 'stream', 'facility': 24})]:
+        for enabled in [False, True]:
+            rows.append({'id': 'script-logs-' + destination + ('-debug-enabled' if enabled else '-debug-disabled'),
+                         'scope': 'script-logs', 'kind': 'run', **extra,
+                         'tftp_probes': 'script', 'script_probes': 'output',
+                         'argv': [*extra['argv'], '--enable-tftp', '--tftp-root=/m2/logging',
+                                  '--dhcp-script=/m2/logging/script', *(['--log-debug'] if enabled else [])],
+                         'options': ['log-facility', 'log-debug']})
+    for outcome in ['signal', 'exec']:
+        rows.append({'id': 'script-logs-' + outcome, 'scope': 'script-logs', 'kind': 'run',
+                     'tftp_probes': 'script', 'script_probes': outcome,
+                     'argv': ['--log-facility=-', '--enable-tftp', '--tftp-root=/m2/logging',
+                              '--dhcp-script=/m2/logging/script'], 'options': ['log-facility', 'log-debug']})
     dhcp_base = ['--log-facility=-', '--dhcp-leasefile=/m2/logging/leases', '--no-ping', '--dhcp-broadcast']
+    for name, arguments, extra in [
+        ('cache-disabled', ['--cache-size=0'], {}),
+        ('cache-large', ['--cache-size=10001'], {}),
+        ('dns-disabled', ['--port=0', '--enable-tftp', '--tftp-root=/m2/logging'], {'no_dns': True, 'base_skip': ['--port=15353']}),
+        ('ignored-resolv', ['--resolv-file=/m2/logging/resolv'], {}),
+        ('ubus-pending', ['--enable-ubus=logging'], {}),
+        ('interface-warning', ['--interface=m5-missing-iface'], {'base_skip': ['--bind-interfaces']}),
+        ('local-service-net', ['--local-service=net'], {'base_skip': ['--listen-address=127.0.0.1']}),
+        ('local-service-host', ['--local-service=host'], {'base_skip': ['--listen-address=127.0.0.1']}),
+        ('nameserver', ['--server=192.0.2.53#15555'], {}),
+        ('local-domain', ['--server=/only.logging/'], {}),
+    ]:
+        rows.append({'id': 'startup-output-' + name, 'scope': 'startup-output', 'kind': 'run',
+                     'argv': ['--log-facility=-', *arguments], **extra,
+                     'options': ['log-facility', 'no-daemon']})
+    rows.append({'id': 'daemon-runtime-servers-file-failure', 'scope': 'daemon', 'kind': 'run',
+                 'mode': [], 'daemonized': True, 'pidfile': '/m2/logging/daemon.pid',
+                 'argv': ['--log-facility=-', '--servers-file=/m2/logging/missing-servers'],
+                 'options': ['no-daemon']})
+    for target in ['pid', 'log']:
+        path = '/m2/logging/' + 'x' * 65536
+        rows.append({'id': 'daemon-overlong-' + target + '-error-frame', 'scope': 'error-frame',
+                     'kind': 'run', 'mode': [], 'daemonized': True, 'exit': 3,
+                     'pidfile': path if target == 'pid' else '/m2/logging/daemon.pid',
+                     'overlong_pid': target == 'pid', 'receiver': 'dgram',
+                     'argv': ['--log-facility=' + (path if target == 'log' else '-')],
+                     'options': ['no-daemon', 'log-facility']})
     for name, ranges in [
         ('dynamic', ['127.0.0.10,127.0.0.20,255.0.0.0,10m']),
         ('static', ['127.0.0.0,static,255.0.0.0,3723']),
@@ -343,6 +460,80 @@ def tcp_sequence(probes):
     return rows, raw
 
 
+def tftp_sequence(variant, out, receiver):
+    rows, raw = [], []
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as client:
+        client.bind(('127.0.0.1', 16504))
+        client.settimeout(.2)
+        def request(label, wire, expected, finish=False, remote_error=None):
+            client.sendto(wire, ('127.0.0.1', 69))
+            try:
+                reply, peer = client.recvfrom(65535)
+            except socket.timeout:
+                if expected is not None:
+                    raise
+                rows.append({'label': label, 'response': None})
+                raw.append({'label': label, 'request': wire.hex(), 'reply': None})
+                return
+            if expected is None or reply != expected:
+                raise AssertionError(('TFTP source response', label, expected, reply))
+            rows.append({'label': label, 'response': reply.hex(), 'dedicated': peer[1] != 69})
+            raw.append({'label': label, 'request': wire.hex(), 'reply': reply.hex(), 'peer': list(peer)})
+            if remote_error:
+                client.sendto(remote_error, peer)
+                raw.append({'label': label + '-client-error', 'request': remote_error.hex(), 'peer': list(peer)})
+            if finish:
+                client.sendto(b'\0\4\0\1', peer)
+                last, origin = client.recvfrom(65535)
+                if last != b'\0\3\0\2' + b'x' * 188 or origin != peer:
+                    raise AssertionError('TFTP final block')
+                client.sendto(b'\0\4\0\2', peer)
+                rows.append({'label': label + '-last', 'response': last.hex()})
+                raw.append({'label': label + '-last', 'reply': last.hex(), 'peer': list(peer)})
+            time.sleep(.02)
+            receiver.drain()
+        rrq = b'\0\1public\0octet\0'
+        if variant == 'script':
+            request('completed', rrq, b'\0\3\0\1' + b'x' * 512, finish=True)
+        elif variant == 'port-exhausted':
+            request('port-exhausted', rrq, None)
+        elif variant == 'timeout':
+            request('timeout', rrq, b'\0\3\0\1' + b'x' * 512)
+            deadline = time.monotonic() + 125
+            while time.monotonic() < deadline:
+                receiver.drain()
+                if b'timeout sending /m2/logging/public to 127.0.0.1' in (out / 'stderr').read_bytes():
+                    break
+                time.sleep(.03)
+            else:
+                raise AssertionError('source 120-second transfer timeout did not log')
+        else:
+            request('completed', rrq, b'\0\3\0\1' + b'x' * 512, finish=True)
+            for label, wire, reply in [
+                ('missing', b'\0\1missing\0octet\0', b'\0\5\0\1file /m2/logging/missing not found for 127.0.0.1\0'),
+                ('permissions', b'\0\1private\0octet\0', b'\0\5\0\2cannot access /m2/logging/private: Permission denied\0'),
+                ('read', b'\0\1directory\0octet\0', b'\0\5\0\0cannot read /m2/logging/directory: Is a directory\0'),
+                ('mode', b'\0\1public\0bad\0', b'\0\5\0\4unsupported request from 127.0.0.1\0'),
+                ('write', b'\0\2', b'\0\5\0\4unsupported write request from 127.0.0.1\0'),
+                ('unknown', b'\0\x09', None),
+            ]:
+                request(label, wire, reply)
+            for label, filename in [('sanitise', b'missing-\1\t\n\x7f\x80\xff-name')]:
+                clean = bytes(byte for byte in filename if 0x20 <= byte <= 0x7e)
+                request(label, b'\0\1' + filename + b'\0octet\0',
+                        b'\0\5\0\1file /m2/logging/' + clean + b' not found for 127.0.0.1\0')
+            stem = b'a' * 200 + b'/' + b'b' * 200 + b'/'
+            for size in [498, 499, 520]:
+                overhead = len(b'file /m2/logging/' + stem + b' not found for 127.0.0.1')
+                filename = stem + b'x' * (size - overhead)
+                message = b'file /m2/logging/' + filename + b' not found for 127.0.0.1'
+                request('bounded-' + str(size), b'\0\1' + filename + b'\0octet\0',
+                        b'\0\5\0\1' + message[:499] + b'\0')
+            request('client-error', rrq, b'\0\3\0\1' + b'x' * 512,
+                    remote_error=b'\0\5\0\3client\1failed\0')
+    return rows, raw
+
+
 def identity_probes():
     probes = []
     def add(labels, kind=16, cls=3, rd=True, edns=False, do=False, rcode=None, txt=None):
@@ -418,7 +609,7 @@ def identity_sequence(transport, calibrate, sticky_probe=None, fresh=False):
 
 
 def run(root, side, case, out):
-    if case.get('scope') in ['daemon', 'scriptuser-boundary', 'startup-fault', 'credential-fault']:
+    if case.get('scope') in ['daemon', 'scriptuser-boundary', 'startup-fault', 'credential-fault', 'ownership-warning', 'sink-fault', 'error-frame']:
         return run_daemon(root, side, case, out)
     out.mkdir()
     folder = image_path(root, '/m2/logging')
@@ -426,16 +617,35 @@ def run(root, side, case, out):
     folder.mkdir(mode=0o777)
     folder.chmod(0o777)
     (folder / 'config').write_text(case.get('config', ''))
+    blocker = None
+    if case.get('tftp_probes') or case.get('no_dns'):
+        (folder / 'public').write_bytes(b'x' * 700)
+        (folder / 'public').chmod(0o644)
+        (folder / 'private').write_bytes(b'private')
+        (folder / 'private').chmod(0o600)
+        (folder / 'directory').mkdir()
+        if case.get('tftp_probes') == 'port-exhausted':
+            blocker = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            blocker.bind(('127.0.0.1', 35000))
+    if case.get('script_probes'):
+        outcome = case['script_probes']
+        if outcome != 'exec':
+            script = folder / 'script'
+            script.write_text('#!/bin/sh\n' + ('kill -USR1 $$\n' if outcome == 'signal' else
+                "printf 'one\\n\\n'; printf 'nul\\000hidden\\n'; head -c 4096 /dev/zero | tr '\\000' x; printf '\\ntail'; exit 7\n"))
+            script.chmod(0o755)
     image_path(root, '/etc/dnsmasq.conf', follow_leaf=False).write_text(
         'unrecognised-directive=fail\n' if case.get('invalid_default') else '')
     if 'existing' in case:
         (folder / case['file']).write_text(case['existing'])
         (folder / case['file']).chmod(case['file_mode'])
+        if 'file_gid' in case:
+            os.chown(folder / case['file'], 0, case['file_gid'])
     receiver = Receiver(root, case.get('receiver'))
     # C selects the DHCP help list only with exactly argc3 and argv[2]=dhcp.
     argv = [] if case['kind'] == 'cli' else ['-C', '/m2/logging/config']
     if case['kind'] != 'cli':
-        argv += BASE + ['--user=' + case.get('user', 'root')]
+        argv += [arg for arg in BASE if arg not in case.get('base_skip', [])] + ['--user=' + case.get('user', 'root')]
         argv += ['--test'] if case['kind'] == 'test' else case.get('mode', ['-k'])
     argv += case['argv']
     full = command(root, side, *argv)
@@ -451,7 +661,8 @@ def run(root, side, case, out):
         try:
             deadline = start + 3
             while time.monotonic() < deadline:
-                receiver.drain()
+                if not case.get('pause_receiver'):
+                    receiver.drain()
                 if process.poll() is not None:
                     break
                 if case['kind'] == 'run':
@@ -459,11 +670,16 @@ def run(root, side, case, out):
                         if case.get('query_probes') and b'cleared cache\n' not in (out / 'stderr').read_bytes():
                             time.sleep(.005)
                             continue
-                        answer, raw = exchange('ready.logging', port=16500 if case.get('query_probes') else None)
-                        if [row['data'] for row in answer['records']] != ['192.0.2.1']:
-                            raise AssertionError('wrong readiness answer')
+                        if case.get('no_dns'):
+                            rows, raw = tftp_sequence('script', out, receiver)
+                            observed['tftp'] = rows
+                            trace['tftp'] = raw
+                        else:
+                            answer, raw = exchange('ready.logging', port=16500 if case.get('query_probes') else None)
+                            if [row['data'] for row in answer['records']] != ['192.0.2.1']:
+                                raise AssertionError('wrong readiness answer')
+                            trace['dns'].append(raw)
                         observed['ready'] = True
-                        trace['dns'].append(raw)
                         trace['identity'] = process_identity(root, process.pid)
                         wanted = sha256(image_path(root, '/usr/sbin/dnsmasq' + ('-rs' if side == 'rust' else '')))
                         if trace['identity']['sha256'] != wanted:
@@ -473,6 +689,27 @@ def run(root, side, case, out):
                         pass
                 time.sleep(.005)
             if observed['ready']:
+                if case.get('pause_receiver'):
+                    deadline = time.monotonic() + .2
+                    while time.monotonic() < deadline:
+                        receiver.drain()
+                        time.sleep(.005)
+                if case.get('tftp_probes'):
+                    rows, raw = tftp_sequence(case['tftp_probes'], out, receiver)
+                    observed['tftp'] = rows
+                    trace['tftp'] = raw
+                if case.get('script_probes'):
+                    deadline = time.monotonic() + 1
+                    while time.monotonic() < deadline:
+                        receiver.drain()
+                        captured = (out / 'stderr').read_bytes() + b''.join(receiver.raw)
+                        if case.get('file') and (folder / case['file']).exists():
+                            captured += (folder / case['file']).read_bytes()
+                        if any(text in captured for text in [b'script process exited with status 7',
+                                                            b'script process killed by signal 10',
+                                                            b'failed to execute /m2/logging/script']):
+                            break
+                        time.sleep(.005)
                 if case.get('identity_matrix'):
                     for transport in ['udp', 'tcp']:
                         rows, raw = identity_sequence(transport, side == 'c', case.get('identity_sticky_probe'), case.get('identity_fresh', False))
@@ -523,6 +760,8 @@ def run(root, side, case, out):
                 process.wait(1)
             receiver.drain()
             receiver.close()
+            if blocker:
+                blocker.close()
             trace['duration'] = time.monotonic() - start
             trace['stream_tail'] = receiver.pending.hex()
             save(out / 'trace.json', trace)
@@ -533,8 +772,8 @@ def run(root, side, case, out):
             observed['file_metadata'][path.name] = [info.st_mode & 0o777, info.st_uid, info.st_gid]
             (out / path.name).write_bytes(path.read_bytes())
     observed['syslog'] = [row.hex() for row in receiver.raw]
-    observed['stdout'] = (out / 'stdout').read_text(errors='backslashreplace')
-    observed['stderr'] = (out / 'stderr').read_text(errors='backslashreplace')
+    observed['stdout'] = (out / 'stdout').read_bytes().decode(errors='backslashreplace')
+    observed['stderr'] = (out / 'stderr').read_bytes().decode(errors='backslashreplace')
     save(out / 'syslog.json', [row.hex() for row in receiver.raw])
     save(out / 'observed.json', observed)
     return observed
@@ -606,6 +845,7 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
         return value
     report = {'pid': pid, 'fault': case['fault'], 'injected': False, 'events': []}
     attached, pending, pipes, pipe_pointer, error_writer = True, None, 0, None, None
+    socket_pending, logging_socket = False, None
     deadline = time.monotonic() + 5
     def wait_stop():
         while time.monotonic() < deadline:
@@ -653,6 +893,8 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                     pipes += 1
                     if case['fault'] == 'error-pipe-flags' and pipes == (2 if side == 'c' else 1):
                         pipe_pointer = args[0]
+                if number == 198 and args[0] == 1:
+                    socket_pending = True
                 target = ''
                 if number in [57, 55, 64, 66]:
                     try:
@@ -668,7 +910,16 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                     match &= args[0] == error_writer and args[1] == 4
                 elif case['fault'] in ['pid-write', 'pid-close', 'pid-chown', 'pid-short-write']:
                     match &= target.endswith('/m2/logging/daemon.pid')
-                elif case['fault'] == 'log-chown':
+                elif case.get('fault_target') == 'socket-open':
+                    # Rust's optional UBus probe also opens AF_UNIX datagram
+                    # sockets. Only the logger uses its explicit nonblocking
+                    # owner socket; C log_start uses the plain datagram type.
+                    match &= args[0] == 1 and args[1] == (2 if side == 'c' else 2 | 0x800 | 0x80000)
+                elif case.get('fault_target') == 'stderr-dup':
+                    match &= args[0] == 2
+                elif case.get('fault_target') in ['socket-write', 'socket-connect']:
+                    match &= args[0] == logging_socket
+                elif case['fault'].startswith('log-'):
                     match &= target.endswith('/m2/logging/daemon.log')
                 if not match:
                     continue
@@ -685,6 +936,9 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                     skipped = ctypes.c_int(-1)
                     vec = Iovec(ctypes.addressof(skipped), ctypes.sizeof(skipped))
                     ptrace(0x4205, 0x404, ctypes.addressof(vec))
+            elif operation == 2 and socket_pending and pending is None:
+                logging_socket = struct.unpack_from('=q', info.raw, 24)[0]
+                socket_pending = False
             elif operation == 2 and pipe_pointer is not None and pending is None:
                 word = ptrace(2, pipe_pointer) & ((1 << 64) - 1)
                 error_writer = word >> 32
@@ -738,9 +992,11 @@ def run_daemon(root, side, case, out):
         script.write_text('#!/bin/sh\nexit 0\n')
         script.chmod(0o755)
     debug = '-d' in case['mode']
-    pid_path = image_path(root, case['pidfile'] if case['pidfile'].startswith('/') else
-                          ('/m2/logging/' if debug else '/') + case['pidfile'].removeprefix('./'))
-    pid_path.unlink(missing_ok=True)
+    pid_path = root / case['pidfile'].lstrip('/') if case.get('overlong_pid') else image_path(
+        root, case['pidfile'] if case['pidfile'].startswith('/') else
+        ('/m2/logging/' if debug else '/') + case['pidfile'].removeprefix('./'))
+    if not case.get('overlong_pid'):
+        pid_path.unlink(missing_ok=True)
     if case.get('sentinel_pid'):
         pid_path.write_text('sentinel\n')
     log_path = image_path(root, case['file']) if case.get('file') else None
@@ -748,7 +1004,8 @@ def run_daemon(root, side, case, out):
         log_path.unlink(missing_ok=True)
     receiver = Receiver(root, case.get('receiver'))
     executable = '/usr/sbin/dnsmasq' + ('-rs' if side == 'rust' else '')
-    argv = ['-C', '/m2/logging/config', *[arg for arg in BASE if arg != '--pid-file='],
+    argv = ['-C', '/m2/logging/config', *[arg for arg in BASE if arg not in ['--pid-file=', '--group=root']],
+            '--group=' + case.get('group', 'root'),
             '--user=' + case.get('user', 'root'), '--pid-file=' + case['pidfile'], *case['mode'], *case['argv']]
     full = command(root, '/bin/sh', '-c', 'cd /m2/logging && exec "$@"', 'logging', executable, *argv)
     save(out / 'fixture.json', case)
@@ -759,10 +1016,15 @@ def run_daemon(root, side, case, out):
     trace = {'command': full, 'samples': [], 'reaped': {}}
     service_pid = None
     start = time.monotonic()
+    def drop_chown():
+        libc = ctypes.CDLL(None, use_errno=True)
+        if libc.prctl(24, 0, 0, 0, 0) != 0:  # PR_CAPBSET_DROP, CAP_CHOWN
+            raise OSError(ctypes.get_errno(), 'drop CAP_CHOWN in tracee bounding set')
     with (out / 'stdout').open('wb') as stdout, (out / 'stderr').open('wb') as stderr:
         process = traced_startup(full, case, side, stdout, stderr, out / 'fault.json') if case.get('fault') else subprocess.Popen(
             full, stdin=subprocess.DEVNULL, stdout=stdout, stderr=stderr,
-            env={**os.environ, 'LC_ALL': 'C', 'TZ': 'UTC'}, start_new_session=True)
+            env={**os.environ, 'LC_ALL': 'C', 'TZ': 'UTC'}, start_new_session=True,
+            preexec_fn=drop_chown if case.get('drop_chown') else None)
         try:
             deadline = start + 3
             while time.monotonic() < deadline:
@@ -771,7 +1033,7 @@ def run_daemon(root, side, case, out):
                 if case.get('daemonized'):
                     try:
                         service_pid = int(pid_path.read_text().strip())
-                    except (FileNotFoundError, ValueError):
+                    except (OSError, ValueError):
                         pass
                 else:
                     service_pid = process.pid
@@ -849,15 +1111,15 @@ def run_daemon(root, side, case, out):
             trace['duration'] = time.monotonic() - start
             trace['stream_tail'] = receiver.pending.hex()
             save(out / 'trace.json', trace)
-    observed['pid_after_exit'] = pid_path.exists()
+    observed['pid_after_exit'] = False if case.get('overlong_pid') else pid_path.exists()
     if log_path and log_path.is_file():
         observed['files']['relative.log'] = log_path.read_bytes().hex()
         meta = log_path.stat()
         observed['file_metadata']['relative.log'] = [meta.st_mode & 0o777, meta.st_uid, meta.st_gid]
         (out / 'relative.log').write_bytes(log_path.read_bytes())
     observed['syslog'] = [row.hex() for row in receiver.raw]
-    observed['stdout'] = (out / 'stdout').read_text(errors='backslashreplace')
-    observed['stderr'] = (out / 'stderr').read_text(errors='backslashreplace')
+    observed['stdout'] = (out / 'stdout').read_bytes().decode(errors='backslashreplace')
+    observed['stderr'] = (out / 'stderr').read_bytes().decode(errors='backslashreplace')
     save(out / 'observed.json', observed)
     return observed
 
@@ -892,13 +1154,65 @@ def compare(reference, candidate, case, reference_only=False):
             failures.append({'kind': 'C-helper-identity-control', 'expected': expected,
                              'actual': reference.get('helper_uids')})
     if 'facility' in case and expected_ready:
-        if not reference['syslog']:
+        if not reference['syslog'] and not case.get('allow_no_syslog'):
             failures.append({'kind': 'C-no-syslog-records'})
         for record in reference['syslog']:
             text = bytes.fromhex(record).decode()
             match = re.match(r'<(\d+)>', text)
             if not match or (int(match[1]) & ~7) != case['facility']:
                 failures.append({'kind': 'C-PRI-facility', 'actual': text})
+    if 'async_notice' in case:
+        text = reference['stderr'] + ''.join(bytes.fromhex(value).decode() for value in reference['syslog'])
+        text += ''.join(bytes.fromhex(value).decode() for value in reference['files'].values())
+        limit = case['async_notice']
+        notice = f'asynchronous logging enabled, queue limit is {limit} messages'
+        if (limit > 0 and notice not in text) or (limit <= 0 and 'asynchronous logging enabled' in text):
+            failures.append({'kind': 'C-async-notice', 'expected': limit, 'actual': text})
+    if case.get('pause_receiver'):
+        messages = [bytes.fromhex(value).decode() for value in reference['syslog']]
+        overflow = [text for text in messages if 'overflow: ' in text]
+        if len(overflow) != 1 or not re.search(r'overflow: [1-9][0-9]* log entries lost$', overflow[0]):
+            failures.append({'kind': 'C-async-overflow', 'actual': messages})
+    if case.get('tftp_probes'):
+        text = reference['stderr'] + ''.join(bytes.fromhex(value).decode() for value in reference['syslog'])
+        text += ''.join(bytes.fromhex(value).decode() for value in reference['files'].values())
+        variant = case['tftp_probes']
+        required = ['sent /m2/logging/public to 127.0.0.1'] if variant == 'script' else [
+            'unable to get free port for TFTP'] if variant == 'port-exhausted' else [
+            'timeout sending /m2/logging/public to 127.0.0.1'] if variant == 'timeout' else [
+            'sent /m2/logging/public to 127.0.0.1',
+            'cannot access /m2/logging/private: Permission denied',
+            'cannot read /m2/logging/directory: Is a directory',
+            'unsupported request from 127.0.0.1', 'unsupported write request from 127.0.0.1',
+            'error 3 clientfailed received from 127.0.0.1',
+            'failed sending /m2/logging/public to 127.0.0.1']
+        if variant == 'requests':
+            missing = 'file /m2/logging/missing not found for 127.0.0.1'
+            if case['quiet'] and missing in text:
+                failures.append({'kind': 'C-quiet-TFTP-not-found', 'actual': text})
+            if not case['quiet']:
+                required.append(missing)
+        for message in required:
+            if message not in text:
+                failures.append({'kind': 'C-TFTP-log-producer', 'missing': message, 'actual': text})
+    if case.get('script_probes'):
+        text = reference['stderr'] + ''.join(bytes.fromhex(value).decode() + '\n' for value in reference['syslog'])
+        text += ''.join(bytes.fromhex(value).decode() for value in reference['files'].values())
+        required = ['script process killed by signal 10'] if case['script_probes'] == 'signal' else [
+            'failed to execute /m2/logging/script: No such file or directory'] if case['script_probes'] == 'exec' else [
+            'dnsmasq-script[', ': one\n', ': \n', ': nul\n', ': tail\n', 'script process exited with status 7']
+        for message in required:
+            if message not in text:
+                failures.append({'kind': 'C-script-log-producer', 'missing': message, 'actual': text})
+        if case['script_probes'] == 'output':
+            records = [bytes.fromhex(value) for value in reference['syslog']]
+            records += [line + b'\n' for value in reference['files'].values()
+                        for line in bytes.fromhex(value).splitlines()]
+            if not records:
+                records = [line + b'\n' for line in reference['stderr'].encode().splitlines()]
+            long = [record for record in records if b': xxxxxxxxxxxxxxxx' in record]
+            if len(long) != 1 or len(long[0]) != (1023 if reference['syslog'] else 1024):
+                failures.append({'kind': 'C-script-max-message', 'lengths': [len(value) for value in long]})
     if case['kind'] == 'cli':
         expected = ('Known DHCP options:\n' if case['argv'] == ['--help', 'dhcp'] else
                     'Dnsmasq version 2.93  ' if case['argv'] == ['--version'] else
