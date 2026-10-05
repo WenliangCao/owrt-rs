@@ -1272,10 +1272,11 @@ def compare(reference, candidate, case, reference_only=False):
         else:
             error = 'Permission denied' if case.get('root_permissions') else 'No such file or directory'
             message = 'TFTP directory ' + prefix + ' inaccessible: ' + error
-            if message not in text or 'FAILED to start up' not in text and case['daemonized']:
-                # Default parent records its second critical line in syslog.
-                if message not in text or not reference['syslog']:
-                    failures.append({'kind': 'C-TFTP-root-fatal', 'missing': message, 'actual': text})
+            # Default parent records its second critical line in syslog;
+            # foreground/debug '-' retain both records on inherited stderr.
+            combined = text + ''.join(bytes.fromhex(value).decode(errors='backslashreplace') for value in reference['syslog'])
+            if message not in text or 'FAILED to start up' not in combined:
+                failures.append({'kind': 'C-TFTP-root-fatal', 'missing': message, 'actual': combined})
     if case['kind'] == 'cli':
         expected = ('Known DHCP options:\n' if case['argv'] == ['--help', 'dhcp'] else
                     'Dnsmasq version 2.93  ' if case['argv'] == ['--version'] else
