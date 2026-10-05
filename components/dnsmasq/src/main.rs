@@ -277,21 +277,26 @@ impl ParentEvents {
         }
     }
 
+    #[cfg(target_os = "linux")]
+    fn queue_missing_ubus_notice(&mut self) {
+        if self.ubus_name.is_some() && self.ubus.is_none() && !self.ubus_error_logged {
+            self.ubus_notices.push(dnsmasq_rs::logging::LogEvent::new(
+                dnsmasq_rs::logging::Service::Dns,
+                dnsmasq_rs::logging::Priority::Error,
+                b"Cannot set UBus listeners: no connection".to_vec(),
+            ));
+            self.ubus_error_logged = true;
+        }
+    }
+
     fn process_ubus(&mut self, metrics: &Metrics) {
-        let Some(name) = self.ubus_name.as_deref() else {
+        if self.ubus_name.is_none() {
             return;
-        };
+        }
         if self.ubus.is_none() {
-            if !self.ubus_error_logged {
-                #[cfg(target_os = "linux")]
-                self.ubus_notices.push(dnsmasq_rs::logging::LogEvent::new(
-                    dnsmasq_rs::logging::Service::Dns,
-                    dnsmasq_rs::logging::Priority::Error,
-                    b"Cannot set UBus listeners: no connection".to_vec(),
-                ));
-                self.ubus_error_logged = true;
-            }
-            match UbusService::connect_bytes(None, name) {
+            #[cfg(target_os = "linux")]
+            self.queue_missing_ubus_notice();
+            match UbusService::connect_bytes(None, self.ubus_name.as_deref().unwrap()) {
                 Ok(service) => {
                     self.ubus = Some(service);
                     self.ubus_error_logged = false;
@@ -2253,6 +2258,17 @@ impl SinglePoll {
             }
         }
         self.log_dns_diagnostics();
+        if step.initial_cache_reload {
+            self.parent_events
+                .lock()
+                .unwrap()
+                .queue_missing_ubus_notice();
+            if let Some(logger) = &mut self.logger {
+                for notice in self.parent_events.lock().unwrap().ubus_notices.drain(..) {
+                    logger.emit(notice);
+                }
+            }
+        }
         if step.initial_cache_reload && self.log_cleared_cache {
             if let Some(logger) = &mut self.logger {
                 use dnsmasq_rs::logging::{LogEvent, Priority, Service};
