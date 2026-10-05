@@ -215,6 +215,7 @@ class Side:
             self.start_hotplug()
         self.log = (self.out / f'{self.side}-{self.name}.log').open('wb')
         args = ['--no-daemon' if self.debug else '--keep-in-foreground', '--conf-file=' + self.inside + '/config']
+        args.extend(getattr(self, 'cli_flags', ()))
         self.process = subprocess.Popen(command(self.root, self.side, *args),
                                         env=self.env, stdout=self.log, stderr=self.log,
                                         start_new_session=True)

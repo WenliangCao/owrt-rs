@@ -289,7 +289,7 @@ def delay_specs():
         dict(case='delay-tag-match', config=[mac, 'dhcp-reply-delay=tag:slow,1'], delayed=True),
         dict(case='delay-tag-miss', config=['dhcp-reply-delay=tag:slow,1'], delayed=False),
         dict(case='delay-negated-tag', config=['dhcp-reply-delay=tag:!fast,1'], delayed=True),
-        dict(case='delay-tag-before-fallback', config=[mac, 'dhcp-reply-delay=tag:slow,1', 'dhcp-reply-delay=0'], delayed=True),
+        dict(case='delay-tag-before-fallback', config=[mac, 'dhcp-reply-delay=0'], cli=['--dhcp-reply-delay=tag:slow,1'], delayed=True),
         dict(case='delay-range-tag', config=['dhcp-range=set:slow,127.0.0.10,127.0.0.20,255.0.0.0,10m', 'dhcp-reply-delay=tag:slow,1'], delayed=True),
         dict(case='delay-tag-if', config=[mac, 'tag-if=tag:slow,set:derived', 'dhcp-reply-delay=tag:derived,1'], delayed=True),
         dict(case='delay-request-ack-bypass', config=['dhcp-reply-delay=1'], delayed=True, ack=True),
@@ -297,7 +297,7 @@ def delay_specs():
         dict(case='delay-bootp-bypass', config=['dhcp-reply-delay=1', 'dhcp-host=02:00:00:00:00:01,127.0.0.10,client1,10m'], delayed=False, kind=0),
         dict(case='delay-rapid-commit', config=['dhcp-reply-delay=1', 'dhcp-rapid-commit'], delayed=True, rapid=True),
         dict(case='delay-proxy-offer', config=['dhcp-reply-delay=1', 'pxe-service=x86PC,Network boot,boot'], delayed=True, proxy=True),
-        dict(case='delay-proxy-ack', config=['dhcp-reply-delay=1', 'pxe-service=x86PC,Network boot,boot'], delayed=True, proxy=True, kind=3),
+        dict(case='delay-proxy-ack', config=['dhcp-reply-delay=1', 'pxe-service=x86PC,Network boot,boot'], delayed=True, proxy=True, kind=3, port=4011),
         dict(case='delay-dns-tftp-progress', config=['dhcp-reply-delay=1'], delayed=True, progress=True),
         dict(case='delay-queued-dhcp-term', config=['dhcp-reply-delay=1'], delayed=True, term=True),
     ]
@@ -330,7 +330,7 @@ def delay_exchange(runner, folder, spec, xid=0x7930, kind=None):
     endpoint = runner.client
     (folder / f'{xid}.request').write_bytes(request)
     start = time.monotonic()
-    endpoint.sendto(request, ('127.0.0.1', 67))
+    endpoint.sendto(request, ('127.0.0.1', spec.get('port', 67)))
     controls = {}
     if spec.get('rapid'):
         time.sleep(.1)
@@ -392,6 +392,10 @@ def delay_exchange(runner, folder, spec, xid=0x7930, kind=None):
 def delay_case(root, side, out, spec):
     folder = out / spec['case']; folder.mkdir()
     runner = Side(root, side, folder, spec['case'], ['bind-interfaces', *spec['config']])
+    runner.cli_flags = spec.get('cli', [])
+    if spec['case'] == 'delay-range-tag':
+        lines = [line for line in runner.config.read_text().splitlines() if not line.startswith('dhcp-range=127.0.0.10,')]
+        runner.config.write_text('\n'.join(lines)+'\n')
     if spec.get('proxy'):
         config = runner.config.read_text().replace('dhcp-range=127.0.0.10,127.0.0.20,255.0.0.0,10m', 'dhcp-range=127.0.0.0,proxy,255.0.0.0')
         runner.config.write_text(config)
@@ -485,7 +489,8 @@ def run_side(args):
         (root / 'm2/network.conf').write_text('\n'.join(lines) + '\n')
         result = subprocess.run(command(root, args.side, '--test', '-C', '/m2/network.conf', *flags), capture_output=True, timeout=4)
         (folder / 'stdout').write_bytes(result.stdout); (folder / 'stderr').write_bytes(result.stderr)
-        if result.returncode:
+        expected_exit = 1 if label == 'delay-syntax-repeat' else 0
+        if result.returncode != expected_exit:
             failures.append(dict(case=label, error='ordinary syntax rejected', exit=result.returncode))
         rows.append(dict(case=label, exit=result.returncode, stdout=result.stdout.hex(), stderr=result.stderr.replace(b'dnsmasq-rs', b'dnsmasq').hex()))
     specs, run_case = (proxy_specs(), proxy_case) if args.family == 'dhcp-proxy' else (shared_specs(), shared_case) if args.family == 'shared-network' else (bridge_specs(), bridge_case) if args.family == 'bridge-interface' else (delay_specs(), delay_case) if args.family == 'dhcp-reply-delay' else ([], None)
