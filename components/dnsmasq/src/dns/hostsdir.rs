@@ -5,6 +5,12 @@ use std::collections::HashMap;
 use std::ffi::OsString;
 use std::path::PathBuf;
 
+#[cfg(target_os = "linux")]
+#[path = "hostsdir_runtime.rs"]
+mod runtime;
+#[cfg(target_os = "linux")]
+pub use runtime::{HostsLoad, HostsRead};
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct HostSource {
     pub path: PathBuf,
