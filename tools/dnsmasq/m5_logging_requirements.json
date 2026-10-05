@@ -256,7 +256,7 @@
           ]
         }
       ],
-      "qualification_ready": false,
+      "qualification_ready": true,
       "scheduler_policy": {
         "authority": "Project M5 single poll owner must not sleep or block for logging.",
         "source": "log.c:135-160,301-319,407-471",
