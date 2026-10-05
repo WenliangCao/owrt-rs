@@ -391,14 +391,27 @@ impl CacheContext<'_> {
         }) {
             let mut writer = PacketWriter::new(header.id, (header.flags & 0x0110) | 0x8083, limit)?;
             writer.question(&question.name, question.rrtype, question.class)?;
-            let interface = append_interface_terminal(&mut writer, local, &question.name, question, 12)?;
+            let interface =
+                append_interface_terminal(&mut writer, local, &question.name, question, 12)?;
             let local_flags = match interface {
                 InterfaceTerminal::Answered(flags) => Some(flags),
                 InterfaceTerminal::Empty => None,
                 InterfaceTerminal::Unclaimed => append_synth_terminal(
-                    &mut writer, local, &question.name, question, 12,
-                    ids.iter().any(|id| cache.get(*id).is_some_and(|entry| entry.record.kind == Kind::Ipv4)),
-                    ids.iter().any(|id| cache.get(*id).is_some_and(|entry| entry.record.kind == Kind::Ipv6)),
+                    &mut writer,
+                    local,
+                    &question.name,
+                    question,
+                    12,
+                    ids.iter().any(|id| {
+                        cache
+                            .get(*id)
+                            .is_some_and(|entry| entry.record.kind == Kind::Ipv4)
+                    }),
+                    ids.iter().any(|id| {
+                        cache
+                            .get(*id)
+                            .is_some_and(|entry| entry.record.kind == Kind::Ipv6)
+                    }),
                 )?,
             };
             match append_negative_authority(&mut writer, cache, id, now) {
@@ -536,7 +549,9 @@ impl CacheContext<'_> {
                         // The link validates the CNAME lifetime, but C looks
                         // up the terminal name again for the current qtype.
                         let terminal_name = target_entry.record.name.clone();
-                        let nx_target = (target_entry.record.kind == Kind::NxDomain && target_entry.record.negative).then_some(target);
+                        let nx_target = (target_entry.record.kind == Kind::NxDomain
+                            && target_entry.record.negative)
+                            .then_some(target);
                         match append_interface_terminal(
                             &mut writer,
                             local,
@@ -547,7 +562,7 @@ impl CacheContext<'_> {
                             InterfaceTerminal::Answered(flags) => {
                                 if let Some(id) = nx_target {
                                     match append_negative_authority(&mut writer, cache, id, now) {
-                                        Ok(_) | Err(WireError::Full) => {},
+                                        Ok(_) | Err(WireError::Full) => {}
                                         Err(error) => return Err(error.into()),
                                     }
                                 }
@@ -593,15 +608,32 @@ impl CacheContext<'_> {
                                 && !local.interfaces.declared(&terminal_name.dnsmasq_bytes())
                             {
                                 if let Some(flags) = append_synth_terminal(
-                                    &mut writer, local, &terminal_name, question, owner_offset,
-                                    terminal_ids.iter().any(|id| cache.get(*id).is_some_and(|entry| entry.record.kind == Kind::Ipv4)),
-                                    terminal_ids.iter().any(|id| cache.get(*id).is_some_and(|entry| entry.record.kind == Kind::Ipv6)),
+                                    &mut writer,
+                                    local,
+                                    &terminal_name,
+                                    question,
+                                    owner_offset,
+                                    terminal_ids.iter().any(|id| {
+                                        cache
+                                            .get(*id)
+                                            .is_some_and(|entry| entry.record.kind == Kind::Ipv4)
+                                    }),
+                                    terminal_ids.iter().any(|id| {
+                                        cache
+                                            .get(*id)
+                                            .is_some_and(|entry| entry.record.kind == Kind::Ipv6)
+                                    }),
                                 )? {
-                                    match append_negative_authority(&mut writer, cache, target, now) {
-                                        Ok(_) | Err(WireError::Full) => {},
+                                    match append_negative_authority(&mut writer, cache, target, now)
+                                    {
+                                        Ok(_) | Err(WireError::Full) => {}
                                         Err(error) => return Err(error.into()),
                                     }
-                                    return Ok(finish_cached_answer_flags(writer, Some(flags), stale)?);
+                                    return Ok(finish_cached_answer_flags(
+                                        writer,
+                                        Some(flags),
+                                        stale,
+                                    )?);
                                 }
                             }
                             let negative_flags = if target_entry.record.kind == Kind::NxDomain {
@@ -1169,11 +1201,11 @@ fn append_interface_terminal(
     let mut declared = false;
     let mut written = false;
     for &ipv6 in families {
-        let Some(addresses) = local.interfaces.forward(
-            &terminal.dnsmasq_bytes(),
-            ipv6,
-            local.local_network,
-        ) else {
+        let Some(addresses) =
+            local
+                .interfaces
+                .forward(&terminal.dnsmasq_bytes(), ipv6, local.local_network)
+        else {
             continue;
         };
         declared = true;
@@ -1183,7 +1215,14 @@ fn append_interface_terminal(
                 IpAddr::V6(value) if ipv6 => (28, value.octets().to_vec()),
                 _ => continue,
             };
-            match writer.record_at(Section::Answer, owner_offset, rrtype, 1, local.local_ttl, &data) {
+            match writer.record_at(
+                Section::Answer,
+                owner_offset,
+                rrtype,
+                1,
+                local.local_ttl,
+                &data,
+            ) {
                 Ok(()) => written = true,
                 Err(WireError::Full) => return Ok(InterfaceTerminal::Answered(0x0400 | 0x0200)),
                 Err(error) => return Err(error.into()),
@@ -1219,13 +1258,28 @@ fn append_synth_terminal(
     };
     let mut answered = false;
     for &ipv6 in families {
-        if if ipv6 { blocked6 } else { blocked4 } { continue; }
-        let Some(address) = local.config.synth_domains.forward(&terminal.dnsmasq_bytes(), ipv6) else { continue; };
+        if if ipv6 { blocked6 } else { blocked4 } {
+            continue;
+        }
+        let Some(address) = local
+            .config
+            .synth_domains
+            .forward(&terminal.dnsmasq_bytes(), ipv6)
+        else {
+            continue;
+        };
         let (rrtype, data) = match address {
             IpAddr::V4(value) => (1, value.octets().to_vec()),
             IpAddr::V6(value) => (28, value.octets().to_vec()),
         };
-        match writer.record_at(Section::Answer, owner_offset, rrtype, 1, local.local_ttl, &data) {
+        match writer.record_at(
+            Section::Answer,
+            owner_offset,
+            rrtype,
+            1,
+            local.local_ttl,
+            &data,
+        ) {
             Ok(()) => answered = true,
             Err(WireError::Full) => return Ok(Some(0x0400 | 0x0200)),
             Err(error) => return Err(error.into()),
@@ -1254,10 +1308,14 @@ fn append_local_terminal(
         local_ttl: local.local_ttl,
         max_packet: u16::MAX as usize,
     };
-    let Some(answer) =
-        answerer.answer_on_network_with_interface_cache(
-            &query.finish(), &mut local.leases, now, local.local_network, None, &local.interfaces,
-        )?
+    let Some(answer) = answerer.answer_on_network_with_interface_cache(
+        &query.finish(),
+        &mut local.leases,
+        now,
+        local.local_network,
+        None,
+        &local.interfaces,
+    )?
     else {
         return Ok(None);
     };
@@ -1447,17 +1505,17 @@ fn is_name_suffix(name: &Name, suffix: &Name) -> bool {
     // beginning inside a label. Preserve that observable image behavior.
     let name = name.dnsmasq_bytes();
     let suffix = suffix.dnsmasq_bytes();
-    name.len() >= suffix.len() && name[name.len() - suffix.len()..].eq_ignore_ascii_case(&suffix)
+    name.len() >= suffix.len() && name[name.len() - suffix.len()..] == suffix
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::config::dns::DnsConfig;
-    use crate::hosts::Hosts;
-    use crate::dns::interface_records::{InterfaceAddress, InterfaceRecords};
-    use crate::dns::cache::Policy;
     use crate::config::interface_records::InterfaceRule;
+    use crate::dns::cache::Policy;
+    use crate::dns::interface_records::{InterfaceAddress, InterfaceRecords};
+    use crate::hosts::Hosts;
     use std::net::{IpAddr, Ipv4Addr};
     use std::sync::Arc;
 
@@ -1541,34 +1599,112 @@ mod tests {
         let authority = Name::from_ascii("synthetic.records.test").unwrap();
         let mut config = DnsConfig::default();
         config.synth_domains.domains.push(SynthDomain {
-            domain: b"synthetic.records.test".to_vec(), prefix: Vec::new(), indexed: false,
-            range: SynthRange::V4 { start: u32::from(Ipv4Addr::new(192, 0, 2, 0)), end: u32::from(Ipv4Addr::new(192, 0, 2, 15)) },
+            domain: b"synthetic.records.test".to_vec(),
+            prefix: Vec::new(),
+            indexed: false,
+            range: SynthRange::V4 {
+                start: u32::from(Ipv4Addr::new(192, 0, 2, 0)),
+                end: u32::from(Ipv4Addr::new(192, 0, 2, 15)),
+            },
         });
         let mut local = LocalDnsService::new(config, Hosts::new(), 60, 1232);
-        let mut soa = Name::from_ascii("ns.synthetic.records.test").unwrap().as_wire().to_vec();
-        soa.extend_from_slice(Name::from_ascii("hm.synthetic.records.test").unwrap().as_wire());
-        for value in [1u32, 60, 60, 600, 300] { soa.extend_from_slice(&value.to_be_bytes()); }
+        let mut soa = Name::from_ascii("ns.synthetic.records.test")
+            .unwrap()
+            .as_wire()
+            .to_vec();
+        soa.extend_from_slice(
+            Name::from_ascii("hm.synthetic.records.test")
+                .unwrap()
+                .as_wire(),
+        );
+        for value in [1u32, 60, 60, 600, 300] {
+            soa.extend_from_slice(&value.to_be_bytes());
+        }
         let mut writer = PacketWriter::new(1, 0x8183, 1232).unwrap();
         writer.question(&alias, 1, 1).unwrap();
-        writer.record_at(Section::Answer, 12, 5, 1, 600, terminal.as_wire()).unwrap();
-        writer.record(Section::Authority, &authority, 6, 1, 600, &soa).unwrap();
+        writer
+            .record_at(Section::Answer, 12, 5, 1, 600, terminal.as_wire())
+            .unwrap();
+        writer
+            .record(Section::Authority, &authority, 6, 1, 600, &soa)
+            .unwrap();
         let reply = writer.finish();
         let mut cache = Cache::new(8, Default::default());
         let mut counters = CacheCounters::default();
-        let mut context = CacheContext { cache: &mut cache, counters: &mut counters, negative_cache: true, negative_ttl: 0, filter_rr: &[] };
-        context.insert_reply_with_policy(&reply, 100, &local, &Default::default(), 3, OrdinaryCacheMode::Commit).unwrap();
+        let mut context = CacheContext {
+            cache: &mut cache,
+            counters: &mut counters,
+            negative_cache: true,
+            negative_ttl: 0,
+            filter_rr: &[],
+        };
+        context
+            .insert_reply_with_policy(
+                &reply,
+                100,
+                &local,
+                &Default::default(),
+                3,
+                OrdinaryCacheMode::Commit,
+            )
+            .unwrap();
         for name in [&terminal, &alias] {
-            let question = super::super::forward::Question { name: name.clone(), rrtype: 1, class: 1 };
-            let answer = context.answer_records(&question, Header { id: 2, flags: 0x0100, questions: 1, answers: 0, authorities: 0, additionals: 0 }, 101, &mut local, 1232, false).unwrap().packet.unwrap();
+            let question = super::super::forward::Question {
+                name: name.clone(),
+                rrtype: 1,
+                class: 1,
+            };
+            let answer = context
+                .answer_records(
+                    &question,
+                    Header {
+                        id: 2,
+                        flags: 0x0100,
+                        questions: 1,
+                        answers: 0,
+                        authorities: 0,
+                        additionals: 0,
+                    },
+                    101,
+                    &mut local,
+                    1232,
+                    false,
+                )
+                .unwrap()
+                .packet
+                .unwrap();
             let message = Message::parse(&answer).unwrap();
             assert_eq!(message.header.rcode(), 0);
             assert_ne!(message.header.flags & 0x0400, 0);
             assert_eq!(message.header.authorities, 1);
-            let address = message.records(Section::Answer).find(|record| record.rrtype == 1).unwrap();
+            let address = message
+                .records(Section::Answer)
+                .find(|record| record.rrtype == 1)
+                .unwrap();
             assert_eq!(address.rdata, &[192, 0, 2, 7]);
             assert_eq!(address.ttl, 60);
-            assert_eq!(message.records(Section::Authority).next().unwrap().rrtype, 6);
+            assert_eq!(
+                message.records(Section::Authority).next().unwrap().rrtype,
+                6
+            );
         }
+    }
+
+    #[test]
+    fn negative_soa_suffix_uses_exact_bytes_like_c_memcmp() {
+        let name = Name::from_ascii("node.cache.test").unwrap();
+        assert!(is_name_suffix(
+            &name,
+            &Name::from_ascii("cache.test").unwrap()
+        ));
+        assert!(is_name_suffix(
+            &name,
+            &Name::from_ascii("ache.test").unwrap()
+        ));
+        assert!(!is_name_suffix(
+            &name,
+            &Name::from_ascii("CaChE.TeSt").unwrap()
+        ));
     }
 
     #[test]
@@ -1811,16 +1947,54 @@ mod tests {
     fn dynamic_cname_interface_terminal_overrides_cache_and_empty_refetches() {
         let alias = Name::from_ascii("alias.interface.test").unwrap();
         let target = Name::from_ascii("target.interface.test").unwrap();
-        let question = super::super::forward::Question { name: alias.clone(), rrtype: 1, class: 1 };
-        let rule = InterfaceRule { name: target.dnsmasq_bytes(), interface: b"cache0".to_vec(), family4: true, family6: false, prototype4: None, prototype6: None };
-        let inputs = vec![InterfaceAddress { label: b"cache0".to_vec(), address: IpAddr::V4(Ipv4Addr::new(192, 0, 2, 1)), prefix: 24, flags: 0 }];
+        let question = super::super::forward::Question {
+            name: alias.clone(),
+            rrtype: 1,
+            class: 1,
+        };
+        let rule = InterfaceRule {
+            name: target.dnsmasq_bytes(),
+            interface: b"cache0".to_vec(),
+            family4: true,
+            family6: false,
+            prototype4: None,
+            prototype6: None,
+        };
+        let inputs = vec![InterfaceAddress {
+            label: b"cache0".to_vec(),
+            address: IpAddr::V4(Ipv4Addr::new(192, 0, 2, 1)),
+            prefix: 24,
+            flags: 0,
+        }];
         let records = Arc::new(InterfaceRecords::from_addresses(&[rule.clone()], &inputs));
         let empty_records = Arc::new(InterfaceRecords::from_addresses(&[rule], &[]));
         let make_cache = || {
             let mut cache = Cache::new(8, Policy::default());
             cache.start_insert();
-            let alias_id = cache.insert(Record { name: alias.clone(), kind: Kind::Cname, negative: false, data: target.as_wire().to_vec() }, 100, 600).unwrap();
-            let target_id = cache.insert(Record { name: target.clone(), kind: Kind::Ipv4, negative: false, data: vec![198, 51, 100, 7] }, 100, 600).unwrap();
+            let alias_id = cache
+                .insert(
+                    Record {
+                        name: alias.clone(),
+                        kind: Kind::Cname,
+                        negative: false,
+                        data: target.as_wire().to_vec(),
+                    },
+                    100,
+                    600,
+                )
+                .unwrap();
+            let target_id = cache
+                .insert(
+                    Record {
+                        name: target.clone(),
+                        kind: Kind::Ipv4,
+                        negative: false,
+                        data: vec![198, 51, 100, 7],
+                    },
+                    100,
+                    600,
+                )
+                .unwrap();
             assert!(cache.set_cname_target(alias_id, target_id));
             assert!(cache.commit());
             cache
@@ -1829,17 +2003,74 @@ mod tests {
         local.interfaces = records;
         let mut cache = make_cache();
         let mut counters = CacheCounters::default();
-        let answer = CacheContext { cache: &mut cache, counters: &mut counters, negative_cache: true, negative_ttl: 0, filter_rr: &[] }
-            .answer_records(&question, Header { id: 1, flags: 0x0100, questions: 1, answers: 0, authorities: 0, additionals: 0 }, 101, &mut local, 1232, false).unwrap().packet.unwrap();
+        let answer = CacheContext {
+            cache: &mut cache,
+            counters: &mut counters,
+            negative_cache: true,
+            negative_ttl: 0,
+            filter_rr: &[],
+        }
+        .answer_records(
+            &question,
+            Header {
+                id: 1,
+                flags: 0x0100,
+                questions: 1,
+                answers: 0,
+                authorities: 0,
+                additionals: 0,
+            },
+            101,
+            &mut local,
+            1232,
+            false,
+        )
+        .unwrap()
+        .packet
+        .unwrap();
         let message = Message::parse(&answer).unwrap();
-        assert_eq!(message.records(Section::Answer).map(|record| record.rrtype).collect::<Vec<_>>(), vec![5, 1]);
-        assert_eq!(message.records(Section::Answer).nth(1).unwrap().canonical_rdata().unwrap(), vec![192, 0, 2, 1]);
+        assert_eq!(
+            message
+                .records(Section::Answer)
+                .map(|record| record.rrtype)
+                .collect::<Vec<_>>(),
+            vec![5, 1]
+        );
+        assert_eq!(
+            message
+                .records(Section::Answer)
+                .nth(1)
+                .unwrap()
+                .canonical_rdata()
+                .unwrap(),
+            vec![192, 0, 2, 1]
+        );
         local.interfaces = empty_records;
         let mut cache = make_cache();
         let mut counters = CacheCounters::default();
-        let answer = CacheContext { cache: &mut cache, counters: &mut counters, negative_cache: true, negative_ttl: 0, filter_rr: &[] }
-            .answer_records(&question, Header { id: 1, flags: 0x0100, questions: 1, answers: 0, authorities: 0, additionals: 0 }, 101, &mut local, 1232, false).unwrap();
+        let answer = CacheContext {
+            cache: &mut cache,
+            counters: &mut counters,
+            negative_cache: true,
+            negative_ttl: 0,
+            filter_rr: &[],
+        }
+        .answer_records(
+            &question,
+            Header {
+                id: 1,
+                flags: 0x0100,
+                questions: 1,
+                answers: 0,
+                authorities: 0,
+                additionals: 0,
+            },
+            101,
+            &mut local,
+            1232,
+            false,
+        )
+        .unwrap();
         assert!(answer.packet.is_none());
     }
-
 }
