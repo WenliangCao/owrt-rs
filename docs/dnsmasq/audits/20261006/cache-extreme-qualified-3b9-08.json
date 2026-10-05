@@ -1,0 +1,286 @@
+{
+  "scope": "exact-image cache extreme disposition; final frozen-ELF replay remains required",
+  "qualified": true,
+  "full_cache_family_qualified": false,
+  "candidate_commit": "3b9f8e1a",
+  "candidate_sha256": "2f7c743687ceed508b3600cf63a190480303d3968fe9ce30d5f4eabee0204bb4",
+  "candidate_bytes": 1916968,
+  "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "source_manifest_sha256": "1f2bd3324050b1c128bff34527e61a476ce9d0edf87b50df8edd738369914759",
+  "source_required_cases": 512,
+  "source_boundaries": 22,
+  "full_driver_schedules": 536,
+  "syntax_schedules": 106,
+  "runtime_schedules": 430,
+  "missing_source_schedules": [],
+  "deferred_extreme_cases": [],
+  "cases": [
+    {
+      "case": "generic-expanded-u16-overflow",
+      "qualified": true,
+      "classification": "intentional-valid-wire-bound",
+      "c_exit": 0,
+      "rust_exit": 0,
+      "c_upstream": 1,
+      "rust_upstream": 2
+    },
+    {
+      "case": "forward-wrapped-negative-runtime",
+      "qualified": true,
+      "classification": "exact-compatibility",
+      "c_exit": 4,
+      "rust_exit": 4,
+      "c_upstream": 0,
+      "rust_upstream": 0
+    },
+    {
+      "case": "forward-wrapped-minus-one-runtime",
+      "qualified": true,
+      "classification": "exact-compatibility",
+      "c_exit": 0,
+      "rust_exit": 0,
+      "c_upstream": 0,
+      "rust_upstream": 0
+    },
+    {
+      "case": "forward-wrapped-minus-two-runtime",
+      "qualified": true,
+      "classification": "exact-compatibility",
+      "c_exit": 4,
+      "rust_exit": 4,
+      "c_upstream": 0,
+      "rust_upstream": 0
+    },
+    {
+      "case": "forward-wrapped-dns-disabled",
+      "qualified": true,
+      "classification": "exact-compatibility",
+      "c_exit": 0,
+      "rust_exit": 0,
+      "c_upstream": 0,
+      "rust_upstream": 0
+    }
+  ],
+  "negative_controls": [
+    {
+      "case": "generic-expanded-u16-overflow",
+      "control": "upstream-count",
+      "rejected": true
+    },
+    {
+      "case": "generic-expanded-u16-overflow",
+      "control": "upstream-wire",
+      "rejected": true
+    },
+    {
+      "case": "generic-expanded-u16-overflow",
+      "control": "missing-receipt",
+      "rejected": true
+    },
+    {
+      "case": "generic-expanded-u16-overflow",
+      "control": "query-flags",
+      "rejected": true
+    },
+    {
+      "case": "generic-expanded-u16-overflow",
+      "control": "reply-flags",
+      "rejected": true
+    },
+    {
+      "case": "generic-expanded-u16-overflow",
+      "control": "reply-rdata",
+      "rejected": true
+    },
+    {
+      "case": "generic-expanded-u16-overflow",
+      "control": "wrapped-length",
+      "rejected": true
+    },
+    {
+      "case": "generic-expanded-u16-overflow",
+      "control": "missing-replay",
+      "rejected": true
+    },
+    {
+      "case": "forward-wrapped-negative-runtime",
+      "control": "startup-exit",
+      "rejected": true
+    },
+    {
+      "case": "forward-wrapped-negative-runtime",
+      "control": "startup-diagnostic",
+      "rejected": true
+    },
+    {
+      "case": "forward-wrapped-negative-runtime",
+      "control": "missing-rejection",
+      "rejected": true
+    },
+    {
+      "case": "forward-wrapped-negative-runtime",
+      "control": "startup-observation",
+      "rejected": true
+    },
+    {
+      "case": "forward-wrapped-negative-runtime",
+      "control": "startup-upstream",
+      "rejected": true
+    },
+    {
+      "case": "forward-wrapped-negative-runtime",
+      "control": "startup-identity",
+      "rejected": true
+    },
+    {
+      "case": "forward-wrapped-negative-runtime",
+      "control": "startup-case",
+      "rejected": true
+    },
+    {
+      "case": "forward-wrapped-minus-one-runtime",
+      "control": "upstream-count",
+      "rejected": true
+    },
+    {
+      "case": "forward-wrapped-minus-one-runtime",
+      "control": "reply-flags",
+      "rejected": true
+    },
+    {
+      "case": "forward-wrapped-minus-one-runtime",
+      "control": "reply-ttl-unbounded",
+      "rejected": true
+    },
+    {
+      "case": "forward-wrapped-minus-one-runtime",
+      "control": "missing-observation",
+      "rejected": true
+    },
+    {
+      "case": "forward-wrapped-minus-one-runtime",
+      "control": "cache-counter",
+      "rejected": true
+    },
+    {
+      "case": "forward-wrapped-minus-two-runtime",
+      "control": "startup-exit",
+      "rejected": true
+    },
+    {
+      "case": "forward-wrapped-minus-two-runtime",
+      "control": "startup-diagnostic",
+      "rejected": true
+    },
+    {
+      "case": "forward-wrapped-minus-two-runtime",
+      "control": "missing-rejection",
+      "rejected": true
+    },
+    {
+      "case": "forward-wrapped-minus-two-runtime",
+      "control": "startup-observation",
+      "rejected": true
+    },
+    {
+      "case": "forward-wrapped-minus-two-runtime",
+      "control": "startup-upstream",
+      "rejected": true
+    },
+    {
+      "case": "forward-wrapped-minus-two-runtime",
+      "control": "startup-identity",
+      "rejected": true
+    },
+    {
+      "case": "forward-wrapped-minus-two-runtime",
+      "control": "startup-case",
+      "rejected": true
+    },
+    {
+      "case": "forward-wrapped-dns-disabled",
+      "control": "upstream-count",
+      "rejected": true
+    }
+  ],
+  "reports": [
+    {
+      "run": "extreme-c-3b9-08",
+      "sha256": "29abb713956af4f49867bf3c457508d2fbe2b8201d50e5ea78257c2de42454d9"
+    },
+    {
+      "run": "extreme-rust-3b9-08",
+      "sha256": "be42c57708283c7ff76d2094aebe7f4ae8d0f34a172e813d0bc7f4ca275b0f37"
+    }
+  ],
+  "archives": [
+    {
+      "run": "extreme-c-3b9-07",
+      "archive_sha256": "fd43c298bf4c863674568bca8c576fad98202f7f761c86f23a5ca5933ddd374b",
+      "inventory_sha256": "45f7924062b94264e4eaabdcef7784b71aba4b474b84b19336f48dcc3ec08649",
+      "paths": 71,
+      "regular_files": 50,
+      "local_full_metadata_verified": true,
+      "remote_raw_run_pruned": true,
+      "fixture_disposition": "rejected duplicate-port DNS-off fixture"
+    },
+    {
+      "run": "extreme-rust-3b9-07",
+      "archive_sha256": "73c084ed14250f778011bdf49713c2393a499a099586052a12319b9012003823",
+      "inventory_sha256": "cf7e5e49fb6a06bc6e99e042a732d7b5d1bf0628ca56724ba555ab648f425236",
+      "paths": 71,
+      "regular_files": 50,
+      "local_full_metadata_verified": true,
+      "remote_raw_run_pruned": true,
+      "fixture_disposition": "rejected duplicate-port DNS-off fixture"
+    },
+    {
+      "run": "extreme-c-3b9-08",
+      "archive_sha256": "8773c5d871afe056caed2cccf9dae9f844f955a788eadfca120df5fa966566c0",
+      "inventory_sha256": "71eb0e1c4569dd79ba6aa926b0c120469b651908e31f524bfc0a27ca2328e5db",
+      "paths": 73,
+      "regular_files": 52,
+      "local_full_metadata_verified": true,
+      "remote_raw_run_pruned": true,
+      "fixture_disposition": "fresh complete five-case execution"
+    },
+    {
+      "run": "extreme-rust-3b9-08",
+      "archive_sha256": "181f0c104b4cb1b502a739969717dd56bbdfd4650d2a4ef1f901724293e8ff86",
+      "inventory_sha256": "771f324bc55ce73d6325664ce25c254568b0ad0b934d541ba4f4b81464281126",
+      "paths": 73,
+      "regular_files": 52,
+      "local_full_metadata_verified": true,
+      "remote_raw_run_pruned": true,
+      "fixture_disposition": "fresh complete five-case execution"
+    }
+  ],
+  "comparator_sha256": "96804418f26b3f4531087384db2fc33061ebb31f30b265ae3fad638ab043a901",
+  "intentional_difference": {
+    "case": "generic-expanded-u16-overflow",
+    "source": [
+      "dnsmasq.h:350",
+      "rfc1035.c:1016",
+      "rfc1035.c:1038",
+      "rfc1035.c:1052",
+      "rfc1035.c:2326-2327"
+    ],
+    "reason": "checked canonical RDATA bounds keep cached replies valid; reproducing C ushort truncation would emit a malformed SOA response",
+    "fresh_guard": "exact client/upstream query wire and semantics; first C and both Rust replies exactly65498 bytes; C cache replay exactly468 bytes with174-byte wrapped canonical name prefix and TTL599/600; C1 vs Rust2 upstream receipts"
+  },
+  "runtime_variation": {
+    "cases": [
+      "ptr-multiple-targets",
+      "ptr-reverse-bucket-order",
+      "round-reverse-default",
+      "round-reverse-disabled"
+    ],
+    "classification": "runtime PTR hash order variation, never a deferred or intentional case",
+    "final_requirement": "fresh independent stock C invocations prove variation; exact record multisets, per-invocation replay order and relative TTL sequence remain guarded"
+  },
+  "signed_capacity_source": [
+    "dnsmasq.c:418-422",
+    "util.c:329-334"
+  ],
+  "final_requirement": "fresh complete512 required plus24 supplemental schedules on one final candidate ELF; do not reuse these edge receipts"
+}

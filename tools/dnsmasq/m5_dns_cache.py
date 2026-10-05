@@ -406,7 +406,7 @@ for label,mode,maximum,extra in FORWARD_MODES:
 for label,value in [('forward-wrapped-minus-one-runtime',4294967295),
                     ('forward-wrapped-minus-two-runtime',4294967294)]:
     case(label,'dns-forward-max='+str(value),action='forward-capacity',mode='negative',metrics=True)
-case('forward-wrapped-dns-disabled','dns-forward-max=2147483648\nport=0',action='startup')
+case('forward-wrapped-dns-disabled','dns-forward-max=2147483648',action='startup',dns_off=True)
 
 for label,mode,fields in [
  ('tcp-accept-expired-stale','expired-before',{'ttl':1,'config':'use-stale-cache=0'}),
@@ -953,7 +953,7 @@ def run(args):
         if not pattern.search(spec['case']):continue
         label=spec['case'];folder=out/label;folder.mkdir();upstream=Upstream()
         with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as reserve:reserve.bind((LISTEN,0));port=reserve.getsockname()[1]
-        config=(f'port={port}\nno-resolv\nno-hosts\nbind-interfaces\nlisten-address={LISTEN}\n'
+        config=(f'port={0 if spec.get("dns_off") else port}\nno-resolv\nno-hosts\nbind-interfaces\nlisten-address={LISTEN}\n'
                 f'server=127.0.0.2#{upstream.port}\ncache-size={spec.get("capacity",100)}\nno-0x20-encode\n'
                 'host-record=health.cache.test,198.51.100.99\nlocal-ttl=600\nuser=root\n'
                 'pid-file=/m2/cache.pid\nlog-facility=/m2/cache.log\n'+spec['config'].replace('@UPSTREAM@',str(upstream.port))+'\n'
@@ -973,7 +973,12 @@ def run(args):
             trace['identity']=process_identity(root,process.pid);(folder/'pid').write_text(str(process.pid))
             trace['observations']=schedule(spec,port,upstream,folder,root);report['executed_cases'].append(label)
             if (folder/'lease-witness.json').exists():trace['lease_witness']=json.loads((folder/'lease-witness.json').read_text())
-        except Exception as error:trace['failure']=repr(error);report['failures'].append({'case':label,'error':repr(error)})
+        except Exception as error:
+            if label in ('forward-wrapped-negative-runtime','forward-wrapped-minus-two-runtime') and process is not None and process.poll()==4 and 'identity' not in trace:
+                trace['startup_rejection']={'exit':4,'diagnostic':diagnostic((folder/'stderr').read_bytes())}
+                report['executed_cases'].append(label)
+            else:
+                trace['failure']=repr(error);report['failures'].append({'case':label,'error':repr(error)})
         finally:
             if process is not None:
                 if process.poll() is None:os.killpg(process.pid,signal.SIGTERM)
@@ -1084,9 +1089,17 @@ def qualify_dhcp_caller(args):
     args.out.parent.mkdir(parents=True,exist_ok=True);args.out.write_text(json.dumps(result,indent=2)+'\n')
     print(json.dumps({'dhcp_caller_qualified':qualified,'negative_controls':len(controls)}));return int(not qualified)
 
-DEFERRED_EXTREME_CASES={'generic-expanded-u16-overflow','forward-wrapped-negative-runtime'}
+DEFERRED_EXTREME_CASES=set()
+STARTUP_REJECTION_CASES={'forward-wrapped-negative-runtime','forward-wrapped-minus-two-runtime'}
 CLOCK_KEYS={'elapsed_seconds','sent_monotonic_ns','completed_monotonic_ns'}
 REVERSE_ORDER_CASES={'ptr-multiple-targets','ptr-reverse-bucket-order','round-reverse-default','round-reverse-disabled'}
+
+
+def startup_rejection_guard(row):
+    return (row.get('case') in STARTUP_REJECTION_CASES
+            and row.get('startup_rejection')=={'exit':4,'diagnostic':'could not get memory'}
+            and row.get('exit')==4 and not row.get('failure') and 'identity' not in row
+            and row.get('observations')==[] and row.get('upstream')==[] and row.get('upstream_errors')==[])
 
 
 def comparison_rows(folder,side):
@@ -1103,7 +1116,8 @@ def comparison_rows(folder,side):
     for row in report['syntax']:rows[row['case']]=row
     for row in report['scenarios']:
         if row.get('failure') or row['exit']!=0 or row['upstream_errors']:
-            if row['case']=='forward-wrapped-negative-runtime' and side=='c' and row['exit']==4:
+            if (startup_rejection_guard(row)
+                    and diagnostic((folder/row['case']/'stderr').read_bytes())=='could not get memory'):
                 rows[row['case']]=row
                 continue
             raise ValueError('case did not complete: '+row['case'])
@@ -1113,6 +1127,8 @@ def comparison_rows(folder,side):
             reply=folder/row['case']/(observation['label']+'.reply')
             if query.exists() and reply.exists() and query.read_bytes()[:2]!=reply.read_bytes()[:2]:
                 raise ValueError('client reply ID mismatch: '+row['case']+'/'+observation['label'])
+        if row['case']=='generic-expanded-u16-overflow':
+            row['_wire_receipts']={obs['label']:{kind:(folder/row['case']/(obs['label']+'.'+kind)).read_bytes().hex() for kind in ['query','reply']} for obs in row['observations']}
         rows[row['case']]=row
     return report,rows
 
@@ -1215,7 +1231,9 @@ def forward_contract_witness(row):
 
 def case_equal(c,r,reverse_variation=False):
     if 'observations' not in c:return c==r
-    if c.get('config')!=r.get('config'):return False
+    if c.get('case')!=r.get('case') or c.get('config')!=r.get('config'):return False
+    if c['case'] in STARTUP_REJECTION_CASES or 'startup_rejection' in c or 'startup_rejection' in r:
+        return startup_rejection_guard(c) and startup_rejection_guard(r)
     if not real_expiry_witness(c) or not real_expiry_witness(r):return False
     if c['case'].startswith('forward-'):
         if not forward_contract_witness(c) or not forward_contract_witness(r):return False
@@ -1225,6 +1243,111 @@ def case_equal(c,r,reverse_variation=False):
     if upstream(c)!=upstream(r):return False
     if reverse_variation and (not reverse_stable(c) or not reverse_stable(r)):return False
     return canonical_observations(c,reverse_variation)==canonical_observations(r,reverse_variation)
+
+
+def giant_canonical_guard(c,r):
+    for row in [c,r]:
+        if (row.get('case')!='generic-expanded-u16-overflow' or row.get('config')!='cache-rr=ANY'
+                or row.get('exit')!=0 or row.get('failure') or row.get('upstream_errors')):return False
+    if len(c.get('upstream',[]))!=1 or len(r.get('upstream',[]))!=2:return False
+    if [v['label'] for v in c['observations']]!=['query-0','query-1'] or [v['label'] for v in r['observations']]!=['query-0','query-1']:return False
+    expected_host='.'.join(['x'*63]*3+['y'*61]);packets={}
+    for side,row in [('c',c),('rust',r)]:
+        packets[side]={}
+        for obs in row['observations']:
+            receipt=row.get('_wire_receipts',{}).get(obs['label'],{});q=bytes.fromhex(receipt.get('query',''));p=bytes.fromhex(receipt.get('reply',''))
+            if len(q)<12 or p[:2]!=q[:2] or normalized(q)!=obs['query'] or normalized(p)!=obs['reply']:return False
+            host,end=read_name(q,12)
+            if host!=expected_host or end-12!=255 or struct.unpack_from('!HH',q,end)!= (6,1):return False
+            if q!=query(expected_host,int.from_bytes(q[:2],'big'),6):return False
+            question=q[12:end+4];standalone=name(host)
+            expected=q[:2]+bytes.fromhex('81800001000100000001')+question+rr(6,b'\xc0\x0c'*2+b'x'*65200)+rr(41,b'',b'\0',0,1232)
+            if obs['label']=='query-0' or side=='rust':
+                if len(p)!=65498 or p!=expected:return False
+            else:
+                ttl=struct.unpack_from('!I',p,12+len(question)+6)[0] if len(p)>=12+len(question)+10 else 0
+                wrapped=(len(standalone)*2+65200)&65535
+                cached=q[:2]+bytes.fromhex('81800001000100000001')+question+rr(6,standalone[:wrapped],ttl=ttl)+rr(41,b'',b'\0',0,1232)
+                if wrapped!=174 or len(p)!=468 or ttl not in (599,600) or p!=cached or obs['reply'].get('unparsed')!='ValueError':return False
+            packets[side][obs['label']]=p
+    for row in [c,r]:
+        for event in row['upstream']:
+            wire=bytes.fromhex(event.get('wire',''))
+            if (event.get('host')!=expected_host or event.get('transport')!='tcp'
+                    or normalized(wire)!=event.get('query') or wire[2:]!=query(expected_host,0,6)[2:]):return False
+    upstream=lambda row:[{k:v for k,v in event.items() if k!='wire'} for event in row['upstream']]
+    return upstream(c)==upstream(r)[:1] and upstream(r)[0]==upstream(r)[1]
+
+
+def corruption_controls(c,r,reverse_variation=False):
+    controls=[];label=r['case']
+    if 'observations' not in r:return controls
+    if label in STARTUP_REJECTION_CASES:
+        for mode in ['startup-exit','startup-diagnostic','missing-rejection','startup-observation','startup-upstream','startup-identity','startup-case']:
+            wrong=copy.deepcopy(r)
+            if mode=='startup-exit':wrong['exit']=0
+            elif mode=='startup-diagnostic':wrong['startup_rejection']['diagnostic']='unrelated failure'
+            elif mode=='missing-rejection':wrong.pop('startup_rejection')
+            elif mode=='startup-observation':wrong['observations'].append({})
+            elif mode=='startup-upstream':wrong['upstream'].append({})
+            elif mode=='startup-identity':wrong['identity']={}
+            else:wrong['case']='forward-wrapped-minus-one-runtime'
+            controls.append({'case':label,'control':mode,'rejected':not case_equal(c,wrong)})
+        return controls
+    if label=='generic-expanded-u16-overflow':
+        for mode in ['upstream-count','upstream-wire','missing-receipt','query-flags','reply-flags','reply-rdata','wrapped-length','missing-replay']:
+            wrong=copy.deepcopy(r);reference=copy.deepcopy(c)
+            if mode=='upstream-count':wrong['upstream'].pop()
+            elif mode=='upstream-wire':wrong['upstream'][0]['wire']=''
+            elif mode=='missing-receipt':wrong.pop('_wire_receipts')
+            elif mode=='missing-replay':wrong['observations'].pop()
+            else:
+                target=reference if mode=='wrapped-length' else wrong
+                kind='query' if mode=='query-flags' else 'reply'
+                receipt=target['_wire_receipts']['query-1'];packet=bytearray.fromhex(receipt[kind])
+                if mode in ('query-flags','reply-flags'):packet[2]^=4
+                elif mode=='reply-rdata':packet[-20]^=1
+                else:packet[12+255+4+10]^=1
+                receipt[kind]=packet.hex();target['observations'][1][kind]=normalized(packet)
+            controls.append({'case':label,'control':mode,'rejected':not giant_canonical_guard(reference,wrong)})
+        return controls
+    for mode in ['upstream-count','reply-flags','reply-ttl-unbounded','missing-observation','shortened-expiry-wait','cache-counter','capacity-diagnostic','reverse-repeat-order','reverse-repeat-ttl-order']:
+        wrong=copy.deepcopy(r)
+        if mode=='upstream-count':wrong['upstream'].append(copy.deepcopy(wrong['upstream'][0]) if wrong['upstream'] else {})
+        elif mode=='reply-flags':
+            reply=next((obs['reply'] for obs in wrong['observations'] if 'flags' in obs.get('reply',{})),None)
+            if reply is None:continue
+            reply['flags']^=0x0400
+        elif mode=='reply-ttl-unbounded':
+            rr=next((rr for obs in wrong['observations'] for rr in obs.get('reply',{}).get('records',[]) if rr['section'] in ('answer','authority')),None)
+            if rr is None:continue
+            rr['ttl']=999999
+        elif mode=='shortened-expiry-wait':
+            labels={obs['label']:obs for obs in wrong['observations']}
+            expired=labels.get('expired',labels.get('expired-stale',labels.get('stale-child',labels.get('stale-first'))))
+            if not expired or 'seed' not in labels or not wrong['case'].startswith(('stale-','ptr-stale-refresh','ptr-expiry-refresh','forward-stale-','tcp-client-drop-during-refresh')):continue
+            expired['sent_monotonic_ns']=labels['seed']['completed_monotonic_ns']+200_000_000
+        elif mode=='cache-counter':
+            counters=next((obs['metrics'] for obs in wrong['observations'] if 'metrics' in obs),None)
+            if counters is None:continue
+            counters['dns_queries_forwarded']+=1
+        elif mode=='capacity-diagnostic':
+            if 'capacity_diagnostics' not in wrong:continue
+            wrong['capacity_diagnostics']=[]
+        elif mode.startswith('reverse-repeat-'):
+            if not reverse_variation:continue
+            cached=next(obs for obs in wrong['observations'] if obs['label'] not in ('seed','query-0'))
+            records=cached['reply']['records'];answers=[i for i,rr in enumerate(records) if rr['section']=='answer']
+            pair=next(((i,j) for n,i in enumerate(answers) for j in answers[n+1:]
+                       if (records[i]['data'],records[i]['ttl'])!=(records[j]['data'],records[j]['ttl'])
+                       and (mode=='reverse-repeat-order' or records[i]['data']==records[j]['data'])),None)
+            if pair is None:continue
+            i,j=pair;records[i],records[j]=records[j],records[i]
+        else:
+            if not wrong['observations']:continue
+            wrong['observations'].pop()
+        controls.append({'case':label,'control':mode,'rejected':not case_equal(c,wrong,reverse_variation)})
+    return controls
 
 
 def compare_family(args):
@@ -1247,7 +1370,7 @@ def compare_family(args):
     deferred=sorted(source_required&DEFERRED_EXTREME_CASES)
     required=source_required-DEFERRED_EXTREME_CASES
     if not boundaries or {b['id'] for b in boundaries}!=selected:raise ValueError('unknown boundary ID')
-    missing=sorted(required-(c_rows.keys()&r_rows.keys()));passed=[];different=[];variations=[];controls=[]
+    missing=sorted(required-(c_rows.keys()&r_rows.keys()));passed=[];different=[];variations=[];controls=[];intentional=[]
     for label in sorted(required&(c_rows.keys()&r_rows.keys())):
         c,r=c_rows[label],r_rows[label];variation=False
         if label in REVERSE_ORDER_CASES:
@@ -1256,50 +1379,15 @@ def compare_family(args):
                           and canonical_observations(a)!=canonical_observations(b)
                           for index,a in enumerate(versions) for b in versions[index+1:])
             if variation:variations.append(label)
-        if case_equal(c,r,variation):passed.append(label)
+        if label=='generic-expanded-u16-overflow' and giant_canonical_guard(c,r):
+            passed.append(label);intentional.append({'case':label,'classification':'intentional valid-wire bound; C ushort canonical length wrap','source':'dnsmasq.h:350;rfc1035.c:1016,1038,1052,2326-2327','guard':'fresh complete65498/468-byte wire geometry,174-byte wrapped cache prefix and1-vs2 exact upstream receipts'})
+        elif case_equal(c,r,variation):passed.append(label)
         else:different.append({'case':label,'c':canonical_observations(c),'rust':canonical_observations(r),
                                'c_upstream':len(c.get('upstream',[])),'rust_upstream':len(r.get('upstream',[]))})
     for label in passed:
-        c,r=c_rows[label],r_rows[label]
-        if 'observations' not in r:continue
-        for mode in ['upstream-count','reply-flags','reply-ttl-unbounded','missing-observation','shortened-expiry-wait','cache-counter','capacity-diagnostic','reverse-repeat-order','reverse-repeat-ttl-order']:
-            wrong=copy.deepcopy(r)
-            if mode=='upstream-count':wrong['upstream'].append(copy.deepcopy(wrong['upstream'][0]) if wrong['upstream'] else {})
-            elif mode=='reply-flags':
-                reply=next((obs['reply'] for obs in wrong['observations'] if 'flags' in obs.get('reply',{})),None)
-                if reply is None:continue
-                reply['flags']^=0x0400
-            elif mode=='reply-ttl-unbounded':
-                rr=next((rr for obs in wrong['observations'] for rr in obs.get('reply',{}).get('records',[]) if rr['section'] in ('answer','authority')),None)
-                if rr is None:continue
-                rr['ttl']=999999
-            elif mode=='shortened-expiry-wait':
-                labels={obs['label']:obs for obs in wrong['observations']}
-                expired=labels.get('expired',labels.get('expired-stale',labels.get('stale-child',labels.get('stale-first'))))
-                if not expired or 'seed' not in labels or not wrong['case'].startswith(('stale-','ptr-stale-refresh','ptr-expiry-refresh','forward-stale-','tcp-client-drop-during-refresh')):continue
-                expired['sent_monotonic_ns']=labels['seed']['completed_monotonic_ns']+200_000_000
-            elif mode=='cache-counter':
-                counters=next((obs['metrics'] for obs in wrong['observations'] if 'metrics' in obs),None)
-                if counters is None:continue
-                counters['dns_queries_forwarded']+=1
-            elif mode=='capacity-diagnostic':
-                if 'capacity_diagnostics' not in wrong:continue
-                wrong['capacity_diagnostics']=[]
-            elif mode.startswith('reverse-repeat-'):
-                if label not in variations:continue
-                cached=next(obs for obs in wrong['observations'] if obs['label'] not in ('seed','query-0'))
-                records=cached['reply']['records'];answers=[i for i,rr in enumerate(records) if rr['section']=='answer']
-                pair=next(((i,j) for n,i in enumerate(answers) for j in answers[n+1:]
-                           if (records[i]['data'],records[i]['ttl'])!=(records[j]['data'],records[j]['ttl'])
-                           and (mode=='reverse-repeat-order' or records[i]['data']==records[j]['data'])),None)
-                if pair is None:continue
-                i,j=pair;records[i],records[j]=records[j],records[i]
-            else:
-                if not wrong['observations']:continue
-                wrong['observations'].pop()
-            controls.append({'case':label,'control':mode,'rejected':not case_equal(c,wrong,label in variations)})
+        controls.extend(corruption_controls(c_rows[label],r_rows[label],label in variations))
     result={'candidate_sha256':next(iter(candidate_shas)),'boundaries':[b['id'] for b in boundaries],
-            'required_count':len(required),'source_required_count':len(source_required),'deferred_extreme_cases':deferred,'missing_required_cases':missing,'passed_cases':passed,
+            'required_count':len(required),'source_required_count':len(source_required),'deferred_extreme_cases':deferred,'intentional_differences':intentional,'missing_required_cases':missing,'passed_cases':passed,
             'differences':different,'reference_reverse_order_variation':variations,'negative_controls':controls,
             'qualified':not missing and not different and all(x['rejected'] for x in controls),
             'full_cache_family_qualified':not deferred and len(boundaries)==len(manifest['boundaries']) and not missing and not different and all(x['rejected'] for x in controls),
@@ -1307,6 +1395,6 @@ def compare_family(args):
     args.out.write_text(json.dumps(result,indent=2)+'\n')
     print(json.dumps({'required':len(required),'passed':len(passed),'missing':len(missing),'different':len(different),
                       'negative_controls':len(controls),'qualified':result['qualified']}))
-    return int(bool(different) or not all(x['rejected'] for x in controls))
+    return int(not result['qualified'])
 
 if __name__=='__main__':main()
