@@ -1,0 +1,3966 @@
+{
+  "schema": "m5-interface-record-required-cases-v1",
+  "family": "interface-records",
+  "status": "source-frozen-before-product-edits",
+  "options": [
+    "interface-name",
+    "dynamic-host",
+    "domain",
+    "domain-suffix",
+    "synth-domain",
+    "hostsdir"
+  ],
+  "reference_image_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "source_identity": {
+    "option.c": {
+      "sha256": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
+      "path": "/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/option.c"
+    },
+    "network.c": {
+      "sha256": "8229872d30a2fb2d86ec9a9e550e51fbb8d8d97926e7a02b0137f2a7b40c40c9",
+      "path": "/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/network.c"
+    },
+    "netlink.c": {
+      "sha256": "b84884ca8a9c30e1985cf4787f64f56131dff8b3a4c35c09b6ac299ada77cbd1",
+      "path": "/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/netlink.c"
+    },
+    "rfc1035.c": {
+      "sha256": "231f0b4989039ff4963f3916df22871dd13025dde65769465b2b3052ad807222",
+      "path": "/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/rfc1035.c"
+    },
+    "domain.c": {
+      "sha256": "14f9e6729e5ab59744feeeb61d74d5897da121ed0ae9edc7059581541c1ecd0a",
+      "path": "/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/domain.c"
+    },
+    "inotify.c": {
+      "sha256": "6a5b0239b9c9fbb1ca0bf638e18efd32914c88d4899602c030b23cf8221b96a7",
+      "path": "/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/inotify.c"
+    },
+    "cache.c": {
+      "sha256": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c",
+      "path": "/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/cache.c"
+    },
+    "lease.c": {
+      "sha256": "4260039af27b40084cbe6dbbae2bb9417fa3a91806ea53f3f6bdd20234cad763",
+      "path": "/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/lease.c"
+    },
+    "dnsmasq.c": {
+      "sha256": "d4bb7cde522376200a0293427b0812625ebc457f10dc9d3e2bef243ccba8ccd1",
+      "path": "/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/dnsmasq.c"
+    },
+    "util.c": {
+      "sha256": "33920165ef3e92f65d1cab75fe8da7772ad7389b37da79ba881957080f12f973",
+      "path": "/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/util.c"
+    },
+    "dnsmasq.h": {
+      "sha256": "318942419598f037a97611efbdea5aebba1e384b9a1ba5f7eded091c86e0e228",
+      "path": "/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/dnsmasq.h"
+    }
+  },
+  "boundaries": [
+    {
+      "id": "IF-GRAM",
+      "options": [
+        "interface-name",
+        "dynamic-host"
+      ],
+      "source_anchors": [
+        "option.c:4906-4970",
+        "util.c:canonicalise"
+      ],
+      "contract": "Shared parser appends declarations; the last non-address token is the interface, later tokens can be ignored; quoted delimiters retain lexical semantics.",
+      "required_cases": [
+        "one name and interface",
+        "missing name/interface and empty tokens",
+        "case/trailing-dot canonicalization",
+        "binary/nonASCII and name length boundaries",
+        "quoted comma/slash and hidden delimiters",
+        "interface /4 /6 defaults",
+        "invalid/empty/double family suffix",
+        "interface target exact15/16/long bytes",
+        "prototype address forbidden in interface-name",
+        "dynamic-host missing prototype",
+        "dynamic-host forbids /4 and /6",
+        "duplicate same-family prototypes last wins",
+        "dual IPv4/IPv6 prototypes",
+        "extra tokens after first non-address interface",
+        "repeated same name/directive configuration order"
+      ]
+    },
+    {
+      "id": "IF-ENUM",
+      "options": [
+        "interface-name",
+        "dynamic-host"
+      ],
+      "source_anchors": [
+        "network.c:243-490",
+        "network.c:736-847",
+        "netlink.c:221-302"
+      ],
+      "contract": "Record addresses are separate from listener selection, matched by label strncmp(IF_NAMESIZE), per-directive duplicate detection, prepend enumeration order.",
+      "required_cases": [
+        "interface independent from listen-address",
+        "excluded/unselected DNS interface still contributes",
+        "down interface still contributes",
+        "IPv4 primary and labelled alias",
+        "exact label versus real link name",
+        "literal wildcard target does not use listener glob matching",
+        "same name on multiple interfaces",
+        "multiple names on same interface",
+        "IPv4 and IPv6 enumeration/prepend order",
+        "duplicate source addresses preserve first flags",
+        "missing interface and existing interface without address",
+        "destroy/recreate with changed ifindex"
+      ]
+    },
+    {
+      "id": "IF-FLAGS",
+      "options": [
+        "interface-name",
+        "dynamic-host"
+      ],
+      "source_anchors": [
+        "network.c:352-458",
+        "netlink.c:288-300"
+      ],
+      "contract": "IPv6 link-local is excluded from interface records; temporary/tentative/deprecated are reverse-only; other flags are not promoted to those states.",
+      "required_cases": [
+        "IPv4 ordinary forward/reverse",
+        "IPv6 global/ULA/loopback forward/reverse",
+        "IPv6 link-local forward/reverse excluded",
+        "permanent IPv6 eligible",
+        "temporary IPv6 reverse-only actual flag",
+        "tentative IPv6 reverse-only actual DAD",
+        "deprecated IPv6 reverse-only preferred_lft0",
+        "combined temporary/tentative/deprecated",
+        "DAD completion changes eligibility",
+        "DAD failure flag caller behavior",
+        "valid lifetime expiry removes address",
+        "optimistic/nonmatching flags",
+        "duplicate derived address permanent/privacy input order"
+      ]
+    },
+    {
+      "id": "IF-FWD",
+      "options": [
+        "interface-name",
+        "dynamic-host"
+      ],
+      "source_anchors": [
+        "rfc1035.c:2016-2088",
+        "rfc1035.c:answer_request"
+      ],
+      "contract": "Exact name intercepts A/AAAA/ANY and bypasses normal address cache and synthetic lookup even if no eligible address; packet authority and TTL come from image observations.",
+      "required_cases": [
+        "A IPv4 family /4 /6",
+        "AAAA IPv6 family /4 /6",
+        "ANY combines eligible families",
+        "same name repeated records stored order",
+        "local-ttl0/nonzero",
+        "max packet truncation and TCP full answer",
+        "class IN/ANY/CHAOS differences",
+        "RD and DO/CD bit behavior",
+        "CNAME terminal resolves interface records",
+        "CNAME chain/loop failure",
+        "same-name hosts/host-record/upstream cache precedence",
+        "no-address name forwarding and NXDOMAIN conversion",
+        "wrong-family only addresses",
+        "TXT/other type forwarding",
+        "localise-queries IPv4 same-net filter",
+        "localise-queries absent same-net unfiltered",
+        "IPv6 localization unaffected"
+      ]
+    },
+    {
+      "id": "IF-PTR",
+      "options": [
+        "interface-name",
+        "dynamic-host"
+      ],
+      "source_anchors": [
+        "rfc1035.c:1875-1941"
+      ],
+      "contract": "PTR/ANY reads stored interface snapshot without enumeration; priority is interface then explicit PTR then hosts/leases/dynamic cache then synth.",
+      "required_cases": [
+        "first declaration wins PTR",
+        "IPv4 and IPv6 PTR/ANY",
+        "reverse-only flags still answer",
+        "explicit ptr-record collision",
+        "hosts/host-record collision",
+        "DHCP lease reverse collision",
+        "dynamic reverse cache collision",
+        "synth-domain reverse collision",
+        "consecutive same-interface family exclusion skip",
+        "nonconsecutive same-interface exclusion",
+        "prototype INP4/INP6 changes skip rule",
+        "multiple directives with overlapping derived addresses",
+        "malformed arpa and non-address PTR names"
+      ]
+    },
+    {
+      "id": "IF-EXIST",
+      "options": [
+        "interface-name",
+        "dynamic-host"
+      ],
+      "source_anchors": [
+        "rfc1035.c:1379-1420",
+        "util.c:432-470",
+        "forward.c:795-803",
+        "cache.c:1685-1716"
+      ],
+      "contract": "hostname_issubdomain(name,configured) establishes the exact name and its ancestors, not arbitrary descendants; absence of eligible addresses does not remove existence.",
+      "required_cases": [
+        "exact declared name exists without address",
+        "ancestor and root existence",
+        "descendant name is not implied",
+        "near suffix/label mismatch",
+        "case and trailing-dot",
+        "unknown RR upstream NXDOMAIN becomes NODATA AA",
+        "A/AAAA with no eligible addresses",
+        "domain-needed dotless local name",
+        "declaration only /4 queried AAAA",
+        "declaration only /6 queried A",
+        "synth valid name existence independent query family"
+      ]
+    },
+    {
+      "id": "IF-CALLER",
+      "options": [
+        "interface-name",
+        "dynamic-host",
+        "domain",
+        "domain-suffix"
+      ],
+      "source_anchors": [
+        "dnsmasq.c:372-380",
+        "dnsmasq.c:1221-1238",
+        "dnsmasq.c:2037-2048",
+        "network.c:736-751",
+        "network.c:1786-1788",
+        "rfc1035.c:2016-2088"
+      ],
+      "contract": "One enumeration per parent poll cycle; publication follows exact callers and old non-debug TCP children inherit addresses/config at acceptance.",
+      "required_cases": [
+        "startup enumeration before lease FQDN and hosts loading",
+        "matched A/AAAA/ANY refresh",
+        "UDP PTR remains stale until enumeration caller",
+        "unknown name/type does not refresh",
+        "plain network event/inline HUP no refresh",
+        "bind-dynamic address event refresh",
+        "active local-service net address event refresh",
+        "local-service host differs and ACL disables flags",
+        "parent TCP accept refreshes snapshot",
+        "open non-debug TCP child retains old addresses and flags",
+        "new TCP child sees changed address",
+        "open child CNAME terminal retains snapshot",
+        "address removed while child remains open",
+        "debug C blocking behavior separately calibrated",
+        "at-most-once enum same poll cycle",
+        "enum socket failure before clear preserves old snapshot",
+        "partial netlink enumeration failure after clear",
+        "enumeration allocation failure reference boundary"
+      ]
+    },
+    {
+      "id": "DH-COMPOSE",
+      "options": [
+        "dynamic-host"
+      ],
+      "source_anchors": [
+        "network.c:364-427",
+        "option.c:4906-4970"
+      ],
+      "contract": "Compose prototype host bits with each source interface subnet; IPv6 uses exact per-byte mask; dedup and eligibility retain first input result.",
+      "required_cases": [
+        "IPv4 /0 /1 /16 /24 /31 /32 host-bit composition",
+        "IPv4 multiple subnets and aliases",
+        "IPv4 proto subnet bits ignored",
+        "IPv6 /0 /1 /63 /64 /65 /127 /128 composition",
+        "IPv6 proto high/low bits",
+        "one versus both prototypes",
+        "multiple source addresses same composed target dedup",
+        "privacy/permanent duplicate composed target ordering",
+        "interface missing or no matching family",
+        "down-interface prototype records",
+        "forward/reverse/name existence all apply",
+        "same dynamic name multiple interface directives"
+      ]
+    },
+    {
+      "id": "DOM-GRAM",
+      "options": [
+        "domain",
+        "domain-suffix"
+      ],
+      "source_anchors": [
+        "option.c:2621-2801"
+      ],
+      "contract": "Aliases share exact parser, integer widths, optional local prefix marker and prepend conditional-domain order; do not normalize C quirks without image calibration.",
+      "required_cases": [
+        "ordinary suffix and alias -s",
+        "empty/missing/case/trailing-dot domain",
+        "quoted domain and hidden selector delimiters",
+        "repeated default domain order",
+        "IPv4 single/range/CIDR",
+        "IPv6 single/range/CIDR",
+        "mixed/malformed address and endpoint fields",
+        "empty/negative/text/huge prefix",
+        "prefix32/33 and128/129",
+        "IPv4 CIDR host bits",
+        "IPv6 prefix bounds",
+        "interface exact15/16/long and literal wildcard",
+        "empty selector token",
+        "extra tokens ignored paths",
+        "local flag only supported CIDR path",
+        "invalid local flag diagnostic"
+      ]
+    },
+    {
+      "id": "DOM4",
+      "options": [
+        "domain",
+        "domain-suffix"
+      ],
+      "source_anchors": [
+        "domain.c:202-256",
+        "option.c:2645-2690"
+      ],
+      "contract": "IPv4 condition uses inclusive numeric range; later declaration wins; /0 machine behavior is calibrated from image C.",
+      "required_cases": [
+        "range start/interior/end/outside",
+        "single exact IPv4",
+        "inverted range accepted but no match",
+        "overlapping last declaration wins",
+        "conditional versus fallback suffix",
+        "CIDR /0 exact image shift behavior",
+        "CIDR /1 /24 /31 /32",
+        "host-bits normalized range",
+        "default domain repeated after conditional",
+        "empty selector zero-address behavior",
+        "local prefix creates forward/reverse local rules",
+        "domain alias runtime equality"
+      ]
+    },
+    {
+      "id": "DOM6",
+      "options": [
+        "domain",
+        "domain-suffix"
+      ],
+      "source_anchors": [
+        "domain.c:259-303",
+        "option.c:2689-2764"
+      ],
+      "contract": "CIDR prefix >=64 matches upper64 plus low range, <64 uses prefix. Explicit IPv6 range keeps prefixlen0 in C; matching must be calibrated.",
+      "required_cases": [
+        "CIDR /0 /1 /63 /64 /65 /127 /128",
+        "CIDR source host bits behavior",
+        "upper64 mismatch for >=64",
+        "explicit IPv6 single/range prefixlen0 caller",
+        "explicit inverted and cross-upper64 ranges",
+        "out-of-range IPv6 under explicit range",
+        "overlap last declaration wins",
+        "fallback default domain",
+        "interface subnet versus numeric condition",
+        "local IPv6 forward/reverse rules including non-nibble prefix"
+      ]
+    },
+    {
+      "id": "DOM-IF",
+      "options": [
+        "domain",
+        "domain-suffix"
+      ],
+      "source_anchors": [
+        "network.c:459-486",
+        "domain.c:202-291"
+      ],
+      "contract": "Interface conditions use all source address subnets, including link-local/flags, independently of interface-record eligibility and DNS listeners.",
+      "required_cases": [
+        "IPv4 subnet interface selector",
+        "IPv6 subnet interface selector",
+        "link-local subnet included",
+        "temporary/tentative/deprecated subnets included",
+        "label exact versus real interface",
+        "literal wildcard no match",
+        "source address added/removed changes future lookup",
+        "missing/no-address interface fallback",
+        "two matching interfaces last declaration",
+        "DNS unselected/down interfaces still contribute"
+      ]
+    },
+    {
+      "id": "DOM-RESOLV",
+      "options": [
+        "domain",
+        "domain-suffix"
+      ],
+      "source_anchors": [
+        "option.c:6248-6284"
+      ],
+      "contract": "domain=# is a startup parser I/O caller before --test, first valid first-token search directive wins; runtime HUP/inotify does not reread search suffix.",
+      "required_cases": [
+        "first search token only",
+        "search exact keyword/case",
+        "invalid first token then later search line",
+        "quotes/comments/whitespace behavior",
+        "missing search diagnostic and code",
+        "missing/denied resolver file and code",
+        "no-resolv or multiple resolv-files fatal",
+        "port0 --test still reads",
+        "one resolver independent system resolv file",
+        "domain# latch with later literal suffix",
+        "existing literal suffix when no search",
+        "HUP/inotify change does not reread suffix",
+        "search suffix applied before SRV owner finalize",
+        "startup FIFO blocking reference",
+        "minimal partial read EIO/EOF behavior"
+      ]
+    },
+    {
+      "id": "DOM-CALLER",
+      "options": [
+        "domain",
+        "domain-suffix",
+        "hostsdir"
+      ],
+      "source_anchors": [
+        "cache.c:1459-1506",
+        "lease.c:1037-1071",
+        "dnsmasq.c:372-380",
+        "dnsmasq.c:EVENT_RELOAD"
+      ],
+      "contract": "Address-selected suffix is consumed when hosts/lease names are materialized. Already materialized names do not change merely because interface state changes.",
+      "required_cases": [
+        "expand-hosts IPv4/IPv6 default suffix",
+        "expand-hosts conditional numeric suffix",
+        "expand-hosts interface suffix",
+        "hostsdir reload uses current published subnets",
+        "existing hosts suffix retains generation until reread",
+        "startup lease FQDN after enumeration",
+        "new lease name selected from address domain",
+        "existing lease hostname/domain event behavior",
+        "SRV one-dot owner suffix and max length",
+        "CIDR local prevents unwanted forwarding",
+        "HUP hosts reload before servers check enum",
+        "DNS-disabled DHCP domain caller"
+      ]
+    },
+    {
+      "id": "SYN-GRAM",
+      "options": [
+        "synth-domain"
+      ],
+      "source_anchors": [
+        "option.c:2621-2801"
+      ],
+      "contract": "Synthetic configuration requires domain and numeric range; prefix limits differ by CIDR/range/family; trailing star selects indexed form.",
+      "required_cases": [
+        "missing domain/range and interface selector rejection",
+        "IPv4 single/range/CIDR",
+        "IPv6 single/range/CIDR",
+        "prefix optional and canonical case",
+        "CIDR4 prefix24/25 byte limit",
+        "CIDR6 prefix17/18 byte limit",
+        "explicit range prefix47/48 byte limit",
+        "quoted hidden comma/slash/star",
+        "last trailing star removal and embedded stars",
+        "indexed IPv6 prefix <64 rejection",
+        "explicit IPv6 range indexed rejection",
+        "extra fields ignored paths",
+        "inverted range lexical acceptance",
+        "numeric prefix wrapping and invalid widths"
+      ]
+    },
+    {
+      "id": "SYN-FWD",
+      "options": [
+        "synth-domain"
+      ],
+      "source_anchors": [
+        "domain.c:25-149",
+        "rfc1035.c:2170-2181"
+      ],
+      "contract": "Forward synthetic names decode address dashes or indexed decimal value, match typed ranges, and follow interface/cache precedence.",
+      "required_cases": [
+        "IPv4 dash name start/interior/end/outside",
+        "IPv6 full eight groups dashed",
+        "IPv6 compressed double-dash aliases",
+        "prefix/domain case-insensitive match",
+        "indexed4 zero/end/outside",
+        "indexed6 zero/end/outside",
+        "empty indexed numeric tail accepted caller",
+        "IPv4 numeric index int32 wrapping",
+        "IPv6 atoll overflow saturation",
+        "malformed digits/hyphens/hex/family",
+        "last matching synthetic declaration",
+        "explicit IPv6 range prefixlen0 behavior",
+        "A/AAAA/ANY and qclass",
+        "RD/DO/CD and local TTL",
+        "hosts/lease/positive/negative cache precedence",
+        "interface declaration intercept precedence",
+        "TXT/other type valid synthesized-name existence",
+        "ancestor/descendant existence not implied"
+      ]
+    },
+    {
+      "id": "SYN-PTR",
+      "options": [
+        "synth-domain"
+      ],
+      "source_anchors": [
+        "domain.c:153-202",
+        "rfc1035.c:1875-2011"
+      ],
+      "contract": "Reverse builds full IPv6 groups or relative index; interface, explicit PTR and reverse cache precede synthetic fallback, which precedes bogus-priv.",
+      "required_cases": [
+        "IPv4 normal dashed reverse",
+        "IPv6 full groups uncompressed reverse",
+        "indexed4 relative start/end",
+        "indexed6 relative start/end",
+        "out-of-range numeric reverse",
+        "explicit IPv6 range all-address behavior",
+        "overlap last declaration wins",
+        "interface and ptr-record precedence",
+        "hosts/DHCP/dynamic reverse positive precedence",
+        "reverse negative cache precedence",
+        "bogus-priv fallback after synthetic",
+        "PTR/ANY classes and malformed arpa",
+        "prefix/name length and wire label boundary",
+        "local TTL and TCP snapshot configuration"
+      ]
+    },
+    {
+      "id": "HDIR-GRAM",
+      "options": [
+        "hostsdir"
+      ],
+      "source_anchors": [
+        "option.c:2432-2450",
+        "dnsmasq.c:182",
+        "cache.c:1719"
+      ],
+      "contract": "Repeated dynamic directories prepend, paths are literal, and hostsdir loading is independent of no-hosts system-file suppression.",
+      "required_cases": [
+        "one/multiple/repeated directories",
+        "relative/absolute/quoted literal paths",
+        "empty directory token caller",
+        "port0 and no-hosts/no-resolv combinations",
+        "same directory twice watch descriptor alias",
+        "symlinked directory path",
+        "initial directory watch before scan"
+      ]
+    },
+    {
+      "id": "HDIR-INIT",
+      "options": [
+        "hostsdir"
+      ],
+      "source_anchors": [
+        "inotify.c:177-296",
+        "cache.c:1436-1545"
+      ],
+      "contract": "Initial scan ignores dot/emacs names and non-regular nodes, follows stat symlinks, assigns durable per-path source UID and preserves filesystem enumeration order.",
+      "required_cases": [
+        "valid IPv4/IPv6 hosts and aliases",
+        "dot/tilde/hash filters",
+        "subdirectory/FIFO/socket/device ignored",
+        "regular symlink followed",
+        "missing/dangling/symlink-loop file",
+        "missing/non-directory/denied root nonfatal logs",
+        "nonroot initial file permissions",
+        "watch failure/opendir failure keeps daemon serving",
+        "per-path stable source IDs including nonregular entries",
+        "directory enumeration order duplicate forward/PTR",
+        "same names same/different addresses across files",
+        "malformed address/name and partial final line",
+        "local TTL no-round-robin/rotation",
+        "CNAME interaction and suffix expansion"
+      ]
+    },
+    {
+      "id": "HDIR-EVENT",
+      "options": [
+        "hostsdir"
+      ],
+      "source_anchors": [
+        "inotify.c:299-405",
+        "cache.c:cache_remove_uid"
+      ],
+      "contract": "Watch close-write,moved-to,delete only; remove that file UID before reload, do not invent moved-from/create/self-directory rescan behavior.",
+      "required_cases": [
+        "close-write add/replace",
+        "moved-to atomic replacement",
+        "delete removes only file UID",
+        "write-open no early publication",
+        "create-only ignored",
+        "moved-from/rename-away stale records remain",
+        "move-to filtered filename ignored",
+        "delete filtered filename ignored",
+        "rename within directory UID split semantics",
+        "directory removed/recreated watch lifetime",
+        "directory symlink retarget watch lifetime",
+        "watch queue burst/order/overflow",
+        "runtime nonregular moved-to caller behavior",
+        "FIFO runtime blocking C reference and Rust owner progress",
+        "runtime partial EIO/EMFILE source replacement",
+        "large file bounded owner service"
+      ]
+    },
+    {
+      "id": "HDIR-SOURCE",
+      "options": [
+        "hostsdir"
+      ],
+      "source_anchors": [
+        "inotify.c:147-177",
+        "inotify.c:347-377",
+        "cache.c:add_hosts_entry",
+        "cache.c:cache_remove_uid"
+      ],
+      "contract": "Incremental UID removal differs from full table rebuild; duplicate entries skipped on initial load cannot be silently reconstructed from unchanged other files.",
+      "required_cases": [
+        "stable UID across same path updates",
+        "source UID survives delete/recreate",
+        "duplicate identical entry source ownership",
+        "deleting winner does not restore skipped duplicate",
+        "forward multiple-address and first PTR priority",
+        "source names/nonterminals/CNAME dependencies removed",
+        "system/addn/configured-host coexistence",
+        "HUP full generation reads surviving files",
+        "deleted file descriptor/source state cleanup",
+        "repeated events no FD/source leak"
+      ]
+    },
+    {
+      "id": "HDIR-CALLER",
+      "options": [
+        "hostsdir"
+      ],
+      "source_anchors": [
+        "inotify.c:370-382",
+        "dnsmasq.c:inotify_check",
+        "lease.c:lease_update_from_configs"
+      ],
+      "contract": "Hostsdir updates trigger DHCP config/name/lease-file/DNS recalculation when DHCP exists; TCP child keeps its accepted hosts generation.",
+      "required_cases": [
+        "UDP sees incremental source updates",
+        "open non-debug TCP retains accepted hosts records",
+        "new child sees updated records",
+        "DHCP existing name conflict re-evaluated",
+        "DHCP lease name restored/changed on removal",
+        "lease file/helper effects actual caller",
+        "inotify processing before resolver/full reload",
+        "init/ordinary foreground/debug mode logs",
+        "shutdown while stream update pending",
+        "one parent poll thread and no orphan descriptors"
+      ]
+    }
+  ],
+  "required_cases": [
+    {
+      "id": "IF-GRAM/01",
+      "boundary": "IF-GRAM",
+      "required_case": "one name and interface",
+      "source_anchors": [
+        "option.c:4906-4970",
+        "util.c:canonicalise"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-GRAM/02",
+      "boundary": "IF-GRAM",
+      "required_case": "missing name/interface and empty tokens",
+      "source_anchors": [
+        "option.c:4906-4970",
+        "util.c:canonicalise"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-GRAM/03",
+      "boundary": "IF-GRAM",
+      "required_case": "case/trailing-dot canonicalization",
+      "source_anchors": [
+        "option.c:4906-4970",
+        "util.c:canonicalise"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-GRAM/04",
+      "boundary": "IF-GRAM",
+      "required_case": "binary/nonASCII and name length boundaries",
+      "source_anchors": [
+        "option.c:4906-4970",
+        "util.c:canonicalise"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-GRAM/05",
+      "boundary": "IF-GRAM",
+      "required_case": "quoted comma/slash and hidden delimiters",
+      "source_anchors": [
+        "option.c:4906-4970",
+        "util.c:canonicalise"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-GRAM/06",
+      "boundary": "IF-GRAM",
+      "required_case": "interface /4 /6 defaults",
+      "source_anchors": [
+        "option.c:4906-4970",
+        "util.c:canonicalise"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-GRAM/07",
+      "boundary": "IF-GRAM",
+      "required_case": "invalid/empty/double family suffix",
+      "source_anchors": [
+        "option.c:4906-4970",
+        "util.c:canonicalise"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-GRAM/08",
+      "boundary": "IF-GRAM",
+      "required_case": "interface target exact15/16/long bytes",
+      "source_anchors": [
+        "option.c:4906-4970",
+        "util.c:canonicalise"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-GRAM/09",
+      "boundary": "IF-GRAM",
+      "required_case": "prototype address forbidden in interface-name",
+      "source_anchors": [
+        "option.c:4906-4970",
+        "util.c:canonicalise"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-GRAM/10",
+      "boundary": "IF-GRAM",
+      "required_case": "dynamic-host missing prototype",
+      "source_anchors": [
+        "option.c:4906-4970",
+        "util.c:canonicalise"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-GRAM/11",
+      "boundary": "IF-GRAM",
+      "required_case": "dynamic-host forbids /4 and /6",
+      "source_anchors": [
+        "option.c:4906-4970",
+        "util.c:canonicalise"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-GRAM/12",
+      "boundary": "IF-GRAM",
+      "required_case": "duplicate same-family prototypes last wins",
+      "source_anchors": [
+        "option.c:4906-4970",
+        "util.c:canonicalise"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-GRAM/13",
+      "boundary": "IF-GRAM",
+      "required_case": "dual IPv4/IPv6 prototypes",
+      "source_anchors": [
+        "option.c:4906-4970",
+        "util.c:canonicalise"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-GRAM/14",
+      "boundary": "IF-GRAM",
+      "required_case": "extra tokens after first non-address interface",
+      "source_anchors": [
+        "option.c:4906-4970",
+        "util.c:canonicalise"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-GRAM/15",
+      "boundary": "IF-GRAM",
+      "required_case": "repeated same name/directive configuration order",
+      "source_anchors": [
+        "option.c:4906-4970",
+        "util.c:canonicalise"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-ENUM/01",
+      "boundary": "IF-ENUM",
+      "required_case": "interface independent from listen-address",
+      "source_anchors": [
+        "network.c:243-490",
+        "network.c:736-847",
+        "netlink.c:221-302"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-ENUM/02",
+      "boundary": "IF-ENUM",
+      "required_case": "excluded/unselected DNS interface still contributes",
+      "source_anchors": [
+        "network.c:243-490",
+        "network.c:736-847",
+        "netlink.c:221-302"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-ENUM/03",
+      "boundary": "IF-ENUM",
+      "required_case": "down interface still contributes",
+      "source_anchors": [
+        "network.c:243-490",
+        "network.c:736-847",
+        "netlink.c:221-302"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-ENUM/04",
+      "boundary": "IF-ENUM",
+      "required_case": "IPv4 primary and labelled alias",
+      "source_anchors": [
+        "network.c:243-490",
+        "network.c:736-847",
+        "netlink.c:221-302"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-ENUM/05",
+      "boundary": "IF-ENUM",
+      "required_case": "exact label versus real link name",
+      "source_anchors": [
+        "network.c:243-490",
+        "network.c:736-847",
+        "netlink.c:221-302"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-ENUM/06",
+      "boundary": "IF-ENUM",
+      "required_case": "literal wildcard target does not use listener glob matching",
+      "source_anchors": [
+        "network.c:243-490",
+        "network.c:736-847",
+        "netlink.c:221-302"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-ENUM/07",
+      "boundary": "IF-ENUM",
+      "required_case": "same name on multiple interfaces",
+      "source_anchors": [
+        "network.c:243-490",
+        "network.c:736-847",
+        "netlink.c:221-302"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-ENUM/08",
+      "boundary": "IF-ENUM",
+      "required_case": "multiple names on same interface",
+      "source_anchors": [
+        "network.c:243-490",
+        "network.c:736-847",
+        "netlink.c:221-302"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-ENUM/09",
+      "boundary": "IF-ENUM",
+      "required_case": "IPv4 and IPv6 enumeration/prepend order",
+      "source_anchors": [
+        "network.c:243-490",
+        "network.c:736-847",
+        "netlink.c:221-302"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-ENUM/10",
+      "boundary": "IF-ENUM",
+      "required_case": "duplicate source addresses preserve first flags",
+      "source_anchors": [
+        "network.c:243-490",
+        "network.c:736-847",
+        "netlink.c:221-302"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-ENUM/11",
+      "boundary": "IF-ENUM",
+      "required_case": "missing interface and existing interface without address",
+      "source_anchors": [
+        "network.c:243-490",
+        "network.c:736-847",
+        "netlink.c:221-302"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-ENUM/12",
+      "boundary": "IF-ENUM",
+      "required_case": "destroy/recreate with changed ifindex",
+      "source_anchors": [
+        "network.c:243-490",
+        "network.c:736-847",
+        "netlink.c:221-302"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-FLAGS/01",
+      "boundary": "IF-FLAGS",
+      "required_case": "IPv4 ordinary forward/reverse",
+      "source_anchors": [
+        "network.c:352-458",
+        "netlink.c:288-300"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-FLAGS/02",
+      "boundary": "IF-FLAGS",
+      "required_case": "IPv6 global/ULA/loopback forward/reverse",
+      "source_anchors": [
+        "network.c:352-458",
+        "netlink.c:288-300"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-FLAGS/03",
+      "boundary": "IF-FLAGS",
+      "required_case": "IPv6 link-local forward/reverse excluded",
+      "source_anchors": [
+        "network.c:352-458",
+        "netlink.c:288-300"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-FLAGS/04",
+      "boundary": "IF-FLAGS",
+      "required_case": "permanent IPv6 eligible",
+      "source_anchors": [
+        "network.c:352-458",
+        "netlink.c:288-300"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-FLAGS/05",
+      "boundary": "IF-FLAGS",
+      "required_case": "temporary IPv6 reverse-only actual flag",
+      "source_anchors": [
+        "network.c:352-458",
+        "netlink.c:288-300"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-FLAGS/06",
+      "boundary": "IF-FLAGS",
+      "required_case": "tentative IPv6 reverse-only actual DAD",
+      "source_anchors": [
+        "network.c:352-458",
+        "netlink.c:288-300"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-FLAGS/07",
+      "boundary": "IF-FLAGS",
+      "required_case": "deprecated IPv6 reverse-only preferred_lft0",
+      "source_anchors": [
+        "network.c:352-458",
+        "netlink.c:288-300"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-FLAGS/08",
+      "boundary": "IF-FLAGS",
+      "required_case": "combined temporary/tentative/deprecated",
+      "source_anchors": [
+        "network.c:352-458",
+        "netlink.c:288-300"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-FLAGS/09",
+      "boundary": "IF-FLAGS",
+      "required_case": "DAD completion changes eligibility",
+      "source_anchors": [
+        "network.c:352-458",
+        "netlink.c:288-300"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-FLAGS/10",
+      "boundary": "IF-FLAGS",
+      "required_case": "DAD failure flag caller behavior",
+      "source_anchors": [
+        "network.c:352-458",
+        "netlink.c:288-300"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-FLAGS/11",
+      "boundary": "IF-FLAGS",
+      "required_case": "valid lifetime expiry removes address",
+      "source_anchors": [
+        "network.c:352-458",
+        "netlink.c:288-300"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-FLAGS/12",
+      "boundary": "IF-FLAGS",
+      "required_case": "optimistic/nonmatching flags",
+      "source_anchors": [
+        "network.c:352-458",
+        "netlink.c:288-300"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-FLAGS/13",
+      "boundary": "IF-FLAGS",
+      "required_case": "duplicate derived address permanent/privacy input order",
+      "source_anchors": [
+        "network.c:352-458",
+        "netlink.c:288-300"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-FWD/01",
+      "boundary": "IF-FWD",
+      "required_case": "A IPv4 family /4 /6",
+      "source_anchors": [
+        "rfc1035.c:2016-2088",
+        "rfc1035.c:answer_request"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-FWD/02",
+      "boundary": "IF-FWD",
+      "required_case": "AAAA IPv6 family /4 /6",
+      "source_anchors": [
+        "rfc1035.c:2016-2088",
+        "rfc1035.c:answer_request"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-FWD/03",
+      "boundary": "IF-FWD",
+      "required_case": "ANY combines eligible families",
+      "source_anchors": [
+        "rfc1035.c:2016-2088",
+        "rfc1035.c:answer_request"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-FWD/04",
+      "boundary": "IF-FWD",
+      "required_case": "same name repeated records stored order",
+      "source_anchors": [
+        "rfc1035.c:2016-2088",
+        "rfc1035.c:answer_request"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-FWD/05",
+      "boundary": "IF-FWD",
+      "required_case": "local-ttl0/nonzero",
+      "source_anchors": [
+        "rfc1035.c:2016-2088",
+        "rfc1035.c:answer_request"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-FWD/06",
+      "boundary": "IF-FWD",
+      "required_case": "max packet truncation and TCP full answer",
+      "source_anchors": [
+        "rfc1035.c:2016-2088",
+        "rfc1035.c:answer_request"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-FWD/07",
+      "boundary": "IF-FWD",
+      "required_case": "class IN/ANY/CHAOS differences",
+      "source_anchors": [
+        "rfc1035.c:2016-2088",
+        "rfc1035.c:answer_request"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-FWD/08",
+      "boundary": "IF-FWD",
+      "required_case": "RD and DO/CD bit behavior",
+      "source_anchors": [
+        "rfc1035.c:2016-2088",
+        "rfc1035.c:answer_request"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-FWD/09",
+      "boundary": "IF-FWD",
+      "required_case": "CNAME terminal resolves interface records",
+      "source_anchors": [
+        "rfc1035.c:2016-2088",
+        "rfc1035.c:answer_request"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-FWD/10",
+      "boundary": "IF-FWD",
+      "required_case": "CNAME chain/loop failure",
+      "source_anchors": [
+        "rfc1035.c:2016-2088",
+        "rfc1035.c:answer_request"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-FWD/11",
+      "boundary": "IF-FWD",
+      "required_case": "same-name hosts/host-record/upstream cache precedence",
+      "source_anchors": [
+        "rfc1035.c:2016-2088",
+        "rfc1035.c:answer_request"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-FWD/12",
+      "boundary": "IF-FWD",
+      "required_case": "no-address name forwarding and NXDOMAIN conversion",
+      "source_anchors": [
+        "rfc1035.c:2016-2088",
+        "rfc1035.c:answer_request"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-FWD/13",
+      "boundary": "IF-FWD",
+      "required_case": "wrong-family only addresses",
+      "source_anchors": [
+        "rfc1035.c:2016-2088",
+        "rfc1035.c:answer_request"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-FWD/14",
+      "boundary": "IF-FWD",
+      "required_case": "TXT/other type forwarding",
+      "source_anchors": [
+        "rfc1035.c:2016-2088",
+        "rfc1035.c:answer_request"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-FWD/15",
+      "boundary": "IF-FWD",
+      "required_case": "localise-queries IPv4 same-net filter",
+      "source_anchors": [
+        "rfc1035.c:2016-2088",
+        "rfc1035.c:answer_request"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-FWD/16",
+      "boundary": "IF-FWD",
+      "required_case": "localise-queries absent same-net unfiltered",
+      "source_anchors": [
+        "rfc1035.c:2016-2088",
+        "rfc1035.c:answer_request"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-FWD/17",
+      "boundary": "IF-FWD",
+      "required_case": "IPv6 localization unaffected",
+      "source_anchors": [
+        "rfc1035.c:2016-2088",
+        "rfc1035.c:answer_request"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-PTR/01",
+      "boundary": "IF-PTR",
+      "required_case": "first declaration wins PTR",
+      "source_anchors": [
+        "rfc1035.c:1875-1941"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-PTR/02",
+      "boundary": "IF-PTR",
+      "required_case": "IPv4 and IPv6 PTR/ANY",
+      "source_anchors": [
+        "rfc1035.c:1875-1941"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-PTR/03",
+      "boundary": "IF-PTR",
+      "required_case": "reverse-only flags still answer",
+      "source_anchors": [
+        "rfc1035.c:1875-1941"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-PTR/04",
+      "boundary": "IF-PTR",
+      "required_case": "explicit ptr-record collision",
+      "source_anchors": [
+        "rfc1035.c:1875-1941"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-PTR/05",
+      "boundary": "IF-PTR",
+      "required_case": "hosts/host-record collision",
+      "source_anchors": [
+        "rfc1035.c:1875-1941"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-PTR/06",
+      "boundary": "IF-PTR",
+      "required_case": "DHCP lease reverse collision",
+      "source_anchors": [
+        "rfc1035.c:1875-1941"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-PTR/07",
+      "boundary": "IF-PTR",
+      "required_case": "dynamic reverse cache collision",
+      "source_anchors": [
+        "rfc1035.c:1875-1941"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-PTR/08",
+      "boundary": "IF-PTR",
+      "required_case": "synth-domain reverse collision",
+      "source_anchors": [
+        "rfc1035.c:1875-1941"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-PTR/09",
+      "boundary": "IF-PTR",
+      "required_case": "consecutive same-interface family exclusion skip",
+      "source_anchors": [
+        "rfc1035.c:1875-1941"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-PTR/10",
+      "boundary": "IF-PTR",
+      "required_case": "nonconsecutive same-interface exclusion",
+      "source_anchors": [
+        "rfc1035.c:1875-1941"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-PTR/11",
+      "boundary": "IF-PTR",
+      "required_case": "prototype INP4/INP6 changes skip rule",
+      "source_anchors": [
+        "rfc1035.c:1875-1941"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-PTR/12",
+      "boundary": "IF-PTR",
+      "required_case": "multiple directives with overlapping derived addresses",
+      "source_anchors": [
+        "rfc1035.c:1875-1941"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-PTR/13",
+      "boundary": "IF-PTR",
+      "required_case": "malformed arpa and non-address PTR names",
+      "source_anchors": [
+        "rfc1035.c:1875-1941"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-EXIST/01",
+      "boundary": "IF-EXIST",
+      "required_case": "exact declared name exists without address",
+      "source_anchors": [
+        "rfc1035.c:1379-1420",
+        "util.c:432-470",
+        "forward.c:795-803",
+        "cache.c:1685-1716"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-EXIST/02",
+      "boundary": "IF-EXIST",
+      "required_case": "ancestor and root existence",
+      "source_anchors": [
+        "rfc1035.c:1379-1420",
+        "util.c:432-470",
+        "forward.c:795-803",
+        "cache.c:1685-1716"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-EXIST/03",
+      "boundary": "IF-EXIST",
+      "required_case": "descendant name is not implied",
+      "source_anchors": [
+        "rfc1035.c:1379-1420",
+        "util.c:432-470",
+        "forward.c:795-803",
+        "cache.c:1685-1716"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-EXIST/04",
+      "boundary": "IF-EXIST",
+      "required_case": "near suffix/label mismatch",
+      "source_anchors": [
+        "rfc1035.c:1379-1420",
+        "util.c:432-470",
+        "forward.c:795-803",
+        "cache.c:1685-1716"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-EXIST/05",
+      "boundary": "IF-EXIST",
+      "required_case": "case and trailing-dot",
+      "source_anchors": [
+        "rfc1035.c:1379-1420",
+        "util.c:432-470",
+        "forward.c:795-803",
+        "cache.c:1685-1716"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-EXIST/06",
+      "boundary": "IF-EXIST",
+      "required_case": "unknown RR upstream NXDOMAIN becomes NODATA AA",
+      "source_anchors": [
+        "rfc1035.c:1379-1420",
+        "util.c:432-470",
+        "forward.c:795-803",
+        "cache.c:1685-1716"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-EXIST/07",
+      "boundary": "IF-EXIST",
+      "required_case": "A/AAAA with no eligible addresses",
+      "source_anchors": [
+        "rfc1035.c:1379-1420",
+        "util.c:432-470",
+        "forward.c:795-803",
+        "cache.c:1685-1716"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-EXIST/08",
+      "boundary": "IF-EXIST",
+      "required_case": "domain-needed dotless local name",
+      "source_anchors": [
+        "rfc1035.c:1379-1420",
+        "util.c:432-470",
+        "forward.c:795-803",
+        "cache.c:1685-1716"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-EXIST/09",
+      "boundary": "IF-EXIST",
+      "required_case": "declaration only /4 queried AAAA",
+      "source_anchors": [
+        "rfc1035.c:1379-1420",
+        "util.c:432-470",
+        "forward.c:795-803",
+        "cache.c:1685-1716"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-EXIST/10",
+      "boundary": "IF-EXIST",
+      "required_case": "declaration only /6 queried A",
+      "source_anchors": [
+        "rfc1035.c:1379-1420",
+        "util.c:432-470",
+        "forward.c:795-803",
+        "cache.c:1685-1716"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-EXIST/11",
+      "boundary": "IF-EXIST",
+      "required_case": "synth valid name existence independent query family",
+      "source_anchors": [
+        "rfc1035.c:1379-1420",
+        "util.c:432-470",
+        "forward.c:795-803",
+        "cache.c:1685-1716"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-CALLER/01",
+      "boundary": "IF-CALLER",
+      "required_case": "startup enumeration before lease FQDN and hosts loading",
+      "source_anchors": [
+        "dnsmasq.c:372-380",
+        "dnsmasq.c:1221-1238",
+        "dnsmasq.c:2037-2048",
+        "network.c:736-751",
+        "network.c:1786-1788",
+        "rfc1035.c:2016-2088"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-CALLER/02",
+      "boundary": "IF-CALLER",
+      "required_case": "matched A/AAAA/ANY refresh",
+      "source_anchors": [
+        "dnsmasq.c:372-380",
+        "dnsmasq.c:1221-1238",
+        "dnsmasq.c:2037-2048",
+        "network.c:736-751",
+        "network.c:1786-1788",
+        "rfc1035.c:2016-2088"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-CALLER/03",
+      "boundary": "IF-CALLER",
+      "required_case": "UDP PTR remains stale until enumeration caller",
+      "source_anchors": [
+        "dnsmasq.c:372-380",
+        "dnsmasq.c:1221-1238",
+        "dnsmasq.c:2037-2048",
+        "network.c:736-751",
+        "network.c:1786-1788",
+        "rfc1035.c:2016-2088"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-CALLER/04",
+      "boundary": "IF-CALLER",
+      "required_case": "unknown name/type does not refresh",
+      "source_anchors": [
+        "dnsmasq.c:372-380",
+        "dnsmasq.c:1221-1238",
+        "dnsmasq.c:2037-2048",
+        "network.c:736-751",
+        "network.c:1786-1788",
+        "rfc1035.c:2016-2088"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-CALLER/05",
+      "boundary": "IF-CALLER",
+      "required_case": "plain network event/inline HUP no refresh",
+      "source_anchors": [
+        "dnsmasq.c:372-380",
+        "dnsmasq.c:1221-1238",
+        "dnsmasq.c:2037-2048",
+        "network.c:736-751",
+        "network.c:1786-1788",
+        "rfc1035.c:2016-2088"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-CALLER/06",
+      "boundary": "IF-CALLER",
+      "required_case": "bind-dynamic address event refresh",
+      "source_anchors": [
+        "dnsmasq.c:372-380",
+        "dnsmasq.c:1221-1238",
+        "dnsmasq.c:2037-2048",
+        "network.c:736-751",
+        "network.c:1786-1788",
+        "rfc1035.c:2016-2088"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-CALLER/07",
+      "boundary": "IF-CALLER",
+      "required_case": "active local-service net address event refresh",
+      "source_anchors": [
+        "dnsmasq.c:372-380",
+        "dnsmasq.c:1221-1238",
+        "dnsmasq.c:2037-2048",
+        "network.c:736-751",
+        "network.c:1786-1788",
+        "rfc1035.c:2016-2088"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-CALLER/08",
+      "boundary": "IF-CALLER",
+      "required_case": "local-service host differs and ACL disables flags",
+      "source_anchors": [
+        "dnsmasq.c:372-380",
+        "dnsmasq.c:1221-1238",
+        "dnsmasq.c:2037-2048",
+        "network.c:736-751",
+        "network.c:1786-1788",
+        "rfc1035.c:2016-2088"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-CALLER/09",
+      "boundary": "IF-CALLER",
+      "required_case": "parent TCP accept refreshes snapshot",
+      "source_anchors": [
+        "dnsmasq.c:372-380",
+        "dnsmasq.c:1221-1238",
+        "dnsmasq.c:2037-2048",
+        "network.c:736-751",
+        "network.c:1786-1788",
+        "rfc1035.c:2016-2088"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-CALLER/10",
+      "boundary": "IF-CALLER",
+      "required_case": "open non-debug TCP child retains old addresses and flags",
+      "source_anchors": [
+        "dnsmasq.c:372-380",
+        "dnsmasq.c:1221-1238",
+        "dnsmasq.c:2037-2048",
+        "network.c:736-751",
+        "network.c:1786-1788",
+        "rfc1035.c:2016-2088"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-CALLER/11",
+      "boundary": "IF-CALLER",
+      "required_case": "new TCP child sees changed address",
+      "source_anchors": [
+        "dnsmasq.c:372-380",
+        "dnsmasq.c:1221-1238",
+        "dnsmasq.c:2037-2048",
+        "network.c:736-751",
+        "network.c:1786-1788",
+        "rfc1035.c:2016-2088"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-CALLER/12",
+      "boundary": "IF-CALLER",
+      "required_case": "open child CNAME terminal retains snapshot",
+      "source_anchors": [
+        "dnsmasq.c:372-380",
+        "dnsmasq.c:1221-1238",
+        "dnsmasq.c:2037-2048",
+        "network.c:736-751",
+        "network.c:1786-1788",
+        "rfc1035.c:2016-2088"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-CALLER/13",
+      "boundary": "IF-CALLER",
+      "required_case": "address removed while child remains open",
+      "source_anchors": [
+        "dnsmasq.c:372-380",
+        "dnsmasq.c:1221-1238",
+        "dnsmasq.c:2037-2048",
+        "network.c:736-751",
+        "network.c:1786-1788",
+        "rfc1035.c:2016-2088"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-CALLER/14",
+      "boundary": "IF-CALLER",
+      "required_case": "debug C blocking behavior separately calibrated",
+      "source_anchors": [
+        "dnsmasq.c:372-380",
+        "dnsmasq.c:1221-1238",
+        "dnsmasq.c:2037-2048",
+        "network.c:736-751",
+        "network.c:1786-1788",
+        "rfc1035.c:2016-2088"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-CALLER/15",
+      "boundary": "IF-CALLER",
+      "required_case": "at-most-once enum same poll cycle",
+      "source_anchors": [
+        "dnsmasq.c:372-380",
+        "dnsmasq.c:1221-1238",
+        "dnsmasq.c:2037-2048",
+        "network.c:736-751",
+        "network.c:1786-1788",
+        "rfc1035.c:2016-2088"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-CALLER/16",
+      "boundary": "IF-CALLER",
+      "required_case": "enum socket failure before clear preserves old snapshot",
+      "source_anchors": [
+        "dnsmasq.c:372-380",
+        "dnsmasq.c:1221-1238",
+        "dnsmasq.c:2037-2048",
+        "network.c:736-751",
+        "network.c:1786-1788",
+        "rfc1035.c:2016-2088"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-CALLER/17",
+      "boundary": "IF-CALLER",
+      "required_case": "partial netlink enumeration failure after clear",
+      "source_anchors": [
+        "dnsmasq.c:372-380",
+        "dnsmasq.c:1221-1238",
+        "dnsmasq.c:2037-2048",
+        "network.c:736-751",
+        "network.c:1786-1788",
+        "rfc1035.c:2016-2088"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "IF-CALLER/18",
+      "boundary": "IF-CALLER",
+      "required_case": "enumeration allocation failure reference boundary",
+      "source_anchors": [
+        "dnsmasq.c:372-380",
+        "dnsmasq.c:1221-1238",
+        "dnsmasq.c:2037-2048",
+        "network.c:736-751",
+        "network.c:1786-1788",
+        "rfc1035.c:2016-2088"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DH-COMPOSE/01",
+      "boundary": "DH-COMPOSE",
+      "required_case": "IPv4 /0 /1 /16 /24 /31 /32 host-bit composition",
+      "source_anchors": [
+        "network.c:364-427",
+        "option.c:4906-4970"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DH-COMPOSE/02",
+      "boundary": "DH-COMPOSE",
+      "required_case": "IPv4 multiple subnets and aliases",
+      "source_anchors": [
+        "network.c:364-427",
+        "option.c:4906-4970"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DH-COMPOSE/03",
+      "boundary": "DH-COMPOSE",
+      "required_case": "IPv4 proto subnet bits ignored",
+      "source_anchors": [
+        "network.c:364-427",
+        "option.c:4906-4970"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DH-COMPOSE/04",
+      "boundary": "DH-COMPOSE",
+      "required_case": "IPv6 /0 /1 /63 /64 /65 /127 /128 composition",
+      "source_anchors": [
+        "network.c:364-427",
+        "option.c:4906-4970"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DH-COMPOSE/05",
+      "boundary": "DH-COMPOSE",
+      "required_case": "IPv6 proto high/low bits",
+      "source_anchors": [
+        "network.c:364-427",
+        "option.c:4906-4970"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DH-COMPOSE/06",
+      "boundary": "DH-COMPOSE",
+      "required_case": "one versus both prototypes",
+      "source_anchors": [
+        "network.c:364-427",
+        "option.c:4906-4970"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DH-COMPOSE/07",
+      "boundary": "DH-COMPOSE",
+      "required_case": "multiple source addresses same composed target dedup",
+      "source_anchors": [
+        "network.c:364-427",
+        "option.c:4906-4970"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DH-COMPOSE/08",
+      "boundary": "DH-COMPOSE",
+      "required_case": "privacy/permanent duplicate composed target ordering",
+      "source_anchors": [
+        "network.c:364-427",
+        "option.c:4906-4970"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DH-COMPOSE/09",
+      "boundary": "DH-COMPOSE",
+      "required_case": "interface missing or no matching family",
+      "source_anchors": [
+        "network.c:364-427",
+        "option.c:4906-4970"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DH-COMPOSE/10",
+      "boundary": "DH-COMPOSE",
+      "required_case": "down-interface prototype records",
+      "source_anchors": [
+        "network.c:364-427",
+        "option.c:4906-4970"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DH-COMPOSE/11",
+      "boundary": "DH-COMPOSE",
+      "required_case": "forward/reverse/name existence all apply",
+      "source_anchors": [
+        "network.c:364-427",
+        "option.c:4906-4970"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DH-COMPOSE/12",
+      "boundary": "DH-COMPOSE",
+      "required_case": "same dynamic name multiple interface directives",
+      "source_anchors": [
+        "network.c:364-427",
+        "option.c:4906-4970"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-GRAM/01",
+      "boundary": "DOM-GRAM",
+      "required_case": "ordinary suffix and alias -s",
+      "source_anchors": [
+        "option.c:2621-2801"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-GRAM/02",
+      "boundary": "DOM-GRAM",
+      "required_case": "empty/missing/case/trailing-dot domain",
+      "source_anchors": [
+        "option.c:2621-2801"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-GRAM/03",
+      "boundary": "DOM-GRAM",
+      "required_case": "quoted domain and hidden selector delimiters",
+      "source_anchors": [
+        "option.c:2621-2801"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-GRAM/04",
+      "boundary": "DOM-GRAM",
+      "required_case": "repeated default domain order",
+      "source_anchors": [
+        "option.c:2621-2801"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-GRAM/05",
+      "boundary": "DOM-GRAM",
+      "required_case": "IPv4 single/range/CIDR",
+      "source_anchors": [
+        "option.c:2621-2801"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-GRAM/06",
+      "boundary": "DOM-GRAM",
+      "required_case": "IPv6 single/range/CIDR",
+      "source_anchors": [
+        "option.c:2621-2801"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-GRAM/07",
+      "boundary": "DOM-GRAM",
+      "required_case": "mixed/malformed address and endpoint fields",
+      "source_anchors": [
+        "option.c:2621-2801"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-GRAM/08",
+      "boundary": "DOM-GRAM",
+      "required_case": "empty/negative/text/huge prefix",
+      "source_anchors": [
+        "option.c:2621-2801"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-GRAM/09",
+      "boundary": "DOM-GRAM",
+      "required_case": "prefix32/33 and128/129",
+      "source_anchors": [
+        "option.c:2621-2801"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-GRAM/10",
+      "boundary": "DOM-GRAM",
+      "required_case": "IPv4 CIDR host bits",
+      "source_anchors": [
+        "option.c:2621-2801"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-GRAM/11",
+      "boundary": "DOM-GRAM",
+      "required_case": "IPv6 prefix bounds",
+      "source_anchors": [
+        "option.c:2621-2801"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-GRAM/12",
+      "boundary": "DOM-GRAM",
+      "required_case": "interface exact15/16/long and literal wildcard",
+      "source_anchors": [
+        "option.c:2621-2801"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-GRAM/13",
+      "boundary": "DOM-GRAM",
+      "required_case": "empty selector token",
+      "source_anchors": [
+        "option.c:2621-2801"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-GRAM/14",
+      "boundary": "DOM-GRAM",
+      "required_case": "extra tokens ignored paths",
+      "source_anchors": [
+        "option.c:2621-2801"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-GRAM/15",
+      "boundary": "DOM-GRAM",
+      "required_case": "local flag only supported CIDR path",
+      "source_anchors": [
+        "option.c:2621-2801"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-GRAM/16",
+      "boundary": "DOM-GRAM",
+      "required_case": "invalid local flag diagnostic",
+      "source_anchors": [
+        "option.c:2621-2801"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM4/01",
+      "boundary": "DOM4",
+      "required_case": "range start/interior/end/outside",
+      "source_anchors": [
+        "domain.c:202-256",
+        "option.c:2645-2690"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM4/02",
+      "boundary": "DOM4",
+      "required_case": "single exact IPv4",
+      "source_anchors": [
+        "domain.c:202-256",
+        "option.c:2645-2690"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM4/03",
+      "boundary": "DOM4",
+      "required_case": "inverted range accepted but no match",
+      "source_anchors": [
+        "domain.c:202-256",
+        "option.c:2645-2690"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM4/04",
+      "boundary": "DOM4",
+      "required_case": "overlapping last declaration wins",
+      "source_anchors": [
+        "domain.c:202-256",
+        "option.c:2645-2690"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM4/05",
+      "boundary": "DOM4",
+      "required_case": "conditional versus fallback suffix",
+      "source_anchors": [
+        "domain.c:202-256",
+        "option.c:2645-2690"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM4/06",
+      "boundary": "DOM4",
+      "required_case": "CIDR /0 exact image shift behavior",
+      "source_anchors": [
+        "domain.c:202-256",
+        "option.c:2645-2690"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM4/07",
+      "boundary": "DOM4",
+      "required_case": "CIDR /1 /24 /31 /32",
+      "source_anchors": [
+        "domain.c:202-256",
+        "option.c:2645-2690"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM4/08",
+      "boundary": "DOM4",
+      "required_case": "host-bits normalized range",
+      "source_anchors": [
+        "domain.c:202-256",
+        "option.c:2645-2690"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM4/09",
+      "boundary": "DOM4",
+      "required_case": "default domain repeated after conditional",
+      "source_anchors": [
+        "domain.c:202-256",
+        "option.c:2645-2690"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM4/10",
+      "boundary": "DOM4",
+      "required_case": "empty selector zero-address behavior",
+      "source_anchors": [
+        "domain.c:202-256",
+        "option.c:2645-2690"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM4/11",
+      "boundary": "DOM4",
+      "required_case": "local prefix creates forward/reverse local rules",
+      "source_anchors": [
+        "domain.c:202-256",
+        "option.c:2645-2690"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM4/12",
+      "boundary": "DOM4",
+      "required_case": "domain alias runtime equality",
+      "source_anchors": [
+        "domain.c:202-256",
+        "option.c:2645-2690"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM6/01",
+      "boundary": "DOM6",
+      "required_case": "CIDR /0 /1 /63 /64 /65 /127 /128",
+      "source_anchors": [
+        "domain.c:259-303",
+        "option.c:2689-2764"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM6/02",
+      "boundary": "DOM6",
+      "required_case": "CIDR source host bits behavior",
+      "source_anchors": [
+        "domain.c:259-303",
+        "option.c:2689-2764"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM6/03",
+      "boundary": "DOM6",
+      "required_case": "upper64 mismatch for >=64",
+      "source_anchors": [
+        "domain.c:259-303",
+        "option.c:2689-2764"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM6/04",
+      "boundary": "DOM6",
+      "required_case": "explicit IPv6 single/range prefixlen0 caller",
+      "source_anchors": [
+        "domain.c:259-303",
+        "option.c:2689-2764"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM6/05",
+      "boundary": "DOM6",
+      "required_case": "explicit inverted and cross-upper64 ranges",
+      "source_anchors": [
+        "domain.c:259-303",
+        "option.c:2689-2764"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM6/06",
+      "boundary": "DOM6",
+      "required_case": "out-of-range IPv6 under explicit range",
+      "source_anchors": [
+        "domain.c:259-303",
+        "option.c:2689-2764"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM6/07",
+      "boundary": "DOM6",
+      "required_case": "overlap last declaration wins",
+      "source_anchors": [
+        "domain.c:259-303",
+        "option.c:2689-2764"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM6/08",
+      "boundary": "DOM6",
+      "required_case": "fallback default domain",
+      "source_anchors": [
+        "domain.c:259-303",
+        "option.c:2689-2764"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM6/09",
+      "boundary": "DOM6",
+      "required_case": "interface subnet versus numeric condition",
+      "source_anchors": [
+        "domain.c:259-303",
+        "option.c:2689-2764"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM6/10",
+      "boundary": "DOM6",
+      "required_case": "local IPv6 forward/reverse rules including non-nibble prefix",
+      "source_anchors": [
+        "domain.c:259-303",
+        "option.c:2689-2764"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-IF/01",
+      "boundary": "DOM-IF",
+      "required_case": "IPv4 subnet interface selector",
+      "source_anchors": [
+        "network.c:459-486",
+        "domain.c:202-291"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-IF/02",
+      "boundary": "DOM-IF",
+      "required_case": "IPv6 subnet interface selector",
+      "source_anchors": [
+        "network.c:459-486",
+        "domain.c:202-291"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-IF/03",
+      "boundary": "DOM-IF",
+      "required_case": "link-local subnet included",
+      "source_anchors": [
+        "network.c:459-486",
+        "domain.c:202-291"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-IF/04",
+      "boundary": "DOM-IF",
+      "required_case": "temporary/tentative/deprecated subnets included",
+      "source_anchors": [
+        "network.c:459-486",
+        "domain.c:202-291"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-IF/05",
+      "boundary": "DOM-IF",
+      "required_case": "label exact versus real interface",
+      "source_anchors": [
+        "network.c:459-486",
+        "domain.c:202-291"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-IF/06",
+      "boundary": "DOM-IF",
+      "required_case": "literal wildcard no match",
+      "source_anchors": [
+        "network.c:459-486",
+        "domain.c:202-291"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-IF/07",
+      "boundary": "DOM-IF",
+      "required_case": "source address added/removed changes future lookup",
+      "source_anchors": [
+        "network.c:459-486",
+        "domain.c:202-291"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-IF/08",
+      "boundary": "DOM-IF",
+      "required_case": "missing/no-address interface fallback",
+      "source_anchors": [
+        "network.c:459-486",
+        "domain.c:202-291"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-IF/09",
+      "boundary": "DOM-IF",
+      "required_case": "two matching interfaces last declaration",
+      "source_anchors": [
+        "network.c:459-486",
+        "domain.c:202-291"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-IF/10",
+      "boundary": "DOM-IF",
+      "required_case": "DNS unselected/down interfaces still contribute",
+      "source_anchors": [
+        "network.c:459-486",
+        "domain.c:202-291"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-RESOLV/01",
+      "boundary": "DOM-RESOLV",
+      "required_case": "first search token only",
+      "source_anchors": [
+        "option.c:6248-6284"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-RESOLV/02",
+      "boundary": "DOM-RESOLV",
+      "required_case": "search exact keyword/case",
+      "source_anchors": [
+        "option.c:6248-6284"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-RESOLV/03",
+      "boundary": "DOM-RESOLV",
+      "required_case": "invalid first token then later search line",
+      "source_anchors": [
+        "option.c:6248-6284"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-RESOLV/04",
+      "boundary": "DOM-RESOLV",
+      "required_case": "quotes/comments/whitespace behavior",
+      "source_anchors": [
+        "option.c:6248-6284"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-RESOLV/05",
+      "boundary": "DOM-RESOLV",
+      "required_case": "missing search diagnostic and code",
+      "source_anchors": [
+        "option.c:6248-6284"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-RESOLV/06",
+      "boundary": "DOM-RESOLV",
+      "required_case": "missing/denied resolver file and code",
+      "source_anchors": [
+        "option.c:6248-6284"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-RESOLV/07",
+      "boundary": "DOM-RESOLV",
+      "required_case": "no-resolv or multiple resolv-files fatal",
+      "source_anchors": [
+        "option.c:6248-6284"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-RESOLV/08",
+      "boundary": "DOM-RESOLV",
+      "required_case": "port0 --test still reads",
+      "source_anchors": [
+        "option.c:6248-6284"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-RESOLV/09",
+      "boundary": "DOM-RESOLV",
+      "required_case": "one resolver independent system resolv file",
+      "source_anchors": [
+        "option.c:6248-6284"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-RESOLV/10",
+      "boundary": "DOM-RESOLV",
+      "required_case": "domain# latch with later literal suffix",
+      "source_anchors": [
+        "option.c:6248-6284"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-RESOLV/11",
+      "boundary": "DOM-RESOLV",
+      "required_case": "existing literal suffix when no search",
+      "source_anchors": [
+        "option.c:6248-6284"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-RESOLV/12",
+      "boundary": "DOM-RESOLV",
+      "required_case": "HUP/inotify change does not reread suffix",
+      "source_anchors": [
+        "option.c:6248-6284"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-RESOLV/13",
+      "boundary": "DOM-RESOLV",
+      "required_case": "search suffix applied before SRV owner finalize",
+      "source_anchors": [
+        "option.c:6248-6284"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-RESOLV/14",
+      "boundary": "DOM-RESOLV",
+      "required_case": "startup FIFO blocking reference",
+      "source_anchors": [
+        "option.c:6248-6284"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-RESOLV/15",
+      "boundary": "DOM-RESOLV",
+      "required_case": "minimal partial read EIO/EOF behavior",
+      "source_anchors": [
+        "option.c:6248-6284"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-CALLER/01",
+      "boundary": "DOM-CALLER",
+      "required_case": "expand-hosts IPv4/IPv6 default suffix",
+      "source_anchors": [
+        "cache.c:1459-1506",
+        "lease.c:1037-1071",
+        "dnsmasq.c:372-380",
+        "dnsmasq.c:EVENT_RELOAD"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-CALLER/02",
+      "boundary": "DOM-CALLER",
+      "required_case": "expand-hosts conditional numeric suffix",
+      "source_anchors": [
+        "cache.c:1459-1506",
+        "lease.c:1037-1071",
+        "dnsmasq.c:372-380",
+        "dnsmasq.c:EVENT_RELOAD"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-CALLER/03",
+      "boundary": "DOM-CALLER",
+      "required_case": "expand-hosts interface suffix",
+      "source_anchors": [
+        "cache.c:1459-1506",
+        "lease.c:1037-1071",
+        "dnsmasq.c:372-380",
+        "dnsmasq.c:EVENT_RELOAD"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-CALLER/04",
+      "boundary": "DOM-CALLER",
+      "required_case": "hostsdir reload uses current published subnets",
+      "source_anchors": [
+        "cache.c:1459-1506",
+        "lease.c:1037-1071",
+        "dnsmasq.c:372-380",
+        "dnsmasq.c:EVENT_RELOAD"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-CALLER/05",
+      "boundary": "DOM-CALLER",
+      "required_case": "existing hosts suffix retains generation until reread",
+      "source_anchors": [
+        "cache.c:1459-1506",
+        "lease.c:1037-1071",
+        "dnsmasq.c:372-380",
+        "dnsmasq.c:EVENT_RELOAD"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-CALLER/06",
+      "boundary": "DOM-CALLER",
+      "required_case": "startup lease FQDN after enumeration",
+      "source_anchors": [
+        "cache.c:1459-1506",
+        "lease.c:1037-1071",
+        "dnsmasq.c:372-380",
+        "dnsmasq.c:EVENT_RELOAD"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-CALLER/07",
+      "boundary": "DOM-CALLER",
+      "required_case": "new lease name selected from address domain",
+      "source_anchors": [
+        "cache.c:1459-1506",
+        "lease.c:1037-1071",
+        "dnsmasq.c:372-380",
+        "dnsmasq.c:EVENT_RELOAD"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-CALLER/08",
+      "boundary": "DOM-CALLER",
+      "required_case": "existing lease hostname/domain event behavior",
+      "source_anchors": [
+        "cache.c:1459-1506",
+        "lease.c:1037-1071",
+        "dnsmasq.c:372-380",
+        "dnsmasq.c:EVENT_RELOAD"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-CALLER/09",
+      "boundary": "DOM-CALLER",
+      "required_case": "SRV one-dot owner suffix and max length",
+      "source_anchors": [
+        "cache.c:1459-1506",
+        "lease.c:1037-1071",
+        "dnsmasq.c:372-380",
+        "dnsmasq.c:EVENT_RELOAD"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-CALLER/10",
+      "boundary": "DOM-CALLER",
+      "required_case": "CIDR local prevents unwanted forwarding",
+      "source_anchors": [
+        "cache.c:1459-1506",
+        "lease.c:1037-1071",
+        "dnsmasq.c:372-380",
+        "dnsmasq.c:EVENT_RELOAD"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-CALLER/11",
+      "boundary": "DOM-CALLER",
+      "required_case": "HUP hosts reload before servers check enum",
+      "source_anchors": [
+        "cache.c:1459-1506",
+        "lease.c:1037-1071",
+        "dnsmasq.c:372-380",
+        "dnsmasq.c:EVENT_RELOAD"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "DOM-CALLER/12",
+      "boundary": "DOM-CALLER",
+      "required_case": "DNS-disabled DHCP domain caller",
+      "source_anchors": [
+        "cache.c:1459-1506",
+        "lease.c:1037-1071",
+        "dnsmasq.c:372-380",
+        "dnsmasq.c:EVENT_RELOAD"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-GRAM/01",
+      "boundary": "SYN-GRAM",
+      "required_case": "missing domain/range and interface selector rejection",
+      "source_anchors": [
+        "option.c:2621-2801"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-GRAM/02",
+      "boundary": "SYN-GRAM",
+      "required_case": "IPv4 single/range/CIDR",
+      "source_anchors": [
+        "option.c:2621-2801"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-GRAM/03",
+      "boundary": "SYN-GRAM",
+      "required_case": "IPv6 single/range/CIDR",
+      "source_anchors": [
+        "option.c:2621-2801"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-GRAM/04",
+      "boundary": "SYN-GRAM",
+      "required_case": "prefix optional and canonical case",
+      "source_anchors": [
+        "option.c:2621-2801"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-GRAM/05",
+      "boundary": "SYN-GRAM",
+      "required_case": "CIDR4 prefix24/25 byte limit",
+      "source_anchors": [
+        "option.c:2621-2801"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-GRAM/06",
+      "boundary": "SYN-GRAM",
+      "required_case": "CIDR6 prefix17/18 byte limit",
+      "source_anchors": [
+        "option.c:2621-2801"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-GRAM/07",
+      "boundary": "SYN-GRAM",
+      "required_case": "explicit range prefix47/48 byte limit",
+      "source_anchors": [
+        "option.c:2621-2801"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-GRAM/08",
+      "boundary": "SYN-GRAM",
+      "required_case": "quoted hidden comma/slash/star",
+      "source_anchors": [
+        "option.c:2621-2801"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-GRAM/09",
+      "boundary": "SYN-GRAM",
+      "required_case": "last trailing star removal and embedded stars",
+      "source_anchors": [
+        "option.c:2621-2801"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-GRAM/10",
+      "boundary": "SYN-GRAM",
+      "required_case": "indexed IPv6 prefix <64 rejection",
+      "source_anchors": [
+        "option.c:2621-2801"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-GRAM/11",
+      "boundary": "SYN-GRAM",
+      "required_case": "explicit IPv6 range indexed rejection",
+      "source_anchors": [
+        "option.c:2621-2801"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-GRAM/12",
+      "boundary": "SYN-GRAM",
+      "required_case": "extra fields ignored paths",
+      "source_anchors": [
+        "option.c:2621-2801"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-GRAM/13",
+      "boundary": "SYN-GRAM",
+      "required_case": "inverted range lexical acceptance",
+      "source_anchors": [
+        "option.c:2621-2801"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-GRAM/14",
+      "boundary": "SYN-GRAM",
+      "required_case": "numeric prefix wrapping and invalid widths",
+      "source_anchors": [
+        "option.c:2621-2801"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-FWD/01",
+      "boundary": "SYN-FWD",
+      "required_case": "IPv4 dash name start/interior/end/outside",
+      "source_anchors": [
+        "domain.c:25-149",
+        "rfc1035.c:2170-2181"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-FWD/02",
+      "boundary": "SYN-FWD",
+      "required_case": "IPv6 full eight groups dashed",
+      "source_anchors": [
+        "domain.c:25-149",
+        "rfc1035.c:2170-2181"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-FWD/03",
+      "boundary": "SYN-FWD",
+      "required_case": "IPv6 compressed double-dash aliases",
+      "source_anchors": [
+        "domain.c:25-149",
+        "rfc1035.c:2170-2181"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-FWD/04",
+      "boundary": "SYN-FWD",
+      "required_case": "prefix/domain case-insensitive match",
+      "source_anchors": [
+        "domain.c:25-149",
+        "rfc1035.c:2170-2181"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-FWD/05",
+      "boundary": "SYN-FWD",
+      "required_case": "indexed4 zero/end/outside",
+      "source_anchors": [
+        "domain.c:25-149",
+        "rfc1035.c:2170-2181"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-FWD/06",
+      "boundary": "SYN-FWD",
+      "required_case": "indexed6 zero/end/outside",
+      "source_anchors": [
+        "domain.c:25-149",
+        "rfc1035.c:2170-2181"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-FWD/07",
+      "boundary": "SYN-FWD",
+      "required_case": "empty indexed numeric tail accepted caller",
+      "source_anchors": [
+        "domain.c:25-149",
+        "rfc1035.c:2170-2181"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-FWD/08",
+      "boundary": "SYN-FWD",
+      "required_case": "IPv4 numeric index int32 wrapping",
+      "source_anchors": [
+        "domain.c:25-149",
+        "rfc1035.c:2170-2181"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-FWD/09",
+      "boundary": "SYN-FWD",
+      "required_case": "IPv6 atoll overflow saturation",
+      "source_anchors": [
+        "domain.c:25-149",
+        "rfc1035.c:2170-2181"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-FWD/10",
+      "boundary": "SYN-FWD",
+      "required_case": "malformed digits/hyphens/hex/family",
+      "source_anchors": [
+        "domain.c:25-149",
+        "rfc1035.c:2170-2181"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-FWD/11",
+      "boundary": "SYN-FWD",
+      "required_case": "last matching synthetic declaration",
+      "source_anchors": [
+        "domain.c:25-149",
+        "rfc1035.c:2170-2181"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-FWD/12",
+      "boundary": "SYN-FWD",
+      "required_case": "explicit IPv6 range prefixlen0 behavior",
+      "source_anchors": [
+        "domain.c:25-149",
+        "rfc1035.c:2170-2181"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-FWD/13",
+      "boundary": "SYN-FWD",
+      "required_case": "A/AAAA/ANY and qclass",
+      "source_anchors": [
+        "domain.c:25-149",
+        "rfc1035.c:2170-2181"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-FWD/14",
+      "boundary": "SYN-FWD",
+      "required_case": "RD/DO/CD and local TTL",
+      "source_anchors": [
+        "domain.c:25-149",
+        "rfc1035.c:2170-2181"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-FWD/15",
+      "boundary": "SYN-FWD",
+      "required_case": "hosts/lease/positive/negative cache precedence",
+      "source_anchors": [
+        "domain.c:25-149",
+        "rfc1035.c:2170-2181"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-FWD/16",
+      "boundary": "SYN-FWD",
+      "required_case": "interface declaration intercept precedence",
+      "source_anchors": [
+        "domain.c:25-149",
+        "rfc1035.c:2170-2181"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-FWD/17",
+      "boundary": "SYN-FWD",
+      "required_case": "TXT/other type valid synthesized-name existence",
+      "source_anchors": [
+        "domain.c:25-149",
+        "rfc1035.c:2170-2181"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-FWD/18",
+      "boundary": "SYN-FWD",
+      "required_case": "ancestor/descendant existence not implied",
+      "source_anchors": [
+        "domain.c:25-149",
+        "rfc1035.c:2170-2181"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-PTR/01",
+      "boundary": "SYN-PTR",
+      "required_case": "IPv4 normal dashed reverse",
+      "source_anchors": [
+        "domain.c:153-202",
+        "rfc1035.c:1875-2011"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-PTR/02",
+      "boundary": "SYN-PTR",
+      "required_case": "IPv6 full groups uncompressed reverse",
+      "source_anchors": [
+        "domain.c:153-202",
+        "rfc1035.c:1875-2011"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-PTR/03",
+      "boundary": "SYN-PTR",
+      "required_case": "indexed4 relative start/end",
+      "source_anchors": [
+        "domain.c:153-202",
+        "rfc1035.c:1875-2011"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-PTR/04",
+      "boundary": "SYN-PTR",
+      "required_case": "indexed6 relative start/end",
+      "source_anchors": [
+        "domain.c:153-202",
+        "rfc1035.c:1875-2011"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-PTR/05",
+      "boundary": "SYN-PTR",
+      "required_case": "out-of-range numeric reverse",
+      "source_anchors": [
+        "domain.c:153-202",
+        "rfc1035.c:1875-2011"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-PTR/06",
+      "boundary": "SYN-PTR",
+      "required_case": "explicit IPv6 range all-address behavior",
+      "source_anchors": [
+        "domain.c:153-202",
+        "rfc1035.c:1875-2011"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-PTR/07",
+      "boundary": "SYN-PTR",
+      "required_case": "overlap last declaration wins",
+      "source_anchors": [
+        "domain.c:153-202",
+        "rfc1035.c:1875-2011"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-PTR/08",
+      "boundary": "SYN-PTR",
+      "required_case": "interface and ptr-record precedence",
+      "source_anchors": [
+        "domain.c:153-202",
+        "rfc1035.c:1875-2011"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-PTR/09",
+      "boundary": "SYN-PTR",
+      "required_case": "hosts/DHCP/dynamic reverse positive precedence",
+      "source_anchors": [
+        "domain.c:153-202",
+        "rfc1035.c:1875-2011"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-PTR/10",
+      "boundary": "SYN-PTR",
+      "required_case": "reverse negative cache precedence",
+      "source_anchors": [
+        "domain.c:153-202",
+        "rfc1035.c:1875-2011"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-PTR/11",
+      "boundary": "SYN-PTR",
+      "required_case": "bogus-priv fallback after synthetic",
+      "source_anchors": [
+        "domain.c:153-202",
+        "rfc1035.c:1875-2011"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-PTR/12",
+      "boundary": "SYN-PTR",
+      "required_case": "PTR/ANY classes and malformed arpa",
+      "source_anchors": [
+        "domain.c:153-202",
+        "rfc1035.c:1875-2011"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-PTR/13",
+      "boundary": "SYN-PTR",
+      "required_case": "prefix/name length and wire label boundary",
+      "source_anchors": [
+        "domain.c:153-202",
+        "rfc1035.c:1875-2011"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "SYN-PTR/14",
+      "boundary": "SYN-PTR",
+      "required_case": "local TTL and TCP snapshot configuration",
+      "source_anchors": [
+        "domain.c:153-202",
+        "rfc1035.c:1875-2011"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-GRAM/01",
+      "boundary": "HDIR-GRAM",
+      "required_case": "one/multiple/repeated directories",
+      "source_anchors": [
+        "option.c:2432-2450",
+        "dnsmasq.c:182",
+        "cache.c:1719"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-GRAM/02",
+      "boundary": "HDIR-GRAM",
+      "required_case": "relative/absolute/quoted literal paths",
+      "source_anchors": [
+        "option.c:2432-2450",
+        "dnsmasq.c:182",
+        "cache.c:1719"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-GRAM/03",
+      "boundary": "HDIR-GRAM",
+      "required_case": "empty directory token caller",
+      "source_anchors": [
+        "option.c:2432-2450",
+        "dnsmasq.c:182",
+        "cache.c:1719"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-GRAM/04",
+      "boundary": "HDIR-GRAM",
+      "required_case": "port0 and no-hosts/no-resolv combinations",
+      "source_anchors": [
+        "option.c:2432-2450",
+        "dnsmasq.c:182",
+        "cache.c:1719"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-GRAM/05",
+      "boundary": "HDIR-GRAM",
+      "required_case": "same directory twice watch descriptor alias",
+      "source_anchors": [
+        "option.c:2432-2450",
+        "dnsmasq.c:182",
+        "cache.c:1719"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-GRAM/06",
+      "boundary": "HDIR-GRAM",
+      "required_case": "symlinked directory path",
+      "source_anchors": [
+        "option.c:2432-2450",
+        "dnsmasq.c:182",
+        "cache.c:1719"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-GRAM/07",
+      "boundary": "HDIR-GRAM",
+      "required_case": "initial directory watch before scan",
+      "source_anchors": [
+        "option.c:2432-2450",
+        "dnsmasq.c:182",
+        "cache.c:1719"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-INIT/01",
+      "boundary": "HDIR-INIT",
+      "required_case": "valid IPv4/IPv6 hosts and aliases",
+      "source_anchors": [
+        "inotify.c:177-296",
+        "cache.c:1436-1545"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-INIT/02",
+      "boundary": "HDIR-INIT",
+      "required_case": "dot/tilde/hash filters",
+      "source_anchors": [
+        "inotify.c:177-296",
+        "cache.c:1436-1545"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-INIT/03",
+      "boundary": "HDIR-INIT",
+      "required_case": "subdirectory/FIFO/socket/device ignored",
+      "source_anchors": [
+        "inotify.c:177-296",
+        "cache.c:1436-1545"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-INIT/04",
+      "boundary": "HDIR-INIT",
+      "required_case": "regular symlink followed",
+      "source_anchors": [
+        "inotify.c:177-296",
+        "cache.c:1436-1545"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-INIT/05",
+      "boundary": "HDIR-INIT",
+      "required_case": "missing/dangling/symlink-loop file",
+      "source_anchors": [
+        "inotify.c:177-296",
+        "cache.c:1436-1545"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-INIT/06",
+      "boundary": "HDIR-INIT",
+      "required_case": "missing/non-directory/denied root nonfatal logs",
+      "source_anchors": [
+        "inotify.c:177-296",
+        "cache.c:1436-1545"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-INIT/07",
+      "boundary": "HDIR-INIT",
+      "required_case": "nonroot initial file permissions",
+      "source_anchors": [
+        "inotify.c:177-296",
+        "cache.c:1436-1545"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-INIT/08",
+      "boundary": "HDIR-INIT",
+      "required_case": "watch failure/opendir failure keeps daemon serving",
+      "source_anchors": [
+        "inotify.c:177-296",
+        "cache.c:1436-1545"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-INIT/09",
+      "boundary": "HDIR-INIT",
+      "required_case": "per-path stable source IDs including nonregular entries",
+      "source_anchors": [
+        "inotify.c:177-296",
+        "cache.c:1436-1545"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-INIT/10",
+      "boundary": "HDIR-INIT",
+      "required_case": "directory enumeration order duplicate forward/PTR",
+      "source_anchors": [
+        "inotify.c:177-296",
+        "cache.c:1436-1545"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-INIT/11",
+      "boundary": "HDIR-INIT",
+      "required_case": "same names same/different addresses across files",
+      "source_anchors": [
+        "inotify.c:177-296",
+        "cache.c:1436-1545"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-INIT/12",
+      "boundary": "HDIR-INIT",
+      "required_case": "malformed address/name and partial final line",
+      "source_anchors": [
+        "inotify.c:177-296",
+        "cache.c:1436-1545"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-INIT/13",
+      "boundary": "HDIR-INIT",
+      "required_case": "local TTL no-round-robin/rotation",
+      "source_anchors": [
+        "inotify.c:177-296",
+        "cache.c:1436-1545"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-INIT/14",
+      "boundary": "HDIR-INIT",
+      "required_case": "CNAME interaction and suffix expansion",
+      "source_anchors": [
+        "inotify.c:177-296",
+        "cache.c:1436-1545"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-EVENT/01",
+      "boundary": "HDIR-EVENT",
+      "required_case": "close-write add/replace",
+      "source_anchors": [
+        "inotify.c:299-405",
+        "cache.c:cache_remove_uid"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-EVENT/02",
+      "boundary": "HDIR-EVENT",
+      "required_case": "moved-to atomic replacement",
+      "source_anchors": [
+        "inotify.c:299-405",
+        "cache.c:cache_remove_uid"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-EVENT/03",
+      "boundary": "HDIR-EVENT",
+      "required_case": "delete removes only file UID",
+      "source_anchors": [
+        "inotify.c:299-405",
+        "cache.c:cache_remove_uid"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-EVENT/04",
+      "boundary": "HDIR-EVENT",
+      "required_case": "write-open no early publication",
+      "source_anchors": [
+        "inotify.c:299-405",
+        "cache.c:cache_remove_uid"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-EVENT/05",
+      "boundary": "HDIR-EVENT",
+      "required_case": "create-only ignored",
+      "source_anchors": [
+        "inotify.c:299-405",
+        "cache.c:cache_remove_uid"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-EVENT/06",
+      "boundary": "HDIR-EVENT",
+      "required_case": "moved-from/rename-away stale records remain",
+      "source_anchors": [
+        "inotify.c:299-405",
+        "cache.c:cache_remove_uid"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-EVENT/07",
+      "boundary": "HDIR-EVENT",
+      "required_case": "move-to filtered filename ignored",
+      "source_anchors": [
+        "inotify.c:299-405",
+        "cache.c:cache_remove_uid"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-EVENT/08",
+      "boundary": "HDIR-EVENT",
+      "required_case": "delete filtered filename ignored",
+      "source_anchors": [
+        "inotify.c:299-405",
+        "cache.c:cache_remove_uid"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-EVENT/09",
+      "boundary": "HDIR-EVENT",
+      "required_case": "rename within directory UID split semantics",
+      "source_anchors": [
+        "inotify.c:299-405",
+        "cache.c:cache_remove_uid"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-EVENT/10",
+      "boundary": "HDIR-EVENT",
+      "required_case": "directory removed/recreated watch lifetime",
+      "source_anchors": [
+        "inotify.c:299-405",
+        "cache.c:cache_remove_uid"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-EVENT/11",
+      "boundary": "HDIR-EVENT",
+      "required_case": "directory symlink retarget watch lifetime",
+      "source_anchors": [
+        "inotify.c:299-405",
+        "cache.c:cache_remove_uid"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-EVENT/12",
+      "boundary": "HDIR-EVENT",
+      "required_case": "watch queue burst/order/overflow",
+      "source_anchors": [
+        "inotify.c:299-405",
+        "cache.c:cache_remove_uid"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-EVENT/13",
+      "boundary": "HDIR-EVENT",
+      "required_case": "runtime nonregular moved-to caller behavior",
+      "source_anchors": [
+        "inotify.c:299-405",
+        "cache.c:cache_remove_uid"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-EVENT/14",
+      "boundary": "HDIR-EVENT",
+      "required_case": "FIFO runtime blocking C reference and Rust owner progress",
+      "source_anchors": [
+        "inotify.c:299-405",
+        "cache.c:cache_remove_uid"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-EVENT/15",
+      "boundary": "HDIR-EVENT",
+      "required_case": "runtime partial EIO/EMFILE source replacement",
+      "source_anchors": [
+        "inotify.c:299-405",
+        "cache.c:cache_remove_uid"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-EVENT/16",
+      "boundary": "HDIR-EVENT",
+      "required_case": "large file bounded owner service",
+      "source_anchors": [
+        "inotify.c:299-405",
+        "cache.c:cache_remove_uid"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-SOURCE/01",
+      "boundary": "HDIR-SOURCE",
+      "required_case": "stable UID across same path updates",
+      "source_anchors": [
+        "inotify.c:147-177",
+        "inotify.c:347-377",
+        "cache.c:add_hosts_entry",
+        "cache.c:cache_remove_uid"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-SOURCE/02",
+      "boundary": "HDIR-SOURCE",
+      "required_case": "source UID survives delete/recreate",
+      "source_anchors": [
+        "inotify.c:147-177",
+        "inotify.c:347-377",
+        "cache.c:add_hosts_entry",
+        "cache.c:cache_remove_uid"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-SOURCE/03",
+      "boundary": "HDIR-SOURCE",
+      "required_case": "duplicate identical entry source ownership",
+      "source_anchors": [
+        "inotify.c:147-177",
+        "inotify.c:347-377",
+        "cache.c:add_hosts_entry",
+        "cache.c:cache_remove_uid"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-SOURCE/04",
+      "boundary": "HDIR-SOURCE",
+      "required_case": "deleting winner does not restore skipped duplicate",
+      "source_anchors": [
+        "inotify.c:147-177",
+        "inotify.c:347-377",
+        "cache.c:add_hosts_entry",
+        "cache.c:cache_remove_uid"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-SOURCE/05",
+      "boundary": "HDIR-SOURCE",
+      "required_case": "forward multiple-address and first PTR priority",
+      "source_anchors": [
+        "inotify.c:147-177",
+        "inotify.c:347-377",
+        "cache.c:add_hosts_entry",
+        "cache.c:cache_remove_uid"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-SOURCE/06",
+      "boundary": "HDIR-SOURCE",
+      "required_case": "source names/nonterminals/CNAME dependencies removed",
+      "source_anchors": [
+        "inotify.c:147-177",
+        "inotify.c:347-377",
+        "cache.c:add_hosts_entry",
+        "cache.c:cache_remove_uid"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-SOURCE/07",
+      "boundary": "HDIR-SOURCE",
+      "required_case": "system/addn/configured-host coexistence",
+      "source_anchors": [
+        "inotify.c:147-177",
+        "inotify.c:347-377",
+        "cache.c:add_hosts_entry",
+        "cache.c:cache_remove_uid"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-SOURCE/08",
+      "boundary": "HDIR-SOURCE",
+      "required_case": "HUP full generation reads surviving files",
+      "source_anchors": [
+        "inotify.c:147-177",
+        "inotify.c:347-377",
+        "cache.c:add_hosts_entry",
+        "cache.c:cache_remove_uid"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-SOURCE/09",
+      "boundary": "HDIR-SOURCE",
+      "required_case": "deleted file descriptor/source state cleanup",
+      "source_anchors": [
+        "inotify.c:147-177",
+        "inotify.c:347-377",
+        "cache.c:add_hosts_entry",
+        "cache.c:cache_remove_uid"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-SOURCE/10",
+      "boundary": "HDIR-SOURCE",
+      "required_case": "repeated events no FD/source leak",
+      "source_anchors": [
+        "inotify.c:147-177",
+        "inotify.c:347-377",
+        "cache.c:add_hosts_entry",
+        "cache.c:cache_remove_uid"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-CALLER/01",
+      "boundary": "HDIR-CALLER",
+      "required_case": "UDP sees incremental source updates",
+      "source_anchors": [
+        "inotify.c:370-382",
+        "dnsmasq.c:inotify_check",
+        "lease.c:lease_update_from_configs"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-CALLER/02",
+      "boundary": "HDIR-CALLER",
+      "required_case": "open non-debug TCP retains accepted hosts records",
+      "source_anchors": [
+        "inotify.c:370-382",
+        "dnsmasq.c:inotify_check",
+        "lease.c:lease_update_from_configs"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-CALLER/03",
+      "boundary": "HDIR-CALLER",
+      "required_case": "new child sees updated records",
+      "source_anchors": [
+        "inotify.c:370-382",
+        "dnsmasq.c:inotify_check",
+        "lease.c:lease_update_from_configs"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-CALLER/04",
+      "boundary": "HDIR-CALLER",
+      "required_case": "DHCP existing name conflict re-evaluated",
+      "source_anchors": [
+        "inotify.c:370-382",
+        "dnsmasq.c:inotify_check",
+        "lease.c:lease_update_from_configs"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-CALLER/05",
+      "boundary": "HDIR-CALLER",
+      "required_case": "DHCP lease name restored/changed on removal",
+      "source_anchors": [
+        "inotify.c:370-382",
+        "dnsmasq.c:inotify_check",
+        "lease.c:lease_update_from_configs"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-CALLER/06",
+      "boundary": "HDIR-CALLER",
+      "required_case": "lease file/helper effects actual caller",
+      "source_anchors": [
+        "inotify.c:370-382",
+        "dnsmasq.c:inotify_check",
+        "lease.c:lease_update_from_configs"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-CALLER/07",
+      "boundary": "HDIR-CALLER",
+      "required_case": "inotify processing before resolver/full reload",
+      "source_anchors": [
+        "inotify.c:370-382",
+        "dnsmasq.c:inotify_check",
+        "lease.c:lease_update_from_configs"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-CALLER/08",
+      "boundary": "HDIR-CALLER",
+      "required_case": "init/ordinary foreground/debug mode logs",
+      "source_anchors": [
+        "inotify.c:370-382",
+        "dnsmasq.c:inotify_check",
+        "lease.c:lease_update_from_configs"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-CALLER/09",
+      "boundary": "HDIR-CALLER",
+      "required_case": "shutdown while stream update pending",
+      "source_anchors": [
+        "inotify.c:370-382",
+        "dnsmasq.c:inotify_check",
+        "lease.c:lease_update_from_configs"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    },
+    {
+      "id": "HDIR-CALLER/10",
+      "boundary": "HDIR-CALLER",
+      "required_case": "one parent poll thread and no orphan descriptors",
+      "source_anchors": [
+        "inotify.c:370-382",
+        "dnsmasq.c:inotify_check",
+        "lease.c:lease_update_from_configs"
+      ],
+      "case_ids": [],
+      "status": "awaiting-C-calibration-and-paired-evidence"
+    }
+  ],
+  "total_boundaries": 22,
+  "total_required_cases": 289,
+  "qualification": "Empty mappings, case presence, C-only or partial runs never close options. Every row needs actual C-calibrated observations and same-candidate paired evidence.",
+  "public_files_owned_by_root": [
+    "config/dns.rs",
+    "dns/daemon.rs",
+    "main.rs",
+    "dns/tcp_service.rs"
+  ],
+  "existing_interface_review_corrections": [
+    "hostname_issubdomain(a,b) tests whether b is equal to or below a: local existence is exact/ancestor, not arbitrary descendant.",
+    "IPv6 explicit single/range condition leaves prefixlen0; compare image C before choosing match policy.",
+    "UDP PTR does not itself enumerate; matched interface forward query, actual newaddress conditions, file check_servers and parent TCP accept are distinct publication callers."
+  ]
+}
