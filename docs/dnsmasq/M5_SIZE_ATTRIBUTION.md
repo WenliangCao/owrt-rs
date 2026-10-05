@@ -66,3 +66,5 @@ M4 获准 ELF 为 1,159,280 字节。当前归因基准 `ff2b2d22` 在固定源�
 
 当前构建候选 `c36eacbc` 相对 M4 共增加 724,920 字节；dump/domain/query/loop仍有未资格项，不冒称统一验收。已资格SYN/forward-max的f16候选增量为712,632字节。loop固定31字节探测改用内联数组和直接hex编码，消除每包Vec扩容与format分配，包头布局未变；与relay修复混合构建净体积0，不能声称独立节省。较大的loop初次20,480和query接线24,576阶段继续留作独立拆分/等价简化评估，保持实际日志/调度行为。Arc<Record> 的 TCP 接受视图共享记录 payload，独立保留容器和状态；具体满载 RSS 成本仍待 M5 统一候选实测，不以代码结构推测内存结果。
 
+
+分配跟踪的内联膨胀已完成独立控制：固定源码路径和a5c337b7基线，只把allocation_trace.rs替换为约束内联前版本，2,093,096→1,949,736，**省143,360字节**；两次优化后控制ELF逐字节相同d45ef3ec…5ff92ae，所有源码before/after SHA和完整产物归档metadata已核验，远端产物已prune。hook仍委托同一System allocator、记录实际op/size/ptr/hash，没有变更分配或诊断语义；普通allocator trace完整C/R资格仍在进行。实际原增量.text为177,680字节，BSS另增131,104字节；因此不能把BSS当ELF增量解释。静态trace缓冲的RSS须按开关实际测量，默认关闭已跳过drain/stack初始化。最新a5候选实际691 Linux库＋10main通过（19ignored不计），ELF1,949,736／6cd6201a…efda228，M4增量790,456字节。[独立控制证据](../../private/dnsmasq-rewrite/evidence/M5/size-malloc-compact-20261005/matrix.json)。
