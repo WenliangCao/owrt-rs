@@ -295,10 +295,13 @@ impl InterfaceCollector {
                             self.control.as_ref().unwrap().as_raw_fd(),
                         )? {
                             // whine_malloc failure omits this individual C row.
-                            if self.addresses.try_reserve(1).is_ok()
-                                && self.interfaces.try_reserve(1).is_ok()
-                            {
+                            if self.addresses.try_reserve(1).is_ok() {
                                 self.addresses.push(row);
+                            }
+                            // Interface-record nodes and listener metadata are
+                            // independent C allocations. A record omission must
+                            // not remove an existing listener's admission state.
+                            if self.interfaces.try_reserve(1).is_ok() {
                                 self.interfaces.push(interface);
                             }
                         }
