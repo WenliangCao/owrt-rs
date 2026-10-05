@@ -398,6 +398,14 @@ def service_cases():
                 files.write('dir/one','127.0.0.40 updated.records.test\n'),files.probe('changed','updated.records.test'),
                 {'op':'helper-events','id':'changed-helper'},{'op':'unlink','path':'dir/one'},files.probe('lease-name-retained','updated.records.test'),
                 {'op':'helper-events','id':'removed-helper'}])
+    for label,initial,changed,rule in [('conflict','127.0.0.41 original.records.test\n','127.0.0.42 original.records.test\n',''),
+        ('configured-address','127.0.0.40 fixed.records.test fixed\n','127.0.0.41 fixed.records.test fixed\n','dhcp-host=02:00:00:00:00:01,fixed\n')]:
+        name='original' if label=='conflict' else 'fixed'
+        add('hostsdir-dhcp-'+label,hosts_config+'domain=records.test\ninterface=lo\nno-ping\n'+rule+
+            'dhcp-range=127.0.0.40,127.0.0.60,255.0.0.0,600\ndhcp-leasefile=/m2/files/leases\n',[],
+            'HDIR-CALLER',files={'dir/one':initial,'leases':'4102444800 02:00:00:00:00:01 127.0.0.40 original *\n'},actions=[
+                files.probe('initial',name+'.records.test'),files.write('dir/one',changed),files.probe('changed',name+'.records.test'),
+                {'op':'unlink','path':'dir/one'},files.probe('removed-host-restores-lease',name+'.records.test')])
     for mode in ('fifo','partial-eio','shutdown'):
         add('hostsdir-runtime-'+mode,hosts_config+('log-facility=-\n' if mode!='shutdown' else ''),[],
             'HDIR-EVENT HDIR-CALLER',files={'dir/one':'192.0.2.7 one.records.test\n'},actions=[
