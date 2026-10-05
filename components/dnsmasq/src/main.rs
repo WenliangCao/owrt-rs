@@ -232,6 +232,8 @@ struct ParentEvents {
     ubus_name: Option<Vec<u8>>,
     ubus: Option<UbusService>,
     ubus_error_logged: bool,
+    #[cfg(target_os = "linux")]
+    ubus_notices: Vec<dnsmasq_rs::logging::LogEvent>,
     local_answered: u32,
     stale_answered: u32,
     tcp_active: usize,
@@ -252,6 +254,8 @@ impl ParentEvents {
             ubus_name: name,
             ubus,
             ubus_error_logged: false,
+            #[cfg(target_os = "linux")]
+            ubus_notices: Vec::new(),
             local_answered: 0,
             stale_answered: 0,
             tcp_active: 0,
@@ -277,10 +281,25 @@ impl ParentEvents {
             return;
         };
         if self.ubus.is_none() {
+            if !self.ubus_error_logged {
+                #[cfg(target_os = "linux")]
+                self.ubus_notices.push(dnsmasq_rs::logging::LogEvent::new(
+                    dnsmasq_rs::logging::Service::Dns,
+                    dnsmasq_rs::logging::Priority::Error,
+                    b"Cannot set UBus listeners: no connection".to_vec(),
+                ));
+                self.ubus_error_logged = true;
+            }
             match UbusService::connect_bytes(None, name) {
                 Ok(service) => {
                     self.ubus = Some(service);
                     self.ubus_error_logged = false;
+                    #[cfg(target_os = "linux")]
+                    self.ubus_notices.push(dnsmasq_rs::logging::LogEvent::new(
+                        dnsmasq_rs::logging::Service::Dns,
+                        dnsmasq_rs::logging::Priority::Info,
+                        b"connected to system UBus".to_vec(),
+                    ));
                 }
                 Err(error @ ConnectError::Transport(_)) => {
                     self.disconnect(&error);
@@ -1137,6 +1156,20 @@ fn run_inner(
                 )
             };
             logger.emit(LogEvent::new(Service::Dns, priority, message.into_bytes()));
+        }
+        {
+            let event = parent_events.lock().unwrap();
+            if event.ubus_name.is_some() {
+                logger.emit(LogEvent::new(
+                    Service::Dns,
+                    Priority::Info,
+                    if event.ubus.is_some() {
+                        b"UBus support enabled: connected to system bus".to_vec()
+                    } else {
+                        b"UBus support enabled: bus connection pending".to_vec()
+                    },
+                ));
+            }
         }
         if let Some(error) = log_ownership_warning {
             logger.emit(LogEvent::new(
@@ -2289,6 +2322,12 @@ impl SinglePoll {
             let mut event = self.parent_events.lock().unwrap();
             let metrics = self.metrics(&event);
             event.process_ubus(&metrics);
+        }
+        #[cfg(target_os = "linux")]
+        if let Some(logger) = &mut self.logger {
+            for notice in self.parent_events.lock().unwrap().ubus_notices.drain(..) {
+                logger.emit(notice);
+            }
         }
         // Bound work per turn.  This keeps a busy UDP socket from starving
         // DHCP, TFTP, reload and TCP admission.
