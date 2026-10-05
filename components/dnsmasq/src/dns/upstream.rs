@@ -436,7 +436,8 @@ impl<R: Random> UpstreamResolver<R> {
             .unwrap_or_else(Instant::now);
         loop {
             self.run_timers();
-            if !self.events.is_empty() || self.transactions.is_empty() {
+            if !self.events.is_empty() || (self.transactions.is_empty() && self.sockets.is_empty())
+            {
                 return Ok(self.events.drain(..).collect());
             }
             let mut tokens = Vec::with_capacity(self.sockets.len());
@@ -1318,6 +1319,37 @@ mod tests {
             first.id
         );
         assert_eq!((resolver.pending_count(), resolver.socket_count()), (0, 0));
+    }
+
+    #[test]
+    fn unsolicited_fixed_source_packets_are_drained_without_pending_queries() {
+        let peer = UdpSocket::bind("127.0.0.1:0").unwrap();
+        let address = peer.local_addr().unwrap();
+        let reserved = UdpSocket::bind("127.0.0.1:0").unwrap();
+        let source_address = reserved.local_addr().unwrap();
+        drop(reserved);
+        let mut resolver = transport(
+            group(&[address], false),
+            Options::default(),
+            Duration::from_secs(2),
+        );
+        resolver.configure_source_sockets(
+            SocketSettings::default(),
+            HashMap::from([(
+                ServerId(1),
+                SourceSpec::wildcard(address, source_address.port()),
+            )]),
+        );
+        peer.send_to(&response(&query(), 0x8180, true), source_address)
+            .unwrap();
+        assert!(resolver.poll(Duration::from_millis(20)).unwrap().is_empty());
+        let socket = &resolver.sockets.values().next().unwrap().socket;
+        let mut buffer = [0; 2048];
+        assert_eq!(
+            socket.recv_from(&mut buffer).unwrap_err().kind(),
+            io::ErrorKind::WouldBlock
+        );
+        assert_eq!(resolver.socket_count(), 1);
     }
 
     #[test]
