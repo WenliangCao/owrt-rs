@@ -228,6 +228,14 @@
             "syslog-sigusr2-keeps-fd",
             "file-reopen-recovers-owner"
           ]
+        },
+        {
+          "id": "FAC12",
+          "source": "log.c:282-335",
+          "boundary": "Real FIFO reader departure causes EPIPE, discards the failed producer and emits one critical log-failed through libc syslog. Later actual TFTP output retains severity/payload with the plain openlog program tag. C old FIFO FD leak is witnessed separately; Rust closes its owned FD.",
+          "required_scenarios": [
+            "fifo-peer-disconnect-fallback"
+          ]
         }
       ],
       "qualification_ready": false

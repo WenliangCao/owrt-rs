@@ -6,6 +6,7 @@ import argparse
 import copy
 import ctypes
 import errno
+import fcntl
 import json
 import os
 import platform
@@ -104,6 +105,19 @@ def cases():
          'receiver': 'dgram', 'user': 'nobody', 'sink_edge': 'recover',
          'options': ['log-facility']},
     ])
+    for kind in ['fifo-no-reader', 'fifo-full', 'stderr-full', 'debug-echo-full']:
+        rows.append({'id': 'blocked-sink-' + kind, 'scope': 'blocked-sink', 'kind': 'run',
+                     'argv': [], 'blocked_kind': kind, 'options': ['log-facility'],
+                     'policy_source': 'log.c:135-160,301-319,407-471',
+                     'policy_difference': 'The single poll owner must not block. C waits for FIFO open or sink writes; Rust keeps serving with bounded queued records and explicit overflow accounting, then drains on reader recovery.'})
+        rows.append({'id': 'blocked-sink-' + kind + '-shutdown', 'scope': 'blocked-sink', 'kind': 'run',
+                     'argv': [], 'blocked_kind': kind, 'blocked_never_release': True,
+                     'options': ['log-facility'], 'policy_source': 'log.c:135-160,301-319,459-475',
+                     'policy_difference': 'The reader never recovers. C startup SIGTERM exits5 for FIFO/primary stderr; debug fprintf remains blocked in libc exit and needs external SIGKILL. Rust serves and exits0 with its existing bounded 100ms logger shutdown, discarding undrained records.'})
+    rows.append({'id': 'fifo-peer-disconnect-fallback', 'scope': 'blocked-sink', 'kind': 'run',
+                 'argv': [], 'blocked_kind': 'fifo-peer-disconnect', 'options': ['log-facility'],
+                 'policy_source': 'log.c:289-335',
+                 'policy_difference': 'C abandons a failed file descriptor without closing it. Rust closes its owned descriptor; both preserve the critical libc-syslog fallback and later producer payloads/tags.'})
     for name in ['', 'local8', 'audit', '24', 'foo']:
         rows.append({'id': 'bad-facility-' + (name or 'empty'), 'scope': 'sink',
                      'kind': 'test', 'exit': 1, 'argv': ['--log-facility=' + name],
@@ -777,6 +791,8 @@ def identity_sequence(transport, calibrate, sticky_probe=None, fresh=False):
 
 
 def run(root, side, case, out):
+    if case.get('blocked_kind'):
+        return run_blocked_sink(root, side, case, out)
     if case.get('scope') in ['daemon', 'scriptuser-boundary', 'startup-fault', 'credential-fault', 'ownership-warning', 'sink-fault', 'error-frame', 'root-access', 'async-transport']:
         return run_daemon(root, side, case, out)
     out.mkdir()
@@ -1023,6 +1039,168 @@ def run(root, side, case, out):
     observed['stdout'] = (out / 'stdout').read_bytes().decode(errors='backslashreplace')
     observed['stderr'] = (out / 'stderr').read_bytes().decode(errors='backslashreplace')
     save(out / 'syslog.json', [row.hex() for row in receiver.raw])
+    save(out / 'observed.json', observed)
+    return observed
+
+
+def run_blocked_sink(root, side, case, out):
+    out.mkdir()
+    folder = image_path(root, '/m2/logging')
+    shutil.rmtree(folder, ignore_errors=True)
+    folder.mkdir(mode=0o777)
+    folder.chmod(0o777)
+    (folder / 'config').write_text('')
+    kind = case['blocked_kind']
+    receiver = Receiver(root, 'dgram' if kind == 'fifo-peer-disconnect' else None)
+    pipe_reader = pipe_writer = fifo_reader = None
+    filler_bytes = 0
+    log_path = folder / 'daemon.log'
+    if kind.startswith('fifo-'):
+        os.mkfifo(log_path, 0o640)
+        if kind in ['fifo-full', 'fifo-peer-disconnect']:
+            fifo_reader = os.open(log_path, os.O_RDONLY | os.O_NONBLOCK)
+            fill = os.open(log_path, os.O_WRONLY | os.O_NONBLOCK) if kind == 'fifo-full' else None
+        else:
+            fill = None
+    else:
+        pipe_reader, pipe_writer = os.pipe()
+        os.set_blocking(pipe_reader, False)
+        # Use a separate open-file description for the filler. The logger's
+        # inherited write flags stay unchanged by our nonblocking writes.
+        fill = os.open(f'/proc/self/fd/{pipe_writer}', os.O_WRONLY | os.O_NONBLOCK)
+    if fill is not None:
+        capacity = fcntl.fcntl(fill, 1032)  # Linux F_GETPIPE_SZ.
+        while True:
+            try:
+                filler_bytes += os.write(fill, b'B' * 4096)
+            except BlockingIOError:
+                break
+        os.close(fill)
+        if filler_bytes != capacity:
+            raise AssertionError('sink was not filled to its actual kernel capacity')
+    mode = ['-d'] if kind == 'debug-echo-full' else ['-k']
+    sink = '/m2/logging/daemon.log' if kind != 'stderr-full' else '-'
+    user = 'nobody' if kind.startswith('fifo-') else 'root'
+    full = command(root, side, '-C', '/m2/logging/config', *BASE,
+                   '--user=' + user, *mode, '--log-facility=' + sink,
+                   *(['--enable-tftp', '--tftp-root=/m2/logging'] if kind == 'fifo-peer-disconnect' else []))
+    if kind == 'fifo-peer-disconnect':
+        (folder / 'public').write_bytes(b'x' * 700)
+        (folder / 'public').chmod(0o644)
+    save(out / 'fixture.json', case)
+    save(out / 'command.json', full)
+    captured = bytearray()
+    observed = {'ready': False, 'exit': None, 'forced': False, 'syslog': [], 'files': {},
+                'file_metadata': {}, 'dns': [], 'stdout': '', 'stderr': ''}
+    trace = {'command': full, 'filler_bytes': filler_bytes, 'dns': []}
+    reader = fifo_reader if fifo_reader is not None else pipe_reader
+    def drain(fd):
+        while True:
+            try:
+                value = os.read(fd, 65536)
+                if not value:
+                    break
+                captured.extend(value)
+            except BlockingIOError:
+                break
+    def probe():
+        try:
+            answer, wire = exchange('ready.logging')
+        except (socket.timeout, ConnectionRefusedError):
+            return False
+        if [r['data'] for r in answer['records']] != ['192.0.2.1']:
+            raise AssertionError('blocked sink corrupted DNS response')
+        trace['dns'].append(wire)
+        return True
+    with (out / 'stdout').open('wb') as stdout, (out / 'stderr').open('wb') as stderr:
+        process = subprocess.Popen(full, stdin=subprocess.DEVNULL, stdout=stdout,
+            stderr=pipe_writer if pipe_writer is not None else stderr,
+            env={**os.environ, 'LC_ALL': 'C', 'TZ': 'UTC'}, start_new_session=True)
+        try:
+            time.sleep(.3)
+            observed['pre_release_ready'] = probe()
+            trace['blocked_process_alive'] = process.poll() is None
+            if kind == 'fifo-peer-disconnect':
+                drain(reader)
+                os.close(fifo_reader)
+                fifo_reader = reader = None
+                process.send_signal(signal.SIGHUP)
+                time.sleep(.15)
+                receiver.drain()
+                rows, raw = tftp_sequence('script', out, receiver)
+                observed['tftp'] = rows
+                trace['tftp'] = raw
+                observed['fifo_fds_after_failure'] = sum(
+                    os.readlink(entry).endswith('/m2/logging/daemon.log')
+                    for entry in Path(f'/proc/{process.pid}/fd').iterdir())
+                observed['ready'] = probe()
+                process.send_signal(signal.SIGTERM)
+                process.wait(.8)
+                observed['exit'] = process.returncode
+            elif case.get('blocked_never_release'):
+                observed['ready'] = observed['pre_release_ready']
+                process.send_signal(signal.SIGTERM)
+                try:
+                    process.wait(.4)
+                except subprocess.TimeoutExpired:
+                    observed['forced'] = True
+                    process.kill()
+                    process.wait(1)
+                observed['exit'] = process.returncode
+            else:
+                if kind == 'fifo-no-reader':
+                    fifo_reader = os.open(log_path, os.O_RDONLY | os.O_NONBLOCK)
+                reader = fifo_reader if fifo_reader is not None else pipe_reader
+                deadline = time.monotonic() + 2
+                while time.monotonic() < deadline:
+                    drain(reader)
+                    observed['ready'] = probe()
+                    if observed['ready'] and (b'cleared cache\n' in captured or b'overflow: ' in captured
+                                             or kind == 'debug-echo-full'):
+                        break
+                    time.sleep(.01)
+                process.send_signal(signal.SIGHUP)
+                time.sleep(.15)
+                drain(reader)
+                if not probe():
+                    raise AssertionError('blocked sink recovery harmed DNS')
+                process.send_signal(signal.SIGTERM)
+                process.wait(.8)
+                observed['exit'] = process.returncode
+        finally:
+            if process.poll() is None:
+                observed['forced'] = True
+                process.kill()
+                process.wait(1)
+            if pipe_writer is not None:
+                os.close(pipe_writer)
+            if reader is not None:
+                drain(reader)
+            if fifo_reader is not None:
+                os.close(fifo_reader)
+            if pipe_reader is not None:
+                os.close(pipe_reader)
+            receiver.drain()
+            receiver.close()
+            save(out / 'trace.json', trace)
+    if filler_bytes:
+        if captured[:filler_bytes] != b'B' * filler_bytes:
+            raise AssertionError('full sink filler bytes changed')
+        del captured[:filler_bytes]
+    (out / 'sink.raw').write_bytes(captured)
+    if kind.startswith('fifo-'):
+        observed['files']['daemon.log'] = captured.hex()
+        observed['stderr'] = (out / 'stderr').read_text()
+        meta = log_path.stat()
+        observed['file_metadata']['daemon.log'] = [meta.st_mode & 0o777, meta.st_uid, meta.st_gid]
+    elif kind == 'debug-echo-full':
+        observed['files']['daemon.log'] = log_path.read_bytes().hex()
+        observed['stderr'] = captured.decode(errors='backslashreplace')
+    else:
+        observed['stderr'] = captured.decode(errors='backslashreplace')
+    observed['stdout'] = (out / 'stdout').read_text()
+    observed['syslog'] = [row.hex() for row in receiver.raw]
+    save(out / 'syslog.json', observed['syslog'])
     save(out / 'observed.json', observed)
     return observed
 
@@ -1385,7 +1563,12 @@ def compare(reference, candidate, case, reference_only=False):
     failures = []
     expected_ready = case.get('expect_ready', case['kind'] == 'run' and case.get('exit', 0) == 0)
     for side, row in [('c', reference)] + ([] if reference_only else [('rust', candidate)]):
-        for field, expected in [('exit', case.get('exit', 0)), ('ready', expected_ready), ('forced', False)]:
+        expectations = [('exit', case.get('exit', 0)), ('ready', expected_ready), ('forced', False)]
+        if case.get('blocked_never_release'):
+            blocked_echo = side == 'c' and case['blocked_kind'] == 'debug-echo-full'
+            expectations = [('exit', (-9 if blocked_echo else 5) if side == 'c' else 0),
+                            ('ready', side == 'rust'), ('forced', blocked_echo)]
+        for field, expected in expectations:
             if row[field] != expected:
                 failures.append({'side': side, 'field': field, 'expected': expected, 'actual': row[field]})
     if 'expected_metadata' in case and reference['file_metadata'].get(case['file']) != case['expected_metadata']:
@@ -1566,9 +1749,73 @@ def compare(reference, candidate, case, reference_only=False):
             failures.append({'kind': 'C-query-protocol-prefix', 'actual': text})
         if mode == 'only_failed' and 'is NXDOMAIN' not in text:
             failures.append({'kind': 'C-query-only-failed-negative', 'actual': text})
+    if case.get('blocked_kind') == 'fifo-peer-disconnect':
+        for side, row in [('c', reference)] + ([] if reference_only else [('rust', candidate)]):
+            if row.get('pre_release_ready') is not True or row.get('fifo_fds_after_failure') != (1 if side == 'c' else 0):
+                failures.append({'kind': 'FIFO-disconnect-FD-source-control', 'side': side,
+                                 'ready': row.get('pre_release_ready'), 'fifo_fds': row.get('fifo_fds_after_failure')})
+            messages = [normalized(bytes.fromhex(value).decode(errors='backslashreplace')) for value in row['syslog']]
+            endings = ['log failed: Broken pipe\n', 'sent /m2/logging/public to 127.0.0.1\n',
+                       'exiting on receipt of SIGTERM\n']
+            if len(messages) != len(endings) or any(not msg.endswith(': ' + end) or 'dnsmasq[<PID>]: ' not in msg
+                                                    for msg, end in zip(messages, endings)):
+                failures.append({'kind': 'FIFO-disconnect-fallback-producer', 'side': side, 'actual': messages})
+    elif case.get('blocked_kind'):
+        for side, row in [('c', reference)] + ([] if reference_only else [('rust', candidate)]):
+            if row.get('pre_release_ready') != (side == 'rust'):
+                failures.append({'kind': 'blocked-sink-single-owner-health', 'side': side,
+                                 'actual': row.get('pre_release_ready')})
+        # This is the explicit nonblocking policy boundary, not an exact log
+        # equivalence claim: validate each side's records before classifying.
+        def messages(row):
+            text = row['stderr'] if case['blocked_kind'] == 'stderr-full' else bytes.fromhex(row['files'].get('daemon.log', '')).decode(errors='backslashreplace')
+            return [line.split(': ', 1)[1] for line in normalized(text).splitlines() if ': ' in line]
+        original, replacement = messages(reference), messages(candidate)
+        wanted_c = ['started, version 2.93 cachesize 150', 'compile time options: ',
+                    'warning: no upstream servers configured', 'cleared cache', 'cleared cache',
+                    'exiting on receipt of SIGTERM']
+        if case.get('blocked_never_release'):
+            wanted_c = []
+        def matches(actual, wanted):
+            return len(actual) == len(wanted) and all(a.startswith(b) if b.endswith(': ') else a == b
+                                                     for a, b in zip(actual, wanted))
+        if not matches(original, wanted_c):
+            failures.append({'kind': 'C-blocked-sink-record-contract', 'actual': original})
+        if case.get('blocked_never_release'):
+            wanted_rust = ['started, version 2.93 cachesize 150', 'compile time options: ',
+                          'warning: no upstream servers configured', 'cleared cache',
+                          'exiting on receipt of SIGTERM'] if case['blocked_kind'] == 'debug-echo-full' else []
+        else:
+            wanted_rust = wanted_c if case['blocked_kind'] == 'debug-echo-full' else [
+                wanted_c[0], 'overflow: 3 log entries lost', 'cleared cache', 'exiting on receipt of SIGTERM']
+        if case['blocked_kind'].startswith('fifo-'):
+            for side, row in [('c', reference)] + ([] if reference_only else [('rust', candidate)]):
+                ownership_blocked = side == 'c' and case.get('blocked_never_release') and case['blocked_kind'] == 'fifo-no-reader'
+                metadata = [0o640, 0, 0] if ownership_blocked else [0o660, 65534, 0]
+                if row['file_metadata'].get('daemon.log') != metadata:
+                    failures.append({'kind': 'blocked-fifo-owner-control', 'side': side,
+                                     'expected': metadata, 'actual': row['file_metadata']})
+        if not reference_only and not matches(replacement, wanted_rust):
+            failures.append({'kind': 'Rust-blocked-sink-record-contract', 'actual': replacement})
+        if case['blocked_kind'] == 'debug-echo-full':
+            for side, row in [('c', reference)] + ([] if reference_only else [('rust', candidate)]):
+                echo = [line.split(': ', 1)[1] for line in row['stderr'].splitlines() if ': ' in line]
+                if not matches(echo, wanted_c):
+                    failures.append({'kind': 'blocked-debug-echo-record-contract', 'side': side, 'actual': echo})
     if reference_only:
         return failures
     left, right = copy.deepcopy(reference), copy.deepcopy(candidate)
+    if case.get('blocked_kind') == 'fifo-peer-disconnect':
+        for row in [left, right]:
+            row.pop('fifo_fds_after_failure', None)
+    elif case.get('blocked_kind'):
+        for row in [left, right]:
+            row.pop('pre_release_ready', None)
+            row['files'] = {}
+            row['stderr'] = ''
+            if case.get('blocked_never_release'):
+                for field in ['ready', 'exit', 'forced', 'file_metadata']:
+                    row.pop(field, None)
     for row in [left, right]:
         if 'interface_index' in row:
             index = row['interface_index']
@@ -1722,6 +1969,23 @@ def controls():
     result['reference-defect-needs-prior-EDNS'] = bool(compare(dict(row, dns=[leaked]), dict(row, dns=[corrected]), defect_case))
     result['reference-defect-never-removes-requested-OPT'] = bool(compare(dict(row, dns=[preceding]), dict(row, dns=[dict(corrected, probe={'edns': True})]), defect_case))
     assert all(result[key] for key in result if key.startswith('reference-defect-'))
+    blocked_case = dict(case, blocked_kind='stderr-full')
+    prefix = 'dnsmasq[1]: '
+    c_messages = ['started, version 2.93 cachesize 150', 'compile time options: fixture',
+                  'warning: no upstream servers configured', 'cleared cache', 'cleared cache',
+                  'exiting on receipt of SIGTERM']
+    rust_messages = [c_messages[0], 'overflow: 3 log entries lost', *c_messages[-2:]]
+    blocked_c = dict(row, pre_release_ready=False, stderr=''.join(prefix + x + '\n' for x in c_messages))
+    blocked_rust = dict(row, pre_release_ready=True, stderr=''.join(prefix + x + '\n' for x in rust_messages))
+    assert not compare(blocked_c, blocked_rust, blocked_case)
+    result['blocked-sink-health-required'] = bool(compare(blocked_c,
+        dict(blocked_rust, pre_release_ready=False), blocked_case))
+    result['blocked-sink-overflow-required'] = bool(compare(blocked_c,
+        dict(blocked_rust, stderr=blocked_rust['stderr'].replace('overflow: 3', 'overflow: 2')), blocked_case))
+    result['blocked-sink-record-order'] = bool(compare(
+        dict(blocked_c, stderr=''.join(prefix + x + '\n' for x in reversed(c_messages))),
+        blocked_rust, blocked_case))
+    assert all(result[key] for key in result if key.startswith('blocked-sink-'))
     return result
 
 
@@ -1786,6 +2050,9 @@ def main():
         case_out = out / case['id']
         case_out.mkdir()
         row = {'id': case['id'], 'options': case['options'], 'failures': []}
+        if case.get('policy_difference'):
+            row['declared_policy_difference'] = {'source': case['policy_source'],
+                                                  'description': case['policy_difference']}
         if case['argv'] == ['--version']:
             row['declared_identity_difference'] = RUST_VERSION_IDENTITY
         try:
