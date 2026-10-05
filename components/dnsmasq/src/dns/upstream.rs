@@ -19,7 +19,7 @@ use super::forward::{
 use super::forward_service::{DispatchError, ForwardDispatcher};
 use super::wire::{Header, Name, WireError};
 use owrt_ubus::sys::{PollFd, POLLERR, POLLHUP, POLLIN};
-use source_sockets::{SocketSettings, SourceSpec};
+use source_sockets::{SocketSettings, SourceSocketDiagnostic, SourceSpec};
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::fs::File;
 use std::io::{self, Read, Write};
@@ -277,6 +277,7 @@ pub struct UpstreamResolver<R = OsRandom> {
     source_bindings: HashMap<ServerId, SourceSpec>,
     server_sockets: HashMap<ServerId, SocketToken>,
     pool_finger: u64,
+    source_diagnostics: VecDeque<SourceSocketDiagnostic>,
 }
 
 impl UpstreamResolver<OsRandom> {
@@ -335,6 +336,7 @@ impl<R: Random> UpstreamResolver<R> {
             source_bindings: HashMap::new(),
             server_sockets: HashMap::new(),
             pool_finger: 0,
+            source_diagnostics: VecDeque::new(),
         })
     }
 
@@ -635,6 +637,10 @@ impl<R: Random> UpstreamResolver<R> {
 
     /// Configure before dropping startup privileges. Bind failures are returned
     /// by server ID so check_servers can remove only the affected servers.
+    pub fn take_source_diagnostics(&mut self) -> Vec<SourceSocketDiagnostic> {
+        self.source_diagnostics.drain(..).collect()
+    }
+
     pub fn socket_settings(&self) -> SocketSettings {
         self.socket_settings
     }
@@ -703,7 +709,27 @@ impl<R: Random> UpstreamResolver<R> {
         persistent: bool,
         pooled: bool,
     ) -> io::Result<SocketToken> {
-        let socket = source_sockets::udp(&source, self.socket_settings, &mut self.random)?;
+        let socket = match source_sockets::udp(&source, self.socket_settings, &mut self.random) {
+            Ok(socket) => socket,
+            Err(failure) => {
+                if !persistent
+                    && failure.binding
+                    && (!source.address.ip().is_unspecified()
+                        || failure.error.raw_os_error() != Some(98))
+                {
+                    let error = failure
+                        .error
+                        .raw_os_error()
+                        .map(io::Error::from_raw_os_error)
+                        .unwrap_or_else(|| {
+                            io::Error::new(failure.error.kind(), failure.error.to_string())
+                        });
+                    self.source_diagnostics
+                        .push_back(SourceSocketDiagnostic { source, error });
+                }
+                return Err(failure.error);
+            }
+        };
         self.next_socket = self
             .next_socket
             .checked_add(1)
