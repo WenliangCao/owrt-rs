@@ -24,7 +24,11 @@ impl RootAccessError {
         #[cfg(not(target_os = "linux"))]
         let error_text = self.error.to_string();
         let mut message = b"TFTP directory ".to_vec();
-        message.extend_from_slice(&self.path);
+        message.extend_from_slice(if self.path.is_empty() {
+            error_text.as_bytes()
+        } else {
+            &self.path
+        });
         message.extend_from_slice(b" inaccessible: ");
         message.extend_from_slice(error_text.as_bytes());
         message
@@ -290,20 +294,26 @@ impl TftpConfig {
         if !self.enabled {
             return Ok(warnings);
         }
-        for (root, interface) in self.root.iter().map(|root| (root, false)).chain(
+        for (root, interface) in self.root.iter().map(|root| (Some(root), false)).chain(
             self.interface_roots
                 .iter()
-                .filter_map(|entry| entry.path.as_ref().map(|root| (root, true))),
+                .map(|entry| (entry.path.as_ref(), true)),
         ) {
-            if let Err(error) = std::fs::read_dir(std::ffi::OsStr::from_bytes(root)) {
+            let access = match root {
+                Some(root) => std::fs::read_dir(std::ffi::OsStr::from_bytes(root)),
+                // The image's musl opendir(NULL) fails EFAULT. Global NULL
+                // is skipped above, but every interface-prefix node is checked.
+                None => Err(std::io::Error::from_raw_os_error(14)),
+            };
+            if let Err(error) = access {
                 if !self.no_fail {
                     return Err(RootAccessError {
-                        path: root.clone(),
+                        path: root.cloned().unwrap_or_default(),
                         error,
                     });
                 }
                 warnings.push(RootWarning {
-                    path: root.clone(),
+                    path: root.cloned().unwrap_or_default(),
                     interface,
                 });
             }
