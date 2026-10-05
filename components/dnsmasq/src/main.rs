@@ -1063,6 +1063,15 @@ fn run_inner(
     if let Some(listener) = &mut tftp_listener {
         listener.set_dump(dump.clone());
     }
+    // dnsmasq.c:418-422 scales the socket pool by signed ftabsize / 2
+    // after binding the listeners. Values below -1 require an impossible
+    // size_t allocation. Preserve EC_NOMEM without attempting that allocation.
+    if dns_enabled && runtime.scalar.forward_max < -1 {
+        return Err(Box::new(dnsmasq_rs::startup::StartupError {
+            code: 4,
+            message: "could not get memory".into(),
+        }));
+    }
     #[cfg(target_os = "linux")]
     let capabilities = dnsmasq_rs::startup::network_capabilities(
         !runtime.dhcp.ranges.is_empty() || !runtime.dhcp.relay.is_empty(),
@@ -5150,7 +5159,7 @@ mod tests {
 
     #[test]
     fn startup_status_retains_config_loader_exit_codes() {
-        for exit_code in [1, 3, 5, (3 << 8) + 10] {
+        for exit_code in [1, 3, 4, 5, (3 << 8) + 10] {
             let error = loader::LoadError {
                 location: loader::Location {
                     file: None,
