@@ -32,6 +32,18 @@ esac
 unset CARGO_ENCODED_RUSTFLAGS RUSTC_WRAPPER RUSTC_WORKSPACE_WRAPPER
 export CARGO_PROFILE_RELEASE_OPT_LEVEL=3
 cargo=/home/ubuntu/.cargo/bin/cargo
+# Git archives preserve historical mtimes. Reusing a fixed source path can
+# otherwise make Cargo accept stale package artifacts after the input changes.
+# Keep dependency caches, but invalidate this package inside the copy lock.
+if [ "$build_kind" = release ]; then
+    "$cargo" +1.98.1 clean --manifest-path "$source_dir/components/dnsmasq/Cargo.toml" \
+        --package dnsmasq-rs --target aarch64-unknown-linux-musl --release \
+        >"$output_dir/clean.stdout" 2>"$output_dir/clean.log"
+else
+    "$cargo" +1.98.1 clean --manifest-path "$source_dir/components/dnsmasq/Cargo.toml" \
+        --package dnsmasq-rs --target aarch64-unknown-linux-musl --profile dev \
+        >"$output_dir/clean.stdout" 2>"$output_dir/clean.log"
+fi
 if [ "$build_kind" = release ]; then
     "$cargo" +1.98.1 build --release --frozen --target aarch64-unknown-linux-musl \
         --manifest-path "$source_dir/components/dnsmasq/Cargo.toml" --bin dnsmasq-rs \
