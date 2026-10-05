@@ -346,6 +346,12 @@ def service_cases():
     add('hostsdir-unprivileged',hosts_config+'log-facility=-\n',[('readable.records.test',1),('denied.records.test',1)],
         'HDIR-INIT',user='nobody',group='nogroup',files={'dir/readable':{'text':'192.0.2.7 readable.records.test\n','mode':0o644},
             'dir/denied':{'text':'192.0.2.8 denied.records.test\n','mode':0o600}})
+    add('hostsdir-watch-denied',hosts_config+'log-facility=-\n',[('ready.files.test',1)],'HDIR-INIT',user='nobody',group='nogroup',
+        files={'dir':{'initial_kind':'directory','mode':0o000}})
+    add('hostsdir-opendir-denied-hup',hosts_config+'log-facility=-\n',[],'HDIR-INIT HDIR-SOURCE',user='nobody',group='nogroup',
+        files={'dir/one':'192.0.2.7 one.records.test\n'},actions=[files.probe('initial','one.records.test'),
+            dict(op='write',path='directory-mode',text='',hosts_mode=0o000),files.signal_reload(),files.probe('hup-denied','one.records.test'),
+            dict(op='write',path='directory-mode',text='',hosts_mode=0o755),files.signal_reload(),files.probe('hup-recovered','one.records.test')])
     add('hostsdir-port-zero',hosts_config,[],'HDIR-GRAM',dns_disabled=True,
         files={'dir/one':'192.0.2.7 one.records.test\n'},actions=[files.write('dir/one','192.0.2.8 one.records.test\n')])
     add('hostsdir-multiple','hostsdir=/m2/files/first\nhostsdir=/m2/files/second\n',
@@ -829,6 +835,7 @@ def run_service_side(root,side,case,out):
         if isinstance(value,dict) and 'initial_kind' in value:
             target=image_path(root,'/m2/files/'+path,follow_leaf=False);target.parent.mkdir(parents=True,exist_ok=True)
             if value['initial_kind']=='fifo':os.mkfifo(target)
+            elif value['initial_kind']=='directory':target.mkdir();os.chmod(target,value.get('mode',0o755))
             elif value['initial_kind']=='socket':
                 endpoint=socket.socket(socket.AF_UNIX,socket.SOCK_STREAM)
                 directory=os.open(target.parent,os.O_PATH|os.O_DIRECTORY)
@@ -840,6 +847,8 @@ def run_service_side(root,side,case,out):
                 os.mknod(target,stat.S_IFCHR|0o600,os.makedev(1,3))
             else:raise AssertionError('unknown nonregular initial fixture')
             return
+        if isinstance(value,dict) and 'hosts_mode' in value:
+            os.chmod(root/'m2/files/dir',value['hosts_mode']);record('actual-hosts-directory-mode');return
         if isinstance(value,dict) and 'domain_dhcp' in value:
             item=value['domain_dhcp'];xid=0xd5930000+len(domain_dhcp)
             spec={'kind':3,'address':'127.0.0.40','prl':[12,15,51,54],
