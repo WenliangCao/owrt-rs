@@ -188,17 +188,17 @@ def cases():
                      'expected_helper_uid': helper_uid,
                      'argv': ['--log-facility=-', '--dhcp-script=/m2/logging/script',
                               '--dhcp-scriptuser=nobody', *extra], 'options': ['dhcp-scriptuser']})
-    for name, number, error in [('fork-one', 220, errno.EAGAIN), ('error-pipe', 59, errno.EMFILE),
+    for name, number, error in [('fork-one', 220, errno.EAGAIN), ('fork-two', 220, errno.EAGAIN), ('error-pipe', 59, errno.EMFILE),
                                 ('error-pipe-flags', 25, errno.EIO),
                                 ('pid-write', 64, errno.EIO), ('pid-close', 57, errno.EIO),
                                 ('log-chown', 55, errno.EPERM), ('pid-chown', 55, errno.EPERM),
                                 ('pid-short-write', 64, 0)]:
         failed = name not in ['log-chown', 'pid-chown', 'pid-short-write']
         rows.append({'id': 'startup-fault-' + name, 'scope': 'startup-fault', 'kind': 'run',
-                     'mode': [] if name in ['fork-one', 'error-pipe', 'error-pipe-flags'] else ['-k'],
-                     'daemonized': name in ['fork-one', 'error-pipe', 'error-pipe-flags'], 'fault': name,
+                     'mode': [] if name in ['fork-one', 'fork-two', 'error-pipe', 'error-pipe-flags'] else ['-k'],
+                     'daemonized': name in ['fork-one', 'fork-two', 'error-pipe', 'error-pipe-flags'], 'fault': name,
                      'fault_number': number, 'fault_errno': error,
-                     'exit': (5 if name in ['fork-one', 'error-pipe', 'error-pipe-flags'] else 3) if failed else 0,
+                     'exit': (5 if name in ['fork-one', 'fork-two', 'error-pipe', 'error-pipe-flags'] else 3) if failed else 0,
                      'pidfile': '/m2/logging/daemon.pid',
                      'user': 'nobody' if name in ['log-chown', 'pid-chown'] else 'root',
                      'file': '/m2/logging/daemon.log' if name == 'log-chown' else None,
@@ -613,7 +613,7 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
         status = wait_stop()
         if not os.WIFSTOPPED(status):
             raise AssertionError('tracee did not stop at initial exec')
-        ptrace(0x4200, 0, 1)  # TRACESYSGOOD
+        ptrace(0x4200, 0, 1 | (2 if case['fault'] == 'fork-two' else 0))  # TRACESYSGOOD, optional TRACEFORK
         for _ in range(50000):
             ptrace(24)
             status = wait_stop()
@@ -621,6 +621,15 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                 process.returncode = os.waitstatus_to_exitcode(status)
                 attached = False
                 raise AssertionError('tracee exited before selected startup syscall')
+            if status >> 16 == 1 and case['fault'] == 'fork-two':
+                child = ctypes.c_ulong()
+                ptrace(0x4201, 0, ctypes.addressof(child))
+                ptrace(7)  # Original parent can read its error channel normally.
+                pid = child.value
+                status = wait_stop()
+                if not os.WIFSTOPPED(status):
+                    raise AssertionError('fork child did not stop')
+                continue
             if os.WSTOPSIG(status) != signal.SIGTRAP | 0x80:
                 continue
             info = ctypes.create_string_buffer(128)
@@ -646,6 +655,8 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                     except FileNotFoundError:
                         pass
                 match = number == case['fault_number'] or (number == 66 and case['fault_number'] == 64)
+                if case['fault'] == 'fork-two':
+                    match &= pid != process.pid
                 if case['fault'] == 'error-pipe':
                     match &= pipes == (2 if side == 'c' else 1)
                 elif case['fault'] == 'error-pipe-flags':
@@ -682,7 +693,7 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                     value.x[0] = (-case['fault_errno']) & ((1 << 64) - 1)
                     regs(True, value)
                 report['events'].append(dict(pending, actual_result=result,
-                    injected_result=-case['fault_errno'] if case['fault_errno'] else result))
+                    injected_result=-case['fault_errno'] if case['fault_errno'] else result, injected_pid=pid))
                 report['injected'] = True
                 ptrace(17)
                 attached = False
