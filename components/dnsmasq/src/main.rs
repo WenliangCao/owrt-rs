@@ -1417,6 +1417,15 @@ fn run_inner(
         poll.step();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if let Some(error) = poll.helper_init_error.take() {
+            if !startup.active() {
+                if let Some(logger) = &mut poll.logger {
+                    logger.fatal(error.message.as_bytes());
+                }
+                return Err(Box::new(SilentStartupError(dnsmasq_rs::startup::StartupError {
+                    code: error.code,
+                    message: error.message,
+                })));
+            }
             return Err(Box::new(error));
         }
         #[cfg(target_os = "linux")]
@@ -3779,6 +3788,9 @@ impl SinglePoll {
                                     code: 3,
                                     message: "lease-init helper failed".into(),
                                 });
+                            }
+                            Notice::CredentialError(code) => {
+                                self.helper_init_error = Some(helper.credential_failure(code));
                             }
                             Notice::Error(code) if !helper.ready() => {
                                 self.helper_init_error = Some(StartError {

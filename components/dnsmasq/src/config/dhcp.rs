@@ -153,6 +153,7 @@ pub struct DynamicFileDirectory {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DhcpConfig {
+    pub network: super::dhcp_network::NetworkConfig,
     pub pxe: super::dhcp_pxe::PxeConfig,
     pub relay: Vec<super::dhcp_relay::RelayRule>,
     pub ports: super::dhcp_relay::DhcpPorts,
@@ -214,6 +215,7 @@ pub struct DhcpConfig {
 impl Default for DhcpConfig {
     fn default() -> Self {
         Self {
+            network: Default::default(),
             pxe: Default::default(),
             relay: Vec::new(),
             ports: Default::default(),
@@ -584,10 +586,8 @@ impl DhcpConfig {
                 self.script_user = Some(argument.ok_or(Error("missing parameter"))?.decoded());
             }
             b"script-on-renewal" => self.script_on_renewal = true,
-            b"dhcp-reply-delay" => {
-                return Err(Error(
-                    "DHCP option is parsed but runtime wiring is not complete",
-                ));
+            b"dhcp-reply-delay" | b"bridge-interface" | b"shared-network" | b"dhcp-proxy" => {
+                self.network.apply(directive, super::dhcp_network::interface_index)?;
             }
             _ => return Ok(false),
         }

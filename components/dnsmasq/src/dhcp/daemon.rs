@@ -1534,6 +1534,7 @@ impl LocalProvider {
             local,
             override_server,
         );
+        let override_server = self.config.network.server_override(packet.giaddr(), override_server);
         let mut ranges: Vec<_> = self
             .selected
             .iter()
