@@ -1,0 +1,862 @@
+{
+  "schema": "m5-dns-cache-contract-v1",
+  "family": "dns-cache-contract",
+  "status": "complete-source-freeze-before-product-edits",
+  "options": [
+    "cache-rr",
+    "no-negcache",
+    "min-cache-ttl",
+    "max-cache-ttl",
+    "max-ttl",
+    "proxy-dnssec",
+    "dns-forward-max",
+    "neg-ttl",
+    "use-stale-cache",
+    "no-round-robin"
+  ],
+  "baseline_source_commit": "bdd8aad4ce041db9f8e63e8a848df67e110e3a20",
+  "reference_c_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "source_identity": {
+    "cache.c": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/cache.c",
+      "sha256": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c"
+    },
+    "rfc1035.c": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/rfc1035.c",
+      "sha256": "231f0b4989039ff4963f3916df22871dd13025dde65769465b2b3052ad807222"
+    },
+    "forward.c": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/forward.c",
+      "sha256": "ac05784d4233ed10bd166da5fe91e464afecf2883d3c2a0063305d3e81692f95"
+    },
+    "option.c": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/option.c",
+      "sha256": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed"
+    },
+    "rrfilter.c": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/rrfilter.c",
+      "sha256": "38f4c92a5529cf45c8011d35876214fc0a5a09b9d840c435f617f42a9e7d364d"
+    },
+    "dnsmasq.c": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/dnsmasq.c",
+      "sha256": "d4bb7cde522376200a0293427b0812625ebc457f10dc9d3e2bef243ccba8ccd1"
+    },
+    "dnsmasq.h": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/dnsmasq.h",
+      "sha256": "318942419598f037a97611efbdea5aebba1e384b9a1ba5f7eded091c86e0e228"
+    },
+    "config.h": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/config.h",
+      "sha256": "dacbe1f8d0e03d93e53a81901956b07ab7a5059d1e5db3225150a9688a1122da"
+    },
+    "util.c": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/util.c",
+      "sha256": "33920165ef3e92f65d1cab75fe8da7772ad7389b37da79ba881957080f12f973"
+    },
+    "lease.c": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/lease.c",
+      "sha256": "4260039af27b40084cbe6dbbae2bb9417fa3a91806ea53f3f6bdd20234cad763"
+    },
+    "edns0.c": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/edns0.c",
+      "sha256": "420a55386ee3d41cef391b6443f735b18f7f205bf5c6d24cea6d28d5f2b55ed2"
+    },
+    "blockdata.c": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/blockdata.c",
+      "sha256": "7ebec83aa80a7899b865b755427ec7131366d5c4a7f2f88af82cd618ccf17c43"
+    },
+    "rfc2131.c": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/rfc2131.c",
+      "sha256": "14f2e10792ef6108aeb7b69e551f089ba287c8c84d39ea178a5f33acd2038c2c"
+    }
+  },
+  "boundaries": [
+    {
+      "id": "PARSE-RR",
+      "source": "option.c:3575-3613;cache.c:149-159;util.c:120-131",
+      "options": [
+        "cache-rr"
+      ],
+      "required_cases": [
+        "rr-name",
+        "rr-casefold",
+        "rr-numeric",
+        "rr-comma",
+        "rr-repeat",
+        "rr-empty",
+        "rr-missing",
+        "rr-invalid-name",
+        "rr-negative",
+        "rr-zero",
+        "rr-65535",
+        "rr-u16-wrap",
+        "rr-int-wrap",
+        "rr-atoi-zero-wrap",
+        "rr-comma-empty-tail",
+        "rr-quoted-comma",
+        "rr-cli-file-repeat"
+      ],
+      "contract": "Repeatable RR list uses atoi then u16 narrowing; numeric0 valid syntax but rr_on_list ignores0; ANY selector permits unknown qtypes but QTYPE ANY itself is not positive cache extraction."
+    },
+    {
+      "id": "PARSE-MIN-CACHE-TTL",
+      "source": "option.c:760-765,3454-3457,3523-3550",
+      "options": [
+        "min-cache-ttl"
+      ],
+      "required_cases": [
+        "min-cache-ttl-missing",
+        "min-cache-ttl-empty",
+        "min-cache-ttl-zero",
+        "min-cache-ttl-one",
+        "min-cache-ttl-ordinary",
+        "min-cache-ttl-max-int",
+        "min-cache-ttl-signed-wrap",
+        "min-cache-ttl-u32-wrap",
+        "min-cache-ttl-long-decimal-wrap",
+        "min-cache-ttl-negative",
+        "min-cache-ttl-nondigit",
+        "min-cache-ttl-quoted",
+        "min-cache-ttl-file-duplicate",
+        "min-cache-ttl-cli-file-override"
+      ],
+      "contract": "numeric_check allows empty; exact musl atoi wraps32-bit signed int. TTLs cast to unsigned long64; min clamp3600 is a signed comparison before cast. Forward max remains signed int. Runtime wrapped values require actual image calibration, not parser-only credit."
+    },
+    {
+      "id": "PARSE-MAX-CACHE-TTL",
+      "source": "option.c:760-765,3454-3457,3523-3550",
+      "options": [
+        "max-cache-ttl"
+      ],
+      "required_cases": [
+        "max-cache-ttl-missing",
+        "max-cache-ttl-empty",
+        "max-cache-ttl-zero",
+        "max-cache-ttl-one",
+        "max-cache-ttl-ordinary",
+        "max-cache-ttl-max-int",
+        "max-cache-ttl-signed-wrap",
+        "max-cache-ttl-u32-wrap",
+        "max-cache-ttl-long-decimal-wrap",
+        "max-cache-ttl-negative",
+        "max-cache-ttl-nondigit",
+        "max-cache-ttl-quoted",
+        "max-cache-ttl-file-duplicate",
+        "max-cache-ttl-cli-file-override"
+      ],
+      "contract": "numeric_check allows empty; exact musl atoi wraps32-bit signed int. TTLs cast to unsigned long64; min clamp3600 is a signed comparison before cast. Forward max remains signed int. Runtime wrapped values require actual image calibration, not parser-only credit."
+    },
+    {
+      "id": "PARSE-MAX-TTL",
+      "source": "option.c:760-765,3454-3457,3523-3550",
+      "options": [
+        "max-ttl"
+      ],
+      "required_cases": [
+        "max-ttl-missing",
+        "max-ttl-empty",
+        "max-ttl-zero",
+        "max-ttl-one",
+        "max-ttl-ordinary",
+        "max-ttl-max-int",
+        "max-ttl-signed-wrap",
+        "max-ttl-u32-wrap",
+        "max-ttl-long-decimal-wrap",
+        "max-ttl-negative",
+        "max-ttl-nondigit",
+        "max-ttl-quoted",
+        "max-ttl-file-duplicate",
+        "max-ttl-cli-file-override"
+      ],
+      "contract": "numeric_check allows empty; exact musl atoi wraps32-bit signed int. TTLs cast to unsigned long64; min clamp3600 is a signed comparison before cast. Forward max remains signed int. Runtime wrapped values require actual image calibration, not parser-only credit."
+    },
+    {
+      "id": "PARSE-NEG-TTL",
+      "source": "option.c:760-765,3454-3457,3523-3550",
+      "options": [
+        "neg-ttl"
+      ],
+      "required_cases": [
+        "neg-ttl-missing",
+        "neg-ttl-empty",
+        "neg-ttl-zero",
+        "neg-ttl-one",
+        "neg-ttl-ordinary",
+        "neg-ttl-max-int",
+        "neg-ttl-signed-wrap",
+        "neg-ttl-u32-wrap",
+        "neg-ttl-long-decimal-wrap",
+        "neg-ttl-negative",
+        "neg-ttl-nondigit",
+        "neg-ttl-quoted",
+        "neg-ttl-file-duplicate",
+        "neg-ttl-cli-file-override"
+      ],
+      "contract": "numeric_check allows empty; exact musl atoi wraps32-bit signed int. TTLs cast to unsigned long64; min clamp3600 is a signed comparison before cast. Forward max remains signed int. Runtime wrapped values require actual image calibration, not parser-only credit."
+    },
+    {
+      "id": "PARSE-DNS-FORWARD-MAX",
+      "source": "option.c:760-765,3454-3457,3523-3550",
+      "options": [
+        "dns-forward-max"
+      ],
+      "required_cases": [
+        "dns-forward-max-missing",
+        "dns-forward-max-empty",
+        "dns-forward-max-zero",
+        "dns-forward-max-one",
+        "dns-forward-max-ordinary",
+        "dns-forward-max-max-int",
+        "dns-forward-max-signed-wrap",
+        "dns-forward-max-u32-wrap",
+        "dns-forward-max-long-decimal-wrap",
+        "dns-forward-max-negative",
+        "dns-forward-max-nondigit",
+        "dns-forward-max-quoted",
+        "dns-forward-max-file-duplicate",
+        "dns-forward-max-cli-file-override"
+      ],
+      "contract": "numeric_check allows empty; exact musl atoi wraps32-bit signed int. TTLs cast to unsigned long64; min clamp3600 is a signed comparison before cast. Forward max remains signed int. Runtime wrapped values require actual image calibration, not parser-only credit."
+    },
+    {
+      "id": "PARSE-STALE",
+      "source": "option.c:5335-5350",
+      "options": [
+        "use-stale-cache"
+      ],
+      "required_cases": [
+        "stale-no-arg",
+        "stale-empty",
+        "stale-zero",
+        "stale-positive",
+        "stale-default-86400",
+        "stale-negative",
+        "stale-signed-wrap-rejected",
+        "stale-atoi-zero-wrap",
+        "stale-file-duplicate",
+        "stale-cli-file-override"
+      ],
+      "contract": "No argument defaults86400; supplied0 means forever; signed wrapped negative is rejected, distinct from TTL casts."
+    },
+    {
+      "id": "PARSE-BOOL",
+      "source": "option.c:463,562,608;read_opts",
+      "options": [
+        "no-negcache",
+        "proxy-dnssec",
+        "no-round-robin"
+      ],
+      "required_cases": [
+        "no-negcache-plain",
+        "no-negcache-repeat",
+        "no-negcache-unexpected-argument",
+        "proxy-dnssec-plain",
+        "proxy-dnssec-repeat",
+        "proxy-dnssec-unexpected-argument",
+        "no-round-robin-plain",
+        "no-round-robin-repeat",
+        "no-round-robin-unexpected-argument"
+      ],
+      "contract": "Boolean consumers and unexpected-argument/duplicate behavior must match actual image."
+    },
+    {
+      "id": "EXTRACT-BASE",
+      "source": "forward.c:696-887,1355-1535;rfc1035.c:768-1210",
+      "options": [
+        "cache-rr",
+        "no-negcache",
+        "proxy-dnssec"
+      ],
+      "required_cases": [
+        "extract-a",
+        "extract-aaaa",
+        "extract-srv-default",
+        "extract-ptr-generic-default",
+        "extract-txt-unselected",
+        "extract-txt-selected",
+        "extract-any-selector",
+        "extract-qtype-any-no-positive",
+        "extract-qtype-zero-selected",
+        "extract-qtype-zero-any",
+        "extract-cname-query-no-cache",
+        "extract-ch-class",
+        "extract-any-class",
+        "extract-opcode-other",
+        "extract-tc-no-cache",
+        "extract-servfail-no-cache",
+        "extract-refused-recovery",
+        "extract-extended-rcode",
+        "extract-upstream-ra-zero",
+        "extract-query-cd",
+        "extract-upstream-cd",
+        "extract-ad-default",
+        "extract-ad-proxy",
+        "extract-nocache-ecs",
+        "extract-fixed-ecs-cacheable",
+        "extract-signed-query",
+        "extract-signed-reply",
+        "extract-opt-version",
+        "extract-opt-flags",
+        "extract-multiple-additional"
+      ],
+      "contract": "Capture original CD/fullRCODE, force RA and apply known-local/doctor/bogus before extract; TC/errors bypass extraction. NO_CACHE/CD run ordered deletion/eviction but suppress commit. Signed and EDNS metadata need actual image observations; no blanket unsupported admission."
+    },
+    {
+      "id": "GENERIC-RDATA",
+      "source": "rfc1035.c:973-1061;rrfilter.c:296-342;dnsmasq.h:317-363",
+      "options": [
+        "cache-rr"
+      ],
+      "required_cases": [
+        "generic-ns",
+        "generic-md",
+        "generic-mf",
+        "generic-soa",
+        "generic-mb",
+        "generic-mg",
+        "generic-mr",
+        "generic-ptr-generic",
+        "generic-minfo",
+        "generic-mx",
+        "generic-rp",
+        "generic-afsdb",
+        "generic-rt",
+        "generic-sig",
+        "generic-px",
+        "generic-nxt",
+        "generic-kx",
+        "generic-srv",
+        "generic-dname",
+        "generic-txt",
+        "generic-naptr-opaque",
+        "generic-caa",
+        "generic-svcb-opaque",
+        "generic-https-opaque",
+        "generic-ds",
+        "generic-dnskey",
+        "generic-rrsig-opaque",
+        "generic-unknown",
+        "generic-empty",
+        "generic-inline-13",
+        "generic-block-14",
+        "generic-mixed-inline-block",
+        "generic-compressed-owner",
+        "generic-compressed-rdata",
+        "generic-binary-name",
+        "generic-fixed-prefix-short",
+        "generic-name-past-rdlen",
+        "generic-rdata-past-packet",
+        "generic-trailing-data",
+        "generic-expanded-u16-overflow",
+        "generic-malformed-prefix-effects",
+        "generic-large-udp-truncate",
+        "generic-large-tcp-cache",
+        "generic-large-tcp-opt512",
+        "generic-large-tcp-noopt"
+      ],
+      "contract": "Exact20-type descriptor includes CNAME handled separately; onAArch64 RR_IMDATALEN=13. Descriptor0 canonicalizes embedded names, numeric fixed prefixes clip to remainingRDLEN, catchall copies opaque bytes; bounds/allocation/expandedu16 failures retain ordered old-record effects and no silent positivecache. Cached TCP ignores advertised client UDPsize and uses65536 output; UDP preserves originalclientlimit even after storing large completeRR."
+    },
+    {
+      "id": "REVERSE",
+      "source": "rfc1035.c:202-304,802-865,1893-2014;cache.c:611-647,1261-1320",
+      "options": [
+        "cache-rr",
+        "no-negcache",
+        "min-cache-ttl",
+        "max-cache-ttl",
+        "max-ttl",
+        "proxy-dnssec",
+        "neg-ttl",
+        "use-stale-cache",
+        "no-round-robin"
+      ],
+      "required_cases": [
+        "ptr-ipv4",
+        "ptr-ipv6",
+        "ptr-partial-v4",
+        "ptr-v4-octet-wrap",
+        "ptr-v4-extra-label",
+        "ptr-v4-atoi-wrap",
+        "ptr-partial-v6",
+        "ptr-ip6-int",
+        "ptr-ipv6-legacy-bitstring",
+        "ptr-invalid-arpa-generic",
+        "ptr-address-alias-key",
+        "ptr-two-addresses-same-target",
+        "ptr-multiple-targets",
+        "ptr-reverse-bucket-order",
+        "ptr-reverse-no-forward-alias",
+        "ptr-cname-generic-fallback",
+        "ptr-negative-nodata",
+        "ptr-negative-nxdomain",
+        "ptr-negative-cross-qtype",
+        "ptr-class-other",
+        "ptr-owner-other",
+        "ptr-malformed-target",
+        "ptr-target-past-rdlen-bounded",
+        "ptr-unrelated-trailing-malformed",
+        "ptr-replace-address-rrset",
+        "ptr-forward-independent-same-name",
+        "ptr-static-host-precedence",
+        "ptr-dhcp-precedence",
+        "ptr-filter-compose",
+        "ptr-expiry-refresh",
+        "ptr-stale-refresh",
+        "ptr-tcp-child-import"
+      ],
+      "contract": "Address-form successful PTR stores F_REVERSE targetname+IP; reverse lookup searches hash buckets and does not rotate via OPT_NORR. PTR+CNAME/missingPTR fallback is ordinary Generic12, NXDOMAIN is forward universalnegative. Preserve address alias key, C hash/ordering/local precedence and per-direction conflict/expiry."
+    },
+    {
+      "id": "NEGATIVE",
+      "source": "rfc1035.c:595-730,1134-1210,1750-1810,2283-2413",
+      "options": [
+        "no-negcache",
+        "neg-ttl",
+        "cache-rr",
+        "proxy-dnssec"
+      ],
+      "required_cases": [
+        "negative-nxdomain-a",
+        "negative-nxdomain-aaaa",
+        "negative-nxdomain-txt",
+        "negative-nxdomain-any",
+        "negative-nxdomain-zero",
+        "negative-nodata-a",
+        "negative-nodata-aaaa",
+        "negative-nodata-txt-selected",
+        "negative-nodata-txt-unselected",
+        "negative-nodata-srv",
+        "negative-nodata-generic-ptr",
+        "negative-nodata-address-ptr",
+        "negative-no-soa-no-fallback",
+        "negative-no-soa-fallback",
+        "negative-soa-beats-fallback",
+        "negative-soa-minimum-less",
+        "negative-soa-ttl-less",
+        "negative-soa-zero-minimum",
+        "negative-soa-zero-ttl",
+        "negative-soa-unrelated",
+        "negative-soa-root",
+        "negative-soa-suffix-not-label-boundary",
+        "negative-soa-case-mismatch",
+        "negative-first-soa-selection",
+        "negative-malformed-soa",
+        "negative-soa-replaced",
+        "negative-soa-evicted",
+        "negative-soa-expired",
+        "negative-cname-soa-order",
+        "negative-cname-no-soa",
+        "negative-explicit-soa-positive-share",
+        "negative-no-negcache-nxdomain",
+        "negative-no-negcache-nodata",
+        "negative-no-negcache-cname-positive-prefix",
+        "negative-bogus-no-negcache-bypass",
+        "negative-bogus-cd-bypass",
+        "negative-local-known-nodata",
+        "negative-filter-keeps-positive"
+      ],
+      "contract": "SOA owner matches byte suffix without label-boundary/case folding; cache independentSOA and negative min(SOA TTL,MINIMUM). CNAME target immediately followsCNAME in insert chain; SOA inserted later. no-negcache bypasses ordinarynegative only; bogus does its own insertion. Parent TCP import must preserve ordering and absoluteexpires."
+    },
+    {
+      "id": "TTL-MIN-CACHE-TTL",
+      "source": "cache.c:665-692;rfc1035.c:830-841,912-922,1654-1686,595-730",
+      "options": [
+        "min-cache-ttl"
+      ],
+      "required_cases": [
+        "min-cache-ttl-a",
+        "min-cache-ttl-aaaa",
+        "min-cache-ttl-generic",
+        "min-cache-ttl-reverse4",
+        "min-cache-ttl-reverse6",
+        "min-cache-ttl-cname-chain",
+        "min-cache-ttl-nxdomain",
+        "min-cache-ttl-nodata",
+        "min-cache-ttl-soa-authority",
+        "min-cache-ttl-no-soa-fallback",
+        "min-cache-ttl-zero-ttl",
+        "min-cache-ttl-local-immune",
+        "min-cache-ttl-live-unrelated-owner",
+        "min-cache-ttl-live-unrelated-type",
+        "min-cache-ttl-live-other-class",
+        "min-cache-ttl-tcp-import",
+        "min-cache-ttl-expiry-recovery",
+        "min-cache-ttl-wrapped-runtime"
+      ],
+      "contract": "Storage clamps max-cache then min-cache; max-ttl clips matching IN Answer TTL before insert, and clips dynamic replay separately. IndependentSOA/live authority/local immortal TTL differ. min/max-cache never rewrite first live TTL. Wrapped signed casts and absolute parent transfer must match image."
+    },
+    {
+      "id": "TTL-MAX-CACHE-TTL",
+      "source": "cache.c:665-692;rfc1035.c:830-841,912-922,1654-1686,595-730",
+      "options": [
+        "max-cache-ttl"
+      ],
+      "required_cases": [
+        "max-cache-ttl-a",
+        "max-cache-ttl-aaaa",
+        "max-cache-ttl-generic",
+        "max-cache-ttl-reverse4",
+        "max-cache-ttl-reverse6",
+        "max-cache-ttl-cname-chain",
+        "max-cache-ttl-nxdomain",
+        "max-cache-ttl-nodata",
+        "max-cache-ttl-soa-authority",
+        "max-cache-ttl-no-soa-fallback",
+        "max-cache-ttl-zero-ttl",
+        "max-cache-ttl-local-immune",
+        "max-cache-ttl-live-unrelated-owner",
+        "max-cache-ttl-live-unrelated-type",
+        "max-cache-ttl-live-other-class",
+        "max-cache-ttl-tcp-import",
+        "max-cache-ttl-expiry-recovery",
+        "max-cache-ttl-wrapped-runtime"
+      ],
+      "contract": "Storage clamps max-cache then min-cache; max-ttl clips matching IN Answer TTL before insert, and clips dynamic replay separately. IndependentSOA/live authority/local immortal TTL differ. min/max-cache never rewrite first live TTL. Wrapped signed casts and absolute parent transfer must match image."
+    },
+    {
+      "id": "TTL-MAX-TTL",
+      "source": "cache.c:665-692;rfc1035.c:830-841,912-922,1654-1686,595-730",
+      "options": [
+        "max-ttl"
+      ],
+      "required_cases": [
+        "max-ttl-a",
+        "max-ttl-aaaa",
+        "max-ttl-generic",
+        "max-ttl-reverse4",
+        "max-ttl-reverse6",
+        "max-ttl-cname-chain",
+        "max-ttl-nxdomain",
+        "max-ttl-nodata",
+        "max-ttl-soa-authority",
+        "max-ttl-no-soa-fallback",
+        "max-ttl-zero-ttl",
+        "max-ttl-local-immune",
+        "max-ttl-live-unrelated-owner",
+        "max-ttl-live-unrelated-type",
+        "max-ttl-live-other-class",
+        "max-ttl-tcp-import",
+        "max-ttl-expiry-recovery",
+        "max-ttl-wrapped-runtime"
+      ],
+      "contract": "Storage clamps max-cache then min-cache; max-ttl clips matching IN Answer TTL before insert, and clips dynamic replay separately. IndependentSOA/live authority/local immortal TTL differ. min/max-cache never rewrite first live TTL. Wrapped signed casts and absolute parent transfer must match image."
+    },
+    {
+      "id": "TTL-COMPOSE",
+      "source": "cache.c:665-692;rfc1035.c:768-1210,1654-1686",
+      "options": [
+        "min-cache-ttl",
+        "max-cache-ttl",
+        "max-ttl",
+        "neg-ttl"
+      ],
+      "required_cases": [
+        "ttl-max-then-min",
+        "ttl-wire-max-before-cache-min",
+        "ttl-min-zero-enables-soa",
+        "ttl-max-zero-disables",
+        "ttl-all-options-forward",
+        "ttl-all-options-reverse",
+        "ttl-all-options-negative",
+        "ttl-cname-target-independent-expiry",
+        "ttl-expiry-exact-second",
+        "ttl-stale-strict-after-expiry"
+      ],
+      "contract": "Crossed min>max yields min; first wire clipping precedes storeclamps. ttl0 failure occurs aftercacheclamps. Expired atnow>=ttd; stale iffnow>ttd."
+    },
+    {
+      "id": "METADATA",
+      "source": "forward.c:696-887,1355-1441;rfc1035.c:1693-1810,1938-1989,2100-2149,2283-2409",
+      "options": [
+        "proxy-dnssec",
+        "cache-rr",
+        "no-negcache"
+      ],
+      "required_cases": [
+        "metadata-a-rd-off",
+        "metadata-a-ad-request",
+        "metadata-a-do-request",
+        "metadata-a-cd-request",
+        "metadata-a-proxy-ad",
+        "metadata-a-proxy-cd-ad",
+        "metadata-aaaa-rd-off",
+        "metadata-aaaa-ad-request",
+        "metadata-aaaa-do-request",
+        "metadata-aaaa-cd-request",
+        "metadata-aaaa-proxy-ad",
+        "metadata-aaaa-proxy-cd-ad",
+        "metadata-generic-rd-off",
+        "metadata-generic-ad-request",
+        "metadata-generic-do-request",
+        "metadata-generic-cd-request",
+        "metadata-generic-proxy-ad",
+        "metadata-generic-proxy-cd-ad",
+        "metadata-reverse-rd-off",
+        "metadata-reverse-ad-request",
+        "metadata-reverse-do-request",
+        "metadata-reverse-cd-request",
+        "metadata-reverse-proxy-ad",
+        "metadata-reverse-proxy-cd-ad",
+        "metadata-negative-rd-off",
+        "metadata-negative-ad-request",
+        "metadata-negative-do-request",
+        "metadata-negative-cd-request",
+        "metadata-negative-proxy-ad",
+        "metadata-negative-proxy-cd-ad",
+        "metadata-cname-rd-off",
+        "metadata-cname-ad-request",
+        "metadata-cname-do-request",
+        "metadata-cname-cd-request",
+        "metadata-cname-proxy-ad",
+        "metadata-cname-proxy-cd-ad",
+        "metadata-ds-generic-stale",
+        "metadata-dnskey-generic-stale",
+        "metadata-local-ad",
+        "metadata-local-do",
+        "metadata-reply-signed-ad",
+        "metadata-cached-soa-ad"
+      ],
+      "contract": "Target no-DNSSEC binary: genericDS/DNSKEY are F_RR and do not gain validationflags; proxy retains liveAD but cache replay has no authenticateddata marker. RD suppresses dynamiccache, DO refuses unsignedcache after lookup/rotation/expiry effects, CD clears cachedAD and prevents ordinarycommit. Signed handling and negativeSOA sec_data must not be assumed."
+    },
+    {
+      "id": "ORDER-FAILURE",
+      "source": "cache.c:518-919;rfc1035.c:768-1210",
+      "options": [
+        "cache-rr",
+        "no-round-robin",
+        "no-negcache",
+        "min-cache-ttl",
+        "max-cache-ttl",
+        "max-ttl"
+      ],
+      "required_cases": [
+        "order-rrset-replace",
+        "order-a-aaaa-coexist",
+        "order-generic-types-coexist",
+        "order-cname-replaces-types",
+        "order-nxdomain-type-conflicts",
+        "order-positive-negative-replace",
+        "order-local-same-address",
+        "order-local-different-address-abort",
+        "order-local-cname-abort",
+        "order-cname-target-generation-preserve",
+        "order-cname-target-slot-reuse-invalidates",
+        "order-cname-target-local",
+        "order-cname10",
+        "order-cname11",
+        "order-cname-loop",
+        "order-cname-unresolved",
+        "order-zero-ttl-prefix-abort",
+        "order-late-malformed-prefix-abort",
+        "order-late-rebind-prefix-abort",
+        "order-cd-deletes-old",
+        "order-ecs-no-cache-deletes-old",
+        "order-non-in-after-aborted-pending",
+        "order-capacity0",
+        "order-capacity1-chain",
+        "order-capacity1-negative-soa",
+        "order-capacity-live-rrset-eviction",
+        "order-expired-reclaim-before-live",
+        "order-long-name74",
+        "order-long-name75",
+        "order-long-name-quota0",
+        "order-long-name-quota-reuse",
+        "order-reverse-global-expired-scan",
+        "order-reverse-forward-share-capacity",
+        "order-recovery-after-abort",
+        "order-clear-hup"
+      ],
+      "contract": "Immediate deletion/eviction precedes commit; prefixerror invalidates transaction and nextcache_start_insert reclaims pending. Local sameaddress is reused, otherlocal conflict aborts. CNAME generation survivessame-name replacement but not slot reuse. Slots/bigname quota/sharedreversepool and exactmetrics/recovery need liveobservations."
+    },
+    {
+      "id": "ROUND-ROBIN",
+      "source": "cache.c:312-342,1174-1320;rfc1035.c:1750-2446",
+      "options": [
+        "no-round-robin",
+        "cache-rr"
+      ],
+      "required_cases": [
+        "round-a-default",
+        "round-a-disabled",
+        "round-aaaa-default",
+        "round-aaaa-disabled",
+        "round-generic-default",
+        "round-generic-disabled",
+        "round-mixed-generic-default",
+        "round-mixed-generic-disabled",
+        "round-cname-prefix-lookups",
+        "round-do-miss-effects",
+        "round-rd-off-effects",
+        "round-hosts-default",
+        "round-hosts-disabled",
+        "round-reverse-default",
+        "round-reverse-disabled",
+        "round-insert-order",
+        "round-expired-entry-removal",
+        "round-tcp-snapshot-vs-parent"
+      ],
+      "contract": "Round-robin acts on same-flag forward hashchains; genericlookup may reorderotherRRtypes. ReversehasnoOPT_NORR gate; hashbucket imageidentity and local/dynamic separation matter. DO/RD miss can change LRU/order evenwhen noanswer."
+    },
+    {
+      "id": "STALE",
+      "source": "cache.c:468-490;rfc1035.c:1649-1686;forward.c:1944-2030,2448-2795",
+      "options": [
+        "use-stale-cache",
+        "cache-rr",
+        "proxy-dnssec",
+        "no-negcache"
+      ],
+      "required_cases": [
+        "stale-a-udp-refresh",
+        "stale-a-tcp-refresh",
+        "stale-a-rd-off",
+        "stale-a-do-off",
+        "stale-a-do-on",
+        "stale-a-finite-expired",
+        "stale-a-forever",
+        "stale-aaaa-udp-refresh",
+        "stale-aaaa-tcp-refresh",
+        "stale-aaaa-rd-off",
+        "stale-aaaa-do-off",
+        "stale-aaaa-do-on",
+        "stale-aaaa-finite-expired",
+        "stale-aaaa-forever",
+        "stale-generic-udp-refresh",
+        "stale-generic-tcp-refresh",
+        "stale-generic-rd-off",
+        "stale-generic-do-off",
+        "stale-generic-do-on",
+        "stale-generic-finite-expired",
+        "stale-generic-forever",
+        "stale-reverse-udp-refresh",
+        "stale-reverse-tcp-refresh",
+        "stale-reverse-rd-off",
+        "stale-reverse-do-off",
+        "stale-reverse-do-on",
+        "stale-reverse-finite-expired",
+        "stale-reverse-forever",
+        "stale-negative-udp-refresh",
+        "stale-negative-tcp-refresh",
+        "stale-negative-rd-off",
+        "stale-negative-do-off",
+        "stale-negative-do-on",
+        "stale-negative-finite-expired",
+        "stale-negative-forever",
+        "stale-cname-udp-refresh",
+        "stale-cname-tcp-refresh",
+        "stale-cname-rd-off",
+        "stale-cname-do-off",
+        "stale-cname-do-on",
+        "stale-cname-finite-expired",
+        "stale-cname-forever",
+        "stale-default",
+        "stale-equal-expiry-zero-not-stale",
+        "stale-filter-ede-precedence",
+        "stale-client-opt-ede3",
+        "stale-no-opt-no-ede",
+        "stale-upstream-failure-retains",
+        "stale-refresh-new-client-joins",
+        "stale-background-no-second-reply",
+        "stale-parent-progress-during-refresh",
+        "stale-tcp-eof-before-refresh",
+        "stale-tcp-refresh-import",
+        "stale-stop-refresh-cleanup",
+        "stale-hup-clears"
+      ],
+      "contract": "Finite allowance expiry uses age>=allowance; equalityttd TTL0 is notstale, strictlylaterstaleTTL0. UDP repliesold thenbackground once; TCP repliesold, closesclient, refreshes once and exits. CachedunsignedDO/RD gate differsfromlocal. PreserveEDE3/filter17 precedence and noresponse/backgroundcoalescing."
+    },
+    {
+      "id": "TCP-CALLERS",
+      "source": "dnsmasq.c:2102-2200;forward.c:2367-2795;cache.c:844-919,950-1157;lease.c:564-616",
+      "options": [
+        "cache-rr",
+        "no-negcache",
+        "min-cache-ttl",
+        "max-cache-ttl",
+        "max-ttl",
+        "proxy-dnssec",
+        "use-stale-cache",
+        "no-round-robin"
+      ],
+      "required_cases": [
+        "tcp-parent-udp-new-record",
+        "tcp-parent-udp-replaces-record",
+        "tcp-other-connection-inserts",
+        "tcp-current-connection-inserts",
+        "tcp-child-import-visible-parent",
+        "tcp-parent-hup-clear",
+        "tcp-parent-hup-hosts",
+        "tcp-child-local-soa-known-name",
+        "tcp-accept-clock-fixed-ttl",
+        "tcp-accept-fresh-later-expired",
+        "tcp-accept-expired-stale",
+        "tcp-child-late-import-absolute-expiry",
+        "tcp-child-cname-negative-soa-order",
+        "tcp-parent-local-conflict-on-import",
+        "tcp-parent-lease-added",
+        "tcp-parent-lease-renamed",
+        "tcp-parent-lease-released",
+        "tcp-existing-lease-ttl",
+        "tcp-debug-live-cache",
+        "tcp-debug-clock",
+        "tcp-client-drop-during-refresh",
+        "tcp-udp-progress-slow-upstream"
+      ],
+      "contract": "NondebugC forkscache/config/hosts/DHCP entries ataccept; parentUDP/HUP/otherTCPupdates cannot mutateexistingchild. Childcurrentinsert stayslocal and marshalsordered absoluteexpiry toparent. tcp_request now isacceptparameter throughoutconnection; debug nofork/buffering behavior must be calibrated separately. Singlepoll doesnot automaticallyexempt callerobservations."
+    },
+    {
+      "id": "FORWARD-CAPACITY",
+      "source": "option.c:3454-3457;forward.c:183-373,3140-3226",
+      "options": [
+        "dns-forward-max"
+      ],
+      "required_cases": [
+        "forward-zero-start",
+        "forward-zero-local",
+        "forward-zero-udp-refused",
+        "forward-zero-tcp",
+        "forward-one-hold-full",
+        "forward-one-coalesce",
+        "forward-extra-client-global-full",
+        "forward-same-client-retry",
+        "forward-two-slots",
+        "forward-distinct-domain-groups",
+        "forward-same-domain-master-group",
+        "forward-default-no-timeout-early",
+        "forward-timeout10-reuse-oldest",
+        "forward-absolute40-collect",
+        "forward-free-slot-before-oldest",
+        "forward-late-old-response-rejected",
+        "forward-reply-frees-capacity",
+        "forward-error-recovery",
+        "forward-full-log-rate5",
+        "forward-full-domain-log",
+        "forward-noresolv-local-group",
+        "forward-stale-background-capacity",
+        "forward-stop-pending-fd-cleanup",
+        "forward-reload-pending-group",
+        "forward-wrapped-negative-runtime"
+      ],
+      "contract": "get_new_frec collects40s, counts samegroup age<10s, limit0/negative stillvalidstartupandblocksUDPforward; reusesoldest>=10sonlywhen nofreefrec. Extra coalescedclients globalcount usesftabsize; TCP forward independent. Warnrate strict>5s, groupdomain log and release/recovery/stop must match."
+    }
+  ],
+  "required_count": 512,
+  "qualification_rules": [
+    "Exactimage C supplies every expectedbehavior; currentRust or retiredexperimentalRust nevergeneratesreference.",
+    "Partial/C-only/reference-only cannotqualify. Eachoptionmaycloseindependently onlyafterallmappedboundariesandcontrols arecomplete.",
+    "Rawqueries/replies/upstreamevents/TTL/EOF/lifecycle/metadata/identities retained canonical evidence/M5/dns-cache-contract; fullSHA+metadataarchive beforeprune.",
+    "Sourcecomment conflicts, unsafeC and nondeterministicreference behavior require minimalrepro plusexplicitguardedclassification; neverdeletecase.",
+    "Singlepollowner/no productthreads/no blockingwait; rootowns daemon/TCP/main/configDNSwiring.",
+    "TCP dynamic/local lease snapshots and acceptedclock arecallercontracts; source-frozen evidence before any new abstraction."
+  ],
+  "failure_boundaries": [
+    "Invalid/malformedlateRR leavesimmediate oldrecordremovals/evictions observablebutuncommittedprefixhidden.",
+    "Cache slot/bigname/blockdata capacity failures mustrecover withoutaborting unrelatedownerprogress; allocationfailure testinglimited to deterministic observable boundaries.",
+    "ParentTCP transferorder/absoluteexpiry/localconflict mustnot beapproximated by unrelatedglobalcache reads.",
+    "C atoi wrappedTTL cast cases mayexpire immediatelyoract unlimited; determine actualimage instead of assumingboundedRustscalarpolicy."
+  ],
+  "calibration": {
+    "executed": 0,
+    "qualified_options": []
+  }
+}
