@@ -73,6 +73,23 @@ pub fn resolve_path(
     lowercase: bool,
     filename: &[u8],
 ) -> Result<Vec<u8>, PathError> {
+    let path = error_path(prefix, lowercase, filename)?;
+    if prefix.is_some()
+        && path
+            .split(|&byte| byte == b'/')
+            .any(|component| component == b"..")
+    {
+        return Err(PathError::Traversal);
+    }
+    Ok(path)
+}
+
+/// Format a rejected path for the C ERR_PERM text without opening it.
+pub fn error_path(
+    prefix: Option<&[u8]>,
+    lowercase: bool,
+    filename: &[u8],
+) -> Result<Vec<u8>, PathError> {
     if filename.is_empty() || prefix == Some(b"") {
         return Err(PathError::Empty);
     }
@@ -108,13 +125,6 @@ pub fn resolve_path(
         path.clear();
     }
     append_bounded(&mut path, filename);
-    if prefix.is_some()
-        && path
-            .split(|&b| b == b'/')
-            .any(|component| component == b"..")
-    {
-        return Err(PathError::Traversal);
-    }
     Ok(path)
 }
 

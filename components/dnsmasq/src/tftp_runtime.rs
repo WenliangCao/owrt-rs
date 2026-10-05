@@ -528,11 +528,17 @@ impl<O: FileOpener> TransferRuntime<O> {
         let path = match path {
             Ok(path) => path,
             Err(_error) => {
+                let rejected = crate::tftp_service::error_path(
+                    path_policy.prefix.as_deref(),
+                    path_policy.lowercase,
+                    request.filename,
+                )
+                .unwrap_or_default();
                 return Ok(vec![RuntimeEvent::Send {
                     id: None,
                     peer,
-                    packet: error_packet(2, "access violation"),
-                }])
+                    packet: access_error_packet(&rejected),
+                }]);
             }
         };
         let opened = match self.opener.open(&path) {
