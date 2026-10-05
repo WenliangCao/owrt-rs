@@ -68,6 +68,17 @@ impl LogEvent {
 struct Record {
     bytes: Vec<u8>,
     offset: usize,
+    pid: u32,
+}
+
+impl Record {
+    fn new(bytes: Vec<u8>) -> Self {
+        Self {
+            bytes,
+            offset: 0,
+            pid: std::process::id(),
+        }
+    }
 }
 enum Destination {
     File(File),
@@ -100,6 +111,18 @@ pub struct Logger {
 }
 
 impl Logger {
+    /// Before log_start, C uses libc syslog with its default DAEMON facility.
+    /// Keep one explicit owner across initial lease diagnostics and helper RO
+    /// notices: their identity is the parent, independent of the configured sink.
+    pub fn early() -> Result<Self, StartupError> {
+        let config = LoggingConfig {
+            facility: Some(24),
+            file: None,
+        };
+        let (mut logger, _) = Self::start(&config, &ProcessConfig::default(), None)?;
+        logger.fallback = true;
+        Ok(logger)
+    }
     /// Construct before redirecting standard streams or changing UID.
     /// A file destination disables async queuing just as log_start does.
     pub fn start(
@@ -193,16 +216,17 @@ impl Logger {
             // Debug echo is independently bounded; blocked stderr must not
             // stop DNS/DHCP or consume the syslog queue's capacity.
             if self.echo_queue.len() < 100 {
-                self.echo_queue.push_back(Record { bytes, offset: 0 });
+                self.echo_queue.push_back(Record::new(bytes));
             }
         }
         if self.queue.len() >= self.limit {
             self.lost = self.lost.wrapping_add(1);
         } else {
-            self.queue.push_back(Record {
-                bytes: self.format(event.service, event.priority, message),
-                offset: 0,
-            });
+            self.queue.push_back(Record::new(self.format(
+                event.service,
+                event.priority,
+                message,
+            )));
         }
         self.flush_ready();
     }
@@ -270,6 +294,12 @@ impl Logger {
             let Some(record) = self.queue.front_mut() else {
                 break;
             };
+            // An early owner may survive daemon fork. Never deliver records
+            // already queued by another process, matching log.c's PID guard.
+            if record.pid != std::process::id() {
+                self.queue.pop_front();
+                continue;
+            }
             let datagram = matches!(self.destination, Destination::Syslog { stream: false, .. });
             let bytes = &record.bytes[record.offset..record.bytes.len() - usize::from(datagram)];
             self.connection_good = true;
@@ -294,7 +324,7 @@ impl Logger {
                             Priority::Warning,
                             format!("overflow: {lost} log entries lost").as_bytes(),
                         );
-                        self.queue.push_back(Record { bytes, offset: 0 });
+                        self.queue.push_back(Record::new(bytes));
                     }
                 }
                 continue;
@@ -349,14 +379,14 @@ impl Logger {
                 if self.echo.is_some() && self.echo_queue.len() < 100 {
                     let bytes =
                         format!("{PROGRAM}: log failed: {}\n", error_text(&error)).into_bytes();
-                    self.echo_queue.push_back(Record { bytes, offset: 0 });
+                    self.echo_queue.push_back(Record::new(bytes));
                 }
                 let bytes = self.format(
                     Service::Dns,
                     Priority::Critical,
                     format!("log failed: {}", error_text(&error)).as_bytes(),
                 );
-                self.queue.push_back(Record { bytes, offset: 0 });
+                self.queue.push_back(Record::new(bytes));
             }
             self.connection_good = false;
             break;
