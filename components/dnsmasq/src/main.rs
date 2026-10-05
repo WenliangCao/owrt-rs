@@ -1741,6 +1741,8 @@ struct SinglePoll {
     script_arp: bool,
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     arp_awake: bool,
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    tftp_parent_wake: Option<Instant>,
 }
 
 struct PollListener {
@@ -1795,6 +1797,7 @@ struct PollTcpClient {
     mac_deferred: bool,
     mac_deadline: Instant,
     packet_limit: usize,
+    parent_cache_activity: bool,
 }
 
 enum TcpClientPhase {
@@ -1813,6 +1816,7 @@ impl PollTcpClient {
     ) -> Result<(), ()> {
         let bogus = self.forward.take_bogus_cache_entry();
         if insert_cache || bogus.is_some() {
+            self.parent_cache_activity = true;
             let mut parent = parent.lock().map_err(|_| ())?;
             if let Some(daemon) = parent.daemon.as_mut() {
                 if let Some((name, ttl)) = bogus {
@@ -2095,6 +2099,8 @@ impl SinglePoll {
             script_arp: false,
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             arp_awake: true,
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            tftp_parent_wake: None,
         }
     }
 
@@ -2903,6 +2909,7 @@ impl SinglePoll {
             mac_deferred,
             mac_deadline: Instant::now() + Duration::from_secs(3),
             packet_limit: self.packet_limit,
+            parent_cache_activity: false,
         });
     }
 
@@ -2946,10 +2953,18 @@ impl SinglePoll {
                     logger.emit(LogEvent::new(Service::Debug, Priority::Debug, message));
                 }
             }
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            {
+                self.arp_awake |= std::mem::take(&mut self.clients[index].parent_cache_activity);
+            }
             if result.unwrap_or(false) {
                 index += 1;
             } else {
                 self.clients.swap_remove(index);
+                #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+                {
+                    self.arp_awake = true;
+                } // C parent receives the TCP child's SIGCHLD.
                 self.parent_events.lock().unwrap().tcp_active = self.clients.len();
             }
         }
@@ -3528,6 +3543,18 @@ impl SinglePoll {
         }
         if let Some(tftp) = &self.tftp {
             tftp.append_poll_fds(&mut fds);
+            if tftp.active_transfers() != 0 {
+                // C's existing active-TFTP poll timer is at most 250ms.
+                let wake = self
+                    .tftp_parent_wake
+                    .get_or_insert(now + Duration::from_millis(250));
+                if now >= *wake {
+                    self.arp_awake = true;
+                    *wake = now + Duration::from_millis(250);
+                }
+            } else {
+                self.tftp_parent_wake = None;
+            }
         }
         if let Some(neighbors) = &self.neighbors {
             neighbors.append_poll_fds(&mut fds);
