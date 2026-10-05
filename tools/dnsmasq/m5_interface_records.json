@@ -3704,8 +3704,11 @@
         "domain.c:153-202",
         "rfc1035.c:1875-2011"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-reverse-negative-nodata",
+        "synth-reverse-negative-nxdomain"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-PTR/11",
@@ -3728,8 +3731,10 @@
         "domain.c:153-202",
         "rfc1035.c:1875-2011"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-reverse-bits"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-PTR/13",
