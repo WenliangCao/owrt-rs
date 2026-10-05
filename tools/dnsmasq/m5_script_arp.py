@@ -441,6 +441,8 @@ def run_side(args):
             continue
         folder = args.out / label
         folder.mkdir()
+        script.write_text(SCRIPT)
+        script.chmod(0o755)
         for interface in ['arps0', 'arpw0']:
             # iproute's default flush excludes PERMANENT and NOARP entries.
             ip('neigh', 'flush', 'dev', interface, 'nud', 'all')
