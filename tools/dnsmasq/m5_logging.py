@@ -181,6 +181,10 @@ def cases():
                      'reference_defect': 'C TCP have_pseudoheader persists across local/no-server queries',
                      'argv': ['--log-facility=-', '--txt-record=kept.logging,explicit-user'],
                      'options': ['no-ident']})
+        rows.append({'id': 'tcp-edns-fresh-' + name, 'scope': 'identity-full', 'kind': 'run',
+                     'identity_matrix': True, 'identity_sticky_probe': cls, 'identity_fresh': True,
+                     'argv': ['--log-facility=-', '--txt-record=kept.logging,explicit-user'],
+                     'options': ['no-ident']})
     return rows
 
 
@@ -304,7 +308,7 @@ def identity_probes():
     return probes
 
 
-def identity_sequence(transport, calibrate, sticky_probe=None):
+def identity_sequence(transport, calibrate, sticky_probe=None, fresh=False):
     observed, raw = [], []
     endpoint = socket.socket(socket.AF_INET, socket.SOCK_STREAM if transport == 'tcp' else socket.SOCK_DGRAM)
     endpoint.settimeout(.5)
@@ -313,12 +317,10 @@ def identity_sequence(transport, calibrate, sticky_probe=None):
     try:
         probes = identity_probes()
         if sticky_probe is not None:
-            # A fresh-connection negative control precedes the EDNS->plain
-            # two-query reproduction on this connection.
             base = {'labels': [b'kept', b'logging'], 'type': 16, 'class': sticky_probe,
                     'rd': True, 'edns': False, 'do': False, 'rcode': 0 if sticky_probe == 1 else None,
                     'txt': 'explicit-user' if sticky_probe == 1 else None}
-            probes = [base, dict(base, edns=True), base]
+            probes = [base] if fresh else [dict(base, edns=True), base]
         for index, probe in enumerate(probes):
             qname = b''.join(bytes([len(label)]) + label for label in probe['labels']) + b'\0'
             wire = struct.pack('!6H', 0x7300 + index, 0x100 if probe['rd'] else 0,
@@ -411,7 +413,7 @@ def run(root, side, case, out):
             if observed['ready']:
                 if case.get('identity_matrix'):
                     for transport in ['udp', 'tcp']:
-                        rows, raw = identity_sequence(transport, side == 'c', case.get('identity_sticky_probe'))
+                        rows, raw = identity_sequence(transport, side == 'c', case.get('identity_sticky_probe'), case.get('identity_fresh', False))
                         observed['dns'].extend(rows)
                         trace['dns'].extend(raw)
                 if case.get('query_probes'):
@@ -883,7 +885,8 @@ def main():
     result['options'] = qualification(required, result['scenarios'], args.reference_only)
     result['closed'] = [name for name, detail in result['options'].items() if detail['closed']]
     save(out / 'result.json', result)
-    print(json.dumps({'cases': len(scenarios), 'failures': len(result['failures']), 'closed': result['closed']}))
+    print(json.dumps({'cases': len(scenarios), 'failures': len(result['failures']), 'closed': result['closed'],
+                      'reference_defect_packets': sum(len(row.get('reference_defect', {}).get('affected', [])) for row in result['scenarios'])}))
     return int(bool(result['failures']))
 
 
