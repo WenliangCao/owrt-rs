@@ -1164,7 +1164,8 @@ def reverse_stable(row):
         if obs['label'] in ('seed','query-0'):continue
         answers=[rr for rr in obs['reply'].get('records',[]) if rr['section']=='answer']
         if answers and all(rr['type']==12 for rr in answers):
-            signatures.append([(rr['name'],rr['type'],rr['class'],rr['data']) for rr in answers])
+            maximum=max(rr['ttl'] for rr in answers)
+            signatures.append([(rr['name'],rr['type'],rr['class'],rr['data'],rr['ttl']-maximum) for rr in answers])
     return len(signatures)>=2 and all(value==signatures[0] for value in signatures)
 
 
@@ -1257,7 +1258,7 @@ def compare_family(args):
     for label in passed:
         c,r=c_rows[label],r_rows[label]
         if 'observations' not in r:continue
-        for mode in ['upstream-count','reply-flags','reply-ttl-unbounded','missing-observation','shortened-expiry-wait','cache-counter','capacity-diagnostic']:
+        for mode in ['upstream-count','reply-flags','reply-ttl-unbounded','missing-observation','shortened-expiry-wait','cache-counter','capacity-diagnostic','reverse-repeat-order','reverse-repeat-ttl-order']:
             wrong=copy.deepcopy(r)
             if mode=='upstream-count':wrong['upstream'].append(copy.deepcopy(wrong['upstream'][0]) if wrong['upstream'] else {})
             elif mode=='reply-flags':
@@ -1280,6 +1281,15 @@ def compare_family(args):
             elif mode=='capacity-diagnostic':
                 if 'capacity_diagnostics' not in wrong:continue
                 wrong['capacity_diagnostics']=[]
+            elif mode.startswith('reverse-repeat-'):
+                if label not in variations:continue
+                cached=next(obs for obs in wrong['observations'] if obs['label'] not in ('seed','query-0'))
+                records=cached['reply']['records'];answers=[i for i,rr in enumerate(records) if rr['section']=='answer']
+                pair=next(((i,j) for n,i in enumerate(answers) for j in answers[n+1:]
+                           if (records[i]['data'],records[i]['ttl'])!=(records[j]['data'],records[j]['ttl'])
+                           and (mode=='reverse-repeat-order' or records[i]['data']==records[j]['data'])),None)
+                if pair is None:continue
+                i,j=pair;records[i],records[j]=records[j],records[i]
             else:
                 if not wrong['observations']:continue
                 wrong['observations'].pop()
