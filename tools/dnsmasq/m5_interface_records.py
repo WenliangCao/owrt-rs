@@ -15,6 +15,7 @@ from pathlib import Path
 import resource
 import shutil
 import subprocess
+import time
 import traceback
 
 from m2_rootfs import STOCK_SHA256, command, image_path, prepare, sha256
@@ -156,7 +157,69 @@ def service_cases():
         files={'dir/one':'198.18.91.9 directory.records.test\n'},
         actions=[files.probe('initial','directory.records.test'),files.write('dir/one','198.18.91.10 directory.records.test\n'),
             files.probe('changed','directory.records.test'),{'op':'unlink','path':'dir/one'},files.probe('removed','directory.records.test')])
+    def kernel(argv):return dict(op='write',path='kernel-action',text='',kernel_command=argv)
+    def state(label):return dict(op='write',path='interface-state',text='',interface_state=label)
+    v4only={'name':'m5ir0','addresses':['198.18.91.9/24']}
+    def mutation_probes(label,address):return [files.probe(label+'-aaaa','iface.records.test',type=28),files.probe(label+'-ptr',ipaddress.ip_address(address).reverse_pointer,type=12)]
+    add('interface-flag-deprecated','interface-name=iface.records.test,m5ir0\n',[],
+        'IF-FLAGS',topology=[v4only],actions=[kernel(['ip','-6','addr','add','2001:db8:91::9/64','dev','m5ir0','nodad','valid_lft','600','preferred_lft','0']),state('deprecated'),*mutation_probes('deprecated','2001:db8:91::9')])
+    privacy=[kernel(['sysctl','-q','-w','net.ipv6.conf.m5ir0.use_tempaddr=2']),
+        kernel(['ip','-6','addr','add','2001:db8:91::9/64','dev','m5ir0','mngtmpaddr','nodad','valid_lft','600','preferred_lft','300']),
+        state('privacy')]
+    add('interface-flag-temporary','interface-name=iface.records.test,m5ir0\n',[],
+        'IF-FLAGS IF-PTR',topology=[v4only],actions=[*privacy,*mutation_probes('public','2001:db8:91::9'),files.probe('temporary-ptr','temporary-placeholder.records.test',type=12,temporary_ptr=True)])
+    add('dynamic-privacy-duplicate','dynamic-host=iface.records.test,2001:db8::7,m5ir0\n',[],
+        'DH-COMPOSE IF-FLAGS',topology=[v4only],actions=[*privacy,*mutation_probes('duplicate','2001:db8:91::7')])
+    dad=[kernel(['ip','link','del','m5ir0']),kernel(['ip','link','add','m5ir0','type','veth','peer','name','m5peer0']),
+        kernel(['ip','link','set','m5ir0','up']),kernel(['ip','link','set','m5peer0','up']),
+        kernel(['sysctl','-q','-w','net.ipv6.neigh.m5ir0.retrans_time_ms=3000','net.ipv6.conf.m5ir0.dad_transmits=1']),
+        kernel(['ip','-6','addr','add','2001:db8:91::9/64','dev','m5ir0']),state('tentative')]
+    add('interface-flag-dad-completion','interface-name=iface.records.test,m5ir0\n',[],
+        'IF-FLAGS IF-CALLER',topology=[v4only],actions=[*dad,*mutation_probes('tentative','2001:db8:91::9'),
+            dict(op='pause',seconds=3.4),state('completed'),*mutation_probes('completed','2001:db8:91::9')])
+    add('interface-udp-ptr-refresh','interface-name=iface.records.test,m5ir0\n',[],
+        'IF-CALLER IF-PTR',topology=[primary],actions=[files.probe('before','iface.records.test'),
+            kernel(['ip','addr','add','198.18.91.10/24','dev','m5ir0']),state('added'),
+            files.probe('ptr-before-forward','10.91.18.198.in-addr.arpa',type=12,transports=['udp']),
+            files.probe('forward-refresh','iface.records.test',transports=['udp']),
+            files.probe('ptr-after-forward','10.91.18.198.in-addr.arpa',type=12,transports=['udp'])])
+    add('interface-tcp-inherited','interface-name=iface.records.test,m5ir0\n',[],
+        'IF-CALLER',topology=[primary],actions=[dict(op='connect',id='held'),files.probe('child-before','iface.records.test',transports=['held']),
+            kernel(['ip','addr','add','198.18.91.10/24','dev','m5ir0']),state('added'),
+            files.probe('parent-after','iface.records.test',transports=['udp']),files.probe('child-after','iface.records.test',transports=['held']),
+            files.probe('fresh','iface.records.test',transports=['tcp']),dict(op='disconnect',id='held')])
     return cases
+
+
+def run_service_side(root,side,case,out):
+    states=[];dynamic=[]
+    original_put=files.put;original_exchange=files.exchange
+    def record(label):
+        states.append({'label':label,'at':time.monotonic(),'addresses':json.loads(subprocess.check_output(['ip','-j','address','show'],text=True)),
+            'ipv6_flags':Path('/proc/net/if_inet6').read_text()})
+    def put(root,path,value,opened):
+        if isinstance(value,dict) and 'kernel_command' in value:
+            subprocess.run(value['kernel_command'],check=True)
+            return
+        if isinstance(value,dict) and 'interface_state' in value:
+            record(value['interface_state']);return
+        return original_put(root,path,value,opened)
+    def exchange(port,action,*args):
+        if action.get('temporary_ptr'):
+            raw=json.loads(subprocess.check_output(['ip','-j','-6','address','show','dev','m5ir0'],text=True))
+            temporary=next((address['local'] for interface in raw for address in interface['addr_info'] if address.get('temporary')),None)
+            if temporary is None:raise AssertionError('actual temporary IPv6 address was not created')
+            action=dict(action,name=ipaddress.ip_address(temporary).reverse_pointer)
+            dynamic.append({'id':action['id'],'address':temporary,'name':action['name'],'kernel':raw})
+        return original_exchange(port,action,*args)
+    files.put=put;files.exchange=exchange
+    try:result=endpoints.run_service_side(root,side,case,out)
+    finally:
+        files.put=original_put;files.exchange=original_exchange
+        subprocess.run(['ip','link','del','m5peer0'],capture_output=True)
+    result['interface_states']=states;result['dynamic_queries']=dynamic
+    save(out/'observed.json',result)
+    return result
 
 
 def run_syntax(root,side,case,out):
@@ -196,7 +259,7 @@ def main():
     for case in selected:
         folder=args.out/case['id'];folder.mkdir();row={'id':case['id'],'failures':[]}
         try:
-            observed={side:(run_syntax(roots[side],side,case,folder/side) if args.mode=='syntax' else endpoints.run_service_side(roots[side],side,case,folder/side)) for side in sides}
+            observed={side:(run_syntax(roots[side],side,case,folder/side) if args.mode=='syntax' else run_service_side(roots[side],side,case,folder/side)) for side in sides}
             if args.side=='both':
                 row['failures']=([] if endpoints.normal(observed['c'])==endpoints.normal(observed['rust']) else ['syntax differs']) if args.mode=='syntax' else files.compare(observed['c'],observed['rust'],case)
             row['sides']={side:({'exit':data['exit']} if args.mode=='syntax' else {'startup':data['startup'],'rows':len(data['rows']),'cleanup':data['cleanup']}) for side,data in observed.items()}
