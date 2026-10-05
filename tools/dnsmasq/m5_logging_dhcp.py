@@ -118,6 +118,10 @@ def compare_logs(left, right):
     return [] if left == right else [{'kind': 'DHCP-notices', 'expected': left, 'actual': right}]
 
 
+def relay_channels(packets):
+    return sorted(packets, key=lambda packet: tuple(packet['destination']))
+
+
 def controls():
     baseline = ['dnsmasq-dhcp[<PID>]: 7 DHCPLEASEQUERY(br-lan) 10.77.0.10 02:00:4d:35:01:01 from 10.77.0.2',
                 'dnsmasq-dhcp[<PID>]: 7 DHCPLEASEACTIVE(br-lan) 10.77.0.10 02:00:4d:35:01:01 active',
@@ -130,6 +134,15 @@ def controls():
                 'sent-option': [line.replace('  13', '  12') for line in baseline],
                 'XID': [line.replace(': 7 ', ': 8 ') for line in baseline]}
     result = {name: bool(compare_logs(baseline, changed)) for name, changed in variants.items()}
+    packets = [{'destination': ['10.78.0.2', port], 'source': ['10.77.0.1', 67], 'packet': payload}
+               for port, payload in [(67, 'aa'), (1067, 'bb'), (67, 'cc')]]
+    assert relay_channels(packets) == relay_channels([packets[1], packets[0], packets[2]])
+    for name, field, value in [('packet', 'packet', 'dd'), ('source', 'source', ['10.77.0.9', 67]),
+                               ('destination', 'destination', ['10.78.0.2', 9999])]:
+        changed = copy.deepcopy(packets);changed[0][field] = value
+        result['UDP-channel-' + name] = relay_channels(packets) != relay_channels(changed)
+    result['UDP-channel-count'] = relay_channels(packets) != relay_channels(packets[1:])
+    result['UDP-channel-order'] = relay_channels(packets) != relay_channels([packets[2], packets[1], packets[0]])
     assert all(result.values()) and not compare_logs(baseline, baseline)
     return result
 
@@ -214,7 +227,7 @@ def main(args):
                 # order, which changes between C runs. Preserve every byte,
                 # endpoint and within-channel order, and compare channels.
                 for packet_case in row['cases']:
-                    packet_case['observed']['upstream'].sort(key=lambda packet: tuple(packet['destination']))
+                    packet_case['observed']['upstream'] = relay_channels(packet_case['observed']['upstream'])
             errors = relay.evaluate(evaluation_rows, corpus, ['c', 'rust'])
         if scope != 'leasequery':
             for name, item in cleanup.items():
