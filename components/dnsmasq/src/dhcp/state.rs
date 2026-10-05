@@ -169,7 +169,7 @@ impl Outcome {
     }
 }
 
-fn identity(packet: Packet<'_>, ignore_client_id: bool) -> ClientIdentity {
+pub(crate) fn identity(packet: Packet<'_>, ignore_client_id: bool) -> ClientIdentity {
     ClientIdentity {
         hardware_type: u32::from(packet.hardware_type()),
         hardware_address: packet.hardware_address().to_vec(),
