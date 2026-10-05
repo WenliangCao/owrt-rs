@@ -14,6 +14,7 @@ import sys
 import copy
 import json
 import os
+import re
 from pathlib import Path
 import resource
 import struct
@@ -127,6 +128,7 @@ def service_cases():
     cases=[]
     def add(ident, config, names=('one.endpoint.test',), **extra):
         if 'all-servers' in config: extra.setdefault('udp_winner',0)
+        if extra.get('diagnostics'): config+='log-facility=-\n'
         actions=extra.pop('actions', [probe('query-'+str(i), name, transports=['udp','tcp']) for i,name in enumerate(names)])
         sys_files={'/etc/resolv.conf':'nameserver 127.0.0.9\noptions timeout:1 attempts:1\n',**extra.pop('sys_files',{})}
         cases.append(dict(id=ident,config=('no-resolv\n' if extra.pop('no_resolv',True) else '')+config,files=extra.pop('files',{}),actions=actions,default_resolv=extra.pop('default_resolv',False),strict_order='all-servers' not in config,sys_files=sys_files,**extra))
@@ -641,6 +643,7 @@ def run_service_side(root, side, case, folder):
             if subprocess.run(['ip','link','show',name],capture_output=True).returncode==0:
                 subprocess.run(['ip','link','del',name],check=True)
     result['source_events']=[row for upstream in SourceCapture.instances for row in upstream.source_events]
+    result['file_diagnostics']=[re.sub(r'^dnsmasq(?:-rs)?(?:\[[0-9]+\])?: ', '', line) for line in result['file_diagnostics']]
     result['progress_receipts']=progress_receipts
     result['endpoint_receipts']=endpoint_receipts
     result['ready_attempts']=ready_attempts
@@ -665,6 +668,7 @@ def source_guard_errors(result,case):
     if (case.get('recv_fault') or case.get('poll_fault')) and (len(result.get('recv_faults',[]))!=1 or not result['recv_faults'][0].get('injected')): errors.append('actual source socket fault missing')
     udp=[row for row in result['source_events'] if row['transport']=='udp']
     tcp=[row for row in result['source_events'] if row['transport']=='tcp']
+    if case.get('diagnostics') and not result.get('file_diagnostics'): errors.append('required servers-file error diagnostic was not observed')
     ports={row['peer'][1] for row in udp}
     if case.get('expected_source_port') is not None and any(port!=case['expected_source_port'] for port in ports): errors.append('fixed source port differs')
     if case.get('forbidden_udp_port') in ports: errors.append('explicit source inherited global port')
