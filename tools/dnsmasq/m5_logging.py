@@ -75,6 +75,10 @@ def cases():
         {'id': 'file-owner-debug', 'scope': 'sink', 'kind': 'run', 'mode': ['-d'], 'user': 'nobody',
          'argv': ['--log-facility=/m2/logging/daemon.log'], 'file': 'daemon.log',
          'expected_metadata': [0o660, 65534, 0], 'options': ['log-facility', 'no-daemon']},
+        {'id': 'file-existing-group-owner', 'scope': 'sink', 'kind': 'run', 'user': 'nobody',
+         'argv': ['--log-facility=/m2/logging/daemon.log'], 'file': 'daemon.log',
+         'existing': 'preexisting\n', 'file_mode': 0o640, 'file_gid': 65534,
+         'expected_metadata': [0o640, 65534, 65534], 'options': ['log-facility']},
         {'id': 'file-rotate', 'scope': 'sink', 'kind': 'run', 'rotate': True,
          'argv': ['--log-facility=/m2/logging/daemon.log'], 'file': 'daemon.log',
          'options': ['log-facility']},
@@ -281,7 +285,8 @@ def cases():
                          'options': ['quiet-tftp', 'log-facility']})
     for destination, extra in [('stderr', {'argv': ['--log-facility=-']}),
                                 ('file', {'argv': ['--log-facility=/m2/logging/daemon.log'], 'file': 'daemon.log'}),
-                                ('syslog', {'argv': [], 'receiver': 'dgram', 'facility': 24})]:
+                                ('syslog', {'argv': [], 'receiver': 'dgram', 'facility': 24}),
+                                ('stream', {'argv': [], 'receiver': 'stream', 'facility': 24})]:
         for enabled in [False, True]:
             rows.append({'id': 'script-logs-' + destination + ('-debug-enabled' if enabled else '-debug-disabled'),
                          'scope': 'script-logs', 'kind': 'run', **extra,
@@ -298,7 +303,7 @@ def cases():
     for name, arguments, extra in [
         ('cache-disabled', ['--cache-size=0'], {}),
         ('cache-large', ['--cache-size=10001'], {}),
-        ('dns-disabled', ['--port=0', '--enable-tftp', '--tftp-root=/m2/logging'], {'no_dns': True}),
+        ('dns-disabled', ['--port=0', '--enable-tftp', '--tftp-root=/m2/logging'], {'no_dns': True, 'base_skip': ['--port=15353']}),
         ('ignored-resolv', ['--resolv-file=/m2/logging/resolv'], {}),
         ('ubus-pending', ['--enable-ubus=logging'], {}),
         ('interface-warning', ['--interface=m5-missing-iface'], {'base_skip': ['--bind-interfaces']}),
@@ -627,13 +632,15 @@ def run(root, side, case, out):
         if outcome != 'exec':
             script = folder / 'script'
             script.write_text('#!/bin/sh\n' + ('kill -USR1 $$\n' if outcome == 'signal' else
-                "printf 'one\\n\\n'; head -c 4096 /dev/zero | tr '\\000' x; printf '\\ntail'; exit 7\n"))
+                "printf 'one\\n\\n'; printf 'nul\\000hidden\\n'; head -c 4096 /dev/zero | tr '\\000' x; printf '\\ntail'; exit 7\n"))
             script.chmod(0o755)
     image_path(root, '/etc/dnsmasq.conf', follow_leaf=False).write_text(
         'unrecognised-directive=fail\n' if case.get('invalid_default') else '')
     if 'existing' in case:
         (folder / case['file']).write_text(case['existing'])
         (folder / case['file']).chmod(case['file_mode'])
+        if 'file_gid' in case:
+            os.chown(folder / case['file'], 0, case['file_gid'])
     receiver = Receiver(root, case.get('receiver'))
     # C selects the DHCP help list only with exactly argc3 and argv[2]=dhcp.
     argv = [] if case['kind'] == 'cli' else ['-C', '/m2/logging/config']
@@ -765,8 +772,8 @@ def run(root, side, case, out):
             observed['file_metadata'][path.name] = [info.st_mode & 0o777, info.st_uid, info.st_gid]
             (out / path.name).write_bytes(path.read_bytes())
     observed['syslog'] = [row.hex() for row in receiver.raw]
-    observed['stdout'] = (out / 'stdout').read_text(errors='backslashreplace')
-    observed['stderr'] = (out / 'stderr').read_text(errors='backslashreplace')
+    observed['stdout'] = (out / 'stdout').read_bytes().decode(errors='backslashreplace')
+    observed['stderr'] = (out / 'stderr').read_bytes().decode(errors='backslashreplace')
     save(out / 'syslog.json', [row.hex() for row in receiver.raw])
     save(out / 'observed.json', observed)
     return observed
@@ -985,8 +992,9 @@ def run_daemon(root, side, case, out):
         script.write_text('#!/bin/sh\nexit 0\n')
         script.chmod(0o755)
     debug = '-d' in case['mode']
-    pid_path = image_path(root, case['pidfile'] if case['pidfile'].startswith('/') else
-                          ('/m2/logging/' if debug else '/') + case['pidfile'].removeprefix('./'))
+    pid_path = root / case['pidfile'].lstrip('/') if case.get('overlong_pid') else image_path(
+        root, case['pidfile'] if case['pidfile'].startswith('/') else
+        ('/m2/logging/' if debug else '/') + case['pidfile'].removeprefix('./'))
     if not case.get('overlong_pid'):
         pid_path.unlink(missing_ok=True)
     if case.get('sentinel_pid'):
@@ -1103,15 +1111,15 @@ def run_daemon(root, side, case, out):
             trace['duration'] = time.monotonic() - start
             trace['stream_tail'] = receiver.pending.hex()
             save(out / 'trace.json', trace)
-    observed['pid_after_exit'] = pid_path.exists()
+    observed['pid_after_exit'] = False if case.get('overlong_pid') else pid_path.exists()
     if log_path and log_path.is_file():
         observed['files']['relative.log'] = log_path.read_bytes().hex()
         meta = log_path.stat()
         observed['file_metadata']['relative.log'] = [meta.st_mode & 0o777, meta.st_uid, meta.st_gid]
         (out / 'relative.log').write_bytes(log_path.read_bytes())
     observed['syslog'] = [row.hex() for row in receiver.raw]
-    observed['stdout'] = (out / 'stdout').read_text(errors='backslashreplace')
-    observed['stderr'] = (out / 'stderr').read_text(errors='backslashreplace')
+    observed['stdout'] = (out / 'stdout').read_bytes().decode(errors='backslashreplace')
+    observed['stderr'] = (out / 'stderr').read_bytes().decode(errors='backslashreplace')
     save(out / 'observed.json', observed)
     return observed
 
@@ -1192,7 +1200,7 @@ def compare(reference, candidate, case, reference_only=False):
         text += ''.join(bytes.fromhex(value).decode() for value in reference['files'].values())
         required = ['script process killed by signal 10'] if case['script_probes'] == 'signal' else [
             'failed to execute /m2/logging/script: No such file or directory'] if case['script_probes'] == 'exec' else [
-            'dnsmasq-script[', ': one\n', ': \n', ': tail\n', 'script process exited with status 7']
+            'dnsmasq-script[', ': one\n', ': \n', ': nul\n', ': tail\n', 'script process exited with status 7']
         for message in required:
             if message not in text:
                 failures.append({'kind': 'C-script-log-producer', 'missing': message, 'actual': text})
