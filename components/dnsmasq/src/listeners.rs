@@ -14,6 +14,18 @@ pub fn snapshot() -> io::Result<Vec<DnsInterface>> {
         Ok(Vec::new())
     }
 }
+
+pub fn is_unsupported_socket_error(error: &io::Error) -> bool {
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    {
+        crate::net::is_unsupported_socket_error(error)
+    }
+    #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
+    {
+        let _ = error;
+        false
+    }
+}
 fn name_matches(pattern: &Option<Vec<u8>>, name: &[u8], _loopback: bool) -> bool {
     match pattern {
         None => false,
@@ -427,7 +439,7 @@ pub fn tcp_bind(address: SocketAddr) -> io::Result<TcpListener> {
             )
         };
         if fd < 0 {
-            return Err(io::Error::last_os_error());
+            return Err(crate::net::socket_creation_error(io::Error::last_os_error()));
         }
         let listener = unsafe { TcpListener::from_raw_fd(fd) };
         let fd = listener.as_raw_fd();

@@ -382,8 +382,7 @@ impl<O: FileOpener> TftpListener<O> {
                     if policy.dns.bind_dynamic
                         && (error.kind() == io::ErrorKind::AddrNotAvailable || !initial) => {}
                 // A kernel without IPv6 follows C's optional IPv6 listener.
-                Err(error)
-                    if address.is_ipv6() && matches!(error.raw_os_error(), Some(97 | 93)) => {}
+                Err(error) if crate::net::is_unsupported_socket_error(&error) => {}
                 Err(error) => return Err(error),
             }
         }
