@@ -145,6 +145,15 @@ impl<O: FileOpener> TftpListener<O> {
             .as_ref()
             .is_some_and(|policy| policy.config.unique_root_mac)
     }
+    /// The owner queries this before dropping privileges. Only static DAD
+    /// and dynamic listeners can need a later privileged TFTP bind.
+    pub fn needs_privileged_rebind(&self) -> bool {
+        !self.pending_bind.is_empty()
+            || self
+                .policy
+                .as_ref()
+                .is_some_and(|policy| policy.dns.bind_dynamic)
+    }
     /// Retain successful transfers until the poll owner hands each event to
     /// the nonblocking helper. Active plus completed transfers share the
     /// configured capacity, so a slow script cannot grow this queue.

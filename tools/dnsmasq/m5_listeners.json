@@ -1,5 +1,914 @@
 {
-  "schema": 1,
+  "cases": [
+    {
+      "actions": [],
+      "config": "",
+      "mode": "wildcard",
+      "name": "ordinary-wildcard",
+      "profile": "ordinary"
+    },
+    {
+      "actions": [],
+      "config": "interface=lan\n",
+      "mode": "wildcard",
+      "name": "interface-wildcard",
+      "profile": "interface"
+    },
+    {
+      "actions": [],
+      "config": "interface=lan\nlisten-address=10.78.0.1,fd42:78::1\nexcept-interface=wan\n",
+      "mode": "wildcard",
+      "name": "union-wildcard",
+      "profile": "union"
+    },
+    {
+      "actions": [],
+      "config": "listen-address=10.77.0.1,fd42:77::1\n",
+      "mode": "wildcard",
+      "name": "listen-only-wildcard",
+      "profile": "listen-only"
+    },
+    {
+      "actions": [],
+      "config": "interface=\n",
+      "mode": "wildcard",
+      "name": "empty-interface-wildcard",
+      "profile": "empty-interface"
+    },
+    {
+      "actions": [],
+      "config": "except-interface=\n",
+      "mode": "wildcard",
+      "name": "empty-except-wildcard",
+      "profile": "empty-except"
+    },
+    {
+      "actions": [],
+      "config": "interface=l*ignored\nexcept-interface=w*\n",
+      "mode": "wildcard",
+      "name": "wildcard-names-wildcard",
+      "profile": "wildcard-names"
+    },
+    {
+      "actions": [],
+      "config": "interface=lan*\n",
+      "mode": "wildcard",
+      "name": "wildcard-empty-wildcard",
+      "profile": "wildcard-empty"
+    },
+    {
+      "actions": [],
+      "config": "interface=lan:0\n",
+      "mode": "wildcard",
+      "name": "alias-wildcard",
+      "profile": "alias"
+    },
+    {
+      "actions": [],
+      "config": "except-interface=lan:0\n",
+      "mode": "wildcard",
+      "name": "alias-except-wildcard",
+      "profile": "alias-except"
+    },
+    {
+      "actions": [],
+      "config": "",
+      "mode": "wildcard",
+      "name": "same-link-local-wildcard",
+      "profile": "same-link-local"
+    },
+    {
+      "actions": [],
+      "config": "interface=lan\n",
+      "mode": "wildcard",
+      "name": "cross-ingress-wildcard",
+      "profile": "cross-ingress"
+    },
+    {
+      "actions": [],
+      "config": "listen-address=127.0.0.2\n",
+      "mode": "wildcard",
+      "name": "unowned-loopback-wildcard",
+      "profile": "unowned-loopback"
+    },
+    {
+      "actions": [],
+      "config": "interface=absent0\n",
+      "mode": "wildcard",
+      "name": "missing-wildcard",
+      "profile": "missing"
+    },
+    {
+      "actions": [],
+      "config": "interface=barren0\n",
+      "mode": "wildcard",
+      "name": "no-address-wildcard",
+      "profile": "no-address"
+    },
+    {
+      "actions": [],
+      "config": "interface=lan\n",
+      "mode": "wildcard",
+      "name": "down-link-wildcard",
+      "profile": "down-link"
+    },
+    {
+      "actions": [
+        "address-change"
+      ],
+      "config": "interface=lan\n",
+      "mode": "wildcard",
+      "name": "address-change-wildcard",
+      "profile": "address-change"
+    },
+    {
+      "actions": [
+        "recreate"
+      ],
+      "config": "interface=lan\n",
+      "mode": "wildcard",
+      "name": "recreate-wildcard",
+      "profile": "recreate"
+    },
+    {
+      "actions": [],
+      "config": "enable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "wildcard",
+      "name": "tftp-wildcard",
+      "profile": "tftp",
+      "tftp": true
+    },
+    {
+      "actions": [],
+      "config": "interface=lan\nenable-tftp=wan\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "wildcard",
+      "name": "tftp-dedicated-wildcard",
+      "profile": "tftp-dedicated",
+      "tftp": true
+    },
+    {
+      "actions": [],
+      "config": "except-interface=wan\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "wildcard",
+      "name": "tftp-except-wildcard",
+      "profile": "tftp-except",
+      "tftp": true
+    },
+    {
+      "actions": [],
+      "config": "no-dhcp-interface=lan\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "wildcard",
+      "name": "tftp-no-dhcp-wildcard",
+      "profile": "tftp-no-dhcp",
+      "tftp": true
+    },
+    {
+      "actions": [],
+      "config": "no-dhcpv4-interface=lan\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "wildcard",
+      "name": "tftp-no-v4-wildcard",
+      "profile": "tftp-no-v4",
+      "tftp": true
+    },
+    {
+      "actions": [],
+      "config": "interface=lan:0\nenable-tftp=lan\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "wildcard",
+      "name": "tftp-alias-wildcard",
+      "profile": "tftp-alias",
+      "tftp": true
+    },
+    {
+      "actions": [
+        "address-change"
+      ],
+      "config": "interface=lan\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "wildcard",
+      "name": "tftp-change-wildcard",
+      "profile": "tftp-change",
+      "tftp": true
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\n",
+      "mode": "static",
+      "name": "ordinary-static",
+      "profile": "ordinary"
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\ninterface=lan\n",
+      "mode": "static",
+      "name": "interface-static",
+      "profile": "interface"
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\ninterface=lan\nlisten-address=10.78.0.1,fd42:78::1\nexcept-interface=wan\n",
+      "mode": "static",
+      "name": "union-static",
+      "profile": "union"
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\nlisten-address=10.77.0.1,fd42:77::1\n",
+      "mode": "static",
+      "name": "listen-only-static",
+      "profile": "listen-only"
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\ninterface=\n",
+      "mode": "static",
+      "name": "empty-interface-static",
+      "profile": "empty-interface"
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\nexcept-interface=\n",
+      "mode": "static",
+      "name": "empty-except-static",
+      "profile": "empty-except"
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\ninterface=l*ignored\nexcept-interface=w*\n",
+      "mode": "static",
+      "name": "wildcard-names-static",
+      "profile": "wildcard-names"
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\ninterface=lan*\n",
+      "mode": "static",
+      "name": "wildcard-empty-static",
+      "profile": "wildcard-empty"
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\ninterface=lan:0\n",
+      "mode": "static",
+      "name": "alias-static",
+      "profile": "alias"
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\nexcept-interface=lan:0\n",
+      "mode": "static",
+      "name": "alias-except-static",
+      "profile": "alias-except"
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\n",
+      "mode": "static",
+      "name": "same-link-local-static",
+      "profile": "same-link-local"
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\ninterface=lan\n",
+      "mode": "static",
+      "name": "cross-ingress-static",
+      "profile": "cross-ingress"
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\nlisten-address=127.0.0.2\n",
+      "mode": "static",
+      "name": "unowned-loopback-static",
+      "profile": "unowned-loopback"
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\ninterface=absent0\n",
+      "mode": "static",
+      "name": "missing-static",
+      "profile": "missing"
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\ninterface=barren0\n",
+      "mode": "static",
+      "name": "no-address-static",
+      "profile": "no-address"
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\ninterface=lan\n",
+      "mode": "static",
+      "name": "down-link-static",
+      "profile": "down-link"
+    },
+    {
+      "actions": [
+        "address-change"
+      ],
+      "config": "bind-interfaces\ninterface=lan\n",
+      "mode": "static",
+      "name": "address-change-static",
+      "profile": "address-change"
+    },
+    {
+      "actions": [
+        "recreate"
+      ],
+      "config": "bind-interfaces\ninterface=lan\n",
+      "mode": "static",
+      "name": "recreate-static",
+      "profile": "recreate"
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "static",
+      "name": "tftp-static",
+      "profile": "tftp",
+      "tftp": true
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\ninterface=lan\nenable-tftp=wan\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "static",
+      "name": "tftp-dedicated-static",
+      "profile": "tftp-dedicated",
+      "tftp": true
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\nexcept-interface=wan\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "static",
+      "name": "tftp-except-static",
+      "profile": "tftp-except",
+      "tftp": true
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\nno-dhcp-interface=lan\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "static",
+      "name": "tftp-no-dhcp-static",
+      "profile": "tftp-no-dhcp",
+      "tftp": true
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\nno-dhcpv4-interface=lan\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "static",
+      "name": "tftp-no-v4-static",
+      "profile": "tftp-no-v4",
+      "tftp": true
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\ninterface=lan:0\nenable-tftp=lan\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "static",
+      "name": "tftp-alias-static",
+      "profile": "tftp-alias",
+      "tftp": true
+    },
+    {
+      "actions": [
+        "address-change"
+      ],
+      "config": "bind-interfaces\ninterface=lan\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "static",
+      "name": "tftp-change-static",
+      "profile": "tftp-change",
+      "tftp": true
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\n",
+      "mode": "dynamic",
+      "name": "ordinary-dynamic",
+      "profile": "ordinary"
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\ninterface=lan\n",
+      "mode": "dynamic",
+      "name": "interface-dynamic",
+      "profile": "interface"
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\ninterface=lan\nlisten-address=10.78.0.1,fd42:78::1\nexcept-interface=wan\n",
+      "mode": "dynamic",
+      "name": "union-dynamic",
+      "profile": "union"
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\nlisten-address=10.77.0.1,fd42:77::1\n",
+      "mode": "dynamic",
+      "name": "listen-only-dynamic",
+      "profile": "listen-only"
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\ninterface=\n",
+      "mode": "dynamic",
+      "name": "empty-interface-dynamic",
+      "profile": "empty-interface"
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\nexcept-interface=\n",
+      "mode": "dynamic",
+      "name": "empty-except-dynamic",
+      "profile": "empty-except"
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\ninterface=l*ignored\nexcept-interface=w*\n",
+      "mode": "dynamic",
+      "name": "wildcard-names-dynamic",
+      "profile": "wildcard-names"
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\ninterface=lan*\n",
+      "mode": "dynamic",
+      "name": "wildcard-empty-dynamic",
+      "profile": "wildcard-empty"
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\ninterface=lan:0\n",
+      "mode": "dynamic",
+      "name": "alias-dynamic",
+      "profile": "alias"
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\nexcept-interface=lan:0\n",
+      "mode": "dynamic",
+      "name": "alias-except-dynamic",
+      "profile": "alias-except"
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\n",
+      "mode": "dynamic",
+      "name": "same-link-local-dynamic",
+      "profile": "same-link-local"
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\ninterface=lan\n",
+      "mode": "dynamic",
+      "name": "cross-ingress-dynamic",
+      "profile": "cross-ingress"
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\nlisten-address=127.0.0.2\n",
+      "mode": "dynamic",
+      "name": "unowned-loopback-dynamic",
+      "profile": "unowned-loopback"
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\ninterface=absent0\n",
+      "mode": "dynamic",
+      "name": "missing-dynamic",
+      "profile": "missing"
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\ninterface=barren0\n",
+      "mode": "dynamic",
+      "name": "no-address-dynamic",
+      "profile": "no-address"
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\ninterface=lan\n",
+      "mode": "dynamic",
+      "name": "down-link-dynamic",
+      "profile": "down-link"
+    },
+    {
+      "actions": [
+        "address-change"
+      ],
+      "config": "bind-dynamic\ninterface=lan\n",
+      "mode": "dynamic",
+      "name": "address-change-dynamic",
+      "profile": "address-change"
+    },
+    {
+      "actions": [
+        "recreate"
+      ],
+      "config": "bind-dynamic\ninterface=lan\n",
+      "mode": "dynamic",
+      "name": "recreate-dynamic",
+      "profile": "recreate"
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "dynamic",
+      "name": "tftp-dynamic",
+      "profile": "tftp",
+      "tftp": true
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\ninterface=lan\nenable-tftp=wan\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "dynamic",
+      "name": "tftp-dedicated-dynamic",
+      "profile": "tftp-dedicated",
+      "tftp": true
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\nexcept-interface=wan\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "dynamic",
+      "name": "tftp-except-dynamic",
+      "profile": "tftp-except",
+      "tftp": true
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\nno-dhcp-interface=lan\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "dynamic",
+      "name": "tftp-no-dhcp-dynamic",
+      "profile": "tftp-no-dhcp",
+      "tftp": true
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\nno-dhcpv4-interface=lan\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "dynamic",
+      "name": "tftp-no-v4-dynamic",
+      "profile": "tftp-no-v4",
+      "tftp": true
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\ninterface=lan:0\nenable-tftp=lan\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "dynamic",
+      "name": "tftp-alias-dynamic",
+      "profile": "tftp-alias",
+      "tftp": true
+    },
+    {
+      "actions": [
+        "address-change"
+      ],
+      "config": "bind-dynamic\ninterface=lan\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "dynamic",
+      "name": "tftp-change-dynamic",
+      "profile": "tftp-change",
+      "tftp": true
+    },
+    {
+      "actions": [
+        "dad"
+      ],
+      "config": "bind-interfaces\ninterface=lan\n",
+      "dad": true,
+      "mode": "static",
+      "name": "dad-static",
+      "port": 15353,
+      "profile": "dad"
+    },
+    {
+      "actions": [
+        "dad"
+      ],
+      "config": "bind-interfaces\ninterface=lan\nlisten-address=fd42:77::9\n",
+      "dad": true,
+      "mode": "static",
+      "name": "dad-explicit-static",
+      "port": 15353,
+      "profile": "dad-explicit"
+    },
+    {
+      "actions": [
+        "dad"
+      ],
+      "config": "bind-interfaces\ninterface=lan\n",
+      "dad": true,
+      "mode": "static",
+      "name": "dad-failed-static",
+      "port": 15353,
+      "profile": "dad-failed"
+    },
+    {
+      "actions": [
+        "dad"
+      ],
+      "config": "bind-interfaces\ninterface=lan\nuser=nobody\ngroup=nogroup\n",
+      "dad": true,
+      "mode": "static",
+      "name": "dad-low-port-static",
+      "port": 53,
+      "profile": "dad-low-port"
+    },
+    {
+      "actions": [
+        "dad"
+      ],
+      "config": "bind-interfaces\ninterface=lan\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "dad": true,
+      "mode": "static",
+      "name": "tftp-dad-static",
+      "profile": "tftp-dad",
+      "tftp": true
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\nlisten-address=192.0.2.111\n",
+      "mode": "static",
+      "name": "missing-address-static",
+      "profile": "missing-address"
+    },
+    {
+      "actions": [],
+      "blocker": "udp",
+      "config": "bind-interfaces\ninterface=lan\n",
+      "mode": "static",
+      "name": "occupied-udp-static",
+      "profile": "occupied-udp"
+    },
+    {
+      "actions": [],
+      "blocker": "tcp",
+      "config": "bind-interfaces\ninterface=lan\n",
+      "mode": "static",
+      "name": "occupied-tcp-static",
+      "profile": "occupied-tcp"
+    },
+    {
+      "actions": [],
+      "blocker": "tftp",
+      "config": "bind-interfaces\ninterface=lan\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "static",
+      "name": "occupied-tftp-static",
+      "profile": "occupied-tftp"
+    },
+    {
+      "actions": [
+        "dad"
+      ],
+      "config": "bind-dynamic\ninterface=lan\n",
+      "dad": true,
+      "mode": "dynamic",
+      "name": "dad-dynamic",
+      "port": 15353,
+      "profile": "dad"
+    },
+    {
+      "actions": [
+        "dad"
+      ],
+      "config": "bind-dynamic\ninterface=lan\nlisten-address=fd42:77::9\n",
+      "dad": true,
+      "mode": "dynamic",
+      "name": "dad-explicit-dynamic",
+      "port": 15353,
+      "profile": "dad-explicit"
+    },
+    {
+      "actions": [
+        "dad"
+      ],
+      "config": "bind-dynamic\ninterface=lan\n",
+      "dad": true,
+      "mode": "dynamic",
+      "name": "dad-failed-dynamic",
+      "port": 15353,
+      "profile": "dad-failed"
+    },
+    {
+      "actions": [
+        "dad"
+      ],
+      "config": "bind-dynamic\ninterface=lan\nuser=nobody\ngroup=nogroup\n",
+      "dad": true,
+      "mode": "dynamic",
+      "name": "dad-low-port-dynamic",
+      "port": 53,
+      "profile": "dad-low-port"
+    },
+    {
+      "actions": [
+        "dad"
+      ],
+      "config": "bind-dynamic\ninterface=lan\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "dad": true,
+      "mode": "dynamic",
+      "name": "tftp-dad-dynamic",
+      "profile": "tftp-dad",
+      "tftp": true
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\nlisten-address=192.0.2.111\n",
+      "mode": "dynamic",
+      "name": "missing-address-dynamic",
+      "profile": "missing-address"
+    },
+    {
+      "actions": [],
+      "blocker": "udp",
+      "config": "bind-dynamic\ninterface=lan\n",
+      "mode": "dynamic",
+      "name": "occupied-udp-dynamic",
+      "profile": "occupied-udp"
+    },
+    {
+      "actions": [],
+      "blocker": "tcp",
+      "config": "bind-dynamic\ninterface=lan\n",
+      "mode": "dynamic",
+      "name": "occupied-tcp-dynamic",
+      "profile": "occupied-tcp"
+    },
+    {
+      "actions": [],
+      "blocker": "tftp",
+      "config": "bind-dynamic\ninterface=lan\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "dynamic",
+      "name": "occupied-tftp-dynamic",
+      "profile": "occupied-tftp"
+    },
+    {
+      "actions": [
+        "late-interface"
+      ],
+      "config": "bind-dynamic\ninterface=lan,late0\n",
+      "mode": "dynamic",
+      "name": "late-interface-dynamic",
+      "profile": "late-interface"
+    },
+    {
+      "actions": [
+        "late-address"
+      ],
+      "config": "bind-dynamic\ninterface=lan,late0\nlisten-address=192.0.2.111\n",
+      "mode": "dynamic",
+      "name": "late-address-dynamic",
+      "profile": "late-address"
+    },
+    {
+      "actions": [
+        "duplicate-address"
+      ],
+      "config": "bind-dynamic\ninterface=lan,late0\n",
+      "mode": "dynamic",
+      "name": "duplicate-address-dynamic",
+      "profile": "duplicate-address"
+    },
+    {
+      "actions": [
+        "runtime-occupied-udp"
+      ],
+      "config": "bind-dynamic\ninterface=lan,late0\n",
+      "mode": "dynamic",
+      "name": "runtime-occupied-udp-dynamic",
+      "profile": "runtime-occupied-udp"
+    },
+    {
+      "actions": [
+        "runtime-occupied-tcp"
+      ],
+      "config": "bind-dynamic\ninterface=lan,late0\n",
+      "mode": "dynamic",
+      "name": "runtime-occupied-tcp-dynamic",
+      "profile": "runtime-occupied-tcp"
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\nbind-dynamic\n",
+      "mode": "static",
+      "name": "conflicting-modes-static",
+      "profile": "conflicting-modes"
+    },
+    {
+      "actions": [],
+      "config": "interface=client0\ndhcp-relay=10.77.0.1,10.78.0.2\n",
+      "mode": "wildcard",
+      "name": "relay-wildcard",
+      "profile": "relay",
+      "relay": true
+    },
+    {
+      "actions": [],
+      "config": "interface=server0\nlisten-address=10.77.0.1\ndhcp-relay=10.77.0.1,10.78.0.2\n",
+      "mode": "wildcard",
+      "name": "relay-union-wildcard",
+      "profile": "relay-union",
+      "relay": true
+    },
+    {
+      "actions": [],
+      "config": "except-interface=client0\ndhcp-relay=10.77.0.1,10.78.0.2\n",
+      "mode": "wildcard",
+      "name": "relay-except-wildcard",
+      "profile": "relay-except",
+      "relay": true
+    },
+    {
+      "actions": [],
+      "config": "no-dhcp-interface=client0\ndhcp-relay=10.77.0.1,10.78.0.2\n",
+      "mode": "wildcard",
+      "name": "relay-no-dhcp-wildcard",
+      "profile": "relay-no-dhcp",
+      "relay": true
+    },
+    {
+      "actions": [],
+      "config": "interface=client0\ndhcp-relay=10.77.0.1,10.78.0.2\n",
+      "mode": "wildcard",
+      "name": "relay-recreate-wildcard",
+      "profile": "relay-recreate",
+      "relay": true
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\ninterface=client0\ndhcp-relay=10.77.0.1,10.78.0.2\n",
+      "mode": "static",
+      "name": "relay-static",
+      "profile": "relay",
+      "relay": true
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\ninterface=server0\nlisten-address=10.77.0.1\ndhcp-relay=10.77.0.1,10.78.0.2\n",
+      "mode": "static",
+      "name": "relay-union-static",
+      "profile": "relay-union",
+      "relay": true
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\nexcept-interface=client0\ndhcp-relay=10.77.0.1,10.78.0.2\n",
+      "mode": "static",
+      "name": "relay-except-static",
+      "profile": "relay-except",
+      "relay": true
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\nno-dhcp-interface=client0\ndhcp-relay=10.77.0.1,10.78.0.2\n",
+      "mode": "static",
+      "name": "relay-no-dhcp-static",
+      "profile": "relay-no-dhcp",
+      "relay": true
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\ninterface=client0\ndhcp-relay=10.77.0.1,10.78.0.2\n",
+      "mode": "static",
+      "name": "relay-recreate-static",
+      "profile": "relay-recreate",
+      "relay": true
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\ninterface=client0\ndhcp-relay=10.77.0.1,10.78.0.2\n",
+      "mode": "dynamic",
+      "name": "relay-dynamic",
+      "profile": "relay",
+      "relay": true
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\ninterface=server0\nlisten-address=10.77.0.1\ndhcp-relay=10.77.0.1,10.78.0.2\n",
+      "mode": "dynamic",
+      "name": "relay-union-dynamic",
+      "profile": "relay-union",
+      "relay": true
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\nexcept-interface=client0\ndhcp-relay=10.77.0.1,10.78.0.2\n",
+      "mode": "dynamic",
+      "name": "relay-except-dynamic",
+      "profile": "relay-except",
+      "relay": true
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\nno-dhcp-interface=client0\ndhcp-relay=10.77.0.1,10.78.0.2\n",
+      "mode": "dynamic",
+      "name": "relay-no-dhcp-dynamic",
+      "profile": "relay-no-dhcp",
+      "relay": true
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\ninterface=client0\ndhcp-relay=10.77.0.1,10.78.0.2\n",
+      "mode": "dynamic",
+      "name": "relay-recreate-dynamic",
+      "profile": "relay-recreate",
+      "relay": true
+    }
+  ],
   "options": [
     "bind-interfaces",
     "bind-dynamic",
@@ -7,14 +916,17 @@
     "except-interface",
     "listen-address"
   ],
+  "qualification": {
+    "partial_and_reference_only_cannot_close": true,
+    "require_both_sides": true,
+    "require_full_case_inventory": true,
+    "require_negative_controls": true,
+    "require_reference_guards": true
+  },
   "reference": {
-    "network.c": {
-      "path": "dnsmasq-2.93/src/network.c",
-      "sha256": "8229872d30a2fb2d86ec9a9e550e51fbb8d8d97926e7a02b0137f2a7b40c40c9"
-    },
-    "netlink.c": {
-      "path": "dnsmasq-2.93/src/netlink.c",
-      "sha256": "b84884ca8a9c30e1985cf4787f64f56131dff8b3a4c35c09b6ac299ada77cbd1"
+    "dhcp.c": {
+      "path": "dnsmasq-2.93/src/dhcp.c",
+      "sha256": "600dc068b0516d7edebcde9b02ae2091a278fc154551106823ddc388170d7001"
     },
     "dnsmasq.c": {
       "path": "dnsmasq-2.93/src/dnsmasq.c",
@@ -24,160 +936,279 @@
       "path": "dnsmasq-2.93/src/forward.c",
       "sha256": "ac05784d4233ed10bd166da5fe91e464afecf2883d3c2a0063305d3e81692f95"
     },
-    "tftp.c": {
-      "path": "dnsmasq-2.93/src/tftp.c",
-      "sha256": "a6971bf4ce77c0ca4c7ebf0194a2ee9c2ad702b1b8a882d46de87c6c6f5e63f3"
+    "netlink.c": {
+      "path": "dnsmasq-2.93/src/netlink.c",
+      "sha256": "b84884ca8a9c30e1985cf4787f64f56131dff8b3a4c35c09b6ac299ada77cbd1"
     },
-    "dhcp.c": {
-      "path": "dnsmasq-2.93/src/dhcp.c",
-      "sha256": "600dc068b0516d7edebcde9b02ae2091a278fc154551106823ddc388170d7001"
+    "network.c": {
+      "path": "dnsmasq-2.93/src/network.c",
+      "sha256": "8229872d30a2fb2d86ec9a9e550e51fbb8d8d97926e7a02b0137f2a7b40c40c9"
     },
     "option.c": {
       "path": "dnsmasq-2.93/src/option.c",
       "sha256": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed"
+    },
+    "tftp.c": {
+      "path": "dnsmasq-2.93/src/tftp.c",
+      "sha256": "a6971bf4ce77c0ca4c7ebf0194a2ee9c2ad702b1b8a882d46de87c6c6f5e63f3"
     },
     "util.c": {
       "path": "dnsmasq-2.93/src/util.c",
       "sha256": "33920165ef3e92f65d1cab75fe8da7772ad7389b37da79ba881957080f12f973"
     }
   },
+  "required_cases": [
+    "ordinary-wildcard",
+    "interface-wildcard",
+    "union-wildcard",
+    "listen-only-wildcard",
+    "empty-interface-wildcard",
+    "empty-except-wildcard",
+    "wildcard-names-wildcard",
+    "wildcard-empty-wildcard",
+    "alias-wildcard",
+    "alias-except-wildcard",
+    "same-link-local-wildcard",
+    "cross-ingress-wildcard",
+    "unowned-loopback-wildcard",
+    "missing-wildcard",
+    "no-address-wildcard",
+    "down-link-wildcard",
+    "address-change-wildcard",
+    "recreate-wildcard",
+    "tftp-wildcard",
+    "tftp-dedicated-wildcard",
+    "tftp-except-wildcard",
+    "tftp-no-dhcp-wildcard",
+    "tftp-no-v4-wildcard",
+    "tftp-alias-wildcard",
+    "tftp-change-wildcard",
+    "ordinary-static",
+    "interface-static",
+    "union-static",
+    "listen-only-static",
+    "empty-interface-static",
+    "empty-except-static",
+    "wildcard-names-static",
+    "wildcard-empty-static",
+    "alias-static",
+    "alias-except-static",
+    "same-link-local-static",
+    "cross-ingress-static",
+    "unowned-loopback-static",
+    "missing-static",
+    "no-address-static",
+    "down-link-static",
+    "address-change-static",
+    "recreate-static",
+    "tftp-static",
+    "tftp-dedicated-static",
+    "tftp-except-static",
+    "tftp-no-dhcp-static",
+    "tftp-no-v4-static",
+    "tftp-alias-static",
+    "tftp-change-static",
+    "ordinary-dynamic",
+    "interface-dynamic",
+    "union-dynamic",
+    "listen-only-dynamic",
+    "empty-interface-dynamic",
+    "empty-except-dynamic",
+    "wildcard-names-dynamic",
+    "wildcard-empty-dynamic",
+    "alias-dynamic",
+    "alias-except-dynamic",
+    "same-link-local-dynamic",
+    "cross-ingress-dynamic",
+    "unowned-loopback-dynamic",
+    "missing-dynamic",
+    "no-address-dynamic",
+    "down-link-dynamic",
+    "address-change-dynamic",
+    "recreate-dynamic",
+    "tftp-dynamic",
+    "tftp-dedicated-dynamic",
+    "tftp-except-dynamic",
+    "tftp-no-dhcp-dynamic",
+    "tftp-no-v4-dynamic",
+    "tftp-alias-dynamic",
+    "tftp-change-dynamic",
+    "dad-static",
+    "dad-explicit-static",
+    "dad-failed-static",
+    "dad-low-port-static",
+    "tftp-dad-static",
+    "missing-address-static",
+    "occupied-udp-static",
+    "occupied-tcp-static",
+    "occupied-tftp-static",
+    "dad-dynamic",
+    "dad-explicit-dynamic",
+    "dad-failed-dynamic",
+    "dad-low-port-dynamic",
+    "tftp-dad-dynamic",
+    "missing-address-dynamic",
+    "occupied-udp-dynamic",
+    "occupied-tcp-dynamic",
+    "occupied-tftp-dynamic",
+    "late-interface-dynamic",
+    "late-address-dynamic",
+    "duplicate-address-dynamic",
+    "runtime-occupied-udp-dynamic",
+    "runtime-occupied-tcp-dynamic",
+    "conflicting-modes-static",
+    "relay-wildcard",
+    "relay-union-wildcard",
+    "relay-except-wildcard",
+    "relay-no-dhcp-wildcard",
+    "relay-recreate-wildcard",
+    "relay-static",
+    "relay-union-static",
+    "relay-except-static",
+    "relay-no-dhcp-static",
+    "relay-recreate-static",
+    "relay-dynamic",
+    "relay-union-dynamic",
+    "relay-except-dynamic",
+    "relay-no-dhcp-dynamic",
+    "relay-recreate-dynamic"
+  ],
   "requirements": [
     {
-      "id": "selection-union",
-      "source": "network.c:112-182,500-533",
       "boundary": "Interface names and explicit addresses form a union; an explicit address bypasses except-interface. Loopback is added only for a nonempty interface list.",
+      "id": "selection-union",
       "profiles": [
         "ordinary",
         "interface",
         "union",
         "listen-only",
         "empty-interface"
-      ]
+      ],
+      "source": "network.c:112-182,500-533"
     },
     {
-      "id": "name-wildcards",
-      "source": "util.c:895-910; network.c:123-151",
       "boundary": "First wildcard matches only with a remaining name byte; null selectors never match. Static unknown-name check uses per-address matches.",
+      "id": "name-wildcards",
       "profiles": [
         "wildcard-names",
         "wildcard-empty",
         "empty-except",
         "missing",
         "no-address"
-      ]
+      ],
+      "source": "util.c:895-910; network.c:123-151"
     },
     {
-      "id": "ipv4-labels",
-      "source": "netlink.c:232-260; network.c:214-232,258-270,527-533",
       "boundary": "IPv4 IFA_LABEL selects an address; packet arrival uses real name. UDP label exception admits only the selected destination; wildcard TCP has no label exception.",
+      "id": "ipv4-labels",
       "profiles": [
         "alias",
         "alias-except"
-      ]
+      ],
+      "source": "netlink.c:232-260; network.c:214-232,258-270,527-533"
     },
     {
-      "id": "ipv6-scope",
-      "source": "network.c:596-628; forward.c:1738-1774",
       "boundary": "IPv6 link-local listener scope is the interface index, even for the same address on multiple links; global address scope is zero.",
+      "id": "ipv6-scope",
       "profiles": [
         "ordinary",
         "same-link-local",
         "recreate"
-      ]
+      ],
+      "source": "network.c:596-628; forward.c:1738-1774"
     },
     {
-      "id": "static-lifecycle",
-      "source": "network.c:850-874,1177-1237; dnsmasq.c:1226-1231",
       "boundary": "Static mode retains listeners when addresses disappear and does not bind later addresses once initial DAD has completed.",
+      "id": "static-lifecycle",
       "profiles": [
         "address-change",
         "recreate"
-      ]
+      ],
+      "source": "network.c:850-874,1177-1237; dnsmasq.c:1226-1231"
     },
     {
-      "id": "dynamic-lifecycle",
-      "source": "network.c:674-720,850-874,1177-1237; netlink.c:365-467",
       "boundary": "Dynamic mode opens new addresses and closes last-owner listeners; duplicate owners retain one socket. Recreated interface changes index and link-local scope.",
+      "id": "dynamic-lifecycle",
       "profiles": [
         "address-change",
         "recreate",
         "duplicate-address",
         "late-interface"
-      ]
+      ],
+      "source": "network.c:674-720,850-874,1177-1237; netlink.c:365-467"
     },
     {
-      "id": "dad-defer",
-      "source": "netlink.c:290-308; network.c:490-498,1184-1186,1294-1305; dnsmasq.c:1112-1116,1226-1231",
       "boundary": "Tentative IPv6 participates in matching but is never bound; static and dynamic retry after maturity, without exiting or logging EADDRNOTAVAIL.",
+      "id": "dad-defer",
       "profiles": [
         "dad",
         "dad-explicit",
         "dad-failed"
-      ]
+      ],
+      "source": "netlink.c:290-308; network.c:490-498,1184-1186,1294-1305; dnsmasq.c:1112-1116,1226-1231"
     },
     {
-      "id": "dad-capabilities",
-      "source": "dnsmasq.c:500-510",
       "boundary": "Static pending-DAD and dynamic binding preserve CAP_NET_BIND_SERVICE for low DNS/TFTP ports after UID change.",
+      "id": "dad-capabilities",
       "profiles": [
         "dad-low-port"
-      ]
+      ],
+      "source": "dnsmasq.c:500-510"
     },
     {
-      "id": "unowned-address",
-      "source": "network.c:1212-1235",
       "boundary": "Explicit addresses absent from snapshots are still attempted, including loopback aliases; missing dynamic addresses retry silently, static addresses fail.",
+      "id": "unowned-address",
       "profiles": [
         "unowned-loopback",
         "missing-address",
         "late-address"
-      ]
+      ],
+      "source": "network.c:1212-1235"
     },
     {
-      "id": "startup-failures",
-      "source": "dnsmasq.c:369-389; network.c:894-966",
       "boundary": "Both bind modes conflict; unknown static names fail after listeners are attempted. Occupied UDP or TCP fails startup in either bound mode. Dynamic only suppresses EADDRNOTAVAIL.",
+      "id": "startup-failures",
       "profiles": [
         "conflicting-modes",
         "missing",
         "occupied-udp",
         "occupied-tcp",
         "occupied-tftp"
-      ]
+      ],
+      "source": "dnsmasq.c:369-389; network.c:894-966"
     },
     {
-      "id": "partial-dynamic-listener",
-      "source": "network.c:1087-1133,1184-1200",
       "boundary": "Noninitial failed UDP/TCP/TFTP creation may retain the successful transports and must preserve service/cleanup on release.",
+      "id": "partial-dynamic-listener",
       "profiles": [
         "runtime-occupied-udp",
         "runtime-occupied-tcp"
-      ]
+      ],
+      "source": "network.c:1087-1133,1184-1200"
     },
     {
-      "id": "admission-modes",
-      "source": "forward.c:1625-1636,1780-1803; dnsmasq.c:2048-2109",
       "boundary": "Static IPv4 uses bound-address access; wildcard/dynamic inspect ingress with loopback/UDP-label exceptions. Bound TCP uses socket access in both bound modes.",
+      "id": "admission-modes",
       "profiles": [
         "cross-ingress",
         "alias",
         "interface"
-      ]
+      ],
+      "source": "forward.c:1625-1636,1780-1803; dnsmasq.c:2048-2109"
     },
     {
-      "id": "reply-source",
-      "source": "forward.c:1999-2005; network.c:964-1009",
       "boundary": "UDP/TCP reply source equals selected destination in IPv4/IPv6 and scoped paths.",
+      "id": "reply-source",
       "profiles": [
         "ordinary",
         "union",
         "same-link-local"
-      ]
+      ],
+      "source": "forward.c:1999-2005; network.c:964-1009"
     },
     {
-      "id": "tftp-selection",
-      "source": "network.c:535-562; tftp.c:198-233",
       "boundary": "Bound TFTP is constrained by selected DNS addresses and DHCP exclusions; dedicated TFTP names override DHCP exclusion but not bound DNS selection. Wildcard dedicated TFTP bypasses normal DNS interface admission.",
+      "id": "tftp-selection",
       "profiles": [
         "tftp",
         "tftp-dedicated",
@@ -185,43 +1216,38 @@
         "tftp-no-dhcp",
         "tftp-no-v4",
         "tftp-alias"
-      ]
+      ],
+      "source": "network.c:535-562; tftp.c:198-233"
     },
     {
-      "id": "tftp-lifecycle",
-      "source": "network.c:697-720,1087-1133; tftp.c:99-122",
       "boundary": "Dynamic TFTP listener add/remove uses address/scope semantics; static DAD TFTP is deferred then binds, ordinary static address additions do not add TFTP.",
+      "id": "tftp-lifecycle",
       "profiles": [
         "tftp-change",
         "tftp-dad"
-      ]
+      ],
+      "source": "network.c:697-720,1087-1133; tftp.c:99-122"
     },
     {
-      "id": "relay-combination",
-      "source": "dhcp.c:305-368,669-683; network.c:112-151",
       "boundary": "Relay request admission shares interface/listen-address union and no-DHCP exclusions; reply ingress can be outside selected downstream, dynamic recreate refreshes ifindex.",
+      "id": "relay-combination",
       "profiles": [
         "relay",
         "relay-union",
         "relay-except",
         "relay-no-dhcp",
         "relay-recreate"
-      ]
+      ],
+      "source": "dhcp.c:305-368,669-683; network.c:112-151"
     },
     {
-      "id": "cleanup",
-      "source": "network.c:705-720; dnsmasq.c:1180-1206",
       "boundary": "Every daemon, peer and namespace exits; all listeners and fixture links disappear. SIGTERM process group cleanup is recorded.",
+      "id": "cleanup",
       "profiles": [
         "all"
-      ]
+      ],
+      "source": "network.c:705-720; dnsmasq.c:1180-1206"
     }
   ],
-  "qualification": {
-    "require_full_case_inventory": true,
-    "require_both_sides": true,
-    "require_reference_guards": true,
-    "require_negative_controls": true,
-    "partial_and_reference_only_cannot_close": true
-  }
+  "schema": 1
 }
