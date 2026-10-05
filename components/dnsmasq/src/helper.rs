@@ -176,7 +176,8 @@ pub enum Notice {
     InitError(i32),
     /// Shell exit status; 126/127 map to EC_FILE, others to EC_INIT_OFFSET.
     InitExit(i32),
-    /// Merged stdout/stderr bytes; only non-debug scripts are captured by C.
+    /// One merged stdout/stderr line without newline; normal scripts only.
+    /// The useful prefix is bounded by the logger's maximum record size.
     Output(Vec<u8>),
     ScriptExit(i32),
     ScriptSignal(i32),
