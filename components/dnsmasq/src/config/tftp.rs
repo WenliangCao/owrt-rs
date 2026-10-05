@@ -17,18 +17,23 @@ pub struct RootAccessError {
     pub error: std::io::Error,
 }
 
-impl std::fmt::Display for RootAccessError {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl RootAccessError {
+    pub fn message_bytes(&self) -> Vec<u8> {
         #[cfg(target_os = "linux")]
         let error_text = crate::logging::error_text(&self.error);
         #[cfg(not(target_os = "linux"))]
         let error_text = self.error.to_string();
-        write!(
-            formatter,
-            "TFTP directory {} inaccessible: {}",
-            String::from_utf8_lossy(&self.path),
-            error_text
-        )
+        let mut message = b"TFTP directory ".to_vec();
+        message.extend_from_slice(&self.path);
+        message.extend_from_slice(b" inaccessible: ");
+        message.extend_from_slice(error_text.as_bytes());
+        message
+    }
+}
+
+impl std::fmt::Display for RootAccessError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(&String::from_utf8_lossy(&self.message_bytes()))
     }
 }
 impl std::error::Error for RootAccessError {

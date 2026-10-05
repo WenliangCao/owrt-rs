@@ -739,6 +739,14 @@ unsafe extern "C" {
 /// usable. Report both critical records through the libc-format syslog path;
 /// the entry point separately prints only the first message to stderr.
 pub fn report_startup_failure(config: &LoggingConfig, process: &ProcessConfig, message: &str) {
+    report_startup_failure_bytes(config, process, message.as_bytes());
+}
+
+pub fn report_startup_failure_bytes(
+    config: &LoggingConfig,
+    process: &ProcessConfig,
+    message: &[u8],
+) {
     let fallback = LoggingConfig {
         file: None,
         facility: Some(
@@ -753,7 +761,7 @@ pub fn report_startup_failure(config: &LoggingConfig, process: &ProcessConfig, m
         logger.emit(LogEvent::new(
             Service::Dns,
             Priority::Critical,
-            message.as_bytes().to_vec(),
+            message.to_vec(),
         ));
         logger.emit(LogEvent::new(
             Service::Dns,
