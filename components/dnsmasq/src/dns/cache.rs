@@ -378,10 +378,9 @@ impl Cache {
         })
     }
 
-    /// Read-only reverse candidate test. The current cache stores generic PTR
-    /// and negative records by their reverse owner; positive IP-keyed reverse
-    /// records remain a separate capability. Keep this predicate side-effect
-    /// free so a local synthesizer can defer to normal cache lookup.
+    /// Read-only reverse candidate test. Positive IP records precede local
+    /// synthesis, and a CNAME changes the reverse cursor. Generic PTR/NX
+    /// markers are a later forward-name tier and must not suppress synthesis.
     pub fn has_reverse_candidate(&self, address: IpAddr, now: i64) -> bool {
         let (kind, bytes) = reverse_key(address);
         self.reverse_chain.iter().any(|&slot| {
@@ -390,7 +389,18 @@ impl Cache {
                     .entry
                     .as_ref()
                     .is_some_and(|entry| entry.record.kind == kind && entry.record.data == bytes)
-        }) || self.has_forward_candidate(&reverse_name(address), 12, now)
+        }) || self
+            .names
+            .get(&reverse_name(address).canonical_wire())
+            .is_some_and(|slots| {
+                slots.iter().any(|&slot| {
+                    self.slots[slot]
+                        .entry
+                        .as_ref()
+                        .is_some_and(|entry| entry.record.kind == Kind::Cname)
+                        && !self.invalid(slot, now)
+                })
+            })
     }
 
     /// Follow a live dynamic CNAME chain without promoting or removing any
