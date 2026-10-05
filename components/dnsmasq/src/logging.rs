@@ -14,6 +14,7 @@ use std::os::fd::{AsRawFd, FromRawFd, OwnedFd, RawFd};
 use std::os::unix::ffi::OsStrExt;
 use std::os::unix::fs::{FileTypeExt, MetadataExt, OpenOptionsExt, PermissionsExt};
 use std::path::Path;
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 const PROGRAM: &str = "dnsmasq";
@@ -198,13 +199,14 @@ impl Record {
         }
     }
 }
+#[derive(Clone)]
 enum Destination {
-    File(File),
+    File(Arc<File>),
     /// A FIFO without a reader. Opening it must not block the service owner.
     WaitingFile,
-    Stderr(OwnedFd),
+    Stderr(Arc<OwnedFd>),
     Syslog {
-        fd: OwnedFd,
+        fd: Arc<OwnedFd>,
         stream: bool,
     },
 }
@@ -239,8 +241,13 @@ pub struct Logger {
 
 /// The normal C TCP worker copies its counters at accept, then discards the
 /// inherited parent-PID records. Only new producer records need buffering.
-/// The one Logger still owns and writes the existing destination descriptor.
+/// A shared descriptor pins the accepted destination across parent reopen;
+/// cloning it creates no extra FD, process, thread or inherited payload copy.
 pub struct TcpLogContext {
+    destination: Destination,
+    fifo_retry_at: Option<Instant>,
+    fallback: bool,
+    omit_timestamp: bool,
     queue: VecDeque<Record>,
     limit: usize,
     lost: u32,
@@ -250,6 +257,10 @@ pub struct TcpLogContext {
 impl Logger {
     pub fn tcp_context(&self) -> TcpLogContext {
         TcpLogContext {
+            destination: self.destination.clone(),
+            fifo_retry_at: self.fifo_retry_at,
+            fallback: self.fallback,
+            omit_timestamp: self.omit_timestamp,
             queue: VecDeque::new(),
             limit: self.limit,
             lost: self.lost,
@@ -277,10 +288,15 @@ impl Logger {
     }
 
     pub fn tcp_poll_fd(&self, context: &TcpLogContext) -> Option<RawFd> {
-        (!context.queue.is_empty() && context.connection_good).then(|| self.destination.as_raw_fd())
+        let fd = context.destination.as_raw_fd();
+        (!context.queue.is_empty() && context.connection_good && fd >= 0).then_some(fd)
     }
 
     fn exchange_tcp_context(&mut self, context: &mut TcpLogContext) {
+        std::mem::swap(&mut self.destination, &mut context.destination);
+        std::mem::swap(&mut self.fifo_retry_at, &mut context.fifo_retry_at);
+        std::mem::swap(&mut self.fallback, &mut context.fallback);
+        std::mem::swap(&mut self.omit_timestamp, &mut context.omit_timestamp);
         std::mem::swap(&mut self.queue, &mut context.queue);
         std::mem::swap(&mut self.limit, &mut context.limit);
         std::mem::swap(&mut self.lost, &mut context.lost);
@@ -332,7 +348,7 @@ impl Logger {
             None
         };
         let ownership_file = match &destination {
-            Destination::File(file) => Some(file),
+            Destination::File(file) => Some(file.as_ref()),
             Destination::WaitingFile => fifo_owner.as_ref(),
             _ => None,
         };
@@ -716,6 +732,38 @@ mod tests {
     use super::*;
 
     #[test]
+    fn accepted_tcp_records_keep_the_old_file_after_parent_reopen() {
+        let path = std::env::temp_dir().join(format!("dnsmasq-tcp-log-{}", std::process::id()));
+        let old = path.with_extension("old");
+        let config = LoggingConfig {
+            file: Some(path.clone()),
+            debug: true,
+            ..Default::default()
+        };
+        let (mut logger, _) = Logger::start(&config, &ProcessConfig::default(), None).unwrap();
+        let mut tcp = logger.tcp_context();
+        std::fs::rename(&path, &old).unwrap();
+        logger.reopen().unwrap();
+        logger.emit_tcp(
+            &mut tcp,
+            LogEvent::new(Service::Debug, Priority::Debug, b"child".to_vec()),
+        );
+        logger.emit(LogEvent::new(
+            Service::Dns,
+            Priority::Info,
+            b"parent".to_vec(),
+        ));
+        assert!(logger.finish_tcp(&mut tcp));
+        assert!(logger.finish());
+        let old_text = std::fs::read_to_string(&old).unwrap();
+        let current = std::fs::read_to_string(&path).unwrap();
+        assert!(old_text.contains(": child\n") && !old_text.contains(": parent\n"));
+        assert!(current.contains(": parent\n") && !current.contains(": child\n"));
+        std::fs::remove_file(path).unwrap();
+        std::fs::remove_file(old).unwrap();
+    }
+
+    #[test]
     fn fifo_without_reader_keeps_service_nonblocking_and_recovers_records() {
         let path = std::env::temp_dir().join(format!("dnsmasq-log-fifo-{}", std::process::id()));
         let name = std::ffi::CString::new(path.as_os_str().as_bytes()).unwrap();
@@ -823,7 +871,9 @@ fn drain_echo(fd: RawFd, records: &mut VecDeque<Record>) {
 
 fn open_destination(config: &LoggingConfig) -> io::Result<Destination> {
     match config.file.as_deref() {
-        Some(path) if path == Path::new("-") => duplicate_stderr().map(Destination::Stderr),
+        Some(path) if path == Path::new("-") => {
+            duplicate_stderr().map(|fd| Destination::Stderr(Arc::new(fd)))
+        }
         Some(path) => match OpenOptions::new()
             .append(true)
             .create(true)
@@ -831,7 +881,7 @@ fn open_destination(config: &LoggingConfig) -> io::Result<Destination> {
             .custom_flags(O_NONBLOCK)
             .open(path)
         {
-            Ok(file) => Ok(Destination::File(file)),
+            Ok(file) => Ok(Destination::File(Arc::new(file))),
             Err(error)
                 if error.raw_os_error() == Some(6)
                     && path.metadata().is_ok_and(|meta| meta.file_type().is_fifo()) =>
@@ -871,7 +921,7 @@ fn syslog_socket(stream: bool) -> io::Result<Destination> {
         return Err(io::Error::last_os_error());
     }
     Ok(Destination::Syslog {
-        fd: unsafe { OwnedFd::from_raw_fd(fd) },
+        fd: Arc::new(unsafe { OwnedFd::from_raw_fd(fd) }),
         stream,
     })
 }
