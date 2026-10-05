@@ -327,6 +327,44 @@ def cases():
                      'overlong_pid': target == 'pid', 'receiver': 'dgram',
                      'argv': ['--log-facility=' + (path if target == 'log' else '-')],
                      'options': ['no-daemon', 'log-facility']})
+    for mode, label in [([], 'default'), (['-k'], 'foreground'), (['-d'], 'debug')]:
+        for variant, prefix, no_fail, enabled in [
+            ('global-fatal', b'/m2/logging/missing-global', False, True),
+            ('interface-fatal', b'/m2/logging/missing-interface', False, True),
+            ('both-fatal', b'/m2/logging/missing-global', False, True),
+            ('global-no-fail', b'/m2/logging/missing-global', True, True),
+            ('interface-no-fail', b'/m2/logging/missing-interface', True, True),
+            ('both-no-fail', b'/m2/logging/missing-global', True, True),
+            ('unused-root', b'/m2/logging/missing-unused', False, False),
+            ('utf8-fatal', '/m2/logging/missing-ä'.encode(), False, True),
+            ('opaque-fatal', b'/m2/logging/missing-\xff', False, True),
+            ('utf8-no-fail', '/m2/logging/missing-ä'.encode(), True, True),
+            ('opaque-no-fail', b'/m2/logging/missing-\xff', True, True),
+        ]:
+            config = b'enable-tftp\n' if enabled else b''
+            interface = variant.startswith('interface-')
+            config += b'tftp-root=' + prefix + (b',lo' if interface else b'') + b'\n'
+            if variant.startswith('both-'):
+                config += b'tftp-root=/m2/logging/missing-interface,lo\n'
+            if no_fail:
+                config += b'tftp-no-fail\n'
+            rows.append({'id': 'tftp-root-' + variant + '-' + label, 'scope': 'root-access',
+                         'kind': 'run', 'mode': mode, 'daemonized': not mode,
+                         'exit': 0 if no_fail or not enabled else 3,
+                         'pidfile': '/m2/logging/daemon.pid', 'argv': ['--log-facility=-'],
+                         'config_bytes': config.hex(), 'root_prefix': prefix.hex(),
+                         'root_variant': variant, 'root_no_fail': no_fail,
+                         'options': ['tftp-root', 'tftp-no-fail'] if no_fail else ['tftp-root']})
+        if label != 'debug':
+            for no_fail in [False, True]:
+                rows.append({'id': 'tftp-root-permission-' + ('no-fail-' if no_fail else 'fatal-') + label,
+                             'scope': 'root-access', 'kind': 'run', 'mode': mode, 'daemonized': not mode,
+                             'exit': 0 if no_fail else 3, 'user': 'nobody', 'root_permissions': True,
+                             'pidfile': '/m2/logging/daemon.pid', 'argv': ['--log-facility=-'],
+                             'config_bytes': (b'enable-tftp\ntftp-root=/m2/logging/private-root\n' +
+                                              (b'tftp-no-fail\n' if no_fail else b'')).hex(),
+                             'root_prefix': b'/m2/logging/private-root'.hex(), 'root_variant': 'permission',
+                             'root_no_fail': no_fail, 'options': ['tftp-root', 'tftp-no-fail']})
     for name, ranges in [
         ('dynamic', ['127.0.0.10,127.0.0.20,255.0.0.0,10m']),
         ('static', ['127.0.0.0,static,255.0.0.0,3723']),
@@ -609,14 +647,14 @@ def identity_sequence(transport, calibrate, sticky_probe=None, fresh=False):
 
 
 def run(root, side, case, out):
-    if case.get('scope') in ['daemon', 'scriptuser-boundary', 'startup-fault', 'credential-fault', 'ownership-warning', 'sink-fault', 'error-frame']:
+    if case.get('scope') in ['daemon', 'scriptuser-boundary', 'startup-fault', 'credential-fault', 'ownership-warning', 'sink-fault', 'error-frame', 'root-access']:
         return run_daemon(root, side, case, out)
     out.mkdir()
     folder = image_path(root, '/m2/logging')
     shutil.rmtree(folder, ignore_errors=True)
     folder.mkdir(mode=0o777)
     folder.chmod(0o777)
-    (folder / 'config').write_text(case.get('config', ''))
+    (folder / 'config').write_bytes(bytes.fromhex(case['config_bytes']) if 'config_bytes' in case else case.get('config', '').encode())
     blocker = None
     if case.get('tftp_probes') or case.get('no_dns'):
         (folder / 'public').write_bytes(b'x' * 700)
@@ -986,7 +1024,9 @@ def run_daemon(root, side, case, out):
     shutil.rmtree(folder, ignore_errors=True)
     folder.mkdir(mode=0o777)
     folder.chmod(0o777)
-    (folder / 'config').write_text(case.get('config', ''))
+    (folder / 'config').write_bytes(bytes.fromhex(case['config_bytes']) if 'config_bytes' in case else case.get('config', '').encode())
+    if case.get('root_permissions'):
+        (folder / 'private-root').mkdir(mode=0o700)
     if case.get('helper_script'):
         script = folder / 'script'
         script.write_text('#!/bin/sh\nexit 0\n')
@@ -1213,6 +1253,29 @@ def compare(reference, candidate, case, reference_only=False):
             long = [record for record in records if b': xxxxxxxxxxxxxxxx' in record]
             if len(long) != 1 or len(long[0]) != (1023 if reference['syslog'] else 1024):
                 failures.append({'kind': 'C-script-max-message', 'lengths': [len(value) for value in long]})
+    if case.get('scope') == 'root-access':
+        raw = reference['stderr'].encode('utf-8', 'surrogateescape')
+        prefix = bytes.fromhex(case['root_prefix']).decode(errors='backslashreplace')
+        text = reference['stderr']
+        variant = case['root_variant']
+        if variant == 'unused-root':
+            if 'TFTP' in text or 'inaccessible' in text:
+                failures.append({'kind': 'C-unused-TFTP-root', 'actual': text})
+        elif case['root_no_fail']:
+            warning = ('warning: TFTP directory ' if variant.startswith('interface-') else 'warning: ') + prefix + ' inaccessible'
+            if warning not in text:
+                failures.append({'kind': 'C-TFTP-root-warning', 'missing': warning, 'actual': text})
+            if variant.startswith('both-') and 'warning: TFTP directory /m2/logging/missing-interface inaccessible' not in text:
+                failures.append({'kind': 'C-TFTP-interface-root-warning', 'actual': text})
+            if text.find('TFTP root is ') >= text.find(warning):
+                failures.append({'kind': 'C-TFTP-root-warning-order', 'actual': text})
+        else:
+            error = 'Permission denied' if case.get('root_permissions') else 'No such file or directory'
+            message = 'TFTP directory ' + prefix + ' inaccessible: ' + error
+            if message not in text or 'FAILED to start up' not in text and case['daemonized']:
+                # Default parent records its second critical line in syslog.
+                if message not in text or not reference['syslog']:
+                    failures.append({'kind': 'C-TFTP-root-fatal', 'missing': message, 'actual': text})
     if case['kind'] == 'cli':
         expected = ('Known DHCP options:\n' if case['argv'] == ['--help', 'dhcp'] else
                     'Dnsmasq version 2.93  ' if case['argv'] == ['--version'] else
