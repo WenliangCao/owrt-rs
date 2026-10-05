@@ -410,6 +410,33 @@ def service_cases():
             for kind in (1,28,255,16) for cls,rd,do in [(1,True,False),(1,False,False),(1,True,True),(3,True,False),(255,True,False)]]
         add('synth-bits-ttl-'+str(ttl),'synth-domain=synthetic.records.test,192.0.2.7,192.0.2.9\nlocal-ttl='+str(ttl)+'\n',[],
             'SYN-FWD SYN-PTR',actions=actions)
+    add('synth-overlap-forward','synth-domain=synthetic.records.test,192.0.2.7,192.0.2.9,p*\n'
+        'synth-domain=synthetic.records.test,192.0.2.8,192.0.2.10,p*\n',
+        [('p0.synthetic.records.test',1),('p2.synthetic.records.test',1),('8.2.0.192.in-addr.arpa',12)],'SYN-FWD SYN-PTR')
+    add('synth-lease-precedence','synth-domain=synthetic.records.test,192.0.2.7,192.0.2.9\ndomain=synthetic.records.test\nno-ping\n'
+        'dhcp-range=192.0.2.2,192.0.2.100,255.255.255.0,600\ndhcp-leasefile=/m2/files/leases\n',
+        [('192-0-2-7.synthetic.records.test',1),('7.2.0.192.in-addr.arpa',12)],'SYN-FWD SYN-PTR',
+        topology=[{'name':'m5ir0','addresses':['192.0.2.1/24']}],files={'leases':
+            '4102444800 02:00:00:91:00:07 192.0.2.7 leased *\n4102444800 02:00:00:91:00:99 192.0.2.99 192-0-2-7 *\n'})
+    add('synth-cache-reverse-precedence','synth-domain=synthetic.records.test,192.0.2.7,192.0.2.9\n',[],'SYN-PTR',cache_size=16,negative_names=[],
+        upstream_fixtures=[{'name':'upstream.records.test','type':1,'reply':'192.0.2.7'}],actions=[
+            files.probe('warm','upstream.records.test',transports=['udp']),
+            files.probe('reverse','7.2.0.192.in-addr.arpa',type=12,cache=True),
+            files.probe('unrelated','8.2.0.192.in-addr.arpa',type=12)])
+    import m5_option_matrix as matrix
+    soa_hex=(matrix.name('ns.synthetic.records.test')+matrix.name('hostmaster.synthetic.records.test')+struct.pack('!5I',1,60,60,3600,120)).hex()
+    for label,rcode,records in [('positive',0,[{'type':1,'owner':'192-0-2-7.synthetic.records.test','address':'198.51.100.7'}]),
+                               ('negative',3,[{'type':6,'owner':'synthetic.records.test','hex':soa_hex,'section':'authority'}])]:
+        add('synth-cache-forward-'+label,'synth-domain=synthetic.records.test,192.0.2.7,192.0.2.9\n',[],'SYN-FWD',cache_size=16,negative_names=[],
+            upstream_fixtures=[{'name':'alias.records.test','type':1,'rcode':rcode,'records':
+                [{'type':5,'target':'192-0-2-7.synthetic.records.test'},*records]}],actions=[
+                files.probe('warm','alias.records.test',transports=['udp']),
+                files.probe('terminal','192-0-2-7.synthetic.records.test',cache=True),
+                files.probe('cached-alias','alias.records.test',cache=True)])
+    add('synth-tcp-snapshot','synth-domain=synthetic.records.test,192.0.2.7,192.0.2.9,p*\nlocal-ttl=77\n',[],
+        'SYN-PTR',actions=[dict(op='connect',id='held'),files.probe('child','p0.synthetic.records.test',transports=['held']),
+            files.signal_reload(),files.probe('child-after','7.2.0.192.in-addr.arpa',type=12,transports=['held']),
+            files.probe('parent','7.2.0.192.in-addr.arpa',type=12,transports=['udp']),dict(op='disconnect',id='held')])
     add('synth-precedence','synth-domain=one.records.test,192.0.2.7,192.0.2.9\nsynth-domain=two.records.test,192.0.2.8,192.0.2.10\n'
         'host-record=192-0-2-7.one.records.test,192.0.2.99\nptr-record=8.2.0.192.in-addr.arpa,explicit.records.test\nbogus-priv\n',
         [('192-0-2-7.one.records.test',1),('7.2.0.192.in-addr.arpa',12),('8.2.0.192.in-addr.arpa',12),
