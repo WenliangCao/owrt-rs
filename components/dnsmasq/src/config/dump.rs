@@ -48,7 +48,8 @@ impl DumpConfig {
 fn mask(bytes: &[u8]) -> i32 {
     let bytes = &bytes[bytes
         .iter()
-        .position(|c| !c.is_ascii_whitespace())
+        // musl strtol uses C isspace, which also accepts vertical tab.
+        .position(|c| !matches!(c, b' ' | b'\t'..=b'\r'))
         .unwrap_or(bytes.len())..];
     let (negative, bytes) = bytes
         .strip_prefix(b"-")
@@ -97,6 +98,7 @@ mod tests {
     fn unchecked_base_zero_mask_uses_sign_and_stops_at_first_non_digit() {
         for (bytes, value) in [
             (b"15".as_slice(), 15),
+            (b"\x0b15", 15),
             (b"017", 15),
             (b"0x0fignored", 15),
             (b"-1", -1),

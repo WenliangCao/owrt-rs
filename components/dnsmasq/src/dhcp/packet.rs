@@ -309,11 +309,11 @@ impl<'a> Packet<'a> {
     }
 
     pub fn transaction_id(self) -> u32 {
-        u32::from_be_bytes(self.bytes[4..8].try_into().unwrap())
+        u32::from_be_bytes([self.bytes[4], self.bytes[5], self.bytes[6], self.bytes[7]])
     }
 
     pub fn flags(self) -> u16 {
-        u16::from_be_bytes(self.bytes[10..12].try_into().unwrap())
+        u16::from_be_bytes([self.bytes[10], self.bytes[11]])
     }
 
     pub fn hardware_type(self) -> u8 {
@@ -357,7 +357,7 @@ impl<'a> Packet<'a> {
 
     pub fn requested_lease_time(self) -> Option<u32> {
         self.option(51, 4)
-            .map(|v| u32::from_be_bytes(v[..4].try_into().unwrap()))
+            .map(|v| u32::from_be_bytes([v[0], v[1], v[2], v[3]]))
     }
 
     /// rfc2131.c:700-765,799-816: option 81 takes precedence over option 12,

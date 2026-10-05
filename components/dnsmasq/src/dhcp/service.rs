@@ -351,7 +351,7 @@ impl SocketListener {
         } else {
             self.pxe_socket
                 .as_mut()
-                .expect("queued PXE reply retains its socket")
+                .ok_or_else(|| io::Error::other("queued PXE reply has no socket"))?
         };
         match super::runtime::DatagramSender::send(socket, &pending.bytes, &pending.destination) {
             Ok(()) => Ok(true),
@@ -501,7 +501,7 @@ impl SocketListener {
         } else {
             self.pxe_socket
                 .as_mut()
-                .expect("PXE receive requires the socket")
+                .ok_or_else(|| io::Error::other("PXE receive has no socket"))?
         };
         let mut sender = OwnerSender {
             dump: self.dump.clone(),
