@@ -63,12 +63,20 @@ pub fn update_file(
     let mut next_event = store.next_expiry();
     if error.is_some() {
         let retry = now.saturating_add(LEASE_RETRY_SECONDS);
-        next_event = Some(next_event.map_or(retry, |expiry| expiry.min(retry)));
+        next_event = Some(next_event.map_or(retry, |expiry| {
+            if expiry.wrapping_sub(retry) > 0 {
+                retry
+            } else {
+                expiry
+            }
+        }));
     }
-    let alarm = if now == 0 || next_event.is_some_and(|event| event <= now) {
+    let alarm = if now == 0 || next_event.is_some_and(|event| event.wrapping_sub(now) <= 0) {
         AlarmAction::Immediate
     } else if let Some(event) = next_event {
-        AlarmAction::At(event)
+        // AArch64 conversion to the unsigned alarm argument saturates at
+        // UINT_MAX. Keep that actual relative deadline representable for poll.
+        AlarmAction::At(now.saturating_add(event.wrapping_sub(now).min(i64::from(u32::MAX))))
     } else {
         AlarmAction::Keep
     };

@@ -333,7 +333,21 @@ impl LeaseStore {
     }
 
     pub fn next_expiry(&self) -> Option<i64> {
-        self.expiry.first().map(|&(time, _)| time)
+        let &(time, _) = self.expiry.first()?;
+        if time >= 0 {
+            return Some(time);
+        }
+        // Corrupt/overflowed stored timestamps can straddle the signed-long
+        // boundary. Match C's newest-first difftime reduction in that case.
+        let mut next = None;
+        for lease in self.active_newest_first() {
+            if let Some(expiry) = lease.expires {
+                if next.is_none_or(|next: i64| next.wrapping_sub(expiry) > 0) {
+                    next = Some(expiry);
+                }
+            }
+        }
+        next
     }
 
     /// CLID wins independently of hardware. Hardware fallback is allowed only
@@ -702,10 +716,19 @@ impl LeaseStore {
     /// Prune the selected object, rather than every lease sharing its address.
     pub fn prune_lease(&mut self, target: Option<LeaseId>, now: i64) -> Vec<Lease> {
         let mut removed = Vec::new();
-        while let Some(&(expires, id)) = self.expiry.first() {
-            if expires > now {
-                break;
-            }
+        while let Some(&(expires, first)) = self.expiry.first() {
+            let id = if lease_expired(expires, now) {
+                Some(first)
+            } else if expires < 0 || now < 0 {
+                // A wrapped future timestamp may precede ordinary expired
+                // records in the signed index. Never let it block their prune.
+                self.expiry
+                    .iter()
+                    .find_map(|&(expires, id)| lease_expired(expires, now).then_some(id))
+            } else {
+                None
+            };
+            let Some(id) = id else { break };
             if let Some(lease) = self.remove(id) {
                 removed.push(lease);
             }
@@ -825,7 +848,7 @@ impl LeaseStore {
     /// separate, explicitly pending integration contract.
     pub fn write_basic_leases(&self, mut writer: impl Write) -> io::Result<()> {
         for lease in self.active_newest_first() {
-            write!(writer, "{} ", lease.expires.unwrap_or(0))?;
+            write!(writer, "{} ", lease.expires.unwrap_or(0) as u64)?;
             let identity = &lease.identity;
             if identity.hardware_type != 1 || identity.hardware_address.is_empty() {
                 write!(writer, "{:02x}-", identity.hardware_type)?;
@@ -864,6 +887,18 @@ impl LeaseStore {
         }
         Ok(())
     }
+}
+
+/// Exact image musl difftime subtracts time_t before conversion to double.
+/// Preserve its 64-bit wrapping difference for restored out-of-range values.
+pub fn lease_expired(expires: i64, now: i64) -> bool {
+    now.wrapping_sub(expires) >= 0
+}
+
+/// The image's AArch64 unsigned conversion of difftime saturates at each
+/// endpoint of u32. Helper and INFORM/LEASEQUERY share this C conversion.
+pub fn remaining_seconds(expires: i64, now: i64) -> u32 {
+    expires.wrapping_sub(now).clamp(0, i64::from(u32::MAX)) as u32
 }
 
 pub fn expiry_time(length: u32, now: i64) -> Option<i64> {
@@ -1132,6 +1167,70 @@ mod tests {
         assert_eq!(store.len(), 1);
         assert_eq!(store.next_expiry(), Some(300));
         assert_eq!(store.prune(None, 300).len(), 1);
+    }
+
+    #[test]
+    fn duplicate_expiry_preserves_the_other_lease_and_each_script_event() {
+        let file = super::super::lease_file::parse(
+            b"200 01 192.0.2.1 first *\n150 02 192.0.2.1 second *\n",
+        );
+        let mut store = LeaseStore::new(2);
+        store.restore(file.records, 100).unwrap();
+        store.rerun_scripts();
+        let mut scripts = ScriptQueue::default();
+        let newest = scripts.next(&mut store, ScriptOptions::default()).unwrap();
+        let oldest = scripts.next(&mut store, ScriptOptions::default()).unwrap();
+        assert_eq!(newest.name.as_deref(), Some(b"second".as_slice()));
+        assert_eq!(oldest.name.as_deref(), Some(b"first".as_slice()));
+        assert!(scripts.next(&mut store, ScriptOptions::default()).is_none());
+        let removed = store.prune(None, 150);
+        assert_eq!(removed.len(), 1);
+        assert_eq!(removed[0].id(), newest.lease.id());
+        assert_eq!(store.get(address(1)).unwrap().id(), oldest.lease.id());
+        assert_eq!(store.next_expiry(), Some(200));
+        scripts.add_pruned(removed);
+        let deleted = scripts.next(&mut store, ScriptOptions::default()).unwrap();
+        assert_eq!(deleted.action, ScriptAction::Delete);
+        assert_eq!(deleted.lease.id(), newest.lease.id());
+        assert_eq!(store.counters().allocated4, 2);
+        assert_eq!(store.counters().pruned4, 1);
+    }
+
+    #[test]
+    fn restore_checks_capacity_before_pruning_expired_duplicate_records() {
+        let file =
+            super::super::lease_file::parse(b"50 01 192.0.2.1 first *\n50 02 192.0.2.1 second *\n");
+        let mut store = LeaseStore::new(1);
+        assert_eq!(
+            store.restore(file.records, 100).unwrap_err(),
+            RestoreError::Lease(LeaseError::Full)
+        );
+        assert_eq!(store.len(), 1);
+        assert_eq!(store.counters().allocated4, 1);
+    }
+
+    #[test]
+    fn exact_image_wrapped_timestamps_survive_and_write_unsigned_bits() {
+        let file = super::super::lease_file::parse(
+            b"9223372036854775808 01 192.0.2.1 low *\n-9223372036854775809 02 192.0.2.2 high *\n-1 03 192.0.2.3 expired *\n",
+        );
+        let mut store = LeaseStore::new(3);
+        let removed = store.restore(file.records, 100).unwrap();
+        assert_eq!(removed.len(), 1);
+        assert_eq!(removed[0].address, address(3));
+        assert_eq!(store.get(address(1)).unwrap().expires, Some(i64::MIN));
+        assert_eq!(store.get(address(2)).unwrap().expires, Some(i64::MAX));
+        assert_eq!(store.next_expiry(), Some(i64::MAX));
+        assert!(store.prune(None, 100).is_empty());
+        let mut output = Vec::new();
+        store.write_leases(&mut output).unwrap();
+        assert_eq!(
+            output,
+            b"9223372036854775807 02 192.0.2.2 high *\n9223372036854775808 01 192.0.2.1 low *\n"
+        );
+        assert_eq!(remaining_seconds(i64::MIN, 100), u32::MAX);
+        assert_eq!(remaining_seconds(i64::MAX, 100), u32::MAX);
+        assert_eq!(remaining_seconds(-1, 100), 0);
     }
 
     #[test]
