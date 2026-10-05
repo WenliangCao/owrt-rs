@@ -1204,19 +1204,27 @@ impl<R: Random> DnsDaemon<R> {
                         continue;
                     }
                 };
-            for recipient in &reply.recipients {
+            for (index, recipient) in reply.recipients.iter().enumerate() {
                 if !recipient.client.reply_requested {
                     continue;
                 }
                 match self.recipient_packet(&reply, recipient, rcode) {
-                    Ok(Some(packet)) => responses.push(ClientResponse {
-                        destination: recipient.client.source,
-                        source: recipient.client.destination,
-                        interface: recipient.client.interface,
-                        listener: recipient.client.listener,
-                        packet,
-                        query_context: recipient.client.query_context(),
-                    }),
+                    Ok(Some(packet)) => {
+                        // return_reply logs an extra recipient after its full
+                        // answer send; an upstream TC packet still fits here.
+                        if self.query_logging.extra && index != 0
+                            && (reply.truncated || Header::parse(&packet).is_ok_and(|header| header.flags & 0x0200 == 0)) {
+                            self.query_notice(recipient.client.query_context(), QueryEvent::label(qlog::REPLY, b"query", Some(b"duplicate"), 0));
+                        }
+                        responses.push(ClientResponse {
+                            destination: recipient.client.source,
+                            source: recipient.client.destination,
+                            interface: recipient.client.interface,
+                            listener: recipient.client.listener,
+                            packet,
+                            query_context: recipient.client.query_context(),
+                        });
+                    },
                     Ok(None) => {}
                     Err(_) => {
                         self.poll_failures.recipient_errors =
