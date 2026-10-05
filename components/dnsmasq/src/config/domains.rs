@@ -52,12 +52,33 @@ impl DomainInterfaces {
 /// read_opts selects only the first token after a case-sensitive `search`.
 /// An invalid first token overwrites a prior literal with NULL; later tokens
 /// on that line are never a fallback. The next search line can recover it.
-pub fn resolver_search_domain(bytes: &[u8], mut previous: Option<Vec<u8>>) -> Option<Vec<u8>> {
-    for line in bytes.split(|&byte| byte == b'\n') {
+pub fn resolver_search_domain(bytes: &[u8], previous: Option<Vec<u8>>) -> Option<Vec<u8>> {
+    resolver_search_domain_reader(bytes, previous)
+}
+
+/// get_line_alloc treats a read error as EOF and still returns a partial last
+/// line. Stop reading as soon as the first valid search assignment is found.
+pub fn resolver_search_domain_reader(
+    mut reader: impl std::io::BufRead,
+    mut previous: Option<Vec<u8>>,
+) -> Option<Vec<u8>> {
+    let mut line = Vec::new();
+    loop {
+        line.clear();
+        let finished = match reader.read_until(b'\n', &mut line) {
+            Ok(0) => break,
+            Ok(_) => false,
+            Err(_) if line.is_empty() => break,
+            Err(_) => true,
+        };
+        let line = line.split(|&byte| byte == 0).next().unwrap_or_default();
         let mut tokens = line
             .split(|byte| matches!(byte, b' ' | b'\t' | b'\n' | b'\r'))
             .filter(|token| !token.is_empty());
         if tokens.next() != Some(b"search".as_slice()) {
+            if finished {
+                break;
+            }
             continue;
         }
         if let Some(token) = tokens.next() {
@@ -66,6 +87,9 @@ pub fn resolver_search_domain(bytes: &[u8], mut previous: Option<Vec<u8>>) -> Op
                 break;
             }
         }
+        if finished {
+            break;
+        }
     }
     previous
 }
@@ -73,6 +97,7 @@ pub fn resolver_search_domain(bytes: &[u8], mut previous: Option<Vec<u8>>) -> Op
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::io::BufRead;
     #[test]
     fn resolver_first_token_assignment_preserves_image_latch_order() {
         assert_eq!(
@@ -99,6 +124,52 @@ mod tests {
                 None
             ),
             Some(b"recovered.test".to_vec())
+        );
+    }
+
+    #[test]
+    fn resolver_read_error_keeps_partial_final_search_and_stops_after_assignment() {
+        struct ErrorAfter {
+            bytes: &'static [u8],
+        }
+        impl std::io::Read for ErrorAfter {
+            fn read(&mut self, bytes: &mut [u8]) -> std::io::Result<usize> {
+                let available = self.fill_buf()?;
+                let length = bytes.len().min(available.len());
+                bytes[..length].copy_from_slice(&available[..length]);
+                self.consume(length);
+                Ok(length)
+            }
+        }
+        impl std::io::BufRead for ErrorAfter {
+            fn fill_buf(&mut self) -> std::io::Result<&[u8]> {
+                if self.bytes.is_empty() {
+                    Err(std::io::Error::from_raw_os_error(5))
+                } else {
+                    Ok(self.bytes)
+                }
+            }
+            fn consume(&mut self, count: usize) {
+                self.bytes = &self.bytes[count..];
+            }
+        }
+        assert_eq!(
+            resolver_search_domain_reader(
+                ErrorAfter {
+                    bytes: b"search partial.test"
+                },
+                None
+            ),
+            Some(b"partial.test".to_vec())
+        );
+        assert_eq!(
+            resolver_search_domain_reader(
+                ErrorAfter {
+                    bytes: b"search first.test\nsearch later.test"
+                },
+                None
+            ),
+            Some(b"first.test".to_vec())
         );
     }
     #[test]
