@@ -259,6 +259,20 @@ def cases():
                      'query_probes': True, 'query_mode': mode, 'query_sequence': forward_query_sequence,
                      'query_upstream': True, 'query_required_messages': required,
                      'options': ['log-queries']})
+    for label, extra, probes, required in [
+        ('filter', ['--filter-A', '--filter-AAAA', '--filter-rr=TXT'],
+         [('ready.logging', 1), ('a.forward.test', 1), ('a.forward.test', 1), ('v6.forward.test', 28), ('v6.forward.test', 28), ('txt.forward.test', 16), ('txt.forward.test', 16)],
+         ['config a.forward.test is NODATA-IPv4', 'config v6.forward.test is NODATA-IPv6', 'config txt.forward.test is NODATA']),
+        ('bogus', ['--bogus-nxdomain=192.0.2.7'],
+         [('ready.logging', 1), ('a.forward.test', 1), ('a.forward.test', 1), ('alias.forward.test', 1), ('alias.forward.test', 1)],
+         ['config a.forward.test is NXDOMAIN', 'cached a.forward.test is NXDOMAIN']),
+        ('rebind', ['--stop-dns-rebind'],
+         [('ready.logging', 1), ('rebind.forward.test', 1), ('rebind.forward.test', 1), ('rebind-alias.forward.test', 1), ('rebind-alias.forward.test', 1)],
+         ['possible DNS-rebind attack detected: rebind.forward.test', 'possible DNS-rebind attack detected: rebind-terminal.forward.test'])]:
+        rows.append({'id': 'query-policy-' + label, 'scope': 'query-policy', 'kind': 'run',
+                     'argv': ['--log-facility=-', '--log-queries=proto', '--server=127.0.0.2#15957', '--cache-rr=TXT', *extra],
+                     'query_probes': True, 'query_mode': 'proto', 'query_sequence': probes,
+                     'query_upstream': True, 'query_required_messages': required, 'options': ['log-queries']})
     for kind in ['coalesce', 'clientretry', 'fastretry']:
         rows.append({'id': 'query-transaction-' + kind, 'scope': 'query-transactions', 'kind': 'run',
                      'argv': ['--log-facility=-', '--log-queries=proto', '--server=127.0.0.2#15957',
@@ -1000,6 +1014,12 @@ class QueryUpstream:
         name, end = read_name(request, 12)
         kind = struct.unpack_from('!H', request, end)[0]
         question = request[12:end + 4]
+        if name == 'rebind.forward.test':
+            body = rr(1, bytes([10, 1, 2, 3]))
+            return request[:2] + struct.pack('!5H', 0x8180, 1, 1, 0, 0) + question + body
+        if name == 'rebind-alias.forward.test':
+            body = rr(5, wire_name('rebind-terminal.forward.test')) + rr(1, bytes([10, 1, 2, 3]), owner=wire_name('rebind-terminal.forward.test'))
+            return request[:2] + struct.pack('!5H', 0x8180, 1, 2, 0, 0) + question + body
         if name == 'alias.forward.test':
             body = rr(5, wire_name('terminal.forward.test')) + rr(1, bytes([192, 0, 2, 7]), owner=wire_name('terminal.forward.test'))
             return request[:2] + struct.pack('!5H', 0x8180, 1, 2, 0, 0) + question + body
