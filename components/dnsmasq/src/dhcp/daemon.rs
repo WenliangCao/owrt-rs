@@ -257,7 +257,10 @@ impl LocalProvider {
             Path::new(OsStr::from_bytes(config.lease_path())),
             config.lease_read_only,
             config.lease_max,
-            |warning| { eprintln!("dnsmasq-rs: {warning}"); Ok(()) },
+            |warning| {
+                eprintln!("dnsmasq-rs: {warning}");
+                Ok(())
+            },
         )
         .map_err(|error| {
             let warnings = error
@@ -1029,7 +1032,10 @@ impl LocalProvider {
             .active_newest_first()
             .into_iter()
             .filter_map(|lease| {
-                if lease.expires.is_some_and(|expires| super::lease::lease_expired(expires, now)) {
+                if lease
+                    .expires
+                    .is_some_and(|expires| super::lease::lease_expired(expires, now))
+                {
                     return None;
                 }
                 self.tftp_lease_mac(lease.address)
@@ -1499,10 +1505,11 @@ impl LocalProvider {
                 .then(|| packet.client_id().map(<[u8]>::to_vec))
                 .flatten(),
         };
-        let existing = self
-            .leases
-            .find_client(&identity)
-            .filter(|lease| lease.expires.is_none_or(|expiry| !super::lease::lease_expired(expiry, now)));
+        let existing = self.leases.find_client(&identity).filter(|lease| {
+            lease
+                .expires
+                .is_none_or(|expiry| !super::lease::lease_expired(expiry, now))
+        });
         let clid = (packet.message_type() != 0)
             .then(|| {
                 identity

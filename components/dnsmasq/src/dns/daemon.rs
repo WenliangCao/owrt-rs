@@ -38,6 +38,17 @@ use std::io;
 use std::net::{IpAddr, SocketAddr};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
+fn source_error_text(error: &io::Error) -> String {
+    #[cfg(target_os = "linux")]
+    {
+        super::filewatch::os_message(error)
+    }
+    #[cfg(not(target_os = "linux"))]
+    {
+        error.to_string()
+    }
+}
+
 /// Transport-independent identity of a DNS client datagram.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ClientRequest {
@@ -198,6 +209,7 @@ pub struct DnsDaemon<R = OsRandom> {
     local: LocalDnsService,
     routing: RoutingTable,
     server_sources: ServerSources,
+    source_warnings: Vec<String>,
     upstream: UpstreamResolver<R>,
     cache: Option<Cache>,
     cache_counters: CacheCounters,
@@ -288,6 +300,7 @@ impl<R: Random> DnsDaemon<R> {
             local,
             routing,
             server_sources,
+            source_warnings: Vec::new(),
             upstream,
             cache: None,
             cache_counters: CacheCounters::default(),
@@ -305,6 +318,16 @@ impl<R: Random> DnsDaemon<R> {
 
     pub fn pending_count(&self) -> usize {
         self.upstream.pending_count()
+    }
+
+    pub fn take_source_warnings(&mut self) -> Vec<String> {
+        std::mem::take(&mut self.source_warnings)
+    }
+
+    pub fn take_source_diagnostics(
+        &mut self,
+    ) -> Vec<super::upstream::source_sockets::SourceSocketDiagnostic> {
+        self.upstream.take_source_diagnostics()
     }
 
     pub fn local_config(&self) -> &DnsConfig {
@@ -389,11 +412,11 @@ impl<R: Random> DnsDaemon<R> {
             let ids: Vec<_> = failures
                 .into_iter()
                 .map(|(id, error)| {
-                    eprintln!(
-                        "dnsmasq-rs: ignoring nameserver {} - cannot make/bind socket: {}",
+                    self.source_warnings.push(format!(
+                        "ignoring nameserver {} - cannot make/bind socket: {}",
                         self.routing.server_label(id),
-                        error
-                    );
+                        source_error_text(&error)
+                    ));
                     id
                 })
                 .collect();
@@ -420,11 +443,11 @@ impl<R: Random> DnsDaemon<R> {
             .configure_source_sockets(settings, routing.source_bindings(settings.query_port));
         let mut removed = removed.to_vec();
         for (id, error) in failures {
-            eprintln!(
-                "dnsmasq-rs: ignoring nameserver {} - cannot make/bind socket: {}",
+            self.source_warnings.push(format!(
+                "ignoring nameserver {} - cannot make/bind socket: {}",
                 routing.server_label(id),
-                error
-            );
+                source_error_text(&error)
+            ));
             removed.push(id);
         }
         self.server_sources.remove_server_ids(&removed);
