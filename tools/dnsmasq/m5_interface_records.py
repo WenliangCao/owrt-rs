@@ -234,6 +234,20 @@ def run_service_side(root,side,case,out):
     return result
 
 
+def comparable_service(observed):
+    result=copy.deepcopy(observed)
+    # Each side's kernel chooses a different privacy address. Validate the raw
+    # query against that actual temporary address before substituting its name.
+    for dynamic in observed.get('dynamic_queries',[]):
+        for row in result['rows']:
+            if row['id'].startswith(dynamic['id']+':'):
+                response=row.get('response')
+                if not response or response['questions'][0][0]!=dynamic['name'] or not any(record['type']==12 for record in response['records']):
+                    raise AssertionError('actual privacy-address PTR answer missing')
+                response['questions'][0][0]='actual-temporary-address'
+    return result
+
+
 def run_syntax(root,side,case,out):
     out.mkdir(parents=True)
     text='no-hosts\nuser=root\ngroup=root\nport=15353\n'+('no-resolv\n' if case.get('no_resolv',True) else '')+case['config']
@@ -273,7 +287,7 @@ def main():
         try:
             observed={side:(run_syntax(roots[side],side,case,folder/side) if args.mode=='syntax' else run_service_side(roots[side],side,case,folder/side)) for side in sides}
             if args.side=='both':
-                row['failures']=([] if endpoints.normal(observed['c'])==endpoints.normal(observed['rust']) else ['syntax differs']) if args.mode=='syntax' else files.compare(observed['c'],observed['rust'],case)
+                row['failures']=([] if endpoints.normal(observed['c'])==endpoints.normal(observed['rust']) else ['syntax differs']) if args.mode=='syntax' else files.compare(comparable_service(observed['c']),comparable_service(observed['rust']),case)
             row['sides']={side:({'exit':data['exit']} if args.mode=='syntax' else {'startup':data['startup'],'rows':len(data['rows']),'cleanup':data['cleanup']}) for side,data in observed.items()}
         except Exception as error:
             row['failures'].append({'phase':'infrastructure','error':repr(error)})
