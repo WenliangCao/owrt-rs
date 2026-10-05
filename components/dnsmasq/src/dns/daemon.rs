@@ -715,13 +715,15 @@ impl<R: Random> DnsDaemon<R> {
         local: &mut LocalDnsService,
     ) -> Result<QueryResult, DaemonError> {
         let question = super::forward::Question::parse(original)?;
+        let now = unix_seconds();
         if !metadata.flags.no_cache
-            && super::local::interface_forward_name(&local.config, original).is_none()
+            && (super::local::interface_forward_name(&local.config, original).is_none()
+                || self.cache.as_ref().is_some_and(|cache| cache.has_nxdomain(&question.name, now)))
         {
             let answer = self.cached_answer_at_with_edns_limit(
                 original,
                 &question,
-                unix_seconds(),
+                now,
                 Some(local),
                 self.max_udp,
                 true,
@@ -1276,6 +1278,7 @@ impl<R: Random> DnsDaemon<R> {
             query,
         )
         .is_some()
+            && !self.cache.as_ref().is_some_and(|cache| cache.has_nxdomain(&question.name, now))
         {
             return Ok(CachedAnswer {
                 filtered: false,
@@ -1397,14 +1400,16 @@ impl<R: Random> DnsDaemon<R> {
         negative_cache: bool,
         negative_ttl: u64,
     ) -> Result<super::cache_engine::CachedAnswer, DaemonError> {
-        if super::local::interface_forward_name(&local.config, query).is_some() {
+        let question = super::forward::Question::parse(query)?;
+        if super::local::interface_forward_name(&local.config, query).is_some()
+            && !cache.has_nxdomain(&question.name, now)
+        {
             return Ok(super::cache_engine::CachedAnswer {
                 packet: None,
                 stale: false,
                 filtered: false,
             });
         }
-        let question = super::forward::Question::parse(query)?;
         let filter = local.config.filter_rr.clone();
         let maximum = local.edns_packet_max;
         CacheContext {

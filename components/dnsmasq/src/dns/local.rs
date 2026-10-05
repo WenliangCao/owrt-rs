@@ -171,6 +171,14 @@ impl<'a> LocalAnswerer<'a> {
         // itself remains class-IN only; a non-IN query can therefore receive
         // the local-only NXDOMAIN/NOERROR boundary but never an A/TXT/etc RR.
         let class_in = question.class == CLASS_IN;
+        // answer_request inspects the NX prefix before interface addresses.
+        // Defer this local answer to CacheContext so its SOA footer survives.
+        if class_in && matches!(question.qtype, TYPE_A | TYPE_AAAA)
+            && interfaces.declared(&question.name.dnsmasq_bytes())
+            && cache.as_deref().is_some_and(|cache| cache.has_nxdomain(&question.name, now))
+        {
+            return Ok(None);
+        }
         if class_in {
             expire_lease_lookups(
                 self.config,
