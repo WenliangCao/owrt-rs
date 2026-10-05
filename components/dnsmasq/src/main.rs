@@ -2676,6 +2676,10 @@ impl SinglePoll {
         if self.interfaces_enumerated {
             return;
         }
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if self.interface_collector.is_some() {
+            return;
+        }
         self.interfaces_enumerated = true;
         if self.config.interface_records.rules.is_empty() {
             return;
