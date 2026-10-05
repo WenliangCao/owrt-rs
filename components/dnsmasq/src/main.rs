@@ -625,13 +625,23 @@ fn run_inner(
     // Socket waits remain outside this gate.
     let parent_events = Arc::new(Mutex::new(ParentEvents::new(&runtime.ubus)?));
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    if let Some(script) = &dhcp_config.script {
+    let helper_config = dhcp_config
+        .script
+        .as_ref()
+        .filter(|_| !dhcp_config.ranges.is_empty() || tftp_config.enabled)
+        .map(|script| HelperConfig {
+            script: PathBuf::from(OsString::from_vec(script.clone())),
+            // dnsmasq.c resolves scriptuser only when DHCP is configured.
+            // TFTP alone still has a helper, inheriting startup credentials.
+            script_user: (!dhcp_config.ranges.is_empty())
+                .then(|| dhcp_config.script_user.clone())
+                .flatten(),
+            debug: runtime.process.debug,
+        });
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    if let Some(config) = &helper_config {
         Helper::validate_startup(
-            &HelperConfig {
-                script: PathBuf::from(OsString::from_vec(script.clone())),
-                script_user: dhcp_config.script_user.clone(),
-                debug: runtime.process.debug,
-            },
+            config,
             (dhcp_config.lease_read_only && !dhcp_config.ranges.is_empty())
                 .then_some(dhcp_config.lease_max),
         )?;
@@ -869,15 +879,7 @@ fn run_inner(
     #[cfg(target_os = "linux")]
     dnsmasq_rs::startup::redirect_standard_streams(&runtime.process);
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    let dhcp_helper = if let Some(script) = dhcp_config.script.clone() {
-        Some(Helper::start(HelperConfig {
-            script: PathBuf::from(OsString::from_vec(script)),
-            script_user: dhcp_config.script_user.clone(),
-            debug: runtime.process.debug,
-        })?)
-    } else {
-        None
-    };
+    let dhcp_helper = helper_config.map(Helper::start).transpose()?;
     #[cfg(target_os = "linux")]
     identity.drop_privileges(&runtime.process, capabilities)?;
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -2911,10 +2913,18 @@ fn report_dhcp_maintenance(
         if let Some(logger) = logger {
             use dnsmasq_rs::logging::{LogEvent, Priority, Service};
             for warning in &restore.warnings {
-                logger.emit(LogEvent::new(Service::Dhcp, Priority::Warning, warning.clone()));
+                logger.emit(LogEvent::new(
+                    Service::Dhcp,
+                    Priority::Warning,
+                    warning.clone(),
+                ));
             }
             if !restore.clean_end {
-                logger.emit(LogEvent::new(Service::Dhcp, Priority::Error, b"failed to parse lease database cleanly".to_vec()));
+                logger.emit(LogEvent::new(
+                    Service::Dhcp,
+                    Priority::Error,
+                    b"failed to parse lease database cleanly".to_vec(),
+                ));
             }
         }
     }
