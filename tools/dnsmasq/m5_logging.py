@@ -189,16 +189,18 @@ def cases():
                      'argv': ['--log-facility=-', '--dhcp-script=/m2/logging/script',
                               '--dhcp-scriptuser=nobody', *extra], 'options': ['dhcp-scriptuser']})
     for name, number, error in [('fork-one', 220, errno.EAGAIN), ('error-pipe', 59, errno.EMFILE),
+                                ('error-pipe-flags', 25, errno.EIO),
                                 ('pid-write', 64, errno.EIO), ('pid-close', 57, errno.EIO),
-                                ('log-chown', 55, errno.EPERM), ('pid-short-write', 64, 0)]:
-        failed = name not in ['log-chown', 'pid-short-write']
+                                ('log-chown', 55, errno.EPERM), ('pid-chown', 55, errno.EPERM),
+                                ('pid-short-write', 64, 0)]:
+        failed = name not in ['log-chown', 'pid-chown', 'pid-short-write']
         rows.append({'id': 'startup-fault-' + name, 'scope': 'startup-fault', 'kind': 'run',
-                     'mode': [] if name in ['fork-one', 'error-pipe'] else ['-k'],
-                     'daemonized': name in ['fork-one', 'error-pipe'], 'fault': name,
+                     'mode': [] if name in ['fork-one', 'error-pipe', 'error-pipe-flags'] else ['-k'],
+                     'daemonized': name in ['fork-one', 'error-pipe', 'error-pipe-flags'], 'fault': name,
                      'fault_number': number, 'fault_errno': error,
-                     'exit': (5 if name in ['fork-one', 'error-pipe'] else 3) if failed else 0,
+                     'exit': (5 if name in ['fork-one', 'error-pipe', 'error-pipe-flags'] else 3) if failed else 0,
                      'pidfile': '/m2/logging/daemon.pid',
-                     'user': 'nobody' if name == 'log-chown' else 'root',
+                     'user': 'nobody' if name in ['log-chown', 'pid-chown'] else 'root',
                      'file': '/m2/logging/daemon.log' if name == 'log-chown' else None,
                      'argv': ['--log-facility=/m2/logging/daemon.log'] if name == 'log-chown' else ['--log-facility=-'],
                      'receiver': 'dgram', 'options': ['no-daemon', 'log-facility']})
@@ -598,7 +600,7 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
         ptrace(0x4205 if write else 0x4204, 1, ctypes.addressof(vec))
         return value
     report = {'pid': pid, 'fault': case['fault'], 'injected': False, 'events': []}
-    attached, pending, pipes = True, None, 0
+    attached, pending, pipes, pipe_pointer, error_writer = True, None, 0, None, None
     deadline = time.monotonic() + 5
     def wait_stop():
         while time.monotonic() < deadline:
@@ -635,6 +637,8 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                     continue
                 if number == 59:
                     pipes += 1
+                    if case['fault'] == 'error-pipe-flags' and pipes == (2 if side == 'c' else 1):
+                        pipe_pointer = args[0]
                 target = ''
                 if number in [57, 55, 64, 66]:
                     try:
@@ -644,7 +648,9 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                 match = number == case['fault_number'] or (number == 66 and case['fault_number'] == 64)
                 if case['fault'] == 'error-pipe':
                     match &= pipes == (2 if side == 'c' else 1)
-                elif case['fault'] in ['pid-write', 'pid-close', 'pid-short-write']:
+                elif case['fault'] == 'error-pipe-flags':
+                    match &= args[0] == error_writer and args[1] == 4
+                elif case['fault'] in ['pid-write', 'pid-close', 'pid-chown', 'pid-short-write']:
                     match &= target.endswith('/m2/logging/daemon.pid')
                 elif case['fault'] == 'log-chown':
                     match &= target.endswith('/m2/logging/daemon.log')
@@ -663,6 +669,10 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                     skipped = ctypes.c_int(-1)
                     vec = Iovec(ctypes.addressof(skipped), ctypes.sizeof(skipped))
                     ptrace(0x4205, 0x404, ctypes.addressof(vec))
+            elif operation == 2 and pipe_pointer is not None and pending is None:
+                word = ptrace(2, pipe_pointer) & ((1 << 64) - 1)
+                error_writer = word >> 32
+                pipe_pointer = None
             elif operation == 2 and pending:
                 result = struct.unpack_from('=q', info.raw, 24)[0]
                 if 'iov_length' in pending:
