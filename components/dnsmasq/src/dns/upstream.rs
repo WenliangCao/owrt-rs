@@ -692,7 +692,7 @@ impl<R: Random> UpstreamResolver<R> {
             }
         };
         for plan in plans {
-            match self.send_plan(plan.id, &plan.packet, &plan.send_plan) {
+            match self.send_plan_without_client(plan.id, &plan.packet, &plan.send_plan) {
                 Ok(()) => self.dispatcher.retry_finished(plan.id),
                 Err(error) => {
                     if matches!(&error, ResolveError::Io(_)) {
@@ -996,13 +996,34 @@ impl<R: Random> UpstreamResolver<R> {
         self.send_plan_with_io(id, packet, plan, UdpSocket::send_to, wait_udp_retry)
     }
 
+    fn send_plan_without_client(
+        &mut self,
+        id: QueryId,
+        packet: &[u8],
+        plan: &SendPlan,
+    ) -> Result<(), ResolveError> {
+        self.send_plan_with_source(id, packet, plan, UdpSocket::send_to, wait_udp_retry, false)
+    }
+
     fn send_plan_with_io(
+        &mut self,
+        id: QueryId,
+        packet: &[u8],
+        plan: &SendPlan,
+        send: impl FnMut(&UdpSocket, &[u8], SocketAddr) -> io::Result<usize>,
+        wait: impl FnMut() -> io::Result<()>,
+    ) -> Result<(), ResolveError> {
+        self.send_plan_with_source(id, packet, plan, send, wait, true)
+    }
+
+    fn send_plan_with_source(
         &mut self,
         id: QueryId,
         packet: &[u8],
         plan: &SendPlan,
         mut send: impl FnMut(&UdpSocket, &[u8], SocketAddr) -> io::Result<usize>,
         mut wait: impl FnMut() -> io::Result<()>,
+        include_client: bool,
     ) -> Result<(), ResolveError> {
         if plan.exhausted || plan.candidates.is_empty() {
             return Err(ResolveError::NoServer);
@@ -1047,7 +1068,11 @@ impl<R: Random> UpstreamResolver<R> {
                         .table()
                         .get(id)
                         .expect("sent query remains pending");
-                    let context = pending.query_context();
+                    let mut context = pending.query_context();
+                    if !include_client {
+                        context.client = None;
+                    }
+
                     if self.query_logging.enabled {
                         let mut event = crate::query_logging::QueryEvent::address(
                             crate::query_logging::SERVER,
