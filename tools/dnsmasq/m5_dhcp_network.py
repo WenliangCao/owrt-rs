@@ -49,6 +49,108 @@ def proxy_specs():
     ]
 
 
+def shared_specs():
+    return [
+        dict(case='shared-local-address', config=['shared-network=127.0.0.1,198.18.0.1']),
+        dict(case='shared-local-interface', config=['shared-network=lo,198.18.0.1']),
+        dict(case='shared-unmatched', config=['shared-network=127.0.0.9,198.18.0.1'], no_reply=True),
+        dict(case='shared-no-default-router', config=['shared-network=lo,198.18.0.1'], no_router=True),
+        dict(case='shared-explicit-router', config=['shared-network=lo,198.18.0.1', 'dhcp-option=3,198.18.0.254'], router='198.18.0.254'),
+        dict(case='shared-broadcast', config=['shared-network=lo,198.18.0.1'], broadcast='198.18.0.255'),
+        dict(case='shared-duplicate-link', config=['shared-network=lo,198.18.0.1', 'shared-network=127.0.0.1,198.18.0.1']),
+        dict(case='shared-context-order', config=['shared-network=lo,198.18.0.1', 'shared-network=lo,198.18.1.1', 'dhcp-sequential-ip'], second_range=True, address='198.18.1.10', requested=False),
+        dict(case='shared-secondary-enumeration', config=['shared-network=127.0.0.3,198.18.0.1'], secondary=True, expected='127.0.0.3'),
+        dict(case='shared-interface-index-fixed', config=['shared-network=nwshare,198.18.0.1'], index_fixed=True, expected='198.19.0.1'),
+        dict(case='shared-relay-address', config=['shared-network=127.0.0.2,198.18.0.1'], relay=True),
+        dict(case='shared-relay-subnet-selector', config=['shared-network=127.0.0.2,198.18.0.1'], relay=True, subnet='203.0.113.1'),
+        dict(case='shared-interface-not-relay', config=['shared-network=lo,198.18.0.1'], relay=True, no_reply=True),
+        dict(case='shared-direct-renewal', config=[], kind=3, renew=True),
+    ]
+
+
+def shared_exchange(endpoint, folder, spec, xid):
+    kind = spec.get('kind', 1)
+    requested = spec.get('requested', True)
+    address = spec.get('address', '198.18.0.10')
+    request = bytearray(packet(kind, xid, 1, address if requested else None, False))
+    # Include broadcast explicitly in the PRL so context completion is visible.
+    offset = request.index(bytes([55, 6]), 240)
+    request[offset + 1] = 7
+    request[offset + 2:offset + 2] = bytes([28])
+    if spec.get('relay'):
+        request[24:28] = socket.inet_aton('127.0.0.2')
+    if spec.get('subnet'):
+        request[-1:] = bytes([118, 4]) + socket.inet_aton(spec['subnet']) + b'\xff'
+    (folder / f'{xid}.request').write_bytes(request)
+    endpoint.sendto(request, ('127.0.0.1', 67))
+    if spec.get('no_reply'):
+        endpoint.settimeout(.5)
+        try:
+            reply = endpoint.recv(16384)
+        except socket.timeout:
+            return dict(kind=kind, wire=None)
+        raise AssertionError('unmatched shared network produced an OFFER: ' + reply.hex())
+    reply, peer = endpoint.recvfrom(16384)
+    (folder / f'{xid}.reply').write_bytes(reply)
+    values = decode(reply, xid)
+    assert values[53] == bytes([2 if kind == 1 else 5]), 'shared context OFFER/ACK'
+    assert values[54] == socket.inet_aton(spec.get('expected', '127.0.0.1')), 'selected shared context server ID'
+    assert reply[16:20] == socket.inet_aton(address), 'shared context allocation/order'
+    if spec.get('no_router'): assert 3 not in values, 'shared context invented a default router'
+    if spec.get('router'): assert values[3] == socket.inet_aton(spec['router']), 'explicit shared router option'
+    if spec.get('broadcast'): assert values[28] == socket.inet_aton(spec['broadcast']), 'shared context broadcast'
+    if spec.get('renew'):
+        from m5_dhcp_tags_options import comparable_reply
+        wire = comparable_reply(reply, dict(kind=3, renew=True, requested_address=False, server_id=None, ciaddr=address))
+    else:
+        wire = reply.hex()
+    return dict(kind=kind, wire=wire, peer=list(peer))
+
+
+def shared_case(root, side, out, spec):
+    folder = out / spec['case']; folder.mkdir()
+    runner = Side(root, side, folder, spec['case'], ['bind-interfaces', *spec['config']])
+    config = runner.config.read_text().replace('dhcp-range=127.0.0.10,127.0.0.20,255.0.0.0,10m',
+        'dhcp-range=198.18.0.10,198.18.0.20,255.255.255.0,10m')
+    if spec.get('second_range'):
+        config += 'dhcp-range=198.18.1.10,198.18.1.20,255.255.255.0,10m\n'
+    runner.config.write_text(config)
+    if spec.get('secondary'):
+        subprocess.run(['ip', 'addr', 'add', '127.0.0.3/8', 'dev', 'lo'], check=True)
+    if spec.get('index_fixed'):
+        subprocess.run(['ip', 'link', 'add', 'nwshare', 'type', 'dummy'], check=True)
+        subprocess.run(['ip', 'link', 'set', 'nwshare', 'up'], check=True)
+        subprocess.run(['ip', 'addr', 'add', '198.19.0.1/24', 'dev', 'nwshare'], check=True)
+    try:
+        runner.start()
+        save(folder / 'identity.json', process_identity(root, runner.process.pid))
+        endpoint = runner.client
+        if spec.get('relay'):
+            endpoint = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            endpoint.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            endpoint.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+            endpoint.bind(('127.0.0.2', 67)); endpoint.settimeout(3)
+        try:
+            packets = [shared_exchange(endpoint, folder, spec, 0x7910)]
+            if spec.get('index_fixed'):
+                subprocess.run(['ip', 'link', 'del', 'nwshare'], check=True)
+                subprocess.run(['ip', 'link', 'add', 'nwshare', 'type', 'dummy'], check=True)
+                subprocess.run(['ip', 'link', 'set', 'nwshare', 'up'], check=True)
+                subprocess.run(['ip', 'addr', 'add', '198.19.0.1/24', 'dev', 'nwshare'], check=True)
+                packets.append(shared_exchange(endpoint, folder, {**spec, 'no_reply':True}, 0x7911))
+            assert runner.dns(), 'DNS remains healthy after shared caller'
+            return dict(case=spec['case'], packets=packets)
+        finally:
+            if endpoint is not runner.client: endpoint.close()
+    finally:
+        cleanup = runner.stop(); save(folder / 'cleanup.json', cleanup)
+        if spec.get('secondary'):
+            subprocess.run(['ip', 'addr', 'del', '127.0.0.3/8', 'dev', 'lo'], check=True)
+        if spec.get('index_fixed'):
+            subprocess.run(['ip', 'link', 'del', 'nwshare'], check=True)
+        assert cleanup['exit'] == 0 and not cleanup['forced'] and not cleanup['remaining'], 'shared service cleanup'
+
+
 def exchange(endpoint, runner, folder, spec, kind=1, xid=0x7901):
     request = bytearray(packet(kind, xid, 1, '127.0.0.10', kind == 3))
     request[24:28] = socket.inet_aton(spec.get('giaddr', '127.0.0.2'))
@@ -106,22 +208,28 @@ def run_side(args):
     save(args.out / 'plan.json', plan)
     root = prepare(args.image_root, None, args.out / 'filesystem', args.rust)
     rows, failures = [], []
-    syntax = [('proxy-syntax-file', ['dhcp-proxy=127.0.0.2,127.0.0.3'], []),
-              ('proxy-syntax-cli', [], ['--dhcp-proxy=127.0.0.2'])]
-    if args.family == 'dhcp-proxy':
-        for label, lines, flags in syntax:
-            folder = args.out / label; folder.mkdir()
-            (root / 'm2/network.conf').write_text('\n'.join(lines) + '\n')
-            result = subprocess.run(command(root, args.side, '--test', '-C', '/m2/network.conf', *flags), capture_output=True, timeout=4)
-            (folder / 'stdout').write_bytes(result.stdout); (folder / 'stderr').write_bytes(result.stderr)
-            assert result.returncode == 0, 'ordinary syntax'
-            rows.append(dict(case=label, exit=result.returncode, stdout=result.stdout.hex(), stderr=result.stderr.replace(b'dnsmasq-rs', b'dnsmasq').hex()))
-        for spec in proxy_specs():
-            try:
-                rows.append(proxy_case(root, args.side, args.out, spec))
-            except Exception as error:
-                failed = dict(case=spec['case'], error=repr(error)); failures.append(failed)
-                save(args.out / spec['case'] / 'failure.json', failed)
+    syntaxes = {
+        'dhcp-proxy': [('proxy-syntax-file', ['dhcp-proxy=127.0.0.2,127.0.0.3'], []),
+                       ('proxy-syntax-cli', [], ['--dhcp-proxy=127.0.0.2'])],
+        'shared-network': [('shared-syntax-address', ['shared-network=127.0.0.1,198.18.0.1'], []),
+                           ('shared-syntax-interface', ['shared-network=lo,198.18.0.1'], []),
+                           ('shared-syntax-cli', [], ['--shared-network=lo,198.18.0.1'])],
+    }
+    for label, lines, flags in syntaxes.get(args.family, []):
+        folder = args.out / label; folder.mkdir()
+        (root / 'm2/network.conf').write_text('\n'.join(lines) + '\n')
+        result = subprocess.run(command(root, args.side, '--test', '-C', '/m2/network.conf', *flags), capture_output=True, timeout=4)
+        (folder / 'stdout').write_bytes(result.stdout); (folder / 'stderr').write_bytes(result.stderr)
+        if result.returncode:
+            failures.append(dict(case=label, error='ordinary syntax rejected', exit=result.returncode))
+        rows.append(dict(case=label, exit=result.returncode, stdout=result.stdout.hex(), stderr=result.stderr.replace(b'dnsmasq-rs', b'dnsmasq').hex()))
+    specs, run_case = (proxy_specs(), proxy_case) if args.family == 'dhcp-proxy' else (shared_specs(), shared_case) if args.family == 'shared-network' else ([], None)
+    for spec in specs:
+        try:
+            rows.append(run_case(root, args.side, args.out, spec))
+        except Exception as error:
+            failed = dict(case=spec['case'], error=repr(error)); failures.append(failed)
+            save(args.out / spec['case'] / 'failure.json', failed)
     needed = required(plan, args.family)
     result = dict(side=args.side, family=args.family, rows=rows, failures=failures,
                   missing=sorted(needed - {row['case'] for row in rows}), qualified=False,
