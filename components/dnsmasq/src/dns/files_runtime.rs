@@ -451,7 +451,13 @@ impl DnsFiles {
                 return result;
             }
             result.update = self.endpoint_update.take();
-            result.runnable = true;
+            if self.job.is_none() && self.requests.is_empty() {
+                result.signal_complete = self.active_reason.take() == Some(ReloadReason::Signal);
+                if self.initializing && !self.triggers.contains(&ReloadReason::Init) {
+                    self.initializing = false;
+                }
+            }
+            result.runnable = !self.requests.is_empty() || !self.triggers.is_empty();
             return result;
         }
         let mut watch_more = false;
