@@ -1,0 +1,2599 @@
+{
+  "schema": 1,
+  "options": [
+    "log-malloc",
+    "test"
+  ],
+  "image": "ax3000t-stock-openwrt-25.12.5",
+  "reference_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "source": {
+    "option.c": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
+    "dnsmasq.c": "d4bb7cde522376200a0293427b0812625ebc457f10dc9d3e2bef243ccba8ccd1",
+    "dnsmasq.h": "318942419598f037a97611efbdea5aebba1e384b9a1ba5f7eded091c86e0e228",
+    "util.c": "33920165ef3e92f65d1cab75fe8da7772ad7389b37da79ba881957080f12f973",
+    "cache.c": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c",
+    "log.c": "a205b9cbf9556b01f483b43e732df1ae411c82d622a0e5449f79d43b0267c47c",
+    "config.h": "dacbe1f8d0e03d93e53a81901956b07ab7a5059d1e5db3225150a9688a1122da"
+  },
+  "test_inventory": {
+    "available_options": 169,
+    "ordinary_form_cases": 338,
+    "option_names": [
+      "version",
+      "no-hosts",
+      "no-poll",
+      "help",
+      "no-daemon",
+      "log-queries",
+      "user",
+      "group",
+      "resolv-file",
+      "servers-file",
+      "mx-host",
+      "mx-target",
+      "cache-size",
+      "port",
+      "dhcp-leasefile",
+      "dhcp-lease",
+      "dhcp-host",
+      "dhcp-range",
+      "dhcp-option",
+      "dhcp-boot",
+      "domain",
+      "domain-suffix",
+      "interface",
+      "listen-address",
+      "local-service",
+      "bogus-priv",
+      "bogus-nxdomain",
+      "ignore-address",
+      "selfmx",
+      "filterwin2k",
+      "filter-A",
+      "filter-AAAA",
+      "filter-rr",
+      "pid-file",
+      "strict-order",
+      "server",
+      "rev-server",
+      "local",
+      "address",
+      "conf-file",
+      "conf-script",
+      "no-resolv",
+      "expand-hosts",
+      "localmx",
+      "local-ttl",
+      "no-negcache",
+      "no-round-robin",
+      "no-0x20-encode",
+      "do-0x20-encode",
+      "cache-rr",
+      "addn-hosts",
+      "hostsdir",
+      "query-port",
+      "except-interface",
+      "no-dhcp-interface",
+      "no-dhcpv4-interface",
+      "domain-needed",
+      "dhcp-lease-max",
+      "bind-interfaces",
+      "read-ethers",
+      "alias",
+      "dhcp-vendorclass",
+      "dhcp-userclass",
+      "dhcp-ignore",
+      "edns-packet-max",
+      "keep-in-foreground",
+      "dhcp-authoritative",
+      "srv-host",
+      "localise-queries",
+      "txt-record",
+      "caa-record",
+      "dns-rr",
+      "enable-ubus",
+      "bootp-dynamic",
+      "dhcp-mac",
+      "no-ping",
+      "dhcp-script",
+      "conf-dir",
+      "log-facility",
+      "leasefile-ro",
+      "script-on-renewal",
+      "dns-forward-max",
+      "clear-on-reload",
+      "dhcp-ignore-names",
+      "enable-tftp",
+      "tftp-secure",
+      "tftp-no-fail",
+      "tftp-unique-root",
+      "tftp-root",
+      "tftp-max",
+      "tftp-mtu",
+      "tftp-lowercase",
+      "tftp-single-port",
+      "ptr-record",
+      "naptr-record",
+      "bridge-interface",
+      "shared-network",
+      "dhcp-option-force",
+      "dhcp-option-pxe",
+      "tftp-no-blocksize",
+      "log-dhcp",
+      "log-async",
+      "dhcp-circuitid",
+      "dhcp-remoteid",
+      "dhcp-subscrid",
+      "dhcp-pxe-vendor",
+      "interface-name",
+      "dhcp-hostsfile",
+      "dhcp-optsfile",
+      "dhcp-hostsdir",
+      "dhcp-optsdir",
+      "dhcp-no-override",
+      "tftp-port-range",
+      "stop-dns-rebind",
+      "rebind-domain-ok",
+      "all-servers",
+      "dhcp-match",
+      "dhcp-name-match",
+      "dhcp-broadcast",
+      "neg-ttl",
+      "max-ttl",
+      "min-cache-ttl",
+      "max-cache-ttl",
+      "dhcp-alternate-port",
+      "dhcp-scriptuser",
+      "min-port",
+      "max-port",
+      "dhcp-fqdn",
+      "cname",
+      "pxe-prompt",
+      "pxe-service",
+      "test",
+      "tag-if",
+      "dhcp-proxy",
+      "dhcp-generate-names",
+      "rebind-localhost-ok",
+      "add-mac",
+      "strip-mac",
+      "add-subnet",
+      "strip-subnet",
+      "add-cpe-id",
+      "proxy-dnssec",
+      "dhcp-sequential-ip",
+      "dhcp-client-update",
+      "host-record",
+      "bind-dynamic",
+      "synth-domain",
+      "dhcp-relay",
+      "dhcp-split-relay",
+      "quiet-dhcp",
+      "dns-loop-detect",
+      "script-arp",
+      "dhcp-ttl",
+      "dhcp-reply-delay",
+      "dhcp-rapid-commit",
+      "dumpfile",
+      "dumpmask",
+      "dhcp-ignore-clid",
+      "dynamic-host",
+      "log-debug",
+      "umbrella",
+      "quiet-tftp",
+      "port-limit",
+      "fast-dns-retry",
+      "use-stale-cache",
+      "no-ident",
+      "max-tcp-connections",
+      "leasequery",
+      "log-malloc"
+    ],
+    "excluded_capabilities_count": 26
+  },
+  "test_cases": [
+    {
+      "case": "test-version-cli",
+      "option": "version",
+      "form": "cli",
+      "directive": "version",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-version-file",
+      "option": "version",
+      "form": "file",
+      "directive": "version",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-no-hosts-cli",
+      "option": "no-hosts",
+      "form": "cli",
+      "directive": "no-hosts",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-no-hosts-file",
+      "option": "no-hosts",
+      "form": "file",
+      "directive": "no-hosts",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-no-poll-cli",
+      "option": "no-poll",
+      "form": "cli",
+      "directive": "no-poll",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-no-poll-file",
+      "option": "no-poll",
+      "form": "file",
+      "directive": "no-poll",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-help-cli",
+      "option": "help",
+      "form": "cli",
+      "directive": "help",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-help-file",
+      "option": "help",
+      "form": "file",
+      "directive": "help",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-no-daemon-cli",
+      "option": "no-daemon",
+      "form": "cli",
+      "directive": "no-daemon",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-no-daemon-file",
+      "option": "no-daemon",
+      "form": "file",
+      "directive": "no-daemon",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-log-queries-cli",
+      "option": "log-queries",
+      "form": "cli",
+      "directive": "log-queries=extra",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-log-queries-file",
+      "option": "log-queries",
+      "form": "file",
+      "directive": "log-queries=extra",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-user-cli",
+      "option": "user",
+      "form": "cli",
+      "directive": "user=nobody",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-user-file",
+      "option": "user",
+      "form": "file",
+      "directive": "user=nobody",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-group-cli",
+      "option": "group",
+      "form": "cli",
+      "directive": "group=nogroup",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-group-file",
+      "option": "group",
+      "form": "file",
+      "directive": "group=nogroup",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-resolv-file-cli",
+      "option": "resolv-file",
+      "form": "cli",
+      "directive": "resolv-file=/m2/cli/resolv",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-resolv-file-file",
+      "option": "resolv-file",
+      "form": "file",
+      "directive": "resolv-file=/m2/cli/resolv",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-servers-file-cli",
+      "option": "servers-file",
+      "form": "cli",
+      "directive": "servers-file=/m2/cli/servers",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-servers-file-file",
+      "option": "servers-file",
+      "form": "file",
+      "directive": "servers-file=/m2/cli/servers",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-mx-host-cli",
+      "option": "mx-host",
+      "form": "cli",
+      "directive": "mx-host=mail.test,mx.test,10",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-mx-host-file",
+      "option": "mx-host",
+      "form": "file",
+      "directive": "mx-host=mail.test,mx.test,10",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-mx-target-cli",
+      "option": "mx-target",
+      "form": "cli",
+      "directive": "mx-target=mx.test",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-mx-target-file",
+      "option": "mx-target",
+      "form": "file",
+      "directive": "mx-target=mx.test",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-cache-size-cli",
+      "option": "cache-size",
+      "form": "cli",
+      "directive": "cache-size=64",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-cache-size-file",
+      "option": "cache-size",
+      "form": "file",
+      "directive": "cache-size=64",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-port-cli",
+      "option": "port",
+      "form": "cli",
+      "directive": "port=10553",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-port-file",
+      "option": "port",
+      "form": "file",
+      "directive": "port=10553",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-leasefile-cli",
+      "option": "dhcp-leasefile",
+      "form": "cli",
+      "directive": "dhcp-leasefile=/m2/cli/leases",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-leasefile-file",
+      "option": "dhcp-leasefile",
+      "form": "file",
+      "directive": "dhcp-leasefile=/m2/cli/leases",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-lease-cli",
+      "option": "dhcp-lease",
+      "form": "cli",
+      "directive": "dhcp-lease=/m2/cli/leases",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-lease-file",
+      "option": "dhcp-lease",
+      "form": "file",
+      "directive": "dhcp-lease=/m2/cli/leases",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-host-cli",
+      "option": "dhcp-host",
+      "form": "cli",
+      "directive": "dhcp-host=02:00:00:00:00:01,192.0.2.10,client,10m",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-host-file",
+      "option": "dhcp-host",
+      "form": "file",
+      "directive": "dhcp-host=02:00:00:00:00:01,192.0.2.10,client,10m",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-range-cli",
+      "option": "dhcp-range",
+      "form": "cli",
+      "directive": "dhcp-range=192.0.2.10,192.0.2.20,255.255.255.0,10m",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-range-file",
+      "option": "dhcp-range",
+      "form": "file",
+      "directive": "dhcp-range=192.0.2.10,192.0.2.20,255.255.255.0,10m",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-option-cli",
+      "option": "dhcp-option",
+      "form": "cli",
+      "directive": "dhcp-option=3,192.0.2.1",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-option-file",
+      "option": "dhcp-option",
+      "form": "file",
+      "directive": "dhcp-option=3,192.0.2.1",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-boot-cli",
+      "option": "dhcp-boot",
+      "form": "cli",
+      "directive": "dhcp-boot=boot.img,server,192.0.2.2",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-boot-file",
+      "option": "dhcp-boot",
+      "form": "file",
+      "directive": "dhcp-boot=boot.img,server,192.0.2.2",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-domain-cli",
+      "option": "domain",
+      "form": "cli",
+      "directive": "domain=example.test",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-domain-file",
+      "option": "domain",
+      "form": "file",
+      "directive": "domain=example.test",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-domain-suffix-cli",
+      "option": "domain-suffix",
+      "form": "cli",
+      "directive": "domain-suffix=example.test",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-domain-suffix-file",
+      "option": "domain-suffix",
+      "form": "file",
+      "directive": "domain-suffix=example.test",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-interface-cli",
+      "option": "interface",
+      "form": "cli",
+      "directive": "interface=lo",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-interface-file",
+      "option": "interface",
+      "form": "file",
+      "directive": "interface=lo",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-listen-address-cli",
+      "option": "listen-address",
+      "form": "cli",
+      "directive": "listen-address=127.0.0.1",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-listen-address-file",
+      "option": "listen-address",
+      "form": "file",
+      "directive": "listen-address=127.0.0.1",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-local-service-cli",
+      "option": "local-service",
+      "form": "cli",
+      "directive": "local-service=net",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-local-service-file",
+      "option": "local-service",
+      "form": "file",
+      "directive": "local-service=net",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-bogus-priv-cli",
+      "option": "bogus-priv",
+      "form": "cli",
+      "directive": "bogus-priv",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-bogus-priv-file",
+      "option": "bogus-priv",
+      "form": "file",
+      "directive": "bogus-priv",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-bogus-nxdomain-cli",
+      "option": "bogus-nxdomain",
+      "form": "cli",
+      "directive": "bogus-nxdomain=192.0.2.3",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-bogus-nxdomain-file",
+      "option": "bogus-nxdomain",
+      "form": "file",
+      "directive": "bogus-nxdomain=192.0.2.3",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-ignore-address-cli",
+      "option": "ignore-address",
+      "form": "cli",
+      "directive": "ignore-address=192.0.2.4",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-ignore-address-file",
+      "option": "ignore-address",
+      "form": "file",
+      "directive": "ignore-address=192.0.2.4",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-selfmx-cli",
+      "option": "selfmx",
+      "form": "cli",
+      "directive": "selfmx",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-selfmx-file",
+      "option": "selfmx",
+      "form": "file",
+      "directive": "selfmx",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-filterwin2k-cli",
+      "option": "filterwin2k",
+      "form": "cli",
+      "directive": "filterwin2k",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-filterwin2k-file",
+      "option": "filterwin2k",
+      "form": "file",
+      "directive": "filterwin2k",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-filter-A-cli",
+      "option": "filter-A",
+      "form": "cli",
+      "directive": "filter-A",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-filter-A-file",
+      "option": "filter-A",
+      "form": "file",
+      "directive": "filter-A",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-filter-AAAA-cli",
+      "option": "filter-AAAA",
+      "form": "cli",
+      "directive": "filter-AAAA",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-filter-AAAA-file",
+      "option": "filter-AAAA",
+      "form": "file",
+      "directive": "filter-AAAA",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-filter-rr-cli",
+      "option": "filter-rr",
+      "form": "cli",
+      "directive": "filter-rr=TXT",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-filter-rr-file",
+      "option": "filter-rr",
+      "form": "file",
+      "directive": "filter-rr=TXT",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-pid-file-cli",
+      "option": "pid-file",
+      "form": "cli",
+      "directive": "pid-file=/m2/cli/pid",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-pid-file-file",
+      "option": "pid-file",
+      "form": "file",
+      "directive": "pid-file=/m2/cli/pid",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-strict-order-cli",
+      "option": "strict-order",
+      "form": "cli",
+      "directive": "strict-order",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-strict-order-file",
+      "option": "strict-order",
+      "form": "file",
+      "directive": "strict-order",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-server-cli",
+      "option": "server",
+      "form": "cli",
+      "directive": "server=192.0.2.53",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-server-file",
+      "option": "server",
+      "form": "file",
+      "directive": "server=192.0.2.53",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-rev-server-cli",
+      "option": "rev-server",
+      "form": "cli",
+      "directive": "rev-server=192.0.2.0/24,192.0.2.53",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-rev-server-file",
+      "option": "rev-server",
+      "form": "file",
+      "directive": "rev-server=192.0.2.0/24,192.0.2.53",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-local-cli",
+      "option": "local",
+      "form": "cli",
+      "directive": "local=/example.test/",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-local-file",
+      "option": "local",
+      "form": "file",
+      "directive": "local=/example.test/",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-address-cli",
+      "option": "address",
+      "form": "cli",
+      "directive": "address=/example.test/192.0.2.5",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-address-file",
+      "option": "address",
+      "form": "file",
+      "directive": "address=/example.test/192.0.2.5",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-conf-file-cli",
+      "option": "conf-file",
+      "form": "cli",
+      "directive": "conf-file=/m2/cli/include.conf",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-conf-file-file",
+      "option": "conf-file",
+      "form": "file",
+      "directive": "conf-file=/m2/cli/include.conf",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-conf-script-cli",
+      "option": "conf-script",
+      "form": "cli",
+      "directive": "conf-script=/m2/cli/config-script",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-conf-script-file",
+      "option": "conf-script",
+      "form": "file",
+      "directive": "conf-script=/m2/cli/config-script",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-no-resolv-cli",
+      "option": "no-resolv",
+      "form": "cli",
+      "directive": "no-resolv",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-no-resolv-file",
+      "option": "no-resolv",
+      "form": "file",
+      "directive": "no-resolv",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-expand-hosts-cli",
+      "option": "expand-hosts",
+      "form": "cli",
+      "directive": "expand-hosts",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-expand-hosts-file",
+      "option": "expand-hosts",
+      "form": "file",
+      "directive": "expand-hosts",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-localmx-cli",
+      "option": "localmx",
+      "form": "cli",
+      "directive": "localmx",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-localmx-file",
+      "option": "localmx",
+      "form": "file",
+      "directive": "localmx",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-local-ttl-cli",
+      "option": "local-ttl",
+      "form": "cli",
+      "directive": "local-ttl=60",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-local-ttl-file",
+      "option": "local-ttl",
+      "form": "file",
+      "directive": "local-ttl=60",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-no-negcache-cli",
+      "option": "no-negcache",
+      "form": "cli",
+      "directive": "no-negcache",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-no-negcache-file",
+      "option": "no-negcache",
+      "form": "file",
+      "directive": "no-negcache",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-no-round-robin-cli",
+      "option": "no-round-robin",
+      "form": "cli",
+      "directive": "no-round-robin",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-no-round-robin-file",
+      "option": "no-round-robin",
+      "form": "file",
+      "directive": "no-round-robin",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-no-0x20-encode-cli",
+      "option": "no-0x20-encode",
+      "form": "cli",
+      "directive": "no-0x20-encode",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-no-0x20-encode-file",
+      "option": "no-0x20-encode",
+      "form": "file",
+      "directive": "no-0x20-encode",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-do-0x20-encode-cli",
+      "option": "do-0x20-encode",
+      "form": "cli",
+      "directive": "do-0x20-encode",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-do-0x20-encode-file",
+      "option": "do-0x20-encode",
+      "form": "file",
+      "directive": "do-0x20-encode",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-cache-rr-cli",
+      "option": "cache-rr",
+      "form": "cli",
+      "directive": "cache-rr=TXT",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-cache-rr-file",
+      "option": "cache-rr",
+      "form": "file",
+      "directive": "cache-rr=TXT",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-addn-hosts-cli",
+      "option": "addn-hosts",
+      "form": "cli",
+      "directive": "addn-hosts=/m2/cli/hosts",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-addn-hosts-file",
+      "option": "addn-hosts",
+      "form": "file",
+      "directive": "addn-hosts=/m2/cli/hosts",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-hostsdir-cli",
+      "option": "hostsdir",
+      "form": "cli",
+      "directive": "hostsdir=/m2/cli/hostsdir",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-hostsdir-file",
+      "option": "hostsdir",
+      "form": "file",
+      "directive": "hostsdir=/m2/cli/hostsdir",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-query-port-cli",
+      "option": "query-port",
+      "form": "cli",
+      "directive": "query-port=10554",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-query-port-file",
+      "option": "query-port",
+      "form": "file",
+      "directive": "query-port=10554",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-except-interface-cli",
+      "option": "except-interface",
+      "form": "cli",
+      "directive": "except-interface=lo",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-except-interface-file",
+      "option": "except-interface",
+      "form": "file",
+      "directive": "except-interface=lo",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-no-dhcp-interface-cli",
+      "option": "no-dhcp-interface",
+      "form": "cli",
+      "directive": "no-dhcp-interface=lo",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-no-dhcp-interface-file",
+      "option": "no-dhcp-interface",
+      "form": "file",
+      "directive": "no-dhcp-interface=lo",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-no-dhcpv4-interface-cli",
+      "option": "no-dhcpv4-interface",
+      "form": "cli",
+      "directive": "no-dhcpv4-interface=lo",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-no-dhcpv4-interface-file",
+      "option": "no-dhcpv4-interface",
+      "form": "file",
+      "directive": "no-dhcpv4-interface=lo",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-domain-needed-cli",
+      "option": "domain-needed",
+      "form": "cli",
+      "directive": "domain-needed",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-domain-needed-file",
+      "option": "domain-needed",
+      "form": "file",
+      "directive": "domain-needed",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-lease-max-cli",
+      "option": "dhcp-lease-max",
+      "form": "cli",
+      "directive": "dhcp-lease-max=32",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-lease-max-file",
+      "option": "dhcp-lease-max",
+      "form": "file",
+      "directive": "dhcp-lease-max=32",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-bind-interfaces-cli",
+      "option": "bind-interfaces",
+      "form": "cli",
+      "directive": "bind-interfaces",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-bind-interfaces-file",
+      "option": "bind-interfaces",
+      "form": "file",
+      "directive": "bind-interfaces",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-read-ethers-cli",
+      "option": "read-ethers",
+      "form": "cli",
+      "directive": "read-ethers",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-read-ethers-file",
+      "option": "read-ethers",
+      "form": "file",
+      "directive": "read-ethers",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-alias-cli",
+      "option": "alias",
+      "form": "cli",
+      "directive": "alias=192.0.2.10,192.0.2.20",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-alias-file",
+      "option": "alias",
+      "form": "file",
+      "directive": "alias=192.0.2.10,192.0.2.20",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-vendorclass-cli",
+      "option": "dhcp-vendorclass",
+      "form": "cli",
+      "directive": "dhcp-vendorclass=set:vendor,Vendor",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-vendorclass-file",
+      "option": "dhcp-vendorclass",
+      "form": "file",
+      "directive": "dhcp-vendorclass=set:vendor,Vendor",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-userclass-cli",
+      "option": "dhcp-userclass",
+      "form": "cli",
+      "directive": "dhcp-userclass=set:user,User",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-userclass-file",
+      "option": "dhcp-userclass",
+      "form": "file",
+      "directive": "dhcp-userclass=set:user,User",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-ignore-cli",
+      "option": "dhcp-ignore",
+      "form": "cli",
+      "directive": "dhcp-ignore=tag:blocked",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-ignore-file",
+      "option": "dhcp-ignore",
+      "form": "file",
+      "directive": "dhcp-ignore=tag:blocked",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-edns-packet-max-cli",
+      "option": "edns-packet-max",
+      "form": "cli",
+      "directive": "edns-packet-max=1232",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-edns-packet-max-file",
+      "option": "edns-packet-max",
+      "form": "file",
+      "directive": "edns-packet-max=1232",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-keep-in-foreground-cli",
+      "option": "keep-in-foreground",
+      "form": "cli",
+      "directive": "keep-in-foreground",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-keep-in-foreground-file",
+      "option": "keep-in-foreground",
+      "form": "file",
+      "directive": "keep-in-foreground",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-authoritative-cli",
+      "option": "dhcp-authoritative",
+      "form": "cli",
+      "directive": "dhcp-authoritative",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-authoritative-file",
+      "option": "dhcp-authoritative",
+      "form": "file",
+      "directive": "dhcp-authoritative",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-srv-host-cli",
+      "option": "srv-host",
+      "form": "cli",
+      "directive": "srv-host=_svc._tcp.example.test,service.test,80,1,2",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-srv-host-file",
+      "option": "srv-host",
+      "form": "file",
+      "directive": "srv-host=_svc._tcp.example.test,service.test,80,1,2",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-localise-queries-cli",
+      "option": "localise-queries",
+      "form": "cli",
+      "directive": "localise-queries",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-localise-queries-file",
+      "option": "localise-queries",
+      "form": "file",
+      "directive": "localise-queries",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-txt-record-cli",
+      "option": "txt-record",
+      "form": "cli",
+      "directive": "txt-record=txt.test,hello",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-txt-record-file",
+      "option": "txt-record",
+      "form": "file",
+      "directive": "txt-record=txt.test,hello",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-caa-record-cli",
+      "option": "caa-record",
+      "form": "cli",
+      "directive": "caa-record=caa.test,0,issue,ca.test",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-caa-record-file",
+      "option": "caa-record",
+      "form": "file",
+      "directive": "caa-record=caa.test,0,issue,ca.test",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dns-rr-cli",
+      "option": "dns-rr",
+      "form": "cli",
+      "directive": "dns-rr=raw.test,99,01:02",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dns-rr-file",
+      "option": "dns-rr",
+      "form": "file",
+      "directive": "dns-rr=raw.test,99,01:02",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-enable-ubus-cli",
+      "option": "enable-ubus",
+      "form": "cli",
+      "directive": "enable-ubus=cli-test",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-enable-ubus-file",
+      "option": "enable-ubus",
+      "form": "file",
+      "directive": "enable-ubus=cli-test",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-bootp-dynamic-cli",
+      "option": "bootp-dynamic",
+      "form": "cli",
+      "directive": "bootp-dynamic=tag:boot",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-bootp-dynamic-file",
+      "option": "bootp-dynamic",
+      "form": "file",
+      "directive": "bootp-dynamic=tag:boot",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-mac-cli",
+      "option": "dhcp-mac",
+      "form": "cli",
+      "directive": "dhcp-mac=set:mac,02:00:00:00:00:01",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-mac-file",
+      "option": "dhcp-mac",
+      "form": "file",
+      "directive": "dhcp-mac=set:mac,02:00:00:00:00:01",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-no-ping-cli",
+      "option": "no-ping",
+      "form": "cli",
+      "directive": "no-ping",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-no-ping-file",
+      "option": "no-ping",
+      "form": "file",
+      "directive": "no-ping",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-script-cli",
+      "option": "dhcp-script",
+      "form": "cli",
+      "directive": "dhcp-script=/m2/cli/lease-script",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-script-file",
+      "option": "dhcp-script",
+      "form": "file",
+      "directive": "dhcp-script=/m2/cli/lease-script",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-conf-dir-cli",
+      "option": "conf-dir",
+      "form": "cli",
+      "directive": "conf-dir=/m2/cli/confdir",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-conf-dir-file",
+      "option": "conf-dir",
+      "form": "file",
+      "directive": "conf-dir=/m2/cli/confdir",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-log-facility-cli",
+      "option": "log-facility",
+      "form": "cli",
+      "directive": "log-facility=/m2/cli/log",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-log-facility-file",
+      "option": "log-facility",
+      "form": "file",
+      "directive": "log-facility=/m2/cli/log",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-leasefile-ro-cli",
+      "option": "leasefile-ro",
+      "form": "cli",
+      "directive": "leasefile-ro",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-leasefile-ro-file",
+      "option": "leasefile-ro",
+      "form": "file",
+      "directive": "leasefile-ro",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-script-on-renewal-cli",
+      "option": "script-on-renewal",
+      "form": "cli",
+      "directive": "script-on-renewal",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-script-on-renewal-file",
+      "option": "script-on-renewal",
+      "form": "file",
+      "directive": "script-on-renewal",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dns-forward-max-cli",
+      "option": "dns-forward-max",
+      "form": "cli",
+      "directive": "dns-forward-max=32",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dns-forward-max-file",
+      "option": "dns-forward-max",
+      "form": "file",
+      "directive": "dns-forward-max=32",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-clear-on-reload-cli",
+      "option": "clear-on-reload",
+      "form": "cli",
+      "directive": "clear-on-reload",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-clear-on-reload-file",
+      "option": "clear-on-reload",
+      "form": "file",
+      "directive": "clear-on-reload",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-ignore-names-cli",
+      "option": "dhcp-ignore-names",
+      "form": "cli",
+      "directive": "dhcp-ignore-names=tag:noname",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-ignore-names-file",
+      "option": "dhcp-ignore-names",
+      "form": "file",
+      "directive": "dhcp-ignore-names=tag:noname",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-enable-tftp-cli",
+      "option": "enable-tftp",
+      "form": "cli",
+      "directive": "enable-tftp=lo",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-enable-tftp-file",
+      "option": "enable-tftp",
+      "form": "file",
+      "directive": "enable-tftp=lo",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-tftp-secure-cli",
+      "option": "tftp-secure",
+      "form": "cli",
+      "directive": "tftp-secure",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-tftp-secure-file",
+      "option": "tftp-secure",
+      "form": "file",
+      "directive": "tftp-secure",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-tftp-no-fail-cli",
+      "option": "tftp-no-fail",
+      "form": "cli",
+      "directive": "tftp-no-fail",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-tftp-no-fail-file",
+      "option": "tftp-no-fail",
+      "form": "file",
+      "directive": "tftp-no-fail",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-tftp-unique-root-cli",
+      "option": "tftp-unique-root",
+      "form": "cli",
+      "directive": "tftp-unique-root=mac",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-tftp-unique-root-file",
+      "option": "tftp-unique-root",
+      "form": "file",
+      "directive": "tftp-unique-root=mac",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-tftp-root-cli",
+      "option": "tftp-root",
+      "form": "cli",
+      "directive": "tftp-root=/m2/cli/tftp",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-tftp-root-file",
+      "option": "tftp-root",
+      "form": "file",
+      "directive": "tftp-root=/m2/cli/tftp",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-tftp-max-cli",
+      "option": "tftp-max",
+      "form": "cli",
+      "directive": "tftp-max=8",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-tftp-max-file",
+      "option": "tftp-max",
+      "form": "file",
+      "directive": "tftp-max=8",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-tftp-mtu-cli",
+      "option": "tftp-mtu",
+      "form": "cli",
+      "directive": "tftp-mtu=1200",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-tftp-mtu-file",
+      "option": "tftp-mtu",
+      "form": "file",
+      "directive": "tftp-mtu=1200",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-tftp-lowercase-cli",
+      "option": "tftp-lowercase",
+      "form": "cli",
+      "directive": "tftp-lowercase",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-tftp-lowercase-file",
+      "option": "tftp-lowercase",
+      "form": "file",
+      "directive": "tftp-lowercase",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-tftp-single-port-cli",
+      "option": "tftp-single-port",
+      "form": "cli",
+      "directive": "tftp-single-port",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-tftp-single-port-file",
+      "option": "tftp-single-port",
+      "form": "file",
+      "directive": "tftp-single-port",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-ptr-record-cli",
+      "option": "ptr-record",
+      "form": "cli",
+      "directive": "ptr-record=ptr.test,target.test",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-ptr-record-file",
+      "option": "ptr-record",
+      "form": "file",
+      "directive": "ptr-record=ptr.test,target.test",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-naptr-record-cli",
+      "option": "naptr-record",
+      "form": "cli",
+      "directive": "naptr-record=naptr.test,1,2,S,SIP+D2U,,target.test",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-naptr-record-file",
+      "option": "naptr-record",
+      "form": "file",
+      "directive": "naptr-record=naptr.test,1,2,S,SIP+D2U,,target.test",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-bridge-interface-cli",
+      "option": "bridge-interface",
+      "form": "cli",
+      "directive": "bridge-interface=master,port*",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-bridge-interface-file",
+      "option": "bridge-interface",
+      "form": "file",
+      "directive": "bridge-interface=master,port*",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-shared-network-cli",
+      "option": "shared-network",
+      "form": "cli",
+      "directive": "shared-network=lo,198.18.0.1",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-shared-network-file",
+      "option": "shared-network",
+      "form": "file",
+      "directive": "shared-network=lo,198.18.0.1",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-option-force-cli",
+      "option": "dhcp-option-force",
+      "form": "cli",
+      "directive": "dhcp-option-force=224,hello",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-option-force-file",
+      "option": "dhcp-option-force",
+      "form": "file",
+      "directive": "dhcp-option-force=224,hello",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-option-pxe-cli",
+      "option": "dhcp-option-pxe",
+      "form": "cli",
+      "directive": "dhcp-option-pxe=225,world",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-option-pxe-file",
+      "option": "dhcp-option-pxe",
+      "form": "file",
+      "directive": "dhcp-option-pxe=225,world",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-tftp-no-blocksize-cli",
+      "option": "tftp-no-blocksize",
+      "form": "cli",
+      "directive": "tftp-no-blocksize",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-tftp-no-blocksize-file",
+      "option": "tftp-no-blocksize",
+      "form": "file",
+      "directive": "tftp-no-blocksize",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-log-dhcp-cli",
+      "option": "log-dhcp",
+      "form": "cli",
+      "directive": "log-dhcp",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-log-dhcp-file",
+      "option": "log-dhcp",
+      "form": "file",
+      "directive": "log-dhcp",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-log-async-cli",
+      "option": "log-async",
+      "form": "cli",
+      "directive": "log-async=8",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-log-async-file",
+      "option": "log-async",
+      "form": "file",
+      "directive": "log-async=8",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-circuitid-cli",
+      "option": "dhcp-circuitid",
+      "form": "cli",
+      "directive": "dhcp-circuitid=set:circuit,01:02",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-circuitid-file",
+      "option": "dhcp-circuitid",
+      "form": "file",
+      "directive": "dhcp-circuitid=set:circuit,01:02",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-remoteid-cli",
+      "option": "dhcp-remoteid",
+      "form": "cli",
+      "directive": "dhcp-remoteid=set:remote,03:04",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-remoteid-file",
+      "option": "dhcp-remoteid",
+      "form": "file",
+      "directive": "dhcp-remoteid=set:remote,03:04",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-subscrid-cli",
+      "option": "dhcp-subscrid",
+      "form": "cli",
+      "directive": "dhcp-subscrid=set:subscriber,05:06",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-subscrid-file",
+      "option": "dhcp-subscrid",
+      "form": "file",
+      "directive": "dhcp-subscrid=set:subscriber,05:06",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-pxe-vendor-cli",
+      "option": "dhcp-pxe-vendor",
+      "form": "cli",
+      "directive": "dhcp-pxe-vendor=PXEClient",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-pxe-vendor-file",
+      "option": "dhcp-pxe-vendor",
+      "form": "file",
+      "directive": "dhcp-pxe-vendor=PXEClient",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-interface-name-cli",
+      "option": "interface-name",
+      "form": "cli",
+      "directive": "interface-name=interface.test,lo",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-interface-name-file",
+      "option": "interface-name",
+      "form": "file",
+      "directive": "interface-name=interface.test,lo",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-hostsfile-cli",
+      "option": "dhcp-hostsfile",
+      "form": "cli",
+      "directive": "dhcp-hostsfile=/m2/cli/dhcp-hosts",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-hostsfile-file",
+      "option": "dhcp-hostsfile",
+      "form": "file",
+      "directive": "dhcp-hostsfile=/m2/cli/dhcp-hosts",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-optsfile-cli",
+      "option": "dhcp-optsfile",
+      "form": "cli",
+      "directive": "dhcp-optsfile=/m2/cli/dhcp-options",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-optsfile-file",
+      "option": "dhcp-optsfile",
+      "form": "file",
+      "directive": "dhcp-optsfile=/m2/cli/dhcp-options",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-hostsdir-cli",
+      "option": "dhcp-hostsdir",
+      "form": "cli",
+      "directive": "dhcp-hostsdir=/m2/cli/dhcp-hostsdir",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-hostsdir-file",
+      "option": "dhcp-hostsdir",
+      "form": "file",
+      "directive": "dhcp-hostsdir=/m2/cli/dhcp-hostsdir",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-optsdir-cli",
+      "option": "dhcp-optsdir",
+      "form": "cli",
+      "directive": "dhcp-optsdir=/m2/cli/dhcp-optsdir",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-optsdir-file",
+      "option": "dhcp-optsdir",
+      "form": "file",
+      "directive": "dhcp-optsdir=/m2/cli/dhcp-optsdir",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-no-override-cli",
+      "option": "dhcp-no-override",
+      "form": "cli",
+      "directive": "dhcp-no-override",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-no-override-file",
+      "option": "dhcp-no-override",
+      "form": "file",
+      "directive": "dhcp-no-override",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-tftp-port-range-cli",
+      "option": "tftp-port-range",
+      "form": "cli",
+      "directive": "tftp-port-range=10690,10695",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-tftp-port-range-file",
+      "option": "tftp-port-range",
+      "form": "file",
+      "directive": "tftp-port-range=10690,10695",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-stop-dns-rebind-cli",
+      "option": "stop-dns-rebind",
+      "form": "cli",
+      "directive": "stop-dns-rebind",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-stop-dns-rebind-file",
+      "option": "stop-dns-rebind",
+      "form": "file",
+      "directive": "stop-dns-rebind",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-rebind-domain-ok-cli",
+      "option": "rebind-domain-ok",
+      "form": "cli",
+      "directive": "rebind-domain-ok=/example.test/",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-rebind-domain-ok-file",
+      "option": "rebind-domain-ok",
+      "form": "file",
+      "directive": "rebind-domain-ok=/example.test/",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-all-servers-cli",
+      "option": "all-servers",
+      "form": "cli",
+      "directive": "all-servers",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-all-servers-file",
+      "option": "all-servers",
+      "form": "file",
+      "directive": "all-servers",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-match-cli",
+      "option": "dhcp-match",
+      "form": "cli",
+      "directive": "dhcp-match=set:match,option:client-arch,0",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-match-file",
+      "option": "dhcp-match",
+      "form": "file",
+      "directive": "dhcp-match=set:match,option:client-arch,0",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-name-match-cli",
+      "option": "dhcp-name-match",
+      "form": "cli",
+      "directive": "dhcp-name-match=set:name,client",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-name-match-file",
+      "option": "dhcp-name-match",
+      "form": "file",
+      "directive": "dhcp-name-match=set:name,client",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-broadcast-cli",
+      "option": "dhcp-broadcast",
+      "form": "cli",
+      "directive": "dhcp-broadcast=tag:broadcast",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-broadcast-file",
+      "option": "dhcp-broadcast",
+      "form": "file",
+      "directive": "dhcp-broadcast=tag:broadcast",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-neg-ttl-cli",
+      "option": "neg-ttl",
+      "form": "cli",
+      "directive": "neg-ttl=30",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-neg-ttl-file",
+      "option": "neg-ttl",
+      "form": "file",
+      "directive": "neg-ttl=30",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-max-ttl-cli",
+      "option": "max-ttl",
+      "form": "cli",
+      "directive": "max-ttl=600",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-max-ttl-file",
+      "option": "max-ttl",
+      "form": "file",
+      "directive": "max-ttl=600",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-min-cache-ttl-cli",
+      "option": "min-cache-ttl",
+      "form": "cli",
+      "directive": "min-cache-ttl=10",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-min-cache-ttl-file",
+      "option": "min-cache-ttl",
+      "form": "file",
+      "directive": "min-cache-ttl=10",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-max-cache-ttl-cli",
+      "option": "max-cache-ttl",
+      "form": "cli",
+      "directive": "max-cache-ttl=900",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-max-cache-ttl-file",
+      "option": "max-cache-ttl",
+      "form": "file",
+      "directive": "max-cache-ttl=900",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-alternate-port-cli",
+      "option": "dhcp-alternate-port",
+      "form": "cli",
+      "directive": "dhcp-alternate-port=1067,1068",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-alternate-port-file",
+      "option": "dhcp-alternate-port",
+      "form": "file",
+      "directive": "dhcp-alternate-port=1067,1068",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-scriptuser-cli",
+      "option": "dhcp-scriptuser",
+      "form": "cli",
+      "directive": "dhcp-scriptuser=nobody",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-scriptuser-file",
+      "option": "dhcp-scriptuser",
+      "form": "file",
+      "directive": "dhcp-scriptuser=nobody",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-min-port-cli",
+      "option": "min-port",
+      "form": "cli",
+      "directive": "min-port=10550",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-min-port-file",
+      "option": "min-port",
+      "form": "file",
+      "directive": "min-port=10550",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-max-port-cli",
+      "option": "max-port",
+      "form": "cli",
+      "directive": "max-port=10560",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-max-port-file",
+      "option": "max-port",
+      "form": "file",
+      "directive": "max-port=10560",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-fqdn-cli",
+      "option": "dhcp-fqdn",
+      "form": "cli",
+      "directive": "dhcp-fqdn",
+      "expected_from_image": true,
+      "dependencies": [
+        "domain=example.test"
+      ]
+    },
+    {
+      "case": "test-dhcp-fqdn-file",
+      "option": "dhcp-fqdn",
+      "form": "file",
+      "directive": "dhcp-fqdn",
+      "expected_from_image": true,
+      "dependencies": [
+        "domain=example.test"
+      ]
+    },
+    {
+      "case": "test-cname-cli",
+      "option": "cname",
+      "form": "cli",
+      "directive": "cname=alias.test,target.test",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-cname-file",
+      "option": "cname",
+      "form": "file",
+      "directive": "cname=alias.test,target.test",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-pxe-prompt-cli",
+      "option": "pxe-prompt",
+      "form": "cli",
+      "directive": "pxe-prompt=Boot,1",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-pxe-prompt-file",
+      "option": "pxe-prompt",
+      "form": "file",
+      "directive": "pxe-prompt=Boot,1",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-pxe-service-cli",
+      "option": "pxe-service",
+      "form": "cli",
+      "directive": "pxe-service=x86PC,Network,boot",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-pxe-service-file",
+      "option": "pxe-service",
+      "form": "file",
+      "directive": "pxe-service=x86PC,Network,boot",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-test-cli",
+      "option": "test",
+      "form": "cli",
+      "directive": "test",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-test-file",
+      "option": "test",
+      "form": "file",
+      "directive": "test",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-tag-if-cli",
+      "option": "tag-if",
+      "form": "cli",
+      "directive": "tag-if=tag:known,set:derived",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-tag-if-file",
+      "option": "tag-if",
+      "form": "file",
+      "directive": "tag-if=tag:known,set:derived",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-proxy-cli",
+      "option": "dhcp-proxy",
+      "form": "cli",
+      "directive": "dhcp-proxy=192.0.2.1",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-proxy-file",
+      "option": "dhcp-proxy",
+      "form": "file",
+      "directive": "dhcp-proxy=192.0.2.1",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-generate-names-cli",
+      "option": "dhcp-generate-names",
+      "form": "cli",
+      "directive": "dhcp-generate-names=tag:generated",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-generate-names-file",
+      "option": "dhcp-generate-names",
+      "form": "file",
+      "directive": "dhcp-generate-names=tag:generated",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-rebind-localhost-ok-cli",
+      "option": "rebind-localhost-ok",
+      "form": "cli",
+      "directive": "rebind-localhost-ok",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-rebind-localhost-ok-file",
+      "option": "rebind-localhost-ok",
+      "form": "file",
+      "directive": "rebind-localhost-ok",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-add-mac-cli",
+      "option": "add-mac",
+      "form": "cli",
+      "directive": "add-mac=text",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-add-mac-file",
+      "option": "add-mac",
+      "form": "file",
+      "directive": "add-mac=text",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-strip-mac-cli",
+      "option": "strip-mac",
+      "form": "cli",
+      "directive": "strip-mac",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-strip-mac-file",
+      "option": "strip-mac",
+      "form": "file",
+      "directive": "strip-mac",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-add-subnet-cli",
+      "option": "add-subnet",
+      "form": "cli",
+      "directive": "add-subnet=24,56",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-add-subnet-file",
+      "option": "add-subnet",
+      "form": "file",
+      "directive": "add-subnet=24,56",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-strip-subnet-cli",
+      "option": "strip-subnet",
+      "form": "cli",
+      "directive": "strip-subnet",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-strip-subnet-file",
+      "option": "strip-subnet",
+      "form": "file",
+      "directive": "strip-subnet",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-add-cpe-id-cli",
+      "option": "add-cpe-id",
+      "form": "cli",
+      "directive": "add-cpe-id=test-device",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-add-cpe-id-file",
+      "option": "add-cpe-id",
+      "form": "file",
+      "directive": "add-cpe-id=test-device",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-proxy-dnssec-cli",
+      "option": "proxy-dnssec",
+      "form": "cli",
+      "directive": "proxy-dnssec",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-proxy-dnssec-file",
+      "option": "proxy-dnssec",
+      "form": "file",
+      "directive": "proxy-dnssec",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-sequential-ip-cli",
+      "option": "dhcp-sequential-ip",
+      "form": "cli",
+      "directive": "dhcp-sequential-ip",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-sequential-ip-file",
+      "option": "dhcp-sequential-ip",
+      "form": "file",
+      "directive": "dhcp-sequential-ip",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-client-update-cli",
+      "option": "dhcp-client-update",
+      "form": "cli",
+      "directive": "dhcp-client-update",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-client-update-file",
+      "option": "dhcp-client-update",
+      "form": "file",
+      "directive": "dhcp-client-update",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-host-record-cli",
+      "option": "host-record",
+      "form": "cli",
+      "directive": "host-record=host.test,192.0.2.1",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-host-record-file",
+      "option": "host-record",
+      "form": "file",
+      "directive": "host-record=host.test,192.0.2.1",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-bind-dynamic-cli",
+      "option": "bind-dynamic",
+      "form": "cli",
+      "directive": "bind-dynamic",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-bind-dynamic-file",
+      "option": "bind-dynamic",
+      "form": "file",
+      "directive": "bind-dynamic",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-synth-domain-cli",
+      "option": "synth-domain",
+      "form": "cli",
+      "directive": "synth-domain=synth.test,192.0.2.1,192.0.2.9,host",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-synth-domain-file",
+      "option": "synth-domain",
+      "form": "file",
+      "directive": "synth-domain=synth.test,192.0.2.1,192.0.2.9,host",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-relay-cli",
+      "option": "dhcp-relay",
+      "form": "cli",
+      "directive": "dhcp-relay=192.0.2.1,198.51.100.1",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-relay-file",
+      "option": "dhcp-relay",
+      "form": "file",
+      "directive": "dhcp-relay=192.0.2.1,198.51.100.1",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-split-relay-cli",
+      "option": "dhcp-split-relay",
+      "form": "cli",
+      "directive": "dhcp-split-relay=192.0.2.1,198.51.100.1,lo",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-split-relay-file",
+      "option": "dhcp-split-relay",
+      "form": "file",
+      "directive": "dhcp-split-relay=192.0.2.1,198.51.100.1,lo",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-quiet-dhcp-cli",
+      "option": "quiet-dhcp",
+      "form": "cli",
+      "directive": "quiet-dhcp",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-quiet-dhcp-file",
+      "option": "quiet-dhcp",
+      "form": "file",
+      "directive": "quiet-dhcp",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dns-loop-detect-cli",
+      "option": "dns-loop-detect",
+      "form": "cli",
+      "directive": "dns-loop-detect",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dns-loop-detect-file",
+      "option": "dns-loop-detect",
+      "form": "file",
+      "directive": "dns-loop-detect",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-script-arp-cli",
+      "option": "script-arp",
+      "form": "cli",
+      "directive": "script-arp",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-script-arp-file",
+      "option": "script-arp",
+      "form": "file",
+      "directive": "script-arp",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-ttl-cli",
+      "option": "dhcp-ttl",
+      "form": "cli",
+      "directive": "dhcp-ttl=60",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-ttl-file",
+      "option": "dhcp-ttl",
+      "form": "file",
+      "directive": "dhcp-ttl=60",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-reply-delay-cli",
+      "option": "dhcp-reply-delay",
+      "form": "cli",
+      "directive": "dhcp-reply-delay=1",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-reply-delay-file",
+      "option": "dhcp-reply-delay",
+      "form": "file",
+      "directive": "dhcp-reply-delay=1",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-rapid-commit-cli",
+      "option": "dhcp-rapid-commit",
+      "form": "cli",
+      "directive": "dhcp-rapid-commit",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-rapid-commit-file",
+      "option": "dhcp-rapid-commit",
+      "form": "file",
+      "directive": "dhcp-rapid-commit",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dumpfile-cli",
+      "option": "dumpfile",
+      "form": "cli",
+      "directive": "dumpfile=/m2/cli/dump",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dumpfile-file",
+      "option": "dumpfile",
+      "form": "file",
+      "directive": "dumpfile=/m2/cli/dump",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dumpmask-cli",
+      "option": "dumpmask",
+      "form": "cli",
+      "directive": "dumpmask=0x3",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dumpmask-file",
+      "option": "dumpmask",
+      "form": "file",
+      "directive": "dumpmask=0x3",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-ignore-clid-cli",
+      "option": "dhcp-ignore-clid",
+      "form": "cli",
+      "directive": "dhcp-ignore-clid",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dhcp-ignore-clid-file",
+      "option": "dhcp-ignore-clid",
+      "form": "file",
+      "directive": "dhcp-ignore-clid",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dynamic-host-cli",
+      "option": "dynamic-host",
+      "form": "cli",
+      "directive": "dynamic-host=dynamic.test,192.0.2.1,lo",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-dynamic-host-file",
+      "option": "dynamic-host",
+      "form": "file",
+      "directive": "dynamic-host=dynamic.test,192.0.2.1,lo",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-log-debug-cli",
+      "option": "log-debug",
+      "form": "cli",
+      "directive": "log-debug",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-log-debug-file",
+      "option": "log-debug",
+      "form": "file",
+      "directive": "log-debug",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-umbrella-cli",
+      "option": "umbrella",
+      "form": "cli",
+      "directive": "umbrella=orgid:123,assetid:456",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-umbrella-file",
+      "option": "umbrella",
+      "form": "file",
+      "directive": "umbrella=orgid:123,assetid:456",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-quiet-tftp-cli",
+      "option": "quiet-tftp",
+      "form": "cli",
+      "directive": "quiet-tftp",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-quiet-tftp-file",
+      "option": "quiet-tftp",
+      "form": "file",
+      "directive": "quiet-tftp",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-port-limit-cli",
+      "option": "port-limit",
+      "form": "cli",
+      "directive": "port-limit=3",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-port-limit-file",
+      "option": "port-limit",
+      "form": "file",
+      "directive": "port-limit=3",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-fast-dns-retry-cli",
+      "option": "fast-dns-retry",
+      "form": "cli",
+      "directive": "fast-dns-retry=100,2",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-fast-dns-retry-file",
+      "option": "fast-dns-retry",
+      "form": "file",
+      "directive": "fast-dns-retry=100,2",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-use-stale-cache-cli",
+      "option": "use-stale-cache",
+      "form": "cli",
+      "directive": "use-stale-cache=600",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-use-stale-cache-file",
+      "option": "use-stale-cache",
+      "form": "file",
+      "directive": "use-stale-cache=600",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-no-ident-cli",
+      "option": "no-ident",
+      "form": "cli",
+      "directive": "no-ident",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-no-ident-file",
+      "option": "no-ident",
+      "form": "file",
+      "directive": "no-ident",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-max-tcp-connections-cli",
+      "option": "max-tcp-connections",
+      "form": "cli",
+      "directive": "max-tcp-connections=4",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-max-tcp-connections-file",
+      "option": "max-tcp-connections",
+      "form": "file",
+      "directive": "max-tcp-connections=4",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-leasequery-cli",
+      "option": "leasequery",
+      "form": "cli",
+      "directive": "leasequery=127.0.0.1",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-leasequery-file",
+      "option": "leasequery",
+      "form": "file",
+      "directive": "leasequery=127.0.0.1",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-log-malloc-cli",
+      "option": "log-malloc",
+      "form": "cli",
+      "directive": "log-malloc",
+      "expected_from_image": true
+    },
+    {
+      "case": "test-log-malloc-file",
+      "option": "log-malloc",
+      "form": "file",
+      "directive": "log-malloc",
+      "expected_from_image": true
+    }
+  ],
+  "test_controls": [
+    "test-empty",
+    "test-repeated",
+    "test-unknown-option",
+    "test-cross-option",
+    "test-cname-loop",
+    "test-no-runtime-artifacts",
+    "test-conf-script-effects"
+  ],
+  "log_malloc_cases": [
+    "malloc-syntax-file",
+    "malloc-syntax-cli",
+    "malloc-syntax-repeat",
+    "malloc-syntax-argument",
+    "malloc-test-gate",
+    "malloc-port-zero-gate",
+    "malloc-local-query",
+    "malloc-forward-cache",
+    "malloc-hosts-hup",
+    "malloc-tftp-lifecycle",
+    "malloc-stderr-sink",
+    "malloc-file-sink",
+    "malloc-syslog-sink",
+    "malloc-signal-cleanup",
+    "malloc-workload-no-overflow"
+  ],
+  "log_malloc_contract": "Explicit user scope: match C option acceptance, ordinary startup and --test behavior. C emits actual allocation/reallocation/free wrapper diagnostics; Rust accepts the option and starts normally but emits no allocation trace. Allocation sizes, source sites, pointer hashes, record counts and diagnostic contents are documented behavior differences, not reproduced or fabricated. The retired binary-only global allocator experiment is preserved separately.",
+  "known_deferred": [
+    "allocation-log contents intentionally differ by explicit user instruction",
+    "extreme syntax numeric/malformed combinations"
+  ]
+}
