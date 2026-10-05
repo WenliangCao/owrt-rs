@@ -48,7 +48,10 @@
       "source": "tftp.c:564-569,620-624,901-906",
       "boundary": "Other open/fstat errors produce ERR_NOTDEF=0 with cannot read PATH: strerror(errno), independently of Rust ErrorKind.",
       "required_cases": [
-        "not-directory"
+        "not-directory",
+        "open-1",
+        "open-5",
+        "open-24"
       ]
     },
     {
@@ -172,6 +175,67 @@
         "fstat-13",
         "fstat-2"
       ]
+    },
+    {
+      "id": "parser-edge-corpus",
+      "source": "tftp.c:85-98,365-420,837-854; check_tftp_listeners:628-639",
+      "boundary": "Every truncation of a benign RRQ, empty/unclosed option pair, case-fold, duplicate and netascii option gate preserves full response and recovery. C receives at most503bytes; a final option terminator at503is parsed and beyond503is ignored.",
+      "required_cases": [
+        "parser-truncate-0",
+        "parser-truncate-1",
+        "parser-truncate-2",
+        "parser-truncate-3",
+        "parser-truncate-4",
+        "parser-truncate-5",
+        "parser-truncate-6",
+        "parser-truncate-7",
+        "parser-truncate-8",
+        "parser-truncate-9",
+        "parser-truncate-10",
+        "parser-truncate-11",
+        "parser-truncate-12",
+        "parser-truncate-13",
+        "parser-truncate-14",
+        "parser-option-name-only",
+        "parser-option-unclosed-name",
+        "parser-option-empty-name",
+        "parser-option-empty-value",
+        "parser-option-unclosed-value",
+        "parser-case-fold",
+        "parser-duplicate-option",
+        "parser-netascii-ignored",
+        "parser-receive-503",
+        "parser-receive-504",
+        "parser-receive-519"
+      ]
+    },
+    {
+      "id": "file-record-allocation",
+      "source": "tftp.c:587-609,620-624; util.c:933-944",
+      "boundary": "Fresh file-record allocation failure logs/returns generic bounded ERR0 Out of memory, closes the opened fd and admits the next request. Existing path/inode references share the file. Actual allocator entry is intercepted in each production ELF; receipt proves zero return with the fixture fd open.",
+      "required_cases": [
+        "file-record-enomem"
+      ]
+    },
+    {
+      "id": "transfer-record-allocation",
+      "source": "tftp.c:305-312; util.c:933-944",
+      "boundary": "Fresh transfer-record allocation failure is silent on wire; no file is opened, the service remains live and the next request succeeds. Rust fallible reserve receives a real allocator failure with no fixture file fd open.",
+      "required_cases": [
+        "transfer-record-enomem"
+      ]
+    },
+    {
+      "id": "transfer-socket-setup",
+      "source": "tftp.c:310-362; network.c:fix_fd",
+      "boundary": "Socket EMFILE, bind EACCES, IP_MTU_DISCOVER EINVAL and nonblock setup EIO silently abandon the transfer. Real syscall injection verifies full silence, post-error transfer and exact fd recovery. Range EADDRINUSE exhaustion additionally has its own error log but no packet.",
+      "required_cases": [
+        "resource-socket",
+        "resource-bind",
+        "resource-pmtu",
+        "resource-nonblock",
+        "port-exhausted"
+      ]
     }
   ],
   "qualification": {
@@ -180,13 +244,8 @@
     "require_negative_controls": true,
     "reference_only_cannot_close": true,
     "require_descriptor_health": true,
-    "require_actual_file_fault_receipts": true
+    "require_actual_file_fault_receipts": true,
+    "require_actual_allocation_fault_receipts": true
   },
-  "unclosed_callers": [
-    {
-      "source": "tftp.c:596-601",
-      "caller": "file record whine_malloc failure sets ENOMEM then oops",
-      "status": "Pending exact allocation fault and Rust production allocation recoverability. Other passing rows cannot close this caller."
-    }
-  ]
+  "unclosed_callers": []
 }

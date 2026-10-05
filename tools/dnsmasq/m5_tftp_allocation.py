@@ -21,7 +21,7 @@ from test_single_poll_service import stop
 def save(path,value):Path(path).write_text(json.dumps(value,indent=2,sort_keys=True)+'\n')
 
 
-def trace_calloc(pid,size,offset,output):
+def trace_allocation(pid,size,kind,offset,output,file_record=True):
     assert platform.machine()=='aarch64','fault ABI pinned to AArch64 image'
     class Iovec(ctypes.Structure):
         _fields_=[('base',ctypes.c_void_p),('length',ctypes.c_size_t)]
@@ -36,24 +36,35 @@ def trace_calloc(pid,size,offset,output):
         vector=Iovec(ctypes.addressof(registers),ctypes.sizeof(registers))
         ptrace(0x4205 if write else 0x4204,1,ctypes.addressof(vector))
     maps=Path('/proc/'+str(pid)+'/maps').read_text()
-    mapping=next(line for line in maps.splitlines() if line.endswith('/lib/libc.so') and line.split()[2]=='00000000')
-    address=int(mapping.split('-')[0],16)+offset
-    report=dict(pid=pid,calloc_symbol_offset=offset,libc_mapping=mapping,address=address,required_size=size,calls=[],injected=False)
+    if kind=='calloc':
+        mapping=next(line for line in maps.splitlines() if line.endswith('/lib/libc.so') and line.split()[2]=='00000000')
+        address=int(mapping.split('-')[0],16)+offset
+    else:
+        executable=os.readlink('/proc/'+str(pid)+'/exe')
+        mapping=next(line for line in maps.splitlines() if line.endswith(executable) and line.split()[2]=='00000000')
+        header=subprocess.run(['readelf','-h',executable],capture_output=True,text=True,check=True).stdout
+        address=offset if re.search(r'Type:\s+EXEC',header) else int(mapping.split('-')[0],16)+offset
+    report=dict(pid=pid,symbol=kind,symbol_offset=offset,mapping=mapping,address=address,required_size=size,calls=[],injected=False)
     attached=patched=False;original=None
     try:
         ptrace(16);os.waitpid(pid,0);attached=True
         original=ptrace(1,address)&((1<<64)-1)
         breakpoint=(original&0xffffffff00000000)|0xd4200000
         ptrace(4,address,breakpoint);patched=True
-        Path(str(output)+'.ready').write_text('calloc breakpoint installed\n')
-        for _ in range(100):
+        Path(str(output)+'.ready').write_text(kind+' breakpoint installed\n')
+        for _ in range(1000):
             ptrace(7);_,status=os.waitpid(pid,0)
             assert os.WIFSTOPPED(status) and os.WSTOPSIG(status)==signal.SIGTRAP,'unexpected calloc trace status'
             regs();assert registers[32]==address,'breakpoint PC mismatch'
-            row=dict(count=registers[0],size=registers[1],caller=registers[30],pc=registers[32])
+            descriptor_paths=[]
+            for descriptor in Path('/proc/'+str(pid)+'/fd').iterdir():
+                try:descriptor_paths.append(os.readlink(descriptor))
+                except OSError:pass
+            row=dict(count=registers[0] if kind=='calloc' else 1,size=registers[1] if kind=='calloc' else registers[0],caller=registers[30],pc=registers[32],descriptor_paths=descriptor_paths)
             report['calls'].append(row)
             ptrace(4,address,original);patched=False
-            if registers[0]==1 and registers[1]==size:
+            file_open=any(path.endswith('/m2/tftp-errors/public') for path in descriptor_paths)
+            if row['count']==1 and row['size']==size and file_open==file_record:
                 registers[0]=0;registers[32]=registers[30];regs(True)
                 row['returned']=0;report['injected']=True
                 ptrace(17);attached=False;break
@@ -68,6 +79,10 @@ def trace_calloc(pid,size,offset,output):
             except OSError:pass
         save(output,report)
     return 0
+
+
+def trace_calloc(pid,size,offset,output):
+    return trace_allocation(pid,size,'calloc',offset,output)
 
 
 def main():
