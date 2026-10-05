@@ -50,6 +50,10 @@ M4 获准 ELF 为 1,159,280 字节。当前归因基准 `ff2b2d22` 在固定源�
 | 接口完整defer/CNAME诊断、FIFO/ARP恢复（混合） | `f3ec456b` | 1,765,416 | +8,192 |
 | 反向缓存/helper分配、FIFO fallback tag、synth ANY（混合） | `7a3af081` | 1,773,608 | +8,192 |
 | 普通TCP日志pin/EOF、继承stderr/raw path、helper104B/POLLOUT/TERM（混合） | `7440f1fd` | 1,777,704 | +4,096 |
+| 合成NX tier、DHCP proxy、helper凭据诊断（混合） | `486635d7` | 1,789,992 | +12,288 |
+| 共享DHCP context、负缓存SOA修复（混合） | `c1053a31` | 1,785,896 | -4,096 |
+| bridge本地/relay有效接口、dump协议handle（混合） | `8f95e5ab` | 1,798,184 | +12,288 |
+| dump配置及主owner PCAP接线 | `2f298a3d` | 1,806,376 | +8,192 |
 
-当前相对 M4 共增加 618,424 字节。Arc<Record> 的 TCP 接受视图共享记录 payload，独立保留容器和状态；具体满载 RSS 成本仍待 M5 统一候选实测，不以代码结构推测内存结果。
+当前构建候选 `2f298a3d` 相对 M4 共增加 647,096 字节；dump尚未资格，不冒称统一验收。已关闭bridge的8f95候选增量为638,904字节。Arc<Record> 的 TCP 接受视图共享记录 payload，独立保留容器和状态；具体满载 RSS 成本仍待 M5 统一候选实测，不以代码结构推测内存结果。
 
