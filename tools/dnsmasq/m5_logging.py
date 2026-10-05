@@ -314,6 +314,14 @@ def cases():
                  'mode': [], 'daemonized': True, 'pidfile': '/m2/logging/daemon.pid',
                  'argv': ['--log-facility=-', '--servers-file=/m2/logging/missing-servers'],
                  'options': ['no-daemon']})
+    for target in ['pid', 'log']:
+        path = '/m2/logging/' + 'x' * 65536
+        rows.append({'id': 'daemon-overlong-' + target + '-error-frame', 'scope': 'error-frame',
+                     'kind': 'run', 'mode': [], 'daemonized': True, 'exit': 3,
+                     'pidfile': path if target == 'pid' else '/m2/logging/daemon.pid',
+                     'overlong_pid': target == 'pid', 'receiver': 'dgram',
+                     'argv': ['--log-facility=' + (path if target == 'log' else '-')],
+                     'options': ['no-daemon', 'log-facility']})
     for name, ranges in [
         ('dynamic', ['127.0.0.10,127.0.0.20,255.0.0.0,10m']),
         ('static', ['127.0.0.0,static,255.0.0.0,3723']),
@@ -596,7 +604,7 @@ def identity_sequence(transport, calibrate, sticky_probe=None, fresh=False):
 
 
 def run(root, side, case, out):
-    if case.get('scope') in ['daemon', 'scriptuser-boundary', 'startup-fault', 'credential-fault', 'ownership-warning', 'sink-fault']:
+    if case.get('scope') in ['daemon', 'scriptuser-boundary', 'startup-fault', 'credential-fault', 'ownership-warning', 'sink-fault', 'error-frame']:
         return run_daemon(root, side, case, out)
     out.mkdir()
     folder = image_path(root, '/m2/logging')
@@ -979,7 +987,8 @@ def run_daemon(root, side, case, out):
     debug = '-d' in case['mode']
     pid_path = image_path(root, case['pidfile'] if case['pidfile'].startswith('/') else
                           ('/m2/logging/' if debug else '/') + case['pidfile'].removeprefix('./'))
-    pid_path.unlink(missing_ok=True)
+    if not case.get('overlong_pid'):
+        pid_path.unlink(missing_ok=True)
     if case.get('sentinel_pid'):
         pid_path.write_text('sentinel\n')
     log_path = image_path(root, case['file']) if case.get('file') else None
@@ -1016,7 +1025,7 @@ def run_daemon(root, side, case, out):
                 if case.get('daemonized'):
                     try:
                         service_pid = int(pid_path.read_text().strip())
-                    except (FileNotFoundError, ValueError):
+                    except (OSError, ValueError):
                         pass
                 else:
                     service_pid = process.pid
