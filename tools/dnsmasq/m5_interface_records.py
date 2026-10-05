@@ -111,6 +111,11 @@ def syntax_cases():
             'DOM-RESOLV',no_resolv=False,files={'records-resolv':'search chosen.records.test\n','second-resolv':'search second.records.test\n'})
         add(option+'-resolv-port-zero',option+'=#\nport=0\nresolv-file=/m2/records-resolv\n',
             'DOM-RESOLV',no_resolv=False,files={'records-resolv':'search chosen.records.test\n'})
+        for fault in ('open-denied','read-empty-eio','read-partial-eio'):
+            add(option+'-resolv-'+fault,option+'=#\nresolv-file=/m2/records-resolv\n',
+                'DOM-RESOLV',no_resolv=False,files={'records-resolv':'search chosen.records.test'},resolver_fault=fault)
+        add(option+'-resolv-fifo',option+'=#\nresolv-file=/m2/records-resolv\n','DOM-RESOLV',
+            no_resolv=False,files={'records-resolv':''},resolver_fifo=True)
         for label,value in [('interface15','abcdefghijklmno'),('interface16','abcdefghijklmnop'),
             ('interface-long','abcdefghijklmnopqrstuv'),('wildcard','m5ir*'),('quoted-selector','"m5ir0,ignored"')]:
             add(option+'-'+label,option+'=chosen.records.test,'+value+'\n','DOM-GRAM')
@@ -672,7 +677,11 @@ def run_service_side(root,side,case,out):
             target=image_path(root,'/m2/files/'+path,follow_leaf=False);target.parent.mkdir(parents=True,exist_ok=True)
             if value['initial_kind']=='fifo':os.mkfifo(target)
             elif value['initial_kind']=='socket':
-                endpoint=socket.socket(socket.AF_UNIX,socket.SOCK_STREAM);endpoint.bind(str(target));local_sockets.append(endpoint)
+                endpoint=socket.socket(socket.AF_UNIX,socket.SOCK_STREAM)
+                directory=os.open(target.parent,os.O_PATH|os.O_DIRECTORY)
+                try:endpoint.bind('/proc/self/fd/'+str(directory)+'/'+target.name)
+                finally:os.close(directory)
+                local_sockets.append(endpoint)
             elif value['initial_kind']=='device':
                 import stat
                 os.mknod(target,stat.S_IFCHR|0o600,os.makedev(1,3))
@@ -959,10 +968,96 @@ def run_syntax(root,side,case,out):
     for path,value in case.get('files',{}).items():
         target=root/'m2'/path;target.parent.mkdir(parents=True,exist_ok=True);target.write_text(value)
     (root/'m2/interface-records.conf').write_text(text);(out/'config').write_text(text)
-    result=subprocess.run(command(root,side,*case.get('argv',[]),'--test','-C','/m2/interface-records.conf'),capture_output=True,timeout=5)
+    argv=command(root,side,*case.get('argv',[]),'--test','-C','/m2/interface-records.conf')
+    if case.get('resolver_fault'):
+        result=resolver_fault_syntax(argv,case['resolver_fault'],out/'resolver-fault.json')
+    elif case.get('resolver_fifo'):
+        path=root/'m2/records-resolv';path.unlink();os.mkfifo(path)
+        process=subprocess.Popen(argv,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        try:
+            try:process.communicate(timeout=.08);raise AssertionError('resolver FIFO did not block before writer')
+            except subprocess.TimeoutExpired:pass
+            writer=os.open(path,os.O_WRONLY|os.O_NONBLOCK)
+            try:written=os.write(writer,b'search chosen.records.test\n')
+            finally:os.close(writer)
+            stdout,stderr=process.communicate(timeout=5)
+            save(out/'resolver-fifo.json',{'blocked_before_writer':True,'written':written,'exit':process.returncode})
+            result=subprocess.CompletedProcess(argv,process.returncode,stdout,stderr)
+        finally:
+            if process.poll() is None:process.kill();process.wait()
+    else:result=subprocess.run(argv,capture_output=True,timeout=5)
     (out/'stdout').write_bytes(result.stdout);(out/'stderr').write_bytes(result.stderr)
     row={'exit':result.returncode,'stdout':result.stdout.decode(errors='replace'),'stderr':result.stderr.decode(errors='replace')}
     save(out/'observed.json',row);return row
+
+
+def resolver_fault_syntax(argv,fault,output):
+    """Select the actual domain resolver fd during startup, not a later file read."""
+    if platform.machine()!='aarch64':raise RuntimeError('startup fault ABI is pinned AArch64')
+    class Iovec(ctypes.Structure):
+        _fields_=[('base',ctypes.c_void_p),('length',ctypes.c_size_t)]
+    libc=ctypes.CDLL(None,use_errno=True);libc.ptrace.restype=ctypes.c_long
+    def preexec():
+        if libc.ptrace(0,0,None,None):raise OSError(ctypes.get_errno(),'PTRACE_TRACEME')
+    process=subprocess.Popen(argv,stdout=subprocess.PIPE,stderr=subprocess.PIPE,preexec_fn=preexec)
+    pid=process.pid;registers=(ctypes.c_ulonglong*34)();attached=True
+    report={'pid':pid,'fault':fault,'path':'/m2/records-resolv','calls':[],'injected':False}
+    deadline=time.monotonic()+5;pending=None;consumed=False
+    def ptrace(request,address=0,data=0):
+        ctypes.set_errno(0);result=libc.ptrace(ctypes.c_uint(request),ctypes.c_uint(pid),ctypes.c_void_p(address),ctypes.c_void_p(data))
+        if result==-1 and ctypes.get_errno():raise OSError(ctypes.get_errno(),'ptrace')
+        return result
+    def regs(write=False):
+        iov=Iovec(ctypes.addressof(registers),ctypes.sizeof(registers));ptrace(0x4205 if write else 0x4204,1,ctypes.addressof(iov))
+    def memory(address,length):
+        buffer=(ctypes.c_ubyte*length)();local=Iovec(ctypes.addressof(buffer),length);remote=Iovec(address,length)
+        count=libc.process_vm_readv(pid,ctypes.byref(local),1,ctypes.byref(remote),1,0)
+        if count<=0:raise AssertionError('startup pathname read failed')
+        return bytes(buffer[:count]).split(b'\0')[0]
+    def wait_stop():
+        while time.monotonic()<deadline:
+            returned,status=os.waitpid(pid,os.WNOHANG)
+            if returned:return status
+            time.sleep(.001)
+        raise TimeoutError('startup fault syscall deadline')
+    try:
+        status=wait_stop()
+        if not os.WIFSTOPPED(status):raise AssertionError('startup trace did not stop at exec')
+        ptrace(0x4200,0,1)
+        while not report['injected']:
+            ptrace(24);status=wait_stop()
+            if not os.WIFSTOPPED(status):process.returncode=os.waitstatus_to_exitcode(status);attached=False;raise AssertionError('startup ended before fault')
+            if os.WSTOPSIG(status)!=(signal.SIGTRAP|0x80):continue
+            info=(ctypes.c_ubyte*128)();ptrace(0x420e,128,ctypes.addressof(info));regs()
+            if info[0]==1:
+                number=int(registers[8]);target=None
+                if number==56:
+                    target=memory(int(registers[1]),256).decode(errors='surrogateescape')
+                elif number==63:
+                    try:target=os.readlink('/proc/'+str(pid)+'/fd/'+str(registers[0]))
+                    except FileNotFoundError:pass
+                if not target or not target.endswith('/m2/records-resolv'):continue
+                inject=(fault=='open-denied' and number==56) or (fault!='open-denied' and number==63 and (fault=='read-empty-eio' or consumed))
+                pending={'syscall':number,'target':target,'descriptor':int(registers[0]) if number==63 else None,'pc':int(registers[32]),'inject':inject}
+                if inject:registers[8]=(1<<64)-1;regs(True)
+            elif info[0]==2 and pending:
+                if pending['inject']:
+                    error=errno.EACCES if fault=='open-denied' else errno.EIO
+                    registers[0]=((1<<64)-error);regs(True);pending['returned']=-error;report['injected']=True
+                else:
+                    pending['returned']=ctypes.c_longlong(registers[0]).value
+                    if pending['syscall']==63 and pending['returned']>0:consumed=True
+                report['calls'].append(pending);pending=None
+        if fault=='read-partial-eio' and not consumed:raise AssertionError('partial resolver bytes were not consumed')
+        ptrace(17);attached=False
+        stdout,stderr=process.communicate(timeout=5);report['exit']=process.returncode;save(output,report)
+        return subprocess.CompletedProcess(argv,process.returncode,stdout,stderr)
+    finally:
+        if attached:
+            try:ptrace(17)
+            except OSError:pass
+        if process.poll() is None:process.kill();process.wait()
+        save(output,report)
 
 
 def main():
