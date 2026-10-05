@@ -184,11 +184,11 @@ def service_cases():
                   'dhcp-range=127.0.0.10,127.0.0.20,255.0.0.0,600\n'
                   'dhcp-option=224,owner-witness\ndhcp-leasefile=/m2/files/leases\n'
                   'enable-tftp\ntftp-root=/m2/files\n')
-    add('slow-lookup-owner-dns-dhcp-tftp',mixed_config,resolver_fixture=True,resolver_delay=.1,owner_progress=True,
+    add('slow-lookup-owner-dns-dhcp-tftp',mixed_config,resolver_fixture=True,resolver_delay=.5,owner_progress=True,
         sys_files={'/etc/hosts':'','/etc/resolv.conf':'nameserver 127.0.0.2\noptions timeout:3 attempts:1\n'},
         files={'servers':'server=127.0.0.3\n','payload':'T'*1400},
-        actions=[dict(op='tftp-start',id='transfer'),write('servers','server=lookup.endpoint.test\n'),signal_reload(),
-                 probe('during','ready.files.test'),dict(op='dhcp-inform',id='during-dhcp'),dict(op='tftp-finish',id='transfer'),
+        actions=[write('servers','server=lookup.endpoint.test\n'),signal_reload(),
+                 probe('during','ready.files.test'),dict(op='dhcp-inform',id='during-dhcp'),dict(op='tftp-start',id='transfer'),dict(op='tftp-finish',id='transfer'),
                  dict(op='pause',seconds=.4),probe('resolved','resolved.endpoint.test')])
     return cases
 
@@ -420,7 +420,7 @@ def run_service(args, cases):
     sides=['c','rust'] if args.side=='both' else ['c']
     roots={side:prepare(args.image_root,None,args.out/side,args.rust) for side in sides}
     save(args.out/'schedule.json',cases)
-    report={'mode':'service','fixture_environment':{'listener_port':15353,'ephemeral_range':[40000,60999],'privileged_port_start':1024},'source_commit':args.source_commit,'rust_sha256':sha256(args.rust),'rust_bytes':args.rust.stat().st_size,'c_sha256':STOCK_SHA256,'comparison_executed':args.side=='both','cases':[],'failures':[],'closed_options':[],'negative_controls':controls()}
+    report={'mode':'service','fixture_environment':{'listener_port':15353,'ephemeral_range':[40000,60999],'privileged_port_start':1024},'source_commit':args.source_commit,'rust_sha256':sha256(args.rust),'rust_bytes':args.rust.stat().st_size,'c_sha256':STOCK_SHA256,'comparison_executed':args.side=='both','cases':[],'failures':[],'closed_options':[],'negative_controls':controls(),'reference_differences':[]}
     for case in cases:
         folder=args.out/case['id'];folder.mkdir()
         row={'id':case['id'],'failures':[]}
@@ -431,7 +431,20 @@ def run_service(args, cases):
             timeout_ids={action['id']+':udp-async' for action in case['actions'] if action.get('expect_timeout')}
             if any((entry.get('response') is None)!=(entry['id'] in timeout_ids) for entry in observed['c']['rows'] if entry['id'].endswith('udp-async')): row['failures'].append(dict(phase='c-async-calibration',error='missing awaited UDP reply'))
             if args.side=='both':
-                row['failures'].extend(files.compare(observed['c'],observed['rust'],case))
+                comparison=copy.deepcopy(observed)
+                compared_case=copy.deepcopy(case)
+                if case.get('owner_progress'):
+                    c_health=next(record for record in observed['c']['rows'] if record['id']=='during:udp')
+                    rust_health=next(record for record in observed['rust']['rows'] if record['id']=='during:udp')
+                    if c_health['response'] is not None or rust_health['response'] is None: row['failures'].append(dict(phase='blocked-reference-owner',c=c_health,rust=rust_health))
+                    report['reference_differences'].append({'case':case['id'],'boundary':'OWNER-01','contract':'C blocks its owner in getaddrinfo; Rust resolves in an isolated child while DNS/DHCP/TFTP continue.','c_health':c_health,'rust_health':rust_health})
+                    for side in comparison.values():
+                        side['rows']=[record for record in side['rows'] if record['id']!='during:udp']
+                        for record in side['rows']:
+                            for upstream in record.get('upstreams',[]): upstream['events']=[event for event in upstream['events'] if event['name']!='lookup.endpoint.test']
+                    for action in compared_case['actions']:
+                        if action.get('id')=='during': action['transports']=['tcp']
+                row['failures'].extend(files.compare(comparison['c'],comparison['rust'],compared_case))
                 if case.get('source_diagnostics') and observed['c']['source_diagnostics']!=observed['rust']['source_diagnostics']: row['failures'].append(dict(phase='source-diagnostic',c=observed['c']['source_diagnostics'],rust=observed['rust']['source_diagnostics']))
                 c,rust=(source_projection(observed[side],case) for side in ('c','rust'))
                 if c!=rust: row['failures'].append(dict(phase='source-tuples',c=c,rust=rust))
