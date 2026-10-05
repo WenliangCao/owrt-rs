@@ -53,6 +53,8 @@ impl SourceSpec {
             return;
         }
         if let Ok(name) = std::ffi::CString::new(self.interface.as_slice()) {
+            // SAFETY: CString owns a NUL-terminated buffer for the whole call;
+            // if_nametoindex reads it and does not retain the pointer.
             let index = unsafe { if_nametoindex(name.as_ptr()) };
             if index != 0 {
                 self.ifindex = index;
@@ -112,8 +114,11 @@ impl Default for SocketSettings {
 impl SocketSettings {
     pub fn from_scalar(scalar: &ScalarConfig) -> Self {
         #[cfg(target_os = "linux")]
+        // SAFETY: 4 is Linux _SC_OPEN_MAX; sysconf takes no pointer and owns
+        // no resource. A negative result is clamped below before conversion.
         let open_max = unsafe { sysconf(4) };
         #[cfg(target_os = "macos")]
+        // SAFETY: 5 is Darwin _SC_OPEN_MAX, with the same scalar-only contract.
         let open_max = unsafe { sysconf(5) };
         Self {
             query_port: scalar.query_port,
@@ -121,7 +126,9 @@ impl SocketSettings {
             min_port: scalar.min_port,
             max_port: scalar.max_port,
             port_limit: scalar.port_limit,
-            pool_slots: (scalar.forward_max as usize / 2).min(open_max.max(0) as usize / 3),
+            // C truncates -1 / 2 to zero. Smaller negatives fail DNS startup
+            // before source sockets are configured; never cast them to usize.
+            pool_slots: (scalar.forward_max.max(0) as usize / 2).min(open_max.max(0) as usize / 3),
         }
     }
     pub fn persistent(self, source: &SourceSpec) -> bool {
@@ -176,6 +183,8 @@ fn bind_address(fd: RawFd, address: SocketAddr) -> io::Result<()> {
                 address: address.ip().octets(),
                 zero: [0; 8],
             };
+            // SAFETY: repr(C) Inet4 is the 16-byte sockaddr_in on the supported
+            // Linux/Darwin ABIs. The initialized stack value lives through bind.
             unsafe { bind(fd, (&native as *const Inet4).cast(), 16) }
         }
         SocketAddr::V6(address) => {
@@ -188,6 +197,8 @@ fn bind_address(fd: RawFd, address: SocketAddr) -> io::Result<()> {
                 address: address.ip().octets(),
                 scope: address.scope_id(),
             };
+            // SAFETY: repr(C) Inet6 matches the 28-byte sockaddr_in6 layout;
+            // bind borrows the initialized value only for this call.
             unsafe { bind(fd, (&native as *const Inet6).cast(), 28) }
         }
     };
@@ -207,6 +218,8 @@ fn interface(_fd: RawFd, source: &SourceSpec, _tcp: bool) -> io::Result<()> {
             } else {
                 (41, 76)
             };
+            // SAFETY: this Linux unicast-interface option reads one initialized
+            // u32 by value; _fd remains owned by the calling socket operation.
             return if unsafe { setsockopt(_fd, level, option, (&index as *const u32).cast(), 4) }
                 == 0
             {
@@ -219,6 +232,8 @@ fn interface(_fd: RawFd, source: &SourceSpec, _tcp: bool) -> io::Result<()> {
             let mut name = [0u8; 16];
             let length = source.interface.len().min(15);
             name[..length].copy_from_slice(&source.interface[..length]);
+            // SAFETY: Linux SO_BINDTODEVICE reads this live 16-byte IFNAMSIZ
+            // buffer, initialized and NUL-terminated by the 15-byte limit.
             if unsafe { setsockopt(_fd, 1, 25, name.as_ptr(), 16) } != 0 {
                 return Err(io::Error::last_os_error());
             }
@@ -288,6 +303,8 @@ pub fn udp(
     settings: SocketSettings,
     random: &mut impl Random,
 ) -> Result<UdpSocket, SocketFailure> {
+    // SAFETY: socket has scalar arguments only. The returned descriptor is
+    // checked for failure and transferred to a single RAII owner below.
     let fd = unsafe {
         socket(
             if source.address.is_ipv4() {
@@ -302,6 +319,7 @@ pub fn udp(
     if fd < 0 {
         return Err(io::Error::last_os_error().into());
     }
+    // SAFETY: fd is newly created, nonnegative and has no other owning wrapper.
     let owned = unsafe { OwnedFd::from_raw_fd(fd) };
     if source.address.is_ipv6() {
         let one = 1i32;
@@ -309,6 +327,8 @@ pub fn udp(
         let (level, option) = (41, 26);
         #[cfg(target_os = "macos")]
         let (level, option) = (41, 27);
+        // SAFETY: IPV6_V6ONLY reads the initialized i32 during this call; owned
+        // closes fd on every error path and the pointer is never retained.
         if unsafe { setsockopt(fd, level, option, (&one as *const i32).cast(), 4) } != 0 {
             return Err(io::Error::last_os_error().into());
         }
@@ -367,6 +387,8 @@ pub fn udp(
         unsafe extern "C" {
             fn fcntl(fd: i32, command: i32, ...) -> i32;
         }
+        // SAFETY: Linux F_SETFD accepts the scalar FD_CLOEXEC flag. socket keeps
+        // ownership of this valid descriptor for the entire call.
         if unsafe { fcntl(socket.as_raw_fd(), 2, 1) } < 0 {
             return Err(io::Error::last_os_error().into());
         }
