@@ -33,7 +33,7 @@ class Product(Fixture):
             self.check(self.side + "-daemon-normal-exit", child.returncode, 0)
 
     def start_product(self, side, extra="", port=15353, bus=True, restored=False,
-                      cache_size=20, upstream=True, wait_bus=True):
+                      cache_size=20, upstream=True, wait_bus=True, dhcp=True):
         self.side = side
         self.hosts = self.out / f"hosts-{self.index}"
         self.hosts.write_text("192.0.2.42 local.invalid\n")
@@ -44,9 +44,9 @@ class Product(Fixture):
         config.write_text(f"no-resolv\nno-hosts\nlisten-address=127.0.0.1\nport={port}\n"
                           + ("server=127.0.0.1#15354\n" if upstream else "")
                           + f"cache-size={cache_size}\nlocal-ttl=120\n"
-                          "no-ping\ndhcp-authoritative\ndhcp-lease-max=150\n"
-                          "dhcp-range=127.0.0.10,127.0.0.20,255.0.0.0,127.255.255.255,600s\n"
-                          f"dhcp-leasefile={lease}\naddn-hosts={self.hosts}\n"
+                          + ("no-ping\ndhcp-authoritative\ndhcp-lease-max=150\n"
+                             "dhcp-range=127.0.0.10,127.0.0.20,255.0.0.0,127.255.255.255,600s\n" if dhcp else "")
+                          + f"dhcp-leasefile={lease}\naddn-hosts={self.hosts}\n"
                           + (f"enable-ubus={OBJECT}\n" if bus else "") + extra)
         binary = (self.args.c_binary or self.args.reference_build / "dnsmasq/dnsmasq") if side == "C" else self.args.rust_binary
         # Both products must reconnect with the same credentials and sink.
@@ -622,6 +622,72 @@ def run_lifecycle(f, side):
     return observed
 
 
+def run_records(f, side):
+    observed = {}
+    def record(label, value):
+        assert label not in observed
+        observed[label] = value
+    def wire_record(owner, kind, cls, ttl, data):
+        return owner + struct.pack("!HHIH", kind, cls, ttl, len(data)) + data
+    owner = b"\xc0\x0c"
+    address4 = socket.inet_pton(socket.AF_INET, "192.0.2.1")
+    address6 = socket.inet_pton(socket.AF_INET6, "2001:db8::1")
+    a = lambda ttl=120, cls=1: wire_record(owner, 1, cls, ttl, address4)
+    aaaa = wire_record(owner, 28, 1, 77, address6)
+    txt = wire_record(owner, 16, 1, 77, b"\x03txt")
+    # All header counts and bytes come from this independent upstream. The
+    # production daemon decides which records notify and when they commit.
+    cases = [
+        ("answer-additional-order", [a(), a(33)], [a(44)], [a(55), aaaa], "", "192.0.2.9"),
+        ("authority-only", [txt], [a()], [], "", "192.0.2.9"),
+        ("class-exclusion", [a(cls=3), a(cls=255), a()], [], [], "", "192.0.2.9"),
+        ("zero-and-high-ttl", [a(0), a(0xffffffff)], [], [], "", "none"),
+        ("filter-before-answer", [a(), aaaa, txt], [], [], "filter-rr=A,AAAA\n", "192.0.2.9"),
+        ("alias-after-subscriber", [a()], [], [], "alias=192.0.2.9,198.51.100.9\n", "192.0.2.9"),
+        ("address-same-clear-aa", [a()], [], [], "", "192.0.2.1"),
+    ]
+    original_answer = f.upstream.answer
+    try:
+        for label, answers, authority, additional, extra, replacement in cases:
+            def answer(packet, transport, answers=answers, authority=authority, additional=additional):
+                position = 12
+                while packet[position]:
+                    position += packet[position] + 1
+                position += 5
+                f.upstream.requests.append({"transport": transport, "query": packet.hex()})
+                return (packet[:2] + struct.pack("!HHHHH", 0x8580, 1, len(answers), len(authority), len(additional))
+                        + packet[12:position] + b"".join(answers + authority + additional))
+            f.upstream.answer = answer
+            f.start_product(side, extra, dhcp=False)
+            watcher, log = f.watch(replacement)
+            record("records-" + label, f.exchange(label + ".invalid"))
+            record("notices-" + label, f.notices(log))
+            record("metrics-" + label, f.metrics())
+            f.stop(watcher)
+            f.stop(f.daemon)
+    finally:
+        f.upstream.answer = original_answer
+    # DNS local answers and cache replays never enter do_doctor.
+    f.start_product(side, dhcp=False)
+    record("dns-only-initial", f.metrics())
+    record("dns-only-seed", f.exchange("cached-no-doctor.invalid"))
+    watcher, log = f.watch("192.0.2.9")
+    record("dns-only-local", f.exchange("local.invalid"))
+    record("dns-only-cache", f.exchange("cached-no-doctor.invalid"))
+    record("dns-only-no-notices", f.notices(log))
+    record("dns-only-after", f.metrics())
+    f.stop(watcher)
+    f.stop(f.daemon)
+    for enabled in (False, True):
+        f.start_product(side, port=0, dhcp=False, upstream=False, bus=enabled)
+        if enabled:
+            record("no-service-metrics", f.metrics())
+        else:
+            record("disabled-no-service-lookup", f.client_call("lookup", OBJECT))
+        f.stop(f.daemon)
+    return observed
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--reference-build", type=Path, required=True)
@@ -631,7 +697,7 @@ def main():
     parser.add_argument("--rust-binary", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--inject-error", action="store_true")
-    parser.add_argument("--suite", choices=("baseline", "extended", "lifecycle"), default="baseline")
+    parser.add_argument("--suite", choices=("baseline", "extended", "lifecycle", "records"), default="baseline")
     args = parser.parse_args()
     assert os.environ.get("DNSMASQ_TEST_ISOLATED") == "1" and os.geteuid() == 0
     assert not Path("/etc/openwrt_release").exists()
@@ -665,7 +731,8 @@ def main():
         f.start_bus()
         if args.suite == "extended":
             storage_authority(f)
-        schedule = {"baseline": run_side, "extended": run_extended, "lifecycle": run_lifecycle}[args.suite]
+        schedule = {"baseline": run_side, "extended": run_extended, "lifecycle": run_lifecycle,
+                    "records": run_records}[args.suite]
         expected = schedule(f, "C")
         if args.suite == "baseline":
             assert len(expected) == 69, "frozen paired service schedule changed"
