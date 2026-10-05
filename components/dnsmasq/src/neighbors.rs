@@ -19,6 +19,17 @@ pub struct NeighborChange {
     pub interface: u32,
     pub hardware_address: Vec<u8>,
 }
+/// EDNS raw identity; C indexes its ARP cache by IP without interface scope.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum EdnsMacLookup {
+    Ready(Option<Vec<u8>>),
+    Pending,
+}
+#[derive(Clone)]
+struct EdnsRecord {
+    address: IpAddr,
+    hardware_address: Vec<u8>,
+}
 type Key = (IpAddr, u32);
 const MAX_WAITERS: usize = 256;
 const MAX_NEGATIVE: usize = 256;
@@ -53,6 +64,7 @@ struct Dump {
     sequence: u32,
     deadline: u64,
     entries: BTreeMap<Key, Vec<u8>>,
+    edns: Vec<EdnsRecord>,
 }
 pub struct NeighborCache {
     socket: OwnedFd,
@@ -63,6 +75,8 @@ pub struct NeighborCache {
     refreshed: Option<u64>,
     dump: Option<Dump>,
     changes: Vec<NeighborChange>,
+    edns_records: Vec<EdnsRecord>,
+    edns_waiting: BTreeSet<IpAddr>,
 }
 impl NeighborCache {
     pub fn new() -> io::Result<Self> {
@@ -92,6 +106,8 @@ impl NeighborCache {
             refreshed: None,
             dump: None,
             changes: Vec::new(),
+            edns_records: Vec::new(),
+            edns_waiting: BTreeSet::new(),
         })
     }
     pub fn append_poll_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>) {
@@ -142,6 +158,7 @@ impl NeighborCache {
             sequence: self.sequence,
             deadline: now.saturating_add(2),
             entries: BTreeMap::new(),
+            edns: Vec::new(),
         });
         Ok(())
     }
@@ -170,8 +187,111 @@ impl NeighborCache {
         }
         MacLookup::Pending
     }
+    /// A new UDP request uses lazy=true. A TCP accept uses false once, to
+    /// refresh a cached negative as arp.c does before fork. If Pending is
+    /// returned, park the request and resume with lazy=true after owner.step;
+    /// capture Ready once for the whole TCP connection. Never query per frame.
+    pub fn query_edns(&mut self, address: IpAddr, lazy: bool, now: u64) -> EdnsMacLookup {
+        if self
+            .refreshed
+            .is_some_and(|last| now.saturating_sub(last) < 90)
+        {
+            if let Some(record) = self
+                .edns_records
+                .iter()
+                .find(|record| record.address == address)
+            {
+                if !record.hardware_address.is_empty() || lazy {
+                    return EdnsMacLookup::Ready(
+                        (!record.hardware_address.is_empty())
+                            .then(|| record.hardware_address.clone()),
+                    );
+                }
+            }
+        }
+        // Dump failure only suppresses retries briefly; it does not publish a
+        // partial snapshot or make an expired positive record fresh.
+        if self
+            .negative
+            .get(&(address, 0))
+            .is_some_and(|until| now < *until)
+        {
+            return EdnsMacLookup::Ready(None);
+        }
+        if self.edns_waiting.len() >= MAX_WAITERS && !self.edns_waiting.contains(&address) {
+            return EdnsMacLookup::Ready(None);
+        }
+        self.edns_waiting.insert(address);
+        if self.refresh(now).is_err() {
+            self.fail_waiters(now);
+            return EdnsMacLookup::Ready(None);
+        }
+        EdnsMacLookup::Pending
+    }
+    fn publish_edns(&mut self, dump: Vec<EdnsRecord>) {
+        // Preserve filter_mac's list order: old confirmed identities remain in
+        // place, and newly discovered identities are prepended in dump order.
+        let mut records: Vec<_> = std::mem::take(&mut self.edns_records)
+            .into_iter()
+            .map(|record| (record, false, false))
+            .collect();
+        for next in dump {
+            if let Some((record, confirmed, new)) = records.iter_mut().find(|(record, _, new)| {
+                !*new
+                    && record.address == next.address
+                    && (record.hardware_address.is_empty()
+                        || record.hardware_address == next.hardware_address)
+            }) {
+                if record.hardware_address.is_empty() {
+                    record.hardware_address = next.hardware_address;
+                    *new = true;
+                }
+                *confirmed = true;
+            } else {
+                records.insert(0, (next, true, true));
+            }
+        }
+        self.edns_records = records
+            .into_iter()
+            .filter(|(record, confirmed, _)| *confirmed || record.hardware_address.is_empty())
+            .map(|(record, _, _)| record)
+            .collect();
+        for address in std::mem::take(&mut self.edns_waiting) {
+            if !self
+                .edns_records
+                .iter()
+                .any(|record| record.address == address)
+            {
+                if self
+                    .edns_records
+                    .iter()
+                    .filter(|record| record.hardware_address.is_empty())
+                    .count()
+                    >= MAX_NEGATIVE
+                {
+                    if let Some(at) = self
+                        .edns_records
+                        .iter()
+                        .rposition(|record| record.hardware_address.is_empty())
+                    {
+                        self.edns_records.remove(at);
+                    }
+                }
+                self.edns_records.insert(
+                    0,
+                    EdnsRecord {
+                        address,
+                        hardware_address: Vec::new(),
+                    },
+                );
+            }
+        }
+    }
     fn fail_waiters(&mut self, now: u64) {
         self.dump = None;
+        for address in std::mem::take(&mut self.edns_waiting) {
+            self.remember_absent((address, 0), now.saturating_add(1));
+        }
         for key in std::mem::take(&mut self.waiting) {
             self.remember_absent(key, now.saturating_add(1));
         }
@@ -254,7 +374,9 @@ impl NeighborCache {
         Ok(())
     }
     fn publish(&mut self, now: u64) {
-        let next = self.dump.take().unwrap().entries;
+        let dump = self.dump.take().unwrap();
+        self.publish_edns(dump.edns);
+        let next = dump.entries;
         for (&(address, interface), mac) in &self.entries {
             if next.get(&(address, interface)) != Some(mac) {
                 self.changes.push(NeighborChange {
@@ -330,6 +452,10 @@ fn parse_messages(bytes: &[u8], dump: &mut Dump) -> io::Result<bool> {
                 }
                 28 => {
                     if let Some((key, mac)) = parse_neighbor(payload)? {
+                        dump.edns.push(EdnsRecord {
+                            address: key.0,
+                            hardware_address: mac.clone(),
+                        });
                         dump.entries.insert(key, mac);
                     }
                 }
@@ -433,6 +559,7 @@ mod tests {
             sequence: 7,
             deadline: 1,
             entries: BTreeMap::new(),
+            edns: Vec::new(),
         };
         let mut done = vec![0; 20];
         done[..4].copy_from_slice(&20u32.to_ne_bytes());
@@ -452,6 +579,8 @@ mod tests {
             refreshed: None,
             dump: None,
             changes: Vec::new(),
+            edns_records: Vec::new(),
+            edns_waiting: BTreeSet::new(),
         }
     }
     #[test]
@@ -465,6 +594,55 @@ mod tests {
         assert_eq!(cache.refreshed, Some(1));
         assert_eq!(cache.query(key.0, key.1, 100), MacLookup::Ready(None));
         assert_eq!(cache.entries[&key], [2, 0, 0, 0, 0, 1]);
+    }
+    #[test]
+    fn edns_raw_identity_ignores_interface_and_keeps_c_list_order() {
+        let mut cache = cache_without_network();
+        let address = "192.0.2.17".parse().unwrap();
+        cache.publish_edns(vec![
+            EdnsRecord {
+                address,
+                hardware_address: vec![1],
+            },
+            EdnsRecord {
+                address,
+                hardware_address: vec![2; 16],
+            },
+        ]);
+        cache.refreshed = Some(1);
+        assert_eq!(
+            cache.query_edns(address, true, 2),
+            EdnsMacLookup::Ready(Some(vec![2; 16]))
+        );
+        // Existing confirmed record stays in position on the next dump.
+        cache.publish_edns(vec![EdnsRecord {
+            address,
+            hardware_address: vec![2; 16],
+        }]);
+        assert_eq!(
+            cache.query_edns(address, true, 2),
+            EdnsMacLookup::Ready(Some(vec![2; 16]))
+        );
+    }
+    #[test]
+    fn edns_negative_accept_refresh_and_owner_failure_are_nonblocking() {
+        let mut cache = cache_without_network();
+        let address = "192.0.2.18".parse().unwrap();
+        cache.edns_waiting.insert(address);
+        cache.publish_edns(Vec::new());
+        cache.refreshed = Some(1);
+        assert_eq!(
+            cache.query_edns(address, true, 2),
+            EdnsMacLookup::Ready(None)
+        );
+        // /dev/null send fails immediately; a negative TCP lookup still tries
+        // refresh and receives the same absent result without a blocking wait.
+        assert_eq!(
+            cache.query_edns(address, false, 2),
+            EdnsMacLookup::Ready(None)
+        );
+        assert!(cache.negative.contains_key(&(address, 0)));
+        assert_eq!(cache.refreshed, Some(1));
     }
     #[test]
     fn lazy_negative_and_waiter_tables_are_bounded() {
