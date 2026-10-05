@@ -147,6 +147,9 @@ pub struct Outcome {
 /// during the state transaction, before the caller persists/publishes/sends.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum LogEvent<'a> {
+    Tags {
+        context: Option<usize>,
+    },
     Packet {
         kind: &'static [u8],
         address: Option<Ipv4Addr>,
@@ -447,6 +450,11 @@ fn transaction(
         return Ok(output);
     }
     let index = context.expect("address validation selected a context");
+    if let Some(events) = events.as_deref_mut() {
+        events(LogEvent::Tags {
+            context: Some(index),
+        });
+    }
     let duration = lease_duration(
         ranges[index].lease_time,
         request.host.and_then(|host| host.lease_time),
@@ -632,6 +640,11 @@ pub(crate) fn discover_counted(
     }
     if env.rapid_commit && request.packet.option(80, 0).is_some() {
         return transaction(store, ranges, request, Some(address), counters, events);
+    }
+    if let Some(events) = events.as_deref_mut() {
+        events(LogEvent::Tags {
+            context: Some(context),
+        });
     }
     counters.offer = counters.offer.wrapping_add(1); // :1377
     log_packet(&mut events, b"DHCPOFFER", Some(address), None, None);
@@ -958,6 +971,9 @@ pub(crate) fn inform_counted(
     let existing = client_existing.or_else(|| store.get(address).map(Lease::id));
     let mut override_id = env.override_server;
     let mut lease_time = None;
+    if let Some(events) = events.as_deref_mut() {
+        events(LogEvent::Tags { context });
+    }
     counters.ack = counters.ack.wrapping_add(1); // :1784, before lease interface update
     if let Some(events) = events {
         let name = client_existing
