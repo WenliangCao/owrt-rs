@@ -231,11 +231,51 @@ pub fn bind_tcp(fd: RawFd, source: &SourceSpec) -> io::Result<()> {
     interface(fd, source, true)
 }
 
+#[derive(Debug)]
+pub struct SocketFailure {
+    pub error: io::Error,
+    /// socket/IPv6 setup errors are silent in random_sock; local_bind errors
+    /// have their own C diagnostic boundary.
+    pub binding: bool,
+}
+impl From<io::Error> for SocketFailure {
+    fn from(error: io::Error) -> Self {
+        Self {
+            error,
+            binding: false,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct SourceSocketDiagnostic {
+    pub source: SourceSpec,
+    pub error: io::Error,
+}
+impl std::fmt::Display for SourceSocketDiagnostic {
+    fn fmt(&self, out: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(out, "failed to bind server socket to ")?;
+        if self.source.interface.is_empty() {
+            write!(out, "{}", self.source.address.ip())?;
+        } else {
+            write!(out, "{}", String::from_utf8_lossy(&self.source.interface))?;
+        }
+        #[cfg(target_os = "linux")]
+        {
+            write!(out, ": {}", crate::dns::filewatch::os_message(&self.error))
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            write!(out, ": {}", self.error)
+        }
+    }
+}
+
 pub fn udp(
     source: &SourceSpec,
     settings: SocketSettings,
     random: &mut impl Random,
-) -> io::Result<UdpSocket> {
+) -> Result<UdpSocket, SocketFailure> {
     let fd = unsafe {
         socket(
             if source.address.is_ipv4() {
@@ -248,7 +288,7 @@ pub fn udp(
         )
     };
     if fd < 0 {
-        return Err(io::Error::last_os_error());
+        return Err(io::Error::last_os_error().into());
     }
     let owned = unsafe { OwnedFd::from_raw_fd(fd) };
     if source.address.is_ipv6() {
@@ -258,7 +298,7 @@ pub fn udp(
         #[cfg(target_os = "macos")]
         let (level, option) = (41, 27);
         if unsafe { setsockopt(fd, level, option, (&one as *const i32).cast(), 4) } != 0 {
-            return Err(io::Error::last_os_error());
+            return Err(io::Error::last_os_error().into());
         }
     }
     let mut address = source.address;
@@ -285,7 +325,10 @@ pub fn udp(
             Ok(()) => break,
             Err(error) => {
                 if !matches!(error.raw_os_error(), Some(13 | 98)) || attempt + 1 == tries {
-                    return Err(error);
+                    return Err(SocketFailure {
+                        error,
+                        binding: true,
+                    });
                 }
                 address.set_port(if ports < 30 {
                     if address.port() == settings.max_port {
@@ -299,7 +342,10 @@ pub fn udp(
             }
         }
     }
-    interface(fd, source, false)?;
+    interface(fd, source, false).map_err(|error| SocketFailure {
+        error,
+        binding: true,
+    })?;
     let socket = UdpSocket::from(owned);
     socket.set_nonblocking(true)?;
     // File descriptor ownership is transferred once. Nonblocking and CLOEXEC
@@ -310,7 +356,7 @@ pub fn udp(
             fn fcntl(fd: i32, command: i32, ...) -> i32;
         }
         if unsafe { fcntl(socket.as_raw_fd(), 2, 1) } < 0 {
-            return Err(io::Error::last_os_error());
+            return Err(io::Error::last_os_error().into());
         }
     }
     Ok(socket)
