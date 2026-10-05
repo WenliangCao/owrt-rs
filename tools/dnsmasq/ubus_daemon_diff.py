@@ -280,6 +280,63 @@ def compare(f, expected, actual, inject_error):
         f.check("paired-" + key, right, left)
 
 
+def ordinary_gate(report):
+    counts = {"baseline": 69, "extended": 216, "lifecycle": 19, "records": 29, "recovery": 17}
+    if report.get("error") is not None or report.get("failed") != 0:
+        return False
+    if report.get("reference", {}).get("elf_sha256") != "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87":
+        return False
+    if report.get("c").keys() != report.get("rust").keys():
+        return False
+    if any(sum(key.startswith(suite + "/") for key in report["c"]) != size for suite, size in counts.items()):
+        return False
+    if not report.get("checks") or any(not row.get("pass") for row in report["checks"]):
+        return False
+    # Recompute every pair/known-difference guard from the raw persisted
+    # observations. A precomputed pass flag cannot qualify a corrupt reply.
+    class Checks:
+        def __init__(self):
+            self.authority = report.get("authority", {})
+            self.rows = []
+        def check(self, name, actual, expected):
+            self.rows.append(actual == expected)
+    checked = Checks()
+    for suite in counts:
+        left = {key.split("/", 1)[1]: value for key, value in report["c"].items() if key.startswith(suite + "/")}
+        right = {key.split("/", 1)[1]: value for key, value in report["rust"].items() if key.startswith(suite + "/")}
+        compare(checked, left, right, False)
+    return bool(checked.rows) and all(checked.rows)
+
+
+def qualification_controls(report):
+    controls = []
+    for name in ("missing-suite", "corrupt-metric", "corrupt-method", "corrupt-doctor", "missing-callback",
+                 "wrong-lifecycle", "wrong-recovery", "bad-reference", "fixture-failure", "missing-authority"):
+        changed = copy.deepcopy(report)
+        if name == "missing-suite":
+            changed["rust"] = {k: v for k, v in changed["rust"].items() if not k.startswith("records/")}
+        elif name == "corrupt-metric":
+            changed["rust"]["baseline/initial"]["dns_cache_inserted"] += 1
+        elif name == "corrupt-method":
+            changed["rust"]["extended/method-contract.dnsmasq-absent.method-0"][-1]["status"] = 0
+        elif name == "corrupt-doctor":
+            changed["rust"]["extended/doctor-ipv4"]["records"][0]["data"] = "203.0.113.99"
+        elif name == "missing-callback":
+            changed["rust"]["records/notices-answer-additional-order"] = []
+        elif name == "wrong-lifecycle":
+            changed["rust"]["lifecycle/partial-1-fd-balance"] += 1
+        elif name == "wrong-recovery":
+            changed["rust"]["recovery/disabled-after-collision"] = [{"event": "lookup"}]
+        elif name == "bad-reference":
+            changed["reference"]["elf_sha256"] = "0" * 64
+        elif name == "fixture-failure":
+            changed["error"] = "unexecuted scenario"
+        else:
+            changed["authority"]["later-DATA-reuses-address-storage"] = False
+        controls.append({"control": name, "rejected": not ordinary_gate(changed)})
+    return controls
+
+
 def client_payload(f, path, method, payload):
     command = [str(f.client), BUS, "call-raw", path, method, payload.hex()]
     result = subprocess.run(command, capture_output=True, env=f.env, timeout=3)
@@ -820,6 +877,11 @@ def main():
               "identities": {"c": reference["elf_sha256"], "native_client_build_c": args.c_sha256, "rust": digest(args.rust_binary),
                              "ubusd": digest(args.reference_build / "deps/sbin/ubusd"),
                              "client": digest(f.client), "tool": digest(__file__)}}
+    if args.suite == "all":
+        report["normal_contract_qualified"] = ordinary_gate(report)
+        report["negative_controls"] = qualification_controls(report) if report["normal_contract_qualified"] else []
+        report["normal_contract_qualified"] &= all(row["rejected"] for row in report["negative_controls"])
+        report["qualification_policy"] = "Frozen ordinary callers only; original C defects and single-owner scheduling are guarded independently; no simulated service counters."
     (out / "result.json").write_text(json.dumps(report, indent=2, default=lambda value: value.hex()) + "\n")
     print(json.dumps({key: report[key] for key in ("passed", "failed", "error")}))
     return bool(report["failed"])
