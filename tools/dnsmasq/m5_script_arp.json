@@ -1,0 +1,237 @@
+{
+  "schema": 1,
+  "option": "script-arp",
+  "reference": {
+    "arp.c": {
+      "path": "dnsmasq-2.93/src/arp.c",
+      "sha256": "c98d70fab696459ed4868e3325d4ab7b78848c3af84de961f6dbfc8f38b81109"
+    },
+    "dnsmasq.c": {
+      "path": "dnsmasq-2.93/src/dnsmasq.c",
+      "sha256": "d4bb7cde522376200a0293427b0812625ebc457f10dc9d3e2bef243ccba8ccd1"
+    },
+    "netlink.c": {
+      "path": "dnsmasq-2.93/src/netlink.c",
+      "sha256": "b84884ca8a9c30e1985cf4787f64f56131dff8b3a4c35c09b6ac299ada77cbd1"
+    },
+    "helper.c": {
+      "path": "dnsmasq-2.93/src/helper.c",
+      "sha256": "70feae3213bc32bd047c20b79b3f021a6135ea66fbff21e2ba272f8d965af719"
+    },
+    "edns0.c": {
+      "path": "dnsmasq-2.93/src/edns0.c",
+      "sha256": "420a55386ee3d41cef391b6443f735b18f7f205bf5c6d24cea6d28d5f2b55ed2"
+    },
+    "tftp.c": {
+      "path": "dnsmasq-2.93/src/tftp.c",
+      "sha256": "a6971bf4ce77c0ca4c7ebf0194a2ee9c2ad702b1b8a882d46de87c6c6f5e63f3"
+    },
+    "option.c": {
+      "path": "dnsmasq-2.93/src/option.c",
+      "sha256": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed"
+    }
+  },
+  "reference_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "boundaries": [
+    {
+      "id": "configuration",
+      "source": "option.c:159,388,516,2016-2056,5581-5603,6040-6088",
+      "boundary": "Boolean no-argument flag; file/CLI/repetition and extraneous parameter diagnostics remain exact.",
+      "required_cases": [
+        "syntax-config",
+        "syntax-config-empty",
+        "syntax-config-argument",
+        "syntax-cli",
+        "syntax-cli-argument",
+        "syntax-repeat"
+      ]
+    },
+    {
+      "id": "helper-eligibility",
+      "source": "dnsmasq.c:304-313,461-480,720-727",
+      "boundary": "script-arp enables common buffers and helper even with port=0 and no DHCP/TFTP. A missing script or disabled flag creates no helper. Scriptuser is resolved/applied only when DHCP is configured.",
+      "required_cases": [
+        "disabled-only-script",
+        "enabled-no-script",
+        "port-zero-only",
+        "dns-only",
+        "foreground-user",
+        "debug-user",
+        "daemon-user",
+        "ignored-scriptuser-unknown",
+        "ignored-scriptuser-nobody",
+        "dhcp-scriptuser-applied",
+        "readonly-no-dhcp-init"
+      ]
+    },
+    {
+      "id": "initial-enumeration",
+      "source": "dnsmasq.c:1180-1183;arp.c:107-178",
+      "boundary": "First loop snapshots the entire kernel neighbor table; DNS interface exclusions do not scope ARP events. IPv6 callback address has no scope suffix.",
+      "required_cases": [
+        "initial-v4",
+        "initial-v6",
+        "initial-dual",
+        "excluded-interface-visible",
+        "link-local-unscoped"
+      ]
+    },
+    {
+      "id": "kernel-state-filter",
+      "source": "netlink.c:305-331",
+      "boundary": "Exclude NOARP/INCOMPLETE/FAILED; retain other states only when DST and LLADDR exist.",
+      "required_cases": [
+        "state-reachable",
+        "state-stale",
+        "state-delay",
+        "state-probe",
+        "state-permanent",
+        "state-none",
+        "state-noarp",
+        "state-incomplete",
+        "state-failed"
+      ]
+    },
+    {
+      "id": "hardware-lengths",
+      "source": "arp.c:43-47,73-102;helper.c:896-918,225-235,677-679",
+      "boundary": "ARP stores at most16hardware bytes; callbacks use ARPHRD_ETHER formatting, preserve1/6/16bytes and zero-length LLADDR distinction; over16is skipped.",
+      "required_cases": [
+        "mac-length-zero",
+        "mac-length-one",
+        "mac-length-six",
+        "mac-length-sixteen",
+        "mac-length-seventeen",
+        "missing-destination",
+        "missing-hardware"
+      ]
+    },
+    {
+      "id": "record-identity",
+      "source": "arp.c:49-102",
+      "boundary": "Identity is family/IP/MAC with no ifindex. Newly inserted records are skipped while processing the same dump, preserving duplicate records. Existing confirmed position is retained; cached negative upgrades in place.",
+      "required_cases": [
+        "same-mac-distinct-ip",
+        "same-ip-distinct-interface",
+        "duplicate-dump-identity",
+        "confirmed-position",
+        "negative-upgrade-position"
+      ]
+    },
+    {
+      "id": "transitions",
+      "source": "arp.c:153-178,210-242",
+      "boundary": "Every snapshot marks positives, confirms exact matches, retires unconfirmed records, and creates new records. Unchanged snapshots emit no duplicate callbacks.",
+      "required_cases": [
+        "unchanged-no-duplicate",
+        "mac-replace-delete-add",
+        "removed-delete"
+      ]
+    },
+    {
+      "id": "event-order",
+      "source": "arp.c:83-85,164-175,210-242",
+      "boundary": "Removed records are pushed onto old list and all deletions precede additions. Additions traverse newest-first active list.",
+      "required_cases": [
+        "delete-before-add",
+        "deletion-stack-order",
+        "addition-list-order"
+      ]
+    },
+    {
+      "id": "helper-payload",
+      "source": "helper.c:225-235,249-277,578,677-679,896-918",
+      "boundary": "Exactly action/MAC/IP argv after the fixed script basename, no hostname/interface/DHCP environment mutations. Credentials and inherited descriptor roles remain those of the existing helper.",
+      "required_cases": [
+        "argv-and-inherited-env",
+        "helper-descriptor-roles"
+      ]
+    },
+    {
+      "id": "shared-cache-callers",
+      "source": "edns0.c:270-276;tftp.c:451-479;dnsmasq.c:2102-2119",
+      "boundary": "EDNS parent TCP nonlazy miss and TFTP MAC lookup refresh the same cache and may produce ARP transitions. Qualified EDNS connection snapshots and lazy negative semantics remain unchanged.",
+      "required_cases": [
+        "edns-negative-refresh",
+        "tftp-lookup-refresh",
+        "edns-connection-snapshot"
+      ]
+    },
+    {
+      "id": "refresh-clock",
+      "source": "arp.c:20,116-143;dnsmasq.c:1101-1114,1180-1183;netlink.c:63-71",
+      "boundary": "Cache freshness is <90seconds, tested on loop entry; kernel table changes alone do not bypass freshness. Pure idle ARP-only has no periodic wake source; calibrate real91seconds and trigger behavior.",
+      "required_cases": [
+        "real-91-active-refresh",
+        "before-90-retains",
+        "idle-91-no-wake"
+      ]
+    },
+    {
+      "id": "helper-backpressure",
+      "source": "dnsmasq.c:1175-1188;helper.c:920-944",
+      "boundary": "One shared serialized command slot; queue ownership remains with producer while full. Callback production is DHCP before ARP(old then new) before TFTP; helper pipe pressure must not block DNS/DHCP/TFTP.",
+      "required_cases": [
+        "burst-order-and-recovery",
+        "slow-helper-dns-progress",
+        "priority-lease-arp-tftp"
+      ]
+    },
+    {
+      "id": "stop",
+      "source": "dnsmasq.c:1711-1737;helper.c:create_helper main command loop",
+      "boundary": "TERM flushes only already serialized helper bytes and pending lease transitions, drops unsent ARP producer records, closes helper input and exits without waiting for final script.",
+      "required_cases": [
+        "stop-unsent-arp-drop",
+        "stop-buffered-script-finishes",
+        "stop-helper-failure-cleanup"
+      ]
+    },
+    {
+      "id": "script-failure",
+      "source": "helper.c:550-571,674-694;dnsmasq.c:async_event",
+      "boundary": "Callback exit/signal/exec errors preserve the existing notice/log contract and do not stop the service or subsequent callbacks.",
+      "required_cases": [
+        "script-exit-recovery",
+        "script-signal-recovery",
+        "script-exec-error"
+      ]
+    },
+    {
+      "id": "netlink-failure",
+      "source": "netlink.c:191-214,305-331;arp.c:150-178",
+      "boundary": "Observe real error/partial/no-DONE boundaries with raw receipt and health. C partial publication/blocking defects retain guarded reference classification; Rust publishes only complete snapshots and retains qualified EDNS semantics.",
+      "required_cases": [
+        "netlink-error",
+        "netlink-partial-error",
+        "netlink-missing-done",
+        "stop-pending-dump"
+      ]
+    },
+    {
+      "id": "record-resource",
+      "source": "arp.c:88-94,183-205;helper.c:buff_alloc,queue_arp",
+      "boundary": "Fresh positive or negative cache record allocation failure skips that record; helper buffer allocation failure is the separately guarded C failure boundary. No fake resource success or partial qualification.",
+      "required_cases": [
+        "positive-record-enomem",
+        "negative-record-enomem",
+        "helper-buffer-enomem-reference"
+      ]
+    }
+  ],
+  "qualification": {
+    "require_all_cases": true,
+    "require_actual_helper_argv_env": true,
+    "require_real_clock_refresh": true,
+    "require_actual_fault_receipts": true,
+    "require_process_and_fd_recovery": true,
+    "require_negative_controls": true,
+    "reference_only_cannot_close": true,
+    "partial_cannot_close": true,
+    "retain_edns_qualification": true
+  },
+  "references_to_existing_qualification": [
+    "../../private/dnsmasq-rewrite/evidence/M5/edns/close-summary.json",
+    "../../private/dnsmasq-rewrite/evidence/M5/helper/close-build-06/private/run-01/result.json"
+  ]
+}
