@@ -211,6 +211,8 @@ pub struct LocalProvider {
     config_host_lookup: Option<BootHostLookup>,
     reverse_host_lookup: Option<ReverseHostLookup>,
     startup_removed: Vec<Lease>,
+    startup_time: i64,
+    startup_script_time: Option<i64>,
     restore_stats: Option<RestoreStats>,
     initialized: bool,
     alarm_deadline: Option<Instant>,
@@ -365,6 +367,8 @@ impl LocalProvider {
             config_host_lookup: None,
             reverse_host_lookup: None,
             startup_removed,
+            startup_time: now,
+            startup_script_time: Some(now),
             restore_stats,
             initialized: false,
             alarm_deadline: None,
@@ -474,7 +478,10 @@ impl LocalProvider {
                 .as_deref()
                 .cloned()
                 .unwrap_or_default();
-            context.now = epoch_seconds();
+            context.now = self
+                .startup_script_time
+                .take()
+                .unwrap_or_else(epoch_seconds);
             context.log_dhcp = self.config.log_dhcp;
             self.pending_delivery = Some(LeaseDelivery::new(event, context));
         }
@@ -498,6 +505,8 @@ impl LocalProvider {
             .restore_with_name_policy(restored.records, now, self.config.fqdn_only)
             .map_err(StartupError::Restore)?;
         self.initialized = false;
+        self.startup_time = now;
+        self.startup_script_time = Some(now);
         Ok(())
     }
 
@@ -1047,13 +1056,21 @@ impl LocalProvider {
             // startup leases take priority during the subsequent maintenance.
             if self.startup_removed.is_empty() {
                 self.queue_script_from_maintenance();
+                // Only C's pre-EVENT_INIT queue turn sees the original time.
+                self.startup_script_time = None;
             }
             if self.host_files_ready {
                 name_error = self.update_configured_names();
             }
         }
         let mut removed = std::mem::take(&mut self.startup_removed);
-        removed.extend(self.leases.prune(None, now));
+        // lease_init prunes with its pre-read clock. A lease which elapsed
+        // during slow input survives through startup OLD callbacks, then the
+        // current-time alarm prunes it on the following owner turn.
+        removed.extend(
+            self.leases
+                .prune(None, if first { self.startup_time } else { now }),
+        );
         let mut report = self.maintain(now, removed, true);
         report.restore = self.restore_stats.take();
         report.host_files = host_files;
@@ -1062,6 +1079,7 @@ impl LocalProvider {
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         self.queue_script_from_maintenance();
         if first {
+            self.startup_script_time = None;
             // C queues one interface-change callback before EVENT_INIT marks
             // every live lease OLD, so that first record is announced twice.
             self.leases.rerun_scripts();

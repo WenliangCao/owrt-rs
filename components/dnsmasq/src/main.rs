@@ -639,6 +639,8 @@ fn run_inner(
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     let mut early_logger = None;
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    let lease_init_now = now_seconds();
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     let initial_leases = dnsmasq_rs::startup::lease_init::initialize(
         &dhcp_config,
         runtime.process.debug,
@@ -683,7 +685,7 @@ fn run_inner(
         provider.set_dns_config(&daemon_config)?;
         provider.set_tftp_config(&tftp_config);
         if let Some(restored) = initial_leases {
-            provider.restore_initial_records(restored, now_seconds())?;
+            provider.restore_initial_records(restored, lease_init_now)?;
         }
         if dns_enabled {
             let config_dns = Arc::clone(&service);

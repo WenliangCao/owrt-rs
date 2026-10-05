@@ -246,7 +246,10 @@ mod linux {
                         });
                     }
                 }
-                return Err(StartupError { code: 5, message: "process is missing required capabilities".into() });
+                return Err(StartupError {
+                    code: 5,
+                    message: "process is missing required capabilities".into(),
+                });
             }
             Ok(data[0].permitted & 1 != 0)
         }
