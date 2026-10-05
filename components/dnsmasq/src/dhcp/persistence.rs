@@ -173,6 +173,24 @@ impl LeasePersistence {
         read_only: bool,
         maximum_records: usize,
     ) -> io::Result<(Self, Option<LeaseFile>)> {
+        Self::open_inner(path, read_only, maximum_records, None)
+    }
+
+    pub fn open_with_warnings(
+        path: &Path,
+        read_only: bool,
+        maximum_records: usize,
+        mut emit: impl FnMut(String) -> io::Result<()>,
+    ) -> io::Result<(Self, Option<LeaseFile>)> {
+        Self::open_inner(path, read_only, maximum_records, Some(&mut emit))
+    }
+
+    fn open_inner(
+        path: &Path,
+        read_only: bool,
+        maximum_records: usize,
+        emit: Option<&mut dyn FnMut(String) -> io::Result<()>>,
+    ) -> io::Result<(Self, Option<LeaseFile>)> {
         if read_only {
             // leasefile-ro without a script uses an empty DB, even if the
             // configured pathname contains valid leases or cannot be opened.
@@ -186,14 +204,19 @@ impl LeasePersistence {
             .map_err(|error| file_failure("cannot open or create lease file", path, error))?;
         // C's startup rewind does not inspect errno; read errors remain fatal.
         let _ = file.rewind();
-        let restored = parse_reader(BufReader::with_capacity(1024, &mut file), maximum_records)
-            .map_err(|error| {
-                if super::lease_file::capacity_exceeded(&error) {
-                    error
-                } else {
-                    file_failure("failed to read lease file", path, error)
-                }
-            })?;
+        let reader = BufReader::with_capacity(1024, &mut file);
+        let parsed = if let Some(emit) = emit {
+            super::lease_file::parse_reader_with_warnings(reader, maximum_records, emit)
+        } else {
+            parse_reader(reader, maximum_records)
+        };
+        let restored = parsed.map_err(|error| {
+            if super::lease_file::capacity_exceeded(&error) {
+                error
+            } else {
+                file_failure("failed to read lease file", path, error)
+            }
+        })?;
         Ok((
             Self {
                 stream: Some(FileStream(BufWriter::with_capacity(1024, file))),
