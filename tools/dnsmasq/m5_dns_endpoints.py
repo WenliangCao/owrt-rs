@@ -292,7 +292,10 @@ def service_cases():
     add('slow-lookup-startup-readiness','server=lookup.endpoint.test\n',sys_files=resolver_files,resolver_fixture=True,resolver_delay=.3,startup_gate=True)
     lifecycle_base='servers-file=/m2/files/servers\n'
     for label,op in [('burst','lookup-hup-burst'),('shutdown','lookup-shutdown'),('worker-kill','lookup-worker-kill')]:
-        add('lookup-owner-'+label,lifecycle_base,files={'servers':'server=127.0.0.3\n'},
+        # Foreground (-k) uses syslog by default. Select a visible sink for the
+        # worker failure diagnostic instead of assuming it reaches stderr.
+        config=lifecycle_base+('log-facility=-\n' if label=='worker-kill' else '')
+        add('lookup-owner-'+label,config,files={'servers':'server=127.0.0.3\n'},
             sys_files=resolver_files,resolver_fixture=True,resolver_delay=.3,owner_lifecycle=label,
             actions=[write('servers','server=lookup.endpoint.test\n'),signal_reload(),endpoint_action(op)]
                 + ([endpoint_action('resolver-quiet')] if label=='burst' else [dict(op='pause',seconds=1.6)])
