@@ -225,6 +225,7 @@ def cases():
                      'argv': ['--log-facility=-', '--log-queries', *['--log-queries=' + value for value in modes], *local_query_args],
                      'setup_files': {'hosts.extra': '192.0.2.21 file.logging\n2001:db8::21 v6-file.logging\n'},
                      'query_probes': True, 'query_mode': mode, 'query_sequence': local_query_sequence,
+                     'query_startup_barrier': 'read /m2/logging/hosts.extra - 2 names\n',
                      'query_required_messages': required, 'options': ['log-queries']})
     rows.extend([
         {'id': 'daemon-default-stderr', 'scope': 'daemon', 'kind': 'run', 'mode': [],
@@ -996,7 +997,7 @@ def run(root, side, case, out):
                     break
                 if case['kind'] == 'run':
                     try:
-                        if case.get('query_probes') and b'cleared cache\n' not in (out / 'stderr').read_bytes():
+                        if case.get('query_probes') and case.get('query_startup_barrier', 'cleared cache\n').encode() not in (out / 'stderr').read_bytes():
                             time.sleep(.005)
                             continue
                         if case.get('no_dns'):
