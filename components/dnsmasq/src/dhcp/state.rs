@@ -147,6 +147,9 @@ pub struct Outcome {
 /// during the state transaction, before the caller persists/publishes/sends.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum LogEvent<'a> {
+    Warning {
+        message: &'a [u8],
+    },
     Tags {
         context: Option<usize>,
     },
@@ -700,9 +703,29 @@ pub(crate) fn bootp_counted(
     store: &mut LeaseStore,
     ranges: &mut [AddressRange],
     request: Request<'_>,
+    probe: impl FnMut(Ipv4Addr, u32, LeaseCounters) -> ProbeResult,
+    counters: &mut MessageCounters,
+    permitted_contexts: &[bool],
+) -> Result<Outcome, LeaseError> {
+    bootp_counted_logged(
+        store,
+        ranges,
+        request,
+        probe,
+        counters,
+        permitted_contexts,
+        None,
+    )
+}
+
+pub(crate) fn bootp_counted_logged(
+    store: &mut LeaseStore,
+    ranges: &mut [AddressRange],
+    request: Request<'_>,
     mut probe: impl FnMut(Ipv4Addr, u32, LeaseCounters) -> ProbeResult,
     counters: &mut MessageCounters,
     permitted_contexts: &[bool],
+    mut events: Option<&mut LogSink<'_>>,
 ) -> Result<Outcome, LeaseError> {
     let mut output = Outcome::ignored();
     let env = request.environment;
@@ -717,7 +740,13 @@ pub(crate) fn bootp_counted(
         return Ok(output);
     }
     if env.ignored {
-        return Ok(bootp_finished(output, counters));
+        return Ok(bootp_finished(
+            output,
+            counters,
+            &mut events,
+            None,
+            Some(b"ignored"),
+        ));
     }
     let client = identity(packet, true);
     let mut existing = store.find_client(&client).map(Lease::id);
@@ -728,7 +757,13 @@ pub(crate) fn bootp_counted(
             lease.identity.hardware_type != client.hardware_type
                 || lease.identity.hardware_address != client.hardware_address
         }) {
-            return Ok(bootp_finished(output, counters));
+            return Ok(bootp_finished(
+                output,
+                counters,
+                &mut events,
+                static_address,
+                Some(b"address in use"),
+            ));
         }
         address
     } else {
@@ -748,24 +783,55 @@ pub(crate) fn bootp_counted(
                 |address| request.reserved.contains(&address),
                 |address, hash| probe(address, hash, store.counters()),
             ) else {
-                return Ok(bootp_finished(output, counters));
+                return Ok(bootp_finished(
+                    output,
+                    counters,
+                    &mut events,
+                    None,
+                    Some(b"no address available"),
+                ));
             };
             address
         }
     };
     let Some(context) = narrow(ranges, address, request.tags) else {
-        return Ok(bootp_finished(output, counters));
+        return Ok(bootp_finished(
+            output,
+            counters,
+            &mut events,
+            static_address,
+            Some(b"wrong network"),
+        ));
     };
+    if let Some(events) = events.as_deref_mut() {
+        events(LogEvent::Tags {
+            context: Some(context),
+        });
+    }
     if static_address.is_none()
         && !env.bootp_dynamic
         && !permitted_contexts.get(context).copied().unwrap_or(false)
     {
-        return Ok(bootp_finished(output, counters));
+        return Ok(bootp_finished(
+            output,
+            counters,
+            &mut events,
+            None,
+            Some(b"no address configured"),
+        ));
     }
     if existing.is_none() {
         match store.allocate(address, client.clone()) {
             Ok(()) => {}
-            Err(LeaseError::Full) => return Ok(bootp_finished(output, counters)),
+            Err(LeaseError::Full) => {
+                return Ok(bootp_finished(
+                    output,
+                    counters,
+                    &mut events,
+                    static_address,
+                    Some(b"no leases left"),
+                ))
+            }
             Err(error) => return Err(error),
         }
     }
@@ -793,12 +859,25 @@ pub(crate) fn bootp_counted(
     )?;
     store.set_interface_by_id(id, env.interface)?;
     output.reply = Reply::Bootp { address, context };
-    Ok(bootp_finished(output, counters))
+    Ok(bootp_finished(
+        output,
+        counters,
+        &mut events,
+        Some(address),
+        None,
+    ))
 }
 
-fn bootp_finished(outcome: Outcome, counters: &mut MessageCounters) -> Outcome {
+fn bootp_finished(
+    outcome: Outcome,
+    counters: &mut MessageCounters,
+    events: &mut Option<&mut LogSink<'_>>,
+    address: Option<Ipv4Addr>,
+    error: Option<&[u8]>,
+) -> Outcome {
     // :694: counted for both success and the post-admission failure paths.
     counters.bootp = counters.bootp.wrapping_add(1);
+    log_packet(events, b"BOOTP", address, None, error);
     outcome
 }
 
@@ -825,9 +904,21 @@ pub(crate) fn decline_counted(
     store: &mut LeaseStore,
     ranges: &mut [AddressRange],
     packet: Packet<'_>,
+    host: Option<&mut HostPolicy>,
+    environment: Environment<'_>,
+    counters: &mut MessageCounters,
+) -> Vec<Lease> {
+    decline_counted_logged(store, ranges, packet, host, environment, counters, None)
+}
+
+pub(crate) fn decline_counted_logged(
+    store: &mut LeaseStore,
+    ranges: &mut [AddressRange],
+    packet: Packet<'_>,
     mut host: Option<&mut HostPolicy>,
     environment: Environment<'_>,
     counters: &mut MessageCounters,
+    mut events: Option<&mut LogSink<'_>>,
 ) -> Vec<Lease> {
     if packet.message_type() != 4
         || packet.server_identifier()
@@ -843,6 +934,14 @@ pub(crate) fn decline_counted(
         return Vec::new();
     };
     counters.decline = counters.decline.wrapping_add(1); // :1248
+    let message = super::logging::sanitise_option(packet.option(56, 1));
+    log_packet(
+        &mut events,
+        b"DHCPDECLINE",
+        Some(address),
+        None,
+        Some(&message),
+    );
     let existing = store
         .find_client(&identity(packet, environment.ignore_client_id))
         .map(Lease::id);
@@ -852,6 +951,12 @@ pub(crate) fn decline_counted(
         Vec::new()
     };
     if let Some(host) = host.as_mut().filter(|host| host.address == Some(address)) {
+        let message = format!("disabling DHCP static address {address} for 10m");
+        if let Some(events) = events {
+            events(LogEvent::Warning {
+                message: message.as_bytes(),
+            });
+        }
         host.declined_at = Some(environment.now);
     } else {
         for range in ranges {
