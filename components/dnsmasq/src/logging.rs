@@ -909,6 +909,14 @@ pub fn error_text(error: &io::Error) -> String {
         None => error.to_string(),
     }
 }
+
+pub fn ownership_warning(path: &Path, error: &io::Error) -> LogEvent {
+    let mut message = b"warning: failed to change owner of ".to_vec();
+    message.extend_from_slice(path.as_os_str().as_bytes());
+    message.extend_from_slice(b": ");
+    message.extend_from_slice(error_text(error).as_bytes());
+    LogEvent::new(Service::Dns, Priority::Warning, message)
+}
 unsafe extern "C" {
     #[cfg(test)]
     fn mkfifo(path: *const c_char, mode: u32) -> c_int;
