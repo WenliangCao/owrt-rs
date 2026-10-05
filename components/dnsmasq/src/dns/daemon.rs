@@ -34,6 +34,7 @@ use super::wire::{Message, PacketWriter, Question as WireQuestion, Section};
 use crate::config::dns::{DnsConfig, RuleTarget};
 use crate::config::{Error as ConfigError, FastRetry};
 use crate::hosts::Hosts;
+use crate::query_logging::{self as qlog, QueryContext, QueryEvent};
 use std::io;
 use std::net::{IpAddr, SocketAddr};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
@@ -67,6 +68,7 @@ pub struct ClientResponse {
     pub interface: u32,
     pub listener: Option<super::forward::SocketToken>,
     pub packet: Vec<u8>,
+    pub query_context: QueryContext,
 }
 
 /// A synchronous record callback with this daemon's current counters, before
@@ -206,6 +208,11 @@ impl From<io::Error> for DaemonError {
 
 /// The integrated local-routing/upstream UDP daemon boundary.
 pub struct DnsDaemon<R = OsRandom> {
+    query_logging: crate::config::logging::QueryLogging,
+    query_context: QueryContext,
+    query_events: Vec<(QueryContext, QueryEvent)>,
+    forward_max: usize,
+    last_query_full: i64,
     local: LocalDnsService,
     routing: RoutingTable,
     startup_routing: Option<RoutingTable>,
@@ -314,6 +321,11 @@ impl<R: Random> DnsDaemon<R> {
             options.edns_packet_max,
         );
         Ok(Self {
+            query_logging: Default::default(),
+            query_context: Default::default(),
+            query_events: Vec::new(),
+            forward_max: options.forward_max,
+            last_query_full: 0,
             local,
             routing,
             startup_routing,
@@ -336,6 +348,42 @@ impl<R: Random> DnsDaemon<R> {
             loop_state,
             startup_loop_probes,
         })
+    }
+
+    pub fn set_query_logging(&mut self, config: crate::config::logging::QueryLogging) {
+        self.query_logging = config;
+        self.local.query_logging = config.enabled;
+        self.upstream.set_query_logging(config);
+    }
+
+    pub fn set_query_context(&mut self, context: QueryContext) {
+        self.collect_local_query_events();
+        self.query_context = context;
+    }
+
+    fn collect_local_query_events(&mut self) {
+        self.query_events.extend(
+            self.local
+                .take_query_events()
+                .into_iter()
+                .map(|event| (self.query_context, event)),
+        );
+    }
+
+    pub fn take_local_query_events(&mut self) -> Vec<QueryEvent> {
+        self.local.take_query_events()
+    }
+
+    pub fn take_query_events(&mut self) -> Vec<(QueryContext, QueryEvent)> {
+        self.collect_local_query_events();
+        self.query_events.extend(self.upstream.take_query_events());
+        std::mem::take(&mut self.query_events)
+    }
+
+    fn query_notice(&mut self, context: QueryContext, event: QueryEvent) {
+        if self.query_logging.enabled {
+            self.query_events.push((context, event));
+        }
     }
 
     pub fn pending_count(&self) -> usize {
@@ -943,6 +991,10 @@ impl<R: Random> DnsDaemon<R> {
                 let limit = find_pseudoheader(original, true)?
                     .opt
                     .map_or(512, |opt| usize::from(opt.udp_size(self.edns_packet_max)));
+                self.query_notice(
+                    self.query_context,
+                    QueryEvent::error(qlog::CONFIG, b"error", 5, Some(14)),
+                );
                 // forward.c::forward_query: EDE_NOT_READY for no server.
                 // UDP's add_pseudoheader clears DO, unlike the TCP caller.
                 return Ok(QueryResult::Local(super::tcp_service::refusal(
@@ -962,7 +1014,7 @@ impl<R: Random> DnsDaemon<R> {
             listener,
             reply_requested,
             udp_limit: 512,
-            log_id: u64::from(question.rrtype),
+            log_id: self.query_context.display_id as u64,
         };
         let submission = match self.upstream.start_udp_with_metadata(
             query,
@@ -973,12 +1025,45 @@ impl<R: Random> DnsDaemon<R> {
         ) {
             Ok(submission) => submission,
             Err(ResolveError::Dispatch(super::forward_service::DispatchError::Submit(
-                super::forward::SubmitError::GroupFull | super::forward::SubmitError::DuplicateFull,
+                error @ (super::forward::SubmitError::GroupFull
+                | super::forward::SubmitError::DuplicateFull),
             ))) => {
+                let now = unix_seconds();
+                if now.saturating_sub(self.last_query_full) > 5 {
+                    self.last_query_full = now;
+                    let domain = match &route.reason {
+                        RouteReason::Upstream { pattern, .. }
+                            if matches!(error, super::forward::SubmitError::GroupFull) =>
+                        {
+                            &pattern.suffix[..]
+                        }
+                        _ => b"",
+                    };
+                    self.source_warnings.push(if domain.is_empty() {
+                        format!(
+                            "Maximum number of concurrent DNS queries reached (max: {})",
+                            self.forward_max
+                        )
+                    } else {
+                        format!(
+                            "Maximum number of concurrent DNS queries to {} reached (max: {})",
+                            String::from_utf8_lossy(domain),
+                            self.forward_max
+                        )
+                    });
+                }
+                self.query_notice(
+                    self.query_context,
+                    QueryEvent::error(qlog::CONFIG, b"error", 5, None),
+                );
                 return Ok(super::udp_query::table_full(original, self.edns_packet_max)
-                    .map_or(QueryResult::Dropped, QueryResult::Local))
+                    .map_or(QueryResult::Dropped, QueryResult::Local));
             }
             Err(ResolveError::Io(_)) => {
+                self.query_notice(
+                    self.query_context,
+                    QueryEvent::error(qlog::CONFIG, b"error", 5, Some(23)),
+                );
                 // forward_query cancels this transaction when every socket /
                 // send attempt fails, then makes a local REFUSED with NETERR.
                 // start_udp has already released it. Background refreshes
@@ -997,6 +1082,7 @@ impl<R: Random> DnsDaemon<R> {
             }
             Err(error) => return Err(error.into()),
         };
+        self.query_events.extend(self.upstream.take_query_events());
         Ok(QueryResult::Forwarded(submission.id))
     }
 
@@ -1065,6 +1151,7 @@ impl<R: Random> DnsDaemon<R> {
         external_local: Option<&LocalDnsService>,
         mut doctor: Option<&mut ReplyDoctor<'_>>,
     ) -> Vec<ClientResponse> {
+        self.query_events.extend(self.upstream.take_query_events());
         let mut responses = Vec::new();
         for event in events {
             let mut reply = match event.result {
@@ -1103,6 +1190,7 @@ impl<R: Random> DnsDaemon<R> {
                         interface: recipient.client.interface,
                         listener: recipient.client.listener,
                         packet,
+                        query_context: recipient.client.query_context(),
                     }),
                     Ok(None) => {}
                     Err(_) => {
@@ -1149,6 +1237,29 @@ impl<R: Random> DnsDaemon<R> {
             },
         )?;
         let rcode = envelope.rcode;
+        let context = reply
+            .recipients
+            .first()
+            .map_or_else(Default::default, |recipient| {
+                recipient.client.query_context()
+            });
+        if !matches!(rcode, 0 | 3) {
+            self.query_notice(
+                context,
+                QueryEvent::error(qlog::REPLY, b"error", rcode, None),
+            );
+        } else if Header::parse(&reply.packet)?.flags & 0x0200 != 0 {
+            self.query_notice(
+                context,
+                QueryEvent {
+                    flags: qlog::REPLY,
+                    name: None,
+                    data: qlog::QueryData::None,
+                    argument: Some(b"truncated".to_vec()),
+                    kind: 0,
+                },
+            );
+        }
         reply.packet = envelope.packet;
         // These common stages happen once, before both cache insertion and
         // recipient copies. Repeating known-local after the doctor would
@@ -1195,21 +1306,39 @@ impl<R: Random> DnsDaemon<R> {
         };
         if matches!(rcode, 0 | 3) {
             if let Some(cache) = self.cache.as_mut() {
-                let extracted = CacheContext {
+                let mut query_events = Vec::new();
+                let mut cache_context = CacheContext {
                     cache,
                     counters: &mut self.cache_counters,
                     negative_cache: self.negative_cache,
                     negative_ttl: self.negative_ttl,
                     filter_rr: &self.filter_rr,
-                }
-                .insert_reply_with_policy(
-                    &reply.packet,
-                    now,
-                    external_local.unwrap_or(&self.local),
-                    &self.policy,
-                    rcode,
-                    ordinary,
-                );
+                };
+                let extracted = if self.query_logging.enabled {
+                    cache_context
+                        .insert_reply_with_events(
+                            &reply.packet,
+                            now,
+                            external_local.unwrap_or(&self.local),
+                            &self.policy,
+                            rcode,
+                            ordinary,
+                            false,
+                            &mut query_events,
+                        )
+                        .map(|_| ())
+                } else {
+                    cache_context.insert_reply_with_policy(
+                        &reply.packet,
+                        now,
+                        external_local.unwrap_or(&self.local),
+                        &self.policy,
+                        rcode,
+                        ordinary,
+                    )
+                };
+                self.query_events
+                    .extend(query_events.into_iter().map(|event| (context, event)));
                 if extracted.is_err() {
                     // The extractor has already applied any complete prefix.
                     // Reject the wire reply without rolling that state back.
@@ -1568,6 +1697,7 @@ impl<R: Random> DnsDaemon<R> {
         mode: super::cache::Extraction,
         negative_cache: bool,
         negative_ttl: u64,
+        events: &mut Vec<QueryEvent>,
     ) -> Result<Option<super::cache::CacheTransaction>, WireError> {
         let maximum = cache.policy().max_reply_ttl;
         let result = CacheContext {
@@ -1577,7 +1707,7 @@ impl<R: Random> DnsDaemon<R> {
             negative_ttl,
             filter_rr: &local.config.filter_rr,
         }
-        .insert_reply_for_transfer(packet, now, local, policy, rcode, mode);
+        .insert_reply_with_events(packet, now, local, policy, rcode, mode, true, events);
         // Even a later extraction error may have written an earlier TTL prefix.
         let clipped = super::cache::clip_live_reply_ttls(packet, maximum, rcode);
         result.and_then(|transaction| clipped.map(|_| transaction))
@@ -1590,6 +1720,7 @@ impl<R: Random> DnsDaemon<R> {
         now: i64,
         rcode: u16,
         mode: super::cache::Extraction,
+        events: &mut Vec<QueryEvent>,
     ) -> Result<(), WireError> {
         let Some(cache) = self.cache.as_mut() else {
             return Ok(());
@@ -1602,7 +1733,8 @@ impl<R: Random> DnsDaemon<R> {
             negative_ttl: self.negative_ttl,
             filter_rr: &self.filter_rr,
         }
-        .insert_reply_with_policy(packet, now, &self.local, policy, rcode, mode);
+        .insert_reply_with_events(packet, now, &self.local, policy, rcode, mode, false, events)
+        .map(|_| ());
         let clipped = super::cache::clip_live_reply_ttls(packet, maximum, rcode);
         result.and(clipped)
     }

@@ -71,6 +71,8 @@ struct FinishedReply {
 }
 
 pub struct TcpDnsService {
+    query_logging: bool,
+    query_events: Vec<crate::query_logging::QueryEvent>,
     routing: RoutingTable,
     upstream: TcpUpstream,
     policy: AddressPolicy,
@@ -85,6 +87,59 @@ pub struct TcpDnsService {
 }
 
 impl TcpDnsService {
+    pub fn set_query_logging(&mut self, enabled: bool) {
+        self.query_logging = enabled;
+    }
+    pub fn take_query_events(&mut self) -> Vec<crate::query_logging::QueryEvent> {
+        std::mem::take(&mut self.query_events)
+    }
+    fn query_error_notice(&mut self, ede: i32) {
+        if self.query_logging {
+            self.query_events
+                .push(crate::query_logging::QueryEvent::error(
+                    crate::query_logging::CONFIG,
+                    b"error",
+                    5,
+                    Some(ede),
+                ));
+        }
+    }
+    fn query_reply_notices(&mut self, packet: &[u8]) {
+        if !self.query_logging {
+            return;
+        }
+        use crate::query_logging::{self as qlog, QueryData, QueryEvent};
+        if let Some(server) = self.upstream.take_reply_server() {
+            if let Ok(question) = super::forward::Question::parse(packet) {
+                let mut event = QueryEvent::address(
+                    qlog::SERVER,
+                    &question.name.dnsmasq_bytes(),
+                    server.ip(),
+                    None,
+                );
+                event.kind = server.port();
+                self.query_events.push(event);
+            }
+        }
+        if let Ok(header) = Header::parse(packet) {
+            if !matches!(header.rcode(), 0 | 3) {
+                self.query_events.push(QueryEvent::error(
+                    qlog::REPLY,
+                    b"error",
+                    u16::from(header.rcode()),
+                    None,
+                ));
+            } else if header.flags & 0x0200 != 0 {
+                self.query_events.push(QueryEvent {
+                    flags: qlog::REPLY,
+                    name: None,
+                    data: QueryData::None,
+                    argument: Some(b"truncated".to_vec()),
+                    kind: 0,
+                });
+            }
+        }
+    }
     pub fn set_preferred_servers(
         &mut self,
         servers: impl IntoIterator<Item = (super::forward::GroupId, super::forward::ServerId)>,
@@ -139,6 +194,8 @@ impl TcpDnsService {
         // process_reply path. Keep that distinction if shared policy grows.
         policy.ignore_addresses.clear();
         Ok(Self {
+            query_logging: false,
+            query_events: Vec::new(),
             routing,
             upstream,
             policy,
@@ -297,34 +354,40 @@ impl TcpDnsService {
                 self.pending_query = Some(query);
                 Ok(TcpServiceProgress::Pending(wait))
             }
-            Ok(TcpProgress::Complete(reply)) => finish_reply_with_edns(
-                &query,
-                &reply,
-                &self.policy,
-                self.proxy_dnssec,
-                self.edns_packet_max,
-                &self.filter_rr,
-                Some(local),
-                Some(&self.routing),
-                self.client_source.map(|source| (&self.edns, source)),
-                cache,
-                no_cache,
-                now,
-            )
-            .map(|reply| {
-                self.pending_bogus = reply.bogus;
-                TcpServiceProgress::Complete(reply.packet, reply.from_upstream)
-            }),
-            Err(TcpError::NoReply) => Ok(TcpServiceProgress::Complete(
-                refusal(&query, self.edns_packet_max, 23, TCP_LIMIT, true)?,
-                false,
-            )),
+            Ok(TcpProgress::Complete(reply)) => {
+                self.query_reply_notices(&reply);
+                finish_reply_with_edns(
+                    &query,
+                    &reply,
+                    &self.policy,
+                    self.proxy_dnssec,
+                    self.edns_packet_max,
+                    &self.filter_rr,
+                    Some(local),
+                    Some(&self.routing),
+                    self.client_source.map(|source| (&self.edns, source)),
+                    cache,
+                    no_cache,
+                    now,
+                )
+                .map(|reply| {
+                    self.pending_bogus = reply.bogus;
+                    TcpServiceProgress::Complete(reply.packet, reply.from_upstream)
+                })
+            }
+            Err(TcpError::NoReply) => {
+                self.query_error_notice(23);
+                Ok(TcpServiceProgress::Complete(
+                    refusal(&query, self.edns_packet_max, 23, TCP_LIMIT, true)?,
+                    false,
+                ))
+            }
             Err(error) => Err(TcpServiceError::Transport(error)),
         }
     }
 
     fn prepare(
-        &self,
+        &mut self,
         query: &[u8],
         local: Option<&LocalDnsService>,
     ) -> Result<PreparedQuery, TcpServiceError> {
@@ -347,13 +410,16 @@ impl TcpDnsService {
             .select(&question.name, question.qtype, question.class, false);
         let Some(group) = route.upstream_group() else {
             return match route.reason {
-                RouteReason::NoMatchingRule => Ok(PreparedQuery::Answer(refusal(
-                    query,
-                    self.edns_packet_max,
-                    14,
-                    TCP_LIMIT,
-                    true,
-                )?)),
+                RouteReason::NoMatchingRule => {
+                    self.query_error_notice(14);
+                    Ok(PreparedQuery::Answer(refusal(
+                        query,
+                        self.edns_packet_max,
+                        14,
+                        TCP_LIMIT,
+                        true,
+                    )?))
+                }
                 _ => Err(TcpServiceError::LocalRouteNotAnswered),
             };
         };

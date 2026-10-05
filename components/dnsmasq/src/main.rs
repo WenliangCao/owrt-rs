@@ -245,6 +245,7 @@ struct Runtime {
 // C's UDP listeners mutate one parent hosts generation. Each accepted TCP
 // connection takes its own snapshot; a later reload does not change it.
 struct ParentDns {
+    query_ids: dnsmasq_rs::query_logging::QueryIds,
     local: LocalDnsService,
     daemon: Option<DnsDaemon>,
 }
@@ -474,7 +475,7 @@ impl dnsmasq_rs::dhcp::persistence::DnsPublisher for LeasePublisher {
             .parent
             .lock()
             .map_err(|_| io::Error::other("DNS state lock poisoned"))?;
-        let ParentDns { local, daemon } = &mut *parent;
+        let ParentDns { local, daemon, .. } = &mut *parent;
         let daemon = daemon
             .as_mut()
             .ok_or_else(|| io::Error::other("DNS publication is disabled"))?;
@@ -775,6 +776,7 @@ fn run_inner(
         daemon.set_max_reply_ttl(runtime.scalar.max_ttl);
         #[cfg(target_os = "linux")]
         daemon.set_dump(dump.clone());
+        daemon.set_query_logging(runtime.logging.queries);
         daemon.enable_negative_cache(
             runtime.scalar.negative_ttl,
             !daemon_config.no_negative_cache,
@@ -794,9 +796,11 @@ fn run_inner(
             runtime.scalar.edns_packet_max,
         ),
         daemon,
+        query_ids: Default::default(),
     }));
     {
         let mut parent = service.lock().unwrap();
+        parent.local.query_logging = runtime.logging.queries.enabled;
         parent.local.interfaces = Arc::clone(&initial_interface_records);
         if let Some(daemon) = &mut parent.daemon {
             daemon.publish_interface_records(Arc::clone(&initial_interface_records));
@@ -1237,6 +1241,7 @@ fn run_inner(
     #[cfg(target_os = "linux")]
     {
         poll.dump = dump;
+        poll.query_logging = runtime.logging.queries;
     }
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     {
@@ -1840,6 +1845,7 @@ struct DhcpService {
 /// The production event owner. All daemon sockets are advanced from the
 /// caller's loop; no listener or TCP connection gets a worker thread.
 struct SinglePoll {
+    query_logging: dnsmasq_rs::config::logging::QueryLogging,
     listeners: Vec<PollListener>,
     clients: Vec<PollTcpClient>,
     pending_edns_udp: Vec<PendingEdnsUdp>,
@@ -1914,12 +1920,14 @@ struct PollListener {
 // the receiving listener token; TCP pending MAC work counts against tcp_limit.
 const MAX_EDNS_UDP_WAITERS: usize = 256;
 struct PendingEdnsUdp {
+    query_context: dnsmasq_rs::query_logging::QueryContext,
     listener: SocketToken,
     client: ClientRequest,
     query: Vec<u8>,
     deadline: Instant,
 }
 struct PendingInterfaceUdp {
+    query_context: dnsmasq_rs::query_logging::QueryContext,
     token: SocketToken,
     udp: Arc<DnsSocket>,
     client: ClientRequest,
@@ -1927,6 +1935,7 @@ struct PendingInterfaceUdp {
     mac: Option<Vec<u8>>,
 }
 struct PendingInterfaceTcp {
+    query_ids: dnsmasq_rs::query_logging::QueryIds,
     stream: TcpStream,
     peer: SocketAddr,
     local_network: Option<(std::net::Ipv4Addr, std::net::Ipv4Addr)>,
@@ -1958,6 +1967,13 @@ fn lookup_edns_mac(
 }
 
 struct PollTcpClient {
+    query_ids: dnsmasq_rs::query_logging::QueryIds,
+    query_context: dnsmasq_rs::query_logging::QueryContext,
+    query_events: Vec<(
+        dnsmasq_rs::query_logging::QueryContext,
+        dnsmasq_rs::query_logging::QueryEvent,
+    )>,
+    peer: SocketAddr,
     #[cfg(target_os = "linux")]
     log_context: Option<dnsmasq_rs::logging::TcpLogContext>,
     network_done: bool,
@@ -1996,6 +2012,32 @@ enum TcpClientPhase {
 }
 
 impl PollTcpClient {
+    fn start_query(&mut self, query: &[u8], parent: &Arc<Mutex<ParentDns>>) -> Result<(), ()> {
+        self.query_context = if self.cache_debug {
+            parent
+                .lock()
+                .map_err(|_| ())?
+                .query_ids
+                .next(true, Some(self.peer))
+        } else {
+            self.query_ids.next(true, Some(self.peer))
+        };
+        if self.service.query_logging {
+            if let Some(event) = dnsmasq_rs::query_logging::QueryEvent::request(query, self.peer) {
+                self.query_events.push((self.query_context, event));
+            }
+        }
+        Ok(())
+    }
+
+    fn collect_local_query_events(&mut self) {
+        self.query_events.extend(
+            self.service
+                .take_query_events()
+                .into_iter()
+                .map(|event| (self.query_context, event)),
+        );
+    }
     fn queue_answer(
         &mut self,
         _parent: &Arc<Mutex<ParentDns>>,
@@ -2023,6 +2065,7 @@ impl PollTcpClient {
         let view = &mut self.cache_view;
         let counters = &mut self.cache_counters;
         let mut transaction = None;
+        let mut extraction_events = Vec::new();
         let mut sink = |packet: &mut Vec<u8>,
                         policy: &dnsmasq_rs::dns::process::AddressPolicy,
                         rcode,
@@ -2033,7 +2076,14 @@ impl PollTcpClient {
                     .lock()
                     .map_err(|_| dnsmasq_rs::dns::wire::WireError::InvalidName)?;
                 if let Some(daemon) = owner.daemon.as_mut() {
-                    daemon.tcp_current_extract(packet, policy, now, rcode, mode)?;
+                    daemon.tcp_current_extract(
+                        packet,
+                        policy,
+                        now,
+                        rcode,
+                        mode,
+                        &mut extraction_events,
+                    )?;
                 }
             } else if let Some(cache) = view.as_mut() {
                 transaction = dnsmasq_rs::dns::daemon::DnsDaemon::<
@@ -2049,6 +2099,7 @@ impl PollTcpClient {
                     mode,
                     negative,
                     negative_ttl,
+                    &mut extraction_events,
                 )?;
             }
             Ok(())
@@ -2067,6 +2118,19 @@ impl PollTcpClient {
                 .step_with_local_upstream_cache(local, no_cache, now, &mut sink)
         }
         .map_err(|_| ())?;
+        self.query_events.extend(
+            self.forward
+                .take_query_events()
+                .into_iter()
+                .map(|event| (self.query_context, event)),
+        );
+        if self.service.query_logging {
+            self.query_events.extend(
+                extraction_events
+                    .into_iter()
+                    .map(|event| (self.query_context, event)),
+            );
+        }
         if let Some(transaction) = transaction {
             self.parent_cache_activity = true;
             let mut owner = parent.lock().map_err(|_| ())?;
@@ -2102,6 +2166,9 @@ impl PollTcpClient {
             } else {
                 None
             };
+            for event in daemon.take_local_query_events() {
+                self.service.record_query_event(event);
+            }
             stale = cached.as_ref().is_some_and(|answer| answer.stale);
             cached.and_then(|answer| answer.packet).or_else(|| {
                 daemon
@@ -2140,6 +2207,7 @@ impl PollTcpClient {
                 .flatten()
             })
         };
+        self.collect_local_query_events();
         if let Some(packet) = answered {
             if stale {
                 self.stale_query = Some(query);
@@ -2280,6 +2348,7 @@ impl PollTcpClient {
                         continue;
                     }
                     self.queries += 1;
+                    self.start_query(&query, parent)?;
                     if !self.mac_ready {
                         match lookup(self.source, true) {
                             ClientMacLookup::Ready(mac) => {
@@ -2324,6 +2393,7 @@ impl SinglePoll {
         >,
     ) -> Self {
         Self {
+            query_logging: Default::default(),
             listeners: listeners
                 .into_iter()
                 .map(|(token, udp, tcp)| PollListener { token, udp, tcp })
@@ -2408,7 +2478,7 @@ impl SinglePoll {
             let hosts = read_hosts(&self.config, local_ttl);
             parent.daemon.as_mut().unwrap().reload_hosts(hosts.clone());
             parent.local.hosts = hosts;
-            let ParentDns { local, daemon } = &mut *parent;
+            let ParentDns { local, daemon, .. } = &mut *parent;
             local.leases = Arc::new(daemon.as_mut().unwrap().rebuild_lease_names(
                 &local.leases,
                 &mut local.hosts,
@@ -2944,6 +3014,7 @@ impl SinglePoll {
                 pending.client,
                 pending.query,
                 pending.mac,
+                pending.query_context,
             );
         }
         if let Some(pending) = self.pending_interface_tcp.take() {
@@ -3000,11 +3071,36 @@ impl SinglePoll {
             return;
         }
         query.truncate(incoming.len);
+        if query.len() < 12 || query[2] & 0x80 != 0 {
+            return;
+        }
+        let query_context = match self.service.lock() {
+            Ok(mut parent) => parent.query_ids.next(false, Some(incoming.peer)),
+            Err(_) => return,
+        };
+        #[cfg(target_os = "linux")]
+        if self.query_logging.enabled {
+            if let (Some(logger), Some(event)) = (
+                &mut self.logger,
+                dnsmasq_rs::query_logging::QueryEvent::request(&query, incoming.peer),
+            ) {
+                if let Some(event) =
+                    dnsmasq_rs::logging::query::format(self.query_logging, query_context, &event)
+                {
+                    logger.emit(event);
+                }
+            }
+        }
         #[cfg(target_os = "linux")]
         if query.len() >= 12 && query[2] & 0x80 == 0 {
             if let Ok(destination) = udp.local_addr() {
-                self.dump
-                    .udp(dnsmasq_rs::dump::QUERY, &query, incoming.peer, destination);
+                self.dump.udp_with_context(
+                    dnsmasq_rs::dump::QUERY,
+                    &query,
+                    incoming.peer,
+                    destination,
+                    query_context,
+                );
             }
         }
         let client = ClientRequest {
@@ -3023,9 +3119,12 @@ impl SinglePoll {
             ClientMacLookup::Ready(None)
         };
         match lookup {
-            ClientMacLookup::Ready(mac) => self.process_udp(token, udp, client, query, mac),
+            ClientMacLookup::Ready(mac) => {
+                self.process_udp(token, udp, client, query, mac, query_context)
+            }
             ClientMacLookup::Pending if self.pending_edns_udp.len() < MAX_EDNS_UDP_WAITERS => {
                 self.pending_edns_udp.push(PendingEdnsUdp {
+                    query_context,
                     listener: token,
                     client,
                     query,
@@ -3073,7 +3172,14 @@ impl SinglePoll {
                 .and_then(|listener| listener.udp.as_ref())
                 .map(Arc::clone);
             if let Some(udp) = udp {
-                self.process_udp(pending.listener, udp, pending.client, pending.query, mac);
+                self.process_udp(
+                    pending.listener,
+                    udp,
+                    pending.client,
+                    pending.query,
+                    mac,
+                    pending.query_context,
+                );
             }
             progressed += 1;
         }
@@ -3086,6 +3192,7 @@ impl SinglePoll {
         client: ClientRequest,
         query: Vec<u8>,
         mac: Option<Vec<u8>>,
+        query_context: dnsmasq_rs::query_logging::QueryContext,
     ) {
         let mut event = match self.parent_events.lock() {
             Ok(event) => event,
@@ -3096,7 +3203,7 @@ impl SinglePoll {
             Ok(parent) => parent,
             Err(_) => return,
         };
-        let ParentDns { local, daemon } = &mut *parent;
+        let ParentDns { local, daemon, .. } = &mut *parent;
         let Some(daemon) = daemon.as_mut() else {
             return;
         };
@@ -3117,12 +3224,25 @@ impl SinglePoll {
         if let Ok(interfaces) = self.interfaces.lock() {
             local.local_network = listeners::local_network(&interfaces, client.destination);
         }
+        daemon.set_query_context(query_context);
         let packet = &query[..];
         let mut decorated = query.clone();
         let mut metadata = None;
         let answer = match dnsmasq_rs::dns::udp_query::inspect(packet, local.edns_packet_max) {
             dnsmasq_rs::dns::udp_query::Admission::Drop => return,
-            dnsmasq_rs::dns::udp_query::Admission::Reply(answer) => Some((answer, false)),
+            dnsmasq_rs::dns::udp_query::Admission::Reply(answer) => {
+                if self.query_logging.enabled {
+                    if let Ok(header) = dnsmasq_rs::dns::wire::Header::parse(packet) {
+                        local.record_query_event(dnsmasq_rs::query_logging::QueryEvent::error(
+                            dnsmasq_rs::query_logging::CONFIG,
+                            b"error",
+                            if header.opcode() != 0 { 4 } else { 5 },
+                            if header.opcode() != 0 { None } else { Some(24) },
+                        ));
+                    }
+                }
+                Some((answer, false))
+            }
             dnsmasq_rs::dns::udp_query::Admission::Continue => {
                 let Ok((_, original_metadata)) =
                     dnsmasq_rs::dns::forward_service::prepare_query(packet, self.edns_max)
@@ -3151,6 +3271,7 @@ impl SinglePoll {
                     self.enumerate_interface_records();
                     if self.interface_work_pending() {
                         self.pending_interface_udp = Some(PendingInterfaceUdp {
+                            query_context,
                             token,
                             udp,
                             client,
@@ -3159,7 +3280,7 @@ impl SinglePoll {
                         });
                     } else {
                         // An early control failure keeps the old generation.
-                        self.process_udp(token, udp, client, query, mac);
+                        self.process_udp(token, udp, client, query, mac, query_context);
                     }
                     return;
                 }
@@ -3205,12 +3326,33 @@ impl SinglePoll {
                 .poll_with_local(Duration::ZERO, local)
                 .unwrap_or_default()
         };
+        let local_query_events = local.take_query_events();
+        let daemon_query_events = daemon.take_query_events();
         drop(parent);
+        #[cfg(target_os = "linux")]
+        if let Some(logger) = &mut self.logger {
+            for (context, event) in local_query_events
+                .into_iter()
+                .map(|event| (query_context, event))
+                .chain(daemon_query_events)
+            {
+                if let Some(event) =
+                    dnsmasq_rs::logging::query::format(self.query_logging, context, &event)
+                {
+                    logger.emit(event);
+                }
+            }
+        }
         if let Some((answer, stale)) = answer {
             #[cfg(target_os = "linux")]
             if let Ok(source) = udp.local_addr() {
-                self.dump
-                    .udp(dnsmasq_rs::dump::REPLY, &answer, source, client.source);
+                self.dump.udp_with_context(
+                    dnsmasq_rs::dump::REPLY,
+                    &answer,
+                    source,
+                    client.source,
+                    query_context,
+                );
             }
             let _ = udp.send(
                 &answer,
@@ -3259,11 +3401,12 @@ impl SinglePoll {
             {
                 #[cfg(target_os = "linux")]
                 if let Ok(source) = target.local_addr() {
-                    self.dump.udp(
+                    self.dump.udp_with_context(
                         dnsmasq_rs::dump::REPLY,
                         &response.packet,
                         source,
                         response.destination,
+                        response.query_context,
                     );
                 }
                 let _ = target.send(
@@ -3286,7 +3429,7 @@ impl SinglePoll {
             Ok(parent) => parent,
             Err(_) => return,
         };
-        let ParentDns { local, daemon } = &mut *parent;
+        let ParentDns { local, daemon, .. } = &mut *parent;
         let Some(daemon) = daemon.as_mut() else {
             return;
         };
@@ -3316,7 +3459,18 @@ impl SinglePoll {
                 .poll_with_local(Duration::ZERO, local)
                 .unwrap_or_default()
         };
+        let daemon_query_events = daemon.take_query_events();
         drop(parent);
+        #[cfg(target_os = "linux")]
+        if let Some(logger) = &mut self.logger {
+            for (context, event) in daemon_query_events {
+                if let Some(event) =
+                    dnsmasq_rs::logging::query::format(self.query_logging, context, &event)
+                {
+                    logger.emit(event);
+                }
+            }
+        }
         for response in responses {
             let Some(response_token) = response.listener else {
                 continue;
@@ -3329,11 +3483,12 @@ impl SinglePoll {
             {
                 #[cfg(target_os = "linux")]
                 if let Ok(source) = target.local_addr() {
-                    self.dump.udp(
+                    self.dump.udp_with_context(
                         dnsmasq_rs::dump::REPLY,
                         &response.packet,
                         source,
                         response.destination,
+                        response.query_context,
                     );
                 }
                 let _ = target.send(
@@ -3394,6 +3549,16 @@ impl SinglePoll {
         if stream.set_nonblocking(true).is_err() {
             return;
         }
+        let query_ids = match self.service.lock() {
+            Ok(mut parent) => {
+                if DEBUG_MODE.load(Ordering::Relaxed) {
+                    Default::default()
+                } else {
+                    parent.query_ids.accept_tcp()
+                }
+            }
+            Err(_) => return,
+        };
         let needs_mac = self.config.edns.needs_mac();
         let mac_deferred = needs_mac && DEBUG_MODE.load(Ordering::Relaxed);
         let lookup = if needs_mac && !mac_deferred {
@@ -3406,6 +3571,7 @@ impl SinglePoll {
             ClientMacLookup::Pending => (None, false),
         };
         let pending = PendingInterfaceTcp {
+            query_ids,
             stream,
             peer,
             local_network,
@@ -3424,6 +3590,7 @@ impl SinglePoll {
 
     fn finish_tcp_accept(&mut self, pending: PendingInterfaceTcp) {
         let PendingInterfaceTcp {
+            query_ids,
             stream,
             peer,
             local_network,
@@ -3446,6 +3613,7 @@ impl SinglePoll {
         snapshot.leases = Arc::clone(&parent.local.leases);
         snapshot.interfaces = Arc::clone(&parent.local.interfaces);
         snapshot.local_network = local_network;
+        snapshot.query_logging = self.query_logging.enabled;
         let cache_debug = DEBUG_MODE.load(Ordering::Relaxed);
         let cache_view = (!cache_debug)
             .then(|| {
@@ -3469,10 +3637,15 @@ impl SinglePoll {
             return;
         };
         forward.set_client_source(peer.ip());
+        forward.set_query_logging(self.query_logging.enabled);
         if let Ok(mut event) = self.parent_events.lock() {
             event.tcp_active = event.tcp_active.saturating_add(1);
         }
         self.clients.push(PollTcpClient {
+            query_ids,
+            query_context: Default::default(),
+            query_events: Vec::new(),
+            peer,
             #[cfg(target_os = "linux")]
             log_context: (!cache_debug)
                 .then(|| {
@@ -3548,6 +3721,20 @@ impl SinglePoll {
             #[cfg(target_os = "linux")]
             if let Some(logger) = &mut self.logger {
                 use dnsmasq_rs::logging::{address_text, LogEvent, Priority, Service};
+                for (query_context, event) in std::mem::take(&mut self.clients[index].query_events)
+                {
+                    if let Some(event) = dnsmasq_rs::logging::query::format(
+                        self.query_logging,
+                        query_context,
+                        &event,
+                    ) {
+                        if let Some(context) = &mut self.clients[index].log_context {
+                            logger.emit_tcp(context, event);
+                        } else {
+                            logger.emit(event);
+                        }
+                    }
+                }
                 for address in self.clients[index].forward.take_connection_failures() {
                     let mut message = b"TCP connection failed to ".to_vec();
                     message.extend_from_slice(&address_text(address));
@@ -4511,6 +4698,7 @@ fn read_hosts(config: &DnsConfig, local_ttl: u32) -> Hosts {
                 return;
             }
         };
+        hosts.set_source_name(source, path.as_os_str().as_encoded_bytes().to_vec());
         let _ = hosts.read(&bytes, source, local_ttl, config.expand_hosts, |address| {
             config
                 .domain_for_address(address)
@@ -4644,6 +4832,7 @@ mod tests {
                     512,
                 ),
                 daemon: None,
+                query_ids: Default::default(),
             })),
             Arc::new(Mutex::new(
                 ParentEvents::new(&UbusConfig::default()).unwrap(),
