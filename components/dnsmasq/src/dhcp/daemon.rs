@@ -2,7 +2,7 @@
 //! Relay, additional tag selectors and scripts remain separate contracts. Interface
 //! snapshots are refreshed for each admitted packet.
 
-use super::allocation::ProbeResult;
+use super::allocation::{ProbeResult, RangeKind};
 use super::context::{
     select_contexts_with_shared, select_remote_contexts_with_shared, ContextState, SelectedContext,
 };
