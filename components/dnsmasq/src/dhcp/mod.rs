@@ -25,6 +25,7 @@ mod interface_admission;
 pub mod lease;
 pub mod lease_file;
 pub mod lease_query;
+pub mod logging;
 pub mod message_counters;
 pub mod packet;
 pub mod persistence;
