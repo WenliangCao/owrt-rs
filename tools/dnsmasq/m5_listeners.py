@@ -83,6 +83,8 @@ def scenarios():
             actions=['address-change'], tftp=True)
         add('tftp-single-scope', mode, 'enable-tftp\ntftp-root=/m2/tftp\ntftp-single-port\n', tftp=True)
         add('tftp-only', mode, 'interface=lan\nenable-tftp\ntftp-root=/m2/tftp\n', tftp=True,port=0)
+        add('unowned-loopback-change',mode,'listen-address=127.0.0.2\n',actions=['unowned-loopback-change'])
+        add('tftp-unowned-loopback-change',mode,'listen-address=127.0.0.2\nenable-tftp\ntftp-root=/m2/tftp\n',actions=['unowned-loopback-change'],tftp=True)
     for mode in ['static', 'dynamic']:
         for profile, extra in [('dad', ''), ('dad-explicit', 'listen-address=fd42:77::9\n'),
                                ('dad-failed', ''), ('dad-low-port', 'user=nobody\ngroup=nogroup\n')]:
@@ -104,6 +106,7 @@ def scenarios():
         add(profile, 'dynamic', 'interface=lan,'+('dup0' if profile=='duplicate-address' else 'late0')+'\n'+(
             'listen-address=192.0.2.111\n' if profile == 'late-address' else ''), actions=[profile])
     add('conflicting-modes', 'static', 'bind-dynamic\n')
+    add('tftp-late-address','dynamic','interface=lan,late0\nlisten-address=192.0.2.111\nenable-tftp\ntftp-root=/m2/tftp\n',actions=['late-address'],tftp=True)
     for profile in ['runtime-shared-tftp','runtime-shared-dns-both','runtime-shared-all']:
         add(profile,'dynamic','interface=lan\nenable-tftp\ntftp-root=/m2/tftp\n',tftp=True)
     for mode in MODES:
@@ -427,8 +430,13 @@ def execute(root,side,item,out):
                         ip('link','add','late0','type','dummy');ip('link','set','late0','addrgenmode','none');ip('link','set','late0','up')
                         ip('addr','add','192.0.2.111/24','dev','late0')
                         observer.sockets('late-created')
-                        for proto in ['udp','tcp']:observer.ask('late-'+proto,'192.0.2.111',proto,local=True)
+                        for proto in ['udp','tcp']+(['tftp'] if item.get('tftp') else []):observer.ask('late-'+proto,'192.0.2.111',proto,local=True)
                         ip('link','del','late0');observer.sockets('late-removed')
+                    elif action=='unowned-loopback-change':
+                        ip('addr','add','127.0.0.2/8','dev','lo');observer.sockets('unowned-added')
+                        for proto in ['udp','tcp']+(['tftp'] if item.get('tftp') else []):observer.ask('unowned-added-'+proto,'127.0.0.2',proto,local=True)
+                        ip('addr','del','127.0.0.2/8','dev','lo');observer.sockets('unowned-removed')
+                        for proto in ['udp','tcp']+(['tftp'] if item.get('tftp') else []):observer.ask('unowned-removed-'+proto,'127.0.0.2',proto,local=True)
                     elif action=='duplicate-address':
                         ip('link','add','dup0','type','dummy');ip('link','set','dup0','addrgenmode','none');ip('link','set','dup0','up')
                         ip('addr','add',V4['lan']+'/24','dev','dup0');observer.sockets('duplicate-added')
@@ -536,6 +544,7 @@ def expected_answer(item,case,side='c'):
     if case.startswith('added-'):return mode!='static'
     if case.startswith('recreated-'):return mode!='static' or '-scope-' not in case
     if case.startswith('late-') or case=='duplicate-owner':return True
+    if case.startswith('unowned-'):return True
     if case.startswith('cross-'):
         return case.endswith('-tcp') and bound or case.startswith('cross-v4-') and mode=='static'
     if proto not in ['udp','tcp','tftp']:return None
@@ -545,8 +554,9 @@ def expected_answer(item,case,side='c'):
         if profile in ['explicit-any4','explicit-any6']:
             family4=tag!='lo6'
             return family4==(profile=='explicit-any4') and (proto=='tcp' and bound or mode=='static' and family4 and proto=='udp')
-        selected=profile not in ['listen-only','unowned-loopback']
-        if profile=='unowned-loopback':selected=tag=='lo-extra'
+        unowned=profile in ['unowned-loopback','unowned-loopback-change','tftp-unowned-loopback-change']
+        selected=profile!='listen-only' and not unowned
+        if unowned:selected=tag=='lo-extra'
         elif tag=='lo-extra':selected=selected and not bound
         if proto=='tftp' and profile in ['tftp-dedicated','tftp-alias']:return False
         return selected
@@ -567,7 +577,7 @@ def expected_answer(item,case,side='c'):
             if link=='lan':return False
     if profile in ['ordinary','empty-except','same-link-local','tftp','tftp-no-dhcp','tftp-no-v4']:
         return True
-    if profile in ['empty-interface','missing','no-address','unowned-loopback']:
+    if profile in ['empty-interface','missing','no-address','unowned-loopback','unowned-loopback-change','tftp-unowned-loopback-change']:
         return False
     if profile=='listen-only':return link=='lan' and tag in ['v4','v6']
     if profile in ['alias','wildcard-empty','tftp-alias']:
@@ -579,7 +589,7 @@ def expected_answer(item,case,side='c'):
     if profile=='alias-except':return link!='lan' or tag!='alias' or not bound
     if profile=='tftp-dedicated':return link=='lan' and (tag!='alias' or not bound)
     if profile=='tftp-except':return link=='lan' or tag=='alias' and (bound or proto!='tcp')
-    if profile in ['late-interface','late-address','duplicate-address']:
+    if profile in ['late-interface','late-address','duplicate-address','tftp-late-address']:
         return link=='lan' and (tag!='alias' or not bound)
     return None
 
@@ -637,6 +647,9 @@ def main():
             if requirement['id']=='tftp-selection':requirement['profiles']=list(dict.fromkeys(requirement['profiles']+['tftp-only']))
             if requirement['id']=='dad-capabilities':requirement['profiles']=list(dict.fromkeys(requirement['profiles']+['tftp-dad-low-port']))
             if requirement['id']=='startup-failures':requirement['profiles']=list(dict.fromkeys(requirement['profiles']+['missing-address-v6','unowned-scope','occupied-udp-v6','occupied-tcp-v6','occupied-tftp-v6']))
+            if requirement['id']=='unowned-address':
+                requirement['profiles']=list(dict.fromkeys(requirement['profiles']+['unowned-loopback-change','tftp-unowned-loopback-change','tftp-late-address']))
+                requirement['boundary']='Explicit addresses absent from snapshots are attempted. Successfully created unowned listeners remain unowned even if the address later gains/loses an interface; failed unowned addresses first created on a real interface are retired with the last owner. INAME_USED forbids recreating the latter as a fallback.'
         checklist['required_cases']=[item['name'] for item in cases]
         checklist['cases']=cases
         save(HERE/'m5_listeners.json',checklist)
