@@ -19,6 +19,7 @@ import signal
 import socket
 import struct
 import subprocess
+import sys
 import threading
 import time
 from dns_service_probe import exact_read, name, read_name, semantics
@@ -176,9 +177,124 @@ for label,kw in [
  ('signed-existing-opt',{'additional':[opt(OLD_ECS),rr(250,b'opaque',cls=255)]}),
 ]: case('cpe','add-cpe-id=router',label,**kw)
 
+# Cache and forwarding-table behavior are measured by repeated packets and
+# actual upstream event counts, not inferred from the emitted option bytes.
+for profile,directive,label,kw in [
+ ('ordinary','','cache-client-ecs-nonzero',{'opts':OLD_ECS}),
+ ('ordinary','','cache-client-ecs-zero',{'opts':tlv(8,b'\0\x01\0\0')}),
+ ('ordinary','','cache-client-ecs-malformed',{'opts':b'\0\x08\0\xffbad'}),
+ ('ecs','add-subnet=24,56','cache-dynamic-ecs',{'opts':b''}),
+ ('ecs-fixed','add-subnet=198.51.100.255/25,2001:db8:1234::ffff/65','cache-fixed-ecs',{'opts':b''}),
+ ('ecs-zero','add-subnet=0,0','cache-zero-ecs',{'opts':b''}),
+ ('raw','add-mac','cache-mac-known',{'opts':b''}),
+ ('raw','add-mac','cache-mac-unknown',{'opts':b'','source':'192.0.2.18'}),
+ ('strip-ecs','strip-subnet','cache-strip-ecs',{'opts':OLD_ECS}),
+ ('umbrella','umbrella=orgid:123,deviceid:001122aabbccddff,assetid:456','cache-umbrella',{'opts':b''}),
+ ('cpe','add-cpe-id=router','cache-cpe',{'opts':b''}),
+ ('mac-ecs-fixed','add-mac\nadd-subnet=198.51.100.0/24','cache-ecs-overrides-mac',{'opts':b''}),
+ ('umbrella-ecs-zero','umbrella\nadd-subnet=0,0','cache-ecs-overrides-umbrella',{'opts':b''}),
+ ('ecs','add-subnet=24,56','cache-local-retained',{'opts':b'','host':'local.edns.test'}),
+ ('ecs','add-subnet=24,56','cache-rd-unmodified',{'opts':b'','flags':0}),
+ ('cpe','add-cpe-id=router','cpe-stays-cacheable',{'opts':b''}),
+ ('raw','add-mac','signed-policy-cacheable',{'kind':249,'cls':1}),
+]: case(profile,directive,label,repeat=2,**kw)
+for profile,directive,label,kw in [
+ ('ordinary','','coalesce-ordinary',{'opts':b''}),
+ ('cpe','add-cpe-id=router','coalesce-cpe',{'opts':b''}),
+ ('ordinary','','coalesce-client-ecs',{'opts':OLD_ECS}),
+ ('ecs','add-subnet=24,56','coalesce-dynamic-ecs',{'opts':b''}),
+ ('ecs-fixed','add-subnet=198.51.100.255/25,2001:db8:1234::ffff/65','coalesce-fixed-ecs',{'opts':b''}),
+ ('raw','add-mac','coalesce-mac',{'opts':b''}),
+ ('umbrella','umbrella=orgid:123,deviceid:001122aabbccddff,assetid:456','coalesce-umbrella',{'opts':b''}),
+ ('ecs','add-subnet=24,56','coalesce-same-source-uncacheable',{'opts':b'','same_socket':True}),
+]: case(profile,directive,label,coalesce=True,**kw)
+for label,reply in [
+ ('reply-ecs-valid','echo'),('reply-ecs-scope-any','scope'),('reply-ecs-bad-family','family'),
+ ('reply-ecs-bad-mask','mask'),('reply-ecs-bad-length','length'),('reply-ecs-bad-address','address'),
+ ('reply-ecs-absent','absent'),('reply-ecs-malformed-tlv','malformed'),
+ ('reply-ecs-duplicate-mismatch','duplicate'),('reply-ecs-check-before-strip','address'),
+ ('reply-ecs-check-signed','signed-address'),('reply-ecs-udp-remains-pending','mismatch-then-valid'),
+ ('reply-ecs-tcp-local-fallback','address'),
+]: case('ecs','add-subnet=24,56',label,opts=None if label=='reply-ecs-check-before-strip' else b'',response=reply,tcp=label=='reply-ecs-tcp-local-fallback')
+case('ecs-fixed','add-subnet=198.51.100.255/25,2001:db8:1234::ffff/65','reply-ecs-fixed-check',opts=b'',response='scope')
+case('ecs','add-subnet=24,56','reply-ecs-mismatch-recovery',opts=b'',repeat=2,
+     response_steps=['mismatch-then-valid','echo'])
+for label,kw in [
+ ('capacity-new-exact',{'target_size':491}),('capacity-new-minus-one',{'target_size':492}),
+ ('capacity-existing-exact',{'target_size':502,'opts':b''}),
+ ('capacity-existing-minus-one',{'target_size':503,'opts':b''}),
+ ('capacity-nonlast-insufficient',{'target_size':503,'nonfinal':True,'opts':b''}),
+]: case('cpe-max512','add-cpe-id=router\nedns-packet-max=512',label,**kw)
+case('strip-max512','strip-mac\nedns-packet-max=512','capacity-strip-truncate',opts=tlv(65001,b'oldmac')+b'abc',target_size=503)
+case('max512','edns-packet-max=512','capacity-empty-opt-reserve-four',target_size=501)
+case('ecs-max512','add-subnet=24\nedns-packet-max=512','capacity-policy-no-room-cacheable',target_size=510,repeat=2)
+for label,kw in [
+ ('udp-original-opt-envelope',{'opts':None}),
+ ('udp-decorated-local-envelope',{'opts':None,'host':'local.edns.test'}),
+ ('tcp-added-opt-retained',{'opts':None,'tcp':True}),
+]: case('cpe','add-cpe-id=router',label,**kw)
+case('ordinary','','tcp-no-policy-no-opt',tcp=True)
+case('ordinary','','tcp-cache-read',opts=b'',transports=['udp','tcp'])
+case('ordinary','','tcp-cache-write',opts=b'',transports=['tcp','udp'])
+# Unsafe C reads remain actual runtime cases, with raw outputs retained.
+case('ecs-mask33','add-subnet=33','ecs-mask-overread-v4-wire',opts=b'')
+case('ecs-mask129','add-subnet=0,129','ecs-mask-overread-v6-wire',opts=b'',ipv6=True)
+case('ecs-wrap','add-subnet=256,256','ecs-u8-wrap-wire',opts=b'')
+case('cpe','add-cpe-id=router','opt-malformed-rr',additional=[opt(),b'\0\0\x10\0\x01\0\0\0\0\0\xffbad'])
+
+for profile,directive,label in [
+ ('ecs32','add-subnet=32,128','coalesce-ecs-distinct-ip'),
+ ('raw','add-mac','coalesce-mac-distinct-ip'),
+ ('umbrella','umbrella=orgid:123,deviceid:001122aabbccddff,assetid:456','coalesce-umbrella-distinct-ip'),
+]: case(profile,directive,label,opts=b'',coalesce=True,sources=[CLIENT4,'192.0.2.19'],response='client-keyed')
+
+for profile,directive,label in [
+ ('ecs32','add-subnet=32,128','coalesce-ecs-distinct-ip-independent'),
+ ('raw','add-mac','coalesce-mac-distinct-ip-independent'),
+ ('umbrella','umbrella=orgid:123,deviceid:001122aabbccddff,assetid:456','coalesce-umbrella-distinct-ip-independent'),
+]: case(profile,directive,label,opts=b'',repeat=2,sources=[CLIENT4,'192.0.2.19'],response='client-keyed')
+for label,kw in [
+ ('max-udp-receive-drop',{'target_size':513}),
+ ('max-client-below-512',{'opts':b'','size':1}),
+ ('max-client-above-config',{'opts':b'','size':65535}),
+ ('max-tcp-receive-capacity',{'target_size':778,'tcp':True}),
+ ('max-tcp-response-large',{'tcp':True,'response':'large'}),
+ ('max-udp-upstream-truncate',{'opts':b'','response':'large'}),
+ ('max-udp-tc-fallback',{'opts':b'','response':'tc-large','transports':['udp','tcp']}),
+]: case('max512','edns-packet-max=512',label,**kw)
+case('max512-local','edns-packet-max=512\n'+'\n'.join('host-record=large.local.edns.test,198.51.100.'+str(v) for v in range(1,65)),'max-udp-local-truncate',host='large.local.edns.test',opts=b'')
+for label,action in [
+ ('tcp-connection-mac-snapshot','connection-change'),
+ ('tcp-new-connection-refresh','negative-new-connection'),
+ ('tcp-neighbor-nonlazy','negative-new-connection'),
+ ('udp-neighbor-negative-lazy','negative-udp'),
+ ('udp-neighbor-90-refresh','negative-90'),
+ ('neighbor-negative-lazy-before-90','negative-udp'),
+ ('neighbor-negative-nonlazy-accept','negative-new-connection'),
+ ('neighbor-positive-retained-before-90','positive-change'),
+]: case('neighbor-'+label,'add-mac',label,opts=b'',action=action)
+
+for label, directive, length, mode, tcp in [
+ ('raw-length-one','add-mac',1,'complete',False),
+ ('raw-length-sixteen','add-mac',16,'complete',False),
+ ('raw-length-seventeen','add-mac',17,'complete',False),
+ ('text-nonsix','add-mac=text',1,'complete',False),
+ ('neighbor-over16-ignored','add-mac',17,'complete',False),
+ ('neighbor-ip-not-interface','add-mac',6,'complete',False),
+ ('neighbor-valid-complete-dump','add-mac',6,'complete',False),
+ ('neighbor-invalid-partial-dump','add-mac',6,'partial-error',False),
+ ('neighbor-dump-error-progress','add-mac',6,'error',False),
+ ('neighbor-udp-query-park-resume','add-mac',6,'complete',False),
+ ('neighbor-tcp-accept-park-snapshot','add-mac',6,'complete',True),
+]: case('inject-'+label,directive,label,opts=b'',inject=mode,mac_length=length,tcp=tcp,
+        neighbor_interface=999 if label=='neighbor-ip-not-interface' else 2)
+for label in ['neighbor-dump-timeout-progress','neighbor-refresh-nonblocking','neighbor-stop-pending-cleanup']:
+    case('inject-'+label,'add-mac',label,opts=b'',inject='hold',action='pending-dump',source='192.0.2.18')
+
 class Upstream:
     """Test-only selector thread, bounded shutdown; product stays single poll."""
     def __init__(self):
+        self.behaviors={}; self.delayed=[]
         self.udp=socket.socket(socket.AF_INET,socket.SOCK_DGRAM); self.udp.bind(('127.0.0.2',0))
         self.port=self.udp.getsockname()[1]
         self.tcp=socket.socket(socket.AF_INET,socket.SOCK_STREAM); self.tcp.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
@@ -187,20 +303,68 @@ class Upstream:
         self.thread=threading.Thread(target=self.run);self.thread.start()
     def reply(self,packet,transport):
         host,end=read_name(packet,12);question=packet[12:end+4];kind=struct.unpack_from('!H',packet,end)[0]
-        found=options(packet);self.events.append({'host':host,'transport':transport,'query':serial(norm(packet)),'wire':packet.hex()})
+        try:found=options(packet)
+        except (ValueError,IndexError,struct.error):found=None
+        self.events.append({'host':host,'transport':transport,'query':serial(norm(packet)),'wire':packet.hex()})
         data=ipaddress.ip_address('198.51.100.7').packed if kind==1 else b'\x04test'
         body=rr(kind,data,b'\xc0\x0c',1,600)
-        opts=opt(found[4],1232,found[3]) if found else b''
-        return packet[:2]+struct.pack('!5H',0x8180,1,1,0,int(bool(opts)))+question+body+opts
+        data=found[4] if found else b''
+        behavior=self.behaviors.get(host.split('.')[0],{}).get('response','echo')
+        extra=b''
+        if found and behavior not in ('echo','mismatch-then-valid'):
+            parts=[];at=0
+            while at+4<=len(data):
+                code,size=struct.unpack_from('!HH',data,at);value=data[at+4:at+4+size];at+=4+size
+                if code==8:
+                    changed=bytearray(value)
+                    if behavior=='absent':continue
+                    if behavior=='scope' and len(changed)>=4:changed[3]=255
+                    if behavior=='family' and len(changed)>=2:changed[1]^=3
+                    if behavior=='mask' and len(changed)>=3:changed[2]^=1
+                    if behavior=='length':changed=changed[:-1]
+                    if behavior in ('address','signed-address','duplicate') and len(changed)>4:changed[-1]^=1
+                    if behavior=='duplicate':parts.append(tlv(code,value))
+                    value=bytes(changed)
+                parts.append(tlv(code,value))
+            data=b''.join(parts)
+            if behavior=='malformed':data=b'\0\x08\0\xffbad'
+            if behavior=='signed-address':extra=rr(250,b'opaque',cls=255)
+        opts=opt(data,1232,found[3]) if found else b''
+        if behavior=='client-keyed':
+            at=0;tag=0
+            while at+4<=len(data):
+                code,size=struct.unpack_from('!HH',data,at);value=data[at+4:at+4+size];at+=4+size
+                if code==8 and size>=8:tag=value[-1]
+                elif code==65001 and value:tag=value[-1]
+                elif code==20292 and b'\0\x10' in value:
+                    where=value.index(b'\0\x10');tag=value[where+5]
+            body=rr(kind,ipaddress.ip_address('198.51.100.'+str(tag)).packed,b'\xc0\x0c',1,600)
+        flags=0x8380 if behavior=='tc-large' and transport=='udp' else 0x8180
+        count=1
+        if behavior in ('large','tc-large'):
+            body=rr(16,b'\xff'+b'X'*255+b'\xff'+b'Y'*255+b'\x7f'+b'Z'*127,b'\xc0\x0c',1,600)
+        answer=packet[:2]+struct.pack('!5H',flags,1,count,0,int(bool(opts))+int(bool(extra)))+question+body+opts+extra
+        return answer
     def run(self):
         buffers={}
         while not self.stop.is_set():
-            try:ready,_,_=select.select([self.udp,self.tcp,*self.connections],[],[],.05)
+            for deadline,fd,peer,response in self.delayed[:]:
+                if time.monotonic()>=deadline:
+                    fd.sendto(response,peer);self.delayed.remove((deadline,fd,peer,response))
+            try:ready,_,_=select.select([self.udp,self.tcp,*self.connections],[],[],.02)
             except (ValueError,OSError):break
             for fd in ready:
                 try:
                     if fd is self.udp:
-                        packet,peer=fd.recvfrom(65535);fd.sendto(self.reply(packet,'udp'),peer)
+                        packet,peer=fd.recvfrom(65535);response=self.reply(packet,'udp');host=read_name(packet,12)[0]
+                        behavior=self.behaviors.get(host.split('.')[0],{})
+                        if behavior.get('coalesce'):
+                            self.delayed.append((time.monotonic()+.15,fd,peer,response))
+                        elif behavior.get('response')=='mismatch-then-valid':
+                            bad=bytearray(response);found=options(response)
+                            if found and found[4]:bad[found[7]-1]^=1
+                            fd.sendto(bytes(bad),peer);self.delayed.append((time.monotonic()+.15,fd,peer,response))
+                        else:fd.sendto(response,peer)
                     elif fd is self.tcp:
                         conn,_=fd.accept();conn.setblocking(False);self.connections.append(conn);buffers[conn]=b''
                     else:
@@ -220,10 +384,10 @@ def network():
     if sorted(n for _,n in socket.if_nameindex())!=['lo']:raise ValueError('fresh loopback-only namespace required')
     subprocess.run(['ip','link','add','edns0','type','dummy'],check=True)
     subprocess.run(['ip','link','set','edns0','up'],check=True)
-    for address in [LISTEN4+'/24',CLIENT4+'/24','192.0.2.18/24',LISTEN6+'/64',CLIENT6+'/64']:
-        subprocess.run(['ip','addr','add',address,'dev','edns0','nodad'],check=True)
-    for address in [CLIENT4,CLIENT6]:
-        subprocess.run(['ip','neigh','replace',address,'lladdr',':'.join(f'{v:02x}' for v in MAC),'nud','permanent','dev','edns0'],check=True)
+    for address in [LISTEN4+'/24',CLIENT4+'/24','192.0.2.18/24','192.0.2.19/24',LISTEN6+'/64',CLIENT6+'/64']:
+        subprocess.run(['ip','addr','add',address,'dev','edns0',*(['nodad'] if ':' in address else [])],check=True)
+    for address in [CLIENT4,CLIENT6,'192.0.2.19']:
+        subprocess.run(['ip','neigh','replace',address,'lladdr',':'.join(f'{v:02x}' for v in (bytes.fromhex('025566aabbdd') if address=='192.0.2.19' else MAC)),'nud','permanent','dev','edns0'],check=True)
 
 def exchange(port,packet,tcp=False,ipv6=False,source=None):
     family=socket.AF_INET6 if ipv6 else socket.AF_INET
@@ -235,15 +399,135 @@ def exchange(port,packet,tcp=False,ipv6=False,source=None):
             conn.send(packet);return conn.recv(65535)
         except (socket.timeout,ConnectionError,ConnectionResetError):return None
 
+def packet_for(row,index):
+    excluded={'action','inject','mac_length','neighbor_interface','sources','case','tcp','ipv6','source','repeat','host','coalesce','same_socket','response','response_steps','transports','target_size','nonfinal'}
+    params={k:v for k,v in row.items() if k not in excluded}
+    host=row.get('host',row['case']+'.edns.test')
+    packet=query(host,0x6200+index,**params)
+    if 'target_size' not in row:return packet
+    target=row['target_size']
+    base=query(host,0x6200+index)
+    if row.get('opts') is not None:
+        # One padding TLV keeps the existing OPT scanner on a complete option.
+        other=rr(16,b'\x04tail',name('tail.edns.test')) if row.get('nonfinal') else b''
+        size=target-len(base)-11-4-len(params.get('opts',b''))-len(other)
+        opts=params.get('opts',b'')+tlv(123,b'p'*size)
+        return query(host,0x6200+index,additional=[opt(opts),*([other] if other else [])])
+    size=target-len(base)-11
+    return query(host,0x6200+index,additional=[rr(16,b'p'*size)])
+
+def coalesce_exchange(port,packet,row):
+    sockets=[];results=[];witness=[]
+    try:
+        for index in range(2):
+            if index and row.get('same_socket'):conn=sockets[0]
+            else:
+                conn=socket.socket(socket.AF_INET,socket.SOCK_DGRAM);conn.settimeout(.7)
+                conn.bind((row.get('sources',[CLIENT4,CLIENT4])[index],0));conn.connect((LISTEN4,port));sockets.append(conn)
+            wire=packet if row.get('same_socket') else struct.pack('!H',0x6300+index)+packet[2:]
+            conn.send(wire);witness.append({'source':conn.getsockname(),'wire':wire.hex()})
+        for index in range(2):
+            try:results.append(norm(sockets[0 if row.get('same_socket') else index].recv(65535)))
+            except socket.timeout:results.append(norm(None))
+    finally:
+        for conn in sockets:conn.close()
+    return serial(results),witness
+
+def set_neighbor(address,mac=None):
+    if mac is None:
+        subprocess.run(['ip','neigh','del',address,'dev','edns0'],capture_output=True)
+    else:
+        subprocess.run(['ip','neigh','replace',address,'lladdr',':'.join(f'{v:02x}' for v in mac),'nud','permanent','dev','edns0'],check=True)
+
+def neighbor_schedule(port,packet,row):
+    action=row['action'];results=[];witness=[]
+    if action=='connection-change':
+        with socket.socket(socket.AF_INET,socket.SOCK_STREAM) as conn:
+            conn.settimeout(2);conn.bind((CLIENT4,0));conn.connect((LISTEN4,port))
+            for index in range(2):
+                wire=struct.pack('!H',0x6400+index)+packet[2:]
+                conn.sendall(struct.pack('!H',len(wire))+wire)
+                reply=exact_read(conn,struct.unpack('!H',exact_read(conn,2))[0]);results.append(serial(norm(reply)))
+                if index==0:set_neighbor(CLIENT4,bytes.fromhex('025566aabbdd'))
+        set_neighbor(CLIENT4,MAC)
+    elif action=='positive-change':
+        results.append(serial(norm(exchange(port,packet))))
+        set_neighbor(CLIENT4,bytes.fromhex('025566aabbdd'))
+        results.append(serial(norm(exchange(port,struct.pack('!H',0x6401)+packet[2:]))))
+        set_neighbor(CLIENT4,MAC)
+    else:
+        address='192.0.2.18';set_neighbor(address)
+        first_tcp=action=='negative-new-connection'
+        results.append(serial(norm(exchange(port,packet,first_tcp,source=address))))
+        set_neighbor(address,bytes.fromhex('025566aabbdd'))
+        if action=='negative-90':
+            start=time.monotonic();next_health=start;health=[]
+            while time.monotonic()-start<91:
+                if time.monotonic()>=next_health:
+                    wire=query('local.edns.test',0x6500+len(health))
+                    answer=exchange(port,wire,source=CLIENT4)
+                    if answer is None:raise AssertionError('DNS progress lost during 90s neighbor refresh window')
+                    health.append(serial(norm(answer)));next_health+=5
+                    print(json.dumps({'case':row['case'],'elapsed':round(time.monotonic()-start,1),'health':len(health)}),flush=True)
+                time.sleep(.05)
+            witness.append({'real_wait_seconds':time.monotonic()-start,'health_packets':health})
+        results.append(serial(norm(exchange(port,struct.pack('!H',0x6401)+packet[2:],first_tcp,source=address))))
+        set_neighbor(address)
+    return results,witness
+
 def diagnostics(data):
     text=data.decode('utf-8','surrogateescape')
     return re.sub(r'dnsmasq(?:-rs)?: ?', '', text).strip()
+
+def start_netlink_fixture(pid, folder, row):
+    output=folder/(row['case']+'.netlink.json')
+    log=(folder/(row['case']+'.netlink.stderr')).open('wb')
+    tracer=subprocess.Popen([sys.executable,str(folder.parent/'drivers'/'m5_edns_netlink.py'),
+                             '--pid',str(pid),'--out',str(output),'--mode',row['inject'],
+                             '--length',str(row.get('mac_length',6)),
+                             '--interface',str(row.get('neighbor_interface',2))],stdout=log,stderr=log)
+    deadline=time.monotonic()+4
+    while not output.with_suffix('.ready').exists():
+        if tracer.poll() is not None or time.monotonic()>deadline:
+            tracer.kill();tracer.wait();log.close()
+            raise AssertionError('netlink tracer failed to attach; inspect retained stderr')
+        time.sleep(.01)
+    return tracer,log,output
+
+def pending_neighbor_schedule(port,packet,row,process,fixture,side):
+    tracer,_,output=fixture
+    with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as client:
+        client.settimeout(3.5);client.bind((row['source'],0));client.connect((LISTEN4,port))
+        start=time.monotonic();client.send(packet)
+        deadline=time.monotonic()+4
+        while not output.exists():
+            if tracer.poll() is not None or time.monotonic()>deadline:raise AssertionError('pending netlink fixture was not injected')
+            time.sleep(.01)
+        # Existing positive CLIENT4 remains usable while an unrelated address
+        # waits for completion. C is synchronously blocked inside netlink_recv.
+        health=exchange(port,query('local.edns.test',0x6700))
+        witness={'health_while_pending':serial(norm(health)),'side':side}
+        if row['case']=='neighbor-stop-pending-cleanup':
+            process.send_signal(signal.SIGTERM)
+            try:process.wait(.7)
+            except subprocess.TimeoutExpired:process.kill();process.wait(2);witness['forced_kill']=True
+            witness['stop_exit']=process.returncode
+            return [],[witness]
+        try:reply=client.recv(65535)
+        except socket.timeout:reply=None
+        witness['elapsed_seconds']=time.monotonic()-start
+        if side=='rust' and (health is None or reply is None):raise AssertionError('Rust owner progress/timeout fallback failed')
+        if side=='c' and (health is not None or reply is not None):raise AssertionError('C no-DONE synchronous boundary changed')
+        return [serial(norm(reply))],[witness]
 
 def run(args):
     if os.geteuid()!=0 or os.environ.get('DNSMASQ_TEST_ISOLATED')!='1':raise ValueError('run through run_isolated.sh')
     network();out=args.out.resolve()
     if out.exists() or 'private' not in out.parts:raise ValueError('fresh private output required')
     out.mkdir(parents=True);root=prepare(args.image_root,None,out,args.rust)
+    drivers=out/'drivers';drivers.mkdir()
+    for filename in ['m5_edns.py','m5_edns.json','m5_edns_netlink.py']:
+        (drivers/filename).write_bytes(Path(__file__).with_name(filename).read_bytes())
     report={'side':args.side,'c_sha256':STOCK_SHA256,'rust_sha256':sha256(args.rust),'syntax':[],'profiles':[],'executed_cases':[],'failures':[]}
     pattern=re.compile(args.only or '.')
     for label,directive in SYNTAX:
@@ -271,12 +555,43 @@ def run(args):
             else:raise RuntimeError('daemon pid readiness timeout')
             trace['identity']=process_identity(root,process.pid)
             for index,row in enumerate(active):
-                label=row['case'];params={k:v for k,v in row.items() if k not in ('case','tcp','ipv6','source')}
-                packet=query(label+'.edns.test',0x6200+index,**params)
-                reply=exchange(port,packet,row.get('tcp',False),row.get('ipv6',False),row.get('source'))
+                label=row['case'];packet=packet_for(row,index);upstream.behaviors[label]=row
                 (folder/f'{label}.query').write_bytes(packet)
-                if reply is not None:(folder/f'{label}.reply').write_bytes(reply)
-                trace['rows'].append({'case':label,'query':serial(norm(packet)),'reply':serial(norm(reply)),'upstream_after':len(upstream.events)})
+                before=len(upstream.events);replies=[]
+                if row.get('action')=='pending-dump':
+                    if exchange(port,query('local.edns.test',0x6601)) is None:raise AssertionError('warm positive neighbor health failed')
+                fixture=start_netlink_fixture(process.pid,folder,row) if row.get('inject') else None
+                if row.get('action')=='pending-dump':
+                    replies,witness=pending_neighbor_schedule(port,packet,row,process,fixture,args.side)
+                    trace.setdefault('action_witness',[]).append({'case':label,'witness':witness})
+                elif row.get('action'):
+                    replies,witness=neighbor_schedule(port,packet,row)
+                    trace.setdefault('action_witness',[]).append({'case':label,'witness':witness})
+                elif row.get('coalesce'):
+                    replies,witness=coalesce_exchange(port,packet,row)
+                    trace.setdefault('client_witness',[]).append({'case':label,'clients':witness})
+                else:
+                    transports=row.get('transports',[('tcp' if row.get('tcp') else 'udp')]*row.get('repeat',1))
+                    for step,transport in enumerate(transports):
+                        if row.get('response_steps'):
+                            upstream.behaviors[label]=dict(row,response=row['response_steps'][step])
+                        wire=struct.pack('!H',0x6200+index+step)+packet[2:]
+                        reply=exchange(port,wire,transport=='tcp',row.get('ipv6',False),row.get('sources',[row.get('source')]*len(transports))[step])
+                        if reply is not None:(folder/f'{label}-{step}.reply').write_bytes(reply)
+                        replies.append(serial(norm(reply)))
+                if fixture:
+                    tracer,tracer_log,tracer_output=fixture
+                    try:tracer.wait(4)
+                    except subprocess.TimeoutExpired:tracer.kill();tracer.wait();raise AssertionError('netlink injection did not complete')
+                    finally:tracer_log.close()
+                    proof=json.loads(tracer_output.read_text())
+                    if tracer.returncode or not proof['injected']:raise AssertionError('required netlink injection unproven')
+                    trace.setdefault('injection_witness',[]).append({'case':label,'proof':proof})
+                    if row.get('action')!='pending-dump':
+                        health=exchange(port,query('local.edns.test',0x6600+index))
+                        if health is None:raise AssertionError('DNS health failed after neighbor fixture')
+                        trace.setdefault('health_witness',[]).append({'case':label,'reply':serial(norm(health))})
+                trace['rows'].append({'case':label,'query':serial(norm(packet)),'replies':replies,'upstream_delta':len(upstream.events)-before})
                 report['executed_cases'].append(label)
         except Exception as error:
             trace['failure']=repr(error);report['failures'].append({'profile':profile,'error':repr(error)})
@@ -290,26 +605,188 @@ def run(args):
             if (root/'m2/edns.pid').exists():(root/'m2/edns.pid').unlink()
             if (root/'m2/edns.log').exists():(folder/'daemon.log').write_bytes((root/'m2/edns.log').read_bytes());(root/'m2/edns.log').unlink()
         (folder/'trace.json').write_text(json.dumps(trace,indent=2)+'\n');report['profiles'].append(trace)
-    manifest=json.loads(Path(__file__).with_suffix('.json').read_text());required={c for b in manifest['boundaries'] for c in b['required_cases']}
+    manifest=json.loads((drivers/'m5_edns.json').read_text());required={c for b in manifest['boundaries'] for c in b['required_cases']}
     report['missing_required_cases']=sorted(required-set(report['executed_cases']));report['required_count']=len(required)
-    report['driver_sha256']=sha256(__file__);report['manifest_sha256']=sha256(Path(__file__).with_suffix('.json'))
+    report['driver_sha256']=sha256(drivers/'m5_edns.py');report['manifest_sha256']=sha256(drivers/'m5_edns.json')
+    report['netlink_driver_sha256']=sha256(drivers/'m5_edns_netlink.py')
     (out/'result.json').write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps({'side':args.side,'executed':len(report['executed_cases']),'missing':len(report['missing_required_cases']),'failures':report['failures']}))
     return 1 if report['failures'] else 0
 
-def compare(args):
-    left=json.loads((args.c/'result.json').read_text());right=json.loads((args.candidate/'result.json').read_text())
-    diffs=[]
-    if left['executed_cases']!=right['executed_cases']:diffs.append({'kind':'executed-case-map','c':left['executed_cases'],'rust':right['executed_cases']})
+def case_observations(report):
+    rows={}
+    for profile in report['profiles']:
+        offset=0
+        for row in profile['rows']:
+            count=row['upstream_delta']
+            events=[{k:v for k,v in event.items() if k!='wire'} for event in profile['upstream'][offset:offset+count]]
+            rows[row['case']]={'row':row,'upstream':events,'profile':profile}
+            offset+=count
+        if offset!=len(profile['upstream']):raise ValueError('unmapped upstream observations')
+    return rows
+
+def canonical_case(value,label):
+    """Compare different fixture names using exact C packet semantics."""
+    if isinstance(value,list):return [canonical_case(item,label) for item in value]
+    if isinstance(value,dict):
+        return {key:(item-len(label)+len('control') if key=='bytes' else canonical_case(item,label))
+                for key,item in value.items()}
+    if isinstance(value,str):return value.replace(label+'.edns.test','control.edns.test')
+    return value
+
+def normalized_observation(observation,label):
+    row={k:v for k,v in observation['row'].items() if k!='case'}
+    return canonical_case({'row':row,'upstream':observation['upstream']},label)
+
+def injection_proof(profile,label):
+    return next((item['proof'] for item in profile.get('injection_witness',[]) if item['case']==label),{})
+
+def action_proof(profile,label):
+    return next((item['witness'][0] for item in profile.get('action_witness',[])
+                 if item['case']==label and item['witness']),{})
+
+def fixture_stream(wire):
+    """Clear only per-process netlink sequence/pid; retain every other byte."""
+    try:packet=bytearray.fromhex(wire)
+    except ValueError:return None
+    at=0;types=[]
+    while at<len(packet):
+        if len(packet)-at<16:return None
+        size,kind=struct.unpack_from('=IH',packet,at)
+        if size<16 or at+size>len(packet):return None
+        packet[at+8:at+16]=b'\0'*8;types.append(kind);at+=(size+3)&~3
+    return bytes(packet),types
+
+def guarded_reference_difference(label,c,r,cases):
+    left,right=c['row'],r['row']
+    if left['query']!=right['query']:return None
+    if label in ('coalesce-ecs-distinct-ip','coalesce-mac-distinct-ip','coalesce-umbrella-distinct-ip'):
+        control=cases.get(label+'-independent')
+        if not control:return None
+        expected=normalized_observation(control,label+'-independent')
+        actual=normalized_observation(r,label)
+        reference=normalized_observation(c,label)
+        if (expected==actual and expected['row']['upstream_delta']==2
+            and expected['row']['replies'][0]!=expected['row']['replies'][1]
+            and reference['row']['upstream_delta']==1
+            and reference['row']['replies']==[expected['row']['replies'][0]]*2
+            and reference['upstream']==expected['upstream'][:1]):
+            return 'source-sensitive-coalescing'
+    if label=='neighbor-invalid-partial-dump':
+        cp,rp=injection_proof(c['profile'],label),injection_proof(r['profile'],label)
+        complete=cases.get('neighbor-valid-complete-dump');absent=cases.get('raw-unknown')
+        cs,rs=fixture_stream(cp.get('wire','')),fixture_stream(rp.get('wire',''))
+        if (complete and absent and cp.get('injected') and rp.get('injected')
+            and cp.get('mode')==rp.get('mode')=='partial-error'
+            and cs is not None and cs==rs and cs[1]==[28,2,3]
+            and normalized_observation(c,label)==normalized_observation(complete,'neighbor-valid-complete-dump')
+            and normalized_observation(r,label)==normalized_observation(absent,'raw-unknown')):
+            return 'netlink-partial-error-publication'
+    if label in ('neighbor-dump-timeout-progress','neighbor-refresh-nonblocking','neighbor-stop-pending-cleanup'):
+        cp,rp=injection_proof(c['profile'],label),injection_proof(r['profile'],label)
+        ca,ra=action_proof(c['profile'],label),action_proof(r['profile'],label)
+        if not (cp.get('injected') and rp.get('injected') and cp.get('mode')==rp.get('mode')=='hold'
+                and cp.get('mac_length')==rp.get('mac_length')==6
+                and ca.get('health_while_pending')==norm(None)
+                and ra.get('health_while_pending',{}).get('records')
+                and c['profile']['exit']==-signal.SIGKILL and r['profile']['exit']==0):return None
+        # Kernel sequence and recipient pid differ; the payload/type stream
+        # must be identical after clearing those two header identity fields.
+        if fixture_stream(cp.get('wire','')) is None or fixture_stream(rp.get('wire','')) is None:return None
+        cs,ct=fixture_stream(cp['wire']);rs,rt=fixture_stream(rp['wire'])
+        if cs!=rs or ct!=rt or 3 in ct:return None
+        if label=='neighbor-stop-pending-cleanup':
+            if ca.get('forced_kill') and ca.get('stop_exit')==-signal.SIGKILL and ra.get('stop_exit')==0:
+                return 'netlink-missing-done-owner-stall'
+        else:
+            absent=cases.get('raw-unknown')
+            if (absent and left['replies']==[norm(None)] and left['upstream_delta']==0
+                and normalized_observation(r,label)==normalized_observation(absent,'raw-unknown')
+                and 0<ra.get('elapsed_seconds',100)<4.2):
+                return 'netlink-missing-done-owner-stall'
+    return None
+
+def comparison_result(left,right,manifest):
+    diffs=[];references=[]
+    required={case for boundary in manifest['boundaries'] for case in boundary['required_cases']}
+    missing=sorted(required-set(left['executed_cases']) | required-set(right['executed_cases']))
+    if left.get('side')!='c' or left.get('c_sha256')!=STOCK_SHA256 or right.get('side')!='rust':
+        diffs.append({'kind':'reference-identity'})
+    if not re.fullmatch('[0-9a-f]{64}',right.get('rust_sha256','')):diffs.append({'kind':'candidate-identity'})
+    for key in ['driver_sha256','manifest_sha256','netlink_driver_sha256']:
+        if not left.get(key) or left.get(key)!=right.get(key):diffs.append({'kind':'driver-identity','field':key})
+    if left['executed_cases']!=right['executed_cases']:diffs.append({'kind':'executed-case-map'})
+    if left['failures'] or right['failures']:diffs.append({'kind':'fixture-failure','c':left['failures'],'rust':right['failures']})
     for a,b in zip(left['syntax'],right['syntax']):
         if a!=b:diffs.append({'kind':'syntax','c':a,'rust':b})
-    for a,b in zip(left['profiles'],right['profiles']):
-        if a['rows']!=b['rows']:diffs.append({'kind':'rows','profile':a['profile'],'c':a['rows'],'rust':b['rows']})
-        an=[{k:v for k,v in e.items() if k!='wire'} for e in a['upstream']];bn=[{k:v for k,v in e.items() if k!='wire'} for e in b['upstream']]
-        if an!=bn:diffs.append({'kind':'upstream','profile':a['profile'],'c':an,'rust':bn})
-        for side,t in [('c',a),('rust',b)]:
-            if t['exit']!=0 or t.get('failure') or t['upstream_errors']:diffs.append({'kind':'lifecycle','profile':a['profile'],'side':side,'trace':t})
-    result={'c_identity':left['c_sha256'],'candidate_identity':right['rust_sha256'],'executed':len(left['executed_cases']),'missing':left['missing_required_cases'],'differences':diffs,'qualified':not diffs and not left['missing_required_cases'] and not right['missing_required_cases']}
+    crows,rrows=case_observations(left),case_observations(right)
+    if crows.keys()!=rrows.keys():diffs.append({'kind':'runtime-case-map'})
+    for side,report,rows in [('c',left,crows),('rust',right,rrows)]:
+        observed=[item['case'] for item in report['syntax']]+list(rows)
+        if sorted(observed)!=sorted(report['executed_cases']) or len(observed)!=len(set(observed)):
+            diffs.append({'kind':'unproven-execution-map','side':side})
+    for label in sorted(crows.keys() & rrows.keys()):
+        c,r=crows[label],rrows[label]
+        reference=guarded_reference_difference(label,c,r,crows)
+        if reference:references.append({'case':label,'reference_defect':reference,'guard':'passed'})
+        elif c['row']!=r['row'] or c['upstream']!=r['upstream']:
+            diffs.append({'kind':'case','case':label,'c':{'row':c['row'],'upstream':c['upstream']},
+                          'rust':{'row':r['row'],'upstream':r['upstream']}})
+        for side,profile in [('c',c['profile']),('rust',r['profile'])]:
+            accepted_stop=reference=='netlink-missing-done-owner-stall' and side=='c'
+            if (profile['exit']!=0 and not accepted_stop) or profile.get('failure') or profile['upstream_errors']:
+                diffs.append({'kind':'lifecycle','case':label,'side':side,'exit':profile['exit']})
+        for side,profile in [('c',c['profile']),('rust',r['profile'])]:
+            row=next((item for spec in PROFILES.values() for item in spec['cases'] if item['case']==label),{})
+            if row.get('inject'):
+                proof=injection_proof(profile,label)
+                if (not proof.get('injected') or proof.get('mode')!=row['inject']
+                    or proof.get('mac_length')!=row.get('mac_length',6)
+                    or proof.get('interface')!=row.get('neighbor_interface',2)
+                    or not proof.get('requests')
+                    or not any(receive['result']>0 and not receive['flags']&2 for receive in proof.get('receives',[]))):
+                    diffs.append({'kind':'missing-injection-proof','case':label,'side':side})
+    return {'c_identity':left['c_sha256'],'candidate_identity':right['rust_sha256'],
+            'executed':len(left['executed_cases']),'required':len(required),'missing':missing,
+            'reference_differences':references,'differences':diffs,'qualified':not diffs and not missing}
+
+def negative_controls(args):
+    left=json.loads((args.c/'result.json').read_text());right=json.loads((args.candidate/'result.json').read_text())
+    manifest=json.loads(Path(__file__).with_suffix('.json').read_text())
+    if not comparison_result(left,right,manifest)['qualified']:raise ValueError('negative controls need a fully qualified unmodified pair')
+    results=[]
+    def check(label,edit,side='rust'):
+        c,r=copy.deepcopy(left),copy.deepcopy(right);edit(c if side=='c' else r)
+        try:result=comparison_result(c,r,manifest);rejected=not result['qualified']
+        except (ValueError,KeyError,TypeError,struct.error):rejected=True
+        if not rejected:raise AssertionError('qualification accepted corrupt evidence: '+label)
+        results.append({'control':label,'rejected':True})
+    for field in ['c_sha256','driver_sha256','manifest_sha256','netlink_driver_sha256']:
+        check('identity-'+field,lambda x,field=field:x.__setitem__(field,'0'*64),side='c')
+    check('candidate-identity',lambda x:x.__setitem__('rust_sha256',''))
+    check('missing-required',lambda x:x['executed_cases'].pop())
+    check('fixture-failure',lambda x:x['failures'].append({'injected':'failure'}))
+    check('syntax-exit',lambda x:x['syntax'][0].__setitem__('exit',1))
+    check('source-independent-control',lambda x:case_observations(x)['coalesce-mac-distinct-ip-independent']['row']['replies'].__setitem__(1,
+          copy.deepcopy(case_observations(x)['coalesce-mac-distinct-ip-independent']['row']['replies'][0])),side='c')
+    for label in ['coalesce-ecs-distinct-ip','coalesce-mac-distinct-ip','coalesce-umbrella-distinct-ip']:
+        check(label+'-recipient-leak',lambda x,label=label:case_observations(x)[label]['row']['replies'].__setitem__(1,
+              copy.deepcopy(case_observations(x)[label]['row']['replies'][0])))
+    for label in ['neighbor-invalid-partial-dump','neighbor-dump-timeout-progress','neighbor-refresh-nonblocking','neighbor-stop-pending-cleanup']:
+        check(label+'-unproven-fixture',lambda x,label=label:injection_proof(case_observations(x)[label]['profile'],label).__setitem__('injected',False))
+    check('held-owner-health',lambda x:action_proof(case_observations(x)['neighbor-refresh-nonblocking']['profile'],'neighbor-refresh-nonblocking').__setitem__('health_while_pending',norm(None)))
+    check('held-owner-timeout',lambda x:action_proof(case_observations(x)['neighbor-dump-timeout-progress']['profile'],'neighbor-dump-timeout-progress').__setitem__('elapsed_seconds',99))
+    check('held-owner-stop',lambda x:action_proof(case_observations(x)['neighbor-stop-pending-cleanup']['profile'],'neighbor-stop-pending-cleanup').__setitem__('stop_exit',-9))
+    check('partial-fixture-bytes',lambda x:injection_proof(case_observations(x)['neighbor-invalid-partial-dump']['profile'],'neighbor-invalid-partial-dump').__setitem__('wire','00'))
+    check('ordinary-lifecycle',lambda x:x['profiles'][0].__setitem__('exit',-9))
+    args.out.parent.mkdir(parents=True,exist_ok=True);args.out.write_text(json.dumps({'passed':len(results),'controls':results},indent=2)+'\n')
+    print(json.dumps({'negative_controls':len(results),'passed':True}));return 0
+
+def compare(args):
+    left=json.loads((args.c/'result.json').read_text());right=json.loads((args.candidate/'result.json').read_text())
+    manifest=json.loads(Path(__file__).with_suffix('.json').read_text())
+    result=comparison_result(left,right,manifest);diffs=result['differences']
+    result['qualifier_sha256']=sha256(__file__)
     args.out.parent.mkdir(parents=True,exist_ok=True);args.out.write_text(json.dumps(result,indent=2)+'\n')
     print(json.dumps({'differences':len(diffs),'qualified':result['qualified'],'executed':result['executed'],'missing':len(result['missing'])}))
     return int(bool(diffs))
@@ -318,5 +795,6 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__);sub=parser.add_subparsers(dest='action',required=True)
     p=sub.add_parser('run');p.add_argument('--side',choices=['c','rust'],required=True);p.add_argument('--image-root',type=Path,required=True);p.add_argument('--rust',type=Path,required=True);p.add_argument('--out',type=Path,required=True);p.add_argument('--only')
     p=sub.add_parser('compare');p.add_argument('--c',type=Path,required=True);p.add_argument('--candidate',type=Path,required=True);p.add_argument('--out',type=Path,required=True)
-    args=parser.parse_args();raise SystemExit(run(args) if args.action=='run' else compare(args))
+    p=sub.add_parser('negative-controls');p.add_argument('--c',type=Path,required=True);p.add_argument('--candidate',type=Path,required=True);p.add_argument('--out',type=Path,required=True)
+    args=parser.parse_args();raise SystemExit({'run':run,'compare':compare,'negative-controls':negative_controls}[args.action](args))
 if __name__=='__main__':main()
