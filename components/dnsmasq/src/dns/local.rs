@@ -212,14 +212,15 @@ impl<'a> LocalAnswerer<'a> {
         // even in this image's NO_ID build, where no built-in TXT exists.
         let notimp = question.class == 3
             && !owned
-            && wire_to_dotted(&question.name).is_some_and(|name| {
+            && {
+                let name = question.name.dnsmasq_bytes().to_ascii_lowercase();
                 [b"bind".as_slice(), b"server"].iter().any(|suffix| {
                     name == *suffix
                         || name
                             .strip_suffix(*suffix)
                             .is_some_and(|prefix| prefix.ends_with(b"."))
                 })
-            });
+            };
         owned |= notimp;
 
         // A configured/local record owns the query before address rules. A
