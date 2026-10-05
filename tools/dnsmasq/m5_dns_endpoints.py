@@ -159,6 +159,17 @@ def service_cases():
     add('diagnostic-random-interface','server=127.0.0.2@missing_endpoint_if\nserver=127.0.0.3\n',debug=True,source_diagnostics=True)
     add('inherited-nofile-pool-cap','dns-forward-max=40\nserver=127.0.0.2\n',inherited_nofile=40,actions=[dict(op='start-udp',id='q'+str(i),name='q'+str(i)+'.endpoint.test') for i in range(24)]+[action for i in reversed(range(24)) for action in (dict(op='inject',id='q'+str(i),server=0),dict(op='receive-udp',id='q'+str(i),pending='q'+str(i)))],udp_unique_ports=13)
     add('range-inclusive-ends','min-port=34100\nmax-port=34101\nserver=127.0.0.2\n',names=tuple('bound'+str(i)+'.endpoint.test' for i in range(64)),source_range=[34100,34101],range_ends=True)
+    add('source-interface-cached-index','servers-file=/m2/files/servers\n',files={'servers':'server=127.0.0.2@lo\n'},actions=[probe('before','before.endpoint.test'),write('servers','server=127.0.0.2@missing_endpoint_if\n'),signal_reload(),probe('after','after.endpoint.test')])
+    add('source-interface-cleared-index','servers-file=/m2/files/servers\n',files={'servers':'server=127.0.0.2@lo\n'},actions=[probe('before','before.endpoint.test'),write('servers','server=127.0.0.2\n'),signal_reload(),probe('after','after.endpoint.test')])
+    add('source-ipv6-interface','server=::1@lo\n')
+    add('source-ipv6-address-interface','server=::1@lo@::1\n')
+    resolver_files={'/etc/hosts':'','/etc/resolv.conf':'nameserver 127.0.0.2\noptions timeout:3 attempts:1\n'}
+    add('system-resolver-startup','server=lookup.endpoint.test\n',sys_files=resolver_files,resolver_fixture=True)
+    add('system-resolver-nxdomain','server=lookup.endpoint.test\n',sys_files=resolver_files,resolver_fixture=True,resolver_rcode=3,expected_start=False,expected_test=1)
+    add('system-resolver-servfail','server=lookup.endpoint.test\n',sys_files=resolver_files,resolver_fixture=True,resolver_rcode=2,expected_start=False,expected_test=1)
+    add('system-resolver-before-invalid-row','server=lookup.endpoint.test\ninvalid-option=1\n',sys_files=resolver_files,resolver_fixture=True,expected_start=False,expected_test=1)
+    add('file-partial-success-before-scope-error','servers-file=/m2/files/servers\n',files={'servers':'server=/one.endpoint.test/partial.endpoint.test%missing\nserver=/two.endpoint.test/127.0.0.3\n'},sys_files={'/etc/hosts':'127.0.0.2 partial.endpoint.test\n2001:db8::53 partial.endpoint.test\n'},names=('one.endpoint.test','two.endpoint.test'),diagnostics=True)
+    add('zero-server-preallocation-bound','bind-interfaces\nserver=0.0.0.0@192.0.2.99#34004\n',expected_start=False,no_upstream=True)
     return cases
 
 
@@ -177,13 +188,22 @@ def run_service_side(root, side, case, folder):
         status=Path('/proc',str(pid),'status').read_text().splitlines()
         uid=int(next(line.split()[1] for line in status if line.startswith('Uid:')))
         expected_uid=next(int(line.split(':')[2]) for line in (root/'etc/passwd').read_text().splitlines() if line.split(':')[0]==case.get('user','root'))
-        return dict(original_identity(root,pid),threads=len(list(Path('/proc',str(pid),'task').iterdir())),uid=uid,expected_uid=expected_uid)
+        cap_eff=next(line.split()[1] for line in status if line.startswith('CapEff:'))
+        return dict(original_identity(root,pid),cap_eff=cap_eff,threads=len(list(Path('/proc',str(pid),'task').iterdir())),uid=uid,expected_uid=expected_uid)
     files.process_identity=identity
     original_upstream=files.FileUpstream
     class Captured(original_upstream):
         def __init__(self,*args):
             self.source_events=[]
             args=(*args[:-1],case.get("upstream_port",args[-1]))
+            if case.get('resolver_fixture') and args[1]=='127.0.0.2':
+                fixtures=list(args[0])
+                rcode=case.get('resolver_rcode',0)
+                for kind in (1,28):
+                    fixture={'name':'lookup.endpoint.test','type':kind,'rcode':rcode,'reply':'127.0.0.3' if kind==1 else '::1'}
+                    if kind==28 or rcode: fixture['records']=[]
+                    fixtures.append(fixture)
+                args=(fixtures,*args[1:])
             super().__init__(*args)
             if case.get('injections') or case.get('recv_fault'):
                 upstream=self;delegate=self.udp
@@ -227,7 +247,10 @@ def run_service_side(root, side, case, folder):
                 try:
                     packet,peer=self.udp.recvfrom(65535)
                     response=self.answer(packet,'udp')
-                    self.source_events.append(dict(transport='udp',peer=list(peer),destination=list(self.udp.getsockname()),name=read_name(packet,12)[0],wire=packet.hex()))
+                    host=read_name(packet,12)[0]
+                    resolving=case.get('resolver_fixture') and host=='lookup.endpoint.test' and self.host=='127.0.0.2'
+                    self.source_events.append(dict(transport='resolver' if resolving else 'udp',peer=list(peer),destination=list(self.udp.getsockname()),name=host,wire=packet.hex()))
+                    if resolving and case.get('resolver_delay'): time.sleep(case['resolver_delay'])
                     self.captured.append((packet,peer,response))
                     if self.probes.get((read_name(packet,12)[0],struct.unpack_from('!H',packet,read_name(packet,12)[1])[0]),{}).get('drop_all'): continue
                     if 'udp_winner' in case and self.host!=['127.0.0.2','127.0.0.3','127.0.0.4'][case['udp_winner']]: time.sleep(.05)
@@ -340,7 +363,7 @@ def run_service(args, cases):
     import m5_dns_files as files
     args.out.mkdir(parents=True)
     # Keep probe/listener allocation outside configured DNS source ranges.
-    subprocess.run(['sysctl','-q','-w','net.ipv4.ip_local_port_range=40000 60999'],check=True)
+    subprocess.run(['sysctl','-q','-w','net.ipv4.ip_local_port_range=40000 60999','net.ipv4.ip_unprivileged_port_start=1024'],check=True)
     driver=args.out/'driver';driver.mkdir()
     for name in ('m5_dns_endpoints.py','m5_dns_endpoints.json','m5_dns_files.py','m5_option_matrix.py','m5_option_matrix_probes.py','m5_dhcp_tags_options.py','dhcp_boot_service_diff.py','dns_service_probe.py','m2_rootfs.py','run_isolated.sh'):
         shutil.copy2(Path(__file__).with_name(name),driver/name)
