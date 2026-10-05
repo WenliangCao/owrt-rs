@@ -337,6 +337,17 @@ def service_cases():
     def kernel(argv):return dict(op='write',path='kernel-action',text='',kernel_command=argv)
     def state(label):return dict(op='write',path='interface-state',text='',interface_state=label)
     v4only={'name':'m5ir0','addresses':['198.18.91.9/24']}
+    for label,mask,commands in [
+        ('deprecated',0x20,[['ip','-6','addr','add','2001:db8:99::9/64','dev','m5ir0','nodad','valid_lft','600','preferred_lft','0']]),
+        ('temporary',0x1,[['sysctl','-q','-w','net.ipv6.conf.m5ir0.use_tempaddr=2'],
+            ['ip','-6','addr','add','2001:db8:99::9/64','dev','m5ir0','mngtmpaddr','nodad','valid_lft','600','preferred_lft','300']]),
+        ('tentative',0x40,[['ip','link','del','m5ir0'],['ip','link','add','m5ir0','type','veth','peer','name','m5peer0'],
+            ['ip','link','set','m5ir0','up'],['ip','link','set','m5peer0','up'],
+            ['sysctl','-q','-w','net.ipv6.neigh.m5ir0.retrans_time_ms=3000','net.ipv6.conf.m5ir0.dad_transmits=1'],
+            ['ip','-6','addr','add','2001:db8:99::9/64','dev','m5ir0']])]:
+        domain_hosts('domain-interface-flag-'+label,'domain=fallback.records.test\ndomain=chosen.records.test,m5ir0\n',
+            ['2001:db8:99::77','2001:db8:98::77'],topology=[v4only],initial_kernel_commands=commands,
+            initial_flag={'prefix':'2001:db8:99::/64','mask':mask})
     for option in ('domain','domain-suffix'):
         def suffix_probes(label,host='newnet'):
             return [files.probe(label+'-'+suffix,host+'.'+suffix+'.records.test',type=28 if host=='new6' else 1,transports=['udp'])
@@ -688,6 +699,9 @@ def run_service_side(root,side,case,out):
         nonlocal initial_commands_applied
         if not initial_commands_applied:
             for argv in case.get('initial_kernel_commands',[]):subprocess.run(argv,check=True)
+            if case.get('initial_flag'):
+                files.await_predicate(lambda:initial_flag_matches(Path('/proc/net/if_inet6').read_text(),case['initial_flag']),
+                    'actual domain-source IPv6 flag before startup')
             initial_commands_applied=True
         if isinstance(value,dict) and 'hosts_read_barrier' in value:
             marker='read '+value['hosts_read_barrier']+' - 1 names'
@@ -900,6 +914,8 @@ def witness_errors(observed,side,case):
             errors.append('single owner or runtime identity witness missing')
         if not any(state['label']=='initial-kernel' for state in observed.get('interface_states',[])):
             errors.append('initial actual kernel address/flag witness missing')
+        if case.get('initial_flag') and not any(state['label']=='initial-kernel' and initial_flag_matches(state['ipv6_flags'],case['initial_flag']) for state in observed.get('interface_states',[])):
+            errors.append('actual flagged domain source witness missing')
     for action in case['actions']:
         if action.get('domain_dhcp'):
             wanted=action['domain_dhcp']
@@ -918,6 +934,12 @@ def witness_errors(observed,side,case):
                 not any(call.get('size')==size and call.get('returned')==0 and call.get('pc')==report['address'] for call in report.get('calls',[])):
                 errors.append('actual pinned allocator call/NULL-return witness missing')
     return errors
+
+
+def initial_flag_matches(text,wanted):
+    network=ipaddress.ip_network(wanted['prefix'])
+    return any(len(fields)>=6 and fields[5]=='m5ir0' and ipaddress.IPv6Address(int(fields[0],16)) in network and
+        int(fields[4],16)&wanted['mask']==wanted['mask'] for fields in (line.split() for line in text.splitlines()))
 
 
 def controls():
