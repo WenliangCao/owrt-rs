@@ -361,6 +361,14 @@ def service_cases():
             text=changed['files']['servers'];changed['files']['servers']='server=127.0.0.3\n'
             changed['actions']=[write('servers',text),signal_reload(),*changed['actions']]
             cases.append(changed)
+    # Exact C full source captures establish these synchronous broadcast counts,
+    # including both duplicate hosts rows and the separate inline declaration.
+    broadcasts={'same-fixed-source-destinations':2,'same-fixed-port-two-families':2,
+        'range-two-families':2,'same-fixed-port-distinct-addresses':2,
+        'pool-retired-source-reference':1,'duplicate-expanded-hosts-order':4,
+        'same-source-address-distinct-interfaces':2,'hostname-scoped-expansion':2}
+    for case in cases:
+        if case['id'] in broadcasts: case['udp_expected_receipts']=broadcasts[case['id']]
     return cases
 
 
