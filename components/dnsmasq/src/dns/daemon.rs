@@ -1349,6 +1349,38 @@ impl<R: Random> DnsDaemon<R> {
         );
     }
 
+    /// Owner preview for a dynamic CNAME that will reach interface-name's
+    /// enumeration point in answer_request. The caller has already applied
+    /// source-dependent EDNS cacheability; this performs no cache lookup side
+    /// effects and does not start collection or read network state itself.
+    pub fn interface_query_needs_enumeration(&self, query: &[u8], now: i64) -> bool {
+        if super::local::interface_forward_name(&self.local.config, query).is_some() {
+            return true;
+        }
+        let Ok(header) = Header::parse(query) else { return false; };
+        if header.flags & 0x8100 != 0x0100
+            || header.questions != 1
+            || header.answers != 0
+            || header.authorities != 0
+            || header.opcode() != 0
+        {
+            return false;
+        }
+        let Ok(question) = super::forward::Question::parse(query) else { return false; };
+        if question.class != 1 || !matches!(question.rrtype, 1 | 28 | 255) {
+            return false;
+        }
+        if find_pseudoheader(query, true).ok().and_then(|scan| scan.opt).is_some_and(|opt| opt.dnssec_ok()) {
+            return false;
+        }
+        let Some(target) = self.cache.as_ref().and_then(|cache| cache.cname_terminal_name(&question.name, now)) else { return false; };
+        let mut terminal = super::wire::PacketWriter::new(header.id, header.flags, 65535).expect("fixed envelope");
+        if terminal.question(&target, question.rrtype, question.class).is_err() {
+            return false;
+        }
+        super::local::interface_forward_name(&self.local.config, &terminal.finish()).is_some()
+    }
+
     pub fn tcp_cache_view(&self) -> Option<Cache> {
         self.cache.as_ref().map(Cache::snapshot)
     }
