@@ -110,6 +110,10 @@ def cases():
                      'argv': [], 'blocked_kind': kind, 'options': ['log-facility'],
                      'policy_source': 'log.c:135-160,301-319,407-471',
                      'policy_difference': 'The single poll owner must not block. C waits for FIFO open or sink writes; Rust keeps serving with bounded queued records and explicit overflow accounting, then drains on reader recovery.'})
+        rows.append({'id': 'blocked-sink-' + kind + '-shutdown', 'scope': 'blocked-sink', 'kind': 'run',
+                     'argv': [], 'blocked_kind': kind, 'blocked_never_release': True,
+                     'options': ['log-facility'], 'policy_source': 'log.c:135-160,301-319,459-475',
+                     'policy_difference': 'The reader never recovers. C startup SIGTERM exits5 for FIFO/primary stderr; debug fprintf remains blocked in libc exit and needs external SIGKILL. Rust serves and exits0 with its existing bounded 100ms logger shutdown, discarding undrained records.'})
     for name in ['', 'local8', 'audit', '24', 'foo']:
         rows.append({'id': 'bad-facility-' + (name or 'empty'), 'scope': 'sink',
                      'kind': 'test', 'exit': 1, 'argv': ['--log-facility=' + name],
@@ -1107,26 +1111,36 @@ def run_blocked_sink(root, side, case, out):
             time.sleep(.3)
             observed['pre_release_ready'] = probe()
             trace['blocked_process_alive'] = process.poll() is None
-            if kind == 'fifo-no-reader':
-                fifo_reader = os.open(log_path, os.O_RDONLY | os.O_NONBLOCK)
-            reader = fifo_reader if fifo_reader is not None else pipe_reader
-            deadline = time.monotonic() + 2
-            while time.monotonic() < deadline:
+            if case.get('blocked_never_release'):
+                observed['ready'] = observed['pre_release_ready']
+                process.send_signal(signal.SIGTERM)
+                try:
+                    process.wait(.4)
+                except subprocess.TimeoutExpired:
+                    observed['forced'] = True
+                    process.kill()
+                    process.wait(1)
+                observed['exit'] = process.returncode
+            else:
+                if kind == 'fifo-no-reader':
+                    fifo_reader = os.open(log_path, os.O_RDONLY | os.O_NONBLOCK)
+                reader = fifo_reader if fifo_reader is not None else pipe_reader
+                deadline = time.monotonic() + 2
+                while time.monotonic() < deadline:
+                    drain(reader)
+                    observed['ready'] = probe()
+                    if observed['ready'] and (b'cleared cache\n' in captured or b'overflow: ' in captured
+                                             or kind == 'debug-echo-full'):
+                        break
+                    time.sleep(.01)
+                process.send_signal(signal.SIGHUP)
+                time.sleep(.15)
                 drain(reader)
-                observed['ready'] = probe()
-                if observed['ready'] and (b'cleared cache\n' in captured or b'overflow: ' in captured
-                                         or kind == 'debug-echo-full'):
-                    break
-                time.sleep(.01)
-            process.send_signal(signal.SIGHUP)
-            time.sleep(.15)
-            if reader is not None:
-                drain(reader)
-            if not probe():
-                raise AssertionError('blocked sink recovery harmed DNS')
-            process.send_signal(signal.SIGTERM)
-            process.wait(.8)
-            observed['exit'] = process.returncode
+                if not probe():
+                    raise AssertionError('blocked sink recovery harmed DNS')
+                process.send_signal(signal.SIGTERM)
+                process.wait(.8)
+                observed['exit'] = process.returncode
         finally:
             if process.poll() is None:
                 observed['forced'] = True
@@ -1519,7 +1533,12 @@ def compare(reference, candidate, case, reference_only=False):
     failures = []
     expected_ready = case.get('expect_ready', case['kind'] == 'run' and case.get('exit', 0) == 0)
     for side, row in [('c', reference)] + ([] if reference_only else [('rust', candidate)]):
-        for field, expected in [('exit', case.get('exit', 0)), ('ready', expected_ready), ('forced', False)]:
+        expectations = [('exit', case.get('exit', 0)), ('ready', expected_ready), ('forced', False)]
+        if case.get('blocked_never_release'):
+            blocked_echo = side == 'c' and case['blocked_kind'] == 'debug-echo-full'
+            expectations = [('exit', (-9 if blocked_echo else 5) if side == 'c' else 0),
+                            ('ready', side == 'rust'), ('forced', blocked_echo)]
+        for field, expected in expectations:
             if row[field] != expected:
                 failures.append({'side': side, 'field': field, 'expected': expected, 'actual': row[field]})
     if 'expected_metadata' in case and reference['file_metadata'].get(case['file']) != case['expected_metadata']:
@@ -1714,13 +1733,27 @@ def compare(reference, candidate, case, reference_only=False):
         wanted_c = ['started, version 2.93 cachesize 150', 'compile time options: ',
                     'warning: no upstream servers configured', 'cleared cache', 'cleared cache',
                     'exiting on receipt of SIGTERM']
+        if case.get('blocked_never_release'):
+            wanted_c = []
         def matches(actual, wanted):
             return len(actual) == len(wanted) and all(a.startswith(b) if b.endswith(': ') else a == b
                                                      for a, b in zip(actual, wanted))
         if not matches(original, wanted_c):
             failures.append({'kind': 'C-blocked-sink-record-contract', 'actual': original})
-        wanted_rust = wanted_c if case['blocked_kind'] == 'debug-echo-full' else [
-            wanted_c[0], 'overflow: 3 log entries lost', 'cleared cache', 'exiting on receipt of SIGTERM']
+        if case.get('blocked_never_release'):
+            wanted_rust = ['started, version 2.93 cachesize 150', 'compile time options: ',
+                          'warning: no upstream servers configured', 'cleared cache',
+                          'exiting on receipt of SIGTERM'] if case['blocked_kind'] == 'debug-echo-full' else []
+        else:
+            wanted_rust = wanted_c if case['blocked_kind'] == 'debug-echo-full' else [
+                wanted_c[0], 'overflow: 3 log entries lost', 'cleared cache', 'exiting on receipt of SIGTERM']
+        if case['blocked_kind'].startswith('fifo-'):
+            for side, row in [('c', reference)] + ([] if reference_only else [('rust', candidate)]):
+                ownership_blocked = side == 'c' and case.get('blocked_never_release') and case['blocked_kind'] == 'fifo-no-reader'
+                metadata = [0o640, 0, 0] if ownership_blocked else [0o660, 65534, 0]
+                if row['file_metadata'].get('daemon.log') != metadata:
+                    failures.append({'kind': 'blocked-fifo-owner-control', 'side': side,
+                                     'expected': metadata, 'actual': row['file_metadata']})
         if not reference_only and not matches(replacement, wanted_rust):
             failures.append({'kind': 'Rust-blocked-sink-record-contract', 'actual': replacement})
         if case['blocked_kind'] == 'debug-echo-full':
@@ -1736,6 +1769,9 @@ def compare(reference, candidate, case, reference_only=False):
             row.pop('pre_release_ready', None)
             row['files'] = {}
             row['stderr'] = ''
+            if case.get('blocked_never_release'):
+                for field in ['ready', 'exit', 'forced', 'file_metadata']:
+                    row.pop(field, None)
     for row in [left, right]:
         if 'interface_index' in row:
             index = row['interface_index']

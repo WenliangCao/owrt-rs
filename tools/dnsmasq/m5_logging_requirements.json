@@ -221,7 +221,11 @@
             "blocked-sink-fifo-no-reader",
             "blocked-sink-fifo-full",
             "blocked-sink-stderr-full",
-            "blocked-sink-debug-echo-full"
+            "blocked-sink-debug-echo-full",
+            "blocked-sink-fifo-no-reader-shutdown",
+            "blocked-sink-fifo-full-shutdown",
+            "blocked-sink-stderr-full-shutdown",
+            "blocked-sink-debug-echo-full-shutdown"
           ]
         },
         {
@@ -244,7 +248,11 @@
           "blocked-sink-fifo-no-reader",
           "blocked-sink-fifo-full",
           "blocked-sink-stderr-full",
-          "blocked-sink-debug-echo-full"
+          "blocked-sink-debug-echo-full",
+          "blocked-sink-fifo-no-reader-shutdown",
+          "blocked-sink-fifo-full-shutdown",
+          "blocked-sink-stderr-full-shutdown",
+          "blocked-sink-debug-echo-full-shutdown"
         ]
       }
     },
