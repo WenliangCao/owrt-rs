@@ -310,6 +310,8 @@ def dhcp_case(args,root,spec):
     if spec.get('relay'):flags += ['dhcp-relay=127.0.0.1,127.0.0.2']
     if spec.get('cross'):flags += ['enable-tftp','tftp-root=/m2/tftp','tftp-port-range=10690,10690']
     runner=Side(root,args.side,folder,label,flags)
+    if spec.get('relay'):
+        runner.config.write_text('\n'.join(line for line in runner.config.read_text().splitlines() if not line.startswith('dhcp-range='))+'\n')
     (folder/'config').write_text(runner.config.read_text())
     if spec.get('cross'):
         data=root/'m2/tftp';data.mkdir(exist_ok=True);(data/'evidence').write_bytes(b'pcap-evidence')
