@@ -274,6 +274,13 @@ def cases():
                           '--dhcp-broadcast', *[f'--dhcp-range=127.0.{index}.10,127.0.{index}.20,255.0.0.0,10m'
                                               for index in range(20)]],
                  'options': ['log-async', 'log-facility']})
+    rows.append({'id': 'async-stream-short-write', 'scope': 'async-transport', 'kind': 'run',
+                 'mode': ['-k'], 'receiver': 'stream', 'fault': 'syslog-short-write', 'fault_target': 'stream-write',
+                 'fault_number': 64, 'fault_errno': 0, 'pidfile': '/m2/logging/daemon.pid',
+                 'argv': ['--log-async=5'], 'options': ['log-async', 'log-facility']})
+    rows.append({'id': 'async-real-reconnect-two-cycles', 'scope': 'async-recovery', 'kind': 'run',
+                 'receiver': 'dgram', 'late_receiver': True, 'argv': ['--log-async=2'],
+                 'options': ['log-async', 'log-facility']})
     for enabled in [False, True]:
         for family, server in [('v4', '127.0.0.2'), ('v6', '::1')]:
             rows.append({'id': 'debug-tcp-' + family + ('-enabled' if enabled else '-disabled'),
@@ -751,7 +758,7 @@ def identity_sequence(transport, calibrate, sticky_probe=None, fresh=False):
 
 
 def run(root, side, case, out):
-    if case.get('scope') in ['daemon', 'scriptuser-boundary', 'startup-fault', 'credential-fault', 'ownership-warning', 'sink-fault', 'error-frame', 'root-access']:
+    if case.get('scope') in ['daemon', 'scriptuser-boundary', 'startup-fault', 'credential-fault', 'ownership-warning', 'sink-fault', 'error-frame', 'root-access', 'async-transport']:
         return run_daemon(root, side, case, out)
     out.mkdir()
     folder = image_path(root, '/m2/logging')
@@ -785,7 +792,7 @@ def run(root, side, case, out):
         (folder / case['file']).chmod(case['file_mode'])
         if 'file_gid' in case:
             os.chown(folder / case['file'], 0, case['file_gid'])
-    receiver = Receiver(root, case.get('receiver'))
+    receiver = Receiver(root, None if case.get('late_receiver') else case.get('receiver'))
     # C selects the DHCP help list only with exactly argc3 and argv[2]=dhcp.
     argv = [] if case['kind'] == 'cli' else ['-C', '/m2/logging/config']
     if case['kind'] != 'cli':
@@ -833,6 +840,23 @@ def run(root, side, case, out):
                         pass
                 time.sleep(.005)
             if observed['ready']:
+                if case.get('late_receiver'):
+                    receiver.close()
+                    receiver = Receiver(root, 'dgram')
+                    process.send_signal(signal.SIGHUP)
+                    time.sleep(.08)
+                    receiver.drain()
+                    first = list(receiver.raw)
+                    receiver.close()
+                    image_path(root, '/dev/log', follow_leaf=False).unlink()
+                    for _ in range(2):
+                        process.send_signal(signal.SIGHUP)
+                        time.sleep(.04)
+                    receiver = Receiver(root, 'dgram')
+                    receiver.raw = first
+                    process.send_signal(signal.SIGHUP)
+                    time.sleep(.08)
+                    receiver.drain()
                 for name, text, trigger in case.get('file_actions', []):
                     (folder / name).write_text(text)
                     if trigger == 'hup':
@@ -1006,7 +1030,7 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
         return value
     report = {'pid': pid, 'fault': case['fault'], 'injected': False, 'events': []}
     attached, pending, pipes, pipe_pointer, error_writer = True, None, 0, None, None
-    socket_pending, logging_socket = False, None
+    socket_pending, logging_socket, logging_socket_type = 0, None, 0
     deadline = time.monotonic() + 5
     def wait_stop():
         while time.monotonic() < deadline:
@@ -1055,7 +1079,7 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                     if case['fault'] == 'error-pipe-flags' and pipes == (2 if side == 'c' else 1):
                         pipe_pointer = args[0]
                 if number == 198 and args[0] == 1:
-                    socket_pending = True
+                    socket_pending = args[1] & 0xf
                 target = ''
                 if number in [57, 55, 64, 66]:
                     try:
@@ -1080,12 +1104,18 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                     match &= args[0] == 2
                 elif case.get('fault_target') in ['socket-write', 'socket-connect']:
                     match &= args[0] == logging_socket
+                elif case.get('fault_target') == 'stream-write':
+                    match &= args[0] == logging_socket and logging_socket_type == 1
                 elif case['fault'].startswith('log-'):
                     match &= target.endswith('/m2/logging/daemon.log')
                 if not match:
                     continue
                 pending = {'number': number, 'args': list(args), 'target': target}
-                if case['fault'] == 'pid-short-write':
+                if case['fault'] == 'syslog-short-write':
+                    value = regs()
+                    value.x[2] = 3
+                    regs(True, value)
+                elif case['fault'] == 'pid-short-write':
                     if number == 66:
                         pending['iov_length'] = ptrace(2, args[1] + 8) & ((1 << 64) - 1)
                         ptrace(5, args[1] + 8, 1)
@@ -1099,7 +1129,8 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                     ptrace(0x4205, 0x404, ctypes.addressof(vec))
             elif operation == 2 and socket_pending and pending is None:
                 logging_socket = struct.unpack_from('=q', info.raw, 24)[0]
-                socket_pending = False
+                logging_socket_type = socket_pending
+                socket_pending = 0
             elif operation == 2 and pipe_pointer is not None and pending is None:
                 word = ptrace(2, pipe_pointer) & ((1 << 64) - 1)
                 error_writer = word >> 32
@@ -1336,6 +1367,11 @@ def compare(reference, candidate, case, reference_only=False):
         overflow = [text for text in messages if 'overflow: ' in text]
         if len(overflow) != 1 or not re.search(r'overflow: [1-9][0-9]* log entries lost$', overflow[0]):
             failures.append({'kind': 'C-async-overflow', 'actual': messages})
+    if case.get('late_receiver'):
+        messages = [bytes.fromhex(value).decode() for value in reference['syslog']]
+        counts = [int(match[1]) for text in messages if (match := re.search(r'overflow: ([0-9]+) log entries lost$', text))]
+        if len(counts) != 2 or not all(value > 0 for value in counts):
+            failures.append({'kind': 'C-async-repeated-overflow-reset', 'counts': counts, 'actual': messages})
     if case.get('tftp_probes'):
         text = reference['stderr'] + ''.join(bytes.fromhex(value).decode() for value in reference['syslog'])
         text += ''.join(bytes.fromhex(value).decode() for value in reference['files'].values())
