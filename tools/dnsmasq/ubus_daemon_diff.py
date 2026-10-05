@@ -9,6 +9,7 @@ import copy
 import json
 import os
 from pathlib import Path
+import resource
 import signal
 import socket
 import struct
@@ -19,6 +20,8 @@ from dns_service_probe import query, semantics, exact_read
 from dhcp_lease_lifecycle import packet as dhcp_packet
 from ubus_contract_diff import BUS, OBJECT, Fixture, digest, fields, read_json_lines
 from dns_udp_refusal_diff import verify_reference
+from ubus_config_diff import cases as config_cases
+from ubus_doctor_diff import cases as doctor_cases, field
 
 
 class Product(Fixture):
@@ -248,6 +251,134 @@ def compare(f, expected, actual, inject_error):
         f.check("paired-" + key, right, left)
 
 
+def client_payload(f, path, method, payload):
+    command = [str(f.client), BUS, "call-raw", path, method, payload.hex()]
+    result = subprocess.run(command, capture_output=True, env=f.env, timeout=3)
+    f.raw.append({"side": f.side, "action": "call-raw", "path": os.fsencode(path).hex(),
+                  "method": method, "payload": payload.hex(), "exit": result.returncode,
+                  "stdout": result.stdout.hex(), "stderr": result.stderr.hex()})
+    assert result.returncode == 0, result.stderr
+    return [json.loads(line) for line in result.stdout.splitlines()]
+
+
+def wait_lookup(f, path, present=True):
+    deadline = time.monotonic() + 3
+    while True:
+        rows = f.client_call("lookup-hex", path)
+        if any(row["event"] == "lookup" for row in rows) == present:
+            return rows
+        assert time.monotonic() < deadline, (path, present, rows)
+        time.sleep(.002)
+
+
+def run_config_contract(f, side):
+    """The image executable, including real registration, observes parser state."""
+    observed = {}
+    f.side = side
+    binary = f.args.c_binary if side == "C" else f.args.rust_binary
+    common = b"no-hosts\nno-resolv\nport=0\nuser=root\ngroup=root\nlog-facility=-\n"
+    for index, (label, body, arguments) in enumerate(config_cases()):
+        path = f.out / f"ubus-parser-{index:02}.conf"
+        path.write_bytes(common + body)
+        command = [os.fsencode(binary), b"--test", b"-C", os.fsencode(path), *arguments]
+        result = subprocess.run(command, capture_output=True, env=f.env, timeout=3)
+        observed["syntax-" + label] = {"exit": result.returncode,
+                                       "stdout": result.stdout.hex(), "stderr": result.stderr.hex()}
+        f.raw.append({"side": side, "config": path.read_bytes().hex(),
+                      "argv": [os.fsencode(arg).hex() for arg in command],
+                      **observed["syntax-" + label]})
+    for index, name in enumerate([b"dnsmasq", b"custom.name", b"dnsmasq.dns",
+                                  b" opaque name ", b"raw\xff\xfe", b"a,b:c/path*?[]",
+                                  b"a" * 1024]):
+        path = f.out / "ubus-name.conf"
+        path.write_bytes(common + b'enable-ubus="' + name + b'"\n')
+        command = [os.fsencode(binary), b"--keep-in-foreground", b"-C", os.fsencode(path),
+                   os.fsencode("--pid-file=" + str(f.out / "name.pid"))]
+        child, log = f.spawn(command, side + "-name")
+        f.daemon = child
+        rows = wait_lookup(f, name)
+        dns_rows = wait_lookup(f, name + b".dns")
+        def signature(rows):
+            return [{"path_hex": row["path_hex"], "signature": fields(row["wire"]),
+                     "has_type": row["type"] > 0} for row in rows if row["event"] == "lookup"]
+        observed[f"name-{index}-main"] = signature(rows)
+        observed[f"name-{index}-dns"] = signature(dns_rows)
+        f.stop(child)
+        wait_lookup(f, name, False)
+        observed[f"name-{index}-pid-removed"] = not (f.out / "name.pid").exists()
+    # An explicit empty option is accepted by read_opts, then dereferences NULL
+    # in image ubus_init after a successful connection. Preserve that defect.
+    path = f.out / "ubus-empty.conf"
+    path.write_bytes(common + b"enable-ubus=\n")
+    child, log = f.spawn([str(binary), "--keep-in-foreground", "-C", str(path)], side + "-empty")
+    child.wait(3)
+    observed["empty-activation"] = {"exit": child.returncode, "log": log.read_bytes().hex()}
+    f.daemon = None
+    return observed
+
+
+def hold_object(f, name):
+    child, log = f.spawn([str(f.client), BUS, "hold", name], "collision-holder")
+    deadline = time.monotonic() + 3
+    while True:
+        ready = [row for row in read_json_lines(log) if row["event"] == "ready"]
+        if ready:
+            assert ready[0]["status"] == 0, ready
+            return child
+        assert child.poll() is None and time.monotonic() < deadline
+        time.sleep(.002)
+
+
+def run_extended(f, side):
+    observed = run_config_contract(f, side)
+    def record(label, value):
+        assert label not in observed
+        observed[label] = value
+    binary = f.args.c_binary if side == "C" else f.args.rust_binary
+    for suffix in ("", ".dns"):
+        holder = hold_object(f, OBJECT + suffix)
+        path = f.out / "ubus-collision.conf"
+        path.write_text("no-hosts\nno-resolv\nport=15353\nuser=root\ngroup=root\n"
+                        "log-facility=-\nenable-ubus=" + OBJECT + "\n")
+        child, log = f.spawn([str(binary), "--keep-in-foreground", "-C", str(path)], side + "-collision")
+        child.wait(3)
+        record("startup-collision" + suffix, {"exit": child.returncode, "log": log.read_bytes().hex()})
+        other = OBJECT + (".dns" if not suffix else "")
+        record("startup-collision-removed-other" + suffix, f.client_call("lookup-hex", other))
+        f.stop(holder)
+        wait_lookup(f, OBJECT + suffix, False)
+    f.start_product(side)
+    for path in (OBJECT, OBJECT + ".dns", "absent.contract"):
+        for method in ("metrics", "set_connmark_allowlist", "absent.method", ""):
+            for index, payload in enumerate([b"", field("ignored", 3, b"value\0"),
+                                             field("ignored", 5, b"\0\0\0\1"), b"\0\0\0\3"]):
+                rows = client_payload(f, path, method, payload)
+                record(f"method-{path}-{method}-{index}",
+                       [{"event": row["event"], **({"fields": fields(row["wire"])}
+                          if row["event"] == "data" else {"status": row["status"]})} for row in rows])
+    f.stop(f.daemon)
+    # Each case gets a fresh daemon cache and real subscriber transition. All C
+    # observations finish before any Rust invocation; no probe process is used.
+    for label, kind, subscribers in doctor_cases():
+        f.start_product(side)
+        watchers = [f.watch(response, delay) for response, delay in subscribers]
+        f.client_call("call", method="metrics")
+        started = time.monotonic()
+        answer = f.exchange(label + ".invalid", kind)
+        elapsed = time.monotonic() - started
+        record("doctor-" + label, answer)
+        f.check(side + "-doctor-bounded-" + label, elapsed < .7, True)
+        if label in ("late", "silent", "data-without-status", "one-peer-silent"):
+            f.check(side + "-doctor-timeout-" + label, .075 <= elapsed < .7, True)
+        for index, (watcher, log) in enumerate(watchers):
+            if label != "disconnect":
+                record(f"doctor-notices-{label}-{index}", f.notices(log, 1))
+            f.stop(watcher)
+        record("doctor-after-" + label, f.metrics())
+        f.stop(f.daemon)
+    return observed
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--reference-build", type=Path, required=True)
@@ -257,6 +388,7 @@ def main():
     parser.add_argument("--rust-binary", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--inject-error", action="store_true")
+    parser.add_argument("--suite", choices=("baseline", "extended"), default="baseline")
     args = parser.parse_args()
     assert os.environ.get("DNSMASQ_TEST_ISOLATED") == "1" and os.geteuid() == 0
     assert not Path("/etc/openwrt_release").exists()
@@ -276,6 +408,7 @@ def main():
     subprocess.run(["mount", "-t", "tmpfs", "-o", "mode=0755", "ubus-product", "/run"], check=True)
     Path(BUS).parent.mkdir()
     f = Product(args, out)
+    resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     upstream_answer = f.upstream.answer
     def timed_answer(packet, transport):
         response = bytearray(upstream_answer(packet, transport))
@@ -286,10 +419,14 @@ def main():
     error, expected, actual = None, {}, {}
     try:
         f.start_bus()
-        expected = run_side(f, "C")
-        assert len(expected) == 69, "frozen paired service schedule changed"
+        schedule = run_side if args.suite == "baseline" else run_extended
+        expected = schedule(f, "C")
+        if args.suite == "baseline":
+            assert len(expected) == 69, "frozen paired service schedule changed"
         (out / "c-observations.json").write_text(json.dumps(expected, indent=2) + "\n")
-        actual = run_side(f, "Rust")
+        f.stop(f.bus)
+        f.start_bus()
+        actual = schedule(f, "Rust")
         compare(f, expected, actual, args.inject_error)
     except Exception as exception:
         error = repr(exception)

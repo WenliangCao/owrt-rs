@@ -139,7 +139,20 @@ int main(int argc, char **argv)
     if (!ctx)
         return 3;
     int ret;
-    if (!strcmp(argv[2], "lookup")) {
+    if (!strcmp(argv[2], "hold")) {
+        struct ubus_object_type object_type = {.name = "contract.holder"};
+        struct ubus_object object = {.name = argv[3], .type = &object_type};
+        uloop_init();
+        ubus_add_uloop(ctx);
+        signal(SIGTERM, stop);
+        signal(SIGINT, stop);
+        ret = ubus_add_object(ctx, &object);
+        printf("{\"event\":\"ready\",\"status\":%d}\n", ret);
+        fflush(stdout);
+        if (!ret)
+            uloop_run();
+        uloop_done();
+    } else if (!strcmp(argv[2], "lookup")) {
         ret = ubus_lookup(ctx, argv[3], lookup, NULL);
     } else if (!strcmp(argv[2], "lookup-hex")) {
         ret = ubus_lookup(ctx, argv[3], lookup_hex, NULL);
@@ -150,9 +163,24 @@ int main(int argc, char **argv)
             ret = UBUS_STATUS_NO_DATA;
         if (ret)
             goto done;
-        if (!strcmp(argv[2], "call") && argc == 5) {
+        if ((!strcmp(argv[2], "call") && argc == 5) ||
+            (!strcmp(argv[2], "call-raw") && argc == 6)) {
             struct blob_buf b = {0};
             blob_buf_init(&b, 0);
+            if (argc == 6) {
+                size_t length = strlen(argv[5]);
+                if (length % 2 || length > 8192)
+                    return 2;
+                unsigned char bytes[4096];
+                for (size_t i = 0; i < length / 2; i++) {
+                    char pair[] = {argv[5][2 * i], argv[5][2 * i + 1], 0};
+                    char *end;
+                    bytes[i] = (unsigned char)strtoul(pair, &end, 16);
+                    if (*end)
+                        return 2;
+                }
+                blob_put_raw(&b, bytes, length / 2);
+            }
             ret = ubus_invoke(ctx, id, argv[4], b.head, data, NULL, 1000);
             blob_buf_free(&b);
         } else if (!strcmp(argv[2], "watch") && argc == 6) {
