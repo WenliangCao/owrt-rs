@@ -279,6 +279,47 @@ def service_cases():
         files={'dir/one':'198.18.91.9 directory.records.test\n'},
         actions=[files.probe('initial','directory.records.test'),files.write('dir/one','198.18.91.10 directory.records.test\n'),
             files.probe('changed','directory.records.test'),{'op':'unlink','path':'dir/one'},files.probe('removed','directory.records.test')])
+    hosts_config='hostsdir=/m2/files/dir\n'
+    for label,config in [('repeated',hosts_config+hosts_config),('relative','hostsdir=m2/files/dir\n'),
+        ('quoted','hostsdir="/m2/files/dir"\n')]:
+        add('hostsdir-'+label,config,[('one.records.test',1),('alias.records.test',1),('v6.records.test',28),
+            ('7.2.0.192.in-addr.arpa',12)],'HDIR-GRAM HDIR-INIT',
+            files={'dir/one':'192.0.2.7 one.records.test alias.records.test\n2001:db8::7 v6.records.test\n'})
+    add('hostsdir-name-filters',hosts_config,[('visible.records.test',1),('dot.records.test',1),('tilde.records.test',1),('hash.records.test',1)],
+        'HDIR-INIT HDIR-EVENT',files={'dir/one':'192.0.2.7 visible.records.test\n','dir/.hidden':'192.0.2.8 dot.records.test\n',
+            'dir/backup~':'192.0.2.9 tilde.records.test\n','dir/#temp#':'192.0.2.10 hash.records.test\n'},actions=[
+                files.probe('initial','visible.records.test'),files.probe('dot','dot.records.test'),files.probe('tilde','tilde.records.test'),files.probe('hash','hash.records.test'),
+                files.write('dir/.hidden','192.0.2.88 dot.records.test\n'),files.probe('dot-close','dot.records.test'),
+                {'op':'unlink','path':'dir/backup~'},files.probe('tilde-delete','tilde.records.test')])
+    add('hostsdir-regular-only',hosts_config,[('regular.records.test',1),('symlink.records.test',1),('subdirectory.records.test',1)],
+        'HDIR-INIT',files={'outside':'192.0.2.8 symlink.records.test\n','dir/one':'192.0.2.7 regular.records.test\n',
+            'dir/symlink':{'symlink':'../outside'},'dir/subdirectory/nested':'192.0.2.9 subdirectory.records.test\n',
+            'dir/fifo':{'initial_kind':'fifo'},'dir/socket':{'initial_kind':'socket'},'dir/device':{'initial_kind':'device'},
+            'dir/dangling':{'symlink':'missing'},'dir/loop':{'symlink':'loop'}})
+    add('hostsdir-identical-loser',hosts_config,[],'HDIR-SOURCE HDIR-EVENT',
+        files={'dir/one':'192.0.2.7 same.records.test\n','dir/two':'192.0.2.7 same.records.test\n'},actions=[
+            files.probe('initial','same.records.test'),{'op':'unlink','path':'dir/one'},files.probe('winner-removed','same.records.test'),
+            files.probe('ancestor-after-remove','records.test'),files.signal_reload(),files.probe('hup-survivor','same.records.test')])
+    add('hostsdir-ptr-loser',hosts_config,[],'HDIR-SOURCE HDIR-EVENT',
+        files={'dir/one':'192.0.2.7 first.records.test\n','dir/two':'192.0.2.7 second.records.test\n'},actions=[
+            files.probe('initial','7.2.0.192.in-addr.arpa',type=12),{'op':'unlink','path':'dir/one'},
+            files.probe('loser-forward','second.records.test'),files.probe('ptr-not-promoted','7.2.0.192.in-addr.arpa',type=12),
+            files.write('dir/two','192.0.2.7 second.records.test\n'),files.probe('rewrite-promotes','7.2.0.192.in-addr.arpa',type=12)])
+    add('hostsdir-open-create-move',hosts_config,[],'HDIR-EVENT HDIR-SOURCE',files={'dir/one':'192.0.2.7 one.records.test\n'},actions=[
+        files.probe('initial','one.records.test'),files.write('dir/new','192.0.2.8 new.records.test\n',hold_open=True),
+        files.probe('create-not-close','new.records.test'),{'op':'close-file','path':'dir/new'},files.probe('closed','new.records.test'),
+        {'op':'rename','path':'dir/one','to':'away'},files.probe('moved-away-stale','one.records.test'),
+        {'op':'rename','path':'away','to':'dir/moved'},files.probe('moved-in','one.records.test'),
+        {'op':'unlink','path':'dir/moved'},files.probe('old-uid-remains','one.records.test'),files.signal_reload(),files.probe('hup-drops-old-uid','one.records.test')])
+    add('hostsdir-atomic-stable-uid',hosts_config,[],'HDIR-EVENT HDIR-SOURCE',files={'dir/one':'192.0.2.7 one.records.test\n'},actions=[
+        files.probe('initial','one.records.test'),files.write('dir/one','192.0.2.8 one.records.test\n',atomic=True),
+        files.probe('atomic','one.records.test'),{'op':'unlink','path':'dir/one'},files.probe('deleted','one.records.test'),
+        files.write('dir/one','192.0.2.9 one.records.test\n'),files.probe('recreated','one.records.test')])
+    add('hostsdir-tcp-view',hosts_config,[],'HDIR-CALLER',files={'dir/one':'192.0.2.7 one.records.test\n'},actions=[
+        dict(op='connect',id='held'),files.probe('child-old','one.records.test',transports=['held']),
+        files.write('dir/one','192.0.2.8 one.records.test\n'),files.probe('parent-new','one.records.test',transports=['udp']),
+        files.probe('child-stays-old','one.records.test',transports=['held']),files.probe('fresh-child','one.records.test',transports=['tcp']),
+        dict(op='disconnect',id='held')])
     def kernel(argv):return dict(op='write',path='kernel-action',text='',kernel_command=argv)
     def state(label):return dict(op='write',path='interface-state',text='',interface_state=label)
     v4only={'name':'m5ir0','addresses':['198.18.91.9/24']}
@@ -610,6 +651,7 @@ def service_cases():
 
 def run_service_side(root,side,case,out):
     states=[];dynamic=[];tracers=[];domain_dhcp=[]
+    local_sockets=[]
     initial_commands_applied=False
     original_put=files.put;original_exchange=files.exchange;original_upstream=files.FileUpstream
     class PreparedUpstream(original_upstream):
@@ -626,6 +668,16 @@ def run_service_side(root,side,case,out):
         if not initial_commands_applied:
             for argv in case.get('initial_kernel_commands',[]):subprocess.run(argv,check=True)
             initial_commands_applied=True
+        if isinstance(value,dict) and 'initial_kind' in value:
+            target=image_path(root,'/m2/files/'+path,follow_leaf=False);target.parent.mkdir(parents=True,exist_ok=True)
+            if value['initial_kind']=='fifo':os.mkfifo(target)
+            elif value['initial_kind']=='socket':
+                endpoint=socket.socket(socket.AF_UNIX,socket.SOCK_STREAM);endpoint.bind(str(target));local_sockets.append(endpoint)
+            elif value['initial_kind']=='device':
+                import stat
+                os.mknod(target,stat.S_IFCHR|0o600,os.makedev(1,3))
+            else:raise AssertionError('unknown nonregular initial fixture')
+            return
         if isinstance(value,dict) and 'domain_dhcp' in value:
             item=value['domain_dhcp'];xid=0xd5930000+len(domain_dhcp)
             spec={'kind':3,'address':'127.0.0.40','prl':[12,15,51,54],
@@ -784,6 +836,7 @@ def run_service_side(root,side,case,out):
         for tracer,path in tracers:
             if tracer.poll() is None:tracer.kill();tracer.wait()
             if path.exists():states.append({'label':'enumeration-fault','evidence':json.loads(path.read_text())})
+        for endpoint in local_sockets:endpoint.close()
         subprocess.run(['ip','link','del','m5peer0'],capture_output=True)
     result['interface_states']=states;result['dynamic_queries']=dynamic;result['domain_dhcp']=domain_dhcp
     save(out/'observed.json',result)
