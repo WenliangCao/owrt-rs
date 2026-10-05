@@ -98,6 +98,7 @@ impl InterfaceRecordConfig {
             _ => return Ok(false),
         };
         validate_directive(directive)?;
+        // validate_directive enforces the required argument for both names.
         self.rules
             .push(parse_rule(directive.argument.as_ref().unwrap(), dynamic)?);
         Ok(true)

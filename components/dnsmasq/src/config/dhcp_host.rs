@@ -76,6 +76,8 @@ pub(super) fn parse_hardware(
                 if group.contains(&b'*') {
                     return Err(Error("bad hex constant"));
                 }
+                // The whole group is ASCII hex above and contains no wildcard;
+                // each fold has at most two digits, so to_digit and u8 math are defined.
                 for pair in group.chunks(2).take(maximum - result.address.len()) {
                     result.address.push(pair.iter().fold(0u8, |value, digit| {
                         value * 16 + (*digit as char).to_digit(16).unwrap() as u8

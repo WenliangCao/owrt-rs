@@ -120,6 +120,7 @@ mod linux {
             if entry.flags & 1 == 0 || entry.name.is_null() {
                 continue;
             }
+            // SAFETY: both pointers are null or sockaddrs in the still-owned list.
             let address = unsafe { interface_ipv4(entry.address) };
             let netmask = unsafe { interface_ipv4(entry.netmask) };
             let (Some(address), Some(netmask)) = (address, netmask) else {
@@ -178,6 +179,7 @@ mod linux {
             if entry.name.is_null() {
                 continue;
             }
+            // SAFETY: null or live list-owned sockaddrs; the helper checks family.
             let address = unsafe { interface_ip(entry.address) };
             let netmask = unsafe { interface_ip(entry.netmask) };
             if let (Some(address), Some(netmask)) = (address, netmask) {
@@ -186,6 +188,8 @@ mod linux {
                 if index != 0 {
                     result.push(DnsInterface {
                         index,
+                        // SAFETY: name was checked non-null and is NUL-terminated
+                        // list-owned storage; copy it before freeifaddrs.
                         name: unsafe { CStr::from_ptr(entry.name) }.to_bytes().to_vec(),
                         address,
                         netmask,
