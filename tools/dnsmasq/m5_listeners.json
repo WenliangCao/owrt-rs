@@ -2,6 +2,33 @@
   "cases": [
     {
       "actions": [],
+      "config": "enable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "wildcard",
+      "name": "socket-unsupported-einval-wildcard",
+      "profile": "socket-unsupported-einval",
+      "socket_errno": 22,
+      "tftp": true
+    },
+    {
+      "actions": [],
+      "config": "enable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "wildcard",
+      "name": "socket-unsupported-eafnosupport-wildcard",
+      "profile": "socket-unsupported-eafnosupport",
+      "socket_errno": 97,
+      "tftp": true
+    },
+    {
+      "actions": [],
+      "config": "enable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "wildcard",
+      "name": "socket-unsupported-eprotonosupport-wildcard",
+      "profile": "socket-unsupported-eprotonosupport",
+      "socket_errno": 93,
+      "tftp": true
+    },
+    {
+      "actions": [],
       "config": "",
       "mode": "wildcard",
       "name": "ordinary-wildcard",
@@ -247,6 +274,33 @@
     },
     {
       "actions": [],
+      "config": "bind-interfaces\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "static",
+      "name": "socket-unsupported-einval-static",
+      "profile": "socket-unsupported-einval",
+      "socket_errno": 22,
+      "tftp": true
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "static",
+      "name": "socket-unsupported-eafnosupport-static",
+      "profile": "socket-unsupported-eafnosupport",
+      "socket_errno": 97,
+      "tftp": true
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "static",
+      "name": "socket-unsupported-eprotonosupport-static",
+      "profile": "socket-unsupported-eprotonosupport",
+      "socket_errno": 93,
+      "tftp": true
+    },
+    {
+      "actions": [],
       "config": "bind-interfaces\n",
       "mode": "static",
       "name": "ordinary-static",
@@ -488,6 +542,33 @@
       "mode": "static",
       "name": "tftp-unowned-loopback-change-static",
       "profile": "tftp-unowned-loopback-change",
+      "tftp": true
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "dynamic",
+      "name": "socket-unsupported-einval-dynamic",
+      "profile": "socket-unsupported-einval",
+      "socket_errno": 22,
+      "tftp": true
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "dynamic",
+      "name": "socket-unsupported-eafnosupport-dynamic",
+      "profile": "socket-unsupported-eafnosupport",
+      "socket_errno": 97,
+      "tftp": true
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "dynamic",
+      "name": "socket-unsupported-eprotonosupport-dynamic",
+      "profile": "socket-unsupported-eprotonosupport",
+      "socket_errno": 93,
       "tftp": true
     },
     {
@@ -1255,6 +1336,9 @@
     }
   },
   "required_cases": [
+    "socket-unsupported-einval-wildcard",
+    "socket-unsupported-eafnosupport-wildcard",
+    "socket-unsupported-eprotonosupport-wildcard",
     "ordinary-wildcard",
     "interface-wildcard",
     "union-wildcard",
@@ -1287,6 +1371,9 @@
     "tftp-only-wildcard",
     "unowned-loopback-change-wildcard",
     "tftp-unowned-loopback-change-wildcard",
+    "socket-unsupported-einval-static",
+    "socket-unsupported-eafnosupport-static",
+    "socket-unsupported-eprotonosupport-static",
     "ordinary-static",
     "interface-static",
     "union-static",
@@ -1319,6 +1406,9 @@
     "tftp-only-static",
     "unowned-loopback-change-static",
     "tftp-unowned-loopback-change-static",
+    "socket-unsupported-einval-dynamic",
+    "socket-unsupported-eafnosupport-dynamic",
+    "socket-unsupported-eprotonosupport-dynamic",
     "ordinary-dynamic",
     "interface-dynamic",
     "union-dynamic",
@@ -1514,7 +1604,10 @@
         "unowned-scope",
         "occupied-udp-v6",
         "occupied-tcp-v6",
-        "occupied-tftp-v6"
+        "occupied-tftp-v6",
+        "socket-unsupported-einval",
+        "socket-unsupported-eafnosupport",
+        "socket-unsupported-eprotonosupport"
       ],
       "source": "dnsmasq.c:369-389; network.c:894-966"
     },
