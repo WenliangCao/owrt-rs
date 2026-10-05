@@ -107,6 +107,13 @@
     },
     {
       "actions": [],
+      "config": "listen-address=fe80::ff\n",
+      "mode": "wildcard",
+      "name": "unowned-scope-wildcard",
+      "profile": "unowned-scope"
+    },
+    {
+      "actions": [],
       "config": "interface=absent0\n",
       "mode": "wildcard",
       "name": "missing-wildcard",
@@ -323,6 +330,13 @@
       "mode": "static",
       "name": "explicit-any6-static",
       "profile": "explicit-any6"
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\nlisten-address=fe80::ff\n",
+      "mode": "static",
+      "name": "unowned-scope-static",
+      "profile": "unowned-scope"
     },
     {
       "actions": [],
@@ -545,6 +559,13 @@
     },
     {
       "actions": [],
+      "config": "bind-dynamic\nlisten-address=fe80::ff\n",
+      "mode": "dynamic",
+      "name": "unowned-scope-dynamic",
+      "profile": "unowned-scope"
+    },
+    {
+      "actions": [],
       "config": "bind-dynamic\ninterface=absent0\n",
       "mode": "dynamic",
       "name": "missing-dynamic",
@@ -733,11 +754,27 @@
     },
     {
       "actions": [],
+      "config": "bind-interfaces\nlisten-address=fd42:ffff::1\n",
+      "mode": "static",
+      "name": "missing-address-v6-static",
+      "profile": "missing-address-v6"
+    },
+    {
+      "actions": [],
       "blocker": "udp",
       "config": "bind-interfaces\ninterface=lan\n",
       "mode": "static",
       "name": "occupied-udp-static",
       "profile": "occupied-udp"
+    },
+    {
+      "actions": [],
+      "blocker": "udp",
+      "blocker_v6": true,
+      "config": "bind-interfaces\ninterface=lan\n",
+      "mode": "static",
+      "name": "occupied-udp-v6-static",
+      "profile": "occupied-udp-v6"
     },
     {
       "actions": [],
@@ -749,11 +786,29 @@
     },
     {
       "actions": [],
+      "blocker": "tcp",
+      "blocker_v6": true,
+      "config": "bind-interfaces\ninterface=lan\n",
+      "mode": "static",
+      "name": "occupied-tcp-v6-static",
+      "profile": "occupied-tcp-v6"
+    },
+    {
+      "actions": [],
       "blocker": "tftp",
       "config": "bind-interfaces\ninterface=lan\nenable-tftp\ntftp-root=/m2/tftp\n",
       "mode": "static",
       "name": "occupied-tftp-static",
       "profile": "occupied-tftp"
+    },
+    {
+      "actions": [],
+      "blocker": "tftp",
+      "blocker_v6": true,
+      "config": "bind-interfaces\ninterface=lan\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "static",
+      "name": "occupied-tftp-v6-static",
+      "profile": "occupied-tftp-v6"
     },
     {
       "actions": [
@@ -831,11 +886,27 @@
     },
     {
       "actions": [],
+      "config": "bind-dynamic\nlisten-address=fd42:ffff::1\n",
+      "mode": "dynamic",
+      "name": "missing-address-v6-dynamic",
+      "profile": "missing-address-v6"
+    },
+    {
+      "actions": [],
       "blocker": "udp",
       "config": "bind-dynamic\ninterface=lan\n",
       "mode": "dynamic",
       "name": "occupied-udp-dynamic",
       "profile": "occupied-udp"
+    },
+    {
+      "actions": [],
+      "blocker": "udp",
+      "blocker_v6": true,
+      "config": "bind-dynamic\ninterface=lan\n",
+      "mode": "dynamic",
+      "name": "occupied-udp-v6-dynamic",
+      "profile": "occupied-udp-v6"
     },
     {
       "actions": [],
@@ -847,11 +918,29 @@
     },
     {
       "actions": [],
+      "blocker": "tcp",
+      "blocker_v6": true,
+      "config": "bind-dynamic\ninterface=lan\n",
+      "mode": "dynamic",
+      "name": "occupied-tcp-v6-dynamic",
+      "profile": "occupied-tcp-v6"
+    },
+    {
+      "actions": [],
       "blocker": "tftp",
       "config": "bind-dynamic\ninterface=lan\nenable-tftp\ntftp-root=/m2/tftp\n",
       "mode": "dynamic",
       "name": "occupied-tftp-dynamic",
       "profile": "occupied-tftp"
+    },
+    {
+      "actions": [],
+      "blocker": "tftp",
+      "blocker_v6": true,
+      "config": "bind-dynamic\ninterface=lan\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "dynamic",
+      "name": "occupied-tftp-v6-dynamic",
+      "profile": "occupied-tftp-v6"
     },
     {
       "actions": [
@@ -1114,6 +1203,7 @@
     "unowned-loopback-wildcard",
     "explicit-any4-wildcard",
     "explicit-any6-wildcard",
+    "unowned-scope-wildcard",
     "missing-wildcard",
     "no-address-wildcard",
     "down-link-wildcard",
@@ -1143,6 +1233,7 @@
     "unowned-loopback-static",
     "explicit-any4-static",
     "explicit-any6-static",
+    "unowned-scope-static",
     "missing-static",
     "no-address-static",
     "down-link-static",
@@ -1172,6 +1263,7 @@
     "unowned-loopback-dynamic",
     "explicit-any4-dynamic",
     "explicit-any6-dynamic",
+    "unowned-scope-dynamic",
     "missing-dynamic",
     "no-address-dynamic",
     "down-link-dynamic",
@@ -1193,9 +1285,13 @@
     "tftp-dad-static",
     "tftp-dad-low-port-static",
     "missing-address-static",
+    "missing-address-v6-static",
     "occupied-udp-static",
+    "occupied-udp-v6-static",
     "occupied-tcp-static",
+    "occupied-tcp-v6-static",
     "occupied-tftp-static",
+    "occupied-tftp-v6-static",
     "dad-dynamic",
     "dad-explicit-dynamic",
     "dad-failed-dynamic",
@@ -1203,9 +1299,13 @@
     "tftp-dad-dynamic",
     "tftp-dad-low-port-dynamic",
     "missing-address-dynamic",
+    "missing-address-v6-dynamic",
     "occupied-udp-dynamic",
+    "occupied-udp-v6-dynamic",
     "occupied-tcp-dynamic",
+    "occupied-tcp-v6-dynamic",
     "occupied-tftp-dynamic",
+    "occupied-tftp-v6-dynamic",
     "late-interface-dynamic",
     "late-address-dynamic",
     "duplicate-address-dynamic",
@@ -1332,7 +1432,12 @@
         "missing",
         "occupied-udp",
         "occupied-tcp",
-        "occupied-tftp"
+        "occupied-tftp",
+        "missing-address-v6",
+        "unowned-scope",
+        "occupied-udp-v6",
+        "occupied-tcp-v6",
+        "occupied-tftp-v6"
       ],
       "source": "dnsmasq.c:369-389; network.c:894-966"
     },
