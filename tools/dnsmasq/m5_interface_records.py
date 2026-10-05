@@ -8,9 +8,12 @@ from __future__ import annotations
 
 import argparse
 import copy
+import ctypes
+import errno
 import ipaddress
 import json
 import os
+import platform
 from pathlib import Path
 import resource
 import signal
@@ -18,6 +21,7 @@ import socket
 import struct
 import shutil
 import subprocess
+import sys
 import time
 import traceback
 
@@ -242,7 +246,7 @@ def service_cases():
         [('iface.records.test',1),('iface.records.test',28),('iface.records.test',255)],'IF-ENUM IF-FWD',
         topology=[{'name':'m5ir0','addresses':['198.18.91.9/24','198.18.91.10/24','2001:db8:91::9/64','2001:db8:91::10/64']}])
     for ttl in (0,77):
-        add('interface-ttl-'+str(tt),'interface-name=iface.records.test,m5ir0\nlocal-ttl='+str(ttl)+'\n',full,'IF-FWD',topology=[primary])
+        add('interface-ttl-'+str(ttl),'interface-name=iface.records.test,m5ir0\nlocal-ttl='+str(ttl)+'\n',full,'IF-FWD',topology=[primary])
     bit_probes=[files.probe('kind'+str(kind)+'-class'+str(cls)+'-rd'+str(rd)+'-do'+str(dnssec)+'-cd'+str(cd),
             'iface.records.test',type=kind,**{'class':cls,'query_flags':256 if rd else 0,'do':dnssec,'cd':cd})
         for kind in (1,28,255,16) for cls,rd,dnssec,cd in ((1,False,False,False),(1,True,True,True),(255,True,False,False),(3,True,False,False))]
@@ -321,16 +325,32 @@ def service_cases():
     add('interface-flag-optimistic','interface-name=iface.records.test,m5ir0\n',[],'IF-FLAGS',topology=[v4only],actions=[
         *dad[:-1],kernel(['ip','-6','addr','change','2001:db8:91::9/64','dev','m5ir0','optimistic']),state('optimistic'),
         *mutation_probes('optimistic','2001:db8:91::9')])
+    for stage in ('before-clear','empty','partial'):
+        add('interface-enum-fault-'+stage,'interface-name=iface.records.test,m5ir0\n',[],
+            'IF-CALLER',topology=[primary],actions=[files.probe('initial','iface.records.test',transports=['udp']),
+            kernel(['ip','addr','add','198.18.91.10/24','dev','m5ir0']),
+            dict(op='write',path='enum-fault',text='',enumeration_fault=stage),
+            files.probe('faulted','iface.records.test',transports=['udp']),
+            files.probe('ptr-old','9.91.18.198.in-addr.arpa',type=12,transports=['udp']),
+            files.probe('ptr-new','10.91.18.198.in-addr.arpa',type=12,transports=['udp']),
+            files.probe('ptr-v6',ipaddress.ip_address('2001:db8:91::9').reverse_pointer,type=12,transports=['udp']),
+            files.probe('recovered','iface.records.test',transports=['udp'])])
     return cases
 
 
 def run_service_side(root,side,case,out):
-    states=[];dynamic=[]
+    states=[];dynamic=[];tracers=[]
     original_put=files.put;original_exchange=files.exchange
     def record(label):
         states.append({'label':label,'at':time.monotonic(),'addresses':json.loads(subprocess.check_output(['ip','-j','address','show'],text=True)),
             'ipv6_flags':Path('/proc/net/if_inet6').read_text()})
     def put(root,path,value,opened):
+        if isinstance(value,dict) and 'enumeration_fault' in value:
+            pid=int((root/'m2/files.pid').read_text());path=out/('fault-'+value['enumeration_fault']+'.json')
+            tracer=subprocess.Popen([sys.executable,str(Path(__file__).resolve()),'--trace-enumeration',str(pid),side,value['enumeration_fault'],str(path)])
+            files.await_predicate(lambda:Path(str(path)+'.ready').exists() or tracer.poll() is not None,'enumeration fault attach')
+            if tracer.poll() is not None:raise AssertionError('enumeration fault tracer exited')
+            tracers.append((tracer,path));return
         if isinstance(value,dict) and 'kernel_command' in value:
             subprocess.run(value['kernel_command'],check=True)
             return
@@ -368,11 +388,20 @@ def run_service_side(root,side,case,out):
             return {'id':action['id']+':'+transport,'response':files.semantics(response) if response else None,'error':error,
                 'request':packet.hex(),'reply':response.hex() if response else None,'elapsed':time.monotonic()-started,'cache':False,
                 'upstreams':[{'server':u.host,'events':copy.deepcopy(u.events[n:])} for u,n in zip(upstreams,before)]}
-        return original_exchange(port,action,*args)
+        row=original_exchange(port,action,*args)
+        if action['id']=='faulted':
+            for tracer,path in tracers:
+                if tracer.wait(5)!=0:raise AssertionError('enumeration fault injection failed')
+                evidence=json.loads(path.read_text())
+                if not evidence.get('injected'):raise AssertionError('enumeration failure was not witnessed')
+        return row
     files.put=put;files.exchange=exchange
     try:result=endpoints.run_service_side(root,side,case,out)
     finally:
         files.put=original_put;files.exchange=original_exchange
+        for tracer,path in tracers:
+            if tracer.poll() is None:tracer.kill();tracer.wait()
+            if path.exists():states.append({'label':'enumeration-fault','evidence':json.loads(path.read_text())})
         subprocess.run(['ip','link','del','m5peer0'],capture_output=True)
     result['interface_states']=states;result['dynamic_queries']=dynamic
     save(out/'observed.json',result)
@@ -445,4 +474,70 @@ def main():
     return int(bool(report['failures']))
 
 
-if __name__=='__main__':raise SystemExit(main())
+def trace_enumeration(pid,side,stage,output):
+    """Fault only a selected namespace daemon at a real enumeration syscall."""
+    if platform.machine()!='aarch64':raise RuntimeError('ptrace ABI is pinned AArch64')
+    class Iovec(ctypes.Structure):
+        _fields_=[('base',ctypes.c_void_p),('length',ctypes.c_size_t)]
+    libc=ctypes.CDLL(None,use_errno=True);libc.ptrace.restype=ctypes.c_long
+    def ptrace(request,address=0,data=0):
+        ctypes.set_errno(0)
+        result=libc.ptrace(ctypes.c_uint(request),ctypes.c_uint(pid),ctypes.c_void_p(address),ctypes.c_void_p(data))
+        if result==-1 and ctypes.get_errno():raise OSError(ctypes.get_errno(),'ptrace')
+        return result
+    registers=(ctypes.c_ulonglong*34)()
+    def regs(write=False):
+        iov=Iovec(ctypes.addressof(registers),ctypes.sizeof(registers))
+        ptrace(0x4205 if write else 0x4204,1,ctypes.addressof(iov))
+    def memory(address,length):
+        buffer=(ctypes.c_ubyte*length)();local=Iovec(ctypes.addressof(buffer),length);remote=Iovec(address,length)
+        count=libc.process_vm_readv(pid,ctypes.byref(local),1,ctypes.byref(remote),1,0)
+        if count!=length:raise AssertionError('tracee memory read failed')
+        return bytes(buffer)
+    report={'pid':pid,'side':side,'stage':stage,'events':[],'injected':False};attached=False
+    armed=None;received=False;fault=False;active=None
+    try:
+        ptrace(16);os.waitpid(pid,0);attached=True;ptrace(0x4200,0,1)
+        Path(str(output)+'.ready').write_text('attached\n')
+        while True:
+            ptrace(24);_,status=os.waitpid(pid,0)
+            if not os.WIFSTOPPED(status):raise AssertionError('tracee ended before fault')
+            if os.WSTOPSIG(status)!=(signal.SIGTRAP|0x80):continue
+            info=(ctypes.c_ubyte*128)();ptrace(0x420e,ctypes.sizeof(info),ctypes.addressof(info));regs()
+            if info[0]==1:
+                number=int(registers[8]);active={'syscall':number,'fd':int(registers[0])};fault=False
+                if number==206 and int(registers[2])>=17:
+                    request=memory(registers[1],17)
+                    kind=struct.unpack_from('=H',request,4)[0];family=request[16]
+                    if kind==22:
+                        armed=int(registers[0]);received=False
+                        active.update(dump_family=family,dump_type=kind)
+                        report['events'].append(dict(active,phase='request'))
+                if stage=='before-clear':
+                    fault=number==198 and int(registers[0])==(2 if side=='c' else 16) and (int(registers[1])&15)==(2 if side=='c' else 3)
+                elif armed is not None and number in (207,212) and int(registers[0])==armed:
+                    family=next(row['dump_family'] for row in reversed(report['events']) if 'dump_family' in row)
+                    fault=stage=='empty' or (stage=='partial' and (family==2 if side=='c' else received))
+                if fault:
+                    call=ctypes.c_int(-1);iov=Iovec(ctypes.addressof(call),ctypes.sizeof(call));ptrace(0x4205,0x404,ctypes.addressof(iov))
+            elif info[0]==2 and active:
+                returned=ctypes.c_longlong(registers[0]).value
+                if fault:
+                    registers[0]=(1<<64)-errno.EIO;regs(write=True)
+                    report['events'].append(dict(active,phase='return',result=-errno.EIO,injected=True));report['injected']=True
+                    ptrace(17);attached=False;break
+                if armed is not None and active['fd']==armed and active['syscall'] in (207,212):
+                    report['events'].append(dict(active,phase='return',result=returned,injected=False));received|=returned>0
+                active=None
+    finally:
+        if attached:
+            try:ptrace(17)
+            except OSError:pass
+        save(Path(output),report)
+    return 0
+
+
+if __name__=='__main__':
+    if len(sys.argv)>1 and sys.argv[1]=='--trace-enumeration':
+        raise SystemExit(trace_enumeration(int(sys.argv[2]),sys.argv[3],sys.argv[4],sys.argv[5]))
+    raise SystemExit(main())
