@@ -2080,6 +2080,7 @@ impl LocalProvider {
                     ));
             }
         }
+        let configured_disabled = configured.is_some_and(|host| host.ignore);
         let request_tags = &self.request_tags;
         let ranges_selected = &self.selected;
         let range_config = &self.config.ranges;
@@ -2115,6 +2116,17 @@ impl LocalProvider {
             };
         let mut on_event = |event: super::state::LogEvent<'_>| {
             let (kind, address, name, has_error) = match event {
+                super::state::LogEvent::Warning { message } => {
+                    packet_notices
+                        .borrow_mut()
+                        .push(crate::logging::LogEvent::new(
+                            crate::logging::Service::Dhcp,
+                            crate::logging::Priority::Warning,
+                            message.to_vec(),
+                        ));
+                    return;
+                }
+
                 super::state::LogEvent::Tags { context } => {
                     if logging.log_options {
                         let mut tags: Vec<_> = request_tags.iter().map(Vec::as_slice).collect();
@@ -2146,6 +2158,14 @@ impl LocalProvider {
                     extra,
                     error,
                 } => {
+                    let error = if kind == b"BOOTP"
+                        && error == Some(b"ignored".as_slice())
+                        && configured_disabled
+                    {
+                        Some(b"disabled".as_slice())
+                    } else {
+                        error
+                    };
                     packet_notice(kind, address, extra, error);
                     return;
                 }
@@ -2361,7 +2381,7 @@ impl OutcomeProvider for LocalProvider {
             return;
         }
         let xid = request.transaction_id();
-        let mut notices = if matches!(reply, Reply::Nak { .. }) {
+        let mut notices = if matches!(reply, Reply::Nak { .. } | Reply::Bootp { .. }) {
             Vec::new()
         } else {
             request.option(55, 0).map_or_else(Vec::new, |codes| {
