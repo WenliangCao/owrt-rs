@@ -387,7 +387,8 @@
       "case_catalogue": [
         "range-interface-aliases--first-local",
         "range-address-update--mask-and-restore",
-        "range-multi-interface--guest"
+        "range-multi-interface--guest",
+        "range-address-update--queued-pxe-after-probe"
       ],
       "cases": [
         "range-multi-interface",
@@ -762,7 +763,8 @@
       "case_catalogue": [
         "range-probe-retry--eagain-exhaustion",
         "range-probe-progress--dns-tftp",
-        "range-probe-progress--send-failure-dns-tftp"
+        "range-probe-progress--send-failure-dns-tftp",
+        "range-address-update--queued-pxe-after-probe"
       ],
       "cases": [
         "range-probe-progress"
