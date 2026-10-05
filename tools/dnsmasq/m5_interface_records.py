@@ -305,6 +305,15 @@ def service_cases():
             'dhcp-leasefile=/m2/files/leases\n',
             [('leased.chosen.records.test',1),('leased.fallback.records.test',1),('20.91.18.198.in-addr.arpa',12)],
             'DOM-CALLER',topology=[primary],files={'hosts':'198.18.91.77 local\n','leases':'4102444800 02:00:00:91:00:20 198.18.91.20 leased *\n'})
+        lease_config=option+'=fallback.records.test\n'+option+'=chosen.records.test,lo\ninterface=lo\nno-ping\n'
+        lease_config+='dhcp-range=127.0.0.40,127.0.0.60,255.0.0.0,600\ndhcp-leasefile=/m2/files/leases\n'
+        for disabled in (False,True):
+            add(option+'-new-lease-'+('port0' if disabled else 'dns'),lease_config,[],
+                'DOM-CALLER',dns_disabled=disabled,files={'leases':''},actions=[
+                    dict(op='write',path='domain-dhcp',text='',domain_dhcp={'label':'first','hostname':'client','domain':'chosen.records.test'}),
+                    dict(op='write',path='domain-dhcp',text='',domain_dhcp={'label':'changed','hostname':'changed','domain':'chosen.records.test'}),
+                    *([] if disabled else [files.probe('first-old','client.chosen.records.test'),files.probe('new-name','changed.chosen.records.test'),
+                        files.probe('reverse','40.0.0.127.in-addr.arpa',type=12)])])
     def mutation_probes(label,address):return [files.probe(label+'-aaaa','iface.records.test',type=28),files.probe(label+'-ptr',ipaddress.ip_address(address).reverse_pointer,type=12)]
     add('interface-flag-deprecated','interface-name=iface.records.test,m5ir0\n',[],
         'IF-FLAGS',topology=[v4only],actions=[kernel(['ip','-6','addr','add','2001:db8:91::9/64','dev','m5ir0','nodad','valid_lft','600','preferred_lft','0']),state('deprecated'),*mutation_probes('deprecated','2001:db8:91::9')])
@@ -600,7 +609,7 @@ def service_cases():
 
 
 def run_service_side(root,side,case,out):
-    states=[];dynamic=[];tracers=[]
+    states=[];dynamic=[];tracers=[];domain_dhcp=[]
     initial_commands_applied=False
     original_put=files.put;original_exchange=files.exchange;original_upstream=files.FileUpstream
     class PreparedUpstream(original_upstream):
@@ -617,6 +626,22 @@ def run_service_side(root,side,case,out):
         if not initial_commands_applied:
             for argv in case.get('initial_kernel_commands',[]):subprocess.run(argv,check=True)
             initial_commands_applied=True
+        if isinstance(value,dict) and 'domain_dhcp' in value:
+            item=value['domain_dhcp'];xid=0xd5930000+len(domain_dhcp)
+            spec={'kind':3,'address':'127.0.0.40','prl':[12,15,51,54],
+                'extra':[(12,item['hostname'].encode().hex())]}
+            request=files.dhcp_wire.request(spec,xid)
+            with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as client:
+                client.bind(('0.0.0.0',68));client.setsockopt(socket.SOL_SOCKET,socket.SO_BROADCAST,1)
+                client.setsockopt(socket.SOL_SOCKET,25,b'lo\0')
+                response,peer,foreign,drained=files.dhcp_wire.receive(client,request,('127.0.0.1',67),timeout=1)
+            if response is None:raise AssertionError('domain DHCP ACK missing')
+            options={code:bytes.fromhex(value) for code,value in files.dhcp_wire.options(response)}
+            if options.get(53)!=b'\x05' or options.get(15)!=item['domain'].encode():raise AssertionError('DHCP address domain not consumed')
+            if options.get(12)!=item['hostname'].encode():raise AssertionError('DHCP hostname update missing')
+            domain_dhcp.append({'label':item['label'],'request':request.hex(),'reply':response.hex(),
+                'domain':options[15].decode(),'hostname':options[12].decode(),'address':socket.inet_ntoa(response[16:20])})
+            return
         if isinstance(value,dict) and 'enumeration_cycle' in value:
             pid=int((root/'m2/files.pid').read_text());path=out/'same-cycle.json'
             tracer=subprocess.Popen([sys.executable,str(Path(__file__).resolve()),'--trace-enumeration',str(pid),side,'count',str(path)])
@@ -744,6 +769,8 @@ def run_service_side(root,side,case,out):
         row=original_exchange(port,action,*args)
         if action['id']=='ready' and row.get('response') and not any(state['label']=='initial-kernel' for state in states):
             record('initial-kernel')
+        if action['id']=='ready' and case.get('dns_disabled') and (root/'m2/files.pid').exists() and not any(state['label']=='initial-kernel' for state in states):
+            record('initial-kernel')
         if action['id']=='faulted':
             for tracer,path in tracers:
                 if tracer.wait(5)!=0:raise AssertionError('enumeration fault injection failed')
@@ -758,7 +785,7 @@ def run_service_side(root,side,case,out):
             if tracer.poll() is None:tracer.kill();tracer.wait()
             if path.exists():states.append({'label':'enumeration-fault','evidence':json.loads(path.read_text())})
         subprocess.run(['ip','link','del','m5peer0'],capture_output=True)
-    result['interface_states']=states;result['dynamic_queries']=dynamic
+    result['interface_states']=states;result['dynamic_queries']=dynamic;result['domain_dhcp']=domain_dhcp
     save(out/'observed.json',result)
     return result
 
@@ -790,6 +817,11 @@ def witness_errors(observed,side,case):
         if not any(state['label']=='initial-kernel' for state in observed.get('interface_states',[])):
             errors.append('initial actual kernel address/flag witness missing')
     for action in case['actions']:
+        if action.get('domain_dhcp'):
+            wanted=action['domain_dhcp']
+            actual=next((row for row in observed.get('domain_dhcp',[]) if row['label']==wanted['label']),None)
+            if not actual or actual['domain']!=wanted['domain'] or actual['hostname']!=wanted['hostname'] or actual['address']!='127.0.0.40':
+                errors.append('actual DHCP address-domain/name consumer witness missing')
         if action.get('local_address_ttl') is not None:
             rows=[row for row in observed['rows'] if row['id'].startswith(action['id']+':')]
             if not rows or any(record['ttl']!=action['local_address_ttl'] for row in rows for record in (row.get('response') or {}).get('records',[]) if record['type'] in (1,28)):
@@ -827,6 +859,13 @@ def controls():
                          ('allocation-did-not-fail',lambda x:x['calls'][0].update(returned=1)),
                          ('wrong-allocator-pc',lambda x:x['calls'][0].update(pc=101))]:
         bad=copy.deepcopy(allocation);change(bad['interface_states'][-1]['evidence']);assert witness_errors(bad,'c',case);found.append(label)
+    wanted={'label':'first','hostname':'client','domain':'chosen.records.test'}
+    consumer=dict(base,domain_dhcp=[dict(wanted,address='127.0.0.40')])
+    case={'id':'domain-consumer','actions':[{'domain_dhcp':wanted}]}
+    assert not witness_errors(consumer,'c',case)
+    for label,change in [('missing-dhcp-domain-consumer',lambda x:x.update(domain_dhcp=[])),
+        ('wrong-dhcp-domain',lambda x:x['domain_dhcp'][0].update(domain='fallback.records.test'))]:
+        bad=copy.deepcopy(consumer);change(bad);assert witness_errors(bad,'c',case);found.append(label)
     return found
 
 
@@ -856,7 +895,9 @@ def compare_service(left,right,case):
         left=copy.deepcopy(left);right=copy.deepcopy(right);case=copy.deepcopy(case)
         for observed in (left,right):observed['rows']=[row for row in observed['rows'] if row['id'] not in removed]
         case['actions']=[a for a in case['actions'] if a.get('id') not in {'debug-parent'}]
-    return files.compare(comparable_service(left),comparable_service(right),case),differences
+    failures=files.compare(comparable_service(left),comparable_service(right),case)
+    if left.get('domain_dhcp',[])!=right.get('domain_dhcp',[]):failures.append('actual DHCP domain packets differ')
+    return failures,differences
 
 
 def run_syntax(root,side,case,out):
