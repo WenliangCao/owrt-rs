@@ -112,6 +112,9 @@ fn main() {
     }
     let args: Vec<OsString> = std::env::args_os().skip(1).collect();
     if let Err(error) = run(&args) {
+        if error.is::<SilentStartupError>() {
+            std::process::exit(startup_status(error.as_ref()));
+        }
         // inotify is initialized after PID/privilege setup, when C's ordinary
         // foreground logging no longer uses stderr. Debug mode still does.
         #[cfg(target_os = "linux")]
@@ -150,6 +153,17 @@ impl std::fmt::Display for NetworkStartupError {
 }
 impl std::error::Error for NetworkStartupError {}
 
+#[derive(Debug)]
+struct SilentStartupError(dnsmasq_rs::startup::StartupError);
+
+impl std::fmt::Display for SilentStartupError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(formatter)
+    }
+}
+
+impl std::error::Error for SilentStartupError {}
+
 fn startup_status(error: &(dyn std::error::Error + 'static)) -> i32 {
     // dnsmasq.h: EC_BADCONF=1, EC_BADNET=2. Other initialization boundaries
     // supply their own code rather than guessing from an errno alone.
@@ -158,6 +172,9 @@ fn startup_status(error: &(dyn std::error::Error + 'static)) -> i32 {
     }
     if let Some(error) = error.downcast_ref::<dnsmasq_rs::startup::StartupError>() {
         return error.code;
+    }
+    if let Some(error) = error.downcast_ref::<SilentStartupError>() {
+        return error.0.code;
     }
     if error.is::<NetworkStartupError>()
         || matches!(
@@ -885,6 +902,11 @@ fn run_inner(
                     &runtime.process,
                     &error.message,
                 );
+                // C selects log_stderr before dup(), so this failure already
+                // has its syslog report and die() does not echo it to stderr.
+                if runtime.logging.file.as_deref() == Some(std::path::Path::new("-")) {
+                    return Err(Box::new(SilentStartupError(error)));
+                }
             }
             return Err(Box::new(error));
         }
