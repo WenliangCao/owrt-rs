@@ -2437,6 +2437,9 @@ impl PollTcpClient {
                                 let _ = stream.shutdown(std::net::Shutdown::Both);
                             }
                             self.refreshing_stale = true;
+                            // forward.c:2782-2784: background TCP refresh keeps
+                            // its display ID after the client is closed.
+                            self.query_context.client = None;
                             match self.run_forward(parent, Some(&query), self.no_cache)? {
                                 TcpServiceProgress::Pending(wait) => {
                                     self.phase = TcpClientPhase::Forwarding {
