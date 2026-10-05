@@ -94,6 +94,15 @@ def cases():
         {'id': 'facility-file-origins', 'scope': 'sink', 'kind': 'run',
          'config': 'log-facility=/m2/logging/daemon.log\n', 'file': 'daemon.log',
          'argv': ['--log-facility=local3'], 'options': ['log-facility']},
+        {'id': 'stderr-sigusr2-keeps-fd', 'scope': 'sink', 'kind': 'run',
+         'argv': ['--log-facility=-'], 'sink_edge': 'preserve', 'options': ['log-facility']},
+        {'id': 'syslog-sigusr2-keeps-fd', 'scope': 'sink', 'kind': 'run',
+         'argv': [], 'receiver': 'dgram', 'facility': 24,
+         'sink_edge': 'preserve', 'options': ['log-facility']},
+        {'id': 'file-reopen-recovers-owner', 'scope': 'sink', 'kind': 'run', 'mode': ['-d'],
+         'argv': ['--log-facility=/m2/logging/daemon.log'], 'file': 'daemon.log',
+         'receiver': 'dgram', 'user': 'nobody', 'sink_edge': 'recover',
+         'options': ['log-facility']},
     ])
     for name in ['', 'local8', 'audit', '24', 'foo']:
         rows.append({'id': 'bad-facility-' + (name or 'empty'), 'scope': 'sink',
@@ -268,12 +277,74 @@ def cases():
                  'facility': 24, 'async_notice': 3, 'options': ['log-async']})
     rows.append({'id': 'async-repeat-cli', 'scope': 'async', 'kind': 'test', 'exit': 1,
                  'argv': ['--log-async=3', '--log-async=7'], 'options': ['log-async', 'test']})
+    rows.extend([
+        {'id': 'async-repeat-file', 'scope': 'async', 'kind': 'test', 'exit': 1,
+         'argv': [], 'config': 'log-async=3\nlog-async=7\n', 'options': ['log-async', 'test']},
+        {'id': 'async-invalid-file', 'scope': 'async', 'kind': 'test', 'exit': 1,
+         'argv': [], 'config': 'log-async=-1\n', 'options': ['log-async', 'test']},
+    ])
     rows.append({'id': 'async-overflow-startup', 'scope': 'async-overflow', 'kind': 'run',
                  'pause_receiver': True, 'receiver': 'dgram', 'facility': 24,
                  'argv': ['--log-async=2', '--dhcp-leasefile=/m2/logging/leases', '--no-ping',
                           '--dhcp-broadcast', *[f'--dhcp-range=127.0.{index}.10,127.0.{index}.20,255.0.0.0,10m'
                                               for index in range(20)]],
                  'options': ['log-async', 'log-facility']})
+    rows.append({'id': 'async-stream-short-write', 'scope': 'async-transport', 'kind': 'run',
+                 'mode': ['-k'], 'receiver': 'stream', 'fault': 'syslog-short-write', 'fault_target': 'stream-write',
+                 'fault_number': 64, 'fault_errno': 0, 'pidfile': '/m2/logging/daemon.pid',
+                 'argv': ['--log-async=5'], 'options': ['log-async', 'log-facility']})
+    rows.append({'id': 'async-real-reconnect-two-cycles', 'scope': 'async-recovery', 'kind': 'run',
+                 'receiver': 'dgram', 'late_receiver': True, 'argv': ['--log-async=2'],
+                 'options': ['log-async', 'log-facility']})
+    rows.append({'id': 'async-tcp-inherited-queue', 'scope': 'async-tcp-queue', 'kind': 'run',
+                 'receiver': 'dgram', 'late_receiver': True, 'queued_tcp': True,
+                 'argv': ['--log-async=2', '--log-debug', '--server=127.0.0.2#15955'],
+                 'options': ['log-async', 'log-facility']})
+    for enabled in [False, True]:
+        for family, server in [('v4', '127.0.0.2'), ('v6', '::1')]:
+            rows.append({'id': 'debug-tcp-' + family + ('-enabled' if enabled else '-disabled'),
+                         'scope': 'debug', 'kind': 'run', 'debug_probes': 'tcp', 'debug_enabled': enabled,
+                         'debug_server': server, 'argv': ['--log-facility=-', '--server=' + server + '#15955',
+                                                        *(['--log-debug'] if enabled else [])],
+                         'options': ['log-debug']})
+        for kind in ['interface', 'explicit']:
+            rows.append({'id': 'debug-dynamic-' + kind + ('-enabled' if enabled else '-disabled'),
+                         'scope': 'debug', 'kind': 'run', 'debug_probes': kind, 'debug_enabled': enabled,
+                         'base_skip': ['--bind-interfaces'],
+                         'argv': ['--log-facility=-', '--bind-dynamic',
+                                  *(['--interface=m5log'] if kind == 'interface' else ['--listen-address=192.0.2.101']),
+                                  *(['--log-debug'] if enabled else [])], 'options': ['log-debug']})
+    server = '--server=192.0.2.53#15555'
+    for name, argv, files, skip, actions in [
+        ('resolv-inline', [server, '--resolv-file=/m2/logging/resolv'], {'resolv': 'nameserver 192.0.2.54\n'}, True, []),
+        ('resolv-empty', [server, '--resolv-file=/m2/logging/resolv'], {'resolv': ''}, True, []),
+        ('resolv-missing', [server, '--resolv-file=/m2/logging/resolv'], {}, True, []),
+        ('server-good', [server, '--servers-file=/m2/logging/servers'], {'servers': 'server=192.0.2.55#15556\n'}, False, []),
+        ('server-empty', [server, '--servers-file=/m2/logging/servers'], {'servers': ''}, False, []),
+        ('server-missing', [server, '--servers-file=/m2/logging/servers'], {}, False, []),
+        ('no-poll-both', [server, '--no-poll', '--resolv-file=/m2/logging/resolv', '--servers-file=/m2/logging/servers'],
+         {'resolv': 'nameserver 192.0.2.54\n', 'servers': 'server=192.0.2.55#15556\n'}, True, []),
+        ('no-poll-missing', [server, '--no-poll', '--resolv-file=/m2/logging/resolv'], {}, True, []),
+        ('resolv-server-missing', [server, '--resolv-file=/m2/logging/resolv', '--servers-file=/m2/logging/servers'],
+         {'resolv': 'nameserver 192.0.2.54\n'}, True, []),
+        ('server-replace', [server, '--servers-file=/m2/logging/servers'], {'servers': 'server=192.0.2.55#15556\n'}, False,
+         [('servers', 'server=192.0.2.56#15557\n', 'hup'), ('servers', '', 'hup')]),
+        ('resolv-replace', [server, '--resolv-file=/m2/logging/resolv'], {'resolv': 'nameserver 192.0.2.54\n'}, True,
+         [('resolv', 'nameserver 192.0.2.56\n', 'close')]),
+        ('no-poll-replace', [server, '--no-poll', '--resolv-file=/m2/logging/resolv', '--servers-file=/m2/logging/servers'],
+         {'resolv': 'nameserver 192.0.2.54\n', 'servers': 'server=192.0.2.55#15556\n'}, True,
+         [('resolv', 'nameserver 192.0.2.56\n', 'hup')]),
+    ]:
+        rows.append({'id': 'server-logs-' + name, 'scope': 'server-logs', 'kind': 'run',
+                     'argv': ['--log-facility=-', *argv], 'setup_files': files, 'file_actions': actions,
+                     'base_skip': ['--no-resolv'] if skip else [], 'options': ['log-facility', 'no-daemon']})
+    rows.append({'id': 'server-logs-upstream-limit', 'scope': 'server-logs', 'kind': 'run',
+                 'argv': ['--log-facility=-', *[f'--server=192.0.2.{index}#15555' for index in range(1, 36)]],
+                 'options': ['log-facility', 'no-daemon']})
+    rows.append({'id': 'server-logs-local-limit', 'scope': 'server-logs', 'kind': 'run',
+                 'argv': ['--log-facility=-', *[f'--server=/local{index}.logging/' for index in range(10)],
+                          '--server=/standard.logging/#', '--server=/domain.logging/192.0.2.53#15555',
+                          '--server=//192.0.2.54#15556'], 'options': ['log-facility', 'no-daemon']})
     for quiet in [False, True]:
         for variant in ['requests', 'port-exhausted', 'timeout']:
             rows.append({'id': 'tftp-logs-' + variant + ('-quiet' if quiet else '-ordinary'),
@@ -327,6 +398,46 @@ def cases():
                      'overlong_pid': target == 'pid', 'receiver': 'dgram',
                      'argv': ['--log-facility=' + (path if target == 'log' else '-')],
                      'options': ['no-daemon', 'log-facility']})
+    for mode, label in [([], 'default'), (['-k'], 'foreground'), (['-d'], 'debug')]:
+        for variant, prefix, no_fail, enabled in [
+            ('global-fatal', b'/m2/logging/missing-global', False, True),
+            ('interface-fatal', b'/m2/logging/missing-interface', False, True),
+            ('both-fatal', b'/m2/logging/missing-global', False, True),
+            ('global-no-fail', b'/m2/logging/missing-global', True, True),
+            ('interface-no-fail', b'/m2/logging/missing-interface', True, True),
+            ('both-no-fail', b'/m2/logging/missing-global', True, True),
+            ('unused-root', b'/m2/logging/missing-unused', False, False),
+            ('utf8-fatal', '/m2/logging/missing-ä'.encode(), False, True),
+            ('opaque-fatal', b'/m2/logging/missing-\xff', False, True),
+            ('utf8-no-fail', '/m2/logging/missing-ä'.encode(), True, True),
+            ('opaque-no-fail', b'/m2/logging/missing-\xff', True, True),
+            ('empty-interface-fatal', b'', False, True),
+            ('empty-interface-no-fail', b'', True, True),
+            ('empty-global', b'', False, True),
+        ]:
+            config = b'enable-tftp\n' if enabled else b''
+            interface = variant.startswith('interface-') or variant.startswith('empty-interface-')
+            config += b'tftp-root=' + prefix + (b',lo' if interface else b'') + b'\n'
+            if variant.startswith('both-'):
+                config += b'tftp-root=/m2/logging/missing-interface,lo\n'
+            if no_fail:
+                config += b'tftp-no-fail\n'
+            rows.append({'id': 'tftp-root-' + variant + '-' + label, 'scope': 'root-access',
+                         'kind': 'run', 'mode': mode, 'daemonized': not mode,
+                         'exit': 0 if no_fail or not enabled or variant == 'empty-global' else 3,
+                         'pidfile': '/m2/logging/daemon.pid', 'receiver': 'dgram', 'argv': ['--log-facility=-'],
+                         'config_bytes': config.hex(), 'root_prefix': prefix.hex(),
+                         'root_variant': variant, 'root_no_fail': no_fail,
+                         'options': ['tftp-root', 'tftp-no-fail'] if no_fail else ['tftp-root']})
+        for no_fail in [False, True] if label != 'debug' else [False]:
+                rows.append({'id': 'tftp-root-permission-' + ('no-fail-' if no_fail else 'fatal-') + label,
+                             'scope': 'root-access', 'kind': 'run', 'mode': mode, 'daemonized': not mode,
+                             'exit': 0 if no_fail or label == 'debug' else 3, 'user': 'nobody', 'root_permissions': True,
+                             'pidfile': '/m2/logging/daemon.pid', 'receiver': 'dgram', 'argv': ['--log-facility=-'],
+                             'config_bytes': (b'enable-tftp\ntftp-root=/m2/logging/private-root\n' +
+                                              (b'tftp-no-fail\n' if no_fail else b'')).hex(),
+                             'root_prefix': b'/m2/logging/private-root'.hex(), 'root_variant': 'permission-debug' if label == 'debug' else 'permission',
+                             'root_no_fail': no_fail, 'options': ['tftp-root', 'tftp-no-fail']})
     for name, ranges in [
         ('dynamic', ['127.0.0.10,127.0.0.20,255.0.0.0,10m']),
         ('static', ['127.0.0.0,static,255.0.0.0,3723']),
@@ -534,6 +645,63 @@ def tftp_sequence(variant, out, receiver):
     return rows, raw
 
 
+def debug_sequence(case, out, receiver):
+    if case['debug_probes'] == 'tcp':
+        wire = query('debug-forward.logging', 1, 0x7450)
+        with socket.create_connection(('127.0.0.1', 15353), timeout=2) as client:
+            client.sendall(len(wire).to_bytes(2, 'big') + wire)
+            reply = exact_read(client, int.from_bytes(exact_read(client, 2), 'big'))
+        save(out / 'debug-tcp-wire.json', {'request': wire.hex(), 'reply': reply.hex(), 'semantics': semantics(reply)})
+        # With no connection made, C make_local_answer(flags0) uses REFUSED.
+        if reply[:2] != wire[:2] or semantics(reply)['flags'] & 15 != 5:
+            raise AssertionError('source TCP all-connections-failed REFUSED')
+        time.sleep(.03)
+        receiver.drain()
+        return [{'request': wire.hex(), 'reply': reply.hex()}], None
+    explicit = case['debug_probes'] == 'explicit'
+    old_nonlocal = Path('/proc/sys/net/ipv4/ip_nonlocal_bind').read_text()
+    subprocess.run(['ip', 'link', 'add', 'm5log', 'type', 'dummy'], check=True)
+    index = socket.if_nametoindex('m5log')
+    rows = []
+    try:
+        subprocess.run(['ip', 'link', 'set', 'm5log', 'addrgenmode', 'none'], check=True)
+        if explicit:
+            Path('/proc/sys/net/ipv4/ip_nonlocal_bind').write_text('1\n')
+        subprocess.run(['ip', 'link', 'set', 'm5log', 'up'], check=True)
+        address = '192.0.2.102' if explicit else '192.0.2.100'
+        subprocess.run(['ip', 'address', 'add', address + '/24', 'dev', 'm5log'], check=True)
+        if explicit:
+            subprocess.run(['ip', 'route', 'add', 'local', '192.0.2.101/32', 'dev', 'lo'], check=True)
+        target = '192.0.2.101' if explicit else address
+        deadline = time.monotonic() + 2
+        while time.monotonic() < deadline:
+            receiver.drain()
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as client:
+                client.settimeout(.03)
+                wire = query('ready.logging', 1, 0x7451)
+                client.sendto(wire, (target, 15353))
+                try:
+                    reply = client.recv(65535)
+                    if [value['data'] for value in semantics(reply)['records']] != ['192.0.2.1']:
+                        raise AssertionError('dynamic listener health')
+                    rows.append({'request': wire.hex(), 'reply': reply.hex(), 'target': target})
+                    break
+                except socket.timeout:
+                    pass
+            time.sleep(.01)
+        else:
+            raise AssertionError('dynamic listener did not activate')
+        subprocess.run(['ip', 'link', 'delete', 'm5log'], check=True)
+        time.sleep(.2)
+        receiver.drain()
+    finally:
+        subprocess.run(['ip', 'link', 'delete', 'm5log'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if explicit:
+            subprocess.run(['ip', 'route', 'delete', 'local', '192.0.2.101/32', 'dev', 'lo'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        Path('/proc/sys/net/ipv4/ip_nonlocal_bind').write_text(old_nonlocal)
+    return rows, index
+
+
 def identity_probes():
     probes = []
     def add(labels, kind=16, cls=3, rd=True, edns=False, do=False, rcode=None, txt=None):
@@ -609,14 +777,16 @@ def identity_sequence(transport, calibrate, sticky_probe=None, fresh=False):
 
 
 def run(root, side, case, out):
-    if case.get('scope') in ['daemon', 'scriptuser-boundary', 'startup-fault', 'credential-fault', 'ownership-warning', 'sink-fault', 'error-frame']:
+    if case.get('scope') in ['daemon', 'scriptuser-boundary', 'startup-fault', 'credential-fault', 'ownership-warning', 'sink-fault', 'error-frame', 'root-access', 'async-transport']:
         return run_daemon(root, side, case, out)
     out.mkdir()
     folder = image_path(root, '/m2/logging')
     shutil.rmtree(folder, ignore_errors=True)
     folder.mkdir(mode=0o777)
     folder.chmod(0o777)
-    (folder / 'config').write_text(case.get('config', ''))
+    (folder / 'config').write_bytes(bytes.fromhex(case['config_bytes']) if 'config_bytes' in case else case.get('config', '').encode())
+    for name, text in case.get('setup_files', {}).items():
+        (folder / name).write_text(text)
     blocker = None
     if case.get('tftp_probes') or case.get('no_dns'):
         (folder / 'public').write_bytes(b'x' * 700)
@@ -641,7 +811,7 @@ def run(root, side, case, out):
         (folder / case['file']).chmod(case['file_mode'])
         if 'file_gid' in case:
             os.chown(folder / case['file'], 0, case['file_gid'])
-    receiver = Receiver(root, case.get('receiver'))
+    receiver = Receiver(root, None if case.get('late_receiver') else case.get('receiver'))
     # C selects the DHCP help list only with exactly argc3 and argv[2]=dhcp.
     argv = [] if case['kind'] == 'cli' else ['-C', '/m2/logging/config']
     if case['kind'] != 'cli':
@@ -689,6 +859,84 @@ def run(root, side, case, out):
                         pass
                 time.sleep(.005)
             if observed['ready']:
+                if case.get('sink_edge'):
+                    def snapshot():
+                        return {entry.name: os.readlink(entry) for entry in Path(f'/proc/{process.pid}/fd').iterdir()}
+                    def health():
+                        answer, raw = exchange('ready.logging')
+                        if [value['data'] for value in answer['records']] != ['192.0.2.1']:
+                            raise AssertionError('reopen harmed client health')
+                        trace['dns'].append(raw)
+                    before = snapshot()
+                    if case['sink_edge'] == 'preserve':
+                        process.send_signal(signal.SIGUSR2)
+                        time.sleep(.08)
+                        after = snapshot()
+                        observed['sink_edge'] = {'same_fds': before == after}
+                        health()
+                    else:
+                        path = folder / case['file']
+                        path.rename(path.with_suffix('.old'))
+                        path.mkdir()
+                        process.send_signal(signal.SIGUSR2)
+                        time.sleep(.08)
+                        failed = snapshot()
+                        process.send_signal(signal.SIGHUP)
+                        time.sleep(.08)
+                        receiver.drain()
+                        health()
+                        path.rmdir()
+                        path.write_text('replacement\n')
+                        path.chmod(0o604)
+                        process.send_signal(signal.SIGUSR2)
+                        time.sleep(.08)
+                        process.send_signal(signal.SIGHUP)
+                        time.sleep(.08)
+                        receiver.drain()
+                        health()
+                        meta = path.stat()
+                        observed['sink_edge'] = {'old_fd_closed': not any(value.endswith('/daemon.old') for value in failed.values()),
+                            'replacement_metadata': [meta.st_mode & 0o777, meta.st_uid, meta.st_gid]}
+                    trace['sink_fds'] = {'before': before, 'after': snapshot()}
+                if case.get('late_receiver'):
+                    receiver.close()
+                    receiver = Receiver(root, 'dgram')
+                    if case.get('queued_tcp'):
+                        rows, _ = debug_sequence({'debug_probes': 'tcp'}, out, receiver)
+                        observed['debug_wire'] = rows
+                        trace['debug_wire'] = rows
+                    else:
+                        process.send_signal(signal.SIGHUP)
+                        time.sleep(.08)
+                        receiver.drain()
+                        first = list(receiver.raw)
+                        receiver.close()
+                        image_path(root, '/dev/log', follow_leaf=False).unlink()
+                        for _ in range(2):
+                            process.send_signal(signal.SIGHUP)
+                            time.sleep(.04)
+                        receiver = Receiver(root, 'dgram')
+                        receiver.raw = first
+                        process.send_signal(signal.SIGHUP)
+                        time.sleep(.08)
+                        receiver.drain()
+                for name, text, trigger in case.get('file_actions', []):
+                    (folder / name).write_text(text)
+                    if trigger == 'hup':
+                        process.send_signal(signal.SIGHUP)
+                    time.sleep(.08)
+                    receiver.drain()
+                    answer, raw = exchange('ready.logging')
+                    if [value['data'] for value in answer['records']] != ['192.0.2.1']:
+                        raise AssertionError('file replacement harmed client health')
+                    trace['dns'].append(raw)
+                if case.get('debug_probes'):
+                    rows, index = debug_sequence(case, out, receiver)
+                    observed['debug_wire'] = rows
+                    if index is not None:
+                        observed['interface_index'] = index
+                    trace['debug_wire'] = rows
+                    trace['interface_index'] = index
                 if case.get('pause_receiver'):
                     deadline = time.monotonic() + .2
                     while time.monotonic() < deadline:
@@ -845,7 +1093,7 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
         return value
     report = {'pid': pid, 'fault': case['fault'], 'injected': False, 'events': []}
     attached, pending, pipes, pipe_pointer, error_writer = True, None, 0, None, None
-    socket_pending, logging_socket = False, None
+    socket_pending, logging_socket, logging_socket_type = 0, None, 0
     deadline = time.monotonic() + 5
     def wait_stop():
         while time.monotonic() < deadline:
@@ -894,7 +1142,7 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                     if case['fault'] == 'error-pipe-flags' and pipes == (2 if side == 'c' else 1):
                         pipe_pointer = args[0]
                 if number == 198 and args[0] == 1:
-                    socket_pending = True
+                    socket_pending = args[1] & 0xf
                 target = ''
                 if number in [57, 55, 64, 66]:
                     try:
@@ -919,12 +1167,18 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                     match &= args[0] == 2
                 elif case.get('fault_target') in ['socket-write', 'socket-connect']:
                     match &= args[0] == logging_socket
+                elif case.get('fault_target') == 'stream-write':
+                    match &= args[0] == logging_socket and logging_socket_type == 1
                 elif case['fault'].startswith('log-'):
                     match &= target.endswith('/m2/logging/daemon.log')
                 if not match:
                     continue
                 pending = {'number': number, 'args': list(args), 'target': target}
-                if case['fault'] == 'pid-short-write':
+                if case['fault'] == 'syslog-short-write':
+                    value = regs()
+                    value.x[2] = 3
+                    regs(True, value)
+                elif case['fault'] == 'pid-short-write':
                     if number == 66:
                         pending['iov_length'] = ptrace(2, args[1] + 8) & ((1 << 64) - 1)
                         ptrace(5, args[1] + 8, 1)
@@ -938,7 +1192,8 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                     ptrace(0x4205, 0x404, ctypes.addressof(vec))
             elif operation == 2 and socket_pending and pending is None:
                 logging_socket = struct.unpack_from('=q', info.raw, 24)[0]
-                socket_pending = False
+                logging_socket_type = socket_pending
+                socket_pending = 0
             elif operation == 2 and pipe_pointer is not None and pending is None:
                 word = ptrace(2, pipe_pointer) & ((1 << 64) - 1)
                 error_writer = word >> 32
@@ -986,7 +1241,9 @@ def run_daemon(root, side, case, out):
     shutil.rmtree(folder, ignore_errors=True)
     folder.mkdir(mode=0o777)
     folder.chmod(0o777)
-    (folder / 'config').write_text(case.get('config', ''))
+    (folder / 'config').write_bytes(bytes.fromhex(case['config_bytes']) if 'config_bytes' in case else case.get('config', '').encode())
+    if case.get('root_permissions'):
+        (folder / 'private-root').mkdir(mode=0o700)
     if case.get('helper_script'):
         script = folder / 'script'
         script.write_text('#!/bin/sh\nexit 0\n')
@@ -1133,6 +1390,13 @@ def compare(reference, candidate, case, reference_only=False):
                 failures.append({'side': side, 'field': field, 'expected': expected, 'actual': row[field]})
     if 'expected_metadata' in case and reference['file_metadata'].get(case['file']) != case['expected_metadata']:
         failures.append({'kind': 'C-file-metadata', 'actual': reference['file_metadata']})
+    if case.get('sink_edge'):
+        wanted = {'same_fds': True} if case['sink_edge'] == 'preserve' else {
+            'old_fd_closed': True, 'replacement_metadata': [0o604, 0, 0]}
+        for side, row in [('c', reference)] + ([] if reference_only else [('rust', candidate)]):
+            if row.get('sink_edge') != wanted:
+                failures.append({'kind': 'sink-reopen-source-control', 'side': side,
+                                 'expected': wanted, 'actual': row.get('sink_edge')})
     if case.get('scope') == 'daemon':
         if reference['live_processes']:
             failures.append({'kind': 'C-daemon-descendants', 'actual': reference['live_processes']})
@@ -1173,6 +1437,19 @@ def compare(reference, candidate, case, reference_only=False):
         overflow = [text for text in messages if 'overflow: ' in text]
         if len(overflow) != 1 or not re.search(r'overflow: [1-9][0-9]* log entries lost$', overflow[0]):
             failures.append({'kind': 'C-async-overflow', 'actual': messages})
+    if case.get('late_receiver'):
+        messages = [bytes.fromhex(value).decode() for value in reference['syslog']]
+        counts = [int(match[1]) for text in messages if (match := re.search(r'overflow: ([0-9]+) log entries lost$', text))]
+        if case.get('queued_tcp'):
+            if (counts != [3, 4]
+                or sum('TCP connection failed' in text for text in messages) != 1
+                or sum('started, version' in text for text in messages) != 1
+                or sum('compile time options' in text for text in messages) != 1
+                or any('exiting on receipt' in text for text in messages)
+                or not messages or 'TCP connection failed' not in messages[0]):
+                failures.append({'kind': 'C-TCP-inherited-queue-PID-guard', 'counts': counts, 'actual': messages})
+        elif len(counts) != 2 or not all(value > 0 for value in counts):
+            failures.append({'kind': 'C-async-repeated-overflow-reset', 'counts': counts, 'actual': messages})
     if case.get('tftp_probes'):
         text = reference['stderr'] + ''.join(bytes.fromhex(value).decode() for value in reference['syslog'])
         text += ''.join(bytes.fromhex(value).decode() for value in reference['files'].values())
@@ -1213,6 +1490,60 @@ def compare(reference, candidate, case, reference_only=False):
             long = [record for record in records if b': xxxxxxxxxxxxxxxx' in record]
             if len(long) != 1 or len(long[0]) != (1023 if reference['syslog'] else 1024):
                 failures.append({'kind': 'C-script-max-message', 'lengths': [len(value) for value in long]})
+            if not reference_only:
+                actual = [bytes.fromhex(value) for value in candidate['syslog']]
+                actual += [line + b'\n' for value in candidate['files'].values()
+                           for line in bytes.fromhex(value).splitlines()]
+                if not actual:
+                    actual = [line + b'\n' for line in candidate['stderr'].encode().splitlines()]
+                long = [record for record in actual if b': xxxxxxxxxxxxxxxx' in record]
+                if len(long) != 1 or len(long[0]) != (1023 if candidate['syslog'] else 1024):
+                    failures.append({'kind': 'Rust-script-max-message', 'lengths': [len(value) for value in long]})
+    if case.get('scope') == 'root-access':
+        prefix = bytes.fromhex(case['root_prefix']).decode(errors='backslashreplace')
+        text = reference['stderr']
+        variant = case['root_variant']
+        if variant == 'unused-root':
+            if any(message in text for message in ['-tftp[', 'TFTP root is ', 'TFTP enabled', 'inaccessible']):
+                failures.append({'kind': 'C-unused-TFTP-root', 'actual': text})
+        elif variant in ['empty-global', 'permission-debug']:
+            if 'inaccessible' in text or 'FAILED to start up' in text:
+                failures.append({'kind': 'C-null-global-or-debug-access', 'actual': text})
+            if variant == 'empty-global' and 'TFTP enabled' not in text:
+                failures.append({'kind': 'C-null-global-sign-on', 'actual': text})
+        elif case['root_no_fail']:
+            interface = variant.startswith('interface-') or variant.startswith('empty-interface-')
+            warning = ('warning: TFTP directory ' if interface else 'warning: ') + ('(null)' if not prefix else prefix) + ' inaccessible'
+            if warning not in text:
+                failures.append({'kind': 'C-TFTP-root-warning', 'missing': warning, 'actual': text})
+            if variant.startswith('both-') and 'warning: TFTP directory /m2/logging/missing-interface inaccessible' not in text:
+                failures.append({'kind': 'C-TFTP-interface-root-warning', 'actual': text})
+            signon = 'TFTP enabled' if interface else 'TFTP root is '
+            if text.find(signon) < 0 or text.find(signon) >= text.find(warning):
+                failures.append({'kind': 'C-TFTP-root-warning-order', 'actual': text})
+        else:
+            error = 'Bad address' if variant.startswith('empty-interface-') else 'Permission denied' if case.get('root_permissions') else 'No such file or directory'
+            message = 'TFTP directory ' + (prefix or error) + ' inaccessible: ' + error
+            # Default parent records its second critical line in syslog;
+            # foreground/debug '-' retain both records on inherited stderr.
+            combined = text + ''.join(bytes.fromhex(value).decode(errors='backslashreplace') for value in reference['syslog'])
+            if message not in text or 'FAILED to start up' not in combined:
+                failures.append({'kind': 'C-TFTP-root-fatal', 'missing': message, 'actual': combined})
+    if case.get('debug_probes'):
+        for side, row in [('c', reference)] + ([] if reference_only else [('rust', candidate)]):
+            text = row['stderr']
+            if not case['debug_enabled']:
+                if 'dnsmasq-debug[' in text:
+                    failures.append({'kind': 'debug-disabled-producer', 'side': side, 'actual': text})
+                continue
+            variant = case['debug_probes']
+            required = ['TCP connection failed to ' + case['debug_server'] + '#15955'] if variant == 'tcp' else [
+                'listening on 192.0.2.101 port 15353'] if variant == 'explicit' else [
+                f'listening on m5log(#{row["interface_index"]}): 192.0.2.100 port 15353',
+                f'stopped listening on m5log(#{row["interface_index"]}): 192.0.2.100 port 15353']
+            for message in required:
+                if message not in text:
+                    failures.append({'kind': 'debug-source-producer', 'side': side, 'missing': message, 'actual': text})
     if case['kind'] == 'cli':
         expected = ('Known DHCP options:\n' if case['argv'] == ['--help', 'dhcp'] else
                     'Dnsmasq version 2.93  ' if case['argv'] == ['--version'] else
@@ -1239,12 +1570,29 @@ def compare(reference, candidate, case, reference_only=False):
         return failures
     left, right = copy.deepcopy(reference), copy.deepcopy(candidate)
     for row in [left, right]:
+        if 'interface_index' in row:
+            index = row['interface_index']
+            # Indices increase between sequential namespace fixture creations.
+            # The raw producer guard above verifies each implementation's own
+            # actual index before this identity-only comparison normalization.
+            row['stderr'] = row['stderr'].replace(f'm5log(#{index})', 'm5log(#<INDEX>)')
+            row['interface_index'] = '<INDEX>'
         for stream in ['stdout', 'stderr']:
             row[stream] = normalized(row[stream])
         row['syslog'] = [normalized(bytes.fromhex(value).decode(errors='backslashreplace'))
                          for value in row['syslog']]
         row['files'] = {name: normalized(bytes.fromhex(value).decode(errors='backslashreplace'))
                         for name, value in row['files'].items()}
+        if case.get('script_probes') == 'output':
+            # Both raw record caps were checked above. Actual namespace PIDs
+            # can have different decimal widths, leaving different counts of
+            # this known 4096-byte x prefix after C's 1024-byte serialization.
+            # Normalize only that uniform body; all other bytes stay compared.
+            def clipped_identity(value):
+                return re.sub(r'(dnsmasq-script\[<PID>\]: )x{900,}(?=\n|$)', r'\1<4096-x-prefix-truncated-at-record-cap>', value)
+            row['stderr'] = clipped_identity(row['stderr'])
+            row['syslog'] = [clipped_identity(value) for value in row['syslog']]
+            row['files'] = {name: clipped_identity(value) for name, value in row['files'].items()}
     if case.get('argv') == ['--version']:
         first, separator, rest = left['stdout'].partition('\n')
         expected = first + RUST_VERSION_IDENTITY + separator + rest
@@ -1322,6 +1670,42 @@ def controls():
     frozen['options']['example']['required'][0]['required_scenarios'] = ['unexecuted']
     result['unexecuted-required-case'] = not qualification(frozen, [], False)['example']['closed']
     assert result['empty-required-map'] and result['unexecuted-required-case']
+    debug_case = {'id': 'debug-control', 'kind': 'run', 'debug_probes': 'interface', 'debug_enabled': True}
+    debug_row = dict(row, interface_index=2,
+        stderr='dnsmasq-debug[1]: listening on m5log(#2): 192.0.2.100 port 15353\n'
+               'dnsmasq-debug[1]: stopped listening on m5log(#2): 192.0.2.100 port 15353\n')
+    assert not compare(debug_row, debug_row, debug_case)
+    result['debug-actual-interface-index'] = bool(compare(debug_row, dict(debug_row, interface_index=3), debug_case))
+    result['debug-unlisten-required'] = bool(compare(dict(debug_row, stderr=debug_row['stderr'].splitlines()[0]), debug_row, debug_case, True))
+    result['debug-disabled-no-output'] = bool(compare(debug_row, debug_row, dict(debug_case, debug_enabled=False), True))
+    assert all(result[name] for name in ['debug-actual-interface-index', 'debug-unlisten-required', 'debug-disabled-no-output'])
+    def capped_script(pid, length=1024, poison=False):
+        prefix = f'dnsmasq-script[{pid}]: '
+        body = 'x' * (length - len(prefix) - 1)
+        if poison:
+            body = body[:-1] + 'y'
+        return ('dnsmasq-script[1]: one\ndnsmasq-script[1]: \ndnsmasq-script[1]: nul\n'
+                + prefix + body + '\n' + 'dnsmasq-script[1]: tail\ndnsmasq[1]: script process exited with status 7\n')
+    capped_case = {'id': 'cap-control', 'kind': 'run', 'script_probes': 'output'}
+    capped = dict(row, stderr=capped_script(99))
+    assert not compare(capped, dict(capped, stderr=capped_script(100)), capped_case)
+    for name, bad in [('record-cap-short', capped_script(100, 1023)),
+                      ('record-cap-long', capped_script(100, 1025)),
+                      ('record-cap-payload', capped_script(100, poison=True))]:
+        result[name] = bool(compare(capped, dict(capped, stderr=bad), capped_case))
+        assert result[name]
+    copied_case = {'id': 'copied-control', 'kind': 'run', 'queued_tcp': True, 'late_receiver': True}
+    copied_lines = ['TCP connection failed to 127.0.0.2#15955', 'overflow: 3 log entries lost',
+                    'started, version 2.93 cachesize 150', 'compile time options: fixture', 'overflow: 4 log entries lost']
+    copied = dict(row, stderr='', syslog=[('<31>Jan  1 00:00:00 dnsmasq[1]: ' + line).encode().hex() for line in copied_lines])
+    assert not compare(copied, copied, copied_case)
+    for name, corrupt in [('copied-parent-discard', [*copied_lines, copied_lines[2]]),
+                          ('copied-overflow-missing', [line for line in copied_lines if 'overflow: 3' not in line]),
+                          ('copied-overflow-duplicated', [*copied_lines, copied_lines[1]]),
+                          ('copied-record-order', copied_lines[2:] + copied_lines[:2])]:
+        changed = dict(copied, syslog=[('<31>Jan  1 00:00:00 dnsmasq[1]: ' + line).encode().hex() for line in corrupt])
+        result[name] = bool(compare(changed, changed, copied_case, True))
+        assert result[name]
     c_wire = bytes.fromhex('732585800001000100000001046b657074076c6f6767696e670000100001c00c0010000100000000000e0d6578706c696369742d7573657200002904d0000000000000')
     leaked = {'transport': 'tcp', 'probe': {'edns': False}, 'reply_wire': c_wire.hex(), 'response': semantics(c_wire)}
     corrected = without_leaked_tcp_opt(leaked)
