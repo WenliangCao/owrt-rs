@@ -212,7 +212,9 @@ impl AsRawFd for Destination {
 pub struct Logger {
     config: LoggingConfig,
     destination: Destination,
-    echo: Option<OwnedFd>,
+    // Debug mode preserves inherited stderr for the process lifetime. C
+    // writes it directly; allocating another FD adds a spurious EMFILE gate.
+    echo: Option<RawFd>,
     echo_queue: VecDeque<Record>,
     queue: VecDeque<Record>,
     limit: usize,
@@ -300,7 +302,7 @@ impl Logger {
             open_destination(config).map_err(|error| LogStartError::new(config, error))?;
         let stderr = matches!(destination, Destination::Stderr(_));
         let echo = if process.debug && !stderr {
-            Some(duplicate_stderr().map_err(|error| LogStartError::new(config, error))?)
+            make_nonblocking(2).ok().map(|()| 2)
         } else {
             None
         };
@@ -498,15 +500,15 @@ impl Logger {
             self.echo
                 .as_ref()
                 .filter(|_| !self.echo_queue.is_empty())
-                .map(AsRawFd::as_raw_fd),
+                .copied(),
         )
     }
 
     /// Safe both after readiness and once per owner step: every write is
     /// nonblocking and a finite budget bounds short-write/EINTR/reconnect work.
     pub fn flush_ready(&mut self) {
-        if let Some(echo) = &self.echo {
-            drain_echo(echo.as_raw_fd(), &mut self.echo_queue);
+        if let Some(echo) = self.echo {
+            drain_echo(echo, &mut self.echo_queue);
         }
         if matches!(self.destination, Destination::WaitingFile) {
             if self
@@ -796,9 +798,14 @@ fn drain_echo(fd: RawFd, records: &mut VecDeque<Record>) {
             if record.offset == record.bytes.len() {
                 records.pop_front();
             }
-        } else if written < 0 && io::Error::last_os_error().raw_os_error() == Some(4) {
-            continue;
         } else {
+            if written < 0 {
+                match io::Error::last_os_error().raw_os_error() {
+                    Some(4) => continue,
+                    Some(11) => (),
+                    _ => records.clear(),
+                }
+            }
             break;
         }
     }
@@ -832,11 +839,15 @@ fn duplicate_stderr() -> io::Result<OwnedFd> {
         return Err(io::Error::last_os_error());
     }
     let fd = unsafe { OwnedFd::from_raw_fd(fd) };
-    let flags = unsafe { fcntl(fd.as_raw_fd(), 3) };
-    if flags < 0 || unsafe { fcntl(fd.as_raw_fd(), 4, flags | O_NONBLOCK) } < 0 {
+    make_nonblocking(fd.as_raw_fd())?;
+    Ok(fd)
+}
+fn make_nonblocking(fd: RawFd) -> io::Result<()> {
+    let flags = unsafe { fcntl(fd, 3) };
+    if flags < 0 || unsafe { fcntl(fd, 4, flags | O_NONBLOCK) } < 0 {
         return Err(io::Error::last_os_error());
     }
-    Ok(fd)
+    Ok(())
 }
 fn syslog_socket(stream: bool) -> io::Result<Destination> {
     let fd = unsafe {
