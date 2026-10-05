@@ -24,6 +24,13 @@ def save(path, value):
     path.write_text(json.dumps(value, indent=2, sort_keys=True) + '\n')
 
 
+def frozen_cases():
+    manifest = json.loads(Path(__file__).with_suffix('.json').read_text())
+    if manifest.get('cases')!=scenarios() or manifest.get('stock_c_sha256')!=STOCK_SHA256:
+        raise ValueError('driver differs from frozen source cases')
+    return manifest['cases']
+
+
 def scenarios():
     rows = []
     for mode, flag in [('static', 'bind-interfaces'), ('dynamic', 'bind-dynamic')]:
@@ -113,7 +120,7 @@ def target_sockets(pid):
 
 
 def health(folder, label):
-    packet = query('health.bind.test', 0x7100)
+    packet = query('health.bind.test', ident=0x7100)
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as endpoint:
         endpoint.settimeout(2)
         endpoint.sendto(packet, ('127.0.0.1', PORT))
@@ -223,7 +230,7 @@ def run(args):
     drivers.mkdir()
     for filename in ['m5_device_binding.py', 'm5_device_binding.json', 'm2_rootfs.py', 'dns_service_probe.py']:
         (drivers/filename).write_bytes(Path(__file__).with_name(filename).read_bytes())
-    selected = [row for row in scenarios() if re.search(args.only or '.', row['case'])]
+    selected = [row for row in frozen_cases() if re.search(args.only or '.', row['case'])]
     report = dict(side=args.side, c_sha256=STOCK_SHA256, candidate_sha256=sha256(args.rust),
                   driver_sha256=sha256(__file__), manifest_sha256=sha256(Path(__file__).with_suffix('.json')),
                   cases=[], failures=[])
@@ -291,7 +298,8 @@ def row_errors(spec, row, expected_sha):
 
 def load(folder, side):
     report=json.loads((folder/'result.json').read_text())
-    if report.get('side')!=side or report.get('c_sha256')!=STOCK_SHA256 or report.get('failures'):
+    if (report.get('side')!=side or report.get('c_sha256')!=STOCK_SHA256 or report.get('failures')
+            or not re.fullmatch('[0-9a-f]{64}', report.get('candidate_sha256', ''))):
         raise ValueError('invalid report identity or runtime failures')
     if report.get('manifest_sha256')!=sha256(Path(__file__).with_suffix('.json')):
         raise ValueError('different frozen source contract')
@@ -300,6 +308,10 @@ def load(folder, side):
     for row in report['cases']:
         case=folder/row['case']
         if row!=json.loads((case/'result.json').read_text()):raise ValueError('case receipt mismatch')
+        log=(case/'daemon.log').read_bytes() if (case/'daemon.log').exists() else b''
+        notices=[line.decode('ascii') for line in re.findall(
+            rb'(?:DHCP, sockets bound exclusively to interface |error binding DHCP socket to device )[^\r\n]+', log)]
+        if row['notices']!=notices:raise ValueError('actual binding log receipt mismatch')
         for phase in row['phases']:
             if phase!=json.loads((case/(phase['label']+'.json')).read_text()):raise ValueError('phase receipt mismatch')
             reply=case/(phase['label']+'.reply');request=case/(phase['label']+'.query')
@@ -310,7 +322,9 @@ def load(folder, side):
 
 
 def compare(args):
-    c=load(args.c, 'c');r=load(args.candidate, 'rust');specs=scenarios();controls=[];errors=[]
+    c=load(args.c, 'c');r=load(args.candidate, 'rust');specs=frozen_cases();controls=[];errors=[]
+    if c['candidate_sha256']!=r['candidate_sha256']:
+        raise ValueError('paired candidate identity mismatch')
     for side, report in [('c', c), ('rust', r)]:
         if [row['case'] for row in report['cases']]!=[spec['case'] for spec in specs]:
             errors.append(side+': missing/extra/reordered cases')
