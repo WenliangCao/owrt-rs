@@ -90,6 +90,14 @@ impl StartupChannel {
         };
         write_event(writer.as_raw_fd(), 17, errno, path);
     }
+
+    /// EVENT_TFTP_ERR uses the same errno/optional-path fallback as LOG_ERR.
+    pub fn fail_tftp(&mut self, errno: i32, path: &[u8]) {
+        let Some(writer) = self.writer.take() else {
+            return;
+        };
+        write_event(writer.as_raw_fd(), 20, errno, path);
+    }
 }
 
 fn write_event(fd: i32, kind: i32, data: i32, argument: &[u8]) {
@@ -150,17 +158,19 @@ fn read_startup_event(reader: &mut impl Read) -> Result<bool, StartupError> {
         }
         false
     };
-    if kind == 17 {
+    if matches!(kind, 17 | 20) {
         let error = crate::logging::error_text(&io::Error::from_raw_os_error(data));
         let path = if complete && length != 0 {
             String::from_utf8_lossy(&argument).into_owned()
         } else {
             error.clone()
         };
-        return Err(StartupError {
-            code: 3,
-            message: format!("cannot open log {path}: {error}"),
-        });
+        let message = if kind == 17 {
+            format!("cannot open log {path}: {error}")
+        } else {
+            format!("TFTP directory {path} inaccessible: {error}")
+        };
+        return Err(StartupError { code: 3, message });
     }
     if kind != -1 || !complete {
         return Ok(true);
