@@ -170,9 +170,16 @@ def cases():
     for enabled in [False, True]:
         rows.append({'id': 'no-ident-full-' + ('enabled' if enabled else 'default'),
                      'scope': 'identity-full', 'kind': 'run', 'identity_matrix': True,
+                     'reference_defect': 'C TCP have_pseudoheader persists across local/no-server queries',
                      'argv': ['--log-facility=-', '--txt-record=kept.logging,explicit-user',
                               '--txt-record=version.bind,explicit-user',
                               '--txt-record=explicit.server,server-user'] + (['--no-ident'] if enabled else []),
+                     'options': ['no-ident']})
+    for name, cls in [('local', 1), ('refused', 255)]:
+        rows.append({'id': 'tcp-edns-sticky-' + name, 'scope': 'identity-full', 'kind': 'run',
+                     'identity_matrix': True, 'identity_sticky_probe': cls,
+                     'reference_defect': 'C TCP have_pseudoheader persists across local/no-server queries',
+                     'argv': ['--log-facility=-', '--txt-record=kept.logging,explicit-user'],
                      'options': ['no-ident']})
     return rows
 
@@ -297,14 +304,22 @@ def identity_probes():
     return probes
 
 
-def identity_sequence(transport, calibrate):
+def identity_sequence(transport, calibrate, sticky_probe=None):
     observed, raw = [], []
     endpoint = socket.socket(socket.AF_INET, socket.SOCK_STREAM if transport == 'tcp' else socket.SOCK_DGRAM)
     endpoint.settimeout(.5)
     if transport == 'tcp':
         endpoint.connect(('127.0.0.1', 15353))
     try:
-        for index, probe in enumerate(identity_probes()):
+        probes = identity_probes()
+        if sticky_probe is not None:
+            # A fresh-connection negative control precedes the EDNS->plain
+            # two-query reproduction on this connection.
+            base = {'labels': [b'kept', b'logging'], 'type': 16, 'class': sticky_probe,
+                    'rd': True, 'edns': False, 'do': False, 'rcode': 0 if sticky_probe == 1 else None,
+                    'txt': 'explicit-user' if sticky_probe == 1 else None}
+            probes = [base, dict(base, edns=True), base]
+        for index, probe in enumerate(probes):
             qname = b''.join(bytes([len(label)]) + label for label in probe['labels']) + b'\0'
             wire = struct.pack('!6H', 0x7300 + index, 0x100 if probe['rd'] else 0,
                                1, 0, 0, int(probe['edns']))
@@ -396,7 +411,7 @@ def run(root, side, case, out):
             if observed['ready']:
                 if case.get('identity_matrix'):
                     for transport in ['udp', 'tcp']:
-                        rows, raw = identity_sequence(transport, side == 'c')
+                        rows, raw = identity_sequence(transport, side == 'c', case.get('identity_sticky_probe'))
                         observed['dns'].extend(rows)
                         trace['dns'].extend(raw)
                 if case.get('query_probes'):
@@ -694,10 +709,39 @@ def compare(reference, candidate, case, reference_only=False):
             # This one disclosed first-line difference preserves the exact
             # compile-options/init interface and every GPL/warranty line.
             right['stdout'] = left['stdout']
+    if case.get('identity_matrix') and len(left['dns']) == len(right['dns']):
+        previous_edns = False
+        for index, (expected, actual) in enumerate(zip(left['dns'], right['dns'])):
+            if expected['transport'] == 'udp':
+                previous_edns = False
+            if expected != actual and case.get('reference_defect') and previous_edns:
+                corrected = without_leaked_tcp_opt(expected)
+                if corrected is not None and actual == corrected:
+                    right['dns'][index] = expected
+            previous_edns |= expected['transport'] == 'tcp' and expected['probe']['edns']
     for field in left:
         if left[field] != right[field]:
             failures.append({'field': field, 'expected': left[field], 'actual': right[field]})
     return failures
+
+
+def without_leaked_tcp_opt(row):
+    if row['transport'] != 'tcp' or row['probe']['edns']:
+        return None
+    additions = [record for record in row['response']['records'] if record['section'] == 'additional']
+    if len(additions) != 1 or additions[0]['type'] != 41:
+        return None
+    wire = bytes.fromhex(row['reply_wire'])
+    if int.from_bytes(wire[10:12], 'big') != 1:
+        return None
+    length = 11 + len(bytes.fromhex(additions[0]['data']))
+    if wire[-length] != 0:
+        return None
+    corrected = copy.deepcopy(row)
+    corrected_wire = wire[:10] + b'\0\0' + wire[12:-length]
+    corrected['reply_wire'] = corrected_wire.hex()
+    corrected['response'] = semantics(corrected_wire)
+    return corrected
 
 
 def controls():
@@ -732,6 +776,22 @@ def controls():
     frozen['options']['example']['required'][0]['required_scenarios'] = ['unexecuted']
     result['unexecuted-required-case'] = not qualification(frozen, [], False)['example']['closed']
     assert result['empty-required-map'] and result['unexecuted-required-case']
+    c_wire = bytes.fromhex('732585800001000100000001046b657074076c6f6767696e670000100001c00c0010000100000000000e0d6578706c696369742d7573657200002904d0000000000000')
+    leaked = {'transport': 'tcp', 'probe': {'edns': False}, 'reply_wire': c_wire.hex(), 'response': semantics(c_wire)}
+    corrected = without_leaked_tcp_opt(leaked)
+    preceding = dict(leaked, probe={'edns': True})
+    c = dict(row, dns=[preceding, leaked])
+    rust = dict(row, dns=[preceding, corrected])
+    defect_case = dict(case, identity_matrix=True, reference_defect='C TCP stale OPT')
+    assert not compare(c, rust, defect_case)
+    corrupt = copy.deepcopy(rust)
+    changed_wire = bytes.fromhex(corrected['reply_wire'])
+    changed_wire = changed_wire[:3] + bytes([changed_wire[3] | 5]) + changed_wire[4:]
+    corrupt['dns'][1] = dict(corrected, reply_wire=changed_wire.hex(), response=semantics(changed_wire))
+    result['reference-defect-RCODE-guard'] = bool(compare(c, corrupt, defect_case))
+    result['reference-defect-needs-prior-EDNS'] = bool(compare(dict(row, dns=[leaked]), dict(row, dns=[corrected]), defect_case))
+    result['reference-defect-never-removes-requested-OPT'] = bool(compare(dict(row, dns=[preceding]), dict(row, dns=[dict(corrected, probe={'edns': True})]), defect_case))
+    assert all(result[key] for key in result if key.startswith('reference-defect-'))
     return result
 
 
@@ -801,6 +861,18 @@ def main():
         try:
             values = {side: run(roots[side], side, case, case_out / side) for side in sides}
             row['failures'] = compare(values['c'], values.get('rust', values['c']), case, args.reference_only)
+            if case.get('reference_defect') and not args.reference_only:
+                defects = []
+                previous_edns = False
+                for index, (c_row, rust_row) in enumerate(zip(values['c']['dns'], values['rust']['dns'])):
+                    if c_row['transport'] == 'udp':
+                        previous_edns = False
+                    if previous_edns and c_row != rust_row and without_leaked_tcp_opt(c_row) == rust_row:
+                        defects.append({'index': index, 'probe': c_row['probe'],
+                                        'c_wire': c_row['reply_wire'], 'rust_wire': rust_row['reply_wire']})
+                    previous_edns |= c_row['transport'] == 'tcp' and c_row['probe']['edns']
+                row['reference_defect'] = {'source': 'forward.c:2378,2513,2721,2745-2755',
+                                           'description': case['reference_defect'], 'affected': defects}
         except Exception as error:
             row['failures'].append({'kind': 'infrastructure', 'error': repr(error)})
         result['scenarios'].append(row)
