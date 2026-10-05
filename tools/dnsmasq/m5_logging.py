@@ -572,7 +572,7 @@ def run(root, side, case, out):
         outcome = case['script_probes']
         if outcome != 'exec':
             script = folder / 'script'
-            script.write_text('#!/bin/sh\n' + ('kill -TERM $$\n' if outcome == 'signal' else
+            script.write_text('#!/bin/sh\n' + ('kill -USR1 $$\n' if outcome == 'signal' else
                 "printf 'one\\n\\n'; head -c 4096 /dev/zero | tr '\\000' x; printf '\\ntail'; exit 7\n"))
             script.chmod(0o755)
     image_path(root, '/etc/dnsmasq.conf', follow_leaf=False).write_text(
@@ -634,7 +634,7 @@ def run(root, side, case, out):
                         if case.get('file') and (folder / case['file']).exists():
                             captured += (folder / case['file']).read_bytes()
                         if any(text in captured for text in [b'script process exited with status 7',
-                                                            b'script process killed by signal 15',
+                                                            b'script process killed by signal 10',
                                                             b'failed to execute /m2/logging/script']):
                             break
                         time.sleep(.005)
@@ -1116,9 +1116,9 @@ def compare(reference, candidate, case, reference_only=False):
             if message not in text:
                 failures.append({'kind': 'C-TFTP-log-producer', 'missing': message, 'actual': text})
     if case.get('script_probes'):
-        text = reference['stderr'] + ''.join(bytes.fromhex(value).decode() for value in reference['syslog'])
+        text = reference['stderr'] + ''.join(bytes.fromhex(value).decode() + '\n' for value in reference['syslog'])
         text += ''.join(bytes.fromhex(value).decode() for value in reference['files'].values())
-        required = ['script process killed by signal 15'] if case['script_probes'] == 'signal' else [
+        required = ['script process killed by signal 10'] if case['script_probes'] == 'signal' else [
             'failed to execute /m2/logging/script: No such file or directory'] if case['script_probes'] == 'exec' else [
             'dnsmasq-script[', ': one\n', ': \n', ': tail\n', 'script process exited with status 7']
         for message in required:
