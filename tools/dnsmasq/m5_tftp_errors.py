@@ -402,6 +402,7 @@ def compare(c,r):
             packet=expected(item)
             if row['packet']!=(packet.hex() if packet else None):failures.append(dict(side=name,error='wire guard '+item['name']))
             if row.get('health')!=(not item.get('exhausted')):failures.append(dict(side=name,error='health guard '+item['name']))
+            if packet and packet[:2]==b'\0\5' and row.get('error_logged')!=(not (item.get('quiet') and packet[2:4]==b'\0\1')):failures.append(dict(side=name,error='error log guard '+item['name']))
             if item.get('fault') and row.get('fault')!=dict(injected=True,errno=item['fault_errno'],after=item.get('fault_after',0)):failures.append(dict(side=name,error='fault guard '+item['name']))
             if item.get('allocation') and row.get('allocation')!=dict(injected=True,record=item['allocation']):failures.append(dict(side=name,error='allocation guard '+item['name']))
     if c['rows']!=r['rows']:failures.append(dict(c=c['rows'],rust=r['rows']))
@@ -438,7 +439,7 @@ def main():
     failures=compare(c,r);controls=[]
     if any(exits.values()):failures.append(dict(error='nonzero side exit',exits=exits))
     if not failures:
-        for name in ['missing-case','short-text','wrong-code','missing-zero','wrong-socket-role','missing-health','missing-fault','missing-allocation','numeric-overflow-error']:
+        for name in ['missing-case','short-text','wrong-code','missing-zero','wrong-socket-role','missing-health','missing-fault','missing-allocation','missing-error-log','numeric-overflow-error']:
             mutant=copy.deepcopy(r)
             if name=='missing-case':mutant['rows'].pop()
             elif name=='short-text':mutant['rows'][0]['packet']=b'\0\5\0\1file not found\0'.hex()
@@ -448,14 +449,15 @@ def main():
             elif name=='missing-health':mutant['rows'][0]['health']=False
             elif name=='missing-fault':next(row for row in mutant['rows'] if row['case']=='fstat-5').pop('fault')
             elif name=='missing-allocation':next(row for row in mutant['rows'] if row['case']=='file-record-enomem').pop('allocation')
+            elif name=='missing-error-log':mutant['rows'][0].pop('error_logged')
             else:next(row for row in mutant['rows'] if row['case']=='numeric-blksize-signed-overflow')['packet']=b'\0\5\0\4unsupported request from 127.0.0.1\0'.hex()
             controls.append(dict(name=name,rejected=bool(compare(c,mutant))))
     report=dict(cases=len(cases()),failures=failures,exits=exits,negative_controls=controls,
         binary_sha256=sha256(args.rust_binary),bytes=args.rust_binary.stat().st_size,
         boundaries=[dict(id=row['id'],cases=row['required_cases'],passed=not failures) for row in plan['boundaries']],
         unclosed_callers=plan.get('unclosed_callers',[]),
-        paired_cases_passed=not failures and len(controls)==9 and all(row['rejected'] for row in controls),
-        qualified=not failures and len(controls)==9 and all(row['rejected'] for row in controls) and not plan.get('unclosed_callers'))
+        paired_cases_passed=not failures and len(controls)==10 and all(row['rejected'] for row in controls),
+        qualified=not failures and len(controls)==10 and all(row['rejected'] for row in controls) and not plan.get('unclosed_callers'))
     save(args.out/'result.json',report);print(json.dumps(dict(cases=len(cases()),failures=len(failures),qualified=report['qualified'])))
     return bool(failures)
 

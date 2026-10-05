@@ -625,7 +625,9 @@ impl<O: FileOpener> TftpListener<O> {
                     self.completed.push_back(done.clone());
                     None
                 }
-                RuntimeEvent::Failed { id, .. } | RuntimeEvent::TimedOut { id, .. } => {
+                RuntimeEvent::Failed { id, .. }
+                | RuntimeEvent::TimedOut { id, .. }
+                | RuntimeEvent::Discarded { id } => {
                     self.transfers.remove(id);
                     self.routes.remove(id);
                     None
