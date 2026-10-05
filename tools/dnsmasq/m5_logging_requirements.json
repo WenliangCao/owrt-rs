@@ -212,9 +212,21 @@
             "startup-tftp-both",
             "startup-tftp-no-global-root"
           ]
+        },
+        {
+          "id": "FAC10",
+          "source": "log.c:135-160,301-319,log_write,flush_log",
+          "boundary": "Real FIFO file open/write and blocked inherited stderr/debug echo preserve record semantics with explicit nonblocking single-owner startup/runtime/shutdown policy; demonstrate DNS/TFTP health while sink blocks and recovery after drain or reader arrival. C blocking differences retained separately.",
+          "required_scenarios": []
+        },
+        {
+          "id": "FAC11",
+          "source": "dnsmasq.c:1682-1688,log.c:135-167",
+          "boundary": "Actual SIGUSR2 on stderr/syslog keeps destination FD; file replacement ownership is not reapplied, failed reopen closes previous FD then later producer falls back; subsequent successful reopen recovers explicit file destination.",
+          "required_scenarios": []
         }
       ],
-      "qualification_ready": true
+      "qualification_ready": false
     },
     "no-daemon": {
       "required": [
