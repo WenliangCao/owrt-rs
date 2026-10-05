@@ -1,0 +1,26 @@
+{
+  "candidate": {
+    "source_commit": "558fef0e",
+    "elf_sha256": "290d9b903e39d0cf8a425807519d2781260fa98dea49154651e26852bb526123",
+    "bytes": 1736744,
+    "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
+  },
+  "syntax": {
+    "configs": 70,
+    "side": "both",
+    "failures": 0,
+    "archive_sha256": "b95d48ce3c2d56ad62c9b0b4c6caae1a14b9603f4fd6547f2867ef9db39896b1"
+  },
+  "service": {
+    "configs": 76,
+    "side": "both",
+    "failures": 11,
+    "failures": [
+      "CNAME loop raw fatal text differs; comparison guard retains both raw messages",
+      "interface enumeration ctrl-socket EIO before clear: C retains old snapshot, Rust publishes new addresses",
+      "interface enumeration netlink EIO after clear (empty and partial): C publishes empty snapshot, Rust retains/publishes old/new atomic snapshot"
+    ],
+    "archive_sha256": "138f19808bedec669d85cee780b04af6c6e5c679e023211dcc96346f5563f4a0"
+  },
+  "qualification": "Expanded paired evidence does not close interface-name or dynamic-host. Dynamic cached CNAME terminal cases and exact C enumeration failure semantics remain required."
+}
