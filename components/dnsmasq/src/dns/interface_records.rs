@@ -100,9 +100,9 @@ fn label_matches(label: &[u8], configured: &[u8]) -> bool {
 fn composed(rule: &InterfaceRule, input: &InterfaceAddress) -> Option<RecordAddress> {
     let address = match input.address {
         IpAddr::V4(value) if rule.family4 || rule.prototype4.is_some() => {
-            let mask = u32::MAX
-                .checked_shl(32u32.checked_sub(u32::from(input.prefix))?)
-                .unwrap_or(0);
+            // The image's AArch64 netlink.c shift by 32 produces a full mask
+            // for prefix zero. Preserve that observed /32 composition.
+            let mask = u32::MAX.wrapping_shl(32u32.checked_sub(u32::from(input.prefix))?);
             IpAddr::V4(rule.prototype4.map_or(value, |prototype| {
                 Ipv4Addr::from((u32::from(value) & mask) | (u32::from(prototype) & !mask))
             }))
