@@ -90,6 +90,8 @@ def scenarios():
         add('tftp-only', mode, 'interface=lan\nenable-tftp\ntftp-root=/m2/tftp\n', tftp=True,port=0)
         add('unowned-loopback-change',mode,'listen-address=127.0.0.2\n',actions=['unowned-loopback-change'])
         add('tftp-unowned-loopback-change',mode,'listen-address=127.0.0.2\nenable-tftp\ntftp-root=/m2/tftp\n',actions=['unowned-loopback-change'],tftp=True)
+    add('socket-unsupported-udp','static','enable-tftp\ntftp-root=/m2/tftp\n',tftp=True,socket_errno=22,socket_kind=2)
+    add('socket-unsupported-tcp','dynamic','enable-tftp\ntftp-root=/m2/tftp\n',tftp=True,socket_errno=97,socket_kind=1)
     for mode in ['static', 'dynamic']:
         for profile, extra in [('dad', ''), ('dad-explicit', 'listen-address=fd42:77::9\n'),
                                ('dad-failed', ''), ('dad-low-port', 'user=nobody\ngroup=nogroup\n')]:
@@ -232,10 +234,12 @@ def wire_probe(item):
     return result
 
 
-def exec_socket_fault(number,argv):
+def exec_socket_fault(number,kind,argv):
     """Real socket(AF_INET6) error, leaving bind errors and all other syscalls intact."""
     number=int(number)
+    kind=int(kind)
     assert number in [22,93,97] and platform.machine()=='aarch64'
+    assert kind in [0,1,2]
     assert os.environ.get('DNSMASQ_TEST_ISOLATED')=='1'
     assert argv[0]=='chroot' and 'private' in Path(argv[1]).parts and argv[2] in ['/usr/sbin/dnsmasq','/usr/sbin/dnsmasq-rs']
     class Filter(ctypes.Structure):
@@ -243,9 +247,14 @@ def exec_socket_fault(number,argv):
     class Program(ctypes.Structure):
         _fields_=[('len',ctypes.c_ushort),('filter',ctypes.POINTER(Filter))]
     # AArch64 asm-generic __NR_socket=198; seccomp_data.args[0] starts at 16.
-    filters=(Filter*6)(Filter(0x20,0,0,0),Filter(0x15,0,3,198),
-        Filter(0x20,0,0,16),Filter(0x15,0,1,10),Filter(0x06,0,0,0x50000|number),Filter(0x06,0,0,0x7fff0000))
-    program=Program(6,filters)
+    if kind:
+        filters=(Filter*9)(Filter(0x20,0,0,0),Filter(0x15,0,6,198),
+            Filter(0x20,0,0,16),Filter(0x15,0,4,10),Filter(0x20,0,0,24),
+            Filter(0x54,0,0,15),Filter(0x15,0,1,kind),Filter(0x06,0,0,0x50000|number),Filter(0x06,0,0,0x7fff0000))
+    else:
+        filters=(Filter*6)(Filter(0x20,0,0,0),Filter(0x15,0,3,198),
+            Filter(0x20,0,0,16),Filter(0x15,0,1,10),Filter(0x06,0,0,0x50000|number),Filter(0x06,0,0,0x7fff0000))
+    program=Program(len(filters),filters)
     libc=ctypes.CDLL(None,use_errno=True)
     if libc.prctl(38,1,0,0,0) or libc.prctl(22,2,ctypes.byref(program),0,0):
         raise OSError(ctypes.get_errno(),'socket seccomp setup')
@@ -397,8 +406,8 @@ def execute(root,side,item,out):
         with (out/'stderr').open('w') as stderr,(out/'stdout').open('w') as stdout:
             argv=command(root,side,'-d','-C','/m2/listeners.conf')
             if item.get('socket_errno'):
-                argv=[sys.executable,__file__,'--fault-exec',str(item['socket_errno']),*argv]
-                save(out/'socket-fault.json',dict(syscall=198,family=10,errno=item['socket_errno'],abi='aarch64',filter='errno only socket(AF_INET6)'))
+                argv=[sys.executable,__file__,'--fault-exec',str(item['socket_errno']),str(item.get('socket_kind',0)),*argv]
+                save(out/'socket-fault.json',dict(syscall=198,family=10,kind=item.get('socket_kind',0),errno=item['socket_errno'],abi='aarch64',filter='errno only matching socket(AF_INET6)'))
             process=subprocess.Popen(argv,stderr=stderr,stdout=stdout,start_new_session=True)
             observer=Observer(net,process,out,port,log)
             time.sleep(.2)
@@ -620,7 +629,8 @@ def expected_answer(item,case,side='c'):
     if profile in ['missing-address','missing-address-v6','unowned-scope']:return False
     if case.startswith('lo'):
         tag=case.rsplit('-',1)[0]
-        if profile.startswith('socket-unsupported-'):return tag!='lo6'
+        if profile.startswith('socket-unsupported-'):
+            return tag!='lo6' or item.get('socket_kind',0) not in [0,1 if proto=='tcp' else 2]
         if profile in ['explicit-any4','explicit-any6']:
             family4=tag!='lo6'
             return family4==(profile=='explicit-any4') and (proto=='tcp' and bound or mode=='static' and family4 and proto=='udp')
@@ -632,7 +642,10 @@ def expected_answer(item,case,side='c'):
         return selected
     link,tag,_=case.split('-')
     if link not in ['lan','wan']:return None
-    if profile.startswith('socket-unsupported-'):return tag in ['v4','alias']
+    if profile.startswith('socket-unsupported-'):
+        if tag in ['v4','alias']:return True
+        if tag=='scope' and proto=='tftp' and side=='c':return False
+        return item.get('socket_kind',0) not in [0,1 if proto=='tcp' else 2]
     if profile=='tftp-single-scope':return True
     # tftp.c:295-296 resets the dedicated transfer scope to zero. This is a
     # separately proved original defect, never an ordinary equivalence pass.
@@ -699,7 +712,7 @@ def reference_differences(left,right,cases):
 
 def main():
     if len(sys.argv)>1 and sys.argv[1]=='--fault-exec':
-        return exec_socket_fault(sys.argv[2],sys.argv[3:])
+        return exec_socket_fault(sys.argv[2],sys.argv[3],sys.argv[4:])
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--image-root',type=Path)
     parser.add_argument('--rust-binary',type=Path)
@@ -721,6 +734,7 @@ def main():
             if requirement['id']=='dad-capabilities':requirement['profiles']=list(dict.fromkeys(requirement['profiles']+['tftp-dad-low-port']))
             if requirement['id']=='startup-failures':requirement['profiles']=list(dict.fromkeys(requirement['profiles']+['missing-address-v6','unowned-scope','occupied-udp-v6','occupied-tcp-v6','occupied-tftp-v6']))
             if requirement['id']=='startup-failures':requirement['profiles']=list(dict.fromkeys(requirement['profiles']+['socket-unsupported-einval','socket-unsupported-eafnosupport','socket-unsupported-eprotonosupport']))
+            if requirement['id']=='partial-dynamic-listener':requirement['profiles']=list(dict.fromkeys(requirement['profiles']+['socket-unsupported-udp','socket-unsupported-tcp']))
             if requirement['id']=='unowned-address':
                 requirement['profiles']=list(dict.fromkeys(requirement['profiles']+['unowned-loopback-change','tftp-unowned-loopback-change','tftp-late-address']))
                 requirement['boundary']='Explicit addresses absent from snapshots are attempted. Successfully created unowned listeners remain unowned even if the address later gains/loses an interface; failed unowned addresses first created on a real interface are retired with the last owner. INAME_USED forbids recreating the latter as a fallback.'

@@ -817,6 +817,26 @@
       "tftp": true
     },
     {
+      "actions": [],
+      "config": "bind-interfaces\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "static",
+      "name": "socket-unsupported-udp-static",
+      "profile": "socket-unsupported-udp",
+      "socket_errno": 22,
+      "socket_kind": 2,
+      "tftp": true
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "dynamic",
+      "name": "socket-unsupported-tcp-dynamic",
+      "profile": "socket-unsupported-tcp",
+      "socket_errno": 97,
+      "socket_kind": 1,
+      "tftp": true
+    },
+    {
       "actions": [
         "dad"
       ],
@@ -1441,6 +1461,8 @@
     "tftp-only-dynamic",
     "unowned-loopback-change-dynamic",
     "tftp-unowned-loopback-change-dynamic",
+    "socket-unsupported-udp-static",
+    "socket-unsupported-tcp-dynamic",
     "dad-static",
     "dad-explicit-static",
     "dad-failed-static",
@@ -1619,7 +1641,9 @@
         "runtime-occupied-tcp",
         "runtime-shared-tftp",
         "runtime-shared-dns-both",
-        "runtime-shared-all"
+        "runtime-shared-all",
+        "socket-unsupported-udp",
+        "socket-unsupported-tcp"
       ],
       "source": "network.c:1087-1133,1184-1200"
     },
@@ -1687,9 +1711,8 @@
       "source": "network.c:705-720; dnsmasq.c:1180-1206"
     },
     {
-      "id": "late-bind-diagnostics",
-      "source": "network.c:894-941; util.c:564-586",
       "boundary": "LOG_WARNING/default LOG_DAEMON produces PRI 28 and failed to create listening socket for ADDRESS: strerror. One warning per failed transport, preserving attempt order. Dynamic EADDRNOTAVAIL and socket-stage EPROTONOSUPPORT/EAFNOSUPPORT/EINVAL are silent; bind EINVAL is not silently suppressed.",
+      "id": "late-bind-diagnostics",
       "profiles": [
         "runtime-occupied-udp",
         "runtime-occupied-tcp",
@@ -1707,7 +1730,8 @@
         "socket-unsupported-einval",
         "socket-unsupported-eafnosupport",
         "socket-unsupported-eprotonosupport"
-      ]
+      ],
+      "source": "network.c:894-941; util.c:564-586"
     }
   ],
   "schema": 1
