@@ -103,6 +103,10 @@ pub fn enable(value: bool) {
     ENABLED.store(value, Ordering::Relaxed);
 }
 
+pub fn is_enabled() -> bool {
+    ENABLED.load(Ordering::Relaxed)
+}
+
 /// The owner pauses all trace collection while formatting/enqueuing notices,
 /// preventing recursive diagnostics about the logger's own allocations.
 pub fn suspended<T>(action: impl FnOnce() -> T) -> T {

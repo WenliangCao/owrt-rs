@@ -3185,26 +3185,28 @@ impl SinglePoll {
     #[cfg(target_os = "linux")]
     fn log_dns_diagnostics(&mut self) {
         use dnsmasq_rs::logging::{LogEvent, Priority, Service};
-        if let Some(logger) = &mut self.logger {
-            allocation_trace::suspended(|| {
-                let mut events = [allocation_trace::Event::EMPTY; 256];
-                let (count, lost) = allocation_trace::drain(&mut events);
-                for event in &events[..count] {
-                    logger.emit(LogEvent::new(
-                        Service::Dns,
-                        Priority::Info,
-                        event.message().into_bytes(),
-                    ));
-                }
-                if lost != 0 {
-                    logger.emit(LogEvent::new(
-                        Service::Dns,
-                        Priority::Warning,
-                        format!("allocation trace lost {lost} events").into_bytes(),
-                    ));
-                }
-                logger.flush_ready();
-            });
+        if allocation_trace::is_enabled() {
+            if let Some(logger) = &mut self.logger {
+                allocation_trace::suspended(|| {
+                    let mut events = [allocation_trace::Event::EMPTY; 256];
+                    let (count, lost) = allocation_trace::drain(&mut events);
+                    for event in &events[..count] {
+                        logger.emit(LogEvent::new(
+                            Service::Dns,
+                            Priority::Info,
+                            event.message().into_bytes(),
+                        ));
+                    }
+                    if lost != 0 {
+                        logger.emit(LogEvent::new(
+                            Service::Dns,
+                            Priority::Warning,
+                            format!("allocation trace lost {lost} events").into_bytes(),
+                        ));
+                    }
+                    logger.flush_ready();
+                });
+            }
         }
         self.dump.step();
         let Some(logger) = &mut self.logger else {
