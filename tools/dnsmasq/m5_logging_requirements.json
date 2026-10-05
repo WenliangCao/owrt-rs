@@ -33,57 +33,188 @@
           "id": "FAC01",
           "source": "option.c:2279-2297",
           "boundary": "Argument containing slash or exactly - selects file; remaining values use ASCII case-insensitive musl facilitynames including security/mark; unknown and empty reject bad log facility.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "facility-kern",
+            "facility-user",
+            "facility-mail",
+            "facility-daemon",
+            "facility-auth",
+            "facility-security",
+            "facility-syslog",
+            "facility-lpr",
+            "facility-news",
+            "facility-uucp",
+            "facility-cron",
+            "facility-authpriv",
+            "facility-ftp",
+            "facility-local0",
+            "facility-local1",
+            "facility-local2",
+            "facility-local3",
+            "facility-local4",
+            "facility-local5",
+            "facility-local6",
+            "facility-local7",
+            "facility-mark",
+            "facility-uppercase",
+            "bad-facility-empty",
+            "bad-facility-local8",
+            "bad-facility-audit",
+            "bad-facility-24",
+            "bad-facility-foo",
+            "file-create",
+            "file-open-missing-parent"
+          ]
         },
         {
           "id": "FAC02",
           "source": "option.c:2279-2297,log.c:68-80",
           "boundary": "Facility and file are independent across CLI/config origins; explicit facility overrides daemon/local0 default.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "facility-file-origins",
+            "default-normal",
+            "default-debug",
+            "debug-explicit-daemon"
+          ]
         },
         {
           "id": "FAC03",
           "source": "log.c:70-89,361-392",
           "boundary": "Normal default LOG_DAEMON; debug default LOG_LOCAL0; only syslog payload includes PRI; file/stderr do not.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "default-normal",
+            "default-debug",
+            "debug-explicit-daemon",
+            "stderr-foreground",
+            "stderr-debug",
+            "stderr-debug-foreground",
+            "file-create",
+            "file-append",
+            "syslog-stream"
+          ]
         },
         {
           "id": "FAC04",
           "source": "log.c:80-109,135-160",
           "boundary": "File append/create0640 after umask022; - duplicates inherited stderr; file disables async queue; file/socket/dup opening failure code3.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "file-create",
+            "file-append",
+            "stderr-foreground",
+            "stderr-debug",
+            "stderr-debug-foreground",
+            "file-open-missing-parent",
+            "sink-fault-syslog-socket",
+            "sink-fault-stderr-dup",
+            "async-overridden-file",
+            "async-overridden-stderr"
+          ]
         },
         {
           "id": "FAC05",
           "source": "log.c:111-128",
           "boundary": "Initial file selected passwd owner in normal/debug mode; preserve group, make group-root writable if getgid0; nonfatal chown warning.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "file-owner-normal",
+            "file-owner-debug",
+            "file-existing-group-owner",
+            "startup-fault-log-chown"
+          ]
         },
         {
           "id": "FAC06",
           "source": "log.c:362-390",
           "boundary": "RFC3164 local timestamp, subsystem/PID tag, final NUL stream vs elided NUL datagram vs newline file; total payload cap1024 including terminator.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "default-normal",
+            "stderr-foreground",
+            "file-create",
+            "syslog-stream",
+            "script-logs-stderr-debug-disabled",
+            "script-logs-file-debug-disabled",
+            "script-logs-syslog-debug-disabled",
+            "script-logs-stream-debug-disabled"
+          ]
         },
         {
           "id": "FAC07",
           "source": "dnsmasq.c:1682-1688,log.c:135-167",
           "boundary": "SIGUSR2 reopens file only; preserve existing stderr FD; close old FD before failed reopen; retries/ownership behavior.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "file-rotate",
+            "file-reopen-fails",
+            "stderr-foreground",
+            "stderr-debug"
+          ]
         },
         {
           "id": "FAC08",
           "source": "log.c:207-293",
           "boundary": "EINTR retry; EAGAIN defer; ENOBUFS inhibit poll; reconnect ENOTCONN/ECONNREFUSED/EDESTADDRREQ/ECONNRESET; transient connect wait until next log; EPROTOTYPE toggles dgram/stream; EPIPE reopen; fatal write fallback syslog critical.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "sink-fault-syslog-interrupt",
+            "sink-fault-syslog-again",
+            "sink-fault-syslog-buffers",
+            "sink-fault-syslog-not-connected",
+            "sink-fault-syslog-refused",
+            "sink-fault-syslog-destination",
+            "sink-fault-syslog-reset",
+            "sink-fault-syslog-pipe",
+            "sink-fault-syslog-fatal",
+            "sink-fault-connect-missing",
+            "sink-fault-connect-already",
+            "sink-fault-connect-refused",
+            "sink-fault-connect-connected",
+            "sink-fault-connect-interrupt",
+            "sink-fault-connect-again",
+            "async-real-reconnect-two-cycles"
+          ]
         },
         {
           "id": "FAC09",
           "source": "log.c:296-328,446-456",
           "boundary": "DHCP/TFTP/script suffix priority masking; debug suppression governed only by log-debug; poll writer registration and readiness gating.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "script-logs-stderr-debug-disabled",
+            "script-logs-stderr-debug-enabled",
+            "script-logs-file-debug-disabled",
+            "script-logs-file-debug-enabled",
+            "script-logs-syslog-debug-disabled",
+            "script-logs-syslog-debug-enabled",
+            "script-logs-stream-debug-disabled",
+            "script-logs-stream-debug-enabled",
+            "script-logs-signal",
+            "script-logs-exec",
+            "tftp-logs-requests-ordinary",
+            "tftp-logs-requests-quiet",
+            "tftp-logs-port-exhausted-ordinary",
+            "tftp-logs-port-exhausted-quiet",
+            "tftp-logs-timeout-ordinary",
+            "tftp-logs-timeout-quiet",
+            "startup-output-cache-disabled",
+            "startup-output-cache-large",
+            "startup-output-dns-disabled",
+            "startup-output-ignored-resolv",
+            "startup-output-ubus-pending",
+            "startup-output-interface-warning",
+            "startup-output-local-service-net",
+            "startup-output-local-service-host",
+            "startup-output-nameserver",
+            "startup-output-local-domain",
+            "startup-dhcp-dynamic",
+            "startup-dhcp-static",
+            "startup-dhcp-proxy",
+            "startup-dhcp-infinite",
+            "startup-dhcp-multi",
+            "startup-tftp-plain",
+            "startup-tftp-secure",
+            "startup-tftp-single",
+            "startup-tftp-both",
+            "startup-tftp-no-global-root"
+          ]
         }
-      ]
+      ],
+      "qualification_ready": true
     },
     "no-daemon": {
       "required": [
