@@ -217,7 +217,56 @@ pub struct Logger {
     fallback: bool,
 }
 
+/// The normal C TCP worker copies its counters at accept, then discards the
+/// inherited parent-PID records. Only new producer records need buffering.
+/// The one Logger still owns and writes the existing destination descriptor.
+pub struct TcpLogContext {
+    queue: VecDeque<Record>,
+    limit: usize,
+    lost: u32,
+    connection_good: bool,
+}
+
 impl Logger {
+    pub fn tcp_context(&self) -> TcpLogContext {
+        TcpLogContext {
+            queue: VecDeque::new(),
+            limit: self.limit,
+            lost: self.lost,
+            connection_good: self.connection_good,
+        }
+    }
+
+    pub fn emit_tcp(&mut self, context: &mut TcpLogContext, event: LogEvent) {
+        self.exchange_tcp_context(context);
+        self.emit(event);
+        self.exchange_tcp_context(context);
+    }
+
+    pub fn flush_tcp_ready(&mut self, context: &mut TcpLogContext) {
+        self.exchange_tcp_context(context);
+        self.flush_ready();
+        self.exchange_tcp_context(context);
+    }
+
+    pub fn finish_tcp(&mut self, context: &mut TcpLogContext) -> bool {
+        self.exchange_tcp_context(context);
+        let finished = self.finish();
+        self.exchange_tcp_context(context);
+        finished
+    }
+
+    pub fn tcp_poll_fd(&self, context: &TcpLogContext) -> Option<RawFd> {
+        (!context.queue.is_empty() && context.connection_good).then(|| self.destination.as_raw_fd())
+    }
+
+    fn exchange_tcp_context(&mut self, context: &mut TcpLogContext) {
+        std::mem::swap(&mut self.queue, &mut context.queue);
+        std::mem::swap(&mut self.limit, &mut context.limit);
+        std::mem::swap(&mut self.lost, &mut context.lost);
+        std::mem::swap(&mut self.connection_good, &mut context.connection_good);
+    }
+
     /// Before log_start, C uses libc syslog with its default DAEMON facility.
     /// Keep one explicit owner across initial lease diagnostics and helper RO
     /// notices: their identity is the parent, independent of the configured sink.
