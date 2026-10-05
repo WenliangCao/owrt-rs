@@ -75,6 +75,7 @@ fn start_error(error: io::Error) -> StartError {
 pub struct Helper {
     pid: c_int,
     script: std::path::PathBuf,
+    script_user: Option<Vec<u8>>,
     writer: Option<File>,
     reader: Option<File>,
     pending: Vec<u8>,
@@ -185,6 +186,7 @@ impl Helper {
         Ok(Self {
             pid,
             script: config.script,
+            script_user: config.script_user,
             writer: Some(File::from(commands_write)),
             reader: Some(File::from(events_read)),
             pending: Vec::new(),
@@ -202,6 +204,18 @@ impl Helper {
     }
     pub fn script_path(&self) -> &std::path::Path {
         &self.script
+    }
+    pub fn credential_failure(&self, errno: i32) -> StartError {
+        let error = crate::logging::error_text(&io::Error::from_raw_os_error(errno));
+        let user = self
+            .script_user
+            .as_deref()
+            .map(String::from_utf8_lossy)
+            .map_or_else(|| error.clone(), |user| user.into_owned());
+        StartError {
+            code: 5,
+            message: format!("failed to change user-id to {user}: {error}"),
+        }
     }
     pub fn initializes_leases(&self) -> bool {
         self.init_capacity.is_some()
@@ -479,6 +493,7 @@ fn notice_payload(notice: Notice) -> io::Result<Vec<u8>> {
         | Notice::ScriptExit(value)
         | Notice::ScriptSignal(value)
         | Notice::ExecError(value)
+        | Notice::CredentialError(value)
         | Notice::Error(value)
         | Notice::Reaped(value) => {
             let code = match notice {
@@ -488,6 +503,7 @@ fn notice_payload(notice: Notice) -> io::Result<Vec<u8>> {
                 Notice::ScriptSignal(_) => 3,
                 Notice::ExecError(_) => 4,
                 Notice::Error(_) => 5,
+                Notice::CredentialError(_) => 12,
                 _ => 6,
             };
             let mut bytes = vec![code];
@@ -528,6 +544,7 @@ fn decode_notice(bytes: &[u8]) -> io::Result<Notice> {
         5 => Ok(Notice::Error(value)),
         8 => Ok(Notice::InitExit(value)),
         10 => Ok(Notice::InitError(value)),
+        12 => Ok(Notice::CredentialError(value)),
         _ => Err(invalid()),
     }
 }
@@ -620,7 +637,7 @@ fn child(
             {
                 let _ = send(
                     &mut events,
-                    Notice::Error(io::Error::last_os_error().raw_os_error().unwrap_or(1)),
+                    Notice::CredentialError(io::Error::last_os_error().raw_os_error().unwrap_or(1)),
                 );
                 return 5;
             }
@@ -1063,6 +1080,7 @@ case "$n" in 1) exit 7;; 2) kill -USR1 "$$";; esac
             Notice::InitExit(7),
             Notice::InitError(5),
             Notice::Error(22),
+            Notice::CredentialError(1),
         ] {
             assert_eq!(
                 send(&mut writer, notice).unwrap_err().kind(),
