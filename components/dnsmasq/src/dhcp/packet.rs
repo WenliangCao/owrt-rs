@@ -19,13 +19,15 @@ pub struct VendorOption<'a> {
     pub value: &'a [u8],
 }
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct VendorEncoding {
     /// Number of bytes through the terminating `END`, including the cookie.
     pub len: usize,
     /// Options that did not fit.  C logs and skips these, then continues with
     /// later options, so an oversized option must not abort the whole reply.
     pub omitted: usize,
+    /// Actual codes in serializer omission order; empty does not allocate.
+    pub omitted_options: Vec<u8>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -143,6 +145,7 @@ struct VendorEncoder<'a> {
     output: &'a mut [u8],
     position: usize,
     omitted: usize,
+    omitted_options: Vec<u8>,
 }
 
 impl<'a> VendorEncoder<'a> {
@@ -154,6 +157,7 @@ impl<'a> VendorEncoder<'a> {
             output,
             position: COOKIE.len(),
             omitted: 0,
+            omitted_options: Vec::new(),
         })
     }
 
@@ -170,6 +174,7 @@ impl<'a> VendorEncoder<'a> {
                     self.position += 1;
                 } else {
                     self.omitted += 1;
+                    self.omitted_options.push(option.code);
                 }
             }
             255 => {
@@ -193,6 +198,7 @@ impl<'a> VendorEncoder<'a> {
                     self.position += needed;
                 } else {
                     self.omitted += 1;
+                    self.omitted_options.push(option.code);
                 }
             }
         }
@@ -205,6 +211,7 @@ impl<'a> VendorEncoder<'a> {
         VendorEncoding {
             len: self.position + 1,
             omitted: self.omitted,
+            omitted_options: self.omitted_options,
         }
     }
 }
@@ -649,7 +656,8 @@ mod tests {
             result,
             VendorEncoding {
                 len: 63,
-                omitted: 0
+                omitted: 0,
+                omitted_options: Vec::new()
             }
         );
         assert_eq!(&output[..4], &COOKIE);
@@ -684,7 +692,8 @@ mod tests {
             result,
             VendorEncoding {
                 len: 63,
-                omitted: 0
+                omitted: 0,
+                omitted_options: Vec::new()
             }
         );
         assert_eq!(&output[4..33], &[&[1, 27][..], &first[..]].concat());
@@ -712,7 +721,14 @@ mod tests {
             &mut output,
         )
         .unwrap();
-        assert_eq!(result, VendorEncoding { len: 9, omitted: 1 });
+        assert_eq!(
+            result,
+            VendorEncoding {
+                len: 9,
+                omitted: 1,
+                omitted_options: vec![1]
+            }
+        );
         assert_eq!(&output[4..9], &[2, 2, b'o', b'k', 255]);
         assert!(output[9..].iter().all(|&byte| byte == 0));
     }

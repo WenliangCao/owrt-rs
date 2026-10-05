@@ -34,7 +34,7 @@ def modes(profile, field):
                            ('detail', ['log-dhcp']), ('quiet-detail', ['quiet-dhcp', 'log-dhcp'])]:
         row = copy.deepcopy(profile)
         row['name'] += '-' + mode
-        row[field].extend(['log-facility=-', *switches])
+        row[field].extend((["log-facility=-"] if 'acl' not in row else []) + switches)
         rows.append(row)
     return rows
 

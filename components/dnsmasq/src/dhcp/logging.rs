@@ -306,11 +306,15 @@ pub fn requested_options(xid: u32, codes: &[u8]) -> Vec<Vec<u8>> {
 
 /// dhcp_packet_size visits overloaded file/sname before primary options.
 /// The serializer has already supplied its actual final fields and flags.
+pub fn omission(code: u8) -> Vec<u8> {
+    format!("cannot send DHCP/BOOTP option {code}: no space left in packet").into_bytes()
+}
+
 pub fn reply_details(packet: &[u8]) -> Vec<Vec<u8>> {
     if packet.len() < 240 {
         return Vec::new();
     }
-    let xid = u32::from_be_bytes(packet[4..8].try_into().unwrap());
+    let xid = u32::from_be_bytes([packet[4], packet[5], packet[6], packet[7]]);
     let overload =
         crate::dhcp::packet::find_option(&packet[240..], 52, 1).map_or(0, |option| option.value[0]);
     let mut events = Vec::new();
@@ -357,7 +361,7 @@ pub fn reply_details(packet: &[u8]) -> Vec<Vec<u8>> {
             }
         }
     }
-    let server = Ipv4Addr::from(<[u8; 4]>::try_from(&packet[20..24]).unwrap());
+    let server = Ipv4Addr::new(packet[20], packet[21], packet[22], packet[23]);
     if !server.is_unspecified() {
         events.push(detail(xid, b"next server: ", server.to_string().as_bytes()));
     }

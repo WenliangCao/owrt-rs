@@ -99,7 +99,13 @@ pub trait OutcomeProvider {
     fn resolve(&mut self, dispatch: &Dispatch<'_>) -> Result<Outcome, RuntimeError>;
 
     /// Record actual serialized output before destination/ARP/send failure.
-    fn record_reply(&mut self, _request: super::packet::Packet<'_>, _reply: Reply, _output: &[u8]) {
+    fn record_reply(
+        &mut self,
+        _request: super::packet::Packet<'_>,
+        _reply: Reply,
+        _output: &[u8],
+        _omitted_options: &[u8],
+    ) {
     }
 
     fn direct_pxe_reply(
@@ -964,7 +970,12 @@ where
     if !matches!(outcome.reply, Reply::Nak { .. }) && provider.force_broadcast(&outcome) {
         buffer[10] |= 0x80;
     }
-    provider.record_reply(dispatch.packet, outcome.reply, &buffer[..encoding.len]);
+    provider.record_reply(
+        dispatch.packet,
+        outcome.reply,
+        &buffer[..encoding.len],
+        &encoding.omitted_options,
+    );
     restore_relay_source(&dispatch, buffer);
     let mut destination = match destination_with_ports(
         &dispatch,

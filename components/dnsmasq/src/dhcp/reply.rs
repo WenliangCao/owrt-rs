@@ -33,13 +33,15 @@ const SNAME_LEN: usize = 64;
 const BROADCAST_FLAG: u16 = 0x8000;
 
 /// Result of a successful wire build.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ReplyEncoding {
     /// Number of bytes to send.  As in `dhcp_packet_size`, this is at least
     /// 300 for both DHCP and BOOTP replies.
     pub len: usize,
     /// Number of options skipped after all available regions were exhausted.
     pub omitted: usize,
+    /// Actual codes in serializer omission order; empty does not allocate.
+    pub omitted_options: Vec<u8>,
     /// DHCP option-overload bits: bit 0 means `file`, bit 1 means `sname`.
     /// BOOTP replies always report zero.
     pub overload: u8,
@@ -191,10 +193,11 @@ pub fn build_pxe_reply(
     for option in options {
         writer.append(*option)?;
     }
-    let (end, omitted, overload) = writer.finish(agent_id);
+    let (end, omitted, overload, omitted_options) = writer.finish(agent_id);
     Ok(ReplyEncoding {
         len: end.max(MIN_PACKET_SIZE),
         omitted,
+        omitted_options,
         overload,
     })
 }
@@ -292,6 +295,7 @@ pub fn build_reply_with_boot(
         return Ok(ReplyEncoding {
             len: MIN_PACKET_SIZE,
             omitted: encoding.omitted,
+            omitted_options: encoding.omitted_options,
             overload: 0,
         });
     }
@@ -358,10 +362,11 @@ pub fn build_reply_with_boot(
             }
         }
     }
-    let (end, omitted, overload) = writer.finish(agent_id);
+    let (end, omitted, overload, omitted_options) = writer.finish(agent_id);
     Ok(ReplyEncoding {
         len: end.max(MIN_PACKET_SIZE),
         omitted,
+        omitted_options,
         overload,
     })
 }
@@ -607,6 +612,7 @@ struct OptionWriter<'a> {
     allow_overload: bool,
     overload: u8,
     omitted: usize,
+    omitted_options: Vec<u8>,
 }
 
 impl<'a> OptionWriter<'a> {
@@ -623,6 +629,7 @@ impl<'a> OptionWriter<'a> {
             allow_overload: false,
             overload: 0,
             omitted: 0,
+            omitted_options: Vec::new(),
         }
     }
 
@@ -654,11 +661,13 @@ impl<'a> OptionWriter<'a> {
                 && self.packet[SNAME_OFFSET] != 0)
         {
             self.omitted += 1;
+            self.omitted_options.push(option.code);
             return Ok(());
         }
         self.ensure_overload();
         if self.overload_offset.is_none() {
             self.omitted += 1;
+            self.omitted_options.push(option.code);
             return Ok(());
         }
         if self.overload & 1 == 0 && self.packet[FILE_OFFSET] == 0 {
@@ -685,6 +694,7 @@ impl<'a> OptionWriter<'a> {
             return Ok(());
         }
         self.omitted += 1;
+        self.omitted_options.push(option.code);
         Ok(())
     }
 
@@ -716,7 +726,7 @@ impl<'a> OptionWriter<'a> {
         self.packet[position + 2..position + 2 + option.value.len()].copy_from_slice(option.value);
     }
 
-    fn finish(mut self, agent_id: Option<&[u8]>) -> (usize, usize, u8) {
+    fn finish(mut self, agent_id: Option<&[u8]>) -> (usize, usize, u8, Vec<u8>) {
         self.set_overload();
         if let Some(value) = agent_id {
             self.write_at(self.primary, ReplyOption { code: 82, value });
@@ -738,6 +748,7 @@ impl<'a> OptionWriter<'a> {
             self.primary.max(self.file).max(self.sname),
             self.omitted,
             self.overload,
+            self.omitted_options,
         )
     }
 }
