@@ -1554,6 +1554,7 @@ impl LocalProvider {
         let received_at = epoch_seconds();
         let wait = RefCell::new(wait);
         let xid = u32::from_be_bytes(dispatch.packet.bytes()[4..8].try_into().unwrap());
+        let packet_notices = RefCell::new(Vec::new());
         self.force_broadcast = false;
         self.selected_boot = None;
         self.pxe_client = None;
@@ -1714,6 +1715,47 @@ impl LocalProvider {
             })
             .flatten();
         let event_mac = Some(event_mac(packet, clid));
+        if self.config.log_dhcp {
+            for range in &ranges {
+                let value = if range.kind == RangeKind::Dynamic {
+                    format!(
+                        "{xid} available DHCP range: {} -- {}",
+                        range.start, range.end
+                    )
+                } else {
+                    format!(
+                        "{xid} available DHCP subnet: {}/{}",
+                        range.start, range.netmask
+                    )
+                };
+                packet_notices
+                    .borrow_mut()
+                    .push(crate::logging::LogEvent::new(
+                        crate::logging::Service::Dhcp,
+                        crate::logging::Priority::Info,
+                        value.into_bytes(),
+                    ));
+            }
+            for (code, label) in [
+                (60, b"vendor class: ".as_slice()),
+                (77, b"user class: ".as_slice()),
+            ] {
+                if let Some(value) = packet.option(code, 1) {
+                    let value = if code == 77 {
+                        super::logging::user_class(value)
+                    } else {
+                        super::logging::sanitise_option(Some(value))
+                    };
+                    packet_notices
+                        .borrow_mut()
+                        .push(crate::logging::LogEvent::new(
+                            crate::logging::Service::Dhcp,
+                            crate::logging::Priority::Info,
+                            super::logging::detail(xid, label, &value),
+                        ));
+                }
+            }
+        }
         let mut tags: Vec<&[u8]> = interface_name.into_iter().collect();
         let [oui, serial, _] = crate::helper::cpe_data(packet);
         if oui.is_some() && serial.is_some() {
@@ -2023,12 +2065,31 @@ impl LocalProvider {
         };
         let now = environment.now;
         let mut probe_error = None;
+        if self.config.log_dhcp {
+            if let Some(name) = packet
+                .option(12, 1)
+                .filter(|value| crate::hosts::canonicalise(value).is_some())
+            {
+                let value = super::logging::sanitise_option(Some(name));
+                packet_notices
+                    .borrow_mut()
+                    .push(crate::logging::LogEvent::new(
+                        crate::logging::Service::Dhcp,
+                        crate::logging::Priority::Info,
+                        super::logging::detail(xid, b"client provides name: ", &value),
+                    ));
+            }
+        }
+        let request_tags = &self.request_tags;
+        let ranges_selected = &self.selected;
+        let range_config = &self.config.ranges;
+        let tag_if = &self.config.tag_if;
         let logging = DhcpLogging {
             quiet_dhcp: self.config.quiet_dhcp,
             log_options: self.config.log_dhcp,
             has_error: false,
         };
-        let packet_notices = RefCell::new(Vec::new());
+
         let packet_notice =
             |kind: &[u8], address: Option<Ipv4Addr>, extra: Option<&[u8]>, error: Option<&[u8]>| {
                 if let Some(message) = super::logging::packet(
@@ -2054,6 +2115,31 @@ impl LocalProvider {
             };
         let mut on_event = |event: super::state::LogEvent<'_>| {
             let (kind, address, name, has_error) = match event {
+                super::state::LogEvent::Tags { context } => {
+                    if logging.log_options {
+                        let mut tags: Vec<_> = request_tags.iter().map(Vec::as_slice).collect();
+                        if let Some(tag) = context
+                            .and_then(|index| ranges_selected.get(index))
+                            .and_then(|selected| {
+                                range_config[selected.source_index].set_tag.as_deref()
+                            })
+                        {
+                            tags.push(tag);
+                        }
+                        TagIf::apply_all(tag_if, &mut tags);
+                        tags.reverse();
+                        if let Some(message) = super::logging::tags(xid, &tags) {
+                            packet_notices
+                                .borrow_mut()
+                                .push(crate::logging::LogEvent::new(
+                                    crate::logging::Service::Dhcp,
+                                    crate::logging::Priority::Info,
+                                    message,
+                                ));
+                        }
+                    }
+                    return;
+                }
                 super::state::LogEvent::Packet {
                     kind,
                     address,
@@ -2270,6 +2356,29 @@ impl LocalProvider {
 }
 
 impl OutcomeProvider for LocalProvider {
+    fn record_reply(&mut self, request: super::packet::Packet<'_>, reply: Reply, output: &[u8]) {
+        if !self.config.log_dhcp {
+            return;
+        }
+        let xid = request.transaction_id();
+        let mut notices = if matches!(reply, Reply::Nak { .. }) {
+            Vec::new()
+        } else {
+            request.option(55, 0).map_or_else(Vec::new, |codes| {
+                super::logging::requested_options(xid, codes)
+            })
+        };
+        notices.extend(super::logging::reply_details(output));
+        self.network_notices
+            .extend(notices.into_iter().map(|message| {
+                crate::logging::LogEvent::new(
+                    crate::logging::Service::Dhcp,
+                    crate::logging::Priority::Info,
+                    message,
+                )
+            }));
+    }
+
     fn direct_pxe_reply(
         &mut self,
         request: super::packet::Packet<'_>,
@@ -2771,6 +2880,10 @@ impl OutcomeProvider for LocalProvider {
 }
 
 impl OutcomeProvider for EventProvider<'_> {
+    fn record_reply(&mut self, request: super::packet::Packet<'_>, reply: Reply, output: &[u8]) {
+        self.provider.record_reply(request, reply, output);
+    }
+
     fn direct_pxe_reply(
         &mut self,
         request: super::packet::Packet<'_>,
