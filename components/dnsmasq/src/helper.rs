@@ -182,6 +182,8 @@ pub enum Notice {
     ScriptExit(i32),
     ScriptSignal(i32),
     ExecError(i32),
+    /// Initial helper setgroups/setgid/setuid failure, before Ready.
+    CredentialError(i32),
     /// Helper setup/IPC failure (errno, or EINVAL for malformed IPC).
     Error(i32),
     /// The helper itself has been reaped. Raw wait status, zero on EOF success.
