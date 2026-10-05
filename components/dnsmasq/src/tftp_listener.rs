@@ -58,6 +58,7 @@ pub struct TftpListener<O> {
     pending_bind: Vec<SocketAddr>,
     shared_listener_owner: bool,
     retired_explicit: Vec<IpAddr>,
+    restricted_transfer_limit: Option<i128>,
 }
 impl TftpListener<RealFileOpener> {
     /// Bind before dropping privileges. Directory checks belong to
@@ -74,7 +75,9 @@ impl TftpListener<RealFileOpener> {
     ) -> io::Result<Self> {
         let policy = Policy::new(config, dns, no_dhcp, no_tftp)?;
         let open_max = descriptor_limit()?;
-        let limit = config.transfer_limit(open_max, random_sockets.min((open_max / 3) as usize));
+        let random_sockets = random_sockets.min((open_max / 3) as usize);
+        let signed_limit = config.signed_transfer_limit(open_max, random_sockets);
+        let limit = config.transfer_limit(open_max, random_sockets);
         let runtime = TransferRuntime::new(
             RuntimeConfig {
                 packet_buffer_size,
@@ -94,6 +97,8 @@ impl TftpListener<RealFileOpener> {
         );
         let mut listener = Self::empty(runtime, config.port_range);
         listener.accepting = limit.is_some();
+        listener.restricted_transfer_limit =
+            (signed_limit < config.max_transfers as i128).then_some(signed_limit);
         listener.policy = Some(policy);
         listener.sync_servers(true)?;
         Ok(listener)
@@ -120,6 +125,7 @@ impl<O: FileOpener> TftpListener<O> {
             pending_bind: Vec::new(),
             shared_listener_owner: false,
             retired_explicit: Vec::new(),
+            restricted_transfer_limit: None,
         }
     }
     pub fn bind(address: SocketAddr, runtime: TransferRuntime<O>) -> io::Result<Self> {
@@ -165,6 +171,9 @@ impl<O: FileOpener> TftpListener<O> {
         self.policy
             .as_ref()
             .is_some_and(|policy| policy.config.quiet)
+    }
+    pub fn restricted_transfer_limit(&self) -> Option<i128> {
+        self.restricted_transfer_limit
     }
     /// The owner queries this before dropping privileges. Only static DAD
     /// and dynamic listeners can need a later privileged TFTP bind.
