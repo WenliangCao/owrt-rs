@@ -152,6 +152,34 @@ fn failure(file: &mut LeaseFile, source: io::Error) -> io::Error {
 /// Stream a startup database without allocating its complete contents. Field
 /// widths stay identical to scanf and capacity exhaustion is startup-fatal.
 pub fn parse_reader(reader: impl BufRead, maximum_records: usize) -> io::Result<LeaseFile> {
+    let mut warnings = Vec::new();
+    let parsed = parse_reader_with_warnings(reader, maximum_records, |warning| {
+        warnings.push(warning);
+        Ok(())
+    });
+    match parsed {
+        Ok(mut file) => {
+            file.warnings = warnings;
+            Ok(file)
+        }
+        Err(error) if warnings.is_empty() => Err(error),
+        Err(error) => Err(io::Error::new(
+            error.kind(),
+            ParseFailure {
+                source: error,
+                warnings,
+            },
+        )),
+    }
+}
+
+/// Production startup emits each warning as it is scanned. Arbitrarily many
+/// invalid rows therefore do not accumulate diagnostic text in daemon memory.
+pub fn parse_reader_with_warnings(
+    reader: impl BufRead,
+    maximum_records: usize,
+    mut emit: impl FnMut(String) -> io::Result<()>,
+) -> io::Result<LeaseFile> {
     let mut tokens = Tokens { reader };
     let mut result = LeaseFile::default();
     loop {
@@ -203,13 +231,13 @@ pub fn parse_reader(reader: impl BufRead, maximum_records: usize) -> io::Result<
             .take(764)
             .map_err(|error| failure(&mut result, error))?;
         if address.is_none() || hostname.is_none() || client_id.is_none() {
-            result.warnings.push(format!(
+            emit(format!(
                 "ignoring invalid line in lease database: {} {} {} {} ...",
                 String::from_utf8_lossy(&first),
                 String::from_utf8_lossy(&second),
                 String::from_utf8_lossy(address.as_deref().unwrap_or_default()),
                 String::from_utf8_lossy(hostname.as_deref().unwrap_or_default()),
-            ));
+            ))?;
             result.invalid_records += 1;
             continue;
         }
@@ -217,10 +245,10 @@ pub fn parse_reader(reader: impl BufRead, maximum_records: usize) -> io::Result<
         let hostname = hostname.unwrap();
         let client_id = client_id.unwrap();
         let Some(address) = parse_address(&address) else {
-            result.warnings.push(format!(
+            emit(format!(
                 "ignoring invalid line in lease database, bad address: {}",
                 String::from_utf8_lossy(&address)
-            ));
+            ))?;
             result.invalid_records += 1;
             continue;
         };
@@ -433,5 +461,19 @@ mod tests {
         let error = parse_reader(&bytes[..], 0).unwrap_err();
         assert_eq!(warnings(&error).len(), 1);
         assert!(capacity_exceeded(&error));
+    }
+
+    #[test]
+    fn production_warning_stream_does_not_retain_invalid_row_text() {
+        let bytes = b"0 01 invalid bad *\n".repeat(10_000);
+        let mut warnings = 0;
+        let parsed = parse_reader_with_warnings(&bytes[..], 0, |_| {
+            warnings += 1;
+            Ok(())
+        })
+        .unwrap();
+        assert_eq!(warnings, 10_000);
+        assert_eq!(parsed.invalid_records, 10_000);
+        assert!(parsed.clean_end && parsed.records.is_empty() && parsed.warnings.is_empty());
     }
 }
