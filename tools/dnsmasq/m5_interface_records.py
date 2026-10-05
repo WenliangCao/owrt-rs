@@ -112,6 +112,16 @@ def syntax_cases():
     for width in (17,18):values.append(('cidr6-limit'+str(width),'records.test,2001:db8::7/64,'+'p'*width))
     for width in (47,48):values.append(('range-limit'+str(width),'records.test,192.0.2.7,192.0.2.9,'+'p'*width))
     for label,value in values:add('synth-'+label,'synth-domain='+value+'\n','SYN-GRAM')
+    for label,value in [('root',',192.0.2.7,192.0.2.9'),('quoted','"records.test,192.0.2.7,192.0.2.9"'),
+        ('quoted-range','records.test,"192.0.2.7/24,p"'),('quoted-star','records.test,192.0.2.7,192.0.2.9,"p*"'),
+        ('embedded-star','records.test,192.0.2.7,192.0.2.9,p*x'),('double-star','records.test,192.0.2.7,192.0.2.9,p**'),
+        ('empty-prefix','records.test,192.0.2.7,192.0.2.9,'),('case','RECORDS.TEST.,192.0.2.7,192.0.2.9,P*')]:
+        add('synth-'+label,'synth-domain='+value+'\n','SYN-GRAM')
+    for family,address,widths in [(4,'192.0.2.7',(0,1,24,31,32,33)),(6,'2001:db8::7',(0,1,63,64,65,127,128,129))]:
+        for width in widths:
+            add('synth-width-'+str(family)+'-'+str(width),'synth-domain=records.test,'+address+'/'+str(width)+'\n','SYN-GRAM')
+    for label,value in [('empty',''),('text','bad'),('negative','-1'),('wrap','4294967296'),('int-overflow','4294967295')]:
+        add('synth-width-'+label,'synth-domain=records.test,192.0.2.7/'+value+'\n','SYN-GRAM')
     for label,value in [('ordinary','/m2/hosts-dir'),('relative','hosts-dir'),('empty',''),('quoted','"/m2/hosts dir"'),('duplicate','/m2/hosts-dir\nhostsdir=/m2/hosts-dir')]:
         add('hostsdir-'+label,'hostsdir='+value+'\n','HDIR-GRAM')
     return cases
@@ -126,7 +136,7 @@ def service_cases():
         actions=extra.pop('actions',probes(names))
         cases.append(dict(id=ident,config='no-resolv\nserver=127.0.0.2\n'+config,checks=checks.split(),
             files=extra.pop('files',{}),sys_files={},default_resolv=False,strict_order=True,
-            no_upstream=True,negative_names=[a['name'] for a in actions if a.get('op')=='query'],actions=actions,**extra))
+            no_upstream=True,negative_names=extra.pop('negative_names',[a['name'] for a in actions if a.get('op')=='query']),actions=actions,**extra))
     targets=[('address','m5ir0'),('family4','m5ir0/4'),('family6','m5ir0/6'),('missing','missing_ir'),('wildcard','m5ir*')]
     for label,target in targets:
         add('interface-'+label,'interface-name=iface.records.test,'+target+'\n',
@@ -325,6 +335,84 @@ def service_cases():
     add('interface-flag-optimistic','interface-name=iface.records.test,m5ir0\n',[],'IF-FLAGS',topology=[v4only],actions=[
         *dad[:-1],kernel(['ip','-6','addr','change','2001:db8:91::9/64','dev','m5ir0','optimistic']),state('optimistic'),
         *mutation_probes('optimistic','2001:db8:91::9')])
+    failed_dad=[*dad[:5],kernel(['ip','-6','addr','add','2001:db8:91::9/64','dev','m5peer0','nodad']),
+                kernel(['ip','-6','addr','add','2001:db8:91::9/64','dev','m5ir0']),
+                dict(op='write',path='dad-failure',text='',kernel_wait={'address':'2001:db8:91::9','mask':0x08,'set':True}),state('dadfailed')]
+    add('interface-flag-dad-failure','interface-name=iface.records.test,m5ir0\n',[],'IF-FLAGS',topology=[v4only],
+        actions=[*failed_dad,*mutation_probes('failed','2001:db8:91::9')])
+    combined=[*dad[:5],kernel(['sysctl','-q','-w','net.ipv6.conf.m5ir0.use_tempaddr=2']),
+        kernel(['ip','-6','addr','add','2001:db8:91::9/64','dev','m5ir0','mngtmpaddr','nodad','valid_lft','600','preferred_lft','300']),
+        dict(op='write',path='temporary-flags',text='',kernel_temporary={'mask':0x41,'preferred_lft':0}),state('combined')]
+    add('interface-flag-combined','interface-name=iface.records.test,m5ir0\n',[],'IF-FLAGS',topology=[v4only],
+        actions=[*combined,files.probe('forward','iface.records.test',type=28),files.probe('temporary-ptr','placeholder.test',type=12,temporary_ptr=True)])
+    add('dynamic-privacy-order','dynamic-host=iface.records.test,2001:db8::7,m5ir0\n',[],'DH-COMPOSE IF-FLAGS',topology=[v4only],
+        actions=[*privacy,files.probe('privacy-first','iface.records.test',type=28),
+            kernel(['ip','-6','addr','add','2001:db8:91::10/64','dev','m5ir0','nodad']),state('permanent-first'),
+            files.probe('permanent-first','iface.records.test',type=28),(files.probe('derived-ptr',ipaddress.ip_address('2001:db8:91::7').reverse_pointer,type=12))])
+    add('dynamic-alias','dynamic-host=iface.records.test,192.0.2.7,m5ir0:1\n',[],'DH-COMPOSE IF-ENUM',topology=[v4only],
+        actions=[kernel(['ip','addr','add','198.18.92.9/24','dev','m5ir0','label','m5ir0:1']),state('alias'),
+            files.probe('forward','iface.records.test'),files.probe('reverse','7.92.18.198.in-addr.arpa',type=12)])
+    add('interface-lease-priority','interface-name=iface.records.test,m5ir0\ndomain=records.test\nno-ping\n'
+        'dhcp-range=198.18.91.2,198.18.91.100,255.255.255.0,600\ndhcp-leasefile=/m2/files/leases\n',
+        [('9.91.18.198.in-addr.arpa',12),('lease.records.test',1),('iface.records.test',1)],'IF-PTR IF-CALLER',topology=[v4only],
+        files={'leases':'4102444800 02:00:00:91:00:09 198.18.91.9 lease *\n'})
+    add('interface-cache-positive-empty','interface-name=iface.records.test,missing_ir\n',
+        [('iface.records.test',1),('iface.records.test',1)],'IF-FWD',cache_size=16,negative_names=[])
+    add('interface-ptr-cache-priority','interface-name=iface.records.test,m5ir0\ncache-rr=PTR\n',[],'IF-PTR IF-FWD',
+        topology=[v4only],cache_size=16,negative_names=[],actions=[files.probe('warm','10.91.18.198.in-addr.arpa',type=12,transports=['udp']),
+            files.probe('cache','10.91.18.198.in-addr.arpa',type=12,transports=['udp']),
+            kernel(['ip','addr','add','198.18.91.10/24','dev','m5ir0']),files.probe('enum','iface.records.test',transports=['udp']),
+            files.probe('interface','10.91.18.198.in-addr.arpa',type=12,transports=['udp'])])
+    for label,interface in [('present','m5ir0'),('empty','missing_ir')]:
+        add('interface-cached-cname-'+label,'interface-name=iface.records.test,'+interface+'\n',[],'IF-FWD IF-CALLER',
+            topology=[primary],cache_size=16,negative_names=[],upstream_fixtures=[{'name':'cached-alias.records.test','type':1,
+                'records':[{'type':5,'target':'iface.records.test'},{'type':1,'owner':'iface.records.test','address':'198.51.100.7'}]}],
+            actions=[files.probe('warm','cached-alias.records.test',transports=['udp']),
+                kernel(['ip','addr','add','198.18.91.10/24','dev','m5ir0']),
+                files.probe('cached-terminal','cached-alias.records.test',transports=['udp']),
+                files.probe('fresh-child','cached-alias.records.test',transports=['tcp'])])
+    add('interface-synth-ptr-precedence','interface-name=iface.records.test,m5ir0\nsynth-domain=synthetic.records.test,198.18.91.0/24\n',
+        [('9.91.18.198.in-addr.arpa',12),('10.91.18.198.in-addr.arpa',12)],'IF-PTR SYN-PTR',topology=[primary])
+    add('interface-synth-forward-intercept','interface-name=198-18-91-9.synthetic.records.test,missing_ir\nsynth-domain=synthetic.records.test,198.18.91.0/24\n',
+        [('198-18-91-9.synthetic.records.test',1),('198-18-91-9.synthetic.records.test',28),('198-18-91-9.synthetic.records.test',16)],'IF-FWD IF-EXIST SYN-FWD')
+    add('interface-synth-name-exists','interface-name=iface.records.test,missing_ir\nsynth-domain=synthetic.records.test,192.0.2.7,192.0.2.9\n',
+        [('192-0-2-7.synthetic.records.test',28),('192-0-2-7.synthetic.records.test',16),('synthetic.records.test',1),
+         ('child.192-0-2-7.synthetic.records.test',1)],'IF-EXIST SYN-FWD')
+    full6='2001-0db8-0000-0000-0000-0000-0000-0007.synthetic.records.test'
+    for label,range_text in [('single4','192.0.2.7'),('range4','192.0.2.7,192.0.2.9'),('prefix4','192.0.2.7/24'),
+          ('single6','2001:db8::7'),('range6','2001:db8::7,2001:db8::9'),('prefix6','2001:db8::7/64'),
+          ('prefix6-small','2001:db8::7/63'),('inverted','192.0.2.9,192.0.2.7')]:
+        add('synth-service-'+label,'synth-domain=synthetic.records.test,'+range_text+'\n',
+            [('192-0-2-6.synthetic.records.test',1),('192-0-2-7.synthetic.records.test',1),('192-0-2-9.synthetic.records.test',1),
+             ('192-0-2-10.synthetic.records.test',1),(full6,28),('2001-db8--7.synthetic.records.test',28),
+             ('fd00--7.synthetic.records.test',28),('192-0-2-7.synthetic.records.test',255),
+             ('7.2.0.192.in-addr.arpa',12),(ipaddress.ip_address('2001:db8::7').reverse_pointer,12),
+             (ipaddress.ip_address('fd00::7').reverse_pointer,12)],'SYN-FWD SYN-PTR')
+    for label,text in [('index4','192.0.2.7,192.0.2.9,p*'),('index6','2001:db8::7/64,p*'),
+        ('index6-128','2001:db8::7/128,p*'),('prefix-literal','192.0.2.7,192.0.2.9,Pre'),
+        ('empty-index','192.0.2.7,192.0.2.9,*'),('embedded-star','192.0.2.7,192.0.2.9,p*x'),
+        ('double-star','192.0.2.7,192.0.2.9,p**')]:
+        add('synth-service-'+label,'synth-domain=synthetic.records.test,'+text+'\n',
+            [('p0.synthetic.records.test',1),('p2.synthetic.records.test',1),('p3.synthetic.records.test',1),
+             ('p.synthetic.records.test',1),('p0002.synthetic.records.test',1),('p4294967296.synthetic.records.test',1),
+             ('p18446744073709551616.synthetic.records.test',28),('p9223372036854775808.synthetic.records.test',28),
+             ('p18446744073709551615.synthetic.records.test',28),('Pre192-0-2-7.synthetic.records.test',1),
+             ('pre192-0-2-7.SYNTHETIC.records.test',1),('p0.synthetic.records.test',255),
+             ('7.2.0.192.in-addr.arpa',12),(ipaddress.ip_address('2001:db8::7').reverse_pointer,12)],'SYN-FWD SYN-PTR')
+    add('synth-index-dual-any','synth-domain=synthetic.records.test,192.0.2.7,192.0.2.9,p*\nsynth-domain=synthetic.records.test,2001:db8::7/64,p*\n',
+        [('p0.synthetic.records.test',255),('p0.synthetic.records.test',1),('p0.synthetic.records.test',28)],'SYN-FWD')
+    add('synth-record-any','synth-domain=synthetic.records.test,192.0.2.7,192.0.2.9\ntxt-record=192-0-2-7.synthetic.records.test,test\n',
+        [('192-0-2-7.synthetic.records.test',255)],'SYN-FWD')
+    for ttl in (0,77):
+        actions=[files.probe('bits-'+str(kind)+'-'+str(cls)+'-'+str(rd)+'-'+str(do),'192-0-2-7.synthetic.records.test',
+                  type=kind,**{'class':cls,'query_flags':256 if rd else 0,'do':do,'cd':do})
+            for kind in (1,28,255,16) for cls,rd,do in [(1,True,False),(1,False,False),(1,True,True),(3,True,False),(255,True,False)]]
+        add('synth-bits-ttl-'+str(ttl),'synth-domain=synthetic.records.test,192.0.2.7,192.0.2.9\nlocal-ttl='+str(ttl)+'\n',[],
+            'SYN-FWD SYN-PTR',actions=actions)
+    add('synth-precedence','synth-domain=one.records.test,192.0.2.7,192.0.2.9\nsynth-domain=two.records.test,192.0.2.8,192.0.2.10\n'
+        'host-record=192-0-2-7.one.records.test,192.0.2.99\nptr-record=8.2.0.192.in-addr.arpa,explicit.records.test\nbogus-priv\n',
+        [('192-0-2-7.one.records.test',1),('7.2.0.192.in-addr.arpa',12),('8.2.0.192.in-addr.arpa',12),
+         ('9.2.0.192.in-addr.arpa',12),('10.2.0.192.in-addr.arpa',12),('11.2.0.192.in-addr.arpa',12)],'SYN-FWD SYN-PTR')
     for stage in ('before-clear','empty','partial'):
         add('interface-enum-fault-'+stage,'interface-name=iface.records.test,m5ir0\n',[],
             'IF-CALLER',topology=[primary],actions=[files.probe('initial','iface.records.test',transports=['udp']),
@@ -340,7 +428,13 @@ def service_cases():
 
 def run_service_side(root,side,case,out):
     states=[];dynamic=[];tracers=[]
-    original_put=files.put;original_exchange=files.exchange
+    original_put=files.put;original_exchange=files.exchange;original_upstream=files.FileUpstream
+    class PreparedUpstream(original_upstream):
+        def __init__(self,fixtures,*args):
+            fixtures={(row['name'],row['type']):row for row in fixtures}
+            fixtures.update({(row['name'],row['type']):row for row in case.get('upstream_fixtures',[])})
+            super().__init__(list(fixtures.values()),*args)
+    files.FileUpstream=PreparedUpstream
     def record(label):
         states.append({'label':label,'at':time.monotonic(),'addresses':json.loads(subprocess.check_output(['ip','-j','address','show'],text=True)),
             'ipv6_flags':Path('/proc/net/if_inet6').read_text()})
@@ -351,6 +445,26 @@ def run_service_side(root,side,case,out):
             files.await_predicate(lambda:Path(str(path)+'.ready').exists() or tracer.poll() is not None,'enumeration fault attach')
             if tracer.poll() is not None:raise AssertionError('enumeration fault tracer exited')
             tracers.append((tracer,path));return
+        if isinstance(value,dict) and 'kernel_temporary' in value:
+            expected=value['kernel_temporary'];deadline=time.monotonic()+12
+            while True:
+                raw=json.loads(subprocess.check_output(['ip','-j','-6','addr','show','dev','m5ir0'],text=True))
+                temporary=next((a for interface in raw for a in interface['addr_info'] if a.get('temporary')),None)
+                flag=None
+                if temporary is not None:
+                    key=ipaddress.ip_address(temporary['local']).packed.hex()
+                    flag=next((int(parts[4],16) for line in Path('/proc/net/if_inet6').read_text().splitlines()
+                        if (parts:=line.split())[0]==key),None)
+                if flag is not None and flag&expected['mask']==expected['mask']:break
+                if time.monotonic()>deadline:raise AssertionError('temporary combined kernel flags were not witnessed')
+                time.sleep(.01)
+            subprocess.run(['ip','-6','addr','change',temporary['local']+'/'+str(temporary['prefixlen']),'dev','m5ir0',
+                'valid_lft','600','preferred_lft',str(expected['preferred_lft'])],check=True)
+            record('temporary-changed')
+            actual=next((int(parts[4],16) for line in Path('/proc/net/if_inet6').read_text().splitlines()
+                if (parts:=line.split())[0]==key),None)
+            if actual is None or actual&0x61!=0x61:raise AssertionError('actual temporary/tentative/deprecated combination missing')
+            return
         if isinstance(value,dict) and 'kernel_command' in value:
             subprocess.run(value['kernel_command'],check=True)
             return
@@ -398,7 +512,7 @@ def run_service_side(root,side,case,out):
     files.put=put;files.exchange=exchange
     try:result=endpoints.run_service_side(root,side,case,out)
     finally:
-        files.put=original_put;files.exchange=original_exchange
+        files.put=original_put;files.exchange=original_exchange;files.FileUpstream=original_upstream
         for tracer,path in tracers:
             if tracer.poll() is None:tracer.kill();tracer.wait()
             if path.exists():states.append({'label':'enumeration-fault','evidence':json.loads(path.read_text())})
