@@ -301,6 +301,18 @@ def cases():
                           '--dhcp-range=127.0.0.10,127.0.0.20,255.0.0.0,10m', '--no-ping',
                           '--dhcp-broadcast', '--dhcp-leasefile=/m2/logging/leases'],
                  'options': ['no-daemon']})
+    rows.append({'id': 'helper-credential-fault-default', 'scope': 'startup-fault', 'kind': 'run',
+                 'mode': [], 'daemonized': True, 'fault': 'helper-setuid', 'fault_number': 146,
+                 'fault_errno': errno.EPERM, 'fault_follow_child': True, 'fault_follow_depth': 3,
+                 'exit': 5, 'pidfile': '/m2/logging/daemon.pid', 'helper_script': True, 'receiver': 'dgram',
+                 'argv': ['--log-facility=-', '--dhcp-script=/m2/logging/script', '--dhcp-scriptuser=nobody',
+                          '--dhcp-range=127.0.0.10,127.0.0.20,255.0.0.0,10m', '--no-ping',
+                          '--dhcp-broadcast', '--dhcp-leasefile=/m2/logging/leases'], 'options': ['no-daemon']})
+    rows.append({'id': 'startup-error-frame-interrupt', 'scope': 'startup-fault', 'kind': 'run',
+                 'mode': [], 'daemonized': True, 'fault': 'error-frame-interrupt', 'fault_number': 66,
+                 'fault_errno': errno.EINTR, 'fault_follow_child': True, 'fault_follow_depth': 2,
+                 'exit': 3, 'pidfile': '/m2/logging/daemon.pid', 'receiver': 'dgram',
+                 'argv': ['--log-facility=/m2/logging/missing/daemon.log'], 'options': ['no-daemon']})
     rows.append({'id': 'pid-chown-capability-missing', 'scope': 'ownership-warning', 'kind': 'run',
                  'mode': ['-k'], 'pidfile': '/m2/logging/daemon.pid', 'user': 'nobody',
                  'drop_chown': True, 'receiver': 'dgram', 'argv': [], 'options': ['no-daemon']})
@@ -1365,6 +1377,7 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
         return value
     report = {'pid': pid, 'fault': case['fault'], 'injected': False, 'events': []}
     attached, pending, pipes, pipe_pointer, error_writer = True, None, 0, None, None
+    followed_children = 0
     socket_pending, logging_socket, logging_socket_type = 0, None, 0
     deadline = time.monotonic() + 5
     def wait_stop():
@@ -1391,6 +1404,7 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                 ptrace(0x4201, 0, ctypes.addressof(child))
                 ptrace(17 if case.get('fault_follow_child') else 7)
                 pid = child.value
+                followed_children += 1
                 status = wait_stop()
                 if not os.WIFSTOPPED(status):
                     raise AssertionError('fork child did not stop')
@@ -1411,7 +1425,7 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                     continue
                 if number == 59:
                     pipes += 1
-                    if case['fault'] == 'error-pipe-flags' and pipes == (2 if side == 'c' else 1):
+                    if case['fault'] in ['error-pipe-flags', 'error-frame-interrupt'] and pipes == (2 if side == 'c' else 1):
                         pipe_pointer = args[0]
                 if number == 198 and args[0] == 1:
                     socket_pending = args[1] & 0xf
@@ -1424,10 +1438,14 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                 match = number == case['fault_number'] or (number == 66 and case['fault_number'] == 64)
                 if case['fault'] == 'fork-two':
                     match &= pid != process.pid
+                if case.get('fault_follow_child'):
+                    match &= followed_children == case.get('fault_follow_depth', 1)
                 if case['fault'] == 'error-pipe':
                     match &= pipes == (2 if side == 'c' else 1)
                 elif case['fault'] == 'error-pipe-flags':
                     match &= args[0] == error_writer and args[1] == 4
+                elif case['fault'] == 'error-frame-interrupt':
+                    match &= args[0] == error_writer
                 elif case['fault'] in ['pid-write', 'pid-close', 'pid-chown', 'pid-short-write']:
                     match &= target.endswith('/m2/logging/daemon.pid')
                 elif case.get('fault_target') == 'socket-open':
