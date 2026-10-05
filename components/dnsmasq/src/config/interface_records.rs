@@ -72,7 +72,14 @@ pub fn parse_rule(argument: &EncodedArg, dynamic: bool) -> Result<InterfaceRule,
     if interface.is_empty() {
         return Err(bad);
     }
-    let name = crate::hosts::canonicalise(&parts[0].decoded()).ok_or(bad)?;
+    // canonicalise_opt preserves an explicitly empty name (the DNS root),
+    // unlike the hosts-file canonicalizer's empty-token rejection.
+    let bytes = parts[0].decoded();
+    let name = if bytes.is_empty() {
+        bytes
+    } else {
+        crate::hosts::canonicalise(&bytes).ok_or(bad)?
+    };
     Ok(InterfaceRule {
         name,
         interface,
@@ -107,6 +114,7 @@ mod tests {
     fn source_parser_priority_and_discarded_tail_match_image_calibration() {
         let rule = parse("name.test,m5ir0,ignored", false).unwrap();
         assert_eq!(rule.interface, b"m5ir0");
+        assert!(parse(",m5ir0", false).unwrap().name.is_empty());
         assert_eq!(
             parse("name.test,192.0.2.7", true),
             Err(Error("missing address in dynamic host"))
