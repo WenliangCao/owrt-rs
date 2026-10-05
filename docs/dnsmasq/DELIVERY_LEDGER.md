@@ -2,8 +2,8 @@
 
 ## 当前状态与下一步
 
-- 当前里程碑：M5；169 项中 **136 项已关闭、17 项部分实现、16 项未实现，剩余 33 项**。
-- 刚关闭：`log-async`、`log-debug` 闭合；4207c732／77b16e5b…c4aec7，61 配置（18 debug/script、43 async/sink fault）与 26 负控全部通过，单 poll owner、bounded POLLOUT flush/shutdown 及真实 PID/FD/overflow 关系均有镜像 C 对照。`dhcp-ttl` 也已在同一候选上用四条真实 TCP caller、实测不少于3.2秒 witness 和9个负控恢复闭合。两族归档完成 SHA+metadata 核验并清远端；剩余 33。
+- 当前里程碑：M5；169 项中 **137 项已关闭、17 项部分实现、15 项未实现，剩余 32 项**。
+- 刚关闭：`log-facility` 闭合；4207c732／77b16e5b…c4aec7，95 个 sink/startup 场景加 6 个 TFTP producer 场景、FAC01–FAC09 与 26 个负控全部通过。101 配置的 1,804 路径/1,465 文件归档完成 SHA+metadata 核验并清远端；`log-async`、`log-debug`、`dhcp-ttl` 继续保持闭合；剩余 32。
 - 当前代码：最新已构建 `90a84a55` / ELF `66e9053150003cb5c743c64f0b456009e6b705d8be46f7c402216b1a6a682153`，**1,757,224 字节（M4 +597,944）**；含接口 immutable records 枚举接线、TCP accept 时缓存视图/时钟与 ordered parent imports、normal TCP 独立日志上下文（完整族仍未资格）。Linux 实际 653 lib 和 10 main 单元通过，19 ignored 不计；567 lib/9 main host 通过。8389 的旧 FIFO 测试未消费新增 INIT-cache barrier，原失败保留，4207 修正后实际通过，不把 no-run 算通过。interface-name 空 root parser 已 C 校准；UBus 扩展 216 配对观察已覆盖名称、方法、冲突、doctor 与原版空 name NULL/partial inet_pton/DATA 寿命缺陷；分片接收已由 67 条 Linux ubus 单元验证，lifecycle 订阅/断连夹具仍需资格，未关闭 enable-ubus。旧 source pool 和 EDNS 完整资格保留；各项以逐表资格候选为准。
 - 下一步：端点已闭合；验证 source-pool 省体积等价改写，后续 DNS 缓存完整合同、日志 sink/后台启动/async/script 边界、TFTP root/no-fail 已补正闭合；继续 ARP/接口/UBus 完整合同。每族通过立即合入、更新选项和扣数；然后推进其他剩余功能族。
 - 阻塞点：无须用户决定。oracle 初查无 M5 残留进程，归档后最近可用约 36 GB（82%）；logging 遗留 4,158 路径/3,516 文件已完整 SHA+metadata 核验归档并清理，endpoint 遗留与所有端点运行目录均已完整核验清理。旧半截、C-only 和已纠正失败保留，不计通过。物理路由器未触碰。体积固定路径矩阵首轮发现历史 tar mtime 触发 Cargo 旧产物复用，整轮已拒绝并保留 calibration-rejection；`ff2b2d22` 在共享构建锁内仅清 dnsmasq package 产物、保留依赖缓存后重新编译测量。旧 fixed_remote 已主动刷新 mtime，原 planner/SIGPIPE 归因不因此撤销；[功能族体积归因](M5_SIZE_ATTRIBUTION.md) 已提交完整固定路径差额及字节相同控制，较大混合族继续补独立归因；最小 slot 选择改写已 C 子集回归，纯前后控制已实测节省 16,384 字节，M5 结束交用户决定。
@@ -56,7 +56,7 @@ M4 的单 poll owner 已替换六线程接线，决定见 [ADR_THREAD_MODEL.md](
 
 ## M5 盘点与工作顺序
 
-盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**136 项已实现并有 C 差分，17 项部分实现，16 项未实现；剩余 33 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
+盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**137 项已实现并有 C 差分，17 项部分实现，15 项未实现；剩余 32 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
 
 对镜像 init 的静态调用路径核对得到 **A 组 99 项、B 组 70 项**。A 表示原生 UCI/init 生成或调用，行号链接到保留原文的 init；B 表示通常需额外配置。`extraconftext`/conf-dir 可以透传任意指令，不据此把全部选项都算原生生成。`pxe-service`、`pxe-prompt`、`interface-name` 实际有 init 生成路径，归 A。26 个 excluded-capability 选项不混入169项计数；其与C一致的禁用/拒绝边界仍保留。
 
@@ -166,7 +166,7 @@ M5 退出条件：169项全部实现并有C差分，或已证明与C一致的拒
 | `listen-address` | A / 188 | 启动/日志/监听 | 已实现，有C差分 | [M5监听闭合](../../private/dnsmasq-rewrite/evidence/M5/listeners/close-summary.json)；163配置／3534逐标签观察／18完整C边界／130负控通过：DAD/失败组合/能力、IPv4 alias与双栈scope、动态owner/永久unowned、共享DNS/TFTP部分绑定、relay及源码caller语义。27条原版scopedTFTP缺陷单列有阳性控制；f987f941／2b63edc9…a2fa91，1,663,016字节；static TFTP独立修复增量0，其余混合增量单列。完整归档已核验清理；归档gate恢复审计另保留。 |
 | `local-service` | A / 1011 | 启动/日志/监听 | 已实现，有C差分 | [M5严格准入复跑](../../private/dnsmasq-rewrite/evidence/M5/option-matrix/batch2/affected-24671034/result.json)；14配置／180行含独立IPv4/IPv6本地/相邻非本地源、模式/显式ACL/CLI交互通过；[idle与排队见证](../../private/dnsmasq-rewrite/evidence/M5/option-matrix/batch2/admission-timing-03/result.json)证明双方idle EOF、已排41字节时RST。移除错误shutdown，严格比较errno，不再归一化。候选24671034／ELF99aaa63c…4f0dd3，1,396,848字节（修复增量0）。 |
 | `log-dhcp` | A / 1012 | 启动/日志/监听 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-service/summary.json)；仅参与 DHCP UBus 事件抑制；未实现对应 DHCP 详细日志。 |
-| `log-facility` | A / 1026 | 启动/日志/监听 | 未实现 | [source-native](../../docs/dnsmasq/M1_REVIEW_REPORT.md)；元数据列为可用，但无配置消费者；主入口通用 not implemented 拒绝。 |
+| `log-facility` | A / 1026 | 启动/日志/监听 | 已实现，有C差分 | [M5 facility/quiet-tftp 闭合](../../private/dnsmasq-rewrite/evidence/M5/logging/facility-4207-complete-fixed2-20261005/facility-and-quiet-tftp-close-summary.json)；95 sink/startup + 6 TFTP producer 配置，FAC01–FAC09、QTF01/QTF02 与 26 负控零失败；4207c732／77b16e5b…c4aec7，1,736,744 字节。归档 SHA+metadata 已核验清远端。
 | `log-queries` | A / 990 | 启动/日志/监听 | 未实现 | [source-native](../../docs/dnsmasq/M1_REVIEW_REPORT.md)；元数据列为可用，但无配置消费者；主入口通用 not implemented 拒绝。 |
 | `no-daemon` | A / 984 | 启动/日志/监听 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-service/summary.json)；debug 身份/SIGINT 已实现；缺 C stderr 日志行为，且默认无 -k/-d 的 daemonize 未实现。 |
 | `pid-file` | A / 1267 | 启动/日志/监听 | 已实现，有C差分 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-service/summary.json)；写入、失败保留和正常删除有差分；M4 镜像生命周期及压力退出均自行删 PID。 |
