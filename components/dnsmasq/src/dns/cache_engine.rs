@@ -105,29 +105,22 @@ impl CacheContext<'_> {
         local: &mut LocalDnsService,
         max_udp: usize,
         edns_packet_max: u16,
-        allow_options: bool,
+        _allow_options: bool,
         tcp: bool,
     ) -> Result<CachedAnswer, CacheError> {
         let header = Header::parse(query)?;
-        // Ordinary A/AAAA AD requests can consume unsigned cached records,
-        // including CNAME/negative paths, without asserting validation. DO
-        // still requires upstream DNSSEC data in the target no-DNSSEC build.
-        // Other qtypes' AD, EDNS options and nonzero metadata stay outside
-        // this measured subset; accepting DO on insertion is independent.
+        // answer_request overwrites the Additional section with its own OPT.
+        // Request signatures, OPT version/flags and opaque options do not
+        // change the cached record representation. Source-bound NO_CACHE is
+        // evaluated by the owner before entering this context. DO still
+        // rejects unsigned dynamic records in the exact no-DNSSEC image.
         let edns = find_pseudoheader(query, true)?;
         let dnssec_requested = edns.opt.as_ref().is_some_and(|opt| opt.dnssec_ok());
         if header.questions != 1
             || header.answers != 0
             || header.authorities != 0
-            || header.additionals != u16::from(edns.opt.is_some())
             || header.opcode() != 0
             || header.flags & 0x8000 != 0
-            || (header.flags & 0x0020 != 0 && !matches!(question.rrtype, 1 | 28))
-            || (dnssec_requested && !matches!(question.rrtype, 1 | 28))
-            || edns.opt.as_ref().is_some_and(|opt| {
-                opt.record.ttl & !0x8000 != 0 || (!allow_options && !opt.record.rdata.is_empty())
-            })
-            || edns.signed
         {
             return Ok(CachedAnswer {
                 filtered: false,
@@ -151,12 +144,14 @@ impl CacheContext<'_> {
                 let entry = first.first().and_then(|id| self.cache.get(*id));
                 stale = entry.is_some_and(|entry| entry.is_stale(now));
                 if !entry.is_some_and(|entry| entry.record.kind == Kind::Cname) {
-                    let kind = if question.rrtype == 1 {
-                        Kind::Ipv4
-                    } else {
-                        Kind::Ipv6
+                    let kind = match question.rrtype {
+                        1 => Some(Kind::Ipv4),
+                        28 => Some(Kind::Ipv6),
+                        _ => None,
                     };
-                    self.cache.lookup(&question.name, &[kind], now, round_robin);
+                    if let Some(kind) = kind {
+                        self.cache.lookup(&question.name, &[kind], now, round_robin);
+                    }
                     self.cache.lookup(
                         &question.name,
                         &[Kind::Generic(question.rrtype), Kind::NxDomain],
@@ -588,7 +583,7 @@ impl CacheContext<'_> {
             match append_positive_record(&mut writer, cache, id, Section::Answer, now, Some(12)) {
                 Ok(true) => written = true,
                 Ok(false) => {}
-                Err(WireError::Full) => break,
+                Err(WireError::Full) => return Ok(finish_cached_answer(writer, stale)?),
                 Err(error) => return Err(error.into()),
             }
         }
@@ -1226,6 +1221,70 @@ mod tests {
     use crate::hosts::Hosts;
 
     #[test]
+    fn cached_reply_replaces_request_metadata_with_empty_opt() {
+        let name = Name::from_ascii("metadata.cache.test").unwrap();
+        let question = super::super::forward::Question {
+            name: name.clone(),
+            rrtype: 1,
+            class: 1,
+        };
+        let mut cache = Cache::new(8, Default::default());
+        cache.start_insert();
+        cache
+            .insert(
+                Record {
+                    name: name.clone(),
+                    kind: Kind::Ipv4,
+                    negative: false,
+                    data: vec![198, 51, 100, 7],
+                },
+                100,
+                600,
+            )
+            .unwrap();
+        assert!(cache.commit());
+        let mut counters = CacheCounters::default();
+        let mut local = LocalDnsService::new(DnsConfig::default(), Hosts::new(), 600, 1232);
+        for (ttl, additional_type) in [(0x10000, None), (0x40, None), (0, Some(250)), (0, Some(16))]
+        {
+            let mut query = PacketWriter::new(2, 0x100, 1232).unwrap();
+            query.question(&name, 1, 1).unwrap();
+            query
+                .record(Section::Additional, &Name::root(), 41, 1232, ttl, &[])
+                .unwrap();
+            if let Some(kind) = additional_type {
+                query
+                    .record(Section::Additional, &Name::root(), kind, 255, 0, b"opaque")
+                    .unwrap();
+            }
+            let answer = CacheContext {
+                cache: &mut cache,
+                counters: &mut counters,
+                negative_cache: true,
+                negative_ttl: 0,
+                filter_rr: &[],
+            }
+            .answer_udp_with_edns(
+                &query.finish(),
+                &question,
+                100,
+                &mut local,
+                1232,
+                1232,
+                true,
+            )
+            .unwrap()
+            .packet
+            .unwrap();
+            let message = Message::parse(&answer).unwrap();
+            assert_eq!(message.header.answers, 1);
+            assert_eq!(message.header.additionals, 1);
+            let opt = message.records(Section::Additional).next().unwrap();
+            assert_eq!((opt.rrtype, opt.ttl, opt.rdata), (41, 0, &[][..]));
+        }
+    }
+
+    #[test]
     fn child_transfer_keeps_selected_generic_data_and_tcp_ignores_udp_limit() {
         let name = Name::from_ascii("large.transfer.test").unwrap();
         let mut writer = PacketWriter::new(1, 0x8180, 1232).unwrap();
@@ -1288,6 +1347,19 @@ mod tests {
         assert_eq!(parent.get(id).unwrap().expires, 700);
         assert_eq!(parent_counters.inserted, 1);
         assert_eq!(child_counters.inserted, 1);
+        let truncated = CacheContext {
+            cache: &mut parent,
+            counters: &mut parent_counters,
+            negative_cache: true,
+            negative_ttl: 0,
+            filter_rr: &[],
+        }
+        .answer_udp_with_edns(&query, &question, 103, &mut parent_local, 1232, 1232, true)
+        .unwrap()
+        .packet
+        .expect("a cached RR too large for UDP still answers with TC");
+        assert_eq!(Header::parse(&truncated).unwrap().answers, 0);
+        assert_ne!(Header::parse(&truncated).unwrap().flags & 0x200, 0);
     }
 
     #[test]
