@@ -101,6 +101,8 @@ def profiles():
              extra='enable-tftp\ntftp-root=/m2/arp-tftp\n'),
         dict(case='tftp-lookup-refresh', tftp_lookup=True,
              extra='enable-tftp\ntftp-root=/m2/arp-tftp\ntftp-unique-root=mac\n'),
+        dict(case='netlink-missing-done', pending_dump=True, extra='add-mac\n'),
+        dict(case='stop-pending-dump', pending_dump=True, stop_pending=True, extra='add-mac\n'),
     ]
     for state in ['reachable', 'stale', 'delay', 'probe', 'permanent', 'none', 'noarp', 'incomplete', 'failed']:
         # The real kernel removes LLADDR when NUD_NONE is requested. The
@@ -345,6 +347,51 @@ def tftp_refresh_contract(root, folder):
     return dict(case='tftp-lookup-refresh', callbacks=arp, packet=reply.hex())
 
 
+def pending_dump_contract(root, pid, folder, side, stop_pending):
+    entries = [dict(address=V4, mac=MAC), dict(address='192.0.2.18', mac='02:00:00:91:00:18')]
+    output = folder / 'netlink-fault.json'
+    tracer = subprocess.Popen([sys.executable, __file__, '--trace-neighbor', str(pid), str(output), json.dumps(entries), 'hold'])
+    try:
+        deadline = time.monotonic() + 3
+        while not output.with_suffix('.ready').exists() and tracer.poll() is None and time.monotonic() < deadline:
+            time.sleep(.01)
+        assert output.with_suffix('.ready').exists(), 'pending tracer readiness'
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as endpoint:
+            endpoint.settimeout(3)
+            endpoint.bind(('127.0.0.20', 0))
+            endpoint.connect(('127.0.0.1', PORT))
+            wire = query('arp-health.test', 0x7130)
+            endpoint.sendall(struct.pack('!H', len(wire)) + wire)
+            assert tracer.wait(3) == 0, 'pending fixture injection'
+            receipt = json.loads(output.read_text())
+            stream = fixture_stream(receipt['wire'])
+            assert receipt['injected'] and stream is not None, 'raw pending receipt'
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as active:
+                active.settimeout(.3)
+                active.sendto(query('arp-health.test', 0x7131), ('127.0.0.1', PORT))
+                try:
+                    active.recv(4096)
+                    healthy = True
+                except socket.timeout:
+                    healthy = False
+            assert healthy == (side == 'rust'), 'guarded C owner stall or Rust progress'
+            reply = None
+            if stop_pending:
+                os.kill(pid, signal.SIGTERM)
+            else:
+                try:
+                    reply = exact_read(endpoint, struct.unpack('!H', exact_read(endpoint, 2))[0])
+                except socket.timeout:
+                    pass
+                assert bool(reply) == (side == 'rust'), 'guarded pending timeout fallback'
+            return dict(health_while_pending=healthy, timeout_reply=bool(reply),
+                        fault=dict(injected=True, mode='hold', wire=stream[0].hex()))
+    finally:
+        if tracer.poll() is None:
+            tracer.kill()
+            tracer.wait()
+
+
 def callbacks(root):
     return [line.decode('utf-8', 'surrogateescape').split('|')
             for line in (root / 'm2/arp-events').read_bytes().splitlines()]
@@ -377,6 +424,8 @@ def stop_daemon(process, pid):
         if process is None or process.poll() is not None:
             return dict(started=False)
         pid = process.pid
+    if process.pid == pid and process.poll() is not None:
+        return dict(started=True, forced=False, exit=process.returncode)
     os.kill(pid, signal.SIGTERM)
     deadline = time.monotonic() + 5
     status = None
@@ -603,6 +652,13 @@ def run_side(args):
                     rows.append(tftp_refresh_contract(root, folder))
                 elif spec.get('zero_positive'):
                     rows.extend(zero_positive_contract(root, pid, folder, upstream))
+                elif spec.get('pending_dump'):
+                    (root / 'm2/arp-events').write_bytes(b'')
+                    pending = pending_dump_contract(root, pid, folder, args.side, spec.get('stop_pending', False))
+                    observed = callbacks(root)
+                    save(folder / 'pending-callbacks.json', observed)
+                    assert observed == [], 'partial dump emitted a script callback'
+                    rows.append(dict(case=label, callbacks=[], reference_difference='c-no-done-owner-stall', **pending))
                 else:
                     row = dict(case=label, callbacks=observed, helper_count=len(owned), dns_health=reply is not None)
                     if spec.get('reference_difference'):
@@ -623,11 +679,15 @@ def run_side(args):
             if held:
                 held.close()
             save(folder / 'cleanup.json', cleanup)
+            if spec.get('pending_dump'):
+                expected = args.side == 'c'
+                assert cleanup.get('forced', False) == expected, 'pending stop reference guard'
+                next((row for row in rows if row['case'] == label), {})['stop_forced'] = cleanup.get('forced', False)
             (folder / 'arp-events.raw').write_bytes((root / 'm2/arp-events').read_bytes())
             if (root / 'm2/arp.log').exists():
                 (folder / 'daemon.log').write_bytes((root / 'm2/arp.log').read_bytes())
                 (root / 'm2/arp.log').unlink()
-            if cleanup.get('forced') or cleanup.get('exit', 0):
+            if (cleanup.get('forced') or cleanup.get('exit', 0)) and not (spec.get('pending_dump') and args.side == 'c' and cleanup.get('forced') and cleanup.get('exit') == -9):
                 failures.append(dict(case=label, cleanup=cleanup))
     required = {case for boundary in plan['boundaries'] for case in boundary['required_cases']}
     executed = {row['case'] for row in rows}
@@ -688,6 +748,15 @@ def main():
                 if c_row == r_row:
                     continue
                 spec = reference_specs.get(c_row['case'])
+                if (c_row['case'] in ['netlink-missing-done', 'stop-pending-dump']
+                        and c_row.get('reference_difference') == r_row.get('reference_difference') == 'c-no-done-owner-stall'
+                        and c_row.get('fault') == r_row.get('fault') and c_row.get('fault', {}).get('injected')
+                        and c_row.get('fault', {}).get('mode') == 'hold' and c_row.get('fault', {}).get('wire')
+                        and c_row.get('callbacks') == r_row.get('callbacks') == []
+                        and c_row.get('health_while_pending') is False and r_row.get('health_while_pending') is True
+                        and c_row.get('stop_forced') is True and r_row.get('stop_forced') is False
+                        and (c_row['case'] == 'stop-pending-dump' or (c_row.get('timeout_reply') is False and r_row.get('timeout_reply') is True))):
+                    continue
                 if spec:
                     wanted = spec['reference_difference']
                     c_other, r_other = c_row.copy(), r_row.copy()
