@@ -208,6 +208,7 @@ impl From<io::Error> for DaemonError {
 pub struct DnsDaemon<R = OsRandom> {
     local: LocalDnsService,
     routing: RoutingTable,
+    startup_routing: Option<RoutingTable>,
     server_sources: ServerSources,
     source_warnings: Vec<String>,
     upstream: UpstreamResolver<R>,
@@ -266,6 +267,13 @@ impl<R: Random> DnsDaemon<R> {
                     .collect(),
             );
         }
+        // Source FD preallocation precedes check_servers, even for a zero
+        // destination which will never be eligible for actual forwarding.
+        let startup_routing = if server_sources.rules().iter().any(|row| {
+            row.server.is_some() && !server_usable(&row.value, &[])
+        }) {
+            Some(RoutingTable::from_sources(&config, &server_sources, None)?)
+        } else { None };
         // IPv4 zero is always discarded by C's check_servers. Local listener
         // address filtering follows once the containing owner supplies them.
         server_sources.retain_servers(|row| server_usable(row, &[]));
@@ -299,6 +307,7 @@ impl<R: Random> DnsDaemon<R> {
         Ok(Self {
             local,
             routing,
+            startup_routing,
             server_sources,
             source_warnings: Vec::new(),
             upstream,
@@ -395,7 +404,8 @@ impl<R: Random> DnsDaemon<R> {
         settings: super::upstream::source_sockets::SocketSettings,
         startup: bool,
     ) -> Result<(), DaemonError> {
-        let bindings = self.routing.source_bindings(settings.query_port);
+        let startup_routing = self.startup_routing.take().filter(|_| startup);
+        let bindings = startup_routing.as_ref().unwrap_or(&self.routing).source_bindings(settings.query_port);
         let failures = self
             .upstream
             .configure_source_sockets(settings, bindings.clone());
@@ -411,6 +421,9 @@ impl<R: Random> DnsDaemon<R> {
         } else {
             let ids: Vec<_> = failures
                 .into_iter()
+                // check_servers silently discards zero destinations before
+                // reporting failed per-server bindings in wildcard modes.
+                .filter(|(id, _)| self.server_sources.rules().iter().any(|row| row.server == Some(*id)))
                 .map(|(id, error)| {
                     self.source_warnings.push(format!(
                         "ignoring nameserver {} - cannot make/bind socket: {}",
