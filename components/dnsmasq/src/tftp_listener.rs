@@ -50,6 +50,7 @@ pub struct TftpListener<O> {
     refreshed: u64,
     accepting: bool,
     pending_bind: Vec<SocketAddr>,
+    shared_listener_owner: bool,
 }
 impl TftpListener<RealFileOpener> {
     /// Bind before dropping privileges. Directory checks belong to
@@ -106,6 +107,7 @@ impl<O: FileOpener> TftpListener<O> {
             refreshed: 0,
             accepting: true,
             pending_bind: Vec::new(),
+            shared_listener_owner: false,
         }
     }
     pub fn bind(address: SocketAddr, runtime: TransferRuntime<O>) -> io::Result<Self> {
@@ -153,6 +155,62 @@ impl<O: FileOpener> TftpListener<O> {
                 .policy
                 .as_ref()
                 .is_some_and(|policy| policy.dns.bind_dynamic)
+    }
+    /// DNS and TFTP share iface->done in C. The main owner enables this after
+    /// startup, then attempts all transports once per address generation.
+    pub fn use_shared_listener_owner(&mut self) {
+        self.shared_listener_owner = true;
+    }
+    pub fn listener_addresses(&self) -> Vec<SocketAddr> {
+        self.policy
+            .as_ref()
+            .map_or_else(Vec::new, Policy::addresses)
+    }
+    pub fn pending_listener_addresses(&self) -> &[SocketAddr] {
+        &self.pending_bind
+    }
+    /// A common owner key can carry the DNS port (including disabled port 0).
+    pub fn has_listener(&self, mut address: SocketAddr) -> bool {
+        address.set_port(69);
+        self.servers
+            .iter()
+            .any(|server| server.address == address && server.accepting)
+    }
+    pub fn refresh_listener_interfaces(&mut self, interfaces: &[crate::interfaces::DnsInterface]) {
+        let Some(policy) = self.policy.as_mut() else {
+            return;
+        };
+        policy.interfaces = interfaces.to_vec();
+        if policy.dns.bind_dynamic {
+            let addresses = policy.addresses();
+            for server in &mut self.servers {
+                server.accepting = addresses.contains(&server.address);
+            }
+            self.discard_inactive_servers();
+        }
+    }
+    /// Return false for a transport which is disabled by interface policy or
+    /// still waiting for DAD. The owner records success of any transport; an
+    /// error must not cause an independently successful DNS socket to be lost.
+    pub fn bind_listener(&mut self, mut address: SocketAddr) -> io::Result<bool> {
+        address.set_port(69);
+        let Some(policy) = self.policy.as_ref() else {
+            return Ok(false);
+        };
+        if !policy.addresses().contains(&address) || policy.tentative(address) {
+            return Ok(false);
+        }
+        if self.has_listener(address) {
+            return Ok(true);
+        }
+        let socket = DatagramSocket::bind(address)?;
+        self.servers.push(Server {
+            socket,
+            address,
+            accepting: true,
+        });
+        self.pending_bind.retain(|pending| *pending != address);
+        Ok(true)
     }
     /// Retain successful transfers until the poll owner hands each event to
     /// the nonblocking helper. Active plus completed transfers share the
@@ -206,7 +264,7 @@ impl<O: FileOpener> TftpListener<O> {
         mac: &mut dyn FnMut(IpAddr, u32, u64) -> MacLookup,
     ) -> io::Result<Vec<RuntimeEvent>> {
         let mut events = Vec::new();
-        if self.policy.is_some() && now != self.refreshed {
+        if self.policy.is_some() && !self.shared_listener_owner && now != self.refreshed {
             self.refreshed = now;
             if let Some(policy) = self.policy.as_mut() {
                 policy.refresh()?;
@@ -296,6 +354,10 @@ impl<O: FileOpener> TftpListener<O> {
                 Err(error) => return Err(error),
             }
         }
+        self.discard_inactive_servers();
+        Ok(())
+    }
+    fn discard_inactive_servers(&mut self) {
         // Keep a removed single-port listener until its existing transfers
         // finish, preserving ACK and retransmission routing during reload.
         self.servers.retain(|server| {
@@ -305,7 +367,6 @@ impl<O: FileOpener> TftpListener<O> {
                     .values()
                     .any(|route| route.server == server.address)
         });
-        Ok(())
     }
     fn receive_server(
         &mut self,
