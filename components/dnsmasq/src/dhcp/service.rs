@@ -13,7 +13,7 @@ use super::packet::{Packet, ParseError, FIXED_LEN};
 
 /// IPv4 UDP input limit; reply capacity remains MAX_PACKET_LEN.
 pub const MAX_DATAGRAM_LEN: usize = 65_507;
-#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+#[cfg(any(test, all(target_os = "linux", target_pointer_width = "64")))]
 use std::io;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
@@ -129,6 +129,57 @@ struct PendingReply {
     would_block_count: u16,
 }
 
+#[cfg(any(test, all(target_os = "linux", target_pointer_width = "64")))]
+struct DeviceBinding {
+    name: Vec<u8>,
+    bind_main: bool,
+    did_bind: bool,
+    warned: bool,
+}
+
+#[cfg(any(test, all(target_os = "linux", target_pointer_width = "64")))]
+impl DeviceBinding {
+    /// dhcp-common.c:608-641 combines both socket results. EPERM counts as
+    /// success, while any other error fails even if the other socket binds.
+    fn bind(
+        &self,
+        has_pxe: bool,
+        mut bind: impl FnMut(Listener, &[u8]) -> io::Result<()>,
+    ) -> io::Result<bool> {
+        let mut did_bind = false;
+        let mut error = None;
+        for (listener, enabled) in [(Listener::Dhcp, self.bind_main), (Listener::Pxe, has_pxe)] {
+            if !enabled {
+                continue;
+            }
+            match bind(listener, &self.name) {
+                Ok(()) => did_bind = true,
+                Err(failure) if failure.raw_os_error() == Some(1) => did_bind = true,
+                Err(failure) => {
+                    if error.is_none() {
+                        error = Some(failure);
+                    }
+                }
+            }
+        }
+        error.map_or(Ok(did_bind), Err)
+    }
+
+    fn retry(
+        &mut self,
+        has_pxe: bool,
+        bind: impl FnMut(Listener, &[u8]) -> io::Result<()>,
+    ) -> Option<Vec<u8>> {
+        if self.bind(has_pxe, bind).is_ok() || self.warned {
+            return None;
+        }
+        self.warned = true;
+        let mut message = b"error binding DHCP socket to device ".to_vec();
+        message.extend_from_slice(&self.name);
+        Some(message)
+    }
+}
+
 /// Admit at most one deferred reply. Returning success means the owner has
 /// accepted the packet; a full kernel queue is retried on the next poll turn.
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -193,6 +244,8 @@ pub struct SocketListener {
     buffer: Vec<u8>,
     relay: Option<super::relay::RelayService>,
     ports: crate::config::dhcp_relay::DhcpPorts,
+    device_binding: Option<DeviceBinding>,
+    network_notices: Vec<crate::logging::LogEvent>,
 }
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -232,6 +285,8 @@ impl SocketListener {
             buffer: vec![0; MAX_PACKET_LEN],
             relay: None,
             ports: crate::config::dhcp_relay::DhcpPorts::default(),
+            device_binding: None,
+            network_notices: Vec::new(),
         })
     }
 
@@ -270,9 +325,66 @@ impl SocketListener {
     }
 
     pub fn take_network_notices(&mut self) -> Vec<crate::logging::LogEvent> {
-        self.relay
-            .as_mut()
-            .map_or_else(Vec::new, |relay| relay.take_notices())
+        let mut notices = std::mem::take(&mut self.network_notices);
+        if let Some(relay) = &mut self.relay {
+            notices.extend(relay.take_notices());
+        }
+        notices
+    }
+
+    /// Store whichdevice's startup selection. Configure PXE first: its
+    /// existing socket is bound even when relay4 suppresses the main socket.
+    pub fn configure_device_binding(
+        &mut self,
+        name: Option<Vec<u8>>,
+        bind_main: bool,
+    ) -> io::Result<bool> {
+        let Some(name) = name else {
+            self.device_binding = None;
+            return Ok(false);
+        };
+        let mut binding = DeviceBinding {
+            name,
+            bind_main,
+            did_bind: false,
+            warned: false,
+        };
+        binding.did_bind =
+            binding.bind(self.pxe_socket.is_some(), |listener, name| match listener {
+                Listener::Dhcp => self.socket.bind_device(name),
+                Listener::Pxe => self.pxe_socket.as_ref().unwrap().bind_device(name),
+            })?;
+        let did_bind = binding.did_bind;
+        self.device_binding = Some(binding);
+        Ok(did_bind)
+    }
+
+    /// Only a real startup bind attempt (including C's ignored EPERM) earns
+    /// dnsmasq.c:1028's DHCP startup notice. Retry success cannot create it.
+    pub fn bound_device_notice(&self) -> Option<&[u8]> {
+        self.device_binding
+            .as_ref()
+            .filter(|binding| binding.did_bind)
+            .map(|binding| binding.name.as_slice())
+    }
+
+    /// One nonblocking retry on every outer owner turn, using the original
+    /// name. dnsmasq.c:1136-1143 logs the first non-EPERM error only.
+    pub fn retry_device_binding(&mut self) {
+        let Some(binding) = &mut self.device_binding else {
+            return;
+        };
+        let notice = binding.retry(self.pxe_socket.is_some(), |listener, name| match listener {
+            Listener::Dhcp => self.socket.bind_device(name),
+            Listener::Pxe => self.pxe_socket.as_ref().unwrap().bind_device(name),
+        });
+        if let Some(notice) = notice {
+            self.network_notices.push(crate::logging::LogEvent::new(
+                crate::logging::Service::Dns,
+                crate::logging::Priority::Error,
+                notice,
+            ));
+        }
     }
 
     pub fn configure_pxe(
@@ -710,6 +822,74 @@ mod tests {
             interface_index: 3,
             unicast_destination: false,
         }
+    }
+
+    fn device_binding(bind_main: bool) -> DeviceBinding {
+        DeviceBinding {
+            name: b"test-vlan".to_vec(),
+            bind_main,
+            did_bind: false,
+            warned: false,
+        }
+    }
+
+    #[test]
+    fn device_binding_requires_an_attempt_and_binds_pxe_even_with_relay() {
+        let binding = device_binding(false);
+        assert!(!binding
+            .bind(false, |_, _| panic!("no selected socket"))
+            .unwrap());
+        let mut attempts = Vec::new();
+        assert!(binding
+            .bind(true, |listener, name| {
+                attempts.push((listener, name.to_vec()));
+                Err(io::Error::from_raw_os_error(1))
+            })
+            .unwrap());
+        assert_eq!(attempts, [(Listener::Pxe, b"test-vlan".to_vec())]);
+    }
+
+    #[test]
+    fn device_binding_attempts_both_sockets_despite_one_error() {
+        let binding = device_binding(true);
+        let mut attempts = Vec::new();
+        let error = binding
+            .bind(true, |listener, _| {
+                attempts.push(listener);
+                if listener == Listener::Dhcp {
+                    Err(io::Error::from_raw_os_error(19))
+                } else {
+                    Ok(())
+                }
+            })
+            .unwrap_err();
+        assert_eq!(error.raw_os_error(), Some(19));
+        assert_eq!(attempts, [Listener::Dhcp, Listener::Pxe]);
+    }
+
+    #[test]
+    fn device_binding_retries_original_name_but_warns_once() {
+        let mut binding = device_binding(true);
+        let mut attempts = Vec::new();
+        for turn in 0..3 {
+            let notice = binding.retry(true, |listener, name| {
+                attempts.push((listener, name.to_vec()));
+                Err(io::Error::from_raw_os_error(19))
+            });
+            if turn == 0 {
+                let notice = notice.unwrap();
+                assert_eq!(notice, b"error binding DHCP socket to device test-vlan");
+            } else {
+                assert!(notice.is_none());
+            }
+        }
+        assert_eq!(attempts.len(), 6);
+        assert!(attempts.iter().all(|(_, name)| name == b"test-vlan"));
+        assert!(binding.retry(true, |_, _| Ok(())).is_none());
+        assert!(
+            !binding.did_bind,
+            "runtime success cannot create a startup notice"
+        );
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
