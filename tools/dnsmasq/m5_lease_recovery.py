@@ -113,7 +113,7 @@ def scenarios():
         actions=[dict(op='replace',text=row(9,name='foreign')),dict(op='hup'),dict(op='probes')])
     add('restart', duplicate, probes=probes,
         actions=[dhcp(3,name='renewed'),dict(op='restart'),dict(op='probes'),dhcp(7,client=2)])
-    add('write-failure', row(), limited_write=True,
+    add('write-failure', row(), limited_write=True, helper=False,
         actions=[dhcp(3),dict(op='lift-write-limit'),dict(op='wait-file',seconds=65)])
     add('partial-eio', row(), fifo=True, expected_exit=3)
     add('optional-long', row(), spelling=['--dhcp-leasefile'], path=DEFAULT)
@@ -124,6 +124,21 @@ def scenarios():
     add('alias-required', spelling=['--dhcp-lease'], expected_test=1, expected_exit=1)
     add('short', duplicate, spelling=['-l','/m2/leases'], probes=probes)
     add('short-required', spelling=['-l'], expected_test=1, expected_exit=1)
+    add('file-optional', row(), spelling=['--conf-file=/m2/config'], path=DEFAULT,
+        files={'config':'dhcp-leasefile\n'})
+    add('file-alias-required', spelling=['--conf-file=/m2/config'],
+        files={'config':'dhcp-lease\n'}, expected_test=1, expected_exit=1)
+    add('short-empty', row(), spelling=['-l',''], path=DEFAULT)
+    add('cli-file-origin', row(), spelling=['--dhcp-leasefile=/m2/leases','--conf-file=/m2/config'],
+        files={'config':'dhcp-lease=/m2/other\n','other':row(9,name='foreign')},
+        probes=[dict(name='first'),dict(name='foreign')])
+    add('file-cli-origin', row(), spelling=['--conf-file=/m2/config','--dhcp-leasefile=/m2/leases'],
+        files={'config':'dhcp-lease=/m2/other\n','other':row(9,name='foreign')},
+        probes=[dict(name='first'),dict(name='foreign')])
+    add('file-occurrence', spelling=['--conf-file=/m2/config'],
+        files={'config':'dhcp-leasefile=/m2/leases\ndhcp-lease=/m2/other\n'}, expected_test=1, expected_exit=1)
+    add('capacity-zero', row(), maximum=0, expected_exit=5)
+    add('capacity-zero-empty', maximum=0)
     add('occurrence', spelling=['--dhcp-leasefile=/m2/leases','--dhcp-lease=/m2/other'],
         expected_test=1, expected_exit=1)
     return cases
@@ -253,6 +268,7 @@ def run(root, side, case, out):
     if target:(folder/'leases').symlink_to(target)
     if case.get('fifo'):os.mkfifo(real)
     if mounted:subprocess.run(['mount','-o','remount,ro',str(folder/'rofs')],check=True)
+    for name,contents in case.get('files',{}).items():(folder/name).write_text(contents)
     helper=folder/'helper';helper.write_text('#!/bin/sh\nif [ "$1" = init ]; then cat /m2/init; exit; fi\n'
         'printf "%s|%s|%s|%s|%s|%s|%s\\n" "$1" "$2" "$3" "$4" "${DNSMASQ_CLIENT_ID-}" "${DNSMASQ_INTERFACE-}" "${DNSMASQ_OLD_HOSTNAME-}" >> /m2/events\n')
     helper.chmod(0o755);(folder/'init').write_bytes(text.encode())
@@ -276,7 +292,7 @@ def run(root, side, case, out):
     def snapshot(label):
         time.sleep(.12)
         record={'id':label,'files':{},'events':(folder/'events').read_text().splitlines() if (folder/'events').exists() else []}
-        for name in [path,'/m2/target','/m2/held']:
+        for name in [path,'/m2/target','/m2/held','/m2/other']:
             candidate=image_path(root,name)
             if candidate.is_file():
                 raw=candidate.read_bytes();(out/(label+'-'+name.replace('/','_'))).write_bytes(raw)
@@ -366,7 +382,21 @@ def run(root, side, case, out):
         stop();endpoint.close();log.close();stdout.close()
         observed['diagnostics']=diagnostics((out/'stderr').read_bytes())
         observed['pid_file']=(folder/'daemon.pid').exists()
+        def image_children():
+            result=[]
+            for candidate in Path('/proc').iterdir():
+                if not candidate.name.isdigit():continue
+                try:
+                    if os.readlink(candidate/'root')==str(root):result.append(int(candidate.name))
+                except (FileNotFoundError,PermissionError):pass
+            return result
+        deadline=time.monotonic()+1
+        while image_children() and time.monotonic()<deadline:time.sleep(.01)
         observed['process_live']=bool(process and Path(f'/proc/{process.pid}').exists())
+        observed['live_children']=image_children()
+        for pid in observed['live_children']:
+            try:os.kill(pid,signal.SIGKILL)
+            except ProcessLookupError:pass
         save(out/'observed.json',observed);save(out/'trace.json',trace)
         if mounted:
             subprocess.run(['mount','-o','remount,rw',str(folder/'rofs')],check=True)
@@ -380,7 +410,7 @@ def compare(c,rust,case):
         if value['syntax']['exit']!=case.get('expected_test',0):failures.append(dict(side=side,kind='syntax-exit'))
         if value['exit']!=case.get('expected_exit',0):failures.append(dict(side=side,kind='startup-exit',actual=value['exit']))
         if value['ready']!=(case.get('expected_exit',0)==0):failures.append(dict(side=side,kind='ready'))
-        if value['forced'] or value['pid_file'] or value['process_live']:failures.append(dict(side=side,kind='lifecycle'))
+        if value['forced'] or value['pid_file'] or value['process_live'] or value.get('live_children'):failures.append(dict(side=side,kind='lifecycle'))
         if case.get('fifo'):
             proof=value.get('read_error',{})
             if not proof.get('injected') or not any(r['result']>0 for r in proof.get('reads',[])) or not any(r['result']==-errno.EIO and r['injected'] for r in proof.get('reads',[])):
@@ -442,7 +472,7 @@ def main():
     executed={c['id']:c for c in result['scenarios']}
     result['boundaries']=[dict(b,checked=all(s in executed and not executed[s]['failures'] for s in b['required_scenarios'])) for b in manifest['boundaries']]
     result['failures']=[dict(case=case['id'],**f) for case in result['scenarios'] for f in case['failures']]
-    result['closed']=all(b['checked'] for b in result['boundaries']) and not result['failures']
+    result['closed']=manifest.get('qualification_ready',False) and all(b['checked'] for b in result['boundaries']) and not result['failures']
     save(out/'result.json',result)
     print(json.dumps(dict(cases=len(cases),boundaries=len(result['boundaries']),failures=len(result['failures']),closed=result['closed'])))
     return int(bool(result['failures']))
