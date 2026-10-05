@@ -83,10 +83,10 @@ impl NetworkConfig {
                     {
                         tags.push(value.decoded()[4..].to_vec());
                     } else if number.replace(value.decoded()).is_some() {
-                        return Err(Error("bad command line options"));
+                        return Err(Error("error"));
                     }
                 }
-                let value = number.ok_or(Error("bad command line options"))?;
+                let value = number.ok_or(Error("error"))?;
                 let seconds = std::str::from_utf8(&value)
                     .ok()
                     .filter(|value| {
@@ -94,7 +94,7 @@ impl NetworkConfig {
                     })
                     .and_then(|value| value.parse::<u32>().ok())
                     .filter(|&value| value <= i32::MAX as u32)
-                    .ok_or(Error("bad command line options"))?;
+                    .ok_or(Error("error"))?;
                 self.delays.insert(
                     0,
                     ReplyDelay {
