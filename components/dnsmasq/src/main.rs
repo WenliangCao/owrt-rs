@@ -205,6 +205,10 @@ fn startup_status(error: &(dyn std::error::Error + 'static)) -> i32 {
     if error.is::<ConnectError>() {
         return 5; // dnsmasq.c startup UBus registration failure: EC_MISC.
     }
+    #[cfg(target_os = "linux")]
+    if error.is::<dnsmasq_rs::dump::DumpError>() {
+        return 3;
+    }
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     if let Some(error) = error.downcast_ref::<dnsmasq_rs::helper::StartError>() {
         return error.code;
@@ -225,6 +229,7 @@ struct Runtime {
     dhcp: DhcpConfig,
     ubus: UbusConfig,
     script_arp: dnsmasq_rs::config::script_arp::ScriptArpConfig,
+    dump: dnsmasq_rs::config::dump::DumpConfig,
 }
 
 // C's UDP listeners mutate one parent hosts generation. Each accepted TCP
@@ -507,6 +512,7 @@ fn load(args: &[OsString]) -> Result<(Action, Runtime), loader::LoadError> {
         dhcp: DhcpConfig::default(),
         ubus: UbusConfig::default(),
         script_arp: Default::default(),
+        dump: Default::default(),
     };
     let action = loader::load(args, Path::new("/etc/dnsmasq.conf"), |directive, _| {
         if runtime.logging.apply(directive)?
@@ -517,6 +523,7 @@ fn load(args: &[OsString]) -> Result<(Action, Runtime), loader::LoadError> {
             || runtime.dhcp.apply(directive)?
             || runtime.ubus.apply(directive)?
             || runtime.script_arp.apply(directive)?
+            || runtime.dump.apply(directive)?
         {
             Ok(())
         } else {
@@ -629,6 +636,8 @@ fn run_inner(
     runtime.tftp.validate_ready()?;
     runtime.dhcp.validate_ready()?;
     validate_runtime_ready(&runtime.scalar, &runtime.dns)?;
+    #[cfg(target_os = "linux")]
+    let dump = dnsmasq_rs::dump::DumpHandle::open(&runtime.dump, runtime.scalar.edns_packet_max)?;
     let dns_enabled = runtime.scalar.dns_port != 0;
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     let (initial_interface_records, initial_interface_collector) = {
@@ -752,6 +761,8 @@ fn run_inner(
             },
         );
         daemon.set_max_reply_ttl(runtime.scalar.max_ttl);
+        #[cfg(target_os = "linux")]
+        daemon.set_dump(dump.clone());
         daemon.enable_negative_cache(
             runtime.scalar.negative_ttl,
             !daemon_config.no_negative_cache,
@@ -944,6 +955,7 @@ fn run_inner(
                 daemon_config.bind_interfaces || daemon_config.bind_dynamic,
             )
             .map_err(NetworkStartupError)?;
+        listener.set_dump(dump.clone());
         Some(DhcpService {
             provider,
             listener,
@@ -986,6 +998,10 @@ fn run_inner(
     } else {
         None
     };
+    #[cfg(target_os = "linux")]
+    if let Some(listener) = &mut tftp_listener {
+        listener.set_dump(dump.clone());
+    }
     #[cfg(target_os = "linux")]
     let capabilities = dnsmasq_rs::startup::network_capabilities(
         !runtime.dhcp.ranges.is_empty() || !runtime.dhcp.relay.is_empty(),
@@ -1206,6 +1222,10 @@ fn run_inner(
         daemon_options.edns_packet_max,
         poll_listeners,
     );
+    #[cfg(target_os = "linux")]
+    {
+        poll.dump = dump;
+    }
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     {
         poll.interface_collector = initial_interface_collector;
@@ -1833,6 +1853,8 @@ struct SinglePoll {
     #[cfg(target_os = "linux")]
     logger: Option<dnsmasq_rs::logging::Logger>,
     #[cfg(target_os = "linux")]
+    dump: dnsmasq_rs::dump::DumpHandle,
+    #[cfg(target_os = "linux")]
     early_logger: Option<dnsmasq_rs::logging::Logger>,
     #[cfg(target_os = "linux")]
     log_cleared_cache: bool,
@@ -2318,6 +2340,8 @@ impl SinglePoll {
             #[cfg(target_os = "linux")]
             logger: None,
             #[cfg(target_os = "linux")]
+            dump: dnsmasq_rs::dump::DumpHandle::default(),
+            #[cfg(target_os = "linux")]
             early_logger: None,
             #[cfg(target_os = "linux")]
             log_cleared_cache: false,
@@ -2637,6 +2661,13 @@ impl SinglePoll {
                 });
             }
         }
+        if let Some(fd) = self.dump.poll_fd() {
+            fds.push(owrt_ubus::sys::PollFd {
+                fd,
+                events: owrt_ubus::sys::POLLOUT,
+                revents: 0,
+            });
+        }
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
             provider.lock().unwrap().append_file_fds(fds);
@@ -2755,9 +2786,21 @@ impl SinglePoll {
     #[cfg(target_os = "linux")]
     fn log_dns_diagnostics(&mut self) {
         use dnsmasq_rs::logging::{LogEvent, Priority, Service};
+        self.dump.step();
         let Some(logger) = &mut self.logger else {
             return;
         };
+        for (error, message) in self.dump.take_notices() {
+            logger.emit(LogEvent::new(
+                Service::Dns,
+                if error {
+                    Priority::Error
+                } else {
+                    Priority::Info
+                },
+                message,
+            ));
+        }
         let mut parent = self.service.lock().unwrap();
         let Some(daemon) = &mut parent.daemon else {
             return;
@@ -2945,6 +2988,11 @@ impl SinglePoll {
             return;
         }
         query.truncate(incoming.len);
+        #[cfg(target_os = "linux")]
+        if let Ok(destination) = udp.local_addr() {
+            self.dump
+                .udp(dnsmasq_rs::dump::QUERY, &query, incoming.peer, destination);
+        }
         let client = ClientRequest {
             source: incoming.peer,
             destination: incoming.destination,
@@ -3140,6 +3188,11 @@ impl SinglePoll {
         };
         drop(parent);
         if let Some((answer, stale)) = answer {
+            #[cfg(target_os = "linux")]
+            if let Ok(source) = udp.local_addr() {
+                self.dump
+                    .udp(dnsmasq_rs::dump::REPLY, &answer, source, client.source);
+            }
             let _ = udp.send(
                 &answer,
                 client.source,
@@ -3185,6 +3238,15 @@ impl SinglePoll {
                 .find(|target| target.token == token)
                 .and_then(|listener| listener.udp.as_ref())
             {
+                #[cfg(target_os = "linux")]
+                if let Ok(source) = target.local_addr() {
+                    self.dump.udp(
+                        dnsmasq_rs::dump::REPLY,
+                        &response.packet,
+                        source,
+                        response.destination,
+                    );
+                }
                 let _ = target.send(
                     &response.packet,
                     response.destination,
@@ -3246,6 +3308,15 @@ impl SinglePoll {
                 .find(|target| target.token == response_token)
                 .and_then(|target| target.udp.as_ref())
             {
+                #[cfg(target_os = "linux")]
+                if let Ok(source) = target.local_addr() {
+                    self.dump.udp(
+                        dnsmasq_rs::dump::REPLY,
+                        &response.packet,
+                        source,
+                        response.destination,
+                    );
+                }
                 let _ = target.send(
                     &response.packet,
                     response.destination,
@@ -3528,6 +3599,13 @@ impl SinglePoll {
             events: POLLIN,
             revents: 0,
         }];
+        if let Some(fd) = self.dump.poll_fd() {
+            fds.push(PollFd {
+                fd,
+                events: POLLOUT,
+                revents: 0,
+            });
+        }
         if let Some(logger) = &self.logger {
             for context in self
                 .clients

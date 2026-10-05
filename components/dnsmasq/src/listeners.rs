@@ -419,6 +419,10 @@ impl DnsSocket {
             self.socket.send_to(bytes, peer).map(|_| ())
         }
     }
+
+    pub fn local_addr(&self) -> io::Result<SocketAddr> {
+        self.socket.local_addr()
+    }
 }
 pub fn tcp_bind(address: SocketAddr) -> io::Result<TcpListener> {
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
