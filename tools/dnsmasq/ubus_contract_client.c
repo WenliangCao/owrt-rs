@@ -169,9 +169,9 @@ int main(int argc, char **argv)
             blob_buf_init(&b, 0);
             if (argc == 6) {
                 size_t length = strlen(argv[5]);
-                if (length % 2 || length > 8192)
+                if (length % 2 || length > 16384)
                     return 2;
-                unsigned char bytes[4096];
+                unsigned char bytes[8192];
                 for (size_t i = 0; i < length / 2; i++) {
                     char pair[] = {argv[5][2 * i], argv[5][2 * i + 1], 0};
                     char *end;
