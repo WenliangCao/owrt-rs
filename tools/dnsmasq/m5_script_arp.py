@@ -112,6 +112,7 @@ def profiles():
         dict(case='negative-upgrade-position', cache_caller='negative-position', upstream=True, extra='add-mac\n'),
         dict(case='edns-connection-snapshot', cache_caller='connection', upstream=True, extra='add-mac\n',
              neighbors=[(V4, MAC, 'arps0'), ('192.0.2.18', '02:00:00:91:00:18', 'arps0')]),
+        dict(case='helper-buffer-enomem-reference', helper_frame_fault=True, neighbors=[], extra='add-mac\n'),
     ]
     for state in ['reachable', 'stale', 'delay', 'probe', 'permanent', 'none', 'noarp', 'incomplete', 'failed']:
         # The real kernel removes LLADDR when NUD_NONE is requested. The
@@ -582,6 +583,64 @@ def cache_caller_contract(root, pid, folder, upstream, kind):
     return dict(case='edns-negative-refresh' if kind == 'negative-refresh' else 'negative-upgrade-position', mac_options=values, callbacks=observed)
 
 
+def helper_frame_fault_contract(args, root, process, pid, folder):
+    if args.side == 'c':
+        symbols = subprocess.run(['readelf', '-Ds', str(args.image_root / 'lib/libc.so')], capture_output=True, text=True, check=True).stdout
+        offset = int(re.search(r'^\s*\d+:\s+([0-9a-f]+).*\bcalloc\s*$', symbols, re.M)[1], 16)
+        # Exact image struct script_data104, buff_alloc minimum+200.
+        kind, size = 'calloc', 304
+    else:
+        assert args.allocator_map is not None, 'allocator map required'
+        symbols = args.allocator_map.read_text()
+        offset = int(re.search(r'^\s*0x([0-9a-f]+)\s+malloc\s*$', symbols, re.M)[1], 16)
+        # Existing typed IPv4 ARP payload18 plus framing prefix4.
+        kind, size = 'malloc', 22
+    (folder / 'allocator-symbols').write_text(symbols)
+    output = folder / 'frame-allocation.json'
+    tracer = subprocess.Popen([sys.executable, __file__, '--trace-allocation', str(pid), str(size), kind, str(offset), str(output)])
+    try:
+        deadline = time.monotonic() + 3
+        while not Path(str(output) + '.ready').exists() and tracer.poll() is None and time.monotonic() < deadline:
+            time.sleep(.01)
+        assert Path(str(output) + '.ready').exists(), 'frame fault readiness'
+        neighbor('192.0.2.18', '02:00:00:91:00:18')
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as endpoint:
+            endpoint.settimeout(3)
+            endpoint.bind(('127.0.0.1', 0))
+            endpoint.connect(('127.0.0.1', PORT))
+            wire = query('arp-health.test', 0x7170)
+            endpoint.sendall(struct.pack('!H', len(wire)) + wire)
+            try:
+                reply = exact_read(endpoint, struct.unpack('!H', exact_read(endpoint, 2))[0])
+                (folder / 'frame-health.reply').write_bytes(reply)
+            except (OSError, RuntimeError, EOFError):
+                assert args.side == 'c', 'Rust frame failure lost DNS service'
+        assert tracer.wait(3) == 0, 'frame trace exit'
+        receipt = json.loads(output.read_text())
+        assert receipt['injected'], 'actual helper frame fault'
+        deadline = time.monotonic() + 3
+        if args.side == 'c':
+            assert process.wait(3) == -signal.SIGSEGV, 'guarded C NULL helper buffer defect'
+            observed = callbacks(root)
+            assert observed == [], 'C fault unexpectedly invoked a script'
+            healthy = False
+        else:
+            while not callbacks(root) and time.monotonic() < deadline:
+                time.sleep(.02)
+            observed = callbacks(root)
+            assert observed == [['3', 'arp-add', '02:00:00:91:00:18', '192.0.2.18', '0', '0', 'inherited-iface', 'inherited-id']], 'frame ENOMEM did not retain and retry its record'
+            (folder / 'post-frame-fault.reply').write_bytes(bytes.fromhex(health()))
+            healthy = True
+        save(folder / 'frame-fault-callbacks.json', observed)
+        return dict(case='helper-buffer-enomem-reference', callbacks=observed, dns_health=healthy,
+                    reference_difference='c-null-helper-buffer-segv',
+                    fault=dict(injected=True, operation='helper-frame-allocation'))
+    finally:
+        if tracer.poll() is None:
+            tracer.kill()
+            tracer.wait()
+
+
 def callbacks(root):
     return [line.decode('utf-8', 'surrogateescape').split('|')
             for line in (root / 'm2/arp-events').read_bytes().splitlines()]
@@ -864,6 +923,8 @@ def run_side(args):
                     rows.append(helper_failure_contract(root, pid, folder, owned))
                 elif spec.get('cache_caller'):
                     rows.append(cache_caller_contract(root, pid, folder, upstream, spec['cache_caller']))
+                elif spec.get('helper_frame_fault'):
+                    rows.append(helper_frame_fault_contract(args, root, process, pid, folder))
                 else:
                     row = dict(case=label, callbacks=observed, helper_count=len(owned), dns_health=reply is not None)
                     if spec.get('reference_difference'):
@@ -893,7 +954,8 @@ def run_side(args):
             if (root / 'm2/arp.log').exists():
                 (folder / 'daemon.log').write_bytes((root / 'm2/arp.log').read_bytes())
                 (root / 'm2/arp.log').unlink()
-            if (cleanup.get('forced') or cleanup.get('exit', 0)) and not (spec.get('pending_dump') and args.side == 'c' and cleanup.get('forced') and cleanup.get('exit') == -9):
+            expected_c_fault = spec.get('helper_frame_fault') and args.side == 'c' and cleanup.get('exit') == -signal.SIGSEGV and any(row['case'] == label for row in rows)
+            if (cleanup.get('forced') or cleanup.get('exit', 0)) and not expected_c_fault and not (spec.get('pending_dump') and args.side == 'c' and cleanup.get('forced') and cleanup.get('exit') == -9):
                 failures.append(dict(case=label, cleanup=cleanup))
     required = {case for boundary in plan['boundaries'] for case in boundary['required_cases']}
     executed = {row['case'] for row in rows}
@@ -959,6 +1021,8 @@ def main():
                 if (row.get('health_while_pending') is not True or row.get('stop_forced') is not False
                         or (row['case'] == 'netlink-missing-done' and row.get('timeout_reply') is not True)):
                     result.append(dict(case=row['case'], error='candidate pending owner contract'))
+            if row['case'] == 'helper-buffer-enomem-reference' and not row.get('dns_health'):
+                result.append(dict(case=row['case'], error='candidate frame fault stopped the service'))
         if [row['case'] for row in left] != [row['case'] for row in right]:
             result.append(dict(error='case inventory mismatch'))
         else:
@@ -966,6 +1030,13 @@ def main():
                 if c_row == r_row:
                     continue
                 spec = reference_specs.get(c_row['case'])
+                if (c_row['case'] == 'helper-buffer-enomem-reference'
+                        and c_row.get('reference_difference') == r_row.get('reference_difference') == 'c-null-helper-buffer-segv'
+                        and c_row.get('fault') == r_row.get('fault') == dict(injected=True, operation='helper-frame-allocation')
+                        and c_row.get('callbacks') == [] and c_row.get('dns_health') is False
+                        and r_row.get('callbacks') == [['3', 'arp-add', '02:00:00:91:00:18', '192.0.2.18', '0', '0', 'inherited-iface', 'inherited-id']]
+                        and r_row.get('dns_health') is True):
+                    continue
                 if (c_row['case'] in ['netlink-missing-done', 'stop-pending-dump']
                         and c_row.get('reference_difference') == r_row.get('reference_difference') == 'c-no-done-owner-stall'
                         and c_row.get('fault') == r_row.get('fault') and c_row.get('fault', {}).get('injected')
