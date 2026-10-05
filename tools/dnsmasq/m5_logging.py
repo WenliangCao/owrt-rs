@@ -100,6 +100,9 @@ def cases():
         {'id': 'syslog-sigusr2-keeps-fd', 'scope': 'sink', 'kind': 'run',
          'argv': [], 'receiver': 'dgram', 'facility': 24,
          'sink_edge': 'preserve', 'options': ['log-facility']},
+        {'id': 'debug-stderr-no-extra-fd', 'scope': 'sink', 'kind': 'run', 'mode': ['-d'],
+         'argv': [], 'receiver': 'dgram', 'facility': 128,
+         'sink_edge': 'debug-fd', 'options': ['log-facility', 'no-daemon']},
         {'id': 'file-reopen-recovers-owner', 'scope': 'sink', 'kind': 'run', 'mode': ['-d'],
          'argv': ['--log-facility=/m2/logging/daemon.log'], 'file': 'daemon.log',
          'receiver': 'dgram', 'user': 'nobody', 'sink_edge': 'recover',
@@ -891,11 +894,13 @@ def run(root, side, case, out):
                             raise AssertionError('reopen harmed client health')
                         trace['dns'].append(raw)
                     before = snapshot()
-                    if case['sink_edge'] == 'preserve':
+                    if case['sink_edge'] in ['preserve', 'debug-fd']:
                         process.send_signal(signal.SIGUSR2)
                         time.sleep(.08)
                         after = snapshot()
                         observed['sink_edge'] = {'same_fds': before == after}
+                        if case['sink_edge'] == 'debug-fd':
+                            observed['sink_edge']['stderr_copies'] = sum(value == before['2'] for value in before.values())
                         health()
                     else:
                         path = folder / case['file']
@@ -1581,8 +1586,10 @@ def compare(reference, candidate, case, reference_only=False):
     if 'expected_metadata' in case and reference['file_metadata'].get(case['file']) != case['expected_metadata']:
         failures.append({'kind': 'C-file-metadata', 'actual': reference['file_metadata']})
     if case.get('sink_edge'):
-        wanted = {'same_fds': True} if case['sink_edge'] == 'preserve' else {
+        wanted = {'same_fds': True} if case['sink_edge'] in ['preserve', 'debug-fd'] else {
             'old_fd_closed': True, 'replacement_metadata': [0o604, 0, 0]}
+        if case['sink_edge'] == 'debug-fd':
+            wanted['stderr_copies'] = 1
         for side, row in [('c', reference)] + ([] if reference_only else [('rust', candidate)]):
             if row.get('sink_edge') != wanted:
                 failures.append({'kind': 'sink-reopen-source-control', 'side': side,

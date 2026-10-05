@@ -253,6 +253,14 @@
           "required_scenarios": [
             "debug-echo-overlong-tftp-root"
           ]
+        },
+        {
+          "id": "FAC14",
+          "source": "log.c:68-89,301-319,dnsmasq.c:705-718",
+          "boundary": "Debug echo uses inherited stderr directly, with no extra descriptor or extra EMFILE startup boundary. Actual /proc descriptor inventory remains identical across SIGUSR2; the primary stderr destination alone retains its required pre-redirect duplicate.",
+          "required_scenarios": [
+            "debug-stderr-no-extra-fd"
+          ]
         }
       ],
       "qualification_ready": false,
