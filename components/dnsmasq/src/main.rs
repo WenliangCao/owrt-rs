@@ -2538,6 +2538,8 @@ impl SinglePoll {
             ));
         }
         drop(parent);
+        #[cfg(target_os = "linux")]
+        emit_hosts_read_notices(&self.service, &mut self.logger);
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
             let mut provider = provider
@@ -2713,6 +2715,9 @@ impl SinglePoll {
                     logger.emit(notice);
                 }
             }
+        }
+        if step.initial_cache_reload {
+            emit_hosts_read_notices(&self.service, &mut self.logger);
         }
         if step.initial_cache_reload && self.log_cleared_cache {
             if let Some(logger) = &mut self.logger {
@@ -4767,6 +4772,22 @@ fn validate_runtime_ready(scalar: &ScalarConfig, dns: &DnsConfig) -> Result<(), 
         ));
     }
     Ok(())
+}
+
+#[cfg(target_os = "linux")]
+fn emit_hosts_read_notices(
+    service: &Arc<Mutex<ParentDns>>,
+    logger: &mut Option<dnsmasq_rs::logging::Logger>,
+) {
+    let Ok(mut parent) = service.lock() else {
+        return;
+    };
+    let hosts = &mut parent.local.hosts;
+    for (source, names) in hosts.take_read_reports() {
+        if let (Some(path), Some(logger)) = (hosts.source_name(source), logger.as_mut()) {
+            logger.emit(dnsmasq_rs::logging::startup::hosts_read(path, names));
+        }
+    }
 }
 
 fn read_hosts(config: &DnsConfig, local_ttl: u32) -> Hosts {
