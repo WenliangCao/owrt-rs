@@ -275,6 +275,7 @@ pub struct UpstreamResolver<R = OsRandom> {
     receive_buffer: Vec<u8>,
     socket_settings: SocketSettings,
     source_bindings: HashMap<ServerId, SourceSpec>,
+    server_sockets: HashMap<ServerId, SocketToken>,
     pool_finger: u64,
 }
 
@@ -332,6 +333,7 @@ impl<R: Random> UpstreamResolver<R> {
             receive_buffer: vec![0; receive_capacity],
             socket_settings: SocketSettings::default(),
             source_bindings: HashMap::new(),
+            server_sockets: HashMap::new(),
             pool_finger: 0,
         })
     }
@@ -510,6 +512,7 @@ impl<R: Random> UpstreamResolver<R> {
         }
         self.events.clear();
         self.sockets.clear();
+        self.server_sockets.clear();
     }
 
     /// Apply file-source changes without reconstructing this resolver. Only
@@ -643,6 +646,9 @@ impl<R: Random> UpstreamResolver<R> {
     ) -> Vec<(ServerId, io::Error)> {
         self.socket_settings = settings;
         self.source_bindings = sources;
+        self.server_sockets.retain(|id, token| {
+            self.source_bindings.contains_key(id) && self.sockets.contains_key(token)
+        });
         let mut failures = Vec::new();
         if settings.query_port != 0 {
             for destination in ["0.0.0.0:53", "[::]:53"] {
@@ -660,25 +666,33 @@ impl<R: Random> UpstreamResolver<R> {
         let mut ordered: Vec<_> = self.source_bindings.clone().into_iter().collect();
         ordered.sort_by_key(|(id, _)| id.0);
         for (id, source) in ordered {
-            if settings.persistent(&source)
-                && !self
+            // add_update_server preserves a reused server's existing sfd even
+            // after its source tuple changes. TCP uses the updated tuple.
+            if self.server_sockets.contains_key(&id) {
+                continue;
+            }
+            if settings.persistent(&source) {
+                let token = self
                     .sockets
-                    .values()
-                    .any(|owned| owned.persistent && owned.source == source)
-            {
-                if let Err(error) = self.open_socket(source, true, false) {
-                    failures.push((id, error));
+                    .iter()
+                    .find(|(_, owned)| owned.persistent && owned.source == source)
+                    .map(|(token, _)| *token);
+                match token
+                    .map(Ok)
+                    .unwrap_or_else(|| self.open_socket(source, true, false))
+                {
+                    Ok(token) => {
+                        self.server_sockets.insert(id, token);
+                    }
+                    Err(error) => failures.push((id, error)),
                 }
             }
         }
-        self.sockets.retain(|_, owned| {
+        self.sockets.retain(|token, owned| {
             !owned.persistent
                 || owned.pinned
                 || !owned.owners.is_empty()
-                || self
-                    .source_bindings
-                    .values()
-                    .any(|source| source == &owned.source)
+                || self.server_sockets.values().any(|used| used == token)
         });
         failures
     }
@@ -736,7 +750,9 @@ impl<R: Random> UpstreamResolver<R> {
                 })
             })
             .collect();
-        let token = if persistent {
+        let token = if let Some(token) = self.server_sockets.get(&server) {
+            *token
+        } else if persistent {
             match self
                 .sockets
                 .iter()
@@ -811,9 +827,11 @@ impl<R: Random> UpstreamResolver<R> {
     }
 
     fn release_owner(&mut self, id: QueryId) {
-        self.sockets.retain(|_, owned| {
+        self.sockets.retain(|token, owned| {
             owned.owners.remove(&id);
-            owned.persistent || !owned.owners.is_empty()
+            !owned.owners.is_empty()
+                || (owned.persistent
+                    && (owned.pinned || self.server_sockets.values().any(|used| used == token)))
         });
     }
 
@@ -1350,6 +1368,53 @@ mod tests {
             io::ErrorKind::WouldBlock
         );
         assert_eq!(resolver.socket_count(), 1);
+    }
+
+    #[test]
+    fn reused_server_keeps_fixed_socket_after_source_tuple_changes() {
+        let peer = UdpSocket::bind("127.0.0.1:0").unwrap();
+        peer.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
+        let address = peer.local_addr().unwrap();
+        let reserved = UdpSocket::bind("127.0.0.1:0").unwrap();
+        let old_port = reserved.local_addr().unwrap().port();
+        drop(reserved);
+        let mut resolver = transport(
+            group(&[address], false),
+            Options::default(),
+            Duration::from_secs(2),
+        );
+        let old_source = SourceSpec::wildcard(address, old_port);
+        assert!(resolver
+            .configure_source_sockets(
+                SocketSettings::default(),
+                HashMap::from([(ServerId(1), old_source)])
+            )
+            .is_empty());
+        let new_source = SourceSpec {
+            address: "127.0.0.9:34004".parse().unwrap(),
+            interface: Vec::new(),
+            ifindex: 0,
+        };
+        assert!(resolver
+            .configure_source_sockets(
+                SocketSettings::default(),
+                HashMap::from([(ServerId(1), new_source.clone())])
+            )
+            .is_empty());
+        assert_eq!(resolver.source_bindings[&ServerId(1)], new_source);
+        let submission = resolver
+            .start_udp(&query(), client(), GroupId(1), Scope::Shared)
+            .unwrap();
+        let mut buffer = [0; 2048];
+        let (_, source) = peer.recv_from(&mut buffer).unwrap();
+        assert_eq!(
+            source,
+            SocketAddr::new("127.0.0.1".parse().unwrap(), old_port)
+        );
+        resolver.configure_source_sockets(SocketSettings::default(), HashMap::new());
+        assert_eq!(resolver.socket_count(), 1);
+        resolver.cancel(submission.id);
+        assert_eq!(resolver.socket_count(), 0);
     }
 
     #[test]
