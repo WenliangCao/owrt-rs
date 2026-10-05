@@ -23,6 +23,7 @@ pub struct LeaseFile {
     pub records: Vec<LeaseRecord>,
     pub invalid_records: usize,
     pub clean_end: bool,
+    pub warnings: Vec<String>,
 }
 
 struct Tokens<R> {
@@ -127,12 +128,25 @@ pub fn parse_reader(reader: impl BufRead, maximum_records: usize) -> io::Result<
         let address = tokens.take(64)?;
         let hostname = tokens.take(255)?;
         let client_id = tokens.take(764)?;
-        let (Some(address), Some(hostname), Some(client_id)) = (address, hostname, client_id)
-        else {
+        if address.is_none() || hostname.is_none() || client_id.is_none() {
+            result.warnings.push(format!(
+                "ignoring invalid line in lease database: {} {} {} {} ...",
+                String::from_utf8_lossy(&first),
+                String::from_utf8_lossy(&second),
+                String::from_utf8_lossy(address.as_deref().unwrap_or_default()),
+                String::from_utf8_lossy(hostname.as_deref().unwrap_or_default()),
+            ));
             result.invalid_records += 1;
             continue;
-        };
+        }
+        let address = address.unwrap();
+        let hostname = hostname.unwrap();
+        let client_id = client_id.unwrap();
         let Some(address) = parse_address(&address) else {
+            result.warnings.push(format!(
+                "ignoring invalid line in lease database, bad address: {}",
+                String::from_utf8_lossy(&address)
+            ));
             result.invalid_records += 1;
             continue;
         };

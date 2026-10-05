@@ -80,6 +80,50 @@ pub fn update_file(
     }
 }
 
+/// The caller reports this diagnostic unchanged: lease_init distinguishes
+/// open/create from read failures, both with EC_FILE and the configured path.
+#[derive(Debug)]
+pub struct LeaseFileFailure {
+    action: &'static str,
+    path: std::path::PathBuf,
+    source: io::Error,
+}
+
+impl std::fmt::Display for LeaseFileFailure {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut description = self.source.to_string();
+        if let Some(code) = self.source.raw_os_error() {
+            if let Some(text) = description.strip_suffix(&format!(" (os error {code})")) {
+                description = text.to_owned();
+            }
+        }
+        write!(
+            formatter,
+            "{} {}: {}",
+            self.action,
+            self.path.display(),
+            description
+        )
+    }
+}
+
+impl std::error::Error for LeaseFileFailure {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.source)
+    }
+}
+
+fn file_failure(action: &'static str, path: &Path, source: io::Error) -> io::Error {
+    io::Error::new(
+        source.kind(),
+        LeaseFileFailure {
+            action,
+            path: path.to_owned(),
+            source,
+        },
+    )
+}
+
 struct FileStream(BufWriter<File>);
 
 impl Write for FileStream {
@@ -124,10 +168,21 @@ impl LeasePersistence {
             .read(true)
             .append(true)
             .create(true)
-            .open(path)?;
+            .open(path)
+            .map_err(|error| file_failure("cannot open or create lease file", path, error))?;
         // C's startup rewind does not inspect errno; read errors remain fatal.
         let _ = file.rewind();
-        let restored = parse_reader(BufReader::with_capacity(1024, &mut file), maximum_records)?;
+        let restored = parse_reader(BufReader::with_capacity(1024, &mut file), maximum_records)
+            .map_err(|error| {
+                if error
+                    .get_ref()
+                    .is_some_and(|cause| cause.is::<super::lease_file::CapacityExceeded>())
+                {
+                    error
+                } else {
+                    file_failure("failed to read lease file", path, error)
+                }
+            })?;
         Ok((
             Self {
                 stream: Some(FileStream(BufWriter::with_capacity(1024, file))),
