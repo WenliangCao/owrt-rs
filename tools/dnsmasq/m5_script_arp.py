@@ -32,6 +32,12 @@ V4 = '192.0.2.17'
 V6 = 'fd42:91::17'
 SCRIPT = '''#!/bin/sh
 printf '%s|%s|%s|%s|%s|%s|%s|%s\\n' "$#" "$1" "$2" "$3" "$(id -u)" "$(id -g)" "$DNSMASQ_INTERFACE" "$DNSMASQ_CLIENT_ID" >> /m2/arp-events
+if [ "$M5_ARP_FDS" = 1 ]; then
+  for fd in /proc/$$/fd/*; do
+    printf '%s|' "${fd##*/}" >> /m2/arp-fds
+    readlink "$fd" >> /m2/arp-fds
+  done
+fi
 if [ "$M5_ARP_DELAY" = 1 ] && [ ! -f /m2/arp-delay-started ]; then
   : > /m2/arp-delay-started
   sleep 2
@@ -89,6 +95,7 @@ def profiles():
         dict(case='excluded-interface-visible', extra='except-interface=arpw0\n', neighbors=[('198.51.100.17', MAC, 'arpw0')]),
         dict(case='link-local-unscoped', neighbors=[('fe80::17', MAC, 'arps0')]),
         dict(case='argv-and-inherited-env'),
+        dict(case='helper-descriptor-roles', descriptors=True),
         dict(case='idle-91-no-wake', no_dns=True, clock=True),
         dict(case='wake-tftp-timer', no_dns=True, tftp_clock=True,
              extra='enable-tftp\ntftp-root=/m2/arp-tftp\n'),
@@ -411,6 +418,8 @@ def run_side(args):
         (root / 'm2/arp-finished').write_bytes(b'')
         (root / 'm2/arp-finished').chmod(0o666)
         (root / 'm2/arp-delay-started').unlink(missing_ok=True)
+        (root / 'm2/arp-fds').write_bytes(b'')
+        (root / 'm2/arp-fds').chmod(0o666)
         (root / 'm2/arp.pid').unlink(missing_ok=True)
         config = ('port=' + str(0 if spec.get('no_dns') else PORT) + '\nno-hosts\nno-resolv\n'
                   'bind-interfaces\nlisten-address=127.0.0.1\nuser=' + spec.get('user', 'root') + '\n'
@@ -427,9 +436,11 @@ def run_side(args):
         env = dict(os.environ, DNSMASQ_INTERFACE='inherited-iface', DNSMASQ_CLIENT_ID='inherited-id')
         env['M5_ARP_FAILURE'] = spec.get('script_failure', '')
         env['M5_ARP_DELAY'] = '1' if spec.get('delay') else '0'
+        env['M5_ARP_FDS'] = '1' if spec.get('descriptors') else '0'
         process = None
         pid = None
         upstream = Upstream() if spec.get('zero_positive') else None
+        held = (root / 'm2/arp-held-fd').open('wb') if spec.get('descriptors') else None
         if upstream:
             config += 'cache-size=0\nserver=127.0.0.2#' + str(upstream.port) + '\n'
             config = config.replace('listen-address=127.0.0.1\n', 'listen-address=127.0.0.1,127.0.0.2\n')
@@ -439,7 +450,8 @@ def run_side(args):
             with (folder / 'stderr').open('wb') as output:
                 flags = [] if spec.get('daemon') else ['-d' if spec.get('debug') else '-k']
                 process = subprocess.Popen(command(root, args.side, *flags, '-C', '/m2/arp.conf'),
-                                           stdout=output, stderr=output, env=env, start_new_session=True)
+                                           stdout=output, stderr=output, env=env, start_new_session=True,
+                                           pass_fds=(held.fileno(),) if held else ())
                 if spec.get('debug'):
                     # C debug deliberately omits the PID file.
                     pid = process.pid
@@ -504,6 +516,11 @@ def run_side(args):
                 remaining = len(list(Path('/proc/' + str(pid) + '/fd').iterdir()))
                 save(folder / 'descriptor-health.json', dict(before=baseline, after=remaining))
                 assert baseline == remaining, 'descriptor recovery'
+                if spec.get('descriptors'):
+                    descriptors = (root / 'm2/arp-fds').read_bytes()
+                    (folder / 'script-descriptors.raw').write_bytes(descriptors)
+                    assert b'arp-held-fd' not in descriptors, 'startup descriptor leaked into ARP script'
+                    assert not any(kind in descriptors for kind in [b'socket:[', b'arp.leases', b'arp.log']), 'service descriptor leaked into script'
                 if spec.get('clock'):
                     rows.extend(clock_contract(root, pid, folder))
                 elif spec.get('tftp_clock'):
@@ -520,6 +537,8 @@ def run_side(args):
             cleanup = stop_daemon(process, pid)
             if upstream:
                 upstream.close()
+            if held:
+                held.close()
             save(folder / 'cleanup.json', cleanup)
             (folder / 'arp-events.raw').write_bytes((root / 'm2/arp-events').read_bytes())
             if (root / 'm2/arp.log').exists():
