@@ -104,7 +104,7 @@ pub struct LeaseFileFailure {
 }
 
 impl LeaseFileFailure {
-    pub fn warnings(&self) -> &[String] {
+    pub fn warnings(&self) -> &[Vec<u8>] {
         super::lease_file::warnings(&self.source)
     }
 }
@@ -186,7 +186,7 @@ impl LeasePersistence {
         path: &Path,
         read_only: bool,
         maximum_records: usize,
-        mut emit: impl FnMut(String) -> io::Result<()>,
+        mut emit: impl FnMut(Vec<u8>) -> io::Result<()>,
     ) -> io::Result<(Self, Option<LeaseFile>)> {
         Self::open_inner(path, read_only, maximum_records, Some(&mut emit))
     }
@@ -195,7 +195,7 @@ impl LeasePersistence {
         path: &Path,
         read_only: bool,
         maximum_records: usize,
-        emit: Option<&mut dyn FnMut(String) -> io::Result<()>>,
+        emit: Option<&mut dyn FnMut(Vec<u8>) -> io::Result<()>>,
     ) -> io::Result<(Self, Option<LeaseFile>)> {
         if read_only {
             // leasefile-ro without a script uses an empty DB, even if the

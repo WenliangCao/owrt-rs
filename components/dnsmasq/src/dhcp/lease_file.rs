@@ -23,7 +23,7 @@ pub struct LeaseFile {
     pub records: Vec<LeaseRecord>,
     pub invalid_records: usize,
     pub clean_end: bool,
-    pub warnings: Vec<String>,
+    pub warnings: Vec<Vec<u8>>,
 }
 
 struct Tokens<R> {
@@ -95,7 +95,7 @@ impl std::error::Error for CapacityExceeded {}
 #[derive(Debug)]
 struct ParseFailure {
     source: io::Error,
-    warnings: Vec<String>,
+    warnings: Vec<Vec<u8>>,
 }
 
 impl std::fmt::Display for ParseFailure {
@@ -120,7 +120,7 @@ impl std::error::Error for ParseFailure {
     }
 }
 
-pub fn warnings(error: &io::Error) -> &[String] {
+pub fn warnings(error: &io::Error) -> &[Vec<u8>] {
     error
         .get_ref()
         .and_then(|cause| cause.downcast_ref::<ParseFailure>())
@@ -178,7 +178,7 @@ pub fn parse_reader(reader: impl BufRead, maximum_records: usize) -> io::Result<
 pub fn parse_reader_with_warnings(
     reader: impl BufRead,
     maximum_records: usize,
-    mut emit: impl FnMut(String) -> io::Result<()>,
+    mut emit: impl FnMut(Vec<u8>) -> io::Result<()>,
 ) -> io::Result<LeaseFile> {
     let mut tokens = Tokens { reader };
     let mut result = LeaseFile::default();
@@ -231,13 +231,23 @@ pub fn parse_reader_with_warnings(
             .take(764)
             .map_err(|error| failure(&mut result, error))?;
         if address.is_none() || hostname.is_none() || client_id.is_none() {
-            emit(format!(
-                "ignoring invalid line in lease database: {} {} {} {} ...",
-                String::from_utf8_lossy(&first),
-                String::from_utf8_lossy(&second),
-                String::from_utf8_lossy(address.as_deref().unwrap_or_default()),
-                String::from_utf8_lossy(hostname.as_deref().unwrap_or_default()),
-            ))?;
+            let mut message = b"ignoring invalid line in lease database: ".to_vec();
+            for (index, field) in [
+                first.as_slice(),
+                second.as_slice(),
+                address.as_deref().unwrap_or_default(),
+                hostname.as_deref().unwrap_or_default(),
+            ]
+            .into_iter()
+            .enumerate()
+            {
+                if index != 0 {
+                    message.push(b' ');
+                }
+                message.extend_from_slice(field);
+            }
+            message.extend_from_slice(b" ...");
+            emit(message)?;
             result.invalid_records += 1;
             continue;
         }
@@ -245,10 +255,9 @@ pub fn parse_reader_with_warnings(
         let hostname = hostname.unwrap();
         let client_id = client_id.unwrap();
         let Some(address) = parse_address(&address) else {
-            emit(format!(
-                "ignoring invalid line in lease database, bad address: {}",
-                String::from_utf8_lossy(&address)
-            ))?;
+            let mut message = b"ignoring invalid line in lease database, bad address: ".to_vec();
+            message.extend_from_slice(&address);
+            emit(message)?;
             result.invalid_records += 1;
             continue;
         };
@@ -455,7 +464,7 @@ mod tests {
         let error = parse_reader(Failed(bytes), 2).unwrap_err();
         assert_eq!(
             warnings(&error),
-            ["ignoring invalid line in lease database, bad address: invalid"]
+            [b"ignoring invalid line in lease database, bad address: invalid".to_vec()]
         );
         assert!(!capacity_exceeded(&error));
         let error = parse_reader(&bytes[..], 0).unwrap_err();
@@ -475,5 +484,15 @@ mod tests {
         assert_eq!(warnings, 10_000);
         assert_eq!(parsed.invalid_records, 10_000);
         assert!(parsed.clean_end && parsed.records.is_empty() && parsed.warnings.is_empty());
+    }
+
+    #[test]
+    fn invalid_address_diagnostic_preserves_non_utf8_input_octets() {
+        let parsed = parse(b"0 01 \xff bad *\n");
+        assert_eq!(parsed.invalid_records, 1);
+        assert_eq!(
+            parsed.warnings,
+            [b"ignoring invalid line in lease database, bad address: \xff".to_vec()]
+        );
     }
 }
