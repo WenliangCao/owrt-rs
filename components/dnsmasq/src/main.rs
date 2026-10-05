@@ -637,7 +637,7 @@ fn run_inner(
     let daemon_config = runtime.dns.clone();
     let daemon_hosts = hosts.clone();
     let daemon_options = DaemonOptions {
-        forward_max: runtime.scalar.forward_max as usize,
+        forward_max: runtime.scalar.forward_max.max(0) as usize,
         fast_retry: runtime.scalar.fast_retry,
         edns_packet_max: runtime.scalar.edns_packet_max,
         proxy_dnssec: runtime.dns.proxy_dnssec,
@@ -673,6 +673,7 @@ fn run_inner(
                 StaleCache::Forever => StalePolicy::Forever,
             },
         );
+        daemon.set_max_reply_ttl(runtime.scalar.max_ttl);
         daemon.enable_negative_cache(
             runtime.scalar.negative_ttl,
             !daemon_config.no_negative_cache,
@@ -894,7 +895,7 @@ fn run_inner(
             &runtime.dhcp.no_tftp_interfaces,
             identity.runtime_uid(&runtime.process),
             if dns_enabled {
-                (runtime.scalar.forward_max as usize) / 2
+                (runtime.scalar.forward_max.max(0) as usize) / 2
             } else {
                 0
             },
@@ -1808,7 +1809,7 @@ fn lookup_edns_mac(
 }
 
 struct PollTcpClient {
-    stream: TcpStream,
+    stream: Option<TcpStream>,
     service: LocalDnsService,
     forward: TcpDnsService,
     framer: TcpFramer,
@@ -1824,39 +1825,104 @@ struct PollTcpClient {
     mac_deadline: Instant,
     packet_limit: usize,
     parent_cache_activity: bool,
+    cache_view: Option<dnsmasq_rs::dns::cache::Cache>,
+    cache_counters: dnsmasq_rs::dns::cache::CacheCounters,
+    cache_negative: bool,
+    cache_negative_ttl: u64,
+    cache_debug: bool,
+    accept_clock: i64,
+    no_cache: bool,
+    stale_query: Option<Vec<u8>>,
+    refreshing_stale: bool,
 }
 
 enum TcpClientPhase {
     Reading,
     WaitingMac { query: Vec<u8> },
-    Forwarding { cache_eligible: bool, wait: TcpWait },
+    Forwarding { no_cache: bool, wait: TcpWait },
     Writing { frame: Vec<u8>, offset: usize },
 }
 
 impl PollTcpClient {
     fn queue_answer(
         &mut self,
-        parent: &Arc<Mutex<ParentDns>>,
+        _parent: &Arc<Mutex<ParentDns>>,
         packet: Vec<u8>,
-        insert_cache: bool,
+        _insert_cache: bool,
     ) -> Result<(), ()> {
-        let bogus = self.forward.take_bogus_cache_entry();
-        if insert_cache || bogus.is_some() {
-            self.parent_cache_activity = true;
-            let mut parent = parent.lock().map_err(|_| ())?;
-            if let Some(daemon) = parent.daemon.as_mut() {
-                if let Some((name, ttl)) = bogus {
-                    daemon.cache_bogus_reply(name, ttl, now_seconds());
-                } else {
-                    daemon.cache_tcp_reply(&packet, now_seconds());
-                }
-            }
-        }
         self.phase = TcpClientPhase::Writing {
             frame: encode_tcp_frame(&packet).map_err(|_| ())?,
             offset: 0,
         };
         Ok(())
+    }
+
+    fn run_forward(
+        &mut self,
+        parent: &Arc<Mutex<ParentDns>>,
+        query: Option<&[u8]>,
+        no_cache: bool,
+    ) -> Result<TcpServiceProgress, ()> {
+        let now = self.accept_clock;
+        let local = &self.service;
+        let debug = self.cache_debug;
+        let negative = self.cache_negative;
+        let negative_ttl = self.cache_negative_ttl;
+        let view = &mut self.cache_view;
+        let counters = &mut self.cache_counters;
+        let mut transaction = None;
+        let mut sink = |packet: &mut Vec<u8>,
+                        policy: &dnsmasq_rs::dns::process::AddressPolicy,
+                        rcode,
+                        mode|
+         -> Result<(), dnsmasq_rs::dns::wire::WireError> {
+            if debug {
+                let mut owner = parent
+                    .lock()
+                    .map_err(|_| dnsmasq_rs::dns::wire::WireError::InvalidName)?;
+                if let Some(daemon) = owner.daemon.as_mut() {
+                    daemon.tcp_current_extract(packet, policy, now, rcode, mode)?;
+                }
+            } else if let Some(cache) = view.as_mut() {
+                transaction = dnsmasq_rs::dns::daemon::DnsDaemon::<
+                    dnsmasq_rs::dns::upstream::OsRandom,
+                >::tcp_view_extract(
+                    cache,
+                    counters,
+                    packet,
+                    local,
+                    policy,
+                    now,
+                    rcode,
+                    mode,
+                    negative,
+                    negative_ttl,
+                )?;
+            }
+            Ok(())
+        };
+        let progress = if let Some(query) = query {
+            self.forward.start_with_local_upstream_cache(
+                query,
+                local,
+                self.deadline,
+                no_cache,
+                now,
+                &mut sink,
+            )
+        } else {
+            self.forward
+                .step_with_local_upstream_cache(local, no_cache, now, &mut sink)
+        }
+        .map_err(|_| ())?;
+        if let Some(transaction) = transaction {
+            self.parent_cache_activity = true;
+            let mut owner = parent.lock().map_err(|_| ())?;
+            if let Some(daemon) = owner.daemon.as_mut() {
+                daemon.import_tcp_cache_transfer(transaction, now_seconds());
+            }
+        }
+        Ok(progress)
     }
 
     fn answer_query(
@@ -1873,42 +1939,70 @@ impl PollTcpClient {
             self.packet_limit,
         )
         .map_err(|_| ())?;
-        let answered = {
-            let mut parent = parent.lock().map_err(|_| ())?;
-            let daemon = parent.daemon.as_mut().ok_or(())?;
-            let cached = daemon
-                .cached_tcp_answer_with_edns(
-                    &query,
-                    &mut self.service,
-                    now_seconds(),
-                    decoration.cacheable,
-                )
-                .map_err(|_| ())?;
-            cached.or_else(|| {
+        self.no_cache = !decoration.cacheable;
+        let now = self.accept_clock;
+        let mut stale = false;
+        let answered = if self.cache_debug {
+            let mut owner = parent.lock().map_err(|_| ())?;
+            let daemon = owner.daemon.as_mut().ok_or(())?;
+            let cached = if decoration.cacheable {
+                Some(daemon.tcp_current_answer(&query, now).map_err(|_| ())?)
+            } else {
+                None
+            };
+            stale = cached.as_ref().is_some_and(|answer| answer.stale);
+            cached.and_then(|answer| answer.packet).or_else(|| {
                 daemon
-                    .local_tcp_answer(&query, &mut self.service, now_seconds())
+                    .local_tcp_answer(&query, &mut self.service, now)
                     .ok()
                     .flatten()
             })
+        } else {
+            let cached = if decoration.cacheable {
+                self.cache_view
+                    .as_mut()
+                    .map(|cache| {
+                        dnsmasq_rs::dns::daemon::DnsDaemon::<dnsmasq_rs::dns::upstream::OsRandom>::tcp_view_answer(
+                            cache,
+                            &query,
+                            &mut self.service,
+                            now,
+                            self.cache_negative,
+                            self.cache_negative_ttl,
+                        )
+                    })
+                    .transpose()
+                    .map_err(|_| ())?
+            } else {
+                None
+            };
+            stale = cached.as_ref().is_some_and(|answer| answer.stale);
+            cached.and_then(|answer| answer.packet).or_else(|| {
+                dnsmasq_rs::dns::daemon::DnsDaemon::<dnsmasq_rs::dns::upstream::OsRandom>::tcp_view_local_answer(
+                    self.cache_view.as_mut(),
+                    &query,
+                    &mut self.service,
+                    now,
+                )
+                .ok()
+                .flatten()
+            })
         };
         if let Some(packet) = answered {
+            if stale {
+                self.stale_query = Some(query);
+            }
             self.queue_answer(parent, packet, false)?;
         } else {
-            let cache_eligible =
-                TcpDnsService::cache_eligible_with_policy(&query, decoration.cacheable);
-            match self
-                .forward
-                .start_with_local_upstream(&query, &self.service, self.deadline)
-                .map_err(|_| ())?
-            {
+            match self.run_forward(parent, Some(&query), self.no_cache)? {
                 TcpServiceProgress::Pending(wait) => {
                     self.phase = TcpClientPhase::Forwarding {
-                        cache_eligible,
+                        no_cache: self.no_cache,
                         wait,
-                    };
+                    }
                 }
-                TcpServiceProgress::Complete(packet, from_upstream) => {
-                    self.queue_answer(parent, packet, cache_eligible && from_upstream)?;
+                TcpServiceProgress::Complete(packet, _) => {
+                    self.queue_answer(parent, packet, false)?
                 }
             }
         }
@@ -1944,7 +2038,7 @@ impl PollTcpClient {
                     self.answer_query(query, parent)?;
                 }
                 TcpClientPhase::Writing { frame, offset } => {
-                    match self.stream.write(&frame[*offset..]) {
+                    match self.stream.as_mut().ok_or(())?.write(&frame[*offset..]) {
                         Ok(0) => return Ok(false),
                         Ok(count) => *offset += count,
                         Err(error)
@@ -1961,13 +2055,26 @@ impl PollTcpClient {
                         if self.queries == 100 {
                             return Ok(false);
                         }
+                        if let Some(query) = self.stale_query.take() {
+                            if let Some(stream) = self.stream.take() {
+                                let _ = stream.shutdown(std::net::Shutdown::Both);
+                            }
+                            self.refreshing_stale = true;
+                            match self.run_forward(parent, Some(&query), self.no_cache)? {
+                                TcpServiceProgress::Pending(wait) => {
+                                    self.phase = TcpClientPhase::Forwarding {
+                                        no_cache: self.no_cache,
+                                        wait,
+                                    };
+                                    return Ok(true);
+                                }
+                                TcpServiceProgress::Complete(_, _) => return Ok(false),
+                            }
+                        }
                         self.phase = TcpClientPhase::Reading;
                     }
                 }
-                TcpClientPhase::Forwarding {
-                    cache_eligible,
-                    wait,
-                } => {
+                TcpClientPhase::Forwarding { no_cache, wait } => {
                     if wait.fd >= 0 && Instant::now() < wait.deadline {
                         let mut readiness = [owrt_ubus::sys::PollFd {
                             fd: wait.fd,
@@ -1978,21 +2085,17 @@ impl PollTcpClient {
                             return Ok(true);
                         }
                     }
-                    let cache_eligible = *cache_eligible;
-                    match self
-                        .forward
-                        .step_with_local_upstream(&self.service)
-                        .map_err(|_| ())?
-                    {
+                    let no_cache = *no_cache;
+                    match self.run_forward(parent, None, no_cache)? {
                         TcpServiceProgress::Pending(wait) => {
-                            self.phase = TcpClientPhase::Forwarding {
-                                cache_eligible,
-                                wait,
-                            };
+                            self.phase = TcpClientPhase::Forwarding { no_cache, wait };
                             return Ok(true);
                         }
-                        TcpServiceProgress::Complete(packet, from_upstream) => {
-                            self.queue_answer(parent, packet, cache_eligible && from_upstream)?;
+                        TcpServiceProgress::Complete(packet, _) => {
+                            if self.refreshing_stale {
+                                return Ok(false);
+                            }
+                            self.queue_answer(parent, packet, false)?;
                         }
                     }
                 }
@@ -2000,7 +2103,7 @@ impl PollTcpClient {
                     if self.input_offset == self.input.len() {
                         self.input.resize(4096, 0);
                         self.input_offset = 0;
-                        match self.stream.read(&mut self.input) {
+                        match self.stream.as_mut().ok_or(())?.read(&mut self.input) {
                             Ok(0) => return Ok(false),
                             Ok(count) => self.input.truncate(count),
                             Err(error)
@@ -2946,6 +3049,20 @@ impl SinglePoll {
         snapshot.leases = Arc::clone(&parent.local.leases);
         snapshot.interfaces = Arc::clone(&parent.local.interfaces);
         snapshot.local_network = local_network;
+        let cache_debug = DEBUG_MODE.load(Ordering::Relaxed);
+        let cache_view = (!cache_debug)
+            .then(|| {
+                parent
+                    .daemon
+                    .as_ref()
+                    .and_then(|daemon| daemon.tcp_cache_view())
+            })
+            .flatten();
+        let (cache_negative, cache_negative_ttl) = parent
+            .daemon
+            .as_ref()
+            .map_or((true, 0), |daemon| daemon.tcp_cache_parameters());
+        let accept_clock = now_seconds();
         let forward = if let Some(daemon) = &mut parent.daemon {
             daemon.refresh_source_interface_indices();
             daemon.tcp_snapshot()
@@ -2961,7 +3078,16 @@ impl SinglePoll {
             event.tcp_active = event.tcp_active.saturating_add(1);
         }
         self.clients.push(PollTcpClient {
-            stream,
+            stream: Some(stream),
+            cache_view,
+            cache_negative,
+            cache_negative_ttl,
+            cache_debug,
+            accept_clock,
+            cache_counters: Default::default(),
+            no_cache: false,
+            stale_query: None,
+            refreshing_stale: false,
             service: snapshot,
             forward,
             framer: TcpFramer::with_max_frame(self.packet_limit),
@@ -3098,13 +3224,19 @@ impl SinglePoll {
                     if client.input_offset < client.input.len() {
                         deadline = Instant::now();
                     }
-                    (client.stream.as_raw_fd(), POLLIN)
+                    (
+                        client.stream.as_ref().map_or(-1, AsRawFd::as_raw_fd),
+                        POLLIN,
+                    )
                 }
                 TcpClientPhase::WaitingMac { .. } => {
                     deadline = deadline.min(client.mac_deadline);
                     (-1, 0)
                 }
-                TcpClientPhase::Writing { .. } => (client.stream.as_raw_fd(), POLLOUT),
+                TcpClientPhase::Writing { .. } => (
+                    client.stream.as_ref().map_or(-1, AsRawFd::as_raw_fd),
+                    POLLOUT,
+                ),
                 TcpClientPhase::Forwarding { wait, .. } => {
                     deadline = deadline.min(wait.deadline);
                     (wait.fd, wait.events)
@@ -3869,10 +4001,6 @@ fn validate_runtime_ready(scalar: &ScalarConfig, dns: &DnsConfig) -> Result<(), 
         return Err(Error(
             "hostname-dependent local records are not implemented",
         ));
-    }
-    let defaults = ScalarConfig::default();
-    if scalar.max_ttl != defaults.max_ttl {
-        return Err(Error("scalar option is not implemented"));
     }
     Ok(())
 }
