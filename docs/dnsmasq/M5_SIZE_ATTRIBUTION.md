@@ -47,6 +47,8 @@ M4 获准 ELF 为 1,159,280 字节。当前归因基准 `ff2b2d22` 在固定源�
 | TCP 缓存独立视图/时钟/parent import owner | `8389a0fa` | 1,732,648 | +4,096 |
 | TCP 日志上下文/owner及接口空 root parser（混合） | `4207c732` | 1,736,744 | +4,096 |
 | 接口 collector、dynamic CNAME terminal/cache metadata 修复（混合） | `90a84a55` | 1,757,224 | +20,480 |
+| 接口完整defer/CNAME诊断、FIFO/ARP恢复（混合） | `f3ec456b` | 1,765,416 | +8,192 |
+| 反向缓存/helper分配、FIFO fallback tag、synth ANY（混合） | `7a3af081` | 1,773,608 | +8,192 |
 
-当前相对 M4 共增加 597,944 字节。Arc<Record> 的 TCP 接受视图共享记录 payload，独立保留容器和状态；具体满载 RSS 成本仍待 M5 统一候选实测，不以代码结构推测内存结果。
+当前相对 M4 共增加 614,328 字节。Arc<Record> 的 TCP 接受视图共享记录 payload，独立保留容器和状态；具体满载 RSS 成本仍待 M5 统一候选实测，不以代码结构推测内存结果。
 
