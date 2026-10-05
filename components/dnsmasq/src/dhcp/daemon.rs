@@ -72,8 +72,13 @@ impl std::fmt::Display for StartupError {
             return formatter.write_str("too many stored leases");
         }
         match self {
-            Self::LeaseFile(error) if error.get_ref().is_some_and(|cause|
-                cause.is::<super::persistence::LeaseFileFailure>()) => write!(formatter, "{error}"),
+            Self::LeaseFile(error)
+                if error
+                    .get_ref()
+                    .is_some_and(|cause| cause.is::<super::persistence::LeaseFileFailure>()) =>
+            {
+                write!(formatter, "{error}")
+            }
             Self::LeaseFile(error) => write!(formatter, "cannot open or read lease file: {error}"),
             Self::Restore(error) => write!(formatter, "cannot restore lease database: {error:?}"),
             Self::Socket(error) => write!(formatter, "cannot create DHCP control socket: {error}"),
@@ -441,7 +446,7 @@ impl LocalProvider {
         self.restore_stats = Some(RestoreStats {
             invalid_records: restored.invalid_records,
             clean_end: restored.clean_end,
-                warnings: restored.warnings,
+            warnings: restored.warnings,
         });
         self.startup_removed = self
             .leases
@@ -1848,9 +1853,12 @@ impl LocalProvider {
         let result = provider.resolve(dispatch);
         if let Ok(outcome) = &result {
             let lease_id = match outcome.reply {
-                Reply::Ack { address, .. } | Reply::Bootp { address, .. } => self.leases
-                    .find_client(&lease_identity).filter(|lease| lease.address == address)
-                    .or_else(|| self.leases.get(address)).map(|lease| lease.id()),
+                Reply::Ack { address, .. } | Reply::Bootp { address, .. } => self
+                    .leases
+                    .find_client(&lease_identity)
+                    .filter(|lease| lease.address == address)
+                    .or_else(|| self.leases.get(address))
+                    .map(|lease| lease.id()),
                 _ => None,
             };
             if let Some(id) = lease_id.filter(|_| matches!(outcome.reply, Reply::Ack { .. })) {

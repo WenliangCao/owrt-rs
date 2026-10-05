@@ -135,7 +135,12 @@ fn startup_status(error: &(dyn std::error::Error + 'static)) -> i32 {
     if let Some(error) = error.downcast_ref::<dnsmasq_rs::startup::StartupError>() {
         return error.code;
     }
-    if error.is::<NetworkStartupError>() {
+    if error.is::<NetworkStartupError>()
+        || matches!(
+            error.downcast_ref::<dnsmasq_rs::dns::daemon::DaemonError>(),
+            Some(dnsmasq_rs::dns::daemon::DaemonError::SourceBind(_))
+        )
+    {
         return 2;
     }
     #[cfg(target_os = "linux")]
@@ -528,6 +533,10 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             daemon_hosts,
             &resolvers,
             daemon_options,
+        )?;
+        daemon.configure_source_sockets(
+            dnsmasq_rs::dns::upstream::source_sockets::SocketSettings::from_scalar(&runtime.scalar),
+            true,
         )?;
         daemon.check_server_addresses(&dns_local_addresses(
             &daemon_config,
@@ -2462,13 +2471,7 @@ fn validate_runtime_ready(scalar: &ScalarConfig, dns: &DnsConfig) -> Result<(), 
         ));
     }
     let defaults = ScalarConfig::default();
-    if scalar.query_port != defaults.query_port
-        || scalar.query_port_os_assigned != defaults.query_port_os_assigned
-        || scalar.min_port != defaults.min_port
-        || scalar.max_port != defaults.max_port
-        || scalar.port_limit != defaults.port_limit
-        || scalar.max_ttl != defaults.max_ttl
-    {
+    if scalar.max_ttl != defaults.max_ttl {
         return Err(Error("scalar option is not implemented"));
     }
     Ok(())
