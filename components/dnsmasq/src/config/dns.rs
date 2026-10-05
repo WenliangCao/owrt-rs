@@ -681,7 +681,12 @@ impl DnsConfig {
                         .insert(0, super::rrtypes::parse(&field.decoded())?);
                 }
             }
-            b"domain" | b"domain-suffix" => self.domain(arg.unwrap())?,
+            b"domain" | b"domain-suffix" => self.domain(arg.unwrap()).map_err(|error| {
+                match error.0 {
+                    "bad domain address" | "bad domain local marker" | "bad integer" => Error("error"),
+                    _ => error,
+                }
+            })?,
             b"local-service" => match arg.map(EncodedArg::encoded) {
                 None | Some(b"net") => self.local_service_net = true,
                 Some(b"host") => self.local_service_host = true,
