@@ -31,6 +31,7 @@
     "capacity-duplicate",
     "capacity-expired",
     "capacity-invalid",
+    "capacity-warning",
     "capacity-zero",
     "capacity-zero-empty",
     "cli-file-origin",
@@ -65,6 +66,7 @@
     "optional-long",
     "optional-separated",
     "partial-eio",
+    "partial-eio-warning",
     "partial-first",
     "partial-record",
     "permission",
@@ -72,8 +74,11 @@
     "relative-link",
     "restart",
     "ro-capacity",
+    "ro-capacity-warning",
     "ro-init",
+    "ro-malformed",
     "ro-no-script",
+    "ro-partial-record",
     "scanf-nul",
     "scanf-space",
     "scanf-width",
@@ -185,7 +190,9 @@
       "source": "lease.c:185-200,219-246",
       "contract": "leasefile-ro script init restores a streamed DB; configured file remains untouched.",
       "required_scenarios": [
-        "ro-init"
+        "ro-init",
+        "ro-malformed",
+        "ro-partial-record"
       ]
     },
     {
@@ -193,7 +200,8 @@
       "source": "lease.c:140-141",
       "contract": "Script init duplicate records consume independent capacity before pruning.",
       "required_scenarios": [
-        "ro-capacity"
+        "ro-capacity",
+        "ro-capacity-warning"
       ]
     },
     {
@@ -307,7 +315,8 @@
       "source": "lease.c:103-141,846-875",
       "contract": "Duplicate addresses are independently allocated; capacity exhaustion is not bypassed by deduplication.",
       "required_scenarios": [
-        "capacity-duplicate"
+        "capacity-duplicate",
+        "capacity-warning"
       ]
     },
     {
@@ -451,7 +460,8 @@
       "source": "lease.c:219-224",
       "contract": "Real partial read error is fatal EC_FILE even after earlier valid records.",
       "required_scenarios": [
-        "partial-eio"
+        "partial-eio",
+        "partial-eio-warning"
       ]
     },
     {
