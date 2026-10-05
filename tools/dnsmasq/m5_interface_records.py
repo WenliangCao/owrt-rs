@@ -16,6 +16,7 @@ import os
 import platform
 from pathlib import Path
 import resource
+import re
 import signal
 import socket
 import struct
@@ -413,6 +414,15 @@ def service_cases():
         'host-record=192-0-2-7.one.records.test,192.0.2.99\nptr-record=8.2.0.192.in-addr.arpa,explicit.records.test\nbogus-priv\n',
         [('192-0-2-7.one.records.test',1),('7.2.0.192.in-addr.arpa',12),('8.2.0.192.in-addr.arpa',12),
          ('9.2.0.192.in-addr.arpa',12),('10.2.0.192.in-addr.arpa',12),('11.2.0.192.in-addr.arpa',12)],'SYN-FWD SYN-PTR')
+    add('interface-enum-allocation-reference','interface-name=iface.records.test,m5ir0\n',[],'IF-CALLER',topology=[primary],c_only=True,
+        actions=[files.probe('initial','iface.records.test',transports=['udp']),
+            kernel(['ip','addr','add','198.18.91.10/24','dev','m5ir0']),
+            kernel(['ip','-6','addr','add','2001:db8:91::10/64','dev','m5ir0','nodad']),
+            dict(op='write',path='allocation-fault',text='',allocation_fault=True),
+            files.probe('faulted','iface.records.test',transports=['udp']),
+            files.probe('ptr-new4','10.91.18.198.in-addr.arpa',type=12,transports=['udp']),
+            files.probe('ptr-new6',ipaddress.ip_address('2001:db8:91::10').reverse_pointer,type=12,transports=['udp']),
+            files.probe('recovered','iface.records.test',transports=['udp'])])
     for stage in ('before-clear','empty','partial'):
         add('interface-enum-fault-'+stage,'interface-name=iface.records.test,m5ir0\n',[],
             'IF-CALLER',topology=[primary],actions=[files.probe('initial','iface.records.test',transports=['udp']),
@@ -439,6 +449,16 @@ def run_service_side(root,side,case,out):
         states.append({'label':label,'at':time.monotonic(),'addresses':json.loads(subprocess.check_output(['ip','-j','address','show'],text=True)),
             'ipv6_flags':Path('/proc/net/if_inet6').read_text()})
     def put(root,path,value,opened):
+        if isinstance(value,dict) and 'allocation_fault' in value:
+            if side!='c':raise AssertionError('C allocation reference is not a paired Rust qualification')
+            pid=int((root/'m2/files.pid').read_text());path=out/'allocation-fault.json'
+            symbols=subprocess.check_output(['readelf','-Ds',str(image_path(root,'/lib/libc.so'))],text=True)
+            (out/'allocator-symbols').write_text(symbols)
+            offset=int(re.search(r'^\s*\d+:\s+([0-9a-f]+).*\bcalloc\s*$',symbols,re.M)[1],16)
+            tracer=subprocess.Popen([sys.executable,str(Path(__file__).resolve()),'--trace-interface-allocation',str(pid),str(offset),str(path)])
+            files.await_predicate(lambda:Path(str(path)+'.ready').exists() or tracer.poll() is not None,'allocation breakpoint attach')
+            if tracer.poll() is not None:raise AssertionError('allocation breakpoint attach failed')
+            tracers.append((tracer,path));return
         if isinstance(value,dict) and 'enumeration_fault' in value:
             pid=int((root/'m2/files.pid').read_text());path=out/('fault-'+value['enumeration_fault']+'.json')
             tracer=subprocess.Popen([sys.executable,str(Path(__file__).resolve()),'--trace-enumeration',str(pid),side,value['enumeration_fault'],str(path)])
@@ -559,12 +579,13 @@ def main():
     assert os.geteuid()==0 and os.environ.get('DNSMASQ_TEST_ISOLATED')=='1'
     assert not args.out.exists() and 'private' in args.out.parts
     resource.setrlimit(resource.RLIMIT_CORE,(0,0));args.out.mkdir(parents=True)
-    selected=[case for case in (syntax_cases() if args.mode=='syntax' else service_cases()) if not args.case or case['id'] in args.case]
+    selected=[case for case in (syntax_cases() if args.mode=='syntax' else service_cases()) if (not args.case or case['id'] in args.case) and (args.side=='c' or not case.get('c_only'))]
     assert selected and (not args.case or len(selected)==len(set(args.case)))
     save(args.out/'schedule.json',selected);driver=args.out/'driver';driver.mkdir()
     for name in ['m5_interface_records.py','m5_interface_records.json','m5_dns_endpoints.py','m5_dns_endpoints.json',
         'm5_dns_endpoints_requirements.json','m5_dns_files.py','m5_option_matrix.py','m5_option_matrix_probes.py',
-        'm5_dhcp_tags_options.py','dhcp_boot_service_diff.py','dns_service_probe.py','m2_rootfs.py','run_isolated.sh']:
+        'm5_dhcp_tags_options.py','dhcp_boot_service_diff.py','dns_service_probe.py','m2_rootfs.py','run_isolated.sh',
+        'm5_tftp_allocation.py','test_single_poll_service.py','m2_dhcp_scenarios.py']:
         shutil.copy2(Path(__file__).with_name(name),driver/name)
     subprocess.run(['sysctl','-q','-w','net.ipv4.ip_local_port_range=40000 60999','net.ipv4.ip_unprivileged_port_start=1024'],check=True)
     sides=['c','rust'] if args.side=='both' else ['c'];roots={side:prepare(args.image_root,None,args.out/side,args.rust) for side in sides}
@@ -653,6 +674,9 @@ def trace_enumeration(pid,side,stage,output):
 
 
 if __name__=='__main__':
+    if len(sys.argv)>1 and sys.argv[1]=='--trace-interface-allocation':
+        from m5_tftp_allocation import trace_allocation
+        raise SystemExit(trace_allocation(int(sys.argv[2]),40,'calloc',int(sys.argv[3]),sys.argv[4],file_record=False))
     if len(sys.argv)>1 and sys.argv[1]=='--trace-enumeration':
         raise SystemExit(trace_enumeration(int(sys.argv[2]),sys.argv[3],sys.argv[4],sys.argv[5]))
     raise SystemExit(main())
