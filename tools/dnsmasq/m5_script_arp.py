@@ -141,6 +141,12 @@ def raw_profiles():
     add('deletion-stack-order', [], [callback(False, V4, MAC), callback(False, fresh, alternate), callback(False, '192.0.2.19', '02:00:00:91:00:19')])
     rows[-1]['warmup'] = many
     rows[-1]['warmup_expected'] = added
+    add('confirmed-position', [base, many[2], dict(address='192.0.2.20', mac='02:00:00:91:00:20')],
+        [callback(False, fresh, alternate), callback(True, '192.0.2.20', '02:00:00:91:00:20')])
+    rows[-1]['warmup'] = many
+    rows[-1]['warmup_expected'] = added
+    rows[-1]['finish'] = []
+    rows[-1]['finish_expected'] = [callback(False, V4, MAC), callback(False, '192.0.2.19', '02:00:00:91:00:19'), callback(False, '192.0.2.20', '02:00:00:91:00:20')]
     add('positive-zero-udp-lazy', [base, dict(address='127.0.0.1', mac=''), dict(address=fresh, mac='')],
         [callback(True, fresh, ''), callback(True, '127.0.0.1', '')])
     rows[-1]['zero_positive'] = True
@@ -421,6 +427,8 @@ def run_side(args):
             continue
         folder = args.out / label
         folder.mkdir()
+        script.write_text(SCRIPT)
+        script.chmod(0o755)
         (root / 'm2/arp.conf').write_text(config)
         (folder / 'config').write_text(config)
         result = subprocess.run(command(root, args.side, '--test', '-C', '/m2/arp.conf', *flags), capture_output=True, timeout=4)
@@ -544,6 +552,18 @@ def run_side(args):
                     save(folder / 'raw-callbacks.json', observed)
                     expected = [] if args.side == 'rust' and spec.get('reference_difference') else spec['expected']
                     assert observed == expected, 'C-derived raw callback order/payload or guarded complete-snapshot policy'
+                    if 'finish' in spec:
+                        finish = folder / 'finish'
+                        finish.mkdir()
+                        (root / 'm2/arp-events').write_bytes(b'')
+                        refresh_with_fixture(pid, spec['finish'], finish)
+                        deadline = time.monotonic() + 2
+                        while len(callbacks(root)) < len(spec['finish_expected']) and time.monotonic() < deadline:
+                            time.sleep(.02)
+                        time.sleep(.1)
+                        observed = callbacks(root)
+                        save(finish / 'callbacks.json', observed)
+                        assert observed == spec['finish_expected'], 'confirmed record position changed across snapshots'
                     if spec.get('exec_failure'):
                         logged = (root / 'm2/arp.log').read_bytes()
                         assert b'failed to execute /m2/arp-script: No such file or directory' in logged, 'actual ARP script exec error notice'
