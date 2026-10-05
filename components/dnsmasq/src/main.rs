@@ -1261,14 +1261,6 @@ fn run_inner(
             && runtime.scalar.cache_size > 0
             && daemon_config.no_hosts
             && daemon_config.addn_hosts.is_empty();
-        if poll.log_cleared_cache {
-            // The initial host/cache generation above has been constructed.
-            logger.emit(LogEvent::new(
-                Service::Dns,
-                Priority::Info,
-                b"cleared cache".to_vec(),
-            ));
-        }
         poll.logger = Some(logger);
     }
     // `-k` is the normal OpenWrt invocation. Stop handlers let workers leave
@@ -1276,6 +1268,15 @@ fn run_inner(
     #[cfg(target_os = "linux")]
     if poll.helper.as_ref().is_none_or(Helper::ready) {
         startup.complete();
+    }
+    #[cfg(target_os = "linux")]
+    {
+        if dns_enabled {
+            if let Some(daemon) = &mut service.lock().unwrap().daemon {
+                daemon.queue_server_notices();
+            }
+        }
+        poll.log_dns_diagnostics(); // C releases startup errfd before check_servers.
     }
     let mut last_interfaces = Instant::now();
     // C's INAME_USED latch survives interface removal. Once an explicit
@@ -2212,7 +2213,9 @@ impl SinglePoll {
             files.request(ReloadReason::Route);
             self.retry_bound_listeners = true;
         }
+        let was_initializing = files.initializing();
         let step = files.step();
+        let initial_finished = was_initializing && !files.initializing();
         self.files_runnable = step.runnable;
         if let Some(logger) = &mut self.logger {
             use dnsmasq_rs::logging::{LogEvent, Priority, Service};
@@ -2248,6 +2251,33 @@ impl SinglePoll {
                     Err(error) => eprintln!("dnsmasq-rs: {error}"),
                 }
             }
+        }
+        self.log_dns_diagnostics();
+        if step.initial_cache_reload && self.log_cleared_cache {
+            if let Some(logger) = &mut self.logger {
+                use dnsmasq_rs::logging::{LogEvent, Priority, Service};
+                logger.emit(LogEvent::new(
+                    Service::Dns,
+                    Priority::Info,
+                    b"cleared cache".to_vec(),
+                ));
+            }
+        }
+        // read_servers_file checks internally on success; EVENT_INIT/RELOAD
+        // also checks once after its no-poll and servers-file calls, even errors.
+        if (initial_finished || step.signal_complete)
+            && (self.config.servers_file.is_some()
+                || (self.config.no_poll
+                    && !self.config.no_resolv
+                    && !self.config.resolv_files.is_empty()))
+        {
+            {
+                let mut parent = self.service.lock().unwrap();
+                if let Some(daemon) = &mut parent.daemon {
+                    daemon.queue_server_notices();
+                }
+            }
+            self.log_dns_diagnostics();
         }
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if step.signal_complete {
@@ -2422,6 +2452,9 @@ impl SinglePoll {
                 Priority::Error,
                 diagnostic.to_string().into_bytes(),
             ));
+        }
+        for event in daemon.take_server_notices() {
+            logger.emit(event);
         }
     }
 
