@@ -4,6 +4,7 @@ mod cache_engine;
 pub mod cache_reply;
 pub mod daemon;
 pub mod doctor;
+pub mod edns_policy;
 pub mod files;
 #[cfg(target_os = "linux")]
 pub mod filewatch;

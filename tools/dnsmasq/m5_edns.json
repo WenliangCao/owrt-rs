@@ -1,0 +1,393 @@
+{
+  "schema": "m5-edns-contract-v1",
+  "family": "edns",
+  "status": "source-frozen-before-product-edits",
+  "options": [
+    "add-mac",
+    "add-subnet",
+    "strip-mac",
+    "strip-subnet",
+    "edns-packet-max",
+    "add-cpe-id",
+    "umbrella"
+  ],
+  "reference_image_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "source_identity": {
+    "option.c": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/option.c",
+      "sha256": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed"
+    },
+    "edns0.c": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/edns0.c",
+      "sha256": "420a55386ee3d41cef391b6443f735b18f7f205bf5c6d24cea6d28d5f2b55ed2"
+    },
+    "forward.c": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/forward.c",
+      "sha256": "ac05784d4233ed10bd166da5fe91e464afecf2883d3c2a0063305d3e81692f95"
+    },
+    "rfc1035.c": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/rfc1035.c",
+      "sha256": "231f0b4989039ff4963f3916df22871dd13025dde65769465b2b3052ad807222"
+    },
+    "cache.c": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/cache.c",
+      "sha256": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c"
+    },
+    "arp.c": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/arp.c",
+      "sha256": "c98d70fab696459ed4868e3325d4ab7b78848c3af84de961f6dbfc8f38b81109"
+    },
+    "network.c": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/network.c",
+      "sha256": "8229872d30a2fb2d86ec9a9e550e51fbb8d8d97926e7a02b0137f2a7b40c40c9"
+    },
+    "dnsmasq.c": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/dnsmasq.c",
+      "sha256": "d4bb7cde522376200a0293427b0812625ebc457f10dc9d3e2bef243ccba8ccd1"
+    },
+    "rrfilter.c": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/rrfilter.c",
+      "sha256": "38f4c92a5529cf45c8011d35876214fc0a5a09b9d840c435f617f42a9e7d364d"
+    },
+    "dns-protocol.h": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/dns-protocol.h",
+      "sha256": "4c6ed1c818c6a9b00bcdc1193bd364129780a3ef2b88c29475ee7bd6f6a826fe"
+    },
+    "dhcp-protocol.h": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/dhcp-protocol.h",
+      "sha256": "88c60df465d1038c8cc6655e42d4fdc4bcdd9bc44519c2f4b8e380e56bab8772"
+    },
+    "dnsmasq.h": {
+      "path": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/dnsmasq.h",
+      "sha256": "318942419598f037a97611efbdea5aebba1e384b9a1ba5f7eded091c86e0e228"
+    }
+  },
+  "callers": [
+    "option loader calls semantic parser before --test; dnsmasq.c clamps casted edns max below512 after --test",
+    "UDP receive_query captures original OPT/DO/limit, decorates before local/cache, saves decorated query, forwards and retries saved bytes",
+    "TCP accept nondebug preloads MAC nonlazy in parent; child connection snapshot; each frame decorated before extraction/local/cache; maximum input and decoration limit packet_buff_sz",
+    "process_reply checks ECS using peer before signed check/OPT stripping; UDP keeps transaction alive on mismatch; TCP takes m=0 local REFUSED fallback",
+    "cacheable=false suppresses only dynamic cache reads and insertion; configured local records remain available; UDP no-cache never matches lookup_frec",
+    "arp find_mac lazily caches misses90s; nonlazy TCP accept refreshes negatives; only complete kernel snapshots authoritative"
+  ],
+  "failure_boundaries": [
+    "malformed or full EDNS append returns current packet including C partial overwrite/count effects; preserve these in differential",
+    "unsafe masks and short ECS reference reads may expose C undefined behaviour; keep deterministic minimal reproducer and explicit safe difference, never delete case",
+    "C malloc failure can lose copied options after nonfinal relocation; fail-closed Rust mutation must keep unrelated owner progress",
+    "single poll owner may park bounded queries while nonblocking netlink dump completes; no threads or blocking wait"
+  ],
+  "boundaries": [
+    {
+      "id": "PARSE-MAC",
+      "source": "option.c:2851-2866",
+      "required_cases": [
+        "raw-no-arg",
+        "base64",
+        "text",
+        "raw-plus-text",
+        "base64-plus-text",
+        "mac-empty",
+        "mac-invalid",
+        "mac-quoted"
+      ]
+    },
+    {
+      "id": "PARSE-ECS",
+      "source": "option.c:2216-2261",
+      "required_cases": [
+        "ecs-no-arg",
+        "ecs-zero",
+        "ecs-v4-only",
+        "ecs-v4-v6",
+        "ecs-fixed-v4",
+        "ecs-fixed-v6",
+        "ecs-cross-family",
+        "ecs-empty",
+        "ecs-empty-second",
+        "ecs-extra-comma",
+        "ecs-invalid-number",
+        "ecs-invalid-address",
+        "ecs-u8-wrap",
+        "ecs-atoi-wrap",
+        "ecs-mask-overread-v4",
+        "ecs-mask-overread-v6",
+        "ecs-mask-overread-v4-wire",
+        "ecs-mask-overread-v6-wire",
+        "ecs-u8-wrap-wire"
+      ]
+    },
+    {
+      "id": "PARSE-CPE",
+      "source": "option.c:2803-2806",
+      "required_cases": [
+        "cpe-no-arg",
+        "cpe-empty",
+        "cpe-text",
+        "cpe-quoted-binary",
+        "cpe-repeat"
+      ]
+    },
+    {
+      "id": "PARSE-UMBRELLA",
+      "source": "option.c:2808-2848",
+      "required_cases": [
+        "umbrella-no-arg",
+        "umbrella-all",
+        "umbrella-zero",
+        "umbrella-repeat",
+        "umbrella-max-u32",
+        "umbrella-overflow",
+        "umbrella-bad-device",
+        "umbrella-invalid",
+        "umbrella-empty-value",
+        "umbrella-misplaced-marker"
+      ]
+    },
+    {
+      "id": "PARSE-MAX",
+      "source": "option.c:3494-3501;dnsmasq.c:117-125",
+      "required_cases": [
+        "max-default",
+        "max-0",
+        "max-511",
+        "max-512",
+        "max-65535",
+        "max-65536",
+        "max-atoi-wrap",
+        "max-invalid"
+      ]
+    },
+    {
+      "id": "MAC-WIRE",
+      "source": "edns0.c:278-337",
+      "required_cases": [
+        "raw-ipv4",
+        "raw-ipv6",
+        "raw-unknown",
+        "text-ipv4",
+        "base64-ipv4",
+        "text-wins",
+        "raw-and-text",
+        "raw-length-one",
+        "raw-length-sixteen",
+        "raw-length-seventeen",
+        "text-nonsix"
+      ]
+    },
+    {
+      "id": "MAC-STRIP",
+      "source": "edns0.c:278-337",
+      "required_cases": [
+        "strip-both-codes",
+        "strip-no-opt",
+        "mac-preserve-existing",
+        "mac-replace-existing",
+        "mac-missing-strip",
+        "text-preserve-existing",
+        "text-replace-existing",
+        "strip-empty-terminal"
+      ]
+    },
+    {
+      "id": "ECS-WIRE",
+      "source": "edns0.c:349-445",
+      "required_cases": [
+        "ecs-v4-24",
+        "ecs-v6-56",
+        "ecs-v4-nonbyte",
+        "ecs-v6-nonbyte",
+        "ecs-zero-wire",
+        "ecs-unset-family-zero",
+        "ecs-fixed-wire",
+        "ecs-cross-family-wire",
+        "ecs-preserve-existing",
+        "ecs-replace-existing",
+        "ecs-strip-existing",
+        "ecs-strip-no-opt"
+      ]
+    },
+    {
+      "id": "CPE-WIRE",
+      "source": "edns0.c:568-570",
+      "required_cases": [
+        "cpe-add",
+        "cpe-replace",
+        "cpe-zero-length",
+        "cpe-binary",
+        "cpe-stays-cacheable"
+      ]
+    },
+    {
+      "id": "UMBRELLA-WIRE",
+      "source": "edns0.c:522-554",
+      "required_cases": [
+        "umbrella-v4",
+        "umbrella-v6",
+        "umbrella-org-only",
+        "umbrella-device-zero",
+        "umbrella-field-order",
+        "umbrella-replace"
+      ]
+    },
+    {
+      "id": "OPT-MUTATE",
+      "source": "edns0.c:103-249;rrfilter.c",
+      "required_cases": [
+        "opt-final",
+        "opt-nonfinal",
+        "opt-multiple",
+        "opt-owner-compressed",
+        "opt-relocate-pointer",
+        "opt-duplicate-code",
+        "opt-malformed-tlv",
+        "opt-terminal-zero",
+        "opt-trailing-three",
+        "opt-malformed-rr",
+        "opt-packet-tail",
+        "opt-preserve-ttl-flags"
+      ]
+    },
+    {
+      "id": "OPT-SIGNED",
+      "source": "edns0.c:19-92,111-114",
+      "required_cases": [
+        "signed-tkey-in",
+        "unsigned-tkey-other-class",
+        "signed-tsig-last-any",
+        "unsigned-tsig-nonlast",
+        "unsigned-tsig-other-class",
+        "signed-no-opt",
+        "signed-existing-opt",
+        "signed-policy-cacheable"
+      ]
+    },
+    {
+      "id": "OPT-CAPACITY",
+      "source": "edns0.c:198-249",
+      "required_cases": [
+        "capacity-new-exact",
+        "capacity-new-minus-one",
+        "capacity-existing-exact",
+        "capacity-existing-minus-one",
+        "capacity-strip-truncate",
+        "capacity-nonlast-insufficient",
+        "capacity-empty-opt-reserve-four",
+        "capacity-policy-no-room-cacheable"
+      ]
+    },
+    {
+      "id": "ECS-REPLY",
+      "source": "edns0.c:448-492;forward.c:722-729",
+      "required_cases": [
+        "reply-ecs-valid",
+        "reply-ecs-scope-any",
+        "reply-ecs-bad-family",
+        "reply-ecs-bad-mask",
+        "reply-ecs-bad-length",
+        "reply-ecs-bad-address",
+        "reply-ecs-absent",
+        "reply-ecs-malformed-tlv",
+        "reply-ecs-duplicate-mismatch",
+        "reply-ecs-check-before-strip",
+        "reply-ecs-fixed-check",
+        "reply-ecs-check-signed",
+        "reply-ecs-udp-remains-pending",
+        "reply-ecs-tcp-local-fallback"
+      ]
+    },
+    {
+      "id": "CACHE-POLICY",
+      "source": "edns0.c:565-575;rfc1035.c:1711-1713;forward.c:1439-1444,2713-2719",
+      "required_cases": [
+        "cache-client-ecs-nonzero",
+        "cache-client-ecs-zero",
+        "cache-client-ecs-malformed",
+        "cache-dynamic-ecs",
+        "cache-fixed-ecs",
+        "cache-zero-ecs",
+        "cache-mac-known",
+        "cache-mac-unknown",
+        "cache-strip-ecs",
+        "cache-umbrella",
+        "cache-cpe",
+        "cache-ecs-overrides-mac",
+        "cache-ecs-overrides-umbrella",
+        "cache-local-retained",
+        "cache-rd-unmodified"
+      ]
+    },
+    {
+      "id": "COALESCE",
+      "source": "forward.c:183-197;forward.c:lookup_frec",
+      "required_cases": [
+        "coalesce-ordinary",
+        "coalesce-cpe",
+        "coalesce-client-ecs",
+        "coalesce-dynamic-ecs",
+        "coalesce-fixed-ecs",
+        "coalesce-mac",
+        "coalesce-umbrella",
+        "coalesce-same-source-uncacheable"
+      ]
+    },
+    {
+      "id": "TRANSPORT",
+      "source": "forward.c:1880-1904,1948,2482,2509,2717;dnsmasq.c:2102-2119",
+      "required_cases": [
+        "udp-original-opt-envelope",
+        "udp-decorated-local-envelope",
+        "tcp-added-opt-retained",
+        "tcp-no-policy-no-opt",
+        "tcp-cache-read",
+        "tcp-cache-write",
+        "tcp-connection-mac-snapshot",
+        "tcp-new-connection-refresh",
+        "udp-neighbor-negative-lazy",
+        "udp-neighbor-90-refresh",
+        "tcp-neighbor-nonlazy",
+        "neighbor-refresh-nonblocking"
+      ]
+    },
+    {
+      "id": "MAX-RUNTIME",
+      "source": "forward.c:1645-1665,1897-1904,2248-2254;rfc1035.c:answer_request",
+      "required_cases": [
+        "max-udp-receive-drop",
+        "max-udp-local-truncate",
+        "max-udp-upstream-truncate",
+        "max-client-below-512",
+        "max-client-above-config",
+        "max-tcp-receive-capacity",
+        "max-tcp-response-large",
+        "max-udp-tc-fallback"
+      ]
+    },
+    {
+      "id": "NEIGHBOR-OWNER",
+      "source": "arp.c:filter_mac/find_mac;netlink.c:iface_enumerate;dnsmasq.c:2102-2119",
+      "required_cases": [
+        "neighbor-ip-not-interface",
+        "neighbor-positive-retained-before-90",
+        "neighbor-negative-lazy-before-90",
+        "neighbor-negative-nonlazy-accept",
+        "neighbor-valid-complete-dump",
+        "neighbor-invalid-partial-dump",
+        "neighbor-dump-error-progress",
+        "neighbor-dump-timeout-progress",
+        "neighbor-udp-query-park-resume",
+        "neighbor-tcp-accept-park-snapshot",
+        "neighbor-stop-pending-cleanup",
+        "neighbor-over16-ignored"
+      ]
+    }
+  ],
+  "reference_calibration": {
+    "run": "calibration-c-01",
+    "executed_cases": 102,
+    "remaining_cases_before_supplement": 72,
+    "archive_sha256": "c90003cd008c013b2b3b91fed79ad9b631799a7b184a166ee7ae625c7e9e42bb",
+    "inventory_entries": 337,
+    "verified_regular_files": 300,
+    "scope": "SHA and complete archive metadata verified before remote prune"
+  }
+}

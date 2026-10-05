@@ -21,7 +21,7 @@ pub fn peer_label(peer: SocketAddr) -> String {
                 fn if_indextoname(index: u32, name: *mut std::ffi::c_char)
                     -> *mut std::ffi::c_char;
             }
-            let mut name = [0i8; 16];
+            let mut name = [0 as std::ffi::c_char; 16];
             // SAFETY: Linux IF_NAMESIZE is 16; the returned name is terminated
             // and remains in this live array for the conversion below.
             if !unsafe { if_indextoname(peer.scope_id(), name.as_mut_ptr()) }.is_null() {

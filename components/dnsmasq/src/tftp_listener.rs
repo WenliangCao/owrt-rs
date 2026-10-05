@@ -70,12 +70,14 @@ impl TftpListener<RealFileOpener> {
         no_tftp: &[Option<Vec<u8>>],
         effective_uid: u32,
         random_sockets: usize,
+        packet_buffer_size: usize,
     ) -> io::Result<Self> {
         let policy = Policy::new(config, dns, no_dhcp, no_tftp)?;
         let open_max = descriptor_limit()?;
         let limit = config.transfer_limit(open_max, random_sockets.min((open_max / 3) as usize));
         let runtime = TransferRuntime::new(
             RuntimeConfig {
+                packet_buffer_size,
                 path: RuntimePathPolicy {
                     prefix: config.root.clone(),
                     lowercase: config.lowercase,
@@ -920,7 +922,7 @@ mod tests {
             ..TftpConfig::default()
         };
         let dns = DnsConfig::default();
-        let mut listener = TftpListener::bind_config(&config, &dns, &[], &[], 0, 0).unwrap();
+        let mut listener = TftpListener::bind_config(&config, &dns, &[], &[], 0, 0, 1497).unwrap();
         assert_eq!(listener.servers.len(), 2);
         assert!(listener.validate_roots().unwrap().is_empty());
         let v4 = UdpSocket::bind("127.0.0.1:0").unwrap();
