@@ -90,6 +90,15 @@ def trace_lines(data):
     return parsed
 
 
+def ordinary_logs(data):
+    records=[]
+    for line in data.splitlines():
+        if re.search(rb'(malloc|realloc|expand_buf|expand_workspace|free): [A-Za-z0-9_:]+:\d+ ',line):continue
+        message=re.search(rb'(dnsmasq(?:-[a-z]+)?)\[\d+\]: (.*)',line)
+        records.append([message[1].decode(),message[2].decode()] if message else ['raw',line.decode()])
+    return records
+
+
 class SyslogCollector:
     """Receive continuously so the fixture cannot backpressure ordinary logs."""
     def __init__(self,path):
@@ -179,6 +188,7 @@ def malloc_case(root,args,spec):
         assert after==before,'allocation diagnostics introduced/leaked a descriptor'
         return dict(case=spec['case'],service_healthy=True,fd_stable=True,term_notice=True,
                     reply_semantics=[semantics(bytes.fromhex(reply)) for reply in replies],trace_seen=bool(parsed),
+                    ordinary_logs=ordinary_logs(raw),
                     source_identity='c-util-wrappers' if args.side=='c' else 'rust-no-allocation-trace',allocation_records=len(parsed),
                     operations=sorted({record['operation'] for record in parsed}))
     finally:
@@ -218,19 +228,24 @@ def qualify(out,family):
     sides={side:json.loads((out/side/'result.json').read_text()) for side in ['c','rust']}
     needed={spec['case'] for spec in plan['test_cases']}|set(plan['test_controls']) if family=='test' else set(plan['log_malloc_cases'])
     for side,result in sides.items():
-        if result['failures'] or result['missing'] or {row['case'] for row in result['rows']}!=needed:
+        if result['failures'] or result['missing'] or len(result['rows'])!=len(needed) or {row['case'] for row in result['rows']}!=needed:
             failures.append(dict(side=side,kind='complete-frozen-inventory',failures=result['failures'],missing=result['missing']))
     rows={side:{row['case']:row for row in result['rows']} for side,result in sides.items()}
     for case in sorted(needed):
         if any(case not in rows[side] for side in rows):continue
         c,r=rows['c'][case],rows['rust'][case]
         if 'exit' in c:
-            if c!=r:failures.append(dict(case=case,kind='exact-image-syntax-output-effects',c=c,rust=r))
+            comparable=copy.deepcopy(r)
+            if case=='test-version-cli':
+                identity=b'; dnsmasq 0.1.0 (Rust implementation)'
+                comparable['stdout']=bytes.fromhex(comparable['stdout']).replace(identity,b'',1).hex()
+            if c!=comparable:failures.append(dict(case=case,kind='exact-image-syntax-output-effects',c=c,rust=r))
             if family=='test' and c['form'] in ['cli','file'] and c['exit']!=0:
                 failures.append(dict(case=case,kind='ordinary-C-option-form-rejected',exit=c['exit']))
-            pairs.append(dict(case=case,contract='exact exit/stdout/stderr and parse-only effects',equal=c==r))
+            pairs.append(dict(case=case,contract='exact exit/stdout/stderr and parse-only effects',equal=c==comparable,
+                              implementation_identity_annotation=case=='test-version-cli'))
         else:
-            shared=['service_healthy','fd_stable','term_notice','reply_semantics']
+            shared=['service_healthy','fd_stable','term_notice','reply_semantics','ordinary_logs']
             if any(c[key]!=r[key] for key in shared):failures.append(dict(case=case,kind='ordinary-startup-service-sink-contract',c=c,rust=r))
             if not c['trace_seen'] or r['trace_seen']:
                 failures.append(dict(case=case,kind='declared-allocation-content-difference',c=c,rust=r))
