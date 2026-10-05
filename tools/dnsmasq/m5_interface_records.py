@@ -370,8 +370,8 @@ def service_cases():
                 'records':[{'type':5,'target':'iface.records.test'},{'type':1,'owner':'iface.records.test','address':'198.51.100.7'}]}],
             actions=[files.probe('warm','cached-alias.records.test',transports=['udp']),
                 kernel(['ip','addr','add','198.18.91.10/24','dev','m5ir0']),
-                files.probe('cached-terminal','cached-alias.records.test',transports=['udp']),
-                files.probe('fresh-child','cached-alias.records.test',transports=['tcp'])])
+                files.probe('cached-terminal','cached-alias.records.test',transports=['udp'],cache=True,local_address_ttl=0 if label=='present' else None),
+                files.probe('fresh-child','cached-alias.records.test',transports=['tcp'],cache=True,local_address_ttl=0 if label=='present' else None)])
     add('interface-synth-ptr-precedence','interface-name=iface.records.test,m5ir0\nsynth-domain=synthetic.records.test,198.18.91.0/24\n',
         [('9.91.18.198.in-addr.arpa',12),('10.91.18.198.in-addr.arpa',12)],'IF-PTR SYN-PTR',topology=[primary])
     add('interface-synth-forward-intercept','interface-name=198-18-91-9.synthetic.records.test,missing_ir\nsynth-domain=synthetic.records.test,198.18.91.0/24\n',
@@ -689,6 +689,10 @@ def witness_errors(observed,side,case):
         if not any(state['label']=='initial-kernel' for state in observed.get('interface_states',[])):
             errors.append('initial actual kernel address/flag witness missing')
     for action in case['actions']:
+        if action.get('local_address_ttl') is not None:
+            rows=[row for row in observed['rows'] if row['id'].startswith(action['id']+':')]
+            if not rows or any(record['ttl']!=action['local_address_ttl'] for row in rows for record in (row.get('response') or {}).get('records',[]) if record['type'] in (1,28)):
+                errors.append('local interface TTL changed under dynamic CNAME clock tolerance')
         if action.get('allocation_fault'):
             report=next((state['evidence'] for state in observed.get('interface_states',[])
                 if state['label']=='enumeration-fault' and state['evidence'].get('symbol')),None)
