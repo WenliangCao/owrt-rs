@@ -216,7 +216,16 @@ impl Helper {
         if !self.can_enqueue() {
             return Ok(false);
         }
-        self.pending = wire::frame(&wire::encode(event)?);
+        self.pending = if let Event::Arp {
+            added,
+            hardware_address,
+            address,
+        } = event
+        {
+            wire::arp_frame(*added, hardware_address, *address)?
+        } else {
+            wire::frame(&wire::encode(event)?)
+        };
         self.written = 0;
         Ok(true)
     }
