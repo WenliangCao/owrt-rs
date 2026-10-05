@@ -1988,7 +1988,8 @@
       ],
       "case_ids": [
         "interface-tcp-inherited",
-        "interface-flag-dad-completion"
+        "interface-flag-dad-completion",
+        "interface-tcp-inherited-flags"
       ],
       "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
@@ -2055,8 +2056,10 @@
         "network.c:1786-1788",
         "rfc1035.c:2016-2088"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-debug-parent-blocking"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-CALLER/15",
@@ -2070,8 +2073,11 @@
         "network.c:1786-1788",
         "rfc1035.c:2016-2088"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-enum-same-cycle",
+        "interface-enum-event-same-cycle"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-CALLER/16",
@@ -2120,8 +2126,10 @@
         "network.c:1786-1788",
         "rfc1035.c:2016-2088"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-enum-allocation-reference"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "DH-COMPOSE/01",
@@ -3124,8 +3132,12 @@
       "source_anchors": [
         "option.c:2621-2801"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-missing-range",
+        "synth-empty",
+        "synth-interface"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-GRAM/02",
@@ -3134,8 +3146,12 @@
       "source_anchors": [
         "option.c:2621-2801"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-single4",
+        "synth-range4",
+        "synth-prefix4"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-GRAM/03",
@@ -3144,8 +3160,12 @@
       "source_anchors": [
         "option.c:2621-2801"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-single6",
+        "synth-range6",
+        "synth-prefix6"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-GRAM/04",
@@ -3154,8 +3174,12 @@
       "source_anchors": [
         "option.c:2621-2801"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-empty-prefix",
+        "synth-case",
+        "synth-service-prefix-literal"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-GRAM/05",
@@ -3164,8 +3188,11 @@
       "source_anchors": [
         "option.c:2621-2801"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-cidr4-limit24",
+        "synth-cidr4-limit25"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-GRAM/06",
@@ -3174,8 +3201,11 @@
       "source_anchors": [
         "option.c:2621-2801"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-cidr6-limit17",
+        "synth-cidr6-limit18"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-GRAM/07",
@@ -3184,8 +3214,11 @@
       "source_anchors": [
         "option.c:2621-2801"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-range-limit47",
+        "synth-range-limit48"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-GRAM/08",
@@ -3194,8 +3227,12 @@
       "source_anchors": [
         "option.c:2621-2801"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-quoted",
+        "synth-quoted-range",
+        "synth-quoted-star"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-GRAM/09",
@@ -3204,8 +3241,13 @@
       "source_anchors": [
         "option.c:2621-2801"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-embedded-star",
+        "synth-double-star",
+        "synth-service-embedded-star",
+        "synth-service-double-star"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-GRAM/10",
@@ -3214,8 +3256,11 @@
       "source_anchors": [
         "option.c:2621-2801"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-index6-small",
+        "synth-index6"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-GRAM/11",
@@ -3224,8 +3269,10 @@
       "source_anchors": [
         "option.c:2621-2801"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-index6-range"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-GRAM/12",
@@ -3234,8 +3281,10 @@
       "source_anchors": [
         "option.c:2621-2801"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-extra"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-GRAM/13",
@@ -3244,8 +3293,11 @@
       "source_anchors": [
         "option.c:2621-2801"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-inverted4",
+        "synth-service-inverted"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-GRAM/14",
@@ -3254,8 +3306,27 @@
       "source_anchors": [
         "option.c:2621-2801"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-width-4-0",
+        "synth-width-4-1",
+        "synth-width-4-31",
+        "synth-width-4-32",
+        "synth-width-4-33",
+        "synth-width-6-0",
+        "synth-width-6-1",
+        "synth-width-6-63",
+        "synth-width-6-64",
+        "synth-width-6-65",
+        "synth-width-6-127",
+        "synth-width-6-128",
+        "synth-width-6-129",
+        "synth-width-empty",
+        "synth-width-text",
+        "synth-width-negative",
+        "synth-width-wrap",
+        "synth-width-int-overflow"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/01",
@@ -3265,8 +3336,10 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-range4"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/02",
@@ -3276,8 +3349,10 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-range6"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/03",
@@ -3287,8 +3362,11 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-range6",
+        "synth-service-prefix6"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/04",
@@ -3298,8 +3376,10 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-prefix-literal"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/05",
@@ -3309,8 +3389,10 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-index4"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/06",
@@ -3320,8 +3402,11 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-index6",
+        "synth-service-index6-128"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/07",
@@ -3331,8 +3416,11 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-index4",
+        "synth-service-empty-index"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/08",
@@ -3342,8 +3430,10 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-index4"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/09",
@@ -3353,8 +3443,10 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-index6"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/10",
@@ -3364,8 +3456,12 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-index4",
+        "synth-service-range4",
+        "synth-service-range6"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/11",
@@ -3375,8 +3471,10 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-overlap-forward"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/12",
@@ -3386,8 +3484,11 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-range6",
+        "synth-service-single6"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/13",
@@ -3397,8 +3498,11 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-index-dual-any",
+        "synth-bits-ttl-0"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/14",
@@ -3408,8 +3512,11 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-bits-ttl-0",
+        "synth-bits-ttl-77"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/15",
@@ -3419,8 +3526,13 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-precedence",
+        "synth-lease-precedence",
+        "synth-cache-forward-positive",
+        "synth-cache-forward-negative"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/16",
@@ -3430,8 +3542,10 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-synth-forward-intercept"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/17",
@@ -3441,8 +3555,11 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-synth-name-exists",
+        "synth-bits-ttl-0"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-FWD/18",
@@ -3452,8 +3569,10 @@
         "domain.c:25-149",
         "rfc1035.c:2170-2181"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-synth-name-exists"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-PTR/01",
@@ -3463,8 +3582,10 @@
         "domain.c:153-202",
         "rfc1035.c:1875-2011"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-range4"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-PTR/02",
@@ -3474,8 +3595,10 @@
         "domain.c:153-202",
         "rfc1035.c:1875-2011"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-range6"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-PTR/03",
@@ -3485,8 +3608,10 @@
         "domain.c:153-202",
         "rfc1035.c:1875-2011"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-index4"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-PTR/04",
@@ -3496,8 +3621,11 @@
         "domain.c:153-202",
         "rfc1035.c:1875-2011"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-index6",
+        "synth-service-index6-128"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-PTR/05",
@@ -3507,8 +3635,10 @@
         "domain.c:153-202",
         "rfc1035.c:1875-2011"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-range4"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-PTR/06",
@@ -3518,8 +3648,10 @@
         "domain.c:153-202",
         "rfc1035.c:1875-2011"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-service-range6"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-PTR/07",
@@ -3529,8 +3661,11 @@
         "domain.c:153-202",
         "rfc1035.c:1875-2011"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-precedence",
+        "synth-overlap-forward"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-PTR/08",
@@ -3540,8 +3675,11 @@
         "domain.c:153-202",
         "rfc1035.c:1875-2011"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-synth-ptr-precedence",
+        "synth-precedence"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-PTR/09",
@@ -3551,8 +3689,12 @@
         "domain.c:153-202",
         "rfc1035.c:1875-2011"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-precedence",
+        "synth-lease-precedence",
+        "synth-cache-reverse-precedence"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-PTR/10",
@@ -3573,8 +3715,10 @@
         "domain.c:153-202",
         "rfc1035.c:1875-2011"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-precedence"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "SYN-PTR/12",
@@ -3596,7 +3740,8 @@
         "rfc1035.c:1875-2011"
       ],
       "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "status": "deferred-extreme-input-under-user-policy",
+      "scope_note": "Overlong derived DNS labels/names retain the original boundary for later known-differences repair and do not gate ordinary operation closure."
     },
     {
       "id": "SYN-PTR/14",
@@ -3606,8 +3751,11 @@
         "domain.c:153-202",
         "rfc1035.c:1875-2011"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "synth-tcp-snapshot",
+        "synth-bits-ttl-77"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "HDIR-GRAM/01",
@@ -4276,7 +4424,7 @@
   ],
   "total_boundaries": 22,
   "total_required_cases": 289,
-  "qualification": "Empty mappings, case presence, C-only or partial runs never close options. Every row needs actual C-calibrated observations and same-candidate paired evidence.",
+  "qualification": "Case maps only select profiles. Ordinary applicable rows require C/R observations, identities, cleanup and guards. Map presence and C-only runs never qualify rows; extreme rows remain explicitly deferred.",
   "public_files_owned_by_root": [
     "config/dns.rs",
     "dns/daemon.rs",
@@ -4296,5 +4444,6 @@
       "observation": "Exact musl image atoll numeric overflow wraps low 64 bits, rather than the pre-calibration saturation hypothesis. 2^64 => 0, 2^63 => 0x8000000000000000, 2^64-1 => u64::MAX.",
       "evidence": "calibration-synth-service-c-01/synth-service-index6/c/observed.json"
     }
-  ]
+  ],
+  "qualification_scope_policy": "Ordinary complete interface/dynamic/synthetic contracts close independently. Extreme-input differences retain their frozen rows and raw red evidence for later repair under the user policy."
 }
