@@ -222,7 +222,7 @@ def run_service_side(root,side,case,out):
             temporary=next((address['local'] for interface in raw for address in interface['addr_info'] if address.get('temporary')),None)
             if temporary is None:raise AssertionError('actual temporary IPv6 address was not created')
             action=dict(action,name=ipaddress.ip_address(temporary).reverse_pointer)
-            dynamic.append({'id':action['id'],'address':temporary,'name':action['name'],'kernel':raw})
+            dynamic.append({'id':action['id'],'transport':args[1],'address':temporary,'name':action['name'],'kernel':raw})
         return original_exchange(port,action,*args)
     files.put=put;files.exchange=exchange
     try:result=endpoints.run_service_side(root,side,case,out)
@@ -240,7 +240,7 @@ def comparable_service(observed):
     # query against that actual temporary address before substituting its name.
     for dynamic in observed.get('dynamic_queries',[]):
         for row in result['rows']:
-            if row['id'].startswith(dynamic['id']+':'):
+            if row['id']==dynamic['id']+':'+dynamic['transport']:
                 response=row.get('response')
                 if not response or response['questions'][0][0]!=dynamic['name'] or not any(record['type']==12 for record in response['records']):
                     raise AssertionError('actual privacy-address PTR answer missing')
