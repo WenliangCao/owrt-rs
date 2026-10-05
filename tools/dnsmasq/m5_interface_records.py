@@ -818,10 +818,14 @@ def run_service_side(root,side,case,out):
                     if evidence['health']['healthy']!=(side=='rust'):raise AssertionError('C blocking / Rust hostsdir owner progress missing')
                     if mode=='shutdown':
                         os.kill(pid,signal.SIGTERM)
-                        files.await_predicate(lambda:not Path('/proc',str(pid),'exe').exists(),'hosts stream shutdown before writer release')
-                        evidence['terminated_before_release']=True
+                        if side=='rust':files.await_predicate(lambda:not Path('/proc',str(pid),'exe').exists(),'Rust hosts stream shutdown before writer release')
+                        else:time.sleep(.05)
+                        evidence['terminated_before_release']=not Path('/proc',str(pid),'exe').exists()
                     else:os.write(writer,value['stream_text'].encode())
             finally:
+                # Move the FIFO out before close: CLOSE_WRITE on a FIFO which
+                # stays watched makes C reopen it and block on a second writer.
+                target.rename(root/'m2/files/completed-fifo')
                 os.close(writer)
                 if tracer and tracer.poll() is None:tracer.kill();tracer.wait()
             states.append(evidence)
@@ -1050,7 +1054,7 @@ def witness_errors(observed,side,case):
                 fault=proof.get('fault',{})
                 if not fault.get('injected') or not any(row['result']>0 for row in fault.get('reads',[])) or not any(row.get('injected') and row['result']==-errno.EIO for row in fault.get('reads',[])):
                     errors.append('actual hostsdir consumed-prefix/EIO witness missing')
-            elif proof.get('health',{}).get('healthy')!=(side=='rust') or (mode=='shutdown' and not proof.get('terminated_before_release')):
+            elif proof.get('health',{}).get('healthy')!=(side=='rust') or (mode=='shutdown' and proof.get('terminated_before_release')!=(side=='rust')):
                 errors.append('hostsdir C blocking/Rust owner progress or shutdown witness missing')
         if action.get('domain_dhcp'):
             wanted=action['domain_dhcp']
@@ -1149,6 +1153,14 @@ def compare_service(left,right,case):
         left=copy.deepcopy(left);right=copy.deepcopy(right);case=copy.deepcopy(case)
         for observed in (left,right):observed['rows']=[row for row in observed['rows'] if row['id'] not in removed]
         case['actions']=[a for a in case['actions'] if a.get('id') not in {'debug-parent'}]
+    if case['id']=='hostsdir-runtime-emfile':
+        for side,observed in [('c',left),('rust',right)]:
+            if not any(action['op']=='actual-fd-limit' for action in observed['actions']) or \
+                'failed to load names from /m2/files/dir/one: No file descriptors available' not in observed['stderr']:
+                return [{'phase':'hosts-fd-limit','side':side,'error':'actual host-source EMFILE not witnessed'}],[]
+        case=copy.deepcopy(case)
+        for action in case['actions']:
+            if action['op']=='fd-limit':action['op']='write'
     failures=files.compare(comparable_service(left),comparable_service(right),case)
     if left.get('domain_dhcp',[])!=right.get('domain_dhcp',[]):failures.append('actual DHCP domain packets differ')
     return failures,differences
