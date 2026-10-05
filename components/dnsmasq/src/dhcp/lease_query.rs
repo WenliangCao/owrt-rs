@@ -104,10 +104,12 @@ pub struct LeaseQueryReply {
 /// Result of encoding a DHCPLEASE* reply. `omitted` counts options which did
 /// not fit the request's bounded response regions, following `free_space()`;
 /// the status and mandatory message type are never omitted.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ReplyEncoding {
     pub len: usize,
     pub omitted: usize,
+    /// Actual codes in serializer omission order; empty does not allocate.
+    pub omitted_options: Vec<u8>,
     pub overload: u8,
 }
 
@@ -245,6 +247,7 @@ struct LeaseQueryWriter<'a> {
     overload: u8,
     allow_overload: bool,
     omitted: usize,
+    omitted_options: Vec<u8>,
 }
 
 impl<'a> LeaseQueryWriter<'a> {
@@ -260,6 +263,7 @@ impl<'a> LeaseQueryWriter<'a> {
             overload: 0,
             allow_overload,
             omitted: 0,
+            omitted_options: Vec::new(),
         }
     }
 
@@ -278,11 +282,13 @@ impl<'a> LeaseQueryWriter<'a> {
         }
         if !self.allow_overload && self.overload_offset.is_none() {
             self.omitted += 1;
+            self.omitted_options.push(code);
             return Ok(());
         }
         self.ensure_overload();
         if self.overload_offset.is_none() {
             self.omitted += 1;
+            self.omitted_options.push(code);
             return Ok(());
         }
         if self.overload & 1 == 0 && self.allow_overload && self.packet[108] == 0 {
@@ -308,6 +314,7 @@ impl<'a> LeaseQueryWriter<'a> {
             return Ok(());
         }
         self.omitted += 1;
+        self.omitted_options.push(code);
         Ok(())
     }
 
@@ -356,6 +363,7 @@ impl<'a> LeaseQueryWriter<'a> {
         ReplyEncoding {
             len: self.primary.max(self.file).max(self.sname).max(300),
             omitted: self.omitted,
+            omitted_options: self.omitted_options,
             overload: self.overload,
         }
     }

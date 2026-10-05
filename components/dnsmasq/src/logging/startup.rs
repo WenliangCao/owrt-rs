@@ -33,6 +33,31 @@ pub fn dhcp_range(range: &RangeConfig) -> LogEvent {
     LogEvent::new(Service::Dhcp, Priority::Info, message.into_bytes())
 }
 
+/// dhcp-common.c::log_relay; use the same configured/prepended rule order.
+pub fn dhcp_relay(rule: &crate::config::dhcp_relay::RelayRule) -> LogEvent {
+    let mut message = format!(
+        "DHCP {}relay from {}",
+        if rule.split && rule.interface.is_some() && !rule.server.is_unspecified() {
+            "split-"
+        } else {
+            ""
+        },
+        rule.local
+    )
+    .into_bytes();
+    if !rule.server.is_unspecified() || rule.interface.is_none() {
+        message.extend_from_slice(format!(" to {}", rule.server).as_bytes());
+        if rule.port != 67 {
+            message.extend_from_slice(format!("#{}", rule.port).as_bytes());
+        }
+    }
+    if let Some(interface) = &rule.interface {
+        message.extend_from_slice(b" via ");
+        message.extend_from_slice(interface);
+    }
+    LogEvent::new(Service::Dhcp, Priority::Info, message)
+}
+
 /// Keep the two independent optional flag columns, including their spaces.
 pub fn tftp(config: &TftpConfig) -> Option<LogEvent> {
     if !config.enabled {
