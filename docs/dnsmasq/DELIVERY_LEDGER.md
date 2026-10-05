@@ -7,7 +7,7 @@
 - 当前代码：普通资格最新候选 `daace344`／ELF `cdc96e85c891634db0f9be197a29fe4429215ab214bb4c512fc84bde962f04b1`，1,929,256B；692库＋10main实际通过，19ignored不计，tests-executed完整SHA+metadata回拷核验。收尾产品已到 `e79fdf13`（公共单owner Mutex撤除、网络/定时错误处理/SAFETY），尚未冻结最终候选；其中 `37c187e1` 构建ELF `bcebb72df70ff33676632dc1466ab7a6335dc7f2d8654b7ea5ec1301f764074f`，1,912,872B（M4+753,592），实际692库＋10main、M2 TCP10配对/3负控和ping-conflict C/R通过，只有预检，不能当最终统一资格。其余4项普通资格仍用daace，不混身份；生产globalallocator已撤，log-malloc只accept/start/--test。
 - 下一步：今晚任务步骤1清完剩3（hostsdir、log-queries、log-dhcp），单项通过立即提交扣数。步骤2自动收尾无需确认：逐项处理所有extreme deferred，不能/不该修的明确列账本差异总表；冻结最终ELF重跑全部族测试器，修复后同新ELF重跑受影响族；补unsafe SAFETY、网络/定时器unwrap/expect显式处理、移除单owner多余Mutex，复测受影响族；最终ELF完整M2、实际5分钟含满缓存RSS、ENOSPC/EMFILE、APK安装/升级/卸载/回滚。写M5_REPORT含体积/RSS与M4比较、功能族归因、差异表、全部失败/重跑。步骤3报告完成后才停止，请用户决定最终体积及若不接受的缩减方案/代价；M6可起草冻结负载/配置/轮次/收益标准，未获体积决定不跑正式性能窗口。
 - 阻塞点：无须用户决定。oracle最近可用29GB（86%）；运行证据按功能族全SHA+metadata回拷后立即prune，旧失败和partial/reference-only完整保留，不计通过。物理路由器未触碰。[功能族体积归因](M5_SIZE_ATTRIBUTION.md)已补至query/domain/loop阶段；旧Cargo mtime复用矩阵被整轮拒绝，固定路径独立source-pool等价优化实测省16,384字节且C回归通过，loop固定31字节数组消除每包分配但混合阶段净体积0不冒称独立节省。较大混合阶段继续评估，不复用M4体积特许，统一验收后交用户决定；单owner Rc/RefCell阶段37相比daace实测-16,384B（含main缺省分支简化，不冒称纯Mutex成本），ARP/DHCP探测借用边界预检已通过。
-- 活跃分工：后续子代理不指定 model/reasoning_effort，fork_turns 用默认值，全量继承主线程模型、推理档位和上下文；当前 4 个运行代理不重启。edns_resume 完成 EDNS/cache（refs/archive/dnsmasq/M5-dns-cache-contract-20261005）后完成 m5/loop-detect-contract并转 m5/dns-cache-safety处理cache/DNS延期与健壮性，endpoints_resume 完成端点（archive/m5-dns-endpoints-20261005-resume3）并交接 m5/interface-records 新族，logging_resume 续接 m5/logging-contract，tftp_resume 完成TFTP错误及script-arp普通合同（archive/m5-script-arp-contract-20261005-resume3）完成m5/dhcp-network-contract四项（archive/m5-dhcp-network-contract-20261005）并完成dump（archive/m5-dump-contract-20261005）并完成CLI（archive/m5-cli-final-contract-20261005）后m5/final-validation-prep准备M5统一验收控制器/同ELFregistry；旧ARP树/branch已保存durable refs后清理，DHCP/cache clean旧树已退役、dump/CLI clean旧树已退役；四个当前任务树均有效；原 EDNS/TFTP 任务树和分支已在 durable refs 保存后清理。root 独占 main.rs、dns/daemon.rs、dns/tcp_service.rs、config/dns.rs、config/dhcp.rs、dhcp/daemon.rs 公共接线和账本。完成族按规则保留 durable refs 后清树/branch；用户 docs/prompts 保持原样。
+- 活跃分工：后续子代理不指定 model/reasoning_effort，fork_turns 用默认值，全量继承主线程模型、推理档位和上下文；当前 4 个运行代理不重启。edns_resume 完成 EDNS/cache（refs/archive/dnsmasq/M5-dns-cache-contract-20261005）后完成 m5/loop-detect-contract并转 m5/dns-cache-safety处理cache/DNS延期与健壮性，endpoints_resume 完成端点（archive/m5-dns-endpoints-20261005-resume3）并交接 m5/interface-records 新族，logging_resume 续接 m5/logging-contract，tftp_resume 完成TFTP错误及script-arp普通合同（archive/m5-script-arp-contract-20261005-resume3）完成m5/dhcp-network-contract四项（archive/m5-dhcp-network-contract-20261005）并完成dump（archive/m5-dump-contract-20261005）并完成CLI（archive/m5-cli-final-contract-20261005）后m5/final-validation-prep准备M5统一验收控制器/同ELFregistry；旧ARP树/branch已保存durable refs后清理，DHCP/cache clean旧树已退役、dump/CLI clean旧树已退役；四个当前任务树均有效；loop普通树已在3483bda0双durable refs保存后退役，新cache-safety树保持活跃；原 EDNS/TFTP 任务树和分支已在 durable refs 保存后清理。root 独占 main.rs、dns/daemon.rs、dns/tcp_service.rs、config/dns.rs、config/dhcp.rs、dhcp/daemon.rs 公共接线和账本。完成族按规则保留 durable refs 后清树/branch；用户 docs/prompts 保持原样。
 - 续接注意：只从本账本恢复，不读旧聊天。DNS files 不得在 DHCP probe 回调里读取；check_servers 只看 DNS-selected 地址/端口/scope。source ifindex 仅在精确 C 枚举边界刷新，普通 inline/HUP/wait 不刷新；dynamic/local-service=net 地址事件、parent TCP accept 与实际 file check_servers 分别有接线。EDNS NO_CACHE 只限制缓存读/写，coalescing 按有效 option bytes 区分；C 跨客户端身份错误保留独立请求控制。任何 partial/reference-only 运行不得自动关项。
 
 ## 工作规则
@@ -32,6 +32,18 @@
 - 物理路由器不碰；本阶段只做本地与构建机隔离验证。
 
 日更：2026-10-06。本文件是唯一进度入口；每个里程碑只保留一篇报告，原始失败与产物留在 ignored/private。当前进入 **M5**；M4 按用户接受的方案 A 完成。M5 盘点见下表，M6 未完成，未经 M7 不能称生产验收。
+
+## 与 C 的行为差异
+
+收尾总表正在逐族核对；本段现有条目均为明确保留的实现差异，其他历史原版缺陷与延期项仍须逐项加入或修复。最终冻结后每条绑定新对照，不能把本表当作尚未执行的通过记录。源码位置指精确参考 `dnsmasq-2.93/src/`。
+
+| 行为 | 镜像 C 与源码位置 | Rust 行为 | 保留理由与验证边界 |
+| --- | --- | --- | --- |
+| FIFO 文件读取与其他服务进展 | `cache.c:1436–1450 read_hostsfile`、`option.c:5471 read_file/5852–5859`、`network.c:1699–1724 reload_servers` 在父事件路径使用同步 fopen/读。写端保持打开时可能阻塞 DNS/TFTP 与退出信号。 | 同一 poll owner 分段读取；等待 FIFO 时继续 DNS/TFTP 和正常退出，发布时保持各源的读取/更新顺序。 | 单 owner 的服务与生命周期要求不允许文件输入阻塞全部网络。普通数据和发布次序仍严格配对；held-writer 健康、FD与退出各有独立守卫，最终复跑会重新绑定。 |
+| TFTP IPv6 link-local scope | `tftp.c:289–302` 无条件清零 `sin6_scope_id`，`:336` 绑定新传输套接字，导致 link-local 传输失败。 | 保留已验证到达接口的 scope，正常返回数据；全局 IPv6 scope 为0。 | 不复制已定位的原版传输缺陷；同输入 C dedicated失败、single-port阳性以及Rust健康/回收独立观察，其他地址与绑定策略仍配对。 |
+| 第二个空 conf-file | `option.c:5654 one_file` 对第二个空 `-C` 路径执行 `strcmp(NULL, "-")`，镜像最小复现SIGSEGV。 | 安全处理空配置选择，继续普通启动。 | 不复制空指针崩溃；只对此最小输入分类，不放宽普通include/错误结果。 |
+| version 首行实现归属 | `option.c:6057` 打印C版本及原作者版权。 | 首行追加 `dnsmasq-rs 0.1.0 (Rust implementation)`。 | 明确实现归属；版本号、compile options、全部GPL2/3及warranty行仍与镜像一致，CLI分派和早返回均严格配对。 |
+| log-malloc 内容 | `util.c:933–1017 whine_malloc_real/whine_realloc_real/malloc_log_real/free_real` 输出C调用位置、分配尺寸和实际指针摘要。 | 接受选项，启动及--test匹配；不输出逐次分配trace，生产无globalallocator跟踪。 | 用户2026-10-06明确更正：Rust分配方式、调用位置和地址不同，不要求日志内容一致。其他启动日志、退出和服务行为仍严格配对；已移除普通分配包装/检查与128KiB实验缓冲。 |
 
 ## 当前状态与退出条件
 
