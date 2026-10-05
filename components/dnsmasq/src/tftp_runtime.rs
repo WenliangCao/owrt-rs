@@ -8,7 +8,6 @@
 
 use crate::tftp::{self, Mode, ReadRequest, RequestError, Transfer};
 use crate::tftp_service::{permitted, resolve_path, Admission as PeerAdmission};
-use std::collections::BTreeMap;
 use std::fs::File;
 use std::io;
 use std::net::SocketAddr;
@@ -339,11 +338,53 @@ struct Active {
     final_block: Option<u32>,
 }
 
+// ID order is retained for the single-port admission index. Reserving the
+// next transfer record can fail without Rust's infallible tree-node allocator.
+#[derive(Default)]
+struct TransferTable(Vec<(TransferId, Active)>);
+
+impl TransferTable {
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+    fn contains_key(&self, id: &TransferId) -> bool {
+        self.get(id).is_some()
+    }
+    fn values(&self) -> impl Iterator<Item = &Active> {
+        self.0.iter().map(|(_, active)| active)
+    }
+    fn keys(&self) -> impl Iterator<Item = &TransferId> {
+        self.0.iter().map(|(id, _)| id)
+    }
+    fn get(&self, id: &TransferId) -> Option<&Active> {
+        self.0
+            .iter()
+            .find(|(key, _)| key == id)
+            .map(|(_, active)| active)
+    }
+    fn get_mut(&mut self, id: &TransferId) -> Option<&mut Active> {
+        self.0
+            .iter_mut()
+            .find(|(key, _)| key == id)
+            .map(|(_, active)| active)
+    }
+    fn remove(&mut self, id: &TransferId) -> Option<Active> {
+        let index = self.0.iter().position(|(key, _)| key == id)?;
+        Some(self.0.remove(index).1)
+    }
+    fn insert(&mut self, id: TransferId, active: Active) {
+        self.0.push((id, active));
+    }
+    fn reserve(&mut self) -> bool {
+        self.0.try_reserve_exact(1).is_ok()
+    }
+}
+
 pub struct TransferRuntime<O> {
     config: RuntimeConfig,
     opener: O,
     next_id: u64,
-    active: BTreeMap<TransferId, Active>,
+    active: TransferTable,
     // Stable slot indices let transfers share one descriptor by path/inode.
     // Growing the file-record store is fallible, matching check_tftp_fileperm.
     files: Vec<Option<SharedFile>>,
@@ -355,7 +396,7 @@ impl<O: FileOpener> TransferRuntime<O> {
             config,
             opener,
             next_id: 1,
-            active: BTreeMap::new(),
+            active: TransferTable::default(),
             files: Vec::new(),
         }
     }
@@ -574,6 +615,10 @@ impl<O: FileOpener> TransferRuntime<O> {
         now: u64,
         policy: Option<&RequestPolicy>,
     ) -> Result<Vec<RuntimeEvent>, RuntimeError> {
+        // tftp_request silently ignores a transfer-record allocation failure.
+        if !self.active.reserve() {
+            return Ok(Vec::new());
+        }
         let request = match tftp::parse_request(
             packet,
             self.config.packet_buffer_size,
@@ -1050,6 +1095,16 @@ mod tests {
     use std::collections::BTreeMap;
     use std::os::unix::ffi::OsStrExt;
     use std::sync::Mutex;
+
+    #[test]
+    fn record_allocation_layout_evidence() {
+        // The AArch64 ptrace driver targets real allocator calls by size.
+        println!(
+            "TFTP_RECORD_LAYOUT file={} transfer={}",
+            std::mem::size_of::<Option<SharedFile>>(),
+            std::mem::size_of::<(TransferId, Active)>()
+        );
+    }
 
     struct MemoryReader {
         data: Vec<u8>,
