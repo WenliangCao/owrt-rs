@@ -680,8 +680,14 @@ class Receiver:
             self.listener.close()
 
 
+def query_packet(name, kind=1, ident=0x7100):
+    if not name:
+        return struct.pack('!6H', ident, 0x0100, 1, 0, 0, 0) + b'\0' + struct.pack('!HH', kind, 1)
+    return query(name, kind, ident)
+
+
 def exchange(name, kind=1, chaos=False, port=None):
-    wire = query(name, kind, 0x7100)
+    wire = query_packet(name, kind, 0x7100)
     if chaos:
         wire = wire[:-2] + b'\0\3'
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as client:
@@ -711,7 +717,7 @@ def tcp_sequence(probes):
         client.bind(('127.0.0.1', 16502))
         client.connect(('127.0.0.1', 15353))
         for name, kind in probes:
-            wire = query(name, kind, 0x7200)
+            wire = query_packet(name, kind, 0x7200)
             client.sendall(len(wire).to_bytes(2, 'big') + wire)
             reply = exact_read(client, int.from_bytes(exact_read(client, 2), 'big'))
             rows.append({'name': name, 'type': kind, 'transport': 'tcp', 'response': semantics(reply)})
