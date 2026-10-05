@@ -373,6 +373,13 @@ sequence_case('ttl-cname-target-independent-expiry',[SEED,{'sleep':2.2},
 for label in ['ttl-expiry-exact-second','ttl-stale-strict-after-expiry','stale-equal-expiry-zero-not-stale']:
     case(label,'use-stale-cache=0',ttl=0,action='tcp-zero-clock')
 
+sequence_case('neg-ttl-expiry-recovery',[SEED,{'label':'fallback-hit'},{'sleep':2.2},
+    {'label':'expired-refetch'},{'label':'recovered-hit'}],'neg-ttl=1',answers=[])
+case('negative-tcp-import',answers=[],soa=True,transports=['tcp','udp'])
+case('negative-cname-tcp-import',answers=[{'kind':5,'data':name('target.cache.test').hex()}],soa=True,transports=['tcp','udp'])
+case('negative-no-negcache-tcp','no-negcache',answers=[],soa=True,transports=['tcp','udp'])
+case('negative-no-negcache-positive-cname','no-negcache',action='cname')
+
 # Round-robin is a forward lookup effect. Reverse queries never rotate.
 for shape,kind in [('a',1),('aaaa',28),('generic',16),('reverse',12),('hosts',1)]:
     for disabled in [False,True]:
