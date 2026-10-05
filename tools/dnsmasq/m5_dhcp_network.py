@@ -19,7 +19,7 @@ import time
 from dhcp_lease_lifecycle import packet
 from dhcp_daemon_smoke import decode
 from m2_rootfs import command, prepare, process_identity, sha256
-from m5_helper import Side
+from m5_helper import Side, capture, normalized
 
 HERE = Path(__file__).resolve().parent
 IMAGE = '097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87'
@@ -161,6 +161,124 @@ def shared_case(root, side, out, spec):
         assert cleanup['exit'] == 0 and not cleanup['forced'] and not cleanup['remaining'], 'shared service cleanup'
 
 
+def ip(*args):
+    subprocess.run(['ip', *map(str, args)], check=True, capture_output=True)
+
+
+def bridge_specs():
+    return [
+        dict(case='bridge-exact-alias', bridges=['nwmaster,nwport']),
+        dict(case='bridge-wildcard-alias', bridges=['nwmaster,nwp*']),
+        dict(case='bridge-multiple-aliases', bridges=['nwmaster,other,nwport']),
+        dict(case='bridge-repeated-master', bridges=['nwmaster,other', 'nwmaster,nwport']),
+        dict(case='bridge-later-master', bridges=['nwmaster,nwport', 'nwsecond,nwport'], second=True, expected='198.18.0.2'),
+        dict(case='bridge-unmatched', bridges=['nwmaster,other'], no_reply=True),
+        dict(case='bridge-master-missing', bridges=['unknown,nwport'], no_reply=True, warning=True),
+        dict(case='bridge-master-added', bridges=['nwmaster,nwport'], added=True),
+        dict(case='bridge-interface-policy', bridges=['nwmaster,nwport'], no_reply=True, extra=['except-interface=nwmaster']),
+        dict(case='bridge-original-reply-interface', bridges=['nwmaster,nwport'], unicast=True),
+        dict(case='bridge-helper-effective-interface', bridges=['nwmaster,nwport'], ack=True),
+    ]
+
+
+def create_master(name, address):
+    ip('link', 'add', name, 'type', 'dummy')
+    ip('link', 'set', name, 'up')
+    ip('addr', 'add', address + '/24', 'dev', name)
+
+
+def checksum(data):
+    value = sum(struct.unpack('!' + 'H' * (len(data) // 2), data))
+    while value >> 16: value = (value & 0xffff) + (value >> 16)
+    return (~value) & 0xffff
+
+
+def bridge_exchange(endpoint, folder, spec, xid, kind=1, no_reply=False):
+    address = '198.18.0.10'
+    request = bytearray(packet(kind, xid, 1, address, kind == 3))
+    hardware = bytes.fromhex('020000009401')
+    request[28:34] = hardware
+    if spec.get('unicast'): request[10:12] = b'\0\0'
+    if kind == 3:
+        offset = request.index(bytes([54, 4]), 240) + 2
+        request[offset:offset + 4] = socket.inet_aton(spec.get('expected', '198.18.0.1'))
+    udp = struct.pack('!HHHH', 68, 67, len(request) + 8, 0) + request
+    header = bytearray(struct.pack('!BBHHHBBH4s4s', 0x45, 0, len(udp) + 20, xid & 0xffff, 0, 64, 17, 0, b'\0'*4, b'\xff'*4))
+    header[10:12] = struct.pack('!H', checksum(header))
+    frame = b'\xff'*6 + hardware + b'\x08\0' + header + udp
+    (folder / f'{xid}.request').write_bytes(frame)
+    endpoint.send(frame)
+    deadline = time.monotonic() + (.5 if no_reply else 3)
+    while time.monotonic() < deadline:
+        endpoint.settimeout(deadline - time.monotonic())
+        try: received = endpoint.recv(65535)
+        except socket.timeout:
+            if no_reply: return dict(kind=kind, wire=None)
+            raise
+        if len(received) < 282 or received[12:14] != b'\x08\0' or received[23] != 17: continue
+        offset = 14 + (received[14] & 15) * 4
+        source, destination, size = struct.unpack_from('!HHH', received, offset)
+        reply = received[offset + 8:offset + size]
+        if (source, destination) != (67, 68) or len(reply) < 240 or reply[4:8] != struct.pack('!I', xid): continue
+        if no_reply: raise AssertionError('unmatched bridge request received a reply')
+        values = decode(reply, xid)
+        assert values[53] == bytes([2 if kind == 1 else 5]), 'bridge OFFER/ACK'
+        assert reply[16:20] == socket.inet_aton(address), 'bridge master context allocation'
+        assert values[54] == socket.inet_aton(spec.get('expected', '198.18.0.1')), 'effective bridge master server ID'
+        (folder / f'{xid}.reply-frame').write_bytes(received)
+        (folder / f'{xid}.reply').write_bytes(reply)
+        if spec.get('unicast'):
+            assert received[:6] == hardware, 'original physical alias ARP MAC/output interface'
+        return dict(kind=kind, wire=reply.hex(), physical_interface='nwpeer')
+    raise AssertionError('bridge exchange deadline')
+
+
+def bridge_case(root, side, out, spec):
+    folder = out / spec['case']; folder.mkdir()
+    ip('link', 'add', 'nwport', 'type', 'veth', 'peer', 'name', 'nwpeer')
+    ip('link', 'set', 'nwport', 'up'); ip('link', 'set', 'nwpeer', 'up')
+    if not spec.get('added'): create_master('nwmaster', '198.18.0.1')
+    if spec.get('second'): create_master('nwsecond', '198.18.0.2')
+    if spec.get('unicast'): ip('route', 'add', '198.18.0.10/32', 'dev', 'nwport', 'scope', 'link')
+    flags = ['bind-interfaces', *['bridge-interface='+value for value in spec['bridges']], *spec.get('extra', [])]
+    runner = Side(root, side, folder, spec['case'], flags)
+    config = runner.config.read_text().replace('listen-address=127.0.0.1\n', '').replace('dhcp-range=127.0.0.10,127.0.0.20,255.0.0.0,10m', 'dhcp-range=198.18.0.10,198.18.0.20,255.255.255.0,10m')
+    runner.config.write_text(config)
+    (folder / 'config').write_text(config)
+    try:
+        runner.start()
+        save(folder / 'identity.json', process_identity(root, runner.process.pid))
+        with socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(0x0800)) as endpoint:
+            endpoint.bind(('nwpeer', 0))
+            packets = []
+            if spec.get('added'):
+                packets.append(bridge_exchange(endpoint, folder, spec, 0x7920, no_reply=True))
+                create_master('nwmaster', '198.18.0.1')
+            packets.append(bridge_exchange(endpoint, folder, spec, 0x7921, no_reply=spec.get('no_reply', False)))
+            if spec.get('ack'):
+                packets.append(bridge_exchange(endpoint, folder, spec, 0x7922, kind=3))
+                deadline = time.monotonic() + 2
+                while not capture(runner.events) and time.monotonic() < deadline: time.sleep(.01)
+                records = capture(runner.events)
+                save(folder / 'helper-records.json', normalized(records, runner.start_epoch, time.time()))
+                assert records and bytes.fromhex(records[0]['env']['DNSMASQ_INTERFACE']) == b'nwmaster', 'actual helper effective bridge interface'
+            if spec.get('unicast'):
+                observed = subprocess.run(['ip', '-j', 'neigh', 'show', 'dev', 'nwport'], check=True, capture_output=True).stdout
+                (folder / 'physical-neighbors.json').write_bytes(observed)
+                assert any(row.get('dst') == '198.18.0.10' and row.get('lladdr') == '02:00:00:00:94:01' for row in json.loads(observed)), 'ARP entry used the logical master instead of received physical alias'
+            if spec.get('warning'):
+                runner.log.flush()
+                logged = (folder / (side+'-'+spec['case']+'.log')).read_bytes()
+                assert b'unknown interface unknown in bridge-interface' in logged, 'runtime missing master warning'
+        assert runner.dns(), 'DNS progresses after bridge caller'
+        return dict(case=spec['case'], packets=packets)
+    finally:
+        cleanup = runner.stop(); save(folder / 'cleanup.json', cleanup)
+        for name in ['nwport', 'nwmaster', 'nwsecond']:
+            subprocess.run(['ip', 'link', 'del', name], capture_output=True)
+        assert cleanup['exit'] == 0 and not cleanup['forced'] and not cleanup['remaining'], 'bridge service cleanup'
+
+
 def exchange(endpoint, runner, folder, spec, kind=1, xid=0x7901):
     request = bytearray(packet(kind, xid, 1, '127.0.0.10', kind == 3))
     request[24:28] = socket.inet_aton(spec.get('giaddr', '127.0.0.2'))
@@ -221,6 +339,8 @@ def run_side(args):
     syntaxes = {
         'dhcp-proxy': [('proxy-syntax-file', ['dhcp-proxy=127.0.0.2,127.0.0.3'], []),
                        ('proxy-syntax-cli', [], ['--dhcp-proxy=127.0.0.2'])],
+        'bridge-interface': [('bridge-syntax-file', ['bridge-interface=master,port*'], []),
+                             ('bridge-syntax-cli', [], ['--bridge-interface=master,port*'])],
         'shared-network': [('shared-syntax-address', ['shared-network=127.0.0.1,198.18.0.1'], []),
                            ('shared-syntax-interface', ['shared-network=lo,198.18.0.1'], []),
                            ('shared-syntax-cli', [], ['--shared-network=lo,198.18.0.1'])],
@@ -233,7 +353,7 @@ def run_side(args):
         if result.returncode:
             failures.append(dict(case=label, error='ordinary syntax rejected', exit=result.returncode))
         rows.append(dict(case=label, exit=result.returncode, stdout=result.stdout.hex(), stderr=result.stderr.replace(b'dnsmasq-rs', b'dnsmasq').hex()))
-    specs, run_case = (proxy_specs(), proxy_case) if args.family == 'dhcp-proxy' else (shared_specs(), shared_case) if args.family == 'shared-network' else ([], None)
+    specs, run_case = (proxy_specs(), proxy_case) if args.family == 'dhcp-proxy' else (shared_specs(), shared_case) if args.family == 'shared-network' else (bridge_specs(), bridge_case) if args.family == 'bridge-interface' else ([], None)
     for spec in specs:
         try:
             rows.append(run_case(root, args.side, args.out, spec))
