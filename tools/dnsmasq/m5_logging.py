@@ -254,6 +254,12 @@ def cases():
                  'facility': 24, 'async_notice': 3, 'options': ['log-async']})
     rows.append({'id': 'async-repeat-cli', 'scope': 'async', 'kind': 'test', 'exit': 1,
                  'argv': ['--log-async=3', '--log-async=7'], 'options': ['log-async', 'test']})
+    rows.append({'id': 'async-overflow-startup', 'scope': 'async-overflow', 'kind': 'run',
+                 'pause_receiver': True, 'receiver': 'dgram', 'facility': 24,
+                 'argv': ['--log-async=2', '--dhcp-leasefile=/m2/logging/leases', '--no-ping',
+                          '--dhcp-broadcast', *[f'--dhcp-range=127.0.{index}.10,127.0.{index}.20,255.0.0.0,10m'
+                                              for index in range(20)]],
+                 'options': ['log-async', 'log-facility']})
     for quiet in [False, True]:
         for variant in ['requests', 'port-exhausted', 'timeout']:
             rows.append({'id': 'tftp-logs-' + variant + ('-quiet' if quiet else '-ordinary'),
@@ -470,6 +476,17 @@ def tftp_sequence(variant, out, receiver):
                 ('unknown', b'\0\x09', None),
             ]:
                 request(label, wire, reply)
+            for label, filename in [('sanitise', b'missing-\1\t\n\x7f\x80\xff-name')]:
+                clean = bytes(byte for byte in filename if 0x20 <= byte <= 0x7e)
+                request(label, b'\0\1' + filename + b'\0octet\0',
+                        b'\0\5\0\1file /m2/logging/' + clean + b' not found for 127.0.0.1\0')
+            stem = b'a' * 200 + b'/' + b'b' * 200 + b'/'
+            for size in [498, 499, 520]:
+                overhead = len(b'file /m2/logging/' + stem + b' not found for 127.0.0.1')
+                filename = stem + b'x' * (size - overhead)
+                message = b'file /m2/logging/' + filename + b' not found for 127.0.0.1'
+                request('bounded-' + str(size), b'\0\1' + filename + b'\0octet\0',
+                        b'\0\5\0\1' + message[:499] + b'\0')
             request('client-error', rrq, b'\0\3\0\1' + b'x' * 512,
                     remote_error=b'\0\5\0\3client\1failed\0')
     return rows, raw
@@ -600,7 +617,8 @@ def run(root, side, case, out):
         try:
             deadline = start + 3
             while time.monotonic() < deadline:
-                receiver.drain()
+                if not case.get('pause_receiver'):
+                    receiver.drain()
                 if process.poll() is not None:
                     break
                 if case['kind'] == 'run':
@@ -622,6 +640,11 @@ def run(root, side, case, out):
                         pass
                 time.sleep(.005)
             if observed['ready']:
+                if case.get('pause_receiver'):
+                    deadline = time.monotonic() + .2
+                    while time.monotonic() < deadline:
+                        receiver.drain()
+                        time.sleep(.005)
                 if case.get('tftp_probes'):
                     rows, raw = tftp_sequence(case['tftp_probes'], out, receiver)
                     observed['tftp'] = rows
@@ -1093,6 +1116,11 @@ def compare(reference, candidate, case, reference_only=False):
         notice = f'asynchronous logging enabled, queue limit is {limit} messages'
         if (limit > 0 and notice not in text) or (limit <= 0 and 'asynchronous logging enabled' in text):
             failures.append({'kind': 'C-async-notice', 'expected': limit, 'actual': text})
+    if case.get('pause_receiver'):
+        messages = [bytes.fromhex(value).decode() for value in reference['syslog']]
+        overflow = [text for text in messages if 'overflow: ' in text]
+        if len(overflow) != 1 or not re.search(r'overflow: [1-9][0-9]* log entries lost$', overflow[0]):
+            failures.append({'kind': 'C-async-overflow', 'actual': messages})
     if case.get('tftp_probes'):
         text = reference['stderr'] + ''.join(bytes.fromhex(value).decode() for value in reference['syslog'])
         text += ''.join(bytes.fromhex(value).decode() for value in reference['files'].values())
