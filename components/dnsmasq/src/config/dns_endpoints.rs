@@ -120,6 +120,8 @@ pub fn scope_index(name: &[u8]) -> Result<u32, Error> {
 #[derive(Default)]
 pub struct Expansion {
     pub rules: Vec<ServerRule>,
+    /// Index in this directive, independent of duplicate domain spellings.
+    pub origins: Vec<usize>,
     pub error: Option<Error>,
 }
 
@@ -136,6 +138,7 @@ fn resolve_with(
     let mut result = Expansion::default();
     let Some(RuleTarget::Upstream(endpoint)) = rules.first().map(|rule| &rule.target) else {
         result.rules.extend_from_slice(rules);
+        result.origins.extend(0..rules.len());
         return result;
     };
     let named = matches!(endpoint.host, ServerHost::Name(_));
@@ -162,14 +165,19 @@ fn resolve_with(
             } else {
                 &addresses[..]
             };
-            pairs.extend(selected.iter().map(|address| (*address, rule)));
+            pairs.extend(selected.iter().map(|address| (*address, index, rule)));
         }
     } else {
         for address in &addresses {
-            pairs.extend(rules.iter().map(|rule| (*address, rule)));
+            pairs.extend(
+                rules
+                    .iter()
+                    .enumerate()
+                    .map(|(index, rule)| (*address, index, rule)),
+            );
         }
     }
-    for (address, rule) in pairs {
+    for (address, index, rule) in pairs {
         let mut resolved: ServerEndpoint = endpoint.clone();
         resolved.host = ServerHost::Address(address);
         resolved.scope_id = if address.is_ipv6() {
@@ -193,6 +201,7 @@ fn resolve_with(
         {
             continue;
         }
+        result.origins.push(index);
         result.rules.push(ServerRule {
             domain: rule.domain.clone(),
             target: RuleTarget::Upstream(resolved),
