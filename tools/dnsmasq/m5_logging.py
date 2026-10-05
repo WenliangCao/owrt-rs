@@ -202,6 +202,26 @@ def cases():
                      'file': '/m2/logging/daemon.log' if name == 'log-chown' else None,
                      'argv': ['--log-facility=/m2/logging/daemon.log'] if name == 'log-chown' else ['--log-facility=-'],
                      'receiver': 'dgram', 'options': ['no-daemon', 'log-facility']})
+    dhcp_base = ['--log-facility=-', '--dhcp-leasefile=/m2/logging/leases', '--no-ping', '--dhcp-broadcast']
+    for name, ranges in [
+        ('dynamic', ['127.0.0.10,127.0.0.20,255.0.0.0,10m']),
+        ('static', ['127.0.0.0,static,255.0.0.0,3723']),
+        ('proxy', ['127.0.0.0,proxy']),
+        ('infinite', ['127.0.0.10,127.0.0.20,255.0.0.0,infinite']),
+        ('multi', ['127.0.0.10,127.0.0.20,255.0.0.0,93784',
+                   '127.0.0.0,static,255.0.0.0,2m', '127.0.0.0,proxy']),
+    ]:
+        rows.append({'id': 'startup-dhcp-' + name, 'scope': 'startup-output', 'kind': 'run',
+                     'argv': [*dhcp_base, *['--dhcp-range=' + value for value in ranges]],
+                     'options': ['log-facility', 'log-dhcp']})
+    for name, flags in [('plain', []), ('secure', ['--tftp-secure']),
+                         ('single', ['--tftp-single-port']),
+                         ('both', ['--tftp-secure', '--tftp-single-port']),
+                         ('no-global-root', ['--tftp-root=/m2/logging,lo'])]:
+        rows.append({'id': 'startup-tftp-' + name, 'scope': 'startup-output', 'kind': 'run',
+                     'argv': ['--log-facility=-', '--enable-tftp',
+                              *([] if name == 'no-global-root' else ['--tftp-root=/m2/logging']), *flags],
+                     'options': ['log-facility']})
     for enabled in [False, True]:
         rows.append({'id': 'no-ident-full-' + ('enabled' if enabled else 'default'),
                      'scope': 'identity-full', 'kind': 'run', 'identity_matrix': True,
