@@ -23,7 +23,7 @@ import shutil
 import socket
 import subprocess
 import time
-from m2_rootfs import command, prepare, sha256, STOCK_SHA256
+from m2_rootfs import command, image_path, prepare, sha256, STOCK_SHA256
 
 
 def save(path, value): path.write_text(json.dumps(value, indent=2, sort_keys=True) + '\n')
@@ -105,7 +105,7 @@ def run_syntax(root, side, case, out):
     (root/'etc/hosts').write_text(HOSTS)
     # Invalid hostname grammar must reach the image libc error boundary without
     # consulting nameservers from the captured router's original configuration.
-    (root/'etc/resolv.conf').write_text('nameserver 127.0.0.9\noptions timeout:1 attempts:1\n')
+    image_path(root,'/etc/resolv.conf').write_text('nameserver 127.0.0.9\noptions timeout:1 attempts:1\n')
     with (out/'stdout').open('wb') as stdout,(out/'stderr').open('wb') as stderr:
         process=subprocess.Popen(command(root,side,*case.get('argv',[]),'--test','-C','/m2/endpoints.conf'),stdout=stdout,stderr=stderr)
         try:process.wait(timeout=5)
@@ -127,7 +127,8 @@ def service_cases():
     def add(ident, config, names=('one.endpoint.test',), **extra):
         if 'all-servers' in config: extra.setdefault('udp_winner',0)
         actions=extra.pop('actions', [probe('query-'+str(i), name, transports=['udp','tcp']) for i,name in enumerate(names)])
-        cases.append(dict(id=ident,config=('no-resolv\n' if extra.pop('no_resolv',True) else '')+config,files=extra.pop('files',{}),actions=actions,default_resolv=extra.pop('default_resolv',False),strict_order='all-servers' not in config,**extra))
+        sys_files={'/etc/resolv.conf':'nameserver 127.0.0.9\noptions timeout:1 attempts:1\n',**extra.pop('sys_files',{})}
+        cases.append(dict(id=ident,config=('no-resolv\n' if extra.pop('no_resolv',True) else '')+config,files=extra.pop('files',{}),actions=actions,default_resolv=extra.pop('default_resolv',False),strict_order='all-servers' not in config,sys_files=sys_files,**extra))
     for directive in ('server','local'):
         for label, endpoint in [('v4','127.0.0.2'),('v6','::1'),('name-v4','v4.endpoint.test'),('name-v6','v6.endpoint.test'),('name-multi','multi.endpoint.test'),('name-mixed','mixed.endpoint.test'),('name-legacy','127.1'),('named-v4-source','mixed.endpoint.test@127.0.0.9'),('named-v6-source','mixed.endpoint.test@::1'),('named-all-filtered','v4.endpoint.test@::1'),('scope6','::1%lo'),('scope4-ignored','127.0.0.2%missing'),('source4','127.0.0.2@127.0.0.9'),('source6','::1@::1'),('interface','127.0.0.2@lo'),('combined','127.0.0.2@lo@127.0.0.9'),('fixed-source','127.0.0.2@127.0.0.9#34001'),('empty-source','127.0.0.2@'),('empty-interface','127.0.0.2@@127.0.0.9')]:
             add(directive+'-service-'+label,directive+'='+endpoint+'\n',sys_files={'/etc/hosts':HOSTS},local_upstream=label=='name-legacy',no_upstream=label=='named-all-filtered')
@@ -237,7 +238,7 @@ def service_cases():
     add('syntax-source-binding-elided','query-port=34003\n',actions=[],occupied_ports=[34003],expected_start=False)
     add('port-zero-suppresses-query-bind','query-port=34003\n',actions=[],occupied_ports=[34003],dns_disabled=True,no_upstream=True,socket_absent=[34003])
     add('self-selected-endpoint-filtered','server=127.0.0.1#{listen_port}\n',no_upstream=True)
-    add('unselected-local-address-endpoint','server=127.0.0.2#15353\n',upstream_port=15353)
+    add('unselected-local-address-endpoint','bind-interfaces\nserver=127.0.0.2#15353\n',upstream_port=15353)
     add('global-query-socket-retained','query-port=34003\nservers-file=/m2/files/servers\n',
         files={'servers':'server=127.0.0.2\n'},socket_witness=[34003],
         actions=[probe('initial'),write('servers',''),signal_reload(),probe('removed'),write('servers','server=127.0.0.3\n'),signal_reload(),probe('restored')])
@@ -404,6 +405,9 @@ def run_service_side(root, side, case, folder):
         for port in case.get('occupied_ports',[]):
             bound=socket.socket(socket.AF_INET,socket.SOCK_DGRAM);bound.bind(('0.0.0.0',port));occupied.append(bound)
         result=files.run_side(root,side,case,folder)
+    except BaseException:
+        for upstream in SourceCapture.instances: upstream.close()
+        raise
     finally:
         for bound in occupied: bound.close()
         files.command=original_command
