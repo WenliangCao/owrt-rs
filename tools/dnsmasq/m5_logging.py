@@ -231,6 +231,29 @@ def cases():
                      'pidfile': '/m2/logging/daemon.pid', 'receiver': 'dgram',
                      'argv': ['--log-facility=-'] if target == 'stderr-dup' else [],
                      'options': ['log-facility']})
+    for index, value in enumerate([None, '', '0', '1', '5', '100', '101', '2147483648',
+                                   '4294967295', '4294967296', '4294967301', '9' * 80]):
+        argument = '--log-async' + ('' if value is None else '=' + value)
+        integer = 5 if value is None else int(value or '0') & 0xffffffff
+        integer = integer if integer < 0x80000000 else integer - 0x100000000
+        limit = min(integer, 100)
+        rows.append({'id': f'async-value-{index:02d}', 'scope': 'async', 'kind': 'run',
+                     'argv': [argument], 'receiver': 'dgram', 'facility': 24,
+                     'allow_no_syslog': limit < 0, 'async_notice': limit,
+                     'options': ['log-async']})
+    for destination, extra in [('stderr', {'argv': ['--log-facility=-']}),
+                                ('file', {'argv': ['--log-facility=/m2/logging/daemon.log'], 'file': 'daemon.log'})]:
+        rows.append({'id': 'async-overridden-' + destination, 'scope': 'async', 'kind': 'run',
+                     **extra, 'argv': [*extra['argv'], '--log-async=7'], 'async_notice': 0,
+                     'options': ['log-async', 'log-facility']})
+    for index, value in enumerate(['-1', '+1', '1x', ' 1']):
+        rows.append({'id': f'async-invalid-{index:02d}', 'scope': 'async', 'kind': 'test',
+                     'exit': 1, 'argv': ['--log-async=' + value], 'options': ['log-async', 'test']})
+    rows.append({'id': 'async-origin-precedence', 'scope': 'async', 'kind': 'run',
+                 'config': 'log-async=3\n', 'argv': ['--log-async=7'], 'receiver': 'dgram',
+                 'facility': 24, 'async_notice': 3, 'options': ['log-async']})
+    rows.append({'id': 'async-repeat-cli', 'scope': 'async', 'kind': 'test', 'exit': 1,
+                 'argv': ['--log-async=3', '--log-async=7'], 'options': ['log-async', 'test']})
     dhcp_base = ['--log-facility=-', '--dhcp-leasefile=/m2/logging/leases', '--no-ping', '--dhcp-broadcast']
     for name, ranges in [
         ('dynamic', ['127.0.0.10,127.0.0.20,255.0.0.0,10m']),
@@ -694,7 +717,10 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                 elif case['fault'] in ['pid-write', 'pid-close', 'pid-chown', 'pid-short-write']:
                     match &= target.endswith('/m2/logging/daemon.pid')
                 elif case.get('fault_target') == 'socket-open':
-                    match &= args[0] == 1
+                    # Rust's optional UBus probe also opens AF_UNIX datagram
+                    # sockets. Only the logger uses its explicit nonblocking
+                    # owner socket; C log_start uses the plain datagram type.
+                    match &= args[0] == 1 and args[1] == (2 if side == 'c' else 2 | 0x800 | 0x80000)
                 elif case.get('fault_target') == 'stderr-dup':
                     match &= args[0] == 2
                 elif case.get('fault_target') in ['socket-write', 'socket-connect']:
@@ -931,13 +957,20 @@ def compare(reference, candidate, case, reference_only=False):
             failures.append({'kind': 'C-helper-identity-control', 'expected': expected,
                              'actual': reference.get('helper_uids')})
     if 'facility' in case and expected_ready:
-        if not reference['syslog']:
+        if not reference['syslog'] and not case.get('allow_no_syslog'):
             failures.append({'kind': 'C-no-syslog-records'})
         for record in reference['syslog']:
             text = bytes.fromhex(record).decode()
             match = re.match(r'<(\d+)>', text)
             if not match or (int(match[1]) & ~7) != case['facility']:
                 failures.append({'kind': 'C-PRI-facility', 'actual': text})
+    if 'async_notice' in case:
+        text = reference['stderr'] + ''.join(bytes.fromhex(value).decode() for value in reference['syslog'])
+        text += ''.join(bytes.fromhex(value).decode() for value in reference['files'].values())
+        limit = case['async_notice']
+        notice = f'asynchronous logging enabled, queue limit is {limit} messages'
+        if (limit > 0 and notice not in text) or (limit <= 0 and 'asynchronous logging enabled' in text):
+            failures.append({'kind': 'C-async-notice', 'expected': limit, 'actual': text})
     if case['kind'] == 'cli':
         expected = ('Known DHCP options:\n' if case['argv'] == ['--help', 'dhcp'] else
                     'Dnsmasq version 2.93  ' if case['argv'] == ['--version'] else
