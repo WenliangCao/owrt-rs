@@ -171,6 +171,16 @@ def cases():
          'pidfile': '/m2/logging/missing/daemon.pid', 'options': ['no-daemon']},
     ])
     for mode, label in [([], 'default'), (['-k'], 'foreground'), (['-d'], 'debug')]:
+        for identity in ['user', 'group']:
+            rows.append({'id': 'startup-unknown-' + identity + '-' + label, 'scope': 'daemon',
+                         'kind': 'run', 'mode': mode, 'daemonized': not mode, 'exit': 1,
+                         'pidfile': '/m2/logging/daemon.pid', identity: 'm5-unknown-identity',
+                         'argv': ['--log-facility=-'], 'options': ['no-daemon']})
+        rows.append({'id': 'startup-tftp-root-missing-' + label, 'scope': 'daemon',
+                     'kind': 'run', 'mode': mode, 'daemonized': not mode, 'exit': 3,
+                     'pidfile': '/m2/logging/daemon.pid', 'receiver': 'dgram',
+                     'argv': ['--log-facility=-', '--enable-tftp', '--tftp-root=/m2/logging/missing'],
+                     'options': ['no-daemon', 'log-facility']})
         rows.append({'id': 'tftp-scriptuser-unknown-' + label, 'scope': 'scriptuser-boundary',
                      'kind': 'run', 'mode': mode, 'daemonized': not mode,
                      'pidfile': '/m2/logging/daemon.pid', 'helper_script': True,
@@ -285,6 +295,25 @@ def cases():
                      'argv': ['--log-facility=-', '--enable-tftp', '--tftp-root=/m2/logging',
                               '--dhcp-script=/m2/logging/script'], 'options': ['log-facility', 'log-debug']})
     dhcp_base = ['--log-facility=-', '--dhcp-leasefile=/m2/logging/leases', '--no-ping', '--dhcp-broadcast']
+    for name, arguments, extra in [
+        ('cache-disabled', ['--cache-size=0'], {}),
+        ('cache-large', ['--cache-size=10001'], {}),
+        ('dns-disabled', ['--port=0', '--enable-tftp', '--tftp-root=/m2/logging'], {'no_dns': True}),
+        ('ignored-resolv', ['--resolv-file=/m2/logging/resolv'], {}),
+        ('ubus-pending', ['--enable-ubus=logging'], {}),
+        ('interface-warning', ['--interface=m5-missing-iface'], {'base_skip': ['--bind-interfaces']}),
+        ('local-service-net', ['--local-service=net'], {'base_skip': ['--listen-address=127.0.0.1']}),
+        ('local-service-host', ['--local-service=host'], {'base_skip': ['--listen-address=127.0.0.1']}),
+        ('nameserver', ['--server=192.0.2.53#15555'], {}),
+        ('local-domain', ['--server=/only.logging/'], {}),
+    ]:
+        rows.append({'id': 'startup-output-' + name, 'scope': 'startup-output', 'kind': 'run',
+                     'argv': ['--log-facility=-', *arguments], **extra,
+                     'options': ['log-facility', 'no-daemon']})
+    rows.append({'id': 'daemon-runtime-servers-file-failure', 'scope': 'daemon', 'kind': 'run',
+                 'mode': [], 'daemonized': True, 'pidfile': '/m2/logging/daemon.pid',
+                 'argv': ['--log-facility=-', '--servers-file=/m2/logging/missing-servers'],
+                 'options': ['no-daemon']})
     for name, ranges in [
         ('dynamic', ['127.0.0.10,127.0.0.20,255.0.0.0,10m']),
         ('static', ['127.0.0.0,static,255.0.0.0,3723']),
@@ -576,13 +605,13 @@ def run(root, side, case, out):
     folder.chmod(0o777)
     (folder / 'config').write_text(case.get('config', ''))
     blocker = None
-    if case.get('tftp_probes'):
+    if case.get('tftp_probes') or case.get('no_dns'):
         (folder / 'public').write_bytes(b'x' * 700)
         (folder / 'public').chmod(0o644)
         (folder / 'private').write_bytes(b'private')
         (folder / 'private').chmod(0o600)
         (folder / 'directory').mkdir()
-        if case['tftp_probes'] == 'port-exhausted':
+        if case.get('tftp_probes') == 'port-exhausted':
             blocker = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             blocker.bind(('127.0.0.1', 35000))
     if case.get('script_probes'):
@@ -601,7 +630,7 @@ def run(root, side, case, out):
     # C selects the DHCP help list only with exactly argc3 and argv[2]=dhcp.
     argv = [] if case['kind'] == 'cli' else ['-C', '/m2/logging/config']
     if case['kind'] != 'cli':
-        argv += BASE + ['--user=' + case.get('user', 'root')]
+        argv += [arg for arg in BASE if arg not in case.get('base_skip', [])] + ['--user=' + case.get('user', 'root')]
         argv += ['--test'] if case['kind'] == 'test' else case.get('mode', ['-k'])
     argv += case['argv']
     full = command(root, side, *argv)
@@ -626,11 +655,16 @@ def run(root, side, case, out):
                         if case.get('query_probes') and b'cleared cache\n' not in (out / 'stderr').read_bytes():
                             time.sleep(.005)
                             continue
-                        answer, raw = exchange('ready.logging', port=16500 if case.get('query_probes') else None)
-                        if [row['data'] for row in answer['records']] != ['192.0.2.1']:
-                            raise AssertionError('wrong readiness answer')
+                        if case.get('no_dns'):
+                            rows, raw = tftp_sequence('script', out, receiver)
+                            observed['tftp'] = rows
+                            trace['tftp'] = raw
+                        else:
+                            answer, raw = exchange('ready.logging', port=16500 if case.get('query_probes') else None)
+                            if [row['data'] for row in answer['records']] != ['192.0.2.1']:
+                                raise AssertionError('wrong readiness answer')
+                            trace['dns'].append(raw)
                         observed['ready'] = True
-                        trace['dns'].append(raw)
                         trace['identity'] = process_identity(root, process.pid)
                         wanted = sha256(image_path(root, '/usr/sbin/dnsmasq' + ('-rs' if side == 'rust' else '')))
                         if trace['identity']['sha256'] != wanted:
@@ -953,7 +987,8 @@ def run_daemon(root, side, case, out):
         log_path.unlink(missing_ok=True)
     receiver = Receiver(root, case.get('receiver'))
     executable = '/usr/sbin/dnsmasq' + ('-rs' if side == 'rust' else '')
-    argv = ['-C', '/m2/logging/config', *[arg for arg in BASE if arg != '--pid-file='],
+    argv = ['-C', '/m2/logging/config', *[arg for arg in BASE if arg not in ['--pid-file=', '--group=root']],
+            '--group=' + case.get('group', 'root'),
             '--user=' + case.get('user', 'root'), '--pid-file=' + case['pidfile'], *case['mode'], *case['argv']]
     full = command(root, '/bin/sh', '-c', 'cd /m2/logging && exec "$@"', 'logging', executable, *argv)
     save(out / 'fixture.json', case)
