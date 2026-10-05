@@ -494,6 +494,11 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         runtime.scalar.dns_port,
         &interface_snapshot.lock().unwrap(),
     );
+    let mut pending_static_dns = listeners::tentative_addresses(
+        &runtime.dns,
+        runtime.scalar.dns_port,
+        &interface_snapshot.lock().unwrap(),
+    );
     let tftp_config = runtime.tftp.clone();
     let dhcp_config = runtime.dhcp.clone();
     DEBUG_MODE.store(runtime.process.debug, Ordering::Relaxed);
@@ -704,9 +709,9 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     for address in addresses {
         match open_dns_listener(address) {
             Ok((udp, tcp)) => listeners.push((address, udp, tcp)),
-            Err(error) if daemon_config.bind_dynamic => {
-                eprintln!("dnsmasq-rs: cannot bind {address}: {error}")
-            }
+            Err(error)
+                if daemon_config.bind_dynamic
+                    && error.kind() == io::ErrorKind::AddrNotAvailable => {}
             Err(error) => return Err(Box::new(NetworkStartupError(error))),
         }
     }
@@ -741,7 +746,12 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             .force_broadcast
             .first()
             .is_some_and(|rule| rule.is_unconditional()),
-        daemon_config.bind_dynamic && runtime.scalar.dns_port <= 1024 && dns_enabled,
+        (daemon_config.bind_dynamic
+            && (tftp_config.enabled || runtime.scalar.dns_port <= 1024 && dns_enabled))
+            || (!pending_static_dns.is_empty() && runtime.scalar.dns_port <= 1024 && dns_enabled)
+            || tftp_listener
+                .as_ref()
+                .is_some_and(TftpListener::needs_privileged_rebind),
         runtime.ubus.object_name()?.is_some(),
     );
     // Fail missing capabilities before touching a pre-existing PID file.
@@ -908,6 +918,27 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                             bound_listeners.push((address, token));
                         }
                     }
+                } else if !pending_static_dns.is_empty() {
+                    let ready = listeners::bound_addresses(
+                        &daemon_config,
+                        runtime.scalar.dns_port,
+                        &interfaces,
+                    );
+                    pending_static_dns.retain(|address| {
+                        if !ready.contains(address) {
+                            return true;
+                        }
+                        match open_dns_listener(*address) {
+                            Ok((udp, tcp)) => {
+                                let token = SocketToken(next_listener);
+                                next_listener += 1;
+                                poll.add_listener(token, udp, tcp);
+                                bound_listeners.push((*address, token));
+                                false
+                            }
+                            Err(_) => true,
+                        }
+                    });
                 }
             }
         }
@@ -960,10 +991,18 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         let mut fds = Vec::new();
         if let Some(helper) = &poll.helper {
             for (fd, events) in helper.poll_fds() {
-                if fd >= 0 { fds.push(owrt_ubus::sys::PollFd { fd, events, revents: 0 }); }
+                if fd >= 0 {
+                    fds.push(owrt_ubus::sys::PollFd {
+                        fd,
+                        events,
+                        revents: 0,
+                    });
+                }
             }
         }
-        if let Some(files) = &poll.dns_files { files.append_poll_fds(&mut fds); }
+        if let Some(files) = &poll.dns_files {
+            files.append_poll_fds(&mut fds);
+        }
         owrt_ubus::sys::poll_fds(&mut fds, 2)?;
     }
     #[cfg(target_os = "linux")]
