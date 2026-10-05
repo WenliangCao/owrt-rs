@@ -226,57 +226,73 @@ impl Hosts {
         source: u32,
         ttl: u32,
         expand: bool,
-        mut domain: impl FnMut(IpAddr) -> Option<Vec<u8>>,
+        domain: impl FnMut(IpAddr) -> Option<Vec<u8>>,
     ) -> ReadStats {
-        let mut stats = ReadStats::default();
-        for line in input.split(|&b| b == b'\n') {
-            let line = line.split(|&b| b == b'#').next().unwrap_or_default();
-            let mut tokens = line
-                .split(|b| b.is_ascii_whitespace())
-                .filter(|v| !v.is_empty());
-            let Some(address) = tokens.next() else {
-                continue;
-            };
-            // gettok retains at most MAXDNAMESTR - 1 = 502 bytes, then C
-            // consumers see the prefix before an embedded NUL.
-            let token = |v: &[u8]| {
-                v[..v.len().min(502)]
-                    .split(|&b| b == 0)
-                    .next()
-                    .unwrap_or_default()
-                    .to_vec()
-            };
-            let address = token(address);
-            let Some(address) = std::str::from_utf8(&address)
-                .ok()
-                .and_then(|v| v.parse::<IpAddr>().ok())
-            else {
-                stats.bad_addresses += 1;
-                continue;
-            };
-            let suffix = domain(address);
-            for value in tokens {
-                let value = token(value);
-                let fqdn = value.contains(&b'.');
-                let Some(name) = canonicalise(&value) else {
-                    stats.bad_names += 1;
-                    continue;
-                };
-                if expand && !fqdn {
-                    if let Some(suffix) = &suffix {
-                        let mut expanded = name.clone();
-                        expanded.push(b'.');
-                        expanded.extend_from_slice(suffix);
-                        stats.accepted += 1;
-                        stats.inserted += usize::from(self.insert(expanded, address, ttl, source));
-                    }
-                }
-                stats.accepted += 1;
-                stats.inserted += usize::from(self.insert(name, address, ttl, source));
-            }
-        }
+        let mut inserted = 0;
+        let mut stats = visit_hosts(input, expand, domain, |name, address| {
+            inserted += usize::from(self.insert(name, address, ttl, source));
+        });
+        stats.inserted = inserted;
         stats
     }
+}
+
+/// Visit every accepted hosts name, including duplicates. Runtime directory
+/// readers stage these records; publication applies cache duplicate/PTR rules.
+pub fn visit_hosts(
+    input: &[u8],
+    expand: bool,
+    mut domain: impl FnMut(IpAddr) -> Option<Vec<u8>>,
+    mut emit: impl FnMut(Vec<u8>, IpAddr),
+) -> ReadStats {
+    let mut stats = ReadStats::default();
+    for line in input.split(|&b| b == b'\n') {
+        let line = line.split(|&b| b == b'#').next().unwrap_or_default();
+        let mut tokens = line
+            .split(|b| b.is_ascii_whitespace())
+            .filter(|v| !v.is_empty());
+        let Some(address) = tokens.next() else {
+            continue;
+        };
+        // gettok retains at most MAXDNAMESTR - 1 = 502 bytes, then C
+        // consumers see the prefix before an embedded NUL.
+        let token = |v: &[u8]| {
+            v[..v.len().min(502)]
+                .split(|&b| b == 0)
+                .next()
+                .unwrap_or_default()
+                .to_vec()
+        };
+        let address = token(address);
+        let Some(address) = std::str::from_utf8(&address)
+            .ok()
+            .and_then(|v| v.parse::<IpAddr>().ok())
+        else {
+            stats.bad_addresses += 1;
+            continue;
+        };
+        let suffix = domain(address);
+        for value in tokens {
+            let value = token(value);
+            let fqdn = value.contains(&b'.');
+            let Some(name) = canonicalise(&value) else {
+                stats.bad_names += 1;
+                continue;
+            };
+            if expand && !fqdn {
+                if let Some(suffix) = &suffix {
+                    let mut expanded = name.clone();
+                    expanded.push(b'.');
+                    expanded.extend_from_slice(suffix);
+                    stats.accepted += 1;
+                    emit(expanded, address);
+                }
+            }
+            stats.accepted += 1;
+            emit(name, address);
+        }
+    }
+    stats
 }
 
 #[cfg(test)]
