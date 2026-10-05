@@ -140,6 +140,12 @@ for label,fields in [('extract-opcode-other',{'flags':0x900}),
                       ('extract-opt-version',{'opt_ttl':0x00010000}),('extract-opt-flags',{'opt_ttl':0x40}),
                       ('extract-multiple-additional',{'extra':True})]:case(label,**fields)
 
+# Calibrate dynamic cached CNAME terminals independently of configured UID0
+# aliases. The upstream terminal is deliberately different from the interface.
+for label,config in [('cache-cname-interface-present','interface-name=target.cache.test,cache0/4'),
+                      ('cache-cname-interface-empty','interface-name=target.cache.test,missing0/4')]:
+    case(label,config,action='cname')
+
 DESCRIPTORS={2:'ns',3:'md',4:'mf',6:'soa',7:'mb',8:'mg',9:'mr',12:'ptr-generic',14:'minfo',15:'mx',17:'rp',
              18:'afsdb',21:'rt',24:'sig',26:'px',30:'nxt',36:'kx',33:'srv',39:'dname'}
 for kind,label in DESCRIPTORS.items():case('generic-'+label,'cache-rr=ANY',kind=kind)
