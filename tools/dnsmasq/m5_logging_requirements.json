@@ -383,7 +383,36 @@
           "boundary": "Exact image has NO_ID: Boolean accepted but no generated CHAOS identity/stat records in default/enabled mode; explicit user IN TXT records remain unchanged.",
           "required_scenarios": [
             "no-ident-default",
-            "no-ident-enabled"
+            "no-ident-enabled",
+            "no-ident-full-default",
+            "no-ident-full-enabled"
+          ]
+        },
+        {
+          "id": "ID02",
+          "source": "rfc1035.c:1806-1855",
+          "boundary": "QCLASS CHAOS3 *.bind/*.server including bare domains, nested suffix and ASCII case always NOTIMP without CHAOS answer; badbind/badserver and literal-dot final label stay negative; UDP/TCP, A/AAAA/TXT/QTYPE ANY; exact raw replies.",
+          "required_scenarios": [
+            "no-ident-full-default",
+            "no-ident-full-enabled"
+          ]
+        },
+        {
+          "id": "ID03",
+          "source": "option.c:5155-5184,rfc1035.c:1806-1816",
+          "boundary": "Explicit TXT always classIN1; QTYPE TXT/ANY and classIN retains records including reserved-looking names; QCLASS ANY255 does not match IN records; no configurable explicit CHAOS TXT in image public option.",
+          "required_scenarios": [
+            "no-ident-full-default",
+            "no-ident-full-enabled"
+          ]
+        },
+        {
+          "id": "ID04",
+          "source": "rfc1035.c:1841-1855,wire extract_name",
+          "boundary": "Earlier binary labels containing literal dot/NUL/byte1 still retain final bind/server suffix; final literal-dot labels do not create suffix boundaries; RD0/1 and EDNS DO0/1, raw question/reply preserved.",
+          "required_scenarios": [
+            "no-ident-full-default",
+            "no-ident-full-enabled"
           ]
         }
       ],
