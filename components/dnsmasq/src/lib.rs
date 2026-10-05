@@ -11,6 +11,8 @@ pub mod helper;
 pub mod hosts;
 pub mod interfaces;
 pub mod metrics;
+#[cfg(target_os = "linux")]
+pub mod logging;
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 pub mod neighbors;
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]

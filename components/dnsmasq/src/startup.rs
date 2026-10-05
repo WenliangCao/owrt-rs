@@ -13,6 +13,7 @@ pub struct ProcessConfig {
     pub group_set: bool,
     pub pid_file: Option<PathBuf>,
     pub debug: bool,
+    pub keep_in_foreground: bool,
 }
 
 impl Default for ProcessConfig {
@@ -23,6 +24,7 @@ impl Default for ProcessConfig {
             group_set: false,
             pid_file: Some("/var/run/dnsmasq.pid".into()),
             debug: false,
+            keep_in_foreground: false,
         }
     }
 }
@@ -46,12 +48,7 @@ impl ProcessConfig {
                 self.pid_file = value().map(|value| PathBuf::from(OsString::from_vec(value)))
             }
             b"no-daemon" => self.debug = true,
-            // The foreground runner keeps diagnostics on its inherited
-            // stderr. Accept the C directive so helper/DHCP fixtures can use
-            // the same log-facility=- configuration without dropping it as an
-            // unknown option.
-            b"log-facility" => {}
-            b"keep-in-foreground" => {}
+            b"keep-in-foreground" => self.keep_in_foreground = true,
             _ => return Ok(false),
         }
         Ok(true)
@@ -202,6 +199,12 @@ mod linux {
             }
         }
 
+        /// log_start uses the selected passwd entry before dropping privilege,
+        /// including debug mode. It preserves the log file's existing group.
+        pub fn log_owner_uid(&self) -> Option<u32> {
+            self.uid.filter(|uid| *uid != 0)
+        }
+
         pub fn check_capabilities(&self, required: u32) -> Result<(), StartupError> {
             let mut header = CapHeader {
                 version: 0x20080522,
@@ -347,6 +350,30 @@ mod linux {
 }
 #[cfg(target_os = "linux")]
 pub use linux::Identity;
+
+/// Call after log_start has duplicated a configured stderr destination and
+/// before helper startup/UID changes. C tolerates a failed /dev/null open.
+#[cfg(target_os = "linux")]
+pub fn redirect_standard_streams(config: &ProcessConfig) {
+    use std::os::fd::AsRawFd;
+    unsafe extern "C" {
+        fn dup2(old: i32, new: i32) -> i32;
+    }
+    if config.debug {
+        return;
+    }
+    if let Ok(null) = std::fs::OpenOptions::new()
+        .read(true)
+        .write(true)
+        .open("/dev/null")
+    {
+        for target in [0, 1, 2] {
+            unsafe {
+                dup2(null.as_raw_fd(), target);
+            }
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {
