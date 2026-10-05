@@ -727,7 +727,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     listeners::validate_bind_interfaces(&daemon_config, &interface_snapshot.lock().unwrap())
         .map_err(NetworkStartupError)?;
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    let tftp_listener = if tftp_config.enabled {
+    let mut tftp_listener = if tftp_config.enabled {
         match TftpListener::bind_config(
             &tftp_config,
             &daemon_config,
@@ -823,6 +823,26 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         poll_listeners.push((token, udp, tcp));
     }
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    if let Some(tftp) = &mut tftp_listener {
+        for mut address in tftp.pending_listener_addresses().iter().copied() {
+            address.set_port(runtime.scalar.dns_port);
+            if !pending_static_dns.contains(&address) {
+                pending_static_dns.push(address);
+            }
+        }
+        for mut address in tftp.listener_addresses() {
+            if !tftp.has_listener(address) {
+                continue;
+            }
+            address.set_port(runtime.scalar.dns_port);
+            if !bound_listeners.iter().any(|(bound, _)| *bound == address) {
+                bound_listeners.push((address, SocketToken(next_listener)));
+                next_listener += 1;
+            }
+        }
+        tftp.use_shared_listener_owner();
+    }
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     let neighbor_cache = if tftp_config.unique_root_mac {
         NeighborCache::new().ok()
     } else {
@@ -865,6 +885,25 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     // `-k` is the normal OpenWrt invocation. Stop handlers let workers leave
     // their bounded receive loops and release sockets before exit.
     let mut last_interfaces = Instant::now();
+    // C's INAME_USED latch survives interface removal. Once an explicit
+    // address belonged to an interface, it cannot become an unowned fallback.
+    let mut owned_explicit: Vec<IpAddr> = interface_snapshot
+        .lock()
+        .unwrap()
+        .iter()
+        .filter(|interface| daemon_config.listen_addresses.contains(&interface.address))
+        .map(|interface| interface.address)
+        .collect();
+    // A listener created without an interface never acquires ownership when
+    // that address later appears. C retains such sockets across removal.
+    let mut persistent_unowned: Vec<SocketAddr> = bound_listeners
+        .iter()
+        .filter(|(address, _)| {
+            daemon_config.listen_addresses.contains(&address.ip())
+                && !owned_explicit.contains(&address.ip())
+        })
+        .map(|(address, _)| *address)
+        .collect();
     while !STOP_REQUESTED.load(Ordering::Acquire) {
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         poll.step_dhcp_files();
@@ -901,53 +940,96 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                         parent.local.config = daemon.local_config().clone();
                     }
                 }
+                for interface in &interfaces {
+                    if daemon_config.listen_addresses.contains(&interface.address)
+                        && !owned_explicit.contains(&interface.address)
+                    {
+                        owned_explicit.push(interface.address);
+                    }
+                }
+                let mut dns_addresses = listeners::bound_addresses(
+                    &daemon_config,
+                    runtime.scalar.dns_port,
+                    &interfaces,
+                );
                 if daemon_config.bind_dynamic {
-                    let addresses = listeners::bound_addresses(
-                        &daemon_config,
-                        runtime.scalar.dns_port,
-                        &interfaces,
-                    );
+                    dns_addresses.retain(|address| {
+                        !owned_explicit.contains(&address.ip())
+                            || persistent_unowned.contains(address)
+                            || interfaces
+                                .iter()
+                                .any(|interface| interface.address == address.ip())
+                    });
+                }
+                let mut eligible = dns_addresses.clone();
+                #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+                if let Some(tftp) = &mut poll.tftp {
+                    if daemon_config.bind_dynamic {
+                        for (address, _) in &bound_listeners {
+                            if !persistent_unowned.contains(address)
+                                && !interfaces
+                                    .iter()
+                                    .any(|interface| interface.address == address.ip())
+                            {
+                                tftp.retire_listener(*address);
+                            }
+                        }
+                    }
+                    tftp.refresh_listener_interfaces(&interfaces);
+                    for mut address in tftp.listener_addresses() {
+                        address.set_port(runtime.scalar.dns_port);
+                        if !eligible.contains(&address) {
+                            eligible.push(address);
+                        }
+                    }
+                }
+                if daemon_config.bind_dynamic {
                     bound_listeners.retain(|(address, token)| {
-                        if addresses.contains(address) {
+                        if eligible.contains(address) {
                             return true;
                         }
                         poll.remove_listener(*token);
                         false
                     });
-                    for address in addresses {
-                        if bound_listeners.iter().any(|(bound, _)| *bound == address) {
-                            continue;
-                        }
-                        // An address may still be tentative or not present. Dynamic
-                        // mode keeps the remaining service alive and retries later.
-                        if let Ok((udp, tcp)) = open_dns_listener(address) {
-                            let token = SocketToken(next_listener);
-                            next_listener += 1;
-                            poll.add_listener(token, udp, tcp);
-                            bound_listeners.push((address, token));
-                        }
+                }
+                let attempts = if daemon_config.bind_dynamic {
+                    if changed || poll.retry_bound_listeners {
+                        eligible.clone()
+                    } else {
+                        Vec::new()
                     }
-                } else if !pending_static_dns.is_empty() {
-                    let ready = listeners::bound_addresses(
-                        &daemon_config,
-                        runtime.scalar.dns_port,
-                        &interfaces,
-                    );
-                    pending_static_dns.retain(|address| {
-                        if !ready.contains(address) {
-                            return true;
+                } else {
+                    pending_static_dns.clone()
+                };
+                poll.retry_bound_listeners = false;
+                for address in attempts {
+                    if !eligible.contains(&address)
+                        || bound_listeners.iter().any(|(bound, _)| *bound == address)
+                    {
+                        continue;
+                    }
+                    let (udp, tcp) = if dns_addresses.contains(&address) {
+                        open_late_dns_listener(address)
+                    } else {
+                        (None, None)
+                    };
+                    let mut opened = udp.is_some() || tcp.is_some();
+                    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+                    if let Some(tftp) = &mut poll.tftp {
+                        opened |= tftp.bind_listener(address).unwrap_or(false);
+                    }
+                    if opened {
+                        if daemon_config.listen_addresses.contains(&address.ip())
+                            && !interfaces.iter().any(|interface| interface.address == address.ip())
+                        {
+                            persistent_unowned.push(address);
                         }
-                        match open_dns_listener(*address) {
-                            Ok((udp, tcp)) => {
-                                let token = SocketToken(next_listener);
-                                next_listener += 1;
-                                poll.add_listener(token, udp, tcp);
-                                bound_listeners.push((*address, token));
-                                false
-                            }
-                            Err(_) => true,
-                        }
-                    });
+                        let token = SocketToken(next_listener);
+                        next_listener += 1;
+                        poll.add_listener(token, udp, tcp);
+                        bound_listeners.push((address, token));
+                        pending_static_dns.retain(|pending| *pending != address);
+                    }
                 }
             }
         }
@@ -1045,6 +1127,18 @@ fn open_dns_listener(address: SocketAddr) -> io::Result<(Arc<DnsSocket>, TcpList
     Ok((udp, tcp))
 }
 
+/// Runtime listener creation preserves independently successful transports.
+/// The owner records the address once any DNS/TFTP socket succeeds, like
+/// C iface->done, and never fills in a failed half until that address retires.
+fn open_late_dns_listener(address: SocketAddr) -> (Option<Arc<DnsSocket>>, Option<TcpListener>) {
+    let udp = DnsSocket::bind(address).ok().map(Arc::new);
+    let tcp = listeners::tcp_bind(address).ok().and_then(|tcp| {
+        tcp.set_nonblocking(true).ok()?;
+        Some(tcp)
+    });
+    (udp, tcp)
+}
+
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 struct DhcpService {
     provider: Option<Arc<Mutex<DhcpProvider>>>,
@@ -1067,6 +1161,7 @@ struct SinglePoll {
     edns_max: u16,
     probe_metrics: Option<Metrics>,
     full_reload_pending: bool,
+    retry_bound_listeners: bool,
     #[cfg(target_os = "linux")]
     dns_files: Option<DnsFiles>,
     #[cfg(target_os = "linux")]
@@ -1097,8 +1192,8 @@ struct SinglePoll {
 
 struct PollListener {
     token: SocketToken,
-    udp: Arc<DnsSocket>,
-    tcp: TcpListener,
+    udp: Option<Arc<DnsSocket>>,
+    tcp: Option<TcpListener>,
 }
 
 struct PollTcpClient {
@@ -1300,7 +1395,11 @@ impl SinglePoll {
         Self {
             listeners: listeners
                 .into_iter()
-                .map(|(token, udp, tcp)| PollListener { token, udp, tcp })
+                .map(|(token, udp, tcp)| PollListener {
+                    token,
+                    udp: Some(udp),
+                    tcp: Some(tcp),
+                })
                 .collect(),
             clients: Vec::new(),
             service,
@@ -1313,6 +1412,7 @@ impl SinglePoll {
             edns_max,
             probe_metrics: None,
             full_reload_pending: false,
+            retry_bound_listeners: false,
             #[cfg(target_os = "linux")]
             dns_files: None,
             #[cfg(target_os = "linux")]
@@ -1442,6 +1542,7 @@ impl SinglePoll {
             .is_some_and(|watch| watch.read_events().unwrap_or(false))
         {
             files.request(ReloadReason::Route);
+            self.retry_bound_listeners = true;
         }
         let step = files.step();
         self.files_runnable = step.runnable;
@@ -1515,7 +1616,12 @@ impl SinglePoll {
         Ok(())
     }
 
-    fn add_listener(&mut self, token: SocketToken, udp: Arc<DnsSocket>, tcp: TcpListener) {
+    fn add_listener(
+        &mut self,
+        token: SocketToken,
+        udp: Option<Arc<DnsSocket>>,
+        tcp: Option<TcpListener>,
+    ) {
         self.listeners.push(PollListener { token, udp, tcp });
     }
 
@@ -1559,6 +1665,7 @@ impl SinglePoll {
             self.step_udp(index);
             self.step_tcp_accept(index);
         }
+        self.poll_udp_completions();
         self.step_tcp_clients();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         self.step_dhcp();
@@ -1572,7 +1679,9 @@ impl SinglePoll {
         if self.files_initializing() {
             return;
         }
-        let udp = Arc::clone(&self.listeners[index].udp);
+        let Some(udp) = self.listeners[index].udp.as_ref().map(Arc::clone) else {
+            return;
+        };
         let token = self.listeners[index].token;
         let mut query = vec![0; 65_535];
         let incoming = match udp.receive(&mut query) {
@@ -1684,7 +1793,8 @@ impl SinglePoll {
             let _ = udp.send(
                 &answer,
                 incoming.peer,
-                Some((incoming.destination, incoming.interface)),
+                (!self.config.bind_interfaces && !self.config.bind_dynamic)
+                    .then_some((incoming.destination, incoming.interface)),
             );
             if stale {
                 event.stale_answered = event.stale_answered.wrapping_add(1);
@@ -1717,11 +1827,17 @@ impl SinglePoll {
             let Some(token) = response.listener else {
                 continue;
             };
-            if let Some(target) = self.listeners.iter().find(|target| target.token == token) {
-                let _ = target.udp.send(
+            if let Some(target) = self
+                .listeners
+                .iter()
+                .find(|target| target.token == token)
+                .and_then(|listener| listener.udp.as_ref())
+            {
+                let _ = target.send(
                     &response.packet,
                     response.destination,
-                    Some((response.source, response.interface)),
+                    (!self.config.bind_interfaces && !self.config.bind_dynamic)
+                        .then_some((response.source, response.interface)),
                 );
             }
         }
@@ -1776,11 +1892,13 @@ impl SinglePoll {
                 .listeners
                 .iter()
                 .find(|target| target.token == response_token)
+                .and_then(|target| target.udp.as_ref())
             {
-                let _ = target.udp.send(
+                let _ = target.send(
                     &response.packet,
                     response.destination,
-                    Some((response.source, response.interface)),
+                    (!self.config.bind_interfaces && !self.config.bind_dynamic)
+                        .then_some((response.source, response.interface)),
                 );
             }
         }
@@ -1794,7 +1912,10 @@ impl SinglePoll {
             return;
         }
         let listener = &self.listeners[index];
-        let Ok((stream, peer)) = listener.tcp.accept() else {
+        let Some(tcp) = &listener.tcp else {
+            return;
+        };
+        let Ok((stream, peer)) = tcp.accept() else {
             return;
         };
         let Ok(destination) = stream.local_addr() else {
@@ -1900,17 +2021,21 @@ impl SinglePoll {
             revents: 0,
         }];
         for listener in &self.listeners {
-            fds.push(PollFd {
-                fd: listener.udp.as_raw_fd(),
-                events: POLLIN,
-                revents: 0,
-            });
-            if self.clients.len() < self.tcp_limit {
+            if let Some(udp) = &listener.udp {
                 fds.push(PollFd {
-                    fd: listener.tcp.as_raw_fd(),
+                    fd: udp.as_raw_fd(),
                     events: POLLIN,
                     revents: 0,
                 });
+            }
+            if self.clients.len() < self.tcp_limit {
+                if let Some(tcp) = &listener.tcp {
+                    fds.push(PollFd {
+                        fd: tcp.as_raw_fd(),
+                        events: POLLIN,
+                        revents: 0,
+                    });
+                }
             }
         }
         if let Some(daemon) = &self.service.lock().unwrap().daemon {
@@ -1958,6 +2083,7 @@ impl SinglePoll {
             self.step_udp(index);
             self.step_tcp_accept(index);
         }
+        self.poll_udp_completions();
         self.step_tcp_clients();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         self.step_neighbors();
@@ -2032,11 +2158,19 @@ impl SinglePoll {
                                     self.helper_init_end = true;
                                 }
                             }
+                            Notice::InitWarning(warning) => {
+                                eprintln!("dnsmasq-rs: {}", String::from_utf8_lossy(&warning));
+                            }
                             Notice::InitError(code) => {
                                 self.helper_init.take();
                                 self.helper_init_error = Some(StartError {
                                     code,
-                                    message: "cannot parse lease-init database".into(),
+                                    message: if code == 5 {
+                                        "too many stored leases"
+                                    } else {
+                                        "cannot parse lease-init database"
+                                    }
+                                    .into(),
                                 });
                             }
                             Notice::InitExit(status) => {
