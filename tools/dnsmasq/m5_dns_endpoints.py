@@ -323,6 +323,23 @@ def service_cases():
         changed=copy.deepcopy(original);changed['id']='source-interface-recreated-'+label;changed['config']+=extra_config
         at=next(index for index,action in enumerate(changed['actions']) if action.get('endpoint_action')=='recreate-interface')+1
         changed['actions'][at:at]=after;cases.append(changed)
+    add('hostname-scoped-expansion','server=mixed.endpoint.test%lo\nall-servers\n',sys_files={'/etc/hosts':HOSTS})
+    for family,source in [('v4','127.0.0.9'),('v6','::1')]:
+        add('hostname-interface-source-'+family,'server=mixed.endpoint.test@lo@'+source+'\n',sys_files={'/etc/hosts':HOSTS})
+    for family,address in [('v4','192.0.2.7'),('v6','2001:db8::7')]:
+        add('reverse-no-prefix-'+family,'rev-server='+address+',127.0.0.2\n',(ipaddress.ip_address(address).reverse_pointer,'one.endpoint.test'))
+    add('resolver-file-global-source','query-port=34003\n',no_resolv=False,default_resolv=True,
+        files={'resolv':'nameserver 127.0.0.2\n'},expected_source_port=34003)
+    add('file-unresolved-name-followed-valid','servers-file=/m2/files/servers\n',resolver_fixture=True,resolver_rcode=3,diagnostics=True,
+        files={'servers':'server=/bad.endpoint.test/lookup.endpoint.test\nserver=/one.endpoint.test/127.0.0.3\n'},
+        sys_files=resolver_files,names=('one.endpoint.test','bad.endpoint.test'))
+    add('file-resolved-source-family-filter','servers-file=/m2/files/servers\n',
+        files={'servers':'server=/one.endpoint.test/mixed.endpoint.test@lo@127.0.0.9\nserver=/two.endpoint.test/mixed.endpoint.test@lo@::1\n'},
+        sys_files={'/etc/hosts':HOSTS},names=('one.endpoint.test','two.endpoint.test'))
+    add('file-inline-rule-order-replacement','servers-file=/m2/files/servers\nserver=/one.endpoint.test/127.0.0.2\nlocal=/local.endpoint.test/\nrev-server=192.0.2.0/24,127.0.0.2\n',
+        files={'servers':'server=/one.endpoint.test/127.0.0.3\nserver=/one.endpoint.test/127.0.0.3\nrev-server=192.0.2.0/24,127.0.0.4\n'},
+        actions=[probe('initial-one','one.endpoint.test'),probe('initial-local','local.endpoint.test'),probe('initial-reverse','7.2.0.192.in-addr.arpa'),
+            write('servers','server=/one.endpoint.test/127.0.0.4\n'),signal_reload(),probe('replace-one','one.endpoint.test'),probe('retained-local','local.endpoint.test'),probe('retained-reverse','7.2.0.192.in-addr.arpa')])
     return cases
 
 
