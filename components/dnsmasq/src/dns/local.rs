@@ -473,6 +473,7 @@ impl<'a> LocalAnswerer<'a> {
             header.authorities = 0;
             header.additionals = 0;
             header.write(&mut packet)?;
+            notices.label(0, b"reply", Some(b"truncated"), 0);
         }
         Ok(Some(LocalAnswer {
             packet,

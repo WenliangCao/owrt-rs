@@ -189,6 +189,13 @@ impl CacheContext<'_> {
             max_udp.min(limit),
             dnssec_requested,
         )?;
+        // The selected cache writer reports overflow before EDNS is appended.
+        // Its source is known here independently of the final owner response.
+        if answer.packet.as_ref().is_some_and(|packet| {
+            Header::parse(packet).is_ok_and(|header| header.flags & 0x0200 != 0)
+        }) {
+            local.record_query_event(QueryEvent::label(0, b"reply", Some(b"truncated"), 0));
+        }
         if edns.opt.is_some() {
             if let Some(packet) = &mut answer.packet {
                 let append_limit = if tcp {
