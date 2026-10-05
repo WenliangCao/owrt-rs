@@ -889,7 +889,13 @@ fn add_local_records_for_name(
                     owned = true;
                 }
             }
-            if !owned && !cache.is_some_and(|cache| Name::from_dotted_bytes(name).ok().is_some_and(|query| cache.has_forward_candidate(&query, rrtype, leases.now))) {
+            if !rows.iter().any(|row| row.0 == rrtype)
+                && !cache.is_some_and(|cache| {
+                    Name::from_dotted_bytes(name).ok().is_some_and(|query| {
+                        cache.has_forward_candidate(&query, rrtype, leases.now)
+                    })
+                })
+            {
                 if let Some(address) = leases.synth.forward(name, ipv6) {
                     rows.push((rrtype, ttl, ip_bytes(address)));
                     owned = true;
