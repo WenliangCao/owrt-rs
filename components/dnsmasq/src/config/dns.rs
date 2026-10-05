@@ -125,6 +125,7 @@ pub struct ConditionalDomain {
 #[derive(Clone, Debug)]
 pub struct DnsConfig {
     pub records: super::records::RecordConfig,
+    pub edns: super::edns::EdnsConfig,
     /// Declaration order. A lookup must apply domain-match.c priorities, not
     /// pick the first suffix match (specificity and RR family both matter).
     pub rules: Vec<ServerRule>,
@@ -180,6 +181,7 @@ impl Default for DnsConfig {
     fn default() -> Self {
         Self {
             records: super::records::RecordConfig::default(),
+            edns: super::edns::EdnsConfig::default(),
             rules: Vec::new(),
             listen_addresses: Vec::new(),
             interfaces: Vec::new(),
