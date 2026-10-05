@@ -136,7 +136,7 @@ def service_cases():
         actions=extra.pop('actions',probes(names))
         cases.append(dict(id=ident,config='no-resolv\nserver=127.0.0.2\n'+config,checks=checks.split(),
             files=extra.pop('files',{}),sys_files={},default_resolv=False,strict_order=True,
-            no_upstream=True,negative_names=[a['name'] for a in actions if a.get('op')=='query'],actions=actions,**extra))
+            no_upstream=True,negative_names=extra.pop('negative_names',[a['name'] for a in actions if a.get('op')=='query']),actions=actions,**extra))
     targets=[('address','m5ir0'),('family4','m5ir0/4'),('family6','m5ir0/6'),('missing','missing_ir'),('wildcard','m5ir*')]
     for label,target in targets:
         add('interface-'+label,'interface-name=iface.records.test,'+target+'\n',
@@ -335,6 +335,34 @@ def service_cases():
     add('interface-flag-optimistic','interface-name=iface.records.test,m5ir0\n',[],'IF-FLAGS',topology=[v4only],actions=[
         *dad[:-1],kernel(['ip','-6','addr','change','2001:db8:91::9/64','dev','m5ir0','optimistic']),state('optimistic'),
         *mutation_probes('optimistic','2001:db8:91::9')])
+    failed_dad=[*dad[:5],kernel(['ip','-6','addr','add','2001:db8:91::9/64','dev','m5peer0','nodad']),
+                kernel(['ip','-6','addr','add','2001:db8:91::9/64','dev','m5ir0']),
+                dict(op='write',path='dad-failure',text='',kernel_wait={'address':'2001:db8:91::9','mask':0x08,'set':True}),state('dadfailed')]
+    add('interface-flag-dad-failure','interface-name=iface.records.test,m5ir0\n',[],'IF-FLAGS',topology=[v4only],
+        actions=[*failed_dad,*mutation_probes('failed','2001:db8:91::9')])
+    combined=[*dad[:5],kernel(['sysctl','-q','-w','net.ipv6.conf.m5ir0.use_tempaddr=2']),
+        kernel(['ip','-6','addr','add','2001:db8:91::9/64','dev','m5ir0','mngtmpaddr','nodad','valid_lft','600','preferred_lft','300']),
+        dict(op='write',path='temporary-flags',text='',kernel_temporary={'mask':0x41,'preferred_lft':0}),state('combined')]
+    add('interface-flag-combined','interface-name=iface.records.test,m5ir0\n',[],'IF-FLAGS',topology=[v4only],
+        actions=[*combined,files.probe('forward','iface.records.test',type=28),files.probe('temporary-ptr','placeholder.test',type=12,temporary_ptr=True)])
+    add('dynamic-privacy-order','dynamic-host=iface.records.test,2001:db8::7,m5ir0\n',[],'DH-COMPOSE IF-FLAGS',topology=[v4only],
+        actions=[*privacy,files.probe('privacy-first','iface.records.test',type=28),
+            kernel(['ip','-6','addr','add','2001:db8:91::10/64','dev','m5ir0','nodad']),state('permanent-first'),
+            files.probe('permanent-first','iface.records.test',type=28),(files.probe('derived-ptr',ipaddress.ip_address('2001:db8:91::7').reverse_pointer,type=12))])
+    add('dynamic-alias','dynamic-host=iface.records.test,192.0.2.7,m5ir0:1\n',[],'DH-COMPOSE IF-ENUM',topology=[v4only],
+        actions=[kernel(['ip','addr','add','198.18.92.9/24','dev','m5ir0','label','m5ir0:1']),state('alias'),
+            files.probe('forward','iface.records.test'),files.probe('reverse','7.92.18.198.in-addr.arpa',type=12)])
+    add('interface-lease-priority','interface-name=iface.records.test,m5ir0\ndomain=records.test\nno-ping\n'
+        'dhcp-range=198.18.91.2,198.18.91.100,255.255.255.0,600\ndhcp-leasefile=/m2/files/leases\n',
+        [('9.91.18.198.in-addr.arpa',12),('lease.records.test',1),('iface.records.test',1)],'IF-PTR IF-CALLER',topology=[v4only],
+        files={'leases':'4102444800 02:00:00:91:00:09 198.18.91.9 lease *\n'})
+    add('interface-cache-positive-empty','interface-name=iface.records.test,missing_ir\n',
+        [('iface.records.test',1),('iface.records.test',1)],'IF-FWD',cache_size=16,negative_names=[])
+    add('interface-ptr-cache-priority','interface-name=iface.records.test,m5ir0\ncache-rr=PTR\n',[],'IF-PTR IF-FWD',
+        topology=[v4only],cache_size=16,negative_names=[],actions=[files.probe('warm','10.91.18.198.in-addr.arpa',type=12,transports=['udp']),
+            files.probe('cache','10.91.18.198.in-addr.arpa',type=12,transports=['udp']),
+            kernel(['ip','addr','add','198.18.91.10/24','dev','m5ir0']),files.probe('enum','iface.records.test',transports=['udp']),
+            files.probe('interface','10.91.18.198.in-addr.arpa',type=12,transports=['udp'])])
     add('interface-synth-ptr-precedence','interface-name=iface.records.test,m5ir0\nsynth-domain=synthetic.records.test,198.18.91.0/24\n',
         [('9.91.18.198.in-addr.arpa',12),('10.91.18.198.in-addr.arpa',12)],'IF-PTR SYN-PTR',topology=[primary])
     add('interface-synth-forward-intercept','interface-name=198-18-91-9.synthetic.records.test,missing_ir\nsynth-domain=synthetic.records.test,198.18.91.0/24\n',
@@ -403,6 +431,26 @@ def run_service_side(root,side,case,out):
             files.await_predicate(lambda:Path(str(path)+'.ready').exists() or tracer.poll() is not None,'enumeration fault attach')
             if tracer.poll() is not None:raise AssertionError('enumeration fault tracer exited')
             tracers.append((tracer,path));return
+        if isinstance(value,dict) and 'kernel_temporary' in value:
+            expected=value['kernel_temporary'];deadline=time.monotonic()+12
+            while True:
+                raw=json.loads(subprocess.check_output(['ip','-j','-6','addr','show','dev','m5ir0'],text=True))
+                temporary=next((a for interface in raw for a in interface['addr_info'] if a.get('temporary')),None)
+                flag=None
+                if temporary is not None:
+                    key=ipaddress.ip_address(temporary['local']).packed.hex()
+                    flag=next((int(parts[4],16) for line in Path('/proc/net/if_inet6').read_text().splitlines()
+                        if (parts:=line.split())[0]==key),None)
+                if flag is not None and flag&expected['mask']==expected['mask']:break
+                if time.monotonic()>deadline:raise AssertionError('temporary combined kernel flags were not witnessed')
+                time.sleep(.01)
+            subprocess.run(['ip','-6','addr','change',temporary['local']+'/'+str(temporary['prefixlen']),'dev','m5ir0',
+                'valid_lft','600','preferred_lft',str(expected['preferred_lft'])],check=True)
+            record('temporary-changed')
+            actual=next((int(parts[4],16) for line in Path('/proc/net/if_inet6').read_text().splitlines()
+                if (parts:=line.split())[0]==key),None)
+            if actual is None or actual&0x61!=0x61:raise AssertionError('actual temporary/tentative/deprecated combination missing')
+            return
         if isinstance(value,dict) and 'kernel_command' in value:
             subprocess.run(value['kernel_command'],check=True)
             return
