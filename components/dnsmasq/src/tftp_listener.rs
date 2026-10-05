@@ -51,6 +51,7 @@ pub struct TftpListener<O> {
     accepting: bool,
     pending_bind: Vec<SocketAddr>,
     shared_listener_owner: bool,
+    retired_explicit: Vec<IpAddr>,
 }
 impl TftpListener<RealFileOpener> {
     /// Bind before dropping privileges. Directory checks belong to
@@ -108,6 +109,7 @@ impl<O: FileOpener> TftpListener<O> {
             accepting: true,
             pending_bind: Vec::new(),
             shared_listener_owner: false,
+            retired_explicit: Vec::new(),
         }
     }
     pub fn bind(address: SocketAddr, runtime: TransferRuntime<O>) -> io::Result<Self> {
@@ -162,9 +164,19 @@ impl<O: FileOpener> TftpListener<O> {
         self.shared_listener_owner = true;
     }
     pub fn listener_addresses(&self) -> Vec<SocketAddr> {
-        self.policy
-            .as_ref()
-            .map_or_else(Vec::new, Policy::addresses)
+        self.policy.as_ref().map_or_else(Vec::new, |policy| {
+            let mut addresses = policy.addresses();
+            // C's INAME_USED stays set after an explicit address gains an
+            // interface. Losing its last owner cannot create a fallback.
+            addresses.retain(|address| {
+                !self.retired_explicit.contains(&address.ip())
+                    || policy
+                        .interfaces
+                        .iter()
+                        .any(|row| row.address == address.ip())
+            });
+            addresses
+        })
     }
     pub fn pending_listener_addresses(&self) -> &[SocketAddr] {
         &self.pending_bind
@@ -181,13 +193,34 @@ impl<O: FileOpener> TftpListener<O> {
             return;
         };
         policy.interfaces = interfaces.to_vec();
-        if policy.dns.bind_dynamic {
-            let addresses = policy.addresses();
+        let dynamic = policy.dns.bind_dynamic;
+        if dynamic {
+            let addresses = self.listener_addresses();
             for server in &mut self.servers {
                 server.accepting = addresses.contains(&server.address);
             }
             self.discard_inactive_servers();
         }
+    }
+    /// Retire the last interface owner's listener. Only configured explicit
+    /// IPs are retained as history, bounding this state by configuration size.
+    /// A later real interface can reactivate the address.
+    pub fn retire_listener(&mut self, mut address: SocketAddr) {
+        address.set_port(69);
+        if self
+            .policy
+            .as_ref()
+            .is_some_and(|policy| policy.dns.listen_addresses.contains(&address.ip()))
+            && !self.retired_explicit.contains(&address.ip())
+        {
+            self.retired_explicit.push(address.ip());
+        }
+        for server in &mut self.servers {
+            if server.address == address {
+                server.accepting = false;
+            }
+        }
+        self.discard_inactive_servers();
     }
     /// Return false for a transport which is disabled by interface policy or
     /// still waiting for DAD. The owner records success of any transport; an
@@ -197,7 +230,7 @@ impl<O: FileOpener> TftpListener<O> {
         let Some(policy) = self.policy.as_ref() else {
             return Ok(false);
         };
-        if !policy.addresses().contains(&address) || policy.tentative(address) {
+        if !self.listener_addresses().contains(&address) || policy.tentative(address) {
             return Ok(false);
         }
         if self.has_listener(address) {
