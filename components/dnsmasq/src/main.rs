@@ -2189,13 +2189,12 @@ impl PollTcpClient {
                 .into_iter()
                 .map(|event| (self.query_context, event)),
         );
-        if self.service.query_logging {
-            self.query_events.extend(
-                extraction_events
-                    .into_iter()
-                    .map(|event| (self.query_context, event)),
-            );
-        }
+        // Producer warnings survive disabled/only-failed/auth query filters.
+        self.query_events.extend(
+            extraction_events
+                .into_iter()
+                .map(|event| (self.query_context, event)),
+        );
         if let Some(transaction) = transaction {
             self.parent_cache_activity = true;
             let mut owner = parent.lock().map_err(|_| ())?;

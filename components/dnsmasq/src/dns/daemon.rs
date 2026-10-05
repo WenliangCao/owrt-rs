@@ -1360,29 +1360,18 @@ impl<R: Random> DnsDaemon<R> {
                     negative_ttl: self.negative_ttl,
                     filter_rr: &self.filter_rr,
                 };
-                let extracted = if self.query_logging.enabled {
-                    cache_context
-                        .insert_reply_with_events(
-                            &reply.packet,
-                            now,
-                            external_local.unwrap_or(&self.local),
-                            &self.policy,
-                            rcode,
-                            ordinary,
-                            false,
-                            &mut query_events,
-                        )
-                        .map(|_| ())
-                } else {
-                    cache_context.insert_reply_with_policy(
+                let extracted = cache_context
+                    .insert_reply_with_events(
                         &reply.packet,
                         now,
                         external_local.unwrap_or(&self.local),
                         &self.policy,
                         rcode,
                         ordinary,
+                        false,
+                        &mut query_events,
                     )
-                };
+                    .map(|_| ());
                 self.query_events
                     .extend(query_events.into_iter().map(|event| (context, event)));
                 if extracted.is_err() {
