@@ -221,6 +221,13 @@ def profiles():
         dict(case='mask-reply',exchange=True,mask='2'),dict(case='mask-unrelated',exchange=True,mask='0x2000'),
         dict(case='mask-decimal',exchange=True,mask='3'),dict(case='mask-hex',exchange=True,mask='0x3'),
         dict(case='mask-octal',exchange=True,mask='03'),dict(case='mask-negative',exchange=True,mask='-1'),
+        dict(case='mask-vertical-tab',exchange=True,mask='\x0b1',effective_mask=1,mask_cli=True),
+        dict(case='mask-vertical-tab-negative',exchange=True,mask='\x0b-1tail',effective_mask=-1,mask_cli=True),
+        dict(case='mask-long-positive-overflow',exchange=True,mask='9223372036854775808',effective_mask=-1,mask_cli=True),
+        dict(case='mask-long-negative-overflow',exchange=True,mask='-9223372036854775809',effective_mask=0,mask_cli=True),
+        dict(case='mask-unsigned-long-max',exchange=True,mask='18446744073709551615',effective_mask=-1,mask_cli=True),
+        dict(case='mask-hex-overflow',exchange=True,mask='0xFFFFFFFFFFFFFFFFFFFFFFFF',effective_mask=-1,mask_cli=True),
+        dict(case='mask-base-zero-octal-stop',exchange=True,mask='08trailer',effective_mask=0,mask_cli=True),
         dict(case='mask-empty',exchange=True,mask=''),dict(case='mask-no-file',exchange=True,no_file=True,mask='3'),
         dict(case='empty-file-disables',exchange=True,empty_file=True),
         dict(case='tcp-local-no-capture',exchange=True,tcp=True),dict(case='regular-term-cleanup',exchange=True),
@@ -390,7 +397,7 @@ def case(args,root,spec):
     config=['port='+str(SERVER),'no-hosts','no-resolv','bind-interfaces','listen-address=127.0.0.1,::1','user=root','group=root',
         'pid-file=/m2/dump.pid','log-facility=-','host-record=dump.test,192.0.2.80','host-record=odd.dump.test,192.0.2.81']
     if not spec.get('no_file'):config += ['dumpfile='+('' if spec.get('empty_file') else path)]
-    if 'mask' in spec:config += ['dumpmask='+spec['mask']]
+    if 'mask' in spec and not spec.get('mask_cli'):config += ['dumpmask='+spec['mask']]
     extras=spec.get('extra',[])
     for key in ['user=', 'group=']:
         if any(value.startswith(key) for value in extras):config=[value for value in config if not value.startswith(key)]
@@ -406,7 +413,9 @@ def case(args,root,spec):
         for phase in range(2 if spec.get('restart') else 1):
             (root/'m2/dump.pid').unlink(missing_ok=True)
             with (folder/f'{phase}.log').open('wb') as log:
-                process=subprocess.Popen(command(root,args.side,'-k','-C','/m2/dump.conf'),stdout=log,stderr=log)
+                argv=command(root,args.side,'-k','-C','/m2/dump.conf',*(['--dumpmask='+spec['mask']] if spec.get('mask_cli') else []))
+                save(folder/f'{phase}.argv.json',argv)
+                process=subprocess.Popen(argv,stdout=log,stderr=log)
                 if spec.get('expect'):
                     status=process.wait(3);logged=(folder/f'{phase}.log').read_bytes()
                     assert status==3 and spec['expect'].encode() in logged,'C dump startup error class/message'
@@ -443,7 +452,7 @@ def case(args,root,spec):
             expected=[]
             value=spec.get('mask','-1') or '0'
             unsigned=value.lstrip('+-')
-            mask=int(value,16 if unsigned.lower().startswith('0x') else 8 if len(unsigned)>1 and unsigned.startswith('0') else 10)
+            mask=spec['effective_mask'] if 'effective_mask' in spec else int(value,16 if unsigned.lower().startswith('0x') else 8 if len(unsigned)>1 and unsigned.startswith('0') else 10)
             forwards=[event for event in upstream.events if not event['tcp']] if upstream else []
             save(folder/'upstream-witnesses.json',upstream.events if upstream else [])
             if upstream:assert len(upstream.events)==1,'actual forwarding/cache caller count'

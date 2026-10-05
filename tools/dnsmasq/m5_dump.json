@@ -31,7 +31,14 @@
         "mask-octal",
         "mask-negative",
         "mask-empty",
-        "mask-no-file"
+        "mask-no-file",
+        "mask-vertical-tab",
+        "mask-vertical-tab-negative",
+        "mask-long-positive-overflow",
+        "mask-long-negative-overflow",
+        "mask-unsigned-long-max",
+        "mask-hex-overflow",
+        "mask-base-zero-octal-stop"
       ]
     },
     {
@@ -188,7 +195,14 @@
       "tftp-v6-data",
       "upstream-v4-all",
       "upstream-v6-all",
-      "write-error-recovery"
+      "write-error-recovery",
+      "mask-vertical-tab",
+      "mask-vertical-tab-negative",
+      "mask-long-positive-overflow",
+      "mask-long-negative-overflow",
+      "mask-unsigned-long-max",
+      "mask-hex-overflow",
+      "mask-base-zero-octal-stop"
     ],
     "dumpmask": [
       "syntax-file",
@@ -214,7 +228,17 @@
       "dhcp-dora",
       "dhcp-mask-zero",
       "tftp-v4-data",
-      "tftp-mask-zero"
+      "tftp-mask-zero",
+      "mask-vertical-tab",
+      "mask-vertical-tab-negative",
+      "mask-long-positive-overflow",
+      "mask-long-negative-overflow",
+      "mask-unsigned-long-max",
+      "mask-hex-overflow",
+      "mask-base-zero-octal-stop"
     ]
+  },
+  "deferred_resolution_notes": {
+    "integer_mask_grammar": "Seven source-derived LP64 strtol saturation/C-isspace PCAP controls added; calibration pending, unexecuted controls do not qualify."
   }
 }
