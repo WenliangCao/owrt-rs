@@ -68,9 +68,14 @@ def trace_write(pid,descriptor,output):
             if os.WSTOPSIG(status) not in [signal.SIGTRAP|0x80,signal.SIGTRAP]:
                 ptrace(24,0,os.WSTOPSIG(status));os.waitpid(pid,0);continue
             info=(ctypes.c_ubyte*128)();ptrace(0x420e,ctypes.sizeof(info),ctypes.addressof(info));regs()
-            if info[0]==1 and registers[8]==64 and registers[0]==descriptor:
-                wire=os.pread(memory,min(int(registers[2]),65536),int(registers[1]))
-                receipt['syscalls'].append(dict(number=64,pc=int(registers[32]),fd=int(registers[0]),count=int(registers[2]),wire=wire.hex()))
+            if info[0]==1 and registers[8] in [64,66] and registers[0]==descriptor:
+                number=int(registers[8])
+                if number==66:
+                    vectors=os.pread(memory,int(registers[2])*16,int(registers[1]))
+                    wire=b''.join(os.pread(memory,size,address) for address,size in struct.iter_unpack('=QQ',vectors))
+                else:
+                    wire=os.pread(memory,min(int(registers[2]),65536),int(registers[1]))
+                receipt['syscalls'].append(dict(number=number,pc=int(registers[32]),fd=int(registers[0]),count=len(wire),iovecs=int(registers[2]) if number==66 else None,wire=wire.hex()))
                 skip=ctypes.c_int(-1);iov=Iovec(ctypes.addressof(skip),ctypes.sizeof(skip))
                 ptrace(0x4205,0x404,ctypes.addressof(iov));active=True
             elif info[0]==2 and active:
