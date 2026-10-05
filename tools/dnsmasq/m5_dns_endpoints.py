@@ -618,7 +618,7 @@ def run_service_side(root, side, case, folder):
     def capture_exchange(port,action,*args):
         # A winner reply can reach the client before another peer thread records
         # its receive. Snapshot all-servers UDP only after every actual receipt.
-        if args[1]=='udp' and case.get('udp_expected_receipts'):
+        if action['id']!='ready' and args[1]=='udp' and case.get('udp_expected_receipts'):
             action=dict(action,upstream_expected=case['udp_expected_receipts'])
         result=original_exchange(port,action,*args)
         if action['id']=='ready': ready_attempts.append(dict(pending=lookup_pending(),response=result['response'],at=time.monotonic()))
