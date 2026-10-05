@@ -14,7 +14,7 @@ import socket
 import subprocess
 import time
 
-from dns_service_probe import query, semantics
+from dns_service_probe import exact_read, query, semantics
 from m2_rootfs import STOCK_SHA256, command, image_path, prepare, process_identity, sha256
 
 DEPENDENCIES = ['dns_service_probe.py', 'm2_rootfs.py', 'run_isolated.sh',
@@ -114,6 +114,58 @@ def cases():
          'argv': ['--log-facility=-', '--no-ident', '--txt-record=kept.logging,explicit-user'],
          'chaos': True, 'options': ['no-ident']},
     ])
+    query_modes = [([], 'ordinary'), (['extra'], 'extra'), (['proto'], 'proto'),
+                   (['auth'], 'auth'), (['only_failed'], 'only_failed'),
+                   ([''], 'ordinary'), (['unknown'], 'ordinary'), (['EXTRA'], 'ordinary'),
+                   (['extra,proto'], 'ordinary'), (['proto', 'unknown'], 'proto'),
+                   (['extra', 'only_failed'], 'only_failed'), (['auth', 'proto'], 'auth')]
+    for index, (modes, expected) in enumerate(query_modes):
+        rows.append({'id': f'query-mode-{index:02d}', 'scope': 'query-reference', 'kind': 'run',
+                     'argv': ['--log-facility=-', '--log-queries'] +
+                             ['--log-queries=' + mode for mode in modes] +
+                             ['--host-record=v6.logging,2001:db8::1',
+                              '--cname=alias.logging,ready.logging',
+                              '--txt-record=kept.logging,explicit-user',
+                              '--address=/nxdomain.logging/'],
+                     'query_probes': True, 'query_mode': expected, 'options': ['log-queries']})
+    rows.append({'id': 'query-debug-proto', 'scope': 'query-reference', 'kind': 'run',
+                 'mode': ['-d'], 'argv': ['--log-facility=-', '--log-queries=proto',
+                                        '--host-record=v6.logging,2001:db8::1',
+                                        '--cname=alias.logging,ready.logging',
+                                        '--txt-record=kept.logging,explicit-user',
+                                        '--address=/nxdomain.logging/'],
+                 'query_probes': True, 'query_mode': 'proto', 'options': ['log-queries', 'no-daemon']})
+    rows.extend([
+        {'id': 'daemon-default-stderr', 'scope': 'daemon', 'kind': 'run', 'mode': [],
+         'argv': ['--log-facility=-'], 'daemonized': True, 'pidfile': '/m2/logging/daemon.pid',
+         'options': ['no-daemon', 'log-facility']},
+        {'id': 'daemon-default-syslog', 'scope': 'daemon', 'kind': 'run', 'mode': [],
+         'argv': [], 'receiver': 'dgram', 'facility': 24, 'daemonized': True,
+         'pidfile': '/m2/logging/daemon.pid', 'options': ['no-daemon', 'log-facility']},
+        {'id': 'daemon-relative-paths', 'scope': 'daemon', 'kind': 'run', 'mode': [],
+         'argv': ['--log-facility=./relative.log'], 'file': '/relative.log', 'daemonized': True,
+         'pidfile': './daemon.pid', 'options': ['no-daemon', 'log-facility']},
+        {'id': 'foreground-relative-paths', 'scope': 'daemon', 'kind': 'run', 'mode': ['-k'],
+         'argv': ['--log-facility=./relative.log'], 'file': '/relative.log',
+         'pidfile': './daemon.pid', 'options': ['no-daemon', 'log-facility']},
+        {'id': 'debug-relative-paths', 'scope': 'daemon', 'kind': 'run', 'mode': ['-d'],
+         'argv': ['--log-facility=./relative.log'], 'file': '/m2/logging/relative.log',
+         'pidfile': './daemon.pid', 'sentinel_pid': True, 'options': ['no-daemon', 'log-facility']},
+        {'id': 'debug-sigint-pid', 'scope': 'daemon', 'kind': 'run', 'mode': ['-d'],
+         'argv': ['--log-facility=-'], 'pidfile': './daemon.pid', 'sentinel_pid': True,
+         'signal': 'int', 'exit': 5, 'expect_ready': True, 'options': ['no-daemon']},
+        {'id': 'daemon-log-open-failure', 'scope': 'daemon', 'kind': 'run', 'mode': [],
+         'argv': [], 'config': 'log-facility=/m2/logging/missing/daemon.log\n',
+         'exit': 3, 'receiver': 'dgram', 'daemonized': True, 'pidfile': '/m2/logging/daemon.pid',
+         'options': ['no-daemon', 'log-facility']},
+        {'id': 'daemon-log-failure-parent-facility', 'scope': 'daemon', 'kind': 'run', 'mode': [],
+         'argv': ['--log-facility=local3'], 'config': 'log-facility=/m2/logging/missing/daemon.log\n',
+         'exit': 3, 'receiver': 'dgram', 'daemonized': True, 'pidfile': '/m2/logging/daemon.pid',
+         'options': ['no-daemon', 'log-facility']},
+        {'id': 'daemon-pid-open-failure', 'scope': 'daemon', 'kind': 'run', 'mode': [],
+         'argv': ['--log-facility=-'], 'exit': 3, 'receiver': 'dgram', 'daemonized': True,
+         'pidfile': '/m2/logging/missing/daemon.pid', 'options': ['no-daemon']},
+    ])
     return rows
 
 
@@ -173,11 +225,13 @@ class Receiver:
             self.listener.close()
 
 
-def exchange(name, kind=1, chaos=False):
+def exchange(name, kind=1, chaos=False, port=None):
     wire = query(name, kind, 0x7100)
     if chaos:
         wire = wire[:-2] + b'\0\3'
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as client:
+        if port is not None:
+            client.bind(('127.0.0.1', port))
         client.settimeout(.03)
         client.sendto(wire, ('127.0.0.1', 15353))
         reply = client.recv(65535)
@@ -186,7 +240,31 @@ def exchange(name, kind=1, chaos=False):
     return semantics(reply), {'request': wire.hex(), 'reply': reply.hex()}
 
 
+def query_sequence():
+    return [('ready.logging', 1), ('ready.logging', 28), ('v6.logging', 28),
+            ('alias.logging', 1), ('1.2.0.192.in-addr.arpa', 12),
+            ('kept.logging', 16), ('nxdomain.logging', 1), ('ready.logging', 65400)]
+
+
+def tcp_sequence(probes):
+    rows, raw = [], []
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
+        client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        client.settimeout(.5)
+        client.bind(('127.0.0.1', 16502))
+        client.connect(('127.0.0.1', 15353))
+        for name, kind in probes:
+            wire = query(name, kind, 0x7200)
+            client.sendall(len(wire).to_bytes(2, 'big') + wire)
+            reply = exact_read(client, int.from_bytes(exact_read(client, 2), 'big'))
+            rows.append({'name': name, 'type': kind, 'transport': 'tcp', 'response': semantics(reply)})
+            raw.append({'request': wire.hex(), 'reply': reply.hex(), 'transport': 'tcp'})
+    return rows, raw
+
+
 def run(root, side, case, out):
+    if case.get('scope') == 'daemon':
+        return run_daemon(root, side, case, out)
     out.mkdir()
     folder = image_path(root, '/m2/logging')
     shutil.rmtree(folder, ignore_errors=True)
@@ -223,7 +301,10 @@ def run(root, side, case, out):
                     break
                 if case['kind'] == 'run':
                     try:
-                        answer, raw = exchange('ready.logging')
+                        if case.get('query_probes') and b'cleared cache\n' not in (out / 'stderr').read_bytes():
+                            time.sleep(.005)
+                            continue
+                        answer, raw = exchange('ready.logging', port=16500 if case.get('query_probes') else None)
                         if [row['data'] for row in answer['records']] != ['192.0.2.1']:
                             raise AssertionError('wrong readiness answer')
                         observed['ready'] = True
@@ -237,6 +318,17 @@ def run(root, side, case, out):
                         pass
                 time.sleep(.005)
             if observed['ready']:
+                if case.get('query_probes'):
+                    for name, kind in query_sequence():
+                        answer, raw = exchange(name, kind, port=16501)
+                        observed['dns'].append({'name': name, 'type': kind, 'transport': 'udp', 'response': answer})
+                        trace['dns'].append(dict(raw, transport='udp'))
+                    rows, raw = tcp_sequence(query_sequence())
+                    observed['dns'].extend(rows)
+                    trace['dns'].extend(raw)
+                    answer, raw = exchange('ready.logging', port=16503)
+                    observed['dns'].append({'name': 'ready.logging', 'type': 1, 'transport': 'udp-after-tcp', 'response': answer})
+                    trace['dns'].append(dict(raw, transport='udp-after-tcp'))
                 if case.get('chaos'):
                     for name in ['version.bind', 'authors.bind', 'copyright.bind', 'cachesize.bind',
                                  'insertions.bind', 'evictions.bind', 'hits.bind', 'misses.bind', 'servers.bind']:
@@ -288,15 +380,184 @@ def run(root, side, case, out):
     return observed
 
 
+def proc_state(pid, root):
+    try:
+        data = Path(f'/proc/{pid}/stat').read_text().rsplit(')', 1)[1].split()
+        cwd = os.readlink(f'/proc/{pid}/cwd')
+        if cwd.startswith(str(root)):
+            cwd = '/' + cwd[len(str(root)):].lstrip('/')
+        status = Path(f'/proc/{pid}/status').read_text()
+        stdio = []
+        for fd in [0, 1, 2]:
+            target = os.readlink(f'/proc/{pid}/fd/{fd}')
+            stdio.append('null' if target.endswith('/dev/null') else
+                         'capture' if target.endswith('/stdout') or target.endswith('/stderr') else target)
+        return {'pid': pid, 'state': data[0], 'ppid': int(data[1]), 'pgrp': int(data[2]),
+                'sid': int(data[3]), 'cwd': cwd, 'stdio': stdio,
+                'uid': [int(value) for value in re.search(r'^Uid:\s+(.*)$', status, re.M)[1].split()],
+                'gid': [int(value) for value in re.search(r'^Gid:\s+(.*)$', status, re.M)[1].split()]}
+    except (FileNotFoundError, ProcessLookupError):
+        return None
+
+
+def reap_children():
+    reaped = {}
+    while True:
+        try:
+            pid, status = os.waitpid(-1, os.WNOHANG)
+        except ChildProcessError:
+            break
+        if not pid:
+            break
+        reaped[pid] = os.waitstatus_to_exitcode(status)
+    return reaped
+
+
+def run_daemon(root, side, case, out):
+    out.mkdir()
+    folder = image_path(root, '/m2/logging')
+    shutil.rmtree(folder, ignore_errors=True)
+    folder.mkdir(mode=0o777)
+    folder.chmod(0o777)
+    (folder / 'config').write_text(case.get('config', ''))
+    debug = '-d' in case['mode']
+    pid_path = image_path(root, case['pidfile'] if case['pidfile'].startswith('/') else
+                          ('/m2/logging/' if debug else '/') + case['pidfile'].removeprefix('./'))
+    pid_path.unlink(missing_ok=True)
+    if case.get('sentinel_pid'):
+        pid_path.write_text('sentinel\n')
+    log_path = image_path(root, case['file']) if case.get('file') else None
+    if log_path:
+        log_path.unlink(missing_ok=True)
+    receiver = Receiver(root, case.get('receiver'))
+    executable = '/usr/sbin/dnsmasq' + ('-rs' if side == 'rust' else '')
+    argv = ['-C', '/m2/logging/config', *[arg for arg in BASE if arg != '--pid-file='],
+            '--user=root', '--pid-file=' + case['pidfile'], *case['mode'], *case['argv']]
+    full = command(root, '/bin/sh', '-c', 'cd /m2/logging && exec "$@"', 'logging', executable, *argv)
+    save(out / 'fixture.json', case)
+    save(out / 'command.json', full)
+    observed = {'ready': False, 'exit': None, 'forced': False, 'syslog': [], 'files': {},
+                'file_metadata': {}, 'dns': [], 'stdout': '', 'stderr': '', 'process': {},
+                'pid_written': False, 'pid_after_exit': False, 'live_processes': []}
+    trace = {'command': full, 'samples': [], 'reaped': {}}
+    service_pid = None
+    start = time.monotonic()
+    with (out / 'stdout').open('wb') as stdout, (out / 'stderr').open('wb') as stderr:
+        process = subprocess.Popen(full, stdin=subprocess.DEVNULL, stdout=stdout, stderr=stderr,
+                                   env={**os.environ, 'LC_ALL': 'C', 'TZ': 'UTC'}, start_new_session=True)
+        try:
+            deadline = start + 3
+            while time.monotonic() < deadline:
+                receiver.drain()
+                parent_exit = process.poll()
+                if case.get('daemonized'):
+                    try:
+                        service_pid = int(pid_path.read_text().strip())
+                    except (FileNotFoundError, ValueError):
+                        pass
+                else:
+                    service_pid = process.pid
+                if service_pid:
+                    state = proc_state(service_pid, root)
+                    if state and state['state'] != 'Z':
+                        try:
+                            answer, raw = exchange('ready.logging')
+                            if [row['data'] for row in answer['records']] != ['192.0.2.1']:
+                                raise AssertionError('wrong daemon readiness answer')
+                            observed['ready'] = True
+                            trace['dns'] = [raw]
+                            trace['identity'] = process_identity(root, service_pid)
+                            if trace['identity']['sha256'] != sha256(image_path(root, executable)):
+                                raise AssertionError('wrong detached daemon ELF')
+                            trace['samples'].append(state)
+                            observed['process'] = {'is_original': service_pid == process.pid,
+                                'session_leader': state['sid'] == service_pid,
+                                'group_leader': state['pgrp'] == service_pid,
+                                'cwd': state['cwd'], 'stdio': state['stdio'],
+                                'uid': state['uid'], 'gid': state['gid']}
+                            observed['pid_written'] = pid_path.exists() and pid_path.read_text() != 'sentinel\n'
+                            if not case.get('daemonized') or parent_exit == 0:
+                                break
+                        except (socket.timeout, ConnectionRefusedError):
+                            pass
+                if parent_exit is not None and (not case.get('daemonized') or parent_exit != 0):
+                    break
+                time.sleep(.005)
+            if observed['ready']:
+                os.kill(service_pid, signal.SIGINT if case.get('signal') == 'int' else signal.SIGTERM)
+            if process.poll() is None:
+                process.wait(.8)
+            observed['exit'] = process.returncode
+            deadline = time.monotonic() + .8
+            while time.monotonic() < deadline:
+                receiver.drain()
+                trace['reaped'].update(reap_children())
+                # All PID>1 in this private PID namespace are test descendants.
+                live = []
+                for path in Path('/proc').iterdir():
+                    if path.name.isdigit() and int(path.name) > 1:
+                        state = proc_state(int(path.name), root)
+                        if state:
+                            live.append(state)
+                if not live:
+                    break
+                time.sleep(.005)
+            observed['live_processes'] = [row['pid'] for row in live]
+        finally:
+            if process.poll() is None:
+                observed['forced'] = True
+                process.kill()
+                process.wait(1)
+            for path in Path('/proc').iterdir():
+                if path.name.isdigit() and int(path.name) > 1:
+                    try:
+                        os.kill(int(path.name), signal.SIGKILL)
+                        observed['forced'] = True
+                    except ProcessLookupError:
+                        pass
+            trace['reaped'].update(reap_children())
+            receiver.drain()
+            receiver.close()
+            trace['duration'] = time.monotonic() - start
+            trace['stream_tail'] = receiver.pending.hex()
+            save(out / 'trace.json', trace)
+    observed['pid_after_exit'] = pid_path.exists()
+    if log_path and log_path.is_file():
+        observed['files']['relative.log'] = log_path.read_bytes().hex()
+        meta = log_path.stat()
+        observed['file_metadata']['relative.log'] = [meta.st_mode & 0o777, meta.st_uid, meta.st_gid]
+        (out / 'relative.log').write_bytes(log_path.read_bytes())
+    observed['syslog'] = [row.hex() for row in receiver.raw]
+    observed['stdout'] = (out / 'stdout').read_text(errors='backslashreplace')
+    observed['stderr'] = (out / 'stderr').read_text(errors='backslashreplace')
+    save(out / 'observed.json', observed)
+    return observed
+
+
 def compare(reference, candidate, case, reference_only=False):
     failures = []
-    expected_ready = case['kind'] == 'run' and case.get('exit', 0) == 0
+    expected_ready = case.get('expect_ready', case['kind'] == 'run' and case.get('exit', 0) == 0)
     for side, row in [('c', reference)] + ([] if reference_only else [('rust', candidate)]):
         for field, expected in [('exit', case.get('exit', 0)), ('ready', expected_ready), ('forced', False)]:
             if row[field] != expected:
                 failures.append({'side': side, 'field': field, 'expected': expected, 'actual': row[field]})
     if 'expected_metadata' in case and reference['file_metadata'].get(case['file']) != case['expected_metadata']:
         failures.append({'kind': 'C-file-metadata', 'actual': reference['file_metadata']})
+    if case.get('scope') == 'daemon':
+        if reference['live_processes']:
+            failures.append({'kind': 'C-daemon-descendants', 'actual': reference['live_processes']})
+        if reference['ready']:
+            daemonized = case.get('daemonized', False)
+            expected = {'is_original': not daemonized, 'session_leader': not daemonized,
+                        'group_leader': not daemonized, 'cwd': '/m2/logging' if '-d' in case['mode'] else '/',
+                        'stdio': ['null', 'capture', 'capture'] if '-d' in case['mode'] else ['null'] * 3,
+                        'uid': [0] * 4, 'gid': [0] * 4}
+            if reference['process'] != expected:
+                failures.append({'kind': 'C-daemon-process-state', 'expected': expected, 'actual': reference['process']})
+            if reference['pid_written'] != ('-d' not in case['mode']):
+                failures.append({'kind': 'C-daemon-PID-write', 'actual': reference['pid_written']})
+            if reference['pid_after_exit'] != (case.get('signal') == 'int'):
+                failures.append({'kind': 'C-daemon-PID-cleanup', 'actual': reference['pid_after_exit']})
     if 'facility' in case and expected_ready:
         if not reference['syslog']:
             failures.append({'kind': 'C-no-syslog-records'})
@@ -316,6 +577,17 @@ def compare(reference, candidate, case, reference_only=False):
                                 for answer in reference['dns'] if answer['name'] != 'kept.logging'
                                 for record in answer['response']['records']):
         failures.append({'kind': 'C-no-ID-generated-answer', 'actual': reference['dns']})
+    if case.get('query_probes'):
+        mode, text = case['query_mode'], reference['stderr']
+        if mode in ['auth', 'only_failed']:
+            if 'query[' in text:
+                failures.append({'kind': 'C-query-log-filter', 'mode': mode, 'actual': text})
+        elif 'query[A] ready.logging from 127.0.0.1' not in text:
+            failures.append({'kind': 'C-query-log-missing', 'mode': mode, 'actual': text})
+        if mode == 'proto' and not all(word in text for word in ['UDP ', 'TCP ']):
+            failures.append({'kind': 'C-query-protocol-prefix', 'actual': text})
+        if mode == 'only_failed' and 'is NXDOMAIN' not in text:
+            failures.append({'kind': 'C-query-only-failed-negative', 'actual': text})
     if reference_only:
         return failures
     left, right = copy.deepcopy(reference), copy.deepcopy(candidate)
