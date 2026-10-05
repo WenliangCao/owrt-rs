@@ -3,7 +3,7 @@
 //! Insertion and answer selection retain the exact C contracts of the daemon
 //! wrappers; ownership and synchronization remain with the containing caller.
 
-use super::cache::{Cache, CacheCounters, CnameTarget, Kind, Record, StalePolicy};
+use super::cache::{Cache, CacheCounters, CnameTarget, Kind, Record};
 use super::cache_reply::{append_cname_record, append_negative_authority, append_positive_record};
 use super::local::AnswerError;
 use super::service::LocalDnsService;
@@ -13,7 +13,7 @@ use super::wire::{
 };
 use std::net::IpAddr;
 
-pub(super) struct CachedAnswer {
+pub struct CachedAnswer {
     pub packet: Option<Vec<u8>>,
     pub stale: bool,
     pub filtered: bool,
@@ -40,18 +40,13 @@ pub(super) struct CacheContext<'a> {
     pub cache: &'a mut Cache,
     pub counters: &'a mut CacheCounters,
     pub negative_cache: bool,
-    pub negative_ttl: u32,
+    pub negative_ttl: u64,
     pub filter_rr: &'a [u16],
 }
 
 /// Ordinary extraction can remove old records and evict entries even when
 /// its final commit is suppressed. Bogus-wildcard caching is independent.
-#[derive(Clone, Copy, Eq, PartialEq)]
-pub(super) enum OrdinaryCacheMode {
-    Unsupported,
-    ExtractOnly,
-    Commit,
-}
+pub(super) use super::cache::Extraction as OrdinaryCacheMode;
 
 impl CacheContext<'_> {
     /// The caller has evaluated add_edns0_config's cacheable flag. EDNS
@@ -66,6 +61,52 @@ impl CacheContext<'_> {
         max_udp: usize,
         edns_packet_max: u16,
         allow_options: bool,
+    ) -> Result<CachedAnswer, CacheError> {
+        self.answer_with_transport(
+            query,
+            question,
+            now,
+            local,
+            max_udp,
+            edns_packet_max,
+            allow_options,
+            false,
+        )
+    }
+
+    /// tcp_request supplies a 65536-byte output envelope independently of the
+    /// client's UDP advertisement. Caller uses its accepted cache/clock view.
+    pub fn answer_tcp(
+        &mut self,
+        query: &[u8],
+        question: &super::forward::Question,
+        now: i64,
+        local: &mut LocalDnsService,
+        edns_packet_max: u16,
+    ) -> Result<CachedAnswer, CacheError> {
+        self.answer_with_transport(
+            query,
+            question,
+            now,
+            local,
+            65536,
+            edns_packet_max,
+            true,
+            true,
+        )
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn answer_with_transport(
+        &mut self,
+        query: &[u8],
+        question: &super::forward::Question,
+        now: i64,
+        local: &mut LocalDnsService,
+        max_udp: usize,
+        edns_packet_max: u16,
+        allow_options: bool,
+        tcp: bool,
     ) -> Result<CachedAnswer, CacheError> {
         let header = Header::parse(query)?;
         // Ordinary A/AAAA AD requests can consume unsigned cached records,
@@ -130,10 +171,13 @@ impl CacheContext<'_> {
                 stale,
             });
         }
-        let limit = edns
-            .opt
-            .as_ref()
-            .map_or(512, |opt| usize::from(opt.udp_size(edns_packet_max)));
+        let limit = if tcp {
+            65536
+        } else {
+            edns.opt
+                .as_ref()
+                .map_or(512, |opt| usize::from(opt.udp_size(edns_packet_max)))
+        };
         let mut answer = self.answer_records(
             question,
             header,
@@ -144,6 +188,11 @@ impl CacheContext<'_> {
         )?;
         if edns.opt.is_some() {
             if let Some(packet) = &mut answer.packet {
+                let append_limit = if tcp {
+                    65536
+                } else {
+                    usize::from(edns_packet_max)
+                };
                 // receive_query appends against the configured daemon limit,
                 // after answer_request used the client's advertised limit.
                 if answer.stale || answer.filtered {
@@ -154,15 +203,10 @@ impl CacheContext<'_> {
                         edns_packet_max,
                         false,
                         if answer.filtered { 17 } else { 3 },
-                        usize::from(edns_packet_max),
+                        append_limit,
                     )?;
                 } else {
-                    super::service::append_empty_opt(
-                        packet,
-                        edns_packet_max,
-                        false,
-                        usize::from(edns_packet_max),
-                    )?;
+                    super::service::append_empty_opt(packet, edns_packet_max, false, append_limit)?;
                 }
             }
         }
@@ -577,6 +621,22 @@ impl CacheContext<'_> {
     /// check_for_bogus_wildcard commits independently of ordinary extraction.
     /// TCP preserves this event before rewriting its reply to an empty NXDOMAIN.
     pub fn insert_bogus(&mut self, name: Name, ttl: u32, now: i64, local: &LocalDnsService) {
+        self.stage_bogus(name, ttl, now, local);
+        let _ = self.cache.commit_counted(self.counters);
+    }
+
+    pub fn insert_bogus_for_transfer(
+        &mut self,
+        name: Name,
+        ttl: u32,
+        now: i64,
+        local: &LocalDnsService,
+    ) -> Option<super::cache::CacheTransaction> {
+        self.stage_bogus(name, ttl, now, local);
+        self.cache.capture_commit_counted(self.counters)
+    }
+
+    fn stage_bogus(&mut self, name: Name, ttl: u32, now: i64, local: &LocalDnsService) {
         self.cache.start_insert();
         insert_cache_record(
             self.cache,
@@ -589,9 +649,20 @@ impl CacheContext<'_> {
                 data: Vec::new(),
             },
             now,
-            ttl,
+            u64::from(ttl),
         );
-        let _ = self.cache.commit_counted(self.counters);
+    }
+
+    pub fn import_transfer(
+        &mut self,
+        transaction: super::cache::CacheTransaction,
+        now: i64,
+        local: &LocalDnsService,
+    ) -> bool {
+        self.cache
+            .import_counted(transaction, now, self.counters, |record| {
+                local_cache_match(record, local)
+            })
     }
 
     /// Preserve ordered cache effects, including a prefix before bad generic
@@ -606,11 +677,41 @@ impl CacheContext<'_> {
         original_rcode: u16,
         ordinary: OrdinaryCacheMode,
     ) -> Result<(), WireError> {
+        self.insert_reply_transaction(packet, now, local, policy, original_rcode, ordinary, false)
+            .map(|_| ())
+    }
+
+    /// Preserve the child extraction policy and return the exact commit order.
+    /// Parent import applies current local conflicts without reprocessing wire
+    /// bytes under a newer HUP/doctor/filter configuration.
+    pub fn insert_reply_for_transfer(
+        &mut self,
+        packet: &[u8],
+        now: i64,
+        local: &LocalDnsService,
+        policy: &super::process::AddressPolicy,
+        original_rcode: u16,
+        ordinary: OrdinaryCacheMode,
+    ) -> Result<Option<super::cache::CacheTransaction>, WireError> {
+        self.insert_reply_transaction(packet, now, local, policy, original_rcode, ordinary, true)
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn insert_reply_transaction(
+        &mut self,
+        packet: &[u8],
+        now: i64,
+        local: &LocalDnsService,
+        policy: &super::process::AddressPolicy,
+        original_rcode: u16,
+        ordinary: OrdinaryCacheMode,
+        capture: bool,
+    ) -> Result<Option<super::cache::CacheTransaction>, WireError> {
         let Ok(header) = Header::parse(packet) else {
-            return Ok(());
+            return Ok(None);
         };
         if header.opcode() != 0 || !matches!(original_rcode, 0 | 3) || header.flags & 0x0200 != 0 {
-            return Ok(());
+            return Ok(None);
         }
         if original_rcode != 3 {
             if let Some((name, ttl)) =
@@ -618,8 +719,11 @@ impl CacheContext<'_> {
             {
                 // This independent branch uses the matching RR's owner/TTL;
                 // --no-negcache, RA and CD do not suppress its commit in C.
+                if capture {
+                    return Ok(self.insert_bogus_for_transfer(name, ttl, now, local));
+                }
                 self.insert_bogus(name, ttl, now, local);
-                return Ok(());
+                return Ok(None);
             }
         }
         let cache = &mut *self.cache;
@@ -627,17 +731,17 @@ impl CacheContext<'_> {
         // Unsupported query metadata stays outside ordinary extraction.
         // CD/no_cache instead run its ordered effects and gate only commit.
         if ordinary == OrdinaryCacheMode::Unsupported {
-            return Ok(());
+            return Ok(None);
         }
         cache.start_insert();
         if header.questions != 1 {
-            return Ok(());
+            return Ok(None);
         }
         let Ok(question) = WireQuestion::parse(packet, super::wire::HEADER_LEN) else {
-            return Ok(());
+            return Ok(None);
         };
         if question.class != 1 {
-            return Ok(());
+            return Ok(None);
         }
         // Address-form PTR replies need C's separate reverse-cache index.
         // Keep that unimplemented boundary explicit instead of storing a
@@ -646,17 +750,17 @@ impl CacheContext<'_> {
             && header.rcode() != 3
             && super::local::arpa_address(&question.name.dnsmasq_bytes()).is_some()
         {
-            return Ok(());
+            return Ok(None);
         }
         let Ok(edns) = find_pseudoheader(packet, false) else {
-            return Ok(());
+            return Ok(None);
         };
         if edns
             .opt
             .as_ref()
             .is_some_and(|opt| opt.extended_rcode() != 0)
         {
-            return Ok(());
+            return Ok(None);
         }
 
         let kind = match question.qtype {
@@ -681,21 +785,23 @@ impl CacheContext<'_> {
             let mut position = question.end;
             for _ in 0..header.answers {
                 let Ok(rr) = super::wire::RecordRef::parse(packet, position) else {
-                    return Ok(());
+                    return Ok(None);
                 };
                 position = rr.end;
-                let Ok(owner) = rr.name() else { return Ok(()) };
+                let Ok(owner) = rr.name() else {
+                    return Ok(None);
+                };
                 if rr.class != 1 || !owner.eq_ignore_ascii_case(&current) {
                     continue;
                 }
                 let ttl = if max_reply_ttl == 0 {
-                    rr.ttl
+                    u64::from(rr.ttl)
                 } else {
-                    rr.ttl.min(max_reply_ttl)
+                    u64::from(rr.ttl).min(max_reply_ttl)
                 };
                 if rr.rrtype == 5 {
                     if cname_left == 0 {
-                        return Ok(());
+                        return Ok(None);
                     }
                     cname_left -= 1;
                     // Act on failure only after insertion: C removes the old
@@ -730,7 +836,7 @@ impl CacheContext<'_> {
                     // extract_name checks packet bounds, not the declared
                     // RDLEN. Keep that bounded behavior for ordinary CNAMEs.
                     let Ok((target, _)) = target else {
-                        return Ok(());
+                        return Ok(None);
                     };
                     current = target;
                     if question.qtype != 5 {
@@ -748,7 +854,7 @@ impl CacheContext<'_> {
                     let data = if matches!(kind, Kind::Ipv4 | Kind::Ipv6) {
                         let width = if question.qtype == 1 { 4 } else { 16 };
                         let Some(data) = packet.get(rr.fixed + 10..rr.fixed + 10 + width) else {
-                            return Ok(());
+                            return Ok(None);
                         };
                         let address = if question.qtype == 1 {
                             IpAddr::V4(std::net::Ipv4Addr::from(<[u8; 4]>::try_from(data).unwrap()))
@@ -758,7 +864,7 @@ impl CacheContext<'_> {
                             ))
                         };
                         if policy.rejects_rebind(&question.name, address) {
-                            return Ok(());
+                            return Ok(None);
                         }
                         data.to_vec()
                     } else {
@@ -767,7 +873,7 @@ impl CacheContext<'_> {
                             // Compression expansion can exceed the cache's
                             // representable RDATA length without making the
                             // original wire reply invalid. Keep forwarding it.
-                            Err(WireError::RecordTooLong) => return Ok(()),
+                            Err(WireError::RecordTooLong) => return Ok(None),
                             Err(error) => return Err(error),
                         }
                     };
@@ -806,10 +912,11 @@ impl CacheContext<'_> {
             && ((insert && question.qtype != 255) || header.rcode() == 3)
         {
             let soa = authority_soa(packet, answer_end, header.authorities, &current);
-            let mut soa_ttl = soa.as_ref().and_then(|(_, ttl, minimum, _)| {
-                (*ttl != 0 || cache.policy().stale != StalePolicy::Disabled)
-                    .then_some((*ttl).min(*minimum))
-            });
+            // find_soa lets cache_insert apply min-cache-ttl before rejecting
+            // raw TTL0. Treating TTL0 as an absent SOA here loses that case.
+            let mut soa_ttl = soa
+                .as_ref()
+                .map(|(_, ttl, minimum, _)| u64::from((*ttl).min(*minimum)));
             let mut authority = soa_ttl.and(soa.as_ref());
             // A direct negative inserts its SOA first; a CNAME target must
             // immediately follow its alias, so its SOA is inserted afterwards.
@@ -852,9 +959,12 @@ impl CacheContext<'_> {
             }
         }
         if ordinary == OrdinaryCacheMode::Commit && header.flags & 0x0090 == 0x0080 {
+            if capture {
+                return Ok(cache.capture_commit_counted(counters));
+            }
             let _ = cache.commit_counted(counters);
         }
-        Ok(())
+        Ok(None)
     }
 }
 
@@ -1019,7 +1129,7 @@ fn insert_authority(
             data: data.clone(),
         },
         now,
-        *ttl,
+        u64::from(*ttl),
     ) {
         Some(CacheInsert::Dynamic(id)) => Some(id),
         _ => None,
@@ -1037,8 +1147,25 @@ fn insert_cache_record(
     local: &LocalDnsService,
     record: Record,
     now: i64,
-    ttl: u32,
+    ttl: u64,
 ) -> Option<CacheInsert> {
+    if let Some(existing) = local_cache_match(&record, local) {
+        cache
+            .insert_against_local(ttl, existing.same_address)
+            .ok()?;
+        Some(CacheInsert::Local(record.name, existing.from_lease))
+    } else {
+        cache
+            .insert_ttl_counted(record, now, ttl, counters)
+            .ok()
+            .map(CacheInsert::Dynamic)
+    }
+}
+
+fn local_cache_match(
+    record: &Record,
+    local: &LocalDnsService,
+) -> Option<super::cache::LocalCacheMatch> {
     let name = record.name.dnsmasq_bytes();
     let matches_address = |address: IpAddr| {
         !record.negative
@@ -1078,15 +1205,10 @@ fn insert_cache_record(
         .or_else(|| cname.then_some((false, false)))
         .or_else(|| host.map(|host| (matches_address(host.address), false)))
         .or_else(|| lease.map(|lease| (matches_address(IpAddr::V4(lease.address)), true)));
-    if let Some((same_address, from_lease)) = existing {
-        cache.insert_against_local(ttl, same_address).ok()?;
-        Some(CacheInsert::Local(record.name, from_lease))
-    } else {
-        cache
-            .insert_counted(record, now, ttl, counters)
-            .ok()
-            .map(CacheInsert::Dynamic)
-    }
+    existing.map(|(same_address, from_lease)| super::cache::LocalCacheMatch {
+        same_address,
+        from_lease,
+    })
 }
 
 fn is_name_suffix(name: &Name, suffix: &Name) -> bool {
@@ -1102,6 +1224,71 @@ mod tests {
     use super::*;
     use crate::config::dns::DnsConfig;
     use crate::hosts::Hosts;
+
+    #[test]
+    fn child_transfer_keeps_selected_generic_data_and_tcp_ignores_udp_limit() {
+        let name = Name::from_ascii("large.transfer.test").unwrap();
+        let mut writer = PacketWriter::new(1, 0x8180, 1232).unwrap();
+        writer.question(&name, 65000, 1).unwrap();
+        writer
+            .record_at(Section::Answer, 12, 65000, 1, 600, &vec![b'x'; 650])
+            .unwrap();
+        let reply = writer.finish();
+        let mut child_config = DnsConfig::default();
+        child_config.cache_rr.push(255);
+        let child_local = LocalDnsService::new(child_config, Hosts::new(), 600, 1232);
+        let mut child = Cache::new(8, Default::default());
+        let mut child_counters = CacheCounters::default();
+        let transaction = CacheContext {
+            cache: &mut child,
+            counters: &mut child_counters,
+            negative_cache: true,
+            negative_ttl: 0,
+            filter_rr: &[],
+        }
+        .insert_reply_for_transfer(
+            &reply,
+            100,
+            &child_local,
+            &Default::default(),
+            0,
+            OrdinaryCacheMode::Commit,
+        )
+        .unwrap()
+        .unwrap();
+        let mut parent = Cache::new(8, Default::default());
+        let mut parent_counters = CacheCounters::default();
+        // Parent selectors changed since accept. Import is a record operation;
+        // it must not parse this packet again under the new empty selector list.
+        let mut parent_local = LocalDnsService::new(DnsConfig::default(), Hosts::new(), 600, 1232);
+        let mut context = CacheContext {
+            cache: &mut parent,
+            counters: &mut parent_counters,
+            negative_cache: true,
+            negative_ttl: 0,
+            filter_rr: &[],
+        };
+        assert!(context.import_transfer(transaction, 103, &parent_local));
+        let mut query = PacketWriter::new(2, 0x100, 512).unwrap();
+        query.question(&name, 65000, 1).unwrap();
+        let query = query.finish();
+        let question = super::super::forward::Question {
+            name: name.clone(),
+            rrtype: 65000,
+            class: 1,
+        };
+        let answer = context
+            .answer_tcp(&query, &question, 103, &mut parent_local, 1232)
+            .unwrap()
+            .packet
+            .unwrap();
+        assert!(answer.len() > 512);
+        assert_eq!(Header::parse(&answer).unwrap().flags & 0x200, 0);
+        let id = parent.lookup(&name, &[Kind::Generic(65000)], 103, false)[0];
+        assert_eq!(parent.get(id).unwrap().expires, 700);
+        assert_eq!(parent_counters.inserted, 1);
+        assert_eq!(child_counters.inserted, 1);
+    }
 
     #[test]
     fn cached_alias_reselects_terminal_family_and_filter_keeps_the_cname() {

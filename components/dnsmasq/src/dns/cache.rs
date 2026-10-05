@@ -36,11 +36,37 @@ pub enum StalePolicy {
     Seconds(u32),
 }
 
+/// A cache sink receives authenticated source policy separately from query
+/// metadata support. CD/NO_CACHE still extract and remove old records.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum Extraction {
+    Unsupported,
+    ExtractOnly,
+    Commit,
+}
+
+impl Extraction {
+    pub fn from_source(
+        supported: bool,
+        no_cache: bool,
+        request_cd: bool,
+        upstream_cd: bool,
+    ) -> Self {
+        if !supported {
+            Self::Unsupported
+        } else if no_cache || request_cd || upstream_cd {
+            Self::ExtractOnly
+        } else {
+            Self::Commit
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct Policy {
-    pub min_ttl: u32,
-    pub max_ttl: u32,
-    pub max_reply_ttl: u32,
+    pub min_ttl: u64,
+    pub max_ttl: u64,
+    pub max_reply_ttl: u64,
     pub stale: StalePolicy,
 }
 
@@ -56,7 +82,7 @@ impl Default for Policy {
 }
 
 impl Policy {
-    pub fn cache_ttl(self, ttl: u32) -> u32 {
+    pub fn cache_ttl(self, ttl: u64) -> u64 {
         let ttl = if self.max_ttl != 0 {
             ttl.min(self.max_ttl)
         } else {
@@ -99,7 +125,7 @@ pub enum CnameTarget {
     Local(Arc<LocalTarget>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Record {
     pub name: Name,
     pub kind: Kind,
@@ -109,9 +135,11 @@ pub struct Record {
     pub data: Vec<u8>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Entry {
-    pub record: Record,
+    /// Record payloads are immutable after insertion. A TCP fork view shares
+    /// these bytes while owning its own expiry, links and generation state.
+    pub record: Arc<Record>,
     pub expires: i64,
     target: Option<CnameTarget>,
     authority_name: Option<Name>,
@@ -130,7 +158,7 @@ impl Entry {
         if policy.max_reply_ttl == 0 {
             ttl
         } else {
-            ttl.min(policy.max_reply_ttl)
+            u64::from(ttl).min(policy.max_reply_ttl) as u32
         }
     }
 
@@ -186,6 +214,7 @@ pub struct LocalCacheMatch {
     pub from_lease: bool,
 }
 
+#[derive(Clone)]
 struct Slot {
     entry: Option<Entry>,
     generation: u64,
@@ -196,6 +225,7 @@ struct Slot {
 /// Fixed number of records, with an index per name and an intrusive LRU of slot
 /// indices. Pending inserts are outside the LRU and invisible to lookups.
 /// Capacity is measured in records, including CNAME and negative records.
+#[derive(Clone)]
 pub struct Cache {
     policy: Policy,
     slots: Vec<Slot>,
@@ -209,6 +239,16 @@ pub struct Cache {
 }
 
 impl Cache {
+    /// C's nondebug TCP child inherits the accepted cache. Share immutable
+    /// payloads; mutable indices, pending insertions and LRU state are private.
+    /// The containing owner supplies the fixed accept clock separately.
+    pub fn snapshot(&self) -> Self {
+        self.clone()
+    }
+
+    pub fn set_max_reply_ttl(&mut self, maximum: u64) {
+        self.policy.max_reply_ttl = maximum;
+    }
     pub fn new(capacity: usize, mut policy: Policy) -> Self {
         // C represents a zero stale allowance as the option being disabled.
         if policy.stale == StalePolicy::Seconds(0) {
@@ -318,7 +358,7 @@ impl Cache {
     /// any other local conflict fails the entire insertion transaction.
     pub(super) fn insert_against_local(
         &mut self,
-        ttl: u32,
+        ttl: u64,
         same_address: bool,
     ) -> Result<(), InsertError> {
         self.check_local_insert(self.policy.cache_ttl(ttl) == 0, same_address)
@@ -361,6 +401,19 @@ impl Cache {
         ttl: u32,
         counters: &mut CacheCounters,
     ) -> Result<EntryId, InsertError> {
+        self.insert_ttl_counted(record, now, u64::from(ttl), counters)
+    }
+
+    /// Wide TTL is C's unsigned long. A wrapped negative int becomes a large
+    /// ulong whose time_t cast is negative, e.g. min-cache-ttl=-1 expires at
+    /// now-1. Do not saturate it into a far-future expiry.
+    pub fn insert_ttl_counted(
+        &mut self,
+        record: Record,
+        now: i64,
+        ttl: u64,
+        counters: &mut CacheCounters,
+    ) -> Result<EntryId, InsertError> {
         if self.failed {
             return Err(InsertError::PreviousFailure);
         }
@@ -368,7 +421,7 @@ impl Cache {
         if ttl == 0 && self.policy.stale == StalePolicy::Disabled {
             return self.fail(InsertError::ZeroTtl);
         }
-        let Some(expires) = now.checked_add(i64::from(ttl)) else {
+        let Some(expires) = now.checked_add(ttl as i64) else {
             return self.fail(InsertError::TimeOverflow);
         };
         self.insert_at_counted(record, now, expires, counters)
@@ -458,7 +511,7 @@ impl Cache {
         }
         self.long_names += usize::from(long);
         self.slots[slot].entry = Some(Entry {
-            record,
+            record: Arc::new(record),
             expires,
             target: None,
             authority_name: None,
@@ -484,7 +537,7 @@ impl Cache {
         record: Record,
         now: i64,
         soa_ttl: Option<u32>,
-        configured_ttl: u32,
+        configured_ttl: u64,
     ) -> Result<Option<EntryId>, InsertError> {
         self.insert_negative_counted(
             record,
@@ -500,17 +553,20 @@ impl Cache {
         record: Record,
         now: i64,
         soa_ttl: Option<u32>,
-        configured_ttl: u32,
+        configured_ttl: u64,
         counters: &mut CacheCounters,
     ) -> Result<Option<EntryId>, InsertError> {
         if !record.negative {
             return Err(InsertError::NotNegative);
         }
-        let ttl = soa_ttl.or((configured_ttl != 0).then_some(configured_ttl));
+        let ttl = soa_ttl
+            .map(u64::from)
+            .or((configured_ttl != 0).then_some(configured_ttl));
         let Some(ttl) = ttl else {
             return Ok(None);
         };
-        self.insert_counted(record, now, ttl, counters).map(Some)
+        self.insert_ttl_counted(record, now, ttl, counters)
+            .map(Some)
     }
 
     /// Attach the owner of the independent SOA used for a negative answer.
@@ -849,6 +905,84 @@ impl Cache {
             self.tail = Some(slot);
         }
         self.head = Some(slot);
+    }
+}
+
+/// extract_addresses clips only matching IN Answer records. Reverse PTR first
+/// scans matching PTRs; otherwise each CNAME target restarts the ordinary scan.
+/// The owner calls this for admitted upstream packets, after doctor and before
+/// filtering/client limits. Local records and Authority/Additional TTLs stay
+/// on their independent C paths. Preserve original full RCODE after OPT strip.
+pub fn clip_live_reply_ttls(
+    packet: &mut [u8],
+    maximum: u64,
+    original_rcode: u16,
+) -> Result<(), super::wire::WireError> {
+    use super::wire::{decode_name, Header, Question, RecordRef};
+    if maximum == 0 {
+        return Ok(());
+    }
+    let header = Header::parse(packet)?;
+    if header.questions != 1
+        || header.opcode() != 0
+        || !matches!(original_rcode, 0 | 3)
+        || header.flags & 0x200 != 0
+    {
+        return Ok(());
+    }
+    let question = Question::parse(packet, 12)?;
+    if question.class != 1 {
+        return Ok(());
+    }
+    let clip = |packet: &mut [u8], fixed: usize, ttl: u32| {
+        if u64::from(ttl) > maximum {
+            packet[fixed + 4..fixed + 8].copy_from_slice(&(maximum as u32).to_be_bytes());
+        }
+    };
+    if question.qtype == 12
+        && header.rcode() != 3
+        && super::local::arpa_address(&question.name.dnsmasq_bytes()).is_some()
+    {
+        let mut found = false;
+        let mut at = question.end;
+        for _ in 0..header.answers {
+            let rr = RecordRef::parse(packet, at)?;
+            at = rr.end;
+            if rr.class == 1 && rr.rrtype == 12 && rr.name()?.eq_ignore_ascii_case(&question.name) {
+                let (fixed, ttl) = (rr.fixed, rr.ttl);
+                clip(packet, fixed, ttl);
+                found = true;
+            }
+        }
+        if found {
+            return Ok(());
+        }
+    }
+    let mut current = question.name;
+    let mut remaining = 10;
+    'cname: loop {
+        let mut at = question.end;
+        for _ in 0..header.answers {
+            let rr = RecordRef::parse(packet, at)?;
+            at = rr.end;
+            if rr.class != 1 || !rr.name()?.eq_ignore_ascii_case(&current) {
+                continue;
+            }
+            let (fixed, ttl, kind) = (rr.fixed, rr.ttl, rr.rrtype);
+            clip(packet, fixed, ttl);
+            if kind == 5 {
+                if remaining == 0 {
+                    return Ok(());
+                }
+                remaining -= 1;
+                let (target, _) = decode_name(packet, fixed + 10, 0)?;
+                if question.qtype != 5 {
+                    current = target;
+                    continue 'cname;
+                }
+            }
+        }
+        return Ok(());
     }
 }
 

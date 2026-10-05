@@ -126,6 +126,7 @@ pub struct ConditionalDomain {
 pub struct DnsConfig {
     pub records: super::records::RecordConfig,
     pub edns: super::edns::EdnsConfig,
+    pub interface_records: super::interface_records::InterfaceRecordConfig,
     /// Declaration order. A lookup must apply domain-match.c priorities, not
     /// pick the first suffix match (specificity and RR family both matter).
     pub rules: Vec<ServerRule>,
@@ -182,6 +183,7 @@ impl Default for DnsConfig {
         Self {
             records: super::records::RecordConfig::default(),
             edns: super::edns::EdnsConfig::default(),
+            interface_records: super::interface_records::InterfaceRecordConfig::default(),
             rules: Vec::new(),
             listen_addresses: Vec::new(),
             interfaces: Vec::new(),
@@ -601,6 +603,9 @@ impl DnsConfig {
         validate_directive(directive)?;
         let arg = directive.argument.as_ref();
         match directive.name.as_slice() {
+            b"interface-name" | b"dynamic-host" => {
+                self.interface_records.apply(directive)?;
+            }
             b"server" | b"local" | b"address" => self
                 .rules
                 .extend(parse_rules(&directive.name, arg.unwrap())?),
@@ -1184,7 +1189,7 @@ mod tests {
     }
 
     #[test]
-    fn conditional_domain_and_unimplemented_modes_do_not_disappear() {
+    fn conditional_domains_and_interface_rules_retain_state() {
         let mut config = DnsConfig::default();
         apply(&mut config, b"domain=lan").unwrap();
         apply(&mut config, b"domain=lab,192.0.2.1/24").unwrap();
@@ -1199,7 +1204,9 @@ mod tests {
         );
         apply(&mut config, b"domain=lab,192.0.2.0/24,local").unwrap();
         assert_eq!(config.rules.len(), 2);
-        assert!(!apply(&mut config, b"dynamic-host=example.test,192.0.2.1,eth0").unwrap());
+        assert!(apply(&mut config, b"dynamic-host=example.test,192.0.2.1,eth0").unwrap());
+        assert_eq!(config.interface_records.rules.len(), 1);
+        assert_eq!(config.interface_records.rules[0].interface, b"eth0");
         apply(&mut config, b"domain=interface,eth0").unwrap();
         assert!(config.validate_ready().is_err());
     }

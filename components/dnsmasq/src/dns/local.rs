@@ -82,6 +82,7 @@ struct LeaseView<'a> {
     now: i64,
     local_ttl: u32,
     local_network: Option<(Ipv4Addr, Ipv4Addr)>,
+    interfaces: &'a super::interface_records::InterfaceRecords,
 }
 
 impl<'a> LocalAnswerer<'a> {
@@ -134,6 +135,25 @@ impl<'a> LocalAnswerer<'a> {
         local_network: Option<(Ipv4Addr, Ipv4Addr)>,
         cache: Option<&mut Cache>,
     ) -> Result<Option<LocalAnswer>, AnswerError> {
+        self.answer_on_network_with_interface_cache(
+            query,
+            lease_names,
+            now,
+            local_network,
+            cache,
+            &super::interface_records::InterfaceRecords::default(),
+        )
+    }
+
+    pub(crate) fn answer_on_network_with_interface_cache(
+        &mut self,
+        query: &[u8],
+        lease_names: &mut Arc<LeaseNames>,
+        now: i64,
+        local_network: Option<(Ipv4Addr, Ipv4Addr)>,
+        cache: Option<&mut Cache>,
+        interfaces: &super::interface_records::InterfaceRecords,
+    ) -> Result<Option<LocalAnswer>, AnswerError> {
         let header = Header::parse(query).map_err(|_| AnswerError::Malformed)?;
         if header.opcode() != 0
             || header.flags & 0x8000 != 0
@@ -164,6 +184,7 @@ impl<'a> LocalAnswerer<'a> {
             now,
             local_ttl: self.local_ttl,
             local_network,
+            interfaces,
         };
 
         let key = question.name.canonical_wire();
@@ -210,17 +231,15 @@ impl<'a> LocalAnswerer<'a> {
 
         // rfc1035.c answer_request refuses to forward CHAOS identity names
         // even in this image's NO_ID build, where no built-in TXT exists.
-        let notimp = question.class == 3
-            && !owned
-            && {
-                let name = question.name.dnsmasq_bytes().to_ascii_lowercase();
-                [b"bind".as_slice(), b"server"].iter().any(|suffix| {
-                    name == *suffix
-                        || name
-                            .strip_suffix(*suffix)
-                            .is_some_and(|prefix| prefix.ends_with(b"."))
-                })
-            };
+        let notimp = question.class == 3 && !owned && {
+            let name = question.name.dnsmasq_bytes().to_ascii_lowercase();
+            [b"bind".as_slice(), b"server"].iter().any(|suffix| {
+                name == *suffix
+                    || name
+                        .strip_suffix(*suffix)
+                        .is_some_and(|prefix| prefix.ends_with(b"."))
+            })
+        };
         owned |= notimp;
 
         // A configured/local record owns the query before address rules. A
@@ -768,9 +787,15 @@ fn add_local_records_for_name(
     );
     add_raw(&config.records.raw, &key, qtype, ttl, &mut rows, &mut owned);
     if qtype == TYPE_PTR || qtype == 255 {
-        let mut explicit_ptr = false;
+        let interface_ptr =
+            arpa_address(name).and_then(|address| leases.interfaces.reverse(address));
+        if let Some(target) = interface_ptr {
+            owned = true;
+            rows.push((TYPE_PTR, ttl, wire_name(target).unwrap_or_else(|| vec![0])));
+        }
+        let mut explicit_ptr = interface_ptr.is_some();
         for record in config.records.ptr.iter().rev() {
-            if dotted_key(&record.name) == key {
+            if interface_ptr.is_none() && dotted_key(&record.name) == key {
                 explicit_ptr = true;
                 owned = true;
                 rows.push((
@@ -813,6 +838,16 @@ fn add_local_records_for_name(
     for ipv6 in [false, true] {
         let rrtype = if ipv6 { TYPE_AAAA } else { TYPE_A };
         if qtype == 255 || qtype == rrtype {
+            let network = leases
+                .local_network
+                .filter(|_| config.localise_queries && !ipv6);
+            if let Some(addresses) = leases.interfaces.forward(name, ipv6, network) {
+                for address in addresses {
+                    rows.push((rrtype, ttl, ip_bytes(address)));
+                    owned = true;
+                }
+                continue;
+            }
             if !ipv6 {
                 for lease in leases.names.lookup(name, leases.now) {
                     rows.push((
@@ -1157,6 +1192,17 @@ pub fn known_forwarded_domain_with_leases(
     leases: &LeaseNames,
     now: i64,
 ) -> bool {
+    if let Some(dotted) = wire_to_dotted(query) {
+        if config
+            .interface_records
+            .rules
+            .iter()
+            .any(|rule| is_interface_ancestor(&dotted, &rule.name))
+        {
+            return true;
+        }
+    }
+
     known_forwarded_domain(config, hosts, query)
         || wire_to_dotted(query).is_some_and(|name| leases.name_exists(&name, now))
 }
@@ -1170,6 +1216,14 @@ fn has_descendant_local(config: &DnsConfig, hosts: &Hosts, query: &Name) -> bool
         child_labels.len() >= parent_labels.len()
             && child_labels[child_labels.len() - parent_labels.len()..] == parent_labels[..]
     };
+    if config
+        .interface_records
+        .rules
+        .iter()
+        .any(|rule| is_descendant(&rule.name))
+    {
+        return true;
+    }
     config
         .records
         .txt
@@ -2321,4 +2375,44 @@ mod local_record_family_tests {
         assert_eq!(header.answers, 0);
         assert!(cache.get(id).is_none());
     }
+}
+
+fn is_interface_ancestor(name: &[u8], configured: &[u8]) -> bool {
+    name.is_empty()
+        || configured.eq_ignore_ascii_case(name)
+        || (configured.len() > name.len()
+            && configured[configured.len() - name.len() - 1] == b'.'
+            && configured[configured.len() - name.len()..].eq_ignore_ascii_case(name))
+}
+
+/// Resolve the configured CNAME terminal before the parent's enum decision.
+/// Packet/cache wrappers remain the cache family's responsibility.
+pub fn interface_forward_name(config: &DnsConfig, query: &[u8]) -> Option<Vec<u8>> {
+    let header = Header::parse(query).ok()?;
+    if header.opcode() != 0 || header.flags & 0x8000 != 0 || header.questions != 1 {
+        return None;
+    }
+    let question = super::wire::Question::parse(query, super::wire::HEADER_LEN).ok()?;
+    if question.class != 1 || !matches!(question.qtype, 1 | 28 | 255) {
+        return None;
+    }
+    let mut name = wire_to_dotted(&question.name)?;
+    for _ in 0..10 {
+        if let Some(alias) = config
+            .records
+            .cnames
+            .iter()
+            .find(|alias| alias.alias.eq_ignore_ascii_case(&name))
+        {
+            name = alias.target.clone();
+        } else {
+            return config
+                .interface_records
+                .rules
+                .iter()
+                .any(|rule| rule.name.eq_ignore_ascii_case(&name))
+                .then_some(name);
+        }
+    }
+    None
 }

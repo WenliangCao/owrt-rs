@@ -216,7 +216,7 @@ pub struct DnsDaemon<R = OsRandom> {
     upstream: UpstreamResolver<R>,
     cache: Option<Cache>,
     cache_counters: CacheCounters,
-    negative_ttl: u32,
+    negative_ttl: u64,
     negative_cache: bool,
     policy: AddressPolicy,
     query_policy: super::query_policy::QueryPolicy,
@@ -253,11 +253,6 @@ impl<R: Random> DnsDaemon<R> {
         config.finalize()?;
         config.validate_ready().map_err(DaemonError::Config)?;
         validate_runtime_config(&config)?;
-        if options.forward_max == 0 {
-            return Err(DaemonError::Config(ConfigError(
-                "dns-forward-max must be positive",
-            )));
-        }
         let mut server_sources = ServerSources::new(&config.rules);
         if !config.no_resolv {
             server_sources.replace(
@@ -591,11 +586,18 @@ impl<R: Random> DnsDaemon<R> {
     /// Enable the positive forward cache after daemon construction.  Keeping
     /// this explicit lets the caller pass scalar options (cache-size and TTL
     /// bounds) without duplicating them in `DnsConfig`.
+    pub fn publish_interface_records(
+        &mut self,
+        records: std::sync::Arc<super::interface_records::InterfaceRecords>,
+    ) {
+        self.local.interfaces = records;
+    }
+
     pub fn enable_cache(
         &mut self,
         capacity: usize,
-        min_ttl: u32,
-        max_ttl: u32,
+        min_ttl: u64,
+        max_ttl: u64,
         stale: StalePolicy,
     ) {
         self.cache = Some(Cache::new(
@@ -610,9 +612,15 @@ impl<R: Random> DnsDaemon<R> {
         self.cache_counters = CacheCounters::default();
     }
 
+    pub fn set_max_reply_ttl(&mut self, maximum: u64) {
+        if let Some(cache) = &mut self.cache {
+            cache.set_max_reply_ttl(maximum);
+        }
+    }
+
     /// Enable the no-SOA NXDOMAIN cache fallback. SOA/NODATA synthesis is
     /// intentionally separate; a zero TTL keeps this path disabled.
-    pub fn enable_negative_cache(&mut self, negative_ttl: u32, enabled: bool) {
+    pub fn enable_negative_cache(&mut self, negative_ttl: u64, enabled: bool) {
         self.negative_ttl = negative_ttl;
         self.negative_cache = enabled;
     }
@@ -707,7 +715,9 @@ impl<R: Random> DnsDaemon<R> {
         local: &mut LocalDnsService,
     ) -> Result<QueryResult, DaemonError> {
         let question = super::forward::Question::parse(original)?;
-        if !metadata.flags.no_cache {
+        if !metadata.flags.no_cache
+            && super::local::interface_forward_name(&local.config, original).is_none()
+        {
             let answer = self.cached_answer_at_with_edns_limit(
                 original,
                 &question,
@@ -1135,6 +1145,13 @@ impl<R: Random> DnsDaemon<R> {
                 }
             }
         }
+        if let Some(cache) = &self.cache {
+            super::cache::clip_live_reply_ttls(
+                &mut reply.packet,
+                cache.policy().max_reply_ttl,
+                rcode,
+            )?;
+        }
         Ok(Some(rcode))
     }
 
@@ -1251,6 +1268,21 @@ impl<R: Random> DnsDaemon<R> {
         max_udp: usize,
         allow_options: bool,
     ) -> Result<CachedAnswer, DaemonError> {
+        if super::local::interface_forward_name(
+            &external_local
+                .as_ref()
+                .map_or(&self.local, |local| &**local)
+                .config,
+            query,
+        )
+        .is_some()
+        {
+            return Ok(CachedAnswer {
+                filtered: false,
+                packet: None,
+                stale: false,
+            });
+        }
         let Some(cache) = self.cache.as_mut() else {
             return Ok(CachedAnswer {
                 filtered: false,
@@ -1315,6 +1347,144 @@ impl<R: Random> DnsDaemon<R> {
             header.rcode().into(),
             OrdinaryCacheMode::Commit,
         );
+    }
+
+    pub fn tcp_cache_view(&self) -> Option<Cache> {
+        self.cache.as_ref().map(Cache::snapshot)
+    }
+
+    pub fn tcp_cache_parameters(&self) -> (bool, u64) {
+        (self.negative_cache, self.negative_ttl)
+    }
+
+    pub fn tcp_view_answer(
+        cache: &mut Cache,
+        query: &[u8],
+        local: &mut LocalDnsService,
+        now: i64,
+        negative_cache: bool,
+        negative_ttl: u64,
+    ) -> Result<super::cache_engine::CachedAnswer, DaemonError> {
+        if super::local::interface_forward_name(&local.config, query).is_some() {
+            return Ok(super::cache_engine::CachedAnswer {
+                packet: None,
+                stale: false,
+                filtered: false,
+            });
+        }
+        let question = super::forward::Question::parse(query)?;
+        let filter = local.config.filter_rr.clone();
+        let maximum = local.edns_packet_max;
+        CacheContext {
+            cache,
+            counters: &mut CacheCounters::default(),
+            negative_cache,
+            negative_ttl,
+            filter_rr: &filter,
+        }
+        .answer_tcp(query, &question, now, local, maximum)
+        .map_err(Into::into)
+    }
+
+    pub fn tcp_current_answer(
+        &mut self,
+        query: &[u8],
+        now: i64,
+    ) -> Result<super::cache_engine::CachedAnswer, DaemonError> {
+        let Some(cache) = self.cache.as_mut() else {
+            return Ok(super::cache_engine::CachedAnswer {
+                packet: None,
+                stale: false,
+                filtered: false,
+            });
+        };
+        Self::tcp_view_answer(
+            cache,
+            query,
+            &mut self.local,
+            now,
+            self.negative_cache,
+            self.negative_ttl,
+        )
+    }
+
+    pub fn tcp_view_local_answer(
+        cache: Option<&mut Cache>,
+        query: &[u8],
+        local: &mut LocalDnsService,
+        now: i64,
+    ) -> Result<Option<Vec<u8>>, DaemonError> {
+        local
+            .handle_tcp_with_cache(query, now, cache)
+            .map_err(Into::into)
+    }
+
+    pub fn tcp_view_extract(
+        cache: &mut Cache,
+        counters: &mut CacheCounters,
+        packet: &mut Vec<u8>,
+        local: &LocalDnsService,
+        policy: &AddressPolicy,
+        now: i64,
+        rcode: u16,
+        mode: super::cache::Extraction,
+        negative_cache: bool,
+        negative_ttl: u64,
+    ) -> Result<Option<super::cache::CacheTransaction>, WireError> {
+        let maximum = cache.policy().max_reply_ttl;
+        let result = CacheContext {
+            cache,
+            counters,
+            negative_cache,
+            negative_ttl,
+            filter_rr: &local.config.filter_rr,
+        }
+        .insert_reply_for_transfer(packet, now, local, policy, rcode, mode);
+        // Even a later extraction error may have written an earlier TTL prefix.
+        let clipped = super::cache::clip_live_reply_ttls(packet, maximum, rcode);
+        result.and_then(|transaction| clipped.map(|_| transaction))
+    }
+
+    pub fn tcp_current_extract(
+        &mut self,
+        packet: &mut Vec<u8>,
+        policy: &AddressPolicy,
+        now: i64,
+        rcode: u16,
+        mode: super::cache::Extraction,
+    ) -> Result<(), WireError> {
+        let Some(cache) = self.cache.as_mut() else {
+            return Ok(());
+        };
+        let maximum = cache.policy().max_reply_ttl;
+        let result = CacheContext {
+            cache,
+            counters: &mut self.cache_counters,
+            negative_cache: self.negative_cache,
+            negative_ttl: self.negative_ttl,
+            filter_rr: &self.filter_rr,
+        }
+        .insert_reply_with_policy(packet, now, &self.local, policy, rcode, mode);
+        let clipped = super::cache::clip_live_reply_ttls(packet, maximum, rcode);
+        result.and(clipped)
+    }
+
+    pub fn import_tcp_cache_transfer(
+        &mut self,
+        transaction: super::cache::CacheTransaction,
+        now: i64,
+    ) -> bool {
+        let Some(cache) = self.cache.as_mut() else {
+            return false;
+        };
+        CacheContext {
+            cache,
+            counters: &mut self.cache_counters,
+            negative_cache: self.negative_cache,
+            negative_ttl: self.negative_ttl,
+            filter_rr: &self.filter_rr,
+        }
+        .import_transfer(transaction, now, &self.local)
     }
 
     pub fn cached_tcp_answer(
