@@ -2,8 +2,8 @@
 
 ## 当前状态与下一步
 
-- 当前里程碑：M5；169 项中 **152 项已关闭、10 项部分实现、7 项未实现，剩余 17 项**。
-- 刚关闭：`dhcp-reply-delay`与`filterwin2k`普通完整合同。delay19实际配对／3组边界／4负控，955f681b／ada5d880…208044c；filter19配置／89每侧观察／5组边界／38负控，19d49a73／c88452ce…8def28f。普通零差异；成功OFFER/rapid commit前延迟、4011 ACK/信号defer及SOA/SRV/underscore ANY的配置/cache/RD/DO/TCP层序均实测。归档全SHA+metadata已核验清远端，剩余17。
+- 当前里程碑：M5；169 项中 **153 项已关闭、9 项部分实现、7 项未实现，剩余 16 项**。
+- 刚关闭：`use-stale-cache` 普通完整合同；7a3af081／fccfc957…409a306，65自身普通required逐一配对、273负控全拒绝，缺项／普通差异均0。6种cache形状、RD/DO/UDP/TCP、finite/default/zero、实际2.2/5.2秒到期、持连接refresh/parent progress/客户端join/drop/stop、HUP/失败保留均覆盖；全部归档SHA+metadata核验清远端，剩余16。
 - 当前代码：最新已构建 `7440f1fd` / ELF `8d38c1d5fc2c1581d23e0af6dfb1b06b04fa381ef2b1115ce977970b84300c2b`，**1,777,704 字节（M4 +618,424）**；含接口 immutable records 枚举接线、TCP accept 时缓存视图/时钟与 ordered parent imports、normal TCP 独立日志上下文（完整族仍未资格）。Linux 实际 661 lib 和 10 main 单元通过，19 ignored 不计；574 lib/9 main host 通过。8389 的旧 FIFO 测试未消费新增 INIT-cache barrier，原失败保留，4207 修正后实际通过，不把 no-run 算通过。interface-name 空 root parser 已 C 校准；UBus 扩展 216 配对观察已覆盖名称、方法、冲突、doctor 与原版空 name NULL/partial inet_pton/DATA 寿命缺陷；分片接收已由 67 条 Linux ubus 单元验证，lifecycle 订阅/断连/真实分片已有167检查通过，注册恢复/doctor边界仍需完整族资格，未关闭 enable-ubus。旧 source pool 和 EDNS 完整资格保留；各项以逐表资格候选为准。
 - 下一步：优先synth普通最后配对、其余cache独立项；继续domain/domain-suffix/hostsdir、查询/DHCP日志、dump。root接dns-loop-detect；log-malloc／test随后。普通单项通过立即提交扣数；极端known-deferred不等待、不重开普通资格。完成169后统一同ELF完整M2、5分钟资源试跑、两压力、APK生命周期和满载RSS，新增体积最终交用户决定。
 - 阻塞点：无须用户决定。oracle 初查无 M5 残留进程，归档后最近可用约 36 GB（82%）；logging 遗留 4,158 路径/3,516 文件已完整 SHA+metadata 核验归档并清理，endpoint 遗留与所有端点运行目录均已完整核验清理。旧半截、C-only 和已纠正失败保留，不计通过。物理路由器未触碰。体积固定路径矩阵首轮发现历史 tar mtime 触发 Cargo 旧产物复用，整轮已拒绝并保留 calibration-rejection；`ff2b2d22` 在共享构建锁内仅清 dnsmasq package 产物、保留依赖缓存后重新编译测量。旧 fixed_remote 已主动刷新 mtime，原 planner/SIGPIPE 归因不因此撤销；[功能族体积归因](M5_SIZE_ATTRIBUTION.md) 已提交完整固定路径差额及字节相同控制，较大混合族继续补独立归因；最小 slot 选择改写已 C 子集回归，纯前后控制已实测节省 16,384 字节，M5 结束交用户决定。
@@ -57,7 +57,7 @@ M4 的单 poll owner 已替换六线程接线，决定见 [ADR_THREAD_MODEL.md](
 
 ## M5 盘点与工作顺序
 
-盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**152 项已实现并有 C 差分，10 项部分实现，7 项未实现；剩余 17 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
+盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**153 项已实现并有 C 差分，9 项部分实现，7 项未实现；剩余 16 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
 
 对镜像 init 的静态调用路径核对得到 **A 组 99 项、B 组 70 项**。A 表示原生 UCI/init 生成或调用，行号链接到保留原文的 init；B 表示通常需额外配置。`extraconftext`/conf-dir 可以透传任意指令，不据此把全部选项都算原生生成。`pxe-service`、`pxe-prompt`、`interface-name` 实际有 init 生成路径，归 A。26 个 excluded-capability 选项不混入169项计数；其与C一致的禁用/拒绝边界仍保留。
 
@@ -233,7 +233,7 @@ M5 退出条件：169项全部实现并有C差分，或已证明与C一致的拒
 | `synth-domain` | B / — | DNS 记录/策略 | 未实现 | 当前无通过证据；No typed configuration or forward/reverse synthesized-name consumer; generic rejection. |
 | `txt-record` | B / — | DNS 记录/策略 | 已实现，有C差分 | [M5记录边界闭合](../../private/dnsmasq-rewrite/evidence/M5/local-record-boundaries/close-summary.json)；21配置／418服务观察／102语法、11清单和9负控通过。安全RR/TXT u16长度、CAA tag u8、NAPTR先u16再截255、整数32位窄化已匹配；CAA超总长原版heap越界SIGSEGV及非法hex原版ENOMEM各有最小复现，Rust安全拒绝单列。5404efea／0d889b52…130688，1,474,584字节，族增量0；全归档校验后远端已清。 |
 | `umbrella` | B / — | DNS 记录/策略 | 已实现，有C差分 | [M5 EDNS 完整闭合](../../private/dnsmasq-rewrite/evidence/M5/edns/close-summary.json)；196 required 全配对、缺项/夹具失败/未分类差异均为 0，21 资格负控通过；MAC/ECS/CPE/Umbrella mutation、signed/容量/缓存/双传输/连接身份快照、真实 91 秒刷新及 ECS 事务取消/恢复覆盖。7 条 C 身份混合/不完整 netlink 发布与阻塞缺陷有独立阳性控制，保留安全隔离与单 owner 服务行为。9bdccacc／3dc05cc2…820e56，1,699,880 字节；两侧 734 路径/662 文件完整 SHA+metadata 归档已核验，独立族体积矩阵继续。 |
-| `use-stale-cache` | B / — | DNS 记录/策略 | 部分实现 | [source-native](../../private/dnsmasq-rewrite/stale-refresh-20261001/implementation/gate-03/result.json)；UDP stale answer/background refresh implemented for forward records. Native service gate exists; private TCP stale reference is not a merged pass and current TCP/RD/DO/reverse stale semantics need whole-family qualification. |
+| `use-stale-cache` | B / — | DNS 记录/策略 | 已实现，有C差分 | [普通stale完整资格](../../private/dnsmasq-rewrite/evidence/M5/dns-cache-contract/use-stale-cache-qualified-7a3-01.json)；65自身普通required逐一实际映射、273负控全拒绝，missing/diff均0；6种cache形状、RD/DO/UDP/TCP、finite/default/zero、实际2.2/5.2秒expiry、持连接refresh/parent progress/客户端join/drop/stop/HUP/失败保留完整。TTL0/EDE3严格，实际100/150ms刷新import仅fresh600允许599/600量化；7a3af081／fccfc957…409a306，1,773,608B；各归档SHA+metadata核验清远端，不据此关闭其余cache。 |
 | `bind-interfaces` | B / — | 启动/日志/监听 | 已实现，有C差分 | [M5监听闭合](../../private/dnsmasq-rewrite/evidence/M5/listeners/close-summary.json)；163配置／3534逐标签观察／18完整C边界／130负控通过：DAD/失败组合/能力、IPv4 alias与双栈scope、动态owner/永久unowned、共享DNS/TFTP部分绑定、relay及源码caller语义。27条原版scopedTFTP缺陷单列有阳性控制；f987f941／2b63edc9…a2fa91，1,663,016字节；static TFTP独立修复增量0，其余混合增量单列。完整归档已核验清理；归档gate恢复审计另保留。 |
 | `dumpfile` | B / — | 启动/日志/监听 | 未实现 | [source-native](../../docs/dnsmasq/M1_REVIEW_REPORT.md)；元数据列为可用，但无配置消费者；主入口通用 not implemented 拒绝。 |
 | `dumpmask` | B / — | 启动/日志/监听 | 未实现 | [source-native](../../docs/dnsmasq/M1_REVIEW_REPORT.md)；元数据列为可用，但无配置消费者；主入口通用 not implemented 拒绝。 |
