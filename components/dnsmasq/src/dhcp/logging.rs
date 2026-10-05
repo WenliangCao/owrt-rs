@@ -49,6 +49,66 @@ pub fn packet(settings: DhcpLogging, record: PacketLog<'_>) -> Option<Vec<u8>> {
     Some(message)
 }
 
+/// The actual extended hardware identity selected by the packet caller.
+pub fn hardware(hardware_type: u8, hardware: &[u8], client_id: Option<&[u8]>) -> Vec<u8> {
+    let mac = super::request::extended_hardware_id(hardware_type, hardware, client_id);
+    if mac.is_empty() {
+        return b"<null>".to_vec();
+    }
+    mac.iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect::<Vec<_>>()
+        .join(":")
+        .into_bytes()
+}
+
+/// Pre-outcome notices shared by ordinary DHCP, direct PXE and leasequery.
+/// BOOTP returns before hostname parsing in C; counted FQDN labels become
+/// their printable name while plain hostname spelling is retained verbatim.
+pub fn request_details(packet: super::packet::Packet<'_>) -> Vec<Vec<u8>> {
+    let xid = packet.transaction_id();
+    let mut notices = Vec::new();
+    for (code, label) in [
+        (60, b"vendor class: ".as_slice()),
+        (77, b"user class: ".as_slice()),
+    ] {
+        if let Some(value) = packet.option(code, 1) {
+            let value = if code == 77 {
+                user_class(value)
+            } else {
+                sanitise_option(Some(value))
+            };
+            notices.push(detail(xid, label, &value));
+        }
+    }
+    if packet.client_hostname_full().is_some() {
+        let value = if let Some(fqdn) = packet.option(81, 3) {
+            if fqdn[0] & 4 == 0 {
+                fqdn[3..].to_vec()
+            } else {
+                let mut value = Vec::new();
+                let mut rest = &fqdn[3..];
+                while let Some(&length) = rest.first() {
+                    if length == 0 || usize::from(length) >= rest.len() {
+                        break;
+                    }
+                    if !value.is_empty() {
+                        value.push(b'.');
+                    }
+                    value.extend_from_slice(&rest[1..=usize::from(length)]);
+                    rest = &rest[usize::from(length) + 1..];
+                }
+                value
+            }
+        } else {
+            packet.option(12, 1).unwrap_or_default().to_vec()
+        };
+        let value = value.split(|byte| *byte == 0).next().unwrap_or_default();
+        notices.push(detail(xid, b"client provides name: ", value));
+    }
+    notices
+}
+
 /// DHCP sanitise copies all printable bytes, unlike log_txt's prefix rule.
 pub fn sanitise_option(value: Option<&[u8]>) -> Vec<u8> {
     value
