@@ -3,7 +3,7 @@
 //! Insertion and answer selection retain the exact C contracts of the daemon
 //! wrappers; ownership and synchronization remain with the containing caller.
 
-use super::cache::{Cache, CacheCounters, CnameTarget, Kind, Record, StalePolicy};
+use super::cache::{Cache, CacheCounters, CnameTarget, Kind, Record};
 use super::cache_reply::{append_cname_record, append_negative_authority, append_positive_record};
 use super::local::AnswerError;
 use super::service::LocalDnsService;
@@ -13,7 +13,7 @@ use super::wire::{
 };
 use std::net::IpAddr;
 
-pub(super) struct CachedAnswer {
+pub struct CachedAnswer {
     pub packet: Option<Vec<u8>>,
     pub stale: bool,
     pub filtered: bool,
@@ -40,7 +40,7 @@ pub(super) struct CacheContext<'a> {
     pub cache: &'a mut Cache,
     pub counters: &'a mut CacheCounters,
     pub negative_cache: bool,
-    pub negative_ttl: u32,
+    pub negative_ttl: u64,
     pub filter_rr: &'a [u16],
 }
 
@@ -649,7 +649,7 @@ impl CacheContext<'_> {
                 data: Vec::new(),
             },
             now,
-            ttl,
+            u64::from(ttl),
         );
     }
 
@@ -795,9 +795,9 @@ impl CacheContext<'_> {
                     continue;
                 }
                 let ttl = if max_reply_ttl == 0 {
-                    rr.ttl
+                    u64::from(rr.ttl)
                 } else {
-                    rr.ttl.min(max_reply_ttl)
+                    u64::from(rr.ttl).min(max_reply_ttl)
                 };
                 if rr.rrtype == 5 {
                     if cname_left == 0 {
@@ -912,10 +912,11 @@ impl CacheContext<'_> {
             && ((insert && question.qtype != 255) || header.rcode() == 3)
         {
             let soa = authority_soa(packet, answer_end, header.authorities, &current);
-            let mut soa_ttl = soa.as_ref().and_then(|(_, ttl, minimum, _)| {
-                (*ttl != 0 || cache.policy().stale != StalePolicy::Disabled)
-                    .then_some((*ttl).min(*minimum))
-            });
+            // find_soa lets cache_insert apply min-cache-ttl before rejecting
+            // raw TTL0. Treating TTL0 as an absent SOA here loses that case.
+            let mut soa_ttl = soa
+                .as_ref()
+                .map(|(_, ttl, minimum, _)| u64::from((*ttl).min(*minimum)));
             let mut authority = soa_ttl.and(soa.as_ref());
             // A direct negative inserts its SOA first; a CNAME target must
             // immediately follow its alias, so its SOA is inserted afterwards.
@@ -1128,7 +1129,7 @@ fn insert_authority(
             data: data.clone(),
         },
         now,
-        *ttl,
+        u64::from(*ttl),
     ) {
         Some(CacheInsert::Dynamic(id)) => Some(id),
         _ => None,
@@ -1146,7 +1147,7 @@ fn insert_cache_record(
     local: &LocalDnsService,
     record: Record,
     now: i64,
-    ttl: u32,
+    ttl: u64,
 ) -> Option<CacheInsert> {
     if let Some(existing) = local_cache_match(&record, local) {
         cache
@@ -1155,7 +1156,7 @@ fn insert_cache_record(
         Some(CacheInsert::Local(record.name, existing.from_lease))
     } else {
         cache
-            .insert_counted(record, now, ttl, counters)
+            .insert_ttl_counted(record, now, ttl, counters)
             .ok()
             .map(CacheInsert::Dynamic)
     }

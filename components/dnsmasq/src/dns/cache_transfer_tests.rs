@@ -102,7 +102,7 @@ impl Fixture {
                     };
                     let inserted = if let Some(local) = lease_match(&self.leases, &record) {
                         self.cache
-                            .insert_against_local(ttl, local.same_address)
+                            .insert_against_local(u64::from(ttl), local.same_address)
                             .ok()
                             .map(|()| {
                                 CnameTarget::Local(self.cache.local_target(record.name, true))

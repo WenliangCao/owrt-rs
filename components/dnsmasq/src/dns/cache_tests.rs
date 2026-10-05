@@ -39,6 +39,61 @@ fn tcp_view_isolates_mutation_shares_payload_and_imports_only_child_transaction(
 }
 use std::collections::HashSet;
 
+#[test]
+fn wrapped_minimum_ttl_expires_before_now_instead_of_saturating() {
+    let mut cache = Cache::new(
+        8,
+        Policy {
+            min_ttl: u64::MAX,
+            ..Policy::default()
+        },
+    );
+    cache.start_insert();
+    let id = cache
+        .insert(record("wrapped.ttl.test", Kind::Ipv4, 7), 100, 600)
+        .unwrap();
+    assert_eq!(cache.get(id).unwrap().expires, 99);
+    assert!(cache.commit());
+    assert!(cache
+        .lookup(
+            &Name::from_ascii("wrapped.ttl.test").unwrap(),
+            &[Kind::Ipv4],
+            100,
+            false
+        )
+        .is_empty());
+    assert_eq!(
+        Extraction::from_source(true, true, false, false),
+        Extraction::ExtractOnly
+    );
+    assert_eq!(
+        Extraction::from_source(false, true, false, false),
+        Extraction::Unsupported
+    );
+}
+
+#[test]
+fn live_maximum_ttl_follows_cname_scan_and_leaves_other_sections_alone() {
+    use super::super::wire::{Message, PacketWriter, Section};
+    let alias = Name::from_ascii("alias.clip.test").unwrap();
+    let target = Name::from_ascii("target.clip.test").unwrap();
+    let other = Name::from_ascii("other.clip.test").unwrap();
+    let mut writer = PacketWriter::new(1, 0x8180, 1232).unwrap();
+    writer.question(&alias, 1, 1).unwrap();
+    writer.record_at(Section::Answer, 12, 5, 1, 600, target.as_wire()).unwrap();
+    writer.record_at(Section::Answer, 12, 1, 1, 600, &[198, 51, 100, 1]).unwrap();
+    writer.record(Section::Answer, &target, 1, 1, 400, &[198, 51, 100, 2]).unwrap();
+    writer.record(Section::Answer, &other, 1, 1, 700, &[198, 51, 100, 3]).unwrap();
+    writer.record_at(Section::Answer, 12, 1, 3, 800, &[198, 51, 100, 4]).unwrap();
+    writer.record(Section::Authority, &target, 16, 1, 900, &[1, b'x']).unwrap();
+    let mut packet = writer.finish();
+    clip_live_reply_ttls(&mut packet, 100, 0).unwrap();
+    let message = Message::parse(&packet).unwrap();
+    let ttls: Vec<_> = message.records(Section::Answer).chain(message.records(Section::Authority))
+        .map(|record| record.ttl).collect();
+    assert_eq!(ttls, [100, 600, 100, 700, 800, 900]);
+}
+
 fn record(name: &str, kind: Kind, value: u8) -> Record {
     Record {
         name: Name::from_ascii(name).unwrap(),
