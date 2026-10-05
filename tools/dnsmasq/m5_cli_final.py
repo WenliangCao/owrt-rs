@@ -17,6 +17,7 @@ import socket
 import struct
 import subprocess
 import sys
+import threading
 import time
 
 from m2_rootfs import command, prepare, sha256
@@ -85,8 +86,72 @@ def trace_lines(data):
             item=re.fullmatch(rb'(\d+) bytes from ([0-9a-f]+) to ([0-9a-f]+)',body);assert item,'reallocation trace syntax'
             size=int(item[1]);pointers=[int(item[2],16),int(item[3],16)]
         assert all(0<=pointer<=0xffffff for pointer in pointers),'real pointer hash range'
-        parsed.append(dict(operation=match[1].decode(),function=match[2].decode(),line=int(match[3]),size=size,pointers=pointers))
+        pid=re.search(rb'dnsmasq(?:-[a-z]+)?\[(\d+)\]:',line)
+        parsed.append(dict(operation=match[1].decode(),function=match[2].decode(),line=int(match[3]),size=size,pointers=pointers,pid=int(pid[1]) if pid else None))
     return parsed
+
+
+def lifetimes(records):
+    # Enable/suspend boundaries and low24 collisions prevent a complete heap
+    # census. Retain unresolved identities; require real complete lifetimes.
+    live={};completed=[];reused=[];external=[];transitions=[]
+    for index,record in enumerate(records):
+        pointers=record['pointers'];key=(record['pid'],pointers[-1])
+        if record['operation']=='free':
+            if key in live:completed.append([live.pop(key),index])
+            else:external.append(index)
+            continue
+        if len(pointers)==2:
+            old=(record['pid'],pointers[0])
+            if old in live:transitions.append([live.pop(old),index])
+            elif pointers[0]:external.append(index)
+        if key in live:reused.append([live[key],index])
+        live[key]=index
+    return dict(completed=completed,reallocations=transitions,unresolved_input=external,
+                unresolved_output=sorted(live.values()),ambiguous_live_hash_reuse=reused)
+
+
+def source_sites(records,args,plan):
+    if args.side=='rust':
+        path=args.rust_source/'components/dnsmasq/src/allocation_trace.rs';lines=path.read_text().splitlines();sites={}
+        for function in ['alloc','alloc_zeroed','realloc','dealloc']:
+            start=next(index for index,line in enumerate(lines) if f'unsafe fn {function}(' in line)
+            sites['allocation_trace::'+function]=next(index+1 for index in range(start,len(lines)) if 'line: line!()' in lines[index])
+        assert all(sites.get(record['function'])==record['line'] for record in records),'actual Rust hook source line'
+        return dict(files={str(path.relative_to(args.rust_source)):sha256(path)},sites=sites)
+    files={path.name:path.read_text().splitlines() for path in args.c_source.glob('*.c')}
+    for name,digest in plan['source'].items():assert sha256(args.c_source/name)==digest,'exact matching C source'
+    wrappers={'malloc':['whine_malloc','malloc_log'],'free':['free('],'realloc':['whine_realloc'],
+              'expand_buf':['expand_buf'],'expand_workspace':['expand_workspace']};sites=[]
+    for record in records:
+        choices=[]
+        for name,lines in files.items():
+            index=record['line']-1
+            if 0<=index<len(lines) and any(wrapper in lines[index] for wrapper in wrappers[record['operation']]):
+                prefix='\n'.join(lines[:index+1])
+                if re.search(r'\b'+re.escape(record['function'])+r'\s*\(',prefix):choices.append(name)
+        assert choices,f"actual C wrapper source site: {record}"
+        sites.append(dict(function=record['function'],line=record['line'],files=choices))
+    return dict(files=plan['source'],sites=sites)
+
+
+class SyslogCollector:
+    """Drain independently while the service produces synchronous notices."""
+    def __init__(self,path):
+        path.unlink(missing_ok=True);self.socket=socket.socket(socket.AF_UNIX,socket.SOCK_DGRAM)
+        self.socket.bind(str(path));self.socket.settimeout(.02);self.records=[];self.stop=threading.Event();self.error=None
+        self.worker=threading.Thread(target=self.receive);self.worker.start()
+
+    def receive(self):
+        while not self.stop.is_set():
+            try:self.records.append(self.socket.recv(65536))
+            except socket.timeout:continue
+            except Exception as error:self.error=repr(error);return
+
+    def close(self):
+        time.sleep(.05);self.stop.set();self.worker.join(1);self.socket.close()
+        assert not self.worker.is_alive() and self.error is None,'independent syslog receiver health'
+        return b'\n'.join(self.records)
 
 
 def malloc_specs():
@@ -94,7 +159,9 @@ def malloc_specs():
             dict(case='malloc-forward-cache',forward=True),dict(case='malloc-hosts-hup',hosts=True),
             dict(case='malloc-tftp-lifecycle',tftp=True),dict(case='malloc-stderr-sink',forward=True),
             dict(case='malloc-file-sink',forward=True,file=True),dict(case='malloc-syslog-sink',forward=True,syslog=True),
-            dict(case='malloc-signal-cleanup',local=True),dict(case='malloc-workload-no-overflow',forward=True,workload=True)]
+            dict(case='malloc-signal-cleanup',local=True),dict(case='malloc-workload-no-overflow',forward=True,workload=True),
+            dict(case='malloc-disabled-control',forward=True,disabled=True),dict(case='malloc-idle-control',idle=True),
+            dict(case='malloc-helper-inheritance',tftp=True,helper=True)]
 
 
 def dns(name,ident=0x7a10):
@@ -104,15 +171,16 @@ def dns(name,ident=0x7a10):
     return packet,reply
 
 
-def malloc_case(root,args,spec):
+def malloc_case(root,args,spec,plan):
     folder=args.out/spec['case'];folder.mkdir();path=fixtures(root)
     config=['port='+('0' if spec.get('port_zero') else '10553'),'no-hosts','no-resolv','listen-address=127.0.0.1','bind-interfaces','user=root','group=root',
-            'pid-file=/m2/cli/pid','host-record=malloc.test,192.0.2.8','log-malloc']
-    collector=None;stream=[]
+            'pid-file=/m2/cli/pid','host-record=malloc.test,192.0.2.8']
+    if not spec.get('disabled'):config+=['log-malloc']
+    collector=None
     if spec.get('file'):config+=['log-facility=/m2/cli/allocation.log']
     elif not spec.get('syslog'):config+=['log-facility=-']
     if spec.get('syslog'):
-        log=root/'dev/log';log.unlink(missing_ok=True);collector=socket.socket(socket.AF_UNIX,socket.SOCK_DGRAM);collector.bind(str(log));collector.setblocking(False)
+        collector=SyslogCollector(root/'dev/log')
     upstream=None
     if spec.get('forward'):
         from m5_option_matrix import Upstream
@@ -124,46 +192,66 @@ def malloc_case(root,args,spec):
     if spec.get('tftp'):
         (path/'tftp/evidence').write_bytes(b'allocator-evidence')
         config+=['enable-tftp','tftp-root=/m2/cli/tftp','tftp-port-range=10690,10690']
+    if spec.get('helper'):
+        script=path/'helper-script';script.write_text('#!/bin/sh\nprintf "%s\\n" "$*" > /m2/cli/helper-effect\n');script.chmod(0o755)
+        config+=['dhcp-script=/m2/cli/helper-script']
     (path/'malloc.conf').write_text('\n'.join(config)+'\n');(folder/'config').write_text('\n'.join(config)+'\n')
-    process=None;before=None;after=None
-    def drain():
-        if collector:
-            while True:
-                try:stream.append(collector.recv(65536))
-                except BlockingIOError:break
+    process=None;before=None;after=None;helper_pid=None;idle_delta=None
+    def current_raw():
+        return (path/'allocation.log').read_bytes() if spec.get('file') else b'\n'.join(collector.records) if collector else (folder/'stderr').read_bytes()
     try:
         with (folder/'stderr').open('wb') as log:
             process=subprocess.Popen(command(root,args.side,'-k','-C','/m2/cli/malloc.conf'),stdout=log,stderr=log)
             deadline=time.monotonic()+3
             while not (path/'pid').exists() and time.monotonic()<deadline:
-                assert process.poll() is None,'allocator trace startup';drain();time.sleep(.01)
+                assert process.poll() is None,'allocator trace startup';time.sleep(.01)
             assert (path/'pid').exists(),'allocator trace readiness'
             before=len(list(Path('/proc/'+str(process.pid)+'/fd').iterdir()))
-            drain()
+            if spec.get('helper'):
+                children=Path(f'/proc/{process.pid}/task/{process.pid}/children').read_text().split()
+                assert len(children)==1,'actual helper fork before trace enable';helper_pid=int(children[0])
+                save(folder/'helper-process.json',dict(parent_pid=process.pid,helper_pid=helper_pid,status=Path(f'/proc/{helper_pid}/status').read_text()))
+            if spec.get('idle'):
+                time.sleep(.15);first=len(trace_lines(current_raw()));time.sleep(.15);second=len(trace_lines(current_raw()))
+                idle_delta=second-first;save(folder/'idle.json',dict(first=first,second=second,delta=idle_delta))
             replies=[]
             if spec.get('local') or spec.get('forward') or spec.get('hosts'):
                 for index,name in enumerate([probe['name'] for probe in probes] if upstream else ['malloc.test']):
-                    request,reply=dns(name,0x7a10+index);(folder/f'{index}.request').write_bytes(request);(folder/f'{index}.reply').write_bytes(reply);replies.append(reply.hex());drain()
+                    request,reply=dns(name,0x7a10+index);(folder/f'{index}.request').write_bytes(request);(folder/f'{index}.reply').write_bytes(reply);replies.append(reply.hex())
             if spec.get('hosts'):
                 (path/'hosts').write_text('192.0.2.9 changed.malloc.test\n');process.send_signal(signal.SIGHUP);time.sleep(.1)
                 request,reply=dns('changed.malloc.test',0x7a70);(folder/'after-hup.request').write_bytes(request);(folder/'after-hup.reply').write_bytes(reply)
-                assert any(record.get('data')=='192.0.2.9' for record in semantics(reply)['records']),'hosts reload allocation caller';drain()
+                assert any(record.get('data')=='192.0.2.9' for record in semantics(reply)['records']),'hosts reload allocation caller'
             if spec.get('tftp'):
                 with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as endpoint:
                     endpoint.settimeout(2);endpoint.sendto(b'\0\1evidence\0octet\0',('127.0.0.1',69));reply,peer=endpoint.recvfrom(4096)
                     assert reply==b'\0\3\0\1allocator-evidence','actual TFTP allocation caller';endpoint.sendto(b'\0\4\0\1',peer)
                     (folder/'tftp.reply').write_bytes(reply)
-                time.sleep(.05);drain()
+                time.sleep(.05)
+                if spec.get('helper'):
+                    deadline=time.monotonic()+2
+                    while not (path/'helper-effect').exists() and time.monotonic()<deadline:time.sleep(.01)
+                    assert (path/'helper-effect').exists(),'actual helper TFTP delivery';effect=(path/'helper-effect').read_bytes()
+                    (folder/'helper-effect').write_bytes(effect);assert effect.startswith(b'tftp '),'helper TFTP callback'
             after=len(list(Path('/proc/'+str(process.pid)+'/fd').iterdir()))
-            if spec.get('port_zero'):process.send_signal(signal.SIGHUP);time.sleep(.05);drain()
+            if spec.get('port_zero'):process.send_signal(signal.SIGHUP);time.sleep(.05)
             process.send_signal(signal.SIGTERM);assert process.wait(3)==0,'allocator trace service TERM'
-            drain()
-        raw=(path/'allocation.log').read_bytes() if spec.get('file') else b'\n'.join(stream) if collector else (folder/'stderr').read_bytes()
+        raw=collector.close() if collector else current_raw();collector=None
         (folder/'allocator.raw').write_bytes(raw)
         parsed=trace_lines(raw);save(folder/'allocations.json',parsed)
-        assert b'allocation trace overflow' not in raw,'ordinary workload lost allocator events'
+        lifetime=lifetimes(parsed);save(folder/'lifetimes.json',lifetime)
+        save(folder/'source-sites.json',source_sites(parsed,args,plan))
+        assert not re.search(rb'(?:allocation trace (?:overflow|lost)|overflow: \d+ log entries lost)',raw),'ordinary workload lost allocator/logger events'
+        assert b'exiting on receipt of SIGTERM' in raw,'ordinary sink collected final shutdown notice'
         assert after==before,'allocation diagnostics introduced/leaked a descriptor'
-        return dict(case=spec['case'],service_healthy=True,fd_stable=True,trace_seen=bool(parsed),source_identity='c-util-wrappers' if args.side=='c' else 'rust-System-global-hooks',allocation_records=len(parsed),operations=sorted({record['operation'] for record in parsed}))
+        assert bool(parsed)!=bool(spec.get('disabled')),'enabled/disabled allocation gate'
+        assert not spec.get('helper') or all(record['pid']==process.pid for record in parsed),'helper inherited disabled trace'
+        return dict(case=spec['case'],service_healthy=True,fd_stable=True,trace_seen=bool(parsed),disabled=bool(spec.get('disabled')),
+                    source_identity='c-util-wrappers' if args.side=='c' else 'rust-System-global-hooks',allocation_records=len(parsed),
+                    operations=sorted({record['operation'] for record in parsed}),completed_lifetimes=len(lifetime['completed']),
+                    observed_reallocations=len(lifetime['reallocations']),ambiguous_live_hash_reuse=len(lifetime['ambiguous_live_hash_reuse']),
+                    loss_seen=False,term_notice=True,idle_delta=idle_delta,helper_pid=helper_pid,trace_pids=sorted({record['pid'] for record in parsed}),
+                    reply_semantics=[semantics(bytes.fromhex(reply)) for reply in replies])
     finally:
         if process is not None and process.poll() is None:process.terminate();process.wait(3)
         if collector:collector.close()
@@ -186,7 +274,7 @@ def run_side(args):
             failure=dict(case=spec['case'],error=repr(error));failures.append(failure);save(args.out/spec['case']/'failure.json',failure)
     if args.family=='log-malloc':
         for spec in malloc_specs():
-            try:rows.append(malloc_case(root,args,spec))
+            try:rows.append(malloc_case(root,args,spec,plan))
             except Exception as error:
                 failure=dict(case=spec['case'],error=repr(error));failures.append(failure);save(args.out/spec['case']/'failure.json',failure)
     needed={spec['case'] for spec in plan['test_cases']}|set(plan['test_controls']) if args.family=='test' else set(plan['log_malloc_cases'])
@@ -196,12 +284,54 @@ def run_side(args):
     return bool(failures)
 
 
+def qualify(out,family):
+    plan=json.loads((HERE/'m5_cli_final.json').read_text());failures=[];pairs=[]
+    sides={side:json.loads((out/side/'result.json').read_text()) for side in ['c','rust']}
+    needed={spec['case'] for spec in plan['test_cases']}|set(plan['test_controls']) if family=='test' else set(plan['log_malloc_cases'])
+    for side,result in sides.items():
+        if result['failures'] or result['missing'] or {row['case'] for row in result['rows']}!=needed:
+            failures.append(dict(side=side,kind='complete-frozen-inventory',failures=result['failures'],missing=result['missing']))
+    rows={side:{row['case']:row for row in result['rows']} for side,result in sides.items()}
+    for case in sorted(needed):
+        if any(case not in rows[side] for side in rows):continue
+        c,r=rows['c'][case],rows['rust'][case]
+        if 'exit' in c:
+            if c!=r:failures.append(dict(case=case,kind='exact-image-syntax-output-effects',c=c,rust=r))
+            if family=='test' and c['form'] in ['cli','file'] and c['exit']!=0:
+                failures.append(dict(case=case,kind='ordinary-C-option-form-rejected',exit=c['exit']))
+            pairs.append(dict(case=case,contract='exact exit/stdout/stderr and parse-only effects',equal=c==r))
+        else:
+            shared=['service_healthy','fd_stable','trace_seen','disabled','loss_seen','term_notice','reply_semantics']
+            if any(c[key]!=r[key] for key in shared):failures.append(dict(case=case,kind='common-allocator-contract',c=c,rust=r))
+            if not c['disabled']:
+                for side,row in [('c',c),('rust',r)]:
+                    if row['source_identity']!=('c-util-wrappers' if side=='c' else 'rust-System-global-hooks'):
+                        failures.append(dict(case=case,side=side,kind='truthful-source-identity'))
+                    if case in ['malloc-hosts-hup','malloc-tftp-lifecycle','malloc-helper-inheritance'] and row['completed_lifetimes']==0:
+                        failures.append(dict(case=case,side=side,kind='actual-complete-pointer-lifetime-required'))
+            pairs.append(dict(case=case,contract='actual source/layout/pointer operations; healthy sink/service, gating, FD and no loss',
+                              allocation_records={side:rows[side][case]['allocation_records'] for side in rows},
+                              complete_lifetimes={side:rows[side][case]['completed_lifetimes'] for side in rows},
+                              implementation_identity_differences=True))
+    result=dict(family=family,qualified=not failures,paired_cases=len(pairs),failures=failures,pairs=pairs,
+                binaries={side:value['binary_sha256'] for side,value in sides.items()},
+                known_deferred=plan['known_deferred'],ordinary_option_count=169 if family=='test' else 1)
+    save(out/'result.json',result);print(json.dumps(dict(family=family,qualified=result['qualified'],paired_cases=len(pairs),failures=len(failures))))
+    return not result['qualified']
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--image-root',type=Path,required=True);parser.add_argument('--rust',type=Path,required=True)
     parser.add_argument('--out',type=Path,required=True);parser.add_argument('--family',choices=['test','log-malloc'],required=True);parser.add_argument('--side',choices=['c','rust','both'],default='both')
+    parser.add_argument('--c-source',type=Path);parser.add_argument('--rust-source',type=Path);parser.add_argument('--qualify-existing',action='store_true')
     args=parser.parse_args()
+    if args.qualify_existing:return qualify(args.out,args.family)
+    if args.family=='log-malloc':assert args.c_source and args.rust_source,'actual corresponding source snapshots required'
     if args.side!='both':return run_side(args)
-    raise SystemExit('paired qualifier follows actual C calibration; reference-only results cannot qualify')
+    args.out.mkdir(parents=True,exist_ok=False)
+    for side in ['c','rust']:
+        separate=copy.copy(args);separate.side=side;separate.out=args.out/side;run_side(separate)
+    return qualify(args.out,args.family)
 
 
 if __name__=='__main__':raise SystemExit(main())

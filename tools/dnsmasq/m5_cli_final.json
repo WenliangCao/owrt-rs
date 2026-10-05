@@ -2589,7 +2589,10 @@
     "malloc-file-sink",
     "malloc-syslog-sink",
     "malloc-signal-cleanup",
-    "malloc-workload-no-overflow"
+    "malloc-workload-no-overflow",
+    "malloc-disabled-control",
+    "malloc-idle-control",
+    "malloc-helper-inheritance"
   ],
   "log_malloc_contract": "Enable after logger and helper startup. System allocation hooks record actual Rust operations/layout/pointers at actual Rust source sites; C and Rust implementation-specific func/line,size,count,pointer differences are explicit. No fabricated C allocations or heap statistics. Real sink/gating/service/FD/order/lifecycle and ordinary no-loss control are required.",
   "known_deferred": [
