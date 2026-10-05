@@ -2,7 +2,7 @@
 
 ## 当前状态与下一步
 
-- 当前里程碑：M5；169 项中 **160 项已关闭、8 项部分实现、1 项未实现，剩余 9 项**。
+- 当前里程碑：M5；169 项中 **160 项已关闭、9 项部分实现、0 项未实现，剩余 9 项**。
 - 刚关闭：`dumpfile`、`dumpmask` 普通完整合同；c36eacbc／93786796…e5e27，57 actualpaired／8组边界、6全族负控＋每选项4负控，missing/diff均0。PCAP header/append/FIFO/mask/双栈/DNS4capture/缓存/TCP无capture、DHCP/relay/TFTP共享writer、extra真实ID与真实Cwritev/Rustwrite EIO恢复覆盖；1180路径／1005文件SHA+metadata归档核验清远端，同ELF Linux682＋10过、19ignored不计。剩余9。
 - 当前代码：最新冻结构建 `a5c337b7`／ELF `6cd6201a6c6337baf022837e07091640e224b90f0a6afc2636025b0f6efda228`，**1,949,736字节（M4 +790,456）**；实际Linux691库＋10main通过（19ignored不计），release/tests全SHA+metadata已回拷。包含loop普通header/sourceUID修复、hostsdir单owner、query TXT/dupe/retry、DHCP最小packet producer及真实allocator trace（各未资格项继续普通对照）；关闭项独立资格身份见逐表。allocator内联约束固定源码独立控制实测省143,360字节，后两控制ELF逐字节同，未修改分配行为或伪造日志。主树只剩用户docs/prompts修改，M5未结束。
 - 下一步：domain/domain-suffix普通诊断补正后最后候选对照；继续hostsdir、query/DHCP日志。loop-detect首批13普通过，补文件check/reload/资源caller；log-malloc／test已接续。普通单项通过立即提交扣数；极端known-deferred不等待、不重开普通资格。完成169后统一同ELF完整M2、5分钟资源试跑、两压力、APK生命周期和满载RSS，新增体积最终交用户决定。
@@ -20,6 +20,7 @@
 - 每族镜像 C 对照通过后立即合入 main、更新选项状态并扣数，记录候选 ELF 的 SHA256、源码身份及证据；统一复测放在每批结束，不以等待统一版本为由延迟已通过族的记账。
 - 每族开工先从精确 C 调用链列出必须覆盖的边界清单，完成后逐条勾选；审计只核对清单及其证据，发现真实缺陷则重新打开对应项。
 - 用户2026-10-05最新优先级：普通有效配置/实际caller通过即关闭对应选项；只在极端输入下出现的差异（例：超长路径debug输出）单列known-deferred、排后修，不阻塞整族关闭，也不因此重开普通资格。普通资源/生命周期缺口仍需修复与C配对。未执行的延期极端场景不算通过；不得继续扩极端矩阵拖延最近可闭合族。
+- 用户2026-10-06更正：log-malloc只要求接受选项、启动与--test和C一致；分配日志内容列[行为差异表](M5_BEHAVIOR_DIFFERENCES.md)，不逐字复刻C函数/行号/尺寸/地址。全局分配跟踪实验已保存durable ref并从生产撤除，不加普通路径开销。
 - 通用选项矩阵只纳入「部分实现且没有已知代码缺口」的选项，以代表值比较镜像 C/Rust 启动结果、`--test` 输出和代表性行为；有代码缺口的继续按功能族处理。不可仅凭语法通过关闭运行时合同。
 - Oracle 上不同功能族使用各自独立 namespace 并行对照；正式资源/性能窗口仍排除其他负载。
 - Oracle 的 dnsmasq 构建统一使用 `/home/ubuntu/dnsmasq-cargo-target` 作为唯一 `CARGO_TARGET_DIR`，统一入口为 [oracle_build.sh](../../tools/dnsmasq/oracle_build.sh)（release或tests；tests复制测试ELF后再运行），构建和产物复制在同一锁内，不再在每轮目录新建target。旧驱动若显式传独立`--target-dir`必须先改为此共享目录，fuzz也不能另建target。镜像rootfs使用一次性准备的只读共享基底`/home/ubuntu/dnsmasq-image-bases/`（内容/mode/mtime匹配镜像，root:root所有权保持旧夹具语义）加每轮临时overlay，不再整份复制。namespace退出后`rootfs`挂载点为空，变化在`rootfs-overlay/upper`；归档upper须用保留xattr/whiteout/链接和权限的tar，不能把设备节点当普通文件复制。每批运行结束后，先将全部所需证据、运行末态和身份回拷到本地evidence并逐文件校验SHA，再立即删除对应远端运行目录和overlay；未回拷或SHA不符的不能删。清理限dnsmasq M2–M5可重建缓存/已归档运行目录，不碰r85、netifd、reload、sdk、owrt-evidence等无关目录。磁盘不足期间的失败必须核查ENOSPC，并在恢复空间后重跑受影响且未完成的对照。
@@ -57,7 +58,7 @@ M4 的单 poll owner 已替换六线程接线，决定见 [ADR_THREAD_MODEL.md](
 
 ## M5 盘点与工作顺序
 
-盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**160 项已实现并有 C 差分，8 项部分实现，1 项未实现；剩余 9 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
+盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**160 项已实现并有 C 差分，9 项部分实现，0 项未实现；剩余 9 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
 
 对镜像 init 的静态调用路径核对得到 **A 组 99 项、B 组 70 项**。A 表示原生 UCI/init 生成或调用，行号链接到保留原文的 init；B 表示通常需额外配置。`extraconftext`/conf-dir 可以透传任意指令，不据此把全部选项都算原生生成。`pxe-service`、`pxe-prompt`、`interface-name` 实际有 init 生成路径，归 A。26 个 excluded-capability 选项不混入169项计数；其与C一致的禁用/拒绝边界仍保留。
 
@@ -240,7 +241,7 @@ M5 退出条件：169项全部实现并有C差分，或已证明与C一致的拒
 | `help` | B / — | 启动/日志/监听 | 已实现，有C差分 | [M5 CLI闭合](../../private/dnsmasq-rewrite/evidence/M5/logging/sink-paired-dd9f565d/cli-close-summary.json)；8场景／3边界、13负控通过；193项help/64条DHCP表、argc分派/无效default跳过、完整GPL和compile options。仅version首行追加Rust实现身份；dd9f565d／6457808a…e4a55f，1,626,152字节（日志sink+CLI混合增量45,072，独立归因待补）。全归档SHA+metadata核验清远端。 |
 | `log-async` | B / — | 启动/日志/监听 | 已实现，有C差分 | [M5 async/debug 闭合](../../private/dnsmasq-rewrite/evidence/M5/logging/async-debug-close-4207-20261005/async-debug-close-summary.json)；61 配置、18 debug/script、43 async/sink-fault、26 负控全过；4207c732／77b16e5b…c4aec7，1,736,744 字节。 |
 | `log-debug` | B / — | 启动/日志/监听 | 已实现，有C差分 | [普通日志完整资格](../../private/dnsmasq-rewrite/evidence/M5/logging/logging-ordinary-qualified-89-20261005/facility-debug-async-close-summary.json)；146配置、FAC115/DBG19/ASY43/QTF6交叠清单、31负控全部通过，普通active TCP+SIGUSR2 pinned旧destination/EOF/next-server producer完整。89a37c7a／3009bf71…09579c0，1,777,704B；e2b08566…655660f归档2613路径/2138文件SHA+metadata核验清远端。single-owner阻塞策略、C旧FIFO FD leak各有独立守卫，极端输入依用户规则deferred。 |
-| `log-malloc` | B / — | 启动/日志/监听 | 未实现 | 精确镜像consumer已确认：dnsmasq.c:859启用，dnsmasq.h无ifdef映射whine malloc/realloc/free，util.c输出实际allocator ptr-hash/func/line；不能按musl no-op关闭。真实flag trace校准和最小Rust实际allocator trace消费者设计中。 |
+| `log-malloc` | B / — | 启动/日志/监听 | 部分实现 | 用户2026-10-06指定的接受/启动/--test合同：main已接受，真实C匹配消费者事实保留；全局allocator实验df308e2f已撤，保存archive/m5-malloc-trace-experiment-20261006及体积控制证据；分配日志不输出的原因见[行为差异表](M5_BEHAVIOR_DIFFERENCES.md)，新无跟踪候选普通对照进行中。 |
 | `no-ident` | B / — | 启动/日志/监听 | 已实现，有C差分 | [M5 NO_ID闭合](../../private/dnsmasq-rewrite/evidence/M5/logging/final-noident-daemon-c80/no-ident-close-summary.json)；8配置／每侧228观察／4边界／16负控通过；CHAOS bind/server、explicit IN TXT、QCLASS ANY阴性、binary/RD/DO及双传输覆盖。26条C TCP遗留OPT缺陷单列最小复现，未删除DO守卫；c80c04e6／a7b051f3…e32f0d5，1,646,632字节，混合族增量另记；完整归档核验清远端。 |
 | `quiet-tftp` | B / — | 启动/日志/监听 | 已实现，有C差分 | [M5 quiet-tftp 闭合](../../private/dnsmasq-rewrite/evidence/M5/logging/narrow-ef-close-20261005/quiet-tftp-close-summary.json)；六完整配置/每侧 30 TFTP 观察、QTF01/02 全映射、16 负控、零差异和无强制回收；完整 wire 留存、sanitise/499 字节、permission/read/mode/write/client-error/sent/failure/port 耗尽及双方真实 120 秒超时。ef11e06b／607b2565…e4c1ba4a，1,695,784 字节；ecb90a67…3296449 归档 6,310 路径/5,445 文件全 SHA+metadata 核验清远端。 |
 | `test` | B / — | 启动/日志/监听 | 部分实现 | 成功syntax-check提示、退出码/错误加载消费者已具实际C差分；最终169普通选项全语法资格由m5/cli-final-contract准备，仍等待最后消费者及统一候选。 |
