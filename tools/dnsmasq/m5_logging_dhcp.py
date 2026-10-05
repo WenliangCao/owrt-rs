@@ -206,11 +206,21 @@ def main(args):
             if server: cleanup['server'] = server.close()
         if scope == 'leasequery': errors = leasequery.evaluate(rows, corpus, cleanup)
         elif scope == 'pxe': errors = pxe.evaluate(rows, corpus, ['c', 'rust'])
-        else: errors = relay.evaluate(rows, corpus, ['c', 'rust'])
+        else:
+            evaluation_rows = copy.deepcopy(rows)
+            for row in evaluation_rows:
+                if not row['profile'].startswith('relay-multi-'): continue
+                # The peer drains distinct UDP sockets in select readiness
+                # order, which changes between C runs. Preserve every byte,
+                # endpoint and within-channel order, and compare channels.
+                for packet_case in row['cases']:
+                    packet_case['observed']['upstream'].sort(key=lambda packet: tuple(packet['destination']))
+            errors = relay.evaluate(evaluation_rows, corpus, ['c', 'rust'])
         if scope != 'leasequery':
             for name, item in cleanup.items():
                 if item.get('actor_exit') != 0 or item.get('namespace', {}).get('forced'): errors.append(name + ': namespace cleanup')
-        save(out/(scope+'-wire-evaluation.json'), {'failures': errors, 'cleanup': cleanup})
+        save(out/(scope+'-wire-evaluation.json'), {'failures': errors, 'cleanup': cleanup,
+             'peer_order_policy': 'relay-multi only: stable destination-channel comparison; raw UDP socket readiness order retained; every packet/source/destination/count stays compared'})
         result['failures'].extend({'scope': scope, 'kind': 'independent-wire-health-cleanup', 'error': error} for error in errors)
     result['failures'].extend(dict(case=row['id'], **failure) for row in result['scenarios'] for failure in row['failures'])
     if not result['scenarios']: result['failures'].append({'kind': 'missing-scenarios'})
