@@ -10,6 +10,9 @@ pub struct LoggingConfig {
     pub facility: Option<i32>,
     /// None uses /dev/log; "-" duplicates the inherited standard error.
     pub file: Option<PathBuf>,
+    /// Signed musl atoi result, capped at 100; zero selects one fixed buffer.
+    pub async_queue: i32,
+    pub debug: bool,
 }
 
 impl LoggingConfig {
@@ -30,6 +33,21 @@ impl LoggingConfig {
             // The exact target was built with NO_ID; option.c accepts this
             // Boolean but does not add identity records in either state.
             b"no-ident" => {}
+            b"log-async" => {
+                self.async_queue = match &directive.argument {
+                    None => 5,
+                    Some(argument) => {
+                        let value = argument.decoded().iter().try_fold(0u32, |value, byte| {
+                            if !byte.is_ascii_digit() {
+                                return Err(Error("error"));
+                            }
+                            Ok(value.wrapping_mul(10).wrapping_add(u32::from(byte - b'0')))
+                        })?;
+                        (value as i32).min(100)
+                    }
+                };
+            }
+            b"log-debug" => self.debug = true,
             _ => return Ok(false),
         }
         Ok(true)
@@ -87,6 +105,29 @@ mod tests {
         assert_eq!(facility(b"mark"), Some(192));
         for invalid in [b"".as_slice(), b"local8", b"24", b"audit"] {
             assert_eq!(facility(invalid), None);
+        }
+    }
+
+    #[test]
+    fn async_queue_preserves_image_empty_and_signed_wrap_boundaries() {
+        for (value, expected) in [
+            ("log-async", 5),
+            ("log-async=", 0),
+            ("log-async=101", 100),
+            ("log-async=4294967296", 0),
+            ("log-async=2147483648", i32::MIN),
+            ("log-async=4294967301", 5),
+        ] {
+            let mut config = LoggingConfig::default();
+            config
+                .apply(&crate::config::lex_line(value.as_bytes()).unwrap().unwrap())
+                .unwrap();
+            assert_eq!(config.async_queue, expected);
+        }
+        for value in ["log-async=-1", "log-async=+1", "log-async=1x"] {
+            assert!(LoggingConfig::default()
+                .apply(&crate::config::lex_line(value.as_bytes()).unwrap().unwrap())
+                .is_err());
         }
     }
 }
