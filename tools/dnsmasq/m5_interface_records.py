@@ -641,6 +641,8 @@ def run_service_side(root,side,case,out):
                 'request':packet.hex(),'reply':response.hex() if response else None,'elapsed':time.monotonic()-started,'cache':False,
                 'upstreams':[{'server':u.host,'events':copy.deepcopy(u.events[n:])} for u,n in zip(upstreams,before)]}
         row=original_exchange(port,action,*args)
+        if action['id']=='ready' and row.get('response') and not any(state['label']=='initial-kernel' for state in states):
+            record('initial-kernel')
         if action['id']=='faulted':
             for tracer,path in tracers:
                 if tracer.wait(5)!=0:raise AssertionError('enumeration fault injection failed')
@@ -676,8 +678,32 @@ def comparable_service(observed):
     return result
 
 
+def witness_errors(observed,side,case):
+    errors=[]
+    wanted=not (case['id']=='interface-cname-loop')
+    if observed.get('startup',{}).get('ready')!=wanted:errors.append('source-calibrated startup outcome missing')
+    if wanted:
+        identity=observed.get('identity',{})
+        if identity.get('threads')!=1 or identity.get('uid')!=identity.get('expected_uid'):
+            errors.append('single owner or runtime identity witness missing')
+        if not any(state['label']=='initial-kernel' for state in observed.get('interface_states',[])):
+            errors.append('initial actual kernel address/flag witness missing')
+    for action in case['actions']:
+        if action.get('allocation_fault'):
+            report=next((state['evidence'] for state in observed.get('interface_states',[])
+                if state['label']=='enumeration-fault' and state['evidence'].get('symbol')),None)
+            symbol,size=('calloc',40) if side=='c' else ('realloc',384)
+            if not report or not report.get('injected') or report.get('symbol')!=symbol or report.get('required_size')!=size or \
+                not any(call.get('size')==size and call.get('returned')==0 and call.get('pc')==report['address'] for call in report.get('calls',[])):
+                errors.append('actual pinned allocator call/NULL-return witness missing')
+    return errors
+
+
 def compare_service(left,right,case):
     differences=[]
+    guards=[{'phase':'witness','side':side,'error':error} for side,observed in [('c',left),('rust',right)]
+        for error in witness_errors(observed,side,case)]
+    if guards:return guards,[]
     if case.get('debug_blocking_reference'):
         expected=[a['id']+':'+transport for a in case['actions'] if a['op']=='query' for transport in a.get('transports',['udp','tcp'])]
         if [r['id'] for r in left['rows']]!=expected or [r['id'] for r in right['rows']]!=expected:
@@ -738,7 +764,7 @@ def main():
     report={'mode':args.mode,'comparison_executed':args.side=='both','source_commit':args.source_commit,
         'rust_sha256':sha256(args.rust),'c_sha256':STOCK_SHA256,'tool_sha256':sha256(__file__),
         'requirements_sha256':sha256(Path(__file__).with_suffix('.json')),'cases':[],'failures':[],
-        'closed_options':[],'reference_differences':[],'qualification':'Calibration and partial runs never close a frozen required row.'}
+        'closed_options':[],'negative_controls':files.controls(),'reference_differences':[],'qualification':'Calibration and partial runs never close a frozen required row.'}
     for case in selected:
         folder=args.out/case['id'];folder.mkdir();row={'id':case['id'],'failures':[]}
         try:
