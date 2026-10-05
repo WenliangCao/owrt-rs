@@ -317,7 +317,8 @@ def service_cases():
         {'op':'rename','path':'away','to':'dir/moved'},files.probe('moved-in','one.records.test'),
         {'op':'unlink','path':'dir/moved'},files.probe('old-uid-remains','one.records.test'),files.signal_reload(),files.probe('hup-drops-old-uid','one.records.test')])
     add('hostsdir-atomic-stable-uid',hosts_config,[],'HDIR-EVENT HDIR-SOURCE',files={'dir/one':'192.0.2.7 one.records.test\n'},actions=[
-        files.probe('initial','one.records.test'),files.write('dir/one','192.0.2.8 one.records.test\n',atomic=True),
+        files.probe('initial','one.records.test'),files.write('staged','192.0.2.8 one.records.test\n'),
+        {'op':'rename','path':'staged','to':'dir/one'},
         files.probe('atomic','one.records.test'),{'op':'unlink','path':'dir/one'},files.probe('deleted','one.records.test'),
         files.write('dir/one','192.0.2.9 one.records.test\n'),files.probe('recreated','one.records.test')])
     add('hostsdir-tcp-view',hosts_config,[],'HDIR-CALLER',files={'dir/one':'192.0.2.7 one.records.test\n'},actions=[
@@ -966,7 +967,9 @@ def run_syntax(root,side,case,out):
     out.mkdir(parents=True)
     text='no-hosts\nuser=root\ngroup=root\nport=15353\n'+('no-resolv\n' if case.get('no_resolv',True) else '')+case['config']
     for path,value in case.get('files',{}).items():
-        target=root/'m2'/path;target.parent.mkdir(parents=True,exist_ok=True);target.write_text(value)
+        target=root/'m2'/path;target.parent.mkdir(parents=True,exist_ok=True)
+        if target.exists() and not target.is_file():target.unlink()
+        target.write_text(value)
     (root/'m2/interface-records.conf').write_text(text);(out/'config').write_text(text)
     argv=command(root,side,*case.get('argv',[]),'--test','-C','/m2/interface-records.conf')
     if case.get('resolver_fault'):
