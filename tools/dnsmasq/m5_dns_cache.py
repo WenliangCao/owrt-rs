@@ -127,7 +127,7 @@ for label,fields in [('ptr-class-other',{'cls':3}),
                       ('ptr-tcp-child-import',{'transports':['tcp','udp']}),
                       ('ptr-cname-generic-fallback',{'answers':[{'kind':5,'data':name('target.cache.test').hex()},
                                              {'kind':12,'data':name('terminal.cache.test').hex(),'owner':'target.cache.test'}]}),
-                      ('ptr-multiple-targets',{'answers':[{'data':name('first.cache.test').hex()},
+                      ('ptr-multiple-targets',{'transports':['udp','udp','udp'],'answers':[{'data':name('first.cache.test').hex()},
                                                         {'data':name('second.cache.test').hex()},
                                                         {'data':name('third.cache.test').hex()}]}),
                       ('ptr-reverse-bucket-order',{'answers':[{'data':name('a.cache.test').hex()},
@@ -258,6 +258,121 @@ case('metadata-local-ad',host='health.cache.test',flags=0x120)
 case('metadata-local-do',host='health.cache.test',do=True)
 case('metadata-reply-signed-ad',response_flags=0x81a0,response_signed=True)
 case('metadata-cached-soa-ad','proxy-dnssec',response_flags=0x81a0,answers=[],soa=True,flags=0x120)
+# Each insertion/error case observes actual parent cache/forward counters
+# through the image ubusd and public dnsmasq metrics method.
+def sequence_case(label,steps,config='',**fields):
+    case(label,config,action='sequence',steps=steps,metrics=True,**fields)
+SEED={'label':'seed'}
+FORCE={'label':'forced-insert','do':True}
+PROBE={'label':'probe'}
+RECOVERY={'plan':{'answers':[{'data':'c6336409'}]}}
+for label,incoming,config in [
+    ('order-rrset-replace',[{'data':'c6336408'},{'data':'c6336409'}],''),
+    ('order-cname-replaces-types',[{'kind':5,'data':name('target.cache.test').hex()},
+                                 {'kind':1,'data':'c6336408','owner':'target.cache.test'}],''),
+    ('order-zero-ttl-prefix-abort',[{'data':'c6336408'},{'data':'c6336409','ttl':0}],''),
+    ('order-late-malformed-prefix-abort',[{'data':'c6336408'},{'data':'0102','rdlen':200}],''),
+    ('order-late-rebind-prefix-abort',[{'data':'08080808'},{'data':'0a000001'}],'stop-dns-rebind')]:
+    if label=='order-late-rebind-prefix-abort':
+        sequence_case(label,[SEED,{'plan':{'answers':incoming}},FORCE,{'plan':{'answers':[{'data':'08080809'}]}},PROBE,{'label':'recovery-hit'}],config,answers=[{'data':'08080807'}])
+    else:
+        sequence_case(label,[SEED,{'plan':{'answers':incoming}},FORCE,RECOVERY,PROBE,{'label':'recovery-hit'}],config)
+sequence_case('order-cd-deletes-old',[SEED,{'plan':{'answers':[{'data':'c6336408'}]}},
+    {'label':'extract-only','do':True,'flags':0x110},RECOVERY,PROBE,{'label':'recovery-hit'}])
+sequence_case('order-a-aaaa-coexist',[SEED,{'plan':{'answers':[{'kind':28,'data':ipaddress.ip_address('2001:db8::8').packed.hex()}]}},
+    {'label':'seed-aaaa','kind':28},PROBE,{'label':'aaaa-probe','kind':28}])
+sequence_case('order-generic-types-coexist',[SEED,{'plan':{'answers':[{'kind':15,'data':(b'\x00\x0a'+name('target.cache.test')).hex()}]}},
+    {'label':'seed-mx','kind':15},PROBE,{'label':'mx-probe','kind':15}],config='cache-rr=ANY',kind=16)
+sequence_case('order-positive-negative-replace',[SEED,{'plan':{'answers':[]}},FORCE,PROBE,
+    RECOVERY,{'label':'force-positive','do':True},{'label':'positive-hit'}],config='neg-ttl=60')
+sequence_case('order-nxdomain-type-conflicts',[SEED,{'plan':{'answers':[],'response_flags':0x8183}},FORCE,
+    PROBE,{'label':'txt-negative','kind':16}],config='neg-ttl=60')
+sequence_case('order-clear-hup',[SEED,{'hup':True},RECOVERY,PROBE,{'label':'recovery-hit'}])
+for capacity,label,fields in [(0,'order-capacity0',{}),
+                              (1,'order-capacity1-chain',{'answers':[{'kind':5,'data':name('target.cache.test').hex()},
+                                           {'kind':1,'data':'c6336407','owner':'target.cache.test'}]}),
+                              (1,'order-capacity1-negative-soa',{'answers':[],'soa':True})]:
+    sequence_case(label,[SEED,PROBE],capacity=capacity,**fields)
+for length,label,capacity in [(74,'order-long-name74',100),(75,'order-long-name75',100),
+                              (75,'order-long-name-quota0',1)]:
+    host='x'*60+'.'+'y'*(length-61)
+    sequence_case(label,[SEED,PROBE],host=host,capacity=capacity)
+sequence_case('order-ecs-no-cache-deletes-old',[SEED,{'plan':{'answers':[{'data':'c6336408'}]}},
+    {'label':'extract-only','do':True,'opts':bytes.fromhex('0008000700011800c63364')},RECOVERY,PROBE,{'label':'recovery-hit'}])
+sequence_case('order-non-in-after-aborted-pending',[SEED,{'plan':{'answers':[{'data':'c6336408'},{'data':'c6336409','ttl':0}]}},FORCE,
+    RECOVERY,{'label':'class-other','cls':3},PROBE,{'label':'recovery-hit'}])
+for label,address,config in [('order-local-same-address','c6336408','host-record=target.cache.test,198.51.100.8,120'),
+                              ('order-local-different-address-abort','c6336409','host-record=target.cache.test,198.51.100.8,120'),
+                              ('order-local-cname-abort','c6336408','cname=target.cache.test,health.cache.test'),
+                              ('order-cname-target-local','c6336408','host-record=target.cache.test,198.51.100.8,120')]:
+    sequence_case(label,[SEED,{'plan':{'answers':[{'kind':5,'data':name('target.cache.test').hex()},
+                  {'kind':1,'owner':'target.cache.test','data':address}]}},FORCE,PROBE,PROBE],config)
+CHAIN_BASE='chain.cache.test'
+for length in [10,11]:
+    owners=['order-cname'+str(length)+'.cache.test']+[str(i)+'.'+CHAIN_BASE for i in range(1,length+1)]
+    answers=[{'kind':5,'owner':owner,'data':name(owners[index+1]).hex()} for index,owner in enumerate(owners[:-1])]
+    answers.append({'kind':1,'owner':owners[-1],'data':'c6336407'})
+    sequence_case('order-cname'+str(length),[SEED,PROBE],answers=answers)
+sequence_case('order-cname-loop',[SEED,PROBE],answers=[{'kind':5,'data':name('loop.cache.test').hex()},
+    {'kind':5,'owner':'loop.cache.test','data':name('order-cname-loop.cache.test').hex()}])
+sequence_case('order-cname-unresolved',[SEED,PROBE],answers=[{'kind':5,'data':name('unresolved.cache.test').hex()}])
+for label,capacity in [('order-cname-target-generation-preserve',8),('order-cname-target-slot-reuse-invalidates',2)]:
+    cname_answers=[{'kind':5,'data':name('target.cache.test').hex()},
+                   {'kind':1,'owner':'target.cache.test','data':'c6336407'}]
+    if capacity==8:
+        steps=[SEED,{'plan':{'answers':[{'data':'c6336408'}]},'target':'target.cache.test'},
+               {'label':'target-replaced','target':'target.cache.test','do':True},PROBE,{'label':'alias-repeat'}]
+    else:
+        steps=[SEED,{'label':'pressure','target':'pressure.cache.test'},PROBE,{'label':'alias-repeat'}]
+    sequence_case(label,steps,capacity=capacity,answers=cname_answers)
+sequence_case('order-recovery-after-abort',[SEED,{'plan':{'answers':[{'data':'c6336408'},{'data':'c6336409','ttl':0}]}},
+    FORCE,RECOVERY,PROBE,{'label':'recovery-repeat'}],capacity=2)
+sequence_case('order-capacity-live-rrset-eviction',[SEED,{'label':'other','target':'other.cache.test'},
+    {'label':'new-name','target':'new.cache.test'},PROBE,{'label':'new-probe','target':'new.cache.test'}],
+    capacity=3,answers=[{'data':'c6336407'},{'data':'c6336408'}])
+sequence_case('order-expired-reclaim-before-live',[SEED,{'plan':{'ttl':600},'target':'live.cache.test'},{'label':'live','target':'live.cache.test'},
+    {'sleep':2.2},{'label':'new','target':'new.cache.test'},{'label':'live-retained','target':'live.cache.test'},PROBE],capacity=2,ttl=1)
+sequence_case('order-reverse-global-expired-scan',[SEED,{'sleep':2.2},{'label':'reverse','target':PTR4,'kind':12},
+    {'label':'new-long','target':'z'*60+'.'+'q'*14},{'label':'new-long-hit','target':'z'*60+'.'+'q'*14}],
+    capacity=10,ttl=1,host='x'*60+'.'+'y'*14)
+sequence_case('order-reverse-forward-share-capacity',[{'label':'reverse','target':PTR4,'kind':12},
+    {'label':'forward','target':'forward.cache.test'},{'label':'reverse-probe','target':PTR4,'kind':12}],capacity=1)
+sequence_case('order-long-name-quota-reuse',[SEED,{'label':'other-long','target':'z'*60+'.'+'q'*14},
+    {'label':'replace-long','do':True},PROBE],capacity=10,host='x'*60+'.'+'y'*14)
+
+for option in ['min-cache-ttl','max-cache-ttl','max-ttl']:
+    config=option+'='+('3' if option!='max-ttl' else '1')
+    ttl=1 if option=='min-cache-ttl' else 600
+    steps=[SEED]
+    if option!='max-ttl':steps += [{'sleep':1.2},{'label':'retained-before-expiry'},{'sleep':3.2}]
+    else:steps += [{'sleep':2.2}]
+    steps += [{'plan':{'answers':[{'data':'c6336408'}]}},{'label':'expired-refetch'},{'label':'refreshed-hit'}]
+    sequence_case(option+'-expiry-recovery',steps,config,ttl=ttl)
+SOA_RDATA=name('ns.cache.test')+name('hostmaster.cache.test')+__import__('struct').pack('!5I',1,60,60,600,300)
+for label,soa_ttl in [('negative-soa-replaced',30),('negative-soa-expired',1)]:
+    steps=[SEED,{'plan':{'answers':[{'kind':6,'data':SOA_RDATA.hex(),'ttl':soa_ttl}],'soa':False},'target':ZONE},
+           {'label':'soa-replaced','target':ZONE,'kind':6,'do':True}]
+    if soa_ttl==1:steps.append({'sleep':2.2})
+    steps += [PROBE,{'label':'negative-repeat'}]
+    sequence_case(label,steps,'cache-rr=SOA',answers=[],soa=True)
+sequence_case('negative-explicit-soa-positive-share',[SEED,{'label':'positive-soa','target':ZONE,'kind':6},PROBE],
+              'cache-rr=SOA',answers=[],soa=True)
+sequence_case('negative-soa-evicted',[SEED,{'plan':{'answers':[],'soa':False,'response_flags':0x8182}},
+    {'label':'promote-negative-do','do':True},{'label':'pressure','target':'pressure.cache.test'},PROBE],
+    answers=[],soa=True,capacity=2)
+sequence_case('negative-first-soa-selection',[SEED,PROBE],answers=[],authority_records=[
+    {'kind':6,'owner':ZONE,'data':SOA_RDATA.hex(),'ttl':20},
+    {'kind':6,'owner':ZONE,'data':SOA_RDATA.hex(),'ttl':600}])
+sequence_case('negative-malformed-soa',[SEED,PROBE],'neg-ttl=60',answers=[],authority_records=[
+    {'kind':6,'owner':ZONE,'data':'0102','ttl':600}])
+
+sequence_case('ttl-cname-target-independent-expiry',[SEED,{'sleep':2.2},
+    {'label':'target-retained','target':'target.cache.test'},PROBE],answers=[
+    {'kind':5,'data':name('target.cache.test').hex(),'ttl':1},
+    {'kind':1,'owner':'target.cache.test','data':'c6336407','ttl':600}])
+for label in ['ttl-expiry-exact-second','ttl-stale-strict-after-expiry','stale-equal-expiry-zero-not-stale']:
+    case(label,'use-stale-cache=0',ttl=0,action='tcp-zero-clock')
+
 # Round-robin is a forward lookup effect. Reverse queries never rotate.
 for shape,kind in [('a',1),('aaaa',28),('generic',16),('reverse',12),('hosts',1)]:
     for disabled in [False,True]:
@@ -341,6 +456,9 @@ class Upstream:
         if spec.get('soa'):
             body=name('ns.cache.test')+name('hostmaster.cache.test')+struct.pack('!5I',1,60,60,600,spec.get('soa_minimum',300))
             authority.append(rr(6,body,name(spec.get('soa_owner',ZONE)),spec.get('soa_ttl',600)))
+        for record in spec.get('authority_records',[]):
+            authority.append(rr(record.get('kind',6),bytes.fromhex(record['data']),name(record.get('owner',ZONE)),
+                                record.get('ttl',600),record.get('cls',1),record.get('rdlen')))
         additional=[]
         try:
             message=semantics(packet)
@@ -425,8 +543,14 @@ def exchange(port,packet,tcp=False,connection=None):
         if own:stream.close()
 
 
-def schedule(spec,port,upstream,folder):
+def schedule(spec,port,upstream,folder,root):
     host=spec.get('host',spec['case']+'.'+ZONE);upstream.plan[host]=spec;observations=[]
+    def cache_metrics(label):
+        result=subprocess.run(command(root,'/bin/ubus','call','cache-metrics','metrics','{}'),capture_output=True,timeout=2)
+        (folder/(label+'.metrics.stdout')).write_bytes(result.stdout);(folder/(label+'.metrics.stderr')).write_bytes(result.stderr)
+        if result.returncode:raise AssertionError('cache metrics response failed '+str(result.returncode))
+        all_metrics=json.loads(result.stdout)
+        return {key:all_metrics[key] for key in ['dns_cache_inserted','dns_cache_live_freed','dns_queries_forwarded','dns_local_answered','dns_stale_answered']}
     def packet(label,target=host,tcp=False,connection=None,step=0,**overrides):
         fields=dict(spec,**overrides)
         wire=query(target,0x5200+step,fields.get('kind',1),fields.get('flags',0x100),fields.get('cls',1),fields.get('do',False),
@@ -435,11 +559,23 @@ def schedule(spec,port,upstream,folder):
         (folder/(label+'.query')).write_bytes(wire)
         if reply is not None:(folder/(label+'.reply')).write_bytes(reply)
         observations.append({'label':label,'query':normalized(wire),'reply':normalized(reply),'elapsed_seconds':(completed-started)/1e9,'sent_monotonic_ns':started,'completed_monotonic_ns':completed})
+        if spec.get('metrics'):observations[-1]['metrics']=cache_metrics(label)
     action=spec.get('action')
     if action=='cname':
         upstream.plan[host]=dict(spec,answers=[{'kind':5,'data':name('target.cache.test').hex()},
                                                {'kind':spec.get('kind',1),'owner':'target.cache.test','data':default_rdata(spec.get('kind',1)).hex()}])
     if action=='startup':return observations
+    if action=='sequence':
+        for index,command_spec in enumerate(spec['steps']):
+            command_spec=copy.deepcopy(command_spec)
+            if 'plan' in command_spec:
+                upstream.plan[command_spec.get('target',host)]=dict(spec,**command_spec['plan'])
+            elif 'sleep' in command_spec:time.sleep(command_spec['sleep'])
+            elif command_spec.get('hup'):process_hup(folder)
+            else:
+                label=command_spec.pop('label','step-'+str(index));target=command_spec.pop('target',host)
+                packet(label,target,step=index,**command_spec)
+        return observations
     if action in ('round-five','round-snapshot'):
         if spec.get('cname'):
             upstream.plan[host]=dict(spec,answers=[{'kind':5,'data':name('round-target.cache.test').hex()}]
@@ -462,6 +598,14 @@ def schedule(spec,port,upstream,folder):
                     packet('parent-'+str(index));packet('child-'+str(index),tcp=True,connection=conn)
         else:
             for index in range(5):packet('round-'+str(index))
+        return observations
+    if action=='tcp-zero-clock':
+        with socket.socket(socket.AF_INET,socket.SOCK_STREAM) as conn:
+            conn.settimeout(2);conn.bind((CLIENT,0));conn.connect((LISTEN,port))
+            packet('child-zero-first',tcp=True,connection=conn)
+            time.sleep(2.2);packet('child-equal-expiry',tcp=True,connection=conn)
+            upstream.plan[host]=dict(spec,ttl=600,answers=[{'data':'c6336408'}])
+            packet('parent-after-expiry');time.sleep(.1);packet('parent-refreshed')
         return observations
     if action=='stale-schedule':
         shape=spec.get('shape')
@@ -495,6 +639,7 @@ def schedule(spec,port,upstream,folder):
         else:packet('expired',tcp=spec['mode']=='tcp-refresh',**overrides)
         time.sleep(.1)
         packet('after-refresh')
+        if spec.get('refresh_error'):time.sleep(.15)
         return observations
     if action=='expired-stale':
         packet('seed');time.sleep(2.2)
@@ -584,6 +729,15 @@ def run(args):
     network();out=args.out.resolve()
     if out.exists() or 'private' not in out.parts:raise ValueError('fresh private evidence output required')
     out.mkdir(parents=True);root=prepare(args.image_root,None,out,args.rust)
+    selected=[spec for spec in SCENARIOS if re.compile(args.only or '.').search(spec['case'])]
+    bus=None;bus_log=None
+    if any(spec.get('metrics') for spec in selected):
+        bus_log=(out/'ubusd.log').open('wb')
+        bus=subprocess.Popen(command(root,'/sbin/ubusd'),stdout=bus_log,stderr=bus_log,start_new_session=True)
+        deadline=time.monotonic()+4
+        while subprocess.run(command(root,'/bin/ubus','list'),capture_output=True,timeout=1).returncode:
+            if bus.poll() is not None or time.monotonic()>=deadline:raise AssertionError('image ubusd startup failed')
+            time.sleep(.01)
     drivers=out/'drivers';drivers.mkdir()
     for filename in ['m5_dns_cache.py','m5_dns_cache.json']:(drivers/filename).write_bytes(Path(__file__).with_name(filename).read_bytes())
     manifest=json.loads((drivers/'m5_dns_cache.json').read_text());pattern=re.compile(args.only or '.')
@@ -602,9 +756,10 @@ def run(args):
         label=spec['case'];folder=out/label;folder.mkdir();upstream=Upstream()
         with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as reserve:reserve.bind((LISTEN,0));port=reserve.getsockname()[1]
         config=(f'port={port}\nno-resolv\nno-hosts\nbind-interfaces\nlisten-address={LISTEN}\n'
-                f'server=127.0.0.2#{upstream.port}\ncache-size=100\nno-0x20-encode\n'
+                f'server=127.0.0.2#{upstream.port}\ncache-size={spec.get("capacity",100)}\nno-0x20-encode\n'
                 'host-record=health.cache.test,198.51.100.99\nlocal-ttl=600\nuser=root\n'
-                'pid-file=/m2/cache.pid\nlog-facility=/m2/cache.log\n'+spec['config']+'\n')
+                'pid-file=/m2/cache.pid\nlog-facility=/m2/cache.log\n'+spec['config']+'\n'
+                +('enable-ubus=cache-metrics\n' if spec.get('metrics') else ''))
         (folder/'config').write_text(config);(root/'m2/cache.conf').write_text(config)
         trace={'case':label,'config':spec['config'],'observations':[],'exit':None};process=None
         log=(folder/'stderr').open('wb')
@@ -617,7 +772,7 @@ def run(args):
                 time.sleep(.01)
             else:raise AssertionError('startup pid readiness deadline')
             trace['identity']=process_identity(root,process.pid);(folder/'pid').write_text(str(process.pid))
-            trace['observations']=schedule(spec,port,upstream,folder);report['executed_cases'].append(label)
+            trace['observations']=schedule(spec,port,upstream,folder,root);report['executed_cases'].append(label)
             if (folder/'lease-witness.json').exists():trace['lease_witness']=json.loads((folder/'lease-witness.json').read_text())
         except Exception as error:trace['failure']=repr(error);report['failures'].append({'case':label,'error':repr(error)})
         finally:
@@ -634,6 +789,8 @@ def run(args):
     report['required_count']=len(required);report['missing_required_cases']=sorted(required-set(report['executed_cases']))
     report['driver_sha256']=sha256(drivers/'m5_dns_cache.py');report['manifest_sha256']=sha256(drivers/'m5_dns_cache.json')
     (out/'result.json').write_text(json.dumps(report,indent=2)+'\n')
+    if bus is not None:
+        os.killpg(bus.pid,signal.SIGTERM);bus.wait(2);bus_log.close()
     print(json.dumps({'side':args.side,'executed':len(report['executed_cases']),'missing':len(report['missing_required_cases']),'failures':report['failures']}))
     return int(bool(report['failures']))
 
@@ -643,7 +800,8 @@ def main():
     p=sub.add_parser('run');p.add_argument('--side',choices=['c','rust'],required=True);p.add_argument('--image-root',type=Path,required=True)
     p.add_argument('--rust',type=Path,required=True);p.add_argument('--out',type=Path,required=True);p.add_argument('--only')
     p=sub.add_parser('qualify-dhcp-caller');p.add_argument('--c',type=Path,required=True);p.add_argument('--candidate',type=Path,required=True);p.add_argument('--out',type=Path,required=True)
-    args=parser.parse_args();raise SystemExit(run(args) if args.action=='run' else qualify_dhcp_caller(args))
+    p=sub.add_parser('compare');p.add_argument('--c',type=Path,action='append',required=True);p.add_argument('--candidate',type=Path,action='append',required=True);p.add_argument('--out',type=Path,required=True);p.add_argument('--boundaries',default='')
+    args=parser.parse_args();raise SystemExit(run(args) if args.action=='run' else qualify_dhcp_caller(args) if args.action=='qualify-dhcp-caller' else compare_family(args))
 
 
 DHCP_CALLERS=['tcp-parent-lease-added','tcp-parent-lease-renamed','tcp-parent-lease-released','tcp-existing-lease-ttl']
@@ -723,4 +881,169 @@ def qualify_dhcp_caller(args):
             'qualifier_sha256':sha256(__file__)}
     args.out.parent.mkdir(parents=True,exist_ok=True);args.out.write_text(json.dumps(result,indent=2)+'\n')
     print(json.dumps({'dhcp_caller_qualified':qualified,'negative_controls':len(controls)}));return int(not qualified)
+
+CLOCK_KEYS={'elapsed_seconds','sent_monotonic_ns','completed_monotonic_ns'}
+REVERSE_ORDER_CASES={'ptr-multiple-targets','ptr-reverse-bucket-order','round-reverse-default','round-reverse-disabled'}
+
+
+def comparison_rows(folder,side):
+    report=json.loads((folder/'result.json').read_text())
+    if report.get('manifest_sha256')!=sha256(Path(__file__).with_suffix('.json')):
+        raise ValueError('different frozen source contract')
+    if sha256(folder/'drivers/m5_dns_cache.py')!=report.get('driver_sha256'):
+        raise ValueError('saved driver identity mismatch')
+    if report.get('side')!=side or report.get('c_sha256')!=STOCK_SHA256:
+        raise ValueError('invalid report reference identity')
+    if side=='rust' and not re.fullmatch('[0-9a-f]{64}',report.get('rust_sha256','')):
+        raise ValueError('missing candidate identity')
+    rows={}
+    for row in report['syntax']:rows[row['case']]=row
+    for row in report['scenarios']:
+        if row.get('failure') or row['exit']!=0 or row['upstream_errors']:
+            raise ValueError('case did not complete: '+row['case'])
+        for observation in row['observations']:
+            if observation.get('reply',{}).get('result')=='timeout':continue
+            query=folder/row['case']/(observation['label']+'.query')
+            reply=folder/row['case']/(observation['label']+'.reply')
+            if query.exists() and reply.exists() and query.read_bytes()[:2]!=reply.read_bytes()[:2]:
+                raise ValueError('client reply ID mismatch: '+row['case']+'/'+observation['label'])
+        rows[row['case']]=row
+    return report,rows
+
+
+def canonical_observations(row,reverse_order=False):
+    observations=[{key:copy.deepcopy(value) for key,value in obs.items() if key not in CLOCK_KEYS}
+                  for obs in row['observations']]
+    labels={obs['label']:obs for obs in row['observations']}
+    for obs in observations:
+        # A newly refreshed TTL600 RR may lose one whole second between the
+        # actual receive/insert and this real100ms client followup. Only this
+        # explicit stage/configured TTL is admitted; staleTTL0 remains exact.
+        if obs['label'] in ('after-refresh','refreshed','parent-refreshed'):
+            previous=labels.get('expired',labels.get('expired-stale',labels.get('parent-after-expiry')))
+            current=labels[obs['label']]
+            if previous and 100_000_000 <= current['sent_monotonic_ns']-previous['completed_monotonic_ns'] < 900_000_000:
+                for rr in obs['reply'].get('records',[]):
+                    if rr['section'] in ('answer','authority') and rr['ttl'] in (599,600):rr['ttl']='fresh600-within-one-second'
+        # These two source-frozen expiry schedules observe integer-second
+        # TTLs across a measured1.2s/2.2s interval. Preserve their exact allowed
+        # ranges and all non-TTL data; no other replay TTL is normalized.
+        if obs['label']=='retained-before-expiry' and row['case'] in ('min-cache-ttl-expiry-recovery','max-cache-ttl-expiry-recovery'):
+            seed=labels.get('seed');current=labels[obs['label']]
+            if seed and 1_200_000_000 <= current['sent_monotonic_ns']-seed['completed_monotonic_ns'] < 1_900_000_000:
+                for rr in obs['reply'].get('records',[]):
+                    if rr['section']=='answer' and rr['ttl'] in (1,2):rr['ttl']='remaining-of-cache-ttl3-after-real1.2s'
+        if obs['label']=='target-retained' and row['case']=='ttl-cname-target-independent-expiry':
+            seed=labels.get('seed');current=labels[obs['label']]
+            if seed and 2_200_000_000 <= current['sent_monotonic_ns']-seed['completed_monotonic_ns'] < 2_900_000_000:
+                for rr in obs['reply'].get('records',[]):
+                    if rr['section']=='answer' and rr['ttl'] in (597,598):rr['ttl']='remaining-of-target-ttl600-after-real2.2s'
+        if reverse_order:
+            records=obs['reply'].get('records',[])
+            answers=[rr for rr in records if rr['section']=='answer']
+            if answers and all(rr['type']==12 for rr in answers) and obs['label'] not in ('seed','query-0'):
+                # This admission is enabled only after independent image C
+                # invocations prove executable-address hash order variation.
+                rest=[rr for rr in records if rr['section']!='answer']
+                obs['reply']['records']=sorted(answers,key=lambda rr:json.dumps(rr,sort_keys=True))+rest
+    return observations
+
+
+def reverse_stable(row):
+    signatures=[]
+    for obs in row['observations']:
+        if obs['label'] in ('seed','query-0'):continue
+        answers=[rr for rr in obs['reply'].get('records',[]) if rr['section']=='answer']
+        if answers and all(rr['type']==12 for rr in answers):
+            signatures.append([(rr['name'],rr['type'],rr['class'],rr['data']) for rr in answers])
+    return bool(signatures) and all(value==signatures[0] for value in signatures)
+
+
+def real_expiry_witness(row):
+    labels={obs['label']:obs for obs in row['observations']}
+    if 'child-zero-first' in labels and 'child-equal-expiry' in labels:
+        if labels['child-equal-expiry'].get('sent_monotonic_ns',0)-labels['child-zero-first'].get('completed_monotonic_ns',0)<2_200_000_000:return False
+    if not row['case'].startswith(('stale-','ptr-stale-refresh','ptr-expiry-refresh','metadata-dnskey-generic-stale','metadata-ds-generic-stale')):return True
+    labels={obs['label']:obs for obs in row['observations']}
+    expired=labels.get('expired',labels.get('expired-stale'))
+    seed=labels.get('seed')
+    if not expired or not seed:return True
+    wait=5_200_000_000 if row['case'].endswith('finite-expired') else 2_200_000_000
+    return expired.get('sent_monotonic_ns',0)-seed.get('completed_monotonic_ns',0)>=wait
+
+
+def case_equal(c,r,reverse_variation=False):
+    if 'observations' not in c:return c==r
+    if c.get('config')!=r.get('config'):return False
+    if not real_expiry_witness(c) or not real_expiry_witness(r):return False
+    if len(c['upstream'])!=len(r['upstream']):return False
+    upstream=lambda row:[{k:v for k,v in event.items() if k!='wire'} for event in row['upstream']]
+    if upstream(c)!=upstream(r):return False
+    if reverse_variation and (not reverse_stable(c) or not reverse_stable(r)):return False
+    return canonical_observations(c,reverse_variation)==canonical_observations(r,reverse_variation)
+
+
+def compare_family(args):
+    c_rows={};c_versions={};r_rows={};candidate_shas=set();identities=[]
+    for side,folders in [('c',args.c),('rust',args.candidate)]:
+        for folder in folders:
+            report,rows=comparison_rows(folder,side)
+            identities.append({'side':side,'path':str(folder),'report_sha256':sha256(folder/'result.json'),
+                               'driver_sha256':report['driver_sha256'],'manifest_sha256':report['manifest_sha256'],
+                               'candidate_sha256':report['rust_sha256']})
+            if side=='c':
+                c_rows.update(rows)
+                for label,row in rows.items():c_versions.setdefault(label,[]).append(row)
+            else:r_rows.update(rows);candidate_shas.add(report['rust_sha256'])
+    if len(candidate_shas)!=1:raise ValueError('one candidate ELF identity required')
+    manifest=json.loads(Path(__file__).with_suffix('.json').read_text())
+    selected=set(args.boundaries.split(',')) if args.boundaries else {b['id'] for b in manifest['boundaries']}
+    boundaries=[b for b in manifest['boundaries'] if b['id'] in selected]
+    required={label for b in boundaries for label in b['required_cases']}
+    if not boundaries or {b['id'] for b in boundaries}!=selected:raise ValueError('unknown boundary ID')
+    missing=sorted(required-(c_rows.keys()&r_rows.keys()));passed=[];different=[];variations=[];controls=[]
+    for label in sorted(required&(c_rows.keys()&r_rows.keys())):
+        c,r=c_rows[label],r_rows[label];variation=False
+        if label in REVERSE_ORDER_CASES:
+            versions=c_versions.get(label,[])
+            variation=any(canonical_observations(a,True)==canonical_observations(b,True)
+                          and canonical_observations(a)!=canonical_observations(b)
+                          and reverse_stable(a) and reverse_stable(b)
+                          for index,a in enumerate(versions) for b in versions[index+1:])
+            if variation:variations.append(label)
+        if case_equal(c,r,variation):passed.append(label)
+        else:different.append({'case':label,'c':canonical_observations(c),'rust':canonical_observations(r),
+                               'c_upstream':len(c.get('upstream',[])),'rust_upstream':len(r.get('upstream',[]))})
+    for label in passed:
+        c,r=c_rows[label],r_rows[label]
+        if 'observations' not in r:continue
+        for mode in ['upstream-count','reply-flags','reply-ttl-unbounded','missing-observation','shortened-expiry-wait']:
+            wrong=copy.deepcopy(r)
+            if mode=='upstream-count':wrong['upstream'].append(copy.deepcopy(wrong['upstream'][0]) if wrong['upstream'] else {})
+            elif mode=='reply-flags':
+                reply=next((obs['reply'] for obs in wrong['observations'] if 'flags' in obs.get('reply',{})),None)
+                if reply is None:continue
+                reply['flags']^=0x0400
+            elif mode=='reply-ttl-unbounded':
+                rr=next((rr for obs in wrong['observations'] for rr in obs.get('reply',{}).get('records',[]) if rr['section'] in ('answer','authority')),None)
+                if rr is None:continue
+                rr['ttl']=999999
+            elif mode=='shortened-expiry-wait':
+                labels={obs['label']:obs for obs in wrong['observations']}
+                expired=labels.get('expired',labels.get('expired-stale'))
+                if not expired or 'seed' not in labels or not wrong['case'].startswith(('stale-','ptr-stale-refresh','ptr-expiry-refresh')):continue
+                expired['sent_monotonic_ns']=labels['seed']['completed_monotonic_ns']+200_000_000
+            else:wrong['observations'].pop()
+            controls.append({'case':label,'control':mode,'rejected':not case_equal(c,wrong,label in variations)})
+    result={'candidate_sha256':next(iter(candidate_shas)),'boundaries':[b['id'] for b in boundaries],
+            'required_count':len(required),'missing_required_cases':missing,'passed_cases':passed,
+            'differences':different,'reference_reverse_order_variation':variations,'negative_controls':controls,
+            'qualified':not missing and not different and all(x['rejected'] for x in controls),
+            'full_cache_family_qualified':len(boundaries)==len(manifest['boundaries']) and not missing and not different and all(x['rejected'] for x in controls),
+            'reports':identities,'comparator_sha256':sha256(__file__)}
+    args.out.write_text(json.dumps(result,indent=2)+'\n')
+    print(json.dumps({'required':len(required),'passed':len(passed),'missing':len(missing),'different':len(different),
+                      'negative_controls':len(controls),'qualified':result['qualified']}))
+    return int(bool(different) or not all(x['rejected'] for x in controls))
+
 if __name__=='__main__':main()
