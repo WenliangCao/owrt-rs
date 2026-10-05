@@ -41,10 +41,10 @@ def fixtures(root):
 def syntax_case(root,args,spec):
     folder=args.out/spec['case'];folder.mkdir()
     path=fixtures(root)
-    flags=['--test','--conf-file=/m2/cli/empty.conf']
+    flags=['--test','--conf-file=/m2/cli/empty.conf',*['--'+value for value in spec.get('dependencies',[])]]
     if spec.get('form')=='cli':flags+=['--'+spec['directive']]
     elif spec.get('form')=='file':
-        (path/'case.conf').write_text(spec['directive']+'\n');flags=['--test','--conf-file=/m2/cli/case.conf']
+        (path/'case.conf').write_text('\n'.join([*spec.get('dependencies',[]),spec['directive']])+'\n');flags=['--test','--conf-file=/m2/cli/case.conf']
     else:
         flags+=spec.get('argv',[])
         if spec.get('config') is not None:

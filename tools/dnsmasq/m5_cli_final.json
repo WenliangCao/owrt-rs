@@ -1975,14 +1975,20 @@
       "option": "dhcp-fqdn",
       "form": "cli",
       "directive": "dhcp-fqdn",
-      "expected_from_image": true
+      "expected_from_image": true,
+      "dependencies": [
+        "domain=example.test"
+      ]
     },
     {
       "case": "test-dhcp-fqdn-file",
       "option": "dhcp-fqdn",
       "form": "file",
       "directive": "dhcp-fqdn",
-      "expected_from_image": true
+      "expected_from_image": true,
+      "dependencies": [
+        "domain=example.test"
+      ]
     },
     {
       "case": "test-cname-cli",
@@ -2268,14 +2274,14 @@
       "case": "test-dhcp-split-relay-cli",
       "option": "dhcp-split-relay",
       "form": "cli",
-      "directive": "dhcp-split-relay=192.0.2.1,198.51.100.1",
+      "directive": "dhcp-split-relay=192.0.2.1,198.51.100.1,lo",
       "expected_from_image": true
     },
     {
       "case": "test-dhcp-split-relay-file",
       "option": "dhcp-split-relay",
       "form": "file",
-      "directive": "dhcp-split-relay=192.0.2.1,198.51.100.1",
+      "directive": "dhcp-split-relay=192.0.2.1,198.51.100.1,lo",
       "expected_from_image": true
     },
     {
