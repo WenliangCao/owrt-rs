@@ -2,8 +2,8 @@
 //!
 //! The caller supplies interface rows in C callback order, including any
 //! preferred secondary address before the full enumeration. Primary-address
-//! admission, listen-address/bridge filtering, shared networks and relays are
-//! outside this boundary. Guessed fields persist across packets as they do in C.
+//! admission and listen-address/bridge filtering remain with the caller. Shared
+//! local and relayed subnet selection use explicit configured policies. Guessed fields persist across packets as they do in C.
 
 use super::allocation::AddressRange;
 use crate::config::dhcp::RangeConfig;
