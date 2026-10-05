@@ -409,13 +409,14 @@ where
             .unwrap_or(&mut discarded_counters);
         let events = self.event_sink.as_deref_mut();
         let outcome = match packet.message_type() {
-            0 => state::bootp_counted(
+            0 => state::bootp_counted_logged(
                 self.store,
                 self.ranges,
                 request(),
                 &mut self.probe,
                 counters,
                 self.bootp_contexts,
+                events,
             ),
             1 => state::discover_counted(
                 self.store,
@@ -430,13 +431,14 @@ where
             3 => state::request_counted(self.store, self.ranges, request(), counters, events),
             4 => Ok(Outcome {
                 reply: Reply::Ignore,
-                removed: state::decline_counted(
+                removed: state::decline_counted_logged(
                     self.store,
                     self.ranges,
                     packet,
                     self.host.as_deref_mut(),
                     environment,
                     counters,
+                    events,
                 ),
                 lost_names: Vec::new(),
             }),
