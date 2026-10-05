@@ -579,6 +579,8 @@ def validate(result,cases):
     if [row['name'] for row in result.get('rows',[])]!=[item['name'] for item in cases]: failures.append('missing/extra/reordered cases')
     for value,item in zip(result.get('rows',[]),cases):
         observations=value['rows']
+        if [row['case'] for row in observations]!=expected_labels(item):
+            failures.append(item['name']+': missing/extra/reordered observations')
         if not observations:failures.append(item['name']+': empty observation')
         startup=next((row for row in observations if row['case']=='startup'),None)
         expected_failure=(item['profile'] in ['conflicting-modes'] or item.get('blocker') or
@@ -617,6 +619,64 @@ def validate(result,cases):
             expected=[dict(priority=132,text='failed to create listening socket for 10.77.0.9: Address in use')]*count
             if warnings!=expected:failures.append(item['name']+': warning priority/text/count guard')
     return failures
+
+
+def expected_labels(item):
+    """Frozen per-observation inventory, independent of either observed side."""
+    profile,mode=item['profile'],item['mode']
+    failed=(profile=='conflicting-modes' or item.get('blocker') or
+        mode=='static' and profile in ['missing','no-address','missing-address','missing-address-v6'] or
+        mode!='wildcard' and profile=='unowned-scope')
+    if failed:return ['startup']
+    if item.get('relay'):
+        labels=['relay-initial']
+        if profile not in ['relay-except','relay-no-dhcp']:labels.append('relay-initial-reply')
+        if profile=='relay-recreate':labels.extend(['relay-recreated','relay-recreated-reply'])
+        return labels+['sockets','exit']
+    labels=['startup']
+    protocols=['udp','tcp']+(['tftp'] if item.get('tftp') else [])
+    if profile=='tftp-unowned-dedicated':labels.extend(['initial','unowned-check-tftp'])
+    elif profile=='tftp-static-renamed':labels.extend(['initial','cached-before-tftp','renamed','cached-after-tftp'])
+    elif item.get('dad'):
+        labels.extend(['dad-tentative','dad-live-udp','dad-finished'])
+        labels.extend('dad-final-'+proto for proto in protocols)
+        labels.append('dad-surviving-udp')
+    elif profile.startswith('runtime-shared-'):
+        labels.extend(['shared-before','shared-partial'])
+        labels.extend('shared-before-release-'+proto for proto in ['udp','tcp','tftp'])
+        labels.append('shared-released')
+        labels.extend('shared-after-release-'+proto for proto in ['udp','tcp','tftp'])
+        labels.append('shared-trigger')
+        labels.extend('shared-after-trigger-'+proto for proto in ['udp','tcp','tftp'])
+        labels.append('shared-removed')
+    elif profile.startswith('runtime-occupied-'):
+        labels.extend(['before-occupied','partial-occupied','partial-udp','partial-tcp','after-blocker-release','partial-removed'])
+    elif profile=='tftp-single-scope':
+        labels.append('initial')
+        labels.extend(link+'-'+tag+'-tftp' for link in ['lan','wan'] for tag in ['v6','scope'])
+    else:
+        labels.append('initial')
+        labels.extend(link+'-'+tag+'-'+proto for link in ['lan','wan'] for tag in ['v4','v6','scope','alias'] for proto in protocols)
+        labels.extend(tag+'-'+proto for tag in ['lo4','lo6','lo-extra'] for proto in protocols)
+        for action in item['actions']:
+            if action=='address-change':
+                labels.append('added')
+                labels.extend('added-'+tag+'-'+proto for tag in ['v4','v6'] for proto in protocols)
+                labels.extend(['removed','surviving'])
+            elif action=='recreate':
+                labels.extend(['link-deleted','link-recreated'])
+                labels.extend('recreated-'+tag+'-'+proto for tag in ['v4','v6','scope'] for proto in ['udp','tcp'])
+            elif action in ['late-interface','late-address']:
+                labels.append('late-created');labels.extend('late-'+proto for proto in protocols);labels.append('late-removed')
+            elif action=='unowned-loopback-change':
+                labels.append('unowned-added');labels.extend('unowned-added-'+proto for proto in protocols)
+                labels.append('unowned-removed');labels.extend('unowned-removed-'+proto for proto in protocols)
+            elif action=='duplicate-address':labels.extend(['duplicate-added','first-owner-removed','duplicate-owner','last-owner-removed'])
+        if profile=='cross-ingress':labels.extend('cross-'+tag+'-'+proto for tag in ['v4','v6'] for proto in ['udp','tcp'])
+    labels.append('exit')
+    if profile.startswith('runtime-') or item.get('dad') or item.get('socket_errno') or profile.startswith('missing-address'):
+        labels.append('listener-warnings')
+    return labels
 
 
 def expected_answer(item,case,side='c'):
@@ -757,9 +817,11 @@ def main():
                 requirement['boundary']='Explicit addresses absent from snapshots are attempted. Successfully created unowned listeners remain unowned even if the address later gains/loses an interface; failed unowned addresses first created on a real interface are retired with the last owner. INAME_USED forbids recreating the latter as a fallback.'
         checklist['required_cases']=[item['name'] for item in cases]
         checklist['cases']=cases
+        checklist['required_observations']={item['name']:expected_labels(item) for item in cases}
         save(HERE/'m5_listeners.json',checklist)
         return 0
     assert checklist['required_cases']==[item['name'] for item in cases], 'case inventory differs from frozen C checklist'
+    assert checklist['required_observations']=={item['name']:expected_labels(item) for item in cases},'observation inventory differs from frozen C checklist'
     assert os.environ.get('DNSMASQ_TEST_ISOLATED')=='1' and os.geteuid()==0,'use run_isolated.sh'
     assert args.image_root and args.rust_binary and args.out
     if args.side:return side_run(args)
