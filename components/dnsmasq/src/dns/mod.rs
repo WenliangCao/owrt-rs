@@ -10,6 +10,7 @@ pub mod files;
 pub mod filewatch;
 pub mod forward;
 pub mod forward_service;
+pub mod hostsdir;
 pub mod lease_names;
 pub mod local;
 pub mod process;
