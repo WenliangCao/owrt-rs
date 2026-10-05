@@ -1,0 +1,2702 @@
+{
+  "schema": "m5-synth-domain-ordinary-closure-v1",
+  "closed_options": [
+    "synth-domain"
+  ],
+  "source_commit": "f16c09717c7184a3083e757c4150cd0c7dfb2413",
+  "elf_sha256": "593e5dd6b992adffd68e1976546ca754a4313c094fdb66352913337a4c7bb745",
+  "elf_bytes": 1871912,
+  "elf_remote_path": "/home/ubuntu/m5-resume3-20261005/f16c0971/private/release/dnsmasq-rs",
+  "image_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "requirements_sha256": "e73ef4232f06764894be009e1cd37789bc5563119d84af6a1ff408ddc50a5d62",
+  "mapping_source_commit": "3be29701",
+  "mapping_sha256": "022030e39ff6dfa19b62fafe7df872a57354b1e33f5c83a94172815be0019529",
+  "ordinary_required": 45,
+  "qualified_required": 45,
+  "source_frozen_required": 46,
+  "syntax_configurations": 48,
+  "service_configurations": 37,
+  "service_observations_per_side": 652,
+  "negative_controls": [
+    "missing-row",
+    "wrong-diagnostic",
+    "wrong-exit",
+    "startup",
+    "wrong-answer",
+    "missing-forward",
+    "wrong-server",
+    "leaked-child",
+    "leaked-pid",
+    "wrong-helper",
+    "wrong-metrics",
+    "wrong-reading",
+    "missing-partial-read",
+    "missing-fifo-progress",
+    "missing-large-progress",
+    "missing-kernel",
+    "extra-owner-thread",
+    "wrong-runtime-uid",
+    "local-ttl-not-hidden-by-cname-clock",
+    "wrong-allocation-size",
+    "allocation-did-not-fail",
+    "wrong-allocator-pc"
+  ],
+  "negative_control_count": 22,
+  "missing_required": 0,
+  "unclassified_differences": 0,
+  "infrastructure_failures": 0,
+  "reference_differences": [],
+  "known_deferred": [
+    {
+      "id": "SYN-PTR/13",
+      "boundary": "SYN-PTR",
+      "required_case": "prefix/name length and wire label boundary",
+      "source_anchors": [
+        "domain.c:153-202",
+        "rfc1035.c:1875-2011"
+      ],
+      "case_ids": [],
+      "status": "deferred-extreme-input-under-user-policy",
+      "scope_note": "Overlong derived DNS labels/names retain the original boundary for later known-differences repair and do not gate ordinary operation closure."
+    }
+  ],
+  "source_corrections": [
+    {
+      "row": "SYN-FWD/09",
+      "original_description_preserved": true,
+      "observation": "Exact musl image atoll numeric overflow wraps low 64 bits, rather than the pre-calibration saturation hypothesis. 2^64 => 0, 2^63 => 0x8000000000000000, 2^64-1 => u64::MAX.",
+      "evidence": "calibration-synth-service-c-01/synth-service-index6/c/observed.json"
+    }
+  ],
+  "preserved_red": [
+    "paired-955-synth-final-service-01: original reverse NODATA/NX direct and cached-CNAME eight differences before final reverse tier fix",
+    "paired-9ef-synth-final-service-01: TCP empty-cache SYN displaced lease and explicit PTR; final f16 repairs preserve local precedence"
+  ],
+  "archives": [
+    {
+      "run": "paired-f16-synth-final-syntax-01",
+      "archive_sha256": "04ee5625e99e5585fd9e166840c75b5232e018dfa235e4d6a01def5ba31ff15e",
+      "entries": 595,
+      "regular_files": 419,
+      "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+      "verified": true
+    },
+    {
+      "run": "paired-f16-synth-final-service-01",
+      "archive_sha256": "c9f66fc8a7beb7805e947d019d1a9681d7295d07553e2ce53368eb6b1f1fb97a",
+      "entries": 476,
+      "regular_files": 331,
+      "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+      "verified": true
+    }
+  ],
+  "archive_entries": 1071,
+  "archive_regular_files": 750,
+  "required": [
+    {
+      "id": "SYN-GRAM/01",
+      "boundary": "SYN-GRAM",
+      "required_case": "missing domain/range and interface selector rejection",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "syntax",
+          "case_id": "synth-missing-range",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "f4e660700aa89cebf5bf95633cd0f75f1128641bbc6bde174d81ded008633cc1",
+          "rust_observed_sha256": "6b423a0ef9cf223aef661e53c29027092c6e97079bff36beaa7fc133d1f77049"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "synth-empty",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "f4e660700aa89cebf5bf95633cd0f75f1128641bbc6bde174d81ded008633cc1",
+          "rust_observed_sha256": "6b423a0ef9cf223aef661e53c29027092c6e97079bff36beaa7fc133d1f77049"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "synth-interface",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "f4e660700aa89cebf5bf95633cd0f75f1128641bbc6bde174d81ded008633cc1",
+          "rust_observed_sha256": "6b423a0ef9cf223aef661e53c29027092c6e97079bff36beaa7fc133d1f77049"
+        }
+      ]
+    },
+    {
+      "id": "SYN-GRAM/02",
+      "boundary": "SYN-GRAM",
+      "required_case": "IPv4 single/range/CIDR",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "syntax",
+          "case_id": "synth-single4",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "synth-range4",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "synth-prefix4",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        }
+      ]
+    },
+    {
+      "id": "SYN-GRAM/03",
+      "boundary": "SYN-GRAM",
+      "required_case": "IPv6 single/range/CIDR",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "syntax",
+          "case_id": "synth-single6",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "synth-range6",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "synth-prefix6",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        }
+      ]
+    },
+    {
+      "id": "SYN-GRAM/04",
+      "boundary": "SYN-GRAM",
+      "required_case": "prefix optional and canonical case",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "syntax",
+          "case_id": "synth-empty-prefix",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "synth-case",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "service",
+          "case_id": "synth-service-prefix-literal",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp",
+            "q9:udp",
+            "q9:tcp",
+            "q10:udp",
+            "q10:tcp",
+            "q11:udp",
+            "q11:tcp",
+            "q12:udp",
+            "q12:tcp",
+            "q13:udp",
+            "q13:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "e4a271b87f1a3a42a610fc22ab0a1ee0afa3fc154a64c4371f73af1076a6051c",
+          "rust_observed_sha256": "ef3564c39e862e67c35645507280855288125bbf72b32187383a3cc07a925452"
+        }
+      ]
+    },
+    {
+      "id": "SYN-GRAM/05",
+      "boundary": "SYN-GRAM",
+      "required_case": "CIDR4 prefix24/25 byte limit",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "syntax",
+          "case_id": "synth-cidr4-limit24",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "synth-cidr4-limit25",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "21962feb45d8b49155b83186600bf18e5a3f760620caa1e5f689c23901be8eb6",
+          "rust_observed_sha256": "b52eaec346fe665baaab4990a1b90cc58aba255551dd730ffaa658502036b9d4"
+        }
+      ]
+    },
+    {
+      "id": "SYN-GRAM/06",
+      "boundary": "SYN-GRAM",
+      "required_case": "CIDR6 prefix17/18 byte limit",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "syntax",
+          "case_id": "synth-cidr6-limit17",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "synth-cidr6-limit18",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "21962feb45d8b49155b83186600bf18e5a3f760620caa1e5f689c23901be8eb6",
+          "rust_observed_sha256": "b52eaec346fe665baaab4990a1b90cc58aba255551dd730ffaa658502036b9d4"
+        }
+      ]
+    },
+    {
+      "id": "SYN-GRAM/07",
+      "boundary": "SYN-GRAM",
+      "required_case": "explicit range prefix47/48 byte limit",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "syntax",
+          "case_id": "synth-range-limit47",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "synth-range-limit48",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "21962feb45d8b49155b83186600bf18e5a3f760620caa1e5f689c23901be8eb6",
+          "rust_observed_sha256": "b52eaec346fe665baaab4990a1b90cc58aba255551dd730ffaa658502036b9d4"
+        }
+      ]
+    },
+    {
+      "id": "SYN-GRAM/08",
+      "boundary": "SYN-GRAM",
+      "required_case": "quoted hidden comma/slash/star",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "syntax",
+          "case_id": "synth-quoted",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "f4e660700aa89cebf5bf95633cd0f75f1128641bbc6bde174d81ded008633cc1",
+          "rust_observed_sha256": "6b423a0ef9cf223aef661e53c29027092c6e97079bff36beaa7fc133d1f77049"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "synth-quoted-range",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "synth-quoted-star",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        }
+      ]
+    },
+    {
+      "id": "SYN-GRAM/09",
+      "boundary": "SYN-GRAM",
+      "required_case": "last trailing star removal and embedded stars",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "syntax",
+          "case_id": "synth-embedded-star",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "synth-double-star",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "service",
+          "case_id": "synth-service-embedded-star",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp",
+            "q9:udp",
+            "q9:tcp",
+            "q10:udp",
+            "q10:tcp",
+            "q11:udp",
+            "q11:tcp",
+            "q12:udp",
+            "q12:tcp",
+            "q13:udp",
+            "q13:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "4e10f98314a2fd0b7a45bf98e0ad4e8b422452145c5bf8aec72b5c9a1a951894",
+          "rust_observed_sha256": "e4f7ed914754c287b5d5232b8edf745a93df228758fab72e2fbf893882695ca5"
+        },
+        {
+          "mode": "service",
+          "case_id": "synth-service-double-star",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp",
+            "q9:udp",
+            "q9:tcp",
+            "q10:udp",
+            "q10:tcp",
+            "q11:udp",
+            "q11:tcp",
+            "q12:udp",
+            "q12:tcp",
+            "q13:udp",
+            "q13:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "4eda5b53abd63abffeb87dcbf23857748812f15faf001883ecafb3cdcbd45bb9",
+          "rust_observed_sha256": "a227eb41aebbd6d2a5597d18263f67f32590621e35825232b75583161a04cfc8"
+        }
+      ]
+    },
+    {
+      "id": "SYN-GRAM/10",
+      "boundary": "SYN-GRAM",
+      "required_case": "indexed IPv6 prefix <64 rejection",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "syntax",
+          "case_id": "synth-index6-small",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "39e6a552532984d3529a79413bb8638264b452807d97c893e878db6b618496e5",
+          "rust_observed_sha256": "388914b45daca4c47a5e27c63debf3a341c5b0f1a23a38f43a712b08a5e9ebdf"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "synth-index6",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "service",
+          "case_id": "synth-index6",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp",
+            "q9:udp",
+            "q9:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "06d4bf6591d4c8aeade6f0a7e45ebe2793a0de6ea765dd701e5bd126f7925576",
+          "rust_observed_sha256": "935002cd1b4d04b2d5218a171b143f0239035632e7e7172f648686b3fabc54ea"
+        }
+      ]
+    },
+    {
+      "id": "SYN-GRAM/11",
+      "boundary": "SYN-GRAM",
+      "required_case": "explicit IPv6 range indexed rejection",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "syntax",
+          "case_id": "synth-index6-range",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "39e6a552532984d3529a79413bb8638264b452807d97c893e878db6b618496e5",
+          "rust_observed_sha256": "388914b45daca4c47a5e27c63debf3a341c5b0f1a23a38f43a712b08a5e9ebdf"
+        }
+      ]
+    },
+    {
+      "id": "SYN-GRAM/12",
+      "boundary": "SYN-GRAM",
+      "required_case": "extra fields ignored paths",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "syntax",
+          "case_id": "synth-extra",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        }
+      ]
+    },
+    {
+      "id": "SYN-GRAM/13",
+      "boundary": "SYN-GRAM",
+      "required_case": "inverted range lexical acceptance",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "syntax",
+          "case_id": "synth-inverted4",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "service",
+          "case_id": "synth-service-inverted",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp",
+            "q9:udp",
+            "q9:tcp",
+            "q10:udp",
+            "q10:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "78b1bf5fbe8480d9a7fc9e0490c2776c26bc3a32c4550b6d9a5b8f9f7651ad66",
+          "rust_observed_sha256": "897e96259d1820b6936d7be084b035154e798aa1fc10d9fa3d68c27495786865"
+        }
+      ]
+    },
+    {
+      "id": "SYN-GRAM/14",
+      "boundary": "SYN-GRAM",
+      "required_case": "numeric prefix wrapping and invalid widths",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "syntax",
+          "case_id": "synth-width-4-0",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "synth-width-4-1",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "synth-width-4-31",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "synth-width-4-32",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "synth-width-4-33",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "51824dbe9e30d9ac7883988986b1bc1843cf4d3fc77e7275ca9f71c758b42aaf",
+          "rust_observed_sha256": "8add81bf07f6e139c5f4c85f2d4baf35af124069de7be68dcfd46c6eae391735"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "synth-width-6-0",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "synth-width-6-1",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "synth-width-6-63",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "synth-width-6-64",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "synth-width-6-65",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "synth-width-6-127",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "synth-width-6-128",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "synth-width-6-129",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "51824dbe9e30d9ac7883988986b1bc1843cf4d3fc77e7275ca9f71c758b42aaf",
+          "rust_observed_sha256": "8add81bf07f6e139c5f4c85f2d4baf35af124069de7be68dcfd46c6eae391735"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "synth-width-empty",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "synth-width-text",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "f4e660700aa89cebf5bf95633cd0f75f1128641bbc6bde174d81ded008633cc1",
+          "rust_observed_sha256": "6b423a0ef9cf223aef661e53c29027092c6e97079bff36beaa7fc133d1f77049"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "synth-width-negative",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "f4e660700aa89cebf5bf95633cd0f75f1128641bbc6bde174d81ded008633cc1",
+          "rust_observed_sha256": "6b423a0ef9cf223aef661e53c29027092c6e97079bff36beaa7fc133d1f77049"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "synth-width-wrap",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "synth-width-int-overflow",
+          "run": "paired-f16-synth-final-syntax-01",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        }
+      ]
+    },
+    {
+      "id": "SYN-FWD/01",
+      "boundary": "SYN-FWD",
+      "required_case": "IPv4 dash name start/interior/end/outside",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "synth-service-range4",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp",
+            "q9:udp",
+            "q9:tcp",
+            "q10:udp",
+            "q10:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "31e0bcbe1049e056458af80595ecbc482f8eb98fcb24e8ac2deb43ec55d17c0a",
+          "rust_observed_sha256": "54849b9d9a94d48bf255f351b6901726348fb680b4b442b4a2c303ec4f3762fd"
+        }
+      ]
+    },
+    {
+      "id": "SYN-FWD/02",
+      "boundary": "SYN-FWD",
+      "required_case": "IPv6 full eight groups dashed",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "synth-service-range6",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp",
+            "q9:udp",
+            "q9:tcp",
+            "q10:udp",
+            "q10:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "e36adf6f22dc5e810d1c590cc6817cf0ba3e14599cb6375b26c81c5cea5f8f0a",
+          "rust_observed_sha256": "c3635e52ff5afe52950ecccf56fbc7f62a99082478d73631b03e0638af368769"
+        }
+      ]
+    },
+    {
+      "id": "SYN-FWD/03",
+      "boundary": "SYN-FWD",
+      "required_case": "IPv6 compressed double-dash aliases",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "synth-service-range6",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp",
+            "q9:udp",
+            "q9:tcp",
+            "q10:udp",
+            "q10:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "e36adf6f22dc5e810d1c590cc6817cf0ba3e14599cb6375b26c81c5cea5f8f0a",
+          "rust_observed_sha256": "c3635e52ff5afe52950ecccf56fbc7f62a99082478d73631b03e0638af368769"
+        },
+        {
+          "mode": "service",
+          "case_id": "synth-service-prefix6",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp",
+            "q9:udp",
+            "q9:tcp",
+            "q10:udp",
+            "q10:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "f755dc84a6afdccb69b1d989c8a37b21eed0287218f4692b7cd70b245e0bb52b",
+          "rust_observed_sha256": "bdc7d826fe6f0ecae05cb6d54abf803a246520d27ab63b517ba0257227ccf977"
+        }
+      ]
+    },
+    {
+      "id": "SYN-FWD/04",
+      "boundary": "SYN-FWD",
+      "required_case": "prefix/domain case-insensitive match",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "synth-service-prefix-literal",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp",
+            "q9:udp",
+            "q9:tcp",
+            "q10:udp",
+            "q10:tcp",
+            "q11:udp",
+            "q11:tcp",
+            "q12:udp",
+            "q12:tcp",
+            "q13:udp",
+            "q13:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "e4a271b87f1a3a42a610fc22ab0a1ee0afa3fc154a64c4371f73af1076a6051c",
+          "rust_observed_sha256": "ef3564c39e862e67c35645507280855288125bbf72b32187383a3cc07a925452"
+        }
+      ]
+    },
+    {
+      "id": "SYN-FWD/05",
+      "boundary": "SYN-FWD",
+      "required_case": "indexed4 zero/end/outside",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "synth-service-index4",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp",
+            "q9:udp",
+            "q9:tcp",
+            "q10:udp",
+            "q10:tcp",
+            "q11:udp",
+            "q11:tcp",
+            "q12:udp",
+            "q12:tcp",
+            "q13:udp",
+            "q13:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "924153fa5f8ae36d8a097d0e090649d936879b0334d1ee3da28470354d1a3af4",
+          "rust_observed_sha256": "442c547f5a9d67e6399217524e75facc60cdbbe1bce068901a60e15a425f721b"
+        }
+      ]
+    },
+    {
+      "id": "SYN-FWD/06",
+      "boundary": "SYN-FWD",
+      "required_case": "indexed6 zero/end/outside",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "synth-service-index6",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp",
+            "q9:udp",
+            "q9:tcp",
+            "q10:udp",
+            "q10:tcp",
+            "q11:udp",
+            "q11:tcp",
+            "q12:udp",
+            "q12:tcp",
+            "q13:udp",
+            "q13:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "ca8a30466641910f6981c3aaa270fb3ee8c5705046dcb63ce757b05c615d036d",
+          "rust_observed_sha256": "17544ac2a47e02c57c87d901d738ff236667ff6b276c5585269f651a1e44943e"
+        },
+        {
+          "mode": "service",
+          "case_id": "synth-service-index6-128",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp",
+            "q9:udp",
+            "q9:tcp",
+            "q10:udp",
+            "q10:tcp",
+            "q11:udp",
+            "q11:tcp",
+            "q12:udp",
+            "q12:tcp",
+            "q13:udp",
+            "q13:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "129a00cbd1d75fd303b584988a122cd7c88f3a33be8082500a1c73683836259f",
+          "rust_observed_sha256": "92ebd2b8e3c3fdaf043adcd478209894afc8611106a8901dab9277aa51ad638a"
+        }
+      ]
+    },
+    {
+      "id": "SYN-FWD/07",
+      "boundary": "SYN-FWD",
+      "required_case": "empty indexed numeric tail accepted caller",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "synth-service-index4",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp",
+            "q9:udp",
+            "q9:tcp",
+            "q10:udp",
+            "q10:tcp",
+            "q11:udp",
+            "q11:tcp",
+            "q12:udp",
+            "q12:tcp",
+            "q13:udp",
+            "q13:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "924153fa5f8ae36d8a097d0e090649d936879b0334d1ee3da28470354d1a3af4",
+          "rust_observed_sha256": "442c547f5a9d67e6399217524e75facc60cdbbe1bce068901a60e15a425f721b"
+        },
+        {
+          "mode": "service",
+          "case_id": "synth-service-empty-index",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp",
+            "q9:udp",
+            "q9:tcp",
+            "q10:udp",
+            "q10:tcp",
+            "q11:udp",
+            "q11:tcp",
+            "q12:udp",
+            "q12:tcp",
+            "q13:udp",
+            "q13:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "80fad258663d67b16c256642be36c999e03845d426d26cd055b259eaeafe37a8",
+          "rust_observed_sha256": "7b590f79f2c2993b99260304580acefded2a2b1f9f0c02dac13a3b61650c72dc"
+        }
+      ]
+    },
+    {
+      "id": "SYN-FWD/08",
+      "boundary": "SYN-FWD",
+      "required_case": "IPv4 numeric index int32 wrapping",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "synth-service-index4",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp",
+            "q9:udp",
+            "q9:tcp",
+            "q10:udp",
+            "q10:tcp",
+            "q11:udp",
+            "q11:tcp",
+            "q12:udp",
+            "q12:tcp",
+            "q13:udp",
+            "q13:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "924153fa5f8ae36d8a097d0e090649d936879b0334d1ee3da28470354d1a3af4",
+          "rust_observed_sha256": "442c547f5a9d67e6399217524e75facc60cdbbe1bce068901a60e15a425f721b"
+        }
+      ]
+    },
+    {
+      "id": "SYN-FWD/09",
+      "boundary": "SYN-FWD",
+      "required_case": "IPv6 atoll overflow saturation",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "synth-service-index6",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp",
+            "q9:udp",
+            "q9:tcp",
+            "q10:udp",
+            "q10:tcp",
+            "q11:udp",
+            "q11:tcp",
+            "q12:udp",
+            "q12:tcp",
+            "q13:udp",
+            "q13:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "ca8a30466641910f6981c3aaa270fb3ee8c5705046dcb63ce757b05c615d036d",
+          "rust_observed_sha256": "17544ac2a47e02c57c87d901d738ff236667ff6b276c5585269f651a1e44943e"
+        }
+      ]
+    },
+    {
+      "id": "SYN-FWD/10",
+      "boundary": "SYN-FWD",
+      "required_case": "malformed digits/hyphens/hex/family",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "synth-service-index4",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp",
+            "q9:udp",
+            "q9:tcp",
+            "q10:udp",
+            "q10:tcp",
+            "q11:udp",
+            "q11:tcp",
+            "q12:udp",
+            "q12:tcp",
+            "q13:udp",
+            "q13:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "924153fa5f8ae36d8a097d0e090649d936879b0334d1ee3da28470354d1a3af4",
+          "rust_observed_sha256": "442c547f5a9d67e6399217524e75facc60cdbbe1bce068901a60e15a425f721b"
+        },
+        {
+          "mode": "service",
+          "case_id": "synth-service-range4",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp",
+            "q9:udp",
+            "q9:tcp",
+            "q10:udp",
+            "q10:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "31e0bcbe1049e056458af80595ecbc482f8eb98fcb24e8ac2deb43ec55d17c0a",
+          "rust_observed_sha256": "54849b9d9a94d48bf255f351b6901726348fb680b4b442b4a2c303ec4f3762fd"
+        },
+        {
+          "mode": "service",
+          "case_id": "synth-service-range6",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp",
+            "q9:udp",
+            "q9:tcp",
+            "q10:udp",
+            "q10:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "e36adf6f22dc5e810d1c590cc6817cf0ba3e14599cb6375b26c81c5cea5f8f0a",
+          "rust_observed_sha256": "c3635e52ff5afe52950ecccf56fbc7f62a99082478d73631b03e0638af368769"
+        }
+      ]
+    },
+    {
+      "id": "SYN-FWD/11",
+      "boundary": "SYN-FWD",
+      "required_case": "last matching synthetic declaration",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "synth-overlap-forward",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "6c11469f4abe6436a6a44f97e60c20a8de3b6f73253f661c3566143c8933a92e",
+          "rust_observed_sha256": "95cefc232db5fc24c781e2b454875ee2adf3d3775cba4fe6988adb7cc6c778dd"
+        }
+      ]
+    },
+    {
+      "id": "SYN-FWD/12",
+      "boundary": "SYN-FWD",
+      "required_case": "explicit IPv6 range prefixlen0 behavior",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "synth-service-range6",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp",
+            "q9:udp",
+            "q9:tcp",
+            "q10:udp",
+            "q10:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "e36adf6f22dc5e810d1c590cc6817cf0ba3e14599cb6375b26c81c5cea5f8f0a",
+          "rust_observed_sha256": "c3635e52ff5afe52950ecccf56fbc7f62a99082478d73631b03e0638af368769"
+        },
+        {
+          "mode": "service",
+          "case_id": "synth-service-single6",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp",
+            "q9:udp",
+            "q9:tcp",
+            "q10:udp",
+            "q10:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "4ea3e97b637fc12844816a06be8c117943a78b2319593d6a11afc4793248594b",
+          "rust_observed_sha256": "705b18145bf918c2ea7c43adeac6503a864b58643058cb2652d5704f1e8f8b52"
+        }
+      ]
+    },
+    {
+      "id": "SYN-FWD/13",
+      "boundary": "SYN-FWD",
+      "required_case": "A/AAAA/ANY and qclass",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "synth-index-dual-any",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "d1a296a1b07f6cf3dd19fc3eff07848e46f21294a8d3ecd7e2297c2a87c30b20",
+          "rust_observed_sha256": "34b6c2601bf523e0bab3f01ae2f11859faf2a3a815b7695cffd1713a198a13ae"
+        },
+        {
+          "mode": "service",
+          "case_id": "synth-bits-ttl-0",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "bits-1-1-True-False:udp",
+            "bits-1-1-True-False:tcp",
+            "bits-1-1-False-False:udp",
+            "bits-1-1-False-False:tcp",
+            "bits-1-1-True-True:udp",
+            "bits-1-1-True-True:tcp",
+            "bits-1-3-True-False:udp",
+            "bits-1-3-True-False:tcp",
+            "bits-1-255-True-False:udp",
+            "bits-1-255-True-False:tcp",
+            "bits-28-1-True-False:udp",
+            "bits-28-1-True-False:tcp",
+            "bits-28-1-False-False:udp",
+            "bits-28-1-False-False:tcp",
+            "bits-28-1-True-True:udp",
+            "bits-28-1-True-True:tcp",
+            "bits-28-3-True-False:udp",
+            "bits-28-3-True-False:tcp",
+            "bits-28-255-True-False:udp",
+            "bits-28-255-True-False:tcp",
+            "bits-255-1-True-False:udp",
+            "bits-255-1-True-False:tcp",
+            "bits-255-1-False-False:udp",
+            "bits-255-1-False-False:tcp",
+            "bits-255-1-True-True:udp",
+            "bits-255-1-True-True:tcp",
+            "bits-255-3-True-False:udp",
+            "bits-255-3-True-False:tcp",
+            "bits-255-255-True-False:udp",
+            "bits-255-255-True-False:tcp",
+            "bits-16-1-True-False:udp",
+            "bits-16-1-True-False:tcp",
+            "bits-16-1-False-False:udp",
+            "bits-16-1-False-False:tcp",
+            "bits-16-1-True-True:udp",
+            "bits-16-1-True-True:tcp",
+            "bits-16-3-True-False:udp",
+            "bits-16-3-True-False:tcp",
+            "bits-16-255-True-False:udp",
+            "bits-16-255-True-False:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "0aa5586e2f611dc22c4dadfa0241dbe4c22cfa19be534948c3e972539fe5d9d9",
+          "rust_observed_sha256": "a0136e1db27075691357c0dfc920b7163b1f9ef71a2a41667a3f4063bff6a8a7"
+        }
+      ]
+    },
+    {
+      "id": "SYN-FWD/14",
+      "boundary": "SYN-FWD",
+      "required_case": "RD/DO/CD and local TTL",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "synth-bits-ttl-0",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "bits-1-1-True-False:udp",
+            "bits-1-1-True-False:tcp",
+            "bits-1-1-False-False:udp",
+            "bits-1-1-False-False:tcp",
+            "bits-1-1-True-True:udp",
+            "bits-1-1-True-True:tcp",
+            "bits-1-3-True-False:udp",
+            "bits-1-3-True-False:tcp",
+            "bits-1-255-True-False:udp",
+            "bits-1-255-True-False:tcp",
+            "bits-28-1-True-False:udp",
+            "bits-28-1-True-False:tcp",
+            "bits-28-1-False-False:udp",
+            "bits-28-1-False-False:tcp",
+            "bits-28-1-True-True:udp",
+            "bits-28-1-True-True:tcp",
+            "bits-28-3-True-False:udp",
+            "bits-28-3-True-False:tcp",
+            "bits-28-255-True-False:udp",
+            "bits-28-255-True-False:tcp",
+            "bits-255-1-True-False:udp",
+            "bits-255-1-True-False:tcp",
+            "bits-255-1-False-False:udp",
+            "bits-255-1-False-False:tcp",
+            "bits-255-1-True-True:udp",
+            "bits-255-1-True-True:tcp",
+            "bits-255-3-True-False:udp",
+            "bits-255-3-True-False:tcp",
+            "bits-255-255-True-False:udp",
+            "bits-255-255-True-False:tcp",
+            "bits-16-1-True-False:udp",
+            "bits-16-1-True-False:tcp",
+            "bits-16-1-False-False:udp",
+            "bits-16-1-False-False:tcp",
+            "bits-16-1-True-True:udp",
+            "bits-16-1-True-True:tcp",
+            "bits-16-3-True-False:udp",
+            "bits-16-3-True-False:tcp",
+            "bits-16-255-True-False:udp",
+            "bits-16-255-True-False:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "0aa5586e2f611dc22c4dadfa0241dbe4c22cfa19be534948c3e972539fe5d9d9",
+          "rust_observed_sha256": "a0136e1db27075691357c0dfc920b7163b1f9ef71a2a41667a3f4063bff6a8a7"
+        },
+        {
+          "mode": "service",
+          "case_id": "synth-bits-ttl-77",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "bits-1-1-True-False:udp",
+            "bits-1-1-True-False:tcp",
+            "bits-1-1-False-False:udp",
+            "bits-1-1-False-False:tcp",
+            "bits-1-1-True-True:udp",
+            "bits-1-1-True-True:tcp",
+            "bits-1-3-True-False:udp",
+            "bits-1-3-True-False:tcp",
+            "bits-1-255-True-False:udp",
+            "bits-1-255-True-False:tcp",
+            "bits-28-1-True-False:udp",
+            "bits-28-1-True-False:tcp",
+            "bits-28-1-False-False:udp",
+            "bits-28-1-False-False:tcp",
+            "bits-28-1-True-True:udp",
+            "bits-28-1-True-True:tcp",
+            "bits-28-3-True-False:udp",
+            "bits-28-3-True-False:tcp",
+            "bits-28-255-True-False:udp",
+            "bits-28-255-True-False:tcp",
+            "bits-255-1-True-False:udp",
+            "bits-255-1-True-False:tcp",
+            "bits-255-1-False-False:udp",
+            "bits-255-1-False-False:tcp",
+            "bits-255-1-True-True:udp",
+            "bits-255-1-True-True:tcp",
+            "bits-255-3-True-False:udp",
+            "bits-255-3-True-False:tcp",
+            "bits-255-255-True-False:udp",
+            "bits-255-255-True-False:tcp",
+            "bits-16-1-True-False:udp",
+            "bits-16-1-True-False:tcp",
+            "bits-16-1-False-False:udp",
+            "bits-16-1-False-False:tcp",
+            "bits-16-1-True-True:udp",
+            "bits-16-1-True-True:tcp",
+            "bits-16-3-True-False:udp",
+            "bits-16-3-True-False:tcp",
+            "bits-16-255-True-False:udp",
+            "bits-16-255-True-False:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "406a0abb472e87d722aedd7d1a2b964b2d57b67c196b68b3637d1bfde6caa4a2",
+          "rust_observed_sha256": "be0ca7f46d179f7b79aa0cb6ad5cf302160d1e81cb919ba58196260ce0c17c60"
+        }
+      ]
+    },
+    {
+      "id": "SYN-FWD/15",
+      "boundary": "SYN-FWD",
+      "required_case": "hosts/lease/positive/negative cache precedence",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "synth-precedence",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "0bcbc4775962d7210faa45bfc7cfeff752284e223b7fcba8c52f4477ca157ca7",
+          "rust_observed_sha256": "4d75644e7cdc09a0007c4cc5e04f7867c291471ea83cefc386f915db7b2b9bf9"
+        },
+        {
+          "mode": "service",
+          "case_id": "synth-lease-precedence",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "46fe6a31e31ace3ae00764508dffe60a47d7d06daab53d2073adbde0c1efb74c",
+          "rust_observed_sha256": "78b9030b97fcb09b6d38af1b816fcadcd9a0e632df7ebd18425d178d2d6020e5"
+        },
+        {
+          "mode": "service",
+          "case_id": "synth-cache-forward-positive",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "warm:udp",
+            "terminal:udp",
+            "terminal:tcp",
+            "cached-alias:udp",
+            "cached-alias:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "11ce554ae6bbc347e7c02ed0542a99c284ce82e8ca58f1636e443e83be19efc4",
+          "rust_observed_sha256": "7c4e6108c7ce937e9c154adc0b66a98227accf70fec68c36df1d92b96f5812cb"
+        },
+        {
+          "mode": "service",
+          "case_id": "synth-cache-forward-negative",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "warm:udp",
+            "terminal:udp",
+            "terminal:tcp",
+            "cached-alias:udp",
+            "cached-alias:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "a76c6ae55f52fb7bda33dd6064ac54041fc26ac032c850ec58cf78d60e733109",
+          "rust_observed_sha256": "828fb68e6307e4967a508413971aba14929ecaf436cd1037f86a71fc7e753e0e"
+        }
+      ]
+    },
+    {
+      "id": "SYN-FWD/16",
+      "boundary": "SYN-FWD",
+      "required_case": "interface declaration intercept precedence",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-synth-forward-intercept",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "20c778dffba42f78df378a9222aaf8ac74a24cd3dfe165c2a74fe7f7d1951dee",
+          "rust_observed_sha256": "993e03e0667cbbd95beb04475a691db185bfe53d73671804ba45b9d29d0a11c9"
+        }
+      ]
+    },
+    {
+      "id": "SYN-FWD/17",
+      "boundary": "SYN-FWD",
+      "required_case": "TXT/other type valid synthesized-name existence",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-synth-name-exists",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "bcad0f8e2379deba5514584277435384c5ebb3bef8f32ecc11019c9be93fdffe",
+          "rust_observed_sha256": "5e871aa5c5b543cf527a3c6dc6819e685bc8fd62a5239e8872dd6ec0799f4f1a"
+        },
+        {
+          "mode": "service",
+          "case_id": "synth-bits-ttl-0",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "bits-1-1-True-False:udp",
+            "bits-1-1-True-False:tcp",
+            "bits-1-1-False-False:udp",
+            "bits-1-1-False-False:tcp",
+            "bits-1-1-True-True:udp",
+            "bits-1-1-True-True:tcp",
+            "bits-1-3-True-False:udp",
+            "bits-1-3-True-False:tcp",
+            "bits-1-255-True-False:udp",
+            "bits-1-255-True-False:tcp",
+            "bits-28-1-True-False:udp",
+            "bits-28-1-True-False:tcp",
+            "bits-28-1-False-False:udp",
+            "bits-28-1-False-False:tcp",
+            "bits-28-1-True-True:udp",
+            "bits-28-1-True-True:tcp",
+            "bits-28-3-True-False:udp",
+            "bits-28-3-True-False:tcp",
+            "bits-28-255-True-False:udp",
+            "bits-28-255-True-False:tcp",
+            "bits-255-1-True-False:udp",
+            "bits-255-1-True-False:tcp",
+            "bits-255-1-False-False:udp",
+            "bits-255-1-False-False:tcp",
+            "bits-255-1-True-True:udp",
+            "bits-255-1-True-True:tcp",
+            "bits-255-3-True-False:udp",
+            "bits-255-3-True-False:tcp",
+            "bits-255-255-True-False:udp",
+            "bits-255-255-True-False:tcp",
+            "bits-16-1-True-False:udp",
+            "bits-16-1-True-False:tcp",
+            "bits-16-1-False-False:udp",
+            "bits-16-1-False-False:tcp",
+            "bits-16-1-True-True:udp",
+            "bits-16-1-True-True:tcp",
+            "bits-16-3-True-False:udp",
+            "bits-16-3-True-False:tcp",
+            "bits-16-255-True-False:udp",
+            "bits-16-255-True-False:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "0aa5586e2f611dc22c4dadfa0241dbe4c22cfa19be534948c3e972539fe5d9d9",
+          "rust_observed_sha256": "a0136e1db27075691357c0dfc920b7163b1f9ef71a2a41667a3f4063bff6a8a7"
+        }
+      ]
+    },
+    {
+      "id": "SYN-FWD/18",
+      "boundary": "SYN-FWD",
+      "required_case": "ancestor/descendant existence not implied",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-synth-name-exists",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "bcad0f8e2379deba5514584277435384c5ebb3bef8f32ecc11019c9be93fdffe",
+          "rust_observed_sha256": "5e871aa5c5b543cf527a3c6dc6819e685bc8fd62a5239e8872dd6ec0799f4f1a"
+        }
+      ]
+    },
+    {
+      "id": "SYN-PTR/01",
+      "boundary": "SYN-PTR",
+      "required_case": "IPv4 normal dashed reverse",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "synth-service-range4",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp",
+            "q9:udp",
+            "q9:tcp",
+            "q10:udp",
+            "q10:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "31e0bcbe1049e056458af80595ecbc482f8eb98fcb24e8ac2deb43ec55d17c0a",
+          "rust_observed_sha256": "54849b9d9a94d48bf255f351b6901726348fb680b4b442b4a2c303ec4f3762fd"
+        }
+      ]
+    },
+    {
+      "id": "SYN-PTR/02",
+      "boundary": "SYN-PTR",
+      "required_case": "IPv6 full groups uncompressed reverse",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "synth-service-range6",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp",
+            "q9:udp",
+            "q9:tcp",
+            "q10:udp",
+            "q10:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "e36adf6f22dc5e810d1c590cc6817cf0ba3e14599cb6375b26c81c5cea5f8f0a",
+          "rust_observed_sha256": "c3635e52ff5afe52950ecccf56fbc7f62a99082478d73631b03e0638af368769"
+        }
+      ]
+    },
+    {
+      "id": "SYN-PTR/03",
+      "boundary": "SYN-PTR",
+      "required_case": "indexed4 relative start/end",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "synth-service-index4",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp",
+            "q9:udp",
+            "q9:tcp",
+            "q10:udp",
+            "q10:tcp",
+            "q11:udp",
+            "q11:tcp",
+            "q12:udp",
+            "q12:tcp",
+            "q13:udp",
+            "q13:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "924153fa5f8ae36d8a097d0e090649d936879b0334d1ee3da28470354d1a3af4",
+          "rust_observed_sha256": "442c547f5a9d67e6399217524e75facc60cdbbe1bce068901a60e15a425f721b"
+        }
+      ]
+    },
+    {
+      "id": "SYN-PTR/04",
+      "boundary": "SYN-PTR",
+      "required_case": "indexed6 relative start/end",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "synth-service-index6",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp",
+            "q9:udp",
+            "q9:tcp",
+            "q10:udp",
+            "q10:tcp",
+            "q11:udp",
+            "q11:tcp",
+            "q12:udp",
+            "q12:tcp",
+            "q13:udp",
+            "q13:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "ca8a30466641910f6981c3aaa270fb3ee8c5705046dcb63ce757b05c615d036d",
+          "rust_observed_sha256": "17544ac2a47e02c57c87d901d738ff236667ff6b276c5585269f651a1e44943e"
+        },
+        {
+          "mode": "service",
+          "case_id": "synth-service-index6-128",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp",
+            "q9:udp",
+            "q9:tcp",
+            "q10:udp",
+            "q10:tcp",
+            "q11:udp",
+            "q11:tcp",
+            "q12:udp",
+            "q12:tcp",
+            "q13:udp",
+            "q13:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "129a00cbd1d75fd303b584988a122cd7c88f3a33be8082500a1c73683836259f",
+          "rust_observed_sha256": "92ebd2b8e3c3fdaf043adcd478209894afc8611106a8901dab9277aa51ad638a"
+        }
+      ]
+    },
+    {
+      "id": "SYN-PTR/05",
+      "boundary": "SYN-PTR",
+      "required_case": "out-of-range numeric reverse",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "synth-service-range4",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp",
+            "q9:udp",
+            "q9:tcp",
+            "q10:udp",
+            "q10:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "31e0bcbe1049e056458af80595ecbc482f8eb98fcb24e8ac2deb43ec55d17c0a",
+          "rust_observed_sha256": "54849b9d9a94d48bf255f351b6901726348fb680b4b442b4a2c303ec4f3762fd"
+        }
+      ]
+    },
+    {
+      "id": "SYN-PTR/06",
+      "boundary": "SYN-PTR",
+      "required_case": "explicit IPv6 range all-address behavior",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "synth-service-range6",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp",
+            "q9:udp",
+            "q9:tcp",
+            "q10:udp",
+            "q10:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "e36adf6f22dc5e810d1c590cc6817cf0ba3e14599cb6375b26c81c5cea5f8f0a",
+          "rust_observed_sha256": "c3635e52ff5afe52950ecccf56fbc7f62a99082478d73631b03e0638af368769"
+        }
+      ]
+    },
+    {
+      "id": "SYN-PTR/07",
+      "boundary": "SYN-PTR",
+      "required_case": "overlap last declaration wins",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "synth-precedence",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "0bcbc4775962d7210faa45bfc7cfeff752284e223b7fcba8c52f4477ca157ca7",
+          "rust_observed_sha256": "4d75644e7cdc09a0007c4cc5e04f7867c291471ea83cefc386f915db7b2b9bf9"
+        },
+        {
+          "mode": "service",
+          "case_id": "synth-overlap-forward",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "6c11469f4abe6436a6a44f97e60c20a8de3b6f73253f661c3566143c8933a92e",
+          "rust_observed_sha256": "95cefc232db5fc24c781e2b454875ee2adf3d3775cba4fe6988adb7cc6c778dd"
+        }
+      ]
+    },
+    {
+      "id": "SYN-PTR/08",
+      "boundary": "SYN-PTR",
+      "required_case": "interface and ptr-record precedence",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-synth-ptr-precedence",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "4eec48d464d24ef67ca41406bd816d5646fc73047c3ed9aec7f33e12d232f7ff",
+          "rust_observed_sha256": "c68ab7525118b080325f426d9855184a1ff9a00edb14281bec0ec9b90a92ac35"
+        },
+        {
+          "mode": "service",
+          "case_id": "synth-precedence",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "0bcbc4775962d7210faa45bfc7cfeff752284e223b7fcba8c52f4477ca157ca7",
+          "rust_observed_sha256": "4d75644e7cdc09a0007c4cc5e04f7867c291471ea83cefc386f915db7b2b9bf9"
+        }
+      ]
+    },
+    {
+      "id": "SYN-PTR/09",
+      "boundary": "SYN-PTR",
+      "required_case": "hosts/DHCP/dynamic reverse positive precedence",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "synth-precedence",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "0bcbc4775962d7210faa45bfc7cfeff752284e223b7fcba8c52f4477ca157ca7",
+          "rust_observed_sha256": "4d75644e7cdc09a0007c4cc5e04f7867c291471ea83cefc386f915db7b2b9bf9"
+        },
+        {
+          "mode": "service",
+          "case_id": "synth-lease-precedence",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "46fe6a31e31ace3ae00764508dffe60a47d7d06daab53d2073adbde0c1efb74c",
+          "rust_observed_sha256": "78b9030b97fcb09b6d38af1b816fcadcd9a0e632df7ebd18425d178d2d6020e5"
+        },
+        {
+          "mode": "service",
+          "case_id": "synth-cache-reverse-precedence",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "warm:udp",
+            "reverse:udp",
+            "reverse:tcp",
+            "unrelated:udp",
+            "unrelated:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "3a876072765d2c625caab812472ad7f83b06079a4684b8d03ff74e7899a45ee8",
+          "rust_observed_sha256": "e223ca6787526f31cc375022fae9a9ae3002cf7ed6fd0235ada2cd4779f510de"
+        }
+      ]
+    },
+    {
+      "id": "SYN-PTR/10",
+      "boundary": "SYN-PTR",
+      "required_case": "reverse negative cache precedence",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "synth-reverse-negative-nodata",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "warm:udp",
+            "synthetic:udp",
+            "synthetic:tcp",
+            "cached-alias:udp",
+            "cached-alias:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "96cb4692ac7a1f9a56c40481253d41e323343b23b3d6b9e7ce335c170b1e80a5",
+          "rust_observed_sha256": "92e4d594363514a3e3c3c9f854f11ae535b905b183c61c50a46ff02f1f239466"
+        },
+        {
+          "mode": "service",
+          "case_id": "synth-reverse-negative-nxdomain",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "warm:udp",
+            "synthetic:udp",
+            "synthetic:tcp",
+            "cached-alias:udp",
+            "cached-alias:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "43cabda01736755ba3680f98ec332d9dc8da1939dea1368edcfe4fbbd77de2df",
+          "rust_observed_sha256": "7d8dce4b487a155ccd6edcc67483c1c955405578a5b952e84c6f44b2342d551c"
+        }
+      ]
+    },
+    {
+      "id": "SYN-PTR/11",
+      "boundary": "SYN-PTR",
+      "required_case": "bogus-priv fallback after synthetic",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "synth-precedence",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "0bcbc4775962d7210faa45bfc7cfeff752284e223b7fcba8c52f4477ca157ca7",
+          "rust_observed_sha256": "4d75644e7cdc09a0007c4cc5e04f7867c291471ea83cefc386f915db7b2b9bf9"
+        }
+      ]
+    },
+    {
+      "id": "SYN-PTR/12",
+      "boundary": "SYN-PTR",
+      "required_case": "PTR/ANY classes and malformed arpa",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "synth-reverse-bits",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "reverse-12-1-True-False:udp",
+            "reverse-12-1-True-False:tcp",
+            "reverse-12-1-False-False:udp",
+            "reverse-12-1-False-False:tcp",
+            "reverse-12-1-True-True:udp",
+            "reverse-12-1-True-True:tcp",
+            "reverse-12-3-True-False:udp",
+            "reverse-12-3-True-False:tcp",
+            "reverse-12-255-True-False:udp",
+            "reverse-12-255-True-False:tcp",
+            "reverse-255-1-True-False:udp",
+            "reverse-255-1-True-False:tcp",
+            "reverse-255-1-False-False:udp",
+            "reverse-255-1-False-False:tcp",
+            "reverse-255-1-True-True:udp",
+            "reverse-255-1-True-True:tcp",
+            "reverse-255-3-True-False:udp",
+            "reverse-255-3-True-False:tcp",
+            "reverse-255-255-True-False:udp",
+            "reverse-255-255-True-False:tcp",
+            "bad-arpa:udp",
+            "bad-arpa:tcp",
+            "nonarpa:udp",
+            "nonarpa:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "89eb9691e4fd9a1fbb3950618e056fba25a97af17b638893a4603445352b7d50",
+          "rust_observed_sha256": "54c18828d62c0665488a3be93ad35a9971296cec0bb7586bdbde4a1e512e7964"
+        }
+      ]
+    },
+    {
+      "id": "SYN-PTR/14",
+      "boundary": "SYN-PTR",
+      "required_case": "local TTL and TCP snapshot configuration",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "synth-tcp-snapshot",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "child:held",
+            "child-after:held",
+            "parent:udp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "d76eb6fdca35c8afd675e5ffd5c48c0fbf9f4db17162eec667f48459cfc54b27",
+          "rust_observed_sha256": "c008ec12e7d759ca6cb7f3c0e5dd58c01542f1550d151840475c9c6f0f2afb26"
+        },
+        {
+          "mode": "service",
+          "case_id": "synth-bits-ttl-77",
+          "run": "paired-f16-synth-final-service-01",
+          "observation_ids": [
+            "bits-1-1-True-False:udp",
+            "bits-1-1-True-False:tcp",
+            "bits-1-1-False-False:udp",
+            "bits-1-1-False-False:tcp",
+            "bits-1-1-True-True:udp",
+            "bits-1-1-True-True:tcp",
+            "bits-1-3-True-False:udp",
+            "bits-1-3-True-False:tcp",
+            "bits-1-255-True-False:udp",
+            "bits-1-255-True-False:tcp",
+            "bits-28-1-True-False:udp",
+            "bits-28-1-True-False:tcp",
+            "bits-28-1-False-False:udp",
+            "bits-28-1-False-False:tcp",
+            "bits-28-1-True-True:udp",
+            "bits-28-1-True-True:tcp",
+            "bits-28-3-True-False:udp",
+            "bits-28-3-True-False:tcp",
+            "bits-28-255-True-False:udp",
+            "bits-28-255-True-False:tcp",
+            "bits-255-1-True-False:udp",
+            "bits-255-1-True-False:tcp",
+            "bits-255-1-False-False:udp",
+            "bits-255-1-False-False:tcp",
+            "bits-255-1-True-True:udp",
+            "bits-255-1-True-True:tcp",
+            "bits-255-3-True-False:udp",
+            "bits-255-3-True-False:tcp",
+            "bits-255-255-True-False:udp",
+            "bits-255-255-True-False:tcp",
+            "bits-16-1-True-False:udp",
+            "bits-16-1-True-False:tcp",
+            "bits-16-1-False-False:udp",
+            "bits-16-1-False-False:tcp",
+            "bits-16-1-True-True:udp",
+            "bits-16-1-True-True:tcp",
+            "bits-16-3-True-False:udp",
+            "bits-16-3-True-False:tcp",
+            "bits-16-255-True-False:udp",
+            "bits-16-255-True-False:tcp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "406a0abb472e87d722aedd7d1a2b964b2d57b67c196b68b3637d1bfde6caa4a2",
+          "rust_observed_sha256": "be0ca7f46d179f7b79aa0cb6ad5cf302160d1e81cb919ba58196260ce0c17c60"
+        }
+      ]
+    }
+  ]
+}
