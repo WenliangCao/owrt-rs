@@ -345,6 +345,8 @@ impl Logger {
                 message,
             )));
         }
+        // C retries a down connection on my_syslog, not every owner poll.
+        self.connection_good = true;
         self.flush_ready();
     }
 
@@ -427,6 +429,9 @@ impl Logger {
     pub fn flush_ready(&mut self) {
         if let Some(echo) = &self.echo {
             drain_echo(echo.as_raw_fd(), &mut self.echo_queue);
+        }
+        if !self.connection_good {
+            return;
         }
         for _ in 0..128 {
             let Some(record) = self.queue.front_mut() else {
@@ -572,6 +577,8 @@ impl Logger {
     /// Make one bounded shutdown attempt. The owner can poll and retry while
     /// false. A failed syslog connection ends draining, matching flush_log.
     pub fn finish(&mut self) -> bool {
+        // flush_log makes one forced attempt before honoring connection_good.
+        self.connection_good = true;
         self.flush_ready();
         (self.queue.is_empty() || !self.connection_good) && self.echo_queue.is_empty()
     }
