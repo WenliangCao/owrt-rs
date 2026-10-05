@@ -441,9 +441,19 @@ mod linux {
                         } else {
                             SocketAddr::from((ciaddr, datagram.peer.port()))
                         };
+                        if let Ok(source) = reply_socket.local_addr() {
+                            self.dump.udp(crate::dump::DHCP, bytes, source, destination);
+                        }
                         reply_socket.send_once(bytes, destination, None)
                     } else {
-                        send_reply(reply_socket, bytes, index, &name, self.client_port)
+                        send_reply(
+                            reply_socket,
+                            bytes,
+                            index,
+                            &name,
+                            self.client_port,
+                            &self.dump,
+                        )
                     };
                     if let Err(error) = result {
                         eprintln!("dnsmasq-rs: DHCP relay reply send: {error}");
@@ -542,11 +552,16 @@ mod linux {
         interface: u32,
         name: &[u8; 16],
         port: u16,
+        dump: &crate::dump::DumpHandle,
     ) -> io::Result<()> {
         let ciaddr = ip(bytes, 12);
         if !ciaddr.is_unspecified() {
             // dhcp.c's ciaddr branch has no outbound pktinfo cmsg.
-            return socket.send_once(bytes, SocketAddr::from((ciaddr, port)), None);
+            let destination = SocketAddr::from((ciaddr, port));
+            if let Ok(source) = socket.local_addr() {
+                dump.udp(crate::dump::DHCP, bytes, source, destination);
+            }
+            return socket.send_once(bytes, destination, None);
         }
         let htype = bytes[1];
         let hlen = usize::from(bytes[2]);
@@ -571,6 +586,9 @@ mod linux {
                     eprintln!("dnsmasq-rs: DHCP ARP injection: {error}");
                 }
             }
+        }
+        if let Ok(source) = socket.local_addr() {
+            dump.udp(crate::dump::DHCP, bytes, source, destination);
         }
         socket.send_on_interface_once(bytes, destination, interface)
     }
