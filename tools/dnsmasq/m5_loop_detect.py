@@ -11,6 +11,7 @@ import signal
 import socket
 import struct
 import subprocess
+import sys
 import threading
 import time
 
@@ -426,7 +427,6 @@ def run(root, side, case, folder):
                               for line in (work / 'log').read_text().splitlines() if 'using nameserver' in line]
             if case.get('query_log'):
                 result['query_logs']=[line.split(' dnsmasq',1)[-1].split(': ',1)[-1] for line in (work/'log').read_text().splitlines() if 'query[' in line or 'forwarded ' in line]
-                assert not any(re.search('[0-9a-f]{8}\\.test',line) for line in result['query_logs'])
             if case.get('dump'):
                 result['dump_packets']=dump_packets(work/'capture.pcap')
                 assert any(row['message']['questions'][0][1]==16 for row in result['dump_packets'])
@@ -451,8 +451,10 @@ def run(root, side, case, folder):
 
 def projection(value):
     result = copy.deepcopy(value)
+    result['resource_deltas']={key:result[key]['fds']-result['resources']['fds'] for key in ['active_resources','after_hup_resources','released_resources'] if key in result}
     for key in ['identity', 'stderr', 'resources', 'after_hup_resources']:
         result.pop(key, None)
+    result.pop('active_resources',None);result.pop('released_resources',None)
     result['syntax']['stderr'] = result['syntax']['stderr'].replace('dnsmasq-rs:', 'dnsmasq:')
     uids={};ports={};derived={};result['uid_shape']=[];result['probe_port_shape']=[]
     for probe in result['probes']:
@@ -486,6 +488,14 @@ def projection(value):
             reply['id']='<probe-id>';reply['questions'][0][0]='<uid>.test'
             for record in reply.get('records',[]):
                 if re.fullmatch('[0-9a-f]{8}\\.test',record['name']):record['name']='<uid>.test'
+    if 'query_logs' in result:
+        result['query_logs']=[re.sub(r'127\.0\.0\.1/\d+','127.0.0.1/<client-port>',re.sub('[0-9a-f]{8}\\.test','<uid>.test',line)) for line in result['query_logs']]
+    for row in result.get('dump_packets',[]):
+        for key in ['source_port','destination_port']:
+            if row[key] not in (15370,15970,15971,53,69,15570):row[key]='<client-port>'
+        message=row['message']
+        if re.fullmatch('[0-9a-f]{8}\\.test',message['questions'][0][0]):
+            message['id']='<probe-id>';message['questions'][0][0]='<uid>.test'
     return result
 
 
@@ -501,14 +511,104 @@ def compare(c, rust, case):
         for probe in value['probes']:
             if probe['semantics']['flags'] != 0x0100 or probe['semantics']['questions'][0][1:] != [16, 1] or probe['semantics']['records']:
                 errors.append(dict(side=side, kind='probe-wire'))
-            if case.get('fixed_port') or case.get('source_port'):
+            if case.get('fixed_port') or (case.get('source_port') and probe['destination'][:2]==['127.0.0.2',15970]):
                 if probe['peer'] != ['127.0.0.1', 15570]: errors.append(dict(side=side, kind='source-contract', actual=probe['peer']))
         if value['probes'] and not any(case.get(k) for k in ('file','resolv','rules')) and any(p['name'] != value['probes'][0]['name'] for p in value['probes']): errors.append(dict(side=side, kind='unstable-uid'))
         if value['resources']['threads'] != 1: errors.append(dict(side=side, kind='extra-thread'))
-        if value.get('after_hup_resources') != value['resources'] and case.get('hup'): errors.append(dict(side=side, kind='hup-resource-leak'))
+        expected_resources=value.get('active_resources',value['resources'])
+        if value.get('after_hup_resources') != expected_resources and case.get('hup'): errors.append(dict(side=side, kind='hup-resource-leak'))
+        if case.get('active') and not case.get('stop_active'):
+            if value.get('active_reply') is None:errors.append(dict(side=side,kind='active-reply-lost'))
+            if value.get('released_resources')!=value['resources']:errors.append(dict(side=side,kind='active-fd-leak'))
         if value['cleanup'] != {'pid_file': False, 'live_pids': []} or value['exit'] != 0: errors.append(dict(side=side, kind='cleanup'))
     if projection(c) != projection(rust): errors.append(dict(kind='paired-difference', c=projection(c), rust=projection(rust)))
     return errors
+
+
+def qualified_pair(c,rust,case,candidate):
+    if compare(c,rust,case):return False
+    if case.get('syntax_only'):return c['syntax']['exit']==rust['syntax']['exit']==1
+    for value,expected in [(c,STOCK_SHA256),(rust,candidate)]:
+        if value.get('identity',{}).get('sha256')!=expected:return False
+        for event in value['probes']+value['ordinary_upstream']:
+            raw=bytes.fromhex(event['wire'])
+            if semantics(raw)!=event['semantics']:return False
+            if read_name(raw,12)[0]!=event['name'] or event['semantics']['questions'][0][1]!=event['type']:return False
+            if event['probe']:
+                if len(raw)!=31 or raw[2:12]!=bytes.fromhex('01000001000000000000'):return False
+                if not re.fullmatch('[0-9a-f]{8}\\.test',event['name']):return False
+        for observation in value['observations']:
+            if observation.get('wire') is not None and semantics(bytes.fromhex(observation['wire']))!=observation['reply']:return False
+        if case.get('query_log') and not any(re.search('[0-9a-f]{8}\\.test',line) for line in value.get('query_logs',[])):return False
+        if case.get('dump'):
+            probes=[row for row in value.get('dump_packets',[]) if row['message']['questions'][0][1]==16]
+            if len(probes)!=1 or probes[0]['source_port']!=15970 or probes[0]['destination_port']!=15370:return False
+        if case.get('concurrent') and value.get('concurrent')!={'dhcp_ack':5,'address':'192.0.2.42','tftp_data':'000300016c6f6f702d6865616c74680a'}:return False
+    return True
+
+
+def qualify(folder,out):
+    report=json.loads((folder/'result.json').read_text());manifest=json.loads(Path(__file__).with_suffix('.json').read_text())
+    required={label for boundary in manifest['boundaries'] for label in boundary['required_cases']}
+    valid_identity=(report['c_sha256']==STOCK_SHA256 and re.fullmatch('[0-9a-f]{64}',report['rust_sha256'])
+        and report['driver_sha256']==sha256(folder/'driver/m5_loop_detect.py')
+        and report['manifest_sha256']==sha256(folder/'driver/m5_loop_detect.json')==sha256(Path(__file__).with_suffix('.json')))
+    definitions={case['id']:case for case in cases()};present={row['id'] for row in report['cases']};missing=sorted(required-present)
+    passed=[];different=[];controls=[]
+    for label in sorted(required&present):
+        case=definitions[label];c=json.loads((folder/label/'c/observed.json').read_text());rust=json.loads((folder/label/'rust/observed.json').read_text())
+        if not qualified_pair(c,rust,case,report['rust_sha256']):different.append(label);continue
+        passed.append(label)
+        for mode in ['identity','reply-flags','upstream-count','probe-count','probe-wire','probe-port-shape','probe-uid-shape','missing-observation','fd-lifecycle','query-loop-log','dump-loop','dhcp-ack','tftp-data']:
+            wrong=copy.deepcopy(rust)
+            if mode=='identity':
+                if case.get('syntax_only'):wrong['syntax']['exit']=0
+                else:wrong['identity']['sha256']='0'*64
+            elif mode=='reply-flags':
+                reply=next((v['reply'] for v in wrong['observations'] if v.get('reply')),None)
+                if reply is None:continue
+                reply['flags']^=0x0400
+            elif mode=='upstream-count':wrong.setdefault('ordinary_upstream',[]).append(copy.deepcopy(wrong.get('ordinary_upstream',[{}])[0]) if wrong.get('ordinary_upstream') else {})
+            elif mode=='probe-count':
+                if not wrong.get('probes'):continue
+                wrong['probes'].pop()
+            elif mode=='probe-wire':
+                if not wrong.get('probes'):continue
+                wire=bytearray.fromhex(wrong['probes'][0]['wire']);wire[2]^=1;wrong['probes'][0]['wire']=wire.hex()
+            elif mode=='probe-port-shape':
+                if len(wrong.get('probes',[]))<2:continue
+                if wrong['probes'][1]['peer'][0]!=wrong['probes'][0]['peer'][0]:continue
+                wrong['probes'][1]['peer'][1]=wrong['probes'][0]['peer'][1] if wrong['probes'][1]['peer'][1]!=wrong['probes'][0]['peer'][1] else 15444
+            elif mode=='probe-uid-shape':
+                if len(wrong.get('probes',[]))<2:continue
+                wrong['probes'][1]['name']='ffffffff.test'
+            elif mode=='missing-observation':
+                if not wrong['observations']:continue
+                wrong['observations'].pop()
+            elif mode=='fd-lifecycle':
+                if case.get('syntax_only'):continue
+                if 'released_resources' in wrong:wrong['released_resources']['fds']+=1
+                elif 'after_hup_resources' in wrong:wrong['after_hup_resources']['fds']+=1
+                else:wrong['resources']['threads']=2
+            elif mode=='query-loop-log':
+                if not case.get('query_log'):continue
+                wrong['query_logs']=[]
+            elif mode=='dump-loop':
+                if not case.get('dump'):continue
+                wrong['dump_packets']=[]
+            elif mode in ('dhcp-ack','tftp-data'):
+                if not case.get('concurrent'):continue
+                wrong['concurrent']['dhcp_ack' if mode=='dhcp-ack' else 'tftp_data']=0
+            try:rejected=not qualified_pair(c,wrong,case,report['rust_sha256'])
+            except (KeyError,ValueError,TypeError,IndexError,struct.error):rejected=True
+            controls.append({'case':label,'control':mode,'rejected':rejected})
+    qualified=bool(valid_identity) and not missing and not different and not report['failures'] and all(row['rejected'] for row in controls)
+    result={'option':'dns-loop-detect','qualified':qualified,'normal_contract_qualified':qualified,'required_count':len(required),'executed_cases':passed,
+        'missing_required_cases':missing,'differences':different,'candidate_commit':report['source_commit'],'candidate_sha256':report['rust_sha256'],
+        'c_sha256':STOCK_SHA256,'source_files':manifest['source_files'],'boundaries':[v['id'] for v in manifest['boundaries']],
+        'negative_controls':controls,'report_sha256':sha256(folder/'result.json'),'saved_driver_sha256':report['driver_sha256'],
+        'manifest_sha256':report['manifest_sha256'],'qualifier_sha256':sha256(Path(__file__)),'deferred_extreme_cases':manifest['deferred_extreme_cases']}
+    save(out,result);print(json.dumps({'qualified':qualified,'passed':len(passed),'missing':len(missing),'different':different,'controls':len(controls)}));return int(not qualified)
 
 
 def main():
@@ -551,4 +651,8 @@ def main():
     return int(bool(report['failures']))
 
 
-if __name__ == '__main__': raise SystemExit(main())
+if __name__ == '__main__':
+    if sys.argv[1:2]==['qualify']:
+        parser=argparse.ArgumentParser();parser.add_argument('qualify');parser.add_argument('--run',type=Path,required=True);parser.add_argument('--out',type=Path,required=True)
+        args=parser.parse_args();raise SystemExit(qualify(args.run,args.out))
+    raise SystemExit(main())
