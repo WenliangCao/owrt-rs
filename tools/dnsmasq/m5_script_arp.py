@@ -14,12 +14,14 @@ from pathlib import Path
 import re
 import signal
 import socket
+import struct
 import subprocess
 import sys
 import time
 
-from dns_service_probe import query
+from dns_service_probe import query, exact_read
 from m2_rootfs import command, prepare, process_identity, sha256
+from m5_edns_netlink import trace as trace_neighbor
 
 HERE = Path(__file__).resolve().parent
 PORT = 15353
@@ -79,7 +81,81 @@ def profiles():
         # The real kernel removes LLADDR when NUD_NONE is requested. The
         # separate raw state-none-with-hardware case covers that C predicate.
         rows.append(dict(case='state-' + state, state=state, no_events=state in ['none', 'noarp', 'incomplete', 'failed']))
+    return rows + raw_profiles()
+
+
+def raw_profiles():
+    base = dict(address=V4, mac=MAC)
+    alternate = '02:00:00:91:00:18'
+    fresh = '192.0.2.18'
+    def callback(added, address, mac):
+        return ['3', 'arp-add' if added else 'arp-del', mac or '01-', address, '0', '0', 'inherited-iface', 'inherited-id']
+    rows = []
+    def add(label, entries, expected):
+        rows.append(dict(case=label, extra='add-mac\n', raw=entries, expected=expected))
+    add('unchanged-no-duplicate', [base], [])
+    add('mac-replace-delete-add', [dict(address=V4, mac=alternate)],
+        [callback(False, V4, MAC), callback(True, V4, alternate)])
+    add('removed-delete', [], [callback(False, V4, MAC)])
+    add('same-mac-distinct-ip', [base, dict(address=fresh, mac=MAC)], [callback(True, fresh, MAC)])
+    add('same-ip-distinct-interface', [base, dict(address=V4, mac=alternate, interface=3)], [callback(True, V4, alternate)])
+    add('duplicate-dump-identity', [dict(address=fresh, mac=alternate)] * 2,
+        [callback(False, V4, MAC), callback(True, fresh, alternate), callback(True, fresh, alternate)])
+    add('delete-before-add', [dict(address=fresh, mac=alternate)],
+        [callback(False, V4, MAC), callback(True, fresh, alternate)])
+    for label, length in [('zero', 0), ('one', 1), ('six', 6), ('sixteen', 16), ('seventeen', 17)]:
+        mac = ':'.join(f'{value:02x}' for value in range(1, length + 1))
+        add('mac-length-' + label, [base, dict(address=fresh, mac=mac)],
+            [] if length > 16 else [callback(True, fresh, mac)])
+    add('missing-destination', [base, dict(address=None, mac=MAC)], [])
+    add('missing-hardware', [base, dict(address=fresh, mac=None)], [])
+    add('state-none-with-hardware', [base, dict(address=fresh, mac=MAC, state=0)], [callback(True, fresh, MAC)])
     return rows
+
+
+def neighbor_packet(entries, sequence, pid, length, interface, done=True):
+    packet = bytearray()
+    for entry in entries:
+        address = entry.get('address')
+        family = socket.AF_INET6 if address and ':' in address else socket.AF_INET
+        payload = struct.pack('=BBHiHBB', family, 0, 0, entry.get('interface', interface), entry.get('state', 0x80), 0, 0)
+        attributes = []
+        if address is not None:
+            attributes.append((1, socket.inet_pton(family, address)))
+        if entry.get('mac') is not None:
+            attributes.append((2, bytes.fromhex(entry['mac'].replace(':', ''))))
+        for kind, value in attributes:
+            payload += struct.pack('=HH', len(value) + 4, kind) + value
+            payload += b'\0' * (-len(payload) % 4)
+        packet.extend(struct.pack('=IHHII', len(payload) + 16, 28, 2, sequence, pid) + payload)
+    if done:
+        packet.extend(struct.pack('=IHHIIi', 20, 3, 2, sequence, pid, 0))
+    return bytes(packet)
+
+
+def refresh_with_fixture(pid, entries, folder):
+    output = folder / 'netlink-fault.json'
+    tracer = subprocess.Popen([sys.executable, __file__, '--trace-neighbor', str(pid), str(output), json.dumps(entries)])
+    try:
+        deadline = time.monotonic() + 3
+        while not output.with_suffix('.ready').exists() and tracer.poll() is None and time.monotonic() < deadline:
+            time.sleep(.01)
+        assert output.with_suffix('.ready').exists(), 'neighbor tracer attach'
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as endpoint:
+            endpoint.settimeout(3)
+            endpoint.bind(('127.0.0.20', 0))
+            endpoint.connect(('127.0.0.1', PORT))
+            wire = query('arp-health.test', 0x7102)
+            endpoint.sendall(struct.pack('!H', len(wire)) + wire)
+            reply = exact_read(endpoint, struct.unpack('!H', exact_read(endpoint, 2))[0])
+        assert tracer.wait(3) == 0, 'neighbor tracer exit'
+        receipt = json.loads(output.read_text())
+        assert receipt['injected'], 'actual neighbor syscall receipt'
+        return reply.hex()
+    finally:
+        if tracer.poll() is None:
+            tracer.kill()
+            tracer.wait()
 
 
 def callbacks(root):
@@ -228,6 +304,16 @@ def run_side(args):
                     assert call[0] == '3' and call[1] == 'arp-add', 'ARP argv/action'
                     assert call[4] == str(spec.get('helper_uid', 0)), 'actual helper UID'
                     assert call[6:] == ['inherited-iface', 'inherited-id'], 'inherited environment'
+                if 'raw' in spec:
+                    (root / 'm2/arp-events').write_bytes(b'')
+                    refresh_with_fixture(pid, spec['raw'], folder)
+                    deadline = time.monotonic() + 2
+                    while len(callbacks(root)) < len(spec['expected']) and time.monotonic() < deadline:
+                        time.sleep(.02)
+                    time.sleep(.15)
+                    observed = callbacks(root)
+                    save(folder / 'raw-callbacks.json', observed)
+                    assert observed == spec['expected'], 'C-derived raw callback order/payload'
                 owned = helpers(pid)
                 assert len(owned) == (0 if spec.get('no_helper') else 1), 'helper qualification'
                 baseline = len(list(Path('/proc/' + str(pid) + '/fd').iterdir()))
@@ -263,6 +349,10 @@ def run_side(args):
 
 
 def main():
+    if len(sys.argv) > 1 and sys.argv[1] == '--trace-neighbor':
+        pid, output, entries = int(sys.argv[2]), Path(sys.argv[3]), json.loads(sys.argv[4])
+        return trace_neighbor(pid, output, 'complete', 6, 2,
+                              packet_builder=lambda *args, **kwargs: neighbor_packet(entries, *args, **kwargs))
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--image-root', type=Path, required=True)
     parser.add_argument('--rust-binary', type=Path, required=True)

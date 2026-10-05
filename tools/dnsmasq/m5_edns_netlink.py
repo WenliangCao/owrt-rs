@@ -29,7 +29,7 @@ def fixture(sequence, pid, length, interface=2, done=True):
     return packet
 
 
-def trace(pid, output, mode, length, interface):
+def trace(pid, output, mode, length, interface, packet_builder=None):
     if platform.machine() != 'aarch64':
         raise RuntimeError('netlink ptrace ABI pinned to AArch64 image')
     class Iovec(ctypes.Structure):
@@ -104,14 +104,15 @@ def trace(pid, output, mode, length, interface):
                     original = read(buffer, min(returned, capacity))
                     report['original_wire'] = original.hex()
                     original_pid = struct.unpack_from('=I', original, 12)[0]
-                    packet = fixture(request[1], original_pid, length, interface)
+                    build_packet = packet_builder or fixture
+                    packet = build_packet(request[1], original_pid, length, interface)
                     if mode == 'error':
                         packet = struct.pack('=IHHIIi', 20, 2, 2, request[1], original_pid, -errno.EIO)
                     elif mode == 'partial-error':
-                        packet = fixture(request[1], original_pid, length, interface, done=False)
+                        packet = build_packet(request[1], original_pid, length, interface, done=False)
                         packet += struct.pack('=IHHIIi', 20, 2, 2, request[1], original_pid, -errno.EIO)
                     elif mode == 'hold':
-                        packet = fixture(request[1], original_pid, length, interface, done=False)
+                        packet = build_packet(request[1], original_pid, length, interface, done=False)
                     if mode in ('error', 'partial-error'):
                         packet += struct.pack('=IHHIIi', 20, 3, 2, request[1], original_pid, 0)
                     if len(packet) > capacity:
