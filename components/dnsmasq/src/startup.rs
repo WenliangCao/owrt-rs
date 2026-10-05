@@ -2,6 +2,8 @@
 pub mod cli;
 #[cfg(target_os = "linux")]
 pub mod daemonize;
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+pub mod lease_init;
 use crate::config::{Directive, Error};
 use std::ffi::OsString;
 #[cfg(target_os = "linux")]

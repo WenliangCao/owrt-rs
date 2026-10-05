@@ -605,3 +605,14 @@ pub fn report_startup_failure(config: &LoggingConfig, process: &ProcessConfig, m
         logger.finish();
     }
 }
+
+/// C opens its libc syslog connection only when the first early diagnostic is
+/// produced. Failed logging never turns a lease warning into a startup error.
+pub fn emit_early(owner: &mut Option<Logger>, priority: Priority, message: &[u8]) {
+    if owner.is_none() {
+        *owner = Logger::early().ok();
+    }
+    if let Some(logger) = owner {
+        logger.emit(LogEvent::new(Service::Dns, priority, message.to_vec()));
+    }
+}

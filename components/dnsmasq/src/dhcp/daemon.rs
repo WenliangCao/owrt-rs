@@ -99,6 +99,7 @@ pub struct RestoreStats {
     pub invalid_records: usize,
     pub clean_end: bool,
     pub warnings: Vec<String>,
+    pub diagnostics_logged: bool,
 }
 
 #[derive(Debug)]
@@ -111,6 +112,7 @@ pub struct MaintenanceReport {
     pub host_files: Vec<HostFileError>,
     pub address_error: Option<io::Error>,
     pub name_error: Option<io::Error>,
+    pub file_error_message: Option<Vec<u8>>,
 }
 
 impl MaintenanceReport {
@@ -121,6 +123,7 @@ impl MaintenanceReport {
                 attempted: false,
                 error: None,
                 next_event: None,
+                retry_in: None,
                 alarm: AlarmAction::Keep,
             },
             dns: DnsReport {
@@ -134,6 +137,7 @@ impl MaintenanceReport {
             host_files: Vec::new(),
             address_error: None,
             name_error: None,
+            file_error_message: None,
         }
     }
 }
@@ -249,6 +253,16 @@ impl LocalProvider {
         dns_port: u16,
         should_stop: fn() -> bool,
     ) -> Result<Self, StartupError> {
+        Self::new_with_log(config, listen_addresses, dns_port, should_stop, &mut None)
+    }
+
+    pub fn new_with_log(
+        config: DhcpConfig,
+        listen_addresses: Vec<IpAddr>,
+        dns_port: u16,
+        should_stop: fn() -> bool,
+        early_log: &mut Option<crate::logging::Logger>,
+    ) -> Result<Self, StartupError> {
         // The C global entropy check precedes lease-file creation. Keep this
         // provider's dependency failures on the same side of that mutation.
         let probe = IcmpProbe::new(config.no_ping).map_err(StartupError::Entropy)?;
@@ -258,7 +272,11 @@ impl LocalProvider {
             config.lease_read_only,
             config.lease_max,
             |warning| {
-                eprintln!("dnsmasq-rs: {warning}");
+                crate::logging::emit_early(
+                    early_log,
+                    crate::logging::Priority::Warning,
+                    warning.as_bytes(),
+                );
                 Ok(())
             },
         )
@@ -271,16 +289,28 @@ impl LocalProvider {
                     |failure| failure.warnings(),
                 );
             for warning in warnings {
-                eprintln!("dnsmasq-rs: {warning}");
+                crate::logging::emit_early(
+                    early_log,
+                    crate::logging::Priority::Warning,
+                    warning.as_bytes(),
+                );
             }
             StartupError::LeaseFile(error)
         })?;
         let mut leases = LeaseStore::new(config.lease_max);
         let (startup_removed, restore_stats) = if let Some(restored) = restored {
+            if !restored.clean_end {
+                crate::logging::emit_early(
+                    early_log,
+                    crate::logging::Priority::Error,
+                    b"failed to parse lease database cleanly",
+                );
+            }
             let stats = RestoreStats {
                 invalid_records: restored.invalid_records,
                 clean_end: restored.clean_end,
                 warnings: restored.warnings,
+                diagnostics_logged: true,
             };
             let removed = leases
                 .restore_with_name_policy(restored.records, now, config.fqdn_only)
@@ -452,21 +482,31 @@ impl LocalProvider {
 
     /// Called only after the helper reports successful read-only initialization,
     /// before admitting DHCP packets. The child already applied leasefile rules.
-    pub fn restore_script_records(
+    pub fn restore_initial_records(
         &mut self,
         restored: super::lease_file::LeaseFile,
         now: i64,
-    ) -> Result<MaintenanceReport, StartupError> {
+    ) -> Result<(), StartupError> {
         self.restore_stats = Some(RestoreStats {
             invalid_records: restored.invalid_records,
             clean_end: restored.clean_end,
             warnings: restored.warnings,
+            diagnostics_logged: true,
         });
         self.startup_removed = self
             .leases
             .restore_with_name_policy(restored.records, now, self.config.fqdn_only)
             .map_err(StartupError::Restore)?;
         self.initialized = false;
+        Ok(())
+    }
+
+    pub fn restore_script_records(
+        &mut self,
+        restored: super::lease_file::LeaseFile,
+        now: i64,
+    ) -> Result<MaintenanceReport, StartupError> {
+        self.restore_initial_records(restored, now)?;
         Ok(self.initialize(now))
     }
 
@@ -671,6 +711,24 @@ impl LocalProvider {
             self.scripts.add_pruned(removed.clone());
         }
         let file = self.persistence.update(&mut self.leases, now);
+        let file_error_message = file.error.as_ref().map(|error| {
+            let mut description = error.to_string();
+            if let Some(code) = error.raw_os_error() {
+                if let Some(text) = description.strip_suffix(&format!(" (os error {code})")) {
+                    description = text.to_owned();
+                }
+            }
+            let mut message = b"failed to write ".to_vec();
+            message.extend_from_slice(self.config.lease_path());
+            message.extend_from_slice(
+                format!(
+                    ": {description} (retry in {} s)",
+                    file.retry_in.unwrap_or(0)
+                )
+                .as_bytes(),
+            );
+            message
+        });
         // A signal which became due during state/file work remains pending
         // even when this update installs a newer relative alarm.
         self.observe_alarm();
@@ -692,6 +750,7 @@ impl LocalProvider {
         let lost_names = LeaseStore::names_lost(&removed);
         MaintenanceReport {
             file,
+            file_error_message,
             dns,
             removed,
             lost_names,

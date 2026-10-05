@@ -624,6 +624,26 @@ fn run_inner(
     // before locking DNS; synchronous doctor callbacks must never invert it.
     // Socket waits remain outside this gate.
     let parent_events = Arc::new(Mutex::new(ParentEvents::new(&runtime.ubus)?));
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    if let Some(script) = &dhcp_config.script {
+        Helper::validate_startup(
+            &HelperConfig {
+                script: PathBuf::from(OsString::from_vec(script.clone())),
+                script_user: dhcp_config.script_user.clone(),
+                debug: runtime.process.debug,
+            },
+            (dhcp_config.lease_read_only && !dhcp_config.ranges.is_empty())
+                .then_some(dhcp_config.lease_max),
+        )?;
+    }
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    let mut early_logger = None;
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    let initial_leases = dnsmasq_rs::startup::lease_init::initialize(
+        &dhcp_config,
+        runtime.process.debug,
+        &mut early_logger,
+    )?;
     #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
     if !dhcp_config.ranges.is_empty() || !dhcp_config.relay.is_empty() {
         return Err(Box::new(Error("DHCP listener requires 64-bit Linux")));
@@ -634,7 +654,7 @@ fn run_inner(
     }
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     let provider = if !dhcp_config.ranges.is_empty() {
-        let mut provider = DhcpProvider::new(
+        let mut provider = DhcpProvider::new_with_log(
             dhcp_config.clone(),
             daemon_config.listen_addresses.clone(),
             runtime.scalar.dns_port,
@@ -642,7 +662,18 @@ fn run_inner(
             // SIGTERM. The listener still checks STOP before each new packet;
             // DNS/TFTP continue through the borrowed probe wait meanwhile.
             || false,
-        )?;
+            &mut early_logger,
+        )
+        .map_err(|error| {
+            use dnsmasq_rs::logging::{emit_early, Priority};
+            emit_early(
+                &mut early_logger,
+                Priority::Critical,
+                error.to_string().as_bytes(),
+            );
+            emit_early(&mut early_logger, Priority::Critical, b"FAILED to start up");
+            error
+        })?;
         provider
             .start_interface_owner()
             .map_err(|error| dnsmasq_rs::startup::StartupError {
@@ -651,6 +682,9 @@ fn run_inner(
             })?;
         provider.set_dns_config(&daemon_config)?;
         provider.set_tftp_config(&tftp_config);
+        if let Some(restored) = initial_leases {
+            provider.restore_initial_records(restored, now_seconds())?;
+        }
         if dns_enabled {
             let config_dns = Arc::clone(&service);
             provider.set_config_host_lookup(move |name| {
@@ -834,15 +868,11 @@ fn run_inner(
     dnsmasq_rs::startup::redirect_standard_streams(&runtime.process);
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     let dhcp_helper = if let Some(script) = dhcp_config.script.clone() {
-        Some(Helper::start_with_init(
-            HelperConfig {
-                script: PathBuf::from(OsString::from_vec(script)),
-                script_user: dhcp_config.script_user.clone(),
-                debug: runtime.process.debug,
-            },
-            (dhcp_config.lease_read_only && !dhcp_config.ranges.is_empty())
-                .then_some(dhcp_config.lease_max),
-        )?)
+        Some(Helper::start(HelperConfig {
+            script: PathBuf::from(OsString::from_vec(script)),
+            script_user: dhcp_config.script_user.clone(),
+            debug: runtime.process.debug,
+        })?)
     } else {
         None
     };
@@ -959,6 +989,7 @@ fn run_inner(
         poll.dns_files = Some(dns_files);
         poll.route_watch = route_watch;
         poll.dns_port = runtime.scalar.dns_port;
+        poll.early_logger = early_logger;
     }
     #[cfg(target_os = "linux")]
     {
@@ -1422,6 +1453,8 @@ struct SinglePoll {
     #[cfg(target_os = "linux")]
     logger: Option<dnsmasq_rs::logging::Logger>,
     #[cfg(target_os = "linux")]
+    early_logger: Option<dnsmasq_rs::logging::Logger>,
+    #[cfg(target_os = "linux")]
     log_cleared_cache: bool,
     #[cfg(target_os = "linux")]
     dns_files: Option<DnsFiles>,
@@ -1673,6 +1706,8 @@ impl SinglePoll {
             #[cfg(target_os = "linux")]
             logger: None,
             #[cfg(target_os = "linux")]
+            early_logger: None,
+            #[cfg(target_os = "linux")]
             log_cleared_cache: false,
             #[cfg(target_os = "linux")]
             dns_files: None,
@@ -1732,7 +1767,10 @@ impl SinglePoll {
             let mut provider = provider
                 .lock()
                 .map_err(|_| io::Error::other("DHCP state lock poisoned"))?;
-            report_dhcp_maintenance(&provider.reload_data_files(now_seconds()));
+            report_dhcp_maintenance(
+                &provider.reload_data_files(now_seconds()),
+                self.logger.as_mut(),
+            );
         }
         #[cfg(target_os = "linux")]
         if self.log_cleared_cache {
@@ -1852,13 +1890,22 @@ impl SinglePoll {
     fn step_dhcp_files(&mut self) {
         if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
             if let Some(report) = provider.lock().unwrap().step_files(now_seconds()) {
-                report_dhcp_maintenance(&report);
+                report_dhcp_maintenance(&report, self.logger.as_mut());
             }
         }
     }
 
     #[cfg(target_os = "linux")]
     fn append_file_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>) {
+        if let Some(logger) = &self.early_logger {
+            for fd in logger.poll_fds() {
+                fds.push(owrt_ubus::sys::PollFd {
+                    fd,
+                    events: owrt_ubus::sys::POLLOUT,
+                    revents: 0,
+                });
+            }
+        }
         if let Some(logger) = &self.logger {
             for fd in logger.poll_fds() {
                 fds.push(owrt_ubus::sys::PollFd {
@@ -1932,6 +1979,10 @@ impl SinglePoll {
     }
 
     fn step(&mut self) {
+        #[cfg(target_os = "linux")]
+        if let Some(logger) = &mut self.early_logger {
+            logger.flush_ready();
+        }
         #[cfg(target_os = "linux")]
         if let Some(logger) = &mut self.logger {
             if LOG_REOPEN_REQUESTED
@@ -2533,7 +2584,10 @@ impl SinglePoll {
                                             .unwrap()
                                             .restore_script_records(output, now_seconds())
                                         {
-                                            Ok(report) => report_dhcp_maintenance(&report),
+                                            Ok(report) => report_dhcp_maintenance(
+                                                &report,
+                                                self.logger.as_mut(),
+                                            ),
                                             Err(error) => {
                                                 self.helper_init_error = Some(StartError {
                                                     code: error.exit_code(),
@@ -2649,7 +2703,7 @@ impl SinglePoll {
         }
         let now = now_seconds();
         if let Some(report) = provider.tick(now) {
-            report_dhcp_maintenance(&report);
+            report_dhcp_maintenance(&report, self.logger.as_mut());
         }
         // Leave input in the kernel until a fresh address generation arrives.
         // Each turn advances at most one netlink datagram without a blocking wait.
@@ -2747,7 +2801,7 @@ impl SinglePoll {
             eprintln!("dnsmasq-rs: DHCP conflict probe: {error}");
         }
         if let Some(report) = provider.take_maintenance_report() {
-            report_dhcp_maintenance(&report);
+            report_dhcp_maintenance(&report, self.logger.as_mut());
         }
         drop(provider);
         self.dhcp = Some(dhcp);
@@ -2803,7 +2857,10 @@ impl SinglePoll {
 }
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-fn report_dhcp_maintenance(report: &dnsmasq_rs::dhcp::daemon::MaintenanceReport) {
+fn report_dhcp_maintenance(
+    report: &dnsmasq_rs::dhcp::daemon::MaintenanceReport,
+    logger: Option<&mut dnsmasq_rs::logging::Logger>,
+) {
     if let Some(error) = &report.address_error {
         eprintln!("dnsmasq-rs: failed to update DHCP host addresses: {error}");
     }
@@ -2813,13 +2870,24 @@ fn report_dhcp_maintenance(report: &dnsmasq_rs::dhcp::daemon::MaintenanceReport)
     if let Some(error) = &report.name_error {
         eprintln!("dnsmasq-rs: failed to update lease names from static hosts: {error}");
     }
-    if let Some(error) = &report.file.error {
-        eprintln!("dnsmasq-rs: failed to update lease file: {error}");
+    if let Some(message) = &report.file_error_message {
+        if let Some(logger) = logger {
+            use dnsmasq_rs::logging::{LogEvent, Priority, Service};
+            logger.emit(LogEvent::new(
+                Service::Dhcp,
+                Priority::Error,
+                message.clone(),
+            ));
+        }
     }
     if let Some(error) = &report.dns.error {
         eprintln!("dnsmasq-rs: failed to publish lease names: {error}");
     }
-    if let Some(restore) = &report.restore {
+    if let Some(restore) = report
+        .restore
+        .as_ref()
+        .filter(|restore| !restore.diagnostics_logged)
+    {
         for warning in &restore.warnings {
             eprintln!("dnsmasq-rs: {warning}");
         }
