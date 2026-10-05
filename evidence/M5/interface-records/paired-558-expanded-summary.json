@@ -15,7 +15,7 @@
     "configs": 76,
     "side": "both",
     "failures": 11,
-    "failures": [
+    "failure_details": [
       "CNAME loop raw fatal text differs; comparison guard retains both raw messages",
       "interface enumeration ctrl-socket EIO before clear: C retains old snapshot, Rust publishes new addresses",
       "interface enumeration netlink EIO after clear (empty and partial): C publishes empty snapshot, Rust retains/publishes old/new atomic snapshot"
