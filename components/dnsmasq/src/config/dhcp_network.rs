@@ -218,6 +218,22 @@ impl NetworkConfig {
             .map(|bridge| bridge.name.as_slice())
     }
 
+    /// Resolve a bridge master for each packet. The caller keeps the original
+    /// ingress index and name for actual reply routing and ARP injection.
+    pub fn bridge_ingress(&self, received_name: &[u8]) -> Result<Option<(u32, Vec<u8>)>, Vec<u8>> {
+        let Some(master) = self.bridge_master(received_name) else {
+            return Ok(None);
+        };
+        let index = interface_index(master);
+        if index == 0 {
+            let mut message = b"unknown interface ".to_vec();
+            message.extend_from_slice(master);
+            message.extend_from_slice(b" in bridge-interface");
+            return Err(message);
+        }
+        Ok(Some((index, master.to_vec())))
+    }
+
     /// Agent suboption11 has priority. No giaddr means no proxy override.
     pub fn server_override(&self, relay: Ipv4Addr, agent: Option<Ipv4Addr>) -> Option<Ipv4Addr> {
         agent

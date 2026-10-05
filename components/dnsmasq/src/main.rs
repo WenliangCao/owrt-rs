@@ -935,6 +935,7 @@ fn run_inner(
             &daemon_config,
             &dhcp_config.no_dhcp_interfaces,
             dhcp_config.ports,
+            &dhcp_config.network,
         )?;
         listener
             .configure_pxe(
@@ -1421,10 +1422,12 @@ fn run_inner(
                 if let Some(logger) = &mut poll.logger {
                     logger.fatal(error.message.as_bytes());
                 }
-                return Err(Box::new(SilentStartupError(dnsmasq_rs::startup::StartupError {
-                    code: error.code,
-                    message: error.message,
-                })));
+                return Err(Box::new(SilentStartupError(
+                    dnsmasq_rs::startup::StartupError {
+                        code: error.code,
+                        message: error.message,
+                    },
+                )));
             }
             return Err(Box::new(error));
         }
@@ -3929,6 +3932,11 @@ impl SinglePoll {
                     .listener
                     .process_once_pxe_relay_only(|| STOP_REQUESTED.load(Ordering::Acquire));
             }
+            if let Some(logger) = &mut self.logger {
+                for notice in dhcp.listener.take_network_notices() {
+                    logger.emit(notice);
+                }
+            }
             self.dhcp = Some(dhcp);
             return;
         };
@@ -4039,6 +4047,15 @@ impl SinglePoll {
         }
         if let Some(error) = provider.take_probe_error() {
             eprintln!("dnsmasq-rs: DHCP conflict probe: {error}");
+        }
+        if let Some(logger) = &mut self.logger {
+            for notice in provider
+                .take_network_notices()
+                .into_iter()
+                .chain(dhcp.listener.take_network_notices())
+            {
+                logger.emit(notice);
+            }
         }
         if let Some(report) = provider.take_maintenance_report() {
             report_dhcp_maintenance(&report, self.logger.as_mut());

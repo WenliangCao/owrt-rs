@@ -241,6 +241,7 @@ impl SocketListener {
         dns: &crate::config::dns::DnsConfig,
         excluded: &[Option<Vec<u8>>],
         ports: crate::config::dhcp_relay::DhcpPorts,
+        network: &crate::config::dhcp_network::NetworkConfig,
     ) -> io::Result<()> {
         self.ports = ports;
         if !rules.is_empty() {
@@ -250,12 +251,22 @@ impl SocketListener {
                 dns,
                 excluded,
                 ports.client,
+                network,
             )?);
         }
         Ok(())
     }
     pub fn set_dump(&mut self, dump: crate::dump::DumpHandle) {
+        if let Some(relay) = &mut self.relay {
+            relay.set_dump(dump.clone());
+        }
         self.dump = dump;
+    }
+
+    pub fn take_network_notices(&mut self) -> Vec<crate::logging::LogEvent> {
+        self.relay
+            .as_mut()
+            .map_or_else(Vec::new, |relay| relay.take_notices())
     }
 
     pub fn configure_pxe(

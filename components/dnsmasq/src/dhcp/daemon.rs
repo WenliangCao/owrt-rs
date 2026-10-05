@@ -223,6 +223,7 @@ pub struct LocalProvider {
     message_counters: super::message_counters::MessageCounters,
     scripts: super::lease::ScriptQueue,
     pending_delivery: Option<LeaseDelivery>,
+    network_notices: Vec<crate::logging::LogEvent>,
 }
 
 struct DirectPxeReply {
@@ -379,6 +380,7 @@ impl LocalProvider {
             message_counters: super::message_counters::MessageCounters::default(),
             scripts: super::lease::ScriptQueue::default(),
             pending_delivery: None,
+            network_notices: Vec::new(),
         })
     }
 
@@ -386,6 +388,21 @@ impl LocalProvider {
     /// effects in the Outcome. Report the error after processing that state.
     pub fn take_probe_error(&mut self) -> Option<io::Error> {
         self.probe_error.take()
+    }
+
+    pub fn take_network_notices(&mut self) -> Vec<crate::logging::LogEvent> {
+        std::mem::take(&mut self.network_notices)
+    }
+
+    fn bridge_ingress(&mut self, name: Option<&[u8]>) -> Result<Option<(u32, Vec<u8>)>, ()> {
+        let Some(name) = name else { return Ok(None) };
+        self.config.network.bridge_ingress(name).map_err(|message| {
+            self.network_notices.push(crate::logging::LogEvent::new(
+                crate::logging::Service::Dhcp,
+                crate::logging::Priority::Warning,
+                message,
+            ));
+        })
     }
 
     /// Attach the dedicated DHCP DNS source. Ordinary Hosts are not a sink.
@@ -1473,6 +1490,25 @@ impl LocalProvider {
         self.pxe_client = None;
         self.pxe_generated.clear();
         self.direct_pxe = None;
+        let received_interface = dispatch.ingress.interface_index;
+        let bridge = match self.bridge_ingress(interface_name) {
+            Ok(bridge) => bridge,
+            Err(()) => {
+                return Ok(Outcome {
+                    reply: Reply::Ignore,
+                    removed: Vec::new(),
+                    lost_names: Vec::new(),
+                })
+            }
+        };
+        let mut effective_dispatch = *dispatch;
+        let interface_name = if let Some((index, name)) = &bridge {
+            effective_dispatch.ingress.interface_index = *index;
+            Some(name.as_slice())
+        } else {
+            interface_name
+        };
+        let dispatch = &effective_dispatch;
         if !self.host_files_ready
             || interface_name.is_some_and(|name| {
                 self.config
@@ -1497,7 +1533,7 @@ impl LocalProvider {
         let loopback = dispatch.packet.giaddr().is_unspecified()
             && addresses
                 .iter()
-                .any(|address| address.index == interface && address.loopback);
+                .any(|address| address.index == received_interface && address.loopback);
         self.selected.clear();
         match self
             .interface_policy
@@ -2082,6 +2118,18 @@ impl OutcomeProvider for LocalProvider {
         source: Ipv4Addr,
         output: &mut [u8],
     ) -> Result<Option<usize>, RuntimeError> {
+        let bridge = match self.bridge_ingress(interface_name) {
+            Ok(bridge) => bridge,
+            Err(()) => return Ok(None),
+        };
+        let mut effective_dispatch = *dispatch;
+        let interface_name = if let Some((index, name)) = &bridge {
+            effective_dispatch.ingress.interface_index = *index;
+            Some(name.as_slice())
+        } else {
+            interface_name
+        };
+        let dispatch = &effective_dispatch;
         if !self.host_files_ready
             || interface_name.is_some_and(|name| {
                 self.config
