@@ -857,7 +857,14 @@ fn run_inner(
         }
     }
     #[cfg(target_os = "linux")]
-    let pid_file = identity.write_pid(&runtime.process)?;
+    let pid_file = identity.write_pid(&runtime.process).map_err(|error| {
+        if !startup.active() {
+            use dnsmasq_rs::logging::{emit_early, Priority};
+            emit_early(&mut early_logger, Priority::Critical, error.message.as_bytes());
+            emit_early(&mut early_logger, Priority::Critical, b"FAILED to start up");
+        }
+        error
+    })?;
     #[cfg(target_os = "linux")]
     let (mut logger, log_ownership_warning) = match dnsmasq_rs::logging::Logger::start(
         &runtime.logging,
