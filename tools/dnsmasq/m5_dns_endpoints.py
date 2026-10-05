@@ -293,7 +293,8 @@ def service_cases():
     for label,op in [('burst','lookup-hup-burst'),('shutdown','lookup-shutdown'),('worker-kill','lookup-worker-kill')]:
         add('lookup-owner-'+label,lifecycle_base,files={'servers':'server=127.0.0.3\n'},
             sys_files=resolver_files,resolver_fixture=True,resolver_delay=.3,owner_lifecycle=label,
-            actions=[write('servers','server=lookup.endpoint.test\n'),signal_reload(),endpoint_action(op),dict(op='pause',seconds=1.6)]
+            actions=[write('servers','server=lookup.endpoint.test\n'),signal_reload(),endpoint_action(op)]
+                + ([endpoint_action('resolver-quiet')] if label=='burst' else [dict(op='pause',seconds=1.6)])
                 + ([] if label=='shutdown' else [probe('after','ready.files.test' if label=='worker-kill' else 'after.endpoint.test')]),no_upstream=label=='worker-kill')
     add('lookup-owner-timeout-recovery',lifecycle_base,files={'servers':'server=127.0.0.3\n'},sys_files=resolver_files,resolver_fixture=True,resolver_drop=True,
         actions=[write('servers','server=lookup.endpoint.test\n'),signal_reload(),dict(op='pause',seconds=1.3),
@@ -309,9 +310,9 @@ def service_cases():
                 dict(op='inject',id='two',server=second_server,capture_server=second_server),dict(op='receive-udp',id='two',pending='two'),
                 dict(op='inject',id='one',server=0),dict(op='receive-udp',id='one',pending='one')])
     add('udp-error-failover-source-identity','server=127.0.0.2@127.0.0.9\nserver=127.0.0.3@127.0.0.8\n',udp_error_server=0)
-    add('pool-retry-completion-keeps-sibling','min-port=34100\nmax-port=34100\nfast-dns-retry=500,2000\nserver=127.0.0.2\nserver=127.0.0.3\n',source_range=[34100,34100],same_udp_port=True,
+    add('pool-retry-completion-keeps-sibling','min-port=34100\nmax-port=34100\nserver=127.0.0.2\nserver=127.0.0.3\n',source_range=[34100,34100],same_udp_port=True,
         actions=[dict(op='start-udp',id='one',name='one.endpoint.test'),dict(op='start-udp',id='two',name='two.endpoint.test'),
-            dict(op='await-upstream',id='one',server=1),dict(op='inject',id='one',server=1,capture_server=1),dict(op='receive-udp',id='one',pending='one'),
+            endpoint_action('resend-client',name='one.endpoint.test'),dict(op='await-upstream',id='one',server=1),dict(op='inject',id='one',server=1,capture_server=1),dict(op='receive-udp',id='one',pending='one'),
             dict(op='inject',id='two',server=0),dict(op='receive-udp',id='two',pending='two')])
     add('shared-pollerr-keeps-pending','min-port=34100\nmax-port=34100\nserver=127.0.0.2\n',poll_fault=True,
         actions=[dict(op='start-udp',id='first',name='first.endpoint.test'),dict(op='start-udp',id='second',name='second.endpoint.test'),
@@ -523,6 +524,14 @@ def run_service_side(root, side, case, folder):
             answer+=b'\xc0\x0c'+struct.pack('!HHIH',1,1,120,4)+bytes([192,0,2,11])
             sender.udp.sendto(answer,peer)
             endpoint_receipts.append(dict(value,wire=answer.hex(),peer=list(peer)))
+        elif op=='resolver-quiet':
+            deadline=time.monotonic()+15
+            while True:
+                events=[row for upstream in SourceCapture.instances for row in upstream.source_events if row['transport']=='resolver']
+                if events and all('reply_at' in row for row in events) and time.monotonic()-max(row['reply_at'] for row in events)>.6: break
+                if time.monotonic()>deadline: raise AssertionError('resolver did not finish its reference reloads')
+                time.sleep(.02)
+            endpoint_receipts.append(dict(value,resolver_events=len(events),children=children()))
         elif op.startswith('lookup-'):
             files.await_predicate(lookup_pending,'resolver request was not witnessed pending')
             live=children();record=dict(value,pending=True,children=live,samples=[])
@@ -534,7 +543,7 @@ def run_service_side(root, side, case, folder):
             elif op=='lookup-shutdown':
                 process.send_signal(signal.SIGTERM)
                 process.wait(timeout=2)
-                record.update(exit=process.returncode,children_after=children())
+                record.update(exit=process.returncode,children_after=children(),children_alive_after=[pid for pid in live if Path('/proc',str(pid)).exists()])
             elif op=='lookup-worker-kill' and side=='rust':
                 os.kill(live[0],signal.SIGKILL);record['killed']=live[0]
             endpoint_receipts.append(record)
@@ -607,7 +616,7 @@ def source_guard_errors(result,case):
         if {row['family'] for row in result['identity']['sockets'] if row['port']==port}!={'udp','udp6'}: errors.append('configured query socket not preallocated for both families')
     for port in case.get('socket_absent',[]):
         if any(row['port']==port for row in result['identity']['sockets']): errors.append('DNS disabled still bound configured query socket')
-    if case.get('recv_fault') and (len(result.get('recv_faults',[]))!=1 or not result['recv_faults'][0].get('injected')): errors.append('actual recvfrom EIO fault missing')
+    if (case.get('recv_fault') or case.get('poll_fault')) and (len(result.get('recv_faults',[]))!=1 or not result['recv_faults'][0].get('injected')): errors.append('actual source socket fault missing')
     udp=[row for row in result['source_events'] if row['transport']=='udp']
     tcp=[row for row in result['source_events'] if row['transport']=='tcp']
     ports={row['peer'][1] for row in udp}
@@ -699,10 +708,26 @@ def run_service(args, cases):
                             for upstream in record.get('upstreams',[]): upstream['events']=[event for event in upstream['events'] if event['name']!='lookup.endpoint.test']
                     for action in compared_case['actions']:
                         if action.get('id')=='during': action['transports']=['tcp']
+                if case.get('owner_lifecycle')=='burst':
+                    report['reference_differences'].append({'case':case['id'],'boundary':'OWNER-01','contract':'C SIGHUP interrupts and restarts blocking getaddrinfo; Rust coalesces pending reloads behind one owned child.',
+                        'resolver_events':{side:sum(record['transport']=='resolver' for record in value['source_events']) for side,value in observed.items()}})
+                    for value in comparison.values():
+                        for record in value['rows']:
+                            for upstream in record.get('upstreams',[]): upstream['events']=[event for event in upstream['events'] if event['name']!='lookup.endpoint.test']
                 row['failures'].extend(files.compare(comparison['c'],comparison['rust'],compared_case))
                 if case.get('source_diagnostics') and observed['c']['source_diagnostics']!=observed['rust']['source_diagnostics']: row['failures'].append(dict(phase='source-diagnostic',c=observed['c']['source_diagnostics'],rust=observed['rust']['source_diagnostics']))
-                c,rust=(source_projection(observed[side],case) for side in ('c','rust'))
+                projected={side:copy.deepcopy(value) for side,value in observed.items()}
+                if case.get('owner_lifecycle')=='burst':
+                    for value in projected.values(): value['source_events']=[record for record in value['source_events'] if record['transport']!='resolver']
+                c,rust=(source_projection(projected[side],case) for side in ('c','rust'))
                 if c!=rust: row['failures'].append(dict(phase='source-tuples',c=c,rust=rust))
+                if case.get('owner_lifecycle'):
+                    receipts=observed['rust']['endpoint_receipts']
+                    found=next((record for record in receipts if record.get('endpoint_action')=='lookup-'+{'burst':'hup-burst','shutdown':'shutdown','worker-kill':'worker-kill'}[case['owner_lifecycle']] and record.get('pending')),None)
+                    if not found or len(found['children'])!=1: row['failures'].append(dict(phase='resolver-owner',error='actual pending owned child not witnessed'))
+                    elif case['owner_lifecycle']=='burst' and (len(found['samples'])!=12 or any(len(sample['children'])>1 for sample in found['samples'])): row['failures'].append(dict(phase='resolver-owner',error='reload burst child count not bounded'))
+                    elif case['owner_lifecycle']=='shutdown' and (found.get('exit')!=0 or found.get('children_alive_after')): row['failures'].append(dict(phase='resolver-owner',error='shutdown failed to reap owned child'))
+                    elif case['owner_lifecycle']=='worker-kill' and (not found.get('killed') or 'endpoint resolver child failed' not in observed['rust']['stderr']): row['failures'].append(dict(phase='resolver-owner',error='actual killed worker failure boundary missing'))
             for side,result in observed.items():
                 row['failures'].extend(dict(phase='source-witness',side=side,error=error) for error in result['source_guard_errors']+result['fixture_errors'])
             if case.get('owner_progress') and args.side=='both':
