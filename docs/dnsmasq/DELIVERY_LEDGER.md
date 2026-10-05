@@ -2,8 +2,8 @@
 
 ## 当前状态与下一步
 
-- 当前里程碑：M5；169 项中 **142 项已关闭、13 项部分实现、14 项未实现，剩余 27 项**。
-- 刚关闭：`enable-ubus` 普通完整合同闭合；7440f1fd／8d38c1d5…84300c2b，5冻结schedule/12边界/350实际配对观察、2176检查零失败，10独立负控全部拒绝。原版NULL/partial inet_pton/回复存储寿命/DNS type重连缺陷及single-owner started-frame调度有独立阳性guard；735路径/734文件完整SHA+metadata归档已核验清远端。当前剩余27。
+- 当前里程碑：M5；169 项中 **143 项已关闭、13 项部分实现、13 项未实现，剩余 26 项**。
+- 刚关闭：`dhcp-proxy` 普通合同闭合；486635d7／c7b944fa…5f76750，13实际paired／2边界／4负控全过，missing/diff为0，override在remote context选择后且尊重agent11优先级。45a114…12420归档585路径/420文件全SHA+metadata核验清远端；不把PXEproxy或shared上下文当作本选项。当前剩余26。
 - 当前代码：最新已构建 `7440f1fd` / ELF `8d38c1d5fc2c1581d23e0af6dfb1b06b04fa381ef2b1115ce977970b84300c2b`，**1,777,704 字节（M4 +618,424）**；含接口 immutable records 枚举接线、TCP accept 时缓存视图/时钟与 ordered parent imports、normal TCP 独立日志上下文（完整族仍未资格）。Linux 实际 661 lib 和 10 main 单元通过，19 ignored 不计；574 lib/9 main host 通过。8389 的旧 FIFO 测试未消费新增 INIT-cache barrier，原失败保留，4207 修正后实际通过，不把 no-run 算通过。interface-name 空 root parser 已 C 校准；UBus 扩展 216 配对观察已覆盖名称、方法、冲突、doctor 与原版空 name NULL/partial inet_pton/DATA 寿命缺陷；分片接收已由 67 条 Linux ubus 单元验证，lifecycle 订阅/断连/真实分片已有167检查通过，注册恢复/doctor边界仍需完整族资格，未关闭 enable-ubus。旧 source pool 和 EDNS 完整资格保留；各项以逐表资格候选为准。
 - 下一步：端点已闭合；验证 source-pool 省体积等价改写，后续 DNS 缓存完整合同、日志 sink/后台启动/async/script 边界、TFTP root/no-fail 的共享debug echo补正重跑；继续 ARP/接口/UBus 完整合同。每族通过立即合入、更新选项和扣数；然后推进其他剩余功能族。
 - 阻塞点：无须用户决定。oracle 初查无 M5 残留进程，归档后最近可用约 36 GB（82%）；logging 遗留 4,158 路径/3,516 文件已完整 SHA+metadata 核验归档并清理，endpoint 遗留与所有端点运行目录均已完整核验清理。旧半截、C-only 和已纠正失败保留，不计通过。物理路由器未触碰。体积固定路径矩阵首轮发现历史 tar mtime 触发 Cargo 旧产物复用，整轮已拒绝并保留 calibration-rejection；`ff2b2d22` 在共享构建锁内仅清 dnsmasq package 产物、保留依赖缓存后重新编译测量。旧 fixed_remote 已主动刷新 mtime，原 planner/SIGPIPE 归因不因此撤销；[功能族体积归因](M5_SIZE_ATTRIBUTION.md) 已提交完整固定路径差额及字节相同控制，较大混合族继续补独立归因；最小 slot 选择改写已 C 子集回归，纯前后控制已实测节省 16,384 字节，M5 结束交用户决定。
@@ -57,7 +57,7 @@ M4 的单 poll owner 已替换六线程接线，决定见 [ADR_THREAD_MODEL.md](
 
 ## M5 盘点与工作顺序
 
-盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**142 项已实现并有 C 差分，13 项部分实现，14 项未实现；剩余 27 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
+盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**143 项已实现并有 C 差分，13 项部分实现，13 项未实现；剩余 26 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
 
 对镜像 init 的静态调用路径核对得到 **A 组 99 项、B 组 70 项**。A 表示原生 UCI/init 生成或调用，行号链接到保留原文的 init；B 表示通常需额外配置。`extraconftext`/conf-dir 可以透传任意指令，不据此把全部选项都算原生生成。`pxe-service`、`pxe-prompt`、`interface-name` 实际有 init 生成路径，归 A。26 个 excluded-capability 选项不混入169项计数；其与C一致的禁用/拒绝边界仍保留。
 
@@ -198,7 +198,7 @@ M5 退出条件：169项全部实现并有C差分，或已证明与C一致的拒
 | `bridge-interface` | B / — | Boot/relay/TFTP | 未实现 | 当前无通过证据；Only option metadata exists; no parser or bridge-alias ingress remapping. Main rejects via generic not implemented. |
 | `dhcp-no-override` | B / — | Boot/relay/TFTP | 已实现，有C差分 | [M5 PXE族闭合](../../private/dnsmasq-rewrite/evidence/M5/pxe/qualification-summary.json)；55清单、138配置／260场景、58语法／20负控通过；最新候选e9621e56／c4998e8f…909af（1,450,096字节），PXE阶段相对9e净+40,960字节，后续混合增量不冒称纯PXE。C空predicate/menu/vendor及超长prompt缺陷单列；helper退出缺陷独立重开。 |
 | `dhcp-option-pxe` | B / — | Boot/relay/TFTP | 已实现，有C差分 | [M5 PXE族闭合](../../private/dnsmasq-rewrite/evidence/M5/pxe/qualification-summary.json)；55清单、138配置／260场景、58语法／20负控通过；最新候选e9621e56／c4998e8f…909af（1,450,096字节），PXE阶段相对9e净+40,960字节，后续混合增量不冒称纯PXE。C空predicate/menu/vendor及超长prompt缺陷单列；helper退出缺陷独立重开。 |
-| `dhcp-proxy` | B / — | Boot/relay/TFTP | 未实现 | 当前无通过证据；Only metadata; no relay server-id override policy list, config parser or runtime. Must distinguish this option from proxy-mode dhcp-range/PXE. |
+| `dhcp-proxy` | B / — | Boot/relay/TFTP | 已实现，有C差分 | [普通proxy完整闭合](../../private/dnsmasq-rewrite/evidence/M5/dhcp-network/close-proxy-4866-20261005.json)；13paired／2C边界／4packet/missing/fixture负控通过，giaddr白名单/裸全局/repeat及option82 agent11优先、remote context选择后serverID override实测。486635d7／c7b944fa…5f76750，1,789,992B；45a114…12420归档585路径/420文件SHA+metadata核验清远端。极端输入独立延期，未因此关闭shared或PXEproxy其他合同。 |
 | `dhcp-pxe-vendor` | B / — | Boot/relay/TFTP | 已实现，有C差分 | [M5 PXE族闭合](../../private/dnsmasq-rewrite/evidence/M5/pxe/qualification-summary.json)；55清单、138配置／260场景、58语法／20负控通过；最新候选e9621e56／c4998e8f…909af（1,450,096字节），PXE阶段相对9e净+40,960字节，后续混合增量不冒称纯PXE。C空predicate/menu/vendor及超长prompt缺陷单列；helper退出缺陷独立重开。 |
 | `dhcp-split-relay` | B / — | Boot/relay/TFTP | 已实现，有C差分 | [M5 relay闭合](../../private/dnsmasq-rewrite/evidence/M5/relay/close-summary.json)；43条C清单、37配置／174报文场景、40语法、4绑定模式、15负控和6实际Linux隔离守卫通过；relay-only、本地服务共存、端口、接口重建、split/opaque/容量/清理均覆盖，C既有quirks单列。候选f1668e28／ELF9c73a0d9…d2ebd5，1,396,848字节（族段增量+20,480）。 |
 | `leasequery` | B / — | Boot/relay/TFTP | 已实现，有C差分 | [M5 镜像配对](../../private/dnsmasq-rewrite/evidence/M5/leasequery/close-20261004/negative-controls-final/summary.json)；22 配置／38 查询，完整报文除计时归一化相同；ACL/source-port/giaddr、已恢复 ACTIVE、防伪状态检查、PRL/overload、stored tags、到期及18负向控制通过。分支 SHA ffedcd27…3e946，批次95a23157…c21f复跑通过。 |
