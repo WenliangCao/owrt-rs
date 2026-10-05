@@ -177,6 +177,17 @@ def cases():
                      'argv': ['--log-facility=-', '--enable-tftp', '--tftp-root=/m2/logging',
                               '--dhcp-script=/m2/logging/script', '--dhcp-scriptuser=m5-missing-script-user'],
                      'options': ['no-daemon', 'dhcp-scriptuser']})
+    for name, extra, helper_uid in [
+        ('tftp-nobody', ['--enable-tftp', '--tftp-root=/m2/logging'], 0),
+        ('no-service', [], None),
+        ('dhcp-nobody', ['--dhcp-range=127.0.0.10,127.0.0.20,255.0.0.0,10m', '--no-ping',
+                         '--dhcp-broadcast', '--dhcp-leasefile=/m2/logging/leases'], 65534),
+    ]:
+        rows.append({'id': 'scriptuser-' + name, 'scope': 'scriptuser-boundary', 'kind': 'run',
+                     'mode': ['-k'], 'pidfile': '/m2/logging/daemon.pid', 'helper_script': True,
+                     'expected_helper_uid': helper_uid,
+                     'argv': ['--log-facility=-', '--dhcp-script=/m2/logging/script',
+                              '--dhcp-scriptuser=nobody', *extra], 'options': ['dhcp-scriptuser']})
     for name, number, error in [('fork-one', 220, errno.EAGAIN), ('error-pipe', 59, errno.EMFILE),
                                 ('pid-write', 64, errno.EIO), ('pid-close', 57, errno.EIO),
                                 ('log-chown', 55, errno.EPERM), ('pid-short-write', 64, 0)]:
@@ -568,14 +579,22 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
         return value
     report = {'pid': pid, 'fault': case['fault'], 'injected': False, 'events': []}
     attached, pending, pipes = True, None, 0
+    deadline = time.monotonic() + 5
+    def wait_stop():
+        while time.monotonic() < deadline:
+            returned, status = os.waitpid(pid, os.WNOHANG)
+            if returned:
+                return status
+            time.sleep(.001)
+        raise TimeoutError('startup trace syscall deadline')
     try:
-        _, status = os.waitpid(pid, 0)
+        status = wait_stop()
         if not os.WIFSTOPPED(status):
             raise AssertionError('tracee did not stop at initial exec')
         ptrace(0x4200, 0, 1)  # TRACESYSGOOD
         for _ in range(50000):
             ptrace(24)
-            _, status = os.waitpid(pid, 0)
+            status = wait_stop()
             if not os.WIFSTOPPED(status):
                 process.returncode = os.waitstatus_to_exitcode(status)
                 attached = False
@@ -597,12 +616,12 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                 if number == 59:
                     pipes += 1
                 target = ''
-                if number in [57, 55, 64]:
+                if number in [57, 55, 64, 66]:
                     try:
                         target = os.readlink(f'/proc/{pid}/fd/{args[0]}')
                     except FileNotFoundError:
                         pass
-                match = number == case['fault_number']
+                match = number == case['fault_number'] or (number == 66 and case['fault_number'] == 64)
                 if case['fault'] == 'error-pipe':
                     match &= pipes == (2 if side == 'c' else 1)
                 elif case['fault'] in ['pid-write', 'pid-close', 'pid-short-write']:
@@ -613,15 +632,21 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                     continue
                 pending = {'number': number, 'args': list(args), 'target': target}
                 if case['fault'] == 'pid-short-write':
-                    value = regs()
-                    value.x[2] = 1
-                    regs(True, value)
+                    if number == 66:
+                        pending['iov_length'] = ptrace(2, args[1] + 8) & ((1 << 64) - 1)
+                        ptrace(5, args[1] + 8, 1)
+                    else:
+                        value = regs()
+                        value.x[2] = 1
+                        regs(True, value)
                 elif case['fault'] != 'pid-close':
                     skipped = ctypes.c_int(-1)
                     vec = Iovec(ctypes.addressof(skipped), ctypes.sizeof(skipped))
                     ptrace(0x4205, 0x404, ctypes.addressof(vec))
             elif operation == 2 and pending:
                 result = struct.unpack_from('=q', info.raw, 24)[0]
+                if 'iov_length' in pending:
+                    ptrace(5, pending['args'][1] + 8, pending['iov_length'])
                 if case['fault_errno']:
                     value = regs()
                     value.x[0] = (-case['fault_errno']) & ((1 << 64) - 1)
@@ -636,8 +661,11 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
     finally:
         if attached:
             try:
-                ptrace(17)
-            except OSError:
+                os.kill(pid, signal.SIGSTOP)
+                os.waitpid(pid, 0)
+                ptrace(17, 0, signal.SIGKILL)
+                process.wait(1)
+            except (OSError, ChildProcessError):
                 pass
         save(report_path, report)
 
@@ -709,6 +737,14 @@ def run_daemon(root, side, case, out):
                                 'group_leader': state['pgrp'] == service_pid,
                                 'cwd': state['cwd'], 'stdio': state['stdio'],
                                 'uid': state['uid'], 'gid': state['gid']}
+                            if 'expected_helper_uid' in case:
+                                helpers = []
+                                for item in Path('/proc').iterdir():
+                                    if item.name.isdigit() and int(item.name) != service_pid:
+                                        child = proc_state(int(item.name), root)
+                                        if child and child['state'] != 'Z' and child['ppid'] == service_pid:
+                                            helpers.append(child['uid'][1])
+                                observed['helper_uids'] = sorted(helpers)
                             observed['pid_written'] = pid_path.exists() and pid_path.read_text() != 'sentinel\n'
                             if not case.get('daemonized') or parent_exit == 0:
                                 break
@@ -794,6 +830,11 @@ def compare(reference, candidate, case, reference_only=False):
                 failures.append({'kind': 'C-daemon-PID-write', 'actual': reference['pid_written']})
             if reference['pid_after_exit'] != (case.get('signal') == 'int'):
                 failures.append({'kind': 'C-daemon-PID-cleanup', 'actual': reference['pid_after_exit']})
+    if 'expected_helper_uid' in case:
+        expected = [] if case['expected_helper_uid'] is None else [case['expected_helper_uid']]
+        if reference.get('helper_uids') != expected:
+            failures.append({'kind': 'C-helper-identity-control', 'expected': expected,
+                             'actual': reference.get('helper_uids')})
     if 'facility' in case and expected_ready:
         if not reference['syslog']:
             failures.append({'kind': 'C-no-syslog-records'})
