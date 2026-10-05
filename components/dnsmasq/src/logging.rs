@@ -15,7 +15,7 @@ use std::os::fd::{AsRawFd, FromRawFd, OwnedFd, RawFd};
 use std::os::unix::ffi::OsStrExt;
 use std::os::unix::fs::{FileTypeExt, MetadataExt, OpenOptionsExt, PermissionsExt};
 use std::path::Path;
-use std::sync::Arc;
+use std::rc::Rc;
 use std::time::{Duration, Instant};
 
 const PROGRAM: &str = "dnsmasq";
@@ -95,6 +95,8 @@ pub fn address_text(address: SocketAddr) -> Vec<u8> {
     // including its IPv4-compatible IPv6 spelling.
     let mut output = [0u8; 46];
     match address {
+        // SAFETY: each octet array lives through this synchronous libc call;
+        // output is writable for INET6_ADDRSTRLEN including its terminating NUL.
         SocketAddr::V4(address) => unsafe {
             inet_ntop(
                 2,
@@ -105,6 +107,8 @@ pub fn address_text(address: SocketAddr) -> Vec<u8> {
         },
         SocketAddr::V6(address) => {
             let family = if cfg!(target_os = "macos") { 30 } else { 10 };
+            // SAFETY: the IPv6 octets and 46-byte destination remain live for
+            // the call; family is the platform's AF_INET6 value.
             unsafe {
                 inet_ntop(
                     family,
@@ -123,6 +127,8 @@ pub fn address_text(address: SocketAddr) -> Vec<u8> {
     if let SocketAddr::V6(address) = address {
         if address.scope_id() != 0 {
             let mut name = [0u8; 16];
+            // SAFETY: name has the Linux IF_NAMESIZE capacity; libc writes
+            // only within it and returns NULL for an absent interface.
             if !unsafe { if_indextoname(address.scope_id(), name.as_mut_ptr().cast()) }.is_null() {
                 let name = &name[..name
                     .iter()
@@ -202,13 +208,13 @@ impl Record {
 }
 #[derive(Clone)]
 enum Destination {
-    File(Arc<File>),
+    File(Rc<File>),
     Closed,
     /// A FIFO without a reader. Opening it must not block the service owner.
     WaitingFile,
-    Stderr(Arc<OwnedFd>),
+    Stderr(Rc<OwnedFd>),
     Syslog {
-        fd: Arc<OwnedFd>,
+        fd: Rc<OwnedFd>,
         stream: bool,
     },
 }
@@ -358,11 +364,14 @@ impl Logger {
             if let Ok(metadata) = file.metadata() {
                 // C makes a root-group file group-writable before changing its
                 // owner; it never changes the existing group ID.
+                // SAFETY: getgid has no pointer or descriptor preconditions.
                 if unsafe { getgid() } == 0 && metadata.gid() == 0 && metadata.mode() & 0o020 == 0 {
                     let _ = file
                         .set_permissions(std::fs::Permissions::from_mode(metadata.mode() | 0o020));
                 }
             }
+            // SAFETY: file owns a live fd for this call; (gid_t)-1 leaves the
+            // group unchanged. Failure is returned as the ownership warning.
             if unsafe { fchown(file.as_raw_fd(), uid, u32::MAX) } != 0 {
                 ownership_warning = Some(io::Error::last_os_error());
             }
@@ -494,6 +503,8 @@ impl Logger {
             let mut timestamp = [0u8; 26];
             let mut now = 0;
             // ctime_r is local-time and yields the RFC3164 field at bytes4..19.
+            // SAFETY: Linux64 time_t is i64; now and the required 26-byte
+            // ctime_r output remain live, writable and separate for both calls.
             unsafe {
                 time(&mut now);
                 ctime_r(&now, timestamp.as_mut_ptr().cast());
@@ -597,6 +608,9 @@ impl Logger {
             );
             let bytes = &record.bytes[record.offset..record.bytes.len() - usize::from(datagram)];
             self.connection_good = true;
+            // SAFETY: bytes borrows the front record throughout the call.
+            // The owner retains its destination fd; write keeps no pointer.
+            // A closed destination uses fd=-1 and produces a handled EBADF.
             let result = unsafe {
                 write(
                     self.destination.as_raw_fd(),
@@ -782,6 +796,8 @@ mod tests {
     fn fifo_without_reader_keeps_service_nonblocking_and_recovers_records() {
         let path = std::env::temp_dir().join(format!("dnsmasq-log-fifo-{}", std::process::id()));
         let name = std::ffi::CString::new(path.as_os_str().as_bytes()).unwrap();
+        // SAFETY: CString supplies a live NUL-terminated path; mkfifo retains
+        // no pointer and the fixture checks its result before opening it.
         assert_eq!(unsafe { mkfifo(name.as_ptr(), 0o600) }, 0);
         let config = LoggingConfig {
             file: Some(path.clone()),
@@ -865,6 +881,8 @@ fn drain_echo(fd: RawFd, records: &mut VecDeque<Record>) {
             break;
         };
         let bytes = &record.bytes[record.offset..];
+        // SAFETY: the borrowed record and owner-provided echo fd remain live
+        // for synchronous write; errno, short writes and offsets are handled.
         let written = unsafe { write(fd, bytes.as_ptr().cast(), bytes.len()) };
         if written > 0 {
             record.offset += written as usize;
@@ -887,7 +905,7 @@ fn drain_echo(fd: RawFd, records: &mut VecDeque<Record>) {
 fn open_destination(config: &LoggingConfig) -> io::Result<Destination> {
     match config.file.as_deref() {
         Some(path) if path == Path::new("-") => {
-            duplicate_stderr().map(|fd| Destination::Stderr(Arc::new(fd)))
+            duplicate_stderr().map(|fd| Destination::Stderr(Rc::new(fd)))
         }
         Some(path) => match OpenOptions::new()
             .append(true)
@@ -896,7 +914,7 @@ fn open_destination(config: &LoggingConfig) -> io::Result<Destination> {
             .custom_flags(O_NONBLOCK)
             .open(path)
         {
-            Ok(file) => Ok(Destination::File(Arc::new(file))),
+            Ok(file) => Ok(Destination::File(Rc::new(file))),
             Err(error)
                 if error.raw_os_error() == Some(6)
                     && path.metadata().is_ok_and(|meta| meta.file_type().is_fifo()) =>
@@ -909,22 +927,30 @@ fn open_destination(config: &LoggingConfig) -> io::Result<Destination> {
     }
 }
 fn duplicate_stderr() -> io::Result<OwnedFd> {
+    // SAFETY: dup accepts any numeric fd; a missing stderr returns a checked
+    // error. A successful fd is newly owned by this function.
     let fd = unsafe { dup(2) };
     if fd < 0 {
         return Err(io::Error::last_os_error());
     }
+    // SAFETY: successful dup returned this unique open fd, transferred once.
     let fd = unsafe { OwnedFd::from_raw_fd(fd) };
     make_nonblocking(fd.as_raw_fd())?;
     Ok(fd)
 }
 fn make_nonblocking(fd: RawFd) -> io::Result<()> {
+    // SAFETY: F_GETFL (3) takes no variadic argument; invalid fds return errno.
     let flags = unsafe { fcntl(fd, 3) };
+    // SAFETY: F_SETFL (4) consumes exactly this integer flag argument. The
+    // caller owns the fd and both syscall failures become ordinary io errors.
     if flags < 0 || unsafe { fcntl(fd, 4, flags | O_NONBLOCK) } < 0 {
         return Err(io::Error::last_os_error());
     }
     Ok(())
 }
 fn syslog_socket(stream: bool) -> io::Result<Destination> {
+    // SAFETY: Linux AF_UNIX and stream/datagram flags require no pointers;
+    // the result is checked before taking unique descriptor ownership.
     let fd = unsafe {
         socket(
             1,
@@ -936,7 +962,9 @@ fn syslog_socket(stream: bool) -> io::Result<Destination> {
         return Err(io::Error::last_os_error());
     }
     Ok(Destination::Syslog {
-        fd: Arc::new(unsafe { OwnedFd::from_raw_fd(fd) }),
+        // SAFETY: socket returned a new valid fd; Rc shares this one OwnedFd
+        // among owner-local TCP snapshots and closes it exactly once.
+        fd: Rc::new(unsafe { OwnedFd::from_raw_fd(fd) }),
         stream,
     })
 }
@@ -951,6 +979,9 @@ fn connect_syslog(fd: RawFd) -> io::Result<()> {
         path: [0; 108],
     };
     address.path[..8].copy_from_slice(b"/dev/log");
+    // SAFETY: Address has the Linux sockaddr_un layout and a terminated path;
+    // its full size is supplied and the synchronous syscall retains no pointer.
+    // The caller's destination owns fd; connect failures return an io error.
     if unsafe {
         connect(
             fd,
@@ -966,11 +997,19 @@ fn connect_syslog(fd: RawFd) -> io::Result<()> {
 }
 pub fn error_text(error: &io::Error) -> String {
     match error.raw_os_error() {
-        Some(code) => unsafe {
-            CStr::from_ptr(strerror(code))
+        Some(code) => {
+            // SAFETY: strerror accepts any errno value and returns libc-owned
+            // storage. Copy it before another libc call can replace that text.
+            let message = unsafe { strerror(code) };
+            if message.is_null() {
+                return format!("OS error {code}");
+            }
+            // SAFETY: the non-NULL strerror result is a terminated C string;
+            // it remains valid through this immediate owned copy.
+            unsafe { CStr::from_ptr(message) }
                 .to_string_lossy()
                 .into_owned()
-        },
+        }
         None => error.to_string(),
     }
 }

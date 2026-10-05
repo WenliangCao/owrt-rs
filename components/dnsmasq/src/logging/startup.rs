@@ -111,7 +111,8 @@ pub fn server_messages(
 ) -> Vec<LogEvent> {
     let mut events = Vec::new();
     let mut count = 0;
-    for row in rows.iter().filter(|row| row.server.is_some()) {
+    for row in rows {
+        let Some(server) = row.server else { continue };
         let RuleTarget::Upstream(endpoint) = &row.value.rule.target else {
             continue;
         };
@@ -148,12 +149,11 @@ pub fn server_messages(
             continue;
         }
         let domain = &row.value.rule.domain;
-        let mut message =
-            if domain.suffix.is_empty() && !domain.dotless && is_looped(row.server.unwrap()) {
-                b"NOT using nameserver ".to_vec()
-            } else {
-                b"using nameserver ".to_vec()
-            };
+        let mut message = if domain.suffix.is_empty() && !domain.dotless && is_looped(server) {
+            b"NOT using nameserver ".to_vec()
+        } else {
+            b"using nameserver ".to_vec()
+        };
         message.extend_from_slice(&super::address_text(address));
         message.extend_from_slice(format!("#{}", address.port()).as_bytes());
         if domain.dotless {
@@ -165,7 +165,7 @@ pub fn server_messages(
             }
             message.extend_from_slice(&domain.suffix);
             message.push(b' ');
-        } else if is_looped(row.server.unwrap()) {
+        } else if is_looped(server) {
             message.extend_from_slice(b" - query loop detected");
         } else if let Some(interface) = endpoint
             .source
