@@ -721,6 +721,10 @@ def comparison_result(left,right,manifest):
         if a!=b:diffs.append({'kind':'syntax','c':a,'rust':b})
     crows,rrows=case_observations(left),case_observations(right)
     if crows.keys()!=rrows.keys():diffs.append({'kind':'runtime-case-map'})
+    for side,report,rows in [('c',left,crows),('rust',right,rrows)]:
+        observed=[item['case'] for item in report['syntax']]+list(rows)
+        if sorted(observed)!=sorted(report['executed_cases']) or len(observed)!=len(set(observed)):
+            diffs.append({'kind':'unproven-execution-map','side':side})
     for label in sorted(crows.keys() & rrows.keys()):
         c,r=crows[label],rrows[label]
         reference=guarded_reference_difference(label,c,r,crows)
@@ -734,8 +738,14 @@ def comparison_result(left,right,manifest):
                 diffs.append({'kind':'lifecycle','case':label,'side':side,'exit':profile['exit']})
         for side,profile in [('c',c['profile']),('rust',r['profile'])]:
             row=next((item for spec in PROFILES.values() for item in spec['cases'] if item['case']==label),{})
-            if row.get('inject') and not injection_proof(profile,label).get('injected'):
-                diffs.append({'kind':'missing-injection-proof','case':label,'side':side})
+            if row.get('inject'):
+                proof=injection_proof(profile,label)
+                if (not proof.get('injected') or proof.get('mode')!=row['inject']
+                    or proof.get('mac_length')!=row.get('mac_length',6)
+                    or proof.get('interface')!=row.get('neighbor_interface',2)
+                    or not proof.get('requests')
+                    or not any(receive['result']>0 and not receive['flags']&2 for receive in proof.get('receives',[]))):
+                    diffs.append({'kind':'missing-injection-proof','case':label,'side':side})
     return {'c_identity':left['c_sha256'],'candidate_identity':right['rust_sha256'],
             'executed':len(left['executed_cases']),'required':len(required),'missing':missing,
             'reference_differences':references,'differences':diffs,'qualified':not diffs and not missing}
@@ -776,6 +786,7 @@ def compare(args):
     left=json.loads((args.c/'result.json').read_text());right=json.loads((args.candidate/'result.json').read_text())
     manifest=json.loads(Path(__file__).with_suffix('.json').read_text())
     result=comparison_result(left,right,manifest);diffs=result['differences']
+    result['qualifier_sha256']=sha256(__file__)
     args.out.parent.mkdir(parents=True,exist_ok=True);args.out.write_text(json.dumps(result,indent=2)+'\n')
     print(json.dumps({'differences':len(diffs),'qualified':result['qualified'],'executed':result['executed'],'missing':len(result['missing'])}))
     return int(bool(diffs))
