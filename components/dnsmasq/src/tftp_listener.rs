@@ -43,6 +43,7 @@ struct Pending {
 }
 
 pub struct TftpListener<O> {
+    dump: crate::dump::DumpHandle,
     servers: Vec<Server>,
     transfers: BTreeMap<TransferId, UdpSocket>,
     routes: BTreeMap<TransferId, Route>,
@@ -108,6 +109,7 @@ impl<O: FileOpener> TftpListener<O> {
     fn empty(runtime: TransferRuntime<O>, port_range: Option<(u16, u16)>) -> Self {
         let single_port = runtime.single_port();
         Self {
+            dump: Default::default(),
             servers: Vec::new(),
             transfers: BTreeMap::new(),
             routes: BTreeMap::new(),
@@ -130,6 +132,9 @@ impl<O: FileOpener> TftpListener<O> {
     }
     pub fn bind(address: SocketAddr, runtime: TransferRuntime<O>) -> io::Result<Self> {
         Self::bind_with_port_range(address, runtime, None)
+    }
+    pub fn set_dump(&mut self, dump: crate::dump::DumpHandle) {
+        self.dump = dump;
     }
     pub fn bind_with_port_range(
         address: SocketAddr,
@@ -480,6 +485,12 @@ impl<O: FileOpener> TftpListener<O> {
         let Some(datagram) = receive_pending(&self.servers[index].socket, &mut self.buffer)? else {
             return Ok(());
         };
+        self.dump.udp(
+            crate::dump::TFTP,
+            &self.buffer[..datagram.len.min(crate::tftp_service::MAX_PATH_BYTES)],
+            datagram.peer,
+            self.servers[index].socket.local_addr()?,
+        );
         let bytes = self.buffer[..datagram.len.min(crate::tftp_service::MAX_PATH_BYTES)].to_vec();
         let new_request = matches!(bytes.get(..2), Some([0, 1] | [0, 2]));
         if new_request
@@ -616,6 +627,12 @@ impl<O: FileOpener> TftpListener<O> {
                 Ok(value) => value,
                 Err(_) => return Ok(()),
             };
+        self.dump.udp(
+            crate::dump::TFTP,
+            &self.buffer[..len],
+            peer,
+            socket.local_addr()?,
+        );
         let mut received = self
             .runtime
             .handle_socket_datagram(SocketRole::Transfer(id), peer, &self.buffer[..len], now)
@@ -685,6 +702,8 @@ impl<O: FileOpener> TftpListener<O> {
                 .iter()
                 .find(|server| server.address == route.server)
                 .ok_or_else(|| io::Error::other("missing TFTP listener"))?;
+            self.dump
+                .udp(crate::dump::TFTP, packet, server.socket.local_addr()?, peer);
             return server
                 .socket
                 .send(packet, peer, Some((route.local, route.interface)));
@@ -703,6 +722,8 @@ impl<O: FileOpener> TftpListener<O> {
                 .as_ref()
                 .ok_or_else(|| io::Error::other("missing TFTP error socket"))?
         };
+        self.dump
+            .udp(crate::dump::TFTP, packet, socket.local_addr()?, peer);
         match socket.send_to(packet, peer) {
             Ok(sent) if sent == packet.len() => Ok(()),
             Ok(_) => Err(io::Error::new(io::ErrorKind::WriteZero, "short TFTP send")),

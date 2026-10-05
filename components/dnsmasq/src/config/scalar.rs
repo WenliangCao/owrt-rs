@@ -20,7 +20,7 @@ pub enum StaleCache {
 pub struct ScalarConfig {
     pub cache_size: u32,
     pub dns_port: u16,
-    pub forward_max: u32,
+    pub forward_max: i32,
     pub edns_packet_max: u16,
     pub query_port: u16,
     pub query_port_os_assigned: bool,
@@ -28,10 +28,10 @@ pub struct ScalarConfig {
     pub max_port: u16,
     pub port_limit: u32,
     pub local_ttl: u32,
-    pub negative_ttl: u32,
-    pub max_ttl: u32,
-    pub min_cache_ttl: u32,
-    pub max_cache_ttl: u32,
+    pub negative_ttl: u64,
+    pub max_ttl: u64,
+    pub min_cache_ttl: u64,
+    pub max_cache_ttl: u64,
     pub dhcp_ttl: Option<u32>,
     pub fast_retry: Option<FastRetry>,
     pub stale_cache: StaleCache,
@@ -80,6 +80,23 @@ fn integer(argument: Option<&EncodedArg>) -> Result<u32, Error> {
     Ok(value)
 }
 
+/// option.c uses musl atoi, then stores a signed int or casts it to ulong64.
+fn cache_integer(argument: Option<&EncodedArg>) -> Result<i32, Error> {
+    let argument = argument.ok_or(Error("missing parameter"))?.decoded();
+    let mut value = 0u32;
+    for byte in argument {
+        if !byte.is_ascii_digit() {
+            return Err(Error("error"));
+        }
+        value = value.wrapping_mul(10).wrapping_add(u32::from(byte - b'0'));
+    }
+    Ok(value as i32)
+}
+
+fn unsigned_long(value: i32) -> u64 {
+    i64::from(value) as u64
+}
+
 fn dhcp_ttl(argument: Option<&EncodedArg>) -> Result<u32, Error> {
     let argument = argument.ok_or(Error("missing parameter"))?.decoded();
     let mut value = 0u32;
@@ -122,7 +139,7 @@ impl ScalarConfig {
             b"port" => self.dns_port = port(arg)?,
             b"min-port" => self.min_port = port(arg)?,
             b"max-port" => self.max_port = port(arg)?,
-            b"dns-forward-max" => self.forward_max = integer(arg)?,
+            b"dns-forward-max" => self.forward_max = cache_integer(arg)?,
             // option.c:3494-3550. The EDNS assignment explicitly narrows.
             b"edns-packet-max" => {
                 let bytes = arg.ok_or(Error("missing parameter"))?.decoded();
@@ -153,10 +170,10 @@ impl ScalarConfig {
                 self.port_limit = value as u32;
             }
             b"local-ttl" => self.local_ttl = integer(arg)?,
-            b"neg-ttl" => self.negative_ttl = integer(arg)?,
-            b"max-ttl" => self.max_ttl = integer(arg)?,
-            b"min-cache-ttl" => self.min_cache_ttl = integer(arg)?.min(3600),
-            b"max-cache-ttl" => self.max_cache_ttl = integer(arg)?,
+            b"neg-ttl" => self.negative_ttl = unsigned_long(cache_integer(arg)?),
+            b"max-ttl" => self.max_ttl = unsigned_long(cache_integer(arg)?),
+            b"min-cache-ttl" => self.min_cache_ttl = unsigned_long(cache_integer(arg)?.min(3600)),
+            b"max-cache-ttl" => self.max_cache_ttl = unsigned_long(cache_integer(arg)?),
             b"dhcp-ttl" => self.dhcp_ttl = Some(dhcp_ttl(arg)?),
             // option.c:3552-3575; timeout input milliseconds truncates to sec.
             b"fast-dns-retry" => {
@@ -187,10 +204,11 @@ impl ScalarConfig {
             }
             // option.c:5335-5350, 5453-5462.
             b"use-stale-cache" => {
-                self.stale_cache = match arg.map(|a| integer(Some(a))).transpose()? {
+                self.stale_cache = match arg.map(|a| cache_integer(Some(a))).transpose()? {
                     None => StaleCache::Until(86400),
                     Some(0) => StaleCache::Forever,
-                    Some(seconds) => StaleCache::Until(seconds),
+                    Some(seconds) if seconds > 0 => StaleCache::Until(seconds as u32),
+                    Some(_) => return Err(Error("error")),
                 }
             }
             b"max-tcp-connections" => {
@@ -278,6 +296,27 @@ mod tests {
                 Err(Error("error"))
             );
         }
+    }
+
+    #[test]
+    fn cache_scalars_preserve_signed_int_then_unsigned_long_cast() {
+        let mut config = ScalarConfig::default();
+        apply(&mut config, "dns-forward-max=4294967295").unwrap();
+        assert_eq!(config.forward_max, -1);
+        apply(&mut config, "min-cache-ttl=4294967295").unwrap();
+        assert_eq!(config.min_cache_ttl, u64::MAX);
+        apply(&mut config, "min-cache-ttl=2147483647").unwrap();
+        assert_eq!(config.min_cache_ttl, 3600);
+        apply(&mut config, "neg-ttl=4294967295").unwrap();
+        assert_eq!(config.negative_ttl, u64::MAX);
+        apply(&mut config, "max-ttl=4294967296").unwrap();
+        assert_eq!(config.max_ttl, 0);
+        apply(&mut config, "use-stale-cache=4294967296").unwrap();
+        assert_eq!(config.stale_cache, StaleCache::Forever);
+        assert_eq!(
+            apply(&mut config, "use-stale-cache=2147483648"),
+            Err(Error("error"))
+        );
     }
 
     #[test]

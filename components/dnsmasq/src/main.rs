@@ -130,7 +130,9 @@ fn main() {
                 })
             || error.is::<dnsmasq_rs::startup::StartupError>();
         #[cfg(target_os = "linux")]
-        let blank_line = blank_line || error.is::<dnsmasq_rs::logging::LogStartError>();
+        let blank_line = blank_line
+            || error.is::<dnsmasq_rs::logging::LogStartError>()
+            || error.is::<dnsmasq_rs::dump::DumpError>();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         let blank_line = blank_line
             || error.is::<dnsmasq_rs::helper::StartError>()
@@ -139,6 +141,22 @@ fn main() {
                 .is_some_and(|error| error.is_lease_capacity());
         if blank_line {
             eprintln!();
+        }
+        #[cfg(target_os = "linux")]
+        if let Some(raw) = error.downcast_ref::<dnsmasq_rs::logging::LogStartError>() {
+            let mut stderr = std::io::stderr().lock();
+            let _ = stderr.write_all(b"dnsmasq-rs: ");
+            let _ = stderr.write_all(&raw.message_bytes());
+            let _ = stderr.write_all(b"\n");
+            std::process::exit(startup_status(error.as_ref()));
+        }
+        #[cfg(target_os = "linux")]
+        if let Some(raw) = error.downcast_ref::<dnsmasq_rs::dump::DumpError>() {
+            let mut stderr = std::io::stderr().lock();
+            let _ = stderr.write_all(b"dnsmasq-rs: ");
+            let _ = stderr.write_all(&raw.message);
+            let _ = stderr.write_all(b"\n");
+            std::process::exit(3);
         }
         eprintln!("dnsmasq-rs: {error}");
         std::process::exit(startup_status(error.as_ref()));
@@ -197,6 +215,10 @@ fn startup_status(error: &(dyn std::error::Error + 'static)) -> i32 {
     if error.is::<ConnectError>() {
         return 5; // dnsmasq.c startup UBus registration failure: EC_MISC.
     }
+    #[cfg(target_os = "linux")]
+    if error.is::<dnsmasq_rs::dump::DumpError>() {
+        return 3;
+    }
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     if let Some(error) = error.downcast_ref::<dnsmasq_rs::helper::StartError>() {
         return error.code;
@@ -217,6 +239,7 @@ struct Runtime {
     dhcp: DhcpConfig,
     ubus: UbusConfig,
     script_arp: dnsmasq_rs::config::script_arp::ScriptArpConfig,
+    dump: dnsmasq_rs::config::dump::DumpConfig,
 }
 
 // C's UDP listeners mutate one parent hosts generation. Each accepted TCP
@@ -248,7 +271,12 @@ impl ParentEvents {
             Some(name) => match UbusService::connect_bytes(None, name) {
                 Ok(service) => Some(service),
                 Err(ConnectError::Transport(_)) => None,
-                Err(error) => return Err(Box::new(error)),
+                Err(ConnectError::Registration(error)) => {
+                    return Err(Box::new(dnsmasq_rs::startup::StartupError {
+                        code: 5,
+                        message: ConnectError::registration_message(&error),
+                    }));
+                }
             },
         };
         Ok(Self {
@@ -269,29 +297,39 @@ impl ParentEvents {
         metrics.set(Metric::TcpConnections, self.tcp_active as u32);
     }
 
-    fn disconnect(&mut self, error: &dyn std::fmt::Display) {
+    fn disconnect(&mut self, _error: &dyn std::fmt::Display) {
         self.ubus = None;
-        if !self.ubus_error_logged {
-            eprintln!("dnsmasq-rs: UBus: {error}");
+        // libubus reports its failed immediate reconnect before the next
+        // set_ubus_listeners emits the once-only missing-connection notice.
+        #[cfg(target_os = "linux")]
+        self.ubus_notices.push(dnsmasq_rs::logging::LogEvent::new(
+            dnsmasq_rs::logging::Service::Dns,
+            dnsmasq_rs::logging::Priority::Error,
+            b"Cannot reconnect to UBus: Connection failed".to_vec(),
+        ));
+        self.ubus_error_logged = false;
+    }
+
+    #[cfg(target_os = "linux")]
+    fn queue_missing_ubus_notice(&mut self) {
+        if self.ubus_name.is_some() && self.ubus.is_none() && !self.ubus_error_logged {
+            self.ubus_notices.push(dnsmasq_rs::logging::LogEvent::new(
+                dnsmasq_rs::logging::Service::Dns,
+                dnsmasq_rs::logging::Priority::Error,
+                b"Cannot set UBus listeners: no connection".to_vec(),
+            ));
             self.ubus_error_logged = true;
         }
     }
 
     fn process_ubus(&mut self, metrics: &Metrics) {
-        let Some(name) = self.ubus_name.as_deref() else {
+        if self.ubus_name.is_none() {
             return;
-        };
+        }
         if self.ubus.is_none() {
-            if !self.ubus_error_logged {
-                #[cfg(target_os = "linux")]
-                self.ubus_notices.push(dnsmasq_rs::logging::LogEvent::new(
-                    dnsmasq_rs::logging::Service::Dns,
-                    dnsmasq_rs::logging::Priority::Error,
-                    b"Cannot set UBus listeners: no connection".to_vec(),
-                ));
-                self.ubus_error_logged = true;
-            }
-            match UbusService::connect_bytes(None, name) {
+            #[cfg(target_os = "linux")]
+            self.queue_missing_ubus_notice();
+            match UbusService::connect_bytes(None, self.ubus_name.as_deref().unwrap()) {
                 Ok(service) => {
                     self.ubus = Some(service);
                     self.ubus_error_logged = false;
@@ -302,14 +340,16 @@ impl ParentEvents {
                         b"connected to system UBus".to_vec(),
                     ));
                 }
-                Err(error @ ConnectError::Transport(_)) => {
-                    self.disconnect(&error);
-                    return;
-                }
-                Err(error @ ConnectError::Registration(_)) => {
+                Err(ConnectError::Transport(_)) => return,
+                Err(ConnectError::Registration(error)) => {
                     // C treats registration failure during retry as fatal to
                     // UBus only. The DNS/DHCP service keeps running.
-                    self.disconnect(&error);
+                    #[cfg(target_os = "linux")]
+                    self.ubus_notices.push(dnsmasq_rs::logging::LogEvent::new(
+                        dnsmasq_rs::logging::Service::Dns,
+                        dnsmasq_rs::logging::Priority::Error,
+                        ConnectError::registration_message(&error).into_bytes(),
+                    ));
                     self.ubus_name = None;
                     return;
                 }
@@ -317,7 +357,21 @@ impl ParentEvents {
         }
         while let Some(ubus) = self.ubus.as_mut() {
             match ubus.process_one(metrics) {
-                Ok(true) => {}
+                Ok(true) =>
+                {
+                    #[cfg(target_os = "linux")]
+                    for active in ubus.take_subscription_notices() {
+                        self.ubus_notices.push(dnsmasq_rs::logging::LogEvent::new(
+                            dnsmasq_rs::logging::Service::Dns,
+                            dnsmasq_rs::logging::Priority::Debug,
+                            format!(
+                                "UBus subscription callback: {} subscriber(s)",
+                                u8::from(active)
+                            )
+                            .into_bytes(),
+                        ));
+                    }
+                }
                 Ok(false) => break,
                 Err(error) => {
                     self.disconnect(&error);
@@ -468,6 +522,7 @@ fn load(args: &[OsString]) -> Result<(Action, Runtime), loader::LoadError> {
         dhcp: DhcpConfig::default(),
         ubus: UbusConfig::default(),
         script_arp: Default::default(),
+        dump: Default::default(),
     };
     let action = loader::load(args, Path::new("/etc/dnsmasq.conf"), |directive, _| {
         if runtime.logging.apply(directive)?
@@ -478,6 +533,7 @@ fn load(args: &[OsString]) -> Result<(Action, Runtime), loader::LoadError> {
             || runtime.dhcp.apply(directive)?
             || runtime.ubus.apply(directive)?
             || runtime.script_arp.apply(directive)?
+            || runtime.dump.apply(directive)?
         {
             Ok(())
         } else {
@@ -497,6 +553,19 @@ fn config_diagnostic(error: Error) -> loader::LoadError {
         exit_code: 1,
         message: error.to_string(),
     }
+}
+
+fn finalize_dns_config(config: &mut DnsConfig) -> Result<(), loader::LoadError> {
+    config.finalize().map_err(|error| {
+        let mut diagnostic = config_diagnostic(error.clone());
+        if error == Error("CNAME loop") {
+            if let Some(alias) = config.records.cname_loop_alias() {
+                diagnostic.message =
+                    format!("CNAME loop involving {}", String::from_utf8_lossy(alias));
+            }
+        }
+        diagnostic
+    })
 }
 
 fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
@@ -551,7 +620,7 @@ fn run_inner(
                     .dns
                     .finalize_hostname(&dnsmasq_rs::startup::hostname()?)?;
             }
-            runtime.dns.finalize().map_err(config_diagnostic)?;
+            finalize_dns_config(&mut runtime.dns)?;
             runtime
                 .dhcp
                 .validate_dns_config(&runtime.dns)
@@ -569,7 +638,7 @@ fn run_inner(
             .dns
             .finalize_hostname(&dnsmasq_rs::startup::hostname()?)?;
     }
-    runtime.dns.finalize().map_err(config_diagnostic)?;
+    finalize_dns_config(&mut runtime.dns)?;
     runtime
         .dhcp
         .validate_dns_config(&runtime.dns)
@@ -577,7 +646,56 @@ fn run_inner(
     runtime.tftp.validate_ready()?;
     runtime.dhcp.validate_ready()?;
     validate_runtime_ready(&runtime.scalar, &runtime.dns)?;
+    #[cfg(target_os = "linux")]
+    let dump = dnsmasq_rs::dump::DumpHandle::open(&runtime.dump, runtime.scalar.edns_packet_max)?;
+    #[cfg(target_os = "linux")]
+    dump.set_query_logging(runtime.logging.queries);
     let dns_enabled = runtime.scalar.dns_port != 0;
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    let (initial_interface_records, initial_interface_collector) = {
+        if runtime.dns.interface_records.rules.is_empty() {
+            (
+                Arc::new(dnsmasq_rs::dns::interface_records::InterfaceRecords::default()),
+                None,
+            )
+        } else {
+            let mut collector = dnsmasq_rs::dns::interface_collect::InterfaceCollector::new()?;
+            collector.begin()?;
+            let result = loop {
+                if let Some(result) = collector.step() {
+                    break result;
+                }
+                let mut fds = Vec::new();
+                collector.append_poll_fds(&mut fds);
+                let wait = if collector.runnable() {
+                    0
+                } else {
+                    collector
+                        .deadline()
+                        .unwrap()
+                        .saturating_duration_since(Instant::now())
+                        .as_millis()
+                        .min(i32::MAX as u128) as i32
+                };
+                owrt_ubus::sys::poll_fds(&mut fds, wait)?;
+            };
+            if let Some(error) = result.error {
+                return Err(Box::new(error));
+            }
+            (
+                Arc::new(
+                    dnsmasq_rs::dns::interface_records::InterfaceRecords::from_addresses(
+                        &runtime.dns.interface_records.rules,
+                        &result.addresses,
+                    ),
+                ),
+                Some(collector),
+            )
+        }
+    };
+    #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
+    let initial_interface_records =
+        Arc::new(dnsmasq_rs::dns::interface_records::InterfaceRecords::default());
     let hosts = if dns_enabled {
         read_hosts(&runtime.dns, runtime.scalar.local_ttl)
     } else {
@@ -618,7 +736,7 @@ fn run_inner(
     let daemon_config = runtime.dns.clone();
     let daemon_hosts = hosts.clone();
     let daemon_options = DaemonOptions {
-        forward_max: runtime.scalar.forward_max as usize,
+        forward_max: runtime.scalar.forward_max.max(0) as usize,
         fast_retry: runtime.scalar.fast_retry,
         edns_packet_max: runtime.scalar.edns_packet_max,
         proxy_dnssec: runtime.dns.proxy_dnssec,
@@ -654,6 +772,9 @@ fn run_inner(
                 StaleCache::Forever => StalePolicy::Forever,
             },
         );
+        daemon.set_max_reply_ttl(runtime.scalar.max_ttl);
+        #[cfg(target_os = "linux")]
+        daemon.set_dump(dump.clone());
         daemon.enable_negative_cache(
             runtime.scalar.negative_ttl,
             !daemon_config.no_negative_cache,
@@ -674,6 +795,13 @@ fn run_inner(
         ),
         daemon,
     }));
+    {
+        let mut parent = service.lock().unwrap();
+        parent.local.interfaces = Arc::clone(&initial_interface_records);
+        if let Some(daemon) = &mut parent.daemon {
+            daemon.publish_interface_records(Arc::clone(&initial_interface_records));
+        }
+    }
     // C mutates all parent engines in one event loop. Fetch DHCP metrics
     // before locking DNS; synchronous doctor callbacks must never invert it.
     // Socket waits remain outside this gate.
@@ -830,6 +958,7 @@ fn run_inner(
             &daemon_config,
             &dhcp_config.no_dhcp_interfaces,
             dhcp_config.ports,
+            &dhcp_config.network,
         )?;
         listener
             .configure_pxe(
@@ -838,6 +967,7 @@ fn run_inner(
                 daemon_config.bind_interfaces || daemon_config.bind_dynamic,
             )
             .map_err(NetworkStartupError)?;
+        listener.set_dump(dump.clone());
         Some(DhcpService {
             provider,
             listener,
@@ -868,7 +998,7 @@ fn run_inner(
             &runtime.dhcp.no_tftp_interfaces,
             identity.runtime_uid(&runtime.process),
             if dns_enabled {
-                (runtime.scalar.forward_max as usize) / 2
+                (runtime.scalar.forward_max.max(0) as usize) / 2
             } else {
                 0
             },
@@ -880,6 +1010,10 @@ fn run_inner(
     } else {
         None
     };
+    #[cfg(target_os = "linux")]
+    if let Some(listener) = &mut tftp_listener {
+        listener.set_dump(dump.clone());
+    }
     #[cfg(target_os = "linux")]
     let capabilities = dnsmasq_rs::startup::network_capabilities(
         !runtime.dhcp.ranges.is_empty() || !runtime.dhcp.relay.is_empty(),
@@ -947,10 +1081,10 @@ fn run_inner(
         Ok(value) => value,
         Err(error) => {
             if !startup.active() {
-                dnsmasq_rs::logging::report_startup_failure(
+                dnsmasq_rs::logging::report_startup_failure_bytes(
                     &runtime.logging,
                     &runtime.process,
-                    &error.message,
+                    &error.message_bytes(),
                 );
                 // C selects log_stderr before dup(), so this failure already
                 // has its syslog report and die() does not echo it to stderr.
@@ -1100,6 +1234,15 @@ fn run_inner(
         daemon_options.edns_packet_max,
         poll_listeners,
     );
+    #[cfg(target_os = "linux")]
+    {
+        poll.dump = dump;
+    }
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    {
+        poll.interface_collector = initial_interface_collector;
+    }
+
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     {
         poll.script_arp = runtime.script_arp.enabled;
@@ -1188,17 +1331,12 @@ fn run_inner(
             }
         }
         if let Some(error) = log_ownership_warning {
-            logger.emit(LogEvent::new(
-                Service::Dns,
-                Priority::Warning,
-                format!(
-                    "warning: failed to change owner of {}: {}",
-                    runtime.logging.file.as_deref().unwrap().display(),
-                    dnsmasq_rs::logging::error_text(&error)
-                )
-                .into_bytes(),
+            logger.emit(dnsmasq_rs::logging::ownership_warning(
+                runtime.logging.file.as_deref().unwrap(),
+                &error,
             ));
         }
+
         for warning in dnsmasq_rs::logging::startup::missing_interfaces(
             &daemon_config,
             &interface_snapshot.lock().unwrap(),
@@ -1299,6 +1437,7 @@ fn run_inner(
         .map(|(address, _)| *address)
         .collect();
     while !STOP_REQUESTED.load(Ordering::Acquire) {
+        poll.interfaces_enumerated = false;
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         poll.observe_arp_activity();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -1311,6 +1450,17 @@ fn run_inner(
         poll.step();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if let Some(error) = poll.helper_init_error.take() {
+            if !startup.active() {
+                if let Some(logger) = &mut poll.logger {
+                    logger.fatal(error.message.as_bytes());
+                }
+                return Err(Box::new(SilentStartupError(
+                    dnsmasq_rs::startup::StartupError {
+                        code: error.code,
+                        message: error.message,
+                    },
+                )));
+            }
             return Err(Box::new(error));
         }
         #[cfg(target_os = "linux")]
@@ -1330,17 +1480,21 @@ fn run_inner(
                     }
                 }
                 if changed {
-                    let mut parent = service.lock().unwrap();
-                    if let Some(daemon) = &mut parent.daemon {
-                        if daemon_config.bind_dynamic || daemon_config.local_service_net {
-                            daemon.refresh_source_interface_indices();
+                    if daemon_config.bind_dynamic || daemon_config.local_service_net {
+                        poll.enumerate_interface_records();
+                    }
+                    if poll.interface_work_pending() {
+                        poll.pending_interface_server_check = true;
+                    } else {
+                        let mut parent = service.lock().unwrap();
+                        if let Some(daemon) = &mut parent.daemon {
+                            daemon.check_server_addresses(&dns_local_addresses(
+                                &daemon_config,
+                                &interfaces,
+                                runtime.scalar.dns_port,
+                            ))?;
+                            parent.local.config = daemon.local_config().clone();
                         }
-                        daemon.check_server_addresses(&dns_local_addresses(
-                            &daemon_config,
-                            &interfaces,
-                            runtime.scalar.dns_port,
-                        ))?;
-                        parent.local.config = daemon.local_config().clone();
                     }
                 }
                 for interface in &interfaces {
@@ -1700,8 +1854,18 @@ struct SinglePoll {
     probe_metrics: Option<Metrics>,
     full_reload_pending: bool,
     retry_bound_listeners: bool,
+    interfaces_enumerated: bool,
+    pending_interface_udp: Option<PendingInterfaceUdp>,
+    pending_interface_tcp: Option<PendingInterfaceTcp>,
+    pending_interface_server_check: bool,
+    #[cfg(target_os = "linux")]
+    pending_interface_files: Option<(dnsmasq_rs::dns::files::FileStep, bool)>,
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    interface_collector: Option<dnsmasq_rs::dns::interface_collect::InterfaceCollector>,
     #[cfg(target_os = "linux")]
     logger: Option<dnsmasq_rs::logging::Logger>,
+    #[cfg(target_os = "linux")]
+    dump: dnsmasq_rs::dump::DumpHandle,
     #[cfg(target_os = "linux")]
     early_logger: Option<dnsmasq_rs::logging::Logger>,
     #[cfg(target_os = "linux")]
@@ -1736,6 +1900,8 @@ struct SinglePoll {
     script_arp: bool,
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     arp_awake: bool,
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    tftp_parent_wake: Option<Instant>,
 }
 
 struct PollListener {
@@ -1753,6 +1919,23 @@ struct PendingEdnsUdp {
     query: Vec<u8>,
     deadline: Instant,
 }
+struct PendingInterfaceUdp {
+    token: SocketToken,
+    udp: Arc<DnsSocket>,
+    client: ClientRequest,
+    query: Vec<u8>,
+    mac: Option<Vec<u8>>,
+}
+struct PendingInterfaceTcp {
+    stream: TcpStream,
+    peer: SocketAddr,
+    local_network: Option<(std::net::Ipv4Addr, std::net::Ipv4Addr)>,
+    mac: Option<Vec<u8>>,
+    mac_ready: bool,
+    mac_deferred: bool,
+    accept_clock: i64,
+}
+
 enum ClientMacLookup {
     Ready(Option<Vec<u8>>),
     Pending,
@@ -1775,7 +1958,10 @@ fn lookup_edns_mac(
 }
 
 struct PollTcpClient {
-    stream: TcpStream,
+    #[cfg(target_os = "linux")]
+    log_context: Option<dnsmasq_rs::logging::TcpLogContext>,
+    network_done: bool,
+    stream: Option<TcpStream>,
     service: LocalDnsService,
     forward: TcpDnsService,
     framer: TcpFramer,
@@ -1790,38 +1976,105 @@ struct PollTcpClient {
     mac_deferred: bool,
     mac_deadline: Instant,
     packet_limit: usize,
+    parent_cache_activity: bool,
+    cache_view: Option<dnsmasq_rs::dns::cache::Cache>,
+    cache_counters: dnsmasq_rs::dns::cache::CacheCounters,
+    cache_negative: bool,
+    cache_negative_ttl: u64,
+    cache_debug: bool,
+    accept_clock: i64,
+    no_cache: bool,
+    stale_query: Option<Vec<u8>>,
+    refreshing_stale: bool,
 }
 
 enum TcpClientPhase {
     Reading,
     WaitingMac { query: Vec<u8> },
-    Forwarding { cache_eligible: bool, wait: TcpWait },
+    Forwarding { no_cache: bool, wait: TcpWait },
     Writing { frame: Vec<u8>, offset: usize },
 }
 
 impl PollTcpClient {
     fn queue_answer(
         &mut self,
-        parent: &Arc<Mutex<ParentDns>>,
+        _parent: &Arc<Mutex<ParentDns>>,
         packet: Vec<u8>,
-        insert_cache: bool,
+        _insert_cache: bool,
     ) -> Result<(), ()> {
-        let bogus = self.forward.take_bogus_cache_entry();
-        if insert_cache || bogus.is_some() {
-            let mut parent = parent.lock().map_err(|_| ())?;
-            if let Some(daemon) = parent.daemon.as_mut() {
-                if let Some((name, ttl)) = bogus {
-                    daemon.cache_bogus_reply(name, ttl, now_seconds());
-                } else {
-                    daemon.cache_tcp_reply(&packet, now_seconds());
-                }
-            }
-        }
         self.phase = TcpClientPhase::Writing {
             frame: encode_tcp_frame(&packet).map_err(|_| ())?,
             offset: 0,
         };
         Ok(())
+    }
+
+    fn run_forward(
+        &mut self,
+        parent: &Arc<Mutex<ParentDns>>,
+        query: Option<&[u8]>,
+        no_cache: bool,
+    ) -> Result<TcpServiceProgress, ()> {
+        let now = self.accept_clock;
+        let local = &self.service;
+        let debug = self.cache_debug;
+        let negative = self.cache_negative;
+        let negative_ttl = self.cache_negative_ttl;
+        let view = &mut self.cache_view;
+        let counters = &mut self.cache_counters;
+        let mut transaction = None;
+        let mut sink = |packet: &mut Vec<u8>,
+                        policy: &dnsmasq_rs::dns::process::AddressPolicy,
+                        rcode,
+                        mode|
+         -> Result<(), dnsmasq_rs::dns::wire::WireError> {
+            if debug {
+                let mut owner = parent
+                    .lock()
+                    .map_err(|_| dnsmasq_rs::dns::wire::WireError::InvalidName)?;
+                if let Some(daemon) = owner.daemon.as_mut() {
+                    daemon.tcp_current_extract(packet, policy, now, rcode, mode)?;
+                }
+            } else if let Some(cache) = view.as_mut() {
+                transaction = dnsmasq_rs::dns::daemon::DnsDaemon::<
+                    dnsmasq_rs::dns::upstream::OsRandom,
+                >::tcp_view_extract(
+                    cache,
+                    counters,
+                    packet,
+                    local,
+                    policy,
+                    now,
+                    rcode,
+                    mode,
+                    negative,
+                    negative_ttl,
+                )?;
+            }
+            Ok(())
+        };
+        let progress = if let Some(query) = query {
+            self.forward.start_with_local_upstream_cache(
+                query,
+                local,
+                self.deadline,
+                no_cache,
+                now,
+                &mut sink,
+            )
+        } else {
+            self.forward
+                .step_with_local_upstream_cache(local, no_cache, now, &mut sink)
+        }
+        .map_err(|_| ())?;
+        if let Some(transaction) = transaction {
+            self.parent_cache_activity = true;
+            let mut owner = parent.lock().map_err(|_| ())?;
+            if let Some(daemon) = owner.daemon.as_mut() {
+                daemon.import_tcp_cache_transfer(transaction, now_seconds());
+            }
+        }
+        Ok(progress)
     }
 
     fn answer_query(
@@ -1838,42 +2091,70 @@ impl PollTcpClient {
             self.packet_limit,
         )
         .map_err(|_| ())?;
-        let answered = {
-            let mut parent = parent.lock().map_err(|_| ())?;
-            let daemon = parent.daemon.as_mut().ok_or(())?;
-            let cached = daemon
-                .cached_tcp_answer_with_edns(
-                    &query,
-                    &mut self.service,
-                    now_seconds(),
-                    decoration.cacheable,
-                )
-                .map_err(|_| ())?;
-            cached.or_else(|| {
+        self.no_cache = !decoration.cacheable;
+        let now = self.accept_clock;
+        let mut stale = false;
+        let answered = if self.cache_debug {
+            let mut owner = parent.lock().map_err(|_| ())?;
+            let daemon = owner.daemon.as_mut().ok_or(())?;
+            let cached = if decoration.cacheable {
+                Some(daemon.tcp_current_answer(&query, now).map_err(|_| ())?)
+            } else {
+                None
+            };
+            stale = cached.as_ref().is_some_and(|answer| answer.stale);
+            cached.and_then(|answer| answer.packet).or_else(|| {
                 daemon
-                    .local_tcp_answer(&query, &mut self.service, now_seconds())
+                    .local_tcp_answer(&query, &mut self.service, now)
                     .ok()
                     .flatten()
             })
+        } else {
+            let cached = if decoration.cacheable {
+                self.cache_view
+                    .as_mut()
+                    .map(|cache| {
+                        dnsmasq_rs::dns::daemon::DnsDaemon::<dnsmasq_rs::dns::upstream::OsRandom>::tcp_view_answer(
+                            cache,
+                            &query,
+                            &mut self.service,
+                            now,
+                            self.cache_negative,
+                            self.cache_negative_ttl,
+                        )
+                    })
+                    .transpose()
+                    .map_err(|_| ())?
+            } else {
+                None
+            };
+            stale = cached.as_ref().is_some_and(|answer| answer.stale);
+            cached.and_then(|answer| answer.packet).or_else(|| {
+                dnsmasq_rs::dns::daemon::DnsDaemon::<dnsmasq_rs::dns::upstream::OsRandom>::tcp_view_local_answer(
+                    self.cache_view.as_mut(),
+                    &query,
+                    &mut self.service,
+                    now,
+                )
+                .ok()
+                .flatten()
+            })
         };
         if let Some(packet) = answered {
+            if stale {
+                self.stale_query = Some(query);
+            }
             self.queue_answer(parent, packet, false)?;
         } else {
-            let cache_eligible =
-                TcpDnsService::cache_eligible_with_policy(&query, decoration.cacheable);
-            match self
-                .forward
-                .start_with_local_upstream(&query, &self.service, self.deadline)
-                .map_err(|_| ())?
-            {
+            match self.run_forward(parent, Some(&query), self.no_cache)? {
                 TcpServiceProgress::Pending(wait) => {
                     self.phase = TcpClientPhase::Forwarding {
-                        cache_eligible,
+                        no_cache: self.no_cache,
                         wait,
-                    };
+                    }
                 }
-                TcpServiceProgress::Complete(packet, from_upstream) => {
-                    self.queue_answer(parent, packet, cache_eligible && from_upstream)?;
+                TcpServiceProgress::Complete(packet, _) => {
+                    self.queue_answer(parent, packet, false)?
                 }
             }
         }
@@ -1909,7 +2190,7 @@ impl PollTcpClient {
                     self.answer_query(query, parent)?;
                 }
                 TcpClientPhase::Writing { frame, offset } => {
-                    match self.stream.write(&frame[*offset..]) {
+                    match self.stream.as_mut().ok_or(())?.write(&frame[*offset..]) {
                         Ok(0) => return Ok(false),
                         Ok(count) => *offset += count,
                         Err(error)
@@ -1926,13 +2207,26 @@ impl PollTcpClient {
                         if self.queries == 100 {
                             return Ok(false);
                         }
+                        if let Some(query) = self.stale_query.take() {
+                            if let Some(stream) = self.stream.take() {
+                                let _ = stream.shutdown(std::net::Shutdown::Both);
+                            }
+                            self.refreshing_stale = true;
+                            match self.run_forward(parent, Some(&query), self.no_cache)? {
+                                TcpServiceProgress::Pending(wait) => {
+                                    self.phase = TcpClientPhase::Forwarding {
+                                        no_cache: self.no_cache,
+                                        wait,
+                                    };
+                                    return Ok(true);
+                                }
+                                TcpServiceProgress::Complete(_, _) => return Ok(false),
+                            }
+                        }
                         self.phase = TcpClientPhase::Reading;
                     }
                 }
-                TcpClientPhase::Forwarding {
-                    cache_eligible,
-                    wait,
-                } => {
+                TcpClientPhase::Forwarding { no_cache, wait } => {
                     if wait.fd >= 0 && Instant::now() < wait.deadline {
                         let mut readiness = [owrt_ubus::sys::PollFd {
                             fd: wait.fd,
@@ -1943,21 +2237,17 @@ impl PollTcpClient {
                             return Ok(true);
                         }
                     }
-                    let cache_eligible = *cache_eligible;
-                    match self
-                        .forward
-                        .step_with_local_upstream(&self.service)
-                        .map_err(|_| ())?
-                    {
+                    let no_cache = *no_cache;
+                    match self.run_forward(parent, None, no_cache)? {
                         TcpServiceProgress::Pending(wait) => {
-                            self.phase = TcpClientPhase::Forwarding {
-                                cache_eligible,
-                                wait,
-                            };
+                            self.phase = TcpClientPhase::Forwarding { no_cache, wait };
                             return Ok(true);
                         }
-                        TcpServiceProgress::Complete(packet, from_upstream) => {
-                            self.queue_answer(parent, packet, cache_eligible && from_upstream)?;
+                        TcpServiceProgress::Complete(packet, _) => {
+                            if self.refreshing_stale {
+                                return Ok(false);
+                            }
+                            self.queue_answer(parent, packet, false)?;
                         }
                     }
                 }
@@ -1965,7 +2255,7 @@ impl PollTcpClient {
                     if self.input_offset == self.input.len() {
                         self.input.resize(4096, 0);
                         self.input_offset = 0;
-                        match self.stream.read(&mut self.input) {
+                        match self.stream.as_mut().ok_or(())?.read(&mut self.input) {
                             Ok(0) => return Ok(false),
                             Ok(count) => self.input.truncate(count),
                             Err(error)
@@ -2051,8 +2341,18 @@ impl SinglePoll {
             probe_metrics: None,
             full_reload_pending: false,
             retry_bound_listeners: false,
+            interfaces_enumerated: false,
+            pending_interface_udp: None,
+            pending_interface_tcp: None,
+            pending_interface_server_check: false,
+            #[cfg(target_os = "linux")]
+            pending_interface_files: None,
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            interface_collector: None,
             #[cfg(target_os = "linux")]
             logger: None,
+            #[cfg(target_os = "linux")]
+            dump: dnsmasq_rs::dump::DumpHandle::default(),
             #[cfg(target_os = "linux")]
             early_logger: None,
             #[cfg(target_os = "linux")]
@@ -2090,6 +2390,8 @@ impl SinglePoll {
             script_arp: false,
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             arp_awake: true,
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            tftp_parent_wake: None,
         }
     }
 
@@ -2139,6 +2441,9 @@ impl SinglePoll {
     }
 
     fn reload_in_progress(&self) -> bool {
+        if self.interface_work_pending() {
+            return true;
+        }
         if self.dhcp_reload_in_progress() {
             return true;
         }
@@ -2187,6 +2492,9 @@ impl SinglePoll {
 
     #[cfg(target_os = "linux")]
     fn step_dns_files(&mut self) {
+        if self.interface_work_pending() {
+            return;
+        }
         // inotify_check finishes dynamic DHCP input before poll_resolv applies
         // a resolver-triggered full reload. Yield file work across owner turns
         // while preserving that order; ordinary DNS/TFTP still run each turn.
@@ -2217,6 +2525,26 @@ impl SinglePoll {
         let step = files.step();
         let initial_finished = was_initializing && !files.initializing();
         self.files_runnable = step.runnable;
+        let checks_servers = step.update.is_some()
+            || ((initial_finished || step.signal_complete)
+                && (self.config.servers_file.is_some()
+                    || (self.config.no_poll && !self.config.no_resolv)));
+        if checks_servers && !self.config.bind_interfaces {
+            self.enumerate_interface_records();
+            if self.interface_work_pending() {
+                self.pending_interface_files = Some((step, initial_finished));
+                return;
+            }
+        }
+        self.apply_dns_file_step(step, initial_finished);
+    }
+
+    #[cfg(target_os = "linux")]
+    fn apply_dns_file_step(
+        &mut self,
+        step: dnsmasq_rs::dns::files::FileStep,
+        initial_finished: bool,
+    ) {
         if let Some(logger) = &mut self.logger {
             use dnsmasq_rs::logging::{LogEvent, Priority, Service};
             for diagnostic in step.diagnostics {
@@ -2253,6 +2581,17 @@ impl SinglePoll {
             }
         }
         self.log_dns_diagnostics();
+        if step.initial_cache_reload {
+            self.parent_events
+                .lock()
+                .unwrap()
+                .queue_missing_ubus_notice();
+            if let Some(logger) = &mut self.logger {
+                for notice in self.parent_events.lock().unwrap().ubus_notices.drain(..) {
+                    logger.emit(notice);
+                }
+            }
+        }
         if step.initial_cache_reload && self.log_cleared_cache {
             if let Some(logger) = &mut self.logger {
                 use dnsmasq_rs::logging::{LogEvent, Priority, Service};
@@ -2297,7 +2636,11 @@ impl SinglePoll {
     }
 
     #[cfg(target_os = "linux")]
-    fn append_file_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>) {
+    fn append_file_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>, tcp_logs: bool) {
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if let Some(collector) = &self.interface_collector {
+            collector.append_poll_fds(fds);
+        }
         if let Some(logger) = &self.early_logger {
             for fd in logger.poll_fds() {
                 fds.push(owrt_ubus::sys::PollFd {
@@ -2308,6 +2651,20 @@ impl SinglePoll {
             }
         }
         if let Some(logger) = &self.logger {
+            for context in self
+                .clients
+                .iter()
+                .filter(|_| tcp_logs)
+                .filter_map(|client| client.log_context.as_ref())
+            {
+                if let Some(fd) = logger.tcp_poll_fd(context) {
+                    fds.push(owrt_ubus::sys::PollFd {
+                        fd,
+                        events: owrt_ubus::sys::POLLOUT,
+                        revents: 0,
+                    });
+                }
+            }
             for fd in logger.poll_fds() {
                 fds.push(owrt_ubus::sys::PollFd {
                     fd,
@@ -2315,6 +2672,13 @@ impl SinglePoll {
                     revents: 0,
                 });
             }
+        }
+        if let Some(fd) = self.dump.poll_fd() {
+            fds.push(owrt_ubus::sys::PollFd {
+                fd,
+                events: owrt_ubus::sys::POLLOUT,
+                revents: 0,
+            });
         }
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
@@ -2332,7 +2696,7 @@ impl SinglePoll {
         #[cfg(target_os = "linux")]
         {
             let mut fds = Vec::new();
-            self.append_file_fds(&mut fds);
+            self.append_file_fds(&mut fds, true);
             let mut runnable = self.files_runnable;
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
@@ -2380,6 +2744,8 @@ impl SinglePoll {
     }
 
     fn step(&mut self) {
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        self.step_interface_collector();
         #[cfg(target_os = "linux")]
         if let Some(logger) = &mut self.early_logger {
             logger.flush_ready();
@@ -2432,9 +2798,21 @@ impl SinglePoll {
     #[cfg(target_os = "linux")]
     fn log_dns_diagnostics(&mut self) {
         use dnsmasq_rs::logging::{LogEvent, Priority, Service};
+        self.dump.step();
         let Some(logger) = &mut self.logger else {
             return;
         };
+        for (error, message) in self.dump.take_notices() {
+            logger.emit(LogEvent::new(
+                Service::Dns,
+                if error {
+                    Priority::Error
+                } else {
+                    Priority::Info
+                },
+                message,
+            ));
+        }
         let mut parent = self.service.lock().unwrap();
         let Some(daemon) = &mut parent.daemon else {
             return;
@@ -2458,7 +2836,126 @@ impl SinglePoll {
         }
     }
 
+    fn enumerate_interface_records(&mut self) {
+        if self.interfaces_enumerated {
+            return;
+        }
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if self.interface_work_pending() {
+            return;
+        }
+        self.interfaces_enumerated = true;
+        if self.config.interface_records.rules.is_empty() {
+            if let Some(daemon) = &mut self.service.lock().unwrap().daemon {
+                daemon.refresh_source_interface_indices();
+            }
+            return;
+        }
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        {
+            if self.interface_collector.is_none() {
+                self.interface_collector =
+                    dnsmasq_rs::dns::interface_collect::InterfaceCollector::new().ok();
+            }
+            let Some(collector) = &mut self.interface_collector else {
+                return;
+            };
+            // A control-socket failure happens before C clears its published
+            // lists. Later netlink errors are completed by the owner and
+            // publish the received prefix as a new snapshot.
+            let _ = collector.begin();
+        }
+    }
+
+    fn interface_work_pending(&self) -> bool {
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        {
+            return self
+                .interface_collector
+                .as_ref()
+                .is_some_and(|collector| collector.busy());
+        }
+        #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
+        {
+            false
+        }
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    fn step_interface_collector(&mut self) {
+        let Some(collector) = &mut self.interface_collector else {
+            return;
+        };
+        let mut completed = None;
+        for _ in 0..4 {
+            if let Some(result) = collector.step() {
+                completed = Some(result);
+                break;
+            }
+            if !collector.runnable() {
+                break;
+            }
+        }
+        let Some(result) = completed else {
+            return;
+        };
+        // This resumed continuation belongs to the enumeration already
+        // selected by its original caller, even across owner turns.
+        self.interfaces_enumerated = true;
+        if result.error.is_none() {
+            *self.interfaces.lock().unwrap() = result.interfaces;
+        }
+        let records = Arc::new(
+            dnsmasq_rs::dns::interface_records::InterfaceRecords::from_addresses(
+                &self.config.interface_records.rules,
+                &result.addresses,
+            ),
+        );
+        {
+            let mut parent = self.service.lock().unwrap();
+            parent.local.interfaces = Arc::clone(&records);
+            if let Some(daemon) = &mut parent.daemon {
+                daemon.refresh_source_interface_indices();
+                daemon.publish_interface_records(records);
+            }
+        }
+        if std::mem::take(&mut self.pending_interface_server_check) {
+            let addresses = dns_local_addresses(
+                &self.config,
+                &self.interfaces.lock().unwrap(),
+                self.dns_port,
+            );
+            let mut parent = self.service.lock().unwrap();
+            if let Some(daemon) = &mut parent.daemon {
+                if let Err(error) = daemon.check_server_addresses(&addresses) {
+                    eprintln!("dnsmasq-rs: {error}");
+                }
+                parent.local.config = daemon.local_config().clone();
+            }
+        }
+        #[cfg(target_os = "linux")]
+        if let Some((step, initial_finished)) = self.pending_interface_files.take() {
+            self.apply_dns_file_step(step, initial_finished);
+        }
+        if let Some(pending) = self.pending_interface_udp.take() {
+            self.process_udp(
+                pending.token,
+                pending.udp,
+                pending.client,
+                pending.query,
+                pending.mac,
+            );
+        }
+        if let Some(pending) = self.pending_interface_tcp.take() {
+            self.finish_tcp_accept(pending);
+        }
+    }
+
     fn step_udp(&mut self, index: usize) {
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if self.interface_work_pending() {
+            return;
+        }
         if self.files_initializing() {
             return;
         }
@@ -2503,6 +3000,13 @@ impl SinglePoll {
             return;
         }
         query.truncate(incoming.len);
+        #[cfg(target_os = "linux")]
+        if query.len() >= 12 && query[2] & 0x80 == 0 {
+            if let Ok(destination) = udp.local_addr() {
+                self.dump
+                    .udp(dnsmasq_rs::dump::QUERY, &query, incoming.peer, destination);
+            }
+        }
         let client = ClientRequest {
             source: incoming.peer,
             destination: incoming.destination,
@@ -2548,6 +3052,9 @@ impl SinglePoll {
         let mut index = 0;
         let mut progressed = 0;
         while index < self.pending_edns_udp.len() && progressed < 32 {
+            if self.interface_work_pending() {
+                break;
+            }
             let source = self.pending_edns_udp[index].client.source.ip();
             let lookup = if Instant::now() >= self.pending_edns_udp[index].deadline {
                 ClientMacLookup::Ready(None)
@@ -2629,6 +3136,28 @@ impl SinglePoll {
                 };
                 let prepared_metadata = original_metadata.with_cacheable(decoration.cacheable);
                 metadata = Some(prepared_metadata);
+                let needs_interfaces =
+                    dnsmasq_rs::dns::local::interface_forward_name(&self.config, packet).is_some()
+                        || (decoration.cacheable
+                            && daemon.interface_query_needs_enumeration(packet, now_seconds()));
+                if needs_interfaces && !self.interfaces_enumerated {
+                    drop(parent);
+                    drop(event);
+                    self.enumerate_interface_records();
+                    if self.interface_work_pending() {
+                        self.pending_interface_udp = Some(PendingInterfaceUdp {
+                            token,
+                            udp,
+                            client,
+                            query,
+                            mac,
+                        });
+                    } else {
+                        // An early control failure keeps the old generation.
+                        self.process_udp(token, udp, client, query, mac);
+                    }
+                    return;
+                }
 
                 match daemon.local_udp_answer(packet, local, now_seconds()) {
                     Ok(Some(answer)) => Some((answer, false)),
@@ -2673,6 +3202,11 @@ impl SinglePoll {
         };
         drop(parent);
         if let Some((answer, stale)) = answer {
+            #[cfg(target_os = "linux")]
+            if let Ok(source) = udp.local_addr() {
+                self.dump
+                    .udp(dnsmasq_rs::dump::REPLY, &answer, source, client.source);
+            }
             let _ = udp.send(
                 &answer,
                 client.source,
@@ -2718,6 +3252,15 @@ impl SinglePoll {
                 .find(|target| target.token == token)
                 .and_then(|listener| listener.udp.as_ref())
             {
+                #[cfg(target_os = "linux")]
+                if let Ok(source) = target.local_addr() {
+                    self.dump.udp(
+                        dnsmasq_rs::dump::REPLY,
+                        &response.packet,
+                        source,
+                        response.destination,
+                    );
+                }
                 let _ = target.send(
                     &response.packet,
                     response.destination,
@@ -2779,6 +3322,15 @@ impl SinglePoll {
                 .find(|target| target.token == response_token)
                 .and_then(|target| target.udp.as_ref())
             {
+                #[cfg(target_os = "linux")]
+                if let Ok(source) = target.local_addr() {
+                    self.dump.udp(
+                        dnsmasq_rs::dump::REPLY,
+                        &response.packet,
+                        source,
+                        response.destination,
+                    );
+                }
                 let _ = target.send(
                     &response.packet,
                     response.destination,
@@ -2790,6 +3342,10 @@ impl SinglePoll {
     }
 
     fn step_tcp_accept(&mut self, index: usize) {
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if self.interface_work_pending() {
+            return;
+        }
         if self.files_initializing() {
             return;
         }
@@ -2844,6 +3400,33 @@ impl SinglePoll {
             ClientMacLookup::Ready(mac) => (mac, !mac_deferred),
             ClientMacLookup::Pending => (None, false),
         };
+        let pending = PendingInterfaceTcp {
+            stream,
+            peer,
+            local_network,
+            mac,
+            mac_ready,
+            mac_deferred,
+            accept_clock: now_seconds(),
+        };
+        self.enumerate_interface_records();
+        if self.interface_work_pending() {
+            self.pending_interface_tcp = Some(pending);
+            return;
+        }
+        self.finish_tcp_accept(pending);
+    }
+
+    fn finish_tcp_accept(&mut self, pending: PendingInterfaceTcp) {
+        let PendingInterfaceTcp {
+            stream,
+            peer,
+            local_network,
+            mac,
+            mac_ready,
+            mac_deferred,
+            accept_clock,
+        } = pending;
         let mut parent = match self.service.lock() {
             Ok(parent) => parent,
             Err(_) => return,
@@ -2856,9 +3439,22 @@ impl SinglePoll {
             parent.local.edns_packet_max,
         );
         snapshot.leases = Arc::clone(&parent.local.leases);
+        snapshot.interfaces = Arc::clone(&parent.local.interfaces);
         snapshot.local_network = local_network;
+        let cache_debug = DEBUG_MODE.load(Ordering::Relaxed);
+        let cache_view = (!cache_debug)
+            .then(|| {
+                parent
+                    .daemon
+                    .as_ref()
+                    .and_then(|daemon| daemon.tcp_cache_view())
+            })
+            .flatten();
+        let (cache_negative, cache_negative_ttl) = parent
+            .daemon
+            .as_ref()
+            .map_or((true, 0), |daemon| daemon.tcp_cache_parameters());
         let forward = if let Some(daemon) = &mut parent.daemon {
-            daemon.refresh_source_interface_indices();
             daemon.tcp_snapshot()
         } else {
             TcpDnsService::new(&self.config, &self.resolvers, self.edns_max)
@@ -2872,7 +3468,25 @@ impl SinglePoll {
             event.tcp_active = event.tcp_active.saturating_add(1);
         }
         self.clients.push(PollTcpClient {
-            stream,
+            #[cfg(target_os = "linux")]
+            log_context: (!cache_debug)
+                .then(|| {
+                    self.logger
+                        .as_ref()
+                        .map(dnsmasq_rs::logging::Logger::tcp_context)
+                })
+                .flatten(),
+            network_done: false,
+            stream: Some(stream),
+            cache_view,
+            cache_negative,
+            cache_negative_ttl,
+            cache_debug,
+            accept_clock,
+            cache_counters: Default::default(),
+            no_cache: false,
+            stale_query: None,
+            refreshing_stale: false,
             service: snapshot,
             forward,
             framer: TcpFramer::with_max_frame(self.packet_limit),
@@ -2887,6 +3501,7 @@ impl SinglePoll {
             mac_deferred,
             mac_deadline: Instant::now() + Duration::from_secs(3),
             packet_limit: self.packet_limit,
+            parent_cache_activity: false,
         });
     }
 
@@ -2911,15 +3526,20 @@ impl SinglePoll {
                 }
             }
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-            let result = {
+            let result = if self.clients[index].network_done {
+                Ok(false)
+            } else {
                 let neighbors = &mut self.neighbors;
                 self.clients[index].step(&self.service, &mut |source, lazy| {
                     lookup_edns_mac(neighbors, source, lazy)
                 })
             };
             #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
-            let result =
-                self.clients[index].step(&self.service, &mut |_, _| ClientMacLookup::Ready(None));
+            let result = if self.clients[index].network_done {
+                Ok(false)
+            } else {
+                self.clients[index].step(&self.service, &mut |_, _| ClientMacLookup::Ready(None))
+            };
             #[cfg(target_os = "linux")]
             if let Some(logger) = &mut self.logger {
                 use dnsmasq_rs::logging::{address_text, LogEvent, Priority, Service};
@@ -2927,13 +3547,42 @@ impl SinglePoll {
                     let mut message = b"TCP connection failed to ".to_vec();
                     message.extend_from_slice(&address_text(address));
                     message.extend_from_slice(format!("#{}", address.port()).as_bytes());
-                    logger.emit(LogEvent::new(Service::Debug, Priority::Debug, message));
+                    let event = LogEvent::new(Service::Debug, Priority::Debug, message);
+                    if let Some(context) = &mut self.clients[index].log_context {
+                        logger.emit_tcp(context, event);
+                    } else {
+                        logger.emit(event);
+                    }
                 }
             }
-            if result.unwrap_or(false) {
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            {
+                self.arp_awake |= std::mem::take(&mut self.clients[index].parent_cache_activity);
+            }
+            let network_alive = result.unwrap_or(false);
+            if !network_alive && !self.clients[index].network_done {
+                self.clients[index].network_done = true;
+                self.clients[index].stream.take();
+            }
+            #[cfg(target_os = "linux")]
+            let logs_done = if let (Some(logger), Some(context)) =
+                (&mut self.logger, &mut self.clients[index].log_context)
+            {
+                logger.flush_tcp_ready(context);
+                network_alive || logger.finish_tcp(context)
+            } else {
+                true
+            };
+            #[cfg(not(target_os = "linux"))]
+            let logs_done = true;
+            if network_alive || !logs_done {
                 index += 1;
             } else {
                 self.clients.swap_remove(index);
+                #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+                {
+                    self.arp_awake = true;
+                } // C parent receives the TCP child's SIGCHLD.
                 self.parent_events.lock().unwrap().tcp_active = self.clients.len();
             }
         }
@@ -2942,7 +3591,7 @@ impl SinglePoll {
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     fn wait_during_probe(
         &mut self,
-        icmp: &dnsmasq_rs::net::IcmpSocket,
+        icmp: Option<&dnsmasq_rs::net::IcmpSocket>,
         timeout: Duration,
         leases: dnsmasq_rs::dhcp::lease::LeaseCounters,
     ) -> io::Result<bool> {
@@ -2956,14 +3605,35 @@ impl SinglePoll {
         if let Some(logger) = &mut self.logger {
             logger.flush_ready();
         }
+        self.step_interface_collector();
         let full_deadline = Instant::now() + timeout;
         let mut deadline = full_deadline;
         let mut fds = vec![PollFd {
-            fd: icmp.as_raw_fd(),
+            fd: icmp.map_or(-1, |socket| socket.as_raw_fd()),
             events: POLLIN,
             revents: 0,
         }];
+        if let Some(fd) = self.dump.poll_fd() {
+            fds.push(PollFd {
+                fd,
+                events: POLLOUT,
+                revents: 0,
+            });
+        }
         if let Some(logger) = &self.logger {
+            for context in self
+                .clients
+                .iter()
+                .filter_map(|client| client.log_context.as_ref())
+            {
+                if let Some(fd) = logger.tcp_poll_fd(context) {
+                    fds.push(PollFd {
+                        fd,
+                        events: POLLOUT,
+                        revents: 0,
+                    });
+                }
+            }
             for fd in logger.poll_fds() {
                 fds.push(PollFd {
                     fd,
@@ -2994,19 +3664,28 @@ impl SinglePoll {
             deadline = daemon.append_poll_fds(&mut fds, deadline);
         }
         for client in &self.clients {
+            if client.network_done {
+                continue;
+            }
             deadline = deadline.min(client.deadline);
             let (fd, events) = match &client.phase {
                 TcpClientPhase::Reading => {
                     if client.input_offset < client.input.len() {
                         deadline = Instant::now();
                     }
-                    (client.stream.as_raw_fd(), POLLIN)
+                    (
+                        client.stream.as_ref().map_or(-1, AsRawFd::as_raw_fd),
+                        POLLIN,
+                    )
                 }
                 TcpClientPhase::WaitingMac { .. } => {
                     deadline = deadline.min(client.mac_deadline);
                     (-1, 0)
                 }
-                TcpClientPhase::Writing { .. } => (client.stream.as_raw_fd(), POLLOUT),
+                TcpClientPhase::Writing { .. } => (
+                    client.stream.as_ref().map_or(-1, AsRawFd::as_raw_fd),
+                    POLLOUT,
+                ),
                 TcpClientPhase::Forwarding { wait, .. } => {
                     deadline = deadline.min(wait.deadline);
                     (wait.fd, wait.events)
@@ -3025,12 +3704,22 @@ impl SinglePoll {
         if let Some(neighbors) = &self.neighbors {
             neighbors.append_poll_fds(&mut fds);
         }
+        if let Some(collector) = &self.interface_collector {
+            collector.append_poll_fds(&mut fds);
+            if let Some(limit) = collector.deadline() {
+                deadline = deadline.min(limit);
+            }
+            if collector.runnable() {
+                deadline = Instant::now();
+            }
+        }
         let remaining = deadline.saturating_duration_since(Instant::now());
         let millis = remaining
             .as_nanos()
             .div_ceil(1_000_000)
             .min(i32::MAX as u128) as i32;
         let ready = owrt_ubus::sys::poll_fds(&mut fds, millis)?;
+        self.step_interface_collector();
         // C's delay_dhcp does not consume inotify/route events. They remain
         // queued until the outer owner can apply all reload effects together.
         // Neither signals/reload nor another DHCP packet may reenter the
@@ -3195,6 +3884,9 @@ impl SinglePoll {
                                     message: "lease-init helper failed".into(),
                                 });
                             }
+                            Notice::CredentialError(code) => {
+                                self.helper_init_error = Some(helper.credential_failure(code));
+                            }
                             Notice::Error(code) if !helper.ready() => {
                                 self.helper_init_error = Some(StartError {
                                     code: 5,
@@ -3309,6 +4001,9 @@ impl SinglePoll {
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     fn step_dhcp(&mut self) {
         self.step_helper();
+        if self.interface_work_pending() {
+            return;
+        }
         if self.helper_init.is_some() || self.helper_init_error.is_some() {
             return;
         }
@@ -3328,6 +4023,11 @@ impl SinglePoll {
                 let _ = dhcp
                     .listener
                     .process_once_pxe_relay_only(|| STOP_REQUESTED.load(Ordering::Acquire));
+            }
+            if let Some(logger) = &mut self.logger {
+                for notice in dhcp.listener.take_network_notices() {
+                    logger.emit(notice);
+                }
             }
             self.dhcp = Some(dhcp);
             return;
@@ -3376,9 +4076,16 @@ impl SinglePoll {
             let mut sink = |kind, fields: DhcpEventFields<'_>, logging| {
                 events.lock().unwrap().notify_dhcp(kind, fields, logging)
             };
-            let mut wait = |socket: &dnsmasq_rs::net::IcmpSocket, duration, leases| {
-                self.wait_during_probe(socket, duration, leases)
-            };
+            let mut wait =
+                |socket: Option<&dnsmasq_rs::net::IcmpSocket>, duration, leases, notice| {
+                    if let Some(notice) = notice {
+                        if let Some(logger) = &mut self.logger {
+                            logger.emit(notice);
+                        }
+                        return Ok(true);
+                    }
+                    self.wait_during_probe(socket, duration, leases)
+                };
             let mut provider = provider.with_event_sink_and_wait(&mut sink, &mut wait);
             let has_pxe = dhcp.listener.has_pxe_listener();
             let mut selected = if dhcp.pxe_next && has_pxe {
@@ -3440,6 +4147,15 @@ impl SinglePoll {
         if let Some(error) = provider.take_probe_error() {
             eprintln!("dnsmasq-rs: DHCP conflict probe: {error}");
         }
+        if let Some(logger) = &mut self.logger {
+            for notice in provider
+                .take_network_notices()
+                .into_iter()
+                .chain(dhcp.listener.take_network_notices())
+            {
+                logger.emit(notice);
+            }
+        }
         if let Some(report) = provider.take_maintenance_report() {
             report_dhcp_maintenance(&report, self.logger.as_mut());
         }
@@ -3459,7 +4175,9 @@ impl SinglePoll {
             || RELOAD_REQUESTED.load(Ordering::Acquire) != 0
             || LOG_REOPEN_REQUESTED.load(Ordering::Acquire) != 0;
         let mut fds = Vec::new();
-        self.append_file_fds(&mut fds);
+        // A normal C TCP child owns its logger readiness. It does not wake
+        // the parent's ARP loop until cache import or its actual completion.
+        self.append_file_fds(&mut fds, false);
         for listener in &self.listeners {
             if let Some(udp) = &listener.udp {
                 fds.push(PollFd {
@@ -3512,6 +4230,18 @@ impl SinglePoll {
         }
         if let Some(tftp) = &self.tftp {
             tftp.append_poll_fds(&mut fds);
+            if tftp.active_transfers() != 0 {
+                // C's existing active-TFTP poll timer is at most 250ms.
+                let wake = self
+                    .tftp_parent_wake
+                    .get_or_insert(now + Duration::from_millis(250));
+                if now >= *wake {
+                    self.arp_awake = true;
+                    *wake = now + Duration::from_millis(250);
+                }
+            } else {
+                self.tftp_parent_wake = None;
+            }
         }
         if let Some(neighbors) = &self.neighbors {
             neighbors.append_poll_fds(&mut fds);
@@ -3759,10 +4489,6 @@ fn validate_runtime_ready(scalar: &ScalarConfig, dns: &DnsConfig) -> Result<(), 
         return Err(Error(
             "hostname-dependent local records are not implemented",
         ));
-    }
-    let defaults = ScalarConfig::default();
-    if scalar.max_ttl != defaults.max_ttl {
-        return Err(Error("scalar option is not implemented"));
     }
     Ok(())
 }

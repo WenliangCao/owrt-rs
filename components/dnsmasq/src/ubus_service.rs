@@ -39,12 +39,28 @@ impl std::error::Error for ConnectError {
     }
 }
 
+impl ConnectError {
+    /// ubus_add_object returns a protocol status; dnsmasq prints ubus_strerror
+    /// without the bridge's transport prefix or numeric status suffix.
+    pub fn registration_message(error: &io::Error) -> String {
+        let code = owrt_ubus::conn::error_status(error).unwrap_or_else(|| {
+            if error.kind() == io::ErrorKind::TimedOut {
+                status::TIMEOUT
+            } else {
+                status::CONNECTION_FAILED
+            }
+        });
+        format!("UBus error: {}", status::name(code))
+    }
+}
+
 pub struct UbusService {
     connection: Connection,
     main_id: u32,
     dns_id: u32,
     main_subscribed: bool,
     dns_subscribed: bool,
+    subscription_notices: Vec<bool>,
     buffer: BlobBuf,
 }
 
@@ -75,6 +91,7 @@ impl UbusService {
             dns_id,
             main_subscribed: false,
             dns_subscribed: false,
+            subscription_notices: Vec::new(),
             buffer: BlobBuf::new(),
         })
     }
@@ -91,12 +108,16 @@ impl UbusService {
         self.dns_subscribed
     }
 
-    /// Process one already-started message; return false if the socket is idle.
-    /// A started partial frame is bounded by the transport's 100 ms deadline.
+    pub fn take_subscription_notices(&mut self) -> Vec<bool> {
+        std::mem::take(&mut self.subscription_notices)
+    }
+
+    /// Process one complete message; a partial frame stays with the connection
+    /// until a later owner turn without waiting or changing socket flags.
     /// The borrowed counters come from the caller's engine, never a placeholder
     /// created for the ubus method. Unknown methods retain C's status code 3.
     pub fn process_one(&mut self, metrics: &Metrics) -> io::Result<bool> {
-        let Some(incoming) = self.connection.incoming_if_started()? else {
+        let Some(incoming) = self.connection.incoming_if_complete()? else {
             return Ok(false);
         };
         match incoming {
@@ -118,6 +139,7 @@ impl UbusService {
             Incoming::SubscribeState { objid, active } => {
                 if objid == self.main_id {
                     self.main_subscribed = active;
+                    self.subscription_notices.push(active);
                 } else if objid == self.dns_id {
                     self.dns_subscribed = active;
                 }

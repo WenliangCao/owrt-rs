@@ -5,10 +5,15 @@
 //! until their owning subsystem implements them.
 
 pub mod dhcp;
+pub mod dhcp_network;
 pub mod dhcp_pxe;
 pub mod dhcp_relay;
+pub mod dump;
 pub mod dns;
+pub mod domains;
 pub mod edns;
+pub mod interface_records;
+pub mod synth_domain;
 pub mod ethers;
 pub mod logging;
 #[cfg(unix)]

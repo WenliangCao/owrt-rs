@@ -41,7 +41,7 @@ pub fn append_positive_record(
         Kind::Ipv6 if entry.record.data.len() == 16 => 28,
         Kind::Ipv4 | Kind::Ipv6 => return Err(WireError::InvalidName),
         Kind::Generic(rrtype) => rrtype,
-        Kind::Cname | Kind::NxDomain => return Ok(false),
+        Kind::Cname | Kind::NxDomain | Kind::ReverseIpv4 | Kind::ReverseIpv6 => return Ok(false),
     };
     let ttl = entry.reply_ttl(now, cache.policy());
     if let Some(offset) = owner_offset {

@@ -8,20 +8,29 @@
 use super::lease_names::{BlockerKind, ForwardPublication, PublicationCache};
 use super::wire::Name;
 use std::collections::HashMap;
+use std::net::IpAddr;
 use std::sync::Arc;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Kind {
     Ipv4,
     Ipv6,
+    ReverseIpv4,
+    ReverseIpv6,
     Generic(u16),
     Cname,
     NxDomain,
 }
 
 impl Kind {
+    fn is_reverse(self) -> bool {
+        matches!(self, Self::ReverseIpv4 | Self::ReverseIpv6)
+    }
+
     fn conflicts(self, other: Self) -> bool {
-        self == other || self == Self::Cname || other == Self::Cname
+        !self.is_reverse()
+            && !other.is_reverse()
+            && (self == other || self == Self::Cname || other == Self::Cname)
     }
 
     fn matches(self, requested: Self) -> bool {
@@ -36,11 +45,37 @@ pub enum StalePolicy {
     Seconds(u32),
 }
 
+/// A cache sink receives authenticated source policy separately from query
+/// metadata support. CD/NO_CACHE still extract and remove old records.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum Extraction {
+    Unsupported,
+    ExtractOnly,
+    Commit,
+}
+
+impl Extraction {
+    pub fn from_source(
+        supported: bool,
+        no_cache: bool,
+        request_cd: bool,
+        upstream_cd: bool,
+    ) -> Self {
+        if !supported {
+            Self::Unsupported
+        } else if no_cache || request_cd || upstream_cd {
+            Self::ExtractOnly
+        } else {
+            Self::Commit
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct Policy {
-    pub min_ttl: u32,
-    pub max_ttl: u32,
-    pub max_reply_ttl: u32,
+    pub min_ttl: u64,
+    pub max_ttl: u64,
+    pub max_reply_ttl: u64,
     pub stale: StalePolicy,
 }
 
@@ -56,7 +91,7 @@ impl Default for Policy {
 }
 
 impl Policy {
-    pub fn cache_ttl(self, ttl: u32) -> u32 {
+    pub fn cache_ttl(self, ttl: u64) -> u64 {
         let ttl = if self.max_ttl != 0 {
             ttl.min(self.max_ttl)
         } else {
@@ -99,7 +134,7 @@ pub enum CnameTarget {
     Local(Arc<LocalTarget>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Record {
     pub name: Name,
     pub kind: Kind,
@@ -109,9 +144,11 @@ pub struct Record {
     pub data: Vec<u8>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Entry {
-    pub record: Record,
+    /// Record payloads are immutable after insertion. A TCP fork view shares
+    /// these bytes while owning its own expiry, links and generation state.
+    pub record: Arc<Record>,
     pub expires: i64,
     target: Option<CnameTarget>,
     authority_name: Option<Name>,
@@ -130,7 +167,7 @@ impl Entry {
         if policy.max_reply_ttl == 0 {
             ttl
         } else {
-            ttl.min(policy.max_reply_ttl)
+            u64::from(ttl).min(policy.max_reply_ttl) as u32
         }
     }
 
@@ -186,6 +223,7 @@ pub struct LocalCacheMatch {
     pub from_lease: bool,
 }
 
+#[derive(Clone)]
 struct Slot {
     entry: Option<Entry>,
     generation: u64,
@@ -196,10 +234,12 @@ struct Slot {
 /// Fixed number of records, with an index per name and an intrusive LRU of slot
 /// indices. Pending inserts are outside the LRU and invisible to lookups.
 /// Capacity is measured in records, including CNAME and negative records.
+#[derive(Clone)]
 pub struct Cache {
     policy: Policy,
     slots: Vec<Slot>,
     names: HashMap<Vec<u8>, Vec<usize>>,
+    reverse_chain: Vec<usize>,
     head: Option<usize>,
     tail: Option<usize>,
     pending: Vec<usize>,
@@ -209,6 +249,16 @@ pub struct Cache {
 }
 
 impl Cache {
+    /// C's nondebug TCP child inherits the accepted cache. Share immutable
+    /// payloads; mutable indices, pending insertions and LRU state are private.
+    /// The containing owner supplies the fixed accept clock separately.
+    pub fn snapshot(&self) -> Self {
+        self.clone()
+    }
+
+    pub fn set_max_reply_ttl(&mut self, maximum: u64) {
+        self.policy.max_reply_ttl = maximum;
+    }
     pub fn new(capacity: usize, mut policy: Policy) -> Self {
         // C represents a zero stale allowance as the option being disabled.
         if policy.stale == StalePolicy::Seconds(0) {
@@ -225,6 +275,7 @@ impl Cache {
                 })
                 .collect(),
             names: HashMap::new(),
+            reverse_chain: Vec::new(),
             head: (capacity > 0).then_some(0),
             tail: capacity.checked_sub(1),
             pending: Vec::new(),
@@ -250,6 +301,7 @@ impl Cache {
             slot.next = (index + 1 < capacity).then_some(index + 1);
         }
         self.names.clear();
+        self.reverse_chain.clear();
         self.pending.clear();
         self.failed = false;
         self.long_names = 0;
@@ -278,13 +330,102 @@ impl Cache {
     pub fn contains_forward_name(&self, name: &Name, now: i64) -> bool {
         self.names.get(&name.canonical_wire()).is_some_and(|slots| {
             slots.iter().any(|&slot| {
-                self.slots[slot]
-                    .entry
-                    .as_ref()
-                    .is_some_and(|entry| entry.record.kind != Kind::NxDomain)
-                    && !self.invalid(slot, now)
+                self.slots[slot].entry.as_ref().is_some_and(|entry| {
+                    entry.record.kind != Kind::NxDomain && !entry.record.kind.is_reverse()
+                }) && !self.invalid(slot, now)
             })
         })
+    }
+
+    /// Read-only candidate test used before local synthetic answers. This has
+    /// no LRU, expiry removal, or round-robin side effects. A matching CNAME
+    /// or NXDOMAIN marker is a candidate for every ordinary address query;
+    /// generic requests match any cached generic RR at the name.
+    pub fn has_forward_candidate(&self, name: &Name, rrtype: u16, now: i64) -> bool {
+        let Some(slots) = self.names.get(&name.canonical_wire()) else {
+            return false;
+        };
+        slots.iter().any(|&slot| {
+            let Some(entry) = self.slots[slot].entry.as_ref() else {
+                return false;
+            };
+            if self.invalid(slot, now) || entry.record.kind.is_reverse() {
+                return false;
+            }
+            match (rrtype, entry.record.kind) {
+                (255, Kind::NxDomain) => false,
+                (255, _) => true,
+                (1, Kind::Ipv4 | Kind::Cname | Kind::NxDomain) => true,
+                (28, Kind::Ipv6 | Kind::Cname | Kind::NxDomain) => true,
+                (12, Kind::Generic(12) | Kind::Cname | Kind::NxDomain) => true,
+                (requested, Kind::Generic(actual)) => requested == actual,
+                (_, Kind::Cname | Kind::NxDomain) => true,
+                _ => false,
+            }
+        })
+    }
+
+    /// A generic NX marker is inspected before local interface/synthetic
+    /// answers. Owners may defer an initial local answer into CacheContext so
+    /// that marker's cached SOA is retained by the final authority footer.
+    pub fn has_nxdomain(&self, name: &Name, now: i64) -> bool {
+        self.names.get(&name.canonical_wire()).is_some_and(|slots| {
+            slots.iter().any(|&slot| {
+                self.slots[slot].entry.as_ref().is_some_and(|entry| {
+                    entry.record.kind == Kind::NxDomain && entry.record.negative
+                }) && !self.invalid(slot, now)
+            })
+        })
+    }
+
+    /// Read-only reverse candidate test. The current cache stores generic PTR
+    /// and negative records by their reverse owner; positive IP-keyed reverse
+    /// records remain a separate capability. Keep this predicate side-effect
+    /// free so a local synthesizer can defer to normal cache lookup.
+    pub fn has_reverse_candidate(&self, address: IpAddr, now: i64) -> bool {
+        let (kind, bytes) = reverse_key(address);
+        self.reverse_chain.iter().any(|&slot| {
+            !self.invalid(slot, now)
+                && self.slots[slot]
+                    .entry
+                    .as_ref()
+                    .is_some_and(|entry| entry.record.kind == kind && entry.record.data == bytes)
+        }) || self.has_forward_candidate(&reverse_name(address), 12, now)
+    }
+
+    /// Follow a live dynamic CNAME chain without promoting or removing any
+    /// cache entry. The returned name is the terminal owner that the local
+    /// interface-record resolver may override before ordinary cached RDATA is
+    /// emitted. A broken, expired, or cyclic chain is not a terminal.
+    pub fn cname_terminal_name(&self, name: &Name, now: i64) -> Option<Name> {
+        let mut ids = self
+            .names
+            .get(&name.canonical_wire())?
+            .iter()
+            .map(|&slot| self.id(slot));
+        let mut id = ids.find(|id| {
+            self.get(*id).is_some_and(|entry| {
+                entry.record.kind == Kind::Cname && !self.invalid(id.slot, now)
+            })
+        })?;
+        for _ in 0..10 {
+            let entry = self.get(id)?;
+            if self.invalid(id.slot, now) {
+                return None;
+            }
+            match entry.cname_target()? {
+                CnameTarget::Local(target) => return Some(target.name.clone()),
+                CnameTarget::Dynamic(target) => {
+                    let target_entry = self.get(target)?;
+                    if target_entry.record.kind == Kind::Cname {
+                        id = target;
+                    } else {
+                        return Some(target_entry.record.name.clone());
+                    }
+                }
+            }
+        }
+        None
     }
 
     /// Check that a handle still refers to a live cache entry at `now`.
@@ -318,7 +459,7 @@ impl Cache {
     /// any other local conflict fails the entire insertion transaction.
     pub(super) fn insert_against_local(
         &mut self,
-        ttl: u32,
+        ttl: u64,
         same_address: bool,
     ) -> Result<(), InsertError> {
         self.check_local_insert(self.policy.cache_ttl(ttl) == 0, same_address)
@@ -361,6 +502,19 @@ impl Cache {
         ttl: u32,
         counters: &mut CacheCounters,
     ) -> Result<EntryId, InsertError> {
+        self.insert_ttl_counted(record, now, u64::from(ttl), counters)
+    }
+
+    /// Wide TTL is C's unsigned long. A wrapped negative int becomes a large
+    /// ulong whose time_t cast is negative, e.g. min-cache-ttl=-1 expires at
+    /// now-1. Do not saturate it into a far-future expiry.
+    pub fn insert_ttl_counted(
+        &mut self,
+        record: Record,
+        now: i64,
+        ttl: u64,
+        counters: &mut CacheCounters,
+    ) -> Result<EntryId, InsertError> {
         if self.failed {
             return Err(InsertError::PreviousFailure);
         }
@@ -368,7 +522,7 @@ impl Cache {
         if ttl == 0 && self.policy.stale == StalePolicy::Disabled {
             return self.fail(InsertError::ZeroTtl);
         }
-        let Some(expires) = now.checked_add(i64::from(ttl)) else {
+        let Some(expires) = now.checked_add(ttl as i64) else {
             return self.fail(InsertError::TimeOverflow);
         };
         self.insert_at_counted(record, now, expires, counters)
@@ -390,7 +544,20 @@ impl Cache {
         }
         let key = record.name.canonical_wire();
         let mut preserved = None;
-        if let Some(indices) = self.names.get(&key).cloned() {
+        if record.kind.is_reverse() {
+            // Reverse insertion scans all dynamic hash buckets and removes
+            // this IP's old RRset. Forward names and other IPs are independent.
+            for slot in 0..self.slots.len() {
+                if self.slots[slot].entry.as_ref().is_some_and(|entry| {
+                    entry.committed
+                        && (self.policy.expired(entry.expires, now)
+                            || (entry.record.kind == record.kind
+                                && entry.record.data == record.data))
+                }) {
+                    self.remove(slot);
+                }
+            }
+        } else if let Some(indices) = self.names.get(&key).cloned() {
             for slot in indices {
                 let entry = self.slots[slot].entry.as_ref().unwrap();
                 if record.kind.conflicts(entry.record.kind) {
@@ -429,9 +596,20 @@ impl Cache {
                 }
                 let victim_key = entry.record.name.canonical_wire();
                 let victim_kind = entry.record.kind;
-                // C spills the conflicting RRset, not only its oldest member.
-                for victim in self.names.get(&victim_key).cloned().unwrap_or_default() {
-                    if victim_kind.conflicts(self.slots[victim].entry.as_ref().unwrap().record.kind)
+                let victim_address = entry.record.data.clone();
+                // C spills the conflicting name/type or reverse-IP RRset,
+                // not only its oldest member.
+                let victims = if victim_kind.is_reverse() {
+                    self.reverse_chain.clone()
+                } else {
+                    self.names.get(&victim_key).cloned().unwrap_or_default()
+                };
+                for victim in victims {
+                    let entry = self.slots[victim].entry.as_ref().unwrap();
+                    if (victim_kind.is_reverse()
+                        && entry.record.kind == victim_kind
+                        && entry.record.data == victim_address)
+                        || victim_kind.conflicts(entry.record.kind)
                         || self.invalid(victim, now)
                     {
                         self.remove(victim);
@@ -458,7 +636,7 @@ impl Cache {
         }
         self.long_names += usize::from(long);
         self.slots[slot].entry = Some(Entry {
-            record,
+            record: Arc::new(record),
             expires,
             target: None,
             authority_name: None,
@@ -484,7 +662,7 @@ impl Cache {
         record: Record,
         now: i64,
         soa_ttl: Option<u32>,
-        configured_ttl: u32,
+        configured_ttl: u64,
     ) -> Result<Option<EntryId>, InsertError> {
         self.insert_negative_counted(
             record,
@@ -500,17 +678,20 @@ impl Cache {
         record: Record,
         now: i64,
         soa_ttl: Option<u32>,
-        configured_ttl: u32,
+        configured_ttl: u64,
         counters: &mut CacheCounters,
     ) -> Result<Option<EntryId>, InsertError> {
         if !record.negative {
             return Err(InsertError::NotNegative);
         }
-        let ttl = soa_ttl.or((configured_ttl != 0).then_some(configured_ttl));
+        let ttl = soa_ttl
+            .map(u64::from)
+            .or((configured_ttl != 0).then_some(configured_ttl));
         let Some(ttl) = ttl else {
             return Ok(None);
         };
-        self.insert_counted(record, now, ttl, counters).map(Some)
+        self.insert_ttl_counted(record, now, ttl, counters)
+            .map(Some)
     }
 
     /// Attach the owner of the independent SOA used for a negative answer.
@@ -605,12 +786,33 @@ impl Cache {
                 self.free(slot);
                 continue;
             }
+            let capacity = self.slots.len();
             let entry = self.slots[slot].entry.as_mut().unwrap();
             entry.committed = true;
             self.names
                 .entry(entry.record.name.canonical_wire())
                 .or_default()
                 .push(slot);
+            if entry.record.kind.is_reverse() {
+                let bucket = reverse_bucket(&entry.record.name, capacity);
+                let name = entry.record.name.clone();
+                let mut at = self.reverse_chain.partition_point(|&old| {
+                    reverse_bucket(
+                        &self.slots[old].entry.as_ref().unwrap().record.name,
+                        self.slots.len(),
+                    ) < bucket
+                });
+                while at < self.reverse_chain.len() {
+                    let old = self.slots[self.reverse_chain[at]].entry.as_ref().unwrap();
+                    if reverse_bucket(&old.record.name, self.slots.len()) != bucket
+                        || !old.record.name.eq_ignore_ascii_case(&name)
+                    {
+                        break;
+                    }
+                    at += 1;
+                }
+                self.reverse_chain.insert(at, slot);
+            }
             self.link_head(slot);
             counters.inserted = counters.inserted.wrapping_add(1);
             if let Some(records) = &mut capture {
@@ -768,6 +970,31 @@ impl Cache {
         }
     }
 
+    /// cache_find_by_addr scans every reverse hash prefix, removes expired
+    /// reverse records, and promotes matches. It never applies round-robin.
+    pub fn lookup_reverse(&mut self, address: IpAddr, now: i64) -> Vec<EntryId> {
+        let (kind, data) = reverse_key(address);
+        let mut found = Vec::new();
+        for slot in self.reverse_chain.clone() {
+            if self
+                .policy
+                .expired(self.slots[slot].entry.as_ref().unwrap().expires, now)
+            {
+                self.remove(slot);
+            } else if self.slots[slot]
+                .entry
+                .as_ref()
+                .is_some_and(|entry| entry.record.kind == kind && entry.record.data == data)
+            {
+                self.unlink(slot);
+                self.link_head(slot);
+                found.push(self.id(slot));
+            }
+        }
+        found.reverse();
+        found
+    }
+
     fn id(&self, slot: usize) -> EntryId {
         EntryId {
             slot,
@@ -794,6 +1021,7 @@ impl Cache {
     }
 
     fn remove(&mut self, slot: usize) {
+        self.reverse_chain.retain(|&entry| entry != slot);
         let key = self.slots[slot]
             .entry
             .as_ref()
@@ -849,6 +1077,84 @@ impl Cache {
             self.tail = Some(slot);
         }
         self.head = Some(slot);
+    }
+}
+
+/// extract_addresses clips only matching IN Answer records. Reverse PTR first
+/// scans matching PTRs; otherwise each CNAME target restarts the ordinary scan.
+/// The owner calls this for admitted upstream packets, after doctor and before
+/// filtering/client limits. Local records and Authority/Additional TTLs stay
+/// on their independent C paths. Preserve original full RCODE after OPT strip.
+pub fn clip_live_reply_ttls(
+    packet: &mut [u8],
+    maximum: u64,
+    original_rcode: u16,
+) -> Result<(), super::wire::WireError> {
+    use super::wire::{decode_name, Header, Question, RecordRef};
+    if maximum == 0 {
+        return Ok(());
+    }
+    let header = Header::parse(packet)?;
+    if header.questions != 1
+        || header.opcode() != 0
+        || !matches!(original_rcode, 0 | 3)
+        || header.flags & 0x200 != 0
+    {
+        return Ok(());
+    }
+    let question = Question::parse(packet, 12)?;
+    if question.class != 1 {
+        return Ok(());
+    }
+    let clip = |packet: &mut [u8], fixed: usize, ttl: u32| {
+        if u64::from(ttl) > maximum {
+            packet[fixed + 4..fixed + 8].copy_from_slice(&(maximum as u32).to_be_bytes());
+        }
+    };
+    if question.qtype == 12
+        && header.rcode() != 3
+        && super::local::arpa_address(&question.name.dnsmasq_bytes()).is_some()
+    {
+        let mut found = false;
+        let mut at = question.end;
+        for _ in 0..header.answers {
+            let rr = RecordRef::parse(packet, at)?;
+            at = rr.end;
+            if rr.class == 1 && rr.rrtype == 12 && rr.name()?.eq_ignore_ascii_case(&question.name) {
+                let (fixed, ttl) = (rr.fixed, rr.ttl);
+                clip(packet, fixed, ttl);
+                found = true;
+            }
+        }
+        if found {
+            return Ok(());
+        }
+    }
+    let mut current = question.name;
+    let mut remaining = 10;
+    'cname: loop {
+        let mut at = question.end;
+        for _ in 0..header.answers {
+            let rr = RecordRef::parse(packet, at)?;
+            at = rr.end;
+            if rr.class != 1 || !rr.name()?.eq_ignore_ascii_case(&current) {
+                continue;
+            }
+            let (fixed, ttl, kind) = (rr.fixed, rr.ttl, rr.rrtype);
+            clip(packet, fixed, ttl);
+            if kind == 5 {
+                if remaining == 0 {
+                    return Ok(());
+                }
+                remaining -= 1;
+                let (target, _) = decode_name(packet, fixed + 10, 0)?;
+                if question.qtype != 5 {
+                    current = target;
+                    continue 'cname;
+                }
+            }
+        }
+        return Ok(());
     }
 }
 
@@ -939,11 +1245,71 @@ impl PublicationCache for Cache {
         }
     }
 
-    fn reverse_owned(&mut self, _: std::net::Ipv4Addr) -> bool {
-        // This forward-only cache does not admit upstream PTR/reverse entries.
-        // Reverse-cache ownership must be implemented with that capability.
-        false
+    fn reverse_owned(&mut self, address: std::net::Ipv4Addr) -> bool {
+        // cache_add_dhcp_entry does not apply expiry at this ownership probe.
+        self.reverse_chain.iter().any(|&slot| {
+            let entry = self.slots[slot].entry.as_ref().unwrap();
+            entry.record.kind == Kind::ReverseIpv4 && entry.record.data == address.octets()
+        })
     }
+}
+
+fn reverse_key(address: IpAddr) -> (Kind, Vec<u8>) {
+    match address {
+        IpAddr::V4(address) => (Kind::ReverseIpv4, address.octets().to_vec()),
+        IpAddr::V6(address) => (Kind::ReverseIpv6, address.octets().to_vec()),
+    }
+}
+
+/// cache.c hashes names through the first four type/name pointer rows of
+/// typestr. Pointer bytes vary with the executable and ASLR; preserve its
+/// mixing algorithm and bucket/chain invariant using this executable's rows.
+fn reverse_bucket(name: &Name, capacity: usize) -> usize {
+    let mut size = 64usize;
+    while size < capacity / 10 {
+        size *= 2;
+    }
+    let mut mixer = [0u8; 64];
+    for (index, label) in [b"A\0".as_slice(), b"NS\0", b"MD\0", b"MF\0"]
+        .iter()
+        .enumerate()
+    {
+        mixer[index * 16..index * 16 + 4].copy_from_slice(&((index + 1) as u32).to_le_bytes());
+        mixer[index * 16 + 8..index * 16 + 16]
+            .copy_from_slice(&(label.as_ptr() as u64).to_le_bytes());
+    }
+    let mut value = 0o17465u32;
+    for byte in name.dnsmasq_bytes() {
+        let byte = byte.to_ascii_lowercase();
+        value = value.rotate_left(7).wrapping_add(u32::from(
+            mixer[(value.wrapping_add(u32::from(byte)) & 63) as usize] ^ byte,
+        ));
+    }
+    ((value ^ (value >> 16)) as usize) & (size - 1)
+}
+
+fn reverse_name(address: IpAddr) -> Name {
+    let dotted = match address {
+        IpAddr::V4(address) => {
+            let octets = address.octets();
+            format!(
+                "{}.{}.{}.{}.in-addr.arpa",
+                octets[3], octets[2], octets[1], octets[0]
+            )
+        }
+        IpAddr::V6(address) => {
+            address
+                .octets()
+                .iter()
+                .rev()
+                .flat_map(|byte| [byte & 0x0f, byte >> 4])
+                .map(|nibble| format!("{nibble:x}"))
+                .collect::<Vec<_>>()
+                .join(".")
+                + ".ip6.arpa"
+        }
+    };
+    Name::from_ascii(&dotted).expect("IP reverse name is always valid")
 }
 
 #[cfg(test)]

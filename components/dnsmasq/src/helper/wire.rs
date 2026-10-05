@@ -2,6 +2,9 @@
 use super::*;
 
 pub(super) const MAX_FRAME: usize = 65_536;
+// Exact image script_data occupies104B on its AArch64 helper command pipe.
+// Preserve that logical capacity because pressure changes the TERM prefix.
+const ARP_COMMAND_BYTES: usize = 104;
 
 fn bytes(out: &mut Vec<u8>, value: &[u8]) -> io::Result<()> {
     if value.len() > MAX_FRAME || out.len().saturating_add(value.len() + 4) > MAX_FRAME {
@@ -226,7 +229,11 @@ pub(super) fn decode(payload: &[u8]) -> io::Result<Event> {
         },
         _ => return Err(invalid()),
     };
-    if !input.0.is_empty() {
+    if !input.0.is_empty()
+        && !(matches!(event, Event::Arp { .. })
+            && payload.len() == ARP_COMMAND_BYTES - 4
+            && input.0.iter().all(|&byte| byte == 0))
+    {
         return Err(invalid());
     }
     let _ = invocation(&event)?;
@@ -298,9 +305,52 @@ pub(super) fn frame(payload: &[u8]) -> Vec<u8> {
     out
 }
 
+/// ARP commands have a fixed bounded layout. Construct their complete frame
+/// with one checked allocation so the owner can retain the record on ENOMEM.
+pub(super) fn arp_frame(added: bool, hardware: &[u8], address: IpAddr) -> io::Result<Vec<u8>> {
+    if hardware.len() > 16 {
+        return Err(invalid());
+    }
+    let mut out = Vec::new();
+    out.try_reserve_exact(ARP_COMMAND_BYTES)
+        .map_err(|_| io::Error::from_raw_os_error(12))?;
+    out.extend(((ARP_COMMAND_BYTES - 4) as u32).to_le_bytes());
+    out.extend([1, 1, u8::from(added)]);
+    bytes(&mut out, hardware)?;
+    ip(&mut out, address);
+    out.resize(ARP_COMMAND_BYTES, 0);
+    Ok(out)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::net::Ipv6Addr;
+    #[test]
+    fn checked_arp_frame_preserves_c_pipe_capacity_and_rejects_noncanonical_padding() {
+        for address in [
+            IpAddr::V4(Ipv4Addr::LOCALHOST),
+            IpAddr::V6(Ipv6Addr::LOCALHOST),
+        ] {
+            for length in [0, 1, 6, 16] {
+                let event = Event::Arp {
+                    added: true,
+                    hardware_address: vec![2; length],
+                    address,
+                };
+                let framed = arp_frame(true, &vec![2; length], address).unwrap();
+                let payload = encode(&event).unwrap();
+                assert_eq!(framed.len(), ARP_COMMAND_BYTES);
+                assert_eq!(&framed[4..4 + payload.len()], payload);
+                assert_eq!(decode(&framed[4..]).unwrap(), event);
+                let mut invalid_padding = framed.clone();
+                *invalid_padding.last_mut().unwrap() = 1;
+                assert!(decode(&invalid_padding[4..]).is_err());
+                assert!(decode(&framed[4..framed.len() - 1]).is_err());
+            }
+        }
+        assert!(arp_frame(true, &[0; 17], Ipv4Addr::LOCALHOST.into()).is_err());
+    }
     #[test]
     fn init_record_roundtrip_rejects_truncation_and_oversized_fields() {
         let mut record = crate::dhcp::lease_file::parse(

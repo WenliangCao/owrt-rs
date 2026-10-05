@@ -1,0 +1,940 @@
+{
+  "schema": 1,
+  "executable": true,
+  "qualification_ready": true,
+  "status": "ordinary-19-configurations-C-calibrated-and-repaired-candidate-paired",
+  "scope": "filterwin2k exact source rfc1035.c:2274-2279,2350-2355; no wire-level upstream RR filtering exists for this flag",
+  "source_identity": {
+    "rfc1035.c": "231f0b4989039ff4963f3916df22871dd13025dde65769465b2b3052ad807222",
+    "option.c": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
+    "cache.c": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c",
+    "forward.c": "ac05784d4233ed10bd166da5fe91e464afecf2883d3c2a0063305d3e81692f95"
+  },
+  "options": {
+    "filterwin2k": {
+      "eligible_for_closure": true,
+      "known_gaps": [],
+      "scenarios": [
+        "filterwin2k-enabled",
+        "filterwin2k-disabled",
+        "filterwin2k-short",
+        "filterwin2k-repeat",
+        "filterwin2k-opt-do0-rd0",
+        "filterwin2k-opt-do0-rd1",
+        "filterwin2k-opt-do1-rd0",
+        "filterwin2k-opt-do1-rd1",
+        "filterwin2k-configured-srv",
+        "filterwin2k-configured-raw",
+        "filterwin2k-configured-address-any",
+        "filterwin2k-configured-cname",
+        "filterwin2k-non-in",
+        "filterwin2k-local-domain",
+        "filterwin2k-cache-srv",
+        "filterwin2k-cache-soa",
+        "filterwin2k-cache-nx",
+        "filterwin2k-cache-any",
+        "filterwin2k-cache-cname"
+      ],
+      "source": [
+        "option.c:432",
+        "rfc1035.c:2274-2279,2350-2355"
+      ],
+      "checklist": [
+        {
+          "boundary": "CLI/Boolean parse and disabled control",
+          "checked": false,
+          "required_scenarios": [
+            "filterwin2k-enabled",
+            "filterwin2k-disabled",
+            "filterwin2k-short",
+            "filterwin2k-repeat"
+          ]
+        },
+        {
+          "boundary": "SOA unconditional; SRV/underscore ANY only after configured answers",
+          "checked": false,
+          "required_scenarios": [
+            "filterwin2k-enabled",
+            "filterwin2k-configured-srv",
+            "filterwin2k-configured-raw",
+            "filterwin2k-configured-address-any",
+            "filterwin2k-configured-cname"
+          ]
+        },
+        {
+          "boundary": "RD/DO/OPT and non-IN boundaries",
+          "checked": false,
+          "required_scenarios": [
+            "filterwin2k-opt-do0-rd0",
+            "filterwin2k-opt-do0-rd1",
+            "filterwin2k-opt-do1-rd0",
+            "filterwin2k-opt-do1-rd1",
+            "filterwin2k-non-in"
+          ]
+        },
+        {
+          "boundary": "Generic/address/NX/CNAME cache precedence and no upstream suppression on other types",
+          "checked": false,
+          "required_scenarios": [
+            "filterwin2k-cache-srv",
+            "filterwin2k-cache-soa",
+            "filterwin2k-cache-nx",
+            "filterwin2k-cache-any",
+            "filterwin2k-cache-cname"
+          ]
+        },
+        {
+          "boundary": "Local-only suffix and UDP/TCP same callers",
+          "checked": false,
+          "required_scenarios": [
+            "filterwin2k-local-domain",
+            "filterwin2k-enabled"
+          ]
+        }
+      ]
+    }
+  },
+  "scenarios": [
+    {
+      "id": "filterwin2k-enabled",
+      "options": [
+        "filterwin2k"
+      ],
+      "config": "filterwin2k\n",
+      "probes": [
+        {
+          "id": "soa",
+          "name": "soa.win.test",
+          "type": 6,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": []
+          }
+        },
+        {
+          "id": "srv",
+          "name": "_http._tcp.win.test",
+          "type": 33,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": []
+          }
+        },
+        {
+          "id": "any-underscore",
+          "name": "_any.win.test",
+          "type": 255,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": []
+          }
+        },
+        {
+          "id": "any-plain",
+          "name": "any.win.test",
+          "type": 255,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 1,
+            "answer_types": [
+              1
+            ]
+          }
+        },
+        {
+          "id": "a-underscore",
+          "name": "_a.win.test",
+          "type": 1,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 1,
+            "answer_types": [
+              1
+            ]
+          }
+        },
+        {
+          "id": "txt-underscore",
+          "name": "_txt.win.test",
+          "type": 16,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 1,
+            "answer_types": [
+              16
+            ]
+          }
+        }
+      ],
+      "cache_size": 0,
+      "strict_upstream_wire": true
+    },
+    {
+      "id": "filterwin2k-disabled",
+      "options": [
+        "filterwin2k"
+      ],
+      "config": "",
+      "probes": [
+        {
+          "id": "soa",
+          "name": "soa.win.test",
+          "type": 6,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 1,
+            "answer_types": [
+              6
+            ]
+          },
+          "records": [
+            {
+              "type": 6,
+              "hex": "026e730377696e0474657374000561646d696e0377696e047465737400000000010000003c0000003c000002580000001e"
+            }
+          ]
+        },
+        {
+          "id": "srv",
+          "name": "_http._tcp.win.test",
+          "type": 33,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 1,
+            "answer_types": [
+              33
+            ]
+          },
+          "records": [
+            {
+              "type": 33,
+              "hex": "000000000050067461726765740377696e047465737400"
+            }
+          ]
+        },
+        {
+          "id": "any",
+          "name": "_any.win.test",
+          "type": 255,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 1,
+            "answer_types": [
+              1
+            ]
+          }
+        }
+      ],
+      "cache_size": 0,
+      "strict_upstream_wire": true
+    },
+    {
+      "id": "filterwin2k-short",
+      "options": [
+        "filterwin2k"
+      ],
+      "config": "",
+      "probes": [
+        {
+          "id": "soa",
+          "name": "soa.win.test",
+          "type": 6,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": []
+          }
+        }
+      ],
+      "cache_size": 0,
+      "strict_upstream_wire": true,
+      "arguments": [
+        "-f"
+      ]
+    },
+    {
+      "id": "filterwin2k-repeat",
+      "options": [
+        "filterwin2k"
+      ],
+      "config": "filterwin2k\nfilterwin2k\n",
+      "probes": [
+        {
+          "id": "soa",
+          "name": "soa.win.test",
+          "type": 6,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": []
+          }
+        }
+      ],
+      "cache_size": 0,
+      "strict_upstream_wire": true
+    },
+    {
+      "id": "filterwin2k-opt-do0-rd0",
+      "options": [
+        "filterwin2k"
+      ],
+      "config": "filterwin2k\n",
+      "probes": [
+        {
+          "id": "soa",
+          "name": "soa.win.test",
+          "type": 6,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": []
+          },
+          "do": false,
+          "edns": true,
+          "query_flags": 0
+        },
+        {
+          "id": "srv",
+          "name": "srv.win.test",
+          "type": 33,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": []
+          },
+          "do": false,
+          "edns": true,
+          "query_flags": 0
+        },
+        {
+          "id": "any",
+          "name": "_any.win.test",
+          "type": 255,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": []
+          },
+          "do": false,
+          "edns": true,
+          "query_flags": 0
+        }
+      ],
+      "cache_size": 0,
+      "strict_upstream_wire": true
+    },
+    {
+      "id": "filterwin2k-opt-do0-rd1",
+      "options": [
+        "filterwin2k"
+      ],
+      "config": "filterwin2k\n",
+      "probes": [
+        {
+          "id": "soa",
+          "name": "soa.win.test",
+          "type": 6,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": []
+          },
+          "do": false,
+          "edns": true,
+          "query_flags": 256
+        },
+        {
+          "id": "srv",
+          "name": "srv.win.test",
+          "type": 33,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": []
+          },
+          "do": false,
+          "edns": true,
+          "query_flags": 256
+        },
+        {
+          "id": "any",
+          "name": "_any.win.test",
+          "type": 255,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": []
+          },
+          "do": false,
+          "edns": true,
+          "query_flags": 256
+        }
+      ],
+      "cache_size": 0,
+      "strict_upstream_wire": true
+    },
+    {
+      "id": "filterwin2k-opt-do1-rd0",
+      "options": [
+        "filterwin2k"
+      ],
+      "config": "filterwin2k\n",
+      "probes": [
+        {
+          "id": "soa",
+          "name": "soa.win.test",
+          "type": 6,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": []
+          },
+          "do": true,
+          "edns": true,
+          "query_flags": 0
+        },
+        {
+          "id": "srv",
+          "name": "srv.win.test",
+          "type": 33,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": []
+          },
+          "do": true,
+          "edns": true,
+          "query_flags": 0
+        },
+        {
+          "id": "any",
+          "name": "_any.win.test",
+          "type": 255,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": []
+          },
+          "do": true,
+          "edns": true,
+          "query_flags": 0
+        }
+      ],
+      "cache_size": 0,
+      "strict_upstream_wire": true
+    },
+    {
+      "id": "filterwin2k-opt-do1-rd1",
+      "options": [
+        "filterwin2k"
+      ],
+      "config": "filterwin2k\n",
+      "probes": [
+        {
+          "id": "soa",
+          "name": "soa.win.test",
+          "type": 6,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": []
+          },
+          "do": true,
+          "edns": true,
+          "query_flags": 256
+        },
+        {
+          "id": "srv",
+          "name": "srv.win.test",
+          "type": 33,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": []
+          },
+          "do": true,
+          "edns": true,
+          "query_flags": 256
+        },
+        {
+          "id": "any",
+          "name": "_any.win.test",
+          "type": 255,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": []
+          },
+          "do": true,
+          "edns": true,
+          "query_flags": 256
+        }
+      ],
+      "cache_size": 0,
+      "strict_upstream_wire": true
+    },
+    {
+      "id": "filterwin2k-configured-srv",
+      "options": [
+        "filterwin2k"
+      ],
+      "config": "filterwin2k\nsrv-host=_http._tcp.win.test,target.win.test,80\n",
+      "probes": [
+        {
+          "id": "srv",
+          "name": "_http._tcp.win.test",
+          "type": 33,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": [
+              33
+            ]
+          }
+        },
+        {
+          "id": "any",
+          "name": "_http._tcp.win.test",
+          "type": 255,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": [
+              33
+            ]
+          }
+        }
+      ],
+      "cache_size": 0,
+      "strict_upstream_wire": true
+    },
+    {
+      "id": "filterwin2k-configured-raw",
+      "options": [
+        "filterwin2k"
+      ],
+      "config": "filterwin2k\ndns-rr=raw.win.test,6,026e730377696e0474657374000561646d696e0377696e047465737400000000010000003c0000003c000002580000001e\ndns-rr=rawsrv.win.test,33,000000000050067461726765740377696e047465737400\n",
+      "probes": [
+        {
+          "id": "soa",
+          "name": "raw.win.test",
+          "type": 6,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": [
+              6
+            ]
+          }
+        },
+        {
+          "id": "srv",
+          "name": "rawsrv.win.test",
+          "type": 33,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": [
+              33
+            ]
+          }
+        }
+      ],
+      "cache_size": 0,
+      "strict_upstream_wire": true
+    },
+    {
+      "id": "filterwin2k-configured-address-any",
+      "options": [
+        "filterwin2k"
+      ],
+      "config": "filterwin2k\nhost-record=_a.win.test,192.0.2.33\n",
+      "probes": [
+        {
+          "id": "any",
+          "name": "_a.win.test",
+          "type": 255,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": [
+              1
+            ]
+          }
+        },
+        {
+          "id": "soa",
+          "name": "_a.win.test",
+          "type": 6,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": []
+          }
+        }
+      ],
+      "cache_size": 0,
+      "strict_upstream_wire": true
+    },
+    {
+      "id": "filterwin2k-configured-cname",
+      "options": [
+        "filterwin2k"
+      ],
+      "config": "filterwin2k\ncname=alias.win.test,target.win.test\nhost-record=target.win.test,192.0.2.33\n",
+      "probes": [
+        {
+          "id": "soa",
+          "name": "alias.win.test",
+          "type": 6,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": [
+              5
+            ]
+          }
+        },
+        {
+          "id": "srv",
+          "name": "alias.win.test",
+          "type": 33,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": [
+              5
+            ]
+          }
+        }
+      ],
+      "cache_size": 0,
+      "strict_upstream_wire": true
+    },
+    {
+      "id": "filterwin2k-non-in",
+      "options": [
+        "filterwin2k"
+      ],
+      "config": "filterwin2k\n",
+      "probes": [
+        {
+          "id": "soa",
+          "name": "soa.win.test",
+          "type": 6,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 1,
+            "answer_types": [
+              6
+            ]
+          },
+          "class": 3,
+          "records": [
+            {
+              "type": 6,
+              "hex": "026e730377696e0474657374000561646d696e0377696e047465737400000000010000003c0000003c000002580000001e",
+              "class": 3
+            }
+          ]
+        },
+        {
+          "id": "srv",
+          "name": "srv.win.test",
+          "type": 33,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 1,
+            "answer_types": [
+              33
+            ]
+          },
+          "class": 3,
+          "records": [
+            {
+              "type": 33,
+              "hex": "000000000050067461726765740377696e047465737400",
+              "class": 3
+            }
+          ]
+        }
+      ],
+      "cache_size": 0,
+      "strict_upstream_wire": true
+    },
+    {
+      "id": "filterwin2k-local-domain",
+      "options": [
+        "filterwin2k"
+      ],
+      "config": "filterwin2k\nlocal=/win.test/\n",
+      "probes": [
+        {
+          "id": "soa",
+          "name": "missing.win.test",
+          "type": 6,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": []
+          }
+        },
+        {
+          "id": "srv",
+          "name": "missing.win.test",
+          "type": 33,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": []
+          }
+        }
+      ],
+      "cache_size": 0,
+      "strict_upstream_wire": true
+    },
+    {
+      "id": "filterwin2k-cache-srv",
+      "options": [
+        "filterwin2k"
+      ],
+      "config": "filterwin2k\ncache-rr=SOA,SRV\n",
+      "probes": [
+        {
+          "id": "seed",
+          "name": "_cache.win.test",
+          "type": 1,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 1
+          },
+          "records": [
+            {
+              "type": 1,
+              "address": "192.0.2.10"
+            },
+            {
+              "type": 33,
+              "hex": "000000000050067461726765740377696e047465737400"
+            }
+          ],
+          "transports": [
+            "udp"
+          ],
+          "pair_start": "srv"
+        },
+        {
+          "id": "replay",
+          "name": "_cache.win.test",
+          "type": 33,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": []
+          }
+        },
+        {
+          "id": "do-replay",
+          "name": "_cache.win.test",
+          "type": 33,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": []
+          },
+          "do": true,
+          "pair_end": "srv"
+        }
+      ],
+      "cache_size": 32,
+      "strict_upstream_wire": true
+    },
+    {
+      "id": "filterwin2k-cache-soa",
+      "options": [
+        "filterwin2k"
+      ],
+      "config": "filterwin2k\ncache-rr=SOA,SRV\n",
+      "probes": [
+        {
+          "id": "seed",
+          "name": "_cache.win.test",
+          "type": 1,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 1
+          },
+          "records": [
+            {
+              "type": 1,
+              "address": "192.0.2.10"
+            },
+            {
+              "type": 6,
+              "hex": "026e730377696e0474657374000561646d696e0377696e047465737400000000010000003c0000003c000002580000001e"
+            }
+          ],
+          "transports": [
+            "udp"
+          ],
+          "pair_start": "soa"
+        },
+        {
+          "id": "replay",
+          "name": "_cache.win.test",
+          "type": 6,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": []
+          },
+          "pair_end": "soa"
+        }
+      ],
+      "cache_size": 32,
+      "strict_upstream_wire": true
+    },
+    {
+      "id": "filterwin2k-cache-nx",
+      "options": [
+        "filterwin2k"
+      ],
+      "config": "filterwin2k\ncache-rr=SOA,SRV\n",
+      "probes": [
+        {
+          "id": "seed",
+          "name": "_cache.win.test",
+          "type": 1,
+          "c_expect": {
+            "rcode": 3,
+            "upstream_count": 1
+          },
+          "rcode": 3,
+          "records": [
+            {
+              "type": 6,
+              "owner": "win.test",
+              "section": "authority",
+              "hex": "026e730377696e0474657374000561646d696e0377696e047465737400000000010000003c0000003c000002580000001e"
+            }
+          ],
+          "transports": [
+            "udp"
+          ],
+          "pair_start": "nx"
+        },
+        {
+          "id": "replay",
+          "name": "_cache.win.test",
+          "type": 33,
+          "c_expect": {
+            "rcode": 3,
+            "upstream_count": 0,
+            "answer_types": []
+          },
+          "pair_end": "nx"
+        }
+      ],
+      "cache_size": 32,
+      "strict_upstream_wire": true
+    },
+    {
+      "id": "filterwin2k-cache-any",
+      "options": [
+        "filterwin2k"
+      ],
+      "config": "filterwin2k\ncache-rr=SOA,SRV\n",
+      "probes": [
+        {
+          "id": "seed",
+          "name": "_cache.win.test",
+          "type": 1,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 1
+          },
+          "transports": [
+            "udp"
+          ],
+          "pair_start": "any"
+        },
+        {
+          "id": "replay",
+          "name": "_cache.win.test",
+          "type": 255,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": []
+          },
+          "pair_end": "any"
+        }
+      ],
+      "cache_size": 32,
+      "strict_upstream_wire": true
+    },
+    {
+      "id": "filterwin2k-cache-cname",
+      "options": [
+        "filterwin2k"
+      ],
+      "config": "filterwin2k\ncache-rr=SOA,SRV\n",
+      "probes": [
+        {
+          "id": "seed",
+          "name": "_cache.win.test",
+          "type": 1,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 1
+          },
+          "records": [
+            {
+              "type": 5,
+              "target": "target.win.test"
+            },
+            {
+              "type": 1,
+              "owner": "target.win.test",
+              "address": "192.0.2.10"
+            }
+          ],
+          "transports": [
+            "udp"
+          ],
+          "pair_start": "cname"
+        },
+        {
+          "id": "soa-replay",
+          "name": "_cache.win.test",
+          "type": 6,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": [
+              5
+            ]
+          }
+        },
+        {
+          "id": "srv-replay",
+          "name": "_cache.win.test",
+          "type": 33,
+          "c_expect": {
+            "rcode": 0,
+            "upstream_count": 0,
+            "answer_types": [
+              5
+            ]
+          },
+          "pair_end": "cname"
+        }
+      ],
+      "cache_size": 32,
+      "strict_upstream_wire": true
+    }
+  ]
+}

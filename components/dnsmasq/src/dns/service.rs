@@ -168,6 +168,7 @@ pub struct LocalDnsService {
     pub hosts: Hosts,
     /// A completed publication. Existing TCP children retain their snapshot.
     pub leases: Arc<LeaseNames>,
+    pub interfaces: Arc<super::interface_records::InterfaceRecords>,
     pub local_ttl: u32,
     pub max_udp: usize,
     pub edns_packet_max: u16,
@@ -198,6 +199,7 @@ impl LocalDnsService {
             config,
             hosts,
             leases: Arc::new(LeaseNames::default()),
+            interfaces: Arc::new(super::interface_records::InterfaceRecords::default()),
             local_ttl,
             max_udp: receive_limit.max(512),
             edns_packet_max,
@@ -238,12 +240,13 @@ impl LocalDnsService {
             local_ttl: self.local_ttl,
             max_packet: limit,
         };
-        let Some(mut answer) = answerer.answer_on_network_with_cache(
+        let Some(mut answer) = answerer.answer_on_network_with_interface_cache(
             query,
             &mut self.leases,
             now,
             self.local_network,
             cache,
+            &self.interfaces,
         )?
         else {
             return Ok(None);
@@ -294,12 +297,13 @@ impl LocalDnsService {
             local_ttl: self.local_ttl,
             max_packet: u16::MAX as usize,
         };
-        let Some(answer) = answerer.answer_on_network_with_cache(
+        let Some(answer) = answerer.answer_on_network_with_interface_cache(
             query,
             &mut self.leases,
             now,
             self.local_network,
             cache,
+            &self.interfaces,
         )?
         else {
             return Ok(None);

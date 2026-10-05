@@ -75,6 +75,13 @@ struct Dump {
     entries: BTreeMap<Key, Vec<u8>>,
     edns: Vec<EdnsRecord>,
 }
+#[derive(Clone, Copy, Eq, PartialEq)]
+enum EdnsWaiter {
+    Pending,
+    /// The dump completed, but its negative record could not be allocated.
+    /// Resume the current lookup once without inventing a cached absence.
+    UncachedAbsent,
+}
 pub struct NeighborCache {
     socket: OwnedFd,
     sequence: u32,
@@ -84,7 +91,7 @@ pub struct NeighborCache {
     refreshed: Option<u64>,
     dump: Option<Dump>,
     edns_records: Vec<EdnsRecord>,
-    edns_waiting: BTreeSet<IpAddr>,
+    edns_waiting: BTreeMap<IpAddr, EdnsWaiter>,
     old_records: Vec<EdnsRecord>,
     script_arp: bool,
 }
@@ -116,7 +123,7 @@ impl NeighborCache {
             refreshed: None,
             dump: None,
             edns_records: Vec::new(),
-            edns_waiting: BTreeSet::new(),
+            edns_waiting: BTreeMap::new(),
             old_records: Vec::new(),
             script_arp: false,
         })
@@ -276,8 +283,12 @@ impl NeighborCache {
         // A nonlazy accept may have started a refresh of a fresh negative.
         // Its lazy owner resume must wait for that snapshot, rather than
         // capturing the old absence for the entire TCP connection.
-        if self.edns_waiting.contains(&address) {
-            return EdnsMacLookup::Pending;
+        if let Some(state) = self.edns_waiting.get(&address).copied() {
+            if state == EdnsWaiter::Pending {
+                return EdnsMacLookup::Pending;
+            }
+            self.edns_waiting.remove(&address);
+            return EdnsMacLookup::Ready(None);
         }
         if self
             .refreshed
@@ -305,10 +316,10 @@ impl NeighborCache {
         {
             return EdnsMacLookup::Ready(None);
         }
-        if self.edns_waiting.len() >= MAX_WAITERS && !self.edns_waiting.contains(&address) {
+        if self.edns_waiting.len() >= MAX_WAITERS && !self.edns_waiting.contains_key(&address) {
             return EdnsMacLookup::Ready(None);
         }
-        self.edns_waiting.insert(address);
+        self.edns_waiting.insert(address, EdnsWaiter::Pending);
         if self.refresh(now).is_err() {
             self.fail_waiters(now);
             return EdnsMacLookup::Ready(None);
@@ -363,11 +374,12 @@ impl NeighborCache {
             }
         }
         self.edns_records = records;
-        for address in std::mem::take(&mut self.edns_waiting) {
+        let mut waiting = std::mem::take(&mut self.edns_waiting);
+        waiting.retain(|address, state| {
             if !self
                 .edns_records
                 .iter()
-                .any(|record| record.address == address)
+                .any(|record| record.address == *address)
             {
                 if self
                     .edns_records
@@ -391,25 +403,28 @@ impl NeighborCache {
                             .try_reserve_exact(self.edns_records.len() + 1)
                             .is_err())
                 {
-                    continue;
+                    *state = EdnsWaiter::UncachedAbsent;
+                    return true;
                 }
                 self.edns_records.insert(
                     0,
                     EdnsRecord {
-                        address,
+                        address: *address,
                         hardware_address: Vec::new(),
                         status: RecordStatus::Empty,
                     },
                 );
             }
-        }
+            false
+        });
+        self.edns_waiting = waiting;
         if !self.script_arp {
             self.discard_script_changes();
         }
     }
     fn fail_waiters(&mut self, now: u64) {
         self.dump = None;
-        for address in std::mem::take(&mut self.edns_waiting) {
+        for (address, _) in std::mem::take(&mut self.edns_waiting) {
             self.remember_absent((address, 0), now.saturating_add(1));
         }
         for key in std::mem::take(&mut self.waiting) {
@@ -685,7 +700,7 @@ mod tests {
             refreshed: None,
             dump: None,
             edns_records: Vec::new(),
-            edns_waiting: BTreeSet::new(),
+            edns_waiting: BTreeMap::new(),
             old_records: Vec::new(),
             script_arp: false,
         }
@@ -738,7 +753,7 @@ mod tests {
     fn edns_negative_accept_refresh_and_owner_failure_are_nonblocking() {
         let mut cache = cache_without_network();
         let address = "192.0.2.18".parse().unwrap();
-        cache.edns_waiting.insert(address);
+        cache.edns_waiting.insert(address, EdnsWaiter::Pending);
         cache.publish_edns(Vec::new());
         cache.refreshed = Some(1);
         assert_eq!(
@@ -758,10 +773,10 @@ mod tests {
     fn lazy_resume_waits_for_the_accepts_negative_refresh() {
         let mut cache = cache_without_network();
         let address = "192.0.2.18".parse().unwrap();
-        cache.edns_waiting.insert(address);
+        cache.edns_waiting.insert(address, EdnsWaiter::Pending);
         cache.publish_edns(Vec::new());
         cache.refreshed = Some(1);
-        cache.edns_waiting.insert(address);
+        cache.edns_waiting.insert(address, EdnsWaiter::Pending);
         assert_eq!(cache.query_edns(address, true, 2), EdnsMacLookup::Pending);
         cache.publish_edns(vec![EdnsRecord {
             address,
@@ -854,5 +869,27 @@ mod tests {
         assert!(cache.dump.is_none());
         assert_eq!(cache.refreshed, Some(1));
         assert!(cache.refresh_script_arp(92, true).is_err());
+    }
+
+    #[test]
+    fn failed_negative_record_resumes_once_without_caching_the_absence() {
+        let mut cache = cache_without_network();
+        let address = "192.0.2.18".parse().unwrap();
+        cache
+            .edns_waiting
+            .insert(address, EdnsWaiter::UncachedAbsent);
+        assert_eq!(
+            cache.query_edns(address, true, 1),
+            EdnsMacLookup::Ready(None)
+        );
+        assert!(cache.edns_waiting.is_empty());
+        assert_eq!(cache.sequence, 0);
+        // The next lazy caller must enumerate again, as find_mac(updated=0)
+        // does after C's negative whine_malloc failure.
+        assert_eq!(
+            cache.query_edns(address, true, 1),
+            EdnsMacLookup::Ready(None)
+        );
+        assert_eq!(cache.sequence, 1);
     }
 }

@@ -78,10 +78,12 @@ pub(crate) struct LocalAnswer {
 
 #[derive(Clone, Copy)]
 struct LeaseView<'a> {
+    synth: &'a crate::config::synth_domain::SynthConfig,
     names: &'a LeaseNames,
     now: i64,
     local_ttl: u32,
     local_network: Option<(Ipv4Addr, Ipv4Addr)>,
+    interfaces: &'a super::interface_records::InterfaceRecords,
 }
 
 impl<'a> LocalAnswerer<'a> {
@@ -134,6 +136,25 @@ impl<'a> LocalAnswerer<'a> {
         local_network: Option<(Ipv4Addr, Ipv4Addr)>,
         cache: Option<&mut Cache>,
     ) -> Result<Option<LocalAnswer>, AnswerError> {
+        self.answer_on_network_with_interface_cache(
+            query,
+            lease_names,
+            now,
+            local_network,
+            cache,
+            &super::interface_records::InterfaceRecords::default(),
+        )
+    }
+
+    pub(crate) fn answer_on_network_with_interface_cache(
+        &mut self,
+        query: &[u8],
+        lease_names: &mut Arc<LeaseNames>,
+        now: i64,
+        local_network: Option<(Ipv4Addr, Ipv4Addr)>,
+        mut cache: Option<&mut Cache>,
+        interfaces: &super::interface_records::InterfaceRecords,
+    ) -> Result<Option<LocalAnswer>, AnswerError> {
         let header = Header::parse(query).map_err(|_| AnswerError::Malformed)?;
         if header.opcode() != 0
             || header.flags & 0x8000 != 0
@@ -150,6 +171,17 @@ impl<'a> LocalAnswerer<'a> {
         // itself remains class-IN only; a non-IN query can therefore receive
         // the local-only NXDOMAIN/NOERROR boundary but never an A/TXT/etc RR.
         let class_in = question.class == CLASS_IN;
+        // answer_request inspects the NX prefix before interface addresses.
+        // Defer this local answer to CacheContext so its SOA footer survives.
+        if class_in
+            && matches!(question.qtype, TYPE_A | TYPE_AAAA)
+            && interfaces.declared(&question.name.dnsmasq_bytes())
+            && cache
+                .as_deref()
+                .is_some_and(|cache| cache.has_nxdomain(&question.name, now))
+        {
+            return Ok(None);
+        }
         if class_in {
             expire_lease_lookups(
                 self.config,
@@ -161,15 +193,18 @@ impl<'a> LocalAnswerer<'a> {
         }
         let leases = LeaseView {
             names: lease_names,
+            synth: &self.config.synth_domains,
             now,
             local_ttl: self.local_ttl,
             local_network,
+            interfaces,
         };
 
         let key = question.name.canonical_wire();
         let mut rows: Vec<(u16, u32, Vec<u8>)> = Vec::new();
         let mut extra_rows: Vec<(Vec<u8>, u16, u32, Vec<u8>)> = Vec::new();
         let mut owned = false;
+        let mut windows_filtered = false;
 
         // CNAME processing runs before every other local record path in C.
         // Once an alias is found, its own address/TXT/etc. records are not
@@ -190,6 +225,7 @@ impl<'a> LocalAnswerer<'a> {
                 &question.name,
                 question.qtype,
                 leases,
+                cache.as_deref_mut(),
                 &mut rows,
                 &mut extra_rows,
             );
@@ -202,25 +238,50 @@ impl<'a> LocalAnswerer<'a> {
                     question.qtype,
                     self.local_ttl,
                     leases,
+                    cache.as_deref(),
                 );
                 rows.extend(local_rows);
                 owned = local_owned;
             }
         }
 
+        // rfc1035.c suppresses SOA after configured records, before generic
+        // cache lookup. SRV and underscore ANY are suppressed only on a miss.
+        // A cache candidate defers that decision to its actual lookup caller.
+        if class_in && self.config.filter_win2k && !owned {
+            let do_bit = super::wire::find_pseudoheader(query, true)?
+                .opt
+                .is_some_and(|opt| opt.dnssec_ok());
+            let cache_candidate = !do_bit
+                && header.flags & 0x0100 != 0
+                && cache.as_deref().is_some_and(|cache| {
+                    if question.qtype == 6 {
+                        cache.cname_terminal_name(&question.name, now).is_some()
+                    } else if question.qtype == 255 {
+                        cache.cname_terminal_name(&question.name, now).is_some()
+                            || cache.has_nxdomain(&question.name, now)
+                    } else {
+                        cache.has_forward_candidate(&question.name, question.qtype, now)
+                            || cache.has_nxdomain(&question.name, now)
+                    }
+                });
+            if !cache_candidate && filter_win2k_question(&question.name, question.qtype) {
+                owned = true;
+                windows_filtered = true;
+            }
+        }
+
         // rfc1035.c answer_request refuses to forward CHAOS identity names
         // even in this image's NO_ID build, where no built-in TXT exists.
-        let notimp = question.class == 3
-            && !owned
-            && {
-                let name = question.name.dnsmasq_bytes().to_ascii_lowercase();
-                [b"bind".as_slice(), b"server"].iter().any(|suffix| {
-                    name == *suffix
-                        || name
-                            .strip_suffix(*suffix)
-                            .is_some_and(|prefix| prefix.ends_with(b"."))
-                })
-            };
+        let notimp = question.class == 3 && !owned && {
+            let name = question.name.dnsmasq_bytes().to_ascii_lowercase();
+            [b"bind".as_slice(), b"server"].iter().any(|suffix| {
+                name == *suffix
+                    || name
+                        .strip_suffix(*suffix)
+                        .is_some_and(|prefix| prefix.ends_with(b"."))
+            })
+        };
         owned |= notimp;
 
         // A configured/local record owns the query before address rules. A
@@ -264,7 +325,7 @@ impl<'a> LocalAnswerer<'a> {
         // an upstream server.
         let flags = 0x8000
             | 0x0080
-            | if rows.is_empty() && extra_rows.is_empty() {
+            | if !windows_filtered && rows.is_empty() && extra_rows.is_empty() {
                 0
             } else {
                 0x0400
@@ -364,6 +425,10 @@ impl<'a> LocalAnswerer<'a> {
             forward_rule: rule_owned || local_only,
         }))
     }
+}
+
+pub(crate) fn filter_win2k_question(name: &Name, rrtype: u16) -> bool {
+    matches!(rrtype, 6 | 33) || (rrtype == 255 && name.dnsmasq_bytes().contains(&b'_'))
 }
 
 struct MailTarget {
@@ -688,6 +753,7 @@ fn add_cname_chain(
     alias: &Name,
     qtype: u16,
     leases: LeaseView<'_>,
+    cache: Option<&mut Cache>,
     rows: &mut Vec<(u16, u32, Vec<u8>)>,
     extra_rows: &mut Vec<(Vec<u8>, u16, u32, Vec<u8>)>,
 ) -> bool {
@@ -730,8 +796,15 @@ fn add_cname_chain(
         current = record.target.clone();
     }
 
-    let (terminal_rows, _terminal_owned) =
-        add_local_records_for_name(config, hosts, &current, qtype, ttl, leases);
+    let (terminal_rows, _terminal_owned) = add_local_records_for_name(
+        config,
+        hosts,
+        &current,
+        qtype,
+        ttl,
+        leases,
+        cache.as_deref(),
+    );
     let owner = wire_name(&current).unwrap_or_else(|| vec![0]);
     for (rrtype, record_ttl, data) in terminal_rows {
         extra_rows.push((owner.clone(), rrtype, record_ttl, data));
@@ -751,10 +824,12 @@ fn add_local_records_for_name(
     qtype: u16,
     ttl: u32,
     leases: LeaseView<'_>,
+    cache: Option<&Cache>,
 ) -> (Vec<(u16, u32, Vec<u8>)>, bool) {
     let key = dotted_key(name);
     let mut rows = Vec::new();
     let mut owned = false;
+    let mut synthetic_reverse_name = None;
 
     // answer_request emits configured TXT/raw/PTR before address records.
     add_typed_records(
@@ -768,9 +843,15 @@ fn add_local_records_for_name(
     );
     add_raw(&config.records.raw, &key, qtype, ttl, &mut rows, &mut owned);
     if qtype == TYPE_PTR || qtype == 255 {
-        let mut explicit_ptr = false;
+        let interface_ptr =
+            arpa_address(name).and_then(|address| leases.interfaces.reverse(address));
+        if let Some(target) = interface_ptr {
+            owned = true;
+            rows.push((TYPE_PTR, ttl, wire_name(target).unwrap_or_else(|| vec![0])));
+        }
+        let mut explicit_ptr = interface_ptr.is_some();
         for record in config.records.ptr.iter().rev() {
-            if dotted_key(&record.name) == key {
+            if interface_ptr.is_none() && dotted_key(&record.name) == key {
                 explicit_ptr = true;
                 owned = true;
                 rows.push((
@@ -802,9 +883,26 @@ fn add_local_records_for_name(
                     lease.ttl(leases.now, leases.names.policy()),
                     wire_name(&lease.name).unwrap_or_else(|| vec![0]),
                 ));
+            } else if let Some(address) = address {
+                if !cache.is_some_and(|cache| cache.has_reverse_candidate(address, leases.now)) {
+                    if let Some(name) = leases.synth.reverse(address) {
+                        owned = true;
+                        rows.push((TYPE_PTR, ttl, wire_name(&name).unwrap_or_else(|| vec![0])));
+                        // is_rev_synth replaces C's name cursor. ANY then
+                        // evaluates address/mail records at this generated name.
+                        synthetic_reverse_name = Some(name);
+                    }
+                }
             }
         }
     }
+
+    let name = synthetic_reverse_name.as_deref().unwrap_or(name);
+    let key = if synthetic_reverse_name.is_some() {
+        dotted_key(name)
+    } else {
+        key
+    };
 
     // The Hosts table passed to this function is already filtered by the
     // loader (`no-hosts` skips /etc/hosts but does not skip addn-hosts).
@@ -813,6 +911,16 @@ fn add_local_records_for_name(
     for ipv6 in [false, true] {
         let rrtype = if ipv6 { TYPE_AAAA } else { TYPE_A };
         if qtype == 255 || qtype == rrtype {
+            let network = leases
+                .local_network
+                .filter(|_| config.localise_queries && !ipv6);
+            if let Some(addresses) = leases.interfaces.forward(name, ipv6, network) {
+                for address in addresses {
+                    rows.push((rrtype, ttl, ip_bytes(address)));
+                    owned = true;
+                }
+                continue;
+            }
             if !ipv6 {
                 for lease in leases.names.lookup(name, leases.now) {
                     rows.push((
@@ -838,6 +946,18 @@ fn add_local_records_for_name(
             for host in host_rows {
                 if !localise || same_network(host.address) {
                     rows.push((rrtype, host.ttl, ip_bytes(host.address)));
+                    owned = true;
+                }
+            }
+            if !rows.iter().any(|row| row.0 == rrtype)
+                && !cache.is_some_and(|cache| {
+                    Name::from_dotted_bytes(name).ok().is_some_and(|query| {
+                        cache.has_forward_candidate(&query, rrtype, leases.now)
+                    })
+                })
+            {
+                if let Some(address) = leases.synth.forward(name, ipv6) {
+                    rows.push((rrtype, ttl, ip_bytes(address)));
                     owned = true;
                 }
             }
@@ -1157,7 +1277,19 @@ pub fn known_forwarded_domain_with_leases(
     leases: &LeaseNames,
     now: i64,
 ) -> bool {
+    if let Some(dotted) = wire_to_dotted(query) {
+        if config
+            .interface_records
+            .rules
+            .iter()
+            .any(|rule| is_interface_ancestor(&dotted, &rule.name))
+        {
+            return true;
+        }
+    }
+
     known_forwarded_domain(config, hosts, query)
+        || wire_to_dotted(query).is_some_and(|name| config.synth_domains.name_exists(&name))
         || wire_to_dotted(query).is_some_and(|name| leases.name_exists(&name, now))
 }
 
@@ -1170,6 +1302,14 @@ fn has_descendant_local(config: &DnsConfig, hosts: &Hosts, query: &Name) -> bool
         child_labels.len() >= parent_labels.len()
             && child_labels[child_labels.len() - parent_labels.len()..] == parent_labels[..]
     };
+    if config
+        .interface_records
+        .rules
+        .iter()
+        .any(|rule| is_descendant(&rule.name))
+    {
+        return true;
+    }
     config
         .records
         .txt
@@ -2321,4 +2461,44 @@ mod local_record_family_tests {
         assert_eq!(header.answers, 0);
         assert!(cache.get(id).is_none());
     }
+}
+
+fn is_interface_ancestor(name: &[u8], configured: &[u8]) -> bool {
+    name.is_empty()
+        || configured.eq_ignore_ascii_case(name)
+        || (configured.len() > name.len()
+            && configured[configured.len() - name.len() - 1] == b'.'
+            && configured[configured.len() - name.len()..].eq_ignore_ascii_case(name))
+}
+
+/// Resolve the configured CNAME terminal before the parent's enum decision.
+/// Packet/cache wrappers remain the cache family's responsibility.
+pub fn interface_forward_name(config: &DnsConfig, query: &[u8]) -> Option<Vec<u8>> {
+    let header = Header::parse(query).ok()?;
+    if header.opcode() != 0 || header.flags & 0x8000 != 0 || header.questions != 1 {
+        return None;
+    }
+    let question = super::wire::Question::parse(query, super::wire::HEADER_LEN).ok()?;
+    if question.class != 1 || !matches!(question.qtype, 1 | 28 | 255) {
+        return None;
+    }
+    let mut name = wire_to_dotted(&question.name)?;
+    for _ in 0..10 {
+        if let Some(alias) = config
+            .records
+            .cnames
+            .iter()
+            .find(|alias| alias.alias.eq_ignore_ascii_case(&name))
+        {
+            name = alias.target.clone();
+        } else {
+            return config
+                .interface_records
+                .rules
+                .iter()
+                .any(|rule| rule.name.eq_ignore_ascii_case(&name))
+                .then_some(name);
+        }
+    }
+    None
 }

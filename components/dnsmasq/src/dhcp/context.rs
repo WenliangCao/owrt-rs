@@ -7,6 +7,7 @@
 
 use super::allocation::AddressRange;
 use crate::config::dhcp::RangeConfig;
+use crate::config::dhcp_network::SharedNetwork;
 use crate::interfaces::Ipv4Interface;
 use std::net::Ipv4Addr;
 
@@ -56,6 +57,31 @@ pub fn select_remote_contexts(
     fallback: Ipv4Addr,
     override_server: Option<Ipv4Addr>,
 ) -> Vec<SelectedContext> {
+    select_remote_contexts_with_shared(
+        configs,
+        states,
+        ingress,
+        subnet,
+        relay,
+        client,
+        fallback,
+        override_server,
+        &[],
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn select_remote_contexts_with_shared(
+    configs: &[RangeConfig],
+    states: &mut [ContextState],
+    ingress: Vec<SelectedContext>,
+    subnet: Ipv4Addr,
+    relay: Ipv4Addr,
+    client: Ipv4Addr,
+    fallback: Ipv4Addr,
+    override_server: Option<Ipv4Addr>,
+    shared: &[SharedNetwork],
+) -> Vec<SelectedContext> {
     let forced = !subnet.is_unspecified() || !relay.is_unspecified();
     let address = if !subnet.is_unspecified() {
         subnet
@@ -85,9 +111,16 @@ pub fn select_remote_contexts(
                 _ => Ipv4Addr::UNSPECIFIED,
             };
         }
+        let shared_match = !relay.is_unspecified()
+            && shared.iter().any(|network| {
+                network.matches_relay(relay)
+                    && !mask.is_unspecified()
+                    && same_net(network.address, config.start, mask)
+                    && same_net(network.address, config.end, mask)
+            });
         if mask.is_unspecified()
-            || !same_net(address, config.start, mask)
-            || !same_net(address, config.end, mask)
+            || (!shared_match
+                && (!same_net(address, config.start, mask) || !same_net(address, config.end, mask)))
         {
             continue;
         }
@@ -95,7 +128,7 @@ pub fn select_remote_contexts(
         if state.local.is_unspecified() {
             state.local = fallback;
         }
-        if state.router.is_unspecified() {
+        if state.router.is_unspecified() && !shared_match {
             state.router = override_server.unwrap_or(relay);
         }
         if config.broadcast.is_none() && state.broadcast.is_unspecified() {
@@ -135,6 +168,16 @@ pub fn select_contexts(
     interfaces: &[Ipv4Interface],
     received_index: u32,
 ) -> Vec<SelectedContext> {
+    select_contexts_with_shared(configs, states, interfaces, received_index, &[])
+}
+
+pub fn select_contexts_with_shared(
+    configs: &[RangeConfig],
+    states: &mut [ContextState],
+    interfaces: &[Ipv4Interface],
+    received_index: u32,
+    shared: &[SharedNetwork],
+) -> Vec<SelectedContext> {
     assert_eq!(
         configs.len(),
         states.len(),
@@ -143,6 +186,29 @@ pub fn select_contexts(
     let mut linked = vec![false; configs.len()];
     let mut current = Vec::new();
     for interface in interfaces {
+        for network in shared
+            .iter()
+            .filter(|network| network.matches_local(interface.address, interface.index))
+        {
+            for (index, (config, state)) in configs.iter().zip(states.iter_mut()).enumerate() {
+                if state.netmask.is_unspecified()
+                    || !same_net(network.address, config.start, state.netmask)
+                    || !same_net(network.address, config.end, state.netmask)
+                {
+                    continue;
+                }
+                if !linked[index] {
+                    state.router = Ipv4Addr::UNSPECIFIED;
+                    state.local = interface.address;
+                    linked[index] = true;
+                    current.push(index);
+                }
+                if config.broadcast.is_none() {
+                    state.broadcast =
+                        Ipv4Addr::from(u32::from(config.start) | !u32::from(state.netmask));
+                }
+            }
+        }
         // guess_range_netmask runs for every address, including addresses on
         // interfaces other than the one that received the packet.
         for (config, state) in configs.iter().zip(states.iter_mut()) {
@@ -234,6 +300,55 @@ mod tests {
             broadcast: address("192.0.2.255"),
             loopback: false,
         }
+    }
+
+    #[test]
+    fn shared_local_context_has_no_default_route_and_preserves_first_selected_server() {
+        use crate::config::dhcp_network::SharedSelector;
+        let mut config = config();
+        config.netmask = Some(address("255.255.255.0"));
+        let mut states = [ContextState::new(&config)];
+        let network = SharedNetwork {
+            selector: SharedSelector::Address(address("198.51.100.1")),
+            address: address("192.0.2.1"),
+        };
+        let selected = select_contexts_with_shared(
+            &[config],
+            &mut states,
+            &[interface("198.51.100.1"), interface("192.0.2.1")],
+            2,
+            &[network],
+        );
+        assert_eq!(selected[0].range.local, address("198.51.100.1"));
+        assert_eq!(selected[0].range.router, Ipv4Addr::UNSPECIFIED);
+        assert_eq!(selected[0].broadcast, address("192.0.2.255"));
+    }
+
+    #[test]
+    fn shared_relay_match_uses_giaddr_and_never_agent_override_as_default_route() {
+        use crate::config::dhcp_network::SharedSelector;
+        let mut config = config();
+        config.netmask = Some(address("255.255.255.0"));
+        let mut states = [ContextState::new(&config)];
+        let relay = address("198.51.100.1");
+        let network = SharedNetwork {
+            selector: SharedSelector::Address(relay),
+            address: address("192.0.2.1"),
+        };
+        let selected = select_remote_contexts_with_shared(
+            &[config],
+            &mut states,
+            Vec::new(),
+            address("203.0.113.1"),
+            relay,
+            Ipv4Addr::UNSPECIFIED,
+            address("198.51.100.2"),
+            Some(relay),
+            &[network],
+        );
+        assert_eq!(selected.len(), 1);
+        assert_eq!(selected[0].range.router, Ipv4Addr::UNSPECIFIED);
+        assert_eq!(selected[0].range.local, address("198.51.100.2"));
     }
 
     #[test]

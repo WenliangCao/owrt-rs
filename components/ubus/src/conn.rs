@@ -1038,6 +1038,70 @@ impl Connection {
         self.server_result(result)
     }
 
+    /// Consume only bytes already available, retaining a partial frame for a
+    /// later poll-owner turn. The ordinary blocking client APIs stay intact.
+    /// At most one validated MAX_MSGLEN frame is buffered; attached descriptors
+    /// remain owned by that frame and close with this connection on failure.
+    pub fn incoming_if_complete(&mut self) -> io::Result<Option<Incoming>> {
+        if let Some(message) = self.pending.pop_front() {
+            return Ok(Some(Self::classify(message)));
+        }
+        let result = self.read_available_frame();
+        if result.is_err() {
+            self.rx_reset();
+        }
+        let result = result.map(|frame| frame.map(|frame| self.incoming(frame)));
+        self.server_result(result)
+    }
+
+    fn read_available_frame(&mut self) -> io::Result<Option<(Header, Option<OwnedFd>, Body)>> {
+        if self.rx.is_empty() {
+            self.rx = vec![0; INCOMING_BUFFER_SIZE];
+        }
+        for _ in 0..128 {
+            let have = self.rx_end - self.rx_start;
+            let need = if have < Header::LEN + 4 {
+                Header::LEN + 4
+            } else {
+                Header::LEN + self.rx_frame()?.1
+            };
+            if have >= need {
+                // Every byte is in rx, so take_frame performs no waiting I/O.
+                return self.take_frame(true, None);
+            }
+            if self.rx_start + need > self.rx.len() {
+                self.rx.copy_within(self.rx_start..self.rx_end, 0);
+                for (mark, _) in &mut self.rx_fds {
+                    *mark -= self.rx_start;
+                }
+                self.rx_end -= self.rx_start;
+                self.rx_start = 0;
+                if need > self.rx.len() {
+                    self.rx.resize(need, 0);
+                }
+            }
+            match sys::recv_into(self.stream.as_raw_fd(), &mut self.rx[self.rx_end..], true, true) {
+                Ok((0, _)) => {
+                    self.rx_reset();
+                    return Err(io::Error::new(io::ErrorKind::UnexpectedEof, "ubus connection closed"));
+                }
+                Ok((count, fd)) => {
+                    self.rx_end += count;
+                    if let Some(fd) = fd {
+                        self.rx_fds.push_back((self.rx_end, fd));
+                    }
+                }
+                Err(error) if error.kind() == io::ErrorKind::Interrupted => {}
+                Err(error) if error.kind() == io::ErrorKind::WouldBlock => return Ok(None),
+                Err(error) => {
+                    self.rx_reset();
+                    return Err(error);
+                }
+            }
+        }
+        Ok(None)
+    }
+
     fn incoming(&mut self, (header, fd, body): (Header, Option<OwnedFd>, Body)) -> Incoming {
         if header.ty == ty::INVOKE {
             // Decode straight from the read-ahead buffer into retained storage.
@@ -1741,6 +1805,49 @@ mod tests {
         assert_eq!(error_status(&client.add_object_typed("invalid", &[], Some(0), 1000).unwrap_err()),
                    Some(status::INVALID_ARGUMENT));
         assert_eq!(client.seq, 0, "invalid type sent no request");
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn poll_owner_retains_partial_frames_without_waiting_and_preserves_following_frame() {
+        for split in [1, 11, 13, 4096] {
+            let (mut sender, mut server) = pair();
+            server.set_server_io_timeout(Duration::from_millis(1));
+            let mut b = BlobBuf::new();
+            b.put_string(attr::METHOD, &"x".repeat(5000));
+            let mut wire = Header { ty: ty::INVOKE, seq: 1, peer: 9 }.encode().to_vec();
+            wire.extend_from_slice(b.as_bytes());
+            sender.stream.write_all(&wire[..split]).unwrap();
+            let started = Instant::now();
+            assert!(server.incoming_if_complete().unwrap().is_none());
+            assert!(started.elapsed() < Duration::from_millis(20));
+            std::thread::sleep(Duration::from_millis(2));
+            assert!(server.incoming_if_complete().unwrap().is_none());
+            sender.stream.write_all(&wire[split..]).unwrap();
+            sender.stream.write_all(&wire).unwrap();
+            for _ in 0..2 {
+                let Some(Incoming::Invoke(req)) = server.incoming_if_complete().unwrap() else {
+                    panic!("completed split {split} was not available");
+                };
+                assert_eq!(req.method.len(), 5000);
+                assert_eq!((req.peer, req.seq), (9, 1));
+            }
+            assert!(server.incoming_if_complete().unwrap().is_none());
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn poll_owner_keeps_a_partial_descriptor_until_completion_or_connection_drop() {
+        let (sender, mut server) = pair();
+        let (passed, mut observer) = UnixStream::pair().unwrap();
+        sys::send_with_fd(sender.stream.as_raw_fd(), &[0], &[], Some(passed.as_raw_fd())).unwrap();
+        drop(passed);
+        assert!(server.incoming_if_complete().unwrap().is_none());
+        observer.set_nonblocking(true).unwrap();
+        assert_eq!(observer.read(&mut [0]).unwrap_err().kind(), io::ErrorKind::WouldBlock);
+        drop(server);
+        assert_eq!(observer.read(&mut [0]).unwrap(), 0);
     }
 
     #[test]

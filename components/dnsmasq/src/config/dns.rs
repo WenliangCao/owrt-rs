@@ -126,6 +126,8 @@ pub struct ConditionalDomain {
 pub struct DnsConfig {
     pub records: super::records::RecordConfig,
     pub edns: super::edns::EdnsConfig,
+    pub interface_records: super::interface_records::InterfaceRecordConfig,
+    pub synth_domains: super::synth_domain::SynthConfig,
     /// Declaration order. A lookup must apply domain-match.c priorities, not
     /// pick the first suffix match (specificity and RR family both matter).
     pub rules: Vec<ServerRule>,
@@ -148,6 +150,7 @@ pub struct DnsConfig {
     /// list preserves declaration order (newest first), matching option.c's
     /// rrlist; configured/hosts/DHCP local answers bypass this policy.
     pub filter_rr: Vec<u16>,
+    pub filter_win2k: bool,
     pub domain_suffix: Option<Vec<u8>>,
     pub domain_from_resolv: bool,
     /// Newest declaration first, matching C's cond_domain linked list.
@@ -182,6 +185,8 @@ impl Default for DnsConfig {
         Self {
             records: super::records::RecordConfig::default(),
             edns: super::edns::EdnsConfig::default(),
+            interface_records: super::interface_records::InterfaceRecordConfig::default(),
+            synth_domains: super::synth_domain::SynthConfig::default(),
             rules: Vec::new(),
             listen_addresses: Vec::new(),
             interfaces: Vec::new(),
@@ -196,6 +201,7 @@ impl Default for DnsConfig {
             ignore_addresses: Vec::new(),
             cache_rr: Vec::new(),
             filter_rr: Vec::new(),
+            filter_win2k: false,
             domain_suffix: None,
             domain_from_resolv: false,
             conditional_domains: Vec::new(),
@@ -601,6 +607,12 @@ impl DnsConfig {
         validate_directive(directive)?;
         let arg = directive.argument.as_ref();
         match directive.name.as_slice() {
+            b"synth-domain" => {
+                self.synth_domains.apply(directive)?;
+            }
+            b"interface-name" | b"dynamic-host" => {
+                self.interface_records.apply(directive)?;
+            }
             b"server" | b"local" | b"address" => self
                 .rules
                 .extend(parse_rules(&directive.name, arg.unwrap())?),
@@ -656,6 +668,7 @@ impl DnsConfig {
                 }
             }
             b"filter-A" => self.filter_rr.insert(0, 1),
+            b"filterwin2k" => self.filter_win2k = true,
             b"filter-AAAA" => self.filter_rr.insert(0, 28),
             b"filter-rr" => {
                 for field in arg.unwrap().split(b',') {
@@ -1184,7 +1197,7 @@ mod tests {
     }
 
     #[test]
-    fn conditional_domain_and_unimplemented_modes_do_not_disappear() {
+    fn conditional_domains_and_interface_rules_retain_state() {
         let mut config = DnsConfig::default();
         apply(&mut config, b"domain=lan").unwrap();
         apply(&mut config, b"domain=lab,192.0.2.1/24").unwrap();
@@ -1199,7 +1212,9 @@ mod tests {
         );
         apply(&mut config, b"domain=lab,192.0.2.0/24,local").unwrap();
         assert_eq!(config.rules.len(), 2);
-        assert!(!apply(&mut config, b"dynamic-host=example.test,192.0.2.1,eth0").unwrap());
+        assert!(apply(&mut config, b"dynamic-host=example.test,192.0.2.1,eth0").unwrap());
+        assert_eq!(config.interface_records.rules.len(), 1);
+        assert_eq!(config.interface_records.rules[0].interface, b"eth0");
         apply(&mut config, b"domain=interface,eth0").unwrap();
         assert!(config.validate_ready().is_err());
     }

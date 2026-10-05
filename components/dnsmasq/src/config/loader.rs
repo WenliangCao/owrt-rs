@@ -206,7 +206,11 @@ where
                 let spec = long_option(name).map_err(|e| LoadError::new(&location, 1, e.0))?;
                 let value = match (spec.argument, value) {
                     (Argument::None, Some(_)) => {
-                        return Err(LoadError::new(&location, 1, "extraneous parameter"))
+                        return Err(LoadError::new(
+                            &location,
+                            1,
+                            "bad command line options: try --help",
+                        ))
                     }
                     (Argument::Required, None) => {
                         index += 1;

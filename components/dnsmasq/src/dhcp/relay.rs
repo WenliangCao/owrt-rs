@@ -335,6 +335,9 @@ mod linux {
         excluded: Vec<Option<Vec<u8>>>,
         client_port: u16,
         control: UdpSocket,
+        network: crate::config::dhcp_network::NetworkConfig,
+        notices: Vec<crate::logging::LogEvent>,
+        dump: crate::dump::DumpHandle,
     }
 
     impl RelayService {
@@ -343,6 +346,7 @@ mod linux {
             dns: &crate::config::dns::DnsConfig,
             excluded: &[Option<Vec<u8>>],
             client_port: u16,
+            network: &crate::config::dhcp_network::NetworkConfig,
         ) -> io::Result<Self> {
             Ok(Self {
                 relay: Relay::new(rules),
@@ -350,11 +354,22 @@ mod linux {
                 excluded: excluded.to_vec(),
                 client_port,
                 control: UdpSocket::bind((Ipv4Addr::UNSPECIFIED, 0))?,
+                network: network.clone(),
+                notices: Vec::new(),
+                dump: crate::dump::DumpHandle::default(),
             })
         }
 
         pub fn invalidate_interfaces(&mut self) {
             self.relay.invalidate_interfaces();
+        }
+
+        pub fn take_notices(&mut self) -> Vec<crate::logging::LogEvent> {
+            std::mem::take(&mut self.notices)
+        }
+
+        pub fn set_dump(&mut self, dump: crate::dump::DumpHandle) {
+            self.dump = dump;
         }
 
         /// True consumes a reply or admission failure. False allows the owner
@@ -377,6 +392,25 @@ mod linux {
                 .iter()
                 .position(|byte| *byte == 0)
                 .unwrap_or(name.len())];
+            let bridge = match self.network.bridge_ingress(name) {
+                Ok(bridge) => bridge,
+                Err(message) => {
+                    self.notices.push(crate::logging::LogEvent::new(
+                        crate::logging::Service::Dhcp,
+                        crate::logging::Priority::Warning,
+                        message,
+                    ));
+                    return Ok(true);
+                }
+            };
+            let mut effective_datagram = *datagram;
+            let name = if let Some((index, master)) = &bridge {
+                effective_datagram.interface = *index;
+                master.as_slice()
+            } else {
+                name
+            };
+            let datagram = &effective_datagram;
             let all_ones = ip(bytes, 24) == Ipv4Addr::BROADCAST;
             if all_ones {
                 bytes[24..28].fill(0);
@@ -463,15 +497,26 @@ mod linux {
                     unicast: datagram.destination != IpAddr::V4(Ipv4Addr::BROADCAST),
                 },
                 &interfaces,
-                |forward| match socket.send_once(
-                    forward.packet,
-                    SocketAddr::V4(forward.destination),
-                    Some((IpAddr::V4(forward.source), 0)),
-                ) {
-                    Ok(()) => true,
-                    Err(error) => {
-                        eprintln!("dnsmasq-rs: DHCP relay upstream send: {error}");
-                        false
+                |forward| {
+                    self.dump.udp(
+                        crate::dump::DHCP,
+                        forward.packet,
+                        SocketAddr::from((
+                            forward.source,
+                            socket.local_addr().map_or(67, |address| address.port()),
+                        )),
+                        SocketAddr::V4(forward.destination),
+                    );
+                    match socket.send_once(
+                        forward.packet,
+                        SocketAddr::V4(forward.destination),
+                        Some((IpAddr::V4(forward.source), 0)),
+                    ) {
+                        Ok(()) => true,
+                        Err(error) => {
+                            eprintln!("dnsmasq-rs: DHCP relay upstream send: {error}");
+                            false
+                        }
                     }
                 },
             );

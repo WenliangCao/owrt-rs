@@ -464,6 +464,10 @@ def compare(expected, actual, scenario):
                 addresses = sorted(r['data'] for r in (row['response'] or {}).get('records', []) if r['section'] == 'answer' and r['type'] in (1, 28))
                 if addresses != sorted(probe['c_expect']['answer_addresses']):
                     failures.append({'phase': 'c-calibration', 'id': row['id'], 'expected_addresses': probe['c_expect']['answer_addresses'], 'c_addresses': addresses})
+            if 'answer_types' in probe['c_expect']:
+                types = [r['type'] for r in (row['response'] or {}).get('records', []) if r['section'] == 'answer']
+                if types != probe['c_expect']['answer_types']:
+                    failures.append({'phase': 'c-calibration', 'id': row['id'], 'expected_types': probe['c_expect']['answer_types'], 'c_types': types})
     for left, right in zip(expected['rows'], actual['rows']):
         a, b = copy.deepcopy(left), copy.deepcopy(right)
         for row in (a, b):
@@ -487,6 +491,15 @@ def self_test():
                       'response': None, 'upstream': []} for t in ['udp', 'tcp']]}
     assert not compare(base, copy.deepcopy(base), case)
     controls = {}
+    typed_case = {'probes': [{'id': 'required', 'c_expect': {'answer_types': [6]}}]}
+    typed = copy.deepcopy(base)
+    for row in typed['rows']:
+        row['response'] = {'flags': 0x8180, 'records': [{'section': 'answer', 'type': 6}]}
+    assert not compare(typed, copy.deepcopy(typed), typed_case)
+    for row in typed['rows']:
+        row['response']['records'].clear()
+    assert any(f['phase'] == 'c-calibration' for f in compare(typed, copy.deepcopy(typed), typed_case))
+    controls['vacuous-C-answer-type-anchor'] = 'detected'
     for key in ['missing-row', 'missing-syntax-output', 'wrong-syntax-exit', 'wrong-parser-output', 'startup-failure', 'runtime-change', 'leaked-process', 'leaked-pid']:
         changed = copy.deepcopy(base)
         if key == 'missing-row': changed['rows'].pop()

@@ -6,6 +6,8 @@
 pub mod config;
 pub mod dhcp;
 pub mod dns;
+#[cfg(target_os = "linux")]
+pub mod dump;
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 pub mod helper;
 pub mod hosts;

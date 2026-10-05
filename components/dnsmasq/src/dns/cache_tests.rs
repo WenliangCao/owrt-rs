@@ -1,5 +1,113 @@
 use super::*;
+
+#[test]
+fn tcp_view_isolates_mutation_shares_payload_and_imports_only_child_transaction() {
+    let a = Name::from_ascii("a.snapshot.test").unwrap();
+    let b = Name::from_ascii("b.snapshot.test").unwrap();
+    let record = |name: Name, address: u8| Record {
+        name,
+        kind: Kind::Ipv4,
+        negative: false,
+        data: vec![198, 51, 100, address],
+    };
+    let mut parent = Cache::new(8, Policy::default());
+    parent.start_insert();
+    let old = parent.insert(record(a.clone(), 7), 100, 60).unwrap();
+    assert!(parent.commit());
+    let mut child = parent.snapshot();
+    assert!(Arc::ptr_eq(
+        &parent.get(old).unwrap().record,
+        &child.get(old).unwrap().record
+    ));
+    parent.start_insert();
+    parent.insert(record(a.clone(), 8), 101, 60).unwrap();
+    assert!(parent.commit());
+    let id = child.lookup(&a, &[Kind::Ipv4], 100, false)[0];
+    assert_eq!(child.get(id).unwrap().record.data, [198, 51, 100, 7]);
+    child.start_insert();
+    child.insert(record(b.clone(), 9), 100, 60).unwrap();
+    let transaction = child
+        .capture_commit_counted(&mut CacheCounters::default())
+        .unwrap();
+    assert!(parent.lookup(&b, &[Kind::Ipv4], 101, false).is_empty());
+    assert!(parent.import_counted(transaction, 101, &mut CacheCounters::default(), |_| None));
+    let parent_a = parent.lookup(&a, &[Kind::Ipv4], 101, false)[0];
+    let parent_b = parent.lookup(&b, &[Kind::Ipv4], 101, false)[0];
+    assert_eq!(parent.get(parent_a).unwrap().record.data, [198, 51, 100, 8]);
+    assert_eq!(parent.get(parent_b).unwrap().record.data, [198, 51, 100, 9]);
+    assert_eq!(child.get(id).unwrap().record.data, [198, 51, 100, 7]);
+}
 use std::collections::HashSet;
+
+#[test]
+fn wrapped_minimum_ttl_expires_before_now_instead_of_saturating() {
+    let mut cache = Cache::new(
+        8,
+        Policy {
+            min_ttl: u64::MAX,
+            ..Policy::default()
+        },
+    );
+    cache.start_insert();
+    let id = cache
+        .insert(record("wrapped.ttl.test", Kind::Ipv4, 7), 100, 600)
+        .unwrap();
+    assert_eq!(cache.get(id).unwrap().expires, 99);
+    assert!(cache.commit());
+    assert!(cache
+        .lookup(
+            &Name::from_ascii("wrapped.ttl.test").unwrap(),
+            &[Kind::Ipv4],
+            100,
+            false
+        )
+        .is_empty());
+    assert_eq!(
+        Extraction::from_source(true, true, false, false),
+        Extraction::ExtractOnly
+    );
+    assert_eq!(
+        Extraction::from_source(false, true, false, false),
+        Extraction::Unsupported
+    );
+}
+
+#[test]
+fn live_maximum_ttl_follows_cname_scan_and_leaves_other_sections_alone() {
+    use super::super::wire::{Message, PacketWriter, Section};
+    let alias = Name::from_ascii("alias.clip.test").unwrap();
+    let target = Name::from_ascii("target.clip.test").unwrap();
+    let other = Name::from_ascii("other.clip.test").unwrap();
+    let mut writer = PacketWriter::new(1, 0x8180, 1232).unwrap();
+    writer.question(&alias, 1, 1).unwrap();
+    writer
+        .record_at(Section::Answer, 12, 5, 1, 600, target.as_wire())
+        .unwrap();
+    writer
+        .record_at(Section::Answer, 12, 1, 1, 600, &[198, 51, 100, 1])
+        .unwrap();
+    writer
+        .record(Section::Answer, &target, 1, 1, 400, &[198, 51, 100, 2])
+        .unwrap();
+    writer
+        .record(Section::Answer, &other, 1, 1, 700, &[198, 51, 100, 3])
+        .unwrap();
+    writer
+        .record_at(Section::Answer, 12, 1, 3, 800, &[198, 51, 100, 4])
+        .unwrap();
+    writer
+        .record(Section::Authority, &target, 16, 1, 900, &[1, b'x'])
+        .unwrap();
+    let mut packet = writer.finish();
+    clip_live_reply_ttls(&mut packet, 100, 0).unwrap();
+    let message = Message::parse(&packet).unwrap();
+    let ttls: Vec<_> = message
+        .records(Section::Answer)
+        .chain(message.records(Section::Authority))
+        .map(|record| record.ttl)
+        .collect();
+    assert_eq!(ttls, [100, 600, 100, 700, 800, 900]);
+}
 
 fn record(name: &str, kind: Kind, value: u8) -> Record {
     Record {
@@ -718,4 +826,158 @@ fn bounded_state_survives_repeated_abort_expiry_and_reuse() {
             check_ownership(&cache);
         }
     }
+}
+
+#[test]
+fn cname_terminal_preview_does_not_expire_terminal_or_mutate_lookup_order() {
+    let alias = Name::from_ascii("alias.interface.test").unwrap();
+    let target = Name::from_ascii("target.interface.test").unwrap();
+    let mut cache = Cache::new(8, Policy::default());
+    cache.start_insert();
+    let alias_id = cache
+        .insert(
+            Record {
+                name: alias.clone(),
+                kind: Kind::Cname,
+                negative: false,
+                data: target.as_wire().to_vec(),
+            },
+            100,
+            60,
+        )
+        .unwrap();
+    let target_id = cache
+        .insert(
+            Record {
+                name: target.clone(),
+                kind: Kind::Ipv4,
+                negative: false,
+                data: vec![198, 51, 100, 7],
+            },
+            100,
+            1,
+        )
+        .unwrap();
+    assert!(cache.set_cname_target(alias_id, target_id));
+    assert!(cache.commit());
+    let before = (cache.head, cache.tail, cache.names.clone());
+    assert_eq!(cache.cname_terminal_name(&alias, 102), Some(target.clone()));
+    assert_eq!((cache.head, cache.tail, cache.names.clone()), before);
+    assert!(cache.get(target_id).is_some());
+    assert_eq!(cache.cname_terminal_name(&alias, 160), None);
+    cache.start_insert();
+    assert_eq!(
+        cache.cname_terminal_name(&Name::from_ascii("other.test").unwrap(), 102),
+        None
+    );
+}
+
+#[test]
+fn reverse_ip_rrsets_coexist_with_forward_names_and_replace_by_address() {
+    let target = Name::from_ascii("target.reverse.test").unwrap();
+    let changed = Name::from_ascii("changed.reverse.test").unwrap();
+    let address: IpAddr = "192.0.2.17".parse().unwrap();
+    let other: IpAddr = "192.0.2.18".parse().unwrap();
+    let mut cache = Cache::new(8, Policy::default());
+    cache.start_insert();
+    cache
+        .insert(
+            Record {
+                name: target.clone(),
+                kind: Kind::ReverseIpv4,
+                negative: false,
+                data: vec![192, 0, 2, 17],
+            },
+            100,
+            60,
+        )
+        .unwrap();
+    cache
+        .insert(
+            Record {
+                name: target.clone(),
+                kind: Kind::ReverseIpv4,
+                negative: false,
+                data: vec![192, 0, 2, 18],
+            },
+            100,
+            60,
+        )
+        .unwrap();
+    assert!(cache.commit());
+    assert!(!cache.contains_forward_name(&target, 100));
+    assert!(!cache.has_forward_candidate(&target, 1, 100));
+    assert!(cache.has_reverse_candidate(address, 100));
+    cache.start_insert();
+    cache
+        .insert(
+            Record {
+                name: target.clone(),
+                kind: Kind::Ipv4,
+                negative: false,
+                data: vec![198, 51, 100, 7],
+            },
+            100,
+            60,
+        )
+        .unwrap();
+    assert!(cache.commit());
+    assert_eq!(cache.lookup_reverse(address, 100).len(), 1);
+    assert_eq!(cache.lookup(&target, &[Kind::Ipv4], 100, false).len(), 1);
+    cache.start_insert();
+    cache
+        .insert(
+            Record {
+                name: changed.clone(),
+                kind: Kind::ReverseIpv4,
+                negative: false,
+                data: vec![192, 0, 2, 17],
+            },
+            101,
+            30,
+        )
+        .unwrap();
+    assert!(cache.commit());
+    let id = cache.lookup_reverse(address, 101)[0];
+    assert_eq!(cache.get(id).unwrap().record.name, changed);
+    let id = cache.lookup_reverse(other, 101)[0];
+    assert_eq!(cache.get(id).unwrap().record.name, target);
+    assert_eq!(cache.lookup(&target, &[Kind::Ipv4], 101, false).len(), 1);
+}
+
+#[test]
+fn reverse_snapshot_transfer_preserves_child_and_absolute_expiry() {
+    let address: IpAddr = "2001:db8::17".parse().unwrap();
+    let target = Name::from_ascii("target.transfer.test").unwrap();
+    let mut parent = Cache::new(4, Policy::default());
+    let mut child = parent.snapshot();
+    child.start_insert();
+    child
+        .insert(
+            Record {
+                name: target.clone(),
+                kind: Kind::ReverseIpv6,
+                negative: false,
+                data: address
+                    .to_string()
+                    .parse::<std::net::Ipv6Addr>()
+                    .unwrap()
+                    .octets()
+                    .to_vec(),
+            },
+            100,
+            60,
+        )
+        .unwrap();
+    let transfer = child
+        .capture_commit_counted(&mut CacheCounters::default())
+        .unwrap();
+    assert!(parent.lookup_reverse(address, 103).is_empty());
+    assert!(parent.import_counted(transfer, 103, &mut CacheCounters::default(), |_| None));
+    let id = parent.lookup_reverse(address, 103)[0];
+    assert_eq!(parent.get(id).unwrap().expires, 160);
+    assert_eq!(parent.get(id).unwrap().record.name, target);
+    assert_eq!(child.lookup_reverse(address, 100).len(), 1);
+    assert!(parent.lookup_reverse(address, 160).is_empty());
+    assert_eq!(child.lookup_reverse(address, 100).len(), 1);
 }

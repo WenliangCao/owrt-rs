@@ -77,7 +77,9 @@ impl Exchange {
             let index = (self.start + self.offset) % group.servers.len();
             let server = &mut group.servers[index];
             if self.phase != Phase::Pick && now >= self.idle {
-                if self.phase == Phase::Connect {
+                if self.phase == Phase::Connect
+                    || server.connection.as_ref().is_some_and(|connection| !connection.had_reply)
+                {
                     connection_failures.push(server.address);
                 }
                 self.failed(&mut server.connection);
@@ -176,7 +178,12 @@ impl Exchange {
                 Phase::Pick | Phase::Connect => unreachable!(),
             };
             match result {
-                Ok(0) => self.failed(&mut server.connection),
+                Ok(0) => {
+                    if !connection.had_reply {
+                        connection_failures.push(server.address);
+                    }
+                    self.failed(&mut server.connection);
+                }
                 Ok(count) => {
                     self.position += count;
                     self.idle = Instant::now()
@@ -205,7 +212,12 @@ impl Exchange {
                 Err(error) if error.kind() == io::ErrorKind::WouldBlock => {
                     return Ok(self.wait(group))
                 }
-                Err(_) => self.failed(&mut server.connection),
+                Err(_) => {
+                    if !connection.had_reply {
+                        connection_failures.push(server.address);
+                    }
+                    self.failed(&mut server.connection);
+                }
             }
         }
         // Schedule an immediate owner-loop turn when the I/O budget, rather
