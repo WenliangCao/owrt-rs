@@ -342,6 +342,7 @@ def cases():
             ('opaque-no-fail', b'/m2/logging/missing-\xff', True, True),
             ('empty-interface-fatal', b'', False, True),
             ('empty-interface-no-fail', b'', True, True),
+            ('empty-global', b'', False, True),
         ]:
             config = b'enable-tftp\n' if enabled else b''
             interface = variant.startswith('interface-') or variant.startswith('empty-interface-')
@@ -352,20 +353,19 @@ def cases():
                 config += b'tftp-no-fail\n'
             rows.append({'id': 'tftp-root-' + variant + '-' + label, 'scope': 'root-access',
                          'kind': 'run', 'mode': mode, 'daemonized': not mode,
-                         'exit': 0 if no_fail or not enabled else 3,
+                         'exit': 0 if no_fail or not enabled or variant == 'empty-global' else 3,
                          'pidfile': '/m2/logging/daemon.pid', 'receiver': 'dgram', 'argv': ['--log-facility=-'],
                          'config_bytes': config.hex(), 'root_prefix': prefix.hex(),
                          'root_variant': variant, 'root_no_fail': no_fail,
                          'options': ['tftp-root', 'tftp-no-fail'] if no_fail else ['tftp-root']})
-        if label != 'debug':
-            for no_fail in [False, True]:
+        for no_fail in [False, True] if label != 'debug' else [False]:
                 rows.append({'id': 'tftp-root-permission-' + ('no-fail-' if no_fail else 'fatal-') + label,
                              'scope': 'root-access', 'kind': 'run', 'mode': mode, 'daemonized': not mode,
-                             'exit': 0 if no_fail else 3, 'user': 'nobody', 'root_permissions': True,
+                             'exit': 0 if no_fail or label == 'debug' else 3, 'user': 'nobody', 'root_permissions': True,
                              'pidfile': '/m2/logging/daemon.pid', 'receiver': 'dgram', 'argv': ['--log-facility=-'],
                              'config_bytes': (b'enable-tftp\ntftp-root=/m2/logging/private-root\n' +
                                               (b'tftp-no-fail\n' if no_fail else b'')).hex(),
-                             'root_prefix': b'/m2/logging/private-root'.hex(), 'root_variant': 'permission',
+                             'root_prefix': b'/m2/logging/private-root'.hex(), 'root_variant': 'permission-debug' if label == 'debug' else 'permission',
                              'root_no_fail': no_fail, 'options': ['tftp-root', 'tftp-no-fail']})
     for name, ranges in [
         ('dynamic', ['127.0.0.10,127.0.0.20,255.0.0.0,10m']),
@@ -1262,6 +1262,11 @@ def compare(reference, candidate, case, reference_only=False):
         if variant == 'unused-root':
             if any(message in text for message in ['-tftp[', 'TFTP root is ', 'TFTP enabled', 'inaccessible']):
                 failures.append({'kind': 'C-unused-TFTP-root', 'actual': text})
+        elif variant in ['empty-global', 'permission-debug']:
+            if 'inaccessible' in text or 'FAILED to start up' in text:
+                failures.append({'kind': 'C-null-global-or-debug-access', 'actual': text})
+            if variant == 'empty-global' and 'TFTP enabled' not in text:
+                failures.append({'kind': 'C-null-global-sign-on', 'actual': text})
         elif case['root_no_fail']:
             interface = variant.startswith('interface-') or variant.startswith('empty-interface-')
             warning = ('warning: TFTP directory ' if interface else 'warning: ') + ('(null)' if not prefix else prefix) + ' inaccessible'
