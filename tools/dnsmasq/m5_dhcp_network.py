@@ -20,6 +20,8 @@ from dhcp_lease_lifecycle import packet
 from dhcp_daemon_smoke import decode
 from m2_rootfs import command, prepare, process_identity, sha256
 from m5_helper import Side, capture, normalized
+from dns_service_probe import query as dns_query, semantics as dns_semantics
+from m5_pxe import request as pxe_request
 
 HERE = Path(__file__).resolve().parent
 IMAGE = '097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87'
@@ -279,6 +281,136 @@ def bridge_case(root, side, out, spec):
         assert cleanup['exit'] == 0 and not cleanup['forced'] and not cleanup['remaining'], 'bridge service cleanup'
 
 
+def delay_specs():
+    mac = 'dhcp-mac=set:slow,02:00:00:00:00:01'
+    return [
+        dict(case='delay-zero', config=['dhcp-reply-delay=0'], delayed=False),
+        dict(case='delay-global', config=['dhcp-reply-delay=1'], delayed=True),
+        dict(case='delay-tag-match', config=[mac, 'dhcp-reply-delay=tag:slow,1'], delayed=True),
+        dict(case='delay-tag-miss', config=['dhcp-reply-delay=tag:slow,1'], delayed=False),
+        dict(case='delay-negated-tag', config=['dhcp-reply-delay=tag:!fast,1'], delayed=True),
+        dict(case='delay-tag-before-fallback', config=[mac, 'dhcp-reply-delay=tag:slow,1', 'dhcp-reply-delay=0'], delayed=True),
+        dict(case='delay-range-tag', config=['dhcp-range=set:slow,127.0.0.10,127.0.0.20,255.0.0.0,10m', 'dhcp-reply-delay=tag:slow,1'], delayed=True),
+        dict(case='delay-tag-if', config=[mac, 'tag-if=tag:slow,set:derived', 'dhcp-reply-delay=tag:derived,1'], delayed=True),
+        dict(case='delay-request-ack-bypass', config=['dhcp-reply-delay=1'], delayed=True, ack=True),
+        dict(case='delay-inform-bypass', config=['dhcp-reply-delay=1'], delayed=False, kind=8),
+        dict(case='delay-bootp-bypass', config=['dhcp-reply-delay=1', 'dhcp-host=02:00:00:00:00:01,127.0.0.10,client1,10m'], delayed=False, kind=0),
+        dict(case='delay-rapid-commit', config=['dhcp-reply-delay=1', 'dhcp-rapid-commit'], delayed=True, rapid=True),
+        dict(case='delay-proxy-offer', config=['dhcp-reply-delay=1', 'pxe-service=x86PC,Network boot,boot'], delayed=True, proxy=True),
+        dict(case='delay-proxy-ack', config=['dhcp-reply-delay=1', 'pxe-service=x86PC,Network boot,boot'], delayed=True, proxy=True, kind=3),
+        dict(case='delay-dns-tftp-progress', config=['dhcp-reply-delay=1'], delayed=True, progress=True),
+        dict(case='delay-queued-dhcp-term', config=['dhcp-reply-delay=1'], delayed=True, term=True),
+    ]
+
+
+def delay_packet(spec, xid, kind=None):
+    kind = spec.get('kind', 1) if kind is None else kind
+    if spec.get('proxy'):
+        request = bytearray(pxe_request(kind=kind, ciaddr='127.0.0.10' if kind == 3 else '0.0.0.0'))
+        request[4:8] = struct.pack('!I', xid)
+    else:
+        request = bytearray(packet(kind, xid, 1, None if kind == 0 else '127.0.0.10', kind == 3))
+    if spec.get('rapid'): request[-1:] = b'\x50\0\xff'
+    return request
+
+
+def lease_dns(folder, label):
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as endpoint:
+        endpoint.settimeout(.4)
+        request = dns_query('client1.lan')
+        endpoint.sendto(request, ('127.0.0.1', 15353))
+        reply = endpoint.recv(4096)
+        (folder / (label+'.dns.request')).write_bytes(request)
+        (folder / (label+'.dns.reply')).write_bytes(reply)
+        return [row['data'] for row in dns_semantics(reply)['records'] if row['section'] == 'answer' and row['type'] == 1]
+
+
+def delay_exchange(runner, folder, spec, xid=0x7930, kind=None):
+    request = delay_packet(spec, xid, kind)
+    endpoint = runner.client
+    (folder / f'{xid}.request').write_bytes(request)
+    start = time.monotonic()
+    endpoint.sendto(request, ('127.0.0.1', 67))
+    controls = {}
+    if spec.get('rapid'):
+        time.sleep(.1)
+        controls['lease_before_commit'] = lease_dns(folder, 'before-rapid')
+        assert controls['lease_before_commit'] == [], 'rapid commit published its lease while C is still in reply delay'
+    if spec.get('progress'):
+        before = time.monotonic()
+        for _ in range(5): assert runner.dns(), 'DNS blocked behind DHCP delay'
+        controls['dns_progress'] = True
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as tftp:
+            tftp.settimeout(.4)
+            tftp.sendto(b'\0\1evidence\0octet\0', ('127.0.0.1', 69))
+            reply, peer = tftp.recvfrom(4096)
+            assert reply == b'\0\3\0\1delay-evidence', 'TFTP did not progress inside the DHCP delay'
+            (folder / 'during-delay.tftp.reply').write_bytes(reply)
+            tftp.sendto(b'\0\4\0\1', peer)
+        assert time.monotonic() - before < .75, 'services progressed only after DHCP delay'
+        controls['tftp_progress'] = True
+    if spec.get('term'):
+        import signal
+        deadline = time.monotonic() + .5
+        log = folder / (runner.side+'-'+runner.name+'.log')
+        while b'reply delay: 1' not in log.read_bytes() and time.monotonic() < deadline: time.sleep(.005)
+        assert b'reply delay: 1' in log.read_bytes(), 'TERM control requires an actually entered delay'
+        second = packet(1, xid+1, 2, '127.0.0.11')
+        (folder / 'queued-second.request').write_bytes(second)
+        endpoint.sendto(second, ('127.0.0.1', 67))
+        os.kill(runner.process.pid, signal.SIGTERM)
+        time.sleep(.1)
+        assert runner.process.poll() is None, 'reply delay consumed TERM before finishing its borrowed DHCP packet'
+        controls['parent_alive_during_delay'] = True
+    reply, peer = endpoint.recvfrom(16384)
+    elapsed = time.monotonic() - start
+    (folder / f'{xid}.reply').write_bytes(reply)
+    save(folder / f'{xid}.timing.json', dict(elapsed=elapsed, peer=list(peer)))
+    values = decode(reply, xid)
+    original_kind = spec.get('kind', 1) if kind is None else kind
+    if original_kind == 0:
+        assert 53 not in values, 'BOOTP delay bypass reply became DHCP'
+    else:
+        assert values[53] == bytes([5 if spec.get('rapid') or original_kind != 1 else 2]), 'delayed DHCP reply kind'
+    delayed = spec['delayed'] if kind is None else False
+    assert .75 <= elapsed < 2.8 if delayed else elapsed < .5, 'actual reply delay interval/caller gate'
+    if spec.get('rapid'):
+        controls['lease_after_commit'] = lease_dns(folder, 'after-rapid')
+        assert controls['lease_after_commit'] == ['127.0.0.10'], 'rapid lease commit never reached DNS'
+    if spec.get('term'):
+        assert runner.process.wait(3) == 0, 'TERM after delayed response'
+        endpoint.settimeout(.25)
+        try:
+            second = endpoint.recv(16384)
+        except socket.timeout:
+            controls['second_dhcp_deferred'] = True
+        else:
+            raise AssertionError('queued DHCP request ran before pending TERM: '+second.hex())
+    return dict(kind=original_kind, wire=reply.hex(), delayed=delayed, controls=controls)
+
+
+def delay_case(root, side, out, spec):
+    folder = out / spec['case']; folder.mkdir()
+    runner = Side(root, side, folder, spec['case'], ['bind-interfaces', *spec['config']])
+    if spec.get('proxy'):
+        config = runner.config.read_text().replace('dhcp-range=127.0.0.10,127.0.0.20,255.0.0.0,10m', 'dhcp-range=127.0.0.0,proxy,255.0.0.0')
+        runner.config.write_text(config)
+    if spec.get('progress'):
+        data = runner.folder / 'tftp'; data.mkdir()
+        (data / 'evidence').write_bytes(b'delay-evidence')
+        runner.config.write_text(runner.config.read_text()+'enable-tftp\ntftp-root='+runner.inside+'/tftp\n')
+    (folder / 'config').write_text(runner.config.read_text())
+    try:
+        runner.start()
+        save(folder / 'identity.json', process_identity(root, runner.process.pid))
+        packets = [delay_exchange(runner, folder, spec)]
+        if spec.get('ack'): packets.append(delay_exchange(runner, folder, spec, 0x7932, kind=3))
+        return dict(case=spec['case'], packets=packets)
+    finally:
+        cleanup = runner.stop(); save(folder / 'cleanup.json', cleanup)
+        assert cleanup['exit'] == 0 and not cleanup['forced'] and not cleanup['remaining'], 'reply delay cleanup'
+
+
 def exchange(endpoint, runner, folder, spec, kind=1, xid=0x7901):
     request = bytearray(packet(kind, xid, 1, '127.0.0.10', kind == 3))
     request[24:28] = socket.inet_aton(spec.get('giaddr', '127.0.0.2'))
@@ -339,6 +471,9 @@ def run_side(args):
     syntaxes = {
         'dhcp-proxy': [('proxy-syntax-file', ['dhcp-proxy=127.0.0.2,127.0.0.3'], []),
                        ('proxy-syntax-cli', [], ['--dhcp-proxy=127.0.0.2'])],
+        'dhcp-reply-delay': [('delay-syntax-file', ['dhcp-reply-delay=tag:slow,1'], []),
+                             ('delay-syntax-cli', [], ['--dhcp-reply-delay=1']),
+                             ('delay-syntax-repeat', ['dhcp-reply-delay=2', 'dhcp-reply-delay=0'], [])],
         'bridge-interface': [('bridge-syntax-file', ['bridge-interface=master,port*'], []),
                              ('bridge-syntax-cli', [], ['--bridge-interface=master,port*'])],
         'shared-network': [('shared-syntax-address', ['shared-network=127.0.0.1,198.18.0.1'], []),
@@ -353,7 +488,7 @@ def run_side(args):
         if result.returncode:
             failures.append(dict(case=label, error='ordinary syntax rejected', exit=result.returncode))
         rows.append(dict(case=label, exit=result.returncode, stdout=result.stdout.hex(), stderr=result.stderr.replace(b'dnsmasq-rs', b'dnsmasq').hex()))
-    specs, run_case = (proxy_specs(), proxy_case) if args.family == 'dhcp-proxy' else (shared_specs(), shared_case) if args.family == 'shared-network' else (bridge_specs(), bridge_case) if args.family == 'bridge-interface' else ([], None)
+    specs, run_case = (proxy_specs(), proxy_case) if args.family == 'dhcp-proxy' else (shared_specs(), shared_case) if args.family == 'shared-network' else (bridge_specs(), bridge_case) if args.family == 'bridge-interface' else (delay_specs(), delay_case) if args.family == 'dhcp-reply-delay' else ([], None)
     for spec in specs:
         try:
             rows.append(run_case(root, args.side, args.out, spec))
