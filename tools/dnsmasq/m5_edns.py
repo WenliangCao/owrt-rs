@@ -176,9 +176,73 @@ for label,kw in [
  ('signed-existing-opt',{'additional':[opt(OLD_ECS),rr(250,b'opaque',cls=255)]}),
 ]: case('cpe','add-cpe-id=router',label,**kw)
 
+# Cache and forwarding-table behavior are measured by repeated packets and
+# actual upstream event counts, not inferred from the emitted option bytes.
+for profile,directive,label,kw in [
+ ('ordinary','','cache-client-ecs-nonzero',{'opts':OLD_ECS}),
+ ('ordinary','','cache-client-ecs-zero',{'opts':tlv(8,b'\0\x01\0\0')}),
+ ('ordinary','','cache-client-ecs-malformed',{'opts':b'\0\x08\0\xffbad'}),
+ ('ecs','add-subnet=24,56','cache-dynamic-ecs',{'opts':b''}),
+ ('ecs-fixed','add-subnet=198.51.100.255/25,2001:db8:1234::ffff/65','cache-fixed-ecs',{'opts':b''}),
+ ('ecs-zero','add-subnet=0,0','cache-zero-ecs',{'opts':b''}),
+ ('raw','add-mac','cache-mac-known',{'opts':b''}),
+ ('raw','add-mac','cache-mac-unknown',{'opts':b'','source':'192.0.2.18'}),
+ ('strip-ecs','strip-subnet','cache-strip-ecs',{'opts':OLD_ECS}),
+ ('umbrella','umbrella=orgid:123,deviceid:001122aabbccddff,assetid:456','cache-umbrella',{'opts':b''}),
+ ('cpe','add-cpe-id=router','cache-cpe',{'opts':b''}),
+ ('mac-ecs-fixed','add-mac\nadd-subnet=198.51.100.0/24','cache-ecs-overrides-mac',{'opts':b''}),
+ ('umbrella-ecs-zero','umbrella\nadd-subnet=0,0','cache-ecs-overrides-umbrella',{'opts':b''}),
+ ('ecs','add-subnet=24,56','cache-local-retained',{'opts':b'','host':'local.edns.test'}),
+ ('ecs','add-subnet=24,56','cache-rd-unmodified',{'opts':b'','flags':0}),
+ ('cpe','add-cpe-id=router','cpe-stays-cacheable',{'opts':b''}),
+ ('raw','add-mac','signed-policy-cacheable',{'kind':249,'cls':1}),
+]: case(profile,directive,label,repeat=2,**kw)
+for profile,directive,label,kw in [
+ ('ordinary','','coalesce-ordinary',{'opts':b''}),
+ ('cpe','add-cpe-id=router','coalesce-cpe',{'opts':b''}),
+ ('ordinary','','coalesce-client-ecs',{'opts':OLD_ECS}),
+ ('ecs','add-subnet=24,56','coalesce-dynamic-ecs',{'opts':b''}),
+ ('ecs-fixed','add-subnet=198.51.100.255/25,2001:db8:1234::ffff/65','coalesce-fixed-ecs',{'opts':b''}),
+ ('raw','add-mac','coalesce-mac',{'opts':b''}),
+ ('umbrella','umbrella=orgid:123,deviceid:001122aabbccddff,assetid:456','coalesce-umbrella',{'opts':b''}),
+ ('ecs','add-subnet=24,56','coalesce-same-source-uncacheable',{'opts':b'','same_socket':True}),
+]: case(profile,directive,label,coalesce=True,**kw)
+for label,reply in [
+ ('reply-ecs-valid','echo'),('reply-ecs-scope-any','scope'),('reply-ecs-bad-family','family'),
+ ('reply-ecs-bad-mask','mask'),('reply-ecs-bad-length','length'),('reply-ecs-bad-address','address'),
+ ('reply-ecs-absent','absent'),('reply-ecs-malformed-tlv','malformed'),
+ ('reply-ecs-duplicate-mismatch','duplicate'),('reply-ecs-check-before-strip','address'),
+ ('reply-ecs-check-signed','signed-address'),('reply-ecs-udp-remains-pending','mismatch-then-valid'),
+ ('reply-ecs-tcp-local-fallback','address'),
+]: case('ecs','add-subnet=24,56',label,opts=None if label=='reply-ecs-check-before-strip' else b'',response=reply,tcp=label=='reply-ecs-tcp-local-fallback')
+case('ecs-fixed','add-subnet=198.51.100.255/25,2001:db8:1234::ffff/65','reply-ecs-fixed-check',opts=b'',response='scope')
+for label,kw in [
+ ('capacity-new-exact',{'target_size':491}),('capacity-new-minus-one',{'target_size':492}),
+ ('capacity-existing-exact',{'target_size':502,'opts':b''}),
+ ('capacity-existing-minus-one',{'target_size':503,'opts':b''}),
+ ('capacity-nonlast-insufficient',{'target_size':503,'nonfinal':True,'opts':b''}),
+]: case('cpe-max512','add-cpe-id=router\nedns-packet-max=512',label,**kw)
+case('strip-max512','strip-mac\nedns-packet-max=512','capacity-strip-truncate',opts=tlv(65001,b'oldmac')+b'abc',target_size=503)
+case('max512','edns-packet-max=512','capacity-empty-opt-reserve-four',target_size=501)
+case('ecs-max512','add-subnet=24\nedns-packet-max=512','capacity-policy-no-room-cacheable',target_size=510,repeat=2)
+for label,kw in [
+ ('udp-original-opt-envelope',{'opts':None}),
+ ('udp-decorated-local-envelope',{'opts':None,'host':'local.edns.test'}),
+ ('tcp-added-opt-retained',{'opts':None,'tcp':True}),
+]: case('cpe','add-cpe-id=router',label,**kw)
+case('ordinary','','tcp-no-policy-no-opt',tcp=True)
+case('ordinary','','tcp-cache-read',opts=b'',transports=['udp','tcp'])
+case('ordinary','','tcp-cache-write',opts=b'',transports=['tcp','udp'])
+# Unsafe C reads remain actual runtime cases, with raw outputs retained.
+case('ecs-mask33','add-subnet=33','ecs-mask-overread-v4-wire',opts=b'')
+case('ecs-mask129','add-subnet=0,129','ecs-mask-overread-v6-wire',opts=b'',ipv6=True)
+case('ecs-wrap','add-subnet=256,256','ecs-u8-wrap-wire',opts=b'')
+case('cpe','add-cpe-id=router','opt-malformed-rr',additional=[opt(),b'\0\0\x10\0\x01\0\0\0\0\0\xffbad'])
+
 class Upstream:
     """Test-only selector thread, bounded shutdown; product stays single poll."""
     def __init__(self):
+        self.behaviors={}; self.delayed=[]
         self.udp=socket.socket(socket.AF_INET,socket.SOCK_DGRAM); self.udp.bind(('127.0.0.2',0))
         self.port=self.udp.getsockname()[1]
         self.tcp=socket.socket(socket.AF_INET,socket.SOCK_STREAM); self.tcp.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
@@ -187,20 +251,55 @@ class Upstream:
         self.thread=threading.Thread(target=self.run);self.thread.start()
     def reply(self,packet,transport):
         host,end=read_name(packet,12);question=packet[12:end+4];kind=struct.unpack_from('!H',packet,end)[0]
-        found=options(packet);self.events.append({'host':host,'transport':transport,'query':serial(norm(packet)),'wire':packet.hex()})
+        try:found=options(packet)
+        except (ValueError,IndexError,struct.error):found=None
+        self.events.append({'host':host,'transport':transport,'query':serial(norm(packet)),'wire':packet.hex()})
         data=ipaddress.ip_address('198.51.100.7').packed if kind==1 else b'\x04test'
         body=rr(kind,data,b'\xc0\x0c',1,600)
-        opts=opt(found[4],1232,found[3]) if found else b''
-        return packet[:2]+struct.pack('!5H',0x8180,1,1,0,int(bool(opts)))+question+body+opts
+        data=found[4] if found else b''
+        behavior=self.behaviors.get(host.split('.')[0],{}).get('response','echo')
+        extra=b''
+        if found and behavior not in ('echo','mismatch-then-valid'):
+            parts=[];at=0
+            while at+4<=len(data):
+                code,size=struct.unpack_from('!HH',data,at);value=data[at+4:at+4+size];at+=4+size
+                if code==8:
+                    changed=bytearray(value)
+                    if behavior=='absent':continue
+                    if behavior=='scope' and len(changed)>=4:changed[3]=255
+                    if behavior=='family' and len(changed)>=2:changed[1]^=3
+                    if behavior=='mask' and len(changed)>=3:changed[2]^=1
+                    if behavior=='length':changed=changed[:-1]
+                    if behavior in ('address','signed-address','duplicate') and len(changed)>4:changed[-1]^=1
+                    if behavior=='duplicate':parts.append(tlv(code,value))
+                    value=bytes(changed)
+                parts.append(tlv(code,value))
+            data=b''.join(parts)
+            if behavior=='malformed':data=b'\0\x08\0\xffbad'
+            if behavior=='signed-address':extra=rr(250,b'opaque',cls=255)
+        opts=opt(data,1232,found[3]) if found else b''
+        answer=packet[:2]+struct.pack('!5H',0x8180,1,1,0,int(bool(opts))+int(bool(extra)))+question+body+opts+extra
+        return answer
     def run(self):
         buffers={}
         while not self.stop.is_set():
-            try:ready,_,_=select.select([self.udp,self.tcp,*self.connections],[],[],.05)
+            for deadline,fd,peer,response in self.delayed[:]:
+                if time.monotonic()>=deadline:
+                    fd.sendto(response,peer);self.delayed.remove((deadline,fd,peer,response))
+            try:ready,_,_=select.select([self.udp,self.tcp,*self.connections],[],[],.02)
             except (ValueError,OSError):break
             for fd in ready:
                 try:
                     if fd is self.udp:
-                        packet,peer=fd.recvfrom(65535);fd.sendto(self.reply(packet,'udp'),peer)
+                        packet,peer=fd.recvfrom(65535);response=self.reply(packet,'udp');host=read_name(packet,12)[0]
+                        behavior=self.behaviors.get(host.split('.')[0],{})
+                        if behavior.get('coalesce'):
+                            self.delayed.append((time.monotonic()+.15,fd,peer,response))
+                        elif behavior.get('response')=='mismatch-then-valid':
+                            bad=bytearray(response);found=options(response)
+                            if found and found[4]:bad[found[7]-1]^=1
+                            fd.sendto(bytes(bad),peer);self.delayed.append((time.monotonic()+.15,fd,peer,response))
+                        else:fd.sendto(response,peer)
                     elif fd is self.tcp:
                         conn,_=fd.accept();conn.setblocking(False);self.connections.append(conn);buffers[conn]=b''
                     else:
@@ -221,7 +320,7 @@ def network():
     subprocess.run(['ip','link','add','edns0','type','dummy'],check=True)
     subprocess.run(['ip','link','set','edns0','up'],check=True)
     for address in [LISTEN4+'/24',CLIENT4+'/24','192.0.2.18/24',LISTEN6+'/64',CLIENT6+'/64']:
-        subprocess.run(['ip','addr','add',address,'dev','edns0','nodad'],check=True)
+        subprocess.run(['ip','addr','add',address,'dev','edns0',*(['nodad'] if ':' in address else [])],check=True)
     for address in [CLIENT4,CLIENT6]:
         subprocess.run(['ip','neigh','replace',address,'lladdr',':'.join(f'{v:02x}' for v in MAC),'nud','permanent','dev','edns0'],check=True)
 
@@ -234,6 +333,40 @@ def exchange(port,packet,tcp=False,ipv6=False,source=None):
                 conn.sendall(struct.pack('!H',len(packet))+packet);return exact_read(conn,struct.unpack('!H',exact_read(conn,2))[0])
             conn.send(packet);return conn.recv(65535)
         except (socket.timeout,ConnectionError,ConnectionResetError):return None
+
+def packet_for(row,index):
+    excluded={'case','tcp','ipv6','source','repeat','host','coalesce','same_socket','response','transports','target_size','nonfinal'}
+    params={k:v for k,v in row.items() if k not in excluded}
+    host=row.get('host',row['case']+'.edns.test')
+    packet=query(host,0x6200+index,**params)
+    if 'target_size' not in row:return packet
+    target=row['target_size']
+    base=query(host,0x6200+index)
+    if row.get('opts') is not None:
+        # One padding TLV keeps the existing OPT scanner on a complete option.
+        other=rr(16,b'\x04tail',name('tail.edns.test')) if row.get('nonfinal') else b''
+        size=target-len(base)-11-4-len(params.get('opts',b''))-len(other)
+        opts=params.get('opts',b'')+tlv(123,b'p'*size)
+        return query(host,0x6200+index,additional=[opt(opts),*([other] if other else [])])
+    size=target-len(base)-11
+    return query(host,0x6200+index,additional=[rr(16,b'p'*size)])
+
+def coalesce_exchange(port,packet,row):
+    sockets=[];results=[]
+    try:
+        for index in range(2):
+            if index and row.get('same_socket'):conn=sockets[0]
+            else:
+                conn=socket.socket(socket.AF_INET,socket.SOCK_DGRAM);conn.settimeout(.7)
+                conn.bind((CLIENT4,0));conn.connect((LISTEN4,port));sockets.append(conn)
+            wire=packet if row.get('same_socket') else struct.pack('!H',0x6300+index)+packet[2:]
+            conn.send(wire)
+        for index in range(2):
+            try:results.append(norm(sockets[0 if row.get('same_socket') else index].recv(65535)))
+            except socket.timeout:results.append(norm(None))
+    finally:
+        for conn in sockets:conn.close()
+    return serial(results)
 
 def diagnostics(data):
     text=data.decode('utf-8','surrogateescape')
@@ -271,12 +404,19 @@ def run(args):
             else:raise RuntimeError('daemon pid readiness timeout')
             trace['identity']=process_identity(root,process.pid)
             for index,row in enumerate(active):
-                label=row['case'];params={k:v for k,v in row.items() if k not in ('case','tcp','ipv6','source')}
-                packet=query(label+'.edns.test',0x6200+index,**params)
-                reply=exchange(port,packet,row.get('tcp',False),row.get('ipv6',False),row.get('source'))
+                label=row['case'];packet=packet_for(row,index);upstream.behaviors[label]=row
                 (folder/f'{label}.query').write_bytes(packet)
-                if reply is not None:(folder/f'{label}.reply').write_bytes(reply)
-                trace['rows'].append({'case':label,'query':serial(norm(packet)),'reply':serial(norm(reply)),'upstream_after':len(upstream.events)})
+                before=len(upstream.events);replies=[]
+                if row.get('coalesce'):
+                    replies=coalesce_exchange(port,packet,row)
+                else:
+                    transports=row.get('transports',[('tcp' if row.get('tcp') else 'udp')]*row.get('repeat',1))
+                    for step,transport in enumerate(transports):
+                        wire=struct.pack('!H',0x6200+index+step)+packet[2:]
+                        reply=exchange(port,wire,transport=='tcp',row.get('ipv6',False),row.get('source'))
+                        if reply is not None:(folder/f'{label}-{step}.reply').write_bytes(reply)
+                        replies.append(serial(norm(reply)))
+                trace['rows'].append({'case':label,'query':serial(norm(packet)),'replies':replies,'upstream_delta':len(upstream.events)-before})
                 report['executed_cases'].append(label)
         except Exception as error:
             trace['failure']=repr(error);report['failures'].append({'profile':profile,'error':repr(error)})
