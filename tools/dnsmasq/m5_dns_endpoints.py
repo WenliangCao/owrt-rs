@@ -154,6 +154,11 @@ def service_cases():
     add('late-reply-after-server-retired','servers-file=/m2/files/servers\n',files={'servers':'server=127.0.0.2\n'},actions=[dict(op='start-udp',id='held',name='held.endpoint.test'),write('servers',''),signal_reload(),dict(op='inject',id='held',server=0),dict(op='receive-udp',id='late',pending='held',expect_timeout=True),write('servers','server=127.0.0.3\n'),signal_reload(),probe('recovered','fresh.endpoint.test')])
     add('fixed-new-slot-reallocates','servers-file=/m2/files/servers\n',files={'servers':'server=/old.test/127.0.0.2@127.0.0.9#34004\n'},actions=[probe('old','old.test'),write('servers','server=/new.test/127.0.0.3@127.0.0.8#34005\n'),signal_reload(),probe('new','new.test')])
     add('shared-recvfrom-eio','min-port=34100\nmax-port=34100\nserver=127.0.0.2\n',recv_fault=True,actions=[dict(op='start-udp',id='first',name='first.endpoint.test'),dict(op='start-udp',id='second',name='second.endpoint.test'),dict(op='inject',id='second',server=0),dict(op='receive-udp',id='second',pending='second'),dict(op='inject',id='first',server=0),dict(op='receive-udp',id='first',pending='first')],source_range=[34100,34100],same_udp_port=True)
+    add('diagnostic-fixed-bind','server=127.0.0.2@192.0.2.99#34004\nserver=127.0.0.3\n',debug=True,source_diagnostics=True)
+    add('diagnostic-random-bind','server=127.0.0.2@192.0.2.99\nserver=127.0.0.3\n',debug=True,source_diagnostics=True)
+    add('diagnostic-random-interface','server=127.0.0.2@missing_endpoint_if\nserver=127.0.0.3\n',debug=True,source_diagnostics=True)
+    add('inherited-nofile-pool-cap','dns-forward-max=40\nserver=127.0.0.2\n',inherited_nofile=40,actions=[dict(op='start-udp',id='q'+str(i),name='q'+str(i)+'.endpoint.test') for i in range(24)]+[action for i in reversed(range(24)) for action in (dict(op='inject',id='q'+str(i),server=0),dict(op='receive-udp',id='q'+str(i),pending='q'+str(i)))],udp_unique_ports=13)
+    add('range-inclusive-ends','min-port=34100\nmax-port=34101\nserver=127.0.0.2\n',names=tuple('bound'+str(i)+'.endpoint.test' for i in range(64)),source_range=[34100,34101],range_ends=True)
     return cases
 
 
@@ -169,7 +174,10 @@ def run_service_side(root, side, case, folder):
     def identity(root,pid):
         nonlocal parent_pid
         parent_pid=pid
-        return dict(original_identity(root,pid),threads=len(list(Path('/proc',str(pid),'task').iterdir())))
+        status=Path('/proc',str(pid),'status').read_text().splitlines()
+        uid=int(next(line.split()[1] for line in status if line.startswith('Uid:')))
+        expected_uid=next(int(line.split(':')[2]) for line in (root/'etc/passwd').read_text().splitlines() if line.split(':')[0]==case.get('user','root'))
+        return dict(original_identity(root,pid),threads=len(list(Path('/proc',str(pid),'task').iterdir())),uid=uid,expected_uid=expected_uid)
     files.process_identity=identity
     original_upstream=files.FileUpstream
     class Captured(original_upstream):
@@ -243,7 +251,11 @@ def run_service_side(root, side, case, folder):
     SourceCapture.instances=[]
     occupied=[]
     original_command=files.command
-    files.command=lambda root,side,*args: original_command(root,side,*case.get('argv',[]),*args)
+    def wrapped_command(root,side,*args):
+        command=original_command(root,side,*case.get('argv',[]),*('-d' if arg=='-k' and case.get('debug') else arg for arg in args))
+        if case.get('inherited_nofile'): command=['prlimit','--nofile='+str(case['inherited_nofile'])+':'+str(case['inherited_nofile']),*command]
+        return command
+    files.command=wrapped_command
     try:
         for port in case.get('occupied_ports',[]):
             bound=socket.socket(socket.AF_INET,socket.SOCK_DGRAM);bound.bind(('0.0.0.0',port));occupied.append(bound)
@@ -257,6 +269,7 @@ def run_service_side(root, side, case, folder):
     result['injected_packets']=[row for upstream in SourceCapture.instances for row in getattr(upstream,'injected',[])]
     result['recv_faults']=[upstream.recv_fault for upstream in SourceCapture.instances if hasattr(upstream,'recv_fault')]
     result['fixture_errors']=[error for upstream in SourceCapture.instances for error in upstream.errors]
+    result['source_diagnostics']=[line.replace('dnsmasq-rs:','dnsmasq:') for line in result['stderr'].splitlines() if 'server socket' in line or 'ignoring nameserver' in line]
     result['source_guard_errors']=source_guard_errors(result,case)
     save(folder/'observed.json',result)
     return result
@@ -265,6 +278,7 @@ def run_service_side(root, side, case, folder):
 def source_guard_errors(result,case):
     errors=[]
     if not result['startup']['ready']: return errors
+    if result.get('identity',{}).get('uid')!=result.get('identity',{}).get('expected_uid'): errors.append('daemon UID does not match configured user')
     if result.get('identity',{}).get('threads')!=1: errors.append('parent daemon is not one thread')
     if case.get('recv_fault') and (len(result.get('recv_faults',[]))!=1 or not result['recv_faults'][0].get('injected')): errors.append('actual recvfrom EIO fault missing')
     udp=[row for row in result['source_events'] if row['transport']=='udp']
@@ -273,6 +287,7 @@ def source_guard_errors(result,case):
     if case.get('expected_source_port') is not None and any(port!=case['expected_source_port'] for port in ports): errors.append('fixed source port differs')
     if case.get('forbidden_udp_port') in ports: errors.append('explicit source inherited global port')
     if case.get('source_range') and any(not case['source_range'][0]<=port<=case['source_range'][1] for port in ports): errors.append('source outside inclusive range')
+    if case.get('range_ends') and ports!=set(case['source_range']): errors.append('both inclusive range ends not observed')
     if case.get('same_udp_port') and len(ports)!=1: errors.append('shared source uses different ports')
     if case.get('udp_unique_ports') is not None and len(ports)!=case['udp_unique_ports']: errors.append('port-limit allocation differs')
     if case.get('no_udp_upstream') and udp: errors.append('exhausted range still sent UDP')
@@ -302,7 +317,8 @@ def source_projection(observed,case):
 
 
 def controls():
-    sample={'startup':{'ready':True},'source_events':[{'transport':'udp','peer':['127.0.0.9',34004],'destination':['127.0.0.2',53],'name':'one.test','wire':'abcd'}]}
+    sample={'startup':{'ready':True},'identity':{'uid':0,'expected_uid':0,'threads':1},'source_events':[{'transport':'udp','peer':['127.0.0.9',34004],'destination':['127.0.0.2',53],'name':'one.test','wire':'abcd'}]}
+    assert not source_guard_errors(sample,{})
     tests={}
     wrong=copy.deepcopy(sample);wrong['source_events'][0]['peer'][0]='127.0.0.8'
     tests['source-address-mutation']=source_projection(sample,{})!=source_projection(wrong,{})
@@ -323,6 +339,8 @@ def controls():
 def run_service(args, cases):
     import m5_dns_files as files
     args.out.mkdir(parents=True)
+    # Keep probe/listener allocation outside configured DNS source ranges.
+    subprocess.run(['sysctl','-q','-w','net.ipv4.ip_local_port_range=40000 60999'],check=True)
     driver=args.out/'driver';driver.mkdir()
     for name in ('m5_dns_endpoints.py','m5_dns_endpoints.json','m5_dns_files.py','m5_option_matrix.py','m5_option_matrix_probes.py','m5_dhcp_tags_options.py','dhcp_boot_service_diff.py','dns_service_probe.py','m2_rootfs.py','run_isolated.sh'):
         shutil.copy2(Path(__file__).with_name(name),driver/name)
@@ -341,6 +359,7 @@ def run_service(args, cases):
             if any((entry.get('response') is None)!=(entry['id'] in timeout_ids) for entry in observed['c']['rows'] if entry['id'].endswith('udp-async')): row['failures'].append(dict(phase='c-async-calibration',error='missing awaited UDP reply'))
             if args.side=='both':
                 row['failures'].extend(files.compare(observed['c'],observed['rust'],case))
+                if case.get('source_diagnostics') and observed['c']['source_diagnostics']!=observed['rust']['source_diagnostics']: row['failures'].append(dict(phase='source-diagnostic',c=observed['c']['source_diagnostics'],rust=observed['rust']['source_diagnostics']))
                 c,rust=(source_projection(observed[side],case) for side in ('c','rust'))
                 if c!=rust: row['failures'].append(dict(phase='source-tuples',c=c,rust=rust))
             for side,result in observed.items():
