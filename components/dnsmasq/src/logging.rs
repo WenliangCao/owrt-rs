@@ -96,6 +96,7 @@ pub struct Logger {
     omit_timestamp: bool,
     connection_good: bool,
     debug_enabled: bool,
+    fallback: bool,
 }
 
 impl Logger {
@@ -156,6 +157,7 @@ impl Logger {
                 omit_timestamp: stderr && process.keep_in_foreground,
                 connection_good: true,
                 debug_enabled: false,
+                fallback: false,
             },
             ownership_warning,
         ))
@@ -224,11 +226,17 @@ impl Logger {
         bytes.extend_from_slice(
             format!("{PROGRAM}{}[{}]: ", service.suffix(), std::process::id()).as_bytes(),
         );
+        let terminators = 1 + usize::from(self.fallback);
         bytes.extend_from_slice(
             &message[..message
                 .len()
-                .min(MAX_MESSAGE.saturating_sub(bytes.len() + 1))],
+                .min(MAX_MESSAGE.saturating_sub(bytes.len() + terminators))],
         );
+        // musl's syslog fallback retains its newline inside the datagram.
+        // log.c's direct socket path elides only its terminating NUL.
+        if self.fallback && bytes.last() != Some(&b'\n') {
+            bytes.push(b'\n');
+        }
         bytes.push(if matches!(self.destination, Destination::Syslog { .. }) {
             0
         } else {
@@ -337,6 +345,12 @@ impl Logger {
             if let Ok(destination) = syslog_socket(false) {
                 self.destination = destination;
                 self.omit_timestamp = false;
+                self.fallback = true;
+                if self.echo.is_some() && self.echo_queue.len() < 100 {
+                    let bytes =
+                        format!("{PROGRAM}: log failed: {}\n", error_text(&error)).into_bytes();
+                    self.echo_queue.push_back(Record { bytes, offset: 0 });
+                }
                 let bytes = self.format(
                     Service::Dns,
                     Priority::Critical,
@@ -367,10 +381,12 @@ impl Logger {
             Err(error) => {
                 self.queue.clear();
                 self.omit_timestamp = false;
+                self.fallback = true;
                 return Err(error);
             }
         }
         self.connection_good = true;
+        self.fallback = false;
         Ok(())
     }
 

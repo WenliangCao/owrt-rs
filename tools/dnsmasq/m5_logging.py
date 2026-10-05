@@ -111,7 +111,6 @@ def cases():
 
 def normalized(value):
     value = value.replace('dnsmasq-rs:', 'dnsmasq:')
-    value = re.sub(r'(?m)(?<=\n)\n\Z', '', value)
     value = re.sub(r'(?m)^(<\d+>)?[A-Z][a-z]{2} [ 0-9][0-9] \d\d:\d\d:\d\d ',
                    lambda match: (match[1] or '') + '<TIME> ', value)
     return re.sub(r'(dnsmasq(?:-(?:dhcp|tftp|script|debug))?)\[\d+\]:', r'\1[<PID>]:', value)
