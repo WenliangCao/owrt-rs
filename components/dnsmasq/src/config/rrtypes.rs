@@ -11,18 +11,12 @@ pub(crate) fn name(kind: u16) -> Option<&'static [u8]> {
 }
 
 pub(super) fn parse(bytes: &[u8]) -> Result<u16, Error> {
-    if bytes.is_empty() {
-        return Err(Error("bad RR type"));
-    }
     if bytes.iter().all(u8::is_ascii_digit) {
-        let value = bytes.iter().try_fold(0u32, |value, digit| {
-            value
-                .checked_mul(10)
-                .and_then(|value| value.checked_add(u32::from(*digit - b'0')))
-                .filter(|value| *value <= i32::MAX as u32)
-                .ok_or(Error("integer exceeds defined C int range"))
-        })?;
-        // rrlist stores unsigned short after option.c's defined int parse.
+        // numeric_check accepts empty input. The image's musl atoi wraps
+        // to signed int before rrlist stores the low unsigned-short bits.
+        let value = bytes.iter().fold(0u32, |value, digit| {
+            value.wrapping_mul(10).wrapping_add(u32::from(*digit - b'0'))
+        });
         return Ok(value as u16);
     }
     TYPES
