@@ -892,7 +892,15 @@ fn run_inner(
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     let dhcp_helper = helper_config.map(Helper::start).transpose()?;
     #[cfg(target_os = "linux")]
-    identity.drop_privileges(&runtime.process, capabilities)?;
+    identity.drop_privileges(&runtime.process, capabilities).map_err(|error| {
+        if !startup.active() {
+            use dnsmasq_rs::logging::{LogEvent, Priority, Service};
+            logger.emit(LogEvent::new(Service::Dns, Priority::Critical, error.message.as_bytes().to_vec()));
+            logger.emit(LogEvent::new(Service::Dns, Priority::Critical, b"FAILED to start up".to_vec()));
+            logger.finish();
+        }
+        error
+    })?;
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     if let Some(listener) = &tftp_listener {
         // C tolerates inaccessible roots with no-fail, never socket errors.
