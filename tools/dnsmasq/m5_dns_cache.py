@@ -258,6 +258,50 @@ case('metadata-local-ad',host='health.cache.test',flags=0x120)
 case('metadata-local-do',host='health.cache.test',do=True)
 case('metadata-reply-signed-ad',response_flags=0x81a0,response_signed=True)
 case('metadata-cached-soa-ad','proxy-dnssec',response_flags=0x81a0,answers=[],soa=True,flags=0x120)
+# Round-robin is a forward lookup effect. Reverse queries never rotate.
+for shape,kind in [('a',1),('aaaa',28),('generic',16),('reverse',12),('hosts',1)]:
+    for disabled in [False,True]:
+        label='round-'+shape+('-disabled' if disabled else '-default')
+        host=PTR4 if shape=='reverse' else label+'.cache.test'
+        config=('no-round-robin\n' if disabled else '')+('cache-rr=ANY\n' if shape=='generic' else '')
+        fields={}
+        if shape=='hosts':config+='\n'.join('host-record='+host+',198.51.100.'+str(value) for value in [7,8,9])
+        elif shape=='a':fields['answers']=[{'data':ipaddress.ip_address('198.51.100.'+str(value)).packed.hex()} for value in [7,8,9]]
+        elif shape=='aaaa':fields['answers']=[{'data':ipaddress.ip_address('2001:db8::'+str(value)).packed.hex()} for value in [7,8,9]]
+        elif shape=='generic':fields['answers']=[{'data':bytes([1,value]).hex()} for value in [97,98,99]]
+        else:fields['answers']=[{'data':name(value+'.cache.test').hex()} for value in ['first','second','third']]
+        case(label,config,kind=kind,host=host,action='round-five',**fields)
+for label,fields in [('round-insert-order',{}),('round-do-miss-effects',{'miss':'do'}),
+                      ('round-rd-off-effects',{'miss':'rd'}),('round-expired-entry-removal',{'expires':True}),
+                      ('round-cname-prefix-lookups',{'cname':True})]:
+    case(label,action='round-five',answers=[{'data':'c6336407'},{'data':'c6336408'},{'data':'c6336409'}],**fields)
+for disabled in [False,True]:
+    case('round-mixed-generic-'+('disabled' if disabled else 'default'),
+         'cache-rr=ANY'+('\nno-round-robin' if disabled else ''),kind=16,action='round-five',mixed=True,
+         answers=[{'data':'0161'},{'data':'0162'},{'data':'0163'}])
+case('round-tcp-snapshot-vs-parent',action='round-snapshot',answers=[{'data':'c6336407'},{'data':'c6336408'},{'data':'c6336409'}])
+
+# Real expiry/refetch schedules, each retaining seed/stale/refresh wire and
+# monotonic timestamps. DNS/TCP refresh starts from a newly accepted view.
+STALE_SHAPES=[('a',1,{}),('aaaa',28,{}),('generic',16,{'config':'cache-rr=TXT'}),
+              ('cname',1,{'shape':'cname'}),('reverse',12,{'host':PTR4}),
+              ('negative',1,{'shape':'negative','answers':[],'response_flags':0x8183,'soa':True,'soa_ttl':1,'soa_minimum':1})]
+for shape,kind,shape_fields in STALE_SHAPES:
+    for mode in ['udp-refresh','tcp-refresh','rd-off','do-on','do-off','finite-expired','forever']:
+        fields=copy.deepcopy(shape_fields);extra=fields.pop('config','')
+        config=('use-stale-cache=3' if mode=='finite-expired' else 'use-stale-cache=0')+'\n'+extra
+        case('stale-'+shape+'-'+mode,config,kind=kind,ttl=1,action='stale-schedule',mode=mode,**fields)
+for label,fields in [('stale-default',{}),('stale-no-opt-no-ede',{'opts':None}),
+                      ('stale-client-opt-ede3',{}),('stale-upstream-failure-retains',{'refresh_error':True}),
+                      ('stale-filter-ede-precedence',{'config':'filter-A'}),
+                      ('stale-hup-clears',{'clear_hup':True}),
+                      ('stale-tcp-refresh-import',{'mode':'tcp-refresh'}),
+                      ('stale-tcp-eof-before-refresh',{'mode':'tcp-refresh'}),
+                      ('stale-background-no-second-reply',{'double_read':True})]:
+    fields=copy.deepcopy(fields);extra=fields.pop('config','');mode=fields.pop('mode','udp-refresh')
+    case(label,('use-stale-cache' if label=='stale-default' else 'use-stale-cache=0')+'\n'+extra,
+         ttl=1,action='stale-schedule',mode=mode,**fields)
+
 for label,action in [('tcp-parent-lease-added','lease-added'),('tcp-parent-lease-renamed','lease-renamed'),
                       ('tcp-parent-lease-released','lease-released'),('tcp-existing-lease-ttl','lease-ttl')]:
     case(label,'dhcp-range=192.0.2.40,192.0.2.60,255.255.255.0,120s\n'
@@ -396,6 +440,62 @@ def schedule(spec,port,upstream,folder):
         upstream.plan[host]=dict(spec,answers=[{'kind':5,'data':name('target.cache.test').hex()},
                                                {'kind':spec.get('kind',1),'owner':'target.cache.test','data':default_rdata(spec.get('kind',1)).hex()}])
     if action=='startup':return observations
+    if action in ('round-five','round-snapshot'):
+        if spec.get('cname'):
+            upstream.plan[host]=dict(spec,answers=[{'kind':5,'data':name('round-target.cache.test').hex()}]
+                       +[dict(row,owner='round-target.cache.test') for row in spec['answers']])
+        if spec.get('expires'):
+            upstream.plan[host]=dict(spec,answers=[dict(row,ttl=1 if index==0 else 600) for index,row in enumerate(spec['answers'])])
+        packet('seed')
+        if spec.get('expires'):time.sleep(2.2)
+        if spec.get('mixed'):
+            upstream.plan[host]=dict(spec,answers=[{'data':(bytes([0,value])+name('target.cache.test')).hex()} for value in [10,20]])
+            packet('seed-other-type',kind=15)
+        if spec.get('miss'):
+            upstream.plan[host]=dict(spec,response_flags=0x8182,answers=[])
+            packet('ineligible-miss',**({'do':True} if spec['miss']=='do' else {'flags':0}))
+        if action=='round-snapshot':
+            with socket.socket(socket.AF_INET,socket.SOCK_STREAM) as conn:
+                conn.settimeout(2);conn.bind((CLIENT,0));conn.connect((LISTEN,port))
+                packet('accepted-health','health.cache.test',True,conn,kind=1)
+                for index in range(3):
+                    packet('parent-'+str(index));packet('child-'+str(index),tcp=True,connection=conn)
+        else:
+            for index in range(5):packet('round-'+str(index))
+        return observations
+    if action=='stale-schedule':
+        shape=spec.get('shape')
+        if shape=='cname':
+            upstream.plan[host]=dict(spec,answers=[{'kind':5,'data':name('target.cache.test').hex()},
+                                          {'kind':1,'data':'c6336407','owner':'target.cache.test'}])
+        packet('seed');time.sleep(5.2 if spec['mode']=='finite-expired' else 2.2)
+        if spec.get('clear_hup'):process_hup(folder)
+        fresh=dict(spec,ttl=600,soa_ttl=600,soa_minimum=600)
+        kind=spec.get('kind',1)
+        if shape=='cname':fresh['answers']=[{'kind':5,'data':name('target.cache.test').hex()},
+                                          {'kind':1,'data':'c6336408','owner':'target.cache.test'}]
+        elif shape!='negative':
+            data={1:'c6336408',28:ipaddress.ip_address('2001:db8:100::8').packed.hex(),16:b'\x05newxx'.hex(),12:name('fresh.cache.test').hex()}[kind]
+            fresh['answers']=[{'data':data}]
+        if spec.get('refresh_error'):fresh.update(response_flags=0x8182,answers=[],soa=False)
+        upstream.plan[host]=fresh
+        overrides={'flags':0} if spec['mode']=='rd-off' else {'do':True} if spec['mode']=='do-on' else {}
+        if spec.get('double_read'):
+            wire=query(host,0x5201,kind)
+            with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as stream:
+                stream.settimeout(.8);stream.bind((CLIENT,0));stream.connect((LISTEN,port));started=time.monotonic_ns()
+                stream.send(wire);reply=stream.recv(65535);completed=time.monotonic_ns()
+                (folder/'expired.query').write_bytes(wire);(folder/'expired.reply').write_bytes(reply)
+                observations.append({'label':'expired','query':normalized(wire),'reply':normalized(reply),
+                                     'sent_monotonic_ns':started,'completed_monotonic_ns':completed,'elapsed_seconds':(completed-started)/1e9})
+                try:second=stream.recv(65535)
+                except socket.timeout:second=None
+                if second is not None:(folder/'background-second.reply').write_bytes(second)
+                observations.append({'label':'background-second-reply','reply':normalized(second)})
+        else:packet('expired',tcp=spec['mode']=='tcp-refresh',**overrides)
+        time.sleep(.1)
+        packet('after-refresh')
+        return observations
     if action=='expired-stale':
         packet('seed');time.sleep(2.2)
         upstream.plan[host]=dict(spec,ttl=600,answers=[{'data':name('refreshed.cache.test').hex() if spec.get('kind')==12 else '11121314'}])
