@@ -72,7 +72,7 @@ pub fn read_addresses() -> std::io::Result<Vec<InterfaceAddress>> {
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 fn ipv6_flags(line: &str) -> Option<(Ipv6Addr, u32, u8)> {
     let fields: Vec<_> = line.split_whitespace().collect();
-    if fields.len() != 6 || fields[0].len() != 32 {
+    if fields.len() != 6 || fields[0].len() != 32 || !fields[0].is_ascii() {
         return None;
     }
     let mut bytes = [0u8; 16];

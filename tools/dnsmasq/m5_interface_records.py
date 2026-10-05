@@ -176,7 +176,8 @@ def service_cases():
         kernel(['ip','-6','addr','add','2001:db8:91::9/64','dev','m5ir0']),state('tentative')]
     add('interface-flag-dad-completion','interface-name=iface.records.test,m5ir0\n',[],
         'IF-FLAGS IF-CALLER',topology=[v4only],actions=[*dad,*mutation_probes('tentative','2001:db8:91::9'),
-            dict(op='pause',seconds=3.4),state('completed'),*mutation_probes('completed','2001:db8:91::9')])
+            dict(op='write',path='kernel-state',text='',kernel_wait={'address':'2001:db8:91::9','mask':0x40,'set':False}),
+            state('completed'),*mutation_probes('completed','2001:db8:91::9')])
     add('interface-udp-ptr-refresh','interface-name=iface.records.test,m5ir0\n',[],
         'IF-CALLER IF-PTR',topology=[primary],actions=[files.probe('before','iface.records.test'),
             kernel(['ip','addr','add','198.18.91.10/24','dev','m5ir0']),state('added'),
@@ -203,6 +204,17 @@ def run_service_side(root,side,case,out):
             return
         if isinstance(value,dict) and 'interface_state' in value:
             record(value['interface_state']);return
+        if isinstance(value,dict) and 'kernel_wait' in value:
+            expected=value['kernel_wait'];address=ipaddress.ip_address(expected['address']).packed.hex()
+            deadline=time.monotonic()+12;samples=[]
+            while True:
+                flags=next((int(fields[4],16) for line in Path('/proc/net/if_inet6').read_text().splitlines()
+                    if (fields:=line.split())[0]==address),None)
+                samples.append(flags)
+                if flags is not None and bool(flags&expected['mask'])==expected['set']:break
+                if time.monotonic()>deadline:raise AssertionError('kernel address state transition not observed')
+                time.sleep(.02)
+            states.append({'label':'state-transition','expected':expected,'samples':samples,'at':time.monotonic()});return
         return original_put(root,path,value,opened)
     def exchange(port,action,*args):
         if action.get('temporary_ptr'):
