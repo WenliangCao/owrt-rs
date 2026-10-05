@@ -290,6 +290,23 @@ impl CacheContext<'_> {
                 }
             }
         }
+        if question.rrtype == 12
+            && !ids.iter().any(|id| {
+                cache
+                    .get(*id)
+                    .is_some_and(|entry| entry.record.kind == Kind::Cname)
+            })
+        {
+            let mut writer = PacketWriter::new(header.id, (header.flags & 0x0110) | 0x8080, limit)?;
+            writer.question(&question.name, question.rrtype, question.class)?;
+            if let Some(flags) =
+                append_reverse_synth_terminal(&mut writer, local, &question.name, question, 12)?
+            {
+                // is_rev_synth replaces C's name cursor; a previous generic
+                // negative's original SOA suffix does not survive that cursor.
+                return Ok(finish_cached_answer_flags(writer, Some(flags), stale)?);
+            }
+        }
         if ids.is_empty() {
             // rfc1035.c uses an existing cached RR of any family/type to
             // answer filtered requests as NODATA, avoiding an upstream round
@@ -568,13 +585,49 @@ impl CacheContext<'_> {
                         // The link validates the CNAME lifetime, but C looks
                         // up the terminal name again for the current qtype.
                         let terminal_name = target_entry.record.name.clone();
+                        let nx_target = (target_entry.record.kind == Kind::NxDomain
+                            && target_entry.record.negative)
+                            .then_some(target);
+                        if question.rrtype == 12 {
+                            if let Some(address) =
+                                super::local::arpa_address(&terminal_name.dnsmasq_bytes())
+                            {
+                                let reverse = cache.lookup_reverse(address, now);
+                                if !reverse.is_empty() {
+                                    for id in reverse {
+                                        let entry = cache.get(id).expect("live reverse entry");
+                                        stale |= entry.is_stale(now);
+                                        record_cached(local, cache, id, now);
+                                        match writer.record_at(
+                                            Section::Answer,
+                                            owner_offset,
+                                            12,
+                                            1,
+                                            entry.reply_ttl(now, cache.policy()),
+                                            entry.record.name.as_wire(),
+                                        ) {
+                                            Ok(()) => {}
+                                            Err(WireError::Full) => break,
+                                            Err(error) => return Err(error.into()),
+                                        }
+                                    }
+                                    return Ok(finish_cached_answer(writer, stale)?);
+                                }
+                            }
+                            if let Some(flags) = append_reverse_synth_terminal(
+                                &mut writer,
+                                local,
+                                &terminal_name,
+                                question,
+                                owner_offset,
+                            )? {
+                                return Ok(finish_cached_answer_flags(writer, Some(flags), stale)?);
+                            }
+                        }
                         if local.config.filter_win2k && question.rrtype == 6 {
                             record_windows_filter(local, &terminal_name);
                             return Ok(finish_cached_answer_flags(writer, Some(0x8480), stale)?);
                         }
-                        let nx_target = (target_entry.record.kind == Kind::NxDomain
-                            && target_entry.record.negative)
-                            .then_some(target);
                         match append_interface_terminal(
                             &mut writer,
                             local,
@@ -1291,9 +1344,9 @@ impl CacheContext<'_> {
 fn record_windows_filter(local: &mut LocalDnsService, name: &Name) {
     if local.query_logging {
         local.record_query_event(QueryEvent::label(
-            qlog::CONFIG,
+            qlog::CONFIG | qlog::NEGATIVE,
             &name.dnsmasq_bytes(),
-            Some(b"NODATA"),
+            None,
             0,
         ));
     }
@@ -1524,6 +1577,48 @@ fn append_synth_terminal(
         }
     }
     Ok(answered.then_some(0x0400))
+}
+
+/// PTR address/synthetic lookup precedes the forward generic PTR/NX tier.
+/// C's synthetic reverse path replaces its name cursor, so an earlier generic
+/// negative does not attach its original reverse-zone SOA to this answer.
+fn append_reverse_synth_terminal(
+    writer: &mut PacketWriter,
+    local: &mut LocalDnsService,
+    terminal: &Name,
+    question: &super::forward::Question,
+    owner_offset: u16,
+) -> Result<Option<u16>, CacheError> {
+    if question.rrtype != 12 {
+        return Ok(None);
+    }
+    let Some(address) = super::local::arpa_address(&terminal.dnsmasq_bytes()) else {
+        return Ok(None);
+    };
+    let Some(target) = local.config.synth_domains.reverse(address) else {
+        return Ok(None);
+    };
+    if local.query_logging {
+        local.record_query_event(QueryEvent::address(
+            qlog::CONFIG | qlog::REVERSE,
+            &target,
+            address,
+            None,
+        ));
+    }
+    let target = Name::from_dotted_bytes(&target)?;
+    match writer.record_at(
+        Section::Answer,
+        owner_offset,
+        12,
+        1,
+        local.local_ttl,
+        target.as_wire(),
+    ) {
+        Ok(()) => Ok(Some(0x0400)),
+        Err(WireError::Full) => Ok(Some(0x0400 | 0x0200)),
+        Err(error) => Err(error.into()),
+    }
 }
 
 /// Reuse the local answer engine for a cached alias's terminal name, including
@@ -2008,6 +2103,160 @@ mod tests {
             &name,
             &Name::from_ascii("CaChE.TeSt").unwrap()
         ));
+    }
+
+    #[test]
+    fn reverse_synth_precedes_generic_negatives_and_keeps_positive_ip_priority() {
+        use crate::config::synth_domain::{SynthDomain, SynthRange};
+        let alias = Name::from_ascii("10.2.0.192.in-addr.arpa").unwrap();
+        let terminal = Name::from_ascii("7.2.0.192.in-addr.arpa").unwrap();
+        let authority = Name::from_ascii("in-addr.arpa").unwrap();
+        let mut config = DnsConfig::default();
+        config.synth_domains.domains.push(SynthDomain {
+            domain: b"synthetic.records.test".to_vec(),
+            prefix: Vec::new(),
+            indexed: false,
+            range: SynthRange::V4 {
+                start: u32::from(Ipv4Addr::new(192, 0, 2, 0)),
+                end: u32::from(Ipv4Addr::new(192, 0, 2, 8)),
+            },
+        });
+        for rcode in [0u16, 3] {
+            let mut local = LocalDnsService::new(config.clone(), Hosts::new(), 77, 1232);
+            let mut soa = Name::from_ascii("ns.records.test")
+                .unwrap()
+                .as_wire()
+                .to_vec();
+            soa.extend_from_slice(Name::from_ascii("hm.records.test").unwrap().as_wire());
+            for value in [1u32, 60, 60, 600, 300] {
+                soa.extend_from_slice(&value.to_be_bytes());
+            }
+            let mut writer = PacketWriter::new(1, 0x8180 | rcode, 1232).unwrap();
+            writer.question(&alias, 12, 1).unwrap();
+            writer
+                .record_at(Section::Answer, 12, 5, 1, 600, terminal.as_wire())
+                .unwrap();
+            writer
+                .record(Section::Authority, &authority, 6, 1, 600, &soa)
+                .unwrap();
+            let reply = writer.finish();
+            let mut cache = Cache::new(8, Default::default());
+            let mut counters = CacheCounters::default();
+            let mut context = CacheContext {
+                cache: &mut cache,
+                counters: &mut counters,
+                negative_cache: true,
+                negative_ttl: 0,
+                filter_rr: &[],
+            };
+            context
+                .insert_reply_with_policy(
+                    &reply,
+                    100,
+                    &local,
+                    &Default::default(),
+                    rcode,
+                    OrdinaryCacheMode::Commit,
+                )
+                .unwrap();
+            assert!(!context
+                .cache
+                .has_reverse_candidate("192.0.2.7".parse().unwrap(), 101));
+            for name in [&terminal, &alias] {
+                let question = super::super::forward::Question {
+                    name: name.clone(),
+                    rrtype: 12,
+                    class: 1,
+                };
+                let answer = context
+                    .answer_records(
+                        &question,
+                        Header {
+                            id: 2,
+                            flags: 0x0100,
+                            questions: 1,
+                            answers: 0,
+                            authorities: 0,
+                            additionals: 0,
+                        },
+                        101,
+                        &mut local,
+                        1232,
+                        false,
+                    )
+                    .unwrap()
+                    .packet
+                    .unwrap();
+                let message = Message::parse(&answer).unwrap();
+                assert_eq!(message.header.rcode(), 0);
+                assert_ne!(message.header.flags & 0x0400, 0);
+                assert_eq!(message.header.authorities, 0);
+                let ptr = message
+                    .records(Section::Answer)
+                    .find(|record| record.rrtype == 12)
+                    .unwrap();
+                assert_eq!(
+                    ptr.canonical_rdata().unwrap(),
+                    Name::from_ascii("192-0-2-7.synthetic.records.test")
+                        .unwrap()
+                        .as_wire()
+                );
+                assert_eq!(ptr.ttl, 77);
+            }
+            context.cache.start_insert();
+            context
+                .cache
+                .insert(
+                    Record {
+                        name: Name::from_ascii("upstream.records.test").unwrap(),
+                        kind: Kind::ReverseIpv4,
+                        negative: false,
+                        data: vec![192, 0, 2, 7],
+                    },
+                    101,
+                    60,
+                )
+                .unwrap();
+            assert!(context.cache.commit());
+            assert!(context
+                .cache
+                .has_reverse_candidate("192.0.2.7".parse().unwrap(), 101));
+            let question = super::super::forward::Question {
+                name: terminal.clone(),
+                rrtype: 12,
+                class: 1,
+            };
+            let answer = context
+                .answer_records(
+                    &question,
+                    Header {
+                        id: 3,
+                        flags: 0x0100,
+                        questions: 1,
+                        answers: 0,
+                        authorities: 0,
+                        additionals: 0,
+                    },
+                    101,
+                    &mut local,
+                    1232,
+                    false,
+                )
+                .unwrap()
+                .packet
+                .unwrap();
+            let message = Message::parse(&answer).unwrap();
+            assert_eq!(message.header.flags & 0x0400, 0);
+            assert_eq!(
+                message
+                    .records(Section::Answer)
+                    .next()
+                    .unwrap()
+                    .canonical_rdata()
+                    .unwrap(),
+                Name::from_ascii("upstream.records.test").unwrap().as_wire()
+            );
+        }
     }
 
     #[test]

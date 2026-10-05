@@ -296,9 +296,9 @@ impl<'a> LocalAnswerer<'a> {
                 owned = true;
                 windows_filtered = true;
                 notices.label(
-                    qlog::CONFIG,
+                    qlog::CONFIG | qlog::NEGATIVE,
                     &question.name.dnsmasq_bytes(),
-                    Some(b"NODATA"),
+                    None,
                     0,
                 );
             }
@@ -358,6 +358,7 @@ impl<'a> LocalAnswerer<'a> {
             let family = match question.qtype {
                 TYPE_A => qlog::IPV4,
                 TYPE_AAAA => qlog::IPV6,
+                255 => qlog::IPV4 | qlog::IPV6,
                 _ => 0,
             };
             notices.label(
