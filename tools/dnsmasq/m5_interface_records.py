@@ -13,6 +13,9 @@ import json
 import os
 from pathlib import Path
 import resource
+import signal
+import socket
+import struct
 import shutil
 import subprocess
 import time
@@ -54,6 +57,13 @@ def syntax_cases():
             ('interface16','name.records.test,abcdefghijklmnop')]
         for label,value in values:
             add(option+'-'+label,option+'='+value+'\n','IF-GRAM')
+    for option in ('interface-name','dynamic-host'):
+        prefix='name.records.test,'+('192.0.2.7,' if option=='dynamic-host' else '')
+        for label,value in [('binary','x\x01.records.test'),('nonascii','é.records.test'),('label63','x'*63+'.test'),('label64','x'*64+'.test'),('name253','.'.join(['a'*63]*3+['a'*61])),('name254','.'.join(['a'*63]*3+['a'*62]))]:
+            add(option+'-name-'+label,option+'='+value+','+('192.0.2.7,' if option=='dynamic-host' else '')+'m5ir0\n','IF-GRAM')
+        add(option+'-long-target',option+'='+prefix+'abcdefghijklmnopqrstuvw\n','IF-GRAM')
+        add(option+'-quoted-comma',option+'=name.records.test,'+('192.0.2.7,' if option=='dynamic-host' else '')+'"m5ir0,tail"\n','IF-GRAM')
+        add(option+'-repeated',option+'='+prefix+'m5ir0\n'+option+'='+prefix+'m5ir1\n','IF-GRAM')
     for option in ('domain','domain-suffix'):
         values=[('default','records.test'),('empty',''),('canonical','RECORDS.TEST.'),
             ('bad-name','bad..records.test'),('single4','records.test,192.0.2.7'),
@@ -122,6 +132,30 @@ def service_cases():
              (ipaddress.ip_address('2001:db8:91::9').reverse_pointer,12),
              (ipaddress.ip_address('fe80::9').reverse_pointer,12)],
             'IF-ENUM IF-FWD IF-PTR IF-EXIST IF-FLAGS',topology=[primary])
+    for width in (0,1,16,24,31,32):
+        source=ipaddress.ip_address('198.18.91.9');prototype=ipaddress.ip_address('1.2.3.7')
+        mask=((1<<32)-1)^((1<<(32-width))-1) if width else 0
+        composed=ipaddress.ip_address((int(source)&mask)|(int(prototype)&~mask&((1<<32)-1)))
+        add('dynamic-v4-prefix-'+str(width),'dynamic-host=proto.records.test,1.2.3.7,m5ir0\n',
+            [('proto.records.test',1),('proto.records.test',28),(composed.reverse_pointer,12)],
+            'DH-COMPOSE IF-PTR',topology=[{'name':'m5ir0','addresses':[str(source)+'/'+str(width)]}])
+    for width in (0,1,63,64,65,127,128):
+        source=ipaddress.ip_address('2001:db8:91:1000::9');prototype=ipaddress.ip_address('fdaa:bbbb:cccc:dddd:eeee:ffff:1234:7')
+        mask=((1<<128)-1)^((1<<(128-width))-1) if width else 0
+        composed=ipaddress.ip_address((int(source)&mask)|(int(prototype)&~mask&((1<<128)-1)))
+        add('dynamic-v6-prefix-'+str(width),'dynamic-host=proto.records.test,'+str(prototype)+',m5ir0\n',
+            [('proto.records.test',28),('proto.records.test',1),(composed.reverse_pointer,12)],
+            'DH-COMPOSE IF-PTR',topology=[{'name':'m5ir0','addresses':[str(source)+'/'+str(width)]}])
+    add('interface-root-name','interface-name=,m5ir0\n',[('',1),('',28),('9.91.18.198.in-addr.arpa',12)],'IF-GRAM IF-EXIST',topology=[primary])
+    add('interface-without-address','interface-name=iface.records.test,m5ir0\n',
+        [('iface.records.test',1),('iface.records.test',28),('records.test',16)],'IF-ENUM IF-EXIST',topology=[{'name':'m5ir0','addresses':[]}])
+    add('interface-host-precedence','interface-name=iface.records.test,m5ir0\nhost-record=iface.records.test,192.0.2.99,2001:db8:ffff::99\n',
+        [('iface.records.test',1),('iface.records.test',28),('iface.records.test',255)],'IF-FWD',topology=[primary])
+    add('interface-empty-host-interception','interface-name=iface.records.test,missing_ir\nhost-record=iface.records.test,192.0.2.99,2001:db8:ffff::99\n',
+        [('iface.records.test',1),('iface.records.test',28)],'IF-FWD IF-EXIST')
+    add('interface-two-declarations','interface-name=iface.records.test,m5ir0\ninterface-name=iface.records.test,m5ir1\n',
+        [('iface.records.test',1),('iface.records.test',28),('iface.records.test',255)],'IF-ENUM IF-FWD',
+        topology=[primary,{'name':'m5ir1','addresses':['198.18.92.9/24','2001:db8:92::9/64']}])
     add('interface-ptr-precedence','interface-name=first.records.test,m5ir0\ninterface-name=second.records.test,m5ir0\n'
         'ptr-record=9.91.18.198.in-addr.arpa,explicit.records.test\nhost-record=host.records.test,198.18.91.9\n',
         [('9.91.18.198.in-addr.arpa',12),('first.records.test',1),('second.records.test',1)],'IF-PTR',topology=[primary])
@@ -189,6 +223,104 @@ def service_cases():
             kernel(['ip','addr','add','198.18.91.10/24','dev','m5ir0']),state('added'),
             files.probe('parent-after','iface.records.test',transports=['udp']),files.probe('child-after','iface.records.test',transports=['held']),
             files.probe('fresh','iface.records.test',transports=['tcp']),dict(op='disconnect',id='held')])
+    # Every profile below reaches a named source boundary; mappings stay open
+    # until the exact C observations and paired candidate evidence are present.
+    full=[('iface.records.test',1),('iface.records.test',28),('iface.records.test',255),
+          ('9.91.18.198.in-addr.arpa',12),(ipaddress.ip_address('2001:db8:91::9').reverse_pointer,12)]
+    for label,config in [('excluded','except-interface=m5ir0\n'),('unselected','interface=lo\n'),('bound','bind-interfaces\n')]:
+        add('interface-enum-'+label,'interface-name=iface.records.test,m5ir0\n'+config,full,'IF-ENUM',topology=[primary])
+    add('interface-down','interface-name=iface.records.test,m5ir0\n',[],'IF-ENUM',topology=[primary],
+        actions=[kernel(['ip','link','set','m5ir0','down']),state('down'),*probes(full)])
+    for label,target in [('real','m5ir0'),('alias','m5ir0:1')]:
+        add('interface-label-'+label,'interface-name=iface.records.test,'+target+'\n',[],'IF-ENUM',topology=[primary],
+            actions=[kernel(['ip','addr','add','198.18.91.10/24','dev','m5ir0','label','m5ir0:1']),state('labelled'),
+                     *probes([('iface.records.test',1),('9.91.18.198.in-addr.arpa',12),('10.91.18.198.in-addr.arpa',12)])])
+    for width in (15,16,23):
+        add('interface-exact-target-'+str(width),'interface-name=iface.records.test,'+'abcdefghijklmno'[:width]+('pqrstuvw'[:width-15] if width>15 else '')+'\n',
+            [('iface.records.test',1)],'IF-GRAM IF-ENUM',topology=[{'name':'abcdefghijklmno','addresses':['198.18.91.9/24']}])
+    add('interface-enum-many','interface-name=iface.records.test,m5ir0\n',
+        [('iface.records.test',1),('iface.records.test',28),('iface.records.test',255)],'IF-ENUM IF-FWD',
+        topology=[{'name':'m5ir0','addresses':['198.18.91.9/24','198.18.91.10/24','2001:db8:91::9/64','2001:db8:91::10/64']}])
+    for ttl in (0,77):
+        add('interface-ttl-'+str(tt),'interface-name=iface.records.test,m5ir0\nlocal-ttl='+str(ttl)+'\n',full,'IF-FWD',topology=[primary])
+    bit_probes=[files.probe('kind'+str(kind)+'-class'+str(cls)+'-rd'+str(rd)+'-do'+str(dnssec)+'-cd'+str(cd),
+            'iface.records.test',type=kind,**{'class':cls,'query_flags':256 if rd else 0,'do':dnssec,'cd':cd})
+        for kind in (1,28,255,16) for cls,rd,dnssec,cd in ((1,False,False,False),(1,True,True,True),(255,True,False,False),(3,True,False,False))]
+    add('interface-wire-bits','interface-name=iface.records.test,m5ir0\n',[],'IF-FWD',topology=[primary],actions=bit_probes)
+    add('interface-truncation','interface-name=iface.records.test,m5ir0\n',
+        [('iface.records.test',1),('iface.records.test',28),('iface.records.test',255)],'IF-FWD',
+        topology=[{'name':'m5ir0','addresses':['198.18.91.'+str(i)+'/24' for i in range(1,90)]+['2001:db8:91::'+str(i)+'/64' for i in range(1,60)]}])
+    for label,tail in [('chain','cname=a.records.test,b.records.test\ncname=b.records.test,iface.records.test\n'),
+                       ('loop','cname=a.records.test,b.records.test\ncname=b.records.test,a.records.test\n')]:
+        add('interface-cname-'+label,'interface-name=iface.records.test,m5ir0\n'+tail,[('a.records.test',1),('a.records.test',28)],'IF-FWD',topology=[primary])
+    add('interface-existence','interface-name=IFACE.RECORDS.TEST.,missing_ir\n',
+        [('iface.records.test',1),('IFACE.RECORDS.TEST',28),('records.test',16),('test',1),('',16),
+         ('child.iface.records.test',1),('notrecords.test',1),('other.test',1),('ace.records.test',1)],'IF-EXIST')
+    add('interface-dotless','interface-name=short,missing_ir\ndomain-needed\n',[('short',1),('unknown',1)],'IF-EXIST')
+    add('interface-loopback','interface-name=iface.records.test,lo\n',
+        [('iface.records.test',1),('iface.records.test',28),('1.0.0.127.in-addr.arpa',12),
+         (ipaddress.ip_address('::1').reverse_pointer,12)],'IF-FLAGS')
+    multi={'name':'m5ir0','addresses':['198.18.91.9/24','198.18.92.9/24','2001:db8:91::9/64','fd91::9/64']}
+    local_actions=[files.probe('same4','iface.records.test',destination='198.18.91.9'),
+                   files.probe('absent4','iface.records.test',destination='127.0.0.1'),
+                   files.probe('same6','iface.records.test',type=28,destination='198.18.91.9')]
+    add('interface-localisation','interface-name=iface.records.test,m5ir0\nlocalise-queries\n',[],'IF-FWD',
+        topology=[multi],listen=None,actions=local_actions)
+    add('dynamic-multi-subnets','dynamic-host=iface.records.test,192.0.2.7,2001:db8::7,m5ir0\n',
+        [('iface.records.test',1),('iface.records.test',28),('7.91.18.198.in-addr.arpa',12),
+         ('7.92.18.198.in-addr.arpa',12),(ipaddress.ip_address('fd91::7').reverse_pointer,12)],'DH-COMPOSE',topology=[multi])
+    add('dynamic-last-prototype','dynamic-host=iface.records.test,192.0.2.7,192.0.2.8,2001:db8::7,2001:db8::8,m5ir0\n',
+        [('iface.records.test',1),('iface.records.test',28),('8.91.18.198.in-addr.arpa',12)],'DH-COMPOSE IF-GRAM',topology=[primary])
+    add('dynamic-two-declarations','dynamic-host=iface.records.test,192.0.2.7,m5ir0\ndynamic-host=iface.records.test,192.0.2.8,m5ir1\n',
+        [('iface.records.test',1),('7.91.18.198.in-addr.arpa',12),('8.92.18.198.in-addr.arpa',12)],'DH-COMPOSE',
+        topology=[primary,{'name':'m5ir1','addresses':['198.18.92.9/24']}])
+    add('dynamic-missing','dynamic-host=iface.records.test,192.0.2.7,2001:db8::7,missing_ir\n',
+        [('iface.records.test',1),('iface.records.test',28),('records.test',16)],'DH-COMPOSE IF-EXIST')
+    add('dynamic-wrong-family','dynamic-host=iface.records.test,2001:db8::7,m5ir0\n',
+        [('iface.records.test',1),('iface.records.test',28)],'DH-COMPOSE',topology=[v4only])
+    add('dynamic-down','dynamic-host=iface.records.test,192.0.2.7,m5ir0\n',[],'DH-COMPOSE',topology=[v4only],
+        actions=[kernel(['ip','link','set','m5ir0','down']),state('down'),files.probe('down','iface.records.test')])
+    add('dynamic-ptr-prototype-skip','dynamic-host=first.records.test,2001:db8::7,m5ir0\ndynamic-host=second.records.test,192.0.2.7,m5ir0\n',
+        [('7.91.18.198.in-addr.arpa',12),(ipaddress.ip_address('2001:db8:91::7').reverse_pointer,12)],'IF-PTR',topology=[primary])
+    add('dynamic-ptr-overlap','dynamic-host=first.records.test,192.0.2.7,m5ir0\ndynamic-host=second.records.test,192.0.2.7,m5ir0\n',
+        [('7.91.18.198.in-addr.arpa',12)],'IF-PTR DH-COMPOSE',topology=[primary])
+    add('interface-ptr-any','interface-name=iface.records.test,m5ir0\n',
+        [('9.91.18.198.in-addr.arpa',255),(ipaddress.ip_address('2001:db8:91::9').reverse_pointer,255),
+         ('1.2.in-addr.arpa',12),('999.91.18.198.in-addr.arpa',12),('wrong.in-addr.arpa',12),
+         ('unrelated.records.test',12)],'IF-PTR',topology=[primary])
+    for label,config in [('ordinary',''),('bind-dynamic','bind-dynamic\n'),('local-service-net','local-service=net\n'),
+                         ('local-service-host','local-service=host\n'),('acl-disables','local-service=net\ninterface=lo\n')]:
+        actions=[files.probe('initial','iface.records.test',transports=['udp']),
+            kernel(['ip','addr','add','198.18.91.10/24','dev','m5ir0']),state('added'),
+            files.probe('unknown-name','unrelated.records.test',transports=['udp']),
+            files.probe('unknown-type','iface.records.test',type=16,transports=['udp']),
+            files.probe('before-hup','10.91.18.198.in-addr.arpa',type=12,transports=['udp']),files.signal_reload(),
+            files.probe('after-hup','10.91.18.198.in-addr.arpa',type=12,transports=['udp']),
+            files.probe('refresh','iface.records.test',transports=['udp']),
+            files.probe('after-forward','10.91.18.198.in-addr.arpa',type=12,transports=['udp'])]
+        add('interface-caller-'+label,'interface-name=iface.records.test,m5ir0\n'+config,[],'IF-CALLER',
+            topology=[primary],listen=None if label=='local-service-net' else '127.0.0.1',actions=actions)
+    add('interface-caller-server-file','interface-name=iface.records.test,m5ir0\nservers-file=/m2/files/servers\n',[],
+        'IF-CALLER',topology=[primary],files={'servers':'server=127.0.0.2\n'},actions=[
+            files.probe('initial','iface.records.test',transports=['udp']),kernel(['ip','addr','add','198.18.91.10/24','dev','m5ir0']),
+            files.write('servers','server=127.0.0.3\n'),files.signal_reload(),
+            files.probe('after-file','10.91.18.198.in-addr.arpa',type=12,transports=['udp'])])
+    add('interface-tcp-removed-cname','interface-name=iface.records.test,m5ir0\ncname=alias.records.test,iface.records.test\n',[],
+        'IF-CALLER IF-FWD',topology=[primary],actions=[dict(op='connect',id='held'),
+            files.probe('child-before','alias.records.test',transports=['held']),kernel(['ip','addr','del','198.18.91.9/24','dev','m5ir0']),
+            files.probe('parent','iface.records.test',transports=['udp']),files.probe('child-after','alias.records.test',transports=['held']),
+            files.probe('new-child','alias.records.test',transports=['tcp']),dict(op='disconnect',id='held')])
+    add('interface-recreate','interface-name=iface.records.test,m5ir0\n',[],'IF-ENUM',topology=[primary],actions=[
+        files.probe('before','iface.records.test'),kernel(['ip','link','del','m5ir0']),files.probe('removed','iface.records.test'),
+        kernel(['ip','link','add','m5ir0','type','dummy']),kernel(['ip','link','set','m5ir0','up']),
+        kernel(['ip','addr','add','198.18.91.10/24','dev','m5ir0']),state('recreated'),files.probe('recreated','iface.records.test')])
+    add('interface-expiry','interface-name=iface.records.test,m5ir0\n',[],'IF-FLAGS',topology=[v4only],actions=[
+        kernel(['ip','-6','addr','add','2001:db8:91::9/64','dev','m5ir0','nodad','valid_lft','2','preferred_lft','1']),
+        state('valid'),*mutation_probes('valid','2001:db8:91::9'),dict(op='pause',seconds=2.2),state('expired'),
+        *mutation_probes('expired','2001:db8:91::9')])
+    add('interface-flag-optimistic','interface-name=iface.records.test,m5ir0\n',[],'IF-FLAGS',topology=[v4only],actions=[
+        *dad[:-1],kernel(['ip','-6','addr','change','2001:db8:91::9/64','dev','m5ir0','optimistic']),state('optimistic'),
+        *mutation_probes('optimistic','2001:db8:91::9')])
     return cases
 
 
@@ -222,7 +354,20 @@ def run_service_side(root,side,case,out):
             temporary=next((address['local'] for interface in raw for address in interface['addr_info'] if address.get('temporary')),None)
             if temporary is None:raise AssertionError('actual temporary IPv6 address was not created')
             action=dict(action,name=ipaddress.ip_address(temporary).reverse_pointer)
-            dynamic.append({'id':action['id'],'address':temporary,'name':action['name'],'kernel':raw})
+            dynamic.append({'id':action['id'],'transport':args[1],'address':temporary,'name':action['name'],'kernel':raw})
+        if action.get('destination'):
+            ident,transport,upstreams,connections=args
+            packet=files.query(action,ident);before=[len(u.events) for u in upstreams]
+            started=time.monotonic();response=None;error=None
+            with socket.socket(socket.AF_INET,socket.SOCK_DGRAM if transport=='udp' else socket.SOCK_STREAM) as client:
+                client.settimeout(.5);client.connect((action['destination'],port))
+                try:
+                    client.sendall(packet if transport=='udp' else struct.pack('!H',len(packet))+packet)
+                    response=client.recv(65535) if transport=='udp' else files.exact_read(client,struct.unpack('!H',files.exact_read(client,2))[0])
+                except (OSError,EOFError) as problem:error={'kind':type(problem).__name__,'errno':getattr(problem,'errno',None)}
+            return {'id':action['id']+':'+transport,'response':files.semantics(response) if response else None,'error':error,
+                'request':packet.hex(),'reply':response.hex() if response else None,'elapsed':time.monotonic()-started,'cache':False,
+                'upstreams':[{'server':u.host,'events':copy.deepcopy(u.events[n:])} for u,n in zip(upstreams,before)]}
         return original_exchange(port,action,*args)
     files.put=put;files.exchange=exchange
     try:result=endpoints.run_service_side(root,side,case,out)
@@ -231,6 +376,22 @@ def run_service_side(root,side,case,out):
         subprocess.run(['ip','link','del','m5peer0'],capture_output=True)
     result['interface_states']=states;result['dynamic_queries']=dynamic
     save(out/'observed.json',result)
+    return result
+
+
+def comparable_service(observed):
+    result=copy.deepcopy(observed)
+    # Each side's kernel chooses a different privacy address. Validate the raw
+    # query against that actual temporary address before substituting its name.
+    for dynamic in observed.get('dynamic_queries',[]):
+        for row in result['rows']:
+            if row['id']==dynamic['id']+':'+dynamic['transport']:
+                response=row.get('response')
+                if not response or response['questions'][0][0]!=dynamic['name'] or not any(record['type']==12 for record in response['records']):
+                    raise AssertionError('actual privacy-address PTR answer missing')
+                response['questions'][0][0]='actual-temporary-address'
+                for record in response['records']:
+                    if record['name']==dynamic['name']:record['name']='actual-temporary-address'
     return result
 
 
@@ -273,7 +434,7 @@ def main():
         try:
             observed={side:(run_syntax(roots[side],side,case,folder/side) if args.mode=='syntax' else run_service_side(roots[side],side,case,folder/side)) for side in sides}
             if args.side=='both':
-                row['failures']=([] if endpoints.normal(observed['c'])==endpoints.normal(observed['rust']) else ['syntax differs']) if args.mode=='syntax' else files.compare(observed['c'],observed['rust'],case)
+                row['failures']=([] if endpoints.normal(observed['c'])==endpoints.normal(observed['rust']) else ['syntax differs']) if args.mode=='syntax' else files.compare(comparable_service(observed['c']),comparable_service(observed['rust']),case)
             row['sides']={side:({'exit':data['exit']} if args.mode=='syntax' else {'startup':data['startup'],'rows':len(data['rows']),'cleanup':data['cleanup']}) for side,data in observed.items()}
         except Exception as error:
             row['failures'].append({'phase':'infrastructure','error':repr(error)})
