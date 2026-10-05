@@ -46,6 +46,18 @@ pub fn tftp(config: &TftpConfig) -> Option<LogEvent> {
     Some(LogEvent::new(Service::Tftp, Priority::Info, message))
 }
 
+/// dnsmasq.c:1050-1055 keeps different global and interface-prefix wording.
+pub fn tftp_root_warning(warning: &crate::config::tftp::RootWarning) -> LogEvent {
+    let mut message = if warning.interface {
+        b"warning: TFTP directory ".to_vec()
+    } else {
+        b"warning: ".to_vec()
+    };
+    message.extend_from_slice(&warning.path);
+    message.extend_from_slice(b" inaccessible");
+    LogEvent::new(Service::Tftp, Priority::Warning, message)
+}
+
 /// util.c:590-607: infinity is special; zero produces an empty duration.
 fn lease_duration(seconds: u32) -> String {
     if seconds == u32::MAX {
