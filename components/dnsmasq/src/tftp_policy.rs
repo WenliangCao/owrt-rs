@@ -163,15 +163,14 @@ mod tests {
     use crate::config::tftp::matches_name;
     #[test]
     fn link_local_tftp_policy_uses_the_scoped_owner() {
+        let mut dns = DnsConfig::default();
+        dns.bind_interfaces = true;
         let mut policy = Policy {
             config: TftpConfig {
                 enabled: true,
                 ..TftpConfig::default()
             },
-            dns: DnsConfig {
-                bind_interfaces: true,
-                ..DnsConfig::default()
-            },
+            dns,
             no_dhcp: vec![Some(b"lan".to_vec())],
             no_tftp: vec![Some(b"lan".to_vec())],
             interfaces: [(2, b"lan".to_vec()), (3, b"wan".to_vec())]
