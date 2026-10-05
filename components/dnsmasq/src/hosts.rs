@@ -61,6 +61,7 @@ pub struct ReadStats {
 pub struct Hosts {
     entries: Vec<Host>,
     sources: HashMap<u32, Vec<u8>>,
+    read_reports: Vec<(u32, usize)>,
     forward: HashMap<Vec<u8>, Vec<usize>>,
     reverse: HashMap<IpAddr, usize>,
     non_terminals: HashSet<Vec<u8>>,
@@ -91,6 +92,12 @@ impl Hosts {
             .get(&source)
             .map(Vec::as_slice)
             .or((source == 0).then_some(b"/etc/hosts".as_slice()))
+    }
+
+    /// Completed read_hostsfile calls, in loader order. The owner emits their
+    /// startup/reload notices, then clears this finite generation metadata.
+    pub fn take_read_reports(&mut self) -> Vec<(u32, usize)> {
+        std::mem::take(&mut self.read_reports)
     }
 
     /// Current static address order without the lookup/round-robin mutation.
@@ -268,6 +275,7 @@ impl Hosts {
                     usize::from(self.insert_with_origin(name, address, ttl, source, false));
             }
         }
+        self.read_reports.push((source, stats.accepted));
         stats
     }
 }
