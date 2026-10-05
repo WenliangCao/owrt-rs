@@ -21,6 +21,7 @@ struct Server {
     address: SocketAddr,
     accepting: bool,
     bound_interface: Option<BoundInterface>,
+    persistent_unowned: bool,
 }
 struct BoundInterface {
     name: Vec<u8>,
@@ -133,6 +134,7 @@ impl<O: FileOpener> TftpListener<O> {
             address,
             accepting: true,
             bound_interface: None,
+            persistent_unowned: false,
         });
         Ok(listener)
     }
@@ -172,6 +174,15 @@ impl<O: FileOpener> TftpListener<O> {
     pub fn listener_addresses(&self) -> Vec<SocketAddr> {
         self.policy.as_ref().map_or_else(Vec::new, |policy| {
             let mut addresses = policy.addresses();
+            for server in self
+                .servers
+                .iter()
+                .filter(|server| server.persistent_unowned)
+            {
+                if !addresses.contains(&server.address) {
+                    addresses.push(server.address);
+                }
+            }
             // C's INAME_USED stays set after an explicit address gains an
             // interface. Losing its last owner cannot create a fallback.
             addresses.retain(|address| {
@@ -203,7 +214,7 @@ impl<O: FileOpener> TftpListener<O> {
         if dynamic {
             let addresses = self.listener_addresses();
             for server in &mut self.servers {
-                server.accepting = addresses.contains(&server.address);
+                server.accepting = server.persistent_unowned || addresses.contains(&server.address);
             }
             self.discard_inactive_servers();
         }
@@ -213,6 +224,13 @@ impl<O: FileOpener> TftpListener<O> {
     /// A later real interface can reactivate the address.
     pub fn retire_listener(&mut self, mut address: SocketAddr) {
         address.set_port(69);
+        if self
+            .servers
+            .iter()
+            .any(|server| server.address == address && server.persistent_unowned)
+        {
+            return;
+        }
         if self
             .policy
             .as_ref()
@@ -244,11 +262,16 @@ impl<O: FileOpener> TftpListener<O> {
         }
         let socket = DatagramSocket::bind(address)?;
         let bound_interface = bound_interface(policy, address, socket.as_raw_fd());
+        let persistent_unowned = !policy
+            .interfaces
+            .iter()
+            .any(|row| row.address == address.ip());
         self.servers.push(Server {
             socket,
             address,
             accepting: true,
             bound_interface,
+            persistent_unowned,
         });
         self.pending_bind.retain(|pending| *pending != address);
         Ok(true)
@@ -383,11 +406,16 @@ impl<O: FileOpener> TftpListener<O> {
             match DatagramSocket::bind(address) {
                 Ok(socket) => {
                     let bound_interface = bound_interface(policy, address, socket.as_raw_fd());
+                    let persistent_unowned = !policy
+                        .interfaces
+                        .iter()
+                        .any(|row| row.address == address.ip());
                     self.servers.push(Server {
                         socket,
                         address,
                         accepting: true,
                         bound_interface,
+                        persistent_unowned,
                     });
                 }
                 Err(error)

@@ -1162,6 +1162,14 @@
     },
     {
       "actions": [],
+      "config": "bind-dynamic\nlisten-address=127.0.0.2\nenable-tftp=wan\ntftp-root=/m2/tftp\n",
+      "mode": "dynamic",
+      "name": "tftp-unowned-dedicated-dynamic",
+      "profile": "tftp-unowned-dedicated",
+      "tftp": true
+    },
+    {
+      "actions": [],
       "config": "bind-interfaces\ninterface=lan\nenable-tftp=lan\ntftp-root=/m2/tftp\ntftp-root=/m2/tftp/lan,lan\n",
       "mode": "static",
       "name": "tftp-static-renamed-static",
@@ -1522,6 +1530,7 @@
     "runtime-occupied-tcp-dynamic",
     "conflicting-modes-static",
     "tftp-unowned-dedicated-static",
+    "tftp-unowned-dedicated-dynamic",
     "tftp-static-renamed-static",
     "tftp-late-address-dynamic",
     "runtime-shared-tftp-dynamic",
@@ -4754,6 +4763,16 @@
       "cached-before-tftp",
       "renamed",
       "cached-after-tftp",
+      "exit"
+    ],
+    "tftp-unowned-dedicated-dynamic": [
+      "startup",
+      "initial",
+      "unowned-check-tftp",
+      "unowned-added",
+      "unowned-added-tftp",
+      "unowned-removed",
+      "unowned-removed-tftp",
       "exit"
     ],
     "tftp-unowned-dedicated-static": [
