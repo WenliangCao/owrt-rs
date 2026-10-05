@@ -124,11 +124,10 @@ fn main() {
                 .is_some_and(|error| {
                     matches!(error, dnsmasq_rs::dns::daemon::DaemonError::SourceBind(_))
                 })
-            || error
-                .downcast_ref::<dnsmasq_rs::startup::StartupError>()
-                .is_some_and(|error| error.message.starts_with("cannot open log "));
+            || error.is::<dnsmasq_rs::startup::StartupError>();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         let blank_line = blank_line
+            || error.is::<dnsmasq_rs::helper::StartError>()
             || error
                 .downcast_ref::<dnsmasq_rs::dhcp::daemon::StartupError>()
                 .is_some_and(|error| error.is_lease_capacity());
@@ -455,6 +454,27 @@ fn config_diagnostic(error: Error) -> loader::LoadError {
 }
 
 fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
+    #[cfg(target_os = "linux")]
+    let mut startup = dnsmasq_rs::startup::daemonize::StartupChannel::default();
+    let result = run_inner(
+        args,
+        #[cfg(target_os = "linux")]
+        &mut startup,
+    );
+    #[cfg(target_os = "linux")]
+    if startup.active() {
+        if let Err(error) = &result {
+            startup.fail(startup_status(error.as_ref()), &error.to_string());
+            return Ok(());
+        }
+    }
+    result
+}
+
+fn run_inner(
+    args: &[OsString],
+    #[cfg(target_os = "linux")] startup: &mut dnsmasq_rs::startup::daemonize::StartupChannel,
+) -> Result<(), Box<dyn std::error::Error>> {
     let (action, mut runtime) = load(args)?;
     match action {
         Action::Version => {
@@ -604,20 +624,6 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     // before locking DNS; synchronous doctor callbacks must never invert it.
     // Socket waits remain outside this gate.
     let parent_events = Arc::new(Mutex::new(ParentEvents::new(&runtime.ubus)?));
-    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    let dhcp_helper = if let Some(script) = dhcp_config.script.clone() {
-        Some(Helper::start_with_init(
-            HelperConfig {
-                script: PathBuf::from(OsString::from_vec(script)),
-                script_user: dhcp_config.script_user.clone(),
-                debug: runtime.process.debug,
-            },
-            (dhcp_config.lease_read_only && !dhcp_config.ranges.is_empty())
-                .then_some(dhcp_config.lease_max),
-        )?)
-    } else {
-        None
-    };
     #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
     if !dhcp_config.ranges.is_empty() || !dhcp_config.relay.is_empty() {
         return Err(Box::new(Error("DHCP listener requires 64-bit Linux")));
@@ -792,6 +798,19 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(target_os = "linux")]
     identity.check_capabilities(capabilities)?;
     #[cfg(target_os = "linux")]
+    match startup.begin(&runtime.process) {
+        Ok(true) => return Ok(()),
+        Ok(false) => {}
+        Err(error) => {
+            dnsmasq_rs::logging::report_startup_failure(
+                &Default::default(),
+                &Default::default(),
+                &error.message,
+            );
+            return Err(Box::new(error));
+        }
+    }
+    #[cfg(target_os = "linux")]
     let pid_file = identity.write_pid(&runtime.process)?;
     #[cfg(target_os = "linux")]
     let (mut logger, log_ownership_warning) = match dnsmasq_rs::logging::Logger::start(
@@ -801,16 +820,32 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     ) {
         Ok(value) => value,
         Err(error) => {
-            dnsmasq_rs::logging::report_startup_failure(
-                &runtime.logging,
-                &runtime.process,
-                &error.message,
-            );
+            if !startup.active() {
+                dnsmasq_rs::logging::report_startup_failure(
+                    &runtime.logging,
+                    &runtime.process,
+                    &error.message,
+                );
+            }
             return Err(Box::new(error));
         }
     };
     #[cfg(target_os = "linux")]
     dnsmasq_rs::startup::redirect_standard_streams(&runtime.process);
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    let dhcp_helper = if let Some(script) = dhcp_config.script.clone() {
+        Some(Helper::start_with_init(
+            HelperConfig {
+                script: PathBuf::from(OsString::from_vec(script)),
+                script_user: dhcp_config.script_user.clone(),
+                debug: runtime.process.debug,
+            },
+            (dhcp_config.lease_read_only && !dhcp_config.ranges.is_empty())
+                .then_some(dhcp_config.lease_max),
+        )?)
+    } else {
+        None
+    };
     #[cfg(target_os = "linux")]
     identity.drop_privileges(&runtime.process, capabilities)?;
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -1004,6 +1039,10 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     }
     // `-k` is the normal OpenWrt invocation. Stop handlers let workers leave
     // their bounded receive loops and release sockets before exit.
+    #[cfg(target_os = "linux")]
+    if poll.helper.as_ref().is_none_or(Helper::ready) {
+        startup.complete();
+    }
     let mut last_interfaces = Instant::now();
     // C's INAME_USED latch survives interface removal. Once an explicit
     // address belonged to an interface, it cannot become an unowned fallback.
@@ -1035,8 +1074,11 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         poll.step();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if let Some(error) = poll.helper_init_error.take() {
-            pid_file.cleanup();
             return Err(Box::new(error));
+        }
+        #[cfg(target_os = "linux")]
+        if startup.active() && poll.helper.as_ref().is_none_or(Helper::ready) {
+            startup.complete();
         }
         if last_interfaces.elapsed() >= Duration::from_millis(100) {
             last_interfaces = Instant::now();
@@ -2506,6 +2548,17 @@ impl SinglePoll {
                                 self.helper_init_error = Some(StartError {
                                     code: 3,
                                     message: "lease-init helper failed".into(),
+                                });
+                            }
+                            Notice::Error(code) if !helper.ready() => {
+                                self.helper_init_error = Some(StartError {
+                                    code: 5,
+                                    message: format!(
+                                        "failed to initialize helper: {}",
+                                        dnsmasq_rs::logging::error_text(
+                                            &io::Error::from_raw_os_error(code)
+                                        )
+                                    ),
                                 });
                             }
                             Notice::Ready => {}
