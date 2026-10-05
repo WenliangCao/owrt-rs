@@ -91,7 +91,7 @@ def scenarios():
                 'enable-tftp\ntftp-root=/m2/tftp\n' if transport == 'tftp' else ''), blocker=transport)
     for profile in ['late-interface', 'late-address', 'duplicate-address',
                     'runtime-occupied-udp', 'runtime-occupied-tcp']:
-        add(profile, 'dynamic', 'interface=lan,late0\n'+(
+        add(profile, 'dynamic', 'interface=lan,'+('dup0' if profile=='duplicate-address' else 'late0')+'\n'+(
             'listen-address=192.0.2.111\n' if profile == 'late-address' else ''), actions=[profile])
     add('conflicting-modes', 'static', 'bind-dynamic\n')
     for mode in MODES:
@@ -252,7 +252,7 @@ def relay_run(root,side,item,out):
             process=subprocess.Popen(command(root,side,'-d','-C','/m2/listeners.conf'),stderr=stderr,stdout=stdout,start_new_session=True)
             time.sleep(.3)
             assert process.poll() is None, 'relay startup failed'
-            save(out/'identity.json',process_identity(process.pid))
+            save(out/'identity.json',process_identity(root,process.pid))
             def request(label):
                 value=packet(xid=0x5e001122)
                 (out/(label+'.request')).write_bytes(value)
@@ -312,10 +312,10 @@ def execute(root,side,item,out):
             rows.append(dict(case='startup',exit=process.poll()))
             if process.poll() is not None:
                 return rows
-            save(out/'identity.json',process_identity(process.pid))
+            save(out/'identity.json',process_identity(root,process.pid))
             if item.get('dad'):
                 sockets=observer.sockets('dad-tentative',.01)
-                assert any('tentative' in a.get('flags',[]) for link in json.loads(ip('-j','addr','show','dev','lan').stdout) for a in link['addr_info'] if a['local']=='fd42:77::9'), 'DAD matured before witness'
+                assert any(a.get('tentative') for link in json.loads(ip('-j','addr','show','dev','lan').stdout) for a in link['addr_info'] if a['local']=='fd42:77::9'), 'DAD matured before witness'
                 assert not any(row['address']=='fd42:77::9' for row in sockets),'bound a tentative address'
                 observer.ask('dad-live-udp',V4['lan'],link='lpeer')
                 time.sleep(4)
@@ -422,7 +422,71 @@ def validate(result,cases):
         if not expected_failure:
             ended=next((row for row in observations if row['case']=='exit'),None)
             if not ended or ended.get('exit')!=0 or ended.get('forced'): failures.append(item['name']+': incomplete cleanup')
+        for row in observations:
+            if 'answer' not in row: continue
+            expected = expected_answer(item, row['case'])
+            if expected is not None and bool(row['answer']) != expected:
+                failures.append(item['name']+': reference guard '+row['case'])
+            if row['answer'] and 'semantic' in row['answer']:
+                semantic=row['answer']['semantic']
+                if semantic['flags']&15 or not any(rr['type']==1 and rr['data']=='192.0.2.53' for rr in semantic['records']):
+                    failures.append(item['name']+': wrong ready.test answer '+row['case'])
+        if item.get('relay'):
+            for row in observations:
+                if row['case'].startswith('relay-'):
+                    expected=0 if item['profile'] in ['relay-except','relay-no-dhcp'] else 1
+                    if len(row['packets'])!=expected:failures.append(item['name']+': relay packet guard '+row['case'])
     return failures
+
+
+def expected_answer(item,case):
+    """Source-derived reachability guards, independent of observed Rust data."""
+    profile,mode=item['profile'],item['mode']
+    bound=mode!='wildcard'
+    if case.startswith('dad-'):
+        return profile!='dad-failed' or not case.startswith('dad-final-')
+    if case.startswith('partial-'):
+        return case.rsplit('-',1)[1]!=profile.rsplit('-',1)[1]
+    if case=='surviving':return True
+    if case.startswith('added-'):return mode!='static'
+    if case.startswith('recreated-'):return mode!='static' or '-scope-' not in case
+    if case.startswith('late-') or case=='duplicate-owner':return True
+    if case.startswith('cross-'):
+        return case.endswith('-tcp') and bound or case.startswith('cross-v4-') and mode=='static'
+    proto=case.rsplit('-',1)[1]
+    if proto not in ['udp','tcp','tftp']:return None
+    if case.startswith('lo'):
+        tag=case.rsplit('-',1)[0]
+        selected=profile not in ['listen-only','unowned-loopback']
+        if profile=='unowned-loopback':selected=tag=='lo-extra'
+        elif tag=='lo-extra':selected=selected and not bound
+        if proto=='tftp' and profile in ['tftp-dedicated','tftp-alias']:return False
+        return selected
+    link,tag,_=case.split('-')
+    if link not in ['lan','wan']:return None
+    if profile=='down-link' and link=='lan':return False
+    if proto=='tftp':
+        if profile=='tftp-dedicated':return not bound and link=='wan'
+        if profile=='tftp-alias':return link=='lan' and (not bound or tag=='alias')
+        if profile=='tftp-no-dhcp' or profile=='tftp-no-v4' and bound:
+            if link=='lan':return False
+    if profile in ['ordinary','empty-except','same-link-local','tftp','tftp-no-dhcp','tftp-no-v4']:
+        return True
+    if profile in ['empty-interface','missing','no-address','unowned-loopback']:
+        return False
+    if profile=='listen-only':return link=='lan' and tag in ['v4','v6']
+    if profile in ['alias','wildcard-empty','tftp-alias']:
+        return link=='lan' and tag=='alias' and (bound or proto!='tcp')
+    if profile in ['interface','cross-ingress','address-change','recreate','down-link','tftp-change']:
+        return link=='lan' and (tag!='alias' or not bound)
+    if profile=='union':return link=='wan' and tag in ['v4','v6'] or link=='lan' and (tag!='alias' or not bound)
+    if profile=='wildcard-names':return link=='lan'
+    if profile=='alias-except':return link!='lan' or tag!='alias' or not bound
+    if profile=='tftp-dedicated':return link=='lan' and (tag!='alias' or not bound)
+    if profile=='tftp-except':return link=='lan' or tag=='alias'
+    if profile in ['late-interface','late-address','duplicate-address']:
+        return link=='lan' and (tag!='alias' or not bound)
+    return None
 
 
 def compare(left,right,cases):
