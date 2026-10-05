@@ -393,6 +393,8 @@ fn mac(input: &[u8]) -> Option<Vec<u8>> {
         if !group.iter().all(u8::is_ascii_hexdigit) {
             return None;
         }
+        // Entire group was validated as ASCII hex. Chunks contain one or
+        // two digits, bounding the fold to u8 and proving to_digit succeeds.
         for pair in group.chunks(2).take(6 - output.len()) {
             output.push(pair.iter().fold(0u8, |value, byte| {
                 value * 16 + (*byte as char).to_digit(16).unwrap() as u8

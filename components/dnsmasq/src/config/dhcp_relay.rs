@@ -44,6 +44,7 @@ impl RelayRule {
         let mut uplink = Ipv4Addr::UNSPECIFIED;
         let interface = match third {
             Some(value) if split && address(value.encoded()).is_some() => {
+                // The guard parsed these same immutable bytes successfully.
                 uplink = address(value.encoded()).unwrap();
                 None
             }

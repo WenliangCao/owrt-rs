@@ -212,6 +212,8 @@ impl Hosts {
                 for pair in positions.windows(2) {
                     indices[pair[0]] = indices[pair[1]];
                 }
+                // This branch requires positions.len()>1; every id came
+                // from the live forward index and survives this rotation.
                 indices[*positions.last().unwrap()] = first;
             }
         }

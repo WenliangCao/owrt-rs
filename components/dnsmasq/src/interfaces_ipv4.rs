@@ -68,6 +68,7 @@ impl Ipv4Snapshot {
         if raw < 0 {
             return Err(io::Error::last_os_error());
         }
+        // SAFETY: transfer the successful fresh socket fd to exactly one owner.
         let fd = unsafe { OwnedFd::from_raw_fd(raw) };
         let mut address = Address {
             family: 16,
@@ -79,6 +80,7 @@ impl Ipv4Snapshot {
             return Err(io::Error::last_os_error());
         }
         let mut length = 12;
+        // SAFETY: writable initialized sockaddr and its 12-byte capacity stay live.
         if unsafe { getsockname(raw, &mut address, &mut length) } < 0 {
             return Err(io::Error::last_os_error());
         }
@@ -615,12 +617,17 @@ mod tests {
         struct Restore([u64; 2]);
         impl Drop for Restore {
             fn drop(&mut self) {
+                // SAFETY: Linux64 rlimit is two u64 values saved by getrlimit;
+                // this isolated test restores only its own process limit.
                 assert_eq!(unsafe { setrlimit(7, &self.0) }, 0);
             }
         }
         let mut previous = [0; 2];
+        // SAFETY: previous is writable Linux64 rlimit storage for this process.
         assert_eq!(unsafe { getrlimit(7, &mut previous) }, 0);
         let restore = Restore(previous);
+        // SAFETY: live two-u64 rlimit, retaining the saved hard limit; the
+        // DNSMASQ_TEST_ISOLATED gate confines this to the dedicated test process.
         assert_eq!(unsafe { setrlimit(7, &[64, previous[1]]) }, 0);
         let mut occupied = Vec::new();
         loop {

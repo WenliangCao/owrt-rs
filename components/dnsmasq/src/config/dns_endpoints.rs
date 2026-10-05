@@ -70,6 +70,8 @@ pub fn addresses(name: &[u8]) -> Result<Vec<IpAddr>, Error> {
         }
         // musl (the deployment libc) and Darwin return static error strings.
         // No DNS input is retained in these strings.
+        // SAFETY: supported libcs return a non-null immutable static string
+        // for the getaddrinfo error code; no caller buffer is involved.
         let message: &'static CStr = unsafe { CStr::from_ptr(gai_strerror(code)) };
         return Err(Error(message.to_str().unwrap_or("Unknown error")));
     }
@@ -87,13 +89,16 @@ pub fn addresses(name: &[u8]) -> Result<Vec<IpAddr>, Error> {
         // SAFETY: cursor walks only links in the live libc result list.
         let entry = unsafe { &*cursor };
         if !entry.address.is_null() && entry.family == 2 && entry.address_length >= 16 {
-            // sockaddr_in.sin_addr starts at byte four on both supported ABIs.
+            // SAFETY: non-null sockaddr_in has at least 16 bytes; its address
+            // starts at byte four on both supported ABIs and the list is live.
             let bytes = unsafe { std::slice::from_raw_parts(entry.address.add(4), 4) };
             result.push(IpAddr::V4(Ipv4Addr::new(
                 bytes[0], bytes[1], bytes[2], bytes[3],
             )));
         } else if !entry.address.is_null() && entry.family == AF_INET6 && entry.address_length >= 28
         {
+            // SAFETY: the preceding family/length guard proves all 16 IPv6
+            // bytes at offset eight are within the live libc-owned sockaddr.
             let bytes = unsafe { std::slice::from_raw_parts(entry.address.add(8), 16) };
             let mut address = [0; 16];
             address.copy_from_slice(bytes);

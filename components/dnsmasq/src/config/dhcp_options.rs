@@ -528,6 +528,8 @@ fn encode(
                 if !group.iter().all(u8::is_ascii_hexdigit) {
                     return Err(Error("bad DHCP hex value"));
                 }
+                // ASCII-hex validation above proves to_digit succeeds; two
+                // digits per chunk bound each accumulated value to one byte.
                 for pair in group.chunks(2) {
                     bytes.push(pair.iter().fold(0u8, |value, byte| {
                         value * 16 + (*byte as char).to_digit(16).unwrap() as u8

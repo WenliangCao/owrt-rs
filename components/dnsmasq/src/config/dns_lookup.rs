@@ -44,6 +44,7 @@ impl EndpointLookup {
         if unsafe { pipe2(fds.as_mut_ptr(), 0o2000000 | 0o4000) } != 0 {
             return Err(io::Error::last_os_error());
         }
+        // SAFETY: successful pipe2 created both fresh fds; give each one File owner.
         let reader = unsafe { File::from_raw_fd(fds[0]) };
         let mut writer = unsafe { File::from_raw_fd(fds[1]) };
         let inherited: Vec<i32> = std::fs::read_dir("/proc/self/fd")?
@@ -58,11 +59,16 @@ impl EndpointLookup {
         if pid == 0 {
             for fd in inherited {
                 if fd != writer.as_raw_fd() {
+                    // SAFETY: this fork child owns its copied fd table; it
+                    // retains only writer and terminates via _exit, without
+                    // dropping parent File objects after closing their copies.
                     unsafe {
                         close(fd);
                     }
                 }
             }
+            // SAFETY: scalar POSIX dispositions and fcntl flags apply only to
+            // this single-threaded fork child and its live retained writer.
             unsafe {
                 signal(2, 0);
                 signal(15, 0);
@@ -79,6 +85,7 @@ impl EndpointLookup {
             } else {
                 1
             };
+            // SAFETY: child-only exit never runs parent-object destructors.
             unsafe { _exit(exit) };
         }
         drop(writer);
@@ -108,6 +115,8 @@ impl EndpointLookup {
         if !self.cancelled {
             self.cancelled = true;
             if let Some(pid) = self.pid {
+                // SAFETY: pid is the positive, unreaped child owned by this
+                // job; cancellation never targets a process group or foreign pid.
                 unsafe {
                     kill(pid, 9);
                 }
@@ -185,6 +194,8 @@ impl Drop for EndpointLookup {
         if let Some(pid) = self.pid {
             // Shutdown callers retain the job until step reaps it. This is a
             // last-resort cancellation for an abruptly abandoned owner only.
+            // SAFETY: positive owned child remains unreaped; cancellation and
+            // WNOHANG wait are specific to it, with an optional null status pointer.
             unsafe {
                 kill(pid, 9);
                 waitpid(pid, std::ptr::null_mut(), 1);

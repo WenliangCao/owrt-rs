@@ -82,15 +82,18 @@ impl InterfaceCollector {
         if raw < 0 {
             return Err(io::Error::last_os_error());
         }
+        // SAFETY: socket returned this nonnegative fresh fd; transfer ownership once.
         let socket = unsafe { OwnedFd::from_raw_fd(raw) };
         let mut endpoint = Address {
             family: 16,
             ..Address::default()
         };
+        // SAFETY: the initialized repr(C) sockaddr_nl is exactly 12 live bytes.
         if unsafe { bind(raw, &endpoint, 12) } < 0 {
             return Err(io::Error::last_os_error());
         }
         let mut length = 12;
+        // SAFETY: output sockaddr and its initialized capacity remain writable.
         if unsafe { getsockname(raw, &mut endpoint, &mut length) } < 0 {
             return Err(io::Error::last_os_error());
         }
@@ -116,10 +119,12 @@ impl InterfaceCollector {
         if self.busy() {
             return Err(io::ErrorKind::AlreadyExists.into());
         }
+        // SAFETY: socket has scalar arguments; a successful fd gets one owner below.
         let raw = unsafe { socket(2, 2 | 0o2000000, 0) };
         if raw < 0 {
             return Err(io::Error::last_os_error());
         }
+        // SAFETY: this is the fresh successful control fd, never borrowed elsewhere.
         self.control = Some(unsafe { OwnedFd::from_raw_fd(raw) });
         self.addresses.clear();
         self.interfaces.clear();
@@ -198,6 +203,7 @@ impl InterfaceCollector {
                 family: 16,
                 ..Address::default()
             };
+            // SAFETY: bounded request and sockaddr storage are live through sendto.
             let result = unsafe {
                 sendto(
                     self.socket.as_raw_fd(),
@@ -292,6 +298,8 @@ impl InterfaceCollector {
                         if let Some((row, interface)) = decode(
                             &self.bytes[at + 16..at + length],
                             self.family,
+                            // Only begin enters active states; finish drops control
+                            // after parsing and returns to Idle. Active reads own it.
                             self.control.as_ref().unwrap().as_raw_fd(),
                         )? {
                             // whine_malloc failure omits this individual C row.
@@ -349,12 +357,15 @@ fn decode(
     }
     let index = u32::from_ne_bytes(bytes[4..8].try_into().unwrap());
     let mut request = [0u64; 5];
+    // SAFETY: [u64;5] provides all 40 aligned Linux64 ifreq bytes, exclusively borrowed.
     let raw = unsafe { std::slice::from_raw_parts_mut(request.as_mut_ptr().cast::<u8>(), 40) };
     raw[16..20].copy_from_slice(&index.to_ne_bytes());
+    // SAFETY: live owned control fd and initialized 40-byte ifreq; SIOCGIFNAME writes within it.
     if unsafe { ioctl(control, 0x8910, raw.as_mut_ptr()) } < 0 {
         return Err(io::Error::last_os_error());
     }
     let mut label = raw[..16].split(|&byte| byte == 0).next().unwrap().to_vec();
+    // SAFETY: SIOCGIFFLAGS uses that same live, aligned ifreq after name initialization.
     if unsafe { ioctl(control, 0x8913, raw.as_mut_ptr()) } < 0 {
         return Err(io::Error::last_os_error());
     }

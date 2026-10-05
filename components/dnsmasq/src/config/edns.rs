@@ -139,6 +139,8 @@ impl EdnsConfig {
                                 return Err(Error("error"));
                             }
                             let mut device = [0; 8];
+                            // The preceding ASCII-hex guard also proves UTF-8;
+                            // each fixed two-byte chunk is a valid hexadecimal word.
                             for (out, word) in device.iter_mut().zip(value.chunks_exact(2)) {
                                 *out = u8::from_str_radix(std::str::from_utf8(word).unwrap(), 16)
                                     .map_err(|_| Error("error"))?;
