@@ -173,7 +173,8 @@ impl Default for RuntimeConfig {
     fn default() -> Self {
         Self {
             path: RuntimePathPolicy::default(),
-            packet_buffer_size: 8192,
+            // dnsmasq.c:124: EDNS_PKTSZ + MAXDNAME + RRFIXEDSZ.
+            packet_buffer_size: 1232 + 255 + 10,
             mtu: None,
             ipv6: false,
             no_block_size: false,
