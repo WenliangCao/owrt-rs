@@ -19,6 +19,7 @@ import resource
 import struct
 import ipaddress
 import threading
+import traceback
 import shutil
 import socket
 import subprocess
@@ -373,12 +374,16 @@ def run_service_side(root, side, case, folder):
         expected_uid=next(int(line.split(':')[2]) for line in (root/'etc/passwd').read_text().splitlines() if line.split(':')[0]==case.get('user','root'))
         cap_eff=next(line.split()[1] for line in status if line.startswith('CapEff:'))
         sockets=[]
+        descriptors={}
+        for path in Path('/proc',str(pid),'fd').iterdir():
+            try: target=os.readlink(path)
+            except FileNotFoundError: continue  # Owner may retire a completed FD.
+            descriptors.setdefault(target,[]).append(int(path.name))
         for family in ('udp','udp6'):
             for line in Path('/proc',str(pid),'net',family).read_text().splitlines()[1:]:
                 fields=line.split()
-                descriptors=[int(path.name) for path in Path('/proc',str(pid),'fd').iterdir()
-                    if os.readlink(path)=='socket:['+fields[9]+']']
-                if descriptors: sockets.append({'family':family,'local':fields[1],'port':int(fields[1].split(':')[1],16),'fds':descriptors})
+                owned=descriptors.get('socket:['+fields[9]+']',[])
+                if owned: sockets.append({'family':family,'local':fields[1],'port':int(fields[1].split(':')[1],16),'fds':owned})
         return dict(original_identity(root,pid),cap_eff=cap_eff,threads=len(list(Path('/proc',str(pid),'task').iterdir())),uid=uid,expected_uid=expected_uid,sockets=sockets)
     files.process_identity=identity
     original_upstream=files.FileUpstream
@@ -775,7 +780,9 @@ def run_service(args, cases):
                     'tftp':any(record['prefix'].startswith('0003') and not record['tcp'] for record in receipts)}
                 if not all(witnessed.values()): row['failures'].append(dict(phase='owner-progress',witnessed=witnessed))
             row['rows']=len(observed['c']['rows'])
-        except Exception as error: row['failures'].append(dict(phase='infrastructure',error=repr(error)))
+        except Exception as error:
+            (folder/'infrastructure.traceback').write_text(traceback.format_exc())
+            row['failures'].append(dict(phase='infrastructure',error=repr(error)))
         report['cases'].append(row)
         report['failures'].extend(dict(case=case['id'],**failure) for failure in row['failures'])
         save(args.out/'progress.json',report)
