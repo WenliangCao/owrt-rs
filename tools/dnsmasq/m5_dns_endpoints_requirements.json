@@ -479,7 +479,7 @@
       "boundary": "GRAM-03",
       "required_case": "hostname returning IPv6 with scope",
       "case_ids": [
-        "server-named-scope"
+        "hostname-scoped-expansion"
       ],
       "status": "awaiting-concrete-evidence",
       "source_anchors": [
@@ -697,8 +697,8 @@
       "boundary": "NAME-02",
       "required_case": "@interface@source family filter",
       "case_ids": [
-        "server-named-source4",
-        "server-named-source6"
+        "hostname-interface-source-v4",
+        "hostname-interface-source-v6"
       ],
       "status": "awaiting-concrete-evidence",
       "source_anchors": [
@@ -869,7 +869,8 @@
         "reverse-192.0.2.0-24",
         "reverse-192.0.2.128-25",
         "reverse-192.0.2.7-32",
-        "reverse-192.0.2.7-0"
+        "reverse-192.0.2.7-0",
+        "reverse-no-prefix-v4"
       ],
       "status": "awaiting-concrete-evidence",
       "source_anchors": [
@@ -885,7 +886,9 @@
       "case_ids": [
         "reverse-2001_db8__-64",
         "reverse-2001_db8__-65",
-        "reverse-2001_db8__1-128"
+        "reverse-2001_db8__1-128",
+        "rev-v6zero",
+        "reverse-no-prefix-v6"
       ],
       "status": "awaiting-concrete-evidence",
       "source_anchors": [
@@ -1078,6 +1081,7 @@
       "boundary": "SOURCE-01",
       "required_case": "resolver-file implicit global port",
       "case_ids": [
+        "resolver-file-global-source",
         "low-global-port-nonroot-file"
       ],
       "status": "awaiting-concrete-evidence",
@@ -1205,7 +1209,10 @@
       "boundary": "SOURCE-02",
       "required_case": "recreated interface after failure",
       "case_ids": [
-        "source-interface-recreated"
+        "source-interface-recreated",
+        "source-interface-recreated-hup",
+        "source-interface-recreated-dynamic",
+        "source-interface-recreated-wait"
       ],
       "status": "awaiting-concrete-evidence",
       "source_anchors": [
@@ -2478,7 +2485,7 @@
       "boundary": "FILE-01",
       "required_case": "error hostname row followed valid numeric row",
       "case_ids": [
-        "system-resolver-nxdomain",
+        "file-unresolved-name-followed-valid",
         "file-errors-continue"
       ],
       "status": "awaiting-concrete-evidence",
@@ -2522,8 +2529,7 @@
       "boundary": "FILE-01",
       "required_case": "mismatched resolved source family skipped",
       "case_ids": [
-        "server-service-named-v4-source",
-        "server-service-named-v6-source"
+        "file-resolved-source-family-filter"
       ],
       "status": "awaiting-concrete-evidence",
       "source_anchors": [
@@ -2579,8 +2585,7 @@
       "boundary": "FILE-01",
       "required_case": "duplicate/order/replacement with inline server/local/rev rules",
       "case_ids": [
-        "file-mixed-directives",
-        "file-source-snapshot"
+        "file-inline-rule-order-replacement"
       ],
       "status": "awaiting-concrete-evidence",
       "source_anchors": [

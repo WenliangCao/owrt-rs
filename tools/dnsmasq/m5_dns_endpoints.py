@@ -581,6 +581,14 @@ def run_service_side(root, side, case, folder):
         return started
     subprocess.Popen=capture_popen
     original_exchange=files.exchange
+    original_sleep=time.sleep
+    paced_actions=iter(action for action in case['actions'] if action['op']!='query')
+    def capture_sleep(seconds):
+        original_sleep(seconds)
+        if seconds==.08 and threading.current_thread() is threading.main_thread() and process is not None and process.poll() is None:
+            action=next(paced_actions,None)
+            if action is not None: endpoint_receipts.append({'op':'after-action','action':action,'identity':identity(root,parent_pid),'children':children()})
+    time.sleep=capture_sleep
     ready_attempts=[]
     def capture_exchange(port,action,*args):
         result=original_exchange(port,action,*args)
@@ -612,6 +620,7 @@ def run_service_side(root, side, case, folder):
         files.put=original_put
         subprocess.Popen=original_popen
         files.exchange=original_exchange
+        time.sleep=original_sleep
         for client in merged_clients.values(): client.close()
         for name in reversed(topology):
             if subprocess.run(['ip','link','show',name],capture_output=True).returncode==0:
@@ -651,6 +660,9 @@ def source_guard_errors(result,case):
     if case.get('no_udp_upstream') and udp: errors.append('exhausted range still sent UDP')
     if not case.get('no_upstream') and not case.get('no_udp_upstream') and case.get('expected_start',True) and not udp and any(action['op']=='query' and 'udp' in action.get('transports',['udp','tcp']) for action in case['actions']): errors.append('no actual upstream source capture')
     if case.get('startup_gate') and (not result.get('ready_attempts') or any(row['pending'] and row['response'] for row in result['ready_attempts'])): errors.append('daemon replied before startup endpoint lookup completed')
+    if case['id'] in ('pool-overflow-incompatible','pool-capacity-compatible','pool-distinct-groups-compatible','pool-single-port-concurrent','shared-pollerr-keeps-pending','pool-retry-completion-keeps-sibling'):
+        snapshots=[row['identity']['sockets'] for row in result.get('endpoint_receipts',[]) if row.get('op')=='after-action']
+        if not snapshots or len(snapshots[-1])!=len(result['identity']['sockets']): errors.append('source socket owners did not return to actual startup FD baseline')
     if any(row['peer'][1] in [case.get('expected_source_port'),*(case.get('source_range') or [])] for row in tcp): errors.append('TCP inherited configured UDP source port/range')
     return errors
 
@@ -827,7 +839,90 @@ def inject_recvfrom_error(pid,descriptor,output,poll_error=False):
         save(Path(output),report)
     return 0
 
+
+def audit_evidence(argv):
+    """Resolve every frozen row to immutable raw observations, never IDs alone."""
+    import m5_option_matrix_archive as archive
+    parser=argparse.ArgumentParser(description=audit_evidence.__doc__)
+    parser.add_argument('--evidence-root',type=Path,required=True)
+    parser.add_argument('--reference-source',type=Path,required=True)
+    parser.add_argument('--run',action='append',required=True)
+    parser.add_argument('--source-commit',required=True)
+    parser.add_argument('--rust-sha256',required=True)
+    parser.add_argument('--out',type=Path,required=True)
+    args=parser.parse_args(argv)
+    assert not args.out.exists()
+    frozen=json.loads(Path(__file__).with_suffix('.json').read_text())
+    requirements=json.loads(Path(__file__).with_name('m5_dns_endpoints_requirements.json').read_text())
+    for name,identity in frozen['source_identity'].items():
+        if sha256(args.reference_source/name)!=identity['sha256']: raise AssertionError('exact C source changed: '+name)
+    cases={};runs=[];service=[]
+    for name in args.run:
+        root=args.evidence_root/name
+        manifest_path=args.evidence_root/(name+'.manifest.json')
+        manifest=json.loads(manifest_path.read_text())
+        verified=archive.verify(args.evidence_root/(name+'.tar.gz'),manifest_path,None)
+        prune=json.loads((args.evidence_root/(name+'.prune.json')).read_text())
+        if prune['archive_sha256']!=verified['archive_sha256']: raise AssertionError('prune not tied to verified archive')
+        def read(relative):
+            path=root/relative
+            if sha256(path)!=manifest['entries'][relative]['sha256']: raise AssertionError('raw evidence changed: '+str(path))
+            return json.loads(path.read_text())
+        result=read('result.json');schedule={case['id']:case for case in read('schedule.json')}
+        if not result['comparison_executed'] or result['c_sha256']!=STOCK_SHA256: raise AssertionError('exact C/R comparison missing')
+        if result['source_commit']!=args.source_commit or result['rust_sha256']!=args.rust_sha256: raise AssertionError('candidate identity mismatch')
+        runs.append({'run':name,'archive':verified,'mode':result['mode'],'cases':len(result['cases']),'failures':result['failures']})
+        for row in result['cases']:
+            ident=row['id'];case=schedule[ident]
+            observed={side:read(ident+'/'+side+'/observed.json') for side in ('c','rust')}
+            errors=[]
+            if result['mode']=='syntax-only':
+                if normal(observed['c'])!=normal(observed['rust']): errors.append('raw syntax differs')
+                if case.get('reference_defect'): errors.append('unsafe reference case cannot qualify service')
+                witness={side:{'exit':value['exit'],'stderr':value['stderr']} for side,value in observed.items()}
+            else:
+                errors.extend(row['failures'])
+                for side,value in observed.items():
+                    errors.extend(source_guard_errors(value,case))
+                    if value['cleanup']['live_pids'] or value['cleanup']['pid_file'] or value.get('forced_kill'): errors.append('incomplete shutdown: '+side)
+                    if value['startup']['ready'] and value.get('identity',{}).get('sha256')!= (STOCK_SHA256 if side=='c' else args.rust_sha256): errors.append('actual process ELF mismatch')
+                witness={side:{'syntax':value['syntax'],'startup':value['startup'],'rows':len(value['rows']),
+                    'source_events':value['source_events'],'identity':value.get('identity'),'cleanup':value['cleanup'],
+                    'endpoint_receipts':value.get('endpoint_receipts',[]),'ready_attempts':value.get('ready_attempts',[])} for side,value in observed.items()}
+                service.append({'id':ident,'case':case,'observed':observed,'report':result,'errors':errors,'run':name})
+            record={'case':ident,'run':name,'mode':result['mode'],'paths':{side:str(root/ident/side/'observed.json') for side in observed},'errors':errors,'witness':witness}
+            if ident not in cases or not errors: cases[ident]=record
+    if not service: raise AssertionError('syntax alone never qualifies endpoints')
+    checks={}
+    def check(ident,okay,detail): checks[ident]={'passed':bool(okay),'detail':detail}
+    cleanup=all(not row['errors'] and all(not value['cleanup']['live_pids'] and not value['cleanup']['pid_file'] and not value.get('forced_kill') for value in row['observed'].values()) for row in service)
+    check('@all-cleanup',cleanup,'Every selected service observation has normal exit, no surviving child and no PID file.')
+    live=[value for row in service for value in row['observed'].values() if value['startup']['ready']]
+    check('@all-parent-thread-count',live and all(value.get('identity',{}).get('threads')==1 for value in live),'Actual /proc parent task counts.')
+    events=[event for value in live for event in value['source_events']]
+    check('@all-source-tuples',events and all(event.get('wire') and len(event.get('peer',[])) in (2,4) and len(event.get('destination',[])) in (2,4) for event in events),'Actual received wire packet and complete source/destination tuples.')
+    check('@negative-controls',all(all(row['report'].get('negative_controls',{}).values()) and set(row['report'].get('lifecycle_negative_controls',[]))>={'leaked-child','leaked-pid','startup','wrong-server','missing-forward'} for row in service),'Executed source mutations plus startup, coverage, answer and child/PID leak controls.')
+    check('@archive-verification',all(row['archive']['verified'] for row in runs),'Rechecked every file SHA and complete archive metadata before using raw observations; prune SHA checked.')
+    check('@candidate-identity',all(row['observed'][side].get('identity',{}).get('sha256')==(STOCK_SHA256 if side=='c' else args.rust_sha256) for row in service for side in ('c','rust') if row['observed'][side]['startup']['ready']),{'source_commit':args.source_commit,'rust_sha256':args.rust_sha256,'c_sha256':STOCK_SHA256,'bytes':sorted({row['report']['rust_bytes'] for row in service})})
+    rows=[]
+    for requirement in requirements['required_cases']:
+        evidence=[];missing=[]
+        for ident in requirement['case_ids']:
+            found=checks.get(ident) if ident.startswith('@') else cases.get(ident)
+            passed=found and (found.get('passed') if ident.startswith('@') else not found['errors'])
+            if not passed: missing.append({'case':ident,'reason':found.get('errors',found.get('detail')) if found else 'no executed immutable evidence'})
+            else: evidence.append(found)
+        if not requirement['case_ids']: missing.append({'reason':'empty case list'})
+        rows.append(dict(requirement,passed=not missing,evidence=evidence,missing=missing))
+    report={'schema':'m5-endpoint-concrete-evidence-v1','source_commit':args.source_commit,'rust_sha256':args.rust_sha256,
+        'c_sha256':STOCK_SHA256,'runs':runs,'required_rows':len(rows),'passed_rows':sum(row['passed'] for row in rows),
+        'rows':rows,'checks':checks,'ready_for_root_review':all(row['passed'] for row in rows),'closed_options':[]}
+    save(args.out,report)
+    print(json.dumps({'required':len(rows),'passed':report['passed_rows'],'ready_for_root_review':report['ready_for_root_review'],'closed_options':[]}))
+    return int(not report['ready_for_root_review'])
+
 def main():
+    if sys.argv[1:2]==['--audit-evidence']: return audit_evidence(sys.argv[2:])
     if len(sys.argv)==5 and sys.argv[1]=='--inject-recvfrom-error': return inject_recvfrom_error(int(sys.argv[2]),int(sys.argv[3]),sys.argv[4])
     if len(sys.argv)==5 and sys.argv[1]=='--inject-pollerr': return inject_recvfrom_error(int(sys.argv[2]),int(sys.argv[3]),sys.argv[4],True)
     parser=argparse.ArgumentParser(description=__doc__)
