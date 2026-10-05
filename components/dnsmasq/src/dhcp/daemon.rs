@@ -1029,7 +1029,7 @@ impl LocalProvider {
             .active_newest_first()
             .into_iter()
             .filter_map(|lease| {
-                if lease.expires.is_some_and(|expires| expires <= now) {
+                if lease.expires.is_some_and(|expires| super::lease::lease_expired(expires, now)) {
                     return None;
                 }
                 self.tftp_lease_mac(lease.address)
@@ -1502,7 +1502,7 @@ impl LocalProvider {
         let existing = self
             .leases
             .find_client(&identity)
-            .filter(|lease| lease.expires.is_none_or(|expiry| now < expiry));
+            .filter(|lease| lease.expires.is_none_or(|expiry| !super::lease::lease_expired(expiry, now)));
         let clid = (packet.message_type() != 0)
             .then(|| {
                 identity
