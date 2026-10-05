@@ -44,9 +44,11 @@ class Product(Fixture):
                           f"dhcp-leasefile={lease}\naddn-hosts={self.hosts}\n"
                           + (f"enable-ubus={OBJECT}\n" if bus else "") + extra)
         binary = (self.args.c_binary or self.args.reference_build / "dnsmasq/dnsmasq") if side == "C" else self.args.rust_binary
-        command = [str(binary), "--keep-in-foreground", "--conf-file=" + str(config)]
-        if side == "C":
-            command += ["--user=root", "--group=root", "--log-facility=-", "--pid-file=" + str(self.out / "pid")]
+        # Both products must reconnect with the same credentials and sink.
+        # C-only root overrides hide the private ubusd socket's access policy.
+        command = [str(binary), "--keep-in-foreground", "--conf-file=" + str(config),
+                   "--user=root", "--group=root", "--log-facility=-",
+                   "--pid-file=" + str(self.out / "pid")]
         self.daemon, self.daemon_log = self.spawn(command, side)
         if bus and wait_bus:
             self.wait_registered()
@@ -228,6 +230,19 @@ def compare(f, expected, actual, inject_error):
             for c, r in zip(left["records"], right["records"]):
                 if c["type"] != 41 and abs(c["ttl"] - r["ttl"]) <= 1:
                     r["ttl"] = c["ttl"]
+        if key == "wrong-family-answer":
+            # Exact image musl inet_pton(AF_INET, "2001:db8::9", p) returns
+            # zero after writing 200 to p[0]. rfc1035.c passes the live RDATA
+            # destination, so its rejected subscriber response still mutates A.
+            c_records = left.get("records", [])
+            r_records = right.get("records", [])
+            guarded = (len(c_records) == len(r_records) == 1
+                       and c_records[0].get("type") == r_records[0].get("type") == 1
+                       and c_records[0].get("data") == "200.0.2.1"
+                       and r_records[0].get("data") == "192.0.2.1")
+            f.check("C-partial-inet-pton-rejection-and-Rust-original-A-guard", guarded, True)
+            if guarded:
+                left["records"][0]["data"] = right["records"][0]["data"]
         if inject_error and key == "initial":
             left["dns_cache_inserted"] += 1
         f.check("paired-" + key, right, left)
@@ -286,7 +301,8 @@ def main():
               "passed": sum(row["pass"] for row in f.checks), "failed": sum(not row["pass"] for row in f.checks),
               "paired_observations": len(expected),
               "paired_matches": sum(row["pass"] for row in f.checks if row["case"].startswith("paired-") and row["case"] != "paired-observation-keys"),
-              "reference_defects": ["C DNS object's type survives bus restart and cannot be resolved"],
+              "reference_defects": ["C DNS object's type survives bus restart and cannot be resolved",
+                                    "Exact image inet_pton rejection writes a partial A destination; Rust retains the original address"],
               "reference": reference,
               "identities": {"c": reference["elf_sha256"], "native_client_build_c": args.c_sha256, "rust": digest(args.rust_binary),
                              "ubusd": digest(args.reference_build / "deps/sbin/ubusd"),

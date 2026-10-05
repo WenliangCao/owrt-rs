@@ -8,6 +8,7 @@ use std::os::fd::{AsRawFd, FromRawFd};
 #[derive(Default)]
 pub struct StartupChannel {
     writer: Option<File>,
+    failure_bytes: Option<Vec<u8>>,
 }
 
 impl StartupChannel {
@@ -46,24 +47,7 @@ impl StartupChannel {
         }
         if pid > 0 {
             drop(writer);
-            let mut header = [0u8; 8];
-            if reader.read_exact(&mut header).is_err() {
-                // C treats EOF (including an incomplete event) as success.
-                return Ok(true);
-            }
-            let code = i32::from_ne_bytes(header[..4].try_into().unwrap());
-            let length = u32::from_ne_bytes(header[4..].try_into().unwrap()) as usize;
-            if length > 4088 {
-                return Ok(true);
-            }
-            let mut message = vec![0; length];
-            if reader.read_exact(&mut message).is_err() {
-                return Ok(true);
-            }
-            return Err(StartupError {
-                code,
-                message: String::from_utf8_lossy(&message).into_owned(),
-            });
+            return read_startup_event(&mut reader, &mut self.failure_bytes);
         }
         drop(reader);
         self.writer = Some(writer);
@@ -91,23 +75,178 @@ impl StartupChannel {
         self.writer.take();
     }
 
+    /// Typed parent errors retain their raw Unix argument for logging and
+    /// stderr. StartupError's public String remains a diagnostic view.
+    pub fn take_failure_bytes(&mut self) -> Option<Vec<u8>> {
+        self.failure_bytes.take()
+    }
+
     pub fn fail(&mut self, code: i32, message: &str) {
         let Some(writer) = self.writer.take() else {
             return;
         };
-        let message = &message.as_bytes()[..message.len().min(4088)];
-        let mut event = Vec::with_capacity(8 + message.len());
-        event.extend_from_slice(&code.to_ne_bytes());
-        event.extend_from_slice(&(message.len() as u32).to_ne_bytes());
-        event.extend_from_slice(message);
-        // SIGPIPE is already ignored by the startup loader. An absent parent
-        // cannot terminate the service before its own orderly failure cleanup.
-        for _ in 0..128 {
-            let written = unsafe { write(writer.as_raw_fd(), event.as_ptr(), event.len()) };
-            if written >= 0 || io::Error::last_os_error().kind() != io::ErrorKind::Interrupted {
+        let message = &message.as_bytes()[..message.len().min(4084)];
+        write_event(writer.as_raw_fd(), -1, code, message);
+    }
+
+    /// Exact EVENT_LOG_ERR has the original path as argument, not a formatted
+    /// message. A short payload keeps errno and makes the parent use strerror.
+    pub fn fail_log(&mut self, errno: i32, path: &[u8]) {
+        let Some(writer) = self.writer.take() else {
+            return;
+        };
+        write_event(writer.as_raw_fd(), 17, errno, path);
+    }
+
+    /// EVENT_TFTP_ERR uses the same errno/optional-path fallback as LOG_ERR.
+    pub fn fail_tftp(&mut self, errno: i32, path: &[u8]) {
+        let Some(writer) = self.writer.take() else {
+            return;
+        };
+        write_event(writer.as_raw_fd(), 20, errno, path);
+    }
+}
+
+fn write_event(fd: i32, kind: i32, data: i32, argument: &[u8]) {
+    let mut header = [0; 12];
+    header[..4].copy_from_slice(&kind.to_ne_bytes());
+    header[4..8].copy_from_slice(&data.to_ne_bytes());
+    header[8..].copy_from_slice(&(argument.len() as i32).to_ne_bytes());
+    let vectors = [
+        Iovec {
+            base: header.as_ptr(),
+            length: header.len(),
+        },
+        Iovec {
+            base: argument.as_ptr(),
+            length: argument.len(),
+        },
+    ];
+    // SIGPIPE is already ignored by the startup loader. An absent parent
+    // cannot terminate the service before its own orderly failure cleanup.
+    for _ in 0..128 {
+        let written = unsafe { writev(fd, vectors.as_ptr(), 2) };
+        if written >= 0 || io::Error::last_os_error().kind() != io::ErrorKind::Interrupted {
+            break;
+        }
+    }
+}
+
+fn read_startup_event(
+    reader: &mut impl Read,
+    failure_bytes: &mut Option<Vec<u8>>,
+) -> Result<bool, StartupError> {
+    let mut header = [0; 12];
+    if reader.read_exact(&mut header).is_err() {
+        return Ok(true);
+    }
+    let kind = i32::from_ne_bytes(header[..4].try_into().unwrap());
+    let data = i32::from_ne_bytes(header[4..8].try_into().unwrap());
+    let length = i32::from_ne_bytes(header[8..].try_into().unwrap());
+    if length < 0 {
+        return Ok(true);
+    }
+    let mut argument = Vec::new();
+    let complete = if argument.try_reserve_exact(length as usize).is_ok() {
+        argument.resize(length as usize, 0);
+        reader.read_exact(&mut argument).is_ok()
+    } else {
+        let mut early = None;
+        crate::logging::emit_early(
+            &mut early,
+            crate::logging::Priority::Error,
+            b"failed to allocate memory",
+        );
+        let mut remaining = length as usize;
+        let mut scratch = [0; 1024];
+        while remaining > 0 {
+            let count = remaining.min(scratch.len());
+            if reader.read_exact(&mut scratch[..count]).is_err() {
                 break;
             }
+            remaining -= count;
         }
+        false
+    };
+    if matches!(kind, 17 | 20) {
+        let error = crate::logging::error_text(&io::Error::from_raw_os_error(data));
+        let path = if complete && length != 0 {
+            &argument
+        } else {
+            error.as_bytes()
+        };
+        let mut message = if kind == 17 {
+            b"cannot open log ".to_vec()
+        } else {
+            b"TFTP directory ".to_vec()
+        };
+        message.extend_from_slice(path);
+        message.extend_from_slice(if kind == 17 {
+            b": ".as_slice()
+        } else {
+            b" inaccessible: ".as_slice()
+        });
+        message.extend_from_slice(error.as_bytes());
+        let diagnostic = String::from_utf8_lossy(&message).into_owned();
+        *failure_bytes = Some(message);
+        return Err(StartupError {
+            code: 3,
+            message: diagnostic,
+        });
+    }
+    if kind != -1 || !complete {
+        return Ok(true);
+    }
+    Err(StartupError {
+        code: data,
+        message: String::from_utf8_lossy(&argument).into_owned(),
+    })
+}
+
+#[repr(C)]
+struct Iovec {
+    base: *const u8,
+    length: usize,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    fn log_frame(errno: i32, wanted: i32, argument: &[u8]) -> Vec<u8> {
+        let mut frame = Vec::new();
+        frame.extend_from_slice(&17i32.to_ne_bytes());
+        frame.extend_from_slice(&errno.to_ne_bytes());
+        frame.extend_from_slice(&wanted.to_ne_bytes());
+        frame.extend_from_slice(argument);
+        frame
+    }
+    #[test]
+    fn log_event_preserves_errno_with_a_full_or_incomplete_argument() {
+        let complete = log_frame(2, 8, b"/missing");
+        let error = read_startup_event(&mut complete.as_slice(), &mut None).unwrap_err();
+        assert_eq!(error.code, 3);
+        assert_eq!(
+            error.message,
+            "cannot open log /missing: No such file or directory"
+        );
+        for frame in [log_frame(2, 8, b"/miss"), log_frame(2, 0, b"")] {
+            let error = read_startup_event(&mut frame.as_slice(), &mut None).unwrap_err();
+            assert_eq!(error.code, 3);
+            assert_eq!(
+                error.message,
+                "cannot open log No such file or directory: No such file or directory"
+            );
+        }
+        for length in 0..12 {
+            assert!(read_startup_event(&mut &complete[..length], &mut None).unwrap());
+        }
+        let frame = log_frame(2, 8, b"/missin\xff");
+        let mut bytes = None;
+        read_startup_event(&mut frame.as_slice(), &mut bytes).unwrap_err();
+        assert_eq!(
+            bytes.unwrap(),
+            b"cannot open log /missin\xff: No such file or directory"
+        );
     }
 }
 
@@ -122,6 +261,6 @@ unsafe extern "C" {
     fn fork() -> i32;
     fn setsid() -> i32;
     fn fcntl(fd: i32, operation: i32, ...) -> i32;
-    fn write(fd: i32, bytes: *const u8, length: usize) -> isize;
+    fn writev(fd: i32, vectors: *const Iovec, count: i32) -> isize;
     fn _exit(code: i32) -> !;
 }

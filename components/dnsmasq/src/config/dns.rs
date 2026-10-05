@@ -574,6 +574,11 @@ fn host_record(argument: &EncodedArg) -> Result<HostRecord, Error> {
 }
 
 impl DnsConfig {
+    /// dnsmasq.c warns only for an explicitly supplied non-null resolver list.
+    pub fn has_explicit_resolv_file(&self) -> bool {
+        !self.resolv_default && !self.resolv_files.is_empty()
+    }
+
     /// Startup loader boundary only. C resolves at each directive, before
     /// --test returns and before later files or scripts execute.
     #[cfg(unix)]
