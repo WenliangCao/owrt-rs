@@ -204,6 +204,11 @@ def cases():
                      'file': '/m2/logging/daemon.log' if name == 'log-chown' else None,
                      'argv': ['--log-facility=/m2/logging/daemon.log'] if name == 'log-chown' else ['--log-facility=-'],
                      'receiver': 'dgram', 'options': ['no-daemon', 'log-facility']})
+    for name, number in [('setgroups', 159), ('setgid', 144), ('setuid', 146), ('capset', 91), ('keepcaps', 167)]:
+        rows.append({'id': 'credential-fault-' + name, 'scope': 'credential-fault', 'kind': 'run',
+                     'mode': ['-k'], 'fault': name, 'fault_number': number, 'fault_errno': errno.EPERM,
+                     'exit': 5, 'pidfile': '/m2/logging/daemon.pid', 'user': 'nobody',
+                     'receiver': 'dgram', 'argv': [], 'options': ['no-daemon']})
     dhcp_base = ['--log-facility=-', '--dhcp-leasefile=/m2/logging/leases', '--no-ping', '--dhcp-broadcast']
     for name, ranges in [
         ('dynamic', ['127.0.0.10,127.0.0.20,255.0.0.0,10m']),
@@ -413,7 +418,7 @@ def identity_sequence(transport, calibrate, sticky_probe=None, fresh=False):
 
 
 def run(root, side, case, out):
-    if case.get('scope') in ['daemon', 'scriptuser-boundary', 'startup-fault']:
+    if case.get('scope') in ['daemon', 'scriptuser-boundary', 'startup-fault', 'credential-fault']:
         return run_daemon(root, side, case, out)
     out.mkdir()
     folder = image_path(root, '/m2/logging')
