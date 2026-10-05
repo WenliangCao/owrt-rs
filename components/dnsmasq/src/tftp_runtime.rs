@@ -199,6 +199,11 @@ pub enum RuntimeEvent {
         packet: Vec<u8>,
     },
     Completed(Completion),
+    /// First DATA construction failed before C links the transfer. Cleanup
+    /// needs its ID, but no established-transfer "failed sending" log exists.
+    Discarded {
+        id: TransferId,
+    },
     Failed {
         id: TransferId,
         peer: SocketAddr,
@@ -768,7 +773,7 @@ impl<O: FileOpener> TransferRuntime<O> {
                 packet: framed,
             }])
         } else {
-            self.send_blocks(id, 1, now)
+            self.send_blocks(id, 1, now, false)
         }
     }
 
@@ -906,7 +911,7 @@ impl<O: FileOpener> TransferRuntime<O> {
         if count == 0 {
             return Ok(Vec::new());
         }
-        self.send_blocks(id, count, now)
+        self.send_blocks(id, count, now, true)
     }
 
     fn send_blocks(
@@ -914,6 +919,7 @@ impl<O: FileOpener> TransferRuntime<O> {
         id: u64,
         count: u32,
         _now: u64,
+        established: bool,
     ) -> Result<Vec<RuntimeEvent>, RuntimeError> {
         let mut events = Vec::new();
         let mut failed = false;
@@ -960,10 +966,14 @@ impl<O: FileOpener> TransferRuntime<O> {
         }
         if failed {
             let active = self.active.remove(&id).unwrap();
-            events.push(RuntimeEvent::Failed {
-                id,
-                peer: active.peer,
-                path: self.files[active.file].as_ref().unwrap().path.clone(),
+            events.push(if established {
+                RuntimeEvent::Failed {
+                    id,
+                    peer: active.peer,
+                    path: self.files[active.file].as_ref().unwrap().path.clone(),
+                }
+            } else {
+                RuntimeEvent::Discarded { id }
             });
         }
         Ok(events)
@@ -1288,7 +1298,7 @@ mod tests {
             .handle_datagram(peer(1000), &rrq(b"boot", b"octet"), 1)
             .unwrap();
         assert!(matches!(events.as_slice(),
-            [RuntimeEvent::Send { packet, .. }, RuntimeEvent::Failed { .. }]
+            [RuntimeEvent::Send { packet, .. }, RuntimeEvent::Discarded { .. }]
             if packet.starts_with(&[0, 5, 0, 0])));
         assert_eq!(runtime.active_len(), 0);
 

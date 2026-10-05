@@ -58,6 +58,7 @@ pub struct TftpListener<O> {
     pending_bind: Vec<SocketAddr>,
     shared_listener_owner: bool,
     retired_explicit: Vec<IpAddr>,
+    restricted_transfer_limit: Option<i128>,
 }
 impl TftpListener<RealFileOpener> {
     /// Bind before dropping privileges. Directory checks belong to
@@ -74,7 +75,9 @@ impl TftpListener<RealFileOpener> {
     ) -> io::Result<Self> {
         let policy = Policy::new(config, dns, no_dhcp, no_tftp)?;
         let open_max = descriptor_limit()?;
-        let limit = config.transfer_limit(open_max, random_sockets.min((open_max / 3) as usize));
+        let random_sockets = random_sockets.min((open_max / 3) as usize);
+        let signed_limit = config.signed_transfer_limit(open_max, random_sockets);
+        let limit = config.transfer_limit(open_max, random_sockets);
         let runtime = TransferRuntime::new(
             RuntimeConfig {
                 packet_buffer_size,
@@ -94,6 +97,8 @@ impl TftpListener<RealFileOpener> {
         );
         let mut listener = Self::empty(runtime, config.port_range);
         listener.accepting = limit.is_some();
+        listener.restricted_transfer_limit =
+            (signed_limit < config.max_transfers as i128).then_some(signed_limit);
         listener.policy = Some(policy);
         listener.sync_servers(true)?;
         Ok(listener)
@@ -109,8 +114,9 @@ impl<O: FileOpener> TftpListener<O> {
             runtime,
             port_range: port_range.map(|(a, b)| (a.min(b), a.max(b))),
             single_port,
-            // C receives RRQ/ACK/ERR in workspacename[MAXDNAMESTR].
-            buffer: vec![0; crate::tftp_service::MAX_PATH_BYTES],
+            // The shared pktinfo receiver rejects truncated datagrams. Read
+            // the full UDP packet, then expose only C's503-byte workspace.
+            buffer: vec![0; 65535],
             policy: None,
             pending: VecDeque::new(),
             completed: VecDeque::new(),
@@ -119,6 +125,7 @@ impl<O: FileOpener> TftpListener<O> {
             pending_bind: Vec::new(),
             shared_listener_owner: false,
             retired_explicit: Vec::new(),
+            restricted_transfer_limit: None,
         }
     }
     pub fn bind(address: SocketAddr, runtime: TransferRuntime<O>) -> io::Result<Self> {
@@ -164,6 +171,9 @@ impl<O: FileOpener> TftpListener<O> {
         self.policy
             .as_ref()
             .is_some_and(|policy| policy.config.quiet)
+    }
+    pub fn restricted_transfer_limit(&self) -> Option<i128> {
+        self.restricted_transfer_limit
     }
     /// The owner queries this before dropping privileges. Only static DAD
     /// and dynamic listeners can need a later privileged TFTP bind.
@@ -463,7 +473,7 @@ impl<O: FileOpener> TftpListener<O> {
         let Some(datagram) = receive_pending(&self.servers[index].socket, &mut self.buffer)? else {
             return Ok(());
         };
-        let bytes = self.buffer[..datagram.len].to_vec();
+        let bytes = self.buffer[..datagram.len.min(crate::tftp_service::MAX_PATH_BYTES)].to_vec();
         let new_request = matches!(bytes.get(..2), Some([0, 1] | [0, 2]));
         if new_request
             && (!self.accepting || !self.servers[index].accepting || !self.can_start(datagram.peer))
@@ -594,10 +604,11 @@ impl<O: FileOpener> TftpListener<O> {
         let Some(socket) = self.transfers.get(&id) else {
             return Ok(());
         };
-        let (len, peer) = match socket.recv_from(&mut self.buffer) {
-            Ok(value) => value,
-            Err(_) => return Ok(()),
-        };
+        let (len, peer) =
+            match socket.recv_from(&mut self.buffer[..crate::tftp_service::MAX_PATH_BYTES]) {
+                Ok(value) => value,
+                Err(_) => return Ok(()),
+            };
         let mut received = self
             .runtime
             .handle_socket_datagram(SocketRole::Transfer(id), peer, &self.buffer[..len], now)
@@ -623,7 +634,9 @@ impl<O: FileOpener> TftpListener<O> {
                     self.completed.push_back(done.clone());
                     None
                 }
-                RuntimeEvent::Failed { id, .. } | RuntimeEvent::TimedOut { id, .. } => {
+                RuntimeEvent::Failed { id, .. }
+                | RuntimeEvent::TimedOut { id, .. }
+                | RuntimeEvent::Discarded { id } => {
                     self.transfers.remove(id);
                     self.routes.remove(id);
                     None

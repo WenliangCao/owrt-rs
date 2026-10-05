@@ -127,10 +127,11 @@ struct ReadJob {
     line: Vec<u8>,
     line_number: usize,
     rows: Vec<SourceRule>,
+    errors: VecDeque<(usize, Error)>,
 }
 
 impl ReadJob {
-    fn consume_line(&mut self, diagnostics: &mut Vec<FileDiagnostic>) {
+    fn consume_line(&mut self) {
         self.line_number += 1;
         if self.request.source == Source::Resolv {
             if let Some(address) = resolver_line(&self.line, |name| {
@@ -151,11 +152,7 @@ impl ReadJob {
                         SourceRule::configured_reverse(rule, self.line_number, reverse)
                     }))
                 }
-                Err(error) => diagnostics.push(FileDiagnostic::Line {
-                    path: self.request.path.clone(),
-                    line: self.line_number,
-                    error,
-                }),
+                Err(error) => self.errors.push_back((self.line_number, error)),
             }
         }
         self.line.clear();
@@ -163,7 +160,7 @@ impl ReadJob {
 
     /// One fixed-size read, followed by parsing only the bytes just read.
     /// An incomplete line is retained, including a partial last line on error.
-    fn step(&mut self, diagnostics: &mut Vec<FileDiagnostic>) -> io::Result<bool> {
+    fn step(&mut self) -> io::Result<bool> {
         if self.wait_readiness {
             let mut fds = [PollFd {
                 fd: self.file.as_raw_fd(),
@@ -191,14 +188,14 @@ impl ReadJob {
         };
         for byte in &bytes[..length] {
             if *byte == b'\n' {
-                self.consume_line(diagnostics);
+                self.consume_line();
             } else {
                 self.line.push(*byte);
             }
         }
         if length == 0 {
             if !self.line.is_empty() {
-                self.consume_line(diagnostics);
+                self.consume_line();
             }
             Ok(true)
         } else {
@@ -223,6 +220,7 @@ pub struct DnsFiles {
     endpoint_lookup: Option<EndpointLookup>,
     endpoint_update: Option<SourceUpdate>,
     endpoint_groups: VecDeque<Vec<SourceRule>>,
+    endpoint_errors: VecDeque<(usize, Error)>,
     endpoint_current: Vec<SourceRule>,
 }
 
@@ -274,6 +272,7 @@ impl DnsFiles {
             endpoint_lookup: None,
             endpoint_update: None,
             endpoint_groups: VecDeque::new(),
+            endpoint_errors: VecDeque::new(),
             endpoint_current: Vec::new(),
         })
     }
@@ -430,6 +429,27 @@ impl DnsFiles {
                 self.endpoint_lookup = None;
                 self.append_endpoint_result(done.rules, done.error, &mut result.diagnostics);
             }
+            // C parses and resolves each directive before reading the next.
+            // Keep lexical errors behind earlier expansion errors, emitting at
+            // most one queued line error per owner turn even for large files.
+            let next_line = self
+                .endpoint_groups
+                .front()
+                .map_or(usize::MAX, |rows| rows[0].line);
+            if self
+                .endpoint_errors
+                .front()
+                .is_some_and(|(line, _)| *line <= next_line)
+            {
+                let (line, error) = self.endpoint_errors.pop_front().unwrap();
+                result.diagnostics.push(FileDiagnostic::Line {
+                    path: self.endpoint_update.as_ref().unwrap().path.clone(),
+                    line,
+                    error,
+                });
+                result.runnable = true;
+                return result;
+            }
             if let Some(rows) = self.endpoint_groups.pop_front() {
                 self.endpoint_current = rows;
                 let rules: Vec<_> = self
@@ -500,6 +520,7 @@ impl DnsFiles {
                             line: Vec::new(),
                             line_number: 0,
                             rows: Vec::new(),
+                            errors: VecDeque::new(),
                         });
                     }
                     Err(error) => {
@@ -516,7 +537,7 @@ impl DnsFiles {
         if let Some(mut job) = self.job.take() {
             // poll failures are transient like read errors; no source change
             // occurs while its input is still awaiting a later owner turn.
-            if job.step(&mut result.diagnostics).unwrap_or(false) {
+            if job.step().unwrap_or(false) {
                 let successful_resolv =
                     job.request.source == Source::Resolv && !job.rows.is_empty();
                 if job.request.source == Source::Resolv {
@@ -544,6 +565,7 @@ impl DnsFiles {
                         && self.clear_on_reload,
                 };
                 if update.source == Source::ServersFile {
+                    self.endpoint_errors = job.errors;
                     // A directive's domain/reverse variants share one expansion.
                     // Different lines never share hostname, source or reverse state.
                     for row in update.rows {
@@ -662,6 +684,38 @@ mod tests {
         assert!(!update.rows[1].reverse);
         assert!(
             matches!(&update.rows[3].rule.target, RuleTarget::Upstream(endpoint) if endpoint.host == ServerHost::Address("127.0.0.3".parse().unwrap()))
+        );
+    }
+
+    #[test]
+    fn server_file_diagnostics_follow_resolution_and_parse_line_order() {
+        let dir = Directory::new();
+        let mut config = dir.config();
+        config.no_resolv = true;
+        config.servers_file = Some(dir.0.join("servers"));
+        fs::write(
+            config.servers_file.as_ref().unwrap(),
+            b"server=::1%missing_endpoint_scope\nserver=127.0.0.2@::1\naddress=/bad/127.0.0.2\nserver=127.0.0.3\n",
+        )
+        .unwrap();
+        let mut files = DnsFiles::new(&config, true, false).unwrap();
+        files.request(ReloadReason::Init);
+        let (updates, diagnostics) = drain(&mut files);
+        assert_eq!(updates[0].rows.len(), 1);
+        let path = config.servers_file.unwrap();
+        assert_eq!(
+            diagnostics
+                .iter()
+                .map(ToString::to_string)
+                .collect::<Vec<_>>(),
+            [
+                format!("bad interface name at line 1 of {}", path.display()),
+                format!(
+                    "cannot use IPv4 server address with IPv6 source address at line 2 of {}",
+                    path.display()
+                ),
+                format!("illegal option at line 3 of {}", path.display()),
+            ]
         );
     }
 

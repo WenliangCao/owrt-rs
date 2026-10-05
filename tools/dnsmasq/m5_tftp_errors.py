@@ -3,10 +3,15 @@
 from __future__ import annotations
 import argparse
 import copy
+import ctypes
+import errno
 import hashlib
 import json
 import os
 from pathlib import Path
+import platform
+import re
+import signal
 import socket
 import struct
 import subprocess
@@ -16,12 +21,40 @@ import time
 from m2_rootfs import command, prepare, process_identity, sha256
 from test_single_poll_service import stop
 from m5_listeners import Network
+from m5_tftp_allocation import trace_allocation
 
 HERE=Path(__file__).resolve().parent
 ROOT='/m2/tftp-errors'
+NUMBERS=[
+    ('signed-overflow',b'2147483648',2147483648),
+    ('unsigned-wrap',b'4294967296',0),
+    ('unsigned-wrap-one',b'4294967297',1),
+    ('long-wrap',b'9223372036854775808',0),
+    ('many-zeroes',b'10000000000000000000000000000000000000000',0),
+    ('many-nines',b'99999999999999999999999999999999999999990',4294967286),
+    ('negative-overflow',b'-2147483649',2147483647),
+    ('negative-wrap',b'-4294967296',0),
+    ('prefix',b'+4294967297tail',1),
+    ('whitespace-prefix',b' \t+4294967298x',2),
+    ('double-sign',b'--1',0),
+    ('nonnumeric',b'abc',0),
+    ('negative',b'-1',4294967295),
+    ('vertical-whitespace',b'\x0b\x0c\r\n+4294967298x',2),
+]
 
 
 def save(path,value):Path(path).write_text(json.dumps(value,indent=2,sort_keys=True)+'\n')
+
+
+def frozen_plan():
+    plan=json.loads((HERE/'m5_tftp_errors.json').read_text())
+    required={name for row in plan['boundaries'] for name in row['required_cases']}
+    names={item['name'] for item in cases()}
+    assert required==names,dict(missing=sorted(required-names),unmapped=sorted(names-required))
+    plan['cases']=[{k:v.hex() if isinstance(v,bytes) else v for k,v in item.items()} for item in cases()]
+    plan['driver_sha256']=sha256(Path(__file__))
+    plan['manifest_sha256']=sha256(HERE/'m5_tftp_errors.json')
+    return plan
 
 
 def cases():
@@ -61,11 +94,58 @@ def cases():
         dict(name='port-exhausted',filename=b'public',exhausted=True,silent=True),
         dict(name='forbidden-parent',filename=b'../public',code=2),
     ])
+    for label,value,number in NUMBERS:
+        response=b'\0\6blksize\0'+str(max(1,min(number,1493))).encode()+b'\0'
+        values.append(dict(name='numeric-blksize-'+label,raw=b'\0\1public\0octet\0blksize\0'+value+b'\0',response=response))
+    for label in ['unsigned-wrap','whitespace-prefix','negative-overflow','many-nines','double-sign']:
+        _,value,number=next(row for row in NUMBERS if row[0]==label)
+        response=b'\0\6tsize\x006\0timeout\0'+str(min(number,255)).encode()+b'\0windowsize\0'+str(max(1,min(number,32))).encode()+b'\0'
+        raw=b'\0\1public\0octet\0windowsize\0'+value+b'\0timeout\0'+value+b'\0tsize\0'+value+b'\0'
+        values.append(dict(name='numeric-other-'+label,raw=raw,response=response))
+    for limit in [512,4096]:
+        values.append(dict(name='numeric-edns-'+str(limit),raw=b'\0\1public\0octet\0blksize\0-1\0',edns=limit,response=b'\0\6blksize\0'+str(limit+261).encode()+b'\0'))
+    values.append(dict(name='numeric-no-blocksize',raw=b'\0\1public\0octet\0blksize\0'+NUMBERS[5][1]+b'\0',no_blocksize=True,response=b'\0\3\0\1public'))
+    for error,number in [('I/O error',errno.EIO),('Permission denied',errno.EACCES),('No such file or directory',errno.ENOENT)]:
+        values.append(dict(name='fstat-'+str(number),filename=b'public',code=0,error=error,fault='stat',fault_errno=number))
+    for error,number in [('Operation not permitted',errno.EPERM),('I/O error',errno.EIO),('No file descriptors available',errno.EMFILE)]:
+        values.append(dict(name='open-'+str(number),filename=b'public',code=0,error=error,fault='open',fault_errno=number))
+    values.extend([
+        dict(name='initial-read-eio',filename=b'public',code=0,error='I/O error',fault='read',fault_errno=errno.EIO),
+        dict(name='oack-read-eio',filename=b'directory',code=0,error='Is a directory',after_oack=True),
+        dict(name='window-read-eio',filename=b'large',code=0,error='I/O error',fault='read',fault_errno=errno.EIO,fault_after=1,window=True),
+        dict(name='retry-read-eio',filename=b'public',code=0,error='I/O error',fault='read',fault_errno=errno.EIO,fault_after=1,retry=True),
+        dict(name='file-record-enomem',filename=b'public',code=0,error='Out of memory',allocation='file'),
+        dict(name='transfer-record-enomem',filename=b'public',silent=True,allocation='transfer'),
+    ])
+    for operation,number in [('socket',errno.EMFILE),('bind',errno.EACCES),('pmtu',errno.EINVAL),('nonblock',errno.EIO)]:
+        values.append(dict(name='resource-'+operation,filename=b'public',silent=True,fault=operation,fault_errno=number))
+    normal=b'\0\1public\0octet\0'
+    for length in range(len(normal)):
+        item=dict(name='parser-truncate-'+str(length),raw=normal[:length])
+        if length<2:item['silent']=True
+        else:
+            message=b'empty filename' if length<9 else b'unsupported'
+            item['response']=b'\0\5\0\4'+message+b' in request from 127.0.0.1\0' if length<9 else b'\0\5\0\4unsupported request from 127.0.0.1\0'
+        values.append(item)
+    for label,suffix in [('name-only',b'blksize\0'),('unclosed-name',b'blksize'),
+            ('empty-name',b'\0blksize\x0017\0'),('empty-value',b'blksize\0\0timeout\x003\0'),
+            ('unclosed-value',b'blksize\x0017')]:
+        values.append(dict(name='parser-option-'+label,raw=normal+suffix,response=b'\0\3\0\1public'))
+    values.extend([
+        dict(name='parser-case-fold',raw=b'\0\1public\0OcTeT\0BlKsIzE\x0017\0',response=b'\0\6blksize\x0017\0'),
+        dict(name='parser-duplicate-option',raw=normal+b'blksize\x0017\0blksize\x003\0',response=b'\0\6blksize\x003\0'),
+        dict(name='parser-netascii-ignored',raw=b'\0\1public\0netascii\0tsize\x000\0windowsize\x003\0',response=b'\0\3\0\1public'),
+    ])
+    for size in [503,504,519]:
+        raw=normal+b'x\0'+b'p'*(size-29)+b'\0blksize\x0017\0'
+        assert len(raw)==size
+        values.append(dict(name='parser-receive-'+str(size),raw=raw,response=b'\0\6blksize\x0017\0' if size==503 else b'\0\3\0\1public'))
     return values
 
 
 def expected(item):
     if item.get('silent'):return None
+    if 'response' in item:return item['response']
     label=b'fe80::2%lan' if item.get('scope') else b'::1' if item.get('v6') else b'127.0.0.1'
     if item.get('tid'):
         label=b'::1' if item.get('v6') else b'127.0.0.2'
@@ -95,12 +175,34 @@ def query(item):
             index=socket.if_nametoindex('lpeer');endpoint.bind((source,0,0,index));destination=(target,69,0,index)
         else:endpoint.bind((source,0));destination=(target,69)
         request=item.get('raw',b'\0\1'+item.get('filename',b'public')+b'\0octet\0')
+        if item.get('after_oack'):request+=b'blksize\x004\0'
+        if item.get('window'):request+=b'blksize\x004\0windowsize\x003\0'
         endpoint.sendto(request,destination)
         try:response,peer=endpoint.recvfrom(65535)
         except socket.timeout:
             if item.get('silent'):return dict(request=request.hex(),packet=None,dedicated=None,peer=None)
             raise
-        if item.get('tid'):
+        packets=[response.hex()]
+        if item.get('after_oack') or item.get('window'):
+            wanted=b'\0\6blksize\x004\0'+(b'windowsize\x003\0' if item.get('window') else b'')
+            assert response==wanted,'read fault OACK prime'
+            endpoint.sendto(b'\0\4\0\0',peer)
+            packets=[]
+            for _ in range(3 if item.get('window') else 1):
+                packet,origin=endpoint.recvfrom(65535)
+                assert origin==peer,'window source changed'
+                packets.append(packet.hex())
+            response=bytes.fromhex(packets[1 if item.get('window') else 0])
+            if item.get('window'):
+                assert packets[0]==b'\0\3\0\1abcd'.hex() and packets[2]==b'\0\3\0\3ijkl'.hex(),'DATA/error window order'
+        elif item.get('retry'):
+            assert response==b'\0\3\0\1public','retry DATA prime'
+            query(dict(raw=b'\0\1public\0octet\0blksize\x004\0',response=b'\0\6blksize\x004\0'))
+            endpoint.settimeout(5)
+            response,origin=endpoint.recvfrom(65535)
+            assert origin==peer,'retry source changed'
+            packets.append(response.hex())
+        elif item.get('tid'):
             assert response==b'\0\3\0\1public','prime DATA'
             with socket.socket(socket.AF_INET6 if ipv6 else socket.AF_INET,socket.SOCK_DGRAM) as foreign:
                 foreign.settimeout(2);foreign.bind(('::1' if ipv6 else '127.0.0.2',0))
@@ -108,16 +210,83 @@ def query(item):
                 foreign.sendto(wrong,peer);error,origin=foreign.recvfrom(65535)
             endpoint.sendto(b'\0\4\0\1',peer)
             response,peer=error,origin
-        return dict(request=request.hex(),packet=response.hex(),peer=list(peer),dedicated=peer[1]!=69)
+        elif response[:2]==b'\0\6':endpoint.sendto(b'\0\5\0\0probe complete\0',peer)
+        elif response[:2]==b'\0\3':endpoint.sendto(b'\0\4'+response[2:4],peer)
+        return dict(request=request.hex(),packet=response.hex(),peer=list(peer),dedicated=peer[1]!=69,packets=packets)
+
+
+def trace_file_error(pid,operation,filename,error,after,output):
+    """Replace one actual image file syscall with errno, preserving raw proof."""
+    assert platform.machine()=='aarch64','fault ABI pinned to AArch64 image'
+    class Iovec(ctypes.Structure):
+        _fields_=[('base',ctypes.c_void_p),('length',ctypes.c_size_t)]
+    libc=ctypes.CDLL(None,use_errno=True);libc.ptrace.restype=ctypes.c_long
+    def ptrace(request,address=0,data=0):
+        ctypes.set_errno(0)
+        value=libc.ptrace(ctypes.c_uint(request),ctypes.c_uint(pid),ctypes.c_void_p(address),ctypes.c_void_p(data))
+        if value==-1 and ctypes.get_errno():raise OSError(ctypes.get_errno(),'ptrace')
+        return value
+    registers=(ctypes.c_ulonglong*34)()
+    def regs(write=False):
+        vector=Iovec(ctypes.addressof(registers),ctypes.sizeof(registers))
+        ptrace(0x4205 if write else 0x4204,1,ctypes.addressof(vector))
+    numbers={'open':(56,437),'stat':(80,79,291),'read':(63,65,67),'socket':(198,), 'bind':(200,), 'pmtu':(208,), 'nonblock':(25,29)}[operation]
+    report=dict(pid=pid,operation=operation,path=filename,errno=error,after=after,events=[],injected=False)
+    attached=False;active=fault=False;successful=0
+    try:
+        ptrace(16);os.waitpid(pid,0);attached=True;ptrace(0x4200,0,1)
+        Path(str(output)+'.ready').write_text('attached\n')
+        while True:
+            ptrace(24);_,status=os.waitpid(pid,0)
+            assert os.WIFSTOPPED(status),'tracee exited before injection'
+            if os.WSTOPSIG(status)!=signal.SIGTRAP|0x80:continue
+            info=(ctypes.c_ubyte*128)();ptrace(0x420e,ctypes.sizeof(info),ctypes.addressof(info));regs()
+            if info[0]==1:
+                try:path=os.readlink('/proc/'+str(pid)+'/fd/'+str(registers[0]))
+                except OSError:path=''
+                active=registers[8] in numbers
+                if operation=='open' and active:
+                    address=registers[1];raw=bytearray()
+                    while len(raw)<504:
+                        word=ptrace(1,address+len(raw));raw.extend((word&((1<<64)-1)).to_bytes(8,'little'))
+                        if 0 in raw:break
+                    path=os.fsdecode(bytes(raw).split(b'\0')[0]);active=path==ROOT+'/'+filename
+                elif operation in ['stat','read']:active=active and path.endswith(ROOT+'/'+filename)
+                elif operation=='socket':active=active and registers[0] in [socket.AF_INET,socket.AF_INET6]
+                elif operation=='pmtu':active=active and registers[1]==0 and registers[2]==10
+                elif operation=='nonblock':active=active and (registers[1]==4 if registers[8]==25 else registers[1]==0x5421)
+                fault=active and successful>=after
+                if active:report['events'].append(dict(syscall=registers[8],descriptor=registers[0],arguments=list(registers[:6]),path=path,injected=fault))
+                if fault:
+                    syscall=ctypes.c_int(-1);vector=Iovec(ctypes.addressof(syscall),ctypes.sizeof(syscall))
+                    ptrace(0x4205,0x404,ctypes.addressof(vector))
+            elif info[0]==2 and active:
+                returned=ctypes.c_longlong(registers[0]).value
+                if fault:
+                    registers[0]=(1<<64)-error;regs(True);returned=-error;report['injected']=True
+                report['events'][-1]['result']=returned;save(output,report)
+                successful+=returned>=0
+                if fault:ptrace(17);attached=False;break
+                active=False
+    finally:
+        if attached:
+            try:ptrace(17)
+            except OSError:pass
+        save(output,report)
+    return 0
 
 
 def side(args):
     args.out.mkdir(parents=True,exist_ok=False)
+    save(args.out/'plan.json',frozen_plan())
     root=prepare(args.image_root,None,args.out/args.side,args.rust_binary)
     net=Network()
     folder=root/ROOT.lstrip('/');folder.mkdir()
     (folder/'iface').mkdir()
     (folder/'public').write_bytes(b'public');(folder/'public').chmod(0o644)
+    for path in [folder/'healthy',folder/'iface/healthy']:
+        path.write_bytes(b'public');path.chmod(0o644);os.chown(path,65534,65534)
+    (folder/'large').write_bytes(b'abcdefghijklmnop');(folder/'large').chmod(0o644)
     (folder/'root-only').write_bytes(b'private');(folder/'root-only').chmod(0o600)
     (folder/'private').mkdir(mode=0o700)
     (folder/'private/file').write_bytes(b'private')
@@ -126,38 +295,94 @@ def side(args):
     rows=[];failures=[]
     for item in cases():
         out=args.out/item['name'];out.mkdir()
-        process=None
-        config='port=0\nno-hosts\nno-resolv\nuser='+item.get('user','root')+'\ngroup='+('nogroup' if item.get('user') else 'root')+'\npid-file=/m2/pid\n'+('' if item.get('scope') else 'bind-interfaces\n')+'listen-address=127.0.0.1,::1'+(',fe80::1' if item.get('scope') else '')+'\nenable-tftp\n'
+        process=tracer=None
+        config='port=0\nno-hosts\nno-resolv\nlog-facility=/m2/error.log\nuser='+item.get('user','root')+'\ngroup='+('nogroup' if item.get('user') else 'root')+'\npid-file=/m2/pid\n'+('' if item.get('scope') else 'bind-interfaces\n')+'listen-address=127.0.0.1,::1'+(',fe80::1' if item.get('scope') else '')+'\nenable-tftp\n'
         if not item.get('no_root'):config+='tftp-root='+ROOT+'\n'
         if item.get('interface_root'):config+='tftp-root='+ROOT+'/iface,lo\n'
         if item.get('quiet'):config+='quiet-tftp\n'
         if item.get('secure'):config+='tftp-secure\n'
         if item.get('single'):config+='tftp-single-port\n'
+        if item.get('edns'):config+='edns-packet-max='+str(item['edns'])+'\n'
+        if item.get('no_blocksize'):config+='tftp-no-blocksize\n'
         blocker=None
         if item.get('exhausted'):
             config+='tftp-port-range=35000,35000\n'
             blocker=socket.socket(socket.AF_INET,socket.SOCK_DGRAM);blocker.bind(('127.0.0.1',35000))
         (root/'m2/error.conf').write_text(config);(out/'config').write_text(config)
+        (root/'m2/error.log').unlink(missing_ok=True)
         try:
             with (out/'stderr').open('w') as stderr,(out/'stdout').open('w') as stdout:
                 process=subprocess.Popen(command(root,args.side,'-k' if item.get('user') else '-d','-C','/m2/error.conf'),stderr=stderr,stdout=stdout,start_new_session=True)
                 time.sleep(.15)
                 assert process.poll() is None,'startup failed'
                 save(out/'identity.json',process_identity(root,process.pid))
+                baseline_fds=len(list(Path('/proc/'+str(process.pid)+'/fd').iterdir()))
+                if item.get('fault'):
+                    tracer=subprocess.Popen([sys.executable,__file__,'--trace-file-error',str(process.pid),item['fault'],item['filename'].decode(),str(item['fault_errno']),str(item.get('fault_after',0)),str(out/'fault.json')])
+                    deadline=time.monotonic()+3
+                    while not (out/'fault.json.ready').exists() and tracer.poll() is None and time.monotonic()<deadline:time.sleep(.01)
+                    assert (out/'fault.json.ready').exists(),'fault tracer did not attach'
+                elif item.get('allocation'):
+                    if args.side=='c':
+                        symbols=subprocess.run(['readelf','-Ds',str(args.image_root/'lib/libc.so')],capture_output=True,text=True,check=True).stdout
+                        (out/'allocation-symbols').write_text(symbols)
+                        offset=int(re.search(r'^\s*\d+:\s+([0-9a-f]+).*\bcalloc\s*$',symbols,re.M)[1],16)
+                        kind='calloc';size=63 if item['allocation']=='file' else 136
+                    else:
+                        symbols=args.link_map.read_text()
+                        offset=int(re.search(r'^\s*0x([0-9a-f]+)\s+malloc\s*$',symbols,re.M)[1],16)
+                        kind='malloc';size=64 if item['allocation']=='file' else 144
+                    save(out/'allocation-target.json',dict(symbol=kind,offset=offset,size=size,record=item['allocation']))
+                    tracer=subprocess.Popen([sys.executable,__file__,'--trace-allocation',str(process.pid),str(size),kind,str(offset),str(out/'fault.json'),item['allocation']])
+                    deadline=time.monotonic()+3
+                    while not (out/'fault.json.ready').exists() and tracer.poll() is None and time.monotonic()<deadline:time.sleep(.01)
+                    assert (out/'fault.json.ready').exists(),'allocation tracer did not attach'
                 if item.get('scope'):
                     payload={k:(v.hex() if isinstance(v,bytes) else v) for k,v in item.items()}
                     result=json.loads(net.exec(sys.executable,__file__,'--query-json',json.dumps(payload)).stdout)
                 else:result=query(item)
                 save(out/'wire.json',result)
+                if tracer:
+                    assert tracer.wait(timeout=3)==0,'fault tracer failed'
+                    assert json.loads((out/'fault.json').read_text())['injected'],'file error not injected'
                 (out/'request.bin').write_bytes(bytes.fromhex(result['request']))
                 if result['packet']:(out/'response.bin').write_bytes(bytes.fromhex(result['packet']))
                 wanted=expected(item)
                 assert result['packet']==(wanted.hex() if wanted else None),'C-derived wire error guard'
                 if wanted:assert result['dedicated']==(not item.get('single')),'source transfer socket role'
-                rows.append(dict(case=item['name'],packet=result['packet'],source=result['peer'][0] if result['peer'] else None,dedicated=result['dedicated']))
+                if item.get('exhausted'):
+                    blocker.close();blocker=None
+                time.sleep(.05)
+                recovery=query(dict(filename=(ROOT.encode()+b'/healthy' if item.get('no_root') else b'healthy'),v6=item.get('v6'),response=b'\0\3\0\1public'))
+                save(out/'recovery.json',recovery)
+                assert recovery['packet']==b'\0\3\0\1public'.hex(),'post-error transfer health'
+                time.sleep(.05)
+                remaining_fds=len(list(Path('/proc/'+str(process.pid)+'/fd').iterdir()))
+                save(out/'descriptor-health.json',dict(before=baseline_fds,after=remaining_fds))
+                assert remaining_fds==baseline_fds,'file/transfer descriptor leak'
+                row=dict(case=item['name'],packet=result['packet'],source=result['peer'][0] if result['peer'] else None,dedicated=result['dedicated'])
+                logged=(root/'m2/error.log').read_bytes()
+                (out/'daemon.log').write_bytes(logged)
+                messages=re.findall(rb'dnsmasq-tftp(?:\[\d+\])?: ([^\n]*)',logged)
+                if wanted and wanted[:2]==b'\0\5':
+                    count=messages.count(wanted[4:-1])
+                    assert count==(0 if item.get('quiet') and wanted[2:4]==b'\0\1' else 1),'bounded wire/log identity or quiet guard'
+                    row['error_logged']=bool(count)
+                if item.get('exhausted'):
+                    assert messages.count(b'unable to get free port for TFTP')==1,'port exhaustion log guard'
+                    row['port_exhaustion_logged']=True
+                row['health']=True
+                if item.get('fault'):row['fault']=dict(injected=True,errno=item['fault_errno'],after=item.get('fault_after',0))
+                if item.get('allocation'):row['allocation']=dict(injected=True,record=item['allocation'])
+                if item.get('window') or item.get('retry'):row['packets']=result['packets']
+                rows.append(row)
         except Exception as error:
             failures.append(dict(case=item['name'],error=repr(error)));save(out/'failure.json',failures[-1])
         finally:
+            if tracer and tracer.poll() is None:
+                tracer.terminate()
+                try:tracer.wait(timeout=2)
+                except subprocess.TimeoutExpired:tracer.kill();tracer.wait()
             cleanup=stop(process);save(out/'cleanup.json',cleanup)
             if blocker:blocker.close()
         if cleanup and (cleanup['forced'] or cleanup['returncode']!=0):failures.append(dict(case=item['name'],cleanup=cleanup))
@@ -177,14 +402,20 @@ def compare(c,r):
         for row,item in zip(result['rows'],cases()):
             packet=expected(item)
             if row['packet']!=(packet.hex() if packet else None):failures.append(dict(side=name,error='wire guard '+item['name']))
+            if row.get('health')!=True:failures.append(dict(side=name,error='health guard '+item['name']))
+            if packet and packet[:2]==b'\0\5' and row.get('error_logged')!=(not (item.get('quiet') and packet[2:4]==b'\0\1')):failures.append(dict(side=name,error='error log guard '+item['name']))
+            if item.get('fault') and row.get('fault')!=dict(injected=True,errno=item['fault_errno'],after=item.get('fault_after',0)):failures.append(dict(side=name,error='fault guard '+item['name']))
+            if item.get('allocation') and row.get('allocation')!=dict(injected=True,record=item['allocation']):failures.append(dict(side=name,error='allocation guard '+item['name']))
     if c['rows']!=r['rows']:failures.append(dict(c=c['rows'],rust=r['rows']))
     return failures
 
 
 def main():
+    if len(sys.argv)>1 and sys.argv[1]=='--trace-file-error':return trace_file_error(int(sys.argv[2]),sys.argv[3],sys.argv[4],int(sys.argv[5]),int(sys.argv[6]),sys.argv[7])
+    if len(sys.argv)>1 and sys.argv[1]=='--trace-allocation':return trace_allocation(int(sys.argv[2]),int(sys.argv[3]),sys.argv[4],int(sys.argv[5]),sys.argv[6],sys.argv[7]=='file')
     if len(sys.argv)>1 and sys.argv[1]=='--query-json':
         item=json.loads(sys.argv[2])
-        for key in ['filename','raw']:
+        for key in ['filename','raw','response']:
             if key in item:item[key]=bytes.fromhex(item[key])
         assert os.environ.get('DNSMASQ_TEST_ISOLATED')=='1'
         print(json.dumps(query(item)));return 0
@@ -193,30 +424,41 @@ def main():
     parser.add_argument('--rust-binary',type=Path,required=True)
     parser.add_argument('--out',type=Path,required=True)
     parser.add_argument('--side',choices=['c','rust'])
+    parser.add_argument('--link-map',type=Path,required=True)
     args=parser.parse_args()
     assert os.geteuid()==0 and os.environ.get('DNSMASQ_TEST_ISOLATED')=='1','use run_isolated.sh'
     if args.side:return side(args)
     args.out.mkdir(parents=True,exist_ok=False)
-    plan=json.loads((HERE/'m5_tftp_errors.json').read_text());plan['cases']=[{k:v.hex() if isinstance(v,bytes) else v for k,v in item.items()} for item in cases()]
+    plan=frozen_plan()
     save(args.out/'plan.json',plan)
     exits={}
     for name in ['c','rust']:
         result=subprocess.run(['sh',str(HERE/'run_isolated.sh'),sys.executable,__file__,'--side',name,
-            '--image-root',str(args.image_root),'--rust-binary',str(args.rust_binary),'--out',str(args.out/name)])
+            '--image-root',str(args.image_root),'--rust-binary',str(args.rust_binary),'--link-map',str(args.link_map),'--out',str(args.out/name)])
         exits[name]=result.returncode
     c,r=[json.loads((args.out/name/'observed.json').read_text()) for name in ['c','rust']]
     failures=compare(c,r);controls=[]
+    if any(exits.values()):failures.append(dict(error='nonzero side exit',exits=exits))
     if not failures:
-        for name in ['missing-case','short-text','wrong-code','missing-zero']:
+        for name in ['missing-case','short-text','wrong-code','missing-zero','wrong-socket-role','missing-health','missing-fault','missing-allocation','missing-error-log','numeric-overflow-error']:
             mutant=copy.deepcopy(r)
             if name=='missing-case':mutant['rows'].pop()
             elif name=='short-text':mutant['rows'][0]['packet']=b'\0\5\0\1file not found\0'.hex()
             elif name=='wrong-code':mutant['rows'][0]['packet']='00050002'+mutant['rows'][0]['packet'][8:]
-            else:mutant['rows'][0]['packet']=mutant['rows'][0]['packet'][:-2]
+            elif name=='missing-zero':mutant['rows'][0]['packet']=mutant['rows'][0]['packet'][:-2]
+            elif name=='wrong-socket-role':mutant['rows'][0]['dedicated']=False
+            elif name=='missing-health':mutant['rows'][0]['health']=False
+            elif name=='missing-fault':next(row for row in mutant['rows'] if row['case']=='fstat-5').pop('fault')
+            elif name=='missing-allocation':next(row for row in mutant['rows'] if row['case']=='file-record-enomem').pop('allocation')
+            elif name=='missing-error-log':mutant['rows'][0].pop('error_logged')
+            else:next(row for row in mutant['rows'] if row['case']=='numeric-blksize-signed-overflow')['packet']=b'\0\5\0\4unsupported request from 127.0.0.1\0'.hex()
             controls.append(dict(name=name,rejected=bool(compare(c,mutant))))
     report=dict(cases=len(cases()),failures=failures,exits=exits,negative_controls=controls,
         binary_sha256=sha256(args.rust_binary),bytes=args.rust_binary.stat().st_size,
-        qualified=not failures and all(row['rejected'] for row in controls))
+        boundaries=[dict(id=row['id'],cases=row['required_cases'],passed=not failures) for row in plan['boundaries']],
+        unclosed_callers=plan.get('unclosed_callers',[]),
+        paired_cases_passed=not failures and len(controls)==10 and all(row['rejected'] for row in controls),
+        qualified=not failures and len(controls)==10 and all(row['rejected'] for row in controls) and not plan.get('unclosed_callers'))
     save(args.out/'result.json',report);print(json.dumps(dict(cases=len(cases()),failures=len(failures),qualified=report['qualified'])))
     return bool(failures)
 

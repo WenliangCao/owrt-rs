@@ -216,6 +216,11 @@ impl TftpConfig {
     /// then estimates one/two descriptors per transfer and caps port ranges.
     /// A negative C limit means no new request can be admitted.
     pub fn transfer_limit(&self, open_max: u64, random_sockets: usize) -> Option<usize> {
+        usize::try_from(self.signed_transfer_limit(open_max, random_sockets)).ok()
+    }
+
+    /// Retain the signed C estimate for the startup restriction warning.
+    pub fn signed_transfer_limit(&self, open_max: u64, random_sockets: usize) -> i128 {
         let mut available = i128::from(open_max) - 30 - random_sockets as i128;
         available = if available < 0 {
             5
@@ -227,9 +232,7 @@ impl TftpConfig {
         if let Some((start, end)) = self.port_range.filter(|(start, _)| *start != 0) {
             available = available.min(i128::from(end - start) + 1);
         }
-        usize::try_from(available)
-            .ok()
-            .map(|limit| limit.min(self.max_transfers))
+        available.min(self.max_transfers as i128)
     }
 
     /// Must run after dropping privileges, matching C's opendir checks.

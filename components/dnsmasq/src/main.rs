@@ -1144,6 +1144,18 @@ fn run_inner(
         if let Some(event) = dnsmasq_rs::logging::startup::tftp(&runtime.tftp) {
             logger.emit(event);
         }
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if let Some(limit) = poll
+            .tftp
+            .as_ref()
+            .and_then(TftpListener::restricted_transfer_limit)
+        {
+            logger.emit(LogEvent::new(
+                Service::Tftp,
+                Priority::Warning,
+                format!("restricting maximum simultaneous TFTP transfers to {limit}").into_bytes(),
+            ));
+        }
         poll.log_cleared_cache = dns_enabled
             && runtime.scalar.cache_size > 0
             && daemon_config.no_hosts

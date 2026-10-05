@@ -112,7 +112,7 @@ fn next_string<'a>(input: &mut &'a [u8]) -> Option<&'a [u8]> {
 /// Exact image musl `atoi`: leading whitespace, optional sign and decimal
 /// prefix. Accumulation wraps to 32 bits, then C converts the result to unsigned.
 fn option_number(mut input: &[u8]) -> u32 {
-    while input.first().is_some_and(u8::is_ascii_whitespace) {
+    while input.first().is_some_and(|byte| matches!(byte, b' ' | b'\t'..=b'\r')) {
         input = &input[1..];
     }
     let negative = input.first() == Some(&b'-');
@@ -461,6 +461,7 @@ mod tests {
             (&b"-4294967296"[..], 0),
             (&b"+4294967297tail"[..], 1),
             (&b" \t+4294967298x"[..], 2),
+            (&b"\x0b\x0c\r\n+4294967298x"[..], 2),
             (&b"--1"[..], 0),
             (&b"abc"[..], 0),
             (&b"-1"[..], u32::MAX),
