@@ -103,6 +103,7 @@ pub struct TcpUpstream {
     groups: HashMap<GroupId, Group>,
     options: TcpOptions,
     pending: Option<Exchange>,
+    connection_failures: Vec<SocketAddr>,
 }
 
 impl TcpUpstream {
@@ -147,6 +148,7 @@ impl TcpUpstream {
             groups: configured,
             options,
             pending: None,
+            connection_failures: Vec::new(),
         })
     }
 
@@ -231,13 +233,17 @@ impl TcpUpstream {
     /// here. A fixed I/O budget keeps a writable peer from owning the loop.
     pub fn step(&mut self) -> Result<TcpProgress, TcpError> {
         let mut pending = self.pending.take().ok_or(TcpError::NotStarted)?;
-        let result = pending.step(&mut self.groups, self.options);
+        let result = pending.step(&mut self.groups, self.options, &mut self.connection_failures);
         if matches!(result, Ok(TcpProgress::Pending(_))) {
             self.pending = Some(pending);
         } else if matches!(result, Err(TcpError::Deadline | TcpError::Cancelled)) {
             self.clear();
         }
         result
+    }
+
+    pub fn take_connection_failures(&mut self) -> Vec<SocketAddr> {
+        std::mem::take(&mut self.connection_failures)
     }
 
     /// Compatibility wrapper for synchronous callers. The production single
