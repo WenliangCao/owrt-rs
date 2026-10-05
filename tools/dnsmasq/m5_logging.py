@@ -14,7 +14,7 @@ import socket
 import subprocess
 import time
 
-from dns_service_probe import query, semantics
+from dns_service_probe import exact_read, query, semantics
 from m2_rootfs import STOCK_SHA256, command, image_path, prepare, process_identity, sha256
 
 DEPENDENCIES = ['dns_service_probe.py', 'm2_rootfs.py', 'run_isolated.sh',
@@ -114,6 +114,27 @@ def cases():
          'argv': ['--log-facility=-', '--no-ident', '--txt-record=kept.logging,explicit-user'],
          'chaos': True, 'options': ['no-ident']},
     ])
+    query_modes = [([], 'ordinary'), (['extra'], 'extra'), (['proto'], 'proto'),
+                   (['auth'], 'auth'), (['only_failed'], 'only_failed'),
+                   ([''], 'ordinary'), (['unknown'], 'ordinary'), (['EXTRA'], 'ordinary'),
+                   (['extra,proto'], 'ordinary'), (['proto', 'unknown'], 'proto'),
+                   (['extra', 'only_failed'], 'only_failed'), (['auth', 'proto'], 'auth')]
+    for index, (modes, expected) in enumerate(query_modes):
+        rows.append({'id': f'query-mode-{index:02d}', 'scope': 'query-reference', 'kind': 'run',
+                     'argv': ['--log-facility=-', '--log-queries'] +
+                             ['--log-queries=' + mode for mode in modes] +
+                             ['--host-record=v6.logging,2001:db8::1',
+                              '--cname=alias.logging,ready.logging',
+                              '--txt-record=kept.logging,explicit-user',
+                              '--address=/nxdomain.logging/'],
+                     'query_probes': True, 'query_mode': expected, 'options': ['log-queries']})
+    rows.append({'id': 'query-debug-proto', 'scope': 'query-reference', 'kind': 'run',
+                 'mode': ['-d'], 'argv': ['--log-facility=-', '--log-queries=proto',
+                                        '--host-record=v6.logging,2001:db8::1',
+                                        '--cname=alias.logging,ready.logging',
+                                        '--txt-record=kept.logging,explicit-user',
+                                        '--address=/nxdomain.logging/'],
+                 'query_probes': True, 'query_mode': 'proto', 'options': ['log-queries', 'no-daemon']})
     return rows
 
 
@@ -173,17 +194,41 @@ class Receiver:
             self.listener.close()
 
 
-def exchange(name, kind=1, chaos=False):
+def exchange(name, kind=1, chaos=False, port=None):
     wire = query(name, kind, 0x7100)
     if chaos:
         wire = wire[:-2] + b'\0\3'
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as client:
+        if port is not None:
+            client.bind(('127.0.0.1', port))
         client.settimeout(.03)
         client.sendto(wire, ('127.0.0.1', 15353))
         reply = client.recv(65535)
     if reply[:2] != wire[:2]:
         raise AssertionError('wrong client DNS transaction')
     return semantics(reply), {'request': wire.hex(), 'reply': reply.hex()}
+
+
+def query_sequence():
+    return [('ready.logging', 1), ('ready.logging', 28), ('v6.logging', 28),
+            ('alias.logging', 1), ('1.2.0.192.in-addr.arpa', 12),
+            ('kept.logging', 16), ('nxdomain.logging', 1), ('ready.logging', 65400)]
+
+
+def tcp_sequence(probes):
+    rows, raw = [], []
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
+        client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        client.settimeout(.5)
+        client.bind(('127.0.0.1', 16502))
+        client.connect(('127.0.0.1', 15353))
+        for name, kind in probes:
+            wire = query(name, kind, 0x7200)
+            client.sendall(len(wire).to_bytes(2, 'big') + wire)
+            reply = exact_read(client, int.from_bytes(exact_read(client, 2), 'big'))
+            rows.append({'name': name, 'type': kind, 'transport': 'tcp', 'response': semantics(reply)})
+            raw.append({'request': wire.hex(), 'reply': reply.hex(), 'transport': 'tcp'})
+    return rows, raw
 
 
 def run(root, side, case, out):
@@ -223,7 +268,10 @@ def run(root, side, case, out):
                     break
                 if case['kind'] == 'run':
                     try:
-                        answer, raw = exchange('ready.logging')
+                        if case.get('query_probes') and b'cleared cache\n' not in (out / 'stderr').read_bytes():
+                            time.sleep(.005)
+                            continue
+                        answer, raw = exchange('ready.logging', port=16500 if case.get('query_probes') else None)
                         if [row['data'] for row in answer['records']] != ['192.0.2.1']:
                             raise AssertionError('wrong readiness answer')
                         observed['ready'] = True
@@ -237,6 +285,17 @@ def run(root, side, case, out):
                         pass
                 time.sleep(.005)
             if observed['ready']:
+                if case.get('query_probes'):
+                    for name, kind in query_sequence():
+                        answer, raw = exchange(name, kind, port=16501)
+                        observed['dns'].append({'name': name, 'type': kind, 'transport': 'udp', 'response': answer})
+                        trace['dns'].append(dict(raw, transport='udp'))
+                    rows, raw = tcp_sequence(query_sequence())
+                    observed['dns'].extend(rows)
+                    trace['dns'].extend(raw)
+                    answer, raw = exchange('ready.logging', port=16503)
+                    observed['dns'].append({'name': 'ready.logging', 'type': 1, 'transport': 'udp-after-tcp', 'response': answer})
+                    trace['dns'].append(dict(raw, transport='udp-after-tcp'))
                 if case.get('chaos'):
                     for name in ['version.bind', 'authors.bind', 'copyright.bind', 'cachesize.bind',
                                  'insertions.bind', 'evictions.bind', 'hits.bind', 'misses.bind', 'servers.bind']:
@@ -316,6 +375,17 @@ def compare(reference, candidate, case, reference_only=False):
                                 for answer in reference['dns'] if answer['name'] != 'kept.logging'
                                 for record in answer['response']['records']):
         failures.append({'kind': 'C-no-ID-generated-answer', 'actual': reference['dns']})
+    if case.get('query_probes'):
+        mode, text = case['query_mode'], reference['stderr']
+        if mode in ['auth', 'only_failed']:
+            if 'query[' in text:
+                failures.append({'kind': 'C-query-log-filter', 'mode': mode, 'actual': text})
+        elif 'query[A] ready.logging from 127.0.0.1' not in text:
+            failures.append({'kind': 'C-query-log-missing', 'mode': mode, 'actual': text})
+        if mode == 'proto' and not all(word in text for word in ['UDP ', 'TCP ']):
+            failures.append({'kind': 'C-query-protocol-prefix', 'actual': text})
+        if mode == 'only_failed' and 'is NXDOMAIN' not in text:
+            failures.append({'kind': 'C-query-only-failed-negative', 'actual': text})
     if reference_only:
         return failures
     left, right = copy.deepcopy(reference), copy.deepcopy(candidate)
