@@ -21,6 +21,7 @@ import time
 
 from dns_service_probe import query, exact_read, answer
 from m2_rootfs import command, prepare, process_identity, sha256
+from m5_helper import Side, children
 
 HERE = Path(__file__).resolve().parent
 SERVER, CLIENT = 10553, 10554
@@ -127,6 +128,10 @@ def stop(process):
 
 def profiles():
     rows=[
+        dict(case='dhcp-dora',dhcp=True),dict(case='dhcp-mask-zero',dhcp=True,mask='0'),
+        dict(case='dhcp-relay-forward',dhcp=True,relay='forward'),dict(case='dhcp-relay-reply',dhcp=True,relay='reply'),
+        dict(case='extra-dhcp-no-display-id',dhcp=True,extra=['log-queries=extra'],display=True),
+        dict(case='cross-family-shared-writer',dhcp=True,cross=True,mask='-1'),
         dict(case='tftp-v4-data',tftp='data'),dict(case='tftp-v6-data',tftp='data',ipv6=True),
         dict(case='tftp-oack-data',tftp='oack'),dict(case='tftp-error-reply',tftp='error'),
         dict(case='tftp-client-abort',tftp='abort'),dict(case='tftp-retransmit',tftp='retransmit'),
@@ -218,6 +223,86 @@ def tftp_exchange(spec,folder):
     save(folder/'tftp-witnesses.json',records)
     time.sleep(.05)
     return records
+
+
+def start_side_without_health(runner):
+    runner.log=(runner.out/(runner.side+'-'+runner.name+'.log')).open('wb')
+    runner.process=subprocess.Popen(command(runner.root,runner.side,'-k','-C',runner.inside+'/config'),
+        env=runner.env,stdout=runner.log,stderr=runner.log,start_new_session=True)
+    deadline=time.monotonic()+3
+    while not (runner.folder/'pid').exists() and time.monotonic()<deadline:
+        assert runner.process.poll() is None,'DHCP dump startup';time.sleep(.005)
+    assert (runner.folder/'pid').exists(),'DHCP dump readiness'
+    runner.client=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+    runner.client.setsockopt(socket.SOL_SOCKET,socket.SO_BROADCAST,1)
+    runner.client.setsockopt(socket.SOL_SOCKET,socket.SO_BINDTODEVICE,b'lo\0')
+    runner.client.bind(('0.0.0.0',68));runner.client.settimeout(2)
+    runner.descendants.update(children(runner.process.pid))
+
+
+def dhcp_case(args,root,spec):
+    label=spec['case'];folder=args.out/label;folder.mkdir()
+    file=root/'m2/dump.pcap';file.unlink(missing_ok=True)
+    flags=['bind-interfaces','dumpfile=/m2/dump.pcap','dumpmask='+spec.get('mask','0x1000'),*spec.get('extra',[])]
+    if spec.get('relay'):flags += ['dhcp-relay=127.0.0.1,127.0.0.2']
+    if spec.get('cross'):flags += ['enable-tftp','tftp-root=/m2/tftp','tftp-port-range=10690,10690']
+    runner=Side(root,args.side,folder,label,flags)
+    (folder/'config').write_text(runner.config.read_text())
+    if spec.get('cross'):
+        data=root/'m2/tftp';data.mkdir(exist_ok=True);(data/'evidence').write_bytes(b'pcap-evidence')
+    start=time.time();witness=[];relay=None
+    try:
+        start_side_without_health(runner)
+        save(folder/'identity.json',process_identity(root,runner.process.pid))
+        if spec.get('cross'):
+            with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as endpoint:
+                endpoint.bind(('127.0.0.1',CLIENT));endpoint.settimeout(2)
+                request=query('helper.test',1,0x7810);endpoint.sendto(request,('127.0.0.1',15353));reply=endpoint.recv(4096)
+                witness += [dict(sport=CLIENT,dport=15353,payload=request.hex()),dict(sport=15353,dport=CLIENT,payload=reply.hex())]
+        if spec.get('relay'):
+            from dhcp_lease_lifecycle import packet as dhcp_packet
+            relay=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+            relay.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1);relay.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEPORT,1)
+            relay.bind(('127.0.0.2',67));relay.settimeout(2)
+            request=dhcp_packet(1,0x7820,1,'127.0.0.10')
+            runner.client.sendto(request,('255.255.255.255',67))
+            deadline=time.monotonic()+2
+            while True:
+                relay.settimeout(max(.01,deadline-time.monotonic()))
+                forwarded,peer=relay.recvfrom(16384)
+                if forwarded[3]==1 and forwarded[24:28]==socket.inet_aton('127.0.0.1'):break
+            (folder/'relay-client.request').write_bytes(request);(folder/'relay-forwarded.request').write_bytes(forwarded)
+            witness += [dict(sport=68,dport=67,payload=request.hex()),dict(sport=67,dport=67,payload=forwarded.hex())]
+            if spec['relay']=='reply':
+                response=bytearray(forwarded);response[0]=2;response[16:20]=socket.inet_aton('127.0.0.10')
+                offset=response.index(bytes([53,1]),240)+2;response[offset]=2
+                relay.sendto(response,('127.0.0.1',67));returned=runner.client.recv(16384)
+                (folder/'relay-server.reply').write_bytes(response);(folder/'relay-client.reply').write_bytes(returned)
+                witness += [dict(sport=67,dport=67,payload=response.hex()),dict(sport=67,dport=68,payload=returned.hex())]
+        else:
+            runner.dora()
+            for index in [1,2]:
+                base=folder/(runner.side+'-'+runner.name+'-'+str(index))
+                witness += [dict(sport=68,dport=67,payload=Path(str(base)+'.request').read_bytes().hex()),
+                            dict(sport=67,dport=68,payload=Path(str(base)+'.reply').read_bytes().hex())]
+        if spec.get('cross'):witness += tftp_exchange(dict(tftp='data'),folder)
+        time.sleep(.05)
+        observed=pcap(file.read_bytes(),start,time.time());save(folder/'pcap.json',observed);save(folder/'transport-witnesses.json',witness)
+        mask=int(spec.get('mask','0x1000'),0)
+        expected=witness if mask else []
+        assert [{key:row[key] for key in ['sport','dport','payload']} for row in observed['records']]==expected,'actual DHCP/relay/shared-writer independent witnesses'
+        runner.log.flush();logged=(folder/(runner.side+'-'+runner.name+'.log')).read_text()
+        events=re.findall(r'dumping packet (\d+) mask 0x([0-9a-f]+)',logged)
+        assert [int(row[0]) for row in events]==list(range(1,len(expected)+1)),'DHCP/shared writer counter order'
+        result=dict(case=label,pcap=observed,events=events)
+        if spec.get('display'):
+            prefixes=re.findall(r'(?:^|\n)[^\n]*?: (\d+) dumping packet (\d+) mask 0x([0-9a-f]+)',logged)
+            assert prefixes==[],'DHCP high mask emitted a DNS display identifier';result['display_events']=prefixes
+        return result
+    finally:
+        if relay:relay.close()
+        cleanup=runner.stop();save(folder/'cleanup.json',cleanup)
+        assert cleanup['exit']==0 and not cleanup['forced'] and not cleanup['remaining'],'DHCP dump cleanup'
 
 
 def case(args,root,spec):
@@ -337,7 +422,7 @@ def run_side(args):
         rows.append(dict(case=label,exit=result.returncode,stdout=result.stdout.hex(),stderr=result.stderr.replace(b'dnsmasq-rs',b'dnsmasq').hex()))
     for spec in profiles():
         if not selected.search(spec['case']):continue
-        try:rows.append(case(args,root,spec))
+        try:rows.append(dhcp_case(args,root,spec) if spec.get('dhcp') else case(args,root,spec))
         except Exception as error:
             failed=dict(case=spec['case'],error=repr(error));failures.append(failed);save(args.out/spec['case']/'failure.json',failed)
     needed={label for group in plan['boundaries'] for label in group['required_cases']}
