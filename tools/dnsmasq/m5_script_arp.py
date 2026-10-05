@@ -21,6 +21,8 @@ import subprocess
 import sys
 import time
 
+from dhcp_lease_lifecycle import packet as dhcp_packet
+from dhcp_daemon_smoke import decode as decode_dhcp
 from dns_service_probe import query, exact_read
 from m2_rootfs import command, prepare, process_identity, sha256
 from m5_edns_netlink import trace as trace_neighbor
@@ -118,6 +120,8 @@ def profiles():
              extra='enable-tftp\ntftp-root=/m2/arp-tftp\ntftp-unique-root=mac\n'),
         dict(case='stop-unsent-arp-drop', pressure=True, pressure_stop=True,
              extra='enable-tftp\ntftp-root=/m2/arp-tftp\ntftp-unique-root=mac\n'),
+        dict(case='priority-lease-arp-tftp', pressure=True, priority=True,
+             extra='enable-tftp\ntftp-root=/m2/arp-tftp\ntftp-unique-root=mac\nno-ping\ndhcp-authoritative\ndhcp-range=127.0.0.10,127.0.0.20,255.0.0.0,10m\n'),
     ]
     for state in ['reachable', 'stale', 'delay', 'probe', 'permanent', 'none', 'noarp', 'incomplete', 'failed']:
         # The real kernel removes LLADDR when NUD_NONE is requested. The
@@ -626,7 +630,52 @@ def pipe_bytes(reader):
     return struct.unpack('=I', value)[0]
 
 
-def pressure_contract(root, process, pid, folder, owned, stopping):
+def priority_producers(root, pid, folder):
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as endpoint:
+        endpoint.settimeout(3)
+        endpoint.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        endpoint.setsockopt(socket.SOL_SOCKET, socket.SO_BINDTODEVICE, b'lo\0')
+        endpoint.bind(('0.0.0.0', 68))
+        for kind, xid, selecting in [(1, 0x7190, False), (3, 0x7191, True)]:
+            request = dhcp_packet(kind, xid, 1, '127.0.0.10', selecting)
+            endpoint.sendto(request, ('255.255.255.255', 67))
+            reply = endpoint.recv(16384)
+            decoded = decode_dhcp(reply, xid)
+            assert decoded[53] == bytes([2 if kind == 1 else 5]), 'actual priority DHCP OFFER/ACK'
+            assert socket.inet_ntoa(reply[16:20]) == '127.0.0.10', 'priority lease identity'
+            (folder / f'dhcp-{kind}.request').write_bytes(request)
+            (folder / f'dhcp-{kind}.reply').write_bytes(reply)
+    leases = (root / 'm2/arp.leases').read_bytes()
+    assert b'02:00:00:00:00:01 127.0.0.10 client1' in leases, 'ACK-backed actual lease row'
+    (folder / 'accepted-leases.raw').write_bytes(leases)
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as endpoint:
+        endpoint.settimeout(3)
+        endpoint.bind(('127.0.0.30', 0))
+        request = b'\0\1public\0octet\0'
+        endpoint.sendto(request, ('127.0.0.1', 69))
+        reply, peer = endpoint.recvfrom(4096)
+        assert reply == b'\0\3\0\1public', 'actual priority TFTP data'
+        endpoint.sendto(b'\0\4\0\1', peer)
+        (folder / 'completion.request').write_bytes(request)
+        (folder / 'completion.reply').write_bytes(reply)
+    deadline = time.monotonic() + 2
+    while time.monotonic() < deadline:
+        paths = []
+        for entry in Path(f'/proc/{pid}/fd').iterdir():
+            try:
+                paths.append(os.readlink(entry))
+            except FileNotFoundError:
+                pass
+        if not any(path.endswith('/m2/arp-tftp/public') for path in paths):
+            save(folder / 'completion-descriptors.json', paths)
+            break
+        time.sleep(.01)
+    else:
+        raise AssertionError('final ACK did not queue completed TFTP event')
+    health()
+
+
+def pressure_contract(root, process, pid, folder, owned, stopping, priority=False):
     assert len(owned) == 1, 'actual helper for pressure'
     child = owned[0]['pid']
     deadline = time.monotonic() + 2
@@ -639,7 +688,7 @@ def pressure_contract(root, process, pid, folder, owned, stopping):
         assert pipe_bytes(reader) == 0, 'pressure starts with an empty actual pipe'
         (root / 'm2/arp-events').write_bytes(b'')
         (root / 'm2/arp-finished').write_bytes(b'')
-        entries = [dict(address=V4, mac=MAC)] + [dict(address=f'198.18.{index // 256}.{index % 256}', mac=f'02:00:00:92:{index // 256:02x}:{index % 256:02x}') for index in range(1, 301)]
+        entries = [dict(address=V4, mac=MAC), dict(address='127.0.0.30', mac='02:00:00:92:02:30')] + [dict(address=f'198.18.{index // 256}.{index % 256}', mac=f'02:00:00:92:{index // 256:02x}:{index % 256:02x}') for index in range(1, 301)]
         refresh_with_fixture(pid, entries, folder, tftp=True)
         samples = []
         deadline = time.monotonic() + 2
@@ -655,6 +704,9 @@ def pressure_contract(root, process, pid, folder, owned, stopping):
         assert callbacks(root) == [], 'stopped helper executed a command'
         save(folder / 'health-under-pressure.json', [health() for _ in range(10)])
         assert pipe_bytes(reader) == pipe['readable_bytes'], 'health consumed or replaced queued ARP callbacks'
+        if priority:
+            priority_producers(root, pid, folder)
+            assert callbacks(root) == [], 'priority producers escaped actual helper backpressure'
         if stopping:
             os.kill(pid, signal.SIGTERM)
             time.sleep(.1)
@@ -662,6 +714,9 @@ def pressure_contract(root, process, pid, folder, owned, stopping):
             save(folder / 'term-before-helper-resume.json', dict(parent_alive=True, readable_bytes=pipe_bytes(reader)))
         os.kill(child, signal.SIGCONT)
         expected = [['3', 'arp-add', entry['mac'], entry['address'], '0', '0', 'inherited-iface', 'inherited-id'] for entry in reversed(entries[1:])]
+        if priority:
+            expected.insert(2, ['4', 'add', '02:00:00:00:00:01', '127.0.0.10', '0', '0', 'lo', ''])
+            expected.append(['4', 'tftp', '6', '127.0.0.30', '0', '0', 'inherited-iface', 'inherited-id'])
         if stopping:
             assert process.wait(5) == 0, 'parent TERM drain'
             ended, status = os.waitpid(child, 0)
@@ -678,7 +733,7 @@ def pressure_contract(root, process, pid, folder, owned, stopping):
             assert observed == expected, 'burst order or queue recovery'
             (folder / 'health-after-recovery.reply').write_bytes(bytes.fromhex(health()))
         save(folder / 'pressure-callbacks.json', observed)
-        return dict(case='stop-unsent-arp-drop' if stopping else 'burst-order-and-recovery', callbacks=observed,
+        return dict(case='priority-lease-arp-tftp' if priority else 'stop-unsent-arp-drop' if stopping else 'burst-order-and-recovery', callbacks=observed,
                     pipe_capacity=pipe['capacity'], pipe_readable_bytes=pipe['readable_bytes'], dns_health=True)
     finally:
         try:
@@ -870,6 +925,7 @@ def run_side(args):
         (root / 'm2/arp-fds').write_bytes(b'')
         (root / 'm2/arp-fds').chmod(0o666)
         (root / 'm2/arp.pid').unlink(missing_ok=True)
+        (root / 'm2/arp.leases').unlink(missing_ok=True)
         config = ('port=' + str(0 if spec.get('no_dns') else PORT) + '\nno-hosts\nno-resolv\n'
                   'bind-interfaces\nlisten-address=127.0.0.1\nuser=' + spec.get('user', 'root') + '\n'
                   'group=' + ('nogroup' if spec.get('user') else 'root') + '\n'
@@ -1029,7 +1085,7 @@ def run_side(args):
                 elif spec.get('cache_caller'):
                     rows.append(cache_caller_contract(root, pid, folder, upstream, spec['cache_caller']))
                 elif spec.get('pressure'):
-                    rows.append(pressure_contract(root, process, pid, folder, owned, spec.get('pressure_stop', False)))
+                    rows.append(pressure_contract(root, process, pid, folder, owned, spec.get('pressure_stop', False), spec.get('priority', False)))
                 elif spec.get('helper_frame_fault'):
                     rows.append(helper_frame_fault_contract(args, root, process, pid, folder))
                 else:
