@@ -2051,9 +2051,14 @@ impl SinglePoll {
         }
         let step = files.step();
         self.files_runnable = step.runnable;
-        if DEBUG_MODE.load(Ordering::Relaxed) {
+        if let Some(logger) = &mut self.logger {
+            use dnsmasq_rs::logging::{LogEvent, Priority, Service};
             for diagnostic in step.diagnostics {
-                eprintln!("dnsmasq-rs: {diagnostic}");
+                logger.emit(LogEvent::new(
+                    Service::Dns,
+                    Priority::Error,
+                    diagnostic.to_string().into_bytes(),
+                ));
             }
         }
         if let Some(update) = step.update {
