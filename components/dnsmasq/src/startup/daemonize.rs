@@ -32,12 +32,16 @@ impl StartupChannel {
         if unsafe { pipe2(fds.as_mut_ptr(), 0o2000000) } != 0 {
             return Err(failure("cannot create pipe", io::Error::last_os_error()));
         }
+        // SAFETY: successful pipe2 initialized both descriptors. Each end is
+        // transferred once into its own File and closed by that owner.
         let mut reader = unsafe { File::from_raw_fd(fds[0]) };
         let writer = unsafe { File::from_raw_fd(fds[1]) };
+        // SAFETY: F_SETFL takes a scalar flags value for the live writer fd.
         if unsafe { fcntl(writer.as_raw_fd(), 4, 0o4000) } < 0 {
             return Err(failure("cannot create pipe", io::Error::last_os_error()));
         }
-        // No service threads exist. Mutexes are unlocked before this boundary.
+        // SAFETY: the startup owner is single-threaded. No RefCell borrow is
+        // retained across this fork; the two processes own separate fd copies.
         let pid = unsafe { fork() };
         if pid < 0 {
             return Err(failure(
@@ -52,18 +56,22 @@ impl StartupChannel {
         drop(reader);
         self.writer = Some(writer);
         // C ignores setsid failure and still makes its second fork.
+        // SAFETY: setsid uses only process state and has no pointer arguments.
         unsafe {
             setsid();
         }
+        // SAFETY: the first child remains single-threaded with no active borrows.
         let pid = unsafe { fork() };
         if pid < 0 {
             let error = failure("cannot fork into background", io::Error::last_os_error());
             self.fail(error.code, &error.message);
+            // SAFETY: _exit takes a scalar status and skips inherited cleanup.
             unsafe {
                 _exit(0);
             }
         }
         if pid > 0 {
+            // SAFETY: the intermediate child must not run service destructors.
             unsafe {
                 _exit(0);
             }
@@ -125,6 +133,8 @@ fn write_event(fd: i32, kind: i32, data: i32, argument: &[u8]) {
     // SIGPIPE is already ignored by the startup loader. An absent parent
     // cannot terminate the service before its own orderly failure cleanup.
     for _ in 0..128 {
+        // SAFETY: both iovecs and their initialized buffers remain live for
+        // this synchronous write; fd is the startup channel's owned writer.
         let written = unsafe { writev(fd, vectors.as_ptr(), 2) };
         if written >= 0 || io::Error::last_os_error().kind() != io::ErrorKind::Interrupted {
             break;
@@ -140,9 +150,9 @@ fn read_startup_event(
     if reader.read_exact(&mut header).is_err() {
         return Ok(true);
     }
-    let kind = i32::from_ne_bytes(header[..4].try_into().unwrap());
-    let data = i32::from_ne_bytes(header[4..8].try_into().unwrap());
-    let length = i32::from_ne_bytes(header[8..].try_into().unwrap());
+    let kind = i32::from_ne_bytes([header[0], header[1], header[2], header[3]]);
+    let data = i32::from_ne_bytes([header[4], header[5], header[6], header[7]]);
+    let length = i32::from_ne_bytes([header[8], header[9], header[10], header[11]]);
     if length < 0 {
         return Ok(true);
     }

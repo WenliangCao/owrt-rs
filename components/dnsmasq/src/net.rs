@@ -131,12 +131,16 @@ impl Address {
                 IpAddr::V4(Ipv4Addr::new(b[4], b[5], b[6], b[7])),
                 port,
             )),
-            AF_INET6 if len >= 28 => Ok(SocketAddr::V6(SocketAddrV6::new(
-                Ipv6Addr::from(<[u8; 16]>::try_from(&b[8..24]).unwrap()),
-                port,
-                0,
-                u32::from_ne_bytes(b[24..28].try_into().unwrap()),
-            ))),
+            AF_INET6 if len >= 28 => {
+                let mut address = [0; 16];
+                address.copy_from_slice(&b[8..24]);
+                Ok(SocketAddr::V6(SocketAddrV6::new(
+                    Ipv6Addr::from(address),
+                    port,
+                    0,
+                    u32::from_ne_bytes([b[24], b[25], b[26], b[27]]),
+                )))
+            }
             _ => Err(invalid("unexpected peer address family")),
         }
     }
@@ -197,6 +201,8 @@ pub(crate) fn tcp_interface(stream: &TcpStream, ipv6: bool) -> Option<(Vec<u8>, 
     let mut length = 64;
     // SAFETY: initialized aligned storage is writable for the supplied length.
     let bytes = unsafe { std::slice::from_raw_parts_mut(storage.as_mut_ptr().cast::<u8>(), 64) };
+    // SAFETY: the live socket and initialized 64-byte output match length;
+    // getsockopt updates the live length scalar before its value is checked.
     if unsafe { getsockopt(fd, level, option, bytes.as_mut_ptr().cast(), &mut length) } < 0 {
         return None;
     }
@@ -207,6 +213,7 @@ pub(crate) fn tcp_interface(stream: &TcpStream, ipv6: bool) -> Option<(Vec<u8>, 
     let mut request = [0u64; 5];
     // SAFETY: Linux 64-bit ifreq is 40 bytes, with a 16-byte interface name.
     let bytes = unsafe { std::slice::from_raw_parts_mut(request.as_mut_ptr().cast::<u8>(), 40) };
+    // SAFETY: Linux writes at most IF_NAMESIZE (16) bytes into this 40-byte buffer.
     if unsafe { if_indextoname(index, bytes.as_mut_ptr().cast()) }.is_null() {
         return None;
     }
@@ -216,6 +223,8 @@ pub(crate) fn tcp_interface(stream: &TcpStream, ipv6: bool) -> Option<(Vec<u8>, 
         .take_while(|byte| *byte != 0)
         .collect();
     // C's loopback_exception is unavailable when SIOCGIFFLAGS fails.
+    // SAFETY: the live socket and aligned 40-byte ifreq contain a terminated
+    // interface name; SIOCGIFFLAGS writes only within the ifreq union.
     let loopback = unsafe { ioctl(fd, 0x8913, bytes.as_mut_ptr()) } == 0
         && u16::from_ne_bytes([bytes[16], bytes[17]]) & 8 != 0;
     Some((name, loopback))
@@ -401,7 +410,9 @@ pub fn interface_name(socket: &impl AsRawFd, interface: u32) -> io::Result<[u8; 
     if unsafe { ioctl(socket.as_raw_fd(), 0x8910, bytes.as_mut_ptr()) } < 0 {
         return Err(io::Error::last_os_error());
     }
-    Ok(bytes[..16].try_into().unwrap())
+    let mut name = [0; 16];
+    name.copy_from_slice(&bytes[..16]);
+    Ok(name)
 }
 
 pub(crate) fn inject_arp_with_name(

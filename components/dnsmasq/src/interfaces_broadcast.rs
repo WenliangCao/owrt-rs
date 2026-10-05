@@ -42,7 +42,7 @@ fn dump_end(payload: &[u8]) -> io::Result<()> {
     if payload.len() < 4 {
         return Err(malformed());
     }
-    let error = i32::from_ne_bytes(payload[..4].try_into().unwrap());
+    let error = i32::from_ne_bytes([payload[0], payload[1], payload[2], payload[3]]);
     if error == 0 {
         Ok(())
     } else {
@@ -65,13 +65,13 @@ fn attributes(bytes: &[u8]) -> io::Result<Option<(u32, Ipv4Addr, Ipv4Addr)>> {
     if bytes[0] != 2 {
         return Ok(None);
     }
-    let index = u32::from_ne_bytes(bytes[4..8].try_into().unwrap());
+    let index = u32::from_ne_bytes([bytes[4], bytes[5], bytes[6], bytes[7]]);
     let mut local = None;
     let mut broadcast = Ipv4Addr::UNSPECIFIED;
     let mut at = 8;
     while at + 4 <= bytes.len() {
-        let length = usize::from(u16::from_ne_bytes(bytes[at..at + 2].try_into().unwrap()));
-        let kind = u16::from_ne_bytes(bytes[at + 2..at + 4].try_into().unwrap());
+        let length = usize::from(u16::from_ne_bytes([bytes[at], bytes[at + 1]]));
+        let kind = u16::from_ne_bytes([bytes[at + 2], bytes[at + 3]]);
         if length < 4 || at + length > bytes.len() {
             return Err(malformed());
         }
@@ -101,6 +101,7 @@ pub(super) fn snapshot() -> io::Result<Vec<(u32, Ipv4Addr, Ipv4Addr)>> {
     if raw < 0 {
         return Err(io::Error::last_os_error());
     }
+    // SAFETY: successful socket creation returned a unique live descriptor.
     let socket = unsafe { OwnedFd::from_raw_fd(raw) };
     let endpoint = Address {
         family: AF_NETLINK as u16,
@@ -108,12 +109,15 @@ pub(super) fn snapshot() -> io::Result<Vec<(u32, Ipv4Addr, Ipv4Addr)>> {
         pid: 0,
         groups: 0,
     };
+    // SAFETY: Address is the initialized repr(C) 12-byte Linux sockaddr_nl;
+    // its storage and the socket remain live for this synchronous call.
     if unsafe { bind(socket.as_raw_fd(), (&endpoint as *const Address).cast(), 12) } < 0 {
         return Err(io::Error::last_os_error());
     }
     // Linux 64-bit timeval. A lost/interrupted dump must fail this packet's
     // interface lookup rather than leave the single-threaded daemon blocked.
     let timeout = [2i64, 0];
+    // SAFETY: SO_RCVTIMEO reads the live, aligned 16-byte Linux 64-bit timeval.
     if unsafe { setsockopt(socket.as_raw_fd(), 1, 20, timeout.as_ptr().cast(), 16) } < 0 {
         return Err(io::Error::last_os_error());
     }
@@ -123,6 +127,8 @@ pub(super) fn snapshot() -> io::Result<Vec<(u32, Ipv4Addr, Ipv4Addr)>> {
     request[6..8].copy_from_slice(&0x301u16.to_ne_bytes()); // REQUEST | DUMP
     request[8..12].copy_from_slice(&SEQUENCE.to_ne_bytes());
     request[16] = 2; // AF_INET
+                     // SAFETY: the initialized request and destination outlive sendto and the
+                     // passed lengths match their complete storage.
     if unsafe {
         sendto(
             socket.as_raw_fd(),
@@ -139,6 +145,8 @@ pub(super) fn snapshot() -> io::Result<Vec<(u32, Ipv4Addr, Ipv4Addr)>> {
     let mut rows = Vec::new();
     loop {
         let mut first = 0u8;
+        // SAFETY: recv writes at most one byte to first; MSG_TRUNC may return
+        // a larger datagram size but does not increase the writable length.
         let length = unsafe { recv(socket.as_raw_fd(), &mut first, 1, 0x22) }; // PEEK | TRUNC
         if length < 0 {
             return Err(io::Error::last_os_error());
@@ -147,6 +155,7 @@ pub(super) fn snapshot() -> io::Result<Vec<(u32, Ipv4Addr, Ipv4Addr)>> {
             return Err(malformed());
         }
         let mut bytes = vec![0; length as usize];
+        // SAFETY: recv is given the full initialized writable buffer length.
         let received = unsafe { recv(socket.as_raw_fd(), bytes.as_mut_ptr(), bytes.len(), 0) };
         if received < 0 {
             return Err(io::Error::last_os_error());
@@ -156,13 +165,16 @@ pub(super) fn snapshot() -> io::Result<Vec<(u32, Ipv4Addr, Ipv4Addr)>> {
         }
         let mut at = 0;
         while at + 16 <= bytes.len() {
-            let length = u32::from_ne_bytes(bytes[at..at + 4].try_into().unwrap()) as usize;
+            let length =
+                u32::from_ne_bytes([bytes[at], bytes[at + 1], bytes[at + 2], bytes[at + 3]])
+                    as usize;
             if length < 16 || at + length > bytes.len() {
                 return Err(malformed());
             }
-            let kind = u16::from_ne_bytes(bytes[at + 4..at + 6].try_into().unwrap());
-            let flags = u16::from_ne_bytes(bytes[at + 6..at + 8].try_into().unwrap());
-            let sequence = u32::from_ne_bytes(bytes[at + 8..at + 12].try_into().unwrap());
+            let kind = u16::from_ne_bytes([bytes[at + 4], bytes[at + 5]]);
+            let flags = u16::from_ne_bytes([bytes[at + 6], bytes[at + 7]]);
+            let sequence =
+                u32::from_ne_bytes([bytes[at + 8], bytes[at + 9], bytes[at + 10], bytes[at + 11]]);
             if sequence != SEQUENCE {
                 return Err(malformed());
             }
@@ -180,7 +192,8 @@ pub(super) fn snapshot() -> io::Result<Vec<(u32, Ipv4Addr, Ipv4Addr)>> {
                     if payload.len() < 4 {
                         return Err(malformed());
                     }
-                    let error = i32::from_ne_bytes(payload[..4].try_into().unwrap());
+                    let error =
+                        i32::from_ne_bytes([payload[0], payload[1], payload[2], payload[3]]);
                     if error != 0 {
                         return Err(io::Error::from_raw_os_error(error.saturating_neg()));
                     }

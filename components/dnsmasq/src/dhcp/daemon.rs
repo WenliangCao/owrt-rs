@@ -667,9 +667,14 @@ impl LocalProvider {
                 );
                 let boot = self.config.boot_for(&selected.tags).cloned();
                 let local = self.selected[context].range.local;
-                let architecture = client
-                    .architecture
-                    .expect("proxy decision has architecture");
+                let Some(architecture) = client.architecture else {
+                    self.direct_pxe = None;
+                    return Outcome {
+                        reply: Reply::Ignore,
+                        removed: Vec::new(),
+                        lost_names: Vec::new(),
+                    };
+                };
                 let reply = pxe::proxy_reply(
                     packet,
                     architecture,
@@ -911,7 +916,8 @@ impl LocalProvider {
             if !done {
                 return None;
             }
-            let (ethers, bad) = self.ethers_read.take().unwrap().into_result();
+            let reader = self.ethers_read.take()?;
+            let (ethers, bad) = reader.into_result();
             self.ethers = ethers;
             let errors = bad
                 .into_iter()
@@ -1178,10 +1184,12 @@ impl LocalProvider {
         let mut name_error = None;
         for id in addresses {
             let address = id.address();
-            let lease = self
-                .leases
-                .get_by_id(id)
-                .expect("lease remains present during name update");
+            let Some(lease) = self.leases.get_by_id(id) else {
+                name_error.get_or_insert_with(|| {
+                    io::Error::other("lease disappeared during name update")
+                });
+                continue;
+            };
             let configured = self
                 .config
                 .find_host(
@@ -1219,15 +1227,15 @@ impl LocalProvider {
             };
             if let Some(name) = name {
                 // No address is removed during this loop.
-                self.leases
-                    .set_hostname_by_id(
-                        id,
-                        Some(&name),
-                        true,
-                        self.domains.for_address(address),
-                        self.config.fqdn_only,
-                    )
-                    .expect("restored lease remains present during configured-name update");
+                if let Err(error) = self.leases.set_hostname_by_id(
+                    id,
+                    Some(&name),
+                    true,
+                    self.domains.for_address(address),
+                    self.config.fqdn_only,
+                ) {
+                    name_error.get_or_insert_with(|| io::Error::other(format!("{error:?}")));
+                }
             }
         }
         name_error
@@ -1561,7 +1569,9 @@ impl LocalProvider {
     ) -> Result<Outcome, RuntimeError> {
         let received_at = epoch_seconds();
         let wait = RefCell::new(wait);
-        let xid = u32::from_be_bytes(dispatch.packet.bytes()[4..8].try_into().unwrap());
+        // Packet::parse has already validated the fixed BOOTP header.
+        let bytes = dispatch.packet.bytes();
+        let xid = u32::from_be_bytes([bytes[4], bytes[5], bytes[6], bytes[7]]);
         let packet_notices = RefCell::new(Vec::new());
         self.force_broadcast = false;
         self.selected_boot = None;
@@ -1971,11 +1981,11 @@ impl LocalProvider {
             // An ordinary client name alone is not echoed in an OFFER. A
             // configured name must match the full provided name, before strip.
             let provided = packet.client_hostname_full();
-            if configured_name.is_none()
-                || provided
+            if configured_name.is_none_or(|configured| {
+                provided
                     .as_deref()
-                    .is_some_and(|name| !configured_name.unwrap().eq_ignore_ascii_case(name))
-            {
+                    .is_some_and(|name| !configured.eq_ignore_ascii_case(name))
+            }) {
                 self.reply_hostname = None;
             }
         }
@@ -2356,7 +2366,9 @@ impl LocalProvider {
                         crate::helper::extra_data(packet, &tags)
                     });
                     let _ = self.leases.set_helper_context_by_id(
-                        lease_id.expect("committed ACK or BOOTP lease"),
+                        lease_id.ok_or_else(|| {
+                            RuntimeError::State("committed ACK or BOOTP lease is missing".into())
+                        })?,
                         LeaseEventContext {
                             interface: interface_name.unwrap_or_default().to_vec(),
                             now,

@@ -212,12 +212,12 @@ mod linux {
         /// File-policy consumers are constructed before the UID transition.
         /// Use the same identity they will execute under after that transition.
         pub fn runtime_uid(&self, config: &ProcessConfig) -> u32 {
+            // SAFETY: geteuid reads process state and has no pointer arguments.
+            let current = unsafe { geteuid() };
             if !config.debug && self.root {
-                self.uid
-                    .filter(|uid| *uid != 0)
-                    .unwrap_or_else(|| unsafe { geteuid() })
+                self.uid.filter(|uid| *uid != 0).unwrap_or(current)
             } else {
-                unsafe { geteuid() }
+                current
             }
         }
 
@@ -271,16 +271,23 @@ mod linux {
             };
             let (gid, group_name) = if let Some(name) = &config.group {
                 let name_c = CString::new(name.as_slice()).map_err(|_| unknown(name))?;
+                // SAFETY: the live CString is terminated; libc owns the result.
+                // Copy its fields before another group database lookup.
                 let group =
                     unsafe { getgrnam(name_c.as_ptr()).as_ref() }.ok_or_else(|| unknown(name))?;
                 (Some(group.gid), Some(name.clone()))
             } else if !config.group_set {
+                // SAFETY: the constant name is terminated. A gid fallback is
+                // queried only when the first lookup returned a null pointer.
+                // Returned group storage is copied before another libc lookup.
                 let group = unsafe { getgrnam(c"dip".as_ptr()).as_ref() }
                     .or_else(|| user_gid.and_then(|gid| unsafe { getgrgid(gid).as_ref() }));
                 match group {
                     Some(group) => (
                         Some(group.gid),
                         Some(
+                            // SAFETY: libc's successful group record owns a
+                            // terminated name valid until the next group lookup.
                             unsafe { std::ffi::CStr::from_ptr(group.name) }
                                 .to_bytes()
                                 .to_vec(),
@@ -296,6 +303,7 @@ mod linux {
                 user_gid,
                 gid,
                 group_name,
+                // SAFETY: getuid reads process state without pointer arguments.
                 root: unsafe { getuid() } == 0,
             })
         }
@@ -330,11 +338,13 @@ mod linux {
                 }
             };
             let mut pid = PidFile::new(Some(path.clone()));
-            if self.root && self.uid.is_some_and(|uid| uid != 0) {
+            if let Some((uid, gid)) = self
+                .uid
+                .filter(|uid| self.root && *uid != 0)
+                .zip(self.user_gid)
+            {
                 // SAFETY: fd belongs to file and scalar IDs came from libc.
-                if unsafe { fchown(file.as_raw_fd(), self.uid.unwrap(), self.user_gid.unwrap()) }
-                    < 0
-                {
+                if unsafe { fchown(file.as_raw_fd(), uid, gid) } < 0 {
                     pid.ownership_warning = Some(io::Error::last_os_error());
                 }
             }
@@ -348,6 +358,7 @@ mod linux {
             })?;
             // Taking the raw descriptor prevents a second close. C treats a
             // failed close exactly like open/write failure and keeps the path.
+            // SAFETY: into_raw_fd transfers the live descriptor once to close.
             if unsafe { close(file.into_raw_fd()) } != 0 {
                 return Err(StartupError {
                     code: 3,
@@ -373,7 +384,8 @@ mod linux {
                 return Ok(());
             }
             if let Some(gid) = self.gid {
-                // SAFETY: no extra groups; this runs before spawning any threads.
+                // SAFETY: a zero group count permits the null pointer; group
+                // and user IDs are copied scalars. Startup is single-threaded.
                 if unsafe { setgroups(0, std::ptr::null()) } < 0 || unsafe { setgid(gid) } < 0 {
                     return Err(failure(
                         5,
@@ -394,6 +406,7 @@ mod linux {
                 {
                     return Err(failure(5, "setting capabilities failed"));
                 }
+                // SAFETY: setuid takes a scalar ID from the resolved passwd record.
                 if unsafe { setuid(uid) } < 0 {
                     return Err(failure(
                         5,

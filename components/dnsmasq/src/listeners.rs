@@ -126,14 +126,17 @@ pub fn bound_addresses(
             // C uses wildcard sockets unless a bind mode is selected.
             // Interface and address options are a union enforced by admit().
             vec![
-                SocketAddr::new("0.0.0.0".parse().unwrap(), port),
-                SocketAddr::new("::".parse().unwrap(), port),
+                SocketAddr::new(std::net::Ipv4Addr::UNSPECIFIED.into(), port),
+                SocketAddr::new(std::net::Ipv6Addr::UNSPECIFIED.into(), port),
             ]
         }
         #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
         {
             if config.listen_addresses.is_empty() {
-                vec![SocketAddr::new("::".parse().unwrap(), port)]
+                vec![SocketAddr::new(
+                    std::net::Ipv6Addr::UNSPECIFIED.into(),
+                    port,
+                )]
             } else {
                 config
                     .listen_addresses
@@ -445,12 +448,15 @@ pub fn tcp_bind(address: SocketAddr) -> io::Result<TcpListener> {
         if fd < 0 {
             return Err(crate::net::socket_creation_error(io::Error::last_os_error()));
         }
+        // SAFETY: socket succeeded and no other owner holds this descriptor.
         let listener = unsafe { TcpListener::from_raw_fd(fd) };
         let fd = listener.as_raw_fd();
         let one = 1;
+        // SAFETY: the descriptor is live and each option reads the live i32.
         if unsafe { setsockopt(fd, 1, 2, &one, 4) } < 0 {
             return Err(io::Error::last_os_error());
         }
+        // SAFETY: the IPv6-only option reads the same live i32 on an IPv6 socket.
         if address.is_ipv6() && unsafe { setsockopt(fd, 41, 26, &one, 4) } < 0 {
             return Err(io::Error::last_os_error());
         }
@@ -467,6 +473,8 @@ pub fn tcp_bind(address: SocketAddr) -> io::Result<TcpListener> {
                 bytes[24..28].copy_from_slice(&v.scope_id().to_ne_bytes());
             }
         }
+        // SAFETY: bytes has the initialized Linux sockaddr layout and family
+        // length; both calls use the live, uniquely owned listener descriptor.
         if unsafe { bind(fd, bytes.as_ptr(), if address.is_ipv4() { 16 } else { 28 }) } < 0
             || unsafe { listen(fd, 32) } < 0
         {
