@@ -681,12 +681,14 @@ impl DnsConfig {
                         .insert(0, super::rrtypes::parse(&field.decoded())?);
                 }
             }
-            b"domain" | b"domain-suffix" => self.domain(arg.unwrap()).map_err(|error| {
-                match error.0 {
-                    "bad domain address" | "bad domain local marker" | "bad integer" => Error("error"),
+            b"domain" | b"domain-suffix" => {
+                self.domain(arg.unwrap()).map_err(|error| match error.0 {
+                    "bad domain address" | "bad domain local marker" | "bad integer" => {
+                        Error("error")
+                    }
                     _ => error,
-                }
-            })?,
+                })?
+            }
             b"local-service" => match arg.map(EncodedArg::encoded) {
                 None | Some(b"net") => self.local_service_net = true,
                 Some(b"host") => self.local_service_host = true,
@@ -780,15 +782,20 @@ impl DnsConfig {
         parts.extend(fields(&tail.decoded(), b',').into_iter().map(EncodedArg));
         let selector = fields(&parts[1].decoded(), b'/');
         let selector = if selector.len() == 2 {
-            let prefix = numeric(&selector[1])?;
+            let prefix = super::domains::image_prefix_length(&selector[1])?;
             let address = ip(&selector[0]).ok_or(Error("bad domain address"))?;
+            // A negative IPv6 prefix makes C is_same_net6 call memcmp with
+            // a negative byte count cast to size_t; reject that unsafe input.
+            if prefix < 0 && address.is_ipv6() {
+                return Err(Error("bad prefix length"));
+            }
             if parts.len() > 2 {
                 if parts.len() != 3 || parts[2].encoded() != b"local" {
                     return Err(Error("bad domain local marker"));
                 }
                 // Prefix zero is valid for domain=; C ignores the reverse
                 // helper's rejection of zero while still adding the domain.
-                if prefix != 0 {
+                if prefix > 0 {
                     let prefix: u8 = prefix.try_into().map_err(|_| Error("bad prefix length"))?;
                     for domain in reverse_patterns(address, prefix)? {
                         self.rules.push(ServerRule {
@@ -807,7 +814,7 @@ impl DnsConfig {
                     if prefix > 32 {
                         return Err(Error("bad prefix length"));
                     }
-                    let mask = u32::MAX.wrapping_shl(32 - prefix);
+                    let mask = u32::MAX.wrapping_shl(32u32.wrapping_sub(prefix as u32));
                     let start = u32::from(address) & mask;
                     DomainSelector::Range4 {
                         start: start.into(),
