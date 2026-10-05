@@ -154,6 +154,9 @@ def service_cases():
     add('late-reply-after-server-retired','servers-file=/m2/files/servers\n',files={'servers':'server=127.0.0.2\n'},actions=[dict(op='start-udp',id='held',name='held.endpoint.test'),write('servers',''),signal_reload(),dict(op='inject',id='held',server=0),dict(op='receive-udp',id='late',pending='held',expect_timeout=True),write('servers','server=127.0.0.3\n'),signal_reload(),probe('recovered','fresh.endpoint.test')])
     add('fixed-new-slot-reallocates','servers-file=/m2/files/servers\n',files={'servers':'server=/old.test/127.0.0.2@127.0.0.9#34004\n'},actions=[probe('old','old.test'),write('servers','server=/new.test/127.0.0.3@127.0.0.8#34005\n'),signal_reload(),probe('new','new.test')])
     add('shared-recvfrom-eio','min-port=34100\nmax-port=34100\nserver=127.0.0.2\n',recv_fault=True,actions=[dict(op='start-udp',id='first',name='first.endpoint.test'),dict(op='start-udp',id='second',name='second.endpoint.test'),dict(op='inject',id='second',server=0),dict(op='receive-udp',id='second',pending='second'),dict(op='inject',id='first',server=0),dict(op='receive-udp',id='first',pending='first')],source_range=[34100,34100],same_udp_port=True)
+    add('diagnostic-fixed-bind','server=127.0.0.2@192.0.2.99#34004\nserver=127.0.0.3\n',debug=True,source_diagnostics=True)
+    add('diagnostic-random-bind','server=127.0.0.2@192.0.2.99\nserver=127.0.0.3\n',debug=True,source_diagnostics=True)
+    add('diagnostic-random-interface','server=127.0.0.2@missing_endpoint_if\nserver=127.0.0.3\n',debug=True,source_diagnostics=True)
     return cases
 
 
@@ -243,7 +246,7 @@ def run_service_side(root, side, case, folder):
     SourceCapture.instances=[]
     occupied=[]
     original_command=files.command
-    files.command=lambda root,side,*args: original_command(root,side,*case.get('argv',[]),*args)
+    files.command=lambda root,side,*args: original_command(root,side,*case.get('argv',[]),*('-d' if arg=='-k' and case.get('debug') else arg for arg in args))
     try:
         for port in case.get('occupied_ports',[]):
             bound=socket.socket(socket.AF_INET,socket.SOCK_DGRAM);bound.bind(('0.0.0.0',port));occupied.append(bound)
@@ -257,6 +260,7 @@ def run_service_side(root, side, case, folder):
     result['injected_packets']=[row for upstream in SourceCapture.instances for row in getattr(upstream,'injected',[])]
     result['recv_faults']=[upstream.recv_fault for upstream in SourceCapture.instances if hasattr(upstream,'recv_fault')]
     result['fixture_errors']=[error for upstream in SourceCapture.instances for error in upstream.errors]
+    result['source_diagnostics']=[line.replace('dnsmasq-rs:','dnsmasq:') for line in result['stderr'].splitlines() if 'server socket' in line or 'ignoring nameserver' in line]
     result['source_guard_errors']=source_guard_errors(result,case)
     save(folder/'observed.json',result)
     return result
@@ -341,6 +345,7 @@ def run_service(args, cases):
             if any((entry.get('response') is None)!=(entry['id'] in timeout_ids) for entry in observed['c']['rows'] if entry['id'].endswith('udp-async')): row['failures'].append(dict(phase='c-async-calibration',error='missing awaited UDP reply'))
             if args.side=='both':
                 row['failures'].extend(files.compare(observed['c'],observed['rust'],case))
+                if case.get('source_diagnostics') and observed['c']['source_diagnostics']!=observed['rust']['source_diagnostics']: row['failures'].append(dict(phase='source-diagnostic',c=observed['c']['source_diagnostics'],rust=observed['rust']['source_diagnostics']))
                 c,rust=(source_projection(observed[side],case) for side in ('c','rust'))
                 if c!=rust: row['failures'].append(dict(phase='source-tuples',c=c,rust=rust))
             for side,result in observed.items():
