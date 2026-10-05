@@ -128,6 +128,10 @@ def shared_case(root, side, out, spec):
     try:
         runner.start()
         save(folder / 'identity.json', process_identity(root, runner.process.pid))
+        if spec.get('renew'):
+            runner.client.close()
+            runner.client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            runner.client.bind(('198.18.0.10', 68)); runner.client.settimeout(3)
         endpoint = runner.client
         if spec.get('relay'):
             endpoint = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
