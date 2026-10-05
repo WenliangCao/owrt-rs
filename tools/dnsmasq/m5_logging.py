@@ -1084,13 +1084,14 @@ def query_transaction_probe(kind):
     return rows, trace
 
 
-def dhcp_packet(kind, xid, *, mac='0200000000aa', address=None, ciaddr='0.0.0.0', server=None):
+def dhcp_packet(kind, xid, *, mac='0200000000aa', address=None, ciaddr='0.0.0.0', server=None, message=None):
     data = bytearray(240)
     data[:3] = bytes([1, 1, 6]); data[4:8] = struct.pack('!I', xid)
     data[10:12] = b'\x80\0'; data[12:16] = socket.inet_aton(ciaddr)
     data[28:34] = bytes.fromhex(mac); data[236:240] = bytes.fromhex('63825363')
     def option(code, value): data.extend(bytes([code, len(value)]) + value)
-    option(53, bytes([kind]))
+    if kind: option(53, bytes([kind]))
+    if message is not None: option(56, message.encode())
     if address is not None: option(50, socket.inet_aton(address))
     if server is not None: option(54, socket.inet_aton(server))
     option(12, b'm5-client'); option(60, b'm5-fixture'); option(77, b'\x04test')
@@ -1102,6 +1103,7 @@ def dhcp_packet(kind, xid, *, mac='0200000000aa', address=None, ciaddr='0.0.0.0'
 def dhcp_sequence():
     rows, trace = [], []
     steps = [
+        ('bootp', 0, {}, 0),
         ('discover', 1, {}, 2),
         ('request', 3, {'address': '127.0.0.10', 'server': '127.0.0.1'}, 5),
         ('inform', 8, {'ciaddr': '127.0.0.10'}, 5),
@@ -1109,6 +1111,8 @@ def dhcp_sequence():
         ('request-again', 3, {'address': '127.0.0.10', 'server': '127.0.0.1'}, 5),
         ('release', 7, {'ciaddr': '127.0.0.10', 'server': '127.0.0.1'}, None),
         ('release-unknown', 7, {'ciaddr': '127.0.0.10', 'server': '127.0.0.1'}, None),
+        ('decline', 4, {'address': '127.0.0.10', 'server': '127.0.0.1', 'message': 'client declines'}, None),
+        ('decline-empty', 4, {'address': '127.0.0.10', 'server': '127.0.0.1'}, None),
         ('discover-ignored', 1, {'mac': '0200000000bb'}, None),
         ('inform-ignored', 8, {'mac': '0200000000bb', 'ciaddr': '127.0.0.10'}, None)]
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as client:
@@ -1135,7 +1139,7 @@ def dhcp_sequence():
                     length = response[at]; at += 1
                     if code == 53: actual = response[at]
                     at += length
-                if actual != expected: raise AssertionError(('DHCP response type', label, actual, expected))
+                if actual != (None if expected == 0 else expected): raise AssertionError(('DHCP response type', label, actual, expected))
             rows.append({'label': label, 'reply': response.hex() if response is not None else None})
             trace.append({'label': label, 'request': request.hex(), 'reply': response.hex() if response is not None else None})
     return rows, trace
@@ -2219,6 +2223,8 @@ def compare(reference, candidate, case, reference_only=False):
         if quiet and not detail: required = required[1:]  # only error-pointer notices survive.
         for item in required:
             if not any(item in message for message in messages): failures.append({'kind': 'C-DHCP-packet-producer', 'missing': item, 'actual': messages})
+        for item in ['DHCPDECLINE(lo) 127.0.0.10 02:00:00:00:00:aa client declines', 'disabling DHCP static address 127.0.0.10 for 10m']:
+            if item not in reference['stderr']: failures.append({'kind': 'C-DHCP-decline-producer', 'missing': item})
         ignored = 'DHCPDISCOVER(lo) 02:00:00:00:00:bb ignored'
         if quiet and any(ignored in message for message in messages): failures.append({'kind': 'C-DHCP-quiet-ignored-discover', 'actual': messages})
         if detail and not all(re.match(r'^[0-9]+ DHCP', message) for message in messages if re.match(r'^([0-9]+ )?DHCP(?:DISCOVER|OFFER|REQUEST|ACK|NAK|INFORM|RELEASE)\(', message)):
