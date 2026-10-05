@@ -157,6 +157,8 @@ def service_cases():
     add('diagnostic-fixed-bind','server=127.0.0.2@192.0.2.99#34004\nserver=127.0.0.3\n',debug=True,source_diagnostics=True)
     add('diagnostic-random-bind','server=127.0.0.2@192.0.2.99\nserver=127.0.0.3\n',debug=True,source_diagnostics=True)
     add('diagnostic-random-interface','server=127.0.0.2@missing_endpoint_if\nserver=127.0.0.3\n',debug=True,source_diagnostics=True)
+    add('inherited-nofile-pool-cap','dns-forward-max=40\nserver=127.0.0.2\n',inherited_nofile=40,actions=[dict(op='start-udp',id='q'+str(i),name='q'+str(i)+'.endpoint.test') for i in range(24)]+[action for i in reversed(range(24)) for action in (dict(op='inject',id='q'+str(i),server=0),dict(op='receive-udp',id='q'+str(i),pending='q'+str(i)))],udp_unique_ports=13)
+    add('range-inclusive-ends','min-port=34100\nmax-port=34101\nserver=127.0.0.2\n',names=tuple('bound'+str(i)+'.endpoint.test' for i in range(64)),source_range=[34100,34101],range_ends=True)
     return cases
 
 
@@ -249,7 +251,11 @@ def run_service_side(root, side, case, folder):
     SourceCapture.instances=[]
     occupied=[]
     original_command=files.command
-    files.command=lambda root,side,*args: original_command(root,side,*case.get('argv',[]),*('-d' if arg=='-k' and case.get('debug') else arg for arg in args))
+    def wrapped_command(root,side,*args):
+        command=original_command(root,side,*case.get('argv',[]),*('-d' if arg=='-k' and case.get('debug') else arg for arg in args))
+        if case.get('inherited_nofile'): command=['prlimit','--nofile='+str(case['inherited_nofile'])+':'+str(case['inherited_nofile']),*command]
+        return command
+    files.command=wrapped_command
     try:
         for port in case.get('occupied_ports',[]):
             bound=socket.socket(socket.AF_INET,socket.SOCK_DGRAM);bound.bind(('0.0.0.0',port));occupied.append(bound)
@@ -281,6 +287,7 @@ def source_guard_errors(result,case):
     if case.get('expected_source_port') is not None and any(port!=case['expected_source_port'] for port in ports): errors.append('fixed source port differs')
     if case.get('forbidden_udp_port') in ports: errors.append('explicit source inherited global port')
     if case.get('source_range') and any(not case['source_range'][0]<=port<=case['source_range'][1] for port in ports): errors.append('source outside inclusive range')
+    if case.get('range_ends') and ports!=set(case['source_range']): errors.append('both inclusive range ends not observed')
     if case.get('same_udp_port') and len(ports)!=1: errors.append('shared source uses different ports')
     if case.get('udp_unique_ports') is not None and len(ports)!=case['udp_unique_ports']: errors.append('port-limit allocation differs')
     if case.get('no_udp_upstream') and udp: errors.append('exhausted range still sent UDP')
@@ -332,6 +339,8 @@ def controls():
 def run_service(args, cases):
     import m5_dns_files as files
     args.out.mkdir(parents=True)
+    # Keep probe/listener allocation outside configured DNS source ranges.
+    subprocess.run(['sysctl','-q','-w','net.ipv4.ip_local_port_range=40000 60999'],check=True)
     driver=args.out/'driver';driver.mkdir()
     for name in ('m5_dns_endpoints.py','m5_dns_endpoints.json','m5_dns_files.py','m5_option_matrix.py','m5_option_matrix_probes.py','m5_dhcp_tags_options.py','dhcp_boot_service_diff.py','dns_service_probe.py','m2_rootfs.py','run_isolated.sh'):
         shutil.copy2(Path(__file__).with_name(name),driver/name)
