@@ -480,7 +480,11 @@ def run_service_side(root,side,case,out):
                 Path(str(path)+'.stop').write_text('both received\n')
                 if tracer.wait(5)!=0:raise AssertionError('enum count exit')
                 evidence=json.loads(path.read_text());requests=[r for r in evidence['events'] if r['phase']=='request']
-                if [r['dump_family'] for r in requests]!=[10,2]:raise AssertionError('more than one enumeration for the queued parent cycle')
+                families=[r['dump_family'] for r in requests]
+                if not families or families!=[10,2]*(len(families)//2):raise AssertionError('incomplete ordered enumeration in parent cycles')
+                cycles=[r['cycle'] for r in requests if r['dump_family']==10]
+                if len(cycles)!=len(set(cycles)):raise AssertionError('more than one enumeration within an actual parent poll cycle')
+                if not evidence.get('polls'):raise AssertionError('actual parent poll boundary witness missing')
                 states.append({'label':'same-cycle','frozen_status':frozen,'requests':requests,'replies':[r.hex() for r in replies],
                     'completed':evidence.get('completed',False)})
             finally:
@@ -667,7 +671,8 @@ def trace_enumeration(pid,side,stage,output):
         count=libc.process_vm_readv(pid,ctypes.byref(local),1,ctypes.byref(remote),1,0)
         if count!=length:raise AssertionError('tracee memory read failed')
         return bytes(buffer)
-    report={'pid':pid,'side':side,'stage':stage,'events':[],'injected':False};attached=False
+    report={'pid':pid,'side':side,'stage':stage,'events':[],'polls':[],'injected':False};attached=False
+    cycle=0
     armed=None;received=False;fault=False;active=None
     try:
         ptrace(16);os.waitpid(pid,0);attached=True;ptrace(0x4200,0,1)
@@ -686,13 +691,14 @@ def trace_enumeration(pid,side,stage,output):
             info=(ctypes.c_ubyte*128)();ptrace(0x420e,ctypes.sizeof(info),ctypes.addressof(info));regs()
             if info[0]==1:
                 number=int(registers[8]);active={'syscall':number,'fd':int(registers[0])};fault=False
+                if number in (72,73):active.update(poll_base=int(registers[0]),poll_count=int(registers[1]))
                 if number in (207,212):active['receive_flags']=int(registers[3 if number==207 else 2])
                 if number==206 and int(registers[2])>=17:
                     request=memory(registers[1],17)
                     kind=struct.unpack_from('=H',request,4)[0];family=request[16]
                     if kind==22 and family in (10,2):
                         armed=int(registers[0]);received=False
-                        active.update(dump_family=family,dump_type=kind)
+                        active.update(dump_family=family,dump_type=kind,cycle=cycle)
                         report['events'].append(dict(active,phase='request'))
                 if stage=='before-clear':
                     fault=number==198 and int(registers[0])==2 and (int(registers[1])&15)==2
@@ -701,8 +707,17 @@ def trace_enumeration(pid,side,stage,output):
                     fault=stage=='empty' or (stage=='partial' and family==2)
                 if fault:
                     call=ctypes.c_int(-1);iov=Iovec(ctypes.addressof(call),ctypes.sizeof(call));ptrace(0x4205,0x404,ctypes.addressof(iov))
-            elif info[0]==2 and active:
+            elif info[0]==2:
                 returned=ctypes.c_longlong(registers[0]).value
+                number=active['syscall'] if active else int(registers[8])
+                if number in (72,73):
+                    cycle+=1
+                    ready=[]
+                    if active and number==73 and 0<active['poll_count']<4096:
+                        data=memory(active['poll_base'],active['poll_count']*8)
+                        ready=[{'fd':fd,'events':events,'revents':revents} for fd,events,revents in struct.iter_unpack('=ihh',data) if revents]
+                    report['polls'].append({'cycle':cycle,'syscall':number,'result':returned,'ready':ready})
+                if active is None:continue
                 if fault:
                     registers[0]=(1<<64)-errno.EIO;regs(write=True)
                     report['events'].append(dict(active,phase='return',result=-errno.EIO,injected=True));report['injected']=True
