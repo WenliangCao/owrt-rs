@@ -276,8 +276,16 @@ def cases():
     rows.append({'id': 'query-control-labels', 'scope': 'query-control', 'kind': 'run',
                  'argv': ['--log-facility=-', '--log-queries=proto'], 'query_probes': True,
                  'query_mode': 'proto', 'query_sequence': [('ready.logging', 1)], 'query_control_probe': True,
+                 'chaos_notimp_uninitialised_ede': True,
                  'query_required_messages': ['non-query opcode 2 from 127.0.0.1', 'reply opcode is not implemented',
                                             'config version.bind is not implemented', 'query[A] ready.logging from 127.0.0.1'],
+                 'options': ['log-queries']})
+    rows.append({'id': 'query-stale-producers', 'scope': 'query-control', 'kind': 'run',
+                 'argv': ['--log-facility=-', '--log-queries=proto', '--use-stale-cache', '--server=127.0.0.2#15957'],
+                 'query_probes': True, 'query_mode': 'proto', 'query_sequence': [('ready.logging', 1)],
+                 'query_upstream': True, 'query_stale_probe': True,
+                 'query_required_messages': ['cached-stale stale-udp.forward.test is 192.0.2.7',
+                                             'cached-stale stale-tcp.forward.test is 192.0.2.7'],
                  'options': ['log-queries']})
     rows.append({'id': 'query-upstream-errors', 'scope': 'query-control', 'kind': 'run',
                  'argv': ['--log-facility=-', '--log-queries=proto', '--all-servers', '--server=127.0.0.2#15957', '--server=127.0.0.3#15958'],
@@ -1020,6 +1028,7 @@ class QueryUpstream:
     def __init__(self):
         self.sockets, self.clients, self.wire, self.errors = [], {}, [], []
         self.pending = []
+        self.stale_seen = set()
         self.stopped = threading.Event()
         for address, port in [('127.0.0.2', 15957), ('127.0.0.3', 15958)]:
             udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -1043,6 +1052,10 @@ class QueryUpstream:
         if name == 'rebind-alias.forward.test':
             body = rr(5, wire_name('rebind-terminal.forward.test')) + rr(1, bytes([10, 1, 2, 3]), owner=wire_name('rebind-terminal.forward.test'))
             return request[:2] + struct.pack('!5H', 0x8180, 1, 2, 0, 0) + question + body
+        if name.startswith('stale-'):
+            if name in self.stale_seen: return None
+            self.stale_seen.add(name)
+            return request[:2] + struct.pack('!5H', 0x8180, 1, 1, 0, 0) + question + rr(1, bytes([192, 0, 2, 7]), ttl=1)
         if name == 'alias.forward.test':
             body = rr(5, wire_name('terminal.forward.test')) + rr(1, bytes([192, 0, 2, 7]), owner=wire_name('terminal.forward.test'))
             return request[:2] + struct.pack('!5H', 0x8180, 1, 2, 0, 0) + question + body
@@ -1078,14 +1091,15 @@ class QueryUpstream:
                             length = int.from_bytes(pending[:2], 'big')
                             request = bytes(pending[2:2 + length]); del pending[:2 + length]
                             response = self.response(request)
-                            self.wire.append({'transport': 'tcp', 'request': request.hex(), 'reply': response.hex(), 'server': list(endpoint.getsockname())})
-                            endpoint.sendall(len(response).to_bytes(2, 'big') + response)
+                            self.wire.append({'transport': 'tcp', 'request': request.hex(), 'reply': None if response is None else response.hex(), 'server': list(endpoint.getsockname())})
+                            if response is not None: endpoint.sendall(len(response).to_bytes(2, 'big') + response)
                     elif endpoint.type == socket.SOCK_STREAM:
                         client, _ = endpoint.accept(); client.settimeout(.5); self.clients[client] = bytearray()
                     else:
                         request, peer = endpoint.recvfrom(65535)
                         response = self.response(request)
-                        self.wire.append({'transport': 'udp', 'request': request.hex(), 'reply': response.hex(), 'server': list(endpoint.getsockname())})
+                        self.wire.append({'transport': 'udp', 'request': request.hex(), 'reply': None if response is None else response.hex(), 'server': list(endpoint.getsockname())})
+                        if response is None: continue
                         if read_name(request, 12)[0] == 'delay.forward.test':
                             self.pending.append((time.monotonic() + .12, endpoint, peer, response))
                         else: endpoint.sendto(response, peer)
@@ -1126,6 +1140,23 @@ def query_transaction_probe(kind):
         rows.append({'transport': 'udp-cached', 'response': answer});trace.append(dict(raw, transport='udp-cached'))
     finally:
         for client in clients: client.close()
+    return rows, trace
+
+
+def query_stale_probe():
+    rows, trace = [], []
+    for name in ['stale-udp.forward.test', 'stale-tcp.forward.test']:
+        answer, raw = exchange(name, 1, port=16509, timeout=1)
+        rows.append({'name': name, 'transport': 'udp-warm', 'response': answer}); trace.append(dict(raw, transport='udp-warm'))
+    time.sleep(2.2)
+    answer, raw = exchange('stale-udp.forward.test', 1, port=16509, timeout=1)
+    rows.append({'name': 'stale-udp.forward.test', 'transport': 'udp-stale', 'response': answer}); trace.append(dict(raw, transport='udp-stale'))
+    tcp_rows, tcp_raw = tcp_sequence([('stale-tcp.forward.test', 1)])
+    rows.extend(tcp_rows); trace.extend(tcp_raw)
+    for row in rows[2:]:
+        addresses = [record for record in row['response']['records'] if record['type'] == 1]
+        if len(addresses) != 1 or addresses[0]['ttl'] != 0:
+            raise AssertionError(('actual stale answer missing', row))
     return rows, trace
 
 
@@ -1452,6 +1483,8 @@ def run(root, side, case, out):
                     answer, raw = exchange('ready.logging', port=16503)
                     observed['dns'].append({'name': 'ready.logging', 'type': 1, 'transport': 'udp-after-tcp', 'response': answer})
                     trace['dns'].append(dict(raw, transport='udp-after-tcp'))
+                    if case.get('query_stale_probe'):
+                        rows, raw = query_stale_probe(); observed['dns'].extend(rows); trace['dns'].extend(raw)
                     if case.get('query_control_probe'):
                         rows, raw = query_control_probe(); observed['dns'].extend(rows); trace['dns'].extend(raw)
                     if case.get('query_transaction_probe'):
@@ -2428,6 +2461,23 @@ def compare(reference, candidate, case, reference_only=False):
             row['stderr'] = clipped_identity(row['stderr'])
             row['syslog'] = [clipped_identity(value) for value in row['syslog']]
             row['files'] = {name: clipped_identity(value) for name, value in row['files'].items()}
+    if case.get('chaos_notimp_uninitialised_ede'):
+        # rfc1035.c:1838-1854 sets NOTIMP but leaves addr.log.ede unset.
+        # Keep only the observed unknown suffix exception, with exact matching
+        # CHAOS TXT question/response on both sides; every other byte compares.
+        for transport in ['UDP', 'TCP']:
+            def valid_chaos(row):
+                return any(item.get('transport') == transport.lower()
+                           and item.get('name') == 'version.bind'
+                           and item.get('class') == 3 and item.get('opcode') == 0
+                           and item['response']['questions'] == [['version.bind', 16, 3]]
+                           and item['response']['flags'] & 15 == 4
+                           and not item['response']['records'] for item in row['dns'])
+            if valid_chaos(left) and valid_chaos(right):
+                pattern = (r'(?m)^(dnsmasq\[<PID>\]: ' + transport +
+                           r' [0-9]+ 127\.0\.0\.1/16510 config version\.bind is not implemented)'
+                           r' \(EDE: unknown\)(?=\n|$)')
+                left['stderr'] = re.sub(pattern, r'\1', left['stderr'])
     if case.get('argv') == ['--version']:
         first, separator, rest = left['stdout'].partition('\n')
         expected = first + RUST_VERSION_IDENTITY + separator + rest
@@ -2488,6 +2538,24 @@ def controls():
     result['quiet-DHCP-warning-hidden'] = bool(compare(quiet, dict(quiet, stderr=quiet['stderr'].replace('disabling DHCP static address 127.0.0.10 for 10m', '')), quiet_case))
     result['quiet-DHCP-ignored-discover-leak'] = bool(compare(quiet, dict(quiet, stderr=quiet['stderr'] + 'dnsmasq-dhcp[1]: DHCPDISCOVER(lo) 02:00:00:00:00:bb ignored\n'), quiet_case))
     assert all(value for key, value in result.items() if key.startswith('quiet-DHCP-'))
+    chaos_case = {'id': 'chaos-control', 'kind': 'run', 'chaos_notimp_uninitialised_ede': True}
+    chaos_dns = [{'transport': 'udp', 'name': 'version.bind', 'class': 3, 'opcode': 0,
+                  'response': {'questions': [['version.bind', 16, 3]], 'flags': 0x8184, 'records': []}}]
+    chaos_line = 'dnsmasq[1]: UDP 105 127.0.0.1/16510 config version.bind is not implemented'
+    chaos = dict(row, dns=chaos_dns, stderr=chaos_line + ' (EDE: unknown)\n')
+    clean_chaos = dict(chaos, stderr=chaos_line + '\n')
+    assert not compare(chaos, clean_chaos, chaos_case)
+    for name, old, new in [('ID', 'UDP 105', 'UDP 106'), ('name', 'version.bind', 'other.bind'),
+                           ('RCODE', 'not implemented', 'REFUSED'), ('client', '/16510', '/16511')]:
+        result['chaos-EDE-defect-' + name] = bool(compare(chaos, dict(clean_chaos, stderr=clean_chaos['stderr'].replace(old, new)), chaos_case))
+    result['chaos-EDE-defect-other-EDE'] = bool(compare(dict(chaos, stderr=chaos['stderr'].replace('unknown', 'not ready')), clean_chaos, chaos_case))
+    result['chaos-EDE-defect-order'] = bool(compare(dict(chaos, stderr=chaos['stderr'] + 'dnsmasq[1]: kept\n'), dict(clean_chaos, stderr='dnsmasq[1]: kept\n' + clean_chaos['stderr']), chaos_case))
+    wrong_class = copy.deepcopy(chaos_dns); wrong_class[0]['class'] = 1
+    result['chaos-EDE-defect-question-required'] = bool(compare(dict(chaos, dns=wrong_class), dict(clean_chaos, dns=wrong_class), chaos_case))
+    wrong_rcode = copy.deepcopy(chaos_dns); wrong_rcode[0]['response']['flags'] = 0x8185
+    result['chaos-EDE-defect-wire-RCODE-required'] = bool(compare(dict(chaos, dns=wrong_rcode), dict(clean_chaos, dns=wrong_rcode), chaos_case))
+    result['chaos-EDE-defect-scenario-required'] = bool(compare(chaos, clean_chaos, case))
+    assert all(value for key, value in result.items() if key.startswith('chaos-EDE-defect-'))
     for field, corrupt in [('exit', 3), ('ready', False), ('forced', True), ('stderr', 'dnsmasq: wrong\n'),
                            ('syslog', ['3c33303e77726f6e67']), ('files', {'daemon.log': '77726f6e67'}),
                            ('file_metadata', {'daemon.log': [0o600, 0, 0]}), ('dns', [{'name': 'wrong'}])]:
