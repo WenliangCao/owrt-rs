@@ -104,6 +104,7 @@ pub struct TcpUpstream {
     options: TcpOptions,
     pending: Option<Exchange>,
     connection_failures: Vec<SocketAddr>,
+    reply_server: Option<SocketAddr>,
 }
 
 impl TcpUpstream {
@@ -149,6 +150,7 @@ impl TcpUpstream {
             options,
             pending: None,
             connection_failures: Vec::new(),
+            reply_server: None,
         })
     }
 
@@ -189,6 +191,7 @@ impl TcpUpstream {
 
     pub fn clear(&mut self) {
         self.pending = None;
+        self.reply_server = None;
         for server in self
             .groups
             .values_mut()
@@ -233,7 +236,14 @@ impl TcpUpstream {
     /// here. A fixed I/O budget keeps a writable peer from owning the loop.
     pub fn step(&mut self) -> Result<TcpProgress, TcpError> {
         let mut pending = self.pending.take().ok_or(TcpError::NotStarted)?;
-        let result = pending.step(&mut self.groups, self.options, &mut self.connection_failures);
+        let result = pending.step(
+            &mut self.groups,
+            self.options,
+            &mut self.connection_failures,
+        );
+        if matches!(result, Ok(TcpProgress::Complete(_))) {
+            self.reply_server = pending.reply_server(&self.groups);
+        }
         if matches!(result, Ok(TcpProgress::Pending(_))) {
             self.pending = Some(pending);
         } else if matches!(result, Err(TcpError::Deadline | TcpError::Cancelled)) {
@@ -244,6 +254,11 @@ impl TcpUpstream {
 
     pub fn take_connection_failures(&mut self) -> Vec<SocketAddr> {
         std::mem::take(&mut self.connection_failures)
+    }
+
+    /// tcp_request logs the server only after tcp_talk returns a valid reply.
+    pub fn take_reply_server(&mut self) -> Option<SocketAddr> {
+        self.reply_server.take()
     }
 
     /// Compatibility wrapper for synchronous callers. The production single

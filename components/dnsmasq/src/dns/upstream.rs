@@ -266,6 +266,11 @@ impl OwnedSocket {
 /// Query/socket counts are observable for resource tests; the dispatcher is
 /// read-only to callers so transactions cannot bypass socket ownership.
 pub struct UpstreamResolver<R = OsRandom> {
+    query_logging: crate::config::logging::QueryLogging,
+    query_events: Vec<(
+        crate::query_logging::QueryContext,
+        crate::query_logging::QueryEvent,
+    )>,
     #[cfg(target_os = "linux")]
     dump: crate::dump::DumpHandle,
     dispatcher: ForwardDispatcher,
@@ -322,6 +327,8 @@ impl<R: Random> UpstreamResolver<R> {
         }
         let receive_capacity = dispatcher.udp_receive_capacity();
         Ok(Self {
+            query_logging: Default::default(),
+            query_events: Vec::new(),
             #[cfg(target_os = "linux")]
             dump: Default::default(),
             dispatcher,
@@ -348,6 +355,19 @@ impl<R: Random> UpstreamResolver<R> {
 
     pub fn dispatcher(&self) -> &ForwardDispatcher {
         &self.dispatcher
+    }
+
+    pub fn set_query_logging(&mut self, config: crate::config::logging::QueryLogging) {
+        self.query_logging = config;
+    }
+
+    pub fn take_query_events(
+        &mut self,
+    ) -> Vec<(
+        crate::query_logging::QueryContext,
+        crate::query_logging::QueryEvent,
+    )> {
+        std::mem::take(&mut self.query_events)
     }
     #[cfg(target_os = "linux")]
     pub fn set_dump(&mut self, dump: crate::dump::DumpHandle) {
@@ -1022,10 +1042,31 @@ impl<R: Random> UpstreamResolver<R> {
             );
             match result {
                 Ok(length) if length == packet.len() => {
+                    let pending = self
+                        .dispatcher
+                        .table()
+                        .get(id)
+                        .expect("sent query remains pending");
+                    let context = pending.query_context();
+                    if self.query_logging.enabled {
+                        let mut event = crate::query_logging::QueryEvent::address(
+                            crate::query_logging::SERVER,
+                            &pending.question.name.dnsmasq_bytes(),
+                            address.ip(),
+                            None,
+                        );
+                        event.kind = address.port();
+                        self.query_events.push((context, event));
+                    }
                     #[cfg(target_os = "linux")]
                     if let Ok(source) = self.sockets[&token].socket.local_addr() {
-                        self.dump
-                            .udp(crate::dump::UP_QUERY, packet, source, address);
+                        self.dump.udp_with_context(
+                            crate::dump::UP_QUERY,
+                            packet,
+                            source,
+                            address,
+                            context,
+                        );
                     }
                     self.dispatcher
                         .note_sent(id, server, token, self.milliseconds());
@@ -1174,11 +1215,12 @@ impl<R: Random> UpstreamResolver<R> {
             };
             #[cfg(target_os = "linux")]
             if let Ok(destination) = self.sockets[&token].socket.local_addr() {
-                self.dump.udp(
+                self.dump.udp_with_context(
                     crate::dump::UP_REPLY,
                     &self.receive_buffer[..length],
                     source,
                     destination,
+                    pending.query_context(),
                 );
             }
             // Keep the transaction and its server/retry counters untouched.
@@ -2499,6 +2541,85 @@ mod tests {
         assert_eq!(transport.pending_count(), 0);
         assert_eq!(transport.socket_count(), 0);
         thread.join().unwrap();
+    }
+
+    #[test]
+    fn asynchronous_query_notices_and_recipients_keep_their_saved_context() {
+        let server = UdpSocket::bind("127.0.0.1:0").unwrap();
+        server
+            .set_read_timeout(Some(Duration::from_secs(1)))
+            .unwrap();
+        let address = server.local_addr().unwrap();
+        let mut transport = transport(
+            group(&[address], false),
+            Options::default(),
+            Duration::from_secs(1),
+        );
+        transport.set_query_logging(crate::config::logging::QueryLogging {
+            enabled: true,
+            extra: true,
+            ..Default::default()
+        });
+        for id in [91, 92] {
+            let mut request = PacketWriter::new(id, 0x0100, 1232).unwrap();
+            request
+                .question(
+                    &Name::from_ascii(&format!("query{id}.context.test")).unwrap(),
+                    1,
+                    1,
+                )
+                .unwrap();
+            let mut client = client();
+            client.log_id = u64::from(id);
+            client.source.set_port(53000 + id);
+            transport
+                .start_udp(&request.finish(), client, GroupId(1), Scope::Shared)
+                .unwrap();
+        }
+        let notices = transport.take_query_events();
+        assert_eq!(
+            notices
+                .iter()
+                .map(|(context, _)| context.display_id)
+                .collect::<Vec<_>>(),
+            [91, 92]
+        );
+        assert_eq!(notices[0].0.client.unwrap().port(), 53091);
+        assert_eq!(notices[1].0.client.unwrap().port(), 53092);
+        assert!(notices
+            .iter()
+            .all(|(_, event)| event.flags & crate::query_logging::SERVER != 0
+                && event.kind == address.port()));
+        let mut received = Vec::new();
+        for _ in 0..2 {
+            let mut bytes = [0; 2048];
+            let (length, peer) = server.recv_from(&mut bytes).unwrap();
+            received.push((bytes[..length].to_vec(), peer));
+        }
+        for (mut request, peer) in received.into_iter().rev() {
+            let mut header = Header::parse(&request).unwrap();
+            header.flags = 0x8180;
+            header.write(&mut request).unwrap();
+            server.send_to(&request, peer).unwrap();
+        }
+        let deadline = Instant::now() + Duration::from_secs(1);
+        let mut replies = Vec::new();
+        while replies.len() < 2 && Instant::now() < deadline {
+            replies.extend(transport.poll(Duration::from_millis(10)).unwrap());
+        }
+        assert_eq!(replies.len(), 2);
+        for reply in replies {
+            let reply = reply.result.unwrap();
+            let recipient = &reply.recipients[0];
+            let context = recipient.client.query_context();
+            assert_eq!(context.display_id as u16, recipient.original_id);
+            assert_eq!(
+                context.client.unwrap().port(),
+                53000 + recipient.original_id
+            );
+        }
+        assert!(transport.take_query_events().is_empty());
+        assert_eq!(transport.pending_count(), 0);
     }
 
     #[test]

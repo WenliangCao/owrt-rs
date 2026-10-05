@@ -11,6 +11,7 @@ use super::wire::{
     find_pseudoheader, Header, Message, Name, PacketWriter, Question as WireQuestion, Section,
     WireError,
 };
+use crate::query_logging::{self as qlog, QueryData, QueryEvent};
 use std::net::IpAddr;
 
 pub struct CachedAnswer {
@@ -271,6 +272,7 @@ impl CacheContext<'_> {
                     for id in reverse {
                         let entry = cache.get(id).expect("reverse lookup yields live entries");
                         stale |= entry.is_stale(now);
+                        record_cached(local, cache, id, now);
                         match writer.record_at(
                             Section::Answer,
                             12,
@@ -307,6 +309,7 @@ impl CacheContext<'_> {
                 let mut writer =
                     PacketWriter::new(header.id, (header.flags & 0x0110) | 0x8080, limit)?;
                 writer.question(&question.name, question.rrtype, question.class)?;
+                record_filter(local, &question.name, Kind::Generic(question.rrtype));
                 return Ok(finish_filtered_answer(writer, false)?);
             }
             // An address/CNAME miss still reaches C's final F_RR lookup.
@@ -364,6 +367,7 @@ impl CacheContext<'_> {
                 let mut writer =
                     PacketWriter::new(header.id, (header.flags & 0x0110) | 0x8080, limit)?;
                 writer.question(&question.name, question.rrtype, question.class)?;
+                record_filter(local, &question.name, Kind::Generic(question.rrtype));
                 return Ok(finish_filtered_answer(writer, false)?);
             }
             return Ok(CachedAnswer {
@@ -414,6 +418,9 @@ impl CacheContext<'_> {
                     }),
                 )?,
             };
+            if local_flags.is_none() {
+                record_cached(local, cache, id, now);
+            }
             match append_negative_authority(&mut writer, cache, id, now) {
                 Ok(_) | Err(WireError::Full) => {}
                 Err(error) => return Err(error.into()),
@@ -440,6 +447,11 @@ impl CacheContext<'_> {
                     .filter(|entry| entry.record.kind == Kind::Cname)
                 {
                     stale |= entry.is_stale(now);
+                }
+                if cache.get(id).is_some_and(|entry| {
+                    entry.record.kind == Kind::Cname && entry.cname_target().is_some()
+                }) {
+                    record_cached(local, cache, id, now);
                 }
                 match append_cname_record(&mut writer, cache, id, Section::Answer, now, Some(12)) {
                     Ok(None) => continue,
@@ -471,6 +483,7 @@ impl CacheContext<'_> {
             })
             .flatten();
         if let Some(id) = direct_nodata {
+            record_cached(local, cache, id, now);
             stale |= cache.get(id).is_some_and(|entry| entry.is_stale(now));
             let mut writer = PacketWriter::new(header.id, (header.flags & 0x0110) | 0x8080, limit)?;
             writer.question(&question.name, question.rrtype, question.class)?;
@@ -501,6 +514,12 @@ impl CacheContext<'_> {
                         // ten-byte RR header. The uncompressed target starts
                         // there and becomes the owner of the next record.
                         let target_offset = (writer.position() + 12) as u16;
+                        if cache
+                            .get(current)
+                            .is_some_and(|entry| entry.cname_target().is_some())
+                        {
+                            record_cached(local, cache, current, now);
+                        }
                         let target = match append_cname_record(
                             &mut writer,
                             cache,
@@ -550,6 +569,7 @@ impl CacheContext<'_> {
                         // up the terminal name again for the current qtype.
                         let terminal_name = target_entry.record.name.clone();
                         if local.config.filter_win2k && question.rrtype == 6 {
+                            record_windows_filter(local, &terminal_name);
                             return Ok(finish_cached_answer_flags(writer, Some(0x8480), stale)?);
                         }
                         let nx_target = (target_entry.record.kind == Kind::NxDomain
@@ -597,6 +617,7 @@ impl CacheContext<'_> {
                                     question.rrtype,
                                 )
                             {
+                                record_windows_filter(local, &terminal_name);
                                 return Ok(finish_cached_answer_flags(
                                     writer,
                                     Some(0x8480),
@@ -607,6 +628,7 @@ impl CacheContext<'_> {
                                 && self.filter_rr.contains(&question.rrtype)
                                 && !dnssec_requested
                             {
+                                record_filter(local, &terminal_name, kind);
                                 return Ok(finish_filtered_answer(writer, stale)?);
                             }
                             return Ok(CachedAnswer {
@@ -651,6 +673,7 @@ impl CacheContext<'_> {
                                     )?);
                                 }
                             }
+                            record_cached(local, cache, target, now);
                             let negative_flags = if target_entry.record.kind == Kind::NxDomain {
                                 0x8083
                             } else {
@@ -671,6 +694,7 @@ impl CacheContext<'_> {
                             )?);
                         } else {
                             if question.rrtype != 255 && self.filter_rr.contains(&question.rrtype) {
+                                record_filter(local, &terminal_name, kind);
                                 let mut answer = finish_cached_answer(writer, stale)?;
                                 answer.filtered = matches!(kind, Kind::Ipv4 | Kind::Ipv6);
                                 return Ok(answer);
@@ -686,6 +710,7 @@ impl CacheContext<'_> {
                                 stale |= cache
                                     .get(terminal_id)
                                     .is_some_and(|entry| entry.is_stale(now));
+                                record_cached(local, cache, terminal_id, now);
                                 match append_positive_record(
                                     &mut writer,
                                     cache,
@@ -722,12 +747,14 @@ impl CacheContext<'_> {
                 stale |= entry.is_stale(now);
             }
             if question.rrtype != 255 && self.filter_rr.contains(&question.rrtype) {
+                record_filter(local, &question.name, kind);
                 let mut answer = finish_cached_answer(writer, stale)?;
                 // C marks address filtering for EDE. The generic F_RR path
                 // suppresses the RR without setting answer_request's flag.
                 answer.filtered = matches!(kind, Kind::Ipv4 | Kind::Ipv6);
                 return Ok(answer);
             }
+            record_cached(local, cache, id, now);
             match append_positive_record(&mut writer, cache, id, Section::Answer, now, Some(12)) {
                 Ok(true) => written = true,
                 Ok(false) => {}
@@ -752,6 +779,7 @@ impl CacheContext<'_> {
                 )
                 .is_empty()
         {
+            record_filter(local, &question.name, Kind::Generic(question.rrtype));
             return Ok(finish_filtered_answer(writer, stale)?);
         }
         Ok(CachedAnswer {
@@ -820,8 +848,17 @@ impl CacheContext<'_> {
         original_rcode: u16,
         ordinary: OrdinaryCacheMode,
     ) -> Result<(), WireError> {
-        self.insert_reply_transaction(packet, now, local, policy, original_rcode, ordinary, false)
-            .map(|_| ())
+        self.insert_reply_transaction(
+            packet,
+            now,
+            local,
+            policy,
+            original_rcode,
+            ordinary,
+            false,
+            None,
+        )
+        .map(|_| ())
     }
 
     /// Preserve the child extraction policy and return the exact commit order.
@@ -836,7 +873,40 @@ impl CacheContext<'_> {
         original_rcode: u16,
         ordinary: OrdinaryCacheMode,
     ) -> Result<Option<super::cache::CacheTransaction>, WireError> {
-        self.insert_reply_transaction(packet, now, local, policy, original_rcode, ordinary, true)
+        self.insert_reply_transaction(
+            packet,
+            now,
+            local,
+            policy,
+            original_rcode,
+            ordinary,
+            true,
+            None,
+        )
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub fn insert_reply_with_events(
+        &mut self,
+        packet: &[u8],
+        now: i64,
+        local: &LocalDnsService,
+        policy: &super::process::AddressPolicy,
+        original_rcode: u16,
+        ordinary: OrdinaryCacheMode,
+        capture: bool,
+        events: &mut Vec<QueryEvent>,
+    ) -> Result<Option<super::cache::CacheTransaction>, WireError> {
+        self.insert_reply_transaction(
+            packet,
+            now,
+            local,
+            policy,
+            original_rcode,
+            ordinary,
+            capture,
+            Some(events),
+        )
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -849,7 +919,15 @@ impl CacheContext<'_> {
         original_rcode: u16,
         ordinary: OrdinaryCacheMode,
         capture: bool,
+        mut notices: Option<&mut Vec<QueryEvent>>,
     ) -> Result<Option<super::cache::CacheTransaction>, WireError> {
+        macro_rules! query_notice {
+            ($event:expr) => {
+                if let Some(events) = notices.as_deref_mut() {
+                    events.push($event);
+                }
+            };
+        }
         let Ok(header) = Header::parse(packet) else {
             return Ok(None);
         };
@@ -860,6 +938,12 @@ impl CacheContext<'_> {
             if let Some((name, ttl)) =
                 super::process::bogus_cache_entry(packet, header.answers, policy)
             {
+                query_notice!(QueryEvent::label(
+                    qlog::CONFIG | qlog::NEGATIVE | qlog::NXDOMAIN,
+                    &name.dnsmasq_bytes(),
+                    None,
+                    0
+                ));
                 // This independent branch uses the matching RR's owner/TTL;
                 // --no-negcache, RA and CD do not suppress its commit in C.
                 if capture {
@@ -907,6 +991,12 @@ impl CacheContext<'_> {
                     // Reverse PTR extraction checks the packet boundary, not
                     // RDLEN, when decoding the target name.
                     let (target, _) = super::wire::decode_name(packet, rr.fixed + 10, 0)?;
+                    query_notice!(QueryEvent::address(
+                        qlog::REPLY | qlog::REVERSE,
+                        &target.dnsmasq_bytes(),
+                        address,
+                        None
+                    ));
                     let ttl = if cache.policy().max_reply_ttl == 0 {
                         u64::from(rr.ttl)
                     } else {
@@ -989,6 +1079,12 @@ impl CacheContext<'_> {
                         return Ok(None);
                     }
                     cname_left -= 1;
+                    query_notice!(QueryEvent::label(
+                        qlog::REPLY | qlog::CNAME,
+                        &current.dnsmasq_bytes(),
+                        None,
+                        0
+                    ));
                     // Act on failure only after insertion: C removes the old
                     // owner before validating this target.
                     let target = super::wire::decode_name(packet, rr.fixed + 10, 0);
@@ -1033,7 +1129,17 @@ impl CacheContext<'_> {
                     && header.rcode() != 3
                 {
                     found = true;
-                    if !insert {
+                    if !matches!(kind, Kind::Ipv4 | Kind::Ipv6) {
+                        query_notice!(QueryEvent::label(
+                            qlog::REPLY | qlog::RRNAME,
+                            &current.dnsmasq_bytes(),
+                            None,
+                            question.qtype
+                        ));
+                    }
+                    // Address replies are extracted/logged even when cache
+                    // commit is disabled. Generic RDATA needs no fake decode.
+                    if !insert && !matches!(kind, Kind::Ipv4 | Kind::Ipv6) {
                         continue;
                     }
                     let data = if matches!(kind, Kind::Ipv4 | Kind::Ipv6) {
@@ -1051,6 +1157,12 @@ impl CacheContext<'_> {
                         if policy.rejects_rebind(&question.name, address) {
                             return Ok(None);
                         }
+                        query_notice!(QueryEvent::address(
+                            qlog::REPLY,
+                            &current.dnsmasq_bytes(),
+                            address,
+                            None
+                        ));
                         data.to_vec()
                     } else {
                         match rr.canonical_rdata() {
@@ -1062,6 +1174,9 @@ impl CacheContext<'_> {
                             Err(error) => return Err(error),
                         }
                     };
+                    if !insert {
+                        continue;
+                    }
                     let inserted = insert_cache_record(
                         cache,
                         counters,
@@ -1091,6 +1206,26 @@ impl CacheContext<'_> {
             }
             answer_end = position;
             break;
+        }
+        if !found && question.qtype != 255 {
+            let family = match question.qtype {
+                1 => qlog::IPV4,
+                28 => qlog::IPV6,
+                _ => 0,
+            };
+            query_notice!(QueryEvent::label(
+                qlog::REPLY
+                    | qlog::NEGATIVE
+                    | family
+                    | if header.rcode() == 3 {
+                        qlog::NXDOMAIN
+                    } else {
+                        0
+                    },
+                &current.dnsmasq_bytes(),
+                None,
+                0
+            ));
         }
         if !found
             && self.negative_cache
@@ -1153,6 +1288,75 @@ impl CacheContext<'_> {
     }
 }
 
+fn record_windows_filter(local: &mut LocalDnsService, name: &Name) {
+    if local.query_logging {
+        local.record_query_event(QueryEvent::label(
+            qlog::CONFIG,
+            &name.dnsmasq_bytes(),
+            Some(b"NODATA"),
+            0,
+        ));
+    }
+}
+
+fn record_filter(local: &mut LocalDnsService, name: &Name, kind: Kind) {
+    if !local.query_logging {
+        return;
+    }
+    let family = match kind {
+        Kind::Ipv4 => qlog::IPV4,
+        Kind::Ipv6 => qlog::IPV6,
+        _ => 0,
+    };
+    local.record_query_event(QueryEvent::label(
+        qlog::CONFIG | qlog::NEGATIVE | family,
+        &name.dnsmasq_bytes(),
+        None,
+        0,
+    ));
+}
+
+fn record_cached(local: &mut LocalDnsService, cache: &Cache, id: super::cache::EntryId, now: i64) {
+    if !local.query_logging {
+        return;
+    }
+    let Some(entry) = cache.get(id) else {
+        return;
+    };
+    let record = &entry.record;
+    let mut flags = if entry.is_stale(now) { qlog::STALE } else { 0 };
+    flags |= match record.kind {
+        Kind::Ipv4 | Kind::ReverseIpv4 => qlog::IPV4,
+        Kind::Ipv6 | Kind::ReverseIpv6 => qlog::IPV6,
+        Kind::Cname => qlog::CNAME,
+        Kind::NxDomain => qlog::NXDOMAIN,
+        Kind::Generic(_) => qlog::RR,
+    };
+    if record.negative {
+        flags |= qlog::NEGATIVE;
+    }
+    if matches!(record.kind, Kind::ReverseIpv4 | Kind::ReverseIpv6) {
+        flags |= qlog::REVERSE;
+    }
+    let data = match record.kind {
+        Kind::Ipv4 | Kind::ReverseIpv4 if record.data.len() == 4 => QueryData::Address(IpAddr::V4(
+            <[u8; 4]>::try_from(record.data.as_slice()).unwrap().into(),
+        )),
+        Kind::Ipv6 | Kind::ReverseIpv6 if record.data.len() == 16 => QueryData::Address(
+            IpAddr::V6(<[u8; 16]>::try_from(record.data.as_slice()).unwrap().into()),
+        ),
+        Kind::Generic(kind) => QueryData::RrType(kind),
+        _ => QueryData::None,
+    };
+    local.record_query_event(QueryEvent {
+        flags,
+        name: Some(record.name.dnsmasq_bytes()),
+        data,
+        argument: None,
+        kind: 0,
+    });
+}
+
 /// `answer_request` clears all response sections when any cached RR cannot
 /// fit, while the reusable PacketWriter intentionally retains complete RRs.
 fn finish_filtered_answer(writer: PacketWriter, stale: bool) -> Result<CachedAnswer, WireError> {
@@ -1202,7 +1406,7 @@ enum InterfaceTerminal {
 /// declaration with no eligible address and must bypass the cached terminal.
 fn append_interface_terminal(
     writer: &mut PacketWriter,
-    local: &LocalDnsService,
+    local: &mut LocalDnsService,
     terminal: &Name,
     question: &super::forward::Question,
     owner_offset: u16,
@@ -1224,12 +1428,23 @@ fn append_interface_terminal(
             continue;
         };
         declared = true;
+        if addresses.is_empty() {
+            record_filter(local, terminal, if ipv6 { Kind::Ipv6 } else { Kind::Ipv4 });
+        }
         for address in addresses {
             let (rrtype, data) = match address {
                 IpAddr::V4(value) if !ipv6 => (1, value.octets().to_vec()),
                 IpAddr::V6(value) if ipv6 => (28, value.octets().to_vec()),
                 _ => continue,
             };
+            if local.query_logging {
+                local.record_query_event(QueryEvent::address(
+                    qlog::CONFIG,
+                    &terminal.dnsmasq_bytes(),
+                    address,
+                    None,
+                ));
+            }
             match writer.record_at(
                 Section::Answer,
                 owner_offset,
@@ -1258,7 +1473,7 @@ fn append_interface_terminal(
 #[allow(clippy::too_many_arguments)]
 fn append_synth_terminal(
     writer: &mut PacketWriter,
-    local: &LocalDnsService,
+    local: &mut LocalDnsService,
     terminal: &Name,
     question: &super::forward::Question,
     owner_offset: u16,
@@ -1287,6 +1502,14 @@ fn append_synth_terminal(
             IpAddr::V4(value) => (1, value.octets().to_vec()),
             IpAddr::V6(value) => (28, value.octets().to_vec()),
         };
+        if local.query_logging {
+            local.record_query_event(QueryEvent::address(
+                qlog::CONFIG,
+                &terminal.dnsmasq_bytes(),
+                address,
+                None,
+            ));
+        }
         match writer.record_at(
             Section::Answer,
             owner_offset,
@@ -1533,6 +1756,71 @@ mod tests {
     use crate::hosts::Hosts;
     use std::net::{IpAddr, Ipv4Addr};
     use std::sync::Arc;
+
+    #[test]
+    fn query_events_follow_upstream_extraction_and_selected_cache_chain() {
+        let owner = Name::from_ascii("alias.logging.test").unwrap();
+        let terminal = Name::from_ascii("terminal.logging.test").unwrap();
+        let mut writer = PacketWriter::new(1, 0x8180, 1232).unwrap();
+        writer.question(&owner, 1, 1).unwrap();
+        writer
+            .record_at(Section::Answer, 12, 5, 1, 60, terminal.as_wire())
+            .unwrap();
+        writer
+            .record(Section::Answer, &terminal, 1, 1, 60, &[192, 0, 2, 7])
+            .unwrap();
+        let reply = writer.finish();
+        let mut cache = Cache::new(8, Default::default());
+        let mut counters = CacheCounters::default();
+        let mut local = LocalDnsService::new(DnsConfig::default(), Hosts::new(), 60, 1232);
+        let mut context = CacheContext {
+            cache: &mut cache,
+            counters: &mut counters,
+            negative_cache: true,
+            negative_ttl: 60,
+            filter_rr: &[],
+        };
+        let mut events = Vec::new();
+        context
+            .insert_reply_with_events(
+                &reply,
+                100,
+                &local,
+                &Default::default(),
+                0,
+                OrdinaryCacheMode::Commit,
+                false,
+                &mut events,
+            )
+            .unwrap();
+        assert_eq!(events.len(), 2);
+        assert_eq!(events[0].flags, qlog::REPLY | qlog::CNAME);
+        assert_eq!(
+            events[1].name.as_deref(),
+            Some(b"terminal.logging.test".as_slice())
+        );
+        assert_eq!(events[1].flags, qlog::REPLY | qlog::IPV4);
+        assert_eq!(context.counters.inserted, 2);
+        local.query_logging = true;
+        let mut request = PacketWriter::new(2, 0x0100, 1232).unwrap();
+        request.question(&owner, 1, 1).unwrap();
+        let request = request.finish();
+        let question = super::super::forward::Question::parse(&request).unwrap();
+        let answer = context
+            .answer_tcp(&request, &question, 101, &mut local, 1232)
+            .unwrap()
+            .packet
+            .unwrap();
+        assert_eq!(Message::parse(&answer).unwrap().header.answers, 2);
+        let events = local.take_query_events();
+        assert_eq!(events.len(), 2);
+        assert_eq!(events[0].flags, qlog::CNAME);
+        assert_eq!(events[1].flags, qlog::IPV4);
+        assert_eq!(
+            events[1].name.as_deref(),
+            Some(b"terminal.logging.test".as_slice())
+        );
+    }
 
     #[test]
     fn positive_reverse_ptr_extracts_by_ip_and_imports_independently_of_target_name() {

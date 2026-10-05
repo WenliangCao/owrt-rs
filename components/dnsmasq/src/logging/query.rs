@@ -72,6 +72,27 @@ pub struct QueryEvent {
 }
 
 impl QueryEvent {
+    /// receive_query/tcp_request's admitted request, before local/forward work.
+    pub fn request(packet: &[u8], client: SocketAddr) -> Option<Self> {
+        let header = crate::dns::wire::Header::parse(packet).ok()?;
+        if header.flags & 0x8000 != 0 {
+            return None;
+        }
+        if header.opcode() != 0 {
+            let mut event = Self::address(QUERY | CONFIG, b"", client.ip(), None);
+            event.name = None;
+            event.kind = u16::from(header.opcode());
+            return Some(event);
+        }
+        if header.answers != 0 || header.authorities != 0 {
+            return None;
+        }
+        let question = crate::dns::forward::Question::parse(packet).ok()?;
+        let mut event = Self::address(QUERY, &question.name.dnsmasq_bytes(), client.ip(), None);
+        event.kind = question.rrtype;
+        Some(event)
+    }
+
     pub fn label(flags: u32, name: &[u8], argument: Option<&[u8]>, kind: u16) -> Self {
         Self {
             flags,
