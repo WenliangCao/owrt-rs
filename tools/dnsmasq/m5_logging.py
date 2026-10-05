@@ -281,6 +281,10 @@ def cases():
     rows.append({'id': 'async-real-reconnect-two-cycles', 'scope': 'async-recovery', 'kind': 'run',
                  'receiver': 'dgram', 'late_receiver': True, 'argv': ['--log-async=2'],
                  'options': ['log-async', 'log-facility']})
+    rows.append({'id': 'async-tcp-inherited-queue', 'scope': 'async-tcp-queue', 'kind': 'run',
+                 'receiver': 'dgram', 'late_receiver': True, 'queued_tcp': True,
+                 'argv': ['--log-async=2', '--log-debug', '--server=127.0.0.2#15955'],
+                 'options': ['log-async', 'log-facility']})
     for enabled in [False, True]:
         for family, server in [('v4', '127.0.0.2'), ('v6', '::1')]:
             rows.append({'id': 'debug-tcp-' + family + ('-enabled' if enabled else '-disabled'),
@@ -843,20 +847,25 @@ def run(root, side, case, out):
                 if case.get('late_receiver'):
                     receiver.close()
                     receiver = Receiver(root, 'dgram')
-                    process.send_signal(signal.SIGHUP)
-                    time.sleep(.08)
-                    receiver.drain()
-                    first = list(receiver.raw)
-                    receiver.close()
-                    image_path(root, '/dev/log', follow_leaf=False).unlink()
-                    for _ in range(2):
+                    if case.get('queued_tcp'):
+                        rows, _ = debug_sequence({'debug_probes': 'tcp'}, out, receiver)
+                        observed['debug_wire'] = rows
+                        trace['debug_wire'] = rows
+                    else:
                         process.send_signal(signal.SIGHUP)
-                        time.sleep(.04)
-                    receiver = Receiver(root, 'dgram')
-                    receiver.raw = first
-                    process.send_signal(signal.SIGHUP)
-                    time.sleep(.08)
-                    receiver.drain()
+                        time.sleep(.08)
+                        receiver.drain()
+                        first = list(receiver.raw)
+                        receiver.close()
+                        image_path(root, '/dev/log', follow_leaf=False).unlink()
+                        for _ in range(2):
+                            process.send_signal(signal.SIGHUP)
+                            time.sleep(.04)
+                        receiver = Receiver(root, 'dgram')
+                        receiver.raw = first
+                        process.send_signal(signal.SIGHUP)
+                        time.sleep(.08)
+                        receiver.drain()
                 for name, text, trigger in case.get('file_actions', []):
                     (folder / name).write_text(text)
                     if trigger == 'hup':
@@ -1370,7 +1379,10 @@ def compare(reference, candidate, case, reference_only=False):
     if case.get('late_receiver'):
         messages = [bytes.fromhex(value).decode() for value in reference['syslog']]
         counts = [int(match[1]) for text in messages if (match := re.search(r'overflow: ([0-9]+) log entries lost$', text))]
-        if len(counts) != 2 or not all(value > 0 for value in counts):
+        if case.get('queued_tcp'):
+            if counts != [4] or any('TCP connection failed' in text or 'exiting on receipt' in text for text in messages):
+                failures.append({'kind': 'C-TCP-inherited-queue-PID-guard', 'counts': counts, 'actual': messages})
+        elif len(counts) != 2 or not all(value > 0 for value in counts):
             failures.append({'kind': 'C-async-repeated-overflow-reset', 'counts': counts, 'actual': messages})
     if case.get('tftp_probes'):
         text = reference['stderr'] + ''.join(bytes.fromhex(value).decode() for value in reference['syslog'])
