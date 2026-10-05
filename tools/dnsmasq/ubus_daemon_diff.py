@@ -688,6 +688,48 @@ def run_records(f, side):
     return observed
 
 
+def run_recovery(f, side):
+    observed = {}
+    def record(label, value):
+        assert label not in observed
+        observed[label] = value
+    for suffix in ("", ".dns"):
+        f.stop(f.bus)
+        f.start_product(side, wait_bus=False)
+        record("pending" + suffix, ubus_log_rows(f.daemon_log))
+        f.start_bus()
+        holder = hold_object(f, OBJECT + suffix)
+        f.exchange("local.invalid")
+        deadline = time.monotonic() + 3
+        while not any(row.startswith("UBus error:") for row in ubus_log_rows(f.daemon_log)):
+            assert time.monotonic() < deadline and f.daemon.poll() is None
+            f.exchange("local.invalid")
+            time.sleep(.005)
+        record("retry-disabled" + suffix, ubus_log_rows(f.daemon_log))
+        record("retry-healthy" + suffix, f.exchange("local.invalid"))
+        other = OBJECT + (".dns" if not suffix else "")
+        record("retry-removed-other" + suffix, f.client_call("lookup", other))
+        f.stop(holder)
+        for _ in range(20):
+            f.exchange("local.invalid")
+        record("disabled-after-collision" + suffix, f.client_call("lookup", OBJECT))
+        record("disabled-after-collision-dns" + suffix, f.client_call("lookup", OBJECT + ".dns"))
+        record("disabled-after-collision-logs" + suffix, ubus_log_rows(f.daemon_log))
+        f.stop(f.daemon)
+    # With port0 and no DHCP service, an explicit SIGHUP provides C's retry
+    # caller. Object state must come from the new transport, not a cached ID.
+    f.stop(f.bus)
+    f.start_product(side, port=0, dhcp=False, upstream=False, wait_bus=False)
+    record("no-service-pending", ubus_log_rows(f.daemon_log))
+    f.start_bus()
+    f.daemon.send_signal(signal.SIGHUP)
+    f.wait_registered()
+    record("no-service-connected", f.metrics())
+    record("no-service-connected-logs", ubus_log_rows(f.daemon_log))
+    f.stop(f.daemon)
+    return observed
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--reference-build", type=Path, required=True)
@@ -697,7 +739,7 @@ def main():
     parser.add_argument("--rust-binary", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--inject-error", action="store_true")
-    parser.add_argument("--suite", choices=("baseline", "extended", "lifecycle", "records"), default="baseline")
+    parser.add_argument("--suite", choices=("baseline", "extended", "lifecycle", "records", "recovery"), default="baseline")
     args = parser.parse_args()
     assert os.environ.get("DNSMASQ_TEST_ISOLATED") == "1" and os.geteuid() == 0
     assert not Path("/etc/openwrt_release").exists()
@@ -732,7 +774,7 @@ def main():
         if args.suite == "extended":
             storage_authority(f)
         schedule = {"baseline": run_side, "extended": run_extended, "lifecycle": run_lifecycle,
-                    "records": run_records}[args.suite]
+                    "records": run_records, "recovery": run_recovery}[args.suite]
         expected = schedule(f, "C")
         if args.suite == "baseline":
             assert len(expected) == 69, "frozen paired service schedule changed"
