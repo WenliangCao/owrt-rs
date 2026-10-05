@@ -245,6 +245,8 @@ def comparable_service(observed):
                 if not response or response['questions'][0][0]!=dynamic['name'] or not any(record['type']==12 for record in response['records']):
                     raise AssertionError('actual privacy-address PTR answer missing')
                 response['questions'][0][0]='actual-temporary-address'
+                for record in response['records']:
+                    if record['name']==dynamic['name']:record['name']='actual-temporary-address'
     return result
 
 
