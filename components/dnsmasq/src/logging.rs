@@ -525,7 +525,7 @@ fn connect_syslog(fd: RawFd) -> io::Result<()> {
         Ok(())
     }
 }
-fn error_text(error: &io::Error) -> String {
+pub fn error_text(error: &io::Error) -> String {
     match error.raw_os_error() {
         Some(code) => unsafe {
             CStr::from_ptr(strerror(code))

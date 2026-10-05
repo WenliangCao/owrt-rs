@@ -60,6 +60,7 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 static STOP_REQUESTED: AtomicBool = AtomicBool::new(false);
 static RELOAD_REQUESTED: AtomicUsize = AtomicUsize::new(0);
 static DEBUG_MODE: AtomicBool = AtomicBool::new(false);
+static LOG_REOPEN_REQUESTED: AtomicUsize = AtomicUsize::new(0);
 // SIGHUP is 1 on the supported Linux and Darwin hosts.
 const SIGHUP: i32 = 1;
 
@@ -81,6 +82,12 @@ extern "C" fn request_reload(_signal: i32) {
     });
 }
 
+extern "C" fn request_log_reopen(_signal: i32) {
+    let _ = LOG_REOPEN_REQUESTED.fetch_update(Ordering::Release, Ordering::Relaxed, |count| {
+        Some(count.saturating_add(1))
+    });
+}
+
 extern "C" fn request_interrupt(_signal: i32) {
     if DEBUG_MODE.load(Ordering::Relaxed) {
         extern "C" {
@@ -94,6 +101,15 @@ extern "C" fn request_interrupt(_signal: i32) {
 }
 
 fn main() {
+    #[cfg(target_os = "linux")]
+    {
+        unsafe extern "C" {
+            fn umask(mask: u32) -> u32;
+        }
+        unsafe {
+            umask(0o022);
+        }
+    }
     let args: Vec<OsString> = std::env::args_os().skip(1).collect();
     if let Err(error) = run(&args) {
         // inotify is initialized after PID/privilege setup, when C's ordinary
@@ -102,7 +118,10 @@ fn main() {
         if error.is::<WatchError>() && !DEBUG_MODE.load(Ordering::Relaxed) {
             std::process::exit(startup_status(error.as_ref()));
         }
-        let blank_line = error.is::<loader::LoadError>();
+        let blank_line = error.is::<loader::LoadError>()
+            || error
+                .downcast_ref::<dnsmasq_rs::startup::StartupError>()
+                .is_some_and(|error| error.message.starts_with("cannot open log "));
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         let blank_line = blank_line
             || error
@@ -164,6 +183,7 @@ fn startup_status(error: &(dyn std::error::Error + 'static)) -> i32 {
 struct Runtime {
     scalar: ScalarConfig,
     process: dnsmasq_rs::startup::ProcessConfig,
+    logging: dnsmasq_rs::config::logging::LoggingConfig,
     dns: DnsConfig,
     tftp: TftpConfig,
     dhcp: DhcpConfig,
@@ -394,13 +414,15 @@ fn load(args: &[OsString]) -> Result<(Action, Runtime), loader::LoadError> {
     let mut runtime = Runtime {
         scalar: ScalarConfig::default(),
         process: dnsmasq_rs::startup::ProcessConfig::default(),
+        logging: dnsmasq_rs::config::logging::LoggingConfig::default(),
         dns: DnsConfig::default(),
         tftp: TftpConfig::default(),
         dhcp: DhcpConfig::default(),
         ubus: UbusConfig::default(),
     };
     let action = loader::load(args, Path::new("/etc/dnsmasq.conf"), |directive, _| {
-        if runtime.process.apply(directive)?
+        if runtime.logging.apply(directive)?
+            || runtime.process.apply(directive)?
             || runtime.scalar.apply(directive)?
             || runtime.dns.apply_resolved(directive)?
             || runtime.tftp.apply(directive)?
@@ -431,15 +453,14 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     let (action, mut runtime) = load(args)?;
     match action {
         Action::Version => {
-            println!("dnsmasq-rs 0.1.0");
-            println!("Compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile");
-            println!("Mode: development DNS daemon");
-            println!("Implemented: DNS UDP/TCP, cache subsets, DHCPv4 listener boundary and TFTP transfer listener");
-            println!("Not implemented: full DNS cache/reload policy and DHCP relay/PXE/leasequery");
+            print!("{}", dnsmasq_rs::startup::cli::version_output());
             return Ok(());
         }
         Action::Help | Action::HelpDhcp => {
-            println!("dnsmasq-rs: use -C FILE and -k to run the implemented DNS service");
+            print!(
+                "{}",
+                dnsmasq_rs::startup::cli::help_output(action == Action::HelpDhcp)
+            );
             return Ok(());
         }
         Action::Test => {
@@ -510,6 +531,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     owrt_ubus::sys::set_signal_handler(owrt_ubus::sys::SIGINT, request_interrupt);
     owrt_ubus::sys::set_signal_handler(owrt_ubus::sys::SIGTERM, request_stop);
     owrt_ubus::sys::set_signal_handler(SIGHUP, request_reload);
+    owrt_ubus::sys::set_signal_handler(12, request_log_reopen);
     // dnsmasq.c allocates `edns_pktsz + MAXDNAME + RRFIXEDSZ` as scratch space.
     // TCP uses this frame limit; UDP admission enforces edns_pktsz itself.
     let packet_limit = usize::from(runtime.scalar.edns_packet_max) + 255 + 10;
@@ -769,6 +791,24 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(target_os = "linux")]
     let pid_file = identity.write_pid(&runtime.process)?;
     #[cfg(target_os = "linux")]
+    let (mut logger, log_ownership_warning) = match dnsmasq_rs::logging::Logger::start(
+        &runtime.logging,
+        &runtime.process,
+        identity.log_owner_uid(),
+    ) {
+        Ok(value) => value,
+        Err(error) => {
+            dnsmasq_rs::logging::report_startup_failure(
+                &runtime.logging,
+                &runtime.process,
+                &error.message,
+            );
+            return Err(Box::new(error));
+        }
+    };
+    #[cfg(target_os = "linux")]
+    dnsmasq_rs::startup::redirect_standard_streams(&runtime.process);
+    #[cfg(target_os = "linux")]
     identity.drop_privileges(&runtime.process, capabilities)?;
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     if let Some(listener) = &tftp_listener {
@@ -881,6 +921,83 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         poll.dns_files = Some(dns_files);
         poll.route_watch = route_watch;
         poll.dns_port = runtime.scalar.dns_port;
+    }
+    #[cfg(target_os = "linux")]
+    {
+        use dnsmasq_rs::logging::{LogEvent, Priority, Service};
+        let started = if !dns_enabled {
+            "started, version 2.93 DNS disabled".to_owned()
+        } else if runtime.scalar.cache_size == 0 {
+            "started, version 2.93 cache disabled".to_owned()
+        } else {
+            format!(
+                "started, version 2.93 cachesize {}",
+                runtime.scalar.cache_size
+            )
+        };
+        logger.emit(LogEvent::new(
+            Service::Dns,
+            Priority::Info,
+            started.into_bytes(),
+        ));
+        if dns_enabled && runtime.scalar.cache_size > 10000 {
+            logger.emit(LogEvent::new(Service::Dns, Priority::Warning,
+                b"cache size greater than 10000 may cause performance issues, and is unlikely to be useful.".to_vec()));
+        }
+        if dns_enabled && daemon_config.local_service_net {
+            logger.emit(LogEvent::new(
+                Service::Dns,
+                Priority::Info,
+                b"DNS service limited to local subnets".to_vec(),
+            ));
+        } else if dns_enabled && daemon_config.local_service_host {
+            logger.emit(LogEvent::new(
+                Service::Dns,
+                Priority::Info,
+                b"DNS service limited to localhost".to_vec(),
+            ));
+        }
+        logger.emit(LogEvent::new(
+            Service::Dns,
+            Priority::Info,
+            format!(
+                "compile time options: {}",
+                dnsmasq_rs::startup::cli::COMPILE_TIME_OPTIONS
+            )
+            .into_bytes(),
+        ));
+        if let Some(error) = log_ownership_warning {
+            logger.emit(LogEvent::new(
+                Service::Dns,
+                Priority::Warning,
+                format!(
+                    "warning: failed to change owner of {}: {}",
+                    runtime.logging.file.as_deref().unwrap().display(),
+                    dnsmasq_rs::logging::error_text(&error)
+                )
+                .into_bytes(),
+            ));
+        }
+        if dns_enabled && daemon_config.no_resolv && daemon_config.rules.is_empty() {
+            logger.emit(LogEvent::new(
+                Service::Dns,
+                Priority::Warning,
+                b"warning: no upstream servers configured".to_vec(),
+            ));
+        }
+        poll.log_cleared_cache = dns_enabled
+            && runtime.scalar.cache_size > 0
+            && daemon_config.no_hosts
+            && daemon_config.addn_hosts.is_empty();
+        if poll.log_cleared_cache {
+            // The initial host/cache generation above has been constructed.
+            logger.emit(LogEvent::new(
+                Service::Dns,
+                Priority::Info,
+                b"cleared cache".to_vec(),
+            ));
+        }
+        poll.logger = Some(logger);
     }
     // `-k` is the normal OpenWrt invocation. Stop handlers let workers leave
     // their bounded receive loops and release sockets before exit.
@@ -1020,7 +1137,9 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                     }
                     if opened {
                         if daemon_config.listen_addresses.contains(&address.ip())
-                            && !interfaces.iter().any(|interface| interface.address == address.ip())
+                            && !interfaces
+                                .iter()
+                                .any(|interface| interface.address == address.ip())
                         {
                             persistent_unowned.push(address);
                         }
@@ -1097,6 +1216,27 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         owrt_ubus::sys::poll_fds(&mut fds, 2)?;
     }
     #[cfg(target_os = "linux")]
+    if let Some(logger) = &mut poll.logger {
+        use dnsmasq_rs::logging::{LogEvent, Priority, Service};
+        logger.emit(LogEvent::new(
+            Service::Dns,
+            Priority::Info,
+            b"exiting on receipt of SIGTERM".to_vec(),
+        ));
+        let deadline = Instant::now() + Duration::from_millis(100);
+        while !logger.finish() && Instant::now() < deadline {
+            let mut fds: Vec<_> = logger
+                .poll_fds()
+                .map(|fd| owrt_ubus::sys::PollFd {
+                    fd,
+                    events: owrt_ubus::sys::POLLOUT,
+                    revents: 0,
+                })
+                .collect();
+            owrt_ubus::sys::poll_fds(&mut fds, 2)?;
+        }
+    }
+    #[cfg(target_os = "linux")]
     pid_file.cleanup();
     Ok(())
 }
@@ -1162,6 +1302,10 @@ struct SinglePoll {
     probe_metrics: Option<Metrics>,
     full_reload_pending: bool,
     retry_bound_listeners: bool,
+    #[cfg(target_os = "linux")]
+    logger: Option<dnsmasq_rs::logging::Logger>,
+    #[cfg(target_os = "linux")]
+    log_cleared_cache: bool,
     #[cfg(target_os = "linux")]
     dns_files: Option<DnsFiles>,
     #[cfg(target_os = "linux")]
@@ -1414,6 +1558,10 @@ impl SinglePoll {
             full_reload_pending: false,
             retry_bound_listeners: false,
             #[cfg(target_os = "linux")]
+            logger: None,
+            #[cfg(target_os = "linux")]
+            log_cleared_cache: false,
+            #[cfg(target_os = "linux")]
             dns_files: None,
             #[cfg(target_os = "linux")]
             route_watch: None,
@@ -1472,6 +1620,17 @@ impl SinglePoll {
                 .lock()
                 .map_err(|_| io::Error::other("DHCP state lock poisoned"))?;
             report_dhcp_maintenance(&provider.reload_data_files(now_seconds()));
+        }
+        #[cfg(target_os = "linux")]
+        if self.log_cleared_cache {
+            if let Some(logger) = &mut self.logger {
+                use dnsmasq_rs::logging::{LogEvent, Priority, Service};
+                logger.emit(LogEvent::new(
+                    Service::Dns,
+                    Priority::Info,
+                    b"cleared cache".to_vec(),
+                ));
+            }
         }
         Ok(())
     }
@@ -1587,6 +1746,15 @@ impl SinglePoll {
 
     #[cfg(target_os = "linux")]
     fn append_file_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>) {
+        if let Some(logger) = &self.logger {
+            for fd in logger.poll_fds() {
+                fds.push(owrt_ubus::sys::PollFd {
+                    fd,
+                    events: owrt_ubus::sys::POLLOUT,
+                    revents: 0,
+                });
+            }
+        }
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
             provider.lock().unwrap().append_file_fds(fds);
@@ -1651,6 +1819,18 @@ impl SinglePoll {
     }
 
     fn step(&mut self) {
+        #[cfg(target_os = "linux")]
+        if let Some(logger) = &mut self.logger {
+            if LOG_REOPEN_REQUESTED
+                .fetch_update(Ordering::AcqRel, Ordering::Acquire, |count| {
+                    count.checked_sub(1)
+                })
+                .is_ok()
+            {
+                let _ = logger.reopen();
+            }
+            logger.flush_ready();
+        }
         // C drains subscription/metrics requests before processing DHCP.
         // This also applies to port=0, where no DNS listener can drain UBus.
         {
@@ -2013,6 +2193,9 @@ impl SinglePoll {
         if let Some(metrics) = self.probe_metrics.as_mut() {
             write_lease_metrics(metrics, leases);
         }
+        if let Some(logger) = &mut self.logger {
+            logger.flush_ready();
+        }
         let full_deadline = Instant::now() + timeout;
         let mut deadline = full_deadline;
         let mut fds = vec![PollFd {
@@ -2020,6 +2203,15 @@ impl SinglePoll {
             events: POLLIN,
             revents: 0,
         }];
+        if let Some(logger) = &self.logger {
+            for fd in logger.poll_fds() {
+                fds.push(PollFd {
+                    fd,
+                    events: POLLOUT,
+                    revents: 0,
+                });
+            }
+        }
         for listener in &self.listeners {
             if let Some(udp) = &listener.udp {
                 fds.push(PollFd {
