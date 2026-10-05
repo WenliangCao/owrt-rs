@@ -93,6 +93,20 @@
     },
     {
       "actions": [],
+      "config": "listen-address=0.0.0.0\n",
+      "mode": "wildcard",
+      "name": "explicit-any4-wildcard",
+      "profile": "explicit-any4"
+    },
+    {
+      "actions": [],
+      "config": "listen-address=::\n",
+      "mode": "wildcard",
+      "name": "explicit-any6-wildcard",
+      "profile": "explicit-any6"
+    },
+    {
+      "actions": [],
       "config": "interface=absent0\n",
       "mode": "wildcard",
       "name": "missing-wildcard",
@@ -281,6 +295,20 @@
     },
     {
       "actions": [],
+      "config": "bind-interfaces\nlisten-address=0.0.0.0\n",
+      "mode": "static",
+      "name": "explicit-any4-static",
+      "profile": "explicit-any4"
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\nlisten-address=::\n",
+      "mode": "static",
+      "name": "explicit-any6-static",
+      "profile": "explicit-any6"
+    },
+    {
+      "actions": [],
       "config": "bind-interfaces\ninterface=absent0\n",
       "mode": "static",
       "name": "missing-static",
@@ -466,6 +494,20 @@
       "mode": "dynamic",
       "name": "unowned-loopback-dynamic",
       "profile": "unowned-loopback"
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\nlisten-address=0.0.0.0\n",
+      "mode": "dynamic",
+      "name": "explicit-any4-dynamic",
+      "profile": "explicit-any4"
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\nlisten-address=::\n",
+      "mode": "dynamic",
+      "name": "explicit-any6-dynamic",
+      "profile": "explicit-any6"
     },
     {
       "actions": [],
@@ -971,6 +1013,8 @@
     "same-link-local-wildcard",
     "cross-ingress-wildcard",
     "unowned-loopback-wildcard",
+    "explicit-any4-wildcard",
+    "explicit-any6-wildcard",
     "missing-wildcard",
     "no-address-wildcard",
     "down-link-wildcard",
@@ -996,6 +1040,8 @@
     "same-link-local-static",
     "cross-ingress-static",
     "unowned-loopback-static",
+    "explicit-any4-static",
+    "explicit-any6-static",
     "missing-static",
     "no-address-static",
     "down-link-static",
@@ -1021,6 +1067,8 @@
     "same-link-local-dynamic",
     "cross-ingress-dynamic",
     "unowned-loopback-dynamic",
+    "explicit-any4-dynamic",
+    "explicit-any6-dynamic",
     "missing-dynamic",
     "no-address-dynamic",
     "down-link-dynamic",
