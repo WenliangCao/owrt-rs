@@ -267,6 +267,14 @@ def cases():
                      'mode': ['-k'], 'fault': name, 'fault_number': number, 'fault_errno': errno.EPERM,
                      'exit': 5, 'pidfile': '/m2/logging/daemon.pid', 'user': 'nobody',
                      'receiver': 'dgram', 'argv': [], 'options': ['no-daemon']})
+    rows.append({'id': 'helper-credential-fault-foreground', 'scope': 'startup-fault', 'kind': 'run',
+                 'mode': ['-k'], 'fault': 'helper-setuid', 'fault_number': 146, 'fault_errno': errno.EPERM,
+                 'fault_follow_child': True, 'exit': 5, 'pidfile': '/m2/logging/daemon.pid',
+                 'helper_script': True, 'receiver': 'dgram',
+                 'argv': ['--log-facility=-', '--dhcp-script=/m2/logging/script', '--dhcp-scriptuser=nobody',
+                          '--dhcp-range=127.0.0.10,127.0.0.20,255.0.0.0,10m', '--no-ping',
+                          '--dhcp-broadcast', '--dhcp-leasefile=/m2/logging/leases'],
+                 'options': ['no-daemon']})
     rows.append({'id': 'pid-chown-capability-missing', 'scope': 'ownership-warning', 'kind': 'run',
                  'mode': ['-k'], 'pidfile': '/m2/logging/daemon.pid', 'user': 'nobody',
                  'drop_chown': True, 'receiver': 'dgram', 'argv': [], 'options': ['no-daemon']})
@@ -1344,7 +1352,7 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
         status = wait_stop()
         if not os.WIFSTOPPED(status):
             raise AssertionError('tracee did not stop at initial exec')
-        ptrace(0x4200, 0, 1 | (2 if case['fault'] == 'fork-two' else 0))  # TRACESYSGOOD, optional TRACEFORK
+        ptrace(0x4200, 0, 1 | (2 if case['fault'] == 'fork-two' or case.get('fault_follow_child') else 0))
         for _ in range(50000):
             ptrace(24)
             status = wait_stop()
@@ -1352,10 +1360,10 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                 process.returncode = os.waitstatus_to_exitcode(status)
                 attached = False
                 raise AssertionError('tracee exited before selected startup syscall')
-            if status >> 16 == 1 and case['fault'] == 'fork-two':
+            if status >> 16 == 1 and (case['fault'] == 'fork-two' or case.get('fault_follow_child')):
                 child = ctypes.c_ulong()
                 ptrace(0x4201, 0, ctypes.addressof(child))
-                ptrace(7)  # Original parent can read its error channel normally.
+                ptrace(17 if case.get('fault_follow_child') else 7)
                 pid = child.value
                 status = wait_stop()
                 if not os.WIFSTOPPED(status):
