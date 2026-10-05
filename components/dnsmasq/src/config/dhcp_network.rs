@@ -62,6 +62,25 @@ fn address(value: &[u8], error: &'static str) -> Result<Ipv4Addr, Error> {
         .ok_or(Error(error))
 }
 
+/// Startup/packet interface resolution uses the host namespace, never mutating it.
+#[cfg(unix)]
+pub fn interface_index(name: &[u8]) -> u32 {
+    use std::ffi::{c_char, CString};
+    extern "C" {
+        fn if_nametoindex(name: *const c_char) -> u32;
+    }
+    let Ok(name) = CString::new(name) else {
+        return 0;
+    };
+    // SAFETY: NUL-terminated string lives through libc's read-only lookup.
+    unsafe { if_nametoindex(name.as_ptr()) }
+}
+
+#[cfg(not(unix))]
+pub fn interface_index(_: &[u8]) -> u32 {
+    0
+}
+
 impl NetworkConfig {
     /// Only shared-network interface selectors require startup resolution.
     /// Bridge masters resolve at the actual packet caller, as C does.
