@@ -1525,6 +1525,31 @@ mod tests {
     }
 
     #[test]
+    fn interface_cache_refresh_is_separate_from_route_publication() {
+        let address = "127.0.0.2:53".parse().unwrap();
+        let mut resolver = transport(
+            group(&[address], false),
+            Options::default(),
+            Duration::from_secs(2),
+        );
+        let mut source = SourceSpec::wildcard(address, 0);
+        source.interface = if cfg!(target_os = "linux") { b"lo".to_vec() } else { b"lo0".to_vec() };
+        source.refresh_interface_index();
+        let actual = source.ifindex;
+        assert_ne!(actual, 0);
+        source.ifindex = actual + 10;
+        resolver.configure_source_sockets(SocketSettings::default(), HashMap::from([(ServerId(1), source.clone())]));
+        source.ifindex = actual;
+        resolver.configure_source_sockets(SocketSettings::default(), HashMap::from([(ServerId(1), source)]));
+        assert_eq!(resolver.source_bindings[&ServerId(1)].ifindex, actual + 10);
+        resolver.refresh_source_interface_indices();
+        assert_eq!(resolver.source_bindings[&ServerId(1)].ifindex, actual);
+        resolver.source_bindings.get_mut(&ServerId(1)).unwrap().interface = b"missing_endpoint".to_vec();
+        resolver.refresh_source_interface_indices();
+        assert_eq!(resolver.source_bindings[&ServerId(1)].ifindex, actual);
+    }
+
+    #[test]
     fn retired_pool_origin_is_not_shared_while_another_server_keeps_its_owner() {
         let first = UdpSocket::bind("127.0.0.1:0").unwrap();
         let second = UdpSocket::bind("127.0.0.1:0").unwrap();
