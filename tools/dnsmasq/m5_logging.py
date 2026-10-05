@@ -1624,6 +1624,21 @@ def controls():
     result['debug-unlisten-required'] = bool(compare(dict(debug_row, stderr=debug_row['stderr'].splitlines()[0]), debug_row, debug_case, True))
     result['debug-disabled-no-output'] = bool(compare(debug_row, debug_row, dict(debug_case, debug_enabled=False), True))
     assert all(result[name] for name in ['debug-actual-interface-index', 'debug-unlisten-required', 'debug-disabled-no-output'])
+    def capped_script(pid, length=1024, poison=False):
+        prefix = f'dnsmasq-script[{pid}]: '
+        body = 'x' * (length - len(prefix) - 1)
+        if poison:
+            body = body[:-1] + 'y'
+        return ('dnsmasq-script[1]: one\ndnsmasq-script[1]: \ndnsmasq-script[1]: nul\n'
+                + prefix + body + '\n' + 'dnsmasq-script[1]: tail\ndnsmasq[1]: script process exited with status 7\n')
+    capped_case = {'id': 'cap-control', 'kind': 'run', 'script_probes': 'output'}
+    capped = dict(row, stderr=capped_script(99))
+    assert not compare(capped, dict(capped, stderr=capped_script(100)), capped_case)
+    for name, bad in [('record-cap-short', capped_script(100, 1023)),
+                      ('record-cap-long', capped_script(100, 1025)),
+                      ('record-cap-payload', capped_script(100, poison=True))]:
+        result[name] = bool(compare(capped, dict(capped, stderr=bad), capped_case))
+        assert result[name]
     copied_case = {'id': 'copied-control', 'kind': 'run', 'queued_tcp': True, 'late_receiver': True}
     copied_lines = ['TCP connection failed to 127.0.0.2#15955', 'overflow: 3 log entries lost',
                     'started, version 2.93 cachesize 150', 'compile time options: fixture', 'overflow: 4 log entries lost']
