@@ -758,7 +758,7 @@
       "actions": [
         "duplicate-address"
       ],
-      "config": "bind-dynamic\ninterface=lan,late0\n",
+      "config": "bind-dynamic\ninterface=lan,dup0\n",
       "mode": "dynamic",
       "name": "duplicate-address-dynamic",
       "profile": "duplicate-address"

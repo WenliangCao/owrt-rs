@@ -345,7 +345,7 @@ impl<O: FileOpener> TftpListener<O> {
                     .iter()
                     .find(|row| row.address == route.server.ip())
                 {
-                    name.clone_from(&row.name);
+                    name.extend_from_slice(row.link_name());
                 }
             } else {
                 let Ok(found) =
