@@ -860,7 +860,11 @@ fn run_inner(
     let pid_file = identity.write_pid(&runtime.process).map_err(|error| {
         if !startup.active() {
             use dnsmasq_rs::logging::{emit_early, Priority};
-            emit_early(&mut early_logger, Priority::Critical, error.message.as_bytes());
+            emit_early(
+                &mut early_logger,
+                Priority::Critical,
+                error.message.as_bytes(),
+            );
             emit_early(&mut early_logger, Priority::Critical, b"FAILED to start up");
         }
         error
@@ -1082,6 +1086,12 @@ fn run_inner(
                 Priority::Warning,
                 b"warning: no upstream servers configured".to_vec(),
             ));
+        }
+        for range in &runtime.dhcp.ranges {
+            logger.emit(dnsmasq_rs::logging::startup::dhcp_range(range));
+        }
+        if let Some(event) = dnsmasq_rs::logging::startup::tftp(&runtime.tftp) {
+            logger.emit(event);
         }
         poll.log_cleared_cache = dns_enabled
             && runtime.scalar.cache_size > 0
@@ -1816,13 +1826,7 @@ impl SinglePoll {
     }
 
     fn reload_in_progress(&self) -> bool {
-        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-        if self
-            .dhcp
-            .as_ref()
-            .and_then(|dhcp| dhcp.provider.as_ref())
-            .is_some_and(|provider| provider.lock().unwrap().file_work_pending())
-        {
+        if self.dhcp_reload_in_progress() {
             return true;
         }
         #[cfg(target_os = "linux")]
@@ -1833,6 +1837,19 @@ impl SinglePoll {
         {
             false
         }
+    }
+
+    fn dhcp_reload_in_progress(&self) -> bool {
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if self
+            .dhcp
+            .as_ref()
+            .and_then(|dhcp| dhcp.provider.as_ref())
+            .is_some_and(|provider| provider.lock().unwrap().file_work_pending())
+        {
+            return true;
+        }
+        false
     }
 
     fn files_initializing(&self) -> bool {
@@ -2703,7 +2720,7 @@ impl SinglePoll {
         }
         // EVENT_RELOAD is consumed before DHCP in C. A completed bank is
         // still intermediate when another delivered SIGHUP waits in the queue.
-        if RELOAD_REQUESTED.load(Ordering::Acquire) != 0 || self.reload_in_progress() {
+        if RELOAD_REQUESTED.load(Ordering::Acquire) != 0 || self.dhcp_reload_in_progress() {
             return;
         }
         let Some(mut dhcp) = self.dhcp.take() else {
