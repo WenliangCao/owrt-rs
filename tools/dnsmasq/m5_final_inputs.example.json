@@ -11,15 +11,16 @@
   "dhcp_plan": "/home/ubuntu/owrt-control-plane-rs/private/dnsmasq-rewrite/evidence/M2/dhcp/plan-v1.json",
   "stock_apk": "/home/ubuntu/ib/openwrt-imagebuilder-25.12.5-mediatek-filogic.Linux-x86_64/dl/dnsmasq-2.93-r1.779c7728.apk",
   "variant_apks": [
+    "/home/ubuntu/owrt-control-plane-rs/private/dnsmasq-rewrite/evidence/M4/package-faa-accepted-1791030400/variant-apks/dnsmasq-dhcpv6-2.93-r1.apk",
+    "/home/ubuntu/owrt-control-plane-rs/private/dnsmasq-rewrite/evidence/M4/package-faa-accepted-1791030400/variant-apks/dnsmasq-full-2.93-r1.apk"
+  ],
+  "variant_dependency_apks": [
     "/home/ubuntu/owrt-control-plane-rs/private/dnsmasq-rewrite/evidence/M4/package-faa-accepted-1791030400/variant-apks/kmod-nf-conntrack-netlink-6.12.94-r1.apk",
     "/home/ubuntu/owrt-control-plane-rs/private/dnsmasq-rewrite/evidence/M4/package-faa-accepted-1791030400/variant-apks/libnfnetlink0-1.0.2-r1.apk",
     "/home/ubuntu/owrt-control-plane-rs/private/dnsmasq-rewrite/evidence/M4/package-faa-accepted-1791030400/variant-apks/libnettle8-3.10.2-r1.apk",
-    "/home/ubuntu/owrt-control-plane-rs/private/dnsmasq-rewrite/evidence/M4/package-faa-accepted-1791030400/variant-apks/dnsmasq-dhcpv6-2.93-r1.apk",
-    "/home/ubuntu/owrt-control-plane-rs/private/dnsmasq-rewrite/evidence/M4/package-faa-accepted-1791030400/variant-apks/dnsmasq-full-2.93-r1.apk",
     "/home/ubuntu/owrt-control-plane-rs/private/dnsmasq-rewrite/evidence/M4/package-faa-accepted-1791030400/variant-apks/libgmp10-6.3.0-r2.apk",
     "/home/ubuntu/owrt-control-plane-rs/private/dnsmasq-rewrite/evidence/M4/package-faa-accepted-1791030400/variant-apks/libnetfilter-conntrack3-1.1.0-r1.apk"
   ],
-  "variant_dependency_apks": [],
   "budget": "/home/ubuntu/M5-FINAL/source/tools/dnsmasq/m5_final_budget.json",
   "family_plan": "/home/ubuntu/M5-FINAL/private/family-replay.json",
   "deferred_review": "/home/ubuntu/M5-FINAL/private/deferred-review.json",

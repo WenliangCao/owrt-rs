@@ -11,6 +11,13 @@ import m5_final_validation as final
 
 
 class FinalValidationTests(unittest.TestCase):
+    def test_input_example_has_two_variants_and_five_dependencies(self):
+        spec = json.loads(Path(final.__file__).with_name('m5_final_inputs.example.json').read_text())
+        self.assertEqual(len(spec['variant_apks']), 2)
+        self.assertEqual(len(spec['variant_dependency_apks']), 5)
+        self.assertTrue(all(Path(path).name.startswith('dnsmasq-') for path in spec['variant_apks']))
+        self.assertTrue(all(not Path(path).name.startswith('dnsmasq-') for path in spec['variant_dependency_apks']))
+
     def test_partial_result_cannot_pass(self):
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / 'result.json'
