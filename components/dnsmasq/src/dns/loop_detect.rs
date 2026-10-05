@@ -17,7 +17,7 @@ pub struct LoopProbe {
     pub server: ServerId,
     pub address: SocketAddr,
     pub endpoint: crate::config::dns::ServerEndpoint,
-    pub packet: Vec<u8>,
+    pub packet: [u8; 31],
 }
 
 impl LoopState {
@@ -90,13 +90,15 @@ impl LoopState {
     }
 }
 
-pub fn probe(uid: u32, id: u16) -> Vec<u8> {
-    let mut packet = Vec::with_capacity(30);
-    for value in [id, 0x0100, 1, 0, 0, 0] {
-        packet.extend_from_slice(&value.to_be_bytes());
+pub fn probe(uid: u32, id: u16) -> [u8; 31] {
+    let mut packet = [0; 31];
+    packet[..2].copy_from_slice(&id.to_be_bytes());
+    packet[2] = 1; // RD
+    packet[5] = 1; // one question
+    packet[12] = 8;
+    for (index, byte) in packet[13..21].iter_mut().enumerate() {
+        *byte = b"0123456789abcdef"[((uid >> (28 - index * 4)) & 15) as usize];
     }
-    packet.push(8);
-    packet.extend_from_slice(format!("{uid:08x}").as_bytes());
-    packet.extend_from_slice(b"\x04test\0\x00\x10\x00\x01");
+    packet[21..].copy_from_slice(b"\x04test\0\x00\x10\x00\x01");
     packet
 }

@@ -294,7 +294,7 @@ pub struct UpstreamResolver<R = OsRandom> {
 struct LoopSend {
     token: SocketToken,
     address: SocketAddr,
-    packet: Vec<u8>,
+    packet: [u8; 31],
     deadline: Instant,
 }
 
