@@ -390,6 +390,17 @@ def service_cases():
                 files.write('dir/one','127.0.0.40 updated.records.test\n'),files.probe('changed','updated.records.test'),
                 {'op':'helper-events','id':'changed-helper'},{'op':'unlink','path':'dir/one'},files.probe('lease-name-retained','updated.records.test'),
                 {'op':'helper-events','id':'removed-helper'}])
+    for mode in ('fifo','partial-eio','shutdown'):
+        add('hostsdir-runtime-'+mode,hosts_config+('log-facility=-\n' if mode!='shutdown' else ''),[],
+            'HDIR-EVENT HDIR-CALLER',files={'dir/one':'192.0.2.7 one.records.test\n'},actions=[
+                files.probe('initial','one.records.test'),dict(op='write',path='hosts-stream',text='',
+                    hosts_stream=mode,stream_text='192.0.2.8 one.records.test\n192.0.2.9 partial.records.test'),
+                *([] if mode=='shutdown' else [files.probe('completed','one.records.test'),files.probe('partial-final','partial.records.test')])])
+    add('hostsdir-runtime-emfile',hosts_config+'local=/records.test/\nlog-facility=-\n',[],'HDIR-EVENT HDIR-CALLER',
+        files={'dir/one':'192.0.2.7 one.records.test\n'},actions=[files.probe('initial','one.records.test'),
+            {'op':'fd-limit','limit':'first-free'},files.write('dir/one','192.0.2.8 one.records.test\n'),
+            files.probe('open-failed-source-removed','one.records.test',transports=['udp']),files.probe('owner-still-healthy','ready.files.test',transports=['udp']),
+            {'op':'fd-limit','restore':True},files.write('dir/one','192.0.2.9 one.records.test\n'),files.probe('recovered','one.records.test')])
     def kernel(argv):return dict(op='write',path='kernel-action',text='',kernel_command=argv)
     def state(label):return dict(op='write',path='interface-state',text='',interface_state=label)
     v4only={'name':'m5ir0','addresses':['198.18.91.9/24']}
@@ -769,6 +780,46 @@ def run_service_side(root,side,case,out):
                 files.await_predicate(lambda:initial_flag_matches(Path('/proc/net/if_inet6').read_text(),case['initial_flag']),
                     'actual domain-source IPv6 flag before startup')
             initial_commands_applied=True
+        if isinstance(value,dict) and value.get('hosts_stream'):
+            pid=int((root/'m2/files.pid').read_text());target=root/'m2/files/dir/one';staged=root/'m2/files/staged-fifo'
+            os.mkfifo(staged);staged.replace(target)
+            writer=None
+            def attach():
+                nonlocal writer
+                try:writer=os.open(target,os.O_WRONLY|os.O_NONBLOCK);return True
+                except OSError as error:
+                    if error.errno!=errno.ENXIO:raise
+                    return False
+            files.await_predicate(attach,'actual hostsdir FIFO reader opened')
+            descriptors=files.await_predicate(lambda:files.open_file_fds(pid,'/m2/files/dir/one'),'actual hostsdir stream read FD')
+            mode=value['hosts_stream'];evidence={'label':'hosts-stream','mode':mode,'read_fds':descriptors}
+            tracer=None
+            try:
+                if mode=='partial-eio':
+                    trace_path=out/'hosts-read-error.json'
+                    tracer=subprocess.Popen([sys.executable,str(Path(__file__).with_name('m5_dns_files.py')),'--trace-read-error',str(pid),str(descriptors[0]['fd']),str(trace_path)])
+                    files.await_predicate(lambda:Path(str(trace_path)+'.ready').exists() or tracer.poll() is not None,'hosts read fault attached')
+                    if tracer.poll() is not None:raise AssertionError('hosts read fault attach failed')
+                    os.write(writer,value['stream_text'].encode())
+                    files.await_predicate(lambda:trace_path.exists() or tracer.poll() is not None,'hosts successful prefix read')
+                    if tracer.poll() is None:os.write(writer,b'never-consumed')
+                    if tracer.wait(5)!=0:raise AssertionError('hosts read EIO tracer failed')
+                    evidence['fault']=json.loads(trace_path.read_text())
+                    if not evidence['fault']['injected'] or not any(row['result']>0 for row in evidence['fault']['reads']):raise AssertionError('actual hosts partial EIO missing')
+                else:
+                    port=int(re.search(r'^port=(\d+)$',(root/'m2/files.conf').read_text(),re.M).group(1))
+                    evidence['health']=files.local_health(port)
+                    if evidence['health']['healthy']!=(side=='rust'):raise AssertionError('C blocking / Rust hostsdir owner progress missing')
+                    if mode=='shutdown':
+                        os.kill(pid,signal.SIGTERM)
+                        files.await_predicate(lambda:not Path('/proc',str(pid),'exe').exists(),'hosts stream shutdown before writer release')
+                        evidence['terminated_before_release']=True
+                    else:os.write(writer,value['stream_text'].encode())
+            finally:
+                os.close(writer)
+                if tracer and tracer.poll() is None:tracer.kill();tracer.wait()
+            states.append(evidence)
+            return
         if isinstance(value,dict) and 'hosts_read_barrier' in value:
             marker='read '+value['hosts_read_barrier']+' - 1 names'
             files.await_predicate(lambda:marker in (out/'stderr').read_text(),'hosts source read completion before rename')
@@ -983,6 +1034,15 @@ def witness_errors(observed,side,case):
         if case.get('initial_flag') and not any(state['label']=='initial-kernel' and initial_flag_matches(state['ipv6_flags'],case['initial_flag']) for state in observed.get('interface_states',[])):
             errors.append('actual flagged domain source witness missing')
     for action in case['actions']:
+        if action.get('hosts_stream'):
+            mode=action['hosts_stream'];proof=next((state for state in observed.get('interface_states',[]) if state['label']=='hosts-stream' and state['mode']==mode),None)
+            if not proof or not proof.get('read_fds'):errors.append('actual hostsdir stream read FD witness missing')
+            elif mode=='partial-eio':
+                fault=proof.get('fault',{})
+                if not fault.get('injected') or not any(row['result']>0 for row in fault.get('reads',[])) or not any(row.get('injected') and row['result']==-errno.EIO for row in fault.get('reads',[])):
+                    errors.append('actual hostsdir consumed-prefix/EIO witness missing')
+            elif proof.get('health',{}).get('healthy')!=(side=='rust') or (mode=='shutdown' and not proof.get('terminated_before_release')):
+                errors.append('hostsdir C blocking/Rust owner progress or shutdown witness missing')
         if action.get('domain_dhcp'):
             wanted=action['domain_dhcp']
             actual=next((row for row in observed.get('domain_dhcp',[]) if row['label']==wanted['label']),None)
@@ -1046,6 +1106,11 @@ def compare_service(left,right,case):
     guards=[{'phase':'witness','side':side,'error':error} for side,observed in [('c',left),('rust',right)]
         for error in witness_errors(observed,side,case)]
     if guards:return guards,[]
+    for action in case['actions']:
+        if action.get('hosts_stream') in ('fifo','shutdown'):
+            mode=action['hosts_stream'];differences.append({'reason':'C hostsdir stream read blocks the parent; Rust keeps the single owner serving the prior complete generation.',
+                'mode':mode,'c':next(state for state in left['interface_states'] if state.get('mode')==mode),
+                'rust':next(state for state in right['interface_states'] if state.get('mode')==mode)})
     if case.get('debug_blocking_reference'):
         expected=[a['id']+':'+transport for a in case['actions'] if a['op']=='query' for transport in a.get('transports',['udp','tcp'])]
         if [r['id'] for r in left['rows']]!=expected or [r['id'] for r in right['rows']]!=expected:
