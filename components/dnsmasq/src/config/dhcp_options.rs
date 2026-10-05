@@ -274,6 +274,26 @@ impl DhcpMatch {
     }
 }
 
+impl DhcpOption {
+    pub(crate) fn log_descriptor(
+        code: u8,
+    ) -> Option<(&'static [u8], crate::dhcp::logging::OptionLogKind)> {
+        let (name, _, hint) = OPTIONS.iter().find(|(_, number, _)| *number == code)?;
+        let kind = if hint & ADDR != 0 {
+            crate::dhcp::logging::OptionLogKind::Address
+        } else if hint & NAME != 0 {
+            crate::dhcp::logging::OptionLogKind::Name
+        } else if hint & TIME != 0 {
+            crate::dhcp::logging::OptionLogKind::Time
+        } else if matches!(code, 13 | 22 | 23 | 26 | 35 | 38 | 53 | 93 | 108) {
+            crate::dhcp::logging::OptionLogKind::Decimal
+        } else {
+            crate::dhcp::logging::OptionLogKind::Raw
+        };
+        Some((name, kind))
+    }
+}
+
 fn parse(argument: &EncodedArg, matching: bool) -> Result<(DhcpOption, Vec<bool>), Error> {
     let mut rest = argument.clone();
     let mut tags = Vec::new();

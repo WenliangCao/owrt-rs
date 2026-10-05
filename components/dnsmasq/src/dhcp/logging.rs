@@ -111,3 +111,199 @@ mod tests {
         );
     }
 }
+
+#[derive(Clone, Copy, Eq, PartialEq)]
+pub(crate) enum OptionLogKind {
+    Address,
+    Name,
+    Time,
+    Decimal,
+    Raw,
+}
+
+/// The names come from the shared exact-image option table. Only OT_DEC
+/// entries use decimal; scalar size hints alone remain hexadecimal in C.
+pub fn option_name(code: u8) -> &'static [u8] {
+    crate::config::dhcp::DhcpOption::log_descriptor(code).map_or(b"", |(name, _)| name)
+}
+
+pub fn option_value(code: u8, data: &[u8]) -> Vec<u8> {
+    let kind = crate::config::dhcp::DhcpOption::log_descriptor(code).map(|(_, kind)| kind);
+    match kind {
+        Some(OptionLogKind::Address) => data
+            .chunks_exact(4)
+            .map(|bytes| Ipv4Addr::new(bytes[0], bytes[1], bytes[2], bytes[3]).to_string())
+            .collect::<Vec<_>>()
+            .join(", ")
+            .into_bytes(),
+        Some(OptionLogKind::Name) => sanitise_option(Some(data)),
+        Some(OptionLogKind::Time | OptionLogKind::Decimal) if !data.is_empty() => {
+            let value = data
+                .iter()
+                .fold(0u32, |value, byte| value.wrapping_shl(8) | u32::from(*byte));
+            if kind == Some(OptionLogKind::Time) {
+                duration(value)
+            } else {
+                value.to_string().into_bytes()
+            }
+        }
+        _ => {
+            let mut value = data
+                .iter()
+                .take(14)
+                .map(|byte| format!("{byte:02x}"))
+                .collect::<Vec<_>>()
+                .join(":")
+                .into_bytes();
+            if data.len() > 14 {
+                value.extend_from_slice(b"...");
+            }
+            value
+        }
+    }
+}
+
+pub fn duration(seconds: u32) -> Vec<u8> {
+    if seconds == u32::MAX {
+        return b"infinite".to_vec();
+    }
+    let mut text = String::new();
+    for (value, suffix) in [
+        (seconds / 86400, 'd'),
+        (seconds / 3600 % 24, 'h'),
+        (seconds / 60 % 60, 'm'),
+        (seconds % 60, 's'),
+    ] {
+        if value != 0 {
+            text.push_str(&format!("{value}{suffix}"));
+        }
+    }
+    text.into_bytes()
+}
+
+pub fn user_class(value: &[u8]) -> Vec<u8> {
+    let mut at = 0;
+    while at < value.len() {
+        at += usize::from(value[at]) + 1;
+    }
+    if at != value.len() {
+        return sanitise_option(Some(value));
+    }
+    let mut normalized = value.to_vec();
+    let mut at = 0;
+    while at < value.len() {
+        normalized[at] = 0;
+        at += usize::from(value[at]) + 1;
+    }
+    sanitise_option(Some(&normalized))
+}
+
+pub fn detail(xid: u32, label: &[u8], value: &[u8]) -> Vec<u8> {
+    let mut message = format!("{xid} ").into_bytes();
+    message.extend_from_slice(label);
+    message.extend_from_slice(value);
+    message
+}
+
+pub fn tags(xid: u32, values: &[&[u8]]) -> Option<Vec<u8>> {
+    if values.is_empty() {
+        return None;
+    }
+    let mut value = Vec::new();
+    for (index, tag) in values.iter().enumerate() {
+        if values[index + 1..].contains(tag) {
+            continue;
+        }
+        value.extend_from_slice(tag);
+        if index + 1 != values.len() {
+            value.extend_from_slice(b", ");
+        }
+    }
+    value.truncate(503);
+    Some(detail(xid, b"tags: ", &value))
+}
+
+pub fn requested_options(xid: u32, codes: &[u8]) -> Vec<Vec<u8>> {
+    let mut events = Vec::new();
+    let mut value = Vec::new();
+    for (index, code) in codes.iter().enumerate() {
+        value.extend_from_slice(code.to_string().as_bytes());
+        let name = option_name(*code);
+        if !name.is_empty() {
+            value.push(b':');
+            value.extend_from_slice(name);
+        }
+        if index + 1 != codes.len() {
+            value.extend_from_slice(b", ");
+        }
+        if index + 1 == codes.len() || value.len() > 40 {
+            events.push(detail(xid, b"requested options: ", &value));
+            value.clear();
+        }
+    }
+    events
+}
+
+/// dhcp_packet_size visits overloaded file/sname before primary options.
+/// The serializer has already supplied its actual final fields and flags.
+pub fn reply_details(packet: &[u8]) -> Vec<Vec<u8>> {
+    if packet.len() < 240 {
+        return Vec::new();
+    }
+    let xid = u32::from_be_bytes(packet[4..8].try_into().unwrap());
+    let overload =
+        crate::dhcp::packet::find_option(&packet[240..], 52, 1).map_or(0, |option| option.value[0]);
+    let mut events = Vec::new();
+    fn options(xid: u32, region: &[u8], events: &mut Vec<Vec<u8>>) {
+        let mut at = 0;
+        while at < region.len() {
+            let code = region[at];
+            at += 1;
+            if code == 255 {
+                return;
+            }
+            if code == 0 {
+                continue;
+            }
+            let Some(&length) = region.get(at) else {
+                return;
+            };
+            at += 1;
+            let Some(data) = region.get(at..at + usize::from(length)) else {
+                return;
+            };
+            at += usize::from(length);
+            let mut message = format!("{xid} sent size:{length:3} option:{code:3} ").into_bytes();
+            message.extend_from_slice(option_name(code));
+            message.extend_from_slice(b"  ");
+            message.extend_from_slice(&option_value(code, data));
+            events.push(message);
+        }
+    }
+    for (bit, range, label) in [
+        (1, 108..236, b"bootfile name: ".as_slice()),
+        (2, 44..108, b"server name: ".as_slice()),
+    ] {
+        let region = &packet[range];
+        if overload & bit != 0 {
+            options(xid, region, &mut events);
+        } else {
+            let end = region
+                .iter()
+                .position(|byte| *byte == 0)
+                .unwrap_or(region.len());
+            if end != 0 {
+                events.push(detail(xid, label, &region[..end]));
+            }
+        }
+    }
+    let server = Ipv4Addr::from(<[u8; 4]>::try_from(&packet[20..24]).unwrap());
+    if !server.is_unspecified() {
+        events.push(detail(xid, b"next server: ", server.to_string().as_bytes()));
+    }
+    if packet[10] & 0x80 != 0 && packet[12..16] == [0; 4] {
+        events.push(detail(xid, b"broadcast response", b""));
+    }
+    options(xid, &packet[240..], &mut events);
+    events
+}

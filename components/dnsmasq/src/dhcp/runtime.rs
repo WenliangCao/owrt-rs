@@ -98,6 +98,10 @@ impl DatagramSender for crate::net::DatagramSocket {
 pub trait OutcomeProvider {
     fn resolve(&mut self, dispatch: &Dispatch<'_>) -> Result<Outcome, RuntimeError>;
 
+    /// Record actual serialized output before destination/ARP/send failure.
+    fn record_reply(&mut self, _request: super::packet::Packet<'_>, _reply: Reply, _output: &[u8]) {
+    }
+
     fn direct_pxe_reply(
         &mut self,
         _request: super::packet::Packet<'_>,
@@ -958,6 +962,7 @@ where
     if !matches!(outcome.reply, Reply::Nak { .. }) && provider.force_broadcast(&outcome) {
         buffer[10] |= 0x80;
     }
+    provider.record_reply(dispatch.packet, outcome.reply, &buffer[..encoding.len]);
     restore_relay_source(&dispatch, buffer);
     let mut destination = match destination_with_ports(
         &dispatch,
@@ -2786,8 +2791,12 @@ mod tests {
         let mut counters = MessageCounters::default();
         let notifications = Cell::new(0);
         let request_notices = Cell::new(0);
+        let tag_notices = Cell::new(0);
         let mut on_event = |event: state::LogEvent<'_>| {
-            if let state::LogEvent::Packet { .. } = event {
+            if let state::LogEvent::Tags { context } = event {
+                assert_eq!(context, Some(0));
+                tag_notices.set(tag_notices.get() + 1);
+            } else if let state::LogEvent::Packet { .. } = event {
                 assert_eq!(
                     event,
                     state::LogEvent::Packet {
@@ -2872,6 +2881,7 @@ mod tests {
         // containing DHCP caller attempts socket delivery. A send error must
         // neither undo those events nor count another packet-level event.
         struct SourceOrderSender<'a> {
+            tag_notices: &'a Cell<usize>,
             request_notices: &'a Cell<usize>,
             notifications: &'a Cell<usize>,
             sent: bool,
@@ -2888,11 +2898,17 @@ mod tests {
                     3,
                     "request notices must precede send"
                 );
+                assert_eq!(
+                    self.tag_notices.get(),
+                    3,
+                    "selected tag notices must precede send"
+                );
                 self.sent = true;
                 Err(io::Error::from(io::ErrorKind::BrokenPipe))
             }
         }
         let mut sender = SourceOrderSender {
+            tag_notices: &tag_notices,
             request_notices: &request_notices,
             notifications: &notifications,
             sent: false,
