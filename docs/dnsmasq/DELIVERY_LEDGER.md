@@ -2,12 +2,12 @@
 
 ## 当前状态与下一步
 
-- 当前里程碑：M5；169 项中 **163 项已关闭、6 项部分实现、0 项未实现，剩余 6 项**。
-- 刚关闭：`domain`、`domain-suffix`普通完整合同；f027e0c2／f26de495…c5efe27，75普通frozen required逐项观察映射、129syntax／107service、每侧2702观察（2694DNS＋8实际DHCP）、24负控，missing/diff/infra均0。resolver#/流式partialEIO/FIFO、actual双栈接口flags/子网/lifecycle、别名与port0/DHCP、CIDR local routing及hostsdir current-subnet等普通caller覆盖；2911路径／2062文件SHA+metadata核验清远端；2溢出配置及极端SRV组件长度明确deferred，剩余6。
+- 当前里程碑：M5；169 项中 **164 项已关闭、5 项部分实现、0 项未实现，剩余 5 项**。
+- 刚关闭：`test`最终169选项普通语法合同；39ff36d7／8acf35fd…8376f62，345配对（169×2 CLI/file形式＋7 controls）missing/failures均0。完整成功提示、CNAME-loop/unknown CLI错误、config-script执行等严格，version分派保留已声明Rust实现归属窄例外/原始字节；3166路径／2426文件SHA+metadata归档核验清远端。剩余5。
 - 当前代码：最新冻结构建 `a5c337b7`／ELF `6cd6201a6c6337baf022837e07091640e224b90f0a6afc2636025b0f6efda228`，**1,949,736字节（M4 +790,456）**；实际Linux691库＋10main通过（19ignored不计），release/tests全SHA+metadata已回拷。包含loop普通header/sourceUID修复、hostsdir单owner、query TXT/dupe/retry、DHCP最小packet producer及真实allocator trace（各未资格项继续普通对照）；关闭项独立资格身份见逐表。allocator内联约束固定源码独立控制实测省143,360字节，后两控制ELF逐字节同，未修改分配行为或伪造日志。主树只剩用户docs/prompts修改，M5未结束。
-- 下一步：hostsdir完整普通事件/源UID/动态DNS与DHCP资格；query/DHCP logging实际producer剩余；loop-detect完整源银行/socket/owner对照；test169普通345 forms/controls在未知CLI诊断修复候选重跑。普通单项通过立即提交扣数；极端known-deferred不等待、不重开普通资格。完成169后统一同ELF完整M2、5分钟资源试跑、两压力、APK生命周期和满载RSS，新增体积最终交用户决定。
+- 下一步：hostsdir完整普通事件/源UID/动态DNS与DHCP资格；query/DHCP logging最后实际producer；loop-detect完整源银行/socket/owner普通90配对。CLI/test已闭合；普通单项通过立即提交扣数，极端known-deferred不等待、不重开普通资格。完成169后统一同ELF完整M2、5分钟资源试跑、两压力、APK生命周期和满载RSS，新增体积最终交用户决定。
 - 阻塞点：无须用户决定。oracle最近可用31GB（85%）；运行证据按功能族全SHA+metadata回拷后立即prune，旧失败和partial/reference-only完整保留，不计通过。物理路由器未触碰。[功能族体积归因](M5_SIZE_ATTRIBUTION.md)已补至query/domain/loop阶段；旧Cargo mtime复用矩阵被整轮拒绝，固定路径独立source-pool等价优化实测省16,384字节且C回归通过，loop固定31字节数组消除每包分配但混合阶段净体积0不冒称独立节省。较大混合阶段继续评估，不复用M4体积特许，统一验收后交用户决定。
-- 活跃分工：后续子代理不指定 model/reasoning_effort，fork_turns 用默认值，全量继承主线程模型、推理档位和上下文；当前 4 个运行代理不重启。edns_resume 完成 EDNS/cache（refs/archive/dnsmasq/M5-dns-cache-contract-20261005）后转 m5/loop-detect-contract，endpoints_resume 完成端点（archive/m5-dns-endpoints-20261005-resume3）并交接 m5/interface-records 新族，logging_resume 续接 m5/logging-contract，tftp_resume 完成TFTP错误及script-arp普通合同（archive/m5-script-arp-contract-20261005-resume3）完成m5/dhcp-network-contract四项（archive/m5-dhcp-network-contract-20261005）并完成dump（archive/m5-dump-contract-20261005）后转m5/cli-final-contract；旧ARP树/branch已保存durable refs后清理，DHCP/cache clean旧树已退役、dump clean旧树退役中；四个当前任务树均有效；原 EDNS/TFTP 任务树和分支已在 durable refs 保存后清理。root 独占 main.rs、dns/daemon.rs、dns/tcp_service.rs、config/dns.rs、config/dhcp.rs、dhcp/daemon.rs 公共接线和账本。完成族按规则保留 durable refs 后清树/branch；用户 docs/prompts 保持原样。
+- 活跃分工：后续子代理不指定 model/reasoning_effort，fork_turns 用默认值，全量继承主线程模型、推理档位和上下文；当前 4 个运行代理不重启。edns_resume 完成 EDNS/cache（refs/archive/dnsmasq/M5-dns-cache-contract-20261005）后转 m5/loop-detect-contract，endpoints_resume 完成端点（archive/m5-dns-endpoints-20261005-resume3）并交接 m5/interface-records 新族，logging_resume 续接 m5/logging-contract，tftp_resume 完成TFTP错误及script-arp普通合同（archive/m5-script-arp-contract-20261005-resume3）完成m5/dhcp-network-contract四项（archive/m5-dhcp-network-contract-20261005）并完成dump（archive/m5-dump-contract-20261005）并完成CLI（archive/m5-cli-final-contract-20261005）后准备M5统一验收；旧ARP树/branch已保存durable refs后清理，DHCP/cache clean旧树已退役、dump/CLI clean旧树已退役；四个当前任务树均有效；原 EDNS/TFTP 任务树和分支已在 durable refs 保存后清理。root 独占 main.rs、dns/daemon.rs、dns/tcp_service.rs、config/dns.rs、config/dhcp.rs、dhcp/daemon.rs 公共接线和账本。完成族按规则保留 durable refs 后清树/branch；用户 docs/prompts 保持原样。
 - 续接注意：只从本账本恢复，不读旧聊天。DNS files 不得在 DHCP probe 回调里读取；check_servers 只看 DNS-selected 地址/端口/scope。source ifindex 仅在精确 C 枚举边界刷新，普通 inline/HUP/wait 不刷新；dynamic/local-service=net 地址事件、parent TCP accept 与实际 file check_servers 分别有接线。EDNS NO_CACHE 只限制缓存读/写，coalescing 按有效 option bytes 区分；C 跨客户端身份错误保留独立请求控制。任何 partial/reference-only 运行不得自动关项。
 
 ## 工作规则
@@ -58,7 +58,7 @@ M4 的单 poll owner 已替换六线程接线，决定见 [ADR_THREAD_MODEL.md](
 
 ## M5 盘点与工作顺序
 
-盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**163 项已实现并有 C 差分，6 项部分实现，0 项未实现；剩余 6 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
+盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**164 项已实现并有 C 差分，5 项部分实现，0 项未实现；剩余 5 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
 
 对镜像 init 的静态调用路径核对得到 **A 组 99 项、B 组 70 项**。A 表示原生 UCI/init 生成或调用，行号链接到保留原文的 init；B 表示通常需额外配置。`extraconftext`/conf-dir 可以透传任意指令，不据此把全部选项都算原生生成。`pxe-service`、`pxe-prompt`、`interface-name` 实际有 init 生成路径，归 A。26 个 excluded-capability 选项不混入169项计数；其与C一致的禁用/拒绝边界仍保留。
 
@@ -244,7 +244,7 @@ M5 退出条件：169项全部实现并有C差分，或已证明与C一致的拒
 | `log-malloc` | B / — | 启动/日志/监听 | 已实现，有C差分 | [CLI最终log-malloc闭合](../../private/dnsmasq-rewrite/evidence/M5/cli-final/close-logmalloc-f54-20261005.json)；按用户2026-10-06更正，仅接受/启动/--test需匹配；15配对（5syntax＋10runtime）零缺项/差异，DNS/HUP/TFTP/stderr/file/syslog/TERM与FD及其他启动日志严格。f54b65e0／e5422f0f…07eef42，1,912,872B；3729路径/2914文件SHA+metadata核验清远端；C分配trace内容与Rust无trace见[行为差异表](M5_BEHAVIOR_DIFFERENCES.md)，全局allocator已撤，实验durable ref/size控制保留。 |
 | `no-ident` | B / — | 启动/日志/监听 | 已实现，有C差分 | [M5 NO_ID闭合](../../private/dnsmasq-rewrite/evidence/M5/logging/final-noident-daemon-c80/no-ident-close-summary.json)；8配置／每侧228观察／4边界／16负控通过；CHAOS bind/server、explicit IN TXT、QCLASS ANY阴性、binary/RD/DO及双传输覆盖。26条C TCP遗留OPT缺陷单列最小复现，未删除DO守卫；c80c04e6／a7b051f3…e32f0d5，1,646,632字节，混合族增量另记；完整归档核验清远端。 |
 | `quiet-tftp` | B / — | 启动/日志/监听 | 已实现，有C差分 | [M5 quiet-tftp 闭合](../../private/dnsmasq-rewrite/evidence/M5/logging/narrow-ef-close-20261005/quiet-tftp-close-summary.json)；六完整配置/每侧 30 TFTP 观察、QTF01/02 全映射、16 负控、零差异和无强制回收；完整 wire 留存、sanitise/499 字节、permission/read/mode/write/client-error/sent/failure/port 耗尽及双方真实 120 秒超时。ef11e06b／607b2565…e4c1ba4a，1,695,784 字节；ecb90a67…3296449 归档 6,310 路径/5,445 文件全 SHA+metadata 核验清远端。 |
-| `test` | B / — | 启动/日志/监听 | 部分实现 | 成功syntax-check提示、退出码/错误加载消费者已具实际C差分；最终169普通选项全语法资格由m5/cli-final-contract准备，仍等待最后消费者及统一候选。 |
+| `test` | B / — | 启动/日志/监听 | 已实现，有C差分 | [169选项最终语法闭合](../../private/dnsmasq-rewrite/evidence/M5/cli-final/close-test-39ff-20261005.json)；345实际配对＝169×2普通CLI/file形式＋7controls，missing/failures均0；成功提示、CNAME-loop/unknownCLI通用try--help文字、config-script真实执行与earlyhelp/version分派严格。39ff36d7／8acf35fd…8376f62，1,929,256B；3166路径/2426文件SHA+metadata核验清远端，已有Rustversion归属仅窄例外、原始bytes保留；后继最终统一候选仍须复测。 |
 
 ### not implemented 拒绝点（基线逐处列出）
 
