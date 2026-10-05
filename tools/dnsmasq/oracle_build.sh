@@ -1,6 +1,6 @@
 #!/bin/sh
 # Build an immutable source snapshot; all Oracle DNS builds share one cache.
-# Usage: sh oracle_build.sh SOURCE FRESH_PRIVATE_OUTPUT [release|tests|ubus-tests]
+# Usage: sh oracle_build.sh SOURCE FRESH_PRIVATE_OUTPUT [release|tests|ubus-tests|fuzz]
 set -eu
 [ "$#" -ge 2 ] && [ "$#" -le 3 ] || exit 2
 source_dir=$(realpath "$1")
@@ -10,7 +10,7 @@ case "$output_dir" in /home/ubuntu/*/private/*) ;; *) echo 'private output requi
 [ ! -e "$output_dir" ] || { echo 'fresh output required' >&2; exit 2; }
 [ -f "$source_dir/components/dnsmasq/Cargo.toml" ] || exit 2
 case "$source_dir" in *' '*) echo 'source path contains whitespace' >&2; exit 2;; esac
-case "$build_kind" in release|tests|ubus-tests) ;; *) exit 2;; esac
+case "$build_kind" in release|tests|ubus-tests|fuzz) ;; *) exit 2;; esac
 package_name=dnsmasq-rs
 manifest_path="$source_dir/components/dnsmasq/Cargo.toml"
 if [ "$build_kind" = ubus-tests ]; then
@@ -23,6 +23,55 @@ mkdir -p "$CARGO_TARGET_DIR" "$output_dir"
 # shared output between Cargo returning and the immutable copy being saved.
 exec 9>"$CARGO_TARGET_DIR/.dnsmasq-build.lock"
 flock 9
+if [ "$build_kind" = fuzz ]; then
+    # Instrumented fuzz ELFs are separate native artifacts from the same source.
+    # Build in an output-owned copy so Cargo.lock/corpus never alter the freeze.
+    mkdir -p "$output_dir/input/components"
+    cp -R "$source_dir/components/dnsmasq" "$source_dir/components/ubus" "$output_dir/input/components/"
+    unset RUSTFLAGS CARGO_ENCODED_RUSTFLAGS RUSTC_WRAPPER RUSTC_WORKSPACE_WRAPPER
+    unset CARGO_BUILD_TARGET RUSTUP_TOOLCHAIN
+    export CARGO_PROFILE_RELEASE_OPT_LEVEL=3
+    cargo=/home/ubuntu/.cargo/bin/cargo
+    fuzz_manifest="$output_dir/input/components/dnsmasq/fuzz/Cargo.toml"
+    "$cargo" +nightly clean --manifest-path "$fuzz_manifest" \
+        --package dnsmasq-rs --package dnsmasq-fuzz --package owrt-ubus \
+        --target aarch64-unknown-linux-gnu --release \
+        >"$output_dir/clean.stdout" 2>"$output_dir/clean.log"
+    for fuzz_target in dns_wire dhcp_packet config_line; do
+        "$cargo" +nightly fuzz build "$fuzz_target" --fuzz-dir "$(dirname "$fuzz_manifest")" \
+            --target aarch64-unknown-linux-gnu --target-dir "$CARGO_TARGET_DIR" \
+            >"$output_dir/$fuzz_target.build.stdout" 2>"$output_dir/$fuzz_target.build.log"
+        cp "$CARGO_TARGET_DIR/aarch64-unknown-linux-gnu/release/$fuzz_target" "$output_dir/$fuzz_target"
+    done
+    "$cargo" +nightly -V >"$output_dir/cargo-version"
+    "$cargo" +nightly fuzz -V >"$output_dir/cargo-fuzz-version"
+    /home/ubuntu/.cargo/bin/rustc +nightly -Vv >"$output_dir/rustc-version"
+    python3 - "$source_dir" "$output_dir" <<'PY'
+import hashlib, json, os, pathlib, sys
+source, out = map(pathlib.Path, sys.argv[1:])
+def digest(path): return hashlib.sha256(path.read_bytes()).hexdigest()
+files = {str(path.relative_to(source)): digest(path)
+         for component in ('dnsmasq', 'ubus')
+         for path in (source / 'components' / component).rglob('*')
+         if path.is_file() and 'target' not in path.parts
+         and path != source / 'components/dnsmasq/fuzz/Cargo.lock'}
+for name, expected in files.items():
+    if digest(out / 'input' / name) != expected:
+        raise RuntimeError(f'fuzz build changed a source input: {name}')
+artifacts = [out / name for name in ('dns_wire', 'dhcp_packet', 'config_line')]
+report = {'source': str(source), 'kind': 'fuzz', 'cargo_target_dir': os.environ['CARGO_TARGET_DIR'],
+          'source_files': files, 'native_target': 'aarch64-unknown-linux-gnu', 'sanitizer': 'address',
+          'cargo_version': (out / 'cargo-version').read_text().strip(),
+          'cargo_fuzz_version': (out / 'cargo-fuzz-version').read_text().strip(),
+          'rustc_version': (out / 'rustc-version').read_text().strip(),
+          'fuzz_lock_sha256': digest(out / 'input/components/dnsmasq/fuzz/Cargo.lock'),
+          'scope': 'instrumented native targets from frozen source; not the shipped musl ELF',
+          'artifacts': [{'path': path.name, 'bytes': path.stat().st_size, 'sha256': digest(path)} for path in artifacts]}
+(out / 'build.json').write_text(json.dumps(report, indent=2) + '\n')
+print(json.dumps(report))
+PY
+    exit 0
+fi
 toolchain=/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl
 export STAGING_DIR="$toolchain"
 export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER="$toolchain/bin/aarch64-openwrt-linux-musl-gcc"
