@@ -462,8 +462,10 @@ def service_cases():
         actions=[files.probe('initial','iface.records.test',transports=['udp']),
             kernel(['ip','addr','add','198.18.91.10/24','dev','m5ir0']),
             kernel(['ip','-6','addr','add','2001:db8:91::10/64','dev','m5ir0','nodad']),
+            dict(op='write',path='remove-linklocal',text='',kernel_remove_linklocal=True),state('allocation-input'),
             dict(op='write',path='allocation-fault',text='',allocation_fault=True),
             files.probe('faulted','iface.records.test',transports=['udp']),
+            files.probe('ptr-old4','9.91.18.198.in-addr.arpa',type=12,transports=['udp']),
             files.probe('ptr-new4','10.91.18.198.in-addr.arpa',type=12,transports=['udp']),
             files.probe('ptr-new6',ipaddress.ip_address('2001:db8:91::10').reverse_pointer,type=12,transports=['udp']),
             files.probe('recovered','iface.records.test',transports=['udp'])])
@@ -553,6 +555,13 @@ def run_service_side(root,side,case,out):
             files.await_predicate(lambda:Path(str(path)+'.ready').exists() or tracer.poll() is not None,'enumeration fault attach')
             if tracer.poll() is not None:raise AssertionError('enumeration fault tracer exited')
             tracers.append((tracer,path));return
+        if isinstance(value,dict) and 'kernel_remove_linklocal' in value:
+            addresses=json.loads(subprocess.check_output(['ip','-j','-6','addr','show','dev','m5ir0'],text=True))
+            for interface in addresses:
+                for address in interface['addr_info']:
+                    if ipaddress.ip_address(address['local']).is_link_local:
+                        subprocess.run(['ip','-6','addr','del',address['local']+'/'+str(address['prefixlen']),'dev','m5ir0'],check=True)
+            return
         if isinstance(value,dict) and 'kernel_temporary' in value:
             expected=value['kernel_temporary'];deadline=time.monotonic()+12
             while True:
@@ -653,8 +662,7 @@ def compare_service(left,right,case):
         if [r['id'] for r in left['rows']]!=expected or [r['id'] for r in right['rows']]!=expected:
             return [{'phase':'debug-boundary','error':'exact transport rows missing'}],[]
         projections={side:{r['id']:r for r in data['rows']} for side,data in [('c',left),('rust',right)]}
-        for ident,c_data,rust_data in [('debug-parent:udp',None,['198.18.91.10','198.18.91.9']),
-                                      ('debug-child-after:held',['198.18.91.9'],['198.18.91.10','198.18.91.9'])]:
+        for ident,c_data,rust_data in [('debug-parent:udp',None,['198.18.91.10','198.18.91.9'])]:
             for side,wanted in [('c',c_data),('rust',rust_data)]:
                 row=projections[side][ident];answer=row.get('response')
                 if wanted is None:
@@ -666,10 +674,10 @@ def compare_service(left,right,case):
                 if not valid:return [{'phase':'debug-boundary','side':side,'id':ident,'error':'source blocking/owner progress model not observed'}],[]
             differences.append({'id':ident,'reason':'C debug TCP loop holds the parent poll; Rust continues UDP and publishes the parent interface generation.',
                                 'c':projections['c'][ident],'rust':projections['rust'][ident]})
-        removed={'debug-parent:udp','debug-child-after:held'}
+        removed={'debug-parent:udp'}
         left=copy.deepcopy(left);right=copy.deepcopy(right);case=copy.deepcopy(case)
         for observed in (left,right):observed['rows']=[row for row in observed['rows'] if row['id'] not in removed]
-        case['actions']=[a for a in case['actions'] if a.get('id') not in {'debug-parent','debug-child-after'}]
+        case['actions']=[a for a in case['actions'] if a.get('id') not in {'debug-parent'}]
     return files.compare(comparable_service(left),comparable_service(right),case),differences
 
 
