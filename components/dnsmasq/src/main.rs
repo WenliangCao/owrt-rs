@@ -1107,6 +1107,15 @@ fn run_inner(
                 b"warning: no upstream servers configured".to_vec(),
             ));
         }
+        let async_limit = logger.async_queue_limit();
+        if async_limit != 0 {
+            logger.emit(LogEvent::new(
+                Service::Dns,
+                Priority::Info,
+                format!("asynchronous logging enabled, queue limit is {async_limit} messages")
+                    .into_bytes(),
+            ));
+        }
         for range in &runtime.dhcp.ranges {
             logger.emit(dnsmasq_rs::logging::startup::dhcp_range(range));
         }
@@ -3169,16 +3178,9 @@ impl SinglePoll {
                 })
         });
         if let (Ok(events), Some(logger)) = (events, self.logger.as_mut()) {
-            use dnsmasq_rs::logging::{LogEvent, Priority, Service};
             for event in events {
-                if let Some((code, message)) = event.error_message() {
-                    if code != 1 || !quiet_not_found {
-                        logger.emit(LogEvent::new(
-                            Service::Tftp,
-                            Priority::Error,
-                            message.to_vec(),
-                        ));
-                    }
+                if let Some(event) = event.log_event(quiet_not_found) {
+                    logger.emit(event);
                 }
             }
         }
