@@ -2785,15 +2785,29 @@ mod tests {
         let reserved: &[Ipv4Addr] = &[];
         let mut counters = MessageCounters::default();
         let notifications = Cell::new(0);
+        let request_notices = Cell::new(0);
         let mut on_event = |event: state::LogEvent<'_>| {
-            assert_eq!(
-                event,
-                state::LogEvent::Ack {
-                    address: requested,
-                    name: Some(b"test")
-                }
-            );
-            notifications.set(notifications.get() + 1);
+            if let state::LogEvent::Packet { .. } = event {
+                assert_eq!(
+                    event,
+                    state::LogEvent::Packet {
+                        kind: b"DHCPREQUEST",
+                        address: Some(requested),
+                        extra: None,
+                        error: None
+                    }
+                );
+                request_notices.set(request_notices.get() + 1);
+            } else {
+                assert_eq!(
+                    event,
+                    state::LogEvent::Ack {
+                        address: requested,
+                        name: Some(b"test")
+                    }
+                );
+                notifications.set(notifications.get() + 1);
+            }
         };
         let mut provider = StateProvider::new(
             &mut store,
@@ -2858,6 +2872,7 @@ mod tests {
         // containing DHCP caller attempts socket delivery. A send error must
         // neither undo those events nor count another packet-level event.
         struct SourceOrderSender<'a> {
+            request_notices: &'a Cell<usize>,
             notifications: &'a Cell<usize>,
             sent: bool,
         }
@@ -2868,11 +2883,17 @@ mod tests {
                     3,
                     "source callback must precede send"
                 );
+                assert_eq!(
+                    self.request_notices.get(),
+                    3,
+                    "request notices must precede send"
+                );
                 self.sent = true;
                 Err(io::Error::from(io::ErrorKind::BrokenPipe))
             }
         }
         let mut sender = SourceOrderSender {
+            request_notices: &request_notices,
             notifications: &notifications,
             sent: false,
         };
