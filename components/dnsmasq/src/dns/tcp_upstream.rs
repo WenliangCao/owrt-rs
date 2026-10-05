@@ -162,6 +162,21 @@ impl TcpUpstream {
         }
     }
 
+    /// Seed a newly accepted child's first choice from the parent's successful
+    /// UDP forwarding state, as C inherits serverarray[first]->last_server.
+    pub fn set_preferred_servers(
+        &mut self,
+        preferred: impl IntoIterator<Item = (GroupId, ServerId)>,
+    ) {
+        for (id, server) in preferred {
+            if let Some(group) = self.groups.get_mut(&id) {
+                if let Some(index) = group.servers.iter().position(|entry| entry.id == server) {
+                    group.last_connected = index;
+                }
+            }
+        }
+    }
+
     pub fn socket_count(&self) -> usize {
         self.groups
             .values()
