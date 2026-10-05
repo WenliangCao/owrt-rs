@@ -426,7 +426,13 @@ def allocation_contract(args, root, pid, folder, upstream, record):
         while not Path(str(output) + '.ready').exists() and tracer.poll() is None and time.monotonic() < deadline:
             time.sleep(.01)
         assert Path(str(output) + '.ready').exists(), 'allocator breakpoint readiness'
-        (folder / 'first-health.reply').write_bytes(tcp_health())
+        if record == 'positive':
+            # Fill the receiver's baseline positive records before triggering
+            # the second slot allocation; C exact path uses a fresh identity.
+            first_reply = tcp_health()
+        else:
+            first_reply = health()
+        (folder / 'first-health.reply').write_bytes(first_reply)
         assert tracer.wait(3) == 0, 'allocator trace exit'
         receipt = json.loads(output.read_text())
         assert receipt['injected'], 'actual record allocation did not fail'
