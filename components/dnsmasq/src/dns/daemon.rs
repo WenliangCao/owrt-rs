@@ -559,13 +559,14 @@ impl<R: Random> DnsDaemon<R> {
         if !self.local.config.loop_detect {
             return Ok(());
         }
-        let probes = if !self.startup_loop_probes.is_empty() {
+        let startup = !self.startup_loop_probes.is_empty();
+        let probes = if startup {
             std::mem::take(&mut self.startup_loop_probes)
         } else {
             self.loop_state
                 .probes(&self.server_sources, self.upstream.random_mut())?
         };
-        self.upstream.loop_probe_batch(probes);
+        self.upstream.loop_probe_batch(probes, startup);
         Ok(())
     }
 

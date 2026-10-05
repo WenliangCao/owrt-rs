@@ -367,7 +367,11 @@ impl<R: Random> UpstreamResolver<R> {
     /// loop.c borrows the normal source allocator without a forward record,
     /// query metric, dump packet, or reply transaction. Hold each reference
     /// across the whole probe batch, then release it after its actual send.
-    pub(crate) fn loop_probe_batch(&mut self, probes: Vec<super::loop_detect::LoopProbe>) {
+    pub(crate) fn loop_probe_batch(
+        &mut self,
+        probes: Vec<super::loop_detect::LoopProbe>,
+        startup: bool,
+    ) {
         for probe in probes {
             let super::loop_detect::LoopProbe {
                 server,
@@ -379,7 +383,13 @@ impl<R: Random> UpstreamResolver<R> {
             if let Some(previous) = self.source_bindings.get(&server) {
                 source.ifindex = previous.ifindex;
             }
-            let token = if let Some(token) = self.server_sockets.get(&server) {
+            // Initial check_servers sends probes before attaching the sfd to
+            // each server. A fixed-port socket already allocated at startup
+            // makes that initial random_sock bind fail with EADDRINUSE.
+            if startup && source.address.port() != 0 && self.server_sockets.contains_key(&server) {
+                continue;
+            }
+            let token = if let Some(token) = self.server_sockets.get(&server).filter(|_| !startup) {
                 Ok(*token)
             } else {
                 let pooled = self.sockets.values().filter(|owned| owned.pooled).count();

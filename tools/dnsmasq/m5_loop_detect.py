@@ -62,9 +62,11 @@ class Upstream:
         while not self.stop.is_set():
             try:
                 packet, peer = self.socket.recvfrom(65535)
+                if packet[2] & 0x80:
+                    continue  # Actual replies to invalid reflected probes are not upstream queries.
                 name, end = read_name(packet, 12)
                 kind = struct.unpack_from('!H', packet, end)[0]
-                probe = bool(re.fullmatch('[0-9a-f]{8}\\.test', name)) and kind == 16
+                probe = bool(re.fullmatch('[0-9a-f]{8}\\.test', name)) and kind == 16 and packet[2:12] == bytes.fromhex('01000001000000000000')
                 self.events.append(dict(probe=probe, name=name, type=kind, peer=list(peer),
                                         wire=packet.hex(), semantics=semantics(packet)))
                 if probe:
@@ -147,7 +149,7 @@ def run(root, side, case, folder):
                 result['after_hup_resources'] = resources(process.pid)
             result['probes'] = copy.deepcopy([event for event in upstream.events if event['probe']])
             result['ordinary_upstream'] = copy.deepcopy([event for event in upstream.events if not event['probe']])
-            result['logs'] = [line[line.index('using nameserver'):] if 'using nameserver' in line else line[line.index('NOT using nameserver'):]
+            result['logs'] = [line[line.index('NOT using nameserver'):] if 'NOT using nameserver' in line else line[line.index('using nameserver'):]
                               for line in (work / 'log').read_text().splitlines() if 'using nameserver' in line]
     finally:
         if process is not None:
@@ -190,7 +192,7 @@ def projection(value):
 
 def compare(c, rust, case):
     errors = []
-    expected_probes = (2 if case.get('hup') else 1) if case['enabled'] and not (case.get('domain') or case.get('dotless')) else 0
+    expected_probes = 1 if case['enabled'] and not any(case.get(key) for key in ['domain', 'dotless', 'fixed_port', 'source_port']) else 0
     for side, value in [('c', c), ('rust', rust)]:
         if len(value['probes']) != expected_probes: errors.append(dict(side=side, kind='probe-count', expected=expected_probes, actual=len(value['probes'])))
         for probe in value['probes']:
@@ -233,7 +235,8 @@ def main():
         except Exception as error: row['failures'].append(dict(kind='infrastructure', error=repr(error)))
         report['cases'].append(row); save(args.output / 'progress.json', report)
     report['failures'] = [dict(case=row['id'], **f) for row in report['cases'] for f in row['failures']]
-    report['qualified'] = not report['failures'] and len(selected) == len(cases())
+    report['qualified'] = False  # This first schedule is not the full family closure.
+    report['ordinary_schedule_passed'] = not report['failures'] and len(selected) == len(cases())
     save(args.output / 'result.json', report)
     print(json.dumps({'cases': len(selected), 'failures': len(report['failures']), 'qualified': report['qualified']}))
     return int(bool(report['failures']))
