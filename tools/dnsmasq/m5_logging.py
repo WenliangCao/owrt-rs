@@ -594,8 +594,10 @@ def debug_sequence(case, out, receiver):
         with socket.create_connection(('127.0.0.1', 15353), timeout=2) as client:
             client.sendall(len(wire).to_bytes(2, 'big') + wire)
             reply = exact_read(client, int.from_bytes(exact_read(client, 2), 'big'))
-        if reply[:2] != wire[:2] or semantics(reply)['flags'] & 15 != 2:
-            raise AssertionError('source TCP upstream-refusal SERVFAIL')
+        save(out / 'debug-tcp-wire.json', {'request': wire.hex(), 'reply': reply.hex(), 'semantics': semantics(reply)})
+        # With no connection made, C make_local_answer(flags0) uses REFUSED.
+        if reply[:2] != wire[:2] or semantics(reply)['flags'] & 15 != 5:
+            raise AssertionError('source TCP all-connections-failed REFUSED')
         time.sleep(.03)
         receiver.drain()
         return [{'request': wire.hex(), 'reply': reply.hex()}], None
