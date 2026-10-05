@@ -208,10 +208,12 @@ impl ForwardDispatcher {
             // C finds duplicates before lookup_domain. A duplicate retains
             // the first query's group even if configuration selection changes.
             let retained_group = self.table.get(submission.id).unwrap().group;
+            // Loop exclusion can remove that routing group while its sent
+            // exchange remains live. C filter_servers also stops this retry.
             let selected = self
                 .groups
                 .get_mut(&retained_group)
-                .expect("group checked before submit");
+                .ok_or(DispatchError::UnknownGroup(retained_group))?;
             Some(
                 self.table
                     .plan(submission.id, selected, reason, now)
@@ -518,6 +520,48 @@ mod tests {
             udp_limit: 512,
             log_id: 1,
         }
+    }
+
+    #[test]
+    fn retry_after_retained_group_exclusion_returns_an_error() {
+        let mut dispatcher = ForwardDispatcher::new(Options::default(), [group()], 1232);
+        let packet = query("example.test", 9);
+        let mut random = Counter(0);
+        let submitted = dispatcher
+            .submit(
+                &packet,
+                client(5000),
+                GroupId(1),
+                Scope::Shared,
+                0,
+                &mut random,
+            )
+            .unwrap();
+        assert!(dispatcher
+            .table_mut()
+            .note_sent(submitted.id, ServerId(7), SocketToken(5), 0));
+        let mut replacement = group();
+        replacement.id = GroupId(2);
+        replacement.servers[0].id = ServerId(9);
+        replacement.servers[1].id = ServerId(10);
+        dispatcher.replace_groups(vec![replacement], &[]);
+
+        let retry = dispatcher.submit(
+            &packet,
+            client(5000),
+            GroupId(2),
+            Scope::Shared,
+            3,
+            &mut random,
+        );
+        assert!(matches!(
+            retry,
+            Err(DispatchError::UnknownGroup(GroupId(1)))
+        ));
+        assert_eq!(
+            dispatcher.table().get(submitted.id).unwrap().group,
+            GroupId(1)
+        );
     }
 
     #[test]

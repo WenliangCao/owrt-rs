@@ -335,7 +335,12 @@ pub fn udp(
     }
     let mut address = source.address;
     let ports = if address.port() == 0 && settings.max_port != 0 {
-        u32::from(settings.max_port) - u32::from(settings.min_port) + 1
+        u32::from(settings.max_port)
+            .checked_sub(u32::from(settings.min_port))
+            .ok_or_else(|| {
+                io::Error::new(io::ErrorKind::InvalidInput, "invalid source port range")
+            })?
+            + 1
     } else {
         0
     };
@@ -409,5 +414,23 @@ mod tests {
             scalar.forward_max = forward_max;
             assert_eq!(SocketSettings::from_scalar(&scalar).pool_slots, 0);
         }
+    }
+
+    #[test]
+    fn inverted_source_port_range_returns_invalid_input() {
+        struct NoRandom;
+        impl Random for NoRandom {
+            fn next_u32(&mut self) -> io::Result<u32> {
+                panic!("an invalid range must fail before random port selection")
+            }
+        }
+        let source = SourceSpec::wildcard("192.0.2.53:53".parse().unwrap(), 0);
+        let settings = SocketSettings {
+            min_port: 60000,
+            max_port: 50000,
+            ..SocketSettings::default()
+        };
+        let failure = udp(&source, settings, &mut NoRandom).unwrap_err();
+        assert_eq!(failure.error.kind(), io::ErrorKind::InvalidInput);
     }
 }
