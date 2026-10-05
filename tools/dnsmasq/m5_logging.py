@@ -287,6 +287,12 @@ def cases():
                  'query_required_messages': ['cached-stale stale-udp.forward.test is 192.0.2.7',
                                              'cached-stale stale-tcp.forward.test is 192.0.2.7'],
                  'options': ['log-queries']})
+    refresh = copy.deepcopy(next(row for row in rows if row['id'] == 'query-stale-producers'))
+    refresh['id'] = 'query-stale-refresh-context'
+    refresh['query_refresh_reply'] = True
+    refresh['query_required_messages'].extend(['UDP 106 reply stale-udp.forward.test is 192.0.2.7',
+                                               'TCP 107 reply stale-tcp.forward.test is 192.0.2.7'])
+    rows.append(refresh)
     rows.append({'id': 'query-upstream-errors', 'scope': 'query-control', 'kind': 'run',
                  'argv': ['--log-facility=-', '--log-queries=proto', '--all-servers', '--server=127.0.0.2#15957', '--server=127.0.0.3#15958'],
                  'query_probes': True, 'query_mode': 'proto', 'query_sequence': [('ready.logging', 1), ('formerr.forward.test', 1), ('servfail.forward.test', 1), ('numeric.forward.test', 1)],
@@ -1025,7 +1031,8 @@ def identity_sequence(transport, calibrate, sticky_probe=None, fresh=False):
 
 class QueryUpstream:
     """Fixed-address UDP/TCP fixture; retain each actual request and response."""
-    def __init__(self):
+    def __init__(self, refresh_reply=False):
+        self.refresh_reply = refresh_reply
         self.sockets, self.clients, self.wire, self.errors = [], {}, [], []
         self.pending = []
         self.stale_seen = set()
@@ -1053,9 +1060,10 @@ class QueryUpstream:
             body = rr(5, wire_name('rebind-terminal.forward.test')) + rr(1, bytes([10, 1, 2, 3]), owner=wire_name('rebind-terminal.forward.test'))
             return request[:2] + struct.pack('!5H', 0x8180, 1, 2, 0, 0) + question + body
         if name.startswith('stale-'):
-            if name in self.stale_seen: return None
+            seen = name in self.stale_seen
+            if seen and not self.refresh_reply: return None
             self.stale_seen.add(name)
-            return request[:2] + struct.pack('!5H', 0x8180, 1, 1, 0, 0) + question + rr(1, bytes([192, 0, 2, 7]), ttl=1)
+            return request[:2] + struct.pack('!5H', 0x8180, 1, 1, 0, 0) + question + rr(1, bytes([192, 0, 2, 7]), ttl=120 if seen else 1)
         if name == 'alias.forward.test':
             body = rr(5, wire_name('terminal.forward.test')) + rr(1, bytes([192, 0, 2, 7]), owner=wire_name('terminal.forward.test'))
             return request[:2] + struct.pack('!5H', 0x8180, 1, 2, 0, 0) + question + body
@@ -1258,7 +1266,7 @@ def run(root, side, case, out):
     (folder / 'config').write_bytes(bytes.fromhex(case['config_bytes']) if 'config_bytes' in case else case.get('config', '').encode())
     for name, text in case.get('setup_files', {}).items():
         (folder / name).write_text(text)
-    query_upstream = QueryUpstream() if case.get('query_upstream') else None
+    query_upstream = QueryUpstream(case.get('query_refresh_reply', False)) if case.get('query_upstream') else None
     blocker = None
     tcp_upstream = None
     if case.get('tcp_rotate'):
@@ -1485,6 +1493,7 @@ def run(root, side, case, out):
                     trace['dns'].append(dict(raw, transport='udp-after-tcp'))
                     if case.get('query_stale_probe'):
                         rows, raw = query_stale_probe(); observed['dns'].extend(rows); trace['dns'].extend(raw)
+                        if case.get('query_refresh_reply'): time.sleep(.1)
                     if case.get('query_control_probe'):
                         rows, raw = query_control_probe(); observed['dns'].extend(rows); trace['dns'].extend(raw)
                     if case.get('query_transaction_probe'):
