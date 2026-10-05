@@ -1,0 +1,103 @@
+--- components/dnsmasq/src/dns/local.rs
++++ components/dnsmasq/src/dns/local.rs
+@@ -78,6 +78,7 @@
+ 
+ #[derive(Clone, Copy)]
+ struct LeaseView<'a> {
++    synth: &'a crate::config::synth_domain::SynthConfig,
+     names: &'a LeaseNames,
+     now: i64,
+     local_ttl: u32,
+@@ -151,7 +152,7 @@
+         lease_names: &mut Arc<LeaseNames>,
+         now: i64,
+         local_network: Option<(Ipv4Addr, Ipv4Addr)>,
+-        cache: Option<&mut Cache>,
++        mut cache: Option<&mut Cache>,
+         interfaces: &super::interface_records::InterfaceRecords,
+     ) -> Result<Option<LocalAnswer>, AnswerError> {
+         let header = Header::parse(query).map_err(|_| AnswerError::Malformed)?;
+@@ -181,6 +182,7 @@
+         }
+         let leases = LeaseView {
+             names: lease_names,
++            synth: &self.config.synth_domains,
+             now,
+             local_ttl: self.local_ttl,
+             local_network,
+@@ -211,6 +213,7 @@
+                 &question.name,
+                 question.qtype,
+                 leases,
++                cache.as_deref_mut(),
+                 &mut rows,
+                 &mut extra_rows,
+             );
+@@ -223,6 +226,7 @@
+                     question.qtype,
+                     self.local_ttl,
+                     leases,
++                    cache.as_deref(),
+                 );
+                 rows.extend(local_rows);
+                 owned = local_owned;
+@@ -707,6 +711,7 @@
+     alias: &Name,
+     qtype: u16,
+     leases: LeaseView<'_>,
++    cache: Option<&mut Cache>,
+     rows: &mut Vec<(u16, u32, Vec<u8>)>,
+     extra_rows: &mut Vec<(Vec<u8>, u16, u32, Vec<u8>)>,
+ ) -> bool {
+@@ -750,7 +755,7 @@
+     }
+ 
+     let (terminal_rows, _terminal_owned) =
+-        add_local_records_for_name(config, hosts, &current, qtype, ttl, leases);
++        add_local_records_for_name(config, hosts, &current, qtype, ttl, leases, cache.as_deref());
+     let owner = wire_name(&current).unwrap_or_else(|| vec![0]);
+     for (rrtype, record_ttl, data) in terminal_rows {
+         extra_rows.push((owner.clone(), rrtype, record_ttl, data));
+@@ -770,6 +775,7 @@
+     qtype: u16,
+     ttl: u32,
+     leases: LeaseView<'_>,
++    cache: Option<&Cache>,
+ ) -> (Vec<(u16, u32, Vec<u8>)>, bool) {
+     let key = dotted_key(name);
+     let mut rows = Vec::new();
+@@ -827,6 +833,13 @@
+                     lease.ttl(leases.now, leases.names.policy()),
+                     wire_name(&lease.name).unwrap_or_else(|| vec![0]),
+                 ));
++            } else if let Some(address) = address {
++                if !cache.is_some_and(|cache| cache.has_reverse_candidate(address, leases.now)) {
++                    if let Some(name) = leases.synth.reverse(address) {
++                        owned = true;
++                        rows.push((TYPE_PTR, ttl, wire_name(&name).unwrap_or_else(|| vec![0])));
++                    }
++                }
+             }
+         }
+     }
+@@ -876,6 +889,12 @@
+                     owned = true;
+                 }
+             }
++            if !owned && !cache.is_some_and(|cache| Name::from_dotted_bytes(name).ok().is_some_and(|query| cache.has_forward_candidate(&query, rrtype, leases.now))) {
++                if let Some(address) = leases.synth.forward(name, ipv6) {
++                    rows.push((rrtype, ttl, ip_bytes(address)));
++                    owned = true;
++                }
++            }
+         }
+     }
+     add_mx(&config.records, &key, qtype, ttl, &mut rows, &mut owned);
+@@ -1204,6 +1223,7 @@
+     }
+ 
+     known_forwarded_domain(config, hosts, query)
++        || wire_to_dotted(query).is_some_and(|name| config.synth_domains.name_exists(&name))
+         || wire_to_dotted(query).is_some_and(|name| leases.name_exists(&name, now))
+ }
+ 
