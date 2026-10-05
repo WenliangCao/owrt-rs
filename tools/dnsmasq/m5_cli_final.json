@@ -2589,16 +2589,11 @@
     "malloc-file-sink",
     "malloc-syslog-sink",
     "malloc-signal-cleanup",
-    "malloc-workload-no-overflow",
-    "malloc-disabled-control",
-    "malloc-idle-control",
-    "malloc-helper-inheritance"
+    "malloc-workload-no-overflow"
   ],
-  "log_malloc_contract": "Enable after logger and helper startup. System allocation hooks record actual Rust operations/layout/pointers at actual Rust source sites; C and Rust implementation-specific func/line,size,count,pointer differences are explicit. No fabricated C allocations or heap statistics. Real sink/gating/service/FD/order/lifecycle and ordinary no-loss control are required.",
+  "log_malloc_contract": "Explicit user scope: match C option acceptance, ordinary startup and --test behavior. C emits actual allocation/reallocation/free wrapper diagnostics; Rust accepts the option and starts normally but emits no allocation trace. Allocation sizes, source sites, pointer hashes, record counts and diagnostic contents are documented behavior differences, not reproduced or fabricated. The retired binary-only global allocator experiment is preserved separately.",
   "known_deferred": [
-    "allocator failures and pathological address reuse",
-    "trace overflow pressure beyond ordinary workloads",
-    "slow/blocking syslog under exhaustion",
+    "allocation-log contents intentionally differ by explicit user instruction",
     "extreme syntax numeric/malformed combinations"
   ]
 }
