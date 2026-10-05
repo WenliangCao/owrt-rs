@@ -7,6 +7,10 @@ family driver. Syntax alone never closes an endpoint option.
 """
 from __future__ import annotations
 import argparse
+import ctypes
+import errno
+import signal
+import sys
 import copy
 import json
 import os
@@ -145,6 +149,11 @@ def service_cases():
     add('pool-overflow-incompatible','dns-forward-max=4\nserver=/one.endpoint.test/127.0.0.2@127.0.0.9\nserver=/two.endpoint.test/127.0.0.3@127.0.0.8\nserver=/three.endpoint.test/127.0.0.4@127.0.0.7\n',actions=[dict(op='start-udp',id='one',name='one.endpoint.test'),dict(op='start-udp',id='two',name='two.endpoint.test'),dict(op='start-udp',id='three',name='three.endpoint.test'),dict(op='inject',id='three',server=2,capture_server=2),dict(op='receive-udp',id='three',pending='three'),dict(op='inject',id='two',server=1,capture_server=1),dict(op='receive-udp',id='two',pending='two'),dict(op='inject',id='one',server=0,capture_server=0),dict(op='receive-udp',id='one',pending='one')])
     add('pool-capacity-compatible','dns-forward-max=4\nserver=127.0.0.2\n',actions=[dict(op='start-udp',id=name,name=name+'.endpoint.test') for name in ('one','two','three')]+[action for name in ('three','two','one') for action in (dict(op='inject',id=name,server=0),dict(op='receive-udp',id=name,pending=name))],udp_unique_ports=2)
     add('source-fixed-repeated-hup','servers-file=/m2/files/servers\n',files={'servers':'server=127.0.0.2@127.0.0.9#34004\n'},actions=[action for i in range(4) for action in (probe('before'+str(i),str(i)+'.endpoint.test',transports=['udp']),signal_reload())],same_udp_port=True,expected_source_port=34004)
+    add('shared-socket-invalid-replies','min-port=34100\nmax-port=34100\nserver=127.0.0.2\n',injections=['wrong-id','wrong-name','wrong-type','short','valid'],actions=[dict(op='start-udp',id='held',name='held.endpoint.test')]+[action for i,mode in enumerate(('wrong-id','wrong-name','wrong-type','short')) for action in (dict(op='inject',id='held',server=0),dict(op='receive-udp',id='invalid'+str(i),pending='held',expect_timeout=True))]+[dict(op='inject',id='held',server=0),dict(op='receive-udp',id='valid',pending='held')],source_range=[34100,34100])
+    add('shared-socket-unrelated-source','min-port=34100\nmax-port=34100\nserver=127.0.0.2\n',actions=[dict(op='start-udp',id='held',name='held.endpoint.test'),dict(op='inject',id='held',server=1),dict(op='receive-udp',id='wrong-source',pending='held',expect_timeout=True),dict(op='inject',id='held',server=0),dict(op='receive-udp',id='valid',pending='held')],source_range=[34100,34100])
+    add('late-reply-after-server-retired','servers-file=/m2/files/servers\n',files={'servers':'server=127.0.0.2\n'},actions=[dict(op='start-udp',id='held',name='held.endpoint.test'),write('servers',''),signal_reload(),dict(op='inject',id='held',server=0),dict(op='receive-udp',id='late',pending='held',expect_timeout=True),write('servers','server=127.0.0.3\n'),signal_reload(),probe('recovered','fresh.endpoint.test')])
+    add('fixed-new-slot-reallocates','servers-file=/m2/files/servers\n',files={'servers':'server=/old.test/127.0.0.2@127.0.0.9#34004\n'},actions=[probe('old','old.test'),write('servers','server=/new.test/127.0.0.3@127.0.0.8#34005\n'),signal_reload(),probe('new','new.test')])
+    add('shared-recvfrom-eio','min-port=34100\nmax-port=34100\nserver=127.0.0.2\n',recv_fault=True,actions=[dict(op='start-udp',id='first',name='first.endpoint.test'),dict(op='start-udp',id='second',name='second.endpoint.test'),dict(op='inject',id='second',server=0),dict(op='receive-udp',id='second',pending='second'),dict(op='inject',id='first',server=0),dict(op='receive-udp',id='first',pending='first')],source_range=[34100,34100],same_udp_port=True)
     return cases
 
 
@@ -155,12 +164,55 @@ class SourceCapture:
 def run_service_side(root, side, case, folder):
     import m5_dns_files as files
     from dns_service_probe import exact_read, read_name
+    parent_pid=None
+    original_identity=files.process_identity
+    def identity(root,pid):
+        nonlocal parent_pid
+        parent_pid=pid
+        return dict(original_identity(root,pid),threads=len(list(Path('/proc',str(pid),'task').iterdir())))
+    files.process_identity=identity
     original_upstream=files.FileUpstream
     class Captured(original_upstream):
         def __init__(self,*args):
             self.source_events=[]
             args=(*args[:-1],case.get("upstream_port",args[-1]))
             super().__init__(*args)
+            if case.get('injections') or case.get('recv_fault'):
+                upstream=self;delegate=self.udp
+                class InjectionSocket:
+                    index=0
+                    def __getattr__(self,name): return getattr(delegate,name)
+                    def sendto(self,packet,peer):
+                        if threading.current_thread() is threading.main_thread():
+                            if case.get('recv_fault') and not self.index:
+                                matches=[]
+                                for line in Path('/proc',str(parent_pid),'net/udp').read_text().splitlines()[1:]:
+                                    fields=line.split()
+                                    if int(fields[1].split(':')[1],16)==34100: matches.append(fields[9])
+                                descriptors=[int(path.name) for path in Path('/proc',str(parent_pid),'fd').iterdir() if os.readlink(path)=='socket:['+matches[0]+']']
+                                if len(descriptors)!=1: raise AssertionError('source fd not unique')
+                                output=folder/'recv-fault.json'
+                                tracer=subprocess.Popen([sys.executable,str(Path(__file__).resolve()),'--inject-recvfrom-error',str(parent_pid),str(descriptors[0]),str(output)])
+                                deadline=time.monotonic()+2
+                                while not Path(str(output)+'.ready').exists():
+                                    if tracer.poll() is not None or time.monotonic()>deadline: raise AssertionError('recv fault tracer failed to attach')
+                                    time.sleep(.001)
+                                sent=delegate.sendto(packet,peer)
+                                tracer.wait(timeout=2)
+                                upstream.recv_fault=json.loads(output.read_text())
+                                if tracer.returncode or not upstream.recv_fault.get('injected'): raise AssertionError('recv error not injected')
+                                self.index+=1
+                                return sent
+                            modes=case.get('injections',['valid'])
+                            mode=modes[min(self.index,len(modes)-1)];self.index+=1
+                            packet=bytearray(packet)
+                            if mode=='wrong-id': packet[0]^=1
+                            elif mode=='wrong-name': packet[13]^=1
+                            elif mode=='wrong-type': struct.pack_into('!H',packet,read_name(packet,12)[1],28)
+                            elif mode=='short': packet=packet[:5]
+                            upstream.injected.append(dict(mode=mode,peer=list(peer),wire=bytes(packet).hex()))
+                        return delegate.sendto(packet,peer)
+                self.injected=[];self.udp=InjectionSocket()
             SourceCapture.instances.append(self)
         def udp_loop(self):
             while not self.stop.is_set():
@@ -200,7 +252,10 @@ def run_service_side(root, side, case, folder):
         for bound in occupied: bound.close()
         files.command=original_command
         files.FileUpstream=original_upstream
+        files.process_identity=original_identity
     result['source_events']=[row for upstream in SourceCapture.instances for row in upstream.source_events]
+    result['injected_packets']=[row for upstream in SourceCapture.instances for row in getattr(upstream,'injected',[])]
+    result['recv_faults']=[upstream.recv_fault for upstream in SourceCapture.instances if hasattr(upstream,'recv_fault')]
     result['fixture_errors']=[error for upstream in SourceCapture.instances for error in upstream.errors]
     result['source_guard_errors']=source_guard_errors(result,case)
     save(folder/'observed.json',result)
@@ -210,6 +265,8 @@ def run_service_side(root, side, case, folder):
 def source_guard_errors(result,case):
     errors=[]
     if not result['startup']['ready']: return errors
+    if result.get('identity',{}).get('threads')!=1: errors.append('parent daemon is not one thread')
+    if case.get('recv_fault') and (len(result.get('recv_faults',[]))!=1 or not result['recv_faults'][0].get('injected')): errors.append('actual recvfrom EIO fault missing')
     udp=[row for row in result['source_events'] if row['transport']=='udp']
     tcp=[row for row in result['source_events'] if row['transport']=='tcp']
     ports={row['peer'][1] for row in udp}
@@ -280,7 +337,8 @@ def run_service(args, cases):
             observed={side:run_service_side(roots[side],side,case,folder/side) for side in sides}
             if observed['c']['syntax']['exit']!=case.get('expected_test',0): row['failures'].append(dict(phase='c-syntax-calibration',observed=observed['c']['syntax']))
             if observed['c']['startup']['ready'] != case.get('expected_start',True): row['failures'].append(dict(phase='c-startup-calibration',observed=observed['c']['startup']))
-            if any(entry.get('response') is None for entry in observed['c']['rows'] if entry['id'].endswith('udp-async')): row['failures'].append(dict(phase='c-async-calibration',error='missing awaited UDP reply'))
+            timeout_ids={action['id']+':udp-async' for action in case['actions'] if action.get('expect_timeout')}
+            if any((entry.get('response') is None)!=(entry['id'] in timeout_ids) for entry in observed['c']['rows'] if entry['id'].endswith('udp-async')): row['failures'].append(dict(phase='c-async-calibration',error='missing awaited UDP reply'))
             if args.side=='both':
                 row['failures'].extend(files.compare(observed['c'],observed['rust'],case))
                 c,rust=(source_projection(observed[side],case) for side in ('c','rust'))
@@ -296,7 +354,49 @@ def run_service(args, cases):
     print(json.dumps({'cases':len(cases),'failures':len(report['failures']),'closed_options':[]}))
     return int(bool(report['failures']))
 
+
+def inject_recvfrom_error(pid,descriptor,output):
+    assert os.geteuid()==0 and os.environ.get('DNSMASQ_TEST_ISOLATED')=='1'
+    class Iovec(ctypes.Structure): _fields_=[('base',ctypes.c_void_p),('length',ctypes.c_size_t)]
+    libc=ctypes.CDLL(None,use_errno=True);libc.ptrace.restype=ctypes.c_long
+    def ptrace(request,address=0,data=0):
+        ctypes.set_errno(0)
+        result=libc.ptrace(ctypes.c_uint(request),ctypes.c_uint(pid),ctypes.c_void_p(address),ctypes.c_void_p(data))
+        if result==-1 and ctypes.get_errno(): raise OSError(ctypes.get_errno(),'ptrace')
+        return result
+    registers=(ctypes.c_ulonglong*34)()
+    def regs(write=False):
+        vector=Iovec(ctypes.addressof(registers),ctypes.sizeof(registers))
+        ptrace(0x4205 if write else 0x4204,1,ctypes.addressof(vector))
+    report={'pid':pid,'descriptor':descriptor,'injected':False,'events':[]};attached=False
+    try:
+        ptrace(16);os.waitpid(pid,0);attached=True;ptrace(0x4200,0,1)
+        Path(str(output)+'.ready').write_text('attached\n')
+        active=False
+        while True:
+            ptrace(24);_,status=os.waitpid(pid,0)
+            if not os.WIFSTOPPED(status): raise AssertionError('tracee exited')
+            if os.WSTOPSIG(status)!=(signal.SIGTRAP|0x80): continue
+            info=(ctypes.c_ubyte*128)();ptrace(0x420e,ctypes.sizeof(info),ctypes.addressof(info));regs()
+            if info[0]==1:
+                active=registers[8]==207 and registers[0]==descriptor
+                if active:
+                    syscall=ctypes.c_int(-1);vector=Iovec(ctypes.addressof(syscall),ctypes.sizeof(syscall))
+                    ptrace(0x4205,0x404,ctypes.addressof(vector))
+                    report['events'].append({'entry':'recvfrom','descriptor':descriptor,'syscall':207})
+            elif info[0]==2 and active:
+                registers[0]=(1<<64)-errno.EIO;regs(write=True)
+                report['events'].append({'exit':-errno.EIO});report['injected']=True
+                ptrace(17);attached=False;break
+    finally:
+        if attached:
+            try: ptrace(17)
+            except OSError: pass
+        save(Path(output),report)
+    return 0
+
 def main():
+    if len(sys.argv)==5 and sys.argv[1]=='--inject-recvfrom-error': return inject_recvfrom_error(int(sys.argv[2]),int(sys.argv[3]),sys.argv[4])
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--image-root',type=Path,required=True);parser.add_argument('--rust',type=Path,required=True)
     parser.add_argument('--source-commit',required=True);parser.add_argument('--out',type=Path,required=True)
