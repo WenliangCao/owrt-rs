@@ -383,6 +383,9 @@ def run(root, side, case, out):
 def proc_state(pid, root):
     try:
         data = Path(f'/proc/{pid}/stat').read_text().rsplit(')', 1)[1].split()
+        if data[0] == 'Z':
+            return {'pid': pid, 'state': 'Z', 'ppid': int(data[1]),
+                    'pgrp': int(data[2]), 'sid': int(data[3])}
         cwd = os.readlink(f'/proc/{pid}/cwd')
         if cwd.startswith(str(root)):
             cwd = '/' + cwd[len(str(root)):].lstrip('/')
@@ -511,8 +514,10 @@ def run_daemon(root, side, case, out):
             for path in Path('/proc').iterdir():
                 if path.name.isdigit() and int(path.name) > 1:
                     try:
-                        os.kill(int(path.name), signal.SIGKILL)
-                        observed['forced'] = True
+                        state = proc_state(int(path.name), root)
+                        if state and state['state'] != 'Z':
+                            os.kill(int(path.name), signal.SIGKILL)
+                            observed['forced'] = True
                     except ProcessLookupError:
                         pass
             trace['reaped'].update(reap_children())
