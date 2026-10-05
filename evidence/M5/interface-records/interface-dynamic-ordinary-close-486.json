@@ -1,0 +1,4742 @@
+{
+  "schema": "m5-interface-name-dynamic-host-ordinary-closure-v1",
+  "closed_options": [
+    "interface-name",
+    "dynamic-host"
+  ],
+  "source_commit": "486635d797e266c7639db6b28280234f10a90196",
+  "elf_sha256": "c7b944fac9792e3606bccffd30ffeed76cf86167350e9a2ebfe53a5825f76750",
+  "elf_bytes": 1789992,
+  "image_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "requirements_sha256": "e73ef4232f06764894be009e1cd37789bc5563119d84af6a1ff408ddc50a5d62",
+  "ordinary_required": 111,
+  "qualified_required": 111,
+  "syntax_configurations": 70,
+  "service_configurations": 95,
+  "service_observations_per_side": 617,
+  "negative_controls": [
+    "missing-row",
+    "wrong-diagnostic",
+    "wrong-exit",
+    "startup",
+    "wrong-answer",
+    "missing-forward",
+    "wrong-server",
+    "leaked-child",
+    "leaked-pid",
+    "wrong-helper",
+    "wrong-metrics",
+    "wrong-reading",
+    "missing-partial-read",
+    "missing-fifo-progress",
+    "missing-large-progress",
+    "missing-kernel",
+    "extra-owner-thread",
+    "wrong-runtime-uid",
+    "local-ttl-not-hidden-by-cname-clock",
+    "wrong-allocation-size",
+    "allocation-did-not-fail",
+    "wrong-allocator-pc"
+  ],
+  "negative_control_count": 22,
+  "missing_required": 0,
+  "unclassified_differences": 0,
+  "infrastructure_failures": 0,
+  "reference_differences": [
+    {
+      "c": {
+        "cache": false,
+        "elapsed": 0.5002927200403064,
+        "error": {
+          "errno": null,
+          "kind": "TimeoutError"
+        },
+        "id": "debug-parent:udp",
+        "reply": null,
+        "request": "401001000001000000000000056966616365077265636f72647304746573740000010001",
+        "response": null,
+        "upstreams": [
+          {
+            "events": [],
+            "server": "127.0.0.2"
+          },
+          {
+            "events": [],
+            "server": "127.0.0.3"
+          },
+          {
+            "events": [],
+            "server": "127.0.0.4"
+          },
+          {
+            "events": [],
+            "server": "::1"
+          }
+        ]
+      },
+      "case": "interface-debug-parent-blocking",
+      "id": "debug-parent:udp",
+      "reason": "C debug TCP loop holds the parent poll; Rust continues UDP and publishes the parent interface generation.",
+      "rust": {
+        "cache": false,
+        "elapsed": 0.0010088490089401603,
+        "error": null,
+        "id": "debug-parent:udp",
+        "reply": "401085800001000200000000056966616365077265636f72647304746573740000010001c00c00010001000000000004c6125b0ac00c00010001000000000004c6125b09",
+        "request": "401001000001000000000000056966616365077265636f72647304746573740000010001",
+        "response": {
+          "flags": 34176,
+          "id": 16400,
+          "questions": [
+            [
+              "iface.records.test",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "class": 1,
+              "data": "198.18.91.10",
+              "name": "iface.records.test",
+              "section": "answer",
+              "ttl": 0,
+              "type": 1
+            },
+            {
+              "class": 1,
+              "data": "198.18.91.9",
+              "name": "iface.records.test",
+              "section": "answer",
+              "ttl": 0,
+              "type": 1
+            }
+          ]
+        },
+        "upstreams": [
+          {
+            "events": [],
+            "server": "127.0.0.2"
+          },
+          {
+            "events": [],
+            "server": "127.0.0.3"
+          },
+          {
+            "events": [],
+            "server": "127.0.0.4"
+          },
+          {
+            "events": [],
+            "server": "::1"
+          }
+        ]
+      }
+    }
+  ],
+  "clock_control": "Only cached CNAME TTL permits one-second serial-oracle clock granularity; local interface A/AAAA TTL remains exact and is independently falsified.",
+  "preserved_red": "Earlier partials, family0 getifaddrs fault mis-target, poll-interval counting error, allocation input auto-linklocal misalignment and pre-clock CNAME TTL noise remain archived and are not counted as passed.",
+  "synth_domain_status": "Still open; separate normal synthetic reverse generic-negative and ANY cursor correction in progress. These do not weaken interface ordinary rows.",
+  "archives": [
+    {
+      "run": "paired-486-interface-final-syntax-02",
+      "archive_sha256": "4110b06631ceb5ce8619774bcb9c745b959630b94831188fc624990a6eb91528",
+      "entries": 837,
+      "regular_files": 595,
+      "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+      "verified": true
+    },
+    {
+      "run": "paired-486-interface-final-service-02",
+      "archive_sha256": "2fa335085099ba9d762da05f34cb06d455d05a051637f915b88de1c7d0ee4876",
+      "entries": 1131,
+      "regular_files": 815,
+      "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+      "verified": true
+    },
+    {
+      "run": "paired-486-interface-final-allocation-03",
+      "archive_sha256": "aedc31cc10800735184bfbf471ec69370e39a8a892f6684c0ee6408ab8d7d76d",
+      "entries": 86,
+      "regular_files": 49,
+      "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+      "verified": true
+    },
+    {
+      "run": "paired-486-interface-final-cname-clock-04",
+      "archive_sha256": "15b3e8ef0b94cfc2eff6d552a7b4136791c70e032ec60cd71942f54ddc7e1fec",
+      "entries": 80,
+      "regular_files": 43,
+      "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+      "verified": true
+    }
+  ],
+  "archive_entries": 2134,
+  "archive_regular_files": 1502,
+  "required": [
+    {
+      "id": "IF-GRAM/01",
+      "boundary": "IF-GRAM",
+      "required_case": "one name and interface",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "syntax",
+          "case_id": "interface-name-ordinary",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "dynamic-host-proto4",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        }
+      ]
+    },
+    {
+      "id": "IF-GRAM/02",
+      "boundary": "IF-GRAM",
+      "required_case": "missing name/interface and empty tokens",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "syntax",
+          "case_id": "interface-name-empty",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "d69004f397b44ee132a5de2470a1511790eeba25800745be37c1ea0dab565478",
+          "rust_observed_sha256": "1eef2ecf160f0b5831d51cc33aa42af9a5a741672588d12035faab50ccf79c3e"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "interface-name-only-name",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "d69004f397b44ee132a5de2470a1511790eeba25800745be37c1ea0dab565478",
+          "rust_observed_sha256": "1eef2ecf160f0b5831d51cc33aa42af9a5a741672588d12035faab50ccf79c3e"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "interface-name-empty-name",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "interface-name-empty-interface",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "d69004f397b44ee132a5de2470a1511790eeba25800745be37c1ea0dab565478",
+          "rust_observed_sha256": "1eef2ecf160f0b5831d51cc33aa42af9a5a741672588d12035faab50ccf79c3e"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "dynamic-host-empty",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "3272e0242676d399366e188073a6b0caa50779ab64c835fc0c0192aad4c86dd4",
+          "rust_observed_sha256": "c7584bd6e2d2e51c435527d0c060dc63dc4a1724b0738afc6f5d0adbb79d78c4"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "dynamic-host-only-name",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "3272e0242676d399366e188073a6b0caa50779ab64c835fc0c0192aad4c86dd4",
+          "rust_observed_sha256": "c7584bd6e2d2e51c435527d0c060dc63dc4a1724b0738afc6f5d0adbb79d78c4"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "dynamic-host-empty-interface",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "3272e0242676d399366e188073a6b0caa50779ab64c835fc0c0192aad4c86dd4",
+          "rust_observed_sha256": "c7584bd6e2d2e51c435527d0c060dc63dc4a1724b0738afc6f5d0adbb79d78c4"
+        }
+      ]
+    },
+    {
+      "id": "IF-GRAM/03",
+      "boundary": "IF-GRAM",
+      "required_case": "case/trailing-dot canonicalization",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "syntax",
+          "case_id": "interface-name-canonical-case",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "dynamic-host-canonical-case",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "3272e0242676d399366e188073a6b0caa50779ab64c835fc0c0192aad4c86dd4",
+          "rust_observed_sha256": "c7584bd6e2d2e51c435527d0c060dc63dc4a1724b0738afc6f5d0adbb79d78c4"
+        }
+      ]
+    },
+    {
+      "id": "IF-GRAM/04",
+      "boundary": "IF-GRAM",
+      "required_case": "binary/nonASCII and name length boundaries",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "syntax",
+          "case_id": "interface-name-name-binary",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "interface-name-name-nonascii",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "d69004f397b44ee132a5de2470a1511790eeba25800745be37c1ea0dab565478",
+          "rust_observed_sha256": "1eef2ecf160f0b5831d51cc33aa42af9a5a741672588d12035faab50ccf79c3e"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "interface-name-name-label63",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "interface-name-name-label64",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "d69004f397b44ee132a5de2470a1511790eeba25800745be37c1ea0dab565478",
+          "rust_observed_sha256": "1eef2ecf160f0b5831d51cc33aa42af9a5a741672588d12035faab50ccf79c3e"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "interface-name-name-name253",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "interface-name-name-name254",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "d69004f397b44ee132a5de2470a1511790eeba25800745be37c1ea0dab565478",
+          "rust_observed_sha256": "1eef2ecf160f0b5831d51cc33aa42af9a5a741672588d12035faab50ccf79c3e"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "dynamic-host-name-binary",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "dynamic-host-name-nonascii",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "43e568ce2d813f5eda85bcbd7193be46e6a1f9ab10e28a8a472d1075ebd4a303",
+          "rust_observed_sha256": "7a0608d1d19955107bedabb2b535ebe0531a82b0330ecd582a0d21000f1195f5"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "dynamic-host-name-label63",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "dynamic-host-name-label64",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "43e568ce2d813f5eda85bcbd7193be46e6a1f9ab10e28a8a472d1075ebd4a303",
+          "rust_observed_sha256": "7a0608d1d19955107bedabb2b535ebe0531a82b0330ecd582a0d21000f1195f5"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "dynamic-host-name-name253",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "dynamic-host-name-name254",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "43e568ce2d813f5eda85bcbd7193be46e6a1f9ab10e28a8a472d1075ebd4a303",
+          "rust_observed_sha256": "7a0608d1d19955107bedabb2b535ebe0531a82b0330ecd582a0d21000f1195f5"
+        }
+      ]
+    },
+    {
+      "id": "IF-GRAM/05",
+      "boundary": "IF-GRAM",
+      "required_case": "quoted comma/slash and hidden delimiters",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "syntax",
+          "case_id": "interface-name-quoted-full",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "d69004f397b44ee132a5de2470a1511790eeba25800745be37c1ea0dab565478",
+          "rust_observed_sha256": "1eef2ecf160f0b5831d51cc33aa42af9a5a741672588d12035faab50ccf79c3e"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "interface-name-quoted-interface",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "f4e660700aa89cebf5bf95633cd0f75f1128641bbc6bde174d81ded008633cc1",
+          "rust_observed_sha256": "6b423a0ef9cf223aef661e53c29027092c6e97079bff36beaa7fc133d1f77049"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "interface-name-quoted-comma",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "dynamic-host-quoted-full",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "3272e0242676d399366e188073a6b0caa50779ab64c835fc0c0192aad4c86dd4",
+          "rust_observed_sha256": "c7584bd6e2d2e51c435527d0c060dc63dc4a1724b0738afc6f5d0adbb79d78c4"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "dynamic-host-quoted-interface",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "f4e660700aa89cebf5bf95633cd0f75f1128641bbc6bde174d81ded008633cc1",
+          "rust_observed_sha256": "6b423a0ef9cf223aef661e53c29027092c6e97079bff36beaa7fc133d1f77049"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "dynamic-host-quoted-comma",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        }
+      ]
+    },
+    {
+      "id": "IF-GRAM/06",
+      "boundary": "IF-GRAM",
+      "required_case": "interface /4 /6 defaults",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "syntax",
+          "case_id": "interface-name-family4",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "interface-name-family6",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "interface-name-ordinary",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        }
+      ]
+    },
+    {
+      "id": "IF-GRAM/07",
+      "boundary": "IF-GRAM",
+      "required_case": "invalid/empty/double family suffix",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "syntax",
+          "case_id": "interface-name-family0",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "f4e660700aa89cebf5bf95633cd0f75f1128641bbc6bde174d81ded008633cc1",
+          "rust_observed_sha256": "6b423a0ef9cf223aef661e53c29027092c6e97079bff36beaa7fc133d1f77049"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "interface-name-family-empty",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "f4e660700aa89cebf5bf95633cd0f75f1128641bbc6bde174d81ded008633cc1",
+          "rust_observed_sha256": "6b423a0ef9cf223aef661e53c29027092c6e97079bff36beaa7fc133d1f77049"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "interface-name-double-family",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "f4e660700aa89cebf5bf95633cd0f75f1128641bbc6bde174d81ded008633cc1",
+          "rust_observed_sha256": "6b423a0ef9cf223aef661e53c29027092c6e97079bff36beaa7fc133d1f77049"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "dynamic-host-family0",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "f4e660700aa89cebf5bf95633cd0f75f1128641bbc6bde174d81ded008633cc1",
+          "rust_observed_sha256": "6b423a0ef9cf223aef661e53c29027092c6e97079bff36beaa7fc133d1f77049"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "dynamic-host-family-empty",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "f4e660700aa89cebf5bf95633cd0f75f1128641bbc6bde174d81ded008633cc1",
+          "rust_observed_sha256": "6b423a0ef9cf223aef661e53c29027092c6e97079bff36beaa7fc133d1f77049"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "dynamic-host-double-family",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "f4e660700aa89cebf5bf95633cd0f75f1128641bbc6bde174d81ded008633cc1",
+          "rust_observed_sha256": "6b423a0ef9cf223aef661e53c29027092c6e97079bff36beaa7fc133d1f77049"
+        }
+      ]
+    },
+    {
+      "id": "IF-GRAM/08",
+      "boundary": "IF-GRAM",
+      "required_case": "interface target exact15/16/long bytes",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "syntax",
+          "case_id": "interface-name-interface15",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "interface-name-interface16",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "interface-name-long-target",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-exact-target-15",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "4142ef709900b09a7d7139270f373383405c79bbd19ad6b01a0445875ec1aaf4",
+          "rust_observed_sha256": "6ae86de660893821c968720ee538fc124899ec2f3ccc2ee925b02cdbd9ff2e1f"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-exact-target-16",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "040dfe885f6a6bd2038dac6cfa5c34e398d9992d13b023b857f2dd26837b253f",
+          "rust_observed_sha256": "0561e749687d2d35ea6959d72feeba3b6a38fe29e65cfe3d9870cb6dccefd459"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-exact-target-23",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "7c9b858e5f09fb6cd3b619746e42842284795b322f8e165a7b7656aab31f3854",
+          "rust_observed_sha256": "0afdef7b807509d086f6568faafc29e08d74d68091f15f8d6e5a8b80537a766d"
+        }
+      ]
+    },
+    {
+      "id": "IF-GRAM/09",
+      "boundary": "IF-GRAM",
+      "required_case": "prototype address forbidden in interface-name",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "syntax",
+          "case_id": "interface-name-proto4",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "d69004f397b44ee132a5de2470a1511790eeba25800745be37c1ea0dab565478",
+          "rust_observed_sha256": "1eef2ecf160f0b5831d51cc33aa42af9a5a741672588d12035faab50ccf79c3e"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "interface-name-proto6",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "d69004f397b44ee132a5de2470a1511790eeba25800745be37c1ea0dab565478",
+          "rust_observed_sha256": "1eef2ecf160f0b5831d51cc33aa42af9a5a741672588d12035faab50ccf79c3e"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "interface-name-proto-both",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "d69004f397b44ee132a5de2470a1511790eeba25800745be37c1ea0dab565478",
+          "rust_observed_sha256": "1eef2ecf160f0b5831d51cc33aa42af9a5a741672588d12035faab50ccf79c3e"
+        }
+      ]
+    },
+    {
+      "id": "IF-GRAM/10",
+      "boundary": "IF-GRAM",
+      "required_case": "dynamic-host missing prototype",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "syntax",
+          "case_id": "dynamic-host-ordinary",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "3272e0242676d399366e188073a6b0caa50779ab64c835fc0c0192aad4c86dd4",
+          "rust_observed_sha256": "c7584bd6e2d2e51c435527d0c060dc63dc4a1724b0738afc6f5d0adbb79d78c4"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "dynamic-host-proto-no-interface",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "3272e0242676d399366e188073a6b0caa50779ab64c835fc0c0192aad4c86dd4",
+          "rust_observed_sha256": "c7584bd6e2d2e51c435527d0c060dc63dc4a1724b0738afc6f5d0adbb79d78c4"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "dynamic-host-proto-empty-interface",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "43e568ce2d813f5eda85bcbd7193be46e6a1f9ab10e28a8a472d1075ebd4a303",
+          "rust_observed_sha256": "7a0608d1d19955107bedabb2b535ebe0531a82b0330ecd582a0d21000f1195f5"
+        }
+      ]
+    },
+    {
+      "id": "IF-GRAM/11",
+      "boundary": "IF-GRAM",
+      "required_case": "dynamic-host forbids /4 and /6",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "syntax",
+          "case_id": "dynamic-host-proto-family4",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "43e568ce2d813f5eda85bcbd7193be46e6a1f9ab10e28a8a472d1075ebd4a303",
+          "rust_observed_sha256": "7a0608d1d19955107bedabb2b535ebe0531a82b0330ecd582a0d21000f1195f5"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "dynamic-host-family4",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "3272e0242676d399366e188073a6b0caa50779ab64c835fc0c0192aad4c86dd4",
+          "rust_observed_sha256": "c7584bd6e2d2e51c435527d0c060dc63dc4a1724b0738afc6f5d0adbb79d78c4"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "dynamic-host-family6",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "3272e0242676d399366e188073a6b0caa50779ab64c835fc0c0192aad4c86dd4",
+          "rust_observed_sha256": "c7584bd6e2d2e51c435527d0c060dc63dc4a1724b0738afc6f5d0adbb79d78c4"
+        }
+      ]
+    },
+    {
+      "id": "IF-GRAM/12",
+      "boundary": "IF-GRAM",
+      "required_case": "duplicate same-family prototypes last wins",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "syntax",
+          "case_id": "dynamic-host-proto-repeat",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "service",
+          "case_id": "dynamic-last-prototype",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "a71536062c0f663de87e54f280beecacc3c4664ec9e4381d6ed979b3fc48a198",
+          "rust_observed_sha256": "94116d3277514b5426c38f026f7d7403bdd9f28a597472de9421552f337a03dc"
+        }
+      ]
+    },
+    {
+      "id": "IF-GRAM/13",
+      "boundary": "IF-GRAM",
+      "required_case": "dual IPv4/IPv6 prototypes",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "syntax",
+          "case_id": "dynamic-host-proto-both",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "service",
+          "case_id": "dynamic-multi-subnets",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "bad7163dc3b828206220f6caef0a9b26d00b3ad0f9b882b102dbbe8590ca4633",
+          "rust_observed_sha256": "dbcaddcbe553ac4b399f2a9c8bedce9cdccc724874a0d515ed58e78262b85ec3"
+        }
+      ]
+    },
+    {
+      "id": "IF-GRAM/14",
+      "boundary": "IF-GRAM",
+      "required_case": "extra tokens after first non-address interface",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "syntax",
+          "case_id": "interface-name-extra",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "dynamic-host-extra",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "3272e0242676d399366e188073a6b0caa50779ab64c835fc0c0192aad4c86dd4",
+          "rust_observed_sha256": "c7584bd6e2d2e51c435527d0c060dc63dc4a1724b0738afc6f5d0adbb79d78c4"
+        }
+      ]
+    },
+    {
+      "id": "IF-GRAM/15",
+      "boundary": "IF-GRAM",
+      "required_case": "repeated same name/directive configuration order",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "syntax",
+          "case_id": "interface-name-repeated",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "dynamic-host-repeated",
+          "run": "paired-486-interface-final-syntax-02",
+          "observation_ids": [
+            "syntax"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-two-declarations",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "863be47da8929216d75f89f5cb1dcf1d3d39a635980c3572e9d97014cf8c0a69",
+          "rust_observed_sha256": "3b5a6c46f03e28462bb0ebe77058207aab920131137d325cb4c9102daeeab06c"
+        },
+        {
+          "mode": "service",
+          "case_id": "dynamic-two-declarations",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "527aa23bd7d55d23b82b1dde815faadbdc6d604b4fe9cb32608d2e78d8656ddb",
+          "rust_observed_sha256": "095f2c783ccb9ad4049698a1927041492a174c50c273d8f14f2b163f67e43dc2"
+        }
+      ]
+    },
+    {
+      "id": "IF-ENUM/01",
+      "boundary": "IF-ENUM",
+      "required_case": "interface independent from listen-address",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-address",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "e3e12dbb0736ddbe0efcce3824f6825b0c2574cc5fe59a47edfa4dd423f7da47",
+          "rust_observed_sha256": "a3d76570b2b6850dac9e1a37fb619704c928826c59435b7c7e6bf2a5c1658e17"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-enum-bound",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "b059fe78be39ef01ae88a74de99e38558da7f052cb7bdb5d5a450638092f9438",
+          "rust_observed_sha256": "c629140c9e0f570cf185f4dc99e4d1c196ee3516d9580c5e25444750f4dd6d1c"
+        }
+      ]
+    },
+    {
+      "id": "IF-ENUM/02",
+      "boundary": "IF-ENUM",
+      "required_case": "excluded/unselected DNS interface still contributes",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-enum-excluded",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "6621e42f4e394d649fe09303ac41629d77b6e1373132b26b3a02d58688a6d18a",
+          "rust_observed_sha256": "949a46180916d24f0b8b05d25b9203566fb937587b5e7ba4dae66931d9613ea1"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-enum-unselected",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "666f730c90f359f33fcd1e389ea95e4f3e43afa5aab58e8670cddd4bdb8afeb0",
+          "rust_observed_sha256": "3cbaf2675d9d7b53ac78214b1286ccc2598988f00eadd1cd6d4150f85cb0c0b4"
+        }
+      ]
+    },
+    {
+      "id": "IF-ENUM/03",
+      "boundary": "IF-ENUM",
+      "required_case": "down interface still contributes",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-down",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "2b1c0d831fd954a7712bc0fb2bdd2355845ce765e498f9f7fafa66b8ea57e9c8",
+          "rust_observed_sha256": "a008be07d34fc7d438996089aa25bb0dc19bb06d7076c3e848b396e6c179aaec"
+        }
+      ]
+    },
+    {
+      "id": "IF-ENUM/04",
+      "boundary": "IF-ENUM",
+      "required_case": "IPv4 primary and labelled alias",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-label-real",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "da3f4aaa12907d5f872f2bb6275c1161322e173af886e9b7b83704c15294593e",
+          "rust_observed_sha256": "eb5d0c226095249734fcb8ca67a0b87107289e7f449cabdec58fb75df1455c41"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-label-alias",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "a5b2c06ae068cdf5a8ae786f08980ae7017358511a57a3d1805bb6a40175ddcc",
+          "rust_observed_sha256": "0a86926ca2b2a1550ab7255a2af6603a21e9bc9af58af74e3e31b5d6e9bac2d1"
+        }
+      ]
+    },
+    {
+      "id": "IF-ENUM/05",
+      "boundary": "IF-ENUM",
+      "required_case": "exact label versus real link name",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-label-real",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "da3f4aaa12907d5f872f2bb6275c1161322e173af886e9b7b83704c15294593e",
+          "rust_observed_sha256": "eb5d0c226095249734fcb8ca67a0b87107289e7f449cabdec58fb75df1455c41"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-label-alias",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "a5b2c06ae068cdf5a8ae786f08980ae7017358511a57a3d1805bb6a40175ddcc",
+          "rust_observed_sha256": "0a86926ca2b2a1550ab7255a2af6603a21e9bc9af58af74e3e31b5d6e9bac2d1"
+        }
+      ]
+    },
+    {
+      "id": "IF-ENUM/06",
+      "boundary": "IF-ENUM",
+      "required_case": "literal wildcard target does not use listener glob matching",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-wildcard",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "c2eff86486c35fbcd89ac8b4904137ad833f91890ac172ffc9c9413c95034135",
+          "rust_observed_sha256": "11293e9a54660a4cb9ca7c424d22d4983463e655b0c094cae524c7f6790e15a0"
+        }
+      ]
+    },
+    {
+      "id": "IF-ENUM/07",
+      "boundary": "IF-ENUM",
+      "required_case": "same name on multiple interfaces",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-two-declarations",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "863be47da8929216d75f89f5cb1dcf1d3d39a635980c3572e9d97014cf8c0a69",
+          "rust_observed_sha256": "3b5a6c46f03e28462bb0ebe77058207aab920131137d325cb4c9102daeeab06c"
+        }
+      ]
+    },
+    {
+      "id": "IF-ENUM/08",
+      "boundary": "IF-ENUM",
+      "required_case": "multiple names on same interface",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-ptr-precedence",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "6d80bc3e8be9df9d9c73ff0b4335bc055c3a8fd11304d370795406f717815a06",
+          "rust_observed_sha256": "23bd701352f9edd6c7f86e4a61610cd75aa826b40e67ae9652d4b3936b6828c7"
+        }
+      ]
+    },
+    {
+      "id": "IF-ENUM/09",
+      "boundary": "IF-ENUM",
+      "required_case": "IPv4 and IPv6 enumeration/prepend order",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-enum-many",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "b270481473d85b5ebb5910bb3ac32c739f7d3cc92c8df716cff1cae8e7cb242f",
+          "rust_observed_sha256": "86d50103a88fa048b8dff64b9d8a7f98d491b378d2e20a5fa46227f830359b24"
+        }
+      ]
+    },
+    {
+      "id": "IF-ENUM/10",
+      "boundary": "IF-ENUM",
+      "required_case": "duplicate source addresses preserve first flags",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "dynamic-privacy-duplicate",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "duplicate-aaaa:udp",
+            "duplicate-aaaa:tcp",
+            "duplicate-ptr:udp",
+            "duplicate-ptr:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "4f26d27de213f3a39c5bf04ad8311336a37f583161320093cba05830f09900ad",
+          "rust_observed_sha256": "2ff2680080ffafb32683e65feab4e27e87ac2400277c42dc18c80e052c5d7dce"
+        },
+        {
+          "mode": "service",
+          "case_id": "dynamic-privacy-order",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "privacy-first:udp",
+            "privacy-first:tcp",
+            "permanent-first:udp",
+            "permanent-first:tcp",
+            "derived-ptr:udp",
+            "derived-ptr:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "fb306a0d2697173318a7177d634f492b1da64e5a4c225c25591945001c72a85d",
+          "rust_observed_sha256": "b54df80f3aafb72ed9a0808fdebd0f77cdb83d1f687108c7a62bae9a5fba6c9f"
+        }
+      ]
+    },
+    {
+      "id": "IF-ENUM/11",
+      "boundary": "IF-ENUM",
+      "required_case": "missing interface and existing interface without address",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-missing",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "d40e5c71f8729eba2fe57e3e2adfe908bc32e520f5712e1510b01c4a1e455c5d",
+          "rust_observed_sha256": "00b7ba38ce268e16c1c0bcb639492cf1418ed1c7c255ad67dcf3ed3946a6cb0e"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-without-address",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "25c667025e41571513d16773df8c056578319a63c9b0d374f35ae46f9da1b38b",
+          "rust_observed_sha256": "d2bea8e69adfcd702ad21555065ae70e382fc11bff73e520c57ed5d71bd29efb"
+        }
+      ]
+    },
+    {
+      "id": "IF-ENUM/12",
+      "boundary": "IF-ENUM",
+      "required_case": "destroy/recreate with changed ifindex",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-recreate",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "before:udp",
+            "before:tcp",
+            "removed:udp",
+            "removed:tcp",
+            "recreated:udp",
+            "recreated:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "bd448e345e238977921bf5128be60ef57aac55c834ce21108bce6fdf7891f724",
+          "rust_observed_sha256": "7db3215d832dd5604e7e21faff174c37f5d5d27d927245fdd1bd2392527831af"
+        }
+      ]
+    },
+    {
+      "id": "IF-FLAGS/01",
+      "boundary": "IF-FLAGS",
+      "required_case": "IPv4 ordinary forward/reverse",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-address",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "e3e12dbb0736ddbe0efcce3824f6825b0c2574cc5fe59a47edfa4dd423f7da47",
+          "rust_observed_sha256": "a3d76570b2b6850dac9e1a37fb619704c928826c59435b7c7e6bf2a5c1658e17"
+        }
+      ]
+    },
+    {
+      "id": "IF-FLAGS/02",
+      "boundary": "IF-FLAGS",
+      "required_case": "IPv6 global/ULA/loopback forward/reverse",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-address",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "e3e12dbb0736ddbe0efcce3824f6825b0c2574cc5fe59a47edfa4dd423f7da47",
+          "rust_observed_sha256": "a3d76570b2b6850dac9e1a37fb619704c928826c59435b7c7e6bf2a5c1658e17"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-loopback",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "5f170cee86c07134f5670bd968fab2256af0f867abbda820530113420fe0e643",
+          "rust_observed_sha256": "f42e43c39686e01b2446659a5f5de087af387f3fbd6e7d29cc9b25755afa2da7"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-localisation",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "same4:udp",
+            "same4:tcp",
+            "absent4:udp",
+            "absent4:tcp",
+            "same6:udp",
+            "same6:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "b2741b50d5c1f1e174dd990833e779bac6f381a7a001516b9bb8f5c73ca8be6f",
+          "rust_observed_sha256": "dea6f2d9558ac653e7f051b69a47b2017079d1380ec6d9f8080f80ea818820fb"
+        }
+      ]
+    },
+    {
+      "id": "IF-FLAGS/03",
+      "boundary": "IF-FLAGS",
+      "required_case": "IPv6 link-local forward/reverse excluded",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-address",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "e3e12dbb0736ddbe0efcce3824f6825b0c2574cc5fe59a47edfa4dd423f7da47",
+          "rust_observed_sha256": "a3d76570b2b6850dac9e1a37fb619704c928826c59435b7c7e6bf2a5c1658e17"
+        }
+      ]
+    },
+    {
+      "id": "IF-FLAGS/04",
+      "boundary": "IF-FLAGS",
+      "required_case": "permanent IPv6 eligible",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-address",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "e3e12dbb0736ddbe0efcce3824f6825b0c2574cc5fe59a47edfa4dd423f7da47",
+          "rust_observed_sha256": "a3d76570b2b6850dac9e1a37fb619704c928826c59435b7c7e6bf2a5c1658e17"
+        }
+      ]
+    },
+    {
+      "id": "IF-FLAGS/05",
+      "boundary": "IF-FLAGS",
+      "required_case": "temporary IPv6 reverse-only actual flag",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-flag-temporary",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "public-aaaa:udp",
+            "public-aaaa:tcp",
+            "public-ptr:udp",
+            "public-ptr:tcp",
+            "temporary-ptr:udp",
+            "temporary-ptr:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "819a859189e5611c0f5263609ff41e1b1c84f57495632679fdb2991cbb659aae",
+          "rust_observed_sha256": "bf1afd8dc53b990afb3466406e2521d222d1adceded447fad12e7a829f1569d5"
+        }
+      ]
+    },
+    {
+      "id": "IF-FLAGS/06",
+      "boundary": "IF-FLAGS",
+      "required_case": "tentative IPv6 reverse-only actual DAD",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-flag-dad-completion",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "tentative-aaaa:udp",
+            "tentative-aaaa:tcp",
+            "tentative-ptr:udp",
+            "tentative-ptr:tcp",
+            "completed-aaaa:udp",
+            "completed-aaaa:tcp",
+            "completed-ptr:udp",
+            "completed-ptr:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "17a966145a5a03bb945b6de56a6ecacb98395c81be57769518154ea4ba2dd5ff",
+          "rust_observed_sha256": "d761aaa96dc8f77128f5f46b1febd6544e1dab8a6926c49c92392848bd7481f9"
+        }
+      ]
+    },
+    {
+      "id": "IF-FLAGS/07",
+      "boundary": "IF-FLAGS",
+      "required_case": "deprecated IPv6 reverse-only preferred_lft0",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-flag-deprecated",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "deprecated-aaaa:udp",
+            "deprecated-aaaa:tcp",
+            "deprecated-ptr:udp",
+            "deprecated-ptr:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "c0ca98c367ee6b3c9d5eb56e6e68d4612adc583742bd21bf6e3403cd566d78fc",
+          "rust_observed_sha256": "80e2a88fbddac8b09e81ff6b7e183413e0d57128879a35f94e5345a9047feb0c"
+        }
+      ]
+    },
+    {
+      "id": "IF-FLAGS/08",
+      "boundary": "IF-FLAGS",
+      "required_case": "combined temporary/tentative/deprecated",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-flag-combined",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "forward:udp",
+            "forward:tcp",
+            "temporary-ptr:udp",
+            "temporary-ptr:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "fe29bfd6c78f9fb92d8d518682bc904d4ca1c0c1be393f652c5fc0e116915157",
+          "rust_observed_sha256": "8ec7766ff751f2f759f2a034f99e4578432a7529d2a793a74072b3a712ad995a"
+        }
+      ]
+    },
+    {
+      "id": "IF-FLAGS/09",
+      "boundary": "IF-FLAGS",
+      "required_case": "DAD completion changes eligibility",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-flag-dad-completion",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "tentative-aaaa:udp",
+            "tentative-aaaa:tcp",
+            "tentative-ptr:udp",
+            "tentative-ptr:tcp",
+            "completed-aaaa:udp",
+            "completed-aaaa:tcp",
+            "completed-ptr:udp",
+            "completed-ptr:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "17a966145a5a03bb945b6de56a6ecacb98395c81be57769518154ea4ba2dd5ff",
+          "rust_observed_sha256": "d761aaa96dc8f77128f5f46b1febd6544e1dab8a6926c49c92392848bd7481f9"
+        }
+      ]
+    },
+    {
+      "id": "IF-FLAGS/10",
+      "boundary": "IF-FLAGS",
+      "required_case": "DAD failure flag caller behavior",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-flag-dad-failure",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "failed-aaaa:udp",
+            "failed-aaaa:tcp",
+            "failed-ptr:udp",
+            "failed-ptr:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "0f988519ba3a1fa6b3c81fadf3cf66136bed09c37ca17cee38ff668632d72656",
+          "rust_observed_sha256": "b250ca0feee23931f65736730c8a710a4a3f7c9ef7209c62c813e9763f787cb9"
+        }
+      ]
+    },
+    {
+      "id": "IF-FLAGS/11",
+      "boundary": "IF-FLAGS",
+      "required_case": "valid lifetime expiry removes address",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-expiry",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "valid-aaaa:udp",
+            "valid-aaaa:tcp",
+            "valid-ptr:udp",
+            "valid-ptr:tcp",
+            "expired-aaaa:udp",
+            "expired-aaaa:tcp",
+            "expired-ptr:udp",
+            "expired-ptr:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "af8da1512269152ec4dad5438d394b259043896cc4ded5b952a5703b5a340adc",
+          "rust_observed_sha256": "a940742ec9912689f75be81f3eb1efffb115ae61dc95e180ca1b2ca5ee74d956"
+        }
+      ]
+    },
+    {
+      "id": "IF-FLAGS/12",
+      "boundary": "IF-FLAGS",
+      "required_case": "optimistic/nonmatching flags",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-flag-optimistic",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "optimistic-aaaa:udp",
+            "optimistic-aaaa:tcp",
+            "optimistic-ptr:udp",
+            "optimistic-ptr:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "9e03c1140568e7cc2ed1799ecb2a239c2336fed07334614f2e1faae4ef0007fd",
+          "rust_observed_sha256": "06880152053e693c6c94dd11dd7e99b8492e32033e1f70b84ff6e4c50344e677"
+        }
+      ]
+    },
+    {
+      "id": "IF-FLAGS/13",
+      "boundary": "IF-FLAGS",
+      "required_case": "duplicate derived address permanent/privacy input order",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "dynamic-privacy-duplicate",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "duplicate-aaaa:udp",
+            "duplicate-aaaa:tcp",
+            "duplicate-ptr:udp",
+            "duplicate-ptr:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "4f26d27de213f3a39c5bf04ad8311336a37f583161320093cba05830f09900ad",
+          "rust_observed_sha256": "2ff2680080ffafb32683e65feab4e27e87ac2400277c42dc18c80e052c5d7dce"
+        },
+        {
+          "mode": "service",
+          "case_id": "dynamic-privacy-order",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "privacy-first:udp",
+            "privacy-first:tcp",
+            "permanent-first:udp",
+            "permanent-first:tcp",
+            "derived-ptr:udp",
+            "derived-ptr:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "fb306a0d2697173318a7177d634f492b1da64e5a4c225c25591945001c72a85d",
+          "rust_observed_sha256": "b54df80f3aafb72ed9a0808fdebd0f77cdb83d1f687108c7a62bae9a5fba6c9f"
+        }
+      ]
+    },
+    {
+      "id": "IF-FWD/01",
+      "boundary": "IF-FWD",
+      "required_case": "A IPv4 family /4 /6",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-address",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "e3e12dbb0736ddbe0efcce3824f6825b0c2574cc5fe59a47edfa4dd423f7da47",
+          "rust_observed_sha256": "a3d76570b2b6850dac9e1a37fb619704c928826c59435b7c7e6bf2a5c1658e17"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-family4",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "dd030c3f176307b2f8914b15de0c9883973328c39fc6cd9847c53e82ebd418b3",
+          "rust_observed_sha256": "07586716ac00bfa10771eb5974c9da09537cecfefb3241bb15ea59866ac0e74c"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-family6",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "d3eb832bcf19586b38aced1a68832f39e667109b029fba0ce8ed068e2967c77c",
+          "rust_observed_sha256": "0890453f0232537603ff5725da7b85dc46de9ecce080ba52d0a721b53e3167d3"
+        }
+      ]
+    },
+    {
+      "id": "IF-FWD/02",
+      "boundary": "IF-FWD",
+      "required_case": "AAAA IPv6 family /4 /6",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-address",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "e3e12dbb0736ddbe0efcce3824f6825b0c2574cc5fe59a47edfa4dd423f7da47",
+          "rust_observed_sha256": "a3d76570b2b6850dac9e1a37fb619704c928826c59435b7c7e6bf2a5c1658e17"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-family4",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "dd030c3f176307b2f8914b15de0c9883973328c39fc6cd9847c53e82ebd418b3",
+          "rust_observed_sha256": "07586716ac00bfa10771eb5974c9da09537cecfefb3241bb15ea59866ac0e74c"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-family6",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "d3eb832bcf19586b38aced1a68832f39e667109b029fba0ce8ed068e2967c77c",
+          "rust_observed_sha256": "0890453f0232537603ff5725da7b85dc46de9ecce080ba52d0a721b53e3167d3"
+        }
+      ]
+    },
+    {
+      "id": "IF-FWD/03",
+      "boundary": "IF-FWD",
+      "required_case": "ANY combines eligible families",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-address",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "e3e12dbb0736ddbe0efcce3824f6825b0c2574cc5fe59a47edfa4dd423f7da47",
+          "rust_observed_sha256": "a3d76570b2b6850dac9e1a37fb619704c928826c59435b7c7e6bf2a5c1658e17"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-enum-many",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "b270481473d85b5ebb5910bb3ac32c739f7d3cc92c8df716cff1cae8e7cb242f",
+          "rust_observed_sha256": "86d50103a88fa048b8dff64b9d8a7f98d491b378d2e20a5fa46227f830359b24"
+        }
+      ]
+    },
+    {
+      "id": "IF-FWD/04",
+      "boundary": "IF-FWD",
+      "required_case": "same name repeated records stored order",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-two-declarations",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "863be47da8929216d75f89f5cb1dcf1d3d39a635980c3572e9d97014cf8c0a69",
+          "rust_observed_sha256": "3b5a6c46f03e28462bb0ebe77058207aab920131137d325cb4c9102daeeab06c"
+        }
+      ]
+    },
+    {
+      "id": "IF-FWD/05",
+      "boundary": "IF-FWD",
+      "required_case": "local-ttl0/nonzero",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-ttl-0",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "260add30e472aa45683ae2e9c0ce2dd52bb1723025fa3a1e37a8d1ca8174f5d4",
+          "rust_observed_sha256": "680e66ee4accc51f0c7e1d3efc7042df3433794dc1760ed6720d5c1ff26e8c19"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-ttl-77",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "5a86f69c1037d0ec8a542831846c49d4dd1ef4f5f84ee694101b0bb4964e4a12",
+          "rust_observed_sha256": "5a7cfd7c18a0572b3655e5d2c368eefdc7285e1da49e8112faeec1bed21be82b"
+        }
+      ]
+    },
+    {
+      "id": "IF-FWD/06",
+      "boundary": "IF-FWD",
+      "required_case": "max packet truncation and TCP full answer",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-truncation",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "87e3f7e5c73cc655c3be5bd44d4208ab90f6ad72ca883731c7276a7786db21e0",
+          "rust_observed_sha256": "5f48065e0b133652da79415e7dbedcba7cca0b70735428858b2e2a77995866c0"
+        }
+      ]
+    },
+    {
+      "id": "IF-FWD/07",
+      "boundary": "IF-FWD",
+      "required_case": "class IN/ANY/CHAOS differences",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-wire-bits",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "kind1-class1-rdFalse-doFalse-cdFalse:udp",
+            "kind1-class1-rdFalse-doFalse-cdFalse:tcp",
+            "kind1-class1-rdTrue-doTrue-cdTrue:udp",
+            "kind1-class1-rdTrue-doTrue-cdTrue:tcp",
+            "kind1-class255-rdTrue-doFalse-cdFalse:udp",
+            "kind1-class255-rdTrue-doFalse-cdFalse:tcp",
+            "kind1-class3-rdTrue-doFalse-cdFalse:udp",
+            "kind1-class3-rdTrue-doFalse-cdFalse:tcp",
+            "kind28-class1-rdFalse-doFalse-cdFalse:udp",
+            "kind28-class1-rdFalse-doFalse-cdFalse:tcp",
+            "kind28-class1-rdTrue-doTrue-cdTrue:udp",
+            "kind28-class1-rdTrue-doTrue-cdTrue:tcp",
+            "kind28-class255-rdTrue-doFalse-cdFalse:udp",
+            "kind28-class255-rdTrue-doFalse-cdFalse:tcp",
+            "kind28-class3-rdTrue-doFalse-cdFalse:udp",
+            "kind28-class3-rdTrue-doFalse-cdFalse:tcp",
+            "kind255-class1-rdFalse-doFalse-cdFalse:udp",
+            "kind255-class1-rdFalse-doFalse-cdFalse:tcp",
+            "kind255-class1-rdTrue-doTrue-cdTrue:udp",
+            "kind255-class1-rdTrue-doTrue-cdTrue:tcp",
+            "kind255-class255-rdTrue-doFalse-cdFalse:udp",
+            "kind255-class255-rdTrue-doFalse-cdFalse:tcp",
+            "kind255-class3-rdTrue-doFalse-cdFalse:udp",
+            "kind255-class3-rdTrue-doFalse-cdFalse:tcp",
+            "kind16-class1-rdFalse-doFalse-cdFalse:udp",
+            "kind16-class1-rdFalse-doFalse-cdFalse:tcp",
+            "kind16-class1-rdTrue-doTrue-cdTrue:udp",
+            "kind16-class1-rdTrue-doTrue-cdTrue:tcp",
+            "kind16-class255-rdTrue-doFalse-cdFalse:udp",
+            "kind16-class255-rdTrue-doFalse-cdFalse:tcp",
+            "kind16-class3-rdTrue-doFalse-cdFalse:udp",
+            "kind16-class3-rdTrue-doFalse-cdFalse:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "9b74f2dc22caa7ebf96758c424eb5de4e9ef2ebbbb381b090f339bf81e39d2a5",
+          "rust_observed_sha256": "b6dca07710913a7f0b61668c3e068fddff13fc56f56628595f25792c57271911"
+        }
+      ]
+    },
+    {
+      "id": "IF-FWD/08",
+      "boundary": "IF-FWD",
+      "required_case": "RD and DO/CD bit behavior",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-wire-bits",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "kind1-class1-rdFalse-doFalse-cdFalse:udp",
+            "kind1-class1-rdFalse-doFalse-cdFalse:tcp",
+            "kind1-class1-rdTrue-doTrue-cdTrue:udp",
+            "kind1-class1-rdTrue-doTrue-cdTrue:tcp",
+            "kind1-class255-rdTrue-doFalse-cdFalse:udp",
+            "kind1-class255-rdTrue-doFalse-cdFalse:tcp",
+            "kind1-class3-rdTrue-doFalse-cdFalse:udp",
+            "kind1-class3-rdTrue-doFalse-cdFalse:tcp",
+            "kind28-class1-rdFalse-doFalse-cdFalse:udp",
+            "kind28-class1-rdFalse-doFalse-cdFalse:tcp",
+            "kind28-class1-rdTrue-doTrue-cdTrue:udp",
+            "kind28-class1-rdTrue-doTrue-cdTrue:tcp",
+            "kind28-class255-rdTrue-doFalse-cdFalse:udp",
+            "kind28-class255-rdTrue-doFalse-cdFalse:tcp",
+            "kind28-class3-rdTrue-doFalse-cdFalse:udp",
+            "kind28-class3-rdTrue-doFalse-cdFalse:tcp",
+            "kind255-class1-rdFalse-doFalse-cdFalse:udp",
+            "kind255-class1-rdFalse-doFalse-cdFalse:tcp",
+            "kind255-class1-rdTrue-doTrue-cdTrue:udp",
+            "kind255-class1-rdTrue-doTrue-cdTrue:tcp",
+            "kind255-class255-rdTrue-doFalse-cdFalse:udp",
+            "kind255-class255-rdTrue-doFalse-cdFalse:tcp",
+            "kind255-class3-rdTrue-doFalse-cdFalse:udp",
+            "kind255-class3-rdTrue-doFalse-cdFalse:tcp",
+            "kind16-class1-rdFalse-doFalse-cdFalse:udp",
+            "kind16-class1-rdFalse-doFalse-cdFalse:tcp",
+            "kind16-class1-rdTrue-doTrue-cdTrue:udp",
+            "kind16-class1-rdTrue-doTrue-cdTrue:tcp",
+            "kind16-class255-rdTrue-doFalse-cdFalse:udp",
+            "kind16-class255-rdTrue-doFalse-cdFalse:tcp",
+            "kind16-class3-rdTrue-doFalse-cdFalse:udp",
+            "kind16-class3-rdTrue-doFalse-cdFalse:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "9b74f2dc22caa7ebf96758c424eb5de4e9ef2ebbbb381b090f339bf81e39d2a5",
+          "rust_observed_sha256": "b6dca07710913a7f0b61668c3e068fddff13fc56f56628595f25792c57271911"
+        }
+      ]
+    },
+    {
+      "id": "IF-FWD/09",
+      "boundary": "IF-FWD",
+      "required_case": "CNAME terminal resolves interface records",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-cname",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "464df19bffce14028e92f15adeb007c3efbf5d6adcd605ed0e2fdef97113fcfd",
+          "rust_observed_sha256": "2f83930e4d331c59cf9869b63d62e12c2eb6e487d042662b6d6ad59a8502604e"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-cname-chain",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "014b8dfe6b967278407ce2b89fb742a906de53239f4aa44b8a7be38499f4be34",
+          "rust_observed_sha256": "c6f69e936df2ee0f51834309fd85aa454876a3c383a5d39955915d71625621b8"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-cached-cname-present",
+          "run": "paired-486-interface-final-cname-clock-04",
+          "observation_ids": [
+            "warm:udp",
+            "cached-terminal:udp",
+            "fresh-child:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "355fc5ff4d8e07bd56098c7504af4f11db6be3e9907d218af394478424847312",
+          "rust_observed_sha256": "6fbc3a61df3951f74da353dbe562f2ff6c96167787fc8cb98cbb591434e1a796"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-cached-cname-empty",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "warm:udp",
+            "cached-terminal:udp",
+            "fresh-child:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "b659322f3a2faab9cb0a3b37ea9872cc1a33a41ff4276658c7a8bb12dcfd54f5",
+          "rust_observed_sha256": "8966a6a6428c6e04d47ad4f08b09ccae76d4dbb6ebe007d92f29c44bb5d69c26"
+        }
+      ]
+    },
+    {
+      "id": "IF-FWD/10",
+      "boundary": "IF-FWD",
+      "required_case": "CNAME chain/loop failure",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-cname-chain",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "014b8dfe6b967278407ce2b89fb742a906de53239f4aa44b8a7be38499f4be34",
+          "rust_observed_sha256": "c6f69e936df2ee0f51834309fd85aa454876a3c383a5d39955915d71625621b8"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-cname-loop",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "e457f54fe2179c4c791c385310ba4afd2c1f4c38247dc138f71d9d9ee6d47381",
+          "rust_observed_sha256": "d102bbd59ce6dc856ce1a76ac2ddbe2662e2f3c341af14c802feeb451de18e67"
+        }
+      ]
+    },
+    {
+      "id": "IF-FWD/11",
+      "boundary": "IF-FWD",
+      "required_case": "same-name hosts/host-record/upstream cache precedence",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-host-precedence",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "8f12dc0a68499a677f80be1ee11ab013460e6902da00e2f635b6223ee336dc5a",
+          "rust_observed_sha256": "e301997f1601914257032645c440cd2c80661f9068118636e427f8023e76b9be"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-empty-host-interception",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "db3e564f175a27a22802877090b8b60aa30d4b47bb45ddbb2e31c260d531fcbb",
+          "rust_observed_sha256": "9de9e373a20e10d203034895ed5e30f137dfa1cf5f042a6351855f05c31ba1d8"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-cache-positive-empty",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "633eab70a7de51058f06b115f68882fdb13c73e311c2c3d4bc8ae59047a6d135",
+          "rust_observed_sha256": "5d210c847a7b7cf525695d2d7dc05afa9bb8edad24621eb8e21dd9e1a0d76dc0"
+        }
+      ]
+    },
+    {
+      "id": "IF-FWD/12",
+      "boundary": "IF-FWD",
+      "required_case": "no-address name forwarding and NXDOMAIN conversion",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-missing",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "d40e5c71f8729eba2fe57e3e2adfe908bc32e520f5712e1510b01c4a1e455c5d",
+          "rust_observed_sha256": "00b7ba38ce268e16c1c0bcb639492cf1418ed1c7c255ad67dcf3ed3946a6cb0e"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-cache-bypass-empty",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "60afa0af744ce8d8b92585e3a32a1c3bb16cc2bb8b88377910f5f7763cc3af6c",
+          "rust_observed_sha256": "c4a86030e94e744f0206ab383fbae8d7648b31d137128523a8564ebb16fb18bf"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-cache-positive-empty",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "633eab70a7de51058f06b115f68882fdb13c73e311c2c3d4bc8ae59047a6d135",
+          "rust_observed_sha256": "5d210c847a7b7cf525695d2d7dc05afa9bb8edad24621eb8e21dd9e1a0d76dc0"
+        }
+      ]
+    },
+    {
+      "id": "IF-FWD/13",
+      "boundary": "IF-FWD",
+      "required_case": "wrong-family only addresses",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-family4",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "dd030c3f176307b2f8914b15de0c9883973328c39fc6cd9847c53e82ebd418b3",
+          "rust_observed_sha256": "07586716ac00bfa10771eb5974c9da09537cecfefb3241bb15ea59866ac0e74c"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-family6",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "d3eb832bcf19586b38aced1a68832f39e667109b029fba0ce8ed068e2967c77c",
+          "rust_observed_sha256": "0890453f0232537603ff5725da7b85dc46de9ecce080ba52d0a721b53e3167d3"
+        },
+        {
+          "mode": "service",
+          "case_id": "dynamic-wrong-family",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "2959b284d0c88f6c6dd3ce4077e1bb828ff9667340733e52e699bd4e1e5ca22f",
+          "rust_observed_sha256": "0de36b7eb2ad6d42195903cc041643748f653ac43b7d90ceb0006651e8f32f37"
+        }
+      ]
+    },
+    {
+      "id": "IF-FWD/14",
+      "boundary": "IF-FWD",
+      "required_case": "TXT/other type forwarding",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-address",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "e3e12dbb0736ddbe0efcce3824f6825b0c2574cc5fe59a47edfa4dd423f7da47",
+          "rust_observed_sha256": "a3d76570b2b6850dac9e1a37fb619704c928826c59435b7c7e6bf2a5c1658e17"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-wire-bits",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "kind1-class1-rdFalse-doFalse-cdFalse:udp",
+            "kind1-class1-rdFalse-doFalse-cdFalse:tcp",
+            "kind1-class1-rdTrue-doTrue-cdTrue:udp",
+            "kind1-class1-rdTrue-doTrue-cdTrue:tcp",
+            "kind1-class255-rdTrue-doFalse-cdFalse:udp",
+            "kind1-class255-rdTrue-doFalse-cdFalse:tcp",
+            "kind1-class3-rdTrue-doFalse-cdFalse:udp",
+            "kind1-class3-rdTrue-doFalse-cdFalse:tcp",
+            "kind28-class1-rdFalse-doFalse-cdFalse:udp",
+            "kind28-class1-rdFalse-doFalse-cdFalse:tcp",
+            "kind28-class1-rdTrue-doTrue-cdTrue:udp",
+            "kind28-class1-rdTrue-doTrue-cdTrue:tcp",
+            "kind28-class255-rdTrue-doFalse-cdFalse:udp",
+            "kind28-class255-rdTrue-doFalse-cdFalse:tcp",
+            "kind28-class3-rdTrue-doFalse-cdFalse:udp",
+            "kind28-class3-rdTrue-doFalse-cdFalse:tcp",
+            "kind255-class1-rdFalse-doFalse-cdFalse:udp",
+            "kind255-class1-rdFalse-doFalse-cdFalse:tcp",
+            "kind255-class1-rdTrue-doTrue-cdTrue:udp",
+            "kind255-class1-rdTrue-doTrue-cdTrue:tcp",
+            "kind255-class255-rdTrue-doFalse-cdFalse:udp",
+            "kind255-class255-rdTrue-doFalse-cdFalse:tcp",
+            "kind255-class3-rdTrue-doFalse-cdFalse:udp",
+            "kind255-class3-rdTrue-doFalse-cdFalse:tcp",
+            "kind16-class1-rdFalse-doFalse-cdFalse:udp",
+            "kind16-class1-rdFalse-doFalse-cdFalse:tcp",
+            "kind16-class1-rdTrue-doTrue-cdTrue:udp",
+            "kind16-class1-rdTrue-doTrue-cdTrue:tcp",
+            "kind16-class255-rdTrue-doFalse-cdFalse:udp",
+            "kind16-class255-rdTrue-doFalse-cdFalse:tcp",
+            "kind16-class3-rdTrue-doFalse-cdFalse:udp",
+            "kind16-class3-rdTrue-doFalse-cdFalse:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "9b74f2dc22caa7ebf96758c424eb5de4e9ef2ebbbb381b090f339bf81e39d2a5",
+          "rust_observed_sha256": "b6dca07710913a7f0b61668c3e068fddff13fc56f56628595f25792c57271911"
+        }
+      ]
+    },
+    {
+      "id": "IF-FWD/15",
+      "boundary": "IF-FWD",
+      "required_case": "localise-queries IPv4 same-net filter",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-localisation",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "same4:udp",
+            "same4:tcp",
+            "absent4:udp",
+            "absent4:tcp",
+            "same6:udp",
+            "same6:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "b2741b50d5c1f1e174dd990833e779bac6f381a7a001516b9bb8f5c73ca8be6f",
+          "rust_observed_sha256": "dea6f2d9558ac653e7f051b69a47b2017079d1380ec6d9f8080f80ea818820fb"
+        }
+      ]
+    },
+    {
+      "id": "IF-FWD/16",
+      "boundary": "IF-FWD",
+      "required_case": "localise-queries absent same-net unfiltered",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-localisation",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "same4:udp",
+            "same4:tcp",
+            "absent4:udp",
+            "absent4:tcp",
+            "same6:udp",
+            "same6:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "b2741b50d5c1f1e174dd990833e779bac6f381a7a001516b9bb8f5c73ca8be6f",
+          "rust_observed_sha256": "dea6f2d9558ac653e7f051b69a47b2017079d1380ec6d9f8080f80ea818820fb"
+        }
+      ]
+    },
+    {
+      "id": "IF-FWD/17",
+      "boundary": "IF-FWD",
+      "required_case": "IPv6 localization unaffected",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-localisation",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "same4:udp",
+            "same4:tcp",
+            "absent4:udp",
+            "absent4:tcp",
+            "same6:udp",
+            "same6:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "b2741b50d5c1f1e174dd990833e779bac6f381a7a001516b9bb8f5c73ca8be6f",
+          "rust_observed_sha256": "dea6f2d9558ac653e7f051b69a47b2017079d1380ec6d9f8080f80ea818820fb"
+        }
+      ]
+    },
+    {
+      "id": "IF-PTR/01",
+      "boundary": "IF-PTR",
+      "required_case": "first declaration wins PTR",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-ptr-precedence",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "6d80bc3e8be9df9d9c73ff0b4335bc055c3a8fd11304d370795406f717815a06",
+          "rust_observed_sha256": "23bd701352f9edd6c7f86e4a61610cd75aa826b40e67ae9652d4b3936b6828c7"
+        }
+      ]
+    },
+    {
+      "id": "IF-PTR/02",
+      "boundary": "IF-PTR",
+      "required_case": "IPv4 and IPv6 PTR/ANY",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-address",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "e3e12dbb0736ddbe0efcce3824f6825b0c2574cc5fe59a47edfa4dd423f7da47",
+          "rust_observed_sha256": "a3d76570b2b6850dac9e1a37fb619704c928826c59435b7c7e6bf2a5c1658e17"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-ptr-any",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "eefb466254b3feef0feb66a51075c87388221985e25096da8a85c1c164fe7c19",
+          "rust_observed_sha256": "7b2b77fff38cd2f3c17191d70b84061b5838f2bc71cc3f4de5913813ee217b4c"
+        }
+      ]
+    },
+    {
+      "id": "IF-PTR/03",
+      "boundary": "IF-PTR",
+      "required_case": "reverse-only flags still answer",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-flag-temporary",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "public-aaaa:udp",
+            "public-aaaa:tcp",
+            "public-ptr:udp",
+            "public-ptr:tcp",
+            "temporary-ptr:udp",
+            "temporary-ptr:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "819a859189e5611c0f5263609ff41e1b1c84f57495632679fdb2991cbb659aae",
+          "rust_observed_sha256": "bf1afd8dc53b990afb3466406e2521d222d1adceded447fad12e7a829f1569d5"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-flag-deprecated",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "deprecated-aaaa:udp",
+            "deprecated-aaaa:tcp",
+            "deprecated-ptr:udp",
+            "deprecated-ptr:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "c0ca98c367ee6b3c9d5eb56e6e68d4612adc583742bd21bf6e3403cd566d78fc",
+          "rust_observed_sha256": "80e2a88fbddac8b09e81ff6b7e183413e0d57128879a35f94e5345a9047feb0c"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-flag-dad-completion",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "tentative-aaaa:udp",
+            "tentative-aaaa:tcp",
+            "tentative-ptr:udp",
+            "tentative-ptr:tcp",
+            "completed-aaaa:udp",
+            "completed-aaaa:tcp",
+            "completed-ptr:udp",
+            "completed-ptr:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "17a966145a5a03bb945b6de56a6ecacb98395c81be57769518154ea4ba2dd5ff",
+          "rust_observed_sha256": "d761aaa96dc8f77128f5f46b1febd6544e1dab8a6926c49c92392848bd7481f9"
+        }
+      ]
+    },
+    {
+      "id": "IF-PTR/04",
+      "boundary": "IF-PTR",
+      "required_case": "explicit ptr-record collision",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-ptr-precedence",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "6d80bc3e8be9df9d9c73ff0b4335bc055c3a8fd11304d370795406f717815a06",
+          "rust_observed_sha256": "23bd701352f9edd6c7f86e4a61610cd75aa826b40e67ae9652d4b3936b6828c7"
+        }
+      ]
+    },
+    {
+      "id": "IF-PTR/05",
+      "boundary": "IF-PTR",
+      "required_case": "hosts/host-record collision",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-ptr-precedence",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "6d80bc3e8be9df9d9c73ff0b4335bc055c3a8fd11304d370795406f717815a06",
+          "rust_observed_sha256": "23bd701352f9edd6c7f86e4a61610cd75aa826b40e67ae9652d4b3936b6828c7"
+        }
+      ]
+    },
+    {
+      "id": "IF-PTR/06",
+      "boundary": "IF-PTR",
+      "required_case": "DHCP lease reverse collision",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-lease-priority",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "c12dfd421f4b67ccf7e9d3acf28db10aefe868eddd366fb162a03c513021e735",
+          "rust_observed_sha256": "7889f34db18ad722eba3f1b665c9d35b2d796fbf3f46185bbb70fd815b1f7e37"
+        }
+      ]
+    },
+    {
+      "id": "IF-PTR/07",
+      "boundary": "IF-PTR",
+      "required_case": "dynamic reverse cache collision",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-ptr-cache-priority",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "warm:udp",
+            "cache:udp",
+            "enum:udp",
+            "interface:udp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "121ab4356dd12b3176feb62734846c27e4dc207a420b3231b7fac7265d1ca730",
+          "rust_observed_sha256": "aaab0ad3da0843e75adc17ec2d33ef858831428579f3609dbfb99d9b231e9030"
+        }
+      ]
+    },
+    {
+      "id": "IF-PTR/08",
+      "boundary": "IF-PTR",
+      "required_case": "synth-domain reverse collision",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-synth-ptr-precedence",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "3def8c41c193531f0a997811418cba8c8c9f6c0c73b2369d9c2f156cf8aae0ea",
+          "rust_observed_sha256": "06195dc71560926b110220dbbbbb632d93f92f42b28ebcda2e3f419feead74bc"
+        }
+      ]
+    },
+    {
+      "id": "IF-PTR/09",
+      "boundary": "IF-PTR",
+      "required_case": "consecutive same-interface family exclusion skip",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-ptr-family-adjacent",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "665775b53aaa095be4fd01291469bc093cd9b5983326fd807d24de16a299f475",
+          "rust_observed_sha256": "16eb63393ae46b079c71100abfb5c6e9f8afd987b04f09631678e69c60865fbc"
+        }
+      ]
+    },
+    {
+      "id": "IF-PTR/10",
+      "boundary": "IF-PTR",
+      "required_case": "nonconsecutive same-interface exclusion",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-ptr-family-separated",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "21c01d026f8fa6dbf4e9d2ed69f436f30fd5de69ac28e3ba45822422dda14436",
+          "rust_observed_sha256": "c9913d4ce9c4d3af66fecd5e00ce2f8bb17f85657e99a5046c7bb22013fddb66"
+        }
+      ]
+    },
+    {
+      "id": "IF-PTR/11",
+      "boundary": "IF-PTR",
+      "required_case": "prototype INP4/INP6 changes skip rule",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "dynamic-ptr-prototype-skip",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "06cc9b0ae497b6e038dc79196a90e6c57e074838b9061ae49416438320db8cfd",
+          "rust_observed_sha256": "25607e38c07c94ff1ecf34add960323fa81789436abeae4bea6d8bb6014fe958"
+        }
+      ]
+    },
+    {
+      "id": "IF-PTR/12",
+      "boundary": "IF-PTR",
+      "required_case": "multiple directives with overlapping derived addresses",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "dynamic-ptr-overlap",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "f77a791fcf14a5d46ae71db184c13d0db47cf0b9f33a7276d04bf35658c2a42a",
+          "rust_observed_sha256": "f5a7cd85a4212a5fdf214dde0cadd533ddd6f56f74e7644a7d15a9b76bd98fb8"
+        }
+      ]
+    },
+    {
+      "id": "IF-PTR/13",
+      "boundary": "IF-PTR",
+      "required_case": "malformed arpa and non-address PTR names",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-ptr-any",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "eefb466254b3feef0feb66a51075c87388221985e25096da8a85c1c164fe7c19",
+          "rust_observed_sha256": "7b2b77fff38cd2f3c17191d70b84061b5838f2bc71cc3f4de5913813ee217b4c"
+        }
+      ]
+    },
+    {
+      "id": "IF-EXIST/01",
+      "boundary": "IF-EXIST",
+      "required_case": "exact declared name exists without address",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-missing",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "d40e5c71f8729eba2fe57e3e2adfe908bc32e520f5712e1510b01c4a1e455c5d",
+          "rust_observed_sha256": "00b7ba38ce268e16c1c0bcb639492cf1418ed1c7c255ad67dcf3ed3946a6cb0e"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-without-address",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "25c667025e41571513d16773df8c056578319a63c9b0d374f35ae46f9da1b38b",
+          "rust_observed_sha256": "d2bea8e69adfcd702ad21555065ae70e382fc11bff73e520c57ed5d71bd29efb"
+        }
+      ]
+    },
+    {
+      "id": "IF-EXIST/02",
+      "boundary": "IF-EXIST",
+      "required_case": "ancestor and root existence",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-existence",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "f45ef15145d98187e87ed7f54cdbf58ef9a47595d792c963f6a1426141bb44eb",
+          "rust_observed_sha256": "1c04011bdce58b23fbc2fc5899c411ead3dce2efea1f137cb78476e8475e8f83"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-root-name",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "4f0974d6da88c548d125579174fed5cb0d91981cc58943c614e9c796ac18ab02",
+          "rust_observed_sha256": "2ab1cf5b6ba373749ac5842be27e62982d72a3b89d0814259e4ee1d2991d6d50"
+        }
+      ]
+    },
+    {
+      "id": "IF-EXIST/03",
+      "boundary": "IF-EXIST",
+      "required_case": "descendant name is not implied",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-existence",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "f45ef15145d98187e87ed7f54cdbf58ef9a47595d792c963f6a1426141bb44eb",
+          "rust_observed_sha256": "1c04011bdce58b23fbc2fc5899c411ead3dce2efea1f137cb78476e8475e8f83"
+        }
+      ]
+    },
+    {
+      "id": "IF-EXIST/04",
+      "boundary": "IF-EXIST",
+      "required_case": "near suffix/label mismatch",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-existence",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "f45ef15145d98187e87ed7f54cdbf58ef9a47595d792c963f6a1426141bb44eb",
+          "rust_observed_sha256": "1c04011bdce58b23fbc2fc5899c411ead3dce2efea1f137cb78476e8475e8f83"
+        }
+      ]
+    },
+    {
+      "id": "IF-EXIST/05",
+      "boundary": "IF-EXIST",
+      "required_case": "case and trailing-dot",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-existence",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "f45ef15145d98187e87ed7f54cdbf58ef9a47595d792c963f6a1426141bb44eb",
+          "rust_observed_sha256": "1c04011bdce58b23fbc2fc5899c411ead3dce2efea1f137cb78476e8475e8f83"
+        }
+      ]
+    },
+    {
+      "id": "IF-EXIST/06",
+      "boundary": "IF-EXIST",
+      "required_case": "unknown RR upstream NXDOMAIN becomes NODATA AA",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-address",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "e3e12dbb0736ddbe0efcce3824f6825b0c2574cc5fe59a47edfa4dd423f7da47",
+          "rust_observed_sha256": "a3d76570b2b6850dac9e1a37fb619704c928826c59435b7c7e6bf2a5c1658e17"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-missing",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "d40e5c71f8729eba2fe57e3e2adfe908bc32e520f5712e1510b01c4a1e455c5d",
+          "rust_observed_sha256": "00b7ba38ce268e16c1c0bcb639492cf1418ed1c7c255ad67dcf3ed3946a6cb0e"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-existence",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "f45ef15145d98187e87ed7f54cdbf58ef9a47595d792c963f6a1426141bb44eb",
+          "rust_observed_sha256": "1c04011bdce58b23fbc2fc5899c411ead3dce2efea1f137cb78476e8475e8f83"
+        }
+      ]
+    },
+    {
+      "id": "IF-EXIST/07",
+      "boundary": "IF-EXIST",
+      "required_case": "A/AAAA with no eligible addresses",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-missing",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "d40e5c71f8729eba2fe57e3e2adfe908bc32e520f5712e1510b01c4a1e455c5d",
+          "rust_observed_sha256": "00b7ba38ce268e16c1c0bcb639492cf1418ed1c7c255ad67dcf3ed3946a6cb0e"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-flag-temporary",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "public-aaaa:udp",
+            "public-aaaa:tcp",
+            "public-ptr:udp",
+            "public-ptr:tcp",
+            "temporary-ptr:udp",
+            "temporary-ptr:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "819a859189e5611c0f5263609ff41e1b1c84f57495632679fdb2991cbb659aae",
+          "rust_observed_sha256": "bf1afd8dc53b990afb3466406e2521d222d1adceded447fad12e7a829f1569d5"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-flag-deprecated",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "deprecated-aaaa:udp",
+            "deprecated-aaaa:tcp",
+            "deprecated-ptr:udp",
+            "deprecated-ptr:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "c0ca98c367ee6b3c9d5eb56e6e68d4612adc583742bd21bf6e3403cd566d78fc",
+          "rust_observed_sha256": "80e2a88fbddac8b09e81ff6b7e183413e0d57128879a35f94e5345a9047feb0c"
+        }
+      ]
+    },
+    {
+      "id": "IF-EXIST/08",
+      "boundary": "IF-EXIST",
+      "required_case": "domain-needed dotless local name",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-dotless",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "b1c1ba8b48325ff422a1fbb73226c2222f9efbccb46610291ed47b719a791cc7",
+          "rust_observed_sha256": "089f0243081a1848a6b9e1abaeeef839462a40da8327b485c6ed41aca3042510"
+        }
+      ]
+    },
+    {
+      "id": "IF-EXIST/09",
+      "boundary": "IF-EXIST",
+      "required_case": "declaration only /4 queried AAAA",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-family4",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "dd030c3f176307b2f8914b15de0c9883973328c39fc6cd9847c53e82ebd418b3",
+          "rust_observed_sha256": "07586716ac00bfa10771eb5974c9da09537cecfefb3241bb15ea59866ac0e74c"
+        }
+      ]
+    },
+    {
+      "id": "IF-EXIST/10",
+      "boundary": "IF-EXIST",
+      "required_case": "declaration only /6 queried A",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-family6",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp",
+            "q5:udp",
+            "q5:tcp",
+            "q6:udp",
+            "q6:tcp",
+            "q7:udp",
+            "q7:tcp",
+            "q8:udp",
+            "q8:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "d3eb832bcf19586b38aced1a68832f39e667109b029fba0ce8ed068e2967c77c",
+          "rust_observed_sha256": "0890453f0232537603ff5725da7b85dc46de9ecce080ba52d0a721b53e3167d3"
+        }
+      ]
+    },
+    {
+      "id": "IF-EXIST/11",
+      "boundary": "IF-EXIST",
+      "required_case": "synth valid name existence independent query family",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-synth-name-exists",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "317cf53e24d5121466a7abe0340cedafb9f99d4b95fedab1b6d796096a4f5e3a",
+          "rust_observed_sha256": "1404db7e8167d83ba303471f31febbc7f3c87423cb17de301418743308d11337"
+        }
+      ]
+    },
+    {
+      "id": "IF-CALLER/01",
+      "boundary": "IF-CALLER",
+      "required_case": "startup enumeration before lease FQDN and hosts loading",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-lease-priority",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "c12dfd421f4b67ccf7e9d3acf28db10aefe868eddd366fb162a03c513021e735",
+          "rust_observed_sha256": "7889f34db18ad722eba3f1b665c9d35b2d796fbf3f46185bbb70fd815b1f7e37"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-host-precedence",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "8f12dc0a68499a677f80be1ee11ab013460e6902da00e2f635b6223ee336dc5a",
+          "rust_observed_sha256": "e301997f1601914257032645c440cd2c80661f9068118636e427f8023e76b9be"
+        }
+      ]
+    },
+    {
+      "id": "IF-CALLER/02",
+      "boundary": "IF-CALLER",
+      "required_case": "matched A/AAAA/ANY refresh",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-udp-ptr-refresh",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "before:udp",
+            "before:tcp",
+            "ptr-before-forward:udp",
+            "forward-refresh:udp",
+            "ptr-after-forward:udp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "e29d89efe432f16f670fec8c9acde01c8da32cf0047273df5329d1bf03ba041d",
+          "rust_observed_sha256": "9ab8100bab0960340bff798063cbf0fc80b11850b3706ddfeb345b1286dfb730"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-cached-cname-present",
+          "run": "paired-486-interface-final-cname-clock-04",
+          "observation_ids": [
+            "warm:udp",
+            "cached-terminal:udp",
+            "fresh-child:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "355fc5ff4d8e07bd56098c7504af4f11db6be3e9907d218af394478424847312",
+          "rust_observed_sha256": "6fbc3a61df3951f74da353dbe562f2ff6c96167787fc8cb98cbb591434e1a796"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-enum-many",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "b270481473d85b5ebb5910bb3ac32c739f7d3cc92c8df716cff1cae8e7cb242f",
+          "rust_observed_sha256": "86d50103a88fa048b8dff64b9d8a7f98d491b378d2e20a5fa46227f830359b24"
+        }
+      ]
+    },
+    {
+      "id": "IF-CALLER/03",
+      "boundary": "IF-CALLER",
+      "required_case": "UDP PTR remains stale until enumeration caller",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-udp-ptr-refresh",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "before:udp",
+            "before:tcp",
+            "ptr-before-forward:udp",
+            "forward-refresh:udp",
+            "ptr-after-forward:udp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "e29d89efe432f16f670fec8c9acde01c8da32cf0047273df5329d1bf03ba041d",
+          "rust_observed_sha256": "9ab8100bab0960340bff798063cbf0fc80b11850b3706ddfeb345b1286dfb730"
+        }
+      ]
+    },
+    {
+      "id": "IF-CALLER/04",
+      "boundary": "IF-CALLER",
+      "required_case": "unknown name/type does not refresh",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-caller-ordinary",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "initial:udp",
+            "unknown-name:udp",
+            "unknown-type:udp",
+            "before-hup:udp",
+            "after-hup:udp",
+            "refresh:udp",
+            "after-forward:udp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "80b3cc5340f75e46f2fdf3d133c337fb5e47412a6917413b8ebc92a69ece3fe0",
+          "rust_observed_sha256": "eb36c153816964c8bb7f767a436f2a0581dc461413d65fc19ae04416d8b84b66"
+        }
+      ]
+    },
+    {
+      "id": "IF-CALLER/05",
+      "boundary": "IF-CALLER",
+      "required_case": "plain network event/inline HUP no refresh",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-caller-ordinary",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "initial:udp",
+            "unknown-name:udp",
+            "unknown-type:udp",
+            "before-hup:udp",
+            "after-hup:udp",
+            "refresh:udp",
+            "after-forward:udp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "80b3cc5340f75e46f2fdf3d133c337fb5e47412a6917413b8ebc92a69ece3fe0",
+          "rust_observed_sha256": "eb36c153816964c8bb7f767a436f2a0581dc461413d65fc19ae04416d8b84b66"
+        }
+      ]
+    },
+    {
+      "id": "IF-CALLER/06",
+      "boundary": "IF-CALLER",
+      "required_case": "bind-dynamic address event refresh",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-caller-bind-dynamic",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "initial:udp",
+            "unknown-name:udp",
+            "unknown-type:udp",
+            "before-hup:udp",
+            "after-hup:udp",
+            "refresh:udp",
+            "after-forward:udp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "839f38a9b702bb06566a21863655a991ec3477f4a11cbb8ab6a227e03864c5db",
+          "rust_observed_sha256": "c73e0cbd3a614fda6b4c90667f73519b1db9e215077e99cd180aa360254144cc"
+        }
+      ]
+    },
+    {
+      "id": "IF-CALLER/07",
+      "boundary": "IF-CALLER",
+      "required_case": "active local-service net address event refresh",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-caller-local-service-net",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "initial:udp",
+            "unknown-name:udp",
+            "unknown-type:udp",
+            "before-hup:udp",
+            "after-hup:udp",
+            "refresh:udp",
+            "after-forward:udp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "8f9b16403587e4ceebeaa1fb440d1f460d2c4bbfc9b7aaa9059c74a20ccc38db",
+          "rust_observed_sha256": "bc4dab20cabd397967db064158c1e578272db2e116ec789f42f6274f8d9dd281"
+        }
+      ]
+    },
+    {
+      "id": "IF-CALLER/08",
+      "boundary": "IF-CALLER",
+      "required_case": "local-service host differs and ACL disables flags",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-caller-local-service-host",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "initial:udp",
+            "unknown-name:udp",
+            "unknown-type:udp",
+            "before-hup:udp",
+            "after-hup:udp",
+            "refresh:udp",
+            "after-forward:udp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ecf9711d89d0b5d17063aa8ca54cfde0c385a6884309a81065aa1f62e9550807",
+          "rust_observed_sha256": "93fcaad8427ae38d3fd0f2419184a86a4047e3c2fd4498f328ec4f008bf4100c"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-caller-acl-disables",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "initial:udp",
+            "unknown-name:udp",
+            "unknown-type:udp",
+            "before-hup:udp",
+            "after-hup:udp",
+            "refresh:udp",
+            "after-forward:udp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "b7a1a5ffe7f7956e9f7896ba758f39e6ce4462b42607fd12be76f6d8be78a3bd",
+          "rust_observed_sha256": "5ac10cbb377ffb028ea3a413426505399dfaf9ca286e7250200f8b68f0ab439a"
+        }
+      ]
+    },
+    {
+      "id": "IF-CALLER/09",
+      "boundary": "IF-CALLER",
+      "required_case": "parent TCP accept refreshes snapshot",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-tcp-inherited",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "child-before:held",
+            "parent-after:udp",
+            "child-after:held",
+            "fresh:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "a6e27df63ea1dfd6f4bdff38cb149b8d73f04606373aec08ce247bd3aee278ac",
+          "rust_observed_sha256": "bc91628db67f765f78eb081fefd3b5de0f720b5f51b14f48752850466a27ce79"
+        }
+      ]
+    },
+    {
+      "id": "IF-CALLER/10",
+      "boundary": "IF-CALLER",
+      "required_case": "open non-debug TCP child retains old addresses and flags",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-tcp-inherited",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "child-before:held",
+            "parent-after:udp",
+            "child-after:held",
+            "fresh:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "a6e27df63ea1dfd6f4bdff38cb149b8d73f04606373aec08ce247bd3aee278ac",
+          "rust_observed_sha256": "bc91628db67f765f78eb081fefd3b5de0f720b5f51b14f48752850466a27ce79"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-flag-dad-completion",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "tentative-aaaa:udp",
+            "tentative-aaaa:tcp",
+            "tentative-ptr:udp",
+            "tentative-ptr:tcp",
+            "completed-aaaa:udp",
+            "completed-aaaa:tcp",
+            "completed-ptr:udp",
+            "completed-ptr:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "17a966145a5a03bb945b6de56a6ecacb98395c81be57769518154ea4ba2dd5ff",
+          "rust_observed_sha256": "d761aaa96dc8f77128f5f46b1febd6544e1dab8a6926c49c92392848bd7481f9"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-tcp-inherited-flags",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "child-tentative:held",
+            "parent-complete:udp",
+            "child-old-flags:held",
+            "fresh-flags:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "83ca1dbe227ed5f1cdafd84e398a9c11d2120a852643a423424dd104c5619a23",
+          "rust_observed_sha256": "c4f35b0e812fa25c452b8e0b4a5c2b4797e9bf27f2c4e715b785c26cc0ceb982"
+        }
+      ]
+    },
+    {
+      "id": "IF-CALLER/11",
+      "boundary": "IF-CALLER",
+      "required_case": "new TCP child sees changed address",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-tcp-inherited",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "child-before:held",
+            "parent-after:udp",
+            "child-after:held",
+            "fresh:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "a6e27df63ea1dfd6f4bdff38cb149b8d73f04606373aec08ce247bd3aee278ac",
+          "rust_observed_sha256": "bc91628db67f765f78eb081fefd3b5de0f720b5f51b14f48752850466a27ce79"
+        }
+      ]
+    },
+    {
+      "id": "IF-CALLER/12",
+      "boundary": "IF-CALLER",
+      "required_case": "open child CNAME terminal retains snapshot",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-tcp-removed-cname",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "child-before:held",
+            "parent:udp",
+            "child-after:held",
+            "new-child:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "fff092b466b2bcafd475594993fe923943dea1596113f7b965efb732571f1dfc",
+          "rust_observed_sha256": "3daebdc72f345baa67a50e64477b0c774112d683b470022e44eb448572ff4ac5"
+        }
+      ]
+    },
+    {
+      "id": "IF-CALLER/13",
+      "boundary": "IF-CALLER",
+      "required_case": "address removed while child remains open",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-tcp-removed-cname",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "child-before:held",
+            "parent:udp",
+            "child-after:held",
+            "new-child:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "fff092b466b2bcafd475594993fe923943dea1596113f7b965efb732571f1dfc",
+          "rust_observed_sha256": "3daebdc72f345baa67a50e64477b0c774112d683b470022e44eb448572ff4ac5"
+        }
+      ]
+    },
+    {
+      "id": "IF-CALLER/14",
+      "boundary": "IF-CALLER",
+      "required_case": "debug C blocking behavior separately calibrated",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-debug-parent-blocking",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "debug-before:held",
+            "debug-parent:udp",
+            "debug-child-after:held",
+            "debug-fresh:udp",
+            "debug-fresh:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "ee58a688775d9a6be174954b7d5640ba5d2dbd1ebb2b526dce1263f233bff2f8",
+          "rust_observed_sha256": "9dcc3c18facae8040470fec1dbc299cdbef8a325bf1b575caac25aa73f1e32c6"
+        }
+      ]
+    },
+    {
+      "id": "IF-CALLER/15",
+      "boundary": "IF-CALLER",
+      "required_case": "at-most-once enum same poll cycle",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-enum-same-cycle",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [],
+          "kernel_and_callers": [
+            "actual poll requests/queued replies"
+          ],
+          "c_observed_sha256": "976d0fcba5590463d0cd66b597641ca9fb9427ca48b879c53ee9efecf165278e",
+          "rust_observed_sha256": "aee961b832dc3e4f6833ae457e1fad2c7d971b50aa7e8339ec1e6de0550680e1"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-enum-event-same-cycle",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [],
+          "kernel_and_callers": [
+            "actual poll requests/queued replies"
+          ],
+          "c_observed_sha256": "5a19497acbcb394530774b0b3767193f1edc663e6c999577d80757d6ad6cf0ec",
+          "rust_observed_sha256": "f3f25002a7edecbb57a154d64724d2ce4b77ddeb0ec7808eabcf5e9f3541ee88"
+        }
+      ]
+    },
+    {
+      "id": "IF-CALLER/16",
+      "boundary": "IF-CALLER",
+      "required_case": "enum socket failure before clear preserves old snapshot",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-enum-fault-before-clear",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "initial:udp",
+            "faulted:udp",
+            "ptr-old:udp",
+            "ptr-new:udp",
+            "ptr-v6:udp",
+            "recovered:udp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "d97bc88f896654781b57261882911e59e1dd933607352b733d3a8d7982b72c20",
+          "rust_observed_sha256": "2c30df02dea194ca7001a31aa3751ae32d998ea826b7598cea832367f63f648c"
+        }
+      ]
+    },
+    {
+      "id": "IF-CALLER/17",
+      "boundary": "IF-CALLER",
+      "required_case": "partial netlink enumeration failure after clear",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-enum-fault-empty",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "initial:udp",
+            "faulted:udp",
+            "ptr-old:udp",
+            "ptr-new:udp",
+            "ptr-v6:udp",
+            "recovered:udp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "a4ac1296c5590a0a42b63510a7fdb4042306059d928e40b3c013a48182431044",
+          "rust_observed_sha256": "06336be81b3bd2817281391f933db0b50940db309c0a056790ef831ed5c7255c"
+        },
+        {
+          "mode": "service",
+          "case_id": "interface-enum-fault-partial",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "initial:udp",
+            "faulted:udp",
+            "ptr-old:udp",
+            "ptr-new:udp",
+            "ptr-v6:udp",
+            "recovered:udp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "e7fbde6c2f4c52463b185e58c3b28ac0a5cd3bbb8312ec3417fea6d728abbb6f",
+          "rust_observed_sha256": "e88f7af270b2837e6fd7cc51bdd39696ccf6b68e3afb5dc68be8fc5a78d3bda9"
+        }
+      ]
+    },
+    {
+      "id": "IF-CALLER/18",
+      "boundary": "IF-CALLER",
+      "required_case": "enumeration allocation failure reference boundary",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "interface-enum-allocation-reference",
+          "run": "paired-486-interface-final-allocation-03",
+          "observation_ids": [
+            "initial:udp",
+            "faulted:udp",
+            "ptr-old4:udp",
+            "ptr-new4:udp",
+            "ptr-new6:udp",
+            "recovered:udp"
+          ],
+          "kernel_and_callers": [
+            "initial-kernel",
+            "actual allocator PC/NULL-return"
+          ],
+          "c_observed_sha256": "6d79df59cf645bf5070a5f90b8d4d29b62212e1e49aebcc5d899ac893902e62b",
+          "rust_observed_sha256": "a9808f1289ef03c7261a91230a5f81ca72de6b5207d923f76011ad615f951e5a"
+        }
+      ]
+    },
+    {
+      "id": "DH-COMPOSE/01",
+      "boundary": "DH-COMPOSE",
+      "required_case": "IPv4 /0 /1 /16 /24 /31 /32 host-bit composition",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "dynamic-v4-prefix-0",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "e36e9cc86ac153bd60cab5e3e450ae0018b8fb0a9cdd43fb570c5ffd2c1a3d6c",
+          "rust_observed_sha256": "5f984535201f128ca4fc3c7dffa3a6f7a794aa5b986f63c54a18cada4e66dd25"
+        },
+        {
+          "mode": "service",
+          "case_id": "dynamic-v4-prefix-1",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "3c3e5146d4269d87ee70ba74d430b285c3390f9729480358c98272fc7350d868",
+          "rust_observed_sha256": "dc32590ea1420e4d2776f9653c33a9d2dbaa33b7b879ffc9d00f8217c0775419"
+        },
+        {
+          "mode": "service",
+          "case_id": "dynamic-v4-prefix-16",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "d55e0fdf82ff0a8e248ba05fd9d901042c5762f93f937e5869ee6d82d7224cea",
+          "rust_observed_sha256": "feb67cf136dc3f096bc64e88fb7006884dd4a7f27e533b6b0e105b9ad63bbc29"
+        },
+        {
+          "mode": "service",
+          "case_id": "dynamic-v4-prefix-24",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "e791fdd1d7a7eaec75fa592d851dd98f1c4f19c91540a891215dbeb2e6f6476c",
+          "rust_observed_sha256": "46bac972a4a2ed3063d4e0e2bb537302d44895d16a76e52323ff6f3d40c0ca3f"
+        },
+        {
+          "mode": "service",
+          "case_id": "dynamic-v4-prefix-31",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "aecba600b68124597455179e6206bad4c413b90a3da7700901f6061fb38a46f0",
+          "rust_observed_sha256": "6b111d928cd6d0af162d673929e04376efc73d4164391283398b8e501bc22501"
+        },
+        {
+          "mode": "service",
+          "case_id": "dynamic-v4-prefix-32",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "139aba061218b35ca7c71b84a079b75f8b8e50256e7945e9400a1976c8e99fa8",
+          "rust_observed_sha256": "465b0fa7ce2a9dcbe16178ef216d5fd0523e55e6d59e3710080de4ae03064e21"
+        }
+      ]
+    },
+    {
+      "id": "DH-COMPOSE/02",
+      "boundary": "DH-COMPOSE",
+      "required_case": "IPv4 multiple subnets and aliases",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "dynamic-multi-subnets",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "bad7163dc3b828206220f6caef0a9b26d00b3ad0f9b882b102dbbe8590ca4633",
+          "rust_observed_sha256": "dbcaddcbe553ac4b399f2a9c8bedce9cdccc724874a0d515ed58e78262b85ec3"
+        },
+        {
+          "mode": "service",
+          "case_id": "dynamic-alias",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "forward:udp",
+            "forward:tcp",
+            "reverse:udp",
+            "reverse:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "47d6663389a9ca0ef983d9adb0d36c07f596d721fc0b5f6e1509dfc583092f9b",
+          "rust_observed_sha256": "d4aeaf9985286470dd17c5a9fc47e0f8189b5919f6ecac4726b9139c752a7d25"
+        }
+      ]
+    },
+    {
+      "id": "DH-COMPOSE/03",
+      "boundary": "DH-COMPOSE",
+      "required_case": "IPv4 proto subnet bits ignored",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "dynamic-multi-subnets",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "bad7163dc3b828206220f6caef0a9b26d00b3ad0f9b882b102dbbe8590ca4633",
+          "rust_observed_sha256": "dbcaddcbe553ac4b399f2a9c8bedce9cdccc724874a0d515ed58e78262b85ec3"
+        },
+        {
+          "mode": "service",
+          "case_id": "dynamic-last-prototype",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "a71536062c0f663de87e54f280beecacc3c4664ec9e4381d6ed979b3fc48a198",
+          "rust_observed_sha256": "94116d3277514b5426c38f026f7d7403bdd9f28a597472de9421552f337a03dc"
+        }
+      ]
+    },
+    {
+      "id": "DH-COMPOSE/04",
+      "boundary": "DH-COMPOSE",
+      "required_case": "IPv6 /0 /1 /63 /64 /65 /127 /128 composition",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "dynamic-v6-prefix-0",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "c462bfd2ea31cb5a7b9f0ee3a40ce52170c99bc0c62fa5ab730a168d643a83e1",
+          "rust_observed_sha256": "e307580a81deeb9cbb8d03f1165879723b288262b5dc1fff08674dd53e6f4cf5"
+        },
+        {
+          "mode": "service",
+          "case_id": "dynamic-v6-prefix-1",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "9fe6ae17a62728df37600abea3af250fb02025bc6dbfb5a1f4122f7ce640d329",
+          "rust_observed_sha256": "3dff32acbe6df8c969dc33d08b483097d210461bd55080b60e9ec328cc793bc6"
+        },
+        {
+          "mode": "service",
+          "case_id": "dynamic-v6-prefix-63",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "bf355fdf56b47f11329ff9e880ae71212f5bb6e62cba35d40b4ca97ad9942250",
+          "rust_observed_sha256": "de69aa6600129d9bc1f513531cb4eacaee629b98ebbad726377b54735d4f75d6"
+        },
+        {
+          "mode": "service",
+          "case_id": "dynamic-v6-prefix-64",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "eb2565b4cbed54bdd569ff215686763bf8149124960b55a69d490d10a4f97b47",
+          "rust_observed_sha256": "d504ff39b3b12149072cf6bdcdb333438b87edeeb14688539a2635937be02ff6"
+        },
+        {
+          "mode": "service",
+          "case_id": "dynamic-v6-prefix-65",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "50782282e6092d804aa09440dbeba0e518f53322f9fd2a11b1258115839e460b",
+          "rust_observed_sha256": "70165e20748637185b0fa88be48a475eda937999c3cc987e7f517e702c68eee6"
+        },
+        {
+          "mode": "service",
+          "case_id": "dynamic-v6-prefix-127",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "cc5f3015c129f1e640500a1c36afbf0275b72fe22c39fce03e323bda29a4e14a",
+          "rust_observed_sha256": "668c5ae92cb467ac7c7797598d29efd63e9dfea7f59a2ce5b49a339228c2a35c"
+        },
+        {
+          "mode": "service",
+          "case_id": "dynamic-v6-prefix-128",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "a8bdea8b7a9750e0d72891aa50983df8486c52cbc2370296c53afae8bf378d74",
+          "rust_observed_sha256": "a20556aede088256c6f44916d92903a9b195a280f9f0d9fd66cb53df367c5594"
+        }
+      ]
+    },
+    {
+      "id": "DH-COMPOSE/05",
+      "boundary": "DH-COMPOSE",
+      "required_case": "IPv6 proto high/low bits",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "dynamic-v6-prefix-63",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "bf355fdf56b47f11329ff9e880ae71212f5bb6e62cba35d40b4ca97ad9942250",
+          "rust_observed_sha256": "de69aa6600129d9bc1f513531cb4eacaee629b98ebbad726377b54735d4f75d6"
+        },
+        {
+          "mode": "service",
+          "case_id": "dynamic-v6-prefix-65",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "50782282e6092d804aa09440dbeba0e518f53322f9fd2a11b1258115839e460b",
+          "rust_observed_sha256": "70165e20748637185b0fa88be48a475eda937999c3cc987e7f517e702c68eee6"
+        }
+      ]
+    },
+    {
+      "id": "DH-COMPOSE/06",
+      "boundary": "DH-COMPOSE",
+      "required_case": "one versus both prototypes",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "dynamic-v4-prefix-24",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "e791fdd1d7a7eaec75fa592d851dd98f1c4f19c91540a891215dbeb2e6f6476c",
+          "rust_observed_sha256": "46bac972a4a2ed3063d4e0e2bb537302d44895d16a76e52323ff6f3d40c0ca3f"
+        },
+        {
+          "mode": "service",
+          "case_id": "dynamic-v6-prefix-64",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "eb2565b4cbed54bdd569ff215686763bf8149124960b55a69d490d10a4f97b47",
+          "rust_observed_sha256": "d504ff39b3b12149072cf6bdcdb333438b87edeeb14688539a2635937be02ff6"
+        },
+        {
+          "mode": "service",
+          "case_id": "dynamic-multi-subnets",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "bad7163dc3b828206220f6caef0a9b26d00b3ad0f9b882b102dbbe8590ca4633",
+          "rust_observed_sha256": "dbcaddcbe553ac4b399f2a9c8bedce9cdccc724874a0d515ed58e78262b85ec3"
+        }
+      ]
+    },
+    {
+      "id": "DH-COMPOSE/07",
+      "boundary": "DH-COMPOSE",
+      "required_case": "multiple source addresses same composed target dedup",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "dynamic-privacy-duplicate",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "duplicate-aaaa:udp",
+            "duplicate-aaaa:tcp",
+            "duplicate-ptr:udp",
+            "duplicate-ptr:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "4f26d27de213f3a39c5bf04ad8311336a37f583161320093cba05830f09900ad",
+          "rust_observed_sha256": "2ff2680080ffafb32683e65feab4e27e87ac2400277c42dc18c80e052c5d7dce"
+        },
+        {
+          "mode": "service",
+          "case_id": "dynamic-multi-subnets",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "bad7163dc3b828206220f6caef0a9b26d00b3ad0f9b882b102dbbe8590ca4633",
+          "rust_observed_sha256": "dbcaddcbe553ac4b399f2a9c8bedce9cdccc724874a0d515ed58e78262b85ec3"
+        }
+      ]
+    },
+    {
+      "id": "DH-COMPOSE/08",
+      "boundary": "DH-COMPOSE",
+      "required_case": "privacy/permanent duplicate composed target ordering",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "dynamic-privacy-duplicate",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "duplicate-aaaa:udp",
+            "duplicate-aaaa:tcp",
+            "duplicate-ptr:udp",
+            "duplicate-ptr:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "4f26d27de213f3a39c5bf04ad8311336a37f583161320093cba05830f09900ad",
+          "rust_observed_sha256": "2ff2680080ffafb32683e65feab4e27e87ac2400277c42dc18c80e052c5d7dce"
+        },
+        {
+          "mode": "service",
+          "case_id": "dynamic-privacy-order",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "privacy-first:udp",
+            "privacy-first:tcp",
+            "permanent-first:udp",
+            "permanent-first:tcp",
+            "derived-ptr:udp",
+            "derived-ptr:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "fb306a0d2697173318a7177d634f492b1da64e5a4c225c25591945001c72a85d",
+          "rust_observed_sha256": "b54df80f3aafb72ed9a0808fdebd0f77cdb83d1f687108c7a62bae9a5fba6c9f"
+        }
+      ]
+    },
+    {
+      "id": "DH-COMPOSE/09",
+      "boundary": "DH-COMPOSE",
+      "required_case": "interface missing or no matching family",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "dynamic-missing",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "41e2189c6a32674ecae26e6bb5c49eee2ef6a6023ac04df1e85cb9e2b2744ba1",
+          "rust_observed_sha256": "e2baf5328eed75f7d1f25d7ff54836133569c512c7df5a5749f51a9490b998f3"
+        },
+        {
+          "mode": "service",
+          "case_id": "dynamic-wrong-family",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "2959b284d0c88f6c6dd3ce4077e1bb828ff9667340733e52e699bd4e1e5ca22f",
+          "rust_observed_sha256": "0de36b7eb2ad6d42195903cc041643748f653ac43b7d90ceb0006651e8f32f37"
+        }
+      ]
+    },
+    {
+      "id": "DH-COMPOSE/10",
+      "boundary": "DH-COMPOSE",
+      "required_case": "down-interface prototype records",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "dynamic-down",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "down:udp",
+            "down:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "d8c4c6ae736428c0520e207d75c93c242ee4d0e4e8534e62276cd6801c28fe22",
+          "rust_observed_sha256": "39bca306286bba025a202653085d067f9d97d096b1e12e489f1cc0177f959d14"
+        }
+      ]
+    },
+    {
+      "id": "DH-COMPOSE/11",
+      "boundary": "DH-COMPOSE",
+      "required_case": "forward/reverse/name existence all apply",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "dynamic-multi-subnets",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp",
+            "q4:udp",
+            "q4:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "bad7163dc3b828206220f6caef0a9b26d00b3ad0f9b882b102dbbe8590ca4633",
+          "rust_observed_sha256": "dbcaddcbe553ac4b399f2a9c8bedce9cdccc724874a0d515ed58e78262b85ec3"
+        },
+        {
+          "mode": "service",
+          "case_id": "dynamic-missing",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "41e2189c6a32674ecae26e6bb5c49eee2ef6a6023ac04df1e85cb9e2b2744ba1",
+          "rust_observed_sha256": "e2baf5328eed75f7d1f25d7ff54836133569c512c7df5a5749f51a9490b998f3"
+        }
+      ]
+    },
+    {
+      "id": "DH-COMPOSE/12",
+      "boundary": "DH-COMPOSE",
+      "required_case": "same dynamic name multiple interface directives",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "dynamic-two-declarations",
+          "run": "paired-486-interface-final-service-02",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "kernel_and_callers": [],
+          "c_observed_sha256": "527aa23bd7d55d23b82b1dde815faadbdc6d604b4fe9cb32608d2e78d8656ddb",
+          "rust_observed_sha256": "095f2c783ccb9ad4049698a1927041492a174c50c273d8f14f2b163f67e43dc2"
+        }
+      ]
+    }
+  ]
+}
