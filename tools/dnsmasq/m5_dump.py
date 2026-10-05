@@ -127,6 +127,11 @@ def stop(process):
 
 def profiles():
     rows=[
+        dict(case='tftp-v4-data',tftp='data'),dict(case='tftp-v6-data',tftp='data',ipv6=True),
+        dict(case='tftp-oack-data',tftp='oack'),dict(case='tftp-error-reply',tftp='error'),
+        dict(case='tftp-client-abort',tftp='abort'),dict(case='tftp-retransmit',tftp='retransmit'),
+        dict(case='tftp-mask-zero',tftp='data',mask='0'),
+        dict(case='extra-tftp-no-display-id',tftp='data',extra=['log-queries=extra'],display=True),
         dict(case='upstream-v4-all',exchange=True,upstream=True),
         dict(case='upstream-v6-all',exchange=True,upstream=True,ipv6=True),
         dict(case='mask-up-query',exchange=True,upstream=True,mask='4'),
@@ -184,6 +189,37 @@ def exchange(spec, folder, serial):
     return [request.hex(),response.hex()]
 
 
+def tftp_exchange(spec,folder):
+    ipv6=spec.get('ipv6',False);address='::1' if ipv6 else '127.0.0.1'
+    records=[]
+    with socket.socket(socket.AF_INET6 if ipv6 else socket.AF_INET,socket.SOCK_DGRAM) as endpoint:
+        endpoint.bind((address,CLIENT));endpoint.settimeout(2)
+        def send(packet,peer):
+            endpoint.sendto(packet,peer);records.append(dict(sport=CLIENT,dport=peer[1],payload=packet.hex()))
+        def receive():
+            packet,peer=endpoint.recvfrom(4096);records.append(dict(sport=peer[1],dport=CLIENT,payload=packet.hex()));return packet,peer
+        request=b'\0\1'+(b'absent' if spec['tftp']=='error' else b'evidence')+b'\0octet\0'
+        if spec['tftp'] in ['oack','retransmit']:request+=b'timeout\0'+b'1\0'
+        send(request,(address,69));packet,peer=receive()
+        if spec['tftp']=='error':assert packet[:4]==b'\0\5\0\1','actual TFTP error reply'
+        elif spec['tftp']=='abort':
+            assert packet==b'\0\3\0\1pcap-evidence','TFTP DATA before abort'
+            send(b'\0\5\0\0fixture abort\0',peer)
+        elif spec['tftp']=='retransmit':
+            assert packet==b'\0\6timeout\0'+b'1\0','held OACK'
+            repeated,repeated_peer=receive();assert repeated==packet and repeated_peer==peer,'actual identical retransmission'
+            send(b'\0\5\0\0fixture complete\0',peer)
+        else:
+            if spec['tftp']=='oack':
+                assert packet==b'\0\6timeout\0'+b'1\0','actual OACK'
+                send(b'\0\4\0\0',peer);packet,peer=receive()
+            assert packet==b'\0\3\0\1pcap-evidence','actual TFTP DATA'
+            send(b'\0\4\0\1',peer)
+    save(folder/'tftp-witnesses.json',records)
+    time.sleep(.05)
+    return records
+
+
 def case(args,root,spec):
     label=spec['case'];folder=args.out/label;folder.mkdir()
     path=spec.get('path','/m2/dump.pcap');file=root/path.lstrip('/')
@@ -206,8 +242,11 @@ def case(args,root,spec):
     config += extras
     upstream=Upstream(spec.get('ipv6',False)) if spec.get('upstream') else None
     if upstream:config += ['server='+upstream.address+'#'+str(UPSTREAM),'query-port='+str(QUERY_PORT)]
+    if spec.get('tftp'):
+        data=root/'m2/tftp';data.mkdir(exist_ok=True);(data/'evidence').write_bytes(b'pcap-evidence')
+        config += ['enable-tftp','tftp-root=/m2/tftp','tftp-port-range=10690,10690']
     (root/'m2/dump.conf').write_text('\n'.join(config)+'\n');(folder/'config').write_text('\n'.join(config)+'\n')
-    process=None;captured=b'';witness=[];start=time.time();events=[];display_events=[]
+    process=None;captured=b'';witness=[];start=time.time();events=[];display_events=[];transport_witness=[]
     try:
         for phase in range(2 if spec.get('restart') else 1):
             (root/'m2/dump.pid').unlink(missing_ok=True)
@@ -222,6 +261,7 @@ def case(args,root,spec):
                     assert process.poll() is None,'startup died';time.sleep(.005)
                 assert (root/'m2/dump.pid').exists(),'startup readiness'
                 save(folder/f'{phase}.identity.json',process_identity(root,process.pid))
+                if spec.get('tftp'):transport_witness += tftp_exchange(spec,folder)
                 if spec.get('exchange'):
                     for index in range(spec.get('copies',1)):witness += exchange(spec,folder,phase*10+index)
                 time.sleep(.05)
@@ -261,6 +301,11 @@ def case(args,root,spec):
                         assert row['payload']==payload,'PCAP payload must match actual client/upstream witness before ID normalization'
                         if flag in [4,8]:canonical_record(row,identifier)
                         expected.append(row['payload']);cursor+=1
+            for witness_packet in transport_witness:
+                if mask&0x8000:
+                    row=observed['records'][cursor]
+                    assert {key:row[key] for key in ['sport','dport','payload']}==witness_packet,'actual TFTP witness/caller capture'
+                    expected.append(row['payload']);cursor+=1
             assert cursor==len(observed['records']),'PCAP exact caller record count'
             assert [int(row[0]) for row in events]==list(range(1,len(expected)+1)),'record count/order/logging'
             if label in ['header-create','header-user-nobody']:
