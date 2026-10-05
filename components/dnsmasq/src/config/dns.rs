@@ -701,7 +701,7 @@ impl DnsConfig {
     fn reverse_server(&mut self, argument: &EncodedArg) -> Result<(), Error> {
         let (range, server) = EncodedArg(argument.decoded()).split_once(b',');
         let (address, prefix) = range.split_once(b'/');
-        let address = ip(address.encoded()).ok_or(Error("bad reverse address"))?;
+        let address = ip(address.encoded()).ok_or(Error("error"))?;
         // C invalid numeric prefix falls back to the complete address width.
         let width = if address.is_ipv4() { 32 } else { 128 };
         let prefix = match prefix.as_ref() {

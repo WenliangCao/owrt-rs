@@ -118,7 +118,7 @@ fn main() {
         if error.is::<WatchError>() && !DEBUG_MODE.load(Ordering::Relaxed) {
             std::process::exit(startup_status(error.as_ref()));
         }
-        let blank_line = error.is::<loader::LoadError>()
+        let blank_line = error.is::<loader::LoadError>() || error.is::<Error>()
             || error
                 .downcast_ref::<dnsmasq_rs::dns::daemon::DaemonError>()
                 .is_some_and(|error| {
