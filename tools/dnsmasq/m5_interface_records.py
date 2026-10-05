@@ -122,6 +122,30 @@ def service_cases():
              (ipaddress.ip_address('2001:db8:91::9').reverse_pointer,12),
              (ipaddress.ip_address('fe80::9').reverse_pointer,12)],
             'IF-ENUM IF-FWD IF-PTR IF-EXIST IF-FLAGS',topology=[primary])
+    for width in (0,1,16,24,31,32):
+        source=ipaddress.ip_address('198.18.91.9');prototype=ipaddress.ip_address('1.2.3.7')
+        mask=((1<<32)-1)^((1<<(32-width))-1) if width else 0
+        composed=ipaddress.ip_address((int(source)&mask)|(int(prototype)&~mask&((1<<32)-1)))
+        add('dynamic-v4-prefix-'+str(width),'dynamic-host=proto.records.test,1.2.3.7,m5ir0\n',
+            [('proto.records.test',1),('proto.records.test',28),(composed.reverse_pointer,12)],
+            'DH-COMPOSE IF-PTR',topology=[{'name':'m5ir0','addresses':[str(source)+'/'+str(width)]}])
+    for width in (0,1,63,64,65,127,128):
+        source=ipaddress.ip_address('2001:db8:91:1000::9');prototype=ipaddress.ip_address('fdaa:bbbb:cccc:dddd:eeee:ffff:1234:7')
+        mask=((1<<128)-1)^((1<<(128-width))-1) if width else 0
+        composed=ipaddress.ip_address((int(source)&mask)|(int(prototype)&~mask&((1<<128)-1)))
+        add('dynamic-v6-prefix-'+str(width),'dynamic-host=proto.records.test,'+str(prototype)+',m5ir0\n',
+            [('proto.records.test',28),('proto.records.test',1),(composed.reverse_pointer,12)],
+            'DH-COMPOSE IF-PTR',topology=[{'name':'m5ir0','addresses':[str(source)+'/'+str(width)]}])
+    add('interface-root-name','interface-name=,m5ir0\n',[('',1),('',28),('9.91.18.198.in-addr.arpa',12)],'IF-GRAM IF-EXIST',topology=[primary])
+    add('interface-without-address','interface-name=iface.records.test,m5ir0\n',
+        [('iface.records.test',1),('iface.records.test',28),('records.test',16)],'IF-ENUM IF-EXIST',topology=[{'name':'m5ir0','addresses':[]}])
+    add('interface-host-precedence','interface-name=iface.records.test,m5ir0\nhost-record=iface.records.test,192.0.2.99,2001:db8:ffff::99\n',
+        [('iface.records.test',1),('iface.records.test',28),('iface.records.test',255)],'IF-FWD',topology=[primary])
+    add('interface-empty-host-interception','interface-name=iface.records.test,missing_ir\nhost-record=iface.records.test,192.0.2.99,2001:db8:ffff::99\n',
+        [('iface.records.test',1),('iface.records.test',28)],'IF-FWD IF-EXIST')
+    add('interface-two-declarations','interface-name=iface.records.test,m5ir0\ninterface-name=iface.records.test,m5ir1\n',
+        [('iface.records.test',1),('iface.records.test',28),('iface.records.test',255)],'IF-ENUM IF-FWD',
+        topology=[primary,{'name':'m5ir1','addresses':['198.18.92.9/24','2001:db8:92::9/64']}])
     add('interface-ptr-precedence','interface-name=first.records.test,m5ir0\ninterface-name=second.records.test,m5ir0\n'
         'ptr-record=9.91.18.198.in-addr.arpa,explicit.records.test\nhost-record=host.records.test,198.18.91.9\n',
         [('9.91.18.198.in-addr.arpa',12),('first.records.test',1),('second.records.test',1)],'IF-PTR',topology=[primary])
