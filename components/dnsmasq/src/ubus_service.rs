@@ -39,6 +39,21 @@ impl std::error::Error for ConnectError {
     }
 }
 
+impl ConnectError {
+    /// ubus_add_object returns a protocol status; dnsmasq prints ubus_strerror
+    /// without the bridge's transport prefix or numeric status suffix.
+    pub fn registration_message(error: &io::Error) -> String {
+        let code = owrt_ubus::conn::error_status(error).unwrap_or_else(|| {
+            if error.kind() == io::ErrorKind::TimedOut {
+                status::TIMEOUT
+            } else {
+                status::CONNECTION_FAILED
+            }
+        });
+        format!("UBus error: {}", status::name(code))
+    }
+}
+
 pub struct UbusService {
     connection: Connection,
     main_id: u32,

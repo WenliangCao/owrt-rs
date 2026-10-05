@@ -248,7 +248,12 @@ impl ParentEvents {
             Some(name) => match UbusService::connect_bytes(None, name) {
                 Ok(service) => Some(service),
                 Err(ConnectError::Transport(_)) => None,
-                Err(error) => return Err(Box::new(error)),
+                Err(ConnectError::Registration(error)) => {
+                    return Err(Box::new(dnsmasq_rs::startup::StartupError {
+                        code: 5,
+                        message: ConnectError::registration_message(&error),
+                    }));
+                }
             },
         };
         Ok(Self {
