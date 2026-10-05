@@ -147,6 +147,8 @@ def raw_profiles():
     for label, failure in [('script-exit-recovery', 'exit'), ('script-signal-recovery', 'signal')]:
         add(label, [base, dict(address=fresh, mac=alternate)], [callback(True, fresh, alternate)])
         rows[-1]['script_failure'] = failure
+    add('script-exec-error', [base, dict(address=fresh, mac=alternate)], [])
+    rows[-1]['exec_failure'] = True
     rows.append(dict(case='slow-helper-dns-progress', delay=True))
     add('netlink-error', [base], [callback(False, V4, MAC)])
     rows[-1]['netlink_mode'] = 'error'
@@ -519,6 +521,8 @@ def run_side(args):
                         time.sleep(.02)
                     assert (root / 'm2/arp-finished').read_bytes(), 'script recovery'
                 if 'raw' in spec:
+                    if spec.get('exec_failure'):
+                        script.unlink()
                     if 'warmup' in spec:
                         warmup = folder / 'warmup'
                         warmup.mkdir()
@@ -540,6 +544,22 @@ def run_side(args):
                     save(folder / 'raw-callbacks.json', observed)
                     expected = [] if args.side == 'rust' and spec.get('reference_difference') else spec['expected']
                     assert observed == expected, 'C-derived raw callback order/payload or guarded complete-snapshot policy'
+                    if spec.get('exec_failure'):
+                        logged = (root / 'm2/arp.log').read_bytes()
+                        assert b'failed to execute /m2/arp-script: No such file or directory' in logged, 'actual ARP script exec error notice'
+                        (folder / 'exec-error.log').write_bytes(logged)
+                        script.write_text(SCRIPT)
+                        script.chmod(0o755)
+                        recovery = folder / 'exec-recovery'
+                        recovery.mkdir()
+                        replacement = '02:00:00:91:00:19'
+                        refresh_with_fixture(pid, spec['raw'] + [dict(address='192.0.2.19', mac=replacement)], recovery)
+                        deadline = time.monotonic() + 2
+                        while not callbacks(root) and time.monotonic() < deadline:
+                            time.sleep(.02)
+                        observed = callbacks(root)
+                        save(recovery / 'callbacks.json', observed)
+                        assert observed == [['3', 'arp-add', replacement, '192.0.2.19', '0', '0', 'inherited-iface', 'inherited-id']], 'ARP helper did not recover after exec error'
                 owned = helpers(pid)
                 assert len(owned) == (0 if spec.get('no_helper') else 1), 'helper qualification'
                 baseline = len(list(Path('/proc/' + str(pid) + '/fd').iterdir()))
